@@ -1,0 +1,700 @@
+{
+  "pass": 75,
+  "fail": 0,
+  "errors": [],
+  "report": {
+    "routes": [
+      {
+        "label": "J1 -> J2 -> J3",
+        "kind": "combo",
+        "hits": [
+          17,
+          21,
+          26
+        ],
+        "stunBefore": [
+          0,
+          15,
+          12
+        ],
+        "hitFrames": [
+          5,
+          17,
+          32
+        ],
+        "blockedEvents": 0,
+        "damage": 64,
+        "energySpent": 0,
+        "coinsSpent": -1,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "J1 -> J2 -> J3 (mirrored)",
+        "kind": "combo",
+        "hits": [
+          17,
+          21,
+          26
+        ],
+        "stunBefore": [
+          0,
+          15,
+          12
+        ],
+        "hitFrames": [
+          5,
+          17,
+          32
+        ],
+        "blockedEvents": 0,
+        "damage": 64,
+        "energySpent": 0,
+        "coinsSpent": -1,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": true,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "Pistol (close)",
+        "kind": "combo",
+        "hits": [
+          28
+        ],
+        "stunBefore": [
+          0
+        ],
+        "hitFrames": [
+          17
+        ],
+        "blockedEvents": 0,
+        "damage": 28,
+        "energySpent": 10,
+        "coinsSpent": -1,
+        "trueCombo": false,
+        "dropAfterHit": -1,
+        "gap": 160,
+        "flip": false,
+        "note": "",
+        "verdict": "single hit"
+      },
+      {
+        "label": "Long gun (held 30 f)",
+        "kind": "combo",
+        "hits": [
+          63
+        ],
+        "stunBefore": [
+          0
+        ],
+        "hitFrames": [
+          34
+        ],
+        "blockedEvents": 0,
+        "damage": 63,
+        "energySpent": 25,
+        "coinsSpent": -1,
+        "trueCombo": false,
+        "dropAfterHit": -1,
+        "gap": 200,
+        "flip": false,
+        "note": "",
+        "verdict": "single hit"
+      },
+      {
+        "label": "Duplicate -> stance COVER ME",
+        "kind": "combo",
+        "hits": [
+          18
+        ],
+        "stunBefore": [
+          0
+        ],
+        "hitFrames": [
+          58
+        ],
+        "blockedEvents": 0,
+        "damage": 18,
+        "energySpent": 28,
+        "coinsSpent": 1,
+        "trueCombo": false,
+        "dropAfterHit": -1,
+        "gap": 180,
+        "flip": false,
+        "note": "",
+        "verdict": "single hit"
+      },
+      {
+        "label": "Ninja Intercept",
+        "kind": "combo",
+        "hits": [
+          36
+        ],
+        "stunBefore": [
+          0
+        ],
+        "hitFrames": [
+          32
+        ],
+        "blockedEvents": 0,
+        "damage": 36,
+        "energySpent": 15,
+        "coinsSpent": 0,
+        "trueCombo": false,
+        "dropAfterHit": -1,
+        "gap": 120,
+        "flip": false,
+        "note": "",
+        "verdict": "single hit"
+      },
+      {
+        "label": "J1 -> J2 -> J3 -> pistol (Special cancel)",
+        "kind": "combo",
+        "hits": [
+          17,
+          21,
+          26,
+          24
+        ],
+        "stunBefore": [
+          0,
+          15,
+          12,
+          14
+        ],
+        "hitFrames": [
+          5,
+          17,
+          32,
+          52
+        ],
+        "blockedEvents": 0,
+        "damage": 88,
+        "energySpent": 10,
+        "coinsSpent": -2,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "Low Draw -> Cross Cut",
+        "kind": "combo",
+        "hits": [
+          24,
+          52
+        ],
+        "stunBefore": [
+          0,
+          10
+        ],
+        "hitFrames": [
+          8,
+          27
+        ],
+        "blockedEvents": 0,
+        "damage": 76,
+        "energySpent": 0,
+        "coinsSpent": -1,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "Cross Cut -> Ultimate (recovery cancel)",
+        "kind": "combo",
+        "hits": [
+          52,
+          18,
+          25,
+          25,
+          30,
+          25,
+          25,
+          38,
+          42
+        ],
+        "stunBefore": [
+          0,
+          15,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999
+        ],
+        "hitFrames": [
+          13,
+          47,
+          73,
+          89,
+          115,
+          141,
+          161,
+          209,
+          215
+        ],
+        "blockedEvents": 0,
+        "damage": 280,
+        "energySpent": 100,
+        "coinsSpent": -1,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "J1 -> Echo (Back+Special) -> Partner Break",
+        "kind": "combo",
+        "hits": [
+          17,
+          10,
+          37
+        ],
+        "stunBefore": [
+          0,
+          8,
+          17
+        ],
+        "hitFrames": [
+          5,
+          24,
+          33
+        ],
+        "blockedEvents": 0,
+        "damage": 64,
+        "energySpent": 8,
+        "coinsSpent": -2,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "J1 -> Echo -> Relay (Forward+Special swap cancel) -> J1",
+        "kind": "combo",
+        "hits": [
+          17,
+          10,
+          16
+        ],
+        "stunBefore": [
+          0,
+          8,
+          20
+        ],
+        "hitFrames": [
+          5,
+          24,
+          30
+        ],
+        "blockedEvents": 0,
+        "damage": 43,
+        "energySpent": 8,
+        "coinsSpent": -2,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 72,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "BREACH: long gun -> Sword Finish (Up+Special)",
+        "kind": "combo",
+        "hits": [
+          63,
+          51
+        ],
+        "stunBefore": [
+          0,
+          11
+        ],
+        "hitFrames": [
+          45,
+          85
+        ],
+        "blockedEvents": 0,
+        "damage": 114,
+        "energySpent": 55,
+        "coinsSpent": 2,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 230,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "RISING KICK order -> jump -> Air Flying Kick",
+        "kind": "combo",
+        "hits": [
+          40,
+          30
+        ],
+        "stunBefore": [
+          0,
+          18
+        ],
+        "hitFrames": [
+          39,
+          61
+        ],
+        "blockedEvents": 0,
+        "damage": 70,
+        "energySpent": 18,
+        "coinsSpent": -1,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 110,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "Ultimate (clean opener)",
+        "kind": "combo",
+        "hits": [
+          20,
+          30,
+          30,
+          36,
+          30,
+          30,
+          46,
+          51
+        ],
+        "stunBefore": [
+          0,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999
+        ],
+        "hitFrames": [
+          27,
+          53,
+          69,
+          95,
+          121,
+          141,
+          189,
+          195
+        ],
+        "blockedEvents": 0,
+        "damage": 273,
+        "energySpent": 100,
+        "coinsSpent": 0,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 200,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      },
+      {
+        "label": "Ultimate SHOWCASE",
+        "kind": "combo",
+        "hits": [
+          20,
+          30,
+          30,
+          36,
+          30,
+          30,
+          46,
+          51
+        ],
+        "stunBefore": [
+          0,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999
+        ],
+        "hitFrames": [
+          27,
+          53,
+          69,
+          95,
+          121,
+          141,
+          189,
+          195
+        ],
+        "blockedEvents": 0,
+        "damage": 273,
+        "energySpent": 100,
+        "coinsSpent": 3,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 200,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      }
+    ],
+    "moves": {
+      "light": {
+        "name": "light",
+        "key": "light",
+        "total": 17,
+        "activeStart": 5,
+        "damage": 29
+      },
+      "heavy": {
+        "name": "heavy",
+        "key": "heavy",
+        "total": 41,
+        "activeStart": 13,
+        "damage": 88
+      },
+      "yLow": {
+        "name": "yLow",
+        "key": "yLow",
+        "total": 26,
+        "activeStart": 8,
+        "damage": 41
+      },
+      "up": {
+        "name": "up",
+        "key": "up",
+        "total": 37,
+        "activeStart": 12,
+        "damage": 71
+      },
+      "yAcro": {
+        "name": "yAcro",
+        "key": "yAcro",
+        "total": 42,
+        "activeStart": 16,
+        "damage": 78
+      },
+      "ySweep": {
+        "name": "ySweep",
+        "key": "ySweep",
+        "total": 34,
+        "activeStart": 11,
+        "damage": 58
+      },
+      "yClone": {
+        "name": "yClone",
+        "key": "yClone",
+        "total": 29,
+        "activeStart": 14,
+        "damage": 40
+      },
+      "yCall": {
+        "name": "yCall",
+        "key": "yCall",
+        "total": 27,
+        "activeStart": 12,
+        "damage": 40
+      },
+      "yUltOpen": {
+        "name": "yUltOpen",
+        "key": "yUltOpen",
+        "total": 71,
+        "activeStart": 20,
+        "damage": 40
+      }
+    },
+    "gun": {
+      "pistolFrame": 12,
+      "pistolDamage": 28,
+      "longReleaseDelay": 5,
+      "longDamage": 63
+    },
+    "coins": {
+      "echo": {
+        "hits": 1,
+        "c": 1,
+        "hp": 1090
+      }
+    },
+    "clone": {
+      "appear": 15
+    },
+    "orders": {
+      "cover": {
+        "label": "Duplicate -> stance COVER ME",
+        "kind": "combo",
+        "hits": [
+          18
+        ],
+        "stunBefore": [
+          0
+        ],
+        "hitFrames": [
+          58
+        ],
+        "blockedEvents": 0,
+        "damage": 18,
+        "energySpent": 28,
+        "coinsSpent": 1,
+        "trueCombo": false,
+        "dropAfterHit": -1,
+        "gap": 180,
+        "flip": false,
+        "note": "",
+        "verdict": "single hit"
+      },
+      "crosswire": {
+        "stats": {
+          "pistol": 0,
+          "long": 0,
+          "air": 0,
+          "longCommit": 0,
+          "longFail": 0,
+          "gunInterrupted": 0,
+          "clones": 1,
+          "cloneExpired": 0,
+          "clonePopped": 0,
+          "echoes": 1,
+          "echoHits": 0,
+          "swaps": 1,
+          "relays": 0,
+          "breaks": 0,
+          "coinsEarned": 0,
+          "coinsCapped": 0,
+          "coinsSpent": 1,
+          "cycleResets": 0,
+          "award": {
+            "melee": 0,
+            "gun": 0,
+            "clone": 0
+          },
+          "orders": {
+            "cover": 0,
+            "crosswire": 1,
+            "breach": 0,
+            "rising": 0,
+            "showcase": 0
+          },
+          "orderRejects": 0,
+          "stanceOpens": 1,
+          "stanceCancels": 0,
+          "breachConfirms": 0,
+          "swords": 0,
+          "intercepts": 0,
+          "ultStarts": 0,
+          "ultWhiffs": 0,
+          "ultDone": 0,
+          "showcases": 0,
+          "rejects": 0
+        },
+        "spent": 5.3
+      },
+      "breachUsableAt": 10,
+      "breach": {
+        "confirmT": 10,
+        "kind": "ySword"
+      }
+    },
+    "zord": {
+      "intercept": {
+        "label": "Ninja Intercept",
+        "kind": "combo",
+        "hits": [
+          36
+        ],
+        "stunBefore": [
+          0
+        ],
+        "hitFrames": [
+          32
+        ],
+        "blockedEvents": 0,
+        "damage": 36,
+        "energySpent": 15,
+        "coinsSpent": 0,
+        "trueCombo": false,
+        "dropAfterHit": -1,
+        "gap": 120,
+        "flip": false,
+        "note": "",
+        "verdict": "single hit"
+      },
+      "rising": {
+        "hp": 40,
+        "st": 1
+      }
+    },
+    "ult": {
+      "clean": {
+        "label": "Ultimate (clean opener)",
+        "kind": "combo",
+        "hits": [
+          20,
+          30,
+          30,
+          36,
+          30,
+          30,
+          46,
+          51
+        ],
+        "stunBefore": [
+          0,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999,
+          9999
+        ],
+        "hitFrames": [
+          27,
+          53,
+          69,
+          95,
+          121,
+          141,
+          189,
+          195
+        ],
+        "blockedEvents": 0,
+        "damage": 273,
+        "energySpent": 100,
+        "coinsSpent": 0,
+        "trueCombo": true,
+        "dropAfterHit": -1,
+        "gap": 200,
+        "flip": false,
+        "note": "",
+        "verdict": "true combo"
+      }
+    },
+    "blink": {
+      "recoveryPose": true
+    },
+    "resources": {
+      "damageScale": 0.586
+    }
+  }
+}

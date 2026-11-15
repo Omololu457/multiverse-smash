@@ -44,24 +44,26 @@ try{
  await page.evaluate(()=>{__harness.start();__harness.skipToBattle();__harness.luffyTest.step(4)});await page.evaluate(()=>__harness.preloadDone?.());await step(3)
  // ── PHASE 1/2: registration + stats
  let s=await state()
- const meta=await ev(async()=>{const {characters}=await import('./characters.js');const c=characters.dash_parr;return {name:c.name,displayName:c.displayName,universe:c.universe,diff:c.difficulty,arch:c.archetype,tag:c.tagline,hp:c.stats.maxHealth,w:c.stats.weight,e:c.stats.maxEnergy,en:c.traits.energyName,has:c.traits.hasEnergy,bio:c.bio}})
+ const meta=await ev(async()=>{const {characters}=await import('./characters.js');const c=characters.dash_parr;return {name:c.name,displayName:c.displayName,universe:c.universe,diff:c.difficulty,arch:c.archetype,tag:c.tagline,hp:c.stats.maxHealth,w:c.stats.weight,e:c.stats.maxEnergy,st:c.stats,k:characters.killua.stats,en:c.traits.energyName,has:c.traits.hasEnergy,bio:c.bio}})
  ck('registered: name/displayName Dash, archetype, tagline, difficulty 4',meta.name==='Dash'&&meta.displayName==='Dash'&&meta.arch==='Speedster / Rushdown'&&meta.tag==='Ready, set, already gone.'&&meta.diff===4,JSON.stringify(meta))
  ck('bio is two sentences',meta.bio.split(/(?<=\.)\s/).length===2)
- ck('stats: 860 HP, weight 0.7, energy 100 "Super Speed"',s.a.maxHp===860&&meta.w===0.7&&meta.e===100&&meta.en==='Super Speed'&&meta.has)
+ // Stats = Killua Zoldyck's (owner request 2026-11-15, replaces the brief's 860 HP / 6.4 / 11.0 / 12.5 / 0.7 numbers).
+ ck('stats: identical to Killua Zoldyck (HP 1030, energy 180 "Super Speed", speed 95, jump 33, 2 jumps, dash 19)',s.a.maxHp===1030&&meta.e===180&&meta.en==='Super Speed'&&meta.has&&Object.keys({...meta.st,...meta.k}).every(k=>meta.st[k]===meta.k[k]),JSON.stringify({st:meta.st,k:meta.k}))
  // walk / run speed
  await reset(600);await page.keyboard.down('d');await step(12);s=await state();await page.keyboard.up('d');const walk=Math.abs(s.a.vx)
- ck('walk speed 6.4 px/f at Jog',near(walk,6.4,0.05),String(walk))
+ const WALK=4.5+(95-78)/4   // physics.js walk map for Killua's speed 95 = 8.75 px/f
+ ck('walk speed 8.75 px/f at Jog (Killua speed 95)',near(walk,WALK,0.05),String(walk))
  await reset(900);await tap(['d']);await step(2);await tap(['d']);await step(3);s=await state();const run=Math.abs(s.a.vx)
- ck('run (double-tap dash) speed 11.0 px/f',near(run,11.0,0.05),String(run));report.stats={walk,run}
+ ck('run (double-tap dash) speed 10.45 px/f (Killua dash 19 × 0.55)',near(run,19*0.55,0.05),String(run));report.stats={walk,run}
  // energy: regen 4/s, +4 landed, +3 taken
  await reset(600,{energy:10});await step(60);s=await state();ck('Super Speed recharges 4/s',near(s.a.energy-10,4,0.15),String(s.a.energy-10))
  // ── PHASE 3: MOMENTUM
  await reset(1200);s=await state();ck('Momentum starts at 0 (Jog)',(s.a.s?.momentum||0)===0&&s.a.tier==='jog')
  await page.keyboard.down('a');await step(20);s=await state();ck('running fills 1.5/frame',near(s.a.s.momentum,1.5*20,3),String(s.a.s.momentum));await step(20);s=await state()
  ck('50+ → Sprint tier',s.a.tier==='sprint',String(s.a.s.momentum))
- const sprintWalk=Math.abs(s.a.vx);ck('Sprint: +10% move speed',near(sprintWalk,6.4*1.1,0.06),String(sprintWalk))
+ const sprintWalk=Math.abs(s.a.vx);ck('Sprint: +10% move speed',near(sprintWalk,WALK*1.1,0.06),String(sprintWalk))
  await step(30);s=await state();ck('100 → Blur tier (+ blurReady)',s.a.tier==='blur'&&s.a.s.blurReady,String(s.a.s.momentum));const blurWalk=Math.abs(s.a.vx)
- ck('Blur: +20% move speed',near(blurWalk,6.4*1.2,0.06),String(blurWalk));await page.keyboard.up('a')
+ ck('Blur: +20% move speed',near(blurWalk,WALK*1.2,0.06),String(blurWalk));await page.keyboard.up('a')
  await wait(s=>Math.abs(s.a.vx)<0.5,30);await step(28);s=await state();ck('standing still 29f keeps Momentum',s.a.s.momentum===100,String(s.a.s.momentum));await step(4);s=await state();ck('standing still 30f drains Momentum to 0',s.a.s.momentum===0,String(s.a.s.momentum))
  report.momentum={walk,sprintWalk,blurWalk}
  // hit landed +6
@@ -118,6 +120,22 @@ try{
  const IN=[['flurry',[['s'],['s','d'],['d','l']]],['blurDash',[['d'],[],['d'],['d','l']]],['laps',[['s'],[],['s'],['s','l']]],['hydro',[['a'],['a','s'],['s','l']]],['rush',[['s'],['s','d'],['d'],['s'],['s','d'],['d','l']]],['sidestep',[['a'],[],['a'],['a','j']]]]
  for(const [k,keys] of IN){await reset(k==='blurDash'?300:150);await seq(keys);s=await state();ck(`input → ${k}`,s.a.attack?.name===k,String(s.a.attack?.name))}
  await reset(60);await tap(['s','j']);s=await state();ck('↓+Light → Low',s.a.attack?.name==='low');await reset(60);await tap(['w','k']);s=await state();ck('↑+Heavy → Launcher',s.a.attack?.name==='launcher')
+ // ── FLASH TIME (← + Special toggle; owner request 2026-11-15)
+ await reset(300,{energy:99});await tap(['a','l']);s=await state()
+ ck('Flash Time: ← + Special turns it on (no attack starts)',!!s.a.s?.ft&&!s.a.attack,JSON.stringify({ft:s.a.s?.ft,atk:s.a.attack?.name}))
+ {const ftm=await ev(()=>{const H=__harness.dashParrTest,a=H.raw(),b=H.raw('p2');let skipped=0,blk=0;const e0=a.energy
+   for(let i=0;i<60;i++){__harness.luffyTest.step(1);if(b._timeSlowFlag)skipped++;if(a.isBlocking)blk++}
+   return {skipped,e0,e1:a.energy,blk}})
+  ck('Flash Time: opponent runs at ~1/3 speed (≈40 of 60 frames skipped)',ftm.skipped>=37&&ftm.skipped<=42,JSON.stringify(ftm))
+  ck('Flash Time: drains 0.22/frame with no passive regen',near(ftm.e0-ftm.e1,60*0.22,0.3),JSON.stringify(ftm))}
+ await page.keyboard.down(';');await step(6);s=await state();await page.keyboard.up(';')
+ ck('Flash Time: Dash cannot block while it is on',!(await ev(()=>__harness.dashParrTest.raw().isBlocking))&&!!s.a.s.ft)
+ await step(4);await tap(['a','l']);await step(2);s=await state();const bFlag=await ev(()=>!!__harness.dashParrTest.raw('p2')._timeSlowFlag)
+ ck('Flash Time: second ← + Special turns it off, opponent back to full speed',!s.a.s.ft&&!bFlag,JSON.stringify({ft:s.a.s.ft,bFlag}))
+ await reset(300,{energy:89});await tap(['a','l']);s=await state();ck('Flash Time: needs 90 Super Speed',!s.a.s?.ft&&!s.a.attack)
+ await reset(300,{energy:95});await tap(['a','l']);await ev(()=>{__harness.dashParrTest.raw().energy=0.3});await step(3);s=await state()
+ ck('Flash Time: ends on its own when Super Speed runs dry',!s.a.s.ft&&s.a.energy<=0.3,JSON.stringify({ft:s.a.s.ft,e:s.a.energy}))
+ await reset(150);await seq([['a'],['a','s'],['s','l']]);s=await state();ck('←↙↓ + Special is still Hydroplane',s.a.attack?.name==='hydro'&&!s.a.s.ft,String(s.a.attack?.name))
  // ── PHASE 3/5: Blur freebie
  await reset(150,{momentum:100,energy:30});await seq([['s'],['s','d'],['d','l']]);s=await state()
  ck('Blur tier: special costs 0 energy and Momentum resets to 0',s.a.attack?.name==='flurry'&&near(s.a.energy,30,0.4)&&s.a.s.momentum===0&&s.a.s.blurSpent===1,JSON.stringify({e:s.a.energy,m:s.a.s.momentum}))

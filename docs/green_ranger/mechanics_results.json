@@ -1,0 +1,347 @@
+{
+ "frameData": {
+  "J1 Straight Punch": {
+   "hit": {
+    "contactFrame": 5,
+    "damage": 18,
+    "advantage": 11,
+    "blocked": false
+   },
+   "block": {
+    "contactFrame": 5,
+    "damage": 3,
+    "advantage": -2,
+    "blocked": true
+   }
+  },
+  "Heavy Turning Kick": {
+   "hit": {
+    "contactFrame": 13,
+    "damage": 55,
+    "advantage": 9,
+    "blocked": false
+   },
+   "block": {
+    "contactFrame": 13,
+    "damage": 11,
+    "advantage": -16,
+    "blocked": true
+   }
+  },
+  "Low Leg Sweep": {
+   "hit": {
+    "contactFrame": 8,
+    "damage": 26,
+    "advantage": 6,
+    "blocked": false
+   },
+   "block": {
+    "contactFrame": 8,
+    "damage": 5,
+    "advantage": -7,
+    "blocked": true
+   }
+  },
+  "Launcher Rising Heel": {
+   "hit": {
+    "contactFrame": 12,
+    "damage": 45,
+    "advantage": 9,
+    "blocked": false
+   },
+   "block": {
+    "contactFrame": 12,
+    "damage": 9,
+    "advantage": -13,
+    "blocked": true
+   }
+  },
+  "Dragon Edge": {
+   "hit": {
+    "contactFrame": 14,
+    "damage": 46,
+    "advantage": -2,
+    "blocked": false
+   },
+   "block": {
+    "contactFrame": 14,
+    "damage": 5,
+    "advantage": -20,
+    "blocked": true
+   }
+  },
+  "Emerald Advance": {
+   "hit": {
+    "contactFrame": 16,
+    "damage": 63,
+    "advantage": 0,
+    "blocked": false
+   },
+   "block": {
+    "contactFrame": 16,
+    "damage": 7,
+    "advantage": -21,
+    "blocked": true
+   }
+  }
+ },
+ "routes": [
+  {
+   "label": "J1 > J2 > J3",
+   "hits": [
+    18,
+    22,
+    28
+   ],
+   "stunBefore": [
+    0,
+    16,
+    11
+   ],
+   "damage": 68,
+   "energySpent": 0,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "J1 > Heavy > Dragon Edge",
+   "hits": [
+    18,
+    55,
+    43
+   ],
+   "stunBefore": [
+    0,
+    9,
+    22
+   ],
+   "damage": 116,
+   "energySpent": 8.28,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Command chain > knock-away",
+   "hits": [
+    24,
+    32,
+    39
+   ],
+   "stunBefore": [
+    0,
+    20,
+    20
+   ],
+   "damage": 95,
+   "energySpent": 0,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Command chain > launcher branch",
+   "hits": [
+    24,
+    32,
+    37
+   ],
+   "stunBefore": [
+    0,
+    20,
+    22
+   ],
+   "damage": 93,
+   "energySpent": 0,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Command launcher branch > Rising Talon",
+   "hits": [
+    24,
+    32,
+    37
+   ],
+   "stunBefore": [
+    0,
+    20,
+    22
+   ],
+   "damage": 93,
+   "energySpent": 0,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Launcher > jump cancel > Air > Descending Fang",
+   "hits": [
+    45,
+    27
+   ],
+   "stunBefore": [
+    0,
+    18
+   ],
+   "damage": 72,
+   "energySpent": 12.66,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Launcher > jump cancel > Air",
+   "hits": [
+    45,
+    27
+   ],
+   "stunBefore": [
+    0,
+    18
+   ],
+   "damage": 72,
+   "energySpent": 0,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Note Emerald Advance > air conversion",
+   "hits": [
+    63
+   ],
+   "stunBefore": [
+    0
+   ],
+   "damage": 63,
+   "energySpent": 13.8,
+   "notesSpent": 1,
+   "trueCombo": false,
+   "gap": 160,
+   "note": ""
+  },
+  {
+   "label": "Heavy > Zord ultimate",
+   "hits": [
+    55,
+    37,
+    42,
+    42,
+    85
+   ],
+   "stunBefore": [
+    0,
+    4,
+    9998,
+    9998,
+    9998
+   ],
+   "damage": 261,
+   "energySpent": 98.14,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 70,
+   "note": ""
+  },
+  {
+   "label": "Rising Talon",
+   "hits": [
+    18,
+    34
+   ],
+   "stunBefore": [
+    0,
+    17
+   ],
+   "damage": 52,
+   "energySpent": 16.1,
+   "notesSpent": 0,
+   "trueCombo": true,
+   "gap": 40,
+   "note": ""
+  }
+ ],
+ "call": {
+  "complete": {
+   "notes": 1,
+   "cooldown": 180,
+   "frames": 60
+  },
+  "interrupted": {
+   "notes": 0,
+   "broken": 1
+  }
+ },
+ "notes": {},
+ "specials": {
+  "dragonEdgeReach": {
+   "maxConnectingLeftEdgeGap": 175,
+   "centreToFoeNearEdge": 145
+  },
+  "advanceTravel": 140,
+  "talonLanding": 15,
+  "fang": {
+   "maxVy": 13,
+   "landing": 25
+  }
+ },
+ "ultimate": {
+  "confirm": {
+   "damage": 244,
+   "cineFrames": 150,
+   "energyAfter": 1.8600000000000012
+  },
+  "whiff": {
+   "missed": 60,
+   "ultActive": false,
+   "energyAfterStart": 0
+  },
+  "block": {
+   "chip": 4,
+   "ultActive": false
+  },
+  "blockedRecoveryTotal": 94,
+  "interrupted": {
+   "ultActive": false,
+   "broken": 1,
+   "zord": false
+  }
+ },
+ "exploits": {
+  "mashCharge": 0,
+  "resetMidCall": 0,
+  "callDuringHitstop": null,
+  "interruptFirstFrame": 0,
+  "pulseSecondAfterHit": 1,
+  "notes": "see VERIFICATION.md for the full exploit table"
+ },
+ "movement": {
+  "green": {
+   "walkPxPerFrame": 6,
+   "jumpHeightPx": 385
+  }
+ },
+ "meta": {
+  "name": "Green Ranger",
+  "key": "green_ranger",
+  "universe": "power_rangers",
+  "hp": 1000,
+  "maxEnergy": 100,
+  "energy": 50.120000000000005,
+  "label": "Morph Energy",
+  "maxJumps": 1,
+  "speed": 96,
+  "portrait": "./assets/green_ranger/portrait.png",
+  "tagline": "Strike with purpose."
+ }
+}

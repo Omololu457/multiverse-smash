@@ -1,0 +1,38 @@
+[
+  {
+    "name": "stunReject",
+    "pass": true
+  },
+  {
+    "name": "downReject",
+    "pass": true
+  },
+  {
+    "name": "boundary0",
+    "pass": true
+  },
+  {
+    "name": "boundary3000",
+    "pass": true
+  },
+  {
+    "name": "captured",
+    "pass": true
+  },
+  {
+    "name": "throwExpiry",
+    "pass": true
+  },
+  {
+    "name": "throwSnapshot",
+    "pass": true
+  },
+  {
+    "name": "repeated",
+    "pass": true
+  },
+  {
+    "name": "KO during prime clears bonus and preserves skin",
+    "pass": true
+  }
+]

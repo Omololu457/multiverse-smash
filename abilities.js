@@ -36153,6 +36153,7 @@ export function applyOmoluPassiveSystems(fighter) {
 // ENERGY CHARGE (C key)
 // ─────────────────────────────────────────────────────────────────
 export function doEnergyCharge(fighter) {
+  if (fighter?.rosterKey === 'mr_incredible' && fighter._mrIncredible?.remaining > 0) return // no ultimate farming during prime
   if (fighter?.rosterKey === 'luffy') return
   if (fighter?.rosterKey === 'zoro') return   // Spirit only comes from hits, the passive and NAP
   if (fighter?.rosterKey === 'buggy') return  // Chop only comes from hits, nullified slashes and the passive
@@ -36170,6 +36171,7 @@ export function doEnergyCharge(fighter) {
 // ENERGY REGEN (passive, per frame)
 // ─────────────────────────────────────────────────────────────────
 export function regenEnergy(fighter) {
+  if (fighter?.rosterKey === 'mr_incredible' && fighter._mrIncredible?.remaining > 0) return // prime uses its finite special reserve
   if (luffyRegen(fighter)) return
   if (elastigirlRegen(fighter)) return   // Elastigirl: Elasticity 5/s (no-op for everyone else)
   if (zoroRegen(fighter)) return

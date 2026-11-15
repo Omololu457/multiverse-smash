@@ -1,0 +1,136 @@
+{
+  "replay": {
+    "frames": 5600,
+    "identical": true,
+    "exercised": [
+      "light",
+      "hJ2",
+      "hJ3",
+      "hPoke",
+      "heavy",
+      "tokens",
+      "hLow",
+      "up",
+      "dj",
+      "air",
+      "hExt",
+      "hCross",
+      "hRise",
+      "hOrder",
+      "hObj",
+      "precedents",
+      "ultOpen",
+      "ult",
+      "intro",
+      "ultCase",
+      "ultConfiscate",
+      "ultVerdict",
+      "ultSword",
+      "ultSettle"
+    ],
+    "stats": {
+      "marks": 4,
+      "tokens": 1,
+      "precedents": 1,
+      "pdRefused": 0,
+      "objections": 1,
+      "counters": 0,
+      "objWhiffs": 1,
+      "ext": 1,
+      "cross": 1,
+      "crossHits": 3,
+      "rises": 1,
+      "orders": 1,
+      "rejects": 0,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "dj": 1
+    }
+  },
+  "renderBatching": {
+    "samples": 600,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "had": {
+      "case": true,
+      "tok": 1
+    }
+  },
+  "lan": {
+    "seen": [
+      "hExt",
+      "hOrder",
+      "hCross",
+      "hObj",
+      "hRise"
+    ],
+    "frame": 420,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "hJ2",
+        "hJ3",
+        "hExt",
+        "hCross",
+        "hOrder",
+        "hRise",
+        "hObj",
+        "heavy",
+        "hPoke",
+        "hSweep",
+        "up",
+        "hLow",
+        "air",
+        "ultOpen",
+        "intro",
+        "ultCase",
+        "ultConfiscate",
+        "ultVerdict",
+        "ultSword",
+        "ultSettle"
+      ],
+      "hp": 764
+    },
+    "pad": {
+      "names": [
+        "light",
+        "hJ2",
+        "hJ3",
+        "hExt",
+        "hCross",
+        "hOrder",
+        "hRise",
+        "hObj",
+        "heavy",
+        "hPoke",
+        "hSweep",
+        "up",
+        "hLow",
+        "air",
+        "ultOpen",
+        "intro",
+        "ultCase",
+        "ultConfiscate",
+        "ultVerdict",
+        "ultSword",
+        "ultSettle"
+      ],
+      "hp": 764
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null
+  },
+  "passes": 20,
+  "errors": []
+}

@@ -1,0 +1,910 @@
+{
+ "routes": [
+  {
+   "label": "Jab → Kick → Staff (Light ×3)",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    17,
+    21
+   ],
+   "stunBefore": [
+    0,
+    10,
+    9,
+    17
+   ],
+   "hitFrames": [
+    5,
+    17,
+    33,
+    43
+   ],
+   "blockedEvents": 0,
+   "damage": 79,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Light retap without a hit",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "damage": 0,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 400,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "Divine Dog vs standing foe",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    25
+   ],
+   "blockedEvents": 0,
+   "damage": 39,
+   "energySpent": 9.9,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 220,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Divine Dog vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 5,
+   "energySpent": 9.9,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 220,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "Toad (clean) pull",
+   "kind": "combo",
+   "hits": [
+    35
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    22
+   ],
+   "blockedEvents": 0,
+   "damage": 35,
+   "energySpent": 11.06,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 170,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Toad vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 5,
+   "energySpent": 11.06,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 170,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "Nue vs airborne foe",
+   "kind": "combo",
+   "hits": [
+    42
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    31
+   ],
+   "blockedEvents": 0,
+   "damage": 42,
+   "energySpent": 12.4,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "foe held at burst height (jump stand-in)",
+   "routes": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Great Serpent",
+   "kind": "combo",
+   "hits": [
+    49
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    35
+   ],
+   "blockedEvents": 0,
+   "damage": 49,
+   "energySpent": 14.16,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Max Elephant",
+   "kind": "combo",
+   "hits": [
+    25,
+    25,
+    23
+   ],
+   "stunBefore": [
+    0,
+    22,
+    22
+   ],
+   "hitFrames": [
+    67,
+    83,
+    99
+   ],
+   "blockedEvents": 0,
+   "damage": 73,
+   "energySpent": 21.24,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 240,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Max Elephant vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 3,
+   "damage": 9,
+   "energySpent": 21.24,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 240,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "stock earn: Jab (normal) then Dog (dog)",
+   "kind": "combo",
+   "hits": [
+    18,
+    39
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    63
+   ],
+   "blockedEvents": 0,
+   "damage": 57,
+   "energySpent": 10.5,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 90,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "RESET at hit 2"
+  },
+  {
+   "label": "same family twice",
+   "kind": "combo",
+   "hits": [
+    18,
+    18
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    56
+   ],
+   "blockedEvents": 0,
+   "damage": 36,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "RESET at hit 2"
+  },
+  {
+   "label": "blocked hits earn nothing",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 5,
+   "energySpent": 10.44,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 130,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "SHADOW ROUTE: Dog → Toad",
+   "kind": "combo",
+   "hits": [
+    39,
+    35
+   ],
+   "stunBefore": [
+    0,
+    17
+   ],
+   "hitFrames": [
+    14,
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 74,
+   "energySpent": 22.22,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "routes": 1,
+   "verdict": "true combo"
+  },
+  {
+   "label": "route twice in one combo",
+   "kind": "combo",
+   "hits": [
+    39,
+    35
+   ],
+   "stunBefore": [
+    0,
+    17
+   ],
+   "hitFrames": [
+    14,
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 74,
+   "energySpent": 21.44,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "routes": 1,
+   "verdict": "true combo"
+  },
+  {
+   "label": "route without a stock",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    23
+   ],
+   "blockedEvents": 0,
+   "damage": 39,
+   "energySpent": 8.22,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Ultimate vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 5,
+   "energySpent": 96.16,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "CHIMERA SHADOW GARDEN",
+   "kind": "combo",
+   "hits": [
+    35,
+    23,
+    23,
+    23,
+    35,
+    29,
+    29,
+    105
+   ],
+   "stunBefore": [
+    0,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    23,
+    107,
+    119,
+    131,
+    141,
+    165,
+    177,
+    199
+   ],
+   "blockedEvents": 0,
+   "damage": 302,
+   "energySpent": 98.62,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Jab → Kick → Sword Arc",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    49
+   ],
+   "stunBefore": [
+    0,
+    10,
+    7
+   ],
+   "hitFrames": [
+    5,
+    17,
+    35
+   ],
+   "blockedEvents": 0,
+   "damage": 90,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Jab → Kick → Advancing Sword",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    21
+   ],
+   "stunBefore": [
+    0,
+    10,
+    5
+   ],
+   "hitFrames": [
+    5,
+    17,
+    37
+   ],
+   "blockedEvents": 0,
+   "damage": 62,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Low → Rising Staff",
+   "kind": "combo",
+   "hits": [
+    25,
+    46
+   ],
+   "stunBefore": [
+    0,
+    8
+   ],
+   "hitFrames": [
+    8,
+    26
+   ],
+   "blockedEvents": 0,
+   "damage": 71,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Jab → Kick → Staff → Divine Dog",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    17,
+    21,
+    30
+   ],
+   "stunBefore": [
+    0,
+    10,
+    9,
+    17,
+    9
+   ],
+   "hitFrames": [
+    5,
+    17,
+    33,
+    43,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 109,
+   "energySpent": 10.5,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Sword Arc → Toad (pull)",
+   "kind": "combo",
+   "hits": [
+    54,
+    32
+   ],
+   "stunBefore": [
+    0,
+    4
+   ],
+   "hitFrames": [
+    12,
+    48
+   ],
+   "blockedEvents": 0,
+   "damage": 86,
+   "energySpent": 11.06,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Sword Arc → Ultimate",
+   "kind": "combo",
+   "hits": [
+    54,
+    32,
+    19,
+    19,
+    19,
+    29,
+    24,
+    24,
+    88
+   ],
+   "stunBefore": [
+    0,
+    3,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    12,
+    49,
+    133,
+    145,
+    157,
+    167,
+    191,
+    203,
+    225
+   ],
+   "blockedEvents": 0,
+   "damage": 308,
+   "energySpent": 98.62,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Uppercut → double jump → Air Palm → Winged Toad",
+   "kind": "combo",
+   "hits": [
+    35,
+    23
+   ],
+   "stunBefore": [
+    0,
+    22
+   ],
+   "hitFrames": [
+    7,
+    27
+   ],
+   "blockedEvents": 0,
+   "damage": 58,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Dog → ROUTE → Serpent (1 stock)",
+   "kind": "combo",
+   "hits": [
+    39,
+    49
+   ],
+   "stunBefore": [
+    0,
+    4
+   ],
+   "hitFrames": [
+    23,
+    58
+   ],
+   "blockedEvents": 0,
+   "damage": 88,
+   "energySpent": 24.78,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "routes": 1,
+   "verdict": "true combo"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 17,
+   "activeStart": 5,
+   "activeEnd": 6,
+   "damage": 31
+  }
+ },
+ "movement": {
+  "walkVx": 6,
+  "liveSpeedStat": 84,
+  "formula": 6,
+  "jumps": [
+   1,
+   2,
+   2
+  ]
+ },
+ "summons": {
+  "dogRange": {
+   "dog": 1,
+   "toad": 0,
+   "nue": 0,
+   "airNue": 0,
+   "rabbit": 0,
+   "serpent": 0,
+   "elephant": 0,
+   "kon": 0,
+   "hits": {},
+   "blocked": 0,
+   "rejects": 0,
+   "pulls": 0,
+   "routes": 0,
+   "stocksEarned": 0,
+   "steps": 0,
+   "hops": 0,
+   "dismissed": 0,
+   "airEnds": 0,
+   "ultStarts": 0,
+   "ultWhiffs": 0,
+   "ultDone": 0,
+   "dj": 0,
+   "spawns": 1
+  },
+  "dog": {
+   "label": "Divine Dog vs standing foe",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    25
+   ],
+   "blockedEvents": 0,
+   "damage": 39,
+   "energySpent": 9.9,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 220,
+   "flip": false,
+   "note": "",
+   "routes": 0,
+   "verdict": "single hit"
+  },
+  "toad": {
+   "r": {
+    "label": "Toad (clean) pull",
+    "kind": "combo",
+    "hits": [
+     35
+    ],
+    "stunBefore": [
+     0
+    ],
+    "hitFrames": [
+     22
+    ],
+    "blockedEvents": 0,
+    "damage": 35,
+    "energySpent": 11.06,
+    "trueCombo": false,
+    "dropAfterHit": -1,
+    "gap": 170,
+    "flip": false,
+    "note": "",
+    "routes": 0,
+    "verdict": "single hit"
+   },
+   "gapAfter": 104,
+   "pulls": 1
+  },
+  "nue": {
+   "burstDx": 70.00999999999999,
+   "burstY": 350,
+   "feet": 500
+  },
+  "hop": {
+   "dx": -126
+  },
+  "serpent": {
+   "point": 1510,
+   "foeAtRelease": 1510,
+   "vol": {
+    "name": "megumi_serpent",
+    "kind": "serpent",
+    "n": 2,
+    "owner": 1,
+    "x": 1510.01,
+    "y": 415,
+    "w": 54,
+    "h": 170,
+    "vx": 0.01,
+    "damage": 82,
+    "life": 3
+   }
+  },
+  "elephant": {
+   "r": {
+    "label": "Max Elephant",
+    "kind": "combo",
+    "hits": [
+     25,
+     25,
+     23
+    ],
+    "stunBefore": [
+     0,
+     22,
+     22
+    ],
+    "hitFrames": [
+     67,
+     83,
+     99
+    ],
+    "blockedEvents": 0,
+    "damage": 73,
+    "energySpent": 21.24,
+    "trueCombo": true,
+    "dropAfterHit": -1,
+    "gap": 240,
+    "flip": false,
+    "note": "",
+    "routes": 0,
+    "verdict": "true combo"
+   },
+   "push": 9.900626786472685
+  }
+ },
+ "ultimate": {
+  "label": "CHIMERA SHADOW GARDEN",
+  "kind": "combo",
+  "hits": [
+   35,
+   23,
+   23,
+   23,
+   35,
+   29,
+   29,
+   105
+  ],
+  "stunBefore": [
+   0,
+   9999,
+   9999,
+   9999,
+   9999,
+   9999,
+   9999,
+   9999
+  ],
+  "hitFrames": [
+   23,
+   107,
+   119,
+   131,
+   141,
+   165,
+   177,
+   199
+  ],
+  "blockedEvents": 0,
+  "damage": 302,
+  "energySpent": 98.62,
+  "trueCombo": true,
+  "dropAfterHit": -1,
+  "gap": 120,
+  "flip": false,
+  "note": "",
+  "routes": 0,
+  "verdict": "true combo"
+ },
+ "misc": {
+  "step": {
+   "dx": 110,
+   "m": {
+    "name": "mStep",
+    "total": 26,
+    "activeStart": 6,
+    "activeEnd": 6,
+    "damage": 40
+   }
+  },
+  "route": {
+   "label": "SHADOW ROUTE: Dog → Toad",
+   "kind": "combo",
+   "hits": [
+    39,
+    35
+   ],
+   "stunBefore": [
+    0,
+    17
+   ],
+   "hitFrames": [
+    14,
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 74,
+   "energySpent": 22.22,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "routes": 1,
+   "verdict": "true combo"
+  }
+ },
+ "errors": []
+}

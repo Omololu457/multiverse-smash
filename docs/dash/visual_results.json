@@ -22,9 +22,10 @@
     "docs/dash/visual_08_launcher_L.png",
     "docs/dash/visual_09_sidestep_L.png",
     "docs/dash/visual_10_rush_storm.png",
-    "docs/dash/visual_11_rush_after.png"
+    "docs/dash/visual_11_rush_after.png",
+    "docs/dash/visual_13_flash_time.png"
   ],
-  "pass": 11,
+  "pass": 12,
   "fail": 0,
   "errors": []
 }

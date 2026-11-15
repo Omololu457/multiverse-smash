@@ -1,0 +1,3697 @@
+{
+ "source": "Game Boy Advance - Teen Titans - Playable Characters - Starfire.png",
+ "sha256": "89fbcd7483752e6a7b8f9923f0123ce14e2ebf12b3ce741ef96448313c80cad2",
+ "size": [
+  652,
+  1375
+ ],
+ "mode": "RGB",
+ "key": [
+  84,
+  109,
+  142
+ ],
+ "keyPolicy": "exact RGB(84,109,142) only (also inside enclosed gaps); outlines, costume, highlights and effect pixels kept",
+ "labels": {
+  "Appearing": [
+   88,
+   2,
+   140,
+   12
+  ],
+  "Idle": [
+   351,
+   69,
+   371,
+   78
+  ],
+  "Walking": [
+   387,
+   136,
+   426,
+   146
+  ],
+  "Jumping": [
+   397,
+   205,
+   439,
+   215
+  ],
+  "Landing": [
+   187,
+   289,
+   226,
+   299
+  ],
+  "Punch 1": [
+   502,
+   354,
+   542,
+   364
+  ],
+  "Punch 2": [
+   307,
+   421,
+   348,
+   431
+  ],
+  "Shooting Energy Ball": [
+   363,
+   483,
+   467,
+   493
+  ],
+  "Shooting Ball (Midair)": [
+   357,
+   548,
+   423,
+   572
+  ],
+  "Preparing to Levitate": [
+   190,
+   618,
+   295,
+   629
+  ],
+  "Levitating": [
+   558,
+   687,
+   608,
+   697
+  ],
+  "Shooting Laser": [
+   403,
+   762,
+   479,
+   772
+  ],
+  "Hurt": [
+   253,
+   835,
+   276,
+   845
+  ],
+  "Defeated": [
+   607,
+   894,
+   652,
+   904
+  ],
+  "Energy Ball": [
+   18,
+   961,
+   75,
+   971
+  ],
+  "Energy Exploding": [
+   458,
+   982,
+   545,
+   993
+  ],
+  "Laser": [
+   51,
+   1021,
+   80,
+   1031
+  ],
+  "Health Icon": [
+   163,
+   1039,
+   222,
+   1049
+  ],
+  "Cutscenes": [
+   67,
+   1254,
+   121,
+   1264
+  ]
+ },
+ "textComponents": 200,
+ "dividers": [
+  [
+   365,
+   981
+  ],
+  [
+   412,
+   981
+  ]
+ ],
+ "creditPanel": [
+  483,
+  1234,
+  169,
+  141
+ ],
+ "credit": "Brought to you by... Mr. C \u2014 Credit? No / Permission? No (panel excluded from animation)",
+ "frame": {
+  "width": 112,
+  "height": 104,
+  "originX": 56,
+  "originY": 92
+ },
+ "groundLines": {
+  "appear": 66,
+  "idle": 132,
+  "walk": 201,
+  "jump": 284,
+  "land": 349,
+  "pa": 415,
+  "pb": 481,
+  "shot": 545,
+  "ashot": 613,
+  "levb": 685,
+  "lev": 756,
+  "laser": 823,
+  "hurt": 895,
+  "def": 958
+ },
+ "cells": [
+  {
+   "name": "appear0",
+   "rect": [
+    1,
+    1,
+    21,
+    65
+   ],
+   "components": 31,
+   "opaquePixels": 429,
+   "kind": "body",
+   "anchor": [
+    8,
+    65
+   ],
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "appear1",
+   "rect": [
+    27,
+    2,
+    23,
+    64
+   ],
+   "components": 1,
+   "opaquePixels": 865,
+   "kind": "body",
+   "anchor": [
+    10,
+    64
+   ],
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "appear2",
+   "rect": [
+    55,
+    4,
+    24,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 879,
+   "kind": "body",
+   "anchor": [
+    12,
+    62
+   ],
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "idle0",
+   "rect": [
+    1,
+    71,
+    22,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 869,
+   "kind": "body",
+   "anchor": [
+    10,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle1",
+   "rect": [
+    28,
+    71,
+    23,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 872,
+   "kind": "body",
+   "anchor": [
+    11,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle2",
+   "rect": [
+    56,
+    71,
+    24,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 882,
+   "kind": "body",
+   "anchor": [
+    12,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle3",
+   "rect": [
+    85,
+    71,
+    24,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 879,
+   "kind": "body",
+   "anchor": [
+    12,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle4",
+   "rect": [
+    114,
+    71,
+    25,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 882,
+   "kind": "body",
+   "anchor": [
+    13,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle5",
+   "rect": [
+    144,
+    71,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 881,
+   "kind": "body",
+   "anchor": [
+    14,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle6",
+   "rect": [
+    174,
+    71,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 876,
+   "kind": "body",
+   "anchor": [
+    14,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle7",
+   "rect": [
+    205,
+    71,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 877,
+   "kind": "body",
+   "anchor": [
+    14,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle8",
+   "rect": [
+    236,
+    71,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 875,
+   "kind": "body",
+   "anchor": [
+    14,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle9",
+   "rect": [
+    267,
+    71,
+    25,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 874,
+   "kind": "body",
+   "anchor": [
+    13,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle10",
+   "rect": [
+    297,
+    71,
+    23,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 865,
+   "kind": "body",
+   "anchor": [
+    11,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle11",
+   "rect": [
+    325,
+    71,
+    22,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 867,
+   "kind": "body",
+   "anchor": [
+    10,
+    61
+   ],
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "walk10",
+   "rect": [
+    318,
+    137,
+    33,
+    64
+   ],
+   "components": 1,
+   "opaquePixels": 842,
+   "kind": "body",
+   "anchor": [
+    18,
+    64
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk4",
+   "rect": [
+    120,
+    138,
+    28,
+    63
+   ],
+   "components": 1,
+   "opaquePixels": 947,
+   "kind": "body",
+   "anchor": [
+    13,
+    63
+   ],
+   "usedIn": [
+    "dash",
+    "run",
+    "sfRush",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk9",
+   "rect": [
+    291,
+    138,
+    22,
+    63
+   ],
+   "components": 1,
+   "opaquePixels": 848,
+   "kind": "body",
+   "anchor": [
+    12,
+    63
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk3",
+   "rect": [
+    96,
+    139,
+    19,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 873,
+   "kind": "body",
+   "anchor": [
+    10,
+    62
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk11",
+   "rect": [
+    356,
+    139,
+    38,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 839,
+   "kind": "body",
+   "anchor": [
+    20,
+    62
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk5",
+   "rect": [
+    153,
+    140,
+    33,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 957,
+   "kind": "body",
+   "anchor": [
+    16,
+    61
+   ],
+   "usedIn": [
+    "dash",
+    "run",
+    "sfRush",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk6",
+   "rect": [
+    191,
+    140,
+    31,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 923,
+   "kind": "body",
+   "anchor": [
+    17,
+    61
+   ],
+   "usedIn": [
+    "dash",
+    "run",
+    "sfRush",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk8",
+   "rect": [
+    261,
+    140,
+    25,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 830,
+   "kind": "body",
+   "anchor": [
+    13,
+    61
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk0",
+   "rect": [
+    1,
+    141,
+    34,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 816,
+   "kind": "body",
+   "anchor": [
+    18,
+    60
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk2",
+   "rect": [
+    72,
+    141,
+    19,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 770,
+   "kind": "body",
+   "anchor": [
+    9,
+    60
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk7",
+   "rect": [
+    227,
+    141,
+    29,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 878,
+   "kind": "body",
+   "anchor": [
+    16,
+    60
+   ],
+   "usedIn": [
+    "dash",
+    "run",
+    "sfRush",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk1",
+   "rect": [
+    40,
+    142,
+    27,
+    59
+   ],
+   "components": 1,
+   "opaquePixels": 788,
+   "kind": "body",
+   "anchor": [
+    16,
+    59
+   ],
+   "usedIn": [
+    "run",
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "jump8",
+   "rect": [
+    350,
+    206,
+    55,
+    78
+   ],
+   "components": 1,
+   "opaquePixels": 1041,
+   "kind": "body",
+   "anchor": [
+    27,
+    78
+   ],
+   "usedIn": [
+    "fall",
+    "levEnd"
+   ]
+  },
+  {
+   "name": "jump7",
+   "rect": [
+    291,
+    210,
+    54,
+    74
+   ],
+   "components": 1,
+   "opaquePixels": 1040,
+   "kind": "body",
+   "anchor": [
+    26,
+    74
+   ],
+   "usedIn": [
+    "fall",
+    "levEnd"
+   ]
+  },
+  {
+   "name": "jump6",
+   "rect": [
+    232,
+    214,
+    54,
+    70
+   ],
+   "components": 1,
+   "opaquePixels": 1083,
+   "kind": "body",
+   "anchor": [
+    26,
+    70
+   ],
+   "usedIn": [
+    "fall"
+   ]
+  },
+  {
+   "name": "jump3",
+   "rect": [
+    114,
+    215,
+    29,
+    69
+   ],
+   "components": 1,
+   "opaquePixels": 1002,
+   "kind": "body",
+   "anchor": [
+    16,
+    69
+   ],
+   "usedIn": [
+    "doubleJump",
+    "jump",
+    "sfSky"
+   ]
+  },
+  {
+   "name": "jump4",
+   "rect": [
+    148,
+    217,
+    34,
+    67
+   ],
+   "components": 1,
+   "opaquePixels": 967,
+   "kind": "body",
+   "anchor": [
+    16,
+    67
+   ],
+   "usedIn": [
+    "doubleJump",
+    "jump",
+    "sfSky"
+   ]
+  },
+  {
+   "name": "jump2",
+   "rect": [
+    80,
+    218,
+    29,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 955,
+   "kind": "body",
+   "anchor": [
+    14,
+    66
+   ],
+   "usedIn": [
+    "doubleJump",
+    "jump",
+    "sfSky"
+   ]
+  },
+  {
+   "name": "jump5",
+   "rect": [
+    187,
+    219,
+    40,
+    65
+   ],
+   "components": 1,
+   "opaquePixels": 991,
+   "kind": "body",
+   "anchor": [
+    20,
+    65
+   ],
+   "usedIn": [
+    "doubleJump",
+    "fall"
+   ]
+  },
+  {
+   "name": "jump1",
+   "rect": [
+    41,
+    222,
+    34,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 923,
+   "kind": "body",
+   "anchor": [
+    14,
+    62
+   ],
+   "usedIn": [
+    "jump",
+    "sfSky"
+   ]
+  },
+  {
+   "name": "jump0",
+   "rect": [
+    1,
+    230,
+    35,
+    54
+   ],
+   "components": 1,
+   "opaquePixels": 780,
+   "kind": "body",
+   "anchor": [
+    22,
+    54
+   ],
+   "usedIn": [
+    "jump",
+    "sfSky"
+   ]
+  },
+  {
+   "name": "land0",
+   "rect": [
+    1,
+    289,
+    48,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 960,
+   "kind": "body",
+   "anchor": [
+    25,
+    60
+   ],
+   "usedIn": [
+    "land",
+    "sfLow",
+    "ultLand"
+   ]
+  },
+  {
+   "name": "land4",
+   "rect": [
+    157,
+    292,
+    25,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 836,
+   "kind": "body",
+   "anchor": [
+    14,
+    57
+   ],
+   "usedIn": [
+    "intro",
+    "land",
+    "ultLand"
+   ]
+  },
+  {
+   "name": "land1",
+   "rect": [
+    54,
+    296,
+    31,
+    53
+   ],
+   "components": 1,
+   "opaquePixels": 966,
+   "kind": "body",
+   "anchor": [
+    15,
+    53
+   ],
+   "usedIn": [
+    "land",
+    "sfLow",
+    "ultLand"
+   ]
+  },
+  {
+   "name": "land3",
+   "rect": [
+    125,
+    296,
+    27,
+    53
+   ],
+   "components": 1,
+   "opaquePixels": 782,
+   "kind": "body",
+   "anchor": [
+    16,
+    53
+   ],
+   "usedIn": [
+    "intro",
+    "land",
+    "sfLow",
+    "ultLand"
+   ]
+  },
+  {
+   "name": "land2",
+   "rect": [
+    90,
+    297,
+    30,
+    52
+   ],
+   "components": 1,
+   "opaquePixels": 834,
+   "kind": "body",
+   "anchor": [
+    17,
+    52
+   ],
+   "usedIn": [
+    "crouch",
+    "intro",
+    "land",
+    "sfLow",
+    "ultLand"
+   ]
+  },
+  {
+   "name": "pa0",
+   "rect": [
+    1,
+    354,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 911,
+   "kind": "body",
+   "anchor": [
+    13,
+    61
+   ],
+   "usedIn": [
+    "heavy",
+    "light"
+   ]
+  },
+  {
+   "name": "pa1",
+   "rect": [
+    32,
+    354,
+    37,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 921,
+   "kind": "body",
+   "anchor": [
+    14,
+    61
+   ],
+   "usedIn": [
+    "heavy",
+    "light"
+   ]
+  },
+  {
+   "name": "pa4",
+   "rect": [
+    163,
+    354,
+    37,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 871,
+   "kind": "body",
+   "anchor": [
+    20,
+    61
+   ],
+   "usedIn": [
+    "heavy",
+    "light",
+    "sfJ3",
+    "sfRush"
+   ]
+  },
+  {
+   "name": "pa2",
+   "rect": [
+    74,
+    355,
+    39,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 909,
+   "kind": "body",
+   "anchor": [
+    17,
+    60
+   ],
+   "usedIn": [
+    "heavy",
+    "light"
+   ]
+  },
+  {
+   "name": "pa3",
+   "rect": [
+    118,
+    355,
+    40,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 905,
+   "kind": "body",
+   "anchor": [
+    17,
+    60
+   ],
+   "usedIn": [
+    "heavy",
+    "light",
+    "sfJ3"
+   ]
+  },
+  {
+   "name": "pa9",
+   "rect": [
+    469,
+    356,
+    27,
+    59
+   ],
+   "components": 1,
+   "opaquePixels": 768,
+   "kind": "body",
+   "anchor": [
+    11,
+    59
+   ],
+   "usedIn": [
+    "heavy",
+    "sfJ3"
+   ]
+  },
+  {
+   "name": "pa7",
+   "rect": [
+    333,
+    357,
+    62,
+    58
+   ],
+   "components": 18,
+   "opaquePixels": 887,
+   "kind": "body",
+   "anchor": [
+    16,
+    58
+   ],
+   "usedIn": [
+    "heavy",
+    "sfJ3",
+    "sfRush"
+   ]
+  },
+  {
+   "name": "pa8",
+   "rect": [
+    400,
+    357,
+    64,
+    58
+   ],
+   "components": 10,
+   "opaquePixels": 826,
+   "kind": "body",
+   "anchor": [
+    15,
+    58
+   ],
+   "usedIn": [
+    "heavy",
+    "sfJ3"
+   ]
+  },
+  {
+   "name": "pa5",
+   "rect": [
+    205,
+    358,
+    59,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 1086,
+   "kind": "body",
+   "anchor": [
+    17,
+    57
+   ],
+   "usedIn": [
+    "heavy",
+    "sfJ3",
+    "sfRush"
+   ]
+  },
+  {
+   "name": "pa6",
+   "rect": [
+    269,
+    359,
+    59,
+    56
+   ],
+   "components": 2,
+   "opaquePixels": 944,
+   "kind": "body",
+   "anchor": [
+    16,
+    56
+   ],
+   "usedIn": [
+    "heavy",
+    "sfJ3",
+    "sfRush"
+   ]
+  },
+  {
+   "name": "pb1",
+   "rect": [
+    40,
+    420,
+    37,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 859,
+   "kind": "body",
+   "anchor": [
+    20,
+    61
+   ],
+   "usedIn": [
+    "air",
+    "sfJ2"
+   ]
+  },
+  {
+   "name": "pb0",
+   "rect": [
+    1,
+    421,
+    34,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 830,
+   "kind": "body",
+   "anchor": [
+    17,
+    60
+   ],
+   "usedIn": [
+    "guard",
+    "sfJ2"
+   ]
+  },
+  {
+   "name": "pb4",
+   "rect": [
+    204,
+    423,
+    59,
+    58
+   ],
+   "components": 18,
+   "opaquePixels": 882,
+   "kind": "body",
+   "anchor": [
+    15,
+    58
+   ],
+   "usedIn": [
+    "air",
+    "sfJ2"
+   ]
+  },
+  {
+   "name": "pb5",
+   "rect": [
+    268,
+    423,
+    37,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 866,
+   "kind": "body",
+   "anchor": [
+    16,
+    58
+   ],
+   "usedIn": [
+    "sfJ2"
+   ]
+  },
+  {
+   "name": "pb2",
+   "rect": [
+    82,
+    424,
+    56,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 1074,
+   "kind": "body",
+   "anchor": [
+    16,
+    57
+   ],
+   "usedIn": [
+    "air",
+    "sfJ2"
+   ]
+  },
+  {
+   "name": "pb3",
+   "rect": [
+    143,
+    425,
+    56,
+    56
+   ],
+   "components": 2,
+   "opaquePixels": 912,
+   "kind": "body",
+   "anchor": [
+    16,
+    56
+   ],
+   "usedIn": [
+    "air",
+    "sfJ2"
+   ]
+  },
+  {
+   "name": "shot0",
+   "rect": [
+    1,
+    486,
+    54,
+    59
+   ],
+   "components": 1,
+   "opaquePixels": 959,
+   "kind": "body",
+   "anchor": [
+    31,
+    59
+   ],
+   "usedIn": [
+    "sfBolt",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "shot2",
+   "rect": [
+    119,
+    486,
+    51,
+    59
+   ],
+   "components": 1,
+   "opaquePixels": 1045,
+   "kind": "body",
+   "anchor": [
+    33,
+    59
+   ],
+   "usedIn": [
+    "sfBolt",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "shot3",
+   "rect": [
+    175,
+    487,
+    49,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 1052,
+   "kind": "body",
+   "anchor": [
+    15,
+    58
+   ],
+   "usedIn": [
+    "sfBolt",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "shot5",
+   "rect": [
+    282,
+    487,
+    42,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 883,
+   "kind": "body",
+   "anchor": [
+    16,
+    58
+   ],
+   "usedIn": [
+    "sfBolt",
+    "sfOrb",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "shot6",
+   "rect": [
+    329,
+    487,
+    27,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 741,
+   "kind": "body",
+   "anchor": [
+    12,
+    58
+   ],
+   "usedIn": [
+    "sfBolt",
+    "sfOrb",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "shot1",
+   "rect": [
+    60,
+    488,
+    54,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 987,
+   "kind": "body",
+   "anchor": [
+    31,
+    57
+   ],
+   "usedIn": [
+    "sfBolt",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "shot4",
+   "rect": [
+    229,
+    489,
+    48,
+    56
+   ],
+   "components": 1,
+   "opaquePixels": 944,
+   "kind": "body",
+   "anchor": [
+    16,
+    56
+   ],
+   "usedIn": [
+    "sfBolt",
+    "sfOrb",
+    "ultOpen"
+   ]
+  },
+  {
+   "name": "ashot3",
+   "rect": [
+    175,
+    550,
+    48,
+    63
+   ],
+   "components": 1,
+   "opaquePixels": 1063,
+   "kind": "body",
+   "anchor": [
+    14,
+    63
+   ],
+   "usedIn": [
+    "sfComet",
+    "ultBolt"
+   ]
+  },
+  {
+   "name": "ashot6",
+   "rect": [
+    325,
+    550,
+    23,
+    63
+   ],
+   "components": 1,
+   "opaquePixels": 794,
+   "kind": "body",
+   "anchor": [
+    9,
+    63
+   ],
+   "usedIn": [
+    "sfComet"
+   ]
+  },
+  {
+   "name": "ashot1",
+   "rect": [
+    60,
+    551,
+    54,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 980,
+   "kind": "body",
+   "anchor": [
+    33,
+    62
+   ],
+   "usedIn": [
+    "sfComet"
+   ]
+  },
+  {
+   "name": "ashot5",
+   "rect": [
+    281,
+    551,
+    39,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 887,
+   "kind": "body",
+   "anchor": [
+    13,
+    62
+   ],
+   "usedIn": [
+    "sfComet",
+    "ultBolt"
+   ]
+  },
+  {
+   "name": "ashot0",
+   "rect": [
+    1,
+    552,
+    54,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 1001,
+   "kind": "body",
+   "anchor": [
+    32,
+    61
+   ],
+   "usedIn": [
+    "sfComet"
+   ]
+  },
+  {
+   "name": "ashot2",
+   "rect": [
+    119,
+    553,
+    51,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 1026,
+   "kind": "body",
+   "anchor": [
+    33,
+    60
+   ],
+   "usedIn": [
+    "sfComet",
+    "ultBolt"
+   ]
+  },
+  {
+   "name": "ashot4",
+   "rect": [
+    228,
+    553,
+    48,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 949,
+   "kind": "body",
+   "anchor": [
+    16,
+    60
+   ],
+   "usedIn": [
+    "sfComet",
+    "ultBolt"
+   ]
+  },
+  {
+   "name": "levb0",
+   "rect": [
+    1,
+    618,
+    34,
+    67
+   ],
+   "components": 1,
+   "opaquePixels": 967,
+   "kind": "body",
+   "anchor": [
+    16,
+    67
+   ],
+   "usedIn": [
+    "intro",
+    "levStart",
+    "ultRise",
+    "up"
+   ]
+  },
+  {
+   "name": "levb1",
+   "rect": [
+    40,
+    619,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 939,
+   "kind": "body",
+   "anchor": [
+    20,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "levEnd",
+    "levStart",
+    "sfOrb",
+    "ultRise",
+    "up"
+   ]
+  },
+  {
+   "name": "levb2",
+   "rect": [
+    86,
+    619,
+    54,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 988,
+   "kind": "body",
+   "anchor": [
+    28,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "levEnd",
+    "levStart",
+    "sfOrb",
+    "sfSky",
+    "ultRise",
+    "up"
+   ]
+  },
+  {
+   "name": "levb3",
+   "rect": [
+    145,
+    619,
+    51,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1091,
+   "kind": "body",
+   "anchor": [
+    27,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "levEnd",
+    "levStart",
+    "sfOrb",
+    "sfSky",
+    "ultRise",
+    "up"
+   ]
+  },
+  {
+   "name": "lev0",
+   "rect": [
+    1,
+    690,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1077,
+   "kind": "body",
+   "anchor": [
+    21,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev1",
+   "rect": [
+    47,
+    690,
+    43,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1146,
+   "kind": "body",
+   "anchor": [
+    22,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev2",
+   "rect": [
+    95,
+    690,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1084,
+   "kind": "body",
+   "anchor": [
+    21,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev3",
+   "rect": [
+    141,
+    690,
+    43,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1141,
+   "kind": "body",
+   "anchor": [
+    22,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev4",
+   "rect": [
+    189,
+    690,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1080,
+   "kind": "body",
+   "anchor": [
+    21,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev5",
+   "rect": [
+    235,
+    690,
+    43,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1137,
+   "kind": "body",
+   "anchor": [
+    22,
+    66
+   ],
+   "usedIn": [
+    "intro",
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev6",
+   "rect": [
+    283,
+    690,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1066,
+   "kind": "body",
+   "anchor": [
+    21,
+    66
+   ],
+   "usedIn": [
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev7",
+   "rect": [
+    329,
+    690,
+    43,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1118,
+   "kind": "body",
+   "anchor": [
+    22,
+    66
+   ],
+   "usedIn": [
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev8",
+   "rect": [
+    377,
+    690,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1057,
+   "kind": "body",
+   "anchor": [
+    21,
+    66
+   ],
+   "usedIn": [
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev9",
+   "rect": [
+    423,
+    690,
+    43,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1124,
+   "kind": "body",
+   "anchor": [
+    22,
+    66
+   ],
+   "usedIn": [
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev10",
+   "rect": [
+    471,
+    690,
+    41,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1065,
+   "kind": "body",
+   "anchor": [
+    21,
+    66
+   ],
+   "usedIn": [
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "lev11",
+   "rect": [
+    517,
+    690,
+    43,
+    66
+   ],
+   "components": 1,
+   "opaquePixels": 1140,
+   "kind": "body",
+   "anchor": [
+    22,
+    66
+   ],
+   "usedIn": [
+    "lev",
+    "sfAirLaser",
+    "ultHover"
+   ]
+  },
+  {
+   "name": "laser3",
+   "rect": [
+    103,
+    761,
+    29,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 740,
+   "kind": "body",
+   "anchor": [
+    18,
+    62
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser4",
+   "rect": [
+    137,
+    761,
+    32,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 854,
+   "kind": "body",
+   "anchor": [
+    20,
+    62
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser0",
+   "rect": [
+    1,
+    762,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 879,
+   "kind": "body",
+   "anchor": [
+    13,
+    61
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser1",
+   "rect": [
+    32,
+    763,
+    29,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 842,
+   "kind": "body",
+   "anchor": [
+    14,
+    60
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser2",
+   "rect": [
+    66,
+    763,
+    32,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 821,
+   "kind": "body",
+   "anchor": [
+    18,
+    60
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser11",
+   "rect": [
+    374,
+    763,
+    24,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 827,
+   "kind": "body",
+   "anchor": [
+    12,
+    60
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser5",
+   "rect": [
+    174,
+    765,
+    34,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 876,
+   "kind": "body",
+   "anchor": [
+    16,
+    58
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser8",
+   "rect": [
+    295,
+    765,
+    25,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 744,
+   "kind": "body",
+   "anchor": [
+    13,
+    58
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser9",
+   "rect": [
+    325,
+    765,
+    18,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 657,
+   "kind": "body",
+   "anchor": [
+    8,
+    58
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser10",
+   "rect": [
+    348,
+    765,
+    21,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 763,
+   "kind": "body",
+   "anchor": [
+    10,
+    58
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser6",
+   "rect": [
+    213,
+    766,
+    36,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 835,
+   "kind": "body",
+   "anchor": [
+    19,
+    57
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "laser7",
+   "rect": [
+    254,
+    766,
+    36,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 835,
+   "kind": "body",
+   "anchor": [
+    19,
+    57
+   ],
+   "usedIn": [
+    "sfLaser",
+    "ultLaser"
+   ]
+  },
+  {
+   "name": "hurt1",
+   "rect": [
+    42,
+    828,
+    46,
+    67
+   ],
+   "components": 1,
+   "opaquePixels": 1185,
+   "kind": "body",
+   "anchor": [
+    21,
+    67
+   ],
+   "usedIn": [
+    "hurt",
+    "knockdown"
+   ]
+  },
+  {
+   "name": "hurt3",
+   "rect": [
+    142,
+    832,
+    41,
+    63
+   ],
+   "components": 1,
+   "opaquePixels": 1127,
+   "kind": "body",
+   "anchor": [
+    22,
+    63
+   ],
+   "usedIn": [
+    "hurt",
+    "knockdown"
+   ]
+  },
+  {
+   "name": "hurt4",
+   "rect": [
+    188,
+    832,
+    32,
+    63
+   ],
+   "components": 1,
+   "opaquePixels": 1054,
+   "kind": "body",
+   "anchor": [
+    17,
+    63
+   ],
+   "usedIn": [
+    "hurt"
+   ]
+  },
+  {
+   "name": "hurt0",
+   "rect": [
+    1,
+    833,
+    36,
+    62
+   ],
+   "components": 1,
+   "opaquePixels": 1069,
+   "kind": "body",
+   "anchor": [
+    20,
+    62
+   ],
+   "usedIn": [
+    "hurt",
+    "knockdown"
+   ]
+  },
+  {
+   "name": "hurt2",
+   "rect": [
+    93,
+    835,
+    44,
+    60
+   ],
+   "components": 1,
+   "opaquePixels": 1141,
+   "kind": "body",
+   "anchor": [
+    23,
+    60
+   ],
+   "usedIn": [
+    "hurt",
+    "knockdown"
+   ]
+  },
+  {
+   "name": "hurt5",
+   "rect": [
+    225,
+    836,
+    24,
+    59
+   ],
+   "components": 1,
+   "opaquePixels": 859,
+   "kind": "body",
+   "anchor": [
+    12,
+    59
+   ],
+   "usedIn": [
+    "hurt"
+   ]
+  },
+  {
+   "name": "def18",
+   "rect": [
+    575,
+    896,
+    26,
+    62
+   ],
+   "components": 27,
+   "opaquePixels": 429,
+   "kind": "body",
+   "anchor": [
+    12,
+    62
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def17",
+   "rect": [
+    544,
+    897,
+    26,
+    61
+   ],
+   "components": 1,
+   "opaquePixels": 849,
+   "kind": "body",
+   "anchor": [
+    13,
+    61
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def0",
+   "rect": [
+    1,
+    900,
+    26,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 853,
+   "kind": "body",
+   "anchor": [
+    14,
+    58
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def13",
+   "rect": [
+    420,
+    900,
+    26,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 831,
+   "kind": "body",
+   "anchor": [
+    14,
+    58
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def14",
+   "rect": [
+    451,
+    900,
+    26,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 831,
+   "kind": "body",
+   "anchor": [
+    14,
+    58
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def15",
+   "rect": [
+    482,
+    900,
+    26,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 838,
+   "kind": "body",
+   "anchor": [
+    14,
+    58
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def16",
+   "rect": [
+    513,
+    900,
+    26,
+    58
+   ],
+   "components": 1,
+   "opaquePixels": 854,
+   "kind": "body",
+   "anchor": [
+    14,
+    58
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def1",
+   "rect": [
+    32,
+    901,
+    26,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 853,
+   "kind": "body",
+   "anchor": [
+    14,
+    57
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def2",
+   "rect": [
+    63,
+    901,
+    27,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 854,
+   "kind": "body",
+   "anchor": [
+    14,
+    57
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def11",
+   "rect": [
+    357,
+    901,
+    27,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 849,
+   "kind": "body",
+   "anchor": [
+    14,
+    57
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def12",
+   "rect": [
+    389,
+    901,
+    26,
+    57
+   ],
+   "components": 1,
+   "opaquePixels": 836,
+   "kind": "body",
+   "anchor": [
+    14,
+    57
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def3",
+   "rect": [
+    95,
+    902,
+    27,
+    56
+   ],
+   "components": 1,
+   "opaquePixels": 851,
+   "kind": "body",
+   "anchor": [
+    14,
+    56
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def4",
+   "rect": [
+    127,
+    902,
+    28,
+    56
+   ],
+   "components": 1,
+   "opaquePixels": 834,
+   "kind": "body",
+   "anchor": [
+    14,
+    56
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def9",
+   "rect": [
+    292,
+    902,
+    28,
+    56
+   ],
+   "components": 1,
+   "opaquePixels": 853,
+   "kind": "body",
+   "anchor": [
+    14,
+    56
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def10",
+   "rect": [
+    325,
+    902,
+    27,
+    56
+   ],
+   "components": 1,
+   "opaquePixels": 849,
+   "kind": "body",
+   "anchor": [
+    14,
+    56
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def5",
+   "rect": [
+    160,
+    903,
+    28,
+    55
+   ],
+   "components": 1,
+   "opaquePixels": 812,
+   "kind": "body",
+   "anchor": [
+    14,
+    55
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def6",
+   "rect": [
+    193,
+    903,
+    28,
+    55
+   ],
+   "components": 1,
+   "opaquePixels": 818,
+   "kind": "body",
+   "anchor": [
+    14,
+    55
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def7",
+   "rect": [
+    226,
+    903,
+    28,
+    55
+   ],
+   "components": 1,
+   "opaquePixels": 825,
+   "kind": "body",
+   "anchor": [
+    14,
+    55
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "def8",
+   "rect": [
+    259,
+    903,
+    28,
+    55
+   ],
+   "components": 1,
+   "opaquePixels": 837,
+   "kind": "body",
+   "anchor": [
+    14,
+    55
+   ],
+   "usedIn": [
+    "lose"
+   ]
+  },
+  {
+   "name": "ball0",
+   "rect": [
+    1,
+    963,
+    13,
+    13
+   ],
+   "components": 1,
+   "opaquePixels": 137,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex6",
+   "rect": [
+    224,
+    981,
+    43,
+    36
+   ],
+   "components": 13,
+   "opaquePixels": 918,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex7",
+   "rect": [
+    272,
+    981,
+    43,
+    36
+   ],
+   "components": 24,
+   "opaquePixels": 577,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex8",
+   "rect": [
+    320,
+    981,
+    43,
+    36
+   ],
+   "components": 38,
+   "opaquePixels": 175,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex5",
+   "rect": [
+    178,
+    982,
+    41,
+    35
+   ],
+   "components": 1,
+   "opaquePixels": 1070,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex4",
+   "rect": [
+    135,
+    984,
+    38,
+    33
+   ],
+   "components": 1,
+   "opaquePixels": 980,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex3",
+   "rect": [
+    95,
+    987,
+    35,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 787,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex9",
+   "rect": [
+    368,
+    987,
+    42,
+    30
+   ],
+   "components": 17,
+   "opaquePixels": 46,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex2",
+   "rect": [
+    60,
+    991,
+    30,
+    26
+   ],
+   "components": 1,
+   "opaquePixels": 601,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex1",
+   "rect": [
+    28,
+    993,
+    27,
+    24
+   ],
+   "components": 1,
+   "opaquePixels": 482,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex0",
+   "rect": [
+    1,
+    995,
+    22,
+    22
+   ],
+   "components": 1,
+   "opaquePixels": 384,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "ex10",
+   "rect": [
+    415,
+    1005,
+    37,
+    12
+   ],
+   "components": 6,
+   "opaquePixels": 14,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "lz0",
+   "rect": [
+    1,
+    1022,
+    8,
+    15
+   ],
+   "components": 2,
+   "opaquePixels": 60,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "lz1",
+   "rect": [
+    14,
+    1022,
+    32,
+    15
+   ],
+   "components": 2,
+   "opaquePixels": 320,
+   "kind": "fx",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r0_c0",
+   "rect": [
+    1,
+    1042,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r0_c1",
+   "rect": [
+    28,
+    1042,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r0_c2",
+   "rect": [
+    55,
+    1042,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r0_c3",
+   "rect": [
+    82,
+    1042,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r0_c4",
+   "rect": [
+    109,
+    1042,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r0_c5",
+   "rect": [
+    136,
+    1042,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r1_c0",
+   "rect": [
+    1,
+    1077,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r1_c1",
+   "rect": [
+    28,
+    1077,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r1_c2",
+   "rect": [
+    55,
+    1077,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r1_c3",
+   "rect": [
+    82,
+    1077,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r2_c0",
+   "rect": [
+    1,
+    1112,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r2_c1",
+   "rect": [
+    28,
+    1112,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r2_c2",
+   "rect": [
+    55,
+    1112,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r2_c3",
+   "rect": [
+    82,
+    1112,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r3_c0",
+   "rect": [
+    1,
+    1147,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r3_c1",
+   "rect": [
+    28,
+    1147,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r3_c2",
+   "rect": [
+    55,
+    1147,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_r3_c3",
+   "rect": [
+    82,
+    1147,
+    22,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 532,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_daze0",
+   "rect": [
+    1,
+    1182,
+    33,
+    33
+   ],
+   "components": 5,
+   "opaquePixels": 575,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_daze1",
+   "rect": [
+    39,
+    1183,
+    33,
+    32
+   ],
+   "components": 4,
+   "opaquePixels": 590,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "icon_down",
+   "rect": [
+    1,
+    1220,
+    24,
+    30
+   ],
+   "components": 1,
+   "opaquePixels": 543,
+   "kind": "icon",
+   "usedIn": []
+  },
+  {
+   "name": "bust",
+   "rect": [
+    1,
+    1255,
+    59,
+    84
+   ],
+   "components": 1,
+   "opaquePixels": 3352,
+   "kind": "cutscene",
+   "usedIn": []
+  },
+  {
+   "name": "mouth2",
+   "rect": [
+    63,
+    1344,
+    26,
+    12
+   ],
+   "components": 1,
+   "opaquePixels": 217,
+   "kind": "cutscene",
+   "usedIn": []
+  },
+  {
+   "name": "mouth0",
+   "rect": [
+    1,
+    1345,
+    26,
+    11
+   ],
+   "components": 1,
+   "opaquePixels": 192,
+   "kind": "cutscene",
+   "usedIn": []
+  },
+  {
+   "name": "mouth1",
+   "rect": [
+    32,
+    1345,
+    26,
+    11
+   ],
+   "components": 1,
+   "opaquePixels": 192,
+   "kind": "cutscene",
+   "usedIn": []
+  },
+  {
+   "name": "eye0",
+   "rect": [
+    1,
+    1361,
+    29,
+    13
+   ],
+   "components": 1,
+   "opaquePixels": 367,
+   "kind": "cutscene",
+   "usedIn": []
+  },
+  {
+   "name": "eye1",
+   "rect": [
+    35,
+    1361,
+    29,
+    13
+   ],
+   "components": 1,
+   "opaquePixels": 367,
+   "kind": "cutscene",
+   "usedIn": []
+  }
+ ],
+ "sequences": {
+  "intro": [
+   "appear0",
+   "appear1",
+   "appear2",
+   "levb0",
+   "levb1",
+   "levb2",
+   "levb3",
+   "lev0",
+   "lev1",
+   "lev2",
+   "lev3",
+   "lev4",
+   "lev5",
+   "land2",
+   "land3",
+   "land4"
+  ],
+  "idle": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle3",
+   "idle4",
+   "idle5",
+   "idle6",
+   "idle7",
+   "idle8",
+   "idle9",
+   "idle10",
+   "idle11"
+  ],
+  "walk": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11"
+  ],
+  "walk_back": [
+   "walk11",
+   "walk10",
+   "walk9",
+   "walk8",
+   "walk7",
+   "walk6",
+   "walk5",
+   "walk4",
+   "walk3",
+   "walk2",
+   "walk1",
+   "walk0"
+  ],
+  "run": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "walk8",
+   "walk9",
+   "walk10",
+   "walk11"
+  ],
+  "dash": [
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7"
+  ],
+  "jump": [
+   "jump0",
+   "jump1",
+   "jump2",
+   "jump3",
+   "jump4"
+  ],
+  "fall": [
+   "jump5",
+   "jump6",
+   "jump7",
+   "jump8"
+  ],
+  "doubleJump": [
+   "jump2",
+   "jump3",
+   "jump4",
+   "jump5"
+  ],
+  "land": [
+   "land0",
+   "land1",
+   "land2",
+   "land3",
+   "land4"
+  ],
+  "crouch": [
+   "land2"
+  ],
+  "guard": [
+   "pb0"
+  ],
+  "hurt": [
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "hurt3",
+   "hurt4",
+   "hurt5"
+  ],
+  "knockdown": [
+   "hurt0",
+   "hurt1",
+   "hurt2",
+   "hurt3"
+  ],
+  "lose": [
+   "def0",
+   "def1",
+   "def2",
+   "def3",
+   "def4",
+   "def5",
+   "def6",
+   "def7",
+   "def8",
+   "def9",
+   "def10",
+   "def11",
+   "def12",
+   "def13",
+   "def14",
+   "def15",
+   "def16",
+   "def17",
+   "def18"
+  ],
+  "light": [
+   "pa0",
+   "pa1",
+   "pa2",
+   "pa3",
+   "pa4"
+  ],
+  "sfJ2": [
+   "pb0",
+   "pb1",
+   "pb2",
+   "pb3",
+   "pb4",
+   "pb5"
+  ],
+  "sfJ3": [
+   "pa3",
+   "pa4",
+   "pa5",
+   "pa6",
+   "pa7",
+   "pa8",
+   "pa9"
+  ],
+  "heavy": [
+   "pa0",
+   "pa1",
+   "pa2",
+   "pa3",
+   "pa4",
+   "pa5",
+   "pa6",
+   "pa7",
+   "pa8",
+   "pa9"
+  ],
+  "sfLow": [
+   "land0",
+   "land1",
+   "land2",
+   "land3"
+  ],
+  "up": [
+   "levb0",
+   "levb1",
+   "levb2",
+   "levb3"
+  ],
+  "air": [
+   "pb1",
+   "pb2",
+   "pb3",
+   "pb4"
+  ],
+  "sfBolt": [
+   "shot0",
+   "shot1",
+   "shot2",
+   "shot3",
+   "shot4",
+   "shot5",
+   "shot6"
+  ],
+  "sfComet": [
+   "ashot0",
+   "ashot1",
+   "ashot2",
+   "ashot3",
+   "ashot4",
+   "ashot5",
+   "ashot6"
+  ],
+  "sfRush": [
+   "walk4",
+   "walk5",
+   "walk6",
+   "walk7",
+   "pa4",
+   "pa5",
+   "pa6",
+   "pa7"
+  ],
+  "sfSky": [
+   "jump0",
+   "jump1",
+   "jump2",
+   "jump3",
+   "jump4",
+   "levb2",
+   "levb3"
+  ],
+  "sfOrb": [
+   "levb1",
+   "levb2",
+   "levb3",
+   "shot4",
+   "shot5",
+   "shot6"
+  ],
+  "sfLaser": [
+   "laser0",
+   "laser1",
+   "laser2",
+   "laser3",
+   "laser4",
+   "laser5",
+   "laser6",
+   "laser7",
+   "laser8",
+   "laser9",
+   "laser10",
+   "laser11"
+  ],
+  "sfAirLaser": [
+   "lev0",
+   "lev1",
+   "lev2",
+   "lev3",
+   "lev4",
+   "lev5",
+   "lev6",
+   "lev7",
+   "lev8",
+   "lev9",
+   "lev10",
+   "lev11"
+  ],
+  "levStart": [
+   "levb0",
+   "levb1",
+   "levb2",
+   "levb3"
+  ],
+  "lev": [
+   "lev0",
+   "lev1",
+   "lev2",
+   "lev3",
+   "lev4",
+   "lev5",
+   "lev6",
+   "lev7",
+   "lev8",
+   "lev9",
+   "lev10",
+   "lev11"
+  ],
+  "levEnd": [
+   "levb3",
+   "levb2",
+   "levb1",
+   "jump7",
+   "jump8"
+  ],
+  "ultOpen": [
+   "shot0",
+   "shot1",
+   "shot2",
+   "shot3",
+   "shot4",
+   "shot5",
+   "shot6"
+  ],
+  "ultRise": [
+   "levb0",
+   "levb1",
+   "levb2",
+   "levb3"
+  ],
+  "ultHover": [
+   "lev0",
+   "lev1",
+   "lev2",
+   "lev3",
+   "lev4",
+   "lev5",
+   "lev6",
+   "lev7",
+   "lev8",
+   "lev9",
+   "lev10",
+   "lev11"
+  ],
+  "ultBolt": [
+   "ashot2",
+   "ashot3",
+   "ashot4",
+   "ashot5"
+  ],
+  "ultLaser": [
+   "laser0",
+   "laser1",
+   "laser2",
+   "laser3",
+   "laser4",
+   "laser5",
+   "laser6",
+   "laser7",
+   "laser8",
+   "laser9",
+   "laser10",
+   "laser11"
+  ],
+  "ultLand": [
+   "land0",
+   "land1",
+   "land2",
+   "land3",
+   "land4"
+  ]
+ },
+ "duplicates": {
+  "icon_r0_c4": "icon_r0_c2",
+  "icon_r0_c5": "icon_r0_c3"
+ },
+ "unusedBodyCells": [],
+ "fx": {
+  "ball": {
+   "w": 17,
+   "h": 17,
+   "frames": 1,
+   "sheet": "./assets/starfire/fx/ball_strip.png"
+  },
+  "explosion": {
+   "w": 47,
+   "h": 40,
+   "frames": 11,
+   "sheet": "./assets/starfire/fx/explosion_strip.png"
+  },
+  "laser": {
+   "cap0": {
+    "w": 8,
+    "h": 5,
+    "sheet": "./assets/starfire/fx/laser_cap0.png"
+   },
+   "cap1": {
+    "w": 8,
+    "h": 5,
+    "sheet": "./assets/starfire/fx/laser_cap1.png"
+   },
+   "body0": {
+    "w": 32,
+    "h": 5,
+    "sheet": "./assets/starfire/fx/laser_body0.png"
+   },
+   "body1": {
+    "w": 32,
+    "h": 5,
+    "sheet": "./assets/starfire/fx/laser_body1.png"
+   }
+  }
+ },
+ "icons": {
+  "w": 35,
+  "h": 35,
+  "rows": {
+   "calm": [
+    0,
+    6
+   ],
+   "focus": [
+    1,
+    4
+   ],
+   "strain": [
+    2,
+    4
+   ],
+   "hurt": [
+    3,
+    4
+   ],
+   "daze": [
+    4,
+    2
+   ],
+   "down": [
+    5,
+    1
+   ]
+  }
+ },
+ "cutscene": {
+  "bust": {
+   "w": 59,
+   "h": 84
+  },
+  "overlays": {
+   "mouth2": {
+    "x": 28,
+    "y": 30,
+    "w": 26,
+    "h": 12,
+    "mismatch": 45,
+    "opaque": 217
+   },
+   "mouth0": {
+    "x": 28,
+    "y": 31,
+    "w": 26,
+    "h": 11,
+    "mismatch": 29,
+    "opaque": 192
+   },
+   "mouth1": {
+    "x": 28,
+    "y": 31,
+    "w": 26,
+    "h": 11,
+    "mismatch": 37,
+    "opaque": 192
+   },
+   "eye0": {
+    "x": 28,
+    "y": 14,
+    "w": 29,
+    "h": 13,
+    "mismatch": 81,
+    "opaque": 367
+   },
+   "eye1": {
+    "x": 28,
+    "y": 14,
+    "w": 29,
+    "h": 13,
+    "mismatch": 146,
+    "opaque": 367
+   }
+  }
+ }
+}

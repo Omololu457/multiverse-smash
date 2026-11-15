@@ -1,0 +1,77 @@
+{
+  "roster": [
+    "superman",
+    "green_arrow",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "raven"
+  ],
+  "detail": {
+    "key": "raven",
+    "name": "Raven",
+    "stats": {
+      "maxHealth": 950,
+      "maxEnergy": 100,
+      "attack": 80,
+      "defense": 74,
+      "speed": 94,
+      "jumpPower": 25,
+      "maxJumps": 2,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 34
+    },
+    "kitType": "Mobile Spellweaver / Telekinetic Setup",
+    "difficulty": "Medium-Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 11,
+    "selId": null,
+    "mouseX": 759,
+    "mouseY": 331
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 337
+  },
+  "chosenSkin": "rv_hollow_violet",
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "raven",
+    "skin": "rv_hollow_violet",
+    "tag": "hollow",
+    "p2": "superman"
+  },
+  "tag": "hollow",
+  "profile": {
+    "msPerFrameIdle": 0.098,
+    "msPerFrameSpells": 0.111,
+    "msPerFrameUlt": 0.048,
+    "fxCacheBefore": 11,
+    "fxCacheAfter": 11,
+    "fxEntries": 0,
+    "live": 0
+  },
+  "fps": 50,
+  "defeat": "hurt",
+  "passes": 24,
+  "failures": 0,
+  "errors": []
+}

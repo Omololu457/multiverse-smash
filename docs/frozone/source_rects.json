@@ -1,0 +1,1309 @@
+{
+ "file": "Game Boy Advance - The Incredibles - Playable Characters - Frozone.png",
+ "sha256": "34aeab73862739c2e1e87285b543ee4a67f64ae4512204990d76939822d2bce6",
+ "size": [
+  704,
+  471
+ ],
+ "background": [
+  0,
+  128,
+  128
+ ],
+ "cell": [
+  85,
+  76,
+  36,
+  75
+ ],
+ "caption_excluded": [
+  322,
+  436,
+  704,
+  471
+ ],
+ "portrait_rect": [
+  2,
+  2,
+  32,
+  27
+ ],
+ "frames": [
+  {
+   "band": "portrait",
+   "index": 0,
+   "rect": [
+    2,
+    2,
+    32,
+    27
+   ],
+   "anchor": [
+    17,
+    28
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 0,
+   "rect": [
+    2,
+    33,
+    17,
+    61
+   ],
+   "anchor": [
+    10,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 1,
+   "rect": [
+    21,
+    33,
+    17,
+    61
+   ],
+   "anchor": [
+    29,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 2,
+   "rect": [
+    40,
+    33,
+    17,
+    61
+   ],
+   "anchor": [
+    48,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 3,
+   "rect": [
+    59,
+    33,
+    17,
+    61
+   ],
+   "anchor": [
+    67,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 4,
+   "rect": [
+    78,
+    32,
+    17,
+    62
+   ],
+   "anchor": [
+    86,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 5,
+   "rect": [
+    97,
+    32,
+    17,
+    62
+   ],
+   "anchor": [
+    105,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 6,
+   "rect": [
+    116,
+    32,
+    17,
+    62
+   ],
+   "anchor": [
+    124,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "idle",
+   "index": 7,
+   "rect": [
+    135,
+    33,
+    17,
+    61
+   ],
+   "anchor": [
+    143,
+    93
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 0,
+   "rect": [
+    2,
+    108,
+    66,
+    39
+   ],
+   "anchor": [
+    36,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 1,
+   "rect": [
+    70,
+    105,
+    52,
+    42
+   ],
+   "anchor": [
+    92,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 2,
+   "rect": [
+    124,
+    102,
+    37,
+    45
+   ],
+   "anchor": [
+    146,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 3,
+   "rect": [
+    163,
+    97,
+    34,
+    50
+   ],
+   "anchor": [
+    182,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 4,
+   "rect": [
+    199,
+    109,
+    59,
+    38
+   ],
+   "anchor": [
+    233,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 5,
+   "rect": [
+    260,
+    104,
+    44,
+    43
+   ],
+   "anchor": [
+    281,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 6,
+   "rect": [
+    306,
+    99,
+    33,
+    48
+   ],
+   "anchor": [
+    326,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "skate",
+   "index": 7,
+   "rect": [
+    341,
+    97,
+    40,
+    50
+   ],
+   "anchor": [
+    357,
+    146
+   ],
+   "components": 1
+  },
+  {
+   "band": "cast",
+   "index": 0,
+   "rect": [
+    2,
+    152,
+    43,
+    44
+   ],
+   "anchor": [
+    14,
+    195
+   ],
+   "components": 1
+  },
+  {
+   "band": "cast",
+   "index": 1,
+   "rect": [
+    47,
+    151,
+    41,
+    45
+   ],
+   "anchor": [
+    59,
+    195
+   ],
+   "components": 1
+  },
+  {
+   "band": "cast",
+   "index": 2,
+   "rect": [
+    90,
+    150,
+    42,
+    46
+   ],
+   "anchor": [
+    103,
+    195
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 0,
+   "rect": [
+    2,
+    221,
+    62,
+    53
+   ],
+   "anchor": [
+    33,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 1,
+   "rect": [
+    66,
+    222,
+    62,
+    52
+   ],
+   "anchor": [
+    98,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 2,
+   "rect": [
+    130,
+    225,
+    62,
+    49
+   ],
+   "anchor": [
+    160,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 3,
+   "rect": [
+    194,
+    199,
+    58,
+    75
+   ],
+   "anchor": [
+    228,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 4,
+   "rect": [
+    254,
+    199,
+    60,
+    69
+   ],
+   "anchor": [
+    287,
+    267
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 5,
+   "rect": [
+    316,
+    205,
+    44,
+    63
+   ],
+   "anchor": [
+    339,
+    267
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 6,
+   "rect": [
+    362,
+    205,
+    58,
+    63
+   ],
+   "anchor": [
+    392,
+    267
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 7,
+   "rect": [
+    422,
+    209,
+    49,
+    59
+   ],
+   "anchor": [
+    447,
+    267
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 8,
+   "rect": [
+    473,
+    227,
+    54,
+    41
+   ],
+   "anchor": [
+    502,
+    267
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 9,
+   "rect": [
+    529,
+    238,
+    57,
+    36
+   ],
+   "anchor": [
+    558,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 10,
+   "rect": [
+    588,
+    234,
+    54,
+    40
+   ],
+   "anchor": [
+    615,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "ice",
+   "index": 11,
+   "rect": [
+    644,
+    218,
+    37,
+    56
+   ],
+   "anchor": [
+    664,
+    273
+   ],
+   "components": 4
+  },
+  {
+   "band": "ice",
+   "index": 12,
+   "rect": [
+    683,
+    213,
+    17,
+    61
+   ],
+   "anchor": [
+    691,
+    273
+   ],
+   "components": 1
+  },
+  {
+   "band": "react",
+   "index": 0,
+   "rect": [
+    2,
+    277,
+    37,
+    37
+   ],
+   "anchor": [
+    17,
+    313
+   ],
+   "components": 1
+  },
+  {
+   "band": "react",
+   "index": 1,
+   "rect": [
+    41,
+    282,
+    45,
+    32
+   ],
+   "anchor": [
+    66,
+    313
+   ],
+   "components": 1
+  },
+  {
+   "band": "react",
+   "index": 2,
+   "rect": [
+    88,
+    280,
+    43,
+    34
+   ],
+   "anchor": [
+    99,
+    313
+   ],
+   "components": 1
+  },
+  {
+   "band": "react",
+   "index": 3,
+   "rect": [
+    133,
+    277,
+    37,
+    37
+   ],
+   "anchor": [
+    147,
+    313
+   ],
+   "components": 1
+  },
+  {
+   "band": "down",
+   "index": 0,
+   "rect": [
+    2,
+    317,
+    45,
+    32
+   ],
+   "anchor": [
+    24,
+    348
+   ],
+   "components": 1
+  },
+  {
+   "band": "down",
+   "index": 1,
+   "rect": [
+    49,
+    335,
+    67,
+    14
+   ],
+   "anchor": [
+    84,
+    348
+   ],
+   "components": 1
+  },
+  {
+   "band": "down",
+   "index": 2,
+   "rect": [
+    118,
+    334,
+    63,
+    15
+   ],
+   "anchor": [
+    151,
+    348
+   ],
+   "components": 1
+  },
+  {
+   "band": "sweep",
+   "index": 0,
+   "rect": [
+    2,
+    352,
+    74,
+    51
+   ],
+   "anchor": [
+    30,
+    402
+   ],
+   "components": 8
+  },
+  {
+   "band": "sweep",
+   "index": 1,
+   "rect": [
+    76,
+    359,
+    78,
+    44
+   ],
+   "anchor": [
+    106,
+    402
+   ],
+   "components": 6
+  },
+  {
+   "band": "sweep",
+   "index": 2,
+   "rect": [
+    170,
+    359,
+    65,
+    44
+   ],
+   "anchor": [
+    194,
+    402
+   ],
+   "components": 8
+  },
+  {
+   "band": "sweep",
+   "index": 3,
+   "rect": [
+    237,
+    360,
+    69,
+    43
+   ],
+   "anchor": [
+    261,
+    402
+   ],
+   "components": 8
+  },
+  {
+   "band": "sweep",
+   "index": 4,
+   "rect": [
+    308,
+    360,
+    67,
+    43
+   ],
+   "anchor": [
+    332,
+    402
+   ],
+   "components": 7
+  },
+  {
+   "band": "sweep",
+   "index": 5,
+   "rect": [
+    376,
+    360,
+    60,
+    43
+   ],
+   "anchor": [
+    403,
+    402
+   ],
+   "components": 2
+  },
+  {
+   "band": "gesture",
+   "index": 0,
+   "rect": [
+    2,
+    406,
+    25,
+    61
+   ],
+   "anchor": [
+    14,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 1,
+   "rect": [
+    29,
+    415,
+    37,
+    52
+   ],
+   "anchor": [
+    44,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 2,
+   "rect": [
+    68,
+    415,
+    47,
+    52
+   ],
+   "anchor": [
+    93,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 3,
+   "rect": [
+    117,
+    416,
+    46,
+    51
+   ],
+   "anchor": [
+    141,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 4,
+   "rect": [
+    165,
+    415,
+    37,
+    52
+   ],
+   "anchor": [
+    181,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 5,
+   "rect": [
+    204,
+    413,
+    47,
+    54
+   ],
+   "anchor": [
+    215,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 6,
+   "rect": [
+    253,
+    417,
+    40,
+    50
+   ],
+   "anchor": [
+    267,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "gesture",
+   "index": 7,
+   "rect": [
+    295,
+    406,
+    25,
+    61
+   ],
+   "anchor": [
+    307,
+    466
+   ],
+   "components": 1
+  },
+  {
+   "band": "fx:burst",
+   "index": 0,
+   "rect": [
+    128,
+    366,
+    27,
+    35
+   ],
+   "from": "sweep:1"
+  },
+  {
+   "band": "fx:burst2",
+   "index": 0,
+   "rect": [
+    283,
+    364,
+    24,
+    40
+   ],
+   "from": "sweep:3"
+  },
+  {
+   "band": "fx:splash",
+   "index": 0,
+   "rect": [
+    218,
+    388,
+    19,
+    15
+   ],
+   "from": "sweep:2"
+  },
+  {
+   "band": "fx:spray",
+   "index": 0,
+   "rect": [
+    344,
+    378,
+    33,
+    26
+   ],
+   "from": "sweep:4"
+  },
+  {
+   "band": "fx:arc",
+   "index": 0,
+   "rect": [
+    645,
+    243,
+    36,
+    27
+   ],
+   "from": "ice:11"
+  }
+ ],
+ "strips": {
+  "idle": [
+   "idle:0",
+   "idle:1",
+   "idle:2",
+   "idle:3",
+   "idle:4",
+   "idle:5",
+   "idle:6",
+   "idle:7"
+  ],
+  "walk": [
+   "skate:0",
+   "skate:1",
+   "skate:2",
+   "skate:3",
+   "skate:4",
+   "skate:5",
+   "skate:6",
+   "skate:7"
+  ],
+  "walk_back": [
+   "skate:7",
+   "skate:6",
+   "skate:5",
+   "skate:4",
+   "skate:3",
+   "skate:2",
+   "skate:1",
+   "skate:0"
+  ],
+  "run": [
+   "skate:0",
+   "skate:1",
+   "skate:2",
+   "skate:3",
+   "skate:4",
+   "skate:5",
+   "skate:6",
+   "skate:7"
+  ],
+  "dash": [
+   "ice:0",
+   "ice:1",
+   "ice:2"
+  ],
+  "jump": [
+   "ice:3"
+  ],
+  "doubleJump": [
+   "ice:3",
+   "ice:4"
+  ],
+  "fall": [
+   "ice:5"
+  ],
+  "land": [
+   "ice:2"
+  ],
+  "crouch": [
+   "cast:0"
+  ],
+  "guard": [
+   "cast:1"
+  ],
+  "hurt": [
+   "react:0",
+   "react:3"
+  ],
+  "hurt_air": [
+   "react:3"
+  ],
+  "knockdown": [
+   "react:1",
+   "down:1"
+  ],
+  "getup": [
+   "react:2",
+   "gesture:0"
+  ],
+  "lose": [
+   "down:0",
+   "down:1",
+   "down:2"
+  ],
+  "win": [
+   "gesture:4",
+   "gesture:4",
+   "ice:12"
+  ],
+  "taunt": [
+   "gesture:1",
+   "gesture:2",
+   "gesture:3",
+   "gesture:4"
+  ],
+  "intro": [
+   "ice:0",
+   "ice:1",
+   "ice:2",
+   "ice:0",
+   "ice:1",
+   "ice:2",
+   "ice:11"
+  ],
+  "introSettle": [
+   "ice:12",
+   "idle:0"
+  ],
+  "atkLight": [
+   "gesture:1",
+   "gesture:2"
+  ],
+  "atkLight2": [
+   "gesture:3",
+   "gesture:4"
+  ],
+  "atkFinish": [
+   "gesture:4",
+   "gesture:5"
+  ],
+  "atkHeavy": [
+   "cast:0",
+   "cast:1",
+   "cast:2"
+  ],
+  "atkLow": [
+   "sweep:0",
+   "sweep:1",
+   "sweep:2",
+   "sweep:3",
+   "sweep:4",
+   "sweep:5"
+  ],
+  "atkLaunch": [
+   "gesture:6",
+   "gesture:5"
+  ],
+  "atkAir": [
+   "gesture:5"
+  ],
+  "atkDownAir": [
+   "ice:5",
+   "ice:2"
+  ],
+  "atkLance": [
+   "gesture:4",
+   "gesture:5"
+  ],
+  "atkRush": [
+   "ice:6",
+   "ice:7",
+   "ice:8",
+   "ice:9",
+   "ice:10",
+   "ice:11"
+  ],
+  "atkRise": [
+   "ice:3",
+   "ice:4"
+  ],
+  "atkBlackIce": [
+   "gesture:6"
+  ],
+  "atkBreaker": [
+   "gesture:4",
+   "cast:0",
+   "cast:1",
+   "cast:2"
+  ],
+  "atkGrab": [
+   "gesture:5"
+  ],
+  "atkUlt": [
+   "gesture:4",
+   "gesture:5",
+   "gesture:7"
+  ],
+  "ultSkate": [
+   "ice:6",
+   "ice:7",
+   "ice:8",
+   "ice:9",
+   "ice:10"
+  ],
+  "ultBrake": [
+   "ice:11"
+  ]
+ },
+ "usage": {
+  "idle:0": [
+   "idle",
+   "introSettle"
+  ],
+  "idle:1": [
+   "idle"
+  ],
+  "idle:2": [
+   "idle"
+  ],
+  "idle:3": [
+   "idle"
+  ],
+  "idle:4": [
+   "idle"
+  ],
+  "idle:5": [
+   "idle"
+  ],
+  "idle:6": [
+   "idle"
+  ],
+  "idle:7": [
+   "idle"
+  ],
+  "skate:0": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:1": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:2": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:3": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:4": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:5": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:6": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:7": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "ice:0": [
+   "dash",
+   "intro",
+   "intro"
+  ],
+  "ice:1": [
+   "dash",
+   "intro",
+   "intro"
+  ],
+  "ice:2": [
+   "dash",
+   "land",
+   "intro",
+   "intro",
+   "atkDownAir"
+  ],
+  "ice:3": [
+   "jump",
+   "doubleJump",
+   "atkRise"
+  ],
+  "ice:4": [
+   "doubleJump",
+   "atkRise"
+  ],
+  "ice:5": [
+   "fall",
+   "atkDownAir"
+  ],
+  "cast:0": [
+   "crouch",
+   "atkHeavy",
+   "atkBreaker"
+  ],
+  "cast:1": [
+   "guard",
+   "atkHeavy",
+   "atkBreaker"
+  ],
+  "react:0": [
+   "hurt"
+  ],
+  "react:3": [
+   "hurt",
+   "hurt_air"
+  ],
+  "react:1": [
+   "knockdown"
+  ],
+  "down:1": [
+   "knockdown",
+   "lose"
+  ],
+  "react:2": [
+   "getup"
+  ],
+  "gesture:0": [
+   "getup"
+  ],
+  "down:0": [
+   "lose"
+  ],
+  "down:2": [
+   "lose"
+  ],
+  "gesture:4": [
+   "win",
+   "win",
+   "taunt",
+   "atkLight2",
+   "atkFinish",
+   "atkLance",
+   "atkBreaker",
+   "atkUlt"
+  ],
+  "ice:12": [
+   "win",
+   "introSettle"
+  ],
+  "gesture:1": [
+   "taunt",
+   "atkLight"
+  ],
+  "gesture:2": [
+   "taunt",
+   "atkLight"
+  ],
+  "gesture:3": [
+   "taunt",
+   "atkLight2"
+  ],
+  "ice:11": [
+   "intro",
+   "atkRush",
+   "ultBrake"
+  ],
+  "gesture:5": [
+   "atkFinish",
+   "atkLaunch",
+   "atkAir",
+   "atkLance",
+   "atkGrab",
+   "atkUlt"
+  ],
+  "cast:2": [
+   "atkHeavy",
+   "atkBreaker"
+  ],
+  "sweep:0": [
+   "atkLow"
+  ],
+  "sweep:1": [
+   "atkLow"
+  ],
+  "sweep:2": [
+   "atkLow"
+  ],
+  "sweep:3": [
+   "atkLow"
+  ],
+  "sweep:4": [
+   "atkLow"
+  ],
+  "sweep:5": [
+   "atkLow"
+  ],
+  "gesture:6": [
+   "atkLaunch",
+   "atkBlackIce"
+  ],
+  "ice:6": [
+   "atkRush",
+   "ultSkate"
+  ],
+  "ice:7": [
+   "atkRush",
+   "ultSkate"
+  ],
+  "ice:8": [
+   "atkRush",
+   "ultSkate"
+  ],
+  "ice:9": [
+   "atkRush",
+   "ultSkate"
+  ],
+  "ice:10": [
+   "atkRush",
+   "ultSkate"
+  ],
+  "gesture:7": [
+   "atkUlt"
+  ]
+ },
+ "unused": []
+}

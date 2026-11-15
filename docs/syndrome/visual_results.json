@@ -1,0 +1,103 @@
+{
+  "universeIdx": 20,
+  "roster": [
+    "frozone",
+    "mr_incredible",
+    "mr_incredible",
+    "mr_incredible",
+    "mr_incredible",
+    "mr_incredible",
+    "mr_incredible",
+    "mr_incredible",
+    "mr_incredible",
+    "frozone",
+    "syndrome"
+  ],
+  "detail": {
+    "key": "syndrome",
+    "name": "Syndrome",
+    "stats": {
+      "maxHealth": 1100,
+      "maxEnergy": 100,
+      "attack": 82,
+      "defense": 70,
+      "speed": 92,
+      "jumpPower": 25,
+      "maxJumps": 2,
+      "weight": 1,
+      "dashSpeed": 19,
+      "dashDuration": 10,
+      "dashCooldownMax": 26
+    },
+    "kitType": "Arsenal Conductor / Zoner-Pressure",
+    "difficulty": "Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 13,
+    "selId": null,
+    "mouseX": 283,
+    "mouseY": 203
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 340,
+    "mouseY": 507
+  },
+  "introSeen": true,
+  "introActions": [
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro"
+  ],
+  "introCard": {
+    "p": true,
+    "k": 32,
+    "act": "intro",
+    "v": "intro"
+  },
+  "match": {
+    "p1": "syndrome",
+    "skin": "sy_winning_valkyrie",
+    "tag": "winning_valkyrie",
+    "p2": "syndrome"
+  },
+  "tag": "winning_valkyrie",
+  "profile": {
+    "msPerFrameIdle": 0.178,
+    "msPerFrameTwoArsenals": 0.196,
+    "msPerFrameUlt": 0.066,
+    "fxCacheBefore": 72,
+    "fxCacheAfter": 76,
+    "addedKeys": [
+      "./assets/syndrome/skins/winning_valkyrie/machines/turretSmoke.png",
+      "./assets/syndrome/skins/infinity_system/machines/leg.png",
+      "./assets/syndrome/skins/infinity_system/machines/gunRetract1.png",
+      "./assets/syndrome/skins/infinity_system/machines/turretSmoke.png"
+    ],
+    "partBound": {
+      "allowed": 186,
+      "stray": []
+    },
+    "fxCacheAfterUlt": 76,
+    "fxEntries": 0,
+    "projectiles": 0
+  },
+  "defeat": "win",
+  "passes": 17,
+  "failures": 0,
+  "errors": []
+}

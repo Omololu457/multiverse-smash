@@ -1,0 +1,136 @@
+{
+  "skins": {
+    "bb_natural_world": {
+      "tag": "natural_world",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 153124
+      },
+      "matDraws": 0
+    },
+    "bb_pink_flash": {
+      "tag": "pink_flash",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208460
+      },
+      "matDraws": 0
+    },
+    "bb_cursed_rose": {
+      "tag": "cursed_rose",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208535
+      },
+      "matDraws": 0
+    },
+    "bb_infinity_frost": {
+      "tag": "infinity_frost",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208535
+      },
+      "matDraws": 0
+    },
+    "bb_alien_x": {
+      "tag": "alien_x",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208460
+      },
+      "matDraws": 4
+    },
+    "bb_upgrade": {
+      "tag": "upgrade",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208535
+      },
+      "matDraws": 0
+    },
+    "bb_rath_pack": {
+      "tag": "rath_pack",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208535
+      },
+      "matDraws": 0
+    },
+    "bb_arctic_reserve": {
+      "tag": "arctic_reserve",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208460
+      },
+      "matDraws": 0
+    },
+    "bb_galaxy_glitter": {
+      "tag": "galaxy_glitter",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208535
+      },
+      "matDraws": 4
+    },
+    "bb_opal_safari": {
+      "tag": "opal_safari",
+      "traceIdentical": true,
+      "actions": 43,
+      "px": {
+        "strips": 43,
+        "alphaDiff": 0,
+        "sizeDiff": 0,
+        "green": 0,
+        "recol": 208535
+      },
+      "matDraws": 4
+    }
+  },
+  "passes": 101,
+  "failures": 3
+}

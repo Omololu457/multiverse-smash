@@ -1,0 +1,155 @@
+{
+  "replay": {
+    "frames": 5200,
+    "identical": true,
+    "exercised": [
+      "light",
+      "bJ2",
+      "bJ3",
+      "gorilla",
+      "bird",
+      "chain1",
+      "tigerA",
+      "chain2",
+      "tigerLand",
+      "tricera",
+      "instinctUsed",
+      "feint",
+      "bAdv",
+      "bStr",
+      "bKnock",
+      "up",
+      "air",
+      "tiger",
+      "ultOpen",
+      "ult",
+      "ultPose",
+      "ultGorilla",
+      "ultBirdIn",
+      "ultBird",
+      "ultTiger",
+      "ultTri"
+    ],
+    "stats": {
+      "animalStarts": 7,
+      "animalHits": 5,
+      "animalBlocked": 0,
+      "animalWhiffs": 2,
+      "rejects": 0,
+      "interrupts": 0,
+      "chainOpens": 3,
+      "chainQueued": 2,
+      "chainLinks": 2,
+      "chainDropped": 0,
+      "instinctEarned": 1,
+      "instinctArmed": 1,
+      "instinctUsed": 1,
+      "feints": 1,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1
+    }
+  },
+  "renderBatching": {
+    "samples": 600,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "ident": {
+      "had": true,
+      "bb": false,
+      "atkBb": false
+    }
+  },
+  "lan": {
+    "seen": [
+      "gorilla",
+      "bird",
+      "feint",
+      "tiger",
+      "tricera"
+    ],
+    "frame": 400,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "bJ2",
+        "bJ3",
+        "gorilla",
+        "tricera",
+        "tiger",
+        "bird",
+        "feint",
+        "heavy",
+        "bAdv",
+        "ultOpen",
+        "ultPose",
+        "ultGorilla",
+        "ultBirdIn",
+        "ultBird",
+        "ultTiger"
+      ],
+      "hp": 788
+    },
+    "pad": {
+      "names": [
+        "light",
+        "bJ2",
+        "bJ3",
+        "gorilla",
+        "tricera",
+        "tiger",
+        "bird",
+        "feint",
+        "heavy",
+        "bAdv",
+        "ultOpen",
+        "ultPose",
+        "ultGorilla",
+        "ultBirdIn",
+        "ultBird",
+        "ultTiger"
+      ],
+      "hp": 788
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null,
+    "inst": {
+      "padJump": {
+        "at": 45,
+        "vy": -24.1,
+        "dash": 0
+      },
+      "rawJump": {
+        "at": 45,
+        "vy": -24.1,
+        "dash": 0
+      },
+      "padDash": {
+        "at": 47,
+        "vy": 0,
+        "dash": 9
+      },
+      "rawDash": {
+        "at": 47,
+        "vy": 0,
+        "dash": 9
+      },
+      "padBird": {
+        "atk": "bird",
+        "groundedThroughStartup": true
+      }
+    }
+  },
+  "passes": 22,
+  "errors": []
+}

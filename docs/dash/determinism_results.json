@@ -3,6 +3,7 @@
     "frames": 1500,
     "identical": true,
     "exercised": [
+      "flashTime",
       "freebie",
       "laps",
       "jab",

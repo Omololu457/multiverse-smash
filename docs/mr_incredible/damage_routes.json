@@ -1,0 +1,1184 @@
+[
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "isolated",
+    "key": "light",
+    "raw": 50,
+    "actual": 30,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "isolated",
+    "key": "heavy",
+    "raw": 100,
+    "actual": 60,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miRush",
+    "raw": 125,
+    "actual": 75,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miSlam",
+    "raw": 155,
+    "actual": 93,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miLift",
+    "raw": 145,
+    "actual": 87,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "defense-probe",
+    "actual": 60,
+    "defense": 1.25
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "route",
+    "route": "light_chain",
+    "actual": 98,
+    "hits": [
+      {
+        "tick": 4,
+        "damage": 30,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 17,
+        "damage": 30,
+        "stunBefore": 13,
+        "gapFromPrevious": 13,
+        "escapeWindow": false
+      },
+      {
+        "tick": 32,
+        "damage": 38,
+        "stunBefore": 12,
+        "gapFromPrevious": 15,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "light",
+      "miLight2",
+      "miFinish"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "route",
+    "route": "launcher_air",
+    "actual": 83,
+    "hits": [
+      {
+        "tick": 5,
+        "damage": 48,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 25,
+        "damage": 35,
+        "stunBefore": 27,
+        "gapFromPrevious": 20,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "up",
+      "air"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "route",
+    "route": "heavy_rush",
+    "actual": 129,
+    "hits": [
+      {
+        "tick": 13,
+        "damage": 60,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 36,
+        "damage": 69,
+        "stunBefore": 22,
+        "gapFromPrevious": 23,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "heavy",
+      "miRush"
+    ],
+    "energyCost": 7.34,
+    "phase": 2
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "route",
+    "route": "air_slam",
+    "actual": 93,
+    "hits": [
+      {
+        "tick": 26,
+        "damage": 93,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miSlam"
+    ],
+    "energyCost": 10.96,
+    "phase": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": false,
+    "kind": "route",
+    "route": "power_lift_reset",
+    "actual": 117,
+    "hits": [
+      {
+        "tick": 39,
+        "damage": 87,
+        "stunBefore": 1,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 50,
+        "damage": 30,
+        "stunBefore": 10,
+        "gapFromPrevious": 11,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miLift",
+      "light"
+    ],
+    "energyCost": 5.66,
+    "phase": 2
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "isolated",
+    "key": "light",
+    "raw": 65,
+    "actual": 39,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "isolated",
+    "key": "heavy",
+    "raw": 130,
+    "actual": 78,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miRush",
+    "raw": 162.5,
+    "actual": 97,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miSlam",
+    "raw": 201.5,
+    "actual": 120,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miLift",
+    "raw": 188.5,
+    "actual": 113,
+    "defense": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "defense-probe",
+    "actual": 78,
+    "defense": 1.25
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "route",
+    "route": "light_chain",
+    "actual": 128,
+    "hits": [
+      {
+        "tick": 4,
+        "damage": 39,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 17,
+        "damage": 39,
+        "stunBefore": 13,
+        "gapFromPrevious": 13,
+        "escapeWindow": false
+      },
+      {
+        "tick": 32,
+        "damage": 50,
+        "stunBefore": 12,
+        "gapFromPrevious": 15,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "light",
+      "miLight2",
+      "miFinish"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "route",
+    "route": "launcher_air",
+    "actual": 107,
+    "hits": [
+      {
+        "tick": 5,
+        "damage": 62,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 25,
+        "damage": 45,
+        "stunBefore": 27,
+        "gapFromPrevious": 20,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "up",
+      "air"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "route",
+    "route": "heavy_rush",
+    "actual": 167,
+    "hits": [
+      {
+        "tick": 13,
+        "damage": 78,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 36,
+        "damage": 89,
+        "stunBefore": 22,
+        "gapFromPrevious": 23,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "heavy",
+      "miRush"
+    ],
+    "energyCost": 20,
+    "phase": 2
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "route",
+    "route": "air_slam",
+    "actual": 120,
+    "hits": [
+      {
+        "tick": 26,
+        "damage": 120,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miSlam"
+    ],
+    "energyCost": 25,
+    "phase": 1
+  },
+  {
+    "opponent": "goku",
+    "prime": true,
+    "kind": "route",
+    "route": "power_lift_reset",
+    "actual": 152,
+    "hits": [
+      {
+        "tick": 39,
+        "damage": 113,
+        "stunBefore": 1,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 50,
+        "damage": 39,
+        "stunBefore": 10,
+        "gapFromPrevious": 11,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miLift",
+      "light"
+    ],
+    "energyCost": 20,
+    "phase": 2
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "isolated",
+    "key": "light",
+    "raw": 50,
+    "actual": 30,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "isolated",
+    "key": "heavy",
+    "raw": 100,
+    "actual": 60,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miRush",
+    "raw": 125,
+    "actual": 75,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miSlam",
+    "raw": 155,
+    "actual": 93,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miLift",
+    "raw": 145,
+    "actual": 87,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "defense-probe",
+    "actual": 48,
+    "defense": 1.25
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "route",
+    "route": "light_chain",
+    "actual": 98,
+    "hits": [
+      {
+        "tick": 4,
+        "damage": 30,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 17,
+        "damage": 30,
+        "stunBefore": 13,
+        "gapFromPrevious": 13,
+        "escapeWindow": false
+      },
+      {
+        "tick": 32,
+        "damage": 38,
+        "stunBefore": 12,
+        "gapFromPrevious": 15,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "light",
+      "miLight2",
+      "miFinish"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "route",
+    "route": "launcher_air",
+    "actual": 83,
+    "hits": [
+      {
+        "tick": 5,
+        "damage": 48,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 25,
+        "damage": 35,
+        "stunBefore": 27,
+        "gapFromPrevious": 20,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "up",
+      "air"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "route",
+    "route": "heavy_rush",
+    "actual": 129,
+    "hits": [
+      {
+        "tick": 13,
+        "damage": 60,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 36,
+        "damage": 69,
+        "stunBefore": 22,
+        "gapFromPrevious": 23,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "heavy",
+      "miRush"
+    ],
+    "energyCost": 7.34,
+    "phase": 2
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "route",
+    "route": "air_slam",
+    "actual": 93,
+    "hits": [
+      {
+        "tick": 26,
+        "damage": 93,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miSlam"
+    ],
+    "energyCost": 10.96,
+    "phase": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": false,
+    "kind": "route",
+    "route": "power_lift_reset",
+    "actual": 117,
+    "hits": [
+      {
+        "tick": 39,
+        "damage": 87,
+        "stunBefore": 1,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 50,
+        "damage": 30,
+        "stunBefore": 10,
+        "gapFromPrevious": 11,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miLift",
+      "light"
+    ],
+    "energyCost": 5.66,
+    "phase": 2
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "isolated",
+    "key": "light",
+    "raw": 65,
+    "actual": 39,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "isolated",
+    "key": "heavy",
+    "raw": 130,
+    "actual": 78,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miRush",
+    "raw": 162.5,
+    "actual": 97,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miSlam",
+    "raw": 201.5,
+    "actual": 120,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miLift",
+    "raw": 188.5,
+    "actual": 113,
+    "defense": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "defense-probe",
+    "actual": 62,
+    "defense": 1.25
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "route",
+    "route": "light_chain",
+    "actual": 128,
+    "hits": [
+      {
+        "tick": 4,
+        "damage": 39,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 17,
+        "damage": 39,
+        "stunBefore": 13,
+        "gapFromPrevious": 13,
+        "escapeWindow": false
+      },
+      {
+        "tick": 32,
+        "damage": 50,
+        "stunBefore": 12,
+        "gapFromPrevious": 15,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "light",
+      "miLight2",
+      "miFinish"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "route",
+    "route": "launcher_air",
+    "actual": 107,
+    "hits": [
+      {
+        "tick": 5,
+        "damage": 62,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 25,
+        "damage": 45,
+        "stunBefore": 27,
+        "gapFromPrevious": 20,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "up",
+      "air"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "route",
+    "route": "heavy_rush",
+    "actual": 167,
+    "hits": [
+      {
+        "tick": 13,
+        "damage": 78,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 36,
+        "damage": 89,
+        "stunBefore": 22,
+        "gapFromPrevious": 23,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "heavy",
+      "miRush"
+    ],
+    "energyCost": 20,
+    "phase": 2
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "route",
+    "route": "air_slam",
+    "actual": 120,
+    "hits": [
+      {
+        "tick": 26,
+        "damage": 120,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miSlam"
+    ],
+    "energyCost": 25,
+    "phase": 1
+  },
+  {
+    "opponent": "superman",
+    "prime": true,
+    "kind": "route",
+    "route": "power_lift_reset",
+    "actual": 152,
+    "hits": [
+      {
+        "tick": 39,
+        "damage": 113,
+        "stunBefore": 1,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 50,
+        "damage": 39,
+        "stunBefore": 10,
+        "gapFromPrevious": 11,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miLift",
+      "light"
+    ],
+    "energyCost": 20,
+    "phase": 2
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "isolated",
+    "key": "light",
+    "raw": 50,
+    "actual": 30,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "isolated",
+    "key": "heavy",
+    "raw": 100,
+    "actual": 60,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miRush",
+    "raw": 125,
+    "actual": 75,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miSlam",
+    "raw": 155,
+    "actual": 93,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "isolated",
+    "key": "miLift",
+    "raw": 145,
+    "actual": 87,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "defense-probe",
+    "actual": 48,
+    "defense": 1.25
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "route",
+    "route": "light_chain",
+    "actual": 98,
+    "hits": [
+      {
+        "tick": 4,
+        "damage": 30,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 17,
+        "damage": 30,
+        "stunBefore": 13,
+        "gapFromPrevious": 13,
+        "escapeWindow": false
+      },
+      {
+        "tick": 32,
+        "damage": 38,
+        "stunBefore": 12,
+        "gapFromPrevious": 15,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "light",
+      "miLight2",
+      "miFinish"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "route",
+    "route": "launcher_air",
+    "actual": 83,
+    "hits": [
+      {
+        "tick": 5,
+        "damage": 48,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 25,
+        "damage": 35,
+        "stunBefore": 27,
+        "gapFromPrevious": 20,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "up",
+      "air"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "route",
+    "route": "heavy_rush",
+    "actual": 129,
+    "hits": [
+      {
+        "tick": 13,
+        "damage": 60,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 36,
+        "damage": 69,
+        "stunBefore": 22,
+        "gapFromPrevious": 23,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "heavy",
+      "miRush"
+    ],
+    "energyCost": 7.34,
+    "phase": 2
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "route",
+    "route": "air_slam",
+    "actual": 93,
+    "hits": [
+      {
+        "tick": 26,
+        "damage": 93,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miSlam"
+    ],
+    "energyCost": 10.96,
+    "phase": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": false,
+    "kind": "route",
+    "route": "power_lift_reset",
+    "actual": 117,
+    "hits": [
+      {
+        "tick": 39,
+        "damage": 87,
+        "stunBefore": 1,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 50,
+        "damage": 30,
+        "stunBefore": 10,
+        "gapFromPrevious": 11,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miLift",
+      "light"
+    ],
+    "energyCost": 5.66,
+    "phase": 2
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "isolated",
+    "key": "light",
+    "raw": 65,
+    "actual": 39,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "isolated",
+    "key": "heavy",
+    "raw": 130,
+    "actual": 78,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miRush",
+    "raw": 162.5,
+    "actual": 97,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miSlam",
+    "raw": 201.5,
+    "actual": 120,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "isolated",
+    "key": "miLift",
+    "raw": 188.5,
+    "actual": 113,
+    "defense": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "defense-probe",
+    "actual": 62,
+    "defense": 1.25
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "route",
+    "route": "light_chain",
+    "actual": 128,
+    "hits": [
+      {
+        "tick": 4,
+        "damage": 39,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 17,
+        "damage": 39,
+        "stunBefore": 13,
+        "gapFromPrevious": 13,
+        "escapeWindow": false
+      },
+      {
+        "tick": 32,
+        "damage": 50,
+        "stunBefore": 12,
+        "gapFromPrevious": 15,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "light",
+      "miLight2",
+      "miFinish"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "route",
+    "route": "launcher_air",
+    "actual": 107,
+    "hits": [
+      {
+        "tick": 5,
+        "damage": 62,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 25,
+        "damage": 45,
+        "stunBefore": 27,
+        "gapFromPrevious": 20,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "up",
+      "air"
+    ],
+    "energyCost": 0,
+    "phase": 3
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "route",
+    "route": "heavy_rush",
+    "actual": 167,
+    "hits": [
+      {
+        "tick": 13,
+        "damage": 78,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 36,
+        "damage": 89,
+        "stunBefore": 22,
+        "gapFromPrevious": 23,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "heavy",
+      "miRush"
+    ],
+    "energyCost": 20,
+    "phase": 2
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "route",
+    "route": "air_slam",
+    "actual": 120,
+    "hits": [
+      {
+        "tick": 26,
+        "damage": 120,
+        "stunBefore": 0,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miSlam"
+    ],
+    "energyCost": 25,
+    "phase": 1
+  },
+  {
+    "opponent": "luffy",
+    "prime": true,
+    "kind": "route",
+    "route": "power_lift_reset",
+    "actual": 152,
+    "hits": [
+      {
+        "tick": 39,
+        "damage": 113,
+        "stunBefore": 1,
+        "gapFromPrevious": null,
+        "escapeWindow": false
+      },
+      {
+        "tick": 50,
+        "damage": 39,
+        "stunBefore": 10,
+        "gapFromPrevious": 11,
+        "escapeWindow": false
+      }
+    ],
+    "moves": [
+      "miLift",
+      "light"
+    ],
+    "energyCost": 20,
+    "phase": 2
+  }
+]

@@ -1,0 +1,180 @@
+{
+  "difficulty": "easy",
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green",
+    "spd_pink",
+    "mmpr_pink",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "spd_yellow"
+  ],
+  "detail": {
+    "key": "spd_yellow",
+    "name": "S.P.D. Yellow Ranger",
+    "stats": {
+      "maxHealth": 1100,
+      "maxEnergy": 100,
+      "attack": 78,
+      "defense": 76,
+      "speed": 98,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 36
+    },
+    "kitType": "Duplicate Gunner / Coordinator",
+    "difficulty": "Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 9,
+    "selId": null,
+    "mouseX": 521,
+    "mouseY": 341
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 640,
+    "mouseY": 542
+  },
+  "match": {
+    "p1": "spd_yellow",
+    "skin": "spd_yellow_starlight",
+    "tag": "starlight",
+    "p2": "mmpr_white"
+  },
+  "ultPre_R": {
+    "kd": false,
+    "inv": 0,
+    "g": true,
+    "hs": 57,
+    "y": 400,
+    "x": 1450
+  },
+  "ultTrace_R": [
+    [
+      1,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      5,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      10,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      15,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      20,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      25,
+      1,
+      950,
+      "battle"
+    ]
+  ],
+  "ultPre_L": {
+    "kd": false,
+    "inv": 0,
+    "g": true,
+    "hs": 56,
+    "y": 400,
+    "x": 1234
+  },
+  "ultTrace_L": [
+    [
+      2,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      6,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      10,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      14,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      18,
+      0,
+      980,
+      "battle"
+    ],
+    [
+      22,
+      0,
+      980,
+      "battle"
+    ]
+  ],
+  "profile": {
+    "skin": "spd_yellow_starlight",
+    "msPerFrameIdle": 22.05,
+    "msPerFrameGlitterCloneZord": 20.645,
+    "msPerFrameUlt": 24.241,
+    "calls": 15,
+    "fxCacheBefore": 10,
+    "fxCacheAfter": 10
+  },
+  "fps": 37,
+  "frames": 45,
+  "passes": 22,
+  "failures": 0,
+  "errors": []
+}

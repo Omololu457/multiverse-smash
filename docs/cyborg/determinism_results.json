@@ -1,0 +1,135 @@
+{
+  "replay": {
+    "frames": 6000,
+    "identical": true,
+    "exercised": [
+      "light",
+      "cJ2",
+      "cJ3",
+      "cSonic",
+      "cCannon",
+      "cMissile",
+      "cRack",
+      "cMega",
+      "cRecoil",
+      "cVent",
+      "thruster",
+      "cSlamAir",
+      "cSlamLand",
+      "cAdv",
+      "cPiston",
+      "cKnock",
+      "cLow",
+      "cUltOpen",
+      "ult",
+      "ultOpen",
+      "ultCannon",
+      "ultRack",
+      "ultBoost",
+      "ultAir",
+      "ultMega"
+    ],
+    "stats": {
+      "shots": 1,
+      "pulses": 2,
+      "missiles": 1,
+      "rack": 5,
+      "fizzles": 0,
+      "rejects": 0,
+      "overheats": 0,
+      "vents": 4,
+      "ventCooled": 0,
+      "passiveCooled": 16600,
+      "dj": 1,
+      "djFail": 0,
+      "marks": 1,
+      "conversions": 1,
+      "markConsumedBlocked": 0,
+      "hot": 0,
+      "explosions": 6,
+      "recoils": 1,
+      "slams": 1,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "weightScaled": 0
+    }
+  },
+  "renderBatching": {
+    "samples": 600,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "ident": {
+      "had": true,
+      "cy": false,
+      "proj": 0
+    }
+  },
+  "lan": {
+    "missile": true,
+    "rack": true,
+    "vent": true,
+    "dj": true,
+    "frame": 280,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "cJ2",
+        "cJ3",
+        "cSonic",
+        "cMissile",
+        "cMega",
+        "cVent",
+        "heavy",
+        "cAdv",
+        "cUltOpen",
+        "ultOpen",
+        "ultCannon",
+        "ultRack"
+      ],
+      "hp": 719
+    },
+    "pad": {
+      "names": [
+        "light",
+        "cJ2",
+        "cJ3",
+        "cSonic",
+        "cMissile",
+        "cMega",
+        "cVent",
+        "heavy",
+        "cAdv",
+        "cUltOpen",
+        "ultOpen",
+        "ultCannon",
+        "ultRack"
+      ],
+      "hp": 719
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null,
+    "jump": {
+      "raw": {
+        "liftAt": 11,
+        "djAt": 24
+      },
+      "pad": {
+        "liftAt": 10,
+        "djAt": 24
+      }
+    }
+  },
+  "passes": 21,
+  "errors": []
+}

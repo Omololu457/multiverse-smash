@@ -318,6 +318,16 @@ import { ARLONG_SOUNDS } from './arlongSound.js'   // Arlong synth SFX (SFX bus;
 import { MMPR_PINK_SOUNDS } from './mmprPinkSound.js'   // Pink Ranger + Thunder Megazord synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { MMPR_BLACK_SOUNDS } from './mmprBlackSound.js'   // Black Ranger + Falconzord synth SFX placeholders (SFX bus; voice bus untouched)
 import { MMPR_WHITE_SOUNDS } from './mmprWhiteSound.js'   // White Ranger + Ninja Megazord synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { SPD_YELLOW_SOUNDS } from './spdYellowSound.js'   // S.P.D. Yellow synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { CYBORG_SOUNDS } from './cyborgSound.js'   // Cyborg synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { BEAST_BOY_SOUNDS } from './beastBoySound.js'   // Beast Boy synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { RAVEN_SOUNDS } from './ravenSound.js'   // Raven synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { STARFIRE_SOUNDS } from './starfireSound.js'   // Starfire synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { ROBIN_SOUNDS } from './robinSound.js'   // Robin synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { MEGUMI_SOUNDS } from './megumiSound.js'   // Megumi synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { HIGURUMA_SOUNDS } from './higurumaSound.js'   // Higuruma synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { SYNDROME_SOUNDS } from './syndromeSound.js'   // Syndrome synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { FROZONE_SOUNDS } from './frozoneSound.js'   // Frozone synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { BATMAN_SOUNDS } from './batmanSound.js'   // Batman (rebuilt) synth SFX (SFX bus; voice bus untouched)
 import { ELASTIGIRL_SOUNDS } from './elastigirlSound.js'   // Elastigirl synth SFX placeholders (SFX bus; voice bus untouched)
 import { SPD_RED_SOUNDS } from './spdRedSound.js'   // S.P.D. Red synth SFX (SFX bus; voice bus untouched)
@@ -327,6 +337,16 @@ const SOUNDS = {
   ...MMPR_PINK_SOUNDS, // mmprpink_* : bow snap, draw-threshold rise, Spotter chirp, radio ack, metallic wind-up / slash, Thread chime, ultimate tension/impact
   ...MMPR_BLACK_SOUNDS, // mmprblack_* : martial thud/crack, radio ack, wing pass, talon chirp, volley pulses, Pincer chime, ultimate rhythm
   ...MMPR_WHITE_SOUNDS, // mmprwhite_* : discipline notes, Formation three-note resolution, Saba metal, Megazord impact, sword tension/strike, Leader confirm, ultimate rhythm
+  ...SPD_YELLOW_SOUNDS, // spdyellow_* : pistol zap, long-gun draw/discharge, duplicate shimmer/pop, swap, coin clinks, stance radio, Megazord (White recipes)
+  ...CYBORG_SOUNDS, // cyborg_* : sonic chirp / cannon pulse, missile hiss + boom, Mega crunch, vent hiss, overheat alarm, thruster, reject buzz
+  ...BEAST_BOY_SOUNDS, // beastboy_* : morph chirp, gorilla thud, hoof roll + horn hit, wing pass, claw rip, Wild Chain / Instinct chimes
+  ...RAVEN_SOUNDS, // raven_* : dark pulse hum, brick lift / thud / crumble, infuse chime, verdict warning, shell up / hit / end, reject, ultimate release
+  ...STARFIRE_SOUNDS, // starfire_* : starbolt / comet / orbital star, eye-laser charge / fire / hit, Prism Break, levitation, ultimate
+  ...ROBIN_SOUNDS, // robin_* : staff whoosh / hit, bomb throw / blast, smoke, Smoke Step, plant / armed, wrist-computer hack / detonate / convert, outplay, ultimate
+  ...MEGUMI_SOUNDS, // megumi_* : hand sign, shikigami emergence, lightning, serpent rise, water, pull, Shadow Step, Shadow Route, ultimate
+  ...HIGURUMA_SOUNDS, // higuruma_* : gavel knocks / swings, extension, giant gavel, Objection, Case File marks, Precedent, Deadly Sentencing
+  ...SYNDROME_SOUNDS, // syndrome_* : remote clicks, drone / spinner / turret / velocipod / Omnidroid servos, impacts, Zero-Point, Operation Kronos
+  ...FROZONE_SOUNDS, // frozone_* : ice casts, lance, Black Ice, skate / brake, Chill / Freeze / Shatter, Absolute Zero
   ...BATMAN_SOUNDS, // batman_* : strikes, gadgets, grapnel, smoke, fleet orders / payloads / machines, KNIGHTFALL
   ...ELASTIGIRL_SOUNDS, // elastigirl_* : stretch boing, snap-back, whirl, parachute flutter, whip crack, family raft wave
   ...SPD_RED_SOUNDS, // spdred_blink (600→3000 Hz sweep) / _blinkPop / _dodge (2.2 kHz) / _impact / _blaster / _rapid0-4 / _deltamaxCharge / _deltamax / _judge / _guilty / _innocent / _contain …

@@ -5,7 +5,7 @@ import {DASH_PARR_ANIM} from './dashParrSprites.js'
 import {DASH_PARR_MOVES,INCREDI_RUSH,MOMENTUM} from './dashParrData.js'
 import {isDashParr,momentumTier} from './dashParrState.js'
 import {playDashParrCue} from './dashParrSound.js'
-const S=2   // sprite scale (characters entry spriteScale)
+const S=2.5   // sprite scale (characters entry spriteScale)
 const cache=new Map()
 function image(url){if(!cache.has(url)){const im=new Image();im.src=url;cache.set(url,im)}return cache.get(url)}
 const sheetUrl=(f,action)=>f._recolorTag?`./assets/dash_parr/skins/${f._recolorTag}/${action}.png`:`./assets/dash_parr/${action}.png`
@@ -35,7 +35,7 @@ export function dashParrBodyAlpha(f){
 export function drawDashParrUnder(c,f,opp){
  if(!isDashParr(f)||f.health<=0)return
  const s=f._dashParr,a=f.attacking?f.currentAttack:null,t=a?a.total-a.timer:-1,cx=f.x+f.w/2,foot=f.y+f.h,dir=f.facing||1
- const tr=trail(f),tier=momentumTier(f),fast=tier==='blur'||(a&&['blurDash','sidestep','panic','hydro'].includes(a.name))
+ const tr=trail(f),tier=momentumTier(f),fast=tier==='blur'||!!s?.ft||(a&&['blurDash','sidestep','panic','hydro'].includes(a.name))
  if(fast)tr.unshift({x:cx,y:foot,dir,act:a?.name==='hydro'?'hydro':'run',i:Math.floor((s?.clock||0)/4)});else tr.length=Math.max(0,tr.length-2)
  if(tr.length>6)tr.length=6
  for(let k=tr.length-1;k>=1;k--){const p=tr[k];blitFrame(c,f,p.act,p.i,p.x,p.y,p.dir,0.42*(1-k/7))}
@@ -53,6 +53,11 @@ export function drawDashParrUnder(c,f,opp){
   if(u.pos)blitFrame(c,f,'ultimate',u.hits,ox+u.pos.dx,oy+u.pos.dy,-u.pos.side,1)
   speedRing(c,ox,oy-46,92,st*0.4)
  }
+ // FLASH TIME: slow cyan ripples around the slowed foe (render-only; phase from Dash's sim clock).
+ if(s?.ft&&opp&&opp.health>0){const ox=opp.x+(opp.w||48)/2,oy=opp.y+(opp.h||94)/2,k=(s.clock||0)
+  c.save();c.strokeStyle='#7fe0ff';c.lineWidth=2
+  for(let i=0;i<3;i++){const ph=((k*0.6+i*20)%60)/60;c.globalAlpha=0.45*(1-ph);c.beginPath();c.ellipse(ox,oy,30+ph*50,40+ph*55,0,0,Math.PI*2);c.stroke()}
+  c.restore()}
 }
 function speedRing(c,x,y,r,ph){
  c.save();c.strokeStyle='rgba(255,255,255,0.75)';c.lineWidth=2;c.lineCap='round'
@@ -94,11 +99,12 @@ export function drawDashParrHud(c,cv,p1,p2,globalFrame=0){
  const cw=cv?.width||1280,ch=cv?.height||720,barW=Math.max(220,Math.min(420,cw*0.28)),pad=14
  const one=(f,flip)=>{
   if(!isDashParr(f))return
-  const m=f._dashParr?.momentum||0,tier=momentumTier(f),[col,label]=TIER[tier]
+  const m=f._dashParr?.momentum||0,tier=momentumTier(f),[col,label0]=TIER[tier],label=f._dashParr?.ft?`${label0} · FLASH TIME`:label0
   const w=barW*0.62,h=5,x=flip?cw-pad-70-w:pad+70,y=ch-DASH_HUD_BOTTOM
   c.save();c.fillStyle='rgba(0,0,0,0.6)';c.fillRect(x-1,y-1,w+2,h+2)
   c.fillStyle=tier==='blur'?(globalFrame%10<5?'#ffffff':'#ffe066'):col
   const fw=w*Math.max(0,Math.min(1,m/MOMENTUM.max));c.fillRect(flip?x+w-fw:x,y,fw,h)
+  if(f._dashParr?.ft){c.strokeStyle=globalFrame%12<6?'#7fe0ff':'#ffffff';c.lineWidth=1;c.strokeRect(x-2.5,y-2.5,w+5,h+5)}
   c.fillStyle='rgba(255,255,255,0.5)';for(const q of [MOMENTUM.sprintAt/MOMENTUM.max]){const qx=flip?x+w-w*q:x+w*q;c.fillRect(qx,y-1,1,h+2)}
   c.font='bold 9px Arial';c.textAlign=flip?'right':'left';c.textBaseline='middle';c.fillStyle=col;c.fillText(`MOMENTUM ${label}`,flip?x-6:x+w+6,y+h/2)
   c.restore()

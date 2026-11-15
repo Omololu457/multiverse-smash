@@ -1,0 +1,4 @@
+import { mrStart,mrActivate,clearMr } from './mrIncredibleState.js'
+import { mrVisual } from './mrIncredibleSkins.js'
+import { MR_MOVES,MR_PRIME } from './mrIncredibleData.js'
+export function mrHarness(g){const raw=(w='p1')=>w==='p2'?g.p2():g.p1();return {raw,reset:()=>{g.reset();for(const f of [g.p1(),g.p2()]){clearMr(f);mrVisual(f)}},move:(k,w='p1')=>mrStart(raw(w),k),activate:(w='p1')=>mrActivate(raw(w)),data:()=>({moves:MR_MOVES,prime:MR_PRIME}),state:(w='p1')=>{const f=raw(w);return JSON.parse(JSON.stringify({key:f.rosterKey,hp:f.health,maxHp:f.maxHealth,energy:f.energy,x:f.x,y:f.y,w:f.w,h:f.h,vx:f.vx,vy:f.vy,grounded:!!(f.onGround||f.grounded),jumpCount:f.jumpCount,maxJumps:f.maxJumps,skin:f.skinId,attack:f.currentAttack,s:f._mrIncredible,hitstun:f.hitstun,blockstun:f.blockstun,action:f._lastSpriteAction,knockdown:f.knockdownState,grabbed:f.isGrabbed}))}}}

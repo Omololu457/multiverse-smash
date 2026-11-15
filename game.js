@@ -21,6 +21,11 @@ import { updateMmprBlackCommandCombat } from './mmprBlack.js'   // Black Ranger 
 import { tickMmprBlack, isMmprBlack, clearMmprBlack, mmprBlackLocked, isMmprBlackUltActive, updateMmprBlackUlt, clearMmprBlackUlt } from './mmprBlackState.js'
 import { drawMmprBlackFx, playMmprBlackCues } from './mmprBlackFx.js'
 import { mmprBlackHarnessApi } from './mmprBlackHarness.js'
+import { updateGreenCommandCombat } from './greenRanger.js'   // Green Ranger (Tommy Oliver, MMPR) — green_ranger-gated command layer
+import { tickGreen, isGreenRanger, clearGreen, greenLocked, greenOwnsCharge } from './greenRangerState.js'
+import { isZordUltCineActive, updateZordUltCine, clearZordUltCine } from './rangerZordUltimate.js'   // shared Ranger Zord ultimate (freeze contract; any opted-in Ranger)
+import { drawGreenRangerFx, playGreenCues } from './greenRangerFx.js'
+import { greenRangerHarnessApi } from './greenRangerHarness.js'
 import { updateMmprWhiteCommandCombat } from './mmprWhite.js'   // White Ranger (Tommy Oliver, MMPR) — mmpr_white-gated command layer
 import { tickMmprWhite, isMmprWhite, clearMmprWhite, mmprWhiteLocked, isMmprWhiteUltActive, updateMmprWhiteUlt, clearMmprWhiteUlt } from './mmprWhiteState.js'
 import { drawMmprWhiteFx, playMmprWhiteCues } from './mmprWhiteFx.js'
@@ -28,6 +33,50 @@ import { mmprWhiteHarnessApi } from './mmprWhiteHarness.js'
 import { updateMmprPinkCommandCombat } from './mmprPink.js'   // Pink Ranger (Kimberly Hart, MMPR) — mmpr_pink-gated command layer
 import { tickMmprPink, isMmprPink, clearMmprPink, mmprPinkLocked, isMmprPinkUltActive, updateMmprPinkUlt, clearMmprPinkUlt } from './mmprPinkState.js'
 import { drawMmprPinkFx, playMmprPinkCues } from './mmprPinkFx.js'
+import { updateSpdYellowCommandCombat } from './spdYellow.js'   // S.P.D. Yellow (Z Delgado) — spd_yellow-gated command layer
+import { tickSpdYellow, isSpdYellow, clearSpdYellow, spdYellowLocked, isSpdYellowUltActive, updateSpdYellowUlt, clearSpdYellowUlt } from './spdYellowState.js'
+import { drawSpdYellowFx, playSpdYellowCues } from './spdYellowFx.js'
+import { spdYellowHarnessApi } from './spdYellowHarness.js'
+import { updateCyborgCommandCombat } from './cyborg.js'   // Cyborg (Victor Stone, DC) — cyborg-gated command layer
+import { tickCyborg, isCyborg, clearCyborg, cyborgLocked, isCyborgUltActive, updateCyborgUlt, clearCyborgUlt } from './cyborgState.js'
+import { drawCyborgFx, drawCyborgHud, playCyborgCues } from './cyborgFx.js'
+import { cyborgHarnessApi } from './cyborgHarness.js'
+import { updateBeastBoyCommandCombat } from './beastBoy.js'   // Beast Boy (Gar Logan, DC) — beast_boy-gated command layer
+import { tickBeastBoy, isBeastBoy, clearBeastBoy, beastBoyLocked, isBeastBoyUltActive, updateBeastBoyUlt, clearBeastBoyUlt } from './beastBoyState.js'
+import { drawBeastBoyFx, drawBeastBoyHud, playBeastBoyCues } from './beastBoyFx.js'
+import { beastBoyHarnessApi } from './beastBoyHarness.js'
+import { updateRavenCommandCombat } from './raven.js'   // Raven (Rachel Roth, DC) — raven-gated command layer
+import { tickRaven, isRaven, clearRaven, ravenLocked, isRavenUltActive, updateRavenUlt, clearRavenUlt } from './ravenState.js'
+import { drawRavenFx, drawRavenHud, playRavenCues } from './ravenFx.js'
+import { ravenHarnessApi } from './ravenHarness.js'
+import { updateStarfireCommandCombat } from './starfire.js'   // Starfire (Koriand'r, DC) — starfire-gated command layer
+import { tickStarfire, isStarfire, clearStarfire, starfireLocked, isStarfireUltActive, updateStarfireUlt, clearStarfireUlt } from './starfireState.js'
+import { drawStarfireFx, drawStarfireHud, playStarfireCues } from './starfireFx.js'
+import { starfireHarnessApi } from './starfireHarness.js'
+import { updateRobinCommandCombat } from './robin.js'   // Robin (Dick Grayson, DC) — robin-gated command layer
+import { tickRobin, isRobin, clearRobin, robinLocked, robinOwnsCharge, isRobinUltActive, updateRobinUlt, clearRobinUlt } from './robinState.js'
+import { drawRobinFx, drawRobinHud, drawRobinIntroCard, playRobinCues } from './robinFx.js'
+import { robinHarnessApi } from './robinHarness.js'
+import { updateMegumiCommandCombat } from './megumi.js'   // Megumi Fushiguro (JJK) — megumi-gated command layer
+import { tickMegumi, isMegumi, clearMegumi, megumiLocked, megumiOwnsCharge, isMegumiUltActive, updateMegumiUlt, clearMegumiUlt } from './megumiState.js'
+import { drawMegumiFx, drawMegumiHud, drawMegumiIntroCard, playMegumiCues } from './megumiFx.js'
+import { megumiHarnessApi } from './megumiHarness.js'
+import { updateHigurumaCommandCombat } from './higuruma.js'   // Hiromi Higuruma (Jujutsu Kaisen) — higuruma-gated command layer
+import { tickHiguruma, isHiguruma, clearHiguruma, higurumaLocked, isHigurumaUltActive, updateHigurumaUlt, clearHigurumaUlt } from './higurumaState.js'
+import { drawHigurumaFx, drawHigurumaHud, drawHigurumaIntroCard, drawHigurumaCourt, drawHigurumaUnder, playHigurumaCues } from './higurumaFx.js'
+import { higurumaHarnessApi } from './higurumaHarness.js'
+import { updateSyndromeCommandCombat } from './syndrome.js'   // Syndrome (The Incredibles) — syndrome-gated command layer
+import { tickSyndrome, isSyndrome, clearSyndrome, syndromeLocked, syndromeOwnsCharge, isSyndromeUltActive, updateSyndromeUlt, clearSyndromeUlt } from './syndromeState.js'
+import { drawSyndromeUnder, drawSyndromeOver, drawSyndromeHud, drawSyndromeIntroCard, playSyndromeCues } from './syndromeFx.js'
+import { syndromeHarnessApi } from './syndromeHarness.js'
+import { updateFrozoneCommandCombat } from './frozone.js'   // Frozone (The Incredibles) — frozone-gated command layer
+import { tickFrozone, isFrozone, clearFrozone, frozoneLocked, isFrozoneUltActive, updateFrozoneUlt, clearFrozoneUlt, updateFrozoneIntro, finalizeFrozoneIntro } from './frozoneState.js'
+import { drawFrozoneUnder, drawFrozoneOver, drawFrozoneHud, drawFrozoneIntroCard, playFrozoneCues } from './frozoneFx.js'
+import { frozoneHarnessApi } from './frozoneHarness.js'
+import { isMr, mrTick, mrCommand, clearMr, mrLocked } from './mrIncredibleState.js'
+import { mrVisual } from './mrIncredibleSkins.js'
+import { drawMrHud, drawMrEffects, drawMrUnder } from './mrIncredibleFx.js'
+import { mrHarness } from './mrIncredibleHarness.js'
 import { updateBatmanCommandCombat as updateBatmanRebuildCombat } from './batman.js'   // Batman (DC) REBUILT — batman-gated command layer
 import { tickBatman, isBatman, clearBatman, batmanLocked, batmanOwnsCharge, isBatmanUltActive, updateBatmanUlt, clearBatmanUlt, batmanUltCamera } from './batmanState.js'
 import { drawBatmanFx, drawBatmanUnder, drawBatmanHud, drawBatmanIntroCard, drawBatmanSky, playBatmanCues } from './batmanFx.js'
@@ -89,11 +138,22 @@ const SPD_BLUE_WORLD = { ...KRYBOT_WORLD, solids: () => getPlatforms().filter(p=
 // Black Ranger world (self-contained: built only from SPD_RED_WORLD + engine functions). Falconzord sorties read fighters / spawn / damage.
 const MMPR_BLACK_WORLD = { ...SPD_RED_WORLD, projectiles: activeProjectiles, projectileRects: SPD_RED_WORLD.projectiles, spawn: (f, t, d) => spawnProjectile(f, t, d),
   fighters: () => gameState === GAME_STATES.FFA_BATTLE ? ffaState.fighters : [p1, p2] }
+const SPD_YELLOW_WORLD = MMPR_BLACK_WORLD   // S.P.D. Yellow: the same self-contained world (shots, clone, Ninja Megazord read fighters / spawn / damage)
+const CYBORG_WORLD = MMPR_BLACK_WORLD   // Cyborg: the same self-contained world (sonic shots / missiles spawn through W.spawn, ultimate damage through W.damage)
+const BEAST_BOY_WORLD = MMPR_BLACK_WORLD   // Beast Boy: the same self-contained world (stage width for travel clamps, ultimate damage through W.damage)
+const RAVEN_WORLD = MMPR_BLACK_WORLD   // Raven: the same self-contained world (stage width for pile bounds, projectiles, ultimate damage through W.damage)
+const STARFIRE_WORLD = MMPR_BLACK_WORLD   // Starfire: the same self-contained world (stage width for beam clipping, projectiles, ultimate damage through W.damage)
+const ROBIN_WORLD = MMPR_BLACK_WORLD   // Robin: the same self-contained world (stage width, projectiles = bombs / blasts, ultimate damage through W.damage)
+const MEGUMI_WORLD = MMPR_BLACK_WORLD   // Megumi: the same self-contained world (stage width, projectiles = summon hit volumes, ultimate damage through W.damage)
+const HIGURUMA_WORLD = MMPR_BLACK_WORLD   // Higuruma: the same self-contained world (stage width, fighters, ultimate damage through W.damage)
+const SYNDROME_WORLD = MMPR_BLACK_WORLD   // Syndrome: the same self-contained world (stage width, fighters, projectiles = machine hit volumes, attackBox / projectileRects for turret damage, ultimate damage through W.damage)
+const FROZONE_WORLD = MMPR_BLACK_WORLD   // Frozone: the same self-contained world (stage width, fighters, projectiles = Lance / Black Ice volumes, Shatter + ultimate damage through W.damage)
 const BATMAN_WORLD = MMPR_BLACK_WORLD   // Batman: the same self-contained world (stage width, fighters, attack / projectile rects for machine damage, W.damage)
 const VIOLET_WORLD = MMPR_BLACK_WORLD   // Violet Parr: the same self-contained world (stage width, fighters, frame, seed, W.damage)
 const ELASTIGIRL_WORLD = MMPR_BLACK_WORLD   // Elastigirl: the same self-contained world (stage width, frame, seed, fighters, W.damage)
 const MMPR_WHITE_WORLD = MMPR_BLACK_WORLD   // White Ranger: the same self-contained world (Ninja Megazord orders read fighters / damage)
 const MMPR_PINK_WORLD = MMPR_BLACK_WORLD   // Pink Ranger: the same self-contained world (Thunder Megazord strikes + arrows read fighters / spawn / damage)
+const GREEN_RANGER_WORLD = MMPR_BLACK_WORLD   // Green Ranger: the same self-contained world (Pulse / Edge bursts spawn through W.spawn, Zord damage through W.damage)
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -1354,7 +1414,7 @@ function _rewindUnsafeNow() {
   if (activeDomains.length > 0) return true
   if (domainCine.timer > 0 || domainCine.caster) return true
   if (isChrolloSkillHunterCinematicActive()) return true
-  return isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isBatmanUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
+  return isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isZordUltCineActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isSpdYellowUltActive() || isCyborgUltActive() || isBeastBoyUltActive() || isRavenUltActive() || isStarfireUltActive() || isRobinUltActive() || isMegumiUltActive() || isHigurumaUltActive() || isSyndromeUltActive() || isFrozoneUltActive() || isBatmanUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
 }
 
 function _rewindFighterSnap(f) {
@@ -1417,8 +1477,19 @@ function _rewindTeardown() {
   clearSasukeCinematic(); clearSSJRoseCinematic(); clearFormActivationCinematic()
   clearGokuBlackSwordCinematic(); clearRedRangerPowerSwordCinematic(); clearSamuraiFlameSmasherCinematic()
   clearMmprBlackUlt()   // Black Ranger Falcon Formation (freeze contract)
+  clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
+  clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
+  clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
+  clearRavenUlt()   // Raven AZARATH (freeze contract)
+  clearStarfireUlt()   // Starfire SUPERNOVA (freeze contract)
+  clearRobinUlt()   // Robin CHECKMATE (freeze contract)
+  clearMegumiUlt()   // Megumi CHIMERA SHADOW GARDEN (freeze contract)
+  clearHigurumaUlt()   // Higuruma DEADLY SENTENCING (freeze contract)
+  clearSyndromeUlt()   // Syndrome OPERATION KRONOS (freeze contract)
+  clearFrozoneUlt()   // Frozone ABSOLUTE ZERO (freeze contract)
   clearBatmanUlt()   // Batman KNIGHTFALL (freeze contract)
   clearKilluaGodspeedCinematic()
   clearFlashTimeCinematic(); if (p1) forceRevertFlashTime(p1); if (p2) forceRevertFlashTime(p2)
@@ -1428,8 +1499,20 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearGreen(_f,GREEN_RANGER_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdYellow(_f,SPD_YELLOW_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearCyborg(_f,CYBORG_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearBeastBoy(_f)
+  for (const _f of [p1, p2]) if (_f) clearRaven(_f,RAVEN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearStarfire(_f,STARFIRE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
+  for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -3246,6 +3329,7 @@ function applySkin(fighter, skinId) {
   // tintColor; null clears it so non-tinted skins render natively.
   fighter.skinTint = skin?.skinTint || null
   fighter.skinId = skinId
+  mrVisual(fighter) // cosmetic selection preserves veteran / prime
   fighter._voidFX = null   // drop any prior Void Form starfield; it regenerates on next draw if re-applied
   fighter._pzFX = null     // drop any prior Phantom Zone spectral overlay likewise
   fighter._emberFX = null  // drop any prior Void Ember overlay likewise (Rengoku)
@@ -4122,10 +4206,32 @@ function updateFFACombat(fighter, others, opts) {
   playSpdPinkCues(fighter)
   tickMmprBlack(fighter,nearest,readRawControls(fighter)||{},MMPR_BLACK_WORLD)
   playMmprBlackCues(fighter)
+  tickGreen(fighter,nearest,readRawControls(fighter)||{},GREEN_RANGER_WORLD)
+  playGreenCues(fighter)
   tickMmprWhite(fighter,nearest,readRawControls(fighter)||{},MMPR_WHITE_WORLD)
   playMmprWhiteCues(fighter)
   tickMmprPink(fighter,nearest,readRawControls(fighter)||{},MMPR_PINK_WORLD)
   playMmprPinkCues(fighter)
+  tickSpdYellow(fighter,nearest,readRawControls(fighter)||{},SPD_YELLOW_WORLD)
+  playSpdYellowCues(fighter)
+  tickCyborg(fighter,nearest,readRawControls(fighter)||{},CYBORG_WORLD)
+  playCyborgCues(fighter)
+  tickBeastBoy(fighter,nearest,readRawControls(fighter)||{},BEAST_BOY_WORLD)
+  playBeastBoyCues(fighter)
+  tickRaven(fighter,nearest,readRawControls(fighter)||{},RAVEN_WORLD)
+  playRavenCues(fighter)
+  tickStarfire(fighter,nearest,readRawControls(fighter)||{},STARFIRE_WORLD)
+  playStarfireCues(fighter)
+  tickRobin(fighter,nearest,readRawControls(fighter)||{},ROBIN_WORLD)
+  playRobinCues(fighter)
+  tickMegumi(fighter,nearest,readRawControls(fighter)||{},MEGUMI_WORLD)
+  playMegumiCues(fighter)
+  tickHiguruma(fighter,nearest,readRawControls(fighter)||{},HIGURUMA_WORLD)
+  playHigurumaCues(fighter)
+  tickSyndrome(fighter,nearest,readRawControls(fighter)||{},SYNDROME_WORLD)
+  playSyndromeCues(fighter)
+  tickFrozone(fighter,nearest,readRawControls(fighter)||{},FROZONE_WORLD)
+  playFrozoneCues(fighter)
   tickBatman(fighter,nearest,readRawControls(fighter)||{},BATMAN_WORLD)
   playBatmanCues(fighter)
   tickViolet(fighter,nearest,readRawControls(fighter)||{},VIOLET_WORLD)
@@ -4156,8 +4262,20 @@ function updateFFACombat(fighter, others, opts) {
   if (isDashParr(fighter)) { const dc=updateDashParrCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=dc==='grab'?{grab:!!inputState.grab}:{} }
   if (isSpdPink(fighter)) { const pc=updateSpdPinkCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=pc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprBlack(fighter)) { const mc=updateMmprBlackCommandCombat(fighter,inputState,nearest,MMPR_BLACK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isGreenRanger(fighter)) { const mc=updateGreenCommandCombat(fighter,inputState,nearest,GREEN_RANGER_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprWhite(fighter)) { const mc=updateMmprWhiteCommandCombat(fighter,inputState,nearest,MMPR_WHITE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprPink(fighter)) { const mc=updateMmprPinkCommandCombat(fighter,inputState,nearest,MMPR_PINK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isSpdYellow(fighter)) { const mc=updateSpdYellowCommandCombat(fighter,inputState,nearest,SPD_YELLOW_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isCyborg(fighter)) { const mc=updateCyborgCommandCombat(fighter,inputState,nearest,CYBORG_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isBeastBoy(fighter)) { const mc=updateBeastBoyCommandCombat(fighter,inputState,nearest,BEAST_BOY_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isRaven(fighter)) { const mc=updateRavenCommandCombat(fighter,inputState,nearest,RAVEN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isStarfire(fighter)) { const mc=updateStarfireCommandCombat(fighter,inputState,nearest,STARFIRE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isRobin(fighter)) { const mc=updateRobinCommandCombat(fighter,inputState,nearest,ROBIN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isMegumi(fighter)) { const mc=updateMegumiCommandCombat(fighter,inputState,nearest,MEGUMI_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isHiguruma(fighter)) { const mc=updateHigurumaCommandCombat(fighter,inputState,nearest,HIGURUMA_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isSyndrome(fighter)) { const mc=updateSyndromeCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isFrozone(fighter)) { const mc=updateFrozoneCommandCombat(fighter,inputState,nearest,FROZONE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isMr(fighter)) { mrCommand(fighter); ctrlState={} }
   if (isBatman(fighter)) { const mc=updateBatmanRebuildCombat(fighter,inputState,nearest,BATMAN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isViolet(fighter)) { const vc=updateVioletCommandCombat(fighter,inputState,nearest,VIOLET_WORLD);if(vc)ctrlState=vc==='grab'?{grab:!!inputState.grab}:{} }
   if (isElastigirl(fighter)) { const mc=updateElastigirlCommandCombat(fighter,inputState,nearest,ELASTIGIRL_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
@@ -5068,8 +5186,19 @@ function resetRound() {
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearMmprBlackUlt()
+  clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
+  clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
+  clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
+  clearRavenUlt()   // Raven AZARATH (freeze contract)
+  clearStarfireUlt()   // Starfire SUPERNOVA (freeze contract)
+  clearRobinUlt()   // Robin CHECKMATE (freeze contract)
+  clearMegumiUlt()   // Megumi CHIMERA SHADOW GARDEN (freeze contract)
+  clearHigurumaUlt()   // Higuruma DEADLY SENTENCING (freeze contract)
+  clearSyndromeUlt()   // Syndrome OPERATION KRONOS (freeze contract)
+  clearFrozoneUlt()   // Frozone ABSOLUTE ZERO (freeze contract)
   clearBatmanUlt()   // Batman KNIGHTFALL (freeze contract)
   clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
@@ -5083,8 +5212,20 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearGreen(_f,GREEN_RANGER_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdYellow(_f,SPD_YELLOW_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearCyborg(_f,CYBORG_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearBeastBoy(_f)
+  for (const _f of [p1, p2]) if (_f) clearRaven(_f,RAVEN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearStarfire(_f,STARFIRE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
+  for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -5815,8 +5956,20 @@ function _replaySnap(f) {
   if (isDashParr(f)) snap.push(JSON.stringify(f._dashParr || null),JSON.stringify(f.currentAttack || null))   // Dash Parr Momentum / moves / Incredi-Rush GAME_STATE
   if (isSpdPink(f)) snap.push(JSON.stringify(f._spdPink || null),JSON.stringify(f.currentAttack || null))
   if (isMmprBlack(f) || f._falcon) snap.push(JSON.stringify(f._mmprBlack || null),JSON.stringify(f._falcon || null),JSON.stringify(f.currentAttack || null))   // Black Ranger + Falconzord sortie GAME_STATE
+  if (isGreenRanger(f) || f._zordUlt) snap.push(JSON.stringify(f._greenRanger ? { ...f._greenRanger, cues: undefined } : null),JSON.stringify(f._zordUlt || null),JSON.stringify(f.currentAttack || null))   // Green Ranger + shared Zord ultimate GAME_STATE (render cue queue excluded)
   if (isMmprWhite(f)) snap.push(JSON.stringify(f._mmprWhite || null))   // White Ranger disciplines / token / Formation GAME_STATE (Ninja Megazord order: the _falcon line above)
   if (isMmprPink(f)) snap.push(JSON.stringify(f._mmprPink || null))   // Pink Ranger GAME_STATE (bow draw, Spotter Link, call location, Thread); _falcon/currentAttack pushed above
+  if (isSpdYellow(f)) snap.push(JSON.stringify(f._spdYellow || null))   // S.P.D. Yellow GAME_STATE (gun hold, clone, coins, stance, breach); _falcon/currentAttack pushed above
+  if (isCyborg(f)) snap.push(JSON.stringify(f._cyborg || null))   // Cyborg GAME_STATE (Heat, overheat, allowances, marks, live projectiles, press edges); currentAttack.cy pushed above
+  if (isBeastBoy(f)) snap.push(JSON.stringify([f._beastBoy || null, f.currentAttack?.bb || null]))   // Beast Boy GAME_STATE (Wild Chain, Instinct, airtime allowances, press edges, live animal descriptor)
+  if (isRaven(f)) snap.push(JSON.stringify([f._raven || null, f.currentAttack?.rv || null, f._rvPose || null, f._rvLand || 0]))   // Raven GAME_STATE (piles, live spells, levitation, shell, airtime allowances, press edges, move descriptor)
+  if (isStarfire(f)) snap.push(JSON.stringify([f._starfire || null, f.currentAttack?.sf || null, f._sfPose || null, f._sfLand || 0]))   // Starfire GAME_STATE (live projectiles, levitation, airtime allowances, laser aim / prism, press edges, move descriptor)
+  if (isRobin(f)) snap.push(JSON.stringify([f._robin || null, f.currentAttack?.rb || null, f._rbLand || 0]))   // Robin GAME_STATE (smoke, planted bomb, live bombs, remote press, airtime allowances, press edges, move descriptor)
+  if (isMegumi(f)) snap.push(JSON.stringify([f._megumi || null, f.currentAttack?.mg || null]))   // Megumi GAME_STATE (summon, rabbits, pull, Shadow Route, step cooldown, airtime allowances, press edges, move descriptor)
+  if (isHiguruma(f)) snap.push(JSON.stringify([f._higuruma || null, f.currentAttack?.hg || null, f._hgPose || null, f._hgPoseT || 0]))   // Higuruma GAME_STATE (Case File, Precedent token / combo lock, airtime allowance, press edges, move descriptor incl. Objection phase)
+  if (isSyndrome(f)) snap.push(JSON.stringify([f._syndrome ? { ...f._syndrome, cues: undefined } : null, f.currentAttack?.sy || null]))   // Syndrome GAME_STATE (machine slots / squads / turret / Omnidroid action / Zero-Point hold / press edges / move descriptor; render cue queue excluded)
+  if (isFrozone(f)) snap.push(JSON.stringify([f._frozone ? { ...f._frozone, cues: undefined } : null, f.currentAttack?.fz || null, f.dashSpeed || 0]))   // Frozone GAME_STATE (Chill pips / Freeze / immunity / Black Ice patch / skate profile / ribbon / press edges / move descriptor; render cue queue excluded)
+  if (isMr(f)) snap.push(JSON.stringify([f._mrIncredible || null, f.currentAttack || null, f._grabThrowDmg || 0]))
   if (isBatman(f)) snap.push(JSON.stringify([f._batman || null, f.currentAttack?.bm || null, f._bmPose || null, f._bmPoseT || 0]))   // Batman GAME_STATE (fleet ops + machines + payloads + ledgers, gadgets, smoke, edges, cooldowns)
   if (isViolet(f)) snap.push(JSON.stringify([f._violet || null, f.currentAttack?.vi || null, f.baseSpeed, f.runWhenAdvancing || false]))   // Violet GAME_STATE (energy ledger, run, Vanish, shield, push, trap, ult, cooldowns, edges)
   if (isElastigirl(f)) snap.push(JSON.stringify(elastigirlSnapshot(f)))   // Elastigirl GAME_STATE (state, pendulum, current attack)
@@ -6147,8 +6300,19 @@ function resetToStart() {
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearMmprBlackUlt()
+  clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
+  clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
+  clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
+  clearRavenUlt()   // Raven AZARATH (freeze contract)
+  clearStarfireUlt()   // Starfire SUPERNOVA (freeze contract)
+  clearRobinUlt()   // Robin CHECKMATE (freeze contract)
+  clearMegumiUlt()   // Megumi CHIMERA SHADOW GARDEN (freeze contract)
+  clearHigurumaUlt()   // Higuruma DEADLY SENTENCING (freeze contract)
+  clearSyndromeUlt()   // Syndrome OPERATION KRONOS (freeze contract)
+  clearFrozoneUlt()   // Frozone ABSOLUTE ZERO (freeze contract)
   clearBatmanUlt()   // Batman KNIGHTFALL (freeze contract)
   clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
@@ -6162,8 +6326,20 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearGreen(_f,GREEN_RANGER_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdYellow(_f,SPD_YELLOW_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearCyborg(_f,CYBORG_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearBeastBoy(_f)
+  for (const _f of [p1, p2]) if (_f) clearRaven(_f,RAVEN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearStarfire(_f,STARFIRE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
+  for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -10031,7 +10207,8 @@ function _doRematch() {
   clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD)
   clearDashParr(p1);clearDashParr(p2)
   clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
-  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
+  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
+  clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2)
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
@@ -10058,8 +10235,19 @@ function _doRematch() {
   clearGokuBlackSwordCinematic()
   clearRedRangerPowerSwordCinematic()
   clearMmprBlackUlt()
+  clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
+  clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
+  clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
+  clearRavenUlt()   // Raven AZARATH (freeze contract)
+  clearStarfireUlt()   // Starfire SUPERNOVA (freeze contract)
+  clearRobinUlt()   // Robin CHECKMATE (freeze contract)
+  clearMegumiUlt()   // Megumi CHIMERA SHADOW GARDEN (freeze contract)
+  clearHigurumaUlt()   // Higuruma DEADLY SENTENCING (freeze contract)
+  clearSyndromeUlt()   // Syndrome OPERATION KRONOS (freeze contract)
+  clearFrozoneUlt()   // Frozone ABSOLUTE ZERO (freeze contract)
   clearBatmanUlt()   // Batman KNIGHTFALL (freeze contract)
   clearSamuraiFlameSmasherCinematic()
   clearKilluaGodspeedCinematic()
@@ -10073,8 +10261,20 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearGreen(_f,GREEN_RANGER_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearSpdYellow(_f,SPD_YELLOW_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearCyborg(_f,CYBORG_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearBeastBoy(_f)
+  for (const _f of [p1, p2]) if (_f) clearRaven(_f,RAVEN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearStarfire(_f,STARFIRE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
+  for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -11350,11 +11550,13 @@ function updateTauntState(fighter, downHeld) {
 }
 
 function updateMovementInput(fighter) {
+  if (isMr(fighter)) { mrTick(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD); mrVisual(fighter) }
   if (!fighter) return
   const teleportTick = (groundTeleportProfile(fighter) || fighter._groundTeleport) && tickGroundTeleport(fighter,readRawControls(fighter)||{},SPD_BLUE_WORLD,{canCancel:spdBlueCanStep,onCancel:spdBlueStepSpent})
   const inputState = getFighterInput(fighter)
+  if (isMr(fighter)) { const raw=readRawControls(fighter)||{}; inputState.jump=!!raw.jump; inputState._noJumpUp=!raw.jump; inputState.light=!!raw.light; inputState.heavy=!!raw.heavy } // fresh jump releases, shared physics
   if (isKrybot(fighter) && fighter.attacking) inputState.block = false
-  if (krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
+  if (mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || syndromeLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
     // No steering/jump/guard during committed attacks. Shared physics still
     // integrates velocity and bounds; the character timeline owns that velocity.
@@ -11443,7 +11645,8 @@ function updateMovementInput(fighter) {
     }
     fighter._zGsTogglePrev = !!inputState.charge
   } else { fighter._zGsTogglePrev = false }
-  if (!zdGsCharge && inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !batmanOwnsCharge(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
+  // CYBORG: Charge (L2 / P) is the Heat VENT (cyborgState.tickCyborg) and must never recharge Power → excluded here.
+  if (!zdGsCharge && inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !greenOwnsCharge(fighter) && !isCyborg(fighter) && !isRaven(fighter) && !isStarfire(fighter) && !robinOwnsCharge(fighter) && !megumiOwnsCharge(fighter) && !syndromeOwnsCharge(fighter) && !batmanOwnsCharge(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
     if ((fighter.maxEnergy || 0) > 0) doEnergyCharge(fighter)
     fighter.isCharging = true
     // SAMURAI RANGERS — AUTO Mega Mode (owner-requested): the instant Symbol Power crosses the threshold
@@ -11596,10 +11799,32 @@ function _updatePlayerCombatBody(fighter) {
   playSpdPinkCues(fighter)
   tickMmprBlack(fighter,getOpponent(fighter),readRawControls(fighter)||{},MMPR_BLACK_WORLD)
   playMmprBlackCues(fighter)
+  tickGreen(fighter,getOpponent(fighter),readRawControls(fighter)||{},GREEN_RANGER_WORLD)
+  playGreenCues(fighter)
   tickMmprWhite(fighter,getOpponent(fighter),readRawControls(fighter)||{},MMPR_WHITE_WORLD)
   playMmprWhiteCues(fighter)
   tickMmprPink(fighter,getOpponent(fighter),readRawControls(fighter)||{},MMPR_PINK_WORLD)
   playMmprPinkCues(fighter)
+  tickSpdYellow(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_YELLOW_WORLD)
+  playSpdYellowCues(fighter)
+  tickCyborg(fighter,getOpponent(fighter),readRawControls(fighter)||{},CYBORG_WORLD)
+  playCyborgCues(fighter)
+  tickBeastBoy(fighter,getOpponent(fighter),readRawControls(fighter)||{},BEAST_BOY_WORLD)
+  playBeastBoyCues(fighter)
+  tickRaven(fighter,getOpponent(fighter),readRawControls(fighter)||{},RAVEN_WORLD)
+  playRavenCues(fighter)
+  tickStarfire(fighter,getOpponent(fighter),readRawControls(fighter)||{},STARFIRE_WORLD)
+  playStarfireCues(fighter)
+  tickRobin(fighter,getOpponent(fighter),readRawControls(fighter)||{},ROBIN_WORLD)
+  playRobinCues(fighter)
+  tickMegumi(fighter,getOpponent(fighter),readRawControls(fighter)||{},MEGUMI_WORLD)
+  playMegumiCues(fighter)
+  tickHiguruma(fighter,getOpponent(fighter),readRawControls(fighter)||{},HIGURUMA_WORLD)
+  playHigurumaCues(fighter)
+  tickSyndrome(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD)
+  playSyndromeCues(fighter)
+  tickFrozone(fighter,getOpponent(fighter),readRawControls(fighter)||{},FROZONE_WORLD)
+  playFrozoneCues(fighter)
   tickBatman(fighter,getOpponent(fighter),readRawControls(fighter)||{},BATMAN_WORLD)
   playBatmanCues(fighter)
   tickViolet(fighter,getOpponent(fighter),readRawControls(fighter)||{},VIOLET_WORLD)
@@ -11813,12 +12038,57 @@ function _updatePlayerCombatBody(fighter) {
     const mc=updateMmprBlackCommandCombat(fighter,inputState,getOpponent(fighter),MMPR_BLACK_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
+  if (isGreenRanger(fighter)) {   // Green Ranger command layer: 'consumed' | 'grab'
+    const mc=updateGreenCommandCombat(fighter,inputState,getOpponent(fighter),GREEN_RANGER_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
   if (isMmprWhite(fighter)) {   // White Ranger command layer: 'consumed' | 'grab'
     const mc=updateMmprWhiteCommandCombat(fighter,inputState,getOpponent(fighter),MMPR_WHITE_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
   if (isMmprPink(fighter)) {   // Pink Ranger command layer: 'consumed' | 'grab'
     const mc=updateMmprPinkCommandCombat(fighter,inputState,getOpponent(fighter),MMPR_PINK_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isSpdYellow(fighter)) {   // S.P.D. Yellow command layer: 'consumed' | 'grab'
+    const mc=updateSpdYellowCommandCombat(fighter,inputState,getOpponent(fighter),SPD_YELLOW_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isCyborg(fighter)) {   // Cyborg command layer: 'consumed' | 'grab'
+    const mc=updateCyborgCommandCombat(fighter,inputState,getOpponent(fighter),CYBORG_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isBeastBoy(fighter)) {   // Beast Boy command layer: 'consumed' | 'grab'
+    const mc=updateBeastBoyCommandCombat(fighter,inputState,getOpponent(fighter),BEAST_BOY_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isRaven(fighter)) {   // Raven command layer: 'consumed' | 'grab'
+    const mc=updateRavenCommandCombat(fighter,inputState,getOpponent(fighter),RAVEN_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isStarfire(fighter)) {   // Starfire command layer: 'consumed' | 'grab'
+    const mc=updateStarfireCommandCombat(fighter,inputState,getOpponent(fighter),STARFIRE_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isRobin(fighter)) {   // Robin command layer: 'consumed' | 'grab'
+    const mc=updateRobinCommandCombat(fighter,inputState,getOpponent(fighter),ROBIN_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isMegumi(fighter)) {   // Megumi command layer: 'consumed' | 'grab'
+    const mc=updateMegumiCommandCombat(fighter,inputState,getOpponent(fighter),MEGUMI_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isHiguruma(fighter)) {   // Higuruma command layer: 'consumed' | 'grab'
+    const mc=updateHigurumaCommandCombat(fighter,inputState,getOpponent(fighter),HIGURUMA_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isMr(fighter)) { mrCommand(fighter); updateCombat(fighter,getOpponent(fighter),{},opts); return }
+  if (isSyndrome(fighter)) {   // Syndrome command layer: 'consumed' | 'grab'
+    const mc=updateSyndromeCommandCombat(fighter,inputState,getOpponent(fighter),SYNDROME_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isFrozone(fighter)) {   // Frozone command layer: 'consumed' | 'grab'
+    const mc=updateFrozoneCommandCombat(fighter,inputState,getOpponent(fighter),FROZONE_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
   if (isBatman(fighter)) {   // Batman (rebuilt) command layer: 'consumed' | 'grab' (the legacy batman paths below are never reached)
@@ -20084,8 +20354,20 @@ function resetTraining() {
     clearDashParr(f)
     clearSpdPink(f,SPD_BLUE_WORLD)
     clearMmprBlack(f,MMPR_BLACK_WORLD)
+    clearGreen(f,GREEN_RANGER_WORLD)
     clearMmprWhite(f,MMPR_WHITE_WORLD)
     clearMmprPink(f,MMPR_PINK_WORLD)
+    clearSpdYellow(f,SPD_YELLOW_WORLD)
+    clearCyborg(f,CYBORG_WORLD)
+    clearBeastBoy(f)
+    clearRaven(f,RAVEN_WORLD)
+    clearStarfire(f,STARFIRE_WORLD)
+    clearRobin(f,ROBIN_WORLD)
+    clearMegumi(f,MEGUMI_WORLD)
+    clearHiguruma(f)
+    clearSyndrome(f,SYNDROME_WORLD)
+    clearFrozone(f,FROZONE_WORLD)
+    clearMr(f,getOpponent(f)); mrVisual(f)
     clearBatman(f)
     clearViolet(f)
     clearElastigirl(f)
@@ -20228,7 +20510,7 @@ function checkRoundEnd() {
   if (_roundOver) { clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearDashParr(p1);clearDashParr(p2) }
   if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
-  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) }
+  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) ;clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2) }
   if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
@@ -20592,9 +20874,21 @@ function updateBattle() {
     if (isDashParr(f)) f._dashParrRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isSpdPink(f)) f._spdPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMmprBlack(f)) f._mmprBlackRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isGreenRanger(f)) f._greenRangerRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMmprWhite(f)) f._mmprWhiteRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMmprPink(f)) f._mmprPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isSpdYellow(f)) f._spdYellowRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isCyborg(f)) f._cyborgRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isBeastBoy(f)) f._beastBoyRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isRaven(f)) f._ravenRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isStarfire(f)) f._starfireRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isRobin(f)) f._robinRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isMegumi(f)) f._megumiRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isHiguruma(f)) f._higurumaRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isSyndrome(f)) f._syndromeRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isFrozone(f)) f._frozoneRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isBatman(f)) f._batmanRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isMr(f)) f._mrRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isElastigirl(f)) f._elastigirlRemoteInput = replay.isPlayback() || netMatch.isActive()
   }
   academyTick()        // CHARACTER ACADEMY drill timing + READ-ONLY success detection (no-op unless academySession)
@@ -20745,6 +21039,12 @@ function updateBattle() {
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
+  // RANGER ZORD ASSAULT (shared rangerZordUltimate.js, Green Ranger opt-in): the same freeze contract.
+  if (isZordUltCineActive()) {
+    updateZordUltCine()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   // WHITE RANGER "WHITE LIGHT — NINJA GRAND FORMATION": the same freeze contract (mmprWhiteState.js).
   if (isMmprWhiteUltActive()) {
     updateMmprWhiteUlt()
@@ -20758,6 +21058,66 @@ function updateBattle() {
     return
   }
 
+  // S.P.D. YELLOW "DUPLICATE RAID: NINJA CROSSBREAKER": the same freeze contract (spdYellowState.js).
+  if (isSpdYellowUltActive()) {
+    updateSpdYellowUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // CYBORG "BOOYAH PROTOCOL — FULL SYSTEMS IMPACT": the same freeze contract (cyborgState.js).
+  if (isCyborgUltActive()) {
+    updateCyborgUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // BEAST BOY "ANIMAL INSTINCT — FOUR BEAST FINISH": the same freeze contract (beastBoyState.js).
+  if (isBeastBoyUltActive()) {
+    updateBeastBoyUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // RAVEN "AZARATH — THE ROOM OBEYS": the same freeze contract (ravenState.js).
+  if (isRavenUltActive()) {
+    updateRavenUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // STARFIRE "SUPERNOVA — EYES OF TAMARAN": the same freeze contract (starfireState.js).
+  if (isStarfireUltActive()) {
+    updateStarfireUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // ROBIN "CHECKMATE: LIGHTS OUT": the same freeze contract (robinState.js).
+  if (isRobinUltActive()) {
+    updateRobinUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // MEGUMI "CHIMERA SHADOW GARDEN": the same freeze contract (megumiState.js).
+  if (isMegumiUltActive()) {
+    updateMegumiUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // HIGURUMA "DEADLY SENTENCING": the same freeze contract (higurumaState.js).
+  if (isHigurumaUltActive()) {
+    updateHigurumaUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // SYNDROME "OPERATION KRONOS: FINAL DEMONSTRATION": the same freeze contract (syndromeState.js).
+  if (isSyndromeUltActive()) {
+    updateSyndromeUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  // FROZONE "ABSOLUTE ZERO: CITY ON ICE": the same freeze contract (frozoneState.js).
+  if (isFrozoneUltActive()) {
+    updateFrozoneUlt()
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   // BATMAN "KNIGHTFALL: ORBITAL IMPACT": the same freeze contract (batmanState.js) + a camera hint that follows the aircraft.
   if (isBatmanUltActive()) {
     updateBatmanUlt()
@@ -21446,7 +21806,16 @@ function renderHybridFighter(fighter) {
     drawSpdBlueFx(c, fighter)
     drawMmprPinkFx(c, fighter, getOpponent(fighter))   // Pink Ranger — Thunder Megazord strike / ultimate scene, Spotter reticle, call location, warnings, Command pips, Thread flash, blink ghost (render-only)
     drawMmprBlackFx(c, fighter, getOpponent(fighter))   // Black Ranger — Falconzord sortie / ultimate bird, lane + reticle markers, Sortie pips, Pincer ring, blink ghost (render-only)
+    drawGreenRangerFx(c, fighter, getOpponent(fighter))   // Green Ranger — note glyphs, call circles, empower telegraph, tinted Falconzord, cut-in, CALL MISSED (render-only)
+    drawSpdYellowFx(c, fighter)             // S.P.D. Yellow — clone + tell, blink streaks, muzzle star, shots, coin HUD + command panel, Ninja Megazord, ultimate scene, skin materials (render-only; spd_yellow only)
     drawMmprWhiteFx(c, fighter)             // White Ranger — Ninja Megazord order / ultimate Megazord, strike-zone warning, order pips, discipline symbols + Formation token, Leader cue, blink ghost (render-only)
+    drawCyborgFx(c, fighter, getOpponent(fighter))   // Cyborg — skin material overlay, explosions, sonic bursts, Mega shock ring, vent steam, Resonance ring, ultimate beam / missiles (render-only; cyborg only)
+    drawBeastBoyFx(c, fighter)   // Beast Boy — skin material overlay, Wild Chain cue, Instinct escape ring (render-only; beast_boy only)
+    drawRavenFx(c, fighter)   // Raven — piles, spell FX, Verdict warning, levitation shadow, double-jump ring, skin material (render-only; raven only)
+    drawStarfireFx(c, fighter)   // Starfire — eye beams (supplied Laser pieces), bolts / orb glow, explosions, levitation shadow, skin material, opt-in eye debug (render-only; starfire only)
+    drawRobinFx(c, fighter, getOpponent(fighter))   // Robin — smoke, planted bomb, blasts, Smoke Step echoes, OUTPLAY, skin material (render-only; robin only)
+    drawMegumiFx(c, fighter)   // Megumi — shikigami, rabbits, Shadow Step echoes, Mahoraga intro showcase, ultimate shikigami (render-only; megumi only)
+    drawHigurumaFx(c, fighter)   // Higuruma — Case File marks, PRECEDENT, OBJECTION, Order-in-the-Court dust ring, sword stroke, skin material (render-only; higuruma only)
     drawBatmanFx(c, fighter)   // Batman — support fleet, payloads, batarang / grapnel lines, smoke, bracket, explosions, KNIGHTFALL aircraft (render-only; batman only)
     drawVioletFx(c, fighter)   // Violet Parr — push ring, dome, shell, trap bubble + telegraph, FULL FORCE (render-only; violet only)
     drawElastigirlFx(c, fighter)   // Elastigirl — slingshot arm to the anchor, parachute shadow ovals, guard / raft splash (render-only; elastigirl only)
@@ -21798,9 +22167,21 @@ function applyMirrorTint(a, b) {
   const mirror = a.rosterKey && a.rosterKey === b.rosterKey && a.rosterKey !== "krybot"
     && !(a.rosterKey === "spd_blue" && a.skinId !== b.skinId)   // S.P.D. Blue: two different appearance skins already tell P1/P2 apart — no wash over the chosen palette
     && !(a.rosterKey === "mmpr_black" && a.skinId !== b.skinId)   // Black Ranger: same rule
+    && !(a.rosterKey === "green_ranger" && a.skinId !== b.skinId)   // Green Ranger: same rule (team-ID marker comes from the player slot)
     && !(a.rosterKey === "mmpr_white" && a.skinId !== b.skinId)   // White Ranger: same rule
     && !(a.rosterKey === "mmpr_pink" && a.skinId !== b.skinId)   // Pink Ranger: same rule
-    && !(a.rosterKey === "batman" && a.skinId !== b.skinId)   // Batman: same rule
+    && !(a.rosterKey === "spd_yellow" && a.skinId !== b.skinId)   // S.P.D. Yellow: same rule
+    && !(a.rosterKey === "cyborg" && a.skinId !== b.skinId)   // Cyborg: same rule
+    && !(a.rosterKey === "beast_boy" && a.skinId !== b.skinId)   // Beast Boy: same rule
+    && !(a.rosterKey === "raven" && a.skinId !== b.skinId)   // Raven: same rule
+    && !(a.rosterKey === "starfire" && a.skinId !== b.skinId)   // Starfire: same rule
+    && !(a.rosterKey === "robin" && a.skinId !== b.skinId)   // Robin: same rule
+    && !(a.rosterKey === "megumi_fushiguro" && a.skinId !== b.skinId)   // Megumi: same rule
+    && !(a.rosterKey === "higuruma" && a.skinId !== b.skinId)   // Higuruma: same rule
+    && !(a.rosterKey === "syndrome" && a.skinId !== b.skinId)   // Syndrome: same rule
+    && !(a.rosterKey === "frozone" && a.skinId !== b.skinId)   // Frozone: same rule
+    && !(a.rosterKey === "batman" && a.skinId !== b.skinId)
+    && !(a.rosterKey === "mr_incredible") // paired Mr. Incredible skins already distinguish mirrors   // Batman: same rule
     && !(a.rosterKey === "elastigirl" && a.skinId !== b.skinId)   // Elastigirl: same rule
     && !(a.rosterKey === "spd_pink" && a.skinId !== b.skinId)   // S.P.D. Pink: same rule as S.P.D. Blue/Green
     && !(a.rosterKey === "spd_green" && a.skinId !== b.skinId)   // S.P.D. Green: same rule as S.P.D. Blue (different skins already distinguish P1/P2)
@@ -23192,6 +23573,7 @@ function drawBattleScene() {
   drawBatmanSky(ctx, canvas)   // Batman KNIGHTFALL — high-altitude sky gradient + cloud streaks under the space backdrop (render-only; gated)
   drawSupermanMoonBackdrop(ctx, canvas)   // Superman ULTIMATE — space-black sky + stars + Moon while mid-ult, under the fighters
   drawHomelanderSpeedRun(ctx, canvas)     // Homelander ULTIMATE — maps blur past while he runs the enemy across the world, under the fighters
+  drawHigurumaCourt(ctx, canvas)   // Higuruma DEADLY SENTENCING — stage dim + simple courtroom framing, screen space, under the fighters (render-only; gated)
 
   // 2) Domain background — SCREEN space, fullscreen. Drawn outside the camera
   //    transform so the Gojo void video / Sukuna shrine covers the ENTIRE
@@ -23204,6 +23586,10 @@ function drawBattleScene() {
   drawDomains(ctx)
   drawStageHazards(ctx)   // STAGE INTERACTABLES pilot — draw hazards behind the fighters (world space)
   drawArlongUnder(ctx, p1, globalFrameCount); drawArlongUnder(ctx, p2, globalFrameCount)   // Arlong — WATER ZONES / Arlong Park flood under the fighters (render-only; arlong only)
+  drawHigurumaUnder(ctx, p1, p2)   // Higuruma DEADLY SENTENCING — defendant's box + aisle floor markings under the fighters (render-only; gated)
+  drawSyndromeUnder(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
+  drawFrozoneUnder(ctx, p1, p2, FROZONE_WORLD)   // Frozone — Black Ice patch, skate ribbon, ultimate floor ice + ramp (world-space, under the fighters; render-only; gated)
+  drawMrUnder(ctx,p1,p2) // authored, cached cosmetic foot shadows
   drawBatmanUnder(ctx, p1, p2)   // Batman — low smoke + far-side orbiting bombers under the fighters (render-only; gated)
   drawPlatforms(ctx)      // Wood Release climbable terrain — draw platforms behind the fighters (world space; Stage 1 procedural rect = collision box)
   drawProjectiles(ctx, activeProjectiles, camera)
@@ -23241,6 +23627,9 @@ function drawBattleScene() {
   drawDrones(ctx, globalFrameCount, camera)   // GREEN ARROW drones — world space, over fighters
   drawGreenArrowFx(ctx, [p1, p2], globalFrameCount)   // GREEN ARROW status FX (net/flash/rings) — render-only
   drawMunitions(ctx, globalFrameCount); drawMunitionDebug(ctx)   // GREEN ARROW bombs/hazards + telegraphs (render-only)
+  drawSyndromeOver(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — commanded machines in front (claws, Spinner, Drones, Velocipod, shots, Zero-Point field; render-only; gated)
+  drawFrozoneOver(ctx, p1, p2, FROZONE_WORLD)   // Frozone — ice strikes, lance, guard plate, Chill pips, freeze shell, shatter fragments (render-only; gated)
+  drawMrEffects(ctx,p1,p2) // restrained form flash / skin-coordinated impact rings
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)
@@ -23348,6 +23737,16 @@ function drawBattleHud() {
   drawHomelanderUltOverlay(ctx, canvas)   // Homelander FLIGHT 37 dark-startup screen wash (behind HUD)
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
+  drawCyborgHud(ctx, canvas, p1, p2)   // Cyborg: Heat bar (text + colour) + expression icon under his health; BOOYAH cut-in (gated)
+  drawBeastBoyHud(ctx, canvas, p1, p2)   // Beast Boy: expression icon + Instinct token + Wild Chain count under his health; ANIMAL INSTINCT cut-in (gated)
+  drawRavenHud(ctx, canvas, p1, p2)   // Raven: pile pips + levitation / shell timers + expression icon under her health; AZARATH cut-in (gated)
+  drawStarfireHud(ctx, canvas, p1, p2)   // Starfire: Orbital Star pip + levitation / air allowances + expression icon under her health; SUPERNOVA cut-in (gated)
+  drawRobinHud(ctx, canvas, p1, p2)   // Robin: expression icon + smoke / Dead Drop status under his health; CHECKMATE cut-in (gated)
+  drawMegumiHud(ctx, canvas, p1, p2)   // Megumi: Shadow Route stocks (supplied Divine Dog silhouette) + Shadow Step status; domain cut-in (gated)
+  drawHigurumaHud(ctx, canvas, p1, p2)   // Higuruma: Case File marks + PRECEDENT under his health; Deadly Sentencing captions / CASE REVIEW / portrait cut-in (gated)
+  drawSyndromeHud(ctx, canvas, p1, p2)   // Syndrome: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
+  drawFrozoneHud(ctx, canvas, p1, p2)   // Frozone: Black Ice / Freeze / air-skate readout under his health; Absolute Zero cut-in (gated)
+  drawMrHud(ctx, canvas, p1, p2)
   drawBatmanHud(ctx, canvas, p1, p2)   // Batman: support-operation status + cooldown chips under his health; KNIGHTFALL captions / cut-in (gated)
   drawVioletScreen(ctx, canvas, p1, p2)   // Violet FULL FORCE detonation flash (render-only; gated)
   drawDashParrHud(ctx, canvas, p1, p2, globalFrameCount)   // Dash: Momentum gauge under his energy bar (gated)
@@ -25116,6 +25515,11 @@ function renderCurrentState() {
         })
         _drawActiveModifiers()   // Stage 24A: show this floor's modifiers on the intro
       }
+      drawRobinIntroCard(ctx, canvas, p1, p2)   // Robin: "ROBIN — THE BOY WONDER" card while his own intro plays (presentation only; gated)
+      drawMegumiIntroCard(ctx, canvas, p1, p2)   // Megumi: name card while his own intro plays; Mahoraga variant labelled as a showcase (gated)
+      drawHigurumaIntroCard(ctx, canvas, p1, p2)   // Higuruma: portrait + name card while his own intro plays (presentation only; gated)
+      drawSyndromeIntroCard(ctx, canvas, p1, p2)   // Syndrome: portrait + name card while his own intro plays (presentation only; gated)
+      drawFrozoneIntroCard(ctx, canvas, p1, p2)   // Frozone: portrait + name card while his own intro plays (presentation only; gated)
       drawBatmanIntroCard(ctx, canvas, p1, p2)   // Batman: portrait + name + support crew card while his own intro plays (presentation only; gated)
       break
     case GAME_STATES.BATTLE:      drawBattle(); break
@@ -25240,7 +25644,7 @@ const UNIVERSE_ACCENT = {
   saiki_k:         "#e07cff",   // psychic pink
   one_punch_man:   "#f2b705",   // hero-suit gold
   marvel:          "#e62429",   // Spider-Man red
-  pixar:           "#e8323c",   // Incredibles suit red (Elastigirl)
+  the_incredibles: "#e8402a",   // Incredibles red-orange
   original:        "#9aa7b5",   // neutral steel
 }
 function universeAccent(id) { return UNIVERSE_ACCENT[id] || "#4aa8e0" }
@@ -26129,15 +26533,15 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1); updateZoroIntro(p1); updateSanjiIntro(p1) }
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1); updateZoroIntro(p1); updateSanjiIntro(p1); updateFrozoneIntro(p1) }
         if (--introStageTimer <= 0) {
-          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1); finalizeZoroIntroPos(p1); finalizeSanjiIntroPos(p1) }
+          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1); finalizeZoroIntroPos(p1); finalizeSanjiIntroPos(p1); finalizeFrozoneIntro(p1) }
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2); updateZoroIntro(p2); updateSanjiIntro(p2) }
-        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2); finalizeZoroIntroPos(p2); finalizeSanjiIntroPos(p2) } introStage = "done" }
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2); updateZoroIntro(p2); updateSanjiIntro(p2); updateFrozoneIntro(p2) }
+        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2); finalizeZoroIntroPos(p2); finalizeSanjiIntroPos(p2); finalizeFrozoneIntro(p2) } introStage = "done" }
       }
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
@@ -26897,6 +27301,7 @@ gameLoop()
     if (p1) p1._introPlaying = false
     if (p2) p2._introPlaying = false
     finalizeKilluaIntroPos(p1); finalizeKilluaIntroPos(p2)   // undo the roll-in offset if we skip mid-roll
+    finalizeFrozoneIntro(p1); finalizeFrozoneIntro(p2)   // Frozone: undo the skate-in offset if skipped mid-skate
     finalizeZoroIntroPos(p1); finalizeSanjiIntroPos(p1); finalizeZoroIntroPos(p2); finalizeSanjiIntroPos(p2)   // undo Zoro's walk-in offset if skipped mid-walk
     finalizeSupermanIntroPos(p1); finalizeSupermanIntroPos(p2)   // undo Superman's off-screen offset if skipped mid-run
     finalizeShinobuIntroPos(p1); finalizeShinobuIntroPos(p2)   // undo Shinobu's glide-in offset if skipped mid-glide
@@ -27127,7 +27532,19 @@ gameLoop()
     dashParrTest: dashParrHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprPinkTest: mmprPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_PINK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprBlackTest: mmprBlackHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_BLACK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    greenRangerTest: greenRangerHarnessApi({p1:()=>p1,p2:()=>p2,world:GREEN_RANGER_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprWhiteTest: mmprWhiteHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_WHITE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    spdYellowTest: spdYellowHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_YELLOW_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    cyborgTest: cyborgHarnessApi({p1:()=>p1,p2:()=>p2,world:CYBORG_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    beastBoyTest: beastBoyHarnessApi({p1:()=>p1,p2:()=>p2,world:BEAST_BOY_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    ravenTest: ravenHarnessApi({p1:()=>p1,p2:()=>p2,world:RAVEN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    starfireTest: starfireHarnessApi({p1:()=>p1,p2:()=>p2,world:STARFIRE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    robinTest: robinHarnessApi({p1:()=>p1,p2:()=>p2,world:ROBIN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    megumiTest: megumiHarnessApi({p1:()=>p1,p2:()=>p2,world:MEGUMI_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    higurumaTest: higurumaHarnessApi({p1:()=>p1,p2:()=>p2,world:HIGURUMA_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    syndromeTest: syndromeHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    frozoneTest: frozoneHarnessApi({p1:()=>p1,p2:()=>p2,world:FROZONE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    mrIncredibleTest: mrHarness({p1:()=>p1,p2:()=>p2,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     batmanTest: batmanHarnessApi({p1:()=>p1,p2:()=>p2,world:BATMAN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,projectiles:()=>activeProjectiles,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     elastigirlTest: elastigirlHarnessApi({p1:()=>p1,p2:()=>p2,world:ELASTIGIRL_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),

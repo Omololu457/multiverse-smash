@@ -10,10 +10,22 @@ import { dash_parr } from './dashParrData.js'   // Dash (Dash Parr, The Incredib
 import { spd_pink } from './spdPinkData.js'   // S.P.D. Pink Ranger (Syd Drew) — spdPink*.js
 import { mmpr_pink } from './mmprPinkData.js'   // Pink Ranger (Kimberly Hart, MMPR) — mmprPink*.js + shared falconzord.js (Thunder Megazord)
 import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
+import { green_ranger } from './greenRangerData.js'   // Green Ranger (Tommy Oliver, MMPR) — greenRanger*.js + shared rangerZordUltimate.js (Falconzord)
 import { mmpr_white } from './mmprWhiteData.js'   // White Ranger (Tommy Oliver, MMPR) — mmprWhite*.js + shared falconzord.js (Ninja Megazord orders)
+import { spd_yellow } from './spdYellowData.js'   // S.P.D. Yellow Ranger (Z Delgado) — spdYellow*.js + shared falconzord.js (Ninja Megazord) + rangers.js blink
+import { cyborg } from './cyborgData.js'   // Cyborg (Victor Stone, DC / Teen Titans GBA art) — cyborg*.js
+import { beast_boy } from './beastBoyData.js'   // Beast Boy (Gar Logan, DC / Teen Titans GBA art) — beastBoy*.js
+import { raven } from './ravenData.js'   // Raven (Rachel Roth, DC / Teen Titans GBA art) — raven*.js
+import { starfire } from './starfireData.js'   // Starfire (Koriand'r, DC / Teen Titans GBA art) — starfire*.js
+import { robin } from './robinData.js'   // Robin (Dick Grayson, DC / Teen Titans GBA art) — robin*.js
+import { megumi_fushiguro } from './megumiData.js'   // Megumi Fushiguro (Jujutsu Kaisen, Ten Shadows) — megumi*.js
+import { higuruma } from './higurumaData.js'   // Hiromi Higuruma (Jujutsu Kaisen, supplied sheet by Mugen Matias) — higuruma*.js
+import { syndrome } from './syndromeData.js'   // Syndrome (The Incredibles, GBA sheets) — syndrome*.js
+import { frozone } from './frozoneData.js'   // Frozone (The Incredibles, GBA sheet) — frozone*.js
+import { mr_incredible } from './mrIncredibleData.js'
 import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
 import { violet } from './violetData.js'   // Violet Parr (The Incredibles, GBA sheet) — violet*.js
-import { elastigirl } from './elastigirlData.js'   // Elastigirl (Helen Parr, The Incredibles GBA sheet) — universe 'pixar'; elastigirl*.js
+import { elastigirl } from './elastigirlData.js'   // Elastigirl (Helen Parr, The Incredibles GBA sheet) — universe 'the_incredibles'; elastigirl*.js
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
@@ -11504,7 +11516,19 @@ export const characters = {
   spd_pink,                          // S.P.D. Pink Ranger (Syd Drew) — Precision Striker / Material Pressure; spdPink*.js
   mmpr_pink,                         // Pink Ranger (Kimberly Hart, MMPR) — Acrobatic Archer / Precision Assist (Thunder Megazord strikes); mmprPink*.js
   mmpr_black,                        // Black Ranger (Adam Park, MMPR) — Martial Artist / Aerial Assist Commander (Falconzord sorties); mmprBlack*.js
+  green_ranger,                      // Green Ranger (Tommy Oliver, MMPR) — Martial Artist / Blade Pressure (Dragon Call notes; Ranger Zord Assault); greenRanger*.js
   mmpr_white,                        // White Ranger (Tommy Oliver, MMPR) — Saba Duelist / Formation Leader (Ninja Megazord orders); mmprWhite*.js
+  spd_yellow,                        // S.P.D. Yellow Ranger (Z Delgado) — Duplicate Gunner / Coordinator (clone, Tactical Coins, Ninja Megazord); spdYellow*.js
+  cyborg,                            // Cyborg (Victor Stone, DC) — Thermal Bruiser / Artillery (Heat, sonic cannon, missiles, Mega Punch); cyborg*.js
+  beast_boy,                         // Beast Boy (Gar Logan, DC) — Shapeshift Rushdown (one-strike animal forms, Wild Chain, Instinct); beastBoy*.js
+  raven,                             // Raven (Rachel Roth, DC) — Mobile Spellweaver / Telekinetic Setup (Dark Pulse, brick piles, infusion, Soul Shell, levitation); raven*.js
+  starfire,                          // Starfire (Koriand'r, DC) — Aerial Blaster / Eye-Beam Zoner (starbolts, Comet Shot, Solar Rush, Skybreak, Orbital Star, Star Sight twin eye beams, Prism Break, levitation); starfire*.js
+  robin,                             // Robin (Dick Grayson, DC) — Gadget Tactician (punch chain, bo staff, Smoke Drop / Smoke Step, bombs, Dead Drop + Remote Override); robin*.js
+  megumi_fushiguro,                  // Megumi Fushiguro (JJK) — Tactical Summoner (one-action shikigami, Shadow Routes, Max Elephant, Shadow Step, Chimera Shadow Garden); megumi*.js
+  higuruma,                          // Hiromi Higuruma (Jujutsu Kaisen) — Technical Midrange / Weapon Scaler (small / extended / giant gavel, Case File → Precedent, Deadly Sentencing); higuruma*.js
+  syndrome,                          // Syndrome (The Incredibles) — Arsenal Conductor (commands Drones / Spinner / Turrets / Velocipod / composite Omnidroid; Operation Kronos); syndrome*.js
+  frozone,                           // Frozone (The Incredibles) — Ice Skater (Chill → Freeze → Shatter, Black Ice, Absolute Zero); frozone*.js
+  mr_incredible,                     // One fighter: veteran + timed prime form
   elastigirl,                        // Elastigirl (Helen Parr, The Incredibles) — Footsies / Grappler (Long Arm, Slingshot, Parachute, Family Raft); elastigirl*.js
   luffy
 }

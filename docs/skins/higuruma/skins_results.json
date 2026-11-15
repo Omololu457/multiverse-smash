@@ -1,0 +1,116 @@
+{
+  "skins": {
+    "hg_midnight_counsel": {
+      "tag": "midnight_counsel",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81469
+      }
+    },
+    "hg_white_collar_verdict": {
+      "tag": "white_collar_verdict",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81469
+      }
+    },
+    "hg_crimson_prosecutor": {
+      "tag": "crimson_prosecutor",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81563
+      }
+    },
+    "hg_gotham_counsel": {
+      "tag": "gotham_counsel",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81563
+      }
+    },
+    "hg_devils_advocate": {
+      "tag": "devils_advocate",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81563
+      }
+    },
+    "hg_limitless_litigation": {
+      "tag": "limitless_litigation",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 88544
+      }
+    },
+    "hg_cursed_rose": {
+      "tag": "cursed_rose",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 88544
+      }
+    },
+    "hg_alien_x_cosmic_court": {
+      "tag": "cosmic_court",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81455
+      }
+    },
+    "hg_upgrade_digital_justice": {
+      "tag": "digital_justice",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 63827
+      }
+    },
+    "hg_gilded_final_appeal": {
+      "tag": "gilded_final_appeal",
+      "traceIdentical": true,
+      "actions": 39,
+      "kept": {
+        "strips": 39,
+        "skin": 10252,
+        "changed": 0,
+        "recol": 81469
+      }
+    }
+  },
+  "passes": 102,
+  "failures": 0
+}

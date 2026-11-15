@@ -1,0 +1,1920 @@
+{
+ "routes": [
+  {
+   "label": "Spinner Snap → Drone Cross → Spinner Pass (Light ×3)",
+   "kind": "combo",
+   "hits": [
+    27,
+    27,
+    35
+   ],
+   "stunBefore": [
+    0,
+    9,
+    10
+   ],
+   "hitFrames": [
+    5,
+    18,
+    33
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 89,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 90,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 3
+   },
+   "verdict": "true combo"
+  },
+  {
+   "label": "Light retap without a hit",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 0,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 500,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "no hit"
+  },
+  {
+   "label": "Claw Drive",
+   "kind": "combo",
+   "hits": [
+    57
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    14
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 57,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 130,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 1
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Spinner Snap → Claw Drive",
+   "kind": "combo",
+   "hits": [
+    27,
+    57
+   ],
+   "stunBefore": [
+    0,
+    1
+   ],
+   "hitFrames": [
+    5,
+    26
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 84,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 90,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 2
+   },
+   "verdict": "true combo"
+  },
+  {
+   "label": "Rising Claw",
+   "kind": "combo",
+   "hits": [
+    45
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    12
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 45,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 100,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 1
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Rising Claw → jump cancel → Drone Strafe",
+   "kind": "combo",
+   "hits": [
+    45,
+    32
+   ],
+   "stunBefore": [
+    0,
+    22
+   ],
+   "hitFrames": [
+    12,
+    37
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 77,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 100,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 2
+   },
+   "verdict": "true combo"
+  },
+  {
+   "label": "Hunter Duet (6 shots)",
+   "kind": "pressure",
+   "hits": [
+    15,
+    15,
+    13,
+    12,
+    11,
+    10
+   ],
+   "stunBefore": [
+    0,
+    8,
+    0,
+    8,
+    0,
+    6
+   ],
+   "hitFrames": [
+    63,
+    86,
+    119,
+    142,
+    175,
+    199
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 76,
+   "energySpent": 10,
+   "trueCombo": false,
+   "dropAfterHit": 2,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 1,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "duetShot": 6
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 6,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Spin Cycle (out + back)",
+   "kind": "pressure",
+   "hits": [
+    36,
+    30
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    22,
+    66
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 66,
+   "energySpent": 12.9,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 1,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "spinOut": 1,
+     "spinBack": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 2,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Velocipod Intercept",
+   "kind": "combo",
+   "hits": [
+    90
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    58
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 90,
+   "energySpent": 19.6,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 220,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 1,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "velo": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Gun Turret volley",
+   "kind": "pressure",
+   "hits": [
+    12,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    7,
+    7
+   ],
+   "stunBefore": [
+    0,
+    5,
+    5,
+    5,
+    4,
+    4,
+    3,
+    3,
+    3
+   ],
+   "hitFrames": [
+    74,
+    98,
+    122,
+    146,
+    170,
+    194,
+    218,
+    242,
+    266
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 83,
+   "energySpent": 11.22,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 340,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 1,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "gun": 9
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 9,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Hammerfall",
+   "kind": "combo",
+   "hits": [
+    102
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    53
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 102,
+   "energySpent": 23.76,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 1,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "hammer": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Hammerfall vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "chip": 15,
+   "damage": 15,
+   "energySpent": 23.76,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 1,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "hammer": 0
+    },
+    "blocked": 1,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "no hit"
+  },
+  {
+   "label": "Omnidroid Sweep",
+   "kind": "combo",
+   "hits": [
+    72
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    43
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 72,
+   "energySpent": 20.32,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 1,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "sweep": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Rising Interception",
+   "kind": "combo",
+   "hits": [
+    78
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    41
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 78,
+   "energySpent": 20.08,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 1,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "rise": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  {
+   "label": "Missile Turret",
+   "kind": "pressure",
+   "hits": [
+    36,
+    36,
+    33
+   ],
+   "stunBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    118,
+    178,
+    238
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 105,
+   "energySpent": 12.54,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 1,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "missile": 3
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 3,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Mortar Turret",
+   "kind": "pressure",
+   "hits": [
+    27,
+    27,
+    24,
+    22
+   ],
+   "stunBefore": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    94,
+    144,
+    194,
+    246
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 100,
+   "energySpent": 11.7,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 300,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 1
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "mortar": 4
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 4,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Zero-Point Hold → Claw Drive",
+   "kind": "combo",
+   "hits": [
+    12,
+    57
+   ],
+   "stunBefore": [
+    0,
+    13
+   ],
+   "hitFrames": [
+    14,
+    68
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 69,
+   "energySpent": 13.94,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 1,
+    "captures": 1,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 2
+   },
+   "verdict": "true combo"
+  },
+  {
+   "label": "Duet → Spin Cycle → CONVERGENCE",
+   "kind": "pressure",
+   "hits": [
+    36,
+    15,
+    13,
+    12,
+    11,
+    10,
+    9,
+    19
+   ],
+   "stunBefore": [
+    0,
+    20,
+    14,
+    14,
+    13,
+    13,
+    12,
+    12
+   ],
+   "hitFrames": [
+    56,
+    63,
+    73,
+    78,
+    81,
+    86,
+    89,
+    94
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 125,
+   "energySpent": 28,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 1,
+    "spin": 1,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "spinOut": 1,
+     "duetShot": 6,
+     "spinBack": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 1,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 8,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Operation Kronos vs guard",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "chip": 2,
+   "damage": 2,
+   "energySpent": 95.2,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 1,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "no hit"
+  },
+  {
+   "label": "OPERATION KRONOS: FINAL DEMONSTRATION",
+   "kind": "combo",
+   "hits": [
+    18,
+    9,
+    9,
+    12,
+    15,
+    9,
+    24,
+    18,
+    138
+   ],
+   "stunBefore": [
+    0,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    16,
+    105,
+    117,
+    131,
+    143,
+    155,
+    179,
+    201,
+    251
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 252,
+   "energySpent": 97.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 1,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 0,
+    "ultDone": 1,
+    "clean": 1
+   },
+   "verdict": "true combo"
+  },
+  {
+   "label": "Claw Drive → Ultimate",
+   "kind": "combo",
+   "hits": [
+    57,
+    16,
+    7,
+    7,
+    10,
+    12,
+    7,
+    20,
+    15,
+    115
+   ],
+   "stunBefore": [
+    0,
+    10,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    14,
+    44,
+    124,
+    136,
+    150,
+    162,
+    174,
+    198,
+    220,
+    270
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 266,
+   "energySpent": 97.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 130,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 1,
+    "hits": {},
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 0,
+    "ultDone": 1,
+    "clean": 2
+   },
+   "verdict": "true combo"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 19,
+   "activeStart": 5,
+   "activeEnd": 7,
+   "damage": 45
+  }
+ },
+ "movement": {
+  "walkVx": 6,
+  "liveSpeedStat": 84,
+  "formula": 6,
+  "jumps": [
+   1,
+   2,
+   2
+  ]
+ },
+ "ops": {
+  "sDuet": {
+   "startup": 10,
+   "cost": 25
+  },
+  "sSpin": {
+   "startup": 9,
+   "cost": 18
+  },
+  "sTurret": {
+   "startup": 14,
+   "cost": 30
+  },
+  "sHammer": {
+   "startup": 12,
+   "cost": 30
+  },
+  "duet": {
+   "label": "Hunter Duet (6 shots)",
+   "kind": "pressure",
+   "hits": [
+    15,
+    15,
+    13,
+    12,
+    11,
+    10
+   ],
+   "stunBefore": [
+    0,
+    8,
+    0,
+    8,
+    0,
+    6
+   ],
+   "hitFrames": [
+    63,
+    86,
+    119,
+    142,
+    175,
+    199
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 76,
+   "energySpent": 10,
+   "trueCombo": false,
+   "dropAfterHit": 2,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 1,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "duetShot": 6
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 6,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  "spin": {
+   "label": "Spin Cycle (out + back)",
+   "kind": "pressure",
+   "hits": [
+    36,
+    30
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    22,
+    66
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 66,
+   "energySpent": 12.9,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 1,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "spinOut": 1,
+     "spinBack": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 2,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  "velo": {
+   "label": "Velocipod Intercept",
+   "kind": "combo",
+   "hits": [
+    90
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    58
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 90,
+   "energySpent": 19.6,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 220,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 1,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "velo": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  "turret": {
+   "label": "Gun Turret volley",
+   "kind": "pressure",
+   "hits": [
+    12,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    7,
+    7
+   ],
+   "stunBefore": [
+    0,
+    5,
+    5,
+    5,
+    4,
+    4,
+    3,
+    3,
+    3
+   ],
+   "hitFrames": [
+    74,
+    98,
+    122,
+    146,
+    170,
+    194,
+    218,
+    242,
+    266
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 83,
+   "energySpent": 11.22,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 340,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 1,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "gun": 9
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 9,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  "hammer": {
+   "label": "Hammerfall",
+   "kind": "combo",
+   "hits": [
+    102
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    53
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 102,
+   "energySpent": 23.76,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 1,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "hammer": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  "sweep": {
+   "label": "Omnidroid Sweep",
+   "kind": "combo",
+   "hits": [
+    72
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    43
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 72,
+   "energySpent": 20.32,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 1,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "sweep": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  "rise": {
+   "label": "Rising Interception",
+   "kind": "combo",
+   "hits": [
+    78
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    41
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 78,
+   "energySpent": 20.08,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 1,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "rise": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 1,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "single hit"
+  },
+  "missile": {
+   "label": "Missile Turret",
+   "kind": "pressure",
+   "hits": [
+    36,
+    36,
+    33
+   ],
+   "stunBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    118,
+    178,
+    238
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 105,
+   "energySpent": 12.54,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 1,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "missile": 3
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 3,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  "mortar": {
+   "label": "Mortar Turret",
+   "kind": "pressure",
+   "hits": [
+    27,
+    27,
+    24,
+    22
+   ],
+   "stunBefore": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    94,
+    144,
+    194,
+    246
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 100,
+   "energySpent": 11.7,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 300,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 0,
+    "spin": 0,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 1
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "mortar": 4
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 0,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 4,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  },
+  "converge": {
+   "label": "Duet → Spin Cycle → CONVERGENCE",
+   "kind": "pressure",
+   "hits": [
+    36,
+    15,
+    13,
+    12,
+    11,
+    10,
+    9,
+    19
+   ],
+   "stunBefore": [
+    0,
+    20,
+    14,
+    14,
+    13,
+    13,
+    12,
+    12
+   ],
+   "hitFrames": [
+    56,
+    63,
+    73,
+    78,
+    81,
+    86,
+    89,
+    94
+   ],
+   "blockedEvents": 0,
+   "chip": 0,
+   "damage": 125,
+   "energySpent": 28,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "duet": 1,
+    "spin": 1,
+    "velo": 0,
+    "turret": {
+     "gun": 0,
+     "missile": 0,
+     "mortar": 0
+    },
+    "hammer": 0,
+    "rise": 0,
+    "sweep": 0,
+    "zero": 0,
+    "captures": 0,
+    "hits": {
+     "spinOut": 1,
+     "duetShot": 6,
+     "spinBack": 1
+    },
+    "blocked": 0,
+    "rejects": 0,
+    "converge": 1,
+    "skipped": 0,
+    "turretBroken": 0,
+    "dj": 0,
+    "spawns": 8,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "clean": 0
+   },
+   "verdict": "pressure (not a combo)"
+  }
+ },
+ "ultimate": {
+  "label": "OPERATION KRONOS: FINAL DEMONSTRATION",
+  "kind": "combo",
+  "hits": [
+   18,
+   9,
+   9,
+   12,
+   15,
+   9,
+   24,
+   18,
+   138
+  ],
+  "stunBefore": [
+   0,
+   9998,
+   9998,
+   9998,
+   9998,
+   9998,
+   9998,
+   9998,
+   9998
+  ],
+  "hitFrames": [
+   16,
+   105,
+   117,
+   131,
+   143,
+   155,
+   179,
+   201,
+   251
+  ],
+  "blockedEvents": 0,
+  "chip": 0,
+  "damage": 252,
+  "energySpent": 97.36,
+  "trueCombo": true,
+  "dropAfterHit": -1,
+  "gap": 120,
+  "flip": false,
+  "note": "",
+  "stats": {
+   "duet": 0,
+   "spin": 0,
+   "velo": 0,
+   "turret": {
+    "gun": 0,
+    "missile": 0,
+    "mortar": 0
+   },
+   "hammer": 0,
+   "rise": 0,
+   "sweep": 0,
+   "zero": 0,
+   "captures": 1,
+   "hits": {},
+   "blocked": 0,
+   "rejects": 0,
+   "converge": 0,
+   "skipped": 0,
+   "turretBroken": 0,
+   "dj": 0,
+   "spawns": 0,
+   "ultStarts": 1,
+   "ultWhiffs": 0,
+   "ultDone": 1,
+   "clean": 1
+  },
+  "verdict": "true combo"
+ },
+ "misc": {
+  "errors": []
+ }
+}

@@ -18,7 +18,19 @@ import { KRYBOT_SKINS } from './krybotSkins.js'
 import { SPD_PINK_SKINS } from './spdPinkSkins.js'   // S.P.D. Pink default + 6 appearance skins (cosmetic, precomputed)
 import { MMPR_PINK_SKINS } from './mmprPinkSkins.js'   // Pink Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { MMPR_BLACK_SKINS } from './mmprBlackSkins.js'   // Black Ranger default + 6 inspired palettes (cosmetic, precomputed)
+import { GREEN_RANGER_SKINS } from './greenRangerSkins.js'   // Green Ranger default + 10 inspired palettes (cosmetic, precomputed region masks)
 import { MMPR_WHITE_SKINS } from './mmprWhiteSkins.js'   // White Ranger default + 6 inspired palettes (cosmetic, precomputed)
+import { SPD_YELLOW_SKINS } from './spdYellowSkins.js'   // S.P.D. Yellow default + 8 skins (6 inspired palettes + 2 original; cosmetic, precomputed)
+import { CYBORG_SKINS } from './cyborgSkins.js'   // Cyborg default + 8 skins (6 inspired palettes + 2 original; cosmetic, precomputed)
+import { BEAST_BOY_SKINS } from './beastBoySkins.js'   // Beast Boy default + 10 skins (4 crossover palettes + 2 naturalistic + 4 original; cosmetic, precomputed)
+import { RAVEN_SKINS } from './ravenSkins.js'   // Raven default + 10 skins (cosmetic, precomputed; cached materials)
+import { STARFIRE_SKINS } from './starfireSkins.js'   // Starfire default + 10 skins (cosmetic, precomputed; cached materials)
+import { ROBIN_SKINS } from './robinSkins.js'   // Robin default + 10 skins (cosmetic, precomputed; cached materials)
+import { MEGUMI_SKINS } from './megumiSkins.js'   // Megumi default + 10 skins (cosmetic, precomputed region recolours)
+import { HIGURUMA_SKINS } from './higurumaSkins.js'   // Higuruma default + 10 skins (cosmetic, precomputed; cached materials)
+import { SYNDROME_SKINS } from './syndromeSkins.js'   // Syndrome default + 12 whole-arsenal skins (cosmetic, precomputed)
+import { FROZONE_SKINS } from './frozoneSkins.js'   // Frozone default + 10 skins (body, portrait, disc, ice; cosmetic, precomputed)
+import { MR_SKINS } from './mrIncredibleSkins.js'
 import { BATMAN_SKINS } from './batmanSkins.js'   // Batman (rebuilt) default + 10 arsenal-wide skins (cosmetic, precomputed)
 import { VIOLET_SKINS } from './violetSkins.js'   // Violet Parr: Supersuit default + palette-swap skins (cosmetic, precomputed)
 import { ELASTIGIRL_SKINS } from './elastigirlSkins.js'   // Elastigirl default + palette skins (cosmetic, precomputed)
@@ -143,8 +155,20 @@ export const SKINS = {
   dash_parr: DASH_PARR_SKINS,
   spd_pink: SPD_PINK_SKINS,
   mmpr_black: MMPR_BLACK_SKINS,
+  green_ranger: GREEN_RANGER_SKINS,
   elastigirl: ELASTIGIRL_SKINS,
   mmpr_white: MMPR_WHITE_SKINS,
+  spd_yellow: SPD_YELLOW_SKINS,
+  cyborg: CYBORG_SKINS,
+  beast_boy: BEAST_BOY_SKINS,
+  raven: RAVEN_SKINS,
+  starfire: STARFIRE_SKINS,
+  robin: ROBIN_SKINS,
+  megumi_fushiguro: MEGUMI_SKINS,
+  higuruma: HIGURUMA_SKINS,
+  syndrome: SYNDROME_SKINS,
+  frozone: FROZONE_SKINS,
+  mr_incredible: MR_SKINS,
   mmpr_pink: MMPR_PINK_SKINS,
   krybot: KRYBOT_SKINS,
   // Luffy — 9 alt-colour skins (tools/luffy_skins/gen_luffy_skins.py: vest · hat band (red ringed by straw) · straw hat ·

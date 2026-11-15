@@ -1,0 +1,2186 @@
+{
+ "regions": {
+  "outline": "(0,0,0) kept",
+  "skin": "(240,168,128) (240,248,224) — never recoloured",
+  "hair": "(104,8,16) (176,32,40) (208,80,24)",
+  "costume": "(56,0,152) (120,48,200) (184,128,232)",
+  "boots": "costume pixels within 16 px of each body frame's lowest opaque row",
+  "metal": "(0,48,152) (72,104,216) (128,168,240) (+1 stray (32,32,112))",
+  "eyes": "eye greens inside the validated per-frame eye boxes (geometry fixed)",
+  "gem": "other eye-green clusters ≤ 12 px touching metal / skin (collar + wrist gems) — eyes ramp",
+  "energy": "remaining eye-green clusters (energy fists / rings, levitation hand glow) — hand energy",
+  "laser": "blue glare lines over the face on Shooting Laser 5-7 — laser ramp",
+  "projectile": "Energy Ball strip by luminance",
+  "explosion": "Energy Exploding strip by luminance",
+  "laserPieces": "Laser cap / body by luminance"
+ },
+ "sourceRamps": {
+  "hair": [
+   [
+    104,
+    8,
+    16
+   ],
+   [
+    176,
+    32,
+    40
+   ],
+   [
+    208,
+    80,
+    24
+   ]
+  ],
+  "costume": [
+   [
+    56,
+    0,
+    152
+   ],
+   [
+    120,
+    48,
+    200
+   ],
+   [
+    184,
+    128,
+    232
+   ]
+  ],
+  "metal": [
+   [
+    32,
+    32,
+    112
+   ],
+   [
+    0,
+    48,
+    152
+   ],
+   [
+    72,
+    104,
+    216
+   ],
+   [
+    128,
+    168,
+    240
+   ]
+  ],
+  "green": [
+   [
+    0,
+    88,
+    24
+   ],
+   [
+    32,
+    232,
+    0
+   ],
+   [
+    152,
+    248,
+    112
+   ]
+  ],
+  "skin": [
+   [
+    240,
+    168,
+    128
+   ],
+   [
+    240,
+    248,
+    224
+   ]
+  ]
+ },
+ "strips": [
+  "air",
+  "crouch",
+  "dash",
+  "doubleJump",
+  "fall",
+  "guard",
+  "heavy",
+  "hurt",
+  "idle",
+  "intro",
+  "jump",
+  "knockdown",
+  "land",
+  "lev",
+  "levEnd",
+  "levStart",
+  "light",
+  "lose",
+  "run",
+  "sfAirLaser",
+  "sfBolt",
+  "sfComet",
+  "sfJ2",
+  "sfJ3",
+  "sfLaser",
+  "sfLow",
+  "sfOrb",
+  "sfRush",
+  "sfSky",
+  "ultBolt",
+  "ultHover",
+  "ultLand",
+  "ultLaser",
+  "ultOpen",
+  "ultRise",
+  "up",
+  "walk",
+  "walk_back"
+ ],
+ "flat": [
+  "portrait.png",
+  "cutscene/bust.png",
+  "icons/expressions.png",
+  "cutscene/eye0.png",
+  "cutscene/eye1.png",
+  "cutscene/mouth0.png",
+  "cutscene/mouth1.png",
+  "cutscene/mouth2.png"
+ ],
+ "regionPixelsPerStrip": {
+  "air": {
+   "outline": 1384,
+   "skin": 300,
+   "hair": 903,
+   "costume": 231,
+   "boots": 288,
+   "metal": 342,
+   "eyes": 37,
+   "gem": 15,
+   "energy": 227,
+   "laser": 0,
+   "other": 42865
+  },
+  "crouch": {
+   "outline": 321,
+   "skin": 93,
+   "hair": 210,
+   "costume": 48,
+   "boots": 57,
+   "metal": 85,
+   "eyes": 10,
+   "gem": 10,
+   "energy": 0,
+   "laser": 0,
+   "other": 10814
+  },
+  "dash": {
+   "outline": 1485,
+   "skin": 398,
+   "hair": 868,
+   "costume": 252,
+   "boots": 245,
+   "metal": 381,
+   "eyes": 36,
+   "gem": 40,
+   "energy": 0,
+   "laser": 0,
+   "other": 42887
+  },
+  "doubleJump": {
+   "outline": 1461,
+   "skin": 437,
+   "hair": 1032,
+   "costume": 390,
+   "boots": 159,
+   "metal": 360,
+   "eyes": 36,
+   "gem": 36,
+   "energy": 4,
+   "laser": 0,
+   "other": 42677
+  },
+  "fall": {
+   "outline": 1460,
+   "skin": 455,
+   "hair": 1308,
+   "costume": 289,
+   "boots": 214,
+   "metal": 353,
+   "eyes": 36,
+   "gem": 31,
+   "energy": 9,
+   "laser": 0,
+   "other": 42437
+  },
+  "guard": {
+   "outline": 304,
+   "skin": 82,
+   "hair": 221,
+   "costume": 54,
+   "boots": 71,
+   "metal": 82,
+   "eyes": 13,
+   "gem": 3,
+   "energy": 0,
+   "laser": 0,
+   "other": 10818
+  },
+  "heavy": {
+   "outline": 3432,
+   "skin": 862,
+   "hair": 2197,
+   "costume": 599,
+   "boots": 676,
+   "metal": 859,
+   "eyes": 105,
+   "gem": 54,
+   "energy": 244,
+   "laser": 0,
+   "other": 107452
+  },
+  "hurt": {
+   "outline": 1731,
+   "skin": 1900,
+   "hair": 1427,
+   "costume": 488,
+   "boots": 347,
+   "metal": 461,
+   "eyes": 39,
+   "gem": 24,
+   "energy": 18,
+   "laser": 0,
+   "other": 63453
+  },
+  "idle": {
+   "outline": 4169,
+   "skin": 1104,
+   "hair": 2456,
+   "costume": 732,
+   "boots": 780,
+   "metal": 1018,
+   "eyes": 120,
+   "gem": 120,
+   "energy": 0,
+   "laser": 0,
+   "other": 129277
+  },
+  "intro": {
+   "outline": 4184,
+   "skin": 1854,
+   "hair": 2888,
+   "costume": 1107,
+   "boots": 769,
+   "metal": 2395,
+   "eyes": 147,
+   "gem": 106,
+   "energy": 1825,
+   "laser": 0,
+   "other": 171093
+  },
+  "jump": {
+   "outline": 1771,
+   "skin": 524,
+   "hair": 1171,
+   "costume": 440,
+   "boots": 210,
+   "metal": 419,
+   "eyes": 45,
+   "gem": 39,
+   "energy": 8,
+   "laser": 0,
+   "other": 53613
+  },
+  "knockdown": {
+   "outline": 985,
+   "skin": 1696,
+   "hair": 915,
+   "costume": 368,
+   "boots": 237,
+   "metal": 285,
+   "eyes": 13,
+   "gem": 11,
+   "energy": 12,
+   "laser": 0,
+   "other": 42070
+  },
+  "land": {
+   "outline": 1687,
+   "skin": 482,
+   "hair": 1146,
+   "costume": 260,
+   "boots": 291,
+   "metal": 413,
+   "eyes": 49,
+   "gem": 44,
+   "energy": 6,
+   "laser": 0,
+   "other": 53862
+  },
+  "lev": {
+   "outline": 3237,
+   "skin": 1266,
+   "hair": 2270,
+   "costume": 948,
+   "boots": 576,
+   "metal": 1808,
+   "eyes": 156,
+   "gem": 48,
+   "energy": 2926,
+   "laser": 0,
+   "other": 126541
+  },
+  "levEnd": {
+   "outline": 1789,
+   "skin": 532,
+   "hair": 1255,
+   "costume": 396,
+   "boots": 245,
+   "metal": 436,
+   "eyes": 48,
+   "gem": 29,
+   "energy": 369,
+   "laser": 0,
+   "other": 53141
+  },
+  "levStart": {
+   "outline": 1421,
+   "skin": 414,
+   "hair": 840,
+   "costume": 350,
+   "boots": 178,
+   "metal": 355,
+   "eyes": 39,
+   "gem": 25,
+   "energy": 363,
+   "laser": 0,
+   "other": 42607
+  },
+  "light": {
+   "outline": 1731,
+   "skin": 466,
+   "hair": 1139,
+   "costume": 307,
+   "boots": 333,
+   "metal": 440,
+   "eyes": 59,
+   "gem": 34,
+   "energy": 8,
+   "laser": 0,
+   "other": 53723
+  },
+  "lose": {
+   "outline": 5674,
+   "skin": 1867,
+   "hair": 3419,
+   "costume": 972,
+   "boots": 1036,
+   "metal": 2305,
+   "eyes": 96,
+   "gem": 187,
+   "energy": 0,
+   "laser": 0,
+   "other": 205756
+  },
+  "run": {
+   "outline": 4163,
+   "skin": 1124,
+   "hair": 2424,
+   "costume": 658,
+   "boots": 713,
+   "metal": 1022,
+   "eyes": 108,
+   "gem": 76,
+   "energy": 23,
+   "laser": 0,
+   "other": 129465
+  },
+  "sfAirLaser": {
+   "outline": 3237,
+   "skin": 1266,
+   "hair": 2270,
+   "costume": 948,
+   "boots": 576,
+   "metal": 1808,
+   "eyes": 156,
+   "gem": 48,
+   "energy": 2926,
+   "laser": 0,
+   "other": 126541
+  },
+  "sfBolt": {
+   "outline": 2329,
+   "skin": 516,
+   "hair": 1584,
+   "costume": 434,
+   "boots": 486,
+   "metal": 628,
+   "eyes": 76,
+   "gem": 31,
+   "energy": 527,
+   "laser": 0,
+   "other": 74925
+  },
+  "sfComet": {
+   "outline": 2337,
+   "skin": 544,
+   "hair": 1622,
+   "costume": 535,
+   "boots": 307,
+   "metal": 621,
+   "eyes": 76,
+   "gem": 27,
+   "energy": 631,
+   "laser": 0,
+   "other": 74836
+  },
+  "sfJ2": {
+   "outline": 2027,
+   "skin": 474,
+   "hair": 1307,
+   "costume": 347,
+   "boots": 430,
+   "metal": 519,
+   "eyes": 63,
+   "gem": 29,
+   "energy": 227,
+   "laser": 0,
+   "other": 64465
+  },
+  "sfJ3": {
+   "outline": 2354,
+   "skin": 571,
+   "hair": 1535,
+   "costume": 408,
+   "boots": 488,
+   "metal": 592,
+   "eyes": 72,
+   "gem": 31,
+   "energy": 236,
+   "laser": 0,
+   "other": 75249
+  },
+  "sfLaser": {
+   "outline": 3639,
+   "skin": 1194,
+   "hair": 2162,
+   "costume": 632,
+   "boots": 733,
+   "metal": 882,
+   "eyes": 124,
+   "gem": 58,
+   "energy": 20,
+   "laser": 229,
+   "other": 130103
+  },
+  "sfLow": {
+   "outline": 1353,
+   "skin": 386,
+   "hair": 954,
+   "costume": 203,
+   "boots": 232,
+   "metal": 335,
+   "eyes": 39,
+   "gem": 34,
+   "energy": 6,
+   "laser": 0,
+   "other": 43050
+  },
+  "sfOrb": {
+   "outline": 2048,
+   "skin": 521,
+   "hair": 1257,
+   "costume": 424,
+   "boots": 357,
+   "metal": 520,
+   "eyes": 59,
+   "gem": 33,
+   "energy": 367,
+   "laser": 0,
+   "other": 64302
+  },
+  "sfRush": {
+   "outline": 2846,
+   "skin": 711,
+   "hair": 1825,
+   "costume": 501,
+   "boots": 533,
+   "metal": 727,
+   "eyes": 73,
+   "gem": 52,
+   "energy": 225,
+   "laser": 0,
+   "other": 85691
+  },
+  "sfSky": {
+   "outline": 2466,
+   "skin": 732,
+   "hair": 1560,
+   "costume": 602,
+   "boots": 308,
+   "metal": 596,
+   "eyes": 65,
+   "gem": 47,
+   "energy": 330,
+   "laser": 0,
+   "other": 74830
+  },
+  "ultBolt": {
+   "outline": 1345,
+   "skin": 303,
+   "hair": 1055,
+   "costume": 314,
+   "boots": 164,
+   "metal": 375,
+   "eyes": 37,
+   "gem": 21,
+   "energy": 311,
+   "laser": 0,
+   "other": 42667
+  },
+  "ultHover": {
+   "outline": 3237,
+   "skin": 1266,
+   "hair": 2270,
+   "costume": 948,
+   "boots": 576,
+   "metal": 1808,
+   "eyes": 156,
+   "gem": 48,
+   "energy": 2926,
+   "laser": 0,
+   "other": 126541
+  },
+  "ultLand": {
+   "outline": 1687,
+   "skin": 482,
+   "hair": 1146,
+   "costume": 260,
+   "boots": 291,
+   "metal": 413,
+   "eyes": 49,
+   "gem": 44,
+   "energy": 6,
+   "laser": 0,
+   "other": 53862
+  },
+  "ultLaser": {
+   "outline": 3639,
+   "skin": 1194,
+   "hair": 2162,
+   "costume": 632,
+   "boots": 733,
+   "metal": 882,
+   "eyes": 124,
+   "gem": 58,
+   "energy": 20,
+   "laser": 229,
+   "other": 130103
+  },
+  "ultOpen": {
+   "outline": 2329,
+   "skin": 516,
+   "hair": 1584,
+   "costume": 434,
+   "boots": 486,
+   "metal": 628,
+   "eyes": 76,
+   "gem": 31,
+   "energy": 527,
+   "laser": 0,
+   "other": 74925
+  },
+  "ultRise": {
+   "outline": 1421,
+   "skin": 414,
+   "hair": 840,
+   "costume": 350,
+   "boots": 178,
+   "metal": 355,
+   "eyes": 39,
+   "gem": 25,
+   "energy": 363,
+   "laser": 0,
+   "other": 42607
+  },
+  "up": {
+   "outline": 1421,
+   "skin": 414,
+   "hair": 840,
+   "costume": 350,
+   "boots": 178,
+   "metal": 355,
+   "eyes": 39,
+   "gem": 25,
+   "energy": 363,
+   "laser": 0,
+   "other": 42607
+  },
+  "walk": {
+   "outline": 4163,
+   "skin": 1124,
+   "hair": 2424,
+   "costume": 658,
+   "boots": 713,
+   "metal": 1022,
+   "eyes": 108,
+   "gem": 76,
+   "energy": 23,
+   "laser": 0,
+   "other": 129465
+  },
+  "walk_back": {
+   "outline": 4163,
+   "skin": 1124,
+   "hair": 2424,
+   "costume": 658,
+   "boots": 713,
+   "metal": 1022,
+   "eyes": 108,
+   "gem": 76,
+   "energy": 23,
+   "laser": 0,
+   "other": 129465
+  }
+ },
+ "skins": [
+  {
+   "id": "sf_dark_sister",
+   "tag": "darksister",
+   "name": "Blackfire-Inspired — Dark Sister",
+   "classification": "Canon-Inspired",
+   "crossover": null,
+   "inspiration": "Komand'r / Blackfire, Starfire's older sister (Teen Titans 2003 'Sisters'; DC Comics)",
+   "url": "https://www.dc.com/characters/blackfire",
+   "research": "Blackfire is drawn with long black hair, violet eyes and a dark purple / black outfit with silver trim; her starbolts are purple.",
+   "notes": "Hair blue-black, eyes violet, costume black-violet, boots black, metal silver, hand energy / starbolts / explosion / laser violet.",
+   "hair": [
+    [
+     18,
+     10,
+     34
+    ],
+    [
+     44,
+     26,
+     70
+    ],
+    [
+     86,
+     58,
+     120
+    ]
+   ],
+   "eyes": [
+    [
+     60,
+     10,
+     90
+    ],
+    [
+     168,
+     72,
+     255
+    ],
+    [
+     226,
+     190,
+     255
+    ]
+   ],
+   "costume": [
+    [
+     22,
+     8,
+     40
+    ],
+    [
+     62,
+     28,
+     96
+    ],
+    [
+     118,
+     80,
+     160
+    ]
+   ],
+   "boots": [
+    [
+     10,
+     6,
+     18
+    ],
+    [
+     34,
+     22,
+     48
+    ],
+    [
+     70,
+     54,
+     92
+    ]
+   ],
+   "metal": [
+    [
+     70,
+     72,
+     86
+    ],
+    [
+     150,
+     154,
+     172
+    ],
+    [
+     222,
+     226,
+     238
+    ]
+   ],
+   "energy": [
+    [
+     70,
+     10,
+     110
+    ],
+    [
+     170,
+     70,
+     255
+    ],
+    [
+     228,
+     196,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     80,
+     20,
+     130
+    ],
+    [
+     176,
+     80,
+     255
+    ],
+    [
+     236,
+     210,
+     255
+    ]
+   ],
+   "hud": [
+    "#b060ff",
+    "#e8d4ff"
+   ]
+  },
+  {
+   "id": "sf_alien_x_celestial",
+   "tag": "celestial",
+   "name": "Alien X — Celestial Princess",
+   "classification": "Crossover-Inspired Palette",
+   "crossover": "Ben 10 (Alien X)",
+   "inspiration": "Alien X's starfield-black body, white horns and green eyes (Ben 10: Alien Force)",
+   "url": "https://ben10.fandom.com/wiki/Alien_X",
+   "research": "Alien X is a void-black humanoid whose body shows a moving starfield, with white horn plates and bright green eyes.",
+   "notes": "Costume and boots void black with a precomputed starfield; hair white-silver; metal white; eyes kept vivid green; energy white-green.",
+   "hair": [
+    [
+     150,
+     154,
+     170
+    ],
+    [
+     214,
+     218,
+     230
+    ],
+    [
+     252,
+     252,
+     255
+    ]
+   ],
+   "eyes": [
+    [
+     0,
+     96,
+     32
+    ],
+    [
+     60,
+     255,
+     120
+    ],
+    [
+     200,
+     255,
+     210
+    ]
+   ],
+   "costume": [
+    [
+     2,
+     2,
+     10
+    ],
+    [
+     12,
+     12,
+     28
+    ],
+    [
+     30,
+     30,
+     58
+    ]
+   ],
+   "boots": [
+    [
+     2,
+     2,
+     8
+    ],
+    [
+     10,
+     10,
+     22
+    ],
+    [
+     26,
+     26,
+     48
+    ]
+   ],
+   "metal": [
+    [
+     150,
+     156,
+     170
+    ],
+    [
+     218,
+     222,
+     232
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "energy": [
+    [
+     60,
+     150,
+     110
+    ],
+    [
+     180,
+     255,
+     214
+    ],
+    [
+     250,
+     255,
+     252
+    ]
+   ],
+   "fx": [
+    [
+     40,
+     120,
+     90
+    ],
+    [
+     170,
+     255,
+     210
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "hud": [
+    "#e8fff2",
+    "#7cffb4"
+   ],
+   "material": {
+    "kind": "stars",
+    "region": "costume",
+    "density": 22,
+    "colors": [
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      200,
+      255,
+      226
+     ],
+     [
+      170,
+      200,
+      255
+     ]
+    ]
+   }
+  },
+  {
+   "id": "sf_prism_heart",
+   "tag": "prism",
+   "name": "Chromastone — Prism Heart",
+   "classification": "Crossover-Inspired Palette",
+   "crossover": "Ben 10 (Chromastone)",
+   "inspiration": "Chromastone's violet-magenta crystal body that absorbs and refracts energy (Ben 10: Alien Force)",
+   "url": "https://ben10.fandom.com/wiki/Chromastone",
+   "research": "Chromastone is a crystalline Crystalsapien in magenta / violet with black stripes; its blasts are rainbow-tinged light.",
+   "notes": "Costume magenta crystal with an iridescent prism layer, hair deep rose, metal pale crystal, eyes white-pink, energy magenta.",
+   "hair": [
+    [
+     96,
+     10,
+     72
+    ],
+    [
+     180,
+     40,
+     140
+    ],
+    [
+     246,
+     120,
+     210
+    ]
+   ],
+   "eyes": [
+    [
+     120,
+     30,
+     120
+    ],
+    [
+     255,
+     140,
+     240
+    ],
+    [
+     255,
+     230,
+     255
+    ]
+   ],
+   "costume": [
+    [
+     80,
+     10,
+     110
+    ],
+    [
+     190,
+     60,
+     210
+    ],
+    [
+     250,
+     170,
+     255
+    ]
+   ],
+   "boots": [
+    [
+     40,
+     6,
+     50
+    ],
+    [
+     100,
+     30,
+     120
+    ],
+    [
+     170,
+     90,
+     190
+    ]
+   ],
+   "metal": [
+    [
+     150,
+     120,
+     190
+    ],
+    [
+     210,
+     196,
+     244
+    ],
+    [
+     250,
+     246,
+     255
+    ]
+   ],
+   "energy": [
+    [
+     140,
+     30,
+     160
+    ],
+    [
+     255,
+     120,
+     250
+    ],
+    [
+     255,
+     230,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     130,
+     30,
+     150
+    ],
+    [
+     250,
+     110,
+     240
+    ],
+    [
+     255,
+     240,
+     255
+    ]
+   ],
+   "hud": [
+    "#ff70f0",
+    "#fff0ff"
+   ],
+   "material": {
+    "kind": "iridescent",
+    "region": "costume",
+    "colors": [
+     [
+      255,
+      120,
+      140
+     ],
+     [
+      140,
+      220,
+      255
+     ],
+     [
+      190,
+      255,
+      150
+     ]
+    ],
+    "period": 240,
+    "maxAlpha": 0.4
+   }
+  },
+  {
+   "id": "sf_living_circuit",
+   "tag": "circuit",
+   "name": "Upgrade — Living Circuit",
+   "classification": "Crossover-Inspired Palette",
+   "crossover": "Ben 10 (Upgrade)",
+   "inspiration": "Upgrade's black liquid-metal body with glowing green circuit lines and a single green eye (Ben 10)",
+   "url": "https://ben10.fandom.com/wiki/Upgrade",
+   "research": "Upgrade is a Galvanic Mechamorph: glossy black with bright green circuitry; its techno-energy is green.",
+   "notes": "Costume and boots gloss black with sparse green circuit glints; hair charcoal with green tips; metal green circuitry; eyes and energy neon green.",
+   "hair": [
+    [
+     16,
+     20,
+     18
+    ],
+    [
+     40,
+     52,
+     44
+    ],
+    [
+     70,
+     200,
+     90
+    ]
+   ],
+   "eyes": [
+    [
+     0,
+     80,
+     30
+    ],
+    [
+     40,
+     255,
+     90
+    ],
+    [
+     190,
+     255,
+     200
+    ]
+   ],
+   "costume": [
+    [
+     4,
+     6,
+     6
+    ],
+    [
+     20,
+     26,
+     24
+    ],
+    [
+     52,
+     70,
+     60
+    ]
+   ],
+   "boots": [
+    [
+     2,
+     4,
+     4
+    ],
+    [
+     14,
+     18,
+     16
+    ],
+    [
+     40,
+     54,
+     46
+    ]
+   ],
+   "metal": [
+    [
+     0,
+     90,
+     30
+    ],
+    [
+     40,
+     230,
+     90
+    ],
+    [
+     200,
+     255,
+     210
+    ]
+   ],
+   "energy": [
+    [
+     0,
+     110,
+     40
+    ],
+    [
+     60,
+     255,
+     110
+    ],
+    [
+     210,
+     255,
+     220
+    ]
+   ],
+   "fx": [
+    [
+     0,
+     100,
+     36
+    ],
+    [
+     60,
+     255,
+     110
+    ],
+    [
+     220,
+     255,
+     228
+    ]
+   ],
+   "hud": [
+    "#40ff7a",
+    "#d8ffe0"
+   ],
+   "material": {
+    "kind": "glitter",
+    "region": "costume",
+    "density": 18,
+    "colors": [
+     [
+      60,
+      255,
+      110
+     ],
+     [
+      150,
+      255,
+      170
+     ],
+     [
+      30,
+      200,
+      80
+     ]
+    ]
+   }
+  },
+  {
+   "id": "sf_spectral_star",
+   "tag": "spectral",
+   "name": "Ghostfreak — Spectral Star",
+   "classification": "Crossover-Inspired Palette",
+   "crossover": "Ben 10 (Ghostfreak)",
+   "inspiration": "Ghostfreak's pale grey-white body, black chest bands and violet eye (Ben 10)",
+   "url": "https://ben10.fandom.com/wiki/Ghostfreak",
+   "research": "Ghostfreak is an Ectonurite: ghost-white skin with black stripes, a single purple eye and violet ghostly energy.",
+   "notes": "Costume ghost-grey, boots black, hair smoke-grey, metal black band, eyes violet; energy pale violet. Her skin tones are unchanged (never recoloured).",
+   "hair": [
+    [
+     50,
+     48,
+     58
+    ],
+    [
+     110,
+     106,
+     120
+    ],
+    [
+     176,
+     172,
+     186
+    ]
+   ],
+   "eyes": [
+    [
+     60,
+     0,
+     90
+    ],
+    [
+     176,
+     70,
+     230
+    ],
+    [
+     230,
+     200,
+     255
+    ]
+   ],
+   "costume": [
+    [
+     110,
+     110,
+     120
+    ],
+    [
+     176,
+     176,
+     186
+    ],
+    [
+     236,
+     236,
+     242
+    ]
+   ],
+   "boots": [
+    [
+     14,
+     14,
+     18
+    ],
+    [
+     40,
+     40,
+     48
+    ],
+    [
+     80,
+     80,
+     92
+    ]
+   ],
+   "metal": [
+    [
+     10,
+     10,
+     14
+    ],
+    [
+     36,
+     36,
+     44
+    ],
+    [
+     80,
+     80,
+     96
+    ]
+   ],
+   "energy": [
+    [
+     90,
+     50,
+     120
+    ],
+    [
+     190,
+     150,
+     230
+    ],
+    [
+     240,
+     230,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     90,
+     60,
+     120
+    ],
+    [
+     196,
+     160,
+     236
+    ],
+    [
+     246,
+     240,
+     255
+    ]
+   ],
+   "hud": [
+    "#c8a8ff",
+    "#f0ecff"
+   ]
+  },
+  {
+   "id": "sf_pink_nova",
+   "tag": "pinknova",
+   "name": "Pink Nova",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Original design: a hot-pink nova colourway",
+   "url": null,
+   "research": "Original cosmetic palette (no source character).",
+   "notes": "Costume hot pink, boots deep magenta, hair rose-magenta, metal rose gold, eyes pink-white; energy / starbolts / laser pink.",
+   "hair": [
+    [
+     110,
+     10,
+     60
+    ],
+    [
+     210,
+     40,
+     120
+    ],
+    [
+     255,
+     130,
+     190
+    ]
+   ],
+   "eyes": [
+    [
+     140,
+     20,
+     90
+    ],
+    [
+     255,
+     110,
+     200
+    ],
+    [
+     255,
+     220,
+     240
+    ]
+   ],
+   "costume": [
+    [
+     150,
+     20,
+     90
+    ],
+    [
+     240,
+     80,
+     170
+    ],
+    [
+     255,
+     180,
+     220
+    ]
+   ],
+   "boots": [
+    [
+     90,
+     6,
+     56
+    ],
+    [
+     170,
+     30,
+     110
+    ],
+    [
+     230,
+     110,
+     170
+    ]
+   ],
+   "metal": [
+    [
+     150,
+     90,
+     80
+    ],
+    [
+     220,
+     160,
+     140
+    ],
+    [
+     255,
+     222,
+     204
+    ]
+   ],
+   "energy": [
+    [
+     170,
+     20,
+     110
+    ],
+    [
+     255,
+     100,
+     200
+    ],
+    [
+     255,
+     220,
+     245
+    ]
+   ],
+   "fx": [
+    [
+     170,
+     20,
+     110
+    ],
+    [
+     255,
+     100,
+     200
+    ],
+    [
+     255,
+     230,
+     248
+    ]
+   ],
+   "hud": [
+    "#ff5ac0",
+    "#ffe0f2"
+   ]
+  },
+  {
+   "id": "sf_infinity_sky",
+   "tag": "infinity",
+   "name": "Infinity Sky",
+   "classification": "Crossover-Inspired Palette",
+   "crossover": "Jujutsu Kaisen (Satoru Gojo)",
+   "inspiration": "Gojo's white hair, unblindfolded Six Eyes sky-blue irises and Limitless blue / red / purple (JJK)",
+   "url": "https://jujutsu-kaisen.fandom.com/wiki/Satoru_Gojo",
+   "research": "Gojo wears a dark navy uniform; with the blindfold off his Six Eyes are a vivid sky blue. No blindfold is drawn here — eye geometry is unchanged.",
+   "notes": "Hair snow white, eyes sky blue (no blindfold), costume midnight navy, boots black, metal pale ice; energy / laser Limitless blue.",
+   "hair": [
+    [
+     170,
+     176,
+     196
+    ],
+    [
+     226,
+     230,
+     242
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "eyes": [
+    [
+     0,
+     70,
+     160
+    ],
+    [
+     70,
+     190,
+     255
+    ],
+    [
+     210,
+     244,
+     255
+    ]
+   ],
+   "costume": [
+    [
+     8,
+     10,
+     30
+    ],
+    [
+     24,
+     30,
+     70
+    ],
+    [
+     56,
+     70,
+     130
+    ]
+   ],
+   "boots": [
+    [
+     4,
+     4,
+     12
+    ],
+    [
+     16,
+     18,
+     40
+    ],
+    [
+     40,
+     46,
+     86
+    ]
+   ],
+   "metal": [
+    [
+     110,
+     140,
+     180
+    ],
+    [
+     180,
+     210,
+     240
+    ],
+    [
+     236,
+     248,
+     255
+    ]
+   ],
+   "energy": [
+    [
+     20,
+     70,
+     200
+    ],
+    [
+     90,
+     180,
+     255
+    ],
+    [
+     220,
+     244,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     20,
+     60,
+     190
+    ],
+    [
+     90,
+     180,
+     255
+    ],
+    [
+     230,
+     248,
+     255
+    ]
+   ],
+   "hud": [
+    "#5ab8ff",
+    "#e4f4ff"
+   ]
+  },
+  {
+   "id": "sf_solar_empress",
+   "tag": "solar",
+   "name": "Solar Empress",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Original design: a royal Tamaranean sun-gold colourway (Tamaran's sun-fed power)",
+   "url": null,
+   "research": "Original cosmetic palette. Tamaraneans draw power from solar energy (DC canon), which this palette celebrates.",
+   "notes": "Costume regal gold, boots bronze, hair flame orange-gold, metal bright gold, eyes amber; energy / explosion solar gold.",
+   "hair": [
+    [
+     150,
+     40,
+     0
+    ],
+    [
+     240,
+     120,
+     10
+    ],
+    [
+     255,
+     214,
+     80
+    ]
+   ],
+   "eyes": [
+    [
+     120,
+     60,
+     0
+    ],
+    [
+     255,
+     170,
+     20
+    ],
+    [
+     255,
+     236,
+     160
+    ]
+   ],
+   "costume": [
+    [
+     130,
+     80,
+     10
+    ],
+    [
+     220,
+     170,
+     40
+    ],
+    [
+     255,
+     236,
+     140
+    ]
+   ],
+   "boots": [
+    [
+     80,
+     40,
+     10
+    ],
+    [
+     150,
+     90,
+     30
+    ],
+    [
+     210,
+     150,
+     70
+    ]
+   ],
+   "metal": [
+    [
+     170,
+     110,
+     20
+    ],
+    [
+     250,
+     200,
+     60
+    ],
+    [
+     255,
+     246,
+     180
+    ]
+   ],
+   "energy": [
+    [
+     200,
+     90,
+     0
+    ],
+    [
+     255,
+     180,
+     30
+    ],
+    [
+     255,
+     244,
+     180
+    ]
+   ],
+   "fx": [
+    [
+     200,
+     80,
+     0
+    ],
+    [
+     255,
+     180,
+     30
+    ],
+    [
+     255,
+     248,
+     200
+    ]
+   ],
+   "hud": [
+    "#ffb820",
+    "#fff4c4"
+   ]
+  },
+  {
+   "id": "sf_aurora_glitter",
+   "tag": "aurora",
+   "name": "Aurora Glitter",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Original design: northern-lights teal and violet with glitter",
+   "url": null,
+   "research": "Original cosmetic palette (no source character).",
+   "notes": "Costume aurora teal with precomputed glitter, boots deep violet, hair teal-violet, metal silver-teal, eyes mint; energy teal.",
+   "hair": [
+    [
+     20,
+     70,
+     90
+    ],
+    [
+     40,
+     170,
+     170
+    ],
+    [
+     170,
+     255,
+     230
+    ]
+   ],
+   "eyes": [
+    [
+     0,
+     90,
+     80
+    ],
+    [
+     60,
+     255,
+     200
+    ],
+    [
+     210,
+     255,
+     240
+    ]
+   ],
+   "costume": [
+    [
+     10,
+     80,
+     90
+    ],
+    [
+     30,
+     180,
+     170
+    ],
+    [
+     160,
+     255,
+     230
+    ]
+   ],
+   "boots": [
+    [
+     40,
+     14,
+     80
+    ],
+    [
+     100,
+     50,
+     170
+    ],
+    [
+     170,
+     120,
+     230
+    ]
+   ],
+   "metal": [
+    [
+     90,
+     130,
+     140
+    ],
+    [
+     170,
+     220,
+     220
+    ],
+    [
+     236,
+     255,
+     250
+    ]
+   ],
+   "energy": [
+    [
+     0,
+     120,
+     110
+    ],
+    [
+     60,
+     255,
+     210
+    ],
+    [
+     220,
+     255,
+     246
+    ]
+   ],
+   "fx": [
+    [
+     0,
+     110,
+     100
+    ],
+    [
+     70,
+     255,
+     210
+    ],
+    [
+     226,
+     255,
+     248
+    ]
+   ],
+   "hud": [
+    "#40ffd0",
+    "#e0fff6"
+   ],
+   "material": {
+    "kind": "glitter",
+    "region": "costume",
+    "density": 20,
+    "colors": [
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      190,
+      160,
+      255
+     ],
+     [
+      140,
+      255,
+      220
+     ]
+    ]
+   }
+  },
+  {
+   "id": "sf_opal_supernova",
+   "tag": "opal",
+   "name": "Opal Supernova",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Original design: pearl-white opal with a shifting iridescent sheen",
+   "url": null,
+   "research": "Original cosmetic palette (no source character).",
+   "notes": "Costume pearl-white with an iridescent opal layer, boots pearl grey, hair rose-pearl, metal pearl, eyes opal blue-green; energy white-rainbow.",
+   "hair": [
+    [
+     170,
+     110,
+     130
+    ],
+    [
+     230,
+     180,
+     200
+    ],
+    [
+     255,
+     236,
+     244
+    ]
+   ],
+   "eyes": [
+    [
+     30,
+     110,
+     130
+    ],
+    [
+     120,
+     230,
+     220
+    ],
+    [
+     230,
+     255,
+     250
+    ]
+   ],
+   "costume": [
+    [
+     170,
+     166,
+     190
+    ],
+    [
+     226,
+     224,
+     238
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "boots": [
+    [
+     120,
+     118,
+     136
+    ],
+    [
+     180,
+     178,
+     196
+    ],
+    [
+     230,
+     228,
+     240
+    ]
+   ],
+   "metal": [
+    [
+     176,
+     186,
+     200
+    ],
+    [
+     226,
+     234,
+     244
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "energy": [
+    [
+     120,
+     160,
+     200
+    ],
+    [
+     210,
+     236,
+     255
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     110,
+     150,
+     200
+    ],
+    [
+     214,
+     236,
+     255
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "hud": [
+    "#f4f0ff",
+    "#9ce8ff"
+   ],
+   "material": {
+    "kind": "iridescent",
+    "region": "costume",
+    "colors": [
+     [
+      120,
+      200,
+      230
+     ],
+     [
+      230,
+      160,
+      230
+     ],
+     [
+      160,
+      240,
+      200
+     ]
+    ],
+    "period": 240,
+    "maxAlpha": 0.42
+   }
+  }
+ ],
+ "audit": {
+  "darksister": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 0
+  },
+  "celestial": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 3412
+  },
+  "prism": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 18527
+  },
+  "circuit": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 4460
+  },
+  "spectral": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 0
+  },
+  "pinknova": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 0
+  },
+  "infinity": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 0
+  },
+  "solar": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 0
+  },
+  "aurora": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 3647
+  },
+  "opal": {
+   "files": 52,
+   "skinPixels": 31788,
+   "outlinePixels": 90430,
+   "eyePixels": 2731,
+   "recoloured": 142265,
+   "materialPixels": 18527
+  }
+ }
+}

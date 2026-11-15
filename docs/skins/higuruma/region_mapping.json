@@ -1,0 +1,338 @@
+{
+ "cell": {
+  "w": 222,
+  "h": 104,
+  "ox": 111,
+  "oy": 100
+ },
+ "regions": {
+  "hair": [
+   [
+    40,
+    45,
+    72
+   ],
+   [
+    23,
+    26,
+    43
+   ],
+   [
+    7,
+    6,
+    19
+   ]
+  ],
+  "suit": [
+   [
+    [
+     38,
+     39,
+     38
+    ],
+    [
+     36,
+     37,
+     37
+    ]
+   ],
+   [
+    [
+     28,
+     28,
+     28
+    ]
+   ],
+   [
+    [
+     10,
+     10,
+     10
+    ],
+    [
+     11,
+     12,
+     12
+    ]
+   ]
+  ],
+  "shirt": [
+   [
+    227,
+    227,
+    227
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "tie": [
+   [
+    141,
+    121,
+    168
+   ]
+  ],
+  "shoes": [
+   [
+    22,
+    25,
+    34
+   ]
+  ],
+  "wood": [
+   [
+    173,
+    85,
+    41
+   ],
+   [
+    115,
+    38,
+    23
+   ],
+   [
+    255,
+    191,
+    127
+   ],
+   [
+    216,
+    152,
+    88
+   ],
+   [
+    203,
+    132,
+    62
+   ]
+  ],
+  "metal/fx/sword": [
+   [
+    255,
+    255,
+    127
+   ],
+   [
+    255,
+    243,
+    154
+   ],
+   [
+    255,
+    235,
+    84
+   ],
+   [
+    254,
+    235,
+    84
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "never": {
+   "skin": [
+    [
+     255,
+     232,
+     216
+    ],
+    [
+     255,
+     211,
+     212
+    ],
+    [
+     255,
+     144,
+     128
+    ],
+    [
+     214,
+     152,
+     131
+    ],
+    [
+     187,
+     72,
+     69
+    ],
+    [
+     113,
+     40,
+     39
+    ]
+   ],
+   "outline": "black family",
+   "eyes": "white touching skin"
+  }
+ },
+ "skins": {
+  "hg_midnight_counsel": {
+   "tag": "midnight_counsel",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_white_collar_verdict": {
+   "tag": "white_collar_verdict",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_crimson_prosecutor": {
+   "tag": "crimson_prosecutor",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_gotham_counsel": {
+   "tag": "gotham_counsel",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_devils_advocate": {
+   "tag": "devils_advocate",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_limitless_litigation": {
+   "tag": "limitless_litigation",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_cursed_rose": {
+   "tag": "cursed_rose",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_alien_x_cosmic_court": {
+   "tag": "cosmic_court",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_upgrade_digital_justice": {
+   "tag": "digital_justice",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  },
+  "hg_gilded_final_appeal": {
+   "tag": "gilded_final_appeal",
+   "pixels": {
+    "hair": 7075,
+    "suit0": 18355,
+    "suit1": 21157,
+    "suit2": 17702,
+    "shirt": 525,
+    "tie": 721,
+    "shoes": 1227,
+    "wood": 10516,
+    "metal": 7892,
+    "sword": 507,
+    "fx": 2961
+   }
+  }
+ }
+}

@@ -1,0 +1,674 @@
+{
+ "opponents": {
+  "syndrome": {
+   "maxHp": 1100,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL3": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "sLow": {
+     "hits": [
+      25
+     ],
+     "total": 25
+    },
+    "heavy": {
+     "hits": [
+      57
+     ],
+     "total": 57
+    },
+    "sLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "sZero": {
+     "hits": [
+      12
+     ],
+     "total": 12
+    },
+    "sDuet": {
+     "hits": [
+      15,
+      15,
+      13,
+      12,
+      11,
+      10
+     ],
+     "total": 76
+    },
+    "sSpin": {
+     "hits": [
+      36,
+      30
+     ],
+     "total": 66
+    },
+    "sVelo": {
+     "hits": [
+      90
+     ],
+     "total": 90
+    },
+    "sTurret": {
+     "hits": [
+      12,
+      12,
+      11,
+      10,
+      9,
+      8,
+      7,
+      7,
+      7
+     ],
+     "total": 83
+    },
+    "sTurretMs": {
+     "hits": [
+      36,
+      36,
+      33
+     ],
+     "total": 105
+    },
+    "sTurretMortar": {
+     "hits": [
+      27,
+      27,
+      24,
+      22
+     ],
+     "total": 100
+    },
+    "sHammer": {
+     "hits": [
+      102
+     ],
+     "total": 102
+    },
+    "sRise": {
+     "hits": [
+      78
+     ],
+     "total": 78
+    },
+    "sSweep": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    }
+   },
+   "ultimate": {
+    "hits": [
+     18,
+     9,
+     9,
+     12,
+     15,
+     9,
+     24,
+     18,
+     138
+    ],
+    "total": 252
+   }
+  },
+  "goku": {
+   "maxHp": 1000,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL3": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "sLow": {
+     "hits": [
+      25
+     ],
+     "total": 25
+    },
+    "heavy": {
+     "hits": [
+      57
+     ],
+     "total": 57
+    },
+    "sLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "sZero": {
+     "hits": [
+      12
+     ],
+     "total": 12
+    },
+    "sDuet": {
+     "hits": [
+      15,
+      15,
+      13,
+      12,
+      11,
+      10
+     ],
+     "total": 76
+    },
+    "sSpin": {
+     "hits": [
+      36,
+      30
+     ],
+     "total": 66
+    },
+    "sVelo": {
+     "hits": [
+      90
+     ],
+     "total": 90
+    },
+    "sTurret": {
+     "hits": [
+      12,
+      12,
+      11,
+      10,
+      9,
+      8,
+      7,
+      7,
+      7
+     ],
+     "total": 83
+    },
+    "sTurretMs": {
+     "hits": [
+      36,
+      33.3
+     ],
+     "total": 69.3
+    },
+    "sTurretMortar": {
+     "hits": [
+      27,
+      27,
+      24,
+      22
+     ],
+     "total": 100
+    },
+    "sHammer": {
+     "hits": [
+      102
+     ],
+     "total": 102
+    },
+    "sRise": {
+     "hits": [
+      78
+     ],
+     "total": 78
+    },
+    "sSweep": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    }
+   },
+   "ultimate": {
+    "hits": [
+     15,
+     9,
+     9,
+     12,
+     15,
+     9,
+     24,
+     18,
+     138
+    ],
+    "total": 249
+   }
+  },
+  "superman": {
+   "maxHp": 1150,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL3": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "sLow": {
+     "hits": [
+      25
+     ],
+     "total": 25
+    },
+    "heavy": {
+     "hits": [
+      57
+     ],
+     "total": 57
+    },
+    "sLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "sZero": {
+     "hits": [
+      12
+     ],
+     "total": 12
+    },
+    "sDuet": {
+     "hits": [
+      15,
+      15,
+      13,
+      12,
+      11,
+      10
+     ],
+     "total": 76
+    },
+    "sSpin": {
+     "hits": [
+      36,
+      30
+     ],
+     "total": 66
+    },
+    "sVelo": {
+     "hits": [
+      90
+     ],
+     "total": 90
+    },
+    "sTurret": {
+     "hits": [
+      12,
+      12,
+      11,
+      10,
+      9,
+      8,
+      7,
+      7,
+      7
+     ],
+     "total": 83
+    },
+    "sTurretMs": {
+     "hits": [
+      36,
+      36,
+      33
+     ],
+     "total": 105
+    },
+    "sTurretMortar": {
+     "hits": [
+      27,
+      27,
+      24,
+      22
+     ],
+     "total": 100
+    },
+    "sHammer": {
+     "hits": [
+      102
+     ],
+     "total": 102
+    },
+    "sRise": {
+     "hits": [
+      78
+     ],
+     "total": 78
+    },
+    "sSweep": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    }
+   },
+   "ultimate": {
+    "hits": [
+     18,
+     9,
+     9,
+     12,
+     15,
+     9,
+     24,
+     18,
+     138
+    ],
+    "total": 252
+   }
+  },
+  "megumi_fushiguro": {
+   "maxHp": 1000,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL3": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "sLow": {
+     "hits": [
+      25
+     ],
+     "total": 25
+    },
+    "heavy": {
+     "hits": [
+      57
+     ],
+     "total": 57
+    },
+    "sLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "sZero": {
+     "hits": [
+      12
+     ],
+     "total": 12
+    },
+    "sDuet": {
+     "hits": [
+      15,
+      15,
+      13,
+      12,
+      11,
+      10
+     ],
+     "total": 76
+    },
+    "sSpin": {
+     "hits": [
+      36,
+      30
+     ],
+     "total": 66
+    },
+    "sVelo": {
+     "hits": [
+      90
+     ],
+     "total": 90
+    },
+    "sTurret": {
+     "hits": [
+      12,
+      12,
+      11,
+      10,
+      9,
+      8,
+      7,
+      7,
+      7
+     ],
+     "total": 83
+    },
+    "sTurretMs": {
+     "hits": [
+      36,
+      36,
+      33
+     ],
+     "total": 105
+    },
+    "sTurretMortar": {
+     "hits": [
+      27,
+      27,
+      24,
+      22
+     ],
+     "total": 100
+    },
+    "sHammer": {
+     "hits": [
+      102
+     ],
+     "total": 102
+    },
+    "sRise": {
+     "hits": [
+      78
+     ],
+     "total": 78
+    },
+    "sSweep": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    }
+   },
+   "ultimate": {
+    "hits": [
+     18,
+     9,
+     9,
+     12,
+     15,
+     9,
+     24,
+     18,
+     138
+    ],
+    "total": 252
+   }
+  },
+  "robin": {
+   "maxHp": 1100,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "sL3": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "sLow": {
+     "hits": [
+      25
+     ],
+     "total": 25
+    },
+    "heavy": {
+     "hits": [
+      57
+     ],
+     "total": 57
+    },
+    "sLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "sZero": {
+     "hits": [
+      12
+     ],
+     "total": 12
+    },
+    "sDuet": {
+     "hits": [
+      15,
+      15,
+      13,
+      12,
+      11,
+      10
+     ],
+     "total": 76
+    },
+    "sSpin": {
+     "hits": [
+      36,
+      30
+     ],
+     "total": 66
+    },
+    "sVelo": {
+     "hits": [
+      90
+     ],
+     "total": 90
+    },
+    "sTurret": {
+     "hits": [
+      12,
+      12,
+      11,
+      10,
+      9,
+      8,
+      7,
+      7,
+      7
+     ],
+     "total": 83
+    },
+    "sTurretMs": {
+     "hits": [
+      36,
+      36,
+      33
+     ],
+     "total": 105
+    },
+    "sTurretMortar": {
+     "hits": [
+      27,
+      27,
+      24,
+      22
+     ],
+     "total": 100
+    },
+    "sHammer": {
+     "hits": [
+      102
+     ],
+     "total": 102
+    },
+    "sRise": {
+     "hits": [
+      78
+     ],
+     "total": 78
+    },
+    "sSweep": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    }
+   },
+   "ultimate": {
+    "hits": [
+     18,
+     9,
+     9,
+     12,
+     15,
+     9,
+     24,
+     18,
+     138
+    ],
+    "total": 252
+   }
+  }
+ },
+ "errors": []
+}

@@ -1,0 +1,157 @@
+{
+  "universeIdx": 11,
+  "roster": [
+    "sukuna",
+    "alt_sukuna",
+    "aoi_todo",
+    "aoi_todo",
+    "aoi_todo",
+    "aoi_todo",
+    "aoi_todo",
+    "aoi_todo",
+    "miwa",
+    "yuji",
+    "toji",
+    "maki",
+    "maki",
+    "maki",
+    "maki",
+    "maki",
+    "maki",
+    "yuta",
+    "megumi_fushiguro"
+  ],
+  "detail": {
+    "key": "megumi_fushiguro",
+    "name": "Megumi Fushiguro",
+    "stats": {
+      "maxHealth": 1000,
+      "maxEnergy": 100,
+      "attack": 80,
+      "defense": 74,
+      "speed": 92,
+      "jumpPower": 25,
+      "maxJumps": 2,
+      "weight": 1,
+      "dashSpeed": 19,
+      "dashDuration": 10,
+      "dashCooldownMax": 26
+    },
+    "kitType": "Tactical Summoner / Close-range",
+    "difficulty": "Medium-Hard",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 11,
+    "selId": null,
+    "mouseX": 521,
+    "mouseY": 341
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 436,
+    "mouseY": 542
+  },
+  "introSeen": true,
+  "introActions": [
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro"
+  ],
+  "introCard": {
+    "p": true,
+    "k": 42,
+    "act": "intro",
+    "v": "intro"
+  },
+  "match": {
+    "p1": "megumi_fushiguro",
+    "skin": "mg_infinity_frost",
+    "tag": "infinity_frost",
+    "p2": "yuta"
+  },
+  "tag": "infinity_frost",
+  "profile": {
+    "msPerFrameIdle": 0.119,
+    "msPerFrameSummons": 0.121,
+    "msPerFrameUlt": 0.043,
+    "fxCacheBefore": 13,
+    "fxCacheAfter": 13,
+    "fxEntries": 0,
+    "ghosts": 0,
+    "projectiles": 0
+  },
+  "defeat": "win",
+  "mahoraga": [
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 4
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 28,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 52,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 76,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 100,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 124,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 148,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 172,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 196,
+      "act": "introMahoraga"
+    },
+    {
+      "p": true,
+      "v": "introMahoraga",
+      "k": 220,
+      "act": "introMahoraga"
+    }
+  ],
+  "passes": 18,
+  "failures": 0,
+  "errors": []
+}

@@ -1,0 +1,174 @@
+{
+  "skins": {
+    "sy_winning_valkyrie": {
+      "tag": "winning_valkyrie",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 265942,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_man_of_tomorrow": {
+      "tag": "man_of_tomorrow",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_celestial_conductor": {
+      "tag": "celestial_conductor",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 265860,
+        "mrecol": 136660,
+        "alpha": 0
+      }
+    },
+    "sy_living_network": {
+      "tag": "living_network",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_crystal_engine": {
+      "tag": "crystal_engine",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_furnace_king": {
+      "tag": "furnace_king",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_cursed_rose": {
+      "tag": "cursed_rose",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_infinity_system": {
+      "tag": "infinity_system",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_spectral_parade": {
+      "tag": "spectral_parade",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 265942,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_rose_gold_tyrant": {
+      "tag": "rose_gold_tyrant",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_aurora_orchestra": {
+      "tag": "aurora_orchestra",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    },
+    "sy_gilded_omnipotence": {
+      "tag": "gilded_omnipotence",
+      "traceIdentical": true,
+      "actions": 51,
+      "machineParts": 5,
+      "kept": {
+        "strips": 43,
+        "skin": 12908,
+        "changed": 0,
+        "recol": 284742,
+        "mrecol": 136742,
+        "alpha": 0
+      }
+    }
+  },
+  "passes": 107,
+  "failures": 0
+}

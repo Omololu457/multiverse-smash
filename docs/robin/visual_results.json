@@ -1,0 +1,102 @@
+{
+  "roster": [
+    "superman",
+    "green_arrow",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "starfire",
+    "raven",
+    "beast_boy",
+    "cyborg",
+    "cyborg",
+    "cyborg",
+    "cyborg",
+    "cyborg",
+    "cyborg",
+    "robin"
+  ],
+  "detail": {
+    "key": "robin",
+    "name": "Robin",
+    "stats": {
+      "maxHealth": 1100,
+      "maxEnergy": 100,
+      "attack": 82,
+      "defense": 76,
+      "speed": 98,
+      "jumpPower": 26,
+      "maxJumps": 2,
+      "weight": 1,
+      "dashSpeed": 22,
+      "dashDuration": 10,
+      "dashCooldownMax": 26
+    },
+    "kitType": "Gadget Tactician / Mobile Mid-range",
+    "difficulty": "Medium",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 11,
+    "selId": null,
+    "mouseX": 283,
+    "mouseY": 341
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 368
+  },
+  "chosenSkin": "rb_court_of_ivory",
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "introActions": [
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "intro",
+    "introSettle"
+  ],
+  "introCard": {
+    "p": true,
+    "k": 44,
+    "act": "introSettle"
+  },
+  "match": {
+    "p1": "robin",
+    "skin": "rb_court_of_ivory",
+    "tag": "court_of_ivory",
+    "p2": "superman"
+  },
+  "tag": "court_of_ivory",
+  "profile": {
+    "msPerFrameIdle": 0.134,
+    "msPerFrameGadgets": 0.174,
+    "msPerFrameUlt": 0.079,
+    "fxCacheBefore": 16,
+    "fxCacheAfter": 16,
+    "fxEntries": 0,
+    "live": 0,
+    "ghosts": 0
+  },
+  "fps": 47,
+  "defeat": "win",
+  "passes": 29,
+  "failures": 3,
+  "errors": []
+}

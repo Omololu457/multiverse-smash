@@ -1,0 +1,470 @@
+{
+ "routes": [
+  {
+   "label": "Punch 1 → 2 → 3",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    32
+   ],
+   "stunBefore": [
+    0,
+    10,
+    10
+   ],
+   "hitFrames": [
+    5,
+    17,
+    32
+   ],
+   "blockedEvents": 0,
+   "damage": 73,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Bird's-Eye Bomb vs foe 600 px away",
+   "kind": "combo",
+   "hits": [
+    51
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    52
+   ],
+   "blockedEvents": 0,
+   "damage": 51,
+   "energySpent": 8.88,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 600,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Bird's-Eye Bomb vs standing foe",
+   "kind": "combo",
+   "hits": [
+    51
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    17
+   ],
+   "blockedEvents": 0,
+   "damage": 51,
+   "energySpent": 10.14,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Staff Express",
+   "kind": "combo",
+   "hits": [
+    13,
+    13,
+    12,
+    29
+   ],
+   "stunBefore": [
+    0,
+    11,
+    11,
+    12
+   ],
+   "hitFrames": [
+    11,
+    39,
+    67,
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 8.14,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "CHECKMATE: LIGHTS OUT",
+   "kind": "combo",
+   "hits": [
+    35,
+    25,
+    25,
+    25,
+    39,
+    152
+   ],
+   "stunBefore": [
+    0,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    14,
+    107,
+    119,
+    131,
+    149,
+    203
+   ],
+   "blockedEvents": 0,
+   "damage": 301,
+   "energySpent": 97.48,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Punch 1 → 2 → Staff Sweep",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    49
+   ],
+   "stunBefore": [
+    0,
+    10,
+    7
+   ],
+   "hitFrames": [
+    5,
+    17,
+    35
+   ],
+   "blockedEvents": 0,
+   "damage": 90,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Punch 1 → 2 → Advancing Lunge",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    47
+   ],
+   "stunBefore": [
+    0,
+    10,
+    6
+   ],
+   "hitFrames": [
+    5,
+    17,
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 88,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Low Check → Launcher",
+   "kind": "combo",
+   "hits": [
+    25,
+    42
+   ],
+   "stunBefore": [
+    0,
+    9
+   ],
+   "hitFrames": [
+    7,
+    24
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Punch 1 → 2 → 3 → Staff Express",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    32,
+    11,
+    10,
+    9,
+    23
+   ],
+   "stunBefore": [
+    0,
+    10,
+    10,
+    14,
+    10,
+    9,
+    9
+   ],
+   "hitFrames": [
+    5,
+    17,
+    32,
+    50,
+    78,
+    106,
+    133
+   ],
+   "blockedEvents": 0,
+   "damage": 126,
+   "energySpent": 8.14,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Staff Sweep → Ultimate",
+   "kind": "combo",
+   "hits": [
+    54,
+    32,
+    21,
+    21,
+    21,
+    33,
+    128
+   ],
+   "stunBefore": [
+    0,
+    12,
+    9998,
+    9998,
+    9998,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    12,
+    40,
+    133,
+    145,
+    157,
+    175,
+    229
+   ],
+   "blockedEvents": 0,
+   "damage": 310,
+   "energySpent": 97.48,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 100,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher → double jump → Midair Kick",
+   "kind": "combo",
+   "hits": [
+    42,
+    25
+   ],
+   "stunBefore": [
+    0,
+    26
+   ],
+   "hitFrames": [
+    11,
+    32
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 17,
+   "activeStart": 5,
+   "activeEnd": 6,
+   "damage": 31
+  }
+ },
+ "movement": {
+  "walkVx": 6,
+  "liveSpeedStat": 84,
+  "authored": 98,
+  "formula": 6,
+  "vanish": {
+   "dx": 336.40532800000005,
+   "behind": true,
+   "vanishes": 1,
+   "puffs": 2
+  },
+  "jumps": [
+   1,
+   2,
+   2
+  ]
+ },
+ "gadgets": {
+  "bomb": {
+   "b0": {
+    "name": "robin_bomb",
+    "kind": "lob",
+    "n": 1,
+    "x": 1380,
+    "y": 430,
+    "w": 18,
+    "h": 18,
+    "vx": 14,
+    "vy": 0,
+    "damage": 86,
+    "sheet": "./assets/robin/fx/bomb_strip.png",
+    "visualOnly": false,
+    "life": 399
+   },
+   "b1": {
+    "name": "robin_bomb",
+    "kind": "lob",
+    "n": 1,
+    "x": 1464,
+    "y": 430,
+    "w": 18,
+    "h": 18,
+    "vx": 14,
+    "vy": 0,
+    "damage": 86,
+    "sheet": "./assets/robin/fx/bomb_strip.png",
+    "visualOnly": false,
+    "life": 393
+   }
+  },
+  "step": {
+   "dx": 132,
+   "ghosts": 3
+  },
+  "express": {
+   "label": "Staff Express",
+   "kind": "combo",
+   "hits": [
+    13,
+    13,
+    12,
+    29
+   ],
+   "stunBefore": [
+    0,
+    11,
+    11,
+    12
+   ],
+   "hitFrames": [
+    11,
+    39,
+    67,
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 8.14,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  "roof": {
+   "jcGroundRise": 1,
+   "jcBeforeAir": 1,
+   "jcAfterAirRoof": 1,
+   "endedAirborne": true
+  }
+ },
+ "ultimate": {
+  "label": "CHECKMATE: LIGHTS OUT",
+  "kind": "combo",
+  "hits": [
+   35,
+   25,
+   25,
+   25,
+   39,
+   152
+  ],
+  "stunBefore": [
+   0,
+   9998,
+   9998,
+   9998,
+   9998,
+   9998
+  ],
+  "hitFrames": [
+   14,
+   107,
+   119,
+   131,
+   149,
+   203
+  ],
+  "blockedEvents": 0,
+  "damage": 301,
+  "energySpent": 97.48,
+  "trueCombo": true,
+  "dropAfterHit": -1,
+  "gap": 70,
+  "flip": false,
+  "note": "",
+  "verdict": "true combo"
+ },
+ "misc": {},
+ "errors": []
+}

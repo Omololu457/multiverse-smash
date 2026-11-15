@@ -1,0 +1,148 @@
+{
+  "replay": {
+    "frames": 5200,
+    "identical": true,
+    "exercised": [
+      "light",
+      "mL2",
+      "mL3",
+      "heavy",
+      "mDog",
+      "stocksEarned",
+      "mToad",
+      "mNue",
+      "mRabbit",
+      "mHop",
+      "hops",
+      "mSerpent",
+      "mElephant",
+      "mStep",
+      "steps",
+      "routes",
+      "pulls",
+      "up",
+      "dj",
+      "air",
+      "mAirEnd",
+      "mAirNue",
+      "ultOpen",
+      "ult",
+      "ultSign",
+      "ultDomain",
+      "ultRecede"
+    ],
+    "stats": {
+      "dog": 2,
+      "toad": 2,
+      "nue": 1,
+      "airNue": 1,
+      "rabbit": 1,
+      "serpent": 1,
+      "elephant": 1,
+      "kon": 1,
+      "hits": {
+        "dog": 2,
+        "toad": 1,
+        "kon": 1
+      },
+      "blocked": 0,
+      "rejects": 0,
+      "pulls": 1,
+      "routes": 1,
+      "stocksEarned": 2,
+      "steps": 1,
+      "hops": 1,
+      "dismissed": 1,
+      "airEnds": 1,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "dj": 1,
+      "spawns": 11
+    }
+  },
+  "renderBatching": {
+    "samples": 600,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "had": {
+      "rabbits": true,
+      "summon": "dog",
+      "vols": 1
+    },
+    "ident": {
+      "had2": true,
+      "mg": false,
+      "proj": 0
+    }
+  },
+  "lan": {
+    "seen": [
+      "mDog",
+      "mRabbit",
+      "mToad",
+      "mSerpent",
+      "mNue"
+    ],
+    "frame": 400,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "mL2",
+        "mL3",
+        "mDog",
+        "mToad",
+        "mRabbit",
+        "mNue",
+        "mSerpent",
+        "mStep",
+        "heavy",
+        "mAdv",
+        "mLaunch",
+        "mElephant",
+        "ultOpen",
+        "ultSign",
+        "ultDomain",
+        "ultRecede"
+      ],
+      "hp": 698,
+      "steps": 1
+    },
+    "pad": {
+      "names": [
+        "light",
+        "mL2",
+        "mL3",
+        "mDog",
+        "mToad",
+        "mRabbit",
+        "mNue",
+        "mSerpent",
+        "mStep",
+        "heavy",
+        "mAdv",
+        "mLaunch",
+        "mElephant",
+        "ultOpen",
+        "ultSign",
+        "ultDomain",
+        "ultRecede"
+      ],
+      "hp": 698
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null
+  },
+  "passes": 20,
+  "errors": []
+}

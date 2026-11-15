@@ -11,7 +11,8 @@ export const DASH_PARR_DAMAGE_SCALE=1/0.6
 const dmg=v=>Math.ceil(v*DASH_PARR_DAMAGE_SCALE-1e-9)   // ceil: floor(raw×0.6) in combat.js lands exactly on the brief value
 
 // MOMENTUM (unique mechanic) — all values in sim frames / gauge points. State lives on f._dashParr (GAME_STATE).
-export const DASH_STATS={speed:85.6,dashSpeed:20,dashDuration:10,dashCooldownMax:28}
+// Movement stats = Killua Zoldyck's (`killua`): speed 95, dash 19/10/34 (owner request 2026-11-15).
+export const DASH_STATS={speed:95,dashSpeed:19,dashDuration:10,dashCooldownMax:34}
 export const MOMENTUM={max:100,runFill:1.5,hitGain:6,lapsGain:20,stillFrames:30,sprintAt:50,blurAt:100,
  speedMul:{jog:1,sprint:1.1,blur:1.2},startupBonus:{sprint:1},runMinSpeed:4.5}
 // Energy ("Super Speed"): 4/s passive, +4 per damaging hit landed, +3 per damaging hit taken.
@@ -21,6 +22,10 @@ export const DASH_COMBO_SCALE=0.85
 // Defense
 export const SIDESTEP={iStart:2,iEnd:10,cooldown:240,behindRange:150,awayPx:110}
 export const PANIC_RUN={cost:40,minHitsTaken:3,invuln:24,distance:190}
+// FLASH TIME (Back + Special, grounded toggle): the foe runs at ~1/3 speed (the engine's shared per-opponent
+// time-slow, same numbers as The Flash) while Dash moves normally. Needs 90 Super Speed to start, drains 0.22/frame
+// (no passive regen while on), ends at 0 energy or on a second Back + Special. Dash cannot block while it's on.
+export const FLASH_TIME={threshold:90,drain:0.22,oppSlow:0.34}
 export const CANT_CATCH_ME=0.7
 // Ultimate: 3 s storm, 12 hits = 200 HP unscaled (8×17 + 4×16), 90f recovery lockout.
 export const INCREDI_RUSH={cost:100,startup:10,storm:180,hits:12,damage:[17,17,16,17,17,16,17,17,16,17,17,16],recovery:90,range:340}
@@ -63,13 +68,14 @@ export const dash_parr={rosterKey:DASH_PARR_KEY,name:'Dash',displayName:'Dash',c
  primary:'rushdown',secondary:['speedster'],archetypes:['rushdown','speedster'],
  traits:{hasEnergy:true,energyType:'energy',energyName:'Super Speed',mobility:'high',scaling:'combo',animeMovement:false},
  energyConfig:{label:'Super Speed',color:'#ffd21f'},
- // walk 6.4 px/f = physics.js speed map 4.5 + (85.6-78)/4; run 11.0 px/f = ground dash clamp(20*0.55);
- // spriteScale 2/1.18: sprite.js multiplies by GLOBAL_SPRITE_SCALE (1.18) → an exact integer ×2 render (~2/3 of Elastigirl,
- // kid-sized vs the adults). jumpForce 12.5 (brief units) → jumpPower 25 (engine units, a shade under the 26 roster norm); weight 0.7.
- stats:{maxHealth:860,maxEnergy:100,attack:74,defense:62,jumpPower:25,maxJumps:1,weight:0.7,...DASH_STATS},
- hasSprites:true,spriteScale:2/1.18,spriteSheet:anim.idle.sheet,portrait:'./assets/dash_parr/portrait.png',movement:{crouchIdle:true},fatalityVictimArt:false,
+ // Stats = Killua Zoldyck's (owner request): HP 1030, energy 180, atk 84, def 78, speed 95, jump 33, 2 jumps, dash 19.
+ // spriteScale 2.5/1.18: sprite.js multiplies by GLOBAL_SPRITE_SCALE (1.18) → a ×2.5 render (~70% of Violet, ~80% of Elastigirl,
+ // kid-sized vs the adults). jumpPower 33 (Killua; was 25 from the brief).
+ stats:{maxHealth:1030,maxEnergy:180,attack:84,defense:78,jumpPower:33,maxJumps:2,...DASH_STATS},
+ hasSprites:true,spriteScale:2.5/1.18,spriteSheet:anim.idle.sheet,portrait:'./assets/dash_parr/portrait.png',movement:{crouchIdle:true},fatalityVictimArt:false,
  basic_attacks:{light:DASH_PARR_MOVES.jab,heavy:DASH_PARR_MOVES.heavy,crouchLight:DASH_PARR_MOVES.low,upAttack:DASH_PARR_MOVES.launcher,airAttack:DASH_PARR_MOVES.air,downAir:DASH_PARR_MOVES.air,
   grab:{damage:dmg(18),startup:6,active:3,recovery:22,hitstun:20,throwForceX:6,throwForceY:-3,damageType:'grab'}},
- specials:{motion:{name:'Flurry (↓↘→ + Special)',cost:15},forward:{name:'Blur Dash (→→ + Special)',cost:10},down:{name:'Laps (↓↓ + Special)',cost:20},back:{name:'Hydroplane (←↙↓ + Special)',cost:12}},
+ specials:{motion:{name:'Flurry (↓↘→ + Special)',cost:15},forward:{name:'Blur Dash (→→ + Special)',cost:10},down:{name:'Laps (↓↓ + Special)',cost:20},back:{name:'Hydroplane (←↙↓ + Special)',cost:12},
+  flashTime:{name:'Flash Time (← + Special)',cost:0,description:'Toggle (needs 90 Super Speed): the opponent runs at ~1/3 speed while Dash moves normally. Drains 0.22/frame, no regen, no blocking; press again or run dry to end.'}},
  ultimate:{name:'INCREDI-RUSH',cost:100,description:'↓↘→↓↘→ + Special (or Ultimate): a 3-second blur storm of 12 hits from every side, 200 damage unscaled, then a 90-frame recovery.'},
  animationData:Object.fromEntries(Object.entries(anim).map(([k,a])=>[k,timeline[k]?{...a,frameTimeline:timeline[k]}:a]))}

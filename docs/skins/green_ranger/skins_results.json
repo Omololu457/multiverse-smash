@@ -1,0 +1,76 @@
+{
+  "skins": {
+    "green_ranger_starfield": {
+      "tag": "starfield",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "EVENT HORIZON DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_omnitrix": {
+      "tag": "omnitrix",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "HERO TIME DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_xlr8": {
+      "tag": "xlr8",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "TOP-SPEED DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_heatblast": {
+      "tag": "heatblast",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "SOLAR DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_cursed_prodigy": {
+      "tag": "cursed",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "CURSED FLASH DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_limitless": {
+      "tag": "limitless",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "INFINITE DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_shrine": {
+      "tag": "shrine",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "CLEAVE DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_ten_shadows": {
+      "tag": "shadows",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "SHADOW FLIGHT",
+      "zordCache": 15
+    },
+    "green_ranger_resonance": {
+      "tag": "resonance",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "RESONANT DIVE",
+      "zordCache": 15
+    },
+    "green_ranger_heavenly": {
+      "tag": "heavenly",
+      "traceIdentical": true,
+      "actions": 42,
+      "subtitle": "NO-FRILLS DIVE",
+      "zordCache": 15
+    }
+  },
+  "passes": 82,
+  "failures": 0
+}

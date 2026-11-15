@@ -95,9 +95,9 @@
     }
   ],
   "momentum": {
-    "walk": 6.399999999999999,
-    "sprintWalk": 7.039999999999999,
-    "blurWalk": 7.679999999999998
+    "walk": 8.75,
+    "sprintWalk": 9.625,
+    "blurWalk": 10.5
   },
   "defense": {
     "sidestep": {
@@ -113,7 +113,7 @@
     },
     "panic": {
       "atk": "panic",
-      "e": 60,
+      "e": 60.06666666666666,
       "stun": 0,
       "inv": 23,
       "used": true
@@ -143,9 +143,9 @@
     ]
   },
   "stats": {
-    "walk": 6.399999999999999,
-    "run": 11
+    "walk": 8.75,
+    "run": 10.450000000000001
   },
-  "pass": 74,
+  "pass": 82,
   "fail": 0
 }

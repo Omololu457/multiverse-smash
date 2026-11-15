@@ -1,0 +1,219 @@
+{
+  "source": "Sega Genesis - Mighty Morphin Power Rangers_ The Movie - Miscellaneous - HUD & Coins.png",
+  "sha256": "980948652397308b27a15c82c3418b72a9688817b8d7d3675afa120648b266a3",
+  "policy": "coins only; background keyed by border flood",
+  "excluded": {
+    "hudBlock": [
+      0,
+      0,
+      266,
+      168
+    ],
+    "lifeBarKeyAndCredit": [
+      183,
+      187,
+      83,
+      41
+    ],
+    "creditText": [
+      0,
+      225,
+      140,
+      27
+    ]
+  },
+  "credit": "Ripped by Sid Starkiller (credit box on the sheet; documentation only, excluded from runtime)",
+  "spin": [
+    {
+      "name": "spin0",
+      "rect": [
+        4,
+        172,
+        24,
+        22
+      ],
+      "kind": "face",
+      "keyed": 104
+    },
+    {
+      "name": "spin1",
+      "rect": [
+        32,
+        172,
+        15,
+        22
+      ],
+      "kind": "oval",
+      "keyed": 57
+    },
+    {
+      "name": "spin2",
+      "rect": [
+        51,
+        172,
+        7,
+        22
+      ],
+      "kind": "edge",
+      "keyed": 16
+    },
+    {
+      "name": "spin3",
+      "rect": [
+        62,
+        172,
+        7,
+        22
+      ],
+      "kind": "edge",
+      "keyed": 14
+    },
+    {
+      "name": "spin4",
+      "rect": [
+        73,
+        172,
+        15,
+        22
+      ],
+      "kind": "oval",
+      "keyed": 57
+    },
+    {
+      "name": "spin5",
+      "rect": [
+        92,
+        172,
+        24,
+        22
+      ],
+      "kind": "flash",
+      "keyed": 104
+    },
+    {
+      "name": "spin6",
+      "rect": [
+        120,
+        172,
+        15,
+        22
+      ],
+      "kind": "oval",
+      "keyed": 57
+    },
+    {
+      "name": "spin7",
+      "rect": [
+        139,
+        172,
+        7,
+        22
+      ],
+      "kind": "edge",
+      "keyed": 16
+    },
+    {
+      "name": "spin8",
+      "rect": [
+        150,
+        172,
+        7,
+        22
+      ],
+      "kind": "edge",
+      "keyed": 14
+    },
+    {
+      "name": "spin9",
+      "rect": [
+        161,
+        172,
+        15,
+        22
+      ],
+      "kind": "oval",
+      "keyed": 57
+    }
+  ],
+  "faces": [
+    {
+      "name": "face0",
+      "rect": [
+        4,
+        198,
+        24,
+        22
+      ],
+      "note": "tyrannosaurus (same art as spin0)",
+      "keyed": 104
+    },
+    {
+      "name": "face1",
+      "rect": [
+        32,
+        198,
+        24,
+        22
+      ],
+      "note": "mastodon",
+      "keyed": 104
+    },
+    {
+      "name": "face2",
+      "rect": [
+        60,
+        198,
+        24,
+        22
+      ],
+      "note": "triceratops",
+      "keyed": 104
+    },
+    {
+      "name": "face3",
+      "rect": [
+        88,
+        198,
+        24,
+        22
+      ],
+      "note": "sabre-tooth tiger",
+      "keyed": 104
+    },
+    {
+      "name": "face4",
+      "rect": [
+        116,
+        198,
+        24,
+        22
+      ],
+      "note": "pterodactyl",
+      "keyed": 104
+    },
+    {
+      "name": "face5",
+      "rect": [
+        144,
+        198,
+        24,
+        22
+      ],
+      "note": "falcon/thunder emblem",
+      "keyed": 104
+    }
+  ],
+  "spin0EqualsFace0": true,
+  "widths": [
+    24,
+    15,
+    7,
+    7,
+    15,
+    24,
+    15,
+    7,
+    7,
+    15
+  ]
+}

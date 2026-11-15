@@ -665,6 +665,14 @@ function _resolveAction(fighter, currentAction = "idle") {
   // ?harness) so a screenshot tool can render a SPECIFIC action deterministically without
   // driving physics. Inert in normal play (the field is never set). Highest priority.
   if (fighter._forceAction) return fighter._forceAction;
+  if (fighter.rosterKey === 'mr_incredible') {
+    if (!(fighter.hitstun > 0) && !fighter.knockdownState && !fighter.isGrabbed) {
+      if (fighter._mrIncredible?.entry > 0) return 'miTransform';
+      if (fighter._mrIncredible?.grabPose > 0) return 'miLift';
+      if (fighter.attacking && fighter.currentAttack?.mr) return fighter.currentAttack.name === 'miGrab' ? 'grab' : fighter.currentAttack.name;
+      if (fighter._mrIncredible?.land > 0 && Math.abs(fighter.vx || 0) < 1) return 'land';
+    }
+  }
 
   // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
   // they were in. Hold whatever action was last resolved (mid-jump → "jump",
@@ -762,6 +770,12 @@ function _resolveAction(fighter, currentAction = "idle") {
   // Down → isBlocking, so without this the cast strip would be shadowed by the guard pose.
   if (fighter.rosterKey === 'luffy' && !fighter.attacking && (fighter.blockstun || 0) > 0) return 'guard_hit';
   if (fighter.rosterKey === 'luffy' && !fighter.attacking && (fighter._luffyLandingVisual || 0) > 0) return 'land';
+  if (fighter.rosterKey === 'cyborg' && !fighter.attacking && (fighter._cyLand || 0) > 0 && !fighter.isBlocking && (fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1) return 'land';   // Cyborg: supplied landing frames after a genuine landing (cosmetic; cyborgState sets _cyLand)
+  if (fighter.rosterKey === 'beast_boy' && !fighter.attacking && (fighter._bbLand || 0) > 0 && !fighter.isBlocking && (fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1) return 'land';   // Beast Boy: full supplied Landing sequence after a genuine landing (cosmetic; beastBoyState sets _bbLand)
+  if (fighter.rosterKey === 'raven' && !fighter.attacking && fighter._rvPose && !fighter.isBlocking && (fighter._rvPose !== 'land' || ((fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1)) && (fighter._skinAnim?.[fighter._rvPose] || fighter.animationData?.[fighter._rvPose])) return fighter._rvPose;   // Raven: levitation start / loop / exit and the supplied landing frames (sim-set pose, render only)
+  if (fighter.rosterKey === 'starfire' && !fighter.attacking && fighter._sfPose && !fighter.isBlocking && (fighter._sfPose !== 'land' || ((fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1)) && (fighter._skinAnim?.[fighter._sfPose] || fighter.animationData?.[fighter._sfPose])) return fighter._sfPose;   // Starfire: levitation start / loop / exit and the supplied landing frames (sim-set pose, render only)
+  if (fighter.rosterKey === 'robin' && !fighter.attacking && (fighter._rbLand || 0) > 0 && !fighter.isBlocking && (fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1) return 'land';   // Robin: full supplied Landing sequence after a genuine landing (cosmetic; robinState sets _rbLand)
+  if (fighter.rosterKey === 'higuruma' && !fighter.attacking && fighter._hgPose && !fighter.isBlocking && (fighter.grounded ?? fighter.onGround) && (fighter._hgPose !== 'land' || Math.abs(fighter.vx || 0) <= 0.1) && (fighter._skinAnim?.[fighter._hgPose] || fighter.animationData?.[fighter._hgPose])) return fighter._hgPose;   // Higuruma: supplied landing frames / front-facing turn cell (sim-set pose, render only)
   if (fighter.rosterKey === 'batman' && !fighter.attacking && fighter._bmPose && !fighter.isBlocking && (fighter.grounded ?? fighter.onGround) && Math.abs(fighter.vx || 0) <= 0.1 && (fighter._skinAnim?.[fighter._bmPose] || fighter.animationData?.[fighter._bmPose])) return fighter._bmPose;   // Batman: supplied landing frames (sim-set pose, render only)
   if (fighter.isBlocking && !fighter.attacking && !((fighter._spriteCastTimer || 0) > 0 && fighter._spriteCastMove)) {
     return (fighter._skinAnim?.guard || fighter.animationData?.guard) ? "guard" : "idle";
@@ -1138,6 +1152,16 @@ export class SpriteHandler {
       const clearance = Math.max(0, (fighter.groundY ?? fighter.y + fighter.h) - (fighter.y + fighter.h));
       while (this.frameIndex > 0 && profileAction.groundClearance[this.frameIndex] * scale > clearance) this.frameIndex--;
     }
+    if (fighter.rosterKey === 'spd_yellow') fighter._lastSpriteFrame = this.frameIndex;   // S.P.D. Yellow: presentation read for skin materials (spdYellowFx)
+    if (fighter.rosterKey === 'cyborg') fighter._lastSpriteFrame = this.frameIndex;   // Cyborg: presentation read for skin material overlays (cyborgFx)
+    if (fighter.rosterKey === 'beast_boy') fighter._lastSpriteFrame = this.frameIndex;   // Beast Boy: presentation read for skin material overlays (beastBoyFx)
+    if (fighter.rosterKey === 'raven') fighter._lastSpriteFrame = this.frameIndex;   // Raven: presentation read for skin material overlays (ravenFx)
+    if (fighter.rosterKey === 'starfire') fighter._lastSpriteFrame = this.frameIndex;   // Starfire: presentation read for skin materials + the eye debug view (starfireFx)
+    if (fighter.rosterKey === 'robin') fighter._lastSpriteFrame = this.frameIndex;   // Robin: presentation read for skin material overlays / Smoke Step echoes (robinFx)
+    if (fighter.rosterKey === 'megumi_fushiguro') fighter._lastSpriteFrame = this.frameIndex;   // Megumi: presentation read for Shadow Step echoes (megumiFx)
+    if (fighter.rosterKey === 'higuruma') fighter._lastSpriteFrame = this.frameIndex;   // Higuruma: presentation read for skin material overlays (higurumaFx)
+    if (fighter.rosterKey === 'syndrome') fighter._lastSpriteFrame = this.frameIndex;   // Syndrome: presentation read for gesture-synced machine art (syndromeFx)
+    if (fighter.rosterKey === 'frozone') fighter._lastSpriteFrame = this.frameIndex;   // Frozone: presentation read (harness frame checks)
     if (fighter.rosterKey === 'batman') fighter._lastSpriteFrame = this.frameIndex;   // Batman: presentation read for grapnel / rope anchors (batmanFx)
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);

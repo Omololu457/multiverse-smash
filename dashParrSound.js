@@ -28,6 +28,8 @@ export function playDashParrCue(cue,f){
   case 'laps':tone('sine',300*p,1200*p,0.6,0.12);break                                     // Doppler loop
   case 'blur':tone('triangle',1760*p,1760*p,0.12,0.12);break                              // Blur tier reached
   case 'rush':noise(2.5,0.2,pi,300,6000);tone('sine',80*p,80*p,0.35,0.3,2.5);break        // rising sweep + thump
+  case 'flashOn':tone('sine',1200*p,240*p,0.5,0.14);tone('triangle',1760*p,1760*p,0.12,0.1,0.05);break   // Flash Time: time bends down + ping
+  case 'flashOff':tone('sine',240*p,1200*p,0.35,0.12);break                               // time snaps back
   case 'pop':case 'hit':case 'rushHit':tone('square',(cue==='hit'?420:600)*p,(cue==='hit'?260:600)*p,0.03,0.06);break
   default:break
  }}catch(_){}

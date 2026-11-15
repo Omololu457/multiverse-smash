@@ -16,7 +16,9 @@ async function open(q='p1=dash_parr&p2=dash_parr&seed=55123'){const page=await b
 // freebie, every special + the ultimate, sidestep. Inputs change only on multiples of 4 frames.
 const SCRIPT=`(()=>{let ph=0,t=0;return (i,a,b)=>{const r={},gap=Math.abs(b.x-a.x),idle=!a.attacking&&a.onGround,fw=a.facing===1?'right':'left',bk=a.facing===1?'left':'right';t++
  const next=()=>{ph++;t=0}
- switch(ph){
+ if(ph===0){if(t>8&&idle&&a.energy>=90){r[bk]=true;r.special=true;next()}return r}   // ← + Special = FLASH TIME on
+ if(ph===1){if(t>60&&idle){r[bk]=true;r.special=true;next()}else if(t<=60)r[fw]=true;return r}   // walk in slowed time, then toggle off
+ switch(ph-2){
   case 0: r[bk]=true;if(t>70)next();break                                   // run away → Momentum to Blur
   case 1: if(gap>140)r[fw]=true;else next();break
   case 2: if(idle){r.down=true;r.special=true;next()}break                    // Laps (free at Blur)
@@ -40,22 +42,25 @@ const SCRIPT=`(()=>{let ph=0,t=0;return (i,a,b)=>{const r={},gap=Math.abs(b.x-a.
 try{
  let page=await open()
  const rec=await page.evaluate(async src=>{const {writeRawControls}=await import('./input.js');const S=eval(src),H=__harness.dashParrTest,a=H.raw(),b=H.raw('p2')
-  const dig=()=>JSON.stringify(['p1','p2'].map(w=>{const f=H.raw(w);return [f.x,f.y,f.vx,f.vy,f.health,f.energy,f.hitstun,f.hitstop,f.comboCounter,f._dashParr,f.currentAttack]}))
+  const dig=()=>JSON.stringify(['p1','p2'].map(w=>{const f=H.raw(w);return [f.x,f.y,f.vx,f.vy,f.health,f.energy,f.hitstun,f.hitstop,f.comboCounter,f._dashParr,f.currentAttack,!!f._timeSlowFlag,f._timeSlowAcc||0]}))
   const traces=[],seen=new Set();let maxM=0
-  for(let i=0;i<1500;i++){writeRawControls(a,S(i,a,b));__harness.luffyTest.step(1);const s=a._dashParr;if(s){maxM=Math.max(maxM,s.momentum);if(s.blurSpent)seen.add('freebie');if(s.ult)seen.add('ultLock')}if(a.currentAttack)seen.add(a.currentAttack.name);traces.push(dig())}
+  for(let i=0;i<1500;i++){writeRawControls(a,S(i,a,b));__harness.luffyTest.step(1);const s=a._dashParr;if(s){maxM=Math.max(maxM,s.momentum);if(s.blurSpent)seen.add('freebie');if(s.ult)seen.add('ultLock');if(s.ft)seen.add('flashTime')}if(a.currentAttack)seen.add(a.currentAttack.name);traces.push(dig())}
   return {traces,seen:[...seen],maxM,rep:__harness.replay.stopAndGet()}},SCRIPT)
- ok('scenario exercises Blur + freebie + every special + sidestep + Incredi-Rush',['freebie','laps','jab','flurry','blurDash','hydro','sidestep','rush','ultLock'].every(k=>rec.seen.includes(k))&&rec.maxM===100,JSON.stringify(rec.seen))
+ ok('scenario exercises Flash Time + Blur + freebie + every special + sidestep + Incredi-Rush',['flashTime','freebie','laps','jab','flurry','blurDash','hydro','sidestep','rush','ultLock'].every(k=>rec.seen.includes(k))&&rec.maxM===100,JSON.stringify(rec.seen))
  const v=await page.evaluate(rep=>__harness.replay.play(rep),rec.rep);ok('replay validates',v.ok,JSON.stringify(v))
  await page.evaluate(()=>{__harness.skipToBattle();__harness.luffyTest.step(1)});await page.waitForFunction(()=>__harness.luffyTest.state('p1')?.ready&&__harness.luffyTest.state('p2')?.ready)
- const pb=await page.evaluate(n=>{const H=__harness.dashParrTest,t=[];for(let i=0;i<n;i++){__harness.luffyTest.step(1);t.push(JSON.stringify(['p1','p2'].map(w=>{const f=H.raw(w);return [f.x,f.y,f.vx,f.vy,f.health,f.energy,f.hitstun,f.hitstop,f.comboCounter,f._dashParr,f.currentAttack]})))}return {t,st:__harness.replay.playbackState()}},rec.traces.length)
+ const pb=await page.evaluate(n=>{const H=__harness.dashParrTest,t=[];for(let i=0;i<n;i++){__harness.luffyTest.step(1);t.push(JSON.stringify(['p1','p2'].map(w=>{const f=H.raw(w);return [f.x,f.y,f.vx,f.vy,f.health,f.energy,f.hitstun,f.hitstop,f.comboCounter,f._dashParr,f.currentAttack,!!f._timeSlowFlag,f._timeSlowAcc||0]})))}return {t,st:__harness.replay.playbackState()}},rec.traces.length)
  const first=rec.traces.findIndex((s,i)=>s!==pb.t[i]);ok('replay matches every authoritative frame (1500, Momentum incl.)',first===-1,first===-1?'':`frame ${first}\n${rec.traces[first]}\n${pb.t[first]}`);ok('no replay checkpoint desync',!pb.st.desync,JSON.stringify(pb.st))
  out.replay={frames:1500,identical:true,exercised:rec.seen}
  await page.evaluate(()=>__harness.replay.stopPlayback?.())
- const r1=await page.evaluate(async src=>{const {writeRawControls}=await import('./input.js');const H=__harness.dashParrTest,run=(stepper)=>{H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1560;a.facing=1;b.facing=-1
-   for(const f of [a,b]){f.health=f.maxHealth;f.energy=100;f.vx=f.vy=0;f.hitstun=0;f.hitstop=0;f.comboCounter=0}const t=[]
+ // Each variant runs on a freshly booted page so no state from a previous run can leak in (a run can end mid-move).
+ const runOn=async mode=>{await page.close();page=await open();return page.evaluate(async([src,mode])=>{const {writeRawControls}=await import('./input.js');const H=__harness.dashParrTest,run=(stepper)=>{H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1560;a.facing=1;b.facing=-1
+   for(const f of [a,b]){f.health=f.maxHealth;f.energy=100;f.vx=f.vy=0;f.hitstun=0;f.hitstop=0;f.comboCounter=0   // isolate runs: clear every transient a previous run can leave mid-move
+    f.comboTimer=0;f.blockstun=0;f.dashTimer=0;f.dashCooldown=0;f.leftTapTime=f.rightTapTime=0;f.attacking=false;f.currentAttack=null;f.attackCooldown=0;f.invulnTimer=0;f.knockdownState=false;f.isGrabbed=false;f.isBlocking=false;f._timeSlowFlag=false;f._timeSlowAcc=0;f.y=400;f.onGround=true;f.facingRight=f.facing===1;f.teleportFlash=0;f.colorFlash=0}const t=[]
    const SS=eval(src);for(let i=0;i<1500;i+=4){writeRawControls(a,SS(i,a,b));stepper();t.push(JSON.stringify([a.x,a.y,a.health,a.energy,b.x,b.health,a._dashParr?.momentum,a._dashParr?.clock,a._dashParr?.ult,a.currentAttack?.name]))}return t}
-  const perFrame=run(()=>{for(let k=0;k<4;k++)__harness.luffyTest.step(1)}),batched=run(()=>__harness.luffyTest.step(4)),again=run(()=>{for(let k=0;k<4;k++)__harness.luffyTest.step(1)})
-  return {perFrame,batched,again}},SCRIPT)
+  return run(mode==='batched'?()=>__harness.luffyTest.step(4):()=>{for(let k=0;k<4;k++)__harness.luffyTest.step(1)})
+  },[SCRIPT,mode])}
+ const r1={perFrame:await runOn('perFrame'),batched:await runOn('batched'),again:await runOn('perFrame')}
  const d1=r1.perFrame.findIndex((s,i)=>s!==r1.batched[i]);ok('render batching (1 render/frame vs 1 render/4 frames) gives identical sim',d1===-1,d1===-1?'':`${r1.perFrame[d1]} vs ${r1.batched[d1]}`)
  ok('second identical run reproduces exactly',JSON.stringify(r1.perFrame)===JSON.stringify(r1.again))
  ok('batching runs are live',new Set(r1.perFrame.map(x=>JSON.parse(x)[0])).size>5&&r1.perFrame.some(x=>JSON.parse(x)[9]))

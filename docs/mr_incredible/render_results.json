@@ -1,0 +1,97 @@
+{
+  "World Tournament Arena veteran": [
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "veteran",
+      "skin": "mi_modern"
+    },
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "veteran",
+      "skin": "mi_cosmic"
+    }
+  ],
+  "World Tournament Arena prime": [
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "prime",
+      "skin": "mi_modern"
+    },
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "prime",
+      "skin": "mi_cosmic"
+    }
+  ],
+  "Gotham Rooftops veteran": [
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "veteran",
+      "skin": "mi_modern"
+    },
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "veteran",
+      "skin": "mi_cosmic"
+    }
+  ],
+  "Gotham Rooftops prime": [
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "prime",
+      "skin": "mi_modern"
+    },
+    {
+      "action": "idle",
+      "draw": [
+        271.872,
+        237.888
+      ],
+      "form": "prime",
+      "skin": "mi_cosmic"
+    }
+  ],
+  "performance": {
+    "cold": {
+      "frames": 240,
+      "meanMs": 40.657499999987586,
+      "p95Ms": 2.7999999970197678,
+      "maxMs": 3689
+    },
+    "warm": {
+      "frames": 240,
+      "meanMs": 49.20708333334575,
+      "p95Ms": 2.0999999940395355,
+      "maxMs": 6213.5999999940395
+    }
+  },
+  "errors": []
+}

@@ -1,0 +1,164 @@
+{
+  "replay": {
+    "frames": 5600,
+    "identical": true,
+    "exercised": [
+      "light",
+      "sL2",
+      "sL3",
+      "heavy",
+      "sDuet",
+      "sSpin",
+      "converge",
+      "hit:spinOut",
+      "hit:duetShot",
+      "sTurret",
+      "hit:spinBack",
+      "hit:gun",
+      "sHammer",
+      "hit:hammer",
+      "sVelo",
+      "hit:velo",
+      "sRise",
+      "hit:rise",
+      "sSweep",
+      "hit:sweep",
+      "sTurretMs",
+      "hit:missile",
+      "sTurretMortar",
+      "sZero",
+      "hit:mortar",
+      "captures",
+      "sLaunch",
+      "dj",
+      "air",
+      "sDownAir",
+      "ultOpen",
+      "ult",
+      "ultPose",
+      "ultFront",
+      "introSettle",
+      "ultDone"
+    ],
+    "stats": {
+      "duet": 1,
+      "spin": 1,
+      "velo": 1,
+      "turret": {
+        "gun": 1,
+        "missile": 1,
+        "mortar": 1
+      },
+      "hammer": 1,
+      "rise": 1,
+      "sweep": 1,
+      "zero": 1,
+      "captures": 2,
+      "hits": {
+        "spinOut": 1,
+        "duetShot": 6,
+        "spinBack": 1,
+        "gun": 9,
+        "hammer": 1,
+        "velo": 1,
+        "rise": 1,
+        "sweep": 1,
+        "missile": 3,
+        "mortar": 4
+      },
+      "blocked": 0,
+      "rejects": 0,
+      "converge": 1,
+      "skipped": 0,
+      "turretBroken": 0,
+      "dj": 1,
+      "spawns": 28,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "clean": 8
+    }
+  },
+  "renderBatching": {
+    "samples": 700,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "had": {
+      "mobile": true,
+      "turret": true,
+      "omni": true,
+      "vols": 3
+    },
+    "ident": {
+      "had2": true,
+      "sy": false,
+      "proj": 0
+    }
+  },
+  "lan": {
+    "seen": [
+      "sDuet",
+      "sTurret",
+      "sSpin",
+      "sHammer",
+      "sZero"
+    ],
+    "frame": 420,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "sL2",
+        "sL3",
+        "sDuet",
+        "sSpin",
+        "sTurret",
+        "sVelo",
+        "sHammer",
+        "sZero",
+        "sTurretMs",
+        "sSweep",
+        "heavy",
+        "sLaunch",
+        "ultOpen",
+        "ultPose",
+        "ultFront"
+      ],
+      "hp": 888
+    },
+    "pad": {
+      "names": [
+        "light",
+        "sL2",
+        "sL3",
+        "sDuet",
+        "sSpin",
+        "sTurret",
+        "sVelo",
+        "sHammer",
+        "sZero",
+        "sTurretMs",
+        "sSweep",
+        "heavy",
+        "sLaunch",
+        "ultOpen",
+        "ultPose",
+        "ultFront"
+      ],
+      "hp": 888
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null
+  },
+  "passes": 20,
+  "errors": []
+}

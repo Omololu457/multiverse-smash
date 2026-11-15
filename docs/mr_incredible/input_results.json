@@ -1,0 +1,183 @@
+{
+  "parity": {
+    "same": true,
+    "raw": [
+      "light",
+      "heavy",
+      "miRush",
+      "miRise",
+      "down_air",
+      "miSpin",
+      "miSlam"
+    ],
+    "pad": [
+      "light",
+      "heavy",
+      "miRush",
+      "miRise",
+      "down_air",
+      "miSpin",
+      "miSlam"
+    ],
+    "first": -1,
+    "different": []
+  },
+  "bindings": [
+    {
+      "want": "light",
+      "prime": false,
+      "got": "light"
+    },
+    {
+      "want": "miLow",
+      "prime": false,
+      "got": "miLow"
+    },
+    {
+      "want": "heavy",
+      "prime": false,
+      "got": "heavy"
+    },
+    {
+      "want": "miForward",
+      "prime": false,
+      "got": "miForward"
+    },
+    {
+      "want": "up",
+      "prime": false,
+      "got": "up"
+    },
+    {
+      "want": "miDownHeavy",
+      "prime": false,
+      "got": "miDownHeavy"
+    },
+    {
+      "want": "air",
+      "prime": false,
+      "got": "air"
+    },
+    {
+      "want": "down_air",
+      "prime": false,
+      "got": "down_air"
+    },
+    {
+      "want": "miGrab",
+      "prime": false,
+      "got": "miGrab"
+    },
+    {
+      "want": "miLift",
+      "prime": false,
+      "got": "miLift"
+    },
+    {
+      "want": "miImpact",
+      "prime": false,
+      "got": "miImpact"
+    },
+    {
+      "want": "miRush",
+      "prime": false,
+      "got": "miRush"
+    },
+    {
+      "want": "miRise",
+      "prime": false,
+      "got": "miRise"
+    },
+    {
+      "want": "miSlam",
+      "prime": false,
+      "got": "miSlam"
+    },
+    {
+      "want": "miSpin",
+      "prime": false,
+      "got": "miSpin"
+    },
+    {
+      "want": "light",
+      "prime": true,
+      "got": "light"
+    },
+    {
+      "want": "miLow",
+      "prime": true,
+      "got": "miLow"
+    },
+    {
+      "want": "heavy",
+      "prime": true,
+      "got": "heavy"
+    },
+    {
+      "want": "miForward",
+      "prime": true,
+      "got": "miForward"
+    },
+    {
+      "want": "up",
+      "prime": true,
+      "got": "up"
+    },
+    {
+      "want": "miDownHeavy",
+      "prime": true,
+      "got": "miDownHeavy"
+    },
+    {
+      "want": "air",
+      "prime": true,
+      "got": "air"
+    },
+    {
+      "want": "down_air",
+      "prime": true,
+      "got": "down_air"
+    },
+    {
+      "want": "miGrab",
+      "prime": true,
+      "got": "miGrab"
+    },
+    {
+      "want": "miLift",
+      "prime": true,
+      "got": "miLift"
+    },
+    {
+      "want": "miImpact",
+      "prime": true,
+      "got": "miImpact"
+    },
+    {
+      "want": "miRush",
+      "prime": true,
+      "got": "miRush"
+    },
+    {
+      "want": "miRise",
+      "prime": true,
+      "got": "miRise"
+    },
+    {
+      "want": "miSlam",
+      "prime": true,
+      "got": "miSlam"
+    },
+    {
+      "want": "miSpin",
+      "prime": true,
+      "got": "miSpin"
+    }
+  ],
+  "lan": {
+    "prime": true,
+    "impact": true,
+    "remaining": 709,
+    "remote": true
+  }
+}

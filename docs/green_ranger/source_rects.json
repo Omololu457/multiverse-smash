@@ -1,0 +1,4896 @@
+{
+ "source": "mmpr_green_ranger_custom_sprite_sheet_by_supaman2525_d65abhs.png",
+ "sha256": "87b9be3454776e5bc13edaab43d7493e0d3c12a9c642ef2261b69958cac7af20",
+ "size": [
+  462,
+  2133
+ ],
+ "mode": "RGBA",
+ "topLeft": [
+  0,
+  162,
+  232
+ ],
+ "alpha": "all 255 (opaque background)",
+ "briefReferenceSize": [
+  443,
+  2048
+ ],
+ "sizeNote": "repository copy is 462x2133 (only copy on disk); owner approved 2026-11-14",
+ "keyPolicy": "exact RGB(0,162,232) only; no tolerance",
+ "nearKeyKept": {
+  "rgb": [
+   0,
+   170,
+   238
+  ],
+  "pixels": 156,
+  "where": "morpher illustration"
+ },
+ "credit": "Green Ranger From Mighty Morphin PowerRangers / Sprites Edit By Supaman2525 / Credit Goes to belial the hegehog / Please Give Credit when used.",
+ "creditPanel": [
+  4,
+  2046,
+  152,
+  58
+ ],
+ "frame": {
+  "width": 240,
+  "height": 160,
+  "originX": 110,
+  "originY": 146
+ },
+ "cells": [
+  {
+   "name": "tommyArms",
+   "rect": [
+    1,
+    47,
+    62,
+    64
+   ],
+   "parts": [
+    [
+     1,
+     47
+    ]
+   ],
+   "anchor": [
+    30,
+    55
+   ],
+   "opaquePixels": 1159,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "788c49faf48305cb4ad856949fe7bc3fbb6957c433eb61fd6972d0cf9aba985b",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "tommyChest",
+   "rect": [
+    71,
+    47,
+    31,
+    64
+   ],
+   "parts": [
+    [
+     71,
+     47
+    ]
+   ],
+   "anchor": [
+    15,
+    55
+   ],
+   "opaquePixels": 919,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "f05666e857d1ac6b1e2884e5e593eb5fff99f4d0003cb23f1dc0591e18da4e18",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "tommyRaiseGlow",
+   "rect": [
+    112,
+    29,
+    31,
+    82
+   ],
+   "parts": [
+    [
+     112,
+     29
+    ]
+   ],
+   "anchor": [
+    15,
+    72
+   ],
+   "opaquePixels": 1207,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "5877e0194e7961396538ec7941197d32b71b09dd226e153f5624312a5462a720",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "tommyRaise",
+   "rect": [
+    165,
+    29,
+    31,
+    82
+   ],
+   "parts": [
+    [
+     165,
+     29
+    ]
+   ],
+   "anchor": [
+    15,
+    72
+   ],
+   "opaquePixels": 1205,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "0a4867b1ec3da4e2c37e657bf0ad7687a353d928f57fa2330b9f9e19807f9d2e",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "morphFlash",
+   "rect": [
+    210,
+    29,
+    41,
+    83
+   ],
+   "parts": [
+    [
+     210,
+     29
+    ]
+   ],
+   "anchor": [
+    20,
+    83
+   ],
+   "opaquePixels": 1476,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "c61f7480d944c73fca6b29c09e414fd63af2348337ae7a61cb47c43d954926f0",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "morphSuit",
+   "rect": [
+    265,
+    29,
+    41,
+    83
+   ],
+   "parts": [
+    [
+     265,
+     29
+    ]
+   ],
+   "anchor": [
+    20,
+    83
+   ],
+   "opaquePixels": 1476,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "70d24f6526f8928440b2f02eb3507856a7bc84ab766efe571bef5f5380226f66",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "shieldFlash",
+   "rect": [
+    6,
+    130,
+    41,
+    83
+   ],
+   "parts": [
+    [
+     6,
+     130
+    ]
+   ],
+   "anchor": [
+    20,
+    83
+   ],
+   "opaquePixels": 1496,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "ffebc08a2d7d763e6d3c9a6c02f38ae26924a03f7073d73674c43b2dc45b20b0",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "shieldSet",
+   "rect": [
+    61,
+    130,
+    41,
+    83
+   ],
+   "parts": [
+    [
+     61,
+     130
+    ]
+   ],
+   "anchor": [
+    20,
+    83
+   ],
+   "opaquePixels": 1496,
+   "kind": "body",
+   "status": "used \u2014 intro morph only",
+   "facing": "right",
+   "sha256": "665c8ac343f21bcd7c62a4da75faab2e4dd9e949b418a668f05d666af287114e",
+   "usedIn": [
+    "intro"
+   ]
+  },
+  {
+   "name": "armsWide",
+   "rect": [
+    109,
+    142,
+    73,
+    70
+   ],
+   "parts": [
+    [
+     109,
+     142
+    ]
+   ],
+   "anchor": [
+    36,
+    70
+   ],
+   "opaquePixels": 1527,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "48d9f1d1c55bcaddfe2bddd1c69119ba79a3b7458d0e6a0a7ae3b1f05978715c",
+   "usedIn": [
+    "intro",
+    "ultWatch",
+    "win_alt"
+   ]
+  },
+  {
+   "name": "flex",
+   "rect": [
+    190,
+    140,
+    43,
+    72
+   ],
+   "parts": [
+    [
+     190,
+     140
+    ]
+   ],
+   "anchor": [
+    21,
+    72
+   ],
+   "opaquePixels": 1452,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "e7dec111dac2079f75b48d34dfcce0c3eb283cdb349208249248928763aa308d",
+   "usedIn": [
+    "ultSignal",
+    "win"
+   ]
+  },
+  {
+   "name": "ready",
+   "rect": [
+    237,
+    142,
+    57,
+    71
+   ],
+   "parts": [
+    [
+     237,
+     142
+    ]
+   ],
+   "anchor": [
+    34,
+    71
+   ],
+   "opaquePixels": 1430,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "e168781cf4e6d14f26943c09de0314b7a776996641830123056f4046dfb9ba2b",
+   "usedIn": [
+    "gCall",
+    "getup",
+    "intro",
+    "ultWatch"
+   ]
+  },
+  {
+   "name": "extendWide",
+   "rect": [
+    0,
+    233,
+    71,
+    70
+   ],
+   "parts": [
+    [
+     0,
+     233
+    ]
+   ],
+   "anchor": [
+    32,
+    70
+   ],
+   "opaquePixels": 1533,
+   "kind": "body",
+   "status": "unused \u2014 wide arm extension (J1 uses the straight punch)",
+   "facing": "right",
+   "sha256": "b5ad6dd3f911b9f00fd7d8b1fcbb0ffb10afce57a50ff7caae42e9e43c1f2b7f",
+   "usedIn": []
+  },
+  {
+   "name": "guardCross",
+   "rect": [
+    74,
+    231,
+    49,
+    70
+   ],
+   "parts": [
+    [
+     74,
+     231
+    ]
+   ],
+   "anchor": [
+    23,
+    70
+   ],
+   "opaquePixels": 1349,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7f2dc4e3c914e1eba928d7bbace0bf8c0799dabc1b0be1e5087e5cfe3185e968",
+   "usedIn": [
+    "gJ2"
+   ]
+  },
+  {
+   "name": "highGuard",
+   "rect": [
+    134,
+    229,
+    44,
+    71
+   ],
+   "parts": [
+    [
+     134,
+     229
+    ]
+   ],
+   "anchor": [
+    22,
+    71
+   ],
+   "opaquePixels": 1277,
+   "kind": "body",
+   "status": "unused \u2014 raised-arm guard variant",
+   "facing": "right",
+   "sha256": "d7680ad7ac32aa81d51c84b5a9fb14a9d3a4062a012eb9300e128cda21e009d6",
+   "usedIn": []
+  },
+  {
+   "name": "lowHook",
+   "rect": [
+    186,
+    236,
+    55,
+    64
+   ],
+   "parts": [
+    [
+     186,
+     236
+    ]
+   ],
+   "anchor": [
+    27,
+    64
+   ],
+   "opaquePixels": 1139,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "c74dc100d6812d5f9355569d90b478eb2c13445fbcd676804d6882383fcad273",
+   "usedIn": [
+    "gJ2"
+   ]
+  },
+  {
+   "name": "lungeReach",
+   "rect": [
+    248,
+    234,
+    59,
+    67
+   ],
+   "parts": [
+    [
+     248,
+     234
+    ]
+   ],
+   "anchor": [
+    27,
+    67
+   ],
+   "opaquePixels": 1327,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7b338a0cf5cf5acfa066e4c533e3deb3142f4a7bf7c6b8190ea1b53a13916b00",
+   "usedIn": [
+    "gAdv"
+   ]
+  },
+  {
+   "name": "idle0",
+   "rect": [
+    3,
+    334,
+    40,
+    71
+   ],
+   "parts": [
+    [
+     3,
+     334
+    ]
+   ],
+   "anchor": [
+    19,
+    71
+   ],
+   "opaquePixels": 1340,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "4d0d0dc040cbff2d162ab22dabe4a81b41586bf4fc7febe6db74aaa07893e12d",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle1",
+   "rect": [
+    45,
+    334,
+    39,
+    70
+   ],
+   "parts": [
+    [
+     45,
+     334
+    ]
+   ],
+   "anchor": [
+    18,
+    70
+   ],
+   "opaquePixels": 1339,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "c3f181368caf2d071bc679569a075a3d6f3847dfb4703eecb5f6fc9703dba62b",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "idle2",
+   "rect": [
+    88,
+    334,
+    40,
+    72
+   ],
+   "parts": [
+    [
+     88,
+     334
+    ]
+   ],
+   "anchor": [
+    19,
+    72
+   ],
+   "opaquePixels": 1346,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "612020486332560cbccd4ea611558b9322df1564b900fe2285adb2c2d0bd9bf0",
+   "usedIn": [
+    "idle"
+   ]
+  },
+  {
+   "name": "walk0",
+   "rect": [
+    3,
+    412,
+    41,
+    70
+   ],
+   "parts": [
+    [
+     3,
+     412
+    ]
+   ],
+   "anchor": [
+    20,
+    70
+   ],
+   "opaquePixels": 1331,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "9a25f84dedaf29288565b2b499aeaeaf1c7f59a8a867b4881c4f578a7e0a6354",
+   "usedIn": [
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk1",
+   "rect": [
+    49,
+    411,
+    37,
+    71
+   ],
+   "parts": [
+    [
+     49,
+     411
+    ]
+   ],
+   "anchor": [
+    16,
+    71
+   ],
+   "opaquePixels": 1108,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "bd9dda66576a0f05bfe4a7e311d3f027a383e4015c626350dbcdf9ac223fa4d4",
+   "usedIn": [
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk2",
+   "rect": [
+    92,
+    412,
+    23,
+    72
+   ],
+   "parts": [
+    [
+     92,
+     412
+    ]
+   ],
+   "anchor": [
+    7,
+    72
+   ],
+   "opaquePixels": 1035,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "eb24696baa31dc8dc493e37943d11f3b36d23c8a08c789c75009ad90eb06a76f",
+   "usedIn": [
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk3",
+   "rect": [
+    122,
+    413,
+    39,
+    70
+   ],
+   "parts": [
+    [
+     122,
+     413
+    ]
+   ],
+   "anchor": [
+    20,
+    70
+   ],
+   "opaquePixels": 1337,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "d21f5a6373f872a4e58efe1606ab21444e1e83b8fc8905fdc872622c796b47e5",
+   "usedIn": [
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk4",
+   "rect": [
+    166,
+    412,
+    31,
+    71
+   ],
+   "parts": [
+    [
+     166,
+     412
+    ]
+   ],
+   "anchor": [
+    16,
+    71
+   ],
+   "opaquePixels": 1072,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7dba2fbb5fdc8e855e528850249420881cf98716be07d8dc93dca9827f565a57",
+   "usedIn": [
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "walk5",
+   "rect": [
+    203,
+    412,
+    29,
+    72
+   ],
+   "parts": [
+    [
+     203,
+     412
+    ]
+   ],
+   "anchor": [
+    8,
+    72
+   ],
+   "opaquePixels": 1136,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "45652750532e5a37c5ce14ea5c2007035ed84e0d75919ba9dd54aa89a6138813",
+   "usedIn": [
+    "walk",
+    "walk_back"
+   ]
+  },
+  {
+   "name": "run0",
+   "rect": [
+    2,
+    490,
+    49,
+    67
+   ],
+   "parts": [
+    [
+     2,
+     490
+    ]
+   ],
+   "anchor": [
+    10,
+    67
+   ],
+   "opaquePixels": 1370,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7cc3b4e10136dce7159dcf3fad66e163847c9d01479f0c24da08a46e8b122d90",
+   "usedIn": [
+    "run"
+   ]
+  },
+  {
+   "name": "run1",
+   "rect": [
+    46,
+    488,
+    49,
+    68
+   ],
+   "parts": [
+    [
+     46,
+     488
+    ]
+   ],
+   "anchor": [
+    35,
+    68
+   ],
+   "opaquePixels": 1240,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "b12d7c528ad0bfbee1f4b0116b8358e96c79694558e0e0272ac72c4d9e4f8b18",
+   "usedIn": [
+    "run"
+   ]
+  },
+  {
+   "name": "run2",
+   "rect": [
+    102,
+    491,
+    34,
+    64
+   ],
+   "parts": [
+    [
+     102,
+     491
+    ]
+   ],
+   "anchor": [
+    8,
+    64
+   ],
+   "opaquePixels": 995,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "0f7ff0277d86968a21277ad1b6b6443b91b1fa3f790d8f7ce03e00a599d6b504",
+   "usedIn": [
+    "run"
+   ]
+  },
+  {
+   "name": "run3",
+   "rect": [
+    138,
+    490,
+    52,
+    67
+   ],
+   "parts": [
+    [
+     138,
+     490
+    ]
+   ],
+   "anchor": [
+    12,
+    67
+   ],
+   "opaquePixels": 1450,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7d62323ac79eafa1ac836182e71690a07568ab3d24784708e72b028a77626508",
+   "usedIn": [
+    "run"
+   ]
+  },
+  {
+   "name": "run4",
+   "rect": [
+    189,
+    489,
+    56,
+    68
+   ],
+   "parts": [
+    [
+     189,
+     489
+    ]
+   ],
+   "anchor": [
+    39,
+    68
+   ],
+   "opaquePixels": 1248,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "ee62986475442d222e36c3365f909f074150ad0be08b2266a044539fed2dc37c",
+   "usedIn": [
+    "dash",
+    "run"
+   ]
+  },
+  {
+   "name": "run5",
+   "rect": [
+    251,
+    492,
+    32,
+    64
+   ],
+   "parts": [
+    [
+     251,
+     492
+    ]
+   ],
+   "anchor": [
+    6,
+    64
+   ],
+   "opaquePixels": 1000,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "8aa5091d7046c0b10e9880017629d259cefb0edfbb3cf7d1111faceeea1ee7f4",
+   "usedIn": [
+    "run"
+   ]
+  },
+  {
+   "name": "crouch0",
+   "rect": [
+    4,
+    573,
+    36,
+    59
+   ],
+   "parts": [
+    [
+     4,
+     573
+    ]
+   ],
+   "anchor": [
+    18,
+    59
+   ],
+   "opaquePixels": 1212,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "9f2ef898d61fe3eb5b9ee7ad79850ac1bf5864ad301aeb472cd229cdf15fc9fd",
+   "usedIn": [
+    "crouch"
+   ]
+  },
+  {
+   "name": "rise0",
+   "rect": [
+    48,
+    563,
+    41,
+    83
+   ],
+   "parts": [
+    [
+     48,
+     563
+    ]
+   ],
+   "anchor": [
+    20,
+    83
+   ],
+   "opaquePixels": 1243,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "82b99fad38dd24a501a9eb089e2076003f36b30dc8b65d8bdc3ef9efe7eec491",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "rise1",
+   "rect": [
+    92,
+    568,
+    49,
+    65
+   ],
+   "parts": [
+    [
+     92,
+     568
+    ]
+   ],
+   "anchor": [
+    24,
+    65
+   ],
+   "opaquePixels": 1221,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "8e5658d66cf12def3248907f3447a52e1ba6390ddd2146feb2210f384428d1bf",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "air0",
+   "rect": [
+    149,
+    570,
+    47,
+    68
+   ],
+   "parts": [
+    [
+     149,
+     570
+    ]
+   ],
+   "anchor": [
+    23,
+    68
+   ],
+   "opaquePixels": 1304,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7083d1511d7dc4bf213623cfcde5466fdc1c8111e25237a296a0582f0b32137e",
+   "usedIn": [
+    "air"
+   ]
+  },
+  {
+   "name": "air1",
+   "rect": [
+    198,
+    568,
+    38,
+    80
+   ],
+   "parts": [
+    [
+     198,
+     568
+    ]
+   ],
+   "anchor": [
+    18,
+    80
+   ],
+   "opaquePixels": 1234,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "3058d8ca65241b8dc4c9cb916ea5e505bc28682cd4bd3717fb5e05646d9fe510",
+   "usedIn": [
+    "fall"
+   ]
+  },
+  {
+   "name": "diveLean",
+   "rect": [
+    245,
+    574,
+    48,
+    56
+   ],
+   "parts": [
+    [
+     245,
+     574
+    ]
+   ],
+   "anchor": [
+    5,
+    56
+   ],
+   "opaquePixels": 1064,
+   "kind": "body",
+   "status": "unused \u2014 forward lean from the jump band",
+   "facing": "right",
+   "sha256": "f3d747323c2713533a142111e6a99b4a712afee6a79ff36780182cdf39b76fbb",
+   "usedIn": []
+  },
+  {
+   "name": "ball0",
+   "rect": [
+    298,
+    577,
+    35,
+    36
+   ],
+   "parts": [
+    [
+     298,
+     577
+    ]
+   ],
+   "anchor": [
+    17,
+    36
+   ],
+   "opaquePixels": 797,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "75e18be6d60593fd788c86afc74ae5ae7f043ff46fd556d7b39cc42033bce911",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "ball1",
+   "rect": [
+    335,
+    575,
+    38,
+    34
+   ],
+   "parts": [
+    [
+     335,
+     575
+    ]
+   ],
+   "anchor": [
+    18,
+    34
+   ],
+   "opaquePixels": 732,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "07e35837ee18205bb3278f8ac71018989e638423e926e8740d53147e27d503fc",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "ball2",
+   "rect": [
+    382,
+    572,
+    41,
+    34
+   ],
+   "parts": [
+    [
+     382,
+     572
+    ]
+   ],
+   "anchor": [
+    20,
+    34
+   ],
+   "opaquePixels": 776,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "314a7bac3639be39fde24880e603205f883bc416691a2f66cb63cae35e684e54",
+   "usedIn": [
+    "jump"
+   ]
+  },
+  {
+   "name": "set0",
+   "rect": [
+    11,
+    686,
+    44,
+    50
+   ],
+   "parts": [
+    [
+     11,
+     686
+    ]
+   ],
+   "anchor": [
+    13,
+    50
+   ],
+   "opaquePixels": 1137,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "71572c1135b3b9c92ac3e93a73f8eddd6a0a44f02fab4faaa0fa42559ecb1e0e",
+   "usedIn": [
+    "gTalon",
+    "getup",
+    "up"
+   ]
+  },
+  {
+   "name": "riseKnee",
+   "rect": [
+    62,
+    654,
+    44,
+    80
+   ],
+   "parts": [
+    [
+     62,
+     654
+    ],
+    [
+     98,
+     708
+    ]
+   ],
+   "anchor": [
+    22,
+    80
+   ],
+   "opaquePixels": 1193,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "393360a8399ee5535ed12effde54649724f55b6c2ec277337f26adb9f05c5b41",
+   "usedIn": [
+    "gTalon"
+   ]
+  },
+  {
+   "name": "kickArc",
+   "rect": [
+    115,
+    658,
+    53,
+    72
+   ],
+   "parts": [
+    [
+     115,
+     658
+    ]
+   ],
+   "anchor": [
+    25,
+    72
+   ],
+   "opaquePixels": 1272,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "39adf459a6e7e024e21eb7e91e38755d80bbacdf23edcfc98569ca2ec1b04694",
+   "usedIn": [
+    "gTalon"
+   ]
+  },
+  {
+   "name": "flyKick",
+   "rect": [
+    182,
+    662,
+    61,
+    64
+   ],
+   "parts": [
+    [
+     182,
+     662
+    ]
+   ],
+   "anchor": [
+    30,
+    63
+   ],
+   "opaquePixels": 1536,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "51b39024613ca385f2e6ca762dbbbf5a963147806d21df2130269a36cda72ef3",
+   "usedIn": [
+    "air"
+   ]
+  },
+  {
+   "name": "crescentHeel",
+   "rect": [
+    262,
+    650,
+    55,
+    80
+   ],
+   "parts": [
+    [
+     262,
+     650
+    ]
+   ],
+   "anchor": [
+    32,
+    76
+   ],
+   "opaquePixels": 1525,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "404e87ebb9e556a15bbab818164c500410ed46d02453d9cdac9d2c1e5cecce86",
+   "usedIn": [
+    "up"
+   ]
+  },
+  {
+   "name": "roundhouse",
+   "rect": [
+    329,
+    661,
+    55,
+    65
+   ],
+   "parts": [
+    [
+     329,
+     661
+    ]
+   ],
+   "anchor": [
+    36,
+    65
+   ],
+   "opaquePixels": 1511,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7abc75d3fb09bc23f72f9eeea88d65fa68f8533b6c49636ce070cfaa9c3a374c",
+   "usedIn": [
+    "gJ3"
+   ]
+  },
+  {
+   "name": "punchChamber",
+   "rect": [
+    5,
+    746,
+    47,
+    71
+   ],
+   "parts": [
+    [
+     5,
+     746
+    ]
+   ],
+   "anchor": [
+    18,
+    71
+   ],
+   "opaquePixels": 1421,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "236dac787092892d8976b568dbb2243f0de1245005db02d7626609411c528b24",
+   "usedIn": [
+    "light"
+   ]
+  },
+  {
+   "name": "punchStraight",
+   "rect": [
+    58,
+    746,
+    62,
+    70
+   ],
+   "parts": [
+    [
+     58,
+     746
+    ]
+   ],
+   "anchor": [
+    18,
+    70
+   ],
+   "opaquePixels": 1490,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "dcbfe84193ce1a79153bcff11db8e7055e9b6ba8e9819ec2f7c65f6b9c769746",
+   "usedIn": [
+    "light"
+   ]
+  },
+  {
+   "name": "punchWind",
+   "rect": [
+    126,
+    743,
+    51,
+    70
+   ],
+   "parts": [
+    [
+     126,
+     743
+    ]
+   ],
+   "anchor": [
+    27,
+    70
+   ],
+   "opaquePixels": 1497,
+   "kind": "body",
+   "status": "unused \u2014 punch wind-up (J1 starts from the chamber pose)",
+   "facing": "right",
+   "sha256": "8210b43a95834b899e7de663eebafe0660fa0fe1ce990f077abcfa817d37c3c9",
+   "usedIn": []
+  },
+  {
+   "name": "punchGuard",
+   "rect": [
+    183,
+    742,
+    50,
+    69
+   ],
+   "parts": [
+    [
+     183,
+     742
+    ]
+   ],
+   "anchor": [
+    27,
+    69
+   ],
+   "opaquePixels": 1200,
+   "kind": "body",
+   "status": "unused \u2014 guard between punches",
+   "facing": "right",
+   "sha256": "21f3968baf46f73a03ae1da9cdb80c472f5c1c0b21ce283ace603f11eb00bb94",
+   "usedIn": []
+  },
+  {
+   "name": "punchLunge",
+   "rect": [
+    239,
+    748,
+    68,
+    62
+   ],
+   "parts": [
+    [
+     239,
+     748
+    ]
+   ],
+   "anchor": [
+    26,
+    62
+   ],
+   "opaquePixels": 1336,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "343a39268457cd22e0f51bef17c397c378cb9c2f02c0880f7afe06e9442deae4",
+   "usedIn": [
+    "gAdv"
+   ]
+  },
+  {
+   "name": "kickStance0",
+   "rect": [
+    6,
+    831,
+    52,
+    65
+   ],
+   "parts": [
+    [
+     6,
+     831
+    ]
+   ],
+   "anchor": [
+    27,
+    65
+   ],
+   "opaquePixels": 1405,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "a2f43084af584ac07cc621f0c9b35312bba872bde6bc32bcf44efe33db307ddf",
+   "usedIn": [
+    "gLow"
+   ]
+  },
+  {
+   "name": "kickTurn",
+   "rect": [
+    63,
+    831,
+    45,
+    66
+   ],
+   "parts": [
+    [
+     63,
+     831
+    ]
+   ],
+   "anchor": [
+    21,
+    66
+   ],
+   "opaquePixels": 1150,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "2f8b2891fea11dd9b36a901941affe67bae1a82a4f7b4193095ecad2ca34e484",
+   "usedIn": [
+    "heavy"
+   ]
+  },
+  {
+   "name": "kickSpin",
+   "rect": [
+    111,
+    825,
+    53,
+    70
+   ],
+   "parts": [
+    [
+     111,
+     825
+    ]
+   ],
+   "anchor": [
+    33,
+    70
+   ],
+   "opaquePixels": 1279,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "38f6d05de09871aecc253da7a1abd86c1ae31ae9ad91874e6a02fb2833453baf",
+   "usedIn": [
+    "gJ3"
+   ]
+  },
+  {
+   "name": "kickHigh",
+   "rect": [
+    175,
+    828,
+    56,
+    69
+   ],
+   "parts": [
+    [
+     175,
+     828
+    ],
+    [
+     204,
+     846
+    ]
+   ],
+   "anchor": [
+    10,
+    69
+   ],
+   "opaquePixels": 1192,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "b08af251d35bc722275431f41d1fcb35919cea7d4d5c59f9556b79b3d32602c8",
+   "usedIn": [
+    "heavy"
+   ]
+  },
+  {
+   "name": "kickLow",
+   "rect": [
+    240,
+    827,
+    54,
+    69
+   ],
+   "parts": [
+    [
+     240,
+     827
+    ]
+   ],
+   "anchor": [
+    13,
+    69
+   ],
+   "opaquePixels": 1239,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "9f51b77d15315334095d79d2956b5effd5f0e144ad4720ec649814f6fc872959",
+   "usedIn": [
+    "gLow"
+   ]
+  },
+  {
+   "name": "kickStance1",
+   "rect": [
+    299,
+    829,
+    52,
+    65
+   ],
+   "parts": [
+    [
+     299,
+     829
+    ]
+   ],
+   "anchor": [
+    24,
+    65
+   ],
+   "opaquePixels": 1405,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "5bba7207d0887e35719dae5b12d515fadae2ecbba8a8251eb9192f5889e46337",
+   "usedIn": [
+    "heavy"
+   ]
+  },
+  {
+   "name": "bladeLow",
+   "rect": [
+    7,
+    919,
+    55,
+    63
+   ],
+   "parts": [
+    [
+     7,
+     919
+    ]
+   ],
+   "anchor": [
+    30,
+    63
+   ],
+   "opaquePixels": 1313,
+   "kind": "body",
+   "status": "unused \u2014 low blade slash; the kit's Low is the kick sweep (no low blade normal in the brief)",
+   "facing": "right",
+   "sha256": "b393302a145300a49b55878d2ec410d7b9ddd2d8402423ef2f932e0c6b818982",
+   "usedIn": []
+  },
+  {
+   "name": "bladeThrust",
+   "rect": [
+    69,
+    911,
+    85,
+    74
+   ],
+   "parts": [
+    [
+     69,
+     911
+    ],
+    [
+     116,
+     913
+    ]
+   ],
+   "anchor": [
+    15,
+    74
+   ],
+   "opaquePixels": 1716,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "cfeff7a16d7cae5d266f6c2ddd604ce5a3642fe60e26cf063bc5257dcdae9017",
+   "usedIn": [
+    "gBlade"
+   ]
+  },
+  {
+   "name": "bladeAirTrail",
+   "rect": [
+    165,
+    903,
+    79,
+    113
+   ],
+   "parts": [
+    [
+     165,
+     903
+    ]
+   ],
+   "anchor": [
+    15,
+    113
+   ],
+   "opaquePixels": 1830,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "3ce034c5565b2d7cdd8deb2b957675554ddc5f021bd4a225311b8fbe663b5dab",
+   "usedIn": [
+    "gFang"
+   ]
+  },
+  {
+   "name": "bladeAir",
+   "rect": [
+    255,
+    903,
+    54,
+    111
+   ],
+   "parts": [
+    [
+     255,
+     903
+    ]
+   ],
+   "anchor": [
+    15,
+    111
+   ],
+   "opaquePixels": 1593,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "ecff28048b50f0a3c8ccd5cada5a8e69f641a7b86a2a2fc63bb89d269a6d5d05",
+   "usedIn": [
+    "gFang"
+   ]
+  },
+  {
+   "name": "bladeRise",
+   "rect": [
+    2,
+    1022,
+    49,
+    79
+   ],
+   "parts": [
+    [
+     2,
+     1022
+    ]
+   ],
+   "anchor": [
+    33,
+    79
+   ],
+   "opaquePixels": 1236,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "8aa281a1aabb2081e03fe5ba4d6127dea68f735c90f6bc0c34f415f19133efd7",
+   "usedIn": [
+    "gAdvanceN"
+   ]
+  },
+  {
+   "name": "bladeRaise",
+   "rect": [
+    89,
+    1007,
+    52,
+    97
+   ],
+   "parts": [
+    [
+     89,
+     1007
+    ]
+   ],
+   "anchor": [
+    12,
+    97
+   ],
+   "opaquePixels": 1545,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "767d5269f0b43f38dc49da055e1bdf7204674e46ae5e3f31b7a5ad8c61afc599",
+   "usedIn": [
+    "gEdge"
+   ]
+  },
+  {
+   "name": "bladeCut",
+   "rect": [
+    172,
+    1039,
+    111,
+    64
+   ],
+   "parts": [
+    [
+     172,
+     1039
+    ]
+   ],
+   "anchor": [
+    28,
+    64
+   ],
+   "opaquePixels": 1780,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "f6f54cb9e1c62932e2a9d764f07e93003d0b2af8755d72bcf3b599a3cf333f56",
+   "usedIn": [
+    "gEdge"
+   ]
+  },
+  {
+   "name": "bladeHold",
+   "rect": [
+    303,
+    1040,
+    97,
+    64
+   ],
+   "parts": [
+    [
+     303,
+     1040
+    ]
+   ],
+   "anchor": [
+    28,
+    64
+   ],
+   "opaquePixels": 1539,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "1def618bef3ed64aeb2bff100f7b5687ab43f96ea132ea8eceaac4de526d2fed",
+   "usedIn": [
+    "gAway",
+    "gEdge"
+   ]
+  },
+  {
+   "name": "bladeOver",
+   "rect": [
+    12,
+    1114,
+    40,
+    75
+   ],
+   "parts": [
+    [
+     12,
+     1114
+    ]
+   ],
+   "anchor": [
+    21,
+    65
+   ],
+   "opaquePixels": 1130,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "ad9191ec4d6d5794e61075c22dda70b6bc937a629d637beaeb225cd8af8e522a",
+   "usedIn": [
+    "gAdvance",
+    "gAdvanceN",
+    "gBlade"
+   ]
+  },
+  {
+   "name": "bladeSwing",
+   "rect": [
+    57,
+    1124,
+    70,
+    64
+   ],
+   "parts": [
+    [
+     57,
+     1124
+    ]
+   ],
+   "anchor": [
+    26,
+    56
+   ],
+   "opaquePixels": 1526,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "13843361eaaf5a5e20c21745e970e17400486496f939677cece80ab8531d85fe",
+   "usedIn": [
+    "gAdvance",
+    "gAdvanceN"
+   ]
+  },
+  {
+   "name": "bladeFollow",
+   "rect": [
+    130,
+    1120,
+    54,
+    66
+   ],
+   "parts": [
+    [
+     130,
+     1120
+    ]
+   ],
+   "anchor": [
+    27,
+    58
+   ],
+   "opaquePixels": 1267,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "9fd02da3c70a183c99740376f4892de74ff1a7a066b4683fa624d60d613fdfa1",
+   "usedIn": [
+    "gAdvance"
+   ]
+  },
+  {
+   "name": "bladeBack",
+   "rect": [
+    179,
+    1121,
+    100,
+    64
+   ],
+   "parts": [
+    [
+     179,
+     1121
+    ],
+    [
+     239,
+     1129
+    ]
+   ],
+   "anchor": [
+    46,
+    57
+   ],
+   "opaquePixels": 1781,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "4cfab113a6a4adecdd6a9f0fe54557293e60130265bf0897098d42e311248317",
+   "usedIn": [
+    "gAway"
+   ]
+  },
+  {
+   "name": "daggerThrust",
+   "rect": [
+    280,
+    1124,
+    79,
+    64
+   ],
+   "parts": [
+    [
+     280,
+     1124
+    ]
+   ],
+   "anchor": [
+    47,
+    57
+   ],
+   "opaquePixels": 1575,
+   "kind": "body",
+   "status": "unused \u2014 backhand dagger thrust; Emerald Advance uses the authored swing sequence",
+   "facing": "right",
+   "sha256": "e083c3024111381f3ebc8c85949a5517a5b1fa390438a32c47e93b8eb6bfee64",
+   "usedIn": []
+  },
+  {
+   "name": "armsRaised",
+   "rect": [
+    9,
+    1208,
+    40,
+    71
+   ],
+   "parts": [
+    [
+     9,
+     1208
+    ]
+   ],
+   "anchor": [
+    27,
+    71
+   ],
+   "opaquePixels": 1185,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "572e271a72d703337f929a846a561552319ac17aadf00450a3ca7b51bed3fa6e",
+   "usedIn": [
+    "gPulse",
+    "gUlt"
+   ]
+  },
+  {
+   "name": "pulseDisc",
+   "rect": [
+    116,
+    1211,
+    20,
+    45
+   ],
+   "parts": [
+    [
+     68,
+     1211
+    ]
+   ],
+   "anchor": [
+    10,
+    22
+   ],
+   "kind": "fx",
+   "split": "energy-palette pixels of castDisc",
+   "opaquePixels": 619,
+   "status": "independent FX \u2014 note-empowered second Pulse shot",
+   "sha256": "291b52b0b736db8f94192e0d6bfff2fa73ee753a5b5987b7d4f056d530be33f2",
+   "usedIn": []
+  },
+  {
+   "name": "castDisc",
+   "rect": [
+    68,
+    1211,
+    68,
+    69
+   ],
+   "parts": [
+    [
+     68,
+     1211
+    ]
+   ],
+   "anchor": [
+    22,
+    69
+   ],
+   "opaquePixels": 1145,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "85c20a37847c7275a76dae939623bddca80e26c8f4fc8cfd05b7bd9e0eeac2d3",
+   "usedIn": [
+    "gPulse"
+   ]
+  },
+  {
+   "name": "pulseShot",
+   "rect": [
+    188,
+    1224,
+    54,
+    19
+   ],
+   "parts": [
+    [
+     148,
+     1219
+    ]
+   ],
+   "anchor": [
+    27,
+    9
+   ],
+   "kind": "fx",
+   "split": "energy-palette pixels of cast1",
+   "opaquePixels": 676,
+   "status": "independent FX \u2014 Emerald Pulse projectile",
+   "sha256": "bf6303d59d6a0192e2dad56651d97dab848ced3278c0f79f9a6d0171d1151abd",
+   "usedIn": []
+  },
+  {
+   "name": "cast1",
+   "rect": [
+    148,
+    1219,
+    94,
+    62
+   ],
+   "parts": [
+    [
+     148,
+     1219
+    ]
+   ],
+   "anchor": [
+    22,
+    62
+   ],
+   "opaquePixels": 1109,
+   "kind": "body",
+   "status": "used \u2014 flame shot split off as pulseShot; its body is a duplicate of cast0",
+   "facing": "right",
+   "sha256": "f3b43f9ba474321bbc8647f10c8019480b06f5b0bd5d1c79f1c543fb27e0514a",
+   "usedIn": []
+  },
+  {
+   "name": "cast0",
+   "rect": [
+    251,
+    1218,
+    60,
+    62
+   ],
+   "parts": [
+    [
+     251,
+     1218
+    ]
+   ],
+   "anchor": [
+    22,
+    62
+   ],
+   "opaquePixels": 1239,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "0f821cc74060968cc7c938d3bc969597abba558733c981eb424543831fa1ef69",
+   "usedIn": [
+    "gPulse"
+   ]
+  },
+  {
+   "name": "ringDark",
+   "rect": [
+    319,
+    1214,
+    39,
+    40
+   ],
+   "parts": [
+    [
+     319,
+     1214
+    ]
+   ],
+   "anchor": [
+    19,
+    20
+   ],
+   "opaquePixels": 1011,
+   "kind": "fx",
+   "status": "reserved \u2014 black-cored ring with orange sparks; ambiguous (not treated as a portal), no kit use",
+   "facing": "n/a",
+   "sha256": "3e2c4c288e2f60c3bec0b6ece443fc90a6302cab19453ff71ae8f55a856ee43b",
+   "usedIn": []
+  },
+  {
+   "name": "ringBurst",
+   "rect": [
+    371,
+    1215,
+    35,
+    38
+   ],
+   "parts": [
+    [
+     371,
+     1215
+    ]
+   ],
+   "anchor": [
+    17,
+    19
+   ],
+   "opaquePixels": 776,
+   "kind": "fx",
+   "status": "independent FX \u2014 Dragon Edge note follow-up burst",
+   "facing": "n/a",
+   "sha256": "e492b3b3af35f2f7274380337762f2975001cf6c75bc4d900c12f386057652fb",
+   "usedIn": []
+  },
+  {
+   "name": "ringDarkGreen",
+   "rect": [
+    421,
+    1216,
+    35,
+    36
+   ],
+   "parts": [
+    [
+     421,
+     1216
+    ]
+   ],
+   "anchor": [
+    17,
+    18
+   ],
+   "opaquePixels": 732,
+   "kind": "fx",
+   "status": "reserved \u2014 black-cored ring with green sparks; ambiguous (not treated as a portal), no kit use",
+   "facing": "n/a",
+   "sha256": "8b2cde0439e5542b5040b62cbe7144fb2baca9d9723a5289c83d4948fa55a889",
+   "usedIn": []
+  },
+  {
+   "name": "tumbleDive",
+   "rect": [
+    14,
+    1299,
+    44,
+    63
+   ],
+   "parts": [
+    [
+     14,
+     1299
+    ]
+   ],
+   "anchor": [
+    22,
+    63
+   ],
+   "opaquePixels": 963,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7e19894a2e8b94d14cae778e75f48b91ea7bb3af67faf79f6085155de4564467",
+   "usedIn": [
+    "gTalon"
+   ]
+  },
+  {
+   "name": "cartwheelKick",
+   "rect": [
+    68,
+    1292,
+    83,
+    60
+   ],
+   "parts": [
+    [
+     68,
+     1292
+    ],
+    [
+     117,
+     1302
+    ]
+   ],
+   "anchor": [
+    36,
+    60
+   ],
+   "opaquePixels": 1613,
+   "kind": "body",
+   "status": "unused \u2014 cartwheel kick; no move in the brief fits a cartwheel (air normal = flying kick)",
+   "facing": "right",
+   "sha256": "7f42612185be2a07c145b05894dc4809da906870a6d55e53db6b30994de7847a",
+   "usedIn": []
+  },
+  {
+   "name": "handstandKick",
+   "rect": [
+    157,
+    1287,
+    63,
+    68
+   ],
+   "parts": [
+    [
+     157,
+     1287
+    ]
+   ],
+   "anchor": [
+    36,
+    68
+   ],
+   "opaquePixels": 1282,
+   "kind": "body",
+   "status": "unused \u2014 handstand kick; no move in the brief fits",
+   "facing": "right",
+   "sha256": "023ac1afb8b0709713ff73d2db445b50323b49a1a16458a60a044aedb91c33ec",
+   "usedIn": []
+  },
+  {
+   "name": "horizDive",
+   "rect": [
+    227,
+    1299,
+    72,
+    37
+   ],
+   "parts": [
+    [
+     227,
+     1299
+    ]
+   ],
+   "anchor": [
+    36,
+    37
+   ],
+   "opaquePixels": 1246,
+   "kind": "body",
+   "status": "unused \u2014 horizontal dive; dash uses a run frame (no dodge move in the kit)",
+   "facing": "right",
+   "sha256": "0e59c16fed6eeef4ac747e495e85f80d5bff302c3ae12378f3a1f90f11230329",
+   "usedIn": []
+  },
+  {
+   "name": "sideKick",
+   "rect": [
+    321,
+    1293,
+    70,
+    48
+   ],
+   "parts": [
+    [
+     321,
+     1293
+    ]
+   ],
+   "anchor": [
+    34,
+    48
+   ],
+   "opaquePixels": 1302,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "d7a0751b31643298fd0434722404612a359da66b32b01c5c8ac288811204fc64",
+   "usedIn": [
+    "down_air"
+   ]
+  },
+  {
+   "name": "leapOpen",
+   "rect": [
+    13,
+    1381,
+    55,
+    67
+   ],
+   "parts": [
+    [
+     13,
+     1381
+    ]
+   ],
+   "anchor": [
+    27,
+    67
+   ],
+   "opaquePixels": 1178,
+   "kind": "body",
+   "status": "unused \u2014 forward leap; one jump, jump strip uses the rise + tumble poses",
+   "facing": "right",
+   "sha256": "c16e23558ff198c199daf6e186a05932c40702a74f012e1cb04d779eb13250ed",
+   "usedIn": []
+  },
+  {
+   "name": "leapFwd",
+   "rect": [
+    72,
+    1387,
+    54,
+    56
+   ],
+   "parts": [
+    [
+     72,
+     1387
+    ]
+   ],
+   "anchor": [
+    26,
+    56
+   ],
+   "opaquePixels": 992,
+   "kind": "body",
+   "status": "unused \u2014 forward leap variant",
+   "facing": "right",
+   "sha256": "2b7a072798c4da94b3f90ee931e8d6308e2d08f07a3b0ccf2f260888ba862443",
+   "usedIn": []
+  },
+  {
+   "name": "leapDive",
+   "rect": [
+    133,
+    1383,
+    71,
+    56
+   ],
+   "parts": [
+    [
+     133,
+     1383
+    ]
+   ],
+   "anchor": [
+    35,
+    56
+   ],
+   "opaquePixels": 1327,
+   "kind": "body",
+   "status": "unused \u2014 diving leap",
+   "facing": "right",
+   "sha256": "8c74ce15e8b5a10d7005261d2568a0c3aa748e5924c6fd9af79290c18e48f6af",
+   "usedIn": []
+  },
+  {
+   "name": "leapUp",
+   "rect": [
+    211,
+    1367,
+    45,
+    76
+   ],
+   "parts": [
+    [
+     211,
+     1367
+    ]
+   ],
+   "anchor": [
+    22,
+    76
+   ],
+   "opaquePixels": 1166,
+   "kind": "body",
+   "status": "unused \u2014 arms-up leap",
+   "facing": "right",
+   "sha256": "be1bb2bd04216a4e433bd6ffed851b2f90f8d246b6f202eb16db93849ee9f365",
+   "usedIn": []
+  },
+  {
+   "name": "flip0",
+   "rect": [
+    263,
+    1369,
+    55,
+    47
+   ],
+   "parts": [
+    [
+     263,
+     1369
+    ]
+   ],
+   "anchor": [
+    27,
+    47
+   ],
+   "opaquePixels": 958,
+   "kind": "body",
+   "status": "unused \u2014 flip (Green has one jump; no doubleJump strip)",
+   "facing": "right",
+   "sha256": "7b004e8df04ead9edca6eed076a34329c32b876f110d6936295ec769be2e9c98",
+   "usedIn": []
+  },
+  {
+   "name": "flip1",
+   "rect": [
+    328,
+    1368,
+    48,
+    54
+   ],
+   "parts": [
+    [
+     328,
+     1368
+    ]
+   ],
+   "anchor": [
+    24,
+    54
+   ],
+   "opaquePixels": 939,
+   "kind": "body",
+   "status": "unused \u2014 flip",
+   "facing": "right",
+   "sha256": "5ff3a6a571f0e95bc567c7eaab5096023b30cc7180c0a3fd0d3fd526ace9b858",
+   "usedIn": []
+  },
+  {
+   "name": "flipTuck",
+   "rect": [
+    387,
+    1382,
+    45,
+    46
+   ],
+   "parts": [
+    [
+     387,
+     1382
+    ]
+   ],
+   "anchor": [
+    22,
+    46
+   ],
+   "opaquePixels": 1045,
+   "kind": "body",
+   "status": "unused \u2014 tuck",
+   "facing": "right",
+   "sha256": "841fd57612beda7f4c4fe63dade5423860fe4779c79e413397a079d9afea1f3b",
+   "usedIn": []
+  },
+  {
+   "name": "grabReach",
+   "rect": [
+    6,
+    1463,
+    54,
+    67
+   ],
+   "parts": [
+    [
+     6,
+     1463
+    ]
+   ],
+   "anchor": [
+    19,
+    67
+   ],
+   "opaquePixels": 1268,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "986806e6516477eb5933f45aa17b7d70222336538fb69811898f6012fbea835c",
+   "usedIn": [
+    "grab"
+   ]
+  },
+  {
+   "name": "guardArms",
+   "rect": [
+    125,
+    1463,
+    45,
+    66
+   ],
+   "parts": [
+    [
+     125,
+     1463
+    ]
+   ],
+   "anchor": [
+    16,
+    66
+   ],
+   "opaquePixels": 1267,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "60a4bba21058edd70ca60dd56f3e274ceff01fbfb7f7ebf895aad4de054e7b91",
+   "usedIn": [
+    "guard"
+   ]
+  },
+  {
+   "name": "pushBoth",
+   "rect": [
+    64,
+    1464,
+    54,
+    65
+   ],
+   "parts": [
+    [
+     64,
+     1464
+    ]
+   ],
+   "anchor": [
+    36,
+    65
+   ],
+   "opaquePixels": 1289,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "f7b59151a170e5df33afe4870a57d75d6dc50986d04f8c82d9d1679801cb0152",
+   "usedIn": [
+    "grab"
+   ]
+  },
+  {
+   "name": "fallForward",
+   "rect": [
+    175,
+    1479,
+    59,
+    48
+   ],
+   "parts": [
+    [
+     175,
+     1479
+    ]
+   ],
+   "anchor": [
+    24,
+    48
+   ],
+   "opaquePixels": 1278,
+   "kind": "body",
+   "status": "unused \u2014 forward fall; ambiguous between a lunge and a pushed fall",
+   "facing": "right",
+   "sha256": "689f8324ccb073283bdd7ef506027bb24cf6cb199e1c107af196b02a69e91bdf",
+   "usedIn": []
+  },
+  {
+   "name": "tumbleHit",
+   "rect": [
+    234,
+    1519,
+    64,
+    48
+   ],
+   "parts": [
+    [
+     234,
+     1519
+    ]
+   ],
+   "anchor": [
+    32,
+    48
+   ],
+   "opaquePixels": 1015,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "04cb595e25440ea42fab72746a435d14bf3fb34b65d0d69d4294193da35d9616",
+   "usedIn": [
+    "hurt_air"
+   ]
+  },
+  {
+   "name": "hitHigh",
+   "rect": [
+    63,
+    1542,
+    37,
+    71
+   ],
+   "parts": [
+    [
+     63,
+     1542
+    ]
+   ],
+   "anchor": [
+    18,
+    71
+   ],
+   "opaquePixels": 1296,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "ce238d73bc1b3fcbeaf7b117c85217bb5f1e5c364f0980d7f56d880adad772f6",
+   "usedIn": [
+    "hurt"
+   ]
+  },
+  {
+   "name": "hitLow",
+   "rect": [
+    13,
+    1547,
+    36,
+    58
+   ],
+   "parts": [
+    [
+     13,
+     1547
+    ]
+   ],
+   "anchor": [
+    18,
+    58
+   ],
+   "opaquePixels": 1195,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "36b8b14ec434e9e464fbc63ea0268f7653d4cd084d9c6ae92297114acd92761f",
+   "usedIn": [
+    "hurt2",
+    "stagger"
+   ]
+  },
+  {
+   "name": "fallBack",
+   "rect": [
+    107,
+    1547,
+    49,
+    59
+   ],
+   "parts": [
+    [
+     107,
+     1547
+    ]
+   ],
+   "anchor": [
+    19,
+    59
+   ],
+   "opaquePixels": 1113,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "bcebe16c81a85b1673c1460dbb937e435a8c7877018bf9104b15c883ffb97e0a",
+   "usedIn": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  {
+   "name": "fallAir",
+   "rect": [
+    162,
+    1549,
+    61,
+    45
+   ],
+   "parts": [
+    [
+     162,
+     1549
+    ]
+   ],
+   "anchor": [
+    30,
+    45
+   ],
+   "opaquePixels": 1044,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "7b1c1c25875a9f533b5f110d8e62d970ea14125639485edef8f6bc169e6190fb",
+   "usedIn": [
+    "knockdown",
+    "launched",
+    "lose"
+   ]
+  },
+  {
+   "name": "prone",
+   "rect": [
+    228,
+    1574,
+    73,
+    22
+   ],
+   "parts": [
+    [
+     228,
+     1574
+    ]
+   ],
+   "anchor": [
+    42,
+    22
+   ],
+   "opaquePixels": 928,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "75cada774a2c8f1f9e2991a8801138a1555e052c901a16597c7d226a74d639c6",
+   "usedIn": [
+    "knockdown",
+    "lose"
+   ]
+  },
+  {
+   "name": "seated",
+   "rect": [
+    306,
+    1551,
+    44,
+    44
+   ],
+   "parts": [
+    [
+     306,
+     1551
+    ]
+   ],
+   "anchor": [
+    21,
+    44
+   ],
+   "opaquePixels": 1064,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "b6b07dc380751777f18f780ee3d74345cc88977168c372d09f51b77d442e9e2b",
+   "usedIn": [
+    "getup"
+   ]
+  },
+  {
+   "name": "flute",
+   "rect": [
+    44,
+    1757,
+    40,
+    71
+   ],
+   "parts": [
+    [
+     44,
+     1757
+    ]
+   ],
+   "anchor": [
+    20,
+    71
+   ],
+   "opaquePixels": 1334,
+   "kind": "body",
+   "status": "used",
+   "facing": "right",
+   "sha256": "f6998b21a1e24bf1f965b16d71d6b0e5f18f23170bd1c81e4f56305417d9af98",
+   "usedIn": [
+    "gCall",
+    "gUlt"
+   ]
+  },
+  {
+   "name": "callCircle0",
+   "rect": [
+    105,
+    1771,
+    39,
+    37
+   ],
+   "parts": [
+    [
+     105,
+     1771
+    ],
+    [
+     119,
+     1782
+    ],
+    [
+     122,
+     1785
+    ]
+   ],
+   "anchor": [
+    19,
+    18
+   ],
+   "opaquePixels": 409,
+   "kind": "fx",
+   "status": "independent FX \u2014 Dragon Call circle (3-frame cycle)",
+   "facing": "n/a",
+   "sha256": "3bda76ba62255a3d4eb74dc4ad865c81b2379750c9ebdc49930fd5528001962a",
+   "usedIn": []
+  },
+  {
+   "name": "callCircle1",
+   "rect": [
+    152,
+    1768,
+    39,
+    40
+   ],
+   "parts": [
+    [
+     152,
+     1768
+    ],
+    [
+     163,
+     1783
+    ],
+    [
+     166,
+     1786
+    ]
+   ],
+   "anchor": [
+    19,
+    20
+   ],
+   "opaquePixels": 412,
+   "kind": "fx",
+   "status": "independent FX \u2014 Dragon Call circle (3-frame cycle)",
+   "facing": "n/a",
+   "sha256": "442afc1a65cc205c34c74c5f826c3dbc8228763053df2a492e5d161d3499175c",
+   "usedIn": []
+  },
+  {
+   "name": "callCircle2",
+   "rect": [
+    206,
+    1770,
+    39,
+    40
+   ],
+   "parts": [
+    [
+     206,
+     1770
+    ],
+    [
+     217,
+     1785
+    ],
+    [
+     220,
+     1788
+    ]
+   ],
+   "anchor": [
+    19,
+    20
+   ],
+   "opaquePixels": 412,
+   "kind": "fx",
+   "status": "independent FX \u2014 Dragon Call circle (3-frame cycle)",
+   "facing": "n/a",
+   "sha256": "e9f82d219942da13b42a68aacae267ce558debbe137f35b42e4c37dea57acc6d",
+   "usedIn": []
+  }
+ ],
+ "groups": {
+  "reservedPink": {
+   "rect": [
+    12,
+    1646,
+    322,
+    85
+   ],
+   "parts": [
+    [
+     12,
+     1656
+    ],
+    [
+     71,
+     1651
+    ],
+    [
+     147,
+     1646
+    ],
+    [
+     220,
+     1646
+    ],
+    [
+     289,
+     1664
+    ],
+    [
+     110,
+     1710
+    ]
+   ],
+   "status": "reserved \u2014 Pink Ranger bow/arrow frames for a future Pink fighter; never Green's assist or ultimate",
+   "sha256": "0a8caf75ccbc7f7b294c1ae2feb13657d08b9c9eea473ace525cb8156470f4c7"
+  },
+  "portraitPhoto": {
+   "rect": [
+    151,
+    1870,
+    66,
+    66
+   ],
+   "parts": [
+    [
+     151,
+     1870
+    ]
+   ],
+   "status": "used \u2014 selection portrait (helmet photo)",
+   "sha256": "290a88262c0f389a7b804173e6444bd8f2a5d3efe195aed9fef24b7b1a2d5b86"
+  },
+  "illustration": {
+   "rect": [
+    247,
+    1830,
+    189,
+    81
+   ],
+   "parts": [
+    [
+     247,
+     1830
+    ]
+   ],
+   "status": "used \u2014 ultimate cut-in illustration",
+   "sha256": "1b1a5ab4e3f7085196a1605d1e021da5e58001013b5167306ccc7b5f271788b9"
+  },
+  "tommyPanel": {
+   "rect": [
+    6,
+    1874,
+    110,
+    111
+   ],
+   "parts": [
+    [
+     6,
+     1874
+    ],
+    [
+     37,
+     1882
+    ],
+    [
+     10,
+     1952
+    ],
+    [
+     34,
+     1961
+    ],
+    [
+     48,
+     1961
+    ],
+    [
+     64,
+     1963
+    ],
+    [
+     82,
+     1966
+    ],
+    [
+     75,
+     1967
+    ],
+    [
+     42,
+     1939
+    ]
+   ],
+   "status": "unused \u2014 decorative Tommy status panel (no civilian selectable form)",
+   "sha256": "85a070b62b014661afc8cd468c614110d1cf115b04d54c19f32d03bcfbce7fd6"
+  },
+  "hud": {
+   "rect": [
+    124,
+    1937,
+    171,
+    88
+   ],
+   "parts": [
+    [
+     130,
+     1937
+    ],
+    [
+     187,
+     1937
+    ],
+    [
+     129,
+     1954
+    ],
+    [
+     129,
+     1974
+    ],
+    [
+     124,
+     2003
+    ],
+    [
+     151,
+     2003
+    ],
+    [
+     170,
+     2003
+    ],
+    [
+     181,
+     2003
+    ],
+    [
+     192,
+     2003
+    ],
+    [
+     211,
+     2003
+    ],
+    [
+     239,
+     2003
+    ],
+    [
+     258,
+     2003
+    ],
+    [
+     269,
+     2003
+    ],
+    [
+     280,
+     2003
+    ]
+   ],
+   "status": "unused \u2014 sheet HUD bars/coins/name plate (the game HUD is used)",
+   "sha256": "a8772380307882b0ae29779c4e0e31356e3beeac62bb730eef0ab3c405bdee2e"
+  },
+  "morpher": {
+   "rect": [
+    306,
+    1927,
+    144,
+    112
+   ],
+   "parts": [
+    [
+     306,
+     1927
+    ]
+   ],
+   "status": "unused \u2014 decorative Power Morpher illustration",
+   "sha256": "9bd9f1830a513c36469917c6f606490ffab688d335aea526c7355d0796cc1f49"
+  },
+  "credit": {
+   "rect": [
+    4,
+    2046,
+    152,
+    58
+   ],
+   "parts": [
+    [
+     4,
+     2046
+    ]
+   ],
+   "status": "credit \u2014 attribution only, never animation",
+   "sha256": "42340eb8e196061d88311efa5c235318a3f59ed0c8766e409bd316a8dbdc4911"
+  }
+ },
+ "sequences": {
+  "idle": [
+   "idle0",
+   "idle1",
+   "idle2",
+   "idle1"
+  ],
+  "walk": [
+   "walk0",
+   "walk1",
+   "walk2",
+   "walk3",
+   "walk4",
+   "walk5"
+  ],
+  "walk_back": [
+   "walk5",
+   "walk4",
+   "walk3",
+   "walk2",
+   "walk1",
+   "walk0"
+  ],
+  "run": [
+   "run0",
+   "run1",
+   "run2",
+   "run3",
+   "run4",
+   "run5"
+  ],
+  "dash": [
+   "run4"
+  ],
+  "jump": [
+   "rise0",
+   "rise1",
+   "ball0",
+   "ball1",
+   "ball2"
+  ],
+  "fall": [
+   "air1"
+  ],
+  "crouch": [
+   "crouch0"
+  ],
+  "guard": [
+   "guardArms"
+  ],
+  "hurt": [
+   "hitHigh"
+  ],
+  "hurt2": [
+   "hitLow"
+  ],
+  "hurt_air": [
+   "tumbleHit"
+  ],
+  "knockdown": [
+   "fallBack",
+   "fallAir",
+   "prone"
+  ],
+  "getup": [
+   "seated",
+   "set0",
+   "ready"
+  ],
+  "stagger": [
+   "hitLow"
+  ],
+  "launched": [
+   "fallAir"
+  ],
+  "light": [
+   "punchChamber",
+   "punchStraight"
+  ],
+  "gJ2": [
+   "guardCross",
+   "lowHook"
+  ],
+  "gJ3": [
+   "kickSpin",
+   "roundhouse"
+  ],
+  "heavy": [
+   "kickTurn",
+   "kickHigh",
+   "kickStance1"
+  ],
+  "gLow": [
+   "kickStance0",
+   "kickLow"
+  ],
+  "up": [
+   "set0",
+   "crescentHeel"
+  ],
+  "air": [
+   "air0",
+   "flyKick"
+  ],
+  "down_air": [
+   "sideKick"
+  ],
+  "gAdv": [
+   "lungeReach",
+   "punchLunge"
+  ],
+  "gBlade": [
+   "bladeOver",
+   "bladeThrust"
+  ],
+  "gAway": [
+   "bladeBack",
+   "bladeHold"
+  ],
+  "gEdge": [
+   "bladeRaise",
+   "bladeCut",
+   "bladeHold"
+  ],
+  "gAdvance": [
+   "bladeOver",
+   "bladeSwing",
+   "bladeFollow"
+  ],
+  "gAdvanceN": [
+   "bladeOver",
+   "bladeSwing",
+   "bladeRise"
+  ],
+  "gTalon": [
+   "set0",
+   "riseKnee",
+   "kickArc",
+   "tumbleDive"
+  ],
+  "gPulse": [
+   "armsRaised",
+   "castDisc",
+   "cast0"
+  ],
+  "gFang": [
+   "bladeAir",
+   "bladeAirTrail"
+  ],
+  "gCall": [
+   "ready",
+   "flute"
+  ],
+  "grab": [
+   "grabReach",
+   "pushBoth"
+  ],
+  "gUlt": [
+   "flute",
+   "armsRaised"
+  ],
+  "ultWatch": [
+   "ready",
+   "armsWide"
+  ],
+  "ultSignal": [
+   "flex"
+  ],
+  "intro": [
+   "tommyArms",
+   "tommyChest",
+   "tommyRaise",
+   "tommyRaiseGlow",
+   "morphFlash",
+   "morphSuit",
+   "shieldFlash",
+   "shieldSet",
+   "armsWide",
+   "ready"
+  ],
+  "win": [
+   "flex"
+  ],
+  "win_alt": [
+   "armsWide"
+  ],
+  "lose": [
+   "fallBack",
+   "fallAir",
+   "prone"
+  ]
+ },
+ "duplicates": {},
+ "enclosedKeyRegions": [
+  [
+   124,
+   35,
+   7,
+   11,
+   48
+  ],
+  [
+   177,
+   35,
+   7,
+   11,
+   48
+  ],
+  [
+   228,
+   35,
+   5,
+   7,
+   27
+  ],
+  [
+   283,
+   35,
+   5,
+   7,
+   27
+  ],
+  [
+   124,
+   52,
+   1,
+   1,
+   1
+  ],
+  [
+   130,
+   52,
+   1,
+   1,
+   1
+  ],
+  [
+   177,
+   52,
+   1,
+   1,
+   1
+  ],
+  [
+   183,
+   52,
+   1,
+   1,
+   1
+  ],
+  [
+   24,
+   136,
+   5,
+   7,
+   27
+  ],
+  [
+   79,
+   136,
+   5,
+   7,
+   27
+  ],
+  [
+   34,
+   346,
+   3,
+   4,
+   7
+  ],
+  [
+   75,
+   348,
+   3,
+   3,
+   5
+  ],
+  [
+   224,
+   580,
+   3,
+   8,
+   13
+  ],
+  [
+   158,
+   587,
+   5,
+   7,
+   22
+  ],
+  [
+   100,
+   588,
+   6,
+   9,
+   25
+  ],
+  [
+   282,
+   600,
+   2,
+   1,
+   2
+  ],
+  [
+   57,
+   602,
+   2,
+   3,
+   5
+  ],
+  [
+   28,
+   613,
+   3,
+   5,
+   9
+  ],
+  [
+   175,
+   615,
+   2,
+   3,
+   4
+  ],
+  [
+   221,
+   620,
+   3,
+   4,
+   8
+  ],
+  [
+   291,
+   656,
+   3,
+   3,
+   5
+  ],
+  [
+   273,
+   659,
+   21,
+   17,
+   150
+  ],
+  [
+   211,
+   679,
+   17,
+   8,
+   74
+  ],
+  [
+   352,
+   682,
+   3,
+   3,
+   6
+  ],
+  [
+   19,
+   707,
+   6,
+   12,
+   42
+  ],
+  [
+   279,
+   919,
+   1,
+   1,
+   1
+  ],
+  [
+   277,
+   920,
+   2,
+   1,
+   2
+  ],
+  [
+   189,
+   921,
+   1,
+   1,
+   1
+  ],
+  [
+   273,
+   921,
+   1,
+   1,
+   1
+  ],
+  [
+   275,
+   921,
+   2,
+   1,
+   2
+  ],
+  [
+   187,
+   922,
+   2,
+   1,
+   2
+  ],
+  [
+   183,
+   923,
+   1,
+   1,
+   1
+  ],
+  [
+   185,
+   923,
+   2,
+   1,
+   2
+  ],
+  [
+   264,
+   935,
+   7,
+   7,
+   32
+  ],
+  [
+   174,
+   937,
+   7,
+   7,
+   32
+  ],
+  [
+   269,
+   980,
+   7,
+   6,
+   24
+  ],
+  [
+   179,
+   982,
+   7,
+   6,
+   24
+  ],
+  [
+   118,
+   1023,
+   1,
+   1,
+   1
+  ],
+  [
+   119,
+   1024,
+   2,
+   1,
+   2
+  ],
+  [
+   121,
+   1025,
+   2,
+   1,
+   2
+  ],
+  [
+   124,
+   1025,
+   1,
+   1,
+   1
+  ],
+  [
+   20,
+   1035,
+   1,
+   1,
+   1
+  ],
+  [
+   20,
+   1037,
+   1,
+   2,
+   2
+  ],
+  [
+   19,
+   1039,
+   1,
+   2,
+   2
+  ],
+  [
+   18,
+   1041,
+   1,
+   1,
+   1
+  ],
+  [
+   233,
+   1078,
+   1,
+   1,
+   1
+  ],
+  [
+   235,
+   1078,
+   2,
+   1,
+   2
+  ],
+  [
+   237,
+   1079,
+   2,
+   1,
+   2
+  ],
+  [
+   364,
+   1079,
+   1,
+   1,
+   1
+  ],
+  [
+   366,
+   1079,
+   2,
+   1,
+   2
+  ],
+  [
+   239,
+   1080,
+   1,
+   1,
+   1
+  ],
+  [
+   368,
+   1080,
+   2,
+   1,
+   2
+  ],
+  [
+   370,
+   1081,
+   1,
+   1,
+   1
+  ],
+  [
+   331,
+   1216,
+   1,
+   1,
+   1
+  ],
+  [
+   344,
+   1216,
+   1,
+   1,
+   1
+  ],
+  [
+   386,
+   1216,
+   4,
+   2,
+   6
+  ],
+  [
+   392,
+   1216,
+   5,
+   6,
+   13
+  ],
+  [
+   330,
+   1217,
+   1,
+   1,
+   1
+  ],
+  [
+   439,
+   1217,
+   2,
+   1,
+   2
+  ],
+  [
+   329,
+   1218,
+   1,
+   1,
+   1
+  ],
+  [
+   381,
+   1218,
+   3,
+   3,
+   6
+  ],
+  [
+   429,
+   1218,
+   3,
+   3,
+   8
+  ],
+  [
+   445,
+   1218,
+   2,
+   3,
+   5
+  ],
+  [
+   327,
+   1219,
+   2,
+   2,
+   3
+  ],
+  [
+   379,
+   1220,
+   2,
+   3,
+   4
+  ],
+  [
+   447,
+   1221,
+   1,
+   1,
+   1
+  ],
+  [
+   448,
+   1222,
+   1,
+   1,
+   1
+  ],
+  [
+   323,
+   1224,
+   2,
+   2,
+   4
+  ],
+  [
+   375,
+   1224,
+   3,
+   8,
+   11
+  ],
+  [
+   399,
+   1225,
+   1,
+   1,
+   1
+  ],
+  [
+   425,
+   1227,
+   2,
+   3,
+   5
+  ],
+  [
+   400,
+   1228,
+   1,
+   1,
+   1
+  ],
+  [
+   372,
+   1229,
+   4,
+   7,
+   18
+  ],
+  [
+   401,
+   1229,
+   1,
+   4,
+   4
+  ],
+  [
+   422,
+   1229,
+   4,
+   9,
+   23
+  ],
+  [
+   354,
+   1231,
+   2,
+   4,
+   7
+  ],
+  [
+   320,
+   1233,
+   3,
+   5,
+   9
+  ],
+  [
+   401,
+   1233,
+   4,
+   6,
+   17
+  ],
+  [
+   375,
+   1236,
+   1,
+   4,
+   4
+  ],
+  [
+   400,
+   1238,
+   2,
+   5,
+   7
+  ],
+  [
+   450,
+   1239,
+   3,
+   4,
+   6
+  ],
+  [
+   352,
+   1241,
+   1,
+   2,
+   2
+  ],
+  [
+   377,
+   1243,
+   1,
+   1,
+   1
+  ],
+  [
+   399,
+   1243,
+   1,
+   1,
+   1
+  ],
+  [
+   429,
+   1245,
+   1,
+   1,
+   1
+  ],
+  [
+   430,
+   1246,
+   1,
+   1,
+   1
+  ],
+  [
+   380,
+   1247,
+   1,
+   1,
+   1
+  ],
+  [
+   396,
+   1247,
+   1,
+   2,
+   2
+  ],
+  [
+   431,
+   1247,
+   2,
+   3,
+   5
+  ],
+  [
+   446,
+   1247,
+   3,
+   3,
+   6
+  ],
+  [
+   348,
+   1248,
+   2,
+   2,
+   3
+  ],
+  [
+   381,
+   1248,
+   1,
+   1,
+   1
+  ],
+  [
+   382,
+   1249,
+   3,
+   3,
+   7
+  ],
+  [
+   392,
+   1249,
+   3,
+   1,
+   3
+  ],
+  [
+   346,
+   1250,
+   1,
+   1,
+   1
+  ],
+  [
+   386,
+   1250,
+   5,
+   2,
+   8
+  ],
+  [
+   437,
+   1250,
+   2,
+   1,
+   2
+  ],
+  [
+   345,
+   1251,
+   1,
+   1,
+   1
+  ],
+  [
+   331,
+   1252,
+   1,
+   1,
+   1
+  ],
+  [
+   335,
+   1302,
+   2,
+   1,
+   2
+  ],
+  [
+   24,
+   1307,
+   1,
+   1,
+   1
+  ],
+  [
+   25,
+   1308,
+   1,
+   1,
+   1
+  ],
+  [
+   272,
+   1404,
+   1,
+   1,
+   1
+  ],
+  [
+   271,
+   1405,
+   1,
+   1,
+   1
+  ],
+  [
+   151,
+   1419,
+   12,
+   7,
+   30
+  ],
+  [
+   159,
+   1471,
+   3,
+   4,
+   7
+  ],
+  [
+   212,
+   1497,
+   11,
+   8,
+   45
+  ],
+  [
+   320,
+   1579,
+   6,
+   5,
+   14
+  ],
+  [
+   176,
+   1653,
+   24,
+   16,
+   190
+  ],
+  [
+   273,
+   1655,
+   4,
+   14,
+   29
+  ],
+  [
+   108,
+   1659,
+   12,
+   16,
+   107
+  ],
+  [
+   175,
+   1675,
+   25,
+   16,
+   221
+  ],
+  [
+   273,
+   1675,
+   4,
+   14,
+   29
+  ],
+  [
+   47,
+   1679,
+   9,
+   9,
+   24
+  ],
+  [
+   107,
+   1680,
+   9,
+   13,
+   65
+  ],
+  [
+   36,
+   1690,
+   1,
+   2,
+   2
+  ],
+  [
+   38,
+   1693,
+   3,
+   3,
+   6
+  ],
+  [
+   42,
+   1693,
+   1,
+   1,
+   1
+  ],
+  [
+   109,
+   1772,
+   30,
+   30,
+   154
+  ],
+  [
+   153,
+   1773,
+   16,
+   27,
+   101
+  ],
+  [
+   170,
+   1773,
+   15,
+   18,
+   74
+  ],
+  [
+   207,
+   1775,
+   16,
+   27,
+   101
+  ],
+  [
+   224,
+   1775,
+   15,
+   18,
+   74
+  ],
+  [
+   113,
+   1776,
+   24,
+   24,
+   135
+  ],
+  [
+   160,
+   1778,
+   22,
+   26,
+   149
+  ],
+  [
+   157,
+   1779,
+   8,
+   18,
+   52
+  ],
+  [
+   117,
+   1780,
+   17,
+   18,
+   92
+  ],
+  [
+   214,
+   1780,
+   22,
+   26,
+   149
+  ],
+  [
+   161,
+   1781,
+   17,
+   18,
+   96
+  ],
+  [
+   211,
+   1781,
+   8,
+   18,
+   52
+  ],
+  [
+   120,
+   1783,
+   11,
+   11,
+   56
+  ],
+  [
+   215,
+   1783,
+   17,
+   18,
+   96
+  ],
+  [
+   120,
+   1784,
+   22,
+   22,
+   85
+  ],
+  [
+   164,
+   1784,
+   11,
+   11,
+   56
+  ],
+  [
+   123,
+   1786,
+   5,
+   5,
+   21
+  ],
+  [
+   218,
+   1786,
+   11,
+   11,
+   56
+  ],
+  [
+   167,
+   1787,
+   5,
+   5,
+   21
+  ],
+  [
+   221,
+   1789,
+   5,
+   5,
+   21
+  ],
+  [
+   119,
+   1793,
+   18,
+   10,
+   75
+  ],
+  [
+   161,
+   1798,
+   23,
+   9,
+   60
+  ],
+  [
+   215,
+   1800,
+   23,
+   9,
+   60
+  ],
+  [
+   7,
+   1875,
+   108,
+   109,
+   8041
+  ],
+  [
+   290,
+   1879,
+   6,
+   6,
+   20
+  ],
+  [
+   297,
+   1888,
+   4,
+   6,
+   11
+  ],
+  [
+   148,
+   1939,
+   3,
+   1,
+   3
+  ],
+  [
+   152,
+   1939,
+   1,
+   1,
+   1
+  ],
+  [
+   156,
+   1939,
+   3,
+   1,
+   3
+  ],
+  [
+   163,
+   1939,
+   6,
+   4,
+   15
+  ],
+  [
+   171,
+   1939,
+   6,
+   4,
+   15
+  ],
+  [
+   190,
+   1939,
+   3,
+   1,
+   3
+  ],
+  [
+   198,
+   1939,
+   2,
+   2,
+   4
+  ],
+  [
+   214,
+   1939,
+   3,
+   1,
+   3
+  ],
+  [
+   218,
+   1939,
+   1,
+   1,
+   1
+  ],
+  [
+   221,
+   1939,
+   6,
+   4,
+   15
+  ],
+  [
+   230,
+   1939,
+   3,
+   1,
+   3
+  ],
+  [
+   160,
+   1940,
+   1,
+   1,
+   1
+  ],
+  [
+   194,
+   1940,
+   1,
+   1,
+   1
+  ],
+  [
+   148,
+   1942,
+   2,
+   1,
+   2
+  ],
+  [
+   214,
+   1942,
+   2,
+   1,
+   2
+  ],
+  [
+   140,
+   1956,
+   3,
+   1,
+   3
+  ],
+  [
+   180,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   188,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   196,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   204,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   212,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   220,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   228,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   236,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   244,
+   1956,
+   1,
+   1,
+   1
+  ],
+  [
+   180,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   188,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   196,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   204,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   212,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   220,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   228,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   236,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   244,
+   1958,
+   2,
+   2,
+   3
+  ],
+  [
+   183,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   191,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   199,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   207,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   215,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   223,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   231,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   239,
+   1960,
+   3,
+   2,
+   4
+  ],
+  [
+   76,
+   1968,
+   2,
+   2,
+   4
+  ],
+  [
+   130,
+   1976,
+   4,
+   1,
+   4
+  ],
+  [
+   140,
+   1976,
+   3,
+   1,
+   3
+  ],
+  [
+   180,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   188,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   196,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   204,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   212,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   220,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   228,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   236,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   244,
+   1976,
+   1,
+   1,
+   1
+  ],
+  [
+   132,
+   1977,
+   5,
+   3,
+   8
+  ],
+  [
+   180,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   188,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   196,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   204,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   212,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   220,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   228,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   236,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   244,
+   1978,
+   2,
+   2,
+   3
+  ],
+  [
+   183,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   191,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   199,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   207,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   215,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   223,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   231,
+   1980,
+   3,
+   2,
+   4
+  ],
+  [
+   239,
+   1980,
+   3,
+   2,
+   4
+  ]
+ ],
+ "derivedStripSha256": {
+  "air.png": "ff4d26c58c4e3ca9d6dbece5ac878e04e71f47a916799b926366631d226729a8",
+  "credit_panel.png": "42340eb8e196061d88311efa5c235318a3f59ed0c8766e409bd316a8dbdc4911",
+  "crouch.png": "3415404175e57db2f26158765750b3029bc00584d7079288084c0bbbe7d6bbf6",
+  "cutin.png": "b27d0e2fa1f3cace1d6b62cdbc4e895d70b1b637e808d06e65752bf68ea2a1aa",
+  "dash.png": "5ba764792fcf92db0adea673a3f68e56c54e9a7e1a094722339d21ed3efb789a",
+  "down_air.png": "3113b5c8812e3a271911b87975e537b17dbf2eff0c12deb76692d77f14a32af3",
+  "fall.png": "ea0d566d41369781de864d1418ca2b30d86f54032661b330a1bfbe1dd8884848",
+  "gAdv.png": "dc35cc270995923eb26013937037baff4a0bebf3ef956898312ed92c04a70a30",
+  "gAdvance.png": "408c88237d4636d5ae6faf0c6ac1cb719a9150eec5a6b2baf9876f2af5fdf54a",
+  "gAdvanceN.png": "421f5c469b36a3968d451ec2d3152934062dde4c81a7fbbbfc72076bf9f145ef",
+  "gAdvanceUp.png": "abc023773fe73c5df93ca544811dcb6d50109fd76e21ae5abbe9787edc8e95e1",
+  "gAway.png": "8381e48cf1f0cbd9bc9233f3690e497cfe9a0cf7fb8b590ce992361a2f909db9",
+  "gBlade.png": "69c9ff3b77680d2f85d1ccef9451d02694ec88aeb94db848497a98875d3e0680",
+  "gCall.png": "453ea8e8dd4701d015f355500a67a11a2675fa6b6cd61368068becbe9f32f589",
+  "gEdge.png": "0a61ffa687ad39870cbae0553ba053673dc15ab41599adecc84b56e685e06e06",
+  "gFang.png": "7ee0eaf57d2e0f9884488f5892328023bc55f8d467b3222d2be2d1bc6975cb95",
+  "gJ2.png": "ec37d1093df9d51e20f4f7d2d4acad2c2103a6d078e266a6fec30d7f7be6645c",
+  "gJ3.png": "9b0d2677b8eeb33c51813facb6fdc691e73bfe83994ad81aab76cbee636147f8",
+  "gLow.png": "73d7a5d5d0edab4d03e7bc460b1c712758112b26910ad94d5abad91a710399b7",
+  "gPulse.png": "790519aa9c06862cc19560361068538e522be950aa33df723168281fb4262173",
+  "gTalon.png": "b1cf179354d0f85fc909bbbe2f18d00e30ea0ceafd993f3a33521212cce9ccda",
+  "gUlt.png": "e82c9163eb1365f820a1e7a6c9a529c6c3bcc6f775513a953344bf73f83104d1",
+  "getup.png": "66b0c0122916e236d72b25bcfad27bec153fee1ede0a7bd44dafdc0029678e9b",
+  "grab.png": "129e370a8c721847d8faffb6ff7752189f53b83156b20d3f1b5e62fcf228fb18",
+  "guard.png": "ac61a4aae78d0e4186db4b21ca7bf165b42df005b468f3bf6f45fad392c9c93c",
+  "heavy.png": "4998cb10cd82aa7ed01804fd5a68fda76a3c6e4983d422eb13f93d515e1f5d0f",
+  "hurt.png": "187a4cca0ba1092eabaf120a929a3e55ae7605ed6991ee7b8d32d0d5eca9898a",
+  "hurt2.png": "658944e6d73f1db2ae3b81da28858d3e5012d0d19f1ebd00bc9df7661f14262e",
+  "hurt_air.png": "3cc4d4ce66e67d74268536bd33c9168898a13eebee0ea0ae54438c9da912f4a3",
+  "idle.png": "335505e6cb1820f9a3615fe67692b5e1d806bd6014a33510f6abb44e4781756e",
+  "intro.png": "07b20276bf2e0e09f5769a964ff52378e11e26736f7099edfe7d3bdbd3689547",
+  "jump.png": "19e7286bd9eb1ba453bbf170db03551bc4eab55beec9f2fb2d56addf77d028eb",
+  "knockdown.png": "c7c243624e4aff1da5b75cd823539d94cab127b40b7c83ffc6f7f7d26fbe9936",
+  "launched.png": "2a43295d18a9a4fdea5baef68e179682ff7bdfb97058b0a4fd1556604a873670",
+  "light.png": "4d574db79809767fed27115398055375f09f786a4b3ae187f9bcc5c2b469b52d",
+  "lose.png": "c7c243624e4aff1da5b75cd823539d94cab127b40b7c83ffc6f7f7d26fbe9936",
+  "portrait.png": "f8b3996c855c047ec74d09c90214a7579b5e851573b1035f4d7bcf76bb705204",
+  "run.png": "5e1c4b8ce1265e3183dacfca1484d511cadd2dd232d1942236a37d29e6115943",
+  "stagger.png": "658944e6d73f1db2ae3b81da28858d3e5012d0d19f1ebd00bc9df7661f14262e",
+  "ultSignal.png": "1b11a5d0783f4bdcc279d6c9e1026505859d0dfeacdb4ed46e9521f2e60e6d7f",
+  "ultWatch.png": "8a909deadd98ded9736c92d166604778a05de83b967c5d0485ff0742fcddcae5",
+  "up.png": "a1e41b98cbefbbd4f00b27a09b931a51c825e99f9d427bac79459f7ca6b99756",
+  "walk.png": "f80067a759bca100dbbd93b27a1755880ba5aca596e2e778890b9ba3a6461eda",
+  "walk_back.png": "6996c4e29e0eadceff6994bdec54550d8d934159beb6f1d8a7f94a1ef107121b",
+  "win.png": "1b11a5d0783f4bdcc279d6c9e1026505859d0dfeacdb4ed46e9521f2e60e6d7f",
+  "win_alt.png": "53cb3b9fb423d0a0f4b76a6d25beb77a235bdfc74cc6ec00e14efff3adc06608"
+ }
+}

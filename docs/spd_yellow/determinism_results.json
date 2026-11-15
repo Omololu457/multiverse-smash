@@ -1,0 +1,136 @@
+{
+  "replay": {
+    "frames": 3600,
+    "identical": true,
+    "exercised": [
+      "ph0",
+      "ph1",
+      "light",
+      "ph2",
+      "coin",
+      "ph3",
+      "yJ2",
+      "ph4",
+      "yJ3",
+      "yGun",
+      "ph5",
+      "shot_pistol",
+      "ph6",
+      "longCommit",
+      "shot_long",
+      "ph7",
+      "yClone",
+      "ph8",
+      "clone",
+      "ySwap",
+      "ph9",
+      "ph10",
+      "act_echo",
+      "ph11",
+      "yStance",
+      "stance",
+      "ph12",
+      "ph13",
+      "ph14",
+      "yCall",
+      "ph15",
+      "zord_yIntercept",
+      "ph16",
+      "blink",
+      "ph17",
+      "yUltOpen",
+      "ph18",
+      "ult"
+    ]
+  },
+  "renderBatching": {
+    "samples": 650,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "showcaseSameDamage": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "mirrorIndependent": true,
+    "mirror": {
+      "p1Cancelled": true,
+      "p2Committed": true,
+      "p1Clone": true,
+      "p2Clone": true,
+      "p1Pips": 1,
+      "p2Pips": 1
+    },
+    "identityClears": true,
+    "ident": {
+      "had": true,
+      "yellow": false,
+      "sortie": false,
+      "ranger": false,
+      "shots": 0
+    }
+  },
+  "yellowVsWhite": {
+    "both": true,
+    "aPips": 1,
+    "bPips": 1,
+    "aKind": null,
+    "bKey": "mmpr_white"
+  },
+  "nextRound": {
+    "gs": "battle",
+    "pips": 2,
+    "sortie": false,
+    "coins": 0,
+    "clone": false,
+    "stance": false,
+    "breach": false,
+    "rooted": false
+  },
+  "lan": {
+    "gun": true,
+    "clone": true,
+    "stance": true,
+    "sel": 4,
+    "closed": true,
+    "blink": true,
+    "frame": 280,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "yJ2",
+        "yGun",
+        "yClone",
+        "ySwap",
+        "yStance",
+        "yCall"
+      ],
+      "kinds": [
+        "yIntercept"
+      ],
+      "hp": 1000
+    },
+    "pad": {
+      "names": [
+        "light",
+        "yJ2",
+        "yGun",
+        "yClone",
+        "ySwap",
+        "yStance",
+        "yCall"
+      ],
+      "kinds": [
+        "yIntercept"
+      ],
+      "hp": 1000
+    },
+    "same": true
+  },
+  "passes": 22,
+  "errors": []
+}

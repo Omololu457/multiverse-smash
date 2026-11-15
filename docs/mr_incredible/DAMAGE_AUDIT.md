@@ -1,0 +1,73 @@
+# Live damage audit
+
+Measured in the actual browser simulation; no direct health subtraction in Mr code.
+Roster references remain Goku light/heavy 45/85, Superman light/heavy 45/80,
+Superman ultimate metadata about 380. Mr uses the same units, no private scale.
+
+Melee: floor(raw × shared combo scale × max(damageMultiplier, attackMultiplier)
+× .60 / max(.5, defender.defenseMultiplier)), then shared counter/guard/passive
+and damage application rules. Attack/defense roster metadata do not directly
+become this multiplier. Neutral opponents below have defenseMultiplier 1.
+Throws cannot start inside a combo; their payload captures offense/defense and
+uses the normal shared ×.60 throw application. All multi-frame moves budget
+one contact. Seismic impact/effects do not each apply a second copy.
+
+| Move | Raw veteran | Raw prime | Actual veteran | Actual prime |
+|---|---:|---:|---:|---:|
+| light | 50 | 65 | 30 | 39 |
+| miLight2 | 50 | 65 | 30 | 39 |
+| miFinish | 70 | 91 | 42 | 54 |
+| heavy | 100 | 130 | 60 | 78 |
+| miLow | 45 | 58.5 | 27 | 35 |
+| up | 80 | 104 | 48 | 62 |
+| air | 70 | 91 | 42 | 54 |
+| down_air | 95 | 123.5 | 57 | 74 |
+| miForward | 110 | 143 | 66 | 85 |
+| miDownHeavy | 90 | 117 | 54 | 70 |
+| miImpact | 140 | 182 | 84 | 109 |
+| miRush | 125 | 162.5 | 75 | 97 |
+| miRise | 90 | 117 | 54 | 70 |
+| miSlam | 155 | 201.5 | 93 | 120 |
+| miSpin | 135 | 175.5 | 81 | 105 |
+| miGrab | 55 | 71.5 | 33 | 42 |
+| miLift | 145 | 188.5 | 87 | 113 |
+
+Every isolated target check above recorded exactly one HP drop, including
+down-air, rolling/spinning, ground slam and both throws. Further live checks
+against Goku, Superman and Luffy produced the same neutral results. Their
+different metadata defense does not silently change the shared runtime scalar.
+The explicit defenseMultiplier 1.25 probe yields heavy 48 veteran / 62 prime,
+proving defense division is retained. Blocks, combo scaling and shared escape
+limits remain engine-owned. No bypassScale or unscaled ultimate damage path is used.
+
+## Practical routes
+
+| Route | Veteran | Prime | Nominal special cost | Escape observation |
+|---|---:|---:|---:|---|
+| light_chain | 98 | 128 | 0 | Follow-ups landed during remaining shared hitstun |
+| launcher_air | 83 | 107 | 0 | Follow-ups landed during remaining shared hitstun |
+| heavy_rush | 129 | 167 | 20 | Follow-ups landed during remaining shared hitstun |
+| air_slam | 93 | 120 | 25 | Single landing hit; approach is interruptible |
+| power_lift_reset | 117 | 152 | 20 | Follow-ups landed during remaining shared hitstun |
+
+All five routes were measured against all three live opponents in each form.
+Recorded per-hit damage, tick, pre-hit hitstun and move identities are in
+damage_routes.json. Light chain: hits at ticks 4/17/32, follow-ups had 13/12
+stun ticks remaining. Launcher → chase jump → air: ticks 5/25, 27 stun ticks
+remain before the aerial contact. Heavy → Freight: ticks 13/36, 22 remain.
+Power Lift → light: ticks 39/50, 10 remain before the follow-up. Ground throw
+rules prohibit a capture during an existing combo and retain ordinary grab tech.
+
+These are confirms against an idle neutral target, not a promise that shared
+combo breakers, defenses, armor or all positions cannot escape. Air approach →
+slam is a committed approach into a single impact, not a claimed two-hit combo.
+The launcher uses an authored −24 vertical pop with shared launcher/juggle
+processing; the deliberate chase preserves the normal jump budget.
+
+Costs shown are authored expenditures. Veteran passive regeneration during a
+240-tick measurement reduces the net meter delta; the JSON retains that observed
+net value. Prime uses its finite reserve with no regeneration, and activation
+itself costs the separate full 100 Power. No healing or meter refund is included.
+
+Source results: runtime_results.json (all attacks), damage_routes.json (opponents
+and routes), mrIncredibleData.js (authored values), combat.js (shared pipeline).

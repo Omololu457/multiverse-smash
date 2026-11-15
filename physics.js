@@ -77,7 +77,7 @@ export const physics = {
     //   • it protects the out-of-band cases the old [4,9] clamp caught — buff forms that SET fighter.speed
     //     to raw-scale values (Godspeed 120→cap 9.5, Gon-adult 40→floor 4.5 "lumber"), plus the low
     //     placeholders (Ben10 human 5, Morty 72) which would otherwise go negative / below-floor.
-    const speed = clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1)   // Clockwork Time Ray: halve movement while slowed (inert otherwise)
+    const speed = (fighter.rosterKey === "mr_incredible" && fighter._mrIncredible?.remaining > 0 ? (fighter.onGround ? 1.15 : 1.10) : 1) * clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1)   // Clockwork Time Ray: halve movement while slowed (inert otherwise)
 
     const defaults = {
       vx: 0, vy: 0,

@@ -1,0 +1,2033 @@
+{
+ "routes": [
+  {
+   "label": "gorilla: single strike",
+   "kind": "single",
+   "hits": [
+    67
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    15
+   ],
+   "gapAtHit": [
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 11.16,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "tricera: single strike",
+   "kind": "single",
+   "hits": [
+    75
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    30
+   ],
+   "gapAtHit": [
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 75,
+   "energySpent": 15.74,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "tiger: single strike",
+   "kind": "single",
+   "hits": [
+    60
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    13
+   ],
+   "gapAtHit": [
+    85
+   ],
+   "blockedEvents": 0,
+   "damage": 60,
+   "energySpent": 14.1,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "bird: single strike",
+   "kind": "single",
+   "hits": [
+    33
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    10
+   ],
+   "gapAtHit": [
+    70
+   ],
+   "blockedEvents": 0,
+   "damage": 33,
+   "energySpent": 9.54,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Gorilla → (Up+SP) Bird → (Down+SP) Tiger [Wild Chain ×2]",
+   "kind": "combo",
+   "hits": [
+    67,
+    33,
+    55
+   ],
+   "stunBefore": [
+    0,
+    3,
+    4
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    15,
+    71,
+    108
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 155,
+   "energySpent": 35.4,
+   "chainLinks": 2,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Tiger → (Fwd+SP) Triceratops → (SP) Gorilla [Wild Chain ×2]",
+   "kind": "combo",
+   "hits": [
+    60,
+    75,
+    62
+   ],
+   "stunBefore": [
+    0,
+    0,
+    6
+   ],
+   "freeFramesBefore": [
+    0,
+    19,
+    0
+   ],
+   "hitFrames": [
+    13,
+    79,
+    124
+   ],
+   "gapAtHit": [
+    85,
+    94,
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 197,
+   "energySpent": 42.62,
+   "chainLinks": 2,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 2"
+  },
+  {
+   "label": "Wild Chain link: gorilla → bird",
+   "kind": "combo",
+   "hits": [
+    67,
+    33
+   ],
+   "stunBefore": [
+    0,
+    3
+   ],
+   "freeFramesBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    15,
+    71
+   ],
+   "gapAtHit": [
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 100,
+   "energySpent": 20.88,
+   "chainLinks": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Wild Chain link: bird → tiger",
+   "kind": "combo",
+   "hits": [
+    33,
+    60
+   ],
+   "stunBefore": [
+    0,
+    4
+   ],
+   "freeFramesBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    10,
+    47
+   ],
+   "gapAtHit": [
+    70,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 93,
+   "energySpent": 24.06,
+   "chainLinks": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Wild Chain link: tiger → tricera",
+   "kind": "combo",
+   "hits": [
+    60,
+    75
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "freeFramesBefore": [
+    0,
+    19
+   ],
+   "hitFrames": [
+    13,
+    79
+   ],
+   "gapAtHit": [
+    85,
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 135,
+   "energySpent": 30.8,
+   "chainLinks": 1,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 2"
+  },
+  {
+   "label": "Wild Chain link: tricera → gorilla",
+   "kind": "combo",
+   "hits": [
+    75,
+    67
+   ],
+   "stunBefore": [
+    0,
+    6
+   ],
+   "freeFramesBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    30,
+    75
+   ],
+   "gapAtHit": [
+    94,
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 142,
+   "energySpent": 27.56,
+   "chainLinks": 1,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Instinct-armed Gorilla (no damage change)",
+   "kind": "single",
+   "hits": [
+    67
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    15
+   ],
+   "gapAtHit": [
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 11.16,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Gorilla → Gorilla after full recovery (should NOT combo)",
+   "kind": "combo",
+   "hits": [
+    67,
+    67
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "freeFramesBefore": [
+    0,
+    7
+   ],
+   "hitFrames": [
+    15,
+    80
+   ],
+   "gapAtHit": [
+    80,
+    99
+   ],
+   "blockedEvents": 0,
+   "damage": 134,
+   "energySpent": 22.26,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 2"
+  },
+  {
+   "label": "J1 → J2 → J3",
+   "kind": "combo",
+   "hits": [
+    19,
+    24,
+    30
+   ],
+   "stunBefore": [
+    0,
+    9,
+    9
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    18,
+    34
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 73,
+   "energySpent": 0,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "J1 → J2 → Gorilla Break",
+   "kind": "combo",
+   "hits": [
+    19,
+    24,
+    62
+   ],
+   "stunBefore": [
+    0,
+    9,
+    4
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    18,
+    39
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 105,
+   "energySpent": 11.16,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "J1 → J2 → J3 (mirrored)",
+   "kind": "combo",
+   "hits": [
+    19,
+    24,
+    30
+   ],
+   "stunBefore": [
+    0,
+    9,
+    9
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    18,
+    34
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 73,
+   "energySpent": 0,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": true,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "J1 → J2 → Gorilla Break (mirrored)",
+   "kind": "combo",
+   "hits": [
+    19,
+    24,
+    62
+   ],
+   "stunBefore": [
+    0,
+    9,
+    4
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    18,
+    39
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 105,
+   "energySpent": 11.16,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": true,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Low → Heavy → Tiger Cross",
+   "kind": "combo",
+   "hits": [
+    28,
+    60,
+    55
+   ],
+   "stunBefore": [
+    0,
+    7,
+    16
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    8,
+    28,
+    54
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 143,
+   "energySpent": 14.1,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Forward+Heavy → Heavy → Heavy (advance → straight → knock-away)",
+   "kind": "combo",
+   "hits": [
+    28,
+    32,
+    39
+   ],
+   "stunBefore": [
+    0,
+    13,
+    12
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    11,
+    36,
+    64
+   ],
+   "gapAtHit": [
+    68,
+    68,
+    68
+   ],
+   "blockedEvents": 0,
+   "damage": 99,
+   "energySpent": 0,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher → manual Jump → Aerial Kick",
+   "kind": "combo",
+   "hits": [
+    46,
+    29
+   ],
+   "stunBefore": [
+    0,
+    23
+   ],
+   "freeFramesBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    12,
+    36
+   ],
+   "gapAtHit": [
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 75,
+   "energySpent": 0,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Heavy → Triceratops Drive",
+   "kind": "combo",
+   "hits": [
+    60,
+    69
+   ],
+   "stunBefore": [
+    0,
+    9
+   ],
+   "freeFramesBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    14,
+    47
+   ],
+   "gapAtHit": [
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 129,
+   "energySpent": 16.34,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Heavy → ANIMAL INSTINCT (recovery cancel)",
+   "kind": "combo",
+   "hits": [
+    60,
+    27,
+    44,
+    29,
+    58,
+    98
+   ],
+   "stunBefore": [
+    0,
+    1,
+    999,
+    999,
+    999,
+    999
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    14,
+    55,
+    130,
+    177,
+    213,
+    272
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    70,
+    70,
+    70,
+    70
+   ],
+   "blockedEvents": 0,
+   "damage": 316,
+   "energySpent": 96.64,
+   "chainLinks": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "J1 → J2 → Gorilla → (Up+SP) Bird → (Down+SP) Tiger",
+   "kind": "combo",
+   "hits": [
+    19,
+    24,
+    62,
+    27,
+    46
+   ],
+   "stunBefore": [
+    0,
+    9,
+    4,
+    3,
+    3
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    5,
+    18,
+    39,
+    95,
+    132
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80,
+    80,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 178,
+   "energySpent": 35.4,
+   "chainLinks": 2,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Air Tiger Cross (jump-in) → Gorilla",
+   "kind": "combo",
+   "hits": [
+    67
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    81
+   ],
+   "gapAtHit": [
+    66
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 25.62,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 150,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 16,
+   "activeStart": 5,
+   "activeEnd": 6,
+   "damage": 33
+  },
+  "heavy": {
+   "name": "heavy",
+   "total": 39,
+   "activeStart": 14,
+   "activeEnd": 16,
+   "damage": 101
+  },
+  "bLow": {
+   "name": "bLow",
+   "total": 26,
+   "activeStart": 8,
+   "activeEnd": 9,
+   "damage": 47
+  },
+  "up": {
+   "name": "up",
+   "total": 37,
+   "activeStart": 12,
+   "activeEnd": 14,
+   "damage": 78
+  },
+  "bAdv": {
+   "name": "bAdv",
+   "total": 31,
+   "activeStart": 11,
+   "activeEnd": 13,
+   "damage": 47
+  },
+  "gorilla": {
+   "name": "gorilla",
+   "total": 49,
+   "activeStart": 15,
+   "activeEnd": 18,
+   "damage": 113
+  },
+  "tricera": {
+   "name": "tricera",
+   "total": 78,
+   "activeStart": 20,
+   "activeEnd": 51,
+   "damage": 125
+  },
+  "tiger": {
+   "name": "tiger",
+   "total": 50,
+   "activeStart": 13,
+   "activeEnd": 15,
+   "damage": 101
+  },
+  "bird": {
+   "name": "bird",
+   "total": 50,
+   "activeStart": 10,
+   "activeEnd": 33,
+   "damage": 55
+  },
+  "feint": {
+   "name": "feint",
+   "total": 21,
+   "activeStart": 6,
+   "activeEnd": 6,
+   "damage": 40
+  },
+  "ultOpen": {
+   "name": "ultOpen",
+   "total": 91,
+   "activeStart": 28,
+   "activeEnd": 30,
+   "damage": 49
+  },
+  "air": {
+   "name": "air",
+   "total": 25,
+   "activeStart": 8,
+   "activeEnd": 10,
+   "damage": 59
+  },
+  "tigerA": {
+   "name": "tigerA",
+   "total": 1014,
+   "activeStart": 11,
+   "activeEnd": 14,
+   "damage": 101
+  },
+  "bJ2": {
+   "name": "bJ2",
+   "total": 21,
+   "activeStart": 7,
+   "activeEnd": 8,
+   "damage": 41
+  },
+  "bJ3": {
+   "name": "bJ3",
+   "total": 31,
+   "activeStart": 10,
+   "activeEnd": 12,
+   "damage": 55
+  }
+ },
+ "costs": {
+  "gorilla": 14.94,
+  "tricera": 19.94,
+  "tiger": 17.94,
+  "bird": 11.94,
+  "feint": 7.94
+ },
+ "oneHit": {
+  "gorilla": {
+   "label": "gorilla: single strike",
+   "kind": "single",
+   "hits": [
+    67
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    15
+   ],
+   "gapAtHit": [
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 67,
+   "energySpent": 11.16,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  "tricera": {
+   "label": "tricera: single strike",
+   "kind": "single",
+   "hits": [
+    75
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    30
+   ],
+   "gapAtHit": [
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 75,
+   "energySpent": 15.74,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  "tiger": {
+   "label": "tiger: single strike",
+   "kind": "single",
+   "hits": [
+    60
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    13
+   ],
+   "gapAtHit": [
+    85
+   ],
+   "blockedEvents": 0,
+   "damage": 60,
+   "energySpent": 14.1,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  "bird": {
+   "label": "bird: single strike",
+   "kind": "single",
+   "hits": [
+    33
+   ],
+   "stunBefore": [
+    0
+   ],
+   "freeFramesBefore": [
+    0
+   ],
+   "hitFrames": [
+    10
+   ],
+   "gapAtHit": [
+    70
+   ],
+   "blockedEvents": 0,
+   "damage": 33,
+   "energySpent": 9.54,
+   "chainLinks": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  }
+ },
+ "interrupt": [
+  {
+   "k": "gorilla",
+   "t": 1,
+   "hitAt": 6,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 5,
+   "hitAt": 6,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 9,
+   "hitAt": 9,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 14,
+   "hitAt": 14,
+   "formHit": "gorilla",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 19,
+   "hitAt": 19,
+   "formHit": "gorilla",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 39,
+   "hitAt": 39,
+   "formHit": "gorilla",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 42,
+   "hitAt": 42,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 44,
+   "hitAt": 44,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "gorilla",
+   "t": 45,
+   "hitAt": 45,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 1,
+   "hitAt": 6,
+   "formHit": "human",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 10,
+   "hitAt": 10,
+   "formHit": "human",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 15,
+   "hitAt": 15,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 19,
+   "hitAt": 19,
+   "formHit": "tricera",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 52,
+   "hitAt": 58,
+   "formHit": "tricera",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 61,
+   "hitAt": 61,
+   "formHit": "tricera",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 63,
+   "hitAt": 63,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 65,
+   "hitAt": 65,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tricera",
+   "t": 66,
+   "hitAt": 66,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1305,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 1,
+   "hitAt": 6,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 4,
+   "hitAt": 6,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 7,
+   "hitAt": 7,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 12,
+   "hitAt": 12,
+   "formHit": "tiger",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1310,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 16,
+   "hitAt": 16,
+   "formHit": "tiger",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1310,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 38,
+   "hitAt": 38,
+   "formHit": "tiger",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 39,
+   "hitAt": 39,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 41,
+   "hitAt": 41,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "tiger",
+   "t": 42,
+   "hitAt": 42,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "bird",
+   "t": 1,
+   "hitAt": 6,
+   "formHit": "human",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "bird",
+   "t": 6,
+   "hitAt": 6,
+   "formHit": "human",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "bird",
+   "t": 8,
+   "hitAt": 8,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "bird",
+   "t": 9,
+   "hitAt": 9,
+   "formHit": "bird",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1302,
+     "y": 406,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1057
+   }
+  },
+  {
+   "k": "bird",
+   "t": 34,
+   "hitAt": 34,
+   "formHit": "bird",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1356.600000000001,
+     "y": 340.45,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "bird",
+   "t": 38,
+   "hitAt": 38,
+   "formHit": "bird",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1361.4400000000014,
+     "y": 348.55,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "bird",
+   "t": 39,
+   "hitAt": 39,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1362.320000000001,
+     "y": 352.7,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "bird",
+   "t": 41,
+   "hitAt": 41,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1364.0800000000013,
+     "y": 363.55,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  },
+  {
+   "k": "bird",
+   "t": 42,
+   "hitAt": 42,
+   "formHit": "morph",
+   "ok": true,
+   "after": {
+    "atk": null,
+    "form": "human",
+    "hurt": {
+     "x": 1364.9600000000014,
+     "y": 370.25,
+     "w": 48,
+     "h": 94
+    },
+    "invuln": 0,
+    "hp": 1061
+   }
+  }
+ ],
+ "bird": {
+  "apex": 66,
+  "dx": 132,
+  "jumpCount": 0
+ },
+ "tiger": {
+  "land": {
+   "name": "tigerLand",
+   "total": 24,
+   "activeStart": 1,
+   "activeEnd": 1,
+   "damage": 40
+  }
+ },
+ "tricera": {
+  "travel": 186,
+  "wall": {
+   "from": 2730,
+   "to": 2748,
+   "stageW": 3200
+  }
+ },
+ "feint": {
+  "back": 56,
+  "total": 21
+ },
+ "chain": {
+  "full": {
+   "label": "Gorilla → (Up+SP) Bird → (Down+SP) Tiger [Wild Chain ×2]",
+   "kind": "combo",
+   "hits": [
+    67,
+    33,
+    55
+   ],
+   "stunBefore": [
+    0,
+    3,
+    4
+   ],
+   "freeFramesBefore": [
+    0,
+    0,
+    0
+   ],
+   "hitFrames": [
+    15,
+    71,
+    108
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    60
+   ],
+   "blockedEvents": 0,
+   "damage": 155,
+   "energySpent": 35.4,
+   "chainLinks": 2,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  "tigerRoute": {
+   "label": "Tiger → (Fwd+SP) Triceratops → (SP) Gorilla [Wild Chain ×2]",
+   "kind": "combo",
+   "hits": [
+    60,
+    75,
+    62
+   ],
+   "stunBefore": [
+    0,
+    0,
+    6
+   ],
+   "freeFramesBefore": [
+    0,
+    19,
+    0
+   ],
+   "hitFrames": [
+    13,
+    79,
+    124
+   ],
+   "gapAtHit": [
+    85,
+    94,
+    94
+   ],
+   "blockedEvents": 0,
+   "damage": 197,
+   "energySpent": 42.62,
+   "chainLinks": 2,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 2"
+  },
+  "links": {
+   "gorilla>bird": {
+    "hits": [
+     67,
+     33
+    ],
+    "links": 1,
+    "verdict": "true combo",
+    "freeBefore": 0,
+    "hitFrames": [
+     15,
+     71
+    ]
+   },
+   "bird>tiger": {
+    "hits": [
+     33,
+     60
+    ],
+    "links": 1,
+    "verdict": "true combo",
+    "freeBefore": 0,
+    "hitFrames": [
+     10,
+     47
+    ]
+   },
+   "tiger>tricera": {
+    "hits": [
+     60,
+     75
+    ],
+    "links": 1,
+    "verdict": "RESET at hit 2",
+    "freeBefore": 19,
+    "hitFrames": [
+     13,
+     79
+    ]
+   },
+   "tricera>gorilla": {
+    "hits": [
+     75,
+     67
+    ],
+    "links": 1,
+    "verdict": "true combo",
+    "freeBefore": 0,
+    "hitFrames": [
+     30,
+     75
+    ]
+   }
+  },
+  "window": {
+   "lastFrame": 1,
+   "oneLate": 0
+  },
+  "linkCost": 11.94
+ },
+ "instinct": {
+  "earned": {
+   "instinct": true,
+   "collected": [],
+   "links": 0,
+   "chain": [
+    "bird"
+   ],
+   "open": null,
+   "queued": null,
+   "form": "human"
+  },
+  "jump": {
+   "timerLeft": 8,
+   "atk": null,
+   "vy": -24.15,
+   "grounded": false
+  },
+  "dash": {
+   "atk": null,
+   "dash": 9
+  }
+ },
+ "ultimate": {
+  "hits": [
+   {
+    "f": 27,
+    "d": 29,
+    "frame": 0
+   },
+   {
+    "f": 102,
+    "d": 52,
+    "frame": 46
+   },
+   {
+    "f": 149,
+    "d": 35,
+    "frame": 93
+   },
+   {
+    "f": 185,
+    "d": 70,
+    "frame": 129
+   },
+   {
+    "f": 244,
+    "d": 117,
+    "frame": 188
+   }
+  ],
+  "total": 303,
+  "energyAfter": 3.3600000000000025,
+  "done": 1,
+  "whiffFrames": 91
+ },
+ "lifecycle": {
+  "gorilla": true,
+  "tricera": true,
+  "tiger": true,
+  "bird": true
+ },
+ "misc": {
+  "walk60f": 360,
+  "jumpApexPx": 355,
+  "gorillaBox": {
+   "x": 1354,
+   "y": 430,
+   "w": 98,
+   "h": 46
+  },
+  "gorillaHurt": {
+   "x": 1302,
+   "y": 414,
+   "w": 64,
+   "h": 86
+  },
+  "humanHurt": {
+   "x": 1306,
+   "y": 406,
+   "w": 48,
+   "h": 94
+  }
+ },
+ "advantage": {
+  "light": {
+   "hit": 6,
+   "block": -3
+  },
+  "heavy": {
+   "hit": 6,
+   "block": -12
+  },
+  "gorilla": {
+   "hit": 8,
+   "block": -21
+  },
+  "tricera": {
+   "hit": 8,
+   "block": -11
+  },
+  "tiger": {
+   "hit": -6,
+   "block": -25
+  },
+  "bird": {
+   "hit": 8,
+   "block": -6
+  },
+  "ultOpen(block)": {
+   "hit": null,
+   "block": -48
+  }
+ },
+ "errors": [],
+ "summary": {
+  "pass": 148,
+  "fail": 0
+ }
+}

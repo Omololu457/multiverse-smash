@@ -1,0 +1,1022 @@
+{
+ "natural_world": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "pink_flash": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "cursed_rose": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "infinity_frost": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "alien_x": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": "stars"
+ },
+ "upgrade": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "rath_pack": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "arctic_reserve": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": null
+ },
+ "galaxy_glitter": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": "glitter"
+ },
+ "opal_safari": {
+  "regions": {
+   "human": {
+    "purple": 10710,
+    "skin": 7058,
+    "hair": 5531,
+    "gray": 9026,
+    "dskin": 2614,
+    "dhair": 415,
+    "dpurple": 2265,
+    "dgray": 4299,
+    "eye": 98
+   },
+   "gorilla": {
+    "fur1": 1503,
+    "fur2": 3527,
+    "fur3": 3457,
+    "fx": 31
+   },
+   "morph_gorilla": {
+    "purple": 110,
+    "gray": 370,
+    "dpurple": 12,
+    "dgray": 80,
+    "fur0": 18,
+    "fur1": 172,
+    "fur2": 602,
+    "fur3": 242
+   },
+   "morph_tri": {
+    "purple": 64,
+    "gray": 71,
+    "dpurple": 52,
+    "dgray": 23,
+    "body1": 72,
+    "body2": 134,
+    "body3": 207,
+    "shadow": 351,
+    "under": 16,
+    "horn": 9
+   },
+   "tri": {
+    "body0": 10,
+    "body1": 1784,
+    "body2": 4610,
+    "body3": 4920,
+    "shadow": 2755,
+    "under": 830,
+    "horn": 26,
+    "fx": 9
+   },
+   "morph_bird": {
+    "purple": 17,
+    "gray": 54,
+    "dpurple": 7,
+    "dgray": 6,
+    "plum0": 18,
+    "plum1": 66,
+    "plum2": 24,
+    "shadow": 47,
+    "beak0": 5,
+    "beak1": 9,
+    "beak2": 1
+   },
+   "bird": {
+    "plum0": 249,
+    "plum1": 634,
+    "plum2": 818,
+    "shadow": 1125,
+    "beak0": 24,
+    "beak1": 19,
+    "beak2": 21,
+    "beak3": 41
+   },
+   "tiger": {
+    "body0": 16,
+    "body1": 2157,
+    "body2": 5467,
+    "body3": 3607,
+    "stripe": 3892,
+    "muzzle0": 96,
+    "muzzle1": 285,
+    "muzzle2": 499,
+    "fx": 618
+   },
+   "morph_tiger": {
+    "purple": 244,
+    "gray": 97,
+    "dpurple": 2,
+    "body0": 6,
+    "body1": 149,
+    "body2": 284,
+    "body3": 201,
+    "stripe": 339,
+    "muzzle0": 17,
+    "muzzle1": 55,
+    "muzzle2": 30
+   }
+  },
+  "sourceGreenLeft": 0,
+  "material": "iridescent"
+ }
+}

@@ -527,7 +527,7 @@ export function getFighterInput(fighter) {
   // into this fighter's synthetic keyboard binds via applyAIInputToKeys, so it must read the
   // keyboard/buffer path below, never a physical pad that happens to be bound to this slot's
   // player number. (1v1 P1/P2 never set _aiControlled → this branch is unchanged for them.)
-  if (type === "controller" && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._dashParrRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && !fighter._batmanRemoteInput && !fighter._elastigirlRemoteInput) {
+  if (type === "controller" && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._dashParrRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._greenRangerRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && !fighter._spdYellowRemoteInput && !fighter._cyborgRemoteInput && !fighter._beastBoyRemoteInput && !fighter._ravenRemoteInput && !fighter._starfireRemoteInput && !fighter._robinRemoteInput && !fighter._megumiRemoteInput && !fighter._higurumaRemoteInput && !fighter._syndromeRemoteInput && !fighter._frozoneRemoteInput && !fighter._batmanRemoteInput && !fighter._mrRemoteInput && !fighter._elastigirlRemoteInput) {
     const gpInput = pollGamepad(pn, buffer)
     if (gpInput) return gpInput
   }
@@ -583,12 +583,13 @@ export function getFighterInput(fighter) {
 export const REPLAY_INPUT_FIELDS = ["left", "right", "down", "up", "jump", "light", "heavy", "upAttack", "special", "ultimate", "dash", "grab", "charge", "block"]
 
 export function readRawControls(fighter) {
+  if (fighter?.rosterKey === 'mr_incredible' && fighter._mrRemoteInput && fighter._mrInjectedRaw) return { ...fighter._mrInjectedRaw } // preserve pad Up vs Cross in replay/LAN
   if (!fighter || !fighter.controls) return null
   // Luffy's recovery retaps need actual held buttons, not the buffered controller output. Sanji's, Zoro's and
   // Buggy's command layers (press edges + motions) read this same snapshot, so a pad must feed it too.
   // Reuse this raw snapshot for replay/LAN as well; no extra buffer polling or input parser.
   const pn = fighter.playerNumber || 1
-  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'spd_blue' || fighter.rosterKey === 'krybot' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy' || fighter.rosterKey === 'spd_red' || fighter.rosterKey === 'spd_green' || fighter.rosterKey === 'dash_parr' || fighter.rosterKey === 'spd_pink' || fighter.rosterKey === 'mmpr_black' || fighter.rosterKey === 'mmpr_white' || fighter.rosterKey === 'mmpr_pink' || fighter.rosterKey === 'batman' || fighter.rosterKey === 'elastigirl') && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._dashParrRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && !fighter._batmanRemoteInput && !fighter._elastigirlRemoteInput && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
+  if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'spd_blue' || fighter.rosterKey === 'krybot' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy' || fighter.rosterKey === 'spd_red' || fighter.rosterKey === 'spd_green' || fighter.rosterKey === 'dash_parr' || fighter.rosterKey === 'spd_pink' || fighter.rosterKey === 'mmpr_black' || fighter.rosterKey === 'green_ranger' || fighter.rosterKey === 'mmpr_white' || fighter.rosterKey === 'mmpr_pink' || fighter.rosterKey === 'spd_yellow' || fighter.rosterKey === 'cyborg' || fighter.rosterKey === 'beast_boy' || fighter.rosterKey === 'raven' || fighter.rosterKey === 'starfire' || fighter.rosterKey === 'robin' || fighter.rosterKey === 'megumi_fushiguro' || fighter.rosterKey === 'higuruma' || fighter.rosterKey === 'syndrome' || fighter.rosterKey === 'frozone' || fighter.rosterKey === 'batman' || fighter.rosterKey === 'mr_incredible' || fighter.rosterKey === 'elastigirl') && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._dashParrRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._greenRangerRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && !fighter._spdYellowRemoteInput && !fighter._cyborgRemoteInput && !fighter._beastBoyRemoteInput && !fighter._ravenRemoteInput && !fighter._starfireRemoteInput && !fighter._robinRemoteInput && !fighter._megumiRemoteInput && !fighter._higurumaRemoteInput && !fighter._syndromeRemoteInput && !fighter._frozoneRemoteInput && !fighter._batmanRemoteInput && !fighter._mrRemoteInput && !fighter._elastigirlRemoteInput && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
     const gp = getPlayerGamepad(pn)
     if (gp) {
       const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []
@@ -610,6 +611,7 @@ export function readRawControls(fighter) {
 
 // Playback inverse (Stage 11C): drive `keys` from a decoded raw-input object for a replayed fighter.
 export function writeRawControls(fighter, raw) {
+  if (fighter?.rosterKey === 'mr_incredible' && raw) fighter._mrInjectedRaw = Object.fromEntries(REPLAY_INPUT_FIELDS.map(k => [k, !!raw[k]]))
   if (!fighter || !fighter.controls || !raw) return
   const c = fighter.controls
   fighter._dashTap = !!raw.dash

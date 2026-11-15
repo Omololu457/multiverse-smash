@@ -7,7 +7,19 @@ import { spdBlueHitbox, spdBlueBlock, spdBlueHit, absorbSpdBlue } from './spdBlu
 import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js'   // S.P.D. Green hooks (spd_green-gated)
 import { dashParrHitbox, dashParrBlock, dashParrHit, dashParrComboScale, dashParrDamageMods, dashParrHurtbox } from './dashParrState.js'   // Dash Parr hooks (dash_parr-gated)
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
+import { greenHitbox, greenBlock, greenHit } from './greenRangerState.js'   // Green Ranger hooks (green_ranger-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
+import { spdYellowHitbox, spdYellowBlock, spdYellowHit, spdYellowProjectileHit } from './spdYellowState.js'   // S.P.D. Yellow hooks (spd_yellow-gated)
+import { cyborgHitbox, cyborgBlock, cyborgHit, cyborgKnockback, cyborgProjectileHit } from './cyborgState.js'   // Cyborg hooks (cyborg-gated)
+import { beastBoyHitbox, beastBoyHurtbox, beastBoyBlock, beastBoyHit } from './beastBoyState.js'   // Beast Boy hooks (beast_boy-gated)
+import { ravenHitbox, ravenBlock, ravenHit, ravenProjectileHit, absorbRaven } from './ravenState.js'   // Raven hooks (raven-gated)
+import { starfireHitbox, starfireBlock, starfireHit, starfireProjectileHit } from './starfireState.js'   // Starfire hooks (starfire-gated)
+import { robinHitbox, robinBlock, robinHit, robinProjectileHit } from './robinState.js'   // Robin hooks (robin-gated)
+import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './megumiState.js'   // Megumi hooks (megumi-gated)
+import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
+import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
+import { frozoneHitbox, frozoneBlock, frozoneHit, frozoneProjectileHit } from './frozoneState.js'   // Frozone hooks (frozone-gated)
+import { mrHitbox, mrHit } from './mrIncredibleState.js'
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
 import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile, violetNoBox } from './violetState.js'   // Violet Parr hooks (violet-gated)
 import { elastigirlHitbox, elastigirlHurtbox, elastigirlBlock, elastigirlHit, absorbElastigirl, elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)
@@ -711,7 +723,19 @@ export function getAttackHitbox(fighter) {
   if (a?.pink && fighter.rosterKey === 'spd_pink') return spdPinkHitbox(fighter)
   if (a?.mb && fighter.rosterKey === 'mmpr_pink') return mmprPinkHitbox(fighter)   // Pink Ranger: per-move box; body-less bow / call / Crane Escape have none
   if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
+  if (a?.gm && fighter.rosterKey === 'green_ranger') return greenHitbox(fighter)   // Green Ranger: per-move box + Rising Talon contact windows; body-less calls have none
   if (a?.mw && fighter.rosterKey === 'mmpr_white') return mmprWhiteHitbox(fighter)   // White Ranger: per-move box; body-less order / signal / feint have none
+  if (a?.my && fighter.rosterKey === 'spd_yellow') return spdYellowHitbox(fighter)   // S.P.D. Yellow: per-move box; body-less gun / clone / swap / call / stance have none
+  if (a?.cy && fighter.rosterKey === 'cyborg') return cyborgHitbox(fighter)   // Cyborg: per-move box; Mega shockwave = grounded band; weapons / vent / slam hang have none
+  if (a?.bb && fighter.rosterKey === 'beast_boy') return beastBoyHitbox(fighter)   // Beast Boy: per-move box; animal forms use deliberate geometry (never the art bounds); feint has none
+  if (a?.rv && fighter.rosterKey === 'raven') return ravenHitbox(fighter)   // Raven: per-move palm box; spells (orb / piles / bricks / shell) have no body box
+  if (a?.sf && fighter.rosterKey === 'starfire') return starfireHitbox(fighter)   // Starfire: per-move fist box; Star Sight = the eye-beam entry point (both beams one contract); projectiles have no body box
+  if (a?.rb && fighter.rosterKey === 'robin') return robinHitbox(fighter)   // Robin: per-move fist / staff box; gadgets (bombs / smoke / hack / step) have no body box
+  if (a?.mg && fighter.rosterKey === 'megumi_fushiguro') return megumiHitbox(fighter)   // Megumi: per-move body box; summon gestures have none (the shikigami's projectile volume hits)
+  if (a?.hg && fighter.rosterKey === 'higuruma') return higurumaHitbox(fighter)   // Higuruma: per-move gavel / extension / giant-gavel box from the drawn weapon (body hurtbox unchanged)
+  if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
+  if (a?.fz && fighter.rosterKey === 'frozone') return frozoneHitbox(fighter)   // Frozone: the ice strike's box at the casting hand (body-less casts have none — Lance / Black Ice are projectiles)
+  if (a?.mr && fighter.rosterKey === 'mr_incredible') return mrHitbox(fighter)
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
   if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated
   if (a?.eg && fighter.rosterKey === 'elastigirl') return elastigirlHitbox(fighter)   // Elastigirl: per-move limb box + multi-contact windows
@@ -793,6 +817,7 @@ export function getHurtbox(fighter) {
   }
   if (fighter.rosterKey === 'arlong') return arlongHurtbox(fighter)   // ARLONG — the big sawshark body: a larger hurtbox (designed weakness; arlong-gated)
   if (fighter.rosterKey === 'dash_parr' && fighter._dashParr?.lowProfile) return dashParrHurtbox(fighter)   // Dash Parr: Hydroplane low profile (dash_parr-gated)
+  if (fighter.rosterKey === 'beast_boy') { const hb = beastBoyHurtbox(fighter); if (hb) return hb }   // BEAST BOY — animal-form hurtbox while a transient animal action is live (null → ordinary box); beast_boy-gated
   if (fighter.rosterKey === 'elastigirl') return elastigirlHurtbox(fighter)   // ELASTIGIRL — stretched-limb hurtbox while a long normal is active; Whirl Kick upper-body invulnerability (elastigirl-gated)
   return {
     x: fighter.x + 6,
@@ -3279,6 +3304,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // LUFFY — Gum-Gum guard absorb: when his defensive window holds, the incoming strike is absorbed
   // outright. luffy-gated → a strict no-op for every other fighter.
   if (absorbSpdBlue(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }
+  if (absorbRaven(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Raven Soul Shell: frontal contact absorbed (grabs / ultimates / unblockables bypass); raven-gated
+  if (absorbHiguruma(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Higuruma Objection: one frontal strike caught (grabs / projectiles / ultimates / unblockables bypass); higuruma-gated
   if (absorbBatman(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Batman cape counter: one frontal strike caught; batman-gated
   if (absorbViolet(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Violet BUBBLE SHIELD: the dome stops the strike; violet-gated
   if (absorbElastigirl(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Elastigirl Stretch Guard: parry window absorbs one strike; elastigirl-gated
@@ -3435,7 +3462,19 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) spdPinkBlock(attacker, defender, atk)
     if (!flawless) mmprPinkBlock(attacker, defender, atk)   // Pink Ranger: authored blockstun; mmpr_pink-gated
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
+    if (!flawless) greenBlock(attacker, defender, atk)   // Green Ranger: authored blockstun; green_ranger-gated
     if (!flawless) mmprWhiteBlock(attacker, defender, atk)   // White Ranger: authored blockstun; mmpr_white-gated
+    if (!flawless) spdYellowBlock(attacker, defender, atk)   // S.P.D. Yellow: authored blockstun; spd_yellow-gated
+    if (!flawless) cyborgBlock(attacker, defender, atk)   // Cyborg: authored blockstun; cyborg-gated
+    if (!flawless) beastBoyBlock(attacker, defender, atk)   // Beast Boy: authored blockstun; a blocked charge / pounce stops; beast_boy-gated
+    if (!flawless) ravenBlock(attacker, defender, atk)   // Raven: authored blockstun; raven-gated
+    if (!flawless) starfireBlock(attacker, defender, atk)   // Starfire: authored blockstun; starfire-gated
+    if (!flawless) robinBlock(attacker, defender, atk)   // Robin: authored blockstun; robin-gated
+    if (!flawless) megumiBlock(attacker, defender, atk)   // Megumi: authored blockstun; megumi-gated
+    if (!flawless) higurumaBlock(attacker, defender, atk)   // Higuruma: authored blockstun; no evidence on block; higuruma-gated
+    if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
+    if (!flawless) frozoneBlock(attacker, defender, atk)   // Frozone: authored blockstun; no Chill on block; frozone-gated
+    if (!flawless) mrHit(attacker, defender, atk, true)
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
     violetBlock(attacker, defender, atk, flawless)   // Violet: a blocked strike still ends Vanish + authored blockstun (not on a flawless block); violet-gated
     if (!flawless) elastigirlBlock(attacker, defender, atk)   // Elastigirl: authored on-block advantage; elastigirl-gated
@@ -3497,7 +3536,19 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     spdPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
     mmprPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Pink Ranger: clean flag (chain / J-string gate)
     mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
+    greenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Green Ranger: clean flag (chains / cancels); green_ranger-gated
     mmprWhiteHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // White Ranger: clean flag, discipline credit (no credit when armored), ultimate confirm
+    spdYellowHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // S.P.D. Yellow: clean flag, MELEE coin (no coin when armored)
+    cyborgHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Cyborg: clean flag, Hot Impact, Mega shock FX, ultimate confirm
+    beastBoyHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Beast Boy: clean flag, Wild Chain window, Instinct credit (none when armored), ultimate confirm
+    ravenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Raven: clean flag (chain / special / ult cancels); raven-gated
+    starfireHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Starfire: clean flag (chain / special / ult cancels), laser hit FX; starfire-gated
+    robinHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Robin: clean flag (chain / staff / special / ult cancels), OUTPLAY cue; robin-gated
+    megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
+    higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
+    syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
+    frozoneHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Frozone: clean flag (chain / cancels), Chill / Freeze / Shatter, ultimate confirm; frozone-gated
+    mrHit(attacker, defender, atk, false)
     batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
     violetHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Violet: +4 Force Field on a landed hit; violet-gated
     elastigirlHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Elastigirl: clean flag (Long Arm pull, Whip bounce, raft carry); elastigirl-gated
@@ -3570,6 +3621,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     sanjiKnockback(attacker, defender, atk)
     arlongKnockback(attacker, defender, atk)
     spdRedKnockback(attacker, defender, atk)
+    cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —
@@ -4333,6 +4385,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (buggyNullifyProjectile(fighter, proj)) { projectiles.splice(i, 1); break }
       if (absorbSpdBlue(fighter, proj.owner, proj, true)) { projectiles.splice(i, 1); break }
       { const _vio = violetProjectile(fighter, proj); if (_vio === 'absorb') { projectiles.splice(i, 1); break } if (_vio === 'reflect') break }   // Violet: dome reflect ×1.2 / Force Ball armour; violet-gated
+      if (absorbRaven(fighter, proj.owner, proj, true)) { projectiles.splice(i, 1); break }   // Raven Soul Shell: frontal projectile absorbed; raven-gated
 
       // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
       // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority
@@ -4420,6 +4473,14 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       krybotProjectileHit(proj, fighter)
       mmprPinkProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Pink Ranger arrows: Spotter Link / Thread the Needle / ultimate confirm; mmpr_pink-gated
       mmprBlackProjectileHit(proj, fighter)   // Falconzord Covering Volley shot (Pincer consume); mmpr_black-gated
+      spdYellowProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // S.P.D. Yellow shots: GUN coin / Breach confirm / ultimate confirm; spd_yellow-gated
+      cyborgProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Cyborg: Sonic Resonance mark / missile conversion; weight when Cyborg is the target; cyborg-gated
+      ravenProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Raven: orb / brick contact bookkeeping (hit flag, impact FX, ultimate confirm); raven-gated
+      starfireProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Starfire: bolt / orb / burst contact → explosion, ultimate confirm; starfire-gated
+      robinProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Robin: bomb contact → explosion; blast bookkeeping; robin-gated
+      syndromeProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Syndrome: machine contact bookkeeping (Convergence, turret / Omnidroid confirms); syndrome-gated
+      frozoneProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Frozone: Lance / Black Ice contact → Chill (clean only), thaw; frozone-gated
+      megumiProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Megumi: summon contact bookkeeping (route confirm, Toad pull, Totality confirm); megumi-gated
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
       buggyProjectileHit(proj, fighter)  // Buggy the Clown: +4 Chop per thrown knife (buggy-gated)
       sanjiProjectileHit(proj, fighter)  // Sanji: volleyed plate = a kick (+4 Heat, burn when lit) (sanji-gated)

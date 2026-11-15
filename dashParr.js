@@ -3,12 +3,12 @@
 //   Light            Jab (fresh re-press chains Jab → Jab → Heavy on contact)   ↓+Light / ↓+Heavy  Low slide
 //   Heavy            Heavy lunge        ↑+Heavy / Up-Attack  Launcher           air Light / Heavy  Air streak
 //   ↓↘→ +Special     Flurry             →→ +Special  Blur Dash                 ↓↓ +Special  Laps
-//   ←↙↓ +Special     Hydroplane         ↓↘→↓↘→ +Special or Ultimate  INCREDI-RUSH
+//   ← +Special       FLASH TIME (toggle)  ←↙↓ +Special  Hydroplane         ↓↘→↓↘→ +Special or Ultimate  INCREDI-RUSH
 //   ←← +Light        Sidestep           Block + Heavy (while comboed 3+)  Panic Run (handled in tickDashParr)
 // Simple-input fallbacks (pad / CPU friendly; motions are the canon inputs): Special neutral → Flurry,
-// fwd → Blur Dash, down → Laps, back → Hydroplane.
+// fwd → Blur Dash, down → Laps (back is Flash Time).
 import {startMove,getAttackPhase} from './combat.js'
-import {isDashParr,dashParrState,startDashParrMove} from './dashParrState.js'
+import {isDashParr,dashParrState,startDashParrMove,toggleDashParrFlashTime} from './dashParrState.js'
 const fresh=(s,k)=>s.edges[k]&&s.used[k]!==s.edges[k].tick&&s.clock-s.edges[k].clock<=8
 const use=(s,k)=>s.used[k]=s.edges[k].tick
 // Cancel routes on CLEAN contact once the move is in recovery (multi-hit moves keep every hit).
@@ -30,7 +30,9 @@ export function updateDashParrCommandCombat(f,inp,opp,W){
  }
  if(fresh(s,'special')&&can('special')){
   const e=s.edges.special;use(s,'special')
-  const k=!g?'flurry':e.qcf?'flurry':e.qcbd?'hydro':e.downTap2?'laps':e.fwdTap2?'blurDash':e.down?'laps':e.fwd?'blurDash':e.back?'hydro':'flurry'
+  // FLASH TIME: plain Back + Special on the ground (no ←↙↓ motion) toggles the time-slow. Not a move: no attack starts.
+  if(g&&!a&&e.back&&!e.qcbd&&!e.qcf&&!e.dqcf&&!e.down){toggleDashParrFlashTime(f);return 'consumed'}
+  const k=!g?'flurry':e.qcf?'flurry':e.qcbd?'hydro':e.downTap2?'laps':e.fwdTap2?'blurDash':e.down?'laps':e.fwd?'blurDash':'flurry'
   if(!g&&a&&a.name!=='air')return 'consumed'
   fire(k,!!a);return 'consumed'
  }

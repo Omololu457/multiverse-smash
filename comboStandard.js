@@ -50,6 +50,7 @@ export const COMBO_STANDARD = {
 // Drivers with 0 or multiple rekkaContinue calls (single-move / grab / dual-string / super-branch)
 // set it false — the harness skips the source check for them.
 export const REKKA = [
+  { key: 'mr_incredible', source: 'mrIncredibleState.js', driver: 'mrCommand', opener: 'light', retap: 'light', stages: 3, finisher: 'heavy', requireHit: true, srcRequireHit: false, status: 'exception', note: 'User-authored fresh Light → Light → finishing punch; one fighter across veteran/prime. Separate shared launcher → jump-cancel → air route.' },
   { key: 'zoro', source: 'zoro.js', driver: 'updateZoroCommandCombat', opener: 'light', retap: 'light→heavy', stages: 3, finisher: 'launcher', requireHit: false, srcRequireHit: false, status: 'exception', note: 'Jab → Slash → Heavy-slash launcher (the L,L,H grammar) driven by his OWN command layer on contact (hit or block); motion-input specials. Not the Fwd+Heavy rekka opener.' },
   { key: 'luffy', source: 'luffy.js', driver: 'updateLuffyCommandCombat', opener: 'fwd+heavy', retap: 'heavy', stages: 3, finisher: 'launcher', requireHit: true, srcRequireHit: true, status: 'conforms', note: 'Up+Heavy confirmed branch chooses launcher; default final Heavy knocks away. Separate fresh Light three-stage chain.' },
   // ── CONFORMS — Forward+Heavy · Heavy re-tap · launcher finisher · requireHit:true ──────────────
@@ -297,10 +298,10 @@ export const EXPECTED_COUNTS = {
   conforms:        56,             // prior 55 + Luffy; legacy roster drift remains documented
   deviatesOpener:  0,              // Stage B DONE
   deviatesFinisher: 0,             // Stage C DONE (Maki stays an exception)
-  exception:       17,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
+  exception:       18,             // 8 original + 8 Stage-G (driver present but non-standard opener / no rekka chain)
   standardStringBuiltIn: 5,        // pre-existing L,L,H chars (goku/gojo/sukuna/naruto/rick) — Megumi removed 2026-08-18
   standardStringAdded:  8,         // Stage D rollout (itachi/yuji/goku_black/cell/tobi/morty/albedo) + handler (JJK) — omololu moved to rekka
   standardStringTotal:  13,
   zoner:                34,         // ... + shisui_trinity + shisui_blade + shisui_puppeteer + shizuku (additive JUS/Naruto chars, single-poke)
-  rosterTotal:          120,       // prior expected 118 + Luffy; do not hide unrelated classification gaps
+  rosterTotal:          121,       // prior expected 118 + Luffy; do not hide unrelated classification gaps
 }

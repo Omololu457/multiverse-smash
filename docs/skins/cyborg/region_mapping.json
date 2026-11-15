@@ -1,0 +1,912 @@
+{
+ "regions": {
+  "outline": "(0,0,0) kept",
+  "skin": "r>=80, r>g, b<=12 \u2014 never recoloured",
+  "eye": "r>=180, g<=20, b<=60",
+  "panel": "b>=r+60 and b>=g",
+  "joint": "grey, luminance < 92",
+  "armor": "other greys / whites",
+  "thruster": "unoutlined / detached light pixels in doubleJump, ultBoost",
+  "impact": "unoutlined / detached light pixels in cMega, cSlamLand, cLow, ultMega (neutral)",
+  "bluebomberBoots": "armor pixels in rows OY-11..OY+1 of each body frame",
+  "autobotLegs": "armor pixels below 40% of body height above the feet"
+ },
+ "sourceRamps": {
+  "armor": [
+   [
+    104,
+    112,
+    120
+   ],
+   [
+    152,
+    168,
+    176
+   ],
+   [
+    192,
+    208,
+    216
+   ],
+   [
+    248,
+    248,
+    248
+   ]
+  ],
+  "joint": [
+   [
+    40,
+    48,
+    56
+   ],
+   [
+    80,
+    88,
+    88
+   ]
+  ],
+  "panel": [
+   [
+    0,
+    80,
+    176
+   ],
+   [
+    40,
+    152,
+    240
+   ],
+   [
+    96,
+    200,
+    248
+   ]
+  ]
+ },
+ "skins": [
+  {
+   "id": "cy_stark_circuit",
+   "tag": "stark",
+   "name": "Stark Circuit \u2014 Iron Man Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Marvel \u2014 Iron Man (Tony Stark) colour inspiration",
+   "inspiration": "Iron Man armour red / gold with arc-reactor cyan",
+   "url": "https://www.marvel.com/characters/iron-man-tony-stark",
+   "notes": "Plating red, blue panels gold, cyan only on the weapon / thruster / sonic effects. No new helmet or chest-reactor geometry.",
+   "armor": [
+    [
+     96,
+     14,
+     16
+    ],
+    [
+     150,
+     22,
+     26
+    ],
+    [
+     196,
+     40,
+     36
+    ],
+    [
+     236,
+     96,
+     80
+    ]
+   ],
+   "panel": [
+    [
+     120,
+     78,
+     8
+    ],
+    [
+     196,
+     146,
+     30
+    ],
+    [
+     246,
+     206,
+     92
+    ]
+   ],
+   "joint": [
+    [
+     36,
+     30,
+     30
+    ],
+    [
+     70,
+     58,
+     54
+    ]
+   ],
+   "fx": [
+    [
+     20,
+     120,
+     170
+    ],
+    [
+     80,
+     210,
+     240
+    ],
+    [
+     200,
+     248,
+     255
+    ]
+   ],
+   "hud": [
+    "#ffd25a",
+    "#c8222a"
+   ]
+  },
+  {
+   "id": "cy_war_machine",
+   "tag": "warmachine",
+   "name": "War Machine \u2014 Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Marvel \u2014 War Machine (James Rhodes) colour inspiration",
+   "inspiration": "War Machine gunmetal / silver with red accents",
+   "url": "https://www.marvel.com/characters/war-machine-james-rhodes",
+   "notes": "Plating gunmetal-to-silver, panels and weapon glow red. No new shoulder cannon, no military markings.",
+   "armor": [
+    [
+     58,
+     62,
+     68
+    ],
+    [
+     98,
+     104,
+     112
+    ],
+    [
+     146,
+     152,
+     160
+    ],
+    [
+     206,
+     210,
+     216
+    ]
+   ],
+   "panel": [
+    [
+     100,
+     10,
+     14
+    ],
+    [
+     170,
+     26,
+     30
+    ],
+    [
+     226,
+     74,
+     64
+    ]
+   ],
+   "joint": [
+    [
+     26,
+     28,
+     32
+    ],
+    [
+     52,
+     56,
+     60
+    ]
+   ],
+   "fx": [
+    [
+     150,
+     30,
+     20
+    ],
+    [
+     240,
+     90,
+     50
+    ],
+    [
+     255,
+     200,
+     150
+    ]
+   ],
+   "hud": [
+    "#e24a40",
+    "#7a8088"
+   ]
+  },
+  {
+   "id": "cy_blue_bomber",
+   "tag": "bluebomber",
+   "name": "Blue Bomber \u2014 Mega Man Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Capcom \u2014 Mega Man colour inspiration",
+   "inspiration": "Mega Man two-tone blue with pale boots and a yellow buster shot",
+   "url": "https://megaman.capcom.com/",
+   "notes": "Two-tone blue plating, pale boot plating (lowest 11 px band of each grounded body frame), yellow weapon effects. Victor's face and the actual arm shape are unchanged; gloves stay in the palest plating tone (no separate glove region exists on the art).",
+   "armor": [
+    [
+     24,
+     92,
+     190
+    ],
+    [
+     48,
+     132,
+     236
+    ],
+    [
+     98,
+     178,
+     250
+    ],
+    [
+     176,
+     224,
+     255
+    ]
+   ],
+   "panel": [
+    [
+     10,
+     34,
+     120
+    ],
+    [
+     22,
+     70,
+     190
+    ],
+    [
+     52,
+     116,
+     236
+    ]
+   ],
+   "joint": [
+    [
+     16,
+     30,
+     70
+    ],
+    [
+     36,
+     56,
+     104
+    ]
+   ],
+   "boots": [
+    [
+     150,
+     170,
+     190
+    ],
+    [
+     200,
+     214,
+     228
+    ],
+    [
+     232,
+     240,
+     248
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     170,
+     120,
+     0
+    ],
+    [
+     246,
+     208,
+     40
+    ],
+    [
+     255,
+     246,
+     170
+    ]
+   ],
+   "hud": [
+    "#6ab8ff",
+    "#f4d03c"
+   ]
+  },
+  {
+   "id": "cy_autobot_vanguard",
+   "tag": "autobot",
+   "name": "Autobot Vanguard \u2014 Optimus Prime Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Hasbro \u2014 Transformers, Optimus Prime colour inspiration",
+   "inspiration": "Optimus Prime red upper body, navy legs, silver trim",
+   "url": "https://transformers.hasbro.com/en-us/character/optimus-prime",
+   "notes": "Upper plating red, leg plating navy (below 40 % of the frame's body height above the feet), panels silver. No faceplate, vehicle parts, faction logo or transformation.",
+   "armor": [
+    [
+     110,
+     14,
+     18
+    ],
+    [
+     172,
+     28,
+     30
+    ],
+    [
+     214,
+     52,
+     44
+    ],
+    [
+     246,
+     110,
+     92
+    ]
+   ],
+   "legs": [
+    [
+     16,
+     26,
+     74
+    ],
+    [
+     28,
+     48,
+     124
+    ],
+    [
+     48,
+     78,
+     170
+    ],
+    [
+     96,
+     126,
+     212
+    ]
+   ],
+   "panel": [
+    [
+     110,
+     116,
+     124
+    ],
+    [
+     170,
+     176,
+     184
+    ],
+    [
+     226,
+     230,
+     236
+    ]
+   ],
+   "joint": [
+    [
+     22,
+     24,
+     30
+    ],
+    [
+     48,
+     52,
+     60
+    ]
+   ],
+   "fx": [
+    [
+     40,
+     90,
+     200
+    ],
+    [
+     110,
+     170,
+     255
+    ],
+    [
+     220,
+     240,
+     255
+    ]
+   ],
+   "hud": [
+    "#d8343a",
+    "#2a4aa8"
+   ]
+  },
+  {
+   "id": "cy_alien_x",
+   "tag": "alienx",
+   "name": "Alien X \u2014 Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Ben 10 (Cartoon Network) \u2014 Alien X colour inspiration",
+   "inspiration": "Alien X cosmic black body, pale trim, green eyes, stars",
+   "url": "https://ben10.fandom.com/wiki/Alien_X",
+   "notes": "Cosmic charcoal plating, pale metal panels, green sensor and effects, sparse discrete star pixels on the plating only (precomputed, 4 slow phases).",
+   "armor": [
+    [
+     14,
+     14,
+     20
+    ],
+    [
+     26,
+     26,
+     36
+    ],
+    [
+     40,
+     42,
+     54
+    ],
+    [
+     64,
+     66,
+     82
+    ]
+   ],
+   "panel": [
+    [
+     132,
+     140,
+     156
+    ],
+    [
+     186,
+     194,
+     208
+    ],
+    [
+     232,
+     238,
+     248
+    ]
+   ],
+   "joint": [
+    [
+     6,
+     6,
+     10
+    ],
+    [
+     18,
+     18,
+     26
+    ]
+   ],
+   "eye": [
+    60,
+    230,
+    110
+   ],
+   "fx": [
+    [
+     20,
+     130,
+     60
+    ],
+    [
+     70,
+     220,
+     120
+    ],
+    [
+     200,
+     255,
+     220
+    ]
+   ],
+   "hud": [
+    "#7dffaa",
+    "#e8ecf4"
+   ],
+   "material": {
+    "kind": "stars",
+    "region": "armor",
+    "density": 70,
+    "colors": [
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      200,
+      255,
+      220
+     ],
+     [
+      150,
+      220,
+      255
+     ]
+    ]
+   }
+  },
+  {
+   "id": "cy_upgrade",
+   "tag": "upgrade",
+   "name": "Upgrade \u2014 Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Ben 10 (Cartoon Network) \u2014 Upgrade colour inspiration",
+   "inspiration": "Upgrade black techno-organic body with neon-green circuitry",
+   "url": "https://ben10.fandom.com/wiki/Upgrade",
+   "notes": "Dark metal plating; the EXISTING blue panel / weapon pixels turn neon green. No invented circuitry geometry.",
+   "armor": [
+    [
+     14,
+     16,
+     18
+    ],
+    [
+     26,
+     30,
+     32
+    ],
+    [
+     42,
+     46,
+     50
+    ],
+    [
+     66,
+     72,
+     76
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     110,
+     40
+    ],
+    [
+     30,
+     204,
+     86
+    ],
+    [
+     150,
+     255,
+     176
+    ]
+   ],
+   "joint": [
+    [
+     6,
+     8,
+     8
+    ],
+    [
+     16,
+     18,
+     18
+    ]
+   ],
+   "eye": [
+    120,
+    255,
+    140
+   ],
+   "fx": [
+    [
+     0,
+     120,
+     50
+    ],
+    [
+     40,
+     230,
+     110
+    ],
+    [
+     190,
+     255,
+     200
+    ]
+   ],
+   "hud": [
+    "#40ff8a",
+    "#1c2224"
+   ]
+  },
+  {
+   "id": "cy_aurora_alloy",
+   "tag": "aurora",
+   "name": "Aurora Alloy \u2014 Original",
+   "classification": "Original (user-authorized cosmetic design)",
+   "crossover": null,
+   "inspiration": "Original: pearlescent silver / teal with restrained violet and ice highlights",
+   "url": null,
+   "notes": "Pearl plating, teal panels; a precomputed violet panel overlay fades in and out over ~4 s (slow iridescence, no flashing).",
+   "armor": [
+    [
+     92,
+     118,
+     126
+    ],
+    [
+     146,
+     178,
+     184
+    ],
+    [
+     194,
+     222,
+     224
+    ],
+    [
+     244,
+     252,
+     252
+    ]
+   ],
+   "panel": [
+    [
+     20,
+     104,
+     120
+    ],
+    [
+     48,
+     170,
+     184
+    ],
+    [
+     150,
+     230,
+     236
+    ]
+   ],
+   "joint": [
+    [
+     40,
+     52,
+     62
+    ],
+    [
+     70,
+     86,
+     96
+    ]
+   ],
+   "fx": [
+    [
+     90,
+     150,
+     210
+    ],
+    [
+     170,
+     215,
+     250
+    ],
+    [
+     235,
+     248,
+     255
+    ]
+   ],
+   "hud": [
+    "#9ee8f0",
+    "#a88cff"
+   ],
+   "material": {
+    "kind": "iridescent",
+    "region": "panel",
+    "colors": [
+     [
+      70,
+      40,
+      140
+     ],
+     [
+      130,
+      90,
+      210
+     ],
+     [
+      200,
+      170,
+      255
+     ]
+    ],
+    "period": 240,
+    "maxAlpha": 0.55
+   }
+  },
+  {
+   "id": "cy_disco_chrome",
+   "tag": "disco",
+   "name": "Disco Chrome \u2014 Original",
+   "classification": "Original (user-authorized cosmetic design)",
+   "crossover": null,
+   "inspiration": "Original: deep polished metal with discrete silver / gold / magenta glitter",
+   "url": null,
+   "notes": "Deep polished plating keeps its readable shading ramp; discrete single-pixel glitter on plating + panels (precomputed, 4 phases, ~1 px per 55 plating px). Not a sparkle cloud.",
+   "armor": [
+    [
+     26,
+     20,
+     40
+    ],
+    [
+     54,
+     44,
+     76
+    ],
+    [
+     96,
+     84,
+     124
+    ],
+    [
+     170,
+     160,
+     200
+    ]
+   ],
+   "panel": [
+    [
+     110,
+     10,
+     90
+    ],
+    [
+     196,
+     40,
+     160
+    ],
+    [
+     250,
+     130,
+     220
+    ]
+   ],
+   "joint": [
+    [
+     10,
+     8,
+     16
+    ],
+    [
+     30,
+     24,
+     40
+    ]
+   ],
+   "fx": [
+    [
+     150,
+     100,
+     10
+    ],
+    [
+     230,
+     180,
+     50
+    ],
+    [
+     255,
+     240,
+     170
+    ]
+   ],
+   "hud": [
+    "#ff7ad8",
+    "#e6c04a"
+   ],
+   "material": {
+    "kind": "glitter",
+    "region": "armor+panel",
+    "density": 55,
+    "colors": [
+     [
+      236,
+      240,
+      248
+     ],
+     [
+      250,
+      214,
+      90
+     ],
+     [
+      255,
+      120,
+      220
+     ]
+    ]
+   }
+  }
+ ],
+ "audit": {
+  "stark": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248452,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 0
+  },
+  "warmachine": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248452,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 0
+  },
+  "bluebomber": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248452,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 0
+  },
+  "autobot": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248452,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 0
+  },
+  "alienx": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248662,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 7505
+  },
+  "upgrade": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248662,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 0
+  },
+  "aurora": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248452,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 48445
+  },
+  "disco": {
+   "files": 51,
+   "skinPixels": 38634,
+   "recoloured": 248452,
+   "thruster": 1215,
+   "impactKept": 11685,
+   "materialPixels": 13318
+  }
+ }
+}

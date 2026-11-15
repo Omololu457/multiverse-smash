@@ -1,0 +1,78 @@
+{
+  "replay": {
+    "frames": 2400,
+    "identical": true,
+    "exercised": [
+      "light",
+      "gJ2",
+      "gJ3",
+      "gCall",
+      "gEdge",
+      "note_gEdge",
+      "gAdvance",
+      "gTalon",
+      "gPulse",
+      "shot",
+      "gFang",
+      "gAdv",
+      "gBlade",
+      "up"
+    ],
+    "zordInReplay": false,
+    "note": "input-only: energy is never injected; the Zord ultimate is covered by section C when the meter is not full in this scenario"
+  },
+  "renderBatching": {
+    "samples": 400,
+    "identical": true
+  },
+  "ultimate": {
+    "sameUlt": true,
+    "ultRan": true,
+    "callLive": true,
+    "afterCall": {
+      "notes": 0,
+      "call": false
+    },
+    "midUlt": true,
+    "afterUlt": {
+      "active": false,
+      "zord": false,
+      "attack": null,
+      "shots": 0,
+      "missed": 0
+    },
+    "shotLive": true,
+    "afterShots": 0
+  },
+  "ko": {
+    "active": true,
+    "hp": 0,
+    "gs": "battle",
+    "cine": false
+  },
+  "nextRound": {
+    "gs": "battle",
+    "notes": 0,
+    "zord": false,
+    "cine": false,
+    "liveUlt": true,
+    "koLive": true
+  },
+  "mirror": {
+    "cineFrames": 150,
+    "a": {
+      "hp": 960,
+      "zord": false,
+      "atk": null
+    },
+    "b": {
+      "hp": 756,
+      "zord": false,
+      "atk": null
+    },
+    "active": false
+  },
+  "passes": 17,
+  "fails": 0,
+  "errors": []
+}

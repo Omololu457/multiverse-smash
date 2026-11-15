@@ -1,0 +1,392 @@
+{
+ "rules": "Megumi Fushiguro — precompute the TEN appearance skins (cosmetic only).\n\nInput: the extracted default strips (assets/megumi_fushiguro/*.png + portrait.png, produced by tools/megumi/extract.py),\ntheir cell geometry (megumiSprites.js, dumped through node) and the palette spec tools/megumi/skins.json.\n\nThe source is a downscaled JPG, so colours are continuous (no exact palette indices). Every opaque pixel is classified\nPER CELL into one region; the classification is computed once from the DEFAULT art and shared by every skin:\n  outline  — dark (max channel < 40) pixels 4-adjacent to transparency (the silhouette edge)       → never recoloured\n  skin     — warm pixels (R ≥ 120, R − B ≥ 45, G ≥ 70): face / hands, and warm gold accents          → never recoloured\n  fx       — bright saturated pixels (V ≥ 0.55, S ≥ 0.35, not warm): aura strokes, blue slashes      → skin fx ramp\n           — and light pixels (min ≥ 150) outside the body column (blade / arc highlights)\n  shadow   — remaining pixels more than BODY_HALF px from the cell's root anchor column (domain spread, aura,\n             stored-weapon shadow)                                                                    → skin shadow ramp\n  hair     — remaining dark/cool pixels inside the head box: rows from the figure top down to the face's\n             vertical centre, within ±HEAD_HALF px of the face centre column (no face found → no hair) → hair ramp\n  summon   — win.png only: Nue behind Megumi (rows above floor − 46 + outside the body column)                     → never recoloured\n  uniform  — every remaining body pixel                                                               → uniform ramp",
+ "pixelsPerRegion": {
+  "intro.png": {
+   "outline": 2569,
+   "skin": 482,
+   "fx": 129,
+   "shadow": 285,
+   "hair": 1202,
+   "uniform": 3773,
+   "summon": 0
+  },
+  "introSettle.png": {
+   "outline": 539,
+   "skin": 161,
+   "fx": 31,
+   "shadow": 0,
+   "hair": 376,
+   "uniform": 980,
+   "summon": 0
+  },
+  "introMahoraga.png": {
+   "outline": 5995,
+   "skin": 1391,
+   "fx": 887,
+   "shadow": 372,
+   "hair": 2872,
+   "uniform": 10211,
+   "summon": 0
+  },
+  "idle.png": {
+   "outline": 539,
+   "skin": 161,
+   "fx": 31,
+   "shadow": 0,
+   "hair": 376,
+   "uniform": 980,
+   "summon": 0
+  },
+  "walk.png": {
+   "outline": 968,
+   "skin": 226,
+   "fx": 59,
+   "shadow": 0,
+   "hair": 769,
+   "uniform": 1651,
+   "summon": 0
+  },
+  "walk_back.png": {
+   "outline": 968,
+   "skin": 226,
+   "fx": 59,
+   "shadow": 0,
+   "hair": 769,
+   "uniform": 1651,
+   "summon": 0
+  },
+  "run.png": {
+   "outline": 968,
+   "skin": 226,
+   "fx": 59,
+   "shadow": 0,
+   "hair": 769,
+   "uniform": 1651,
+   "summon": 0
+  },
+  "dash.png": {
+   "outline": 516,
+   "skin": 114,
+   "fx": 33,
+   "shadow": 0,
+   "hair": 384,
+   "uniform": 848,
+   "summon": 0
+  },
+  "jump.png": {
+   "outline": 430,
+   "skin": 146,
+   "fx": 37,
+   "shadow": 8,
+   "hair": 330,
+   "uniform": 742,
+   "summon": 0
+  },
+  "doubleJump.png": {
+   "outline": 426,
+   "skin": 149,
+   "fx": 31,
+   "shadow": 6,
+   "hair": 365,
+   "uniform": 735,
+   "summon": 0
+  },
+  "fall.png": {
+   "outline": 270,
+   "skin": 91,
+   "fx": 19,
+   "shadow": 2,
+   "hair": 289,
+   "uniform": 492,
+   "summon": 0
+  },
+  "land.png": {
+   "outline": 690,
+   "skin": 209,
+   "fx": 42,
+   "shadow": 25,
+   "hair": 532,
+   "uniform": 1162,
+   "summon": 0
+  },
+  "crouch.png": {
+   "outline": 104,
+   "skin": 37,
+   "fx": 4,
+   "shadow": 0,
+   "hair": 80,
+   "uniform": 215,
+   "summon": 0
+  },
+  "guard.png": {
+   "outline": 212,
+   "skin": 71,
+   "fx": 10,
+   "shadow": 0,
+   "hair": 171,
+   "uniform": 421,
+   "summon": 0
+  },
+  "taunt.png": {
+   "outline": 1404,
+   "skin": 411,
+   "fx": 70,
+   "shadow": 0,
+   "hair": 1032,
+   "uniform": 2435,
+   "summon": 0
+  },
+  "hurt.png": {
+   "outline": 375,
+   "skin": 145,
+   "fx": 15,
+   "shadow": 0,
+   "hair": 211,
+   "uniform": 777,
+   "summon": 0
+  },
+  "hurt_air.png": {
+   "outline": 259,
+   "skin": 96,
+   "fx": 10,
+   "shadow": 393,
+   "hair": 80,
+   "uniform": 175,
+   "summon": 0
+  },
+  "knockdown.png": {
+   "outline": 480,
+   "skin": 152,
+   "fx": 11,
+   "shadow": 415,
+   "hair": 114,
+   "uniform": 690,
+   "summon": 0
+  },
+  "getup.png": {
+   "outline": 416,
+   "skin": 131,
+   "fx": 22,
+   "shadow": 8,
+   "hair": 322,
+   "uniform": 793,
+   "summon": 0
+  },
+  "win.png": {
+   "outline": 2439,
+   "skin": 695,
+   "fx": 83,
+   "shadow": 0,
+   "hair": 1780,
+   "uniform": 3982,
+   "summon": 4438
+  },
+  "lose.png": {
+   "outline": 586,
+   "skin": 181,
+   "fx": 49,
+   "shadow": 0,
+   "hair": 485,
+   "uniform": 1170,
+   "summon": 0
+  },
+  "light.png": {
+   "outline": 1198,
+   "skin": 702,
+   "fx": 88,
+   "shadow": 2,
+   "hair": 905,
+   "uniform": 2195,
+   "summon": 0
+  },
+  "mL2.png": {
+   "outline": 711,
+   "skin": 259,
+   "fx": 44,
+   "shadow": 18,
+   "hair": 576,
+   "uniform": 1307,
+   "summon": 0
+  },
+  "mL3.png": {
+   "outline": 2020,
+   "skin": 465,
+   "fx": 420,
+   "shadow": 73,
+   "hair": 1363,
+   "uniform": 3603,
+   "summon": 0
+  },
+  "mLow.png": {
+   "outline": 1549,
+   "skin": 435,
+   "fx": 79,
+   "shadow": 0,
+   "hair": 1043,
+   "uniform": 2788,
+   "summon": 0
+  },
+  "heavy.png": {
+   "outline": 1851,
+   "skin": 523,
+   "fx": 97,
+   "shadow": 981,
+   "hair": 1165,
+   "uniform": 3572,
+   "summon": 0
+  },
+  "mAdv.png": {
+   "outline": 1395,
+   "skin": 404,
+   "fx": 68,
+   "shadow": 783,
+   "hair": 1139,
+   "uniform": 3452,
+   "summon": 0
+  },
+  "up.png": {
+   "outline": 759,
+   "skin": 515,
+   "fx": 53,
+   "shadow": 0,
+   "hair": 496,
+   "uniform": 1570,
+   "summon": 0
+  },
+  "mLaunch.png": {
+   "outline": 1686,
+   "skin": 378,
+   "fx": 953,
+   "shadow": 99,
+   "hair": 889,
+   "uniform": 3722,
+   "summon": 0
+  },
+  "air.png": {
+   "outline": 773,
+   "skin": 273,
+   "fx": 47,
+   "shadow": 8,
+   "hair": 748,
+   "uniform": 1429,
+   "summon": 0
+  },
+  "mAirEnd.png": {
+   "outline": 773,
+   "skin": 281,
+   "fx": 56,
+   "shadow": 7,
+   "hair": 713,
+   "uniform": 1422,
+   "summon": 0
+  },
+  "mDog.png": {
+   "outline": 790,
+   "skin": 241,
+   "fx": 41,
+   "shadow": 0,
+   "hair": 551,
+   "uniform": 1451,
+   "summon": 0
+  },
+  "mToad.png": {
+   "outline": 794,
+   "skin": 252,
+   "fx": 34,
+   "shadow": 0,
+   "hair": 549,
+   "uniform": 1417,
+   "summon": 0
+  },
+  "mNue.png": {
+   "outline": 775,
+   "skin": 249,
+   "fx": 43,
+   "shadow": 0,
+   "hair": 581,
+   "uniform": 1385,
+   "summon": 0
+  },
+  "mRabbit.png": {
+   "outline": 789,
+   "skin": 246,
+   "fx": 51,
+   "shadow": 0,
+   "hair": 563,
+   "uniform": 1416,
+   "summon": 0
+  },
+  "mSerpent.png": {
+   "outline": 798,
+   "skin": 256,
+   "fx": 54,
+   "shadow": 0,
+   "hair": 563,
+   "uniform": 1461,
+   "summon": 0
+  },
+  "mAirNue.png": {
+   "outline": 773,
+   "skin": 273,
+   "fx": 47,
+   "shadow": 8,
+   "hair": 748,
+   "uniform": 1429,
+   "summon": 0
+  },
+  "mElephant.png": {
+   "outline": 3173,
+   "skin": 594,
+   "fx": 744,
+   "shadow": 348,
+   "hair": 905,
+   "uniform": 4839,
+   "summon": 0
+  },
+  "mStep.png": {
+   "outline": 1093,
+   "skin": 211,
+   "fx": 66,
+   "shadow": 42,
+   "hair": 553,
+   "uniform": 1799,
+   "summon": 0
+  },
+  "ultOpen.png": {
+   "outline": 3135,
+   "skin": 516,
+   "fx": 753,
+   "shadow": 336,
+   "hair": 796,
+   "uniform": 4582,
+   "summon": 0
+  },
+  "ultSign.png": {
+   "outline": 2464,
+   "skin": 320,
+   "fx": 675,
+   "shadow": 384,
+   "hair": 353,
+   "uniform": 3435,
+   "summon": 0
+  },
+  "ultDomain.png": {
+   "outline": 7262,
+   "skin": 569,
+   "fx": 68,
+   "shadow": 3527,
+   "hair": 1277,
+   "uniform": 4330,
+   "summon": 0
+  },
+  "portrait.png": {
+   "outline": 134,
+   "skin": 39,
+   "fx": 9,
+   "shadow": 0,
+   "hair": 96,
+   "uniform": 243,
+   "summon": 0
+  }
+ }
+}

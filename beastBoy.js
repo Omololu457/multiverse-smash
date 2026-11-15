@@ -1,0 +1,70 @@
+// Beast Boy (beast_boy) — COMMAND LAYER. Press edges come from tickBeastBoy (readRawControls), so keyboard, pad, replay
+// and LAN feed the same reader. Uses the existing directional Special inputs; no motion parser and no Beast-Boy-only pad
+// reader. Returns 'consumed' | 'grab' (game.js passes only the grab to updateCombat).
+// Precedence (top first): stun / cinematic → committed animal / feint / ultimate opener (only a matching Wild Chain
+// press is read) → Light & command chains → Ultimate → directional Special → Light → Heavy.
+// SPECIAL DIRECTION PRIORITY (facing-relative, resolved on the press frame): Up > Forward > Back > Down > Neutral,
+// so Up-Forward = Bird, Down-Forward = Tiger, Up-Back = Bird. Air: Up = Bird, Down = Tiger (air), others refused.
+// The breaker (Block+Special in hitstun) is checked by game.js before this layer runs.
+import { startMove, rekkaContinue, cancelWindowOpen, getComboScale } from './combat.js'
+import { isBeastBoy, bbState, startBBMove, registerBeastBoyEngine, isBeastBoyUltActive, tryQueueWildChain, animalMoveFor } from './beastBoyState.js'
+import { CHAIN, SPECIAL_FROM, HEAVY_FROM, ULT_FROM, ANIMAL_KEYS } from './beastBoyData.js'
+
+registerBeastBoyEngine({ startMove, comboScale: getComboScale })
+
+const fresh = (s, k, win = 8) => s.edges[k] && s.used[k] !== s.edges[k].tick && s.clock - s.edges[k].clock <= win
+const use = (s, k) => { s.used[k] = s.edges[k].tick }
+const COMMITTED = new Set([...ANIMAL_KEYS, 'tigerLand', 'feint', 'ultOpen'])
+export const specialDir = e => e.up ? 'up' : e.fwd ? 'fwd' : e.back ? 'back' : e.down ? 'down' : 'neutral'
+const GROUND_SPECIAL = { up: 'bird', fwd: 'tricera', back: 'feint', down: 'tiger', neutral: 'gorilla' }
+
+export function updateBeastBoyCommandCombat(f, inp, opp, W) {
+  if (!isBeastBoy(f)) return false
+  const s = bbState(f), g = !!(f.onGround || f.grounded), a = f.attacking ? f.currentAttack : null
+  if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0 || isBeastBoyUltActive()) return 'consumed'
+  if (a && a._ultPose) return 'consumed'
+  if (a && COMMITTED.has(a.bb?.key)) {
+    // WILD CHAIN: the only press read during an animal move — a FRESH matching direction+Special inside the window.
+    if (fresh(s, 'special', 2)) { const e = s.edges.special; use(s, 'special'); tryQueueWildChain(f, e) }
+    return 'consumed'
+  }
+  const fire = (k, o = {}) => startBBMove(f, k, W, o)
+  // Forward+Heavy chain: advancing jab → fresh Heavy straight → fresh Heavy knock-away (confirmed Up+Heavy → launcher).
+  if (a && (a.name === 'bAdv' || a.name === 'bStr')) {
+    const h = fresh(s, 'heavy') || fresh(s, 'upAttack'), k = fresh(s, 'upAttack') ? 'upAttack' : 'heavy'
+    f._rekkaNext = a.name === 'bAdv' ? 'bStr' : (h && (k === 'upAttack' || s.edges[k].up) ? 'up' : 'bKnock')
+    f._cmdHitLanded = !!a.bb?.clean
+    const next = rekkaContinue(f, { edge: !!h, opponent: opp })
+    if (next) { use(s, k); fire(next); return 'consumed' }
+  }
+  const contact = !!a?.bb?.clean && cancelWindowOpen(f)
+  // J1 → J2 → J3: fresh Light retaps after a clean hit, three stages maximum.
+  if (contact && CHAIN[a.name] && fresh(s, 'light')) { use(s, 'light'); fire(CHAIN[a.name], { cancel: true }); return 'consumed' }
+  if (a && !contact) return 'consumed'
+  if (!a && (f.attackCooldown > 0 || inp.block)) return 'grab'
+  if (fresh(s, 'ultimate')) {   // the Ultimate owns its press (consumed even when illegal)
+    use(s, 'ultimate')
+    if ((!a || ULT_FROM.includes(a.name)) && g && (f.energy || 0) >= 100) fire('ultOpen', { cancel: !!a })
+    return 'consumed'
+  }
+  if (fresh(s, 'special') && (!a || SPECIAL_FROM.includes(a.name))) {
+    const e = s.edges.special, d = specialDir(e); use(s, 'special')
+    if (g) fire(GROUND_SPECIAL[d], { cancel: !!a })
+    else if (!a && d === 'up') fire('bird')
+    else if (!a && d === 'down') fire(animalMoveFor('tiger', true))
+    else bbState(f).cues.push('reject')
+    return 'consumed'
+  }
+  if (fresh(s, 'light')) {
+    const e = s.edges.light; use(s, 'light')
+    if (!a) fire(!g ? 'air' : e.down ? 'bLow' : 'light')
+    return 'consumed'
+  }
+  if (fresh(s, 'heavy') || fresh(s, 'upAttack')) {
+    const k = fresh(s, 'upAttack') ? 'upAttack' : 'heavy', e = s.edges[k]; use(s, k)
+    const move = !g ? 'air' : (k === 'upAttack' || e.up) ? 'up' : e.down ? 'bLow' : e.fwd && !a ? 'bAdv' : 'heavy'
+    if (!a || HEAVY_FROM.includes(a.name)) fire(move, { cancel: !!a })
+    return 'consumed'
+  }
+  return a ? 'consumed' : 'grab'
+}

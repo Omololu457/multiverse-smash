@@ -1,0 +1,84 @@
+{
+  "roster": [
+    "samurai_red_ranger",
+    "gold_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "green_samurai_ranger",
+    "spd_blue",
+    "krybot",
+    "spd_red",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "red_ranger_mmpr",
+    "spd_green",
+    "spd_pink",
+    "mmpr_pink",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "mmpr_black",
+    "spd_yellow",
+    "mmpr_white",
+    "green_ranger"
+  ],
+  "detail": {
+    "key": "green_ranger",
+    "name": "Green Ranger",
+    "stats": {
+      "maxHealth": 1000,
+      "maxEnergy": 100,
+      "attack": 82,
+      "defense": 78,
+      "speed": 96,
+      "jumpPower": 26,
+      "maxJumps": 1,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 36
+    },
+    "kitType": "Martial Artist / Blade Pressure",
+    "difficulty": "Medium",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 11,
+    "selId": null,
+    "mouseX": 283,
+    "mouseY": 341
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 385
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 640,
+    "mouseY": 542
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "green_ranger",
+    "skin": "green_ranger_omnitrix",
+    "tag": "omnitrix",
+    "p2": "mmpr_black"
+  },
+  "passes": 4,
+  "failures": 0,
+  "errors": []
+}

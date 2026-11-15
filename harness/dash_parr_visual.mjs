@@ -50,6 +50,12 @@ try{
  await play('rush',70);await shot('10_rush_storm')
  const r=await page.evaluate(()=>({ult:!!__harness.dashParrTest.raw()._dashParr?.ult,alpha:null}));ck('Incredi-Rush storm renders (body hidden, storm drawn)',r.ult&&errors.length===0)
  await page.evaluate(()=>__harness.luffyTest.step(220));await shot('11_rush_after')
+ // Flash Time (← + Special): Dash full speed, the foe slowed to ~1/3 (cyan ripples + FLASH TIME HUD label)
+ await page.evaluate(()=>{const H=__harness.dashParrTest,a=H.raw(),b=H.raw('p2');H.reset();a.x=1240;b.x=1420;a.facing=1;b.facing=-1;a.energy=150;__harness.luffyTest.step(2)})
+ await page.keyboard.down('a');await page.keyboard.down('l');await page.evaluate(()=>__harness.luffyTest.step(1));await page.keyboard.up('l');await page.keyboard.up('a')
+ await page.keyboard.down('d');await page.evaluate(()=>__harness.luffyTest.step(14));await shot('13_flash_time');await page.keyboard.up('d')
+ const ft=await page.evaluate(()=>({ft:!!__harness.dashParrTest.raw()._dashParr?.ft,slow:!!__harness.dashParrTest.raw('p2')._timeSlowAcc}))
+ ck('Flash Time renders (Dash active, opponent time-slowed)',ft.ft&&ft.slow&&errors.length===0,JSON.stringify(ft))
  ck('no browser runtime errors across all captures',errors.length===0,JSON.stringify(errors.slice(0,5)))
 }catch(e){fail++;console.log('FAIL exception',e.stack)}
 finally{log.pass=pass;log.fail=fail;log.errors=errors;fs.writeFileSync('docs/dash/visual_results.json',JSON.stringify(log,null,2)+'\n');console.log(pass,'passed',fail,'failed');await browser.close();server.close();process.exit(fail?1:0)}

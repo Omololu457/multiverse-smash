@@ -1,0 +1,1592 @@
+{
+ "routes": [
+  {
+   "label": "J1 → J2 → J3",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    30
+   ],
+   "stunBefore": [
+    0,
+    10,
+    9
+   ],
+   "hitFrames": [
+    5,
+    19,
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 71,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Starbolt",
+   "kind": "combo",
+   "hits": [
+    35
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    35
+   ],
+   "blockedEvents": 0,
+   "damage": 35,
+   "energySpent": 7.96,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 300,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Solar Rush",
+   "kind": "combo",
+   "hits": [
+    54
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    12
+   ],
+   "blockedEvents": 0,
+   "damage": 54,
+   "energySpent": 11.82,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Skybreak",
+   "kind": "combo",
+   "hits": [
+    44
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    9
+   ],
+   "blockedEvents": 0,
+   "damage": 44,
+   "energySpent": 12.76,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 50,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Orbital Star",
+   "kind": "combo",
+   "hits": [
+    30
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    66
+   ],
+   "blockedEvents": 0,
+   "damage": 30,
+   "energySpent": 12.1,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Star Sight (blocked)",
+   "kind": "pressure",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 6,
+   "energySpent": 11.54,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Orbital Star → Star Sight = PRISM BREAK",
+   "kind": "setup",
+   "hits": [
+    70
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    64
+   ],
+   "blockedEvents": 0,
+   "damage": 70,
+   "energySpent": 25.44,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 380,
+   "flip": false,
+   "note": "",
+   "verdict": "setup (not a combo)"
+  },
+  {
+   "label": "Star Sight with the foe in front of the orb",
+   "kind": "setup",
+   "hits": [
+    30,
+    51
+   ],
+   "stunBefore": [
+    0,
+    19
+   ],
+   "hitFrames": [
+    29,
+    49
+   ],
+   "blockedEvents": 0,
+   "damage": 81,
+   "energySpent": 24.48,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 420,
+   "flip": false,
+   "note": "",
+   "verdict": "setup → true combo"
+  },
+  {
+   "label": "SUPERNOVA (neutral)",
+   "kind": "combo",
+   "hits": [
+    35,
+    23,
+    23,
+    23,
+    23,
+    35,
+    35,
+    117
+   ],
+   "stunBefore": [
+    0,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    29,
+    103,
+    115,
+    127,
+    139,
+    171,
+    187,
+    207
+   ],
+   "blockedEvents": 0,
+   "damage": 314,
+   "energySpent": 98.26,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 240,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "SUPERNOVA blocked",
+   "kind": "pressure",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 5,
+   "energySpent": 94.6,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 240,
+   "flip": false,
+   "note": "",
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "J1 → J2 → Starbolt (special cancel)",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    32
+   ],
+   "stunBefore": [
+    0,
+    10,
+    5
+   ],
+   "hitFrames": [
+    5,
+    19,
+    40
+   ],
+   "blockedEvents": 0,
+   "damage": 73,
+   "energySpent": 8.02,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Heavy → Solar Rush",
+   "kind": "combo",
+   "hits": [
+    58,
+    49
+   ],
+   "stunBefore": [
+    0,
+    16
+   ],
+   "hitFrames": [
+    13,
+    39
+   ],
+   "blockedEvents": 0,
+   "damage": 107,
+   "energySpent": 11.82,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher → jump → Air Strike",
+   "kind": "combo",
+   "hits": [
+    44
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    12
+   ],
+   "blockedEvents": 0,
+   "damage": 44,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 50,
+   "flip": false,
+   "note": "jump-cancel follow-up (shared double jump)",
+   "verdict": "single hit"
+  },
+  {
+   "label": "Starbolt at range (blocked)",
+   "kind": "pressure",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 1,
+   "damage": 5,
+   "energySpent": 7.6,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 300,
+   "flip": false,
+   "note": "",
+   "verdict": "pressure (not a combo)"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "el": 5,
+   "activeStart": 5,
+   "i": 5
+  },
+  "heavy": {
+   "name": "heavy",
+   "el": 13,
+   "activeStart": 13,
+   "i": 13
+  },
+  "sfLow": {
+   "name": "sfLow",
+   "el": 7,
+   "activeStart": 7,
+   "i": 7
+  },
+  "up": {
+   "name": "up",
+   "el": 12,
+   "activeStart": 12,
+   "i": 12
+  },
+  "air": {
+   "name": "air",
+   "el": 8,
+   "activeStart": 8,
+   "i": 8
+  }
+ },
+ "movement": {
+  "walkVx": 6,
+  "liveSpeedStat": 84,
+  "authored": 94,
+  "formula": 6,
+  "jumps": [
+   1,
+   2,
+   2
+  ]
+ },
+ "lev": {
+  "maxVx": 6,
+  "rise": 170.66146564218406,
+  "end": {
+   "timeout": 1
+  },
+  "spent": 14.799999999999045
+ },
+ "specials": {
+  "bolt": {
+   "proj": [
+    {
+     "kind": "bolt",
+     "n": 1,
+     "x": 1386,
+     "y": 434,
+     "w": 24,
+     "h": 24,
+     "vx": 10,
+     "vy": 0,
+     "damage": 59,
+     "sheet": "./assets/starfire/fx/ball_strip.png",
+     "from": null
+    }
+   ],
+   "cost": 10
+  },
+  "rushTravel": 146
+ },
+ "laser": {
+  "right": [
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1356.45,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1364.238,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1356.45,
+      377.99,
+      1785.67,
+      500
+     ],
+     [
+      1364.24,
+      377.99,
+      1793.46,
+      500
+     ]
+    ],
+    "contact": null
+   }
+  ],
+  "rightMaxDev": 0,
+  "left": [
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   },
+   {
+    "el": 14,
+    "frame": 6,
+    "eyes": [
+     {
+      "side": "back",
+      "x": 1563.55,
+      "y": 377.988
+     },
+     {
+      "side": "front",
+      "x": 1555.762,
+      "y": 377.988
+     }
+    ],
+    "segs": [
+     [
+      1563.55,
+      377.99,
+      1134.33,
+      500
+     ],
+     [
+      1555.76,
+      377.99,
+      1126.54,
+      500
+     ]
+    ],
+    "contact": null
+   }
+  ],
+  "leftMaxDev": 0
+ },
+ "prism": {
+  "orbAtLaser": {
+   "kind": "orb",
+   "n": 1,
+   "x": 1423.8000000000009,
+   "y": 405,
+   "w": 32,
+   "h": 32,
+   "vx": 2.2,
+   "vy": 0,
+   "damage": 51,
+   "sheet": "./assets/starfire/fx/ball_strip.png",
+   "from": null
+  },
+  "state": {
+   "proj": [
+    {
+     "kind": "burst",
+     "n": 2,
+     "x": 1468.3675781250015,
+     "y": 407.556640625,
+     "w": 52,
+     "h": 52,
+     "vx": 13.767578125,
+     "vy": 2.556640625,
+     "damage": 117,
+     "sheet": "./assets/starfire/fx/ball_strip.png",
+     "from": 1
+    }
+   ],
+   "stats": {
+    "bolts": 0,
+    "comets": 0,
+    "orbs": 1,
+    "rushes": 0,
+    "skies": 0,
+    "lasers": 1,
+    "airLasers": 0,
+    "laserHits": 0,
+    "laserBlocked": 0,
+    "prisms": 1,
+    "rejects": 0,
+    "lev": 0,
+    "levFail": 0,
+    "levEnd": {},
+    "levFrames": 0,
+    "levDrained": 0,
+    "dj": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "retired": 0
+   },
+   "hasHit": true,
+   "prism": true
+  },
+  "route": {
+   "label": "Orbital Star → Star Sight = PRISM BREAK",
+   "kind": "setup",
+   "hits": [
+    70
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    64
+   ],
+   "blockedEvents": 0,
+   "damage": 70,
+   "energySpent": 25.44,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 380,
+   "flip": false,
+   "note": "",
+   "verdict": "setup (not a combo)"
+  }
+ },
+ "ultimate": {
+  "route": {
+   "label": "SUPERNOVA (neutral)",
+   "kind": "combo",
+   "hits": [
+    35,
+    23,
+    23,
+    23,
+    23,
+    35,
+    35,
+    117
+   ],
+   "stunBefore": [
+    0,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    29,
+    103,
+    115,
+    127,
+    139,
+    171,
+    187,
+    207
+   ],
+   "blockedEvents": 0,
+   "damage": 314,
+   "energySpent": 98.26,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 240,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  }
+ },
+ "misc": {}
+}

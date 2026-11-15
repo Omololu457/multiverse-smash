@@ -1,0 +1,126 @@
+{
+  "skins": {
+    "rb_gotham_heir": {
+      "tag": "gotham_heir",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_bluebird_protocol": {
+      "tag": "bluebird_protocol",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_redline_vigilante": {
+      "tag": "redline_vigilante",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_court_of_ivory": {
+      "tag": "court_of_ivory",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_cursed_prodigy": {
+      "tag": "cursed_prodigy",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_limitless_blue": {
+      "tag": "limitless_blue",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_omnitrix_operative": {
+      "tag": "omnitrix_operative",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_starfield_detective": {
+      "tag": "starfield_detective",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 12
+    },
+    "rb_neon_afterimage": {
+      "tag": "neon_afterimage",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 9
+    },
+    "rb_gilded_night": {
+      "tag": "gilded_night",
+      "traceIdentical": true,
+      "actions": 40,
+      "kept": {
+        "strips": 40,
+        "skin": 27105,
+        "changed": 0,
+        "recol": 134640
+      },
+      "fxDraws": 12
+    }
+  },
+  "passes": 102,
+  "failures": 0
+}

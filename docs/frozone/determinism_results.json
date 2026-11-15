@@ -1,0 +1,146 @@
+{
+  "replay": {
+    "frames": 4200,
+    "identical": true,
+    "exercised": [
+      "light",
+      "fL2",
+      "fL3",
+      "heavy",
+      "fLance",
+      "chill",
+      "fBlackIce",
+      "frost",
+      "fRush",
+      "freezes",
+      "fBreaker",
+      "skates",
+      "fRise",
+      "fLaunch",
+      "dj",
+      "air",
+      "fDownAir",
+      "ultOpen",
+      "ult",
+      "ultCast",
+      "ultSkate",
+      "ultBrake",
+      "ultShatter",
+      "introSettle",
+      "ultDone"
+    ],
+    "stats": {
+      "lance": 2,
+      "frost": 1,
+      "rush": 1,
+      "rise": 1,
+      "blackIce": 1,
+      "breaker": 1,
+      "chill": 3,
+      "freezes": 1,
+      "shatters": 0,
+      "thaw": {
+        "expire": 1
+      },
+      "patchHits": 0,
+      "skateSwitch": 0,
+      "patchMelt": 0,
+      "skates": 1,
+      "airSkates": 0,
+      "brakes": 0,
+      "dj": 1,
+      "clean": 10,
+      "blocked": 0,
+      "rejects": 0,
+      "spawns": 2,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "immuneSkips": 0
+    }
+  },
+  "renderBatching": {
+    "samples": 600,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "had": {
+      "patch": false,
+      "freeze": true,
+      "stun": 24
+    },
+    "ident": {
+      "had2": true,
+      "fz": false,
+      "proj": 0
+    }
+  },
+  "lan": {
+    "seen": [
+      "fLance",
+      "fBlackIce",
+      "fRush",
+      "fBreaker",
+      "fRise",
+      "skate"
+    ],
+    "frame": 440,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "fL2",
+        "fL3",
+        "fLance",
+        "fRush",
+        "fBlackIce",
+        "fRise",
+        "fBreaker",
+        "fLow",
+        "heavy",
+        "fLaunch",
+        "ultOpen",
+        "ultCast",
+        "ultSkate",
+        "ultBrake",
+        "ultShatter",
+        "introSettle"
+      ],
+      "hp": 804
+    },
+    "pad": {
+      "names": [
+        "light",
+        "fL2",
+        "fL3",
+        "fLance",
+        "fRush",
+        "fBlackIce",
+        "fRise",
+        "fBreaker",
+        "fLow",
+        "heavy",
+        "fLaunch",
+        "ultOpen",
+        "ultCast",
+        "ultSkate",
+        "ultBrake",
+        "ultShatter",
+        "introSettle"
+      ],
+      "hp": 804
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null
+  },
+  "passes": 20,
+  "errors": []
+}

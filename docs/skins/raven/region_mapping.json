@@ -1,0 +1,1244 @@
+{
+ "regions": {
+  "outline": "(0,0,0) kept — outlines, black Soul Shell disc, dark-magic hand",
+  "skin": "greys |r-g|,|g-b|<=16, r>=60 — never recoloured (face, legs, shell silhouette lines)",
+  "gem": "r >= g + 80 (chakra + belt gems)",
+  "cloak": "remaining purple / navy (hood, cloak, leotard)",
+  "boots": "cloak pixels within 12 px of each body frame's lowest opaque row (only skins with a boots ramp)",
+  "fx": "orb + explosion strips, non-black pixels by luminance",
+  "bricks": "pile + breaking strips copied unchanged (stone)"
+ },
+ "sourceRamps": {
+  "cloak": [
+   [
+    0,
+    0,
+    64
+   ],
+   [
+    16,
+    8,
+    112
+   ],
+   [
+    48,
+    24,
+    112
+   ],
+   [
+    72,
+    32,
+    176
+   ],
+   [
+    104,
+    56,
+    240
+   ],
+   [
+    152,
+    120,
+    232
+   ],
+   [
+    208,
+    176,
+    240
+   ]
+  ],
+  "gem": [
+   [
+    136,
+    0,
+    16
+   ],
+   [
+    248,
+    0,
+    40
+   ],
+   [
+    248,
+    128,
+    144
+   ]
+  ]
+ },
+ "strips": [
+  "air",
+  "crouch",
+  "dash",
+  "doubleJump",
+  "fall",
+  "guard",
+  "heavy",
+  "hurt",
+  "idle",
+  "intro",
+  "jump",
+  "knockdown",
+  "land",
+  "lev",
+  "levEnd",
+  "levStart",
+  "light",
+  "lose",
+  "rAdv",
+  "rAirPulse",
+  "rConjure",
+  "rDark",
+  "rJ2",
+  "rJ3",
+  "rKnock",
+  "rLift",
+  "rLow",
+  "rPulse",
+  "rSend",
+  "rShield",
+  "rShieldAll",
+  "rShieldEnd",
+  "rShieldLoop",
+  "rVerdict",
+  "run",
+  "ultCast",
+  "ultHover",
+  "ultOpen",
+  "ultRelease",
+  "ultRise",
+  "ultShell",
+  "ultThrow",
+  "up",
+  "walk",
+  "walk_back"
+ ],
+ "flat": [
+  "portrait.png",
+  "cutscene/bust.png",
+  "icons/expressions.png",
+  "cutscene/eye0.png",
+  "cutscene/eye1.png",
+  "cutscene/mouth0.png",
+  "cutscene/mouth1.png",
+  "cutscene/mouth2.png"
+ ],
+ "skins": [
+  {
+   "id": "rv_white_light",
+   "tag": "white",
+   "name": "White Light",
+   "classification": "Canon Look",
+   "crossover": null,
+   "inspiration": "Raven's white cloak after Trigon's defeat (Teen Titans 2003, S4 'The End, Part 3'; also the white-cloak 'purified' Raven of the comics)",
+   "url": "https://teentitans.fandom.com/wiki/Raven",
+   "research": "The white cloak marks Raven freed from Trigon's influence; the gem stays red and her skin stays grey in every white-cloak appearance.",
+   "notes": "Cloak / hood / leotard white-lavender, boots soft grey-white, gem kept red, magic pale gold-white.",
+   "cloak": [
+    [
+     70,
+     66,
+     92
+    ],
+    [
+     112,
+     108,
+     140
+    ],
+    [
+     150,
+     146,
+     176
+    ],
+    [
+     188,
+     186,
+     210
+    ],
+    [
+     216,
+     214,
+     232
+    ],
+    [
+     236,
+     236,
+     246
+    ],
+    [
+     252,
+     252,
+     255
+    ]
+   ],
+   "gem": [
+    [
+     136,
+     0,
+     16
+    ],
+    [
+     248,
+     0,
+     40
+    ],
+    [
+     248,
+     128,
+     144
+    ]
+   ],
+   "fx": [
+    [
+     150,
+     130,
+     70
+    ],
+    [
+     236,
+     212,
+     140
+    ],
+    [
+     255,
+     250,
+     226
+    ]
+   ],
+   "hud": [
+    "#f4f0ff",
+    "#c8b070"
+   ]
+  },
+  {
+   "id": "rv_trigons_ember",
+   "tag": "ember",
+   "name": "Trigon's Ember",
+   "classification": "Canon-Inspired",
+   "crossover": null,
+   "inspiration": "Trigon's red skin, black horns and four golden eyes; Raven's corrupted / 'Trigon's daughter' palette",
+   "url": "https://www.dc.com/characters/trigon",
+   "research": "Trigon is crimson-skinned with yellow eyes; Raven's demonic form is often drawn with red / black cloth and glowing marks.",
+   "notes": "Cloak blood-red to black, gem burning gold, magic ember orange. No horns or extra eyes are drawn.",
+   "cloak": [
+    [
+     20,
+     4,
+     6
+    ],
+    [
+     52,
+     8,
+     10
+    ],
+    [
+     90,
+     14,
+     16
+    ],
+    [
+     132,
+     20,
+     22
+    ],
+    [
+     176,
+     34,
+     30
+    ],
+    [
+     214,
+     70,
+     50
+    ],
+    [
+     240,
+     120,
+     90
+    ]
+   ],
+   "gem": [
+    [
+     150,
+     96,
+     0
+    ],
+    [
+     240,
+     184,
+     20
+    ],
+    [
+     255,
+     236,
+     140
+    ]
+   ],
+   "fx": [
+    [
+     140,
+     30,
+     10
+    ],
+    [
+     240,
+     110,
+     30
+    ],
+    [
+     255,
+     214,
+     130
+    ]
+   ],
+   "hud": [
+    "#ff6a2a",
+    "#ffd23c"
+   ]
+  },
+  {
+   "id": "rv_scarlet_hex",
+   "tag": "scarlet",
+   "name": "Scarlet Hex — Scarlet Witch Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Marvel — Scarlet Witch (Wanda Maximoff) colour inspiration",
+   "inspiration": "Scarlet Witch crimson costume and red hex magic",
+   "url": "https://www.marvel.com/characters/scarlet-witch-wanda-maximoff",
+   "research": "Wanda's modern look is crimson / scarlet with a darker red cape and red-pink hex bolts.",
+   "notes": "Cloak crimson-scarlet, gem pale rose, magic hex red-pink. No tiara or headpiece is drawn.",
+   "cloak": [
+    [
+     44,
+     4,
+     14
+    ],
+    [
+     80,
+     8,
+     24
+    ],
+    [
+     122,
+     14,
+     36
+    ],
+    [
+     164,
+     24,
+     48
+    ],
+    [
+     204,
+     40,
+     64
+    ],
+    [
+     230,
+     80,
+     96
+    ],
+    [
+     248,
+     140,
+     150
+    ]
+   ],
+   "gem": [
+    [
+     160,
+     60,
+     90
+    ],
+    [
+     236,
+     130,
+     160
+    ],
+    [
+     255,
+     210,
+     224
+    ]
+   ],
+   "fx": [
+    [
+     150,
+     10,
+     40
+    ],
+    [
+     240,
+     50,
+     90
+    ],
+    [
+     255,
+     170,
+     190
+    ]
+   ],
+   "hud": [
+    "#ff3a5a",
+    "#ffb0c4"
+   ]
+  },
+  {
+   "id": "rv_hollow_violet",
+   "tag": "hollow",
+   "name": "Hollow Violet — Hollow Purple Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Jujutsu Kaisen — Gojo's Hollow Purple colour inspiration",
+   "inspiration": "Blue (Lapse) + Red (Reversal) merged into an imaginary-mass violet",
+   "url": "https://jujutsu-kaisen.fandom.com/wiki/Hollow_Technique:_Purple",
+   "research": "Hollow Purple is drawn as a deep violet sphere with blue and red fringes; the palette keeps her cloak violet but pushes it toward that saturated imaginary-mass tone.",
+   "notes": "Cloak deep ultraviolet with a blue boots band, gem red-to-blue split read as magenta, magic electric violet.",
+   "cloak": [
+    [
+     14,
+     0,
+     40
+    ],
+    [
+     38,
+     4,
+     88
+    ],
+    [
+     66,
+     10,
+     140
+    ],
+    [
+     96,
+     20,
+     190
+    ],
+    [
+     128,
+     44,
+     232
+    ],
+    [
+     168,
+     96,
+     250
+    ],
+    [
+     214,
+     170,
+     255
+    ]
+   ],
+   "boots": [
+    [
+     6,
+     14,
+     60
+    ],
+    [
+     14,
+     34,
+     110
+    ],
+    [
+     24,
+     60,
+     170
+    ],
+    [
+     40,
+     96,
+     220
+    ],
+    [
+     80,
+     140,
+     250
+    ],
+    [
+     130,
+     186,
+     255
+    ],
+    [
+     200,
+     226,
+     255
+    ]
+   ],
+   "gem": [
+    [
+     110,
+     0,
+     90
+    ],
+    [
+     220,
+     30,
+     170
+    ],
+    [
+     255,
+     150,
+     230
+    ]
+   ],
+   "fx": [
+    [
+     70,
+     0,
+     150
+    ],
+    [
+     170,
+     60,
+     255
+    ],
+    [
+     236,
+     200,
+     255
+    ]
+   ],
+   "hud": [
+    "#b45cff",
+    "#5ab4ff"
+   ]
+  },
+  {
+   "id": "rv_alien_x_cosmos",
+   "tag": "alienx",
+   "name": "Alien X — Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Ben 10 — Alien X colour inspiration",
+   "inspiration": "Alien X's black starfield body with white edges and green-white eyes",
+   "url": "https://ben10.fandom.com/wiki/Alien_X",
+   "research": "Alien X is a living starfield: a black body, white outline plates and three horns. Only the starfield colour idea is used — no horns and no body change.",
+   "notes": "Cloak void black with a cold white rim, gem white-green, magic starlight. Cached STAR material (sparse fixed-hash pixels inside the cloak mask, 4 crossfaded phases).",
+   "cloak": [
+    [
+     0,
+     0,
+     6
+    ],
+    [
+     4,
+     4,
+     14
+    ],
+    [
+     10,
+     10,
+     24
+    ],
+    [
+     18,
+     18,
+     36
+    ],
+    [
+     30,
+     30,
+     52
+    ],
+    [
+     90,
+     94,
+     120
+    ],
+    [
+     220,
+     226,
+     240
+    ]
+   ],
+   "gem": [
+    [
+     60,
+     160,
+     110
+    ],
+    [
+     170,
+     255,
+     210
+    ],
+    [
+     240,
+     255,
+     248
+    ]
+   ],
+   "fx": [
+    [
+     40,
+     40,
+     80
+    ],
+    [
+     180,
+     200,
+     255
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "hud": [
+    "#e8f0ff",
+    "#9cffd0"
+   ],
+   "material": {
+    "kind": "stars",
+    "region": "cloak",
+    "density": 26,
+    "colors": [
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      200,
+      255,
+      226
+     ],
+     [
+      170,
+      200,
+      255
+     ]
+    ]
+   }
+  },
+  {
+   "id": "rv_ghostfreak",
+   "tag": "ghostfreak",
+   "name": "Ghostfreak — Inspired",
+   "classification": "Inspired Palette",
+   "crossover": "Ben 10 — Ghostfreak colour inspiration",
+   "inspiration": "Ghostfreak's pale grey-white skin, black chains and single green eye",
+   "url": "https://ben10.fandom.com/wiki/Ghostfreak",
+   "research": "Original-series Ghostfreak is pale grey-white with black / dark-purple markings and a green eye.",
+   "notes": "Cloak pale ghost grey with charcoal boots, gem ecto green, magic sickly green-white. No chains or new eye geometry.",
+   "cloak": [
+    [
+     44,
+     44,
+     52
+    ],
+    [
+     84,
+     84,
+     96
+    ],
+    [
+     124,
+     124,
+     136
+    ],
+    [
+     164,
+     164,
+     176
+    ],
+    [
+     198,
+     198,
+     208
+    ],
+    [
+     222,
+     222,
+     230
+    ],
+    [
+     244,
+     244,
+     250
+    ]
+   ],
+   "boots": [
+    [
+     10,
+     10,
+     14
+    ],
+    [
+     24,
+     24,
+     30
+    ],
+    [
+     40,
+     40,
+     48
+    ],
+    [
+     60,
+     60,
+     70
+    ],
+    [
+     84,
+     84,
+     96
+    ],
+    [
+     110,
+     110,
+     122
+    ],
+    [
+     140,
+     140,
+     152
+    ]
+   ],
+   "gem": [
+    [
+     20,
+     110,
+     40
+    ],
+    [
+     60,
+     220,
+     90
+    ],
+    [
+     190,
+     255,
+     200
+    ]
+   ],
+   "fx": [
+    [
+     30,
+     90,
+     40
+    ],
+    [
+     120,
+     230,
+     120
+    ],
+    [
+     226,
+     255,
+     226
+    ]
+   ],
+   "hud": [
+    "#7cff8c",
+    "#d8dce4"
+   ]
+  },
+  {
+   "id": "rv_moonlit_opal",
+   "tag": "opal",
+   "name": "Moonlit Opal",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Opal gemstone play-of-colour under moonlight (original cosmetic design)",
+   "url": null,
+   "research": "Precious opal shows a milky base with shifting blue / green / pink flashes; the cloak is a pearly blue-white and the flashes are a cached iridescent overlay.",
+   "notes": "Cloak pearl blue-white, gem moon-pink, magic soft cyan. Cached IRIDESCENT material (slow breathe, static under reduced effects).",
+   "cloak": [
+    [
+     54,
+     64,
+     96
+    ],
+    [
+     90,
+     104,
+     140
+    ],
+    [
+     130,
+     144,
+     180
+    ],
+    [
+     170,
+     182,
+     212
+    ],
+    [
+     204,
+     212,
+     236
+    ],
+    [
+     226,
+     232,
+     248
+    ],
+    [
+     246,
+     248,
+     255
+    ]
+   ],
+   "gem": [
+    [
+     150,
+     80,
+     120
+    ],
+    [
+     236,
+     160,
+     200
+    ],
+    [
+     255,
+     228,
+     240
+    ]
+   ],
+   "fx": [
+    [
+     50,
+     110,
+     150
+    ],
+    [
+     130,
+     210,
+     240
+    ],
+    [
+     230,
+     250,
+     255
+    ]
+   ],
+   "hud": [
+    "#bfeaff",
+    "#f4c0dc"
+   ],
+   "material": {
+    "kind": "iridescent",
+    "region": "cloak",
+    "colors": [
+     [
+      120,
+      200,
+      230
+     ],
+     [
+      200,
+      150,
+      230
+     ],
+     [
+      150,
+      240,
+      200
+     ]
+    ],
+    "period": 240,
+    "maxAlpha": 0.42
+   }
+  },
+  {
+   "id": "rv_gothic_velvet",
+   "tag": "velvet",
+   "name": "Gothic Velvet",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Black-burgundy crushed velvet with a faint garnet sheen (original cosmetic design)",
+   "url": null,
+   "research": "Crushed velvet reads as near-black with soft wine highlights; a sparse cached glitter adds the sheen.",
+   "notes": "Cloak black-wine, gem garnet, magic deep plum. Cached GLITTER material (sparse, slow crossfade).",
+   "cloak": [
+    [
+     8,
+     0,
+     6
+    ],
+    [
+     24,
+     4,
+     14
+    ],
+    [
+     44,
+     8,
+     24
+    ],
+    [
+     66,
+     14,
+     36
+    ],
+    [
+     92,
+     22,
+     50
+    ],
+    [
+     124,
+     40,
+     70
+    ],
+    [
+     164,
+     80,
+     104
+    ]
+   ],
+   "gem": [
+    [
+     90,
+     0,
+     20
+    ],
+    [
+     180,
+     20,
+     50
+    ],
+    [
+     240,
+     110,
+     130
+    ]
+   ],
+   "fx": [
+    [
+     60,
+     0,
+     50
+    ],
+    [
+     150,
+     40,
+     130
+    ],
+    [
+     230,
+     160,
+     220
+    ]
+   ],
+   "hud": [
+    "#c0406a",
+    "#e0b0c8"
+   ],
+   "material": {
+    "kind": "glitter",
+    "region": "cloak",
+    "density": 34,
+    "colors": [
+     [
+      255,
+      200,
+      220
+     ],
+     [
+      230,
+      120,
+      160
+     ],
+     [
+      255,
+      240,
+      250
+     ]
+    ]
+   }
+  },
+  {
+   "id": "rv_aurora_witch",
+   "tag": "aurora",
+   "name": "Aurora Witch",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "Northern lights over a dark-teal night sky (original cosmetic design)",
+   "url": null,
+   "research": "Aurora borealis is mostly green (oxygen 557.7 nm) with violet-pink upper fringes; the cloak is dark teal and the aurora is a cached iridescent overlay.",
+   "notes": "Cloak night teal, gem violet, magic aurora green. Cached IRIDESCENT material.",
+   "cloak": [
+    [
+     0,
+     20,
+     26
+    ],
+    [
+     4,
+     40,
+     50
+    ],
+    [
+     10,
+     66,
+     76
+    ],
+    [
+     20,
+     96,
+     104
+    ],
+    [
+     40,
+     130,
+     130
+    ],
+    [
+     80,
+     170,
+     160
+    ],
+    [
+     150,
+     214,
+     200
+    ]
+   ],
+   "gem": [
+    [
+     90,
+     30,
+     140
+    ],
+    [
+     170,
+     90,
+     230
+    ],
+    [
+     230,
+     190,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     20,
+     110,
+     70
+    ],
+    [
+     80,
+     240,
+     150
+    ],
+    [
+     210,
+     255,
+     230
+    ]
+   ],
+   "hud": [
+    "#5cf0a0",
+    "#c08cff"
+   ],
+   "material": {
+    "kind": "iridescent",
+    "region": "cloak",
+    "colors": [
+     [
+      60,
+      230,
+      140
+     ],
+     [
+      120,
+      200,
+      255
+     ],
+     [
+      210,
+      120,
+      240
+     ]
+    ],
+    "period": 300,
+    "maxAlpha": 0.45
+   }
+  },
+  {
+   "id": "rv_sapphire_starlight",
+   "tag": "sapphire",
+   "name": "Sapphire Starlight",
+   "classification": "Original",
+   "crossover": null,
+   "inspiration": "A sapphire-blue night cloak scattered with starlight (original cosmetic design)",
+   "url": null,
+   "research": "Sapphire blue sits around #0F52BA; the deep ramp keeps her silhouette dark and a sparse cached star layer sits inside the cloak only.",
+   "notes": "Cloak sapphire, gem ice white-blue, magic bright blue. Cached STAR material.",
+   "cloak": [
+    [
+     2,
+     10,
+     48
+    ],
+    [
+     6,
+     24,
+     90
+    ],
+    [
+     12,
+     46,
+     140
+    ],
+    [
+     16,
+     72,
+     186
+    ],
+    [
+     34,
+     104,
+     226
+    ],
+    [
+     80,
+     150,
+     248
+    ],
+    [
+     160,
+     206,
+     255
+    ]
+   ],
+   "gem": [
+    [
+     90,
+     140,
+     200
+    ],
+    [
+     190,
+     226,
+     255
+    ],
+    [
+     248,
+     252,
+     255
+    ]
+   ],
+   "fx": [
+    [
+     10,
+     50,
+     150
+    ],
+    [
+     60,
+     140,
+     255
+    ],
+    [
+     200,
+     230,
+     255
+    ]
+   ],
+   "hud": [
+    "#4c9cff",
+    "#e0f0ff"
+   ],
+   "material": {
+    "kind": "stars",
+    "region": "cloak",
+    "density": 30,
+    "colors": [
+     [
+      255,
+      255,
+      255
+     ],
+     [
+      200,
+      226,
+      255
+     ],
+     [
+      255,
+      240,
+      200
+     ]
+    ]
+   }
+  }
+ ],
+ "audit": {
+  "white": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 106240,
+   "materialPixels": 0
+  },
+  "ember": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 0
+  },
+  "scarlet": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 0
+  },
+  "hollow": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 0
+  },
+  "alienx": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 16391
+  },
+  "ghostfreak": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 0
+  },
+  "opal": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 106240
+  },
+  "velvet": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 12515
+  },
+  "aurora": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 106240
+  },
+  "sapphire": {
+   "files": 57,
+   "skinPixels": 90204,
+   "outlinePixels": 265044,
+   "recoloured": 111672,
+   "materialPixels": 14621
+  }
+ }
+}

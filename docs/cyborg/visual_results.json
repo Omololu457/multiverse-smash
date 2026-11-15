@@ -1,0 +1,77 @@
+{
+  "roster": [
+    "superman",
+    "green_arrow",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "cyborg"
+  ],
+  "detail": {
+    "key": "cyborg",
+    "name": "Cyborg",
+    "stats": {
+      "maxHealth": 1100,
+      "maxEnergy": 100,
+      "attack": 84,
+      "defense": 82,
+      "speed": 84,
+      "jumpPower": 25,
+      "maxJumps": 1,
+      "weight": 1.15,
+      "dashSpeed": 13,
+      "dashDuration": 10,
+      "dashCooldownMax": 38
+    },
+    "kitType": "Thermal Bruiser / Artillery",
+    "difficulty": "Medium",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 9,
+    "selId": null,
+    "mouseX": 283,
+    "mouseY": 331
+  },
+  "afterP1": {
+    "gameState": "selectUniverse",
+    "countdown": 180,
+    "frame": 315
+  },
+  "chosenSkin": "cy_alien_x",
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "cyborg",
+    "skin": "cy_alien_x",
+    "tag": "alienx",
+    "p2": "superman"
+  },
+  "tag": "alienx",
+  "profile": {
+    "msPerFrameIdle": 0.157,
+    "msPerFrameWeapons": 0.194,
+    "msPerFrameUlt": 0.078,
+    "fxCacheBefore": 97,
+    "fxCacheAfter": 97,
+    "fxEntries": 0,
+    "live": 0
+  },
+  "fps": 23,
+  "defeat": "hurt",
+  "passes": 26,
+  "failures": 0,
+  "errors": []
+}

@@ -1,0 +1,28 @@
+{
+  "recording": {
+    "prime": true,
+    "returned": true,
+    "seen": [
+      "light",
+      "heavy",
+      "air",
+      "miRise",
+      "miSlam",
+      "miSpin"
+    ]
+  },
+  "replay": {
+    "frames": 1200,
+    "firstDifference": -1,
+    "recorded": null,
+    "playback": null,
+    "status": {
+      "cursor": 26,
+      "totalFrames": 26,
+      "checks": 21,
+      "matched": 21,
+      "desyncFrame": null,
+      "frameCount": 1201
+    }
+  }
+}

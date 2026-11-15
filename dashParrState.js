@@ -1,14 +1,14 @@
 // Dash Parr — simulation state. Plain JSON on f._dashParr (GAME_STATE: snapshotted by game.js determinism hash,
 // cleared on reset / round end / KO). Sim ticks only; no Math.random, no gameRng, no wall clock. Every hashed
 // value is hashRandom(match seed, sim frame, player index). Every export is a no-op for any other rosterKey.
-import {DASH_STATS,DASH_PARR_KEY,DASH_PARR_MOVES,MOMENTUM,DASH_ENERGY,DASH_COMBO_SCALE,SIDESTEP,PANIC_RUN,CANT_CATCH_ME,INCREDI_RUSH,SPECIAL_KEYS} from './dashParrData.js'
+import {DASH_STATS,DASH_PARR_KEY,DASH_PARR_MOVES,MOMENTUM,DASH_ENERGY,DASH_COMBO_SCALE,SIDESTEP,PANIC_RUN,CANT_CATCH_ME,INCREDI_RUSH,SPECIAL_KEYS,FLASH_TIME} from './dashParrData.js'
 import {hashRandom} from './flight.js'
 import {applyScaledDamage} from './combat.js'   // runtime-only use (rush hits); combat.js imports this module's hooks
 
 export const isDashParr=f=>f?.rosterKey===DASH_PARR_KEY
 export const dashParrState=f=>f._dashParr ||= {tick:0,clock:0,prev:{},edges:{},used:{},hist:[],taps:{fwd:[],back:[],down:[]},
  momentum:0,still:0,blurReady:false,blurSpent:0,sidestepCd:0,panicUsed:false,cccUsed:0,combo:{steps:0,last:null},serial:0,
- lowProfile:false,phase:false,lap:null,ult:null,lock:0,airFlurry:false,cues:[],stats:{hitsLanded:0,hitsTaken:0,sprintFrames:0,blurs:0}}
+ lowProfile:false,phase:false,lap:null,ult:null,lock:0,airFlurry:false,ft:false,ftFrames:0,cues:[],stats:{hitsLanded:0,hitsTaken:0,sprintFrames:0,blurs:0,flashTimes:0}}
 
 export function clearDashParr(f){
  if(!f)return
@@ -30,6 +30,7 @@ export function dashParrPhasing(a,b){return !!((isDashParr(a)&&a._dashParr?.phas
 export function dashParrRegen(f){
  if(!isDashParr(f))return false
  if(!(f.maxEnergy>0)||f.infiniteEnergy)return true
+ if(f._dashParr?.ft)return true   // no passive regen while Flash Time drains
  f.energy=Math.min(f.maxEnergy,(f.energy||0)+DASH_ENERGY.regenPerFrame);return true
 }
 
@@ -145,12 +146,24 @@ export function readMotion(hist){
  const ends=(a,b)=>a.length>=b.length&&b.every((x,i)=>a[a.length-b.length+i]===x)
  return {dqcf:ends(t30,['d','f','d','f']),qcf:ends(t15,['d','f']),qcbd:ends(tb,['b','d'])}
 }
+// ── FLASH TIME (Back + Special toggle) ──
+// game.js _oppTimeScaleOf reads this: the fraction of normal speed Dash imposes on his foe (0 = not slowing).
+export function dashParrOppTimeScale(user){return isDashParr(user)&&user._dashParr?.ft?FLASH_TIME.oppSlow:0}
+export const dashParrFlashTimeActive=f=>!!(isDashParr(f)&&f._dashParr?.ft)
+export function toggleDashParrFlashTime(f){
+ if(!isDashParr(f))return false
+ const s=dashParrState(f)
+ if(s.ft){endFlashTime(s);return true}
+ if((f.energy||0)<FLASH_TIME.threshold)return false
+ s.ft=true;s.ftFrames=0;s.stats.flashTimes++;f.isBlocking=false;s.cues.push('flashOn');return true
+}
+function endFlashTime(s){if(!s.ft)return;s.ft=false;s.cues.push('flashOff')}
 const recentTaps=(arr,tick,win)=>arr.filter(t=>tick-t<=win).length
 
 export function tickDashParr(f,opp,raw,W,startMove,seed=0){
  if(!isDashParr(f)){if(f?._dashParr)clearDashParr(f);return}
  // The shared fighter factory / round revert stamps the generic speed 84 / dash 16 → re-apply Dash's own stats
- // (walk 6.4 px/f, run 11.0 px/f). Same contract as batmanState.tickBatman; a speed modifier (other values) is kept.
+ // (Killua Zoldyck's: walk 8.75 px/f, run 10.45 px/f). Same contract as batmanState.tickBatman; a speed modifier (other values) is kept.
  if(f.baseSpeed===84&&f.dashSpeed===16){const st=DASH_STATS;f.baseSpeed=f.speed=st.speed;f.dashSpeed=st.dashSpeed;f.dashDuration=st.dashDuration;f.dashCooldownMax=st.dashCooldownMax}
  const s=dashParrState(f);s.tick++
  const fw=!!(f.facing===-1?raw.left:raw.right),bk=!!(f.facing===-1?raw.right:raw.left)
@@ -161,7 +174,7 @@ export function tickDashParr(f,opp,raw,W,startMove,seed=0){
  const mo=readMotion(s.hist)
  for(const k of ['light','heavy','special','ultimate','upAttack']){const v=!!raw[k];if(v&&!s.prev[k])s.edges[k]={tick:s.tick,clock:s.clock,down:!!raw.down,up:!!raw.up,fwd:fw,back:bk,block:!!raw.block,
   ...mo,fwdTap2:recentTaps(s.taps.fwd,s.tick,14)>=2,backTap2:recentTaps(s.taps.back,s.tick,14)>=2,downTap2:recentTaps(s.taps.down,s.tick,15)>=2};s.prev[k]=v}
- if(f.health<=0||opp?.health<=0){s.phase=false;s.lowProfile=false;if(s.ult)endRush(f,opp,s,W,true);return}
+ if(f.health<=0||opp?.health<=0){s.phase=false;s.lowProfile=false;s.ft=false;if(s.ult)endRush(f,opp,s,W,true);return}
  // PANIC RUN — Block + Heavy while being comboed (3+ hits), 40 energy, once per round. Read even in hitstun.
  {const e=s.edges.heavy;if(e&&s.used.heavy!==e.tick&&e.block&&s.tick-e.tick<=2&&f.hitstun>0&&!s.panicUsed&&(f.energy||0)>=PANIC_RUN.cost&&(opp?.comboCounter||0)>=PANIC_RUN.minHitsTaken&&!f.isGrabbed){
   s.used.heavy=e.tick;s.panicUsed=true;f.energy-=PANIC_RUN.cost;f.hitstun=0;f.stun=0;f.knockdownState=false;f.attacking=false;f.currentAttack=null;f.attackCooldown=0
@@ -170,6 +183,7 @@ export function tickDashParr(f,opp,raw,W,startMove,seed=0){
  if(f.hitstop>0)return
  s.clock++
  if(s.sidestepCd>0)s.sidestepCd--
+ if(s.ft){s.ftFrames++;f.isBlocking=false;f.energy=Math.max(0,(f.energy||0)-FLASH_TIME.drain);if(f.energy<=0)endFlashTime(s)}
  if(s.lock>0){s.lock--;f.vx=0}
  const g=!!(f.onGround||f.grounded),a=f.attacking?f.currentAttack:null,m=a?.dp,t=a?a.total-a.timer:-1
  // ── MOMENTUM (GAME_STATE) ──

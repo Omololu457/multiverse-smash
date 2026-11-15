@@ -5,7 +5,19 @@ import { DASH_PARR_KIT } from './dashParrKit.js'
 import { SPD_PINK_KIT } from './spdPinkKit.js'
 import { MMPR_PINK_KIT } from './mmprPinkKit.js'   // Pink Ranger (mmpr_pink) Move List
 import { MMPR_BLACK_KIT } from './mmprBlackKit.js'   // Black Ranger (mmpr_black) Move List
+import { GREEN_RANGER_KIT } from './greenRangerKit.js'   // Green Ranger (green_ranger) Move List
 import { MMPR_WHITE_KIT } from './mmprWhiteKit.js'   // White Ranger (mmpr_white) Move List
+import { SPD_YELLOW_KIT } from './spdYellowKit.js'   // S.P.D. Yellow (spd_yellow) Move List
+import { CYBORG_KIT } from './cyborgKit.js'   // Cyborg (cyborg) Move List
+import { BEAST_BOY_KIT } from './beastBoyKit.js'   // Beast Boy (beast_boy) Move List
+import { RAVEN_KIT } from './ravenKit.js'   // Raven (raven) Move List
+import { STARFIRE_KIT } from './starfireKit.js'   // Starfire (starfire) Move List
+import { ROBIN_KIT } from './robinKit.js'   // Robin (robin) Move List
+import { MEGUMI_KIT } from './megumiKit.js'   // Megumi Fushiguro (megumi_fushiguro) Move List
+import { HIGURUMA_KIT } from './higurumaKit.js'   // Higuruma (higuruma) Move List
+import { SYNDROME_KIT } from './syndromeKit.js'   // Syndrome (syndrome) Move List
+import { FROZONE_KIT } from './frozoneKit.js'   // Frozone (frozone) Move List
+import { MR_KIT } from './mrIncredibleKit.js'
 import { BATMAN_KIT } from './batmanKit.js'   // Batman (batman, rebuilt) Move List
 import { VIOLET_KIT } from './violetKit.js'   // Violet Parr (violet) Move List
 import { ELASTIGIRL_KIT } from './elastigirlKit.js'   // Elastigirl (elastigirl) Move List
@@ -97,7 +109,19 @@ export const KITS = {
   dash_parr: DASH_PARR_KIT,
   spd_pink: SPD_PINK_KIT,
   mmpr_black: MMPR_BLACK_KIT,
+  green_ranger: GREEN_RANGER_KIT,
   mmpr_white: MMPR_WHITE_KIT,
+  spd_yellow: SPD_YELLOW_KIT,
+  cyborg: CYBORG_KIT,
+  beast_boy: BEAST_BOY_KIT,
+  raven: RAVEN_KIT,
+  starfire: STARFIRE_KIT,
+  robin: ROBIN_KIT,
+  megumi_fushiguro: MEGUMI_KIT,
+  higuruma: HIGURUMA_KIT,
+  syndrome: SYNDROME_KIT,
+  frozone: FROZONE_KIT,
+  mr_incredible: MR_KIT,
   batman: BATMAN_KIT,
   violet: VIOLET_KIT,
   elastigirl: ELASTIGIRL_KIT,

@@ -1,0 +1,126 @@
+{
+  "skins": {
+    "rv_white_light": {
+      "tag": "white",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 110396
+      },
+      "fxDraws": 11
+    },
+    "rv_trigons_ember": {
+      "tag": "ember",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 11
+    },
+    "rv_scarlet_hex": {
+      "tag": "scarlet",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 11
+    },
+    "rv_hollow_violet": {
+      "tag": "hollow",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 11
+    },
+    "rv_alien_x_cosmos": {
+      "tag": "alienx",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 15
+    },
+    "rv_ghostfreak": {
+      "tag": "ghostfreak",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 11
+    },
+    "rv_moonlit_opal": {
+      "tag": "opal",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 14
+    },
+    "rv_gothic_velvet": {
+      "tag": "velvet",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 15
+    },
+    "rv_aurora_witch": {
+      "tag": "aurora",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 14
+    },
+    "rv_sapphire_starlight": {
+      "tag": "sapphire",
+      "traceIdentical": true,
+      "actions": 46,
+      "kept": {
+        "strips": 46,
+        "skin": 96355,
+        "changed": 0,
+        "recol": 116170
+      },
+      "fxDraws": 15
+    }
+  },
+  "passes": 102,
+  "failures": 0
+}

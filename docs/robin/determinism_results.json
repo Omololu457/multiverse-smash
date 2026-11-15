@@ -1,0 +1,83 @@
+{
+  "replay": {
+    "frames": 5200,
+    "identical": true,
+    "exercised": [
+      "light",
+      "rJ2",
+      "rJ3",
+      "heavy",
+      "rBomb",
+      "blasts",
+      "rSmoke",
+      "rStep",
+      "steps",
+      "rExpress",
+      "rRoof",
+      "rPlant",
+      "rHack",
+      "detonations",
+      "conversions",
+      "bats",
+      "up",
+      "air",
+      "rAirBomb",
+      "ultOpen",
+      "ult",
+      "ultPose",
+      "ultFlurry",
+      "ultRise",
+      "ultHack",
+      "ultLeap",
+      "ultLand"
+    ],
+    "stats": {
+      "bombs": 2,
+      "airBombs": 1,
+      "smokes": 2,
+      "steps": 1,
+      "plants": 3,
+      "plantsDestroyed": 0,
+      "plantsExpired": 0,
+      "detonations": 1,
+      "conversions": 1,
+      "bats": 1,
+      "blasts": 4,
+      "blastHits": 0,
+      "bombHits": 2,
+      "express": 1,
+      "expressHits": 4,
+      "roofs": 1,
+      "outplays": 1,
+      "rejects": 0,
+      "l2Charge": 0,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "dj": 0
+    }
+  },
+  "renderBatching": {
+    "samples": 600,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "had": {
+      "smoke": true,
+      "plant": true,
+      "bombs": 1
+    },
+    "ident": {
+      "had2": true,
+      "rb": false,
+      "proj": 0
+    }
+  },
+  "passes": 13,
+  "errors": []
+}

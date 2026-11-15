@@ -1,0 +1,1111 @@
+{
+ "regions": {
+  "0": "transparent",
+  "1": "outline / visor (kept)",
+  "2": "suit",
+  "3": "trim stripes",
+  "4": "silver other: gloves, boots, belt, blade, firearms, beams (kept)",
+  "5": "other (kept)"
+ },
+ "dark": [
+  [
+   0,
+   0,
+   0
+  ],
+  [
+   8,
+   8,
+   8
+  ],
+  [
+   49,
+   49,
+   41
+  ]
+ ],
+ "suitRampByLuminance": [
+  [
+   156,
+   132,
+   0
+  ],
+  [
+   173,
+   148,
+   16
+  ],
+  [
+   189,
+   173,
+   41
+  ],
+  [
+   206,
+   198,
+   57
+  ],
+  [
+   204,
+   216,
+   96
+  ],
+  [
+   222,
+   222,
+   82
+  ],
+  [
+   251,
+   234,
+   66
+  ],
+  [
+   239,
+   247,
+   107
+  ],
+  [
+   249,
+   251,
+   155
+  ]
+ ],
+ "silver": [
+  [
+   99,
+   99,
+   90
+  ],
+  [
+   148,
+   148,
+   140
+  ],
+  [
+   198,
+   198,
+   181
+  ],
+  [
+   247,
+   255,
+   231
+  ]
+ ],
+ "trimRule": "silver pixel with suit pixels within 3 px on both opposite sides (horizontal or vertical)",
+ "skins": {
+  "alienx": {
+   "name": "Alien X \u2014 Inspired",
+   "id": "spd_yellow_inspired_alienx",
+   "ref": "https://ben10.fandom.com/wiki/Alien_X",
+   "suit": [
+    [
+     10,
+     10,
+     16
+    ],
+    [
+     16,
+     16,
+     24
+    ],
+    [
+     22,
+     22,
+     32
+    ],
+    [
+     28,
+     28,
+     39
+    ],
+    [
+     52,
+     168,
+     96
+    ],
+    [
+     40,
+     40,
+     55
+    ],
+    [
+     84,
+     200,
+     120
+    ],
+    [
+     52,
+     52,
+     70
+    ],
+    [
+     120,
+     230,
+     150
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     158,
+     152
+    ],
+    [
+     192,
+     200,
+     194
+    ],
+    [
+     224,
+     232,
+     226
+    ],
+    [
+     248,
+     252,
+     248
+    ]
+   ],
+   "fx": [
+    "#e8fff0",
+    "#3fae6a"
+   ],
+   "material": "stars",
+   "classification": "Inspired Palette",
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 colour inspiration only: Alien X \u2014 black cosmic body, pale markings, green accents",
+   "notes": "Black cosmic suit; the existing stripes turn pale; the three rare highlight tones become green accents. Sparse SLOW stars (material) inside the suit only."
+  },
+  "upgrade": {
+   "name": "Upgrade \u2014 Inspired",
+   "id": "spd_yellow_inspired_upgrade",
+   "ref": "https://ben10.fandom.com/wiki/Upgrade",
+   "suit": [
+    [
+     6,
+     8,
+     6
+    ],
+    [
+     11,
+     14,
+     11
+    ],
+    [
+     16,
+     20,
+     16
+    ],
+    [
+     20,
+     25,
+     20
+    ],
+    [
+     25,
+     31,
+     25
+    ],
+    [
+     30,
+     37,
+     30
+    ],
+    [
+     34,
+     42,
+     34
+    ],
+    [
+     39,
+     48,
+     39
+    ],
+    [
+     44,
+     54,
+     44
+    ]
+   ],
+   "trim": [
+    [
+     20,
+     120,
+     50
+    ],
+    [
+     40,
+     190,
+     80
+    ],
+    [
+     90,
+     240,
+     130
+    ],
+    [
+     170,
+     255,
+     190
+    ]
+   ],
+   "fx": [
+    "#8dffad",
+    "#1fd060"
+   ],
+   "material": null,
+   "classification": "Inspired Palette",
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 colour inspiration only: Upgrade \u2014 black body with green lines",
+   "notes": "Dark suit; the EXISTING stripe pixels turn neon green. No circuitry drawn. Static (no material)."
+  },
+  "diamondhead": {
+   "name": "Diamondhead \u2014 Inspired",
+   "id": "spd_yellow_inspired_diamondhead",
+   "ref": "https://ben10.fandom.com/wiki/Diamondhead",
+   "suit": [
+    [
+     10,
+     66,
+     78
+    ],
+    [
+     36,
+     89,
+     100
+    ],
+    [
+     61,
+     112,
+     121
+    ],
+    [
+     86,
+     136,
+     142
+    ],
+    [
+     112,
+     159,
+     164
+    ],
+    [
+     138,
+     182,
+     186
+    ],
+    [
+     163,
+     206,
+     207
+    ],
+    [
+     188,
+     229,
+     228
+    ],
+    [
+     214,
+     252,
+     250
+    ]
+   ],
+   "trim": [
+    [
+     70,
+     110,
+     140
+    ],
+    [
+     118,
+     176,
+     204
+    ],
+    [
+     170,
+     220,
+     236
+    ],
+    [
+     216,
+     246,
+     255
+    ]
+   ],
+   "fx": [
+    "#a8fff2",
+    "#2fb8b0"
+   ],
+   "material": "facet",
+   "classification": "Inspired Palette",
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 colour inspiration only: Diamondhead \u2014 crystalline cyan/teal",
+   "notes": "Crystalline cyan/teal shading on the existing ramp. OCCASIONAL sharp 1-px highlight runs along existing shading edges (material). No crystal spikes."
+  },
+  "heatblast": {
+   "name": "Heatblast \u2014 Inspired",
+   "id": "spd_yellow_inspired_heatblast",
+   "ref": "https://ben10.fandom.com/wiki/Heatblast",
+   "suit": [
+    [
+     24,
+     18,
+     16
+    ],
+    [
+     31,
+     23,
+     20
+    ],
+    [
+     38,
+     28,
+     24
+    ],
+    [
+     44,
+     33,
+     27
+    ],
+    [
+     226,
+     96,
+     24
+    ],
+    [
+     58,
+     43,
+     35
+    ],
+    [
+     246,
+     140,
+     40
+    ],
+    [
+     112,
+     50,
+     26
+    ],
+    [
+     255,
+     186,
+     70
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     44,
+     12
+    ],
+    [
+     206,
+     86,
+     22
+    ],
+    [
+     242,
+     142,
+     40
+    ],
+    [
+     255,
+     210,
+     110
+    ]
+   ],
+   "fx": [
+    "#ffc070",
+    "#ff6a10"
+   ],
+   "material": null,
+   "classification": "Inspired Palette",
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 colour inspiration only: Heatblast \u2014 charcoal rock with molten accents",
+   "notes": "Charcoal suit; the lit side is a dark ember, the rare highlights and the stripes become molten orange/gold. No flames drawn. Static."
+  },
+  "chromastone": {
+   "name": "Chromastone \u2014 Inspired",
+   "id": "spd_yellow_inspired_chromastone",
+   "ref": "https://ben10.fandom.com/wiki/Chromastone",
+   "suit": [
+    [
+     40,
+     10,
+     62
+    ],
+    [
+     65,
+     34,
+     86
+    ],
+    [
+     90,
+     57,
+     110
+    ],
+    [
+     114,
+     80,
+     133
+    ],
+    [
+     139,
+     104,
+     157
+    ],
+    [
+     164,
+     128,
+     181
+    ],
+    [
+     188,
+     151,
+     204
+    ],
+    [
+     213,
+     174,
+     228
+    ],
+    [
+     238,
+     198,
+     252
+    ]
+   ],
+   "trim": [
+    [
+     120,
+     40,
+     120
+    ],
+    [
+     190,
+     80,
+     190
+    ],
+    [
+     240,
+     150,
+     240
+    ],
+    [
+     255,
+     220,
+     255
+    ]
+   ],
+   "fx": [
+    "#f0b8ff",
+    "#a43be0"
+   ],
+   "material": "crystal",
+   "classification": "Inspired Palette",
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 colour inspiration only: Chromastone \u2014 purple/magenta crystal",
+   "notes": "Purple/magenta crystalline palette; a SUBTLE crystalline accent (tiny 4-point glint) on shading edges (material). No spikes."
+  },
+  "bigchill": {
+   "name": "Big Chill \u2014 Inspired",
+   "id": "spd_yellow_inspired_bigchill",
+   "ref": "https://ben10.fandom.com/wiki/Big_Chill",
+   "suit": [
+    [
+     8,
+     14,
+     40
+    ],
+    [
+     15,
+     23,
+     54
+    ],
+    [
+     22,
+     32,
+     68
+    ],
+    [
+     29,
+     41,
+     82
+    ],
+    [
+     36,
+     50,
+     96
+    ],
+    [
+     43,
+     59,
+     110
+    ],
+    [
+     50,
+     68,
+     124
+    ],
+    [
+     120,
+     190,
+     235
+    ],
+    [
+     184,
+     232,
+     255
+    ]
+   ],
+   "trim": [
+    [
+     170,
+     200,
+     220
+    ],
+    [
+     200,
+     224,
+     240
+    ],
+    [
+     226,
+     240,
+     250
+    ],
+    [
+     246,
+     252,
+     255
+    ]
+   ],
+   "fx": [
+    "#cfeeff",
+    "#3a6ad0"
+   ],
+   "material": null,
+   "classification": "Inspired Palette",
+   "source": "Ben 10 franchise (Cartoon Network) \u2014 colour inspiration only: Big Chill \u2014 deep navy with icy-blue panels",
+   "notes": "Deep navy suit; the existing brightest suit panels turn icy blue; pale cool stripes. No wings. Static."
+  },
+  "starlight": {
+   "name": "Starlight Glitter",
+   "id": "spd_yellow_starlight",
+   "ref": null,
+   "suit": [
+    [
+     20,
+     10,
+     36
+    ],
+    [
+     29,
+     16,
+     48
+    ],
+    [
+     38,
+     22,
+     61
+    ],
+    [
+     47,
+     28,
+     74
+    ],
+    [
+     56,
+     34,
+     86
+    ],
+    [
+     65,
+     40,
+     98
+    ],
+    [
+     74,
+     46,
+     111
+    ],
+    [
+     170,
+     150,
+     220
+    ],
+    [
+     206,
+     194,
+     240
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     150,
+     170
+    ],
+    [
+     186,
+     186,
+     206
+    ],
+    [
+     218,
+     218,
+     236
+    ],
+    [
+     246,
+     246,
+     255
+    ]
+   ],
+   "fx": [
+    "#e6dcff",
+    "#8a6ad8"
+   ],
+   "material": "glitter",
+   "classification": "Original Cosmetic",
+   "source": "original cosmetic design authorized by user",
+   "notes": "Dark violet suit, lavender highlights, silver stripes; RESTRAINED glitter pulses (material). Not a canon costume."
+  },
+  "opal": {
+   "name": "Opal Prism",
+   "id": "spd_yellow_opal",
+   "ref": null,
+   "suit": [
+    [
+     138,
+     146,
+     156
+    ],
+    [
+     152,
+     159,
+     168
+    ],
+    [
+     166,
+     172,
+     180
+    ],
+    [
+     180,
+     185,
+     192
+    ],
+    [
+     194,
+     198,
+     204
+    ],
+    [
+     208,
+     212,
+     216
+    ],
+    [
+     222,
+     225,
+     228
+    ],
+    [
+     236,
+     238,
+     240
+    ],
+    [
+     250,
+     251,
+     252
+    ]
+   ],
+   "trim": [
+    [
+     150,
+     136,
+     98
+    ],
+    [
+     192,
+     176,
+     128
+    ],
+    [
+     224,
+     208,
+     150
+    ],
+    [
+     248,
+     238,
+     192
+    ]
+   ],
+   "fx": [
+    "#fff4d8",
+    "#b49ad8"
+   ],
+   "material": "opal",
+   "classification": "Original Cosmetic",
+   "source": "original cosmetic design authorized by user",
+   "notes": "Pale opal panels (shading order preserved), soft-gold stripes; slowly changing mint / lilac / gold accent highlights (material). Not a canon costume."
+  }
+ },
+ "files": {
+  "air.png": {
+   "regions": {
+    "outline / visor (kept)": 148,
+    "suit": 797,
+    "trim stripes": 128,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 113
+   },
+   "maskSha256": "76a17fda58e5a743259a24b66d8fea4e4a5dbf98a8b6a001c9fc7178ac9e8b3c"
+  },
+  "crouch.png": {
+   "regions": {
+    "outline / visor (kept)": 65,
+    "suit": 455,
+    "trim stripes": 50,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 65,
+    "other (kept)": 1
+   },
+   "maskSha256": "35bb8ef83b18eb53bd8d1a58610702df531eaa1fcf53c0227bb6a2ada77d997f"
+  },
+  "dash.png": {
+   "regions": {
+    "outline / visor (kept)": 98,
+    "suit": 438,
+    "trim stripes": 65,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 47
+   },
+   "maskSha256": "a2e482b2a5099d98f75e53f870dbfea328fb03e9903429b240ea6a5ab7140f07"
+  },
+  "down_air.png": {
+   "regions": {
+    "outline / visor (kept)": 96,
+    "suit": 393,
+    "trim stripes": 74,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 45
+   },
+   "maskSha256": "17cbad04357028ddb27f2f48a40aecae456db3131b3e6344a106b2280c73b104"
+  },
+  "fall.png": {
+   "regions": {
+    "outline / visor (kept)": 51,
+    "suit": 421,
+    "trim stripes": 64,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 75
+   },
+   "maskSha256": "88c72437d5030b23147162ecf0a3b1817b8ce5369f6730de79ee6a5c14a42eb0"
+  },
+  "getup.png": {
+   "regions": {
+    "outline / visor (kept)": 255,
+    "suit": 1342,
+    "trim stripes": 151,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 167,
+    "other (kept)": 6
+   },
+   "maskSha256": "d7896ff563091a2c941d590a8ddd53dbec6c17a3f3d3f630aa903327e4cbec7e"
+  },
+  "grab.png": {
+   "regions": {
+    "outline / visor (kept)": 162,
+    "suit": 868,
+    "trim stripes": 119,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 123
+   },
+   "maskSha256": "7f4de4b37b4a55bc836af84cc795de5a5f0306d93042e174a2327879702d3105"
+  },
+  "guard.png": {
+   "regions": {
+    "outline / visor (kept)": 128,
+    "suit": 482,
+    "trim stripes": 72,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 51
+   },
+   "maskSha256": "49920134dd3b1bcacc64c5da16f333b7840faa9902fe5d3794cfa776102198b0"
+  },
+  "heavy.png": {
+   "regions": {
+    "outline / visor (kept)": 550,
+    "suit": 1215,
+    "trim stripes": 130,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 275
+   },
+   "maskSha256": "dd66f56780f309f0b3436793b30247650b53b3fc22926b239bcb723ea850432d"
+  },
+  "hurt.png": {
+   "regions": {
+    "outline / visor (kept)": 41,
+    "suit": 476,
+    "trim stripes": 49,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 71
+   },
+   "maskSha256": "0ad97385299093bf4605630ab41d9796db734652b1e1665077bca905096298de"
+  },
+  "idle.png": {
+   "regions": {
+    "outline / visor (kept)": 221,
+    "suit": 963,
+    "trim stripes": 144,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 135,
+    "other (kept)": 1
+   },
+   "maskSha256": "3f828ea5529074d6e2776f1e21cad5a76a0bb01803b130d0d57e1b6d3143316a"
+  },
+  "intro.png": {
+   "regions": {
+    "outline / visor (kept)": 317,
+    "suit": 877,
+    "trim stripes": 124,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 153
+   },
+   "maskSha256": "47a0dbb1e60d668c4ef91c8a79c252def84855f9a99594f5ad82a0010daee305"
+  },
+  "jump.png": {
+   "regions": {
+    "outline / visor (kept)": 56,
+    "suit": 428,
+    "trim stripes": 82,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 64,
+    "other (kept)": 1
+   },
+   "maskSha256": "cea4eed65999b8a9403d0f652ec092848a4c2738da8516d4a8ebc5090154a8e6"
+  },
+  "knockdown.png": {
+   "regions": {
+    "outline / visor (kept)": 106,
+    "suit": 1347,
+    "trim stripes": 146,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 170,
+    "other (kept)": 2
+   },
+   "maskSha256": "dc7ca1c375e941660f84ae6d7fba2b49a1fa8ae5e0e0c9ba9daffe23b041947c"
+  },
+  "light.png": {
+   "regions": {
+    "outline / visor (kept)": 162,
+    "suit": 868,
+    "trim stripes": 119,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 123
+   },
+   "maskSha256": "7f4de4b37b4a55bc836af84cc795de5a5f0306d93042e174a2327879702d3105"
+  },
+  "lose.png": {
+   "regions": {
+    "outline / visor (kept)": 18,
+    "suit": 425,
+    "trim stripes": 55,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 37,
+    "other (kept)": 2
+   },
+   "maskSha256": "714ce3bcb0dc8c256a6d90ea88049aa849b5402b3179703aa326e928a3bc5fc0"
+  },
+  "run.png": {
+   "regions": {
+    "outline / visor (kept)": 697,
+    "suit": 3476,
+    "trim stripes": 462,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 382,
+    "other (kept)": 6
+   },
+   "maskSha256": "ec1ad4e59ff34e686d0db6c9c4a869ce698c414a3ab7063dbae163f28f7a62b4"
+  },
+  "up.png": {
+   "regions": {
+    "outline / visor (kept)": 317,
+    "suit": 1344,
+    "trim stripes": 163,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 174
+   },
+   "maskSha256": "a7d0f7ddd9c23a197e5de89ce25891b7d593654305cda7883282e1d4b9c59433"
+  },
+  "walk.png": {
+   "regions": {
+    "outline / visor (kept)": 697,
+    "suit": 3476,
+    "trim stripes": 462,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 382,
+    "other (kept)": 6
+   },
+   "maskSha256": "ec1ad4e59ff34e686d0db6c9c4a869ce698c414a3ab7063dbae163f28f7a62b4"
+  },
+  "walk_back.png": {
+   "regions": {
+    "outline / visor (kept)": 697,
+    "suit": 3476,
+    "trim stripes": 462,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 382,
+    "other (kept)": 6
+   },
+   "maskSha256": "d4f992df03acc601f69c500067bd15cf6cc7bebd2ac9595416910cd393592a74"
+  },
+  "win.png": {
+   "regions": {
+    "outline / visor (kept)": 291,
+    "suit": 910,
+    "trim stripes": 101,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 167
+   },
+   "maskSha256": "d02e0d5a3f766a1c72caef30e68d3da330db41bae93a971e9ef50aade384cc15"
+  },
+  "yAcro.png": {
+   "regions": {
+    "outline / visor (kept)": 439,
+    "suit": 1952,
+    "trim stripes": 241,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 317,
+    "other (kept)": 2
+   },
+   "maskSha256": "53ea0d9b5ee8dc8a3a89281d2df4b1fbd9db34d9d6574a144b61dc97f7119a1d"
+  },
+  "yAirShot.png": {
+   "regions": {
+    "outline / visor (kept)": 72,
+    "suit": 449,
+    "trim stripes": 73,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 107
+   },
+   "maskSha256": "cdb4db84807bc0d87516aa85bc9aeacecec490c0b213ed317436f2648ae11cac"
+  },
+  "yBlinkRec.png": {
+   "regions": {
+    "outline / visor (kept)": 147,
+    "suit": 408,
+    "trim stripes": 59,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 79
+   },
+   "maskSha256": "ec9a519e1d18d382c9dc248262e96584ce31789a92318b0e9864246c8f1e0319"
+  },
+  "yBreak.png": {
+   "regions": {
+    "outline / visor (kept)": 245,
+    "suit": 954,
+    "trim stripes": 159,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 186
+   },
+   "maskSha256": "da6e69e621cd41b66054948e59d91ac9474efabf7a17e6b9e7cdbcb9e20cf376"
+  },
+  "yCall.png": {
+   "regions": {
+    "outline / visor (kept)": 177,
+    "suit": 425,
+    "trim stripes": 28,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 102
+   },
+   "maskSha256": "e2b49148ae409dce52afd8fa38225cc5b9d72308907c775c986958e0294bf2dd"
+  },
+  "yClone.png": {
+   "regions": {
+    "outline / visor (kept)": 317,
+    "suit": 877,
+    "trim stripes": 124,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 153
+   },
+   "maskSha256": "47a0dbb1e60d668c4ef91c8a79c252def84855f9a99594f5ad82a0010daee305"
+  },
+  "yFlip.png": {
+   "regions": {
+    "outline / visor (kept)": 151,
+    "suit": 372,
+    "trim stripes": 27,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 72
+   },
+   "maskSha256": "fb3b8de955f7bcc9ba67f911f5ec16b465cb2676624d80b6be0b9f7a7b0a0b06"
+  },
+  "yJ2.png": {
+   "regions": {
+    "outline / visor (kept)": 224,
+    "suit": 923,
+    "trim stripes": 142,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 174
+   },
+   "maskSha256": "45718ecd4d6baf631029412deaab28277628fe8b234e06711b0d3ebaa91de9be"
+  },
+  "yJ3.png": {
+   "regions": {
+    "outline / visor (kept)": 183,
+    "suit": 939,
+    "trim stripes": 110,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 148
+   },
+   "maskSha256": "2fed53f8c86466648130eaff56cc7ffbc2f639ffea1e135ff9e3f637537a35df"
+  },
+  "yLongHold.png": {
+   "regions": {
+    "outline / visor (kept)": 274,
+    "suit": 442,
+    "trim stripes": 37,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 342
+   },
+   "maskSha256": "2a21b10d10407d627f2f8f5b97dd850478d9597089be2e77b06368c6def69dee"
+  },
+  "yLongShot.png": {
+   "regions": {
+    "outline / visor (kept)": 351,
+    "suit": 882,
+    "trim stripes": 81,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 939,
+    "other (kept)": 5
+   },
+   "maskSha256": "e1788a0e2dfc59e74840fcbaf4268978b8199da1ce5174171134e9f9b6f28112"
+  },
+  "yLow.png": {
+   "regions": {
+    "outline / visor (kept)": 168,
+    "suit": 906,
+    "trim stripes": 113,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 132,
+    "other (kept)": 1
+   },
+   "maskSha256": "ab816d62b830d035252a433191b37940aaddf044b218ec107ab7fe820e635669"
+  },
+  "yPistol.png": {
+   "regions": {
+    "outline / visor (kept)": 224,
+    "suit": 983,
+    "trim stripes": 144,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 162
+   },
+   "maskSha256": "ecadaa5b6212386bb68131c411fec7ad0bcb9d8e046e4f9a0788325ce2829ce3"
+  },
+  "yPistolShot.png": {
+   "regions": {
+    "outline / visor (kept)": 209,
+    "suit": 977,
+    "trim stripes": 124,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 429
+   },
+   "maskSha256": "52259d2e2edf377d11f229be478dac292037c05747ce5711fdea87030999fcb7"
+  },
+  "yStance.png": {
+   "regions": {
+    "outline / visor (kept)": 116,
+    "suit": 337,
+    "trim stripes": 83,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 54
+   },
+   "maskSha256": "63596a50ec44bd80220270316bb97096bb9497fecac8a31dac49405a77336e94"
+  },
+  "ySwap.png": {
+   "regions": {
+    "outline / visor (kept)": 203,
+    "suit": 392,
+    "trim stripes": 51,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 88
+   },
+   "maskSha256": "274fa9558e025d860e3315d2708bc92036808947ea8ef798246ce18371988ae5"
+  },
+  "ySweep.png": {
+   "regions": {
+    "outline / visor (kept)": 229,
+    "suit": 849,
+    "trim stripes": 79,
+    "silver other: gloves, boots, belt, blade, firearms, beams (kept)": 153
+   },
+   "maskSha256": "35abc2151969b013c25349bc2e83884ed1443c41e37ef688e84648ca6935d769"
+  }
+ }
+}

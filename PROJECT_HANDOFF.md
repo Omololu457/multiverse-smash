@@ -31,6 +31,12 @@
 - **Shared changes:** `falconzord.js` per-contact `gate` (White's Formation follow-ups; also relies on Pink's `box.dx`); `mmprBlackFx.js` exports the shared `drawZordCell`; `mmprBlackState.js` only clears Black's own leftovers; `rangers.js` `clearRanger` releases `_rooted` when a live blink is cleared (a reset mid-blink froze any Ranger).
 - **Known / pending:** Formation Crane Rise now air-converts (follow-up pops −15 + signal-pose jump-cancel; 94 dmg true combo); no White-specific CPU AI; rosterParity.js ×1.3 opt-in not applied.
 
+## Mr. Incredible (`mr_incredible`) — 2026-11-14
+- One fighter: Red Suit veteran, 900-tick Young prime ultimate; 11 paired skins. Modern has controlled waist cleanup; Alien X covers both forms. Originals unchanged.
+- Owned paths / shared hooks: `docs/mr_incredible/INTEGRATION.md`. Full report: `VERIFICATION.md`; damage/routes: `DAMAGE_AUDIT.md`; form/resource policy: `TRANSFORMATION.md`.
+- Checks: 130 runtime, 30 PS5/form chords, replay 1,200 frames, LAN injection/transport, lifecycle, 1,034 strip alpha checks and Electron real-menu KO/rematch pass. Physical pad not tested; profiling has recorded stalls.
+- Uncommitted/unstaged: global combo-standard still 233/9 (same 9 unrelated failures as baseline); credits has three unrelated failures. No push/merge/deployment. Do not stage other builders' shared-file changes with this work.
+
 ## Batman (`batman`, DC) rebuilt — 2026-11-14
 - **State:** playable (Lv10 unlock gate kept). Owned modules `batman*.js`, art `assets/batman/**`, pipeline `tools/batman/`. Harnesses: `batman_rebuild.test.mjs` (70/0), `batman_determinism.mjs` (17/0), `batman_skins.test.mjs` (57/0), `batman_visual.mjs` (27/0 real menus → KO → rematch), `batman_framedata_diff.mjs` (zero diff), `batman_damage_audit.mjs [--supplement]`.
 - **Docs:** `docs/batman/` — owned files + all 46 shared hooks in `INTEGRATION.md` (`python3 tools/batman/apply_hooks.py --check`).

@@ -1,0 +1,870 @@
+{
+  "veteran": [
+    {
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 41182
+    },
+    {
+      "rgb": [
+        0,
+        56,
+        112
+      ],
+      "role": "costume trim",
+      "count": 5255
+    },
+    {
+      "rgb": [
+        32,
+        104,
+        224
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 10
+    },
+    {
+      "rgb": [
+        64,
+        64,
+        64
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 4519
+    },
+    {
+      "rgb": [
+        80,
+        120,
+        56
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 1
+    },
+    {
+      "rgb": [
+        112,
+        40,
+        176
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 23
+    },
+    {
+      "rgb": [
+        128,
+        128,
+        128
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 903
+    },
+    {
+      "rgb": [
+        144,
+        16,
+        40
+      ],
+      "role": "main fabric",
+      "count": 26223
+    },
+    {
+      "rgb": [
+        144,
+        120,
+        112
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6497
+    },
+    {
+      "rgb": [
+        152,
+        32,
+        0
+      ],
+      "role": "main fabric",
+      "count": 89
+    },
+    {
+      "rgb": [
+        160,
+        120,
+        24
+      ],
+      "role": "costume trim",
+      "count": 2361
+    },
+    {
+      "rgb": [
+        173,
+        172,
+        171
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5
+    },
+    {
+      "rgb": [
+        176,
+        16,
+        40
+      ],
+      "role": "main fabric",
+      "count": 26264
+    },
+    {
+      "rgb": [
+        176,
+        177,
+        177
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 2
+    },
+    {
+      "rgb": [
+        183,
+        185,
+        186
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 16
+    },
+    {
+      "rgb": [
+        184,
+        64,
+        16
+      ],
+      "role": "main fabric",
+      "count": 8
+    },
+    {
+      "rgb": [
+        184,
+        144,
+        136
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5171
+    },
+    {
+      "rgb": [
+        184,
+        182,
+        180
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 2
+    },
+    {
+      "rgb": [
+        187,
+        188,
+        188
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5
+    },
+    {
+      "rgb": [
+        188,
+        190,
+        191
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 53
+    },
+    {
+      "rgb": [
+        191,
+        194,
+        195
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 16
+    },
+    {
+      "rgb": [
+        194,
+        192,
+        190
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 337
+    },
+    {
+      "rgb": [
+        196,
+        196,
+        197
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6
+    },
+    {
+      "rgb": [
+        198,
+        201,
+        203
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 20
+    },
+    {
+      "rgb": [
+        200,
+        203,
+        205
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 22
+    },
+    {
+      "rgb": [
+        201,
+        200,
+        198
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 8
+    },
+    {
+      "rgb": [
+        202,
+        202,
+        204
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 3
+    },
+    {
+      "rgb": [
+        203,
+        204,
+        202
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 57
+    },
+    {
+      "rgb": [
+        205,
+        209,
+        213
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 29
+    },
+    {
+      "rgb": [
+        206,
+        207,
+        210
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 460
+    },
+    {
+      "rgb": [
+        208,
+        104,
+        40
+      ],
+      "role": "costume trim",
+      "count": 18
+    },
+    {
+      "rgb": [
+        209,
+        208,
+        205
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 7
+    },
+    {
+      "rgb": [
+        211,
+        210,
+        210
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 28
+    },
+    {
+      "rgb": [
+        211,
+        214,
+        214
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6
+    },
+    {
+      "rgb": [
+        213,
+        217,
+        220
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 425
+    },
+    {
+      "rgb": [
+        214,
+        215,
+        219
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 24
+    },
+    {
+      "rgb": [
+        216,
+        16,
+        56
+      ],
+      "role": "main fabric",
+      "count": 72356
+    },
+    {
+      "rgb": [
+        216,
+        32,
+        24
+      ],
+      "role": "main fabric",
+      "count": 68
+    },
+    {
+      "rgb": [
+        216,
+        160,
+        32
+      ],
+      "role": "costume trim",
+      "count": 6110
+    },
+    {
+      "rgb": [
+        216,
+        176,
+        160
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6531
+    },
+    {
+      "rgb": [
+        216,
+        219,
+        223
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 22
+    },
+    {
+      "rgb": [
+        216,
+        224,
+        24
+      ],
+      "role": "costume trim",
+      "count": 3110
+    },
+    {
+      "rgb": [
+        219,
+        218,
+        222
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5
+    },
+    {
+      "rgb": [
+        221,
+        220,
+        219
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 56
+    },
+    {
+      "rgb": [
+        221,
+        221,
+        221
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 332
+    },
+    {
+      "rgb": [
+        223,
+        222,
+        222
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6
+    },
+    {
+      "rgb": [
+        223,
+        224,
+        229
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 452
+    },
+    {
+      "rgb": [
+        226,
+        225,
+        226
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 27
+    },
+    {
+      "rgb": [
+        227,
+        229,
+        228
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 2
+    },
+    {
+      "rgb": [
+        228,
+        232,
+        233
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 64
+    },
+    {
+      "rgb": [
+        229,
+        228,
+        232
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 47
+    },
+    {
+      "rgb": [
+        231,
+        235,
+        235
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 231
+    },
+    {
+      "rgb": [
+        232,
+        72,
+        56
+      ],
+      "role": "main fabric",
+      "count": 34
+    },
+    {
+      "rgb": [
+        232,
+        144,
+        64
+      ],
+      "role": "costume trim",
+      "count": 12
+    },
+    {
+      "rgb": [
+        232,
+        231,
+        235
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5
+    },
+    {
+      "rgb": [
+        232,
+        232,
+        232
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5
+    },
+    {
+      "rgb": [
+        234,
+        237,
+        239
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 32
+    },
+    {
+      "rgb": [
+        235,
+        236,
+        236
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 199
+    },
+    {
+      "rgb": [
+        237,
+        239,
+        242
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 217
+    },
+    {
+      "rgb": [
+        238,
+        238,
+        240
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 593
+    },
+    {
+      "rgb": [
+        239,
+        239,
+        240
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 2
+    },
+    {
+      "rgb": [
+        240,
+        96,
+        88
+      ],
+      "role": "main fabric",
+      "count": 37
+    },
+    {
+      "rgb": [
+        242,
+        242,
+        244
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 7
+    },
+    {
+      "rgb": [
+        242,
+        245,
+        246
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 105
+    },
+    {
+      "rgb": [
+        245,
+        246,
+        248
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 53
+    },
+    {
+      "rgb": [
+        248,
+        120,
+        104
+      ],
+      "role": "main fabric",
+      "count": 53
+    },
+    {
+      "rgb": [
+        248,
+        136,
+        16
+      ],
+      "role": "costume trim",
+      "count": 41
+    },
+    {
+      "rgb": [
+        248,
+        136,
+        128
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 49
+    },
+    {
+      "rgb": [
+        248,
+        168,
+        144
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 75
+    },
+    {
+      "rgb": [
+        248,
+        200,
+        168
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 46
+    },
+    {
+      "rgb": [
+        248,
+        248,
+        248
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 27980
+    }
+  ],
+  "prime": [
+    {
+      "rgb": [
+        0,
+        0,
+        0
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 78770
+    },
+    {
+      "rgb": [
+        0,
+        58,
+        123
+      ],
+      "role": "costume trim",
+      "count": 249
+    },
+    {
+      "rgb": [
+        25,
+        107,
+        115
+      ],
+      "role": "costume trim",
+      "count": 48294
+    },
+    {
+      "rgb": [
+        33,
+        107,
+        230
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6
+    },
+    {
+      "rgb": [
+        66,
+        66,
+        66
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 4878
+    },
+    {
+      "rgb": [
+        115,
+        41,
+        181
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 23
+    },
+    {
+      "rgb": [
+        115,
+        132,
+        165
+      ],
+      "role": "main fabric",
+      "count": 17682
+    },
+    {
+      "rgb": [
+        148,
+        123,
+        115
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6663
+    },
+    {
+      "rgb": [
+        156,
+        33,
+        0
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 89
+    },
+    {
+      "rgb": [
+        156,
+        189,
+        214
+      ],
+      "role": "main fabric",
+      "count": 34206
+    },
+    {
+      "rgb": [
+        189,
+        148,
+        140
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 5261
+    },
+    {
+      "rgb": [
+        214,
+        107,
+        41
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 26
+    },
+    {
+      "rgb": [
+        222,
+        16,
+        58
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 2415
+    },
+    {
+      "rgb": [
+        222,
+        33,
+        25
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 49
+    },
+    {
+      "rgb": [
+        222,
+        181,
+        165
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 6239
+    },
+    {
+      "rgb": [
+        222,
+        230,
+        25
+      ],
+      "role": "hair",
+      "count": 4439
+    },
+    {
+      "rgb": [
+        239,
+        74,
+        58
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 32
+    },
+    {
+      "rgb": [
+        239,
+        148,
+        66
+      ],
+      "role": "hair",
+      "count": 9
+    },
+    {
+      "rgb": [
+        247,
+        99,
+        90
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 29
+    },
+    {
+      "rgb": [
+        255,
+        123,
+        107
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 55
+    },
+    {
+      "rgb": [
+        255,
+        140,
+        132
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 39
+    },
+    {
+      "rgb": [
+        255,
+        173,
+        148
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 57
+    },
+    {
+      "rgb": [
+        255,
+        206,
+        173
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 45
+    },
+    {
+      "rgb": [
+        255,
+        206,
+        197
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 898
+    },
+    {
+      "rgb": [
+        255,
+        255,
+        255
+      ],
+      "role": "preserved skin / ink / effect",
+      "count": 35142
+    }
+  ]
+}

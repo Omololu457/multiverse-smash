@@ -1,0 +1,1869 @@
+{
+ "routes": [
+  {
+   "label": "Chop → Straight → Spinning Close",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    30
+   ],
+   "stunBefore": [
+    0,
+    10,
+    11
+   ],
+   "hitFrames": [
+    6,
+    18,
+    32
+   ],
+   "blockedEvents": 0,
+   "damage": 71,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Chop (whiff) → Light",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "damage": 0,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 400,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "Cross-Examination (case)",
+   "kind": "combo",
+   "hits": [
+    13,
+    13,
+    23
+   ],
+   "stunBefore": [
+    0,
+    16,
+    16
+   ],
+   "hitFrames": [
+    13,
+    36,
+    59
+   ],
+   "blockedEvents": 0,
+   "damage": 49,
+   "energySpent": 10.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 1,
+    "crossHits": 3,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Giant overhead → Precedent dash → Chop",
+   "kind": "combo",
+   "hits": [
+    67,
+    17
+   ],
+   "stunBefore": [
+    0,
+    4
+   ],
+   "hitFrames": [
+    22,
+    63
+   ],
+   "blockedEvents": 0,
+   "damage": 84,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 90,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 1,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Extension of the Court at long range",
+   "kind": "combo",
+   "hits": [
+    42
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    13
+   ],
+   "blockedEvents": 0,
+   "damage": 42,
+   "energySpent": 8.7,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 190,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 1,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Extension beyond the drawn tip",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "damage": 0,
+   "energySpent": 9.66,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 320,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 1,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "Cross-Examination",
+   "kind": "combo",
+   "hits": [
+    13,
+    13,
+    23
+   ],
+   "stunBefore": [
+    0,
+    16,
+    16
+   ],
+   "hitFrames": [
+    13,
+    36,
+    59
+   ],
+   "blockedEvents": 0,
+   "damage": 49,
+   "energySpent": 10.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 1,
+    "crossHits": 3,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Rising Objection anti-air",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    9
+   ],
+   "blockedEvents": 0,
+   "damage": 39,
+   "energySpent": 12.94,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 1,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Order in the Court",
+   "kind": "combo",
+   "hits": [
+    75
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    24
+   ],
+   "blockedEvents": 0,
+   "damage": 75,
+   "energySpent": 15.56,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 1,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Order in the Court beyond reach",
+   "kind": "combo",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "damage": 0,
+   "energySpent": 16.52,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 1,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "no hit"
+  },
+  {
+   "label": "Order in the Court whiff → punish",
+   "kind": "punish",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "damage": 0,
+   "energySpent": 17.48,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 400,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 1,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 18,
+   "verdict": "punished (Higuruma took 18)"
+  },
+  {
+   "label": "Objection → counter strike",
+   "kind": "combo",
+   "hits": [
+    35
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    13
+   ],
+   "blockedEvents": 0,
+   "damage": 35,
+   "energySpent": 12.24,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 1,
+    "counters": 1,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "DEADLY SENTENCING",
+   "kind": "combo",
+   "hits": [
+    35,
+    82,
+    199
+   ],
+   "stunBefore": [
+    0,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    16,
+    205,
+    263
+   ],
+   "blockedEvents": 0,
+   "damage": 316,
+   "energySpent": 97.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 0,
+    "ultDone": 1,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Chop → Straight → Extended Lash",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    36
+   ],
+   "stunBefore": [
+    0,
+    10,
+    7
+   ],
+   "hitFrames": [
+    6,
+    18,
+    36
+   ],
+   "blockedEvents": 0,
+   "damage": 77,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 2,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Chop → Straight → Giant Overhead",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    62
+   ],
+   "stunBefore": [
+    0,
+    10,
+    0
+   ],
+   "hitFrames": [
+    6,
+    18,
+    46
+   ],
+   "blockedEvents": 0,
+   "damage": 103,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": 2,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 2,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "RESET at hit 3"
+  },
+  {
+   "label": "Low Check → Launcher (point blank)",
+   "kind": "combo",
+   "hits": [
+    23,
+    37
+   ],
+   "stunBefore": [
+    0,
+    6
+   ],
+   "hitFrames": [
+    8,
+    27
+   ],
+   "blockedEvents": 0,
+   "damage": 60,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 55,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 2,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher → jump-cancel → air swing (point blank)",
+   "kind": "combo",
+   "hits": [
+    37,
+    23
+   ],
+   "stunBefore": [
+    0,
+    15
+   ],
+   "hitFrames": [
+    12,
+    44
+   ],
+   "blockedEvents": 0,
+   "damage": 60,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 55,
+   "flip": false,
+   "note": "shared launcher jump-cancel: the fresh jump press must come after the hit freeze (≈ 7 f after hitstop)",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher → jump-cancel → double jump → air swing (point blank)",
+   "kind": "combo",
+   "hits": [
+    37
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    12
+   ],
+   "blockedEvents": 0,
+   "damage": 37,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 55,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Launcher → Rising Objection (special cancel, point blank)",
+   "kind": "combo",
+   "hits": [
+    37
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    12
+   ],
+   "blockedEvents": 0,
+   "damage": 37,
+   "energySpent": 13.9,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 55,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 1,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Chop → Straight → Cross-Examination",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    12,
+    11,
+    19
+   ],
+   "stunBefore": [
+    0,
+    10,
+    6,
+    16,
+    15
+   ],
+   "hitFrames": [
+    6,
+    18,
+    37,
+    60,
+    83
+   ],
+   "blockedEvents": 0,
+   "damage": 83,
+   "energySpent": 10.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 1,
+    "crossHits": 3,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Chop → Straight → Spinning Close → Deadly Sentencing",
+   "kind": "combo",
+   "hits": [
+    18,
+    23,
+    30,
+    29,
+    62,
+    151
+   ],
+   "stunBefore": [
+    0,
+    10,
+    11,
+    9,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    6,
+    18,
+    32,
+    55,
+    244,
+    302
+   ],
+   "blockedEvents": 0,
+   "damage": 313,
+   "energySpent": 97.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 0,
+    "ultDone": 1,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Giant overhead → Precedent dash → Low Check",
+   "kind": "pressure",
+   "hits": [
+    67,
+    21
+   ],
+   "stunBefore": [
+    0,
+    2
+   ],
+   "hitFrames": [
+    22,
+    65
+   ],
+   "blockedEvents": 0,
+   "damage": 88,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 90,
+   "flip": false,
+   "note": "the dash gives frame advantage; measured whether the follow-up is a true combo below",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 1,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Giant overhead → Precedent dash → Chop (combo check)",
+   "kind": "combo",
+   "hits": [
+    67,
+    17
+   ],
+   "stunBefore": [
+    0,
+    6
+   ],
+   "hitFrames": [
+    22,
+    61
+   ],
+   "blockedEvents": 0,
+   "damage": 84,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 90,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 1,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  {
+   "label": "Spacing: Extended Lash at max range",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    12
+   ],
+   "blockedEvents": 0,
+   "damage": 39,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 150,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  {
+   "label": "Spacing: Lash whiff → punish attempt",
+   "kind": "punish",
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "blockedEvents": 0,
+   "damage": 0,
+   "energySpent": 0,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 400,
+   "flip": false,
+   "note": "P2 jab into the lash recovery; damage taken by Higuruma is the measure",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 18,
+   "verdict": "punished (Higuruma took 18)"
+  },
+  {
+   "label": "Objection → counter → Straight",
+   "kind": "combo",
+   "hits": [
+    35,
+    18
+   ],
+   "stunBefore": [
+    0,
+    6
+   ],
+   "hitFrames": [
+    13,
+    53
+   ],
+   "blockedEvents": 0,
+   "damage": 53,
+   "energySpent": 10.92,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 1,
+    "counters": 1,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  }
+ ],
+ "moves": {
+  "frameData": {
+   "light": {
+    "raw": 16,
+    "stored": 31,
+    "startup": 6,
+    "active": 2,
+    "recovery": 10,
+    "total": 18,
+    "box": [
+     4,
+     26,
+     -40,
+     -14
+    ],
+    "scale": "close",
+    "cost": 0
+   },
+   "hJ2": {
+    "raw": 20,
+    "stored": 39,
+    "startup": 6,
+    "active": 2,
+    "recovery": 12,
+    "total": 20,
+    "box": [
+     6,
+     30,
+     -38,
+     -22
+    ],
+    "scale": "close",
+    "cost": 0
+   },
+   "hJ3": {
+    "raw": 28,
+    "stored": 55,
+    "startup": 8,
+    "active": 3,
+    "recovery": 18,
+    "total": 29,
+    "box": [
+     4,
+     52,
+     -24,
+     -1
+    ],
+    "scale": "close",
+    "cost": 0
+   },
+   "hLow": {
+    "raw": 20,
+    "stored": 39,
+    "startup": 8,
+    "active": 3,
+    "recovery": 14,
+    "total": 25,
+    "box": [
+     0,
+     20,
+     -26,
+     -4
+    ],
+    "scale": "close",
+    "cost": 0
+   },
+   "hPoke": {
+    "raw": 34,
+    "stored": 66,
+    "startup": 12,
+    "active": 3,
+    "recovery": 22,
+    "total": 37,
+    "box": [
+     10,
+     86,
+     -42,
+     -26
+    ],
+    "scale": "reach",
+    "cost": 0
+   },
+   "up": {
+    "raw": 32,
+    "stored": 62,
+    "startup": 12,
+    "active": 4,
+    "recovery": 24,
+    "total": 40,
+    "box": [
+     -8,
+     18,
+     -66,
+     -28
+    ],
+    "scale": "reach",
+    "cost": 0
+   },
+   "air": {
+    "raw": 24,
+    "stored": 47,
+    "startup": 7,
+    "active": 5,
+    "recovery": 14,
+    "total": 26,
+    "box": [
+     -10,
+     16,
+     -66,
+     -34
+    ],
+    "scale": "reach",
+    "cost": 0
+   },
+   "heavy": {
+    "raw": 58,
+    "stored": 113,
+    "startup": 22,
+    "active": 4,
+    "recovery": 30,
+    "total": 56,
+    "box": [
+     8,
+     46,
+     -74,
+     -2
+    ],
+    "scale": "weight",
+    "cost": 0
+   },
+   "hSweep": {
+    "raw": 50,
+    "stored": 98,
+    "startup": 18,
+    "active": 4,
+    "recovery": 28,
+    "total": 50,
+    "box": [
+     6,
+     48,
+     -34,
+     0
+    ],
+    "scale": "weight",
+    "cost": 0
+   },
+   "hExt": {
+    "raw": 36,
+    "stored": 70,
+    "startup": 13,
+    "active": 3,
+    "recovery": 24,
+    "total": 40,
+    "box": [
+     10,
+     108,
+     -42,
+     -28
+    ],
+    "scale": "reach",
+    "cost": 12
+   },
+   "hCross": {
+    "raw": 0,
+    "stored": 0,
+    "startup": 12,
+    "active": 17,
+    "recovery": 18,
+    "total": 47,
+    "box": [
+     4,
+     30,
+     -40,
+     -14
+    ],
+    "scale": "close",
+    "cost": 16
+   },
+   "hRise": {
+    "raw": 34,
+    "stored": 66,
+    "startup": 9,
+    "active": 7,
+    "recovery": 20,
+    "total": 36,
+    "box": [
+     -10,
+     18,
+     -66,
+     -16
+    ],
+    "scale": "reach",
+    "cost": 16
+   },
+   "hOrder": {
+    "raw": 64,
+    "stored": 125,
+    "startup": 24,
+    "active": 3,
+    "recovery": 32,
+    "total": 59,
+    "box": [
+     6,
+     52,
+     -50,
+     2
+    ],
+    "scale": "weight",
+    "cost": 20
+   },
+   "hObj": {
+    "raw": 0,
+    "stored": 0,
+    "startup": 3,
+    "active": 16,
+    "recovery": 21,
+    "total": 40,
+    "box": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "scale": null,
+    "cost": 15
+   },
+   "hObjHit": {
+    "raw": 30,
+    "stored": 59,
+    "startup": 4,
+    "active": 2,
+    "recovery": 16,
+    "total": 22,
+    "box": [
+     6,
+     30,
+     -38,
+     -22
+    ],
+    "scale": "close",
+    "cost": 0
+   },
+   "ultOpen": {
+    "raw": 30,
+    "stored": 59,
+    "startup": 16,
+    "active": 3,
+    "recovery": 40,
+    "total": 59,
+    "box": [
+     10,
+     108,
+     -42,
+     -28
+    ],
+    "scale": null,
+    "cost": 100
+   }
+  },
+  "boxes": {
+   "light": {
+    "box": {
+     "x": 1339.2,
+     "y": 408,
+     "w": 50.599999999999994,
+     "h": 59.8
+    },
+    "w": 60,
+    "h": 100,
+    "reachFromCentre": 59.8,
+    "drawnTip": 59.8
+   },
+   "hPoke": {
+    "box": {
+     "x": 1353,
+     "y": 403.4,
+     "w": 174.79999999999998,
+     "h": 36.8
+    },
+    "w": 60,
+    "h": 100,
+    "reachFromCentre": 197.8,
+    "drawnTip": 197.8
+   },
+   "heavy": {
+    "box": {
+     "x": 1348.4,
+     "y": 329.8,
+     "w": 87.39999999999999,
+     "h": 165.6
+    },
+    "w": 60,
+    "h": 100,
+    "reachFromCentre": 105.8,
+    "drawnTip": 105.8
+   },
+   "hExt": {
+    "box": {
+     "x": 1353,
+     "y": 403.4,
+     "w": 225.39999999999998,
+     "h": 32.199999999999996
+    },
+    "w": 60,
+    "h": 100,
+    "reachFromCentre": 248.4,
+    "drawnTip": 248.4
+   }
+  }
+ },
+ "movement": {
+  "walkVx": 6,
+  "liveSpeedStat": 84,
+  "authored": 92,
+  "formula": 6,
+  "realMatchWalk": 8,
+  "dash": {
+   "dx": 116.80511999999976,
+   "dashTimer": 8
+  },
+  "jumps": [
+   1,
+   2,
+   2
+  ]
+ },
+ "caseFile": {
+  "complete": {
+   "caseFile": {
+    "close": true,
+    "reach": true,
+    "weight": true
+   },
+   "token": 1,
+   "hud": {
+    "marks": {
+     "close": true,
+     "reach": true,
+     "weight": true
+    },
+    "token": 1,
+    "locked": false
+   }
+  },
+  "precedent": {
+   "before": {
+    "t": 37,
+    "tok": 1
+   },
+   "after": {
+    "atk": null,
+    "dash": 8,
+    "tok": 0,
+    "lock": true,
+    "case": {
+     "close": false,
+     "reach": false,
+     "weight": false
+    }
+   }
+  }
+ },
+ "specials": {
+  "ext": {
+   "label": "Extension of the Court at long range",
+   "kind": "combo",
+   "hits": [
+    42
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    13
+   ],
+   "blockedEvents": 0,
+   "damage": 42,
+   "energySpent": 8.7,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 190,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 1,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  "cross": {
+   "label": "Cross-Examination",
+   "kind": "combo",
+   "hits": [
+    13,
+    13,
+    23
+   ],
+   "stunBefore": [
+    0,
+    16,
+    16
+   ],
+   "hitFrames": [
+    13,
+    36,
+    59
+   ],
+   "blockedEvents": 0,
+   "damage": 49,
+   "energySpent": 10.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 120,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 1,
+    "crossHits": 3,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  },
+  "riseJumps": {
+   "jcA": 2,
+   "rise": "hRise",
+   "jcAfter": 2,
+   "jcFinal": 2
+  },
+  "riseAA": {
+   "label": "Rising Objection anti-air",
+   "kind": "combo",
+   "hits": [
+    39
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    9
+   ],
+   "blockedEvents": 0,
+   "damage": 39,
+   "energySpent": 12.94,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 60,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 1,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  "order": {
+   "label": "Order in the Court",
+   "kind": "combo",
+   "hits": [
+    75
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    24
+   ],
+   "blockedEvents": 0,
+   "damage": 75,
+   "energySpent": 15.56,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 1,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "single hit"
+  },
+  "objection": {
+   "route": {
+    "label": "Objection → counter strike",
+    "kind": "combo",
+    "hits": [
+     35
+    ],
+    "stunBefore": [
+     0
+    ],
+    "hitFrames": [
+     13
+    ],
+    "blockedEvents": 0,
+    "damage": 35,
+    "energySpent": 12.24,
+    "trueCombo": false,
+    "dropAfterHit": -1,
+    "gap": 60,
+    "flip": false,
+    "note": "",
+    "stats": {
+     "marks": 1,
+     "tokens": 0,
+     "precedents": 0,
+     "pdRefused": 0,
+     "objections": 1,
+     "counters": 1,
+     "objWhiffs": 0,
+     "ext": 0,
+     "cross": 0,
+     "crossHits": 0,
+     "rises": 0,
+     "orders": 0,
+     "rejects": 0,
+     "ultStarts": 0,
+     "ultWhiffs": 0,
+     "ultDone": 0,
+     "dj": 0
+    },
+    "higurumaDamageTaken": 0,
+    "verdict": "single hit"
+   },
+   "stats": {
+    "marks": 1,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 1,
+    "counters": 1,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 0,
+    "ultWhiffs": 0,
+    "ultDone": 0,
+    "dj": 0
+   }
+  },
+  "absorb": {
+   "grab": false,
+   "ult": false,
+   "behind": false,
+   "front": true,
+   "again": false
+  }
+ },
+ "ultimate": {
+  "beats": [
+   [
+    0,
+    "convene",
+    {
+     "close": 3,
+     "reach": 2,
+     "weight": 0
+    }
+   ],
+   [
+    40,
+    "case",
+    {
+     "close": 3,
+     "reach": 2,
+     "weight": 0
+    }
+   ],
+   [
+    100,
+    "confiscation",
+    {
+     "close": 3,
+     "reach": 2,
+     "weight": 0
+    }
+   ],
+   [
+    130,
+    "verdict",
+    {
+     "close": 3,
+     "reach": 2,
+     "weight": 0
+    }
+   ],
+   [
+    170,
+    "sword",
+    {
+     "close": 3,
+     "reach": 2,
+     "weight": 0
+    }
+   ],
+   [
+    230,
+    null,
+    {
+     "close": 3,
+     "reach": 2,
+     "weight": 0
+    }
+   ]
+  ],
+  "route": {
+   "label": "DEADLY SENTENCING",
+   "kind": "combo",
+   "hits": [
+    35,
+    82,
+    199
+   ],
+   "stunBefore": [
+    0,
+    9998,
+    9998
+   ],
+   "hitFrames": [
+    16,
+    205,
+    263
+   ],
+   "blockedEvents": 0,
+   "damage": 316,
+   "energySpent": 97.36,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 160,
+   "flip": false,
+   "note": "",
+   "stats": {
+    "marks": 0,
+    "tokens": 0,
+    "precedents": 0,
+    "pdRefused": 0,
+    "objections": 0,
+    "counters": 0,
+    "objWhiffs": 0,
+    "ext": 0,
+    "cross": 0,
+    "crossHits": 0,
+    "rises": 0,
+    "orders": 0,
+    "rejects": 0,
+    "ultStarts": 1,
+    "ultWhiffs": 0,
+    "ultDone": 1,
+    "dj": 0
+   },
+   "higurumaDamageTaken": 0,
+   "verdict": "true combo"
+  }
+ },
+ "misc": {},
+ "errors": []
+}

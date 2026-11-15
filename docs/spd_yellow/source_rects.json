@@ -1,0 +1,2102 @@
+{
+  "source": "Plug & Play - Power Rangers S.P.D._ Escape of the Five Fugitives - Power Rangers - Yellow Ranger.png",
+  "sha256": "c6f7731e9301f082f170deb86d2a42228f6452b602949d2687083e8c5608f6e8",
+  "size": [
+    727,
+    1160
+  ],
+  "mode": "RGB",
+  "outerBackground": [
+    251,
+    234,
+    66
+  ],
+  "cellBackground": [
+    249,
+    251,
+    155
+  ],
+  "keyPolicy": "cell-fill RGB(249, 251, 155) keyed when border-connected or in enclosed regions >= 20 px; outer RGB(251, 234, 66) never keyed inside cells (suit/blade highlight)",
+  "credit": "ripped by the FRANKETE, for TSR (WANTED-poster credit panel, top right) \u2014 excluded from runtime",
+  "creditPanel": [
+    620,
+    18,
+    102,
+    118
+  ],
+  "inputIcons": [
+    [
+      8,
+      88,
+      16,
+      16
+    ],
+    [
+      8,
+      152,
+      16,
+      16
+    ],
+    [
+      8,
+      216,
+      16,
+      16
+    ],
+    [
+      8,
+      464,
+      16,
+      16
+    ],
+    [
+      0,
+      656,
+      16,
+      16
+    ],
+    [
+      24,
+      656,
+      16,
+      16
+    ]
+  ],
+  "inputIconNote": "left-column controller glyphs \u2014 labels, not body art",
+  "frame": {
+    "width": 160,
+    "height": 96,
+    "originX": 80,
+    "originY": 84
+  },
+  "muzzle": {
+    "aim1": [
+      31,
+      -45
+    ],
+    "aim2": [
+      28,
+      -52
+    ],
+    "fire0": [
+      47,
+      -38
+    ],
+    "fire2": [
+      50,
+      -39
+    ],
+    "airAim0": [
+      42,
+      -53
+    ]
+  },
+  "frames": [
+    {
+      "name": "ready0",
+      "rect": [
+        48,
+        8,
+        32,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 1055,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        1,
+        32,
+        56
+      ],
+      "opaquePixels": 737,
+      "anchor": [
+        16,
+        56
+      ],
+      "usedIn": [
+        "getup",
+        "idle",
+        "intro",
+        "win",
+        "yClone"
+      ]
+    },
+    {
+      "name": "ready1",
+      "rect": [
+        88,
+        8,
+        32,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 1065,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        2,
+        32,
+        56
+      ],
+      "opaquePixels": 727,
+      "anchor": [
+        15,
+        56
+      ],
+      "usedIn": [
+        "idle"
+      ]
+    },
+    {
+      "name": "run0",
+      "rect": [
+        48,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2056,
+      "keptSmallFillRegions": [
+        [
+          [
+            21,
+            17
+          ],
+          2
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        9,
+        2,
+        39,
+        56
+      ],
+      "opaquePixels": 632,
+      "anchor": [
+        20,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run1",
+      "rect": [
+        104,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2040,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        2,
+        43,
+        56
+      ],
+      "opaquePixels": 648,
+      "anchor": [
+        22,
+        56
+      ],
+      "usedIn": [
+        "dash",
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run2",
+      "rect": [
+        160,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2100,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        7,
+        3,
+        35,
+        56
+      ],
+      "opaquePixels": 588,
+      "anchor": [
+        21,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run3",
+      "rect": [
+        216,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2072,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        12,
+        2,
+        40,
+        56
+      ],
+      "opaquePixels": 616,
+      "anchor": [
+        23,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run4",
+      "rect": [
+        272,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 1986,
+      "keptSmallFillRegions": [
+        [
+          [
+            20,
+            16
+          ],
+          7
+        ],
+        [
+          [
+            27,
+            33
+          ],
+          3
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        11,
+        0,
+        43,
+        56
+      ],
+      "opaquePixels": 702,
+      "anchor": [
+        24,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run5",
+      "rect": [
+        328,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2007,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        2,
+        45,
+        56
+      ],
+      "opaquePixels": 681,
+      "anchor": [
+        25,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run6",
+      "rect": [
+        384,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2131,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        12,
+        1,
+        37,
+        56
+      ],
+      "opaquePixels": 557,
+      "anchor": [
+        23,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "run7",
+      "rect": [
+        440,
+        72,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2089,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        12,
+        4,
+        37,
+        56
+      ],
+      "opaquePixels": 599,
+      "anchor": [
+        21,
+        56
+      ],
+      "usedIn": [
+        "run",
+        "walk",
+        "walk_back"
+      ]
+    },
+    {
+      "name": "crouch0",
+      "rect": [
+        48,
+        136,
+        32,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 1156,
+      "keptSmallFillRegions": [
+        [
+          [
+            16,
+            39
+          ],
+          2
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        4,
+        31,
+        56
+      ],
+      "opaquePixels": 636,
+      "anchor": [
+        14,
+        56
+      ],
+      "usedIn": [
+        "crouch",
+        "yLow"
+      ]
+    },
+    {
+      "name": "jump0",
+      "rect": [
+        48,
+        200,
+        40,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 1929,
+      "keptSmallFillRegions": [
+        [
+          [
+            17,
+            35
+          ],
+          1
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        3,
+        2,
+        38,
+        64
+      ],
+      "opaquePixels": 631,
+      "anchor": [
+        6,
+        64
+      ],
+      "usedIn": [
+        "jump"
+      ]
+    },
+    {
+      "name": "jump1",
+      "rect": [
+        96,
+        200,
+        40,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 1949,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        6,
+        2,
+        34,
+        54
+      ],
+      "opaquePixels": 611,
+      "anchor": [
+        25,
+        64
+      ],
+      "usedIn": [
+        "fall"
+      ]
+    },
+    {
+      "name": "guard0",
+      "rect": [
+        48,
+        272,
+        32,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 803,
+      "keptSmallFillRegions": [
+        [
+          [
+            6,
+            16
+          ],
+          10
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        3,
+        31,
+        48
+      ],
+      "opaquePixels": 733,
+      "anchor": [
+        15,
+        48
+      ],
+      "usedIn": [
+        "guard"
+      ]
+    },
+    {
+      "name": "fall0",
+      "rect": [
+        48,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 2051,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        9,
+        1,
+        48,
+        48
+      ],
+      "opaquePixels": 637,
+      "anchor": [
+        39,
+        48
+      ],
+      "usedIn": [
+        "hurt",
+        "knockdown"
+      ]
+    },
+    {
+      "name": "fall1",
+      "rect": [
+        112,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 2091,
+      "keptSmallFillRegions": [
+        [
+          [
+            15,
+            36
+          ],
+          4
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        3,
+        54,
+        40
+      ],
+      "opaquePixels": 597,
+      "anchor": [
+        16,
+        48
+      ],
+      "usedIn": [
+        "knockdown"
+      ]
+    },
+    {
+      "name": "fall2",
+      "rect": [
+        176,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 2151,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        32,
+        56,
+        48
+      ],
+      "opaquePixels": 537,
+      "anchor": [
+        30,
+        48
+      ],
+      "usedIn": [
+        "knockdown",
+        "lose"
+      ]
+    },
+    {
+      "name": "fall3",
+      "rect": [
+        240,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 2140,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        11,
+        38,
+        48
+      ],
+      "opaquePixels": 548,
+      "anchor": [
+        18,
+        48
+      ],
+      "usedIn": [
+        "getup"
+      ]
+    },
+    {
+      "name": "fall4",
+      "rect": [
+        304,
+        328,
+        56,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 2052,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        2,
+        45,
+        48
+      ],
+      "opaquePixels": 636,
+      "anchor": [
+        29,
+        48
+      ],
+      "usedIn": [
+        "getup"
+      ]
+    },
+    {
+      "name": "strike0",
+      "rect": [
+        48,
+        400,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2054,
+      "keptSmallFillRegions": [
+        [
+          [
+            21,
+            38
+          ],
+          3
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        7,
+        4,
+        36,
+        56
+      ],
+      "opaquePixels": 634,
+      "anchor": [
+        19,
+        56
+      ],
+      "usedIn": [
+        "grab",
+        "light",
+        "up"
+      ]
+    },
+    {
+      "name": "strike1",
+      "rect": [
+        104,
+        400,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2050,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        7,
+        2,
+        39,
+        56
+      ],
+      "opaquePixels": 638,
+      "anchor": [
+        23,
+        56
+      ],
+      "usedIn": [
+        "grab",
+        "light"
+      ]
+    },
+    {
+      "name": "strike2",
+      "rect": [
+        160,
+        400,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 1962,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        3,
+        0,
+        48,
+        56
+      ],
+      "opaquePixels": 726,
+      "anchor": [
+        18,
+        56
+      ],
+      "usedIn": [
+        "up"
+      ]
+    },
+    {
+      "name": "strike3",
+      "rect": [
+        216,
+        400,
+        48,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2050,
+      "keptSmallFillRegions": [
+        [
+          [
+            11,
+            21
+          ],
+          4
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        6,
+        2,
+        38,
+        56
+      ],
+      "opaquePixels": 638,
+      "anchor": [
+        22,
+        56
+      ],
+      "usedIn": [
+        "up"
+      ]
+    },
+    {
+      "name": "blade0",
+      "rect": [
+        48,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3362,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        12,
+        40,
+        64
+      ],
+      "opaquePixels": 734,
+      "anchor": [
+        19,
+        64
+      ],
+      "usedIn": [
+        "intro",
+        "yClone",
+        "ySwap"
+      ]
+    },
+    {
+      "name": "blade1",
+      "rect": [
+        120,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3412,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        16,
+        38,
+        64
+      ],
+      "opaquePixels": 684,
+      "anchor": [
+        20,
+        64
+      ],
+      "usedIn": [
+        "yLow"
+      ]
+    },
+    {
+      "name": "blade2",
+      "rect": [
+        192,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3373,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        13,
+        44,
+        64
+      ],
+      "opaquePixels": 723,
+      "anchor": [
+        23,
+        64
+      ],
+      "usedIn": [
+        "yJ3"
+      ]
+    },
+    {
+      "name": "blade3",
+      "rect": [
+        264,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3439,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 10,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        17,
+        39,
+        64
+      ],
+      "opaquePixels": 657,
+      "anchor": [
+        18,
+        64
+      ],
+      "usedIn": [
+        "yJ3"
+      ]
+    },
+    {
+      "name": "blade4",
+      "rect": [
+        336,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3331,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        9,
+        59,
+        64
+      ],
+      "opaquePixels": 765,
+      "anchor": [
+        23,
+        64
+      ],
+      "usedIn": [
+        "yBreak"
+      ]
+    },
+    {
+      "name": "blade5",
+      "rect": [
+        408,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3364,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        3,
+        54,
+        64
+      ],
+      "opaquePixels": 732,
+      "anchor": [
+        24,
+        64
+      ],
+      "usedIn": [
+        "win",
+        "yCall"
+      ]
+    },
+    {
+      "name": "blade6",
+      "rect": [
+        480,
+        464,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3392,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        4,
+        6,
+        42,
+        64
+      ],
+      "opaquePixels": 704,
+      "anchor": [
+        22,
+        64
+      ],
+      "usedIn": [
+        "heavy"
+      ]
+    },
+    {
+      "name": "acro0",
+      "rect": [
+        48,
+        536,
+        56,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 2922,
+      "keptSmallFillRegions": [
+        [
+          [
+            23,
+            21
+          ],
+          8
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        2,
+        30,
+        61
+      ],
+      "opaquePixels": 662,
+      "anchor": [
+        19,
+        64
+      ],
+      "usedIn": [
+        "yAcro"
+      ]
+    },
+    {
+      "name": "acro1",
+      "rect": [
+        112,
+        536,
+        56,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3025,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 1,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        3,
+        1,
+        29,
+        58
+      ],
+      "opaquePixels": 559,
+      "anchor": [
+        15,
+        64
+      ],
+      "usedIn": [
+        "yAcro"
+      ]
+    },
+    {
+      "name": "acro2",
+      "rect": [
+        176,
+        536,
+        56,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3152,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        3,
+        3,
+        35,
+        46
+      ],
+      "opaquePixels": 432,
+      "anchor": [
+        20,
+        64
+      ],
+      "usedIn": [
+        "yAcro"
+      ]
+    },
+    {
+      "name": "acro3",
+      "rect": [
+        240,
+        536,
+        56,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 2979,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        4,
+        3,
+        55,
+        57
+      ],
+      "opaquePixels": 605,
+      "anchor": [
+        18,
+        64
+      ],
+      "usedIn": [
+        "yAcro"
+      ]
+    },
+    {
+      "name": "acro4",
+      "rect": [
+        304,
+        536,
+        56,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 2891,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        7,
+        12,
+        37,
+        64
+      ],
+      "opaquePixels": 693,
+      "anchor": [
+        20,
+        64
+      ],
+      "usedIn": [
+        "yAcro",
+        "yBlinkRec"
+      ]
+    },
+    {
+      "name": "acro5",
+      "rect": [
+        368,
+        536,
+        56,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 2994,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        8,
+        19,
+        29,
+        64
+      ],
+      "opaquePixels": 590,
+      "anchor": [
+        18,
+        64
+      ],
+      "usedIn": [
+        "yStance"
+      ]
+    },
+    {
+      "name": "airKick0",
+      "rect": [
+        48,
+        640,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3518,
+      "keptSmallFillRegions": [
+        [
+          [
+            17,
+            21
+          ],
+          2
+        ],
+        [
+          [
+            18,
+            23
+          ],
+          1
+        ],
+        [
+          [
+            23,
+            34
+          ],
+          1
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        12,
+        2,
+        39,
+        49
+      ],
+      "opaquePixels": 578,
+      "anchor": [
+        21,
+        64
+      ],
+      "usedIn": [
+        "air"
+      ]
+    },
+    {
+      "name": "airKick1",
+      "rect": [
+        120,
+        640,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3488,
+      "keptSmallFillRegions": [
+        [
+          [
+            28,
+            19
+          ],
+          2
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        9,
+        2,
+        59,
+        41
+      ],
+      "opaquePixels": 608,
+      "anchor": [
+        43,
+        64
+      ],
+      "usedIn": [
+        "air",
+        "down_air"
+      ]
+    },
+    {
+      "name": "flip0",
+      "rect": [
+        48,
+        712,
+        48,
+        48
+      ],
+      "kind": "body",
+      "keyedPixels": 1682,
+      "keptSmallFillRegions": [
+        [
+          [
+            39,
+            6
+          ],
+          1
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        5,
+        46,
+        48
+      ],
+      "opaquePixels": 622,
+      "anchor": [
+        22,
+        48
+      ],
+      "usedIn": [
+        "yFlip"
+      ]
+    },
+    {
+      "name": "slash0",
+      "rect": [
+        48,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3412,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        16,
+        38,
+        64
+      ],
+      "opaquePixels": 684,
+      "anchor": [
+        20,
+        64
+      ],
+      "usedIn": [
+        "yJ2"
+      ]
+    },
+    {
+      "name": "slash1",
+      "rect": [
+        120,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3317,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        16,
+        61,
+        64
+      ],
+      "opaquePixels": 779,
+      "anchor": [
+        24,
+        64
+      ],
+      "usedIn": [
+        "yBreak",
+        "yJ2"
+      ]
+    },
+    {
+      "name": "slash2",
+      "rect": [
+        192,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3491,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        24,
+        21,
+        54,
+        64
+      ],
+      "opaquePixels": 605,
+      "anchor": [
+        38,
+        64
+      ],
+      "usedIn": [
+        "ySweep"
+      ]
+    },
+    {
+      "name": "slash3",
+      "rect": [
+        264,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3391,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        18,
+        54,
+        63
+      ],
+      "opaquePixels": 705,
+      "anchor": [
+        34,
+        64
+      ],
+      "usedIn": [
+        "ySweep"
+      ]
+    },
+    {
+      "name": "slash4",
+      "rect": [
+        336,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3412,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        16,
+        38,
+        64
+      ],
+      "opaquePixels": 684,
+      "anchor": [
+        20,
+        64
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "slash5",
+      "rect": [
+        408,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3317,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        16,
+        61,
+        64
+      ],
+      "opaquePixels": 779,
+      "anchor": [
+        24,
+        64
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "slash6",
+      "rect": [
+        480,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3364,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        3,
+        54,
+        64
+      ],
+      "opaquePixels": 732,
+      "anchor": [
+        24,
+        64
+      ],
+      "usedIn": [
+        "heavy"
+      ]
+    },
+    {
+      "name": "slash7",
+      "rect": [
+        552,
+        768,
+        64,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 3362,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        12,
+        40,
+        64
+      ],
+      "opaquePixels": 734,
+      "anchor": [
+        19,
+        64
+      ],
+      "usedIn": [
+        "heavy"
+      ]
+    },
+    {
+      "name": "aim0",
+      "rect": [
+        48,
+        840,
+        56,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2419,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        4,
+        34,
+        56
+      ],
+      "opaquePixels": 717,
+      "anchor": [
+        18,
+        56
+      ],
+      "usedIn": [
+        "yPistol"
+      ]
+    },
+    {
+      "name": "aim1",
+      "rect": [
+        112,
+        840,
+        56,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2340,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        3,
+        50,
+        56
+      ],
+      "opaquePixels": 796,
+      "anchor": [
+        18,
+        56
+      ],
+      "muzzle": [
+        49,
+        11
+      ],
+      "usedIn": [
+        "yPistol"
+      ]
+    },
+    {
+      "name": "aim2",
+      "rect": [
+        176,
+        840,
+        56,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2339,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        2,
+        3,
+        47,
+        56
+      ],
+      "opaquePixels": 797,
+      "anchor": [
+        18,
+        56
+      ],
+      "muzzle": [
+        46,
+        4
+      ],
+      "usedIn": [
+        "yPistolShot"
+      ]
+    },
+    {
+      "name": "airAim0",
+      "rect": [
+        48,
+        904,
+        48,
+        64
+      ],
+      "kind": "body",
+      "keyedPixels": 2371,
+      "keptSmallFillRegions": [
+        [
+          [
+            16,
+            35
+          ],
+          1
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        3,
+        48,
+        64
+      ],
+      "opaquePixels": 701,
+      "anchor": [
+        5,
+        64
+      ],
+      "muzzle": [
+        47,
+        11
+      ],
+      "usedIn": [
+        "yAirShot"
+      ]
+    },
+    {
+      "name": "fire0",
+      "rect": [
+        47,
+        976,
+        72,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 3090,
+      "keptSmallFillRegions": [
+        [
+          [
+            37,
+            20
+          ],
+          2
+        ]
+      ],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        0,
+        64,
+        56
+      ],
+      "opaquePixels": 942,
+      "anchor": [
+        16,
+        56
+      ],
+      "muzzle": [
+        63,
+        18
+      ],
+      "usedIn": [
+        "yPistolShot"
+      ]
+    },
+    {
+      "name": "fire1",
+      "rect": [
+        127,
+        976,
+        72,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2869,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        0,
+        67,
+        56
+      ],
+      "opaquePixels": 1163,
+      "anchor": [
+        16,
+        56
+      ],
+      "usedIn": [
+        "yLongShot"
+      ]
+    },
+    {
+      "name": "fire2",
+      "rect": [
+        207,
+        976,
+        72,
+        56
+      ],
+      "kind": "body",
+      "keyedPixels": 2937,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        0,
+        67,
+        56
+      ],
+      "opaquePixels": 1095,
+      "anchor": [
+        16,
+        56
+      ],
+      "muzzle": [
+        66,
+        17
+      ],
+      "usedIn": [
+        "yLongHold",
+        "yLongShot"
+      ]
+    },
+    {
+      "name": "streak0",
+      "rect": [
+        48,
+        1040,
+        40,
+        56
+      ],
+      "kind": "effect",
+      "keyedPixels": 1515,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        1,
+        1,
+        39,
+        56
+      ],
+      "opaquePixels": 725,
+      "anchor": [
+        20,
+        56
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "streak1",
+      "rect": [
+        96,
+        1040,
+        48,
+        64
+      ],
+      "kind": "effect",
+      "keyedPixels": 2243,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        3,
+        4,
+        46,
+        64
+      ],
+      "opaquePixels": 829,
+      "anchor": [
+        24,
+        64
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "beam0",
+      "rect": [
+        48,
+        1120,
+        72,
+        24
+      ],
+      "kind": "effect",
+      "keyedPixels": 1607,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        3,
+        16,
+        23
+      ],
+      "opaquePixels": 121,
+      "anchor": [
+        0,
+        13
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "beam1",
+      "rect": [
+        128,
+        1120,
+        72,
+        24
+      ],
+      "kind": "effect",
+      "keyedPixels": 1507,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        11,
+        64,
+        15
+      ],
+      "opaquePixels": 221,
+      "anchor": [
+        0,
+        13
+      ],
+      "usedIn": []
+    },
+    {
+      "name": "beam2",
+      "rect": [
+        208,
+        1120,
+        72,
+        24
+      ],
+      "kind": "effect",
+      "keyedPixels": 1534,
+      "keptSmallFillRegions": [],
+      "outerColourKept": 0,
+      "outerOnBorderPath": 0,
+      "bbox": [
+        0,
+        12,
+        66,
+        15
+      ],
+      "opaquePixels": 194,
+      "anchor": [
+        0,
+        13
+      ],
+      "usedIn": []
+    }
+  ],
+  "sequences": {
+    "idle": [
+      "ready0",
+      "ready1"
+    ],
+    "walk": [
+      "run0",
+      "run1",
+      "run2",
+      "run3",
+      "run4",
+      "run5",
+      "run6",
+      "run7"
+    ],
+    "run": [
+      "run0",
+      "run1",
+      "run2",
+      "run3",
+      "run4",
+      "run5",
+      "run6",
+      "run7"
+    ],
+    "walk_back": [
+      "run7",
+      "run6",
+      "run5",
+      "run4",
+      "run3",
+      "run2",
+      "run1",
+      "run0"
+    ],
+    "dash": [
+      "run1"
+    ],
+    "jump": [
+      "jump0"
+    ],
+    "fall": [
+      "jump1"
+    ],
+    "crouch": [
+      "crouch0"
+    ],
+    "guard": [
+      "guard0"
+    ],
+    "hurt": [
+      "fall0"
+    ],
+    "knockdown": [
+      "fall0",
+      "fall1",
+      "fall2"
+    ],
+    "getup": [
+      "fall3",
+      "fall4",
+      "ready0"
+    ],
+    "light": [
+      "strike0",
+      "strike1"
+    ],
+    "yJ2": [
+      "slash0",
+      "slash1"
+    ],
+    "yJ3": [
+      "blade2",
+      "blade3"
+    ],
+    "heavy": [
+      "slash6",
+      "slash7",
+      "blade6"
+    ],
+    "yLow": [
+      "crouch0",
+      "blade1"
+    ],
+    "up": [
+      "strike0",
+      "strike2",
+      "strike3"
+    ],
+    "air": [
+      "airKick0",
+      "airKick1"
+    ],
+    "down_air": [
+      "airKick1"
+    ],
+    "yFlip": [
+      "flip0"
+    ],
+    "yAcro": [
+      "acro0",
+      "acro1",
+      "acro2",
+      "acro3",
+      "acro4"
+    ],
+    "ySweep": [
+      "slash2",
+      "slash3"
+    ],
+    "yBreak": [
+      "blade4",
+      "slash1"
+    ],
+    "yPistol": [
+      "aim0",
+      "aim1"
+    ],
+    "yPistolShot": [
+      "fire0",
+      "aim2"
+    ],
+    "yLongHold": [
+      "fire2"
+    ],
+    "yLongShot": [
+      "fire1",
+      "fire2"
+    ],
+    "yAirShot": [
+      "airAim0"
+    ],
+    "yClone": [
+      "blade0",
+      "ready0"
+    ],
+    "ySwap": [
+      "blade0"
+    ],
+    "yStance": [
+      "acro5"
+    ],
+    "yCall": [
+      "blade5"
+    ],
+    "grab": [
+      "strike0",
+      "strike1"
+    ],
+    "win": [
+      "blade5",
+      "ready0"
+    ],
+    "intro": [
+      "blade0",
+      "ready0"
+    ],
+    "lose": [
+      "fall2"
+    ],
+    "yBlinkRec": [
+      "acro4"
+    ]
+  },
+  "fxCells": {
+    "streak0": "blink VANISH/launch phase (start) + swap vanish",
+    "streak1": "blink TRAVEL/arrival phase + swap arrival",
+    "beam0": "muzzle star on every pistol / long-gun / Cover Me release",
+    "beam1": "pistol bolt projectile art (incl. Cover Me, air pistol)",
+    "beam2": "long-gun beam projectile art (incl. ultimate brace)"
+  },
+  "pixelDuplicates": {
+    "slash4": "pixel-identical to slash0 and blade1",
+    "slash5": "pixel-identical to slash1",
+    "slash7": "pixel-identical to blade0",
+    "slash6": "pixel-identical to blade5"
+  },
+  "unusedCells": [
+    "slash4",
+    "slash5"
+  ]
+}

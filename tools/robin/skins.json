@@ -1,0 +1,800 @@
+[
+ {
+  "id": "rb_gotham_heir",
+  "tag": "gotham_heir",
+  "name": "Gotham Heir",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Batman (DC)",
+  "inspiration": "Batman-inspired: charcoal suit, graphite boots / gloves, deep-black outer cape, warm gold lining, restrained amber gadget effects. Colour scheme only \u2014 not an official Robin costume.",
+  "hair": [
+   "#3c4048",
+   "#22252b",
+   "#0d0e11"
+  ],
+  "cape": [
+   "#34363d",
+   "#1d1e23",
+   "#0b0b0e"
+  ],
+  "lining": [
+   "#ffcf4a",
+   "#c48a14"
+  ],
+  "torso": [
+   "#5a5d66",
+   "#34363d"
+  ],
+  "arms": [
+   "#7a7e88",
+   "#50535b",
+   "#2c2e33"
+  ],
+  "legs": [
+   "#55585f",
+   "#383a40",
+   "#1f2024"
+  ],
+  "boots": [
+   "#9ea3ad",
+   "#6a6e78",
+   "#45484f",
+   "#25272c"
+  ],
+  "belt": [
+   "#ffcf4a",
+   "#c48a14"
+  ],
+  "staff": [
+   "#c9ccd2",
+   "#868a93",
+   "#40434a"
+  ],
+  "fx": [
+   "#fff4d0",
+   "#ffd060",
+   "#f0a020",
+   "#b86010",
+   "#5a3010"
+  ],
+  "smoke": [
+   "#4a4640",
+   "#6e6860",
+   "#948d82",
+   "#b8b0a4",
+   "#d8d0c4"
+  ],
+  "bomb": [
+   "#ffd36a",
+   "#c8902a",
+   "#5a5d66",
+   "#1d1e23"
+  ],
+  "hud": [
+   "#e8b830",
+   "#fff0b8"
+  ],
+  "echo": "#ffcf4a",
+  "material": null
+ },
+ {
+  "id": "rb_bluebird_protocol",
+  "tag": "bluebird_protocol",
+  "name": "Bluebird Protocol",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Nightwing (DC)",
+  "inspiration": "Nightwing-inspired: midnight fabric, electric-blue trim on the existing costume regions, blue-black hair, cool cyan gadget effects. Robin's costume geometry is unchanged.",
+  "hair": [
+   "#33456e",
+   "#1b2747",
+   "#0a1022"
+  ],
+  "cape": [
+   "#25305a",
+   "#141b38",
+   "#070b1c"
+  ],
+  "lining": [
+   "#3cb4ff",
+   "#1470d0"
+  ],
+  "torso": [
+   "#2a3866",
+   "#141c3a"
+  ],
+  "arms": [
+   "#2a3866",
+   "#1a2448",
+   "#0c1228"
+  ],
+  "legs": [
+   "#24305c",
+   "#151d3e",
+   "#0a0f24"
+  ],
+  "boots": [
+   "#9fd8ff",
+   "#3c8cf0",
+   "#1e4aa0",
+   "#0c1a40"
+  ],
+  "belt": [
+   "#3cb4ff",
+   "#1470d0"
+  ],
+  "staff": [
+   "#bfe6ff",
+   "#5aa8e8",
+   "#20508c"
+  ],
+  "fx": [
+   "#eaffff",
+   "#8ef0ff",
+   "#30c8ff",
+   "#1878d0",
+   "#0c2c6a"
+  ],
+  "smoke": [
+   "#2c3a4c",
+   "#46586e",
+   "#64788e",
+   "#8aa0b4",
+   "#b4c6d6"
+  ],
+  "bomb": [
+   "#9ef0ff",
+   "#30a8f0",
+   "#22305a",
+   "#0a1022"
+  ],
+  "hud": [
+   "#3cb4ff",
+   "#bff0ff"
+  ],
+  "echo": "#30c8ff",
+  "material": null
+ },
+ {
+  "id": "rb_redline_vigilante",
+  "tag": "redline_vigilante",
+  "name": "Redline Vigilante",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Red Hood (DC)",
+  "inspiration": "Red Hood-inspired: crimson and charcoal, dark cape lining, red-orange gadget flashes. No helmet and no firearms are added.",
+  "hair": [
+   "#4a4448",
+   "#2a2628",
+   "#121011"
+  ],
+  "cape": [
+   "#3a3436",
+   "#211d1f",
+   "#0e0c0d"
+  ],
+  "lining": [
+   "#5a2024",
+   "#30100f"
+  ],
+  "torso": [
+   "#e02a30",
+   "#86121a"
+  ],
+  "arms": [
+   "#4e4a50",
+   "#333035",
+   "#1c1a1d"
+  ],
+  "legs": [
+   "#3e3b40",
+   "#2a272b",
+   "#161417"
+  ],
+  "boots": [
+   "#a8a2a6",
+   "#6e686c",
+   "#443f43",
+   "#221f21"
+  ],
+  "belt": [
+   "#d84a20",
+   "#8a2a10"
+  ],
+  "staff": [
+   "#d0c8cc",
+   "#8a8288",
+   "#463e44"
+  ],
+  "fx": [
+   "#fff0d8",
+   "#ffb070",
+   "#ff6a30",
+   "#c02810",
+   "#5a1008"
+  ],
+  "smoke": [
+   "#40302e",
+   "#62504c",
+   "#86726c",
+   "#ab9690",
+   "#cdbbb4"
+  ],
+  "bomb": [
+   "#ff8a50",
+   "#d03a1a",
+   "#3e3b40",
+   "#161417"
+  ],
+  "hud": [
+   "#e02a30",
+   "#ffc0b0"
+  ],
+  "echo": "#ff5030",
+  "material": null
+ },
+ {
+  "id": "rb_court_of_ivory",
+  "tag": "court_of_ivory",
+  "name": "Court of Ivory",
+  "classification": "Original Custom",
+  "crossover": null,
+  "inspiration": "Original: porcelain and bone-white cloth, dark brown gloves / hair, antique gold trim. The black outlines and the dark brown keep contrast on bright stages.",
+  "hair": [
+   "#8a6a50",
+   "#5a4030",
+   "#2e1e14"
+  ],
+  "cape": [
+   "#f0e8da",
+   "#c8bca8",
+   "#8a7c66"
+  ],
+  "lining": [
+   "#c8a050",
+   "#7e6020"
+  ],
+  "torso": [
+   "#f6f0e6",
+   "#b8ab96"
+  ],
+  "arms": [
+   "#7a5a40",
+   "#523a28",
+   "#2c1e14"
+  ],
+  "legs": [
+   "#e8e0d2",
+   "#b4a892",
+   "#7a6e5a"
+  ],
+  "boots": [
+   "#ffffff",
+   "#d8d0c0",
+   "#9a8e78",
+   "#5a4e3c"
+  ],
+  "belt": [
+   "#d4ac5a",
+   "#8a6a26"
+  ],
+  "staff": [
+   "#e6d6a8",
+   "#b09050",
+   "#6a5020"
+  ],
+  "fx": [
+   "#fffbe8",
+   "#f6e2a8",
+   "#dcb460",
+   "#a07a30",
+   "#5a4418"
+  ],
+  "smoke": [
+   "#6e665a",
+   "#948a7c",
+   "#b8ae9e",
+   "#d6cec0",
+   "#efe8dc"
+  ],
+  "bomb": [
+   "#f0e2b0",
+   "#c8a050",
+   "#7a5a40",
+   "#2e1e14"
+  ],
+  "hud": [
+   "#c8a050",
+   "#fff4d6"
+  ],
+  "echo": "#e6d6a8",
+  "material": null
+ },
+ {
+  "id": "rb_cursed_prodigy",
+  "tag": "cursed_prodigy",
+  "name": "Cursed Prodigy",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Jujutsu Kaisen",
+  "inspiration": "JJK-inspired: pink hair, charcoal clothing, wine-red cape lining, rose-violet gadget effects. Natural human skin is kept separate and unchanged.",
+  "hair": [
+   "#ffa8c8",
+   "#e0608e",
+   "#8c2a50"
+  ],
+  "cape": [
+   "#4a4a52",
+   "#2c2c33",
+   "#141418"
+  ],
+  "lining": [
+   "#8c1c3a",
+   "#4e0c1e"
+  ],
+  "torso": [
+   "#56565e",
+   "#323238"
+  ],
+  "arms": [
+   "#4c4c54",
+   "#323238",
+   "#1a1a1e"
+  ],
+  "legs": [
+   "#45454c",
+   "#2e2e34",
+   "#18181c"
+  ],
+  "boots": [
+   "#d8d8e0",
+   "#9898a4",
+   "#5a5a66",
+   "#2a2a32"
+  ],
+  "belt": [
+   "#c43a5a",
+   "#7a1a32"
+  ],
+  "staff": [
+   "#e0c0d8",
+   "#a070a0",
+   "#5a3060"
+  ],
+  "fx": [
+   "#fff0fa",
+   "#ffb0e0",
+   "#e070c8",
+   "#9038a0",
+   "#401850"
+  ],
+  "smoke": [
+   "#3e3040",
+   "#5c4a60",
+   "#7e6a84",
+   "#a290a8",
+   "#c6b8cc"
+  ],
+  "bomb": [
+   "#ffb0e0",
+   "#c050a8",
+   "#45454c",
+   "#141418"
+  ],
+  "hud": [
+   "#e070c8",
+   "#ffd0f0"
+  ],
+  "echo": "#e070c8",
+  "material": null
+ },
+ {
+  "id": "rb_limitless_blue",
+  "tag": "limitless_blue",
+  "name": "Limitless Blue",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Jujutsu Kaisen (Gojo)",
+  "inspiration": "Gojo-inspired: pale hair, navy-black suit, brilliant cyan accents. Robin's own mask shape is kept; no blindfold is drawn.",
+  "hair": [
+   "#ffffff",
+   "#d4dce8",
+   "#8e9ab0"
+  ],
+  "cape": [
+   "#1c2440",
+   "#0e1428",
+   "#05080f"
+  ],
+  "lining": [
+   "#40e0ff",
+   "#1090c0"
+  ],
+  "torso": [
+   "#222b48",
+   "#111730"
+  ],
+  "arms": [
+   "#252e4c",
+   "#161c34",
+   "#0a0e1c"
+  ],
+  "legs": [
+   "#20284a",
+   "#131a34",
+   "#080c1c"
+  ],
+  "boots": [
+   "#d8f6ff",
+   "#58c8f0",
+   "#245a90",
+   "#0c1a34"
+  ],
+  "belt": [
+   "#58e8ff",
+   "#1aa0d0"
+  ],
+  "staff": [
+   "#e0faff",
+   "#70d0f0",
+   "#2a70a0"
+  ],
+  "fx": [
+   "#ffffff",
+   "#b8f6ff",
+   "#50d8ff",
+   "#1a88d8",
+   "#0a2a6a"
+  ],
+  "smoke": [
+   "#26304a",
+   "#3e4a66",
+   "#5c6a86",
+   "#8492ac",
+   "#b2bcd0"
+  ],
+  "bomb": [
+   "#c0f8ff",
+   "#40c8f0",
+   "#20284a",
+   "#05080f"
+  ],
+  "hud": [
+   "#40e0ff",
+   "#e0fbff"
+  ],
+  "echo": "#60e8ff",
+  "material": null
+ },
+ {
+  "id": "rb_omnitrix_operative",
+  "tag": "omnitrix_operative",
+  "name": "Omnitrix Operative",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Ben 10",
+  "inspiration": "Ben 10-inspired: black / white / green costume palette and vivid green gadgets. No Omnitrix and no logo are added.",
+  "hair": [
+   "#3a3c3a",
+   "#202220",
+   "#0c0d0c"
+  ],
+  "cape": [
+   "#2e302e",
+   "#191a19",
+   "#090a09"
+  ],
+  "lining": [
+   "#62ff4a",
+   "#20b020"
+  ],
+  "torso": [
+   "#f2f4f0",
+   "#b0b4ac"
+  ],
+  "arms": [
+   "#3a3c3a",
+   "#262826",
+   "#121312"
+  ],
+  "legs": [
+   "#2e302e",
+   "#1e201e",
+   "#0d0e0d"
+  ],
+  "boots": [
+   "#f4f6f2",
+   "#b8bcb4",
+   "#5e625c",
+   "#262826"
+  ],
+  "belt": [
+   "#62ff4a",
+   "#20a020"
+  ],
+  "staff": [
+   "#c8ffb8",
+   "#62e04a",
+   "#1e7a1e"
+  ],
+  "fx": [
+   "#f2ffe8",
+   "#a8ff80",
+   "#50f040",
+   "#18a020",
+   "#0a4010"
+  ],
+  "smoke": [
+   "#2c3a2c",
+   "#465a44",
+   "#64785e",
+   "#8aa082",
+   "#b4c8ac"
+  ],
+  "bomb": [
+   "#9cff80",
+   "#3ad028",
+   "#2e302e",
+   "#0c0d0c"
+  ],
+  "hud": [
+   "#50f040",
+   "#d8ffc8"
+  ],
+  "echo": "#50f040",
+  "material": null
+ },
+ {
+  "id": "rb_starfield_detective",
+  "tag": "starfield_detective",
+  "name": "Starfield Detective",
+  "classification": "Crossover-Inspired Palette (custom)",
+  "crossover": "Ben 10 (Alien X)",
+  "inspiration": "Alien X-inspired: near-black fabric with sparse stars confined to cloth, silver trim, pale cape lining, cosmic-violet smoke. Human skin remains its own region.",
+  "hair": [
+   "#5a5866",
+   "#33323c",
+   "#141318"
+  ],
+  "cape": [
+   "#1c1a26",
+   "#100e16",
+   "#06050a"
+  ],
+  "lining": [
+   "#e8e6f4",
+   "#a8a4c0"
+  ],
+  "torso": [
+   "#24222e",
+   "#14121a"
+  ],
+  "arms": [
+   "#22202c",
+   "#16141e",
+   "#0a090e"
+  ],
+  "legs": [
+   "#201e2a",
+   "#14121c",
+   "#08070c"
+  ],
+  "boots": [
+   "#f0f0f8",
+   "#b8b8c8",
+   "#7a7a8c",
+   "#3a3a48"
+  ],
+  "belt": [
+   "#dcdcec",
+   "#9494aa"
+  ],
+  "staff": [
+   "#e8e8f4",
+   "#a4a4b8",
+   "#5a5a6c"
+  ],
+  "fx": [
+   "#ffffff",
+   "#e0d0ff",
+   "#a888ff",
+   "#6a40d0",
+   "#2a1660"
+  ],
+  "smoke": [
+   "#2a2040",
+   "#44365e",
+   "#62527e",
+   "#8676a0",
+   "#ada0c4"
+  ],
+  "bomb": [
+   "#e0d0ff",
+   "#9070e0",
+   "#24222e",
+   "#06050a"
+  ],
+  "hud": [
+   "#b8a0ff",
+   "#f0eaff"
+  ],
+  "echo": "#a888ff",
+  "material": {
+   "kind": "stars",
+   "regions": [
+    "cape",
+    "torso",
+    "arms",
+    "legs"
+   ],
+   "density": 0.022,
+   "colors": [
+    "#ffffff",
+    "#e6dcff",
+    "#c8b8ff"
+   ]
+  }
+ },
+ {
+  "id": "rb_neon_afterimage",
+  "tag": "neon_afterimage",
+  "name": "Neon Afterimage",
+  "classification": "Original Custom",
+  "crossover": null,
+  "inspiration": "Original: midnight purple, turquoise and hot magenta in sharply separated regions; bright speed echoes, readable bombs, no strobing.",
+  "hair": [
+   "#40e8e0",
+   "#14a8a8",
+   "#0a5058"
+  ],
+  "cape": [
+   "#3a1e6a",
+   "#22104a",
+   "#0e0628"
+  ],
+  "lining": [
+   "#ff3ab8",
+   "#a8107a"
+  ],
+  "torso": [
+   "#ff4ac0",
+   "#b01480"
+  ],
+  "arms": [
+   "#40e8e0",
+   "#14a8a8",
+   "#0a5a60"
+  ],
+  "legs": [
+   "#3a1e6a",
+   "#26124e",
+   "#12082c"
+  ],
+  "boots": [
+   "#d8fffb",
+   "#40e8e0",
+   "#5a2aa0",
+   "#1e0c40"
+  ],
+  "belt": [
+   "#40e8e0",
+   "#0f9a9a"
+  ],
+  "staff": [
+   "#c8fff8",
+   "#40e8e0",
+   "#0f7a80"
+  ],
+  "fx": [
+   "#fff0ff",
+   "#ff9ce8",
+   "#ff3ab8",
+   "#8a20c0",
+   "#2e0c58"
+  ],
+  "smoke": [
+   "#2a1840",
+   "#462a66",
+   "#663e8c",
+   "#8c5cb0",
+   "#b48ad0"
+  ],
+  "bomb": [
+   "#ff9ce8",
+   "#ff3ab8",
+   "#3a1e6a",
+   "#0e0628"
+  ],
+  "hud": [
+   "#ff3ab8",
+   "#a8fff8"
+  ],
+  "echo": "#40e8e0",
+  "material": null
+ },
+ {
+  "id": "rb_gilded_night",
+  "tag": "gilded_night",
+  "name": "Gilded Night",
+  "classification": "Reward-Style Original",
+  "crossover": null,
+  "inspiration": "Original reward-style black-and-gold costume, warm ivory cape lining, subtle gold glitter on cloth / trim, restrained gold explosion accents.",
+  "hair": [
+   "#3a3226",
+   "#211c14",
+   "#0c0a06"
+  ],
+  "cape": [
+   "#2a2620",
+   "#17140f",
+   "#080604"
+  ],
+  "lining": [
+   "#fff4dc",
+   "#d8c8a0"
+  ],
+  "torso": [
+   "#ffd84a",
+   "#b08614"
+  ],
+  "arms": [
+   "#2e2a22",
+   "#1c1913",
+   "#0b0a07"
+  ],
+  "legs": [
+   "#2a2620",
+   "#1a1712",
+   "#0a0906"
+  ],
+  "boots": [
+   "#ffe890",
+   "#d4a630",
+   "#7a5a14",
+   "#2a2008"
+  ],
+  "belt": [
+   "#ffe070",
+   "#b8901c"
+  ],
+  "staff": [
+   "#ffe890",
+   "#d0a030",
+   "#6a4e10"
+  ],
+  "fx": [
+   "#fffbe0",
+   "#ffe890",
+   "#ffc23a",
+   "#c07a10",
+   "#5a3404"
+  ],
+  "smoke": [
+   "#3a3428",
+   "#5a5240",
+   "#7e745c",
+   "#a49a7e",
+   "#cac0a4"
+  ],
+  "bomb": [
+   "#ffe890",
+   "#d4a630",
+   "#2a2620",
+   "#080604"
+  ],
+  "hud": [
+   "#ffd23c",
+   "#fff4c8"
+  ],
+  "echo": "#ffd84a",
+  "material": {
+   "kind": "glitter",
+   "regions": [
+    "cape",
+    "lining",
+    "belt",
+    "torso"
+   ],
+   "density": 0.018,
+   "colors": [
+    "#fffbe0",
+    "#ffe890",
+    "#ffffff"
+   ]
+  }
+ }
+]

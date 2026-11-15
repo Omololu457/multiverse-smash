@@ -1,0 +1,451 @@
+{
+  "roster": [
+    "superman",
+    "green_arrow",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "homelander",
+    "starfire"
+  ],
+  "detail": {
+    "key": "starfire",
+    "name": "Starfire",
+    "stats": {
+      "maxHealth": 1100,
+      "maxEnergy": 100,
+      "attack": 84,
+      "defense": 72,
+      "speed": 94,
+      "jumpPower": 25,
+      "maxJumps": 2,
+      "weight": 1,
+      "dashSpeed": 14,
+      "dashDuration": 10,
+      "dashCooldownMax": 34
+    },
+    "kitType": "Aerial Blaster / Eye-Beam Zoner",
+    "difficulty": "Medium",
+    "homeStage": null
+  },
+  "skinState": {
+    "gameState": "selectSkin",
+    "idx": 0,
+    "count": 11,
+    "selId": null,
+    "mouseX": 997,
+    "mouseY": 286
+  },
+  "preStage": {
+    "gameState": "selectStage",
+    "idx": 0,
+    "count": 20,
+    "selId": null,
+    "mouseX": 127,
+    "mouseY": 415
+  },
+  "introSeen": true,
+  "match": {
+    "p1": "starfire",
+    "skin": "sf_living_circuit",
+    "tag": "circuit",
+    "p2": "superman",
+    "stage": null
+  },
+  "tag": "circuit",
+  "ultTriesR": 1,
+  "ultTriesL": 1,
+  "closeups": [
+    {
+      "name": "eye_laser_left_to_right_sfLaser_6",
+      "tr": [
+        "sfLaser:41:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:40:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:39:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:38:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:37:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:36:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:35:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:34:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:33:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:32:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:31:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:30:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:29:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:28:1:16:0:sfLaser::28:0:0:battle"
+      ],
+      "ok": true,
+      "action": "sfLaser",
+      "frame": 6,
+      "facing": 1,
+      "laser": {
+        "frame": 6,
+        "eyes": [
+          {
+            "side": "back",
+            "x": 1362.45,
+            "y": 377.988
+          },
+          {
+            "side": "front",
+            "x": 1370.238,
+            "y": 377.988
+          }
+        ],
+        "segs": [
+          {
+            "side": "back",
+            "x0": 1362.45,
+            "y0": 377.988,
+            "x1": 1743.7375000000002,
+            "y1": 500,
+            "len": 400.44964102564103
+          },
+          {
+            "side": "front",
+            "x0": 1370.238,
+            "y0": 377.988,
+            "x1": 1751.5255000000002,
+            "y1": 500,
+            "len": 400.44964102564103
+          }
+        ],
+        "contact": null
+      },
+      "eyes": [
+        {
+          "side": "back",
+          "x": 1362.45,
+          "y": 377.988
+        },
+        {
+          "side": "front",
+          "x": 1370.238,
+          "y": 377.988
+        }
+      ],
+      "draw": {
+        "x": 1184.624,
+        "y": 261.168,
+        "w": 290.752,
+        "h": 269.98400000000004
+      },
+      "pageEyes": [
+        [
+          594.61845703125,
+          287.988
+        ],
+        [
+          602.40645703125,
+          287.988
+        ]
+      ],
+      "clip": {
+        "x": 497.71245703125004,
+        "y": 188.988,
+        "width": 360,
+        "height": 220
+      }
+    },
+    {
+      "name": "eye_laser_left_to_right_sfLaser_7",
+      "tr": [
+        "sfLaser:41:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:40:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:39:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:38:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:37:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:36:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:35:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:34:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:33:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:32:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:31:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:30:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:29:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:28:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:27:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:26:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:25:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:24:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:23:1:0:0:sfLaser::0:0:0:battle"
+      ],
+      "ok": true,
+      "action": "sfLaser",
+      "frame": 7,
+      "facing": 1,
+      "laser": {
+        "frame": 7,
+        "eyes": [
+          {
+            "side": "back",
+            "x": 1363.9991853312001,
+            "y": 377.988
+          },
+          {
+            "side": "front",
+            "x": 1371.7871853312001,
+            "y": 377.988
+          }
+        ],
+        "segs": [
+          {
+            "side": "back",
+            "x0": 1363.9991853312001,
+            "y0": 377.988,
+            "x1": 1923.9991853312001,
+            "y1": 377.988,
+            "len": 560
+          },
+          {
+            "side": "front",
+            "x0": 1371.7871853312001,
+            "y0": 377.988,
+            "x1": 1931.7871853312001,
+            "y1": 377.988,
+            "len": 560
+          }
+        ],
+        "contact": null
+      },
+      "eyes": [
+        {
+          "side": "back",
+          "x": 1363.9991853312001,
+          "y": 377.988
+        },
+        {
+          "side": "front",
+          "x": 1371.7871853312001,
+          "y": 377.988
+        }
+      ],
+      "draw": {
+        "x": 1186.1731853312,
+        "y": 261.168,
+        "w": 290.752,
+        "h": 269.98400000000004
+      },
+      "pageEyes": [
+        [
+          690.7339265421376,
+          287.988
+        ],
+        [
+          698.5219265421376,
+          287.988
+        ]
+      ],
+      "clip": {
+        "x": 593.8279265421377,
+        "y": 188.988,
+        "width": 360,
+        "height": 220
+      }
+    },
+    {
+      "name": "eye_laser_right_to_left_sfLaser_6",
+      "tr": [
+        "sfLaser:41:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:40:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:39:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:38:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:37:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:36:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:35:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:34:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:33:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:32:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:31:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:30:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:29:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:28:1:16:0:sfLaser::28:0:0:battle"
+      ],
+      "ok": true,
+      "action": "sfLaser",
+      "frame": 6,
+      "facing": -1,
+      "laser": {
+        "frame": 6,
+        "eyes": [
+          {
+            "side": "back",
+            "x": 1297.55,
+            "y": 377.988
+          },
+          {
+            "side": "front",
+            "x": 1289.762,
+            "y": 377.988
+          }
+        ],
+        "segs": [
+          {
+            "side": "back",
+            "x0": 1297.55,
+            "y0": 377.988,
+            "x1": 899.3841733333334,
+            "y1": 500,
+            "len": 416.46762666666666
+          },
+          {
+            "side": "front",
+            "x0": 1289.762,
+            "y0": 377.988,
+            "x1": 891.5961733333334,
+            "y1": 500,
+            "len": 416.46762666666666
+          }
+        ],
+        "contact": null
+      },
+      "eyes": [
+        {
+          "side": "back",
+          "x": 1297.55,
+          "y": 377.988
+        },
+        {
+          "side": "front",
+          "x": 1289.762,
+          "y": 377.988
+        }
+      ],
+      "draw": {
+        "x": 1184.624,
+        "y": 261.168,
+        "w": 290.752,
+        "h": 269.98400000000004
+      },
+      "pageEyes": [
+        [
+          706.0099609375,
+          287.988
+        ],
+        [
+          698.2219609375,
+          287.988
+        ]
+      ],
+      "clip": {
+        "x": 442.91596093749996,
+        "y": 188.988,
+        "width": 360,
+        "height": 220
+      }
+    },
+    {
+      "name": "eye_laser_right_to_left_sfLaser_7",
+      "tr": [
+        "sfLaser:41:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:40:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:39:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:38:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:37:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:36:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:35:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:34:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:33:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:32:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:31:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:30:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:29:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:28:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:27:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:26:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:25:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:24:1:0:0:sfLaser::0:0:0:battle",
+        "sfLaser:23:1:0:0:sfLaser::0:0:0:battle"
+      ],
+      "ok": true,
+      "action": "sfLaser",
+      "frame": 7,
+      "facing": -1,
+      "laser": {
+        "frame": 7,
+        "eyes": [
+          {
+            "side": "back",
+            "x": 1297.044164328612,
+            "y": 377.988
+          },
+          {
+            "side": "front",
+            "x": 1289.256164328612,
+            "y": 377.988
+          }
+        ],
+        "segs": [
+          {
+            "side": "back",
+            "x0": 1297.044164328612,
+            "y0": 377.988,
+            "x1": 737.0441643286119,
+            "y1": 377.988,
+            "len": 560
+          },
+          {
+            "side": "front",
+            "x0": 1289.256164328612,
+            "y0": 377.988,
+            "x1": 729.2561643286119,
+            "y1": 377.988,
+            "len": 560
+          }
+        ],
+        "contact": null
+      },
+      "eyes": [
+        {
+          "side": "back",
+          "x": 1297.044164328612,
+          "y": 377.988
+        },
+        {
+          "side": "front",
+          "x": 1289.256164328612,
+          "y": 377.988
+        }
+      ],
+      "draw": {
+        "x": 1184.118164328612,
+        "y": 261.168,
+        "w": 290.752,
+        "h": 269.98400000000004
+      },
+      "pageEyes": [
+        [
+          591.8505608129869,
+          287.988
+        ],
+        [
+          584.0625608129869,
+          287.988
+        ]
+      ],
+      "clip": {
+        "x": 328.75656081298695,
+        "y": 188.988,
+        "width": 360,
+        "height": 220
+      }
+    }
+  ],
+  "profile": {
+    "msPerFrameIdle": 0.108,
+    "msPerFrameSpecials": 1.414,
+    "msPerFrameUlt": 0.107,
+    "fxCacheBefore": 132,
+    "fxCacheAfter": 132,
+    "fxCacheMid": 132,
+    "fxEntries": 0,
+    "live": 0
+  },
+  "fps": 36,
+  "defeat": "hurt",
+  "passes": 26,
+  "failures": 0,
+  "errors": []
+}

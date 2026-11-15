@@ -1,0 +1,129 @@
+{
+  "replay": {
+    "frames": 8000,
+    "identical": true,
+    "exercised": [
+      "light",
+      "sfJ2",
+      "sfJ3",
+      "sfBolt",
+      "sfOrb",
+      "sfLaser",
+      "prism",
+      "sfRush",
+      "sfSky",
+      "sfComet",
+      "lev",
+      "sfAirLaser",
+      "sfLow",
+      "up",
+      "sfUltOpen",
+      "ult",
+      "ultOpen",
+      "ultRise",
+      "ultHover",
+      "ultBolt",
+      "ultLaser",
+      "levEnd",
+      "ultLand"
+    ],
+    "stats": {
+      "bolts": 1,
+      "comets": 1,
+      "orbs": 1,
+      "rushes": 1,
+      "skies": 1,
+      "lasers": 1,
+      "airLasers": 1,
+      "laserHits": 0,
+      "laserBlocked": 0,
+      "prisms": 1,
+      "rejects": 0,
+      "lev": 1,
+      "levFail": 0,
+      "levEnd": {
+        "toggle": 1
+      },
+      "levFrames": 34,
+      "levDrained": 3.4000000000000017,
+      "dj": 1,
+      "ultStarts": 1,
+      "ultWhiffs": 0,
+      "ultDone": 1,
+      "retired": 0,
+      "cometFloor": 1
+    }
+  },
+  "renderBatching": {
+    "samples": 700,
+    "identical": true
+  },
+  "lifecycle": {
+    "sameUlt": true,
+    "ultRan": true,
+    "trainingClears": true,
+    "ultCleared": true,
+    "identityClears": true,
+    "ident": {
+      "had": true,
+      "sf": false,
+      "proj": 0
+    }
+  },
+  "lan": {
+    "laser": true,
+    "orb": true,
+    "lev": true,
+    "frame": 260,
+    "remote": true
+  },
+  "parity": {
+    "raw": {
+      "names": [
+        "light",
+        "sfJ2",
+        "sfJ3",
+        "sfBolt",
+        "sfRush",
+        "sfOrb",
+        "sfLaser",
+        "heavy",
+        "sfLow",
+        "sfUltOpen",
+        "ultOpen",
+        "ultRise",
+        "ultHover",
+        "ultBolt",
+        "ultLaser"
+      ],
+      "hp": 630,
+      "lev": true
+    },
+    "pad": {
+      "names": [
+        "light",
+        "sfJ2",
+        "sfJ3",
+        "sfBolt",
+        "sfRush",
+        "sfOrb",
+        "sfLaser",
+        "heavy",
+        "sfLow",
+        "sfUltOpen",
+        "ultOpen",
+        "ultRise",
+        "ultHover",
+        "ultBolt",
+        "ultLaser"
+      ],
+      "hp": 630,
+      "lev": true
+    },
+    "same": true,
+    "firstDiff": -1,
+    "at": null
+  },
+  "passes": 20,
+  "errors": []
+}

@@ -9,10 +9,10 @@ Cut by `tools/dash_parr/extract.py`: exact corner teal `RGB(0,128,128)` keyed wi
 components; a speed streak touching Dash is one component; satellites (2 ground shadows, 10 white dust specks)
 are attached to their frame, so **all 13 102 non-background pixels above the credit are kept** (asserted).
 Anchor = feet baseline + body-centre column, measured on body pixels only (white streaks and grey shadow never move it).
-Render: exact ×2 nearest-neighbour (`spriteScale 2/1.18` × the engine's `GLOBAL_SPRITE_SCALE 1.18`). That makes him
-about two-thirds of Elastigirl's on-screen height (screenshot `visual_12_vs_elastigirl.png`), so he reads as a kid
-next to the adults. Violet isn't in the roster, so the "~75 % of Violet" target was matched against her mother instead.
-The hurtbox stays at the roster-standard size: scale is cosmetic only and doesn't change hit interactions.
+Render: ×2.5 nearest-neighbour (`spriteScale 2.5/1.18` × the engine's `GLOBAL_SPRITE_SCALE 1.18`). That makes him about
+70 % of Violet's on-screen height (~88 px vs ~128 px, `visual_14_vs_violet.png`) and about 80 % of Elastigirl's
+(`visual_12_vs_elastigirl.png`), so he reads as the youngest Parr. The hurtbox stays at the roster-standard size:
+scale is cosmetic only and doesn't change hit interactions.
 
 Contact sheet: `docs/dash/contact_sheet.png` (label `row.frame name`, red cross = anchor).
 

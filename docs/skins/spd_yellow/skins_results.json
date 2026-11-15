@@ -1,0 +1,138 @@
+{
+  "skins": {
+    "spd_yellow_inspired_alienx_calm": [
+      238,
+      238
+    ],
+    "spd_yellow_inspired_alienx": {
+      "tag": "alienx",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 3094,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_inspired_upgrade": {
+      "tag": "upgrade",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 0,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_inspired_diamondhead_calm": [
+      14,
+      14
+    ],
+    "spd_yellow_inspired_diamondhead": {
+      "tag": "diamondhead",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 40,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_inspired_heatblast": {
+      "tag": "heatblast",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 0,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_inspired_chromastone_calm": [
+      140,
+      140
+    ],
+    "spd_yellow_inspired_chromastone": {
+      "tag": "chromastone",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 1820,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_inspired_bigchill": {
+      "tag": "bigchill",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 0,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_starlight_calm": [
+      42,
+      42
+    ],
+    "spd_yellow_starlight": {
+      "tag": "starlight",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 292,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    },
+    "spd_yellow_opal_calm": [
+      84,
+      84
+    ],
+    "spd_yellow_opal": {
+      "tag": "opal",
+      "traceIdentical": true,
+      "actions": 38,
+      "megazordCells": 6,
+      "materialMarks": 1092,
+      "kept": {
+        "strips": 38,
+        "keptPx": 15779,
+        "changed": 0,
+        "suit": 37544,
+        "suitChanged": 37544
+      }
+    }
+  },
+  "passes": 96,
+  "failures": 0
+}

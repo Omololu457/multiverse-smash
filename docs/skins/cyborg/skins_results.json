@@ -1,0 +1,102 @@
+{
+  "skins": {
+    "cy_stark_circuit": {
+      "tag": "stark",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261724
+      },
+      "fxDraws": 10
+    },
+    "cy_war_machine": {
+      "tag": "warmachine",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261724
+      },
+      "fxDraws": 10
+    },
+    "cy_blue_bomber": {
+      "tag": "bluebomber",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261724
+      },
+      "fxDraws": 10
+    },
+    "cy_autobot_vanguard": {
+      "tag": "autobot",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261724
+      },
+      "fxDraws": 10
+    },
+    "cy_alien_x": {
+      "tag": "alienx",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261948
+      },
+      "fxDraws": 14
+    },
+    "cy_upgrade": {
+      "tag": "upgrade",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261948
+      },
+      "fxDraws": 10
+    },
+    "cy_aurora_alloy": {
+      "tag": "aurora",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261724
+      },
+      "fxDraws": 13
+    },
+    "cy_disco_chrome": {
+      "tag": "disco",
+      "traceIdentical": true,
+      "actions": 42,
+      "kept": {
+        "strips": 42,
+        "skin": 32639,
+        "changed": 0,
+        "recol": 261724
+      },
+      "fxDraws": 14
+    }
+  },
+  "passes": 84,
+  "failures": 0
+}

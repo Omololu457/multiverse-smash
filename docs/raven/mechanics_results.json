@@ -1,0 +1,205 @@
+{
+ "routes": [
+  {
+   "label": "J1 → J2 → J3",
+   "kind": "combo",
+   "hits": [
+    19,
+    24,
+    30
+   ],
+   "stunBefore": [
+    0,
+    11,
+    10
+   ],
+   "hitFrames": [
+    5,
+    18,
+    34
+   ],
+   "blockedEvents": 0,
+   "damage": 73,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Forward+Heavy chain",
+   "kind": "combo",
+   "hits": [
+    35,
+    36,
+    41
+   ],
+   "stunBefore": [
+    0,
+    15,
+    12
+   ],
+   "hitFrames": [
+    12,
+    37,
+    65
+   ],
+   "blockedEvents": 0,
+   "damage": 112,
+   "energySpent": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Infused brick on hit",
+   "kind": "combo",
+   "hits": [
+    65
+   ],
+   "stunBefore": [
+    0
+   ],
+   "hitFrames": [
+    57
+   ],
+   "blockedEvents": 0,
+   "damage": 65,
+   "energySpent": 23.62,
+   "trueCombo": false,
+   "dropAfterHit": -1,
+   "gap": 200,
+   "flip": false,
+   "note": "",
+   "verdict": "single hit"
+  },
+  {
+   "label": "AZARATH",
+   "kind": "combo",
+   "hits": [
+    35,
+    46,
+    46,
+    187
+   ],
+   "stunBefore": [
+    0,
+    9999,
+    9999,
+    9999
+   ],
+   "hitFrames": [
+    41,
+    135,
+    151,
+    223
+   ],
+   "blockedEvents": 0,
+   "damage": 314,
+   "energySpent": 97.54,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 220,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 16,
+   "activeStart": 5,
+   "activeEnd": 6,
+   "damage": 33
+  }
+ },
+ "movement": {
+  "walkVx": 6,
+  "liveSpeedStat": 84,
+  "authored": 94,
+  "formula": 6,
+  "jumps": [
+   1,
+   2,
+   2
+  ]
+ },
+ "lev": {
+  "maxVx": 6,
+  "rise": 170.66146564218406,
+  "endedAt": 120
+ },
+ "spells": {
+  "verdictAhead": 160,
+  "verdictDmg": 63
+ },
+ "shell": {
+  "orbs": 0,
+  "airOrbs": 0,
+  "rejects": 0,
+  "lev": 0,
+  "levFail": 0,
+  "levEnd": {},
+  "levFrames": 0,
+  "levDrained": 0,
+  "dj": 0,
+  "lifts": 0,
+  "pilesSpawned": 0,
+  "pilesBlocked": 0,
+  "pilesBroken": 0,
+  "pilesExpired": 0,
+  "sends": 0,
+  "conjures": 0,
+  "verdicts": 0,
+  "verdictCancel": 0,
+  "infusions": 0,
+  "shells": 1,
+  "shellAbsorbed": 2,
+  "shellEarly": 0,
+  "shellBroken": 1,
+  "shellCues": 0,
+  "ultStarts": 0,
+  "ultWhiffs": 0,
+  "ultDone": 0,
+  "retired": 0
+ },
+ "ultimate": {
+  "label": "AZARATH",
+  "kind": "combo",
+  "hits": [
+   35,
+   46,
+   46,
+   187
+  ],
+  "stunBefore": [
+   0,
+   9999,
+   9999,
+   9999
+  ],
+  "hitFrames": [
+   41,
+   135,
+   151,
+   223
+  ],
+  "blockedEvents": 0,
+  "damage": 314,
+  "energySpent": 97.54,
+  "trueCombo": true,
+  "dropAfterHit": -1,
+  "gap": 220,
+  "flip": false,
+  "note": "",
+  "verdict": "true combo"
+ },
+ "misc": {},
+ "errors": []
+}

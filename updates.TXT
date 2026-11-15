@@ -519,6 +519,59 @@
 - Docs: docs/mmpr_white/ (START_STATE, CODEX_OWNERSHIP, SPRITE_LEDGER, MOVE_FRAME_MAP, COMBOS_BALANCE, CANON_ADAPTATION, INTEGRATION), docs/power_rangers/ninja_megazord/.
 - Follow-up: Formation Crane Rise now air-converts. The follow-up push kick pops the foe (knockbackY -15, not a launch) and its hit makes Tommy's signal pose jump-cancellable; Crane Rise -> follow-up -> jump -> air kick is a true 3-hit combo (94 dmg). mmpr_white 104/0, determinism 23/0, visual 22/0.
 
+
+2026-11-14 - Mr. Incredible (mr_incredible): veteran + timed prime
+
+One selectable fighter in The Incredibles. The supplied Red Suit sheet is the
+normal veteran form; Young is BACK IN MY PRIME, an original game adaptation.
+1250 HP, 100 Power cap, normal double jump, responsive heavyweight movement.
+Fresh punch chain, heavy, low punch, launcher, air strike, down-air, advancing
+and low heavies, standard grab and local Power Lift use the shared combat path.
+Specials: Incredible Impact, Freight Train, Rising Power, Seismic Slam and Human
+Wrecking Ball. Physical travel and damage budgets are bounded; no passive armor.
+
+Prime costs full 100 Power and lasts 900 simulation ticks (15 seconds). Authored
+damage x1.30, ground movement x1.15, air control x1.10, recovery ceil(x0.90), 8f
+minimum. No heal, max-HP change, armor, immunity or jump refill. Started moves
+retain damage/recovery snapshots through expiry. Fresh R2 after 30f can return
+early without a refund or move restart. A finite 100-point special-only reserve
+keeps prime specials usable; ultimate income is locked and unused reserve is
+lost on return. Skin selection survives both transitions and rematch.
+
+Default plus ten paired alternatives: PRIME / MODERN, Alien X, Superman, Upgrade,
+Diamondhead, Heatblast, Cursed Rose, Infinity Blue, Winning Valkyrie and Golden
+Age. Modern uses petrol/charcoal young fabric and matching red/charcoal veteran
+fabric with actual buckle removal and reconstructed waist shading. Alien X uses
+obsidian/silver, natural exposed skin and static fabric-only stars in both forms.
+Both original sheets are unchanged. Exact rectangles, roots, palettes and pose
+edit records are in docs/mr_incredible; all 420 segmented groups are accounted
+for. No replacement sheet, new anatomy or generated de-aging frames were used.
+
+Live measurements against Goku, Superman and Luffy: light chain 98 / 128 damage,
+launcher -> air 83 / 107, heavy -> Freight Train 129 / 167, air approach -> slam
+93 / 120, Power Lift -> light 117 / 152 (veteran / prime). Neutral isolated light
+is 30 / 39; heavy 60 / 78. Shared scaling, defense, rounding and escape rules
+remain intact. Full raw/actual values and costs: DAMAGE_AUDIT.md and MOVESET.md.
+
+Verification: 130 Mr runtime checks, 30 isolated simulated PS5/form chords,
+keyboard/pad parity, 1,200-frame input-only replay, LAN injection, shared real
+WebSocket transport, lifecycle and all 1,034 paired strip alpha checks pass.
+Electron normal-menu walkthrough passes select -> skin -> intro -> real match ->
+prime -> expiry -> KO -> rematch. Bright/dark mirrors render both fighters/HUDs.
+Physical DualSense and two physical LAN devices were not tested. Stress profiling
+has rare multi-second stalls in this shared environment (also seen in a Goku
+baseline); typical low step times are not a stable-60-FPS certification.
+
+Global determinism 14/0 and roster integrity pass. Combo-standard is 233/9 versus
+pre-change 231/9, retaining unrelated failures; Mr has an explicit classification.
+Credits retains three unrelated missing/stale-entry failures. No tests were
+changed to hide failures. Work remains uncommitted/unstaged in the existing main
+checkout; no push, merge or deployment. Unrelated pending work remains untouched.
+
+Launcher: Multiverse Smash.command (existing Electron wrapper), or npm run serve
+at http://localhost:8000/index.html. Controls, source map, paired skin contact
+sheet, modern comparison, exact test results and limits: docs/mr_incredible/.
+
 2026-11-14 - Batman (batman, DC) rebuilt: gadgets + automated support fleet (Claude)
 - Batman is playable again in DC (only the "batman" wipe entry revived; dark_knight
   stays wiped; the existing Lv10 unlock gate is kept). Tactical Brawler / Fleet

@@ -61,6 +61,8 @@ HOOKS = [
  ('spritesheets.js', 'after', "  spd_green: { actions: { idle: './assets/spd_green/idle.png' } },", "  dash_parr: { actions: { idle: './assets/dash_parr/idle.png' } },", 1),
  ('credits.js', 'after', "    files: ['assets/spd_green/*.png', 'assets/spd_green/cells/*.png', 'assets/spd_green/skins/**'] },",
   "  dash_parr: { work: 'Dash — The Incredibles (Game Boy Advance)', artists: ['redblueyellow (ripper)'],\n    source: 'Supplied sheet; visible credit text: \"Ripped by redblueyellow. No credit needed.\" (excluded from animation). Original pixels; only the exact corner teal keyed. Source SHA-256 + rects in docs/dash/source_rects.json.',\n    files: ['assets/dash_parr/*.png', 'assets/dash_parr/cells/*.png', 'assets/dash_parr/skins/**', 'assets/dash_parr/source/dash_sheet.png'] },", 1),
+ ('game.js', 'after', "import { tickDashParr,isDashParr,clearDashParr,dashParrLocked } from './dashParrState.js'", "import { dashParrOppTimeScale } from './dashParrState.js'   // Dash: Flash Time (Back + Special) feeds the shared per-opponent time-slow", 1),
+ ('game.js', 'after', "  if (user._shiFlickerActive) return user._shiOppTimeScale || 0.36", "  { const _dpTs = dashParrOppTimeScale(user); if (_dpTs > 0) return _dpTs }   // DASH \"Flash Time\" — same slow-time engine (0 for everyone else)", 1),
  ('fighters.js', 'after', "    case \"omniman\": drawOmniMan(ctx, x, y, w, h, fighter); break", "    case \"dash_parr\": drawFallback(ctx, x, y, w, h, { ...fighter, color: \"#d81038\", name: \"Dash\" }); break   // ★ Dash (procedural fallback before sprites load; real render is sprite-based)", 1),
 ]
 

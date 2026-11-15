@@ -1,0 +1,13 @@
+{
+  "sourceHashes": {
+    "veteran": "b9237b53b1b4a1cf5f63d0fa4d93f3a34dabfc1bab130db9087f0765832f246c",
+    "prime": "44633c6f05ccab13ce45a82a813fb6c0d467b74e57f32d0465018e12c8e330dd"
+  },
+  "pairedSheets": 1034,
+  "alphaChecks": 1034,
+  "frameBounds": 528,
+  "groups": {
+    "veteran": 198,
+    "prime": 222
+  }
+}

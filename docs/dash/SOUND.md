@@ -13,4 +13,6 @@ from a hash too, so there is no Math.random.
 | laps | Laps | sine 300 → 1200 Hz Doppler sweep, 0.6 s |
 | blur | Momentum reaches 100 | triangle 1760 Hz ping |
 | rush | Incredi-Rush | rising noise sweep 2.5 s + sine 80 Hz thump |
+| flashOn | Flash Time starts | sine 1200 → 240 Hz bend, 0.5 s + triangle 1760 Hz ping |
+| flashOff | Flash Time ends | sine 240 → 1200 Hz, 0.35 s |
 | hit / rushHit / pop | contact | short noise/square ticks |

@@ -1,0 +1,2347 @@
+{
+ "roles": {
+  "body:cape": [
+   [
+    0,
+    57,
+    123
+   ],
+   [
+    74,
+    99,
+    165
+   ],
+   [
+    107,
+    140,
+    222
+   ]
+  ],
+  "body:hair": [
+   [
+    132,
+    99,
+    24
+   ],
+   [
+    206,
+    115,
+    49
+   ],
+   [
+    222,
+    165,
+    33
+   ],
+   [
+    239,
+    231,
+    49
+   ]
+  ],
+  "body:suitDark": [
+   [
+    66,
+    66,
+    66
+   ]
+  ],
+  "body:suitLight": [
+   [
+    181,
+    181,
+    189
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "drone:accent": [
+   [
+    156,
+    8,
+    33
+   ],
+   [
+    148,
+    16,
+    41
+   ],
+   [
+    222,
+    16,
+    57
+   ],
+   [
+    231,
+    16,
+    49
+   ]
+  ],
+  "drone:camo": [
+   [
+    74,
+    82,
+    49
+   ],
+   [
+    82,
+    123,
+    74
+   ],
+   [
+    107,
+    115,
+    74
+   ],
+   [
+    148,
+    173,
+    107
+   ]
+  ],
+  "drone:glow": [
+   [
+    255,
+    123,
+    0
+   ],
+   [
+    255,
+    189,
+    0
+   ],
+   [
+    255,
+    255,
+    0
+   ]
+  ],
+  "drone:metal": [
+   [
+    41,
+    41,
+    49
+   ],
+   [
+    66,
+    82,
+    99
+   ],
+   [
+    99,
+    99,
+    99
+   ],
+   [
+    132,
+    123,
+    132
+   ],
+   [
+    148,
+    140,
+    148
+   ],
+   [
+    140,
+    148,
+    148
+   ],
+   [
+    165,
+    165,
+    173
+   ],
+   [
+    198,
+    189,
+    198
+   ],
+   [
+    189,
+    198,
+    198
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "fx:glow": [
+   [
+    8,
+    74,
+    140
+   ],
+   [
+    16,
+    99,
+    156
+   ],
+   [
+    33,
+    107,
+    165
+   ],
+   [
+    41,
+    123,
+    181
+   ],
+   [
+    49,
+    140,
+    198
+   ],
+   [
+    66,
+    148,
+    206
+   ],
+   [
+    74,
+    165,
+    214
+   ],
+   [
+    90,
+    181,
+    231
+   ],
+   [
+    90,
+    198,
+    239
+   ],
+   [
+    99,
+    206,
+    247
+   ],
+   [
+    123,
+    222,
+    255
+   ],
+   [
+    132,
+    231,
+    255
+   ],
+   [
+    173,
+    255,
+    255
+   ]
+  ],
+  "omni:accent": [
+   [
+    173,
+    0,
+    0
+   ],
+   [
+    255,
+    0,
+    0
+   ]
+  ],
+  "omni:armor": [
+   [
+    0,
+    0,
+    41
+   ],
+   [
+    0,
+    0,
+    57
+   ],
+   [
+    0,
+    0,
+    74
+   ],
+   [
+    0,
+    0,
+    82
+   ],
+   [
+    0,
+    0,
+    90
+   ],
+   [
+    16,
+    0,
+    115
+   ],
+   [
+    66,
+    24,
+    140
+   ],
+   [
+    66,
+    41,
+    156
+   ],
+   [
+    66,
+    57,
+    82
+   ],
+   [
+    66,
+    66,
+    66
+   ],
+   [
+    90,
+    66,
+    148
+   ],
+   [
+    123,
+    107,
+    181
+   ],
+   [
+    115,
+    115,
+    165
+   ],
+   [
+    156,
+    148,
+    189
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "omni:camo": [
+   [
+    90,
+    99,
+    90
+   ]
+  ],
+  "omni:glow": [
+   [
+    255,
+    255,
+    0
+   ]
+  ],
+  "omni:metal": [
+   [
+    99,
+    99,
+    99
+   ],
+   [
+    140,
+    148,
+    148
+   ],
+   [
+    165,
+    173,
+    173
+   ],
+   [
+    189,
+    198,
+    198
+   ]
+  ],
+  "spinner:accent": [
+   [
+    148,
+    16,
+    41
+   ],
+   [
+    222,
+    16,
+    57
+   ]
+  ],
+  "spinner:glow": [
+   [
+    41,
+    165,
+    24
+   ],
+   [
+    206,
+    156,
+    16
+   ],
+   [
+    57,
+    255,
+    57
+   ],
+   [
+    247,
+    189,
+    24
+   ],
+   [
+    206,
+    214,
+    16
+   ],
+   [
+    255,
+    231,
+    49
+   ]
+  ],
+  "spinner:metal": [
+   [
+    41,
+    41,
+    49
+   ],
+   [
+    66,
+    66,
+    66
+   ],
+   [
+    90,
+    99,
+    99
+   ],
+   [
+    107,
+    107,
+    115
+   ],
+   [
+    165,
+    173,
+    173
+   ],
+   [
+    189,
+    198,
+    198
+   ],
+   [
+    231,
+    231,
+    239
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "turret:accent": [
+   [
+    148,
+    16,
+    41
+   ],
+   [
+    181,
+    16,
+    49
+   ],
+   [
+    222,
+    16,
+    57
+   ]
+  ],
+  "turret:camo": [
+   [
+    66,
+    82,
+    57
+   ],
+   [
+    99,
+    123,
+    74
+   ],
+   [
+    148,
+    173,
+    115
+   ]
+  ],
+  "turret:glow": [
+   [
+    255,
+    255,
+    0
+   ]
+  ],
+  "turret:metal": [
+   [
+    99,
+    99,
+    99
+   ],
+   [
+    140,
+    148,
+    148
+   ],
+   [
+    165,
+    173,
+    173
+   ],
+   [
+    173,
+    181,
+    181
+   ],
+   [
+    189,
+    198,
+    198
+   ],
+   [
+    214,
+    222,
+    222
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ],
+  "velocipod:armor": [
+   [
+    33,
+    49,
+    74
+   ],
+   [
+    0,
+    57,
+    123
+   ],
+   [
+    41,
+    66,
+    99
+   ],
+   [
+    57,
+    82,
+    148
+   ],
+   [
+    74,
+    123,
+    189
+   ],
+   [
+    99,
+    123,
+    173
+   ]
+  ],
+  "velocipod:camo": [
+   [
+    115,
+    107,
+    66
+   ]
+  ],
+  "velocipod:glow": [
+   [
+    255,
+    123,
+    0
+   ],
+   [
+    255,
+    189,
+    0
+   ],
+   [
+    255,
+    255,
+    0
+   ]
+  ],
+  "velocipod:metal": [
+   [
+    90,
+    99,
+    99
+   ],
+   [
+    173,
+    181,
+    181
+   ],
+   [
+    206,
+    206,
+    206
+   ],
+   [
+    255,
+    255,
+    255
+   ]
+  ]
+ },
+ "perStrip": {
+  "cmdAir.png": {
+   "suitDark": 758,
+   "suitDark0": 1304,
+   "suitLight": 1148,
+   "cape": 709,
+   "hair": 655,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 616,
+   "family": "body"
+  },
+  "cmdDeploy.png": {
+   "suitDark": 1114,
+   "suitDark0": 1738,
+   "suitLight": 1102,
+   "cape": 475,
+   "hair": 999,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 1059,
+   "family": "body"
+  },
+  "cmdDown.png": {
+   "suitDark": 643,
+   "suitDark0": 924,
+   "suitLight": 881,
+   "cape": 704,
+   "hair": 112,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 505,
+   "family": "body"
+  },
+  "cmdGrab.png": {
+   "suitDark": 574,
+   "suitDark0": 946,
+   "suitLight": 761,
+   "cape": 572,
+   "hair": 491,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 473,
+   "family": "body"
+  },
+  "cmdHeavy.png": {
+   "suitDark": 1060,
+   "suitDark0": 1540,
+   "suitLight": 1350,
+   "cape": 1102,
+   "hair": 328,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 849,
+   "family": "body"
+  },
+  "cmdLight.png": {
+   "suitDark": 765,
+   "suitDark0": 1271,
+   "suitLight": 1049,
+   "cape": 761,
+   "hair": 657,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 627,
+   "family": "body"
+  },
+  "cmdLight2.png": {
+   "suitDark": 574,
+   "suitDark0": 946,
+   "suitLight": 761,
+   "cape": 572,
+   "hair": 491,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 473,
+   "family": "body"
+  },
+  "cmdLow.png": {
+   "suitDark": 563,
+   "suitDark0": 848,
+   "suitLight": 503,
+   "cape": 117,
+   "hair": 530,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 523,
+   "family": "body"
+  },
+  "cmdUlt.png": {
+   "suitDark": 1496,
+   "suitDark0": 2134,
+   "suitLight": 1933,
+   "cape": 1505,
+   "hair": 431,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 1215,
+   "family": "body"
+  },
+  "crouch.png": {
+   "suitDark": 195,
+   "suitDark0": 294,
+   "suitLight": 170,
+   "cape": 39,
+   "hair": 182,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 172,
+   "family": "body"
+  },
+  "dash.png": {
+   "suitDark": 404,
+   "suitDark0": 626,
+   "suitLight": 360,
+   "cape": 111,
+   "hair": 432,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 366,
+   "family": "body"
+  },
+  "doubleJump.png": {
+   "suitDark": 567,
+   "suitDark0": 979,
+   "suitLight": 860,
+   "cape": 538,
+   "hair": 493,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 462,
+   "family": "body"
+  },
+  "fall.png": {
+   "suitDark": 376,
+   "suitDark0": 654,
+   "suitLight": 572,
+   "cape": 336,
+   "hair": 327,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 308,
+   "family": "body"
+  },
+  "getup.png": {
+   "suitDark": 383,
+   "suitDark0": 621,
+   "suitLight": 473,
+   "cape": 401,
+   "hair": 329,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 319,
+   "family": "body"
+  },
+  "guard.png": {
+   "suitDark": 192,
+   "suitDark0": 296,
+   "suitLight": 185,
+   "cape": 199,
+   "hair": 163,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 165,
+   "family": "body"
+  },
+  "hurt.png": {
+   "suitDark": 441,
+   "suitDark0": 645,
+   "suitLight": 575,
+   "cape": 449,
+   "hair": 84,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 338,
+   "family": "body"
+  },
+  "hurt_air.png": {
+   "suitDark": 427,
+   "suitDark0": 599,
+   "suitLight": 590,
+   "cape": 454,
+   "hair": 81,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 346,
+   "family": "body"
+  },
+  "idle.png": {
+   "suitDark": 1140,
+   "suitDark0": 1954,
+   "suitLight": 1724,
+   "cape": 1069,
+   "hair": 983,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 924,
+   "family": "body"
+  },
+  "idleFront.png": {
+   "suitDark": 3792,
+   "suitDark0": 5298,
+   "suitLight": 5807,
+   "cape": 1703,
+   "hair": 3119,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 3030,
+   "family": "body"
+  },
+  "intro.png": {
+   "suitDark": 3121,
+   "suitDark0": 4286,
+   "suitLight": 4604,
+   "cape": 1399,
+   "hair": 2456,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 2446,
+   "family": "body"
+  },
+  "introSettle.png": {
+   "suitDark": 383,
+   "suitDark0": 621,
+   "suitLight": 473,
+   "cape": 401,
+   "hair": 329,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 319,
+   "family": "body"
+  },
+  "jump.png": {
+   "suitDark": 382,
+   "suitDark0": 650,
+   "suitLight": 576,
+   "cape": 360,
+   "hair": 328,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 308,
+   "family": "body"
+  },
+  "knockdown.png": {
+   "suitDark": 211,
+   "suitDark0": 274,
+   "suitLight": 299,
+   "cape": 204,
+   "hair": 50,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 187,
+   "family": "body"
+  },
+  "land.png": {
+   "suitDark": 192,
+   "suitDark0": 296,
+   "suitLight": 185,
+   "cape": 199,
+   "hair": 163,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 165,
+   "family": "body"
+  },
+  "lose.png": {
+   "suitDark": 652,
+   "suitDark0": 919,
+   "suitLight": 874,
+   "cape": 653,
+   "hair": 134,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 525,
+   "family": "body"
+  },
+  "machines/bomb.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 193,
+   "armor": 0,
+   "accent": 98,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberBank.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2206,
+   "armor": 0,
+   "accent": 108,
+   "camo": 83,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberDrop.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 4608,
+   "armor": 0,
+   "accent": 283,
+   "camo": 166,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberHit.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1725,
+   "armor": 0,
+   "accent": 81,
+   "camo": 33,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberHover.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3316,
+   "armor": 0,
+   "accent": 162,
+   "camo": 120,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberTilt.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1061,
+   "armor": 0,
+   "accent": 67,
+   "camo": 38,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberTurn.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2038,
+   "armor": 0,
+   "accent": 110,
+   "camo": 11,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/bomberWreck.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 566,
+   "armor": 0,
+   "accent": 32,
+   "camo": 10,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/boomBall.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 2201,
+   "family": "fx"
+  },
+  "machines/boomOval.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 615,
+   "family": "fx"
+  },
+  "machines/boomRing.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 4592,
+   "family": "fx"
+  },
+  "machines/cannonHead.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 5556,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/claw.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 12852,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/clawCharge.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 5512,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/crystal.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 3765,
+   "kept": 256,
+   "family": "fx"
+  },
+  "machines/cyanBall.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 349,
+   "kept": 0,
+   "family": "fx"
+  },
+  "machines/cyanMissile.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 146,
+   "kept": 224,
+   "family": "fx"
+  },
+  "machines/cyanPuff.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 1969,
+   "kept": 1041,
+   "family": "fx"
+  },
+  "machines/droneBank.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 4041,
+   "armor": 0,
+   "accent": 239,
+   "camo": 259,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneFire.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1171,
+   "armor": 0,
+   "accent": 61,
+   "camo": 73,
+   "glow": 102,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneFireLevel.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1240,
+   "armor": 0,
+   "accent": 61,
+   "camo": 72,
+   "glow": 67,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneHit.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1823,
+   "armor": 0,
+   "accent": 81,
+   "camo": 99,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneHover.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3613,
+   "armor": 0,
+   "accent": 185,
+   "camo": 234,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneHoverLow.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3610,
+   "armor": 0,
+   "accent": 185,
+   "camo": 234,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneShot.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 33,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 59,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneSway.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2279,
+   "armor": 0,
+   "accent": 116,
+   "camo": 156,
+   "glow": 2,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneTilt.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2337,
+   "armor": 0,
+   "accent": 130,
+   "camo": 155,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneTurn.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2135,
+   "armor": 0,
+   "accent": 110,
+   "camo": 112,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/droneWreck.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 602,
+   "armor": 0,
+   "accent": 32,
+   "camo": 39,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/eyeEmitter.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 7017,
+   "accent": 1135,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/eyeFire.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 9077,
+   "accent": 1159,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/eyeOpen.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 4391,
+   "accent": 908,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/eyeTrack.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 4959,
+   "accent": 601,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/fragment.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 512,
+   "family": "fx"
+  },
+  "machines/gunEmerge.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3499,
+   "armor": 0,
+   "accent": 0,
+   "camo": 18,
+   "glow": 0,
+   "kept": 1031,
+   "family": "turret"
+  },
+  "machines/gunFire.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2774,
+   "armor": 0,
+   "accent": 38,
+   "camo": 169,
+   "glow": 15,
+   "kept": 1241,
+   "family": "turret"
+  },
+  "machines/gunFireBack.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2771,
+   "armor": 0,
+   "accent": 38,
+   "camo": 169,
+   "glow": 15,
+   "kept": 1244,
+   "family": "turret"
+  },
+  "machines/gunFireDiag.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2751,
+   "armor": 0,
+   "accent": 20,
+   "camo": 200,
+   "glow": 15,
+   "kept": 1008,
+   "family": "turret"
+  },
+  "machines/gunFireFront.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2498,
+   "armor": 0,
+   "accent": 24,
+   "camo": 300,
+   "glow": 21,
+   "kept": 1028,
+   "family": "turret"
+  },
+  "machines/gunFireUp.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2743,
+   "armor": 0,
+   "accent": 20,
+   "camo": 197,
+   "glow": 12,
+   "kept": 1025,
+   "family": "turret"
+  },
+  "machines/gunOpen.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 5279,
+   "armor": 0,
+   "accent": 52,
+   "camo": 170,
+   "glow": 0,
+   "kept": 2031,
+   "family": "turret"
+  },
+  "machines/gunRetract1.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2824,
+   "armor": 0,
+   "accent": 0,
+   "camo": 183,
+   "glow": 9,
+   "kept": 938,
+   "family": "turret"
+  },
+  "machines/gunRetract2.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2679,
+   "armor": 0,
+   "accent": 0,
+   "camo": 108,
+   "glow": 0,
+   "kept": 925,
+   "family": "turret"
+  },
+  "machines/gunRetract3.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2841,
+   "armor": 0,
+   "accent": 0,
+   "camo": 183,
+   "glow": 5,
+   "kept": 903,
+   "family": "turret"
+  },
+  "machines/gunRotate.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 5311,
+   "armor": 0,
+   "accent": 36,
+   "camo": 406,
+   "glow": 0,
+   "kept": 2123,
+   "family": "turret"
+  },
+  "machines/hatchDrone.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1871,
+   "armor": 0,
+   "accent": 112,
+   "camo": 117,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/hatchFire.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1279,
+   "armor": 0,
+   "accent": 84,
+   "camo": 78,
+   "glow": 0,
+   "kept": 0,
+   "family": "drone"
+  },
+  "machines/laserArm.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 9052,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/leg.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 17855,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/legSlam.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 24420,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/limbDiag.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 31611,
+   "accent": 0,
+   "camo": 648,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/microMissile.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 30,
+   "armor": 0,
+   "accent": 12,
+   "camo": 0,
+   "glow": 9,
+   "kept": 0,
+   "family": "turret"
+  },
+  "machines/missile.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 208,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 3,
+   "kept": 118,
+   "family": "turret"
+  },
+  "machines/mortarFire.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3185,
+   "armor": 0,
+   "accent": 0,
+   "camo": 8,
+   "glow": 2,
+   "kept": 746,
+   "family": "turret"
+  },
+  "machines/mortarFire2.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3383,
+   "armor": 0,
+   "accent": 0,
+   "camo": 8,
+   "glow": 22,
+   "kept": 824,
+   "family": "turret"
+  },
+  "machines/mortarFire3.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3167,
+   "armor": 0,
+   "accent": 0,
+   "camo": 8,
+   "glow": 7,
+   "kept": 739,
+   "family": "turret"
+  },
+  "machines/mortarOpen.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 8209,
+   "armor": 0,
+   "accent": 2,
+   "camo": 20,
+   "glow": 0,
+   "kept": 2019,
+   "family": "turret"
+  },
+  "machines/msLaunch.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3230,
+   "armor": 0,
+   "accent": 0,
+   "camo": 12,
+   "glow": 42,
+   "kept": 855,
+   "family": "turret"
+  },
+  "machines/msOpen.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3442,
+   "armor": 0,
+   "accent": 0,
+   "camo": 18,
+   "glow": 0,
+   "kept": 999,
+   "family": "turret"
+  },
+  "machines/msRaise.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 7172,
+   "armor": 0,
+   "accent": 0,
+   "camo": 33,
+   "glow": 0,
+   "kept": 2343,
+   "family": "turret"
+  },
+  "machines/omniBallG.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 349,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/omniBallW.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 349,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/omniMissile.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 174,
+   "armor": 34,
+   "accent": 0,
+   "camo": 0,
+   "glow": 3,
+   "kept": 118,
+   "family": "omni"
+  },
+  "machines/omniPuff.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2905,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/puff.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 2931,
+   "family": "fx"
+  },
+  "machines/puffGray.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 349,
+   "family": "fx"
+  },
+  "machines/puffWhite.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 349,
+   "family": "fx"
+  },
+  "machines/shaftJoint.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 1087,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/shell.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 241,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 60,
+   "family": "omni"
+  },
+  "machines/shellLower.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 25860,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/shellSpin.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 1198,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 54,
+   "family": "omni"
+  },
+  "machines/shellSplat.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 1039,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 265,
+   "family": "omni"
+  },
+  "machines/shellUpper.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 0,
+   "armor": 25842,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "omni"
+  },
+  "machines/spBlur.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1256,
+   "armor": 0,
+   "accent": 28,
+   "camo": 0,
+   "glow": 76,
+   "kept": 0,
+   "family": "spinner"
+  },
+  "machines/spBoom.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3637,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 16,
+   "kept": 0,
+   "family": "spinner"
+  },
+  "machines/spClose.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 9965,
+   "armor": 0,
+   "accent": 216,
+   "camo": 0,
+   "glow": 710,
+   "kept": 0,
+   "family": "spinner"
+  },
+  "machines/spOpen.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 6539,
+   "armor": 0,
+   "accent": 156,
+   "camo": 0,
+   "glow": 533,
+   "kept": 0,
+   "family": "spinner"
+  },
+  "machines/spSpin.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 4154,
+   "armor": 0,
+   "accent": 55,
+   "camo": 0,
+   "glow": 223,
+   "kept": 0,
+   "family": "spinner"
+  },
+  "machines/spTilt.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1455,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 120,
+   "kept": 0,
+   "family": "spinner"
+  },
+  "machines/turretBroken.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 5908,
+   "armor": 0,
+   "accent": 65,
+   "camo": 128,
+   "glow": 3,
+   "kept": 2680,
+   "family": "turret"
+  },
+  "machines/turretFlash.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2238,
+   "armor": 0,
+   "accent": 0,
+   "camo": 5,
+   "glow": 0,
+   "kept": 60,
+   "family": "turret"
+  },
+  "machines/turretSmoke.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1754,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 0,
+   "family": "turret"
+  },
+  "machines/vpBank.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2076,
+   "armor": 3671,
+   "accent": 0,
+   "camo": 82,
+   "glow": 0,
+   "kept": 815,
+   "family": "velocipod"
+  },
+  "machines/vpBurst.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3014,
+   "armor": 181,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 49,
+   "family": "velocipod"
+  },
+  "machines/vpCrash.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 3000,
+   "armor": 3061,
+   "accent": 0,
+   "camo": 82,
+   "glow": 0,
+   "kept": 895,
+   "family": "velocipod"
+  },
+  "machines/vpFront.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2989,
+   "armor": 3366,
+   "accent": 0,
+   "camo": 84,
+   "glow": 0,
+   "kept": 1120,
+   "family": "velocipod"
+  },
+  "machines/vpFront2.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2091,
+   "armor": 2512,
+   "accent": 0,
+   "camo": 63,
+   "glow": 0,
+   "kept": 833,
+   "family": "velocipod"
+  },
+  "machines/vpLean.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2217,
+   "armor": 3716,
+   "accent": 0,
+   "camo": 84,
+   "glow": 0,
+   "kept": 791,
+   "family": "velocipod"
+  },
+  "machines/vpRider.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 1919,
+   "armor": 2832,
+   "accent": 0,
+   "camo": 63,
+   "glow": 0,
+   "kept": 666,
+   "family": "velocipod"
+  },
+  "machines/vpShot.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 33,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 59,
+   "kept": 0,
+   "family": "velocipod"
+  },
+  "machines/vpSide.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2423,
+   "armor": 4299,
+   "accent": 0,
+   "camo": 100,
+   "glow": 0,
+   "kept": 1268,
+   "family": "velocipod"
+  },
+  "machines/vpSide2.png": {
+   "suitDark": 0,
+   "suitDark0": 0,
+   "suitLight": 0,
+   "cape": 0,
+   "hair": 0,
+   "metal": 2854,
+   "armor": 4269,
+   "accent": 0,
+   "camo": 100,
+   "glow": 0,
+   "kept": 1224,
+   "family": "velocipod"
+  },
+  "portrait.png": {
+   "suitDark": 78,
+   "suitDark0": 154,
+   "suitLight": 140,
+   "cape": 4,
+   "hair": 155,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 158,
+   "family": "body"
+  },
+  "run.png": {
+   "suitDark": 838,
+   "suitDark0": 1259,
+   "suitLight": 752,
+   "cape": 248,
+   "hair": 851,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 734,
+   "family": "body"
+  },
+  "taunt.png": {
+   "suitDark": 1186,
+   "suitDark0": 1650,
+   "suitLight": 1674,
+   "cape": 525,
+   "hair": 941,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 912,
+   "family": "body"
+  },
+  "ultFront.png": {
+   "suitDark": 2215,
+   "suitDark0": 2954,
+   "suitLight": 3235,
+   "cape": 1019,
+   "hair": 1573,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 1692,
+   "family": "body"
+  },
+  "walk.png": {
+   "suitDark": 1114,
+   "suitDark0": 1738,
+   "suitLight": 1102,
+   "cape": 475,
+   "hair": 999,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 1059,
+   "family": "body"
+  },
+  "walk_back.png": {
+   "suitDark": 1114,
+   "suitDark0": 1738,
+   "suitLight": 1102,
+   "cape": 475,
+   "hair": 999,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 1059,
+   "family": "body"
+  },
+  "win.png": {
+   "suitDark": 1616,
+   "suitDark0": 2146,
+   "suitLight": 2377,
+   "cape": 721,
+   "hair": 1102,
+   "metal": 0,
+   "armor": 0,
+   "accent": 0,
+   "camo": 0,
+   "glow": 0,
+   "kept": 1244,
+   "family": "body"
+  }
+ }
+}

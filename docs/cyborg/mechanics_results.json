@@ -1,0 +1,657 @@
+{
+ "routes": [
+  {
+   "label": "Resonance conversion: J1 → J2 → Sonic Shot → Straight Missile",
+   "kind": "combo",
+   "hits": [
+    25,
+    33,
+    34,
+    45
+   ],
+   "stunBefore": [
+    0,
+    11,
+    8,
+    0
+   ],
+   "hitFrames": [
+    6,
+    20,
+    39,
+    78
+   ],
+   "gapAtHit": [
+    70,
+    70,
+    70,
+    67
+   ],
+   "blockedEvents": 0,
+   "damage": 137,
+   "powerSpent": 23.34,
+   "heatEnd": 29.75,
+   "heatStart": 0,
+   "trueCombo": false,
+   "dropAfterHit": 3,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 4"
+  },
+  {
+   "label": "J1 → J2 → J3",
+   "kind": "combo",
+   "hits": [
+    25,
+    33,
+    38
+   ],
+   "stunBefore": [
+    0,
+    11,
+    10
+   ],
+   "hitFrames": [
+    6,
+    20,
+    37
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 96,
+   "powerSpent": 0,
+   "heatEnd": 0,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "J1 → J2 → J3 (mirrored)",
+   "kind": "combo",
+   "hits": [
+    25,
+    33,
+    38
+   ],
+   "stunBefore": [
+    0,
+    11,
+    10
+   ],
+   "hitFrames": [
+    6,
+    20,
+    37
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 96,
+   "powerSpent": 0,
+   "heatEnd": 0,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": true,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Low → Heavy → Mega Punch",
+   "kind": "combo",
+   "hits": [
+    33,
+    77,
+    83
+   ],
+   "stunBefore": [
+    0,
+    5,
+    10
+   ],
+   "hitFrames": [
+    9,
+    31,
+    66
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 193,
+   "powerSpent": 15.74,
+   "heatEnd": 0,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Forward+Heavy → Heavy → Heavy (advance → piston → knock-away)",
+   "kind": "combo",
+   "hits": [
+    35,
+    36,
+    43
+   ],
+   "stunBefore": [
+    0,
+    15,
+    12
+   ],
+   "hitFrames": [
+    12,
+    37,
+    65
+   ],
+   "gapAtHit": [
+    64,
+    64,
+    64
+   ],
+   "blockedEvents": 0,
+   "damage": 114,
+   "powerSpent": 0,
+   "heatEnd": 0,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 110,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Launcher → jump (cancel) → Air Hammer",
+   "kind": "combo",
+   "hits": [
+    54,
+    35
+   ],
+   "stunBefore": [
+    0,
+    20
+   ],
+   "hitFrames": [
+    13,
+    40
+   ],
+   "gapAtHit": [
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 89,
+   "powerSpent": 0,
+   "heatEnd": 0,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Hot Mega: Heavy → Mega Punch at Heat 70",
+   "kind": "combo",
+   "hits": [
+    77,
+    83
+   ],
+   "stunBefore": [
+    0,
+    10
+   ],
+   "hitFrames": [
+    16,
+    51
+   ],
+   "gapAtHit": [
+    80,
+    80
+   ],
+   "blockedEvents": 0,
+   "damage": 160,
+   "powerSpent": 15.74,
+   "heatEnd": 49.75,
+   "heatStart": 70,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Heavy → BOOYAH PROTOCOL (recovery cancel)",
+   "kind": "combo",
+   "hits": [
+    77,
+    32,
+    39,
+    19,
+    19,
+    19,
+    39,
+    108
+   ],
+   "stunBefore": [
+    0,
+    2,
+    999,
+    999,
+    999,
+    999,
+    999,
+    999
+   ],
+   "hitFrames": [
+    16,
+    59,
+    141,
+    171,
+    179,
+    187,
+    223,
+    261
+   ],
+   "gapAtHit": [
+    80,
+    80,
+    80,
+    80,
+    80,
+    80,
+    66,
+    66
+   ],
+   "blockedEvents": 0,
+   "damage": 352,
+   "powerSpent": 96.52,
+   "heatEnd": 60,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 80,
+   "flip": false,
+   "note": "",
+   "verdict": "true combo"
+  },
+  {
+   "label": "Sonic Shot → Straight Missile at range (zoning)",
+   "kind": "pressure",
+   "hits": [
+    37,
+    54
+   ],
+   "stunBefore": [
+    0,
+    0
+   ],
+   "hitFrames": [
+    30,
+    77
+   ],
+   "gapAtHit": [
+    300,
+    302
+   ],
+   "blockedEvents": 0,
+   "damage": 91,
+   "powerSpent": 23.16,
+   "heatEnd": 29,
+   "heatStart": 0,
+   "trueCombo": false,
+   "dropAfterHit": 1,
+   "gap": 300,
+   "flip": false,
+   "note": "",
+   "verdict": "pressure (not a combo)"
+  },
+  {
+   "label": "Missile Rack at range",
+   "kind": "pressure",
+   "hits": [
+    16,
+    16,
+    14,
+    13
+   ],
+   "stunBefore": [
+    0,
+    14,
+    14,
+    14
+   ],
+   "hitFrames": [
+    57,
+    65,
+    73,
+    81
+   ],
+   "gapAtHit": [
+    260,
+    260,
+    260,
+    260
+   ],
+   "blockedEvents": 0,
+   "damage": 59,
+   "powerSpent": 26.22,
+   "heatEnd": 36.25,
+   "heatStart": 0,
+   "trueCombo": true,
+   "dropAfterHit": -1,
+   "gap": 260,
+   "flip": false,
+   "note": "",
+   "verdict": "pressure (not a combo)"
+  }
+ ],
+ "moves": {
+  "light": {
+   "name": "light",
+   "total": 18,
+   "activeStart": 6,
+   "activeEnd": 7,
+   "damage": 43
+  },
+  "heavy": {
+   "name": "heavy",
+   "total": 43,
+   "activeStart": 16,
+   "activeEnd": 18,
+   "damage": 129
+  },
+  "cLow": {
+   "name": "cLow",
+   "total": 27,
+   "activeStart": 9,
+   "activeEnd": 10,
+   "damage": 55
+  },
+  "up": {
+   "name": "up",
+   "total": 38,
+   "activeStart": 13,
+   "activeEnd": 15,
+   "damage": 90
+  },
+  "cAdv": {
+   "name": "cAdv",
+   "total": 33,
+   "activeStart": 12,
+   "activeEnd": 14,
+   "damage": 59
+  },
+  "cMissile": {
+   "name": "cMissile",
+   "total": 41,
+   "activeStart": 18,
+   "activeEnd": 18,
+   "damage": 40
+  },
+  "cRack": {
+   "name": "cRack",
+   "total": 73,
+   "activeStart": 24,
+   "activeEnd": 56,
+   "damage": 40
+  },
+  "cMega": {
+   "name": "cMega",
+   "total": 56,
+   "activeStart": 22,
+   "activeEnd": 25,
+   "damage": 152
+  },
+  "cRecoil": {
+   "name": "cRecoil",
+   "total": 37,
+   "activeStart": 10,
+   "activeEnd": 12,
+   "damage": 55
+  },
+  "cUltOpen": {
+   "name": "cUltOpen",
+   "total": 93,
+   "activeStart": 30,
+   "activeEnd": 32,
+   "damage": 59
+  },
+  "cSonic": {
+   "name": "cSonic",
+   "total": 33,
+   "activeStart": 12,
+   "activeEnd": 12,
+   "damage": 40
+  },
+  "air": {
+   "name": "air",
+   "total": 28,
+   "activeStart": 9,
+   "activeEnd": 11,
+   "damage": 70
+  },
+  "cSlamAir": {
+   "name": "cSlamAir",
+   "total": 1001,
+   "activeStart": 1,
+   "activeEnd": 1,
+   "damage": 40
+  }
+ },
+ "heat": {
+  "shot": {
+   "heat": 12,
+   "power": 12
+  },
+  "missile": 18,
+  "rack": 40,
+  "cannon": 40,
+  "recoil": 16,
+  "recheckPulses": 2,
+  "recheckRack": 3,
+  "overheatPassiveFrames": 180,
+  "overheatVentFrames": 61,
+  "passive40": 40,
+  "vent": {
+   "after8": 79.75,
+   "after28": 64.75,
+   "recovery": 11
+  },
+  "ventRecovery": 12,
+  "ventPower": {
+   "vent": 2.4,
+   "idle": 2.52
+  },
+  "hud": {
+   "h0": {
+    "heat": 0,
+    "state": ""
+   },
+   "h59": {
+    "heat": 59,
+    "state": ""
+   },
+   "h60": {
+    "heat": 60,
+    "state": "WARN"
+   },
+   "h99": {
+    "heat": 99,
+    "state": "WARN"
+   }
+  }
+ },
+ "thruster": {
+  "boost": {
+   "vy": -19,
+   "power": 7.94,
+   "djUsed": true
+  },
+  "landing": 16
+ },
+ "weapons": {
+  "rackSpawns": 5,
+  "pulses": 4,
+  "pulseFrames": [
+   22,
+   28,
+   34,
+   40
+  ],
+  "releasedPulses": 2,
+  "missileDamage": 54,
+  "rackVy": [
+   -1.1,
+   -0.45,
+   0.2,
+   0.85,
+   1.5
+  ]
+ },
+ "resonance": {
+  "mark": {
+   "p2": 90
+  },
+  "route": {
+   "label": "Resonance conversion: J1 → J2 → Sonic Shot → Straight Missile",
+   "kind": "combo",
+   "hits": [
+    25,
+    33,
+    34,
+    45
+   ],
+   "stunBefore": [
+    0,
+    11,
+    8,
+    0
+   ],
+   "hitFrames": [
+    6,
+    20,
+    39,
+    78
+   ],
+   "gapAtHit": [
+    70,
+    70,
+    70,
+    67
+   ],
+   "blockedEvents": 0,
+   "damage": 137,
+   "powerSpent": 23.34,
+   "heatEnd": 29.75,
+   "heatStart": 0,
+   "trueCombo": false,
+   "dropAfterHit": 3,
+   "gap": 70,
+   "flip": false,
+   "note": "",
+   "verdict": "RESET at hit 4",
+   "conversions": 1
+  }
+ },
+ "hot": {
+  "megaBox": {
+   "x": 1304,
+   "y": 460,
+   "w": 138,
+   "h": 40
+  },
+  "slamLand": {
+   "name": "cSlamLand",
+   "total": 31,
+   "activeStart": 1,
+   "activeEnd": 4,
+   "damage": 125
+  }
+ },
+ "ultimate": {
+  "hits": [
+   {
+    "f": 29,
+    "d": 35,
+    "frame": 0
+   },
+   {
+    "f": 111,
+    "d": 46,
+    "frame": 53
+   },
+   {
+    "f": 141,
+    "d": 23,
+    "frame": 83
+   },
+   {
+    "f": 149,
+    "d": 23,
+    "frame": 91
+   },
+   {
+    "f": 157,
+    "d": 23,
+    "frame": 99
+   },
+   {
+    "f": 193,
+    "d": 46,
+    "frame": 135
+   },
+   {
+    "f": 231,
+    "d": 129,
+    "frame": 173
+   }
+  ],
+  "total": 325,
+  "heat": 60,
+  "done": 1,
+  "whiffFrames": 93
+ },
+ "misc": {
+  "walk60f": 360,
+  "jumpApexPx": 355,
+  "recoilPush": 30,
+  "weight": {
+   "cyborg": {
+    "vx": 4.347826086956522,
+    "vy": -1.7391304347826089
+   },
+   "control": {
+    "vx": 5,
+    "vy": -2
+   },
+   "ratio": 1.15
+  }
+ },
+ "errors": [],
+ "summary": {
+  "pass": 92,
+  "fail": 0
+ }
+}

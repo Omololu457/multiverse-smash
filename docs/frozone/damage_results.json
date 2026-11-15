@@ -1,0 +1,555 @@
+{
+ "opponents": {
+  "frozone": {
+   "maxHp": 1050,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL3": {
+     "hits": [
+      36
+     ],
+     "total": 36
+    },
+    "fLow": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "heavy": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "fLance": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fRush": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    },
+    "fRise": {
+     "hits": [
+      66
+     ],
+     "total": 66
+    },
+    "fBreaker": {
+     "hits": [
+      87
+     ],
+     "total": 87
+    },
+    "air": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "fDownAir": {
+     "hits": [
+      51
+     ],
+     "total": 51
+    },
+    "blackIceContact": {
+     "hits": [
+      18
+     ],
+     "total": 18
+    },
+    "frostLance": {
+     "hits": [
+      63
+     ],
+     "total": 63
+    },
+    "shatterRoute": {
+     "hits": [
+      54,
+      69
+     ],
+     "total": 123,
+     "stats": {
+      "shatters": 1,
+      "freezes": 1
+     }
+    }
+   },
+   "ultimate": {
+    "hits": [
+     24,
+     24,
+     24,
+     24,
+     150
+    ],
+    "total": 246
+   }
+  },
+  "goku": {
+   "maxHp": 1000,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL3": {
+     "hits": [
+      36
+     ],
+     "total": 36
+    },
+    "fLow": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "heavy": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "fLance": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fRush": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    },
+    "fRise": {
+     "hits": [
+      66
+     ],
+     "total": 66
+    },
+    "fBreaker": {
+     "hits": [
+      87
+     ],
+     "total": 87
+    },
+    "air": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "fDownAir": {
+     "hits": [
+      51
+     ],
+     "total": 51
+    },
+    "blackIceContact": {
+     "hits": [
+      18
+     ],
+     "total": 18
+    },
+    "frostLance": {
+     "hits": [
+      63
+     ],
+     "total": 63
+    },
+    "shatterRoute": {
+     "hits": [
+      54,
+      69
+     ],
+     "total": 123,
+     "stats": {
+      "shatters": 1,
+      "freezes": 1
+     }
+    }
+   },
+   "ultimate": {
+    "hits": [
+     24,
+     24,
+     24,
+     24,
+     150
+    ],
+    "total": 246
+   }
+  },
+  "superman": {
+   "maxHp": 1150,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL3": {
+     "hits": [
+      36
+     ],
+     "total": 36
+    },
+    "fLow": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "heavy": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "fLance": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fRush": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    },
+    "fRise": {
+     "hits": [
+      66
+     ],
+     "total": 66
+    },
+    "fBreaker": {
+     "hits": [
+      87
+     ],
+     "total": 87
+    },
+    "air": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "fDownAir": {
+     "hits": [
+      51
+     ],
+     "total": 51
+    },
+    "blackIceContact": {
+     "hits": [
+      18
+     ],
+     "total": 18
+    },
+    "frostLance": {
+     "hits": [
+      63
+     ],
+     "total": 63
+    },
+    "shatterRoute": {
+     "hits": [
+      54,
+      69
+     ],
+     "total": 123,
+     "stats": {
+      "shatters": 1,
+      "freezes": 1
+     }
+    }
+   },
+   "ultimate": {
+    "hits": [
+     24,
+     24,
+     24,
+     24,
+     150
+    ],
+    "total": 246
+   }
+  },
+  "megumi_fushiguro": {
+   "maxHp": 1000,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL3": {
+     "hits": [
+      36
+     ],
+     "total": 36
+    },
+    "fLow": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "heavy": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "fLance": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fRush": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    },
+    "fRise": {
+     "hits": [
+      66
+     ],
+     "total": 66
+    },
+    "fBreaker": {
+     "hits": [
+      87
+     ],
+     "total": 87
+    },
+    "air": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "fDownAir": {
+     "hits": [
+      51
+     ],
+     "total": 51
+    },
+    "blackIceContact": {
+     "hits": [
+      18
+     ],
+     "total": 18
+    },
+    "frostLance": {
+     "hits": [
+      63
+     ],
+     "total": 63
+    },
+    "shatterRoute": {
+     "hits": [
+      54,
+      69
+     ],
+     "total": 123,
+     "stats": {
+      "shatters": 1,
+      "freezes": 1
+     }
+    }
+   },
+   "ultimate": {
+    "hits": [
+     24,
+     24,
+     24,
+     24,
+     150
+    ],
+    "total": 246
+   }
+  },
+  "syndrome": {
+   "maxHp": 1100,
+   "moves": {
+    "light": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL2": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "fL3": {
+     "hits": [
+      36
+     ],
+     "total": 36
+    },
+    "fLow": {
+     "hits": [
+      27
+     ],
+     "total": 27
+    },
+    "heavy": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fLaunch": {
+     "hits": [
+      45
+     ],
+     "total": 45
+    },
+    "fLance": {
+     "hits": [
+      54
+     ],
+     "total": 54
+    },
+    "fRush": {
+     "hits": [
+      72
+     ],
+     "total": 72
+    },
+    "fRise": {
+     "hits": [
+      66
+     ],
+     "total": 66
+    },
+    "fBreaker": {
+     "hits": [
+      87
+     ],
+     "total": 87
+    },
+    "air": {
+     "hits": [
+      39
+     ],
+     "total": 39
+    },
+    "fDownAir": {
+     "hits": [
+      51
+     ],
+     "total": 51
+    },
+    "blackIceContact": {
+     "hits": [
+      18
+     ],
+     "total": 18
+    },
+    "frostLance": {
+     "hits": [
+      63
+     ],
+     "total": 63
+    },
+    "shatterRoute": {
+     "hits": [
+      54,
+      69
+     ],
+     "total": 123,
+     "stats": {
+      "shatters": 1,
+      "freezes": 1
+     }
+    }
+   },
+   "ultimate": {
+    "hits": [
+     24,
+     24,
+     24,
+     24,
+     150
+    ],
+    "total": 246
+   }
+  }
+ },
+ "errors": []
+}

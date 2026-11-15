@@ -8,7 +8,7 @@ import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js' 
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
-import { elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)
+import { elastigirlHitbox, elastigirlHurtbox, elastigirlBlock, elastigirlHit, elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -706,6 +706,7 @@ export function getAttackHitbox(fighter) {
   if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
   if (a?.mw && fighter.rosterKey === 'mmpr_white') return mmprWhiteHitbox(fighter)   // White Ranger: per-move box; body-less order / signal / feint have none
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
+  if (a?.eg && fighter.rosterKey === 'elastigirl') return elastigirlHitbox(fighter)   // Elastigirl: per-move limb box + multi-contact windows
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -783,6 +784,7 @@ export function getHurtbox(fighter) {
     return { x: fighter.x + 4, y: top, w: Math.max(1, fighter.w - 8), h: Math.max(1, bottom - top) }
   }
   if (fighter.rosterKey === 'arlong') return arlongHurtbox(fighter)   // ARLONG — the big sawshark body: a larger hurtbox (designed weakness; arlong-gated)
+  if (fighter.rosterKey === 'elastigirl') return elastigirlHurtbox(fighter)   // ELASTIGIRL — stretched-limb hurtbox while a long normal is active; Whirl Kick upper-body invulnerability (elastigirl-gated)
   return {
     x: fighter.x + 6,
     y: fighter.y + 6,
@@ -3423,6 +3425,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
     if (!flawless) mmprWhiteBlock(attacker, defender, atk)   // White Ranger: authored blockstun; mmpr_white-gated
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
+    if (!flawless) elastigirlBlock(attacker, defender, atk)   // Elastigirl: authored on-block advantage; elastigirl-gated
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
@@ -3482,6 +3485,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
     mmprWhiteHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // White Ranger: clean flag, discipline credit (no credit when armored), ultimate confirm
     batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
+    elastigirlHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Elastigirl: clean flag (Long Arm pull, Whip bounce, raft carry); elastigirl-gated
     spdRedHit(attacker, defender, atk)
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8

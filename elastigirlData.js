@@ -5,7 +5,7 @@
 // Units: frames at 60 fps; distances in world px. `damage` is the stored per-hit value (the brief's numbers); the
 // engine's shared GLOBAL_DAMAGE_SCALE (0.6) and combo curve apply at the damage write, like every other fighter.
 import { ELASTIGIRL_ANIM } from './elastigirlSprites.js'
-// PHASE 2 snapshot: base stats + Elasticity economy on the engine's generic normals; the kit arrives in later phases.
+// PHASE 3 snapshot: stats, Elasticity, normals, Slingshot + Rubber Body; the special / ultimate command inputs arrive in P4.
 
 export const EG_KEY = 'elastigirl'
 
@@ -20,6 +20,21 @@ export const EG_STATS = { maxHealth: 980, maxEnergy: 100, attack: 82, defense: 8
   weight: 0.95, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36,
   spec: { health: 980, walkSpeed: 5.0, runSpeed: 7.6, jumpForce: 11.5, weight: 0.95 } }
 export const EG_ENERGY = { name: 'Elasticity', max: 100, rechargePerSec: 5, onHitLanded: 4, onHitTaken: 3 }
+
+// ── PHASE 3: unique mechanics ──
+// SLINGSHOT — reuses Spider-Man's web-swing pendulum integrator (abilities.updateSpidermanWebSwing / release): the
+// anchor is 220 px up-forward (45°) of her grip, rope length 220, release on Special button-up with tangential momentum.
+export const SLINGSHOT = { cost: 12, reach: 220, cooldown: 120, minHold: 6, releasePose: 14 }
+// RUBBER BODY — passive: −15 % damage from MELEE NORMALS only (flag read off the incoming move's type).
+export const RUBBER_BODY = { mult: 0.85, exemptDamageTypes: ['fire', 'beam', 'laser', 'energy', 'ki', 'burn', 'heat', 'projectile', 'electric', 'lightning'] }
+// Parachute Drop (air): float at ×0.35 fall speed for up to 60 f, then the dome slams down.
+export const PARACHUTE = { floatMax: 60, fallMul: 0.35, gravity: 0.85, maxFall: 22, slamVy: 15, slamMinFloat: 6, landing: 16 }
+// Frame-advantage calibration: the block / pull hooks set stun = frames she still owes + authored advantage + this
+// (engine bookkeeping offset between the hook frame and the first actionable frame; measured by the harness).
+export const ADV_FUDGE = 0
+// Normal → normal cancels on a CLEAN hit, during recovery (Jab may repeat once: Jab, Jab, Heavy).
+export const NORMAL_CANCELS = { light: ['light', 'heavy', 'eLow', 'up'], eLow: ['up', 'heavy'], heavy: ['up'] }
+export const MAX_JABS = 2
 
 export const ULT_LOCKOUT = 100
 
@@ -36,8 +51,8 @@ export const EG_MOVES = {
   up: mv({ name: 'Rising Reach', damage: 48, startup: 12, active: 4, recovery: 24, onBlock: -9, category: 'launcher', launcher: true, hitstun: 30, launchVy: -20, selfVy: 0, box: [-10, 140, -150, 40], limb: true, reach: 140 }),
   air: mv({ name: 'Diving Stretch', damage: 30, startup: 7, active: 4, recovery: 14, onBlock: 2, hitstun: 22, knockbackY: -2, box: [-20, 110, -10, 80], air: true }),
   // SPECIALS
-  eLongArm: mv({ name: 'Long Arm', damage: 40, startup: 14, active: 6, recovery: 1, cost: 12, isSpecial: true, category: 'special', onBlock: -16, hitstun: 40, knockbackX: 0, box: [-10, 380, 26, 52], limb: true, reach: 380, onHit: 18, pull: 12 }),
-  eLongPull: mv({ name: 'Long Arm (pull)', damage: 0, startup: 30, active: 1, recovery: 1, noBody: true, pose: true }),
+  eLongArm: mv({ name: 'Long Arm', damage: 40, startup: 14, active: 6, recovery: 3, follow: 'eLongWhiff', cost: 12, isSpecial: true, category: 'special', onBlock: -16, hitstun: 40, knockbackX: 0, box: [-10, 380, 26, 52], limb: true, reach: 380, onHit: 18, pull: 12 }),
+  eLongPull: mv({ name: 'Long Arm (pull)', damage: 0, startup: 20, active: 1, recovery: 1, noBody: true, pose: true }),
   eLongWhiff: mv({ name: 'Long Arm (whiff)', damage: 0, startup: 20, active: 1, recovery: 14, noBody: true, pose: true, limbHold: 18 }),
   eWhirl: mv({ name: 'Whirl Kick', damage: 22, startup: 8, active: 14, recovery: 18, cost: 15, isSpecial: true, category: 'special', onBlock: -8, hitstun: 18, knockbackX: 1,
     box: [-50, 100, 8, 98], upperInvuln: [3, 9],

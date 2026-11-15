@@ -1,0 +1,151 @@
+{
+  "moves": {
+    "jab": {
+      "startup": 4,
+      "damage": 14,
+      "onBlock": 1,
+      "brief": {
+        "startup": 4,
+        "damage": 14,
+        "onBlock": 1
+      }
+    },
+    "heavy": {
+      "startup": 10,
+      "damage": 40,
+      "onBlock": -4,
+      "brief": {
+        "startup": 10,
+        "damage": 40,
+        "onBlock": -4
+      }
+    },
+    "low": {
+      "startup": 6,
+      "damage": 20,
+      "onBlock": -3,
+      "brief": {
+        "startup": 6,
+        "damage": 20,
+        "onBlock": -3
+      }
+    },
+    "launcher": {
+      "startup": 10,
+      "damage": 38,
+      "onBlock": -8,
+      "brief": {
+        "startup": 10,
+        "damage": 38,
+        "onBlock": -8
+      }
+    },
+    "air": {
+      "startup": 6,
+      "damage": 24,
+      "onBlock": 2,
+      "brief": {
+        "startup": 6,
+        "damage": 24,
+        "onBlock": 2
+      }
+    },
+    "flurry": {
+      "startup": 8,
+      "hits": 8,
+      "damage": 56,
+      "onBlock": -6
+    },
+    "blurDash": {
+      "damage": 44,
+      "startup": 8,
+      "onBlock": -10
+    },
+    "laps": {
+      "hits": 4,
+      "damage": 64
+    },
+    "hydro": {
+      "damage": 36,
+      "startup": 17,
+      "lowProfile": [
+        10,
+        30
+      ]
+    }
+  },
+  "routes": [
+    {
+      "label": "Jab, Jab, Heavy, Blur Dash",
+      "target": 97,
+      "damage": 82,
+      "ratio": 0.845
+    },
+    {
+      "label": "Low, Launcher, Air, Flurry",
+      "target": 112,
+      "damage": 92,
+      "ratio": 0.821
+    },
+    {
+      "label": "Laps, Jab, Heavy, Flurry",
+      "target": 147,
+      "damage": 152,
+      "ratio": 1.034
+    }
+  ],
+  "momentum": {
+    "walk": 6.399999999999999,
+    "sprintWalk": 7.039999999999999,
+    "blurWalk": 7.679999999999998
+  },
+  "defense": {
+    "sidestep": {
+      "iframes": [
+        2,
+        10
+      ],
+      "cooldown": 226
+    },
+    "cantCatchMe": {
+      "jog": 22,
+      "sprint": 15
+    },
+    "panic": {
+      "atk": "panic",
+      "e": 60,
+      "stun": 0,
+      "inv": 23,
+      "used": true
+    }
+  },
+  "ultimate": {
+    "ok": true,
+    "energy": 69.33333333333341,
+    "dmg": 200,
+    "hits": 12,
+    "lockedAt": 11,
+    "lastHit": 190,
+    "freeAt": 280,
+    "bMoved": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "stats": {
+    "walk": 6.399999999999999,
+    "run": 11
+  },
+  "pass": 74,
+  "fail": 0
+}

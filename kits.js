@@ -1,6 +1,7 @@
 import { KRYBOT_KIT } from './krybotKit.js'
 import { SPD_BLUE_KIT } from './spdBlueKit.js'
 import { SPD_GREEN_KIT } from './spdGreenKit.js'
+import { DASH_PARR_KIT } from './dashParrKit.js'
 import { SPD_PINK_KIT } from './spdPinkKit.js'
 import { MMPR_PINK_KIT } from './mmprPinkKit.js'   // Pink Ranger (mmpr_pink) Move List
 import { MMPR_BLACK_KIT } from './mmprBlackKit.js'   // Black Ranger (mmpr_black) Move List
@@ -92,6 +93,7 @@ export const CONTROL_REFERENCE = {
 export const KITS = {
   spd_blue: SPD_BLUE_KIT,
   spd_green: SPD_GREEN_KIT,
+  dash_parr: DASH_PARR_KIT,
   spd_pink: SPD_PINK_KIT,
   mmpr_black: MMPR_BLACK_KIT,
   mmpr_white: MMPR_WHITE_KIT,

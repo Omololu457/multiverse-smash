@@ -1,0 +1,19 @@
+// Dash Parr — Move List / kit metadata (kits.js entry). Damage = HP a fresh unscaled hit removes (authored data:
+// dashParrData.js). Measured frame advantage + combo totals: docs/dash/COMBOS.md.
+export const DASH_PARR_KIT={type:'Speedster / Rushdown',energy:'Super Speed',difficulty:'Hard (4)',
+ summary:'The fastest kid alive. Build MOMENTUM by running and landing hits; at Sprint he is faster with quicker Jab/Heavy, at Blur his next special is free. Any hit, block or 30 frames standing still drains it to zero. Lowest health and weight on the roster. The sheet has almost no attack poses: attacks are built from run/lean frames, the white speed-streak frames and code-drawn speed lines (see docs/dash/SPRITE_LEDGER.md).',
+ passive:{name:'Momentum',input:'Run / land hits',effect:'0–100 gauge under the energy bar. Running +1.5/frame, damaging hit +6, Laps +20. 0–49 Jog; 50–99 Sprint (+10% speed, Jab/Heavy −1f startup); 100 Blur (+20% speed, afterimages, next special costs 0 then Momentum resets). Taking a hit, blocking, or standing still 30f → 0.'},
+ basics:[{name:'Jab',input:'Light (fresh re-press chains Jab → Jab)',desc:'4f · 14 · +1 on block. Built from the R4 upright stride frames.'},
+  {name:'Heavy',input:'Heavy',desc:'10f · 40 · −4. 24px lunge on the R4 stride into the R6 streak frame.'},
+  {name:'Low Slide',input:'Down + Light / Down + Heavy',desc:'6f · 20 · −3, hits low. R5 low-lean frames, 30px slide.'},
+  {name:'Launcher',input:'Up + Heavy / Up-Attack',desc:'10f · 38 · −8. R5 lean into the R4 stretch frame; jump-cancel on hit.'},
+  {name:'Air Streak',input:'Air Light / Heavy',desc:'6f · 24 · +2. R6 blur pose + streak frame.'}],
+ specials:[{name:'Flurry',input:'↓↘→ + Special (or neutral Special)',cost:15,desc:'8 hits × 7 = 56 · −6. Blurs in place (R6 poses + streak frames + fist speed lines); usable in the air.'},
+  {name:'Blur Dash',input:'→→ + Special (or Forward + Special)',cost:10,desc:'400px streak lunge that passes THROUGH the opponent (cross-up) · 44 · −10.'},
+  {name:'Laps',input:'↓↓ + Special (or Down + Special)',cost:20,desc:'Circles the opponent (R3/R4 loop at render offsets) · 4 × 16 = 64 · ends behind them · +20 Momentum.'},
+  {name:'Hydroplane',input:'←↙↓ + Special (or Back + Special)',cost:12,desc:'Long low water-skim (R5 + dive) · 36, hits low · low profile f10–30 ducks projectiles and high attacks.'}],
+ defense:[{name:'Sidestep',input:'←← + Light',desc:'Instant blur behind a close foe (or 110px away). Invulnerable f2–10. 4 s cooldown.'},
+  {name:"Can't Catch Me",input:'Passive',desc:'The first hit taken at Sprint or Blur deals −30% (Momentum still drops to 0).'},
+  {name:'Panic Run',input:'Block + Heavy while being comboed (3+ hits)',cost:40,desc:'Breaks the combo and runs 190px away with 24f invulnerability. Once per round.'}],
+ ultimate:{name:'INCREDI-RUSH',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'Locks a foe within 340px in a 3-second blur storm: 12 hits from hashed positions around them = 200 damage, unscaled. 90-frame recovery lockout afterwards.'},
+ combos:[{name:'Jab, Jab, Heavy, Blur Dash',target:97},{name:'Low, Launcher, (jump) Air, Flurry',target:112},{name:'Laps, Jab, Heavy, Flurry',target:147},{name:'At Blur: any special is free and resets Momentum'}]}

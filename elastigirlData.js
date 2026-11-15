@@ -26,6 +26,12 @@ export const EG_ENERGY = { name: 'Elasticity', max: 100, rechargePerSec: 5, onHi
 export const SLINGSHOT = { cost: 12, reach: 220, cooldown: 120, minHold: 6, releasePose: 14 }
 // RUBBER BODY — passive: −15 % damage from MELEE NORMALS only (flag read off the incoming move's type).
 export const RUBBER_BODY = { mult: 0.85, exemptDamageTypes: ['fire', 'beam', 'laser', 'energy', 'ki', 'burn', 'heat', 'projectile', 'electric', 'lightning'] }
+// ── PHASE 6: defense ──
+// STRETCH GUARD (Block + Heavy): frames 1–6 parry one frontal strike → +10 Elasticity and a FREE Long Arm (cancels the
+// guard's recovery; free for 30 f afterwards). 6 s cooldown from the press.
+export const STRETCH_GUARD = { window: 6, total: 22, energy: 10, cooldown: 360, freeLongArm: 30 }
+// BOUNCE BACK (← ← + Light): a backward rubber hop, invulnerable frames 4–12, 5 s cooldown.
+export const BOUNCE_BACK = { total: 22, iframes: [4, 12], cooldown: 300, speed: 9, travel: [2, 16], tapWindow: 14, lightWindow: 10 }
 // Parachute Drop (air): float at ×0.35 fall speed for up to 60 f, then the dome slams down.
 export const PARACHUTE = { floatMax: 60, fallMul: 0.35, gravity: 0.85, maxFall: 22, slamVy: 15, slamMinFloat: 6, landing: 16 }
 // Frame-advantage calibration: the block / pull hooks set stun = frames she still owes + authored advantage + this

@@ -6,9 +6,10 @@
 // 236 Long Arm · 252 Parachute Drop. Without a motion the held direction picks: fwd Long Arm · back Whip · down
 // Parachute · neutral Whirl. Air: ↑ Slingshot · ↓ / 252 Parachute float · otherwise Whirl Kick.
 // The ULTIMATE button (U / R2) is also accepted for Family Raft (100 Elasticity, grounded).
+// DEFENSE: Block + Heavy = Stretch Guard (6 f parry) · ← ← + Light = Bounce Back (i-frames 4–12).
 import { startMove, cancelWindowOpen } from './combat.js'
 import { isElastigirl, egState, startEgMove, registerElastigirlEngine, startSling, slingLegal, startParachute, motionMatch } from './elastigirlState.js'
-import { NORMAL_CANCELS, MAX_JABS, SPECIAL_FROM, ULT_FROM, EG_INPUTS as I } from './elastigirlData.js'
+import { NORMAL_CANCELS, MAX_JABS, SPECIAL_FROM, ULT_FROM, EG_INPUTS as I, STRETCH_GUARD as SG, BOUNCE_BACK as BB } from './elastigirlData.js'
 
 registerElastigirlEngine({ startMove })
 
@@ -42,6 +43,8 @@ export function updateElastigirlCommandCombat(f, inp, opp, W) {
   if (s.sling || s.para) return 'consumed'
   if (a) {
     const m = a.eg
+    // STRETCH GUARD success: the free Long Arm cancels the rest of the guard (any Special press, or ↓↘→ + Special)
+    if (m?.key === 'eGuard' && m.parried && fresh(s, 'special')) { use(s, 'special'); startEgMove(f, 'eLongArm', W, { cancel: true, free: true }); return 'consumed' }
     if (!m || !m.clean || !cancelWindowOpen(f)) return 'consumed'
     // NORMAL → ULTIMATE / SPECIAL / NORMAL on a clean hit (recovery only)
     if (g && ULT_FROM.includes(m.key) && (fresh(s, 'ultimate') || (fresh(s, 'special') && pickSpecial(s, g) === 'ult'))) {
@@ -62,6 +65,21 @@ export function updateElastigirlCommandCombat(f, inp, opp, W) {
       if (startEgMove(f, next, W, { cancel: true })) { f.currentAttack.eg.jabs = jabs; s.stats.chains++ }
       return 'consumed'
     }
+    return 'consumed'
+  }
+  // BOUNCE BACK: ← ← then Light (the second back tap arms it; the shared back-dash is cancelled into the hop)
+  if (g && fresh(s, 'light') && s.bounceArm >= 0 && s.edges.light.clock - s.bounceArm <= BB.lightWindow) {
+    use(s, 'light'); s.bounceArm = -1
+    if (s.cd.bounce > 0) { s.stats.rejects++; s.cues.push('reject'); return 'consumed' }
+    f.dashTimer = 0; f.attackCooldown = 0; f.vx = 0
+    if (startEgMove(f, 'eBounce', W)) { s.cd.bounce = BB.cooldown; s.stats.bounces++ }
+    return 'consumed'
+  }
+  // STRETCH GUARD: Block held + Heavy (grounded). On cooldown the press is refused and she keeps guarding.
+  if (g && inp.block && fresh(s, 'heavy')) {
+    use(s, 'heavy')
+    if (s.cd.guard > 0 || f.attackCooldown > 0) { s.stats.rejects++; s.cues.push('reject'); return 'grab' }
+    if (startEgMove(f, 'eGuard', W)) { s.cd.guard = SG.cooldown; s.stats.guards++ }
     return 'consumed'
   }
   if (f.attackCooldown > 0 || inp.block) return 'grab'

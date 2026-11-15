@@ -270,6 +270,70 @@ try {
     results.P5 = R
     await page.close()
   }
+  // ══ PHASE 6 — defense ══
+  if (want('P6')) {
+    const page = await open('elastigirl', 'batman'); const d = drv(page), R = {}
+    // Batman's real Jab, timed so its first active frame lands on guard frame `at` (guard via the harness move, then via keys)
+    const guardVs = (at, opts = {}) => page.evaluate(([at, opts]) => {
+      const H = __harness.elastigirlTest, B = __harness.batmanTest, L = __harness.luffyTest; H.reset(); __harness.setDummyBehavior('stand')
+      const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1300 + a.w + 30; a.facing = 1; b.facing = -1
+      for (const f of [a, b]) { f.health = f.maxHealth; f.hitstun = f.blockstun = 0; f.attacking = false; f.currentAttack = null; f.attackCooldown = 0; f.vx = f.vy = 0 }
+      a.energy = opts.energy ?? 50; L.step(1)
+      // Batman Jab first-active offset
+      B.move('light', 'p2'); const fa = b.currentAttack.activeStart
+      b.attacking = false; b.currentAttack = null; b.attackCooldown = 0; b._batman && (b._batman.edges = {}); L.step(2); a.health = a.maxHealth; a.energy = opts.energy ?? 50
+      const lead = fa - at, hp0 = a.health
+      if (lead >= 0) { B.move('light', 'p2'); for (let i = 0; i < lead; i++) L.step(1); H.move('eGuard') } else { H.move('eGuard'); for (let i = 0; i < -lead; i++) L.step(1); B.move('light', 'p2') }
+      const e0 = a.energy; let hitAt = null, parried = false
+      for (let i = 0; i < 30; i++) { L.step(1); if (a.currentAttack?.eg?.parried && !parried) { parried = true; hitAt = a.currentAttack.total - a.currentAttack.timer } if (a.health < hp0 && hitAt == null) hitAt = 'hit' }
+      return { fa, parried, hitAt, dmg: hp0 - a.health, gain: +(a.energy - e0 - 30 * 5 / 60).toFixed(2), freeArm: a._elastigirl?.freeArm, parries: a._elastigirl?.stats?.parries, cd: a._elastigirl?.cd?.guard }
+    }, [at, opts])
+    for (const at of [1, 3, 6]) { const r = await guardVs(at); R['guard' + at] = r; ok(`P6 Stretch Guard: a strike on guard frame ${at} is parried (no damage)`, r.parried && r.dmg === 0, JSON.stringify(r)) }
+    const late = await guardVs(7); R.guardLate = late
+    ok('P6 Stretch Guard: frame 7 (first frame outside the 6 f window) is NOT parried', !late.parried && late.dmg > 0, JSON.stringify(late))
+    ok('P6 Stretch Guard success: +10 Elasticity', Math.abs(R.guard3.gain - 10) < 0.2, String(R.guard3.gain))
+    // REAL INPUT: hold Block + press Heavy; Batman jabs into it; then Special = the FREE Long Arm cancel
+    await d.reset(30, { energy: 50 })
+    const fa = R.guard1.fa
+    await page.evaluate(() => __harness.batmanTest.move('light', 'p2')); await d.step(Math.max(0, fa - 3))
+    await page.keyboard.down(';'); await d.tap(['k'], 1); const g0 = await d.st()
+    await d.step(5); const g1 = await d.st(); await page.keyboard.up(';')
+    const eBefore = g1.energy; await d.tap(['l'], 1); const g2 = await d.st()
+    R.input = { guardStarted: g0.attack?.name, parried: g1.attack?.eg?.parried, after: g2.attack?.name, free: g2.attack?.eg?.free, energy: [eBefore, g2.energy] }
+    ok('P6 Stretch Guard by input (Block + Heavy) parries Batman\'s Jab', g0.attack?.name === 'eGuard' && g1.attack?.eg?.parried === true, JSON.stringify(R.input))
+    ok('P6 Stretch Guard: Special after the parry = FREE Long Arm cancel (0 Elasticity)', g2.attack?.name === 'eLongArm' && g2.attack?.eg?.free === true && g2.energy >= eBefore - 0.01, JSON.stringify(R.input))
+    // cooldown: 6 s from the press → a second Block + Heavy inside it is refused (she keeps guarding)
+    await d.step(80); await page.keyboard.down(';'); await d.tap(['k'], 1); const c1 = await d.st(); await page.keyboard.up(';')
+    ok('P6 Stretch Guard: 6 s cooldown (second Block + Heavy refused → plain guard)', c1.attack?.name !== 'eGuard' && c1.s.cd.guard > 0 && c1.s.cd.guard <= 360, JSON.stringify({ a: c1.attack?.name, cd: c1.s.cd.guard, blocking: c1.blocking }))
+    const cdNow = (await d.st()).s.cd.guard; await d.step(cdNow + 1); await page.keyboard.down(';'); await d.tap(['k'], 1); const c2 = await d.st(); await page.keyboard.up(';')
+    ok('P6 Stretch Guard: available again once the 6 s cooldown ends', c2.attack?.name === 'eGuard', String(c2.attack?.name))
+    // BOUNCE BACK — ← ← + Light (P1 faces right: back = A)
+    await d.reset(60, { energy: 50 }); await d.step(20)
+    const x0 = (await d.st()).x
+    await d.tap(['a'], 1); await d.step(2); await d.tap(['a'], 1); await d.step(1); await d.tap(['j'], 1)
+    const bb = [], frames = []
+    for (let i = 0; i < 24; i++) { const q = await d.st(); bb.push(q); frames.push([q.attack?.name === 'eBounce' ? q.attack.total - q.attack.timer : null, q.invuln]); await d.step(1) }
+    const started = bb.find(q => q.attack?.name === 'eBounce')
+    const inv = bb.filter(q => q.attack?.name === 'eBounce').map(q => [q.attack.total - q.attack.timer, q.invuln > 0])
+    R.bounce = { inv, travel: Math.round(bb[bb.length - 1].x - x0) }
+    ok('P6 Bounce Back by input (← ← + Light)', !!started, JSON.stringify(frames.slice(0, 6)))
+    ok('P6 Bounce Back: hops backward', R.bounce.travel < -60, String(R.bounce.travel))
+    // cooldown 5 s
+    await d.step(10); await d.tap(['a'], 1); await d.step(2); await d.tap(['a'], 1); await d.step(1); await d.tap(['j'], 1); const r2 = await d.st()
+    ok('P6 Bounce Back: 5 s cooldown (second ← ← + Light refused)', r2.attack?.name !== 'eBounce' && r2.s.cd.bounce > 0, JSON.stringify({ a: r2.attack?.name, cd: r2.s.cd.bounce }))
+    // i-frames are real: Batman's Jab timed into frame 6 whiffs; the same Jab into frame 14 lands
+    const vs = at => page.evaluate(([at, fa]) => { const H = __harness.elastigirlTest, B = __harness.batmanTest, L = __harness.luffyTest; H.reset(); __harness.setDummyBehavior('stand')
+      const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1300 + a.w + 30; a.facing = 1; b.facing = -1; a.health = a.maxHealth; a.attackCooldown = b.attackCooldown = 0; L.step(1)
+      const hp0 = a.health, lead = fa - at
+      if (lead >= 0) { B.move('light', 'p2'); for (let i = 0; i < lead; i++) L.step(1); H.move('eBounce') } else { H.move('eBounce'); for (let i = 0; i < -lead; i++) L.step(1); B.move('light', 'p2') }
+      for (let i = 0; i < 20; i++) { if (b.attacking) { b.x = a.x + a.w + 20; b.vx = 0 } L.step(1) }   // Batman stays adjacent: only the i-frames can make it whiff
+      return { dmg: hp0 - a.health } }, [at, fa])
+    const v = {}; for (let at = 2; at <= 14; at++) v[at] = (await vs(at)).dmg
+    R.bounceVsJab = v
+    ok('P6 Bounce Back: invulnerable on frames 4–12 exactly (Batman\'s real Jab whiffs on 4–12, lands on 2–3 and 13–14)', Object.entries(v).every(([t, dmg]) => (+t >= 4 && +t <= 12) ? dmg === 0 : dmg > 0), JSON.stringify(v))
+    results.P6 = R
+    await page.close()
+  }
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('FAIL exception', e.stack) }
 finally {

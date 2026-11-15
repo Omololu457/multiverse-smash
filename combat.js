@@ -8,7 +8,7 @@ import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js' 
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
-import { elastigirlHitbox, elastigirlHurtbox, elastigirlBlock, elastigirlHit, elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)
+import { elastigirlHitbox, elastigirlHurtbox, elastigirlBlock, elastigirlHit, absorbElastigirl, elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -3271,6 +3271,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // outright. luffy-gated → a strict no-op for every other fighter.
   if (absorbSpdBlue(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }
   if (absorbBatman(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Batman cape counter: one frontal strike caught; batman-gated
+  if (absorbElastigirl(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Elastigirl Stretch Guard: parry window absorbs one strike; elastigirl-gated
   if (absorbLuffyStrike(defender, attacker)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}

@@ -373,7 +373,9 @@ export function tickElastigirl(f, opp, raw, W) {
       break
     case 'eBounce': {
       const B = D.BOUNCE_BACK
-      if (t === B.iframes[0]) { f.invulnTimer = Math.max(f.invulnTimer || 0, B.iframes[1] - B.iframes[0] + 1); cue(f, 'bounce') }
+      // the tick runs before this frame's timer decrement (tick t = frame number − 1) and the engine decrements invulnTimer
+      // before its hit check → set it one frame early with one extra count: protected on frames 4–12 exactly (harness-verified)
+      if (t === B.iframes[0] - 1) { f.invulnTimer = Math.max(f.invulnTimer || 0, B.iframes[1] - B.iframes[0] + 2); cue(f, 'bounce') }
       if (t >= B.travel[0] && t < B.travel[1]) f.x = clamp(f.x - m.dir * B.speed, 0, sw(W) - (f.w || 48))
       f.vx = 0
       break

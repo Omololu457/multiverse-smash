@@ -1,0 +1,940 @@
+{
+ "pass": 41,
+ "fail": 0,
+ "results": {
+  "P4": {
+   "light": {
+    "hit": {
+     "key": "light",
+     "ok": true,
+     "cost": 0,
+     "first": 6,
+     "act": 7,
+     "reach": 120,
+     "hurtReach": 120,
+     "level": null,
+     "hits": [
+      [
+       5,
+       12,
+       20
+      ]
+     ],
+     "aFree": 24,
+     "dFree": 28,
+     "adv": 4,
+     "dmg": 12,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    },
+    "block": {
+     "key": "light",
+     "ok": true,
+     "cost": 0,
+     "first": 6,
+     "act": 3,
+     "reach": 120,
+     "hurtReach": 120,
+     "level": null,
+     "hits": [
+      [
+       5,
+       2,
+       20
+      ]
+     ],
+     "aFree": 20,
+     "dFree": 20,
+     "adv": 0,
+     "dmg": 2,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    }
+   },
+   "heavy": {
+    "hit": {
+     "key": "heavy",
+     "ok": true,
+     "cost": 0,
+     "first": 14,
+     "act": 14,
+     "reach": 200,
+     "hurtReach": 200,
+     "level": null,
+     "hits": [
+      [
+       13,
+       32,
+       54
+      ]
+     ],
+     "aFree": 49,
+     "dFree": 52,
+     "adv": 3,
+     "dmg": 32,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    },
+    "block": {
+     "key": "heavy",
+     "ok": true,
+     "cost": 0,
+     "first": 14,
+     "act": 4,
+     "reach": 200,
+     "hurtReach": 200,
+     "level": null,
+     "hits": [
+      [
+       13,
+       6,
+       54
+      ]
+     ],
+     "aFree": 39,
+     "dFree": 34,
+     "adv": -5,
+     "dmg": 6,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    }
+   },
+   "eLow": {
+    "hit": {
+     "key": "eLow",
+     "ok": true,
+     "cost": 0,
+     "first": 8,
+     "act": 7,
+     "reach": 210,
+     "hurtReach": 210,
+     "level": "low",
+     "hits": [
+      [
+       7,
+       16,
+       28
+      ]
+     ],
+     "aFree": 32,
+     "dFree": 33,
+     "adv": 1,
+     "dmg": 16,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    },
+    "block": {
+     "key": "eLow",
+     "ok": true,
+     "cost": 0,
+     "first": 8,
+     "act": 3,
+     "reach": 210,
+     "hurtReach": 210,
+     "level": "low",
+     "hits": [
+      [
+       7,
+       3,
+       28
+      ]
+     ],
+     "aFree": 28,
+     "dFree": 24,
+     "adv": -4,
+     "dmg": 3,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    }
+   },
+   "up": {
+    "hit": {
+     "key": "up",
+     "ok": true,
+     "cost": 0,
+     "first": 12,
+     "act": 16,
+     "reach": 140,
+     "hurtReach": 140,
+     "level": null,
+     "hits": [
+      [
+       11,
+       28,
+       48
+      ]
+     ],
+     "aFree": 51,
+     "dFree": 69,
+     "adv": 18,
+     "dmg": 28,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    },
+    "block": {
+     "key": "up",
+     "ok": true,
+     "cost": 0,
+     "first": 12,
+     "act": 4,
+     "reach": 140,
+     "hurtReach": 140,
+     "level": null,
+     "hits": [
+      [
+       11,
+       5,
+       48
+      ]
+     ],
+     "aFree": 39,
+     "dFree": 30,
+     "adv": -9,
+     "dmg": 5,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    }
+   },
+   "eLongArm": {
+    "la": {
+     "key": "eLongArm",
+     "ok": true,
+     "cost": 12,
+     "first": 14,
+     "act": 22,
+     "reach": 380,
+     "hurtReach": 380,
+     "level": null,
+     "hits": [
+      [
+       13,
+       24,
+       40
+      ]
+     ],
+     "aFree": 57,
+     "dFree": 75,
+     "adv": 18,
+     "dmg": 24,
+     "invuln": [],
+     "bounceVy": null,
+     "near": 16
+    },
+    "lab": {
+     "key": "eLongArm",
+     "ok": true,
+     "cost": 12,
+     "first": 14,
+     "act": 6,
+     "reach": 380,
+     "hurtReach": 380,
+     "level": null,
+     "hits": [
+      [
+       13,
+       2,
+       40
+      ]
+     ],
+     "aFree": 54,
+     "dFree": 38,
+     "adv": -16,
+     "dmg": 2,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    },
+    "law": {
+     "key": "eLongArm",
+     "ok": true,
+     "cost": 12,
+     "first": 14,
+     "act": 6,
+     "reach": 380,
+     "hurtReach": 380,
+     "level": null,
+     "hits": [],
+     "aFree": 54,
+     "dFree": null,
+     "adv": null,
+     "dmg": 0,
+     "invuln": [],
+     "bounceVy": null,
+     "near": null
+    }
+   },
+   "eWhirl": {
+    "wk": {
+     "key": "eWhirl",
+     "ok": true,
+     "cost": 15,
+     "first": 8,
+     "act": 55,
+     "reach": 100,
+     "hurtReach": 0,
+     "level": null,
+     "hits": [
+      [
+       8,
+       13,
+       22
+      ],
+      [
+       29,
+       13,
+       22
+      ],
+      [
+       51,
+       15,
+       28
+      ]
+     ],
+     "aFree": 87,
+     "dFree": 96,
+     "adv": 9,
+     "dmg": 41,
+     "invuln": [
+      [
+       0,
+       6
+      ],
+      [
+       1,
+       6
+      ],
+      [
+       2,
+       6
+      ],
+      [
+       3,
+       53
+      ],
+      [
+       4,
+       53
+      ],
+      [
+       5,
+       53
+      ],
+      [
+       6,
+       53
+      ],
+      [
+       7,
+       53
+      ],
+      [
+       8,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       10,
+       6
+      ],
+      [
+       11,
+       6
+      ],
+      [
+       12,
+       6
+      ],
+      [
+       13,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       15,
+       6
+      ],
+      [
+       16,
+       6
+      ],
+      [
+       17,
+       6
+      ],
+      [
+       18,
+       6
+      ],
+      [
+       19,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       21,
+       6
+      ],
+      [
+       22,
+       6
+      ],
+      [
+       23,
+       6
+      ],
+      [
+       24,
+       6
+      ],
+      [
+       25,
+       6
+      ],
+      [
+       26,
+       6
+      ],
+      [
+       27,
+       6
+      ],
+      [
+       28,
+       6
+      ],
+      [
+       29,
+       6
+      ],
+      [
+       30,
+       6
+      ],
+      [
+       31,
+       6
+      ],
+      [
+       32,
+       6
+      ],
+      [
+       33,
+       6
+      ],
+      [
+       34,
+       6
+      ],
+      [
+       35,
+       6
+      ],
+      [
+       36,
+       6
+      ],
+      [
+       37,
+       6
+      ],
+      [
+       38,
+       6
+      ],
+      [
+       39,
+       6
+      ]
+     ],
+     "bounceVy": null,
+     "near": null
+    },
+    "wkb": {
+     "key": "eWhirl",
+     "ok": true,
+     "cost": 15,
+     "first": 8,
+     "act": 7,
+     "reach": 100,
+     "hurtReach": 0,
+     "level": null,
+     "hits": [
+      [
+       8,
+       1,
+       22
+      ],
+      [
+       13,
+       1,
+       22
+      ],
+      [
+       19,
+       1,
+       28
+      ]
+     ],
+     "aFree": 39,
+     "dFree": 31,
+     "adv": -8,
+     "dmg": 3,
+     "invuln": [
+      [
+       0,
+       6
+      ],
+      [
+       1,
+       6
+      ],
+      [
+       2,
+       6
+      ],
+      [
+       3,
+       53
+      ],
+      [
+       4,
+       53
+      ],
+      [
+       5,
+       53
+      ],
+      [
+       6,
+       53
+      ],
+      [
+       7,
+       53
+      ],
+      [
+       8,
+       53
+      ],
+      [
+       9,
+       53
+      ],
+      [
+       10,
+       6
+      ],
+      [
+       11,
+       6
+      ],
+      [
+       12,
+       6
+      ],
+      [
+       13,
+       6
+      ],
+      [
+       14,
+       6
+      ],
+      [
+       15,
+       6
+      ],
+      [
+       16,
+       6
+      ],
+      [
+       17,
+       6
+      ],
+      [
+       18,
+       6
+      ],
+      [
+       19,
+       6
+      ],
+      [
+       20,
+       6
+      ],
+      [
+       21,
+       6
+      ],
+      [
+       22,
+       6
+      ],
+      [
+       23,
+       6
+      ],
+      [
+       24,
+       6
+      ],
+      [
+       25,
+       6
+      ],
+      [
+       26,
+       6
+      ],
+      [
+       27,
+       6
+      ],
+      [
+       28,
+       6
+      ],
+      [
+       29,
+       6
+      ],
+      [
+       30,
+       6
+      ],
+      [
+       31,
+       6
+      ],
+      [
+       32,
+       6
+      ],
+      [
+       33,
+       6
+      ],
+      [
+       34,
+       6
+      ],
+      [
+       35,
+       6
+      ],
+      [
+       36,
+       6
+      ],
+      [
+       37,
+       6
+      ],
+      [
+       38,
+       6
+      ],
+      [
+       39,
+       6
+      ]
+     ],
+     "bounceVy": null,
+     "near": null
+    }
+   },
+   "eDome": {
+    "key": "eDome",
+    "ok": true,
+    "cost": 18,
+    "first": 24,
+    "act": 21,
+    "reach": 80,
+    "hurtReach": 0,
+    "level": "overhead",
+    "hits": [
+     [
+      23,
+      42,
+      70
+     ]
+    ],
+    "aFree": 62,
+    "dFree": 73,
+    "adv": 11,
+    "dmg": 42,
+    "invuln": [],
+    "bounceVy": null,
+    "near": null
+   },
+   "eWhip": {
+    "key": "eWhip",
+    "ok": true,
+    "cost": 15,
+    "first": 18,
+    "act": 20,
+    "reach": 300,
+    "hurtReach": 300,
+    "level": "overhead",
+    "hits": [
+     [
+      17,
+      36,
+      60
+     ]
+    ],
+    "aFree": 61,
+    "dFree": 71,
+    "adv": 10,
+    "dmg": 36,
+    "invuln": [],
+    "bounceVy": -12,
+    "near": null
+   },
+   "ult": {
+    "ok": true,
+    "seq": [
+     [
+      "eUlt",
+      0
+     ],
+     [
+      "eRaft",
+      25
+     ],
+     [
+      "eUltRecover",
+      218
+     ]
+    ],
+    "hits": [
+     40,
+     40,
+     50,
+     90
+    ],
+    "travel": 652,
+    "energy": 0,
+    "fighters": 2,
+    "lock": 102,
+    "anims": [
+     true,
+     true
+    ],
+    "raftFrames": 17
+   }
+  }
+ }
+}

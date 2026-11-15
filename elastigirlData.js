@@ -5,7 +5,6 @@
 // Units: frames at 60 fps; distances in world px. `damage` is the stored per-hit value (the brief's numbers); the
 // engine's shared GLOBAL_DAMAGE_SCALE (0.6) and combo curve apply at the damage write, like every other fighter.
 import { ELASTIGIRL_ANIM } from './elastigirlSprites.js'
-// PHASE 3 snapshot: stats, Elasticity, normals, Slingshot + Rubber Body; the special / ultimate command inputs arrive in P4.
 
 export const EG_KEY = 'elastigirl'
 
@@ -31,10 +30,13 @@ export const RUBBER_BODY = { mult: 0.85, exemptDamageTypes: ['fire', 'beam', 'la
 export const PARACHUTE = { floatMax: 60, fallMul: 0.35, gravity: 0.85, maxFall: 22, slamVy: 15, slamMinFloat: 6, landing: 16 }
 // Frame-advantage calibration: the block / pull hooks set stun = frames she still owes + authored advantage + this
 // (engine bookkeeping offset between the hook frame and the first actionable frame; measured by the harness).
-export const ADV_FUDGE = 0
+export const ADV_FUDGE = 1
 // Normal → normal cancels on a CLEAN hit, during recovery (Jab may repeat once: Jab, Jab, Heavy).
 export const NORMAL_CANCELS = { light: ['light', 'heavy', 'eLow', 'up'], eLow: ['up', 'heavy'], heavy: ['up'] }
 export const MAX_JABS = 2
+// Normal → special / ultimate cancels on a CLEAN hit (recovery only; the special still pays its cost).
+export const SPECIAL_FROM = ['light', 'heavy', 'eLow', 'up', 'air']
+export const ULT_FROM = ['light', 'heavy', 'eLow']
 
 export const ULT_LOCKOUT = 100
 

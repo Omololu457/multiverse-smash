@@ -130,6 +130,99 @@ try {
     results.P3 = { sling: { L: a.sw?.L, ang, release: { vx: rel.vx, vy: rel.vy } }, rubber: rb, live }
     await page.close()
   }
+  // ══ PHASE 4 — moveset (frame data measured live: startup = first active frame, advantage = defender free − attacker free) ══
+  if (want('P4')) {
+    const page = await open('elastigirl', 'batman'); const d = drv(page)
+    const measure = (key, gap, block) => page.evaluate(([key, gap, block]) => {
+      const H = __harness.elastigirlTest, L = __harness.luffyTest; H.reset(); __harness.setDummyBehavior(block ? 'block' : 'stand')
+      const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1300 + a.w + gap; a.facing = 1; b.facing = -1
+      for (const f of [a, b]) { f.health = f.maxHealth; f.energy = 100; f.hitstun = f.blockstun = 0; f.attacking = false; f.currentAttack = null; f.attackCooldown = 0; f.vx = f.vy = 0; f.comboCounter = 0; f._forceGuard = !!block && f === b; f.isBlocking = !!block && f === b }
+      b._was = false; L.step(2); const hp0 = b.health, e0 = a.energy, ok = H.move(key); const e1 = a.energy
+      let first = null, act = 0, hits = [], aFree = null, dFree = null, reach = null, hurtW = 0, invuln = [], level = null, bounceVy = null, near = null, raftBoxes = 0
+      for (let i = 0; i < 400; i++) { const s = H.state(), box = s.box && s.box.w > 1 ? s.box : null
+        if (box) { act++; if (first == null) first = i; reach = Math.max(reach ?? 0, box.x + box.w - (a.x + a.w)); level = s.attack?.hitLevel || level }
+        hurtW = Math.max(hurtW, s.hurt.x + s.hurt.w - (a.x + a.w)); if (s.attack?.name === 'eWhirl') invuln.push([s.attack.total - s.attack.timer, s.hurt.y - a.y])
+        L.step(1)
+        const last = hits.length ? hits[hits.length - 1].hp : hp0
+        if (b.health < last) hits.push({ i, d: last - b.health, hp: b.health, stored: H.state().attack?.damage })
+        if (key === 'eWhip' && hits.length && bounceVy == null && b.vy < 0) bounceVy = b.vy
+        if (key === 'eLongArm' && a.currentAttack?.eg?.key === 'eLongPull') near = Math.round(b.x - (a.x + a.w))
+        const busy = a.attacking || a.attackCooldown > 0
+        if (aFree == null && !busy && i > 2) aFree = i
+        const stunned = b.blockstun > 0 || b.hitstun > 0 || b.hitstop > 0; if (stunned) b._was = true
+        if (dFree == null && b._was && !stunned && (b.onGround || b.grounded)) dFree = i
+        if (aFree != null && dFree != null) break }
+      return { key, ok, cost: Math.round(e0 - e1), first, act, reach: reach && Math.round(reach), hurtReach: Math.round(hurtW), level, hits: hits.map(h => [h.i, h.d, h.stored]), aFree, dFree, adv: aFree != null && dFree != null ? dFree - aFree : null, dmg: hp0 - b.health, invuln, bounceVy, near }
+    }, [key, gap, block])
+    const SPEC = { light: [6, 120, 0, 20], heavy: [14, 200, -5, 54], eLow: [8, 210, -4, 28], up: [12, 140, -9, 48] }
+    const R = {}
+    for (const [k, [su, reach, ob, dmg]] of Object.entries(SPEC)) {
+      const h = await measure(k, Math.min(reach - 20, 100), false), b = await measure(k, Math.min(reach - 20, 100), true); R[k] = { hit: h, block: b }
+      ok(`P4 ${k}: ${su}f startup, ${reach} px reach, ${dmg} stored dmg`, h.first === su && h.reach === reach && h.hits[0]?.[2] === dmg && h.hits[0]?.[1] === Math.floor(dmg * 0.6), JSON.stringify({ first: h.first, reach: h.reach, hit: h.hits[0] }))
+      ok(`P4 ${k}: ${ob >= 0 ? '+' : ''}${ob} on block`, b.adv === ob, `measured ${b.adv}`)
+      ok(`P4 ${k}: stretched limb is hittable while active (hurtbox reaches ${reach} px)`, h.hurtReach >= reach - 1, `hurt reach ${h.hurtReach}`)
+    }
+    const low = await page.evaluate(() => __harness.elastigirlTest.data().moves.eLow.hitLevel); ok('P4 Stretch Sweep is a low (hitLevel low)', low === 'low')
+    // Air normal: 7 f, 30 dmg, +2 on block (authored onBlock read by the block hook)
+    const air = await page.evaluate(() => { const H = __harness.elastigirlTest, L = __harness.luffyTest; H.reset(); const a = H.raw(); a.onGround = a.grounded = false; a.y -= 120; a.vy = -2; const ok = H.move('air'); let first = null
+      for (let i = 0; i < 20 && first == null; i++) { const s = H.state(); if (s.box && s.box.w > 1) first = i; L.step(1) } return { ok, first, md: H.data().moves.air } })
+    ok('P4 Air (Diving Stretch): 7f startup, 30 dmg, +2 on block', air.ok && air.first === 7 && air.md.damage === 30 && air.md.onBlock === 2, JSON.stringify({ first: air.first }))
+    // LONG ARM — 380 px grab + pull, 40 dmg, +18 on hit; whiff leaves the arm out
+    const la = await measure('eLongArm', 360, false), lab = await measure('eLongArm', 360, true), law = await measure('eLongArm', 600, false); R.eLongArm = { la, lab, law }
+    ok('P4 Long Arm: 14f, 380 px reach, costs 12', la.first === 14 && la.reach === 380 && la.cost === 12, JSON.stringify({ first: la.first, reach: la.reach, cost: la.cost }))
+    ok('P4 Long Arm: hit at 360 px pulls the foe in (40 dmg stored)', la.hits[0]?.[2] === 40 && la.near != null && la.near < 40, JSON.stringify({ hit: la.hits[0], near: la.near }))
+    ok('P4 Long Arm: +18 on hit (after the pull)', la.adv === 18, `measured ${la.adv}`)
+    ok('P4 Long Arm: whiff → long recovery with the arm still out (punishable)', law.hits.length === 0 && law.aFree >= 50 && law.hurtReach >= 379, JSON.stringify({ aFree: law.aFree, hurt: law.hurtReach }))
+    // WHIRL KICK — 3 hits 22/22/28, upper body intangible frames 3–9
+    const wk = await measure('eWhirl', 20, false), wkb = await measure('eWhirl', 20, true); R.eWhirl = { wk, wkb }
+    ok('P4 Whirl Kick: 3 hits 22 / 22 / 28 (stored), costs 15', wk.hits.map(h => h[2]).join() === '22,22,28' && wk.cost === 15, JSON.stringify(wk.hits))
+    const inv = Object.fromEntries(wk.invuln), half = inv[3] ?? null
+    ok('P4 Whirl Kick: upper body intangible on frames 3–9 only', [3, 4, 5, 6, 7, 8, 9].every(t => inv[t] > 40) && inv[2] < 10 && inv[10] < 10, JSON.stringify({ f2: inv[2], f3: inv[3], f9: inv[9], f10: inv[10] }))
+    ok('P4 Whirl Kick on block: all 3 contacts stay guarded', wkb.hits.length === 3 && wkb.hits.every(h => h[1] <= 3), JSON.stringify(wkb.hits))
+    // PARACHUTE DROP (ground) — hop dome, 70 overhead, 24f
+    const pd = await measure('eDome', 20, false); R.eDome = pd
+    ok('P4 Parachute Drop (ground): 24f, overhead, 70 stored, costs 18', pd.first === 24 && pd.level === 'overhead' && pd.hits[0]?.[2] === 70 && pd.cost === 18, JSON.stringify({ first: pd.first, level: pd.level, hit: pd.hits[0], cost: pd.cost }))
+    // PARACHUTE (air) — float at fall × 0.35 for ≤ 60 f, then slam
+    const pa = await page.evaluate(() => { const H = __harness.elastigirlTest, L = __harness.luffyTest; H.reset(); const a = H.raw(), b = H.raw('p2'); b.x = 2400; a.onGround = a.grounded = false; a.y -= 560; a.vy = 0
+      const ok = H.parachute(); const ys = []; let slamAt = null, landAt = null
+      for (let i = 0; i < 140; i++) { L.step(1); ys.push(a.y); if (slamAt == null && a.currentAttack?.eg?.key === 'eDomeSlam') slamAt = i; if (landAt == null && (a.onGround || a.grounded)) landAt = i }
+      const v = ys.slice(1, 50).map((y, i) => y - ys[i]); return { ok, vmax: Math.max(...v.slice(0, slamAt ?? 50)), v30: v[30], slamAt, landAt } })
+    ok('P4 Parachute (air): float fall ≤ 22 × 0.35 = 7.7 px/f', pa.ok && pa.vmax <= 7.7 + 1e-6 && pa.vmax > 7, JSON.stringify(pa))
+    ok('P4 Parachute (air): slams after 60 f of float', pa.slamAt >= 58 && pa.slamAt <= 61 && pa.landAt > pa.slamAt, JSON.stringify({ slam: pa.slamAt, land: pa.landAt }))
+    // OVERHEAD WHIP — 300 px, 60 overhead, ground bounce
+    const ow = await measure('eWhip', 260, false); R.eWhip = ow
+    ok('P4 Overhead Whip: 300 px reach, overhead, 60 stored, costs 15', ow.reach === 300 && ow.level === 'overhead' && ow.hits[0]?.[2] === 60 && ow.cost === 15, JSON.stringify({ reach: ow.reach, level: ow.level, hit: ow.hits[0] }))
+    ok('P4 Overhead Whip: a hit ground-bounces the foe', ow.bounceVy != null && ow.bounceVy <= -10, String(ow.bounceVy))
+    // FAMILY RAFT — R14 windup → raft: 4 hits 40/40/50/90 = 220 stored, then the 100 f lockout
+    const ul = await page.evaluate(() => { const H = __harness.elastigirlTest, L = __harness.luffyTest; H.reset(); __harness.setDummyBehavior('stand'); const a = H.raw(), b = H.raw('p2'); a.x = 1000; b.x = 1000 + a.w + 30; a.facing = 1; b.facing = -1; a.energy = 100
+      const hp0 = b.health, ok = H.move('eUlt'), eAfter = a.energy, seq = [], hits = []; let last = hp0, x0 = a.x, lock = null, prev = null
+      for (let i = 0; i < 420; i++) { const k = a.currentAttack?.eg?.key || null; if (k !== prev) seq.push([k, i]); prev = k
+        L.step(1); if (b.health < last) { hits.push(a.currentAttack?.damage); last = b.health }
+        if (k === 'eUltRecover' && lock == null) lock = a.currentAttack.total
+        if (!a.attacking && i > 30) break }
+      return { ok, seq, hits, travel: Math.round(a.x - x0), energy: eAfter, fighters: (__harness.luffyTest && 2), lock, anims: ['eUltWindup', 'eRaft'].map(k => !!a.animationData[k]), raftFrames: a.animationData.eRaft?.frames } })
+    R.ult = ul
+    ok('P4 Family Raft: windup (R14) → raft (R21–24) → lockout', ul.ok && ul.seq.map(s => s[0]).join() === 'eUlt,eRaft,eUltRecover' && ul.anims.every(Boolean), JSON.stringify(ul.seq))
+    ok('P4 Family Raft: 4 hits 40 / 40 / 50 / 90 = 220 stored', ul.hits.join() === '40,40,50,90', JSON.stringify(ul.hits))
+    ok('P4 Family Raft: surges forward, costs the full 100', ul.travel > 300 && ul.energy === 0, JSON.stringify({ travel: ul.travel, energy: ul.energy }))
+    ok('P4 Family Raft: 100 f lockout after the surge', ul.lock === 102 || ul.lock === 100 || ul.lock === 101, String(ul.lock))
+    // REAL INPUTS: motions read from the per-frame direction history (P1 faces right: 6 = D, 4 = A, 2 = S)
+    const DIR = { 1: ['s', 'a'], 2: ['s'], 3: ['s', 'd'], 4: ['a'], 5: [], 6: ['d'], 7: ['w', 'a'], 8: ['w'], 9: ['w', 'd'] }
+    async function motion(seq, btn = 'l') { const all = ['w', 'a', 's', 'd']
+      for (const c of seq) { for (const k of all) if (!DIR[c].includes(k)) await page.keyboard.up(k); for (const k of DIR[c]) await page.keyboard.down(k); await d.step(2) }
+      await page.keyboard.down(btn); await d.step(2); await page.keyboard.up(btn); for (const k of all) await page.keyboard.up(k); await d.step(1)
+      return (await d.st()).attack?.name || null }
+    const got = {}
+    for (const [name, seq, want] of [['236', '236', 'eLongArm'], ['623', '623', 'eWhirl'], ['412', '412', 'eWhip'], ['252', '252', 'eDome'], ['236236', '236236', 'eUlt'], ['6 (held fwd)', '6', 'eLongArm'], ['4 (held back)', '4', 'eWhip'], ['5 (neutral)', '5', 'eWhirl']]) {
+      await d.reset(500, { energy: 100 }); await d.step(20); got[name] = await motion(seq); ok(`P4 input ${name} + Special → ${want}`, got[name] === want, String(got[name]))
+    }
+    await d.reset(500, { energy: 100 }); await d.step(10); await d.tap(['u'], 2); const ub = (await d.st()).attack?.name
+    ok('P4 input Ultimate button → Family Raft', ub === 'eUlt', String(ub))
+    await d.reset(500, { energy: 40 }); await d.step(10); await d.tap(['u'], 2); const ur = await d.st()
+    ok('P4 Family Raft refused below 100 Elasticity (nothing spent)', !ur.attack && ur.energy >= 40 && ur.s.stats.rejects >= 1, JSON.stringify({ a: ur.attack?.name, e: ur.energy }))
+    results.P4 = R
+    await page.close()
+  }
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('FAIL exception', e.stack) }
 finally {

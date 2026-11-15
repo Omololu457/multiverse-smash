@@ -55,8 +55,11 @@ export const dirDigit = (raw, facing) => {
   return 5 + h + v * 3
 }
 export function motionMatch(s, motion, win, clock = s.clock) {
-  let i = motion.length - 1
-  for (let k = s.dirs.length - 1; k >= 0 && i >= 0; k--) {
+  let i = motion.length - 1, n = s.dirs.length
+  if (!n) return false
+  const last = s.dirs[n - 1].d, prev = n > 1 ? s.dirs[n - 2].d : null
+  if (String(last) !== motion[i] && !(last === 5 && String(prev) === motion[i] && clock - s.dirs[n - 1].c <= 4)) return false   // the motion ends NOW
+  for (let k = n - 1; k >= 0 && i >= 0; k--) {
     const e = s.dirs[k], next = s.dirs[k + 1]
     if (next && next.c < clock - win) break               // this entry ended before the window opened
     if (String(e.d) === motion[i]) i--
@@ -126,7 +129,8 @@ export function boxOf(f, box, dir) {
 export function elastigirlHitbox(f) {
   const a = f.currentAttack, m = a?.eg, md = MOVES[m?.key]
   if (!m || !md || md.noBody) return Z
-  if (md.contacts && contactAt(md, elapsed(a)) < 0) return Z
+  const t = elapsed(a)
+  if (md.contacts ? contactAt(md, t) < 0 : (t < a.activeStart || t > a.activeEnd)) return Z
   return boxOf(f, md.box, m.dir)
 }
 const baseHurt = f => ({ x: f.x + 6, y: f.y + 6, w: Math.max(1, f.w - 12), h: Math.max(1, f.h - 6) })
@@ -144,12 +148,12 @@ export function elastigirlHurtbox(f) {
   return b
 }
 // Frames the attacker still owes before acting again (whiffed / blocked Long Arm continues into its whiff recovery).
-const owed = (a, md) => a.timer + (md.follow ? moveTotal(MOVES[md.follow]) : 0)
+const owed = (a, md) => md.follow ? a.timer - md.recovery + moveTotal(MOVES[md.follow]) : a.timer
 export function elastigirlBlock(f, d, a) {
   if (!isElastigirl(f) || !a?.eg) return
   const md = MOVES[a.eg.key], ci = contactAt(md, elapsed(a)), c = ci >= 0 ? md.contacts[ci] : null
   d.blockstun = Math.max(1, owed(a, md) + (c?.onBlock ?? md.onBlock ?? 0) + D.ADV_FUDGE)
-  a.eg.blocked = true
+  a.eg.blocked = true; a.eg.guarded = true; TGT.set(f, d)
 }
 export function elastigirlHit(f, d, a, { armored = false } = {}) {
   if (!isElastigirl(f) || !a?.eg) return
@@ -211,9 +215,9 @@ export function elastigirlDamageMods(target, rawDamage, opts = {}) {
 // pendulum (abilities.updateSpidermanWebSwing integrates it for any fighter with _swinging; physics skips gravity);
 // releasing the button flings her with the tangential momentum (abilities.releaseSpidermanWebSwing).
 // One per airtime, 12 Elasticity, 2 s cooldown from the release.
-export function slingLegal(f) {
+export function slingLegal(f, ignoreAttack = false) {
   const s = egState(f), P = D.SLINGSHOT
-  return !grounded(f) && !s.sling && !s.para && !f._swinging && !s.slingUsed && !(s.cd.sling > 0) && !f.attacking && (f.energy || 0) >= P.cost
+  return !grounded(f) && !s.sling && !s.para && !f._swinging && !s.slingUsed && !(s.cd.sling > 0) && (ignoreAttack || !f.attacking) && (f.energy || 0) >= P.cost
 }
 export function startSling(f) {
   const s = egState(f), P = D.SLINGSHOT
@@ -331,11 +335,14 @@ export function tickElastigirl(f, opp, raw, W) {
     }
   }
   const tg = TGT.get(f)
+  // a GUARDED string stays guarded: the engine drops isBlocking during blockstun, so without this the 2nd / 3rd
+  // contact of a blocked Whirl Kick or Raft would hit clean. Only while the target is still in HER blockstun.
+  if (md.contacts && m.guarded && tg && tg.blockstun > 0 && !(tg.hitstun > 0)) tg.isBlocking = true
   switch (m.key) {
     case 'eLongArm':
       if (t === a.activeEnd + 1) {
         if (m.clean && tg && tg.health > 0) { follow(f, 'eLongPull', { pullFrom: Math.round(tg.x) }); egState(f).stats.pulls++; cue(f, 'snap')
-          tg.hitstun = moveTotal(MOVES.eLongPull) + md.onHit + D.ADV_FUDGE }      // +18 when the pull ends
+          tg.hitstun = moveTotal(MOVES.eLongPull) + md.onHit }      // +18 when the pull ends
         else follow(f, 'eLongWhiff', { blocked: m.blocked })
       }
       break

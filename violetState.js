@@ -5,7 +5,7 @@
 import { violet as V_CHAR, ENERGY, WALK_SPEED_STAT, RUN_SPEED_STAT, VANISH, vhash, MOVES, PUSH, SHIELD, BALL, TRAP, ULT, MOTION } from './violetData.js'
 
 export const isViolet = f => f?.rosterKey === 'violet'
-const fresh0 = () => ({ tick: 0, hp: null, run: false, prev: {}, edges: {}, used: {}, downTaps: [], dir: 5, toks: [], fwdTaps: [],
+const fresh0 = () => ({ tick: 0, clock: 0, hp: null, run: false, prev: {}, edges: {}, used: {}, downTaps: [], dir: 5, toks: [], fwdTaps: [],
   inv: null, vanishCd: 0, reappear: 0, ambushArmed: false,
   push: null, trap: null, ult: null, lastHit: null, serial: 0,
   stats: { hitsLanded: 0, hitsTaken: 0, energyFromHits: 0, runs: 0, vanishes: 0, vanishEnds: {}, ambushHits: 0, rejects: 0,
@@ -101,7 +101,7 @@ function readEdges(f, s, raw) {
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'down', 'block', 'grab', 'jump', 'up']) {
     const v = !!raw[k]
     if (v && !s.prev[k]) {
-      s.edges[k] = { tick: s.tick, down: dn, up, fwd: fw, back: bk }
+      s.edges[k] = { tick: s.tick, clock: s.clock, down: dn, up, fwd: fw, back: bk }
       if (k === 'special' || k === 'light') s.edges[k].motion = classifyMotion(s)
       if (k === 'down') { s.downTaps.push(s.tick); if (s.downTaps.length > 2) s.downTaps.shift() }
     }
@@ -130,7 +130,8 @@ function classifyMotion(s) {
   if (s.fwdTaps.length === 2 && b - a <= MOTION.ballTap && s.tick - b <= MOTION.press) return 'ball'
   return null
 }
-export const freshEdge = (s, k, win = 8) => !!s.edges[k] && s.used[k] !== s.edges[k].tick && s.tick - s.edges[k].tick <= win
+// buffer age runs on s.clock, which pauses during her hitstop (a cancel pressed on the hit frame survives the freeze)
+export const freshEdge = (s, k, win = 8) => !!s.edges[k] && s.used[k] !== s.edges[k].tick && s.clock - (s.edges[k].clock ?? s.edges[k].tick) <= win
 export const useEdge = (s, k) => { s.used[k] = s.edges[k].tick }
 // ↓↓ + Special: two Down presses within tapWindow, Special pressed within pressWindow of the second one (Down may still be held).
 export function doubleDownSpecial(s) {
@@ -368,7 +369,7 @@ function tickUlt(f, s, W, opp, tookHit) {
 // ══ PER-SIMULATION-FRAME TICK (1v1 + FFA; before the shared physics / combat) ══════════════════════════════════
 export function tickViolet(f, opp, raw, W) {
   if (!isViolet(f)) { if (f?._violet) clearViolet(f); return }
-  const s = vState(f); s.tick++
+  const s = vState(f); s.tick++; if (!(f.hitstop > 0)) s.clock++
   readEdges(f, s, raw)
   // +3 Force Field whenever she TAKES a hit (any source: melee, projectile, cinematic; not block chip) — health-delta detection.
   if (s.hp != null && f.health < s.hp && f.health > 0 && !(f.blockstun > 0) && !f.isBlocking) { s.stats.hitsTaken++; s.stats.energyFromHits += ENERGY.onHitTaken; addEnergy(f, ENERGY.onHitTaken) }

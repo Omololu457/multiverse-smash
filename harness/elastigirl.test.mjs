@@ -394,6 +394,26 @@ try {
     results.P8 = r
     await page.close()
   }
+  // ══ PHASE 9 — metadata + balance notes ══
+  if (want('P9')) {
+    const page = await open('elastigirl', 'batman')
+    const r = await page.evaluate(async () => {
+      const { characters } = await import('./characters.js'), { ELASTIGIRL_KIT: K } = await import('./elastigirlKit.js'), c = characters.elastigirl
+      const label = String(c.universe).split('_').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ')   // game.js formatUniverseName
+      const sentences = (c.bio.match(/[^.!?]+[.!?]+/g) || []).length
+      return { name: c.name, displayName: c.displayName, universe: c.universe, label, difficulty: c.difficulty, archetype: c.archetype, traitArch: c.traits?.archetype,
+        tagline: c.tagline, sentences, kitTag: K.tagline, kitDiff: K.difficulty, ult: c.ultimate?.name, passive: c.passive?.name,
+        specials: Object.values(c.specials || {}).map(s => s.name), playable: c.isPlayable !== false && c.hasSprites && !c.hidden }
+    })
+    ok('P9 name / displayName "Elastigirl", universe Pixar, difficulty 3, archetype "Footsies / Grappler"',
+      r.name === 'Elastigirl' && r.displayName === 'Elastigirl' && r.label === 'Pixar' && r.difficulty === 3 && r.archetype === 'Footsies / Grappler' && r.traitArch === 'Footsies / Grappler', JSON.stringify(r))
+    ok('P9 tagline exact (character + kit), bio is 2 sentences', r.tagline === "Leave the saving the world to the men? I don't think so." && r.kitTag === r.tagline && r.sentences === 2, JSON.stringify({ t: r.tagline, s: r.sentences }))
+    ok('P9 kit lists 5 specials, Rubber Body passive, Family Raft ult; playable', r.specials.length === 5 && r.passive === 'Rubber Body' && r.ult === 'Family Raft' && r.playable, JSON.stringify(r.specials))
+    const notes = fs.existsSync('docs/elastigirl/BALANCE_NOTES.md') ? fs.readFileSync('docs/elastigirl/BALANCE_NOTES.md', 'utf8') : ''
+    ok('P9 BALANCE_NOTES.md: vs Spider-Man, vs Superman, Violet, why she isn\'t broken', /## vs Spider-Man/.test(notes) && /## vs Superman/.test(notes) && /## vs Violet/.test(notes) && /## Why she isn't broken/.test(notes))
+    results.P9 = r
+    await page.close()
+  }
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('FAIL exception', e.stack) }
 finally {

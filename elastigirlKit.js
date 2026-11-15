@@ -24,7 +24,7 @@ export const ELASTIGIRL_CONTROLS = {
   ],
   note: 'Defaults shown; the shared rebind menu changes every key and the Move List re-labels from the logical tokens. Directions are relative to facing. Motions are read from the same per-frame direction history for keyboard, pad, replay and LAN; each special also has a held-direction shortcut.',
 }
-export const ELASTIGIRL_KIT = { type: 'Footsies / Grappler', energy: 'Elasticity', difficulty: 'Medium',
+export const ELASTIGIRL_KIT = { type: 'Footsies / Grappler', energy: 'Elasticity', difficulty: 'Medium (3 / 5)', tagline: "Leave the saving the world to the men? I don't think so.",
   summary: 'Elastigirl — long, stretchy normals that out-reach most of the cast, but every stretched limb is part of her hurtbox while it is out. Elasticity (100) recharges 5/s, +4 on a hit landed and +3 on a hit taken.',
   passive: { name: 'Rubber Body', input: 'Automatic', effect: 'Takes 15 % less damage from melee NORMALS only. Specials, ultimates, projectiles, elemental hits and guard chip are untouched.' },
   basics: [

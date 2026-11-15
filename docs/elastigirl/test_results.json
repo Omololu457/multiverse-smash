@@ -1,5 +1,5 @@
 {
- "pass": 102,
+ "pass": 106,
  "fail": 0,
  "results": {
   "P2": {
@@ -1412,6 +1412,29 @@
      }
     }
    }
+  },
+  "P9": {
+   "name": "Elastigirl",
+   "displayName": "Elastigirl",
+   "universe": "pixar",
+   "label": "Pixar",
+   "difficulty": 3,
+   "archetype": "Footsies / Grappler",
+   "traitArch": "Footsies / Grappler",
+   "tagline": "Leave the saving the world to the men? I don't think so.",
+   "sentences": 2,
+   "kitTag": "Leave the saving the world to the men? I don't think so.",
+   "kitDiff": "Medium (3 / 5)",
+   "ult": "Family Raft",
+   "passive": "Rubber Body",
+   "specials": [
+    "Long Arm",
+    "Whirl Kick",
+    "Parachute Drop",
+    "Overhead Whip",
+    "Slingshot"
+   ],
+   "playable": true
   }
  }
 }

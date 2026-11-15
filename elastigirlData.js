@@ -116,12 +116,21 @@ const B = EG_MOVES
 export const elastigirl = {
   rosterKey: EG_KEY, name: 'Elastigirl', displayName: 'Elastigirl', civilianIdentity: 'Helen Parr', universe: 'pixar',
   series: 'The Incredibles', era: 'The Incredibles (2004) — supplied Game Boy Advance sprite sheet',
-  traits: { hasEnergy: true, energyType: 'energy', energyName: EG_ENERGY.name, mobility: 'normal', scaling: 'combo', animeMovement: false },
+  difficulty: 3, archetype: 'Footsies / Grappler', archetypes: ['footsies', 'grappler'], primary: 'footsies', secondary: ['grappler'],
+  tagline: "Leave the saving the world to the men? I don't think so.",
+  bio: 'Helen Parr is a veteran hero and the mother of three, as quick with a plan as she is with a punch. As Elastigirl she can stretch, shape and fling her body almost anywhere — arms across the stage, a slingshot through the air, a parachute, even a raft.',
+  traits: { hasEnergy: true, energyType: 'energy', energyName: EG_ENERGY.name, archetype: 'Footsies / Grappler', mobility: 'normal', scaling: 'combo', animeMovement: false },
   energyConfig: { label: EG_ENERGY.name, color: '#e8323c', rechargePerSec: EG_ENERGY.rechargePerSec, onHitLanded: EG_ENERGY.onHitLanded, onHitTaken: EG_ENERGY.onHitTaken },
   stats: (({ spec, ...st }) => st)(EG_STATS),
   hasSprites: true, spriteScale: 1.9, spriteSheet: ELASTIGIRL_ANIM.idle.sheet, portrait: './assets/elastigirl/portrait.png',
   movement: { crouchIdle: true }, fatalityVictimArt: false,
   basic_attacks: { light: B.light, heavy: B.heavy, crouchLight: B.eLow, upAttack: B.up, airAttack: B.air, downAir: B.air, grab: B.grab },
-  specials: {}, ultimate: { name: 'Family Raft', cost: 100 },
+  specials: {
+    forward: { name: 'Long Arm', input: '↓↘→ + Special', cost: 12 }, neutral: { name: 'Whirl Kick', input: '→↓↘ + Special', cost: 15 },
+    down: { name: 'Parachute Drop', input: '↓↓ + Special', cost: 18 }, back: { name: 'Overhead Whip', input: '←↙↓ + Special', cost: 15 },
+    up: { name: 'Slingshot', input: 'Air ↑ + Special (hold, release to fling)', cost: 12 } },
+  passive: { name: 'Rubber Body', desc: '−15 % damage from melee normals only.' },
+  ultimate: { name: 'Family Raft', input: '↓↘→↓↘→ + Special', cost: 100,
+    description: 'R14 windup, then Helen becomes a raft carrying Dash and Violet and surges across the screen: 4 hits 40/40/50/90 (220 stored), then a 100 f recovery lockout.' },
   animationData,
 }

@@ -1,5 +1,6 @@
 import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
 import { luffyRegen } from './luffyState.js'
+import { elastigirlRegen } from './elastigirlState.js'   // Elastigirl: Elasticity recharge 5/s (elastigirl-gated)
 import { zoroRegen } from './zoroState.js'
 import { sanjiRegen } from './sanjiState.js'   // Sanji: Heat passive (+0.5/s) replaces the shared regen
 import { spdRedRegen } from './spdRedState.js'   // S.P.D. Red: Delta passive (+1.5/s) replaces the shared regen
@@ -36168,6 +36169,7 @@ export function doEnergyCharge(fighter) {
 // ─────────────────────────────────────────────────────────────────
 export function regenEnergy(fighter) {
   if (luffyRegen(fighter)) return
+  if (elastigirlRegen(fighter)) return   // Elastigirl: Elasticity 5/s (no-op for everyone else)
   if (zoroRegen(fighter)) return
   if (buggyRegen(fighter)) return
   if (arlongRegen(fighter)) return

@@ -8,6 +8,7 @@ import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js' 
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
+import { elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -198,6 +199,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   rawDamage = spdRedDamageMods(target, rawDamage, opts)   // S.P.D. Red — containment card absorb / post-dodge buff (returns rawDamage untouched unless a Ranger is involved)
   rawDamage = (rawDamage || 0) * rosterDamageBoost(opts.attacker || opts.boostFrom)   // ROSTER PARITY: listed recent fighters hit harder (1 for everyone else)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
+  rawDamage = elastigirlDamageMods(target, rawDamage, opts)   // ELASTIGIRL — Rubber Body (−15% melee normals) + Elasticity +4 landed / +3 taken (returns rawDamage untouched unless she is involved)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6

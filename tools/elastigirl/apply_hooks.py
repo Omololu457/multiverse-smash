@@ -30,7 +30,7 @@ HOOKS = [
   (2, 'abilities.js', "  if (luffyRegen(fighter)) return", 'after_line',
    "  if (elastigirlRegen(fighter)) return   // Elastigirl: Elasticity 5/s (no-op for everyone else)", "if (elastigirlRegen(fighter))"),
   (2, 'combat.js', "import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'", 'after_line',
-   "import { elastigirlHitbox, elastigirlHurtbox, elastigirlBlock, elastigirlHit, absorbElastigirl, elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)", "from './elastigirlState.js'"),
+   "import { elastigirlDamageMods } from './elastigirlState.js'   // Elastigirl hooks (elastigirl-gated)", "from './elastigirlState.js'"),
   (2, 'combat.js', "  rawDamage = arlongDamageMods(target, rawDamage, opts)", 'after_line',
    "  rawDamage = elastigirlDamageMods(target, rawDamage, opts)   // ELASTIGIRL — Rubber Body (−15% melee normals) + Elasticity +4 landed / +3 taken (returns rawDamage untouched unless she is involved)", "elastigirlDamageMods(target"),
   # ── Phase 3: sim tick, slingshot, command layer plumbing, GAME_STATE snapshot, lifecycle ──
@@ -72,6 +72,8 @@ HOOKS = [
    "fighter.rosterKey === 'batman' || fighter.rosterKey === 'elastigirl') && !fighter._aiControlled", "fighter.rosterKey === 'elastigirl') && !fighter._aiControlled"),
   (3, 'input.js', "!fighter._batmanRemoteInput && inputSettings[", 'replace',
    "!fighter._batmanRemoteInput && !fighter._elastigirlRemoteInput && inputSettings[", "!fighter._elastigirlRemoteInput && inputSettings["),
+  (3, 'combat.js', "import { elastigirlDamageMods } from './elastigirlState.js'", 'replace',
+   "import { elastigirlHitbox, elastigirlHurtbox, elastigirlBlock, elastigirlHit, elastigirlDamageMods } from './elastigirlState.js'", "elastigirlHitbox, elastigirlHurtbox"),
   (3, 'combat.js', "  if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)", 'after_line',
    "  if (a?.eg && fighter.rosterKey === 'elastigirl') return elastigirlHitbox(fighter)   // Elastigirl: per-move limb box + multi-contact windows", "return elastigirlHitbox(fighter)"),
   (3, 'combat.js', "  if (fighter.rosterKey === 'arlong') return arlongHurtbox(fighter)", 'after_line',
@@ -85,6 +87,8 @@ HOOKS = [
    "import { ELASTIGIRL_KIT } from './elastigirlKit.js'   // Elastigirl (elastigirl) Move List", "elastigirlKit.js"),
   (4, 'kits.js', "  batman: BATMAN_KIT,", 'after_line', "  elastigirl: ELASTIGIRL_KIT,", "elastigirl: ELASTIGIRL_KIT"),
   # ── Phase 6: Stretch Guard parry absorb ──
+  (6, 'combat.js', "elastigirlHit, elastigirlDamageMods } from './elastigirlState.js'", 'replace',
+   "elastigirlHit, absorbElastigirl, elastigirlDamageMods } from './elastigirlState.js'", "absorbElastigirl, elastigirlDamageMods"),
   (6, 'combat.js', "  if (absorbBatman(defender, attacker, attacker.currentAttack))", 'after_line',
    "  if (absorbElastigirl(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Elastigirl Stretch Guard: parry window absorbs one strike; elastigirl-gated", "absorbElastigirl(defender"),
   # ── Phase 8: sound ──

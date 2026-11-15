@@ -5,12 +5,22 @@
 // Units: frames at 60 fps; distances in world px. `damage` is the stored per-hit value (the brief's numbers); the
 // engine's shared GLOBAL_DAMAGE_SCALE (0.6) and combo curve apply at the damage write, like every other fighter.
 import { ELASTIGIRL_ANIM } from './elastigirlSprites.js'
-// PHASE 1 snapshot: sprite strips + roster entry on the engine's generic normals; the kit arrives in later phases.
+// PHASE 2 snapshot: base stats + Elasticity economy on the engine's generic normals; the kit arrives in later phases.
 
 export const EG_KEY = 'elastigirl'
 
-// Phase 1 placeholder stats (the brief's base stats land in Phase 2).
-export const EG_STATS = { maxHealth: 1000, maxEnergy: 100, attack: 80, defense: 80, speed: 80, jumpPower: 25, maxJumps: 1, weight: 1, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36 }
+// ── PHASE 2: base stats ──
+// The brief's movement numbers mapped onto this engine's stat scales (docs/elastigirl/BALANCE_NOTES.md):
+//   walkSpeed 5.0 px/f → stats.speed 80   (physics walk = clamp(4.5 + (speed − 78) / 20 × 5, 4.5, 9.5) = 5.0)
+//   runSpeed 7.6 px/f  → dashSpeed 14     (the engine's ground dash/run is clamp(dashSpeed × 0.55, 8, 16): 7.6 sits
+//                                          under the shared 8 px/f floor, so she gets the floor — the slowest legal run)
+//   jumpForce 11.5     → jumpPower 25     (spec units ×2.2 = the engine's launch velocity scale; gravity 0.85)
+//   weight 0.95        → stats.weight 0.95
+export const EG_STATS = { maxHealth: 980, maxEnergy: 100, attack: 82, defense: 80, speed: 80, jumpPower: 25, maxJumps: 1,
+  weight: 0.95, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36,
+  spec: { health: 980, walkSpeed: 5.0, runSpeed: 7.6, jumpForce: 11.5, weight: 0.95 } }
+export const EG_ENERGY = { name: 'Elasticity', max: 100, rechargePerSec: 5, onHitLanded: 4, onHitTaken: 3 }
+
 export const ULT_LOCKOUT = 100
 
 // ── PHASE 4: moves ──
@@ -82,8 +92,9 @@ const B = EG_MOVES
 export const elastigirl = {
   rosterKey: EG_KEY, name: 'Elastigirl', displayName: 'Elastigirl', civilianIdentity: 'Helen Parr', universe: 'pixar',
   series: 'The Incredibles', era: 'The Incredibles (2004) — supplied Game Boy Advance sprite sheet',
-  traits: { hasEnergy: true, energyType: 'energy', mobility: 'normal', scaling: 'combo', animeMovement: false },
-  stats: EG_STATS,
+  traits: { hasEnergy: true, energyType: 'energy', energyName: EG_ENERGY.name, mobility: 'normal', scaling: 'combo', animeMovement: false },
+  energyConfig: { label: EG_ENERGY.name, color: '#e8323c', rechargePerSec: EG_ENERGY.rechargePerSec, onHitLanded: EG_ENERGY.onHitLanded, onHitTaken: EG_ENERGY.onHitTaken },
+  stats: (({ spec, ...st }) => st)(EG_STATS),
   hasSprites: true, spriteScale: 1.9, spriteSheet: ELASTIGIRL_ANIM.idle.sheet, portrait: './assets/elastigirl/portrait.png',
   movement: { crouchIdle: true }, fatalityVictimArt: false,
   basic_attacks: { light: B.light, heavy: B.heavy, crouchLight: B.eLow, upAttack: B.up, airAttack: B.air, downAir: B.air, grab: B.grab },

@@ -5,12 +5,15 @@ const TAIL = r => r[0].startsWith('Charge (L2 alone)') || r[0] === 'Pause'
 export const DSEYL_CONTROLS = {
   rows: [
     ...SYNDROME_CONTROLS.rows.filter(r => !TAIL(r)),
+    ['Flight: take off / come down', 'tap P', 'tap 7', 'tap L2'],
+    ['Flight: steer / air dash (×2)', 'W A S D / double-tap', '↑ ← ↓ → / double-tap', 'Left stick / double-tap'],
     ...SYNDROME_CONTROLS.rows.filter(TAIL),
   ],
-  note: SYNDROME_CONTROLS.note,
+  note: SYNDROME_CONTROLS.note + ' Dseyl: a quick Charge TAP (released within 12 frames, no Special with it) takes off or comes down — Homelander\'s flight control.',
 }
 export const DSEYL_KIT = { ...SYNDROME_KIT,
   specials: [
     ...SYNDROME_KIT.specials,
+    { name: 'Rocket-Boot Flight', input: 'Charge tap', cost: 0, desc: '3.5 s of 8-way flight per takeoff (2 air dashes; refills on the ground). A hard hit in the air grounds him for 1.5 s.' },
   ],
   controls: DSEYL_CONTROLS }

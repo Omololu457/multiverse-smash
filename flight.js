@@ -53,6 +53,18 @@ export const FLIGHT_PROFILES = {
     cruiseFastFrac: 0.70,   // |v| fraction of max that counts as "fast cruise" (speed-line threshold)
   },
 
+
+  // DSEYL (tribute fighter, rocket boots) — WIRED (traits.flightProfile:"dseyl"). A lighter flyer than the Supermen.
+  //   accel 0.50 · cruiseH 6.0 · cruiseV 5.0 · drag 0.86 · 2 air-dashes
+  //   3.5 s flight = energyMax 210 / drainPerFrame 1 · groundedAfterHardHit 1.5 s = groundedLock 90
+  //   (dashSpeed 14 / dashFrames 12 scaled to his cruise speed; the rest = Homelander's defaults)
+  dseyl: {
+    accel: 0.50, maxH: 6.0, maxV: 5.0, drag: 0.86, reverseBrake: 0.64,
+    overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 14, dashFrames: 12, maxAirDash: 2,
+    dashCost: 30, energyMax: 210, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -9,
+    takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 90,
+    landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,
+  },
   // SUPERMAN (feat/superman, 2026-10-23) — WIRED (traits.flightProfile:"superman"). Values per the
   // build brief Phase 3: slightly more agile + longer-lasting than Homelander — a more precise, floatier
   // flyer (lower cruise than Homelander's GODSPEED numbers, but 3 air-dashes + a 5-second budget).

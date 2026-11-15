@@ -15,6 +15,7 @@
 // Hit volumes are ENGINE projectiles (W.spawn, tagged _ds) so guard, blockstun, combo scaling, juggle and
 // projectile rules are the shared ones; each volume connects once. Ultimate damage goes through W.damage once per
 // scheduled contact with the combo scale captured at the capture. Nothing grants invulnerability or refunds jumps.
+import { tickDseylFlight } from './dseylFlight.js'   // DSEYL: Charge-tap flight (sim clock)
 import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, ULT, NORMAL_KEYS, SPINNER_NORMALS, dmg } from './dseylData.js'
 
 export const DSEYL_STATE_KEY = 'dseyl'
@@ -372,6 +373,7 @@ function updateHold(f, s, W) {
 export function tickDseyl(f, opp, raw, W) {
   if (!isDseyl(f)) { if (f?._dseyl) clearDseyl(f, W); return }
   const s = dsState(f); s.tick++
+  tickDseylFlight(f, raw)   // DSEYL: Charge-tap takeoff / come-down (every sim frame)
   const fw = !!(f.facing === -1 ? raw.left : raw.right), bk = !!(f.facing === -1 ? raw.right : raw.left)
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'block', 'jump', 'up', 'charge', 'grab']) {
     const v = !!raw[k]

@@ -10918,6 +10918,7 @@ function handleChargeRelease(fighter, key) {
   // Gojo's Infinity. toggleOmniManFlight no-ops if crashing / in hitstun / out of energy.
   // FLIGHT MODULE (Homelander + future flyers): a charge-TAP takes off / requests a descent-to-land.
   // Gated on traits.flightProfile → separate from the simple canFly path below (no collision).
+  if (isDseyl(fighter)) return   // DSEYL: his Charge-tap flight toggle is measured on the SIM clock in dseylPowers.js (deterministic), not here
   if (fighter.traits?.flightProfile) { flightToggleInput(fighter); return }
   if (fighter.traits?.canFly) { toggleOmniManFlight(fighter); return }
   if (fighter.rosterKey === "gojo") {

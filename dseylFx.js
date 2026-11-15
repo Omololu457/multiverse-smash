@@ -10,6 +10,7 @@
 // Bounded: images cached once per URL, no per-frame canvases / pixel reads / decoding, no Math.random. Every
 // skin swaps whole precomputed strips (Syndrome AND every machine) — assets/syndrome/skins/<tag>/.
 import { sound } from './sound.js'
+import { getFlightProfile } from './flight.js'   // DSEYL: flight HUD row
 import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
 import { dseyl as SY, SYNDROME_MOVES as MV, MACHINE_SCALE as K, DUET, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ULT } from './dseylData.js'
@@ -359,6 +360,8 @@ export function drawDseylHud(c, cv, p1, p2) {
     const tx = flip ? x0 + barW : x0
     const tur = L.turret ? `TURRET ${L.turret.fam.toUpperCase()} ${'■'.repeat(Math.max(0, L.turret.hp))}${L.turret.phase === 'broken' ? ' DOWN' : ''}` : 'TURRET READY'
     const rows = [[`DRONES ${L.mobile === 'duet' ? 'ACTIVE' : L.mobile === 'velo' ? '— VELOCIPOD' : 'READY'}`, !L.mobile], [`SPINNER ${L.spin ? 'OUT' : 'READY'}`, !L.spin], [tur, !L.turret], [`OMNIDROID ${L.omni ? L.omni.toUpperCase() : 'READY'}`, !L.omni]]
+    { const fc = f._flightCtl, fe = Math.round(100 * (fc?.energy ?? 0) / (getFlightProfile(f)?.energyMax || 1))   // DSEYL: flight readout
+      rows.push([`FLIGHT ${fc && ['takeoff', 'flying', 'airdash'].includes(fc.phase) ? 'ON' : 'READY'} ${fe}%`, !(fc && ['takeoff', 'flying', 'airdash'].includes(fc.phase))]) }
     rows.forEach(([txt, ok], i) => { c.fillStyle = ok ? hud0 : 'rgba(255,255,255,0.55)'; c.fillText(txt, tx, y0 + i * 11) })
     c.restore()
   }

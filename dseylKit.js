@@ -14,6 +14,8 @@ export const DSEYL_CONTROLS = {
   note: SYNDROME_CONTROLS.note + ' Dseyl: a quick Charge TAP (released within 12 frames, no Special with it) takes off or comes down — Homelander\'s flight control.' + ' Guard + Special is Flash Time.',
 }
 export const DSEYL_KIT = { ...SYNDROME_KIT,
+  type: 'Inventor / Drone Commander',
+  summary: 'Syndrome\'s whole arsenal — drones, Spinners, turrets, the Velocipod and the Omnidroid — on a builder in a grey hoodie, plus rocket-boot flight and a short Flash Time. Drones and Flash Time draw from the same Power bar.',
   specials: [
     ...SYNDROME_KIT.specials,
     { name: 'Rocket-Boot Flight', input: 'Charge tap', cost: 0, desc: '3.5 s of 8-way flight per takeoff (2 air dashes; refills on the ground). A hard hit in the air grounds him for 1.5 s.' },

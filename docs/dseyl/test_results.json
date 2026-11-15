@@ -1,0 +1,187 @@
+{
+ "pass": 26,
+ "fail": 0,
+ "render": {
+  "a": {
+   "key": "dseyl",
+   "hp": 1109,
+   "maxHp": 1109,
+   "action": "idle",
+   "w": 60,
+   "h": 100
+  },
+  "bKey": "syndrome",
+  "bMax": 1180,
+  "p2act": "idle",
+  "gs": "battle"
+ },
+ "flight": {
+  "g0": {
+   "phase": "grounded",
+   "energy": 210,
+   "airDashCount": 0,
+   "groundedLock": 0,
+   "tap": {
+    "chg": 0,
+    "chgMod": false,
+    "pend": 0,
+    "prevCharge": false,
+    "prevSpecial": false,
+    "takeoffs": 0,
+    "toggles": 0
+   }
+  },
+  "f1": {
+   "phase": "takeoff",
+   "energy": 208,
+   "airDashCount": 0,
+   "groundedLock": 0,
+   "tap": {
+    "chg": 3,
+    "chgMod": false,
+    "pend": 0,
+    "prevCharge": false,
+    "prevSpecial": false,
+    "takeoffs": 0,
+    "toggles": 1
+   }
+  },
+  "f2": {
+   "phase": "flying",
+   "energy": 178,
+   "airDashCount": 0,
+   "groundedLock": 0,
+   "tap": {
+    "chg": 3,
+    "chgMod": false,
+    "pend": 0,
+    "prevCharge": false,
+    "prevSpecial": false,
+    "takeoffs": 0,
+    "toggles": 1
+   }
+  },
+  "y1": 390.7,
+  "y2": 264.2084541140385,
+  "peakV": 3.774854180662444,
+  "frames": 260,
+  "land": {
+   "phase": "landing",
+   "energy": 0,
+   "airDashCount": 0,
+   "groundedLock": 0,
+   "tap": {
+    "chg": 3,
+    "chgMod": false,
+    "pend": 0,
+    "prevCharge": false,
+    "prevSpecial": false,
+    "takeoffs": 0,
+    "toggles": 1
+   }
+  },
+  "after": {
+   "phase": "grounded",
+   "energy": 40,
+   "airDashCount": 0,
+   "groundedLock": 0,
+   "tap": {
+    "chg": 3,
+    "chgMod": false,
+    "pend": 0,
+    "prevCharge": false,
+    "prevSpecial": false,
+    "takeoffs": 0,
+    "toggles": 1
+   }
+  },
+  "grounded": true,
+  "mod": {
+   "phase": "grounded",
+   "energy": 118,
+   "airDashCount": 0,
+   "groundedLock": 0,
+   "tap": {
+    "chg": 4,
+    "chgMod": true,
+    "pend": 0,
+    "prevCharge": false,
+    "prevSpecial": false,
+    "takeoffs": 0,
+    "toggles": 0
+   }
+  },
+  "atk": "sZero",
+  "dashes": 2
+ },
+ "flashTime": {
+  "e0": 100,
+  "e1": 60,
+  "t0": {
+   "left": 180,
+   "cd": 0,
+   "uses": 1,
+   "rejects": 0,
+   "frames": 0,
+   "lastReject": null
+  },
+  "active": 180,
+  "skipped": 90,
+  "t1": {
+   "left": 0,
+   "cd": 380,
+   "uses": 1,
+   "rejects": 0,
+   "frames": 180,
+   "lastReject": null
+  },
+  "rejCd": {
+   "left": 0,
+   "cd": 378,
+   "uses": 1,
+   "rejects": 1,
+   "frames": 180,
+   "lastReject": "cooldown"
+  },
+  "okAfter": {
+   "left": 179,
+   "cd": 0,
+   "uses": 2,
+   "rejects": 1,
+   "frames": 181,
+   "lastReject": "cooldown"
+  },
+  "rejE": {
+   "left": 0,
+   "cd": 0,
+   "uses": 0,
+   "rejects": 1,
+   "frames": 0,
+   "lastReject": "energy"
+  },
+  "rejSlow": {
+   "left": 0,
+   "cd": 0,
+   "uses": 0,
+   "rejects": 1,
+   "frames": 0,
+   "lastReject": "foeSlowed",
+   "slowedBy": {
+    "flag": false,
+    "acc": 0.20000000000000018
+   }
+  },
+  "duringUlt": {
+   "inUlt": true,
+   "ft": {
+    "left": 0,
+    "cd": 0,
+    "uses": 0,
+    "rejects": 0,
+    "frames": 0,
+    "lastReject": null
+   },
+   "active": true
+  }
+ }
+}

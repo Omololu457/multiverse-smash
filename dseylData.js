@@ -19,7 +19,9 @@ const even = (n, total) => Array.from({ length: n }, (_, i) => [Math.round(i * t
 export const dseyl = {
   ...SY,
   rosterKey: DSEYL_KEY, name: 'Dseyl', displayName: 'Dseyl', universe: 'original',   // grouped with omololu (the "Original" universe)
-  introTitle: 'DSEYL',
+  color: '#8a8a8e', series: 'Multiverse Smash', era: 'Tribute fighter — an edited copy of Syndrome (GBA "The Incredibles" sheets, recoloured and trimmed)',
+  tagline: 'I helped build this.', introTitle: 'DSEYL — THE BUILDER', archetype: 'Inventor / Drone Commander',
+  bio: 'One of the people who helped build Multiverse Smash. He took Syndrome\'s tech, kept the drones, ditched the cape, and added a couple of tricks of his own.',
   traits: { ...SY.traits, flightProfile: DSEYL_KEY },
   energyConfig: { ...SY.energyConfig },
   stats: { ...SY.stats, maxHealth: Math.round(SY.stats.maxHealth * DSEYL_HP_FACTOR) },

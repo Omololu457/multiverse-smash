@@ -834,7 +834,8 @@ export const CREDITS = [
   {
     section: "Engine & Code",
     entries: [
-      { work: "Multiverse Smash — game engine, movesets, tools & harness", artists: ["Omololu Adaramola"] }
+      { work: "Multiverse Smash — game engine, movesets, tools & harness", artists: ["Omololu Adaramola"] },
+      { work: "Contributor — helped build Multiverse Smash (playable as Dseyl)", artists: ["Dseyl"] }
     ],
     lines: [
       "",

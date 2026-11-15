@@ -15,7 +15,7 @@ export const EG_KEY = 'elastigirl'
 //                                          under the shared 8 px/f floor, so she gets the floor — the slowest legal run)
 //   jumpForce 11.5     → jumpPower 25     (spec units ×2.2 = the engine's launch velocity scale; gravity 0.85)
 //   weight 0.95        → stats.weight 0.95
-export const EG_STATS = { maxHealth: 980, maxEnergy: 100, attack: 82, defense: 80, speed: 80, jumpPower: 25, maxJumps: 1,
+export const EG_STATS = { maxHealth: 980, maxEnergy: 100, attack: 82, defense: 80, speed: 80, jumpPower: 25, maxJumps: 2,
   weight: 0.95, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 36,
   spec: { health: 980, walkSpeed: 5.0, runSpeed: 7.6, jumpForce: 11.5, weight: 0.95 } }
 export const EG_ENERGY = { name: 'Elasticity', max: 100, rechargePerSec: 5, onHitLanded: 4, onHitTaken: 3 }
@@ -114,7 +114,7 @@ const animationData = Object.fromEntries(Object.entries(ANIM).map(([k, a]) => [k
 
 const B = EG_MOVES
 export const elastigirl = {
-  rosterKey: EG_KEY, name: 'Elastigirl', displayName: 'Elastigirl', civilianIdentity: 'Helen Parr', universe: 'pixar',
+  rosterKey: EG_KEY, name: 'Elastigirl', displayName: 'Elastigirl', civilianIdentity: 'Helen Parr', universe: 'the_incredibles',
   series: 'The Incredibles', era: 'The Incredibles (2004) — supplied Game Boy Advance sprite sheet',
   difficulty: 3, archetype: 'Footsies / Grappler', archetypes: ['footsies', 'grappler'], primary: 'footsies', secondary: ['grappler'],
   tagline: "Leave the saving the world to the men? I don't think so.",

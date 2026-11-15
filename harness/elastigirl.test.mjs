@@ -402,13 +402,22 @@ try {
       const label = String(c.universe).split('_').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ')   // game.js formatUniverseName
       const sentences = (c.bio.match(/[^.!?]+[.!?]+/g) || []).length
       return { name: c.name, displayName: c.displayName, universe: c.universe, label, difficulty: c.difficulty, archetype: c.archetype, traitArch: c.traits?.archetype,
-        tagline: c.tagline, sentences, kitTag: K.tagline, kitDiff: K.difficulty, ult: c.ultimate?.name, passive: c.passive?.name,
+        tagline: c.tagline, sentences, maxJumps: c.stats?.maxJumps, kitTag: K.tagline, kitDiff: K.difficulty, ult: c.ultimate?.name, passive: c.passive?.name,
         specials: Object.values(c.specials || {}).map(s => s.name), playable: c.isPlayable !== false && c.hasSprites && !c.hidden }
     })
-    ok('P9 name / displayName "Elastigirl", universe Pixar, difficulty 3, archetype "Footsies / Grappler"',
-      r.name === 'Elastigirl' && r.displayName === 'Elastigirl' && r.label === 'Pixar' && r.difficulty === 3 && r.archetype === 'Footsies / Grappler' && r.traitArch === 'Footsies / Grappler', JSON.stringify(r))
+    ok('P9 name / displayName "Elastigirl", universe The Incredibles, difficulty 3, double jump, archetype "Footsies / Grappler"',
+      r.name === 'Elastigirl' && r.displayName === 'Elastigirl' && r.label === 'The Incredibles' && r.maxJumps === 2 && r.difficulty === 3 && r.archetype === 'Footsies / Grappler' && r.traitArch === 'Footsies / Grappler', JSON.stringify(r))
     ok('P9 tagline exact (character + kit), bio is 2 sentences', r.tagline === "Leave the saving the world to the men? I don't think so." && r.kitTag === r.tagline && r.sentences === 2, JSON.stringify({ t: r.tagline, s: r.sentences }))
     ok('P9 kit lists 5 specials, Rubber Body passive, Family Raft ult; playable', r.specials.length === 5 && r.passive === 'Rubber Body' && r.ult === 'Family Raft' && r.playable, JSON.stringify(r.specials))
+    { // live double jump with real W presses: second jump fires in the air and re-launches her upward
+      const d = drv(page); await d.reset(300); await d.tap(['w']); await d.step(10)
+      const a = await G(page, () => { const f = __harness.elastigirlTest.raw(); return { y: f.y, vy: f.vy, n: f.jumpCount, g: !!(f.onGround || f.grounded) } })
+      await d.tap(['w']); await d.step(1)
+      const b = await G(page, () => { const f = __harness.elastigirlTest.raw(); return { y: f.y, vy: f.vy, n: f.jumpCount, max: f.maxJumps } })
+      await d.tap(['w']); await d.step(1)
+      const c = await G(page, () => { const f = __harness.elastigirlTest.raw(); return { vy: f.vy, n: f.jumpCount } })
+      ok('P9 double jump: second W in the air re-launches her; no third jump', !a.g && a.vy > b.vy && b.vy < 0 && b.n === 2 && b.max === 2 && c.n === 2, JSON.stringify({ a, b, c }))
+    }
     const notes = fs.existsSync('docs/elastigirl/BALANCE_NOTES.md') ? fs.readFileSync('docs/elastigirl/BALANCE_NOTES.md', 'utf8') : ''
     ok('P9 BALANCE_NOTES.md: vs Spider-Man, vs Superman, Violet, why she isn\'t broken', /## vs Spider-Man/.test(notes) && /## vs Superman/.test(notes) && /## vs Violet/.test(notes) && /## Why she isn't broken/.test(notes))
     results.P9 = r

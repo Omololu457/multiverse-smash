@@ -13,7 +13,7 @@ CREDIT = ("  elastigirl: { work: 'Elastigirl (Helen Parr) — The Incredibles (G
 HOOKS = [
   # ── Phase 1: roster entry + art registration ──
   (1, 'characters.js', "import { batman as batmanRebuild } from './batmanData.js'", 'after_line',
-   "import { elastigirl } from './elastigirlData.js'   // Elastigirl (Helen Parr, The Incredibles GBA sheet) — universe 'pixar'; elastigirl*.js", "from './elastigirlData.js'"),
+   "import { elastigirl } from './elastigirlData.js'   // Elastigirl (Helen Parr, The Incredibles GBA sheet) — universe 'the_incredibles'; elastigirl*.js", "from './elastigirlData.js'"),
   (1, 'characters.js', "  mmpr_white,                        // White Ranger", 'after_line',
    "  elastigirl,                        // Elastigirl (Helen Parr, The Incredibles) — Footsies / Grappler (Long Arm, Slingshot, Parachute, Family Raft); elastigirl*.js", "  elastigirl,"),
   (1, 'spritesheets.js', "  mmpr_black: { actions: { idle: './assets/mmpr_black/idle.png' } },", 'after_line',
@@ -22,8 +22,7 @@ HOOKS = [
    "import { ELASTIGIRL_SKINS } from './elastigirlSkins.js'   // Elastigirl default + palette skins (cosmetic, precomputed)", "elastigirlSkins.js"),
   (1, 'skins.js', "  mmpr_black: MMPR_BLACK_SKINS,", 'after_line', "  elastigirl: ELASTIGIRL_SKINS,", "elastigirl: ELASTIGIRL_SKINS"),
   (1, 'credits.js', "    files: ['assets/batman/**'] },", 'after_line', CREDIT, "assets/elastigirl/**"),
-  (1, 'game.js', '  marvel:          "#e62429",   // Spider-Man red', 'after_line',
-   '  pixar:           "#e8323c",   // Incredibles suit red (Elastigirl)', 'pixar:           "#e8323c"'),
+  # (universe colour: Elastigirl joins the existing 'the_incredibles' universe, which already has one)
   # ── Phase 2: Elasticity regen (abilities.js regenEnergy) ──
   (2, 'abilities.js', "import { luffyRegen } from './luffyState.js'", 'after_line',
    "import { elastigirlRegen } from './elastigirlState.js'   // Elastigirl: Elasticity recharge 5/s (elastigirl-gated)", "elastigirlRegen } from"),

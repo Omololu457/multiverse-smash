@@ -1,5 +1,5 @@
 // harness/elastigirl_render_check.mjs — RENDER CHECK on the normal launch path (real mouse, no skipToBattle):
-// boot → title → Play → VS → Easy → Pixar universe → Elastigirl → skin → CPU pick → stage → match. Confirms both
+// boot → title → Play → VS → Easy → The Incredibles universe → Elastigirl → skin → CPU pick → stage → match. Confirms both
 // fighters and the HUD render (canvas pixel probes over each fighter's drawn box and the HUD bars), no crash, no black
 // screen, no page errors. Optional: --skin <idx> (skin card index), --ult (fire Family Raft and probe mid-raft),
 // --tag <name> (screenshot suffix).   node harness/elastigirl_render_check.mjs [--skin 1] [--ult] [--tag x]
@@ -57,9 +57,9 @@ try {
   await page.goto(server.base + '/index.html?harness=1', { waitUntil: 'load' }); await page.waitForFunction(() => window.__harness?.state); await page.waitForTimeout(900)
   await shot('01_title'); await page.mouse.click(640, 400); await page.waitForTimeout(500)
   await click('^play$'); await click('^vs$'); await click('^easy$')
-  const uni = await pickUniverse('pixar'); ck('universe select lists "Pixar" (Elastigirl inside)', !uni.missing && uni.name === 'Pixar' && uni.count >= 1, JSON.stringify(uni))
+  const uni = await pickUniverse('the_incredibles'); ck('universe select lists "The Incredibles" (Elastigirl inside)', !uni.missing && uni.name === 'The Incredibles' && uni.count >= 1, JSON.stringify(uni))
   await page.waitForTimeout(400)
-  const g = await findChar('elastigirl'); ck('Pixar roster lists elastigirl', !g.missing, JSON.stringify(g.seen.filter(Boolean).slice(0, 12)))
+  const g = await findChar('elastigirl'); ck('The Incredibles roster lists elastigirl', !g.missing, JSON.stringify(g.seen.filter(Boolean).slice(0, 12)))
   const detail = await page.evaluate(() => __harness.selectDetail()); await shot('02_select')
   ck('select detail is Elastigirl', detail?.key === 'elastigirl', JSON.stringify({ key: detail?.key, name: detail?.name, hp: detail?.stats?.maxHealth }))
   await page.mouse.click(g.cx, g.cy); await page.waitForTimeout(600)
@@ -72,7 +72,7 @@ try {
   // CPU opponent: the next selectable card (any fighter)
   let st = await S()
   if (st.gameState === 'selectUniverse' || st.gameState === 'selectCharacter') {
-    if (st.gameState === 'selectUniverse') await pickUniverse('pixar')
+    if (st.gameState === 'selectUniverse') await pickUniverse('the_incredibles')
     const k = await findChar('elastigirl'); await page.mouse.click(k.cx, k.cy); await page.waitForTimeout(500)
     if ((await page.evaluate(() => __harness.padMenuState())).gameState === 'selectSkin') { const c = await page.evaluate(() => { const cv = document.querySelector('canvas'), b = cv.getBoundingClientRect(); __harness.padNav({ right: true }); __harness.padNav({ left: true }); const s = __harness.padMenuState(); return { cx: b.left + s.mouseX * b.width / cv.width, cy: b.top + s.mouseY * b.height / cv.height } }); await page.mouse.move(c.cx, c.cy); await page.waitForTimeout(150); await page.mouse.click(c.cx, c.cy); await page.waitForTimeout(600) }
   }

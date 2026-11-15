@@ -1,6 +1,6 @@
 # Elastigirl — balance notes
 
-**Elastigirl (Helen Parr)** · universe **Pixar** · archetype **Footsies / Grappler** · difficulty **3 / 5**
+**Elastigirl (Helen Parr)** · universe **The Incredibles** · archetype **Footsies / Grappler** · difficulty **3 / 5**
 
 > "Leave the saving the world to the men? I don't think so."
 
@@ -18,7 +18,7 @@ Every number below was **measured in the real game** by `harness/elastigirl.test
 |---|---|---|
 | Health | **980** | median 1150 (range 920–1400): **bottom tier** |
 | Speed stat | **80** (walk 5.0 px/f) | median 92 |
-| Jumps | **1** | most fighters have 2 |
+| Jumps | **2** (double jump) | most fighters have 2 |
 | Energy | Elasticity 100: 5/s, +4 on hit landed, +3 on hit taken | — |
 
 ### Mapping the brief's movement numbers onto the engine
@@ -67,7 +67,7 @@ All four routes sit inside the brief's ±20 % band for the engine curve.
 | Health | 1080 | 980 |
 | Speed stat | 96 | 80 |
 | Dash speed | 18 | 14 |
-| Jumps | 2 | 1 |
+| Jumps | 2 | 2 |
 | Jab | 4 f, 40 stored | 6 f, 20 stored |
 | Heavy | 8 f, 72 stored | 14 f, 54 stored |
 
@@ -79,7 +79,7 @@ wins the air and every scramble.
 intangibility beats his high pokes and webs at head height.
 
 **Where she loses.** His webs are projectiles, and Rubber Body does nothing against them. Once he is inside her
-limbs, his 4 f jab outpaces her 6 f jab, and her slow, single-jump body can't escape. A whiffed Long Arm or Heavy
+limbs, his 4 f jab outpaces her 6 f jab, and her slow body can't run away from him. A whiffed Long Arm or Heavy
 leaves a hittable limb out for him to swing in on.
 
 **Net:** whoever controls the distance wins.
@@ -118,7 +118,7 @@ the Family Raft frames, with no hitbox, health or input. There is no matchup to 
 1. **Her reach is also her weakness.** While a long normal is active, the hurtbox is the union of body and limb (the
    P4 tests check that the hurtbox reaches the full 120 / 200 / 210 / 300 / 380 px). A whiffed or blocked Long Arm
    leaves the arm out and hittable through a 35 f recovery, at −16 on block.
-2. **She is fragile and slow.** Bottom-tier health (980 vs a 1150 median), the slowest legal run (8 px/f), one jump,
+2. **She is fragile and slow.** Bottom-tier health (980 vs a 1150 median), the slowest legal run (8 px/f),
    and a 14 f Heavy. All her grounded normals are 0 or minus on block; only the air normal is plus (+2).
 3. **Her passive is narrow.** Rubber Body only reduces melee normals, by 15 %. Specials, ultimates, projectiles,
    beams, elemental hits and guard chip all do full damage (P3 tests).

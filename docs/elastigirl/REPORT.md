@@ -1,6 +1,6 @@
 # Elastigirl — build report
 
-**Elastigirl (Helen Parr)** · `elastigirl` · universe Pixar · Footsies / Grappler · difficulty 3 / 5
+**Elastigirl (Helen Parr)** · `elastigirl` · universe The Incredibles (with Syndrome, Frozone, Mr. Incredible) · double jump · Footsies / Grappler · difficulty 3 / 5
 
 ## Phases (one commit each, branch `feat/elastigirl`)
 

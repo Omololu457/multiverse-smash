@@ -8,5 +8,5 @@ const out = await page.evaluate(async () => { const { characters } = await impor
     return { name: c.name, uni: c.universe, stats: c.stats, traits: { energy: c.traits?.energyName, flight: !!c.traits?.flightProfile }, light: n(b.light), heavy: n(b.heavy), up: n(b.upAttack), ult: c.ultimate?.name } }
   const all = Object.keys(characters), hp = all.map(k => characters[k]?.stats?.maxHealth).filter(Number.isFinite).sort((a, b) => a - b), sp = all.map(k => characters[k]?.stats?.speed).filter(Number.isFinite).sort((a, b) => a - b)
   return { spiderman: pick('spiderman'), superman: pick('superman'), violet: pick('violet'), elastigirl: pick('elastigirl'), n: all.length, hpMedian: hp[hp.length >> 1], hpRange: [hp[0], hp[hp.length - 1]], speedMedian: sp[sp.length >> 1],
-    pixar: all.filter(k => characters[k]?.universe === 'pixar') } })
+    incredibles: all.filter(k => characters[k]?.universe === 'the_incredibles') } })
 console.log(JSON.stringify(out, null, 1)); await browser.close(); server.close?.()

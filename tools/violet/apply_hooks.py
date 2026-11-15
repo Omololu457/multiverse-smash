@@ -24,7 +24,7 @@ HOOKS = [
    '    case "violet":  if (fighter._violet?.inv) ctx.globalAlpha *= 0.35; drawFallback(ctx, x, y, w, h, fighter); break   // ★ Violet Parr (procedural fallback while sprites load; 35% while invisible)', 'case "violet":'),
   (1, 'credits.js', "    files: ['assets/batman/**'] },", 'after_line', CREDIT, "assets/violet/**"),
   (1, 'game.js', '  marvel:          "#e62429",   // Spider-Man red', 'after_line',
-   '  the_incredibles: "#e8402a",   // Incredibles red-orange', 'the_incredibles: "#e8402a"'),
+   '  pixar:           "#e8323c",   // Incredibles suit red (Elastigirl)', 'pixar:           "#e8323c"'),   # same line as the Elastigirl build (one shared Pixar group)
   (1, 'game.js', "import { batmanHarnessApi } from './batmanHarness.js'", 'after_line',
    "import { violetHarnessApi } from './violetHarness.js'   // Violet Parr test accessor (harness URLs only)", "violetHarness.js"),
   (1, 'game.js', "    batmanTest: batmanHarnessApi(", 'after_line',
@@ -107,6 +107,10 @@ HOOKS = [
    "import { playVioletCues } from './violetSound.js'   // Violet Parr synth SFX (SFX bus; hash pitch / noise; violet-gated)", "from './violetSound.js'"),
   (8, 'game.js', "  tickViolet(fighter,nearest,readRawControls(fighter)||{},VIOLET_WORLD)", 'after_line', "  playVioletCues(fighter)   // Violet SFX (FFA)", "playVioletCues(fighter)   // Violet SFX (FFA)"),
   (8, 'game.js', "  tickViolet(fighter,getOpponent(fighter),readRawControls(fighter)||{},VIOLET_WORLD)", 'after_line', "  playVioletCues(fighter)   // Violet SFX (1v1)", "playVioletCues(fighter)   // Violet SFX (1v1)"),
+  # ── phase 9: METADATA (Move List kit) ──
+  (9, 'kits.js', "import { BATMAN_KIT } from './batmanKit.js'", 'after_line',
+   "import { VIOLET_KIT } from './violetKit.js'   // Violet Parr (violet) Move List", "from './violetKit.js'"),
+  (9, 'kits.js', "  batman: BATMAN_KIT,", 'after_line', "  violet: VIOLET_KIT,", "  violet: VIOLET_KIT,"),
 ]
 
 def main():

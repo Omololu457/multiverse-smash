@@ -6,6 +6,7 @@ import { MMPR_PINK_KIT } from './mmprPinkKit.js'   // Pink Ranger (mmpr_pink) Mo
 import { MMPR_BLACK_KIT } from './mmprBlackKit.js'   // Black Ranger (mmpr_black) Move List
 import { MMPR_WHITE_KIT } from './mmprWhiteKit.js'   // White Ranger (mmpr_white) Move List
 import { BATMAN_KIT } from './batmanKit.js'   // Batman (batman, rebuilt) Move List
+import { VIOLET_KIT } from './violetKit.js'   // Violet Parr (violet) Move List
 // kits.js
 // ─────────────────────────────────────────────────────────────────
 // MOVE LIST / KIT PROFILES — human-readable per-character data shown on the
@@ -95,6 +96,7 @@ export const KITS = {
   mmpr_black: MMPR_BLACK_KIT,
   mmpr_white: MMPR_WHITE_KIT,
   batman: BATMAN_KIT,
+  violet: VIOLET_KIT,
   mmpr_pink: MMPR_PINK_KIT,
   krybot: KRYBOT_KIT,
   zoro: {

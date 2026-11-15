@@ -25193,7 +25193,7 @@ const UNIVERSE_ACCENT = {
   saiki_k:         "#e07cff",   // psychic pink
   one_punch_man:   "#f2b705",   // hero-suit gold
   marvel:          "#e62429",   // Spider-Man red
-  the_incredibles: "#e8402a",   // Incredibles red-orange
+  pixar:           "#e8323c",   // Incredibles suit red (Elastigirl)
   original:        "#9aa7b5",   // neutral steel
 }
 function universeAccent(id) { return UNIVERSE_ACCENT[id] || "#4aa8e0" }

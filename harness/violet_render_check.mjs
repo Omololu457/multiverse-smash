@@ -1,5 +1,5 @@
 // harness/violet_render_check.mjs — Violet Parr RENDER CHECK through the NORMAL launch path (real menus, no skipToBattle):
-// title → Play → VS → difficulty → The Incredibles → Violet → skin → CPU pick → stage → match. Asserts both fighters and
+// title → Play → VS → difficulty → Pixar → Violet → skin → CPU pick → stage → match. Asserts both fighters and
 // the HUD render (fighters drawn with sprite actions, HUD pixels present), no page errors, no black screen. Optional
 // `--skin <id>` picks a skin; `--invisible` also enters Vanish in the match and checks the 35% invisible render.
 // Usage: node harness/violet_render_check.mjs [--skin vi_inc2] [--invisible] [--shot docs/violet/render_<x>.png]
@@ -23,9 +23,9 @@ try {
   ck('violet is unlocked on a fresh account', await page.evaluate(() => __harness.charUnlocked('violet')) === true)
   await page.mouse.click(640, 400); await page.waitForTimeout(500)
   ck('menu: Play', await pickId('^play$')); ck('menu: VS', await pickId('^vs$')); ck('menu: difficulty', await pickId('^easy$'))
-  const unis = await page.evaluate(() => __harness.luffyTest.universes()); const ui = unis.findIndex(u => u.id === 'the_incredibles')
-  ck('universe list has The Incredibles', ui >= 0, JSON.stringify(unis.map(u => u.id)))
-  ck('pick The Incredibles card', await pickIdx(ui) && (await ms()).gameState === 'selectCharacter', JSON.stringify(await ms()))
+  const unis = await page.evaluate(() => __harness.luffyTest.universes()); const ui = unis.findIndex(u => u.id === 'pixar')
+  ck('universe list has Pixar', ui >= 0, JSON.stringify(unis.map(u => u.id)))
+  ck('pick the Pixar card', await pickIdx(ui) && (await ms()).gameState === 'selectCharacter', JSON.stringify(await ms()))
   let found = false
   for (let i = 0; i < 40 && !found; i++) { const d = await page.evaluate(() => __harness.selectDetail()); if (d?.key === 'violet') { found = true; break } await nav({ right: true }); await page.waitForTimeout(40) }
   const det = await page.evaluate(() => __harness.selectDetail())

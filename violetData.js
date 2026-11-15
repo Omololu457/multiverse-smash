@@ -75,9 +75,10 @@ export const TIMELINE = {
 }
 
 export const violet = {
-  rosterKey: 'violet', name: 'Violet Parr', displayName: 'Violet', universe: 'the_incredibles',
+  rosterKey: 'violet', name: 'Violet Parr', displayName: 'Violet', universe: 'pixar',
   color: '#c81a38', series: 'The Incredibles', era: 'Supplied GBA "The Incredibles" playable-character sheet (Violet), ripped by redblueyellow',
-  archetype: 'Zoner / Trickster',
+  archetype: 'Zoner / Trickster', difficulty: 3, tagline: 'Now you see me.',
+  bio: 'Violet Parr, the shy eldest Parr kid, can turn invisible and project force fields strong enough to stop a car. In a fight she disappears, walls off the screen with force rings and bubbles, and lets her opponents walk into her traps.',
   primary: 'zoner', secondary: ['trickster'], archetypes: ['zoner', 'trickster'],
   traits: { hasEnergy: true, energyType: 'forcefield', energyName: 'Force Field', mobility: 'medium', scaling: 'combo', animeMovement: false },
   energyConfig: { label: 'Force Field', color: '#b77cff' },

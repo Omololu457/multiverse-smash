@@ -1,0 +1,43 @@
+{
+ "pass": 6,
+ "fail": 0,
+ "results": {
+  "P7": {
+   "skins": [
+    [
+     "default",
+     "Supersuit"
+    ],
+    [
+     "eg_incredibles2",
+     "Elastigirl 2"
+    ],
+    [
+     "eg_retro",
+     "Retro"
+    ]
+   ],
+   "skinsJs": true,
+   "eg_incredibles2": {
+    "changed": 75798,
+    "redKept": 1761,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 1761,
+    "raftChanged": 4231,
+    "sheetsDiffer": 43,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "eg_retro": {
+    "changed": 19279,
+    "redKept": 53747,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 5513,
+    "raftChanged": 0,
+    "sheetsDiffer": 42,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait.png"
+   }
+  }
+ }
+}

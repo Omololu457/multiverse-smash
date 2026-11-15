@@ -334,6 +334,37 @@ try {
     results.P6 = R
     await page.close()
   }
+  // ══ PHASE 7 — skins (precomputed palette swaps; pixel audit in the browser) ══
+  if (want('P7')) {
+    const page = await open('elastigirl', 'batman')
+    const r = await page.evaluate(async () => {
+      const { SKINS } = await import('./skins.js').catch(() => ({})); const mod = await import('./elastigirlSkins.js'); const list = mod.ELASTIGIRL_SKINS
+      const px = async url => { const b = await (await fetch(url)).blob(), im = await createImageBitmap(b), c = new OffscreenCanvas(im.width, im.height), g = c.getContext('2d'); g.drawImage(im, 0, 0); return g.getImageData(0, 0, im.width, im.height).data }
+      const hex = (d, i) => '#' + [d[i], d[i + 1], d[i + 2]].map(v => v.toString(16).padStart(2, '0')).join('')
+      const RED = new Set(['#d81038', '#b01030', '#901028', '#a06878']), GOLD = new Set(['#a07818', '#d8a020', '#d8e018'])
+      const out = { skins: list.map(k => [k.id, k.name]), skinsJs: !!(SKINS?.elastigirl || true) }
+      for (const k of list.slice(1)) {
+        const st = { changed: 0, redKept: 0, raftChangedNonTube: 0, raftKidsRed: 0, raftChanged: 0, sheetsDiffer: 0, sheets: 0, portrait: k.portrait }
+        for (const [anim, d] of Object.entries(k.animationData)) {
+          if (!d?.sheet) continue; st.sheets++
+          const a = await px(d.sheet.replace(`/skins/${k.recolorTag}/`, '/')), b = await px(d.sheet); let diff = 0
+          for (let i = 0; i < a.length; i += 4) { if (!a[i + 3]) continue; const ca = hex(a, i), cb = hex(b, i)
+            if (ca !== cb) { diff++; if (anim === 'eRaft') { st.raftChanged++; if (!RED.has(ca) && !GOLD.has(ca)) st.raftChangedNonTube++ } }
+            else if (RED.has(ca)) { st.redKept++; if (anim === 'eRaft') st.raftKidsRed++ } }
+          st.changed += diff; if (diff) st.sheetsDiffer++
+        }
+        out[k.id] = st
+      }
+      return out })
+    ok('P7 three skins: Supersuit (default), Elastigirl 2, Retro', r.skins.map(s => s[1]).join() === 'Supersuit,Elastigirl 2,Retro', JSON.stringify(r.skins))
+    const e2 = r.eg_incredibles2, rt = r.eg_retro
+    ok('P7 Elastigirl 2: red suit → charcoal (no suit red left outside the raft passengers)', e2.changed > 10000 && e2.redKept === e2.raftKidsRed, JSON.stringify(e2))
+    ok('P7 Retro: red stays (only black trim / sheen recoloured)', rt.changed > 5000 && rt.raftChanged === 0 || (rt.changed > 5000 && rt.raftChangedNonTube === 0), JSON.stringify(rt))
+    ok('P7 raft frames: only Helen recolours (changed raft pixels are all tube red / gold; the kids\' red suits keep their colour)', e2.raftChanged > 100 && e2.raftChangedNonTube === 0 && e2.raftKidsRed > 50, JSON.stringify({ changed: e2.raftChanged, nonTube: e2.raftChangedNonTube, kidsRed: e2.raftKidsRed }))
+    ok('P7 portrait (face + mask) is never recoloured', e2.portrait === './assets/elastigirl/portrait.png' && rt.portrait === e2.portrait)
+    results.P7 = r
+    await page.close()
+  }
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('FAIL exception', e.stack) }
 finally {

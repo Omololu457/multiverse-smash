@@ -1,0 +1,43 @@
+{
+ "families": {
+  "SUIT_RED": [
+   "#d81038",
+   "#b01030",
+   "#901028",
+   "#a06878"
+  ],
+  "GOLD": [
+   "#a07818",
+   "#d8a020",
+   "#d8e018"
+  ],
+  "BLACK_SHEEN": [
+   "#003878"
+  ],
+  "BLACK_FILL": "#000000 / #000008 interior, not outline, not within 2 px of skin/hair",
+  "never": "outlines, mask (head zone), skin, hair, eye whites, white FX, hit-flash, grey shadows, portrait"
+ },
+ "raft": "eRaft: only red components >= 100 px (Helen's tube) + touching gold recolour; Dash, Violet, hull and heads untouched",
+ "skins": {
+  "eg_incredibles2": {
+   "tag": "incredibles2",
+   "name": "Elastigirl 2",
+   "desc": "Red suit \u2192 charcoal black, trim (gloves / boots / briefs) \u2192 silver, accent lines (belt / emblem) \u2192 blue; mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072,
+    "red": 48109,
+    "gold": 4286
+   }
+  },
+  "eg_retro": {
+   "tag": "retro",
+   "name": "Retro",
+   "desc": "Red stays; black gloves / boots / trim \u2192 royal blue (the blue sheen brightens); mask stays black.",
+   "pixels": {
+    "sheen": 3951,
+    "fill": 14072
+   }
+  }
+ }
+}

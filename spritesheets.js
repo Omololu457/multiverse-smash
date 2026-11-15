@@ -53,6 +53,7 @@
 export const SPRITE_MANIFEST = {
   spd_blue: { actions: { idle: './assets/spd_blue/idle.png' } },
   spd_green: { actions: { idle: './assets/spd_green/idle.png' } },
+  dash_parr: { actions: { idle: './assets/dash_parr/idle.png' } },
   spd_pink: { actions: { idle: './assets/spd_pink/idle.png' } },
   mmpr_black: { actions: { idle: './assets/mmpr_black/idle.png' } },
   elastigirl: { actions: { idle: './assets/elastigirl/idle.png' } },   // Elastigirl (elastigirl*.js) — per-action strips from tools/elastigirl/extract.py

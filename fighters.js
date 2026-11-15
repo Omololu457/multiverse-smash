@@ -633,6 +633,7 @@ export function drawCharacter(ctx, fighter) {
     case "ben10":   drawBen10(ctx, fighter);               break   // ★ Ben 10
     case "albedo":  drawBen10(ctx, fighter);               break   // ★ Albedo (Ben's clone, red tint)
     case "omniman": drawOmniMan(ctx, x, y, w, h, fighter); break   // ★ Invincible (procedural fallback; real render is sprite-based)
+    case "dash_parr": drawFallback(ctx, x, y, w, h, { ...fighter, color: "#d81038", name: "Dash" }); break   // ★ Dash (procedural fallback before sprites load; real render is sprite-based)
     default:        drawFallback(ctx, x, y, w, h, fighter); break
   }
 

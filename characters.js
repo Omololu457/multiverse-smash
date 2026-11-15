@@ -6,6 +6,7 @@ import { luffy } from './luffyData.js'
 import { krybot } from './krybotData.js'
 import { spd_blue } from './spdBlueData.js'
 import { spd_green } from './spdGreenData.js'   // S.P.D. Green Ranger (Bridge Carson) — spdGreen*.js
+import { dash_parr } from './dashParrData.js'   // Dash (Dash Parr, The Incredibles) — dashParr*.js
 import { spd_pink } from './spdPinkData.js'   // S.P.D. Pink Ranger (Syd Drew) — spdPink*.js
 import { mmpr_pink } from './mmprPinkData.js'   // Pink Ranger (Kimberly Hart, MMPR) — mmprPink*.js + shared falconzord.js (Thunder Megazord)
 import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
@@ -11497,6 +11498,7 @@ export const characters = {
   krybot,
   spd_blue,
   spd_green,                         // S.P.D. Green Ranger (Bridge Carson) — Acrobatic Read / Counterpressure; spdGreen*.js
+  dash_parr,                         // Dash (Dash Parr, The Incredibles) — Speedster / Rushdown + Momentum; dashParr*.js
   spd_pink,                          // S.P.D. Pink Ranger (Syd Drew) — Precision Striker / Material Pressure; spdPink*.js
   mmpr_pink,                         // Pink Ranger (Kimberly Hart, MMPR) — Acrobatic Archer / Precision Assist (Thunder Megazord strikes); mmprPink*.js
   mmpr_black,                        // Black Ranger (Adam Park, MMPR) — Martial Artist / Aerial Assist Commander (Falconzord sorties); mmprBlack*.js

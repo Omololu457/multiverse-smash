@@ -1772,6 +1772,19 @@ function drawKitPanel(ctx, x, y, w, h, kit, accent = "#4aa8e0", scroll = 0) {
   return maxScroll
 }
 
+// Controls panel geometry: three key columns, then the how-to footer BELOW the tallest column (it used to be
+// pinned to the panel bottom, so once the columns grew it was drawn over P1's Dash / Clone Summon rows).
+const CTRL_PANEL = { pad: 18, titleY: 28, rowsY: 48, rowH: 20, footGap: 18, footTitleH: 18, footLineH: 16, bottomPad: 14 }
+function _controlsColumnsBottom(ref) {
+  const n = Math.max(0, ...[ref.keyboardP1, ref.keyboardP2, ref.controller].map(r => (r || []).length))
+  return CTRL_PANEL.rowsY + n * CTRL_PANEL.rowH - CTRL_PANEL.rowH / 2   // bottom of the last row's text band
+}
+// Height the panel needs to show every row and the whole footer without overlap.
+export function controlsPanelHeight(ref) {
+  if (!ref) return 0
+  const lines = (ref.howToSpecials || []).length
+  return Math.ceil(_controlsColumnsBottom(ref) + CTRL_PANEL.footGap + CTRL_PANEL.footTitleH / 2 + CTRL_PANEL.footTitleH + lines * CTRL_PANEL.footLineH + CTRL_PANEL.bottomPad)
+}
 function drawControlsPanel(ctx, x, y, w, h, ref, accent = "#4aa8e0") {
   drawPanel(ctx, x, y, w, h, { fill: "rgba(8,14,30,0.86)", stroke: _withAlpha(accent, 0.6), lineWidth: 2, bevel: true, bevelCut: 14 })
   _holoPanelOverlay(ctx, x, y, w, h, { accent, cut: 14 })   // Stage 12: subtle holographic treatment (info screen)
@@ -1796,13 +1809,18 @@ function drawControlsPanel(ctx, x, y, w, h, ref, accent = "#4aa8e0") {
     }
     ctx.restore()
   })
-  // how-to-specials footer
-  let hy = y + h - 16 - (ref.howToSpecials.length * 16)
+  // how-to-specials footer — starts below the tallest column, never overlapping it
+  let hy = y + _controlsColumnsBottom(ref) + CTRL_PANEL.footGap + CTRL_PANEL.footTitleH / 2
   drawCenteredText(ctx, "HOW TO PERFORM SPECIAL MOVES", x + pad, hy, { font: "800 13px Arial", fill: "#86efac", align: "left", baseline: "middle" })
-  hy += 18
+  hy += CTRL_PANEL.footTitleH
+  // Short screens cap the panel height: tighten the footer line spacing (16 → no less than 13) so the last
+  // line still sits inside the panel border.
+  const nLines = ref.howToSpecials.length
+  const room = (y + h - CTRL_PANEL.bottomPad) - hy
+  const lineH = nLines > 1 ? Math.max(13, Math.min(CTRL_PANEL.footLineH, room / (nLines - 0.5))) : CTRL_PANEL.footLineH
   for (const line of ref.howToSpecials) {
     drawCenteredText(ctx, "• " + line, x + pad, hy, { font: "12px Arial", fill: "rgba(220,230,255,0.82)", align: "left", baseline: "middle" })
-    hy += 16
+    hy += lineH
   }
 }
 
@@ -1887,7 +1905,7 @@ export function drawControlsHelpScreen(ctx, canvas, opts = {}) {
   const sub = opts.padLabel ? `${opts.padLabel} detected — showing its buttons` : "No controller detected — connect one to see its buttons"
   drawHeader(ctx, canvas, "CONTROLS", sub)
   const panelW = Math.min(940, cw - 80)
-  const panelH = Math.min(360, ch - 220)
+  const panelH = Math.min(Math.max(360, controlsPanelHeight(opts.controlRef)), ch - 220)
   const px = cw / 2 - panelW / 2
   const py = 132
   drawControlsPanel(ctx, px, py, panelW, panelH, opts.controlRef, _MK_ACCENT)

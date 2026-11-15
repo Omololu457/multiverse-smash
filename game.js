@@ -28,6 +28,7 @@ import { updateBatmanCommandCombat as updateBatmanRebuildCombat } from './batman
 import { tickBatman, isBatman, clearBatman, batmanLocked, batmanOwnsCharge, isBatmanUltActive, updateBatmanUlt, clearBatmanUlt, batmanUltCamera } from './batmanState.js'
 import { drawBatmanFx, drawBatmanUnder, drawBatmanHud, drawBatmanIntroCard, drawBatmanSky, playBatmanCues } from './batmanFx.js'
 import { batmanHarnessApi } from './batmanHarness.js'
+import { violetHarnessApi } from './violetHarness.js'   // Violet Parr test accessor (harness URLs only)
 import { mmprPinkHarnessApi } from './mmprPinkHarness.js'
 import { drawBarrierRing } from './barrierRingFx.js'
 import { tickKrybot, isKrybot, clearKrybot, krybotRoundReset, krybotLocked } from './krybotState.js'
@@ -25168,6 +25169,7 @@ const UNIVERSE_ACCENT = {
   saiki_k:         "#e07cff",   // psychic pink
   one_punch_man:   "#f2b705",   // hero-suit gold
   marvel:          "#e62429",   // Spider-Man red
+  the_incredibles: "#e8402a",   // Incredibles red-orange
   original:        "#9aa7b5",   // neutral steel
 }
 function universeAccent(id) { return UNIVERSE_ACCENT[id] || "#4aa8e0" }
@@ -27055,6 +27057,7 @@ gameLoop()
     mmprBlackTest: mmprBlackHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_BLACK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprWhiteTest: mmprWhiteHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_WHITE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     batmanTest: batmanHarnessApi({p1:()=>p1,p2:()=>p2,world:BATMAN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     spdPinkTest: spdPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     sanjiTest: sanjiHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     spdRedTest: spdRedHarnessApi({ p1: () => p1, p2: () => p2, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),

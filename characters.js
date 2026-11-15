@@ -11,6 +11,7 @@ import { mmpr_pink } from './mmprPinkData.js'   // Pink Ranger (Kimberly Hart, M
 import { mmpr_black } from './mmprBlackData.js'   // Black Ranger (Adam Park, MMPR) — mmprBlack*.js + shared falconzord.js
 import { mmpr_white } from './mmprWhiteData.js'   // White Ranger (Tommy Oliver, MMPR) — mmprWhite*.js + shared falconzord.js (Ninja Megazord orders)
 import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
+import { violet } from './violetData.js'   // Violet Parr (The Incredibles, GBA sheet) — violet*.js
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
@@ -11421,6 +11422,7 @@ export const characters = {
   killua,
   flash,
   gon,
+  violet,                            // Violet Parr (The Incredibles) — Zoner / Trickster (Vanish, Force Push, Bubble Shield, Force Ball, Field Trap, FULL FORCE); violet*.js
   batman: batmanRebuild,             // Batman (DC) REBUILT — Tactical Brawler / Fleet Commander (gadgets, automated support fleet, KNIGHTFALL); batman*.js. Legacy const kept for reference only.
   hisoka,
   superman,

@@ -20,6 +20,7 @@ import { MMPR_PINK_SKINS } from './mmprPinkSkins.js'   // Pink Ranger default + 
 import { MMPR_BLACK_SKINS } from './mmprBlackSkins.js'   // Black Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { MMPR_WHITE_SKINS } from './mmprWhiteSkins.js'   // White Ranger default + 6 inspired palettes (cosmetic, precomputed)
 import { BATMAN_SKINS } from './batmanSkins.js'   // Batman (rebuilt) default + 10 arsenal-wide skins (cosmetic, precomputed)
+import { VIOLET_SKINS } from './violetSkins.js'   // Violet Parr: Supersuit default + palette-swap skins (cosmetic, precomputed)
 import { SPD_GREEN_SKINS } from './spdGreenSkins.js'   // S.P.D. Green default + 6 appearance skins (cosmetic, precomputed)
 import { SPD_BLUE_SKINS } from './spdBlueSkins.js'   // S.P.D. Blue default + 6 appearance skins (cosmetic)
 import { getLevel, isFullyUnlocked } from "./progression.js"
@@ -2679,6 +2680,7 @@ for (const key of Object.keys(SKINS)) {
   for (const rs of recolorSkins(key)) if (!have.has(rs.id)) SKINS[key].push(rs)
 }
 SKINS.batman = BATMAN_SKINS   // Batman REBUILT: replaces the legacy batman list (its sheets belong to the old art set)
+SKINS.violet = VIOLET_SKINS   // Violet Parr: her own skin list (no generic auto-recolours)
 
 export function getSkins(rosterKey) {
   return SKINS[rosterKey] || [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: 1, animationData: null }]

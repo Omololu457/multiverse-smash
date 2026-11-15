@@ -589,6 +589,9 @@ export const SPRITE_MANIFEST = {
   batman: {
     actions: { idle: "./assets/batman/body.png" }   /* Batman REBUILT: the body atlas (batman*.js) */
   },
+  violet: {   // Violet Parr (The Incredibles GBA sheet). Per-action strips live on characters.js → violet.animationData (violetSprites.js)
+    actions: { idle: "./assets/violet/idle.png" }
+  },
 
   // Batman NEW VARIANT (rosterKey "dark_knight", universe: dc). Gates spritesReady() by decoding the
   // idle strip → flips to sprite. Per-action rendering reads characters.js → darkKnight.animationData

@@ -1,0 +1,20 @@
+{
+ "inc2": {
+  "ring": "#f04060",
+  "flash": "#ffd8de",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562
+  }
+ },
+ "midnight": {
+  "ring": "#9a5cff",
+  "flash": "#e6d8ff",
+  "pixels": {
+   "suit": 10028,
+   "trim": 7033,
+   "inv": 10562
+  }
+ }
+}

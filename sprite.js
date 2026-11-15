@@ -10,6 +10,7 @@
 // Exports: SpriteHandler, preloadCharacterSprites, preloadSheets, processPendingSpawns
 
 import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
+import { violetSpriteAction, violetAlpha } from './violetView.js'   // Violet Parr: invisible strips + 35 % alpha (render-only, violet-gated)
 
 // ─────────────────────────────────────────────────────────────────
 // SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
@@ -922,7 +923,7 @@ export class SpriteHandler {
   draw(ctx, fighter, spritesheets = null, _camera = null) {
     if (!ctx || !fighter) return;
 
-    const action = this.determineAction(fighter);
+    const action = violetSpriteAction(fighter, this.determineAction(fighter));   // Violet: Vanish strips (identity for everyone else)
     fighter._lastSpriteAction = action;
 
     // Reset animation index and timer when switching actions
@@ -1254,6 +1255,7 @@ export class SpriteHandler {
     const _sprX   = impactPostCanvas ? 0 : sx;
     const _sprY   = impactPostCanvas ? 0 : sy;
     const _sprFilter = impactPostCanvas ? "none" : spriteFilter;
+    if (fighter.rosterKey === 'violet') ctx.globalAlpha *= violetAlpha(fighter);   // Violet VANISH: 35 % while invisible (render-only)
 
     if (_sheetReady(sheet)) {
       if (_sprFilter !== "none") ctx.filter = _sprFilter;

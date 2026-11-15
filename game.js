@@ -32,6 +32,11 @@ import { updateBatmanCommandCombat as updateBatmanRebuildCombat } from './batman
 import { tickBatman, isBatman, clearBatman, batmanLocked, batmanOwnsCharge, isBatmanUltActive, updateBatmanUlt, clearBatmanUlt, batmanUltCamera } from './batmanState.js'
 import { drawBatmanFx, drawBatmanUnder, drawBatmanHud, drawBatmanIntroCard, drawBatmanSky, playBatmanCues } from './batmanFx.js'
 import { batmanHarnessApi } from './batmanHarness.js'
+import { tickViolet, isViolet, clearViolet, violetFacingFix, violetLocked } from './violetState.js'   // Violet Parr (The Incredibles) — violet-gated sim
+import { updateVioletCommandCombat } from './violet.js'   // Violet Parr command layer (violet-gated)
+import { drawVioletFx, drawVioletScreen } from './violetFx.js'   // Violet Parr FX (render-only, violet-gated)
+import { playVioletCues } from './violetSound.js'   // Violet Parr synth SFX (SFX bus; hash pitch / noise; violet-gated)
+import { violetHarnessApi } from './violetHarness.js'   // Violet Parr test accessor (harness URLs only)
 import { updateElastigirlCommandCombat } from './elastigirl.js'   // Elastigirl (Helen Parr) — elastigirl-gated command layer
 import { tickElastigirl, isElastigirl, clearElastigirl, elastigirlLocked, elastigirlSnapshot } from './elastigirlState.js'
 import { drawElastigirlFx, playElastigirlCues } from './elastigirlFx.js'
@@ -85,6 +90,7 @@ const SPD_BLUE_WORLD = { ...KRYBOT_WORLD, solids: () => getPlatforms().filter(p=
 const MMPR_BLACK_WORLD = { ...SPD_RED_WORLD, projectiles: activeProjectiles, projectileRects: SPD_RED_WORLD.projectiles, spawn: (f, t, d) => spawnProjectile(f, t, d),
   fighters: () => gameState === GAME_STATES.FFA_BATTLE ? ffaState.fighters : [p1, p2] }
 const BATMAN_WORLD = MMPR_BLACK_WORLD   // Batman: the same self-contained world (stage width, fighters, attack / projectile rects for machine damage, W.damage)
+const VIOLET_WORLD = MMPR_BLACK_WORLD   // Violet Parr: the same self-contained world (stage width, fighters, frame, seed, W.damage)
 const ELASTIGIRL_WORLD = MMPR_BLACK_WORLD   // Elastigirl: the same self-contained world (stage width, frame, seed, fighters, W.damage)
 const MMPR_WHITE_WORLD = MMPR_BLACK_WORLD   // White Ranger: the same self-contained world (Ninja Megazord orders read fighters / damage)
 const MMPR_PINK_WORLD = MMPR_BLACK_WORLD   // Pink Ranger: the same self-contained world (Thunder Megazord strikes + arrows read fighters / spawn / damage)
@@ -1425,6 +1431,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
+  for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
@@ -4121,6 +4128,8 @@ function updateFFACombat(fighter, others, opts) {
   playMmprPinkCues(fighter)
   tickBatman(fighter,nearest,readRawControls(fighter)||{},BATMAN_WORLD)
   playBatmanCues(fighter)
+  tickViolet(fighter,nearest,readRawControls(fighter)||{},VIOLET_WORLD)
+  playVioletCues(fighter)   // Violet SFX (FFA)
   tickElastigirl(fighter,nearest,readRawControls(fighter)||{},ELASTIGIRL_WORLD)
   playElastigirlCues(fighter)
   tickLuffy(fighter, nearest, readRawControls(fighter) || {})
@@ -4150,6 +4159,7 @@ function updateFFACombat(fighter, others, opts) {
   if (isMmprWhite(fighter)) { const mc=updateMmprWhiteCommandCombat(fighter,inputState,nearest,MMPR_WHITE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprPink(fighter)) { const mc=updateMmprPinkCommandCombat(fighter,inputState,nearest,MMPR_PINK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isBatman(fighter)) { const mc=updateBatmanRebuildCombat(fighter,inputState,nearest,BATMAN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isViolet(fighter)) { const vc=updateVioletCommandCombat(fighter,inputState,nearest,VIOLET_WORLD);if(vc)ctrlState=vc==='grab'?{grab:!!inputState.grab}:{} }
   if (isElastigirl(fighter)) { const mc=updateElastigirlCommandCombat(fighter,inputState,nearest,ELASTIGIRL_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isKrybot(fighter)) {
     const kc = updateKrybotCommandCombat(fighter, inputState, nearest, KRYBOT_WORLD)
@@ -5076,6 +5086,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
+  for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
@@ -5807,6 +5818,7 @@ function _replaySnap(f) {
   if (isMmprWhite(f)) snap.push(JSON.stringify(f._mmprWhite || null))   // White Ranger disciplines / token / Formation GAME_STATE (Ninja Megazord order: the _falcon line above)
   if (isMmprPink(f)) snap.push(JSON.stringify(f._mmprPink || null))   // Pink Ranger GAME_STATE (bow draw, Spotter Link, call location, Thread); _falcon/currentAttack pushed above
   if (isBatman(f)) snap.push(JSON.stringify([f._batman || null, f.currentAttack?.bm || null, f._bmPose || null, f._bmPoseT || 0]))   // Batman GAME_STATE (fleet ops + machines + payloads + ledgers, gadgets, smoke, edges, cooldowns)
+  if (isViolet(f)) snap.push(JSON.stringify([f._violet || null, f.currentAttack?.vi || null, f.baseSpeed, f.runWhenAdvancing || false]))   // Violet GAME_STATE (energy ledger, run, Vanish, shield, push, trap, ult, cooldowns, edges)
   if (isElastigirl(f)) snap.push(JSON.stringify(elastigirlSnapshot(f)))   // Elastigirl GAME_STATE (state, pendulum, current attack)
   return snap
 }
@@ -6153,6 +6165,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
+  for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
@@ -10018,7 +10031,7 @@ function _doRematch() {
   clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD)
   clearDashParr(p1);clearDashParr(p2)
   clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
-  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearElastigirl(p1);clearElastigirl(p2)
+  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
@@ -10063,6 +10076,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprPink(_f,MMPR_PINK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
+  for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
@@ -10235,9 +10249,11 @@ function handlePauseInput(key) {
 // ------------------------------------------------------------------
 function updateFacing() {
   if (!p1 || !p2) return
+  const _vioPrevFacing = [p1.facing, p2.facing]   // Violet: pre-auto-turn facings (an invisible Violet is not auto-faced)
   if (p1.x < p2.x) { p1.facing =  1; p2.facing = -1 }
   else             { p1.facing = -1; p2.facing =  1 }
   rangerFacingFix(p1, p2); rangerFacingFix(p2, p1)   // Ranger PHASE STEP: a crossed-up foe keeps facing the wrong way (no-op otherwise)
+  violetFacingFix(p1, p2, _vioPrevFacing[0]); violetFacingFix(p2, p1, _vioPrevFacing[1])   // Violet VANISH: the opponent does not auto-turn toward her (no-op otherwise)
 }
 
 // P (charge) is HOLD-to-charge / TAP-to-toggle. On keydown we only remember when
@@ -11338,7 +11354,7 @@ function updateMovementInput(fighter) {
   const teleportTick = (groundTeleportProfile(fighter) || fighter._groundTeleport) && tickGroundTeleport(fighter,readRawControls(fighter)||{},SPD_BLUE_WORLD,{canCancel:spdBlueCanStep,onCancel:spdBlueStepSpent})
   const inputState = getFighterInput(fighter)
   if (isKrybot(fighter) && fighter.attacking) inputState.block = false
-  if (krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || teleportTick) {
+  if (krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
     // No steering/jump/guard during committed attacks. Shared physics still
     // integrates velocity and bounds; the character timeline owns that velocity.
@@ -11586,6 +11602,8 @@ function _updatePlayerCombatBody(fighter) {
   playMmprPinkCues(fighter)
   tickBatman(fighter,getOpponent(fighter),readRawControls(fighter)||{},BATMAN_WORLD)
   playBatmanCues(fighter)
+  tickViolet(fighter,getOpponent(fighter),readRawControls(fighter)||{},VIOLET_WORLD)
+  playVioletCues(fighter)   // Violet SFX (1v1)
   tickElastigirl(fighter,getOpponent(fighter),readRawControls(fighter)||{},ELASTIGIRL_WORLD)
   playElastigirlCues(fighter)
   tickKrybot(fighter, getOpponent(fighter), readRawControls(fighter) || {}, KRYBOT_WORLD)
@@ -11806,6 +11824,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isBatman(fighter)) {   // Batman (rebuilt) command layer: 'consumed' | 'grab' (the legacy batman paths below are never reached)
     const mc=updateBatmanRebuildCombat(fighter,inputState,getOpponent(fighter),BATMAN_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isViolet(fighter)) {   // Violet Parr command layer: 'consumed' | 'grab' | false (fall through to the engine)
+    const vc=updateVioletCommandCombat(fighter,inputState,getOpponent(fighter),VIOLET_WORLD)
+    if (vc) { updateCombat(fighter,getOpponent(fighter),vc==='grab'?{grab:!!inputState.grab}:{},opts); return }
   }
   if (isElastigirl(fighter)) {   // Elastigirl command layer: 'consumed' | 'grab'
     const mc=updateElastigirlCommandCombat(fighter,inputState,getOpponent(fighter),ELASTIGIRL_WORLD)
@@ -20065,6 +20087,7 @@ function resetTraining() {
     clearMmprWhite(f,MMPR_WHITE_WORLD)
     clearMmprPink(f,MMPR_PINK_WORLD)
     clearBatman(f)
+    clearViolet(f)
     clearElastigirl(f)
     clearSpdRed(f)
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
@@ -20205,7 +20228,7 @@ function checkRoundEnd() {
   if (_roundOver) { clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearDashParr(p1);clearDashParr(p2) }
   if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
-  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearElastigirl(p1);clearElastigirl(p2) }
+  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) }
   if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
@@ -21425,6 +21448,7 @@ function renderHybridFighter(fighter) {
     drawMmprBlackFx(c, fighter, getOpponent(fighter))   // Black Ranger — Falconzord sortie / ultimate bird, lane + reticle markers, Sortie pips, Pincer ring, blink ghost (render-only)
     drawMmprWhiteFx(c, fighter)             // White Ranger — Ninja Megazord order / ultimate Megazord, strike-zone warning, order pips, discipline symbols + Formation token, Leader cue, blink ghost (render-only)
     drawBatmanFx(c, fighter)   // Batman — support fleet, payloads, batarang / grapnel lines, smoke, bracket, explosions, KNIGHTFALL aircraft (render-only; batman only)
+    drawVioletFx(c, fighter)   // Violet Parr — push ring, dome, shell, trap bubble + telegraph, FULL FORCE (render-only; violet only)
     drawElastigirlFx(c, fighter)   // Elastigirl — slingshot arm to the anchor, parachute shadow ovals, guard / raft splash (render-only; elastigirl only)
     drawSpdPinkFx(c, fighter)               // S.P.D. Pink — phase-step streaks, Iron Reserve steel ring/pip, Reprisal ring, muzzle star (render-only; spd_pink only)
     drawSpdGreenFx(c, fighter)              // S.P.D. Green — phase-step streak ghosts, Aura Read pulse/mark ring, muzzle star (render-only; spd_green only)
@@ -23325,6 +23349,7 @@ function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
   drawBatmanHud(ctx, canvas, p1, p2)   // Batman: support-operation status + cooldown chips under his health; KNIGHTFALL captions / cut-in (gated)
+  drawVioletScreen(ctx, canvas, p1, p2)   // Violet FULL FORCE detonation flash (render-only; gated)
   drawDashParrHud(ctx, canvas, p1, p2, globalFrameCount)   // Dash: Momentum gauge under his energy bar (gated)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
@@ -27104,6 +27129,7 @@ gameLoop()
     mmprBlackTest: mmprBlackHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_BLACK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprWhiteTest: mmprWhiteHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_WHITE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     batmanTest: batmanHarnessApi({p1:()=>p1,p2:()=>p2,world:BATMAN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,projectiles:()=>activeProjectiles,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     elastigirlTest: elastigirlHarnessApi({p1:()=>p1,p2:()=>p2,world:ELASTIGIRL_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     spdPinkTest: spdPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     sanjiTest: sanjiHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),

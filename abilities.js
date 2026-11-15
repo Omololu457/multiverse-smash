@@ -3,6 +3,7 @@ import { luffyRegen } from './luffyState.js'
 import { elastigirlRegen } from './elastigirlState.js'   // Elastigirl: Elasticity recharge 5/s (elastigirl-gated)
 import { zoroRegen } from './zoroState.js'
 import { sanjiRegen } from './sanjiState.js'   // Sanji: Heat passive (+0.5/s) replaces the shared regen
+import { dashParrRegen } from './dashParrState.js'   // Dash Parr: Super Speed 4/s replaces the shared regen (dash_parr-gated)
 import { spdRedRegen } from './spdRedState.js'   // S.P.D. Red: Delta passive (+1.5/s) replaces the shared regen
 import { arlongRegen } from './arlongState.js'   // Arlong: Tide passive (+1/s, +2/s more in his water) replaces the shared regen
 import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive (+1.5/s) replaces the shared regen
@@ -36175,6 +36176,7 @@ export function regenEnergy(fighter) {
   if (arlongRegen(fighter)) return
   if (spdRedRegen(fighter)) return
   if (sanjiRegen(fighter)) return
+  if (dashParrRegen(fighter)) return
   if (!fighter?.maxEnergy || fighter.maxEnergy <= 0) return
   if (fighter.infiniteEnergy) return   // vow: don't clamp the meter back down
   // Killua (Godspeed) `zoldyck`: VOLTS do NOT self-regenerate — electricity is a spent resource that only

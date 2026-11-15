@@ -5,6 +5,7 @@ import { zoroHitbox } from './zoroState.js'
 import { krybotHitbox, krybotBlockstun, krybotHit, krybotProjectileHit, krybotProjectileChip } from './krybotState.js'
 import { spdBlueHitbox, spdBlueBlock, spdBlueHit, absorbSpdBlue } from './spdBlueState.js'
 import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js'   // S.P.D. Green hooks (spd_green-gated)
+import { dashParrHitbox, dashParrBlock, dashParrHit, dashParrComboScale, dashParrDamageMods, dashParrHurtbox } from './dashParrState.js'   // Dash Parr hooks (dash_parr-gated)
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
@@ -196,6 +197,7 @@ export const GLOBAL_DAMAGE_SCALE = 0.60
 export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (!target) return 0
   if (buggyNullifyDamage(target, opts)) return 0   // BUGGY — a SLASH damage call passes through him (buggy-gated no-op for everyone else)
+  rawDamage = dashParrDamageMods(target, rawDamage, opts)   // DASH PARR — Super Speed / Momentum on hit + Can't Catch Me (dash_parr-gated; raw untouched for everyone else)
   rawDamage = spdRedDamageMods(target, rawDamage, opts)   // S.P.D. Red — containment card absorb / post-dodge buff (returns rawDamage untouched unless a Ranger is involved)
   rawDamage = (rawDamage || 0) * rosterDamageBoost(opts.attacker || opts.boostFrom)   // ROSTER PARITY: listed recent fighters hit harder (1 for everyone else)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
@@ -442,6 +444,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   if (fighter?.rosterKey === 'sanji' && curve === COMBO_DAMAGE_CURVE) return sanjiComboScale(fighter)   // Sanji: 85% per hit (sanji-gated)
   if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
   if (fighter?.rosterKey === 'spd_red' && curve === COMBO_DAMAGE_CURVE) return spdRedComboScale(fighter)   // S.P.D. Red: 85% per hit (spd_red-gated)
+  if (fighter?.rosterKey === 'dash_parr' && curve === COMBO_DAMAGE_CURVE) return dashParrComboScale(fighter)   // Dash Parr: 85% per combo step (dash_parr-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
   // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.
@@ -459,6 +462,7 @@ export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMB
 
 export function getHitstopFrames(atk) {
   if (!atk) return HITSTOP.default
+  if (atk.dp && atk.dp.hitstop != null) return atk.dp.hitstop   // Dash Parr multi-hit specials: light freeze between punches (dp exists only on dash_parr attacks)
   if (atk.isUltimate) return HITSTOP.ultimate
   if (atk.isSpecial) return HITSTOP.special
   // COMBO-FLOW: honor the launcher/spike FLAGS, not just the name. Rekka finishers are named
@@ -701,6 +705,7 @@ export function getAttackHitbox(fighter) {
   if (a?.krybot && fighter.rosterKey === 'krybot') return krybotHitbox(fighter)
   if (a?.blue && fighter.rosterKey === 'spd_blue') return spdBlueHitbox(fighter)
   if (a?.green && fighter.rosterKey === 'spd_green') return spdGreenHitbox(fighter)
+  if (a?.dp && fighter.rosterKey === 'dash_parr') return dashParrHitbox(fighter)   // Dash Parr: own box (sweep / Laps target box; dash_parr-gated)
   if (a?.pink && fighter.rosterKey === 'spd_pink') return spdPinkHitbox(fighter)
   if (a?.mb && fighter.rosterKey === 'mmpr_pink') return mmprPinkHitbox(fighter)   // Pink Ranger: per-move box; body-less bow / call / Crane Escape have none
   if (a?.mb && fighter.rosterKey === 'mmpr_black') return mmprBlackHitbox(fighter)   // Black Ranger: per-move box + Crescent Break contact windows
@@ -784,6 +789,7 @@ export function getHurtbox(fighter) {
     return { x: fighter.x + 4, y: top, w: Math.max(1, fighter.w - 8), h: Math.max(1, bottom - top) }
   }
   if (fighter.rosterKey === 'arlong') return arlongHurtbox(fighter)   // ARLONG — the big sawshark body: a larger hurtbox (designed weakness; arlong-gated)
+  if (fighter.rosterKey === 'dash_parr' && fighter._dashParr?.lowProfile) return dashParrHurtbox(fighter)   // Dash Parr: Hydroplane low profile (dash_parr-gated)
   if (fighter.rosterKey === 'elastigirl') return elastigirlHurtbox(fighter)   // ELASTIGIRL — stretched-limb hurtbox while a long normal is active; Whirl Kick upper-body invulnerability (elastigirl-gated)
   return {
     x: fighter.x + 6,
@@ -3421,6 +3427,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) krybotBlockstun(attacker, defender, atk)
     if (!flawless) spdBlueBlock(attacker, defender, atk)
     if (!flawless) spdGreenBlock(attacker, defender, atk)
+    dashParrBlock(attacker, defender, atk, flawless)   // Dash Parr: authored on-block + Momentum drain when Dash guards (dash_parr-gated)
     if (!flawless) spdPinkBlock(attacker, defender, atk)
     if (!flawless) mmprPinkBlock(attacker, defender, atk)   // Pink Ranger: authored blockstun; mmpr_pink-gated
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
@@ -3481,6 +3488,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     krybotHit(attacker, defender, atk)
     spdBlueHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
     spdGreenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
+    dashParrHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Dash Parr: clean flag + combo step (dash_parr-gated)
     spdPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
     mmprPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Pink Ranger: clean flag (chain / J-string gate)
     mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm

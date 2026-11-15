@@ -6,6 +6,7 @@ import { sound } from './sound.js'
 import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
 import { ELASTIGIRL_FX_CELLS as XC } from './elastigirlSprites.js'
+import { setElastigirlSfxSeed, elastigirlSfxHash } from './elastigirlSound.js'
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }
@@ -63,7 +64,10 @@ export function drawElastigirlFx(c, f) {
 let splashSeq = 0
 export function playElastigirlCues(f) {
   const q = f?._elastigirl?.cues; if (!q?.length) return
-  for (const v of q) {
+  const frame = f._elastigirl.tick, who = f.side ?? f.playerNumber ?? 0
+  for (let i = 0; i < q.length; i++) {
+    const v = q[i]
+    setElastigirlSfxSeed(elastigirlSfxHash(f._elastigirl.seed || 1, frame, typeof who === 'number' ? who : String(who).length, i))
     if (v === 'splash' || v === 'raft') { const l = splashList(f); l.push({ id: ++splashSeq, x: ctrX(f) + (f.facing || 1) * 60, y: feet(f) - 10, t: 0 }); if (l.length > 6) l.shift() }
     if (v === 'splash' && !calm()) camera.shake?.(6, 8)
     if (v === 'raftEnd' && !calm()) camera.shake?.(10, 12)

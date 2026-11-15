@@ -365,6 +365,35 @@ try {
     results.P7 = r
     await page.close()
   }
+  // ══ PHASE 8 — WebAudio sounds (rendered offline in the browser) ══
+  if (want('P8')) {
+    const page = await open('elastigirl', 'batman')
+    const r = await page.evaluate(async () => {
+      const M = await import('./elastigirlSound.js'), src = await (await fetch('./elastigirlState.js')).text(), snd = await (await fetch('./sound.js')).text()
+      const render = async (key, seed, len = 1.3) => { M.setElastigirlSfxSeed(seed); const ctx = new OfflineAudioContext(1, Math.floor(44100 * len), 44100)
+        M.ELASTIGIRL_SOUNDS['elastigirl_' + key](ctx, ctx.destination); const b = await ctx.startRendering(), d = b.getChannelData(0)
+        let peak = 0, last = 0, sum = 0; for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); sum += d[i] * d[i]; if (v > peak) peak = v; if (v > 0.002) last = i }
+        // dominant-frequency proxy: zero crossings in the first 40 ms
+        let zc = 0; for (let i = 1; i < 1764; i++) if ((d[i - 1] < 0) !== (d[i] < 0)) zc++
+        return { peak: +peak.toFixed(3), dur: +(last / 44100).toFixed(3), rms: +Math.sqrt(sum / d.length).toFixed(4), zc, hash: Array.from(d.slice(0, 4000)).reduce((h, v) => (Math.imul(h, 31) + Math.round(v * 1e5)) | 0, 7) } }
+      const out = {}
+      for (const k of ['stretch', 'snap', 'whirl', 'parachute', 'whip', 'raft']) {
+        const a = await render(k, 12345), b = await render(k, 12345), c = await render(k, 987654321)
+        out[k] = { ...a, same: a.hash === b.hash, differs: a.hash !== c.hash }
+      }
+      const pitches = Array.from({ length: 2000 }, (_, i) => M.pitchOf(M.elastigirlSfxHash(4242, i * 7, i % 2, i % 5)))
+      const cues = [...new Set([...src.matchAll(/cue\(f, '([A-Za-z]+)'\)/g)].map(m => m[1]).concat([...src.matchAll(/'(ult|swing|whipWind|stretch|special)'/g)].map(m => m[1])))]
+      return { out, pmin: Math.min(...pitches), pmax: Math.max(...pitches), missing: cues.filter(c => !M.ELASTIGIRL_SOUNDS['elastigirl_' + c]), cues, inSoundJs: /\.\.\.ELASTIGIRL_SOUNDS/.test(snd), recipes: M.RECIPES } })
+    const D = { stretch: 0.25, snap: 0.12, whirl: 0.35, parachute: 0.6, whip: 0.06, raft: 1.0 }
+    for (const [k, dur] of Object.entries(D)) { const o = r.out[k]
+      ok(`P8 ${k}: audible, ${dur}s (±25 %), deterministic per seed, varies with the seed`, o.peak > 0.01 && Math.abs(o.dur - dur) <= dur * 0.25 + 0.01 && o.same && o.differs, JSON.stringify(o)) }
+    ok('P8 recipes: stretch saw 200→500 Hz + 14 Hz vibrato · snap tri 900→300 · whirl bandpass noise ~1 kHz sweep · parachute sine 400→250 flutter · whip 2 kHz square click + noise · raft lowpass noise wave + 110 Hz sine swell',
+      r.recipes.stretch.vibratoHz === 14 && r.recipes.stretch.from === 200 && r.recipes.stretch.to === 500 && r.recipes.snap.from === 900 && r.recipes.snap.to === 300 && r.recipes.whirl.centre === 1000 && r.recipes.parachute.from === 400 && r.recipes.parachute.to === 250 && r.recipes.whip.click === 2000 && r.recipes.raft.swell.freq === 110)
+    ok('P8 pitch variation stays within ±3 % (hash of match seed, frame, player)', r.pmin >= 0.97 && r.pmax <= 1.03 && r.pmax - r.pmin > 0.05, JSON.stringify({ min: r.pmin, max: r.pmax }))
+    ok('P8 every sim cue has a sound; spread into sound.js SOUNDS', r.missing.length === 0 && r.inSoundJs, JSON.stringify({ missing: r.missing, cues: r.cues }))
+    results.P8 = r
+    await page.close()
+  }
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('FAIL exception', e.stack) }
 finally {

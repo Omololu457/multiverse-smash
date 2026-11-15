@@ -104,7 +104,7 @@ export function startEgMove(f, key, W, { cancel = false, free = false } = {}) {
   if (g) f.vx = 0
   if (key === 'up') f.jumpHeld = true
   s.stats.moves[key] = (s.stats.moves[key] || 0) + 1
-  cue(f, md.isUltimate ? 'ult' : key === 'eWhirl' ? 'whirl' : key === 'eWhip' ? 'whipWind' : md.limb ? 'stretch' : md.isSpecial ? 'special' : 'swing')
+  cue(f, md.isUltimate ? 'ult' : key === 'eWhirl' ? 'swing' : key === 'eWhip' ? 'whipWind' : md.limb ? 'stretch' : md.isSpecial ? 'special' : 'swing')
   return true
 }
 function reject(f) { const s = egState(f); s.stats.rejects++; cue(f, 'reject'); return false }
@@ -272,6 +272,7 @@ export function tickElastigirl(f, opp, raw, W) {
   // round / match reset: the shared revert stamps speed 84 / dash 16 on every fighter after our clear → re-apply ours
   if (f.baseSpeed === 84 && f.dashSpeed === 16) { const st = D.EG_STATS; f.baseSpeed = f.speed = st.speed; f.dashSpeed = st.dashSpeed; f.dashDuration = st.dashDuration }
   const s = egState(f); s.tick++
+  if (!s.seed) s.seed = (W?.seed?.() >>> 0) || 1                // match seed (audio variation hash only)
   const face = f.facing || 1, fw = !!(face === -1 ? raw.left : raw.right), bk = !!(face === -1 ? raw.right : raw.left)
   for (const k of EDGE_KEYS) {
     const v = !!raw[k]
@@ -354,6 +355,9 @@ export function tickElastigirl(f, opp, raw, W) {
       if (t === 0 && s.freeArm > 0) s.freeArm = 0
       break
     }
+    case 'eWhip':
+      if (t === a.activeStart - 1) cue(f, 'whip')                // the crack lands with the first active frame
+      break
     case 'eDome':
       if (t === md.hop.at && g) { f.vy = md.hop.vy; f.onGround = false; f.grounded = false; cue(f, 'parachute') }
       if (t > md.hop.at + 2 && g && t < a.activeEnd) { /* landed early: the dome still covers its active frames */ }
@@ -366,6 +370,7 @@ export function tickElastigirl(f, opp, raw, W) {
       if (g && t > 2) endAttack(f, 4)
       break
     case 'eWhirl':
+      if (t === a.activeStart - 1) cue(f, 'whirl')
       if (!g && t >= a.activeStart && t <= a.activeEnd) f.vy = Math.min(f.vy || 0, 1.2)   // the air spin hangs briefly
       break
     case 'eGuard':

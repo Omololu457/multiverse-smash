@@ -319,6 +319,7 @@ import { MMPR_PINK_SOUNDS } from './mmprPinkSound.js'   // Pink Ranger + Thunder
 import { MMPR_BLACK_SOUNDS } from './mmprBlackSound.js'   // Black Ranger + Falconzord synth SFX placeholders (SFX bus; voice bus untouched)
 import { MMPR_WHITE_SOUNDS } from './mmprWhiteSound.js'   // White Ranger + Ninja Megazord synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { BATMAN_SOUNDS } from './batmanSound.js'   // Batman (rebuilt) synth SFX (SFX bus; voice bus untouched)
+import { ELASTIGIRL_SOUNDS } from './elastigirlSound.js'   // Elastigirl synth SFX placeholders (SFX bus; voice bus untouched)
 import { SPD_RED_SOUNDS } from './spdRedSound.js'   // S.P.D. Red synth SFX (SFX bus; voice bus untouched)
 const SOUNDS = {
   ...ZORO_SOUNDS,   // zoro_swing / _hit / _sheathe / _tatsu / _oni / _haki / _snore …
@@ -327,6 +328,7 @@ const SOUNDS = {
   ...MMPR_BLACK_SOUNDS, // mmprblack_* : martial thud/crack, radio ack, wing pass, talon chirp, volley pulses, Pincer chime, ultimate rhythm
   ...MMPR_WHITE_SOUNDS, // mmprwhite_* : discipline notes, Formation three-note resolution, Saba metal, Megazord impact, sword tension/strike, Leader confirm, ultimate rhythm
   ...BATMAN_SOUNDS, // batman_* : strikes, gadgets, grapnel, smoke, fleet orders / payloads / machines, KNIGHTFALL
+  ...ELASTIGIRL_SOUNDS, // elastigirl_* : stretch boing, snap-back, whirl, parachute flutter, whip crack, family raft wave
   ...SPD_RED_SOUNDS, // spdred_blink (600→3000 Hz sweep) / _blinkPop / _dodge (2.2 kHz) / _impact / _blaster / _rapid0-4 / _deltamaxCharge / _deltamax / _judge / _guilty / _innocent / _contain …
   ...ARLONG_SOUNDS, // arlong_swing / _bladeHit (comb scrape) / _punch / _bite / _splash / _lap / _darts / _seiken / _shot / _flood …
   ...BUGGY_SOUNDS,  // buggy_knifeThrow / _knifeHit / _pop / _reversePop / _nullify (slide whistle) / _cannon / _explosion / _festival / _cape …

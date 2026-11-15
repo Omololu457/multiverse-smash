@@ -172,7 +172,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, peekFighterInput, beginInputFrame, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  clearInputBuffers, PS5_MAP, STICK_DEADZONE, padDirections, getPadNumpad, inputCallCount, getConnectedPadCount, getPlayerGamepad,
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, padDirections, getPadNumpad, jumpOnUp, setJumpOnUp, toggleJumpOnUp, inputCallCount, getConnectedPadCount, getPlayerGamepad,
   readRawControls, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
 } from "./input.js"
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
@@ -22051,7 +22051,8 @@ function _drawOnlinePlaceholder() {
 // Controller-aware CONTROL_REFERENCE (Part 3 #26): the `controller` rows are GENERATED from padLayout.js
 // (the single layout table) with the connected pad's glyph set, so the MOVE LIST shows the real bindings.
 function _controlRefForPad() {
-  return { ...CONTROL_REFERENCE, controller: padHelpRows(padGlyphs()) }
+  const padPlayer = [1, 2].find(pn => inputSettings[pn === 1 ? "p1Type" : "p2Type"] === "controller") || 1
+  return { ...CONTROL_REFERENCE, controller: padHelpRows(padGlyphs(), { jumpOnUp: jumpOnUp(padPlayer) }) }
 }
 
 // ── UNLOCK TOASTS (Part 3 #17) — slide-in notifications for newly unlocked content. A small queue of
@@ -24394,6 +24395,9 @@ function _drawVowCue() {
 // ------------------------------------------------------------------
 const p1SettingRect   = { x: window.innerWidth / 2 - 200, y: 150, w: 400, h: 44 }
 const p2SettingRect   = { x: window.innerWidth / 2 - 200, y: 202, w: 400, h: 44 }
+// JUMP ON UP (input quick-wins Phase 4) — per-player pad toggle, right of each device row. x/w set by _layoutSettings.
+const p1JumpUpRect    = { x: 0, y: 157, w: 200, h: 30 }
+const p2JumpUpRect    = { x: 0, y: 209, w: 200, h: 30 }
 const backSettingRect = { x: window.innerWidth / 2 - 100, y: 686, w: 200, h: 44 }
 // Two independent audio mute toggles on the Settings screen (side-by-side row).
 // Session-only, like the input/keybind settings ("in-memory only" per the on-screen note).
@@ -24473,6 +24477,9 @@ function _layoutSettings() {
   const cx = canvas.width / 2
   p1SettingRect.x   = cx - 200
   p2SettingRect.x   = cx - 200
+  p1JumpUpRect.x    = cx + 236   // clear of the device label, which overflows its 400px box
+  p2JumpUpRect.x    = cx + 236
+  p1JumpUpRect.w    = p2JumpUpRect.w = Math.max(150, Math.min(186, canvas.width - 214 - (cx + 236) - 6))
   sfxToggleRect.x   = cx - 200
   musicToggleRect.x = cx + 4
   backSettingRect.x = cx - 100
@@ -24539,6 +24546,14 @@ function drawSettingsScreen() {
   ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
   ctx.fillText(`P1 Device: ${inputSettings.p1Type.toUpperCase()}  (click to change)`, canvas.width / 2, p1SettingRect.y + 38)
   ctx.fillText(`P2 Device: ${inputSettings.p2Type.toUpperCase()}  (click to change)`, canvas.width / 2, p2SettingRect.y + 38)
+  // Jump on Up (pad) — per player. OFF (pad default): only the Jump button jumps; Up is purely a direction.
+  for (const [r, pn] of [[p1JumpUpRect, 1], [p2JumpUpRect, 2]]) {
+    const on = jumpOnUp(pn)
+    box(r, on ? "rgba(30,60,40,0.92)" : "rgba(20,26,40,0.92)", _withAlpha(on ? "#4ade80" : "#4aa8e0", 0.5), 1.2)
+    ctx.fillStyle = "#e6edf7"; ctx.font = "700 13px Arial"
+    ctx.fillText(`P${pn} Jump on Up (pad): ${on ? "ON" : "OFF"}`, r.x + r.w / 2, r.y + 20)
+  }
+  ctx.font = "700 22px Arial"
   // Two Keyboards — DISABLED placeholder.
   const tk = { x: canvas.width / 2 - 200, y: 254, w: 400, h: 44 }
   box(tk, "rgba(14,16,22,0.9)", "rgba(120,130,150,0.35)", 1)
@@ -25865,6 +25880,8 @@ function handleMenuClicks() {
       // Keyboards" is intentionally NOT reachable (disabled placeholder, Task 3).
       if (pointInRect(mouse.x, _smy, p1SettingRect)) inputSettings.p1Type = inputSettings.p1Type === "keyboard" ? "controller" : "keyboard"
       if (pointInRect(mouse.x, _smy, p2SettingRect)) inputSettings.p2Type = inputSettings.p2Type === "keyboard" ? "controller" : "keyboard"
+      if (pointInRect(mouse.x, _smy, p1JumpUpRect)) { toggleJumpOnUp(1); break }   // Jump on Up (pad), saved per player
+      if (pointInRect(mouse.x, _smy, p2JumpUpRect)) { toggleJumpOnUp(2); break }
       // Audio toggles — each independently mutes its own category (SFX / Music).
       if (pointInRect(mouse.x, _smy, sfxToggleRect)) {
         audioSettings.sfxMuted = !audioSettings.sfxMuted
@@ -28067,7 +28084,10 @@ gameLoop()
           academy: { light: lbl("Light"), heavy: lbl("Heavy"), special: lbl("Special"), ultimate: lbl("Ultimate"), grab: lbl("Grab"), charge: lbl("Charge"), block: lbl("Block") } } },
       // Non-consuming read of a fighter's resolved input this frame (input.js peekFighterInput).
       inputSnapshot: (who = "p1") => peekFighterInput(who === "p2" ? p2 : p1),
-      padNumpad: (pn = 1) => getPadNumpad(pn),   // last resolved in-battle pad direction (numpad 1-9, 5 = neutral)
+      padNumpad: (pn = 1) => getPadNumpad(pn),
+      jumpOnUp: (pn = 1) => jumpOnUp(pn),
+      setJumpOnUp: (pn = 1, on = null) => { setJumpOnUp(pn, on); return jumpOnUp(pn) },   // on=null → back to the pad default (OFF)
+      settingsJumpRects: () => { _layoutSettings(); return { p1: { ...p1JumpUpRect }, p2: { ...p2JumpUpRect } } },   // last resolved in-battle pad direction (numpad 1-9, 5 = neutral)
       getUiScale: () => uiScale,
       setUiScale: (v) => { setUiScale(v); return { uiScale, canvasW: canvas.width, canvasH: canvas.height, cssW: window.innerWidth } },
       // Force the on-screen combo display to a count (for screenshotting the escalation + rank callout).

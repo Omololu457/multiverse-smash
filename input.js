@@ -11,6 +11,7 @@
 
 import { PAD_BUTTON, PAD_DPAD, PAD_AXES, PAD_MENU, PAD_GLYPHS } from "./padLayout.js"
 import { stickToNumpad, combineStickDpad, numpadToDirs } from "./padStick.js"
+import { isFlying } from "./flight.js"
 export { PAD_LAYOUT, PAD_BUTTON, PAD_GLYPH_POS, padGlyphFor, padHelpRows } from "./padLayout.js"
 
 export const keys = {}
@@ -62,6 +63,32 @@ export const inputSettings = {
   p4Type: "controller"
 }
 const PLAYER_TYPES = { 1: "p1Type", 2: "p2Type", 3: "p3Type", 4: "p4Type" }
+
+// ─────────────────────────────────────────────────────────────────
+// JUMP ON UP (per player, persisted) — input quick-wins Phase 4.
+// ON: Up on the stick/d-pad also jumps (the old behaviour). OFF: only the Jump button (Cross) jumps and Up is
+// purely a direction, so up-specials, up-attacks and ↓↓↑ clone summons no longer leap by accident.
+// Applies to CONTROLLER input only. Default (no saved choice) = OFF on a pad. The keyboard is unchanged: its
+// Up and Jump are the same key, so Up always jumps there.
+// ─────────────────────────────────────────────────────────────────
+const LS_JUMP_ON_UP = { 1: "ms_jump_on_up_p1", 2: "ms_jump_on_up_p2", 3: "ms_jump_on_up_p3", 4: "ms_jump_on_up_p4" }
+function _lsGet(k) { try { return (typeof localStorage !== "undefined") ? localStorage.getItem(k) : null } catch (_) { return null } }
+function _lsSet(k, v) { try { if (typeof localStorage !== "undefined") { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v) } } catch (_) {} }
+const _jumpOnUpPref = {}   // playerNumber → "on" | "off" (absent = device default)
+for (const pn of [1, 2, 3, 4]) { const v = _lsGet(LS_JUMP_ON_UP[pn]); if (v === "on" || v === "off") _jumpOnUpPref[pn] = v }
+export const JUMP_ON_UP_PAD_DEFAULT = false
+// Whether Up jumps for this player's PAD input.
+export function jumpOnUp(playerNum) {
+  const v = _jumpOnUpPref[playerNum]
+  return v === "on" ? true : v === "off" ? false : JUMP_ON_UP_PAD_DEFAULT
+}
+export function setJumpOnUp(playerNum, on) {
+  if (!LS_JUMP_ON_UP[playerNum]) return
+  if (on == null) { delete _jumpOnUpPref[playerNum]; _lsSet(LS_JUMP_ON_UP[playerNum], null); return }
+  _jumpOnUpPref[playerNum] = on ? "on" : "off"
+  _lsSet(LS_JUMP_ON_UP[playerNum], _jumpOnUpPref[playerNum])
+}
+export function toggleJumpOnUp(playerNum) { setJumpOnUp(playerNum, !jumpOnUp(playerNum)) }
 
 // ─────────────────────────────────────────────────────────────────
 // GAMEPAD MAPPING
@@ -453,7 +480,7 @@ export function pollMenuGamepad() {
   }
 }
 
-function pollGamepad(playerNum, buffer) {
+function pollGamepad(playerNum, buffer, fighter) {
   const gp = getPlayerGamepad(playerNum)
   if (!gp) return null
 
@@ -469,18 +496,32 @@ function pollGamepad(playerNum, buffer) {
   const heavyBtn = btn(PAD_BUTTON.heavy)
   const doingUpAttack = upHeld && (lightBtn || heavyBtn)
 
-  if (btn(PAD_BUTTON.jump)) buffer.jump = BUFFER_WINDOW    // the Jump button always jumps
+  const jumpBtn = btn(PAD_BUTTON.jump)
+  // JUMP ON UP (per-player setting, default OFF on a pad) + the CLONE-SUMMON JUMP GRACE mirrored from the
+  // keyboard path below (same _recentCloneSummonMotion test: a fresh ↓↓↑ withholds the jump its trailing Up
+  // would fire). Flying fighters keep Up as "ascend" either way (physics reads the same Up key for both).
+  const upJumps = jumpOnUp(playerNum)
+  // Up + Special held together = a GROUNDED up-special, the Up does not jump — the keyboard path's
+  // doingUpSpecial rule, mirrored (without it a pad's Up kept re-arming a buffered jump that fired on release).
+  const doingUpSpecial = upHeld && btn(PAD_BUTTON.special)
+  const summonJumpGrace = !!(upHeld && fighter && _recentCloneSummonMotion(fighter))
+  const flying = !!(fighter && (fighter._flightActive || isFlying(fighter)))
+  if (jumpBtn) buffer.jump = BUFFER_WINDOW                 // the Jump button always jumps
   if (doingUpAttack) {
     buffer.upAttack = BUFFER_WINDOW                        // up + attack = launcher (the up does NOT jump)
   } else {
     if (lightBtn) buffer.light = BUFFER_WINDOW
     if (heavyBtn) buffer.heavy = BUFFER_WINDOW
-    if (upHeld)   buffer.jump  = BUFFER_WINDOW             // up alone = jump
+    if (upHeld && upJumps && !doingUpSpecial && !summonJumpGrace) buffer.jump = BUFFER_WINDOW   // up alone = jump (when enabled)
   }
+  // Withhold the physics Up key (mapInputToVirtualKeys) when Up must not jump: during the summon grace (unless
+  // Jump is physically held), or with Jump-on-Up OFF (unless a real Jump-button press is buffered).
+  const noJumpUp = upHeld && !flying && (((doingUpSpecial || summonJumpGrace) && !jumpBtn) || (!upJumps && !(buffer.jump > 0)))
   if (btn(PAD_BUTTON.special))  buffer.special  = BUFFER_WINDOW
   if (btn(PAD_BUTTON.ultimate)) buffer.ultimate = BUFFER_WINDOW
 
   return {
+    _noJumpUp: noJumpUp,
     left:     leftHeld,
     right:    rightHeld,
     down:     downHeld,
@@ -592,7 +633,7 @@ function _resolveFighterInput(fighter, pn) {
   // keyboard/buffer path below, never a physical pad that happens to be bound to this slot's
   // player number. (1v1 P1/P2 never set _aiControlled → this branch is unchanged for them.)
   if (type === "controller" && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._dashParrRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._greenRangerRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && !fighter._spdYellowRemoteInput && !fighter._cyborgRemoteInput && !fighter._beastBoyRemoteInput && !fighter._ravenRemoteInput && !fighter._starfireRemoteInput && !fighter._robinRemoteInput && !fighter._megumiRemoteInput && !fighter._higurumaRemoteInput && !fighter._syndromeRemoteInput && !fighter._frozoneRemoteInput && !fighter._batmanRemoteInput && !fighter._mrRemoteInput && !fighter._elastigirlRemoteInput) {
-    const gpInput = pollGamepad(pn, buffer)
+    const gpInput = pollGamepad(pn, buffer, fighter)
     if (gpInput) return gpInput
   }
 

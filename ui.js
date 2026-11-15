@@ -14,7 +14,7 @@ import { artistLineForCharacter, CREDITS } from "./credits.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
 import { countShadowClones } from "./summons.js"
 import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
-import { padGlyphs, padHelpRows } from "./input.js"   // Part 3 #26: connected-controller glyphs + rows generated from padLayout.js
+import { padGlyphs, padHelpRows, jumpOnUp } from "./input.js"   // Part 3 #26: connected-controller glyphs + rows generated from padLayout.js
 import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
@@ -1259,7 +1259,7 @@ export function drawStartInfoPanel(ctx, canvas, data = {}) {
 
 // Controller rows of the controls overlay above — exported so controls_help.test.mjs can prove they match
 // the live pad mapping. Generated from padLayout.js; there is no hand-written copy.
-export function controlsOverlayPadRows(G = padGlyphs()) { return padHelpRows(G) }
+export function controlsOverlayPadRows(G = padGlyphs()) { return padHelpRows(G, { jumpOnUp: jumpOnUp(2) }) }   // the overlay's pad column is Player 2
 
 // ─────────────────────────────────────────────
 // BEN 10 — OMNITRIX LOADOUT SELECT (pick 5 aliens)

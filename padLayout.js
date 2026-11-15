@@ -49,9 +49,9 @@ export function padGlyphFor(action, glyphs = PAD_GLYPHS.generic) {
 }
 
 // Help rows ([label, text]) for every controller help surface, generated from PAD_LAYOUT.
-// opts.jumpOnUp: whether Up also jumps for this player (Phase 4 setting); defaults to true.
+// opts.jumpOnUp: whether Up also jumps for this player (input.js "Jump on Up" setting; pad default OFF).
 export function padHelpRows(glyphs = PAD_GLYPHS.generic, opts = {}) {
-  const jumpOnUp = opts.jumpOnUp !== false
+  const jumpOnUp = opts.jumpOnUp === true
   const g = a => padGlyphFor(a, glyphs)
   const short = a => String(g(a)).split(" ")[0]   // "□ Square" → "□" (compact two-button rows)
   return [

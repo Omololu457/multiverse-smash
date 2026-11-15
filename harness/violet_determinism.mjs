@@ -17,6 +17,15 @@ press(t, ['s', 'j']); t += 30; press(t, ['i']); t += 40; press(t, ['w']); t += 1
 vanish(); press(t, ['d'], 30); t += 40; press(t, ['k']); t += 50; vanish(); t += 30
 press(t, ['l']); t += 40; press(t, ['s', 'l']); t += 40; press(t, ['d']); t += 3; press(t, ['d'], 25); t += 40
 press(t, ['u']); t += 120
+// Phase 4 specials through their real motions: ↓↘→ Push · ←↙↓ Shield · →→ Ball · ↓↙← Trap (+ Heavy into it) · ↓↘→↓↘→ ult
+const mo = (dirs, btn) => { for (const ks of dirs) { press(t, ks, 2); t += 2 } press(t, [btn], 1); t += 2 }
+mo([['s'], ['s', 'd'], ['d']], 'l'); t += 50
+mo([['a'], ['a', 's'], ['s']], 'l'); t += 300   // Force Field regen before the ball
+// →→+P both ways (the CPU may have crossed her up, and forward is facing-relative): one of the two is the Force Ball
+for (const k of ['d', 'a']) { press(t, [k], 1); t += 2; press(t, [k], 1); t += 1; press(t, ['l'], 1); t += 60 }
+mo([['s'], ['s', 'a'], ['a']], 'l'); t += 24; press(t, ['k']); t += 50
+for (let i = 0; i < 30; i++) { t += 40 }
+mo([['s'], ['s', 'd'], ['d'], ['s'], ['s', 'd'], ['d']], 'l'); t += 200
 for (let i = 0; i < 6; i++) { press(t, ['j']); t += 12; press(t, ['k']); t += 30 }
 const END = t + 60
 async function run(seed) {
@@ -45,7 +54,7 @@ try {
   const A = await run(424242), Bv = await run(424242)
   let first = -1; for (let i = 0; i < A.trace.length; i++) if (A.trace[i] !== Bv.trace[i]) { first = i * 5; break }
   ck(`same seed + same inputs → identical state for all ${A.trace.length} checkpoints (${END} frames)`, first < 0 && A.trace.length === Bv.trace.length, { firstDivergentFrame: first, a: A.trace[first / 5], b: Bv.trace[first / 5] })
-  ck('the script exercised Violet systems', !!A.stats && A.stats.vanishes >= 1, A.stats)
+  ck('the script exercised Violet systems (Vanish + all five specials)', !!A.stats && A.stats.vanishes >= 1 && ['vPush', 'vShield', 'vBall', 'vTrap', 'vUlt'].every(k => A.stats.moves[k] >= 1), A.stats)
   ck('f._violet is plain JSON (exact round trip, finite numbers)', A.purity.exact && A.purity.finite && A.purity.used, A.purity)
   ck('no Math.random from any violet*.js module', A.rnd.length === 0 && Bv.rnd.length === 0, A.rnd.slice(0, 2))
 } catch (e) { ck('exception', false, e.stack) }

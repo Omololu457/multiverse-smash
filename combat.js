@@ -8,7 +8,7 @@ import { spdGreenHitbox, spdGreenBlock, spdGreenHit } from './spdGreenState.js' 
 import { mmprBlackHitbox, mmprBlackBlock, mmprBlackHit, mmprBlackProjectileHit } from './mmprBlackState.js'   // Black Ranger hooks (mmpr_black-gated)
 import { mmprWhiteHitbox, mmprWhiteBlock, mmprWhiteHit } from './mmprWhiteState.js'   // White Ranger hooks (mmpr_white-gated)
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
-import { violetHit, violetBlock, violetKnockback } from './violetState.js'   // Violet Parr hooks (violet-gated)
+import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile } from './violetState.js'   // Violet Parr hooks (violet-gated)
 import { mmprPinkHitbox, mmprPinkBlock, mmprPinkHit, mmprPinkProjectileHit } from './mmprPinkState.js'   // Pink Ranger hooks (mmpr_pink-gated)
 import { spdPinkHitbox, spdPinkBlock, spdPinkHit, spdPinkCounter } from './spdPinkState.js'   // S.P.D. Pink hooks (spd_pink-gated)
 import { buggyNullifyMelee, buggyNullifyProjectile, buggyNullifyDamage } from './buggyState.js'   // Buggy: Bara Bara no Mi slash immunity (buggy-gated)
@@ -441,6 +441,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   if (fighter?.rosterKey === 'sanji' && curve === COMBO_DAMAGE_CURVE) return sanjiComboScale(fighter)   // Sanji: 85% per hit (sanji-gated)
   if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
   if (fighter?.rosterKey === 'spd_red' && curve === COMBO_DAMAGE_CURVE) return spdRedComboScale(fighter)   // S.P.D. Red: 85% per hit (spd_red-gated)
+  if (fighter?.rosterKey === 'violet' && curve === COMBO_DAMAGE_CURVE) return violetComboScale(fighter)   // Violet Parr: 85% per hit (violet-gated)
   const base = (fighter?.comboCounter || 0)
   // Starter penalty (damage lookup only): shift DEEPER into the curve when the opener was a launcher/heavy.
   // Gated on base>=1 so the opener's OWN hit is full — the penalty falls on the follow-ups it enables.
@@ -3268,6 +3269,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // outright. luffy-gated → a strict no-op for every other fighter.
   if (absorbSpdBlue(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }
   if (absorbBatman(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Batman cape counter: one frontal strike caught; batman-gated
+  if (absorbViolet(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Violet BUBBLE SHIELD: the dome stops the strike; violet-gated
   if (absorbLuffyStrike(defender, attacker)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -3422,7 +3424,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) mmprBlackBlock(attacker, defender, atk)   // Black Ranger: authored blockstun; mmpr_black-gated
     if (!flawless) mmprWhiteBlock(attacker, defender, atk)   // White Ranger: authored blockstun; mmpr_white-gated
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
-    violetBlock(attacker, defender, atk)   // Violet: a blocked strike still ends Vanish; violet-gated
+    violetBlock(attacker, defender, atk, flawless)   // Violet: a blocked strike still ends Vanish + authored blockstun (not on a flawless block); violet-gated
     if (!flawless) zoroBlockstun(attacker, defender, atk)   // Roronoa Zoro: per-move block stun (designed block advantage); zoro-gated
     if (!flawless) buggyBlockstun(attacker, defender, atk)  // Buggy the Clown: per-move block stun; buggy-gated
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
@@ -4314,6 +4316,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // BUGGY — Bara Bara no Mi: a SLASH projectile (kunai, knives, cards, cutting waves) passes through and is spent.
       if (buggyNullifyProjectile(fighter, proj)) { projectiles.splice(i, 1); break }
       if (absorbSpdBlue(fighter, proj.owner, proj, true)) { projectiles.splice(i, 1); break }
+      { const _vio = violetProjectile(fighter, proj); if (_vio === 'absorb') { projectiles.splice(i, 1); break } if (_vio === 'reflect') break }   // Violet: dome reflect ×1.2 / Force Ball armour; violet-gated
 
       // Sasuke's Absolute Defense negates projectiles too (full invuln, per-block energy cost) —
       // the projectile is consumed and deals nothing. Checked BEFORE damage so it takes priority

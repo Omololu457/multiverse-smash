@@ -26,21 +26,45 @@ export function vhash(seed, frame, pid) {
   return h >>> 0
 }
 
-// ── MOVES (Phase 4 authors the full kit; Phase 1 registers the base normals so the fighter is playable) ──
-// startup = frames before the first active frame. Damage stored RAW: the shared melee path delivers
-// floor(raw × comboScale × 0.60), so raw = the authored on-hit value / 0.60 (Jab 30 → 18).
+// ── PHASE 4: MOVESET. startup = frames before the first active frame (frameExact). Damage stored RAW: the shared
+// melee path delivers floor(raw × comboScale × 0.60), so raw = the authored on-hit value / 0.60 (Jab 30 → 18).
+// blockstun = active + recovery + designed on-block advantage (measured by harness/violet_moveset.test.mjs).
 const n = (raw, startup, active, recovery, extra = {}) => ({ raw, damage: raw, startup, active, recovery, frameExact: true,
   category: 'light', hitstun: 16, blockstun: 10, rangeX: 34, rangeY: 60, knockbackX: 3, knockbackY: -1, ...extra })
+// Specials: body-less (noBody) engine moves; their hits come from her own payloads (violetState.js vStrike).
+const sp = (startup, active, recovery, extra = {}) => ({ damage: 0, startup, active, recovery, frameExact: true, isSpecial: true,
+  category: 'special', noBody: true, hitstun: 0, blockstun: 0, rangeX: 0, rangeY: 0, ...extra })
 export const MOVES = {
-  light: n(30, 5, 2, 9, { hitstun: 15, blockstun: 10 }),
-  heavy: n(87, 13, 3, 18, { category: 'heavy', hitstun: 24, blockstun: 14, knockbackX: 7, knockbackY: -3, rangeX: 46 }),
-  vLow: n(40, 7, 2, 12, { hitLevel: 'low', hitstun: 17, blockstun: 9 }),
-  up: n(77, 11, 3, 20, { category: 'launcher', launcher: true, hitstun: 30, blockstun: 13, launchVy: -30, selfVy: 0, knockbackY: -9 }),
-  air: n(50, 7, 3, 10, { hitstun: 18, blockstun: 14, knockbackX: 3, knockbackY: -2 }),
+  //                       raw startup active recovery    on-hit dmg / on-block (brief)
+  light: n(30, 5, 2, 9, { hitstun: 15, blockstun: 12 }),                                                  // Jab      5f / 18 / 0
+  heavy: n(87, 13, 3, 18, { category: 'heavy', hitstun: 24, blockstun: 16, knockbackX: 7, knockbackY: -3, rangeX: 46 }),   // Heavy 13f / 52 / −6
+  vLow: n(40, 7, 2, 12, { hitLevel: 'low', hitstun: 18, blockstun: 11 }),                                 // Low      7f / 24 / −4
+  up: n(77, 11, 3, 20, { category: 'launcher', launcher: true, hitstun: 34, blockstun: 15, launchVy: -12, selfVy: 0, jcVy: -14, knockbackY: -9 }),  // Launcher 11f / 46 / −9
+  air: n(50, 7, 3, 10, { hitstun: 18, blockstun: 16, knockbackX: 3, knockbackY: -2 }),                   // Air      7f / 30 / +2
+  vPush: sp(10, 2, 16, { cost: 12 }),                        // FORCE PUSH ↓↘→+P: R14 ring, 520 px, 50, push-back, one on screen
+  vShield: sp(4, 40, 10, { cost: 20 }),                      // BUBBLE SHIELD ←↙↓+P: R15 dome 40f, blocks all strikes, reflects ×1.2, 10f recovery
+  vBall: sp(8, 20, 14, { cost: 15 }),                        // FORCE BALL →→+P: 320 px rolling lunge, 30 + 30, projectile armour
+  vTrap: sp(6, 2, 14, { cost: 22 }),                         // FIELD TRAP ↓↙←+P: bubble at the foe's cast position after 18f, traps 45f, 0 dmg
+  vUlt: sp(12, 70, 90, { cost: 100, category: 'ultimate', isUltimate: true }),   // FULL FORCE ↓↘→↓↘→+P: 30 + 40 + 150 = 220 unscaled, 90f lockout
 }
+// Payload tuning (sim px / frames). raw = authored on-hit damage / 0.60 (the strike path applies the shared 0.60 scale).
+export const PUSH = { speed: 13, range: 520, raw: 84, hitstun: 22, blockstun: 14, kb: [11, -3], r: 30 }
+export const SHIELD = { reflect: 1.2, r: 64 }
+export const BALL = { speed: 16, raw: 50, gap: 8, hits: 2, hitstun: 18, blockstun: 12, kb1: [15, 0], kb2: [9, -6], padUp: 34, padX: 10 }
+export const TRAP = { delay: 18, hold: 45, r: 52, fizzle: 14 }
+export const ULT = { range: 760, trap: 30, squeeze: 40, blast: 150, squeezeAt: 30, blastAt: 70, lockout: 90, r: 58, blastR: 150, launch: [12, -15] }
+// Motion inputs (numpad, facing-relative; P = Special). Each step is a direction token; the LAST token must be the most
+// recent direction (a release to neutral is allowed after it); earlier steps may have diagonals between them.
+export const MOTION = { window: 22, ultWindow: 34, press: 10, ballTap: 14,
+  push: [2, 6], shield: [4, 2], trap: [2, 4], ult: [2, 6, 2, 6] }
+// CANCELS (clean hit only, recovery window): chain table + which moves may cancel into specials / the ultimate.
+export const CHAIN = { light: ['light', 'heavy', 'up', 'vLow'], vLow: ['heavy', 'up'], heavy: ['up'], up: [], air: [] }
+export const SPECIAL_FROM = ['light', 'heavy', 'vLow', 'up']
 export const TIMELINE = {
   light: [[0, 0], [3, 1], [7, 2]], heavy: [[0, 0], [5, 1], [10, 2], [13, 3], [20, 4]], vLow: [[0, 0], [7, 1]],
   up: [[0, 0], [11, 1]], air: [[0, 0], [4, 1], [7, 2]],
+  vPush: [[0, 0], [4, 1], [8, 2], [10, 3], [16, 4]], vShield: [[0, 0], [2, 1], [4, 2]], vBall: [[0, 0], [4, 1], [8, 2], [12, 3]],
+  vTrap: [[0, 0]], vUlt: [[0, 0], [12, 1], [30, 2], [50, 3], [70, 4], [100, 5]],
 }
 
 export const violet = {

@@ -108,6 +108,7 @@
     "test:combo-flow-roster": "node harness/combo_flow_roster.mjs",
     "test:input-buffer-recovery": "node harness/input_buffer_recovery.test.mjs",
     "test:input-buffer-window": "node harness/input_buffer_window.test.mjs",
+    "test:pad-stick": "node harness/pad_stick.test.mjs",
     "measure:input-calls": "node harness/input_call_count_measure.mjs",
     "test:input-framedata-diff": "node harness/input_framedata_diff.mjs",
     "test:combo-buffer-live": "node harness/combo_buffer_recovery_live.mjs",

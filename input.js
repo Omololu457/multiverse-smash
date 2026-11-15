@@ -10,6 +10,7 @@
  */
 
 import { PAD_BUTTON, PAD_DPAD, PAD_AXES, PAD_MENU, PAD_GLYPHS } from "./padLayout.js"
+import { stickToNumpad, combineStickDpad, numpadToDirs } from "./padStick.js"
 export { PAD_LAYOUT, PAD_BUTTON, PAD_GLYPH_POS, padGlyphFor, padHelpRows } from "./padLayout.js"
 
 export const keys = {}
@@ -86,7 +87,27 @@ export const PS5_MAP = {
   ANALOG_L_Y: 1
 }
 
-export const STICK_DEADZONE = 0.4
+export const STICK_DEADZONE = 0.4   // MENU navigation only (pollMenuGamepad). In battle the stick goes through padStick.js.
+
+// IN-BATTLE pad direction (input quick-wins Phase 3): radial deadzone → 8-way angular gate → 8° hysteresis
+// → SOCD-cleaned merge with the d-pad, producing ONE numpad direction (1-9, 5 = neutral) per player per frame.
+// Every in-battle pad direction reader (pollGamepad, readRawControls, game.js updateGamepadEdges) derives its
+// up/down/left/right from this, so they can never disagree. Re-reading within a frame is idempotent (same
+// stick → same sector once the hysteresis state has settled), so the three readers may each call it.
+const _stickPrev = { 1: 5, 2: 5, 3: 5, 4: 5 }   // per-player processed STICK direction (hysteresis state)
+const _padNumpad = { 1: 5, 2: 5, 3: 5, 4: 5 }   // per-player final direction (stick + d-pad, SOCD-cleaned)
+export function padDirections(playerNum, gp) {
+  if (!gp) return { numpad: 5, up: false, down: false, left: false, right: false }
+  const ax = gp.axes || []
+  const stick = stickToNumpad(ax[PAD_AXES.leftX] || 0, ax[PAD_AXES.leftY] || 0, _stickPrev[playerNum] ?? 5)
+  _stickPrev[playerNum] = stick
+  const b = i => !!gp.buttons[i]?.pressed
+  const numpad = combineStickDpad(stick, { up: b(PAD_DPAD.up), down: b(PAD_DPAD.down), left: b(PAD_DPAD.left), right: b(PAD_DPAD.right) })
+  _padNumpad[playerNum] = numpad
+  return { numpad, ...numpadToDirs(numpad) }
+}
+// The numpad direction last resolved for a player's pad (5 when no pad / neutral).
+export function getPadNumpad(playerNum) { return _padNumpad[playerNum] ?? 5 }
 
 // ─────────────────────────────────────────────────────────────────
 // CONTROLLER GLYPHS (Part 3 #26) — detect the connected pad's family from its
@@ -437,13 +458,8 @@ function pollGamepad(playerNum, buffer) {
   if (!gp) return null
 
   const btn  = (i) => !!gp.buttons[i]?.pressed
-  const axisX = gp.axes[PAD_AXES.leftX] || 0
-  const axisY = gp.axes[PAD_AXES.leftY] || 0
-
-  const upHeld    = btn(PAD_DPAD.up)    || axisY < -STICK_DEADZONE
-  const downHeld  = btn(PAD_DPAD.down)  || axisY >  STICK_DEADZONE
-  const leftHeld  = btn(PAD_DPAD.left)  || axisX < -STICK_DEADZONE
-  const rightHeld = btn(PAD_DPAD.right) || axisX >  STICK_DEADZONE
+  const dir = padDirections(playerNum, gp)   // one numpad direction (stick + d-pad, gated + SOCD-cleaned)
+  const upHeld = dir.up, downHeld = dir.down, leftHeld = dir.left, rightHeld = dir.right
 
   // Pad → canonical actions, from padLayout.js PAD_LAYOUT (the single source of truth; full keyboard parity).
   //   Up + attack = grounded up-attack/launcher (the Jump button alone stays jump → no collision).
@@ -640,12 +656,12 @@ export function readRawControls(fighter) {
   if ((fighter.rosterKey === 'luffy' || fighter.rosterKey === 'spd_blue' || fighter.rosterKey === 'krybot' || fighter.rosterKey === 'sanji' || fighter.rosterKey === 'zoro' || fighter.rosterKey === 'buggy' || fighter.rosterKey === 'spd_red' || fighter.rosterKey === 'spd_green' || fighter.rosterKey === 'dash_parr' || fighter.rosterKey === 'spd_pink' || fighter.rosterKey === 'mmpr_black' || fighter.rosterKey === 'green_ranger' || fighter.rosterKey === 'mmpr_white' || fighter.rosterKey === 'mmpr_pink' || fighter.rosterKey === 'spd_yellow' || fighter.rosterKey === 'cyborg' || fighter.rosterKey === 'beast_boy' || fighter.rosterKey === 'raven' || fighter.rosterKey === 'starfire' || fighter.rosterKey === 'robin' || fighter.rosterKey === 'megumi_fushiguro' || fighter.rosterKey === 'higuruma' || fighter.rosterKey === 'syndrome' || fighter.rosterKey === 'frozone' || fighter.rosterKey === 'batman' || fighter.rosterKey === 'mr_incredible' || fighter.rosterKey === 'elastigirl') && !fighter._aiControlled && !fighter._krybotRemoteInput && !fighter._spdBlueRemoteInput && !fighter._spdGreenRemoteInput && !fighter._dashParrRemoteInput && !fighter._spdPinkRemoteInput && !fighter._mmprBlackRemoteInput && !fighter._greenRangerRemoteInput && !fighter._mmprWhiteRemoteInput && !fighter._mmprPinkRemoteInput && !fighter._spdYellowRemoteInput && !fighter._cyborgRemoteInput && !fighter._beastBoyRemoteInput && !fighter._ravenRemoteInput && !fighter._starfireRemoteInput && !fighter._robinRemoteInput && !fighter._megumiRemoteInput && !fighter._higurumaRemoteInput && !fighter._syndromeRemoteInput && !fighter._frozoneRemoteInput && !fighter._batmanRemoteInput && !fighter._mrRemoteInput && !fighter._elastigirlRemoteInput && inputSettings[PLAYER_TYPES[pn] || 'p2Type'] === 'controller') {
     const gp = getPlayerGamepad(pn)
     if (gp) {
-      const b = i => !!gp.buttons[i]?.pressed, ax = gp.axes || []
-      const up = b(PAD_DPAD.up) || (ax[PAD_AXES.leftY] || 0) < -STICK_DEADZONE
+      const b = i => !!gp.buttons[i]?.pressed, dir = padDirections(pn, gp)
+      const up = dir.up
       const light = b(PAD_BUTTON.light), heavy = b(PAD_BUTTON.heavy)
-      return { left:b(PAD_DPAD.left)||(ax[PAD_AXES.leftX]||0)<-STICK_DEADZONE,
-        right:b(PAD_DPAD.right)||(ax[PAD_AXES.leftX]||0)>STICK_DEADZONE,
-        down:b(PAD_DPAD.down)||(ax[PAD_AXES.leftY]||0)>STICK_DEADZONE, up,
+      return { left:dir.left,
+        right:dir.right,
+        down:dir.down, up,
         jump:b(PAD_BUTTON.jump), light, heavy, upAttack:up&&(light||heavy),
         special:b(PAD_BUTTON.special), ultimate:b(PAD_BUTTON.ultimate), grab:b(PAD_BUTTON.grab),
         charge:b(PAD_BUTTON.charge), block:b(PAD_BUTTON.block), dash:!!fighter._dashTap }

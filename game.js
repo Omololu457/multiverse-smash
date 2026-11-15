@@ -172,7 +172,7 @@ import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
   inputSettings, getFighterInput, peekFighterInput, beginInputFrame, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
-  clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad,
+  clearInputBuffers, PS5_MAP, STICK_DEADZONE, padDirections, getPadNumpad, inputCallCount, getConnectedPadCount, getPlayerGamepad,
   readRawControls, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
 } from "./input.js"
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
@@ -11201,14 +11201,13 @@ function updateGamepadEdges(fighter) {
   const c    = fighter.controls
   const prev = fighter._gpPrev || (fighter._gpPrev = {})
   const btn  = (i) => !!gp.buttons[i]?.pressed
-  const ax   = gp.axes || []
-  const dz   = STICK_DEADZONE
+  const pd   = padDirections(pn, gp)   // ONE numpad direction (input.js / padStick.js) — same source pollGamepad reads
 
   const dirs = [
-    ["left",  c.left,  btn(PAD_DPAD.left)  || (ax[PAD_AXES.leftX] || 0) < -dz],
-    ["right", c.right, btn(PAD_DPAD.right) || (ax[PAD_AXES.leftX] || 0) >  dz],
-    ["up",    c.up,    btn(PAD_DPAD.up)    || (ax[PAD_AXES.leftY] || 0) < -dz],
-    ["down",  c.down,  btn(PAD_DPAD.down)  || (ax[PAD_AXES.leftY] || 0) >  dz]
+    ["left",  c.left,  pd.left],
+    ["right", c.right, pd.right],
+    ["up",    c.up,    pd.up],
+    ["down",  c.down,  pd.down]
   ]
   for (const [name, key, held] of dirs) {
     if (held && !prev[name]) {                  // PRESS edge
@@ -28068,6 +28067,7 @@ gameLoop()
           academy: { light: lbl("Light"), heavy: lbl("Heavy"), special: lbl("Special"), ultimate: lbl("Ultimate"), grab: lbl("Grab"), charge: lbl("Charge"), block: lbl("Block") } } },
       // Non-consuming read of a fighter's resolved input this frame (input.js peekFighterInput).
       inputSnapshot: (who = "p1") => peekFighterInput(who === "p2" ? p2 : p1),
+      padNumpad: (pn = 1) => getPadNumpad(pn),   // last resolved in-battle pad direction (numpad 1-9, 5 = neutral)
       getUiScale: () => uiScale,
       setUiScale: (v) => { setUiScale(v); return { uiScale, canvasW: canvas.width, canvasH: canvas.height, cssW: window.innerWidth } },
       // Force the on-screen combo display to a count (for screenshotting the escalation + rank callout).

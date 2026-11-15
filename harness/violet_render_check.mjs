@@ -2,7 +2,7 @@
 // title → Play → VS → difficulty → The Incredibles → Violet → skin → CPU pick → stage → match. Asserts both fighters and
 // the HUD render (fighters drawn with sprite actions, HUD pixels present), no page errors, no black screen. Optional
 // `--skin <id>` picks a skin; `--invisible` also enters Vanish in the match and checks the 35% invisible render.
-// Usage: node harness/violet_render_check.mjs [--skin violet_inc2] [--invisible] [--shot docs/violet/render_<x>.png]
+// Usage: node harness/violet_render_check.mjs [--skin vi_inc2] [--invisible] [--shot docs/violet/render_<x>.png]
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null }

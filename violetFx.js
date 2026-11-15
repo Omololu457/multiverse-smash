@@ -5,18 +5,17 @@
 import { juiceSettings } from './juiceSettings.js'
 import { VIOLET_FX } from './violetSprites.js'
 import { MOVES, SCALE, TRAP, ULT } from './violetData.js'
+import { VIOLET_SKIN_FX } from './violetSkins.js'
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }
-if (typeof Image !== 'undefined') for (const k in VIOLET_FX) image(VIOLET_FX[k].sheet)   // preload: first use must draw (no pop-in)
+if (typeof Image !== 'undefined') for (const k in VIOLET_FX) { image(VIOLET_FX[k].sheet); for (const t in VIOLET_SKIN_FX) image(`${VIOLET_SKIN_FX[t].dir}/${k}.png`) }   // preload: first use must draw (no pop-in)
 const calm = () => !!(juiceSettings?.reduceMotion || juiceSettings?.reduceFlashing)
 const isV = f => f?.rosterKey === 'violet' && !!f._violet
 const ctrX = f => (f.x || 0) + (f.w || 48) / 2
 const ctrY = f => (f.y || 0) + (f.h || 94) / 2
-// Skin FX tint (Phase 7 fills VIOLET_FX_TINT per skin tag; default = the sheet's own colours).
-export const VIOLET_FX_TINT = {}
-const tintOf = f => VIOLET_FX_TINT[f?._recolorTag || f?.skinId] || null
-// Skin-specific strip folder (Phase 7: ./assets/violet/skins/<tag>/fx/*.png), else the default strips.
+// Skin FX (Phase 7): ring colour, flash colour and the skin's precomputed FX strip folder, keyed by the skin's recolour tag.
+const tintOf = f => VIOLET_SKIN_FX[f?._recolorTag] || null
 const fxUrl = (f, k) => { const t = tintOf(f); return t?.dir ? `${t.dir}/${k}.png` : VIOLET_FX[k].sheet }
 
 function strip(c, f, k, i, x, y, sc = SCALE, flip = false, alpha = 1, rot = 0) {

@@ -6,6 +6,7 @@ import { spdRedRegen } from './spdRedState.js'   // S.P.D. Red: Delta passive (+
 import { arlongRegen } from './arlongState.js'   // Arlong: Tide passive (+1/s, +2/s more in his water) replaces the shared regen
 import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive (+1.5/s) replaces the shared regen
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
+import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -36169,6 +36170,7 @@ export function doEnergyCharge(fighter) {
 export function regenEnergy(fighter) {
   if (luffyRegen(fighter)) return
   if (zoroRegen(fighter)) return
+  if (violetRegen(fighter)) return   // Violet Parr: Force Field 5 / s (violet-gated)
   if (buggyRegen(fighter)) return
   if (arlongRegen(fighter)) return
   if (spdRedRegen(fighter)) return

@@ -29,6 +29,28 @@ HOOKS = [
    "import { violetHarnessApi } from './violetHarness.js'   // Violet Parr test accessor (harness URLs only)", "violetHarness.js"),
   (1, 'game.js', "    batmanTest: batmanHarnessApi(", 'after_line',
    "    violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),", "violetTest: violetHarnessApi"),
+  # ── phase 2: stats / energy economy / run / weight ──
+  (2, 'abilities.js', "import { updateZoroSantoryu } from './zoroState.js'", 'after_line',
+   "import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)", "violetRegen } from './violetState.js'"),
+  (2, 'abilities.js', "  if (zoroRegen(fighter)) return", 'after_line', "  if (violetRegen(fighter)) return   // Violet Parr: Force Field 5 / s (violet-gated)", "if (violetRegen(fighter)) return"),
+  (2, 'combat.js', "import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'", 'after_line',
+   "import { violetHit, violetKnockback } from './violetState.js'   // Violet Parr hooks (violet-gated)", "from './violetState.js'"),
+  (2, 'combat.js', "    batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})", 'after_line',
+   "    violetHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Violet: +4 Force Field on a landed hit; violet-gated", "    violetHit(attacker"),
+  (2, 'combat.js', "    zoroKnockback(attacker, defender, atk)", 'after_line', "    violetKnockback(attacker, defender, atk)   // Violet: weight 0.8 (knockback taken ÷ 0.8); violet-gated", "violetKnockback(attacker"),
+  (2, 'game.js', "import { batmanHarnessApi } from './batmanHarness.js'", 'after_line',
+   "import { tickViolet, isViolet, clearViolet } from './violetState.js'   // Violet Parr (The Incredibles) — violet-gated sim", "import { tickViolet"),
+  (2, 'game.js', "const BATMAN_WORLD = MMPR_BLACK_WORLD", 'after_line',
+   "const VIOLET_WORLD = MMPR_BLACK_WORLD   // Violet Parr: the same self-contained world (stage width, fighters, frame, seed, W.damage)", "const VIOLET_WORLD"),
+  (2, 'game.js', "  for (const _f of [p1, p2]) if (_f) clearBatman(_f)", 'after_line', "  for (const _f of [p1, p2]) if (_f) clearViolet(_f)", "if (_f) clearViolet(_f)", 4),
+  (2, 'game.js', "  tickBatman(fighter,nearest,readRawControls(fighter)||{},BATMAN_WORLD)\n  playBatmanCues(fighter)", 'after_line',
+   "  tickViolet(fighter,nearest,readRawControls(fighter)||{},VIOLET_WORLD)", "tickViolet(fighter,nearest,"),
+  (2, 'game.js', "  tickBatman(fighter,getOpponent(fighter),readRawControls(fighter)||{},BATMAN_WORLD)\n  playBatmanCues(fighter)", 'after_line',
+   "  tickViolet(fighter,getOpponent(fighter),readRawControls(fighter)||{},VIOLET_WORLD)", "tickViolet(fighter,getOpponent"),
+  (2, 'game.js', ";clearBatman(p1);clearBatman(p2)", 'replace', ";clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2)", "clearViolet(p1);clearViolet(p2)", 2),
+  (2, 'game.js', "    clearMmprPink(f,MMPR_PINK_WORLD)\n    clearBatman(f)", 'after_line', "    clearViolet(f)", "    clearViolet(f)"),
+  (2, 'game.js', "  if (isBatman(f)) snap.push(JSON.stringify([f._batman || null", 'after_line',
+   "  if (isViolet(f)) snap.push(JSON.stringify([f._violet || null, f.currentAttack?.vi || null, f.baseSpeed, f.runWhenAdvancing || false]))   // Violet GAME_STATE (energy ledger, run, Vanish, shield, push, trap, ult, cooldowns, edges)", "if (isViolet(f)) snap.push"),
 ]
 
 def main():

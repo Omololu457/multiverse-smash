@@ -43,8 +43,10 @@ function zeroBuffer(buf) {
 // Tensei): the buffer isn't decremented while a cinematic freezes the loop, so a held/buffered press
 // from before the freeze would otherwise fire on the new body the instant control resumes.
 export function clearInputBuffer(fighter) {
-  const b = PLAYER_BUFFERS[fighter?.playerNumber || 1]
+  const pn = fighter?.playerNumber || 1
+  const b = PLAYER_BUFFERS[pn]
   if (b) zeroBuffer(b)
+  _invalidateSnap(pn)   // a cleared buffer must not live on in this frame's snapshot
 }
 
 export const inputSettings = {
@@ -494,6 +496,48 @@ function pollGamepad(playerNum, buffer) {
 // wiring is connected (both counters advancing = getFighterInput ran for both).
 export const inputCallCount = { 1: 0, 2: 0 }
 
+// LOGIC-FRAME CLOCK. game.js calls beginInputFrame() exactly once per simulated battle frame
+// (updateBattle / updateFFABattle, after the freeze early-returns). Diagnostic trace: when a harness sets
+// globalThis.__inputTrace = [], every getFighterInput call appends one row (frame, player, stun state,
+// caller) so call counts per fighter per frame can be MEASURED. Inert (one undefined check) otherwise.
+let _inputFrame = 0
+export function beginInputFrame() { _inputFrame++ }
+export function currentInputFrame() { return _inputFrame }
+function _traceInputCall(fighter, pn, consumed, snap) {
+  const t = globalThis.__inputTrace
+  if (!Array.isArray(t)) return
+  const line = (new Error().stack || "").split("\n")[3] || ""
+  const c = fighter.controls || {}
+  t.push({ frame: _inputFrame, pn, rk: fighter.rosterKey, hs: fighter.hitstun | 0, bs: fighter.blockstun | 0,
+    kd: !!(fighter.knockdownState || (fighter.knockdownTimer | 0) > 0), consumed,
+    light: !!snap?.light, special: !!snap?.special, rawLight: !!(c.light && keys[c.light]),
+    caller: (line.match(/:(\d+):\d+\)?$/) || [])[1] || line.trim() })
+}
+
+// PER-FRAME INPUT SNAPSHOT (fixes the "double buffer drain"). Resolving a fighter's input ADVANCES its
+// buffers by one frame, and the game used to resolve it 2-4x per fighter per frame (movement, combat body,
+// the hitstun/blockstun reversal checks), so INPUT_BUFFER_FRAMES = 10 really lasted ~5 frames (~2.5 for
+// Green Arrow's reversal). Now the FIRST getFighterInput() call for a player in a logic frame resolves the
+// input ONCE (decrement + poll + stamp) and stores an immutable snapshot; every later call in that frame
+// returns a fresh COPY of that snapshot and never touches the buffers. Callers may still mutate the object
+// they get (Obito/Krybot/Mr. Incredible neutralize fields locally) without affecting anyone else.
+// Before the frame clock has ever started (_inputFrame === 0, i.e. pure-Node unit tests that call
+// getFighterInput once per simulated frame), each call is its own frame, exactly as before.
+const _frameSnap = { 1: null, 2: null, 3: null, 4: null }   // playerNumber → { frame, fighter, snap(frozen) }
+function _invalidateSnap(pn) { if (pn in _frameSnap) _frameSnap[pn] = null }
+function _cachedSnap(fighter, pn) {
+  const c = _frameSnap[pn]
+  return (_inputFrame > 0 && c && c.frame === _inputFrame && c.fighter === fighter) ? c.snap : null
+}
+
+// NON-CONSUMING read for code that runs OUTSIDE the logic frame (keydown handlers): this frame's snapshot
+// if it has been resolved, otherwise the side-effect-free held-control read. Never advances a buffer.
+export function peekFighterInput(fighter) {
+  if (!fighter) return null
+  const snap = _cachedSnap(fighter, fighter.playerNumber || 1)
+  return snap ? { ...snap } : readRawControls(fighter)
+}
+
 // CLONE-SUMMON JUMP GRACE helper: true when the fighter's motion buffer FRESHLY ends with the ↓↓↑
 // cloneSummon shape (cardinal D,D,U within its 800ms window). Only Naruto-universe clone chars ever
 // populate motionHistory (recordMotionInput early-returns for everyone else), and AI-driven fighters
@@ -511,15 +555,24 @@ function _recentCloneSummonMotion(fighter) {
 
 export function getFighterInput(fighter) {
   if (!fighter) return null
-
   const pn = fighter.playerNumber || 1
+  if (pn === 1 || pn === 2) inputCallCount[pn]++
+  const cached = _cachedSnap(fighter, pn)
+  if (cached) { _traceInputCall(fighter, pn, false, cached); return { ...cached } }   // READ: no buffer advance
+  const snap = _resolveFighterInput(fighter, pn)                                     // CONSUME: once per frame
+  if (_inputFrame > 0) _frameSnap[pn] = { frame: _inputFrame, fighter, snap: Object.freeze({ ...snap }) }
+  _traceInputCall(fighter, pn, true, snap)
+  return snap
+}
+
+// The ONLY place buffers advance: decrement, poll pad/keys, stamp. Called at most once per player per frame.
+function _resolveFighterInput(fighter, pn) {
   const isP1 = pn === 1
   // Players 1-4 (3/4 exist only in the FFA POC). Falls back to P2's slot for any
   // unexpected number so 1v1 (pn 1/2) behaves EXACTLY as before.
   const buffer = PLAYER_BUFFERS[pn] || p2Buffer
   const type = inputSettings[PLAYER_TYPES[pn] || "p2Type"]
   const ctrl = fighter.controls
-  if (pn === 1 || pn === 2) inputCallCount[pn]++
 
   updateBuffer(buffer)
 
@@ -623,6 +676,7 @@ export function writeRawControls(fighter, raw) {
 // Call this on round reset so held keys don't ghost into the new round.
 // ─────────────────────────────────────────────────────────────────
 export function clearInputBuffers(fighters = []) {
+  for (const pn of [1, 2, 3, 4]) _invalidateSnap(pn)
   zeroBuffer(p1Buffer)
   zeroBuffer(p2Buffer)
   zeroBuffer(p3Buffer)

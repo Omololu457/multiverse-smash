@@ -1,0 +1,389 @@
+[
+  {
+    "name": "NEUTRAL",
+    "p1": "goku",
+    "p2": "goku",
+    "holdKeys": [],
+    "P1": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41,
+        "11933": 41
+      }
+    },
+    "P2": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41,
+        "11933": 41
+      }
+    }
+  },
+  {
+    "name": "HITSTUN (both)",
+    "p1": "goku",
+    "p2": "goku",
+    "holdKeys": [],
+    "P1": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41
+      }
+    },
+    "P2": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41
+      }
+    }
+  },
+  {
+    "name": "BLOCKSTUN (both)",
+    "p1": "goku",
+    "p2": "goku",
+    "holdKeys": [],
+    "P1": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41
+      }
+    },
+    "P2": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41
+      }
+    }
+  },
+  {
+    "name": "REVERSAL: Tobirama Water Flicker check, hitstun",
+    "p1": "tobirama",
+    "p2": "goku",
+    "holdKeys": [],
+    "P1": {
+      "framesSampled": 40,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 40
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 40
+        }
+      },
+      "callerLines": {
+        "11557": 40,
+        "11870": 40
+      }
+    },
+    "P2": {
+      "framesSampled": 40,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 40
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 40
+        }
+      },
+      "callerLines": {
+        "11557": 40,
+        "11933": 40
+      }
+    }
+  },
+  {
+    "name": "REVERSAL: Tobirama Water Flicker check, hitstun, Special held, 0 chakra",
+    "p1": "tobirama",
+    "p2": "goku",
+    "holdKeys": [
+      "l"
+    ],
+    "P1": {
+      "framesSampled": 40,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 40
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 40
+        }
+      },
+      "callerLines": {
+        "11557": 40,
+        "11870": 40
+      }
+    },
+    "P2": {
+      "framesSampled": 40,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 40
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 40
+        }
+      },
+      "callerLines": {
+        "11557": 40,
+        "11933": 40
+      }
+    }
+  },
+  {
+    "name": "REVERSAL: Green Arrow Extraction check, hitstun, Special held",
+    "p1": "green_arrow",
+    "p2": "goku",
+    "holdKeys": [
+      "l"
+    ],
+    "P1": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 4,
+        "max": 4,
+        "hist": {
+          "4": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41,
+        "11879": 41,
+        "11880": 82
+      }
+    },
+    "P2": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41,
+        "11933": 41
+      }
+    }
+  },
+  {
+    "name": "REVERSAL: Combo Breaker check, hitstun, foe combo>=3",
+    "p1": "goku",
+    "p2": "goku",
+    "holdKeys": [],
+    "P1": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41,
+        "11894": 41
+      }
+    },
+    "P2": {
+      "framesSampled": 41,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 41
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 41
+        }
+      },
+      "callerLines": {
+        "11557": 41,
+        "11933": 41
+      }
+    }
+  },
+  {
+    "name": "REVERSAL: Sasuke Counter Swap check, blockstun, Special held",
+    "p1": "sasuke_sensei",
+    "p2": "goku",
+    "holdKeys": [
+      "l"
+    ],
+    "P1": {
+      "framesSampled": 40,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 40
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 40
+        }
+      },
+      "callerLines": {
+        "11557": 40,
+        "11906": 40
+      }
+    },
+    "P2": {
+      "framesSampled": 40,
+      "callsPerFrame": {
+        "min": 2,
+        "max": 2,
+        "hist": {
+          "2": 40
+        }
+      },
+      "consumingPerFrame": {
+        "min": 1,
+        "max": 1,
+        "hist": {
+          "1": 40
+        }
+      },
+      "callerLines": {
+        "11557": 40,
+        "11933": 40
+      }
+    }
+  }
+]

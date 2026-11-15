@@ -170,7 +170,7 @@ import { fxSheetsForFighters } from "./preloadManifest.js"
 import { gameRng, reseed as reseedRng, makeSeed } from "./rng.js"   // Stage 11A: seeded gameplay RNG
 import {
   keys, mouse, setupMouseInput, pointInRect, consumeMouseClick,
-  inputSettings, getFighterInput, updateDebugInputToggles, getDebugInputState,
+  inputSettings, getFighterInput, peekFighterInput, beginInputFrame, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
   clearInputBuffers, PS5_MAP, STICK_DEADZONE, inputCallCount, getConnectedPadCount, getPlayerGamepad,
   readRawControls, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
@@ -4415,6 +4415,7 @@ function updateFFABattle() {
   }
 
   const live = ffaAliveFighters()
+  beginInputFrame()   // ONE logic frame for the input buffers (input.js)
   for (const f of live) updateGamepadEdges(f)         // controller motion/edges (P3/P4 pads)
   updateFFAFacing(live)
   updateFFAAIInputs(live)                             // AI-filled slots: pick target + write their keys BEFORE input is read
@@ -20865,6 +20866,7 @@ function updateBattle() {
     else if (prevRoundTimer > 600  && roundTimer <= 600)  sound.playSfxFile?.(pickRickVoice("timer10"), null)
   }
 
+  beginInputFrame()   // ONE logic frame for the input buffers (input.js) — every getFighterInput read this frame shares one snapshot
   updateDebugInputToggles()
   updateTrainingMode()
   for (const f of [p1, p2]) {
@@ -27100,7 +27102,7 @@ window.addEventListener("keydown", e => {
   //   forward+h  = a clone-shaped projectile flies forward, hits, vanishes            (fireCloneOneShotProjectile)
   //   back+h     = instant Substitution teleport (puff + i-frames), one frame          (fireCloneSubstitution)
   if (!e.repeat && key === "h" && gameState === GAME_STATES.BATTLE && p1 && ONESHOT_CLONE_KEYS.has((p1.rosterKey || "").toLowerCase())) {
-    const inp = getFighterInput(p1)
+    const inp = peekFighterInput(p1)   // keydown runs OUTSIDE the logic frame → non-consuming read
     const fwd  = (p1.facing === 1) ? !!inp.right : !!inp.left
     const back = (p1.facing === 1) ? !!inp.left  : !!inp.right
     const ctx  = getAbilityContext()
@@ -29193,6 +29195,7 @@ gameLoop()
     setN7Form: (form = "kcm", who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; try { revertNarutoSeventhForm(f) } catch (_) {} const need = { base: 0, red: 1, fourtails: 2, kcm: 3 }[form] ?? 3; f._n7Bond = need; f._n7BondPts = Math.min(100, need * 25 + 10); for (let i = 0; i < 4 && (f._n7Form || "base") !== form && (f._n7Form || "base") !== "kcm"; i++) { f.energy = f.maxEnergy || 200; f.attackCooldown = 0; f.hitstun = 0; try { enterNarutoSeventhForm(f, getAbilityContext()) } catch (_) {} } f.attackCooldown = 0; return f._n7Form || "base" },   // test-only: force a nine-tails form directly (steps up, bypassing input)
     setN7RikudouUsed: (used = false, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._n7RikudouUsed = !!used; return !!f },   // test-only: arm/disarm the once-per-round Rikudou gate
     triggerN7Avatar: (who = "p1") => { const f = who === "p2" ? p2 : p1; if (!f) return null; f._n7Bond = 4; f._n7BondPts = 100; f.energy = f.maxEnergy || 200; f._ultVariant = "avatar"; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.ultimateCooldown = 0; const ok = triggerUltimate(f, getAbilityContext()); return { ok: !!ok, avatar: !!f._n7Avatar, timer: f._n7Avatar?.timer || 0 } },   // test-only: summon the Nine-Tails Avatar directly (no Up-jump confound)
+    setHitstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.hitstun = frames; f.blockstun = 0 } return !!f },   // test-only: put either fighter in hitstun (input-buffer measurement / regression)
     setBlockstun: (frames = 20, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) { f.blockstun = frames; f.isBlocking = true; f.hitstun = 0 } return !!f },   // test-only: put a fighter in blockstun to verify Counter Swap
     setSusanoo: (stage = 2, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._susanooStage = stage | 0; return !!f },   // test-only: set Susanoo stage to verify dojutsu is gated off during Susanoo
     setEyeSet: (set = "susanoo", who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._eyeSet = set; return !!f },   // test-only: set sasuke_sensei eye-set directly (skip the Up+Ult cycle, which jumps)

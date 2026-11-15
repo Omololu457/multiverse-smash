@@ -1,0 +1,117 @@
+{
+ "pass": 12,
+ "fail": 0,
+ "results": {
+  "P5": {
+   "Jab, Jab, Heavy, Long Arm": {
+    "hits": [
+     [
+      "light",
+      12,
+      20
+     ],
+     [
+      "light",
+      12,
+      20
+     ],
+     [
+      "heavy",
+      29,
+      54
+     ],
+     [
+      "eLongArm",
+      20,
+      40
+     ]
+    ],
+    "dealt": 73,
+    "storedScale": 122,
+    "brief": 106,
+    "briefModel85": 101,
+    "deviation": "15.1%"
+   },
+   "whirlContactsInJuggle": 2,
+   "Low, Launcher, Air, Whirl": {
+    "hits": [
+     [
+      "eLow",
+      16,
+      28
+     ],
+     [
+      "up",
+      28,
+      48
+     ],
+     [
+      "air",
+      16,
+      30
+     ],
+     [
+      "eWhirl",
+      11,
+      22
+     ],
+     [
+      "eWhirl",
+      10,
+      22
+     ]
+    ],
+    "dealt": 81,
+    "storedScale": 135,
+    "brief": 125,
+    "briefModel85": 128,
+    "deviation": "8%"
+   },
+   "Long Arm, Heavy, Whip": {
+    "hits": [
+     [
+      "eLongArm",
+      24,
+      40
+     ],
+     [
+      "heavy",
+      32,
+      54
+     ],
+     [
+      "eWhip",
+      33,
+      60
+     ]
+    ],
+    "dealt": 89,
+    "storedScale": 148,
+    "brief": 133,
+    "briefModel85": 129,
+    "deviation": "11.3%"
+   },
+   "c4": {
+    "hits": [
+     [
+      "up",
+      28,
+      48
+     ],
+     [
+      "air",
+      15,
+      30
+     ],
+     [
+      "eDomeSlam",
+      31,
+      70
+     ]
+    ],
+    "dealt": 74,
+    "storedScale": 123
+   }
+  }
+ }
+}

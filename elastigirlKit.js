@@ -42,4 +42,9 @@ export const ELASTIGIRL_KIT = { type: 'Footsies / Grappler', energy: 'Elasticity
   ],
   ultimate: { name: 'Family Raft', input: '↓↘→↓↘→ + Special (or Ultimate)', cost: 100, desc: 'R14 windup (24 f), then Helen becomes a raft carrying Dash and Violet and surges across the stage: 4 hits 40 / 40 / 50 / 90 (220). Ends in a 100 f lockout.' },
   controls: ELASTIGIRL_CONTROLS,
-  combos: [] }
+  combos: [
+    { name: 'Footsies confirm', sequence: 'Jab → Jab → Heavy → Long Arm (↓↘→ + Special)', desc: 'Clean-hit chain into the Long Arm pull. ≈106 (harness: 73 dealt = 122 stored-scale on the engine curve). 12 Elasticity.' },
+    { name: 'Low launcher', sequence: 'Down + Light → Up-Attack → jump → Air → Whirl Kick (Special)', desc: 'Low starter into the launcher, an air stretch re-lofts, the air Whirl Kick spins through the juggle. ≈125 (harness: 81 dealt = 135). 15 Elasticity.' },
+    { name: 'Reel and whip', sequence: 'Long Arm → Heavy → Overhead Whip (←↙↓ + Special)', desc: 'The pull leaves her +18, Heavy links, the Whip cancels and ground-bounces. ≈133 (harness: 89 dealt = 148). 27 Elasticity.' },
+    { name: 'Sky route', sequence: 'Up-Attack → jump → Slingshot (hold ~16 f, release) → Air → Parachute (↓ + Special) → Special (slam)', desc: 'One Slingshot per airtime. Harness: 74 dealt = 123 stored-scale. 30 Elasticity.' },
+  ] }

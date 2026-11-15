@@ -51,18 +51,19 @@ export const EG_MOVES = {
   heavy: mv({ name: 'Elastic Haymaker', damage: 54, startup: 14, active: 4, recovery: 22, onBlock: -5, category: 'heavy', hitstun: 26, knockbackX: 4, box: [-10, 200, 22, 52], limb: true, reach: 200 }),
   eLow: mv({ name: 'Stretch Sweep', damage: 28, startup: 8, active: 3, recovery: 18, onBlock: -4, hitLevel: 'low', hitstun: 20, box: [-10, 210, 74, 100], limb: true, reach: 210 }),
   up: mv({ name: 'Rising Reach', damage: 48, startup: 12, active: 4, recovery: 24, onBlock: -9, category: 'launcher', launcher: true, hitstun: 30, launchVy: -20, selfVy: 0, box: [-10, 140, -150, 40], limb: true, reach: 140 }),
-  air: mv({ name: 'Diving Stretch', damage: 30, startup: 7, active: 4, recovery: 14, onBlock: 2, hitstun: 22, knockbackY: -2, box: [-20, 110, -10, 80], air: true }),
+  air: mv({ name: 'Diving Stretch', damage: 30, startup: 7, active: 4, recovery: 14, onBlock: 2, hitstun: 22, knockbackY: -9, box: [-20, 110, -10, 80], air: true }),
   // SPECIALS
   eLongArm: mv({ name: 'Long Arm', damage: 40, startup: 14, active: 6, recovery: 3, follow: 'eLongWhiff', cost: 12, isSpecial: true, category: 'special', onBlock: -16, hitstun: 40, knockbackX: 0, box: [-10, 380, 26, 52], limb: true, reach: 380, onHit: 18, pull: 12 }),
   eLongPull: mv({ name: 'Long Arm (pull)', damage: 0, startup: 20, active: 1, recovery: 1, noBody: true, pose: true }),
   eLongWhiff: mv({ name: 'Long Arm (whiff)', damage: 0, startup: 20, active: 1, recovery: 14, noBody: true, pose: true, limbHold: 18 }),
   eWhirl: mv({ name: 'Whirl Kick', damage: 22, startup: 8, active: 14, recovery: 18, cost: 15, isSpecial: true, category: 'special', onBlock: -8, hitstun: 18, knockbackX: 1,
-    box: [-50, 100, 8, 98], upperInvuln: [3, 9],
+    box: [-50, 100, 8, 130], upperInvuln: [3, 9],
     contacts: [{ from: 8, to: 9, damage: 22, hitstun: 18, knockbackX: 1 }, { from: 13, to: 14, damage: 22, hitstun: 18, knockbackX: 1 }, { from: 19, to: 21, damage: 28, hitstun: 26, knockbackX: 5 }] }),
   eDome: mv({ name: 'Parachute Drop', damage: 70, startup: 24, active: 5, recovery: 18, cost: 18, isSpecial: true, category: 'special', hitLevel: 'overhead', onBlock: -6, hitstun: 30, knockbackX: 3, box: [-70, 80, 0, 100], hop: { at: 4, vy: -9 } }),
   eDomeSlam: mv({ name: 'Parachute Drop (slam)', damage: 70, startup: 2, active: 60, recovery: 1, isSpecial: true, category: 'special', hitLevel: 'overhead', hitstun: 30, knockbackX: 3, knockbackY: 4, box: [-70, 80, 0, 104], slam: true }),
-  eDomeLand: mv({ name: 'Parachute Drop (land)', damage: 0, startup: 16, active: 1, recovery: 1, noBody: true, pose: true }),
-  eWhip: mv({ name: 'Overhead Whip', damage: 60, startup: 18, active: 4, recovery: 24, cost: 15, isSpecial: true, category: 'special', hitLevel: 'overhead', onBlock: -10, hitstun: 34, knockbackX: 1, box: [150, 300, -120, 100], limb: true, reach: 300, bounce: -12 }),
+  // landing IMPACT: a slam that did not connect on the way down hits on touchdown (frames 0–5, the dome splays out); one 70 total
+  eDomeLand: mv({ name: 'Parachute Drop (impact)', damage: 70, startup: 0, active: 6, recovery: 10, isSpecial: true, category: 'special', hitLevel: 'overhead', onBlock: -6, hitstun: 30, knockbackX: 3, box: [-80, 90, -60, 100] }),
+  eWhip: mv({ name: 'Overhead Whip', damage: 60, startup: 18, active: 4, recovery: 24, cost: 15, isSpecial: true, category: 'special', hitLevel: 'overhead', onBlock: -10, hitstun: 34, knockbackX: 1, box: [-10, 300, -120, 100], limb: true, reach: 300, bounce: -12 }),
   // DEFENSE (Phase 6)
   eGuard: mv({ name: 'Stretch Guard', damage: 0, startup: 1, active: 6, recovery: 15, noBody: true, guard: true }),
   eBounce: mv({ name: 'Bounce Back', damage: 0, startup: 1, active: 1, recovery: 20, noBody: true, bounce: true }),

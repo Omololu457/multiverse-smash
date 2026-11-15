@@ -128,7 +128,7 @@ export function boxOf(f, box, dir) {
 }
 export function elastigirlHitbox(f) {
   const a = f.currentAttack, m = a?.eg, md = MOVES[m?.key]
-  if (!m || !md || md.noBody) return Z
+  if (!m || !md || md.noBody || (m.key === 'eDomeLand' && !m.impact)) return Z
   const t = elapsed(a)
   if (md.contacts ? contactAt(md, t) < 0 : (t < a.activeStart || t > a.activeEnd)) return Z
   return boxOf(f, md.box, m.dir)
@@ -248,7 +248,7 @@ export function startParachute(f) {
   if (grounded(f) || s.para || s.sling || f.attacking) return reject(f)
   if ((f.energy || 0) < md.cost) return reject(f)
   f.energy -= md.cost
-  s.para = { t: 0, vy: Math.min(f.vy || 0, 0) }
+  s.para = { t: 0, vy: Math.min(f.vy || 0, 0), c0: s.clock, slamReq: false }
   f.vx = (f.vx || 0) * 0.5
   f._spriteCastMove = 'eDomeFloat'; f._spriteCastTimer = 999
   s.stats.moves.eDomeAir = (s.stats.moves.eDomeAir || 0) + 1
@@ -309,14 +309,14 @@ export function tickElastigirl(f, opp, raw, W) {
   if (s.para) {
     const P = D.PARACHUTE
     if (f.hitstun > 0 || f.isGrabbed) { s.para = null; f._spriteCastMove = null; f._spriteCastTimer = 0 }
-    else if (g) { s.para = null; f._spriteCastMove = null; f._spriteCastTimer = 0; follow(f, 'eDomeLand'); f.currentAttack.hasHit = true }
+    else if (g) { s.para = null; f._spriteCastMove = null; f._spriteCastTimer = 0; follow(f, 'eDomeLand', { impact: false }); f.currentAttack.hasHit = true }
     else {
       s.para.t++
       s.para.vy = Math.min(s.para.vy + P.gravity * P.fallMul, P.maxFall * P.fallMul)
       f.vy = s.para.vy - P.gravity                          // physics adds gravity after this tick → the float fall
       f.vx = clamp((f.vx || 0) + (fw ? 0.25 : bk ? -0.25 : 0) * face, -3, 3) * 0.98
-      const early = ['light', 'heavy', 'special', 'upAttack'].some(k => s.edges[k] && s.edges[k].tick === s.tick)
-      if (s.para.t >= P.floatMax || (early && s.para.t >= P.slamMinFloat)) slam(f, s)
+      if (['light', 'heavy', 'special', 'upAttack'].some(k => s.edges[k] && s.edges[k].tick === s.tick && s.edges[k].clock > s.para.c0)) s.para.slamReq = true   // buffered early slam
+      if (s.para.t >= P.floatMax || (s.para.slamReq && s.para.t >= P.slamMinFloat)) slam(f, s)
     }
   }
   const a = live(f)
@@ -360,7 +360,7 @@ export function tickElastigirl(f, opp, raw, W) {
       break
     case 'eDomeSlam':
       f.vy = D.PARACHUTE.slamVy - D.PARACHUTE.gravity; f.vx = 0
-      if (g && t > 0) { cue(f, 'thud'); follow(f, 'eDomeLand'); f.currentAttack.hasHit = true }
+      if (g && t > 0) { cue(f, 'thud'); const hit = m.clean || m.blocked; follow(f, 'eDomeLand', { impact: !hit }); f.currentAttack.hasHit = hit }
       break
     case 'air':
       if (g && t > 2) endAttack(f, 4)

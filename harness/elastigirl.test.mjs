@@ -4,6 +4,7 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { comboDriver } from './elastigirl_combo_lib.mjs'
 const ONLY = (process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : '').split(',').filter(Boolean)
 const want = s => !ONLY.length || ONLY.includes(s)
 const server = await serve(), browser = await chromium.launch({ headless: true }), errors = [], results = {}
@@ -221,6 +222,52 @@ try {
     await d.reset(500, { energy: 40 }); await d.step(10); await d.tap(['u'], 2); const ur = await d.st()
     ok('P4 Family Raft refused below 100 Elasticity (nothing spent)', !ur.attack && ur.energy >= 40 && ur.s.stats.rejects >= 1, JSON.stringify({ a: ur.attack?.name, e: ur.energy }))
     results.P4 = R
+    await page.close()
+  }
+  // ══ PHASE 5 — combos (REAL inputs; damage = engine combo curve; totals reported at stored scale = dealt / 0.6) ══
+  if (want('P5')) {
+    const page = await open('elastigirl', 'batman'); const c = comboDriver(page), R = {}
+    const sum = () => c.log.reduce((n, h) => n + h.d, 0), stored = () => Math.round(sum() / 0.6)
+    const allTrue = () => c.log.slice(1).every(h => h.combo)
+    // brief model: 85 % per hit after the first (reported beside the engine curve)
+    const model = arr => Math.round(arr.reduce((n, d, i) => n + d * Math.pow(0.85, i), 0))
+    const check = (name, moves, target, raw) => {
+      const got = c.log.map(h => h.move), tot = stored(), dev = (tot - target) / target
+      R[name] = { hits: c.log.map(h => [h.move, h.d, h.stored]), dealt: sum(), storedScale: tot, brief: target, briefModel85: model(raw), deviation: +(dev * 100).toFixed(1) + '%' }
+      ok(`P5 ${name}: every hit lands as a true combo`, got.join() === moves.join() && allTrue(), JSON.stringify(R[name].hits))
+      ok(`P5 ${name}: ≈${target} (±20 %, engine curve) — got ${tot}`, Math.abs(dev) <= 0.20, `dealt ${sum()} → stored-scale ${tot} (${R[name].deviation}); 85 % model ${model(raw)}`)
+    }
+    // 1) Jab, Jab, Heavy, Long Arm ≈106
+    await c.begin(40); await c.press(['j']); await c.cancelOpen(); await c.press(['j']); await c.cancelOpen(); await c.press(['k']); await c.cancelOpen(); await c.motion('236'); await c.tick(90)
+    check('Jab, Jab, Heavy, Long Arm', ['light', 'light', 'heavy', 'eLongArm'], 106, [20, 20, 54, 40])
+    // 2) Low, Launcher, Air, Whirl ≈125 (the engine's shared 3-air-hit juggle cap drops the 3rd Whirl contact)
+    await c.begin(60); await c.press(['s', 'j']); await c.cancelOpen(); await c.press(['i']); await c.cancelOpen(); await c.press(['w'], 2); await c.tick(6); await c.press(['j']); await c.cancelOpen(); await c.press(['l']); await c.tick(90)
+    const c2 = c.log.map(h => h.move); const whirls = c2.filter(m => m === 'eWhirl').length
+    R.whirlContactsInJuggle = whirls
+    check('Low, Launcher, Air, Whirl', ['eLow', 'up', 'air', ...Array(whirls).fill('eWhirl')], 125, [28, 48, 30, 22, 22, 28])
+    ok('P5 Low, Launcher, Air, Whirl: at least 2 Whirl contacts connect in the juggle', whirls >= 2, String(whirls))
+    // 3) Long Arm, Heavy, Whip ≈133 (Long Arm from 330 px: the pull, +18 → Heavy links, Heavy → Whip special-cancel)
+    await c.begin(330); await c.motion('236'); await c.until(q => q.a.attack?.name === 'eLongPull', 60); await c.until(q => !q.a.attack, 60); await c.press(['k']); await c.cancelOpen(); await c.motion('412'); await c.tick(90)
+    check('Long Arm, Heavy, Whip', ['eLongArm', 'heavy', 'eWhip'], 133, [40, 54, 60])
+    // 4) Launcher, Slingshot, Air, Parachute slam — and ONE Slingshot per airtime
+    await c.begin(60); await c.press(['i']); await c.cancelOpen(); await c.press(['w'], 2); await c.tick(6)
+    await page.keyboard.down('w'); await page.keyboard.down('l'); await c.tick(16); await page.keyboard.up('l'); await page.keyboard.up('w'); await c.tick(2)
+    const e1 = (await c.st()).a.energy; await page.keyboard.down('w'); await page.keyboard.down('l'); await c.tick(2); await page.keyboard.up('l'); await page.keyboard.up('w'); const q2 = await c.st()
+    ok('P5 Launcher, Slingshot, …: a second Slingshot in the same airtime is refused (nothing spent)', !q2.a.swinging && q2.a.s.stats.slings === 1 && q2.a.energy >= e1 && !q2.a.grounded, JSON.stringify({ slings: q2.a.s.stats.slings, e: [e1, q2.a.energy] }))
+    await c.until(q => { const dx = (q.b.x - q.a.x) * q.a.facing; return dx > 0 && dx < 110 && q.b.y - q.a.y > -60 && q.b.y - q.a.y < 90 }, 30)
+    await c.press(['j']); await c.until(q => q.a.attack?.eg?.clean || !q.a.attack, 20); await c.press(['s', 'l']); await c.tick(8); await c.press(['l'], 1); await c.tick(40)
+    R.c4 = { hits: c.log.map(h => [h.move, h.d, h.stored]), dealt: sum(), storedScale: stored() }
+    ok('P5 Launcher, Slingshot, Air, Parachute slam: every hit lands as a true combo', c.log.map(h => h.move).join() === 'up,air,eDomeSlam' && allTrue(), JSON.stringify(R.c4))
+    // 90 f reset: the combo counter drops after 90 f without a hit
+    await c.begin(40); await c.press(['j']); await c.tick(30); const k1 = (await c.st()).aCombo; await c.tick(80); const k2 = (await c.st()).aCombo
+    ok('P5 combo counter resets 90 f after the last hit', k1 >= 1 && k2 === 0, JSON.stringify({ at30: k1, at110: k2 }))
+    // live Elasticity income (the P2 claim, end-to-end): her Jab lands → +4; Batman's Jab lands on her → +3
+    const inc = await page.evaluate(() => { const H = __harness.elastigirlTest, L = __harness.luffyTest, B = __harness.batmanTest; H.reset(); __harness.setDummyBehavior('stand'); const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1300 + a.w + 40; a.facing = 1; b.facing = -1; a.energy = 20
+      const hp = b.health; H.move('light'); let n = 0; while (b.health === hp && n < 20) { L.step(1); n++ } const landed = a.energy - 20 - n * 5 / 60
+      for (let i = 0; i < 40; i++) L.step(1); b.x = a.x + a.w + 30; b.vx = 0; L.step(1); a.energy = 20; const my = a.health; B.move('light', 'p2'); let m = 0; while (a.health === my && m < 30) { L.step(1); m++ } const taken = a.energy - 20 - m * 5 / 60
+      return { landed: +landed.toFixed(3), taken: +taken.toFixed(3) } })
+    ok('P5 live Elasticity: +4 on her hit landed, +3 on a hit taken', Math.abs(inc.landed - 4) < 0.01 && Math.abs(inc.taken - 3) < 0.01, JSON.stringify(inc))
+    results.P5 = R
     await page.close()
   }
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))

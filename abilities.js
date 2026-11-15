@@ -18,6 +18,8 @@ import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from ".
 import { moveset }    from "./moveset.js"
 import { sound, SFX, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
+import { SUP_LASER_MAX, SUP_LASER_TAP, SUP_LASER_DRAIN, SUP_LASER_REFILL, SUP_LASER_CD, SUP_LASER_OVERHEAT, supermanLaserState } from "./supermanLaser.js"   // Superman Heat Vision laser gauge (2026-11-15)
+export { supermanLaserState }
 import { getHomelanderEyeWorld } from "./homelanderEyeAnchors.js"   // per-frame eye anchor → world-space Heat Vision origin (fires from the eyes, not a fixed body fraction)
 import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // per-frame eye anchor → world-space laser origin (Heat Vision fires from the eyes, not a fixed body fraction)
 import { getGreenArrowBowWorld } from "./greenArrowBowAnchors.js"   // GREEN ARROW: per-frame BOW anchor → arrows fire from the bow (scales with the sprite)
@@ -17820,15 +17822,6 @@ function supermanCastBark(fighter) {
 }
 // 2026-11-15 nerf: Heat Vision no longer spends Solar Energy — it runs on its OWN laser gauge (HUD bar under
 // his health) with a re-fire cooldown after every beam and an overheat lockout if the gauge is emptied.
-export const SUP_LASER_MAX = 100
-const SUP_LASER_TAP = 34          // gauge spent by the tap shot
-const SUP_LASER_DRAIN = 0.9       // gauge per frame while the sustained beam is held (~1.1s from full after a tap)
-const SUP_LASER_REFILL = 0.45     // gauge regained per frame while not firing (~3.7s empty→full)
-const SUP_LASER_CD = 60           // re-fire cooldown after each beam ends (1s)
-const SUP_LASER_OVERHEAT = 150    // lockout once the gauge hits 0 (2.5s)
-export function supermanLaserState(f) {
-  return { gauge: f._supLaser ?? SUP_LASER_MAX, max: SUP_LASER_MAX, cd: f._supLaserCd || 0, cdMax: SUP_LASER_CD, over: f._supLaserOver || 0, overMax: SUP_LASER_OVERHEAT, firing: !!f._supHvHold }
-}
 export function resetSupermanLaser(f) { if (!f) return; f._supLaser = SUP_LASER_MAX; f._supLaserCd = 0; f._supLaserOver = 0; f._supHvHold = null; f._supHvBeam = null; f._supHvTick = 0 }
 function endSupermanBeam(f) {
   f._supHvHold = null; f._supHvBeam = null; f._supHvTick = 0

@@ -1,6 +1,7 @@
 // ui.js
 import { drawZoroHud } from './zoroFx.js'
 import { drawSanjiHud, drawSanjiHeatFill } from './sanjiFx.js'   // Sanji — glass badge, warming Heat bar, Course pips (render-only)
+import { noteSupermanEnergyPanel } from './supermanLaser.js'   // Superman Heat Vision laser bar (render-only)
 import { drawSpdRedHud } from './spdRedFx.js'   // S.P.D. Red — gem-badged Delta bar + teleport pips + JUDGMENT meter (render-only)
 import { drawArlongHud } from './arlongFx.js'   // Arlong — Tide badge + teeth counter + Kiribachi icon (render-only)
 import { drawBuggyHud } from './buggyFx.js'   // Buggy the Clown — Chop badge + part pips (render-only)   // Roronoa Zoro — Going Merry Spirit badge (render-only)
@@ -4804,6 +4805,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     drawSanjiHud(ctx, fighter, { x, enY, pbw, flip })
     drawArlongHud(ctx, fighter, { x, enY, pbw, flip })
     drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip })
+    noteSupermanEnergyPanel(fighter, { x, enY, pbw, flip })   // Superman: Heat Vision laser bar sits above this panel (drawn last by game.js)
     if (!hasEnergy) return
 
     const maxEn  = Math.max(1, fighter.maxEnergy || 100)

@@ -11,6 +11,7 @@ import { drawSpdGreenFx,playSpdGreenCues } from './spdGreenFx.js'
 import { spdGreenHarnessApi } from './spdGreenHarness.js'
 import { updateDashParrCommandCombat } from './dashParr.js'   // Dash (Dash Parr, The Incredibles) — dash_parr-gated
 import { tickDashParr,isDashParr,clearDashParr,dashParrLocked } from './dashParrState.js'
+import { drawSupermanLaserHud } from './supermanLaser.js'   // Superman Heat Vision laser bar (HUD)
 import { dashParrOppTimeScale } from './dashParrState.js'   // Dash: Flash Time (Back + Special) feeds the shared per-opponent time-slow
 import { drawDashParrFx,drawDashParrUnder,dashParrBodyAlpha,playDashParrCues,drawDashParrHud } from './dashParrFx.js'
 import { dashParrHarnessApi } from './dashParrHarness.js'
@@ -23717,22 +23718,7 @@ function drawHomelanderGauges(c, cv) {
       if (!over) { c.save(); c.fillStyle = "rgba(255,255,255,0.75)"; c.fillRect(x, y0 + h + gap + h + 1, (1 - cd / HV_COOLDOWN) * w, 2); c.restore() }   // cooldown refill sliver
     }
   }
-  // SUPERMAN — Heat Vision LASER bar (its own resource, not Solar Energy): red gauge, cooldown sliver, OVERHEAT lock.
-  const drawSup = (f, flip) => {
-    if (!f || (f.rosterKey || "").toLowerCase() !== "superman") return
-    const L = supermanLaserState(f), w = barW, h = 6, x = (flip ? cw - pad - barW - 20 : pad) + 8, y = 74
-    c.save()
-    c.fillStyle = "rgba(0,0,0,0.55)"; c.fillRect(x, y, w, h)
-    c.fillStyle = L.over > 0 ? "#ff3b30" : L.cd > 0 ? "#8f96a3" : (L.gauge / L.max < 0.34 ? "#ff7a1a" : "#ff4a2e")
-    c.fillRect(x, y, (L.over > 0 ? 1 - L.over / L.overMax : L.gauge / L.max) * w, h)
-    c.strokeStyle = "rgba(255,255,255,0.22)"; c.lineWidth = 1; c.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1)
-    if (L.cd > 0 && !L.over) { c.fillStyle = "rgba(255,255,255,0.75)"; c.fillRect(x, y + h + 1, (1 - L.cd / L.cdMax) * w, 2) }
-    c.font = "bold 8px Arial"; c.textAlign = flip ? "right" : "left"
-    c.fillStyle = L.over > 0 ? "#ff6a60" : "#ffb4a6"
-    c.fillText(L.over > 0 ? "OVERHEAT" : L.cd > 0 ? "LASER COOLDOWN" : "HEAT VISION", flip ? x + w : x, y + h + 11)
-    c.restore()
-  }
-  draw(p1, false); draw(p2, true); drawSup(p1, false); drawSup(p2, true)
+  draw(p1, false); draw(p2, true)   // (Superman's laser bar lives above his energy panel — ui.js / supermanLaser.js)
 }
 
 // FLIGHT 37 "screen goes dark" — a screen-space wash during the ult's dark-silhouette startup so
@@ -23762,6 +23748,7 @@ function drawBattleHud() {
   drawVioletScreen(ctx, canvas, p1, p2)   // Violet FULL FORCE detonation flash (render-only; gated)
   drawDashParrHud(ctx, canvas, p1, p2, globalFrameCount)   // Dash: Momentum gauge under his energy bar (gated)
   drawControlsInfo(ctx, canvas)
+  drawSupermanLaserHud(ctx, p1); drawSupermanLaserHud(ctx, p2)   // Superman Heat Vision laser bar above his energy panel — after the Controls box so it is never covered
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
   // Purple Susanoo duration clock, shown beside the round timer while either fighter is transformed.

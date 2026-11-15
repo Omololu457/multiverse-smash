@@ -9,6 +9,10 @@ import { updateSpdGreenCommandCombat } from './spdGreen.js'   // S.P.D. Green Ra
 import { tickSpdGreen,isSpdGreen,clearSpdGreen,spdGreenLocked } from './spdGreenState.js'
 import { drawSpdGreenFx,playSpdGreenCues } from './spdGreenFx.js'
 import { spdGreenHarnessApi } from './spdGreenHarness.js'
+import { updateDashParrCommandCombat } from './dashParr.js'   // Dash (Dash Parr, The Incredibles) — dash_parr-gated
+import { tickDashParr,isDashParr,clearDashParr,dashParrLocked } from './dashParrState.js'
+import { drawDashParrFx,drawDashParrUnder,dashParrBodyAlpha,playDashParrCues,drawDashParrHud } from './dashParrFx.js'
+import { dashParrHarnessApi } from './dashParrHarness.js'
 import { updateSpdPinkCommandCombat } from './spdPink.js'   // S.P.D. Pink Ranger (Syd Drew) — spd_pink-gated
 import { tickSpdPink,isSpdPink,clearSpdPink,spdPinkLocked } from './spdPinkState.js'
 import { drawSpdPinkFx,playSpdPinkCues } from './spdPinkFx.js'
@@ -1415,6 +1419,7 @@ function _rewindTeardown() {
   clearGonAdultFormCinematic(); clearHisokaOverdriveCinematic(); clearTojiReincarnationCinematic(); clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
   for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
@@ -4104,6 +4109,7 @@ function updateFFACombat(fighter, others, opts) {
   tickSpdBlue(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
   playSpdBlueCues(fighter)
   tickSpdGreen(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  tickDashParr(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove,matchConfig.seed);playDashParrCues(fighter)   // Dash Parr (dash_parr-gated)
   playSpdGreenCues(fighter)
   tickSpdPink(fighter,nearest,readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
   playSpdPinkCues(fighter)
@@ -4138,6 +4144,7 @@ function updateFFACombat(fighter, others, opts) {
   let ctrlState  = buildNormalControlState(fighter, vKeys)
   if (isSpdBlue(fighter)) { const bc=updateSpdBlueCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=bc==='grab'?{grab:!!inputState.grab}:{} }
   if (isSpdGreen(fighter)) { const gc=updateSpdGreenCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=gc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isDashParr(fighter)) { const dc=updateDashParrCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=dc==='grab'?{grab:!!inputState.grab}:{} }
   if (isSpdPink(fighter)) { const pc=updateSpdPinkCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=pc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprBlack(fighter)) { const mc=updateMmprBlackCommandCombat(fighter,inputState,nearest,MMPR_BLACK_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMmprWhite(fighter)) { const mc=updateMmprWhiteCommandCombat(fighter,inputState,nearest,MMPR_WHITE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
@@ -5063,6 +5070,7 @@ function resetRound() {
   clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
   for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
@@ -5793,6 +5801,7 @@ function _replaySnap(f) {
   if (groundTeleportProfile(f)) snap.push(JSON.stringify(f._groundTeleport || null))
   if (isSpdBlue(f)) snap.push(JSON.stringify(f._spdBlue || null),JSON.stringify(f.currentAttack || null))
   if (isSpdGreen(f)) snap.push(JSON.stringify(f._spdGreen || null),JSON.stringify(f.currentAttack || null))
+  if (isDashParr(f)) snap.push(JSON.stringify(f._dashParr || null),JSON.stringify(f.currentAttack || null))   // Dash Parr Momentum / moves / Incredi-Rush GAME_STATE
   if (isSpdPink(f)) snap.push(JSON.stringify(f._spdPink || null),JSON.stringify(f.currentAttack || null))
   if (isMmprBlack(f) || f._falcon) snap.push(JSON.stringify(f._mmprBlack || null),JSON.stringify(f._falcon || null),JSON.stringify(f.currentAttack || null))   // Black Ranger + Falconzord sortie GAME_STATE
   if (isMmprWhite(f)) snap.push(JSON.stringify(f._mmprWhite || null))   // White Ranger disciplines / token / Formation GAME_STATE (Ninja Megazord order: the _falcon line above)
@@ -6138,6 +6147,7 @@ function resetToStart() {
   clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
   for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
@@ -10006,6 +10016,7 @@ function _doRematch() {
   clearKrybot(p1, KRYBOT_WORLD); clearKrybot(p2, KRYBOT_WORLD)
   clearSpdBlue(p1,SPD_BLUE_WORLD);clearSpdBlue(p2,SPD_BLUE_WORLD)
   clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD)
+  clearDashParr(p1);clearDashParr(p2)
   clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
   clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearElastigirl(p1);clearElastigirl(p2)
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
@@ -10046,6 +10057,7 @@ function _doRematch() {
   clearTojiFlyHeadsSwarm()
   for (const _f of [p1, p2]) if (_f) { krybotRoundReset(_f, KRYBOT_WORLD);clearSpdBlue(_f,SPD_BLUE_WORLD) }
   for (const _f of [p1, p2]) if (_f) clearSpdGreen(_f,SPD_BLUE_WORLD)
+  for (const _f of [p1, p2]) if (_f) clearDashParr(_f)
   for (const _f of [p1, p2]) if (_f) clearSpdPink(_f,SPD_BLUE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprBlack(_f,MMPR_BLACK_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMmprWhite(_f,MMPR_WHITE_WORLD)
@@ -11326,7 +11338,7 @@ function updateMovementInput(fighter) {
   const teleportTick = (groundTeleportProfile(fighter) || fighter._groundTeleport) && tickGroundTeleport(fighter,readRawControls(fighter)||{},SPD_BLUE_WORLD,{canCancel:spdBlueCanStep,onCancel:spdBlueStepSpent})
   const inputState = getFighterInput(fighter)
   if (isKrybot(fighter) && fighter.attacking) inputState.block = false
-  if (krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || teleportTick) {
+  if (krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
     // No steering/jump/guard during committed attacks. Shared physics still
     // integrates velocity and bounds; the character timeline owns that velocity.
@@ -11562,6 +11574,7 @@ function _updatePlayerCombatBody(fighter) {
   tickSpdBlue(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
   playSpdBlueCues(fighter)
   tickSpdGreen(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
+  tickDashParr(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove,matchConfig.seed);playDashParrCues(fighter)   // Dash Parr (dash_parr-gated)
   playSpdGreenCues(fighter)
   tickSpdPink(fighter,getOpponent(fighter),readRawControls(fighter)||{},SPD_BLUE_WORLD,startMove)
   playSpdPinkCues(fighter)
@@ -11769,6 +11782,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isSpdGreen(fighter)) {
     const gc=updateSpdGreenCommandCombat(fighter,inputState,getOpponent(fighter),SPD_BLUE_WORLD)
     updateCombat(fighter,getOpponent(fighter),gc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isDashParr(fighter)) {   // Dash Parr command layer: 'consumed' | 'grab'
+    const dc=updateDashParrCommandCombat(fighter,inputState,getOpponent(fighter),SPD_BLUE_WORLD)
+    updateCombat(fighter,getOpponent(fighter),dc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
   if (isSpdPink(fighter)) {
     const pc=updateSpdPinkCommandCombat(fighter,inputState,getOpponent(fighter),SPD_BLUE_WORLD)
@@ -20042,6 +20059,7 @@ function resetTraining() {
     clearKrybot(f, KRYBOT_WORLD)
     clearSpdBlue(f,SPD_BLUE_WORLD)
     clearSpdGreen(f,SPD_BLUE_WORLD)
+    clearDashParr(f)
     clearSpdPink(f,SPD_BLUE_WORLD)
     clearMmprBlack(f,MMPR_BLACK_WORLD)
     clearMmprWhite(f,MMPR_WHITE_WORLD)
@@ -20185,6 +20203,7 @@ function checkRoundEnd() {
   const _roundOver = roundTimer <= 0 || p1.health <= 0 || p2.health <= 0
   if (_roundOver) { clearKrybot(p1, KRYBOT_WORLD); clearKrybot(p2, KRYBOT_WORLD);clearSpdBlue(p1,SPD_BLUE_WORLD);clearSpdBlue(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD) }
+  if (_roundOver) { clearDashParr(p1);clearDashParr(p2) }
   if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearBatman(p1);clearBatman(p2);clearElastigirl(p1);clearElastigirl(p2) }
   if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
@@ -20547,6 +20566,7 @@ function updateBattle() {
     if (isKrybot(f)) f._krybotRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isSpdBlue(f)) f._spdBlueRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isSpdGreen(f)) f._spdGreenRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isDashParr(f)) f._dashParrRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isSpdPink(f)) f._spdPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMmprBlack(f)) f._mmprBlackRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMmprWhite(f)) f._mmprWhiteRemoteInput = replay.isPlayback() || netMatch.isActive()
@@ -21325,8 +21345,9 @@ function renderHybridFighter(fighter) {
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     drawHandlerShadowSink(c, fighter)   // Megumi Shadow Sink — dark shadow-pool ellipse at the feet, BEHIND the body (handler only)
     drawSpeedLines(c, fighter)          // STAGE 1: manga speed-lines behind a fast dash/rush, BEHIND the body (any fighter, velocity-gated)
-    _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3): dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
+    if (dashParrBodyAlpha(fighter) === 0) fighter._juiceTrailBuf = null; else _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3) [Dash: no ghost of the hidden body during Laps / Incredi-Rush]: dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
     drawSpdRedUnder(c, fighter, globalFrameCount)   // S.P.D. Red — blink streak afterimages + dissolve, BEHIND the body (render-only; spd_red only)
+    drawDashParrUnder(c, fighter, getOpponent(fighter))   // Dash — Blur afterimages, Laps loop, Incredi-Rush storm, BEHIND the body (render-only; dash_parr only)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
     // JUICE (Phase 3) dash squash/stretch + wind-up lean + HIT FEEL (Phase A) visual knockback nudge —
     // wrap ONLY the body draw (not the trail/auras), scaled about the feet. Render-only transforms; the
@@ -21343,8 +21364,9 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter)   // × S.P.D. Red blink dissolve (1 for everyone else)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * dashParrBodyAlpha(fighter)   // × S.P.D. Red blink dissolve (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
+    if (_ssA === 0 && dashParrBodyAlpha(fighter) === 0) { c.beginPath(); c.rect(0, 0, 0, 0); c.clip() }   // Dash: body fully hidden while Laps / Incredi-Rush draw him at render offsets (the sprite's tint + transition-ghost passes reset globalAlpha)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
       fighter.spriteHandler.draw(c, fighter, getSpriteSheets(key))
     } else {
@@ -21406,6 +21428,7 @@ function renderHybridFighter(fighter) {
     drawElastigirlFx(c, fighter)   // Elastigirl — slingshot arm to the anchor, parachute shadow ovals, guard / raft splash (render-only; elastigirl only)
     drawSpdPinkFx(c, fighter)               // S.P.D. Pink — phase-step streaks, Iron Reserve steel ring/pip, Reprisal ring, muzzle star (render-only; spd_pink only)
     drawSpdGreenFx(c, fighter)              // S.P.D. Green — phase-step streak ghosts, Aura Read pulse/mark ring, muzzle star (render-only; spd_green only)
+    drawDashParrFx(c, fighter)              // Dash — dash / flurry speed lines, sidestep flash, Blur glint (render-only; dash_parr only)
     drawBuggyFx(c, fighter, globalFrameCount)   // Buggy the Clown — split flashes, orbiting pieces, cape sweep (render-only; buggy only)
     drawSanjiFx(c, fighter)                 // Sanji — flames, embers, afterimages, cigarette glow, callouts (render-only; sanji only)
     drawSpdRedFx(c, fighter, globalFrameCount)  // S.P.D. Red — impact sparks, bolts, beams, containment card (render-only; spd_red only)
@@ -23302,6 +23325,7 @@ function drawBattleHud() {
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
   drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
   drawBatmanHud(ctx, canvas, p1, p2)   // Batman: support-operation status + cooldown chips under his health; KNIGHTFALL captions / cut-in (gated)
+  drawDashParrHud(ctx, canvas, p1, p2, globalFrameCount)   // Dash: Momentum gauge under his energy bar (gated)
   drawControlsInfo(ctx, canvas)
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
@@ -27075,6 +27099,7 @@ gameLoop()
     krybotTest: krybotHarnessApi({ p1: () => p1, p2: () => p2, world: KRYBOT_WORLD, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     spdBlueTest: spdBlueHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     spdGreenTest: spdGreenHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    dashParrTest: dashParrHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprPinkTest: mmprPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_PINK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprBlackTest: mmprBlackHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_BLACK_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     mmprWhiteTest: mmprWhiteHarnessApi({p1:()=>p1,p2:()=>p2,world:MMPR_WHITE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),

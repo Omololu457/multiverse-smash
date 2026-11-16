@@ -53,7 +53,7 @@ export function registerThermal(name, p = {}) {
 }
 export const createThermal = () => ({ v: 0, over: 0, overSide: 0, lock: 0, overloads: 0 })
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
-const r3 = v => Math.round(v * 1000) / 1000           // keep the stored value short and exactly reproducible
+const r3 = v => Math.round(v * 1e6) / 1e6             // keep the stored value exactly reproducible (no float drift in snapshots)
 export function thermalZone(t, P) {
   if (t.v <= P.cold) return 'cold'
   if (t.v >= P.hot) return 'hot'
@@ -186,7 +186,7 @@ export function applyPatchEffects(field, fighters, ctx) {
     if (!(f.health > 0) || !ctx.grounded(f)) { for (const t of Object.keys(field.ticks)) if (t.startsWith(side + ':')) field.ticks[t] = 0; continue }
     const here = patchesAt(field, ctx.cx(f), ctx.feet(f))
     const types = new Set(here.map(p => p.type))
-    for (const type of ['ice', 'fire', 'water', 'steam', ...Object.keys(ELEMENT_PROFILES)]) {
+    for (const type of Object.keys(ELEMENT_PROFILES)) {   // every registered element once (registration order = deterministic)
       const tk = side + ':' + type
       if (!types.has(type)) { field.ticks[tk] = 0; continue }
       const E = P0(type).effect, own = side === ctx.owner

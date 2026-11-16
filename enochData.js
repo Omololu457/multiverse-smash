@@ -74,6 +74,20 @@ export const WALL_STEAM = { raw: 45, w: 120, h: 150 }
 // CHANNEL (hold Down + Charge = cool down, Up + Charge = heat up): rooted in place, the thermal meter moves `rate` / frame
 // toward ±`to` (inside the zone, short of an overload); any hit or release ends it.
 export const CHANNEL = { rate: 0.75, to: 70 }
+// LASTING EFFECTS on the opponent (2026-11-16). Every FIRE hit adds BURN, every ICE hit adds CHILL (1 per clean special hit,
+// less for beam ticks / wall ticks / standing in his fire). Nothing happens on the first hit: from 2 stacks up
+//   BURN  = health decay: burnRaw × (stacks − 1) every burnEvery frames;
+//   CHILL = slower movement: −slowPer per stack above 1 (5 stacks = 52 % speed); reaching `max` stacks = the ICE BOX: frozen
+//           solid for boxFrames, then the chill is spent (boxCd before he can be boxed again).
+// Stacks last `life` frames after the last hit, then fall by one every `decay` frames. THE COMBINATION: fire on a target with
+// ≥ comboAt chill = a STEAM SHOCK (shockRaw × chill, the chill is spent); ice on a target with ≥ comboAt burn = a QUENCH
+// (quenchRaw × burn, the burn is spent). His opponent's health bar glows red (burn) / blue (chill) by the stacks.
+export const STATUS = { max: 5, comboAt: 2, life: 240, decay: 60, burnEvery: 30, burnRaw: 3, slowPer: 0.12, boxFrames: 80, boxCd: 240,
+  shockRaw: 14, quenchRaw: 10, beamTick: 0.34, wallTick: 0.5, patchTick: 0.25, hit: 1 }
+// FIRE / ICE TWINS: outside the balance band his element follows his temperature (Down / Up + Charge to channel it):
+//   hot (≥ +25):  Ice Blast → FIRE SHARD (a fireball) · Frost Floor → FLAME FLOOR · his dash / slide leave FIRE
+//   cold (≤ −25): Heat Lens → FROST LENS (the ice laser) · his dash / slide leave ICE
+export const TWIN = { trailEvery: 3, trailW: 60 }
 export const SCORCH = { ahead: 120 }
 export const CONDENSE = { speed: 4, life: 150, w: 34, h: 34, handY: 70, steamRaw: 70, hailRaw: 60, hailSpeed: 9 }
 export const TIDE = { burstRaw: 30 }

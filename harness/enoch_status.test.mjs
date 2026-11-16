@@ -1,0 +1,117 @@
+// harness/enoch_status.test.mjs — Enoch's LASTING EFFECTS + FIRE / ICE TWINS, driven through the REAL game with real moves.
+//   S. statuses: one hit does nothing lasting; ICE builds CHILL (slower steps) → 5 = ICE BOX; FIRE builds BURN (health decay
+//      with no further hits); stacks fade; the combination (fire on chill = STEAM SHOCK, ice on burn = QUENCH)
+//   T. twins: hot → Ice Blast fires a FIRE SHARD, Frost Floor = FLAME FLOOR; cold → Heat Lens = FROST LENS (ice laser);
+//      the dash leaves FIRE when hot, ICE when cold, nothing in balance
+//   H. the opponent's health bar glows red / blue (pixel check) + screenshots; R. determinism, no Math.random, no page errors
+//   node harness/enoch_status.test.mjs      (inside the test tree)
+import fs from 'node:fs'
+import { chromium } from 'playwright'
+import { serve } from './ben10_test_utils.mjs'
+const server = await serve(), browser = await chromium.launch({ headless: true }), errors = []; let pass = 0, fail = 0
+const ok = (n, c, d = '') => { if (c) { pass++; console.log('  ✅', n, d.length > 300 ? d.slice(0, 300) + '…' : d) } else { fail++; console.log('  ❌', n, String(d).slice(0, 1200)) } }
+const J = o => JSON.stringify(o)
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } }); page.on('pageerror', e => errors.push(e.message))
+await page.addInitScript(() => { window.requestAnimationFrame = () => 0; const old = Math.random; window.__enRandom = []
+  Math.random = function () { const st = new Error().stack; if (/\/(enoch\w*|elements|beam)\.js/.test(st) && __enRandom.length < 5) __enRandom.push(st); return old() } })
+await page.goto(server.base + '/index.html?harness=1&p1=enoch&p2=frozone&seed=4242', { waitUntil: 'load' })
+await page.waitForFunction(() => window.__harness?.enochTest, null, { polling: 100, timeout: 60000 })
+await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(1) })
+await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { polling: 100, timeout: 60000 })
+await page.evaluate(async () => {
+  const { writeRawControls } = await import('./input.js'); const ES = await import('./enochState.js'); const { camera } = await import('./camera.js')
+  const H = __harness.enochTest, step = n => __harness.luffyTest.step(n)
+  const hold = (f, r, n = 1) => { writeRawControls(f, r); step(n) }
+  const tap = (f, r, n = 1) => { writeRawControls(f, r); step(n); writeRawControls(f, {}); step(1) }
+  window.__E = { H, ES, step, hold, tap, rel: f => writeRawControls(f, {}),
+    aff: () => { const a = H.raw(), b = H.raw('p2'); return a._enoch?.aff?.[ES.sideOf(b)] || null },
+    setup: (ax = 1000, bx = 1200, dummy = 'stand') => { H.reset(); camera.reset(); __harness.setDummyBehavior?.(dummy); const a = H.raw(), b = H.raw('p2')
+      for (const f of [a, b]) { f.leftTapTime = f.rightTapTime = 0; f.health = f.maxHealth; f.vx = f.vy = 0; f.hitstun = 0; f.blockstun = 0; f.invulnTimer = 0; f.energy = 0
+        f.knockdownState = false; f.hitstop = 0; f._supFrozen = 0; f.attackCooldown = 0; f.dashCooldown = 0; f.comboCounter = 0 }
+      a.x = ax; b.x = bx; a.facing = ax < bx ? 1 : -1; b.facing = -a.facing; writeRawControls(a, {}); writeRawControls(b, {}); step(2); return { a, b } },
+    // one clean special hit at point-blank (waits for the move to finish)
+    hit: (key, a) => { H.move(key); for (let i = 0; i < 60 && (a.attacking || (window.__harness.enochTest.projectiles().length)); i++) step(1); step(4) } }
+})
+
+// ═══ S. STATUSES ═══
+const S = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff, hit } = __E; const r = {}
+  // S1: ONE ice hit = 1 chill, no slow
+  let { a, b } = setup(1000, 1150); H.setThermal(0); hit('iceBlast', a); r.one = { ...aff() }; r.oneSlow = ES.slowOf(aff()?.chill || 0)
+  // S2: walking distance chilled (2 stacks) vs free
+  const walk = (n) => { const x0 = b.x; for (let i = 0; i < n; i++) { b.x += 4; step(1) } return b.x - x0 }   // he moves 4 px a frame (the dummy ignores pad input)
+  ;({ a, b } = setup(600, 1100)); const free = walk(40)
+  ;({ a, b } = setup(600, 1100)); ES.afflict(a, b, 'ice', 2); const slowed = walk(40); r.walk = { free: Math.round(free), slowed: Math.round(slowed), chill: aff().chill }
+  // S3: real ice hits to the ICE BOX
+  ;({ a, b } = setup(1000, 1150)); H.setThermal(0); let boxed = 0, maxChill = 0
+  for (let k = 0; k < 7 && !boxed; k++) { b.x = 1150; b.hitstun = 0; b.invulnTimer = 0; b.knockdownState = false; H.setThermal(0); a.attackCooldown = 0; hit('iceBlast', a); maxChill = Math.max(maxChill, aff()?.chill || 0); boxed = aff()?.box || 0 }
+  r.box = { boxed, frozen: b._supFrozen, chillAfter: aff().chill, boxes: a._enoch.stats.boxes, maxChill }
+  for (let i = 0; i < 100; i++) step(1); r.boxEnd = { box: aff().box, frozen: b._supFrozen || 0 }
+  // S4: ONE fire hit = no decay; TWO = health keeps dropping with no further hits
+  ;({ a, b } = setup(1000, 1150)); H.setThermal(0); ES.afflict(a, b, 'fire', 1); let hp0 = b.health; for (let i = 0; i < 120; i++) step(1); r.burn1 = Math.round(hp0 - b.health)
+  ;({ a, b } = setup(1000, 1150)); H.setThermal(0); ES.afflict(a, b, 'fire', 1); ES.afflict(a, b, 'fire', 1); ES.afflict(a, b, 'fire', 1); hp0 = b.health
+  for (let i = 0; i < 120; i++) step(1); r.burn3 = { lost: Math.round((hp0 - b.health) * 10) / 10, burn: aff().burn, ticks: a._enoch.stats.burnTicks }
+  // S5: stacks fade (life 240 then −1 / 60 f)
+  for (let i = 0; i < 400; i++) step(1); r.fade = aff().burn
+  // S6: the combination
+  ;({ a, b } = setup(1000, 1150)); ES.afflict(a, b, 'ice', 1); ES.afflict(a, b, 'ice', 1); hp0 = b.health; const res = ES.afflict(a, b, 'fire', 1); step(1)
+  r.shock = { res, chill: aff().chill, dmg: Math.round(hp0 - b.health), shocks: a._enoch.stats.shocks }
+  ;({ a, b } = setup(1000, 1150)); ES.afflict(a, b, 'fire', 1); ES.afflict(a, b, 'fire', 1); hp0 = b.health; const res2 = ES.afflict(a, b, 'ice', 1); step(1)
+  r.quench = { res: res2, burn: aff().burn, dmg: Math.round(hp0 - b.health) }
+  // S7: real fire hits (Scorch) build burn; a blocked hit builds nothing
+  ;({ a, b } = setup(1000, 1100)); H.setThermal(0); hit('scorch', a); r.scorch = aff()?.burn || 0
+  ;({ a, b } = setup(1000, 1100, 'block')); H.setThermal(0); step(4); hit('scorch', a); r.blocked = aff()?.burn || 0
+  return r })
+ok('S1 one ice hit = 1 chill and NO slow yet', S.one.chill === 1 && S.oneSlow === 1, J(S.one))
+ok('S2 chill 2 = his steps shrink (−12 %)', S.walk.free > 50 && S.walk.slowed < S.walk.free * 0.93 && S.walk.slowed > S.walk.free * 0.8, J(S.walk))
+ok('S3 ice hits stack to the ICE BOX: frozen solid, the chill is spent', S.box.boxed > 0 && S.box.frozen > 0 && S.box.chillAfter === 0 && S.box.boxes === 1, J(S.box))
+ok('S3b the box melts after 80 frames', S.boxEnd.box === 0 && S.boxEnd.frozen === 0, J(S.boxEnd))
+ok('S4 one fire hit = no decay; 3 stacks = health keeps draining with no more hits', S.burn1 === 0 && S.burn3.lost > 0 && S.burn3.ticks >= 3 && S.burn3.burn === 3, J({ b1: S.burn1, b3: S.burn3 }))
+ok('S5 burn fades away after a while', S.fade === 0, String(S.fade))
+ok('S6 THE COMBINATION: fire on a chilled foe = STEAM SHOCK (chill spent)', S.shock.res === 'shock' && S.shock.chill === 0 && S.shock.dmg > 0, J(S.shock))
+ok('S6b ice on a burning foe = QUENCH (burn spent)', S.quench.res === 'quench' && S.quench.burn === 0 && S.quench.dmg > 0, J(S.quench))
+ok('S7 a real fire special builds a burn stack; BLOCKED it builds none (only the fire left on the floor singes, +0.25 a tick)', S.scorch >= 1 && S.blocked < 1, J({ s: S.scorch, b: S.blocked }))
+
+// ═══ T. TWINS ═══
+const T = await page.evaluate(() => { const { H, step, hold, rel, tap, setup } = __E; const r = {}
+  const pr = () => window.__harness.enochTest.raw()._enoch
+  let { a, b } = setup(900, 1600); H.setThermal(50); H.move('iceBlast'); let pel = null
+  for (let i = 0; i < 20; i++) { step(1); const P = (a._enochW || null); for (const q of (window.__harness.enochTest.projectiles() || [])) pel = pel || q.kind }
+  const fx = (H.state().s.fx || []).map(e => e.kind)
+  r.shard = { proj: (window.__harness.enochTest.projectiles() || []).length, kind: pel, stat: pr().stats.fireShards, th: Math.round(pr().th.v) }
+  ;({ a, b } = setup(900, 1600)); H.setThermal(50); H.move('frostFloor'); for (let i = 0; i < 20; i++) step(1); r.floor = { types: pr().field.patches.map(p => p.type), stat: pr().stats.flameFloors }
+  ;({ a, b } = setup(900, 1300)); H.setThermal(-50); H.move('heatLens'); let bel = null; for (let i = 0; i < 16; i++) { step(1); bel = bel || pr().beamFx?.el || null } r.lens = { el: bel, stat: pr().stats.frostLens, th: Math.round(pr().th.v) }
+  ;({ a, b } = setup(900, 1300)); H.setThermal(0); H.move('heatLens'); let bel2 = null; for (let i = 0; i < 16; i++) { step(1); bel2 = bel2 || pr().beamFx?.el || null } r.lens0 = bel2
+  const dash = th => { ;({ a, b } = setup(700, 2200)); b.invulnTimer = 99999; H.setThermal(th); hold(a, { right: true, dash: true }); for (let i = 0; i < 12; i++) hold(a, { right: true }); rel(a); step(2); return { types: pr().field.patches.map(p => p.type), fd: pr().stats.fireDash, id: pr().stats.iceDash } }
+  r.dashHot = dash(50); r.dashCold = dash(-50); r.dash0 = dash(0)
+  return r })
+ok('T1 hot (+50): Special = FIRE SHARD (a fireball), heats him further', T.shard.proj === 1 && T.shard.stat === 1 && T.shard.th > 50, J(T.shard))
+ok('T2 hot: Frost Floor = FLAME FLOOR (fire patch)', T.floor.stat === 1 && T.floor.types.includes('fire') && !T.floor.types.includes('ice'), J(T.floor))
+ok('T3 cold (−50): the laser = FROST LENS (ice laser eyes), cools him', T.lens.el === 'ice' && T.lens.stat === 1 && T.lens.th < -50, J(T.lens))
+ok('T4 balance: the laser stays the fire Heat Lens', T.lens0 === 'fire', String(T.lens0))
+ok('T5 FIRE DASH leaves fire; ICE DASH leaves ice; balance dash leaves nothing', T.dashHot.types.includes('fire') && T.dashHot.fd === 1 && T.dashCold.types.includes('ice') && T.dashCold.id === 1 && T.dash0.types.length === 0, J({ h: T.dashHot, c: T.dashCold, z: T.dash0 }))
+
+// ═══ H. HUD + screenshots ═══
+fs.mkdirSync('docs/enoch/screenshots', { recursive: true })
+const shot = async (name, fn) => { await page.evaluate(fn); const buf = await page.screenshot(); fs.writeFileSync(`docs/enoch/screenshots/${name}.png`, buf); return buf }
+await shot('status_burn', () => { const { ES, step, setup } = __E; const { a, b } = setup(1000, 1200); for (let i = 0; i < 3; i++) ES.afflict(a, b, 'fire', 1); step(4) })
+const burnPx = await page.evaluate(() => { const c = document.querySelector('canvas'), x = c.getContext('2d'), d = x.getImageData(c.width - 300, 32, 200, 12).data; let red = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 170 && d[i + 2] < 120) red++; return red })
+await shot('status_chill', () => { const { ES, step, setup } = __E; const { a, b } = setup(1000, 1200); for (let i = 0; i < 3; i++) ES.afflict(a, b, 'ice', 1); step(4) })
+const chillPx = await page.evaluate(() => { const c = document.querySelector('canvas'), x = c.getContext('2d'), d = x.getImageData(c.width - 300, 32, 200, 12).data; let blue = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 2] > 180 && d[i] < 150) blue++; return blue })
+await shot('status_icebox', () => { const { ES, step, setup } = __E; const { a, b } = setup(1000, 1200); for (let i = 0; i < 5; i++) ES.afflict(a, b, 'ice', 1); step(4) })
+await shot('fire_shard', () => { const { H, step, setup } = __E; setup(900, 1500); H.setThermal(50); H.move('iceBlast'); step(18) })
+await shot('frost_lens', () => { const { H, step, setup } = __E; setup(900, 1300); H.setThermal(-50); H.move('heatLens'); step(12) })
+await shot('fire_dash', () => { const { H, hold, setup } = __E; const { a, b } = setup(700, 2200); b.invulnTimer = 99999; H.setThermal(50); hold(a, { right: true, dash: true }); for (let i = 0; i < 10; i++) hold(a, { right: true }) })
+ok('H1 burn: the opponent\'s health bar glows RED', burnPx > 200, String(burnPx))
+ok('H2 chill: the opponent\'s health bar glows BLUE', chillPx > 200, String(chillPx))
+
+// ═══ R. DETERMINISM ═══
+const run = () => page.evaluate(() => { const { H, step, hold, rel, setup, aff, hit } = __E
+  const { a, b } = setup(1000, 1150); H.setThermal(0)
+  hit('iceBlast', a); hit('iceBlast', a); H.setThermal(50); hit('iceBlast', a); for (let i = 0; i < 90; i++) step(1); hit('scorch', a); for (let i = 0; i < 200; i++) step(1)
+  return JSON.stringify({ aff: aff(), hp: b.health, x: b.x, st: a._enoch.stats }) })
+await run(); const d1 = await run(), d2 = await run()   // (the first run warms the stage up)
+ok('R1 identical results from identical inputs', d1 === d2, d1 === d2 ? '' : d1.slice(0, 300) + ' VS ' + d2.slice(0, 300))
+ok('R2 no Math.random from enoch / elements / beam', (await page.evaluate(() => __enRandom.length)) === 0)
+ok('R3 no page errors', errors.length === 0, J(errors.slice(0, 3)))
+await browser.close(); server.close()
+console.log(`\n  ENOCH STATUS + TWINS: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0)

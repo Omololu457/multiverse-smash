@@ -9,7 +9,8 @@ import { juiceSettings } from './juiceSettings.js'
 import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
 import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
-import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect } from './enochState.js'
+import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, slowOf, sideOf } from './enochState.js'
+import { STATUS } from './enochData.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
 import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
@@ -50,6 +51,11 @@ function drawShards(c, W, fr) {
   for (const p of W?.projectiles || []) {
     if (!p?._en || p._en.kind !== 'blast' || !isEn(p.owner)) continue
     const cx = p.x + (p.w || 0) / 2, cy = p.y + (p.h || 0) / 2, ang = Math.atan2(p.vy || 0, p.vx || p._en.dir || 1)
+    if (p._en.el === 'fire') {   // FIRE SHARD: the flame jet from the effect sheet, head first
+      c.save(); c.translate(R(cx), R(cy)); c.rotate(ang)
+      if (!vfx(c, 'fireJet', 0, -20, 0, { h: 46 })) poly(c, [[-30, -8], [26, -10], [40, 0], [26, 10], [-30, 8]], COL.fire[2], COL.fire[3], 1, 2)
+      c.restore(); continue
+    }
     c.save(); c.translate(R(cx), R(cy)); c.rotate(ang)
     c.globalAlpha = 0.35; c.fillStyle = COL.ice[1]; c.fillRect(-58, -3, 40, 6); c.fillRect(-80, -1, 24, 2)          // the frost trail behind it
     c.globalAlpha = 1
@@ -65,6 +71,30 @@ function drawChannel(c, f, s, fr) {
   const x = ctrX(f), y = (f.y || 0) + (f.h || 94)
   if (s.channel > 0) vfx(c, 'fireRise', 1 + ((fr >> 2) % 4), x, y + 6, { h: (f.h || 94) * 1.25, alpha: 0.85 })
   else vfx(c, 'iceBurst', 3 + ((fr >> 3) % 3), x, y - (f.h || 94) * 0.5, { h: (f.h || 94) * 1.7, alpha: 0.95 })
+}
+// ── LASTING EFFECTS on his opponent: flames licking a burning foe, frost on a chilled one, the ICE BOX around a frozen one ──
+function drawAfflictions(c, f, s, W, fr) {
+  for (const t of W?.fighters?.() || []) {
+    const A = s.aff?.[sideOf(t)]; if (!A || t === f || !(t.health > 0)) continue
+    const x = (t.x || 0) + (t.w || 48) / 2, feet = (t.y || 0) + (t.h || 94), h = t.h || 94, w = t.w || 48
+    if (A.box > 0) {   // the ICE BOX: a translucent block with a light face and cracks as it thaws
+      const pad = 14, bx = x - w / 2 - pad, by = t.y - pad, bw = w + pad * 2, bh = h + pad
+      c.save(); c.globalAlpha = 0.55; c.fillStyle = COL.ice[1]; c.fillRect(R(bx), R(by), R(bw), R(bh))
+      c.globalAlpha = 0.6; c.fillStyle = COL.ice[0]; c.fillRect(R(bx + 4), R(by + 4), R(bw * 0.28), R(bh - 8))
+      c.globalAlpha = 0.95; c.strokeStyle = COL.ice[3]; c.lineWidth = 3; c.strokeRect(R(bx) + 0.5, R(by) + 0.5, R(bw), R(bh))
+      if (A.box < 30) { c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.beginPath(); c.moveTo(R(bx + bw * 0.3), R(by)); c.lineTo(R(bx + bw * 0.55), R(by + bh * 0.5)); c.lineTo(R(bx + bw * 0.4), R(by + bh)); c.stroke() }
+      c.restore(); continue
+    }
+    if (A.burn >= 1) vfx(c, 'fireRise', 1 + (((fr >> 2) + 1) % 4), x, feet + 4, { h: h * (0.35 + 0.12 * Math.floor(A.burn)), alpha: Math.min(0.9, 0.3 + 0.15 * A.burn) })
+    if (A.chill >= 1) {
+      c.save(); c.globalAlpha = Math.min(0.85, 0.25 + 0.12 * A.chill); c.fillStyle = COL.ice[1]
+      const n = Math.min(5, Math.ceil(A.chill)) + 1
+      for (let i = 0; i < n; i++) { const k = (i + 0.5) / n, cx = x - w * 0.7 + k * w * 1.4, ch = 10 + ((i * 7) % 3) * 6 + Math.floor(A.chill) * 3
+        poly(c, [[cx - 5, feet], [cx, feet - ch], [cx + 5, feet]], COL.ice[1], COL.ice[3], 1, 1) }   // ice crystals climbing his legs
+      if (A.chill >= 2) { c.globalAlpha = 0.18 + 0.05 * A.chill; c.fillStyle = COL.ice[0]; c.fillRect(R(x - w / 2), R(feet - h * 0.45), R(w), R(h * 0.45)) }
+      c.restore()
+    }
+  }
 }
 // ── PATCHES (world space, under the fighters) ──
 function drawPatch(c, f, p, fr, now) {
@@ -110,6 +140,7 @@ function drawEvents(c, f, s) {
     else if (e.kind === 'frost') { if (!vfx(c, 'iceBurst', e.t / 4, e.x, e.y, { scale: 1.1 })) part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir }) }   // the shard bursts on him
     else if (e.kind === 'chip') part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir })
     else if (e.kind === 'ember' || e.kind === 'scorch') { if (!vfx(c, 'firePuff', e.t / 6, e.x, e.y, { scale: 0.7, alpha: al })) part(c, 'arc', 'fire', e.x, e.y + 20, { alpha: al, flip: e.dir }) }
+    else if (e.kind === 'flameFloor') { if (!vfx(c, 'fireRise', e.t / 4, e.x, e.y + 4, { h: 120, alpha: al })) part(c, 'arc', 'fire', e.x, e.y, { alpha: al, flip: e.dir }) }
     else if (e.kind === 'splash') { if (!vfx(c, 'waterSplash', e.t / 6, e.x, e.y + 20, { scale: 0.75, alpha: al })) part(c, 'splash', 'water', e.x, e.y, { alpha: al }) }
     else if (e.kind === 'shatter') { if (!vfx(c, 'iceBurst', 1 + e.t / 4, e.x, e.y, { scale: 1.6 })) part(c, 'burst2', 'ice', e.x, e.y, { alpha: al }) }
     else if (e.kind === 'switch' || e.kind === 'ramp' || e.kind === 'landBurst') part(c, e.kind === 'ramp' ? 'arc' : 'spray', el, e.x, e.y, { alpha: al, flip: e.dir })
@@ -156,11 +187,12 @@ function drawWall(c, f, s, fr) {
 }
 function drawBeams(c, f, s) {
   const b = s.beamFx; if (!b) return
+  if (b.el === 'ice') { drawBeam3(c, b, { glow: 'rgba(79,182,216,0.5)', mid: 'rgba(159,232,255,0.9)', core: 'rgba(232,251,255,0.98)', dot: '#e8fbff', impact: 'rgba(159,232,255,0.75)', width: s.beam ? 0.8 : 1 }); return }   // FROST LENS
   drawBeam3(c, b, { glow: 'rgba(255,154,60,0.5)', mid: 'rgba(255,210,122,0.9)', core: 'rgba(255,241,192,0.98)', dot: COL.lensHot, impact: 'rgba(255,210,122,0.75)', width: s.beam ? 0.8 : 1 })
 }
 function drawLens(c, f, s) {   // the lens brightens to #fff1c0 while the laser fires (render-only)
   if (!s.beamFx && !(s.ult?.variant === 'flashPoint')) return
-  const o = lensOrigin(f); c.save(); c.fillStyle = COL.lensHot; c.fillRect(R(o.x - 3), R(o.y - 2), 6, 4); c.restore()
+  const o = lensOrigin(f); c.save(); c.fillStyle = s.beamFx?.el === 'ice' ? COL.ice[0] : COL.lensHot; c.fillRect(R(o.x - 3), R(o.y - 2), 6, 4); c.restore()
 }
 function drawUlt(c, f, v) {
   if (!v) return
@@ -180,7 +212,7 @@ export function drawEnochOver(c, p1, p2, W) {
   if (isEn(p1) || isEn(p2)) drawShards(c, W, fr)
   for (const f of [p1, p2]) {
     const s = isEn(f) ? f._enoch : null; if (!s) continue
-    drawWall(c, f, s, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
+    drawWall(c, f, s, fr); drawAfflictions(c, f, s, W, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
   }
 }
 // ── HUD: the thermal bar (deep blue → teal → orange, marker, outlined balance zone) under his health bar ──
@@ -220,6 +252,24 @@ export function drawEnochHud(c, cv, p1, p2) {
     c.fillText(L.stance === 'ice' ? 'ICE STANCE' : 'ELEMENTAL STANCE', flip ? x0 + w : x0, y0 + h + 64); c.restore()
   }
   one(p1, false); one(p2, true)
+  // the OPPONENT's health bar: red wash = burn, blue wash = chill (stronger with every stack), white-blue = ice box
+  for (const [f, t, flip] of [[p1, p2, true], [p2, p1, false]]) {
+    const A = isEn(f) ? f._enoch?.aff?.[sideOf(t)] : null; if (!A || !t) continue
+    if (!(A.burn > 0 || A.chill > 0 || A.box > 0)) continue
+    const x = flip ? cw - pad - barW - 20 : pad, tx = x + 8, ty = 28, hh = 20, ratio = Math.max(0, Math.min(1, (t.health || 0) / (t.maxHealth || 1))), fw = barW * ratio
+    const fx0 = flip ? tx + barW - fw : tx, pulse = calm() ? 0.5 : 0.5 + 0.5 * Math.sin((f._enoch.tick || 0) * 0.12)
+    c.save()
+    const band = (col, k, y, hgt) => { c.globalAlpha = Math.min(0.75, 0.2 + 0.11 * k + 0.08 * pulse); c.fillStyle = col; c.fillRect(R(fx0), R(y), R(fw), R(hgt)) }
+    if (A.box > 0) { band('#7fd4ff', 5, ty, hh); band('#e8fbff', 2, ty, hh / 3) }
+    else if (A.burn > 0 && A.chill > 0) { band('#ff3a20', A.burn, ty, hh / 2); band('#3aa0ff', A.chill, ty + hh / 2, hh / 2) }
+    else if (A.burn > 0) band('#ff3a20', A.burn, ty, hh)
+    else band('#3aa0ff', A.chill, ty, hh)
+    c.globalAlpha = 0.95; c.lineWidth = 2; c.strokeStyle = A.box > 0 ? '#e8fbff' : A.burn >= A.chill ? '#ff5a30' : '#5ab8ff'
+    c.strokeRect(R(tx) - 1, ty - 1, R(barW) + 2, hh + 2)
+    c.font = 'bold 10px Arial'; c.textBaseline = 'middle'; c.textAlign = flip ? 'left' : 'right'; c.fillStyle = '#ffffff'
+    const tag = A.box > 0 ? 'ICE BOX' : [A.burn > 0 ? `BURN ×${Math.ceil(A.burn)}` : '', A.chill > 0 ? `CHILL ×${Math.ceil(A.chill)}${A.chill >= 2 ? ' · SLOW ' + Math.round(slowOf(A.chill) * 100) + '%' : ''}` : ''].filter(Boolean).join(' · ')
+    c.shadowColor = '#000'; c.shadowBlur = 3; c.fillText(tag, flip ? tx + 6 : tx + barW - 6, ty + hh / 2); c.restore()
+  }
   for (const f of [p1, p2]) { const v = isEn(f) ? enochUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, v) }
   for (const f of [p1, p2]) { const v = isEn(f) ? frozoneUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, { frame: v.frame, variant: 'whiteout' }) }   // the Ice Stance ultimate
 }

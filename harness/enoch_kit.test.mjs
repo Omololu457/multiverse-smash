@@ -110,7 +110,9 @@ try {
     r.adv = { jab: adv('jab'), straight: adv('straight'), heavy: adv('heavy'), wake: adv('wake') }
     // thermal zones / locks / overload
     let { a, b } = setup(1300, 2400); b.invulnTimer = 99999
-    H.setThermal(60); r.hotIce = { ok: H.move('iceBlast'), why: H.state().s.lastReject }; step(40)
+    // 2026-11-16: hot, Ice Blast turns into its FIRE SHARD twin, so the lock is checked on Deep Freeze (an ice move with no twin)
+    H.setThermal(60); r.hotIce = { ok: H.move('deepFreeze'), why: H.state().s.lastReject }; step(60)
+    H.setThermal(60); r.hotShard = { ok: H.move('iceBlast'), el: H.raw().currentAttack?.en?.el || null }; step(60)
     H.setThermal(-60); r.coldWater = { ok: H.move('tideBreak'), why: H.state().s.lastReject }; step(40)
     H.setThermal(-50); H.move('iceBlast'); r.own = { dmg: a.currentAttack?.damage, th: H.state().s.th.v }; step(40)
     H.setThermal(-95); H.move('iceBlast'); step(2); const s1 = H.state().s; r.over = { v: s1.th.v, over: s1.th.over, side: s1.th.overSide, overloads: s1.stats.overloads }; step(38)
@@ -158,6 +160,7 @@ try {
   ok('frame data = the brief (startup / raw damage) + a damageType tag on every move', !bad.length, bad.map(k => `${k}: ${JSON.stringify(M.data[k])} want ${JSON.stringify(want[k])}`).join(' | '))
   ok('block advantage LIVE: Jab +1 · Straight −3 · Heavy −5 · Wake-up −12; damageType reaches the live attack', M.adv.jab.adv === 1 && M.adv.straight.adv === -3 && M.adv.heavy.adv === -5 && M.adv.wake.adv === -12 && M.adv.jab.tag === 'blunt', JSON.stringify(M.adv))
   ok('HOT zone locks ice; water outside the balance zone is locked', !M.hotIce.ok && M.hotIce.why === 'locked' && !M.coldWater.ok && M.coldWater.why === 'balance', JSON.stringify([M.hotIce, M.coldWater]))
+  ok('HOT: Ice Blast becomes its FIRE SHARD twin (not refused)', M.hotShard.ok && M.hotShard.el === 'fire', JSON.stringify(M.hotShard))
   ok('own zone: Ice Blast ×1.15 damage (63.25) at ×0.8 cost (−50 → −59.6)', Math.abs(M.own.dmg - 63.25) < 0.01 && Math.abs(M.own.th + 59.6) < 0.05, JSON.stringify(M.own))
   ok('cap → OVERLOAD: ice locked 1.5 s, then the meter sits at −50', M.over.overloads === 1 && M.over.side === -1 && !M.overLocked.ok && M.overLocked.why === 'overload' && M.overEnd.over === 0 && Math.abs(M.overEnd.v + 50) < 2 && M.overEnd.ok, JSON.stringify([M.over, M.overLocked, M.overEnd]))
   ok('Ice Blast pool: never more than 3 live; a 4th is refused while 3 fly', M.pool.maxLive <= 3 && M.pool.started >= 3 && (M.pool.maxLive < 3 || M.pool.poolRej > 0), JSON.stringify(M.pool))

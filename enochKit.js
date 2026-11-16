@@ -1,7 +1,7 @@
 // Enoch (enoch) — Move List / kit metadata (kits.js entry). Numbers are the authored RAW values from enochData.js (stored
 // damage = raw; the shared pipeline applies GLOBAL_DAMAGE_SCALE 0.6 and combo scaling to every character alike).
 // Inputs use the shared logical button tokens + numpad motions (6 = forward, facing-relative). Combos: docs/enoch/COMBOS.md.
-import { ENOCH_MOVES as N, ENOCH_SPECIALS as S, SUPERS, GLIDE, DISC, GUARD_CANCEL, WALLS, WALL_STEAM } from './enochData.js'
+import { ENOCH_MOVES as N, ENOCH_SPECIALS as S, SUPERS, GLIDE, DISC, GUARD_CANCEL, WALLS, WALL_STEAM, STATUS } from './enochData.js'
 export const ENOCH_CONTROLS = {
   rows: [
     ['Move / crouch', 'A / D, S', '← / →, ↓', 'Left stick / D-pad'],
@@ -24,6 +24,8 @@ export const ENOCH_CONTROLS = {
     ['ICE STANCE · Lance · Rush · Rise · Black Ice · Breaker', 'L · fwd / W / S / back + L', '4 · fwd / ↑ / ↓ / back + 4', 'R1 · Fwd / Up / Down / Back + R1'],
     ['ICE STANCE · Ice Wall · air down-strike · WHITEOUT', 'S + K · air K · U', '↓ + 2 · air 2 · 5', 'Down + △ · air △ · R2'],
     ['ICE STANCE · Ice Flash · Ice Stream · Ice Glider', 'double-tap · air double-tap · hold W falling', 'double-tap · air double-tap · hold ↑', 'double-tap · air double-tap · hold ✕'],
+    ['HOT (channel Up + P): Ice Blast → FIRE SHARD · Frost Floor → FLAME FLOOR · dash / slide leave FIRE', 'same inputs', 'same inputs', 'same inputs'],
+    ['COLD (channel Down + P): Heat Lens → FROST LENS (ice laser eyes) · dash / slide leave ICE', 'same inputs', 'same inputs', 'same inputs'],
     ['Grab / Guard', 'O / ;', '6 / /', 'L1 / ○'],
   ],
   note: 'Directions are FACING-RELATIVE. Pad shortcuts without the motion: Special = Ice Blast, Forward + Special = Heat Lens, Down + Special = Frost Floor, Back + Special = Deep Freeze, Down + Heavy = Slide, Back + Heavy = the wall of his zone (hot → Fire Wall, else Ice Wall). Tap L2 / P to switch stance (Down + L2 = Ice Disc in either stance). The shared energy Charge is off for him: his Super meter fills from damage dealt and taken.',
@@ -43,11 +45,11 @@ export const ENOCH_KIT = { type: 'Elemental Controller / Trail Glider', energy: 
     { name: 'Wake-up reversal', input: 'Any attack as he gets up', desc: `raw ${r(S.wake)}; ${S.wake.invuln} invulnerable frames; −12 on block.` },
   ],
   specials: [
-    { name: 'Ice Blast', input: '↓↘→ + Special', cost: '12 cold', desc: `Projectile raw ${r(S.iceBlast)}, ~55 % screen, ≤ 3 out.` },
-    { name: 'Frost Floor', input: '↓↓ + Special', cost: '15 cold', desc: `Raw ${r(S.frostFloor)} blunt (low) + an ICE patch ahead.` },
+    { name: 'Ice Blast / FIRE SHARD', input: '↓↘→ + Special', cost: '12 cold (hot: 12 hot)', desc: `He stands, points and fires an ice shard: raw ${r(S.iceBlast)}, ~55 % screen, ≤ 3 out. Hot (above +25): a FIREBALL instead (builds burn).` },
+    { name: 'Frost Floor / FLAME FLOOR', input: '↓↓ + Special', cost: '15 cold (hot: 15 hot)', desc: `Raw ${r(S.frostFloor)} (low) + an ICE patch ahead; hot: a fire eruption + a FIRE patch.` },
     { name: 'Deep Freeze', input: '↓↙← + Special', cost: '22 cold', desc: `Raw ${r(S.deepFreeze)}; freezes 0.7 s (the shared freeze status, +15 % damage taken); 8 s cooldown.` },
     { name: 'Ice Disc', input: 'Forward + Charge', cost: '18 cold', desc: `A low hovering disc for ${DISC.life / 60} s, ${DISC.hp} HP; anyone can stand on it; counts as ICE; fire melts it to WATER.` },
-    { name: 'Heat Lens', input: '→→ + Special / ↓↘→ + Heavy', cost: '12 hot', desc: `Laser eyes on the Homelander / Superman LASER GAUGE (HUD bar "HEAT LENS"): tap = a burst (raw ${r(S.heatLens)}, energy), HOLD Special = a sustained beam, 7 per pulse, 10 hot / s, that LOCKS ON to the foe (Up / Down sweep it by hand). The beam drains the gauge (1.2 s full); release = 1 s cooldown, running it dry = 2.5 s OVERHEAT. Where it meets the floor it lays FIRE. +25 % on a wet target.` },
+    { name: 'Heat Lens / FROST LENS', input: '→→ + Special / ↓↘→ + Heavy', cost: '12 hot (cold: 12 cold — the ICE laser eyes)', desc: `Laser eyes on the Homelander / Superman LASER GAUGE (HUD bar "HEAT LENS"): tap = a burst (raw ${r(S.heatLens)}, energy), HOLD Special = a sustained beam, 7 per pulse, 10 hot / s, that LOCKS ON to the foe (Up / Down sweep it by hand). The beam drains the gauge (1.2 s full); release = 1 s cooldown, running it dry = 2.5 s OVERHEAT. Where it meets the floor it lays FIRE. +25 % on a wet target.` },
     { name: 'Ice Wall', input: '→↓↘ + Special (Back + Heavy when not hot)', cost: '15 cold', desc: `A crystal wall ahead for ${WALLS.ice.life / 60 | 0} s: blocks bodies, stops ${WALLS.ice.hp} enemy shots, erupting under a grounded foe = a launching hit (raw ${WALLS.ice.raw}); lays ICE. 4 s cooldown.` },
     { name: 'Fire Wall', input: '→↓↘ + Heavy (Back + Heavy when hot)', cost: '15 hot', desc: `A flame column ahead for ${WALLS.fire.life / 60} s: not solid, burns anyone inside (${WALLS.fire.tickRaw} every ${WALLS.fire.tickEvery} f), burns away ${WALLS.fire.hp} enemy shots; lays FIRE. Raised on his Ice Wall = a STEAM BURST (${WALL_STEAM.raw}, launches). 4 s cooldown.` },
     { name: 'Scorch Sweep', input: '↓↙← + Heavy', cost: '20 hot', desc: `Raw ${r(S.scorch)} energy arc + a FIRE patch ahead.` },
@@ -55,6 +57,7 @@ export const ENOCH_KIT = { type: 'Elemental Controller / Trail Glider', energy: 
     { name: 'Tide Break', input: '→→ + Heavy (balance)', cost: '25 away from 0', desc: 'Every one of his patches turns to WATER, each one bursting (30) under anyone standing in it. 6 s cooldown.' },
     { name: 'Condense', input: '↓↓ + Heavy (balance)', cost: '15 away from 0', desc: `A drifting orb (raw ${r(S.condense)}). Over his FIRE → steam explosion 70; over his ICE → hail 60, faster.` },
   ],
+  status: { name: 'LASTING EFFECTS', desc: `Fire hits BURN, ice hits CHILL — never from the first hit. From 2 stacks a burn drains health (more per stack) and a chill slows every step (−${Math.round(STATUS.slowPer * 100)} % a stack); ${STATUS.max} chill = the ICE BOX (frozen ${STATUS.boxFrames / 60 | 0}+ s). Fire on a chilled foe = STEAM SHOCK, ice on a burning one = QUENCH. The foe's health bar glows red / blue.` },
   channel: { name: 'CHANNEL (hold Down / Up + Charge)', desc: 'Rooted in place, he pulls his thermal toward COLD (Down) or HEAT (Up), stopping short of an overload. Any hit or letting go ends it. Cold opens the ice moves and the Ice Wall; heat opens Heat Lens and the Fire Wall.' },
   stance: { name: 'ICE STANCE (tap Charge)', desc: 'Every button switches to the full Frozone-style ice kit on its classic inputs: the 3-hit ice strike chain, crystal heavy, low sweep, rising wedge launcher, air burst and down-air strike; Ice Lance (Special), Glacier Rush (Forward), Rising Glacier (Up), Black Ice (Down), Icebreaker (Back), Ice Wall (Down + Heavy); the Chill → Freeze → Shatter passive; Ice Flash (double-tap teleport), Ice Stream (air double-tap rail), Ice Glider (hold Jump while falling); and WHITEOUT (Ultimate, 100 Super). Its specials cost his thermal (cold) instead of energy. Tap Charge again to return to his elemental kit.' },
   ultimate: { name: 'SUPER — by thermal', input: '↓↘→↓↘→ + Special (or Ultimate)', cost: 100, desc: `Full meter; locks thermal 3 s. Cold: ${SUPERS.absoluteZero.name} 4 × 55 + 110 = 330 (blunt). Hot: ${SUPERS.flashPoint.name} 10 per pulse for 2 s + 140 flare = 340 (energy). Balance: ${SUPERS.thermalShock.name} 390, leaves water + steam.` },

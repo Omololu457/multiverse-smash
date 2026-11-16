@@ -92,3 +92,16 @@ The brief's values, verified live against a blocking dummy:
 - Ice Blast uses the sheet's standing point-and-shoot frames; the shard is drawn as a crystal spike in flight.
 - Effects from the owner-supplied effect sheets (tools/enoch/cut_vfx.py → assets/enoch/vfx, enochVfx.js), render-only:
   ice burst on shard hits / shatters, fire pillars on the Fire Wall, fire puffs on embers, water splashes, channel auras.
+
+## 2026-11-16: lasting effects + fire / ice twins
+- **Fire / ice twins** (element follows temperature outside the ±25 balance band): hot → Ice Blast fires a FIRE SHARD
+  (fireball, energy, heats him), Frost Floor = FLAME FLOOR (fire patch); cold → Heat Lens = FROST LENS (the ice laser eyes:
+  blue beam, frosts the floor, cools him). His dash and slide leave a FIRE trail when hot, an ICE trail when cold (none in
+  balance); a fire dash over his own ice = the thermal burst. Ice Wall / Fire Wall, Deep Freeze / Scorch keep their inputs.
+- **Lasting effects** (STATUS in enochData; kept in his state per victim, so replays / snapshots carry them):
+  BURN: +1 per clean fire special, +0.34 per held-laser tick, +0.5 per Fire Wall tick, +0.25 per fire-patch tick. From 2 stacks
+  3 raw × (stacks − 1) every 0.5 s. CHILL: the same amounts from ice; from 2 stacks every step is 12 % shorter per stack above 1;
+  5 = ICE BOX (80 f frozen, then 4 s before another box). Stacks last 4 s, then fall one per second. Fire on ≥ 2 chill =
+  STEAM SHOCK (14 × chill), ice on ≥ 2 burn = QUENCH (10 × burn). Blocked hits build nothing.
+- HUD: the opponent's health bar takes a red (burn) / blue (chill) wash that deepens per stack, with BURN ×n / CHILL ×n · SLOW %
+  / ICE BOX written on it. In the world: flames on a burning foe, ice crystals on a chilled one, an ice block around a boxed one.

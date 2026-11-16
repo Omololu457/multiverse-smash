@@ -17,7 +17,7 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
@@ -33,9 +33,10 @@ export const TP = registerThermal('enoch', {})          // the brief's numbers a
 const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, iceGlide: 0, fireGlide: 0, switches: 0, ramps: 0, rampLand: 0, discs: 0, discMelt: 0,
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
-  sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0 })
+  sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0,
+  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0,
+  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false,
   cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
   stats: stats0(), lastReject: null, cues: [] }
 
@@ -178,6 +179,60 @@ function breakDisc(f, s) {
   s.disc = null; s.stats.discBreak++; cue(f, 'shatter')
 }
 
+// ── FIRE / ICE TWINS: outside the balance band his element follows his temperature ──
+export const twinOf = f => { const v = enState(f).th.v; return v > TP.balance ? 'fire' : v < -TP.balance ? 'ice' : null }
+// the element a move really uses when it starts (Ice Blast → Fire Shard when hot, Frost Floor → Flame Floor, Heat Lens → Frost Lens when cold)
+export function moveElement(f, key) {
+  const md = ALL_MOVES[key], tw = twinOf(f)
+  if (key === 'heatLens' && tw === 'ice') return 'ice'
+  if ((key === 'iceBlast' || key === 'frostFloor') && tw === 'fire') return 'fire'
+  return md?.el || null
+}
+// ── LASTING EFFECTS on his opponents: BURN (health decay) / CHILL (slow → ICE BOX) + the steam combination. Kept in HIS state
+// (s.aff[victim side]) so it is part of GAME_STATE, replays and snapshots; it acts on the victim through x / hitstun / damage only.
+const affOf = (s, t) => (s.aff[sideOf(t)] ||= { burn: 0, burnT: 0, burnK: 0, chill: 0, chillT: 0, box: 0, boxCd: 0, px: null })
+const r2 = v => Math.round(v * 100) / 100
+export function afflict(f, t, el, amt, W = WREF.W) {
+  if (!isEnoch(f) || !t || t === f || !(t.health > 0) || !(el === 'fire' || el === 'ice') || !(amt > 0)) return null
+  const s = enState(f), A = affOf(s, t), S = STATUS
+  if (el === 'fire') {
+    if (A.box > 0) { A.box = 0; t._supFrozen = 0 }                                // fire thaws an ice box
+    if (A.chill >= S.comboAt && amt >= 1) {                                         // THE COMBINATION: fire on the chilled = STEAM SHOCK
+      const raw = S.shockRaw * Math.floor(A.chill); A.chill = 0; A.chillT = 0; s.stats.shocks++
+      W?.damage?.(t, raw, { attacker: f, source: 'steamShock', damageType: 'energy' }); cue(f, 'burst'); pushFx(s, 'steamBlast', ctrX(t), ctrY(t), 1); return 'shock'
+    }
+    A.burn = r2(Math.min(S.max, A.burn + amt)); A.burnT = S.life; s.stats.burns++; return 'burn'
+  }
+  if (A.burn >= S.comboAt && amt >= 1) {                                            // ice on the burning = QUENCH
+    const raw = S.quenchRaw * Math.floor(A.burn); A.burn = 0; A.burnT = 0; s.stats.quenches++
+    W?.damage?.(t, raw, { attacker: f, source: 'quench', damageType: 'blunt' }); cue(f, 'hiss'); pushFx(s, 'steamPuff', ctrX(t), ctrY(t), 1); return 'quench'
+  }
+  A.chill = r2(Math.min(S.max, A.chill + amt)); A.chillT = S.life; s.stats.chills++
+  if (A.chill >= S.max && A.boxCd <= 0 && !(A.box > 0)) {                         // the ICE BOX: frozen solid
+    A.box = S.boxFrames; A.boxCd = S.boxFrames + S.boxCd; A.chill = 0; A.chillT = 0; s.stats.boxes++
+    t._supFrozen = S.boxFrames; t._supFrozenMax = S.boxFrames; t.hitstun = Math.max(t.hitstun || 0, S.boxFrames); t.vx = 0
+    cue(f, 'freeze'); pushFx(s, 'shatter', ctrX(t), ctrY(t), 1); return 'box'
+  }
+  return 'chill'
+}
+export const slowOf = c => c >= 2 ? Math.max(0, 1 - STATUS.slowPer * (Math.floor(c) - 1)) : 1
+function tickAfflictions(f, s, W, opp) {
+  const S = STATUS
+  for (const t of foesOf(f, W, opp)) {
+    const A = s.aff[sideOf(t)]; if (!A) continue
+    if (A.box > 0) A.box--
+    if (A.boxCd > 0) A.boxCd--
+    if (A.burnT > 0) A.burnT--; else if (A.burn > 0) { A.burn = r2(Math.max(0, Math.ceil(A.burn) - 1)); A.burnT = A.burn > 0 ? S.decay : 0 }
+    if (A.chillT > 0) A.chillT--; else if (A.chill > 0) { A.chill = r2(Math.max(0, Math.ceil(A.chill) - 1)); A.chillT = A.chill > 0 ? S.decay : 0 }
+    if (A.burn >= 2) {                                                              // BURN: health decay (never on the first hit)
+      if (++A.burnK >= S.burnEvery) { A.burnK = 0; const raw = S.burnRaw * (Math.floor(A.burn) - 1); W?.damage?.(t, raw, { attacker: f, source: 'burn', damageType: 'energy' }); s.stats.burnTicks++; pushFx(s, 'ember', ctrX(t), ctrY(t) - 20, 1) }
+    } else A.burnK = 0
+    const mul = slowOf(A.chill), free = !(t.hitstun > 0) && !t.knockdownState && !(t._supFrozen > 0) && !t.isGrabbed
+    if (mul < 1 && free && A.px != null) t.x = r2(A.px + (t.x - A.px) * mul)      // CHILL: every step he takes is shorter
+    A.px = t.x
+  }
+}
+
 // ── combat.js hooks (enoch-gated) ──
 export function enochHitbox(f) {
   const a = f.currentAttack, m = a?.en, md = ALL_MOVES[m?.key]
@@ -191,23 +246,26 @@ export function enochBlock(f, d, a) {
   d.blockstun = ALL_MOVES[a.en.key].blockstun; a.en.blocked = true; enState(f).stats.blocked++
 }
 export function enochHit(f, d, a, { armored = false } = {}) {
-  if (isEnoch(f) && a?.fz && !armored && !d.isBlocking) { meter(f, (a.damage || 0) * METER.onHit); return }   // Ice Stance hits build his Super too
+  if (isEnoch(f) && a?.fz && !armored && !d.isBlocking) { meter(f, (a.damage || 0) * METER.onHit); afflict(f, d, 'ice', STATUS.hit); return }   // Ice Stance hits build his Super too
   if (!isEnoch(f) || !a?.en) return
   const s = enState(f), md = ALL_MOVES[a.en.key]
   if (armored || d.isBlocking) return
   a.en.clean = true; s.stats.clean++
   meter(f, (a.damage || 0) * METER.onHit)
+  const hel = a.en.el || md.el; if (hel === 'fire' || hel === 'ice') afflict(f, d, hel, STATUS.hit)
   if (md.freeze && d.health > 0) { d._supFrozen = md.freeze; d._supFrozenMax = md.freeze; d.hitstun = Math.max(d.hitstun || 0, md.freeze); d.vx = 0; s.stats.freezes++; cue(f, 'freeze') }
-  pushFx(s, md.el === 'fire' ? 'ember' : 'chip', ctrX(d), ctrY(d) - 10, a.en.dir)
+  pushFx(s, hel === 'fire' ? 'ember' : 'chip', ctrX(d), ctrY(d) - 10, a.en.dir)
 }
 export function enochProjectileHit(proj, target, { armored = false } = {}) {
-  if (proj?._fz && isEnoch(proj.owner) && !target?.isBlocking && !armored) { meter(proj.owner, (proj.damage || 0) * METER.onHit); return }   // Ice Lance / Black Ice
+  if (proj?._fz && isEnoch(proj.owner) && !target?.isBlocking && !armored) { meter(proj.owner, (proj.damage || 0) * METER.onHit); afflict(proj.owner, target, 'ice', STATUS.hit); return }   // Ice Lance / Black Ice
   const k = proj?._en; if (!k || !isEnoch(proj.owner)) return
   const f = proj.owner, s = enState(f), blocked = !!target?.isBlocking || armored
   if (blocked) { s.stats.blocked++; pushFx(s, 'chip', proj.x, proj.y, k.dir || 1); return }
   s.stats.clean++; meter(f, (proj.damage || 0) * METER.onHit)
   const a = live(f); if (a && a.en.serial === k.serial) a.en.clean = true
-  pushFx(s, k.kind === 'blast' || k.kind === 'hail' ? 'frost' : 'chip', proj.x, proj.y, k.dir || 1)
+  const pel = k.el || ((k.kind === 'blast' || k.kind === 'hail' || k.kind === 'wall') ? 'ice' : null)
+  if (pel) afflict(f, target, pel, STATUS.hit)
+  pushFx(s, pel === 'fire' ? 'ember' : (k.kind === 'blast' || k.kind === 'hail') ? 'frost' : 'chip', proj.x, proj.y, k.dir || 1)
 }
 
 // ── MOVES ──
@@ -221,7 +279,8 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   if (md.isSpecial && (f.disabledSpecials || []).includes('special')) return false
   if (md.air && g) return false
   if (!md.air && !g) { reject(f, 'air'); return false }
-  const chk = md.el ? check(f, md.el) : { ok: true, cost: 1, dmg: 1 }
+  const el = moveElement(f, key)
+  const chk = el ? check(f, el) : { ok: true, cost: 1, dmg: 1 }
   if (!chk.ok) { reject(f, chk.why); return false }
   if (md.cooldown && s.cd[key] > 0) { reject(f, 'cooldown'); return false }
   if (key === 'heatLens' && !laserReady(s.laser)) { reject(f, s.laser.over > 0 ? 'overheat' : 'laser'); return false }
@@ -234,7 +293,7 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   f.currentMove = key
   const a = f.currentAttack
   a.damage = Math.round((md.damage || 0) * chk.dmg * bonus * 100) / 100
-  a.en = { key, dir: f.facing || 1, clean: false, blocked: false, serial: ++s.serial, released: false, mul: chk.dmg * bonus, variant, glideV: s.glide ? s.glide.v : 0 }
+  a.en = { key, dir: f.facing || 1, clean: false, blocked: false, serial: ++s.serial, released: false, mul: chk.dmg * bonus, variant, glideV: s.glide ? s.glide.v : 0, el }
   a.hasHit = !!md.noBody
   f.isBlocking = false; f.isCharging = false; f.dashTimer = 0
   if (s.glide) endGlide(f, s, false)
@@ -243,11 +302,13 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   if (md.invuln) f.invulnTimer = Math.max(f.invulnTimer || 0, md.invuln)
   if (key === 'super') { s.th.lock = SUPER_LOCK; s.pend = null; s.stats.supers++; cue(f, 'superStart') }
   else if (md.th) {
-    if (md.away) s.pend = { serial: a.en.serial, amt: md.th * chk.cost }      // water: pushed away from 0 as the move ends
-    else push(f, s, md.th * chk.cost)
+    const th = el && md.el && el !== md.el ? -md.th : md.th                   // a twin pushes the other way (Fire Shard heats, Frost Lens cools)
+    if (md.away) s.pend = { serial: a.en.serial, amt: th * chk.cost }      // water: pushed away from 0 as the move ends
+    else push(f, s, th * chk.cost)
   }
   if (key === 'wake') s.stats.wakes++
-  cue(f, md.el ? md.el + 'Cast' : md.isSpecial ? 'cast' : 'swing')
+  cue(f, el ? el + 'Cast' : md.isSpecial ? 'cast' : 'swing')
+  if (el && md.el && el !== md.el) { if (key === 'iceBlast') s.stats.fireShards++; else if (key === 'frostFloor') s.stats.flameFloors++; else if (key === 'heatLens') s.stats.frostLens++ }
   return true
 }
 // variant by the zone at the press: |v| ≤ 25 → THERMAL SHOCK; otherwise by the meter's sign
@@ -259,7 +320,7 @@ function vol(f, s, W, kind, serial, cx, cy, w, h, P) {
     sheet: './assets/enoch/fx/blank.png', spriteFrames: 1, spriteW: 1, spriteH: 1, isSpecial: true, color: P.color || '#9fe8ff' })
   if (!pr) return null
   pr.noTrail = true; pr.damageType = P.damageType || 'projectile'; if (P.low) pr.hitLevel = 'low'
-  pr._en = { kind, serial, n: ++s.nEnt, dir: P.dir || 1 }
+  pr._en = { kind, serial, n: ++s.nEnt, dir: P.dir || 1, el: P.el || null }
   s.stats.spawns++
   return pr
 }
@@ -295,11 +356,12 @@ function beamPulse(f, s, W, angle, raw, hitstun, tap) {
       f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90
       meter(f, dm * METER.onHit); s.stats.beamHits++
       const a = live(f); if (a) a.en.clean = true
-      // the shot scorches the ground at a grounded target's feet (combo 2: on his ICE patch → burst)
-      if (tap && grounded(tgt)) lay(f, s, W, { type: 'fire', cx: ctrX(tgt), width: 72, floor: feetY(tgt) })
+      afflict(f, tgt, s.beamEl, tap ? STATUS.hit : STATUS.beamTick, W)
+      // the shot scorches (Frost Lens: frosts) the ground at a grounded target's feet (combo 2: on his ICE patch → burst)
+      if (tap && grounded(tgt)) lay(f, s, W, { type: s.beamEl, cx: ctrX(tgt), width: 72, floor: feetY(tgt) })
     }
-  } else if (fl && end.y === fl.y) { s.stats.beamFloor++; lay(f, s, W, { type: 'fire', cx: fl.x, width: 64, extend: true }) }
-  s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(end.x), ty: Math.round(end.y), hit: !!tgt, t: tap ? 8 : 2, tick: s.tick }
+  } else if (fl && end.y === fl.y) { s.stats.beamFloor++; lay(f, s, W, { type: s.beamEl, cx: fl.x, width: 64, extend: true }) }
+  s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(end.x), ty: Math.round(end.y), hit: !!tgt, t: tap ? 8 : 2, tick: s.tick, el: s.beamEl }
   return !!tgt
 }
 function endBeam(f, s) { if (!s.beam) return; s.beam = null; laserCut(s.laser, LASER); cue(f, 'laserOff'); const a = live(f); if (a && a.en.key === 'heatLens') a.timer = Math.min(a.timer, ALL_MOVES.heatLens.recovery) }
@@ -312,13 +374,14 @@ function release(f, s, W, a, m, md) {
     const t = foesOf(f, W).filter(o => !grounded(o) && (ctrX(o) - x0) * d > 0).sort((p, q) => Math.abs(ctrX(p) - x0) - Math.abs(ctrX(q) - x0))[0]
     const vy = t ? Math.max(-ICE_BLAST.speed * ICE_BLAST.aimTan, Math.min(0, (ctrY(t) - y0) / Math.max(1, Math.abs(ctrX(t) - x0) / ICE_BLAST.speed))) : 0
     vol(f, s, W, 'blast', m.serial, x0, y0, ICE_BLAST.w, ICE_BLAST.h,
-      { damage: a.damage, hitstun: ICE_BLAST.hitstun, kbx: ICE_BLAST.kbx, kby: ICE_BLAST.kby, life: ICE_BLAST.life, vx: d * ICE_BLAST.speed, vy: Math.round(vy * 1000) / 1000, dir: d, damageType: 'projectile' })
-    cue(f, 'iceBlast')
+      { damage: a.damage, hitstun: ICE_BLAST.hitstun, kbx: ICE_BLAST.kbx, kby: ICE_BLAST.kby, life: ICE_BLAST.life, vx: d * ICE_BLAST.speed, vy: Math.round(vy * 1000) / 1000, dir: d, damageType: m.el === 'fire' ? 'energy' : 'projectile', el: m.el || 'ice', color: m.el === 'fire' ? '#ff9a3c' : '#9fe8ff' })
+    cue(f, m.el === 'fire' ? 'fireCast' : 'iceBlast')
   } else if (m.key === 'frostFloor') {
     const cx = fr + d * FROST_FLOOR.ahead
-    lay(f, s, W, { type: 'ice', cx })
-    vol(f, s, W, 'floor', m.serial, cx, feet - 15, 140, 30, { damage: a.damage, hitstun: 20, kbx: 2, kby: 0, life: 5, dir: d, low: true, damageType: 'blunt' })
-    cue(f, 'crackle'); pushFx(s, 'frost', cx, feet, d)
+    const fl = m.el === 'fire'                                                     // hot: FLAME FLOOR (a fire eruption + a fire patch)
+    lay(f, s, W, { type: fl ? 'fire' : 'ice', cx })
+    vol(f, s, W, 'floor', m.serial, cx, feet - 15, 140, 30, { damage: a.damage, hitstun: 20, kbx: 2, kby: 0, life: 5, dir: d, low: true, damageType: fl ? 'energy' : 'blunt', el: fl ? 'fire' : 'ice' })
+    cue(f, fl ? 'fireCast' : 'crackle'); pushFx(s, fl ? 'flameFloor' : 'frost', cx, feet, d)
   } else if (m.key === 'scorch') { lay(f, s, W, { type: 'fire', cx: fr + d * SCORCH.ahead }); pushFx(s, 'scorch', fr + d * 70, feet - 50, d) }
   else if (m.key === 'iceDisc') {
     if (s.disc) breakDisc(f, s)
@@ -328,7 +391,7 @@ function release(f, s, W, a, m, md) {
     lay(f, s, W, { type: 'ice', cx, width: DISC.w, floor: floor - DISC.height, life: DISC.life, disc: { hp: DISC.hp } })
     s.disc = { pid: pl.id, hp: DISC.hp, hitSerial: {} }; s.stats.discs++; cue(f, 'crackle'); pushFx(s, 'frost', cx, floor - DISC.height, d)
   } else if (m.key === 'heatLens') {
-    s.stats.beams++; cue(f, 'laser')
+    s.stats.beams++; cue(f, 'laser'); s.beamEl = m.el === 'ice' ? 'ice' : 'fire'   // cold: the FROST LENS (ice laser)
     const aim = laserAim(f, W)
     beamPulse(f, s, W, aim ?? 0, a.damage, HEAT_LENS.hitstun, true)
     if (laserStart(s.laser, LASER, aim ?? 0)) { s.beam = { k: 0, angle: s.laser.angle }; if (m.held) cue(f, 'laserOn') }
@@ -395,7 +458,7 @@ function updateWall(f, s, W, opp) {
     } else if (w.t % P.tickEvery === 0 && !((o.invulnTimer || 0) > 0)) {   // FIRE: burns whoever stands in it
       const raw = P.tickRaw * w.mul
       if (o.isBlocking) { W?.damage?.(o, raw * 0.2, { attacker: f, source: 'fireWall', damageType: 'energy' }); o.blockstun = Math.max(o.blockstun || 0, 6) }
-      else { W?.damage?.(o, raw, { attacker: f, source: 'fireWall', damageType: 'energy' }); o.hitstun = Math.max(o.hitstun || 0, P.hitstun); o.colorFlash = 5; meter(f, raw * METER.onHit) }
+      else { W?.damage?.(o, raw, { attacker: f, source: 'fireWall', damageType: 'energy' }); o.hitstun = Math.max(o.hitstun || 0, P.hitstun); o.colorFlash = 5; meter(f, raw * METER.onHit); afflict(f, o, 'fire', STATUS.wallTick, W) }
       s.stats.wallBurns++; pushFx(s, 'ember', ctrX(o), ctrY(o), w.dir)
     }
   }
@@ -572,7 +635,13 @@ export function tickEnoch(f, opp, raw, W) {
   const all = W?.fighters?.() || [f, opp].filter(Boolean)
   const hurt = applyPatchEffects(s.field, all, { frame: fr, owner: sideOf(f), ownerX: ctrX(f), sideOf, grounded, feet: feetY, cx: ctrX, walker: ICE_WALKER,
     damage: (t, n, o) => W?.damage?.(t, n, { attacker: f, ...o }) })
-  for (const h of hurt) { s.stats.patchDmg += h.dmg; meter(f, h.dmg * METER.onHit) }
+  for (const h of hurt) { s.stats.patchDmg += h.dmg; meter(f, h.dmg * METER.onHit); if (h.type === 'fire') afflict(f, h.fighter, 'fire', STATUS.patchTick, W) }
+  tickAfflictions(f, s, W, opp)
+  // FIRE DASH / ICE DASH (and the slide): outside the balance band his dash leaves a trail of his element
+  const tw = twinOf(f), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
+  if (dashing && !s.dashWas && tw) { s.stats[tw === 'fire' ? 'fireDash' : 'iceDash']++; cue(f, tw === 'fire' ? 'fireCast' : 'crackle') }
+  s.dashWas = dashing
+  if (tw && (dashing || sliding) && s.tick % TWIN.trailEvery === 0) lay(f, s, W, { type: tw, cx: ctrX(f) - face * 16, width: TWIN.trailW, extend: true })
   for (const o of foesOf(f, W, opp)) if (isSanjiLit(o) && grounded(o)) for (const p of patchesAt(s.field, ctrX(o), feetY(o))) if (p.type === 'ice' && !p.disc) {   // SANJI: a lit Diable Jambe melts his ice to water
     convertPatch(s.field, p, 'water', fr); s.stats.sanjiMelt++; cue(f, 'hiss'); pushFx(s, 'steamPuff', ctrX(o), feetY(o), 1)
   }
@@ -598,9 +667,9 @@ export function tickEnoch(f, opp, raw, W) {
     if (r !== 'fire') { if (r === 'overheat') { s.stats.laserOverheat++; cue(f, 'overload') } s.beam = null; cue(f, 'laserOff'); if (A && m?.key === 'heatLens') A.timer = Math.min(A.timer, ALL_MOVES.heatLens.recovery) }
     else {
       const B = s.beam; B.k++; B.angle = s.laser.angle
-      if (held) { A.timer++; push(f, s, HEAT_LENS.hotPerSec / 60) }    // hold the pose (and heat up) while Special is held
+      if (held) { A.timer++; push(f, s, (s.beamEl === 'ice' ? -1 : 1) * HEAT_LENS.hotPerSec / 60) }    // hold the pose (and heat up) while Special is held
       if (s.beam && held && B.k % HEAT_LENS.tickEvery === 0) { s.stats.beamTicks++; beamPulse(f, s, W, B.angle, HEAT_LENS.tickRaw * m.mul, HEAT_LENS.holdHitstun, false) }
-      else if (s.beam) { const o = lensOrigin(f), e = marchBeam(o.x, o.y, B.angle, f.facing || 1, Math.min(HEAT_LENS.len, sw(W)), (foesOf(f, W)[0] && box(foesOf(f, W)[0])) || null); s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(e.x), ty: Math.round(e.y), hit: !!e.hit, t: 2, tick: s.tick } }
+      else if (s.beam) { const o = lensOrigin(f), e = marchBeam(o.x, o.y, B.angle, f.facing || 1, Math.min(HEAT_LENS.len, sw(W)), (foesOf(f, W)[0] && box(foesOf(f, W)[0])) || null); s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(e.x), ty: Math.round(e.y), hit: !!e.hit, t: 2, tick: s.tick, el: s.beamEl } }
     }
   } else laserStep(s.laser, LASER, {})
   if (!m || f.hitstun > 0 || f.isGrabbed) return

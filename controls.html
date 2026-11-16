@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#05070f">
+<title>Controls Lab — Multiverse Smash</title>
+<link rel="stylesheet" href="controls_lab/lab.css">
+</head>
+<body>
+<div id="app" class="booting">
+  <header class="top">
+    <div class="brand"><span class="logo">◈</span><div><div class="t1">CONTROLS LAB</div><div class="t2">Multiverse Smash training simulator</div></div></div>
+    <button id="charChip" class="chip glass nav" data-nav="header" title="Choose fighter (Create / C)">
+      <img id="charPortrait" alt=""><span><span id="charName">—</span><small id="charUni"></small></span><span class="chev">▾</span>
+    </button>
+    <nav id="modeTabs" class="tabs" role="tablist">
+      <button class="tab nav" data-mode="moves" data-nav="header" role="tab">MOVE LIST</button>
+      <button class="tab nav" data-mode="combos" data-nav="header" role="tab">COMBO LIBRARY</button>
+      <button class="tab nav" data-mode="trial" data-nav="header" role="tab">COMBO TRIAL</button>
+      <button class="tab nav" data-mode="free" data-nav="header" role="tab">FREE PRACTICE</button>
+    </nav>
+    <a id="backToGame" class="btn ghost nav" data-nav="header" href="index.html">◂ BACK TO GAME</a>
+  </header>
+
+  <main class="layout">
+    <section class="left">
+      <div class="arena glass" id="arenaBox">
+        <iframe id="game" title="Live arena (real game engine)" tabindex="-1"></iframe>
+        <canvas id="overlay"></canvas>
+        <div id="arenaShield" class="shield" title="Click to take control"></div>
+        <div id="arenaBadge" class="badge"></div>
+        <div id="veil" class="veil"><div class="spinner"></div><div id="veilText">Loading the real engine…</div></div>
+      </div>
+      <div class="arena-bar glass">
+        <div class="seg" id="dummyBar" aria-label="Dummy">
+          <span class="lbl">DUMMY</span>
+          <button class="nav sm" data-dummy="stand" data-nav="bar">Stand</button>
+          <button class="nav sm" data-dummy="crouch" data-nav="bar">Crouch</button>
+          <button class="nav sm" data-dummy="jump" data-nav="bar">Jump</button>
+          <button class="nav sm" data-dummy="block" data-nav="bar">Block</button>
+          <button class="nav sm" id="resetBtn" data-nav="bar">⟲ Reset</button>
+        </div>
+        <div class="seg">
+          <button class="nav sm" id="controlBtn" data-nav="bar">▶ TAKE CONTROL</button>
+          <button class="nav sm" id="hitboxBtn" data-nav="bar">Boxes: OFF</button>
+        </div>
+      </div>
+      <div class="history glass" id="history" aria-label="Input history"><span class="lbl">INPUT</span><div id="histRow" class="hist-row"></div></div>
+    </section>
+
+    <section class="right">
+      <div class="glass ctl-panel" id="ctlPanel">
+        <div class="panel-head"><span id="ctlTitle">CONTROLLER</span><span id="ctlHint" class="hint"></span></div>
+        <div id="controller"></div>
+      </div>
+      <div class="glass mode-panel" id="modePanel"></div>
+    </section>
+  </main>
+
+  <footer class="help" id="helpBar"></footer>
+
+  <div id="picker" class="modal hidden" role="dialog" aria-label="Choose a fighter">
+    <div class="modal-box glass">
+      <div class="modal-head"><input id="search" class="nav" data-nav="picker" placeholder="Search fighters…" autocomplete="off"><button class="btn ghost nav" id="pickerClose" data-nav="picker">✕ CLOSE</button></div>
+      <div id="pickerList" class="picker-list"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+</div>
+<script type="module" src="controls_lab/lab.js"></script>
+</body>
+</html>

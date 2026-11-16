@@ -28857,6 +28857,7 @@ gameLoop()
     arena: () => ({ left: physics.stageLeft, width: physics.stageWidth,
                     mid: physics.stageLeft + (physics.stageWidth - physics.stageLeft) * 0.5 }),
     keys:  () => ({ ...keys }),                      // proves key delivery to input.js
+    controls: () => ({ p1: { ...P1_CONTROLS }, p2: { ...P2_CONTROLS } }),   // CONTROLS LAB: live keyboard binds (read-only copy)
     p1:    () => snap(p1),
     p2:    () => snap(p2),
     // Resolved HUD energy-bar label (universe-specific resource name) for each fighter — the SAME

@@ -90,6 +90,43 @@ ok('T3 cold (−50): the laser = FROST LENS (ice laser eyes), cools him', T.lens
 ok('T4 balance: the laser stays the fire Heat Lens', T.lens0 === 'fire', String(T.lens0))
 ok('T5 FIRE DASH leaves fire; ICE DASH leaves ice; balance dash leaves nothing', T.dashHot.types.includes('fire') && T.dashHot.fd === 1 && T.dashCold.types.includes('ice') && T.dashCold.id === 1 && T.dash0.types.length === 0, J({ h: T.dashHot, c: T.dashCold, z: T.dash0 }))
 
+// ═══ A. AIR SLIDE + its limit; C. FIRE CAGE ═══
+const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff } = __E; const r = {}
+  const st = () => H.raw()._enoch
+  const jumpSlide = (a, dir = 'right') => { hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); const x0 = a.x, n0 = st().stats.airSlides; hold(a, { [dir]: true, dash: true }); for (let i = 0; i < 10; i++) hold(a, { [dir]: true }); return { dx: Math.round(a.x - x0), did: st().stats.airSlides - n0 } }
+  const land = a => { rel(a); for (let i = 0; i < 90 && !(a.onGround || a.grounded); i++) step(1); step(4) }
+  let { a, b } = setup(400, 2400); b.invulnTimer = 99999; H.setThermal(0)
+  r.first = jumpSlide(a); r.rail = (st().rails[0] || {}).type || null; r.th = Math.round(st().th.v); r.stance = st().stance
+  hold(a, { right: true, dash: true }); for (let i = 0; i < 4; i++) hold(a, { right: true }); r.sameAir = st().stats.airSlides   // a 2nd double-tap in the same jump
+  land(a); r.second = jumpSlide(a); land(a); r.third = jumpSlide(a); land(a); r.fourth = jumpSlide(a); r.pool = st().air.n; land(a)
+  for (let i = 0; i < 160; i++) step(1); r.regen = st().air.n
+  ;({ a, b } = setup(400, 2400)); b.invulnTimer = 99999; H.setThermal(50); r.fire = jumpSlide(a); r.fireRail = (st().rails[0] || {}).type || null; land(a)
+  // through the foe: one hit + chill
+  ;({ a, b } = setup(700, 900)); H.setThermal(0); hold(a, { jump: true }); for (let i = 0; i < 3; i++) hold(a, {}); const hp0 = b.health   // a low slide through a grounded foe
+  hold(a, { right: true, dash: true }); for (let i = 0; i < 14; i++) hold(a, { right: true }); rel(a); step(10)
+  r.hit = { hits: st().stats.airSlideHits, dmg: Math.round(hp0 - b.health), chill: aff()?.chill || 0 }; land(a)
+  // Ice Stance: the Ice Stream spends the same pool
+  ;({ a, b } = setup(400, 2400)); b.invulnTimer = 99999; H.setThermal(0); hold(a, { charge: true }); rel(a); step(14); st().air.n = 1
+  hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); hold(a, { right: true, dash: true }); for (let i = 0; i < 6; i++) hold(a, { right: true })
+  r.stream1 = { rails: a._frozone?.stats?.rails || 0, pool: st().air.n }; land(a)
+  hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); hold(a, { right: true, dash: true }); for (let i = 0; i < 6; i++) hold(a, { right: true })
+  r.stream2 = { rails: a._frozone?.stats?.rails || 0, denied: st().stats.airDenied }; land(a)
+  // FIRE CAGE: burn to 5
+  ;({ a, b } = setup(1000, 1200)); let res = null; for (let i = 0; i < 5; i++) res = ES.afflict(a, b, 'fire', 1)
+  const x0 = b.x, hp1 = b.health; for (let i = 0; i < 30; i++) { b.x += 6; step(1) }
+  r.cage = { res, held: Math.round(b.x - x0), lost: Math.round(hp1 - b.health), cage: aff().cage, cages: a._enoch.stats.cages }
+  for (let i = 0; i < 60; i++) step(1); r.cageEnd = aff().cage
+  return r })
+ok('A1 jump + double-tap = AIR ICE SLIDE (an ice slab, he slides ~13 px/f, cools)', A.first.did === 1 && A.first.dx > 100 && A.rail === 'ice' && A.th < 0 && A.stance === 'elemental', J({ f: A.first, rail: A.rail, th: A.th }))
+ok('A2 one slide per jump (a 2nd double-tap in the same air does nothing)', A.sameAir === 1, String(A.sameAir))
+ok('A3 jump → slide → jump → slide works, but the pool of 3 runs out (4th denied)', A.second.did === 1 && A.third.did === 1 && A.fourth.did === 0 && A.pool === 0, J({ s: A.second, t: A.third, f: A.fourth, pool: A.pool }))
+ok('A4 the pool refills (one back after 2.5 s)', A.regen >= 1, String(A.regen))
+ok('A5 hot: the AIR FIRE SLIDE (a fire streak)', A.fire.did === 1 && A.fireRail === 'fire', J({ f: A.fire, rail: A.fireRail }))
+ok('A6 sliding through the foe = one hit that chills', A.hit.hits === 1 && A.hit.dmg > 0 && A.hit.chill >= 1, J(A.hit))
+ok('A7 Ice Stance\'s Ice Stream spends the same pool (and is refused when it is empty)', A.stream1.rails === 1 && A.stream1.pool === 0 && A.stream2.rails === 1 && A.stream2.denied >= 1, J({ a: A.stream1, b: A.stream2 }))
+ok('C1 burn 5 = FIRE CAGE: held in place, burning', A.cage.res === 'cage' && A.cage.held === 0 && A.cage.lost > 0 && A.cage.cages === 1, J(A.cage))
+ok('C2 the cage burns out', A.cageEnd === 0, String(A.cageEnd))
+
 // ═══ H. HUD + screenshots ═══
 fs.mkdirSync('docs/enoch/screenshots', { recursive: true })
 const shot = async (name, fn) => { await page.evaluate(fn); const buf = await page.screenshot(); fs.writeFileSync(`docs/enoch/screenshots/${name}.png`, buf); return buf }
@@ -98,6 +135,9 @@ const burnPx = await page.evaluate(() => { const c = document.querySelector('can
 await shot('status_chill', () => { const { ES, step, setup } = __E; const { a, b } = setup(1000, 1200); for (let i = 0; i < 3; i++) ES.afflict(a, b, 'ice', 1); step(4) })
 const chillPx = await page.evaluate(() => { const c = document.querySelector('canvas'), x = c.getContext('2d'), d = x.getImageData(c.width - 300, 32, 200, 12).data; let blue = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 2] > 180 && d[i] < 150) blue++; return blue })
 await shot('status_icebox', () => { const { ES, step, setup } = __E; const { a, b } = setup(1000, 1200); for (let i = 0; i < 5; i++) ES.afflict(a, b, 'ice', 1); step(4) })
+await shot('status_firecage', () => { const { ES, step, setup } = __E; const { a, b } = setup(1000, 1200); for (let i = 0; i < 5; i++) ES.afflict(a, b, 'fire', 1); step(8) })
+await shot('air_ice_slide', () => { const { H, hold, setup } = __E; const { a, b } = setup(500, 2200); b.invulnTimer = 99999; H.setThermal(0); hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); hold(a, { right: true, dash: true }); for (let i = 0; i < 14; i++) hold(a, { right: true }) })
+await shot('air_fire_slide', () => { const { H, hold, setup } = __E; const { a, b } = setup(500, 2200); b.invulnTimer = 99999; H.setThermal(50); hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); hold(a, { right: true, dash: true }); for (let i = 0; i < 14; i++) hold(a, { right: true }) })
 await shot('fire_shard', () => { const { H, step, setup } = __E; setup(900, 1500); H.setThermal(50); H.move('iceBlast'); step(18) })
 await shot('frost_lens', () => { const { H, step, setup } = __E; setup(900, 1300); H.setThermal(-50); H.move('heatLens'); step(12) })
 await shot('fire_dash', () => { const { H, hold, setup } = __E; const { a, b } = setup(700, 2200); b.invulnTimer = 99999; H.setThermal(50); hold(a, { right: true, dash: true }); for (let i = 0; i < 10; i++) hold(a, { right: true }) })

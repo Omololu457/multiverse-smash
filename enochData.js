@@ -88,6 +88,13 @@ export const STATUS = { max: 5, comboAt: 2, life: 240, decay: 60, burnEvery: 30,
 //   hot (≥ +25):  Ice Blast → FIRE SHARD (a fireball) · Frost Floor → FLAME FLOOR · his dash / slide leave FIRE
 //   cold (≤ −25): Heat Lens → FROST LENS (the ice laser) · his dash / slide leave ICE
 export const TWIN = { trailEvery: 3, trailW: 60 }
+// AIR SLIDE (jump, then double-tap): he pours a slab of his element under his feet and slides along it — ICE (an icicle slab)
+// or, when hot, FIRE (a flame streak). One per jump, from a pool of `charges` that refills one every `regen` frames — so
+// jump → slide → jump → slide works, but not forever (the pool refills only while he stands on the ground). The Ice Stance's Ice Stream spends the same pool. Passing through the
+// opponent = one hit (raw 40) that chills / burns. Holding Down angles it down; the slab lingers `life` frames.
+export const AIR_SLIDE = { charges: 3, regen: 120, speed: 13, frames: 30, drop: 1.2, steep: 6, raw: 40, hitstun: 18, kbx: 5, kby: -6, life: 100, thermal: 6, carry: 0.6, maxRails: 6 }
+// FIRE CAGE: burn at STATUS.max traps the foe in a column of fire (held, burning) — the fire twin of the ICE BOX.
+export const CAGE = { frames: 70, every: 10, raw: 5, cd: 240 }
 export const SCORCH = { ahead: 120 }
 export const CONDENSE = { speed: 4, life: 150, w: 34, h: 34, handY: 70, steamRaw: 70, hailRaw: 60, hailSpeed: 9 }
 export const TIDE = { burstRaw: 30 }

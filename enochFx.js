@@ -10,7 +10,7 @@ import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
 import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
 import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, slowOf, sideOf } from './enochState.js'
-import { STATUS } from './enochData.js'
+import { STATUS, AIR_SLIDE, CAGE } from './enochData.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
 import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
@@ -65,6 +65,23 @@ function drawShards(c, W, fr) {
     c.restore()
   }
 }
+// ── AIR SLIDE slabs: ICE = an icicle slab (the supplied icicle sheet) under the line he slid; FIRE = a streak of flame ──
+function drawRails(c, f, s, fr) {
+  for (const q of s.rails || []) {
+    const left = AIR_SLIDE.life - q.t, al = q.live ? 1 : Math.min(1, left / 30), dx = q.x1 - q.x0, dy = q.y1 - q.y0, L = Math.max(1, Math.hypot(dx, dy)), ang = Math.atan2(dy, dx)
+    c.save(); c.translate(R(q.x0), R(q.y0)); c.rotate(ang); c.globalAlpha *= al
+    if (q.type === 'ice') {
+      const V = ENOCH_VFX.icicle, im = V && image(ENOCH_VFX_PATH('icicle', 0))
+      if (ready(im)) { const h = Math.max(30, Math.min(56, L * 0.3)); c.drawImage(im, -6, -6, R(L + 12), R(h)) }       // slab top on his line, icicles hanging
+      else { c.fillStyle = COL.ice[1]; c.fillRect(0, 0, R(L), 10); c.fillStyle = COL.ice[0]; c.fillRect(0, 0, R(L), 3) }
+    } else {
+      c.fillStyle = COL.fire[2]; c.globalAlpha *= 0.85; c.fillRect(0, -2, R(L), 8); c.fillStyle = COL.fire[0]; c.fillRect(0, 0, R(L), 3)
+      const n = Math.max(1, Math.floor(L / 46))
+      for (let i = 0; i < n; i++) vfx(c, 'firePuff', ((fr >> 3) + i) % 3, (i + 0.5) * L / n, -10, { h: 40, alpha: 0.9 })
+    }
+    c.restore()
+  }
+}
 // ── CHANNEL (Down / Up + Charge held): cold mist rings round him, or the floor fire rises under him ──
 function drawChannel(c, f, s, fr) {
   if (!s.channel) return
@@ -77,13 +94,22 @@ function drawAfflictions(c, f, s, W, fr) {
   for (const t of W?.fighters?.() || []) {
     const A = s.aff?.[sideOf(t)]; if (!A || t === f || !(t.health > 0)) continue
     const x = (t.x || 0) + (t.w || 48) / 2, feet = (t.y || 0) + (t.h || 94), h = t.h || 94, w = t.w || 48
-    if (A.box > 0) {   // the ICE BOX: a translucent block with a light face and cracks as it thaws
-      const pad = 14, bx = x - w / 2 - pad, by = t.y - pad, bw = w + pad * 2, bh = h + pad
-      c.save(); c.globalAlpha = 0.55; c.fillStyle = COL.ice[1]; c.fillRect(R(bx), R(by), R(bw), R(bh))
-      c.globalAlpha = 0.6; c.fillStyle = COL.ice[0]; c.fillRect(R(bx + 4), R(by + 4), R(bw * 0.28), R(bh - 8))
+    if (A.box > 0) {   // the ICE BOX: a translucent block, the icicle slab as its lid, ice shards at its foot, cracks as it thaws
+      const pad = 16, bx = x - w / 2 - pad, by = t.y - pad, bw = w + pad * 2, bh = feet - by
+      c.save(); c.globalAlpha = 0.5; c.fillStyle = COL.ice[1]; c.fillRect(R(bx), R(by), R(bw), R(bh))
+      c.globalAlpha = 0.55; c.fillStyle = COL.ice[0]; c.fillRect(R(bx + 4), R(by + 4), R(bw * 0.24), R(bh - 8))
       c.globalAlpha = 0.95; c.strokeStyle = COL.ice[3]; c.lineWidth = 3; c.strokeRect(R(bx) + 0.5, R(by) + 0.5, R(bw), R(bh))
       if (A.box < 30) { c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.beginPath(); c.moveTo(R(bx + bw * 0.3), R(by)); c.lineTo(R(bx + bw * 0.55), R(by + bh * 0.5)); c.lineTo(R(bx + bw * 0.4), R(by + bh)); c.stroke() }
-      c.restore(); continue
+      c.restore()
+      const V = ENOCH_VFX.icicle, lid = V && image(ENOCH_VFX_PATH('icicle', 3))
+      if (ready(lid)) { const lw = bw + 24, lh = lw * V.frames[3][1] / V.frames[3][0]; c.drawImage(lid, R(bx - 12), R(by - lh * 0.35), R(lw), R(lh)) }
+      vfx(c, 'iceBurst', 2, bx + 6, feet - 10, { h: 44, alpha: 0.9 }); vfx(c, 'iceBurst', 2, bx + bw - 6, feet - 10, { h: 44, alpha: 0.9, flip: -1 })
+      continue
+    }
+    if (A.cage > 0) {   // the FIRE CAGE: a column of fire (the eruption sheet) engulfing him
+      const k = (fr >> 2) % 5, hh = h * 1.75, al = A.cage < 12 && !calm() ? A.cage / 12 : 1
+      vfx(c, 'fireCage', k, x, feet + 10, { h: hh, alpha: 0.45 * al }); vfx(c, 'fireCage', (k + 2) % 5, x - w * 0.55, feet + 8, { h: hh * 0.7, alpha: 0.6 * al })
+      vfx(c, 'fireCage', (k + 4) % 5, x + w * 0.55, feet + 8, { h: hh * 0.7, alpha: 0.6 * al, flip: -1 }); continue
     }
     if (A.burn >= 1) vfx(c, 'fireRise', 1 + (((fr >> 2) + 1) % 4), x, feet + 4, { h: h * (0.35 + 0.12 * Math.floor(A.burn)), alpha: Math.min(0.9, 0.3 + 0.15 * A.burn) })
     if (A.chill >= 1) {
@@ -95,6 +121,11 @@ function drawAfflictions(c, f, s, W, fr) {
       c.restore()
     }
   }
+}
+// the back half of a fire cage, behind the trapped foe (solid), so he reads as INSIDE the fire
+function drawCageBack(c, f, s, W, fr) {
+  for (const t of W?.fighters?.() || []) { const A = s.aff?.[sideOf(t)]; if (!A || !(A.cage > 0) || t === f) continue
+    vfx(c, 'fireCage', ((fr >> 2) + 1) % 5, (t.x || 0) + (t.w || 48) / 2, (t.y || 0) + (t.h || 94) + 10, { h: (t.h || 94) * 1.9, alpha: A.cage < 12 ? A.cage / 12 : 1 }) }
 }
 // ── PATCHES (world space, under the fighters) ──
 function drawPatch(c, f, p, fr, now) {
@@ -205,7 +236,7 @@ function drawUlt(c, f, v) {
 }
 export function drawEnochUnder(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0; SEED = (W?.seed?.() | 0) || 1337
-  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick); drawChannel(c, f, s, fr) }   // patch ages run on his own tick (the sim's patch clock)
+  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick); drawChannel(c, f, s, fr); drawRails(c, f, s, fr); drawCageBack(c, f, s, W, fr) }   // patch ages run on his own tick (the sim's patch clock)
 }
 export function drawEnochOver(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0
@@ -249,25 +280,28 @@ export function drawEnochHud(c, cv, p1, p2) {
     const wl = t => L.wall?.type === t ? `${Math.ceil(L.wall.left / 60)}s` : L.cd[t + 'Wall'] > 0 ? Math.ceil(L.cd[t + 'Wall'] / 60) + 's' : 'READY'
     c.fillText(`ICE WALL ${wl('ice')} · FIRE WALL ${wl('fire')}`, flip ? x0 + w : x0, y0 + h + 52)
     c.font = 'bold 10px Arial'; c.fillStyle = L.stance === 'ice' ? COL.ice[1] : COL.fire[1]   // tap Charge switches
-    c.fillText(L.stance === 'ice' ? 'ICE STANCE' : 'ELEMENTAL STANCE', flip ? x0 + w : x0, y0 + h + 64); c.restore()
+    c.fillText(L.stance === 'ice' ? 'ICE STANCE' : 'ELEMENTAL STANCE', flip ? x0 + w : x0, y0 + h + 64)
+    const air = f._enoch.air; c.fillStyle = 'rgba(255,255,255,0.75)'; c.font = 'bold 9px Arial'
+    c.fillText(`AIR SLIDE ${'●'.repeat(air.n)}${'○'.repeat(Math.max(0, AIR_SLIDE.charges - air.n))}`, flip ? x0 + w : x0, y0 + h + 77); c.restore()
   }
   one(p1, false); one(p2, true)
   // the OPPONENT's health bar: red wash = burn, blue wash = chill (stronger with every stack), white-blue = ice box
   for (const [f, t, flip] of [[p1, p2, true], [p2, p1, false]]) {
     const A = isEn(f) ? f._enoch?.aff?.[sideOf(t)] : null; if (!A || !t) continue
-    if (!(A.burn > 0 || A.chill > 0 || A.box > 0)) continue
+    if (!(A.burn > 0 || A.chill > 0 || A.box > 0 || A.cage > 0)) continue
     const x = flip ? cw - pad - barW - 20 : pad, tx = x + 8, ty = 28, hh = 20, ratio = Math.max(0, Math.min(1, (t.health || 0) / (t.maxHealth || 1))), fw = barW * ratio
     const fx0 = flip ? tx + barW - fw : tx, pulse = calm() ? 0.5 : 0.5 + 0.5 * Math.sin((f._enoch.tick || 0) * 0.12)
     c.save()
     const band = (col, k, y, hgt) => { c.globalAlpha = Math.min(0.75, 0.2 + 0.11 * k + 0.08 * pulse); c.fillStyle = col; c.fillRect(R(fx0), R(y), R(fw), R(hgt)) }
     if (A.box > 0) { band('#7fd4ff', 5, ty, hh); band('#e8fbff', 2, ty, hh / 3) }
+    else if (A.cage > 0) { band('#ff3a20', 5, ty, hh); band('#ffd27a', 2, ty, hh / 3) }
     else if (A.burn > 0 && A.chill > 0) { band('#ff3a20', A.burn, ty, hh / 2); band('#3aa0ff', A.chill, ty + hh / 2, hh / 2) }
     else if (A.burn > 0) band('#ff3a20', A.burn, ty, hh)
     else band('#3aa0ff', A.chill, ty, hh)
-    c.globalAlpha = 0.95; c.lineWidth = 2; c.strokeStyle = A.box > 0 ? '#e8fbff' : A.burn >= A.chill ? '#ff5a30' : '#5ab8ff'
+    c.globalAlpha = 0.95; c.lineWidth = 2; c.strokeStyle = A.box > 0 ? '#e8fbff' : A.cage > 0 ? '#ffd27a' : A.burn >= A.chill ? '#ff5a30' : '#5ab8ff'
     c.strokeRect(R(tx) - 1, ty - 1, R(barW) + 2, hh + 2)
     c.font = 'bold 10px Arial'; c.textBaseline = 'middle'; c.textAlign = flip ? 'left' : 'right'; c.fillStyle = '#ffffff'
-    const tag = A.box > 0 ? 'ICE BOX' : [A.burn > 0 ? `BURN ×${Math.ceil(A.burn)}` : '', A.chill > 0 ? `CHILL ×${Math.ceil(A.chill)}${A.chill >= 2 ? ' · SLOW ' + Math.round(slowOf(A.chill) * 100) + '%' : ''}` : ''].filter(Boolean).join(' · ')
+    const tag = A.box > 0 ? 'ICE BOX' : A.cage > 0 ? 'FIRE CAGE' : [A.burn > 0 ? `BURN ×${Math.ceil(A.burn)}` : '', A.chill > 0 ? `CHILL ×${Math.ceil(A.chill)}${A.chill >= 2 ? ' · SLOW ' + Math.round(slowOf(A.chill) * 100) + '%' : ''}` : ''].filter(Boolean).join(' · ')
     c.shadowColor = '#000'; c.shadowBlur = 3; c.fillText(tag, flip ? tx + 6 : tx + barW - 6, ty + hh / 2); c.restore()
   }
   for (const f of [p1, p2]) { const v = isEn(f) ? enochUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, v) }

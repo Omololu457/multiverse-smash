@@ -105,3 +105,14 @@ The brief's values, verified live against a blocking dummy:
   STEAM SHOCK (14 × chill), ice on ≥ 2 burn = QUENCH (10 × burn). Blocked hits build nothing.
 - HUD: the opponent's health bar takes a red (burn) / blue (chill) wash that deepens per stack, with BURN ×n / CHILL ×n · SLOW %
   / ICE BOX written on it. In the world: flames on a burning foe, ice crystals on a chilled one, an ice block around a boxed one.
+
+## 2026-11-16: air slide (ice / fire) with a limit, fire cage, trap sprites
+- **AIR SLIDE** (elemental stance): jump, then double-tap → he pours a slab of his element and slides along it (13 px/f for
+  up to 30 f, a gentle drop; Down angles it down). ICE = an icicle slab; when hot (> +25) FIRE = a flame streak. One per jump;
+  a pool of 3 that refills one every 2 s **only while he is on the ground**, so jump → slide → jump → slide runs dry (the
+  4th in a row is refused). Passing through the foe = one hit (raw 40) that chills / burns. Costs 6 thermal of its element.
+  Ice Stance's Ice Stream (Frozone's air double-tap) spends the same pool (frozoneState host hook `air`; Frozone unchanged).
+- **FIRE CAGE**: burn reaching 5 traps the foe in a column of fire for 70 f (held in place, 5 raw every 10 f), then the burn
+  drops to 2; 4 s before another cage. The ICE BOX's twin.
+- Trap art comes from the owner-supplied sheets (tools/enoch/cut_vfx.py): the fire-eruption columns = the cage; the
+  icicle-slab vector sheet (navy background keyed out) = the ice box's lid and the air ice-slide slab.

@@ -22,7 +22,7 @@ export const isFrozone = f => f?.rosterKey === FROZONE_KEY
 // right now (Ice Flash / Ice Stream / Ice Glider / Up+Special and the stance-only cues); `pay(f, key, cost, commit)` lets the
 // host pay a special's cost its own way (true = paid / affordable, false = refuse, null = the shared energy rule).
 const FZ_HOSTS = new Map()
-export function registerFrozoneHost(key, cfg = {}) { FZ_HOSTS.set(key, { mobility: cfg.mobility || (() => true), pay: cfg.pay || null }) }
+export function registerFrozoneHost(key, cfg = {}) { FZ_HOSTS.set(key, { mobility: cfg.mobility || (() => true), pay: cfg.pay || null, air: cfg.air || null }) }   // air(f, commit): may the host pour an Ice Stream now
 const hostOf = f => (f && f.rosterKey !== FROZONE_KEY) ? FZ_HOSTS.get(f.rosterKey) || null : null
 export const hasFzKit = f => isFrozone(f) || !!hostOf(f)
 const fzMobile = f => isFrozone(f) || !!hostOf(f)?.mobility(f)
@@ -93,7 +93,8 @@ export function frozoneLocked(f, raw = null) {
   // ── ICE FLASH (ground double-tap)
   if (g && f._dashTap && free && (f.dashCooldown || 0) <= 0) { f._dashTap = false; iceFlash(f, s, WREF.W); return true }
   // ── ICE STREAM (air double-tap): one per airtime
-  if (!g && f._dashTap && free && (f.airDashCount || 0) < 1) {
+  if (!g && f._dashTap && free && (f.airDashCount || 0) < 1 && (hostOf(f)?.air?.(f, false) ?? true)) {   // a host may limit it (Enoch: a shared air-slide pool)
+    if (hostOf(f)?.air) hostOf(f).air(f, true)
     f._dashTap = false; f.airDashCount = (f.airDashCount || 0) + 1
     s.stream = { k: 0, dir: f.facing || 1, tilt: null, seg: null, hit: false, px: ctrX(f), py: feet, jc: f.jumpCount || 0 }
     s.rideJumpHeld = !!(r.jump || r.up); s.glide = false; f.airDashing = false; s.stats.rails++; cue(f, 'lance')

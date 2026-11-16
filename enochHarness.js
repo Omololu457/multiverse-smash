@@ -1,7 +1,7 @@
 // Test-only accessor for harness/enoch*.mjs (exposed as __harness.enochTest; harness URLs only). Read-mostly: the writers
 // (reset / move / setEnergy / setThermal / patch / glide) only set up a scenario before driving real inputs.
 import { getAttackHitbox, getCancelWindow } from './combat.js'
-import { startEnMove, clearEnoch, getEnochUltStatus, isEnochUltActive, enochUltView, clearEnochUlt, enState, sideOf, startGlide, TP, superVariant, lensOrigin } from './enochState.js'
+import { startEnMove, clearEnoch, getEnochUltStatus, isEnochUltActive, enochUltView, clearEnochUlt, enState, sideOf, startGlide, TP, superVariant, lensOrigin, enochLay } from './enochState.js'
 import { ALL_MOVES, SUPERS, GLIDE, HEAT_LENS, DISC } from './enochData.js'
 import { addPatch, ELEMENT_PROFILES, REACTIONS } from './elements.js'
 import { enochHudLabel } from './enochFx.js'
@@ -13,7 +13,8 @@ export function enochHarnessApi(g) {
     move: (k, w = 'p1', o = {}) => startEnMove(raw(w), k, g.world, o),
     setEnergy: (e, w = 'p1') => { raw(w).energy = e },
     setThermal: (v, w = 'p1') => { const s = enState(raw(w)); s.th.v = v; s.th.over = 0; s.th.overSide = 0; s.th.lock = 0 },
-    patch: (o, w = 'p1') => { const f = raw(w), s = enState(f); const ev = addPatch(s.field, { owner: sideOf(f), frame: g.world.frame(), floor: f.y + f.h, ...o }); s.field.events.length = 0; return ev },
+    patch: (o, w = 'p1') => { const f = raw(w), s = enState(f); const ev = addPatch(s.field, { owner: sideOf(f), frame: s.tick, floor: f.y + f.h, ...o }); s.field.events.length = 0; return ev },
+    lay: (o, w = 'p1') => enochLay(raw(w), o, g.world).map(e => ({ ...e })),
     glide: (type, w = 'p1') => { const f = raw(w); return startGlide(f, enState(f), type, f.facing || 1, 'charge') },
     ult: () => ({ ...getEnochUltStatus(), active: isEnochUltActive() }),
     ultView: (w = 'p1') => { const v = enochUltView(raw(w)); return v ? clone(v) : null },

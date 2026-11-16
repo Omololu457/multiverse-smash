@@ -138,7 +138,9 @@ export function addPatch(field, o, depth = 0) {
       field.patches.splice(field.patches.indexOf(q), 1)
       const e = { kind: 'reaction', name: R.name, a: type, b: q.type, x0: lo, x1: hi, cx, floor: p.floor, intensity: hiInt, owner: p.owner, disc: !!q.disc || !!p.disc, frame: now }
       ev.push(e)
-      if (R.burst) ev.push({ kind: 'burst', name: R.name, x0: lo, x1: hi, cx, floor: p.floor, owner: p.owner, dmg: R.burst.dmg * (R.burst.scale[hiInt - 1] ?? 1),
+      // the burst covers BOTH consumed patches (the whole sheet flashes, not just the sliver where they touched)
+      const u0 = Math.min(p.x, q.x), u1 = Math.max(p.x + p.width, q.x + q.width)
+      if (R.burst) ev.push({ kind: 'burst', name: R.name, x0: u0, x1: u1, cx, floor: p.floor, owner: p.owner, dmg: R.burst.dmg * (R.burst.scale[hiInt - 1] ?? 1),
         damageType: R.burst.damageType, knockdown: !!R.burst.knockdown, intensity: hiInt, frame: now })
       const ow = Math.max(48, Math.round(hi - lo))
       for (const s of R.spawn) {

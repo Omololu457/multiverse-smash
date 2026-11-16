@@ -60,7 +60,9 @@ function killProj(f, W, pred = null) {
 }
 const ownProj = (f, W, kind) => (W?.projectiles || []).filter(p => p && p.owner === f && p._en && p._en.kind === kind)
 const meter = (f, raw) => { if (!(raw > 0)) return; const s = enState(f), add = Math.round(raw * 100) / 100; f.energy = Math.min(f.maxEnergy || 100, Math.round(((f.energy || 0) + add) * 100) / 100); s.stats.meter = Math.round((s.stats.meter + add) * 100) / 100 }
-// deterministic hash (match seed, frame, player index, slot) — only presentation uses it; the sim needs no randomness
+// deterministic hash (match seed, frame, player index, slot) — only presentation uses it; the sim needs no randomness.
+// The PATCH CLOCK is his own s.tick (+1 every frame from his spawn), not the global frame counter: patch ages are identical
+// in a recording and its playback, so the snapshot (bornFrame included) matches frame for frame.
 export const ehash = (seed, frame, side, slot) => { let h = (seed | 0) ^ Math.imul(frame | 0, 0x9e3779b1) ^ Math.imul((side === 'p2' || side === 2) ? 2 : 1, 0x85ebca6b) ^ Math.imul(slot | 0, 0xc2b2ae35); h ^= h >>> 15; h = Math.imul(h, 0x2c1b3c6d); h ^= h >>> 12; return (h >>> 0) / 4294967296 }
 
 // Every reset path: KO teardown, round reset, rematch, scene exit, identity replacement.
@@ -93,7 +95,7 @@ export const waterUnlocked = f => zoneOf(f) === 'balance'
 // ── PATCHES ──
 // lay a patch (with every merge / reaction / burst it causes), handling the disc melt + the Arlong douse first
 function lay(f, s, W, o) {
-  const fr = W?.frame?.() ?? s.clock
+  const fr = s.tick
   const q = { owner: sideOf(f), frame: fr, floor: o.floor ?? floorOf(f, s), minX: 0, maxX: sw(W), ...o }
   if (q.type === 'fire') {
     const w = Math.round(q.width ?? Math.round(0.16 * 1280)), x0 = Math.round(q.x ?? (q.cx - w / 2))
@@ -107,6 +109,7 @@ function lay(f, s, W, o) {
   handleEvents(f, s, W, ev)
   return ev
 }
+export function enochLay(f, o, W = null) { return isEnoch(f) ? lay(f, enState(f), W || WREF.W, o) : [] }   // harness / scenario setup: the same path as his moves
 function handleEvents(f, s, W, ev) {
   for (const e of ev) {
     if (e.kind === 'reaction') {
@@ -300,7 +303,7 @@ function release(f, s, W, a, m, md) {
       if (p.type === 'water') continue
       const wasDisc = !!p.disc
       if (wasDisc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null; p.floor = floorOf(f, s) }
-      convertPatch(s.field, p, 'water', W?.frame?.() ?? s.clock); n++
+      convertPatch(s.field, p, 'water', s.tick); n++
       burstAt(f, s, W, p.x, p.x + p.width, p.floor, TIDE.burstRaw * m.mul, 'blunt', false, 'tideBreak')
       pushFx(s, 'splash', p.x + p.width / 2, p.floor, d, { w: p.width })
     }
@@ -373,9 +376,11 @@ function glideStep(f, s, r) {
   if (G.turn > 0) { if (--G.turn === 0) G.dir = -G.dir; G.v = base * 0.35 }
   else G.v = G.type === 'fire' && bk ? base * GLIDE.fireSteer : base
   f.facing = G.dir
+  // a wall: the stage edge, OR anything that pushed him back since last frame (the camera leash between the fighters)
+  const moved = G.px == null ? null : (f.x - G.px) * G.dir
   const nx = Math.max(0, Math.min(sw(W) - f.w, f.x + G.dir * G.v))
-  if (nx === f.x && G.v > 0 && !G.turn) { endGlide(f, s, true); f.vx = 0; return false }   // wall
-  f.x = Math.round(nx * 100) / 100; f.vx = 0
+  if ((nx === f.x && G.v > 0 && !G.turn) || (moved != null && !G.turn && G.pv > 4 && moved < G.pv * 0.25)) { endGlide(f, s, true); f.vx = 0; return false }
+  f.x = Math.round(nx * 100) / 100; f.vx = 0; G.px = f.x - G.dir * G.v; G.pv = G.turn ? 0 : G.v
   push(f, s, (G.type === 'ice' ? -1 : 1) * GLIDE.thermalPerSec / 60)
   if (!s.glide) return false
   if (G.k % GLIDE.trailEvery === 0) lay(f, s, W, { type: G.type, cx: ctrX(f) - G.dir * 16, width: GLIDE.trailW, extend: true })
@@ -436,7 +441,18 @@ export function tickEnoch(f, opp, raw, W) {
   if (f.hitstop > 0) return
   s.clock++
   for (const k in s.cd) if (s.cd[k] > 0) s.cd[k]--
-  const fr = W?.frame?.() ?? s.clock
+  // GUARD CANCEL: Charge pressed in blockstun → a glide out (25 thermal, 8 invulnerable frames, 10 s cooldown). It lives here,
+  // not in the command layer, because game.js returns before the command layer while the fighter is in blockstun.
+  if (f.blockstun > 0 && g && s.edges.charge && s.used.charge !== s.edges.charge.tick && s.clock - s.edges.charge.clock <= 4 && s.cd.guard <= 0) {
+    const e = s.edges.charge; s.used.charge = e.tick
+    const type = (zoneOf(f) === 'hot' || !check(f, 'ice').ok) ? 'fire' : 'ice', dir = e.fwd ? (f.facing || 1) : -(f.facing || 1)
+    if (check(f, type).ok) {
+      f.blockstun = 0; f.isBlocking = false; f.invulnTimer = Math.max(f.invulnTimer || 0, GUARD_CANCEL.invuln); s.cd.guard = GUARD_CANCEL.cooldown
+      pushThermal(f, (type === 'ice' ? -1 : 1) * GUARD_CANCEL.thermal); s.stats.guardCancels++
+      startGlide(f, s, type, dir, 'guard')
+    }
+  }
+  const fr = s.tick
   thermalTick(s.th, TP, !!(s.glide || s.beam || live(f)))
   // field: expiry, effects, matchup rules
   for (const p of tickField(s.field, fr)) if (p.disc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null }
@@ -483,7 +499,7 @@ export function tickEnoch(f, opp, raw, W) {
     const v = Math.max(md.travel[2], m.glideV || 0) * (1 - (t - md.travel[0]) / (md.travel[1] - md.travel[0]) * 0.5)
     const o = foesOf(f, W, opp)[0]; let nx = Math.max(0, Math.min(sw(W) - f.w, f.x + m.dir * v))
     if (o) { if (m.dir > 0 && f.x + f.w <= o.x + 1) nx = Math.min(nx, o.x - f.w); if (m.dir < 0 && f.x >= o.x + o.w - 1) nx = Math.max(nx, o.x + o.w) }
-    f.x = Math.round(nx * 100) / 100; f.vx = 0
+    f.x = Math.round(nx * 100) / 100; f.vx = 0; G.px = f.x - G.dir * G.v; G.pv = G.turn ? 0 : G.v
     if (t === md.travel[0] + 4) lay(f, s, W, { type: 'ice', cx: ctrX(f) - m.dir * 20, width: 90 })   // a short ICE patch
   } else if (g && !md.air) f.vx = 0
   if (md.air && g && t > 2) endAttack(f, 4)

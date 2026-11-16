@@ -36,8 +36,8 @@ function part(c, name, el, x, y, { flip = 1, alpha = 1, scale = 2 } = {}) {
   c.drawImage(im, R(-meta.w * scale / 2), R(-meta.h * scale), meta.w * scale, meta.h * scale); c.restore()
 }
 // ── PATCHES (world space, under the fighters) ──
-function drawPatch(c, f, p, fr) {
-  const life = p.life - (fr - p.bornFrame), fade = life < 40 ? (calm() ? 0.6 : ((fr >> 2) & 1 ? 0.4 : 0.9)) : 0.95
+function drawPatch(c, f, p, fr, now) {
+  const life = p.life - (now - p.bornFrame), fade = life < 40 ? (calm() ? 0.6 : ((fr >> 2) & 1 ? 0.4 : 0.9)) : 0.95
   const x = R(p.x), w = R(p.width), y = R(p.floor), P = COL[p.type] || COL.ice, th = 4 + p.intensity * 2
   c.save(); c.globalAlpha = fade
   if (p.type === 'steam') { c.fillStyle = 'rgba(220,228,236,0.35)'; c.fillRect(x, y - 3, w, 3); c.restore(); return }
@@ -61,7 +61,7 @@ function drawPatch(c, f, p, fr) {
 function drawSteam(c, f, s, fr) {   // clouds over the stage (capped alpha; the HUD is drawn later, so it is never hidden)
   for (const p of s.field.patches) {
     if (p.type !== 'steam') continue
-    const life = p.life - (fr - p.bornFrame), a = Math.min(STEAM_MAX_ALPHA, 0.25 + 0.1 * p.intensity) * Math.min(1, life / 30)
+    const life = p.life - (s.tick - p.bornFrame), a = Math.min(STEAM_MAX_ALPHA, 0.25 + 0.1 * p.intensity) * Math.min(1, life / 30)
     c.save()
     for (let k = 0; k < 6; k++) {
       const u = flick(f, fr >> 3, p.id * 7 + k), cx = p.x + (k + 0.5) / 6 * p.width, h = 70 + R(u * 60), w = Math.max(30, p.width / 4)
@@ -103,7 +103,7 @@ function drawUlt(c, f, v) {
 }
 export function drawEnochUnder(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0; SEED = (W?.seed?.() | 0) || 1337
-  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr) }
+  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick) }   // patch ages run on his own tick (the sim's patch clock)
 }
 export function drawEnochOver(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0

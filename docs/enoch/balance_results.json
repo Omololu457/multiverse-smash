@@ -1,0 +1,79 @@
+{
+ "pass": 9,
+ "fail": 0,
+ "health": {
+  "enoch": 980,
+  "frozone": 1150,
+  "superman": 1150,
+  "homelander": 1050,
+  "arlong": 1320,
+  "sanji": 1180
+ },
+ "supers": {
+  "absoluteZero": 330,
+  "flashPoint": 340,
+  "thermalShock": 390,
+  "frozone": 410
+ },
+ "budget": {
+  "iceBlast": {
+   "casts": 10,
+   "lockAt": 4,
+   "overloadAt": 10
+  },
+  "heatLens": {
+   "casts": 10,
+   "lockAt": 4,
+   "overloadAt": 10
+  },
+  "deepFreeze": {
+   "casts": 6,
+   "lockAt": 2,
+   "overloadAt": 6
+  },
+  "scorch": {
+   "casts": 6,
+   "lockAt": 2,
+   "overloadAt": 6
+  }
+ },
+ "ceilings": {
+  "beamPerUseRaw": 84,
+  "beamHotPerUse": 12,
+  "burstMaxRaw": 72,
+  "patchesMax": 4,
+  "iceBlastPool": 3,
+  "glideMaxS": 4,
+  "cooldownsS": {
+   "deepFreeze": 8,
+   "tideBreak": 6,
+   "guardCancel": 10
+  },
+  "discHp": 80,
+  "fireDot": {
+   "every": 20,
+   "dmg": 4,
+   "damageType": "energy"
+  }
+ },
+ "open": {
+  "jab": 1,
+  "straight": -3,
+  "heavy": -5,
+  "low": -2,
+  "rise": -4,
+  "air": 0,
+  "iceBlast": -6,
+  "frostFloor": -8,
+  "deepFreeze": -10,
+  "iceDisc": 0,
+  "heatLens": -6,
+  "scorch": -8,
+  "steamBurst": -10,
+  "tideBreak": 0,
+  "condense": -4,
+  "slide": -6,
+  "wake": -12,
+  "super": 0
+ }
+}

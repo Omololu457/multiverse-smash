@@ -1,5 +1,5 @@
 {
- "pass": 48,
+ "pass": 52,
  "fail": 0,
  "glide": {
   "ice": {
@@ -280,6 +280,11 @@
   "scorch": [
    "fire"
   ],
+  "slide": {
+   "dx": 70,
+   "ice": 1,
+   "attack": null
+  },
   "freeze": {
    "frozen": 42,
    "max": 42,
@@ -295,14 +300,14 @@
    "total": 34,
    "hits": 1,
    "wet": 0,
-   "dist": 589.9738787195364
+   "dist": 590.0762863094553
   },
   "lensWet": {
    "drop": 58,
    "total": 58,
    "hits": 1,
    "wet": 1,
-   "dist": 865.7103089547109
+   "dist": 865.7654273880499
   },
   "beam": {
    "frames": 72,
@@ -400,6 +405,15 @@
   },
   "immune": {
    "drop": 0
+  },
+  "frozoneIce": {
+   "slick": {
+    "p1": 0
+   },
+   "key": "frozone"
+  },
+  "frozoneFire": {
+   "drop": 4
   },
   "stats": {
    "hp": 980,

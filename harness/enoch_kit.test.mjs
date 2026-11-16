@@ -200,22 +200,28 @@ try {
     step(1); r.wake = { name: a.currentAttack?.name, invuln: a.invulnTimer, wakes: H.state().s.stats.wakes }
     ;({ a, b } = setup(1300, 1700)); H.lay({ type: 'fire', cx: a.x + a.w / 2 }); H.lay({ type: 'steam', cx: a.x + a.w / 2 + 400 }); const hp = a.health; step(80)
     r.immune = { drop: hp - a.health }
+    // FROZONE skates on his ICE (an ice-walker: no slip), but his FIRE still burns Frozone
+    ;({ a, b } = setup(600, 1600)); H.lay({ type: 'ice', cx: b.x + b.w / 2 }); step(3); r.frozoneIce = { slick: b._elSlick ? { ...b._elSlick } : null, key: b.rosterKey }
+    H.lay({ type: 'fire', cx: b.x + b.w / 2 + 400 }); b.x += 400; const hpF = b.health; step(45); r.frozoneFire = { drop: Math.round((hpF - b.health) * 100) / 100 }
     const C = H.data(); r.stats = { hp: a.maxHealth, weight: null }
     return r })
   out.defence = Dd
   ok('guard cancel: Charge in blockstun → glide out, 8 invulnerable frames, 25 thermal, 10 s cooldown', Dd.guard.blockstun === 0 && Dd.guard.invuln >= 7 && Dd.guard.cd > 590 && Dd.guard.glide === 'guard' && Math.abs(Math.abs(Dd.guard.th) - 25) < 1 && Dd.guard.n === 1, JSON.stringify(Dd.guard))
   ok('guard cancel on cooldown does nothing', Dd.guardCd.n === 1 && Dd.guardCd.blockstun > 0, JSON.stringify(Dd.guardCd))
   ok('wake-up reversal: an attack as he gets up → 6 invulnerable frames', Dd.wake.name === 'wake' && Dd.wake.invuln >= 4 && Dd.wake.wakes === 1, JSON.stringify(Dd.wake))
+  ok('FROZONE keeps his footing on Enoch\'s ICE (ice-walker)…', Dd.frozoneIce.key === 'frozone' && !(Dd.frozoneIce.slick && Dd.frozoneIce.slick.p1), JSON.stringify(Dd.frozoneIce))
+  ok('…but Enoch\'s FIRE still burns him (4 / 20 f)', Dd.frozoneFire.drop > 0, JSON.stringify(Dd.frozoneFire))
   ok('immune to his OWN fire (standing in it 80 f: no damage)', Dd.immune.drop === 0, JSON.stringify(Dd.immune))
   await page.close()
 
   // ═══ X. MATCHUPS ═══
   page = await open('enoch', 'sanji')
   const XS = await page.evaluate(() => { const { H, step, setup } = __E; const { a, b } = setup(1000, 1500); b.invulnTimer = 99999
-    H.lay({ type: 'ice', cx: b.x + b.w / 2 }); step(2); const before = H.state().s.field.patches.map(p => p.type)
+    H.lay({ type: 'ice', cx: b.x + b.w / 2 }); step(2); const before = H.state().s.field.patches.map(p => p.type), slick = b._elSlick ? { ...b._elSlick } : null
     if (!b._sanji) return { err: 'no _sanji', before }
     b._sanji.dj = 200; step(2); const s = H.state().s
-    return { before, after: s.field.patches.map(p => p.type), melt: s.stats.sanjiMelt } })
+    return { before, slick, after: s.field.patches.map(p => p.type), melt: s.stats.sanjiMelt } })
+  ok('SANJI (unlit) SLIPS on his ICE like everyone else', !!(XS.slick && XS.slick.p1), JSON.stringify(XS.slick))
   ok('SANJI: a lit Diable Jambe standing on his ICE melts it to WATER (no burst)', JSON.stringify(XS.before) === '["ice"]' && XS.after.includes('water') && !XS.after.includes('ice') && XS.melt === 1, JSON.stringify(XS))
   await page.close()
   page = await open('enoch', 'arlong')

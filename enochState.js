@@ -391,6 +391,9 @@ function glideStep(f, s, r) {
   s.pose = G.turn ? 'glideTurn' : 'glide'
   return true
 }
+// ICE-WALKERS keep full footing on his ICE: Enoch himself, and FROZONE (an ice skater does not slip on ice — his FIRE / STEAM
+// still hurt him). Decided on Enoch's side only; no Frozone file changes. See docs/enoch/BALANCE_NOTES.md.
+export const ICE_WALKER = o => isEnoch(o) || o?.rosterKey === 'frozone'
 // physics.resolvePlayerCollision: an ICE glide skates PAST the opponent (the brief's "Ice Glide past"); a fire glide collides
 export const enochPhasing = (a, b) => [a, b].some(f => isEnoch(f) && f._enoch?.glide?.type === 'ice')
 export function startRamp(f, s) {
@@ -466,7 +469,7 @@ export function tickEnoch(f, opp, raw, W) {
   // field: expiry, effects, matchup rules
   for (const p of tickField(s.field, fr)) if (p.disc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null }
   const all = W?.fighters?.() || [f, opp].filter(Boolean)
-  const hurt = applyPatchEffects(s.field, all, { frame: fr, owner: sideOf(f), ownerX: ctrX(f), sideOf, grounded, feet: feetY, cx: ctrX, walker: isEnoch,
+  const hurt = applyPatchEffects(s.field, all, { frame: fr, owner: sideOf(f), ownerX: ctrX(f), sideOf, grounded, feet: feetY, cx: ctrX, walker: ICE_WALKER,
     damage: (t, n, o) => W?.damage?.(t, n, { attacker: f, ...o }) })
   for (const h of hurt) { s.stats.patchDmg += h.dmg; meter(f, h.dmg * METER.onHit) }
   for (const o of foesOf(f, W, opp)) if (isSanjiLit(o) && grounded(o)) for (const p of patchesAt(s.field, ctrX(o), feetY(o))) if (p.type === 'ice' && !p.disc) {   // SANJI: a lit Diable Jambe melts his ice to water

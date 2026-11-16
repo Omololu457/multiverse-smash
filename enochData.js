@@ -12,8 +12,11 @@ export const ENOCH_SCALE = 2                       // integer nearest-neighbour 
 // Move helper. adv = frame advantage on block when the FIRST active frame connects:
 //   blockstun = (active − 1) + recovery + adv  → the attacker recovers exactly `adv` frames before / after the defender.
 // box = [b0, b1, top, h]: px ahead of the hurtbox FRONT (b0..b1) and above the FEET (top) with height h.
+// BLOCK_SYNC: the engine clears the attacker's move 2 frames after the defender's blockstun would expire for the same frame
+// count (measured live in harness/enoch_kit.test.mjs), so the authored blockstun adds it to land on the brief's advantage.
+export const BLOCK_SYNC = 2
 const n = (raw, startup, active, recovery, adv, extra = {}) => ({ raw, damage: dmg(raw), startup, active, recovery, adv, frameExact: true,
-  category: 'light', hitstun: 16, blockstun: Math.max(1, (active - 1) + recovery + adv), rangeX: 60, rangeY: 50, knockbackX: 3, knockbackY: -2,
+  category: 'light', hitstun: 16, blockstun: Math.max(1, (active - 1) + recovery + adv + BLOCK_SYNC), rangeX: 60, rangeY: 50, knockbackX: 3, knockbackY: -2,
   damageType: 'blunt', ...extra })
 
 // ── NORMALS (no cost, thermal-neutral unless stated). Frames are the brief's; advantage values the brief left open are

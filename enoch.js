@@ -7,6 +7,8 @@
 // SPECIAL:  236 = Ice Blast (Steam Burst while water is unlocked: balance zone + one of his WATER patches on screen)
 //           22 = Frost Floor · 214 = Deep Freeze · 656 = Heat Lens · direction shortcuts for pads: neutral = Ice Blast,
 //           Forward = Heat Lens, Down = Frost Floor, Back = Deep Freeze.
+// LIGHT:    Jab (Forward + Light = Straight; Down + Light = low sweep); a clean Heat Lens links into Light.
+// GLIDE:    a motion + Special / Heavy fires that special out of the glide (+10 %); plain Special / Heavy switch ice / fire.
 // HEAVY:    236 = Heat Lens · 214 = Scorch Sweep · 22 = Condense · 656 = Tide Break · Down = Slide · else the frost palm.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
 import { isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, startGlide, switchGlide, startRamp, waterUnlocked, zoneOf, check, pushThermal } from './enochState.js'
@@ -18,6 +20,7 @@ const fresh = (s, k, win = 8) => s.edges[k] && s.used[k] !== s.edges[k].tick && 
 const use = (s, k) => { if (s.edges[k]) s.used[k] = s.edges[k].tick }
 const upHeavy = s => fresh(s, 'heavy') && s.edges.heavy.tick === s.edges.upAttack?.tick   // pad Up+△ = Heavy + Up-Attack together
 const COMMITTED = new Set(['iceDisc', 'tideBreak', 'super', 'wake'])
+export const LINK_TO_NORMAL = ['heatLens']
 export const SPECIAL_FROM = ['jab', 'straight', 'heavy', 'low', 'rise', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst']
 export const SUPER_FROM = ['jab', 'straight', 'heavy', 'low', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst', 'tideBreak', 'iceBlast', 'heatLens', 'condense']
 
@@ -49,19 +52,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   const s = enState(f), g = !!(f.onGround || f.grounded), a = f.attacking ? f.currentAttack : null
   const fire = (k, o = {}) => startEnMove(f, k, W, o)
   if (f.hitstop > 0 || f.isGrabbed || f.health <= 0 || isEnochUltActive()) return 'consumed'
-  // GUARD CANCEL: Charge in blockstun → a glide out (25 thermal, 8 invulnerable frames, 10 s cooldown)
-  if (f.blockstun > 0) {
-    if (fresh(s, 'charge', 4) && s.cd.guard <= 0 && g) {
-      use(s, 'charge')
-      const type = glideType(f), dir = s.edges.charge.fwd ? (f.facing || 1) : -(f.facing || 1)
-      if (check(f, type).ok) {
-        f.blockstun = 0; f.isBlocking = false; f.invulnTimer = Math.max(f.invulnTimer || 0, GUARD_CANCEL.invuln); s.cd.guard = GUARD_CANCEL.cooldown
-        pushThermal(f, (type === 'ice' ? -1 : 1) * GUARD_CANCEL.thermal); s.stats.guardCancels++
-        startGlide(f, s, type, dir, 'guard')
-      }
-    }
-    return 'consumed'
-  }
+  if (f.blockstun > 0) return 'consumed'   // the guard cancel runs in tickEnoch (game.js skips this layer in blockstun)
   if (f.hitstun > 0 || f.knockdownState) return 'consumed'
   if (a && a._ultPose) return 'consumed'
   // WAKE-UP REVERSAL: an attack pressed as he gets up (6 invulnerable frames, −12 on block)
@@ -72,6 +63,10 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (s.glide) {
     if (fresh(s, 'up', 4) || fresh(s, 'jump', 4)) { use(s, 'up'); use(s, 'jump'); startRamp(f, s); return 'consumed' }
     if (fresh(s, 'light')) { use(s, 'light'); fire('slide', { bonus: GLIDE.atkBonus }); return 'consumed' }
+    // a MOTION special / heavy fires out of the glide (+10 %); a plain Special / Heavy switches the glide's element
+    const mo = e => e && e.m && (e.m.super || e.m.qcf || e.m.qcb || e.m.dd || e.m.ff)
+    if (fresh(s, 'special') && mo(s.edges.special)) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (k !== 'super' || (f.energy || 0) >= 100) fire(k, { bonus: GLIDE.atkBonus }); return 'consumed' }
+    if (fresh(s, 'heavy') && mo(s.edges.heavy)) { const k = heavyKey(f, s.edges.heavy); use(s, 'heavy'); fire(k, { bonus: GLIDE.atkBonus }); return 'consumed' }
     if (fresh(s, 'special')) { use(s, 'special'); switchGlide(f, s, 'ice'); return 'consumed' }
     if (fresh(s, 'heavy')) { use(s, 'heavy'); switchGlide(f, s, 'fire'); return 'consumed' }
     if (fresh(s, 'charge') && s.edges.charge.down) { use(s, 'charge'); fire('iceDisc'); return 'consumed' }
@@ -84,6 +79,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (a && COMMITTED.has(a.en?.key)) return 'consumed'
   const contact = !!a?.en?.clean && cancelWindowOpen(f)
   if (contact && CHAIN[a.name] && fresh(s, 'light')) { use(s, 'light'); fire(CHAIN[a.name], { cancel: true }); return 'consumed' }
+  if (contact && LINK_TO_NORMAL.includes(a.name) && fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); fire(e.fwd ? 'straight' : 'jab', { cancel: true }); return 'consumed' }   // a clean Heat Lens → Straight / Jab
   if (contact && fresh(s, 'special') && SUPER_FROM.includes(a.name) && specialKey(f, s.edges.special) === 'super') {
     use(s, 'special'); if ((f.energy || 0) >= 100) fire('super', { cancel: true }); return 'consumed'
   }
@@ -100,7 +96,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (fresh(s, 'upAttack') && upHeavy(s)) { use(s, 'upAttack'); use(s, 'heavy'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }
   if (fresh(s, 'heavy') && !a) { const e = s.edges.heavy; use(s, 'heavy'); fire(!g ? 'air' : e.up ? 'rise' : heavyKey(f, e)); return 'consumed' }
   if (fresh(s, 'upAttack')) { use(s, 'upAttack'); if (fresh(s, 'light')) use(s, 'light'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }
-  if (fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); if (!a) fire(!g ? 'air' : e.down ? 'low' : 'jab'); return 'consumed' }
+  if (fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); if (!a) fire(!g ? 'air' : e.down ? 'low' : e.fwd ? 'straight' : 'jab'); return 'consumed' }   // Forward + Light = the Straight on its own
   // CHARGE: Down + Charge = Ice Disc; Charge held on the ground = glide (ice; fire when he runs hot / ice is locked)
   if (fresh(s, 'charge') && !a && g) {
     use(s, 'charge')

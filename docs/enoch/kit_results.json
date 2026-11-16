@@ -1,0 +1,409 @@
+{
+ "pass": 48,
+ "fail": 0,
+ "glide": {
+  "ice": {
+   "type": "ice",
+   "dx": 143.9999999999999,
+   "dth": -1,
+   "patches": [
+    "ice"
+   ],
+   "action": "glide"
+  },
+  "fire": {
+   "type": "fire",
+   "dx": 184,
+   "bursts": 1,
+   "switches": 1,
+   "patches": [
+    "water",
+    "steam",
+    "fire"
+   ],
+   "action": "glide_fire"
+  },
+  "release": {
+   "glide": null,
+   "maxLift": 0,
+   "flight": false
+  },
+  "wall": {
+   "glide": null,
+   "x": 30,
+   "wallAt": 73
+  },
+  "max": {
+   "lastAliveFrame": 240,
+   "glides": 1,
+   "turnsWorked": true
+  },
+  "ramp": {
+   "ramp": {
+    "type": "ice",
+    "air": 1
+   },
+   "vy": -14.15,
+   "grounded": false
+  },
+  "rampAtk": {
+   "name": "air",
+   "dmg": 70.4
+  },
+  "rampAtk2": {
+   "started": 1
+  },
+  "rampLand": {
+   "land": 1,
+   "patches": [
+    "ice"
+   ],
+   "peak": 124.94999999999999,
+   "grounded": true
+  },
+  "disc": {
+   "stats": 1,
+   "pid": "pf1",
+   "hp": 80,
+   "th": -18,
+   "field": [
+    {
+     "x": 1015,
+     "width": 110,
+     "floor": 474
+    }
+   ],
+   "plat": [
+    {
+     "x": 1015,
+     "w": 110,
+     "topY": 474,
+     "h": 26
+    }
+   ]
+  },
+  "stand": {
+   "feet": 474,
+   "topY": 474,
+   "grounded": true,
+   "pose": "standDisc"
+  },
+  "melt": {
+   "disc": null,
+   "discMelt": 1,
+   "water": 1,
+   "plat": "recede"
+  },
+  "tap": {
+   "glide": "ice",
+   "how": "tap",
+   "dashTimer": 0
+  }
+ },
+ "moves": {
+  "data": {
+   "jab": [
+    5,
+    40,
+    "blunt",
+    1,
+    null
+   ],
+   "straight": [
+    8,
+    62,
+    "blunt",
+    -3,
+    null
+   ],
+   "heavy": [
+    12,
+    88,
+    "blunt",
+    -5,
+    null
+   ],
+   "low": [
+    7,
+    46,
+    "blunt",
+    -2,
+    "low"
+   ],
+   "rise": [
+    9,
+    78,
+    "blunt",
+    -4,
+    null
+   ],
+   "air": [
+    6,
+    64,
+    "blunt",
+    0,
+    null
+   ],
+   "slide": [
+    6,
+    55,
+    "blunt",
+    -6,
+    "low"
+   ],
+   "wake": [
+    6,
+    70,
+    "blunt",
+    -12,
+    null
+   ],
+   "iceBlast": [
+    12,
+    55,
+    "projectile",
+    -6,
+    null
+   ],
+   "frostFloor": [
+    12,
+    35,
+    "blunt",
+    -8,
+    "low"
+   ],
+   "deepFreeze": [
+    14,
+    40,
+    "blunt",
+    -10,
+    null
+   ],
+   "heatLens": [
+    10,
+    58,
+    "energy",
+    -6,
+    null
+   ],
+   "scorch": [
+    14,
+    50,
+    "energy",
+    -8,
+    null
+   ],
+   "steamBurst": [
+    9,
+    85,
+    "energy",
+    -10,
+    null
+   ],
+   "condense": [
+    12,
+    40,
+    "projectile",
+    -4,
+    null
+   ]
+  },
+  "adv": {
+   "jab": {
+    "tag": "blunt",
+    "hitAt": 5,
+    "aFree": 16,
+    "bFree": 17,
+    "adv": 1
+   },
+   "straight": {
+    "tag": "blunt",
+    "hitAt": 8,
+    "aFree": 24,
+    "bFree": 21,
+    "adv": -3
+   },
+   "heavy": {
+    "tag": "blunt",
+    "hitAt": 12,
+    "aFree": 36,
+    "bFree": 31,
+    "adv": -5
+   },
+   "wake": {
+    "tag": "blunt",
+    "hitAt": 6,
+    "aFree": 32,
+    "bFree": 20,
+    "adv": -12
+   }
+  },
+  "hotIce": {
+   "ok": false,
+   "why": "locked"
+  },
+  "coldWater": {
+   "ok": false,
+   "why": "balance"
+  },
+  "own": {
+   "dmg": 63.25,
+   "th": -59.6
+  },
+  "over": {
+   "v": -92.32,
+   "over": 88,
+   "side": -1,
+   "overloads": 1
+  },
+  "overLocked": {
+   "ok": false,
+   "why": "overload"
+  },
+  "overEnd": {
+   "v": -49.86667,
+   "over": 0,
+   "ok": true
+  },
+  "pool": {
+   "started": 7,
+   "maxLive": 2,
+   "poolRej": 0
+  },
+  "floor": [
+   {
+    "t": "ice",
+    "cx": 1471
+   }
+  ],
+  "front": 1360,
+  "scorch": [
+   "fire"
+  ],
+  "freeze": {
+   "frozen": 42,
+   "max": 42,
+   "cd": 466,
+   "stats": 1
+  },
+  "freezeCd": {
+   "ok": false,
+   "why": "cooldown"
+  },
+  "lens": {
+   "drop": 34,
+   "total": 34,
+   "hits": 1,
+   "wet": 0,
+   "dist": 589.9738787195364
+  },
+  "lensWet": {
+   "drop": 58,
+   "total": 58,
+   "hits": 1,
+   "wet": 1,
+   "dist": 865.7103089547109
+  },
+  "beam": {
+   "frames": 72,
+   "ticks": 12,
+   "floorHits": 12,
+   "fire": 3,
+   "dth": 11.55
+  },
+  "tide": {
+   "types": [
+    "water",
+    "water"
+   ],
+   "drop": 18,
+   "cd": 330,
+   "tides": 1
+  },
+  "tideCd": {
+   "ok": false,
+   "why": "cooldown"
+  },
+  "condFire": {
+   "steam": 1,
+   "steamPatch": true
+  },
+  "condIce": {
+   "hail": 1,
+   "proj": [
+    {
+     "k": "hail",
+     "vx": 9,
+     "d": 60
+    }
+   ]
+  }
+ },
+ "supers": {
+  "absoluteZero": {
+   "variant": "absoluteZero",
+   "started": true,
+   "active": 150,
+   "drop": 198,
+   "energy": 6.599999999999986,
+   "lock": 179,
+   "frozen": 0,
+   "knock": false,
+   "patches": [],
+   "done": 1
+  },
+  "flashPoint": {
+   "variant": "flashPoint",
+   "started": true,
+   "active": 170,
+   "drop": 204,
+   "energy": 5.399999999999994,
+   "lock": 179,
+   "frozen": 0,
+   "knock": false,
+   "patches": [],
+   "done": 1
+  },
+  "thermalShock": {
+   "variant": "thermalShock",
+   "started": true,
+   "active": 160,
+   "drop": 236,
+   "energy": 6.399999999999989,
+   "lock": 179,
+   "frozen": 0,
+   "knock": false,
+   "patches": [
+    "water",
+    "steam"
+   ],
+   "done": 1
+  }
+ },
+ "defence": {
+  "guard": {
+   "blockstun": 0,
+   "invuln": 7,
+   "cd": 600,
+   "glide": "guard",
+   "th": -25,
+   "n": 1
+  },
+  "guardCd": {
+   "blockstun": 19,
+   "n": 1
+  },
+  "wake": {
+   "name": "wake",
+   "invuln": 13,
+   "wakes": 1
+  },
+  "immune": {
+   "drop": 0
+  },
+  "stats": {
+   "hp": 980,
+   "weight": null
+  }
+ }
+}

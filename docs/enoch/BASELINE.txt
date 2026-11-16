@@ -1,0 +1,15 @@
+Enoch build — BASELINE (clean HEAD 5a2cbbe1d, run from a `git archive HEAD` export so the other session's
+uncommitted edits in the shared worktree (Dseyl / Controls Lab files, game.js, ui.js, flight.js) could not affect
+the counts). 2026-11-15. `git pull --ff-only origin main` was a no-op (HEAD == origin/main).
+
+  test:determinism       14 passed, 0 failed
+  test:combo-standard   233 passed, 9 failed   (unclassified-roster list, covered/roster totals, true-zoner count,
+                                                gogeta/goku_rose missing normals x4, superman 5/4/12, ghostface 5/3/8)
+  test:up-attack-roster  77 passed, 2 failed
+  test:credits           11 passed, 3 failed   (unattributed green_arrow/homelander/kakashi_anbu/ghostface_exe/
+                                                soldier_boy; stale sasuke_war_susano; in-game set != roster)
+  test:roster-integrity  PASS (6 checks, exit 0)
+
+"Green" for this build = no worse than these numbers (failures may not increase; the same failures only).
+Adding Enoch adds one roster key, so the credits / combo-standard roster-wide checks must keep the SAME failures:
+Enoch gets a credits.js entry, a kit and normals so he never becomes a new failure.

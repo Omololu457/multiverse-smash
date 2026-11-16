@@ -525,7 +525,7 @@ import {
   getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
   drawCreditsScreen,
   drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
-  drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, getAcademyWatchBrutButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
+  drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, getAcademyWatchBrutButton, getAcademyLabButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
   drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
   drawMoveListScreen, getMoveListCardRects, getMoveListButtons, getMoveListViewport,
@@ -25850,6 +25850,7 @@ function handleMenuClicks() {
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0; gameState = GAME_STATES.MOVE_LIST }
       else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "academy")  openAcademy(GAME_STATES.MAIN_MENU)
+      else if (c.id === "controlsLab") { sound.play?.(SFX.UI_SELECT); window.location.href = "controls.html" }   // CONTROLS LAB (standalone page)
       else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "themes")   openThemesScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "tutorial") { tutorialPage = 0; gameState = GAME_STATES.TUTORIAL }
@@ -25884,6 +25885,7 @@ function handleMenuClicks() {
     }
     case GAME_STATES.ACADEMY: {
       if (pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
+      if (pointInRect(mouse.x, mouse.y, getAcademyLabButton(canvas))) { sound.play?.(SFX.UI_SELECT); window.location.href = "controls.html"; break }   // CONTROLS LAB link
       const roster = getAcademyFilteredRoster(), L = academyGridLayout(canvas, roster, academyScroll, academyUniverses())
       const chip = L.filterRects.find(r => pointInRect(mouse.x, mouse.y, r))
       if (chip) { academyUniverse = chip.id; academyScroll = 0; break }
@@ -26355,7 +26357,7 @@ function _padMenuRects() {
     case GAME_STATES.ACADEMY: {
       const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses())
       const cards = L.cards.map(c => ({ id: "card:" + c.key, x: c.x, y: c.y, w: c.w, h: c.h }))
-      return [...cards, ...L.filterRects, getAcademyBackButton(canvas)]
+      return [...cards, ...L.filterRects, getAcademyBackButton(canvas), getAcademyLabButton(canvas)]
     }
     case GAME_STATES.ACADEMY_CHAR: {
       const LC = _academyLessons(), L = academyCharLayout(canvas, LC.groups, academyCharScroll)

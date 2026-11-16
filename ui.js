@@ -1388,6 +1388,7 @@ export function getMainMenuRects(canvas) {
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },
     { id: "academy",  label: "ACADEMY",   subLabel: "Learn every fighter — demos & hands-on drills" },
+    { id: "controlsLab", label: "CONTROLS LAB", subLabel: "Watch every move, see your controller, guided combo trials" },
     { id: "profile",  label: "PROFILE",   subLabel: "Your Big-Five reading + UI appearance" },
     { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
     { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
@@ -5607,6 +5608,11 @@ export function getAcademyBackButton(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
   return { id: "back", x: 40, y: h - 60, w: 190, h: 42 }
 }
+// CONTROLS LAB link (bottom-right of the Academy GRID screen) — opens controls.html.
+export function getAcademyLabButton(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  return { id: "controlsLab", x: w - 40 - 250, y: h - 60, w: 250, h: 42 }
+}
 // "WATCH BRUTALITIES" button (bottom-right of the char screen) — opens the deterministic gallery reel.
 export function getAcademyWatchBrutButton(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
@@ -5680,6 +5686,7 @@ export function drawAcademyGridScreen(ctx, canvas, opts = {}) {
   if (L.contentH > L.gridH) drawCenteredText(ctx, "scroll ↕", w / 2, L.gridY + L.gridH + 14, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
 
   drawMkButton(ctx, getAcademyBackButton(canvas), { label: "BACK", active: opts.backHover, id: "acadback", cut: 10 })
+  drawMkButton(ctx, getAcademyLabButton(canvas), { label: "CONTROLS LAB ▸", active: false, id: "acadlab", cut: 10 })
   drawFooterHint(ctx, canvas, "Click a fighter to open their lessons  ·  type to search  ·  Esc to exit")
 }
 

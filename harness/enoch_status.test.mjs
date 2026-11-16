@@ -97,19 +97,33 @@ const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
   const land = a => { rel(a); for (let i = 0; i < 90 && !(a.onGround || a.grounded); i++) step(1); step(4) }
   let { a, b } = setup(400, 2400); b.invulnTimer = 99999; H.setThermal(0)
   r.first = jumpSlide(a); r.rail = (st().rails[0] || {}).type || null; r.th = Math.round(st().th.v); r.stance = st().stance
-  hold(a, { right: true, dash: true }); for (let i = 0; i < 4; i++) hold(a, { right: true }); r.sameAir = st().stats.airSlides   // a 2nd double-tap in the same jump
-  land(a); r.second = jumpSlide(a); land(a); r.third = jumpSlide(a); land(a); r.fourth = jumpSlide(a); r.pool = st().air.n; land(a)
-  for (let i = 0; i < 160; i++) step(1); r.regen = st().air.n
+  hold(a, { right: true, dash: true }); for (let i = 0; i < 4; i++) hold(a, { right: true }); r.sameAir = st().stats.airSlides   // a 2nd double-tap, no hop in between
+  land(a)
+  // THE AIR CHAIN with good timing: slide → hop (Jump right after) → slide … until he cannot any more
+  ;({ a, b } = setup(200, 2900)); b.invulnTimer = 99999; H.setThermal(0); r.chain = []
+  hold(a, { jump: true }); for (let i = 0; i < 6; i++) hold(a, {})
+  for (let link = 0; link < 8; link++) {
+    const n0 = st().stats.airSlides; hold(a, { right: true, dash: true }); let k = 0; while (st().aslide && k++ < 40) hold(a, { right: true })
+    const did = st().stats.airSlides - n0, y0 = a.y; hold(a, { jump: true }); hold(a, {}); let top = 0; for (let i = 0; i < 6; i++) { hold(a, {}); top = Math.max(top, y0 - a.y) }
+    r.chain.push({ did, chain: st().air.chain, rise: Math.round(top), grounded: !!(a.onGround || a.grounded) })
+    if (a.onGround || a.grounded) break
+  }
+  r.chainMax = st().stats.maxChain; land(a)
+  // a LATE hop on a deep link misses (the window shrinks): 4 links, then wait 14 frames before Jump
+  ;({ a, b } = setup(200, 2900)); b.invulnTimer = 99999; H.setThermal(0); hold(a, { jump: true }); for (let i = 0; i < 6; i++) hold(a, {})
+  for (let link = 0; link < 4; link++) { hold(a, { right: true, dash: true }); let k = 0; while (st().aslide && k++ < 40) hold(a, { right: true }); if (link < 3) { hold(a, { jump: true }); hold(a, {}); for (let i = 0; i < 6; i++) hold(a, {}) } }
+  for (let i = 0; i < 14; i++) hold(a, {}); const hops0 = st().stats.airHops; hold(a, { jump: true }); hold(a, {}); r.late = { hops: st().stats.airHops - hops0, win: st().air.win }
+  land(a); r.reset = st().air.chain
   ;({ a, b } = setup(400, 2400)); b.invulnTimer = 99999; H.setThermal(50); r.fire = jumpSlide(a); r.fireRail = (st().rails[0] || {}).type || null; land(a)
   // through the foe: one hit + chill
   ;({ a, b } = setup(700, 900)); H.setThermal(0); hold(a, { jump: true }); for (let i = 0; i < 3; i++) hold(a, {}); const hp0 = b.health   // a low slide through a grounded foe
   hold(a, { right: true, dash: true }); for (let i = 0; i < 14; i++) hold(a, { right: true }); rel(a); step(10)
   r.hit = { hits: st().stats.airSlideHits, dmg: Math.round(hp0 - b.health), chill: aff()?.chill || 0 }; land(a)
-  // Ice Stance: the Ice Stream spends the same pool
-  ;({ a, b } = setup(400, 2400)); b.invulnTimer = 99999; H.setThermal(0); hold(a, { charge: true }); rel(a); step(14); st().air.n = 1
+  // Ice Stance: the Ice Stream counts as a chain link (refused at the cap)
+  ;({ a, b } = setup(400, 2400)); b.invulnTimer = 99999; H.setThermal(0); hold(a, { charge: true }); rel(a); step(14)
   hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); hold(a, { right: true, dash: true }); for (let i = 0; i < 6; i++) hold(a, { right: true })
-  r.stream1 = { rails: a._frozone?.stats?.rails || 0, pool: st().air.n }; land(a)
-  hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); hold(a, { right: true, dash: true }); for (let i = 0; i < 6; i++) hold(a, { right: true })
+  r.stream1 = { rails: a._frozone?.stats?.rails || 0 }; land(a)
+  hold(a, { jump: true }); for (let i = 0; i < 8; i++) hold(a, {}); st().air.chain = 6; hold(a, { right: true, dash: true }); for (let i = 0; i < 6; i++) hold(a, { right: true })   // at the cap
   r.stream2 = { rails: a._frozone?.stats?.rails || 0, denied: st().stats.airDenied }; land(a)
   // FIRE CAGE: burn to 5
   ;({ a, b } = setup(1000, 1200)); let res = null; for (let i = 0; i < 5; i++) res = ES.afflict(a, b, 'fire', 1)
@@ -118,12 +132,13 @@ const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
   for (let i = 0; i < 60; i++) step(1); r.cageEnd = aff().cage
   return r })
 ok('A1 jump + double-tap = AIR ICE SLIDE (an ice slab, he slides ~13 px/f, cools)', A.first.did === 1 && A.first.dx > 100 && A.rail === 'ice' && A.th < 0 && A.stance === 'elemental', J({ f: A.first, rail: A.rail, th: A.th }))
-ok('A2 one slide per jump (a 2nd double-tap in the same air does nothing)', A.sameAir === 1, String(A.sameAir))
-ok('A3 jump → slide → jump → slide works, but the pool of 3 runs out (4th denied)', A.second.did === 1 && A.third.did === 1 && A.fourth.did === 0 && A.pool === 0, J({ s: A.second, t: A.third, f: A.fourth, pool: A.pool }))
-ok('A4 the pool refills (one back after 2.5 s)', A.regen >= 1, String(A.regen))
+ok('A2 no hop / jump in between = no second slide', A.sameAir === 1, String(A.sameAir))
+ok('A3 THE AIR CHAIN: slide → hop → slide … at least 5 links in one airtime, capped at 6', A.chainMax >= 5 && A.chainMax <= 6 && A.chain.filter(x => x.did).length === A.chainMax, J({ max: A.chainMax, chain: A.chain }))
+ok('A3b each hop is lower than the last (it gets harder)', A.chain.filter(x => x.did && x.rise > 0).every((x, i, L) => i === 0 || x.rise <= L[i - 1].rise), J(A.chain.map(x => x.rise)))
+ok('A4 the hop window shrinks: a late Jump on the 4th link misses; landing resets the chain', A.late.hops === 0 && A.reset === 0, J({ late: A.late, reset: A.reset }))
 ok('A5 hot: the AIR FIRE SLIDE (a fire streak)', A.fire.did === 1 && A.fireRail === 'fire', J({ f: A.fire, rail: A.fireRail }))
 ok('A6 sliding through the foe = one hit that chills', A.hit.hits === 1 && A.hit.dmg > 0 && A.hit.chill >= 1, J(A.hit))
-ok('A7 Ice Stance\'s Ice Stream spends the same pool (and is refused when it is empty)', A.stream1.rails === 1 && A.stream1.pool === 0 && A.stream2.rails === 1 && A.stream2.denied >= 1, J({ a: A.stream1, b: A.stream2 }))
+ok('A7 Ice Stance\'s Ice Stream counts as a link of the same chain (refused past the cap)', A.stream1.rails === 1 && A.stream2.rails === 1 && A.stream2.denied >= 1, J({ a: A.stream1, b: A.stream2 }))
 ok('C1 burn 5 = FIRE CAGE: held in place, burning', A.cage.res === 'cage' && A.cage.held === 0 && A.cage.lost > 0 && A.cage.cages === 1, J(A.cage))
 ok('C2 the cage burns out', A.cageEnd === 0, String(A.cageEnd))
 

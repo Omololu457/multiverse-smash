@@ -89,10 +89,13 @@ export const STATUS = { max: 5, comboAt: 2, life: 240, decay: 60, burnEvery: 30,
 //   cold (≤ −25): Heat Lens → FROST LENS (the ice laser) · his dash / slide leave ICE
 export const TWIN = { trailEvery: 3, trailW: 60 }
 // AIR SLIDE (jump, then double-tap): he pours a slab of his element under his feet and slides along it — ICE (an icicle slab)
-// or, when hot, FIRE (a flame streak). One per jump, from a pool of `charges` that refills one every `regen` frames — so
-// jump → slide → jump → slide works, but not forever (the pool refills only while he stands on the ground). The Ice Stance's Ice Stream spends the same pool. Passing through the
-// opponent = one hit (raw 40) that chills / burns. Holding Down angles it down; the slab lingers `life` frames.
-export const AIR_SLIDE = { charges: 3, regen: 120, speed: 13, frames: 30, drop: 1.2, steep: 6, raw: 40, hitstun: 18, kbx: 5, kby: -6, life: 100, thermal: 6, carry: 0.6, maxRails: 6 }
+// or, when hot, FIRE (a flame streak). THE AIR CHAIN: during the slide or just after it, Jump = a HOP (even with no air jumps
+// left) that re-arms the slide — slide → hop → slide → hop … Each link gets harder: the hop is lower (× hopDecay), the slide
+// shorter (− shrink a link), and the hop window tighter (hopWindow − windowStep a link: 24, 20, 16, 12, 8, 4 frames), so 4-5
+// links are comfortable and the 6th (chainMax) is the last; landing resets the chain. A double-tap without a hop / jump in
+// between does nothing. Passing through the opponent = one hit (raw 40) that chills / burns. Down angles it down.
+export const AIR_SLIDE = { chainMax: 6, speed: 13, frames: 30, shrink: 0.1, minFrames: 14, drop: 1.2, steep: 6, raw: 40, hitstun: 18, kbx: 5, kby: -6,
+  life: 100, thermal: 6, carry: 0.6, maxRails: 6, hopVy: -14, hopDecay: 0.88, hopWindow: 24, windowStep: 4 }
 // FIRE CAGE: burn at STATUS.max traps the foe in a column of fire (held, burning) — the fire twin of the ICE BOX.
 export const CAGE = { frames: 70, every: 10, raw: 5, cd: 240 }
 export const SCORCH = { ahead: 120 }

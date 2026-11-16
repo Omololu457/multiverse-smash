@@ -34,9 +34,9 @@ const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, 
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
   sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0,
-  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airSlideHits: 0, cages: 0 })
+  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { n: AIR_SLIDE.charges, regen: 0 }, airUsed: false, aslide: null, rails: [],
+  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { chain: 0, armed: true, win: 0, jc: 0 }, aslide: null, rails: [],
   cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
   stats: stats0(), lastReject: null, cues: [] }
 
@@ -56,8 +56,8 @@ registerFrozoneHost('enoch', {
     if (commit) push(f, enState(f), -cost * c.cost)
     return true
   },
-  // the Ice Stream (Ice Stance's air double-tap) spends the same AIR SLIDE pool as his elemental air slide
-  air: (f, commit) => { const s = enState(f); if (s.air.n <= 0) { if (commit === false) s.stats.airDenied++; return false } if (commit) { s.air.n--; s.stats.airSlides++; s.stats.iceSlides++ } return true },
+  // the Ice Stream (Ice Stance's air double-tap) counts as a link of his AIR CHAIN (refused past chainMax)
+  air: (f, commit) => { const s = enState(f); if (s.air.chain >= AIR_SLIDE.chainMax) { if (commit === false) s.stats.airDenied++; return false } if (commit) { s.air.chain++; s.stats.airSlides++; s.stats.iceSlides++ } return true },
 })
 export function toggleStance(f) {
   const s = enState(f), fz = f._frozone
@@ -584,13 +584,22 @@ export function enochLocked(f, raw = null) {
     if (here.length && startGlide(f, s, here[here.length - 1].type, f.facing || 1, 'tap')) { f._dashTap = false; glideStep(f, s, { ...r, [f.facing === -1 ? 'left' : 'right']: true }); return true }
   }
   // AIR SLIDE (elemental stance; Ice Stance pours Frozone's Ice Stream from the same pool): jump, then double-tap
+  // the HOP: Jump during a slide or inside the (shrinking) window after it — a lower hop each link, re-arms the slide
+  const jEdge = ['jump', 'up'].map(k => s.edges[k]).find(e => e && s.used[e === s.edges.jump ? 'jump' : 'up'] !== e.tick && s.clock - e.clock <= 2)
+  if (!g && free && jEdge && s.stance !== 'ice' && (s.aslide || s.air.win > 0) && s.air.chain < AIR_SLIDE.chainMax) {
+    s.used.jump = s.edges.jump?.tick; s.used.up = s.edges.up?.tick
+    if (s.aslide) endAirSlide(f, s)
+    f.vy = Math.round(AIR_SLIDE.hopVy * Math.pow(AIR_SLIDE.hopDecay, s.air.chain - 1) * 100) / 100
+    s.air.armed = true; s.air.win = 0; s.air.jc = f.jumpCount || 0; s.stats.airHops++; cue(f, 'ramp'); pushFx(s, 'switch', ctrX(f), feetY(f), f.facing || 1, { el: twinOf(f) === 'fire' ? 'fire' : 'ice' })
+    f._dashTap = false; return true
+  }
   if (s.aslide) { if (!free || g) endAirSlide(f, s); else { airSlideStep(f, s, r); f._dashTap = false; return true } }
   if (!g && free && f._dashTap && s.stance !== 'ice') {
     f._dashTap = false
-    if (s.airUsed || s.air.n <= 0) { s.stats.airDenied++; cue(f, 'reject'); return false }
+    if (!s.air.armed || s.air.chain >= AIR_SLIDE.chainMax) { s.stats.airDenied++; cue(f, 'reject'); return false }   // hop / jump first; 6 at most
     const type = twinOf(f) === 'fire' ? 'fire' : 'ice', c = check(f, type)
     if (!c.ok) { reject(f, c.why); return false }
-    s.air.n--; s.airUsed = true; s.stats.airSlides++; s.stats[type + 'Slides']++
+    s.air.chain++; s.air.armed = false; s.air.win = 0; s.stats.airSlides++; s.stats[type + 'Slides']++; s.stats.maxChain = Math.max(s.stats.maxChain, s.air.chain)
     push(f, s, (type === 'ice' ? -1 : 1) * AIR_SLIDE.thermal * c.cost)
     s.aslide = { type, dir: f.facing || 1, k: 0, px: ctrX(f), py: feetY(f), hit: false, rail: null }
     cue(f, type === 'ice' ? 'crackle' : 'fireCast'); airSlideStep(f, s, r); return true
@@ -601,7 +610,7 @@ export function enochLocked(f, raw = null) {
 }
 function airSlideStep(f, s, r) {
   const z = s.aslide, W = WREF.W, d = z.dir, P = AIR_SLIDE
-  if (++z.k > P.frames) { endAirSlide(f, s); return }
+  if (++z.k > Math.max(P.minFrames, Math.round(P.frames * (1 - P.shrink * (s.air.chain - 1))))) { endAirSlide(f, s); return }   // shorter each link
   const jc = f.jumpCount
   const nx = Math.max(f.w / 2, Math.min(sw(W) - f.w / 2, z.px + d * P.speed)), floor = s.floor ?? f.groundY ?? (z.py + 400)
   let ny = z.py + (r.down ? P.steep : P.drop), land = false
@@ -626,6 +635,7 @@ function endAirSlide(f, s) {
   const z = s.aslide; s.aslide = null; if (!z) return
   const q = s.rails.find(x => x.n === z.rail); if (q) q.live = false
   f.vx = z.dir * AIR_SLIDE.speed * AIR_SLIDE.carry; f.vy = 0; if (s.pose === 'glide') s.pose = null
+  s.air.win = Math.max(0, AIR_SLIDE.hopWindow - AIR_SLIDE.windowStep * (s.air.chain - 1)); s.air.jc = f.jumpCount || 0   // the hop window (tighter each link)
 }
 
 // ── TICK (game.js, every frame, before the command layer) ──
@@ -690,9 +700,9 @@ export function tickEnoch(f, opp, raw, W) {
     damage: (t, n, o) => W?.damage?.(t, n, { attacker: f, ...o }) })
   for (const h of hurt) { s.stats.patchDmg += h.dmg; meter(f, h.dmg * METER.onHit); if (h.type === 'fire') afflict(f, h.fighter, 'fire', STATUS.patchTick, W) }
   tickAfflictions(f, s, W, opp)
-  // AIR SLIDE pool: one back every AIR_SLIDE.regen frames; one per jump (landing re-arms it)
-  if (s.air.n < AIR_SLIDE.charges && g && !s.aslide) { if (++s.air.regen >= AIR_SLIDE.regen) { s.air.n++; s.air.regen = 0 } } else if (s.air.n >= AIR_SLIDE.charges) s.air.regen = 0   // refills only ON THE GROUND
-  if (g && !s.aslide) s.airUsed = false
+  // AIR CHAIN: landing resets it; the hop window counts down; his own air jump (the shared double jump) also re-arms the slide
+  if (g && !s.aslide) { s.air.chain = 0; s.air.armed = true; s.air.win = 0; s.air.jc = f.jumpCount || 0 }
+  else { if (s.air.win > 0 && !s.aslide) s.air.win--; if ((f.jumpCount || 0) > s.air.jc) { s.air.armed = true; s.air.jc = f.jumpCount } }
   for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) s.rails.splice(i, 1) }
   // FIRE DASH / ICE DASH (and the slide): outside the balance band his dash leaves a trail of his element
   const tw = twinOf(f), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'

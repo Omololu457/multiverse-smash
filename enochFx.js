@@ -282,7 +282,7 @@ export function drawEnochHud(c, cv, p1, p2) {
     c.font = 'bold 10px Arial'; c.fillStyle = L.stance === 'ice' ? COL.ice[1] : COL.fire[1]   // tap Charge switches
     c.fillText(L.stance === 'ice' ? 'ICE STANCE' : 'ELEMENTAL STANCE', flip ? x0 + w : x0, y0 + h + 64)
     const air = f._enoch.air; c.fillStyle = 'rgba(255,255,255,0.75)'; c.font = 'bold 9px Arial'
-    c.fillText(`AIR SLIDE ${'●'.repeat(air.n)}${'○'.repeat(Math.max(0, AIR_SLIDE.charges - air.n))}`, flip ? x0 + w : x0, y0 + h + 77); c.restore()
+    c.fillText(`AIR CHAIN ${'●'.repeat(Math.max(0, AIR_SLIDE.chainMax - air.chain))}${'○'.repeat(Math.min(AIR_SLIDE.chainMax, air.chain))}${air.win > 0 ? ' · HOP!' : ''}`, flip ? x0 + w : x0, y0 + h + 77); c.restore()
   }
   one(p1, false); one(p2, true)
   // the OPPONENT's health bar: red wash = burn, blue wash = chill (stronger with every stack), white-blue = ice box

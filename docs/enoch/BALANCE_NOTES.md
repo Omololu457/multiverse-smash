@@ -116,3 +116,9 @@ The brief's values, verified live against a blocking dummy:
   drops to 2; 4 s before another cage. The ICE BOX's twin.
 - Trap art comes from the owner-supplied sheets (tools/enoch/cut_vfx.py): the fire-eruption columns = the cage; the
   icicle-slab vector sheet (navy background keyed out) = the ice box's lid and the air ice-slide slab.
+
+### 2026-11-16 (later): the AIR CHAIN replaces the 3-charge pool
+- Owner: the air slide should be "infinite-ish" — slide, jump, slide again, 4-5 times before it gets too hard. Now: Jump
+  during a slide or inside the hop window after it = a HOP (works with no air jumps left) that re-arms the slide.
+  Each link: hop −14 × 0.88^(link−1) px/f, slide 30 f −10 % a link (min 14), hop window 24 − 4 × (link−1) frames
+  (24, 20, 16, 12, 8, 4). 6 links at most; landing resets the chain. A double-tap without a hop / jump first is refused.

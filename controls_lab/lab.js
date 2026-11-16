@@ -7,7 +7,7 @@ import { rawToNumpad, rawButtons, NUMPAD_ARROW } from "./notation.js"
 import { comboScript, comboSteps, verifyCombo } from "./combos.js"
 
 const $ = s => document.querySelector(s)
-const LS = { state: "ms_controls_lab", mastered: "ms_controls_lab_mastered" }
+const LS = { state: "ms_controls_lab", mastered: "ms_controls_lab_mastered", big: "ms_controls_lab_big", zoom: "ms_controls_lab_zoom" }
 const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v ?? d } catch (_) { return d } }
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch (_) {} }
 const MODES = ["moves", "combos", "trial", "free"]
@@ -83,11 +83,38 @@ function setAccent(hex) {
   document.documentElement.style.setProperty("--accent", `rgb(${rgb.join(",")})`)
   document.documentElement.style.setProperty("--accent-rgb", rgb.join(","))
 }
+// ZOOM (Lab-side, presentation only): the arena is the whole game screen shrunk into a panel, so the fighters look small.
+// With zoom on, the iframe is magnified ×ZOOM and panned (smoothly, every logic frame) to keep both fighters — and a bit of
+// sky for falling attacks — in the middle. The game itself, its camera and the sim are untouched.
+const ZOOM = 1.7
 function fitArena() {
   const box = $("#arenaBox").getBoundingClientRect()
   const k = box.width / 1440
-  $("#game").style.transform = `scale(${k})`
   S.arenaScale = k
+  const z = S.zoom ? ZOOM : 1, K = k * z
+  let tx = 0, ty = 0
+  if (z > 1) {
+    const f = focusPoint() || S.focusPt || { x: 720, y: 520 }
+    S.focusPt = S.focusPt ? { x: S.focusPt.x + (f.x - S.focusPt.x) * 0.15, y: S.focusPt.y + (f.y - S.focusPt.y) * 0.15 } : f
+    tx = Math.min(0, Math.max(box.width - 1440 * K, box.width / 2 - S.focusPt.x * K))
+    ty = Math.min(0, Math.max(box.height - 810 * K, box.height * 0.6 - S.focusPt.y * K))
+  }
+  S.view = { K, tx, ty }
+  $("#game").style.transform = `translate(${tx}px, ${ty}px) scale(${K})`
+}
+// the fighters' midpoint (chest height) in the iframe's own CSS pixels
+function focusPoint() {
+  try {
+    const gc = eng.w?.document.querySelector("canvas"); if (!gc) return null
+    const cam = eng.h.camera(), r = gc.getBoundingClientRect(), sx = r.width / gc.width, sy = r.height / gc.height
+    const hs = ["p1", "p2"].map(w => eng.h.hurtbox(w)).filter(Boolean); if (!hs.length) return null
+    const wx = hs.reduce((a, h) => a + h.x + h.w / 2, 0) / hs.length, wy = hs.reduce((a, h) => a + h.y + h.h * 0.4, 0) / hs.length
+    return { x: ((wx - cam.x) * cam.zoom + gc.width / 2) * sx + r.left, y: ((wy - cam.y) * cam.zoom + gc.height / 2) * sy + r.top }
+  } catch (_) { return null }
+}
+function toggleZoom() {
+  S.zoom = !S.zoom; lsSet(LS.zoom, S.zoom); S.focusPt = null
+  $("#zoomBtn").textContent = `🔍 Zoom: ${S.zoom ? "ON" : "OFF"}`; fitArena(); if (S.boxes) drawBoxes()
 }
 window.addEventListener("resize", fitArena)
 function setVeil(on, text) { $("#veil").classList.toggle("off", !on); if (text) $("#veilText").textContent = text }
@@ -103,6 +130,7 @@ function onFrame(ev) {
   const raw = ev.scripted ? ev.raw : (userRaw || {})
   pushHistory(raw, ev.scripted, ev.p1?.facing >= 0 ? 1 : -1)
   if (S.task && S.task.onFrame) S.task.onFrame(ev, raw)
+  if (S.zoom) fitArena()
   if (S.boxes) drawBoxes()
   if (ctl) ctl.setFacing(ev.p1?.facing >= 0 ? 1 : -1)
   // the game pauses on Options/Escape; the Lab owns those buttons, so un-pause straight away
@@ -218,11 +246,13 @@ function movesHTML() {
   const groups = {}
   for (const m of S.moves) (groups[m.section] = groups[m.section] || []).push(m)
   const sel = S.selMove
+  const pa = S.playAll
   return `<div class="mode-head"><h2>MOVE LIST</h2><span class="sp"></span>
+      <button class="nav sm primary" data-act="playall" data-nav="actions" title="Watch every move, one after another">${pa ? `■ Stop (${pa.i + 1} / ${pa.n})` : "▶ Play all"}</button>
       <button class="nav sm" data-act="replay" data-nav="actions" ${sel ? "" : "disabled"}>⟲ Replay</button>
       <button class="nav sm" data-act="slow" data-nav="actions" ${sel ? "" : "disabled"}>0.5× Slow</button>
       <button class="nav sm" data-act="yourturn" data-nav="actions" ${sel ? "" : "disabled"}>✋ Your turn</button></div>
-    <div class="note" id="moveStatus">${sel ? `Selected: <b>${esc(sel.name)}</b>` : "Pick a move to watch it performed on the dummy."}</div>
+    <div class="note" id="moveStatus">${sel ? `Selected: <b>${esc(sel.name)}</b>` : "Press ▶ Play all to watch every move, or pick one to watch it on the dummy."}</div>
     <div class="scroll" id="listScroll">${Object.entries(groups).map(([sec, ms]) => `<div class="sec">${esc(sec.toUpperCase())}</div>` + ms.map(m => moveCard(m)).join("")).join("")}
     ${S.notes.length ? `<div class="sec">PASSIVES</div>` + S.notes.map(n => `<div class="card"><div class="nm">${esc(n.name)}</div><div class="desc">${esc(n.desc || "")}</div></div>`).join("") : ""}</div>`
 }
@@ -483,8 +513,8 @@ function drawBoxes() {
   if (!S.boxes) return
   const gc = eng.w?.document.querySelector("canvas"); if (!gc) return
   // game canvas rect is in the iframe's own (1600x900) CSS space → scale into the arena box
-  const k = S.arenaScale || 1, cam = eng.h.camera(), r = gc.getBoundingClientRect(), sx = r.width / gc.width * k, sy = r.height / gc.height * k
-  const tx = wx => ((wx - cam.x) * cam.zoom + gc.width / 2) * sx + r.left * k, ty = wy => ((wy - cam.y) * cam.zoom + gc.height / 2) * sy + r.top * k
+  const V = S.view || { K: S.arenaScale || 1, tx: 0, ty: 0 }, k = V.K, cam = eng.h.camera(), r = gc.getBoundingClientRect(), sx = r.width / gc.width * k, sy = r.height / gc.height * k
+  const tx = wx => ((wx - cam.x) * cam.zoom + gc.width / 2) * sx + r.left * k + V.tx, ty = wy => ((wy - cam.y) * cam.zoom + gc.height / 2) * sy + r.top * k + V.ty
   for (const [who, col] of [["p1", "rgba(74,222,128,.9)"], ["p2", "rgba(96,165,250,.9)"]]) {
     const hb = eng.h.hurtbox(who); if (!hb) continue
     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([6, 4])
@@ -626,6 +656,10 @@ function wireUI() {
   markDummy()
   $("#resetBtn").onclick = () => { eng.reset(); toast("Positions reset") }
   $("#controlBtn").onclick = () => takeControl(S.focus !== "arena")
+  $("#bigBtn").onclick = toggleBig
+  if (lsGet(LS.big, false)) toggleBig()
+  $("#zoomBtn").onclick = toggleZoom
+  if (lsGet(LS.zoom, true)) toggleZoom()   // zoomed in by default: you can see the moves
   $("#hitboxBtn").onclick = () => { S.boxes = !S.boxes; $("#hitboxBtn").textContent = `Boxes: ${S.boxes ? "ON" : "OFF"}`; if (!S.boxes) drawBoxes() }
   $("#arenaShield").onclick = () => { if (pickerOpen()) return; takeControl(true) }
   $("#modePanel").onclick = e => {
@@ -643,7 +677,31 @@ function wireUI() {
   setFocus($(".tab.active") || $("#charChip"))
 }
 function markDummy() { for (const b of document.querySelectorAll("[data-dummy]")) b.classList.toggle("active", b.dataset.dummy === eng.dummy) }
+// PLAY ALL: demo every move of the fighter back to back (from the selected one), scrolling the list along. Any other
+// demo / mode change / fighter change interrupts it (runDemo resolves null when its task is replaced).
+async function playAll() {
+  if (S.playAll) { S.playAll = null; stopTask(); renderMode(); return }
+  const list = S.moves.filter(m => !m.unavailable); if (!list.length) return
+  const start = Math.max(0, list.indexOf(S.selMove))
+  const run = S.playAll = { i: start, n: list.length }
+  for (; run.i < list.length; run.i++) {
+    const m = list[run.i]
+    const p = demoMove(m)
+    document.querySelector(".card.sel")?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    const r = await p
+    if (S.playAll !== run || !r) { if (S.playAll === run) { S.playAll = null; renderMode() } return }
+    const st = $("#moveStatus"); if (st) st.innerHTML = `<b>${run.i + 1} / ${run.n}</b> · ` + st.innerHTML
+    await new Promise(res => setTimeout(res, 700))
+    if (S.playAll !== run) return
+  }
+  S.playAll = null; renderMode(); toast("Played every move")
+}
+function toggleBig() {
+  S.big = !S.big; $("#app").classList.toggle("big", S.big); lsSet(LS.big, S.big)
+  $("#bigBtn").textContent = S.big ? "⛶ Normal view" : "⛶ Big view"; requestAnimationFrame(fitArena)
+}
 function onAction(act) {
+  if (act === "playall") return playAll()
   const m = S.selMove, c = S.selCombo
   if (act === "replay" && m) return demoMove(m)
   if (act === "slow" && m) return demoMove(m, true)

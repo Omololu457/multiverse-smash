@@ -39,21 +39,24 @@ const M = await page.evaluate(() => { const { H, step, hold, rel, setup, st, aff
   let { a, b } = setup(900, 1250); H.setThermal(0); let hp0 = b.health
   hold(a, { up: true, jump: true, special: true }, 2); rel(a); let k = 0; while (st().meteors.length === 0 && k++ < 30) step(1)
   r.iceSpawn = { n: st().meteors.length, el: st().meteors[0]?.el, airborne: !(a.onGround || a.grounded) }
-  k = 0; while (st().meteors.length && k++ < 120) step(1); step(6)
-  r.ice = { dmg: Math.round(hp0 - b.health), chill: aff()?.chill || 0, patch: st().field.patches.some(p => p.type === 'ice' && Math.abs(p.x + p.width / 2 - (b.x + b.w / 2)) < 160), stat: st().stats.meteors, hits: st().stats.meteorHits }
+  k = 0; while (st().meteors.length && k++ < 120) step(1); r.frozeAt = b._supFrozen || 0; step(6)
+  r.ice = { dmg: Math.round(hp0 - b.health), chill: aff()?.chill || 0, patch: st().field.patches.some(p => p.type === 'ice' && Math.abs(p.x + p.width / 2 - (b.x + b.w / 2)) < 160), stat: st().stats.meteors, hits: st().stats.meteorHits, encased: st().stats.encased, frozeAt: r.frozeAt || 0 }
   // hot: the FIRE METEOR shower
   ;({ a, b } = setup(900, 1250)); H.setThermal(60); hp0 = b.health
   hold(a, { up: true, jump: true, special: true }, 2); rel(a); k = 0; while (st().meteors.length === 0 && k++ < 30) step(1)
-  r.fireSpawn = { n: st().meteors.length, els: st().meteors.map(q => q.el) }
-  k = 0; while (st().meteors.length && k++ < 160) step(1); step(6)
-  r.fire = { dmg: Math.round(hp0 - b.health), burn: aff()?.burn || 0, fires: st().field.patches.filter(p => p.type === 'fire').length, stat: st().stats.fireMeteors }
+  r.fireSpawn = { n: st().meteors.length, els: [...new Set(st().meteors.map(q => q.el))], waits: st().meteors.map(q => q.wait), offs: st().meteors.map(q => q.off), key: a.currentAttack?.en?.key, pose: a.currentAttack ? 'cast' : null }
+  const xs = []; k = 0; while (st().meteors.length && k++ < 260) { for (const q of st().meteors) if (q.t === 1) xs.push(Math.round(q.x - (b.x + b.w / 2))); step(1) } step(6)
+  r.fire = { dmg: Math.round(hp0 - b.health), burn: aff()?.burn || 0, fires: st().field.patches.filter(p => p.type === 'fire').length, stat: st().stats.fireMeteors, hits: st().stats.cometHits, frames: k, xs }
   // Special in the air = the meteor
   ;({ a, b } = setup(900, 1250)); H.setThermal(0); hold(a, { jump: true }); for (let i = 0; i < 6; i++) hold(a, {})
   hold(a, { special: true }, 2); rel(a); k = 0; while (st().meteors.length === 0 && k++ < 30) step(1); r.air = st().meteors.length
   return r })
-ok('M1 Up + Special = ICE METEOR (one boulder)', M.iceSpawn.n === 1 && M.iceSpawn.el === 'ice', J(M.iceSpawn))
-ok('M2 it lands on the foe: damage + a chill + an ICE patch at their feet', M.ice.dmg > 0 && M.ice.chill >= 1 && M.ice.patch && M.ice.hits >= 1, J(M.ice))
-ok('M3 hot: the FIRE METEOR shower — 3 comets, burns, leaves FIRE', M.fireSpawn.n === 3 && M.fireSpawn.els.every(e => e === 'fire') && M.fire.dmg > 0 && M.fire.burn >= 1 && M.fire.fires >= 1, J({ s: M.fireSpawn, f: M.fire }))
+ok('M1 Up + Special = ONE giant ICE SPIKE', M.iceSpawn.n === 1 && M.iceSpawn.el === 'ice', J(M.iceSpawn))
+ok('M2 it lands on the foe: damage + chill + FROZEN (the ice climbs over them) + an ICE patch', M.ice.dmg > 0 && M.ice.chill >= 2 && M.ice.patch && M.ice.hits >= 1 && M.ice.encased === 1 && M.ice.frozeAt > 0, J(M.ice))
+ok('M3 hot: Up + Special = the FIRE RAIN — a dozen+ comets', M.fireSpawn.key === 'fireMeteor' && M.fireSpawn.n >= 12 && M.fireSpawn.els.join() === 'fire', J(M.fireSpawn))
+{ const w = M.fireSpawn.waits, gaps = w.slice(1).map((v, i) => v - w[i]), o = M.fireSpawn.offs
+  ok('M3b at uneven times and spots (hashed, not a fixed beat): gaps and offsets vary', new Set(gaps).size >= 4 && new Set(o).size >= 10 && Math.max(...o) - Math.min(...o) >= 150, J({ gaps, o })) }
+ok('M3c they fall around the foe for ~2 s+, burn them, leave FIRE', M.fire.frames >= 120 && M.fire.dmg > 0 && M.fire.hits >= 3 && M.fire.burn >= 1 && M.fire.fires >= 1 && M.fire.xs.every(x => Math.abs(x) <= 230), J(M.fire))
 ok('M4 Special in the air = the meteor', M.air >= 1, String(M.air))
 
 // ═══ W. SNOWMAN + I. simple inputs ═══
@@ -92,8 +95,10 @@ const L = await page.evaluate(() => { const { H, step, setup, st, ES } = __E; co
 ok('L1 his ice lasts much longer (15 s) and MELTS into WATER when it runs out', L.life >= 900 && L.after.includes('water') && !L.after.includes('ice') && L.melts >= 1, J(L))
 
 // ═══ screenshots ═══
-await shot('meteor_ice', () => { const { H, step, hold, rel, setup } = __E; const { a } = setup(900, 1250); H.setThermal(0); hold(a, { up: true, jump: true, special: true }, 2); rel(a); step(22) })
-await shot('meteor_fire', () => { const { H, step, hold, rel, setup } = __E; const { a } = setup(900, 1250); H.setThermal(60); hold(a, { up: true, jump: true, special: true }, 2); rel(a); step(34) })
+await shot('meteor_ice', () => { const { H, step, hold, rel, setup } = __E; const { a } = setup(900, 1250); H.setThermal(0); hold(a, { up: true, jump: true, special: true }, 2); rel(a); step(26) })
+await shot('meteor_ice_freeze', () => { const { step } = __E; step(22) })
+await shot('meteor_fire_cast', () => { const { H, step, hold, rel, setup } = __E; const { a } = setup(900, 1250); H.setThermal(60); hold(a, { up: true, jump: true, special: true }, 2); rel(a); step(20) })
+await shot('meteor_fire', () => { const { step } = __E; step(50) })
 await shot('snowman', () => { const { H, step, hold, rel, setup } = __E; const { a } = setup(900, 1400); H.setThermal(0); hold(a, { left: true, charge: true }, 1); rel(a); a.facing = 1; step(40) })
 await shot('snowman_melting', () => { const { step, st } = __E; st().snow.t = 719; step(40) })
 await shot('ice_melting', () => { const { H, step, setup, st } = __E; setup(600, 1400); H.setThermal(0); H.patch({ type: 'ice', cx: 900 }); const p = st().field.patches.find(q => q.type === 'ice'); p.bornFrame -= p.life - 100; step(10) })

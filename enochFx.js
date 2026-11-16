@@ -188,6 +188,11 @@ function drawEvents(c, f, s) {
     } else if (e.kind === 'fireImpact') {   // the comet's bloom, then the ground burning (Joe & Mac flames rising)
       vfx(c, 'fireImpact', e.t / 6, e.x, e.y + 4, { scale: 1.6, alpha: Math.min(1, al * 1.4) })
       vfx(c, 'flameGrow', Math.min(8, e.t / 4), e.x + 26 * e.dir, e.y + 2, { scale: 1.1, alpha: al })
+    } else if (e.kind === 'skyFire') {   // the fire jet thrown up out of his raised fist (the comets answer it)
+      const y = e.y - e.t * 18
+      if (e.t < 12) vfx(c, 'firePuff', e.t / 3, e.x + e.dir * 14, e.y - 26, { scale: 0.45, alpha: al })   // a flash at the raised fist
+      c.save(); c.translate(R(e.x), R(y)); c.scale(1, -1); vfx(c, 'fireFall', 1, 0, 0, { h: 120, alpha: Math.min(1, al * 1.5) }); c.restore()
+      vfx(c, 'fireBall', (e.t >> 2) % 4, e.x, y - 50, { h: 46 })
     } else if (e.kind === 'melt') {   // ice → water: a splash + spreading ripples
       vfx(c, 'waterSplash', e.t / 8, e.x, e.y + 16, { scale: 0.6, alpha: al })
       c.save(); c.globalAlpha = al * 0.8; c.strokeStyle = COL.water[1]; c.lineWidth = 2; const r = 10 + e.t * 1.5; c.beginPath(); c.ellipse(R(e.x), R(e.y - 2), R(Math.min(r, (e.w || 80) / 2)), 4, 0, 0, Math.PI * 2); c.stroke(); c.restore()
@@ -268,15 +273,41 @@ function drawSnow(c, f, s, fr) {
   if (z.melt || z.heat) drips(c, Rc.x, Rc.x + Rc.w, Rc.y, y1, fr, z.melt ? z.melt / P.melt : 0.2)
 }
 // ── METEORS: ICE = Iceman's boulder (spinning slowly, a frost trail); FIRE = Luminous Arc's falling comet + fireball head ──
+// the ICE SPIKE: one huge crystal, point down (q.y = its tip), faceted, with a frost trail streaming off the top
+function drawSpike(c, x, tip, P, t) {
+  const L = P.size, w = P.w, top = tip - L
+  c.save(); c.globalAlpha = 0.4; c.fillStyle = COL.ice[0]
+  for (let i = 0; i < 7; i++) { const k = (t * 3 + i * 17) % 60; c.fillRect(R(x - w / 2 + (i * 23) % w), R(top - k * 1.6), 4, 10) }   // the frost trail
+  c.restore()
+  poly(c, [[x - w / 2, top], [x + w / 2, top], [x + w * 0.18, tip - L * 0.25], [x, tip]], COL.ice[2], COL.ice[3], 0.95, 3)   // body
+  poly(c, [[x - w / 2, top], [x - w * 0.05, top], [x, tip], [x - w * 0.22, tip - L * 0.3]], COL.ice[1], null, 0.9)          // lit face
+  poly(c, [[x - w * 0.3, top], [x - w * 0.18, top], [x - w * 0.03, tip - L * 0.1]], COL.ice[0], null, 0.85)                 // glint
+  poly(c, [[x - w / 2 - 8, top + 4], [x + w / 2 + 8, top + 4], [x + w / 2, top - 16], [x - w / 2, top - 14]], COL.ice[1], COL.ice[3], 0.9, 2)   // the frozen cap
+}
+// THE FREEZE CLIMBING UP: after the spike hits, ice grows from the victim's feet to over their head, holds, cracks, falls away
+function drawEncase(c, f, s, W, fr, p1, p2) {
+  const e = s.encase; if (!e) return
+  const v = [p1, p2].find(o => o && o !== f && sideOf(o) === e.side); if (!v) return
+  const x = v.x - 10, w = (v.w || 48) + 20, feet = v.y + (v.h || 94), H = (v.h || 94) + 22
+  const grow = Math.min(1, e.t / 22), h = H * grow, out = e.t > e.n ? (e.t - e.n) / 24 : 0, al = 1 - out
+  if (al <= 0) return
+  c.save(); c.globalAlpha = 0.55 * al; c.fillStyle = COL.ice[1]; c.fillRect(R(x), R(feet - h), R(w), R(h)); c.restore()
+  poly(c, [[x - 6, feet], [x, feet - h + 10], [x + w * 0.35, feet - h], [x + w * 0.7, feet - h + 6], [x + w, feet - h + 14], [x + w + 6, feet]], null, COL.ice[3], al, 3)
+  c.save(); c.globalAlpha = 0.8 * al; c.fillStyle = COL.ice[0]
+  for (let i = 0; i < 5; i++) c.fillRect(R(x + 6 + i * w / 5), R(feet - h * (0.2 + 0.15 * (i % 3))), 3, R(Math.max(4, h * 0.25)))   // streaks of frost
+  c.fillRect(R(x - 4), R(feet - h - 2), R(w + 8), 3); c.restore()                                                                    // the rising frost line
+  if (!calm() && grow < 1) for (let i = 0; i < 6; i++) { c.save(); c.globalAlpha = al; c.fillStyle = COL.ice[0]; c.fillRect(R(x + (i * 37 + e.t * 5) % w), R(feet - h - 6 - (i % 3) * 5), 3, 3); c.restore() }   // sparkles at the edge
+  if (grow >= 1) vfx(c, 'icicle', 3, x + w / 2, feet - H + 6, { h: 30, alpha: al })
+  if (out > 0) for (let i = 0; i < 5; i++) vfx(c, 'iceChunk', i, x + w / 2 + (i - 2) * 16 * (1 + out * 3), feet - H * 0.5 + out * out * 140 + i * 6, { scale: 0.6, alpha: al })   // shatters away
+}
 function drawMeteors(c, f, s, fr) {
   for (const q of s.meteors) {
     if (q.wait > 0) continue
     const P = METEOR[q.el]
-    if (q.el === 'ice') {
-      c.save(); c.globalAlpha = 0.45; c.fillStyle = COL.ice[1]; for (let i = 1; i <= 4; i++) c.fillRect(R(q.x - q.dir * METEOR.vx * i * 3 - 4), R(q.y - q.vy * i * 1.4), 8, 8); c.restore()
-      if (!vfx(c, 'iceRock', (q.t >> 3) & 1, q.x, q.y, { h: P.size, flip: (q.t >> 4) & 1 ? -1 : 1 })) { c.save(); c.fillStyle = COL.ice[1]; c.fillRect(R(q.x - 30), R(q.y - 40), 60, 80); c.restore() }
-    } else {
-      vfx(c, 'fireFall', 1, q.x, q.y - P.size * 0.6, { h: P.size * 1.6, flip: q.dir })
+    if (q.el === 'ice') drawSpike(c, q.x, q.y, P, q.t)
+    else {
+      c.save(); c.translate(R(q.x), R(q.y)); c.rotate(-q.dir * 0.22)   // the comet leans with its drift
+      vfx(c, 'fireFall', 1, 0, -P.size * 0.75, { h: P.size * 2, flip: q.dir }); c.restore()
       if (!vfx(c, 'fireBall', (q.t >> 2) % 4, q.x, q.y, { h: P.size })) { c.save(); c.fillStyle = COL.fire[1]; c.beginPath(); c.arc(R(q.x), R(q.y), 20, 0, Math.PI * 2); c.fill(); c.restore() }
     }
     // the target ring on the floor (where it will land)
@@ -310,7 +341,7 @@ export function drawEnochOver(c, p1, p2, W) {
   if (isEn(p1) || isEn(p2)) drawShards(c, W, fr)
   for (const f of [p1, p2]) {
     const s = isEn(f) ? f._enoch : null; if (!s) continue
-    drawWall(c, f, s, fr); drawSnow(c, f, s, fr); drawMeteors(c, f, s, fr); drawAfflictions(c, f, s, W, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
+    drawWall(c, f, s, fr); drawSnow(c, f, s, fr); drawMeteors(c, f, s, fr); drawEncase(c, f, s, W, fr, p1, p2); drawAfflictions(c, f, s, W, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
   }
 }
 // ── HUD: the thermal bar (deep blue → teal → orange, marker, outlined balance zone) under his health bar ──

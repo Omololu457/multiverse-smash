@@ -14,7 +14,7 @@
 // HEAT LENS: the Homelander / Superman laser gauge (beam.js): tap = a 12-frame burst, hold Special = sustained, locks on;
 //           hold Up / Down to sweep by hand. Release → 1 s cooldown; running the gauge dry → 2.5 s overheat.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
-import { isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance } from './enochState.js'
+import { twinOf, isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance } from './enochState.js'
 import { updateFrozoneCommandCombat } from './frozone.js'
 import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL } from './enochData.js'
 
@@ -28,6 +28,7 @@ export const LINK_TO_NORMAL = ['heatLens']
 export const SPECIAL_FROM = ['jab', 'straight', 'heavy', 'low', 'rise', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst']
 export const SUPER_FROM = ['jab', 'straight', 'heavy', 'low', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst', 'tideBreak', 'iceBlast', 'heatLens', 'condense', 'iceWall', 'fireWall']
 
+const meteorKey = f => twinOf(f) === 'fire' ? 'fireMeteor' : 'meteor'
 export function specialKey(f, e) {
   const m = e.m || {}
   if (m.super) return 'super'
@@ -36,7 +37,7 @@ export function specialKey(f, e) {
   if (m.qcf) return (waterUnlocked(f) && enState(f).field.patches.some(p => p.type === 'water')) ? 'steamBurst' : 'iceBlast'
   if (m.dd) return 'frostFloor'
   if (m.ff) return 'heatLens'
-  if (e.up || e.jmp) return 'meteor'            // Up + Special = ICE METEOR (hot: the FIRE METEOR shower)
+  if (e.up || e.jmp) return meteorKey(f)       // Up + Special = the ICE SPIKE (hot: the FIRE RAIN)
   if (e.down) return 'frostFloor'
   if (e.fwd) return 'heatLens'
   if (e.back) return 'deepFreeze'
@@ -106,7 +107,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (a && !contact) return 'consumed'
   if (!a && (f.attackCooldown > 0 || inp.block)) return 'grab'
   if (fresh(s, 'ultimate')) { use(s, 'ultimate'); if (!a && g && (f.energy || 0) >= 100) fire('super'); return 'consumed' }   // Ultimate button = the super too
-  if (fresh(s, 'special') && !a) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (g) fire(k); else if (k !== 'super') fire('meteor'); return 'consumed' }   // in the air: Special = the METEOR
+  if (fresh(s, 'special') && !a) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (g) fire(k); else if (k !== 'super') fire(meteorKey(f)); return 'consumed' }   // in the air: Special = the METEOR
   if (fresh(s, 'upAttack') && upHeavy(s)) { use(s, 'upAttack'); use(s, 'heavy'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }
   if (fresh(s, 'heavy') && !a) { const e = s.edges.heavy; use(s, 'heavy'); fire(!g ? 'air' : e.up ? 'rise' : heavyKey(f, e)); return 'consumed' }
   if (fresh(s, 'upAttack')) { use(s, 'upAttack'); if (fresh(s, 'light')) use(s, 'light'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }

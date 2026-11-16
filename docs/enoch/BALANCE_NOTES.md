@@ -138,3 +138,11 @@ The brief's values, verified live against a blocking dummy:
 - LONGER: ice patches 15 s (was 7), fire 10 s (5), water 9 s; Ice Wall 8 s (2.8), Fire Wall 6 s (2.5); slabs 7 s;
   burn / chill stay 10 s after the last hit (4) then fall a stack every 2 s (1); ice box 2 s (1.3); fire cage 2 s (1.2).
 - AIR CHAIN windows widened: 40, 34, 28, 22, 16, 10 frames (was 24 … 4) — 4-5 links comfortable, 6 is the cap.
+
+### 2026-11-16 (night): ICE SPIKE + FIRE RAIN replace the boulder / 3-comet shower; Controls Lab Play all / Zoom / Big view
+- Up + Special, cold / balance: ONE giant ice spike (240 px), raw 90, hits with its tip → the shared freeze 75 f with the
+  ice climbing up over the victim (render), chill +2, ICE patch, then shatters. 5 s cooldown.
+- Up + Special, hot (new move `fireMeteor`, its own 7 s cooldown, 22 hot): fist up + a fire jet, then 18 comets over
+  ~2.5 s; start times = i × 7 + hash × 11 f, offsets = ±150 px hashed, each re-aimed at the foe when it appears; raw 12,
+  10 f hitstun, burn +0.4 a hit, a FIRE patch every 4th. Measured: 8 / 18 hit a standing dummy, 54 damage, burn 3.2.
+- Pose: the rising palm's raised-fist frame, held (no both-hands-up frame exists in the source sheet).

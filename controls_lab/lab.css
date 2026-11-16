@@ -179,3 +179,9 @@ svg.pad { width: 100%; height: auto; max-height: 30vh; display: block; }
 
 @media (max-width: 1360px) { :root { --fs: 15px; } .brand .t2 { display: none; } .brand { min-width: 0; } .tab { padding: 9px 10px; font-size: 13px; } }
 @media (max-height: 800px) { svg.pad { max-height: 26vh; } .kb-key { height: 38px; } .kb-key .act { font-size: 8.5px; } }
+
+/* BIG VIEW: a wider, taller arena; the controller picture hides so the move list keeps its room */
+#app.big .layout { grid-template-columns: minmax(0, 2.6fr) minmax(320px, 1fr); }
+#app.big .arena { max-height: calc(100vh - 190px); }
+#app.big .ctl-panel { display: none; }
+button.primary { border-color: rgba(var(--accent-rgb), .8); background: rgba(var(--accent-rgb), .2); font-weight: 800; }

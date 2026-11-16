@@ -53,7 +53,8 @@ export const ENOCH_SPECIALS = {
   wake:       n(70, 6, 4, 22, -12, { category: 'heavy', invuln: 6, hitstun: 22, knockbackX: 6, knockbackY: -6, box: [0, 90, 100, 80], strip: 'atkWake' }),   // attack on wake-up
   iceWall:    sp(0, 12, 1, 16, 0, { el: 'ice', th: -15, noBody: true, releaseAt: 12, cooldown: 240, strip: 'atkFloor' }),          // →↓↘+S (623) · Back+Heavy (not hot)
   fireWall:   sp(0, 12, 1, 18, 0, { el: 'fire', th: 15, noBody: true, releaseAt: 12, cooldown: 240, strip: 'atkFloor_fire' }),    // 623+H · Back+Heavy (hot)
-  meteor:     sp(70, 14, 2, 22, -4, { airOk: true, el: 'ice', th: -18, noBody: true, releaseAt: 14, cooldown: 300, strip: 'atkBlast' }),       // Up+S · hot: FIRE METEOR shower
+  meteor:     sp(90, 14, 2, 22, -4, { airOk: true, el: 'ice', th: -18, noBody: true, releaseAt: 14, cooldown: 300, strip: 'atkRise' }),        // Up+S: ONE giant ICE SPIKE
+  fireMeteor: sp(12, 16, 2, 30, 0, { airOk: true, el: 'fire', th: 22, noBody: true, releaseAt: 16, cooldown: 420, strip: 'atkRise' }),        // Up+S when hot: the FIRE RAIN
   snowman:    sp(0, 14, 1, 18, 0, { el: 'ice', th: -15, noBody: true, releaseAt: 14, cooldown: 300, strip: 'atkFloor' }),       // Back+Charge · an ice sculpture wall
   super:      sp(0, 10, 2, 30, 0, { noBody: true, isUltimate: true, cost: 100, releaseAt: 10, range: 460, strip: 'atkSuper' }),                // ↓↘→↓↘→+S
 }
@@ -103,11 +104,13 @@ export const CAGE = { frames: 120, every: 12, raw: 5, cd: 300 }
 export const SCORCH = { ahead: 120 }
 export const CONDENSE = { speed: 4, life: 150, w: 34, h: 34, handY: 70, steamRaw: 70, hailRaw: 60, hailSpeed: 9 }
 export const TIDE = { burstRaw: 30 }
-// METEORS (Up + Special): ICE = one boulder (the Iceman sheet) dropped on the foe's spot, shatters into chunks + an ICE patch;
-// hot = the FIRE METEOR shower: three comets (Luminous Arc's falling fire), staggered around the foe, each a FIRE patch.
-export const METEOR = { from: 520, vy0: 6, grav: 0.9, vx: 2.5,
-  ice:  { n: 1, raw: 70, radius: 70, hitstun: 30, kbx: 3, kby: -11, patch: 120, size: 120 },
-  fire: { n: 3, raw: 30, radius: 52, hitstun: 18, kbx: 3, kby: -6, patch: 90, size: 64, spread: 95, gap: 10 } }
+// METEORS (Up + Special): ICE = ONE giant ice SPIKE dropped point-first on the foe's spot: a hit FREEZES them and the ice
+// climbs up over them from the feet (the shared freeze, `freeze` frames), then shatters into chunks + an ICE patch.
+// HOT = the FIRE RAIN: he raises his fist, a fire jet goes up, and `n` comets rain down around the foe for ~2.5 s at
+// hashed (random-looking, deterministic) times and spots, re-aimed at wherever the foe is when each one appears.
+export const METEOR = { from: 560, vy0: 8, grav: 1.1, vx: 0,
+  ice:  { n: 1, raw: 90, radius: 56, hitstun: 30, kbx: 1, kby: 0, patch: 140, size: 240, w: 74, freeze: 75, chill: 2 },
+  fire: { n: 18, raw: 12, radius: 40, hitstun: 10, kbx: 2, kby: -3, patch: 80, size: 54, spread: 150, every: 7, jitter: 11, vx: 3, burn: 0.4, patchEvery: 4 } }
 // SNOWMAN (Back + Charge): an ice sculpture ahead — a SOLID wall (bodies stop, it eats `hp` enemy shots) for `life` frames;
 // it melts (`melt` frames of sagging + dripping) into a WATER puddle; standing in / next to fire melts it `fireMelt`× faster.
 export const SNOWMAN = { ahead: 104, w: 58, h: 124, rise: 14, life: 720, hp: 5, melt: 90, fireMelt: 4, patch: 100 }
@@ -170,5 +173,7 @@ export const enoch = {
     ...Object.fromEntries(Object.entries(FZ_STRIP).map(([k, st]) => ['fz_' + k, { ...ENOCH_ANIM['fz' + st.slice(3)], frameTimeline: FZ_TIMELINE[k] || [[0, 0]] }])),
     ultCast: { ...ENOCH_ANIM.fzUlt, frameTimeline: [[0, 0], [10, 1]] }, ultShatter: { ...ENOCH_ANIM.fzUlt, frameTimeline: [[0, 1], [16, 2]] },
     ultSkate: ENOCH_ANIM.ultSkate, ultBrake: ENOCH_ANIM.ultBrake,
+    // the METEOR casts: fist thrown up and HELD (the rising palm's raised-fist frame) while the sky answers
+    meteor: { ...ENOCH_ANIM.atkRise, frameTimeline: [[0, 1], [8, 2], [34, 3]] }, fireMeteor: { ...ENOCH_ANIM.atkRise, frameTimeline: [[0, 1], [8, 2], [44, 3]] },
   },
 }

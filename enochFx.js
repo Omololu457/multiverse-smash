@@ -6,10 +6,10 @@
 import { sound } from './sound.js'
 import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
-import { enoch as EN } from './enochData.js'
+import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
-import { enochUltView, ehash, INTRO, lensOrigin, TP } from './enochState.js'
-import { drawBeam3 } from './beam.js'
+import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect } from './enochState.js'
+import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
 
 const cache = new Map()
@@ -84,6 +84,39 @@ function drawEvents(c, f, s) {
     else if (e.kind === 'overload') { c.save(); c.globalAlpha = al; c.strokeStyle = e.dir < 0 ? COL.ice[1] : COL.fire[1]; c.lineWidth = 3; const r = 20 + e.t * 2; c.strokeRect(R(e.x - r), R(e.y - r / 2), R(r * 2), R(r)); c.restore() }
   }
 }
+// ── WALLS: ICE = Frozone's crystal slab in his ice palette (a crack per stopped shot); FIRE = a flame column of hashed
+//    tongues (flicker = ehash, never Math.random) with embers rising. Both blink in their last 40 frames. ──
+function poly(c, pts, fill, stroke, al, lw = 2) {
+  c.save(); c.globalAlpha = al; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(R(x), R(y)) : c.moveTo(R(x), R(y))); c.closePath()
+  if (fill) { c.fillStyle = fill; c.fill() } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw; c.stroke() } c.restore()
+}
+function drawWall(c, f, s, fr) {
+  const w = s.wall; if (!w) return
+  const P = WALLS[w.type], Rc = wallRect(w), x0 = Rc.x, x1 = Rc.x + Rc.w, y0 = Rc.y, y1 = w.floor
+  const left = P.life - w.t, al = left < 40 && !calm() ? ((w.t >> 2) & 1 ? 0.5 : 0.92) : 0.92
+  if (w.type === 'ice') {
+    poly(c, [[x0 - 6, y1], [x0, y0 + 18], [w.x - 4, y0], [x1 + 2, y0 + 10], [x1 + 6, y1]], COL.ice[1], COL.ice[3], al, 3)
+    poly(c, [[x0 + 4, y1 - 4], [x0 + 6, y0 + 26], [w.x, y0 + 12], [w.x + 2, y1 - 4]], COL.ice[0], null, al * 0.55)
+    c.save(); c.globalAlpha = al; c.strokeStyle = COL.ice[2]; c.lineWidth = 2
+    c.beginPath(); c.moveTo(R(w.x - 2), R(y0 + 8)); c.lineTo(R(w.x - 6), R(y1 - 6)); c.stroke()
+    for (let i = 0; i < P.hp - w.hp; i++) { c.beginPath(); c.moveTo(R(x0 + 4), R(y0 + 30 + i * 28)); c.lineTo(R(x1 - 2), R(y0 + 44 + i * 30)); c.stroke() }
+    c.restore()
+    return
+  }
+  const n = 5, cw = (x1 - x0) / n
+  for (let i = 0; i < n; i++) {   // tongues: outer orange → inner yellow → white core, heights hashed per 3 frames
+    const k = flick(f, (fr / 3) | 0, 40 + i), hh = Rc.h * (0.7 + 0.3 * k), cx = x0 + cw * (i + 0.5)
+    poly(c, [[cx - cw * 0.9, y1], [cx, y1 - hh], [cx + cw * 0.9, y1]], COL.fire[2], null, al * 0.9)
+    poly(c, [[cx - cw * 0.55, y1], [cx + (k - 0.5) * 6, y1 - hh * 0.72], [cx + cw * 0.55, y1]], COL.fire[1], null, al * 0.95)
+    poly(c, [[cx - cw * 0.25, y1], [cx, y1 - hh * 0.4], [cx + cw * 0.25, y1]], COL.fire[0], null, al)
+  }
+  if (!calm()) for (let i = 0; i < 4; i++) {   // embers rising out of the top
+    const k = flick(f, fr, 60 + i), up = ((fr * 2 + i * 31) % 60)
+    c.save(); c.globalAlpha = al * (1 - up / 60); c.fillStyle = i & 1 ? COL.fire[1] : COL.fire[0]
+    c.fillRect(R(x0 + k * (x1 - x0)), R(y0 + 10 - up), 3, 3); c.restore()
+  }
+  if (w.t < P.rise + 6) part(c, 'arc', 'fire', w.x, y1, { alpha: al, flip: w.dir })
+}
 function drawBeams(c, f, s) {
   const b = s.beamFx; if (!b) return
   drawBeam3(c, b, { glow: 'rgba(255,154,60,0.5)', mid: 'rgba(255,210,122,0.9)', core: 'rgba(255,241,192,0.98)', dot: COL.lensHot, impact: 'rgba(255,210,122,0.75)', width: s.beam ? 0.8 : 1 })
@@ -109,7 +142,7 @@ export function drawEnochOver(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0
   for (const f of [p1, p2]) {
     const s = isEn(f) ? f._enoch : null; if (!s) continue
-    drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
+    drawWall(c, f, s, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
   }
 }
 // ── HUD: the thermal bar (deep blue → teal → orange, marker, outlined balance zone) under his health bar ──
@@ -117,7 +150,7 @@ export function enochHudLabel(f) {
   const s = f?._enoch; if (!s) return null
   const v = s.th.v, zone = s.th.over > 0 ? 'OVERLOAD' : Math.abs(v) <= TP.balance ? 'BALANCE · WATER' : v <= TP.cold ? 'COLD ZONE' : v >= TP.hot ? 'HOT ZONE' : v < 0 ? 'COOL' : 'WARM'
   return { v, zone, lock: s.th.lock, over: s.th.over, glide: s.glide?.type || null, patches: s.field.patches.length, disc: s.disc ? s.disc.hp : 0,
-    cd: { ...s.cd }, meter: f.energy || 0 }
+    cd: { ...s.cd }, meter: f.energy || 0, laser: laserView(s.laser, LASER), wall: s.wall ? { type: s.wall.type, left: WALLS[s.wall.type].life - s.wall.t, hp: s.wall.hp } : null }
 }
 export function drawEnochHud(c, cv, p1, p2) {
   const cw = cv?.width || 1280, ch = cv?.height || 720
@@ -140,6 +173,11 @@ export function drawEnochHud(c, cv, p1, p2) {
     c.fillStyle = 'rgba(255,255,255,0.7)'
     c.fillText(`FREEZE ${L.cd.deepFreeze > 0 ? Math.ceil(L.cd.deepFreeze / 60) + 's' : 'READY'} · TIDE ${L.cd.tideBreak > 0 ? Math.ceil(L.cd.tideBreak / 60) + 's' : 'READY'} · GUARD GLIDE ${L.cd.guard > 0 ? Math.ceil(L.cd.guard / 60) + 's' : 'READY'}`, tx, y0 + h + 15)
     c.restore()
+    // the HEAT LENS laser gauge: Superman's laser bar (beam.js drawLaserGauge), just under the thermal readout
+    drawLaserGauge(c, L.laser, x0, y0 + h + 40, w, { flip, label: 'HEAT LENS', col: '#ff9a3c', low: '#ffd27a' })
+    c.save(); c.font = 'bold 9px Arial'; c.textBaseline = 'top'; c.textAlign = flip ? 'right' : 'left'; c.fillStyle = 'rgba(255,255,255,0.7)'
+    const wl = t => L.wall?.type === t ? `${Math.ceil(L.wall.left / 60)}s` : L.cd[t + 'Wall'] > 0 ? Math.ceil(L.cd[t + 'Wall'] / 60) + 's' : 'READY'
+    c.fillText(`ICE WALL ${wl('ice')} · FIRE WALL ${wl('fire')}`, flip ? x0 + w : x0, y0 + h + 52); c.restore()
   }
   one(p1, false); one(p2, true)
   for (const f of [p1, p2]) { const v = isEn(f) ? enochUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, v) }

@@ -17,12 +17,12 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
   tickField, patchesAt, applyPatchEffects, clearElementFlags, elWet, CALM_FRAMES } from './elements.js'
-import { marchBeam, beamFloorHit } from './beam.js'
+import { marchBeam, beamFloorHit, createLaser, laserReady, laserStart, laserStep, laserCut } from './beam.js'
 import { spawnPlatform, recedePlatform, getPlatforms } from './platforms.js'
 import { dirDigit, motionMatch } from './elastigirlState.js'
 
@@ -32,10 +32,10 @@ export const TP = registerThermal('enoch', {})          // the brief's numbers a
 const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, iceGlide: 0, fireGlide: 0, switches: 0, ramps: 0, rampLand: 0, discs: 0, discMelt: 0,
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
-  sanjiMelt: 0, arlongDouse: 0, meter: 0 })
+  sanjiMelt: 0, arlongDouse: 0, meter: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null,
-  cd: { deepFreeze: 0, tideBreak: 0, guard: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
+  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER),
+  cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
   stats: stats0(), lastReject: null, cues: [] }
 
 const E = { startMove: null, comboScale: null }
@@ -196,6 +196,7 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   const chk = md.el ? check(f, md.el) : { ok: true, cost: 1, dmg: 1 }
   if (!chk.ok) { reject(f, chk.why); return false }
   if (md.cooldown && s.cd[key] > 0) { reject(f, 'cooldown'); return false }
+  if (key === 'heatLens' && !laserReady(s.laser)) { reject(f, s.laser.over > 0 ? 'overheat' : 'laser'); return false }
   if (key === 'iceBlast' && ownProj(f, W, 'blast').length >= ICE_BLAST.pool) { reject(f, 'pool'); return false }
   if ((md.cost || 0) > (f.energy || 0)) { reject(f, 'meter'); return false }
   const variant = key === 'super' ? superVariant(f) : null
@@ -273,7 +274,7 @@ function beamPulse(f, s, W, angle, raw, hitstun, tap) {
   s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(end.x), ty: Math.round(end.y), hit: !!tgt, t: tap ? 8 : 2, tick: s.tick }
   return !!tgt
 }
-function endBeam(f, s) { if (!s.beam) return; s.beam = null; cue(f, 'laserOff'); const a = live(f); if (a && a.en.key === 'heatLens') a.timer = Math.min(a.timer, ALL_MOVES.heatLens.recovery) }
+function endBeam(f, s) { if (!s.beam) return; s.beam = null; laserCut(s.laser, LASER); cue(f, 'laserOff'); const a = live(f); if (a && a.en.key === 'heatLens') a.timer = Math.min(a.timer, ALL_MOVES.heatLens.recovery) }
 
 function release(f, s, W, a, m, md) {
   const d = m.dir, fr = front(f, d), feet = feetY(f)
@@ -300,9 +301,11 @@ function release(f, s, W, a, m, md) {
     s.disc = { pid: pl.id, hp: DISC.hp, hitSerial: {} }; s.stats.discs++; cue(f, 'crackle'); pushFx(s, 'frost', cx, floor - DISC.height, d)
   } else if (m.key === 'heatLens') {
     s.stats.beams++; cue(f, 'laser')
-    beamPulse(f, s, W, 0, a.damage, HEAT_LENS.hitstun, true)
-    if (m.held) { s.beam = { k: 0, angle: 0 }; cue(f, 'laserOn') }
-  } else if (m.key === 'tideBreak') {
+    const aim = laserAim(f, W)
+    beamPulse(f, s, W, aim ?? 0, a.damage, HEAT_LENS.hitstun, true)
+    if (laserStart(s.laser, LASER, aim ?? 0)) { s.beam = { k: 0, angle: s.laser.angle }; if (m.held) cue(f, 'laserOn') }
+  } else if (m.key === 'iceWall' || m.key === 'fireWall') raiseWall(f, s, W, m.key === 'iceWall' ? 'ice' : 'fire', d, m.mul)
+  else if (m.key === 'tideBreak') {
     s.stats.tides++; cue(f, 'tide'); let n = 0
     for (const p of [...s.field.patches]) {
       if (p.type === 'water') continue
@@ -318,6 +321,65 @@ function release(f, s, W, a, m, md) {
       { damage: a.damage, hitstun: 18, kbx: 3, kby: -3, life: CONDENSE.life, vx: d * CONDENSE.speed, dir: d, damageType: 'projectile', color: '#7fc8ff' })
     s.stats.orbs++; cue(f, 'orb')
   } else if (m.key === 'super') superRelease(f, s, W, a, m)
+}
+// LOCK-ON (Homelander's auto-aim): the angle from his visor lens to the nearest foe's chest, measured along his facing
+// (turns to face them first). null = no foe. Up / Down held override it and sweep by hand (beam.js laserStep).
+function laserAim(f, W) {
+  const t = foesOf(f, W).sort((p, q) => Math.abs(ctrX(p) - ctrX(f)) - Math.abs(ctrX(q) - ctrX(f)))[0]
+  if (!t) return null
+  f.facing = ctrX(t) >= ctrX(f) ? 1 : -1
+  const a = live(f); if (a?.en) a.en.dir = f.facing
+  const o = lensOrigin(f), tx = ctrX(t), ty = (t.y || 0) + (t.h || 94) * 0.45
+  return Math.round(Math.atan2(ty - o.y, (tx - o.x) * f.facing) * 10000) / 10000
+}
+// ── WALLS (Frozone's Ice Wall is the model): one at a time; the other element raised on top of it = a STEAM BURST ──
+const hitRect = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+export const wallRect = w => { const P = WALLS[w.type], h = P.h * Math.min(1, (w.t + 1) / P.rise); return { x: w.x - P.w / 2, y: w.floor - h, w: P.w, h } }
+function raiseWall(f, s, W, type, d, mul) {
+  const P = WALLS[type], floor = floorOf(f, s), x = Math.round(Math.max(P.w, Math.min(sw(W) - P.w, ctrX(f) + d * P.ahead)))
+  const old = s.wall
+  if (old && old.type !== type && Math.abs(old.x - x) <= WALLS[old.type].w + P.w) {
+    s.wall = null; s.stats.wallSteam++; s.stats.steam++
+    burstAt(f, s, W, x - WALL_STEAM.w / 2, x + WALL_STEAM.w / 2, floor, WALL_STEAM.raw * mul, 'energy', true, 'wallSteam')
+    pushFx(s, 'steamBlast', x, floor - 60, d); pushFx(s, 'burst', x, floor, d, { w: WALL_STEAM.w }); cue(f, 'burst')
+    return
+  }
+  s.wall = { type, x, floor: Math.round(floor), t: 0, hp: P.hp, dir: d, launched: false, mul, n: ++s.nEnt }
+  s.stats.walls++; s.stats[type === 'ice' ? 'iceWalls' : 'fireWalls']++
+  lay(f, s, W, { type, cx: x, width: P.patch })
+  cue(f, type === 'ice' ? 'crackle' : 'fireCrackle'); pushFx(s, type === 'ice' ? 'frost' : 'scorch', x, floor, d)
+}
+function updateWall(f, s, W, opp) {
+  const w = s.wall; if (!w) return
+  const P = WALLS[w.type]; w.t++
+  const Rc = wallRect(w)
+  for (const o of foesOf(f, W, opp)) {
+    const ob = box(o); if (!hitRect(ob, Rc)) continue
+    if (w.type === 'ice') {
+      if (!w.launched && w.t <= P.rise + 2 && grounded(o)) {   // erupting under them: one launching hit
+        w.launched = true; s.stats.wallLaunch++
+        vol(f, s, W, 'wall', ++s.serial, ctrX(o), ctrY(o), 60, 90, { damage: Math.round(dmg(P.raw) * w.mul * 100) / 100, hitstun: P.hitstun, kbx: P.kbx, kby: P.kby, life: 3, dir: w.dir, radius: 30, damageType: 'blunt' })
+        pushFx(s, 'frost', ctrX(o), ctrY(o), w.dir); continue
+      }
+      if (o.y + o.h <= Rc.y + 6) continue                         // standing on / clearing the top
+      if (ctrX(o) < w.x) o.x = Rc.x - ob.w; else o.x = Rc.x + Rc.w
+      if ((o.vx || 0) * (ctrX(o) < w.x ? 1 : -1) > 0) o.vx = 0
+    } else if (w.t % P.tickEvery === 0 && !((o.invulnTimer || 0) > 0)) {   // FIRE: burns whoever stands in it
+      const raw = P.tickRaw * w.mul
+      if (o.isBlocking) { W?.damage?.(o, raw * 0.2, { attacker: f, source: 'fireWall', damageType: 'energy' }); o.blockstun = Math.max(o.blockstun || 0, 6) }
+      else { W?.damage?.(o, raw, { attacker: f, source: 'fireWall', damageType: 'energy' }); o.hitstun = Math.max(o.hitstun || 0, P.hitstun); o.colorFlash = 5; meter(f, raw * METER.onHit) }
+      s.stats.wallBurns++; pushFx(s, 'ember', ctrX(o), ctrY(o), w.dir)
+    }
+  }
+  const Q = W?.projectiles                                         // enemy shots: the ice wall stops them, the fire wall burns them
+  if (Q) for (let i = Q.length - 1; i >= 0 && w.hp > 0; i--) {
+    const q = Q[i]; if (!q || q.owner === f) continue
+    const qw = q.w || q.width || 20, qh = q.h || q.height || 20
+    if (!hitRect({ x: q.x - qw / 2, y: q.y - qh / 2, w: qw, h: qh }, Rc)) continue
+    Q.splice(i, 1); w.hp--; s.stats.wallBlocks++; cue(f, w.type === 'ice' ? 'crackle' : 'hiss'); pushFx(s, w.type === 'ice' ? 'chip' : 'ember', q.x, q.y, -w.dir)
+  }
+  if (w.hp <= 0) { s.wall = null; cue(f, 'shatter'); pushFx(s, w.type === 'ice' ? 'shatter' : 'steamPuff', w.x, w.floor - P.h / 2, w.dir); return }
+  if (w.t >= P.life) { s.wall = null; pushFx(s, w.type === 'ice' ? 'frost' : 'steamPuff', w.x, w.floor, w.dir) }
 }
 // Condense orbs drifting over his own patches: FIRE → steam explosion (70), ICE → hail (60, faster). Once each.
 function updateOrbs(f, s, W) {
@@ -435,7 +497,7 @@ export function tickEnoch(f, opp, raw, W) {
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'block', 'jump', 'up', 'grab', 'charge']) {
     const v = !!raw[k]
     if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, clock: s.clock, down: !!raw.down, up: !!raw.up, fwd: fw, back: bk,
-      m: { super: motionMatch(s, '236236', 30), qcf: motionMatch(s, '236', 14), qcb: motionMatch(s, '214', 14), dd: motionMatch(s, '22', 14), ff: motionMatch(s, '656', 14) } }
+      m: { super: motionMatch(s, '236236', 30), qcf: motionMatch(s, '236', 14), qcb: motionMatch(s, '214', 14), dd: motionMatch(s, '22', 14), ff: motionMatch(s, '656', 14), dp: motionMatch(s, '623', 14) } }
     s.prev[k] = v
   }
   const g = grounded(f)
@@ -446,7 +508,7 @@ export function tickEnoch(f, opp, raw, W) {
   // super meter from damage taken
   if (s.prevHp != null && f.health < s.prevHp) meter(f, (s.prevHp - f.health) * METER.onTaken)
   s.prevHp = f.health
-  if (f.health <= 0) { s.glide = null; s.beam = null; s.ramp = null; s.pose = null; if (s.disc) breakDisc(f, s); killProj(f, W); return }
+  if (f.health <= 0) { s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.pose = null; s.wall = null; if (s.disc) breakDisc(f, s); killProj(f, W); return }
   // wake-up window: opens as a knockdown ends
   if (s.wasDown && !f.knockdownState) s.wakeWin = 10
   else if (s.wakeWin > 0) s.wakeWin--
@@ -478,6 +540,7 @@ export function tickEnoch(f, opp, raw, W) {
   }
   updateDisc(f, s, W)
   updateOrbs(f, s, W)
+  updateWall(f, s, W, opp)
   // ramp landing lays a patch of the glide's element
   if (s.ramp && g && (f.vy || 0) >= 0) { lay(f, s, W, { type: s.ramp.type, cx: ctrX(f) }); s.stats.rampLand++; cue(f, 'land'); pushFx(s, 'landBurst', ctrX(f), feetY(f), face, { el: s.ramp.type }); s.ramp = null }
   s.pose = s.glide ? s.pose : (s.ramp && !g) ? 'ramp' : (g && f._floorPlatformId && String(getPlatforms().find(p => p.id === f._floorPlatformId)?.owner || '').startsWith('enoch')) ? 'standDisc' : null
@@ -487,27 +550,26 @@ export function tickEnoch(f, opp, raw, W) {
   if (a0 && (f.hitstun > 0 || f.isGrabbed || f.knockdownState)) { endAttack(f); if (s.beam) endBeam(f, s) }   // interrupted: an unreleased cast spawns nothing
   if (s.glide && (f.hitstun > 0 || f.isGrabbed || f.knockdownState)) endGlide(f, s, false)
   const A = live(f), m = A?.en
-  if (!m || f.hitstun > 0 || f.isGrabbed) { if (s.beam) endBeam(f, s); return }
+  // LASER GAUGE (beam.js — the Homelander / Superman driver): refill / cooldown / overheat while idle; while the beam runs:
+  // min burst 12, drain 1 / frame, lock-on (Up / Down = manual sweep), release → 1 s cooldown, empty gauge → 2.5 s overheat
+  if (s.beam && (f.hitstun > 0 || f.isGrabbed || f.knockdownState)) endBeam(f, s)
+  if (s.beam) {
+    const held = !!raw.special && !!(A && m?.key === 'heatLens')
+    const r = laserStep(s.laser, LASER, { held, up: !!raw.up, down: !!raw.down, aim: (raw.up || raw.down) ? null : laserAim(f, W) })
+    if (r !== 'fire') { if (r === 'overheat') { s.stats.laserOverheat++; cue(f, 'overload') } s.beam = null; cue(f, 'laserOff'); if (A && m?.key === 'heatLens') A.timer = Math.min(A.timer, ALL_MOVES.heatLens.recovery) }
+    else {
+      const B = s.beam; B.k++; B.angle = s.laser.angle
+      if (held) { A.timer++; push(f, s, HEAT_LENS.hotPerSec / 60) }    // hold the pose (and heat up) while Special is held
+      if (s.beam && held && B.k % HEAT_LENS.tickEvery === 0) { s.stats.beamTicks++; beamPulse(f, s, W, B.angle, HEAT_LENS.tickRaw * m.mul, HEAT_LENS.holdHitstun, false) }
+      else if (s.beam) { const o = lensOrigin(f), e = marchBeam(o.x, o.y, B.angle, f.facing || 1, Math.min(HEAT_LENS.len, sw(W)), (foesOf(f, W)[0] && box(foesOf(f, W)[0])) || null); s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(e.x), ty: Math.round(e.y), hit: !!e.hit, t: 2, tick: s.tick } }
+    }
+  } else laserStep(s.laser, LASER, {})
+  if (!m || f.hitstun > 0 || f.isGrabbed) return
   const t = elapsed(A), md = ALL_MOVES[m.key]
-  f.facing = m.dir
+  f.facing = s.beam ? f.facing : m.dir
   if (m.key === 'heatLens' && t < md.releaseAt && raw.special) m.held = true
   else if (m.key === 'heatLens' && t < md.releaseAt) m.held = false
   if (md.releaseAt != null && t === md.releaseAt && !m.released) { m.released = true; release(f, s, W, A, m, md) }
-  // SUSTAINED BEAM: hold Special — ≤ 1.2 s, 7 per pulse, 10 hot / s, Up / Down aim ±30°
-  if (s.beam && m.key === 'heatLens') {
-    const B = s.beam
-    if (!raw.special || ++B.k > HEAT_LENS.holdMax) endBeam(f, s)
-    else {
-      A.timer++                                     // hold the pose while the beam runs
-      if (raw.down) B.angle = Math.min(HEAT_LENS.angleMax, B.angle + HEAT_LENS.angleStep)
-      if (raw.up) B.angle = Math.max(-HEAT_LENS.angleMax, B.angle - HEAT_LENS.angleStep)
-      B.angle = Math.round(B.angle * 10000) / 10000
-      push(f, s, HEAT_LENS.hotPerSec / 60)
-      if (s.beam && B.k % HEAT_LENS.tickEvery === 0) { s.stats.beamTicks++; beamPulse(f, s, W, B.angle, HEAT_LENS.tickRaw * m.mul, HEAT_LENS.holdHitstun, false) }
-      else if (s.beamFx) s.beamFx.t = 2
-      else { const o = lensOrigin(f), e = marchBeam(o.x, o.y, B.angle, f.facing || 1, Math.min(HEAT_LENS.len, sw(W))); s.beamFx = { ox: Math.round(o.x), oy: Math.round(o.y), tx: Math.round(e.x), ty: Math.round(e.y), hit: false, t: 2, tick: s.tick } }
-    }
-  }
   if (md.travel && t >= md.travel[0] && t < md.travel[1]) {   // SLIDE: travels (glide momentum carried)
     const v = Math.max(md.travel[2], m.glideV || 0) * (1 - (t - md.travel[0]) / (md.travel[1] - md.travel[0]) * 0.5)
     const o = foesOf(f, W, opp)[0]; let nx = Math.max(0, Math.min(sw(W) - f.w, f.x + m.dir * v))
@@ -548,7 +610,7 @@ function superRelease(f, s, W, a, m) {
 export function activateEnochUlt(f, target, W, variant) {
   if (cine.active || !f || !target) return false
   const s = enState(f)
-  s.glide = null; s.beam = null; s.ramp = null
+  s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.wall = null
   Object.assign(cine, { active: true, frame: 0, caster: f, target, W, variant, done: 0, ticks: 0, scale: E.comboScale?.(f) ?? 1, dir: f.facing || 1,
     cx: f.x, tx: target.x, ty: target.y })
   s.ult = { variant, frame: 0, done: 0 }

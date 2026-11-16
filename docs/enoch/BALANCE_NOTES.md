@@ -13,7 +13,7 @@ behaviour comes from the live tests:
 |---|---|---|
 | **Frozone** | **5-5** | The mirror of his own base. Frozone has more health (1150 vs 980), a bigger super (410 raw vs 330–390) and faster rushdown. Enoch has full-screen fire (Heat Lens), patches and reactions. **Decision:** Frozone is an *ice-walker* on Enoch's ICE (a skater doesn't slip on ice), so Enoch's slick zoning doesn't work on him. Enoch's FIRE and STEAM still hurt him. Decided on Enoch's side (`ICE_WALKER` in `enochState.js`); Frozone's files are byte-identical. Tested in the kit (Frozone keeps footing; fire still burns). |
 | **Arlong** | Enoch favoured on paper, honestly near **5-5** | Arlong's water zones turn Enoch's FIRE into STEAM (no fire DOT there), but they also make Arlong WET for the laser (×1.25). The heaviest, highest-health fighter (1320) meets a light zoner who chips him from range. Arlong wins up close. **Decision:** (1) FIRE laid on an Arlong water zone becomes STEAM (`stats.arlongDouse`); (2) a target standing in an Arlong zone counts as wet (+25 % laser); (3) Arlong's own state is never mutated, so no Arlong file changes. Both are tested live (kit X). |
-| **Superman / Homelander** | **4-6** | Flyers ignore his whole ground game: patches, slick, fire DOT and bursts only touch *grounded* fighters, and a glide can't follow them up. They have more health (1150 / 1050), top speed (99) and their own long-range heat vision. His answers are only partial: the sustained beam aims ±30°, the Ice Blast angles up to 30° at an airborne foe, and the rising palm is the anti-air. That is a real, accepted bad matchup for a ground controller. |
+| **Superman / Homelander** | **4-6** | Flyers ignore his whole ground game: patches, slick, fire DOT and bursts only touch *grounded* fighters, and a glide can't follow them up. They have more health (1150 / 1050), top speed (99) and their own long-range heat vision. His answers are partial: the visor laser now LOCKS ON like theirs (it angles up at a flyer), the Ice Blast angles up to 30° at an airborne foe, and the rising palm is the anti-air. The laser is still gauge-limited (≤ 84 raw per full gauge, 1 s cooldown, 2.5 s overheat), so it is still a bad matchup for a ground controller. |
 | **Sanji** | **5-5** | Sanji's lit **Diable Jambe** (`_sanji.dj > 0`) standing on Enoch's ICE melts it to WATER, with no burst. Fire meets ice, so Sanji is the one character who erases Enoch's ice by walking on it, but in doing so he hands Enoch WATER (the laser ×1.25 and Steam Burst set-ups). Unlit, Sanji slips like everyone else. Enoch-side only; Sanji's state is only *read*. Tested live (kit X). |
 
 ## Why he is not broken
@@ -28,7 +28,12 @@ behaviour comes from the live tests:
    - The meter drifts back at only 0.8 / s, so spending it has a real cost.
 3. **Hard caps.**
    - 4 patches on screen (the oldest is evicted) and 3 Ice Blasts in flight.
-   - The sustained beam is ≤ 1.2 s and **≤ 84 raw per use** (12 × 7), and costs +12 hot.
+   - The laser runs on the Homelander / Superman **laser gauge** (`beam.js`): 72 frames of beam per full gauge (refill 0.5 / frame),
+     **≤ 84 raw per full gauge** (12 × 7), +12 hot; every beam is followed by a **1 s re-fire cooldown**, and running the gauge
+     dry **overheats** it for 2.5 s. Its lock-on is Homelander's; its damage is still Enoch's (Homelander's is 15 per 4 frames).
+   - **Walls: one at a time**, each element on its own 4 s cooldown. The Ice Wall (2.8 s, stops 3 shots, one 60-raw launch
+     on eruption) and the Fire Wall (2.5 s, 8 raw every 15 frames to whoever stands in it, burns 3 shots) cost 15 thermal
+     each. Raising fire on his own ice wall is a 45-raw steam burst, which costs both walls and both cooldowns.
    - The biggest burst is **72 raw**, and only from an intensity-3 patch, which takes three merges.
    - The glide lasts ≤ 4 s and ends on any hit. It is never flight; the feet never leave the floor.
    - The disc has 80 HP, and fire melts it.

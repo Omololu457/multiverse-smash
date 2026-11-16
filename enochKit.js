@@ -1,7 +1,7 @@
 // Enoch (enoch) — Move List / kit metadata (kits.js entry). Numbers are the authored RAW values from enochData.js (stored
 // damage = raw; the shared pipeline applies GLOBAL_DAMAGE_SCALE 0.6 and combo scaling to every character alike).
 // Inputs use the shared logical button tokens + numpad motions (6 = forward, facing-relative). Combos: docs/enoch/COMBOS.md.
-import { ENOCH_MOVES as N, ENOCH_SPECIALS as S, SUPERS, GLIDE, DISC, GUARD_CANCEL } from './enochData.js'
+import { ENOCH_MOVES as N, ENOCH_SPECIALS as S, SUPERS, GLIDE, DISC, GUARD_CANCEL, WALLS, WALL_STEAM } from './enochData.js'
 export const ENOCH_CONTROLS = {
   rows: [
     ['Move / crouch', 'A / D, S', '← / →, ↓', 'Left stick / D-pad'],
@@ -15,11 +15,12 @@ export const ENOCH_CONTROLS = {
     ['Ice Blast / Steam Burst (water unlocked)', '↓↘→ + L', '↓↘→ + 4', '↓↘→ + R1'],
     ['Frost Floor · Deep Freeze · Heat Lens', '↓↓ + L · ↓↙← + L · →→ + L', '↓↓ + 4 · ↓↙← + 4 · →→ + 4', '↓↓ / ↓↙← / →→ + R1'],
     ['Heat Lens · Scorch Sweep · Condense · Tide Break', '↓↘→ / ↓↙← / ↓↓ / →→ + K', '… + 2', '… + △'],
+    ['ICE WALL · FIRE WALL', '→↓↘ + L · →↓↘ + K', '→↓↘ + 4 · →↓↘ + 2', '→↓↘ + R1 · →↓↘ + △ (or Back + △)'],
     ['Super (variant by thermal)', '↓↘→↓↘→ + L or U', '↓↘→↓↘→ + 4 or 5', '↓↘→↓↘→ + R1 or R2'],
     ['Guard cancel (in blockstun) → glide', 'P', '7', 'L2'],
     ['Grab / Guard', 'O / ;', '6 / /', 'L1 / ○'],
   ],
-  note: 'Directions are FACING-RELATIVE. Pad shortcuts without the motion: Special = Ice Blast, Forward + Special = Heat Lens, Down + Special = Frost Floor, Back + Special = Deep Freeze, Down + Heavy = Slide. L2 is his glide button (the shared energy Charge is off for him: his Super meter fills from damage dealt and taken).',
+  note: 'Directions are FACING-RELATIVE. Pad shortcuts without the motion: Special = Ice Blast, Forward + Special = Heat Lens, Down + Special = Frost Floor, Back + Special = Deep Freeze, Down + Heavy = Slide, Back + Heavy = the wall of his zone (hot → Fire Wall, else Ice Wall). L2 is his glide button (the shared energy Charge is off for him: his Super meter fills from damage dealt and taken).',
 }
 const r = m => m.raw
 export const ENOCH_KIT = { type: 'Elemental Controller / Trail Glider', energy: 'Super (meter) + Thermal', difficulty: 'Hard (5)',
@@ -40,7 +41,9 @@ export const ENOCH_KIT = { type: 'Elemental Controller / Trail Glider', energy: 
     { name: 'Frost Floor', input: '↓↓ + Special', cost: '15 cold', desc: `Raw ${r(S.frostFloor)} blunt (low) + an ICE patch ahead.` },
     { name: 'Deep Freeze', input: '↓↙← + Special', cost: '22 cold', desc: `Raw ${r(S.deepFreeze)}; freezes 0.7 s (the shared freeze status, +15 % damage taken); 8 s cooldown.` },
     { name: 'Ice Disc', input: 'Down + Charge', cost: '18 cold', desc: `A low hovering disc for ${DISC.life / 60} s, ${DISC.hp} HP; anyone can stand on it; counts as ICE; fire melts it to WATER.` },
-    { name: 'Heat Lens', input: '→→ + Special / ↓↘→ + Heavy', cost: '12 hot', desc: `Full-screen hitscan raw ${r(S.heatLens)} (energy). HOLD Special: a sustained beam ≤ 1.2 s, 7 per pulse, 10 hot / s, aim ±30° with Up / Down; where it meets the floor it lays FIRE. +25 % on a wet target.` },
+    { name: 'Heat Lens', input: '→→ + Special / ↓↘→ + Heavy', cost: '12 hot', desc: `Laser eyes on the Homelander / Superman LASER GAUGE (HUD bar "HEAT LENS"): tap = a burst (raw ${r(S.heatLens)}, energy), HOLD Special = a sustained beam, 7 per pulse, 10 hot / s, that LOCKS ON to the foe (Up / Down sweep it by hand). The beam drains the gauge (1.2 s full); release = 1 s cooldown, running it dry = 2.5 s OVERHEAT. Where it meets the floor it lays FIRE. +25 % on a wet target.` },
+    { name: 'Ice Wall', input: '→↓↘ + Special (Back + Heavy when not hot)', cost: '15 cold', desc: `A crystal wall ahead for ${WALLS.ice.life / 60 | 0} s: blocks bodies, stops ${WALLS.ice.hp} enemy shots, erupting under a grounded foe = a launching hit (raw ${WALLS.ice.raw}); lays ICE. 4 s cooldown.` },
+    { name: 'Fire Wall', input: '→↓↘ + Heavy (Back + Heavy when hot)', cost: '15 hot', desc: `A flame column ahead for ${WALLS.fire.life / 60} s: not solid, burns anyone inside (${WALLS.fire.tickRaw} every ${WALLS.fire.tickEvery} f), burns away ${WALLS.fire.hp} enemy shots; lays FIRE. Raised on his Ice Wall = a STEAM BURST (${WALL_STEAM.raw}, launches). 4 s cooldown.` },
     { name: 'Scorch Sweep', input: '↓↙← + Heavy', cost: '20 hot', desc: `Raw ${r(S.scorch)} energy arc + a FIRE patch ahead.` },
     { name: 'Steam Burst', input: '↓↘→ + Special (water unlocked)', cost: '20 away from 0', desc: `Close range raw ${r(S.steamBurst)} energy + a STEAM cloud. Needs the balance zone AND one of his WATER patches.` },
     { name: 'Tide Break', input: '→→ + Heavy (balance)', cost: '25 away from 0', desc: 'Every one of his patches turns to WATER, each one bursting (30) under anyone standing in it. 6 s cooldown.' },

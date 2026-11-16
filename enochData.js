@@ -50,11 +50,26 @@ export const ENOCH_SPECIALS = {
   condense:   sp(40, 12, 2, 18, -4, { el: 'water', th: 15, away: true, damageType: 'projectile', noBody: true, releaseAt: 12, strip: 'atkCondense' }),   // ↓↓+H
   slide:      n(55, 6, 10, 14, -6, { hitLevel: 'low', travel: [6, 16, 9], hitstun: 18, knockbackX: 5, box: [0, 70, 30, 30], strip: 'atkSlide' }),   // Down+Heavy / Light in a glide
   wake:       n(70, 6, 4, 22, -12, { category: 'heavy', invuln: 6, hitstun: 22, knockbackX: 6, knockbackY: -6, box: [0, 90, 100, 80], strip: 'atkWake' }),   // attack on wake-up
+  iceWall:    sp(0, 12, 1, 16, 0, { el: 'ice', th: -15, noBody: true, releaseAt: 12, cooldown: 240, strip: 'atkFloor' }),          // →↓↘+S (623) · Back+Heavy (not hot)
+  fireWall:   sp(0, 12, 1, 18, 0, { el: 'fire', th: 15, noBody: true, releaseAt: 12, cooldown: 240, strip: 'atkFloor_fire' }),    // 623+H · Back+Heavy (hot)
   super:      sp(0, 10, 2, 30, 0, { noBody: true, isUltimate: true, cost: 100, releaseAt: 10, range: 460, strip: 'atkSuper' }),                // ↓↘→↓↘→+S
 }
 export const ICE_BLAST = { speed: 11, life: 64, w: 40, h: 22, handX: 30, handY: 62, pool: 3, hitstun: 18, kbx: 4, kby: -2, aimTan: 0.577 }   // aimTan = tan 30°: the steepest it angles up at an airborne foe   // 11 px/f × 64 f ≈ 55 % of the screen
 export const FROST_FLOOR = { ahead: 110 }
 export const HEAT_LENS = { len: 1280, holdMax: 72, tickEvery: 6, tickRaw: 7, hotPerSec: 10, angleMax: Math.PI / 6, angleStep: Math.PI / 90, hitstun: 14, holdHitstun: 8, wetMul: 1.25 }
+// the visor laser runs on the Homelander / Superman LASER GAUGE driver (beam.js): Homelander's numbers (max = holdMax 72 frames
+// of beam, drain 1, refill 0.5 / frame, 1 s re-fire cooldown, 2.5 s overheat lockout, 12-frame minimum burst, lock-on, Up / Down
+// sweep ±0.62 rad). Damage stays Enoch's (7 raw every 6 held frames → ≤ 84 raw per full gauge).
+export const LASER = { max: 72, drain: 1, refill: 0.5, cooldown: 60, overheat: 150, minBurst: 12, sweep: 0.026, sweepCap: 0.62 }
+// WALLS (one at a time, either element; Frozone's Ice Wall is the model). ICE WALL: solid crystal — blocks bodies, eats 3
+// enemy projectiles, erupting under a grounded foe = one launching hit; lays an ICE patch at its foot. FIRE WALL: a flame
+// column — not solid, burns anyone inside (8 raw every 15 frames, chip on block), burns away up to 3 enemy projectiles; lays a
+// FIRE patch at its foot. A wall of the other element raised on top of the first = a STEAM BURST (the fire+ice reaction).
+export const WALLS = {
+  ice:  { ahead: 96, w: 30, h: 128, rise: 8, life: 170, hp: 3, raw: 60, hitstun: 26, kbx: 2, kby: -12, patch: 70 },
+  fire: { ahead: 110, w: 44, h: 140, rise: 8, life: 150, hp: 3, tickEvery: 15, tickRaw: 8, hitstun: 10, patch: 80 },
+}
+export const WALL_STEAM = { raw: 45, w: 120, h: 150 }
 export const SCORCH = { ahead: 120 }
 export const CONDENSE = { speed: 4, life: 150, w: 34, h: 34, handY: 70, steamRaw: 70, hailRaw: 60, hailSpeed: 9 }
 export const TIDE = { burstRaw: 30 }

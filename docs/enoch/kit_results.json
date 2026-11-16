@@ -310,11 +310,11 @@
    "dist": 865.7654273880499
   },
   "beam": {
-   "frames": 72,
+   "frames": 73,
    "ticks": 12,
    "floorHits": 12,
    "fire": 3,
-   "dth": 11.55
+   "dth": 11.56
   },
   "tide": {
    "types": [

@@ -74,6 +74,8 @@
   "condense": -4,
   "slide": -6,
   "wake": -12,
+  "iceWall": 0,
+  "fireWall": 0,
   "super": 0
  }
 }

@@ -1,15 +1,18 @@
 // ENOCH (enoch) — COMMAND LAYER. Press edges + motion flags come from tickEnoch (readRawControls), so keyboard, pad, replay
 // and LAN feed the same reader. Returns 'consumed' | 'grab' (game.js passes only the grab to updateCombat → the SHARED grab
 // / throw / tech rules). Charge (L2) is HIS glide button: the shared energy charge is gated off for him in game.js.
-// Motions (Elastigirl's parser, facing-relative numpad): 236236 super · 236 · 214 · 22 · 656 (= forward double-tap).
+// Motions (Elastigirl's parser, facing-relative numpad): 236236 super · 623 · 236 · 214 · 22 · 656 (= forward double-tap).
 // Precedence: stun / cinematic → guard-cancel → wake-up reversal → glide controls → committed special → chains & cancels →
 //   Super → Special → Heavy → Up-Attack → Light → Charge (glide / disc).
 // SPECIAL:  236 = Ice Blast (Steam Burst while water is unlocked: balance zone + one of his WATER patches on screen)
-//           22 = Frost Floor · 214 = Deep Freeze · 656 = Heat Lens · direction shortcuts for pads: neutral = Ice Blast,
+//           623 = ICE WALL · 22 = Frost Floor · 214 = Deep Freeze · 656 = Heat Lens · pad shortcuts: neutral = Ice Blast,
 //           Forward = Heat Lens, Down = Frost Floor, Back = Deep Freeze.
 // LIGHT:    Jab (Forward + Light = Straight; Down + Light = low sweep); a clean Heat Lens links into Light.
 // GLIDE:    a motion + Special / Heavy fires that special out of the glide (+10 %); plain Special / Heavy switch ice / fire.
-// HEAVY:    236 = Heat Lens · 214 = Scorch Sweep · 22 = Condense · 656 = Tide Break · Down = Slide · else the frost palm.
+// HEAVY:    623 = FIRE WALL · 236 = Heat Lens · 214 = Scorch Sweep · 22 = Condense · 656 = Tide Break · Down = Slide ·
+//           Back = a wall of his zone (hot → Fire Wall, else Ice Wall) · else the frost palm.
+// HEAT LENS: the Homelander / Superman laser gauge (beam.js): tap = a 12-frame burst, hold Special = sustained, locks on;
+//           hold Up / Down to sweep by hand. Release → 1 s cooldown; running the gauge dry → 2.5 s overheat.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
 import { isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, startGlide, switchGlide, startRamp, waterUnlocked, zoneOf, check, pushThermal } from './enochState.js'
 import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL } from './enochData.js'
@@ -22,11 +25,12 @@ const upHeavy = s => fresh(s, 'heavy') && s.edges.heavy.tick === s.edges.upAttac
 const COMMITTED = new Set(['iceDisc', 'tideBreak', 'super', 'wake'])
 export const LINK_TO_NORMAL = ['heatLens']
 export const SPECIAL_FROM = ['jab', 'straight', 'heavy', 'low', 'rise', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst']
-export const SUPER_FROM = ['jab', 'straight', 'heavy', 'low', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst', 'tideBreak', 'iceBlast', 'heatLens', 'condense']
+export const SUPER_FROM = ['jab', 'straight', 'heavy', 'low', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst', 'tideBreak', 'iceBlast', 'heatLens', 'condense', 'iceWall', 'fireWall']
 
 export function specialKey(f, e) {
   const m = e.m || {}
   if (m.super) return 'super'
+  if (m.dp) return 'iceWall'
   if (m.qcb) return 'deepFreeze'
   if (m.qcf) return (waterUnlocked(f) && enState(f).field.patches.some(p => p.type === 'water')) ? 'steamBurst' : 'iceBlast'
   if (m.dd) return 'frostFloor'
@@ -38,11 +42,13 @@ export function specialKey(f, e) {
 }
 export function heavyKey(f, e) {
   const m = e.m || {}
+  if (m.dp) return 'fireWall'
   if (m.qcf) return 'heatLens'
   if (m.qcb) return 'scorch'
   if (m.dd) return 'condense'
   if (m.ff) return 'tideBreak'
   if (e.down) return 'slide'
+  if (e.back) return zoneOf(f) === 'hot' ? 'fireWall' : 'iceWall'
   return 'heavy'
 }
 const glideType = f => (zoneOf(f) === 'hot' || !check(f, 'ice').ok) ? 'fire' : 'ice'
@@ -64,7 +70,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
     if (fresh(s, 'up', 4) || fresh(s, 'jump', 4)) { use(s, 'up'); use(s, 'jump'); startRamp(f, s); return 'consumed' }
     if (fresh(s, 'light')) { use(s, 'light'); fire('slide', { bonus: GLIDE.atkBonus }); return 'consumed' }
     // a MOTION special / heavy fires out of the glide (+10 %); a plain Special / Heavy switches the glide's element
-    const mo = e => e && e.m && (e.m.super || e.m.qcf || e.m.qcb || e.m.dd || e.m.ff)
+    const mo = e => e && e.m && (e.m.super || e.m.dp || e.m.qcf || e.m.qcb || e.m.dd || e.m.ff)
     if (fresh(s, 'special') && mo(s.edges.special)) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (k !== 'super' || (f.energy || 0) >= 100) fire(k, { bonus: GLIDE.atkBonus }); return 'consumed' }
     if (fresh(s, 'heavy') && mo(s.edges.heavy)) { const k = heavyKey(f, s.edges.heavy); use(s, 'heavy'); fire(k, { bonus: GLIDE.atkBonus }); return 'consumed' }
     if (fresh(s, 'special')) { use(s, 'special'); switchGlide(f, s, 'ice'); return 'consumed' }

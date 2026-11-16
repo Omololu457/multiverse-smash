@@ -8,7 +8,7 @@
     {
      "frame": 5,
      "dmg": 24,
-     "ds": "clean=1 blocked=0 rejects=0 spawns=0 glides=0 iceGlide=0 fireGlide=0 switches=0 ramps=0 rampLand=0 discs=0 discMelt=0 discBreak=0 bursts=0 burstHits=0 steam=0 refreeze=0 overloads=0 beams=0 beamHits=0 beamTicks=0 beamFloor=0 wetHits=0 freezes=0 tides=0 tideBursts=0 orbs=0 orbSteam=0 orbHail=0 guardCancels=0 wakes=0 supers=0 superDone=0 superWhiff=0 superBlocked=0 patchDmg=0 sanjiMelt=0 arlongDouse=0 meter=4",
+     "ds": "clean=1 blocked=0 rejects=0 spawns=0 glides=0 iceGlide=0 fireGlide=0 switches=0 ramps=0 rampLand=0 discs=0 discMelt=0 discBreak=0 bursts=0 burstHits=0 steam=0 refreeze=0 overloads=0 beams=0 beamHits=0 beamTicks=0 beamFloor=0 wetHits=0 freezes=0 tides=0 tideBursts=0 orbs=0 orbSteam=0 orbHail=0 guardCancels=0 wakes=0 supers=0 superDone=0 superWhiff=0 superBlocked=0 patchDmg=0 sanjiMelt=0 arlongDouse=0 meter=4 walls=0 iceWalls=0 fireWalls=0 wallLaunch=0 wallBlocks=0 wallBurns=0 wallSteam=0 laserOverheat=0",
      "air": false,
      "pt": "",
      "by": "jab"
@@ -123,7 +123,15 @@
     "patchDmg": 0,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 24.5
+    "meter": 24.5,
+    "walls": 0,
+    "iceWalls": 0,
+    "fireWalls": 0,
+    "wallLaunch": 0,
+    "wallBlocks": 0,
+    "wallBurns": 0,
+    "wallSteam": 0,
+    "laserOverheat": 0
    },
    "thermal": -11.60001
   },
@@ -248,7 +256,15 @@
     "patchDmg": 0,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 28.8
+    "meter": 28.8,
+    "walls": 0,
+    "iceWalls": 0,
+    "fireWalls": 0,
+    "wallLaunch": 0,
+    "wallBlocks": 0,
+    "wallBurns": 0,
+    "wallSteam": 0,
+    "laserOverheat": 0
    },
    "thermal": -2.60001
   },
@@ -345,7 +361,15 @@
     "patchDmg": 0,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 13.85
+    "meter": 13.85,
+    "walls": 0,
+    "iceWalls": 0,
+    "fireWalls": 0,
+    "wallLaunch": 0,
+    "wallBlocks": 0,
+    "wallBurns": 0,
+    "wallSteam": 0,
+    "laserOverheat": 0
    },
    "thermal": -23.50001
   },
@@ -452,7 +476,15 @@
     "patchDmg": 4,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 12.4
+    "meter": 12.4,
+    "walls": 0,
+    "iceWalls": 0,
+    "fireWalls": 0,
+    "wallLaunch": 0,
+    "wallBlocks": 0,
+    "wallBurns": 0,
+    "wallSteam": 0,
+    "laserOverheat": 0
    },
    "thermal": -26.60001
   },
@@ -565,7 +597,15 @@
     "patchDmg": 2,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 3.2
+    "meter": 3.2,
+    "walls": 0,
+    "iceWalls": 0,
+    "fireWalls": 0,
+    "wallLaunch": 0,
+    "wallBlocks": 0,
+    "wallBurns": 0,
+    "wallSteam": 0,
+    "laserOverheat": 0
    },
    "thermal": 0
   }

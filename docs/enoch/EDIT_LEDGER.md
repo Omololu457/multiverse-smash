@@ -103,10 +103,10 @@ suit has two tones, so a two-step mapping keeps every shading step without inven
 
 ## Frame use (every frame is used)
 
-- `idle:0` → idle, introSettle, win
-- `idle:1` → idle, win
-- `idle:2` → idle, win
-- `idle:3` → idle, win
+- `idle:0` → idle, introSettle
+- `idle:1` → idle
+- `idle:2` → idle
+- `idle:3` → idle
 - `idle:4` → idle
 - `idle:5` → idle
 - `idle:6` → idle
@@ -119,42 +119,42 @@ suit has two tones, so a two-step mapping keeps every shading step without inven
 - `skate:5` → run, walk, walk_back
 - `skate:6` → run, walk, walk_back
 - `skate:7` → run, walk, walk_back
-- `cast:0` → atkLow, crouch
-- `cast:1` → atkLow, guard
-- `cast:2` → atkLow
+- `cast:0` → atkFloor, atkLow, atkRise, atkSteam, atkWake, crouch
+- `cast:1` → atkLow, discPlant, guard
+- `cast:2` → atkAir, atkLow
 - `ice:0` → atkSlide, dash
 - `ice:1` → atkSlide, dash
 - `ice:2` → atkSlide, dash, land
-- `ice:3` → doubleJump, jump, ramp
-- `ice:4` → doubleJump, ramp
+- `ice:3` → jump, ramp
+- `ice:4` → atkAir, doubleJump, jump, ramp
 - `ice:5` → fall, ramp
+- `react:3` → atkAir, doubleJump, hurt, hurt_air
 - `ice:6` → discPlant
 - `ice:7` → glide, intro
 - `ice:8` → glide, intro
 - `ice:9` → glide, intro
 - `ice:10` → glide, intro, standDisc, winDisc
 - `ice:11` → glideTurn, intro
-- `react:0` → hurt
-- `react:3` → atkAir, hurt, hurt_air
-- `react:2` → atkAir, getup
-- `react:1` → knockdown
+- `react:1` → getup, hurt, lose
+- `react:0` → knockdown
+- `react:2` → knockdown
+- `down:0` → knockdown
 - `down:1` → knockdown, lose
-- `gesture:0` → atkHeavy, getup
-- `down:0` → lose
-- `down:2` → lose
-- `sweep:0` → atkJab
-- `sweep:1` → atkStraight, atkWake
-- `sweep:2` → atkStraight
-- `sweep:3` → atkFloor
-- `sweep:4` → atkFloor
-- `sweep:5` → atkCone, atkSteam
-- `gesture:1` → atkHeavy
-- `gesture:2` → atkRise
-- `gesture:3` → atkCondense, taunt
-- `gesture:4` → atkCondense, atkLens, taunt
-- `gesture:5` → atkLens, atkSuper
-- `gesture:6` → atkScorch
-- `gesture:7` → atkSuper, atkTide
+- `down:2` → getup, lose
+- `gesture:0` → atkJab, atkLens, getup
+- `gesture:1` → atkJab, atkStraight
+- `gesture:5` → atkCondense, atkJab, atkLens, atkSuper, taunt
+- `gesture:7` → atkBlast, atkCondense, atkCone, atkFloor, atkHeavy, atkJab, atkLens, atkRise, atkScorch, atkStraight, atkSuper, atkTide, atkWake, win
+- `sweep:0` → atkBlast, atkStraight
+- `sweep:5` → atkBlast, atkScorch, atkSteam, atkStraight, atkWake
+- `gesture:2` → atkCone, atkHeavy, atkRise
+- `gesture:3` → atkBlast, atkCondense, atkCone, atkHeavy, atkSuper, atkTide, taunt, win
+- `sweep:1` → atkCone, atkHeavy, atkSteam, atkTide, atkWake
+- `sweep:4` → atkFloor, atkHeavy, atkTide
+- `gesture:4` → atkCondense, atkLens, atkRise, atkScorch, atkSuper, atkTide, taunt, win
+- `sweep:2` → atkBlast, atkSteam
+- `sweep:3` → atkCone, atkFloor, atkScorch
+- `gesture:6` → atkScorch, atkSuper
 - `ice:12` → introSettle
 - `portrait:0` → portrait (recoloured bust)
 

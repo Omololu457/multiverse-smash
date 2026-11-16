@@ -1834,20 +1834,16 @@
  "used": {
   "idle:0": [
    "idle",
-   "win",
    "introSettle"
   ],
   "idle:1": [
-   "idle",
-   "win"
+   "idle"
   ],
   "idle:2": [
-   "idle",
-   "win"
+   "idle"
   ],
   "idle:3": [
-   "idle",
-   "win"
+   "idle"
   ],
   "idle:4": [
    "idle"
@@ -1903,14 +1899,20 @@
   ],
   "cast:0": [
    "crouch",
-   "atkLow"
+   "atkLow",
+   "atkRise",
+   "atkFloor",
+   "atkSteam",
+   "atkWake"
   ],
   "cast:1": [
    "guard",
-   "atkLow"
+   "atkLow",
+   "discPlant"
   ],
   "cast:2": [
-   "atkLow"
+   "atkLow",
+   "atkAir"
   ],
   "ice:0": [
    "dash",
@@ -1927,16 +1929,23 @@
   ],
   "ice:3": [
    "ramp",
-   "jump",
-   "doubleJump"
+   "jump"
   ],
   "ice:4": [
    "ramp",
-   "doubleJump"
+   "jump",
+   "doubleJump",
+   "atkAir"
   ],
   "ice:5": [
    "ramp",
    "fall"
+  ],
+  "react:3": [
+   "doubleJump",
+   "hurt",
+   "hurt_air",
+   "atkAir"
   ],
   "ice:6": [
    "discPlant"
@@ -1963,79 +1972,121 @@
    "glideTurn",
    "intro"
   ],
-  "react:0": [
-   "hurt"
-  ],
-  "react:3": [
+  "react:1": [
    "hurt",
-   "hurt_air",
-   "atkAir"
+   "getup",
+   "lose"
+  ],
+  "react:0": [
+   "knockdown"
   ],
   "react:2": [
-   "atkAir",
-   "getup"
+   "knockdown"
   ],
-  "react:1": [
+  "down:0": [
    "knockdown"
   ],
   "down:1": [
    "knockdown",
    "lose"
   ],
+  "down:2": [
+   "getup",
+   "lose"
+  ],
   "gesture:0": [
    "getup",
-   "atkHeavy"
-  ],
-  "down:0": [
-   "lose"
-  ],
-  "down:2": [
-   "lose"
-  ],
-  "sweep:0": [
-   "atkJab"
-  ],
-  "sweep:1": [
-   "atkStraight",
-   "atkWake"
-  ],
-  "sweep:2": [
-   "atkStraight"
-  ],
-  "sweep:3": [
-   "atkFloor"
-  ],
-  "sweep:4": [
-   "atkFloor"
-  ],
-  "sweep:5": [
-   "atkCone",
-   "atkSteam"
+   "atkJab",
+   "atkLens"
   ],
   "gesture:1": [
-   "atkHeavy"
-  ],
-  "gesture:2": [
-   "atkRise"
-  ],
-  "gesture:3": [
-   "atkCondense",
-   "taunt"
-  ],
-  "gesture:4": [
-   "atkCondense",
-   "atkLens",
-   "taunt"
+   "atkJab",
+   "atkStraight"
   ],
   "gesture:5": [
+   "atkJab",
    "atkLens",
-   "atkSuper"
-  ],
-  "gesture:6": [
-   "atkScorch"
+   "atkCondense",
+   "atkSuper",
+   "taunt"
   ],
   "gesture:7": [
+   "atkJab",
+   "atkStraight",
+   "atkHeavy",
+   "atkRise",
+   "atkBlast",
+   "atkFloor",
+   "atkCone",
+   "atkLens",
+   "atkScorch",
    "atkTide",
+   "atkCondense",
+   "atkWake",
+   "atkSuper",
+   "win"
+  ],
+  "sweep:0": [
+   "atkStraight",
+   "atkBlast"
+  ],
+  "sweep:5": [
+   "atkStraight",
+   "atkBlast",
+   "atkScorch",
+   "atkSteam",
+   "atkWake"
+  ],
+  "gesture:2": [
+   "atkHeavy",
+   "atkRise",
+   "atkCone"
+  ],
+  "gesture:3": [
+   "atkHeavy",
+   "atkBlast",
+   "atkCone",
+   "atkTide",
+   "atkCondense",
+   "atkSuper",
+   "taunt",
+   "win"
+  ],
+  "sweep:1": [
+   "atkHeavy",
+   "atkCone",
+   "atkSteam",
+   "atkTide",
+   "atkWake"
+  ],
+  "sweep:4": [
+   "atkHeavy",
+   "atkFloor",
+   "atkTide"
+  ],
+  "gesture:4": [
+   "atkRise",
+   "atkLens",
+   "atkScorch",
+   "atkTide",
+   "atkCondense",
+   "atkSuper",
+   "taunt",
+   "taunt",
+   "win",
+   "win"
+  ],
+  "sweep:2": [
+   "atkBlast",
+   "atkSteam"
+  ],
+  "sweep:3": [
+   "atkFloor",
+   "atkCone",
+   "atkScorch"
+  ],
+  "gesture:6": [
+   "atkScorch",
    "atkSuper"
   ],
   "ice:12": [

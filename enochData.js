@@ -39,14 +39,14 @@ export const HEAVY_FROM = ['jab', 'straight', 'low']
 // `away` = pushed AWAY from 0 (water moves). Damage is the brief's raw value; the own-zone ×1.15 applies on top.)
 const sp = (raw, startup, active, recovery, adv, extra = {}) => n(raw, startup, active, recovery, adv, { category: 'special', isSpecial: true, ...extra })
 export const ENOCH_SPECIALS = {
-  iceBlast:   sp(55, 12, 2, 18, -6, { el: 'ice', th: -12, damageType: 'projectile', noBody: true, releaseAt: 11, strip: 'atkStraight' }),   // ↓↘→+S
+  iceBlast:   sp(55, 12, 2, 18, -6, { el: 'ice', th: -12, damageType: 'projectile', noBody: true, releaseAt: 11, strip: 'atkBlast' }),   // ↓↘→+S
   frostFloor: sp(35, 12, 4, 20, -8, { el: 'ice', th: -15, hitLevel: 'low', knockbackY: 0, noBody: true, releaseAt: 12, strip: 'atkFloor' }),   // ONE hit: the eruption volume (no melee box)   // ↓↓+S
   deepFreeze: sp(40, 14, 4, 24, -10, { el: 'ice', th: -22, hitstun: 22, box: [0, 110, 96, 70], freeze: 42, cooldown: 480, strip: 'atkCone' }),      // ↓↙←+S · 0.7 s freeze
   iceDisc:    sp(0, 10, 1, 14, 0, { el: 'ice', th: -18, noBody: true, releaseAt: 9, strip: 'discPlant' }),                                       // ↓+Charge
   heatLens:   sp(58, 10, 2, 14, -6, { el: 'fire', th: 12, damageType: 'energy', noBody: true, releaseAt: 10, strip: 'atkLens' }),              // →→+S / ↓↘→+H
-  scorch:     sp(50, 14, 5, 20, -8, { el: 'fire', th: 20, damageType: 'energy', box: [-10, 150, 110, 90], releaseAt: 15, strip: 'atkScorch' }), // ↓↙←+H
-  steamBurst: sp(85, 9, 5, 22, -10, { el: 'water', th: 20, away: true, damageType: 'energy', box: [-30, 90, 120, 120], knockbackX: 7, knockbackY: -8, hitstun: 26, strip: 'atkSteam' }),   // ↓↘→+S (water unlocked)
-  tideBreak:  sp(0, 16, 1, 22, 0, { el: 'water', th: 25, away: true, noBody: true, releaseAt: 16, cooldown: 360, strip: 'atkTide' }),        // →→+H
+  scorch:     sp(50, 14, 5, 20, -8, { el: 'fire', th: 20, damageType: 'energy', box: [-10, 150, 110, 90], releaseAt: 15, strip: 'atkScorch_fire' }), // ↓↙←+H
+  steamBurst: sp(85, 9, 5, 22, -10, { el: 'water', th: 20, away: true, damageType: 'energy', box: [-30, 90, 120, 120], knockbackX: 7, knockbackY: -8, hitstun: 26, strip: 'atkSteam_water' }),   // ↓↘→+S (water unlocked)
+  tideBreak:  sp(0, 16, 1, 22, 0, { el: 'water', th: 25, away: true, noBody: true, releaseAt: 16, cooldown: 360, strip: 'atkTide_water' }),        // →→+H
   condense:   sp(40, 12, 2, 18, -4, { el: 'water', th: 15, away: true, damageType: 'projectile', noBody: true, releaseAt: 12, strip: 'atkCondense' }),   // ↓↓+H
   slide:      n(55, 6, 10, 14, -6, { hitLevel: 'low', travel: [6, 16, 9], hitstun: 18, knockbackX: 5, box: [0, 70, 30, 30], strip: 'atkSlide' }),   // Down+Heavy / Light in a glide
   wake:       n(70, 6, 4, 22, -12, { category: 'heavy', invuln: 6, hitstun: 22, knockbackX: 6, knockbackY: -6, box: [0, 90, 100, 80], strip: 'atkWake' }),   // attack on wake-up
@@ -71,12 +71,19 @@ export const SUPERS = {
 export const SUPER_LOCK = 180                              // the thermal meter is locked for 3 s after a super
 export const ALL_MOVES = { ...ENOCH_MOVES, ...ENOCH_SPECIALS }
 
-// frame timelines (elapsed tick → strip frame)
-export const TIMELINE = {
-  jab: [[0, 0]], straight: [[0, 0], [7, 1]], heavy: [[0, 0], [11, 1]], low: [[0, 0], [5, 1], [10, 2]], rise: [[0, 0]], air: [[0, 0], [5, 1]],
-  iceBlast: [[0, 0], [10, 1]], frostFloor: [[0, 0], [11, 1]], heatLens: [[0, 0], [9, 1]], condense: [[0, 0], [11, 1]], super: [[0, 0], [9, 1]],
-  slide: [[0, 0], [3, 1], [8, 2]],
+// frame timelines (elapsed tick → strip frame), generated from each move's own frame data: the wind-up frames spread over
+// the startup, the strip's HIT frame (tools/enoch/build_sprites.py HIT) lands on the active / release frame, and the rest
+// spread over the recovery. Every attack plays its whole strip.
+export function timeline(m, a) {
+  const N = a?.frames || 1, H = Math.min(a?.hit ?? Math.min(1, N - 1), N - 1)
+  const S = Math.max(1, m.releaseAt ?? m.startup), E = S + Math.max(1, m.active || 1), T = E + Math.max(1, m.recovery || 1)
+  const tl = []
+  for (let i = 0; i < H; i++) tl.push([Math.floor(i * (S - 1) / H), i])
+  tl.push([S - 1, H])
+  for (let j = H + 1; j < N; j++) tl.push([E + Math.floor((j - H - 1) * (T - E) / (N - H)), j])
+  return tl.filter((e, k) => k === 0 || e[0] > tl[k - 1][0])
 }
+export const TIMELINE = Object.fromEntries(Object.entries(ALL_MOVES).map(([k, m]) => [k, timeline(m, ENOCH_ANIM[m.strip])]))
 
 export const enoch = {
   rosterKey: 'enoch', name: 'Enoch', displayName: 'Enoch', universe: 'the_incredibles',

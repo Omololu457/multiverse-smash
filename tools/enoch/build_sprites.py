@@ -149,35 +149,50 @@ def trim_hair(rgba_list, reg, axis):
   return E, Fi
 
 # ── STRIPS: every frame of the sheet is used (asserted). (band, index) per strip; R1..R8 = the brief's rows. ──
+# Attacks are full wind-up → HIT → recovery animations (HIT = the strip index shown on the move's active / release frame;
+# enochData.timeline spreads the other frames over startup and recovery from each move's own frame data).
+bI, bS, bC, bG, bX, bD, bK = 'ice', 'sweep', 'cast', 'gesture', 'react', 'down', 'skate'   # band names (b-prefixed: W_ etc. are colour constants above)
 STRIPS = {
   'idle': [('idle', i) for i in range(8)],                                  # R1
-  'walk': [('skate', i) for i in range(8)], 'walk_back': [('skate', i) for i in (7, 6, 5, 4, 3, 2, 1, 0)],
-  'run': [('skate', i) for i in range(8)],                                  # R2
-  'crouch': [('cast', 0)], 'guard': [('cast', 1)],
-  'atkLow': [('cast', 0), ('cast', 1), ('cast', 2)],                        # R3 low sweep
-  'dash': [('ice', 0), ('ice', 1), ('ice', 2)],                             # R4 slide over the ramp streaks
-  'atkSlide': [('ice', 0), ('ice', 1), ('ice', 2)],
-  'ramp': [('ice', 3), ('ice', 4), ('ice', 5)],                             # R4 standing on the ramp → launch
-  'jump': [('ice', 3)], 'doubleJump': [('ice', 3), ('ice', 4)], 'fall': [('ice', 5)], 'land': [('ice', 2)],
-  'discPlant': [('ice', 6)],                                                # R4 white circular burst
-  'glide': [('ice', 7), ('ice', 8), ('ice', 9), ('ice', 10)],               # R4 riding the discs
-  'glideTurn': [('ice', 11)], 'standDisc': [('ice', 10)],
-  'hurt': [('react', 0), ('react', 3)], 'hurt_air': [('react', 3)],          # R5
-  'atkAir': [('react', 2), ('react', 3)],                                   # R5 jump / tumble frames → air strike
-  'knockdown': [('react', 1), ('down', 1)], 'getup': [('react', 2), ('gesture', 0)],
-  'lose': [('down', 0), ('down', 1), ('down', 2)],                          # R6
-  'atkJab': [('sweep', 0)], 'atkStraight': [('sweep', 1), ('sweep', 2)],    # R7 fr1 / fr2-3
-  'atkFloor': [('sweep', 3), ('sweep', 4)], 'atkCone': [('sweep', 5)], 'atkWake': [('sweep', 1)],
-  'atkHeavy': [('gesture', 0), ('gesture', 1)], 'atkRise': [('gesture', 2)],  # R8 fr1-2 / fr3
-  'atkCondense': [('gesture', 3), ('gesture', 4)], 'atkLens': [('gesture', 4), ('gesture', 5)],
-  'atkScorch': [('gesture', 6)], 'atkTide': [('gesture', 7)], 'taunt': [('gesture', 3), ('gesture', 4)],
-  'atkSteam': [('sweep', 5)], 'atkSuper': [('gesture', 7), ('gesture', 5)],
-  'win': [('idle', 0), ('idle', 1), ('idle', 2), ('idle', 3)], 'winDisc': [('ice', 10)],
-  'intro': [('ice', 7), ('ice', 8), ('ice', 9), ('ice', 10), ('ice', 11)], 'introSettle': [('ice', 12), ('idle', 0)],
+  'walk': [(bK, i) for i in range(8)], 'walk_back': [(bK, i) for i in (7, 6, 5, 4, 3, 2, 1, 0)],
+  'run': [(bK, i) for i in range(8)],                                       # R2
+  'crouch': [(bC, 0)], 'guard': [(bC, 1)],
+  'atkLow': [(bC, 0), (bC, 1), (bC, 2)],                                    # R3 low sweep
+  'dash': [(bI, 0), (bI, 1), (bI, 2)],                                         # R4 slide over the ramp streaks
+  'atkSlide': [(bI, 0), (bI, 1), (bI, 2)],
+  'ramp': [(bI, 3), (bI, 4), (bI, 5)],                                         # R4 standing on the ramp → launch
+  'jump': [(bI, 3), (bI, 4)], 'doubleJump': [(bX, 3), (bI, 4)], 'fall': [(bI, 5)], 'land': [(bI, 2)],
+  'discPlant': [(bC, 1), (bI, 6)],                                           # R4 white circular burst
+  'glide': [(bI, 7), (bI, 8), (bI, 9), (bI, 10)],                               # R4 riding the discs
+  'glideTurn': [(bI, 11)], 'standDisc': [(bI, 10)],
+  'hurt': [(bX, 3), (bX, 1)], 'hurt_air': [(bX, 3)],                        # R5
+  'atkAir': [(bI, 4), (bC, 2), (bX, 3)],                                     # jump → crouched strike → tumble
+  'knockdown': [(bX, 0), (bX, 2), (bD, 0), (bD, 1)], 'getup': [(bD, 2), (bX, 1), (bG, 0)],
+  'lose': [(bX, 1), (bD, 1), (bD, 2)],                                      # R6
+  'atkJab': [(bG, 0), (bG, 1), (bG, 5), (bG, 7)],                           # R8 wind-up → punch → recover
+  'atkStraight': [(bG, 1), (bS, 0), (bS, 5), (bG, 7)],                      # R7 lunge
+  'atkHeavy': [(bG, 2), (bG, 3), (bS, 1), (bS, 4), (bG, 7)],                # frost palm: big ice burst
+  'atkRise': [(bC, 0), (bG, 2), (bG, 4), (bG, 7)],                          # crouch → rising palm
+  'atkBlast': [(bG, 3), (bS, 0), (bS, 2), (bS, 5), (bG, 7)],                # Ice Blast: lunge, spark at the hand
+  'atkFloor': [(bC, 0), (bS, 3), (bS, 4), (bG, 7)],                         # Frost Floor: burst at the floor
+  'atkCone': [(bG, 2), (bG, 3), (bS, 1), (bS, 3), (bG, 7)],                 # Deep Freeze
+  'atkLens': [(bG, 0), (bG, 4), (bG, 5), (bG, 7)],                          # hand to the visor → fire → point
+  'atkScorch': [(bG, 4), (bG, 6), (bS, 3), (bS, 5), (bG, 7)],               # (fire copy) sweeping burn
+  'atkSteam': [(bC, 0), (bS, 1), (bS, 2), (bS, 5)],                         # (water copy)
+  'atkTide': [(bG, 3), (bG, 4), (bS, 4), (bS, 1), (bG, 7)],                 # (water copy)
+  'atkCondense': [(bG, 3), (bG, 4), (bG, 5), (bG, 7)],
+  'atkWake': [(bC, 0), (bS, 1), (bS, 5), (bG, 7)],
+  'atkSuper': [(bG, 4), (bG, 3), (bG, 5), (bG, 6), (bG, 7)],
+  'taunt': [(bG, 3), (bG, 4), (bG, 5), (bG, 4)],
+  'win': [(bG, 4), (bG, 3), (bG, 4), (bG, 7)], 'winDisc': [(bI, 10)],
+  'intro': [(bI, 7), (bI, 8), (bI, 9), (bI, 10), (bI, 11)], 'introSettle': [(bI, 12), ('idle', 0)],
 }
-VARIANT_STRIPS = ['dash', 'atkSlide', 'ramp', 'discPlant', 'glide', 'glideTurn', 'standDisc', 'winDisc', 'intro', 'atkFloor', 'atkCone', 'atkSteam', 'atkStraight', 'atkWake']
+HIT = {'atkLow': 1, 'atkSlide': 1, 'atkAir': 1, 'atkJab': 2, 'atkStraight': 1, 'atkHeavy': 2, 'atkRise': 2, 'atkBlast': 2, 'atkFloor': 1,
+  'atkCone': 2, 'atkLens': 1, 'atkScorch': 2, 'atkSteam': 1, 'atkTide': 2, 'atkCondense': 2, 'atkWake': 1, 'atkSuper': 2, 'discPlant': 1}
+VARIANT_STRIPS = ['dash', 'atkSlide', 'ramp', 'discPlant', 'glide', 'glideTurn', 'standDisc', 'winDisc', 'intro', 'atkFloor', 'atkCone', 'atkSteam',
+  'atkStraight', 'atkWake', 'atkHeavy', 'atkBlast', 'atkScorch', 'atkTide']
 SPEED = {'idle': 9, 'walk': 6, 'walk_back': 6, 'run': 4, 'dash': 4, 'glide': 4, 'intro': 6, 'introSettle': 10, 'win': 14, 'taunt': 8,
-  'hurt': 6, 'knockdown': 10, 'getup': 10, 'lose': 12, 'ramp': 5}
+  'hurt': 6, 'knockdown': 8, 'getup': 8, 'lose': 12, 'ramp': 5, 'jump': 8, 'doubleJump': 6}
 LOOP = {'idle', 'walk', 'walk_back', 'run', 'dash', 'fall', 'taunt', 'glide', 'win'}
 
 def main():
@@ -221,7 +236,7 @@ def main():
       Image.fromarray(np.concatenate([place(k, var) for k in refs], axis=1), 'RGBA').save(OUT / f'{fn}.png')
       loop = name in LOOP
       anim[fn] = {'sheet': f'./assets/enoch/{fn}.png', 'frames': len(refs), 'width': CW, 'height': CH, 'originX': OX, 'originY': OY,
-        'anchorY': 0, 'loop': loop, 'lockLastFrame': not loop, 'speed': SPEED.get(name, 5), 'frameWidth': CW, 'frameHeight': CH}
+        'anchorY': 0, 'loop': loop, 'lockLastFrame': not loop, 'speed': SPEED.get(name, 5), 'frameWidth': CW, 'frameHeight': CH, **({'hit': HIT[name]} if name in HIT else {})}
     for k in refs: used.setdefault(f'{k[0]}:{k[1]}', []).append(name)
     lensTab[name] = [lensAt.get(k) for k in refs]
   # ── FX pieces: the ramp streaks / discs (disc-role greys) and the white bursts, each a separate file per variant

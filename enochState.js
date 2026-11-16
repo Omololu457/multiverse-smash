@@ -18,7 +18,8 @@
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
 import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
-import { ENOCH_LENS } from './enochSprites.js'
+import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
+const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
   tickField, patchesAt, applyPatchEffects, clearElementFlags, elWet, CALM_FRAMES } from './elements.js'
 import { marchBeam, beamFloorHit } from './beam.js'
@@ -235,7 +236,7 @@ function vol(f, s, W, kind, serial, cx, cy, w, h, P) {
 }
 function front(f, d) { return d === 1 ? f.x + f.w : f.x }
 // the visor lens in world space (the per-frame lens anchor exported by tools/enoch/build_sprites.py, × presentation scale)
-export function lensOrigin(f, strip = 'atkLens', frame = 1) {
+export function lensOrigin(f, strip = 'atkLens', frame = ENOCH_ANIM_HIT(strip)) {
   const L = (ENOCH_LENS[strip] || [])[frame] || (ENOCH_LENS.idle || [])[0] || [2.5, -53], k = f.spriteScale || 2, d = f.facing || 1
   return { x: ctrX(f) + d * L[0] * k, y: feetY(f) + L[1] * k }
 }

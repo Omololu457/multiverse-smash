@@ -53,6 +53,8 @@ export const ENOCH_SPECIALS = {
   wake:       n(70, 6, 4, 22, -12, { category: 'heavy', invuln: 6, hitstun: 22, knockbackX: 6, knockbackY: -6, box: [0, 90, 100, 80], strip: 'atkWake' }),   // attack on wake-up
   iceWall:    sp(0, 12, 1, 16, 0, { el: 'ice', th: -15, noBody: true, releaseAt: 12, cooldown: 240, strip: 'atkFloor' }),          // →↓↘+S (623) · Back+Heavy (not hot)
   fireWall:   sp(0, 12, 1, 18, 0, { el: 'fire', th: 15, noBody: true, releaseAt: 12, cooldown: 240, strip: 'atkFloor_fire' }),    // 623+H · Back+Heavy (hot)
+  meteor:     sp(70, 14, 2, 22, -4, { airOk: true, el: 'ice', th: -18, noBody: true, releaseAt: 14, cooldown: 300, strip: 'atkBlast' }),       // Up+S · hot: FIRE METEOR shower
+  snowman:    sp(0, 14, 1, 18, 0, { el: 'ice', th: -15, noBody: true, releaseAt: 14, cooldown: 300, strip: 'atkFloor' }),       // Back+Charge · an ice sculpture wall
   super:      sp(0, 10, 2, 30, 0, { noBody: true, isUltimate: true, cost: 100, releaseAt: 10, range: 460, strip: 'atkSuper' }),                // ↓↘→↓↘→+S
 }
 export const ICE_BLAST = { speed: 11, life: 64, w: 40, h: 22, handX: 30, handY: 62, pool: 3, hitstun: 18, kbx: 4, kby: -2, aimTan: 0.577 }   // aimTan = tan 30°: the steepest it angles up at an airborne foe   // 11 px/f × 64 f ≈ 55 % of the screen
@@ -67,8 +69,8 @@ export const LASER = { max: 72, drain: 1, refill: 0.5, cooldown: 60, overheat: 1
 // column — not solid, burns anyone inside (8 raw every 15 frames, chip on block), burns away up to 3 enemy projectiles; lays a
 // FIRE patch at its foot. A wall of the other element raised on top of the first = a STEAM BURST (the fire+ice reaction).
 export const WALLS = {
-  ice:  { ahead: 96, w: 30, h: 128, rise: 8, life: 170, hp: 3, raw: 60, hitstun: 26, kbx: 2, kby: -12, patch: 70 },
-  fire: { ahead: 110, w: 44, h: 140, rise: 8, life: 150, hp: 3, tickEvery: 15, tickRaw: 8, hitstun: 10, patch: 80 },
+  ice:  { ahead: 96, w: 30, h: 128, rise: 8, life: 480, hp: 3, raw: 60, hitstun: 26, kbx: 2, kby: -12, patch: 70 },
+  fire: { ahead: 110, w: 44, h: 140, rise: 8, life: 360, hp: 3, tickEvery: 15, tickRaw: 8, hitstun: 10, patch: 80 },
 }
 export const WALL_STEAM = { raw: 45, w: 120, h: 150 }
 // CHANNEL (hold Down + Charge = cool down, Up + Charge = heat up): rooted in place, the thermal meter moves `rate` / frame
@@ -82,7 +84,7 @@ export const CHANNEL = { rate: 0.75, to: 70 }
 // Stacks last `life` frames after the last hit, then fall by one every `decay` frames. THE COMBINATION: fire on a target with
 // ≥ comboAt chill = a STEAM SHOCK (shockRaw × chill, the chill is spent); ice on a target with ≥ comboAt burn = a QUENCH
 // (quenchRaw × burn, the burn is spent). His opponent's health bar glows red (burn) / blue (chill) by the stacks.
-export const STATUS = { max: 5, comboAt: 2, life: 240, decay: 60, burnEvery: 30, burnRaw: 3, slowPer: 0.12, boxFrames: 80, boxCd: 240,
+export const STATUS = { max: 5, comboAt: 2, life: 600, decay: 120, burnEvery: 30, burnRaw: 3, slowPer: 0.12, boxFrames: 120, boxCd: 240,
   shockRaw: 14, quenchRaw: 10, beamTick: 0.34, wallTick: 0.5, patchTick: 0.25, hit: 1 }
 // FIRE / ICE TWINS: outside the balance band his element follows his temperature (Down / Up + Charge to channel it):
 //   hot (≥ +25):  Ice Blast → FIRE SHARD (a fireball) · Frost Floor → FLAME FLOOR · his dash / slide leave FIRE
@@ -91,16 +93,29 @@ export const TWIN = { trailEvery: 3, trailW: 60 }
 // AIR SLIDE (jump, then double-tap): he pours a slab of his element under his feet and slides along it — ICE (an icicle slab)
 // or, when hot, FIRE (a flame streak). THE AIR CHAIN: during the slide or just after it, Jump = a HOP (even with no air jumps
 // left) that re-arms the slide — slide → hop → slide → hop … Each link gets harder: the hop is lower (× hopDecay), the slide
-// shorter (− shrink a link), and the hop window tighter (hopWindow − windowStep a link: 24, 20, 16, 12, 8, 4 frames), so 4-5
+// shorter (− shrink a link), and the hop window tighter (hopWindow − windowStep a link: 40, 34, 28, 22, 16, 10 frames), so 4-5
 // links are comfortable and the 6th (chainMax) is the last; landing resets the chain. A double-tap without a hop / jump in
 // between does nothing. Passing through the opponent = one hit (raw 40) that chills / burns. Down angles it down.
 export const AIR_SLIDE = { chainMax: 6, speed: 13, frames: 30, shrink: 0.1, minFrames: 14, drop: 1.2, steep: 6, raw: 40, hitstun: 18, kbx: 5, kby: -6,
-  life: 100, thermal: 6, carry: 0.6, maxRails: 6, hopVy: -14, hopDecay: 0.88, hopWindow: 24, windowStep: 4 }
+  life: 420, thermal: 6, carry: 0.6, maxRails: 6, hopVy: -14, hopDecay: 0.88, hopWindow: 40, windowStep: 6 }
 // FIRE CAGE: burn at STATUS.max traps the foe in a column of fire (held, burning) — the fire twin of the ICE BOX.
-export const CAGE = { frames: 70, every: 10, raw: 5, cd: 240 }
+export const CAGE = { frames: 120, every: 12, raw: 5, cd: 300 }
 export const SCORCH = { ahead: 120 }
 export const CONDENSE = { speed: 4, life: 150, w: 34, h: 34, handY: 70, steamRaw: 70, hailRaw: 60, hailSpeed: 9 }
 export const TIDE = { burstRaw: 30 }
+// METEORS (Up + Special): ICE = one boulder (the Iceman sheet) dropped on the foe's spot, shatters into chunks + an ICE patch;
+// hot = the FIRE METEOR shower: three comets (Luminous Arc's falling fire), staggered around the foe, each a FIRE patch.
+export const METEOR = { from: 520, vy0: 6, grav: 0.9, vx: 2.5,
+  ice:  { n: 1, raw: 70, radius: 70, hitstun: 30, kbx: 3, kby: -11, patch: 120, size: 120 },
+  fire: { n: 3, raw: 30, radius: 52, hitstun: 18, kbx: 3, kby: -6, patch: 90, size: 64, spread: 95, gap: 10 } }
+// SNOWMAN (Back + Charge): an ice sculpture ahead — a SOLID wall (bodies stop, it eats `hp` enemy shots) for `life` frames;
+// it melts (`melt` frames of sagging + dripping) into a WATER puddle; standing in / next to fire melts it `fireMelt`× faster.
+export const SNOWMAN = { ahead: 104, w: 58, h: 124, rise: 14, life: 720, hp: 5, melt: 90, fireMelt: 4, patch: 100 }
+// MELTING: his ice that runs out (ice patches, walls, slabs, the snowman) turns into a WATER puddle (`width` of the ice) that
+// later evaporates; the last `warn` frames of ice show it melting (thinner, dripping).
+export const MELT = { width: 0.8, warn: 150, calm: 60 }
+// patch lifetimes (frames) — longer than the shared element defaults: his ice / fire stay on the stage a long time
+export const PATCH_LIFE = { ice: 900, fire: 600, water: 540 }
 export const DISC = { hp: 80, life: 300, w: 110, height: 26, ahead: 40 }
 export const GLIDE = { iceMul: 1.8, fireMul: 2.3, run: 8, maxFrames: 240, thermalPerSec: 6, trailW: 64, trailEvery: 3, fireSteer: 0.5, atkBonus: 1.10,
   rampVy: -15, rampVx: 0.8, turnFrames: 8 }

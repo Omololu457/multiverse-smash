@@ -36,6 +36,7 @@ export function parseNotation(input, cat) {
   if (cat === "jump" && /^up$/.test(low)) { out.steps.push({ kind: "jump" }); return out }
   if (/double-?tap|^dash\b|dodge/.test(low) && !/special|light|heavy/.test(low)) {
     const back = /back|←|left/.test(low) && !/toward|right|forward/.test(low)
+    if (/^(jump|air)\b|\bin the air\b/.test(low)) out.air = true   // "Jump, then double-tap" = an AIR dash / slide: jump first
     out.steps.push({ kind: "doubletap", dirs: [back ? 4 : 6] }); return out
   }
 

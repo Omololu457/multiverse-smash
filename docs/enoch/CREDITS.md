@@ -19,3 +19,15 @@ used anywhere. The shirt is plain navy with no logo.
 is drawn with the same three-stroke algorithm Homelander and Superman use, now shared through `beam.js`. Sound effects are
 synthesized (`enochSound.js`). The sustained laser is Homelander's existing beam loop, pitched up ×1.12. There is no voice
 and no dialogue.
+
+**Effect sheets (owner-supplied, render-only, cut by `tools/enoch/cut_vfx.py` into `assets/enoch/vfx/`).**
+- Ice punch, fire charge, fire eruption, fire explosion, water splash, water drill MUGEN effect sheets — by **boltanim**
+  (file names `…_by_boltanim_….png`): the ice bursts, rising fire, Fire Wall pillars, flame jet / puffs, water splash, fire cage.
+- *Marvel vs. Capcom* (Capcom) — Iceman partner sheet, ripped by **Nemu** ("No credit needed. Don't claim as your own."):
+  the ICE METEOR boulders and their shatter chunks. Credited anyway; the sheet's caption is not used.
+- *Luminous Arc 2* (Marvelous) — "Fire Bullet", ripped by **d9rad** ("Credit would be nice. Do not steal!"): the FIRE METEOR
+  comets, fireballs and impact / burning-ground frames.
+- *Joe & Mac: Caveman Ninja* (Data East) — fire, ripped by **Vaati**: the growing flames of the fire-meteor impact.
+- Blue ice sheets with icicles — stock vector illustration (`41940.jpg`): the icicle slabs (ice box lid, air ice slide).
+  Check that stock licence before any public release.
+- The SNOWMAN is drawn procedurally (`enochFx.js` drawSnow); no sheet.

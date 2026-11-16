@@ -36,10 +36,11 @@ export function specialKey(f, e) {
   if (m.qcf) return (waterUnlocked(f) && enState(f).field.patches.some(p => p.type === 'water')) ? 'steamBurst' : 'iceBlast'
   if (m.dd) return 'frostFloor'
   if (m.ff) return 'heatLens'
+  if (e.up || e.jmp) return 'meteor'            // Up + Special = ICE METEOR (hot: the FIRE METEOR shower)
   if (e.down) return 'frostFloor'
   if (e.fwd) return 'heatLens'
   if (e.back) return 'deepFreeze'
-  return 'iceBlast'
+  return (waterUnlocked(f) && enState(f).field.patches.some(p => p.type === 'water')) ? 'steamBurst' : 'iceBlast'
 }
 export function heavyKey(f, e) {
   const m = e.m || {}
@@ -49,7 +50,8 @@ export function heavyKey(f, e) {
   if (m.dd) return 'condense'
   if (m.ff) return 'tideBreak'
   if (e.down) return 'slide'
-  if (e.back) return zoneOf(f) === 'hot' ? 'fireWall' : 'iceWall'
+  if (e.fwd) return 'fireWall'         // Forward + Heavy = FIRE WALL
+  if (e.back) return zoneOf(f) === 'hot' ? 'fireWall' : 'iceWall'   // Back + Heavy = ICE WALL (Fire Wall when hot)
   return 'heavy'
 }
 
@@ -80,7 +82,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   }
   // ICE STANCE: every press goes to Frozone's own command layer (his inputs, his precedence); Charge: Down = Ice Disc, else back
   if (s.stance === 'ice') {
-    if (fresh(s, 'charge') && !a && g) { use(s, 'charge'); const e = s.edges.charge; if (e.fwd) fire('iceDisc'); else if (!e.down && !e.up) toggleStance(f); return 'consumed' }   // Down / Up + Charge = the channel (tickEnoch)
+    if (fresh(s, 'charge') && !a && g) { use(s, 'charge'); const e = s.edges.charge; if (e.fwd) fire('iceDisc'); else if (e.back) fire('snowman'); else if (!e.down && !e.up) toggleStance(f); return 'consumed' }   // Down / Up + Charge = the channel (tickEnoch)
     return updateFrozoneCommandCombat(f, inp, opp, W) || 'consumed'
   }
   // RAMP: one air attack, +10 %
@@ -104,7 +106,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (a && !contact) return 'consumed'
   if (!a && (f.attackCooldown > 0 || inp.block)) return 'grab'
   if (fresh(s, 'ultimate')) { use(s, 'ultimate'); if (!a && g && (f.energy || 0) >= 100) fire('super'); return 'consumed' }   // Ultimate button = the super too
-  if (fresh(s, 'special') && !a) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (g) fire(k); return 'consumed' }
+  if (fresh(s, 'special') && !a) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (g) fire(k); else if (k !== 'super') fire('meteor'); return 'consumed' }   // in the air: Special = the METEOR
   if (fresh(s, 'upAttack') && upHeavy(s)) { use(s, 'upAttack'); use(s, 'heavy'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }
   if (fresh(s, 'heavy') && !a) { const e = s.edges.heavy; use(s, 'heavy'); fire(!g ? 'air' : e.up ? 'rise' : heavyKey(f, e)); return 'consumed' }
   if (fresh(s, 'upAttack')) { use(s, 'upAttack'); if (fresh(s, 'light')) use(s, 'light'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }
@@ -115,6 +117,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
     use(s, 'charge')
     const e = s.edges.charge
     if (e.fwd) fire('iceDisc')                          // Forward + Charge = Ice Disc
+    else if (e.back) fire('snowman')                    // Back + Charge = SNOWMAN (an ice sculpture wall)
     else if (!e.down && !e.up) toggleStance(f)          // Down / Up + Charge = CHANNEL cold / heat (held; tickEnoch)
     return 'consumed'
   }

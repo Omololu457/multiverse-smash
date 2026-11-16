@@ -127,7 +127,7 @@ try {
     hold(a, { left: true, heavy: true }); rel(a); step(14); r.backCold = H.state().s.wall?.type || null
     // cooldown: the same wall again at once is rejected
     step(20); const rj = H.state().s.stats.rejects; dp(a, 'special'); step(4); r.cdPress = { rejects: H.state().s.stats.rejects - rj, reason: H.state().s.lastReject }
-    step(300); r.expired = H.state().s.wall
+    step(500); r.expired = H.state().s.wall   // the ice wall stands 8 s now
     return r })
   ok('W1 623 + Special raises an ICE WALL ahead, lays ICE, costs cold, starts its cooldown', W.ice.wall?.type === 'ice' && W.ice.wall.x > 1000 && W.ice.patches.includes('ice') && W.ice.th < 0 && W.ice.cd > 0, J(W.ice))
   ok('W2 the ice wall stops a foe walking into it', W.block.stopped, J(W.block))

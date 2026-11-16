@@ -9,8 +9,8 @@ import { juiceSettings } from './juiceSettings.js'
 import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
 import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
-import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, slowOf, sideOf } from './enochState.js'
-import { STATUS, AIR_SLIDE, CAGE } from './enochData.js'
+import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, snowRect, slowOf, sideOf } from './enochState.js'
+import { STATUS, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT } from './enochData.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
 import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
@@ -140,6 +140,13 @@ function drawPatch(c, f, p, fr, now) {
     c.globalAlpha = 1; c.fillStyle = '#ffffff'; for (let i = 0; i < Math.ceil(hp * 4); i++) c.fillRect(x + 6 + i * 6, top + 10, 4, 2)
     c.restore(); return
   }
+  if (p.type === 'ice' && life < MELT.warn) {   // MELTING: thinner, wet sheen and drips running into a puddle at the edges
+    const k = Math.max(0, life / MELT.warn), mth = Math.max(2, R(th * (0.4 + 0.6 * k)))
+    c.fillStyle = COL.water[2]; c.fillRect(x - 6, y - 2, w + 12, 2)
+    c.fillStyle = P[3]; c.fillRect(x, y - mth, w, mth); c.fillStyle = P[1]; c.fillRect(x + 2, y - mth, w - 4, Math.max(1, mth - 2))
+    c.fillStyle = COL.water[1]; for (let i = 0; i < w - 10; i += 18) { const dy = calm() ? 2 : ((fr + i * 3) >> 2) % 8; c.fillRect(x + 6 + i, y - mth + dy, 2, 3) }
+    c.restore(); return
+  }
   c.fillStyle = P[3]; c.fillRect(x, y - th, w, th)
   c.fillStyle = P[2]; c.fillRect(x + 2, y - th, w - 4, th - 2)
   c.fillStyle = P[1]; c.fillRect(x + 4, y - th, w - 8, 2)
@@ -175,7 +182,18 @@ function drawEvents(c, f, s) {
     else if (e.kind === 'splash') { if (!vfx(c, 'waterSplash', e.t / 6, e.x, e.y + 20, { scale: 0.75, alpha: al })) part(c, 'splash', 'water', e.x, e.y, { alpha: al }) }
     else if (e.kind === 'shatter') { if (!vfx(c, 'iceBurst', 1 + e.t / 4, e.x, e.y, { scale: 1.6 })) part(c, 'burst2', 'ice', e.x, e.y, { alpha: al }) }
     else if (e.kind === 'switch' || e.kind === 'ramp' || e.kind === 'landBurst') part(c, e.kind === 'ramp' ? 'arc' : 'spray', el, e.x, e.y, { alpha: al, flip: e.dir })
-    else if (e.kind === 'overload') { c.save(); c.globalAlpha = al; c.strokeStyle = e.dir < 0 ? COL.ice[1] : COL.fire[1]; c.lineWidth = 3; const r = 20 + e.t * 2; c.strokeRect(R(e.x - r), R(e.y - r / 2), R(r * 2), R(r)); c.restore() }
+    else if (e.kind === 'meteorShatter') {   // the boulder bursts: Iceman's chunks fly out and fall, over an ice burst
+      vfx(c, 'iceBurst', 1 + e.t / 5, e.x, e.y - 30, { scale: 1.4, alpha: al })
+      for (let i = 0; i < 6; i++) { const a = -Math.PI * (0.15 + 0.7 * i / 5), v = 4 + (i % 3) * 1.5, t = e.t; vfx(c, 'iceChunk', i, e.x + Math.cos(a) * v * t, e.y - 20 + Math.sin(a) * v * t + 0.35 * t * t, { scale: 0.7, alpha: al, flip: i & 1 ? -1 : 1 }) }
+    } else if (e.kind === 'fireImpact') {   // the comet's bloom, then the ground burning (Joe & Mac flames rising)
+      vfx(c, 'fireImpact', e.t / 6, e.x, e.y + 4, { scale: 1.6, alpha: Math.min(1, al * 1.4) })
+      vfx(c, 'flameGrow', Math.min(8, e.t / 4), e.x + 26 * e.dir, e.y + 2, { scale: 1.1, alpha: al })
+    } else if (e.kind === 'melt') {   // ice → water: a splash + spreading ripples
+      vfx(c, 'waterSplash', e.t / 8, e.x, e.y + 16, { scale: 0.6, alpha: al })
+      c.save(); c.globalAlpha = al * 0.8; c.strokeStyle = COL.water[1]; c.lineWidth = 2; const r = 10 + e.t * 1.5; c.beginPath(); c.ellipse(R(e.x), R(e.y - 2), R(Math.min(r, (e.w || 80) / 2)), 4, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+    } else if (e.kind === 'drip') {   // a melted slab: drops falling from where it hung
+      c.save(); c.globalAlpha = al; c.fillStyle = COL.water[1]; for (let i = 0; i < 5; i++) c.fillRect(R(e.x - (e.w || 60) / 2 + i * (e.w || 60) / 5), R(e.y + e.t * 4 + (i % 2) * 10), 3, 6); c.restore()
+    } else if (e.kind === 'overload') { c.save(); c.globalAlpha = al; c.strokeStyle = e.dir < 0 ? COL.ice[1] : COL.fire[1]; c.lineWidth = 3; const r = 20 + e.t * 2; c.strokeRect(R(e.x - r), R(e.y - r / 2), R(r * 2), R(r)); c.restore() }
   }
 }
 // ── WALLS: ICE = Frozone's crystal slab in his ice palette (a crack per stopped shot); FIRE = a flame column of hashed
@@ -195,6 +213,7 @@ function drawWall(c, f, s, fr) {
     c.beginPath(); c.moveTo(R(w.x - 2), R(y0 + 8)); c.lineTo(R(w.x - 6), R(y1 - 6)); c.stroke()
     for (let i = 0; i < P.hp - w.hp; i++) { c.beginPath(); c.moveTo(R(x0 + 4), R(y0 + 30 + i * 28)); c.lineTo(R(x1 - 2), R(y0 + 44 + i * 30)); c.stroke() }
     c.restore()
+    if (left < MELT.warn) drips(c, x0 - 4, x1 + 4, y0, y1, fr, 1 - left / MELT.warn)   // melting
     return
   }
   if (ENOCH_VFX.firePillar) {   // three flame pillars across the wall, each on its own phase of the 4-frame loop
@@ -215,6 +234,54 @@ function drawWall(c, f, s, fr) {
     c.fillRect(R(x0 + k * (x1 - x0)), R(y0 + 10 - up), 3, 3); c.restore()
   }
   if (w.t < P.rise + 6) part(c, 'arc', 'fire', w.x, y1, { alpha: al, flip: w.dir })
+}
+function drips(c, x0, x1, y0, y1, fr, k) {   // water running down melting ice + the puddle growing at its foot
+  c.save(); c.fillStyle = COL.water[1]; c.globalAlpha = 0.9
+  for (let i = 0; i < 4; i++) { const x = x0 + (x1 - x0) * (0.15 + i * 0.23), d = calm() ? 0.5 : ((fr + i * 11) % 30) / 30; c.fillRect(R(x), R(y0 + (y1 - y0) * d), 2, 5) }
+  c.fillStyle = COL.water[2]; c.globalAlpha = 0.75; const pw = (x1 - x0) * (0.6 + 1.4 * k); c.fillRect(R((x0 + x1) / 2 - pw / 2), R(y1 - 3), R(pw), 3); c.restore()
+}
+// ── SNOWMAN: three packed-snow balls in his ice palette, coal eyes, a carrot, stick arms, a navy scarf; sags + drips as it melts ──
+function drawSnow(c, f, s, fr) {
+  const z = s.snow; if (!z) return
+  const Rc = snowRect(z), P = SNOWMAN, k = Rc.h / P.h, cx = z.x, y1 = z.floor, d = z.dir || 1
+  const balls = [[0.36, 0.0], [0.27, 0.36], [0.19, 0.64]]   // radius (× h), base offset (× h)
+  c.save(); c.translate(R(cx), R(y1))
+  if (z.melt) { c.fillStyle = COL.water[2]; c.globalAlpha = 0.8; const pw = P.w * (1 + z.melt / P.melt * 1.4); c.fillRect(R(-pw / 2), -3, R(pw), 3); c.globalAlpha = 1 }
+  const H = P.h * k, sq = z.melt ? 1 + 0.5 * z.melt / P.melt : 1   // squashes wider as it melts
+  for (const [r0, b] of balls) {
+    const r = r0 * P.h * Math.max(0.35, k) * 0.5, yy = -(b * H) - r * 0.95
+    c.fillStyle = '#f4fbff'; c.beginPath(); c.ellipse(0, R(yy), R(r * sq), R(r), 0, 0, Math.PI * 2); c.fill()
+    c.fillStyle = COL.ice[1]; c.beginPath(); c.ellipse(R(r * 0.25 * d), R(yy + r * 0.3), R(r * sq * 0.7), R(r * 0.55), 0, 0, Math.PI); c.fill()
+    c.strokeStyle = COL.ice[2]; c.lineWidth = 2; c.beginPath(); c.ellipse(0, R(yy), R(r * sq), R(r), 0, 0, Math.PI * 2); c.stroke()
+  }
+  if (k > 0.45) {
+    const hr = 0.19 * P.h * k * 0.5, hy = -(0.64 * H) - hr * 0.95
+    c.fillStyle = '#1b2333'; c.fillRect(R(-hr * 0.45 + d * 2), R(hy - hr * 0.25), 4, 4); c.fillRect(R(hr * 0.15 + d * 2), R(hy - hr * 0.25), 4, 4)   // coal eyes
+    c.fillStyle = '#ff8a2a'; c.beginPath(); c.moveTo(R(d * 2), R(hy + 1)); c.lineTo(R(d * (hr + 12)), R(hy + 4)); c.lineTo(R(d * 2), R(hy + 6)); c.fill()   // carrot
+    c.fillStyle = '#1f3a66'; c.fillRect(R(-hr - 2), R(hy + hr * 0.75), R(hr * 2 + 4), 5); c.fillRect(R(-d * hr * 0.6), R(hy + hr * 0.75), 5, 14)    // navy scarf
+    const by = -(0.36 * H) - 0.27 * P.h * k * 0.5
+    c.strokeStyle = '#5a3a22'; c.lineWidth = 3; c.beginPath(); c.moveTo(R(-0.27 * P.h * 0.5), R(by)); c.lineTo(R(-0.27 * P.h * 0.5 - 22), R(by - 16)); c.moveTo(R(0.27 * P.h * 0.5), R(by)); c.lineTo(R(0.27 * P.h * 0.5 + 22), R(by - 14)); c.stroke()
+    for (let i = 0; i < P.hp - z.hp; i++) { c.strokeStyle = COL.ice[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(R(-12 + i * 6), R(-H * (0.2 + i * 0.15))); c.lineTo(R(8 + i * 4), R(-H * (0.28 + i * 0.15))); c.stroke() }   // a crack per shot
+  }
+  if (!calm() && z.t < P.rise + 10) for (let i = 0; i < 5; i++) { c.fillStyle = COL.ice[0]; c.fillRect(R(-P.w / 2 + ((i * 37 + z.t * 3) % P.w)), R(-H * ((i * 0.21 + z.t * 0.03) % 1)), 3, 3) }   // sparkle while it forms
+  c.restore()
+  if (z.melt || z.heat) drips(c, Rc.x, Rc.x + Rc.w, Rc.y, y1, fr, z.melt ? z.melt / P.melt : 0.2)
+}
+// ── METEORS: ICE = Iceman's boulder (spinning slowly, a frost trail); FIRE = Luminous Arc's falling comet + fireball head ──
+function drawMeteors(c, f, s, fr) {
+  for (const q of s.meteors) {
+    if (q.wait > 0) continue
+    const P = METEOR[q.el]
+    if (q.el === 'ice') {
+      c.save(); c.globalAlpha = 0.45; c.fillStyle = COL.ice[1]; for (let i = 1; i <= 4; i++) c.fillRect(R(q.x - q.dir * METEOR.vx * i * 3 - 4), R(q.y - q.vy * i * 1.4), 8, 8); c.restore()
+      if (!vfx(c, 'iceRock', (q.t >> 3) & 1, q.x, q.y, { h: P.size, flip: (q.t >> 4) & 1 ? -1 : 1 })) { c.save(); c.fillStyle = COL.ice[1]; c.fillRect(R(q.x - 30), R(q.y - 40), 60, 80); c.restore() }
+    } else {
+      vfx(c, 'fireFall', 1, q.x, q.y - P.size * 0.6, { h: P.size * 1.6, flip: q.dir })
+      if (!vfx(c, 'fireBall', (q.t >> 2) % 4, q.x, q.y, { h: P.size })) { c.save(); c.fillStyle = COL.fire[1]; c.beginPath(); c.arc(R(q.x), R(q.y), 20, 0, Math.PI * 2); c.fill(); c.restore() }
+    }
+    // the target ring on the floor (where it will land)
+    c.save(); c.globalAlpha = 0.5; c.strokeStyle = q.el === 'ice' ? COL.ice[1] : COL.fire[2]; c.lineWidth = 2; c.beginPath(); c.ellipse(R(q.x + q.dir * METEOR.vx * 10), R(q.floor - 2), R(P.radius * 0.8), 6, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+  }
 }
 function drawBeams(c, f, s) {
   const b = s.beamFx; if (!b) return
@@ -243,7 +310,7 @@ export function drawEnochOver(c, p1, p2, W) {
   if (isEn(p1) || isEn(p2)) drawShards(c, W, fr)
   for (const f of [p1, p2]) {
     const s = isEn(f) ? f._enoch : null; if (!s) continue
-    drawWall(c, f, s, fr); drawAfflictions(c, f, s, W, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
+    drawWall(c, f, s, fr); drawSnow(c, f, s, fr); drawMeteors(c, f, s, fr); drawAfflictions(c, f, s, W, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
   }
 }
 // ── HUD: the thermal bar (deep blue → teal → orange, marker, outlined balance zone) under his health bar ──

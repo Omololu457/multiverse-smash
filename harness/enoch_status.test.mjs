@@ -45,13 +45,13 @@ const S = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
   ;({ a, b } = setup(1000, 1150)); H.setThermal(0); let boxed = 0, maxChill = 0
   for (let k = 0; k < 7 && !boxed; k++) { b.x = 1150; b.hitstun = 0; b.invulnTimer = 0; b.knockdownState = false; H.setThermal(0); a.attackCooldown = 0; hit('iceBlast', a); maxChill = Math.max(maxChill, aff()?.chill || 0); boxed = aff()?.box || 0 }
   r.box = { boxed, frozen: b._supFrozen, chillAfter: aff().chill, boxes: a._enoch.stats.boxes, maxChill }
-  for (let i = 0; i < 100; i++) step(1); r.boxEnd = { box: aff().box, frozen: b._supFrozen || 0 }
+  for (let i = 0; i < 140; i++) step(1); r.boxEnd = { box: aff().box, frozen: b._supFrozen || 0 }
   // S4: ONE fire hit = no decay; TWO = health keeps dropping with no further hits
   ;({ a, b } = setup(1000, 1150)); H.setThermal(0); ES.afflict(a, b, 'fire', 1); let hp0 = b.health; for (let i = 0; i < 120; i++) step(1); r.burn1 = Math.round(hp0 - b.health)
   ;({ a, b } = setup(1000, 1150)); H.setThermal(0); ES.afflict(a, b, 'fire', 1); ES.afflict(a, b, 'fire', 1); ES.afflict(a, b, 'fire', 1); hp0 = b.health
   for (let i = 0; i < 120; i++) step(1); r.burn3 = { lost: Math.round((hp0 - b.health) * 10) / 10, burn: aff().burn, ticks: a._enoch.stats.burnTicks }
   // S5: stacks fade (life 240 then −1 / 60 f)
-  for (let i = 0; i < 400; i++) step(1); r.fade = aff().burn
+  for (let i = 0; i < 1300; i++) step(1); r.fade = aff().burn   // lasts 10 s after the last hit, then −1 every 2 s
   // S6: the combination
   ;({ a, b } = setup(1000, 1150)); ES.afflict(a, b, 'ice', 1); ES.afflict(a, b, 'ice', 1); hp0 = b.health; const res = ES.afflict(a, b, 'fire', 1); step(1)
   r.shock = { res, chill: aff().chill, dmg: Math.round(hp0 - b.health), shocks: a._enoch.stats.shocks }
@@ -64,9 +64,9 @@ const S = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
 ok('S1 one ice hit = 1 chill and NO slow yet', S.one.chill === 1 && S.oneSlow === 1, J(S.one))
 ok('S2 chill 2 = his steps shrink (−12 %)', S.walk.free > 50 && S.walk.slowed < S.walk.free * 0.93 && S.walk.slowed > S.walk.free * 0.8, J(S.walk))
 ok('S3 ice hits stack to the ICE BOX: frozen solid, the chill is spent', S.box.boxed > 0 && S.box.frozen > 0 && S.box.chillAfter === 0 && S.box.boxes === 1, J(S.box))
-ok('S3b the box melts after 80 frames', S.boxEnd.box === 0 && S.boxEnd.frozen === 0, J(S.boxEnd))
+ok('S3b the box melts after 120 frames (2 s)', S.boxEnd.box === 0 && S.boxEnd.frozen === 0, J(S.boxEnd))
 ok('S4 one fire hit = no decay; 3 stacks = health keeps draining with no more hits', S.burn1 === 0 && S.burn3.lost > 0 && S.burn3.ticks >= 3 && S.burn3.burn === 3, J({ b1: S.burn1, b3: S.burn3 }))
-ok('S5 burn fades away after a while', S.fade === 0, String(S.fade))
+ok('S5 burn fades away after a while (10 s, then a stack every 2 s)', S.fade === 0, String(S.fade))
 ok('S6 THE COMBINATION: fire on a chilled foe = STEAM SHOCK (chill spent)', S.shock.res === 'shock' && S.shock.chill === 0 && S.shock.dmg > 0, J(S.shock))
 ok('S6b ice on a burning foe = QUENCH (burn spent)', S.quench.res === 'quench' && S.quench.burn === 0 && S.quench.dmg > 0, J(S.quench))
 ok('S7 a real fire special builds a burn stack; BLOCKED it builds none (only the fire left on the floor singes, +0.25 a tick)', S.scorch >= 1 && S.blocked < 1, J({ s: S.scorch, b: S.blocked }))
@@ -112,7 +112,7 @@ const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
   // a LATE hop on a deep link misses (the window shrinks): 4 links, then wait 14 frames before Jump
   ;({ a, b } = setup(200, 2900)); b.invulnTimer = 99999; H.setThermal(0); hold(a, { jump: true }); for (let i = 0; i < 6; i++) hold(a, {})
   for (let link = 0; link < 4; link++) { hold(a, { right: true, dash: true }); let k = 0; while (st().aslide && k++ < 40) hold(a, { right: true }); if (link < 3) { hold(a, { jump: true }); hold(a, {}); for (let i = 0; i < 6; i++) hold(a, {}) } }
-  for (let i = 0; i < 14; i++) hold(a, {}); const hops0 = st().stats.airHops; hold(a, { jump: true }); hold(a, {}); r.late = { hops: st().stats.airHops - hops0, win: st().air.win }
+  for (let i = 0; i < 30; i++) hold(a, {}); const hops0 = st().stats.airHops; hold(a, { jump: true }); hold(a, {}); r.late = { hops: st().stats.airHops - hops0, win: st().air.win }
   land(a); r.reset = st().air.chain
   ;({ a, b } = setup(400, 2400)); b.invulnTimer = 99999; H.setThermal(50); r.fire = jumpSlide(a); r.fireRail = (st().rails[0] || {}).type || null; land(a)
   // through the foe: one hit + chill
@@ -129,7 +129,7 @@ const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
   ;({ a, b } = setup(1000, 1200)); let res = null; for (let i = 0; i < 5; i++) res = ES.afflict(a, b, 'fire', 1)
   const x0 = b.x, hp1 = b.health; for (let i = 0; i < 30; i++) { b.x += 6; step(1) }
   r.cage = { res, held: Math.round(b.x - x0), lost: Math.round(hp1 - b.health), cage: aff().cage, cages: a._enoch.stats.cages }
-  for (let i = 0; i < 60; i++) step(1); r.cageEnd = aff().cage
+  for (let i = 0; i < 130; i++) step(1); r.cageEnd = aff().cage
   return r })
 ok('A1 jump + double-tap = AIR ICE SLIDE (an ice slab, he slides ~13 px/f, cools)', A.first.did === 1 && A.first.dx > 100 && A.rail === 'ice' && A.th < 0 && A.stance === 'elemental', J({ f: A.first, rail: A.rail, th: A.th }))
 ok('A2 no hop / jump in between = no second slide', A.sameAir === 1, String(A.sameAir))

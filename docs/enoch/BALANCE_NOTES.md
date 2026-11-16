@@ -122,3 +122,19 @@ The brief's values, verified live against a blocking dummy:
   during a slide or inside the hop window after it = a HOP (works with no air jumps left) that re-arms the slide.
   Each link: hop −14 × 0.88^(link−1) px/f, slide 30 f −10 % a link (min 14), hop window 24 − 4 × (link−1) frames
   (24, 20, 16, 12, 8, 4). 6 links at most; landing resets the chain. A double-tap without a hop / jump first is refused.
+
+### 2026-11-16 (evening): one-direction inputs, meteors, snowman, melting, longer effects
+- Owner: "I literally can't do some of the moves … arrows pointing at an angle". Every move now has a ONE-direction input
+  (motions still work): Special = Ice Blast · Forward = Heat Lens · Down = Frost Floor · Back = Deep Freeze · Up = METEOR;
+  Back + Heavy = Ice Wall (Fire Wall when hot) · Forward + Heavy = Fire Wall · Back + Charge = SNOWMAN; Ultimate = Super.
+  Special in the air = the meteor (Up is the jump key on keyboard, so Up + Special works either way). Neutral Special is
+  Steam Burst when water is unlocked.
+- ICE METEOR (Up + Special): raw 70 boulder on the foe's spot, chills, ICE patch; 5 s cooldown; a floor ring telegraphs it.
+  Hot → FIRE METEOR shower: 3 comets × raw 30, 95 px apart, 10 f stagger, burn + FIRE patches.
+- SNOWMAN (Back + Charge): solid (Ice Wall body rules), 5 shot HP, 12 s, melts over 1.5 s into a WATER puddle; fire next to
+  it ×4 faster. 5 s cooldown. One at a time, independent of the wall.
+- MELTING: an ice patch / ice wall that runs out leaves a WATER puddle (80 % width, calm 1 s so it never refreezes on the
+  spot); the last 2.5 s of ice show it thinning + dripping; melted air-slide slabs drip.
+- LONGER: ice patches 15 s (was 7), fire 10 s (5), water 9 s; Ice Wall 8 s (2.8), Fire Wall 6 s (2.5); slabs 7 s;
+  burn / chill stay 10 s after the last hit (4) then fall a stack every 2 s (1); ice box 2 s (1.3); fire cage 2 s (1.2).
+- AIR CHAIN windows widened: 40, 34, 28, 22, 16, 10 frames (was 24 … 4) — 4-5 links comfortable, 6 is the cap.

@@ -17,7 +17,7 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
@@ -34,9 +34,9 @@ const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, 
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
   sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0,
-  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0 })
+  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0, meteors: 0, fireMeteors: 0, meteorHits: 0, snowmen: 0, snowBlocks: 0, snowMelt: 0, melts: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { chain: 0, armed: true, win: 0, jc: 0 }, aslide: null, rails: [],
+  th: createThermal(), field: createField(6), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { chain: 0, armed: true, win: 0, jc: 0 }, aslide: null, rails: [], snow: null, meteors: [],
   cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
   stats: stats0(), lastReject: null, cues: [] }
 
@@ -126,7 +126,7 @@ export const waterUnlocked = f => zoneOf(f) === 'balance'
 // lay a patch (with every merge / reaction / burst it causes), handling the disc melt + the Arlong douse first
 function lay(f, s, W, o) {
   const fr = s.tick
-  const q = { owner: sideOf(f), frame: fr, floor: o.floor ?? floorOf(f, s), minX: 0, maxX: sw(W), ...o }
+  const q = { owner: sideOf(f), frame: fr, floor: o.floor ?? floorOf(f, s), minX: 0, maxX: sw(W), life: PATCH_LIFE[o.type], ...o }
   if (q.type === 'fire') {
     const w = Math.round(q.width ?? Math.round(0.16 * 1280)), x0 = Math.round(q.x ?? (q.cx - w / 2))
     if (s.disc) { const dp = s.field.patches.find(p => p.disc); if (dp && x0 < dp.x + dp.width && dp.x < x0 + w) meltDisc(f, s, W) }
@@ -187,7 +187,7 @@ export const twinOf = f => { const v = enState(f).th.v; return v > TP.balance ? 
 export function moveElement(f, key) {
   const md = ALL_MOVES[key], tw = twinOf(f)
   if (key === 'heatLens' && tw === 'ice') return 'ice'
-  if ((key === 'iceBlast' || key === 'frostFloor') && tw === 'fire') return 'fire'
+  if ((key === 'iceBlast' || key === 'frostFloor' || key === 'meteor') && tw === 'fire') return 'fire'
   return md?.el || null
 }
 // ── LASTING EFFECTS on his opponents: BURN (health decay) / CHILL (slow → ICE BOX) + the steam combination. Kept in HIS state
@@ -277,6 +277,7 @@ export function enochProjectileHit(proj, target, { armored = false } = {}) {
   s.stats.clean++; meter(f, (proj.damage || 0) * METER.onHit)
   const a = live(f); if (a && a.en.serial === k.serial) a.en.clean = true
   const pel = k.el || ((k.kind === 'blast' || k.kind === 'hail' || k.kind === 'wall') ? 'ice' : null)
+  if (k.kind === 'meteor') s.stats.meteorHits++
   if (pel) afflict(f, target, pel, STATUS.hit)
   pushFx(s, pel === 'fire' ? 'ember' : (k.kind === 'blast' || k.kind === 'hail') ? 'frost' : 'chip', proj.x, proj.y, k.dir || 1)
 }
@@ -291,7 +292,7 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   if (f.blockstun > 0) return false
   if (md.isSpecial && (f.disabledSpecials || []).includes('special')) return false
   if (md.air && g) return false
-  if (!md.air && !g) { reject(f, 'air'); return false }
+  if (!md.air && !md.airOk && !g) { reject(f, 'air'); return false }
   const el = moveElement(f, key)
   const chk = el ? check(f, el) : { ok: true, cost: 1, dmg: 1 }
   if (!chk.ok) { reject(f, chk.why); return false }
@@ -322,6 +323,8 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   if (key === 'wake') s.stats.wakes++
   cue(f, el ? el + 'Cast' : md.isSpecial ? 'cast' : 'swing')
   if (el && md.el && el !== md.el) { if (key === 'iceBlast') s.stats.fireShards++; else if (key === 'frostFloor') s.stats.flameFloors++; else if (key === 'heatLens') s.stats.frostLens++ }
+  if (key === 'meteor') s.stats[el === 'fire' ? 'fireMeteors' : 'meteors']++
+  if (key === 'snowman') s.stats.snowmen++
   return true
 }
 // variant by the zone at the press: |v| ≤ 25 → THERMAL SHOCK; otherwise by the meter's sign
@@ -424,7 +427,69 @@ function release(f, s, W, a, m, md) {
     vol(f, s, W, 'orb', m.serial, fr + d * 20, feet - CONDENSE.handY, CONDENSE.w, CONDENSE.h,
       { damage: a.damage, hitstun: 18, kbx: 3, kby: -3, life: CONDENSE.life, vx: d * CONDENSE.speed, dir: d, damageType: 'projectile', color: '#7fc8ff' })
     s.stats.orbs++; cue(f, 'orb')
+  } else if (m.key === 'meteor') {
+    // aimed at the nearest foe's spot (or ahead): they fall from METEOR.from px above the floor, drifting toward his facing
+    const t = foesOf(f, W).sort((p, q) => Math.abs(ctrX(p) - ctrX(f)) - Math.abs(ctrX(q) - ctrX(f)))[0]
+    const el = m.el === 'fire' ? 'fire' : 'ice', P = METEOR[el], tx = t ? ctrX(t) : ctrX(f) + d * 300, floor = floorOf(f, s)
+    for (let i = 0; i < P.n; i++) {
+      const off = P.n > 1 ? (i - (P.n - 1) / 2) * P.spread : 0
+      s.meteors.push({ el, x: Math.round(tx + off - d * METEOR.vx * 24), y: Math.round(floor - METEOR.from - i * 40), vy: METEOR.vy0, dir: d, floor: Math.round(floor),
+        wait: i * (P.gap || 0), t: 0, serial: m.serial, mul: m.mul, k: i, n: ++s.nEnt })
+    }
+    cue(f, el === 'fire' ? 'fireCast' : 'crackle')
+  } else if (m.key === 'snowman') {
+    const P = SNOWMAN, floor = floorOf(f, s), x = Math.round(Math.max(P.w, Math.min(sw(W) - P.w, ctrX(f) + d * P.ahead)))
+    s.snow = { x, floor: Math.round(floor), t: 0, hp: P.hp, dir: d, melt: 0, heat: 0, n: ++s.nEnt }
+    cue(f, 'crackle'); pushFx(s, 'frost', x, floor, d)
   } else if (m.key === 'super') superRelease(f, s, W, a, m)
+}
+// ── METEORS: fall (gravity), explode on a foe or the floor → one hit volume (blockable, chills / burns) + a patch ──
+function updateMeteors(f, s, W) {
+  for (let i = s.meteors.length - 1; i >= 0; i--) {
+    const q = s.meteors[i], P = METEOR[q.el]
+    if (q.wait > 0) { q.wait--; continue }
+    q.t++; q.vy = Math.round((q.vy + METEOR.grav) * 100) / 100; q.y = Math.round((q.y + q.vy) * 100) / 100; q.x = Math.round((q.x + q.dir * METEOR.vx) * 100) / 100
+    const hitFoe = foesOf(f, W).find(o => { const b = box(o); return q.x > b.x - P.size / 3 && q.x < b.x + b.w + P.size / 3 && q.y + P.size / 3 > b.y && q.y < b.y + b.h })
+    if (!hitFoe && q.y < q.floor) continue
+    const cy = hitFoe ? ctrY(hitFoe) : q.floor - P.radius / 2   // the burst is centred on whoever it struck (else on the floor)
+    vol(f, s, W, 'meteor', q.serial * 10 + q.k, q.x, cy, P.radius * 2, P.radius * 2, { damage: Math.round(dmg(P.raw) * q.mul * 100) / 100, hitstun: P.hitstun,
+      kbx: P.kbx, kby: P.kby, life: 4, dir: q.dir, radius: P.radius, damageType: q.el === 'fire' ? 'energy' : 'blunt', el: q.el })
+    lay(f, s, W, { type: q.el, cx: q.x, width: P.patch })
+    pushFx(s, q.el === 'fire' ? 'fireImpact' : 'meteorShatter', q.x, q.floor, q.dir)
+    cue(f, q.el === 'fire' ? 'burst' : 'shatter'); s.meteors.splice(i, 1)
+  }
+}
+// ── SNOWMAN: a solid sculpture (the ice wall's body rules), eats enemy shots, melts into a WATER puddle ──
+export const snowRect = z => { const P = SNOWMAN, k = Math.min(1, (z.t + 1) / P.rise) * (z.melt ? Math.max(0.15, 1 - z.melt / P.melt) : 1); return { x: z.x - P.w / 2, y: z.floor - P.h * k, w: P.w, h: P.h * k } }
+function updateSnow(f, s, W, opp) {
+  const z = s.snow; if (!z) return
+  const P = SNOWMAN; z.t++
+  // fire melts it faster: a fire patch under it, his fire wall beside it, a foe burning next to it
+  const hot = s.field.patches.some(p => p.type === 'fire' && z.x >= p.x - 20 && z.x <= p.x + p.width + 20) || (s.wall?.type === 'fire' && Math.abs(s.wall.x - z.x) < 120)
+  z.heat = hot ? 1 : 0
+  if (!z.melt && (z.t >= P.life || z.hp <= 0)) z.melt = 1
+  if (z.melt) {
+    z.melt += hot ? P.fireMelt : 1
+    if (z.melt >= P.melt) { s.snow = null; s.stats.snowMelt++; meltInto(f, s, W, z.x, P.patch, z.floor); return }
+  } else if (hot) z.t += P.fireMelt - 1
+  const Rc = snowRect(z)
+  if (!z.melt || z.melt < P.melt * 0.6) for (const o of foesOf(f, W, opp)) {
+    const ob = box(o); if (!hitRect(ob, Rc) || o.y + o.h <= Rc.y + 6) continue
+    if (ctrX(o) < z.x) o.x = Rc.x - ob.w; else o.x = Rc.x + Rc.w
+    if ((o.vx || 0) * (ctrX(o) < z.x ? 1 : -1) > 0) o.vx = 0
+  }
+  const Q = W?.projectiles
+  if (Q && !z.melt) for (let i = Q.length - 1; i >= 0 && z.hp > 0; i--) {
+    const q = Q[i]; if (!q || q.owner === f) continue
+    const qw = q.w || q.width || 20, qh = q.h || q.height || 20
+    if (!hitRect({ x: q.x - qw / 2, y: q.y - qh / 2, w: qw, h: qh }, Rc)) continue
+    Q.splice(i, 1); z.hp--; s.stats.snowBlocks++; cue(f, 'crackle'); pushFx(s, 'chip', q.x, q.y, -z.dir)
+  }
+}
+// MELT: ice that runs out leaves a WATER puddle (calm for a moment, so it never refreezes on the spot) + a splash
+function meltInto(f, s, W, cx, width, floor) {
+  s.stats.melts++; lay(f, s, W, { type: 'water', cx, width: Math.max(40, Math.round(width * MELT.width)), floor, calm: MELT.calm })
+  pushFx(s, 'melt', cx, floor, 1, { w: width }); cue(f, 'hiss')
 }
 // LOCK-ON (Homelander's auto-aim): the angle from his visor lens to the nearest foe's chest, measured along his facing
 // (turns to face them first). null = no foe. Up / Down held override it and sweep by hand (beam.js laserStep).
@@ -483,7 +548,7 @@ function updateWall(f, s, W, opp) {
     Q.splice(i, 1); w.hp--; s.stats.wallBlocks++; cue(f, w.type === 'ice' ? 'crackle' : 'hiss'); pushFx(s, w.type === 'ice' ? 'chip' : 'ember', q.x, q.y, -w.dir)
   }
   if (w.hp <= 0) { s.wall = null; cue(f, 'shatter'); pushFx(s, w.type === 'ice' ? 'shatter' : 'steamPuff', w.x, w.floor - P.h / 2, w.dir); return }
-  if (w.t >= P.life) { s.wall = null; pushFx(s, w.type === 'ice' ? 'frost' : 'steamPuff', w.x, w.floor, w.dir) }
+  if (w.t >= P.life) { s.wall = null; if (w.type === 'ice') meltInto(f, s, W, w.x, P.w * 3, w.floor); else pushFx(s, 'steamPuff', w.x, w.floor, w.dir) }
 }
 // Condense orbs drifting over his own patches: FIRE → steam explosion (70), ICE → hail (60, faster). Once each.
 function updateOrbs(f, s, W) {
@@ -651,7 +716,7 @@ export function tickEnoch(f, opp, raw, W) {
   if (!s.dirs.length || s.dirs[s.dirs.length - 1].d !== dg) { s.dirs.push({ d: dg, c: s.clock }); if (s.dirs.length > 16) s.dirs.shift() }
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'block', 'jump', 'up', 'grab', 'charge']) {
     const v = !!raw[k]
-    if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, clock: s.clock, down: !!raw.down, up: !!raw.up, fwd: fw, back: bk,
+    if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, clock: s.clock, down: !!raw.down, up: !!raw.up, jmp: !!raw.jump, fwd: fw, back: bk,
       m: { super: motionMatch(s, '236236', 30), qcf: motionMatch(s, '236', 14), qcb: motionMatch(s, '214', 14), dd: motionMatch(s, '22', 14), ff: motionMatch(s, '656', 14), dp: motionMatch(s, '623', 14) } }
     s.prev[k] = v
   }
@@ -663,7 +728,7 @@ export function tickEnoch(f, opp, raw, W) {
   // super meter from damage taken
   if (s.prevHp != null && f.health < s.prevHp) meter(f, (s.prevHp - f.health) * METER.onTaken)
   s.prevHp = f.health
-  if (f.health <= 0) { s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.pose = null; s.wall = null; if (s.disc) breakDisc(f, s); killProj(f, W); return }
+  if (f.health <= 0) { s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.pose = null; s.wall = null; s.snow = null; s.meteors.length = 0; if (s.disc) breakDisc(f, s); killProj(f, W); return }
   // wake-up window: opens as a knockdown ends
   if (s.wasDown && !f.knockdownState) s.wakeWin = 10
   else if (s.wakeWin > 0) s.wakeWin--
@@ -694,7 +759,10 @@ export function tickEnoch(f, opp, raw, W) {
   } else s.channel = 0
   thermalTick(s.th, TP, !!(s.glide || s.beam || live(f) || s.channel))
   // field: expiry, effects, matchup rules
-  for (const p of tickField(s.field, fr)) if (p.disc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null }
+  for (const p of tickField(s.field, fr)) {
+    if (p.disc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null }
+    else if (p.type === 'ice') meltInto(f, s, W, p.x + p.width / 2, p.width, p.floor)   // his ice melts into a puddle
+  }
   const all = W?.fighters?.() || [f, opp].filter(Boolean)
   const hurt = applyPatchEffects(s.field, all, { frame: fr, owner: sideOf(f), ownerX: ctrX(f), sideOf, grounded, feet: feetY, cx: ctrX, walker: ICE_WALKER,
     damage: (t, n, o) => W?.damage?.(t, n, { attacker: f, ...o }) })
@@ -703,7 +771,7 @@ export function tickEnoch(f, opp, raw, W) {
   // AIR CHAIN: landing resets it; the hop window counts down; his own air jump (the shared double jump) also re-arms the slide
   if (g && !s.aslide) { s.air.chain = 0; s.air.armed = true; s.air.win = 0; s.air.jc = f.jumpCount || 0 }
   else { if (s.air.win > 0 && !s.aslide) s.air.win--; if ((f.jumpCount || 0) > s.air.jc) { s.air.armed = true; s.air.jc = f.jumpCount } }
-  for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) s.rails.splice(i, 1) }
+  for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) { s.rails.splice(i, 1); if (q.type === 'ice') pushFx(s, 'drip', (q.x0 + q.x1) / 2, Math.max(q.y0, q.y1), 1, { w: Math.abs(q.x1 - q.x0) }) } }
   // FIRE DASH / ICE DASH (and the slide): outside the balance band his dash leaves a trail of his element
   const tw = twinOf(f), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
   if (dashing && !s.dashWas && tw) { s.stats[tw === 'fire' ? 'fireDash' : 'iceDash']++; cue(f, tw === 'fire' ? 'fireCast' : 'crackle') }
@@ -715,6 +783,8 @@ export function tickEnoch(f, opp, raw, W) {
   updateDisc(f, s, W)
   updateOrbs(f, s, W)
   updateWall(f, s, W, opp)
+  updateSnow(f, s, W, opp)
+  updateMeteors(f, s, W)
   // ramp landing lays a patch of the glide's element
   if (s.ramp && g && (f.vy || 0) >= 0) { lay(f, s, W, { type: s.ramp.type, cx: ctrX(f) }); s.stats.rampLand++; cue(f, 'land'); pushFx(s, 'landBurst', ctrX(f), feetY(f), face, { el: s.ramp.type }); s.ramp = null }
   s.pose = (s.glide || s.aslide) ? (s.aslide ? 'glide' : s.pose) : (s.ramp && !g) ? 'ramp' : (g && f._floorPlatformId && String(getPlatforms().find(p => p.id === f._floorPlatformId)?.owner || '').startsWith('enoch')) ? 'standDisc' : null
@@ -785,7 +855,7 @@ function superRelease(f, s, W, a, m) {
 export function activateEnochUlt(f, target, W, variant) {
   if (cine.active || !f || !target) return false
   const s = enState(f)
-  s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.wall = null
+  s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.wall = null; s.snow = null; s.meteors.length = 0
   Object.assign(cine, { active: true, frame: 0, caster: f, target, W, variant, done: 0, ticks: 0, scale: E.comboScale?.(f) ?? 1, dir: f.facing || 1,
     cx: f.x, tx: target.x, ty: target.y })
   s.ult = { variant, frame: 0, done: 0 }

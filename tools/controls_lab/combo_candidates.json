@@ -1,0 +1,34 @@
+{
+  "zoro": [
+    { "name": "Jab → Slash → Heavy slash → Taka Nami", "steps": ["Light", "Light", "Heavy", "↓↘→ + Special"] },
+    { "name": "Low thrust → Rising slash → Air slash → Tatsu Maki", "steps": ["Down + Light", "Up-Attack", "Jump", "Light", "↓·↓ + Special"] }
+  ],
+  "arlong": [
+    { "name": "Saw string", "steps": ["Light", "Light", "Heavy", "Down + Heavy"] },
+    { "name": "Low tide", "steps": ["Down + Light", "Forward + Light", "↓·↓ + Special"] },
+    { "name": "Torpedo refill", "steps": ["Light", "Forward + Light", "→·→ + Special"] },
+    { "name": "Bite route", "steps": ["Light", "Forward + Heavy", "↓↘→ + Special"], "note": "Bite applies bleed" },
+    { "name": "Seiken ender", "steps": ["Light", "Forward + Light", "↓↙← + Special"] }
+  ],
+  "dash_parr": [
+    { "doc": "dash", "name": "Jab, Jab, Heavy, Blur Dash", "steps": ["Light", "Light", "Heavy", "→·→ + Special"] },
+    { "doc": "dash", "name": "Low, Launcher, Air, Flurry", "steps": ["Down + Light", "Up + Heavy", "Jump", "Light", "↓↘→ + Special"] },
+    { "doc": "dash", "name": "Laps, Jab, Heavy, Flurry", "steps": ["↓·↓ + Special", "Light", "Heavy", "↓↘→ + Special"] }
+  ],
+  "spd_red": [
+    { "name": "Jab → Straight → Kick → Delta Charge", "steps": ["Light", "Light", "Light", "→·→ + Special"] },
+    { "name": "Low kick → Heavy kick → Air kick → Sky Uppercut", "steps": ["Down + Light", "Forward + Heavy", "Jump", "Light", "Up + Special"] },
+    { "name": "Phase Strike → Jab → Straight → Deltamax Strike", "steps": ["↓↘→ + Special", "Light", "Light", "↓↙← + Special"] }
+  ],
+  "sanji": [
+    { "name": "Collier → Épaule → Côtelette → Mouton Shot", "steps": ["Light", "Forward + Light", "Heavy", "↓↘→ + Special"] },
+    { "name": "Gigot → Selle → Poitrine → air kick → Concasse", "steps": ["↘ + Light", "Forward + Heavy", "Back + Heavy", "Jump", "Light", "↓·↓ + Special"] }
+  ],
+  "buggy": [
+    { "name": "Jab → Knife slash → Heavy carve → Knife Fan", "steps": ["Light", "Light", "Heavy", "Special"] },
+    { "name": "Low knife → Clown kick → Cannon → Stab", "steps": ["Down + Light", "Down + Heavy", "Forward + Special", "Special"] }
+  ],
+  "green_arrow": [
+    { "doc": "greenarrow", "name": "Pressure reset: Jab → Straight → Bow slash → Kestrel", "steps": ["Light", "Light", "Forward + Heavy", "Forward + Special"] }
+  ]
+}

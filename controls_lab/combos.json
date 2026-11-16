@@ -1,0 +1,4507 @@
+{
+ "version": 1,
+ "generated": "2026-11-15",
+ "note": "Every entry was verified in the real engine (tools/controls_lab/build_combos.mjs). Add your own: same shape, status \"verified\" after harness/controls_lab_combos.test.mjs passes.",
+ "combos": [
+  {
+   "id": "alt_sukuna:Up-Attack>Jump>Light",
+   "char": "alt_sukuna",
+   "name": "Up-Attack → jump → Light Attack",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    21,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 76,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "aoi_todo:Up-Attack>Jump>Light",
+   "char": "aoi_todo",
+   "name": "Up-Attack → jump → Light Attack",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    21,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 73,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "arlong:Light>Light>Heavy>Down+Heavy",
+   "char": "arlong",
+   "name": "Saw string",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy",
+    "Down + Heavy"
+   ],
+   "gaps": [
+    0,
+    10,
+    10,
+    18
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 198,
+   "difficulty": 3,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/arlong/COMBOS.md"
+  },
+  {
+   "id": "arlong:Down+Light>Forward+Light>↓·↓+Special",
+   "char": "arlong",
+   "name": "Low tide",
+   "steps": [
+    "Down + Light",
+    "Forward + Light",
+    "↓·↓ + Special"
+   ],
+   "gaps": [
+    0,
+    18,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 143,
+   "difficulty": 3,
+   "note": "uses 20 Tide",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/arlong/COMBOS.md"
+  },
+  {
+   "id": "arlong:Light>Forward+Light>→·→+Special",
+   "char": "arlong",
+   "name": "Torpedo refill",
+   "steps": [
+    "Light",
+    "Forward + Light",
+    "→·→ + Special"
+   ],
+   "gaps": [
+    0,
+    10,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 162,
+   "difficulty": 3,
+   "note": "uses 20 Tide",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/arlong/COMBOS.md"
+  },
+  {
+   "id": "arlong:Light>Forward+Light>↓↙←+Special",
+   "char": "arlong",
+   "name": "Seiken ender",
+   "steps": [
+    "Light",
+    "Forward + Light",
+    "↓↙← + Special"
+   ],
+   "gaps": [
+    0,
+    10,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 150,
+   "difficulty": 3,
+   "note": "uses 25 Tide",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/arlong/COMBOS.md"
+  },
+  {
+   "id": "arlong:Light>Light>Heavy",
+   "char": "arlong",
+   "name": "Jab → Jab → Kiribachi swing",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10,
+    10
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 142,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Light>Heavy>Special",
+   "char": "beast_boy",
+   "name": "Quick Jab → Long Straight → Turning Finish → Full Stretch → Gorilla Break",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    8,
+    31
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 141,
+   "difficulty": 2,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Light>Light>Heavy",
+   "char": "beast_boy",
+   "name": "Quick Jab → Long Straight → Turning Finish → Quick Jab → Long Straight → Turning Finish → Full Stretch",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8,
+    8
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 98,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Up-Attack>Jump>Light",
+   "char": "beast_boy",
+   "name": "Up-Attack → jump → Quick Jab → Long Straight → Turning Finish",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 75,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Light>Up-Attack",
+   "char": "beast_boy",
+   "name": "Quick Jab → Long Straight → Turning Finish → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Down+Light>Heavy",
+   "char": "beast_boy",
+   "name": "Ankle Check → Full Stretch",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Light>Heavy>Special",
+   "char": "cyborg",
+   "name": "Jab → Cross → Hammer (J1-J3) → Power Straight → Sonic Shot",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    10,
+    35
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 136,
+   "difficulty": 2,
+   "note": "uses 12 Power",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Light>Light>Heavy",
+   "char": "cyborg",
+   "name": "Jab → Cross → Hammer (J1-J3) → Jab → Cross → Hammer (J1-J3) → Power Straight",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10,
+    10
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 129,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Light>Up-Attack",
+   "char": "cyborg",
+   "name": "Jab → Cross → Hammer (J1-J3) → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Down+Light>Heavy",
+   "char": "cyborg",
+   "name": "Low Strike → Power Straight",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 110,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Light>Heavy",
+   "char": "cyborg",
+   "name": "Jab → Cross → Hammer (J1-J3) → Power Straight",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 102,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dash_parr:Light>Light>Heavy>→·→+Special",
+   "char": "dash_parr",
+   "name": "Jab, Jab, Heavy, Blur Dash",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy",
+    "→·→ + Special"
+   ],
+   "gaps": [
+    0,
+    6,
+    6,
+    23
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 110,
+   "difficulty": 4,
+   "note": "uses 10 Super Speed",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/dash/COMBOS.md"
+  },
+  {
+   "id": "dash_parr:↓·↓+Special>Light>Heavy>↓↘→+Special",
+   "char": "dash_parr",
+   "name": "Laps, Jab, Heavy, Flurry",
+   "steps": [
+    "↓·↓ + Special",
+    "Light",
+    "Heavy",
+    "↓↘→ + Special"
+   ],
+   "gaps": [
+    0,
+    13,
+    6,
+    23
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 84,
+   "difficulty": 5,
+   "note": "uses 35 Super Speed",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/dash/COMBOS.md"
+  },
+  {
+   "id": "dash_parr:Light>Light>Heavy",
+   "char": "dash_parr",
+   "name": "Jab → Jab → Heavy",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    6,
+    6
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 74,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dash_parr:Light>Up-Attack",
+   "char": "dash_parr",
+   "name": "Jab → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 62,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dash_parr:Light>Heavy",
+   "char": "dash_parr",
+   "name": "Jab → Heavy",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "elastigirl:Light>Light>Heavy",
+   "char": "elastigirl",
+   "name": "Stretch Jab → Stretch Jab → Elastic Haymaker",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 93,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "elastigirl:Up-Attack>Jump>Light",
+   "char": "elastigirl",
+   "name": "Rising Reach → jump → Stretch Jab",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    32,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 75,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "elastigirl:Light>Up-Attack",
+   "char": "elastigirl",
+   "name": "Stretch Jab → Rising Reach",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 70,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "elastigirl:Down+Light>Heavy",
+   "char": "elastigirl",
+   "name": "Stretch Sweep → Elastic Haymaker",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 85,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "elastigirl:Light>Heavy",
+   "char": "elastigirl",
+   "name": "Stretch Jab → Elastic Haymaker",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 78,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Light>Heavy>Special",
+   "char": "frozone",
+   "name": "Ice strike chain → Crystal strike → Ice Lance",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    10,
+    30
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 143,
+   "difficulty": 2,
+   "note": "uses 15 Frost",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Light>Light>Heavy",
+   "char": "frozone",
+   "name": "Ice strike chain → Ice strike chain → Crystal strike",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10,
+    10
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 112,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Up-Attack>Jump>Light",
+   "char": "frozone",
+   "name": "Up-Attack → jump → Ice strike chain",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 84,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Light>Up-Attack",
+   "char": "frozone",
+   "name": "Ice strike chain → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 78,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Down+Light>Heavy",
+   "char": "frozone",
+   "name": "Low ice sweep → Crystal strike",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "gojo:Light>Light>Heavy",
+   "char": "gojo",
+   "name": "Jab → Jab → Heavy Blow",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    14
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 92,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "gojo:Down+Light>Heavy",
+   "char": "gojo",
+   "name": "Down + Light → Heavy Blow",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 69,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "gojo:Light>Heavy",
+   "char": "gojo",
+   "name": "Jab → Heavy Blow",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 69,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "gojo:Light>Light",
+   "char": "gojo",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku:Light>Light>Heavy",
+   "char": "goku",
+   "name": "Jab Combo → Jab Combo → Power Strike",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 92,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku:Down+Light>Heavy",
+   "char": "goku",
+   "name": "Down + Light → Power Strike",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 69,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku:Light>Heavy",
+   "char": "goku",
+   "name": "Jab Combo → Power Strike",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 69,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku:Light>Light",
+   "char": "goku",
+   "name": "Jab Combo → Jab Combo",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku_black:Light>Light>Heavy",
+   "char": "goku_black",
+   "name": "Light Attack → Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    14
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 92,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku_black:Down+Light>Heavy",
+   "char": "goku_black",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 69,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku_black:Light>Heavy",
+   "char": "goku_black",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 69,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku_black:Light>Light",
+   "char": "goku_black",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_arrow:Light>Up-Attack",
+   "char": "green_arrow",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 78,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_arrow:Light>Down+Special",
+   "char": "green_arrow",
+   "name": "Light Attack → Anti Air Shot",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    12
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_arrow:Light>Light",
+   "char": "green_arrow",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Light>Heavy>Special",
+   "char": "green_ranger",
+   "name": "Straight Punch → Body Hook → Roundhouse Finish → Turning Kick → Dragon Edge",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    34
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 171,
+   "difficulty": 2,
+   "note": "uses 12 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Light>Light>Heavy",
+   "char": "green_ranger",
+   "name": "Straight Punch → Body Hook → Roundhouse Finish → Straight Punch → Body Hook → Roundhouse Finish → Turning Kick",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 132,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Light>Up-Attack",
+   "char": "green_ranger",
+   "name": "Straight Punch → Body Hook → Roundhouse Finish → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 93,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Light>Heavy",
+   "char": "green_ranger",
+   "name": "Straight Punch → Body Hook → Roundhouse Finish → Turning Kick",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 107,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Heavy>Special",
+   "char": "green_ranger",
+   "name": "Turning Kick → Dragon Edge",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    34
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 145,
+   "difficulty": 1,
+   "note": "uses 12 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "higuruma:Heavy>Special",
+   "char": "higuruma",
+   "name": "Giant Gavel Overhead → Extension of the Court",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    40
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 105,
+   "difficulty": 1,
+   "note": "uses 12 Cursed Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "homelander:Up-Attack>Jump>Light",
+   "char": "homelander",
+   "name": "Up-Attack → jump → Light Attack",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    26,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 83,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "itachi:Light>Light>Heavy",
+   "char": "itachi",
+   "name": "Low Sweep → Low Sweep → Blade Swing",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    14
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 90,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "itachi:Down+Light>Heavy",
+   "char": "itachi",
+   "name": "Down + Light → Blade Swing",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 66,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "itachi:Light>Heavy",
+   "char": "itachi",
+   "name": "Low Sweep → Blade Swing",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 66,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "itachi:Heavy>Special",
+   "char": "itachi",
+   "name": "Blade Swing → Great Fireball Jutsu",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    27
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 120,
+   "difficulty": 1,
+   "note": "uses 25 Chakra",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "itachi:Light>Light",
+   "char": "itachi",
+   "name": "Low Sweep → Low Sweep",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "jason:Up-Attack>Jump>Light",
+   "char": "jason",
+   "name": "Up-Attack → jump → Light Attack",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    22,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 68,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Light>Heavy>Special",
+   "char": "krybot",
+   "name": "Servo Jab → Follow-up Strike → Driving Kick → Piston Kick → Arm Blaster",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    34
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 159,
+   "difficulty": 2,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Light>Up-Attack",
+   "char": "krybot",
+   "name": "Servo Jab → Follow-up Strike → Driving Kick → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 89,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Light>Heavy",
+   "char": "krybot",
+   "name": "Servo Jab → Follow-up Strike → Driving Kick → Piston Kick",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 106,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Heavy>Special",
+   "char": "krybot",
+   "name": "Piston Kick → Arm Blaster",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    34
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 134,
+   "difficulty": 1,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Light>Down+Special",
+   "char": "krybot",
+   "name": "Servo Jab → Follow-up Strike → Driving Kick → Leap Intercept",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 89,
+   "difficulty": 1,
+   "note": "uses 18 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "luffy:Light>Heavy>Special",
+   "char": "luffy",
+   "name": "Quick Knuckle → Body Hook → Stretch Finish → Coiled Straight → Stretch Piston",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    12,
+    35
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 166,
+   "difficulty": 2,
+   "note": "uses 12 Stamina",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "luffy:Up-Attack>Jump>Light",
+   "char": "luffy",
+   "name": "Rising Stretch → jump → Quick Knuckle → Body Hook → Stretch Finish",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    36,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 98,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "luffy:Light>Heavy",
+   "char": "luffy",
+   "name": "Quick Knuckle → Body Hook → Stretch Finish → Coiled Straight",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    12
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 108,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "luffy:Heavy>Special",
+   "char": "luffy",
+   "name": "Coiled Straight → Stretch Piston",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    35
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 141,
+   "difficulty": 1,
+   "note": "uses 12 Stamina",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "luffy:Light>Special",
+   "char": "luffy",
+   "name": "Quick Knuckle → Body Hook → Stretch Finish → Stretch Piston",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    12
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "uses 12 Stamina",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mayuri:Up-Attack>Jump>Light",
+   "char": "mayuri",
+   "name": "Up-Attack → jump → Light Attack",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    20,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 62,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Light>Heavy>Special",
+   "char": "megumi_fushiguro",
+   "name": "Jab → Kick → Staff (Light chain) → Sword Arc → Divine Dog",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    28
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 108,
+   "difficulty": 2,
+   "note": "uses 12 Cursed Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Light>Light>Heavy",
+   "char": "megumi_fushiguro",
+   "name": "Jab → Kick → Staff (Light chain) → Jab → Kick → Staff (Light chain) → Sword Arc",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 90,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Down+Light>Heavy",
+   "char": "megumi_fushiguro",
+   "name": "Low Staff Check → Sword Arc",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Light>Heavy",
+   "char": "megumi_fushiguro",
+   "name": "Jab → Kick → Staff (Light chain) → Sword Arc",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 72,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Heavy>Special",
+   "char": "megumi_fushiguro",
+   "name": "Sword Arc → Divine Dog",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    28
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "uses 12 Cursed Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Heavy>Special",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Crescent Heel → Crescent Break",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    35
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    4
+   ],
+   "damage": 179,
+   "difficulty": 2,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Light>Heavy",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Palm Check → Turning Strike → Driving Heel → Crescent Heel",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 134,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Heavy>Special",
+   "char": "mmpr_black",
+   "name": "Crescent Heel → Crescent Break",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    35
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 153,
+   "difficulty": 1,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Up-Attack",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 92,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Heavy",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Crescent Heel",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 110,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Light>Heavy>Special",
+   "char": "mmpr_pink",
+   "name": "Palm Snap → Turning Check → Crescent Finish → High Crescent → Power Bow — Quick Shot",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    35
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 135,
+   "difficulty": 2,
+   "note": "uses 10 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Light>Light>Heavy",
+   "char": "mmpr_pink",
+   "name": "Palm Snap → Turning Check → Crescent Finish → Palm Snap → Turning Check → Crescent Finish → High Crescent",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 119,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Light>Up-Attack",
+   "char": "mmpr_pink",
+   "name": "Palm Snap → Turning Check → Crescent Finish → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 80,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Light>Heavy",
+   "char": "mmpr_pink",
+   "name": "Palm Snap → Turning Check → Crescent Finish → High Crescent",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 97,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Heavy>Special",
+   "char": "mmpr_pink",
+   "name": "High Crescent → Power Bow — Quick Shot",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    35
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 112,
+   "difficulty": 1,
+   "note": "uses 10 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:Light>Heavy>Special",
+   "char": "mmpr_white",
+   "name": "Open Palm → Body Check → Tiger Heel → Saba Cut → Saba's Answer",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    35
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 171,
+   "difficulty": 2,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:Light>Light>Heavy",
+   "char": "mmpr_white",
+   "name": "Open Palm → Body Check → Tiger Heel → Open Palm → Body Check → Tiger Heel → Saba Cut",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 133,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:Light>Up-Attack",
+   "char": "mmpr_white",
+   "name": "Open Palm → Body Check → Tiger Heel → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 91,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:Down+Light>Heavy",
+   "char": "mmpr_white",
+   "name": "Low Heel → Saba Cut",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 119,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:Light>Heavy",
+   "char": "mmpr_white",
+   "name": "Open Palm → Body Check → Tiger Heel → Saba Cut",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 109,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mr_incredible:Light>Up-Attack",
+   "char": "mr_incredible",
+   "name": "One-Two-Finish → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 97,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mr_incredible:Heavy>Special",
+   "char": "mr_incredible",
+   "name": "Heavy / Advancing Punch → Incredible Impact",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    34
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 171,
+   "difficulty": 1,
+   "note": "uses 18 Power",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mr_incredible:Light>Light",
+   "char": "mr_incredible",
+   "name": "One-Two-Finish → One-Two-Finish",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 74,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "naruto:Light>Light>Heavy",
+   "char": "naruto",
+   "name": "Jab Combo → Jab Combo → Power Strike",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    14
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 88,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "naruto:Heavy>Special",
+   "char": "naruto",
+   "name": "Power Strike → Rasengan",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    27
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 115,
+   "difficulty": 1,
+   "note": "uses 35 Chakra",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "naruto:Down+Light>Heavy",
+   "char": "naruto",
+   "name": "Down + Light → Power Strike",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "naruto:Light>Heavy",
+   "char": "naruto",
+   "name": "Jab Combo → Power Strike",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "naruto:Light>Light",
+   "char": "naruto",
+   "name": "Jab Combo → Jab Combo",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 52,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Light>Heavy>Special",
+   "char": "raven",
+   "name": "Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Dark Palm → Dark Pulse",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    8,
+    31
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 113,
+   "difficulty": 2,
+   "note": "uses 10 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Light>Light>Heavy",
+   "char": "raven",
+   "name": "Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Dark Palm",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8,
+    8
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 98,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Light>Up-Attack",
+   "char": "raven",
+   "name": "Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Down+Light>Heavy",
+   "char": "raven",
+   "name": "Low Ground Check → Dark Palm",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Light>Heavy",
+   "char": "raven",
+   "name": "Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Dark Palm",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rick:Up-Attack>Jump>Light",
+   "char": "rick",
+   "name": "Launcher → jump → Jab",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    21,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 55,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rick:Down+Light>Heavy",
+   "char": "rick",
+   "name": "Down + Light → Heavy Hit",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 57,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rick:Light>Heavy",
+   "char": "rick",
+   "name": "Jab → Heavy Hit",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 57,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rick:Heavy>Special",
+   "char": "rick",
+   "name": "Heavy Hit → Portal Blast",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    25
+   ],
+   "hits": 1,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 70,
+   "difficulty": 1,
+   "note": "uses 30 Gadget Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Light>Heavy>Special",
+   "char": "robin",
+   "name": "Back-fist → Straight → Rising Finish (Punch 1-3) → Staff Sweep → Bird's-Eye Bomb",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    13,
+    28
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 119,
+   "difficulty": 2,
+   "note": "uses 12 Gadget Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Light>Light>Heavy",
+   "char": "robin",
+   "name": "Back-fist → Straight → Rising Finish (Punch 1-3) → Back-fist → Straight → Rising Finish (Punch 1-3) → Staff Sweep",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 90,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Up-Attack>Jump>Light",
+   "char": "robin",
+   "name": "Up-Attack → jump → Back-fist → Straight → Rising Finish (Punch 1-3)",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 67,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Light>Up-Attack",
+   "char": "robin",
+   "name": "Back-fist → Straight → Rising Finish (Punch 1-3) → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 60,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Down+Light>Heavy",
+   "char": "robin",
+   "name": "Low Staff Check → Staff Sweep",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Light>Forward+Light>Heavy>↓↘→+Special",
+   "char": "sanji",
+   "name": "Collier → Épaule → Côtelette → Mouton Shot",
+   "steps": [
+    "Light",
+    "Forward + Light",
+    "Heavy",
+    "↓↘→ + Special"
+   ],
+   "gaps": [
+    0,
+    10,
+    10,
+    21
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 186,
+   "difficulty": 4,
+   "note": "uses 15 Heat",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/sanji/COMBOS.md"
+  },
+  {
+   "id": "sanji:Light>Heavy>Special",
+   "char": "sanji",
+   "name": "1 · Collier (neck) → 3 · Côtelette (ribs) → Wake-up crescent",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    10,
+    26
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 134,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Light>Light>Heavy",
+   "char": "sanji",
+   "name": "1 · Collier (neck) → 1 · Collier (neck) → 3 · Côtelette (ribs)",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15,
+    10
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 115,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Up-Attack>Jump>Light",
+   "char": "sanji",
+   "name": "Up-Attack → jump → 1 · Collier (neck)",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 114,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Light>Up-Attack",
+   "char": "sanji",
+   "name": "1 · Collier (neck) → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 95,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Light>Heavy>Special",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Cross Baton → Deltamax Shot",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    34
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 160,
+   "difficulty": 2,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Light>Up-Attack",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 86,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Light>Heavy",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Cross Baton",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 108,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Heavy>Special",
+   "char": "spd_blue",
+   "name": "Cross Baton → Deltamax Shot",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    34
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 134,
+   "difficulty": 1,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Light>Down+Special",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Rising Intercept",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 91,
+   "difficulty": 1,
+   "note": "uses 18 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Light>Heavy>Special",
+   "char": "spd_green",
+   "name": "Quick Jab → Step Punch → High Kick → Turning Side Kick → Deltamax Check",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    33
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 153,
+   "difficulty": 2,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Light>Up-Attack",
+   "char": "spd_green",
+   "name": "Quick Jab → Step Punch → High Kick → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Light>Heavy",
+   "char": "spd_green",
+   "name": "Quick Jab → Step Punch → High Kick → Turning Side Kick",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 103,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Heavy>Special",
+   "char": "spd_green",
+   "name": "Turning Side Kick → Deltamax Check",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    33
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 128,
+   "difficulty": 1,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Light>Down+Special",
+   "char": "spd_green",
+   "name": "Quick Jab → Step Punch → High Kick → Rising Arc",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 85,
+   "difficulty": 1,
+   "note": "uses 18 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Light>Heavy>Special",
+   "char": "spd_pink",
+   "name": "Baton Jab → Cross → Body Lunge → Side Kick → Deltamax Shot",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    36
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 159,
+   "difficulty": 2,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Light>Light>Heavy",
+   "char": "spd_pink",
+   "name": "Baton Jab → Cross → Body Lunge → Baton Jab → Cross → Body Lunge → Side Kick",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 131,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Light>Up-Attack",
+   "char": "spd_pink",
+   "name": "Baton Jab → Cross → Body Lunge → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 84,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Light>Heavy",
+   "char": "spd_pink",
+   "name": "Baton Jab → Cross → Body Lunge → Side Kick",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 108,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Heavy>Special",
+   "char": "spd_pink",
+   "name": "Side Kick → Deltamax Shot",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    36
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 135,
+   "difficulty": 1,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_red:Light>Light>Light>→·→+Special",
+   "char": "spd_red",
+   "name": "Jab → Straight → Kick → Delta Charge",
+   "steps": [
+    "Light",
+    "Light",
+    "Light",
+    "→·→ + Special"
+   ],
+   "gaps": [
+    0,
+    7,
+    7,
+    12
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 159,
+   "difficulty": 4,
+   "note": "uses 15 Delta",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/spd_red/COMBOS.md"
+  },
+  {
+   "id": "spd_red:Light>Light>Heavy",
+   "char": "spd_red",
+   "name": "Jab → Jab → Kick",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    7,
+    7
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 130,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_red:Light>Up-Attack",
+   "char": "spd_red",
+   "name": "Jab → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 102,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_red:Light>Heavy",
+   "char": "spd_red",
+   "name": "Jab → Kick",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_red:Light>Down+Special",
+   "char": "spd_red",
+   "name": "Jab → Delta Blaster",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 78,
+   "difficulty": 1,
+   "note": "uses 10 Delta",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Light>Heavy>Special",
+   "char": "spd_yellow",
+   "name": "Snap Jab → Draw Thrust → High-Low Cut → Cross Cut → Compact Pistol",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    33
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 130,
+   "difficulty": 2,
+   "note": "uses 10 Delta Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Light>Light>Heavy",
+   "char": "spd_yellow",
+   "name": "Snap Jab → Draw Thrust → High-Low Cut → Snap Jab → Draw Thrust → High-Low Cut → Cross Cut",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 117,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Light>Up-Attack",
+   "char": "spd_yellow",
+   "name": "Snap Jab → Draw Thrust → High-Low Cut → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 80,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Down+Light>Heavy",
+   "char": "spd_yellow",
+   "name": "Low Draw → Cross Cut",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 104,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Light>Heavy",
+   "char": "spd_yellow",
+   "name": "Snap Jab → Draw Thrust → High-Low Cut → Cross Cut",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 94,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Light>Heavy>Special",
+   "char": "starfire",
+   "name": "Star Jab → Advancing Strike → Tamaranean Finisher (J1-J3) → Heavy Starfist → Starbolt",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    8,
+    30
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 108,
+   "difficulty": 2,
+   "note": "uses 10 Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Light>Light>Heavy",
+   "char": "starfire",
+   "name": "Star Jab → Advancing Strike → Tamaranean Finisher (J1-J3) → Star Jab → Advancing Strike → Tamaranean Finisher (J1-J3) → Heavy Starfist",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8,
+    8
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 95,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Light>Up-Attack",
+   "char": "starfire",
+   "name": "Star Jab → Advancing Strike → Tamaranean Finisher (J1-J3) → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 62,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Down+Light>Heavy",
+   "char": "starfire",
+   "name": "Low Sweep → Heavy Starfist",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 83,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Light>Heavy",
+   "char": "starfire",
+   "name": "Star Jab → Advancing Strike → Tamaranean Finisher (J1-J3) → Heavy Starfist",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 76,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sukuna:Light>Light>Heavy",
+   "char": "sukuna",
+   "name": "Slash → Slash → Heavy Cut",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    14
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 101,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sukuna:Up-Attack>Jump>Light",
+   "char": "sukuna",
+   "name": "Launcher → jump → Slash",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    21,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 80,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sukuna:Down+Light>Heavy",
+   "char": "sukuna",
+   "name": "Down + Light → Heavy Cut",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 75,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sukuna:Light>Heavy",
+   "char": "sukuna",
+   "name": "Slash → Heavy Cut",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 75,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sukuna:Heavy>Special",
+   "char": "sukuna",
+   "name": "Heavy Cut → Cleave",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    24
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 148,
+   "difficulty": 1,
+   "note": "uses 40 Cursed Energy",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "syndrome:Light>Light>Heavy",
+   "char": "syndrome",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Spinner Snap → Drone Cross → Spinner Pass → Claw Drive",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    11,
+    11
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 115,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "syndrome:Up-Attack>Jump>Light",
+   "char": "syndrome",
+   "name": "Up-Attack → jump → Spinner Snap → Drone Cross → Spinner Pass",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 84,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "syndrome:Light>Up-Attack",
+   "char": "syndrome",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 78,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "syndrome:Down+Light>Heavy",
+   "char": "syndrome",
+   "name": "Low Spinner Skim → Claw Drive",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "syndrome:Light>Heavy",
+   "char": "syndrome",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Claw Drive",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 92,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "tobi:Light>Light>Heavy",
+   "char": "tobi",
+   "name": "Light Attack → Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    14,
+    14
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 76,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "tobi:Down+Light>Heavy",
+   "char": "tobi",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 56,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "tobi:Light>Heavy",
+   "char": "tobi",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 56,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "tobi:Light>Light",
+   "char": "tobi",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "vegeta:Heavy>Special",
+   "char": "vegeta",
+   "name": "Power Strike → Galick Gun",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    27
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 70,
+   "difficulty": 1,
+   "note": "uses 30 Ki",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "vegeta:Light>Down+Special",
+   "char": "vegeta",
+   "name": "Jab Combo → Big Bang Attack",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "uses 25 Ki",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "vegeta:Light>Special",
+   "char": "vegeta",
+   "name": "Jab Combo → Galick Gun",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "uses 30 Ki",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "yuji:Down+Light>Heavy",
+   "char": "yuji",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 70,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "yuji:Light>Heavy",
+   "char": "yuji",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 70,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "yuji:Heavy>Special",
+   "char": "yuji",
+   "name": "Heavy Attack → Divergent Fist",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    25
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 93,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "yuta:Up-Attack>Jump>Light",
+   "char": "yuta",
+   "name": "Up-Attack → jump → Light Attack",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    20,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 63,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zaraki_shikai:Light>Light>Heavy",
+   "char": "zaraki_shikai",
+   "name": "Light Attack → Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16,
+    16
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 70,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zaraki_shikai:Down+Light>Heavy",
+   "char": "zaraki_shikai",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zaraki_shikai:Light>Heavy",
+   "char": "zaraki_shikai",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zaraki_shikai:Light>Light",
+   "char": "zaraki_shikai",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zoro:Light>Light>Heavy>↓↘→+Special",
+   "char": "zoro",
+   "name": "Jab → Slash → Heavy slash → Taka Nami",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy",
+    "↓↘→ + Special"
+   ],
+   "gaps": [
+    0,
+    9,
+    9,
+    31
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 154,
+   "difficulty": 4,
+   "note": "uses 10 Spirit",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "docs/zoro/COMBOS.md"
+  },
+  {
+   "id": "zoro:Light>Light>Heavy",
+   "char": "zoro",
+   "name": "Jab → Jab → Heavy slash",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 128,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zoro:Light>Up-Attack",
+   "char": "zoro",
+   "name": "Jab → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 80,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zoro:Down+Light>Heavy",
+   "char": "zoro",
+   "name": "Low thrust → Heavy slash",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 105,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zoro:Light>Heavy",
+   "char": "zoro",
+   "name": "Jab → Heavy slash",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 97,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-15",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  }
+ ]
+}

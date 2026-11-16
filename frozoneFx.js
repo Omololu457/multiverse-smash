@@ -12,7 +12,7 @@ import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
 import { frozone as FZ, FROZONE_MOVES as MV, HAND, LANCE, BLACK_ICE, CHILL, FREEZE, ULT, RAIL, TRAIL, WALL } from './frozoneData.js'
 import { FROZONE_PARTS as PA } from './frozoneSprites.js'
-import { frozoneUltView, ultRoute, INTRO } from './frozoneState.js'
+import { frozoneUltView, ultRoute, INTRO, hasFzKit } from './frozoneState.js'
 import { FROZONE_FX_COLORS } from './frozoneSkins.js'
 
 const cache = new Map()
@@ -315,9 +315,9 @@ function drawIntro(c, f, P) {
 // ── public draw passes (game.js) ──
 export function drawFrozoneUnder(c, p1, p2, W) {
   for (const f of [p1, p2]) {
-    if (!isFz(f)) continue
+    if (!hasFzKit(f)) continue   // Frozone + hosts (Enoch's Ice Stance ice); the HUD and intro card stay Frozone-only
     const P = colsOf(f)
-    if (f._introPlaying) { drawIntro(c, f, P); continue }
+    if (f._introPlaying) { if (isFz(f)) drawIntro(c, f, P); continue }
     const s = f._frozone; if (!s) continue
     const v = frozoneUltView(f); if (v) { drawUlt(c, f, { ...v, target: f === p1 ? p2 : p1 }, P, 'under') }
     drawPatch(c, f, s, P); drawIceObjects(c, f, s, P); drawTrail(c, f, s, P); drawFlash(c, f, s, P)
@@ -325,7 +325,7 @@ export function drawFrozoneUnder(c, p1, p2, W) {
 }
 export function drawFrozoneOver(c, p1, p2, W) {
   for (const f of [p1, p2]) {
-    if (!isFz(f)) continue
+    if (!hasFzKit(f)) continue
     const s = f._frozone; if (!s || f._introPlaying) continue
     const P = colsOf(f), v = frozoneUltView(f)
     if (v) drawUlt(c, f, { ...v, target: f === p1 ? p2 : p1 }, P, 'over')

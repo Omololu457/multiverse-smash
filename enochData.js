@@ -2,8 +2,9 @@
 // A tribute fighter for a friend who helped build Multiverse Smash: Frozone's ice, a visor that burns, and
 // what happens where the two meet. Logic: enochState.js (sim) · enoch.js (command layer) · enochFx.js (render).
 // Art: a region recolour of Frozone's supplied GBA sheet (tools/enoch/build_sprites.py; docs/enoch/EDIT_LEDGER.md).
-// Frozone is untouched: nothing here imports or mutates frozone*.js.
+// ICE STANCE (tap Charge): Enoch runs Frozone's own kit through frozoneState's host table — Frozone's DATA is only read here.
 import { ENOCH_ANIM } from './enochSprites.js'
+import { TIMELINE as FZ_TIMELINE, MOVE_STRIP as FZ_STRIP } from './frozoneData.js'
 
 // Stored damage = authored raw (roster convention, as Frozone): live loss = floor(stored × combo scale × 0.6 global).
 export const dmg = raw => Math.round(raw)
@@ -70,6 +71,9 @@ export const WALLS = {
   fire: { ahead: 110, w: 44, h: 140, rise: 8, life: 150, hp: 3, tickEvery: 15, tickRaw: 8, hitstun: 10, patch: 80 },
 }
 export const WALL_STEAM = { raw: 45, w: 120, h: 150 }
+// CHANNEL (hold Down + Charge = cool down, Up + Charge = heat up): rooted in place, the thermal meter moves `rate` / frame
+// toward ±`to` (inside the zone, short of an overload); any hit or release ends it.
+export const CHANNEL = { rate: 0.75, to: 70 }
 export const SCORCH = { ahead: 120 }
 export const CONDENSE = { speed: 4, life: 150, w: 34, h: 34, handY: 70, steamRaw: 70, hailRaw: 60, hailSpeed: 9 }
 export const TIDE = { burstRaw: 30 }
@@ -123,5 +127,9 @@ export const enoch = {
   animationData: {
     ...ENOCH_ANIM,
     ...Object.fromEntries(Object.entries(ALL_MOVES).map(([k, m]) => [k, { ...ENOCH_ANIM[m.strip], frameTimeline: TIMELINE[k] || [[0, 0]] }])),
+    // ICE STANCE moves (sprite.js plays 'fz_' + the move key while a Frozone-kit attack runs) + the ICE STANCE ultimate's poses
+    ...Object.fromEntries(Object.entries(FZ_STRIP).map(([k, st]) => ['fz_' + k, { ...ENOCH_ANIM['fz' + st.slice(3)], frameTimeline: FZ_TIMELINE[k] || [[0, 0]] }])),
+    ultCast: { ...ENOCH_ANIM.fzUlt, frameTimeline: [[0, 0], [10, 1]] }, ultShatter: { ...ENOCH_ANIM.fzUlt, frameTimeline: [[0, 1], [16, 2]] },
+    ultSkate: ENOCH_ANIM.ultSkate, ultBrake: ENOCH_ANIM.ultBrake,
   },
 }

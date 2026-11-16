@@ -6,7 +6,7 @@
 // Up-Attack → Light → Heavy.
 // SPECIAL DIRECTION PRIORITY (facing-relative, sampled on the press frame): Up > Forward > Back > Down > Neutral.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
-import { isFrozone, fzState, startFzMove, registerFrozoneEngine, isFrozoneUltActive } from './frozoneState.js'
+import { hasFzKit, fzState, startFzMove, registerFrozoneEngine, isFrozoneUltActive } from './frozoneState.js'
 import { CHAIN, HEAVY_FROM, SPECIAL_FROM, ULT_FROM } from './frozoneData.js'
 
 registerFrozoneEngine({ startMove, comboScale: getComboScale })
@@ -20,7 +20,7 @@ export const specialDir = e => e.up ? 'up' : e.fwd ? 'fwd' : e.back ? 'back' : e
 export const SPECIAL = { neutral: 'fLance', fwd: 'fRush', up: 'fRise', down: 'fBlackIce', back: 'fBreaker' }
 
 export function updateFrozoneCommandCombat(f, inp, opp, W) {
-  if (!isFrozone(f)) return false
+  if (!hasFzKit(f)) return false   // Frozone, or a registered host (Enoch's Ice Stance calls this from his own layer)
   const s = fzState(f), g = !!(f.onGround || f.grounded), a = f.attacking ? f.currentAttack : null
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0 || isFrozoneUltActive()) return 'consumed'
   if (a && a._ultPose) return 'consumed'

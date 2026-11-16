@@ -65,7 +65,9 @@ try {
     { dirs: '252', btn: { special: true }, label: 'Frost Floor (↓↓+S)' }, { cleanOf: 'frostFloor', dirs: '656', btn: { special: true }, label: 'Heat Lens (→→+S) — FIRE on the ICE → burst' },
     { cleanOf: 'heatLens', btn: { light: true, right: true }, label: 'Straight (→+L)' }, { cleanOf: 'straight', btn: { heavy: true }, label: 'Heavy' }], ['frostFloor', 'heatLens', 'burst', 'straight', 'heavy'])
   // 3. Ice Glide past → Fire Glide → reaction → Steam Burst
-  await run('C3', `(a,b,H)=>{a.x=1000;b.x=1400;a.facing=1;b.facing=-1;H.setThermal(0)}`, [
+  // (2026-11-16: holding Charge no longer starts a glide — he starts it the remaining way: a double-tap forward on his own ICE)
+  await run('C3', `(a,b,H)=>{a.x=1000;b.x=1400;a.facing=1;b.facing=-1;H.setThermal(0);H.lay({type:'ice',cx:a.x+a.w/2,width:90})}`, [
+    { btn: { dash: true, right: true }, label: 'double-tap on his ICE → Ice Glide' },
     { hold: { charge: true }, until: `(a,b)=>a.x > b.x + b.w + 40`, label: 'Ice Glide past (skates through)' },
     { hold: { charge: true, left: true }, until: `(a,b,H)=>H.state().s.glide?.dir===-1`, label: 'turn' },
     { hold: { charge: true }, btn: { heavy: true }, label: 'Fire Glide back over the ice (the trails react)' },

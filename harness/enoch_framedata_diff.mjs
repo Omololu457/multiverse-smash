@@ -54,7 +54,22 @@ if (skA && skB) {
 const md5 = p => crypto.createHash('md5').update(fs.readFileSync(p)).digest('hex')
 const walk = (dir, pred) => { const out = []; const go = d => { if (!fs.existsSync(d)) return; for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) go(p); else if (pred(path.relative(dir, p))) out.push(path.relative(dir, p)) } }; go(dir); return out }
 const watched = walk(tmp, r => /^(frozone|homelander|superman|sanji|arlong|elastigirl|abilities|flight|greenArrow|drones|munitions)[^/]*\.(js|png)$/i.test(r) || /^assets\/(frozone|homelander|superman|sanji|arlong|elastigirl)\//.test(r) || /^Game Boy Advance - The Incredibles - Playable Characters - Frozone\.png$/.test(r) || /^homelander_sfx/.test(r))
-const changed = watched.filter(r => !fs.existsSync(path.join(ROOT, r)) || md5(path.join(tmp, r)) !== md5(path.join(ROOT, r)))
-ok(`Frozone / Superman / Homelander / Sanji / Arlong / Elastigirl / abilities.js / flight.js source + sprite files byte-identical (${watched.length} files)`, !changed.length, changed.slice(0, 12).join(', '))
+// 2026-11-16 (owner: "give him all of the moves from frozone"): Enoch's ICE STANCE runs Frozone's own kit through a HOST TABLE
+// in frozone.js / frozoneState.js / frozoneFx.js. Those three files are checked separately below: every added line must be
+// part of the host table (or a comment, or an old line re-gated), so Frozone's paths stay as they were. Frozone's behaviour
+// itself is covered by his own suites (frozone.test / frozone_damage / frozone_skins / frozone_boot, identical before / after).
+const HOSTED = ['frozone.js', 'frozoneState.js', 'frozoneFx.js']
+const changed = watched.filter(r => !HOSTED.includes(r) && (!fs.existsSync(path.join(ROOT, r)) || md5(path.join(tmp, r)) !== md5(path.join(ROOT, r))))
+ok(`Frozone / Superman / Homelander / Sanji / Arlong / Elastigirl / abilities.js / flight.js source + sprite files byte-identical (${watched.length - HOSTED.length} files; the 3 hosted Frozone files checked next)`, !changed.length, changed.slice(0, 12).join(', '))
+{
+  const HOST = /hasFzKit|fzMobile|hostOf|FZ_HOSTS|registerFrozoneHost|\bpaid\b|\bmob\b|^\s*\/\//, bad = []
+  for (const r of HOSTED) {
+    const A = fs.readFileSync(path.join(tmp, r), 'utf8').split('\n'), B = fs.readFileSync(path.join(ROOT, r), 'utf8').split('\n'), old = new Set(A.map(l => l.trim()))
+    for (const l of B) { const t = l.trim(); if (!t || old.has(t)) continue
+      if (HOST.test(t) || old.has(t.replace(/^else /, '')) || /^if \(isFz\(f\)\) drawIntro/.test(t) || (t.includes('drawIntro') && t.includes('isFz(f)'))) continue
+      bad.push(r + ': ' + t.slice(0, 120)) }
+  }
+  ok('the 3 hosted Frozone files differ ONLY by the host table (hasFzKit / fzMobile / host pay)', !bad.length, bad.slice(0, 6).join('\n'))
+}
 console.log(`\n  ENOCH FRAME-DATA DIFF vs ${BASE.slice(0, 10)}: ${pass} passed, ${fail} failed`)
 fs.rmSync(tmp, { recursive: true, force: true }); process.exit(fail ? 1 : 0)

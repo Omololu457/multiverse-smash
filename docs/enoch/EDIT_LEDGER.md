@@ -119,42 +119,42 @@ suit has two tones, so a two-step mapping keeps every shading step without inven
 - `skate:5` → run, walk, walk_back
 - `skate:6` → run, walk, walk_back
 - `skate:7` → run, walk, walk_back
-- `cast:0` → atkFloor, atkLow, atkRise, atkSteam, atkWake, crouch
-- `cast:1` → atkLow, discPlant, guard
-- `cast:2` → atkAir, atkLow
+- `cast:0` → atkFloor, atkLow, atkRise, atkSteam, atkWake, channel, crouch, fzBreaker, fzHeavy
+- `cast:1` → atkLow, channel, discPlant, fzBreaker, fzHeavy, guard
+- `cast:2` → atkAir, atkLow, channel, fzBreaker, fzHeavy
 - `ice:0` → atkSlide, dash
 - `ice:1` → atkSlide, dash
-- `ice:2` → atkSlide, dash, land
-- `ice:3` → jump, ramp
-- `ice:4` → atkAir, doubleJump, jump, ramp
-- `ice:5` → fall, ramp
+- `ice:2` → atkSlide, dash, fzDownAir, land
+- `ice:3` → fzRise, jump, ramp
+- `ice:4` → atkAir, doubleJump, fzRise, jump, ramp
+- `ice:5` → fall, fzDownAir, ramp
 - `react:3` → atkAir, doubleJump, hurt, hurt_air
-- `ice:6` → discPlant
-- `ice:7` → glide, intro
-- `ice:8` → glide, intro
-- `ice:9` → glide, intro
-- `ice:10` → glide, intro, standDisc, winDisc
-- `ice:11` → glideTurn, intro
+- `ice:6` → discPlant, fzRush, ultSkate
+- `ice:7` → fzRush, glide, intro, ultSkate
+- `ice:8` → fzRush, glide, intro, ultSkate
+- `ice:9` → fzRush, glide, intro, ultSkate
+- `ice:10` → fzRush, glide, intro, standDisc, ultSkate, winDisc
+- `ice:11` → fzRush, glideTurn, intro, ultBrake
 - `react:1` → getup, hurt, lose
 - `react:0` → knockdown
 - `react:2` → knockdown
 - `down:0` → knockdown
 - `down:1` → knockdown, lose
 - `down:2` → getup, lose
-- `gesture:0` → atkJab, atkLens, getup
-- `gesture:1` → atkJab, atkStraight
-- `gesture:5` → atkCondense, atkJab, atkLens, atkSuper, taunt
-- `gesture:7` → atkBlast, atkCondense, atkCone, atkFloor, atkHeavy, atkJab, atkLens, atkRise, atkScorch, atkStraight, atkSuper, atkTide, atkWake, win
-- `sweep:0` → atkBlast, atkStraight
-- `sweep:5` → atkBlast, atkScorch, atkSteam, atkStraight, atkWake
-- `gesture:2` → atkCone, atkHeavy, atkRise
-- `gesture:3` → atkBlast, atkCondense, atkCone, atkHeavy, atkSuper, atkTide, taunt, win
-- `sweep:1` → atkCone, atkHeavy, atkSteam, atkTide, atkWake
-- `sweep:4` → atkFloor, atkHeavy, atkTide
-- `gesture:4` → atkCondense, atkLens, atkRise, atkScorch, atkSuper, atkTide, taunt, win
-- `sweep:2` → atkBlast, atkSteam
-- `sweep:3` → atkCone, atkFloor, atkScorch
-- `gesture:6` → atkScorch, atkSuper
+- `gesture:0` → atkBlast, atkJab, atkLens, getup
+- `gesture:1` → atkJab, atkStraight, fzLight
+- `gesture:5` → atkBlast, atkCondense, atkJab, atkLens, atkSuper, fzAir, fzFinish, fzLance, fzLaunch, fzUlt, taunt
+- `gesture:7` → atkBlast, atkCondense, atkCone, atkFloor, atkHeavy, atkJab, atkLens, atkRise, atkScorch, atkStraight, atkSuper, atkTide, atkWake, fzUlt, win
+- `sweep:0` → atkStraight, fzLow
+- `sweep:5` → atkScorch, atkSteam, atkStraight, atkWake, fzLow
+- `gesture:2` → atkCone, atkHeavy, atkRise, fzLight
+- `gesture:3` → atkBlast, atkCondense, atkCone, atkHeavy, atkSuper, atkTide, fzLight2, taunt, win
+- `sweep:1` → atkCone, atkHeavy, atkSteam, atkTide, atkWake, fzLow
+- `sweep:4` → atkFloor, atkHeavy, atkTide, fzLow
+- `gesture:4` → atkBlast, atkCondense, atkLens, atkRise, atkScorch, atkSuper, atkTide, fzBreaker, fzFinish, fzLance, fzLight2, fzUlt, taunt, win
+- `sweep:3` → atkCone, atkFloor, atkScorch, fzLow
+- `gesture:6` → atkScorch, atkSuper, fzBlackIce, fzLaunch
+- `sweep:2` → atkSteam, fzLow
 - `ice:12` → introSettle
 - `portrait:0` → portrait (recoloured bust)
 

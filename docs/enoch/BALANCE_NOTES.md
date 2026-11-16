@@ -80,3 +80,15 @@ The brief's values, verified live against a blocking dummy:
 | (glide passes the foe) | an ICE glide passes through (physics pass-through hook); a fire glide collides | combo 3's "Ice Glide past" |
 | super from full meter | also cancellable out of a clean committed special (Tide Break) | combo 5 |
 | Frozone untouched | still byte-identical; Frozone is treated as an ice-walker on Enoch's ice (Enoch-side rule) | a skater on ice; keeps the mirror 5-5 |
+
+## 2026-11-16: Ice Stance, the channel, Charge inputs, effects
+- **Tap Charge** = ICE STANCE ⇄ elemental. In Ice Stance he runs Frozone's own kit (frozoneState host table, `registerFrozoneHost('enoch')`):
+  strike chain, Ice Lance, Glacier Rush, Rising Glacier, Black Ice, Icebreaker, Ice Wall, Chill → Freeze → Shatter, Ice Flash /
+  Ice Stream / Ice Glider, and WHITEOUT (Frozone's ultimate on his poses). Frozone specials cost Enoch COLD thermal, not meter.
+- **Holding Charge no longer starts a glide** (owner: "that sucks"). The glide still starts from a double-tap on his own ICE or a
+  guard cancel, and a held Charge still carries it.
+- **Down + Charge (hold)** = channel COLD, **Up + Charge (hold)** = channel HEAT: rooted, 0.75 / frame toward ±70 (short of an
+  overload), not during an overload. **Forward + Charge** = Ice Disc (was Down + Charge).
+- Ice Blast uses the sheet's standing point-and-shoot frames; the shard is drawn as a crystal spike in flight.
+- Effects from the owner-supplied effect sheets (tools/enoch/cut_vfx.py → assets/enoch/vfx, enochVfx.js), render-only:
+  ice burst on shard hits / shatters, fire pillars on the Fire Wall, fire puffs on embers, water splashes, channel auras.

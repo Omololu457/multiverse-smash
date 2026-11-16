@@ -17,12 +17,13 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
   tickField, patchesAt, applyPatchEffects, clearElementFlags, elWet, CALM_FRAMES } from './elements.js'
 import { marchBeam, beamFloorHit, createLaser, laserReady, laserStart, laserStep, laserCut } from './beam.js'
+import { registerFrozoneHost } from './frozoneState.js'
 import { spawnPlatform, recedePlatform, getPlatforms } from './platforms.js'
 import { dirDigit, motionMatch } from './elastigirlState.js'
 
@@ -32,13 +33,37 @@ export const TP = registerThermal('enoch', {})          // the brief's numbers a
 const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, iceGlide: 0, fireGlide: 0, switches: 0, ramps: 0, rampLand: 0, discs: 0, discMelt: 0,
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
-  sanjiMelt: 0, arlongDouse: 0, meter: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0 })
+  sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER),
+  th: createThermal(), field: createField(4), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0,
   cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
   stats: stats0(), lastReject: null, cues: [] }
 
 const E = { startMove: null, comboScale: null }
+// ── ICE STANCE: tap Charge → Enoch runs FROZONE'S OWN KIT (frozoneState host table): his chain / heavy / launcher / air moves,
+// Ice Lance · Glacier Rush · Rising Glacier · Black Ice · Icebreaker, Down+Heavy Ice Wall, Chill → Freeze → Shatter, Ice Flash
+// (double-tap), Ice Stream (air double-tap), Ice Glider (hold Jump falling) and CITY ON ICE (Ultimate). Tap Charge again →
+// back to his own (elemental) kit. Frozone's specials cost Enoch THERMAL (cold), like his own ice moves; the ultimate costs
+// his Super meter. Frozone's own code paths are unchanged (the host table is never consulted for him).
+const ENOCH_DASH = 26
+export const ICE_STANCE = { switchLock: 10 }
+registerFrozoneHost('enoch', {
+  mobility: f => f._enoch?.stance === 'ice',
+  pay: (f, key, cost, commit) => {
+    if (key === 'ultOpen' || !cost) return null                // the ultimate: his Super meter (the shared energy rule)
+    const c = check(f, 'ice'); if (!c.ok) return false
+    if (commit) push(f, enState(f), -cost * c.cost)
+    return true
+  },
+})
+export function toggleStance(f) {
+  const s = enState(f), fz = f._frozone
+  s.stance = s.stance === 'ice' ? 'elemental' : 'ice'; s.stats.stanceSwitches++
+  if (s.stance === 'elemental') { f.dashSpeed = ENOCH_DASH; if (fz) { fz.stream = null; fz.ride = null; fz.glide = false; fz.skateK = -1 } }
+  f.attackCooldown = Math.max(f.attackCooldown || 0, ICE_STANCE.switchLock)
+  cue(f, 'switch'); pushFx(s, 'switch', ctrX(f), feetY(f), f.facing || 1, { el: s.stance === 'ice' ? 'ice' : 'fire' })
+  return s.stance
+}
 const WREF = { W: null }
 export function registerEnochEngine(o) { Object.assign(E, o) }
 const cue = (f, c) => enState(f).cues.push(c)
@@ -69,6 +94,7 @@ export const ehash = (seed, frame, side, slot) => { let h = (seed | 0) ^ Math.im
 // Every reset path: KO teardown, round reset, rematch, scene exit, identity replacement.
 export function clearEnoch(f, W) {
   if (!f) return
+  if (f._enoch?.stance === 'ice') f.dashSpeed = ENOCH_DASH   // Ice Stance's skate speed never leaks into the next round
   if (cine.active && (cine.caster === f || cine.target === f)) clearEnochUlt()
   const s = f._enoch
   if (s?.disc?.pid) recedePlatform(s.disc.pid)
@@ -165,6 +191,7 @@ export function enochBlock(f, d, a) {
   d.blockstun = ALL_MOVES[a.en.key].blockstun; a.en.blocked = true; enState(f).stats.blocked++
 }
 export function enochHit(f, d, a, { armored = false } = {}) {
+  if (isEnoch(f) && a?.fz && !armored && !d.isBlocking) { meter(f, (a.damage || 0) * METER.onHit); return }   // Ice Stance hits build his Super too
   if (!isEnoch(f) || !a?.en) return
   const s = enState(f), md = ALL_MOVES[a.en.key]
   if (armored || d.isBlocking) return
@@ -174,6 +201,7 @@ export function enochHit(f, d, a, { armored = false } = {}) {
   pushFx(s, md.el === 'fire' ? 'ember' : 'chip', ctrX(d), ctrY(d) - 10, a.en.dir)
 }
 export function enochProjectileHit(proj, target, { armored = false } = {}) {
+  if (proj?._fz && isEnoch(proj.owner) && !target?.isBlocking && !armored) { meter(proj.owner, (proj.damage || 0) * METER.onHit); return }   // Ice Lance / Black Ice
   const k = proj?._en; if (!k || !isEnoch(proj.owner)) return
   const f = proj.owner, s = enState(f), blocked = !!target?.isBlocking || armored
   if (blocked) { s.stats.blocked++; pushFx(s, 'chip', proj.x, proj.y, k.dir || 1); return }
@@ -473,6 +501,7 @@ export function enochLocked(f, raw = null) {
   const s = enState(f), g = grounded(f), r = raw || {}
   const free = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isGrabbed && !f.knockdownState && f.health > 0
   if (s.glide) { if (!free || !g) endGlide(f, s, false); else if (glideStep(f, s, r)) { f._dashTap = false; return true } }
+  if (g && free && r.charge && (r.down || r.up || r.jump)) { f.vx = 0; f._dashTap = false; return true }   // CHANNEL: rooted, Up + Charge never jumps
   // double-tap forward on his own ICE / FIRE trail → glide of that type instead of the dash
   if (g && free && f._dashTap) {
     const here = patchesAt(s.field, ctrX(f), feetY(f)).filter(p => p.type === 'ice' || p.type === 'fire')
@@ -528,7 +557,16 @@ export function tickEnoch(f, opp, raw, W) {
     }
   }
   const fr = s.tick
-  thermalTick(s.th, TP, !!(s.glide || s.beam || live(f)))
+  // CHANNEL: Down + Charge held = cool, Up + Charge held = heat (rooted; the meter moves toward ±CHANNEL.to, never past it)
+  const chFree = g && !f.attacking && !s.glide && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.knockdownState && !f.isGrabbed && f.health > 0
+  const ch = chFree && raw.charge ? (raw.down ? -1 : (raw.up || raw.jump) ? 1 : 0) : 0
+  if (ch && !(s.th.over > 0)) {   // not during an overload
+    const room = ch * CHANNEL.to - s.th.v
+    if (room * ch > 0) push(f, s, ch * Math.min(CHANNEL.rate, Math.abs(room)))
+    if (!s.channel) { s.stats.channels++; cue(f, ch < 0 ? 'crackle' : 'fireCrackle') }
+    s.channel = ch; f.vx = 0
+  } else s.channel = 0
+  thermalTick(s.th, TP, !!(s.glide || s.beam || live(f) || s.channel))
   // field: expiry, effects, matchup rules
   for (const p of tickField(s.field, fr)) if (p.disc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null }
   const all = W?.fighters?.() || [f, opp].filter(Boolean)
@@ -544,6 +582,7 @@ export function tickEnoch(f, opp, raw, W) {
   // ramp landing lays a patch of the glide's element
   if (s.ramp && g && (f.vy || 0) >= 0) { lay(f, s, W, { type: s.ramp.type, cx: ctrX(f) }); s.stats.rampLand++; cue(f, 'land'); pushFx(s, 'landBurst', ctrX(f), feetY(f), face, { el: s.ramp.type }); s.ramp = null }
   s.pose = s.glide ? s.pose : (s.ramp && !g) ? 'ramp' : (g && f._floorPlatformId && String(getPlatforms().find(p => p.id === f._floorPlatformId)?.owner || '').startsWith('enoch')) ? 'standDisc' : null
+  if (s.channel && !s.glide) s.pose = s.channel < 0 ? 'channel' : 'channel_fire'
   // pending water cost (applied as the move ends — or is cancelled)
   const a0 = live(f)
   if (s.pend && !(a0 && a0.en.serial === s.pend.serial)) { const v = s.th.v; push(f, s, (v < 0 ? -1 : 1) * Math.abs(s.pend.amt)); s.pend = null }

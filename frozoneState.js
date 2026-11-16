@@ -17,6 +17,15 @@ import { FROZONE_MOVES, CHILL, FREEZE, SHATTER, LANCE, BLACK_ICE, SKATE, ULT, GL
 
 export const FROZONE_KEY = 'frozone'
 export const isFrozone = f => f?.rosterKey === FROZONE_KEY
+// HOSTS: another roster key may run this kit (tick, moves, hit hooks, mobility) on its own fighter — Enoch's ICE STANCE.
+// Frozone himself never consults this table, so every Frozone path is unchanged. `mobility(f)` = the host is in the stance
+// right now (Ice Flash / Ice Stream / Ice Glider / Up+Special and the stance-only cues); `pay(f, key, cost, commit)` lets the
+// host pay a special's cost its own way (true = paid / affordable, false = refuse, null = the shared energy rule).
+const FZ_HOSTS = new Map()
+export function registerFrozoneHost(key, cfg = {}) { FZ_HOSTS.set(key, { mobility: cfg.mobility || (() => true), pay: cfg.pay || null }) }
+const hostOf = f => (f && f.rosterKey !== FROZONE_KEY) ? FZ_HOSTS.get(f.rosterKey) || null : null
+export const hasFzKit = f => isFrozone(f) || !!hostOf(f)
+const fzMobile = f => isFrozone(f) || !!hostOf(f)?.mobility(f)
 export const fzState = f => f._frozone ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, serial: 0, nEnt: 0,
   floor: null, upAge: 0, riseUsed: false, patch: null, chill: {}, freeze: null, immune: {}, frozeCombo: {}, chilled: [],
   skateK: -1, boost: 0, bright: 0, brakeT: 0, prevAirDash: false, trail: [], fx: [],
@@ -64,7 +73,7 @@ export function clearFrozone(f, W) {
 // ── Movement hook (game.js updateMovementInput, evaluated once per movement frame right BEFORE physics.moveFighter) ──
 // Sets the ICE SKATE speed for this frame's shared dash, applies the brake, and locks steering during committed moves.
 export function frozoneLocked(f, raw = null) {
-  if (!isFrozone(f)) return false
+  if (!fzMobile(f)) return false
   if (isFrozoneUltActive()) return true
   const s = fzState(f), g = grounded(f), r = raw || {}
   const free = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isGrabbed && !f.knockdownState && f.health > 0
@@ -285,7 +294,7 @@ function reject(f, why) { const s = fzState(f); s.stats.rejects++; s.lastReject 
 // Start one of Frozone's moves through combat.startMove (frameExact path) and attach the descriptor `fz`.
 // Every legality / slot / resource check happens BEFORE anything is spent.
 export function startFzMove(f, key, W, { cancel = false } = {}) {
-  if (!isFrozone(f)) return false
+  if (!hasFzKit(f)) return false
   const s = fzState(f), md = FROZONE_MOVES[key], g = grounded(f)
   if (!md || f.health <= 0 || f.hitstun > 0 || f.blockstun > 0 || f.isGrabbed || f.knockdownState) return false
   if (md.isSpecial && (f.disabledSpecials || []).includes('special')) return false
@@ -294,11 +303,13 @@ export function startFzMove(f, key, W, { cancel = false } = {}) {
   if (!md.air && !g && !airOk.includes(key)) { reject(f, 'air'); return false }
   if (key === 'fRise' && s.riseUsed) { reject(f, 'rise'); return false }
   if (key === 'fBlackIce' && s.patch) { reject(f, 'patch'); return false }
-  const cost = md.cost || 0
-  if ((f.energy || 0) < cost) { reject(f, 'energy'); return false }
+  const cost = md.cost || 0, pay = hostOf(f)?.pay, paid = pay ? pay(f, key, cost, false) : null
+  if (paid === false) { reject(f, 'energy'); return false }
+  if (paid == null && (f.energy || 0) < cost) { reject(f, 'energy'); return false }
   if (cancel) endAttack(f)
   if (!E.startMove || !E.startMove(f, key, md)) return false
-  if (cost) f.energy = Math.max(0, (f.energy || 0) - cost)
+  if (paid != null) pay(f, key, cost, true)
+  else if (cost) f.energy = Math.max(0, (f.energy || 0) - cost)
   f.currentMove = key
   const a = f.currentAttack
   a.fz = { key, dir: f.facing || 1, clean: false, blocked: false, serial: ++s.serial, released: false, travelled: 0, stopped: false }
@@ -323,11 +334,11 @@ export function frozoneHitbox(f) {
   return { x: d === 1 ? front + b0 : front - b1, y: feet - top, w: b1 - b0, h }
 }
 export function frozoneBlock(f, d, a) {
-  if (!isFrozone(f) || !a?.fz) return
+  if (!hasFzKit(f) || !a?.fz) return
   d.blockstun = FROZONE_MOVES[a.fz.key].blockstun; a.fz.blocked = true; fzState(f).stats.blocked++
 }
 export function frozoneHit(f, d, a, { armored = false } = {}) {
-  if (!isFrozone(f) || !a?.fz) return
+  if (!hasFzKit(f) || !a?.fz) return
   const s = fzState(f), key = a.fz.key, md = FROZONE_MOVES[key]
   if (armored || d.isBlocking) return
   a.fz.clean = true; s.stats.clean++
@@ -340,7 +351,7 @@ export function frozoneHit(f, d, a, { armored = false } = {}) {
   pushFx(s, md.shatter ? 'crack' : 'chip', ctrX(d), ctrY(d) - 10, a.fz.dir)
 }
 export function frozoneProjectileHit(proj, target, { armored = false } = {}) {
-  const k = proj?._fz; if (!k || !isFrozone(proj.owner)) return
+  const k = proj?._fz; if (!k || !hasFzKit(proj.owner)) return
   const f = proj.owner, s = fzState(f), blocked = !!target?.isBlocking || armored
   if (blocked) { s.stats.blocked++; pushFx(s, 'chip', proj.x, proj.y, k.dir || 1); return }
   if (k.kind === 'blackIce') s.stats.patchHits++
@@ -466,7 +477,7 @@ function updatePatch(f, s, W, opp) {
 
 // ── Per-simulation-frame tick (1v1 + FFA combat steps, before the command layer) ──
 export function tickFrozone(f, opp, raw, W) {
-  if (!isFrozone(f)) { if (f?._frozone) clearFrozone(f, W); return }
+  if (!hasFzKit(f)) { if (f?._frozone) clearFrozone(f, W); return }
   WREF.W = W
   const s = fzState(f); s.tick++
   const fw = !!(f.facing === -1 ? raw.left : raw.right), bk = !!(f.facing === -1 ? raw.right : raw.left)
@@ -476,22 +487,23 @@ export function tickFrozone(f, opp, raw, W) {
     s.prev[k] = v
   }
   s.upAge = raw.up ? (s.upAge || 0) + 1 : 0
-  if ((raw.up || raw.jump) && raw.special && grounded(f)) s.upConsumed = true
+  const mob = fzMobile(f)
+  if (mob && (raw.up || raw.jump) && raw.special && grounded(f)) s.upConsumed = true
   if (!raw.up && !raw.jump) s.upConsumed = false
   if (s.upConsumed) f.jumpHeld = true
   else if (!raw.up && !raw.jump && f.jumpHeld && f.hitstop > 0) f.jumpHeld = false   // launcher jump-cancel latch (shared rule, as Syndrome / Megumi)
   const g = grounded(f)
   if (g) s.floor = (f.y || 0) + (f.h || 94)
   else if (s.floor == null) s.floor = f.groundY ?? null
-  const jc = f.jumpCount || 0; if (!g && jc >= 2 && (s.prevJc || 0) < 2) { s.stats.dj++; cue(f, 'jump'); pushFx(s, 'puff', ctrX(f), f.y + f.h, f.facing || 1) }
+  const jc = f.jumpCount || 0; if (mob && !g && jc >= 2 && (s.prevJc || 0) < 2) { s.stats.dj++; cue(f, 'jump'); pushFx(s, 'puff', ctrX(f), f.y + f.h, f.facing || 1) }
   s.prevJc = g ? 0 : jc
   if (g && !(live(f)?.fz.key === 'fRise')) s.riseUsed = false
-  if (f.airDashing && !s.prevAirDash) { s.stats.airSkates++; cue(f, 'skate') }
+  if (mob && f.airDashing && !s.prevAirDash) { s.stats.airSkates++; cue(f, 'skate') }
   s.prevAirDash = !!f.airDashing
   for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 40) s.fx.splice(i, 1)
   // decorative ice ribbon (render-only data; never a collision volume)
   for (let i = s.trail.length - 1; i >= 0; i--) if (++s.trail[i].t > SKATE.trail * 3) s.trail.splice(i, 1)
-  if ((f.dashTimer > 0 && g) || f.airDashing) { s.trail.push({ x: Math.round(ctrX(f)), y: Math.round(f.y + f.h), t: 0, b: s.bright > 0 ? 1 : 0, d: f.facing || 1 }); if (s.trail.length > 30) s.trail.shift() }
+  if (mob && ((f.dashTimer > 0 && g) || f.airDashing)) { s.trail.push({ x: Math.round(ctrX(f)), y: Math.round(f.y + f.h), t: 0, b: s.bright > 0 ? 1 : 0, d: f.facing || 1 }); if (s.trail.length > 30) s.trail.shift() }
   if (s.bright > 0) s.bright--
   if (s.brakeT > 0) s.brakeT--
   if (s.boost > 0 && !(f.dashTimer > 0)) s.boost = 0

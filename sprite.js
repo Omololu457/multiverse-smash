@@ -678,6 +678,7 @@ function _resolveAction(fighter, currentAction = "idle") {
     const p = fighter._enoch.pose, el = fighter._enoch.glide?.type || fighter._enoch.ramp?.type
     return el === 'fire' && fighter.animationData?.[p + '_fire'] ? p + '_fire' : p;
   }
+  if (fighter.rosterKey === 'enoch' && fighter.attacking && fighter.currentAttack?.fz && fighter.animationData?.['fz_' + fighter.currentAttack.name]) return 'fz_' + fighter.currentAttack.name;   // Enoch: ICE STANCE moves play his fz_ strips
 
   // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
   // they were in. Hold whatever action was last resolved (mid-jump → "jump",

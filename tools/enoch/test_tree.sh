@@ -9,7 +9,7 @@ OUT="$1"; REV="${2:-HEAD}"
 rm -rf "$OUT"; mkdir -p "$OUT"
 git archive "$REV" | tar -x -C "$OUT"
 python3 -I tools/enoch/apply_hooks.py --head "$REV" --out "$OUT" >/dev/null
-for p in enoch.js enochData.js enochState.js enochFx.js enochSound.js enochKit.js enochSkins.js enochHarness.js enochSprites.js elements.js beam.js; do
+for p in enoch.js enochData.js enochState.js enochFx.js enochSound.js enochKit.js enochSkins.js enochHarness.js enochSprites.js enochVfx.js elements.js beam.js frozone.js frozoneState.js frozoneFx.js; do
   [ -f "$p" ] && cp "$p" "$OUT/$p"
 done
 for d in assets/enoch docs/enoch docs/elements tools/enoch; do [ -d "$d" ] && mkdir -p "$OUT/$d" && cp -R "$d/." "$OUT/$d/"; done

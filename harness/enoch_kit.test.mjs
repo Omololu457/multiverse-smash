@@ -38,7 +38,7 @@ try {
   const G = await page.evaluate(() => { const { H, step, hold, rel, press, setup } = __E; const r = {}
     let { a, b } = setup(900, 2600); b.invulnTimer = 99999
     const floor = a.y + a.h
-    hold(a, { charge: true }, 2); const x0 = a.x, v0 = H.state().s.th.v
+    H.glide('ice'); hold(a, { charge: true }, 2); const x0 = a.x, v0 = H.state().s.th.v   // (2026-11-16: a held Charge no longer STARTS a glide; it still carries one)
     let maxLift = 0, flight = false
     for (let i = 0; i < 10; i++) { hold(a, { charge: true }); maxLift = Math.max(maxLift, floor - (a.y + a.h)); flight ||= !!(a._flightActive || a._flightCtl) }
     let s = H.state().s
@@ -48,18 +48,18 @@ try {
     for (let i = 0; i < 10; i++) { hold(a, { charge: true }); maxLift = Math.max(maxLift, floor - (a.y + a.h)) }
     rel(a); step(2); r.release = { glide: H.state().s.glide, maxLift, flight }
     // wall
-    ;({ a, b } = setup(300, 1200)); b.invulnTimer = 99999; hold(a, { charge: true }, 2); hold(a, { charge: true, left: true }, 10); let wallAt = -1
+    ;({ a, b } = setup(300, 1200)); b.invulnTimer = 99999; H.glide('ice'); hold(a, { charge: true }, 2); hold(a, { charge: true, left: true }, 10); let wallAt = -1
     for (let i = 0; i < 120; i++) { hold(a, { charge: true }); if (wallAt < 0 && !H.state().s.glide) wallAt = i }
     r.wall = { glide: H.state().s.glide, x: a.x, wallAt }; rel(a); step(2)
     // 4 s max: ice glide turning back and forth in the middle of the stage
     ;({ a, b } = setup(1500, 100)); a.facing = 1; b.invulnTimer = 99999
-    let k = 0, alive = 0
+    let k = 0, alive = 0; hold(a, { charge: true }); H.glide('ice')   // (one frame first: the game turns him toward the foe, as the old Charge start did)
     for (; k < 300; k++) { const turn = (k % 100) >= 80 && (k % 100) < 84; const back = turn ? (H.state().s.glide?.dir === 1 ? 'left' : 'right') : null
       hold(a, back ? { charge: true, [back]: true } : { charge: true }); if (H.state().s.glide) alive = k }
     r.max = { lastAliveFrame: alive, glides: H.state().s.stats.glides, turnsWorked: H.state().s.stats.glides === 1 }
     rel(a); step(2)
     // ramp: Up in a glide → arc, one air attack (+10 %), landing lays a patch
-    ;({ a, b } = setup(1000, 2600)); b.invulnTimer = 99999; hold(a, { charge: true }, 12)
+    ;({ a, b } = setup(1000, 2600)); b.invulnTimer = 99999; H.glide('ice'); hold(a, { charge: true }, 12)
     hold(a, { charge: true, up: true, jump: true }); hold(a, {}, 1)
     s = H.state().s; r.ramp = { ramp: s.ramp, vy: a.vy, grounded: !!(a.onGround || a.grounded) }
     step(4); press(a, { light: true }, 2); r.rampAtk = { name: a.currentAttack?.name, dmg: a.currentAttack?.damage }
@@ -68,7 +68,7 @@ try {
     step(2); s = H.state().s; r.rampLand = { land: s.stats.rampLand, patches: s.field.patches.map(p => p.type), peak, grounded: !!(a.onGround || a.grounded) }
     // disc
     ;({ a, b } = setup(1000, 2600)); b.invulnTimer = 99999; const th0 = H.state().s.th.v
-    press(a, { down: true, charge: true }, 2); step(14)
+    press(a, { [a.facing === -1 ? 'left' : 'right']: true, charge: true }, 2); step(14)   // 2026-11-16: Forward + Charge (Down + Charge now channels cold)
     s = H.state().s; const pl = __harness.platforms(); r.disc = { stats: s.stats.discs, pid: s.disc?.pid, hp: s.disc?.hp, th: Math.round((s.th.v - th0) * 1000) / 1000, field: s.field.patches.filter(p => p.disc).map(p => ({ x: p.x, width: p.width, floor: p.floor })), plat: pl.filter(p => String(p.id) === String(s.disc?.pid)).map(p => ({ x: p.x, w: p.w, topY: p.topY, h: p.height })) }
     const P0 = pl.find(p => String(p.id) === String(s.disc?.pid))
     if (P0) { a.x = P0.x + P0.w / 2 - a.w / 2; a.y = P0.topY - a.h - 60; a.vy = 0; a.onGround = false; a.grounded = false; for (let i = 0; i < 40 && !(a.onGround || a.grounded); i++) step(1); step(2)
@@ -81,7 +81,7 @@ try {
     rel(a); step(3)
     return r })
   out.glide = G
-  ok('ICE glide: Charge held → 1.8× run (14.4 px/f ⇒ ~144 px in 10 f), lays ICE, 6 cold / s (−1.0 in 10 f), glide pose', G.ice.type === 'ice' && Math.abs(G.ice.dx - 144) <= 15 && Math.abs(G.ice.dth + 1) < 0.05 && G.ice.patches.includes('ice') && G.ice.action === 'glide', JSON.stringify(G.ice))
+  ok('ICE glide (carried by a held Charge) → 1.8× run (14.4 px/f ⇒ ~144 px in 10 f), lays ICE, 6 cold / s (−1.0 in 10 f), glide pose', G.ice.type === 'ice' && Math.abs(G.ice.dx - 144) <= 15 && Math.abs(G.ice.dth + 1) < 0.05 && G.ice.patches.includes('ice') && G.ice.action === 'glide', JSON.stringify(G.ice))
   ok('switch mid-glide (Heavy → FIRE): 2.3× run (~184 px / 10 f), the trails REACT (ICE + FIRE burst)', G.fire.type === 'fire' && Math.abs(G.fire.dx - 184) <= 20 && G.fire.switches === 1 && G.fire.bursts >= 1 && G.fire.action === 'glide_fire', JSON.stringify(G.fire))
   ok('releasing Charge ends the glide', G.release.glide === null, JSON.stringify(G.release))
   ok('NEVER flight: feet never leave the floor in a glide, no flight state', G.release.maxLift === 0 && !G.release.flight, JSON.stringify(G.release))
@@ -246,7 +246,7 @@ try {
     else if(m===60||m===61){r.down=true;r.special=true}                      // pad Frost Floor
     else if(m===120||m===121){r[fw]=true;r.special=true}                     // pad Heat Lens
     else if(m>121&&m<190)r.special=m<170                                     // hold → sustained beam
-    else if(m===230||m===231){r.down=true;r.charge=true}                     // disc
+    else if(m===230||m===231){r[fw]=true;r.charge=true}                       // disc (Forward + Charge)
     else if(m>=300&&m<303){r.down=true}else if(m>=303&&m<306){r.down=true;r[fw]=true}else if(m>=306&&m<309){r[fw]=true;r.special=true}   // ↓↘→ + S
     else if(m===400||m===410){r.light=true}else if(m===420){r.heavy=true}
     else if(m>=500&&m<503){r.down=true}else if(m>=503&&m<506){r.down=true;r[fw]=true}else if(m>=506&&m<509){r[fw]=true}else if(m>=509&&m<512){r.down=true}else if(m>=512&&m<515){r.down=true;r[fw]=true}else if(m>=515&&m<518){r[fw]=true;r.special=true}   // super
@@ -258,7 +258,7 @@ try {
     const traces = [], seen = new Set(); let maxP = 0, sameFrame = false
     // 4 patches + a same-frame reaction at the start
     for (let i = 0; i < N; i++) { if (i === 1) { H.lay({ type: 'water', cx: 300 }); H.lay({ type: 'ice', cx: 2200 }); H.lay({ type: 'ice', cx: 2700 }); const ev = H.lay({ type: 'fire', cx: 2750 }); sameFrame = ev.some(e => e.kind === 'reaction') }   // 4 patches + a same-frame reaction (after frame 0: the replay resets the frame counter on its first step)
-      if (i % 450 === 0) a.energy = 100; writeRawControls(a, S(i, a, b)); __harness.luffyTest.step(1)
+      if (i % 450 === 0) a.energy = 100; if (i % 900 === 0) H.glide('ice'); writeRawControls(a, S(i, a, b)); __harness.luffyTest.step(1)
       const s = a._enoch; if (s) { maxP = Math.max(maxP, s.field.patches.length); if (s.glide) seen.add('glide_' + s.glide.type); if (s.beam) seen.add('beam'); if (s.disc) seen.add('disc'); if (s.stats.bursts) seen.add('burst'); if (s.ult) seen.add('super') }
       if (a.currentAttack?.en) seen.add(a.currentAttack.en.key)
       traces.push(JSON.stringify(['p1', 'p2'].map(w => D(H.raw(w))))) }
@@ -269,7 +269,7 @@ try {
   await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { polling: 100, timeout: 60000 })
   const pb = await page.evaluate(([n, dig]) => { const D = eval(dig), H = __harness.enochTest, t = []
     for (let i = 0; i < n; i++) { if (i === 1) { H.lay({ type: 'water', cx: 300 }); H.lay({ type: 'ice', cx: 2200 }); H.lay({ type: 'ice', cx: 2700 }); H.lay({ type: 'fire', cx: 2750 }) }
-      if (i % 450 === 0) H.raw().energy = 100; __harness.luffyTest.step(1); t.push(JSON.stringify(['p1', 'p2'].map(w => D(H.raw(w))))) } return { t, st: __harness.replay.status?.() || {}, remote: !!H.raw()._enochRemoteInput } }, [N, DIG])
+      if (i % 450 === 0) H.raw().energy = 100; if (i % 900 === 0) H.glide('ice'); __harness.luffyTest.step(1); t.push(JSON.stringify(['p1', 'p2'].map(w => D(H.raw(w))))) } return { t, st: __harness.replay.status?.() || {}, remote: !!H.raw()._enochRemoteInput } }, [N, DIG])
   const first = rec.traces.findIndex((s, i) => s !== pb.t[i])
   if (first !== -1) fs.writeFileSync('enoch_replay_diff.json', JSON.stringify({ first, rec: JSON.parse(rec.traces[first]), pb: JSON.parse(pb.t[first]) }, null, 1))
   ok(`replay matches every frame (${N}) with patches, reactions, glides, beam, disc and a super`, first === -1, first === -1 ? '' : `frame ${first}\n${rec.traces[first]}\n${pb.t[first]}`)

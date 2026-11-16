@@ -739,6 +739,7 @@ export function getAttackHitbox(fighter) {
   if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.fz && fighter.rosterKey === 'frozone') return frozoneHitbox(fighter)   // Frozone: the ice strike's box at the casting hand (body-less casts have none — Lance / Black Ice are projectiles)
   if (a?.en && fighter.rosterKey === 'enoch') return enochHitbox(fighter)   // Enoch: the strike's box (body-less casts have none — blasts / orbs are projectiles, the beam is hitscan)
+  if (a?.fz && fighter.rosterKey === 'enoch') return frozoneHitbox(fighter)   // Enoch: his ICE STANCE moves (Frozone's kit via frozoneState's host table)
   if (a?.mr && fighter.rosterKey === 'mr_incredible') return mrHitbox(fighter)
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
   if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated

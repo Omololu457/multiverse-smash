@@ -1901,18 +1901,28 @@
    "crouch",
    "atkLow",
    "atkRise",
+   "channel",
    "atkFloor",
    "atkSteam",
-   "atkWake"
+   "atkWake",
+   "fzHeavy",
+   "fzBreaker"
   ],
   "cast:1": [
    "guard",
    "atkLow",
-   "discPlant"
+   "discPlant",
+   "channel",
+   "channel",
+   "fzHeavy",
+   "fzBreaker"
   ],
   "cast:2": [
    "atkLow",
-   "atkAir"
+   "atkAir",
+   "channel",
+   "fzHeavy",
+   "fzBreaker"
   ],
   "ice:0": [
    "dash",
@@ -1925,21 +1935,25 @@
   "ice:2": [
    "dash",
    "atkSlide",
-   "land"
+   "land",
+   "fzDownAir"
   ],
   "ice:3": [
    "ramp",
-   "jump"
+   "jump",
+   "fzRise"
   ],
   "ice:4": [
    "ramp",
    "jump",
    "doubleJump",
-   "atkAir"
+   "atkAir",
+   "fzRise"
   ],
   "ice:5": [
    "ramp",
-   "fall"
+   "fall",
+   "fzDownAir"
   ],
   "react:3": [
    "doubleJump",
@@ -1948,29 +1962,41 @@
    "atkAir"
   ],
   "ice:6": [
-   "discPlant"
+   "discPlant",
+   "fzRush",
+   "ultSkate"
   ],
   "ice:7": [
    "glide",
-   "intro"
+   "intro",
+   "fzRush",
+   "ultSkate"
   ],
   "ice:8": [
    "glide",
-   "intro"
+   "intro",
+   "fzRush",
+   "ultSkate"
   ],
   "ice:9": [
    "glide",
-   "intro"
+   "intro",
+   "fzRush",
+   "ultSkate"
   ],
   "ice:10": [
    "glide",
    "standDisc",
    "winDisc",
-   "intro"
+   "intro",
+   "fzRush",
+   "ultSkate"
   ],
   "ice:11": [
    "glideTurn",
-   "intro"
+   "intro",
+   "fzRush",
+   "ultBrake"
   ],
   "react:1": [
    "hurt",
@@ -1997,18 +2023,27 @@
   "gesture:0": [
    "getup",
    "atkJab",
+   "atkBlast",
    "atkLens"
   ],
   "gesture:1": [
    "atkJab",
-   "atkStraight"
+   "atkStraight",
+   "fzLight"
   ],
   "gesture:5": [
    "atkJab",
+   "atkBlast",
+   "atkBlast",
    "atkLens",
    "atkCondense",
    "atkSuper",
-   "taunt"
+   "taunt",
+   "fzFinish",
+   "fzLaunch",
+   "fzAir",
+   "fzLance",
+   "fzUlt"
   ],
   "gesture:7": [
    "atkJab",
@@ -2024,23 +2059,25 @@
    "atkCondense",
    "atkWake",
    "atkSuper",
-   "win"
+   "win",
+   "fzUlt"
   ],
   "sweep:0": [
    "atkStraight",
-   "atkBlast"
+   "fzLow"
   ],
   "sweep:5": [
    "atkStraight",
-   "atkBlast",
    "atkScorch",
    "atkSteam",
-   "atkWake"
+   "atkWake",
+   "fzLow"
   ],
   "gesture:2": [
    "atkHeavy",
    "atkRise",
-   "atkCone"
+   "atkCone",
+   "fzLight"
   ],
   "gesture:3": [
    "atkHeavy",
@@ -2050,22 +2087,26 @@
    "atkCondense",
    "atkSuper",
    "taunt",
-   "win"
+   "win",
+   "fzLight2"
   ],
   "sweep:1": [
    "atkHeavy",
    "atkCone",
    "atkSteam",
    "atkTide",
-   "atkWake"
+   "atkWake",
+   "fzLow"
   ],
   "sweep:4": [
    "atkHeavy",
    "atkFloor",
-   "atkTide"
+   "atkTide",
+   "fzLow"
   ],
   "gesture:4": [
    "atkRise",
+   "atkBlast",
    "atkLens",
    "atkScorch",
    "atkTide",
@@ -2074,20 +2115,28 @@
    "taunt",
    "taunt",
    "win",
-   "win"
-  ],
-  "sweep:2": [
-   "atkBlast",
-   "atkSteam"
+   "win",
+   "fzLight2",
+   "fzFinish",
+   "fzLance",
+   "fzBreaker",
+   "fzUlt"
   ],
   "sweep:3": [
    "atkFloor",
    "atkCone",
-   "atkScorch"
+   "atkScorch",
+   "fzLow"
   ],
   "gesture:6": [
    "atkScorch",
-   "atkSuper"
+   "atkSuper",
+   "fzLaunch",
+   "fzBlackIce"
+  ],
+  "sweep:2": [
+   "atkSteam",
+   "fzLow"
   ],
   "ice:12": [
    "introSettle"

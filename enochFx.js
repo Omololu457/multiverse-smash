@@ -8,8 +8,10 @@ import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
 import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
+import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
 import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect } from './enochState.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
+import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
 
 const cache = new Map()
@@ -34,6 +36,35 @@ function part(c, name, el, x, y, { flip = 1, alpha = 1, scale = 2 } = {}) {
   const im = image(ENOCH_FX_PATH(name, el === 'ice' ? null : el)); if (!ready(im)) return
   c.save(); c.globalAlpha *= alpha; c.imageSmoothingEnabled = false; c.translate(R(x), R(y)); if (flip < 0) c.scale(-1, 1)
   c.drawImage(im, R(-meta.w * scale / 2), R(-meta.h * scale), meta.w * scale, meta.h * scale); c.restore()
+}
+// ── VFX: frame k of an effect cut from the owner-supplied effect sheets (enochVfx.js); 'c' = centred, 'b' = feet on (x, y) ──
+function vfx(c, name, k, x, y, { scale = 1, alpha = 1, flip = 1, h = 0 } = {}) {
+  const V = ENOCH_VFX[name]; if (!V) return false
+  const n = V.frames.length, i = Math.max(0, Math.min(n - 1, k | 0)), [w0, h0] = V.frames[i], im = image(ENOCH_VFX_PATH(name, i)); if (!ready(im)) return false
+  const k2 = h ? h / h0 : scale, w = w0 * k2, hh = h0 * k2
+  c.save(); c.globalAlpha *= alpha; c.translate(R(x), R(y)); if (flip < 0) c.scale(-1, 1)
+  c.drawImage(im, R(-w / 2), V.anchor === 'b' ? R(-hh) : R(-hh / 2), R(w), R(hh)); c.restore(); return true
+}
+// ── ICE BLAST: the shard he points and fires — a long crystal spike in flight, glinting (render-only; the sim volume is blank) ──
+function drawShards(c, W, fr) {
+  for (const p of W?.projectiles || []) {
+    if (!p?._en || p._en.kind !== 'blast' || !isEn(p.owner)) continue
+    const cx = p.x + (p.w || 0) / 2, cy = p.y + (p.h || 0) / 2, ang = Math.atan2(p.vy || 0, p.vx || p._en.dir || 1)
+    c.save(); c.translate(R(cx), R(cy)); c.rotate(ang)
+    c.globalAlpha = 0.35; c.fillStyle = COL.ice[1]; c.fillRect(-58, -3, 40, 6); c.fillRect(-80, -1, 24, 2)          // the frost trail behind it
+    c.globalAlpha = 1
+    poly(c, [[-26, -6], [10, -9], [34, 0], [10, 9], [-26, 6], [-18, 0]], COL.ice[2], COL.ice[3], 1, 2)                // the shard
+    poly(c, [[-20, -3], [10, -5], [30, 0], [8, 1], [-18, 0]], COL.ice[0], null, 0.95)                                  // its light face
+    if (!calm() && ((fr >> 2) & 1)) { c.fillStyle = '#ffffff'; c.fillRect(22, -2, 4, 4) }                            // the glint at the tip
+    c.restore()
+  }
+}
+// ── CHANNEL (Down / Up + Charge held): cold mist rings round him, or the floor fire rises under him ──
+function drawChannel(c, f, s, fr) {
+  if (!s.channel) return
+  const x = ctrX(f), y = (f.y || 0) + (f.h || 94)
+  if (s.channel > 0) vfx(c, 'fireRise', 1 + ((fr >> 2) % 4), x, y + 6, { h: (f.h || 94) * 1.25, alpha: 0.85 })
+  else vfx(c, 'iceBurst', 3 + ((fr >> 3) % 3), x, y - (f.h || 94) * 0.5, { h: (f.h || 94) * 1.7, alpha: 0.95 })
 }
 // ── PATCHES (world space, under the fighters) ──
 function drawPatch(c, f, p, fr, now) {
@@ -76,10 +107,11 @@ function drawEvents(c, f, s) {
     const k = e.t / 40, al = Math.max(0, 1 - k), el = e.el || 'ice'
     if (e.kind === 'burst') { part(c, 'burst', 'water', e.x - 24, e.y, { alpha: al }); part(c, 'burst2', 'fire', e.x + 24, e.y, { alpha: al, flip: -1 }); c.save(); c.globalAlpha = al * 0.7; c.fillStyle = '#ffffff'; c.fillRect(R(e.x - (e.w || 80) / 2), e.y - 3, R(e.w || 80), 3); c.restore() }
     else if (e.kind === 'steamPuff' || e.kind === 'steamBlast') { c.save(); c.globalAlpha = al * 0.6; c.fillStyle = '#e6ecf2'; const r = 20 + e.t * (e.kind === 'steamBlast' ? 3 : 1.5); c.fillRect(R(e.x - r), R(e.y - r * 1.2), R(r * 2), R(r * 1.2)); c.restore() }
-    else if (e.kind === 'frost' || e.kind === 'chip') part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir })
-    else if (e.kind === 'ember' || e.kind === 'scorch') part(c, 'arc', 'fire', e.x, e.y + 20, { alpha: al, flip: e.dir })
-    else if (e.kind === 'splash') part(c, 'splash', 'water', e.x, e.y, { alpha: al })
-    else if (e.kind === 'shatter') part(c, 'burst2', 'ice', e.x, e.y, { alpha: al })
+    else if (e.kind === 'frost') { if (!vfx(c, 'iceBurst', e.t / 4, e.x, e.y, { scale: 1.1 })) part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir }) }   // the shard bursts on him
+    else if (e.kind === 'chip') part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir })
+    else if (e.kind === 'ember' || e.kind === 'scorch') { if (!vfx(c, 'firePuff', e.t / 6, e.x, e.y, { scale: 0.7, alpha: al })) part(c, 'arc', 'fire', e.x, e.y + 20, { alpha: al, flip: e.dir }) }
+    else if (e.kind === 'splash') { if (!vfx(c, 'waterSplash', e.t / 6, e.x, e.y + 20, { scale: 0.75, alpha: al })) part(c, 'splash', 'water', e.x, e.y, { alpha: al }) }
+    else if (e.kind === 'shatter') { if (!vfx(c, 'iceBurst', 1 + e.t / 4, e.x, e.y, { scale: 1.6 })) part(c, 'burst2', 'ice', e.x, e.y, { alpha: al }) }
     else if (e.kind === 'switch' || e.kind === 'ramp' || e.kind === 'landBurst') part(c, e.kind === 'ramp' ? 'arc' : 'spray', el, e.x, e.y, { alpha: al, flip: e.dir })
     else if (e.kind === 'overload') { c.save(); c.globalAlpha = al; c.strokeStyle = e.dir < 0 ? COL.ice[1] : COL.fire[1]; c.lineWidth = 3; const r = 20 + e.t * 2; c.strokeRect(R(e.x - r), R(e.y - r / 2), R(r * 2), R(r)); c.restore() }
   }
@@ -102,6 +134,11 @@ function drawWall(c, f, s, fr) {
     for (let i = 0; i < P.hp - w.hp; i++) { c.beginPath(); c.moveTo(R(x0 + 4), R(y0 + 30 + i * 28)); c.lineTo(R(x1 - 2), R(y0 + 44 + i * 30)); c.stroke() }
     c.restore()
     return
+  }
+  if (ENOCH_VFX.firePillar) {   // three flame pillars across the wall, each on its own phase of the 4-frame loop
+    let drawn = 0; const rise = Math.min(1, w.t / Math.max(1, P.rise))
+    for (let i = 0; i < 3; i++) drawn += vfx(c, 'firePillar', ((fr >> 2) + i * 3) % 4, x0 + (x1 - x0) * (0.2 + i * 0.3), y1 + 4, { h: Rc.h * (i === 1 ? 1.1 : 0.9) * rise, alpha: al, flip: i === 1 ? -1 : 1 }) ? 1 : 0
+    if (drawn) { if (w.t < 30) vfx(c, 'fireRise', w.t / 4, w.x, y1 + 6, { h: Rc.h * 0.8, alpha: al }); return }
   }
   const n = 5, cw = (x1 - x0) / n
   for (let i = 0; i < n; i++) {   // tongues: outer orange → inner yellow → white core, heights hashed per 3 frames
@@ -136,10 +173,11 @@ function drawUlt(c, f, v) {
 }
 export function drawEnochUnder(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0; SEED = (W?.seed?.() | 0) || 1337
-  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick) }   // patch ages run on his own tick (the sim's patch clock)
+  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick); drawChannel(c, f, s, fr) }   // patch ages run on his own tick (the sim's patch clock)
 }
 export function drawEnochOver(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0
+  if (isEn(p1) || isEn(p2)) drawShards(c, W, fr)
   for (const f of [p1, p2]) {
     const s = isEn(f) ? f._enoch : null; if (!s) continue
     drawWall(c, f, s, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
@@ -150,7 +188,7 @@ export function enochHudLabel(f) {
   const s = f?._enoch; if (!s) return null
   const v = s.th.v, zone = s.th.over > 0 ? 'OVERLOAD' : Math.abs(v) <= TP.balance ? 'BALANCE · WATER' : v <= TP.cold ? 'COLD ZONE' : v >= TP.hot ? 'HOT ZONE' : v < 0 ? 'COOL' : 'WARM'
   return { v, zone, lock: s.th.lock, over: s.th.over, glide: s.glide?.type || null, patches: s.field.patches.length, disc: s.disc ? s.disc.hp : 0,
-    cd: { ...s.cd }, meter: f.energy || 0, laser: laserView(s.laser, LASER), wall: s.wall ? { type: s.wall.type, left: WALLS[s.wall.type].life - s.wall.t, hp: s.wall.hp } : null }
+    cd: { ...s.cd }, meter: f.energy || 0, stance: s.stance || 'elemental', laser: laserView(s.laser, LASER), wall: s.wall ? { type: s.wall.type, left: WALLS[s.wall.type].life - s.wall.t, hp: s.wall.hp } : null }
 }
 export function drawEnochHud(c, cv, p1, p2) {
   const cw = cv?.width || 1280, ch = cv?.height || 720
@@ -177,12 +215,15 @@ export function drawEnochHud(c, cv, p1, p2) {
     drawLaserGauge(c, L.laser, x0, y0 + h + 40, w, { flip, label: 'HEAT LENS', col: '#ff9a3c', low: '#ffd27a' })
     c.save(); c.font = 'bold 9px Arial'; c.textBaseline = 'top'; c.textAlign = flip ? 'right' : 'left'; c.fillStyle = 'rgba(255,255,255,0.7)'
     const wl = t => L.wall?.type === t ? `${Math.ceil(L.wall.left / 60)}s` : L.cd[t + 'Wall'] > 0 ? Math.ceil(L.cd[t + 'Wall'] / 60) + 's' : 'READY'
-    c.fillText(`ICE WALL ${wl('ice')} · FIRE WALL ${wl('fire')}`, flip ? x0 + w : x0, y0 + h + 52); c.restore()
+    c.fillText(`ICE WALL ${wl('ice')} · FIRE WALL ${wl('fire')}`, flip ? x0 + w : x0, y0 + h + 52)
+    c.font = 'bold 10px Arial'; c.fillStyle = L.stance === 'ice' ? COL.ice[1] : COL.fire[1]   // tap Charge switches
+    c.fillText(L.stance === 'ice' ? 'ICE STANCE' : 'ELEMENTAL STANCE', flip ? x0 + w : x0, y0 + h + 64); c.restore()
   }
   one(p1, false); one(p2, true)
   for (const f of [p1, p2]) { const v = isEn(f) ? enochUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, v) }
+  for (const f of [p1, p2]) { const v = isEn(f) ? frozoneUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, { frame: v.frame, variant: 'whiteout' }) }   // the Ice Stance ultimate
 }
-const SUPER_TITLE = { absoluteZero: ['ABSOLUTE ZERO', 'ICE'], flashPoint: ['FLASH POINT', 'FIRE'], thermalShock: ['THERMAL SHOCK', 'WHERE ICE MEETS FIRE'] }
+const SUPER_TITLE = { whiteout: ['WHITEOUT', 'ICE STANCE'],  absoluteZero: ['ABSOLUTE ZERO', 'ICE'], flashPoint: ['FLASH POINT', 'FIRE'], thermalShock: ['THERMAL SHOCK', 'WHERE ICE MEETS FIRE'] }
 function drawCutIn(c, cw, ch, f, v) {
   const u = v.frame / 40, al = u < 0.15 ? u / 0.15 : u > 0.85 ? (1 - u) / 0.15 : 1, por = image(EN.portrait)
   const y0 = Math.round(ch * 0.2), bandH = 84, left = (f.facing ?? 1) >= 0, [t1, t2] = SUPER_TITLE[v.variant] || ['SUPER', '']

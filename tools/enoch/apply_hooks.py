@@ -65,6 +65,12 @@ HOOKS = [
    "import { enochPhasing } from './enochState.js'   // Enoch: an ICE glide skates past the opponent (enoch-gated; false for everyone else)", "{ enochPhasing }"),
   ('physics.js', "    if (dashParrPhasing(p1, p2)) return", 'after_line',
    "    if (enochPhasing(p1, p2)) return   // Enoch skating PAST on an ICE glide (fire glides and everything else still collide)", "enochPhasing(p1, p2)) return"),
+  # ICE STANCE (2026-11-16): Enoch runs Frozone's kit through frozoneState's host table — his Frozone moves need Frozone's box
+  # (frozoneHitbox, already imported by combat.js) and play his own fz_ strips (Enoch recolour of the same sheet frames)
+  ('combat.js', "  if (a?.en && fighter.rosterKey === 'enoch') return enochHitbox(fighter)", 'after_line',
+   "  if (a?.fz && fighter.rosterKey === 'enoch') return frozoneHitbox(fighter)   // Enoch: his ICE STANCE moves (Frozone's kit via frozoneState's host table)", "rosterKey === 'enoch') return frozoneHitbox"),
+  ('sprite.js', "    return el === 'fire' && fighter.animationData?.[p + '_fire'] ? p + '_fire' : p;\n  }", 'after_line',
+   "  if (fighter.rosterKey === 'enoch' && fighter.attacking && fighter.currentAttack?.fz && fighter.animationData?.['fz_' + fighter.currentAttack.name]) return 'fz_' + fighter.currentAttack.name;   // Enoch: ICE STANCE moves play his fz_ strips", "return 'fz_' + fighter.currentAttack.name"),
 ]
 GAME = [
   ("import { frozoneHarnessApi } from './frozoneHarness.js'", 'after_line',
@@ -113,6 +119,8 @@ GAME = [
    "    finalizeEnochIntro(p1); finalizeEnochIntro(p2)   // Enoch: undo the glide-in offset if skipped mid-glide", "finalizeEnochIntro(p1); finalizeEnochIntro(p2)"),
   # Charge (L2) is Enoch's glide button: the shared energy charge is off for him (his Super meter fills from damage)
   ("!dseylOwnsCharge(fighter) && ", 'replace', "!dseylOwnsCharge(fighter) && !isEnoch(fighter) && ", "!isEnoch(fighter) && "),
+  # ICE STANCE: his Frozone-kit state is GAME_STATE too (replay / LAN snapshot)
+  ("f.currentAttack?.en || null]))   // Enoch GAME_STATE", 'replace', "f.currentAttack?.en || null, f._frozone ? { ...f._frozone, cues: undefined } : null, f.currentAttack?.fz || null]))   // Enoch GAME_STATE", "f.currentAttack?.en || null, f._frozone ?"),
 ]
 HOOKS += [('game.js',) + g for g in GAME]
 

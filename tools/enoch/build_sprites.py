@@ -173,7 +173,8 @@ STRIPS = {
   'atkStraight': [(bG, 1), (bS, 0), (bS, 5), (bG, 7)],                      # R7 lunge
   'atkHeavy': [(bG, 2), (bG, 3), (bS, 1), (bS, 4), (bG, 7)],                # frost palm: big ice burst
   'atkRise': [(bC, 0), (bG, 2), (bG, 4), (bG, 7)],                          # crouch → rising palm
-  'atkBlast': [(bG, 3), (bS, 0), (bS, 2), (bS, 5), (bG, 7)],                # Ice Blast: lunge, spark at the hand
+  'atkBlast': [(bG, 0), (bG, 3), (bG, 4), (bG, 5), (bG, 5), (bG, 7)],        # Ice Blast: standing shot — wind up, arm thrust, the shard leaves the hand
+  'channel': [(bC, 0), (bC, 1), (bC, 2), (bC, 1)],                         # Down / Up + Charge: crouched, gathering cold / heat
   'atkFloor': [(bC, 0), (bS, 3), (bS, 4), (bG, 7)],                         # Frost Floor: burst at the floor
   'atkCone': [(bG, 2), (bG, 3), (bS, 1), (bS, 3), (bG, 7)],                 # Deep Freeze
   'atkLens': [(bG, 0), (bG, 4), (bG, 5), (bG, 7)],                          # hand to the visor → fire → point
@@ -186,14 +187,21 @@ STRIPS = {
   'taunt': [(bG, 3), (bG, 4), (bG, 5), (bG, 4)],
   'win': [(bG, 4), (bG, 3), (bG, 4), (bG, 7)], 'winDisc': [(bI, 10)],
   'intro': [(bI, 7), (bI, 8), (bI, 9), (bI, 10), (bI, 11)], 'introSettle': [(bI, 12), ('idle', 0)],
+  # ── ICE STANCE (Frozone's kit, run by Enoch): the same sheet frames Frozone's moves use (tools/frozone/extract.py), in Enoch's
+  #    recolour. Strip names = 'fz' + Frozone's strip name without 'atk'; the per-move timelines are Frozone's (frozoneData.TIMELINE).
+  'fzLight': [(bG, 1), (bG, 2)], 'fzLight2': [(bG, 3), (bG, 4)], 'fzFinish': [(bG, 4), (bG, 5)], 'fzHeavy': [(bC, 0), (bC, 1), (bC, 2)],
+  'fzLow': [(bS, i) for i in range(6)], 'fzLaunch': [(bG, 6), (bG, 5)], 'fzAir': [(bG, 5)], 'fzDownAir': [(bI, 5), (bI, 2)],
+  'fzLance': [(bG, 4), (bG, 5)], 'fzRush': [(bI, i) for i in range(6, 12)], 'fzRise': [(bI, 3), (bI, 4)], 'fzBlackIce': [(bG, 6)],
+  'fzBreaker': [(bG, 4), (bC, 0), (bC, 1), (bC, 2)], 'fzUlt': [(bG, 4), (bG, 5), (bG, 7)],
+  'ultSkate': [(bI, i) for i in range(6, 11)], 'ultBrake': [(bI, 11)],
 }
-HIT = {'atkLow': 1, 'atkSlide': 1, 'atkAir': 1, 'atkJab': 2, 'atkStraight': 1, 'atkHeavy': 2, 'atkRise': 2, 'atkBlast': 2, 'atkFloor': 1,
-  'atkCone': 2, 'atkLens': 1, 'atkScorch': 2, 'atkSteam': 1, 'atkTide': 2, 'atkCondense': 2, 'atkWake': 1, 'atkSuper': 2, 'discPlant': 1}
+HIT = {'atkLow': 1, 'atkSlide': 1, 'atkAir': 1, 'atkJab': 2, 'atkStraight': 1, 'atkHeavy': 2, 'atkRise': 2, 'atkFloor': 1,
+  'atkCone': 2, 'atkLens': 1, 'atkBlast': 3, 'atkScorch': 2, 'atkSteam': 1, 'atkTide': 2, 'atkCondense': 2, 'atkWake': 1, 'atkSuper': 2, 'discPlant': 1}
 VARIANT_STRIPS = ['dash', 'atkSlide', 'ramp', 'discPlant', 'glide', 'glideTurn', 'standDisc', 'winDisc', 'intro', 'atkFloor', 'atkCone', 'atkSteam',
-  'atkStraight', 'atkWake', 'atkHeavy', 'atkBlast', 'atkScorch', 'atkTide']
-SPEED = {'idle': 9, 'walk': 6, 'walk_back': 6, 'run': 4, 'dash': 4, 'glide': 4, 'intro': 6, 'introSettle': 10, 'win': 14, 'taunt': 8,
+  'atkStraight', 'atkWake', 'atkHeavy', 'atkBlast', 'atkScorch', 'atkTide', 'channel']
+SPEED = {'ultSkate': 4, 'idle': 9, 'walk': 6, 'walk_back': 6, 'run': 4, 'dash': 4, 'glide': 4, 'intro': 6, 'introSettle': 10, 'win': 14, 'taunt': 8,
   'hurt': 6, 'knockdown': 8, 'getup': 8, 'lose': 12, 'ramp': 5, 'jump': 8, 'doubleJump': 6}
-LOOP = {'idle', 'walk', 'walk_back', 'run', 'dash', 'fall', 'taunt', 'glide', 'win'}
+LOOP = {'idle', 'walk', 'walk_back', 'run', 'dash', 'fall', 'taunt', 'glide', 'win', 'ultSkate', 'channel'}
 
 def main():
   im = X.load(); lab, G = X.groups(im); role = BS.roles(im, lab, G)

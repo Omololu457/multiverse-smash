@@ -14,7 +14,8 @@
 // HEAT LENS: the Homelander / Superman laser gauge (beam.js): tap = a 12-frame burst, hold Special = sustained, locks on;
 //           hold Up / Down to sweep by hand. Release → 1 s cooldown; running the gauge dry → 2.5 s overheat.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
-import { isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, startGlide, switchGlide, startRamp, waterUnlocked, zoneOf, check, pushThermal } from './enochState.js'
+import { isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance } from './enochState.js'
+import { updateFrozoneCommandCombat } from './frozone.js'
 import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL } from './enochData.js'
 
 registerEnochEngine({ startMove, comboScale: getComboScale })
@@ -51,7 +52,6 @@ export function heavyKey(f, e) {
   if (e.back) return zoneOf(f) === 'hot' ? 'fireWall' : 'iceWall'
   return 'heavy'
 }
-const glideType = f => (zoneOf(f) === 'hot' || !check(f, 'ice').ok) ? 'fire' : 'ice'
 
 export function updateEnochCommandCombat(f, inp, opp, W) {
   if (!isEnoch(f)) return false
@@ -77,6 +77,11 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
     if (fresh(s, 'heavy')) { use(s, 'heavy'); switchGlide(f, s, 'fire'); return 'consumed' }
     if (fresh(s, 'charge') && s.edges.charge.down) { use(s, 'charge'); fire('iceDisc'); return 'consumed' }
     return 'consumed'
+  }
+  // ICE STANCE: every press goes to Frozone's own command layer (his inputs, his precedence); Charge: Down = Ice Disc, else back
+  if (s.stance === 'ice') {
+    if (fresh(s, 'charge') && !a && g) { use(s, 'charge'); const e = s.edges.charge; if (e.fwd) fire('iceDisc'); else if (!e.down && !e.up) toggleStance(f); return 'consumed' }   // Down / Up + Charge = the channel (tickEnoch)
+    return updateFrozoneCommandCombat(f, inp, opp, W) || 'consumed'
   }
   // RAMP: one air attack, +10 %
   if (s.ramp && !g && !a && s.ramp.air > 0 && (fresh(s, 'light') || fresh(s, 'heavy') || fresh(s, 'upAttack'))) {
@@ -104,11 +109,13 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (fresh(s, 'heavy') && !a) { const e = s.edges.heavy; use(s, 'heavy'); fire(!g ? 'air' : e.up ? 'rise' : heavyKey(f, e)); return 'consumed' }
   if (fresh(s, 'upAttack')) { use(s, 'upAttack'); if (fresh(s, 'light')) use(s, 'light'); if (!a) fire(g ? 'rise' : 'air'); return 'consumed' }
   if (fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); if (!a) fire(!g ? 'air' : e.down ? 'low' : e.fwd ? 'straight' : 'jab'); return 'consumed' }   // Forward + Light = the Straight on its own
-  // CHARGE: Down + Charge = Ice Disc; Charge held on the ground = glide (ice; fire when he runs hot / ice is locked)
+  // CHARGE: Forward + Charge = Ice Disc; Down / Up + Charge held = channel cold / heat; a tap of Charge = ICE STANCE (Frozone's kit). (Holding Charge no longer starts a glide:
+  // his glides now come from the guard cancel and from a double-tap on his own ICE / FIRE patch.)
   if (fresh(s, 'charge') && !a && g) {
     use(s, 'charge')
-    if (s.edges.charge.down) fire('iceDisc')
-    else startGlide(f, s, glideType(f), f.facing || 1, 'charge')
+    const e = s.edges.charge
+    if (e.fwd) fire('iceDisc')                          // Forward + Charge = Ice Disc
+    else if (!e.down && !e.up) toggleStance(f)          // Down / Up + Charge = CHANNEL cold / heat (held; tickEnoch)
     return 'consumed'
   }
   return a ? 'consumed' : 'grab'

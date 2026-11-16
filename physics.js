@@ -19,6 +19,7 @@ import { rangerWalkMul } from './rangers.js'   // Ranger framework: run after a 
 import { arlongWalkMul, arlongDashMul } from './arlongState.js'   // Arlong: 4.4 px/f walk, ×1.25 in his water; foes slide 10% further back in it (arlong-gated, 1 for everyone else)
 import { elWalkVx, elFriction, elDashMul } from './elements.js'   // element patches (Enoch's ICE): slippery walk / friction / 20 % longer backdash — identity for anyone not on an ICE patch
 import { dashParrWalkMul, dashParrPhasing } from './dashParrState.js'   // Dash Parr: Momentum speed tiers + pass-through (dash_parr-gated; 1 / false for everyone else)
+import { enochPhasing } from './enochState.js'   // Enoch: an ICE glide skates past the opponent (enoch-gated; false for everyone else)
 import { buggyWalkMul } from './buggyState.js'   // Buggy the Clown: Festival walks at 60% (buggy-gated, 1 for everyone else)
 import { stepFlight, isFlying } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): richer data-driven flyer, gated on fighter._flightCtl (no-op for everyone else, incl. the separate _flightActive Omni-Man/Superman system)
 
@@ -443,6 +444,7 @@ export const physics = {
     if (sanjiPhasing(p1, p2)) return   // Sanji spinning THROUGH on his hands (handstand spin / Party Table Kick Course)
     if (zoroPhasing(p1, p2)) return   // Roronoa Zoro dashing THROUGH the opponent (Oni Giri / Shishi Sonson / Ashura)
     if (dashParrPhasing(p1, p2)) return   // Dash Parr passing THROUGH (Blur Dash cross-up / Laps / Sidestep / Panic Run / Incredi-Rush)
+    if (enochPhasing(p1, p2)) return   // Enoch skating PAST on an ICE glide (fire glides and everything else still collide)
 
     const dx = (p1.x + p1.w / 2) - (p2.x + p2.w / 2)
     const minX = p1.w / 2 + p2.w / 2

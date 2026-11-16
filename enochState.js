@@ -224,7 +224,7 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
 export function superVariant(f) { const v = enState(f).th.v; return Math.abs(v) <= TP.balance ? 'thermalShock' : v < 0 ? 'absoluteZero' : 'flashPoint' }
 
 function vol(f, s, W, kind, serial, cx, cy, w, h, P) {
-  const pr = W?.spawn?.(f, 'enoch_' + kind, { damage: P.damage, speed: 1, vx: P.vx ?? (P.dir || 1) * 0.01, vy: 0, spawnX: cx, spawnY: cy, w, h,
+  const pr = W?.spawn?.(f, 'enoch_' + kind, { damage: P.damage, speed: 1, vx: P.vx ?? (P.dir || 1) * 0.01, vy: P.vy || 0, spawnX: cx, spawnY: cy, w, h,
     radius: P.radius ?? Math.min(w, h) / 2, lifetime: P.life, hitstun: P.hitstun, knockbackX: P.kbx, knockbackY: P.kby, piercesMulti: false,
     sheet: './assets/enoch/fx/blank.png', spriteFrames: 1, spriteW: 1, spriteH: 1, isSpecial: true, color: P.color || '#9fe8ff' })
   if (!pr) return null
@@ -277,13 +277,17 @@ function endBeam(f, s) { if (!s.beam) return; s.beam = null; cue(f, 'laserOff');
 function release(f, s, W, a, m, md) {
   const d = m.dir, fr = front(f, d), feet = feetY(f)
   if (m.key === 'iceBlast') {
-    vol(f, s, W, 'blast', m.serial, fr + d * ICE_BLAST.handX, feet - ICE_BLAST.handY, ICE_BLAST.w, ICE_BLAST.h,
-      { damage: a.damage, hitstun: ICE_BLAST.hitstun, kbx: ICE_BLAST.kbx, kby: ICE_BLAST.kby, life: ICE_BLAST.life, vx: d * ICE_BLAST.speed, dir: d, damageType: 'projectile' })
+    // aimed: at an AIRBORNE foe in front (a launched one, combo 1) the blast angles up to at most 30°; on the ground it flies flat
+    const x0 = fr + d * ICE_BLAST.handX, y0 = feet - ICE_BLAST.handY
+    const t = foesOf(f, W).filter(o => !grounded(o) && (ctrX(o) - x0) * d > 0).sort((p, q) => Math.abs(ctrX(p) - x0) - Math.abs(ctrX(q) - x0))[0]
+    const vy = t ? Math.max(-ICE_BLAST.speed * ICE_BLAST.aimTan, Math.min(0, (ctrY(t) - y0) / Math.max(1, Math.abs(ctrX(t) - x0) / ICE_BLAST.speed))) : 0
+    vol(f, s, W, 'blast', m.serial, x0, y0, ICE_BLAST.w, ICE_BLAST.h,
+      { damage: a.damage, hitstun: ICE_BLAST.hitstun, kbx: ICE_BLAST.kbx, kby: ICE_BLAST.kby, life: ICE_BLAST.life, vx: d * ICE_BLAST.speed, vy: Math.round(vy * 1000) / 1000, dir: d, damageType: 'projectile' })
     cue(f, 'iceBlast')
   } else if (m.key === 'frostFloor') {
     const cx = fr + d * FROST_FLOOR.ahead
     lay(f, s, W, { type: 'ice', cx })
-    vol(f, s, W, 'floor', m.serial, cx, feet - 15, 140, 30, { damage: a.damage, hitstun: 18, kbx: 2, kby: -3, life: 5, dir: d, low: true, damageType: 'blunt' })
+    vol(f, s, W, 'floor', m.serial, cx, feet - 15, 140, 30, { damage: a.damage, hitstun: 20, kbx: 2, kby: 0, life: 5, dir: d, low: true, damageType: 'blunt' })
     cue(f, 'crackle'); pushFx(s, 'frost', cx, feet, d)
   } else if (m.key === 'scorch') { lay(f, s, W, { type: 'fire', cx: fr + d * SCORCH.ahead }); pushFx(s, 'scorch', fr + d * 70, feet - 50, d) }
   else if (m.key === 'iceDisc') {
@@ -387,6 +391,8 @@ function glideStep(f, s, r) {
   s.pose = G.turn ? 'glideTurn' : 'glide'
   return true
 }
+// physics.resolvePlayerCollision: an ICE glide skates PAST the opponent (the brief's "Ice Glide past"); a fire glide collides
+export const enochPhasing = (a, b) => [a, b].some(f => isEnoch(f) && f._enoch?.glide?.type === 'ice')
 export function startRamp(f, s) {
   const G = s.glide; if (!G) return false
   s.ramp = { type: G.type, air: 1 }; f.vy = GLIDE.rampVy; f.vx = G.dir * G.v * GLIDE.rampVx; f.onGround = false; f.grounded = false; f.jumpHeld = true
@@ -499,7 +505,7 @@ export function tickEnoch(f, opp, raw, W) {
     const v = Math.max(md.travel[2], m.glideV || 0) * (1 - (t - md.travel[0]) / (md.travel[1] - md.travel[0]) * 0.5)
     const o = foesOf(f, W, opp)[0]; let nx = Math.max(0, Math.min(sw(W) - f.w, f.x + m.dir * v))
     if (o) { if (m.dir > 0 && f.x + f.w <= o.x + 1) nx = Math.min(nx, o.x - f.w); if (m.dir < 0 && f.x >= o.x + o.w - 1) nx = Math.max(nx, o.x + o.w) }
-    f.x = Math.round(nx * 100) / 100; f.vx = 0; G.px = f.x - G.dir * G.v; G.pv = G.turn ? 0 : G.v
+    f.x = Math.round(nx * 100) / 100; f.vx = 0
     if (t === md.travel[0] + 4) lay(f, s, W, { type: 'ice', cx: ctrX(f) - m.dir * 20, width: 90 })   // a short ICE patch
   } else if (g && !md.air) f.vx = 0
   if (md.air && g && t > 2) endAttack(f, 4)

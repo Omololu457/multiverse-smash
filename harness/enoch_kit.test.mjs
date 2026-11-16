@@ -126,6 +126,9 @@ try {
     r.floor = H.state().s.field.patches.map(p => ({ t: p.type, cx: Math.round(p.x + p.width / 2) })); r.front = a.x + a.w
     ;({ a, b } = setup(1300, 1700)); b.invulnTimer = 99999; H.setThermal(0); H.move('scorch'); step(30)
     r.scorch = H.state().s.field.patches.map(p => p.type)
+    // Slide (Down + Heavy): travels, low, lays a short ICE patch
+    ;({ a, b } = setup(1000, 1500)); b.invulnTimer = 99999; H.setThermal(0); const sx0 = a.x; H.move('slide'); for (let i = 0; i < 40; i++) step(1)
+    r.slide = { dx: Math.round(a.x - sx0), ice: H.state().s.field.patches.filter(p => p.type === 'ice').length, attack: a.currentAttack?.name || null }
     ;({ a, b } = setup(1300, 1300 + 60 + 30)); H.setThermal(0); H.move('deepFreeze'); let fr = 0
     for (let i = 0; i < 30; i++) { step(1); fr = Math.max(fr, b._supFrozen || 0) }
     r.freeze = { frozen: fr, max: b._supFrozenMax, cd: H.state().s.cd.deepFreeze, stats: H.state().s.stats.freezes }
@@ -159,6 +162,7 @@ try {
   ok('cap → OVERLOAD: ice locked 1.5 s, then the meter sits at −50', M.over.overloads === 1 && M.over.side === -1 && !M.overLocked.ok && M.overLocked.why === 'overload' && M.overEnd.over === 0 && Math.abs(M.overEnd.v + 50) < 2 && M.overEnd.ok, JSON.stringify([M.over, M.overLocked, M.overEnd]))
   ok('Ice Blast pool: never more than 3 live; a 4th is refused while 3 fly', M.pool.maxLive <= 3 && M.pool.started >= 3 && (M.pool.maxLive < 3 || M.pool.poolRej > 0), JSON.stringify(M.pool))
   ok('Frost Floor lays ICE ahead (~110 px past his front)', M.floor.length === 1 && M.floor[0].t === 'ice' && Math.abs(M.floor[0].cx - (M.front + 110)) < 40, JSON.stringify([M.floor, M.front]))
+  ok('Slide: travels forward and lays a short ICE patch', M.slide.dx > 40 && M.slide.ice >= 1, JSON.stringify(M.slide))
   ok('Scorch Sweep lays FIRE ahead', M.scorch.includes('fire'), JSON.stringify(M.scorch))
   ok('Deep Freeze: the SHARED freeze status (_supFrozen 42 f = 0.7 s), 8 s cooldown', M.freeze.frozen === 42 && M.freeze.max === 42 && M.freeze.cd > 400 && !M.freezeCd.ok && M.freezeCd.why === 'cooldown', JSON.stringify([M.freeze, M.freezeCd]))
   ok('Heat Lens: hitscan 1100 px away, 58 raw → ~34.8 live', M.lens.hits === 1 && Math.abs(M.lens.drop - 34.8) < 1.5, JSON.stringify(M.lens))

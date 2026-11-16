@@ -76,13 +76,14 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (s.ramp && !g && !a && s.ramp.air > 0 && (fresh(s, 'light') || fresh(s, 'heavy') || fresh(s, 'upAttack'))) {
     use(s, 'light'); use(s, 'heavy'); use(s, 'upAttack'); s.ramp.air = 0; fire('air', { bonus: GLIDE.atkBonus }); return 'consumed'
   }
-  if (a && COMMITTED.has(a.en?.key)) return 'consumed'
   const contact = !!a?.en?.clean && cancelWindowOpen(f)
-  if (contact && CHAIN[a.name] && fresh(s, 'light')) { use(s, 'light'); fire(CHAIN[a.name], { cancel: true }); return 'consumed' }
-  if (contact && LINK_TO_NORMAL.includes(a.name) && fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); fire(e.fwd ? 'straight' : 'jab', { cancel: true }); return 'consumed' }   // a clean Heat Lens → Straight / Jab
+  // the SUPER cancels out of any clean special, committed ones included (Tide Break → Thermal Shock is the brief's combo 5)
   if (contact && fresh(s, 'special') && SUPER_FROM.includes(a.name) && specialKey(f, s.edges.special) === 'super') {
     use(s, 'special'); if ((f.energy || 0) >= 100) fire('super', { cancel: true }); return 'consumed'
   }
+  if (a && COMMITTED.has(a.en?.key)) return 'consumed'
+  if (contact && CHAIN[a.name] && fresh(s, 'light')) { use(s, 'light'); fire(CHAIN[a.name], { cancel: true }); return 'consumed' }
+  if (contact && LINK_TO_NORMAL.includes(a.name) && fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); fire(e.fwd ? 'straight' : 'jab', { cancel: true }); return 'consumed' }   // a clean Heat Lens → Straight / Jab
   if (contact && SPECIAL_FROM.includes(a.name) && fresh(s, 'special')) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (k !== a.name) fire(k, { cancel: true }); return 'consumed' }
   if (contact && fresh(s, 'heavy')) {
     const k = heavyKey(f, s.edges.heavy)

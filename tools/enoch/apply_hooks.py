@@ -57,6 +57,10 @@ HOOKS = [
   ('physics.js', "          fighter.vx *= fric\n", 'replace', "          fighter.vx *= elFriction(fighter, fric)\n", "fighter.vx *= elFriction(fighter, fric)"),
   ('physics.js', "      fighter.vx *= fighter.onGround ? this.friction : this.airFriction", 'replace',
    "      fighter.vx *= fighter.onGround ? elFriction(fighter, this.friction) : this.airFriction", "elFriction(fighter, this.friction)"),
+  ('physics.js', "import { dashParrWalkMul, dashParrPhasing } from './dashParrState.js'", 'after_line',
+   "import { enochPhasing } from './enochState.js'   // Enoch: an ICE glide skates past the opponent (enoch-gated; false for everyone else)", "{ enochPhasing }"),
+  ('physics.js', "    if (dashParrPhasing(p1, p2)) return", 'after_line',
+   "    if (enochPhasing(p1, p2)) return   // Enoch skating PAST on an ICE glide (fire glides and everything else still collide)", "enochPhasing(p1, p2)) return"),
 ]
 GAME = [
   ("import { frozoneHarnessApi } from './frozoneHarness.js'", 'after_line',

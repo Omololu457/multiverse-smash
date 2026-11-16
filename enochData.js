@@ -24,7 +24,7 @@ const n = (raw, startup, active, recovery, adv, extra = {}) => ({ raw, damage: d
 export const ENOCH_MOVES = {
   jab:      n(40, 5, 3, 8, +1, { box: [0, 64, 90, 40], strip: 'atkJab' }),                                        // R7 fr1 · +1 on block
   straight: n(62, 8, 3, 13, -3, { hitstun: 19, knockbackX: 5, box: [0, 84, 92, 42], strip: 'atkStraight' }),     // R7 fr2-3 · −3
-  heavy:    n(88, 12, 4, 20, -5, { category: 'heavy', launcher: true, launchVy: -19, hitstun: 30, knockbackX: 4, knockbackY: -14,
+  heavy:    n(88, 12, 4, 20, -5, { category: 'heavy', launcher: true, launchVy: -12, hitstun: 30, knockbackX: 4, knockbackY: -14,
               box: [0, 92, 110, 70], thermal: -5, strip: 'atkHeavy' }),                                           // R8 fr1-2 · launches · 5 colder
   low:      n(46, 7, 3, 13, -2, { hitLevel: 'low', hitstun: 18, box: [0, 86, 34, 34], strip: 'atkLow' }),       // R3 crouch · low · (*) −2
   rise:     n(78, 9, 4, 18, -4, { category: 'heavy', antiAir: true, hitstun: 24, knockbackX: 2, knockbackY: -12,
@@ -40,7 +40,7 @@ export const HEAVY_FROM = ['jab', 'straight', 'low']
 const sp = (raw, startup, active, recovery, adv, extra = {}) => n(raw, startup, active, recovery, adv, { category: 'special', isSpecial: true, ...extra })
 export const ENOCH_SPECIALS = {
   iceBlast:   sp(55, 12, 2, 18, -6, { el: 'ice', th: -12, damageType: 'projectile', noBody: true, releaseAt: 11, strip: 'atkStraight' }),   // ↓↘→+S
-  frostFloor: sp(35, 12, 4, 20, -8, { el: 'ice', th: -15, hitLevel: 'low', knockbackY: -3, box: [0, 120, 30, 30], releaseAt: 12, strip: 'atkFloor' }),   // ↓↓+S
+  frostFloor: sp(35, 12, 4, 20, -8, { el: 'ice', th: -15, hitLevel: 'low', knockbackY: 0, noBody: true, releaseAt: 12, strip: 'atkFloor' }),   // ONE hit: the eruption volume (no melee box)   // ↓↓+S
   deepFreeze: sp(40, 14, 4, 24, -10, { el: 'ice', th: -22, hitstun: 22, box: [0, 110, 96, 70], freeze: 42, cooldown: 480, strip: 'atkCone' }),      // ↓↙←+S · 0.7 s freeze
   iceDisc:    sp(0, 10, 1, 14, 0, { el: 'ice', th: -18, noBody: true, releaseAt: 9, strip: 'discPlant' }),                                       // ↓+Charge
   heatLens:   sp(58, 10, 2, 14, -6, { el: 'fire', th: 12, damageType: 'energy', noBody: true, releaseAt: 10, strip: 'atkLens' }),              // →→+S / ↓↘→+H
@@ -52,7 +52,7 @@ export const ENOCH_SPECIALS = {
   wake:       n(70, 6, 4, 22, -12, { category: 'heavy', invuln: 6, hitstun: 22, knockbackX: 6, knockbackY: -6, box: [0, 90, 100, 80], strip: 'atkWake' }),   // attack on wake-up
   super:      sp(0, 10, 2, 30, 0, { noBody: true, isUltimate: true, cost: 100, releaseAt: 10, range: 460, strip: 'atkSuper' }),                // ↓↘→↓↘→+S
 }
-export const ICE_BLAST = { speed: 11, life: 64, w: 40, h: 22, handX: 30, handY: 62, pool: 3, hitstun: 18, kbx: 4, kby: -2 }   // 11 px/f × 64 f ≈ 55 % of the screen
+export const ICE_BLAST = { speed: 11, life: 64, w: 40, h: 22, handX: 30, handY: 62, pool: 3, hitstun: 18, kbx: 4, kby: -2, aimTan: 0.577 }   // aimTan = tan 30°: the steepest it angles up at an airborne foe   // 11 px/f × 64 f ≈ 55 % of the screen
 export const FROST_FLOOR = { ahead: 110 }
 export const HEAT_LENS = { len: 1280, holdMax: 72, tickEvery: 6, tickRaw: 7, hotPerSec: 10, angleMax: Math.PI / 6, angleStep: Math.PI / 90, hitstun: 14, holdHitstun: 8, wetMul: 1.25 }
 export const SCORCH = { ahead: 120 }

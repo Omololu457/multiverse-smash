@@ -45,6 +45,10 @@ HOOKS = [
    "    if (fighter.rosterKey === 'enoch') fighter._lastSpriteFrame = this.frameIndex;   // Enoch: presentation read (harness frame checks)", "rosterKey === 'enoch') fighter._lastSpriteFrame"),
   ('sprite.js', "      if (fighter._mrIncredible?.land > 0 && Math.abs(fighter.vx || 0) < 1) return 'land';\n    }\n  }", 'after_line',
    "  if (fighter.rosterKey === 'enoch' && fighter._enoch?.pose && !fighter.attacking && !(fighter.hitstun > 0) && !fighter.knockdownState && !fighter.isGrabbed) {   // Enoch: glide / turn / ramp / disc poses (a fire trail = the _fire copy)\n    const p = fighter._enoch.pose, el = fighter._enoch.glide?.type || fighter._enoch.ramp?.type\n    return el === 'fire' && fighter.animationData?.[p + '_fire'] ? p + '_fire' : p;\n  }", "rosterKey === 'enoch' && fighter._enoch?.pose"),
+  ('sprite.js', "  if (fighter._forceAction) return fighter._forceAction;", 'replace',
+   "  if (fighter.rosterKey === 'enoch' && fighter._forceAction === 'win' && fighter._enochWinPose && fighter.animationData?.[fighter._enochWinPose]) return fighter._enochWinPose;   // Enoch: the disc win pose (enochState memo)\n  if (fighter._forceAction) return fighter._forceAction;", "fighter._enochWinPose && fighter.animationData"),
+  ('credits.js', '      { work: "Contributor — helped build Multiverse Smash (playable as Dseyl)", artists: ["Dseyl"] }\n', 'replace',
+   '      { work: "Contributor — helped build Multiverse Smash (playable as Dseyl)", artists: ["Dseyl"] },\n      { work: "Contributor — helped build Multiverse Smash (playable as Enoch)", artists: ["Enoch"] }\n', "(playable as Enoch)"),
   ('input.js', "!fighter._frozoneRemoteInput && ", 'replace', "!fighter._frozoneRemoteInput && !fighter._enochRemoteInput && ", "!fighter._enochRemoteInput && ", 2),
   ('input.js', "fighter.rosterKey === 'frozone' || ", 'replace', "fighter.rosterKey === 'frozone' || fighter.rosterKey === 'enoch' || ", "fighter.rosterKey === 'enoch' || "),
   # physics: Enoch's ICE patches (elements.js) — every helper is the identity unless the fighter stands on someone's ICE patch

@@ -1,0 +1,74 @@
+{
+ "pass": 19,
+ "fail": 0,
+ "meta": {
+  "displayName": "Enoch",
+  "name": "Enoch",
+  "universe": "the_incredibles",
+  "archetype": "Elemental Controller / Trail Glider",
+  "tagline": "Where ice meets fire.",
+  "bio": "One of the people who helped build Multiverse Smash. He took Frozone's ice, added a visor that burns, and learned that the real power is what happens where the two meet.",
+  "difficulty": 5,
+  "contributor": true,
+  "hp": 980,
+  "weight": 0.85,
+  "portrait": "./assets/enoch/portrait.png",
+  "afterFrozone": true,
+  "skins": [
+   "default"
+  ],
+  "contributorLine": "Contributor — helped build Multiverse Smash (playable as Enoch) — Enoch",
+  "art": true
+ },
+ "poses": {
+  "idle": {
+   "action": "idle",
+   "frames": 8
+  },
+  "win": "win",
+  "winDisc": "winDisc",
+  "winDiscFire": "winDisc_fire",
+  "winDiscWater": "winDisc_water",
+  "lose": "lose",
+  "anim": []
+ },
+ "sound": {
+  "pitch": 1.12,
+  "rms": {
+   "enoch_swing": 0.0011,
+   "enoch_cast": 0.004,
+   "enoch_iceCast": 0.0064,
+   "enoch_fireCast": 0.0057,
+   "enoch_waterCast": 0.0025,
+   "enoch_iceBlast": 0.0087,
+   "enoch_crackle": 0.0065,
+   "enoch_shatter": 0.0183,
+   "enoch_freeze": 0.0101,
+   "enoch_burst": 0.0888,
+   "enoch_hiss": 0.046,
+   "enoch_steam": 0.0063,
+   "enoch_tide": 0.0455,
+   "enoch_orb": 0.0074,
+   "enoch_laser": 0.0071,
+   "enoch_laserOn": 0.0071,
+   "enoch_laserOff": 0.0027,
+   "enoch_glide": 0.0026,
+   "enoch_glideFast": 0.003,
+   "enoch_switch": 0.0048,
+   "enoch_brake": 0.0093,
+   "enoch_ramp": 0.0022,
+   "enoch_land": 0.0036,
+   "enoch_overload": 0.0146,
+   "enoch_reject": 0.0056,
+   "enoch_superStart": 0.0076,
+   "enoch_superConfirm_absoluteZero": 0.0159,
+   "enoch_superConfirm_flashPoint": 0.01,
+   "enoch_superConfirm_thermalShock": 0.0089,
+   "enoch_superHit": 0.008,
+   "enoch_superTick": 0.0005,
+   "enoch_superFinal": 0.0905,
+   "enoch_fireCrackle": 0.0005,
+   "enoch_superMiss": 0.0008
+  }
+ }
+}

@@ -1,13 +1,13 @@
 # Enoch — what was read from Frozone, and which shared systems are reused
 
-Enoch (`enoch`, "The Incredibles") is a tribute fighter for a friend from church who helped build Multiverse Smash.
+Enoch (`enoch`, "The Incredibles") is a tribute fighter for a friend who helped build Multiverse Smash.
 He is **built from Frozone** but Frozone himself is unchanged: no Frozone file is edited, and Frozone's sprite files stay
 byte-identical (`harness/enoch_framedata_diff.mjs` checks both).
 
 ## Source sheet
 
-The brief named `assets/incoming/enoch/frozone_base.png`. That file never existed (nor did the reference photo at
-`~/Desktop/enoch_ref.jpg`). On the owner's instruction (2026-11-15) the base is **Frozone's own supplied sheet already
+The brief named `assets/incoming/enoch/frozone_base.png`. That file never existed (nor did the private reference photo,
+which was never to enter the repo in any case). On the owner's instruction (2026-11-15) the base is **Frozone's own supplied sheet already
 in the repo**: `Game Boy Advance - The Incredibles - Playable Characters - Frozone.png` (SHA-256 34aeab73…, 704 × 471).
 It is only READ (`tools/enoch/build_sprites.py`). Without the reference photo, the edits follow the brief's palette values
 exactly; the one judgement call this forced is noted in `EDIT_LEDGER.md` (facial hair kept from Frozone).

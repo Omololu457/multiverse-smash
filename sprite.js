@@ -664,6 +664,7 @@ function _resolveAction(fighter, currentAction = "idle") {
   // HARNESS-ONLY pose override: set exclusively by __harness.benPose (and only under
   // ?harness) so a screenshot tool can render a SPECIFIC action deterministically without
   // driving physics. Inert in normal play (the field is never set). Highest priority.
+  if (fighter.rosterKey === 'enoch' && fighter._forceAction === 'win' && fighter._enochWinPose && fighter.animationData?.[fighter._enochWinPose]) return fighter._enochWinPose;   // Enoch: the disc win pose (enochState memo)
   if (fighter._forceAction) return fighter._forceAction;
   if (fighter.rosterKey === 'mr_incredible') {
     if (!(fighter.hitstun > 0) && !fighter.knockdownState && !fighter.isGrabbed) {

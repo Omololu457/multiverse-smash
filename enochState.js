@@ -422,6 +422,9 @@ export function tickEnoch(f, opp, raw, W) {
   if (!isEnoch(f)) { if (f?._enoch) clearEnoch(f, W); return }
   WREF.W = W
   const s = enState(f); s.tick++
+  // presentation memo, read by sprite.js when he wins (never by the sim): a round in which he rode a disc ends ON the disc, in
+  // the colour of his final thermal (hot = fire, balance = water, else ice); otherwise the plain win. Survives clearEnoch.
+  f._enochWinPose = s.stats.discs > 0 ? (s.th.v >= TP.hot ? 'winDisc_fire' : Math.abs(s.th.v) <= TP.balance ? 'winDisc_water' : 'winDisc') : 'win'
   const face = f.facing || 1, fw = !!(face === -1 ? raw.left : raw.right), bk = !!(face === -1 ? raw.right : raw.left)
   const dg = dirDigit(raw, face)
   if (!s.dirs.length || s.dirs[s.dirs.length - 1].d !== dg) { s.dirs.push({ d: dg, c: s.clock }); if (s.dirs.length > 16) s.dirs.shift() }

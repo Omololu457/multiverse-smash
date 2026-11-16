@@ -1,5 +1,5 @@
 // ENOCH (enoch, The Incredibles) — DATA ONLY: frame data, the thermal profile, move budgets and the roster entry.
-// A tribute fighter for a friend from church who helped build Multiverse Smash: Frozone's ice, a visor that burns, and
+// A tribute fighter for a friend who helped build Multiverse Smash: Frozone's ice, a visor that burns, and
 // what happens where the two meet. Logic: enochState.js (sim) · enoch.js (command layer) · enochFx.js (render).
 // Art: a region recolour of Frozone's supplied GBA sheet (tools/enoch/build_sprites.py; docs/enoch/EDIT_LEDGER.md).
 // Frozone is untouched: nothing here imports or mutates frozone*.js.

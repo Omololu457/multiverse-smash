@@ -673,6 +673,10 @@ function _resolveAction(fighter, currentAction = "idle") {
       if (fighter._mrIncredible?.land > 0 && Math.abs(fighter.vx || 0) < 1) return 'land';
     }
   }
+  if (fighter.rosterKey === 'enoch' && fighter._enoch?.pose && !fighter.attacking && !(fighter.hitstun > 0) && !fighter.knockdownState && !fighter.isGrabbed) {   // Enoch: glide / turn / ramp / disc poses (a fire trail = the _fire copy)
+    const p = fighter._enoch.pose, el = fighter._enoch.glide?.type || fighter._enoch.ramp?.type
+    return el === 'fire' && fighter.animationData?.[p + '_fire'] ? p + '_fire' : p;
+  }
 
   // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
   // they were in. Hold whatever action was last resolved (mid-jump → "jump",
@@ -1163,6 +1167,7 @@ export class SpriteHandler {
     if (fighter.rosterKey === 'syndrome') fighter._lastSpriteFrame = this.frameIndex;   // Syndrome: presentation read for gesture-synced machine art (syndromeFx)
     if (fighter.rosterKey === 'dseyl') fighter._lastSpriteFrame = this.frameIndex;   // Dseyl: presentation read for gesture-synced machine art (syndromeFx)
     if (fighter.rosterKey === 'frozone') fighter._lastSpriteFrame = this.frameIndex;   // Frozone: presentation read (harness frame checks)
+    if (fighter.rosterKey === 'enoch') fighter._lastSpriteFrame = this.frameIndex;   // Enoch: presentation read (harness frame checks)
     if (fighter.rosterKey === 'batman') fighter._lastSpriteFrame = this.frameIndex;   // Batman: presentation read for grapnel / rope anchors (batmanFx)
     const sx = (frameData.sourceX || 0) + this.frameIndex * drawWidth;
     const sy = (frameData.sourceY || 0);

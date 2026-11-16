@@ -20,6 +20,7 @@ import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './hi
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
 import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
 import { frozoneHitbox, frozoneBlock, frozoneHit, frozoneProjectileHit } from './frozoneState.js'   // Frozone hooks (frozone-gated)
+import { enochHitbox, enochBlock, enochHit, enochProjectileHit } from './enochState.js'   // Enoch hooks (enoch-gated)
 import { mrHitbox, mrHit } from './mrIncredibleState.js'
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
 import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile, violetNoBox } from './violetState.js'   // Violet Parr hooks (violet-gated)
@@ -737,6 +738,7 @@ export function getAttackHitbox(fighter) {
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.fz && fighter.rosterKey === 'frozone') return frozoneHitbox(fighter)   // Frozone: the ice strike's box at the casting hand (body-less casts have none — Lance / Black Ice are projectiles)
+  if (a?.en && fighter.rosterKey === 'enoch') return enochHitbox(fighter)   // Enoch: the strike's box (body-less casts have none — blasts / orbs are projectiles, the beam is hitscan)
   if (a?.mr && fighter.rosterKey === 'mr_incredible') return mrHitbox(fighter)
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
   if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated
@@ -3477,6 +3479,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
     if (!flawless) dseylBlock(attacker, defender, atk)   // Dseyl: authored blockstun; syndrome-gated
     if (!flawless) frozoneBlock(attacker, defender, atk)   // Frozone: authored blockstun; no Chill on block; frozone-gated
+    if (!flawless) enochBlock(attacker, defender, atk)   // Enoch: authored blockstun; enoch-gated
     if (!flawless) mrHit(attacker, defender, atk, true)
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
     violetBlock(attacker, defender, atk, flawless)   // Violet: a blocked strike still ends Vanish + authored blockstun (not on a flawless block); violet-gated
@@ -3552,6 +3555,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
     dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
     frozoneHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Frozone: clean flag (chain / cancels), Chill / Freeze / Shatter, ultimate confirm; frozone-gated
+    enochHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Enoch: clean flag (chain / cancels), super meter, Deep Freeze (shared _supFrozen); enoch-gated
     mrHit(attacker, defender, atk, false)
     batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
     violetHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Violet: +4 Force Field on a landed hit; violet-gated
@@ -4485,6 +4489,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       syndromeProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Syndrome: machine contact bookkeeping (Convergence, turret / Omnidroid confirms); syndrome-gated
       dseylProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Dseyl: machine contact bookkeeping (Convergence, turret / Omnidroid confirms); syndrome-gated
       frozoneProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Frozone: Lance / Black Ice contact → Chill (clean only), thaw; frozone-gated
+      enochProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Enoch: blast / orb / hail contact → clean flag + meter; enoch-gated
       megumiProjectileHit(proj, fighter, {armored:!!supArmoredProj})   // Megumi: summon contact bookkeeping (route confirm, Toad pull, Totality confirm); megumi-gated
       zoroProjectileHit(proj, fighter)   // Roronoa Zoro Spirit on projectile hits (zoro-gated)
       buggyProjectileHit(proj, fighter)  // Buggy the Clown: +4 Chop per thrown knife (buggy-gated)

@@ -1,4 +1,6 @@
-Enoch build — BASELINE (clean HEAD 5a2cbbe1d, run from a `git archive HEAD` export so the other session's
+Enoch build — BASELINE. START COMMIT = 533cda9f5 (the parent of Enoch's first commit). At session start HEAD was 5a2cbbe1d;
+another session then committed Dseyl P7 (533cda9f5) before Enoch P0 landed, so P0 sits on 533cda9f5. The baseline was
+re-run on 533cda9f5 with IDENTICAL counts (logs: both runs). Original note: clean HEAD 5a2cbbe1d, run from a `git archive HEAD` export so the other session's
 uncommitted edits in the shared worktree (Dseyl / Controls Lab files, game.js, ui.js, flight.js) could not affect
 the counts). 2026-11-15. `git pull --ff-only origin main` was a no-op (HEAD == origin/main).
 

@@ -1,0 +1,2060 @@
+{
+ "source": "Game Boy Advance - The Incredibles - Playable Characters - Frozone.png",
+ "sha256": "34aeab73862739c2e1e87285b543ee4a67f64ae4512204990d76939822d2bce6",
+ "band_counts": {
+  "portrait": 1,
+  "idle": 8,
+  "skate": 8,
+  "cast": 3,
+  "ice": 13,
+  "react": 4,
+  "down": 3,
+  "sweep": 6,
+  "gesture": 8
+ },
+ "frames": [
+  {
+   "band": "idle",
+   "index": 0,
+   "rect": [
+    2,
+    33,
+    17,
+    61
+   ],
+   "opaque": 633,
+   "recoloured": 377,
+   "unchanged": 256,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 92,
+    "cuff": 24,
+    "yoke": 64,
+    "trimShirt": 0,
+    "jeans": 89,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 1,
+   "rect": [
+    21,
+    33,
+    17,
+    61
+   ],
+   "opaque": 633,
+   "recoloured": 377,
+   "unchanged": 256,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 92,
+    "cuff": 24,
+    "yoke": 64,
+    "trimShirt": 0,
+    "jeans": 89,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 2,
+   "rect": [
+    40,
+    33,
+    17,
+    61
+   ],
+   "opaque": 633,
+   "recoloured": 377,
+   "unchanged": 256,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 92,
+    "cuff": 24,
+    "yoke": 64,
+    "trimShirt": 0,
+    "jeans": 89,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 3,
+   "rect": [
+    59,
+    33,
+    17,
+    61
+   ],
+   "opaque": 639,
+   "recoloured": 383,
+   "unchanged": 256,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 94,
+    "cuff": 24,
+    "yoke": 68,
+    "trimShirt": 0,
+    "jeans": 89,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 4,
+   "rect": [
+    78,
+    32,
+    17,
+    62
+   ],
+   "opaque": 639,
+   "recoloured": 381,
+   "unchanged": 258,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 91,
+    "cuff": 24,
+    "yoke": 65,
+    "trimShirt": 0,
+    "jeans": 93,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 5,
+   "rect": [
+    97,
+    32,
+    17,
+    62
+   ],
+   "opaque": 640,
+   "recoloured": 383,
+   "unchanged": 257,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 91,
+    "cuff": 24,
+    "yoke": 65,
+    "trimShirt": 0,
+    "jeans": 95,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 6,
+   "rect": [
+    116,
+    32,
+    17,
+    62
+   ],
+   "opaque": 640,
+   "recoloured": 384,
+   "unchanged": 256,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 91,
+    "cuff": 24,
+    "yoke": 65,
+    "trimShirt": 0,
+    "jeans": 96,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "idle",
+   "index": 7,
+   "rect": [
+    135,
+    33,
+    17,
+    61
+   ],
+   "opaque": 638,
+   "recoloured": 384,
+   "unchanged": 254,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 93,
+    "cuff": 24,
+    "yoke": 69,
+    "trimShirt": 0,
+    "jeans": 90,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "skate",
+   "index": 0,
+   "rect": [
+    2,
+    108,
+    66,
+    39
+   ],
+   "opaque": 667,
+   "recoloured": 358,
+   "unchanged": 309,
+   "erased": 18,
+   "filled": 14,
+   "soles": 4,
+   "regions": {
+    "hair": 27,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 18,
+    "hand": 18,
+    "shirt": 149,
+    "cuff": 5,
+    "yoke": 41,
+    "trimShirt": 12,
+    "jeans": 56,
+    "bootTop": 10,
+    "trimJeans": 1,
+    "sneaker": 8
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "skate",
+   "index": 1,
+   "rect": [
+    70,
+    105,
+    52,
+    42
+   ],
+   "opaque": 608,
+   "recoloured": 328,
+   "unchanged": 280,
+   "erased": 11,
+   "filled": 9,
+   "soles": 2,
+   "regions": {
+    "hair": 23,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 21,
+    "shirt": 98,
+    "cuff": 9,
+    "yoke": 25,
+    "trimShirt": 11,
+    "jeans": 91,
+    "bootTop": 0,
+    "trimJeans": 16,
+    "sneaker": 4
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "skate",
+   "index": 2,
+   "rect": [
+    124,
+    102,
+    37,
+    45
+   ],
+   "opaque": 534,
+   "recoloured": 295,
+   "unchanged": 239,
+   "erased": 13,
+   "filled": 10,
+   "soles": 9,
+   "regions": {
+    "hair": 20,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 0,
+    "shirt": 76,
+    "cuff": 12,
+    "yoke": 36,
+    "trimShirt": 3,
+    "jeans": 70,
+    "bootTop": 14,
+    "trimJeans": 8,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "skate",
+   "index": 3,
+   "rect": [
+    163,
+    97,
+    34,
+    50
+   ],
+   "opaque": 587,
+   "recoloured": 313,
+   "unchanged": 274,
+   "erased": 10,
+   "filled": 8,
+   "soles": 10,
+   "regions": {
+    "hair": 21,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 26,
+    "shirt": 61,
+    "cuff": 3,
+    "yoke": 55,
+    "trimShirt": 0,
+    "jeans": 82,
+    "bootTop": 3,
+    "trimJeans": 0,
+    "sneaker": 19
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "skate",
+   "index": 4,
+   "rect": [
+    199,
+    109,
+    59,
+    38
+   ],
+   "opaque": 659,
+   "recoloured": 359,
+   "unchanged": 300,
+   "erased": 9,
+   "filled": 8,
+   "soles": 4,
+   "regions": {
+    "hair": 17,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 21,
+    "shirt": 142,
+    "cuff": 9,
+    "yoke": 56,
+    "trimShirt": 13,
+    "jeans": 43,
+    "bootTop": 17,
+    "trimJeans": 3,
+    "sneaker": 8
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "skate",
+   "index": 5,
+   "rect": [
+    260,
+    104,
+    44,
+    43
+   ],
+   "opaque": 609,
+   "recoloured": 339,
+   "unchanged": 270,
+   "erased": 13,
+   "filled": 9,
+   "soles": 5,
+   "regions": {
+    "hair": 22,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 21,
+    "shirt": 85,
+    "cuff": 21,
+    "yoke": 57,
+    "trimShirt": 2,
+    "jeans": 84,
+    "bootTop": 2,
+    "trimJeans": 9,
+    "sneaker": 6
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "skate",
+   "index": 6,
+   "rect": [
+    306,
+    99,
+    33,
+    48
+   ],
+   "opaque": 503,
+   "recoloured": 275,
+   "unchanged": 228,
+   "erased": 11,
+   "filled": 9,
+   "soles": 7,
+   "regions": {
+    "hair": 31,
+    "strap": 3,
+    "lens": 1,
+    "beard": 4,
+    "skin": 17,
+    "hand": 6,
+    "shirt": 39,
+    "cuff": 14,
+    "yoke": 44,
+    "trimShirt": 1,
+    "jeans": 83,
+    "bootTop": 11,
+    "trimJeans": 7,
+    "sneaker": 14
+   },
+   "flash": false,
+   "lens": 1
+  },
+  {
+   "band": "skate",
+   "index": 7,
+   "rect": [
+    341,
+    97,
+    40,
+    50
+   ],
+   "opaque": 587,
+   "recoloured": 338,
+   "unchanged": 249,
+   "erased": 11,
+   "filled": 9,
+   "soles": 9,
+   "regions": {
+    "hair": 31,
+    "strap": 3,
+    "lens": 1,
+    "beard": 4,
+    "skin": 17,
+    "hand": 18,
+    "shirt": 84,
+    "cuff": 14,
+    "yoke": 44,
+    "trimShirt": 1,
+    "jeans": 81,
+    "bootTop": 19,
+    "trimJeans": 0,
+    "sneaker": 21
+   },
+   "flash": false,
+   "lens": 1
+  },
+  {
+   "band": "cast",
+   "index": 0,
+   "rect": [
+    2,
+    152,
+    43,
+    44
+   ],
+   "opaque": 673,
+   "recoloured": 363,
+   "unchanged": 310,
+   "erased": 12,
+   "filled": 10,
+   "soles": 12,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 3,
+    "skin": 14,
+    "hand": 13,
+    "shirt": 85,
+    "cuff": 2,
+    "yoke": 53,
+    "trimShirt": 5,
+    "jeans": 111,
+    "bootTop": 0,
+    "trimJeans": 18,
+    "sneaker": 22
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "cast",
+   "index": 1,
+   "rect": [
+    47,
+    151,
+    41,
+    45
+   ],
+   "opaque": 667,
+   "recoloured": 367,
+   "unchanged": 300,
+   "erased": 12,
+   "filled": 10,
+   "soles": 12,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 3,
+    "skin": 15,
+    "hand": 15,
+    "shirt": 89,
+    "cuff": 9,
+    "yoke": 49,
+    "trimShirt": 0,
+    "jeans": 110,
+    "bootTop": 0,
+    "trimJeans": 18,
+    "sneaker": 22
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "cast",
+   "index": 2,
+   "rect": [
+    90,
+    150,
+    42,
+    46
+   ],
+   "opaque": 673,
+   "recoloured": 362,
+   "unchanged": 311,
+   "erased": 12,
+   "filled": 10,
+   "soles": 12,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 3,
+    "skin": 15,
+    "hand": 14,
+    "shirt": 91,
+    "cuff": 3,
+    "yoke": 49,
+    "trimShirt": 7,
+    "jeans": 103,
+    "bootTop": 0,
+    "trimJeans": 18,
+    "sneaker": 22
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 0,
+   "rect": [
+    2,
+    221,
+    62,
+    53
+   ],
+   "opaque": 795,
+   "recoloured": 354,
+   "unchanged": 441,
+   "erased": 12,
+   "filled": 10,
+   "soles": 15,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 18,
+    "shirt": 77,
+    "cuff": 7,
+    "yoke": 54,
+    "trimShirt": 0,
+    "jeans": 102,
+    "bootTop": 0,
+    "trimJeans": 11,
+    "sneaker": 26
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 1,
+   "rect": [
+    66,
+    222,
+    62,
+    52
+   ],
+   "opaque": 744,
+   "recoloured": 323,
+   "unchanged": 421,
+   "erased": 12,
+   "filled": 10,
+   "soles": 15,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 25,
+    "shirt": 61,
+    "cuff": 4,
+    "yoke": 46,
+    "trimShirt": 0,
+    "jeans": 91,
+    "bootTop": 0,
+    "trimJeans": 11,
+    "sneaker": 26
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 2,
+   "rect": [
+    130,
+    225,
+    62,
+    49
+   ],
+   "opaque": 727,
+   "recoloured": 307,
+   "unchanged": 420,
+   "erased": 11,
+   "filled": 9,
+   "soles": 8,
+   "regions": {
+    "hair": 28,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 26,
+    "shirt": 66,
+    "cuff": 0,
+    "yoke": 38,
+    "trimShirt": 7,
+    "jeans": 81,
+    "bootTop": 0,
+    "trimJeans": 11,
+    "sneaker": 20
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 3,
+   "rect": [
+    194,
+    199,
+    58,
+    75
+   ],
+   "opaque": 748,
+   "recoloured": 354,
+   "unchanged": 394,
+   "erased": 12,
+   "filled": 10,
+   "soles": 10,
+   "regions": {
+    "hair": 30,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 10,
+    "shirt": 86,
+    "cuff": 12,
+    "yoke": 66,
+    "trimShirt": 0,
+    "jeans": 81,
+    "bootTop": 21,
+    "trimJeans": 0,
+    "sneaker": 18
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 4,
+   "rect": [
+    254,
+    199,
+    60,
+    69
+   ],
+   "opaque": 859,
+   "recoloured": 379,
+   "unchanged": 480,
+   "erased": 12,
+   "filled": 10,
+   "soles": 16,
+   "regions": {
+    "hair": 30,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 7,
+    "shirt": 86,
+    "cuff": 12,
+    "yoke": 48,
+    "trimShirt": 0,
+    "jeans": 109,
+    "bootTop": 25,
+    "trimJeans": 0,
+    "sneaker": 32
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 5,
+   "rect": [
+    316,
+    205,
+    44,
+    63
+   ],
+   "opaque": 745,
+   "recoloured": 331,
+   "unchanged": 414,
+   "erased": 12,
+   "filled": 10,
+   "soles": 12,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 29,
+    "shirt": 62,
+    "cuff": 2,
+    "yoke": 46,
+    "trimShirt": 0,
+    "jeans": 98,
+    "bootTop": 0,
+    "trimJeans": 13,
+    "sneaker": 22
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 6,
+   "rect": [
+    362,
+    205,
+    58,
+    63
+   ],
+   "opaque": 1392,
+   "recoloured": 347,
+   "unchanged": 1045,
+   "erased": 12,
+   "filled": 10,
+   "soles": 18,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 29,
+    "shirt": 62,
+    "cuff": 2,
+    "yoke": 46,
+    "trimShirt": 0,
+    "jeans": 98,
+    "bootTop": 0,
+    "trimJeans": 13,
+    "sneaker": 38
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 7,
+   "rect": [
+    422,
+    209,
+    49,
+    59
+   ],
+   "opaque": 1259,
+   "recoloured": 329,
+   "unchanged": 930,
+   "erased": 12,
+   "filled": 10,
+   "soles": 11,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 19,
+    "shirt": 82,
+    "cuff": 9,
+    "yoke": 25,
+    "trimShirt": 0,
+    "jeans": 110,
+    "bootTop": 0,
+    "trimJeans": 7,
+    "sneaker": 18
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 8,
+   "rect": [
+    473,
+    227,
+    54,
+    41
+   ],
+   "opaque": 1048,
+   "recoloured": 385,
+   "unchanged": 663,
+   "erased": 11,
+   "filled": 9,
+   "soles": 7,
+   "regions": {
+    "hair": 26,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 23,
+    "shirt": 90,
+    "cuff": 44,
+    "yoke": 27,
+    "trimShirt": 0,
+    "jeans": 116,
+    "bootTop": 10,
+    "trimJeans": 7,
+    "sneaker": 12
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 9,
+   "rect": [
+    529,
+    238,
+    57,
+    36
+   ],
+   "opaque": 993,
+   "recoloured": 358,
+   "unchanged": 635,
+   "erased": 15,
+   "filled": 12,
+   "soles": 22,
+   "regions": {
+    "hair": 24,
+    "strap": 13,
+    "lens": 5,
+    "beard": 10,
+    "skin": 25,
+    "hand": 22,
+    "shirt": 83,
+    "cuff": 6,
+    "yoke": 55,
+    "trimShirt": 2,
+    "jeans": 73,
+    "bootTop": 10,
+    "trimJeans": 0,
+    "sneaker": 30
+   },
+   "flash": false,
+   "lens": 5
+  },
+  {
+   "band": "ice",
+   "index": 10,
+   "rect": [
+    588,
+    234,
+    54,
+    40
+   ],
+   "opaque": 1085,
+   "recoloured": 376,
+   "unchanged": 709,
+   "erased": 13,
+   "filled": 10,
+   "soles": 12,
+   "regions": {
+    "hair": 20,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 17,
+    "shirt": 94,
+    "cuff": 11,
+    "yoke": 65,
+    "trimShirt": 2,
+    "jeans": 91,
+    "bootTop": 10,
+    "trimJeans": 0,
+    "sneaker": 23
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "ice",
+   "index": 11,
+   "rect": [
+    644,
+    218,
+    37,
+    56
+   ],
+   "opaque": 942,
+   "recoloured": 339,
+   "unchanged": 603,
+   "erased": 12,
+   "filled": 10,
+   "soles": 5,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 30,
+    "shirt": 69,
+    "cuff": 0,
+    "yoke": 54,
+    "trimShirt": 0,
+    "jeans": 112,
+    "bootTop": 0,
+    "trimJeans": 7,
+    "sneaker": 8
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "ice",
+   "index": 12,
+   "rect": [
+    683,
+    213,
+    17,
+    61
+   ],
+   "opaque": 633,
+   "recoloured": 377,
+   "unchanged": 256,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 14,
+    "shirt": 92,
+    "cuff": 24,
+    "yoke": 64,
+    "trimShirt": 0,
+    "jeans": 89,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "react",
+   "index": 0,
+   "rect": [
+    2,
+    277,
+    37,
+    37
+   ],
+   "opaque": 556,
+   "recoloured": 0,
+   "unchanged": 556,
+   "erased": 0,
+   "filled": 0,
+   "soles": 0,
+   "regions": {
+    "hair": 0,
+    "strap": 0,
+    "lens": 0,
+    "beard": 0,
+    "skin": 0,
+    "hand": 0,
+    "shirt": 0,
+    "cuff": 0,
+    "yoke": 0,
+    "trimShirt": 0,
+    "jeans": 0,
+    "bootTop": 0,
+    "trimJeans": 0,
+    "sneaker": 0
+   },
+   "flash": true,
+   "lens": 0
+  },
+  {
+   "band": "react",
+   "index": 1,
+   "rect": [
+    41,
+    282,
+    45,
+    32
+   ],
+   "opaque": 591,
+   "recoloured": 355,
+   "unchanged": 236,
+   "erased": 10,
+   "filled": 8,
+   "soles": 5,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 25,
+    "shirt": 64,
+    "cuff": 13,
+    "yoke": 47,
+    "trimShirt": 0,
+    "jeans": 109,
+    "bootTop": 18,
+    "trimJeans": 2,
+    "sneaker": 12
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "react",
+   "index": 2,
+   "rect": [
+    88,
+    280,
+    43,
+    34
+   ],
+   "opaque": 567,
+   "recoloured": 334,
+   "unchanged": 233,
+   "erased": 22,
+   "filled": 16,
+   "soles": 9,
+   "regions": {
+    "hair": 25,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 2,
+    "shirt": 141,
+    "cuff": 31,
+    "yoke": 22,
+    "trimShirt": 0,
+    "jeans": 27,
+    "bootTop": 26,
+    "trimJeans": 4,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "react",
+   "index": 3,
+   "rect": [
+    133,
+    277,
+    37,
+    37
+   ],
+   "opaque": 556,
+   "recoloured": 324,
+   "unchanged": 232,
+   "erased": 22,
+   "filled": 16,
+   "soles": 5,
+   "regions": {
+    "hair": 24,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 21,
+    "shirt": 139,
+    "cuff": 22,
+    "yoke": 23,
+    "trimShirt": 0,
+    "jeans": 20,
+    "bootTop": 0,
+    "trimJeans": 20,
+    "sneaker": 12
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "down",
+   "index": 0,
+   "rect": [
+    2,
+    317,
+    45,
+    32
+   ],
+   "opaque": 590,
+   "recoloured": 0,
+   "unchanged": 590,
+   "erased": 0,
+   "filled": 0,
+   "soles": 0,
+   "regions": {
+    "hair": 0,
+    "strap": 0,
+    "lens": 0,
+    "beard": 0,
+    "skin": 0,
+    "hand": 0,
+    "shirt": 0,
+    "cuff": 0,
+    "yoke": 0,
+    "trimShirt": 0,
+    "jeans": 0,
+    "bootTop": 0,
+    "trimJeans": 0,
+    "sneaker": 0
+   },
+   "flash": true,
+   "lens": 0
+  },
+  {
+   "band": "down",
+   "index": 1,
+   "rect": [
+    49,
+    335,
+    67,
+    14
+   ],
+   "opaque": 516,
+   "recoloured": 301,
+   "unchanged": 215,
+   "erased": 0,
+   "filled": 0,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 7,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 5,
+    "shirt": 76,
+    "cuff": 16,
+    "yoke": 47,
+    "trimShirt": 6,
+    "jeans": 65,
+    "bootTop": 18,
+    "trimJeans": 0,
+    "sneaker": 15
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "down",
+   "index": 2,
+   "rect": [
+    118,
+    334,
+    63,
+    15
+   ],
+   "opaque": 543,
+   "recoloured": 326,
+   "unchanged": 217,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 5,
+    "shirt": 84,
+    "cuff": 15,
+    "yoke": 54,
+    "trimShirt": 0,
+    "jeans": 76,
+    "bootTop": 19,
+    "trimJeans": 0,
+    "sneaker": 14
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "sweep",
+   "index": 0,
+   "rect": [
+    2,
+    352,
+    74,
+    51
+   ],
+   "opaque": 748,
+   "recoloured": 398,
+   "unchanged": 350,
+   "erased": 21,
+   "filled": 14,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 15,
+    "shirt": 99,
+    "cuff": 4,
+    "yoke": 66,
+    "trimShirt": 5,
+    "jeans": 115,
+    "bootTop": 5,
+    "trimJeans": 9,
+    "sneaker": 15
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "sweep",
+   "index": 1,
+   "rect": [
+    76,
+    359,
+    78,
+    44
+   ],
+   "opaque": 951,
+   "recoloured": 396,
+   "unchanged": 555,
+   "erased": 18,
+   "filled": 12,
+   "soles": 5,
+   "regions": {
+    "hair": 20,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 27,
+    "shirt": 155,
+    "cuff": 37,
+    "yoke": 32,
+    "trimShirt": 1,
+    "jeans": 59,
+    "bootTop": 0,
+    "trimJeans": 13,
+    "sneaker": 9
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "sweep",
+   "index": 2,
+   "rect": [
+    170,
+    359,
+    65,
+    44
+   ],
+   "opaque": 781,
+   "recoloured": 423,
+   "unchanged": 358,
+   "erased": 15,
+   "filled": 12,
+   "soles": 5,
+   "regions": {
+    "hair": 21,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 25,
+    "shirt": 165,
+    "cuff": 36,
+    "yoke": 54,
+    "trimShirt": 1,
+    "jeans": 63,
+    "bootTop": 0,
+    "trimJeans": 3,
+    "sneaker": 12
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "sweep",
+   "index": 3,
+   "rect": [
+    237,
+    360,
+    69,
+    43
+   ],
+   "opaque": 903,
+   "recoloured": 395,
+   "unchanged": 508,
+   "erased": 18,
+   "filled": 12,
+   "soles": 5,
+   "regions": {
+    "hair": 20,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 27,
+    "shirt": 155,
+    "cuff": 37,
+    "yoke": 32,
+    "trimShirt": 0,
+    "jeans": 59,
+    "bootTop": 0,
+    "trimJeans": 13,
+    "sneaker": 9
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "sweep",
+   "index": 4,
+   "rect": [
+    308,
+    360,
+    67,
+    43
+   ],
+   "opaque": 850,
+   "recoloured": 414,
+   "unchanged": 436,
+   "erased": 18,
+   "filled": 12,
+   "soles": 3,
+   "regions": {
+    "hair": 20,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 24,
+    "shirt": 160,
+    "cuff": 36,
+    "yoke": 54,
+    "trimShirt": 0,
+    "jeans": 68,
+    "bootTop": 0,
+    "trimJeans": 4,
+    "sneaker": 5
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "sweep",
+   "index": 5,
+   "rect": [
+    376,
+    360,
+    60,
+    43
+   ],
+   "opaque": 691,
+   "recoloured": 405,
+   "unchanged": 286,
+   "erased": 18,
+   "filled": 12,
+   "soles": 2,
+   "regions": {
+    "hair": 20,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 27,
+    "shirt": 162,
+    "cuff": 37,
+    "yoke": 32,
+    "trimShirt": 0,
+    "jeans": 52,
+    "bootTop": 11,
+    "trimJeans": 14,
+    "sneaker": 7
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "gesture",
+   "index": 0,
+   "rect": [
+    2,
+    406,
+    25,
+    61
+   ],
+   "opaque": 632,
+   "recoloured": 371,
+   "unchanged": 261,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 18,
+    "shirt": 87,
+    "cuff": 19,
+    "yoke": 64,
+    "trimShirt": 0,
+    "jeans": 89,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "gesture",
+   "index": 1,
+   "rect": [
+    29,
+    415,
+    37,
+    52
+   ],
+   "opaque": 648,
+   "recoloured": 397,
+   "unchanged": 251,
+   "erased": 12,
+   "filled": 10,
+   "soles": 6,
+   "regions": {
+    "hair": 26,
+    "strap": 13,
+    "lens": 5,
+    "beard": 10,
+    "skin": 25,
+    "hand": 17,
+    "shirt": 106,
+    "cuff": 15,
+    "yoke": 71,
+    "trimShirt": 0,
+    "jeans": 75,
+    "bootTop": 21,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 5
+  },
+  {
+   "band": "gesture",
+   "index": 2,
+   "rect": [
+    68,
+    415,
+    47,
+    52
+   ],
+   "opaque": 684,
+   "recoloured": 422,
+   "unchanged": 262,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 16,
+    "shirt": 117,
+    "cuff": 22,
+    "yoke": 84,
+    "trimShirt": 0,
+    "jeans": 87,
+    "bootTop": 18,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "gesture",
+   "index": 3,
+   "rect": [
+    117,
+    416,
+    46,
+    51
+   ],
+   "opaque": 675,
+   "recoloured": 413,
+   "unchanged": 262,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 16,
+    "shirt": 120,
+    "cuff": 20,
+    "yoke": 78,
+    "trimShirt": 0,
+    "jeans": 83,
+    "bootTop": 18,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  },
+  {
+   "band": "gesture",
+   "index": 4,
+   "rect": [
+    165,
+    415,
+    37,
+    52
+   ],
+   "opaque": 642,
+   "recoloured": 391,
+   "unchanged": 251,
+   "erased": 12,
+   "filled": 10,
+   "soles": 6,
+   "regions": {
+    "hair": 26,
+    "strap": 13,
+    "lens": 5,
+    "beard": 10,
+    "skin": 25,
+    "hand": 17,
+    "shirt": 103,
+    "cuff": 4,
+    "yoke": 71,
+    "trimShirt": 8,
+    "jeans": 75,
+    "bootTop": 21,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 5
+  },
+  {
+   "band": "gesture",
+   "index": 5,
+   "rect": [
+    204,
+    413,
+    47,
+    54
+   ],
+   "opaque": 668,
+   "recoloured": 378,
+   "unchanged": 290,
+   "erased": 12,
+   "filled": 10,
+   "soles": 6,
+   "regions": {
+    "hair": 29,
+    "strap": 6,
+    "lens": 2,
+    "beard": 3,
+    "skin": 14,
+    "hand": 13,
+    "shirt": 120,
+    "cuff": 23,
+    "yoke": 53,
+    "trimShirt": 1,
+    "jeans": 85,
+    "bootTop": 16,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "gesture",
+   "index": 6,
+   "rect": [
+    253,
+    417,
+    40,
+    50
+   ],
+   "opaque": 592,
+   "recoloured": 341,
+   "unchanged": 251,
+   "erased": 11,
+   "filled": 10,
+   "soles": 6,
+   "regions": {
+    "hair": 33,
+    "strap": 6,
+    "lens": 2,
+    "beard": 5,
+    "skin": 17,
+    "hand": 18,
+    "shirt": 96,
+    "cuff": 10,
+    "yoke": 25,
+    "trimShirt": 0,
+    "jeans": 98,
+    "bootTop": 18,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 2
+  },
+  {
+   "band": "gesture",
+   "index": 7,
+   "rect": [
+    295,
+    406,
+    25,
+    61
+   ],
+   "opaque": 653,
+   "recoloured": 396,
+   "unchanged": 257,
+   "erased": 10,
+   "filled": 8,
+   "soles": 6,
+   "regions": {
+    "hair": 22,
+    "strap": 10,
+    "lens": 4,
+    "beard": 8,
+    "skin": 21,
+    "hand": 21,
+    "shirt": 95,
+    "cuff": 17,
+    "yoke": 64,
+    "trimShirt": 0,
+    "jeans": 100,
+    "bootTop": 21,
+    "trimJeans": 0,
+    "sneaker": 13
+   },
+   "flash": false,
+   "lens": 4
+  }
+ ],
+ "portrait": {
+  "recoloured": 557,
+  "erased": 26,
+  "regions": {
+   "hair": 65,
+   "hair (temple)": 35,
+   "lens": 40,
+   "beard/shade": 82,
+   "oval": 171,
+   "skin": 117,
+   "skin (jaw)": 34,
+   "lips": 11,
+   "teeth": 2
+  }
+ },
+ "used": {
+  "idle:0": [
+   "idle",
+   "win",
+   "introSettle"
+  ],
+  "idle:1": [
+   "idle",
+   "win"
+  ],
+  "idle:2": [
+   "idle",
+   "win"
+  ],
+  "idle:3": [
+   "idle",
+   "win"
+  ],
+  "idle:4": [
+   "idle"
+  ],
+  "idle:5": [
+   "idle"
+  ],
+  "idle:6": [
+   "idle"
+  ],
+  "idle:7": [
+   "idle"
+  ],
+  "skate:0": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:1": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:2": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:3": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:4": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:5": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:6": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "skate:7": [
+   "walk",
+   "walk_back",
+   "run"
+  ],
+  "cast:0": [
+   "crouch",
+   "atkLow"
+  ],
+  "cast:1": [
+   "guard",
+   "atkLow"
+  ],
+  "cast:2": [
+   "atkLow"
+  ],
+  "ice:0": [
+   "dash",
+   "atkSlide"
+  ],
+  "ice:1": [
+   "dash",
+   "atkSlide"
+  ],
+  "ice:2": [
+   "dash",
+   "atkSlide",
+   "land"
+  ],
+  "ice:3": [
+   "ramp",
+   "jump",
+   "doubleJump"
+  ],
+  "ice:4": [
+   "ramp",
+   "doubleJump"
+  ],
+  "ice:5": [
+   "ramp",
+   "fall"
+  ],
+  "ice:6": [
+   "discPlant"
+  ],
+  "ice:7": [
+   "glide",
+   "intro"
+  ],
+  "ice:8": [
+   "glide",
+   "intro"
+  ],
+  "ice:9": [
+   "glide",
+   "intro"
+  ],
+  "ice:10": [
+   "glide",
+   "standDisc",
+   "winDisc",
+   "intro"
+  ],
+  "ice:11": [
+   "glideTurn",
+   "intro"
+  ],
+  "react:0": [
+   "hurt"
+  ],
+  "react:3": [
+   "hurt",
+   "hurt_air",
+   "atkAir"
+  ],
+  "react:2": [
+   "atkAir",
+   "getup"
+  ],
+  "react:1": [
+   "knockdown"
+  ],
+  "down:1": [
+   "knockdown",
+   "lose"
+  ],
+  "gesture:0": [
+   "getup",
+   "atkHeavy"
+  ],
+  "down:0": [
+   "lose"
+  ],
+  "down:2": [
+   "lose"
+  ],
+  "sweep:0": [
+   "atkJab"
+  ],
+  "sweep:1": [
+   "atkStraight",
+   "atkWake"
+  ],
+  "sweep:2": [
+   "atkStraight"
+  ],
+  "sweep:3": [
+   "atkFloor"
+  ],
+  "sweep:4": [
+   "atkFloor"
+  ],
+  "sweep:5": [
+   "atkCone",
+   "atkSteam"
+  ],
+  "gesture:1": [
+   "atkHeavy"
+  ],
+  "gesture:2": [
+   "atkRise"
+  ],
+  "gesture:3": [
+   "atkCondense",
+   "taunt"
+  ],
+  "gesture:4": [
+   "atkCondense",
+   "atkLens",
+   "taunt"
+  ],
+  "gesture:5": [
+   "atkLens",
+   "atkSuper"
+  ],
+  "gesture:6": [
+   "atkScorch"
+  ],
+  "gesture:7": [
+   "atkTide",
+   "atkSuper"
+  ],
+  "ice:12": [
+   "introSettle"
+  ],
+  "portrait:0": [
+   "portrait (recoloured bust)"
+  ]
+ },
+ "excluded": [
+  {
+   "what": "ripper caption \"Ripped by redblueyellow. No credit needed.\"",
+   "rect": [
+    322,
+    436,
+    382,
+    35
+   ],
+   "why": "excluded, credit"
+  }
+ ]
+}

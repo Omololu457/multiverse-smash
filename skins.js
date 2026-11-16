@@ -31,6 +31,7 @@ import { HIGURUMA_SKINS } from './higurumaSkins.js'   // Higuruma default + 10 s
 import { SYNDROME_SKINS } from './syndromeSkins.js'   // Syndrome default + 12 whole-arsenal skins (cosmetic, precomputed)
 import { DSEYL_SKINS } from './dseylSkins.js'   // Dseyl default only
 import { FROZONE_SKINS } from './frozoneSkins.js'   // Frozone default + 10 skins (body, portrait, disc, ice; cosmetic, precomputed)
+import { ENOCH_SKINS } from './enochSkins.js'   // Enoch: the default only (keeps his ×2 presentation scale)
 import { MR_SKINS } from './mrIncredibleSkins.js'
 import { BATMAN_SKINS } from './batmanSkins.js'   // Batman (rebuilt) default + 10 arsenal-wide skins (cosmetic, precomputed)
 import { VIOLET_SKINS } from './violetSkins.js'   // Violet Parr: Supersuit default + palette-swap skins (cosmetic, precomputed)
@@ -170,6 +171,7 @@ export const SKINS = {
   syndrome: SYNDROME_SKINS,
   dseyl: DSEYL_SKINS,
   frozone: FROZONE_SKINS,
+  enoch: ENOCH_SKINS,
   mr_incredible: MR_SKINS,
   mmpr_pink: MMPR_PINK_SKINS,
   krybot: KRYBOT_SKINS,

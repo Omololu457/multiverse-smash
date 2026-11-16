@@ -1,0 +1,52 @@
+// Enoch (enoch) — Move List / kit metadata (kits.js entry). Numbers are the authored RAW values from enochData.js (stored
+// damage = raw; the shared pipeline applies GLOBAL_DAMAGE_SCALE 0.6 and combo scaling to every character alike).
+// Inputs use the shared logical button tokens + numpad motions (6 = forward, facing-relative). Combos: docs/enoch/COMBOS.md.
+import { ENOCH_MOVES as N, ENOCH_SPECIALS as S, SUPERS, GLIDE, DISC, GUARD_CANCEL } from './enochData.js'
+export const ENOCH_CONTROLS = {
+  rows: [
+    ['Move / crouch', 'A / D, S', '← / →, ↓', 'Left stick / D-pad'],
+    ['Jump / double jump (shared, maxJumps 2)', 'W, W again', '↑, ↑ again', '✕ Cross, ✕ again'],
+    ['Dash (shared) — on his own ICE / FIRE trail: GLIDE', 'double-tap A / D', 'double-tap ← / →', 'double-tap left / right'],
+    ['GLIDE (ground; hold) — ice, or fire when hot', 'P hold', '7 hold', 'L2 hold'],
+    ['…in a glide: ice / fire / slide / ramp', 'L / K / J / W', '4 / 2 / 1 / ↑', 'R1 / △ / □ / ✕ or Up'],
+    ['Ice Disc', 'S + P', '↓ + 7', 'Down + L2'],
+    ['Jab → Straight → Frost palm', 'J, J, K', '1, 1, 2', '□, □, △'],
+    ['Low sweep · Rising palm · Air strike', 'S + J · I · air J', '↓ + 1 · 3 · air 1', 'Down + □ · Up + △ · air □'],
+    ['Ice Blast / Steam Burst (water unlocked)', '↓↘→ + L', '↓↘→ + 4', '↓↘→ + R1'],
+    ['Frost Floor · Deep Freeze · Heat Lens', '↓↓ + L · ↓↙← + L · →→ + L', '↓↓ + 4 · ↓↙← + 4 · →→ + 4', '↓↓ / ↓↙← / →→ + R1'],
+    ['Heat Lens · Scorch Sweep · Condense · Tide Break', '↓↘→ / ↓↙← / ↓↓ / →→ + K', '… + 2', '… + △'],
+    ['Super (variant by thermal)', '↓↘→↓↘→ + L or U', '↓↘→↓↘→ + 4 or 5', '↓↘→↓↘→ + R1 or R2'],
+    ['Guard cancel (in blockstun) → glide', 'P', '7', 'L2'],
+    ['Grab / Guard', 'O / ;', '6 / /', 'L1 / ○'],
+  ],
+  note: 'Directions are FACING-RELATIVE. Pad shortcuts without the motion: Special = Ice Blast, Forward + Special = Heat Lens, Down + Special = Frost Floor, Back + Special = Deep Freeze, Down + Heavy = Slide. L2 is his glide button (the shared energy Charge is off for him: his Super meter fills from damage dealt and taken).',
+}
+const r = m => m.raw
+export const ENOCH_KIT = { type: 'Elemental Controller / Trail Glider', energy: 'Super (meter) + Thermal', difficulty: 'Hard (5)',
+  summary: 'Ice from Frozone, fire from his visor, and the real power where they meet. A THERMAL meter swings between cold and hot: lean into one side for cheaper, stronger moves of that element; stay near the middle to unlock water. Ice, fire, water and steam patches on the floor react with each other.',
+  passive: { name: 'Thermal · Patches · Ice-walker', input: 'Automatic', effect: 'Thermal −100…+100, drifts to 0 (0.8 / s). Cold / hot zone (±40): that element ×0.8 cost, ×1.15 damage, the other locked. Balance (±25): water unlocked. A cap overloads (1.5 s, that element locked). ≤ 4 patches: ICE (foes slide), FIRE (4 / 20 f), WATER (+25 % laser), STEAM (2 / 30 f, cloud). ICE + FIRE = burst (45, pops). He never slips on ice and his own fire never burns him.' },
+  basics: [
+    { name: 'Jab', input: 'Light', desc: `${N.jab.startup} f; raw ${r(N.jab)}; +1 on block.` },
+    { name: 'Straight', input: 'Light (after a clean Jab)', desc: `${N.straight.startup} f; raw ${r(N.straight)}; −3.` },
+    { name: 'Heavy frost palm', input: 'Heavy', desc: `${N.heavy.startup} f; raw ${r(N.heavy)}; launches; 5 colder; −5.` },
+    { name: 'Low sweep', input: 'Down + Light', desc: `${N.low.startup} f; raw ${r(N.low)}; low.` },
+    { name: 'Rising palm', input: 'Up-Attack / Up + Heavy', desc: `${N.rise.startup} f; raw ${r(N.rise)}; anti-air.` },
+    { name: 'Air strike', input: 'Air Light', desc: `${N.air.startup} f; raw ${r(N.air)}.` },
+    { name: 'Slide attack', input: 'Down + Heavy / Light in a glide', desc: `raw ${r(S.slide)}; low; travels; leaves a short ICE patch. Out of a glide: +10 % and the glide's momentum.` },
+    { name: 'Wake-up reversal', input: 'Any attack as he gets up', desc: `raw ${r(S.wake)}; ${S.wake.invuln} invulnerable frames; −12 on block.` },
+  ],
+  specials: [
+    { name: 'Ice Blast', input: '↓↘→ + Special', cost: '12 cold', desc: `Projectile raw ${r(S.iceBlast)}, ~55 % screen, ≤ 3 out.` },
+    { name: 'Frost Floor', input: '↓↓ + Special', cost: '15 cold', desc: `Raw ${r(S.frostFloor)} blunt (low) + an ICE patch ahead.` },
+    { name: 'Deep Freeze', input: '↓↙← + Special', cost: '22 cold', desc: `Raw ${r(S.deepFreeze)}; freezes 0.7 s (the shared freeze status, +15 % damage taken); 8 s cooldown.` },
+    { name: 'Ice Disc', input: 'Down + Charge', cost: '18 cold', desc: `A low hovering disc for ${DISC.life / 60} s, ${DISC.hp} HP; anyone can stand on it; counts as ICE; fire melts it to WATER.` },
+    { name: 'Heat Lens', input: '→→ + Special / ↓↘→ + Heavy', cost: '12 hot', desc: `Full-screen hitscan raw ${r(S.heatLens)} (energy). HOLD Special: a sustained beam ≤ 1.2 s, 7 per pulse, 10 hot / s, aim ±30° with Up / Down; where it meets the floor it lays FIRE. +25 % on a wet target.` },
+    { name: 'Scorch Sweep', input: '↓↙← + Heavy', cost: '20 hot', desc: `Raw ${r(S.scorch)} energy arc + a FIRE patch ahead.` },
+    { name: 'Steam Burst', input: '↓↘→ + Special (water unlocked)', cost: '20 away from 0', desc: `Close range raw ${r(S.steamBurst)} energy + a STEAM cloud. Needs the balance zone AND one of his WATER patches.` },
+    { name: 'Tide Break', input: '→→ + Heavy (balance)', cost: '25 away from 0', desc: 'Every one of his patches turns to WATER, each one bursting (30) under anyone standing in it. 6 s cooldown.' },
+    { name: 'Condense', input: '↓↓ + Heavy (balance)', cost: '15 away from 0', desc: `A drifting orb (raw ${r(S.condense)}). Over his FIRE → steam explosion 70; over his ICE → hail 60, faster.` },
+  ],
+  ultimate: { name: 'SUPER — by thermal', input: '↓↘→↓↘→ + Special (or Ultimate)', cost: 100, desc: `Full meter; locks thermal 3 s. Cold: ${SUPERS.absoluteZero.name} 4 × 55 + 110 = 330 (blunt). Hot: ${SUPERS.flashPoint.name} 10 per pulse for 2 s + 140 flare = 340 (energy). Balance: ${SUPERS.thermalShock.name} 390, leaves water + steam.` },
+  defence: [`Guard cancel: Charge in blockstun → glide out (${GUARD_CANCEL.thermal} thermal, ${GUARD_CANCEL.invuln} invulnerable frames, ${GUARD_CANCEL.cooldown / 60} s cooldown).`, 'Health 980, light. Ice-walker; immune to his own fire only.'],
+  controls: ENOCH_CONTROLS,
+  combos: [] }

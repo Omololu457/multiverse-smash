@@ -18,6 +18,7 @@ import { HIGURUMA_KIT } from './higurumaKit.js'   // Higuruma (higuruma) Move Li
 import { SYNDROME_KIT } from './syndromeKit.js'   // Syndrome (syndrome) Move List
 import { DSEYL_KIT } from './dseylKit.js'   // Dseyl (dseyl) Move List
 import { FROZONE_KIT } from './frozoneKit.js'   // Frozone (frozone) Move List
+import { ENOCH_KIT } from './enochKit.js'   // Enoch (enoch) Move List
 import { MR_KIT } from './mrIncredibleKit.js'
 import { BATMAN_KIT } from './batmanKit.js'   // Batman (batman, rebuilt) Move List
 import { VIOLET_KIT } from './violetKit.js'   // Violet Parr (violet) Move List
@@ -117,6 +118,7 @@ export const KITS = {
   syndrome: SYNDROME_KIT,
   dseyl: DSEYL_KIT,
   frozone: FROZONE_KIT,
+  enoch: ENOCH_KIT,
   mr_incredible: MR_KIT,
   batman: BATMAN_KIT,
   violet: VIOLET_KIT,

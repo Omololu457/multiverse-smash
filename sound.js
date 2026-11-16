@@ -328,6 +328,7 @@ import { MEGUMI_SOUNDS } from './megumiSound.js'   // Megumi synth SFX (SFX bus;
 import { HIGURUMA_SOUNDS } from './higurumaSound.js'   // Higuruma synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { SYNDROME_SOUNDS } from './syndromeSound.js'   // Syndrome synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { FROZONE_SOUNDS } from './frozoneSound.js'   // Frozone synth SFX (SFX bus; voice bus untouched; no dialogue)
+import { ENOCH_SOUNDS } from './enochSound.js'   // Enoch synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { BATMAN_SOUNDS } from './batmanSound.js'   // Batman (rebuilt) synth SFX (SFX bus; voice bus untouched)
 import { ELASTIGIRL_SOUNDS } from './elastigirlSound.js'   // Elastigirl synth SFX placeholders (SFX bus; voice bus untouched)
 import { SPD_RED_SOUNDS } from './spdRedSound.js'   // S.P.D. Red synth SFX (SFX bus; voice bus untouched)
@@ -347,6 +348,7 @@ const SOUNDS = {
   ...HIGURUMA_SOUNDS, // higuruma_* : gavel knocks / swings, extension, giant gavel, Objection, Case File marks, Precedent, Deadly Sentencing
   ...SYNDROME_SOUNDS, // syndrome_* : remote clicks, drone / spinner / turret / velocipod / Omnidroid servos, impacts, Zero-Point, Operation Kronos
   ...FROZONE_SOUNDS, // frozone_* : ice casts, lance, Black Ice, skate / brake, Chill / Freeze / Shatter, Absolute Zero
+  ...ENOCH_SOUNDS, // enoch_* : crackle / shatter, fire crackle, water-reaction hiss + thump, steam, glide whoosh, overload
   ...BATMAN_SOUNDS, // batman_* : strikes, gadgets, grapnel, smoke, fleet orders / payloads / machines, KNIGHTFALL
   ...ELASTIGIRL_SOUNDS, // elastigirl_* : stretch boing, snap-back, whirl, parachute flutter, whip crack, family raft wave
   ...SPD_RED_SOUNDS, // spdred_blink (600→3000 Hz sweep) / _blinkPop / _dodge (2.2 kHz) / _impact / _blaster / _rapid0-4 / _deltamaxCharge / _deltamax / _judge / _guilty / _innocent / _contain …

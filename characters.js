@@ -23,6 +23,7 @@ import { higuruma } from './higurumaData.js'   // Hiromi Higuruma (Jujutsu Kaise
 import { syndrome } from './syndromeData.js'   // Syndrome (The Incredibles, GBA sheets) — syndrome*.js
 import { dseyl } from './dseylData.js'   // Dseyl (tribute fighter: edited copy of Syndrome + flight + Flash Time) — dseyl*.js
 import { frozone } from './frozoneData.js'   // Frozone (The Incredibles, GBA sheet) — frozone*.js
+import { enoch } from './enochData.js'   // Enoch (The Incredibles, tribute fighter: Frozone recolour + visor fire + water) — enoch*.js
 import { mr_incredible } from './mrIncredibleData.js'
 import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
 import { violet } from './violetData.js'   // Violet Parr (The Incredibles, GBA sheet) — violet*.js
@@ -11529,6 +11530,7 @@ export const characters = {
   higuruma,                          // Hiromi Higuruma (Jujutsu Kaisen) — Technical Midrange / Weapon Scaler (small / extended / giant gavel, Case File → Precedent, Deadly Sentencing); higuruma*.js
   syndrome,                          // Syndrome (The Incredibles) — Arsenal Conductor (commands Drones / Spinner / Turrets / Velocipod / composite Omnidroid; Operation Kronos); syndrome*.js
   frozone,                           // Frozone (The Incredibles) — Ice Skater (Chill → Freeze → Shatter, Black Ice, Absolute Zero); frozone*.js
+  enoch,                             // Enoch (The Incredibles) — Elemental Controller / Trail Glider (thermal, ice / fire / water patches, glide); enoch*.js
   mr_incredible,                     // One fighter: veteran + timed prime form
   elastigirl,                        // Elastigirl (Helen Parr, The Incredibles) — Footsies / Grappler (Long Arm, Slingshot, Parachute, Family Raft); elastigirl*.js
   luffy

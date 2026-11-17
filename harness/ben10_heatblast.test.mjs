@@ -228,7 +228,7 @@ test('10. swap / revert clear Heat + Scorch-owner state; rematch starts clean', 
 
 // ── 11 Vow + determinism + registry ────────────────────────────────────────────────────────────────────────
 test('11. registry: Heatblast READY in slot 2; default loadout = all five ready forms', () => {
-  { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT, 'one READY alien per registry slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) }
+  { const _ready = getAvailableAlienKeys(false); assert(_ready.length >= BEN10_SLOT_COUNT, 'PICK FIVE: at least one READY alien per dial slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) }
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT, 'default loadout = every registry slot'); assert.deepEqual(F.DEFAULT_OMNITRIX.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Heatblast')

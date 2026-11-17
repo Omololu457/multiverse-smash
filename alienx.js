@@ -53,7 +53,7 @@ export const AX_STARFALL = { STARTUP: 4, DIST: 300, FRAMES: 20, DMG: 50, LAND: 1
 export const AX_ULT = { OPENER_AT: 16, OPENER: 40, WHIFF: 60, RISE: 18, FLOAT: 70, RINGS_AT: [40, 56, 72], RING: 25, BANG_AT: 96, BANG: 135, END: 116, LOCKOUT: 140 }
 
 export const ALIENX = {
-  id: "alienx", poolKey: "alienx", displayName: "Alien X", slot: 7,
+  id: "alienx", poolKey: "alienx", displayName: "Alien X", slot: 8,
   status: "ready", sheetPath: "./ben10_alienx_ready_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/alienx/SPRITE_LEDGER.md",
   mods: { speed: 0.80, damage: 1.20, defense: 1.25, weight: 1.40 },

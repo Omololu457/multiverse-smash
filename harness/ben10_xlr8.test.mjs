@@ -235,7 +235,7 @@ test('10. swap / revert / KO / rematch clear Flash Time and echo state', () => {
 test('11. registry: XLR8 READY in the first placeholder slot (5); long, low hurtbox', () => {
   const d = getAlienDefinition('xlr8'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 5)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
-  { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT, 'one READY alien per registry slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), LOADOUT) }; assert.deepEqual(buildLoadout(5).map(a => a.id), LOADOUT)
+  { const _ready = getAvailableAlienKeys(false); assert(_ready.length >= BEN10_SLOT_COUNT, 'PICK FIVE: at least one READY alien per dial slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), LOADOUT) }; assert.deepEqual(buildLoadout(5).map(a => a.id), LOADOUT)
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'XLR8')
   assert(f.w > f.h, `long and low (${f.w}x${f.h})`); assert.equal(f.health, 950, 'shared health pool')
 })

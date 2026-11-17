@@ -20,7 +20,7 @@ for (const [skin, speed, jump] of [['default', 9, -19], ['ben10Classic', 9.7, -2
  for (let i = 0; i < 3; i++) { F.applyAlien(f, 'swampfire'); f.transformed = true; assert.equal(f._benWalkSpeed, speed * .92); F.revertToHuman(f); assert.equal(f.health, hp - 123); assert.equal(f._benWalkSpeed, speed); assert.equal(f.jumpForce, jump); physics.moveFighter(f, {r:true}, {right:'r'}); assert.equal(f.vx, speed) }
 })
 test('production selection rejects all placeholder/invalid saved choices', () => {
- { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT); assert.deepEqual(_ready.slice(0,5), ['swampfire','heatblast','megawhatt','goop','xlr8']) } const f = fresh('ben10',0,false); F.setupBen10(f,['clockwork','not-an-alien']); assert.deepEqual(f.omnitrix.aliens, getAvailableAlienKeys(false)); assert.equal(F.applyAlien(f,'clockwork'), false); assert(F.applyAlien(f,'swampfire')); assert(getAvailableAlienKeys(true).includes('clockwork'))
+ { const _ready = getAvailableAlienKeys(false); assert(_ready.length >= BEN10_SLOT_COUNT, 'PICK FIVE: at least one READY alien per dial slot'); assert.deepEqual(_ready.slice(0,5), ['swampfire','heatblast','megawhatt','goop','xlr8']) } const f = fresh('ben10',0,false); F.setupBen10(f,['clockwork','not-an-alien']); assert.deepEqual(f.omnitrix.aliens, getAvailableAlienKeys(false).slice(0, BEN10_SLOT_COUNT)); assert.equal(F.applyAlien(f,'clockwork'), false); assert(F.applyAlien(f,'swampfire')); assert(getAvailableAlienKeys(true).includes('clockwork'))
 })
 test('Prime is not silently approved in production', () => { const f=ben(null,false,'ben10Prime'); assert.equal(f._benVariant,'alienforce') })
 test('transform startup cancels on hitstun; spent Power is not refunded', () => {

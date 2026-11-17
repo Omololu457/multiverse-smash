@@ -158,7 +158,11 @@ export const physics = {
     const U = !!(keys[controls.jump] || keys[controls.up])
     // Dash = double-tap A/D (game.js sets _dashTap; there is no dash KEY anymore).
     // Six Eyes Focus binding vow disables dashing.
-    const dash = (!!keys[controls.dash] || !!fighter._dashTap) && !fighter.noDash
+    // Ben 10 Ghostfreak TERROR (a 2-frame lease on the VICTIM, refreshed by his form tick while it runs): no dash / run /
+    // jump / double jump, walk ×0.6. Undefined for everyone else → unchanged.
+    const _benTerror = fighter._benTerrorT > 0
+    if (_benTerror) fighter._benTerrorT--
+    const dash = (!!keys[controls.dash] || !!fighter._dashTap) && !fighter.noDash && !_benTerror
     fighter._dashTap = false   // one-shot: consume the double-tap this frame
 
     if (fighter.dashCooldown > 0) fighter.dashCooldown--
@@ -269,7 +273,7 @@ export const physics = {
         // AMBER identity: slightly higher ground movement speed (skin modifier; see GHOSTFACE_SKIN_MODS).
         // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
         // SOLDIER BOY — Armed Mode slows ground movement by 10% (loadout weight). No-op for everyone else.
-        const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * dashParrWalkMul(fighter)
+        const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * dashParrWalkMul(fighter) * (_benTerror ? 0.6 : 1)
         const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul
         if (L && !R) {
           fighter.vx = flashTime ? -FT_ZIP : elWalkVx(fighter, -walkSpeed)
@@ -308,7 +312,7 @@ export const physics = {
       const launcherJC = !!(fighter.attacking && fighter.currentAttack &&
                             fighter.currentAttack.launcher && fighter.currentAttack.hasHit)
       const suppressJumpForUpAttack = fighter.onGround && attackHeld && !launcherJC
-      const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter)   // Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
+      const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror   // Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
 
       if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
         if (launcherJC) {

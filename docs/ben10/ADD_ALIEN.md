@@ -133,6 +133,7 @@ the hook / flag changes nothing).
 | `bodyAlpha(f)` | game.js body draw, multiplied into the Shadow-Sink / S.P.D. Red / Dash alpha | render-only body alpha in [0, 1]; never write state. Ghostfreak: 0.4 Intangible, 0 while inside a possessed target. |
 | `formState.noBlock` | game.js guard condition (`isBlocking`), next to the `_noBlock` match modifier | truthy = the guard input is ignored this frame. Ghostfreak: while phased. |
 | `formState.noAttack` | combat.js `controls.grab` branch | truthy = the normal throw is not attempted. (Normals are refused through `moveFrames` → `false`; specials / ult through the form's own `fireSpecial` / `fireUltimate`.) Ghostfreak: phased / materializing. |
+| `_benTerrorT` (lease on the VICTIM) | physics.js `moveFighter` (dash flag, walk multiplier, `canJump`) | > 0 = no dash / run / jump / double jump, walk ×0.6; physics decrements it each victim frame, so the owner must refresh it (to 2) every frame it should hold — swap / KO / revert make it lapse on its own within 2 frames. Ghostfreak: TERROR. Undefined for everyone else. |
 
 360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
 and the shared guard is omnidirectional.

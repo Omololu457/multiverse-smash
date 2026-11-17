@@ -269,7 +269,7 @@ function castNullify(f, s, api) {
   const face = f.facing || 1
   s.nullify = { t: 0, st, x: cx(f) + face * AX_NULLIFY.DIST, y: f.y + f.h * 0.5, face, cast: s.castId, deleted: false }
   api.scheduleBenSpawn(f, st, () => hitbox(f, api, "ax_nullify", face, { damage: AX_NULLIFY.DMG, spawnX: s.nullify ? s.nullify.x : cx(f) + face * AX_NULLIFY.DIST,
-    spawnY: f.y + f.h * 0.5, w: AX_NULLIFY.R * 2, h: 150, lifetime: AX_NULLIFY.ACTIVE, hitstun: 22, blockstun: Math.max(1, (total - st) + AX_NULLIFY.ON_BLOCK),
+    spawnY: f.y + f.h * 0.5, w: AX_NULLIFY.R * 2, h: 150, lifetime: AX_NULLIFY.ACTIVE, hitstun: 22, blockstun: Math.max(1, (total - st + 1) + AX_NULLIFY.ON_BLOCK),
     knockbackX: 5, knockbackY: -3, alien: { ax: "nullify", pip: true, cast: s.castId } }))
   return true
 }
@@ -300,7 +300,7 @@ function tickGravity(f, s, api, opp) {
   const g = s.gravity
   if (g) {
     g.t++
-    const blk = at => Math.max(1, (g.total - at) + AX_GRAVITY.ON_BLOCK)
+    const blk = at => Math.max(1, (g.total - at + 1) + AX_GRAVITY.ON_BLOCK)   // the hit frame counts for both sides
     const box = { spawnX: g.x, spawnY: g.y, w: AX_GRAVITY.R * 2, h: 170, lifetime: 2 }
     if (g.t === g.st) {
       g.air = !!opp && !(opp.onGround || opp.grounded)                      // decided at the active frame, at the cast-time spot

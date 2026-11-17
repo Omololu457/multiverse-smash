@@ -106,7 +106,7 @@ try {
     r.launch = { dmg: Math.round((hp0 - b.health) * 100) / 100, launches: H.state().s.stats.wallLaunch, airborne: !(b.onGround || b.grounded) || b.vy < 0 }
     step(240)
     // FIRE WALL: 623 + Heavy, the foe standing in it burns over time; lays FIRE
-    ;({ a, b } = setup(1000, 1080)); H.setThermal(0); b.invulnTimer = 0
+    ;({ a, b } = setup(1000, 1080)); H.setMode('fire'); b.invulnTimer = 0
     dp(a, 'heavy'); step(13); s = H.state().s
     r.fire = { wall: s.wall && { type: s.wall.type, x: s.wall.x }, patches: s.field.patches.map(p => p.type), cd: s.cd.fireWall, th: s.th.v }
     const fx = s.wall?.x ?? 0; b.x = fx - b.w / 2; b.vx = 0; const hp1 = b.health; let burns0 = s.stats.wallBurns
@@ -116,6 +116,7 @@ try {
     // ICE wall, then FIRE wall raised on it → STEAM BURST
     ;({ a, b } = setup(1000, 1600)); H.setThermal(0)
     dp(a, 'special'); step(32); const before = H.state().s.wall?.type
+    H.setMode('fire')   // 2026-11-17: the fire wall is a FIRE-MODE move (Up + Charge)
     dp(a, 'heavy'); step(14); s = H.state().s
     r.steam = { before, wall: s.wall, wallSteam: s.stats.wallSteam }
     step(250)
@@ -146,7 +147,7 @@ try {
     dp(a, 'special'); step(14); const hp0 = a.health
     for (let k = 0; k < 3; k++) { b.facing = -1; H.move('iceBlast', 'p2'); step(40) }
     const s = H.state().s; r.ice = { blocks: s.stats.wallBlocks, wall: s.wall, foeShots: H.projectiles('p2').length }
-    ;({ a, b } = setup(1000, 1500)); H.setThermal(0); H.setThermal(0, 'p2'); a.invulnTimer = 99999
+    ;({ a, b } = setup(1000, 1500)); H.setMode('fire'); H.setThermal(0, 'p2'); a.invulnTimer = 99999
     dp(a, 'heavy'); step(14); b.facing = -1; H.move('iceBlast', 'p2'); step(40)
     r.fire = { blocks: H.state().s.stats.wallBlocks, wall: H.state().s.wall?.type || null }
     return r })

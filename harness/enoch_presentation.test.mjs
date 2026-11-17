@@ -56,7 +56,7 @@ try {
   // ── poses: idle animates; win; disc win by final thermal; lose ──
   const P = await page.evaluate(() => { const H = __harness.enochTest, step = n => __harness.luffyTest.step(n), a = H.raw(), r = {}
     H.reset(); step(2); const fr = new Set(); for (let i = 0; i < 90; i++) { step(1); if (H.state().action === 'idle') fr.add(H.state().frame) } r.idle = { action: H.state().action, frames: fr.size }
-    const win = (discs, th) => { H.reset(); step(2); const s = a._enoch; s.stats.discs = discs; H.setThermal(th); step(1); a._forceAction = 'win'; step(2); const act = H.state().action; a._forceAction = null; step(1); return act }
+    const win = (discs, th) => { H.reset(); step(2); const s = a._enoch; s.stats.discs = discs; H.setMode(th < 0 ? 'ice' : th > 0 ? 'fire' : null); step(1); a._forceAction = 'win'; step(2); const act = H.state().action; a._forceAction = null; step(1); return act }
     r.win = win(0, 0); r.winDisc = win(1, -60); r.winDiscFire = win(1, 60); r.winDiscWater = win(1, 0)
     H.reset(); step(2); a._forceAction = 'lose'; step(2); r.lose = H.state().action; a._forceAction = null; step(1)
     r.anim = ['idle', 'win', 'winDisc', 'winDisc_fire', 'winDisc_water', 'lose', 'intro', 'glide', 'glide_fire', 'standDisc'].filter(k => !a.animationData?.[k])
@@ -64,7 +64,7 @@ try {
   out.poses = P
   ok('idle animates (several frames over 1.5 s)', P.idle.action === 'idle' && P.idle.frames >= 3, JSON.stringify(P.idle))
   ok('win: the plain win pose when no disc was used', P.win === 'win', P.win)
-  ok('disc win: ice / fire / water by his final thermal (a deterministic, state-driven choice)', P.winDisc === 'winDisc' && P.winDiscFire === 'winDisc_fire' && P.winDiscWater === 'winDisc_water', JSON.stringify(P))
+  ok('disc win: ice / fire / water by his final MODE (no mode = water; a deterministic, state-driven choice)', P.winDisc === 'winDisc' && P.winDiscFire === 'winDisc_fire' && P.winDiscWater === 'winDisc_water', JSON.stringify(P))
   ok('lose pose', P.lose === 'lose', P.lose)
   ok('every presentation strip exists', P.anim.length === 0, JSON.stringify(P.anim))
 
@@ -86,8 +86,8 @@ try {
   ok('the brief\'s palette is there: crackle, shatter, quiet fire crackle, steam, glide whoosh (+ faster), overload alarm, LOUD water hiss', ['enoch_crackle', 'enoch_shatter', 'enoch_fireCrackle', 'enoch_steam', 'enoch_glide', 'enoch_glideFast', 'enoch_overload', 'enoch_hiss'].every(k => S.res[k]) && S.res.enoch_hiss.on > S.res.enoch_fireCrackle.on * 2, JSON.stringify({ hiss: S.res.enoch_hiss?.on, fire: S.res.enoch_fireCrackle?.on }))
   ok('the laser loop is the beam family pitched HIGHER (×1.12)', S.pitch > 1 && S.pitch === 1.12, String(S.pitch))
   // HUD label (render-only)
-  const hud = await page.evaluate(() => { const H = __harness.enochTest; H.reset(); __harness.luffyTest.step(2); const r = []; for (const v of [-60, -30, 0, 30, 60]) { H.setThermal(v); r.push(H.hud().zone) } return r })
-  ok('HUD zone label follows the meter (COLD → COOL → BALANCE · WATER → WARM → HOT)', JSON.stringify(hud) === JSON.stringify(['COLD ZONE', 'COOL', 'BALANCE · WATER', 'WARM', 'HOT ZONE']), JSON.stringify(hud))
+  const hud = await page.evaluate(() => { const H = __harness.enochTest; H.reset(); __harness.luffyTest.step(2); const r = []; for (const m of ['ice', null, 'fire']) { H.setMode(m); r.push(H.hud().zone) } return r })
+  ok('HUD label follows his MODE (ICE MODE / NO MODE / FIRE MODE)', JSON.stringify(hud) === JSON.stringify(['ICE MODE', 'NO MODE', 'FIRE MODE']), JSON.stringify(hud))
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('  ❌ harness error', e.stack) }
 finally {

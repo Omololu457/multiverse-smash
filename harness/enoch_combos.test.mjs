@@ -61,25 +61,26 @@ try {
     { btn: { light: true }, label: 'Jab' }, { cleanOf: 'jab', btn: { light: true }, label: 'Straight' }, { cleanOf: 'straight', btn: { heavy: true }, label: 'Heavy (frost palm)' },
     { cleanOf: 'heavy', dirs: '236', btn: { special: true }, label: 'Ice Blast (↓↘→+S)' }], ['jab', 'straight', 'heavy', 'iceBlast'])
   // 2. Frost Floor → Heat Lens on the patch → burst → Straight → Heavy
-  await run('C2', `(a,b,H)=>{a.x=1300;b.x=1300+a.w+70;a.facing=1;b.facing=-1;H.setThermal(0)}`, [
-    { dirs: '252', btn: { special: true }, label: 'Frost Floor (↓↓+S)' }, { cleanOf: 'frostFloor', dirs: '656', btn: { special: true }, label: 'Heat Lens (→→+S) — FIRE on the ICE → burst' },
+  // (2026-11-17 MODES: ice → fire goes through a MODE CANCEL — Up + Charge on contact, 15 energy)
+  await run('C2', `(a,b,H)=>{a.x=1300;b.x=1300+a.w+70;a.facing=1;b.facing=-1;H.setMode('ice');a.energy=100}`, [
+    { dirs: '252', btn: { special: true }, label: 'Frost Floor (↓↓+S)' }, { cleanOf: 'frostFloor', btn: { up: true, jump: true, charge: true }, label: 'FIRE MODE (↑+Charge cancel)' }, { dirs: '656', btn: { special: true }, label: 'Heat Lens (→→+S) — FIRE on the ICE → burst' },
     { cleanOf: 'heatLens', btn: { light: true, right: true }, label: 'Straight (→+L)' }, { cleanOf: 'straight', btn: { heavy: true }, label: 'Heavy' }], ['frostFloor', 'heatLens', 'burst', 'straight', 'heavy'])
   // 3. Ice Glide past → Fire Glide → reaction → Steam Burst
   // (2026-11-16: holding Charge no longer starts a glide — he starts it the remaining way: a double-tap forward on his own ICE)
-  await run('C3', `(a,b,H)=>{a.x=1000;b.x=1400;a.facing=1;b.facing=-1;H.setThermal(0);H.lay({type:'ice',cx:a.x+a.w/2,width:90})}`, [
+  await run('C3', `(a,b,H)=>{a.x=1000;b.x=1400;a.facing=1;b.facing=-1;H.setMode('ice');a.energy=100;H.lay({type:'ice',cx:a.x+a.w/2,width:90})}`, [
     { btn: { dash: true, right: true }, label: 'double-tap on his ICE → Ice Glide' },
     { hold: { charge: true }, until: `(a,b)=>a.x > b.x + b.w + 40`, label: 'Ice Glide past (skates through)' },
     { hold: { charge: true, left: true }, until: `(a,b,H)=>H.state().s.glide?.dir===-1`, label: 'turn' },
-    { hold: { charge: true }, btn: { heavy: true }, label: 'Fire Glide back over the ice (the trails react)' },
+    { hold: { charge: true }, btn: { heavy: true }, label: 'Heavy in the glide = FIRE MODE: Fire Glide back over the ice (the trails react)' },
     { hold: { charge: true }, wait: 'hit', dirs: '236', btn: { special: true }, label: 'Steam Burst (↓↘→+S out of the glide)' }], ['burst', 'steamBurst'])
   // 4. Deep Freeze → Scorch Sweep → Tide Break
-  await run('C4', `(a,b,H)=>{a.x=1300;b.x=1300+a.w+30;a.facing=1;b.facing=-1;H.setThermal(0)}`, [
-    { dirs: '214', btn: { special: true }, label: 'Deep Freeze (↓↙←+S)' }, { cleanOf: 'deepFreeze', dirs: '214', btn: { heavy: true }, label: 'Scorch Sweep (↓↙←+H)' },
+  await run('C4', `(a,b,H)=>{a.x=1300;b.x=1300+a.w+30;a.facing=1;b.facing=-1;H.setMode('ice');a.energy=100}`, [
+    { dirs: '214', btn: { special: true }, label: 'Deep Freeze (↓↙←+S)' }, { cleanOf: 'deepFreeze', btn: { up: true, jump: true, charge: true }, label: 'FIRE MODE (↑+Charge cancel)' }, { dirs: '214', btn: { heavy: true }, label: 'Scorch Sweep (↓↙←+H)' },
     { cleanOf: 'scorch', dirs: '656', btn: { heavy: true }, label: 'Tide Break (→→+H)' }], ['deepFreeze', 'scorch', 'tideBreak'])
   // 5. three patches → balance → Tide Break → Thermal Shock
   await run('C5', `(a,b,H)=>{a.x=1300;b.x=1300+a.w+60;a.facing=1;b.facing=-1;H.setThermal(0);H.lay({type:'ice',cx:b.x+b.w/2});H.lay({type:'fire',cx:b.x+b.w/2+330});H.lay({type:'water',cx:a.x-200})}`, [
-    { dirs: '656', btn: { heavy: true }, label: 'Tide Break (→→+H)' }, { cleanOf: 'tideBreak', dirs: '236236', btn: { special: true }, label: 'Super (↓↘→↓↘→+S) = THERMAL SHOCK' }], ['tideBreak', 'super'], 400)
-  ok('C5 is THERMAL SHOCK (balance), the meter locked for the super', (results.C5?.variant?.supers === 1), JSON.stringify(results.C5?.variant && { supers: results.C5.variant.supers, done: results.C5.variant.superDone }))
+    { dirs: '656', btn: { heavy: true }, label: 'Tide Break (→→+H)' }, { wait: 3, btn: { down: true, charge: true }, label: 'drop to NO MODE mid-move (↓+Charge again)' }, { cleanOf: 'tideBreak', dirs: '236236', btn: { special: true }, label: 'Super (↓↘→↓↘→+S) = THERMAL SHOCK' }], ['tideBreak', 'super'], 400)
+  ok('C5 is THERMAL SHOCK (no mode)', (results.C5?.variant?.supers === 1), JSON.stringify(results.C5?.variant && { supers: results.C5.variant.supers, done: results.C5.variant.superDone }))
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))
 } catch (e) { fail++; console.log('  ❌ harness error', e.stack) }
 finally {

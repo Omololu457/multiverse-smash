@@ -164,3 +164,21 @@ The brief's values, verified live against a blocking dummy:
   air attack, Ice Blast and the meteors now cancel into another special (air → the meteor). Cooldowns + combo scaling cap loops.
 - Controls Lab: Zoom no longer magnifies the game picture (that cut off the HUD); it tightens the game's own camera
   (padding ÷ zoom, zoom cap × zoom) inside the Lab page only. The whole game screen always fits the panel.
+
+### 2026-11-17: MODES replace the thermal bar; the FIRE DASH (the slice)
+- Owner's design: he starts in NO MODE — plain attacks only (specials, walls, glides and slides are refused; the Super
+  still works and is Thermal Shock). Down + Charge = ICE MODE, Up + Charge = FIRE MODE: one press, instant, 15 ENERGY
+  (the only bar). The same press again = back to no mode (free). Holding on after the press = powering up (the engine's
+  energy charge), rooted, the channel pose. Up + Charge never jumps (the engine's buffered jump is held off ~10 f).
+- His temperature is PINNED to the mode (±30: past the old balance band so the fire / ice twins work, short of the old
+  own-zone ×1.15 — damage unchanged). Moves no longer push it: no thermal costs, no overload, no channel.
+- Locks by mode: ice moves need ICE MODE, fire moves FIRE MODE; water moves (Steam Burst / Tide Break / Condense) work in
+  either (water = where ice meets fire). Forward / Back + Heavy = the wall of his mode. In a glide, Special = ICE MODE,
+  Heavy = FIRE MODE (energy; the trail switches and reacts).
+- Mode switch works mid-move; out of a move that hit / was blocked it is also a CANCEL (how ice combos flow into fire).
+- THE SLICE: in a mode his dash and glide go THROUGH the opponent and cut them once per pass — raw 30, hitstun 26
+  (links), ice = chill + ice burst, fire = burn + flame burst. The FIRE DASH carries +3 f so it reaches as far as the ice
+  dash on its slick trail. No mode = a plain dash, no trail, no cut.
+- Tests: 2026-11-17 assertions on the removed thermal mechanics (costs, overload, channel, zone labels) were rewritten to
+  the mode behaviour, and scenario fixtures now put him in a mode (H.reset → ICE MODE; setThermal(±) → that mode). New:
+  MO1-3, SL1-3 (enoch_slide_slab).

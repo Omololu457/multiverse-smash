@@ -58,8 +58,8 @@ const S = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
   ;({ a, b } = setup(1000, 1150)); ES.afflict(a, b, 'fire', 1); ES.afflict(a, b, 'fire', 1); hp0 = b.health; const res2 = ES.afflict(a, b, 'ice', 1); step(1)
   r.quench = { res: res2, burn: aff().burn, dmg: Math.round(hp0 - b.health) }
   // S7: real fire hits (Scorch) build burn; a blocked hit builds nothing
-  ;({ a, b } = setup(1000, 1100)); H.setThermal(0); hit('scorch', a); r.scorch = aff()?.burn || 0
-  ;({ a, b } = setup(1000, 1100, 'block')); H.setThermal(0); step(4); hit('scorch', a); r.blocked = aff()?.burn || 0
+  ;({ a, b } = setup(1000, 1100)); H.setMode('fire'); hit('scorch', a); r.scorch = aff()?.burn || 0
+  ;({ a, b } = setup(1000, 1100, 'block')); H.setMode('fire'); step(4); hit('scorch', a); r.blocked = aff()?.burn || 0
   return r })
 ok('S1 one ice hit = 1 chill and NO slow yet', S.one.chill === 1 && S.oneSlow === 1, J(S.one))
 ok('S2 chill 2 = his steps shrink (−12 %)', S.walk.free > 50 && S.walk.slowed < S.walk.free * 0.93 && S.walk.slowed > S.walk.free * 0.8, J(S.walk))
@@ -80,14 +80,14 @@ const T = await page.evaluate(() => { const { H, step, hold, rel, tap, setup } =
   r.shard = { proj: (window.__harness.enochTest.projectiles() || []).length, kind: pel, stat: pr().stats.fireShards, th: Math.round(pr().th.v) }
   ;({ a, b } = setup(900, 1600)); H.setThermal(50); H.move('frostFloor'); for (let i = 0; i < 20; i++) step(1); r.floor = { types: pr().field.patches.map(p => p.type), stat: pr().stats.flameFloors }
   ;({ a, b } = setup(900, 1300)); H.setThermal(-50); H.move('heatLens'); let bel = null; for (let i = 0; i < 16; i++) { step(1); bel = bel || pr().beamFx?.el || null } r.lens = { el: bel, stat: pr().stats.frostLens, th: Math.round(pr().th.v) }
-  ;({ a, b } = setup(900, 1300)); H.setThermal(0); H.move('heatLens'); let bel2 = null; for (let i = 0; i < 16; i++) { step(1); bel2 = bel2 || pr().beamFx?.el || null } r.lens0 = bel2
+  ;({ a, b } = setup(900, 1300)); H.setMode('fire'); H.move('heatLens'); let bel2 = null; for (let i = 0; i < 16; i++) { step(1); bel2 = bel2 || pr().beamFx?.el || null } r.lens0 = bel2
   const dash = th => { ;({ a, b } = setup(700, 2200)); b.invulnTimer = 99999; H.setThermal(th); hold(a, { right: true, dash: true }); for (let i = 0; i < 12; i++) hold(a, { right: true }); rel(a); step(2); return { types: pr().field.patches.map(p => p.type), fd: pr().stats.fireDash, id: pr().stats.iceDash } }
   r.dashHot = dash(50); r.dashCold = dash(-50); r.dash0 = dash(0)
   return r })
-ok('T1 hot (+50): Special = FIRE SHARD (a fireball), heats him further', T.shard.proj === 1 && T.shard.stat === 1 && T.shard.th > 50, J(T.shard))
+ok('T1 FIRE MODE: Special = FIRE SHARD (a fireball)', T.shard.proj === 1 && T.shard.stat === 1, J(T.shard))
 ok('T2 hot: Frost Floor = FLAME FLOOR (fire patch)', T.floor.stat === 1 && T.floor.types.includes('fire') && !T.floor.types.includes('ice'), J(T.floor))
-ok('T3 cold (−50): the laser = FROST LENS (ice laser eyes), cools him', T.lens.el === 'ice' && T.lens.stat === 1 && T.lens.th < -50, J(T.lens))
-ok('T4 balance: the laser stays the fire Heat Lens', T.lens0 === 'fire', String(T.lens0))
+ok('T3 ICE MODE: the laser = FROST LENS (ice laser eyes)', T.lens.el === 'ice' && T.lens.stat === 1, J(T.lens))
+ok('T4 FIRE MODE: the laser is the fire Heat Lens', T.lens0 === 'fire', String(T.lens0))
 ok('T5 the double-tap SLIDE turns the floor to FIRE when hot, ICE when cold, and ICE in balance too (the owner\'s ground slide)', T.dashHot.types.includes('fire') && !T.dashHot.types.includes('ice') && T.dashCold.types.includes('ice') && T.dash0.types.includes('ice') && !T.dash0.types.includes('fire'), J({ h: T.dashHot, c: T.dashCold, z: T.dash0 }))
 
 // ═══ A. AIR SLIDE + its limit; C. FIRE CAGE ═══

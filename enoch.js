@@ -14,7 +14,7 @@
 // HEAT LENS: the Homelander / Superman laser gauge (beam.js): tap = a 12-frame burst, hold Special = sustained, locks on;
 //           hold Up / Down to sweep by hand. Release → 1 s cooldown; running the gauge dry → 2.5 s overheat.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
-import { twinOf, isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance } from './enochState.js'
+import { twinOf, isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance, setMode } from './enochState.js'
 import { updateFrozoneCommandCombat } from './frozone.js'
 import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL, FLOW } from './enochData.js'
 
@@ -51,8 +51,8 @@ export function heavyKey(f, e) {
   if (m.dd) return 'condense'
   if (m.ff) return 'tideBreak'
   if (e.down) return 'slide'
-  if (e.fwd) return 'fireWall'         // Forward + Heavy = FIRE WALL
-  if (e.back) return zoneOf(f) === 'hot' ? 'fireWall' : 'iceWall'   // Back + Heavy = ICE WALL (Fire Wall when hot)
+  if (e.fwd) return twinOf(f) === 'ice' ? 'iceWall' : 'fireWall'   // Forward + Heavy = FIRE WALL (an ICE WALL in ice mode)
+  if (e.back) return twinOf(f) === 'fire' ? 'fireWall' : 'iceWall'   // Back + Heavy = ICE WALL (FIRE WALL in fire mode)
   return 'heavy'
 }
 
@@ -76,9 +76,18 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
     const mo = e => e && e.m && (e.m.super || e.m.dp || e.m.qcf || e.m.qcb || e.m.dd || e.m.ff)
     if (fresh(s, 'special') && mo(s.edges.special)) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (k !== 'super' || (f.energy || 0) >= 100) fire(k, { bonus: GLIDE.atkBonus }); return 'consumed' }
     if (fresh(s, 'heavy') && mo(s.edges.heavy)) { const k = heavyKey(f, s.edges.heavy); use(s, 'heavy'); fire(k, { bonus: GLIDE.atkBonus }); return 'consumed' }
-    if (fresh(s, 'special')) { use(s, 'special'); switchGlide(f, s, 'ice'); return 'consumed' }
-    if (fresh(s, 'heavy')) { use(s, 'heavy'); switchGlide(f, s, 'fire'); return 'consumed' }
+    if (fresh(s, 'special')) { use(s, 'special'); if (s.mode !== 'ice') setMode(f, 'ice'); return 'consumed' }   // = a MODE switch (energy), the glide follows
+    if (fresh(s, 'heavy')) { use(s, 'heavy'); if (s.mode !== 'fire') setMode(f, 'fire'); return 'consumed' }
     if (fresh(s, 'charge') && s.edges.charge.down) { use(s, 'charge'); fire('iceDisc'); return 'consumed' }
+    return 'consumed'
+  }
+  // MODES: Down + Charge = ICE MODE, Up + Charge = FIRE MODE — one press, instant (energy bar), any time: mid-move the
+  // move plays on; out of a move that hit / was blocked it's also a CANCEL (an ice move flows into a fire move)
+  if (fresh(s, 'charge', FLOW.buffer) && (s.edges.charge.down || s.edges.charge.up) && !(a && COMMITTED.has(a.en?.key))) {
+    const e = s.edges.charge; use(s, 'charge')
+    if (setMode(f, e.down ? 'ice' : 'fire') && a?.en && (a.en.clean || a.en.blocked) && cancelWindowOpen(f)) {
+      f.attacking = false; f.currentAttack = null; f.currentMove = null; f.attackCooldown = 0; s.stats.modeCancels = (s.stats.modeCancels || 0) + 1
+    }
     return 'consumed'
   }
   // ICE STANCE: every press goes to Frozone's own command layer (his inputs, his precedence); Charge: Down = Ice Disc, else back

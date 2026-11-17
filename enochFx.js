@@ -10,7 +10,7 @@ import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
 import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
 import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, snowRect, slowOf, sideOf } from './enochState.js'
-import { STATUS, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT } from './enochData.js'
+import { STATUS, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, MODE } from './enochData.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
 import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
@@ -347,7 +347,7 @@ export function drawEnochOver(c, p1, p2, W) {
 // ── HUD: the thermal bar (deep blue → teal → orange, marker, outlined balance zone) under his health bar ──
 export function enochHudLabel(f) {
   const s = f?._enoch; if (!s) return null
-  const v = s.th.v, zone = s.th.over > 0 ? 'OVERLOAD' : Math.abs(v) <= TP.balance ? 'BALANCE · WATER' : v <= TP.cold ? 'COLD ZONE' : v >= TP.hot ? 'HOT ZONE' : v < 0 ? 'COOL' : 'WARM'
+  const v = s.th.v, zone = s.mode === 'ice' ? 'ICE MODE' : s.mode === 'fire' ? 'FIRE MODE' : 'NO MODE'   // the label follows his MODE (no thermal bar)
   return { v, zone, lock: s.th.lock, over: s.th.over, glide: s.glide?.type || null, patches: s.field.patches.length, disc: s.disc ? s.disc.hp : 0,
     cd: { ...s.cd }, meter: f.energy || 0, stance: s.stance || 'elemental', laser: laserView(s.laser, LASER), wall: s.wall ? { type: s.wall.type, left: WALLS[s.wall.type].life - s.wall.t, hp: s.wall.hp } : null }
 }
@@ -358,17 +358,17 @@ export function drawEnochHud(c, cv, p1, p2) {
     if (!isEn(f) || !f._enoch) return
     const L = enochHudLabel(f), w = Math.round(barW * 0.8), x0 = (flip ? cw - pad - barW - 20 + (barW - w) : pad) + 8, y0 = 94, h = 9
     c.save()
-    const g = c.createLinearGradient(x0, 0, x0 + w, 0); g.addColorStop(0, '#16307a'); g.addColorStop(0.5, '#2fa3a0'); g.addColorStop(1, '#ff9a3c')
-    c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(x0 - 2, y0 - 2, w + 4, h + 4)
-    c.fillStyle = g; c.fillRect(x0, y0, w, h)
-    const bx = x => x0 + R((x + 100) / 200 * w)
-    c.strokeStyle = '#ffffff'; c.lineWidth = 1; c.strokeRect(bx(-TP.balance) + 0.5, y0 - 1.5, bx(TP.balance) - bx(-TP.balance), h + 3)   // the balance zone
-    c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(bx(TP.cold), y0, 1, h); c.fillRect(bx(TP.hot), y0, 1, h)
-    const mx = bx(L.v); c.fillStyle = L.over > 0 && !calm() && ((L.over >> 2) & 1) ? '#ff3030' : '#ffffff'; c.fillRect(mx - 2, y0 - 4, 4, h + 8)
-    c.font = 'bold 9px Arial'; c.textBaseline = 'top'; c.textAlign = flip ? 'right' : 'left'
+    // HIS MODE (no thermal bar any more): a pill — ICE / FIRE / NO MODE — with how to switch
+    const m = f._enoch.mode, col = m === 'ice' ? COL.ice[1] : m === 'fire' ? COL.fire[1] : '#cfd6e0'
+    const label = m === 'ice' ? 'ICE MODE' : m === 'fire' ? 'FIRE MODE' : 'NO MODE · plain attacks only'
+    c.font = 'bold 11px Arial'; c.textBaseline = 'top'; c.textAlign = flip ? 'right' : 'left'
+    const tw = Math.ceil(c.measureText(label).width) + 16, px = flip ? x0 + w - tw : x0
+    c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(px, y0 - 4, tw, 17)
+    c.strokeStyle = col; c.lineWidth = 1.5; c.strokeRect(px + 0.5, y0 - 3.5, tw - 1, 16)
+    c.fillStyle = col; c.fillText(label, px + 8, y0 - 1)
     const tx = flip ? x0 + w : x0
-    c.fillStyle = L.over > 0 ? '#ff6050' : L.zone.startsWith('BALANCE') ? COL.water[1] : L.v < 0 ? COL.ice[1] : COL.fire[1]
-    c.fillText(`${L.zone}${L.lock > 0 ? ' · LOCKED' : ''}${L.glide ? ' · ' + L.glide.toUpperCase() + ' GLIDE' : ''}`, tx, y0 + h + 4)
+    c.font = 'bold 9px Arial'; c.fillStyle = 'rgba(255,255,255,0.75)'
+    c.fillText(`↓+CHARGE ICE · ↑+CHARGE FIRE (${MODE.cost} energy)${L.glide ? ' · ' + L.glide.toUpperCase() + ' GLIDE' : ''}`, tx, y0 + h + 6)
     c.fillStyle = 'rgba(255,255,255,0.7)'
     c.fillText(`FREEZE ${L.cd.deepFreeze > 0 ? Math.ceil(L.cd.deepFreeze / 60) + 's' : 'READY'} · TIDE ${L.cd.tideBreak > 0 ? Math.ceil(L.cd.tideBreak / 60) + 's' : 'READY'} · GUARD GLIDE ${L.cd.guard > 0 ? Math.ceil(L.cd.guard / 60) + 's' : 'READY'}`, tx, y0 + h + 15)
     c.restore()

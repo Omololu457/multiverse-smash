@@ -123,6 +123,15 @@ export const SNOWMAN = { ahead: 104, w: 58, h: 124, rise: 14, life: 720, hp: 5, 
 // DOUBLE-TAP = his DASH (it leaves a streak of ice — fire when hot); KEEP HOLDING the direction for `holdFrames` and the
 // dash turns into the GROUND SLIDE: a glide that turns the floor under him to ICE (FIRE when hot), for as long as it's held
 // (at least `minFrames`). On his own ice / fire the double-tap glides straight away, as before.
+// MODES (owner's design): he starts in NO MODE — plain attacks only, no special abilities. Down + Charge = ICE MODE,
+// Up + Charge = FIRE MODE: one press, instant, paid from the ENERGY bar (`cost`; no other bar — the old thermal gauge is
+// gone: his temperature is pinned to the mode). Pressing the mode he's already in drops back to no mode (free).
+// Holding Charge only ever charges energy.
+export const MODE = { cost: 15, pin: 30 }   // pin ±30: past the old balance band (twins on), short of the old own-zone bonus (no ×1.15)
+// THE SLICE: his dash and his glide go THROUGH the opponent (both elements) and cut them once per pass —
+// ice: chill + an ice burst; fire: burn + a flame burst.
+export const SLICE = { raw: 30, hitstun: 26,   // long enough to link a follow-up after the dash
+  kbx: 3, kby: -3, chill: 1, burn: 1, reach: 70 }
 export const GROUND_SLIDE = { minFrames: 26, holdFrames: 12 }
 // HIS FLOOR vs the opponent: on his ICE they lose `raw` every `every` frames (+ chill) and are slid off toward the nearest
 // edge at `push` px / frame; his FIRE already burns (the element's DoT + burn).

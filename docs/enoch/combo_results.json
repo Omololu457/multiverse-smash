@@ -8,7 +8,7 @@
     {
      "frame": 5,
      "dmg": 24,
-     "ds": "clean=1 blocked=0 rejects=0 spawns=0 glides=0 iceGlide=0 fireGlide=0 switches=0 ramps=0 rampLand=0 discs=0 discMelt=0 discBreak=0 bursts=0 burstHits=0 steam=0 refreeze=0 overloads=0 beams=0 beamHits=0 beamTicks=0 beamFloor=0 wetHits=0 freezes=0 tides=0 tideBursts=0 orbs=0 orbSteam=0 orbHail=0 guardCancels=0 wakes=0 supers=0 superDone=0 superWhiff=0 superBlocked=0 patchDmg=0 sanjiMelt=0 arlongDouse=0 meter=4 walls=0 iceWalls=0 fireWalls=0 wallLaunch=0 wallBlocks=0 wallBurns=0 wallSteam=0 laserOverheat=0",
+     "ds": "clean=1 blocked=0 rejects=0 spawns=0 glides=0 iceGlide=0 fireGlide=0 switches=0 ramps=0 rampLand=0 discs=0 discMelt=0 discBreak=0 bursts=0 burstHits=0 steam=0 refreeze=0 overloads=0 beams=0 beamHits=0 beamTicks=0 beamFloor=0 wetHits=0 freezes=0 tides=0 tideBursts=0 orbs=0 orbSteam=0 orbHail=0 guardCancels=0 wakes=0 supers=0 superDone=0 superWhiff=0 superBlocked=0 patchDmg=0 sanjiMelt=0 arlongDouse=0 meter=4 stanceSwitches=0 channels=0 walls=0 iceWalls=0 fireWalls=0 wallLaunch=0 wallBlocks=0 wallBurns=0 wallSteam=0 laserOverheat=0 burns=0 chills=0 burnTicks=0 boxes=0 shocks=0 quenches=0 fireShards=0 flameFloors=0 frostLens=0 fireDash=0 iceDash=0 airSlides=0 iceSlides=0 fireSlides=0 airDenied=0 airHops=0 maxChain=0 airSlideHits=0 cages=0 meteors=0 fireMeteors=0 meteorHits=0 snowmen=0 snowBlocks=0 snowMelt=0 melts=0 encased=0 cometHits=0 modeSwitches=0 slices=0 groundSlides=0 iceFloorHits=0 slabLands=0 slabShoves=0 slabBonks=0",
      "air": false,
      "pt": "",
      "by": "jab"
@@ -32,7 +32,7 @@
     {
      "frame": 67,
      "dmg": 27,
-     "ds": "clean=4 spawns=1 meter=24.5",
+     "ds": "clean=4 spawns=1 meter=24.5 chills=1",
      "air": true,
      "pt": "",
      "by": "iceBlast"
@@ -124,6 +124,8 @@
     "sanjiMelt": 0,
     "arlongDouse": 0,
     "meter": 24.5,
+    "stanceSwitches": 0,
+    "channels": 0,
     "walls": 0,
     "iceWalls": 0,
     "fireWalls": 0,
@@ -131,9 +133,44 @@
     "wallBlocks": 0,
     "wallBurns": 0,
     "wallSteam": 0,
-    "laserOverheat": 0
+    "laserOverheat": 0,
+    "burns": 0,
+    "chills": 1,
+    "burnTicks": 0,
+    "boxes": 0,
+    "shocks": 0,
+    "quenches": 0,
+    "fireShards": 0,
+    "flameFloors": 0,
+    "frostLens": 0,
+    "fireDash": 0,
+    "iceDash": 0,
+    "airSlides": 0,
+    "iceSlides": 0,
+    "fireSlides": 0,
+    "airDenied": 0,
+    "airHops": 0,
+    "maxChain": 0,
+    "airSlideHits": 0,
+    "cages": 0,
+    "meteors": 0,
+    "fireMeteors": 0,
+    "meteorHits": 0,
+    "snowmen": 0,
+    "snowBlocks": 0,
+    "snowMelt": 0,
+    "melts": 0,
+    "encased": 0,
+    "cometHits": 0,
+    "modeSwitches": 0,
+    "slices": 0,
+    "groundSlides": 0,
+    "iceFloorHits": 0,
+    "slabLands": 0,
+    "slabShoves": 0,
+    "slabBonks": 0
    },
-   "thermal": -11.60001
+   "thermal": -30
   },
   "C2": {
    "name": "C2",
@@ -147,15 +184,15 @@
      "by": "frostFloor"
     },
     {
-     "frame": 30,
+     "frame": 31,
      "dmg": 61,
-     "ds": "bursts=1 burstHits=1 beams=1 beamHits=1 meter=13.8",
+     "ds": "bursts=1 burstHits=1 beams=1 beamHits=1 meter=13.8 burns=1 modeSwitches=1",
      "air": true,
      "pt": "water,steam",
      "by": "burst+heatLens"
     },
     {
-     "frame": 39,
+     "frame": 40,
      "dmg": 31,
      "ds": "clean=2 meter=20",
      "air": true,
@@ -163,7 +200,7 @@
      "by": "straight"
     },
     {
-     "frame": 58,
+     "frame": 59,
      "dmg": 40,
      "ds": "clean=3 meter=28.8",
      "air": false,
@@ -178,15 +215,15 @@
     },
     {
      "k": "heatLens",
-     "frame": 20
+     "frame": 21
     },
     {
      "k": "straight",
-     "frame": 32
+     "frame": 33
     },
     {
      "k": "heavy",
-     "frame": 47
+     "frame": 48
     }
    ],
    "total": 153,
@@ -199,21 +236,27 @@
      "attack": null
     },
     {
-     "step": "Heat Lens (→→+S) — FIRE on the ICE → burst",
+     "step": "FIRE MODE (↑+Charge cancel)",
      "waited": 12,
      "at": 16,
      "attack": "frostFloor"
     },
     {
+     "step": "Heat Lens (→→+S) — FIRE on the ICE → burst",
+     "waited": 0,
+     "at": 17,
+     "attack": "frostFloor"
+    },
+    {
      "step": "Straight (→+L)",
      "waited": 10,
-     "at": 30,
+     "at": 31,
      "attack": "heatLens"
     },
     {
      "step": "Heavy",
      "waited": 8,
-     "at": 39,
+     "at": 40,
      "attack": "straight"
     }
    ],
@@ -257,6 +300,8 @@
     "sanjiMelt": 0,
     "arlongDouse": 0,
     "meter": 28.8,
+    "stanceSwitches": 0,
+    "channels": 0,
     "walls": 0,
     "iceWalls": 0,
     "fireWalls": 0,
@@ -264,25 +309,68 @@
     "wallBlocks": 0,
     "wallBurns": 0,
     "wallSteam": 0,
-    "laserOverheat": 0
+    "laserOverheat": 0,
+    "burns": 1,
+    "chills": 1,
+    "burnTicks": 0,
+    "boxes": 0,
+    "shocks": 0,
+    "quenches": 0,
+    "fireShards": 0,
+    "flameFloors": 0,
+    "frostLens": 0,
+    "fireDash": 0,
+    "iceDash": 0,
+    "airSlides": 0,
+    "iceSlides": 0,
+    "fireSlides": 0,
+    "airDenied": 0,
+    "airHops": 0,
+    "maxChain": 0,
+    "airSlideHits": 0,
+    "cages": 0,
+    "meteors": 0,
+    "fireMeteors": 0,
+    "meteorHits": 0,
+    "snowmen": 0,
+    "snowBlocks": 0,
+    "snowMelt": 0,
+    "melts": 0,
+    "encased": 0,
+    "cometHits": 0,
+    "modeSwitches": 1,
+    "slices": 0,
+    "groundSlides": 0,
+    "iceFloorHits": 0,
+    "slabLands": 0,
+    "slabShoves": 0,
+    "slabBonks": 0
    },
-   "thermal": -2.60001
+   "thermal": 30
   },
   "C3": {
    "name": "C3",
    "hits": [
     {
-     "frame": 46,
+     "frame": 26,
+     "dmg": 18,
+     "ds": "clean=0 spawns=0 glides=1 iceGlide=1 bursts=0 burstHits=0 beams=0 beamHits=0 meter=3 burns=0 modeSwitches=0 slices=1",
+     "air": false,
+     "pt": "ice",
+     "by": "patch"
+    },
+    {
+     "frame": 45,
      "dmg": 27,
-     "ds": "clean=0 spawns=0 glides=1 iceGlide=1 switches=1 beams=0 beamHits=0 meter=4.5",
+     "ds": "switches=1 bursts=1 burstHits=1 meter=7.5 modeSwitches=1",
      "air": true,
      "pt": "water,steam",
      "by": "burst"
     },
     {
-     "frame": 58,
-     "dmg": 56,
-     "ds": "clean=1 meter=13.85",
+     "frame": 56,
+     "dmg": 51,
+     "ds": "clean=1 meter=16.85",
      "air": true,
      "pt": "water,steam,fire",
      "by": "steamBurst"
@@ -291,34 +379,40 @@
    "started": [
     {
      "k": "steamBurst",
-     "frame": 50
+     "frame": 48
     }
    ],
-   "total": 83,
+   "total": 96,
    "gaps": 0,
    "log": [
     {
+     "step": "double-tap on his ICE → Ice Glide",
+     "waited": 0,
+     "at": 0,
+     "attack": null
+    },
+    {
      "step": "Ice Glide past (skates through)",
-     "waited": 36,
-     "at": 36,
+     "waited": 34,
+     "at": 35,
      "attack": null
     },
     {
      "step": "turn",
      "waited": 8,
-     "at": 44,
+     "at": 43,
      "attack": null
     },
     {
-     "step": "Fire Glide back over the ice (the trails react)",
+     "step": "Heavy in the glide = FIRE MODE: Fire Glide back over the ice (the trails react)",
      "waited": 0,
-     "at": 44,
+     "at": 43,
      "attack": null
     },
     {
      "step": "Steam Burst (↓↘→+S out of the glide)",
-     "waited": 1,
-     "at": 46,
+     "waited": 0,
+     "at": 44,
      "attack": null
     }
    ],
@@ -361,7 +455,9 @@
     "patchDmg": 0,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 13.85,
+    "meter": 16.85,
+    "stanceSwitches": 0,
+    "channels": 0,
     "walls": 0,
     "iceWalls": 0,
     "fireWalls": 0,
@@ -369,9 +465,44 @@
     "wallBlocks": 0,
     "wallBurns": 0,
     "wallSteam": 0,
-    "laserOverheat": 0
+    "laserOverheat": 0,
+    "burns": 0,
+    "chills": 1,
+    "burnTicks": 0,
+    "boxes": 0,
+    "shocks": 0,
+    "quenches": 0,
+    "fireShards": 0,
+    "flameFloors": 0,
+    "frostLens": 0,
+    "fireDash": 0,
+    "iceDash": 0,
+    "airSlides": 0,
+    "iceSlides": 0,
+    "fireSlides": 0,
+    "airDenied": 0,
+    "airHops": 0,
+    "maxChain": 0,
+    "airSlideHits": 0,
+    "cages": 0,
+    "meteors": 0,
+    "fireMeteors": 0,
+    "meteorHits": 0,
+    "snowmen": 0,
+    "snowBlocks": 0,
+    "snowMelt": 0,
+    "melts": 0,
+    "encased": 0,
+    "cometHits": 0,
+    "modeSwitches": 1,
+    "slices": 1,
+    "groundSlides": 0,
+    "iceFloorHits": 0,
+    "slabLands": 0,
+    "slabShoves": 0,
+    "slabBonks": 0
    },
-   "thermal": -23.50001
+   "thermal": 30
   },
   "C4": {
    "name": "C4",
@@ -379,7 +510,7 @@
     {
      "frame": 17,
      "dmg": 24,
-     "ds": "glides=0 iceGlide=0 switches=0 bursts=0 burstHits=0 freezes=1 meter=4",
+     "ds": "glides=0 iceGlide=0 switches=0 bursts=0 burstHits=0 freezes=1 meter=4 modeSwitches=0 slices=0",
      "air": false,
      "pt": "",
      "by": "deepFreeze"
@@ -387,7 +518,7 @@
     {
      "frame": 51,
      "dmg": 34,
-     "ds": "clean=2 meter=9",
+     "ds": "clean=2 meter=9 burns=1 modeSwitches=1",
      "air": false,
      "pt": "",
      "by": "scorch"
@@ -395,7 +526,7 @@
     {
      "frame": 89,
      "dmg": 20,
-     "ds": "burstHits=1 tides=1 tideBursts=1 patchDmg=4 meter=12.4",
+     "ds": "burstHits=1 tides=1 tideBursts=1 patchDmg=4 meter=12.4 burns=2",
      "air": false,
      "pt": "water",
      "by": "tideBreak"
@@ -425,14 +556,20 @@
      "attack": null
     },
     {
-     "step": "Scorch Sweep (↓↙←+H)",
+     "step": "FIRE MODE (↑+Charge cancel)",
      "waited": 13,
      "at": 17,
      "attack": "deepFreeze"
     },
     {
+     "step": "Scorch Sweep (↓↙←+H)",
+     "waited": 0,
+     "at": 18,
+     "attack": "deepFreeze"
+    },
+    {
      "step": "Tide Break (→→+H)",
-     "waited": 30,
+     "waited": 29,
      "at": 51,
      "attack": "scorch"
     }
@@ -477,6 +614,8 @@
     "sanjiMelt": 0,
     "arlongDouse": 0,
     "meter": 12.4,
+    "stanceSwitches": 0,
+    "channels": 0,
     "walls": 0,
     "iceWalls": 0,
     "fireWalls": 0,
@@ -484,9 +623,44 @@
     "wallBlocks": 0,
     "wallBurns": 0,
     "wallSteam": 0,
-    "laserOverheat": 0
+    "laserOverheat": 0,
+    "burns": 2,
+    "chills": 1,
+    "burnTicks": 0,
+    "boxes": 0,
+    "shocks": 0,
+    "quenches": 0,
+    "fireShards": 0,
+    "flameFloors": 0,
+    "frostLens": 0,
+    "fireDash": 0,
+    "iceDash": 0,
+    "airSlides": 0,
+    "iceSlides": 0,
+    "fireSlides": 0,
+    "airDenied": 0,
+    "airHops": 0,
+    "maxChain": 0,
+    "airSlideHits": 0,
+    "cages": 0,
+    "meteors": 0,
+    "fireMeteors": 0,
+    "meteorHits": 0,
+    "snowmen": 0,
+    "snowBlocks": 0,
+    "snowMelt": 0,
+    "melts": 0,
+    "encased": 0,
+    "cometHits": 0,
+    "modeSwitches": 1,
+    "slices": 0,
+    "groundSlides": 0,
+    "iceFloorHits": 0,
+    "slabLands": 0,
+    "slabShoves": 0,
+    "slabBonks": 0
    },
-   "thermal": -26.60001
+   "thermal": 30
   },
   "C5": {
    "name": "C5",
@@ -494,42 +668,50 @@
     {
      "frame": 20,
      "dmg": 18,
-     "ds": "clean=0 freezes=0 tideBursts=2 patchDmg=0 meter=3",
+     "ds": "clean=0 freezes=0 tideBursts=2 patchDmg=0 meter=3 burns=0 chills=0 modeSwitches=0",
      "air": false,
      "pt": "water,water,water",
      "by": "tideBreak"
     },
     {
-     "frame": 78,
-     "dmg": 54,
+     "frame": 68,
+     "dmg": 33,
      "ds": "supers=1",
      "air": false,
      "pt": "water,water,water",
      "by": "super"
     },
     {
-     "frame": 118,
-     "dmg": 72,
+     "frame": 84,
+     "dmg": 33,
      "ds": "",
      "air": false,
      "pt": "water,water,water",
      "by": "super"
     },
     {
-     "frame": 163,
-     "dmg": 108,
+     "frame": 100,
+     "dmg": 33,
      "ds": "",
      "air": false,
      "pt": "water,water,water",
      "by": "super"
     },
     {
-     "frame": 227,
-     "dmg": 1,
-     "ds": "superDone=1 patchDmg=2 meter=3.2",
+     "frame": 116,
+     "dmg": 33,
+     "ds": "",
      "air": false,
-     "pt": "water,water,water,steam",
-     "by": "patch"
+     "pt": "water,water,water",
+     "by": "super"
+    },
+    {
+     "frame": 148,
+     "dmg": 66,
+     "ds": "",
+     "air": false,
+     "pt": "water,water,water",
+     "by": "super"
     }
    ],
    "started": [
@@ -542,7 +724,7 @@
      "frame": 27
     }
    ],
-   "total": 253,
+   "total": 216,
    "gaps": 0,
    "log": [
     {
@@ -552,8 +734,14 @@
      "attack": null
     },
     {
+     "step": "drop to NO MODE mid-move (↓+Charge again)",
+     "waited": 3,
+     "at": 7,
+     "attack": "tideBreak"
+    },
+    {
      "step": "Super (↓↘→↓↘→+S) = THERMAL SHOCK",
-     "waited": 16,
+     "waited": 12,
      "at": 20,
      "attack": "tideBreak"
     }
@@ -594,10 +782,12 @@
     "superDone": 1,
     "superWhiff": 0,
     "superBlocked": 0,
-    "patchDmg": 2,
+    "patchDmg": 0,
     "sanjiMelt": 0,
     "arlongDouse": 0,
-    "meter": 3.2,
+    "meter": 3,
+    "stanceSwitches": 0,
+    "channels": 0,
     "walls": 0,
     "iceWalls": 0,
     "fireWalls": 0,
@@ -605,9 +795,44 @@
     "wallBlocks": 0,
     "wallBurns": 0,
     "wallSteam": 0,
-    "laserOverheat": 0
+    "laserOverheat": 0,
+    "burns": 0,
+    "chills": 0,
+    "burnTicks": 0,
+    "boxes": 0,
+    "shocks": 0,
+    "quenches": 0,
+    "fireShards": 0,
+    "flameFloors": 0,
+    "frostLens": 0,
+    "fireDash": 0,
+    "iceDash": 0,
+    "airSlides": 0,
+    "iceSlides": 0,
+    "fireSlides": 0,
+    "airDenied": 0,
+    "airHops": 0,
+    "maxChain": 0,
+    "airSlideHits": 0,
+    "cages": 0,
+    "meteors": 0,
+    "fireMeteors": 0,
+    "meteorHits": 0,
+    "snowmen": 0,
+    "snowBlocks": 0,
+    "snowMelt": 0,
+    "melts": 0,
+    "encased": 0,
+    "cometHits": 0,
+    "modeSwitches": 0,
+    "slices": 0,
+    "groundSlides": 0,
+    "iceFloorHits": 0,
+    "slabLands": 0,
+    "slabShoves": 0,
+    "slabBonks": 0
    },
-   "thermal": 0
+   "thermal": -30
   }
  }
 }

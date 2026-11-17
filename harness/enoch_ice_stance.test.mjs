@@ -58,18 +58,17 @@ try {
   ok('T5 elemental stance keeps his own moves (Special = Ice Blast, Light = Jab)', T.elementalSpecial === 'iceBlast' && T.elementalLight === 'jab', J({ s: T.elementalSpecial, l: T.elementalLight }))
 
   // ═══ C. CHANNEL: Down + Charge = cool, Up + Charge = heat (held, rooted) ═══
+  // 2026-11-17 MODES: Down / Up + Charge picks ICE / FIRE MODE with one press; holding on = powering up (energy), rooted
   const C = await page.evaluate(() => { const { H, step, hold, rel, setup, stance } = __E; const r = {}
-    let { a, b } = setup(1000, 1600); H.setThermal(0); const y0 = a.y, x0 = a.x
-    for (let i = 0; i < 60; i++) hold(a, { down: true, charge: true }); r.cool = { th: H.state().s.th.v, pose: H.state().action, moved: Math.abs(a.x - x0), stance: stance() }
+    let { a, b } = setup(1000, 1600); H.setMode(null); a.energy = 50; const y0 = a.y, x0 = a.x
+    for (let i = 0; i < 60; i++) hold(a, { down: true, charge: true }); r.cool = { mode: H.state().s.mode, pose: H.state().action, moved: Math.abs(a.x - x0), stance: stance(), energy: Math.round(a.energy) }
     rel(a); step(4)
-    ;({ a, b } = setup(1000, 1600)); H.setThermal(0); let minY = a.y
-    for (let i = 0; i < 60; i++) { hold(a, { up: true, jump: true, charge: true }); minY = Math.min(minY, a.y) } r.heat = { th: H.state().s.th.v, pose: H.state().action, rose: Math.round(y0 - minY), stance: stance() }
+    ;({ a, b } = setup(1000, 1600)); H.setMode(null); a.energy = 50; let minY = a.y
+    for (let i = 0; i < 60; i++) { hold(a, { up: true, jump: true, charge: true }); minY = Math.min(minY, a.y) } r.heat = { mode: H.state().s.mode, pose: H.state().action, rose: Math.round(y0 - minY), stance: stance() }
     rel(a); step(4)
-    ;({ a, b } = setup(1000, 1600)); H.setThermal(0); for (let i = 0; i < 400; i++) hold(a, { down: true, charge: true }); r.cap = H.state().s.th.v; rel(a); step(4)
     return r })
-  ok('C1 Down + Charge held channels COLD (thermal falls), rooted, his crouched channel pose', C.cool.th < -30 && C.cool.moved < 2 && C.cool.pose === 'channel' && C.cool.stance === 'elemental', JSON.stringify(C.cool))
-  ok('C2 Up + Charge held channels HEAT (thermal rises), no jump, fire channel pose', C.heat.th > 30 && C.heat.rose < 4 && C.heat.pose === 'channel_fire' && C.heat.stance === 'elemental', JSON.stringify(C.heat))
-  ok('C3 the channel stops short of an overload (−70)', C.cap <= -60 && C.cap >= -71, String(C.cap))
+  ok('C1 Down + Charge = ICE MODE (one press); held on he powers up rooted (energy back up), crouched channel pose', C.cool.mode === 'ice' && C.cool.moved < 2 && C.cool.pose === 'channel' && C.cool.stance === 'elemental' && C.cool.energy > 35, JSON.stringify(C.cool))
+  ok('C2 Up + Charge = FIRE MODE (one press), no jump, fire channel pose', C.heat.mode === 'fire' && C.heat.rose < 4 && C.heat.pose === 'channel_fire' && C.heat.stance === 'elemental', JSON.stringify(C.heat))
 
   // ═══ K. THE KIT ON ENOCH ═══
   const K = await page.evaluate(() => { const { H, step, hold, tap, rel, setup, fz, ice } = __E; const r = {}
@@ -165,8 +164,8 @@ try {
   // render check of the new looks: the ice shard in flight, the heat / cold channel, the Fire Wall pillars
   const shot = async (name, fn) => { await page.evaluate(fn); fs.writeFileSync(`docs/enoch/screenshots/${name}.png`, await page.screenshot()) }
   await shot('ice_shard', () => { const { H, step, tap, setup } = __E; setup(900, 1500); H.setThermal(0); tap(H.raw(), { special: true }); step(16); __harness.render?.() })
-  await shot('channel_heat', () => { const { H, hold, setup } = __E; const { a } = setup(1000, 1600); H.setThermal(0); for (let i = 0; i < 20; i++) hold(a, { up: true, jump: true, charge: true }); __harness.render?.() })
-  await shot('channel_cold', () => { const { H, hold, rel, step, setup } = __E; const { a } = setup(1000, 1600); H.setThermal(0); for (let i = 0; i < 20; i++) hold(a, { down: true, charge: true }); __harness.render?.(); })
+  await shot('channel_heat', () => { const { H, hold, setup } = __E; const { a } = setup(1000, 1600); H.setMode(null); a.energy = 50; for (let i = 0; i < 20; i++) hold(a, { up: true, jump: true, charge: true }); __harness.render?.() })
+  await shot('channel_cold', () => { const { H, hold, rel, step, setup } = __E; const { a } = setup(1000, 1600); H.setMode(null); a.energy = 50; for (let i = 0; i < 20; i++) hold(a, { down: true, charge: true }); __harness.render?.(); })
   await shot('fire_wall_vfx', () => { const { H, hold, rel, step, setup } = __E; const { a } = setup(1000, 1700); H.setThermal(0); rel(a); step(2); H.move('fireWall'); step(30); __harness.render?.() })
   const shard = await page.evaluate(() => { const { H, step, tap, setup } = __E; const { a } = setup(900, 1500); H.setThermal(0); tap(a, { special: true }); let seen = 0, act = new Set(); for (let i = 0; i < 20; i++) { step(1); act.add(H.state().action); seen = Math.max(seen, (__E.H.world?.()?.projectiles || []).length) } return { act: [...act] } })
   ok('R4 Ice Blast plays the standing point-and-shoot strip', shard.act.includes('atkBlast') || shard.act.some(x => /blast/i.test(x)), JSON.stringify(shard))

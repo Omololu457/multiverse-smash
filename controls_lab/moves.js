@@ -82,7 +82,14 @@ export function buildMoves(mods, key) {
       fix = `${fix ? fix + " " : ""}Input from the move's data: ${di} (the kit text says "${l.input}").`; input = di
     }
     const parsed = parseNotation(input, l.cat)
-    const { script, at } = stepsToScript(parsed)
+    let { script, at } = stepsToScript(parsed)
+    // PREP (kit data `labPrep`: raw chords pressed before the move — e.g. Enoch's Down / Up + Charge MODE press): the demo
+    // performs them first, for real, so the move is shown with the input the player really needs
+    if (Array.isArray(ki?.labPrep) && ki.labPrep.length) {
+      const pre = []; for (const c of ki.labPrep) { pre.push({ ...c }, { ...c }); for (let i = 0; i < 12; i++) pre.push({}) }
+      script = [...pre, ...script]; at = at.map(i => i + pre.length)
+    }
+    if (ki?.labPrepNote) desc = `${ki.labPrepNote} ${desc || ""}`.trim()
     moves.push({
       id: l.id, name: l.name, input, kitInput: l.input, desc: fix ? `${desc || ""} ${fix}`.trim() : desc, cat: l.cat, section: l.section,
       unavailable,

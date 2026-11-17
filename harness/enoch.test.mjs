@@ -21,7 +21,7 @@ try {
   await page.screenshot({ path: 'docs/enoch/screenshots/render_check.png' })
   const lit = await page.evaluate(() => { const c = document.querySelector('canvas'), x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, 140).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 60) n++; return n })
   ok('render: boot → Enoch vs Frozone in a live battle, both fighters animating', A.gs === 'battle' && A.a.key === 'enoch' && A.bKey === 'frozone' && !!A.a.action && !!A.bAct, JSON.stringify(A))
-  ok('render: HUD band drawn + thermal readout present', lit > 5000 && !!A.hud && A.hud.zone.startsWith('BALANCE'), 'lit px ' + lit + ' ' + JSON.stringify(A.hud))
+  ok('render: HUD band drawn + MODE readout present (he starts in NO MODE)', lit > 5000 && !!A.hud && A.hud.zone === 'NO MODE', 'lit px ' + lit + ' ' + JSON.stringify(A.hud))
   ok('health 980', A.a.maxHp === 980, String(A.a.maxHp))
   // effects: lay one patch of each element + disc + beam, then screenshot
   const E = await page.evaluate(() => { const H = __harness.enochTest, a = H.raw(), b = H.raw('p2'); b.x = a.x + 520; b.invulnTimer = 99999

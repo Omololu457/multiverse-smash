@@ -17,7 +17,7 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, GROUND_SLIDE, ICE_FLOOR, SLAB, FLOW, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, GROUND_SLIDE, ICE_FLOOR, SLAB, FLOW, MODE, SLICE, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
@@ -25,6 +25,7 @@ import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick,
 import { marchBeam, beamFloorHit, createLaser, laserReady, laserStart, laserStep, laserCut } from './beam.js'
 import { registerFrozoneHost } from './frozoneState.js'
 import { spawnPlatform, recedePlatform, getPlatforms } from './platforms.js'
+import { INPUT_BUFFER_FRAMES } from './input.js'
 import { dirDigit, motionMatch } from './elastigirlState.js'
 
 export const ENOCH_KEY = 'enoch'
@@ -34,9 +35,9 @@ const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, 
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
   sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0,
-  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0, meteors: 0, fireMeteors: 0, meteorHits: 0, snowmen: 0, snowBlocks: 0, snowMelt: 0, melts: 0, encased: 0, cometHits: 0, groundSlides: 0, iceFloorHits: 0, slabLands: 0, slabShoves: 0, slabBonks: 0 })
+  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0, meteors: 0, fireMeteors: 0, meteorHits: 0, snowmen: 0, snowBlocks: 0, snowMelt: 0, melts: 0, encased: 0, cometHits: 0, modeSwitches: 0, slices: 0, groundSlides: 0, iceFloorHits: 0, slabLands: 0, slabShoves: 0, slabBonks: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-  th: createThermal(), field: createField(6), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { chain: 0, armed: true, win: 0, jc: 0 }, aslide: null, rails: [], snow: null, meteors: [], encase: null,
+  th: createThermal(), field: createField(6), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', mode: null, pass: 0, moving: false, sliced: {}, channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { chain: 0, armed: true, win: 0, jc: 0 }, aslide: null, rails: [], snow: null, meteors: [], encase: null,
   cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
   stats: stats0(), lastReject: null, cues: [] }
 
@@ -113,7 +114,23 @@ export function clearEnoch(f, W) {
 // ── THERMAL helpers ──
 export const zoneOf = f => thermalZone(enState(f).th, TP)
 export const check = (f, el) => thermalCheck(enState(f).th, TP, el)
+// his temperature is PINNED to his mode (no thermal bar to manage any more): ice −pin, fire +pin, no mode 0
+function pinMode(s) { s.th.v = s.mode === 'ice' ? -MODE.pin : s.mode === 'fire' ? MODE.pin : 0; s.th.over = 0; s.th.overSide = 0; s.th.lock = 0 }
+export const modeOf = f => enState(f).mode
+// Down + Charge = ICE MODE, Up + Charge = FIRE MODE: one press, ENERGY bar only; the same one again = back to no mode
+export function setMode(f, m) {
+  if (!isEnoch(f) || (m !== 'ice' && m !== 'fire')) return false
+  const s = enState(f)
+  if (s.mode === m) { s.mode = null; pinMode(s); if (s.glide) endGlide(f, s, false); cue(f, 'switch'); return true }
+  if ((f.energy || 0) < MODE.cost) { reject(f, 'energy'); return false }
+  f.energy = Math.max(0, (f.energy || 0) - MODE.cost); s.mode = m; pinMode(s); s.stats.modeSwitches++
+  if (m === 'fire') { s.noJump = INPUT_BUFFER_FRAMES + 1; f.jumpHeld = true }   // the Up of Up + Charge (buffered ~10 f by the engine) must not jump
+  if (s.glide && s.glide.type !== m) { s.glide.type = m; s.stats.switches++ }   // mid-glide: the trail changes element (the trails react)
+  cue(f, m === 'ice' ? 'crackle' : 'fireCast'); pushFx(s, 'switch', ctrX(f), feetY(f), f.facing || 1, { el: m }); pushFx(s, m === 'ice' ? 'frost' : 'fireImpact', ctrX(f), feetY(f), f.facing || 1)
+  return true
+}
 function push(f, s, delta) {
+  pinMode(s); return   // 2026-11-17: the mode pins his temperature — moves no longer push a thermal bar (the overload code below is dormant)
   if (thermalPush(s.th, TP, delta) === 'overload') {
     s.stats.overloads++; cue(f, 'overload'); pushFx(s, 'overload', ctrX(f), f.y + 20, s.th.overSide)
     if (s.glide && ((s.glide.type === 'ice' && s.th.overSide < 0) || (s.glide.type === 'fire' && s.th.overSide > 0))) endGlide(f, s, false)
@@ -121,7 +138,7 @@ function push(f, s, delta) {
   }
 }
 export function pushThermal(f, d) { push(f, enState(f), d) }
-export const waterUnlocked = f => zoneOf(f) === 'balance'
+export const waterUnlocked = f => !!enState(f).mode   // water = where ice meets fire: either mode opens his water moves
 
 // ── PATCHES ──
 // lay a patch (with every merge / reaction / burst it causes), handling the disc melt + the Arlong douse first
@@ -296,10 +313,11 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   if (!md || f.health <= 0 || f.hitstun > 0 || f.isGrabbed || f.knockdownState) return false
   if (f.blockstun > 0) return false
   if (md.isSpecial && (f.disabledSpecials || []).includes('special')) return false
+  if (md.isSpecial && key !== 'super' && !s.mode) { reject(f, 'mode'); return false }   // NO MODE: plain attacks only
   if (md.air && g) return false
   if (!md.air && !md.airOk && !g) { reject(f, 'air'); return false }
   const el = moveElement(f, key)
-  const chk = el ? check(f, el) : { ok: true, cost: 1, dmg: 1 }
+  const chk = el === 'water' ? { ok: !!s.mode, why: 'mode', cost: 1, dmg: 1 } : (el === 'ice' || el === 'fire') && s.mode && el !== s.mode ? { ok: false, why: 'locked', cost: 1, dmg: 1 } : el ? check(f, el) : { ok: true, cost: 1, dmg: 1 }
   if (!chk.ok) { reject(f, chk.why); return false }
   if (md.cooldown && s.cd[key] > 0) { reject(f, 'cooldown'); return false }
   if (key === 'heatLens' && !laserReady(s.laser)) { reject(f, s.laser.over > 0 ? 'overheat' : 'laser'); return false }
@@ -604,6 +622,8 @@ function updateDisc(f, s, W) {
 
 // ── GLIDE ──
 export function startGlide(f, s, type, dir, how = 'charge') {
+  if (!s.mode) { reject(f, 'mode'); return false }
+  type = s.mode
   const chk = check(f, type); if (!chk.ok) { reject(f, chk.why); return false }
   s.glide = { type, dir, k: 0, v: 0, turn: 0, how }; s.ramp = null
   f.dashTimer = 0; f.vx = 0; f.facing = dir; f.isBlocking = false
@@ -612,6 +632,7 @@ export function startGlide(f, s, type, dir, how = 'charge') {
 }
 export function switchGlide(f, s, type) {
   if (!s.glide || s.glide.type === type) return false
+  if (s.mode && type !== s.mode) { reject(f, 'locked'); return false }   // the glide is his MODE's element
   const chk = check(f, type); if (!chk.ok) { reject(f, chk.why); return false }
   s.glide.type = type; s.stats.switches++; cue(f, 'switch'); pushFx(s, 'switch', ctrX(f), feetY(f), s.glide.dir, { el: type }); return true
 }
@@ -639,7 +660,7 @@ function glideStep(f, s, r) {
 // still hurt him). Decided on Enoch's side only; no Frozone file changes. See docs/enoch/BALANCE_NOTES.md.
 export const ICE_WALKER = o => isEnoch(o) || o?.rosterKey === 'frozone'
 // physics.resolvePlayerCollision: an ICE glide skates PAST the opponent (the brief's "Ice Glide past"); a fire glide collides
-export const enochPhasing = (a, b) => [a, b].some(f => isEnoch(f) && f._enoch?.glide?.type === 'ice')
+export const enochPhasing = (a, b) => [a, b].some(f => isEnoch(f) && !!f._enoch && (!!f._enoch.glide || (!!f._enoch.mode && (f.dashTimer || 0) > 0)))   // the SLICE: through them
 export function startRamp(f, s) {
   const G = s.glide; if (!G) return false
   s.ramp = { type: G.type, air: 1 }; f.vy = GLIDE.rampVy; f.vx = G.dir * G.v * GLIDE.rampVx; f.onGround = false; f.grounded = false; f.jumpHeld = true
@@ -653,14 +674,15 @@ export function enochLocked(f, raw = null) {
   if (isEnochUltActive()) return true
   const s = enState(f), g = grounded(f), r = raw || {}
   const free = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isGrabbed && !f.knockdownState && f.health > 0
+  if (s.noJump > 0) { s.noJump--; if (g) f.jumpHeld = true }   // the Up of Up + Charge stays buffered ~10 f by the engine: it must not jump
   if (s.glide) { if (!free || !g) endGlide(f, s, false); else if (glideStep(f, s, r)) { f._dashTap = false; return true } }
-  if (g && free && r.charge && (r.down || r.up || r.jump)) { f.vx = 0; f._dashTap = false; return true }   // CHANNEL: rooted, Up + Charge never jumps
+  if (g && free && r.charge && (r.down || r.up || r.jump)) { f.vx = 0; f._dashTap = false; f.jumpHeld = true; if (r.up || r.jump) s.noJump = INPUT_BUFFER_FRAMES + 1; return true }   // Up + Charge picks FIRE MODE, never jumps   // CHANNEL: rooted, Up + Charge never jumps
   // double-tap forward on his own ICE / FIRE trail → glide of that type instead of the dash
   if (g && free && f._dashTap) {
     const here = patchesAt(s.field, ctrX(f), feetY(f)).filter(p => p.type === 'ice' || p.type === 'fire')
     if (here.length && startGlide(f, s, here[here.length - 1].type, f.facing || 1, 'tap')) { f._dashTap = false; glideStep(f, s, { ...r, [f.facing === -1 ? 'left' : 'right']: true }); return true }
     // anywhere else: the engine's own DASH happens (not consumed here); keep holding the direction and it becomes the SLIDE
-    if (s.stance !== 'ice') s.dashHold = { dir: r.right && !r.left ? 1 : r.left && !r.right ? -1 : (f.facing || 1), k: 0 }
+    if (s.stance !== 'ice' && s.mode) s.dashHold = { dir: r.right && !r.left ? 1 : r.left && !r.right ? -1 : (f.facing || 1), k: 0 }
   }
   // GROUND SLIDE: the dash with the direction still held → a slide that turns the floor to ICE (FIRE when hot);
   // an element that's locked (an overload) just leaves the dash as it is
@@ -687,7 +709,7 @@ export function enochLocked(f, raw = null) {
     f._dashTap = false; return true
   }
   if (s.aslide) { if (!free || g) endAirSlide(f, s); else { airSlideStep(f, s, r); f._dashTap = false; return true } }
-  if (!g && free && f._dashTap && s.stance !== 'ice') {
+  if (!g && free && f._dashTap && s.stance !== 'ice' && s.mode) {
     f._dashTap = false
     if (!s.air.armed || s.air.chain >= AIR_SLIDE.chainMax) { s.stats.airDenied++; cue(f, 'reject'); return false }   // hop / jump first; 6 at most
     const type = twinOf(f) === 'fire' ? 'fire' : 'ice', c = check(f, type)
@@ -730,6 +752,30 @@ function airSlideStep(f, s, r) {
     }
   }
   if (land || nx <= f.w / 2 || nx >= sw(W) - f.w / 2) { if (land) lay(f, s, W, { type: z.type, cx: nx }); endAirSlide(f, s) }
+}
+// THE SLICE: in a mode, his dash / glide goes THROUGH the opponent and cuts them once per pass (ice: chill + an ice burst;
+// fire: burn + a flame burst)
+function slice(f, s, W, opp) {
+  const moving = !!s.mode && grounded(f) && (!!s.glide || (f.dashTimer || 0) > 0)
+  if (moving && !s.moving) s.pass++
+  s.moving = moving; if (!moving) return
+  const el = s.glide?.type || s.mode
+  for (const o of foesOf(f, W, opp)) {
+    const sd = sideOf(o)
+    if (s.sliced[sd] === s.pass || (o.invulnTimer || 0) > 0 || !(o.health > 0)) continue
+    if (Math.abs(ctrX(o) - ctrX(f)) > SLICE.reach * 0.5 || Math.abs(feetY(o) - feetY(f)) > 70) continue
+    s.sliced[sd] = s.pass; s.stats.slices++
+    const raw = dmg(SLICE.raw), dir = f.facing || 1
+    if (o.isBlocking) { W?.damage?.(o, raw * 0.2, { attacker: f, source: 'slice', damageType: el === 'fire' ? 'energy' : 'blunt' }); o.blockstun = Math.max(o.blockstun || 0, 10) }
+    else {
+      W?.damage?.(o, raw, { attacker: f, source: 'slice', damageType: el === 'fire' ? 'energy' : 'blunt' })
+      o.hitstun = Math.max(o.hitstun || 0, SLICE.hitstun); o.vx = dir * SLICE.kbx; o.colorFlash = 6
+      f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90; meter(f, raw * METER.onHit)
+      afflict(f, o, el, el === 'fire' ? SLICE.burn : SLICE.chill, W)
+    }
+    cue(f, el === 'fire' ? 'fireCast' : 'shatter')
+    pushFx(s, el === 'fire' ? 'fireImpact' : 'frost', ctrX(o), feetY(o), dir); pushFx(s, el === 'fire' ? 'ember' : 'chip', ctrX(o), feetY(o) - 40, dir)
+  }
 }
 // HIS ICE FLOOR vs the opponent (ice-walkers — Frozone — keep their footing): health ticks away, a little chill, and they
 // slide toward the nearest edge of the sheet
@@ -798,7 +844,7 @@ export function tickEnoch(f, opp, raw, W) {
   const s = enState(f); s.tick++
   // presentation memo, read by sprite.js when he wins (never by the sim): a round in which he rode a disc ends ON the disc, in
   // the colour of his final thermal (hot = fire, balance = water, else ice); otherwise the plain win. Survives clearEnoch.
-  f._enochWinPose = s.stats.discs > 0 ? (s.th.v >= TP.hot ? 'winDisc_fire' : Math.abs(s.th.v) <= TP.balance ? 'winDisc_water' : 'winDisc') : 'win'
+  f._enochWinPose = s.stats.discs > 0 ? (s.mode === 'fire' ? 'winDisc_fire' : !s.mode ? 'winDisc_water' : 'winDisc') : 'win'   // the disc win by his final MODE
   const face = f.facing || 1, fw = !!(face === -1 ? raw.left : raw.right), bk = !!(face === -1 ? raw.right : raw.left)
   const dg = dirDigit(raw, face)
   if (!s.dirs.length || s.dirs[s.dirs.length - 1].d !== dg) { s.dirs.push({ d: dg, c: s.clock }); if (s.dirs.length > 16) s.dirs.shift() }
@@ -826,7 +872,7 @@ export function tickEnoch(f, opp, raw, W) {
   for (const k in s.cd) if (s.cd[k] > 0) s.cd[k]--
   // GUARD CANCEL: Charge pressed in blockstun → a glide out (25 thermal, 8 invulnerable frames, 10 s cooldown). It lives here,
   // not in the command layer, because game.js returns before the command layer while the fighter is in blockstun.
-  if (f.blockstun > 0 && g && s.edges.charge && s.used.charge !== s.edges.charge.tick && s.clock - s.edges.charge.clock <= 4 && s.cd.guard <= 0) {
+  if (f.blockstun > 0 && g && s.mode && s.edges.charge && s.used.charge !== s.edges.charge.tick && s.clock - s.edges.charge.clock <= 4 && s.cd.guard <= 0) {
     const e = s.edges.charge; s.used.charge = e.tick
     const type = (zoneOf(f) === 'hot' || !check(f, 'ice').ok) ? 'fire' : 'ice', dir = e.fwd ? (f.facing || 1) : -(f.facing || 1)
     if (check(f, type).ok) {
@@ -838,14 +884,11 @@ export function tickEnoch(f, opp, raw, W) {
   const fr = s.tick
   // CHANNEL: Down + Charge held = cool, Up + Charge held = heat (rooted; the meter moves toward ±CHANNEL.to, never past it)
   const chFree = g && !f.attacking && !s.glide && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.knockdownState && !f.isGrabbed && f.health > 0
-  const ch = chFree && raw.charge ? (raw.down ? -1 : (raw.up || raw.jump) ? 1 : 0) : 0
-  if (ch && !(s.th.over > 0)) {   // not during an overload
-    const room = ch * CHANNEL.to - s.th.v
-    if (room * ch > 0) push(f, s, ch * Math.min(CHANNEL.rate, Math.abs(room)))
-    if (!s.channel) { s.stats.channels++; cue(f, ch < 0 ? 'crackle' : 'fireCrackle') }
-    s.channel = ch; f.vx = 0
-  } else s.channel = 0
-  thermalTick(s.th, TP, !!(s.glide || s.beam || live(f) || s.channel))
+  // (the old CHANNEL is gone: Down / Up + Charge now picks his MODE with one press — enoch.js; holding Charge = energy)
+  // holding Down / Up + Charge after the mode press = powering up (the engine charges his ENERGY): rooted, the channel pose
+  s.channel = chFree && raw.charge ? (raw.down ? -1 : (raw.up || raw.jump) ? 1 : 0) : 0
+  thermalTick(s.th, TP, false); pinMode(s)
+  slice(f, s, W, opp)
   // field: expiry, effects, matchup rules
   for (const p of tickField(s.field, fr)) {
     if (p.disc) { if (s.disc?.pid) recedePlatform(s.disc.pid); s.disc = null }
@@ -862,8 +905,9 @@ export function tickEnoch(f, opp, raw, W) {
   else { if (s.air.win > 0 && !s.aslide) s.air.win--; if ((f.jumpCount || 0) > s.air.jc) { s.air.armed = true; s.air.jc = f.jumpCount } }
   for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) { dropSlab(q); s.rails.splice(i, 1); if (q.type === 'ice') pushFx(s, 'drip', (q.x0 + q.x1) / 2, Math.max(q.y0, q.y1), 1, { w: Math.abs(q.x1 - q.x0) }) } }
   // FIRE DASH / ICE DASH (and the slide): outside the balance band his dash leaves a trail of his element
-  const tw = twinOf(f) || (s.stance !== 'ice' ? 'ice' : null), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
-  if (dashing && !s.dashWas && tw) { s.stats[tw === 'fire' ? 'fireDash' : 'iceDash']++; cue(f, tw === 'fire' ? 'fireCast' : 'crackle') }
+  const tw = s.stance !== 'ice' ? s.mode : null, dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
+  if (dashing && !s.dashWas && tw) { if (tw === 'fire') f.dashTimer += 3   // the FIRE DASH carries as far as the ice dash does on its slick trail
+    s.stats[tw === 'fire' ? 'fireDash' : 'iceDash']++; cue(f, tw === 'fire' ? 'fireCast' : 'crackle') }
   s.dashWas = dashing
   if (tw && (dashing || sliding) && s.tick % TWIN.trailEvery === 0) lay(f, s, W, { type: tw, cx: ctrX(f) - face * 16, width: TWIN.trailW, extend: true })
   for (const o of foesOf(f, W, opp)) if (isSanjiLit(o) && grounded(o)) for (const p of patchesAt(s.field, ctrX(o), feetY(o))) if (p.type === 'ice' && !p.disc) {   // SANJI: a lit Diable Jambe melts his ice to water

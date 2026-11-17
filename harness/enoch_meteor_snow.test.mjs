@@ -75,7 +75,7 @@ const W = await page.evaluate(() => { const { H, step, hold, rel, setup, st } = 
   ;({ a, b } = setup(900, 1500)); H.setThermal(0); hold(a, { left: true, charge: true }, 1); rel(a); a.facing = 1; k = 0; while (!st().snow && k++ < 30) step(1)
   const z = st().snow; H.patch({ type: 'fire', cx: z.x }); const t0 = z.t; step(30); r.fireMelt = st().snow ? st().snow.t - t0 : 999
   // simple inputs
-  ;({ a, b } = setup(900, 1300)); H.setThermal(0); hold(a, { right: true, heavy: true }, 1); rel(a); k = 0; while (!st().wall && k++ < 30) step(1); r.fwdHeavy = st().wall?.type
+  ;({ a, b } = setup(900, 1300)); H.setMode('fire'); hold(a, { right: true, heavy: true }, 1); rel(a); k = 0; while (!st().wall && k++ < 30) step(1); r.fwdHeavy = st().wall?.type
   ;({ a, b } = setup(900, 1300)); H.setThermal(-30); hold(a, { left: true, heavy: true }, 1); rel(a); k = 0; while (!st().wall && k++ < 30) step(1); r.backHeavy = st().wall?.type
   ;({ a, b } = setup(900, 1300)); H.setThermal(-30); hold(a, { left: true, special: true }, 1); rel(a); step(3); r.backSpecial = a.currentAttack?.en?.key || a.currentMove
   return r })
@@ -83,7 +83,7 @@ ok('W1 Back + Charge = a SNOWMAN ahead', W.made, J(W))
 ok('W2 it is SOLID: the foe cannot walk through it', W.stop, J({ bx: W.bx, x: W.x }))
 ok('W4 it MELTS into a WATER puddle at the end of its life', W.melt.gone && W.melt.water && W.melt.melts === 1, J(W.melt))
 ok('W5 fire beside it melts it faster (life runs ×4)', W.fireMelt >= 90, String(W.fireMelt))
-ok('I1 Forward + Heavy = FIRE WALL · Back + Heavy = ICE WALL · Back + Special = Deep Freeze', W.fwdHeavy === 'fire' && W.backHeavy === 'ice' && W.backSpecial === 'deepFreeze', J({ f: W.fwdHeavy, b: W.backHeavy, s: W.backSpecial }))
+ok('I1 Forward + Heavy = FIRE WALL (fire mode) · Back + Heavy = ICE WALL (ice mode) · Back + Special = Deep Freeze', W.fwdHeavy === 'fire' && W.backHeavy === 'ice' && W.backSpecial === 'deepFreeze', J({ f: W.fwdHeavy, b: W.backHeavy, s: W.backSpecial }))
 
 // ═══ L. MELTING + longer effects ═══
 const L = await page.evaluate(() => { const { H, step, setup, st, ES } = __E; const r = {}

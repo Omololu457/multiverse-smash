@@ -43,7 +43,8 @@ try {
     for (let i = 0; i < 10; i++) { hold(a, { charge: true }); maxLift = Math.max(maxLift, floor - (a.y + a.h)); flight ||= !!(a._flightActive || a._flightCtl) }
     let s = H.state().s
     r.ice = { type: s.glide?.type, dx: a.x - x0, dth: Math.round((s.th.v - v0) * 1000) / 1000, patches: s.field.patches.map(p => p.type), action: H.state().action }
-    hold(a, { charge: true, heavy: true }); hold(a, { charge: true }, 1); const x1 = a.x; hold(a, { charge: true }, 10)
+    a.energy = 50; hold(a, { charge: true, heavy: true }); hold(a, { charge: true }, 1); const x1 = a.x;   // 2026-11-17: Heavy in a glide = FIRE MODE (15 energy)
+    hold(a, { charge: true }, 10)
     s = H.state().s; r.fire = { type: s.glide?.type, dx: a.x - x1, bursts: s.stats.bursts, switches: s.stats.switches, patches: s.field.patches.map(p => p.type), action: H.state().action }
     for (let i = 0; i < 10; i++) { hold(a, { charge: true }); maxLift = Math.max(maxLift, floor - (a.y + a.h)) }
     rel(a); step(2); r.release = { glide: H.state().s.glide, maxLift, flight }
@@ -81,8 +82,8 @@ try {
     rel(a); step(3)
     return r })
   out.glide = G
-  ok('ICE glide (carried by a held Charge) → 1.8× run (14.4 px/f ⇒ ~144 px in 10 f), lays ICE, 6 cold / s (−1.0 in 10 f), glide pose', G.ice.type === 'ice' && Math.abs(G.ice.dx - 144) <= 15 && Math.abs(G.ice.dth + 1) < 0.05 && G.ice.patches.includes('ice') && G.ice.action === 'glide', JSON.stringify(G.ice))
-  ok('switch mid-glide (Heavy → FIRE): 2.3× run (~184 px / 10 f), the trails REACT (ICE + FIRE burst)', G.fire.type === 'fire' && Math.abs(G.fire.dx - 184) <= 20 && G.fire.switches === 1 && G.fire.bursts >= 1 && G.fire.action === 'glide_fire', JSON.stringify(G.fire))
+  ok('ICE glide (carried by a held Charge) → 1.8× run (14.4 px/f ⇒ ~144 px in 10 f), lays ICE, glide pose (2026-11-17: no thermal cost — his mode is pinned)', G.ice.type === 'ice' && Math.abs(G.ice.dx - 144) <= 15 && G.ice.patches.includes('ice') && G.ice.action === 'glide', JSON.stringify(G.ice))
+  ok('switch mid-glide (Heavy = FIRE MODE, 15 energy): 2.3× run (~184 px / 10 f), the trails REACT (ICE + FIRE burst)', G.fire.type === 'fire' && Math.abs(G.fire.dx - 184) <= 20 && G.fire.switches === 1 && G.fire.bursts >= 1 && G.fire.action === 'glide_fire', JSON.stringify(G.fire))
   ok('releasing Charge ends the glide', G.release.glide === null, JSON.stringify(G.release))
   ok('NEVER flight: feet never leave the floor in a glide, no flight state', G.release.maxLift === 0 && !G.release.flight, JSON.stringify(G.release))
   ok('a wall ends the glide (ice turn → glides into the left wall)', G.wall.glide === null && G.wall.wallAt >= 0 && G.wall.wallAt < 115, JSON.stringify(G.wall))
@@ -90,7 +91,7 @@ try {
   ok('RAMP: Up in a glide → an arc (airborne, rising)', !!G.ramp.ramp && G.ramp.vy < 0, JSON.stringify(G.ramp))
   ok('ramp: ONE air attack, +10 % (64 → 70.4)', G.rampAtk.name === 'air' && Math.abs(G.rampAtk.dmg - 70.4) < 0.01, JSON.stringify({ a: G.rampAtk, b: G.rampAtk2 }))
   ok('ramp landing lays a patch of the glide element; bounded arc (no flight)', G.rampLand.land === 1 && G.rampLand.patches.includes('ice') && G.rampLand.peak < 260 && G.rampLand.grounded, JSON.stringify(G.rampLand))
-  ok('DISC (Down + Charge): a platform + an ICE disc patch, 80 HP, 18 colder', G.disc.stats === 1 && G.disc.hp === 80 && G.disc.th === -18 && G.disc.field.length === 1 && G.disc.plat.length === 1, JSON.stringify(G.disc))
+  ok('DISC (Forward + Charge): a platform + an ICE disc patch, 80 HP (2026-11-17: no thermal cost)', G.disc.stats === 1 && G.disc.hp === 80 && G.disc.field.length === 1 && G.disc.plat.length === 1, JSON.stringify(G.disc))
   ok('disc: he stands ON it (feet at its top, grounded, standDisc pose)', G.stand && G.stand.grounded && Math.abs(G.stand.feet - G.stand.topY) <= 1 && G.stand.pose === 'standDisc', JSON.stringify(G.stand))
   ok('disc: FIRE melts it to WATER (platform receding)', G.melt.disc === null && G.melt.discMelt === 1 && G.melt.water >= 1 && G.melt.plat !== 'hold', JSON.stringify(G.melt))
   ok('double-tap forward on his own trail → a glide instead of the dash', G.tap.glide === 'ice' && G.tap.how === 'tap', JSON.stringify(G.tap))
@@ -113,7 +114,7 @@ try {
     // 2026-11-16: hot, Ice Blast turns into its FIRE SHARD twin, so the lock is checked on Deep Freeze (an ice move with no twin)
     H.setThermal(60); r.hotIce = { ok: H.move('deepFreeze'), why: H.state().s.lastReject }; step(60)
     H.setThermal(60); r.hotShard = { ok: H.move('iceBlast'), el: H.raw().currentAttack?.en?.el || null }; step(60)
-    H.setThermal(-60); r.coldWater = { ok: H.move('tideBreak'), why: H.state().s.lastReject }; step(40)
+    H.setMode(null); r.coldWater = { ok: H.move('tideBreak'), why: H.state().s.lastReject }; step(40)
     H.setThermal(-50); H.move('iceBlast'); r.own = { dmg: a.currentAttack?.damage, th: H.state().s.th.v }; step(40)
     H.setThermal(-95); H.move('iceBlast'); step(2); const s1 = H.state().s; r.over = { v: s1.th.v, over: s1.th.over, side: s1.th.overSide, overloads: s1.stats.overloads }; step(38)
     r.overLocked = { ok: H.move('frostFloor'), why: H.state().s.lastReject }; step(60); r.overEnd = { v: H.state().s.th.v, over: H.state().s.th.over, ok: H.move('frostFloor') }; step(40)
@@ -126,7 +127,7 @@ try {
     // Frost Floor / Scorch patches; Deep Freeze = shared freeze + cooldown
     ;({ a, b } = setup(1300, 1700)); b.invulnTimer = 99999; H.setThermal(0); H.move('frostFloor'); step(30)
     r.floor = H.state().s.field.patches.map(p => ({ t: p.type, cx: Math.round(p.x + p.width / 2) })); r.front = a.x + a.w
-    ;({ a, b } = setup(1300, 1700)); b.invulnTimer = 99999; H.setThermal(0); H.move('scorch'); step(30)
+    ;({ a, b } = setup(1300, 1700)); b.invulnTimer = 99999; H.setMode('fire'); H.move('scorch'); step(30)
     r.scorch = H.state().s.field.patches.map(p => p.type)
     // Slide (Down + Heavy): travels, low, lays a short ICE patch
     ;({ a, b } = setup(1000, 1500)); b.invulnTimer = 99999; H.setThermal(0); const sx0 = a.x; H.move('slide'); for (let i = 0; i < 40; i++) step(1)
@@ -136,11 +137,11 @@ try {
     r.freeze = { frozen: fr, max: b._supFrozenMax, cd: H.state().s.cd.deepFreeze, stats: H.state().s.stats.freezes }
     step(40); r.freezeCd = { ok: H.move('deepFreeze'), why: H.state().s.lastReject }
     // Heat Lens: full-screen hitscan; +25 % on a wet target
-    const lens = (wet) => { let { a, b } = setup(200, 200 + 1100); H.setThermal(0); if (wet) H.lay({ type: 'water', cx: b.x + b.w / 2 }); step(1); const hp = b.health
+    const lens = (wet) => { let { a, b } = setup(200, 200 + 1100); H.setMode('fire'); if (wet) H.lay({ type: 'water', cx: b.x + b.w / 2 }); step(1); const hp = b.health
       H.move('heatLens'); let first = 0, prev = hp; for (let i = 0; i < 16; i++) { step(1); if (!first && b.health < prev) first = prev - b.health; prev = b.health } return { drop: Math.round(first * 100) / 100, total: Math.round((hp - b.health) * 100) / 100, hits: H.state().s.stats.beamHits, wet: H.state().s.stats.wetHits, dist: b.x - a.x } }
     r.lens = lens(false); r.lensWet = lens(true)
     // sustained beam: hold Special — ≤ 1.2 s, 7 per pulse, 10 hot / s, aim down → FIRE on the floor
-    ;({ a, b } = setup(400, 2800)); b.invulnTimer = 99999; H.setThermal(0); H.move('heatLens'); const th0 = H.state().s.th.v
+    ;({ a, b } = setup(400, 2800)); b.invulnTimer = 99999; H.setMode('fire'); H.move('heatLens'); const th0 = H.state().s.th.v
     let beamFrames = 0; for (let i = 0; i < 110; i++) { hold(a, { special: true, down: i > 12 }); if (H.state().s.beam) beamFrames++ }
     rel(a); step(20); const sb = H.state().s; r.beam = { frames: beamFrames, ticks: sb.stats.beamTicks, floorHits: sb.stats.beamFloor, fire: sb.field.patches.filter(p => p.type === 'fire').length, dth: Math.round((sb.th.v - th0) * 100) / 100 }
     // Tide Break: every patch → WATER with bursts under the foe
@@ -159,10 +160,10 @@ try {
   const bad = Object.keys(want).filter(k => JSON.stringify(M.data[k]) !== JSON.stringify(want[k]))
   ok('frame data = the brief (startup / raw damage) + a damageType tag on every move', !bad.length, bad.map(k => `${k}: ${JSON.stringify(M.data[k])} want ${JSON.stringify(want[k])}`).join(' | '))
   ok('block advantage LIVE: Jab +1 · Straight −3 · Heavy −5 · Wake-up −12; damageType reaches the live attack', M.adv.jab.adv === 1 && M.adv.straight.adv === -3 && M.adv.heavy.adv === -5 && M.adv.wake.adv === -12 && M.adv.jab.tag === 'blunt', JSON.stringify(M.adv))
-  ok('HOT zone locks ice; water outside the balance zone is locked', !M.hotIce.ok && M.hotIce.why === 'locked' && !M.coldWater.ok && M.coldWater.why === 'balance', JSON.stringify([M.hotIce, M.coldWater]))
+  ok('FIRE MODE locks the ice moves; NO MODE locks water (every special)', !M.hotIce.ok && M.hotIce.why === 'locked' && !M.coldWater.ok && M.coldWater.why === 'mode', JSON.stringify([M.hotIce, M.coldWater]))
   ok('HOT: Ice Blast becomes its FIRE SHARD twin (not refused)', M.hotShard.ok && M.hotShard.el === 'fire', JSON.stringify(M.hotShard))
-  ok('own zone: Ice Blast ×1.15 damage (63.25) at ×0.8 cost (−50 → −59.6)', Math.abs(M.own.dmg - 63.25) < 0.01 && Math.abs(M.own.th + 59.6) < 0.05, JSON.stringify(M.own))
-  ok('cap → OVERLOAD: ice locked 1.5 s, then the meter sits at −50', M.over.overloads === 1 && M.over.side === -1 && !M.overLocked.ok && M.overLocked.why === 'overload' && M.overEnd.over === 0 && Math.abs(M.overEnd.v + 50) < 2 && M.overEnd.ok, JSON.stringify([M.over, M.overLocked, M.overEnd]))
+  ok('in a mode: Ice Blast at its base 55, and his temperature never moves (pinned to the mode — no thermal bar)', Math.abs(M.own.dmg - 55) < 0.01 && M.own.th === -30, JSON.stringify(M.own))
+  ok('no OVERLOAD any more: a big push leaves him in ICE MODE, the ice moves still open', M.over.overloads === 0 && M.over.v === -30 && M.overLocked.ok !== false && M.overEnd.ok, JSON.stringify([M.over, M.overLocked, M.overEnd]))
   ok('Ice Blast pool: never more than 3 live; a 4th is refused while 3 fly', M.pool.maxLive <= 3 && M.pool.started >= 3 && (M.pool.maxLive < 3 || M.pool.poolRej > 0), JSON.stringify(M.pool))
   ok('Frost Floor lays ICE ahead (~110 px past his front)', M.floor.length === 1 && M.floor[0].t === 'ice' && Math.abs(M.floor[0].cx - (M.front + 110)) < 40, JSON.stringify([M.floor, M.front]))
   ok('Slide: travels forward and lays a short ICE patch', M.slide.dx > 40 && M.slide.ice >= 1, JSON.stringify(M.slide))
@@ -170,15 +171,15 @@ try {
   ok('Deep Freeze: the SHARED freeze status (_supFrozen 42 f = 0.7 s), 8 s cooldown', M.freeze.frozen === 42 && M.freeze.max === 42 && M.freeze.cd > 400 && !M.freezeCd.ok && M.freezeCd.why === 'cooldown', JSON.stringify([M.freeze, M.freezeCd]))
   ok('Heat Lens: hitscan 1100 px away, 58 raw → ~34.8 live', M.lens.hits === 1 && Math.abs(M.lens.drop - 34.8) < 1.5, JSON.stringify(M.lens))
   ok('Heat Lens on a WET target: ×1.25 (43.5 live) — plus the tap\'s FIRE on his WATER flashing to steam (25 raw → ~15) on the same frame', M.lensWet.wet === 1 && Math.abs(M.lensWet.drop - 58.5) < 1.5, JSON.stringify(M.lensWet))
-  ok('sustained beam: ≤ 72 f (1.2 s), ≤ 12 pulses, 10 hot / s (≈ +12 over 1.2 s), the floor catches FIRE when aimed down', M.beam.frames <= 73 && M.beam.frames >= 60 && M.beam.ticks <= 12 && M.beam.ticks >= 10 && M.beam.floorHits >= 1 && M.beam.fire >= 1 && M.beam.dth > 10.5 && M.beam.dth < 13, JSON.stringify(M.beam))
+  ok('sustained beam: ≤ 72 f (1.2 s), ≤ 12 pulses, the floor catches FIRE when aimed down', M.beam.frames <= 73 && M.beam.frames >= 60 && M.beam.ticks <= 12 && M.beam.ticks >= 10 && M.beam.floorHits >= 1 && M.beam.fire >= 1, JSON.stringify(M.beam))
   ok('Tide Break: every patch → WATER, a burst under the foe, 6 s cooldown', M.tide.types.every(t => t === 'water') && M.tide.types.length === 2 && M.tide.drop > 0 && M.tide.cd > 300 && !M.tideCd.ok, JSON.stringify([M.tide, M.tideCd]))
   ok('Condense over FIRE → steam explosion + STEAM patch', M.condFire.steam === 1 && M.condFire.steamPatch, JSON.stringify(M.condFire))
   ok('Condense over ICE → hail (60 raw, faster)', M.condIce.hail === 1 && M.condIce.proj.some(p => p.k === 'hail' && p.d === 60 && Math.abs(p.vx) === 9), JSON.stringify(M.condIce))
 
   // ═══ S. SUPERS ═══
   const S = await page.evaluate(() => { const { H, step, setup } = __E; const r = {}
-    for (const [th, name] of [[-60, 'absoluteZero'], [60, 'flashPoint'], [0, 'thermalShock']]) {
-      const { a, b } = setup(1300, 1500); H.setThermal(th); H.setEnergy(100); step(1); const hp = b.health
+    for (const [th, name] of [['ice', 'absoluteZero'], ['fire', 'flashPoint'], [null, 'thermalShock']]) {   // 2026-11-17: the super follows his MODE (no mode = Thermal Shock)
+      const { a, b } = setup(1300, 1500); H.setMode(th); H.setEnergy(100); step(1); const hp = b.health
       const variant = H.variant(); const started = H.move('super'); let active = 0, lock = 0
       for (let i = 0; i < 260; i++) { step(1); if (H.ult().active) active++; lock = Math.max(lock, H.state().s.th.lock) }
       const s = H.state().s
@@ -187,7 +188,7 @@ try {
     return r })
   out.supers = S
   for (const [k, raw] of [['absoluteZero', 330], ['flashPoint', 340], ['thermalShock', 390]]) {
-    const v = S[k]; ok(`${k}: chosen by thermal, full meter, the frozen cinematic, raw ${raw} (→ ~${raw * 0.6} live)`, v.variant === k && v.started && v.active > 100 && v.done === 1 && Math.abs(v.drop - raw * 0.6) < 3 && v.lock >= 170, JSON.stringify(v))
+    const v = S[k]; ok(`${k}: chosen by MODE, full meter, the frozen cinematic, raw ${raw} (→ ~${raw * 0.6} live)`, v.variant === k && v.started && v.active > 100 && v.done === 1 && Math.abs(v.drop - raw * 0.6) < 3, JSON.stringify(v))
   }
   ok('Absolute Zero ends in the shared freeze; Thermal Shock leaves WATER + STEAM', S.absoluteZero.frozen > 0 || S.absoluteZero.knock === false, JSON.stringify([S.absoluteZero.frozen, S.thermalShock.patches]))
   ok('Thermal Shock leaves water + steam', S.thermalShock.patches.includes('water') && S.thermalShock.patches.includes('steam'), JSON.stringify(S.thermalShock.patches))
@@ -209,7 +210,7 @@ try {
     const C = H.data(); r.stats = { hp: a.maxHealth, weight: null }
     return r })
   out.defence = Dd
-  ok('guard cancel: Charge in blockstun → glide out, 8 invulnerable frames, 25 thermal, 10 s cooldown', Dd.guard.blockstun === 0 && Dd.guard.invuln >= 7 && Dd.guard.cd > 590 && Dd.guard.glide === 'guard' && Math.abs(Math.abs(Dd.guard.th) - 25) < 1 && Dd.guard.n === 1, JSON.stringify(Dd.guard))
+  ok('guard cancel: Charge in blockstun → glide out, 8 invulnerable frames, 10 s cooldown', Dd.guard.blockstun === 0 && Dd.guard.invuln >= 7 && Dd.guard.cd > 590 && Dd.guard.glide === 'guard' && Dd.guard.n === 1, JSON.stringify(Dd.guard))
   ok('guard cancel on cooldown does nothing', Dd.guardCd.n === 1 && Dd.guardCd.blockstun > 0, JSON.stringify(Dd.guardCd))
   ok('wake-up reversal: an attack as he gets up → 6 invulnerable frames', Dd.wake.name === 'wake' && Dd.wake.invuln >= 4 && Dd.wake.wakes === 1, JSON.stringify(Dd.wake))
   ok('FROZONE keeps his footing on Enoch\'s ICE (ice-walker)…', Dd.frozoneIce.key === 'frozone' && !(Dd.frozoneIce.slick && Dd.frozoneIce.slick.p1), JSON.stringify(Dd.frozoneIce))
@@ -233,7 +234,7 @@ try {
     b._arlong.zones.push({ x: 1400, width: 300, bornFrame: b._arlong.clock || 0, owner: b.side })
     H.lay({ type: 'fire', cx: 1550 }); const s = H.state().s
     const r = { types: s.field.patches.map(p => p.type), douse: s.stats.arlongDouse }
-    b.x = 1500; b.y = a.y; const hp = b.health; H.setThermal(0); H.move('heatLens'); let first = 0, prev = hp; for (let i = 0; i < 16; i++) { step(1); if (!first && b.health < prev) first = prev - b.health; prev = b.health }
+    b.x = 1500; b.y = a.y; const hp = b.health; H.setMode('fire'); H.move('heatLens'); let first = 0, prev = hp; for (let i = 0; i < 16; i++) { step(1); if (!first && b.health < prev) first = prev - b.health; prev = b.health }
     r.drop = Math.round(first * 100) / 100; r.wet = H.state().s.stats.wetHits; b._arlong.zones.length = 0; return r })
   ok('ARLONG: his water douses Enoch\'s fire into STEAM', XA.types?.includes('steam') && !XA.types.includes('fire') && XA.douse === 1, JSON.stringify(XA))
   ok('ARLONG: standing in his own water he is WET for the laser (+25 %)', XA.wet === 1 && Math.abs(XA.drop - 43.5) < 2.5, JSON.stringify(XA))
@@ -249,6 +250,7 @@ try {
     else if(m===60||m===61){r.down=true;r.special=true}                      // pad Frost Floor
     else if(m===120||m===121){r[fw]=true;r.special=true}                     // pad Heat Lens
     else if(m>121&&m<190)r.special=m<170                                     // hold → sustained beam
+    else if(m===220){r.down=true;r.charge=true}                                // back to ICE MODE (Down + Charge)
     else if(m===230||m===231){r[fw]=true;r.charge=true}                       // disc (Forward + Charge)
     else if(m>=300&&m<303){r.down=true}else if(m>=303&&m<306){r.down=true;r[fw]=true}else if(m>=306&&m<309){r[fw]=true;r.special=true}   // ↓↘→ + S
     else if(m===400||m===410){r.light=true}else if(m===420){r.heavy=true}
@@ -261,7 +263,7 @@ try {
     const traces = [], seen = new Set(); let maxP = 0, sameFrame = false
     // 4 patches + a same-frame reaction at the start
     for (let i = 0; i < N; i++) { if (i === 1) { H.lay({ type: 'water', cx: 300 }); H.lay({ type: 'ice', cx: 2200 }); H.lay({ type: 'ice', cx: 2700 }); const ev = H.lay({ type: 'fire', cx: 2750 }); sameFrame = ev.some(e => e.kind === 'reaction') }   // 4 patches + a same-frame reaction (after frame 0: the replay resets the frame counter on its first step)
-      if (i % 450 === 0) a.energy = 100; if (i % 900 === 0) H.glide('ice'); writeRawControls(a, S(i, a, b)); __harness.luffyTest.step(1)
+      if (i % 450 === 0) a.energy = 100; if (i % 900 === 0) { H.setMode('ice'); H.glide('ice') } writeRawControls(a, S(i, a, b)); __harness.luffyTest.step(1)
       const s = a._enoch; if (s) { maxP = Math.max(maxP, s.field.patches.length); if (s.glide) seen.add('glide_' + s.glide.type); if (s.beam) seen.add('beam'); if (s.disc) seen.add('disc'); if (s.stats.bursts) seen.add('burst'); if (s.ult) seen.add('super') }
       if (a.currentAttack?.en) seen.add(a.currentAttack.en.key)
       traces.push(JSON.stringify(['p1', 'p2'].map(w => D(H.raw(w))))) }
@@ -272,7 +274,7 @@ try {
   await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { polling: 100, timeout: 60000 })
   const pb = await page.evaluate(([n, dig]) => { const D = eval(dig), H = __harness.enochTest, t = []
     for (let i = 0; i < n; i++) { if (i === 1) { H.lay({ type: 'water', cx: 300 }); H.lay({ type: 'ice', cx: 2200 }); H.lay({ type: 'ice', cx: 2700 }); H.lay({ type: 'fire', cx: 2750 }) }
-      if (i % 450 === 0) H.raw().energy = 100; if (i % 900 === 0) H.glide('ice'); __harness.luffyTest.step(1); t.push(JSON.stringify(['p1', 'p2'].map(w => D(H.raw(w))))) } return { t, st: __harness.replay.status?.() || {}, remote: !!H.raw()._enochRemoteInput } }, [N, DIG])
+      if (i % 450 === 0) H.raw().energy = 100; if (i % 900 === 0) { H.setMode('ice'); H.glide('ice') } __harness.luffyTest.step(1); t.push(JSON.stringify(['p1', 'p2'].map(w => D(H.raw(w))))) } return { t, st: __harness.replay.status?.() || {}, remote: !!H.raw()._enochRemoteInput } }, [N, DIG])
   const first = rec.traces.findIndex((s, i) => s !== pb.t[i])
   if (first !== -1) fs.writeFileSync('enoch_replay_diff.json', JSON.stringify({ first, rec: JSON.parse(rec.traces[first]), pb: JSON.parse(pb.t[first]) }, null, 1))
   ok(`replay matches every frame (${N}) with patches, reactions, glides, beam, disc and a super`, first === -1, first === -1 ? '' : `frame ${first}\n${rec.traces[first]}\n${pb.t[first]}`)

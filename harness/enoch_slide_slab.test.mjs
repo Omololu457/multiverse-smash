@@ -61,6 +61,37 @@ ok('FL1 a press made early is BUFFERED: Jab → Straight comes out even pressed 
 ok('FL2 JUMP CANCEL: a normal that hits → Jump goes straight into the air', FL.jump.jc === 1 && FL.jump.air, J(FL.jump))
 ok('FL3 air attack → Special = the METEOR', /eteor/.test(FL.airMeteor.name || ''), J(FL.airMeteor))
 ok('FL4 DASH CANCEL: a normal that hits → double-tap = the dash', FL.dash.dc === 1 && !FL.dash.attacking && FL.dash.dashTimer > 0, J(FL.dash))
+// ═══ MO. MODES: no mode at the start; Down / Up + Charge = one press, energy bar only ═══
+const MO = await page.evaluate(() => { const { H, step, hold, rel, setup, st } = __E; const r = {}
+  const tap = (f, k, n = 1) => { hold(f, k); rel(f); step(n) }
+  let { a, b } = setup(1000, 1400); H.setMode(null); a.energy = 0
+  tap(a, { down: true, charge: true }, 2); r.broke = { mode: st().mode, reject: st().lastReject }
+  tap(a, { special: true }, 20); r.noSpecial = { proj: H.projectiles().length, reject: st().lastReject, attack: H.state().attack?.name || null }
+  step(30); tap(a, { light: true }); r.jab = H.state().attack?.name; step(30)
+  // holding plain Charge = charging energy
+  const e0 = a.energy; hold(a, { charge: true }, 60); rel(a); step(20); r.charged = Math.round(a.energy - e0); r.chargeStance = st().stance
+  if (st().stance === 'ice') { tap(a, { charge: true }, 4) }   // (a tap of Charge is Ice Stance — undo it)
+  a.energy = 50; tap(a, { down: true, charge: true }, 2); r.ice = { mode: st().mode, energy: Math.round(a.energy) }
+  tap(a, { up: true, jump: true, charge: true }, 2); r.fire = { mode: st().mode, energy: Math.round(a.energy), grounded: !!(a.onGround || a.grounded) }
+  tap(a, { up: true, jump: true, charge: true }, 2); r.off = { mode: st().mode, energy: Math.round(a.energy) }
+  return r })
+ok('MO1 he starts in NO MODE: Down + Charge with no energy does nothing; specials are refused; plain attacks work', MO.broke.mode === null && MO.broke.reject === 'energy' && MO.noSpecial.proj === 0 && MO.noSpecial.reject === 'mode' && MO.jab === 'jab', J(MO))
+ok('MO2 holding Charge just charges ENERGY', MO.charged >= 3, J({ charged: MO.charged }))
+ok('MO3 ONE press: Down + Charge = ICE MODE, Up + Charge = FIRE MODE (15 energy each, no jump); the same press again = no mode (free)', MO.ice.mode === 'ice' && MO.ice.energy === 35 && MO.fire.mode === 'fire' && MO.fire.energy === 20 && MO.fire.grounded && MO.off.mode === null && MO.off.energy >= 20 && MO.off.energy <= 22, J({ ice: MO.ice, fire: MO.fire, off: MO.off }))
+// ═══ SL. THE SLICE: the ice dash / FIRE DASH goes through the opponent and cuts them ═══
+const SL = await page.evaluate(() => { const { H, step, hold, rel, setup, st } = __E; const r = {}
+  for (const m of ['ice', 'fire']) {
+    const { a, b } = setup(900, 1020); H.setMode(m); const hp0 = b.health
+    hold(a, { right: true, dash: true }); rel(a); for (let i = 0; i < 24; i++) step(1)
+    const A = st().aff?.[b === H.raw('p2') ? 'p2' : 'p2']
+    r[m] = { lost: Math.round(hp0 - b.health), slices: st().stats.slices, through: a.x > b.x, floor: [...new Set(st().field.patches.map(p => p.type))], burn: Math.round((A?.burn || 0) * 100) / 100, chill: Math.round((A?.chill || 0) * 100) / 100 }
+  }
+  const { a, b } = setup(900, 1020); H.setMode(null); const hp0 = b.health; hold(a, { right: true, dash: true }); rel(a); for (let i = 0; i < 24; i++) step(1)
+  r.none = { lost: Math.round(hp0 - b.health), through: a.x > b.x, floor: st().field.patches.length }
+  return r })
+ok('SL1 ICE MODE dash: through the opponent, cuts them once (chill), leaves ICE', SL.ice.slices === 1 && SL.ice.lost > 0 && SL.ice.through && SL.ice.chill > 0 && SL.ice.floor.includes('ice'), J(SL.ice))
+ok('SL2 FIRE MODE dash (the new FIRE DASH): through the opponent, cuts them once (BURN), leaves FIRE', SL.fire.slices === 1 && SL.fire.lost > 0 && SL.fire.through && SL.fire.burn > 0 && SL.fire.floor.includes('fire') && !SL.fire.floor.includes('ice'), J(SL.fire))
+ok('SL3 no mode: a plain dash (no cut, no trail)', SL.none.lost === 0 && SL.none.floor === 0, J(SL.none))
 // ═══ F. HIS ICE FLOOR vs the opponent ═══
 const F = await page.evaluate(() => { const { H, step, setup, st } = __E
   const { a, b } = setup(400, 1200); H.setThermal(0); H.patch({ type: 'ice', cx: b.x + b.w / 2 + 40, width: 240 }); b.invulnTimer = 0
@@ -105,6 +136,10 @@ await page.evaluate(() => { const { H, step, hold, rel, setup, st } = __E; const
   hold(a, { right: true, dash: true }); let k = 0; while (st().aslide && k++ < 40) hold(a, { right: true }); rel(a); step(40)
   const q = st().rails[st().rails.length - 1]; b.x = (q.x0 + q.x1) / 2 - b.w / 2; b.y = q.top - b.h - 60; b.vy = 0; b.onGround = false; step(8) })
 await page.screenshot({ path: 'docs/enoch/screenshots/air_slab_solid.png' })
+for (const [m, name] of [['fire', 'fire_dash_slice'], ['ice', 'ice_dash_slice'], [null, 'no_mode_hud']]) {
+  await page.evaluate(m => { const { H, step, hold, rel, setup } = __E; const { a } = setup(800, 1000); H.setMode(m); if (m) { hold(a, { right: true, dash: true }); rel(a); step(9) } else step(4) }, m)
+  await page.screenshot({ path: `docs/enoch/screenshots/${name}.png` })
+}
 ok('R no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))
 await browser.close(); server.close()
 console.log(`\n  ENOCH SLIDE + SLAB: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0)

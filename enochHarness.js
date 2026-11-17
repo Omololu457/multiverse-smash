@@ -9,10 +9,14 @@ export function enochHarnessApi(g) {
   const raw = (w = 'p1') => w === 'p2' ? g.p2() : g.p1()
   const clone = o => JSON.parse(JSON.stringify(o))
   return { raw,
-    reset: () => { clearEnochUlt(); g.reset(); for (const f of [g.p1(), g.p2()]) clearEnoch(f, g.world) },
+    // scenario default: ICE MODE (as if Down + Charge had been pressed) — the real game starts him in NO MODE; the mode
+    // tests set that explicitly with setMode(null)
+    reset: () => { clearEnochUlt(); g.reset(); for (const f of [g.p1(), g.p2()]) { clearEnoch(f, g.world); if (f?.rosterKey === 'enoch') { const s = enState(f); s.mode = 'ice'; s.th.v = -30 } } },
     move: (k, w = 'p1', o = {}) => startEnMove(raw(w), k, g.world, o),
     setEnergy: (e, w = 'p1') => { raw(w).energy = e },
-    setThermal: (v, w = 'p1') => { const s = enState(raw(w)); s.th.v = v; s.th.over = 0; s.th.overSide = 0; s.th.lock = 0 },
+    // his temperature is now PINNED to his MODE: a cold value (< −25) = ICE MODE, a hot one (> 25) = FIRE MODE; the old balance band keeps the mode
+    setThermal: (v, w = 'p1') => { const s = enState(raw(w)); s.mode = v < -25 ? 'ice' : v > 25 ? 'fire' : (s.mode || 'ice'); s.th.v = s.mode === 'ice' ? -30 : s.mode === 'fire' ? 30 : 0; s.th.over = 0; s.th.overSide = 0; s.th.lock = 0 },
+    setMode: (m, w = 'p1') => { const s = enState(raw(w)); s.mode = m || null; s.th.v = m === 'ice' ? -30 : m === 'fire' ? 30 : 0; s.th.over = 0; s.th.lock = 0 },
     patch: (o, w = 'p1') => { const f = raw(w), s = enState(f); const ev = addPatch(s.field, { owner: sideOf(f), frame: s.tick, floor: f.y + f.h, life: PATCH_LIFE[o.type], ...o }); s.field.events.length = 0; return ev },
     lay: (o, w = 'p1') => enochLay(raw(w), o, g.world).map(e => ({ ...e })),
     glide: (type, w = 'p1') => { const f = raw(w); return startGlide(f, enState(f), type, f.facing || 1, 'charge') },

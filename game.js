@@ -12214,6 +12214,12 @@ function handleOmnitrixSwitch(fighter, inputState) {
       inputState.light = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 4)
     }
   }
+  // A READY form may also own Block + Special (XLR8: FLASH TIME) via its optional blockSpecial hook; no-op otherwise.
+  { const _rdBS = benReadyForm(fighter)?.blockSpecial
+    if (_rdBS && !(fighter._benPowerCommit > 0) && !!inputState.block && special && !held.special && _rdBS(fighter, getAbilityContext())) {
+      fighter._omxConsume = { ...(fighter._omxConsume || {}), special: true }
+      inputState.special = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
+    } }
   // ENERGY GUARD (Block + Heavy): opens a 90f absorb window (negates one hit), costs 10 Power, 8s cd.
   // A READY form may own Block + Heavy instead (Heatblast: HEAT ABSORB) via its blockHeavy hook.
   const _rdBH = benReadyForm(fighter)?.blockHeavy

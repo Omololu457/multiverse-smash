@@ -3228,6 +3228,7 @@ function _setCrouchVariant(fighter, crouching, variant) {
 export function startMove(fighter, moveKey, moveData) {
   if (!fighter || !moveData) return false
   if (fighter.attacking || fighter.hitstun > 0 || fighter.attackCooldown > 0) return false
+  { const _rd = benReadyForm(fighter); if (_rd && _rd.moveFrames) moveData = _rd.moveFrames(fighter, moveKey, moveData) || moveData }   // READY Omnitrix form frame hook (XLR8 Flash Time ×0.7 startup/recovery); null for everyone else
 
   // LUFFY frame-exact moves opt out of the global duration scaling so their startup/active/recovery
   // are honoured to the frame (enables tight command chaining). Non-frameExact moves (every other
@@ -4484,8 +4485,11 @@ export function updateProjectiles(projectiles = [], stageWidth = 3200) {
       }
     }
 
-    p.x += p.vx || 0
-    p.y += p.vy || 0
+    // Optional per-projectile TIME SCALE lease (XLR8 Flash Time slows opponent projectiles ×0.5): only while
+    // timeScaleT > 0, refreshed every frame by the form that owns the effect, so it lapses by itself. Absent = unchanged.
+    const _pts = p.timeScaleT > 0 ? (p.timeScaleT--, p.timeScale ?? 1) : 1
+    p.x += (p.vx || 0) * _pts
+    p.y += (p.vy || 0) * _pts
     p.age = (p.age || 0) + 1   // frames alive — used by `hitDelay` (a projectile that must play a startup, e.g. a ground spike rising, before it can strike)
     // A returning boomerang despawns on pickup, not on a lifetime timeout, so it always makes it home.
     if (p.lifetime != null && !(p.boomerang && p.returning)) p.lifetime--

@@ -15,6 +15,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const jsErrors = [], my404 = []
 page.on("pageerror", e => jsErrors.push(String(e)))
 page.on("response", r => { if (r.status() === 404 && /ben10_xlr8|xlr8/.test(r.url())) my404.push(r.url().split("/").pop()) })
+const { BEN10_SLOT_COUNT: SLOTS, readySlots } = await import("../aliens.js")   // registry count + ready list (not literals)
 let passed = 0, failed = 0
 const ok = (c, m, d = "") => { if (c) { passed++; console.log("  ✅", m, d) } else { failed++; console.log("  ❌", m, d) } }
 const H = (fn, ...a) => page.evaluate(([f, args]) => window.__harness[f](...args), [fn, a])
@@ -49,7 +50,7 @@ async function transformSlot5() {
 try {
   // ── 1. plain match: Ben → XLR8 ──
   const d0 = await boot()
-  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout ends with XLR8 in slot 5", JSON.stringify(d0?.loadout))
+  ok(d0?.loadout?.length === SLOTS && JSON.stringify(d0.loadout.slice(0, 5)) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]) && JSON.stringify(d0.loadout) === JSON.stringify(readySlots()), "default loadout has XLR8 in slot 5; one ready form per registry slot", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot5()
   ok(d1?.form === "xlr8", "↓↓ + Charge (P) (slot 5) transforms into XLR8", `form=${d1?.form}`)
   ok(/ben10_xlr8_idle_uniform/.test(d1?.sheet || ""), "XLR8 frame set active", d1?.sheet)
@@ -92,7 +93,7 @@ try {
   // ── 3. Binding Vow ──
   await boot(true)
   const v1 = await transformSlot5()
-  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  ok(!!v1?.form && readySlots().includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "xlr8"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "xlr8" && /ben10_xlr8/.test(v2?.sheet || ""), "XLR8 under the Binding Vow renders his own art", v2?.sheet)

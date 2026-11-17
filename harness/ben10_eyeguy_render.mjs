@@ -15,6 +15,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const jsErrors = [], my404 = []
 page.on("pageerror", e => jsErrors.push(String(e)))
 page.on("response", r => { if (r.status() === 404 && /eyeguy/.test(r.url())) my404.push(r.url().split("/").pop()) })
+const { BEN10_SLOT_COUNT: SLOTS, readySlots } = await import("../aliens.js")   // registry count + ready list (not literals)
 let passed = 0, failed = 0
 const ok = (c, m, d = "") => { if (c) { passed++; console.log("  ✅", m, d) } else { failed++; console.log("  ❌", m, d) } }
 const H = (fn, ...a) => page.evaluate(([f, args]) => window.__harness[f](...args), [fn, a])
@@ -64,8 +65,8 @@ const egProbe = (force = null) => page.evaluate(async force => {
 try {
   // ── 1. production match: Ben → Eyeguy (slot 6: ↓↓ + Ultimate) ──
   const d0 = await boot()
-  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"]), "default loadout: Eyeguy in slot 6", JSON.stringify(d0?.loadout))
-  ok((await H("alienSelectState"))?.cap === 6, "alien select / HUD slot cap = 6 (registry count)", JSON.stringify(await H("alienSelectState")))
+  ok(d0?.loadout?.length === SLOTS && d0.loadout[5] === "eyeguy" && JSON.stringify(d0.loadout) === JSON.stringify(readySlots()), "default loadout: Eyeguy in slot 6; one ready form per registry slot", JSON.stringify(d0?.loadout))
+  ok((await H("alienSelectState"))?.cap === SLOTS, "alien select / HUD slot cap = registry count", JSON.stringify(await H("alienSelectState")))
   const d1 = await omx(["u"])
   ok(d1?.form === "eyeguy", "↓↓ + Ultimate (U, slot 6) transforms into Eyeguy", `form=${d1?.form}`)
   ok(d1?.ultimateCooldown === 0 && (await page.evaluate(() => window.__harness.p1().energy)) >= 50, "the U press did not also fire an ultimate", `ultCd=${d1?.ultimateCooldown}`)
@@ -111,7 +112,7 @@ try {
   // ── 5. Binding Vow ──
   await boot(true)
   const v1 = await omx(["u"])
-  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  ok(!!v1?.form && readySlots().includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "eyeguy"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "eyeguy" && /ben10_eyeguy_ready/.test(v2?.sheet || ""), "Eyeguy under the Binding Vow renders his own art", v2?.sheet)

@@ -15,6 +15,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const jsErrors = [], my404 = []
 page.on("pageerror", e => jsErrors.push(String(e)))
 page.on("response", r => { if (r.status() === 404 && /ben10_megawhatt|megawhatt/.test(r.url())) my404.push(r.url().split("/").pop()) })
+const { BEN10_SLOT_COUNT: SLOTS, readySlots } = await import("../aliens.js")   // registry count + ready list (not literals)
 let passed = 0, failed = 0
 const ok = (c, m, d = "") => { if (c) { passed++; console.log("  ✅", m, d) } else { failed++; console.log("  ❌", m, d) } }
 const H = (fn, ...a) => page.evaluate(([f, args]) => window.__harness[f](...args), [fn, a])
@@ -47,7 +48,7 @@ const flight = () => H("flightProbe", "p1")
 try {
   // ── 1. plain match: Ben → Megawhatt (CHARGED) ──
   const d0 = await boot()
-  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout is the five ready forms", JSON.stringify(d0?.loadout))
+  ok(d0?.loadout?.length === SLOTS && JSON.stringify(d0.loadout.slice(0, 5)) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]) && JSON.stringify(d0.loadout) === JSON.stringify(readySlots()), "default loadout = every ready form, one per registry slot (Megawhatt in slot 3)", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot3()
   ok(d1?.form === "megawhatt", "↓↓ + Special (slot 3) transforms into Megawhatt", `form=${d1?.form}`)
   ok(/ben10_megawhatt_idle_uniform/.test(d1?.sheet || ""), "CHARGED (yellow) frame set active", d1?.sheet)
@@ -78,7 +79,7 @@ try {
   // ── 4. Binding Vow ──
   await boot(true)
   const v1 = await transformSlot3()
-  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  ok(!!v1?.form && readySlots().includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "megawhatt"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "megawhatt" && /ben10_megawhatt/.test(v2?.sheet || ""), "Megawhatt under the Binding Vow renders his own art", v2?.sheet)

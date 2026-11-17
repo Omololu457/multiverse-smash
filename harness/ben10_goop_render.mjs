@@ -15,6 +15,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const jsErrors = [], my404 = []
 page.on("pageerror", e => jsErrors.push(String(e)))
 page.on("response", r => { if (r.status() === 404 && /goop/.test(r.url())) my404.push(r.url().split("/").pop()) })
+const { BEN10_SLOT_COUNT: SLOTS, readySlots } = await import("../aliens.js")   // registry count + ready list (not literals)
 let passed = 0, failed = 0
 const ok = (c, m, d = "") => { if (c) { passed++; console.log("  ✅", m, d) } else { failed++; console.log("  ❌", m, d) } }
 const H = (fn, ...a) => page.evaluate(([f, args]) => window.__harness[f](...args), [fn, a])
@@ -65,7 +66,7 @@ const goopProbe = (force = null) => page.evaluate(async force => {
 try {
   // ── 1. plain match: Ben → Goop (standing) ──
   const d0 = await boot()
-  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout includes Goop (slot 4)", JSON.stringify(d0?.loadout))
+  ok(d0?.loadout?.length === SLOTS && JSON.stringify(d0.loadout.slice(0, 5)) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]) && JSON.stringify(d0.loadout) === JSON.stringify(readySlots()), "default loadout includes Goop (slot 4); one ready form per registry slot", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot4()
   ok(d1?.form === "goop", "↓↓ + Grab (O) (slot 4) transforms into Goop", `form=${d1?.form}`)
   ok(/ben10_goop_idle_uniform/.test(d1?.sheet || ""), "Goop frame set active", d1?.sheet)
@@ -103,7 +104,7 @@ try {
   // ── 4. Binding Vow ──
   await boot(true)
   const v1 = await transformSlot4()
-  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  ok(!!v1?.form && readySlots().includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "goop"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "goop" && /ben10_goop/.test(v2?.sheet || ""), "Goop under the Binding Vow renders his own art", v2?.sheet)

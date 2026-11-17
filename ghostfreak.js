@@ -370,13 +370,14 @@ function castPossess(f, s, api, face) {
   api.scheduleBenSpawn(f, startup, () => tryPossess(f, api, cast, ambushFromPhase))
   return true
 }
-// the engine's grab rules (combat.resolveGrab): both grounded, the grabber not in a combo, target in range, target not
-// invulnerable; a target that is NOT in hit/blockstun and has a grab press buffered TECHS it (both pushed apart).
-export function grabCheck(f, opp, range) {
+// the engine's grab rules (combat.resolveGrab): both grounded, the grabber not in a combo (POSSESS is exempt: the brief
+// makes it a combo ender — route 3 Wail, Heavy, Possess), target in range, target not invulnerable; a target that is NOT in hit/blockstun and has a grab press buffered TECHS it (both pushed apart).
+export function grabCheck(f, opp, range, { comboEnder = false } = {}) {
   if (!opp || opp.eliminated || (opp.health || 0) <= 0) return "whiff"
   if ((opp.invulnTimer || 0) > 0 || opp.isGrabbed) return "whiff"
   if (!(f.onGround || f.grounded) || !(opp.onGround || opp.grounded)) return "whiff"
-  if ((f.comboCounter || 0) > 0 || (f.hitstun || 0) > 0) return "whiff"
+  if ((f.hitstun || 0) > 0) return "whiff"
+  if (!comboEnder && (f.comboCounter || 0) > 0) return "whiff"                    // the ult opener keeps the engine's no-throw-in-combo rule
   if (Math.abs((f.x + f.w / 2) - (opp.x + opp.w / 2)) > range) return "whiff"
   const canTech = !((opp.hitstun || 0) > 0 || (opp.blockstun || 0) > 0)
   if (canTech && (opp.grabInputBuffer || 0) > 0) return "tech"
@@ -390,7 +391,7 @@ function tryPossess(f, api, cast, ambush) {
   const s = gfState(f); if (!s || !s.grab || s.grab.cast !== cast) return
   s.grab = null
   const opp = api.getOpponent(f)
-  const r = grabCheck(f, opp, GF_POSSESS.RANGE)
+  const r = grabCheck(f, opp, GF_POSSESS.RANGE, { comboEnder: true })
   if (r === "tech") { techPush(f, opp); s.stats.techs++; return }
   if (r !== "hit") return                                                          // whiff: the 28f recovery plays out
   s.possess = { cast, t: 0, raw: 0, face: f.facing || 1, tx: opp.x, ty: opp.y, ambush: !!ambush || ambushLive(s) }

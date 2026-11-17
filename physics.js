@@ -53,6 +53,7 @@ export const physics = {
 
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return
+    if ((fighter._benPinT || 0) > 0) fighter._benPinT--   // READY-form PIN (Alien X Gravity): no jump + ×0.5 walk while > 0; field-gated, self-clearing
 
     // ── BEN 10 OMNITRIX (self-driving setup) ──────────
     // Auto-setup on first frame from the player's chosen 5-alien loadout, then
@@ -273,7 +274,7 @@ export const physics = {
         // AMBER identity: slightly higher ground movement speed (skin modifier; see GHOSTFACE_SKIN_MODS).
         // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
         // SOLDIER BOY — Armed Mode slows ground movement by 10% (loadout weight). No-op for everyone else.
-        const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * dashParrWalkMul(fighter) * (_benTerror ? 0.6 : 1)
+        const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * ((fighter._benPinT || 0) > 0 ? 0.5 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * dashParrWalkMul(fighter) * (_benTerror ? 0.6 : 1)
         const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul
         if (L && !R) {
           fighter.vx = flashTime ? -FT_ZIP : elWalkVx(fighter, -walkSpeed)
@@ -312,7 +313,7 @@ export const physics = {
       const launcherJC = !!(fighter.attacking && fighter.currentAttack &&
                             fighter.currentAttack.launcher && fighter.currentAttack.hasHit)
       const suppressJumpForUpAttack = fighter.onGround && attackHeld && !launcherJC
-      const canJump = fighter.canJump !== false && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror   // Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
+      const canJump = fighter.canJump !== false && !((fighter._benPinT || 0) > 0) && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror   // Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
 
       if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
         if (launcherJC) {

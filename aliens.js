@@ -5,6 +5,7 @@ import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
 import { EYEGUY } from "./eyeguy.js"
 import { GHOSTFREAK } from "./ghostfreak.js"
+import { ALIENX } from "./alienx.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -20,12 +21,14 @@ import { GHOSTFREAK } from "./ghostfreak.js"
 // Heatblast (heatblast.js) is the second READY form: it took the first placeholder dial slot (slot 2).
 // Megawhatt (megawhatt.js) is the third READY form: the next first-placeholder dial slot (slot 3).
 // Goop (goop.js) is the fourth READY form: the next first-placeholder dial slot (slot 4, ↓↓ + Grab).
-// XLR8 took slot 5 (↓↓ + Charge). Eyeguy (eyeguy.js) is a READY form registered for the NEW SLOT 6 (↓↓ + Ultimate):
-// the slot count was raised 5 → 6 here (BEN10_SLOT_COUNT; see docs/ben10/ADD_ALIEN.md).
-// Ghostfreak (ghostfreak.js) is a READY form registered for the NEW SLOT 7 (↓↓ + Up-Attack): the count was raised 6 → 7.
+// XLR8 took slot 5 (↓↓ + Charge). Eyeguy (eyeguy.js) and Ghostfreak (ghostfreak.js) are READY forms (they briefly had dial
+// slots 6 / 7, ↓↓ + Ultimate / ↓↓ + Up-Attack; the owner kept PICK FIVE).
 // SLOT COUNT (single source of truth): how many Omnitrix dial slots exist. fighters.js MAX_OMNITRIX_SLOTS reads it and
 // game.js BEN10_SLOT_COMBOS must hold exactly this many slot inputs (asserted at load).
-export const BEN10_SLOT_COUNT = 7
+// PICK FIVE (2026-11-17, owner decision): the Omnitrix holds FIVE aliens, chosen on the alien-select screen out of every
+// READY form (Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, …). More ready aliens never add dial slots;
+// the dial is ↓↓ then J / K / L / O / P for the 5 picks (↓↓ + ; reverts). See docs/ben10/ADD_ALIEN.md.
+export const BEN10_SLOT_COUNT = 5
 export const BEN10_ALIEN_REGISTRY = [
   SWAMPFIRE,
   HEATBLAST,   // READY (2026-11-17): Dragonrod sheet + ledger; replaces the old experimental Heatblast entry
@@ -33,7 +36,8 @@ export const BEN10_ALIEN_REGISTRY = [
   GOOP,        // READY (2026-11-17): DS cell-grid sheet + ledger; Polymorph goo (projector weak point / Puddle / Acid)
   XLR8,        // READY (2026-11-17): Dragonrod sheet + ledger; Kineceleran speedster (Flash Time / Blur Step / echoes); replaces the old experimental XLR8 entry
   EYEGUY,      // READY (2026-11-17): Dragonrod sheet + ledger; Opticoid zoner (360° Vision / Stare / Unblinking); replaces the experimental Eye Guy, NEW slot 6
-  GHOSTFREAK,  // READY (2026-11-17): subvercetti sheet + ledger; Ectonurite (Phase / Dread → Terror / Possess / flight), NEW slot 7
+  GHOSTFREAK,  // READY (2026-11-17): subvercetti sheet + ledger; Ectonurite (Phase / Dread → Terror / Possess / flight), a PICK-FIVE choice
+  ALIENX,      // READY (2026-11-17): regularDor8go sheet + ledger; Celestialsapien caster (Three Voices / Void → Unmade / Decrees); replaces the experimental Alien X, a PICK-FIVE choice
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",
@@ -93,7 +97,7 @@ export function buildLoadout(n = BEN10_SLOT_COUNT, options = {}) {
 }
 
 // Readiness is independent from having legacy mechanics. Never advertise a tinted human as alien art.
-const extraAliens = ["fourarms", "upgrade", "alienx", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
+const extraAliens = ["fourarms", "upgrade", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
 for (const key of extraAliens) BEN10_ALIEN_REGISTRY.push({ id: key, poolKey: key, displayName: key, status: "experimental", sheetPath: null, ledgerPath: null, mods: { speed: 1, damage: 1, defense: 1, weight: 1 } })
 export const getAlienDefinition = key => BEN10_ALIEN_REGISTRY.find(a => a.poolKey === key) || null
 export const isAlienAvailable = (key, experimental = false) => {

@@ -1,5 +1,5 @@
-// EYEGUY RENDER CHECK — boots the real game headless, picks Ben 10, starts a match, TRANSFORMS INTO EYEGUY with the
-// real SLOT 6 input ↓↓ + Ultimate (U; the press never also fires the ultimate), charges an EX Eye Orb by holding Special, shows UNBLINKING, and repeats under the BINDING VOW.
+// EYEGUY RENDER CHECK — boots the real game headless, picks Ben 10 with Eyeguy in his PICK-FIVE loadout (dial slot 5),
+// starts a match, TRANSFORMS INTO EYEGUY with the real slot input ↓↓ + P, charges an EX Eye Orb by holding Special, shows UNBLINKING, and repeats under the BINDING VOW.
 // Confirms both fighters + HUD render (sprites, not boxes), no page errors, no eyeguy asset 404s, no black screen.
 //   node harness/ben10_eyeguy_render.mjs   → shots in ben10_work/
 import { chromium } from "playwright"
@@ -15,7 +15,6 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const jsErrors = [], my404 = []
 page.on("pageerror", e => jsErrors.push(String(e)))
 page.on("response", r => { if (r.status() === 404 && /eyeguy/.test(r.url())) my404.push(r.url().split("/").pop()) })
-const { BEN10_SLOT_COUNT: SLOTS, readySlots } = await import("../aliens.js")   // registry count + ready list (not literals)
 let passed = 0, failed = 0
 const ok = (c, m, d = "") => { if (c) { passed++; console.log("  ✅", m, d) } else { failed++; console.log("  ❌", m, d) } }
 const H = (fn, ...a) => page.evaluate(([f, args]) => window.__harness[f](...args), [fn, a])
@@ -63,13 +62,15 @@ const egProbe = (force = null) => page.evaluate(async force => {
   return s ? { pips: s.stare.pips, unblink: s.stare.unblinkT, exOrbs: s.stats.exOrbs, orbs: s.stats.orbs, hold: !!s.orbHold, cast: f._spriteCastMove || null, drained: s.stats.drained } : null
 }, force)
 try {
-  // ── 1. production match: Ben → Eyeguy (slot 6: ↓↓ + Ultimate) ──
-  const d0 = await boot()
-  ok(d0?.loadout?.length === SLOTS && d0.loadout[5] === "eyeguy" && JSON.stringify(d0.loadout) === JSON.stringify(readySlots()), "default loadout: Eyeguy in slot 6; one ready form per registry slot", JSON.stringify(d0?.loadout))
-  ok((await H("alienSelectState"))?.cap === SLOTS, "alien select / HUD slot cap = registry count", JSON.stringify(await H("alienSelectState")))
-  const d1 = await omx(["u"])
-  ok(d1?.form === "eyeguy", "↓↓ + Ultimate (U, slot 6) transforms into Eyeguy", `form=${d1?.form}`)
-  ok(d1?.ultimateCooldown === 0 && (await page.evaluate(() => window.__harness.p1().energy)) >= 50, "the U press did not also fire an ultimate", `ultCd=${d1?.ultimateCooldown}`)
+  // ── 1. production match: Ben with Eyeguy picked into slot 5 (PICK FIVE; slot count read from the registry) ──
+  const PICK = ["swampfire", "heatblast", "megawhatt", "goop", "eyeguy"]
+  const d0 = await boot(false, { experimental: false, p1Aliens: PICK })
+  const SLOTS = await page.evaluate(async () => (await import("./aliens.js")).BEN10_SLOT_COUNT)
+  ok(JSON.stringify(d0?.loadout) === JSON.stringify(PICK), "picked loadout: Eyeguy in slot 5", JSON.stringify(d0?.loadout))
+  ok((await H("alienSelectState"))?.cap === SLOTS, `alien select / HUD slot cap = registry count (${SLOTS})`, JSON.stringify(await H("alienSelectState")))
+  const d1 = await omx(["p"])
+  ok(d1?.form === "eyeguy", "↓↓ + Charge (P, slot 5) transforms into Eyeguy", `form=${d1?.form}`)
+  ok(d1?.ultimateCooldown === 0 && (await page.evaluate(() => window.__harness.p1().energy)) >= 50, "the slot press did not also fire an ultimate", `ultCd=${d1?.ultimateCooldown}`)
   ok(/ben10_eyeguy_ready_idle_uniform/.test(d1?.sheet || ""), "Eyeguy frame set active", d1?.sheet)
   const p1 = await H("p1"), p2 = await H("p2")
   ok(p1?.spriteReady !== false && p1?.hasSpriteHandler, "Eyeguy renders as sprites (no fallback box)", `action=${p1?.spriteAction || p1?.action}`)
@@ -93,26 +94,22 @@ try {
   const u = await egProbe("unblink"); await frames(6)
   ok(u && (await egProbe())?.unblink > 0, "Unblinking active (eye glyph over the opponent, HUD)")
   ok(await notBlack("_eyeguy_unblinking.png"), "no black screen (Unblinking)")
-  // ── 4. SLOT 6 swap: slot 1 → slot 5 XLR8 (P) → slot 6 Eyeguy (U, held 20 frames: still no ultimate) ──
-  await boot(false, { experimental: true, p1Aliens: ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"] })
+  // ── 4. PICK FIVE swap: slot 1 → slot 5 Eyeguy (P); ↓↓ + U is no slot (it stays the ultimate) ──
+  await boot(false, { experimental: false, p1Aliens: PICK })
   const s0 = await H("ben10Details", "p1")
-  ok(s0?.loadout?.length === 6 && s0.loadout[5] === "eyeguy", "6-slot loadout, Eyeguy in slot 6", JSON.stringify(s0?.loadout))
+  ok(s0?.loadout?.length === SLOTS && s0.loadout[SLOTS - 1] === "eyeguy", "5-slot picked loadout, Eyeguy in the last slot", JSON.stringify(s0?.loadout))
   const s1 = await omx(["j"]); ok(s1?.form === "swampfire", "↓↓ + Light → slot 1", `form=${s1?.form}`)
   await H("ben10SetPower", "p1", 100); await frames(120)
-  const s5 = await omx(["p"]); ok(s5?.form === "xlr8", "↓↓ + Charge (P) → slot 5 XLR8 (unchanged)", `form=${s5?.form}`)
-  await H("ben10SetPower", "p1", 100); await frames(120)
-  await key("s", 2); await key("s", 2); await chord("keydown", ["u"]); await frames(20); await chord("keyup", ["u"]); await frames(60)
-  const s2 = await H("ben10Details", "p1")
-  ok(s2?.form === "eyeguy", "↓↓ + Ultimate → SLOT 6 Eyeguy (swap from XLR8)", `form=${s2?.form}`)
-  ok(s2?.ultimateCooldown === 0 && (await page.evaluate(() => window.__harness.p1().energy)) >= 50, "holding U through the swap fires no ultimate", `ultCd=${s2?.ultimateCooldown}`)
+  const s2 = await omx(["p"])
+  ok(s2?.form === "eyeguy", "↓↓ + Charge → slot 5 Eyeguy (swap from Swampfire)", `form=${s2?.form}`)
   await H("ben10SetPower", "p1", 100); await frames(30); await key("u", 3); await frames(10)
   const s3 = await H("ben10Details", "p1")
-  ok(s3?.ultimateCooldown > 0, "after release, a fresh U is the ultimate again (All-Seeing Eye)", `ultCd=${s3?.ultimateCooldown}`)
-  ok(await notBlack("_eyeguy_slot6.png"), "no black screen (slot 6)")
+  ok(s3?.ultimateCooldown > 0, "U is the ultimate (All-Seeing Eye)", `ultCd=${s3?.ultimateCooldown}`)
+  ok(await notBlack("_eyeguy_slot5.png"), "no black screen (slot 5)")
   // ── 5. Binding Vow ──
-  await boot(true)
-  const v1 = await omx(["u"])
-  ok(!!v1?.form && readySlots().includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  await boot(true, { experimental: false, p1Aliens: PICK })
+  const v1 = await omx(["j"])
+  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "eyeguy"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "eyeguy" && /ben10_eyeguy_ready/.test(v2?.sheet || ""), "Eyeguy under the Binding Vow renders his own art", v2?.sheet)

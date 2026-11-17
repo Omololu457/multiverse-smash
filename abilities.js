@@ -10,7 +10,7 @@ import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive 
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
 import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)
 import { SWAMPFIRE_FX } from "./swampfire.js"
-import { benReadyForm } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
+import { benReadyForm, benAlienNegatesSpecial } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -35019,6 +35019,10 @@ export function triggerSpecial(fighter, context = {}) {
 
   const key = (fighter.rosterKey || fighter.id || "").toLowerCase()
 
+  // READY Omnitrix form NEGATE (Alien X UNMADE): the opponent's next special plays its startup, spends its Power and makes
+  // no hitbox / projectile. Asks the OPPONENT's ready form only — false for every match without one (unchanged path).
+  { const _ngOwner = getTargetResolver(context)(fighter); if (_ngOwner && benAlienNegatesSpecial(_ngOwner, fighter) && negatedSpecialStartup(fighter, _ngOwner)) return true }
+
   // ADDITIVE: Naruto-universe clone-choreography summon/select, intercepted before the signature-kit switch.
   if (cloneChoreoInterceptSpecial(fighter)) return true
 
@@ -35699,6 +35703,33 @@ function executeRickUltimate(fighter, context) {
       try { sound.playSfxFile?.(pickRickVoice("ultPayoff"), null) } catch (_) {}
     }
   }
+  return true
+}
+
+// UNMADE negate (generic, asked only when the opponent's ready form says so): pick the special the press would choose
+// (same direction rule as the fallback special), spend its declared Power cost (refuse → the press stays an ordinary
+// special attempt), then play an attack state with its startup + recovery and NO active frame (no hitbox, no projectile).
+// The pose is the special's own strip when the fighter ships one, else its heavy windup (never a missing-action box).
+function negatedSpecialStartup(fighter, owner) {
+  const specials = Object.entries(fighter?.specials || {})
+  const dirs = getRelativeDirections(fighter)
+  let index = 0
+  if      (endsWithPattern(dirs, ["B"]) && specials[3]) index = 3
+  else if (endsWithPattern(dirs, ["F"]) && specials[2]) index = 2
+  else if (endsWithPattern(dirs, ["D"]) && specials[1]) index = 1
+  const [moveName, moveData] = specials[index] || ["special", {}]
+  const md = (moveData && typeof moveData === "object") ? moveData : {}
+  const cost = md.cost || 0
+  if (!canSpendEnergy(fighter, cost)) return false
+  benAlienNegatesSpecial(owner, fighter, true)                 // consume UNMADE on the owner
+  spendEnergy(fighter, cost)
+  const anim = fighter._skinAnim || fighter.animationData || {}
+  const pose = anim[moveName] ? moveName : (anim.special ? "special" : "heavy")
+  const startup = md.startup ?? 10, active = md.active ?? 5, recovery = md.recovery ?? 18
+  const attack = createAttackFromMove(fighter, pose, { startup, active, recovery, damage: 0 })
+  attack.damage = 0; attack.activeStart = attack.activeEnd = attack.total + 1   // never active
+  attack._benNegated = true
+  setAttackState(fighter, attack, startup + active + recovery)
   return true
 }
 

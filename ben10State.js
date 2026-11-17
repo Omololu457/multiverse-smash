@@ -42,6 +42,12 @@ export function benAlienGuardBreak(owner, target, info) {
   if (info && info.proj) info.proj._benGuardBreak = true
   return true
 }
+// Optional NEGATE-NEXT-SPECIAL (Alien X Unmade): `negateSpecial(owner, target, commit)` on the OWNER's ready form. Asked by
+// abilities.triggerSpecial for the opponent of the fighter pressing Special: true = that special is negated (commit=false
+// only asks; commit=true consumes the owner's state). false for everyone else (no ready form / no hook).
+export function benAlienNegatesSpecial(owner, target, commit = false) {
+  const d = benReadyForm(owner); return !!(d && d.negateSpecial && d.negateSpecial(owner, target, !!commit))
+}
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

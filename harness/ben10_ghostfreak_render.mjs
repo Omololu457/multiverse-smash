@@ -63,15 +63,15 @@ const gfProbe = (force = null) => page.evaluate(async force => {
   return s ? { ph: s.ph, phT: s.phT, possess: !!s.possess, terror: s.dread.terrorT, pips: s.dread.pips, alpha: G.GHOSTFREAK.bodyAlpha(f),
     blocking: !!f.isBlocking, attack: f.currentAttack?.name || null, lease: f && window.__harness ? null : null } : null
 }, force)
-const SLOTS = 7
+const PICK = ["swampfire", "heatblast", "megawhatt", "goop", "ghostfreak"]   // PICK FIVE (owner, 2026-11-17): Ghostfreak is a pick in dial slot 5, not a 7th slot
 try {
-  // ── 1. production match: Ben → Ghostfreak (slot 7: ↓↓ + Up-Attack I) ──
-  const d0 = await boot()
-  ok(d0?.loadout?.length === SLOTS && d0.loadout[6] === "ghostfreak", "default loadout: Ghostfreak in slot 7", JSON.stringify(d0?.loadout))
-  ok((await H("alienSelectState"))?.cap === SLOTS, "alien select / HUD slot cap = 7 (registry count)", JSON.stringify(await H("alienSelectState")))
-  const d1 = await omx(["i"])
-  ok(d1?.form === "ghostfreak", "↓↓ + Up-Attack (I, slot 7) transforms into Ghostfreak", `form=${d1?.form}`)
-  ok(!/^up$/.test((await H("p1"))?.action || ""), "the I press did not also launch", `action=${(await H("p1"))?.action}`)
+  // ── 1. production match: Ben with Ghostfreak picked into slot 5 (PICK FIVE; slot count read from the registry) ──
+  const d0 = await boot(false, { experimental: false, p1Aliens: PICK })
+  const SLOTS = await page.evaluate(async () => (await import("./aliens.js")).BEN10_SLOT_COUNT)
+  ok(JSON.stringify(d0?.loadout) === JSON.stringify(PICK), "picked loadout: Ghostfreak in slot 5", JSON.stringify(d0?.loadout))
+  ok((await H("alienSelectState"))?.cap === SLOTS, `alien select / HUD slot cap = registry count (${SLOTS})`, JSON.stringify(await H("alienSelectState")))
+  const d1 = await omx(["p"])
+  ok(d1?.form === "ghostfreak", "↓↓ + Charge (P, slot 5) transforms into Ghostfreak", `form=${d1?.form}`)
   ok(/ben10_ghostfreak_idle_uniform/.test(d1?.sheet || ""), "Ghostfreak frame set active", d1?.sheet)
   const p1 = await H("p1"), p2 = await H("p2")
   ok(p1?.spriteReady !== false && p1?.hasSpriteHandler, "Ghostfreak renders as sprites (no fallback box)", `action=${p1?.spriteAction || p1?.action}`)
@@ -112,8 +112,8 @@ try {
   ok(await notBlack("_ghostfreak_terror.png"), "no black screen (Terror)")
   await frames(130)
   // ── 5. Binding Vow ──
-  await boot(true)
-  const v1 = await omx(["i"])
+  await boot(true, { experimental: false, p1Aliens: PICK })
+  const v1 = await omx(["j"])
   ok(!!v1?.form && d0.loadout.includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "ghostfreak"); await frames(20)
   const v2 = await H("ben10Details", "p1")

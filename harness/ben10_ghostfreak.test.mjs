@@ -87,22 +87,27 @@ test('route 3 live: Wail from Intangible (Ambush), Heavy, Possess (combo ender)'
   console.log('   HP', w.dealt, '+', h, '+', p, '=', w.dealt + h + p)
 })
 
-// ── slot 7 ──────────────────────────────────────────────────────────────────────────────────────────────
-test('20. slot 7: Ghostfreak READY, slot count 7 read from the registry; no ready alien overwritten', () => {
-  const d = getAlienDefinition('ghostfreak'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 7); assert.equal(BEN10_SLOT_COUNT, 7)
+// ── PICK FIVE (was slot 7) ─────────────────────────────────────────────────────────────────────────────────
+// The owner kept 5 dial slots (PICK FIVE, 2026-11-17): Ghostfreak is a pick, not a 7th slot. Slot count is read from the
+// registry (BEN10_SLOT_COUNT) — these two tests used a literal 7 / slot index 6.
+test('20. pick five: Ghostfreak READY and pickable, slot count read from the registry; no ready alien overwritten', () => {
+  const d = getAlienDefinition('ghostfreak'); assert.equal(d.status, 'ready')
   for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy']) assert.equal(getAlienDefinition(k).status, 'ready', k)
-  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
-  assert.equal(F.DEFAULT_OMNITRIX[6], 'ghostfreak', 'default slot 7 = Ghostfreak'); assert.equal(F.DEFAULT_OMNITRIX[5], 'eyeguy', 'slot 6 untouched')
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(getAvailableAlienKeys(false).includes('ghostfreak'))
 })
-test('20. slot 7: the transform reaches slot index 6; the Vow pick (hash mod 7) reaches Ghostfreak and is deterministic', () => {
-  const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, [])
-  assert.equal(f.omnitrix.aliens.length, 7); assert.equal(f.omnitrix.aliens[6], 'ghostfreak')
-  f.energy = 100; assert(F.ben10TransformOrSwap(f, 6, { seed: 1, frame: 0, playerIndex: 0 }), 'slot index 6 accepted')
-  const a = ben(null), b = ben(null), picks = new Set()
-  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); picks.add(a.omnitrix.aliens[x]) }
-  assert(picks.has('ghostfreak'), 'Vow reaches slot 7'); assert.equal(picks.size, 7, 'every slot reachable')
+test('20. pick five: Ghostfreak picked into the last dial slot is reached by the transform; the Vow pick reaches it and is deterministic', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'ghostfreak'].slice(-BEN10_SLOT_COUNT), last = pick.length - 1
+  const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick)
+  assert.deepEqual(f.omnitrix.aliens, pick)
+  f.energy = 100; assert(F.ben10TransformOrSwap(f, last, { seed: 1, frame: 0, playerIndex: 0 }), 'last slot accepted')
+  for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60)
+  assert.equal(f.activeAlien, 'ghostfreak')
+  const mk = () => { const g = ben(null); g.omnitrix.aliens = pick.slice(); return g }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); picks.add(pick[x]) }
+  assert(picks.has('ghostfreak'), 'Vow reaches Ghostfreak'); assert.equal(picks.size, pick.length, 'every slot reachable')
 })
 test('21. GAME_STATE stays plain data mid-Possess / mid-Phase / Terror (serializable, no functions)', () => {
   const f = ben(), t = fresh('goku', 0); t.x = f.x + 100; f._specialHeldDir = 'F'; A.clearAbilityState(); assert(A.triggerSpecial(f, ctxOf(f, t)))

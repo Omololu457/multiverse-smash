@@ -104,6 +104,17 @@ FLIGHT_PROFILES.ghostfreak = {
   landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
 }
 
+// ALIEN X (Ben 10 ready alien, set via fighter._alienFlightProfile while transformed): hold Jump in the air to hover-fly.
+// Small, slow, heavily damped: cruise 4.0, drag ×0.5, 120 frames per airtime (refills on landing), no air dash, grounded
+// 40f after a hard hit. The apex+140 cap / jump bookkeeping live in alienx.js (flight logic unchanged for every flyer).
+FLIGHT_PROFILES.alienx = {
+  accel: 0.8, maxH: 4.0, maxV: 3.5, drag: 0.50, reverseBrake: 0.5,
+  overspeedDrag: 0.85, ceilEaseZone: 40, dashSpeed: 0, dashFrames: 0, maxAirDash: 0,
+  dashCost: 9999, energyMax: 120, drainPerFrame: 1, groundRefillPerFrame: 120, liftoff: -2,
+  takeoffFrames: 4, landRecovery: 4, landRecoveryAfterAir: 6, groundedLock: 40,
+  landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
+}
+
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",
 })

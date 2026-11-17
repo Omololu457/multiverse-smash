@@ -223,24 +223,24 @@ test('10. swap / revert / KO / rematch clear all Eyeguy state', () => {
   const g = ben(); assert.equal(S(g).stare.pips, 0, 'rematch: fresh state')
 })
 
-// ── 11 slot 6 + Vow + determinism ──────────────────────────────────────────────────────────────────────────
-test('11. registry: Eyeguy READY, slot count 6 from the registry; ready aliens untouched', () => {
-  const d = getAlienDefinition('eyeguy'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 6); assert(BEN10_SLOT_COUNT >= 6, 'slot count (read from the registry) reaches slot 6')
+// ── 11 pick-five slot + Vow + determinism ──────────────────────────────────────────────────────────────────
+// Slot count is read from the registry (BEN10_SLOT_COUNT; PICK FIVE = 5 since 2026-11-17 — it was a literal 6 here).
+test('11. registry: Eyeguy READY and pickable; slot count from the registry; ready aliens untouched', () => {
+  const d = getAlienDefinition('eyeguy'); assert.equal(d.status, 'ready'); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT)
   for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) assert.equal(getAlienDefinition(k).status, 'ready', k)
-  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT, 'buildLoadout fills every registry slot'); assert.equal(F.DEFAULT_OMNITRIX[5], 'eyeguy', 'default loadout slot 6 = Eyeguy'); assert.equal(F.DEFAULT_OMNITRIX[4], 'xlr8', 'slot 5 = XLR8 untouched')
+  assert.equal(buildLoadout().length, BEN10_SLOT_COUNT, 'buildLoadout fills every slot'); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT, 'default loadout = slot count')
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(getAvailableAlienKeys(false).includes('eyeguy'))
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 950, 'shared health')
   assert(Math.abs(f.damageMultiplier - 1.15) < 1e-9 && Math.abs(f.defenseMultiplier - 1.05) < 1e-9)
 })
-test('11. 6-slot loadout: slot 6 holds Eyeguy and the transform reaches it', () => {
-  const f = fresh(); F.applyBen10VariantStats(f, 'default'); f.benExperimental = true
-  F.setupBen10(f, ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy'], { experimental: true })
-  if (f.omnitrix.aliens.length < 6) f.omnitrix.aliens = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy']
-  assert.equal(f.omnitrix.aliens.length, 6); assert.equal(f.omnitrix.aliens[5], 'eyeguy')
-  f.energy = 100; const act = F.ben10TransformOrSwap(f, 5, { seed: 1, frame: 0, playerIndex: 0 }); assert(act, 'slot index 5 accepted')
+test('11. picked loadout: Eyeguy in the last dial slot and the transform reaches it', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy'].slice(-BEN10_SLOT_COUNT)
+  const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick)
+  assert.equal(f.omnitrix.aliens.length, BEN10_SLOT_COUNT); const last = BEN10_SLOT_COUNT - 1; assert.equal(f.omnitrix.aliens[last], 'eyeguy')
+  f.energy = 100; const act = F.ben10TransformOrSwap(f, last, { seed: 1, frame: 0, playerIndex: 0 }); assert(act, 'last slot accepted')
   for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60)
-  assert.equal(f.omnitrix.pendingSlot ?? 5, 5)
+  assert.equal(f.activeAlien, 'eyeguy')
 })
 test('11. Vow pick includes Eyeguy (mod loadout length, 6 slots too); same seed → same pick', () => {
   const mk = aliens => { const f = ben(null); f.omnitrix.aliens = aliens.slice(); return f }

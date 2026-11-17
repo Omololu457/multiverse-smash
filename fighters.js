@@ -6,6 +6,7 @@ import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
 import { EYEGUY } from "./eyeguy.js"
 import { GHOSTFREAK } from "./ghostfreak.js"
+import { ALIENX } from "./alienx.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -935,8 +936,11 @@ export const BEN10_ALIEN_POOL = {
                         special: { name: "Energy Discharge", ranged: true, damage: 110, cost: 22, effect: "absorbs + fires energy" }, ult: { name: "Overload", damage: 210 } }),
   upgrade:    mkAlien({ name: "Upgrade", color: "#16a34a", role: "zoner", hp: 1050, spd: 7, dmg: 1.0,
                         special: { name: "Plasma Beam", ranged: true, damage: 105, cost: 22, projectileId: "upgrade_beam" }, ult: { name: "Tech Overload", damage: 205 } }),
-  alienx:     mkAlien({ name: "Alien X", color: "#1e293b", role: "brawler", hp: 1400, spd: 7, dmg: 1.4, flags: { armor: true }, weight: "heavy",
-                        special: { name: "Reality Warp", damage: 150, cost: 30, armor: true, knockbackY: -6 }, ult: { name: "Erasure", damage: 300, startup: 22, recovery: 32, effect: "omnipotent — balanced by long startup" } }),
+  // Alien X (READY, alienx.js): LARGE hurtbox matching his ~185 px sprite; Voices / Void / Decrees / ult via the ready-form hooks.
+  alienx: { name: "Alien X", color: "#111827", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 72, sizeH: 134 },
+    basic_attacks: ALIENX.basic_attacks, specials: ALIENX.moves,
+    ultimate: { name: "Absolute Decree", cost: 60, damage: 250 } },
   clockwork:  mkAlien({ name: "Clockwork", color: "#65a30d", role: "zoner", hp: 1050, spd: 74, dmg: 0.95, weight: "heavy",
                         special: { name: "Time Ray", ranged: true, damage: 100, cost: 25, effect: "slows target" }, ult: { name: "Time Stop", damage: 200, effect: "freezes opponent briefly" } }),
   brainstorm: mkAlien({ name: "Brainstorm", color: "#7c3aed", role: "zoner", hp: 960, spd: 6, dmg: 0.95,
@@ -1013,10 +1017,10 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 // system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
 // 2026-09-07 simplification pass. fighters.js can't import game.js (would cycle), so this is
 // the leaf-module mirror of that single source of truth; keep the two numbers equal.
-export const MAX_OMNITRIX_SLOTS = BEN10_SLOT_COUNT   // Omnitrix slot count from the registry config (aliens.js; 6: ↓↓ then ONE of Light/Heavy/Special/Grab/Charge/Ultimate; ↓↓ + Block reverts)
+export const MAX_OMNITRIX_SLOTS = BEN10_SLOT_COUNT   // Omnitrix slot count from the registry config (aliens.js; 5 = PICK FIVE: ↓↓ then ONE of Light/Heavy/Special/Grab/Charge; ↓↓ + Block reverts)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy", "ghostfreak"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8, 6 Eyeguy, 7 Ghostfreak
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]   // PICK FIVE default: slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8 (Eyeguy / Alien X / … are picked on the alien-select screen)
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
@@ -1876,6 +1880,7 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
     const strong = alien ? Math.max(0.6, (alien.maxHealth || 1000) / 1000) : 1   // titans drain faster
     let drain = TRANSFORM_ENERGY.DRAIN_PER_SEC * (1 + (strong - 1) * TRANSFORM_ENERGY.STRONG_FORM_SCALE)
     if (fighter.attacking && fighter.currentAttack) drain += TRANSFORM_ENERGY.ATTACK_DRAIN_BONUS
+    drain *= _readyDef(fighter.activeAlien)?.drainMult ?? 1   // optional per-alien drain multiplier (Alien X ×1.5: deliberation is costly); 1 for every other form
     if (omx.vowActive) drain *= TRANSFORM_ENERGY.VOW_DRAIN_MULT
     fighter.energy = Math.max(0, (fighter.energy || 0) - drain * dt)
   }

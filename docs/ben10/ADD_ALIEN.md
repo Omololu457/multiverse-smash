@@ -138,30 +138,39 @@ the hook / flag changes nothing).
 360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
 and the shared guard is omnidirectional.
 
-## Slot count (raised 5 → 6 with Eyeguy, 6 → 7 with Ghostfreak, 2026-11-17)
+### Alien X hooks (added with Alien X, 2026-11-17)
 
-The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` in `aliens.js`.
-- Tests must read the count (`BEN10_SLOT_COUNT`, `alienSelectState().cap`), never a literal.
+Same contract: optional, backward-compatible, ben10-gated (through `benReadyForm` / `_readyDef`, or a fighter field
+nothing else sets); a form that defines none of them takes exactly the old path, and non-Ben fighters never reach them.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `drainMult` (number, on the registry entry) | fighters.js `updateTransformDevice`, the transformed drain (before the Vow ×1.6) | multiplies this form's Omnitrix Power drain (Alien X ×1.5 ≈ 13 s from full). Absent = ×1. |
+| `negateSpecial(owner, target, commit)` | abilities.js `triggerSpecial` (after the readiness checks), via `benAlienNegatesSpecial` asked for the OPPONENT of the fighter pressing Special | `true` = negate that special (`commit=false` only asks; `commit=true` consumes the owner's state). The engine then plays a negated startup: the special the press would pick (fallback direction rule), its DECLARED specials-table Power cost spent (a kit with no table, e.g. Goku, spends 0), an attack state with its startup + recovery and no active frame (no hitbox, no projectile), posed with the special's own strip if shipped, else `special` / `heavy`. If that cost cannot be paid the press proceeds as an ordinary special attempt. Input polling and the simulation clock are untouched. Alien X UNMADE. |
+| `target._benPinT` (frames, set by a form on its OPPONENT) | physics.js `moveFighter` (decrements once per frame, before anything else) + the walk multiplier + `canJump` | while > 0 the pinned fighter walks at ×0.5 and cannot jump; self-clearing, so it never outlives the pin even if the setter swaps out. Absent / 0 = unchanged for every fighter. Alien X Gravity (30f on the grounded 2nd hit). |
+| `flightProfile: "alienx"` | flight.js `FLIGHT_PROFILES.alienx` (data only) via the existing `_alienFlightProfile` hook | reused per-alien flight hook (Megawhatt's); no flight-logic change. |
+
+## Slot count — PICK FIVE (2026-11-17)
+
+The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form
+(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, …); adding a ready alien adds a CHOICE, never a dial slot.
+(Eyeguy briefly raised the count 5 → 6 with a ↓↓ + Ultimate slot and Ghostfreak 6 → 7 with ↓↓ + Up-Attack; the owner
+reverted both to pick-five. Their dial branches stay in game.js, gated on `BEN10_SLOT_COMBOS.length`, so they are dormant.)
+
+The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` (= 5) in `aliens.js`.
 - `fighters.js` `MAX_OMNITRIX_SLOTS` reads it (loadout cap, default-loadout cap); `buildLoadout()` defaults to it; the
   Binding Vow pick is `hash(seed, frame, player) mod loadout length`, so it follows automatically; the alien-select
-  pick cap and the HUD read `BEN10_SLOT_COMBOS.length`.
+  pick cap and the HUD read `BEN10_SLOT_COMBOS.length`. `DEFAULT_OMNITRIX` (no pick made) = Swampfire, Heatblast,
+  Megawhatt, Goop, XLR8.
 - `game.js` `BEN10_SLOT_COMBOS` must hold one input per slot (a mismatch logs a warning; extra slots are unreachable,
-  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge) / **U (Ultimate) = slot 6** /
-  **I (Up-Attack; pad ↑ + Light) = slot 7**; ↓↓ + ; (Block) reverts. Slot 6 only takes U when the loadout holds a 6th alien,
-  and `_omxUltHold` swallows U until it is released, so the pick never also fires the ultimate. U outside the ↓↓ window is
-  still the ultimate. Slot 7 works the same way: only with a 7th alien; `_omxUpHold` + `_omxConsume.upAttack` swallow I
-  (the up-attack input is buffered, so the latch is needed); I outside the ↓↓ window is still the launcher.
-- Slot 7 input choice: the Ghostfreak brief asked for ↓↓ + Block+Special, which COLLIDES with Revert (↓↓ + Block) and is a
-  two-button chord (the dial is one-button by design). Nearest conflict-free single button = Up-Attack (I).
-- The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in `DEFAULT_OMNITRIX` / pick order).
+  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge); ↓↓ + ; (Block) reverts.
+  U is always the ultimate. The in-match controls box names the player's own five picks.
+- The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in pick / `DEFAULT_OMNITRIX` order).
   A registry `slot` is documentation of intent, never identity.
 
-To raise the count again (e.g. 7 → 8; every face button is now used, so the next slot needs a new idea — e.g. ↓↓ + a
-direction, which must not collide with crouch / ↓↓-motion specials): bump `BEN10_SLOT_COUNT`, append one `{ field, label }` input to
-`BEN10_SLOT_COMBOS` on a button no other slot (or Revert) uses, add its branch to the pick ladder in
-`handleOmnitrixSwitch`, swallow the press (`_omxConsume` / a hold latch like `_omxUltHold`), and add slot-N assertions to
-the alien's harness (input works, no side effect from the button, HUD / select cap = N, Vow pick reaches it). Placeholder behaviour needs no change:
-`buildLoadout()` fills every empty slot with `makePlaceholder(slot)`.
+A new ready alien therefore needs NO slot / input change: register it, and it appears on the alien-select screen.
+Tests must read `BEN10_SLOT_COUNT` (never a literal count) and pick the alien into a loadout to reach it.
+Placeholder behaviour needs no change: `buildLoadout()` fills every empty slot with `makePlaceholder(slot)`.
 
 ## Required lifecycle contract
 
@@ -185,3 +194,5 @@ block/interrupt/launch behavior, human restore, resets, art in both directions a
 supported replay/network modes. Test stale saved loadouts and direct entry points.
 Do not replace failed assertions with broad tolerances or mark placeholders ready.
 Review Swampfire's README and ledger as an implemented example.
+
+Alien X reuses the existing ready-form hooks for everything else: `tick`, `fireSpecial` / `fireUltimate`, `onContact` (Void pips, pin, ult capture), `moveFrames` (Block + Light swallows the jab), `damageTaken` (Serena chip ×0.6), `drawHud` / `drawFx` / `drawUnder` (render-only voice + Void HUD, pixel rings, ult starfield) and `_benGlide` (Starfall Dash). Position history for Rewind is a bounded 60-entry ring buffer inside `formState` (no engine hook). Void Grasp is a form-owned command grab using `combat.resolveGrab`'s throw-escape rule (no engine hook).

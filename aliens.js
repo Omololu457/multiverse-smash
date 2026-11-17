@@ -19,11 +19,13 @@ import { EYEGUY } from "./eyeguy.js"
 // Heatblast (heatblast.js) is the second READY form: it took the first placeholder dial slot (slot 2).
 // Megawhatt (megawhatt.js) is the third READY form: the next first-placeholder dial slot (slot 3).
 // Goop (goop.js) is the fourth READY form: the next first-placeholder dial slot (slot 4, ↓↓ + Grab).
-// XLR8 took slot 5 (↓↓ + Charge). Eyeguy (eyeguy.js) is a READY form registered for the NEW SLOT 6 (↓↓ + Ultimate):
-// the slot count was raised 5 → 6 here (BEN10_SLOT_COUNT; see docs/ben10/ADD_ALIEN.md).
+// XLR8 took slot 5 (↓↓ + Charge). Eyeguy (eyeguy.js) is a READY form (it briefly had a 6th dial slot, ↓↓ + Ultimate).
 // SLOT COUNT (single source of truth): how many Omnitrix dial slots exist. fighters.js MAX_OMNITRIX_SLOTS reads it and
 // game.js BEN10_SLOT_COMBOS must hold exactly this many slot inputs (asserted at load).
-export const BEN10_SLOT_COUNT = 6
+// PICK FIVE (2026-11-17, owner decision): the Omnitrix holds FIVE aliens, chosen on the alien-select screen out of every
+// READY form (Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Alien X, …). More ready aliens never add dial slots;
+// the dial is ↓↓ then J / K / L / O / P for the 5 picks (↓↓ + ; reverts). See docs/ben10/ADD_ALIEN.md.
+export const BEN10_SLOT_COUNT = 5
 export const BEN10_ALIEN_REGISTRY = [
   SWAMPFIRE,
   HEATBLAST,   // READY (2026-11-17): Dragonrod sheet + ledger; replaces the old experimental Heatblast entry

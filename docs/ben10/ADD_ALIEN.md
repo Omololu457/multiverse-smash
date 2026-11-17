@@ -125,24 +125,26 @@ references (they make GAME_STATE circular / non-serializable).
 360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
 and the shared guard is omnidirectional.
 
-## Slot count (raised 5 → 6 with Eyeguy, 2026-11-17)
+## Slot count — PICK FIVE (2026-11-17)
 
-The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` in `aliens.js`.
+The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form
+(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Alien X, …); adding a ready alien adds a CHOICE, never a dial slot.
+(Eyeguy briefly raised the count 5 → 6 with a ↓↓ + Ultimate slot; the owner reverted that to pick-five.)
+
+The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` (= 5) in `aliens.js`.
 - `fighters.js` `MAX_OMNITRIX_SLOTS` reads it (loadout cap, default-loadout cap); `buildLoadout()` defaults to it; the
   Binding Vow pick is `hash(seed, frame, player) mod loadout length`, so it follows automatically; the alien-select
-  pick cap and the HUD read `BEN10_SLOT_COMBOS.length`.
+  pick cap and the HUD read `BEN10_SLOT_COMBOS.length`. `DEFAULT_OMNITRIX` (no pick made) = Swampfire, Heatblast,
+  Megawhatt, Goop, XLR8.
 - `game.js` `BEN10_SLOT_COMBOS` must hold one input per slot (a mismatch logs a warning; extra slots are unreachable,
-  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge) / **U (Ultimate) = slot 6**;
-  ↓↓ + ; (Block) reverts. Slot 6 only takes U when the loadout holds a 6th alien, and `_omxUltHold` swallows U until it
-  is released, so the pick never also fires the ultimate. U outside the ↓↓ window is still the ultimate.
-- The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in `DEFAULT_OMNITRIX` / pick order).
+  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge); ↓↓ + ; (Block) reverts.
+  U is always the ultimate. The in-match controls box names the player's own five picks.
+- The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in pick / `DEFAULT_OMNITRIX` order).
   A registry `slot` is documentation of intent, never identity.
 
-To raise the count again (e.g. 6 → 7): bump `BEN10_SLOT_COUNT`, append one `{ field, label }` input to
-`BEN10_SLOT_COMBOS` on a button no other slot (or Revert) uses, add its branch to the pick ladder in
-`handleOmnitrixSwitch`, swallow the press (`_omxConsume` / a hold latch like `_omxUltHold`), and add slot-N assertions to
-the alien's harness (input works, no side effect from the button, HUD / select cap = N, Vow pick reaches it). Placeholder behaviour needs no change:
-`buildLoadout()` fills every empty slot with `makePlaceholder(slot)`.
+A new ready alien therefore needs NO slot / input change: register it, and it appears on the alien-select screen.
+Tests must read `BEN10_SLOT_COUNT` (never a literal count) and pick the alien into a loadout to reach it.
+Placeholder behaviour needs no change: `buildLoadout()` fills every empty slot with `makePlaceholder(slot)`.
 
 ## Required lifecycle contract
 

@@ -1006,10 +1006,10 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 // system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
 // 2026-09-07 simplification pass. fighters.js can't import game.js (would cycle), so this is
 // the leaf-module mirror of that single source of truth; keep the two numbers equal.
-export const MAX_OMNITRIX_SLOTS = BEN10_SLOT_COUNT   // Omnitrix slot count from the registry config (aliens.js; 6: ↓↓ then ONE of Light/Heavy/Special/Grab/Charge/Ultimate; ↓↓ + Block reverts)
+export const MAX_OMNITRIX_SLOTS = BEN10_SLOT_COUNT   // Omnitrix slot count from the registry config (aliens.js; 5 = PICK FIVE: ↓↓ then ONE of Light/Heavy/Special/Grab/Charge; ↓↓ + Block reverts)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8, 6 Eyeguy
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]   // PICK FIVE default: slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8 (Eyeguy / Alien X / … are picked on the alien-select screen)
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)

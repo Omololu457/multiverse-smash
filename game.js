@@ -12101,8 +12101,7 @@ const BEN10_SLOT_COMBOS = [
   { field: "special",       label: "↓↓ + Special" },   // slot 3
   { field: "grab",          label: "↓↓ + Grab" },      // slot 4 (keyboard O) — one button, no chord
   { field: "charge",        label: "↓↓ + Charge" },    // slot 5 (keyboard P) — one button, no chord
-  { field: "ultimate",      label: "↓↓ + Ultimate" },  // slot 6 (keyboard U) — one button, no chord; U outside the ↓↓ window is still the ultimate
-]
+]   // PICK FIVE: 5 slots = the 5 aliens picked on the alien-select screen (aliens.js BEN10_SLOT_COUNT); U is always the ultimate
 // ↓↓ + Block (keyboard ;) turns back to human. Every Omnitrix input is ↓↓ then ONE button (no two-button chords).
 // Slot count lives in the registry (aliens.js BEN10_SLOT_COUNT → fighters.js MAX_OMNITRIX_SLOTS); this table must hold one
 // input per slot. A mismatch only warns (never a black screen): the extra slots are simply unreachable.
@@ -12181,7 +12180,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     else if (eS) pick = { slot: 2 }                   // slot 3 (Special L)
     else if (eG) pick = { slot: 3 }                   // slot 4 (Grab O)
     else if (eC) pick = { slot: 4 }                   // slot 5 (Charge P)
-    else if (eU && fighter.omnitrix.aliens?.length > 5) pick = { slot: 5 }   // slot 6 (Ultimate U) — only with a 6th alien, else U stays the ultimate
+    else if (eU && BEN10_SLOT_COMBOS.length > 5 && fighter.omnitrix.aliens?.length > 5) pick = { slot: 5 }   // a 6th slot (Ultimate U) only if the slot count is ever raised again; with PICK FIVE U stays the ultimate
 
     if (pick === "revert") {
       if (ben10Revert(fighter)) {

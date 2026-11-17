@@ -34,6 +34,14 @@ export function benAlienWeakHit(f, box, info) {
 // Optional LOW-PROFILE filter (Goop Puddle Form): `evade(f, info)` true = this melee move / projectile misses the BODY
 // (info = { move, attacker } or { proj }); the weak point is still tested. false for everyone else.
 export function benAlienEvades(f, info) { const d = benReadyForm(f); return !!(d && d.evade && d.evade(f, info || {})) }
+// Optional GUARD-BREAK (Eyeguy Unblinking): `guardBreak(owner, target, { proj })` true = this projectile the form OWNS
+// ignores the target's held guard for this hit (full damage + hitstun). The form consumes its own state in onContact
+// (the projectile is stamped _benGuardBreak). false for everyone else.
+export function benAlienGuardBreak(owner, target, info) {
+  const d = benReadyForm(owner); if (!d || !d.guardBreak || !d.guardBreak(owner, target, info || {})) return false
+  if (info && info.proj) info.proj._benGuardBreak = true
+  return true
+}
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

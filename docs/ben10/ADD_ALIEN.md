@@ -116,6 +116,15 @@ for hash(match seed, frame, player index) placement (XLR8 Blur Step / Time Sprin
 Keep `formState` plain data: store ids (e.g. a cast id) and look live projectiles up each frame — never store object
 references (they make GAME_STATE circular / non-serializable).
 
+### Eyeguy hook (added with Eyeguy, 2026-11-17)
+
+| Hook (on the registry entry) | Engine call site | Contract |
+|---|---|---|
+| `guardBreak(owner, target, { proj })` | combat.js projectile loop, before the block branch, via `benAlienGuardBreak` (only when `isBenDevice(proj.owner)`) | `true` = this projectile the form owns ignores the target's held guard for this hit (full damage + hitstun); the projectile is stamped `_benGuardBreak` so the form consumes its own state in `onContact`. Eyeguy: Unblinking's one guard-breaking beam / orb |
+
+360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
+and the shared guard is omnidirectional.
+
 ## Slot count (raised 5 → 6 with Eyeguy, 2026-11-17)
 
 The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` in `aliens.js`.

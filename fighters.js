@@ -1832,7 +1832,9 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
 
   if (!fighter.transformed) {
     omx.currentForm = null; omx.formTimer = 0
-    fighter.energy = Math.min(max, (fighter.energy || 0) + TRANSFORM_ENERGY.HUMAN_REGEN_PER_SEC * dt)
+    if (fighter.hitstun > 0) fighter.isCharging = false   // a hit interrupts the charge
+    const humanRate = fighter.isCharging ? TRANSFORM_ENERGY.CHARGE_RESTORE_PER_SEC : TRANSFORM_ENERGY.HUMAN_REGEN_PER_SEC
+    fighter.energy = Math.min(max, (fighter.energy || 0) + humanRate * dt)
     omx.power = fighter.energy
     return
   }

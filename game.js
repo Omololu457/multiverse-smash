@@ -12189,8 +12189,9 @@ function handleOmnitrixSwitch(fighter, inputState) {
     }
   }
 
-  // Charge-to-refill retained: hold Charge (alone, not double-tapping down) while transformed → fast refill.
-  fighter.isCharging = !!inputState.charge && fighter.transformed && !down && !light && !heavy && !special && !inputState.block && !fighter.attacking && !(fighter.attackCooldown > 0) && !(fighter._benPowerCommit > 0)
+  // Charge-to-refill: hold Charge (alone, not double-tapping down) → fast refill, as human OR transformed
+  // (human Ben used to ignore Charge entirely, so charging "just stopped" whenever he reverted).
+  fighter.isCharging = !!inputState.charge && !down && !light && !heavy && !special && !inputState.block && !fighter.attacking && !(fighter.attackCooldown > 0) && !(fighter._benPowerCommit > 0)
 
   // ── Phase 6 DEFENSE INPUTS ──
   // GREEN FLASH ROLL (←← + Light): a back double-tap arms a window; Light within it rolls (i-frames 4-12,

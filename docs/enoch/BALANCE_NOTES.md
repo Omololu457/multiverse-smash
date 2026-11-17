@@ -155,3 +155,12 @@ The brief's values, verified live against a blocking dummy:
 - AIR SLABS: one-way platforms (platforms.js) for 7 s. Opponent landing = raw 22 (chill / burn) + shoved off the nearer
   edge (vx 7, vy −5), 0.5 s per-slab cooldown; rising into one = head bonk. He can stand on them. Removed with the slab.
 - Controls Lab zoom default 1.7× → 1.25× (owner: too zoomed in); the button cycles OFF / 1.25× / 1.5×.
+
+### 2026-11-16 (night): dash back, smoother flow, Lab zoom via the game camera
+- Double-tap = the engine dash again (streak of ice; fire when hot). Held 12 f more → the ground slide. On his own patch the
+  double-tap still glides at once.
+- FLOW: presses held 16 f (buffer) for every cancel; cancels open on a hit OR a block; JUMP CANCEL on a hit (jab / straight /
+  low / heavy / rise / slide); DASH CANCEL (buffered double-tap) out of normals + ground specials that hit / were blocked;
+  air attack, Ice Blast and the meteors now cancel into another special (air → the meteor). Cooldowns + combo scaling cap loops.
+- Controls Lab: Zoom no longer magnifies the game picture (that cut off the HUD); it tightens the game's own camera
+  (padding ÷ zoom, zoom cap × zoom) inside the Lab page only. The whole game screen always fits the panel.

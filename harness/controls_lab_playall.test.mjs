@@ -24,8 +24,11 @@ await page.click("#bigBtn"); await page.waitForTimeout(400)
 const w1 = await page.evaluate(() => document.querySelector("#arenaBox").getBoundingClientRect().width)
 check("P3 Big view makes the arena bigger", w1 > w0 * 1.15, `${Math.round(w0)} → ${Math.round(w1)}`)
 await page.screenshot({ path: "docs/controls_lab/bigview.png" })
-const zoom = await page.evaluate(() => ({ z: window.__lab.S.zoom, K: window.__lab.S.view?.K, k: window.__lab.S.arenaScale, btn: document.querySelector("#zoomBtn").textContent }))
-check("P4 Zoom defaults to a MILD 1.25× (the whole fight stays in view)", zoom.z === 1.25 && Math.abs(zoom.K / zoom.k - 1.25) < 1e-6 && /1\.25/.test(zoom.btn), JSON.stringify(zoom))
+const camZ = async () => { await page.waitForTimeout(1500); return page.evaluate(() => { const c = window.__lab.eng.mods.camera; return { z: window.__lab.S.zoom, cam: c.zoom, max: c.maxZoom, K: window.__lab.S.view?.K, k: window.__lab.S.arenaScale, btn: document.querySelector("#zoomBtn").textContent } }) }
+const zoom = await camZ()
+check("P4 Zoom defaults to 1.25× using the GAME camera (the screen itself is never magnified, so the HUD stays whole)", zoom.z === 1.25 && Math.abs(zoom.max - 1.15 * 1.25) < 1e-6 && zoom.K === zoom.k && /1\.25/.test(zoom.btn), JSON.stringify(zoom))
+await page.click("#zoomBtn"); await page.click("#zoomBtn"); const off = await camZ(); await page.click("#zoomBtn")
+check("P4c zoomed in, the game camera frames the fighters closer than with Zoom OFF", off.z === 1 && zoom.cam > off.cam + 0.05, JSON.stringify({ on: zoom.cam, off: off.cam }))
 const cyc = []; for (let i = 0; i < 3; i++) { await page.click("#zoomBtn"); await page.waitForTimeout(200); cyc.push(await page.evaluate(() => window.__lab.S.zoom)) }
 check("P4b the Zoom button cycles 1.5× → OFF → 1.25×", cyc.join() === "1.5,1,1.25", cyc.join())
 await page.reload(); await page.waitForFunction(() => window.__lab?.eng.ready && !document.querySelector("#app.booting"), null, { timeout: 120000 })

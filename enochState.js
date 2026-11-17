@@ -17,7 +17,7 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, GROUND_SLIDE, ICE_FLOOR, SLAB, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, GROUND_SLIDE, ICE_FLOOR, SLAB, FLOW, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
@@ -659,12 +659,21 @@ export function enochLocked(f, raw = null) {
   if (g && free && f._dashTap) {
     const here = patchesAt(s.field, ctrX(f), feetY(f)).filter(p => p.type === 'ice' || p.type === 'fire')
     if (here.length && startGlide(f, s, here[here.length - 1].type, f.facing || 1, 'tap')) { f._dashTap = false; glideStep(f, s, { ...r, [f.facing === -1 ? 'left' : 'right']: true }); return true }
-    // GROUND SLIDE: anywhere else (elemental stance) the double-tap is a slide that turns the floor to ICE — FIRE when hot.
-    // The direction held picks the way; a locked element (an overload) falls back to the plain dash.
-    const type = twinOf(f) === 'fire' ? 'fire' : 'ice', dir = r.right && !r.left ? 1 : r.left && !r.right ? -1 : (f.facing || 1)
-    if (s.stance !== 'ice' && check(f, type).ok && startGlide(f, s, type, dir, 'tap')) {
-      f._dashTap = false; s.stats.groundSlides++; lay(f, s, WREF.W, { type, cx: ctrX(f), width: GLIDE.trailW, extend: true })
-      glideStep(f, s, { ...r, [dir === -1 ? 'left' : 'right']: true }); return true
+    // anywhere else: the engine's own DASH happens (not consumed here); keep holding the direction and it becomes the SLIDE
+    if (s.stance !== 'ice') s.dashHold = { dir: r.right && !r.left ? 1 : r.left && !r.right ? -1 : (f.facing || 1), k: 0 }
+  }
+  // GROUND SLIDE: the dash with the direction still held → a slide that turns the floor to ICE (FIRE when hot);
+  // an element that's locked (an overload) just leaves the dash as it is
+  if (s.dashHold) {
+    const H = s.dashHold, held = H.dir === 1 ? r.right && !r.left : r.left && !r.right
+    if (!g || !free || !held || s.glide) s.dashHold = null
+    else if (++H.k >= GROUND_SLIDE.holdFrames) {
+      s.dashHold = null
+      const type = twinOf(f) === 'fire' ? 'fire' : 'ice'
+      if (check(f, type).ok && startGlide(f, s, type, H.dir, 'tap')) {
+        f._dashTap = false; s.stats.groundSlides++; lay(f, s, WREF.W, { type, cx: ctrX(f), width: GLIDE.trailW, extend: true })
+        glideStep(f, s, r); return true
+      }
     }
   }
   // AIR SLIDE (elemental stance; Ice Stance pours Frozone's Ice Stream from the same pool): jump, then double-tap
@@ -689,6 +698,13 @@ export function enochLocked(f, raw = null) {
     cue(f, type === 'ice' ? 'crackle' : 'fireCast'); airSlideStep(f, s, r); return true
   }
   const a = live(f)
+  // DASH CANCEL (FLOW): double-tap in the recovery of a normal / special that hit or was blocked → the dash (hold → the slide)
+  if (a && f._dashTap) s.dashBuf = { clock: s.clock, dir: r.right && !r.left ? 1 : r.left && !r.right ? -1 : (f.facing || 1) }   // held for FLOW.buffer frames
+  if (g && a && s.dashBuf && s.clock - s.dashBuf.clock <= FLOW.buffer && (a.en.clean || a.en.blocked) && FLOW.dashFrom.includes(a.en.key) && (a.total - a.timer) > (a.activeEnd ?? 0) && !(f.hitstop > 0) && s.stance !== 'ice') {
+    const dir = s.dashBuf.dir; s.dashBuf = null; endAttack(f); s.stats.dashCancels = (s.stats.dashCancels || 0) + 1
+    f.facing = dir; f.dashTimer = f.dashDuration || 8; f.dashCooldown = f.dashCooldownMax || 28; f._dashTap = false
+    s.dashHold = { dir, k: 0 }; return false
+  }
   if (a && a.en.key !== 'air' && !(a.launcher && a.hasHit)) { f._dashTap = false; return true }
   return false
 }
@@ -846,7 +862,7 @@ export function tickEnoch(f, opp, raw, W) {
   else { if (s.air.win > 0 && !s.aslide) s.air.win--; if ((f.jumpCount || 0) > s.air.jc) { s.air.armed = true; s.air.jc = f.jumpCount } }
   for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) { dropSlab(q); s.rails.splice(i, 1); if (q.type === 'ice') pushFx(s, 'drip', (q.x0 + q.x1) / 2, Math.max(q.y0, q.y1), 1, { w: Math.abs(q.x1 - q.x0) }) } }
   // FIRE DASH / ICE DASH (and the slide): outside the balance band his dash leaves a trail of his element
-  const tw = twinOf(f), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
+  const tw = twinOf(f) || (s.stance !== 'ice' ? 'ice' : null), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
   if (dashing && !s.dashWas && tw) { s.stats[tw === 'fire' ? 'fireDash' : 'iceDash']++; cue(f, tw === 'fire' ? 'fireCast' : 'crackle') }
   s.dashWas = dashing
   if (tw && (dashing || sliding) && s.tick % TWIN.trailEvery === 0) lay(f, s, W, { type: tw, cx: ctrX(f) - face * 16, width: TWIN.trailW, extend: true })

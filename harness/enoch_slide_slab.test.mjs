@@ -28,13 +28,39 @@ await page.evaluate(async () => {
 const G = await page.evaluate(() => { const { H, step, hold, rel, setup, st } = __E; const r = {}
   for (const [name, th] of [['bal', 0], ['hot', 60]]) {
     const { a } = setup(600, 1800); H.setThermal(th); const x0 = a.x
-    hold(a, { right: true, dash: true }); rel(a); let glid = 0; for (let i = 0; i < 30; i++) { if (st().glide) glid++; step(1) }
+    hold(a, { right: true, dash: true }); let glid = 0; for (let i = 0; i < 30; i++) { if (st().glide) glid++; hold(a, { right: true }) }; rel(a)
     r[name] = { dx: Math.round(a.x - x0), glid, type: st().stats.iceGlide ? 'ice' : st().stats.fireGlide ? 'fire' : null, slides: st().stats.groundSlides,
       floor: [...new Set(st().field.patches.filter(p => p.x < a.x + 40 && p.x + p.width > x0).map(p => p.type))] }
   }
   return r })
-ok('G1 a double-tap on plain ground = a SLIDE that turns the floor to ICE (no holding needed)', G.bal.slides === 1 && G.bal.type === 'ice' && G.bal.glid >= 20 && G.bal.dx > 150 && G.bal.floor.includes('ice'), J(G.bal))
+ok('G1 double-tap and KEEP HOLDING on plain ground = the dash turns into a SLIDE that turns the floor to ICE', G.bal.slides === 1 && G.bal.type === 'ice' && G.bal.glid >= 14 && G.bal.dx > 150 && G.bal.floor.includes('ice'), J(G.bal))
 ok('G2 hot: the same double-tap = a FIRE slide, the floor turns to FIRE', G.hot.type === 'fire' && G.hot.floor.includes('fire') && G.hot.dx > 150, J(G.hot))
+// ═══ D. THE DASH IS BACK ═══
+const D = await page.evaluate(() => { const { H, step, hold, rel, setup, st } = __E
+  const { a } = setup(600, 1800); H.setThermal(0); const x0 = a.x, d0 = st().stats.iceDash
+  hold(a, { right: true, dash: true }); const dt = a.dashTimer; rel(a); let glid = 0; for (let i = 0; i < 30; i++) { if (st().glide) glid++; step(1) }
+  return { dashTimer: dt, iceDash: st().stats.iceDash - d0, glid, slides: st().stats.groundSlides, dx: Math.round(a.x - x0), ice: st().field.patches.some(p => p.type === 'ice') } })
+ok('D1 a quick double-tap is his DASH again (no slide), leaving a streak of ice', D.dashTimer > 0 && D.iceDash === 1 && D.glid === 0 && D.slides === 0 && D.dx > 60 && D.ice, J(D))
+// ═══ FL. FLOW: cancels ═══
+const FL = await page.evaluate(() => { const { H, step, hold, rel, setup, st } = __E; const r = {}
+  const tap = (f, k, n = 1) => { hold(f, k); rel(f); step(n) }
+  const name = () => H.state().attack?.name
+  // buffered chain: Light pressed again EARLY (during the jab) still comes out as the Straight
+  let { a, b } = setup(1000, 1080); H.setThermal(0); tap(a, { light: true }, 2); tap(a, { light: true }); let seen = new Set(); for (let i = 0; i < 30; i++) { if (name()) seen.add(name()); step(1) }
+  r.buffer = [...seen]
+  // jump cancel on hit
+  ;({ a, b } = setup(1000, 1080)); tap(a, { light: true }); let k = 0; while (!st().stats.clean && k++ < 20) step(1); hold(a, { jump: true, up: true }); hold(a, {}); step(14)
+  r.jump = { jc: st().stats.jumpCancels || 0, air: !(a.onGround || a.grounded), vy: Math.round(a.vy) }
+  // air attack → Special = the meteor
+  ;({ a, b } = setup(1000, 1090)); hold(a, { jump: true, up: true }); hold(a, {}); step(6); tap(a, { light: true }); k = 0; while (!st().stats.clean && k++ < 25) step(1); tap(a, { special: true }); r.airMeteor = { name: name(), clean: st().stats.clean }
+  // dash cancel on hit
+  ;({ a, b } = setup(1000, 1080)); tap(a, { light: true }); k = 0; while (!st().stats.clean && k++ < 20) step(1); hold(a, { left: true, dash: true }); rel(a); let dt = 0; for (let i = 0; i < 16 && !dt; i++) { step(1); dt = a.dashTimer || 0 }
+  r.dash = { dc: st().stats.dashCancels || 0, dashTimer: dt, attacking: !!a.attacking }
+  return r })
+ok('FL1 a press made early is BUFFERED: Jab → Straight comes out even pressed during the jab', FL.buffer.includes('jab') && FL.buffer.includes('straight'), J(FL.buffer))
+ok('FL2 JUMP CANCEL: a normal that hits → Jump goes straight into the air', FL.jump.jc === 1 && FL.jump.air, J(FL.jump))
+ok('FL3 air attack → Special = the METEOR', /eteor/.test(FL.airMeteor.name || ''), J(FL.airMeteor))
+ok('FL4 DASH CANCEL: a normal that hits → double-tap = the dash', FL.dash.dc === 1 && !FL.dash.attacking && FL.dash.dashTimer > 0, J(FL.dash))
 // ═══ F. HIS ICE FLOOR vs the opponent ═══
 const F = await page.evaluate(() => { const { H, step, setup, st } = __E
   const { a, b } = setup(400, 1200); H.setThermal(0); H.patch({ type: 'ice', cx: b.x + b.w / 2 + 40, width: 240 }); b.invulnTimer = 0

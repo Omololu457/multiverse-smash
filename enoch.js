@@ -16,7 +16,7 @@
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
 import { twinOf, isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance } from './enochState.js'
 import { updateFrozoneCommandCombat } from './frozone.js'
-import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL } from './enochData.js'
+import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL, FLOW } from './enochData.js'
 
 registerEnochEngine({ startMove, comboScale: getComboScale })
 
@@ -25,7 +25,7 @@ const use = (s, k) => { if (s.edges[k]) s.used[k] = s.edges[k].tick }
 const upHeavy = s => fresh(s, 'heavy') && s.edges.heavy.tick === s.edges.upAttack?.tick   // pad Up+△ = Heavy + Up-Attack together
 const COMMITTED = new Set(['iceDisc', 'tideBreak', 'super', 'wake'])
 export const LINK_TO_NORMAL = ['heatLens']
-export const SPECIAL_FROM = ['jab', 'straight', 'heavy', 'low', 'rise', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst']
+export const SPECIAL_FROM = ['jab', 'straight', 'heavy', 'low', 'rise', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst', 'air', 'iceBlast', 'meteor', 'fireMeteor']
 export const SUPER_FROM = ['jab', 'straight', 'heavy', 'low', 'slide', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst', 'tideBreak', 'iceBlast', 'heatLens', 'condense', 'iceWall', 'fireWall']
 
 const meteorKey = f => twinOf(f) === 'fire' ? 'fireMeteor' : 'meteor'
@@ -90,20 +90,26 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (s.ramp && !g && !a && s.ramp.air > 0 && (fresh(s, 'light') || fresh(s, 'heavy') || fresh(s, 'upAttack'))) {
     use(s, 'light'); use(s, 'heavy'); use(s, 'upAttack'); s.ramp.air = 0; fire('air', { bonus: GLIDE.atkBonus }); return 'consumed'
   }
-  const contact = !!a?.en?.clean && cancelWindowOpen(f)
+  const contact = !!(a?.en?.clean || a?.en?.blocked) && cancelWindowOpen(f), B = FLOW.buffer   // hit OR block opens the cancel
   // the SUPER cancels out of any clean special, committed ones included (Tide Break → Thermal Shock is the brief's combo 5)
-  if (contact && fresh(s, 'special') && SUPER_FROM.includes(a.name) && specialKey(f, s.edges.special) === 'super') {
+  if (contact && fresh(s, 'special', B) && SUPER_FROM.includes(a.name) && specialKey(f, s.edges.special) === 'super') {
     use(s, 'special'); if ((f.energy || 0) >= 100) fire('super', { cancel: true }); return 'consumed'
   }
   if (a && COMMITTED.has(a.en?.key)) return 'consumed'
-  if (contact && CHAIN[a.name] && fresh(s, 'light')) { use(s, 'light'); fire(CHAIN[a.name], { cancel: true }); return 'consumed' }
-  if (contact && LINK_TO_NORMAL.includes(a.name) && fresh(s, 'light')) { const e = s.edges.light; use(s, 'light'); fire(e.fwd ? 'straight' : 'jab', { cancel: true }); return 'consumed' }   // a clean Heat Lens → Straight / Jab
-  if (contact && SPECIAL_FROM.includes(a.name) && fresh(s, 'special')) { const k = specialKey(f, s.edges.special); use(s, 'special'); if (k !== a.name) fire(k, { cancel: true }); return 'consumed' }
-  if (contact && fresh(s, 'heavy')) {
+  if (contact && CHAIN[a.name] && fresh(s, 'light', B)) { use(s, 'light'); fire(CHAIN[a.name], { cancel: true }); return 'consumed' }
+  if (contact && LINK_TO_NORMAL.includes(a.name) && fresh(s, 'light', B)) { const e = s.edges.light; use(s, 'light'); fire(e.fwd ? 'straight' : 'jab', { cancel: true }); return 'consumed' }   // a clean Heat Lens → Straight / Jab
+  if (contact && SPECIAL_FROM.includes(a.name) && fresh(s, 'special', B)) { const k = g ? specialKey(f, s.edges.special) : meteorKey(f); use(s, 'special'); if (k !== a.name) fire(k, { cancel: true }); return 'consumed' }
+  if (contact && fresh(s, 'heavy', B)) {
     const k = heavyKey(f, s.edges.heavy)
     if (k === 'heavy' ? HEAVY_FROM.includes(a.name) : (SPECIAL_FROM.includes(a.name) && k !== a.name)) { use(s, 'heavy'); fire(k, { cancel: true }); return 'consumed' }
   }
   if (contact && a.name === 'heavy' && fresh(s, 'upAttack')) { use(s, 'upAttack'); return 'consumed' }
+  // JUMP CANCEL (on a hit): straight up out of the normal — into the air chain, an air attack or the meteor
+  if (contact && g && a.en.clean && FLOW.jumpFrom.includes(a.name) && (fresh(s, 'jump', B) || fresh(s, 'up', B)) && !fresh(s, 'special', B) && !fresh(s, 'heavy', B) && !fresh(s, 'light', B)) {
+    use(s, 'jump'); use(s, 'up'); f.attacking = false; f.currentAttack = null; f.currentMove = null; f.attackCooldown = 0
+    f.vy = f.jumpForce || -22; f.onGround = false; f.grounded = false; f.jumpCount = 1; f.jumpHeld = true; s.stats.jumpCancels = (s.stats.jumpCancels || 0) + 1
+    return 'consumed'
+  }
   if (a && !contact) return 'consumed'
   if (!a && (f.attackCooldown > 0 || inp.block)) return 'grab'
   if (fresh(s, 'ultimate')) { use(s, 'ultimate'); if (!a && g && (f.energy || 0) >= 100) fire('super'); return 'consumed' }   // Ultimate button = the super too

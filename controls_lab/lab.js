@@ -46,6 +46,7 @@ async function selectChar(key, { initial = false } = {}) {
     return
   }
   S.roster = eng.roster()
+  applyCamZoom()   // a new game page = a fresh camera
   if (!S.roster.find(r => r.key === key) && S.roster.length && initial) return selectChar(S.roster[0].key)
   S.key = key
   const C = eng.mods.characters[key]
@@ -86,19 +87,19 @@ function setAccent(hex) {
 // ZOOM (Lab-side, presentation only): the arena is the whole game screen shrunk into a panel, so the fighters look small.
 // With zoom on, the iframe is magnified ×ZOOM and panned (smoothly, every logic frame) to keep both fighters — and a bit of
 // sky for falling attacks — in the middle. The game itself, its camera and the sim are untouched.
-const ZOOMS = [1, 1.25, 1.5]                       // the Zoom button cycles these; 1.25× by default (the whole fight stays in view)
+const ZOOMS = [1, 1.25, 1.5]                       // the Zoom button cycles these; 1.25× by default
+// Zoom drives the GAME'S OWN camera (tighter framing + a higher zoom cap), not a magnified picture of the screen —
+// so the fighters get bigger while the health bars, gauges and edges of the arena stay whole and in place.
+const CAM0 = { maxZoom: 1.15, horizontalPadding: 280, verticalPadding: 260 }
+function applyCamZoom() {
+  const cam = eng?.mods?.camera, z = S.zoom || 1; if (!cam) return
+  cam.maxZoom = CAM0.maxZoom * z; cam.horizontalPadding = CAM0.horizontalPadding / z; cam.verticalPadding = CAM0.verticalPadding / z
+}
 function fitArena() {
   const box = $("#arenaBox").getBoundingClientRect()
   const k = box.width / 1440
   S.arenaScale = k
-  const z = S.zoom || 1, K = k * z
-  let tx = 0, ty = 0
-  if (z > 1) {
-    const f = focusPoint() || S.focusPt || { x: 720, y: 520 }
-    S.focusPt = S.focusPt ? { x: S.focusPt.x + (f.x - S.focusPt.x) * 0.15, y: S.focusPt.y + (f.y - S.focusPt.y) * 0.15 } : f
-    tx = Math.min(0, Math.max(box.width - 1440 * K, box.width / 2 - S.focusPt.x * K))
-    ty = Math.min(0, Math.max(box.height - 810 * K, box.height * 0.62 - S.focusPt.y * K))
-  }
+  const K = k, tx = 0, ty = 0                       // the WHOLE game screen always fits (the HUD is never cut off)
   S.view = { K, tx, ty }
   $("#game").style.transform = `translate(${tx}px, ${ty}px) scale(${K})`
 }
@@ -114,7 +115,7 @@ function focusPoint() {
 }
 function setZoom(z) {
   S.zoom = ZOOMS.includes(z) ? z : 1.25; lsSet(LS.zoom2, S.zoom); S.focusPt = null
-  $("#zoomBtn").textContent = `🔍 Zoom: ${S.zoom === 1 ? "OFF" : S.zoom + "×"}`; fitArena(); if (S.boxes) drawBoxes()
+  $("#zoomBtn").textContent = `🔍 Zoom: ${S.zoom === 1 ? "OFF" : S.zoom + "×"}`; applyCamZoom(); fitArena(); if (S.boxes) drawBoxes()
 }
 const toggleZoom = () => setZoom(ZOOMS[(ZOOMS.indexOf(S.zoom) + 1) % ZOOMS.length])
 window.addEventListener("resize", fitArena)
@@ -131,7 +132,6 @@ function onFrame(ev) {
   const raw = ev.scripted ? ev.raw : (userRaw || {})
   pushHistory(raw, ev.scripted, ev.p1?.facing >= 0 ? 1 : -1)
   if (S.task && S.task.onFrame) S.task.onFrame(ev, raw)
-  if (S.zoom > 1) fitArena()
   if (S.boxes) drawBoxes()
   if (ctl) ctl.setFacing(ev.p1?.facing >= 0 ? 1 : -1)
   // the game pauses on Options/Escape; the Lab owns those buttons, so un-pause straight away

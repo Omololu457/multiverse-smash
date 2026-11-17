@@ -35,6 +35,10 @@ export const ENOCH_MOVES = {
 export const NORMAL_KEYS = Object.keys(ENOCH_MOVES)
 export const CHAIN = { jab: 'straight', straight: 'heavy' }          // Jab → Straight → Heavy (clean-hit retaps)
 export const HEAVY_FROM = ['jab', 'straight', 'low']
+// FLOW: a press made during a move is held for `buffer` frames (so it comes out as soon as the cancel opens, not dropped);
+// cancels open on a hit OR a block; on a HIT his normals jump-cancel (straight into the air chain / meteor) and
+// dash-cancel (double-tap → dash, hold → the slide).
+export const FLOW = { buffer: 16, jumpFrom: ['jab', 'straight', 'low', 'heavy', 'rise', 'slide'], dashFrom: ['jab', 'straight', 'low', 'heavy', 'slide', 'iceBlast', 'frostFloor', 'deepFreeze', 'scorch', 'steamBurst'] }
 
 // ── SPECIALS (thermal-gated; `el` = the element the thermal profile checks; `th` = thermal push, ± = colder / hotter;
 // `away` = pushed AWAY from 0 (water moves). Damage is the brief's raw value; the own-zone ×1.15 applies on top.)
@@ -116,9 +120,10 @@ export const METEOR = { from: 560, vy0: 8, grav: 1.1, vx: 0,
 export const SNOWMAN = { ahead: 104, w: 58, h: 124, rise: 14, life: 720, hp: 5, melt: 90, fireMelt: 4, patch: 100 }
 // MELTING: his ice that runs out (ice patches, walls, slabs, the snowman) turns into a WATER puddle (`width` of the ice) that
 // later evaporates; the last `warn` frames of ice show it melting (thinner, dripping).
-// GROUND SLIDE: a double-tap anywhere on the ground = a glide that turns the floor under him to ICE (FIRE when hot);
-// it runs at least `minFrames` even with the direction let go (hold the direction to keep going).
-export const GROUND_SLIDE = { minFrames: 26 }
+// DOUBLE-TAP = his DASH (it leaves a streak of ice — fire when hot); KEEP HOLDING the direction for `holdFrames` and the
+// dash turns into the GROUND SLIDE: a glide that turns the floor under him to ICE (FIRE when hot), for as long as it's held
+// (at least `minFrames`). On his own ice / fire the double-tap glides straight away, as before.
+export const GROUND_SLIDE = { minFrames: 26, holdFrames: 12 }
 // HIS FLOOR vs the opponent: on his ICE they lose `raw` every `every` frames (+ chill) and are slid off toward the nearest
 // edge at `push` px / frame; his FIRE already burns (the element's DoT + burn).
 export const ICE_FLOOR = { every: 20, raw: 4, chill: 0.25, push: 3 }

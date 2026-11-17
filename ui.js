@@ -22,6 +22,7 @@ import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Ph
 import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
 import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
 import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
+import { isBenDevice } from "./ben10State.js"   // Controls box: Omnitrix transform hint for Ben (render-only)
 import { animeMeterRatio } from "./animeJuice.js"   // ANIME JUICE: displayed ultimate-meter fill (render-only)
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
@@ -4976,15 +4977,18 @@ function _defaultRadius(cat) {
 // ─────────────────────────────────────────────
 // CONTROLS INFO (bottom-left)
 // ─────────────────────────────────────────────
-export function drawControlsInfo(ctx, canvas) {
+export function drawControlsInfo(ctx, canvas, p1 = null) {
   const { height: h } = getCanvasSize(canvas)
 
-  const panelY = h - 170
+  // Ben 10: the Omnitrix inputs are otherwise undiscoverable in a match — show them (presentation-only).
+  const ben = isBenDevice(p1)
+  const extra = ben ? 32 : 0
+  const panelY = h - 170 - extra
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"
-  ctx.fillRect(18, panelY, 310, 110)
+  ctx.fillRect(18, panelY, 310, 110 + extra)
   ctx.strokeStyle = "rgba(255,255,255,0.18)"
-  ctx.strokeRect(18, panelY, 310, 110)
+  ctx.strokeRect(18, panelY, 310, 110 + extra)
 
   ctx.fillStyle   = "#ffffff"
   ctx.font        = "700 14px Arial"
@@ -4997,6 +5001,11 @@ export function drawControlsInfo(ctx, canvas) {
   ctx.fillText("Light: J   Heavy: K   Special: L   Ultimate: U", 32, panelY + 58)
   ctx.fillText("Grab: O   Charge: P   Dash: double-tap A/D", 32, panelY + 74)
   ctx.fillText("Specials are directional — hold a dir + L", 32, panelY + 90)
+  if (ben) {
+    ctx.fillStyle = "#7dff6a"
+    ctx.fillText("Omnitrix: S, S, J = transform (Swampfire)", 32, panelY + 108)
+    ctx.fillText("S, S, J+L = turn back to Ben   (pad: ↓, ↓, □)", 32, panelY + 124)
+  }
   ctx.restore()
 }
 

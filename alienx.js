@@ -28,6 +28,12 @@ export const AX_VOICE = { SWITCH: 20, COOLDOWN: 120, SWALLOW: 10,
   bellicus: { dmg: 1.20, def: 0.85, startup: 2, cost: 0, chip: 1.0, label: "BELLICUS" },
   serena:   { dmg: 0.85, def: 1.20, startup: 0, cost: -3, chip: 0.6, label: "SERENA" } }
 export const AX_MIN_DECREE_COST = 6
+// VOID → UNMADE (status on the OPPONENT, owned by this form's GAME_STATE — swap / revert / KO clear it). Clean hits from
+// Nullify, Gravity and Void Grasp add ONE pip per cast (however many ticks hit), max 3, Ben voice only; none from blocks,
+// FX or Starfall Dash. Pips expire 240f after the last. 3 pips → UNMADE (pips consumed): for 300f the opponent's NEXT
+// special is negated (startup plays, Power spent, no hitbox / projectile — abilities.triggerSpecial negate hook).
+// Consumed on use or when the 300f expire; no refresh while active; 420f immunity after.
+export const AX_VOID = { MAX: 3, EXPIRE: 240, UNMADE: 300, IMMUNE: 420 }
 
 export const ALIENX = {
   id: "alienx", poolKey: "alienx", displayName: "Alien X", slot: 7,
@@ -47,14 +53,15 @@ export const ALIENX = {
     air:    normal(36, 8, 4, 12, 2)                                                        // Attacks f10
   },
   anim: ANIM,
-  onApply, tick, moveFrames, damageTaken,
-  drawHud: drawAlienXHud
+  onApply, tick, moveFrames, damageTaken, negateSpecial,
+  drawHud: drawAlienXHud, drawFx: drawAlienXFx
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshAlienXState() {
   return { kind: "alienx", t: 0, castId: 0, baseDmg: 1.0,
-    voice: "ben", switchT: 0, voiceCd: 0, prevBL: false, swallowL: 0, switches: 0, ult: null }
+    voice: "ben", switchT: 0, voiceCd: 0, prevBL: false, swallowL: 0, switches: 0, ult: null,
+    void: { pips: 0, pipT: 0, lastPipCast: -1, unmadeT: 0, immune: 0, unmades: 0, negated: 0, negatedAt: -999 } }
 }
 export const axState = f => (f?.omnitrix?.formState?.kind === "alienx" && f.transformed && f.activeAlien === "alienx") ? f.omnitrix.formState : null
 
@@ -70,6 +77,7 @@ function tick(f, input, ctx, api) {
   s.t++
   tickVoice(f, s, input || {})
   applyVoiceMods(f, s)
+  tickVoid(s)
 }
 
 // ── THREE VOICES ──────────────────────────────────────────────────────────────────────────────────────────
@@ -128,6 +136,34 @@ function damageTaken(f, raw, opts) {
   return raw
 }
 
+// ── VOID → UNMADE ─────────────────────────────────────────────────────────────────────────────────────────
+function tickVoid(s) {
+  const v = s.void
+  if (v.pips > 0 && --v.pipT <= 0) { v.pips = 0; v.pipT = 0 }
+  if (v.unmadeT > 0) { if (--v.unmadeT <= 0) { v.unmadeT = 0; v.immune = AX_VOID.IMMUNE } }
+  else if (v.immune > 0) v.immune--
+}
+// one pip per CAST (a cast id), Ben voice only, never while Unmade is active or the opponent is immune
+export function addVoid(s, cast) {
+  const v = s.void
+  if (cast == null || cast === v.lastPipCast) return false
+  if (s.voice !== "ben") return false
+  if (v.unmadeT > 0 || v.immune > 0) return false
+  v.lastPipCast = cast
+  v.pips = Math.min(AX_VOID.MAX, v.pips + 1); v.pipT = AX_VOID.EXPIRE
+  if (v.pips >= AX_VOID.MAX) { v.pips = 0; v.pipT = 0; v.unmadeT = AX_VOID.UNMADE; v.unmades++ }
+  return true
+}
+// negateSpecial hook (abilities.triggerSpecial, asked for the fighter pressing Special): true while UNMADE is active on
+// that opponent; commit = consume it (→ 420f immunity). It never changes input polling or the simulation clock.
+function negateSpecial(f, target, commit) {
+  const s = axState(f); if (!s || !target || target === f) return false
+  const v = s.void
+  if (!(v.unmadeT > 0)) return false
+  if (commit) { v.unmadeT = 0; v.immune = AX_VOID.IMMUNE; v.negated++; v.negatedAt = s.t }
+  return true
+}
+
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
 const VOICE_COL = { ben: "#7dff6a", bellicus: "#f87171", serena: "#93c5fd" }
 export function drawAlienXHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
@@ -137,5 +173,30 @@ export function drawAlienXHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
   ctx.font = "bold 8px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
   const cd = s.voiceCd > 0 ? `  (${Math.ceil(s.voiceCd / 60)}s)` : ""
   ctx.fillStyle = col; ctx.fillText(`VOICE ${voiceOf(s).label}${s.switchT > 0 ? " …" : ""}${cd}`, flip ? x + 8 + pbw : x + 8, y)
+  const v = s.void
+  const vt = v.unmadeT > 0 ? "UNMADE" : v.immune > 0 ? "IMMUNE" : "◆".repeat(v.pips) + "◇".repeat(AX_VOID.MAX - v.pips)
+  ctx.fillStyle = v.unmadeT > 0 ? "#c084fc" : "#e5e7eb"; ctx.fillText(`VOID ${vt}`, flip ? x + 8 + pbw : x + 8, y + 10)
   ctx.restore()
+}
+// world-space overlays: the UNMADE void glyph over the opponent (+ a burst when a special is negated). Render-only.
+export function drawAlienXFx(c, f, frame = 0, opp = null) {
+  const s = axState(f); if (!c || !s) return
+  c.save(); c.imageSmoothingEnabled = false
+  if (opp && opp._lastDrawX != null && opp._lastDrawW != null) {
+    const ox = opp._lastDrawX + opp._lastDrawW / 2, oy = opp._lastDrawY - 14
+    if (s.void.unmadeT > 0) drawVoidGlyph(c, ox, oy, 3, frame)
+    else if (s.void.pips > 0) for (let i = 0; i < s.void.pips; i++) drawVoidGlyph(c, ox + (i - (s.void.pips - 1) / 2) * 14, oy, 1, frame)
+    const since = s.t - s.void.negatedAt
+    if (since >= 0 && since < 30) { c.strokeStyle = `rgba(192,132,252,${1 - since / 30})`; c.lineWidth = 3; c.beginPath(); c.arc(ox, oy + 40, 10 + since * 2, 0, Math.PI * 2); c.stroke() }
+  }
+  c.restore()
+}
+// 7×7 pixel void glyph (white ring, black core, violet rim) — procedural, render-only
+export function drawVoidGlyph(c, x, y, k = 3, frame = 0) {
+  const rows = [".vwwwv.", "vw...wv", "w.bbb.w", "w.b.b.w", "w.bbb.w", "vw...wv", ".vwwwv."]
+  const pal = { w: "#f8fafc", v: (frame >> 3) % 2 ? "#a855f7" : "#c084fc", b: "#030712" }
+  for (let r = 0; r < rows.length; r++) for (let i = 0; i < rows[r].length; i++) {
+    const ch = rows[r][i]; if (ch === ".") continue
+    c.fillStyle = pal[ch]; c.fillRect(Math.round(x + (i - 3.5) * k), Math.round(y + (r - 3.5) * k), k, k)
+  }
 }

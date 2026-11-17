@@ -4986,7 +4986,8 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   // Ben 10: the Omnitrix inputs are otherwise undiscoverable in a match — show them (presentation-only).
   const ben = isBenDevice(p1)
   const heatblast = ben && p1?.transformed && p1?.activeAlien === "heatblast"
-  const extra = ben ? (heatblast ? 64 : 32) : 0
+  const megawhatt = ben && p1?.transformed && p1?.activeAlien === "megawhatt"
+  const extra = ben ? (heatblast ? 80 : megawhatt ? 96 : 48) : 0
   const panelY = h - 170 - extra
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"
@@ -5008,11 +5009,18 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   if (ben) {
     ctx.fillStyle = "#7dff6a"
     ctx.fillText("Omnitrix: S,S,J = Swampfire   S,S,K = Heatblast", 32, panelY + 108)
-    ctx.fillText("S, S, J+L = turn back to Ben   (pad: ↓↓□ / ↓↓△)", 32, panelY + 124)
+    ctx.fillText("S,S,L = Megawhatt", 32, panelY + 124)
+    ctx.fillText("S, S, J+L = turn back to Ben   (pad: ↓↓□ / ↓↓△)", 32, panelY + 140)
     if (heatblast) {
       ctx.fillStyle = "#ffb347"
-      ctx.fillText("Heatblast: L Fireball  fwd+L Rocket  S+L Supernova", 32, panelY + 140)
-      ctx.fillText("Air L = Blaze Flight   ; + K = Heat Absorb   U = Meteor", 32, panelY + 156)
+      ctx.fillText("Heatblast: L Fireball  fwd+L Rocket  S+L Supernova", 32, panelY + 156)
+      ctx.fillText("Air L = Blaze Flight   ; + K = Heat Absorb   U = Meteor", 32, panelY + 172)
+    }
+    if (megawhatt) {
+      ctx.fillStyle = "#fde047"
+      ctx.fillText("Megawhatt: L Spark Ball  fwd+L Live Wire", 32, panelY + 156)
+      ctx.fillText("back+L Thunder Strike   hold S+L = Ground Draw", 32, panelY + 172)
+      ctx.fillText("Air: hold W = fly   ; + K = Discharge   U = Blackout", 32, panelY + 188)
     }
   }
   ctx.restore()

@@ -1,5 +1,5 @@
 // harness/eyeguy_framedata_diff.mjs — adding Eyeguy (slot 6) must leave EVERY other character's frame data unchanged.
-//   node harness/eyeguy_framedata_diff.mjs [baseCommit]    default base = e13ff96b6 (main after the rebase)
+//   node harness/eyeguy_framedata_diff.mjs [baseCommit]    default base = 1ef3e232a (main at merge time)
 // The base tree is exported with `git archive` to a temp dir and compared block-by-block against this checkout:
 //  1. every roster character: basic_attacks / specials / ultimate / stats / moves / combos / traits / animationData
 //  2. every other Ben 10 alien pool entry (BEN10_ALIEN_POOL minus eyeguy) + Swampfire's, Heatblast's, Megawhatt's, Goop's and XLR8's definitions / anims / FX
@@ -11,7 +11,7 @@ import { execSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BASE = process.argv[2] || 'e13ff96b6'
+const BASE = process.argv[2] || '1ef3e232a'
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eg-fd-'))
 execSync(`git archive ${BASE} | tar -x -C ${tmp}`, { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], shell: '/bin/bash', maxBuffer: 1 << 30 })
 const strip = v => {

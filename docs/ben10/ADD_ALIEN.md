@@ -67,6 +67,25 @@ which returns the active alien's registry entry only when it is `status: "ready"
 - **HUD**: `heatblast.js` exports render-only `drawHeatblastHud` (ui.js, under the Omnitrix bar) and
   `drawHeatblastFx` (game.js fighter overlays); both read state only.
 
+## Optional per-alien hooks (added with Megawhatt, 2026-11-17)
+
+All optional, backward-compatible and ben10-gated: they resolve through `benReadyForm(f)`, which is `null` for every
+non-Ben fighter and for forms that do not define the hook, so every existing character/form takes the old path.
+
+| Hook (on the registry entry) | Engine call site | Contract |
+|---|---|---|
+| `flightProfile: "<key>"` + `FLIGHT_PROFILES.<key>` | flight.js `getFlightProfile` now also reads `fighter._alienFlightProfile` (set in `onApply`) | reuse flight.js per alien; `clearBenFormState` deletes `_alienFlightProfile` and nulls `_flightCtl`. Existing flyers' profiles are untouched. |
+| `incomingScale(f)` | combat.js `applyScaledDamage`, after the form `mods.defense` divide | multiplier on damage taken (Megawhatt Ground Draw ×1.15) |
+| `hurtbox(f)` | combat.js hurtbox getter, before the rosterKey overrides | return a box to override, `null` = ordinary box (Megawhatt Live Wire low profile) |
+| `phasing(f)` | physics.js body collision (`benAlienPhasing(p1, p2)`) | `true` = no body push this frame (cross-ups) |
+| `drawHud(ctx, f, {x, enY, enH, pbw, flip})` | ui.js, under the Omnitrix Power bar | render-only gauge |
+| `drawFx(c, f, frame, opp)` | game.js fighter overlays | render-only; reads state only |
+| `drawUnder(c, f)` | game.js world-space layer under both fighters | render-only (Megawhatt Blackout dim) |
+| projectile `alien: {...}` tag | abilities.js `benAlienApi.spawnProjectile` copies `alien` onto the projectile | plain-data tag read back in `onContact` (cast ids, pip ownership) |
+
+Keep `formState` plain data: store ids (e.g. a cast id) and look live projectiles up each frame — never store object
+references (they make GAME_STATE circular / non-serializable).
+
 ## Required lifecycle contract
 
 - Store authoritative gameplay state as ordinary serializable fighter/device data.

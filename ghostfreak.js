@@ -29,8 +29,9 @@ export const GF_AMBUSH = { WINDOW: 24, MULT: 1.2, CUT: 2 }
 // DREAD → TERROR (status on the opponent, owned by this form's GAME_STATE)
 export const GF_DREAD = { MAX: 3, EXPIRE: 240, TERROR: 120, IMMUNE: 360, WALK: 0.6, CHIP: 1.3 }
 export const GF_COST = { gale: 10, wail: 14, possess: 18, rise: 12, cold: 12, ultimate: 50 }
-// SPECTRAL GALE: 380 px swirl, 4 ticks × 10, pushes 6 px/f while overlapping (8f max per cast), one on screen.
-export const GF_GALE = { STARTUP: 12, SPEED: 10, RANGE: 380, TICKS: [2, 10, 18, 26], DMG: 10, PUSH: 6, PUSH_MAX: 8, W: 70, H: 90, TOTAL: 36 }
+// SPECTRAL GALE: swirl travels up to 380 px; on reaching the opponent it holds on them: 4 ticks × 10 every 8f, pushes
+// 6 px/f while they are inside it (8f max per cast), one on screen.
+export const GF_GALE = { STARTUP: 12, SPEED: 10, RANGE: 380, TICKS: [0, 8, 16, 24], DMG: 10, PUSH: 6, PUSH_MAX: 8, W: 70, H: 90, TOTAL: 36 }
 // WAIL: 160 px burst around him, 16f startup, 30, −10 on block, +1 Dread.
 export const GF_WAIL = { STARTUP: 16, RADIUS: 160, DMG: 30, TOTAL: 46, ON_BLOCK: -10 }
 // POSSESS: command grab, 14f startup (10 from Intangible), 140 px, 28f whiff recovery; possessed 45f, 3 × 15, +2 Dread, +15 Power.
@@ -102,7 +103,7 @@ function tick(f, input, ctx, api) {
   _api = api; s.t++
   const opp = api.getOpponent(f)
   const grounded = !!(f.onGround || f.grounded)
-  if (grounded) { s.floorY = f.y + f.h; s.riseUsed = false; s.coldUsed = false }
+  if (grounded) { s.floorY = f.y + f.h; if (!s.rise) s.riseUsed = false; if (!s.cold) s.coldUsed = false }   // a rise's grounded startup frames are not a landing
   if (s.swallow > 0) s.swallow = input && input.light ? GF_PHASE.SWALLOW : s.swallow - 1   // the Block + Light press never also jabs
   tickPhase(f, s, api)
   tickAmbush(s)
@@ -270,7 +271,7 @@ function startTerror(f, s) {
 }
 
 // ── casts ────────────────────────────────────────────────────────────────────────────────────────────────
-function busy(f, s) { return !!(s.possess || s.ult || s.gale && false) }
+function busy(f, s) { return !!(s.possess || s.ult || s.grab) }
 function beginCast(f, s, api, pose, cost, total, { commit = true, fromPhase = false } = {}) {
   if (!f.transformed || f.activeAlien !== "ghostfreak" || f.attacking || (f.attackCooldown || 0) > 0 ||
       (f.hitstun || 0) > 0 || (f.blockstun || 0) > 0 || busy(f, s)) return false
@@ -286,6 +287,8 @@ function beginCast(f, s, api, pose, cost, total, { commit = true, fromPhase = fa
   return true
 }
 
+// the WIND tag (damageTypes metadata; spawnProjectile does not copy damageType from the move data)
+const wind = p => { if (p) p.damageType = "wind"; return p }
 // ↓↘→ + P Spectral Gale (air: Cold Touch) · ↓↙← + P Wail · →→ + P Possess · ←↙↓ + P Phantom Rise
 function fireSpecial(f, ctx, api) {
   const s = gfState(f); if (!s) return false
@@ -303,7 +306,7 @@ function castGale(f, s, api, face) {
   if (s.gale) return false                                                          // one on screen
   if (!beginCast(f, s, api, "gfGale", GF_COST.gale, GF_GALE.TOTAL)) return false
   const cast = s.castId
-  s.gale = { cast, t: -GF_GALE.STARTUP, x: f.x + f.w / 2 + face * 40, y: f.y + f.h * 0.45, face, dist: 0, push: 0, ticks: 0 }
+  s.gale = { cast, t: -GF_GALE.STARTUP, x: f.x + f.w / 2 + face * 40, y: f.y + f.h * 0.45, face, dist: 0, push: 0, ticks: 0, grip: null }
   f._benSfx = "gf_gale"
   return true
 }
@@ -311,26 +314,32 @@ function tickGale(f, s, opp, ctx, api) {
   const g = s.gale; if (!g) return
   g.t++
   if (g.t <= 0) return
-  g.x += g.face * GF_GALE.SPEED; g.dist += GF_GALE.SPEED
-  const tick = GF_GALE.TICKS.indexOf(g.t)
+  const over = !!opp && !opp.eliminated && Math.abs((opp.x + opp.w / 2) - g.x) <= GF_GALE.W / 2 + opp.w / 2 &&
+    Math.abs((opp.y + opp.h / 2) - g.y) <= GF_GALE.H / 2 + opp.h / 2
+  if (g.grip == null) {                                                             // travelling: 10 px/f until it reaches the opponent
+    if (over) g.grip = 0
+    else { g.x += g.face * GF_GALE.SPEED; g.dist += GF_GALE.SPEED; if (g.dist >= GF_GALE.RANGE) { s.gale = null; return } }
+  }
+  if (g.grip == null) return
+  // caught: the swirl holds on them — pushes 6 px/f while they are inside it, bounded to 8f per cast (no chain-lock;
+  // stage-clamped), and ticks every 8f: 4 × 10, the final tick adds Dread
+  if (over && g.push < GF_GALE.PUSH_MAX) {
+    g.push++
+    const L = ctx?.stageLeft ?? 0, R = (ctx?.stageWidth ?? 1e9) - (opp.w || 60)
+    const nx = Math.max(L, Math.min(R, opp.x + g.face * GF_GALE.PUSH))
+    g.x += nx - opp.x; opp.x = nx
+  }
+  const tick = GF_GALE.TICKS.indexOf(g.grip)
   if (tick >= 0) {
     g.ticks++
     const final = tick === GF_GALE.TICKS.length - 1
-    api.spawnProjectile(f, "gf_gale_" + tick, { damage: GF_GALE.DMG, speed: 0, vx: 0, vy: 0, spawnX: g.x, spawnY: g.y,
-      w: GF_GALE.W, h: GF_GALE.H, radius: GF_GALE.W / 2, lifetime: 2, isSpecial: true, damageType: "wind",
-      noHitstop: !final, hitstun: final ? 24 : 14, blockstun: final ? 14 : 10, knockbackX: final ? 6 : 1, knockbackY: final ? -3 : 0,
-      alien: { gf: true, kind: "gale", cast: g.cast, tick, final } }, {})
+    wind(api.spawnProjectile(f, "gf_gale_" + tick, { damage: GF_GALE.DMG, speed: 0, vx: 0, vy: 0, spawnX: g.x, spawnY: g.y,
+      w: GF_GALE.W, h: GF_GALE.H, rectHitbox: true, lifetime: 2, isSpecial: true,
+      noHitstop: !final, hitstun: final ? 24 : 14, blockstun: final ? 14 : 10, knockbackX: final ? 6 : 0, knockbackY: final ? -3 : 0,
+      alien: { gf: true, kind: "gale", cast: g.cast, tick, final } }, {}))
   }
-  // push the opponent back 6 px/f while inside the gale, bounded to 8f per cast (no chain-lock); stage-clamped
-  if (opp && !opp.eliminated && g.push < GF_GALE.PUSH_MAX) {
-    const ox = opp.x + opp.w / 2, oy = opp.y + opp.h / 2
-    if (Math.abs(ox - g.x) <= GF_GALE.W / 2 + opp.w / 2 && Math.abs(oy - g.y) <= GF_GALE.H / 2 + opp.h / 2) {
-      g.push++
-      const L = ctx?.stageLeft ?? 0, R = (ctx?.stageWidth ?? 1e9) - (opp.w || 60)
-      opp.x = Math.max(L, Math.min(R, opp.x + g.face * GF_GALE.PUSH))
-    }
-  }
-  if (g.dist >= GF_GALE.RANGE || g.t > GF_GALE.TICKS[GF_GALE.TICKS.length - 1] + 12) s.gale = null
+  g.grip++
+  if (g.grip > GF_GALE.TICKS[GF_GALE.TICKS.length - 1] + 6) s.gale = null
 }
 
 function castWail(f, s, api) {
@@ -339,10 +348,10 @@ function castWail(f, s, api) {
   s.wail = { cast, t: 0 }
   f._benSfx = "gf_wail"
   api.scheduleBenSpawn(f, GF_WAIL.STARTUP, () => {
-    api.spawnProjectile(f, "gf_wail", { damage: GF_WAIL.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2, spawnY: f.y + f.h / 2,
+    wind(api.spawnProjectile(f, "gf_wail", { damage: GF_WAIL.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2, spawnY: f.y + f.h / 2,
       radius: GF_WAIL.RADIUS, radial: true, lifetime: 3, isSpecial: true, damageType: "wind", hitstun: 24,
       blockstun: GF_WAIL.TOTAL - GF_WAIL.STARTUP + GF_WAIL.ON_BLOCK, knockbackX: 9, knockbackY: -4,
-      alien: { gf: true, kind: "wail", cast } }, {})
+      alien: { gf: true, kind: "wail", cast } }, {}))
     api.shake?.(4, 8)
   })
   return true
@@ -430,10 +439,10 @@ function castRise(f, s, api, face, grounded) {
   s.rise = { cast, t: 0, face, jc }
   f._benSfx = "gf_rise"
   api.scheduleBenSpawn(f, GF_RISE.HIT_AT, () => {
-    api.spawnProjectile(f, "gf_rise", { damage: GF_RISE.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2 + face * 20, spawnY: f.y + f.h * 0.3,
-      w: 90, h: 140, radius: 60, lifetime: 4, isSpecial: true, damageType: "wind", hitstun: 26,
+    wind(api.spawnProjectile(f, "gf_rise", { damage: GF_RISE.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2 + face * 20, spawnY: f.y + f.h * 0.3,
+      w: 90, h: 140, rectHitbox: true, lifetime: 4, isSpecial: true, damageType: "wind", hitstun: 26,
       blockstun: GF_RISE.TOTAL - GF_RISE.HIT_AT + GF_RISE.ON_BLOCK, knockbackX: 3, knockbackY: -14, launcher: true,
-      alien: { gf: true, kind: "rise", cast } }, {})
+      alien: { gf: true, kind: "rise", cast } }, {}))
   })
   return true
 }
@@ -454,9 +463,9 @@ function castCold(f, s, api, face) {
   s.cold = { cast, t: 0, jc: f.jumpCount }
   f._benSfx = "gf_cold"
   api.scheduleBenSpawn(f, GF_COLD.STARTUP, () => {
-    api.spawnProjectile(f, "gf_cold", { damage: GF_COLD.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2 + face * 40, spawnY: f.y + f.h * 0.8,
-      w: 90, h: 80, radius: 45, lifetime: 4, isSpecial: true, damageType: "wind", hitstun: 22, blockstun: 12,
-      knockbackX: 3, knockbackY: 6, alien: { gf: true, kind: "cold", cast } }, {})
+    wind(api.spawnProjectile(f, "gf_cold", { damage: GF_COLD.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2 + face * 40, spawnY: f.y + f.h * 0.8,
+      w: 90, h: 80, rectHitbox: true, lifetime: 4, isSpecial: true, damageType: "wind", hitstun: 22, blockstun: 12,
+      knockbackX: 3, knockbackY: 6, alien: { gf: true, kind: "cold", cast } }, {}))
   })
   return true
 }
@@ -465,7 +474,7 @@ function tickCold(f, s) {
   c.t++
   if (c.t >= GF_COLD.STARTUP && !(f.onGround || f.grounded)) f.vy = Math.max(f.vy || 0, GF_COLD.DIVE_VY)
   f.jumpCount = Math.max(f.jumpCount || 0, c.jc)                                    // no jump refill
-  if (c.t >= GF_COLD.TOTAL || (f.hitstun || 0) > 0) s.cold = null
+  if (c.t >= GF_COLD.TOTAL || (f.hitstun || 0) > 0 || (c.t > GF_COLD.STARTUP && (f.onGround || f.grounded))) s.cold = null   // ends on landing
 }
 
 // Combat calls this after a contact this form OWNS lands (melee or projectile, blocked or clean).

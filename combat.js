@@ -36,7 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
-import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale } from "./ben10State.js"
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -323,7 +323,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
-  if (isSwampfire(target) && !opts.defenseApplied) rawDamage = (rawDamage ?? 0) / 1.10
+  { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) rawDamage = (rawDamage ?? 0) / _rd.mods.defense }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
   if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
   const scale = opts.bypassScale ? 1
               : opts.scale != null ? opts.scale
@@ -3494,6 +3494,12 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   // FEEDBACK — Energy Absorption counter: absorb the melee blow (no damage), refund energy, stamp the
   // amplified redirect. Scales the discharge by the raw incoming attack damage. Consumes the swing.
+  // READY Omnitrix form absorb (Heatblast HEAT ABSORB: a fire-tagged melee hit → 0 dmg, +25 Heat). No-op otherwise.
+  if (benAlienAbsorb(defender, { move: attacker.currentAttack, attacker })) {
+    attacker.currentAttack.hasHit = true
+    try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+    return
+  }
   if (shouldFeedbackAbsorb(defender, attacker.currentAttack?.damage || 40)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -3603,6 +3609,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (_isBen(attacker)) attacker.energy = Math.min(attacker.maxEnergy || 100, (attacker.energy || 0) + 3)
     const _defTook = !defender.isBlocking || !!atk.unblockable
     if (_defTook && _isBen(defender)) defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + 2)
+    benAlienContact(attacker, defender, { move: atk, blocked: !!defender.isBlocking && !atk.unblockable })   // READY Omnitrix form contact hook (Heatblast Heat); no-op otherwise
   }
 
   if (defender.isBlocking && !atk.unblockable) {
@@ -3799,7 +3806,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     arlongKnockback(attacker, defender, atk)
     spdRedKnockback(attacker, defender, atk)
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
-    if (isSwampfire(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }
+    if (benReadyForm(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }   // READY forms' weight (Swampfire unchanged)
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —
@@ -4351,7 +4358,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // only sets this control airborne), so it's a no-op for every character except the one
       // that defines it. Currently: Madara's Susanoo-hand grab.
       startMove(fighter, "air_heavy", _getMD(fighter, "air_heavy"))
-    } else if (isSwampfire(fighter) && (fighter.onGround || fighter.grounded) && controls.crouch && (controls.light || controls.heavy)) {
+    } else if (benReadyForm(fighter) && (fighter.onGround || fighter.grounded) && controls.crouch && (controls.light || controls.heavy)) {   // READY forms' Low (Swampfire unchanged)
       startMove(fighter, "down", fighter.basic_attacks.down)
     } else if (controls.light) {
       if (startMove(fighter, "light", _getMD(fighter, "light"))) _setCrouchVariant(fighter, controls.crouch, "crouchLight")
@@ -4605,6 +4612,12 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
 
       // FEEDBACK — Energy Absorption also eats projectiles (canonically its specialty): absorb the
       // incoming energy, consume the projectile, and stamp the amplified redirect scaled by proj damage.
+      // READY Omnitrix form absorb (Heatblast HEAT ABSORB eats one projectile → +25 Heat). No-op otherwise.
+      if (benAlienAbsorb(fighter, { proj, attacker: proj.owner })) {
+        try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
+        projectiles.splice(i, 1)
+        break
+      }
       if (shouldFeedbackAbsorb(fighter, proj.damage || 40)) {
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
         projectiles.splice(i, 1)
@@ -4711,7 +4724,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
 
       // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)
-      applyScaledDamage(fighter, dmg, { source: "projectile", attacker: proj.owner, move: proj.name })   // attacker+move → Brutality killing-blow-move stamp (projectile specials key off proj.name, not the owner's stale currentMove)
+      applyScaledDamage(fighter, dmg, { source: "projectile", attacker: proj.owner, move: proj.name })
+      benAlienContact(proj.owner, fighter, { proj, blocked: !!fighter.isBlocking, dealDamage: applyScaledDamage, comboScale: getComboScale })   // READY Omnitrix form contact (Heatblast Heat / Scorch / Flashpoint / ult capture); no-op otherwise   // attacker+move → Brutality killing-blow-move stamp (projectile specials key off proj.name, not the owner's stale currentMove)
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
       trackBanditEchoMark(fighter, proj.owner, proj, fighter.isBlocking, true)   // Bandit's Echo: any opponent PROJECTILE connect marks it (special-tier; independent of Skill Hunter)
 

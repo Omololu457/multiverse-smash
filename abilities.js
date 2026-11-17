@@ -10,6 +10,7 @@ import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive 
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
 import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)
 import { SWAMPFIRE_FX } from "./swampfire.js"
+import { benReadyForm } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -67,7 +68,7 @@ import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./
 import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
 import { activateTojiReincarnationCinematic, isTojiReincarnationCinematicActive } from "./tojiReincarnationCinematic.js"   // Toji Reincarnated Form activation cinematic (no cycle; mirrors Overdrive/Godspeed)
 import { activateTojiFlyHeadsSwarm, isTojiFlyHeadsSwarmActive } from "./tojiFlyHeadsSwarm.js"   // Toji Fly Heads — dense screen-clutter vision-denial swarm overlay (0 damage; no cycle)
-import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
+import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove, getComboScale } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
 import { spawnCubeTrap, activeCubeTraps } from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (+ the shared list, cleared by Shizuku Spring Cleaning); cubeTrap.js imports combat/input but NOT abilities → no cycle
 import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension" Kamui banishment engine (character-agnostic; imports nothing from abilities → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
@@ -29710,6 +29711,26 @@ function fireSwampfireUltimate(fighter, context) {
   return true
 }
 
+// GENERIC READY-FORM API (ADD_ALIEN.md): the shared primitives a ready alien's leaf module may call. Its own
+// projectile tags (hb*, fire) are copied onto the spawned projectile so combat's contact / absorb hooks can read them.
+function benAlienApi(context) {
+  const getOpp = getTargetResolver(context)
+  return {
+    spendEnergy, scheduleBenSpawn, applyScaledDamage, getComboScale,
+    getOpponent: f => getOpp(f),
+    activeProjectiles: () => activeProjectiles,
+    spawnProjectile: (f, type, md, ctx) => { const p = spawnProjectile(f, type, md, ctx || {}); if (p) for (const k of Object.keys(md)) if (k === "fire" || /^hb[A-Z]/.test(k)) p[k] = md[k]; return p },
+    shake: (amount, frames) => shakeCamera(context, amount, frames),
+    focusCamera: (f, t, zoom, frames) => focusCameraOnAction(context, f, t, zoom, frames)
+  }
+}
+// Per-frame tick of the active READY form (game.js calls it once per fighter after the Omnitrix device update).
+// Gated: returns at once unless this is Ben / Albedo in a ready form that defines tick.
+export function tickBenAlienForm(fighter, input, context) {
+  const d = benReadyForm(fighter)
+  if (d && typeof d.tick === "function") d.tick(fighter, input || {}, context, benAlienApi(context))
+}
+
 function executeBen10Special(fighter, context) {
   const dir = fighter._specialHeldDir || null
   if (fighter.transformed === false) {   // Ben-human (Phase 4): Energy Shot / Dash Strike / (Prime) Shockwave
@@ -29719,6 +29740,7 @@ function executeBen10Special(fighter, context) {
     return fireBenEnergyShot(fighter, context)                                        // ↓↘→ + Special (neutral)
   }
   const a = (fighter.activeAlien || "").toLowerCase()
+  { const _rd = benReadyForm(fighter); if (_rd && typeof _rd.fireSpecial === "function") return _rd.fireSpecial(fighter, context, benAlienApi(context)) }
   if (a === "swampfire") return fireSwampfireSpecial(fighter, context)
   if (a === "diamondhead") {
     if (dir === "D") return fireDhRisingDiamonds(fighter, context)
@@ -30193,6 +30215,7 @@ function executeBen10Ultimate(fighter, context) {
     return true
   }
   const a = (fighter.activeAlien || "").toLowerCase()
+  { const _rd = benReadyForm(fighter); if (_rd && typeof _rd.fireUltimate === "function") return _rd.fireUltimate(fighter, context, benAlienApi(context)) }
   if (a === "swampfire") return fireSwampfireUltimate(fighter, context)
   if (a === "xlr8")        return fireXlr8TimeSlice(fighter, context)         // opponent speed-debuff (NOT self-buff)
   if (a === "diamondhead") return fireDhCrystallineEruption(fighter, context)

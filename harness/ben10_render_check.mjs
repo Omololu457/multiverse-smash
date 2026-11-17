@@ -58,7 +58,7 @@ try {
   // ── PLACEHOLDER ALIEN + BINDING VOW render (Phase 10 requirement) ──
   await page.goto(`${base}/index.html?harness=1&p1=ben10&p2=goku`, { waitUntil: "load" })
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 })
-  await page.evaluate(() => window.__harness.start({ p1Skin: "default" }))
+  await page.evaluate(() => window.__harness.start({ p1Skin: "default", p1Aliens: ["xlr8", "diamondhead", "feedback", "wildmutt"] }))   // placeholders only (Heatblast now has real art)
   await frames(4); await page.evaluate(() => window.__harness.skipToBattle()); await frames(20)
   await page.evaluate(() => { window.__harness.ben10Vow("p1", true); window.__harness.ben10SetPower("p1", 100); window.__harness.ben10Morph("p1", 0) })
   await frames(46)

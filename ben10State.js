@@ -1,5 +1,18 @@
 // Serializable Ben state shared by the device and damage pipeline. No DOM, clocks or RNG.
+import { getAlienDefinition } from "./aliens.js"
 export const isBenDevice = f => ["ben10", "albedo"].includes((f?.rosterKey || "").toLowerCase())
+// GENERIC READY-FORM HOOK (ADD_ALIEN.md): the active alien's registry entry when it is status "ready", else null.
+// Every engine site that used to test `activeAlien === "swampfire"` for a ready-form rule (mods, lunge, power commit,
+// knockback weight) now asks this, so a new ready alien needs no engine edit. ben10/albedo-gated → null for everyone else.
+export const benReadyForm = f => {
+  if (!isBenDevice(f) || !f.transformed || !f.activeAlien) return null
+  const d = getAlienDefinition(f.activeAlien)
+  return d && d.status === "ready" ? d : null
+}
+// Optional per-form hooks (absorb before a hit resolves / contact after a hit this fighter owns lands). Both are
+// no-ops unless the defender / owner is a ready form that defines the hook.
+export function benAlienAbsorb(defender, info) { const d = benReadyForm(defender); return !!(d && d.absorb && d.absorb(defender, info || {})) }
+export function benAlienContact(owner, target, info) { const d = benReadyForm(owner); if (d && d.onContact) d.onContact(owner, target, info || {}) }
 export const isSwampfire = f => isBenDevice(f) && f.transformed && f.activeAlien === "swampfire"
 export function invalidateBenAction(f) {
   if (!isBenDevice(f)) return
@@ -16,6 +29,9 @@ export function clearBenFormState(f) {
   for (const k of ["_fbAbsorbWindow", "_fbAbsorbPending", "_fbRedirectDmg", "_axUltWindup", "_benOverloadFx", "_benShockwaveFx", "_benLunge", "_benVineHold", "_benPowerCommit"]) delete f[k]
   f._spriteCastMove = null; f._spriteCastTimer = 0; f._benEnergyGuard = 0
   if (f.omnitrix) f.omnitrix.regrowth = null
+  // generic per-form GAME_STATE slot (Heatblast's Heat / Scorch / flight / ult) + its glide — gone on swap / revert / KO
+  if (f.omnitrix && f.omnitrix.formState) f.omnitrix.formState = null
+  if (f._benGlide) delete f._benGlide
 }
 export function resetBenDefense(f) {
   for (const k of Object.keys(f)) if (k.startsWith("_omx")) delete f[k]
@@ -50,7 +66,7 @@ export function tickRegrowth(f) {
   f.health += amount; r.pool = Math.max(0, r.pool - amount); r.restored += amount; r.fxFrames = 10
   if (!f._benSfx) f._benSfx = "sf_regrow"   // render-only cue, drained by game.js ben10Sfx the same frame
 }
-export const benKnockbackScale = f => isSwampfire(f) ? 1 / 1.15 : 1
+export const benKnockbackScale = f => { const d = benReadyForm(f); return d ? 1 / d.mods.weight : 1 }   // Swampfire 1/1.15 (unchanged)
 
 // Identity-replacement systems own the new kit. Remove only old Ben-owned transient fields/art.
 export function clearBenIdentityState(f) {

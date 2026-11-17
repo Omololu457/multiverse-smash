@@ -3,9 +3,10 @@ import assert from 'node:assert/strict'
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import { clearDomains } from '../domains.js'
-import { getAvailableAlienKeys } from '../aliens.js'
+import { getAvailableAlienKeys, getAlienDefinition } from '../aliens.js'
 let passed=0
-for(const key of getAvailableAlienKeys(true).filter(k=>k!=='swampfire')){
+// ready forms (Swampfire, Heatblast) have their own harnesses; this catalog covers the experimental ones
+for(const key of getAvailableAlienKeys(true).filter(k=>getAlienDefinition(k)?.status!=='ready')){
  for(const direction of ['N','F','D','ULT']){
   A.clearAbilityState();clearDomains()
   const f={rosterKey:'ben10',benExperimental:true,side:'p1',x:500,y:300,w:60,h:110,groundY:410,facing:1,health:950,maxHealth:950,energy:100,maxEnergy:100,hitstun:0,blockstun:0,attackCooldown:0,ultimateCooldown:0,onGround:true,grounded:true}

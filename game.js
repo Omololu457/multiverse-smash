@@ -167,8 +167,11 @@ const MMPR_WHITE_WORLD = MMPR_BLACK_WORLD   // White Ranger: the same self-conta
 const MMPR_PINK_WORLD = MMPR_BLACK_WORLD   // Pink Ranger: the same self-contained world (Thunder Megazord strikes + arrows read fighters / spawn / damage)
 const GREEN_RANGER_WORLD = MMPR_BLACK_WORLD   // Green Ranger: the same self-contained world (Pulse / Edge bursts spawn through W.spawn, Zord damage through W.damage)
 import { SWAMPFIRE_FX } from "./swampfire.js"
+import { drawHeatblastFx } from "./heatblast.js"   // Heatblast ult pixel rings (render-only; heatblast form only)
+import { tickBenAlienForm } from "./abilities.js"   // READY Omnitrix form per-frame tick (Heatblast Heat / Scorch / flight / ult)
+import { benReadyForm } from "./ben10State.js"   // READY Omnitrix form lookup (null for everyone else)
 import { clearBenIdentityState } from "./ben10State.js"
-import { isAlienAvailable, getAvailableAlienKeys } from "./aliens.js"
+import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
 // game.js
 
 import { bindingVows, activateBindingVow, hasBindingVow, activeVows, clearAllBindingVows, tryActivateBindingVow } from "./bindingvow.js"
@@ -12211,7 +12214,14 @@ function handleOmnitrixSwitch(fighter, inputState) {
     }
   }
   // ENERGY GUARD (Block + Heavy): opens a 90f absorb window (negates one hit), costs 10 Power, 8s cd.
-  if (!(fighter._benPowerCommit > 0) && !!inputState.block && heavy && !held.heavy && (fighter._benGuardCd || 0) <= 0 && (fighter.energy || 0) >= BEN10_DEFENSE.GUARD_COST) {
+  // A READY form may own Block + Heavy instead (Heatblast: HEAT ABSORB) via its blockHeavy hook.
+  const _rdBH = benReadyForm(fighter)?.blockHeavy
+  if (_rdBH) {
+    if (!(fighter._benPowerCommit > 0) && !!inputState.block && heavy && !held.heavy && _rdBH(fighter)) {
+      fighter._omxConsume = { ...(fighter._omxConsume || {}), heavy: true }
+      inputState.heavy = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
+    }
+  } else if (!(fighter._benPowerCommit > 0) && !!inputState.block && heavy && !held.heavy && (fighter._benGuardCd || 0) <= 0 && (fighter.energy || 0) >= BEN10_DEFENSE.GUARD_COST) {
     fighter.energy -= BEN10_DEFENSE.GUARD_COST
     fighter._benEnergyGuard = BEN10_DEFENSE.GUARD_WINDOW
     fighter._benGuardCd = BEN10_DEFENSE.GUARD_CD
@@ -20595,7 +20605,8 @@ function updateFighterState(fighter) {
         spawnX: updated.x + updated.w / 2, spawnY: updated.y + updated.h / 2,
         visualOnly: true, lifetime: 20, sheet: a.sheet, spriteFrames: a.frames,
         spriteW: a.w, spriteH: a.h, spriteSpeed: 2, spriteScale: 1.5 }, {})
-    } if (updated._benSfx) { ben10Sfx(updated, updated._benSfx); updated._benSfx = null } }
+    } tickBenAlienForm(updated, readRawControls(updated) || {}, getAbilityContext())   // READY-form tick (no-op unless one defines it)
+    if (updated._benSfx) { ben10Sfx(updated, updated._benSfx); updated._benSfx = null } }
   else if (!isOmniManFlying(updated)) regenEnergy(updated)   // Omni-Man: no passive regen WHILE flying, or the flight drain would never deplete the shared pool (he regens normally on the ground)
   if (updated._meterDrain && !updated.infiniteEnergy && (updated.maxEnergy || 0) > 0) updated.energy = Math.max(0, (updated.energy || 0) - 0.5)   // Stage 24A "Meter Drain" modifier
   maybeKilluaChargeCompleteVoice(updated)   // Killua "charge complete!" bark — precise charge-animation-finished event
@@ -22393,6 +22404,7 @@ function renderHybridFighter(fighter) {
     drawShisuiKotoOverlay(c, fighter)       // Shisui (Puppeteer) — Kotoamatsukami full-screen genjutsu-world backdrop + 3 Mangekyō eyes (screen-space; the caster carries _kotoOverlay)
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
+    drawHeatblastFx(c, fighter, globalFrameCount)   // Heatblast — Pyronite Meteor mini-sun pixel rings (render-only; heatblast form only)
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
     drawKakashiAnbuTomoeField(c, fighter)   // Kakashi (ANBU) Alien X skin — floating RED SHARINGAN TOMOE over the void body (kakashi_anbu + skinId endsWith "AlienX")
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
@@ -24414,7 +24426,7 @@ function captureFrameAdvantage(def, atk) {
   if (hitRose || blockRose) {
     const onBlock = blockRose && !hitRose ? true : (bs > hs)
     const stun = onBlock ? bs : hs
-    const atkRecovery = atk.currentAttack ? (atk.currentAttack.timer || 0) : ((isTransformDevice(atk) && atk.activeAlien === "swampfire" && atk._benPowerCommit > 0) ? (atk.attackCooldown || 0) : 0)
+    const atkRecovery = atk.currentAttack ? (atk.currentAttack.timer || 0) : ((isTransformDevice(atk) && benReadyForm(atk) && atk._benPowerCommit > 0) ? (atk.attackCooldown || 0) : 0)
     trainingState.lastAdvantage = {
       value: stun - atkRecovery,
       stun, recovery: atkRecovery,   // exposed components (value === stun − recovery)
@@ -26179,7 +26191,7 @@ function getUniverseList() {
 function getAlienPoolList() {
   return getAvailableAlienKeys(!!matchConfig.benExperimental).filter(key => BEN10_ALIEN_POOL[key]).map(key => {
     const a = BEN10_ALIEN_POOL[key]
-    return { key, name: a.name + (key === "swampfire" ? "" : " [EXPERIMENTAL / placeholder]"), color: a.color }
+    return { key, name: a.name + (getAlienDefinition(key)?.status === "ready" ? "" : " [EXPERIMENTAL / placeholder]"), color: a.color }
   })
 }
 

@@ -23,7 +23,7 @@ not make a form playable or finished. Do not add a new roster character for an a
 `isAlienAvailable(key, experimental)` is the common capability rule. Normal play
 requires status ready plus actual sheet/ledger references. Experimental access is
 explicit, separate from roster developer unlocks, and labels placeholder forms.
-Currently only Swampfire is approved; 13 former picker forms remain experimental.
+Currently Swampfire and Heatblast are approved; 12 former picker forms remain experimental.
 The other mechanical pool records remain retained and unexposed.
 
 `createOmnitrixState` prunes invalid or disallowed old selections and falls back to
@@ -33,11 +33,39 @@ legacy BEN10_ART_ALIENS export is a compatibility catalog, not proof of real art
 `buildLoadout` / `getAlienBySlot` default to approved definitions, with explicit
 experimental options; empty metadata slots are not selectable production forms.
 
-Normal default loadout is Swampfire. Ben-only development mode can be opened with
+Normal default loadout is Swampfire (slot 1) + Heatblast (slot 2). Ben-only development mode can be opened with
 `?benExperimental=1`; harness matches have an explicit experimental override and
 retain the legacy five-form development default. A match carries its policy and
 loadouts in replay/host setup, so local preferences cannot change peer eligibility.
 Prime is a pending-art experiment and is filtered from normal skin selection.
+
+## Generic ready-form hooks (added with Heatblast, 2026-11-17)
+
+All optional and backward-compatible: an entry that defines none of them (Swampfire) behaves
+exactly as before; every site is ben10/albedo-gated through `benReadyForm(f)` (ben10State.js),
+which returns the active alien's registry entry only when it is `status: "ready"`.
+
+- **Stats** (`fighters.applyAlien`): any ready entry gets human-variant stats × `mods`
+  (speed / damage / defense / weight). Optional `maxJumps` (default 1; Heatblast 2 = the shared
+  double jump) and `onApply(fighter)`. Swampfire's Regrowth start stays keyed to Swampfire.
+- **Art**: a ready entry with an `anim` table has art (`benAlienHasArt`), used as `_skinAnim`.
+- **State**: `fighter.omnitrix.formState` is the per-form GAME_STATE slot; `clearBenFormState`
+  nulls it (and any `_benGlide`) on swap / revert / KO.
+- **Dispatch** (`abilities.js`): `fireSpecial(f, ctx, api)` / `fireUltimate(f, ctx, api)` run before
+  the per-alien chain; `tick(f, input, ctx, api)` runs once per frame from game.js after the device
+  update. `api` = spendEnergy, scheduleBenSpawn, spawnProjectile (copies `fire` / `hb*` tags onto
+  the projectile), applyScaledDamage, getComboScale, getOpponent, activeProjectiles, shake,
+  focusCamera — so the alien module stays a leaf (no engine imports, no cycles).
+- **Combat** (`combat.js`): `absorb(defender, { proj | move, attacker })` before a melee or projectile
+  hit resolves (true = negated); `onContact(owner, target, { proj | move, blocked, dealDamage,
+  comboScale })` after a contact the form owns lands. Ready-form defense / knockback weight and
+  the crouch+attack Low use the entry's mods instead of a Swampfire check.
+- **Physics**: `_benLunge` and `_benPowerCommit` now apply to any ready form; new `_benGlide =
+  { vx, vy, minY }` integrates position (stage / floor clamped) and skips gravity while set.
+- **Input**: `blockHeavy(f)` lets a ready form own Block + Heavy (Heatblast: Heat Absorb) in place
+  of Ben's Energy Guard.
+- **HUD**: `heatblast.js` exports render-only `drawHeatblastHud` (ui.js, under the Omnitrix bar) and
+  `drawHeatblastFx` (game.js fighter overlays); both read state only.
 
 ## Required lifecycle contract
 

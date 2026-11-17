@@ -36,6 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -52,6 +53,7 @@ import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net
 
 import { physics } from "./physics.js"
 import { poolAcquire } from "./pool.js"   // Stage 22C: recycle hit-spark objects (spawned in bursts during ultimates)
+import { hitstopOverrideFor } from "./hitstop_overrides.js"   // FEEL PASS (Phase 1): sparse per-move hitstop overrides (Scaled-only, deterministic)
 import { sound, SFX } from "./sound.js"
 import { pickRickVoice } from "./rickVoice.js"
 import { pickOmololuVoice } from "./omololuVoice.js"   // Omololu hit-react + low-health voice pools (audio-only)
@@ -140,6 +142,52 @@ export const HITSTOP = {
   default: 4
 }
 
+// ========================
+// FEEL PASS (Phase 1) — HITSTOP STYLE: Classic vs Scaled-by-power
+// ========================
+// `HITSTOP` above is the CLASSIC profile = the exact pre-FeelPass values; the "Classic" setting
+// restores it byte-for-byte (and harness/hitstop.test.mjs — which imports combat.js directly and
+// never flips the style — keeps exercising it, so Classic is a proven byte-identical snapshot).
+// `HITSTOP_SCALED` is the Phase-1 power-scaled PROFILE (the in-game default; game.js opts in at boot).
+// Both tables are LAN-safe: the EFFECTIVE style is replicated host-authoritatively in MATCH_SETUP
+// (same pattern as Slow-Mo), so every peer reads identical values → the sim stays in lockstep.
+// Frame advantage is invariant to the chosen style: both fighters freeze the SAME frames and
+// hitstun/blockstun never tick during hitstop (updateCombat early-returns), so the value only
+// changes how long the shared impact-freeze holds — never who recovers first.
+export const HITSTOP_SCALED = {
+  light: 3,        // snappy pokes
+  air: 3,
+  grab: 5,         // MEDIUM-weight
+  heavy: 8,
+  launcher: 8,     // HEAVY family
+  spike: 8,
+  special: 10,
+  ultimate: 14,    // connect value; a full-ult cinematic (when enabled) owns the dramatic hold on top
+  projectile: 8,   // unchanged (zoner-friendly)
+  parry: 14,       // defensive clash feedback — not an attack-power tier, kept equal to Classic
+  clash: 14,
+  medium: 5,       // a light-category normal that hits >= HITSTOP_MEDIUM_DMG reads as MEDIUM
+  roundEnd: 20,    // DATA only: a round-ending blow; NOT applied separately — the KO freeze owns that moment
+  default: 3
+}
+// Blocked-hit hitstop (Scaled only). Classic blocks apply ZERO hitstop (the historical "freeze is a
+// clean-hit reward" rule, still asserted by hitstop.test.mjs §5). Scaled gives a block a light shared
+// tick so a guard reads with weight; both fighters still freeze equally → block advantage unchanged.
+export const HITSTOP_BLOCK_SCALED = { light: 2, medium: 3, heavy: 5, special: 6, ultimate: 8, default: 2 }
+export const HITSTOP_MULTIHIT_NONFINAL = 3   // non-final hit of a multi-hit move (Scaled): a brief tick, no stutter-freeze
+export const HITSTOP_MOVE_CAP          = 24  // Scaled: cap CUMULATIVE hitstop a single move instance can impose
+export const HITSTOP_MEDIUM_DMG        = 45  // Scaled: light-category normal at/above this damage = MEDIUM tier (mirrors HIT_FEEL mediumDamage)
+
+// Active style. DEFAULT "classic" so a direct combat.js import (unit tests) sees the exact old
+// behaviour; game.js pushes the effective style ("scaled" by default, or the host's choice in LAN).
+let _hitstopStyle = "classic"
+export function setHitstopStyle(style) { _hitstopStyle = (style === "scaled") ? "scaled" : "classic" }
+export function getHitstopStyle() { return _hitstopStyle }
+function _hsTable() { return _hitstopStyle === "scaled" ? HITSTOP_SCALED : HITSTOP }
+// The active-style ULTIMATE hitstop value — exported so the ultimate-connect detector never has to
+// hard-code a magnitude (it keys off a deterministic flag instead; this is a fallback/telemetry read).
+export function getUltimateHitstopFrames() { return _hsTable().ultimate }
+
 // Single shared entry point for applying hit-stop. BOTH the melee path
 // (resolveAttackHit) and the projectile path (resolveProjectileHitsMulti) call this,
 // so freezing is one system, not two divergent copies. Uses max() so a heavier
@@ -151,15 +199,56 @@ export function applyHitstop(attacker, defender, frames) {
   if (defender) defender.hitstop = Math.max(defender.hitstop || 0, f)
 }
 
+// FEEL PASS (Phase 1): apply melee hit-stop for a CLEAN connect, with Scaled-mode refinements —
+// multi-hit discipline (non-final hits get a brief tick; the committing/finisher hit gets the full
+// tier value) and a per-move CUMULATIVE cap so a long multi-hit can't stack into an endless freeze.
+// Also raises a deterministic ultimate-connect pulse (read + cleared by game.js's ultimate zoom-crop,
+// which no longer sniffs the hitstop magnitude). In CLASSIC mode this is byte-identical to the old
+// single `applyHitstop(attacker, defender, getHitstopFrames(atk))` call — none of the refinements run.
+export function applyHitstopForHit(attacker, defender, atk) {
+  let want = getHitstopFrames(atk, attacker)
+  if (_hitstopStyle === "scaled") {
+    const a = attacker && attacker.currentAttack
+    if (a) {
+      a._hsHits = (a._hsHits || 0) + 1
+      const finisher  = !!(atk.launcher || atk.spike || atk.isSpecial || atk.isUltimate)
+      const moreActive = (a.timer || 0) > 1 && getAttackPhase(attacker) === "active"
+      // non-final repeat hit of a multi-hit move → a brief tick, no stutter-freeze
+      if (a._hsHits > 1 && !finisher && moreActive) want = Math.min(want, HITSTOP_MULTIHIT_NONFINAL)
+      // cumulative cap: the FIRST hit is uncapped (one big blow keeps its full tier value); each later
+      // hit may only consume the remaining budget, so the move's TOTAL imposed freeze stays ≤ the cap
+      if (a._hsHits > 1) want = Math.min(want, Math.max(0, HITSTOP_MOVE_CAP - (a._hsUsed || 0)))
+      a._hsUsed = (a._hsUsed || 0) + Math.max(0, want)
+    }
+  }
+  applyHitstop(attacker, defender, want)
+  if (atk.isUltimate) { if (attacker) attacker._ultLanded = true; if (defender) defender._ultLanded = true }
+}
+
+// Blocked-hit hit-stop (Scaled only). Returns 0 in Classic (historical "block = no freeze" rule,
+// asserted by hitstop.test.mjs §5). Keyed by the same tier the clean hit would use.
+export function getBlockHitstopFrames(atk) {
+  if (_hitstopStyle !== "scaled" || !atk) return 0
+  const B = HITSTOP_BLOCK_SCALED
+  if (atk.isUltimate) return B.ultimate
+  if (atk.isSpecial)  return B.special
+  if (atk.launcher || atk.spike) return B.heavy
+  const c = atk.category || _catFromName(atk.name)
+  if (c === "heavy") return B.heavy
+  if ((c === "light" || c === "air" || !c) && (atk.damage || 0) >= HITSTOP_MEDIUM_DMG) return B.medium
+  return B[c] ?? B.default
+}
+
 // Projectile hit-stop frames. Weight-scaled like melee, with two escape hatches so
 // rapid multi-hit / DOT projectiles don't stutter-freeze: a per-projectile numeric
 // `hitstop` override, and a `noHitstop` opt-out. visualOnly projectiles never freeze.
 export function getProjectileHitstopFrames(proj) {
   if (!proj || proj.visualOnly || proj.noHitstop) return 0
   if (typeof proj.hitstop === "number") return proj.hitstop
-  if (proj.isUltimate) return HITSTOP.ultimate
-  if (proj.isSpecial)  return HITSTOP.special
-  return HITSTOP.projectile
+  const T = _hsTable()
+  if (proj.isUltimate) return T.ultimate
+  if (proj.isSpecial)  return T.special
+  return T.projectile
 }
 
 // ========================
@@ -228,10 +317,14 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   }
   // SOLDIER BOY — SECOND WIND: while the 3s comeback window holds, incoming damage is reduced 25%.
   if ((target._sbSecondWind || 0) > 0 && (target.rosterKey || "").toLowerCase() === "soldier_boy") rawDamage = (rawDamage || 0) * 0.75
+  // BEN 10 — LAST RESORT: while the 2s comeback window holds, incoming damage is reduced 20%. ben10/albedo-gated.
+  if ((target._benDR || 0) > 0) { const _bk = (target.rosterKey || "").toLowerCase(); if (_bk === "ben10" || _bk === "albedo") rawDamage = (rawDamage || 0) * 0.80 }
   //   opts.bypassScale : DELIBERATE escape hatch — apply the raw amount with no global scale
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
+  if (isSwampfire(target) && !opts.defenseApplied) rawDamage = (rawDamage ?? 0) / 1.10
+  if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
   const scale = opts.bypassScale ? 1
               : opts.scale != null ? opts.scale
               : GLOBAL_DAMAGE_SCALE
@@ -241,6 +334,8 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const before = target.health || 0
   target.health = Math.max(floor, before - dealt)
   if (target.health <= 0) clearLuffy(target)
+  recordRegrowthDamage(target, Math.max(0, before - target.health), opts)
+  if (target.health <= 0) handleBenKO(target)
   // KILLING-BLOW-MOVE STAMP (Brutality engine): when THIS application is the one that crosses the
   // defender to <=0, record on the ATTACKER which move landed the fatal blow so _tryStartBrutality can
   // key a per-MOVE finisher instead of only "who won". Purely post-KO bookkeeping — never read by the
@@ -476,21 +571,31 @@ export function getComboHitstunScale(fighter) { return _comboScale(fighter, COMB
 // ATTACK PHASE
 // ========================
 
-export function getHitstopFrames(atk) {
-  if (!atk) return HITSTOP.default
+export function getHitstopFrames(atk, owner) {
+  const T = _hsTable()
+  if (!atk) return T.default
   if (atk.dp && atk.dp.hitstop != null) return atk.dp.hitstop   // Dash Parr multi-hit specials: light freeze between punches (dp exists only on dash_parr attacks)
-  if (atk.isUltimate) return HITSTOP.ultimate
-  if (atk.isSpecial) return HITSTOP.special
+  // FEEL PASS (Phase 1): a sparse per-move override wins over the tier (Scaled only; Classic is the
+  // byte-exact snapshot and ignores overrides). "skip" → 0 (a cinematic owns this move's impact).
+  if (_hitstopStyle === "scaled") {
+    const ov = hitstopOverrideFor(owner?.rosterKey || atk.rosterKey, atk.name)
+    if (ov === "skip") return 0
+    if (typeof ov === "number") return Math.max(0, Math.min(HITSTOP_MOVE_CAP, ov | 0))
+  }
+  if (atk.isUltimate) return T.ultimate
+  if (atk.isSpecial) return T.special
   // COMBO-FLOW: honor the launcher/spike FLAGS, not just the name. Rekka finishers are named
   // per-stage (barrage4, batCombo3, …) so _catFromName can't see they're launchers — without this
   // they froze at jab weight (HITSTOP.light) despite launching. Fire fns set attack.launcher on the
   // finisher (and md.launcher/spike propagate via createAttackFromMove.category), so this is the ONE
   // place the whole roster's chain finishers get their proper heavy/launcher impact-freeze.
-  if (atk.launcher) return HITSTOP.launcher
-  if (atk.spike)    return HITSTOP.spike
+  if (atk.launcher) return T.launcher
+  if (atk.spike)    return T.spike
 
   const c = atk.category || _catFromName(atk.name)
-  return HITSTOP[c] ?? HITSTOP.default
+  // MEDIUM tier (Scaled): a light-category normal that hits hard enough reads as a mid-weight blow.
+  if (_hitstopStyle === "scaled" && (c === "light" || c === "air" || !c) && (atk.damage || 0) >= HITSTOP_MEDIUM_DMG) return T.medium
+  return T[c] ?? T.default
 }
 
 export function getSparkCategory(atk) {
@@ -3126,9 +3231,10 @@ export function startMove(fighter, moveKey, moveData) {
   // are honoured to the frame (enables tight command chaining). Non-frameExact moves (every other
   // character) keep the original scaled path EXACTLY — byte-identical behaviour.
   const timingScale = moveData.frameExact ? 1 / ((fighter.attackSpeedMultiplier || 1) * (fighter._timeSlowTimer > 0 ? TIME_SLOW_FACTOR : 1)) : 1
-  const st = moveData.frameExact ? Math.floor((moveData.startup ?? 5) * timingScale) : (moveData.startup || 5)
-  const ac = moveData.frameExact ? Math.max(1, Math.floor((moveData.active ?? 4) * timingScale)) : (moveData.active || 4)
-  const rc = moveData.frameExact ? Math.floor((moveData.recovery ?? 10) * timingScale) : (moveData.recovery || 10)
+  const _benT = isBenDevice(fighter)   // Ben 10 / Albedo: authored 0-frame values are kept (`??`); everyone else byte-identical (`||`)
+  const st = (moveData.frameExact || _benT) ? Math.floor((moveData.startup ?? 5) * timingScale) : (moveData.startup || 5)
+  const ac = (moveData.frameExact || _benT) ? Math.max(1, Math.floor((moveData.active ?? 4) * timingScale)) : (moveData.active || 4)
+  const rc = (moveData.frameExact || _benT) ? Math.floor((moveData.recovery ?? 10) * timingScale) : (moveData.recovery || 10)
   const total = moveData.frameExact ? st + ac + rc : _dur(st + ac + rc, fighter)
 
   // Launchers (up attacks) get a more generous hitbox so they're not
@@ -3148,6 +3254,7 @@ export function startMove(fighter, moveKey, moveData) {
     timer: total,
     activeStart: st,
     activeEnd: st + ac - (moveData.frameExact ? 1 : 0),
+    blockstun: moveData.blockstun ?? null,
     rangeX: moveData.rangeX || (isLauncher ? 95 : 60),
     rangeY: moveData.rangeY || (isLauncher ? 80 : 40),
     hitstun: moveData.hitstun || 15,
@@ -3314,7 +3421,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   if (absorbBatman(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Batman cape counter: one frontal strike caught; batman-gated
   if (absorbViolet(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Violet BUBBLE SHIELD: the dome stops the strike; violet-gated
   if (absorbElastigirl(defender, attacker, attacker.currentAttack)) { attacker.currentAttack.hasHit = true; return }   // Elastigirl Stretch Guard: parry window absorbs one strike; elastigirl-gated
-  if (absorbLuffyStrike(defender, attacker)) {
+  // BEN 10 — ENERGY GUARD (Block+Heavy): absorbs the next incoming hit while its window holds (ben10/albedo-gated).
+  if (absorbLuffyStrike(defender, attacker) || consumeBenGuard(defender)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
     return
@@ -3450,6 +3558,16 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   // UNBLOCKABLE (atk.unblockable) — a DELIBERATE, per-move exception to the guard system: the block
   // branch is skipped entirely so the hit lands FULL even against a held guard (Zenitsu's dash-through
   // Ultimate). Not "high damage that punishes through block" — the block-check itself is bypassed.
+  // BEN 10 — Omnitrix Power charges on contact (Phase 2, shared pool, capped at maxEnergy): +3 when Ben
+  // LANDS a hit (connect, blocked or not), +2 when Ben TAKES one (not a clean block). ben10/albedo-gated
+  // so it is a no-op for every other fighter (zero frame-data impact).
+  {
+    const _isBen = f => { const k = (f?.rosterKey || "").toLowerCase(); return k === "ben10" || k === "albedo" }
+    if (_isBen(attacker)) attacker.energy = Math.min(attacker.maxEnergy || 100, (attacker.energy || 0) + 3)
+    const _defTook = !defender.isBlocking || !!atk.unblockable
+    if (_defTook && _isBen(defender)) defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + 2)
+  }
+
   if (defender.isBlocking && !atk.unblockable) {
     // FLAWLESS BLOCK: a fresh guard (blocked within FLAWLESS_BLOCK.window frames) negates chip and collapses
     // blockstun → a punish window; a held/late guard is a normal block. See the config comment above.
@@ -3458,8 +3576,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     const chip = cat === "special" || cat === "ultimate"
     const chipDmg = flawless ? 0 : Math.floor(dmg * (chip ? 0.12 : 0.20))
 
-    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip", boostFrom: attacker })   // chipDmg already scaled (derived from `dmg`)
-    defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : (10 + (cat === "special" ? 4 : 0))
+    if (chipDmg > 0) applyScaledDamage(defender, chipDmg, { scale: 1, floor: chip ? 1 : 0, source: "block-chip", boostFrom: attacker, defenseApplied: true, offenseApplied: true })   // chipDmg already scaled (derived from `dmg`)
+    defender.blockstun = flawless ? FLAWLESS_BLOCK.blockstun : ((isBenDevice(attacker) ? atk.blockstun : null) ?? (10 + (cat === "special" ? 4 : 0)))   // Ben 10: authored blockstun (ben10/albedo-gated)
     if (!flawless) krybotBlockstun(attacker, defender, atk)
     if (!flawless) spdBlueBlock(attacker, defender, atk)
     if (!flawless) spdGreenBlock(attacker, defender, atk)
@@ -3491,6 +3609,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) arlongBlockstun(attacker, defender, atk) // Arlong: per-move block stun; arlong-gated
     if (!flawless) spdRedBlockstun(attacker, defender, atk) // S.P.D. Red: per-move block stun + Delta on a blocked hit; spd_red-gated
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
+    // FEEL PASS (Phase 1): a BLOCK now imparts a light shared impact-freeze (Scaled only; Classic = 0,
+    // the historical "freeze is a clean-hit reward" rule). Both fighters freeze equally and blockstun
+    // does not tick during hitstop → block frame advantage is UNCHANGED. A flawless block (punish
+    // window) stays freeze-free so the defender's advantage isn't blunted.
+    if (!flawless) applyHitstop(attacker, defender, getBlockHitstopFrames(atk))
 
     try { sound?.play?.(flawless ? (SFX?.PARRY || SFX?.BLOCK) : SFX?.BLOCK) } catch (_) {}
 
@@ -3567,7 +3690,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
       if (supArmored) defender._supArmorCd = 480   // consume the armor → 8s cooldown (one absorb per window)
     } else {
-      applyHitstop(attacker, defender, getHitstopFrames(atk))
+      applyHitstopForHit(attacker, defender, atk)   // FEEL PASS (Phase 1): tier value + Scaled multi-hit/cap + ult-connect pulse (Classic = byte-identical to the old call)
       defender.hitstun = Math.max(defender.hitstun || 0, Math.round((atk.hitstun || 0) * HITSTUN_SCALE * getComboHitstunScale(attacker)) + (isCounter ? COUNTER_HIT_BONUS_HITSTUN : 0))   // COUNTER-HIT: +8 hitstun
       // JUGGLE GRAVITY (MK-feel Stage 1b): this hit landed on an AIRBORNE (already-juggled) opponent →
       // bump their juggleCount so physics.applyGravity ramps their fall (each successive air hit drops them
@@ -3575,6 +3698,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       // never self-counts. juggleCount resets to 0 on ground contact (applyGravity).
       if (!defender.onGround && !defender.grounded) defender.juggleCount = (defender.juggleCount || 0) + 1
       luffyInterrupted(defender)
+      delete defender._benVineHold
+      invalidateBenAction(defender)
       defender.attacking    = false
       defender.currentAttack = null
       defender.currentMove   = null
@@ -3631,6 +3756,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     arlongKnockback(attacker, defender, atk)
     spdRedKnockback(attacker, defender, atk)
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
+    if (isSwampfire(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —
@@ -3777,7 +3903,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     }
 
     const _hudBig = !!(atk?.isUltimate || atk?.isSpecial) || cat === "heavy" || cat === "launcher" || cat === "spike"
-    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
+    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", defenseApplied: true, offenseApplied: true, tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
@@ -4163,6 +4289,8 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // only sets this control airborne), so it's a no-op for every character except the one
       // that defines it. Currently: Madara's Susanoo-hand grab.
       startMove(fighter, "air_heavy", _getMD(fighter, "air_heavy"))
+    } else if (isSwampfire(fighter) && (fighter.onGround || fighter.grounded) && controls.crouch && (controls.light || controls.heavy)) {
+      startMove(fighter, "down", fighter.basic_attacks.down)
     } else if (controls.light) {
       if (startMove(fighter, "light", _getMD(fighter, "light"))) _setCrouchVariant(fighter, controls.crouch, "crouchLight")
     } else if (controls.heavy) {
@@ -4338,9 +4466,17 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // projectiles authored with only {w,h} still collide at their true size.
       const r = proj.radius || proj.size ||
         (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
-      const pb = { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
+      const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       if (!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) continue
+      if (proj.radial && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
+
+      if (consumeBenGuard(fighter)) {
+        if (proj.piercesMulti) { (proj._pierceHits ||= []).push(fighter.side); continue }
+        if (proj.persist) proj._struck = true
+        else projectiles.splice(i, 1)
+        break
+      }
 
       // VEGITO — Ultra Instinct evasion: phase past the shot while the UI meter holds (and NOT charging).
       // Grants brief i-frames (in shouldVegitoUIEvade) so a lingering bolt isn't re-dodged every frame; the
@@ -4434,7 +4570,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // combo is scaled by the owner's current combo count, exactly like a melee hit. A standalone
       // projectile (counter 0/1) scales by 1 → unchanged. Uses the PRE-increment counter; the owner's
       // combo bookkeeping (extend on clean hit / reset on block) is done just below, after damage.
-      let dmg = (proj.damage || 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
+      let dmg = (proj.damage ?? 30) * getComboScale(proj.owner)   // PRE-scale; GLOBAL_DAMAGE_SCALE applied at the write via applyScaledDamage
 
       // SUPERMAN / HOMELANDER — X-RAY VISION (passive): their beams/projectiles also gain +8% vs a
       // sub-25%-HP target. Gated on the OWNER; the damage write is at applyScaledDamage below.
@@ -4447,18 +4583,32 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (fighter.isBlocking) {
         dmg *= 0.15
         dmg = krybotProjectileChip(proj, dmg)
-        fighter.blockstun = 12
+        fighter.blockstun = (isBenDevice(proj.owner) ? proj.blockstun : null) ?? 12   // Ben 10: authored projectile blockstun (ben10/albedo-gated)
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else if (supArmoredProj) {
         fighter.armorFlash = 8; fighter._supArmorCd = 480   // shrug the projectile; damage still applies below
       } else {
-        fighter.hitstun = Math.round((proj.hitstun || 18) * getComboHitstunScale(proj.owner))
+        delete fighter._benVineHold
+        invalidateBenAction(fighter)
+        fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+        fighter.isCharging = false
+        fighter.hitstun = Math.round((proj.hitstun ?? 18) * getComboHitstunScale(proj.owner))
         if (proj.timeSlow) fighter._timeSlowTimer = Math.max(fighter._timeSlowTimer || 0, proj.timeSlow)   // Clockwork Time Ray: stamp the slow debuff on hit
         // JUGGLE GRAVITY (Stage 1b): a projectile connecting on an AIRBORNE (juggled) target also ramps
         // their fall (read before this hit's knockback vy is applied → a grounded target never self-counts).
         if (!fighter.onGround && !fighter.grounded) fighter.juggleCount = (fighter.juggleCount || 0) + 1
-        fighter.vx = (proj.vx > 0 ? 1 : -1) * (proj.knockbackX || 5)
-        fighter.vy = proj.knockbackY || -3
+        fighter.vx = (proj.vx >= 0 ? 1 : -1) * (proj.knockbackX ?? 5) * benKnockbackScale(fighter)
+        fighter.vy = (proj.knockbackY ?? -3) * benKnockbackScale(fighter)
+        if (proj.launcher) {
+          fighter.isLaunched = true; fighter.airHits = 0
+          fighter.onGround = false; fighter.grounded = false
+          fighter.vy = (proj.launchVy ?? proj.knockbackY ?? -14) * benKnockbackScale(fighter)
+        }
+        if (proj.connectHold) {
+          fighter.vx = 0; fighter.vy = 0
+          fighter.hitstun = Math.max(fighter.hitstun, Math.min(18, proj.connectHold + 2))
+          if (Number.isFinite(proj.connectToX)) fighter._benVineHold = { frames: Math.min(8, proj.connectHold), destination: proj.connectToX - fighter.w / 2 }
+        }
         fighter.colorFlash = 6
         // Projectile hit-stop — gives a connecting bolt/fireball impact weight (previously
         // projectiles applied none). Freezes the TARGET ONLY — NOT the owner: unlike a melee
@@ -4468,6 +4618,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         // (regressed Beerus's nova pose + Naruto's cast/voice timing). Opt out per-projectile
         // via noHitstop (rapid barrages / DOT); tune magnitude via HITSTOP.projectile. Clean-hit only.
         applyHitstop(fighter, null, getProjectileHitstopFrames(proj))
+        if (proj.isUltimate) fighter._ultLanded = true   // FEEL PASS (Phase 1): deterministic ultimate-connect pulse for the zoom-crop (read + cleared by game.js)
         try { sound?.play?.(SFX?.HIT_PROJECTILE) } catch (_) {}
       }
 

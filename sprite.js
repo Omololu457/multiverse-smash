@@ -457,6 +457,7 @@ const MOVE_TO_ACTION = {
   dhSwing1: "dhSwing1", dhSwing2: "dhSwing2",
   // Stage 3 specials (per-form): Ben Hoverboard, XLR8 Dash Strike / Sonic Rush, Diamondhead
   // Shard Barrage cast / Rising Diamonds cast. Identity maps (currentMove / _spriteCastMove === key).
+  sfFlameJet: "sfFlameJet", sfVine: "sfVine", sfBlaze: "sfBlaze", sfInferno: "sfInferno",
   benHover: "benHover", xlDash: "xlDash", xlRush: "xlRush", dhShoot: "dhShoot", dhRising: "dhRising",
   // Stage 4 ultimates: Ben Omnitrix-transform cast pose, XLR8 Sonic Blitz, Diamondhead Crystal Storm.
   transform: "transform", xlUlt: "xlUlt", dhUlt: "dhUlt",
@@ -679,6 +680,10 @@ function _resolveAction(fighter, currentAction = "idle") {
     return el === 'fire' && fighter.animationData?.[p + '_fire'] ? p + '_fire' : p;
   }
   if (fighter.rosterKey === 'enoch' && fighter.attacking && fighter.currentAttack?.fz && fighter.animationData?.['fz_' + fighter.currentAttack.name]) return 'fz_' + fighter.currentAttack.name;   // Enoch: ICE STANCE moves play his fz_ strips
+  if (fighter.transformed && fighter.activeAlien === "swampfire") {
+    if (fighter._benRoll > 0) return "roll";
+    if (fighter.currentAttack?.name === "down") return "crouch";
+  }
 
   // Task 3: Gojo's Unlimited Void FREEZES the trapped enemy on the exact frame
   // they were in. Hold whatever action was last resolved (mid-jump → "jump",
@@ -1252,6 +1257,27 @@ export class SpriteHandler {
       impactTintCanvas = tc;
     }
 
+    // FEEL PASS (Phase 2) — BATTLE DAMAGE marks. fighter._bdMarkTex is a NORMALIZED marks texture (built by
+    // battleDamage.js from accumulated damage); clip it to THIS frame's silhouette via the same source-atop
+    // mask trick, so scuffs/scorch/frost/blood only ever land on the character's own pixels. Render-layer
+    // only; drawn as an extra overlay after the body in both facing branches below.
+    let bdMarkClipCanvas = null;
+    const bdTex = fighter._bdMarkTex;
+    if (bdTex && _sheetReady(sheet)) {
+      const mc = this._bdMarkClip || (this._bdMarkClip = document.createElement("canvas"));
+      if (mc.width !== drawWidth)  mc.width  = drawWidth;
+      if (mc.height !== drawHeight) mc.height = drawHeight;
+      const mctx = mc.getContext("2d");
+      mctx.clearRect(0, 0, drawWidth, drawHeight);
+      mctx.imageSmoothingEnabled = true;
+      mctx.globalCompositeOperation = "source-over";
+      mctx.drawImage(sheet, sx, sy, drawWidth, drawHeight, 0, 0, drawWidth, drawHeight);   // current frame
+      mctx.globalCompositeOperation = "source-atop";   // keep the marks ONLY where the frame is opaque
+      mctx.drawImage(bdTex, 0, 0, bdTex.width, bdTex.height, 0, 0, drawWidth, drawHeight);
+      mctx.globalCompositeOperation = "source-over";
+      bdMarkClipCanvas = mc;
+    }
+
     // STAGE 1 — WOODCUT / SCREEN-PRINT posterize: crush the frame to 2-3 FLAT grayscale tones (a hard
     // threshold, no smooth shading) on an offscreen canvas — a true posterize (ctx.filter has no posterize,
     // and SVG url() filters don't apply here). The flat red silhouette (above, multiply) then reads as the
@@ -1316,6 +1342,9 @@ export class SpriteHandler {
           ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
         }
+        if (bdMarkClipCanvas) {   // FEEL PASS (Phase 2): battle-damage marks, pre-clipped to the frame
+          ctx.filter = "none"; ctx.drawImage(bdMarkClipCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
+        }
       } else {
         ctx.drawImage(
           _spr,
@@ -1337,6 +1366,9 @@ export class SpriteHandler {
           ctx.filter = "none"; ctx.globalCompositeOperation = impactTintOp; ctx.globalAlpha = impactRedAlpha;   // phase overlay: multiply (black/red) tints the ink; source-over (white) washes it out
           ctx.drawImage(impactTintCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
           ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+        }
+        if (bdMarkClipCanvas) {   // FEEL PASS (Phase 2): battle-damage marks, pre-clipped to the frame
+          ctx.filter = "none"; ctx.drawImage(bdMarkClipCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
         }
       }
     } else {

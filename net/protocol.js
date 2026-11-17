@@ -20,7 +20,7 @@ import { encodeInput, decodeInput, REPLAY_VERSION, BALANCE_STAMP } from "../repl
 // Bump when the NET envelope shape below changes (independent of REPLAY_VERSION, which tracks the input
 // mask / replay-file format, and BALANCE_STAMP, which tracks gameplay values). All three fold into the
 // build stamp so any one of them differing blocks a connection.
-export const PROTOCOL_VERSION = 1
+export const PROTOCOL_VERSION = 2
 
 // Message `t` (type) tags. Keep these short — they're on the wire every frame for INPUT.
 export const MSG = Object.freeze({
@@ -113,6 +113,13 @@ export function makeMatchSetup(meta = {}) {
     p1Char: meta.p1Char ?? null, p1Skin: meta.p1Skin ?? "default",
     p2Char: meta.p2Char ?? null, p2Skin: meta.p2Skin ?? "default",
     stage:  meta.stage ?? null,
+    benExperimental: !!meta.benExperimental,
+    p1Aliens: Array.isArray(meta.p1Aliens) ? [...meta.p1Aliens] : null,
+    p2Aliens: Array.isArray(meta.p2Aliens) ? [...meta.p2Aliens] : null,
+    slowMo: typeof meta.slowMo === "boolean" ? meta.slowMo : null,
+    hitstopStyle: ["scaled", "classic"].includes(meta.hitstopStyle) ? meta.hitstopStyle : null,
+    weather: typeof meta.weather === "string" ? meta.weather : null,
+    weatherFx: typeof meta.weatherFx === "boolean" ? meta.weatherFx : false,
   }
 }
 

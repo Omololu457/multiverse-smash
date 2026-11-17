@@ -208,6 +208,15 @@ export const JUICE_STANDINS = {
   fire_ignite_whoosh_STANDIN: { src: "whoosh_medium_01",    rate: 0.82, filter: { type: "lowpass",  freq: 1400 }, offset: 0, duration: 0.40, gain: 0.7 },
   whack_STANDIN:              { src: "impact_hit_01",       rate: 0.9,  filter: { type: "lowpass",  freq: 2200 },                           gain: 0.8 },
   balloon_pop_STANDIN:        { src: "impact_crack_01",     rate: 1.5,  filter: { type: "highpass", freq: 2600 }, offset: 0, duration: 0.09, gain: 0.6 },
+  // FEEL PASS (Phase 1) — BLOCK cue: a duller, low-passed thud (guarded hit = muffled impact, no sharp crack).
+  block_thud_STANDIN:         { src: "impact_hit_01",       rate: 0.78, filter: { type: "lowpass",  freq: 1100 }, offset: 0, duration: 0.12, gain: 0.5 },
+  // FEEL PASS (Phase 3) — WEATHER gaps (no real clips yet): filtered-noise stand-ins over existing pack
+  // buffers. The rain/wind "loops" are short textures RE-TRIGGERED each ~N frames by game.js while active.
+  weather_rain_STANDIN:       { src: "swish_fast_02",       rate: 0.5,  filter: { type: "lowpass",  freq: 600  }, offset: 0, duration: 0.5,  gain: 0.3 },
+  weather_wind_STANDIN:       { src: "whoosh_medium_01",    rate: 0.6,  filter: { type: "lowpass",  freq: 820  }, offset: 0, duration: 0.6,  gain: 0.35 },
+  weather_snow_STANDIN:       { src: "swish_fast_03",       rate: 0.4,  filter: { type: "lowpass",  freq: 420  }, offset: 0, duration: 0.5,  gain: 0.12 },
+  hail_clack_STANDIN:         { src: "impact_crack_01",     rate: 1.3,  filter: { type: "highpass", freq: 2800 }, offset: 0, duration: 0.05, gain: 0.2 },
+  thunder_STANDIN:            { src: "boom_huge_01",        rate: 0.6,  filter: { type: "lowpass",  freq: 220  }, offset: 0, duration: 0.8,  gain: 0.7 },
 }
 
 export const JUICE_VOICE_CAP = 12                 // max simultaneous juice SFX (audio voice cap)
@@ -1006,6 +1015,65 @@ class SoundManager {
     o.start(); lfo.start(); o.stop(ctx.currentTime + 1.3); lfo.stop(ctx.currentTime + 1.3)
   }
 
+
+  // ── BEN 10 OMNITRIX SFX (Phase 7, placeholder WebAudio synth) ─────
+  // id + a hash-derived pitch (±3%) + noise seed are supplied by game.ben10Sfx (deterministic — no
+  // Math.random). Each event maps to the brief's exact waveform recipe. Structured per-character (its own
+  // id namespace) so a later Ben/alien VOICE pack can plug in without touching the trigger sites.
+  playBen10(id, pitch = 1, seed = 1) {
+    if (this._sfxMuted || !this._ctx || !this._ready) return
+    if (this._ctx.state === "suspended") { this._ctx.resume().then(() => this._ben10Synth(id, pitch, seed)); return }
+    this._ben10Synth(id, pitch, seed)
+  }
+  _ben10Synth(id, pitch, seed) {
+    const ctx = this._ctx, out = this._master, p = pitch || 1
+    try {
+      switch (id) {
+        case "ben_transform":  osc(ctx, out, "sine", 220 * p, 0.35, 0.2, 880 * p); oscAt(ctx, out, "triangle", 1760 * p, 0, 0.08, 0.18); break   // 220→880 sweep + 1760 ping
+        case "ben_swap":       osc(ctx, out, "square", 440 * p, 0.08, 0.18, 660 * p); break                                                      // 440→660 click
+        case "ben_revert":     osc(ctx, out, "sine", 880 * p, 0.3, 0.2, 220 * p); break                                                          // 880→220
+        case "ben_timeout":    this._benTimeout(p); break                                                                                        // sawtooth 110, falling lowpass
+        case "ben_vowpick":    this._benLfoTone(330, 12, 0.25, p); break                                                                         // square 330 + 12 Hz LFO
+        case "ben_energyshot": osc(ctx, out, "triangle", 700 * p, 0.2, 0.18, 350 * p); break                                                     // 700→350
+        case "ben_dash":       osc(ctx, out, "sawtooth", 300 * p, 0.2, 0.18, 900 * p); break                                                     // 300→900
+        case "ben_shockwave":  osc(ctx, out, "sine", 90 * p, 0.3, 0.22); sbSeededNoise(ctx, out, 0.3, 0.12, 400 * p, seed); break                // sine 90 + noise
+        // Synthesized Swampfire placeholders: no recorded voice pack is claimed.
+        case "sf_flame": sbSeededNoise(ctx, out, 0.22, 0.10, 700 * p, seed); break
+        case "sf_vine": osc(ctx, out, "triangle", 140 * p, 0.25, 0.12, 70 * p); break
+        case "sf_dash": osc(ctx, out, "sawtooth", 180 * p, 0.16, 0.10, 650 * p); break
+        case "sf_inferno": this._benOverload(p, seed); break
+        case "ben_overload":   this._benOverload(p, seed); break                                                                                 // saw 60 + sq 120, rising lowpass
+      }
+    } catch (_) {}
+  }
+  _benTimeout(p) {
+    const ctx = this._ctx, out = this._master, t0 = ctx.currentTime, dur = 0.4
+    const filt = ctx.createBiquadFilter(); filt.type = "lowpass"
+    filt.frequency.setValueAtTime(1800 * p, t0); filt.frequency.linearRampToValueAtTime(200 * p, t0 + dur)   // falling lowpass
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.22, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
+    const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = 110 * p
+    o.connect(filt); filt.connect(g); g.connect(out); o.start(t0); o.stop(t0 + dur)
+  }
+  _benLfoTone(freq, lfoHz, dur, p) {
+    const ctx = this._ctx, out = this._master
+    const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain()
+    o.type = "square"; o.frequency.value = freq * p
+    lfo.type = "sine"; lfo.frequency.value = lfoHz; lg.gain.value = 30 * p
+    lfo.connect(lg); lg.connect(o.frequency)
+    g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur)
+    o.connect(g); g.connect(out); o.start(); lfo.start(); o.stop(ctx.currentTime + dur); lfo.stop(ctx.currentTime + dur)
+  }
+  _benOverload(p, seed) {
+    const ctx = this._ctx, out = this._master, t0 = ctx.currentTime, build = 1.0, total = 1.7   // 1.0s rise + 0.7s decay
+    const filt = ctx.createBiquadFilter(); filt.type = "lowpass"
+    filt.frequency.setValueAtTime(150, t0); filt.frequency.linearRampToValueAtTime(5000, t0 + build); filt.frequency.linearRampToValueAtTime(400, t0 + total)
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.3, t0 + build); g.gain.exponentialRampToValueAtTime(0.0001, t0 + total)
+    const saw = ctx.createOscillator(); saw.type = "sawtooth"; saw.frequency.value = 60 * p
+    const sq  = ctx.createOscillator(); sq.type = "square"; sq.frequency.value = 120 * p
+    saw.connect(filt); sq.connect(filt); filt.connect(g); g.connect(out)
+    saw.start(t0); sq.start(t0); saw.stop(t0 + total); sq.stop(t0 + total)
+    sbSeededNoise(ctx, out, total, 0.1, 1000 * p, seed)
+  }
 
   // ── COMBO HELPER ──────────────────────────────────────────────
   playCombo(comboCount = 1) {

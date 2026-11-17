@@ -23,6 +23,7 @@ import { sound } from './sound.js'
 import { elementFor, elementColor } from './juice_elements.js'
 import { sigFamily, sigOnStart, sigOnHit, sigTick, sigReset, sigStatus, drawSigWorld, drawSigFloor, drawSigHud, sigLevel } from './animeSignatures.js'   // Phase 2: signature moves
 export { sigTakeImpacts as animeSigTakeImpacts, sigFeel as animeSigFeel, SIGNATURE_MOVES } from './animeSignatures.js'
+import { formsTick, formsReset, formsStatus, drawFormsHud } from './animeForms.js'   // Phase 3: transformations = LEVEL UP
 let _splitGate = () => false   // game.js: the existing brutality / blood eligibility rule (splits only where gore is allowed)
 export function setAnimeSplitGate(fn) { if (typeof fn === 'function') _splitGate = fn }
 
@@ -42,8 +43,8 @@ const SLASH_RX = /slash|sword|blade|katana|\bcut\b|iai|getsuga|zangetsu|slice|mo
 const HEAVY_SPECIAL = 60   // a special at / over this damage leaves an aftermath
 
 const S = { prevCast: [null, null], fx: [], decals: [], slams: [], chain: [null, null], prevMove: [null, null], prevUlt: [false, false], ready: [null, null], meter: new WeakMap(), frame: 0 }
-export function animeJuiceReset() { sigReset(); S.fx.length = 0; S.decals.length = 0; S.slams.length = 0; S.chain = [null, null]; S.prevMove = [null, null]; S.prevUlt = [false, false]; S.ready = [null, null]; S.prevCast = [null, null] }
-export function animeJuiceStatus() { return { sig: sigStatus(), fx: S.fx.length, decals: S.decals.length, slams: S.slams.length, kinds: S.fx.map(e => e.kind), decalKinds: S.decals.map(d => d.kind), ready: S.ready.map(r => r ? { state: r.state, t: r.t } : null) } }
+export function animeJuiceReset() { sigReset(); formsReset(); S.fx.length = 0; S.decals.length = 0; S.slams.length = 0; S.chain = [null, null]; S.prevMove = [null, null]; S.prevUlt = [false, false]; S.ready = [null, null]; S.prevCast = [null, null] }
+export function animeJuiceStatus() { return { forms: formsStatus(), sig: sigStatus(), fx: S.fx.length, decals: S.decals.length, slams: S.slams.length, kinds: S.fx.map(e => e.kind), decalKinds: S.decals.map(d => d.kind), ready: S.ready.map(r => r ? { state: r.state, t: r.t } : null) } }
 const push = (arr, e, cap) => { arr.push(e); if (arr.length > cap) arr.shift() }
 
 // ── sounds (synth recipes live in sound.js: aj_whoosh / aj_chime / aj_ting / aj_clang) ──
@@ -103,9 +104,13 @@ export function animeJuiceTick(p1, p2, frame) {
     if (c && frame - c.last > 16) { if (c.n >= 4 && on()) { push(S.fx, { kind: 'ring', x: c.x, y: c.y, t: 0, life: 18, r0: 30, grow: 7, w: 5, col: c.col }, 40); try { camera.shake(6, 10) } catch (_) {} } S.chain[i] = null }
   }
   sigTick(fs, frame)
+  formsTick(fs, on(), (f, i) => formCeremony(f, i))   // LEVEL UP: a form change → fill, flash, pillar, chime, name + stats
   for (let k = S.fx.length - 1; k >= 0; k--) if (++S.fx[k].t > S.fx[k].life) S.fx.splice(k, 1)
   for (let k = S.decals.length - 1; k >= 0; k--) if (++S.decals[k].t > S.decals[k].life) S.decals.splice(k, 1)
   for (let k = S.slams.length - 1; k >= 0; k--) if (++S.slams[k].t > S.slams[k].life) S.slams.splice(k, 1)
+}
+function formCeremony(f, i) {   // the flash + burst of light from him, the pillar, the floor rings (the HUD slam is animeForms')
+  push(S.fx, { kind: 'pillar', x: ctrX(f), y: floorOf(f), top: (f.y || 0), t: 0, life: 60, col: [255, 214, 120], seed: S.frame * 3 + i }, 40)
 }
 function readyCeremony(f, i) {
   const col = [255, 226, 140]
@@ -313,7 +318,7 @@ export function drawAnimeJuiceWorld(c, p1, p2) {
 
 // ── draw: HUD ("ULTIMATE READY" slammed by the bar) ──
 export function drawAnimeJuiceHud(c, cv) {
-  if (on()) drawSigHud(c, cv)
+  if (on()) { drawSigHud(c, cv); drawFormsHud(c, cv) }
   if (!S.slams.length || !on()) return
   for (const s of S.slams) {
     const k = s.t, sc = k < 5 ? 2.2 - k * 0.24 : 1, a = k < 70 ? 1 : 1 - (k - 70) / 20

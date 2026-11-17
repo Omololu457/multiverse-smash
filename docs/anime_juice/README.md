@@ -64,3 +64,9 @@ Some steps are specific to one character's art: the water dragon's ribbon body, 
   - Colour flips turn into a soft dim under Reduce Flashing.
   - `juiceSettings.animeFx` (`off` / `low` / `full`) scales the layer.
   - Test: `harness/anime_signatures.test.mjs`.
+- **LEVEL UP = transformations** (Phase 3, presentation only): `animeForms.js`. Any **form change** triggers the owner's level-up breakdown (B):
+  - What counts: a new `fighter.currentForm` (transformations.js, the Goku ladder, Naruto KCM, Zoro Santoryu …) or one of the curated form flags (Sharingan, Susanoo, Potential Unleashed, Golden Frieza, Sage frog mode, Demon Back …).
+  - The treatment: the gauge races then crawls, then the flash, the light pillar with floor rings, whoosh + chime, and the **form name** slammed under that player's health bar.
+  - The **real stat deltas** (DMG / SPD / DEF / HP, read off the fighter before vs after) are counted up tick by tick.
+  - Reverts to base don't trigger it, and Ben 10's Omnitrix is skipped.
+  - Test: `harness/anime_forms.test.mjs`; screenshots are in `forms/`.

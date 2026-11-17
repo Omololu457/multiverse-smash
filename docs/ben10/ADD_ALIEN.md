@@ -125,6 +125,15 @@ references (they make GAME_STATE circular / non-serializable).
 360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
 and the shared guard is omnidirectional.
 
+### Alien X hooks (added with Alien X, 2026-11-17)
+
+Same contract: optional, backward-compatible, ben10-gated (through `benReadyForm` / `_readyDef`, or a fighter field
+nothing else sets); a form that defines none of them takes exactly the old path, and non-Ben fighters never reach them.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `drainMult` (number, on the registry entry) | fighters.js `updateTransformDevice`, the transformed drain (before the Vow ×1.6) | multiplies this form's Omnitrix Power drain (Alien X ×1.5 ≈ 13 s from full). Absent = ×1. |
+
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form

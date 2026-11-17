@@ -4,6 +4,7 @@ import { MEGAWHATT } from "./megawhatt.js"
 import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
 import { EYEGUY } from "./eyeguy.js"
+import { ALIENX } from "./alienx.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -33,6 +34,7 @@ export const BEN10_ALIEN_REGISTRY = [
   GOOP,        // READY (2026-11-17): DS cell-grid sheet + ledger; Polymorph goo (projector weak point / Puddle / Acid)
   XLR8,        // READY (2026-11-17): Dragonrod sheet + ledger; Kineceleran speedster (Flash Time / Blur Step / echoes); replaces the old experimental XLR8 entry
   EYEGUY,      // READY (2026-11-17): Dragonrod sheet + ledger; Opticoid zoner (360° Vision / Stare / Unblinking); replaces the experimental Eye Guy, NEW slot 6
+  ALIENX,      // READY (2026-11-17): regularDor8go sheet + ledger; Celestialsapien caster (Three Voices / Void → Unmade / Decrees); replaces the experimental Alien X, a PICK-FIVE choice
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",
@@ -92,7 +94,7 @@ export function buildLoadout(n = BEN10_SLOT_COUNT, options = {}) {
 }
 
 // Readiness is independent from having legacy mechanics. Never advertise a tinted human as alien art.
-const extraAliens = ["fourarms", "upgrade", "alienx", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
+const extraAliens = ["fourarms", "upgrade", "cannonbolt", "clockwork", "chromastone", "brainstorm"]
 for (const key of extraAliens) BEN10_ALIEN_REGISTRY.push({ id: key, poolKey: key, displayName: key, status: "experimental", sheetPath: null, ledgerPath: null, mods: { speed: 1, damage: 1, defense: 1, weight: 1 } })
 export const getAlienDefinition = key => BEN10_ALIEN_REGISTRY.find(a => a.poolKey === key) || null
 export const isAlienAvailable = (key, experimental = false) => {

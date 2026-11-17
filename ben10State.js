@@ -18,6 +18,25 @@ export function benAlienContact(owner, target, info) { const d = benReadyForm(ow
 export function benAlienHurtbox(f) { const d = benReadyForm(f); return d && d.hurtbox ? d.hurtbox(f) : null }
 export function benAlienPhasing(a, b) { const da = benReadyForm(a), db = benReadyForm(b); return !!((da && da.phasing && da.phasing(a)) || (db && db.phasing && db.phasing(b))) }
 export function benAlienIncoming(f) { const d = benReadyForm(f); return d && d.incomingScale ? d.incomingScale(f) : 1 }
+// Optional WEAK-POINT hurtbox (Goop's anti-gravity projector): a second small box the form reports via `weakpoint(f)`.
+// Tested at the melee + projectile overlap sites alongside the body; `onWeakpoint(f, hit, info)` is told the result
+// of every test so the form can attribute the hit (the projector rule wins when both overlap). false for everyone else.
+export function benAlienWeakHit(f, box, info) {
+  const d = benReadyForm(f); if (!d || !d.weakpoint || !box) return false
+  const w = d.weakpoint(f)
+  const hit = !!w && box.x < w.x + w.w && box.x + box.w > w.x && box.y < w.y + w.h && box.y + box.h > w.y
+  if (d.onWeakpoint) d.onWeakpoint(f, hit, info || {})
+  return hit
+}
+// Optional damage hooks with full context at the one damage choke-point (applyScaledDamage): `damageTaken(f, raw, opts)`
+// for damage the form takes, `damageDealt(f, target, raw, opts)` for damage attributed to it (opts.attacker /
+// opts.boostFrom). Unlike incomingScale they also see melee (whose defense is pre-applied). raw unchanged otherwise.
+export function benAlienDamageMods(target, raw, opts) {
+  const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
+  const src = opts && (opts.attacker || opts.boostFrom)
+  const da = src && src !== target ? benReadyForm(src) : null; if (da && da.damageDealt) raw = da.damageDealt(src, target, raw, opts || {})
+  return raw
+}
 export const isSwampfire = f => isBenDevice(f) && f.transformed && f.activeAlien === "swampfire"
 export function invalidateBenAction(f) {
   if (!isBenDevice(f)) return

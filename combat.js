@@ -36,7 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
-import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming } from "./ben10State.js"
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -325,6 +325,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
   { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) { rawDamage = (rawDamage ?? 0) / _rd.mods.defense; if (_rd.incomingScale) rawDamage *= benAlienIncoming(target) } }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
   if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
+  if (isBenDevice(target) || isBenDevice(opts.attacker || opts.boostFrom)) rawDamage = benAlienDamageMods(target, rawDamage, opts)   // READY Omnitrix form damage hooks (Goop goo body / projector / Corrode); untouched for everyone else
   const scale = opts.bypassScale ? 1
               : opts.scale != null ? opts.scale
               : GLOBAL_DAMAGE_SCALE
@@ -3383,7 +3384,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   const hitbox = getAttackHitbox(attacker)
   const hurtbox = getHurtbox(defender)
-  if (!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) return
+  const _benWeak = benAlienWeakHit(defender, hitbox, { move: attacker.currentAttack, attacker })   // READY Omnitrix form weak point (Goop projector); false for everyone else
+  if (!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender)) && !_benWeak) return
   // S.P.D. PINK — Baton Reprisal: same top-priority negate contract as the counters below, but NO riposte damage/stun
   // here — Syd answers next tick with one ordinary blockable strike. spd_pink-gated (see spdPinkCounter).
   if (spdPinkCounter(defender, attacker)) { try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {} ; return }
@@ -4538,8 +4540,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
       const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
-      if (!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) continue
-      if (proj.radial && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
+      const _benWeak = benAlienWeakHit(fighter, pb, { proj })   // READY Omnitrix form weak point (Goop projector); false for everyone else
+      if (!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter)) && !_benWeak) continue
+      if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
 
       if (consumeBenGuard(fighter)) {
         if (proj.piercesMulti) { (proj._pierceHits ||= []).push(fighter.side); continue }

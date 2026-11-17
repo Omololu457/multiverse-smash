@@ -83,6 +83,17 @@ non-Ben fighter and for forms that do not define the hook, so every existing cha
 | `drawUnder(c, f)` | game.js world-space layer under both fighters | render-only (Megawhatt Blackout dim) |
 | projectile `alien: {...}` tag | abilities.js `benAlienApi.spawnProjectile` copies `alien` onto the projectile | plain-data tag read back in `onContact` (cast ids, pip ownership) |
 
+### Goop hooks (added with Goop, 2026-11-17)
+
+Same contract: optional, backward-compatible, ben10-gated through `benReadyForm`; a form that defines none of them
+(Swampfire / Heatblast / Megawhatt) takes exactly the old path, and non-Ben fighters never reach them.
+
+| Hook (on the registry entry) | Engine call site | Contract |
+|---|---|---|
+| `weakpoint(f)` + `onWeakpoint(f, hit, info)` | combat.js melee (`resolveAttackHit`) + projectile overlap tests, via `benAlienWeakHit` | a second small hurtbox (Goop's anti-gravity projector) tested alongside the body; `onWeakpoint` is told every test result so the form can attribute the hit (weak point wins when both overlap — one hit, counted once) |
+| `damageTaken(f, raw, opts)` | combat.js `applyScaledDamage` (`benAlienDamageMods`), after the attacker's form multiplier | damage this form takes, with full `opts` (source / attacker / move) — unlike `incomingScale` it also sees melee, whose defense is pre-applied (Goop goo body −25% physical melee normals, projector +15%) |
+| `damageDealt(f, target, raw, opts)` | same site, for damage attributed to the form (`opts.attacker` / `opts.boostFrom`) | status on the opponent owned by the form (Goop Corrode +15%, chip +25%) |
+
 Keep `formState` plain data: store ids (e.g. a cast id) and look live projectiles up each frame — never store object
 references (they make GAME_STATE circular / non-serializable).
 

@@ -1,6 +1,7 @@
 import { SWAMPFIRE } from "./swampfire.js"
 import { HEATBLAST } from "./heatblast.js"
 import { MEGAWHATT } from "./megawhatt.js"
+import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -22,14 +23,8 @@ export const BEN10_ALIEN_REGISTRY = [
   HEATBLAST,   // READY (2026-11-17): Dragonrod sheet + ledger; replaces the old experimental Heatblast entry
   MEGAWHATT,   // READY (2026-11-17): Dragondor sheet + ledger; living electricity (Voltage / Static / flight)
   GOOP,        // READY (2026-11-17): DS cell-grid sheet + ledger; Polymorph goo (projector weak point / Puddle / Acid)
-  {
-    id: "xlr8", displayName: "XLR8", slot: 1, status: "experimental", poolKey: "xlr8",
-    sheetPath: null, ledgerPath: null,
-    mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
-    moves: { jab: "Claw Jab", heavy: "Spin Kick", low: "Low Sweep", launcher: "Rising Slash", air: "Air Claw",
-             special1: "Dash Strike", special2: "Sonic Rush", ultimate: "Time Slice" },
-    movement: "grounded"
-  },
+  XLR8,        // READY (2026-11-17): Dragonrod sheet + ledger; Kineceleran speedster (Flash Time / Blur Step / echoes); replaces the old experimental XLR8 entry
+
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",
     sheetPath: null, ledgerPath: null,

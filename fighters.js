@@ -2,6 +2,7 @@ import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
 import { HEATBLAST } from "./heatblast.js"
 import { MEGAWHATT } from "./megawhatt.js"
+import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
@@ -910,8 +911,11 @@ export const BEN10_ALIEN_POOL = {
     ultimate: { name: "Meltdown Flood", cost: 50, damage: 240 } },
   fourarms:   mkAlien({ name: "Four Arms", color: "#dc2626", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 19, dmg: 1.25, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,
                         special: { name: "Quad Slam", damage: 130, cost: 25, armor: true }, ult: { name: "Ground Pound", damage: 240 } }),
-  xlr8:       mkAlien({ name: "XLR8", color: "#0ea5e9", role: "speed", hp: 900, spd: 99, jumps: 3, jump: 23, dmg: 0.75, weight: "light",
-                        special: { name: "Dash Strike", damage: 80, cost: 15 }, ult: { name: "Sonic Blitz", damage: 180, active: 10 } }),
+  // XLR8 (READY, xlr8.js): long, low quadruped hurtbox matching his sprite; specials / Flash Time / ult via the hooks.
+  xlr8: { name: "XLR8", color: "#0ea5e9", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 9, maxJumps: 2, jumpPower: 22, sizeW: 100, sizeH: 80 },
+    basic_attacks: XLR8.basic_attacks, specials: XLR8.moves,
+    ultimate: { name: "Time Sprint", cost: 50, damage: 240 } },
   diamondhead:mkAlien({ name: "Diamondhead", color: "#22d3ee", role: "zoner", hp: 1100, spd: 6, dmg: 1.0, weight: "heavy",
                         special: { name: "Shard Barrage", ranged: true, damage: 100, cost: 20, projectileId: "diamond_shard" }, ult: { name: "Crystal Storm", damage: 210 } }),
   wildmutt:   mkAlien({ name: "Wildmutt", color: "#ea580c", role: "rush", hp: 1000, spd: 9, dmg: 0.9,
@@ -1001,7 +1005,7 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ + Light/Heavy/Special/L+H/H+S)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop"]   // slot 1 Swampfire, slot 2 Heatblast, slot 3 Megawhatt, slot 4 Goop (first placeholder slot)
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8 (the last placeholder slot)
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)

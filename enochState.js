@@ -421,7 +421,7 @@ function release(f, s, W, a, m, md) {
     const fl = m.el === 'fire'                                                     // hot: FLAME FLOOR (a fire eruption + a fire patch)
     lay(f, s, W, { type: fl ? 'fire' : 'ice', cx })
     vol(f, s, W, 'floor', m.serial, cx, feet - 15, 140, 30, { damage: a.damage, hitstun: 20, kbx: 2, kby: 0, life: 5, dir: d, low: true, damageType: fl ? 'energy' : 'blunt', el: fl ? 'fire' : 'ice' })
-    cue(f, fl ? 'fireCast' : 'crackle'); pushFx(s, fl ? 'flameFloor' : 'frost', cx, feet, d)
+    cue(f, fl ? 'fireCast' : 'crackle'); cue(f, 'eruptShake'); pushFx(s, 'erupt', cx, feet, d, { el: fl ? 'fire' : 'ice', x0: Math.round(fr), seed: m.serial, life: 90 })   // the 8-step eruption (render: enochFx drawErupt)
   } else if (m.key === 'scorch') { lay(f, s, W, { type: 'fire', cx: fr + d * SCORCH.ahead }); pushFx(s, 'scorch', fr + d * 70, feet - 50, d) }
   else if (m.key === 'iceDisc') {
     if (s.disc) breakDisc(f, s)
@@ -857,7 +857,7 @@ export function tickEnoch(f, opp, raw, W) {
   const g = grounded(f)
   if (g) s.floor = feetY(f)
   else if (s.floor == null) s.floor = f.groundY ?? null
-  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 40) s.fx.splice(i, 1)
+  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > (s.fx[i].life || 40)) s.fx.splice(i, 1)   // most events 40 f; the eruption carries its own life
   if (s.beamFx && --s.beamFx.t <= 0) s.beamFx = null
   // super meter from damage taken
   if (s.prevHp != null && f.health < s.prevHp) meter(f, (s.prevHp - f.health) * METER.onTaken)

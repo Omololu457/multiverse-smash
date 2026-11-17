@@ -182,3 +182,12 @@ The brief's values, verified live against a blocking dummy:
 - Tests: 2026-11-17 assertions on the removed thermal mechanics (costs, overload, channel, zone labels) were rewritten to
   the mode behaviour, and scenario fixtures now put him in a mode (H.reset → ICE MODE; setThermal(±) → that mode). New:
   MO1-3, SL1-3 (enoch_slide_slab).
+
+## 2026-11-17: the ERUPTION juice (Frost Floor / Flame Floor) — presentation only
+The 8 steps, all render-only (enochFx `drawCharge` + `drawErupt`; deterministic ehash on the move serial): 1 charge-up motes
+spiral into his hand during any element special's startup and burst out on the cast · 2 spikes pop out of the ground from his
+feet to the target · 3 each one bigger nearer the foe · 4 smaller side spikes fanned outward · 5 cracked floor + kicked-up
+chunks · 6 a huge cluster on the target, a radial flash (off with Reduce Flashing / Motion) and a camera shake (cue
+`eruptShake`, no sound) · 7 the spikes melt from the top and break into shards · 8 mist, falling snow and sparkles (fire:
+flame tongues, smoke rising, embers). The event lives 90 frames (`life` on the fx entry; others keep 40). Damage, frames,
+volume and hit timing unchanged (frame-data diff 16/0).

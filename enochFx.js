@@ -10,7 +10,7 @@ import { enoch as EN, WALLS, LASER } from './enochData.js'
 import { ENOCH_FX, ENOCH_FX_PATH } from './enochSprites.js'
 import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
 import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, snowRect, slowOf, sideOf } from './enochState.js'
-import { STATUS, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, MODE } from './enochData.js'
+import { STATUS, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, MODE, ALL_MOVES, ICE_BLAST } from './enochData.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
 import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
@@ -170,6 +170,128 @@ function drawSteam(c, f, s, fr) {   // clouds over the stage (capped alpha; the 
     c.restore()
   }
 }
+// ── THE JUICE (render-only, from sim state; deterministic: ehash on the move's serial, never Math.random) ─────────────────────
+// 1 CHARGE UP: during any element special's startup, motes of ice / fire spiral into his hand, then burst out on the cast.
+const ELC = el => COL[el === 'fire' ? 'fire' : el === 'water' ? 'water' : 'ice']
+function drawCharge(c, f, s, fr) {
+  const a = f.attacking ? f.currentAttack : null, md = a?.en ? ALL_MOVES[a.en.key] : null
+  if (!md?.isSpecial || a.en.key === 'super') return
+  const el = a.en.el || md.el || s.mode; if (!el) return
+  const rel = md.releaseAt || md.startup || 10, t = (a.total - a.timer), d = a.en.dir || 1, C = ELC(el)
+  const hx = (d === 1 ? f.x + f.w : f.x) + d * 14, hy = (f.y + f.h) - ICE_BLAST.handY
+  c.save()
+  if (t < rel) {   // gathering: motes spiral in, the core swells
+    const p = Math.max(0, t / rel), spin = calm() ? 0 : fr * 0.22
+    for (let i = 0; i < 8; i++) {
+      const an = i / 8 * Math.PI * 2 + spin, r = 6 + 46 * (1 - p) * (0.7 + 0.3 * ehash(seedOf(), a.en.serial, f.side, 60 + i))
+      c.globalAlpha = 0.35 + 0.6 * p; c.fillStyle = C[i & 1 ? 1 : 0]
+      const z = i % 3 === 0 ? 4 : 3; c.fillRect(R(hx + Math.cos(an) * r - z / 2), R(hy + Math.sin(an) * r - z / 2), z, z)
+    }
+    const cr = 3 + 9 * p; c.globalAlpha = 0.25 + 0.4 * p; c.fillStyle = C[2]; c.beginPath(); c.arc(R(hx), R(hy), R(cr * 1.8), 0, 7); c.fill()
+    c.globalAlpha = 0.6 + 0.4 * p; c.fillStyle = C[0]; c.beginPath(); c.arc(R(hx), R(hy), R(cr), 0, 7); c.fill()
+  } else if (t < rel + 7) {   // ...and it bursts out on the cast
+    const k = (t - rel) / 7; c.globalAlpha = 1 - k; c.strokeStyle = C[1]; c.lineWidth = 3
+    c.beginPath(); c.arc(R(hx), R(hy), R(10 + 34 * k), 0, 7); c.stroke()
+    c.fillStyle = C[0]
+    for (let i = 0; i < 8; i++) { const an = i / 8 * Math.PI * 2, r = 8 + 40 * k; c.fillRect(R(hx + Math.cos(an) * r - 2), R(hy + Math.sin(an) * r - 2), 4, 4) }
+  }
+  c.restore()
+}
+// one spike (ice crystal / flame tongue) rising from (x, y), leaning `ang`; `h` already includes pop / melt
+function spike(c, x, y, h, w, ang, el, tw) {
+  if (h < 2) return
+  const C = ELC(el), fire = el === 'fire'
+  c.save(); c.translate(R(x), R(y)); c.rotate(ang)
+  const tip = fire ? R(tw * w * 0.5) : 0
+  c.fillStyle = C[3]; c.beginPath(); c.moveTo(R(-w / 2) - 1, 1); c.lineTo(tip, R(-h) - 2); c.lineTo(R(w / 2) + 1, 1); c.closePath(); c.fill()
+  c.fillStyle = C[2]; c.beginPath(); c.moveTo(R(-w / 2), 0); c.lineTo(tip, R(-h)); c.lineTo(R(w / 2), 0); c.closePath(); c.fill()
+  c.fillStyle = C[1]; c.beginPath(); c.moveTo(R(-w / 5), 0); c.lineTo(tip, R(-h * 0.94)); c.lineTo(R(w / 8), 0); c.closePath(); c.fill()
+  c.fillStyle = C[0]; c.beginPath(); c.moveTo(-1, R(-h * 0.35)); c.lineTo(tip, R(-h * 0.97)); c.lineTo(fire ? 2 : 1, R(-h * 0.35)); c.closePath(); c.fill()
+  c.restore()
+}
+// 2-8 THE ERUPTION (Frost Floor / Flame Floor): spikes pop out of the ground from his feet to the foe, each one bigger (3),
+// small side spikes fanned outward (4), the floor cracks and kicks up chunks (5), a huge cluster on the foe + flash + shake
+// (6), then the spikes melt from the top and break into shards (7), leaving snow, mist and sparkles (fire: smoke, embers) (8).
+function drawErupt(c, f, e) {
+  const t = e.t, d = e.dir || 1, el = e.el || 'ice', fire = el === 'fire', C = ELC(el), y = e.y
+  const H = (slot) => ehash(seedOf(), e.seed | 0, f.side, slot)
+  const x0 = (e.x0 ?? e.x - d * 110) + d * 16, x1 = e.x - d * 34, N = 5
+  const MELT_AT = 34, MELT_LEN = 16, GONE = 90, melt = t < MELT_AT ? 1 : Math.max(0, 1 - (t - MELT_AT) / MELT_LEN)
+  const wob = fire && !calm() ? Math.sin(t * 0.9) : 0
+  const pop = (t0) => { const u = (t - t0) / 2; return u <= 0 ? 0 : u < 1 ? u * 1.18 : u < 1.6 ? 1.18 - (u - 1) * 0.3 : 1 }
+  c.save()
+  // (5) cracks in the floor around the foe — dark jagged lines, growing then fading
+  if (t >= 3) {
+    const g = Math.min(1, (t - 3) / 4), fade = t < 50 ? 1 : Math.max(0, 1 - (t - 50) / 20)
+    c.globalAlpha = 0.85 * fade; c.strokeStyle = fire ? '#3a1a0a' : '#16384c'; c.lineWidth = 2
+    for (let k = 0; k < 6; k++) {
+      const sx = k < 3 ? -1 : 1, L = (30 + 50 * H(10 + k)) * g; let px = e.x, py = y + 1
+      c.beginPath(); c.moveTo(R(px), R(py))
+      for (let j = 1; j <= 4; j++) { px = e.x + sx * L * j / 4; py = y + 1 + (H(20 + k * 4 + j) - 0.3) * 5; c.lineTo(R(px), R(py)) }
+      c.stroke()
+    }
+    if (fire) { c.globalAlpha = 0.5 * fade; c.fillStyle = COL.fire[2]; c.fillRect(R(e.x - 50 * g), R(y), R(100 * g), 2) }   // the cracks glow hot
+  }
+  // (2)(3)(4) the path: spikes popping out of the ground toward the foe, each one bigger, side spikes fanned outward
+  for (let i = 0; i < N; i++) {
+    const u = i / (N - 1), x = x0 + (x1 - x0) * u, sc = pop(i * 0.8) * melt; if (sc <= 0) continue
+    const h = (18 + 40 * u) * sc, w = 9 + 8 * u, j = (H(30 + i) - 0.5) * 0.12
+    c.globalAlpha = 1
+    spike(c, x - d * w * 0.6, y, h * 0.55, w * 0.7, -d * 0.42 + j, el, wob)   // (4) a smaller one leaning back...
+    spike(c, x + d * w * 0.6, y, h * 0.55, w * 0.7, d * 0.42 + j, el, -wob)   // ...and one leaning forward (fanned outward)
+    spike(c, x, y, h, w, j, el, wob)
+  }
+  // (6) the big finish: a huge cluster around the foe
+  const CL = [[0, 128, 28, 0], [-20, 96, 20, -0.3], [22, 102, 20, 0.28], [-40, 70, 16, -0.56], [40, 74, 16, 0.6], [-58, 44, 12, -0.84], [60, 46, 12, 0.86], [-8, 60, 12, -0.12], [10, 64, 12, 0.14]]
+  const cs = pop(3.5) * melt
+  if (cs > 0) {
+    c.globalAlpha = 1
+    CL.forEach(([dx, h, w, an], k) => spike(c, e.x + dx, y, h * cs * (0.9 + 0.2 * H(40 + k)), w, an + (H(50 + k) - 0.5) * 0.1, el, k & 1 ? wob : -wob))
+  }
+  // (6) flash (skipped with Reduce Flashing / Reduce Motion)
+  if (t >= 3 && t < 9 && !calm()) {
+    const k = (t - 3) / 6, r = 60 + 80 * k, g = c.createRadialGradient(R(e.x), R(y - 50), 0, R(e.x), R(y - 50), R(r))
+    g.addColorStop(0, fire ? 'rgba(255,246,216,0.95)' : 'rgba(255,255,255,0.95)'); g.addColorStop(0.45, fire ? 'rgba(255,190,90,0.5)' : 'rgba(170,235,255,0.5)'); g.addColorStop(1, 'rgba(255,255,255,0)')
+    c.globalAlpha = 1 - k; c.fillStyle = g; c.beginPath(); c.arc(R(e.x), R(y - 50), R(r), 0, 7); c.fill()
+  }
+  // (5) chunks of floor kicked up
+  if (t >= 3 && t < 40) {
+    const tt = t - 3
+    for (let k = 0; k < 10; k++) {
+      const vx = (H(70 + k) - 0.5) * 9, vy = -4 - H(80 + k) * 7, px = e.x + (H(90 + k) - 0.5) * 60 + vx * tt, py = y + vy * tt + 0.45 * tt * tt
+      if (py > y + 2) continue
+      c.globalAlpha = Math.max(0, 1 - tt / 37); c.fillStyle = k & 1 ? (fire ? '#4a2a18' : '#3c4a56') : (fire ? '#6b3b1f' : '#5e7280')
+      const z = 3 + (H(100 + k) * 4 | 0); c.fillRect(R(px), R(py), z, z)
+    }
+  }
+  // (7) shatter: as the spikes melt from the top, they break into shards that fly and fall
+  if (t >= MELT_AT && t < MELT_AT + 30) {
+    const tt = t - MELT_AT
+    for (let k = 0; k < 22; k++) {
+      const src = CL[k % CL.length], ox = e.x + src[0], oy = y - src[1] * (0.4 + 0.5 * H(110 + k))
+      const vx = (H(120 + k) - 0.5) * 7 + Math.sign(src[0] || (H(130 + k) - 0.5)) * 1.5, vy = -2 - H(140 + k) * 4
+      const px = ox + vx * tt, py = oy + vy * tt + 0.4 * tt * tt; if (py > y) continue
+      c.globalAlpha = Math.max(0, 1 - tt / 30); c.fillStyle = fire ? (k & 1 ? COL.fire[1] : COL.fire[2]) : (k & 1 ? COL.ice[0] : COL.ice[1])
+      c.save(); c.translate(R(px), R(py)); c.rotate(tt * 0.3 * (k & 1 ? 1 : -1)); c.beginPath(); c.moveTo(-3, 2); c.lineTo(0, -5); c.lineTo(3, 2); c.closePath(); c.fill(); c.restore()
+    }
+  }
+  // (8) frost hanging in the air: mist, falling snow, twinkling sparkles (fire: smoke rising, embers, sparks)
+  if (t >= 6) {
+    const tt = t - 6, fade = t < 66 ? Math.min(1, tt / 6) : Math.max(0, 1 - (t - 66) / (GONE - 66))
+    c.globalAlpha = 0.22 * fade; c.fillStyle = fire ? '#5a5048' : '#e6f6ff'
+    for (let k = 0; k < 4; k++) { const mx = e.x + (k - 1.5) * 34, my = y - 10 - (fire ? tt * 1.2 : 0) - k % 2 * 8; c.beginPath(); c.ellipse(R(mx), R(my), R(30 + Math.min(tt, 50)), R(12 + Math.min(tt, 50) * 0.3), 0, 0, 7); c.fill() }
+    for (let k = 0; k < 20; k++) {
+      const px = e.x + (H(150 + k) - 0.5) * 140 + (fire ? 0 : Math.sin(tt * 0.2 + k) * 4), base = y - 20 - H(160 + k) * 110
+      const py = fire ? base - tt * (0.6 + H(170 + k) * 0.9) : base + tt * (0.35 + H(170 + k) * 0.5)
+      if (py > y) continue
+      const tw = calm() ? 0.6 : 0.4 + 0.6 * Math.abs(Math.sin(t * 0.5 + k * 1.7))
+      c.globalAlpha = fade * tw; c.fillStyle = fire ? (k % 3 ? COL.fire[1] : COL.fire[0]) : (k % 3 ? '#ffffff' : COL.ice[1])
+      if (k % 4 === 0) { c.fillRect(R(px) - 3, R(py), 7, 1); c.fillRect(R(px), R(py) - 3, 1, 7) }   // a sparkle (4-point star)
+      else c.fillRect(R(px), R(py), 2, 2)
+    }
+  }
+  c.restore()
+}
 function drawEvents(c, f, s) {
   for (const e of s.fx) {
     const k = e.t / 40, al = Math.max(0, 1 - k), el = e.el || 'ice'
@@ -178,6 +300,7 @@ function drawEvents(c, f, s) {
     else if (e.kind === 'frost') { if (!vfx(c, 'iceBurst', e.t / 4, e.x, e.y, { scale: 1.1 })) part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir }) }   // the shard bursts on him
     else if (e.kind === 'chip') part(c, 'spray', 'ice', e.x, e.y, { alpha: al, flip: e.dir })
     else if (e.kind === 'ember' || e.kind === 'scorch') { if (!vfx(c, 'firePuff', e.t / 6, e.x, e.y, { scale: 0.7, alpha: al })) part(c, 'arc', 'fire', e.x, e.y + 20, { alpha: al, flip: e.dir }) }
+    else if (e.kind === 'erupt') drawErupt(c, f, e)
     else if (e.kind === 'flameFloor') { if (!vfx(c, 'fireRise', e.t / 4, e.x, e.y + 4, { h: 120, alpha: al })) part(c, 'arc', 'fire', e.x, e.y, { alpha: al, flip: e.dir }) }
     else if (e.kind === 'splash') { if (!vfx(c, 'waterSplash', e.t / 6, e.x, e.y + 20, { scale: 0.75, alpha: al })) part(c, 'splash', 'water', e.x, e.y, { alpha: al }) }
     else if (e.kind === 'shatter') { if (!vfx(c, 'iceBurst', 1 + e.t / 4, e.x, e.y, { scale: 1.6 })) part(c, 'burst2', 'ice', e.x, e.y, { alpha: al }) }
@@ -341,7 +464,7 @@ export function drawEnochOver(c, p1, p2, W) {
   if (isEn(p1) || isEn(p2)) drawShards(c, W, fr)
   for (const f of [p1, p2]) {
     const s = isEn(f) ? f._enoch : null; if (!s) continue
-    drawWall(c, f, s, fr); drawSnow(c, f, s, fr); drawMeteors(c, f, s, fr); drawEncase(c, f, s, W, fr, p1, p2); drawAfflictions(c, f, s, W, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
+    drawWall(c, f, s, fr); drawSnow(c, f, s, fr); drawMeteors(c, f, s, fr); drawEncase(c, f, s, W, fr, p1, p2); drawAfflictions(c, f, s, W, fr); drawCharge(c, f, s, fr); drawEvents(c, f, s); drawBeams(c, f, s); drawLens(c, f, s); drawUlt(c, f, enochUltView(f)); drawSteam(c, f, s, fr)
   }
 }
 // ── HUD: the thermal bar (deep blue → teal → orange, marker, outlined balance zone) under his health bar ──
@@ -443,6 +566,7 @@ export function playEnochCues(f) {
     if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue
     if (v === 'laserOn') { try { startHomelanderLaser(f, { seed: seedOf(), frame: s.tick }); if (f._hlLaserEl) f._hlLaserEl.playbackRate = f._hlLaserEl.playbackRate * LASER_PITCH } catch (_) {} }
     if (v === 'laserOff') { try { stopHomelanderLaser(f) } catch (_) {} }
+    if (v === 'eruptShake') { try { if (!juiceSettings.reduceMotion) camera.shake(6, 12) } catch (_) {} continue }   // the eruption's big finish
     if (v === 'burst' || v === 'superFinal') { try { camera.shake(v === 'burst' ? 7 : 14, v === 'burst' ? 10 : 20) } catch (_) {} }
     const key = v === 'glide' && s.glide?.type === 'fire' ? 'glideFast' : v   // the whoosh pitch rises with speed (fire glide = 2.3×)
     try { sound.play('enoch_' + key) } catch (_) {}

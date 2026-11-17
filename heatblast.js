@@ -79,6 +79,7 @@ function enterBurnout(s) { s.blue = 0; s.heat = 0; s.idle = 0; s.burnout = HB_HE
 // ── per-frame tick (GAME_STATE only; called once per fighter per frame by abilities.tickBenAlienForm) ─────
 function tick(f, input, ctx, api) {
   const s = hbState(f); if (!s) return
+  const opp = api.getOpponent(f)
   if (s.absorbWin > 0) s.absorbWin--
   if (s.absorbCd > 0) s.absorbCd--
   // HEAT: Blue Flame 360f → Burnout 120f (Heat locked at 0, Rocket / Supernova unavailable); else idle decay.
@@ -97,6 +98,40 @@ function tick(f, input, ctx, api) {
   const grounded = !!(f.onGround || f.grounded)
   if (grounded) { s.airborne = false; s.flightUsed = false; s.apexY = null }
   else { s.airborne = true; s.apexY = s.apexY == null ? f.y : Math.min(s.apexY, f.y) }
+  tickScorch(f, s, opp, api)
+}
+
+function tickScorch(f, s, opp, api) {
+  const sc = s.scorch
+  if (sc.pips > 0 && sc.burnT <= 0 && --sc.pipT <= 0) sc.pips = 0
+  if (sc.immune > 0) sc.immune--
+  if (sc.burnT > 0) {
+    sc.burnT--
+    if (--sc.burnTick <= 0) {
+      sc.burnTick = HB_SCORCH.TICK
+      if (opp && !opp.eliminated && (opp.health || 0) > 1) {
+        // 5 per tick, combo-scaled, cannot KO (stops at 1 HP). offenseApplied: the burn is flat, not tier-boosted.
+        const before = opp.health
+        api.applyScaledDamage(opp, HB_SCORCH.BURN_DMG * api.getComboScale(f), { attacker: f, move: "ignite", source: "dot", floor: 1, offenseApplied: true, defenseApplied: true, regrowthEligible: true })
+        sc.burnDealt += before - opp.health
+      }
+      sc.rawBurn = (sc.rawBurn || 0) + HB_SCORCH.BURN_DMG
+    }
+    if (sc.burnT <= 0) sc.immune = HB_SCORCH.IMMUNE
+  }
+}
+function addScorchPip(f, s, castId) {
+  const sc = s.scorch
+  if (castId == null || castId === s.lastPipCast) return false        // one pip per cast, however many ticks hit
+  if (sc.burnT > 0 || sc.immune > 0) return false                     // can't refresh while burning / immune
+  s.lastPipCast = castId
+  sc.pips = Math.min(HB_SCORCH.MAX, sc.pips + 1); sc.pipT = HB_SCORCH.EXPIRE
+  if (sc.pips >= HB_SCORCH.MAX) {                                     // IGNITE: consume the pips, burn 60f
+    sc.pips = 0; sc.pipT = 0; sc.burnT = HB_SCORCH.BURN; sc.burnTick = HB_SCORCH.TICK; sc.burnDealt = 0; sc.rawBurn = 0
+    sc.flashUsed = false; sc.ignites++
+    if (!f._benSfx) f._benSfx = "hb_ignite"
+  }
+  return true
 }
 
 // Called by combat after a contact this fighter OWNS lands (melee or projectile, blocked or clean).
@@ -106,7 +141,17 @@ function onContact(f, target, { proj = null, move = null, blocked = false, dealD
     addHeat(f, blocked ? HB_HEAT.NORMAL / 2 : HB_HEAT.NORMAL)
     return
   }
-  // projectile contacts (Fire Rocket Heat, Scorch) arrive with the specials
+  if (proj.visualOnly) return
+  if (proj.hbRocket != null && s.rocketCast !== proj.hbRocket) {          // Fire Rocket: +12 once per cast (half on block)
+    s.rocketCast = proj.hbRocket; addHeat(f, blocked ? HB_HEAT.ROCKET / 2 : HB_HEAT.ROCKET)
+  }
+  if (blocked) return
+  if (proj.hbScorch != null) addScorchPip(f, s, proj.hbScorch)
+  const sc = s.scorch
+  if (proj.hbSupernova && sc.burnT > 0 && !sc.flashUsed && dealDamage) {  // FLASHPOINT: end the burn, +25 once
+    sc.flashUsed = true; sc.burnT = 0; sc.burnTick = 0; sc.immune = HB_SCORCH.IMMUNE; sc.flashpoints++
+    dealDamage(target, HB_SCORCH.FLASHPOINT * (comboScale ? comboScale(f) : 1), { attacker: f, move: "flashpoint", source: "projectile" })
+  }
 }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────────

@@ -353,6 +353,7 @@
     "test:ben10-catalog": "node harness/ben10_experimental_catalog.test.mjs",
     "test:ben10-integration": "node harness/ben10_integration.test.mjs",
     "test:swampfire-live": "node harness/ben10_swampfire_live.mjs",
+    "test:swampfire-combos": "node harness/ben10_swampfire_combos.test.mjs",
     "test:ben10-replay-lan": "node harness/ben10_replay_lan.mjs",
     "test:ben10-render": "node harness/ben10_render_check.mjs",
     "test:ben10-omnitrix": "node harness/ben10_omnitrix_p3.mjs",

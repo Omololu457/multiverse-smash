@@ -7,6 +7,9 @@ const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
 })
 export const SWAMPFIRE = {
   id: "swampfire", poolKey: "swampfire", displayName: "Swampfire", slot: 1,
+  tagline: "Hot-headed. Deeply rooted.", archetype: "Zoner / Regenerating Tank",
+  bio: "A Methanosian from the swamp world of Methanos, Swampfire commands fire and plant life at once. "
+     + "Burn him, cut him, blow him apart: he grows back from anything.",
   status: "ready", sheetPath: "./ben10_swampfire_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/swampfire/SPRITE_LEDGER.md",
   mods: { speed: 0.92, damage: 1.10, defense: 1.10, weight: 1.15 },

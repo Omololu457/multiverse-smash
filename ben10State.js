@@ -48,6 +48,7 @@ export function tickRegrowth(f) {
   r.cadence = 0
   const amount = Math.min(2, r.pool, 80 - r.restored, f.maxHealth - f.health)
   f.health += amount; r.pool = Math.max(0, r.pool - amount); r.restored += amount; r.fxFrames = 10
+  if (!f._benSfx) f._benSfx = "sf_regrow"   // render-only cue, drained by game.js ben10Sfx the same frame
 }
 export const benKnockbackScale = f => isSwampfire(f) ? 1 / 1.15 : 1
 

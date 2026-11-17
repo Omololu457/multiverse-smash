@@ -81,3 +81,24 @@ never by engine edits. The transform/swap/timeout/Vow economy, the shared pool, 
 roster-wide invariants. Placeholders ship with deliberately **average (×1.0) mods** so the framework is
 testable without pre-judging any alien's power. A new alien that over- or under-performs is re-tuned in
 its `aliens.js` entry (mods) and its `BEN10_ALIEN_POOL` move table — see `docs/ben10/ADD_ALIEN.md`.
+
+# Swampfire — why he is fair (2026-11-17)
+
+Swampfire is balanced by his modifiers and move table only. No engine code was
+changed to make him strong or weak.
+
+- **Every special costs Power.** Flame Jet 12, Vine Eruption 18, Blaze Dash 10.
+  Power is the same pool that keeps him transformed, so spending it shortens the form.
+- **He is slow.** Walk speed is the human's ×0.92, so he has to earn his range.
+- **Regrowth is capped and interruptible.** It only returns 35% of recently lost
+  HP, never more than 80 HP per transformation, and only after 120 frames without
+  being hit. Any hit restarts that wait, and reverting or swapping empties the bank.
+  It can never heal him above what he had before the damage.
+- **The ultimate is expensive and punishable.** Methane Inferno needs 50 Power,
+  works only in alien form, has a 40-frame startup and leaves him in a 100-frame
+  recovery lockout he cannot cancel.
+- **Tankiness has a price.** Damage ×1.10, defense ÷1.10 and weight 1.15 are paid
+  for by the slower speed and the Power cost of every special.
+
+Tests: `harness/ben10_swampfire_combos.test.mjs` (combo routes, Regrowth, Vow),
+`harness/ben10_integration.test.mjs`, `harness/ben10_swampfire_live.mjs`.

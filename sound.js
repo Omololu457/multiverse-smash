@@ -320,6 +320,7 @@ function sbSeededNoise(ctx, gain, duration, gainVal, filterFreq, seed) {
   src.start(ctx.currentTime); src.stop(ctx.currentTime + duration)
 }
 
+import { playSwampfireSound } from './swampfireSound.js'   // Swampfire (Ben 10) per-alien synth SFX + voice-pack hook
 import { ZORO_SOUNDS } from './zoroSound.js'   // Roronoa Zoro synth SFX (SFX bus; voice bus untouched)
 import { BUGGY_SOUNDS } from './buggySound.js'   // Buggy the Clown synth SFX (SFX bus; voice bus untouched)
 import { SANJI_SOUNDS } from './sanjiSound.js'   // Sanji synth SFX (SFX bus; voice bus untouched)
@@ -1073,10 +1074,8 @@ class SoundManager {
         case "ben_dash":       osc(ctx, out, "sawtooth", 300 * p, 0.2, 0.18, 900 * p); break                                                     // 300→900
         case "ben_shockwave":  osc(ctx, out, "sine", 90 * p, 0.3, 0.22); sbSeededNoise(ctx, out, 0.3, 0.12, 400 * p, seed); break                // sine 90 + noise
         // Synthesized Swampfire placeholders: no recorded voice pack is claimed.
-        case "sf_flame": sbSeededNoise(ctx, out, 0.22, 0.10, 700 * p, seed); break
-        case "sf_vine": osc(ctx, out, "triangle", 140 * p, 0.25, 0.12, 70 * p); break
-        case "sf_dash": osc(ctx, out, "sawtooth", 180 * p, 0.16, 0.10, 650 * p); break
-        case "sf_inferno": this._benOverload(p, seed); break
+        // Swampfire's per-alien entry (swampfireSound.js; voice-pack hook there). Spec recipes, hashed noise.
+        case "sf_flame": case "sf_vine": case "sf_dash": case "sf_regrow": case "sf_inferno": playSwampfireSound(ctx, out, id, p, seed); break
         case "ben_overload":   this._benOverload(p, seed); break                                                                                 // saw 60 + sq 120, rising lowpass
       }
     } catch (_) {}

@@ -50,7 +50,9 @@ try {
   s = await p1()
   ok(s.benTransformed, "alien not applied after startup")
   ok(s.benOmx && s.benOmx.index === 0, `wrong slot after transform (${s.benOmx && s.benOmx.index})`)
-  ok(s.benPlaceholder, "alien form should render as a PLACEHOLDER (human + tint) — art wiped")
+  // an art-less form renders as a PLACEHOLDER (human + tint); a READY art-backed form (XLR8 took slot 1 of this loadout) renders its own art
+  const READY_ART = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]
+  ok(READY_ART.includes(s.benForm) ? !s.benPlaceholder : s.benPlaceholder, `form renders correctly: placeholder only when it has no art (${s.benForm}, placeholder=${s.benPlaceholder})`)
   ok(s.spriteReady !== false, "placeholder alien must still render as sprites (playable)")
   ok(!s.benVulnerable, "vulnerability should clear after startup")
 

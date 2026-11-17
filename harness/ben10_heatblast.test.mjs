@@ -227,10 +227,10 @@ test('10. swap / revert clear Heat + Scorch-owner state; rematch starts clean', 
 })
 
 // ── 11 Vow + determinism + registry ────────────────────────────────────────────────────────────────────────
-test('11. registry: Heatblast READY in slot 2; default loadout swampfire + heatblast + megawhatt', () => {
-  assert.deepEqual(getAvailableAlienKeys(false), ['swampfire', 'heatblast', 'megawhatt'])
-  assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'slot4', 'slot5'])
-  assert.deepEqual(F.DEFAULT_OMNITRIX, ['swampfire', 'heatblast', 'megawhatt'])
+test('11. registry: Heatblast READY in slot 2; default loadout = all five ready forms', () => {
+  assert.deepEqual(getAvailableAlienKeys(false), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
+  assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
+  assert.deepEqual(F.DEFAULT_OMNITRIX, ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Heatblast')
 })
 test('11. Vow pick includes Heatblast; same seed → same pick', () => {

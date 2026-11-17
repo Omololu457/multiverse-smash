@@ -47,7 +47,7 @@ const flight = () => H("flightProbe", "p1")
 try {
   // ── 1. plain match: Ben → Megawhatt (CHARGED) ──
   const d0 = await boot()
-  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt"]), "default loadout is Swampfire + Heatblast + Megawhatt", JSON.stringify(d0?.loadout))
+  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout is the five ready forms", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot3()
   ok(d1?.form === "megawhatt", "↓↓ + Special (slot 3) transforms into Megawhatt", `form=${d1?.form}`)
   ok(/ben10_megawhatt_idle_uniform/.test(d1?.sheet || ""), "CHARGED (yellow) frame set active", d1?.sheet)
@@ -78,7 +78,7 @@ try {
   // ── 4. Binding Vow ──
   await boot(true)
   const v1 = await transformSlot3()
-  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "megawhatt"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "megawhatt" && /ben10_megawhatt/.test(v2?.sheet || ""), "Megawhatt under the Binding Vow renders his own art", v2?.sheet)

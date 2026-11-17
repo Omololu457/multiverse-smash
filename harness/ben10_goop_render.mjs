@@ -65,7 +65,7 @@ const goopProbe = (force = null) => page.evaluate(async force => {
 try {
   // ── 1. plain match: Ben → Goop (standing) ──
   const d0 = await boot()
-  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop"]), "default loadout includes Goop (slot 4)", JSON.stringify(d0?.loadout))
+  ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout includes Goop (slot 4)", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot4()
   ok(d1?.form === "goop", "↓↓ + Light + Heavy (slot 4) transforms into Goop", `form=${d1?.form}`)
   ok(/ben10_goop_idle_uniform/.test(d1?.sheet || ""), "Goop frame set active", d1?.sheet)
@@ -103,7 +103,7 @@ try {
   // ── 4. Binding Vow ──
   await boot(true)
   const v1 = await transformSlot4()
-  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
+  ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "goop"); await frames(20)
   const v2 = await H("ben10Details", "p1")
   ok(v2?.form === "goop" && /ben10_goop/.test(v2?.sheet || ""), "Goop under the Binding Vow renders his own art", v2?.sheet)

@@ -1,6 +1,6 @@
 // harness/ben10_stage3.test.mjs
 // BEN 10 — STAGE 3: per-form specials (SPECIAL button = "l", direction via held key).
-//   XLR8:        neutral Dash Strike (lunge) · Fwd Sonic Rush (launcher)
+//   XLR8:        neutral Sonic Slash (380 px dash slash) · Fwd Blur Step (teleport behind) — the READY XLR8 kit
 //   Diamondhead: neutral Shard Barrage (projectile) · Down Rising Diamonds (ground eruption)
 //   Ben-human:   neutral Hoverboard Dash (mobility+strike) · Down Hoverboard Bash (launcher)
 // Proves each fires (energy spent), the projectile specials spawn a projectile, the dash
@@ -83,17 +83,18 @@ try {
   await page.waitForFunction(() => { const p = window.__harness.p1(); return p && p.spriteReady; }, null, { timeout: 15000, polling: 32 }).catch(() => {});
 
   // ── XLR8 ────────────────────────────────────────────────────────────
-  section("XLR8 — Dash Strike (neutral) + Sonic Rush (forward)");
+  section("XLR8 — Sonic Slash (neutral) + Blur Step (forward)");
   await settle(); await setForm("xlr8"); await prep(64);
   { const r = await fireSpecial(null);
-    check("XLR8 Dash Strike fires (energy spent)", r.energySpent, `act=${r.act}`);
-    check("XLR8 Dash Strike lunges forward", r.moved, `moved=${r.moved}`);
-    check("XLR8 Dash Strike uses xlDash pose", seen.has("xlDash"), `act=${r.act}`); }
-  await settle(); await setForm("xlr8"); await prep(58);
+    check("XLR8 Sonic Slash fires (energy spent)", r.energySpent, `act=${r.act}`);
+    check("XLR8 Sonic Slash dashes forward", r.moved, `moved=${r.moved}`);
+    check("XLR8 Sonic Slash uses xlSonicSlash pose", seen.has("xlSonicSlash"), `act=${r.act}`);
+    check("XLR8 Sonic Slash connects", r.hurtDummy, `hurt=${r.hurtDummy}`); }
+  await settle(); await setForm("xlr8"); await prep(90);
   { const r = await fireSpecial("d");
-    check("XLR8 Sonic Rush fires (energy spent)", r.energySpent, "");
-    check("XLR8 Sonic Rush uses xlRush pose", seen.has("xlRush"), `act=${r.act}`);
-    check("XLR8 Sonic Rush connects/launches", r.launched || r.hurtDummy, `launched=${r.launched} hurt=${r.hurtDummy}`); }
+    check("XLR8 Blur Step fires (energy spent)", r.energySpent, "");
+    check("XLR8 Blur Step uses the blur poses", seen.has("xlBlurOut") || seen.has("xlBlurIn"), `act=${r.act}`);
+    check("XLR8 Blur Step relocates him", r.moved, `moved=${r.moved}`); }
 
   // ── DIAMONDHEAD ─────────────────────────────────────────────────────
   section("Diamondhead — Shard Barrage (projectile) + Rising Diamonds (ground eruption)");

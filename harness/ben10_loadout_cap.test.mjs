@@ -1,7 +1,8 @@
 // harness/ben10_loadout_cap.test.mjs
-// Loadout simplification pass — verify the Omnitrix pick-cap is 4 (lowered from 6) LIVE:
-//  - the select screen's cap/maxPick (drives "Pick up to N aliens" text) reports 4
-//  - clicking 5 distinct alien cards through the REAL click handler leaves the draft at 4 (5th refused)
+// Loadout pick-cap LIVE. The cap is data-driven: one pick per Omnitrix slot combo (5), shown as "Pick up to N";
+// with 5 READY forms all five fill the dial and nothing beyond the cap can be added.
+//  - the select screen's cap/maxPick reports 5
+//  - clicking every alien card through the REAL click handler (twice over) never grows the draft past 5
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -21,26 +22,26 @@ try {
   // Open the Omnitrix loadout screen with an EMPTY draft, then read the cap/maxPick.
   await page.evaluate(() => window.__harness.showAlienSelect(0));
   const st0 = await page.evaluate(() => window.__harness.alienSelectState());
-  check("pick-cap is 4 (was 6)", st0.cap === 4, `cap=${st0.cap}`);
-  check("maxPick drives 'Pick up to 4' text", st0.maxPick === 4, `maxPick=${st0.maxPick}`);
+  check("pick-cap is 5 (one per slot combo)", st0.cap === 5, `cap=${st0.cap}`);
+  check("maxPick drives 'Pick up to 5' text", st0.maxPick === 5, `maxPick=${st0.maxPick}`);
   check("draft starts empty", st0.draft.length === 0, `draft=${JSON.stringify(st0.draft)}`);
 
-  // Click 5 DISTINCT alien cards through the real canvas click handler; the 5th must be refused.
+  // Click every DISTINCT alien card through the real canvas click handler; the draft stops at the cap.
   const rects = await page.evaluate(() => window.__harness.alienGridRects());
-  for (let i = 0; i < 5 && i < rects.length; i++) {
+  for (let i = 0; i < rects.length; i++) {
     const r = rects[i];
     await page.mouse.click(r.x + r.w / 2, r.y + r.h / 2);
     await page.waitForTimeout(40);
   }
   const st1 = await page.evaluate(() => window.__harness.alienSelectState());
-  check("clicking 5 cards leaves draft at 4 (5th pick refused)", st1.draft.length === 4, `draft.length=${st1.draft.length} draft=${JSON.stringify(st1.draft)}`);
+  check("clicking every card fills the draft to the cap (5) and never past it", st1.draft.length === Math.min(5, rects.length) && st1.draft.length <= 5, `cards=${rects.length} draft.length=${st1.draft.length} draft=${JSON.stringify(st1.draft)}`);
 
   // Clicking an already-picked card should DESELECT (toggle), dropping back to 3 — proves toggle still works.
   const r0 = rects[0];
   await page.mouse.click(r0.x + r0.w / 2, r0.y + r0.h / 2);
   await page.waitForTimeout(40);
   const st2 = await page.evaluate(() => window.__harness.alienSelectState());
-  check("re-click deselects (toggle) → 3", st2.draft.length === 3, `draft.length=${st2.draft.length}`);
+  check("re-click deselects (toggle) → 4", st2.draft.length === 4, `draft.length=${st2.draft.length}`);
 
   check("no JS errors", jsErrors.length === 0, jsErrors.slice(0, 2).join(" | "));
 } catch (e) { console.log("FATAL", e); fail++; }

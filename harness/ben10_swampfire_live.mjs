@@ -14,7 +14,7 @@ try {
  await p.goto(server.base+'/index.html?harness=1&p1=ben10&p2=goku',{waitUntil:'load'});await p.waitForFunction(()=>!!window.__harness)
  const roster=await p.evaluate(()=>__harness.gotoCharacterSelect('ben_10'));check('Ben is selectable',roster.includes('ben10'));await start(p,{experimental:false,p1Aliens:['swampfire']})
  check('production loadout is Swampfire only',JSON.stringify((await detail()).loadout)==='["swampfire"]')
- const picker=await p.evaluate(()=>__harness.benLoadout().picker);check('production picker is approved only',JSON.stringify(picker)==='["swampfire","heatblast","megawhatt"]')
+ const picker=await p.evaluate(()=>__harness.benLoadout().picker);check('production picker is approved only',JSON.stringify(picker)==='["swampfire","heatblast","megawhatt","goop","xlr8"]')
  await p.screenshot({path:path.join(out,'01-human.png')});await p.evaluate(()=>__harness.ben10SetPower('p1',100))
  await p.keyboard.down('s');await frames(p,2);await p.keyboard.up('s');await frames(p,4);await p.keyboard.down('s');await frames(p,2);await p.keyboard.up('s');await frames(p,2);await p.keyboard.down('j');await frames(p,3);await p.keyboard.up('j');await frames(p,45)
  let d=await detail();check('real Down Down + Light transforms to Swampfire',d.form==='swampfire');check('actual Swampfire idle sheet selected',d.sheet?.includes('ben10_swampfire_idle'))

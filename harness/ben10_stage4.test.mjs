@@ -1,7 +1,7 @@
 // harness/ben10_stage4.test.mjs
 // BEN 10 — STAGE 4: per-form Ultimates (ULT button = "u").
 //   Ben-human:   Omnitrix Transformation — FREEZE CINEMATIC + guaranteed burst shockwave
-//   XLR8:        Sonic Blitz — committed high-damage blitz dash
+//   XLR8:        Time Sprint — opener → circling slashes → sonic-boom drop (the READY XLR8 kit)
 //   Diamondhead: Crystal Storm — field of marching ground eruptions
 //   node harness/ben10_stage4.test.mjs
 import { chromium } from "playwright";
@@ -72,8 +72,8 @@ try {
   const bx = (await p1()).x; await page.keyboard.down("d"); await waitFrames(10); await page.keyboard.up("d");
   check("control returns to live p1 after cinematic", Math.abs((await p1()).x - bx) > 1, "");
 
-  // ── XLR8 — Time-Slice Sprint (opponent speed-debuff ult, pass-4 redesign) ──
-  section("XLR8 — Time-Slice Sprint (speed-debuff ult)");
+  // ── XLR8 — Time Sprint (READY XLR8: clean opener → capture cinematic) ──
+  section("XLR8 — Time Sprint");
   await setForm("xlr8"); await prep(60);
   { const e = (await p1()).energy, h = (await p2()).health;
     const cast = await page.evaluate(() => window.__harness.p1Ultimate());   // deterministic fire (keyboard "u" timing is frame-flaky)
@@ -81,7 +81,7 @@ try {
     const spent = e - (await p1()).energy;   // measure NOW (before the form drains/reverts and regens)
     for (let i = 0; i < 54; i++) { const ri = await info(); if (ri?.action) seen.add(ri.action); await waitFrames(1); }   // freeze-template payoff lands ~frame 40
     check("XLR8 ult fires (energy spent)", cast?.cast && spent > 40, `cast=${cast?.cast} Δ=${spent.toFixed(0)}`);
-    check("XLR8 ult uses xlUlt pose", cast?.castMove === "xlUlt" || seen.has("xlUlt"), `castMove=${cast?.castMove}`);
+    check("XLR8 ult uses the Time Sprint poses", cast?.castMove === "xlSonicSlash" || seen.has("xlUltCircle"), `castMove=${cast?.castMove}`);
     check("XLR8 ult deals big guaranteed damage", (h - (await p2()).health) > 140, `−${(h - (await p2()).health).toFixed(0)}`); }
 
   // ── DIAMONDHEAD — Crystalline Eruption (freeze-template ult, pass-4 redesign) ──

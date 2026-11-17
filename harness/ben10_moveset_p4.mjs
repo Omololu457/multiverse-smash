@@ -30,9 +30,9 @@ try {
   await boot("default")
   // ── REGISTRY: 5 ready slots wrapping pool aliens + placeholder factory ──
   const reg = await call("ben10Registry")
-  ok(reg && reg.registry.length === 15, `registry includes Swampfire, Heatblast, Megawhatt and 12 retained experiments (got ${reg?.registry.length})`)
+  ok(reg && reg.registry.length === 16, `registry includes the 5 ready forms and 11 retained experiments (got ${reg?.registry.length})`)
   const approved = reg.registry.filter(a => a.status === "ready")
-  ok(approved.length === 3 && approved.map(a => a.id).join() === "swampfire,heatblast,megawhatt" && approved.every(a => a.sheetPath && a.ledgerPath), "only art-backed Swampfire + Heatblast + Megawhatt are approved")
+  ok(approved.length === 5 && approved.map(a => a.id).join() === "swampfire,heatblast,megawhatt,goop,xlr8" && approved.every(a => a.sheetPath && a.ledgerPath), "only the art-backed Swampfire / Heatblast / Megawhatt / Goop / XLR8 are approved")
   ok(reg.registry.filter(a => a.status !== "ready").every(a => a.status === "experimental" && a.poolKey), "all retained placeholders are explicitly experimental")
   ok(approved[0].mods.speed === 0.92 && approved[0].mods.damage === 1.10 && approved[0].mods.defense === 1.10, "Swampfire modifiers match the intended kit")
   ok(reg && reg.placeholder && reg.placeholder.status === "placeholder" && reg.placeholder.moves.special1 === "Placeholder Blast", "placeholder must carry Placeholder Blast")

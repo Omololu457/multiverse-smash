@@ -106,6 +106,10 @@ sets); a form that defines none of them takes exactly the old path, and non-Ben 
 | `blockSpecial(f, ctx)` | game.js Omnitrix input handler, next to `blockHeavy` | Block + Special edge, not while power-committed; `true` = handled. The press can still be buffered (10f): swallow it in the form (XLR8 refuses `fireSpecial` until Special has been released for one buffer window). |
 | projectile `timeScale` + `timeScaleT` lease | combat.js `updateProjectiles` | while `timeScaleT > 0` the step is `vx/vy × timeScale` and the lease counts down; the owning form refreshes it every frame (XLR8 Flash Time slows the opponent's projectiles ×0.5), so it lapses within 2 frames once the effect stops (swap / KO safe). Absent = unchanged. |
 
+| `drawBehind(c, f, frame)` | game.js body draw, next to `drawSpeedLines` | render-only layer BEHIND the body (XLR8: full-sprite afterimages replayed from the sprite handler's last draw + his blur-bar streak + speed lines). |
+| `formState.speedTier = true` | game.js `isSpeedTierTeleport` | the form gets the shared speed-tier double-tap-toward blink (Killua's). Lives in formState, so swap / revert / KO clear it. |
+| `formState.mobility = "very_high"` | physics.js air-dash cap | two air-dashes (Killua's). Same lifetime as above. |
+
 Teleports need no hook: the ability context carries `stageLeft` / `stageWidth` (clamp in the form) plus `seed` / `frame`
 for hash(match seed, frame, player index) placement (XLR8 Blur Step / Time Sprint).
 

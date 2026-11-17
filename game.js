@@ -11397,6 +11397,7 @@ const SPEED_TIER_TELEPORT_KEYS = new Set([
 function isSpeedTierTeleport(fighter) {
   const key = (fighter?.rosterKey || fighter?.id || "").toLowerCase()
   if (SPEED_TIER_TELEPORT_KEYS.has(key)) return true
+  if (fighter?.transformed && fighter.omnitrix?.formState?.speedTier) return true   // READY Omnitrix form opt-in (XLR8: Killua's blink-behind double-tap)
   return (fighter?.baseSpeed ?? fighter?.speed ?? 0) >= SPEED_TIER_THRESHOLD
 }
 
@@ -22304,6 +22305,7 @@ function renderHybridFighter(fighter) {
     drawMayuriMovementFx(c, fighter)   // Mayuri — dash-trail ghost + dash-start shockwave rings, behind the body (Mayuri only)
     drawHandlerShadowSink(c, fighter)   // Megumi Shadow Sink — dark shadow-pool ellipse at the feet, BEHIND the body (handler only)
     drawSpeedLines(c, fighter)          // STAGE 1: manga speed-lines behind a fast dash/rush, BEHIND the body (any fighter, velocity-gated)
+    { const _rd = benReadyForm(fighter); if (_rd && _rd.drawBehind) _rd.drawBehind(c, fighter, globalFrameCount) }   // READY Omnitrix form layer BEHIND the body (XLR8 full-sprite afterimages + speed lines; render-only)
     if (dashParrBodyAlpha(fighter) === 0) fighter._juiceTrailBuf = null; else _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3) [Dash: no ghost of the hidden body during Laps / Incredi-Rush]: dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
     drawSpdRedUnder(c, fighter, globalFrameCount)   // S.P.D. Red — blink streak afterimages + dissolve, BEHIND the body (render-only; spd_red only)
     drawDashParrUnder(c, fighter, getOpponent(fighter))   // Dash — Blur afterimages, Laps loop, Incredi-Rush storm, BEHIND the body (render-only; dash_parr only)
@@ -29381,6 +29383,7 @@ gameLoop()
     setBeastAssistIdx:   (i, who = "p1") => { const f = who === "p2" ? p2 : p1; if (f) f._bbaIdx = i | 0; return f?._bbaIdx ?? null },
     // Ben 10 loadout/prune probe: the art-backed picker list + the live Omnitrix loadout. Pass a
     // selection to REBUILD the loadout (tests the art-backed filter — e.g. a stale save of hidden aliens).
+    benFormTrail: (who = "p1") => { const f = who === "p2" ? p2 : p1; const rd = f && benReadyForm(f); return rd && rd.trailCount ? rd.trailCount(f) : -1 },   // READY form render-only afterimage count (XLR8 speed trail)
     benLoadout: (rebuildSel) => { if (rebuildSel && p1) setupBen10(p1, rebuildSel); return { picker: getAlienPoolList().map(a => a.key), aliens: p1?.omnitrix?.aliens || null, index: p1?.omnitrix?.index ?? null, artBacked: [...BEN10_ART_ALIENS] } },
     // Ben 10 command-chain probe (mirrors orCmd/vegCmd) — drive the Fwd+Heavy rekka precisely from a test.
     benCmd: (who = "p1") => { const f = who === "p2" ? p2 : p1; return f ? { form: f.transformed === false ? "human" : (f.activeAlien || null), move: f.currentMove || f.currentAttack?.name || null, action: f._lastSpriteAction || null, phase: getAttackPhase(f), rekkaNext: f._rekkaNext || null, connected: !!f._cmdHitLanded, attacking: !!f.attacking, cooldown: f.attackCooldown || 0 } : null },

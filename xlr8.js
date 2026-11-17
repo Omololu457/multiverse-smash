@@ -32,7 +32,7 @@ export const XLR8 = {
   id: "xlr8", poolKey: "xlr8", displayName: "XLR8", slot: 5,
   status: "ready", sheetPath: "./ben10_xlr8_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/xlr8/SPRITE_LEDGER.md",
-  mods: { speed: 1.35, damage: 0.90, defense: 0.85, weight: 0.70 },
+  mods: { speed: 1.6, damage: 0.90, defense: 0.85, weight: 0.70 },   // speed raised 1.35 → 1.6 (owner: "as fast as Killua, really really fast") — walk 14.4 vs Killua 8.75
   movement: "grounded", maxJumps: 2,   // the shared double jump
   moves: { jab: "Jab", heavy: "Claw Slash", low: "Tail Sweep", launcher: "Rising Slash", air: "Air Claw",
     special1: "Sonic Slash", special2: "Blur Step", special3: "Tail Whip", special4: "Mach Cyclone", special5: "Sonic Dive",
@@ -46,12 +46,13 @@ export const XLR8 = {
   },
   anim: ANIM, fx: XLR8_FX,
   onApply, tick, fireSpecial, fireUltimate, blockSpecial, onContact, moveFrames,
-  drawHud: drawXlr8Hud, drawFx: drawXlr8Fx, drawUnder: drawXlr8Under
+  drawHud: drawXlr8Hud, drawFx: drawXlr8Fx, drawUnder: drawXlr8Under, drawBehind: drawXlr8Behind, trailCount: f => xlTrailCount(f)
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshXlr8State() {
   return { kind: "xlr8", t: 0, castId: 0, baseSpeed: null, baseDash: null,
+    speedTier: true, mobility: "very_high",   // Killua kit: double-tap-toward = blink behind the foe; two air-dashes (cleared with formState on swap / revert / KO)
     flashT: 0, flashCd: 0, flashes: 0, swallow: 0,
     echoes: [], echoCount: 0, echoesFired: 0,
     blur: null, blurCd: 0, cancelWin: 0, cancelUsed: false, cancels: 0,
@@ -465,4 +466,70 @@ export function drawXlr8Under(c, f) {
   c.globalCompositeOperation = "saturation"; c.globalAlpha = ult ? 1 : 0.55; c.fillStyle = "#808080"
   c.fillRect(-4000, -4000, 16000, 12000)
   c.restore()
+}
+
+// SPEED TRAIL (render-only, outside GAME_STATE): afterimages of his FULL current sprite frame (replayed from the
+// sprite handler's last draw, so every pose — run, slash, dive, blink — leaves its own ghost) + blue speed lines
+// streaking from the oldest ghost to his body. Shows whenever he is moving fast; a Killua-style blink leaves the
+// whole line stretched across the gap he crossed. Drawn BEHIND the body.
+const _after = new WeakMap(), _prevPos = new WeakMap()
+export const xlTrailCount = f => (_after.get(f) || []).length   // harness: live afterimage count
+export function drawXlr8Behind(c, f, frame = 0) {
+  const s = xlState(f); if (!c) return
+  if (!s) { _after.delete(f); _prevPos.delete(f); return }
+  let buf = _after.get(f); if (!buf) { buf = []; _after.set(f, buf) }
+  // the sprite handler's _lastRender is the PREVIOUS frame's draw → pair it with the previous frame's position
+  const prev = _prevPos.get(f) || { cx: f.x + f.w / 2 }; _prevPos.set(f, { cx: f.x + f.w / 2 })
+  const lr = f.spriteHandler && f.spriteHandler._lastRender
+  const spd = Math.abs(f.vx || 0) + Math.abs(f._benLunge ? f._benLunge.speed || 0 : 0) + Math.abs(f._benGlide ? f._benGlide.vx || 0 : 0)
+  const fast = spd > 7 || (f.dashTimer || 0) > 0 || !!f.airDashing || (f.teleportFlash || 0) > 0 || flashActive(s) ||
+    !!(s.slash || s.cyclone || s.dive || s.blur || (s.ult && s.ult.phase !== "opener"))
+  if (fast && lr && lr.sheet && lr.sheet.complete && lr.sheet.naturalWidth > 0 && !f._animFrozen && (frame & 1) === 0) {
+    buf.push({ sheet: lr.sheet, sx: lr.sx, sy: lr.sy, dw: lr.dw, dh: lr.dh, fx: lr.fx, offsetX: lr.offsetX, drawY: lr.drawY,
+      dstW: lr.dstW, dstH: lr.dstH, facing: lr.facing, cx: prev.cx, life: 16 })
+    while (buf.length > 8) buf.shift()
+  }
+  if (!buf.length) return
+  c.save(); c.imageSmoothingEnabled = false
+  // speed lines: oldest ghost → his back, at staggered heights (pattern advances with the frame; render-only)
+  const old = buf[0], cx = f.x + f.w / 2, face = cx >= old.cx ? 1 : -1
+  const span = Math.abs(cx - old.cx)
+  if (span > 20) {
+    const a0 = Math.min(1, old.life / 16), bx = cx - face * f.w * 0.25, tail = old.cx - face * 40
+    // his own blur-bar art (blue / black / blue, from the sheet) stretched along the path, fading toward the tail
+    const bar = sheetImg(XLR8_FX.streakBar.sheet)
+    if (bar) {
+      const N = 10, len = Math.abs(bx - tail), by = f.y + f.h * 0.42, bh = f.h * 0.3
+      for (let i = 0; i < N; i++) {
+        const t0 = i / N, x = face > 0 ? tail + len * t0 : tail - len * (t0 + 1 / N)
+        c.globalAlpha = 0.7 * a0 * (0.15 + 0.85 * t0)
+        c.drawImage(bar, 0, 0, bar.width, bar.height, x, by - bh / 2, len / N + 1, bh)
+      }
+    }
+    // speed lines: white cores + blue edges at staggered heights (pattern advances with the frame; render-only)
+    c.globalAlpha = 1
+    for (let i = 0; i < 9; i++) {
+      const k = ((i * 37 + (frame >> 1) * 13) % 100) / 100
+      const y = f.y + f.h * (0.08 + 0.84 * k)
+      const x0 = tail - face * (20 + 60 * ((i * 53) % 7) / 7)
+      const g = c.createLinearGradient(x0, y, bx, y)
+      g.addColorStop(0, "rgba(56,189,248,0)"); g.addColorStop(0.5, `rgba(56,189,248,${0.75 * a0})`); g.addColorStop(1, `rgba(255,255,255,${0.95 * a0})`)
+      c.strokeStyle = g; c.lineWidth = i % 3 === 0 ? 5 : 2.5
+      c.beginPath(); c.moveTo(x0, y); c.lineTo(bx, y); c.stroke()
+    }
+  }
+  // afterimages: the full sprite frame at each past position, blue-shifted, older = fainter
+  for (let i = 0; i < buf.length; i++) {
+    const g = buf[i], a = 0.7 * (g.life / 16) * ((i + 1) / buf.length)
+    if (a > 0.015 && g.sheet.complete) {
+      c.globalAlpha = a
+      c.filter = "sepia(1) saturate(6) hue-rotate(165deg) brightness(1.1) drop-shadow(0 0 6px rgba(56,189,248,0.95))"
+      if (g.facing === -1) { c.save(); c.scale(-1, 1); c.drawImage(g.sheet, g.sx, g.sy, g.dw, g.dh, -g.fx + g.offsetX - g.dstW, g.drawY, g.dstW, g.dstH); c.restore() }
+      else c.drawImage(g.sheet, g.sx, g.sy, g.dw, g.dh, g.fx - g.offsetX, g.drawY, g.dstW, g.dstH)
+      c.filter = "none"
+    }
+    if (!f._animFrozen) g.life--
+  }
+  c.restore()
+  _after.set(f, buf.filter(g => g.life > 0))
 }

@@ -214,7 +214,7 @@ export const physics = {
       // no mobility key), so this cap silently stayed 1 for EVERY "very_high" char — the double air-dash
       // was dead. Read traits first (stats kept as a defensive fallback). Realizes the intended double
       // air-dash for EVERY very_high char: zenitsu, shinobu, nezuko, killua, flash, maki, toji (+ Saitama).
-      const mobility = fighter.traits?.mobility ?? fighter.stats?.mobility
+      const mobility = fighter.omnitrix?.formState?.mobility ?? fighter.traits?.mobility ?? fighter.stats?.mobility   // READY Omnitrix form may set it (XLR8 = very_high, Killua's double air-dash)
       const maxAirDash = (mobility === "very_high") ? 2 : 1
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {

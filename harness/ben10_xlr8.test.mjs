@@ -261,5 +261,13 @@ test('no Math.random / gameRng in xlr8.js / xlr8Assets.js', () => {
   for (const file of ['../xlr8.js', '../xlr8Assets.js']) assert(!/Math\.random|gameRng/.test(fs.readFileSync(new URL(file, import.meta.url), 'utf8')), file)
 })
 
+test('Killua kit: faster than Killua (walk 8.75 / dash 19), speed-tier blink + double air-dash flags, cleared on revert', () => {
+  const f = ben()
+  assert.equal(XLR8.mods.speed, 1.6)
+  assert(f._benWalkSpeed > 8.75 * 1.5, `walk ${f._benWalkSpeed} vs Killua 8.75`); assert(f.dashSpeed > 19, `dash ${f.dashSpeed} vs Killua 19`)
+  assert.equal(S(f).speedTier, true, 'double-tap toward = speed-tier blink'); assert.equal(S(f).mobility, 'very_high', 'two air-dashes')
+  F.revertToHuman(f); assert.equal(f.omnitrix.formState, null, 'flags go with formState on revert')
+})
+
 console.log(`XLR8: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

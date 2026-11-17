@@ -1,5 +1,5 @@
 // XLR8 RENDER CHECK — boots the real game headless, picks Ben 10, starts a match, TRANSFORMS INTO XLR8 with the real
-// ↓↓ + Charge (P) (slot 5) input, runs FLASH TIME (Block + Special), a live Sonic Slash and Blur Step, and repeats
+// ↓↓ + Charge (P) (slot 5) input, the Killua blink (double-tap toward) + full-sprite speed trail, runs FLASH TIME (Block + Special), a live Sonic Slash and Blur Step, and repeats
 // the check under the BINDING VOW. Confirms both fighters + HUD render (sprites, not boxes), no page errors, no
 // ben10_xlr8 asset 404s, no black screen.  node harness/ben10_xlr8_render.mjs   → shots in ben10_work/
 import { chromium } from "playwright"
@@ -78,6 +78,17 @@ try {
   const after = await H("p1"), op2 = await H("p2"); const side1 = Math.sign((op2.x + op2.w / 2) - (after.x + after.w / 2))
   ok(side0 !== 0 && side1 === -side0, "Blur Step lands behind the opponent", `${before.x} → ${after.x} (opp ${op.x})`)
   ok(await notBlack("_xlr8_blur_step.png"), "no black screen (Blur Step)")
+  // Killua kit: a REAL double-tap toward the opponent blinks him behind them, leaving the full-sprite trail + speed lines
+  await frames(60)
+  await page.evaluate(() => { const a = window.__harness.p1(); window.__harness.setP2X(a.x + (a.x > 1000 ? -450 : 450)) }); await frames(4)
+  const b0 = await H("p1"), o0 = await H("p2"); const tk = (o0.x + o0.w / 2) > (b0.x + b0.w / 2) ? "d" : "a"
+  const flick = await page.evaluate(() => { const h = window.__harness; for (const k of Object.keys(h)) if (h[k] && typeof h[k] === "object" && typeof h[k].dashState === "function") return h[k].dashState("p1"); return null })
+  await page.keyboard.press(tk); await page.waitForTimeout(60); await page.keyboard.press(tk); await frames(1)
+  const b1 = await H("p1"), o1 = await H("p2"); const gap0 = Math.abs((o0.x + o0.w / 2) - (b0.x + b0.w / 2)), gap1 = Math.abs((o1.x + o1.w / 2) - (b1.x + b1.w / 2))
+  ok(flick?.flicker === true && b1.teleportFlash > 0 && gap1 < gap0 * 0.6, "double-tap toward = Killua speed-tier blink to the opponent", `gap ${gap0.toFixed(0)} → ${gap1.toFixed(0)} flash=${b1.teleportFlash} speedTier=${flick?.flicker}`)
+  const trail = await H("benFormTrail", "p1")
+  ok(trail > 0, "full-sprite afterimage trail drawn behind him", `ghosts=${trail}`)
+  ok(await notBlack("_xlr8_speed_trail.png"), "no black screen (blink + speed trail)")
   // ── 3. Binding Vow ──
   await boot(true)
   const v1 = await transformSlot5()

@@ -47,7 +47,7 @@ export const HEATBLAST = {
     down_air: normal(48, 12, 4, 16, 0, { knockbackY: 10 })                                // attack4 dive
   },
   anim: ANIM, blueAnim: BLUE_ANIM, fx: HEATBLAST_FX,
-  onApply, tick, onContact
+  onApply, tick, fireSpecial, fireUltimate, blockHeavy, absorb, onContact
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -98,7 +98,38 @@ function tick(f, input, ctx, api) {
   const grounded = !!(f.onGround || f.grounded)
   if (grounded) { s.airborne = false; s.flightUsed = false; s.apexY = null }
   else { s.airborne = true; s.apexY = s.apexY == null ? f.y : Math.min(s.apexY, f.y) }
+  tickFlight(f, s, input, opp, api)
+  tickUlt(f, s, opp, api)
   tickScorch(f, s, opp, api)
+}
+
+function tickFlight(f, s, input, opp, api) {
+  if (s.flight) {
+    if ((f.hitstun || 0) > 0 || (f.health || 0) <= 0) { s.flight = null; delete f._benGlide; return }
+    const fl = s.flight, face = fl.face
+    const steer = input?.up ? -HB_FLIGHT.STEER_DEG : input?.down ? HB_FLIGHT.STEER_DEG : 0
+    const rad = (HB_FLIGHT.BASE_DEG + steer) * Math.PI / 180
+    f._benGlide = { vx: face * Math.cos(rad) * HB_FLIGHT.SPEED, vy: Math.sin(rad) * HB_FLIGHT.SPEED, minY: fl.capY }
+    f._spriteCastMove = "hbFlight"; f._spriteCastTimer = 2
+    if (++fl.t >= HB_FLIGHT.FRAMES) { s.flight = null; delete f._benGlide; s.dive = { t: 0, face, hit: false, cast: fl.cast }; f.vx = face * HB_FLIGHT.DIVE_VX; f.vy = HB_FLIGHT.DIVE_VY }
+    return
+  }
+  if (s.dive) {
+    const d = s.dive
+    if ((f.hitstun || 0) > 0) { s.dive = null; return }
+    const landed = (f.onGround || f.grounded) && d.t > 0
+    if (landed || d.t >= HB_FLIGHT.DIVE_MAX || d.hit) {
+      if (landed) spawnFx(f, api, "fireball", f.x + f.w / 2, f.y + f.h - 10, 18, 3)
+      s.dive = null; f.attackCooldown = Math.max(f.attackCooldown || 0, 14); return
+    }
+    d.t++
+    f.vx = d.face * HB_FLIGHT.DIVE_VX; f.vy = Math.max(f.vy || 0, HB_FLIGHT.DIVE_VY)
+    f._spriteCastMove = "hbFlight"; f._spriteCastTimer = 2
+    api.spawnProjectile(f, "hb_dive", { damage: HB_FLIGHT.DIVE_DMG, speed: 0, vx: 0, vy: 0,
+      spawnX: f.x + f.w / 2 + d.face * 20, spawnY: f.y + f.h * 0.7, w: 80, h: 70, radius: 40, lifetime: 2,
+      isSpecial: true, hitstun: 22, blockstun: 14, knockbackX: 6, knockbackY: 6, noHitstop: false,
+      fire: true, hbScorch: d.cast, hbDive: true, hbBlue: s.blue > 0 }, {})
+  }
 }
 
 function tickScorch(f, s, opp, api) {
@@ -134,6 +165,119 @@ function addScorchPip(f, s, castId) {
   return true
 }
 
+// ── casts ────────────────────────────────────────────────────────────────────────────────────────────────
+function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
+  if (!f.transformed || f.activeAlien !== "heatblast" || f.attacking || (f.attackCooldown || 0) > 0 ||
+      (f.hitstun || 0) > 0 || (f.blockstun || 0) > 0 || s.flight || s.dive || s.ult) return false
+  if (!api.spendEnergy(f, cost)) return false
+  f.isCharging = false
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = pose; f._spriteCastTimer = total
+  f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
+  s.castId++; s.idle = 0
+  return true
+}
+function spawnFx(f, api, key, x, y, lifetime, scale, extra = {}) {
+  const s = hbState(f), a = HEATBLAST_FX[(s && s.blue > 0) ? key + "Blue" : key] || HEATBLAST_FX[key]
+  return api.spawnProjectile(f, "hb_fx_" + key, { damage: 0, speed: 0, vx: 0, vy: 0, spawnX: x, spawnY: y, lifetime,
+    visualOnly: true, sheet: a.sheet, spriteFrames: a.frames, spriteW: a.w, spriteH: a.h, spriteSpeed: a.speed,
+    spriteScale: scale, ...extra }, {})
+}
+
+function fireSpecial(f, ctx, api) {
+  const s = hbState(f); if (!s) return false
+  const dir = f._specialHeldDir || null, face = f.facing || 1
+  if (!(f.onGround || f.grounded)) return castBlazeFlight(f, s, api, face)          // in air: Blaze Flight
+  if (dir === "F") return castFireRocket(f, s, api, face)                            // →→ + P
+  if (dir === "D") return castSupernova(f, s, api, face)                             // ←↙↓ + P
+  return castFireball(f, s, api, face)                                               // ↓↘→ + P
+}
+
+function castFireball(f, s, api, face) {
+  if (api.activeProjectiles().some(p => p.owner === f && p.name === "heatblast_fire" && !p.visualOnly)) return false   // one on screen
+  if (!beginCast(f, s, api, "hbFireball", HB_COST.fireball, 30)) return false
+  const cast = s.castId, tier = heatTier(s), big = tier !== "warm", blue = tier === "blue"
+  addHeat(f, HB_HEAT.FIREBALL)                      // Fireball cast +10 (may tip into Blue Flame)
+  f._benSfx = "hb_fireball"
+  const shot = (dmg, scale) => {
+    const fx = HEATBLAST_FX[blue ? "fireballBlue" : "fireball"]
+    api.spawnProjectile(f, "heatblast_fire", { damage: dmg, speed: 10, vx: face * 10, vy: 0,
+      spawnX: f.x + f.w / 2 + face * 40, spawnY: f.y + f.h * 0.42, w: big ? 44 : 30, h: big ? 30 : 20, radius: big ? 22 : 15,
+      lifetime: 56, isSpecial: true, hitstun: 18, blockstun: 14, knockbackX: 5, knockbackY: -2,
+      sheet: fx.sheet, spriteFrames: fx.frames, spriteW: fx.w, spriteH: fx.h, spriteSpeed: fx.speed, spriteScale: scale,
+      fire: true, hbScorch: cast, hbBlue: blue, piercesMulti: blue || undefined }, {})
+  }
+  // 560 px travel (10 px/f × 56f). Hot / Blue: a larger 2-hit fireball (30 + 30); Blue also pierces.
+  api.scheduleBenSpawn(f, 10, () => shot(big ? 30 : 45, big ? 3 : 2))
+  if (big) api.scheduleBenSpawn(f, 14, () => shot(30, 3))
+  return true
+}
+
+function castFireRocket(f, s, api, face) {
+  if (s.burnout > 0) return false
+  if (!beginCast(f, s, api, "hbRocket", HB_COST.rocket, 55)) return false
+  const cast = s.castId; s.rocketCast = -1
+  f._benSfx = "hb_rocket"
+  // real travel: 340 px over 17 sim frames after an 8f startup, stage-clamped by physics, no tracking.
+  api.scheduleBenSpawn(f, 8, () => { f._benLunge = { frames: 17, speed: face * 20 } })
+  ;[[12, 18], [18, 18], [25, 34]].forEach(([t, dmg], i) => api.scheduleBenSpawn(f, t, () => {
+    api.spawnProjectile(f, "hb_rocket_" + i, { damage: dmg, speed: 0, vx: 0, vy: 0,
+      spawnX: f.x + f.w / 2 + face * 40, spawnY: f.y + f.h / 2, w: 110, h: 80, radius: 55, lifetime: 2,
+      isSpecial: true, noHitstop: i < 2, hitstun: i < 2 ? 14 : 24, blockstun: 16,
+      knockbackX: i < 2 ? 1 : 9, knockbackY: i < 2 ? 0 : -4,
+      fire: true, hbRocket: cast, hbScorch: i === 2 ? cast : undefined, hbBlue: s.blue > 0 }, {})
+  }))
+  return true
+}
+
+function castSupernova(f, s, api, face) {
+  if (s.burnout > 0 || s.heat < HB_HEAT.SUPERNOVA_MIN) return false       // rejected below 25 Heat / in Burnout
+  if (!beginCast(f, s, api, "hbSupernova", HB_COST.supernova, 52)) return false
+  const spent = s.heat
+  if (s.blue > 0) enterBurnout(s); else { s.heat = 0; s.idle = 0 }      // spends ALL Heat
+  s.lastSupernovaSpent = spent
+  const dmg = Math.min(130, Math.round(40 + 0.9 * spent))
+  f._benSfx = "hb_supernova"
+  api.scheduleBenSpawn(f, 22, () => {
+    const x = f.x + f.w / 2, y = f.y + f.h / 2
+    api.spawnProjectile(f, "hb_supernova", { damage: dmg, speed: 0, vx: 0, vy: 0, spawnX: x, spawnY: y,
+      radius: 180, radial: true, lifetime: 2, isSpecial: true, hitstun: 26, blockstun: 14,
+      knockbackX: 10, knockbackY: -7, fire: true, hbSupernova: true, hbBlue: false }, {})
+    spawnFx(f, api, "fireball", x, y, 20, 6)
+  })
+  return true
+}
+
+function castBlazeFlight(f, s, api, face) {
+  if (s.flightUsed) return false                                           // once per airtime
+  if (!beginCast(f, s, api, "hbFlight", HB_COST.flight, HB_FLIGHT.FRAMES + HB_FLIGHT.DIVE_MAX, { commit: false })) return false
+  s.flightUsed = true
+  const apex = Math.min(s.apexY ?? f.y, f.y)
+  s.flight = { t: 0, face, capY: apex - HB_FLIGHT.CAP_ABOVE_APEX, cast: s.castId }
+  f._benSfx = "hb_flight"
+  return true
+}
+
+// Heat Absorb (block + Heavy): no cost, 6 s cooldown, 8f window. Replaces Ben's Energy Guard while Heatblast.
+function blockHeavy(f) {
+  const s = hbState(f)
+  if (!s || s.absorbCd > 0 || (f.hitstun || 0) > 0 || s.flight || s.dive || s.ult) return false
+  s.absorbWin = HB_ABSORB.WINDOW; s.absorbCd = HB_ABSORB.COOLDOWN
+  f._spriteCastMove = "hbAbsorb"; f._spriteCastTimer = 14
+  return true
+}
+// Called by combat before a hit resolves. Absorbs ONE projectile or fire-tagged melee hit (0 dmg, +25 Heat).
+// A Blue-Flame attacker's flames ignore it ("flames ignore Heat Absorb from opponents").
+function absorb(f, { proj = null, move = null, attacker = null } = {}) {
+  const s = hbState(f); if (!s || s.absorbWin <= 0) return false
+  if (proj ? proj.hbBlue : (hbState(attacker)?.blue > 0)) return false
+  if (!proj && !(move && (move.fire || move.element === "fire")) && !hbState(attacker)) return false   // non-fire melee passes through (a Heatblast swing is fire)
+  s.absorbWin = 0; s.lastAbsorbed = proj ? "projectile" : "fire"
+  s.heat = Math.min(s.heat, HB_HEAT.MAX); addHeat(f, HB_HEAT.ABSORB)
+  f.colorFlash = Math.max(f.colorFlash || 0, 10)
+  return true
+}
+
 // Called by combat after a contact this fighter OWNS lands (melee or projectile, blocked or clean).
 function onContact(f, target, { proj = null, move = null, blocked = false, dealDamage = null, comboScale = null } = {}) {
   const s = hbState(f); if (!s) return
@@ -146,12 +290,80 @@ function onContact(f, target, { proj = null, move = null, blocked = false, dealD
     s.rocketCast = proj.hbRocket; addHeat(f, blocked ? HB_HEAT.ROCKET / 2 : HB_HEAT.ROCKET)
   }
   if (blocked) return
+  if (proj.hbDive && s.dive) s.dive.hit = true
   if (proj.hbScorch != null) addScorchPip(f, s, proj.hbScorch)
   const sc = s.scorch
   if (proj.hbSupernova && sc.burnT > 0 && !sc.flashUsed && dealDamage) {  // FLASHPOINT: end the burn, +25 once
     sc.flashUsed = true; sc.burnT = 0; sc.burnTick = 0; sc.immune = HB_SCORCH.IMMUNE; sc.flashpoints++
     dealDamage(target, HB_SCORCH.FLASHPOINT * (comboScale ? comboScale(f) : 1), { attacker: f, move: "flashpoint", source: "projectile" })
   }
+  if (proj.hbUltOpener && s.ult && s.ult.phase === "opener" && target && !target.eliminated) startUltCinematic(f, s, target)
+}
+
+// ── ultimate: PYRONITE METEOR (same input as Omnitrix Overload, alien form only) ─────────────────────────────
+function fireUltimate(f, ctx, api) {
+  const s = hbState(f); if (!s) return false
+  if (!beginCast(f, s, api, "hbFire", HB_COST.ultimate, 12 + HB_ULT.WHIFF_RECOVERY)) return false
+  const face = f.facing || 1
+  s.ult = { phase: "opener", t: 0, face, raw: 0, cast: s.castId }
+  f._benSfx = "hb_ult"
+  api.focusCamera?.(f, api.getOpponent(f), 0.92, 20)
+  api.scheduleBenSpawn(f, 12, () => {
+    api.spawnProjectile(f, "hb_ult_opener", { damage: HB_ULT.OPENER, speed: 0, vx: 0, vy: 0,
+      spawnX: f.x + f.w / 2 + face * 70, spawnY: f.y + f.h * 0.45, w: 150, h: 100, radius: 70, lifetime: 3,
+      isSpecial: true, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0, knockbackY: 0,
+      fire: true, hbUltOpener: true, hbBlue: s.blue > 0 }, {})
+  })
+  // whiff / block: the opener window closes with no capture → plain 60f recovery (cleared in tickUlt)
+  return true
+}
+function startUltCinematic(f, s, target) {
+  const u = s.ult
+  u.phase = "rise"; u.t = 0; u.raw = HB_ULT.OPENER
+  u.home = { x: f.x, y: f.y }; u.thome = { x: target.x, y: target.y }
+  f.attackCooldown = HB_ULT.END + HB_ULT.LOCKOUT; f._benPowerCommit = HB_ULT.END
+  f._spriteCastTimer = HB_ULT.END
+  f.invulnTimer = Math.max(f.invulnTimer || 0, HB_ULT.END + 2)
+}
+function tickUlt(f, s, opp, api) {
+  const u = s.ult; if (!u) return
+  if (u.phase === "opener") { if (++u.t > 24) s.ult = null; return }   // whiffed / blocked → no cinematic
+  if (!opp || opp.eliminated) { endUlt(f, s, null); return }
+  u.t++
+  // capture: the target is held where it was hit for the whole cinematic (hitstun refresh, no drift)
+  opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y
+  opp.attacking = false; opp.currentAttack = null
+  if (u.t <= HB_ULT.RISE) {                                               // 1. rocket up
+    f._benGlide = { vx: 0, vy: -10, minY: -2000 }; f._spriteCastMove = "hbUltRise"
+  } else if (u.t <= HB_ULT.SUN_END) {                                     // 2. mini-sun, 3 fireballs rain down
+    f._benGlide = { vx: 0, vy: 0, minY: -2000 }; f._spriteCastMove = "hbUltSun"; u.phase = "sun"
+    if (HB_ULT.RAIN_AT.includes(u.t)) {
+      const tx = opp.x + opp.w / 2, ty = opp.y + opp.h / 2, sx = f.x + f.w / 2, sy = f.y + f.h / 2
+      const k = HB_ULT.RAIN_AT.indexOf(u.t)
+      spawnFx(f, api, "fireball", sx, sy, 14, 3, { vx: (tx - sx) / 14, vy: (ty - sy) / 14 })
+      api.applyScaledDamage(opp, HB_ULT.RAIN, { attacker: f, move: "pyronite_meteor", source: "ability" }); u.raw += HB_ULT.RAIN
+      opp.colorFlash = 8; api.shake?.(5 + k, 6)
+    }
+  } else if (u.t < HB_ULT.IMPACT_AT) {                                    // 3. meteor dive onto the captured target
+    u.phase = "dive"; f._spriteCastMove = "hbUltDive"
+    const left = HB_ULT.IMPACT_AT - u.t
+    const tx = opp.x + opp.w / 2 - f.w / 2 - u.face * 30, ty = opp.y - f.h * 0.4
+    f._benGlide = { vx: (tx - f.x) / left, vy: (ty - f.y) / left, minY: -2000 }
+  } else if (u.t === HB_ULT.IMPACT_AT) {
+    api.applyScaledDamage(opp, HB_ULT.IMPACT, { attacker: f, move: "pyronite_meteor", source: "ability" }); u.raw += HB_ULT.IMPACT
+    spawnFx(f, api, "fireball", opp.x + opp.w / 2, opp.y + opp.h / 2, 24, 7)
+    api.shake?.(12, 14)
+  } else endUlt(f, s, opp)
+}
+function endUlt(f, s, opp) {
+  const u = s.ult
+  delete f._benGlide
+  if (u?.home) { f.x = u.home.x; f.y = u.home.y; f.vx = 0; f.vy = 0 }   // positions restore
+  if (opp && u?.thome) { opp.x = u.thome.x; opp.y = u.thome.y; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.vx = u.face * 12; opp.vy = -9 }
+  s.lastUltRaw = u?.raw || 0
+  s.ult = null
+  if (s.blue > 0) enterBurnout(s); else { s.heat = 0; s.idle = 0 }       // Heat → 0 afterward
+  f.attackCooldown = HB_ULT.LOCKOUT; f._benPowerCommit = HB_ULT.LOCKOUT; f._spriteCastMove = null; f._spriteCastTimer = 0
 }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────────

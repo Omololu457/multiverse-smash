@@ -1166,7 +1166,7 @@ export const KITS = {
       { name: "Vine Eruption", input: "Down + Special", cost: 18, desc: "20-frame startup; eruptions at 80/180/280, raw 22+22+34. Clean early hits carry briefly to the next site; final hit launches." },
       { name: "Blaze Dash", input: "Forward + Special", cost: 10, desc: "12-frame startup, 260-pixel lunge, 48 raw damage; -14 on the first impact-frame block" }
     ],
-    mobility: { name: "Omnitrix dial", input: "Down, Down + attack combination", cost: 20, desc: "Light/Heavy/Special/Light+Heavy/Heavy+Special select slots 1-5 if present. Light+Special reverts. Swap costs 15 (22 under Vow). Human startup is 40 vulnerable frames. P1: S,S then J/K/L/J+K/K+L; S,S then J+L reverts. P is Charge, never a punch notation." },
+    mobility: { name: "Omnitrix dial", input: "Down, Down + attack combination", cost: 20, desc: "Light/Heavy/Special/Grab/Charge (one button) select slots 1-5 if present. Block reverts. Swap costs 15 (22 under Vow). Human startup is 40 vulnerable frames. P1: S,S then J/K/L/O/P; S,S then ; reverts. P is Charge, never a punch notation." },
     ultimate: { name: "Methane Inferno / Human Overload", input: "Ultimate", cost: 50, desc: "Swampfire only: 50 Power, 40-frame startup, radius 300, three raw hits 60+60+100, then 100 recovery frames. Human Overload instead needs 100 Power. Paid alien casts finish at zero Power unless interrupted, then force reversion." },
     combos: [
       { name: "Dial controls", sequence: "Down, Down, Light", desc: "P1 S,S,J. Controller Down,Down,Square. Neutral Special is L/R1; Ultimate U/R2; Charge P/L2; Block ;/Circle." },

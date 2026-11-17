@@ -12098,9 +12098,10 @@ const BEN10_SLOT_COMBOS = [
   { field: "light",         label: "↓↓ + Light" },     // slot 1
   { field: "heavy",         label: "↓↓ + Heavy" },     // slot 2
   { field: "special",       label: "↓↓ + Special" },   // slot 3
-  { field: "light+heavy",   label: "↓↓ + L+H" },       // slot 4
-  { field: "heavy+special", label: "↓↓ + H+S" },       // slot 5
+  { field: "grab",          label: "↓↓ + Grab" },      // slot 4 (keyboard O) — one button, no chord
+  { field: "charge",        label: "↓↓ + Charge" },    // slot 5 (keyboard P) — one button, no chord
 ]
+// ↓↓ + Block (keyboard ;) turns back to human. Every Omnitrix input is ↓↓ then ONE button (no two-button chords).
 // Public so the pre-match slot-select UI can label each slot with its real combo (single source of truth).
 export function ben10SlotCombo(i) { return BEN10_SLOT_COMBOS[i] || null }
 
@@ -12151,6 +12152,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
   const light   = !!inputState.light
   const heavy   = !!inputState.heavy
   const special = !!inputState.special
+  const grabB   = !!inputState.grab, chargeB = !!inputState.charge, blockB = !!inputState.block
 
   // ↓↓ detector: a fresh Down EDGE within OMX_DOUBLE_TAP_WINDOW of the previous one arms the menu.
   if (down && !held.down) {
@@ -12162,29 +12164,30 @@ function handleOmnitrixSwitch(fighter, inputState) {
 
   if ((fighter._omxArm || 0) > 0) {
     fighter._omxArm--
-    // Resolve the slot button on a fresh attack edge. Buffered inputs overlap → L+H / H+S detectable.
+    // Resolve the slot on a fresh edge of ONE button (no chords — every pick is ↓↓ then a single press).
     const eL = light && !held.light, eH = heavy && !held.heavy, eS = special && !held.special
+    const eG = grabB && !held.grab, eC = chargeB && !held.charge, eB = blockB && !held.block
     let pick = null                                   // { slot } | "revert"
-    if ((light && special) && (eL || eS)) pick = "revert"
-    else if ((light && heavy)   && (eL || eH)) pick = { slot: 3 }   // slot 4 (L+H)
-    else if ((heavy && special) && (eH || eS)) pick = { slot: 4 }   // slot 5 (H+S)
-    else if (eL && !heavy && !special) pick = { slot: 0 }           // slot 1 (Light)
-    else if (eH && !light && !special) pick = { slot: 1 }           // slot 2 (Heavy)
-    else if (eS && !light && !heavy)   pick = { slot: 2 }           // slot 3 (Special)
+    if (eB)      pick = "revert"                      // ↓↓ + Block (;) → human
+    else if (eL) pick = { slot: 0 }                   // slot 1 (Light J)
+    else if (eH) pick = { slot: 1 }                   // slot 2 (Heavy K)
+    else if (eS) pick = { slot: 2 }                   // slot 3 (Special L)
+    else if (eG) pick = { slot: 3 }                   // slot 4 (Grab O)
+    else if (eC) pick = { slot: 4 }                   // slot 5 (Charge P)
 
     if (pick === "revert") {
       if (ben10Revert(fighter)) {
         fighter._omxArm = 0; fighter.vx = 0
-        fighter._omxConsume = { light: true, heavy: false }
-        inputState.light = inputState.special = false              // consume this frame's press too
+        fighter._omxConsume = { light: false, heavy: false }
+        inputState.block = false                                   // consume this frame's press too
       }
     } else if (pick) {
       const vowCtx = { seed: (matchConfig?.seed || 1) >>> 0, frame: (fighter.omnitrix.simFrame || 0), playerIndex: _benPlayerIndex(fighter) }
       const act = ben10TransformOrSwap(fighter, pick.slot, vowCtx)
       if (act) {
         fighter._omxArm = 0; fighter.vx = 0
-        fighter._omxConsume = { light: pick.slot === 0 || pick.slot === 3, heavy: pick.slot === 1 || pick.slot === 3 || pick.slot === 4 }
-        inputState.light = inputState.heavy = inputState.special = false   // consume this frame's press
+        fighter._omxConsume = { light: pick.slot === 0, heavy: pick.slot === 1, grab: pick.slot === 3 }
+        inputState.light = inputState.heavy = inputState.special = inputState.grab = inputState.charge = false   // consume this frame's press
       }
     }
   }
@@ -12238,6 +12241,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
   }
 
   held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
+  held.grab = grabB; held.charge = chargeB; held.block = blockB
 }
 
 // ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────
@@ -12260,7 +12264,7 @@ function buildNormalControlState(fighter, vKeys) {
   const cl = consume?.light, ch = consume?.heavy
   return {
     upAttack: g  && vKeys[c.upAttack],                 // dedicated I = up-attack/launcher
-    grab:     g  && vKeys[c.grab],                      // dedicated O = grab
+    grab:     g  && vKeys[c.grab] && !consume?.grab,    // dedicated O = grab (↓↓ + Grab Omnitrix slot 4 swallows it)
     air:      !g && vKeys[c.light] && !vKeys[c.down] && !cl,   // airborne J = air attack
     downAir:  !g && vKeys[c.light] &&  vKeys[c.down] && !cl,   // airborne S+J = down-air spike
     airHeavy: !g && vKeys[c.heavy] && !ch,             // airborne K = AERIAL HARD (Madara Susanoo-hand grab); no-op for chars without an air_heavy move

@@ -4987,7 +4987,8 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   const ben = isBenDevice(p1)
   const heatblast = ben && p1?.transformed && p1?.activeAlien === "heatblast"
   const megawhatt = ben && p1?.transformed && p1?.activeAlien === "megawhatt"
-  const extra = ben ? (heatblast ? 80 : megawhatt ? 96 : 48) : 0
+  const xlr8 = ben && p1?.transformed && p1?.activeAlien === "xlr8"
+  const extra = ben ? (heatblast ? 96 : megawhatt ? 112 : xlr8 ? 112 : 64) : 0
   const panelY = h - 170 - extra
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"
@@ -5008,19 +5009,26 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   ctx.fillText("Specials are directional — hold a dir + L", 32, panelY + 90)
   if (ben) {
     ctx.fillStyle = "#7dff6a"
-    ctx.fillText("Omnitrix: S,S,J = Swampfire   S,S,K = Heatblast", 32, panelY + 108)
-    ctx.fillText("S,S,L = Megawhatt", 32, panelY + 124)
-    ctx.fillText("S, S, J+L = turn back to Ben   (pad: ↓↓□ / ↓↓△)", 32, panelY + 140)
+    ctx.fillText("Omnitrix (tap S, S, then ONE key):", 32, panelY + 108)
+    ctx.fillText("J Swampfire  K Heatblast  L Megawhatt", 32, panelY + 124)
+    ctx.fillText("O Goop  P XLR8   ; = turn back to Ben", 32, panelY + 140)
+    ctx.fillText("(pad: ↓↓ then Light/Heavy/Special/Grab/Charge/Block)", 32, panelY + 156)
     if (heatblast) {
       ctx.fillStyle = "#ffb347"
-      ctx.fillText("Heatblast: L Fireball  fwd+L Rocket  S+L Supernova", 32, panelY + 156)
-      ctx.fillText("Air L = Blaze Flight   ; + K = Heat Absorb   U = Meteor", 32, panelY + 172)
+      ctx.fillText("Heatblast: L Fireball  fwd+L Rocket  S+L Supernova", 32, panelY + 172)
+      ctx.fillText("Air L = Blaze Flight   ; + K = Heat Absorb   U = Meteor", 32, panelY + 188)
     }
     if (megawhatt) {
       ctx.fillStyle = "#fde047"
-      ctx.fillText("Megawhatt: L Spark Ball  fwd+L Live Wire", 32, panelY + 156)
-      ctx.fillText("back+L Thunder Strike   hold S+L = Ground Draw", 32, panelY + 172)
-      ctx.fillText("Air: hold W = fly   ; + K = Discharge   U = Blackout", 32, panelY + 188)
+      ctx.fillText("Megawhatt: L Spark Ball  fwd+L Live Wire", 32, panelY + 172)
+      ctx.fillText("back+L Thunder Strike   hold S+L = Ground Draw", 32, panelY + 188)
+      ctx.fillText("Air: hold W = fly   ; + K = Discharge   U = Blackout", 32, panelY + 204)
+    }
+    if (xlr8) {
+      ctx.fillStyle = "#38bdf8"
+      ctx.fillText("XLR8: L Sonic Slash  fwd+L Blur Step  back+L Tail Whip", 32, panelY + 172)
+      ctx.fillText("S+L Mach Cyclone   Air L = Sonic Dive", 32, panelY + 188)
+      ctx.fillText("; + L = Flash Time (slow-mo)   U = Time Sprint", 32, panelY + 204)
     }
   }
   ctx.restore()

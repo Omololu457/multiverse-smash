@@ -1002,7 +1002,7 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 // system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
 // 2026-09-07 simplification pass. fighters.js can't import game.js (would cycle), so this is
 // the leaf-module mirror of that single source of truth; keep the two numbers equal.
-export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ + Light/Heavy/Special/L+H/H+S)
+export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ then ONE of Light/Heavy/Special/Grab/Charge; ↓↓ + Block reverts)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
 export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8 (the last placeholder slot)

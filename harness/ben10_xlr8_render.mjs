@@ -1,5 +1,5 @@
 // XLR8 RENDER CHECK — boots the real game headless, picks Ben 10, starts a match, TRANSFORMS INTO XLR8 with the real
-// ↓↓ + Heavy + Special (slot 5) input, runs FLASH TIME (Block + Special), a live Sonic Slash and Blur Step, and repeats
+// ↓↓ + Charge (P) (slot 5) input, runs FLASH TIME (Block + Special), a live Sonic Slash and Blur Step, and repeats
 // the check under the BINDING VOW. Confirms both fighters + HUD render (sprites, not boxes), no page errors, no
 // ben10_xlr8 asset 404s, no black screen.  node harness/ben10_xlr8_render.mjs   → shots in ben10_work/
 import { chromium } from "playwright"
@@ -40,8 +40,8 @@ async function boot(vow = false) {
 }
 async function transformSlot5() {
   await key("s", 2); await key("s", 2)
-  // ↓↓ + Heavy + Special = slot 5: both buttons down in the SAME frame (one synchronous dispatch, like a chord)
-  const chord = type => page.evaluate(t => { for (const k of ["k", "l"]) document.dispatchEvent(new KeyboardEvent(t, { key: k, code: "Key" + k.toUpperCase(), bubbles: true })) }, type)
+  // ↓↓ + Charge (P) = slot 5: both buttons down in the SAME frame (one synchronous dispatch, like a chord)
+  const chord = type => page.evaluate(t => { for (const k of ["p"]) document.dispatchEvent(new KeyboardEvent(t, { key: k, code: "Key" + k.toUpperCase(), bubbles: true })) }, type)
   await chord("keydown"); await frames(3); await chord("keyup")
   await frames(60)
   return H("ben10Details", "p1")
@@ -51,7 +51,7 @@ try {
   const d0 = await boot()
   ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout ends with XLR8 in slot 5", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot5()
-  ok(d1?.form === "xlr8", "↓↓ + Heavy + Special (slot 5) transforms into XLR8", `form=${d1?.form}`)
+  ok(d1?.form === "xlr8", "↓↓ + Charge (P) (slot 5) transforms into XLR8", `form=${d1?.form}`)
   ok(/ben10_xlr8_idle_uniform/.test(d1?.sheet || ""), "XLR8 frame set active", d1?.sheet)
   const p1 = await H("p1"), p2 = await H("p2")
   ok(p1?.spriteReady !== false && p1?.hasSpriteHandler, "XLR8 renders as sprites (no fallback box)", `action=${p1?.spriteAction || p1?.action}`)

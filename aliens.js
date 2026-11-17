@@ -17,7 +17,7 @@ import { GOOP } from "./goop.js"
 // Swampfire occupies the first production loadout slot without deleting experimental definitions.
 // Heatblast (heatblast.js) is the second READY form: it took the first placeholder dial slot (slot 2).
 // Megawhatt (megawhatt.js) is the third READY form: the next first-placeholder dial slot (slot 3).
-// Goop (goop.js) is the fourth READY form: the next first-placeholder dial slot (slot 4, ↓↓ + Light + Heavy).
+// Goop (goop.js) is the fourth READY form: the next first-placeholder dial slot (slot 4, ↓↓ + Grab).
 export const BEN10_ALIEN_REGISTRY = [
   SWAMPFIRE,
   HEATBLAST,   // READY (2026-11-17): Dragonrod sheet + ledger; replaces the old experimental Heatblast entry

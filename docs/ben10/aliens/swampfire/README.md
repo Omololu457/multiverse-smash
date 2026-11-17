@@ -10,8 +10,8 @@ Inputs are actions. P1 keyboard defaults are J Light, K Heavy, L Special, U Ulti
 O Grab, P Charge, ; Block, WASD movement/jump. P is not a punch notation.
 
 - Transform: Down, Down, then Light (P1 S,S,J; controller Down,Down,Square).
-- Other slots, if present: Heavy, Special, Light+Heavy, Heavy+Special after Down,Down.
-- Revert: Down,Down then Light+Special (P1 S,S,J+L).
+- Other slots, if present: Heavy, Special, Grab, Charge after Down,Down (one button each — P1 K / L / O / P).
+- Revert: Down,Down then Block (P1 S,S,;).
 - Flame Jet: neutral Special (L / R1).
 - Vine Eruption: hold Down + Special (S+L / Down+R1).
 - Blaze Dash: hold toward the opponent + Special (D+L from the left, A+L from the right).

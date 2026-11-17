@@ -1,5 +1,5 @@
 // GOOP RENDER CHECK — boots the real game headless, picks Ben 10, starts a match, TRANSFORMS INTO GOOP with the
-// real ↓↓ + Light + Heavy (slot 4) input, casts a live Acid Spit, holds ↓ + Special into PUDDLE FORM, forces a SPLAT,
+// real ↓↓ + Grab (O) (slot 4) input, casts a live Acid Spit, holds ↓ + Special into PUDDLE FORM, forces a SPLAT,
 // and repeats the check under the BINDING VOW. Confirms both fighters + HUD render (sprites, not boxes), no page errors,
 // no ben10_goop asset 404s, no black screen.  node harness/ben10_goop_render.mjs   → shots in ben10_work/
 import { chromium } from "playwright"
@@ -39,8 +39,8 @@ async function boot(vow = false) {
 }
 async function transformSlot4() {
   await key("s", 2); await key("s", 2)
-  // ↓↓ + Light + Heavy = slot 4: both buttons go down in the SAME frame (one synchronous dispatch, like a chord)
-  const chord = type => page.evaluate(t => { for (const k of ["j", "k"]) document.dispatchEvent(new KeyboardEvent(t, { key: k, code: "Key" + k.toUpperCase(), bubbles: true })) }, type)
+  // ↓↓ + Grab (O) = slot 4: both buttons go down in the SAME frame (one synchronous dispatch, like a chord)
+  const chord = type => page.evaluate(t => { for (const k of ["o"]) document.dispatchEvent(new KeyboardEvent(t, { key: k, code: "Key" + k.toUpperCase(), bubbles: true })) }, type)
   await chord("keydown"); await frames(3); await chord("keyup")
   await frames(60)
   return H("ben10Details", "p1")
@@ -67,7 +67,7 @@ try {
   const d0 = await boot()
   ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]), "default loadout includes Goop (slot 4)", JSON.stringify(d0?.loadout))
   const d1 = await transformSlot4()
-  ok(d1?.form === "goop", "↓↓ + Light + Heavy (slot 4) transforms into Goop", `form=${d1?.form}`)
+  ok(d1?.form === "goop", "↓↓ + Grab (O) (slot 4) transforms into Goop", `form=${d1?.form}`)
   ok(/ben10_goop_idle_uniform/.test(d1?.sheet || ""), "Goop frame set active", d1?.sheet)
   const p1 = await H("p1"), p2 = await H("p2")
   ok(p1?.spriteReady !== false && p1?.hasSpriteHandler, "Goop renders as sprites (no fallback box)", `action=${p1?.spriteAction || p1?.action}`)

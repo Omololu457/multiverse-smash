@@ -133,7 +133,7 @@ Uniform strip cell **262×157**, body anchor column x=131, floor row originY=145
 
 ## In game (goop.js) — how the art drives the sim
 
-- Slot 4 (first placeholder slot after Swampfire / Heatblast / Megawhatt): **↓↓ + Light + Heavy**. Inputs: Jab / Heavy /
+- Slot 4 (first placeholder slot after Swampfire / Heatblast / Megawhatt): **↓↓ + Grab** (keyboard S,S,O; was ↓↓ + Light + Heavy until the one-button Omnitrix change). Inputs: Jab / Heavy /
   fwd+Heavy Stretch Poke / ↓+attack Low / Launcher / Air; ↓↘→+P Acid Spit (air: Goo Rocket), ↓↙←+P Acid Lob, →→+P Goo Lasso,
   ←↙↓+P Spike Splash, ↓+P (hold) Puddle Form → release reform or →↓↘ Geyser; ultimate Meltdown Flood (Overload input).
 - Projector weak point: `projectorBox(f)` = a 10×6 game-px box centred on `GOOP_PROJECTOR[anim][frame]` of the **sim pose**

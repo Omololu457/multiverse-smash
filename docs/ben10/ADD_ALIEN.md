@@ -95,6 +95,20 @@ Same contract: optional, backward-compatible, ben10-gated through `benReadyForm`
 | `damageTaken(f, raw, opts)` | combat.js `applyScaledDamage` (`benAlienDamageMods`), after the attacker's form multiplier | damage this form takes, with full `opts` (source / attacker / move) — unlike `incomingScale` it also sees melee, whose defense is pre-applied (Goop goo body −25% physical melee normals, projector +15%) |
 | `damageDealt(f, target, raw, opts)` | same site, for damage attributed to the form (`opts.attacker` / `opts.boostFrom`) | status on the opponent owned by the form (Goop Corrode +15%, chip +25%) |
 
+### XLR8 hooks (added with XLR8, 2026-11-17)
+
+Same contract: optional, backward-compatible, ben10-gated through `benReadyForm` (or a projectile field nothing else
+sets); a form that defines none of them takes exactly the old path, and non-Ben fighters never reach them.
+
+| Hook (on the registry entry) | Engine call site | Contract |
+|---|---|---|
+| `moveFrames(f, key, moveData)` | combat.js `startMove`, before the timing is computed | return a (copied) move table to use — XLR8 Flash Time ×0.7 startup / recovery, min 1f — or `false` to refuse the normal (XLR8 Blur Step recovery). Return `moveData` unchanged otherwise. |
+| `blockSpecial(f, ctx)` | game.js Omnitrix input handler, next to `blockHeavy` | Block + Special edge, not while power-committed; `true` = handled. The press can still be buffered (10f): swallow it in the form (XLR8 refuses `fireSpecial` until Special has been released for one buffer window). |
+| projectile `timeScale` + `timeScaleT` lease | combat.js `updateProjectiles` | while `timeScaleT > 0` the step is `vx/vy × timeScale` and the lease counts down; the owning form refreshes it every frame (XLR8 Flash Time slows the opponent's projectiles ×0.5), so it lapses within 2 frames once the effect stops (swap / KO safe). Absent = unchanged. |
+
+Teleports need no hook: the ability context carries `stageLeft` / `stageWidth` (clamp in the form) plus `seed` / `frame`
+for hash(match seed, frame, player index) placement (XLR8 Blur Step / Time Sprint).
+
 Keep `formState` plain data: store ids (e.g. a cast id) and look live projectiles up each frame — never store object
 references (they make GAME_STATE circular / non-serializable).
 

@@ -34,7 +34,7 @@ export const GOOP = {
     air:    normal(30, 7, 4, 12, 2)                                                      // R11 airborne
   },
   anim: ANIM, fx: GOOP_FX,
-  onApply, tick, weakpoint, onWeakpoint, damageTaken
+  onApply, tick, weakpoint, onWeakpoint, damageTaken, evade, fireSpecial
 }
 
 // ── tuning (from the brief) ───────────────────────────────────────────────────────────────────────────────
@@ -44,12 +44,15 @@ export const GP_PROJ = { W: 10, H: 6, MULT: 1.15, SPLAT_WINDOW: 180, SPLAT_FRAME
 // source px maps to game px by f.h / 61 (idle: the disc's centre sits ~18 px above the box top). Display scale is
 // cosmetic and decoupled, exactly like every other body hurtbox in the engine.
 export const GP_STAND_BODY_H = 61
+export const GP_PUDDLE = { COST: 10, DRAIN_PER_S: 4, MAX: 150, SPEED: 6, MELT: 6, REFORM: 12, BACK_WINDOW: 12, DP_WINDOW: 20 }
+export const GP_GEYSER = { DMG: 60, FRAMES: 22, HIT_AT: 8, RECOVERY: 10 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshGoopState() {
   return { kind: "goop", t: 0, castId: 0, baseDmg: 1.0, pose: null,
     weak: 0, projHits: [], splat: null, splatCd: 0,
-    stats: { projHits: 0, gooReduced: 0, splats: 0 } }
+    puddle: null, lastBackT: -999, dp: { stage: 0, t: 0 },
+    stats: { projHits: 0, gooReduced: 0, splats: 0, puddles: 0, geysers: 0, evaded: 0 } }
 }
 export const gpState = f => (f?.omnitrix?.formState?.kind === "goop" && f.transformed && f.activeAlien === "goop") ? f.omnitrix.formState : null
 
@@ -67,6 +70,7 @@ function frameOf(anim, t) {
   return a.loop ? i % a.frames : Math.min(a.frames - 1, i)
 }
 export function goopPose(f, s) {
+  if (s.puddle) { const pd = s.puddle, k = pd.phase === "melt" ? "gpMelt" : pd.phase === "reform" ? "gpReform" : "gpPuddle"; return [k, frameOf(k, pd.phase === "slide" ? pd.t : pd.pt)] }
   if (s.splat) return s.splat.t < GP_PROJ.SPLAT_FRAMES ? ["gpSplat", frameOf("gpSplat", s.splat.t)] : ["gpSplatRise", frameOf("gpSplatRise", s.splat.t - GP_PROJ.SPLAT_FRAMES)]
   if (s.pose && ANIM[s.pose.anim]) return [s.pose.anim, frameOf(s.pose.anim, s.pose.t)]
   const atk = f.attacking && f.currentAttack
@@ -123,11 +127,11 @@ function damageTaken(f, raw, opts) {
 function registerProjectorHit(f, s) {
   s.projHits = s.projHits.filter(at => s.t - at < GP_PROJ.SPLAT_WINDOW)
   s.projHits.push(s.t)
-  if (s.projHits.length >= 2) startSplat(f, s)
+  if (s.projHits.length >= 2 || s.puddle) startSplat(f, s)              // Puddle: one projector hit forces the Splat
 }
 export function startSplat(f, s) {
   if (s.splat || s.splatCd > 0) return false                            // one Splat per 600f
-  s.splat = { t: 0 }; s.splatCd = GP_PROJ.SPLAT_CD; s.projHits = []; s.pose = null; s.stats.splats++
+  s.splat = { t: 0 }; s.splatCd = GP_PROJ.SPLAT_CD; s.projHits = []; s.pose = null; s.puddle = null; s.stats.splats++
   const lock = GP_PROJ.SPLAT_FRAMES + GP_PROJ.REFORM
   f._benPowerCommit = Math.max(f._benPowerCommit || 0, lock); f.attackCooldown = Math.max(f.attackCooldown || 0, lock)
   f.attacking = false; f.currentAttack = null; f.vx = 0
@@ -140,6 +144,9 @@ function tick(f, input, ctx, api) {
   s.t++
   s.weak = 0                                                             // a weak-point test never carries past its frame
   if (s.splatCd > 0) s.splatCd--
+  const face = f.facing || 1
+  if (face > 0 ? input?.left : input?.right) s.lastBackT = s.t              // ←↙↓ (Spike Splash) vs plain ↓ (Puddle)
+  tickPuddle(f, s, input || {}, ctx, api)
   if (s.pose) { s.pose.t++; if (s.pose.t >= (s.pose.len || 0)) s.pose = null }
   if (s.splat) {
     const sp = s.splat; sp.t++
@@ -147,4 +154,90 @@ function tick(f, input, ctx, api) {
     f.vx = 0
     if (sp.t >= GP_PROJ.SPLAT_FRAMES + GP_PROJ.REFORM) { s.splat = null; f._spriteCastMove = null; f._spriteCastTimer = 0 }
   }
+}
+
+// ── PUDDLE FORM (↓ + Special, hold) ─────────────────────────────────────────────────────────────────────────
+// melt (R22, 6f) → slide (R16, speed 6, Power −4/s, max 150f) → release = reform (R17, 12f, punishable) or
+// →↓↘ = GEYSER. Low profile: high / mid melee and projectiles miss his body (evade); the projector still floats
+// at its height and a projector hit forces an instant Splat. Can't jump, block or attack (power commit + cooldown).
+function canAct(f, s) {
+  return f.transformed && f.activeAlien === "goop" && !f.attacking && !((f.attackCooldown || 0) > 0) && !((f.hitstun || 0) > 0) &&
+    !((f.blockstun || 0) > 0) && !(f._benPowerCommit > 0) && !s.puddle && !s.splat && !s.ult
+}
+function enterPuddle(f, s, api) {
+  if (!(f.onGround || f.grounded) || !canAct(f, s)) return false
+  if (!api.spendEnergy(f, GP_PUDDLE.COST)) return false
+  f.isCharging = false; f.vx = 0
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  s.castId++; s.puddle = { phase: "melt", t: 0, pt: 0 }; s.dp = { stage: 0, t: 0 }; s.stats.puddles++
+  hold(f, 2)
+  return true
+}
+function hold(f, n) { f._benPowerCommit = Math.max(f._benPowerCommit || 0, n); f.attackCooldown = Math.max(f.attackCooldown || 0, n) }
+function endPuddle(f, s, how) {
+  const pd = s.puddle; if (!pd) return
+  if (how === "reform") { pd.phase = "reform"; pd.pt = 0; hold(f, GP_PUDDLE.REFORM); return }
+  s.puddle = null
+}
+function tickPuddle(f, s, input, ctx, api) {
+  const pd = s.puddle; if (!pd) return
+  if ((f.hitstun || 0) > 0 || (f.health || 0) <= 0) { s.puddle = null; return }   // knocked out of the puddle
+  pd.pt++
+  f.vx = 0
+  if (pd.phase === "melt") {
+    hold(f, 2); f._spriteCastMove = "gpMelt"; f._spriteCastTimer = 2
+    if (pd.pt >= GP_PUDDLE.MELT) { pd.phase = "slide"; pd.t = 0 }
+    return
+  }
+  if (pd.phase === "reform") {
+    f._spriteCastMove = "gpReform"; f._spriteCastTimer = 2
+    if (pd.pt >= GP_PUDDLE.REFORM) { s.puddle = null; f._spriteCastMove = null; f._spriteCastTimer = 0 }
+    return
+  }
+  // slide
+  pd.t++
+  hold(f, 2); f._spriteCastMove = "gpPuddle"; f._spriteCastTimer = 2
+  if (!f.infiniteEnergy) f.energy = Math.max(0, (f.energy || 0) - GP_PUDDLE.DRAIN_PER_S / 60)
+  const face = f.facing || 1, fwd = face > 0 ? !!input.right : !!input.left, back = face > 0 ? !!input.left : !!input.right, down = !!input.down
+  // GEYSER: →↓↘ inside the puddle (frame-counted motion, GAME_STATE only)
+  const dp = s.dp
+  if (dp.stage > 0 && s.t - dp.t > GP_PUDDLE.DP_WINDOW) { dp.stage = 0 }
+  if (dp.stage === 0 && fwd && !down) { dp.stage = 1; dp.t = s.t }
+  else if (dp.stage === 1 && down && !fwd) dp.stage = 2
+  else if (dp.stage === 2 && down && fwd) { dp.stage = 0; castGeyser(f, s, api); return }
+  if (!input.special) { endPuddle(f, s, "reform"); return }                 // release = reform (12f, punishable)
+  if (pd.t >= GP_PUDDLE.MAX || (f.energy || 0) <= 0) { endPuddle(f, s, "reform"); return }
+  const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0)
+  if (dir) f._benLunge = { frames: 1, speed: dir * GP_PUDDLE.SPEED }        // slide at speed 6 (stage-clamped by physics)
+}
+function castGeyser(f, s, api) {
+  s.puddle = null; s.stats.geysers++; s.castId++
+  const cast = s.castId, face = f.facing || 1
+  s.pose = { anim: "gpGeyser", t: 0, len: GP_GEYSER.FRAMES }
+  f._spriteCastMove = "gpGeyser"; f._spriteCastTimer = GP_GEYSER.FRAMES
+  hold(f, GP_GEYSER.FRAMES + GP_GEYSER.RECOVERY)
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  api.scheduleBenSpawn(f, GP_GEYSER.HIT_AT, () => {
+    api.spawnProjectile(f, "gp_geyser", { damage: GP_GEYSER.DMG, speed: 0, vx: 0, vy: 0, rectHitbox: true,
+      spawnX: f.x + f.w / 2 + face * 50, spawnY: f.y + f.h * 0.3, w: 100, h: 160, lifetime: 3,
+      isSpecial: true, hitstun: 32, blockstun: 16, knockbackX: 3 * face, knockbackY: -14,
+      alien: { gp: "geyser", cast } }, {})
+  })
+  return true
+}
+// Low profile: in the puddle (melt / slide) everything but a LOW melee move misses the body. Reform is punishable.
+function evade(f, { move = null, proj = null, attacker = null } = {}) {
+  const s = gpState(f); if (!s || !s.puddle || s.puddle.phase === "reform") return false
+  // the engine's own level rule (combat.getHitLevel): a jump-in is an overhead, else the move's hitLevel, default mid
+  const low = !proj && !!move && !!attacker && !!(attacker.onGround || attacker.grounded) && move.hitLevel === "low"
+  if (!low) s.stats.evaded++
+  return !low
+}
+
+// ── specials (shared alien motion inputs, read from the held direction the frame Special is pressed) ───────
+function fireSpecial(f, ctx, api) {
+  const s = gpState(f); if (!s) return false
+  const dir = f._specialHeldDir || null
+  if (dir === "D" && s.t - s.lastBackT > GP_PUDDLE.BACK_WINDOW) return enterPuddle(f, s, api)   // ↓ + Special (hold)
+  return false
 }

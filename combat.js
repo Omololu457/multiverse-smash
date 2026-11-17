@@ -36,7 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
-import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods } from "./ben10State.js"
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -3385,7 +3385,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   const hitbox = getAttackHitbox(attacker)
   const hurtbox = getHurtbox(defender)
   const _benWeak = benAlienWeakHit(defender, hitbox, { move: attacker.currentAttack, attacker })   // READY Omnitrix form weak point (Goop projector); false for everyone else
-  if (!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender)) && !_benWeak) return
+  if (((!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) || benAlienEvades(defender, { move: attacker.currentAttack, attacker })) && !_benWeak) return   // + READY form low profile (Goop Puddle): false for everyone else
   // S.P.D. PINK — Baton Reprisal: same top-priority negate contract as the counters below, but NO riposte damage/stun
   // here — Syd answers next tick with one ordinary blockable strike. spd_pink-gated (see spdPinkCounter).
   if (spdPinkCounter(defender, attacker)) { try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {} ; return }
@@ -4541,7 +4541,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       const _benWeak = benAlienWeakHit(fighter, pb, { proj })   // READY Omnitrix form weak point (Goop projector); false for everyone else
-      if (!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter)) && !_benWeak) continue
+      if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
 
       if (consumeBenGuard(fighter)) {

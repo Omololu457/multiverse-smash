@@ -31,6 +31,9 @@ export function benAlienWeakHit(f, box, info) {
 // Optional damage hooks with full context at the one damage choke-point (applyScaledDamage): `damageTaken(f, raw, opts)`
 // for damage the form takes, `damageDealt(f, target, raw, opts)` for damage attributed to it (opts.attacker /
 // opts.boostFrom). Unlike incomingScale they also see melee (whose defense is pre-applied). raw unchanged otherwise.
+// Optional LOW-PROFILE filter (Goop Puddle Form): `evade(f, info)` true = this melee move / projectile misses the BODY
+// (info = { move, attacker } or { proj }); the weak point is still tested. false for everyone else.
+export function benAlienEvades(f, info) { const d = benReadyForm(f); return !!(d && d.evade && d.evade(f, info || {})) }
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

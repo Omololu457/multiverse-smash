@@ -91,6 +91,7 @@ Same contract: optional, backward-compatible, ben10-gated through `benReadyForm`
 | Hook (on the registry entry) | Engine call site | Contract |
 |---|---|---|
 | `weakpoint(f)` + `onWeakpoint(f, hit, info)` | combat.js melee (`resolveAttackHit`) + projectile overlap tests, via `benAlienWeakHit` | a second small hurtbox (Goop's anti-gravity projector) tested alongside the body; `onWeakpoint` is told every test result so the form can attribute the hit (weak point wins when both overlap — one hit, counted once) |
+| `evade(f, { move, attacker } \| { proj })` | same two overlap tests, via `benAlienEvades` | `true` = this melee move / projectile misses the BODY (Goop Puddle Form low profile: everything but a grounded `hitLevel: "low"` move); the weak point is still tested |
 | `damageTaken(f, raw, opts)` | combat.js `applyScaledDamage` (`benAlienDamageMods`), after the attacker's form multiplier | damage this form takes, with full `opts` (source / attacker / move) — unlike `incomingScale` it also sees melee, whose defense is pre-applied (Goop goo body −25% physical melee normals, projector +15%) |
 | `damageDealt(f, target, raw, opts)` | same site, for damage attributed to the form (`opts.attacker` / `opts.boostFrom`) | status on the opponent owned by the form (Goop Corrode +15%, chip +25%) |
 

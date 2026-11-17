@@ -12060,6 +12060,7 @@ function updateMovementInput(fighter) {
   // Down so crouch / Down-air (S+J) / Down-motion specials / the taunt Down-hold no longer double as guard.
   if ((inputState.block || fighter._forceGuard) && !(fighter._benPowerCommit > 0) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._noBlock &&   // Stage 24A "No Blocking" modifier — guard input is ignored
+      !(fighter.omnitrix?.formState?.noBlock && benReadyForm(fighter)) &&   // READY Omnitrix form that can't guard right now (Ghostfreak while phased); null for everyone else
       !fighter._n7KCMNoBlock &&   // Naruto (Seventh) KCM: pure offense — no guard while golden
       !fighter._flightActive && !isOmniManForcedDescent(fighter)) fighter.isBlocking = true
   // FLAWLESS BLOCK support: count how many CONSECUTIVE frames this guard has been held (0 when not
@@ -22348,7 +22349,7 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * dashParrBodyAlpha(fighter)   // × S.P.D. Red blink dissolve (1 for everyone else)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (_ssA === 0 && dashParrBodyAlpha(fighter) === 0) { c.beginPath(); c.rect(0, 0, 0, 0); c.clip() }   // Dash: body fully hidden while Laps / Incredi-Rush draw him at render offsets (the sprite's tint + transition-ghost passes reset globalAlpha)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {

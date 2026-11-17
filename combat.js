@@ -4345,7 +4345,7 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
       // "toward" — the brief's →; combat.js `controls` doesn't carry left/right.) Falls back to the normal
       // grab when out of energy or flight is on cooldown. Gated on superman; no-op for everyone else.
       fighter._supKGrabReq = true
-    } else if (controls.grab) {
+    } else if (controls.grab && !(fighter.omnitrix?.formState?.noAttack && benReadyForm(fighter))) {   // READY Omnitrix form that can't attack right now (Ghostfreak phased); null for everyone else
       fighter.grabInputBuffer = 6
       resolveGrab(fighter, opponent, options)
       // THEMED GRAB CAST POSE — a character may define `grabCastPose` (a _spriteCastMove key) so the

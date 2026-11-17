@@ -122,6 +122,18 @@ references (they make GAME_STATE circular / non-serializable).
 |---|---|---|
 | `guardBreak(owner, target, { proj })` | combat.js projectile loop, before the block branch, via `benAlienGuardBreak` (only when `isBenDevice(proj.owner)`) | `true` = this projectile the form owns ignores the target's held guard for this hit (full damage + hitstun); the projectile is stamped `_benGuardBreak` so the form consumes its own state in `onContact`. Eyeguy: Unblinking's one guard-breaking beam / orb |
 
+### Hooks added for Ghostfreak (2026-11-17)
+
+All optional, backward-compatible and ben10-gated (`benReadyForm` is null for everyone else; a form that does not define
+the hook / flag changes nothing).
+
+| Hook / flag | Engine call site | Contract |
+|---|---|---|
+| `blockLight(f, ctx)` | game.js Omnitrix input handler, next to `blockSpecial` | Block + Light edge (no shared meaning before); `true` = handled, the Light press is consumed (`_omxConsume.light`, 3f input lock) so it never also jabs. Ghostfreak: PHASE toggle. |
+| `bodyAlpha(f)` | game.js body draw, multiplied into the Shadow-Sink / S.P.D. Red / Dash alpha | render-only body alpha in [0, 1]; never write state. Ghostfreak: 0.4 Intangible, 0 while inside a possessed target. |
+| `formState.noBlock` | game.js guard condition (`isBlocking`), next to the `_noBlock` match modifier | truthy = the guard input is ignored this frame. Ghostfreak: while phased. |
+| `formState.noAttack` | combat.js `controls.grab` branch | truthy = the normal throw is not attempted. (Normals are refused through `moveFrames` → `false`; specials / ult through the form's own `fireSpecial` / `fireUltimate`.) Ghostfreak: phased / materializing. |
+
 360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
 and the shared guard is omnidirectional.
 

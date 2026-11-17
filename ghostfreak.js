@@ -76,7 +76,7 @@ let _api = null   // the shared primitives object (stateless); blockLight can be
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshGhostfreakState() {
   return { kind: "ghostfreak", t: 0, castId: 0,
-    ph: "tangible", phT: 0, phCd: 0, phUses: 0, forced: 0, manual: 0, swallow: 0, noBlock: false,
+    ph: "tangible", phT: 0, phCd: 0, phUses: 0, forced: 0, manual: 0, swallow: 0, noBlock: false, noAttack: false,
     amb: { pending: false, win: 0, used: false, cut: false, hits: 0 },
     dread: { pips: 0, pipT: 0, lastCast: -1, terrorT: 0, immune: 0, terrors: 0 },
     gale: null, wail: null, possess: null, rise: null, cold: null, ult: null,
@@ -115,6 +115,7 @@ function tick(f, input, ctx, api) {
   tickUlt(f, s, opp, api)
   tickDread(f, s, opp)
   s.noBlock = s.ph === "intangible" || s.ph === "entering"                           // cannot block while phased (formState.noBlock)
+  s.noAttack = s.noBlock || s.ph === "materialize"                                  // no normal throw while phased / materializing (formState.noAttack)
 }
 
 // ── PHASE ─────────────────────────────────────────────────────────────────────────────────────────────────

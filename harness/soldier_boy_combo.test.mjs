@@ -24,8 +24,8 @@ const ARMED_SMG_LINK = 20   // a point-blank SMG burst's effective value as a si
 const ARMED_RIFLE = 60      // SB_ARMED.rifleDmg
 
 // Validate the registered normal frame data matches the brief.
-ok(JAB === 22, `Jab base 22 (got ${JAB})`)
-ok(HEAVY === 62, `Heavy base 62 (got ${HEAVY})`)
+ok(JAB === 30, `Jab base 30 (got ${JAB}) — rebalance 2026-11: 22→30`)
+ok(HEAVY === 72, `Heavy base 72 (got ${HEAVY}) — rebalance 2026-11: 62→72`)
 ok(LAUNCHER === 55, `Launcher base 55 (got ${LAUNCHER})`)
 ok(LOW === 30, `Low base 30 (got ${LOW})`)
 ok(AIR === 38, `Air base 38 (got ${AIR})`)
@@ -34,15 +34,15 @@ ok(AIR === 38, `Air base 38 (got ${AIR})`)
 const combo = (hits) => hits.reduce((sum, d, i) => sum + d * Math.pow(0.85, i), 0)
 const near = (val, target, tol = 6) => Math.abs(val - target) <= tol
 
-// 1. Jab, Jab, Launcher, Cape Cyclone (3 hits of 30) ≈ 128
+// 1. Jab, Jab, Launcher, Cape Cyclone (3 hits of 30) ≈ 143 (was 128 before the 2026-11 jab buff)
 { const t = combo([JAB, JAB, LAUNCHER, CYCLONE_HIT, CYCLONE_HIT, CYCLONE_HIT])
-  ok(near(t, 128), `Combo 1 ~128 (got ${t.toFixed(1)})`) }
-// 2. Low, Jab, Heavy, Shield Toss ≈ 118
+  ok(near(t, 143), `Combo 1 ~143 (got ${t.toFixed(1)})`) }
+// 2. Low, Jab, Heavy, Shield Toss ≈ 132 (was 118)
 { const t = combo([LOW, JAB, HEAVY, SHIELD])
-  ok(near(t, 118), `Combo 2 ~118 (got ${t.toFixed(1)})`) }
-// 3. Gold Rush, Heavy, Rifle Shot ≈ 203 (45 Charge)
+  ok(near(t, 132), `Combo 2 ~132 (got ${t.toFixed(1)})`) }
+// 3. Gold Rush, Heavy, Rifle Shot ≈ 211 (45 Charge; was 203)
 { const t = combo([GOLD_RUSH, HEAVY, RIFLE])
-  ok(near(t, 203), `Combo 3 ~203 (got ${t.toFixed(1)})`)
+  ok(near(t, 211), `Combo 3 ~211 (got ${t.toFixed(1)})`)
   ok((20 + 25) === 45, "Combo 3 Charge cost = 45 (Gold Rush 20 + Rifle 25)") }
 // 4. Launcher, Air attack, Diving Kick ≈ 131
 { const t = combo([LAUNCHER, AIR, DIVE])

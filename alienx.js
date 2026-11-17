@@ -5,10 +5,13 @@
 // All simulation state lives in fighter.omnitrix.formState (plain data, GAME_STATE); render-only effects never write it.
 // No randomness in the simulation.
 import { ALIENX_ANIM, ALIENX_GEOM } from "./alienxAssets.js"
+import { flightTakeoff, isFlying, FLIGHT_PHASE, flightKnockedDown } from "./flight.js"
 export { ALIENX_ANIM, ALIENX_GEOM }
 
-// axVoice = the Stance frame held during a 20f voice switch (render alias; no new art)
-const ANIM = { ...ALIENX_ANIM, axVoice: ALIENX_ANIM.guard }
+// axVoice = the Stance frame held during a 20f voice switch; flight poses (sprite.js maps the flight controller's pose to
+// fly / flyHover / flyCruise / …) all = the Dash frame (axFly). Render aliases only; no new art.
+const A0 = ALIENX_ANIM
+const ANIM = { ...A0, axVoice: A0.guard, fly: A0.axFly, flyHover: A0.axFly, flyCruise: A0.axFly, flyRise: A0.axFly, flyDive: A0.axFly }
 // Pre-mod frame data (startup / damage / on-block advantage); blockstun derives the advantage.
 const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
   damage, startup, active, recovery, blockstun: active + recovery + advantage,
@@ -34,13 +37,17 @@ export const AX_MIN_DECREE_COST = 6
 // special is negated (startup plays, Power spent, no hitbox / projectile — abilities.triggerSpecial negate hook).
 // Consumed on use or when the 300f expire; no refresh while active; 420f immunity after.
 export const AX_VOID = { MAX: 3, EXPIRE: 240, UNMADE: 300, IMMUNE: 420 }
+// FLIGHT (flight.js profile "alienx"): hold Jump in the air (≥ 8f) to hover-fly; max 120f per airtime, cruise 4.0, high
+// drag, never above the jump apex + 140 px, knocked out of the sky (40f grounded lock) by a hard hit, never refills jumps.
+export const AX_FLIGHT = { MAX: 120, CAP: 140, HOLD: 8 }
 
 export const ALIENX = {
   id: "alienx", poolKey: "alienx", displayName: "Alien X", slot: 7,
   status: "ready", sheetPath: "./ben10_alienx_ready_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/alienx/SPRITE_LEDGER.md",
   mods: { speed: 0.80, damage: 1.20, defense: 1.25, weight: 1.40 },
-  movement: "grounded", maxJumps: 2,            // the shared double jump
+  movement: "flight", maxJumps: 2,              // the shared double jump; flight never refills it
+  flightProfile: "alienx",                      // flight.js FLIGHT_PROFILES.alienx (per-alien flight profile hook)
   drainMult: AX_DRAIN_MULT,                     // per-alien Power drain multiplier hook (fighters.updateTransformDevice)
   moves: { jab: "Jab", heavy: "Heavy", low: "Low", launcher: "Launcher", air: "Air",
     special1: "Nullify", special2: "Gravity", special3: "Rewind", special4: "Void Grasp", special5: "Starfall Dash",
@@ -61,6 +68,7 @@ export const ALIENX = {
 export function freshAlienXState() {
   return { kind: "alienx", t: 0, castId: 0, baseDmg: 1.0,
     voice: "ben", switchT: 0, voiceCd: 0, prevBL: false, swallowL: 0, switches: 0, ult: null,
+    airborne: false, apexY: null, capY: null, jumpHeld: 0, flightUsed: 0, flights: 0,
     void: { pips: 0, pipT: 0, lastPipCast: -1, unmadeT: 0, immune: 0, unmades: 0, negated: 0, negatedAt: -999 } }
 }
 export const axState = f => (f?.omnitrix?.formState?.kind === "alienx" && f.transformed && f.activeAlien === "alienx") ? f.omnitrix.formState : null
@@ -69,6 +77,7 @@ function onApply(f) {
   if (!f.omnitrix) return
   f.omnitrix.formState = freshAlienXState()
   f.omnitrix.formState.baseDmg = f.damageMultiplier ?? ALIENX.mods.damage   // mods.damage × Vow (set by applyAlien)
+  f._alienFlightProfile = ALIENX.flightProfile; f._flightCtl = null           // cleared by clearBenFormState
 }
 
 // ── per-frame tick (GAME_STATE only; called once per fighter per frame by abilities.tickBenAlienForm) ─────
@@ -78,6 +87,31 @@ function tick(f, input, ctx, api) {
   tickVoice(f, s, input || {})
   applyVoiceMods(f, s)
   tickVoid(s)
+  tickFlight(f, s, input || {})
+}
+
+// ── FLIGHT ────────────────────────────────────────────────────────────────────────────────────────────────
+function tickFlight(f, s, input) {
+  const c = f._flightCtl, flying = !!c && isFlying(f), grounded = !!(f.onGround || f.grounded)
+  const jump = !!(input.jump || input.up)
+  s.jumpHeld = jump ? s.jumpHeld + 1 : 0
+  if (grounded) { s.airborne = false; s.apexY = null; s.capY = null; s.flightUsed = 0 }
+  else { s.airborne = true; if (!flying) s.apexY = s.apexY == null ? f.y : Math.min(s.apexY, f.y) }
+  if (flying) {
+    s.flightUsed++
+    if ((f.hitstun || 0) > 0) { flightKnockedDown(f); return }                     // hard hit → drop + 40f grounded lock
+    if (!jump || s.flightUsed >= AX_FLIGHT.MAX || s.ult || s.switchT > 0) { c.phase = FLIGHT_PHASE.GROUNDED; c.wantDescend = false; return }
+    if (s.capY != null && f.y < s.capY) { f.y = s.capY; if ((f.vy || 0) < 0) f.vy = 0 }   // never above apex + 140
+    if (!f.attacking && !(f._spriteCastTimer > 0 && f._spriteCastMove !== "axFly")) { f._spriteCastMove = "axFly"; f._spriteCastTimer = 2 }
+    return
+  }
+  if (grounded || !jump || s.jumpHeld < AX_FLIGHT.HOLD || s.flightUsed >= AX_FLIGHT.MAX || f.attacking ||
+      (f.hitstun || 0) > 0 || s.ult || s.switchT > 0) return
+  const jc = f.jumpCount
+  if (flightTakeoff(f)) {
+    f.jumpCount = jc                                                                // flight never refills jumps
+    s.capY = (s.apexY ?? f.y) - AX_FLIGHT.CAP; s.flights++
+  }
 }
 
 // ── THREE VOICES ──────────────────────────────────────────────────────────────────────────────────────────

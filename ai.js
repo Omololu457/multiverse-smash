@@ -32,6 +32,8 @@ export const AI_DIFFICULTIES = {
     comboChance: 0,
     antiAirChance: 0,
     blockChance: 0,       // base chance/frame to hold guard vs an incoming attack (boosted vs special/ultimate)
+    parryChance: 0,      // PARRY pass: chance to read a heavy/special TELL and guard LATE (fresh → a flawless-block parry)
+    counterRespect: 0,   // PARRY pass: chance to guard (not mash) while the foe holds a parry COUNTER
     desiredRange: 120,
     aggression: 0,
     // ── new behavior tuning ──
@@ -54,6 +56,8 @@ export const AI_DIFFICULTIES = {
     comboChance: 0.28,
     antiAirChance: 0.16,
     blockChance: 0.18,
+    parryChance: 0.04,   // PARRY pass: chance to read a heavy/special TELL and guard LATE (fresh → a flawless-block parry)
+    counterRespect: 0.15,// PARRY pass: chance to guard (not mash) while the foe holds a parry COUNTER
     desiredRange: 145,
     aggression: 0.42,
     zoningChance: 0.22,
@@ -75,6 +79,8 @@ export const AI_DIFFICULTIES = {
     comboChance: 0.58,
     antiAirChance: 0.48,
     blockChance: 0.45,
+    parryChance: 0.14,   // PARRY pass: chance to read a heavy/special TELL and guard LATE (fresh → a flawless-block parry)
+    counterRespect: 0.45,// PARRY pass: chance to guard (not mash) while the foe holds a parry COUNTER
     desiredRange: 125,
     aggression: 0.64,
     zoningChance: 0.50,
@@ -96,6 +102,8 @@ export const AI_DIFFICULTIES = {
     comboChance: 0.86,
     antiAirChance: 0.78,
     blockChance: 0.75,
+    parryChance: 0.3,   // PARRY pass: chance to read a heavy/special TELL and guard LATE (fresh → a flawless-block parry)
+    counterRespect: 0.75,// PARRY pass: chance to guard (not mash) while the foe holds a parry COUNTER
     desiredRange: 105,
     aggression: 0.88,
     zoningChance: 0.70,
@@ -919,6 +927,9 @@ function choosePlan(controller, fighter, opponent, world = {}) {
   // ultimates get a boosted roll so higher-tier AI won't eat them for free. The re-
   // decision cadence (reactionFrames) already makes higher difficulty react faster.
   // Grounded only — air defense stays movement-based.
+  // PARRY RESPECT — we just got parried and they hold the ×1.2 COUNTER: higher tiers guard instead of eating it.
+  if (!fighterAir && (opponent?._parryCounter || 0) > 0 && distanceX < 200 && chance(profile.counterRespect || 0)) return "block"
+
   if (!fighterAir && opponent?.attacking && distanceX < 170) {
     const atk = opponent.currentAttack
     let blockRoll = profile.blockChance
@@ -1259,6 +1270,20 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
   if (controller.difficulty === "dummy") {
     controller.lastInput = input
     return input
+  }
+
+  // PARRY READ (between decisions): when a heavy / special / ultimate TELL is up (≤3f to active) and we are not already
+  // guarding, roll ONCE per attack to throw a LATE fresh guard — a flawless-block parry. Higher tiers read it more often.
+  {
+    const a = opponent?.currentAttack, pc = controller.profile.parryChance || 0
+    if (pc > 0 && a && controller.currentPlan !== "block" && !isAirborne(fighter) && getHorizontalDistance(fighter, opponent) < 170
+        && (a.isUltimate || a.isSpecial || a.launcher || a.spike || a.category === "heavy") && a !== controller.memory._parryReadAtk) {
+      const toActive = (a.activeStart ?? 0) - ((a.total ?? 0) - (a.timer ?? 0))
+      if (toActive >= 1 && toActive <= 3) {
+        controller.memory._parryReadAtk = a
+        if (chance(pc)) { controller.currentPlan = "block"; controller.decisionCooldown = Math.max(controller.decisionCooldown, toActive + 6) }
+      }
+    }
   }
 
   // ── PASSIVITY FLOOR ──────────────────────────────────────────────

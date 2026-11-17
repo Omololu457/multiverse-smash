@@ -20772,6 +20772,7 @@ function updateEffectsAndDomains() {
       if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
       _fireJuiceDetonation(spark)   // JUICE (Phase 2): explosive-move detonation treatment (presentation-only, tier-classified)
       _fireHitFeel(spark)           // HIT FEEL (Phase A): punchy-hit treatment (sound/particles/knockback/shake)
+      if (spark.perfectParry) _triggerJuiceSlowmo(globalFrameCount, spark.attackerSide === "p2" ? 0 : 1)   // PARRY: a PERFECT parry slows time (setting / LAN / replay-gated, 2s cooldown)
       animeJuiceOnSpark(spark, p1, p2, globalFrameCount)   // ANIME JUICE: parry / gatling rings / slash cut / aftermath (render-only)
       _maybeWeatherAbility(spark)   // FEEL PASS (Phase 5): a themed move conjures weather (visual only)
       spark._fresh = false
@@ -24265,7 +24266,7 @@ function drawBattleHud() {
   drawBatmanHud(ctx, canvas, p1, p2)   // Batman: support-operation status + cooldown chips under his health; KNIGHTFALL captions / cut-in (gated)
   drawVioletScreen(ctx, canvas, p1, p2)   // Violet FULL FORCE detonation flash (render-only; gated)
   drawDashParrHud(ctx, canvas, p1, p2, globalFrameCount)   // Dash: Momentum gauge under his energy bar (gated)
-  drawControlsInfo(ctx, canvas)
+  drawControlsInfo(ctx, canvas, p1)   // p1: Ben gets the Omnitrix transform hint
   drawSupermanLaserHud(ctx, p1); drawSupermanLaserHud(ctx, p2)   // Superman Heat Vision laser bar above his energy panel — after the Controls box so it is never covered
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)

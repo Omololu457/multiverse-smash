@@ -3339,8 +3339,38 @@ export function trackBanditEchoMark(defender, attacker, move, blocked, fromProje
 // (below), so a flawless block terminates a launcher-opened pressure string — it COMPLEMENTS the starter-
 // weighted scaling (defense answers offense), never fights it. Freshness is measured by _blockHeldFrames,
 // tracked in game.js updateMovementInput. A held/late guard is a NORMAL block (full chip + blockstun) as before.
-export const FLAWLESS_BLOCK = { window: 4, blockstun: 2, flashFrames: 12 }   // window ~67ms — tight but human-achievable; tunable
-export function isFlawlessBlock(defender) { return (defender?._blockHeldFrames ?? 99) <= FLAWLESS_BLOCK.window }
+export const FLAWLESS_BLOCK = { window: 6, legacyWindow: 4, blockstun: 2, flashFrames: 12 }   // window 6f (~100ms; was 4 = legacyWindow, kept for ben10/albedo) — the +2f LATE GRACE of the parry pass so a slightly-late guard still counts
+// PARRY GAMEPLAY (anime-juice Phase 1, 2026-11-17 — docs/anime_juice/CHANGES.md). A flawless block IS the parry:
+//   • both fighters FREEZE (hitstop; equal on both sides → block advantage unchanged by the freeze itself)
+//   • the attacker is KNOCKED BACK (pushX) and, after a heavy / launcher / spike / special, STAGGERED open
+//     (staggerFrames of hitstun; the attack is cancelled on their next combat tick). Lights: push-back only.
+//     Ultimates: no push / stagger (cinematic state machines) — freeze + counter only.
+//   • the defender's next CLEAN melee hit within counterWindow frames deals ×counterMult ("COUNTER").
+//   • PERFECT parry = a guard only ≤ `perfect` frames old: a longer freeze + the shared juice slow-mo (game.js,
+//     LAN/replay-gated) + ring bloom + camera push-in (animeJuice.js).
+// ben10 / albedo on EITHER side → none of this (legacy 4f window, no freeze / push / counter).
+export const PARRY = { perfect: 2, freeze: 5, perfectFreeze: 8, pushX: 6, staggerFrames: 16, counterWindow: 40, counterMult: 1.2 }
+const _parryBen = f => { const k = String(f?.rosterKey || "").toLowerCase(); return k === "ben10" || k === "albedo" }
+export function parryPlayOn(attacker, defender) { return !_parryBen(attacker) && !_parryBen(defender) }
+export function isFlawlessBlock(defender, attacker = null) {
+  const w = (_parryBen(defender) || _parryBen(attacker)) ? FLAWLESS_BLOCK.legacyWindow : FLAWLESS_BLOCK.window
+  return (defender?._blockHeldFrames ?? 99) <= w
+}
+export function isPerfectParry(defender) { return (defender?._blockHeldFrames ?? 99) <= PARRY.perfect }
+// The parry's gameplay half (called from the block branch on a flawless block). Deferred stagger: resolveAttackHit
+// still writes attacker.currentAttack after the block branch, so the cancel lands on the attacker's next updateCombat.
+function applyParryPlay(attacker, defender, atk, cat) {
+  const perfect = isPerfectParry(defender)
+  applyHitstop(attacker, defender, perfect ? PARRY.perfectFreeze : PARRY.freeze)
+  defender._parryCounter = PARRY.counterWindow
+  if (cat !== "ultimate" && !attacker.isUltimateActive) {
+    const away = (attacker.x + (attacker.w || 0) / 2) >= (defender.x + (defender.w || 0) / 2) ? 1 : -1
+    attacker._parryPush = away * PARRY.pushX
+    const heavyish = cat === "special" || cat === "heavy" || cat === "launcher" || cat === "spike" || !!atk.launcher || !!atk.spike
+    if (heavyish) attacker._parryStagger = PARRY.staggerFrames
+  }
+  return perfect
+}
 
 export function resolveAttackHit(attacker, defender, hitEffects = null, options = {}) {
   const { stageWidth = 3200, damageNumbers = null } = options
@@ -3527,6 +3557,13 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {}
   }
 
+  // PARRY COUNTER: the first melee contact after a parry spends the window; it pays ×counterMult only if it lands CLEAN.
+  let _parryCounterLanded = false
+  if ((attacker._parryCounter || 0) > 0) {
+    attacker._parryCounter = 0
+    if (!(defender.isBlocking && !atk.unblockable) && parryPlayOn(attacker, defender)) { dmg = Math.floor(dmg * PARRY.counterMult); _parryCounterLanded = true }
+  }
+
   // NEZUKO — Blood Demon Slumber vulnerability: while asleep (healing) she takes BONUS damage (risk/reward).
   if (defender._nzSlumberVuln) dmg = Math.floor(dmg * 1.5)
 
@@ -3571,8 +3608,11 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   if (defender.isBlocking && !atk.unblockable) {
     // FLAWLESS BLOCK: a fresh guard (blocked within FLAWLESS_BLOCK.window frames) negates chip and collapses
     // blockstun → a punish window; a held/late guard is a normal block. See the config comment above.
-    const flawless = isFlawlessBlock(defender)
+    const flawless = isFlawlessBlock(defender, attacker)
     defender._lastBlockFlawless = flawless   // telemetry for the harness
+    const _parryPlay = flawless && parryPlayOn(attacker, defender)
+    const _perfectParry = _parryPlay ? applyParryPlay(attacker, defender, atk, cat) : false   // PARRY GAMEPLAY (freeze / push / stagger / counter)
+    defender._lastParryPerfect = _perfectParry
     const chip = cat === "special" || cat === "ultimate"
     const chipDmg = flawless ? 0 : Math.floor(dmg * (chip ? 0.12 : 0.20))
 
@@ -3631,6 +3671,9 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         moveName: atk.name || null,
         attackerSide: attacker.side || null,
         blocked: true,
+        flawless,                       // PARRY: animeJuice reads these (spark + ring + ting/clang; perfect → slow-mo + push-in)
+        parryPlay: _parryPlay,
+        perfectParry: _perfectParry,
         lines: 6,
         radius: 14
       }))
@@ -3973,6 +4016,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         radius: cat === "ultimate" ? 40 : cat === "special" ? 28 : cat === "heavy" ? 22 : 14,
         damage: dmg,
         isCounterHit: isCounter,
+        parryCounter: _parryCounterLanded,   // PARRY COUNTER (×PARRY.counterMult) → animeJuice "COUNTER" slam
         // Telemetry tags (additive — read by the AI-vs-AI spectator log; no balance impact).
         moveName: atk.name || null,
         attackerSide: attacker.side || null,
@@ -4086,6 +4130,24 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if (!fighter || !opponent) return
 
   ensureCombatState(fighter)
+
+  // PARRY GAMEPLAY: the deferred half of a parry against this fighter (push-back, then the stagger that cancels the attack)
+  // (a decaying SLIDE applied here, after the freeze: grounded hitstun skips movement integration, so vx alone wouldn't move them)
+  if (fighter._parryPush && !((fighter.hitstop || 0) > 0)) {
+    const sw = options.stageWidth || 3200, w = fighter.w || 60
+    fighter.x = Math.max(0, Math.min(sw - w, fighter.x + fighter._parryPush))
+    fighter._parryPush = Math.abs(fighter._parryPush) < 0.6 ? 0 : fighter._parryPush * 0.82
+  }
+  if ((fighter._parryStagger || 0) > 0) {
+    if (!fighter.isUltimateActive) {
+      fighter.attacking = false; fighter.currentAttack = null; fighter.currentMove = null
+      fighter.hitstun = Math.max(fighter.hitstun || 0, fighter._parryStagger)
+      fighter._parryOpen = fighter._parryStagger   // telemetry / AI read
+    }
+    fighter._parryStagger = 0
+  }
+  if ((fighter._parryCounter || 0) > 0) fighter._parryCounter--
+  if ((fighter._parryOpen || 0) > 0) fighter._parryOpen--
 
   // JASON knockdown grunt (audio-only): fire ONCE the frame he ENTERS the downed state (from any source —
   // an opponent's knockdown-inducing special, etc.). Placed above the hitstop/hitstun early-returns so the

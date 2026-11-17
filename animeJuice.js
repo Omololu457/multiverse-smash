@@ -107,12 +107,18 @@ export function animeJuiceOnSpark(spark, p1, p2, frame) {
   // PARRY (combat.checkParry) — the perfect one
   if (spark.category === 'parry') { parryFx(spark.x, spark.y, true, fr); return }
   if (spark.category === 'clash') return
-  if (spark.blocked) {   // a FLAWLESS block (combat sets _flawlessFlash = 12 on that frame) = a parry-lite
+  if (spark.blocked) {   // a FLAWLESS block = the parry (combat tags the spark: flawless / perfectParry)
+    if (spark.flawless) { parryFx(spark.x, spark.y, !!spark.perfectParry, fr); return }
     const d = spark.attackerSide ? def : (p1?._flawlessFlash >= 11 ? p1 : p2?._flawlessFlash >= 11 ? p2 : null)
     if (d && (d._flawlessFlash || 0) >= 11) parryFx(spark.x, spark.y, false, fr)
     return
   }
   if (!att || !def) return
+  // PARRY COUNTER landed (×1.2): slam "COUNTER" over the hit + a hot ring
+  if (spark.parryCounter) {
+    push(S.fx, { kind: 'counter', x: spark.x, y: spark.y - 30, t: 0, life: 40 }, 40)
+    push(S.fx, { kind: 'ring', x: spark.x, y: spark.y, t: 0, life: 14, r0: 14, grow: 6, w: 4, col: [255, 120, 60] }, 40)
+  }
   const cat = spark.category || 'light', name = String(spark.moveName || '')
   const isUlt = cat === 'ultimate' || !!att.isUltimateActive
   const el = elementFor(att.rosterKey, { currentMove: name || att.currentMove, isUltimate: isUlt, ultVariant: att._ultVariant || att._form })
@@ -139,6 +145,7 @@ export function animeJuiceOnSpark(spark, p1, p2, frame) {
 function parryFx(x, y, perfect, fr) {
   push(S.fx, { kind: 'parry', x, y, t: 0, life: perfect ? 28 : 20, perfect, seed: fr }, 40)
   play('aj_ting'); play('aj_clang')
+  if (perfect) push(S.fx, { kind: 'ring', x, y, t: 0, life: 30, r0: 16, grow: 9, w: 6, col: [255, 236, 150] }, 40)   // PERFECT: the ring BLOOMS
   if (perfect) { try { camera.zoom = Math.min((camera.maxZoom || 1.15) * 1.08, camera.zoom * 1.06); camera.shake(5, 8) } catch (_) {} }   // the push-in (eases back by itself)
 }
 
@@ -193,10 +200,32 @@ export function drawAnimeJuiceFloor(c) {
 }
 
 // ── draw: WORLD (over the fighters + sparks) ──
+// PARRY TELL: a glint runs down the weapon / fist edge in the last TELL_FRAMES before a heavy / special / ultimate goes active
+const TELL_FRAMES = 6
+export function attackTell(f) {   // → 0..1 progress of the glint, or -1
+  const a = f?.currentAttack; if (!a || a.activeStart == null || a.total == null) return -1
+  const heavy = a.isUltimate || a.isSpecial || a.launcher || a.spike || a.category === 'heavy' || a.category === 'launcher' || a.category === 'spike'
+  if (!heavy) return -1
+  const toActive = a.activeStart - (a.total - a.timer)
+  return toActive >= 1 && toActive <= TELL_FRAMES ? 1 - (toActive - 1) / TELL_FRAMES : -1
+}
+function drawTell(c, f) {
+  const p = attackTell(f); if (p < 0) return
+  const d = f.facing || 1, w = f.w || 60, h = f.h || 100
+  const x0 = ctrX(f) + d * w * 0.15, y0 = (f.y || 0) + h * 0.32, x1 = ctrX(f) + d * w * 0.95, y1 = (f.y || 0) + h * 0.5   // along the arm / blade
+  const gx = x0 + (x1 - x0) * p, gy = y0 + (y1 - y0) * p, a = noFlash() ? 0.5 : 0.95, L = 11 + 9 * Math.sin(p * Math.PI)
+  c.globalAlpha = 0.25 * a; c.fillStyle = 'rgb(255,240,190)'; c.beginPath(); c.arc(R(gx), R(gy), R(L * 0.7), 0, 7); c.fill()
+  c.globalAlpha = 0.45 * a; c.strokeStyle = '#ffffff'; c.lineWidth = 2; c.beginPath(); c.moveTo(R(x0), R(y0)); c.lineTo(R(gx), R(gy)); c.stroke()
+  c.globalAlpha = a; c.fillStyle = '#ffffff'
+  c.beginPath(); c.moveTo(R(gx - L), R(gy)); c.lineTo(R(gx), R(gy - 1.5)); c.lineTo(R(gx + L), R(gy)); c.lineTo(R(gx), R(gy + 1.5)); c.fill()   // the 4-point star
+  c.beginPath(); c.moveTo(R(gx), R(gy - L)); c.lineTo(R(gx - 1.5), R(gy)); c.lineTo(R(gx), R(gy + L)); c.lineTo(R(gx + 1.5), R(gy)); c.fill()
+  c.globalAlpha = 0.5 * a; c.fillStyle = 'rgb(255,240,190)'; c.beginPath(); c.arc(R(gx), R(gy), 3, 0, 7); c.fill()
+}
 export function drawAnimeJuiceWorld(c, p1, p2) {
-  if (!S.fx.length || !on()) return
+  if (!on()) return
   const fs = [p1, p2]
   c.save()
+  for (const f of fs) if (f) drawTell(c, f)
   for (const e of S.fx) {
     const k = e.t / e.life
     if (e.kind === 'gather') {
@@ -248,6 +277,12 @@ export function drawAnimeJuiceWorld(c, p1, p2) {
     } else if (e.kind === 'ring') {
       c.globalAlpha = Math.max(0, 1 - k); c.strokeStyle = rgba(e.col, 1); c.lineWidth = e.w; c.beginPath(); c.arc(R(e.x), R(e.y), R(e.r0 + e.t * e.grow), 0, 7); c.stroke()
       c.globalAlpha = Math.max(0, 0.8 - k); c.strokeStyle = '#ffffff'; c.lineWidth = 1; c.beginPath(); c.arc(R(e.x), R(e.y), R(e.r0 * 0.7 + e.t * e.grow * 0.8), 0, 7); c.stroke()
+    } else if (e.kind === 'counter') {   // "COUNTER" slammed over the punish
+      const sc = e.t < 5 ? 1.9 - e.t * 0.18 : 1, a = e.t < 28 ? 1 : 1 - (e.t - 28) / 12
+      c.save(); c.translate(R(e.x), R(e.y - Math.min(e.t, 10))); c.scale(sc, sc); c.globalAlpha = Math.max(0, a)
+      c.font = 'bold 24px Impact, "Arial Black", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'
+      c.lineWidth = 5; c.strokeStyle = 'rgba(60,10,0,0.9)'; c.strokeText('COUNTER', 0, 0)
+      c.fillStyle = (e.t >> 2) % 2 && e.t < 16 ? '#ffffff' : '#ff8a3c'; c.fillText('COUNTER', 0, 0); c.restore()
     } else if (e.kind === 'cut') {   // a thin glowing cut line across the target
       const L = e.len * Math.min(1, e.t / 2), th = Math.max(0.5, 5 * (1 - k)), cx = e.x, cy = e.y, dx = Math.cos(e.ang) * L / 2, dy = Math.sin(e.ang) * L / 2
       c.globalAlpha = Math.max(0, 1 - k) * 0.7; c.strokeStyle = rgba(e.col, 1); c.lineWidth = th * 2.4; c.beginPath(); c.moveTo(R(cx - dx), R(cy - dy)); c.lineTo(R(cx + dx), R(cy + dy)); c.stroke()

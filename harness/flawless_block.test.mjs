@@ -36,9 +36,9 @@ const MD = { damage: 100, startup: 2, active: 3, recovery: 8, hitstun: 16, categ
 const SP = { damage: 120, startup: 2, active: 3, recovery: 8, hitstun: 16, category: "special", isSpecial: true };
 
 section("A. classifier — fresh guard is flawless, held guard is not");
-check(`window = ${FLAWLESS_BLOCK.window} frames (small, skillful)`, FLAWLESS_BLOCK.window >= 2 && FLAWLESS_BLOCK.window <= 5, `${FLAWLESS_BLOCK.window}`);
+check(`window = ${FLAWLESS_BLOCK.window} frames (small, skillful)`, FLAWLESS_BLOCK.window >= 2 && FLAWLESS_BLOCK.window <= 7, `${FLAWLESS_BLOCK.window}`);
 for (let n = 1; n <= FLAWLESS_BLOCK.window; n++) check(`_blockHeldFrames=${n} → flawless`, isFlawlessBlock({ _blockHeldFrames: n }) === true);
-for (const n of [FLAWLESS_BLOCK.window + 1, 6, 10, 30]) check(`_blockHeldFrames=${n} → NOT flawless`, isFlawlessBlock({ _blockHeldFrames: n }) === false);
+for (const n of [FLAWLESS_BLOCK.window + 1, FLAWLESS_BLOCK.window + 2, 10, 30]) check(`_blockHeldFrames=${n} → NOT flawless`, isFlawlessBlock({ _blockHeldFrames: n }) === false);
 check("undefined held-count → NOT flawless (safe default)", isFlawlessBlock({}) === false);
 
 section("B. FLAWLESS block (fresh guard) — chip NEGATED + blockstun collapsed to a punish window");

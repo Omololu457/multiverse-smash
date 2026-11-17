@@ -12,7 +12,7 @@
  */
 
 import { setupBen10, updateOmnitrix } from "./fighters.js"
-import { benReadyForm } from "./ben10State.js"   // READY Omnitrix forms (lunge / glide / power commit); null for everyone else
+import { benReadyForm, benAlienPhasing } from "./ben10State.js"   // READY Omnitrix forms (lunge / glide / power commit); null for everyone else
 import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
 import { zoroPhasing, zoroNoJump } from './zoroState.js'   // Roronoa Zoro dash-through + Shishi Sonson ↗ (zoro-gated)
 import { sanjiPhasing, sanjiNoJump } from './sanjiState.js'   // Sanji: handstand / super pass-through + special jump lock (sanji-gated)
@@ -478,6 +478,7 @@ export const physics = {
     if (sanjiPhasing(p1, p2)) return   // Sanji spinning THROUGH on his hands (handstand spin / Party Table Kick Course)
     if (zoroPhasing(p1, p2)) return   // Roronoa Zoro dashing THROUGH the opponent (Oni Giri / Shishi Sonson / Ashura)
     if (dashParrPhasing(p1, p2)) return   // Dash Parr passing THROUGH (Blur Dash cross-up / Laps / Sidestep / Panic Run / Incredi-Rush)
+    if (benAlienPhasing(p1, p2)) return   // READY Omnitrix form passing THROUGH (Megawhatt Live Wire cross-up); false for everyone else
     if (enochPhasing(p1, p2)) return   // Enoch skating PAST on an ICE glide (fire glides and everything else still collide)
 
     const dx = (p1.x + p1.w / 2) - (p2.x + p2.w / 2)

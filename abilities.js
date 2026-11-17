@@ -29719,7 +29719,7 @@ function benAlienApi(context) {
     spendEnergy, scheduleBenSpawn, applyScaledDamage, getComboScale,
     getOpponent: f => getOpp(f),
     activeProjectiles: () => activeProjectiles,
-    spawnProjectile: (f, type, md, ctx) => { const p = spawnProjectile(f, type, md, ctx || {}); if (p) for (const k of Object.keys(md)) if (k === "fire" || /^hb[A-Z]/.test(k)) p[k] = md[k]; return p },
+    spawnProjectile: (f, type, md, ctx) => { const p = spawnProjectile(f, type, md, ctx || {}); if (p) for (const k of Object.keys(md)) if (k === "fire" || k === "alien" || /^hb[A-Z]/.test(k)) p[k] = md[k]; return p },
     shake: (amount, frames) => shakeCamera(context, amount, frames),
     focusCamera: (f, t, zoom, frames) => focusCameraOnAction(context, f, t, zoom, frames)
   }

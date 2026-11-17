@@ -13,6 +13,11 @@ export const benReadyForm = f => {
 // no-ops unless the defender / owner is a ready form that defines the hook.
 export function benAlienAbsorb(defender, info) { const d = benReadyForm(defender); return !!(d && d.absorb && d.absorb(defender, info || {})) }
 export function benAlienContact(owner, target, info) { const d = benReadyForm(owner); if (d && d.onContact) d.onContact(owner, target, info || {}) }
+// Optional per-form body hooks (Megawhatt): hurtbox override (null = ordinary box), body phasing (no push, cross-ups),
+// incoming-damage scale (×, after the form defense). All no-ops unless a ready form defines them.
+export function benAlienHurtbox(f) { const d = benReadyForm(f); return d && d.hurtbox ? d.hurtbox(f) : null }
+export function benAlienPhasing(a, b) { const da = benReadyForm(a), db = benReadyForm(b); return !!((da && da.phasing && da.phasing(a)) || (db && db.phasing && db.phasing(b))) }
+export function benAlienIncoming(f) { const d = benReadyForm(f); return d && d.incomingScale ? d.incomingScale(f) : 1 }
 export const isSwampfire = f => isBenDevice(f) && f.transformed && f.activeAlien === "swampfire"
 export function invalidateBenAction(f) {
   if (!isBenDevice(f)) return
@@ -32,6 +37,7 @@ export function clearBenFormState(f) {
   // generic per-form GAME_STATE slot (Heatblast's Heat / Scorch / flight / ult) + its glide — gone on swap / revert / KO
   if (f.omnitrix && f.omnitrix.formState) f.omnitrix.formState = null
   if (f._benGlide) delete f._benGlide
+  if (f._alienFlightProfile) { delete f._alienFlightProfile; f._flightCtl = null }   // per-alien flight profile (Megawhatt) + its flight controller
 }
 export function resetBenDefense(f) {
   for (const k of Object.keys(f)) if (k.startsWith("_omx")) delete f[k]

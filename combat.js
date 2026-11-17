@@ -36,7 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
-import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact } from "./ben10State.js"
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -323,7 +323,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
-  { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) rawDamage = (rawDamage ?? 0) / _rd.mods.defense }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
+  { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) { rawDamage = (rawDamage ?? 0) / _rd.mods.defense; if (_rd.incomingScale) rawDamage *= benAlienIncoming(target) } }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
   if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
   const scale = opts.bypassScale ? 1
               : opts.scale != null ? opts.scale
@@ -926,6 +926,7 @@ export function getHurtbox(fighter) {
     return { x: fighter.x + 4, y: top, w: Math.max(1, fighter.w - 8), h: Math.max(1, bottom - top) }
   }
   if (fighter.rosterKey === 'arlong') return arlongHurtbox(fighter)   // ARLONG — the big sawshark body: a larger hurtbox (designed weakness; arlong-gated)
+  { const _bh = benAlienHurtbox(fighter); if (_bh) return _bh }   // READY Omnitrix form hurtbox override (Megawhatt Live Wire low profile); null for everyone else
   if (fighter.rosterKey === 'dash_parr' && fighter._dashParr?.lowProfile) return dashParrHurtbox(fighter)   // Dash Parr: Hydroplane low profile (dash_parr-gated)
   if (fighter.rosterKey === 'beast_boy') { const hb = beastBoyHurtbox(fighter); if (hb) return hb }   // BEAST BOY — animal-form hurtbox while a transient animal action is live (null → ordinary box); beast_boy-gated
   if (fighter.rosterKey === 'elastigirl') return elastigirlHurtbox(fighter)   // ELASTIGIRL — stretched-limb hurtbox while a long normal is active; Whirl Kick upper-body invulnerability (elastigirl-gated)

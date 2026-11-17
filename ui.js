@@ -4984,7 +4984,8 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
 
   // Ben 10: the Omnitrix inputs are otherwise undiscoverable in a match — show them (presentation-only).
   const ben = isBenDevice(p1)
-  const extra = ben ? 32 : 0
+  const heatblast = ben && p1?.transformed && p1?.activeAlien === "heatblast"
+  const extra = ben ? (heatblast ? 64 : 32) : 0
   const panelY = h - 170 - extra
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"
@@ -5005,8 +5006,13 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   ctx.fillText("Specials are directional — hold a dir + L", 32, panelY + 90)
   if (ben) {
     ctx.fillStyle = "#7dff6a"
-    ctx.fillText("Omnitrix: S, S, J = transform (Swampfire)", 32, panelY + 108)
-    ctx.fillText("S, S, J+L = turn back to Ben   (pad: ↓, ↓, □)", 32, panelY + 124)
+    ctx.fillText("Omnitrix: S,S,J = Swampfire   S,S,K = Heatblast", 32, panelY + 108)
+    ctx.fillText("S, S, J+L = turn back to Ben   (pad: ↓↓□ / ↓↓△)", 32, panelY + 124)
+    if (heatblast) {
+      ctx.fillStyle = "#ffb347"
+      ctx.fillText("Heatblast: L Fireball  fwd+L Rocket  S+L Supernova", 32, panelY + 140)
+      ctx.fillText("Air L = Blaze Flight   ; + K = Heat Absorb   U = Meteor", 32, panelY + 156)
+    }
   }
   ctx.restore()
 }

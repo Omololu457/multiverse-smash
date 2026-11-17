@@ -47,7 +47,7 @@ export const HEATBLAST = {
     down_air: normal(48, 12, 4, 16, 0, { knockbackY: 10 })                                // attack4 dive
   },
   anim: ANIM, blueAnim: BLUE_ANIM, fx: HEATBLAST_FX,
-  onApply
+  onApply, tick, onContact
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -66,3 +66,81 @@ function onApply(f) {
   f.omnitrix.formState.baseDmg = f.damageMultiplier ?? HEATBLAST.mods.damage   // mods.damage × Vow (set by applyAlien)
 }
 
+export function addHeat(f, amount) {
+  const s = hbState(f)
+  if (!s || !(amount > 0) || s.blue > 0 || s.burnout > 0) return 0
+  const before = s.heat
+  s.heat = Math.min(HB_HEAT.MAX, s.heat + amount); s.idle = 0
+  if (s.heat >= HB_HEAT.MAX) { s.blue = HB_HEAT.BLUE_FRAMES; s.heat = HB_HEAT.MAX; f.colorFlash = Math.max(f.colorFlash || 0, 14); if (!f._benSfx) f._benSfx = "hb_blue" }
+  return s.heat - before
+}
+function enterBurnout(s) { s.blue = 0; s.heat = 0; s.idle = 0; s.burnout = HB_HEAT.BURNOUT_FRAMES }
+
+// ── per-frame tick (GAME_STATE only; called once per fighter per frame by abilities.tickBenAlienForm) ─────
+function tick(f, input, ctx, api) {
+  const s = hbState(f); if (!s) return
+  if (s.absorbWin > 0) s.absorbWin--
+  if (s.absorbCd > 0) s.absorbCd--
+  // HEAT: Blue Flame 360f → Burnout 120f (Heat locked at 0, Rocket / Supernova unavailable); else idle decay.
+  if (s.blue > 0) { s.heat = HB_HEAT.MAX; if (--s.blue <= 0) enterBurnout(s) }
+  else if (s.burnout > 0) { s.heat = 0; s.burnout-- }
+  else {
+    if (f.attacking || (f.attackCooldown || 0) > 0 || s.flight || s.dive || s.ult) s.idle = 0
+    else if (++s.idle >= HB_HEAT.IDLE_DELAY && s.heat > 0) s.heat = Math.max(0, s.heat - 1)
+  }
+  // fire damage tier: every Heatblast hit is fire → the multiplier rides the form's damage multiplier.
+  f.damageMultiplier = s.baseDmg * HB_TIER_MULT[heatTier(s)]
+  // render data follows the GAME_STATE flag (the Blue Flame look is the sheet's alt-pal strips)
+  const wantAnim = s.blue > 0 ? BLUE_ANIM : ANIM
+  if (f._skinAnim !== wantAnim) f._skinAnim = wantAnim
+  // airtime bookkeeping: Blaze Flight is once per airtime; the cap is the jump apex + 80 px
+  const grounded = !!(f.onGround || f.grounded)
+  if (grounded) { s.airborne = false; s.flightUsed = false; s.apexY = null }
+  else { s.airborne = true; s.apexY = s.apexY == null ? f.y : Math.min(s.apexY, f.y) }
+}
+
+// Called by combat after a contact this fighter OWNS lands (melee or projectile, blocked or clean).
+function onContact(f, target, { proj = null, move = null, blocked = false, dealDamage = null, comboScale = null } = {}) {
+  const s = hbState(f); if (!s) return
+  if (!proj) {                                                             // every Heatblast normal is fire: +4 (half on block)
+    addHeat(f, blocked ? HB_HEAT.NORMAL / 2 : HB_HEAT.NORMAL)
+    return
+  }
+  // projectile contacts (Fire Rocket Heat, Scorch) arrive with the specials
+}
+
+// ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────────
+// Heat gauge under the Omnitrix Power bar while Heatblast is active + the opponent's Scorch pips / Ignite.
+export function drawHeatblastHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
+  const s = hbState(f); if (!ctx || !s) return
+  const tier = heatTier(s), y = enY + enH + 3, h = 5
+  const col = s.burnout > 0 ? "#6b7280" : tier === "blue" ? "#38bdf8" : tier === "hot" ? "#fb923c" : "#facc15"
+  ctx.save()
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(x + 8, y, pbw, h)
+  const ratio = s.burnout > 0 ? s.burnout / HB_HEAT.BURNOUT_FRAMES : tier === "blue" ? s.blue / HB_HEAT.BLUE_FRAMES : s.heat / HB_HEAT.MAX
+  const w = pbw * Math.max(0, Math.min(1, ratio))
+  ctx.fillStyle = col; ctx.fillRect(flip ? x + 8 + pbw - w : x + 8, y, w, h)
+  const hot = flip ? x + 8 + pbw - pbw * 0.5 : x + 8 + pbw * 0.5           // the Hot threshold notch
+  ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.fillRect(hot - 0.5, y - 1, 1, h + 2)
+  const label = s.burnout > 0 ? "BURNOUT" : tier === "blue" ? "BLUE FLAME" : `HEAT ${Math.round(s.heat)}${tier === "hot" ? " · HOT" : ""}`
+  const sc = s.scorch, pips = sc.burnT > 0 ? "IGNITE" : "●".repeat(sc.pips) + "○".repeat(HB_SCORCH.MAX - sc.pips)
+  ctx.font = "bold 8px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
+  ctx.fillStyle = col; ctx.fillText(`${label}   SCORCH ${pips}`, flip ? x + 8 + pbw : x + 8, y + h + 1)
+  ctx.restore()
+}
+// Pyronite Meteor mini-sun: procedural pixel rings at the apex; Ignite: embers over the burning target.
+export function drawHeatblastFx(c, f, frame = 0) {
+  const s = hbState(f); if (!c || !s) return
+  const x = f._lastDrawX, y = f._lastDrawY, w = f._lastDrawW, h = f._lastDrawH
+  if (x == null || w == null) return
+  c.save(); c.imageSmoothingEnabled = false
+  if (s.ult && s.ult.phase === "sun") {
+    const cx = Math.round(x + w / 2), cy = Math.round(y + h * 0.45), blue = s.blue > 0
+    for (let i = 0; i < 3; i++) {
+      const r = 40 + ((frame * 3 + i * 26) % 80), a = 1 - (r - 40) / 80
+      c.globalAlpha = Math.max(0, a) * 0.85; c.fillStyle = blue ? "#38bdf8" : (i % 2 ? "#facc15" : "#fb923c")
+      for (let k = 0; k < 24; k++) { const t = k / 24 * Math.PI * 2; c.fillRect(Math.round(cx + Math.cos(t) * r) - 2, Math.round(cy + Math.sin(t) * r) - 2, 4, 4) }
+    }
+  }
+  c.restore()
+}

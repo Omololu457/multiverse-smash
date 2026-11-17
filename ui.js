@@ -2,7 +2,8 @@
 import { drawZoroHud } from './zoroFx.js'
 import { drawSanjiHud, drawSanjiHeatFill } from './sanjiFx.js'   // Sanji — glass badge, warming Heat bar, Course pips (render-only)
 import { noteSupermanEnergyPanel } from './supermanLaser.js'   // Superman Heat Vision laser bar (render-only)
-import { drawSpdRedHud } from './spdRedFx.js'   // S.P.D. Red — gem-badged Delta bar + teleport pips + JUDGMENT meter (render-only)
+import { drawSpdRedHud } from './spdRedFx.js'
+import { drawHeatblastHud } from './heatblast.js'   // Heatblast — Heat gauge under the Omnitrix bar + Scorch pips (render-only)   // S.P.D. Red — gem-badged Delta bar + teleport pips + JUDGMENT meter (render-only)
 import { drawArlongHud } from './arlongFx.js'   // Arlong — Tide badge + teeth counter + Kiribachi icon (render-only)
 import { drawBuggyHud } from './buggyFx.js'   // Buggy the Clown — Chop badge + part pips (render-only)   // Roronoa Zoro — Going Merry Spirit badge (render-only)
 // Shared UI rendering and menu layout helpers.
@@ -4835,6 +4836,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     drawSanjiHud(ctx, fighter, { x, enY, pbw, flip })
     drawArlongHud(ctx, fighter, { x, enY, pbw, flip })
     drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip })
+    drawHeatblastHud(ctx, fighter, { x, enY, enH, pbw, flip })   // Heatblast (ben10/albedo in the Heatblast form only)
     noteSupermanEnergyPanel(fighter, { x, enY, pbw, flip })   // Superman: Heat Vision laser bar sits above this panel (drawn last by game.js)
     if (!hasEnergy) return
 

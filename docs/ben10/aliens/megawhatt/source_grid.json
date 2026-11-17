@@ -1,0 +1,3064 @@
+{
+ "source": "assets/sprites/ben10/aliens/megawhatt.png",
+ "key": [
+  188,
+  231,
+  241
+ ],
+ "cell": [
+  128,
+  56
+ ],
+ "feetY": 44,
+ "centreX": 64,
+ "centreAboveFeet": 9.663865546218487,
+ "actionScale": 2.0,
+ "groups": {
+  "stand": [
+   [
+    8,
+    12,
+    9,
+    6
+   ],
+   [
+    10,
+    13,
+    11,
+    7
+   ]
+  ],
+  "fly": [
+   [
+    19,
+    23,
+    20,
+    17
+   ],
+   [
+    21,
+    24,
+    22,
+    18
+   ]
+  ],
+  "down": [
+   [
+    36,
+    38,
+    34,
+    32,
+    40,
+    41
+   ],
+   [
+    37,
+    39,
+    35,
+    33,
+    42,
+    43
+   ]
+  ],
+  "fwd": [
+   [
+    51,
+    52
+   ],
+   [
+    53,
+    54
+   ]
+  ],
+  "up": [
+   [
+    70,
+    71,
+    72,
+    57,
+    58
+   ],
+   [
+    73,
+    74,
+    75,
+    59,
+    60
+   ]
+  ],
+  "attack": [
+   [
+    83,
+    85,
+    86
+   ],
+   [
+    84,
+    87,
+    88
+   ]
+  ]
+ },
+ "fx": {
+  "spark": [
+   [
+    89,
+    90
+   ],
+   [
+    91,
+    92
+   ]
+  ],
+  "bolt": [
+   [
+    61
+   ],
+   [
+    62
+   ]
+  ],
+  "star": [
+   [
+    55
+   ],
+   [
+    56
+   ]
+  ]
+ },
+ "pair_iou": {
+  "stand": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "fly": [
+   0.994,
+   0.994,
+   0.994,
+   0.994
+  ],
+  "down": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "fwd": [
+   1.0,
+   1.0
+  ],
+  "up": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "attack": [
+   1.0,
+   1.0,
+   1.0
+  ],
+  "spark": [
+   1.0,
+   1.0
+  ],
+  "bolt": [
+   1.0
+  ],
+  "star": [
+   1.0
+  ]
+ },
+ "removed_text_components": 35,
+ "removed_box_components": 1,
+ "ledger_charged": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "charged",
+   "frame": 1,
+   "component": 8,
+   "src_bbox": [
+    10,
+    19,
+    24,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "charged",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    26,
+    20,
+    40,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "charged",
+   "frame": 3,
+   "component": 9,
+   "src_bbox": [
+    42,
+    19,
+    56,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "charged",
+   "frame": 4,
+   "component": 6,
+   "src_bbox": [
+    57,
+    18,
+    71,
+    36
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "charged",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    12,
+    59,
+    29,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "charged",
+   "frame": 3,
+   "component": 20,
+   "src_bbox": [
+    50,
+    59,
+    67,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "charged",
+   "frame": 4,
+   "component": 17,
+   "src_bbox": [
+    70,
+    58,
+    87,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "charged",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    12,
+    59,
+    29,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "charged",
+   "frame": 3,
+   "component": 20,
+   "src_bbox": [
+    50,
+    59,
+    67,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "charged",
+   "frame": 4,
+   "component": 17,
+   "src_bbox": [
+    70,
+    58,
+    87,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "dash",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "dash (fly)"
+  },
+  {
+   "anim": "dash",
+   "group": "fly",
+   "set": "charged",
+   "frame": 3,
+   "component": 20,
+   "src_bbox": [
+    50,
+    59,
+    67,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "dash (fly)"
+  },
+  {
+   "anim": "jump",
+   "group": "fly",
+   "set": "charged",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    12,
+    59,
+    29,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "jump rise (fly)"
+  },
+  {
+   "anim": "jump",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "jump rise (fly)"
+  },
+  {
+   "anim": "fall",
+   "group": "fly",
+   "set": "charged",
+   "frame": 3,
+   "component": 20,
+   "src_bbox": [
+    50,
+    59,
+    67,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "fall (fly)"
+  },
+  {
+   "anim": "fall",
+   "group": "fly",
+   "set": "charged",
+   "frame": 4,
+   "component": 17,
+   "src_bbox": [
+    70,
+    58,
+    87,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "fall (fly)"
+  },
+  {
+   "anim": "crouch",
+   "group": "down",
+   "set": "charged",
+   "frame": 2,
+   "component": 38,
+   "src_bbox": [
+    42,
+    116,
+    54,
+    132
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "crouch - REUSED Attack v f2 (small hunched figure; no crouch pose)"
+  },
+  {
+   "anim": "light",
+   "group": "attack",
+   "set": "charged",
+   "frame": 1,
+   "component": 83,
+   "src_bbox": [
+    18,
+    335,
+    32,
+    355
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "JAB (Attack f1-2 + spark FX)"
+  },
+  {
+   "anim": "light",
+   "group": "attack",
+   "set": "charged",
+   "frame": 2,
+   "component": 85,
+   "src_bbox": [
+    45,
+    337,
+    58,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "JAB (Attack f1-2 + spark FX)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "set": "charged",
+   "frame": 1,
+   "component": 83,
+   "src_bbox": [
+    18,
+    335,
+    32,
+    355
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "HEAVY (Attack + spark burst FX, 140 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "set": "charged",
+   "frame": 2,
+   "component": 85,
+   "src_bbox": [
+    45,
+    337,
+    58,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "HEAVY (Attack + spark burst FX, 140 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "set": "charged",
+   "frame": 3,
+   "component": 86,
+   "src_bbox": [
+    66,
+    337,
+    79,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "HEAVY (Attack + spark burst FX, 140 px)"
+  },
+  {
+   "anim": "down",
+   "group": "fwd",
+   "set": "charged",
+   "frame": 1,
+   "component": 51,
+   "src_bbox": [
+    10,
+    171,
+    76,
+    186
+   ],
+   "offset": [
+    7,
+    28
+   ],
+   "role": "LOW (Attack -> streak start, hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "set": "charged",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    15,
+    281,
+    33,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "LAUNCHER (Attack ^ charge-up + bolt FX)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "set": "charged",
+   "frame": 2,
+   "component": 71,
+   "src_bbox": [
+    45,
+    281,
+    63,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "LAUNCHER (Attack ^ charge-up + bolt FX)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "set": "charged",
+   "frame": 3,
+   "component": 72,
+   "src_bbox": [
+    73,
+    281,
+    91,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "LAUNCHER (Attack ^ charge-up + bolt FX)"
+  },
+  {
+   "anim": "air",
+   "group": "fly",
+   "set": "charged",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    12,
+    59,
+    29,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "AIR (fly + spark FX)"
+  },
+  {
+   "anim": "air",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "AIR (fly + spark FX)"
+  },
+  {
+   "anim": "guard",
+   "group": "down",
+   "set": "charged",
+   "frame": 1,
+   "component": 36,
+   "src_bbox": [
+    19,
+    112,
+    35,
+    133
+   ],
+   "offset": [
+    57,
+    26
+   ],
+   "role": "block (Attack v f1 + small spark)"
+  },
+  {
+   "anim": "hurt",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "hit - REUSED stand f1 (drained set in both tiers: no hurt pose)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "knockdown - REUSED fly f4 (drained set in both tiers: no knockdown pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "set": "charged",
+   "frame": 1,
+   "component": 8,
+   "src_bbox": [
+    10,
+    19,
+    24,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "get-up - REUSED stand f1-2 (no get-up pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "set": "charged",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    26,
+    20,
+    40,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "get-up - REUSED stand f1-2 (no get-up pose)"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "charged",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    12,
+    59,
+    29,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "charged",
+   "frame": 3,
+   "component": 20,
+   "src_bbox": [
+    50,
+    59,
+    67,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "charged",
+   "frame": 4,
+   "component": 17,
+   "src_bbox": [
+    70,
+    58,
+    87,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "charged",
+   "frame": 1,
+   "component": 8,
+   "src_bbox": [
+    10,
+    19,
+    24,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "charged",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    26,
+    20,
+    40,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "charged",
+   "frame": 3,
+   "component": 9,
+   "src_bbox": [
+    42,
+    19,
+    56,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "charged",
+   "frame": 4,
+   "component": 6,
+   "src_bbox": [
+    57,
+    18,
+    71,
+    36
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "charged",
+   "frame": 1,
+   "component": 8,
+   "src_bbox": [
+    10,
+    19,
+    24,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "charged",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    26,
+    20,
+    40,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "charged",
+   "frame": 3,
+   "component": 9,
+   "src_bbox": [
+    42,
+    19,
+    56,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "charged",
+   "frame": 4,
+   "component": 6,
+   "src_bbox": [
+    57,
+    18,
+    71,
+    36
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "win",
+   "group": "down",
+   "set": "charged",
+   "frame": 3,
+   "component": 34,
+   "src_bbox": [
+    60,
+    106,
+    100,
+    143
+   ],
+   "offset": [
+    44,
+    17
+   ],
+   "role": "win - REUSED Attack v starburst (charged set in both tiers)"
+  },
+  {
+   "anim": "win",
+   "group": "down",
+   "set": "charged",
+   "frame": 4,
+   "component": 32,
+   "src_bbox": [
+    102,
+    104,
+    139,
+    143
+   ],
+   "offset": [
+    46,
+    15
+   ],
+   "role": "win - REUSED Attack v starburst (charged set in both tiers)"
+  },
+  {
+   "anim": "lose",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "lose - REUSED stand f1 (drained set in both tiers)"
+  },
+  {
+   "anim": "taunt",
+   "group": "up",
+   "set": "charged",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    15,
+    281,
+    33,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "taunt - REUSED Attack ^ charge-up"
+  },
+  {
+   "anim": "taunt",
+   "group": "up",
+   "set": "charged",
+   "frame": 2,
+   "component": 71,
+   "src_bbox": [
+    45,
+    281,
+    63,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "taunt - REUSED Attack ^ charge-up"
+  },
+  {
+   "anim": "taunt",
+   "group": "up",
+   "set": "charged",
+   "frame": 3,
+   "component": 72,
+   "src_bbox": [
+    73,
+    281,
+    91,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "taunt - REUSED Attack ^ charge-up"
+  },
+  {
+   "anim": "grab",
+   "group": "attack",
+   "set": "charged",
+   "frame": 1,
+   "component": 83,
+   "src_bbox": [
+    18,
+    335,
+    32,
+    355
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "grab - REUSED jab"
+  },
+  {
+   "anim": "grab",
+   "group": "attack",
+   "set": "charged",
+   "frame": 2,
+   "component": 85,
+   "src_bbox": [
+    45,
+    337,
+    58,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "grab - REUSED jab"
+  },
+  {
+   "anim": "mwSparkBall",
+   "group": "attack",
+   "set": "charged",
+   "frame": 1,
+   "component": 83,
+   "src_bbox": [
+    18,
+    335,
+    32,
+    355
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "SPARK BALL cast (Attack) + spark-ball FX projectile"
+  },
+  {
+   "anim": "mwSparkBall",
+   "group": "attack",
+   "set": "charged",
+   "frame": 2,
+   "component": 85,
+   "src_bbox": [
+    45,
+    337,
+    58,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "SPARK BALL cast (Attack) + spark-ball FX projectile"
+  },
+  {
+   "anim": "mwSparkBall",
+   "group": "attack",
+   "set": "charged",
+   "frame": 3,
+   "component": 86,
+   "src_bbox": [
+    66,
+    337,
+    79,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "SPARK BALL cast (Attack) + spark-ball FX projectile"
+  },
+  {
+   "anim": "mwLiveWire",
+   "group": "fwd",
+   "set": "charged",
+   "frame": 1,
+   "component": 51,
+   "src_bbox": [
+    10,
+    171,
+    76,
+    186
+   ],
+   "offset": [
+    7,
+    28
+   ],
+   "role": "LIVE WIRE ground lightning streak (Attack ->)"
+  },
+  {
+   "anim": "mwLiveWire",
+   "group": "fwd",
+   "set": "charged",
+   "frame": 2,
+   "component": 52,
+   "src_bbox": [
+    83,
+    171,
+    149,
+    184
+   ],
+   "offset": [
+    7,
+    28
+   ],
+   "role": "LIVE WIRE ground lightning streak (Attack ->)"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "charged",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    15,
+    281,
+    33,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "charged",
+   "frame": 2,
+   "component": 71,
+   "src_bbox": [
+    45,
+    281,
+    63,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "charged",
+   "frame": 3,
+   "component": 72,
+   "src_bbox": [
+    73,
+    281,
+    91,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "charged",
+   "frame": 4,
+   "component": 57,
+   "src_bbox": [
+    164,
+    223,
+    182,
+    241
+   ],
+   "offset": [
+    56,
+    27
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "charged",
+   "frame": 5,
+   "component": 58,
+   "src_bbox": [
+    185,
+    223,
+    203,
+    241
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "charged",
+   "frame": 1,
+   "component": 36,
+   "src_bbox": [
+    19,
+    112,
+    35,
+    133
+   ],
+   "offset": [
+    57,
+    26
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "charged",
+   "frame": 2,
+   "component": 38,
+   "src_bbox": [
+    42,
+    116,
+    54,
+    132
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "charged",
+   "frame": 3,
+   "component": 34,
+   "src_bbox": [
+    60,
+    106,
+    100,
+    143
+   ],
+   "offset": [
+    44,
+    17
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "charged",
+   "frame": 4,
+   "component": 32,
+   "src_bbox": [
+    102,
+    104,
+    139,
+    143
+   ],
+   "offset": [
+    46,
+    15
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "charged",
+   "frame": 5,
+   "component": 40,
+   "src_bbox": [
+    157,
+    123,
+    169,
+    139
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "charged",
+   "frame": 6,
+   "component": 41,
+   "src_bbox": [
+    173,
+    123,
+    185,
+    139
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDraw",
+   "group": "up",
+   "set": "charged",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    15,
+    281,
+    33,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "GROUND DRAW (Attack ^ charge-up loop)"
+  },
+  {
+   "anim": "mwDraw",
+   "group": "up",
+   "set": "charged",
+   "frame": 2,
+   "component": 71,
+   "src_bbox": [
+    45,
+    281,
+    63,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "GROUND DRAW (Attack ^ charge-up loop)"
+  },
+  {
+   "anim": "mwDraw",
+   "group": "up",
+   "set": "charged",
+   "frame": 3,
+   "component": 72,
+   "src_bbox": [
+    73,
+    281,
+    91,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "GROUND DRAW (Attack ^ charge-up loop)"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "charged",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    12,
+    59,
+    29,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "charged",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    31,
+    60,
+    48,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "charged",
+   "frame": 3,
+   "component": 20,
+   "src_bbox": [
+    50,
+    59,
+    67,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "charged",
+   "frame": 4,
+   "component": 17,
+   "src_bbox": [
+    70,
+    58,
+    87,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwUlt",
+   "group": "down",
+   "set": "charged",
+   "frame": 3,
+   "component": 34,
+   "src_bbox": [
+    60,
+    106,
+    100,
+    143
+   ],
+   "offset": [
+    44,
+    17
+   ],
+   "role": "BLACKOUT final starburst (Attack v)"
+  },
+  {
+   "anim": "mwUlt",
+   "group": "down",
+   "set": "charged",
+   "frame": 4,
+   "component": 32,
+   "src_bbox": [
+    102,
+    104,
+    139,
+    143
+   ],
+   "offset": [
+    46,
+    15
+   ],
+   "role": "BLACKOUT final starburst (Attack v)"
+  }
+ ],
+ "ledger_drained": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "drained",
+   "frame": 2,
+   "component": 13,
+   "src_bbox": [
+    98,
+    20,
+    112,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "drained",
+   "frame": 3,
+   "component": 11,
+   "src_bbox": [
+    114,
+    19,
+    128,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "set": "drained",
+   "frame": 4,
+   "component": 7,
+   "src_bbox": [
+    129,
+    18,
+    143,
+    36
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "idle"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "drained",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    96,
+    59,
+    113,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "drained",
+   "frame": 3,
+   "component": 22,
+   "src_bbox": [
+    134,
+    59,
+    151,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "walk (he hovers: fly cycle)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "drained",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    96,
+    59,
+    113,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "drained",
+   "frame": 3,
+   "component": 22,
+   "src_bbox": [
+    134,
+    59,
+    151,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "run",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "run (fly cycle, faster)"
+  },
+  {
+   "anim": "dash",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "dash (fly)"
+  },
+  {
+   "anim": "dash",
+   "group": "fly",
+   "set": "drained",
+   "frame": 3,
+   "component": 22,
+   "src_bbox": [
+    134,
+    59,
+    151,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "dash (fly)"
+  },
+  {
+   "anim": "jump",
+   "group": "fly",
+   "set": "drained",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    96,
+    59,
+    113,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "jump rise (fly)"
+  },
+  {
+   "anim": "jump",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "jump rise (fly)"
+  },
+  {
+   "anim": "fall",
+   "group": "fly",
+   "set": "drained",
+   "frame": 3,
+   "component": 22,
+   "src_bbox": [
+    134,
+    59,
+    151,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "fall (fly)"
+  },
+  {
+   "anim": "fall",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "fall (fly)"
+  },
+  {
+   "anim": "crouch",
+   "group": "down",
+   "set": "drained",
+   "frame": 2,
+   "component": 39,
+   "src_bbox": [
+    237,
+    116,
+    249,
+    132
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "crouch - REUSED Attack v f2 (small hunched figure; no crouch pose)"
+  },
+  {
+   "anim": "light",
+   "group": "attack",
+   "set": "drained",
+   "frame": 1,
+   "component": 84,
+   "src_bbox": [
+    129,
+    335,
+    143,
+    355
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "JAB (Attack f1-2 + spark FX)"
+  },
+  {
+   "anim": "light",
+   "group": "attack",
+   "set": "drained",
+   "frame": 2,
+   "component": 87,
+   "src_bbox": [
+    154,
+    337,
+    167,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "JAB (Attack f1-2 + spark FX)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "set": "drained",
+   "frame": 1,
+   "component": 84,
+   "src_bbox": [
+    129,
+    335,
+    143,
+    355
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "HEAVY (Attack + spark burst FX, 140 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "set": "drained",
+   "frame": 2,
+   "component": 87,
+   "src_bbox": [
+    154,
+    337,
+    167,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "HEAVY (Attack + spark burst FX, 140 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "set": "drained",
+   "frame": 3,
+   "component": 88,
+   "src_bbox": [
+    175,
+    337,
+    188,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "HEAVY (Attack + spark burst FX, 140 px)"
+  },
+  {
+   "anim": "down",
+   "group": "fwd",
+   "set": "drained",
+   "frame": 1,
+   "component": 53,
+   "src_bbox": [
+    158,
+    171,
+    224,
+    186
+   ],
+   "offset": [
+    8,
+    28
+   ],
+   "role": "LOW (Attack -> streak start, hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "set": "drained",
+   "frame": 1,
+   "component": 73,
+   "src_bbox": [
+    243,
+    281,
+    261,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "LAUNCHER (Attack ^ charge-up + bolt FX)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "set": "drained",
+   "frame": 2,
+   "component": 74,
+   "src_bbox": [
+    273,
+    281,
+    291,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "LAUNCHER (Attack ^ charge-up + bolt FX)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "set": "drained",
+   "frame": 3,
+   "component": 75,
+   "src_bbox": [
+    301,
+    281,
+    319,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "LAUNCHER (Attack ^ charge-up + bolt FX)"
+  },
+  {
+   "anim": "air",
+   "group": "fly",
+   "set": "drained",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    96,
+    59,
+    113,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "AIR (fly + spark FX)"
+  },
+  {
+   "anim": "air",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "AIR (fly + spark FX)"
+  },
+  {
+   "anim": "guard",
+   "group": "down",
+   "set": "drained",
+   "frame": 1,
+   "component": 37,
+   "src_bbox": [
+    214,
+    112,
+    230,
+    133
+   ],
+   "offset": [
+    57,
+    25
+   ],
+   "role": "block (Attack v f1 + small spark)"
+  },
+  {
+   "anim": "hurt",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "hit - REUSED stand f1 (drained set in both tiers: no hurt pose)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "knockdown - REUSED fly f4 (drained set in both tiers: no knockdown pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "get-up - REUSED stand f1-2 (no get-up pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "set": "drained",
+   "frame": 2,
+   "component": 13,
+   "src_bbox": [
+    98,
+    20,
+    112,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "get-up - REUSED stand f1-2 (no get-up pose)"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "drained",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    96,
+    59,
+    113,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "drained",
+   "frame": 3,
+   "component": 22,
+   "src_bbox": [
+    134,
+    59,
+    151,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "roll",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "roll - REUSED fly cycle"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "drained",
+   "frame": 2,
+   "component": 13,
+   "src_bbox": [
+    98,
+    20,
+    112,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "drained",
+   "frame": 3,
+   "component": 11,
+   "src_bbox": [
+    114,
+    19,
+    128,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "set": "drained",
+   "frame": 4,
+   "component": 7,
+   "src_bbox": [
+    129,
+    18,
+    143,
+    36
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "drained",
+   "frame": 2,
+   "component": 13,
+   "src_bbox": [
+    98,
+    20,
+    112,
+    38
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "drained",
+   "frame": 3,
+   "component": 11,
+   "src_bbox": [
+    114,
+    19,
+    128,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "intro",
+   "group": "stand",
+   "set": "drained",
+   "frame": 4,
+   "component": 7,
+   "src_bbox": [
+    129,
+    18,
+    143,
+    36
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "intro - REUSED stand"
+  },
+  {
+   "anim": "win",
+   "group": "down",
+   "set": "charged",
+   "frame": 3,
+   "component": 34,
+   "src_bbox": [
+    60,
+    106,
+    100,
+    143
+   ],
+   "offset": [
+    44,
+    17
+   ],
+   "role": "win - REUSED Attack v starburst (charged set in both tiers)"
+  },
+  {
+   "anim": "win",
+   "group": "down",
+   "set": "charged",
+   "frame": 4,
+   "component": 32,
+   "src_bbox": [
+    102,
+    104,
+    139,
+    143
+   ],
+   "offset": [
+    46,
+    15
+   ],
+   "role": "win - REUSED Attack v starburst (charged set in both tiers)"
+  },
+  {
+   "anim": "lose",
+   "group": "stand",
+   "set": "drained",
+   "frame": 1,
+   "component": 10,
+   "src_bbox": [
+    82,
+    19,
+    96,
+    37
+   ],
+   "offset": [
+    58,
+    26
+   ],
+   "role": "lose - REUSED stand f1 (drained set in both tiers)"
+  },
+  {
+   "anim": "taunt",
+   "group": "up",
+   "set": "drained",
+   "frame": 1,
+   "component": 73,
+   "src_bbox": [
+    243,
+    281,
+    261,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "taunt - REUSED Attack ^ charge-up"
+  },
+  {
+   "anim": "taunt",
+   "group": "up",
+   "set": "drained",
+   "frame": 2,
+   "component": 74,
+   "src_bbox": [
+    273,
+    281,
+    291,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "taunt - REUSED Attack ^ charge-up"
+  },
+  {
+   "anim": "taunt",
+   "group": "up",
+   "set": "drained",
+   "frame": 3,
+   "component": 75,
+   "src_bbox": [
+    301,
+    281,
+    319,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "taunt - REUSED Attack ^ charge-up"
+  },
+  {
+   "anim": "grab",
+   "group": "attack",
+   "set": "drained",
+   "frame": 1,
+   "component": 84,
+   "src_bbox": [
+    129,
+    335,
+    143,
+    355
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "grab - REUSED jab"
+  },
+  {
+   "anim": "grab",
+   "group": "attack",
+   "set": "drained",
+   "frame": 2,
+   "component": 87,
+   "src_bbox": [
+    154,
+    337,
+    167,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "grab - REUSED jab"
+  },
+  {
+   "anim": "mwSparkBall",
+   "group": "attack",
+   "set": "drained",
+   "frame": 1,
+   "component": 84,
+   "src_bbox": [
+    129,
+    335,
+    143,
+    355
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "SPARK BALL cast (Attack) + spark-ball FX projectile"
+  },
+  {
+   "anim": "mwSparkBall",
+   "group": "attack",
+   "set": "drained",
+   "frame": 2,
+   "component": 87,
+   "src_bbox": [
+    154,
+    337,
+    167,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "SPARK BALL cast (Attack) + spark-ball FX projectile"
+  },
+  {
+   "anim": "mwSparkBall",
+   "group": "attack",
+   "set": "drained",
+   "frame": 3,
+   "component": 88,
+   "src_bbox": [
+    175,
+    337,
+    188,
+    355
+   ],
+   "offset": [
+    59,
+    26
+   ],
+   "role": "SPARK BALL cast (Attack) + spark-ball FX projectile"
+  },
+  {
+   "anim": "mwLiveWire",
+   "group": "fwd",
+   "set": "drained",
+   "frame": 1,
+   "component": 53,
+   "src_bbox": [
+    158,
+    171,
+    224,
+    186
+   ],
+   "offset": [
+    8,
+    28
+   ],
+   "role": "LIVE WIRE ground lightning streak (Attack ->)"
+  },
+  {
+   "anim": "mwLiveWire",
+   "group": "fwd",
+   "set": "drained",
+   "frame": 2,
+   "component": 54,
+   "src_bbox": [
+    229,
+    171,
+    295,
+    184
+   ],
+   "offset": [
+    8,
+    28
+   ],
+   "role": "LIVE WIRE ground lightning streak (Attack ->)"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "drained",
+   "frame": 1,
+   "component": 73,
+   "src_bbox": [
+    243,
+    281,
+    261,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "drained",
+   "frame": 2,
+   "component": 74,
+   "src_bbox": [
+    273,
+    281,
+    291,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "drained",
+   "frame": 3,
+   "component": 75,
+   "src_bbox": [
+    301,
+    281,
+    319,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "drained",
+   "frame": 4,
+   "component": 59,
+   "src_bbox": [
+    392,
+    223,
+    410,
+    241
+   ],
+   "offset": [
+    56,
+    27
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwThunder",
+   "group": "up",
+   "set": "drained",
+   "frame": 5,
+   "component": 60,
+   "src_bbox": [
+    413,
+    223,
+    431,
+    241
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "THUNDER STRIKE call (Attack ^) + bolt / starburst FX at the marker"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "drained",
+   "frame": 1,
+   "component": 37,
+   "src_bbox": [
+    214,
+    112,
+    230,
+    133
+   ],
+   "offset": [
+    57,
+    25
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "drained",
+   "frame": 2,
+   "component": 39,
+   "src_bbox": [
+    237,
+    116,
+    249,
+    132
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "drained",
+   "frame": 3,
+   "component": 35,
+   "src_bbox": [
+    255,
+    106,
+    295,
+    143
+   ],
+   "offset": [
+    44,
+    17
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "drained",
+   "frame": 4,
+   "component": 33,
+   "src_bbox": [
+    297,
+    104,
+    334,
+    143
+   ],
+   "offset": [
+    46,
+    15
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "drained",
+   "frame": 5,
+   "component": 42,
+   "src_bbox": [
+    352,
+    123,
+    364,
+    139
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDischarge",
+   "group": "down",
+   "set": "drained",
+   "frame": 6,
+   "component": 43,
+   "src_bbox": [
+    368,
+    123,
+    380,
+    139
+   ],
+   "offset": [
+    58,
+    27
+   ],
+   "role": "DISCHARGE radial burst (Attack v)"
+  },
+  {
+   "anim": "mwDraw",
+   "group": "up",
+   "set": "drained",
+   "frame": 1,
+   "component": 73,
+   "src_bbox": [
+    243,
+    281,
+    261,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "GROUND DRAW (Attack ^ charge-up loop)"
+  },
+  {
+   "anim": "mwDraw",
+   "group": "up",
+   "set": "drained",
+   "frame": 2,
+   "component": 74,
+   "src_bbox": [
+    273,
+    281,
+    291,
+    301
+   ],
+   "offset": [
+    56,
+    26
+   ],
+   "role": "GROUND DRAW (Attack ^ charge-up loop)"
+  },
+  {
+   "anim": "mwDraw",
+   "group": "up",
+   "set": "drained",
+   "frame": 3,
+   "component": 75,
+   "src_bbox": [
+    301,
+    281,
+    319,
+    301
+   ],
+   "offset": [
+    56,
+    25
+   ],
+   "role": "GROUND DRAW (Attack ^ charge-up loop)"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "drained",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    96,
+    59,
+    113,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "drained",
+   "frame": 2,
+   "component": 24,
+   "src_bbox": [
+    115,
+    60,
+    132,
+    76
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "drained",
+   "frame": 3,
+   "component": 22,
+   "src_bbox": [
+    134,
+    59,
+    151,
+    75
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwFly",
+   "group": "fly",
+   "set": "drained",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    154,
+    58,
+    171,
+    74
+   ],
+   "offset": [
+    55,
+    27
+   ],
+   "role": "FLIGHT hover-fly"
+  },
+  {
+   "anim": "mwUlt",
+   "group": "down",
+   "set": "drained",
+   "frame": 3,
+   "component": 35,
+   "src_bbox": [
+    255,
+    106,
+    295,
+    143
+   ],
+   "offset": [
+    44,
+    17
+   ],
+   "role": "BLACKOUT final starburst (Attack v)"
+  },
+  {
+   "anim": "mwUlt",
+   "group": "down",
+   "set": "drained",
+   "frame": 4,
+   "component": 33,
+   "src_bbox": [
+    297,
+    104,
+    334,
+    143
+   ],
+   "offset": [
+    46,
+    15
+   ],
+   "role": "BLACKOUT final starburst (Attack v)"
+  }
+ ]
+}

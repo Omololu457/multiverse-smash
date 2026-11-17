@@ -42,3 +42,25 @@ Each of these would change gameplay or frame data for the whole roster:
 - **Level-up "count the new stats up":** the game has no levels or stats.
 
 Some steps are specific to one character's art: the water dragon's ribbon body, the rubber arm's wobble, the teleport afterimages, the dummy splitting in half, the fire breath's 12-fps redraw. Those stay with each character's own kit. The generic layers above (gather, impact, slash cut, aftermath) cover their shared beats.
+
+## Phase 1–2 additions (2026-11-17)
+
+- **Parry gameplay** (Phase 1). See CHANGES.md.
+- **Signature moves** (Phase 2): `animeSignatures.js` gives about 120 real roster moves the owner's full per-family breakdown:
+  - spirit bomb
+  - beam
+  - spiral orb
+  - gatling
+  - stretch
+  - water dragon
+  - fire breath
+  - rock line
+  - iai
+  - moon slash
+  - ice
+
+  Matching uses the move's runtime identifiers. The table is `docs/anime_juice/SIGNATURES.md`; screenshots are in `signatures/`.
+  - Impact frames go through game.js's existing `_fireJuiceImpactFrame`.
+  - Colour flips turn into a soft dim under Reduce Flashing.
+  - `juiceSettings.animeFx` (`off` / `low` / `full`) scales the layer.
+  - Test: `harness/anime_signatures.test.mjs`.

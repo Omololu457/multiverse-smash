@@ -24,3 +24,15 @@ and open, and a bonus counter. A perfect parry slows time. The old flawless bloc
 
 Tests: `harness/parry_gameplay.test.mjs` 22/0 (unit) · `harness/parry_live.mjs` 9/0 (real game, screenshots in
 `docs/anime_juice/parry/`) · `harness/flawless_block.test.mjs` 24/0 (its window bound was raised from 5 to 7).
+
+## Phase 2 — Signature moves (2026-11-17)
+
+These are presentation only (`animeSignatures.js`, table in `SIGNATURES.md`), except for one small sim-side feel hook. **`sigFeel`** runs in game.js's spark loop, is deterministic, ignores settings and is skipped in FFA:
+
+| What | Value | Why |
+|---|---|---|
+| Beam recoil | each clean **beam**-family hit slides the grounded caster **1.5 px** back (`SIG_FEEL.beamRecoil`) | breakdown L.3: "push him back, feet dig in" |
+| Gatling ramp push | from the **3rd** consecutive hit of a **gatling**-family move, the target is pushed **0.6 → 1.8 px** per hit (`SIG_FEEL.gatlingPush`, `gatlingFrom`) | breakdown E.4: "ramp, push the target back" |
+
+Not done: the spirit bomb's "comes down really slowly". Each kit owns its projectile's speed, so changing it would rewrite frame data per character.
+Splits (I, K) draw only on a **killing** blow, and only where the existing blood / brutality rule allows (`_bloodEligible(attacker) && _bdBloodAllowed()`). Every other hit gets the bright cut line.

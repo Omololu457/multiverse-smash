@@ -528,6 +528,19 @@ const SOUNDS = {
     osc(ctx, out, "triangle", 370, 0.30, 0.10, 300)
     osc(ctx, out, "sawtooth", 95, 0.18, 0.06, 60)
   },
+  aj_click(ctx, out) {    // SIGNATURE (iai): the sword sheathed after the silence — a short dry click
+    osc(ctx, out, "square", 1900, 0.025, 0.10, 1400)
+    oscAt(ctx, out, "triangle", 900, 0.035, 0.03, 0.08, 600)
+  },
+  aj_splash(ctx, out) {   // SIGNATURE (water): the crown bursting — a falling bubbly splash
+    osc(ctx, out, "sine", 900, 0.30, 0.10, 220)
+    oscAt(ctx, out, "sine", 1300, 0.04, 0.22, 0.06, 300)
+    oscAt(ctx, out, "triangle", 600, 0.08, 0.25, 0.05, 140)
+  },
+  aj_whoomp(ctx, out) {   // SIGNATURE (fire breath / dome): a deep swallowing WHOOMP
+    osc(ctx, out, "sawtooth", 120, 0.45, 0.10, 45)
+    osc(ctx, out, "sine", 70, 0.55, 0.16, 35)
+  },
   ui_select(ctx, out) {
     osc(ctx, out, "sine", 880, 0.04, 0.06)
     oscAt(ctx, out, "sine", 1100, 0.04, 0.06, 0.20)

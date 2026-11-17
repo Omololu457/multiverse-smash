@@ -762,7 +762,7 @@ setMunitionSfx((ev, x, y, seed, extra) => {
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
-import { animeJuiceOnSpark, animeJuiceTick, animeJuiceReset, drawAnimeJuiceFloor, drawAnimeJuiceWorld, drawAnimeJuiceHud, animeJuiceStatus, __animeJuiceTest } from "./animeJuice.js"   // ANIME JUICE: game-wide presentation-only pass (ultimate ready, gather, parry, gatling, slash, aftermath)
+import { animeJuiceOnSpark, animeJuiceTick, animeJuiceReset, drawAnimeJuiceFloor, drawAnimeJuiceWorld, drawAnimeJuiceHud, animeJuiceStatus, __animeJuiceTest, animeSigTakeImpacts, animeSigFeel, setAnimeSplitGate } from "./animeJuice.js"   // ANIME JUICE: game-wide presentation-only pass (ultimate ready, gather, parry, gatling, slash, aftermath)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { bdSetSeed, bdRecordHit, bdLevel, bdMarkTex, bdFloorDecal, bdDrawFloor, bdMaybeDrip, bdTickDrips, bdDrawDrips, bdReset, bdStatus } from "./battleDamage.js"   // FEEL PASS (Phase 2): persistent battle-damage marks + floor decals (render-layer only)
 import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weatherDraw, weatherCurrent, weatherTarget, weatherCycle, weatherReset, weatherStatus, resolveWeather, weatherPickForStage, allowedWeatherFor } from "./weather.js"   // FEEL PASS (Phase 3): cosmetic weather overlay (render-layer only)
@@ -3056,6 +3056,7 @@ function _bloodEligible(rosterKey) { const k = (rosterKey || "").toLowerCase(); 
 // Is BLOOD allowed to draw right now? "Full" setting AND the global blood toggle on. Per-fighter eligibility
 // is checked separately (stored on the record). Keeps blood strictly within the existing rules.
 function _bdBloodAllowed() { return juiceSettings.battleDamageBlood() && bloodFx }
+setAnimeSplitGate(att => _bloodEligible(att?.rosterKey) && _bdBloodAllowed())   // SIGNATURES: iai / moon-slash SPLIT only where the existing blood / brutality rule allows it
 
 function _fireHitFeel(spark) {
   if (!juiceSettings.hitEffectsOn() || !spark || brutalityState.active) return
@@ -20774,6 +20775,8 @@ function updateEffectsAndDomains() {
       _fireHitFeel(spark)           // HIT FEEL (Phase A): punchy-hit treatment (sound/particles/knockback/shake)
       if (spark.perfectParry) _triggerJuiceSlowmo(globalFrameCount, spark.attackerSide === "p2" ? 0 : 1)   // PARRY: a PERFECT parry slows time (setting / LAN / replay-gated, 2s cooldown)
       animeJuiceOnSpark(spark, p1, p2, globalFrameCount)   // ANIME JUICE: parry / gatling rings / slash cut / aftermath (render-only)
+      for (const im of animeSigTakeImpacts()) _fireJuiceImpactFrame(im.tier, gameState !== GAME_STATES.FFA_BATTLE)   // SIGNATURES: the impact frame (presentation)
+      if (gameState !== GAME_STATES.FFA_BATTLE) animeSigFeel(spark, p1, p2, globalFrameCount, getStageWorldWidth())   // SIGNATURES feel: beam recoil / gatling push (sim, setting-independent; CHANGES.md)
       _maybeWeatherAbility(spark)   // FEEL PASS (Phase 5): a themed move conjures weather (visual only)
       spark._fresh = false
     }

@@ -21,6 +21,10 @@ import { juiceSettings } from './juiceSettings.js'
 import { camera } from './camera.js'
 import { sound } from './sound.js'
 import { elementFor, elementColor } from './juice_elements.js'
+import { sigFamily, sigOnStart, sigOnHit, sigTick, sigReset, sigStatus, drawSigWorld, drawSigFloor, drawSigHud, sigLevel } from './animeSignatures.js'   // Phase 2: signature moves
+export { sigTakeImpacts as animeSigTakeImpacts, sigFeel as animeSigFeel, SIGNATURE_MOVES } from './animeSignatures.js'
+let _splitGate = () => false   // game.js: the existing brutality / blood eligibility rule (splits only where gore is allowed)
+export function setAnimeSplitGate(fn) { if (typeof fn === 'function') _splitGate = fn }
 
 const on = () => { try { return juiceSettings.hitEffectsOn() } catch (_) { return true } }
 const noFlash = () => !!juiceSettings.reduceFlashing
@@ -37,9 +41,9 @@ const ctrX = f => (f?.x || 0) + (f?.w || 60) / 2
 const SLASH_RX = /slash|sword|blade|katana|\bcut\b|iai|getsuga|zangetsu|slice|moon|sever|cleave|edge|santoryu|ittoryu|nitoryu|kenjutsu|saber|sabre|scythe|tsuki/i
 const HEAVY_SPECIAL = 60   // a special at / over this damage leaves an aftermath
 
-const S = { fx: [], decals: [], slams: [], chain: [null, null], prevMove: [null, null], prevUlt: [false, false], ready: [null, null], meter: new WeakMap(), frame: 0 }
-export function animeJuiceReset() { S.fx.length = 0; S.decals.length = 0; S.slams.length = 0; S.chain = [null, null]; S.prevMove = [null, null]; S.prevUlt = [false, false]; S.ready = [null, null] }
-export function animeJuiceStatus() { return { fx: S.fx.length, decals: S.decals.length, slams: S.slams.length, kinds: S.fx.map(e => e.kind), decalKinds: S.decals.map(d => d.kind), ready: S.ready.map(r => r ? { state: r.state, t: r.t } : null) } }
+const S = { prevCast: [null, null], fx: [], decals: [], slams: [], chain: [null, null], prevMove: [null, null], prevUlt: [false, false], ready: [null, null], meter: new WeakMap(), frame: 0 }
+export function animeJuiceReset() { sigReset(); S.fx.length = 0; S.decals.length = 0; S.slams.length = 0; S.chain = [null, null]; S.prevMove = [null, null]; S.prevUlt = [false, false]; S.ready = [null, null]; S.prevCast = [null, null] }
+export function animeJuiceStatus() { return { sig: sigStatus(), fx: S.fx.length, decals: S.decals.length, slams: S.slams.length, kinds: S.fx.map(e => e.kind), decalKinds: S.decals.map(d => d.kind), ready: S.ready.map(r => r ? { state: r.state, t: r.t } : null) } }
 const push = (arr, e, cap) => { arr.push(e); if (arr.length > cap) arr.shift() }
 
 // ── sounds (synth recipes live in sound.js: aj_whoosh / aj_chime / aj_ting / aj_clang) ──
@@ -80,7 +84,16 @@ export function animeJuiceTick(p1, p2, frame) {
     const mv = f.currentMove || null, ult = !!f.isUltimateActive
     const startedUlt = ult && !S.prevUlt[i]
     const startedSp = mv && mv !== S.prevMove[i] && !!(f.specials && !Array.isArray(f.specials) && f.specials[mv])
+    const newMove = mv && mv !== S.prevMove[i]
     S.prevMove[i] = mv; S.prevUlt[i] = ult
+    if (on() && (startedUlt || newMove) && sigLevel() !== 'off') {   // SIGNATURE: a mapped move begins (specials, ultimates, mapped normals)
+      const sp = f.specials && !Array.isArray(f.specials) ? f.specials[mv] : null
+      const fam = sigFamily(f, startedUlt ? 'ultimate' : mv, startedUlt ? f.ultimate?.name : (sp?.name || f.currentAttack?.name), startedUlt)
+      if (fam) sigOnStart(f, i, fam, startedUlt, frame, fs[1 - i])
+    }
+    const cast = f._spriteCastMove || null   // casts that spawn their projectile later (Kamehameha, Spirit Bomb …) start here
+    if (cast && cast !== S.prevCast[i] && on() && sigLevel() !== 'off' && !newMove && !startedUlt) { const fam = sigFamily(f, cast, null, false); if (fam) sigOnStart(f, i, fam, false, frame, fs[1 - i]) }
+    S.prevCast[i] = cast
     if (on() && (startedUlt || startedSp)) {
       const el = elementFor(f.rosterKey, { currentMove: mv, isUltimate: startedUlt, ultVariant: f._ultVariant || f._form })
       push(S.fx, { kind: 'gather', side: i, t: 0, life: startedUlt ? 30 : 18, ult: startedUlt, col: elementColor(el), seed: frame }, 40)
@@ -89,6 +102,7 @@ export function animeJuiceTick(p1, p2, frame) {
     const c = S.chain[i]
     if (c && frame - c.last > 16) { if (c.n >= 4 && on()) { push(S.fx, { kind: 'ring', x: c.x, y: c.y, t: 0, life: 18, r0: 30, grow: 7, w: 5, col: c.col }, 40); try { camera.shake(6, 10) } catch (_) {} } S.chain[i] = null }
   }
+  sigTick(fs, frame)
   for (let k = S.fx.length - 1; k >= 0; k--) if (++S.fx[k].t > S.fx[k].life) S.fx.splice(k, 1)
   for (let k = S.decals.length - 1; k >= 0; k--) if (++S.decals[k].t > S.decals[k].life) S.decals.splice(k, 1)
   for (let k = S.slams.length - 1; k >= 0; k--) if (++S.slams[k].t > S.slams[k].life) S.slams.splice(k, 1)
@@ -135,9 +149,12 @@ export function animeJuiceOnSpark(spark, p1, p2, frame) {
   // SLASH: a thin glowing cut line across the target
   const slash = SLASH_RX.test(name) && (cat !== 'light')
   if (slash) push(S.fx, { kind: 'cut', x: ctrX(def), y: (def.y || 0) + (def.h || 100) * 0.45, t: 0, life: 20, ang: -0.35 + (H(fr, ai, 3) - 0.5) * 0.5, len: (def.h || 100) * 1.3, col }, 40)
+  // SIGNATURE: the move's own breakdown (impact frame, dome / crown / fire / rocks / cut ...); owns the aftermath when it has one
+  const fam = sigLevel() !== 'off' ? sigFamily(att, isUlt ? 'ultimate' : att.currentMove, name, isUlt) : null
+  const owned = fam ? sigOnHit(spark, att, def, fam, fr, ai, { splitOk: !!_splitGate(att, def) }) : false
   // AFTERMATH: ultimates + heavy specials mark the floor under the target (one per attacker per 30 frames)
   const big = isUlt || (cat === 'special' && (spark.damage || 0) >= HEAVY_SPECIAL)
-  if (big && !(S.decals.some(d => d.ai === ai && fr - d.born < 30))) {
+  if (big && !owned && !(S.decals.some(d => d.ai === ai && fr - d.born < 30))) {
     const kind = slash ? 'scar' : el === 'fire' ? 'burn' : el === 'water' ? 'puddle' : el === 'ice' ? 'frost' : el === 'wind' ? 'crack' : 'crater'
     push(S.decals, { kind, ai, born: fr, x: ctrX(def), y: floorOf(def), w: isUlt ? 150 : 100, t: 0, life: isUlt ? 300 : 200, col, dir: (att.facing || 1), seed: fr * 3 + ai }, 6)
   }
@@ -151,6 +168,7 @@ function parryFx(x, y, perfect, fr) {
 
 // ── draw: FLOOR (world space, under the fighters) ──
 export function drawAnimeJuiceFloor(c) {
+  if (on()) drawSigFloor(c)
   if (!S.decals.length || !on()) return
   c.save()
   for (const d of S.decals) {
@@ -226,6 +244,7 @@ export function drawAnimeJuiceWorld(c, p1, p2) {
   const fs = [p1, p2]
   c.save()
   for (const f of fs) if (f) drawTell(c, f)
+  drawSigWorld(c, fs)
   for (const e of S.fx) {
     const k = e.t / e.life
     if (e.kind === 'gather') {
@@ -294,6 +313,7 @@ export function drawAnimeJuiceWorld(c, p1, p2) {
 
 // ── draw: HUD ("ULTIMATE READY" slammed by the bar) ──
 export function drawAnimeJuiceHud(c, cv) {
+  if (on()) drawSigHud(c, cv)
   if (!S.slams.length || !on()) return
   for (const s of S.slams) {
     const k = s.t, sc = k < 5 ? 2.2 - k * 0.24 : 1, a = k < 70 ? 1 : 1 - (k - 70) / 20

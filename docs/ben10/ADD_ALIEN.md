@@ -116,6 +116,24 @@ for hash(match seed, frame, player index) placement (XLR8 Blur Step / Time Sprin
 Keep `formState` plain data: store ids (e.g. a cast id) and look live projectiles up each frame — never store object
 references (they make GAME_STATE circular / non-serializable).
 
+## Slot count (raised 5 → 6 with Eyeguy, 2026-11-17)
+
+The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` in `aliens.js`.
+- `fighters.js` `MAX_OMNITRIX_SLOTS` reads it (loadout cap, default-loadout cap); `buildLoadout()` defaults to it; the
+  Binding Vow pick is `hash(seed, frame, player) mod loadout length`, so it follows automatically; the alien-select
+  pick cap and the HUD read `BEN10_SLOT_COMBOS.length`.
+- `game.js` `BEN10_SLOT_COMBOS` must hold one input per slot (a mismatch logs a warning; extra slots are unreachable,
+  never a crash). Slot 6 = **↓↓ + Light + Heavy + Special**: in `handleOmnitrixSwitch` the 3-button chord is tested
+  FIRST, so all three pressed together beat the Revert chord (Light + Special). Add the slot's buttons to `_omxConsume`.
+- The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in `DEFAULT_OMNITRIX` / pick order).
+  A registry `slot` is documentation of intent, never identity.
+
+To raise the count again (e.g. 6 → 7): bump `BEN10_SLOT_COUNT`, append one `{ field, label }` input to
+`BEN10_SLOT_COMBOS` that cannot collide with an existing chord (or Revert), add its branch to the pick ladder in
+`handleOmnitrixSwitch` (longer chords before shorter ones), extend `_omxConsume`, and add slot-N assertions to the alien's
+harness (input works, chord priority, HUD / select cap = N, Vow pick reaches it). Placeholder behaviour needs no change:
+`buildLoadout()` fills every empty slot with `makePlaceholder(slot)`.
+
 ## Required lifecycle contract
 
 - Store authoritative gameplay state as ordinary serializable fighter/device data.

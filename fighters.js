@@ -1,9 +1,10 @@
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
-import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
+import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition, BEN10_SLOT_COUNT } from "./aliens.js"
 import { HEATBLAST } from "./heatblast.js"
 import { MEGAWHATT } from "./megawhatt.js"
 import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
+import { EYEGUY } from "./eyeguy.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -955,8 +956,11 @@ export const BEN10_ALIEN_POOL = {
                         special: { name: "Sabotage Frenzy", damage: 75, cost: 15, effect: "breaks projectiles" }, ult: { name: "Demolition", damage: 175, active: 10 } }),
   nanomech:   mkAlien({ name: "Nanomech", color: "#10b981", role: "speed", hp: 840, spd: 9, jumps: 3, jump: 24, dmg: 0.7, weight: "light", sizeW: 44, sizeH: 88,
                         special: { name: "Energy Pellets", ranged: true, damage: 90, cost: 16 }, ult: { name: "Nano Barrage", damage: 175, active: 10 } }),
-  eyeguy:     mkAlien({ name: "Eye Guy", color: "#16a34a", role: "zoner", hp: 1000, spd: 6, dmg: 0.95,
-                        special: { name: "Eye Beams", ranged: true, damage: 105, cost: 22 }, ult: { name: "Mega Eye Blast", damage: 210 } }),
+  // Eyeguy (READY, eyeguy.js): standard-size grounded zoner; 360° Vision / Stare / specials / ult via the ready-form hooks.
+  eyeguy: { name: "Eyeguy", color: "#a3b81a", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 60, sizeH: 110 },
+    basic_attacks: EYEGUY.basic_attacks, specials: EYEGUY.moves,
+    ultimate: { name: "All-Seeing Eye", cost: 50, damage: 240 } },
   fasttrack:  mkAlien({ name: "Fasttrack", color: "#2563eb", role: "speed", hp: 950, spd: 10, jumps: 2, dmg: 0.85,
                         special: { name: "Speed Strike", damage: 85, cost: 15 }, ult: { name: "Hyper Rush", damage: 185, active: 10 } }),
   rath:       mkAlien({ name: "Rath", color: "#ea580c", role: "rush", hp: 1150, spd: 8, dmg: 1.1, flags: { armor: true },
@@ -1002,10 +1006,10 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 // system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
 // 2026-09-07 simplification pass. fighters.js can't import game.js (would cycle), so this is
 // the leaf-module mirror of that single source of truth; keep the two numbers equal.
-export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ then ONE of Light/Heavy/Special/Grab/Charge; ↓↓ + Block reverts)
+export const MAX_OMNITRIX_SLOTS = BEN10_SLOT_COUNT   // Omnitrix slot count from the registry config (aliens.js; 6: ↓↓ then ONE of Light/Heavy/Special/Grab/Charge/Ultimate; ↓↓ + Block reverts)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8 (the last placeholder slot)
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8, 6 Eyeguy
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)

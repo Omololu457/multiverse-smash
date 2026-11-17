@@ -12101,8 +12101,12 @@ const BEN10_SLOT_COMBOS = [
   { field: "special",       label: "↓↓ + Special" },   // slot 3
   { field: "grab",          label: "↓↓ + Grab" },      // slot 4 (keyboard O) — one button, no chord
   { field: "charge",        label: "↓↓ + Charge" },    // slot 5 (keyboard P) — one button, no chord
+  { field: "ultimate",      label: "↓↓ + Ultimate" },  // slot 6 (keyboard U) — one button, no chord; U outside the ↓↓ window is still the ultimate
 ]
 // ↓↓ + Block (keyboard ;) turns back to human. Every Omnitrix input is ↓↓ then ONE button (no two-button chords).
+// Slot count lives in the registry (aliens.js BEN10_SLOT_COUNT → fighters.js MAX_OMNITRIX_SLOTS); this table must hold one
+// input per slot. A mismatch only warns (never a black screen): the extra slots are simply unreachable.
+if (BEN10_SLOT_COMBOS.length !== MAX_OMNITRIX_SLOTS) console.warn(`BEN10_SLOT_COMBOS has ${BEN10_SLOT_COMBOS.length} inputs for ${MAX_OMNITRIX_SLOTS} Omnitrix slots`)
 // Public so the pre-match slot-select UI can label each slot with its real combo (single source of truth).
 export function ben10SlotCombo(i) { return BEN10_SLOT_COMBOS[i] || null }
 
@@ -12154,6 +12158,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
   const heavy   = !!inputState.heavy
   const special = !!inputState.special
   const grabB   = !!inputState.grab, chargeB = !!inputState.charge, blockB = !!inputState.block
+  const ultB    = !!inputState.ultimate
 
   // ↓↓ detector: a fresh Down EDGE within OMX_DOUBLE_TAP_WINDOW of the previous one arms the menu.
   if (down && !held.down) {
@@ -12168,6 +12173,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     // Resolve the slot on a fresh edge of ONE button (no chords — every pick is ↓↓ then a single press).
     const eL = light && !held.light, eH = heavy && !held.heavy, eS = special && !held.special
     const eG = grabB && !held.grab, eC = chargeB && !held.charge, eB = blockB && !held.block
+    const eU = ultB && !held.ult
     let pick = null                                   // { slot } | "revert"
     if (eB)      pick = "revert"                      // ↓↓ + Block (;) → human
     else if (eL) pick = { slot: 0 }                   // slot 1 (Light J)
@@ -12175,6 +12181,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     else if (eS) pick = { slot: 2 }                   // slot 3 (Special L)
     else if (eG) pick = { slot: 3 }                   // slot 4 (Grab O)
     else if (eC) pick = { slot: 4 }                   // slot 5 (Charge P)
+    else if (eU && fighter.omnitrix.aliens?.length > 5) pick = { slot: 5 }   // slot 6 (Ultimate U) — only with a 6th alien, else U stays the ultimate
 
     if (pick === "revert") {
       if (ben10Revert(fighter)) {
@@ -12188,6 +12195,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
       if (act) {
         fighter._omxArm = 0; fighter.vx = 0
         fighter._omxConsume = { light: pick.slot === 0, heavy: pick.slot === 1, grab: pick.slot === 3 }
+        if (pick.slot === 5) fighter._omxUltHold = true                    // slot 6: swallow U until it is released (no ultimate)
         inputState.light = inputState.heavy = inputState.special = inputState.grab = inputState.charge = false   // consume this frame's press
       }
     }
@@ -12243,6 +12251,8 @@ function handleOmnitrixSwitch(fighter, inputState) {
 
   held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
   held.grab = grabB; held.charge = chargeB; held.block = blockB
+  held.ult = ultB
+  if (fighter._omxUltHold) { if (inputState.ultimate) inputState.ultimate = false; else fighter._omxUltHold = false }   // slot-6 pick: U never also fires the ultimate
 }
 
 // ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────

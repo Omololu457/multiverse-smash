@@ -124,7 +124,7 @@ try {
 
   // Navigate pause: resume→restartRound→profile→codex→controls→trainingMode→quitToMenu, then confirm → TITLE.
   // (Profile + Codex — Part 1 #3/#4 — and Controls — Track A — were added, so QUIT is now 6 downs from RESUME.)
-  for (let i = 0; i < 6; i++) await padNav({ down: true })
+  await padNav({ up: true })   // up from RESUME wraps to the LAST item (Quit) — robust to new pause items
   const psel = await H(() => window.__harness.pauseSel());
   check("d-pad reaches QUIT TO MENU in pause", psel.item === "quitToMenu", `item=${psel.item}`);
   await padNav({ confirm: true });

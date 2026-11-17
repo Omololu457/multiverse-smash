@@ -27,7 +27,7 @@ import { formsTick, formsReset, formsStatus, drawFormsHud } from './animeForms.j
 let _splitGate = () => false   // game.js: the existing brutality / blood eligibility rule (splits only where gore is allowed)
 export function setAnimeSplitGate(fn) { if (typeof fn === 'function') _splitGate = fn }
 
-const on = () => { try { return juiceSettings.hitEffectsOn() } catch (_) { return true } }
+const on = () => { try { return juiceSettings.hitEffectsOn() && juiceSettings.animeFx !== 'off' } catch (_) { return true } }   // Settings → Anime FX Off = the whole layer off
 const noFlash = () => !!juiceSettings.reduceFlashing
 const pN = n => Math.max(1, Math.round(n * (juiceSettings.particleScale?.() ?? 1)))
 const R = Math.round

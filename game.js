@@ -3535,6 +3535,8 @@ let _storyBackHover      = false   // STORY_MODE BACK-button hover
 let hoverStoryIndex      = -1      // STORY_MODE chapter-tile hover
 let _storyChapterIdx     = 0       // the chapter whose fight is pending (set on chapter click, read on match-over)
 let moveListIndex        = 0
+let moveListReturnState  = null   // QoL: set when opened from the pause menu → Back returns there instead of the main menu
+const _pauseCanLeaveMatch = () => ["vs", "pvp", "training"].includes(matchConfig.mode) && !towerState.active && !arcadeState.active && !netMatch.isActive()
 let moveListShowControls = false
 let moveListScroll       = 0   // fighter-list vertical scroll (px); the ~100-fighter roster overflows the viewport
 let moveListPanelScroll  = 0   // kit-panel vertical scroll (px) for long move lists
@@ -4793,6 +4795,12 @@ function endFFA() {
 //     COMBO-BREAK DRILL: the dummy advances and taps Light on a cadence to string a real combo, so
 //     the player can practise reading the ⛓ BREAK! prompt and bursting out (Block + Special).
 const trainingState = { enabled: false, infiniteResources: false, dummyBehavior: "stand", cloneNoTell: false, lastAdvantage: null }
+// QoL: DUMMY RECORD / PLAYBACK — F9 records YOUR inputs (≤ 10 s, stored relative to facing: forward / back), F10 makes
+// the dummy play them back on a loop, turned to face you. Same raw-control path replays use (read/writeRawControls).
+const DUMMY_REC_MAX = 600
+const dummyRec = { frames: [], recording: false, playing: false, idx: 0 }
+function _recRelative(raw, facing) { const r = { ...raw }; const fwd = facing >= 0 ? raw.right : raw.left, back = facing >= 0 ? raw.left : raw.right; delete r.left; delete r.right; r.fwd = !!fwd; r.back = !!back; return r }
+function _recAbsolute(rec, facing) { const r = { ...rec }; r.right = facing >= 0 ? rec.fwd : rec.back; r.left = facing >= 0 ? rec.back : rec.fwd; delete r.fwd; delete r.back; return r }
 const DUMMY_BEHAVIORS = ["stand", "block", "jump", "combo", "projectiles"]   // "projectiles" = dummy fires bolts (drill Catch & Return / Spider-Sense)
 const _trainingKeyPrev = {}   // edge-detect the F2/F3/F4 training hotkeys
 // COMBO TRIALS detection: a monotonically-increasing id per player attack instance, so the trial
@@ -10733,6 +10741,11 @@ function updateCPUInput() {
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
   // AFTER the AI keys are written, and ONLY in training — this is training-specific state,
   // NOT a change to ai.js's shared zero-baseline "dummy" profile.
+  if (trainingState.enabled && dummyRec.playing && dummyRec.frames.length && !dummyRec.recording) {   // RECORD / PLAYBACK wins over the behaviour
+    const rec = dummyRec.frames[dummyRec.idx++ % dummyRec.frames.length]
+    writeRawControls(p2, _recAbsolute(rec, p2.facing || -1))
+    return
+  }
   if (trainingState.enabled && trainingState.dummyBehavior !== "stand") {
     const c = p2.controls
     if (trainingState.dummyBehavior === "block") keys[c.block] = true           // hold guard (dedicated block input — MK-feel Stage 1c)
@@ -10786,6 +10799,18 @@ function handlePauseInput(key) {
     const sel = PAUSE_MENU_ITEMS[pauseMenuIndex]
     if (sel === "resume")       gameState = stateBeforePause || GAME_STATES.BATTLE
     else if (sel === "restartRound") { gameState = stateBeforePause || GAME_STATES.BATTLE; resetRound() }
+    // QoL: Restart Match / Character Select from pause — the SAME paths the results screen uses (_doRematch /
+    // _changeCharacter), offered where the results screen offers them (plain vs / pvp / training, not Tower / Arcade).
+    else if (sel === "restartMatch" || sel === "charSelect") {
+      if (!_pauseCanLeaveMatch()) { pushToast?.("Not available in this mode — use Restart Round"); return }
+      if (sel === "restartMatch") _doRematch(); else _changeCharacter()
+    }
+    else if (sel === "moveList") {   // opens on YOUR fighter; Back / Esc returns to this pause menu (match stays frozen)
+      const fl = getMoveListFighters(), i = fl.findIndex(f => f.key === p1?.rosterKey)
+      moveListIndex = Math.max(0, i); moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0
+      try { const r = getMoveListCardRects(canvas, fl.length)[moveListIndex], vp = getMoveListViewport(canvas); if (r && vp) moveListScroll = Math.max(0, r.y - vp.top - 40) } catch (_) {}   // scroll your row into view
+      moveListReturnState = GAME_STATES.PAUSED; gameState = GAME_STATES.MOVE_LIST
+    }
     else if (sel === "profile")  openProfileScreen(GAME_STATES.PAUSED)   // BACK returns to the pause menu (match stays frozen)
     else if (sel === "codex")    openCodexScreen(GAME_STATES.PAUSED)
     else if (sel === "controls") openControlsScreen(GAME_STATES.PAUSED)   // Track A: device-aware button legend (BACK → pause)
@@ -20815,6 +20840,7 @@ function _trainingKeyPressed(k) {
 // clear all combat state (hitstun/knockdown/combo/attack) so a move can be re-tested
 // immediately without leaving the mode.
 function resetTraining() {
+  dummyRec.idx = 0   // F2 restarts a recorded playback loop from its first frame
   if (!p1 || !p2) return
   const { p1X, p2X } = getSpawnPositions()
   ;[[p1, p1X, 1], [p2, p2X, -1]].forEach(([f, x, facing]) => {
@@ -20883,6 +20909,16 @@ function updateTrainingMode() {
   }
   // F6 — CLONE NO-TELL escalation (default OFF): remove the decoy visual tell so clones are
   // indistinguishable from the real fighter until hit. The hit-reveal rule still applies in both modes.
+  if (_trainingKeyPressed("f9")) {   // record start / stop (starting a recording stops playback)
+    if (dummyRec.recording) dummyRec.recording = false
+    else { dummyRec.frames = []; dummyRec.recording = true; dummyRec.playing = false }
+  }
+  if (_trainingKeyPressed("f10") && dummyRec.frames.length) { dummyRec.recording = false; dummyRec.playing = !dummyRec.playing; dummyRec.idx = 0 }
+  if (dummyRec.recording) {
+    const raw = readRawControls(p1)
+    if (raw) dummyRec.frames.push(_recRelative(raw, p1.facing || 1))
+    if (dummyRec.frames.length >= DUMMY_REC_MAX) dummyRec.recording = false
+  }
   if (_trainingKeyPressed("f6")) { trainingState.cloneNoTell = !trainingState.cloneNoTell; setCloneTell(!trainingState.cloneNoTell) }
   // F8 — GREEN ARROW drone debug (training): toggle drone hurtboxes + HP bars (no-op when no drones).
   if (_trainingKeyPressed("f8")) { const _gaDbg = toggleDroneDebug(); setMunitionDebug(_gaDbg) }   // GREEN ARROW: F8 = drone + munition training overlays
@@ -24297,6 +24333,7 @@ function drawBattleHud() {
     curFrame:  globalFrameCount,
     infinite:  trainingState.infiniteResources,
     dummy:     trainingState.dummyBehavior,
+    rec:       dummyRec.recording ? `REC ${dummyRec.frames.length}/${DUMMY_REC_MAX}` : dummyRec.playing ? `PLAYING (${dummyRec.frames.length}f loop)` : dummyRec.frames.length ? `${dummyRec.frames.length}f recorded` : "empty",
     breakBlock:   p1?.controls?.block,     // for the combo-break drill tip (P1's guard + special)
     breakSpecial: p1?.controls?.special,
     p1Inputs:  getRelativeDirectionsFromHistory(p1),
@@ -24966,6 +25003,7 @@ const dmgNumRect        = { x: 0, y: 676, w: 92, h: 30 }
 const atmosphereRect    = { x: 0, y: 756, w: 190, h: 30 }   // POLISH: moody stage grade + fog + vignette
 // HUD STYLE toggle — Themed (portrait + per-character accent) / Classic (exact previous look). x set by _layoutSettings.
 const hudStyleToggleRect = { x: 0, y: 792, w: 190, h: 30 }
+const animeFxRect       = { x: 0, y: 1030, w: 190, h: 30 }   // ANIME FX (Off/Low/Full): the anime presentation layer (below Graphics)
 const gfxPresetRect     = { x: 0, y: 978, w: 190, h: 30 }   // Phase 1: Low/Standard/Full graphics-preset master (below HUD Style, in the VISUAL FX column)
 // HITSTOP STYLE toggle — Scaled (power-scaled impact freeze, default) / Classic (exact old values). x set by _layoutSettings.
 const hitstopStyleRect  = { x: 0, y: 828, w: 190, h: 30 }
@@ -24983,7 +25021,7 @@ const hitSndP2Rect      = { x: 0, y: 716, w: 92, h: 30 }
 // short window the bottom rows ran off-screen. A mouse-wheel (and scrollbar) scrolls the whole page; the
 // draw translates by -settingsScroll and the click handler shifts hit-tests by +settingsScroll.
 let settingsScroll = 0
-const SETTINGS_CONTENT_BOTTOM = 1030   // lowest content row (Graphics Preset, below HUD Style); maxScroll derives from the viewport
+const SETTINGS_CONTENT_BOTTOM = 1090   // lowest content row (Graphics Preset, below HUD Style); maxScroll derives from the viewport
 function _settingsMaxScroll() { return Math.max(0, SETTINGS_CONTENT_BOTTOM - canvas.height + 24) }
 function _clampSettingsScroll() { settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll)) }
 // SAVE DATA panel (17D): live persistence-tier readout + manual Export/Import + Reconnect.
@@ -25049,6 +25087,7 @@ function _layoutSettings() {
   hitSndP2Rect.x      = rx + 98
   atmosphereRect.x    = rx
   gfxPresetRect.x     = rx
+  animeFxRect.x       = rx
   hitstopStyleRect.x  = rx
   battleDmgRect.x     = rx
   weatherRect.x       = rx
@@ -25194,6 +25233,13 @@ function drawSettingsScreen() {
     // GRAPHICS PRESET (Phase 1) — a single click-to-cycle master over the VISUAL FX effect settings.
     const _gp = juiceSettings.detectGraphicsPreset()
     fxBox(gfxPresetRect, `Graphics: ${_gp.toUpperCase()}`, _gp !== "custom", "#fbbf24")
+    // ANIME FX — Off / Low / Full (tell glint, ULTIMATE READY ceremony, signature-move breakdowns, LEVEL UP on transforms).
+    fxBox(animeFxRect, `Anime FX: ${juiceSettings.animeFx.toUpperCase()}`, juiceSettings.animeFx !== "off", "#ff7ab6")
+    { const _afTip = juiceSettings.animeFx === "off" ? ["Off: no tell glint, ceremonies,", "signature moves or level-ups"]
+        : juiceSettings.animeFx === "low" ? ["Low: glint + ceremonies; no colour", "flips, splits or floor scars"]
+        : ["Full: signature breakdowns, flips,", "level-up stat slams (click to cycle)"]
+      ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+      _afTip.forEach((t, i) => ctx.fillText(t, animeFxRect.x, animeFxRect.y + animeFxRect.h + 13 + i * 13)) }
     // FEEL PASS (Phase 1): Hitstop Style — Scaled (power-scaled impact freeze, default) / Classic (exact old values).
     fxBox(hitstopStyleRect, `Hitstop: ${juiceSettings.hitstopStyle === "scaled" ? "SCALED" : "CLASSIC"}`, juiceSettings.hitstopStyle === "scaled", "#f59e0b")
     // FEEL PASS (Phase 2): Battle Damage — Off / Marks Only / Full (blood only where eligible + Blood on).
@@ -26423,7 +26469,7 @@ function handleMenuClicks() {
       // Buttons FIRST — the fighter list overflows the viewport, so its off-screen rows used to overlap the
       // BACK/CONTROLS buttons and swallow the click (players got stuck). Test the buttons before the rows.
       const btn = getMoveListButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
-      if (btn?.id === "back")     { gameState = GAME_STATES.MAIN_MENU; break }
+      if (btn?.id === "back")     { gameState = moveListReturnState || GAME_STATES.MAIN_MENU; moveListReturnState = null; break }
       if (btn?.id === "controls") { moveListShowControls = !moveListShowControls; moveListPanelScroll = 0; break }
       // Fighter rows — only the ones actually VISIBLE in the scrolled viewport are clickable.
       const vp = getMoveListViewport(canvas)
@@ -26472,6 +26518,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, hitSndP1Rect)) { juiceSettings.cycleHitSoundPack(0); break }   // SPARKING ZERO: Sparking ↔ Classic (P1)
       if (pointInRect(mouse.x, _smy, hitSndP2Rect)) { juiceSettings.cycleHitSoundPack(1); break }   // SPARKING ZERO: Sparking ↔ Classic (P2)
       if (pointInRect(mouse.x, _smy, atmosphereRect)) { juiceSettings.toggleAtmosphere(); break }   // POLISH: moody fog + grade + vignette on/off
+      if (pointInRect(mouse.x, _smy, animeFxRect)) { juiceSettings.cycleAnimeFx(); break }   // ANIME FX: Off → Low → Full
       if (pointInRect(mouse.x, _smy, gfxPresetRect)) { juiceSettings.cycleGraphicsPreset(); break }   // Phase 1: Low → Standard → Full
       if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
       if (pointInRect(mouse.x, _smy, hitstopStyleRect)) { juiceSettings.cycleHitstopStyle(); _pushHitstopStyle(); break }   // FEEL PASS (Phase 1): Scaled ↔ Classic (re-push so a live match picks it up when not net-locked)
@@ -27012,6 +27059,7 @@ function _trackNav() {
 // Pop to the previous menu screen. Returns true if it navigated. Never fires mid-match.
 function goBack() {
   if (!NAV_BACK_SCREENS.has(gameState)) return false     // not a backable menu screen (e.g. in a fight) → ignore
+  if (gameState === GAME_STATES.MOVE_LIST && moveListReturnState) { gameState = _navPrev = moveListReturnState; moveListReturnState = null; return true }   // opened from pause → back to the frozen match
   if (!_navStack.length) return false                    // already at the root of this flow → nothing to pop
   const target = _navStack.pop()
   _skinConfirm = null                                    // cancel any in-flight skin-confirm flourish

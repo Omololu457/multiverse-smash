@@ -5055,6 +5055,7 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
     advLine,
     `Infinite HP/EN: ${info.infinite ? "ON" : "OFF"} [F3]`,
     `Dummy: ${info.dummy ?? "stand"} [F4]    Reset [F2]`,
+    ...(info.rec != null ? [`Record [F9] · Play [F10]: ${info.rec}`] : []),
     ...(info.callInMult != null ? [`Call-In Mult: ${info.callInMult.toFixed(2)}   [ lower / ] raise`] : []),
     `Frame: ${info.frame ?? 0}`
   ]
@@ -5166,8 +5167,26 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.5)")
   ctx.fillStyle = vig; ctx.fillRect(0, 0, cw, ch)
 
+  const items = [
+    { label: "Resume",        sub: "Continue the match" },
+    { label: "Restart Round", sub: "Reset this round" },
+    { label: "Restart Match", sub: "Rematch from round 1, same fighters" },
+    { label: "Move List",     sub: "Every fighter's moves, combos & inputs" },
+    { label: "Controls",      sub: "Button legend for your device" },
+    { label: "Training Mode", sub: "Practice vs a frozen dummy" },
+    { label: "Character Select", sub: "Pick new fighters (keeps mode + stage)" },
+    { label: "Combo Trials",  sub: "Scripted combo challenges" },
+    { label: "Profile",       sub: "Your Big-Five personality" },
+    { label: "Codex",         sub: "Fighter dossiers" },
+    { label: "Report an Issue", sub: "Send a bug / feedback note (beta)" },
+    { label: "Quit to Menu",  sub: "Return to the title screen" }
+  ]
+  // rows shrink to fit short windows (12 items): 58px buttons + 10px gaps when there is room
+  const step    = Math.max(40, Math.min(68, Math.floor((ch - 150) / items.length)))
+  const itemH   = step - Math.min(10, Math.round(step * 0.15))
+  const itemGap = step - itemH
   const panelW = 380
-  const panelH = 732   // fits 9 items (resume / restart / profile / codex / controls / training / combo trials / report / quit)
+  const panelH = 88 + items.length * step + 30
   const panelX = cw / 2 - panelW / 2
   const panelY = ch / 2 - panelH / 2
 
@@ -5188,20 +5207,6 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
   grd.addColorStop(0, "rgba(74,168,224,0)"); grd.addColorStop(0.5, _MK_ACCENT); grd.addColorStop(1, "rgba(74,168,224,0)")
   ctx.fillStyle = grd; ctx.fillRect(panelX + 32, panelY + 66, panelW - 64, 2)
 
-  const items = [
-    { label: "Resume",        sub: "Continue the match" },
-    { label: "Restart Round", sub: "Reset this round" },
-    { label: "Profile",       sub: "Your Big-Five personality" },
-    { label: "Codex",         sub: "Fighter dossiers" },
-    { label: "Controls",      sub: "Button legend for your device" },
-    { label: "Training Mode", sub: "Practice vs a frozen dummy" },
-    { label: "Combo Trials",  sub: "Scripted combo challenges" },
-    { label: "Report an Issue", sub: "Send a bug / feedback note (beta)" },
-    { label: "Quit to Menu",  sub: "Return to the title screen" }
-  ]
-
-  const itemH   = 58
-  const itemGap = 10
   const startY  = panelY + 88
 
   // Same geometry as before (hit-testing untouched) — restyled with the shared MK button + hover anim.
@@ -5236,7 +5241,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "profile", "codex", "controls", "trainingMode", "comboTrials", "reportIssue", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "restartMatch", "moveList", "controls", "trainingMode", "charSelect", "comboTrials", "profile", "codex", "reportIssue", "quitToMenu"]
 
 // Small local word-wrapper (returns lines that fit maxW at the ctx's current font).
 function _wrapText(ctx, text, maxW, maxLines = 99) {

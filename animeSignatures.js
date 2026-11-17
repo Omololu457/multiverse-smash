@@ -144,7 +144,7 @@ export function sigOnHit(spark, att, def, fam, frame, ai, opts = {}) {
   }
   S.impacts.push({ tier, x: spark.x, y: spark.y, ai })
   const flip = fam === 'iai' || fam === 'energyslash'
-  if (flip) push(S.hud, { kind: noFlash() ? 'dim' : 'flip', t: 0, life: 14 }, 6)   // ~¼ s colour flip (Reduce Flashing → a soft dim)
+  if (flip) push(S.hud, { kind: noFlash() || lvl !== 'full' ? 'dim' : 'flip', t: 0, life: 14 }, 6)   // ~¼ s colour flip (Reduce Flashing / Anime FX Low → a soft dim)
   const big = isUlt ? 1.5 : 1, e = { t: 0, x, y, fy, col, big, seed, ai, dir: att.facing || 1 }
   if (fam === 'spiritbomb' || fam === 'beam' || fam === 'orb') {
     push(S.fx, { ...e, kind: 'dome', life: fam === 'spiritbomb' ? 54 : 40, r: (fam === 'spiritbomb' ? 120 : fam === 'beam' ? 90 : 70) * big }, 60)
@@ -161,7 +161,7 @@ export function sigOnHit(spark, att, def, fam, frame, ai, opts = {}) {
     push(S.fx, { ...e, kind: 'rock_final', life: 40, y: fy }, 60); shake(9, 12)
     if (lvl === 'full') push(S.decals, { ...e, kind: 'rock_scar', y: fy, w: 180, life: 340 }, 8)
   } else if (fam === 'iai' || fam === 'energyslash') {
-    const ang = fam === 'iai' ? -0.12 : -0.55, split = !!(opts.splitOk && (def.health || 0) <= 0)
+    const ang = fam === 'iai' ? -0.12 : -0.55, split = !!(opts.splitOk && lvl === 'full' && (def.health || 0) <= 0)
     push(S.fx, { ...e, kind: 'iai_cut', life: 46, ang, len: (def.h || 100) * 1.7, delay: fam === 'iai' ? 16 : 4, split, bx: def.x || 0, by: def.y || 0, bw: def.w || 60, bh: def.h || 100 }, 60)
     if (fam === 'energyslash') push(S.fx, { ...e, kind: 'crescent', life: 22, x: spark.x, y: spark.y }, 60)
     if (lvl === 'full') push(S.decals, { ...e, kind: 'scar', y: fy, w: 170 * big, life: 300 }, 8)

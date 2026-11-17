@@ -36,6 +36,7 @@ const LS_KEYS = {
   weather:    "ms_weather",              // "1" (on) | "0"  (FEEL PASS Phase 3; legacy — superseded by weatherSource)
   weatherIntensity: "ms_weather_intensity",   // "low" | "full"  (FEEL PASS Phase 3; default "full")
   weatherSource: "ms_weather_source",    // "off" | "random" | "manual" | "local"  (FEEL PASS Phase 4; default "off")
+  animeFx:    "ms_anime_fx",             // "off" | "low" | "full"  (anime juice: tell glint, ceremonies, signature breakdowns, level-ups; default "full")
   manualWeather: "ms_weather_manual",    // a weather TYPE string for Manual source  (FEEL PASS Phase 4; default "rain")
 }
 
@@ -81,6 +82,13 @@ export const juiceSettings = {
   cycleHitEffects() { this.setHitEffects(_SHAKE[(_SHAKE.indexOf(this.hitEffects) + 1) % _SHAKE.length]) },
   hitEffectsOn() { return this.hitEffects !== "off" },
   hitEffectScale() { return this.hitEffects === "low" ? 0.4 : 1 },
+
+  // ── ANIME FX (Off / Low / Full) — the anime presentation layer (animeJuice / animeSignatures / animeForms).
+  // Off = none of it runs; Low = the light version (no screen splits / colour flips / big signature ceremonies);
+  // Full = everything. Presentation only — never touches the sim, so it is safe in LAN / replays.
+  animeFx: (() => { const v = _get(LS_KEYS.animeFx, "full"); return _SHAKE.includes(v) ? v : "full" })(),
+  setAnimeFx(v) { if (!_SHAKE.includes(v)) return; this.animeFx = v; _set(LS_KEYS.animeFx, v) },
+  cycleAnimeFx() { this.setAnimeFx(_SHAKE[(_SHAKE.indexOf(this.animeFx) + 1) % _SHAKE.length]) },
 
   // ── Damage Numbers (Off / On) — user pref (default OFF). Training Mode forces ON (resolved in game.js). ──
   dmgNumbers: _get(LS_KEYS.dmgNumbers, "0") === "1",

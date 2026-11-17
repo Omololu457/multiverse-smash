@@ -762,6 +762,7 @@ setMunitionSfx((ev, x, y, seed, extra) => {
 import { juiceSettings } from "./juiceSettings.js"   // presentation-only JUICE settings (Screen Shake / Reduce Flashing / Slow-Mo / Particles) — saved in localStorage
 import { juiceTierForMove, JUICE_ANTICIPATES } from "./juice_tiers.js"   // explosive-move tier lookup (data table)
 import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitSpark, fireJuiceKoPop, fireJuiceChargeIn, fireJuiceBolt, updateJuiceFx, drawJuiceFxWorld, resetJuiceFx, juiceFxStatus } from "./juiceFx.js"   // pooled explosion/dash/hit/charge/bolt FX (presentation-only)
+import { animeJuiceOnSpark, animeJuiceTick, animeJuiceReset, drawAnimeJuiceFloor, drawAnimeJuiceWorld, drawAnimeJuiceHud, animeJuiceStatus, __animeJuiceTest } from "./animeJuice.js"   // ANIME JUICE: game-wide presentation-only pass (ultimate ready, gather, parry, gatling, slash, aftermath)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { bdSetSeed, bdRecordHit, bdLevel, bdMarkTex, bdFloorDecal, bdDrawFloor, bdMaybeDrip, bdTickDrips, bdDrawDrips, bdReset, bdStatus } from "./battleDamage.js"   // FEEL PASS (Phase 2): persistent battle-damage marks + floor decals (render-layer only)
 import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weatherDraw, weatherCurrent, weatherTarget, weatherCycle, weatherReset, weatherStatus, resolveWeather, weatherPickForStage, allowedWeatherFor } from "./weather.js"   // FEEL PASS (Phase 3): cosmetic weather overlay (render-layer only)
@@ -20771,6 +20772,7 @@ function updateEffectsAndDomains() {
       if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
       _fireJuiceDetonation(spark)   // JUICE (Phase 2): explosive-move detonation treatment (presentation-only, tier-classified)
       _fireHitFeel(spark)           // HIT FEEL (Phase A): punchy-hit treatment (sound/particles/knockback/shake)
+      animeJuiceOnSpark(spark, p1, p2, globalFrameCount)   // ANIME JUICE: parry / gatling rings / slash cut / aftermath (render-only)
       _maybeWeatherAbility(spark)   // FEEL PASS (Phase 5): a themed move conjures weather (visual only)
       spark._fresh = false
     }
@@ -20793,6 +20795,7 @@ function updateEffectsAndDomains() {
   _tickWeather()   // FEEL PASS (Phase 3): advance weather (2p path)
   _tickAnimFinisher()                            // HIT FEEL (Phase C): advance the anime-finisher sequence + cooldown
   updateJuiceFx()   // advance pooled explosion + dash-dust + hit FX (deterministic; frozen on slow-mo skip frames with the sim)
+  animeJuiceTick(p1, p2, globalFrameCount)   // ANIME JUICE: ultimate-ready ceremony / gather / gatling end (reads fighters only)
 }
 
 // Edge-detect a raw key (true only on the frame it goes down). Used for the training
@@ -21197,6 +21200,7 @@ function resetMusicIntensity() {
   _lowHpVignetteOn = false; _lowHpVignetteA = 0; _lowHpVignettePhase = 0
   _pcFlash = 0
   _pcPrev.p1.parry = _pcPrev.p1.clash = _pcPrev.p2.parry = _pcPrev.p2.clash = 0
+  animeJuiceReset()   // ANIME JUICE: a fresh round starts clean
 }
 
 // ── Low-HP screen-edge vignette (Track A3) ─────────────────────────────
@@ -24093,6 +24097,7 @@ function drawBattleScene() {
   drawMrUnder(ctx,p1,p2) // authored, cached cosmetic foot shadows
   drawBatmanUnder(ctx, p1, p2)   // Batman — low smoke + far-side orbiting bombers under the fighters (render-only; gated)
   drawPlatforms(ctx)      // Wood Release climbable terrain — draw platforms behind the fighters (world space; Stage 1 procedural rect = collision box)
+  if (!brutalityState.active) drawAnimeJuiceFloor(ctx)   // ANIME JUICE: aftermath floor marks (crater / burn / puddle / frost / scar / crack), under the fighters
   if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): persistent floor decals + falling drips (world space, behind fighters)
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
@@ -24157,6 +24162,7 @@ function drawBattleScene() {
   _drawHiruzenEnmaAura(p2)
   drawHitSparksEnhanced()
   drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion fireball/debris/smoke/shockwave/swell (world space, over sparks)
+  if (!brutalityState.active) drawAnimeJuiceWorld(ctx, p1, p2)   // ANIME JUICE: gather spirals, ready pillar, parry sparks, gatling rings, slash cuts
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
@@ -24242,6 +24248,7 @@ function drawHomelanderUltOverlay(c, cv) {
 function drawBattleHud() {
   drawHomelanderUltOverlay(ctx, canvas)   // Homelander FLIGHT 37 dark-startup screen wash (behind HUD)
   drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins, globalFrameCount)
+  if (!brutalityState.active) drawAnimeJuiceHud(ctx, canvas)   // ANIME JUICE: "ULTIMATE READY" slam by the bar
   drawHomelanderGauges(ctx, canvas)   // Homelander: flight-energy + laser-heat bars under his health (gated)
   drawCyborgHud(ctx, canvas, p1, p2)   // Cyborg: Heat bar (text + colour) + expression icon under his health; BOOYAH cut-in (gated)
   drawBeastBoyHud(ctx, canvas, p1, p2)   // Beast Boy: expression icon + Instinct token + Wild Chain count under his health; ANIMAL INSTINCT cut-in (gated)

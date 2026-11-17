@@ -506,6 +506,28 @@ const SOUNDS = {
   ui_hover(ctx, out) {
     osc(ctx, out, "sine", 1200, 0.04, 0.10, 1000)
   },
+  // ── ANIME JUICE (animeJuice.js, presentation only; oscillators only = no random noise) ──
+  aj_whoosh(ctx, out) {   // a rising whoosh while the ultimate bar crawls to full
+    osc(ctx, out, "sawtooth", 140, 0.75, 0.035, 880)
+    osc(ctx, out, "triangle", 220, 0.75, 0.05, 1320)
+    oscAt(ctx, out, "sine", 660, 0.35, 0.4, 0.04, 1760)
+  },
+  aj_chime(ctx, out) {    // a warm chime right on the flash (major triad + soft octave)
+    osc(ctx, out, "sine", 523.25, 1.1, 0.12)
+    oscAt(ctx, out, "sine", 659.25, 0.05, 1.0, 0.10)
+    oscAt(ctx, out, "sine", 783.99, 0.10, 0.95, 0.09)
+    oscAt(ctx, out, "triangle", 1046.5, 0.12, 0.8, 0.05)
+  },
+  aj_ting(ctx, out) {     // the bright TING of a parry
+    osc(ctx, out, "sine", 2637, 0.45, 0.14)
+    osc(ctx, out, "sine", 3951, 0.25, 0.06)
+    oscAt(ctx, out, "triangle", 5274, 0.01, 0.12, 0.03)
+  },
+  aj_clang(ctx, out) {    // ...with a heavy CLANG under it
+    osc(ctx, out, "square", 180, 0.22, 0.10, 90)
+    osc(ctx, out, "triangle", 370, 0.30, 0.10, 300)
+    osc(ctx, out, "sawtooth", 95, 0.18, 0.06, 60)
+  },
   ui_select(ctx, out) {
     osc(ctx, out, "sine", 880, 0.04, 0.06)
     oscAt(ctx, out, "sine", 1100, 0.04, 0.06, 0.20)

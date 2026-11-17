@@ -22,6 +22,7 @@ import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Ph
 import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
 import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
 import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
+import { animeMeterRatio } from "./animeJuice.js"   // ANIME JUICE: displayed ultimate-meter fill (render-only)
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -3884,13 +3885,26 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
     ctx.fillStyle   = color
     ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill()
     ctx.shadowBlur = 0
-    ctx.globalAlpha = 0.9
+    // ANIME JUICE: three tones (dark edge → colour body → a pale mid band → white-hot core) instead of a flat disc
+    ctx.globalAlpha = 0.55
     ctx.fillStyle = "#ffffff"
+    ctx.beginPath(); ctx.arc(x, y, size * 0.68, 0, Math.PI * 2); ctx.fill()
+    ctx.globalAlpha = 0.95
     ctx.beginPath(); ctx.arc(x, y, size * 0.42, 0, Math.PI * 2); ctx.fill()
     ctx.globalAlpha = 1
     ctx.lineWidth = 2
     ctx.strokeStyle = "rgba(0,0,0,0.35)"
     ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.stroke()
+    // ...and thin BROKEN rings orbiting the core, each tilted a different way (render-only; spin from the projectile's age)
+    const spin = ((p.age ?? p.timer ?? 0) | 0) * 0.18
+    ctx.lineWidth = 1.5
+    for (let k = 0; k < 2; k++) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate((k ? -0.7 : 0.55) + (k ? -spin : spin) * 0.25)
+      ctx.strokeStyle = k ? "rgba(255,255,255,0.8)" : color
+      ctx.globalAlpha = 0.85
+      for (let seg = 0; seg < 3; seg++) { const a0 = spin * (k ? -1 : 1) + seg * (Math.PI * 2 / 3); ctx.beginPath(); ctx.ellipse(0, 0, size * 1.45, size * 0.42, 0, a0, a0 + 1.4); ctx.stroke() }
+      ctx.restore()
+    }
     ctx.restore()
   })
 }
@@ -4832,7 +4846,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     // (summons.loseCloneShare shrinks the pool). Mirrors spendNarutoChakra's
     // gate (usable share = energy / bodies), so the bar shows what you can spend.
     const bodies = fighter.rosterKey === "naruto" ? 1 + countShadowClones(fighter) : 1
-    const ratio  = clamp((fighter.energy || 0) / (maxEn * bodies), 0, 1)
+    const ratio  = animeMeterRatio(fighter, clamp((fighter.energy || 0) / (maxEn * bodies), 0, 1), globalFrameCount)   // ANIME JUICE: the fill races, then crawls the last bit (display only)
     const isCrit = ratio < 0.15
     const isHigh = ratio > 0.80
 

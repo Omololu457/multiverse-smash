@@ -34,7 +34,8 @@ export const GOOP = {
     air:    normal(30, 7, 4, 12, 2)                                                      // R11 airborne
   },
   anim: ANIM, fx: GOOP_FX,
-  onApply, tick, weakpoint, onWeakpoint, damageTaken, evade, fireSpecial
+  onApply, tick, weakpoint, onWeakpoint, damageTaken, evade, fireSpecial, onContact, damageDealt,
+  drawHud: drawGoopHud, drawFx: drawGoopFx
 }
 
 // ── tuning (from the brief) ───────────────────────────────────────────────────────────────────────────────
@@ -45,6 +46,7 @@ export const GP_PROJ = { W: 10, H: 6, MULT: 1.15, SPLAT_WINDOW: 180, SPLAT_FRAME
 // cosmetic and decoupled, exactly like every other body hurtbox in the engine.
 export const GP_STAND_BODY_H = 61
 export const GP_PUDDLE = { COST: 10, DRAIN_PER_S: 4, MAX: 150, SPEED: 6, MELT: 6, REFORM: 12, BACK_WINDOW: 12, DP_WINDOW: 20 }
+export const GP_ACID = { MAX: 3, EXPIRE: 240, CORRODE: 180, IMMUNE: 360, MULT: 1.15, GUARD_MULT: 1.25, DISSOLVE: 20 }
 export const GP_GEYSER = { DMG: 60, FRAMES: 22, HIT_AT: 8, RECOVERY: 10 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -52,6 +54,7 @@ export function freshGoopState() {
   return { kind: "goop", t: 0, castId: 0, baseDmg: 1.0, pose: null,
     weak: 0, projHits: [], splat: null, splatCd: 0,
     puddle: null, lastBackT: -999, dp: { stage: 0, t: 0 },
+    acid: { pips: 0, pipT: 0, lastPipCast: -1, corrodeT: 0, immune: 0, corrodes: 0, dissolves: 0, dissolveUsed: false },
     stats: { projHits: 0, gooReduced: 0, splats: 0, puddles: 0, geysers: 0, evaded: 0 } }
 }
 export const gpState = f => (f?.omnitrix?.formState?.kind === "goop" && f.transformed && f.activeAlien === "goop") ? f.omnitrix.formState : null
@@ -147,6 +150,7 @@ function tick(f, input, ctx, api) {
   const face = f.facing || 1
   if (face > 0 ? input?.left : input?.right) s.lastBackT = s.t              // ←↙↓ (Spike Splash) vs plain ↓ (Puddle)
   tickPuddle(f, s, input || {}, ctx, api)
+  tickAcid(s)
   if (s.pose) { s.pose.t++; if (s.pose.t >= (s.pose.len || 0)) s.pose = null }
   if (s.splat) {
     const sp = s.splat; sp.t++
@@ -240,4 +244,89 @@ function fireSpecial(f, ctx, api) {
   const dir = f._specialHeldDir || null
   if (dir === "D" && s.t - s.lastBackT > GP_PUDDLE.BACK_WINDOW) return enterPuddle(f, s, api)   // ↓ + Special (hold)
   return false
+}
+
+// ── ACID / CORRODE (status on the OPPONENT, owned by this form's GAME_STATE — swap / revert / KO clear it) ──
+// Clean hits from Acid Spit, Acid Lob's splash and Spike Splash add ONE pip per cast (max 3, expire 240f after the
+// last; never from blocks or FX). 3 pips → CORRODE 180f: everything this form deals the opponent ×1.15 and guard
+// chip ×1.25 (the guard drains 25% faster). No refresh; 360f immunity after. DISSOLVE: Goo Lasso on a corroded
+// opponent adds a fixed +20 once and ends Corrode early (immunity starts).
+function tickAcid(s) {
+  const a = s.acid
+  if (a.pips > 0 && --a.pipT <= 0) { a.pips = 0; a.pipT = 0 }
+  if (a.corrodeT > 0 && --a.corrodeT <= 0) { a.corrodeT = 0; a.immune = GP_ACID.IMMUNE }
+  else if (a.immune > 0) a.immune--
+}
+export function addAcidPip(s, cast) {
+  const a = s.acid
+  if (cast == null || cast === a.lastPipCast) return false                  // one pip per cast, however many ticks hit
+  if (a.corrodeT > 0 || a.immune > 0) return false                          // no refresh while corroded / immune
+  a.lastPipCast = cast
+  a.pips = Math.min(GP_ACID.MAX, a.pips + 1); a.pipT = GP_ACID.EXPIRE
+  if (a.pips >= GP_ACID.MAX) { a.pips = 0; a.pipT = 0; a.corrodeT = GP_ACID.CORRODE; a.dissolveUsed = false; a.corrodes++ }
+  return true
+}
+export function applyCorrode(s) {                                            // the ultimate's finale (respects immunity)
+  const a = s.acid
+  if (a.corrodeT > 0 || a.immune > 0) return false
+  a.pips = 0; a.pipT = 0; a.corrodeT = GP_ACID.CORRODE; a.dissolveUsed = false; a.corrodes++
+  return true
+}
+function endCorrode(s) { const a = s.acid; if (a.corrodeT > 0) { a.corrodeT = 0; a.immune = GP_ACID.IMMUNE } }
+function damageDealt(f, target, raw, opts) {
+  const s = gpState(f); if (!s || s.acid.corrodeT <= 0) return raw
+  return raw * (opts.source === "block-chip" ? GP_ACID.GUARD_MULT : GP_ACID.MULT)
+}
+// Called by combat after a contact this form OWNS lands (melee or projectile, blocked or clean).
+function onContact(f, target, { proj = null, move = null, blocked = false, dealDamage = null } = {}) {
+  const s = gpState(f); if (!s || !proj || proj.visualOnly || blocked) return
+  const tag = proj.alien
+  if (!tag || tag.gp == null) return
+  if (tag.acid) addAcidPip(s, tag.cast)
+  if (tag.gp === "lasso" || tag.gp === "ultOpen") onLassoHit(f, s, target, tag, dealDamage)
+}
+function onLassoHit(f, s, target, tag, dealDamage) {
+  if (!target || target.eliminated) return
+  const a = s.acid
+  if (a.corrodeT > 0 && !a.dissolveUsed && dealDamage) {                   // DISSOLVE: fixed +20 once, Corrode ends
+    a.dissolveUsed = true; endCorrode(s); a.dissolves++
+    dealDamage(target, GP_ACID.DISSOLVE, { attacker: f, move: "dissolve", source: "ability" })
+  }
+  if (tag.gp === "lasso") pullTarget(f, s, target)
+  if (tag.gp === "ultOpen") startUltCinematic(f, s, target)
+}
+function pullTarget() {}
+function startUltCinematic() {}
+
+// ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────────
+// HUD under the Omnitrix Power bar: Acid pips on the opponent / CORRODE / immunity, Puddle and Splat status.
+export function drawGoopHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
+  const s = gpState(f); if (!ctx || !s) return
+  const a = s.acid, y = enY + enH + 3, h = 5
+  const col = a.corrodeT > 0 ? "#a3e635" : "#65a30d"
+  ctx.save()
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(x + 8, y, pbw, h)
+  const ratio = a.corrodeT > 0 ? a.corrodeT / GP_ACID.CORRODE : a.pips / GP_ACID.MAX
+  const w = pbw * Math.max(0, Math.min(1, ratio))
+  ctx.fillStyle = col; ctx.fillRect(flip ? x + 8 + pbw - w : x + 8, y, w, h)
+  const pips = a.corrodeT > 0 ? "CORRODE" : a.immune > 0 ? "IMMUNE" : "●".repeat(a.pips) + "○".repeat(GP_ACID.MAX - a.pips)
+  const extra = s.splat ? "   SPLAT!" : s.puddle ? "   PUDDLE" : s.splatCd > 0 ? "" : ""
+  ctx.font = "bold 8px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
+  ctx.fillStyle = col; ctx.fillText(`ACID ${pips}${extra}`, flip ? x + 8 + pbw : x + 8, y + h + 1)
+  ctx.restore()
+}
+// Fighter overlays: Corrode = dripping green tint over the opponent's drawn sprite (deterministic drip pattern).
+export function drawGoopFx(c, f, frame = 0, opp = null) {
+  const s = gpState(f); if (!c || !s) return
+  c.save(); c.imageSmoothingEnabled = false
+  if (s.acid.corrodeT > 0 && opp && opp._lastDrawX != null && opp._lastDrawW != null) {
+    const x = opp._lastDrawX, y = opp._lastDrawY, w = opp._lastDrawW, h = opp._lastDrawH
+    c.globalAlpha = 0.18; c.fillStyle = "#84cc16"; c.fillRect(x + w * 0.25, y + h * 0.15, w * 0.5, h * 0.8)
+    c.globalAlpha = 0.85; c.fillStyle = "#65a30d"
+    for (let k = 0; k < 6; k++) {
+      const dx = x + w * (0.3 + 0.08 * k), len = ((frame * 2 + k * 23) % 40)
+      c.fillRect(Math.round(dx), Math.round(y + h * 0.35 + len), 3, 6 + (k % 3) * 2)
+    }
+  }
+  c.restore()
 }

@@ -81,12 +81,25 @@ export const FLIGHT_PROFILES = {
   },
 }
 
+// MEGAWHATT (Ben 10 ready alien, set via fighter._alienFlightProfile while transformed): hold Jump in the air to
+// hover-fly. A small, floaty profile: cruise 6.5, high drag (coast ×0.6), 90 frames per airtime (energy refills
+// instantly on landing), no air dash, grounded 40f after a hard hit. The apex+120 cap / jump bookkeeping live in
+// megawhatt.js (the flight module itself is unchanged for every other flyer).
+FLIGHT_PROFILES.megawhatt = {
+  accel: 1.1, maxH: 6.5, maxV: 5.0, drag: 0.60, reverseBrake: 0.5,
+  overspeedDrag: 0.85, ceilEaseZone: 40, dashSpeed: 0, dashFrames: 0, maxAirDash: 0,
+  dashCost: 9999, energyMax: 90, drainPerFrame: 1, groundRefillPerFrame: 90, liftoff: -2,
+  takeoffFrames: 4, landRecovery: 4, landRecoveryAfterAir: 6, groundedLock: 40,
+  landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
+}
+
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",
 })
 
 export function getFlightProfile(fighter) {
-  const key = fighter && fighter.traits && fighter.traits.flightProfile
+  // traits.flightProfile (roster flyers) or _alienFlightProfile (a READY Omnitrix alien sets it on transform; Megawhatt)
+  const key = fighter && ((fighter.traits && fighter.traits.flightProfile) || fighter._alienFlightProfile)
   return (key && FLIGHT_PROFILES[key]) || null
 }
 

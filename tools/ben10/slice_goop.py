@@ -341,6 +341,16 @@ def write_ledger(anim, ledger, missing, geom):
     L.append('## FX (real sheet pixels)\n')
     L.append('- `ben10_goop_fx_glob.png` (4 frames): detached goo drips cut from R13 f5, R11 f7, R12 f6, R10 f6 — the Acid Lob glob in flight.\n'
              '- `ben10_goop_fx_splash.png`: R16 f1 puddle without its projector — the Acid Lob floor splash.\n')
+    L.append('\n## In game (goop.js) — how the art drives the sim\n')
+    L.append('- Slot 4 (first placeholder slot after Swampfire / Heatblast / Megawhatt): **↓↓ + Light + Heavy**. Inputs: Jab / Heavy /\n'
+             '  fwd+Heavy Stretch Poke / ↓+attack Low / Launcher / Air; ↓↘→+P Acid Spit (air: Goo Rocket), ↓↙←+P Acid Lob, →→+P Goo Lasso,\n'
+             '  ←↙↓+P Spike Splash, ↓+P (hold) Puddle Form → release reform or →↓↘ Geyser; ultimate Meltdown Flood (Overload input).\n'
+             '- Projector weak point: `projectorBox(f)` = a 10×6 game-px box centred on `GOOP_PROJECTOR[anim][frame]` of the **sim pose**\n'
+             '  (Splat / cast / attack / hurt / air / idle frame, from GAME_STATE only), mapped into hurtbox space by f.h / 61 (his 61-px\n'
+             '  standing body ↔ the 110-px physics box) and mirrored with facing — so it floats over the puddle exactly as drawn.\n'
+             '- Engine hooks used (all optional, ben10-gated; see docs/ben10/ADD_ALIEN.md): weakpoint / onWeakpoint, evade, damageTaken /\n'
+             '  damageDealt (new with Goop); hurtbox (Stretch Poke limb), tick, fireSpecial, fireUltimate, onContact, drawHud, drawFx,\n'
+             '  drawUnder (existing). Corrode tint, flood tiling and the column overlay are render-only.\n')
     L.append('\nContact sheet: `docs/ben10/aliens/goop/contact_sheet.png` (every exported frame; green = floor row, blue = body anchor,\n'
              'red box = recorded projector, "no proj" = fallback frame). Full geometry: `source_grid.json`.\n')
     open(os.path.join(DOC, 'SPRITE_LEDGER.md'), 'w').write('\n'.join(L) + '\n')

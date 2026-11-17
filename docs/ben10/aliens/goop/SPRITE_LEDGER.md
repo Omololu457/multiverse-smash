@@ -131,6 +131,19 @@ Uniform strip cell **262×157**, body anchor column x=131, floor row originY=145
 - `ben10_goop_fx_splash.png`: R16 f1 puddle without its projector — the Acid Lob floor splash.
 
 
+## In game (goop.js) — how the art drives the sim
+
+- Slot 4 (first placeholder slot after Swampfire / Heatblast / Megawhatt): **↓↓ + Light + Heavy**. Inputs: Jab / Heavy /
+  fwd+Heavy Stretch Poke / ↓+attack Low / Launcher / Air; ↓↘→+P Acid Spit (air: Goo Rocket), ↓↙←+P Acid Lob, →→+P Goo Lasso,
+  ←↙↓+P Spike Splash, ↓+P (hold) Puddle Form → release reform or →↓↘ Geyser; ultimate Meltdown Flood (Overload input).
+- Projector weak point: `projectorBox(f)` = a 10×6 game-px box centred on `GOOP_PROJECTOR[anim][frame]` of the **sim pose**
+  (Splat / cast / attack / hurt / air / idle frame, from GAME_STATE only), mapped into hurtbox space by f.h / 61 (his 61-px
+  standing body ↔ the 110-px physics box) and mirrored with facing — so it floats over the puddle exactly as drawn.
+- Engine hooks used (all optional, ben10-gated; see docs/ben10/ADD_ALIEN.md): weakpoint / onWeakpoint, evade, damageTaken /
+  damageDealt (new with Goop); hurtbox (Stretch Poke limb), tick, fireSpecial, fireUltimate, onContact, drawHud, drawFx,
+  drawUnder (existing). Corrode tint, flood tiling and the column overlay are render-only.
+
+
 Contact sheet: `docs/ben10/aliens/goop/contact_sheet.png` (every exported frame; green = floor row, blue = body anchor,
 red box = recorded projector, "no proj" = fallback frame). Full geometry: `source_grid.json`.
 

@@ -1,5 +1,6 @@
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
-import { isAlienAvailable, getAvailableAlienKeys } from "./aliens.js"
+import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
+import { HEATBLAST } from "./heatblast.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -890,8 +891,11 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 950, speed: 8.28, maxJumps: 1, jumpPower: 19, sizeW: 60, sizeH: 110 },
     basic_attacks: SWAMPFIRE.basic_attacks, specials: SWAMPFIRE.moves,
     ultimate: { name: "Methane Inferno", cost: 50, damage: 220 } },
-  heatblast:  mkAlien({ name: "Heatblast", color: "#f97316", role: "zoner", hp: 1000, spd: 7, dmg: 1.0,
-                        special: { name: "Fireball", ranged: true, damage: 110, cost: 25, projectileId: "heatblast_fire" }, ult: { name: "Supernova", damage: 220 } }),
+  // Heatblast (READY, heatblast.js): authored normals; specials / ultimate route through the ready-form hooks.
+  heatblast: { name: "Heatblast", color: "#f97316", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 60, sizeH: 110 },
+    basic_attacks: HEATBLAST.basic_attacks, specials: HEATBLAST.moves,
+    ultimate: { name: "Pyronite Meteor", cost: 50, damage: 240 } },
   fourarms:   mkAlien({ name: "Four Arms", color: "#dc2626", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 19, dmg: 1.25, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,
                         special: { name: "Quad Slam", damage: 130, cost: 25, armor: true }, ult: { name: "Ground Pound", damage: 240 } }),
   xlr8:       mkAlien({ name: "XLR8", color: "#0ea5e9", role: "speed", hp: 900, spd: 99, jumps: 3, jump: 23, dmg: 0.75, weight: "light",
@@ -974,7 +978,9 @@ export function isArtBackedAlien(key) { return _artAlienSet.has(key) }
 // every form currently renders as a PLACEHOLDER (human-Ben frames + a render-only Omnitrix tint). When
 // real ben10_<alien>_*.png sheets are sourced, list the ready keys here and the retag path lights up.
 const _artOnDiskSet = new Set(["swampfire"])
-export function benAlienHasArt(key) { return _artOnDiskSet.has(key) }
+// a READY registry entry that ships its own animation table (Heatblast) has art on disk too
+export function benAlienHasArt(key) { return _artOnDiskSet.has(key) || !!_readyDef(key)?.anim }
+function _readyDef(key) { const d = getAlienDefinition(key); return d && d.status === "ready" ? d : null }
 
 // Loadout pick-cap. MUST match BEN10_SLOT_COMBOS.length in game.js (the in-fight transform
 // system exposes exactly this many CHARGE+direction slots — ↓←→↑). Lowered 6->4 in the
@@ -983,7 +989,7 @@ export function benAlienHasArt(key) { return _artOnDiskSet.has(key) }
 export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ + Light/Heavy/Special/L+H/H+S)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire"]
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast"]   // slot 1 Swampfire, slot 2 Heatblast (first placeholder slot)
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
@@ -1419,7 +1425,7 @@ export function applyAlien(fighter, alienKey) {
   fighter.damageMultiplier = 1
   fighter.defenseMultiplier = 1
   fighter.activeAlien = alienKey
-  fighter.activeAlienName = alien.name + (alienKey === "swampfire" ? "" : " [EXPERIMENTAL]")
+  fighter.activeAlienName = alien.name + (_readyDef(alienKey) ? "" : " [EXPERIMENTAL]")
   // Albedo is Ben's clone: same aliens, different identity label.
   const who = (fighter.rosterKey || "").toLowerCase() === "albedo" ? "Albedo" : "Ben 10"
   fighter.name = `${who} (${fighter.activeAlienName})`
@@ -1443,17 +1449,21 @@ export function applyAlien(fighter, alienKey) {
     fighter.health = Math.max(0, Math.min(fighter.maxHealth, fighter.health))
   }
   fighter.stats = { ...(fighter.stats || {}), ...s, maxHealth: fighter.maxHealth }
-  if (alienKey === "swampfire") {
+  // READY forms (generic): the human variant's stats × the registry mods. Swampfire is unchanged (maxJumps 1,
+  // Regrowth); a ready form may declare maxJumps (Heatblast: the shared double jump) and an onApply hook.
+  const RD = _readyDef(alienKey)
+  if (RD) {
     const V = fighter._benHumanStats || BEN10_VARIANT_STATS.default
-    fighter._benWalkSpeed = V.speed * SWAMPFIRE.mods.speed
+    fighter._benWalkSpeed = V.speed * RD.mods.speed
     fighter.baseSpeed = fighter.speed = fighter._benWalkSpeed
-    fighter.jumpForce = -V.jumpPower; fighter.maxJumps = 1
-    fighter.dashSpeed = V.dashSpeed * SWAMPFIRE.mods.speed
-    fighter._benFormDamage = SWAMPFIRE.mods.damage
-    fighter.damageMultiplier = SWAMPFIRE.mods.damage * (fighter.omnitrix?.vowActive ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
-    fighter.defenseMultiplier = SWAMPFIRE.mods.defense
-    fighter._benWeight = V.weight * SWAMPFIRE.mods.weight
-    beginRegrowth(fighter)
+    fighter.jumpForce = -V.jumpPower; fighter.maxJumps = RD.maxJumps ?? 1
+    fighter.dashSpeed = V.dashSpeed * RD.mods.speed
+    fighter._benFormDamage = RD.mods.damage
+    fighter.damageMultiplier = RD.mods.damage * (fighter.omnitrix?.vowActive ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
+    fighter.defenseMultiplier = RD.mods.defense
+    fighter._benWeight = V.weight * RD.mods.weight
+    if (alienKey === "swampfire") beginRegrowth(fighter)
+    if (typeof RD.onApply === "function") RD.onApply(fighter)
   }
 
   // Size change (Way Big / Atomix etc.), bottom-anchored so feet stay put.
@@ -1470,7 +1480,7 @@ export function applyAlien(fighter, alienKey) {
   // table still swaps in above. When a form's real sheets arrive (benAlienHasArt), the retag path
   // (art-backed animationData, recolor-aware) lights up with no other change.
   if (benAlienHasArt(alienKey)) {
-    fighter._skinAnim = _retagAlienAnim(alienKey === "swampfire" ? SWAMPFIRE_ANIM : (BEN10_FORM_ANIM[alienKey] || null), alienKey === "swampfire" ? null : fighter._recolorTag)
+    fighter._skinAnim = _retagAlienAnim(alienKey === "swampfire" ? SWAMPFIRE_ANIM : (RD?.anim || BEN10_FORM_ANIM[alienKey] || null), (alienKey === "swampfire" || RD?.anim) ? null : fighter._recolorTag)
     fighter.skinTint  = fighter._baseSkinTint ?? null
     fighter._benPlaceholderForm = false
   } else {
@@ -1765,7 +1775,7 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   const omx = fighter.omnitrix
   if ((fighter.health ?? 1) <= 0) { handleBenKO(fighter); return }
   fighter.currentForm = fighter.transformed ? "ben10_" + fighter.activeAlien : "base"
-  fighter.defenseMultiplier = fighter.transformed && fighter.activeAlien === "swampfire" ? SWAMPFIRE.mods.defense : 1
+  fighter.defenseMultiplier = fighter.transformed ? (_readyDef(fighter.activeAlien)?.mods.defense ?? 1) : 1   // ready forms (Swampfire 1.10 unchanged)
   omx.simFrame = (omx.simFrame || 0) + 1
   if ((fighter.hitstun > 0 || fighter.blockstun > 0) && (omx.startup > 0 || fighter._benPowerCommit > 0 || fighter._axUltWindup)) invalidateBenAction(fighter)
   // Phase 3: tick lockouts/cooldowns every frame (even during Alien X windup / transform startup).

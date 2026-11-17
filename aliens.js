@@ -1,4 +1,5 @@
 import { SWAMPFIRE } from "./swampfire.js"
+import { HEATBLAST } from "./heatblast.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -11,8 +12,10 @@ import { SWAMPFIRE } from "./swampfire.js"
 // index; a duplicate historical slot does not overwrite a form. Never use slot as registry identity.
 // Experimental forms preserve their existing mechanics and tinted human placeholder rendering.
 // Swampfire occupies the first production loadout slot without deleting experimental definitions.
+// Heatblast (heatblast.js) is the second READY form: it took the first placeholder dial slot (slot 2).
 export const BEN10_ALIEN_REGISTRY = [
   SWAMPFIRE,
+  HEATBLAST,   // READY (2026-11-17): Dragonrod sheet + ledger; replaces the old experimental Heatblast entry
   {
     id: "xlr8", displayName: "XLR8", slot: 1, status: "experimental", poolKey: "xlr8",
     sheetPath: null, ledgerPath: null,
@@ -43,14 +46,6 @@ export const BEN10_ALIEN_REGISTRY = [
     mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
     moves: { jab: "Claw Swipe", heavy: "Maul", low: "Low Claw", launcher: "Pounce", air: "Air Maul",
              special1: "Pounce", ultimate: "Frenzy" },
-    movement: "grounded"
-  },
-  {
-    id: "heatblast", displayName: "Heatblast", slot: 5, status: "experimental", poolKey: "heatblast",
-    sheetPath: null, ledgerPath: null,
-    mods: { speed: 1.0, damage: 1.0, defense: 1.0, weight: 1.0 },
-    moves: { jab: "Ember Jab", heavy: "Flame Hook", low: "Low Flame", launcher: "Flare Rise", air: "Air Ember",
-             special1: "Fireball", ultimate: "Supernova" },
     movement: "grounded"
   },
 ]

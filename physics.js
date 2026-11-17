@@ -12,6 +12,7 @@
  */
 
 import { setupBen10, updateOmnitrix } from "./fighters.js"
+import { benReadyForm } from "./ben10State.js"   // READY Omnitrix forms (lunge / glide / power commit); null for everyone else
 import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
 import { zoroPhasing, zoroNoJump } from './zoroState.js'   // Roronoa Zoro dash-through + Shishi Sonson ↗ (zoro-gated)
 import { sanjiPhasing, sanjiNoJump } from './sanjiState.js'   // Sanji: handstand / super pass-through + special jump lock (sanji-gated)
@@ -78,14 +79,25 @@ export const physics = {
       if (--h.frames <= 0) delete fighter._benVineHold
       return
     }
-    if (fighter._benLunge?.frames > 0 && fighter.transformed && fighter.activeAlien === "swampfire" && !(fighter.hitstun > 0)) {
+    // READY-form GLIDE (Heatblast Blaze Flight / Pyronite Meteor): the form's tick sets a per-frame velocity; position is
+    // integrated here (stage-clamped, never above minY) and gravity is skipped while it holds. Gated on the field.
+    if (fighter._benGlide && benReadyForm(fighter) && fighter.health > 0 && !(fighter.hitstun > 0)) {
+      const g = fighter._benGlide
+      fighter.x = clamp(fighter.x + (g.vx || 0), this.stageLeft, this.stageWidth - (fighter.w || 60))
+      fighter.y = Math.max(g.minY ?? -Infinity, fighter.y + (g.vy || 0))
+      const floor = (fighter.groundY != null ? fighter.groundY : this.groundY) - (fighter.h || 110)
+      if (fighter.y > floor) fighter.y = floor
+      fighter.vx = 0; fighter.vy = 0; fighter.onGround = false; fighter.grounded = false
+      return
+    }
+    if (fighter._benLunge?.frames > 0 && benReadyForm(fighter) && !(fighter.hitstun > 0)) {
       fighter.x = clamp(fighter.x + fighter._benLunge.speed, this.stageLeft, this.stageWidth - (fighter.w || 60))
       fighter.vx = 0
       if (--fighter._benLunge.frames <= 0) delete fighter._benLunge
       return
     }
 
-    if (fighter._benPowerCommit > 0 && fighter.activeAlien === "swampfire") {
+    if (fighter._benPowerCommit > 0 && benReadyForm(fighter)) {
       fighter.vx = 0
       return // paid cast/recovery: no walk, jump or charge cancel; gravity still updates separately
     }
@@ -382,6 +394,7 @@ export const physics = {
     // Spider-Man driver (abilities.updateSpidermanWebSwing / WebZip / Hang) OWNS position — skip gravity so
     // it isn't fought by the fall. All three fields are spiderman-only → no-op for every other fighter.
     if (fighter._swinging || fighter._zipT || fighter._hangT) return
+    if (fighter._benGlide && fighter.transformed && !(fighter.hitstun > 0)) return   // READY-form glide owns y (physics.moveFighter); field-gated
 
     // FLIGHT MODULE: while airborne, flight.js already integrated y (in moveFighter) and clamped
     // to floor/ceiling — skip gravity entirely. Gated on _flightCtl → no-op for every other fighter.

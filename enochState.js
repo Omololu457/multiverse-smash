@@ -17,7 +17,7 @@
 // Reused shared systems: `_supFrozen` freeze status (combat.js), platforms.js, beam.js (Homelander's algorithm), Elastigirl's
 // motion parser, damageType tags. Hit volumes are ENGINE projectiles (W.spawn, tagged _en) so guard, chip and combo scaling
 // apply; direct damage (bursts, beam, patches, supers) goes through W.damage with a damageType tag.
-import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
+import { ALL_MOVES, ICE_BLAST, FROST_FLOOR, HEAT_LENS, LASER, WALLS, WALL_STEAM, CHANNEL, STATUS, TWIN, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, PATCH_LIFE, GROUND_SLIDE, ICE_FLOOR, SLAB, SCORCH, CONDENSE, TIDE, DISC, GLIDE, GUARD_CANCEL, METER, SUPERS, SUPER_LOCK, dmg } from './enochData.js'
 import { ENOCH_LENS, ENOCH_ANIM } from './enochSprites.js'
 const ENOCH_ANIM_HIT = strip => ENOCH_ANIM[strip]?.hit ?? 1   // the visor fires on the strip's HIT frame
 import { registerThermal, createThermal, thermalCheck, thermalPush, thermalTick, thermalZone, createField, addPatch, removePatch, convertPatch,
@@ -34,7 +34,7 @@ const stats0 = () => ({ clean: 0, blocked: 0, rejects: 0, spawns: 0, glides: 0, 
   discBreak: 0, bursts: 0, burstHits: 0, steam: 0, refreeze: 0, overloads: 0, beams: 0, beamHits: 0, beamTicks: 0, beamFloor: 0, wetHits: 0, freezes: 0,
   tides: 0, tideBursts: 0, orbs: 0, orbSteam: 0, orbHail: 0, guardCancels: 0, wakes: 0, supers: 0, superDone: 0, superWhiff: 0, superBlocked: 0, patchDmg: 0,
   sanjiMelt: 0, arlongDouse: 0, meter: 0, stanceSwitches: 0, channels: 0, walls: 0, iceWalls: 0, fireWalls: 0, wallLaunch: 0, wallBlocks: 0, wallBurns: 0, wallSteam: 0, laserOverheat: 0,
-  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0, meteors: 0, fireMeteors: 0, meteorHits: 0, snowmen: 0, snowBlocks: 0, snowMelt: 0, melts: 0, encased: 0, cometHits: 0 })
+  burns: 0, chills: 0, burnTicks: 0, boxes: 0, shocks: 0, quenches: 0, fireShards: 0, flameFloors: 0, frostLens: 0, fireDash: 0, iceDash: 0, airSlides: 0, iceSlides: 0, fireSlides: 0, airDenied: 0, airHops: 0, maxChain: 0, airSlideHits: 0, cages: 0, meteors: 0, fireMeteors: 0, meteorHits: 0, snowmen: 0, snowBlocks: 0, snowMelt: 0, melts: 0, encased: 0, cometHits: 0, groundSlides: 0, iceFloorHits: 0, slabLands: 0, slabShoves: 0, slabBonks: 0 })
 export const enState = f => f._enoch ||= { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
   th: createThermal(), field: createField(6), glide: null, ramp: null, beam: null, beamFx: null, disc: null, pend: null, wall: null, laser: createLaser(LASER), stance: 'elemental', channel: 0, aff: {}, beamEl: 'fire', dashWas: false, air: { chain: 0, armed: true, win: 0, jc: 0 }, aslide: null, rails: [], snow: null, meteors: [], encase: null,
   cd: { deepFreeze: 0, tideBreak: 0, guard: 0, iceWall: 0, fireWall: 0 }, wakeWin: 0, wasDown: false, prevHp: null, floor: null, pose: null, fx: [],
@@ -101,6 +101,7 @@ export function clearEnoch(f, W) {
   if (cine.active && (cine.caster === f || cine.target === f)) clearEnochUlt()
   const s = f._enoch
   if (s?.disc?.pid) recedePlatform(s.disc.pid)
+  for (const q of s?.rails || []) dropSlab(q)
   if (live(f)) endAttack(f)
   killProj(f, W || WREF.W)
   for (const o of (W || WREF.W)?.fighters?.() || []) clearElementFlags(o, sideOf(f))
@@ -617,7 +618,7 @@ export function switchGlide(f, s, type) {
 function endGlide(f, s, keep) { if (!s.glide) return; if (!keep) f.vx = s.glide.dir * Math.min(6, s.glide.v * 0.4); s.glide = null; s.pose = null }
 function glideStep(f, s, r) {
   const G = s.glide, W = WREF.W, fw = !!(G.dir === -1 ? r.left : r.right), bk = !!(G.dir === -1 ? r.right : r.left)
-  if (++G.k > GLIDE.maxFrames || !(r.charge || (G.how === 'tap' && fw) || (G.how === 'guard' && G.k < 30))) { endGlide(f, s, false); return false }
+  if (++G.k > GLIDE.maxFrames || !(r.charge || (G.how === 'tap' && (fw || G.k < GROUND_SLIDE.minFrames)) || (G.how === 'guard' && G.k < 30))) { endGlide(f, s, false); return false }
   const base = GLIDE.run * (G.type === 'ice' ? GLIDE.iceMul : GLIDE.fireMul)
   if (G.type === 'ice' && bk && !G.turn) { G.turn = GLIDE.turnFrames; cue(f, 'brake') }
   if (G.turn > 0) { if (--G.turn === 0) G.dir = -G.dir; G.v = base * 0.35 }
@@ -658,6 +659,13 @@ export function enochLocked(f, raw = null) {
   if (g && free && f._dashTap) {
     const here = patchesAt(s.field, ctrX(f), feetY(f)).filter(p => p.type === 'ice' || p.type === 'fire')
     if (here.length && startGlide(f, s, here[here.length - 1].type, f.facing || 1, 'tap')) { f._dashTap = false; glideStep(f, s, { ...r, [f.facing === -1 ? 'left' : 'right']: true }); return true }
+    // GROUND SLIDE: anywhere else (elemental stance) the double-tap is a slide that turns the floor to ICE — FIRE when hot.
+    // The direction held picks the way; a locked element (an overload) falls back to the plain dash.
+    const type = twinOf(f) === 'fire' ? 'fire' : 'ice', dir = r.right && !r.left ? 1 : r.left && !r.right ? -1 : (f.facing || 1)
+    if (s.stance !== 'ice' && check(f, type).ok && startGlide(f, s, type, dir, 'tap')) {
+      f._dashTap = false; s.stats.groundSlides++; lay(f, s, WREF.W, { type, cx: ctrX(f), width: GLIDE.trailW, extend: true })
+      glideStep(f, s, { ...r, [dir === -1 ? 'left' : 'right']: true }); return true
+    }
   }
   // AIR SLIDE (elemental stance; Ice Stance pours Frozone's Ice Stream from the same pool): jump, then double-tap
   // the HOP: Jump during a slide or inside the (shrinking) window after it — a lower hop each link, re-arms the slide
@@ -693,7 +701,7 @@ function airSlideStep(f, s, r) {
   if (ny >= floor) { ny = floor; land = true }
   // the slab: one segment per slide, extended as he pours it (its life starts when he leaves it)
   let q = z.rail != null ? s.rails.find(x => x.n === z.rail) : null
-  if (!q) { q = { n: ++s.nEnt, type: z.type, x0: Math.round(z.px), y0: Math.round(z.py), x1: Math.round(nx), y1: Math.round(ny), dir: d, t: 0, live: true }; s.rails.push(q); z.rail = q.n; while (s.rails.length > P.maxRails) s.rails.shift() }
+  if (!q) { q = { n: ++s.nEnt, type: z.type, x0: Math.round(z.px), y0: Math.round(z.py), x1: Math.round(nx), y1: Math.round(ny), dir: d, t: 0, live: true }; s.rails.push(q); z.rail = q.n; while (s.rails.length > P.maxRails) dropSlab(s.rails.shift()) }
   else { q.x1 = Math.round(nx); q.y1 = Math.round(ny) }
   z.px = nx; z.py = ny
   f.x = Math.round((nx - f.w / 2) * 100) / 100; f.y = Math.round((ny - f.h) * 100) / 100; f.vx = 0; f.vy = 0; f.facing = d; f.jumpCount = jc; f.airDashing = false
@@ -707,9 +715,62 @@ function airSlideStep(f, s, r) {
   }
   if (land || nx <= f.w / 2 || nx >= sw(W) - f.w / 2) { if (land) lay(f, s, W, { type: z.type, cx: nx }); endAirSlide(f, s) }
 }
+// HIS ICE FLOOR vs the opponent (ice-walkers — Frozone — keep their footing): health ticks away, a little chill, and they
+// slide toward the nearest edge of the sheet
+function iceFloor(f, s, W, opp) {
+  for (const o of foesOf(f, W, opp)) {
+    if (!grounded(o) || ICE_WALKER(o)) { if (o) delete (s.iceT ||= {})[sideOf(o)]; continue }
+    const p = patchesAt(s.field, ctrX(o), feetY(o)).find(q => q.type === 'ice' && !q.disc), T = (s.iceT ||= {}), sd = sideOf(o)
+    if (!p) { delete T[sd]; continue }
+    const left = ctrX(o) < p.x + p.width / 2
+    o.x = Math.round(Math.max(0, Math.min(sw(W) - (o.w || 48), o.x + (left ? -1 : 1) * ICE_FLOOR.push)) * 100) / 100
+    T[sd] = (T[sd] ?? ICE_FLOOR.every - 1) + 1   // the first tick lands as they step on
+    if (T[sd] >= ICE_FLOOR.every && !((o.invulnTimer || 0) > 0)) {
+      T[sd] = 0; s.stats.iceFloorHits++
+      W?.damage?.(o, ICE_FLOOR.raw, { attacker: f, source: 'patch_ice', damageType: 'blunt' }); meter(f, ICE_FLOOR.raw * METER.onHit); afflict(f, o, 'ice', ICE_FLOOR.chill, W)
+      pushFx(s, 'chip', ctrX(o), feetY(o) - 6, left ? -1 : 1)
+    }
+  }
+}
+// the finished slab becomes a one-way platform (platforms.js: anyone lands on it) for its whole life; drawn by enochFx
+function solidify(f, s, q) {
+  const floor = s.floor ?? f.groundY; if (floor == null) return
+  const top = Math.round((q.y0 + q.y1) / 2), x = Math.min(q.x0, q.x1), w = Math.max(SLAB.minW, Math.abs(q.x1 - q.x0))
+  if (top >= floor - 24) return                                   // poured down to the floor: a ground patch, not a slab
+  const pl = spawnPlatform({ x: Math.round(x - (w === SLAB.minW ? SLAB.minW / 2 : 0)), w: Math.round(w), groundY: Math.round(floor), maxHeight: Math.round(floor - top), growDur: 1,
+    holdDur: AIR_SLIDE.life, recedeDur: 1, owner: 'enochSlab:' + sideOf(f), sprite: { sheet: './assets/enoch/fx/blank.png', frames: 1, sw: 1, sh: 1 } })
+  q.pid = pl.id; q.top = top; q.cd = {}
+}
+function dropSlab(q) { if (q?.pid) { recedePlatform(q.pid); q.pid = null } }
+// THE SLABS vs the opponent: landing on one hurts + shoves them off its edge; rising into one from below = a head bonk
+function updateSlabs(f, s, W, opp) {
+  for (const q of s.rails) {
+    if (!q.pid) continue
+    const p = getPlatforms().find(pp => pp.id === q.pid); if (!p) { q.pid = null; continue }
+    for (const k in q.cd) if (q.cd[k] > 0) q.cd[k]--
+    for (const o of foesOf(f, W, opp)) {
+      const ox0 = o.x, ox1 = o.x + (o.w || 48), feet = feetY(o), head = o.y
+      if (!(ox1 > p.x && ox0 < p.x + p.w)) continue
+      const sd = sideOf(o)
+      if (o._floorPlatformId === p.id || (Math.abs(feet - p.topY) <= 4 && grounded(o))) {   // standing on it
+        if ((q.cd[sd] || 0) > 0) continue
+        q.cd[sd] = SLAB.cd; s.stats.slabLands++
+        const raw = dmg(SLAB.raw)
+        if (o.isBlocking) W?.damage?.(o, raw * 0.2, { attacker: f, source: 'slab', damageType: q.type === 'fire' ? 'energy' : 'blunt' })
+        else { W?.damage?.(o, raw, { attacker: f, source: 'slab', damageType: q.type === 'fire' ? 'energy' : 'blunt' }); o.hitstun = Math.max(o.hitstun || 0, SLAB.hitstun); o.colorFlash = 5; meter(f, raw * METER.onHit); afflict(f, o, q.type, STATUS.hit, W) }
+        const left = ctrX(o) < p.x + p.w / 2                        // shoved off the nearer edge
+        o.x = left ? p.x - (o.w || 48) - 2 : p.x + p.w + 2; o.vx = (left ? -1 : 1) * SLAB.shoveVx; o.vy = SLAB.shoveVy
+        o.onGround = false; o.grounded = false; o._floorPlatformId = null; s.stats.slabShoves++
+        cue(f, q.type === 'fire' ? 'fireCast' : 'shatter'); pushFx(s, q.type === 'fire' ? 'ember' : 'chip', ctrX(o), p.topY, left ? -1 : 1)
+      } else if ((o.vy || 0) < 0 && head < p.topY + SLAB.thick && head > p.topY - 30 && feet > p.topY + SLAB.thick) {   // jumping up into it
+        o.y = p.topY + SLAB.thick; o.vy = 0; s.stats.slabBonks++; pushFx(s, 'chip', ctrX(o), p.topY + SLAB.thick, 1)
+      }
+    }
+  }
+}
 function endAirSlide(f, s) {
   const z = s.aslide; s.aslide = null; if (!z) return
-  const q = s.rails.find(x => x.n === z.rail); if (q) q.live = false
+  const q = s.rails.find(x => x.n === z.rail); if (q) { q.live = false; solidify(f, s, q) }
   f.vx = z.dir * AIR_SLIDE.speed * AIR_SLIDE.carry; f.vy = 0; if (s.pose === 'glide') s.pose = null
   s.air.win = Math.max(0, AIR_SLIDE.hopWindow - AIR_SLIDE.windowStep * (s.air.chain - 1)); s.air.jc = f.jumpCount || 0   // the hop window (tighter each link)
 }
@@ -780,9 +841,10 @@ export function tickEnoch(f, opp, raw, W) {
   for (const h of hurt) { s.stats.patchDmg += h.dmg; meter(f, h.dmg * METER.onHit); if (h.type === 'fire') afflict(f, h.fighter, 'fire', STATUS.patchTick, W) }
   tickAfflictions(f, s, W, opp)
   // AIR CHAIN: landing resets it; the hop window counts down; his own air jump (the shared double jump) also re-arms the slide
-  if (g && !s.aslide) { s.air.chain = 0; s.air.armed = true; s.air.win = 0; s.air.jc = f.jumpCount || 0 }
+  const onSlab = g && !!f._floorPlatformId && String(getPlatforms().find(p => p.id === f._floorPlatformId)?.owner || '').startsWith('enochSlab:')
+  if (g && !s.aslide && !onSlab) { s.air.chain = 0; s.air.armed = true; s.air.win = 0; s.air.jc = f.jumpCount || 0 }   // only the REAL floor resets it (his slabs don't)
   else { if (s.air.win > 0 && !s.aslide) s.air.win--; if ((f.jumpCount || 0) > s.air.jc) { s.air.armed = true; s.air.jc = f.jumpCount } }
-  for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) { s.rails.splice(i, 1); if (q.type === 'ice') pushFx(s, 'drip', (q.x0 + q.x1) / 2, Math.max(q.y0, q.y1), 1, { w: Math.abs(q.x1 - q.x0) }) } }
+  for (let i = s.rails.length - 1; i >= 0; i--) { const q = s.rails[i]; if (!q.live && ++q.t > AIR_SLIDE.life) { dropSlab(q); s.rails.splice(i, 1); if (q.type === 'ice') pushFx(s, 'drip', (q.x0 + q.x1) / 2, Math.max(q.y0, q.y1), 1, { w: Math.abs(q.x1 - q.x0) }) } }
   // FIRE DASH / ICE DASH (and the slide): outside the balance band his dash leaves a trail of his element
   const tw = twinOf(f), dashing = g && !s.glide && (f.dashTimer || 0) > 0, sliding = g && live(f)?.en?.key === 'slide'
   if (dashing && !s.dashWas && tw) { s.stats[tw === 'fire' ? 'fireDash' : 'iceDash']++; cue(f, tw === 'fire' ? 'fireCast' : 'crackle') }
@@ -795,11 +857,13 @@ export function tickEnoch(f, opp, raw, W) {
   updateOrbs(f, s, W)
   updateWall(f, s, W, opp)
   updateSnow(f, s, W, opp)
+  updateSlabs(f, s, W, opp)
+  iceFloor(f, s, W, opp)
   if (s.encase && ++s.encase.t > s.encase.n + 24) s.encase = null
   updateMeteors(f, s, W)
   // ramp landing lays a patch of the glide's element
   if (s.ramp && g && (f.vy || 0) >= 0) { lay(f, s, W, { type: s.ramp.type, cx: ctrX(f) }); s.stats.rampLand++; cue(f, 'land'); pushFx(s, 'landBurst', ctrX(f), feetY(f), face, { el: s.ramp.type }); s.ramp = null }
-  s.pose = (s.glide || s.aslide) ? (s.aslide ? 'glide' : s.pose) : (s.ramp && !g) ? 'ramp' : (g && f._floorPlatformId && String(getPlatforms().find(p => p.id === f._floorPlatformId)?.owner || '').startsWith('enoch')) ? 'standDisc' : null
+  s.pose = (s.glide || s.aslide) ? (s.aslide ? 'glide' : s.pose) : (s.ramp && !g) ? 'ramp' : (g && f._floorPlatformId && String(getPlatforms().find(p => p.id === f._floorPlatformId)?.owner || '').startsWith('enoch:')) ? 'standDisc' : null
   if (s.channel && !s.glide) s.pose = s.channel < 0 ? 'channel' : 'channel_fire'
   // pending water cost (applied as the move ends — or is cancelled)
   const a0 = live(f)

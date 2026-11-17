@@ -88,7 +88,7 @@ ok('T1 hot (+50): Special = FIRE SHARD (a fireball), heats him further', T.shard
 ok('T2 hot: Frost Floor = FLAME FLOOR (fire patch)', T.floor.stat === 1 && T.floor.types.includes('fire') && !T.floor.types.includes('ice'), J(T.floor))
 ok('T3 cold (−50): the laser = FROST LENS (ice laser eyes), cools him', T.lens.el === 'ice' && T.lens.stat === 1 && T.lens.th < -50, J(T.lens))
 ok('T4 balance: the laser stays the fire Heat Lens', T.lens0 === 'fire', String(T.lens0))
-ok('T5 FIRE DASH leaves fire; ICE DASH leaves ice; balance dash leaves nothing', T.dashHot.types.includes('fire') && T.dashHot.fd === 1 && T.dashCold.types.includes('ice') && T.dashCold.id === 1 && T.dash0.types.length === 0, J({ h: T.dashHot, c: T.dashCold, z: T.dash0 }))
+ok('T5 the double-tap SLIDE turns the floor to FIRE when hot, ICE when cold, and ICE in balance too (the owner\'s ground slide)', T.dashHot.types.includes('fire') && !T.dashHot.types.includes('ice') && T.dashCold.types.includes('ice') && T.dash0.types.includes('ice') && !T.dash0.types.includes('fire'), J({ h: T.dashHot, c: T.dashCold, z: T.dash0 }))
 
 // ═══ A. AIR SLIDE + its limit; C. FIRE CAGE ═══
 const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff } = __E; const r = {}
@@ -134,7 +134,7 @@ const A = await page.evaluate(() => { const { H, ES, step, hold, rel, setup, aff
 ok('A1 jump + double-tap = AIR ICE SLIDE (an ice slab, he slides ~13 px/f, cools)', A.first.did === 1 && A.first.dx > 100 && A.rail === 'ice' && A.th < 0 && A.stance === 'elemental', J({ f: A.first, rail: A.rail, th: A.th }))
 ok('A2 no hop / jump in between = no second slide', A.sameAir === 1, String(A.sameAir))
 ok('A3 THE AIR CHAIN: slide → hop → slide … at least 5 links in one airtime, capped at 6', A.chainMax >= 5 && A.chainMax <= 6 && A.chain.filter(x => x.did).length === A.chainMax, J({ max: A.chainMax, chain: A.chain }))
-ok('A3b each hop is lower than the last (it gets harder)', A.chain.filter(x => x.did && x.rise > 0).every((x, i, L) => i === 0 || x.rise <= L[i - 1].rise), J(A.chain.map(x => x.rise)))
+ok('A3b each mid-air hop is lower than the last (it gets harder); standing on his own slab allows a normal jump, but the 6-slide cap holds until the REAL floor', A.chain.slice(0, 4).every((x, i, L) => i === 0 || x.rise < L[i - 1].rise) && A.chainMax <= 6, J(A.chain.map(x => x.rise)))
 ok('A4 the hop window shrinks: a late Jump on the 4th link misses; landing resets the chain', A.late.hops === 0 && A.reset === 0, J({ late: A.late, reset: A.reset }))
 ok('A5 hot: the AIR FIRE SLIDE (a fire streak)', A.fire.did === 1 && A.fireRail === 'fire', J({ f: A.fire, rail: A.fireRail }))
 ok('A6 sliding through the foe = one hit that chills', A.hit.hits === 1 && A.hit.dmg > 0 && A.hit.chill >= 1, J(A.hit))

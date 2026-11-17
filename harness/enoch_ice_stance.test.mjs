@@ -134,13 +134,13 @@ try {
     r.glider = { glides: fz().stats?.glides, maxVy: Math.round(maxVy * 10) / 10 }
     // elemental stance: the double-tap is still his own dash (no flash)
     ;({ a, b } = setup(800, 2400)); b.invulnTimer = 99999; const fl0 = fz().stats?.flashes || 0
-    dtap(a, 'right'); rel(a); step(2); r.elemental = { dashing: (a.dashTimer || 0) > 0 || Math.abs(a.vx) > 5, flashes: (fz().stats?.flashes || 0) - fl0, dashSpeed: a.dashSpeed }
+    dtap(a, 'right'); rel(a); step(2); r.elemental = { dashing: (a.dashTimer || 0) > 0 || Math.abs(a.vx) > 5 || !!a._enoch?.glide, flashes: (fz().stats?.flashes || 0) - fl0, dashSpeed: a.dashSpeed }
     step(40)
     return r })
   ok('M1 Ice Flash: the ground double-tap teleports ~250 px', M.flash.flashes === 1 && M.flash.dx >= 200, J(M.flash))
   ok('M2 Ice Stream: the air double-tap pours a rail and he grinds it', M.stream.rails >= 1 && M.stream.dx > 100, J(M.stream))
   ok('M3 Ice Glider: holding Jump while falling caps the fall', M.glider.glides >= 1 && M.glider.maxVy <= 1.7, J(M.glider))
-  ok('M4 elemental stance keeps his own dash (no Ice Flash), dash speed untouched', M.elemental.dashing && M.elemental.flashes === 0 && M.elemental.dashSpeed === 26, J(M.elemental))
+  ok('M4 elemental stance keeps his own double-tap (now his ICE SLIDE — no Ice Flash), dash speed untouched', M.elemental.dashing && M.elemental.flashes === 0 && M.elemental.dashSpeed === 26, J(M.elemental))
 
   // ═══ U. WHITEOUT ═══
   const U = await page.evaluate(() => { const { H, step, tap, setup, ice } = __E

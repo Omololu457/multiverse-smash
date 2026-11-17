@@ -146,3 +146,12 @@ The brief's values, verified live against a blocking dummy:
   ~2.5 s; start times = i × 7 + hash × 11 f, offsets = ±150 px hashed, each re-aimed at the foe when it appears; raw 12,
   10 f hitstun, burn +0.4 a hit, a FIRE patch every 4th. Measured: 8 / 18 hit a standing dummy, 54 damage, burn 3.2.
 - Pose: the rising palm's raised-fist frame, held (no both-hands-up frame exists in the source sheet).
+
+### 2026-11-16 (late): ground ice / fire slide anywhere, ice floor bites, SOLID air slabs; Lab zoom 1.25×
+- Double-tap on the ground (elemental stance) = a glide anywhere (not only on his own patch): ICE, FIRE when hot; at least
+  26 f without holding, longer while the direction is held. A locked element falls back to the plain dash.
+- His ICE vs the opponent (not ice-walkers): raw 4 at once + every 20 f, chill +0.25, slid 3 px / f toward the nearest
+  edge — they get pushed off quickly, so it is a toll, not a trap. FIRE: the existing DoT + burn.
+- AIR SLABS: one-way platforms (platforms.js) for 7 s. Opponent landing = raw 22 (chill / burn) + shoved off the nearer
+  edge (vx 7, vy −5), 0.5 s per-slab cooldown; rising into one = head bonk. He can stand on them. Removed with the slab.
+- Controls Lab zoom default 1.7× → 1.25× (owner: too zoomed in); the button cycles OFF / 1.25× / 1.5×.

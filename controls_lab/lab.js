@@ -7,7 +7,7 @@ import { rawToNumpad, rawButtons, NUMPAD_ARROW } from "./notation.js"
 import { comboScript, comboSteps, verifyCombo } from "./combos.js"
 
 const $ = s => document.querySelector(s)
-const LS = { state: "ms_controls_lab", mastered: "ms_controls_lab_mastered", big: "ms_controls_lab_big", zoom: "ms_controls_lab_zoom" }
+const LS = { state: "ms_controls_lab", mastered: "ms_controls_lab_mastered", big: "ms_controls_lab_big", zoom2: "ms_controls_lab_zoom2" }
 const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v ?? d } catch (_) { return d } }
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch (_) {} }
 const MODES = ["moves", "combos", "trial", "free"]
@@ -86,18 +86,18 @@ function setAccent(hex) {
 // ZOOM (Lab-side, presentation only): the arena is the whole game screen shrunk into a panel, so the fighters look small.
 // With zoom on, the iframe is magnified ×ZOOM and panned (smoothly, every logic frame) to keep both fighters — and a bit of
 // sky for falling attacks — in the middle. The game itself, its camera and the sim are untouched.
-const ZOOM = 1.7
+const ZOOMS = [1, 1.25, 1.5]                       // the Zoom button cycles these; 1.25× by default (the whole fight stays in view)
 function fitArena() {
   const box = $("#arenaBox").getBoundingClientRect()
   const k = box.width / 1440
   S.arenaScale = k
-  const z = S.zoom ? ZOOM : 1, K = k * z
+  const z = S.zoom || 1, K = k * z
   let tx = 0, ty = 0
   if (z > 1) {
     const f = focusPoint() || S.focusPt || { x: 720, y: 520 }
     S.focusPt = S.focusPt ? { x: S.focusPt.x + (f.x - S.focusPt.x) * 0.15, y: S.focusPt.y + (f.y - S.focusPt.y) * 0.15 } : f
     tx = Math.min(0, Math.max(box.width - 1440 * K, box.width / 2 - S.focusPt.x * K))
-    ty = Math.min(0, Math.max(box.height - 810 * K, box.height * 0.6 - S.focusPt.y * K))
+    ty = Math.min(0, Math.max(box.height - 810 * K, box.height * 0.62 - S.focusPt.y * K))
   }
   S.view = { K, tx, ty }
   $("#game").style.transform = `translate(${tx}px, ${ty}px) scale(${K})`
@@ -112,10 +112,11 @@ function focusPoint() {
     return { x: ((wx - cam.x) * cam.zoom + gc.width / 2) * sx + r.left, y: ((wy - cam.y) * cam.zoom + gc.height / 2) * sy + r.top }
   } catch (_) { return null }
 }
-function toggleZoom() {
-  S.zoom = !S.zoom; lsSet(LS.zoom, S.zoom); S.focusPt = null
-  $("#zoomBtn").textContent = `🔍 Zoom: ${S.zoom ? "ON" : "OFF"}`; fitArena(); if (S.boxes) drawBoxes()
+function setZoom(z) {
+  S.zoom = ZOOMS.includes(z) ? z : 1.25; lsSet(LS.zoom2, S.zoom); S.focusPt = null
+  $("#zoomBtn").textContent = `🔍 Zoom: ${S.zoom === 1 ? "OFF" : S.zoom + "×"}`; fitArena(); if (S.boxes) drawBoxes()
 }
+const toggleZoom = () => setZoom(ZOOMS[(ZOOMS.indexOf(S.zoom) + 1) % ZOOMS.length])
 window.addEventListener("resize", fitArena)
 function setVeil(on, text) { $("#veil").classList.toggle("off", !on); if (text) $("#veilText").textContent = text }
 function toast(t, ms = 1600) { const e = $("#toast"); e.textContent = t; e.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => e.classList.remove("show"), ms) }
@@ -130,7 +131,7 @@ function onFrame(ev) {
   const raw = ev.scripted ? ev.raw : (userRaw || {})
   pushHistory(raw, ev.scripted, ev.p1?.facing >= 0 ? 1 : -1)
   if (S.task && S.task.onFrame) S.task.onFrame(ev, raw)
-  if (S.zoom) fitArena()
+  if (S.zoom > 1) fitArena()
   if (S.boxes) drawBoxes()
   if (ctl) ctl.setFacing(ev.p1?.facing >= 0 ? 1 : -1)
   // the game pauses on Options/Escape; the Lab owns those buttons, so un-pause straight away
@@ -659,7 +660,7 @@ function wireUI() {
   $("#bigBtn").onclick = toggleBig
   if (lsGet(LS.big, false)) toggleBig()
   $("#zoomBtn").onclick = toggleZoom
-  if (lsGet(LS.zoom, true)) toggleZoom()   // zoomed in by default: you can see the moves
+  setZoom(lsGet(LS.zoom2, 1.25))   // a mild zoom by default; the button cycles OFF / 1.25× / 1.5×
   $("#hitboxBtn").onclick = () => { S.boxes = !S.boxes; $("#hitboxBtn").textContent = `Boxes: ${S.boxes ? "ON" : "OFF"}`; if (!S.boxes) drawBoxes() }
   $("#arenaShield").onclick = () => { if (pickerOpen()) return; takeControl(true) }
   $("#modePanel").onclick = e => {

@@ -1,6 +1,7 @@
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
 import { HEATBLAST } from "./heatblast.js"
+import { MEGAWHATT } from "./megawhatt.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -896,6 +897,11 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 60, sizeH: 110 },
     basic_attacks: HEATBLAST.basic_attacks, specials: HEATBLAST.moves,
     ultimate: { name: "Pyronite Meteor", cost: 50, damage: 240 } },
+  // Megawhatt (READY, megawhatt.js): tiny flyer, small hurtbox (= his ~72 px sprite); specials / ult via the hooks.
+  megawhatt: { name: "Megawhatt", color: "#fde047", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 8, maxJumps: 2, jumpPower: 22, sizeW: 40, sizeH: 72 },
+    basic_attacks: MEGAWHATT.basic_attacks, specials: MEGAWHATT.moves,
+    ultimate: { name: "Blackout", cost: 50, damage: 240 } },
   fourarms:   mkAlien({ name: "Four Arms", color: "#dc2626", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 19, dmg: 1.25, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,
                         special: { name: "Quad Slam", damage: 130, cost: 25, armor: true }, ult: { name: "Ground Pound", damage: 240 } }),
   xlr8:       mkAlien({ name: "XLR8", color: "#0ea5e9", role: "speed", hp: 900, spd: 99, jumps: 3, jump: 23, dmg: 0.75, weight: "light",
@@ -989,7 +995,7 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 export const MAX_OMNITRIX_SLOTS = 5   // Phase 3: five Omnitrix slots (↓↓ + Light/Heavy/Special/L+H/H+S)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire", "heatblast"]   // slot 1 Swampfire, slot 2 Heatblast (first placeholder slot)
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt"]   // slot 1 Swampfire, slot 2 Heatblast, slot 3 Megawhatt (first placeholder slot)
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)

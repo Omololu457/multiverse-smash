@@ -1,5 +1,6 @@
 import { SWAMPFIRE } from "./swampfire.js"
 import { HEATBLAST } from "./heatblast.js"
+import { MEGAWHATT } from "./megawhatt.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -13,9 +14,11 @@ import { HEATBLAST } from "./heatblast.js"
 // Experimental forms preserve their existing mechanics and tinted human placeholder rendering.
 // Swampfire occupies the first production loadout slot without deleting experimental definitions.
 // Heatblast (heatblast.js) is the second READY form: it took the first placeholder dial slot (slot 2).
+// Megawhatt (megawhatt.js) is the third READY form: the next first-placeholder dial slot (slot 3).
 export const BEN10_ALIEN_REGISTRY = [
   SWAMPFIRE,
   HEATBLAST,   // READY (2026-11-17): Dragonrod sheet + ledger; replaces the old experimental Heatblast entry
+  MEGAWHATT,   // READY (2026-11-17): Dragondor sheet + ledger; living electricity (Voltage / Static / flight)
   {
     id: "xlr8", displayName: "XLR8", slot: 1, status: "experimental", poolKey: "xlr8",
     sheetPath: null, ledgerPath: null,

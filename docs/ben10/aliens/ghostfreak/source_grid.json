@@ -1,0 +1,2059 @@
+{
+ "source": "assets/sprites/ben10/aliens/ghostfreak.png",
+ "key": [
+  255,
+  0,
+  255
+ ],
+ "cell": [
+  92,
+  112
+ ],
+ "torsoCentre": [
+  51,
+  39
+ ],
+ "floorY": 92,
+ "hover": 53,
+ "actionScale": 1.0,
+ "top": {
+  "transform": [
+   4,
+   6
+  ],
+  "idle": [
+   2,
+   7,
+   5,
+   3,
+   1
+  ],
+  "lose": [
+   22,
+   21
+  ],
+  "fly": [
+   16,
+   19,
+   17,
+   20,
+   18
+  ],
+  "attack": [
+   38
+  ]
+ },
+ "bottom": {
+  "transform": [
+   108,
+   107
+  ],
+  "idle": [
+   106,
+   109,
+   105,
+   104,
+   103
+  ],
+  "lose": [
+   124,
+   123
+  ],
+  "fly": [
+   122,
+   121,
+   120,
+   119,
+   118
+  ],
+  "attack": [
+   149
+  ]
+ },
+ "badges": {
+  "tangible": 219,
+  "intangible": 220,
+  "lockout": 221
+ },
+ "text_components_removed": 57,
+ "near_magenta_kept_px": 0,
+ "magenta_hue_kept_px": 0,
+ "min_kept_distance_to_key": 266,
+ "body_mirror": {
+  "transform1": {
+   "top": 4,
+   "bottom": 108,
+   "exact_mirror": true,
+   "top_size": [
+    57,
+    83
+   ],
+   "bottom_size": [
+    57,
+    83
+   ]
+  },
+  "transform2": {
+   "top": 6,
+   "bottom": 107,
+   "exact_mirror": false,
+   "top_size": [
+    53,
+    82
+   ],
+   "bottom_size": [
+    52,
+    82
+   ]
+  },
+  "idle1": {
+   "top": 2,
+   "bottom": 106,
+   "exact_mirror": false,
+   "top_size": [
+    39,
+    78
+   ],
+   "bottom_size": [
+    39,
+    81
+   ]
+  },
+  "idle2": {
+   "top": 7,
+   "bottom": 109,
+   "exact_mirror": false,
+   "top_size": [
+    41,
+    72
+   ],
+   "bottom_size": [
+    40,
+    73
+   ]
+  },
+  "idle3": {
+   "top": 5,
+   "bottom": 105,
+   "exact_mirror": false,
+   "top_size": [
+    44,
+    77
+   ],
+   "bottom_size": [
+    43,
+    78
+   ]
+  },
+  "idle4": {
+   "top": 3,
+   "bottom": 104,
+   "exact_mirror": false,
+   "top_size": [
+    49,
+    78
+   ],
+   "bottom_size": [
+    49,
+    80
+   ]
+  },
+  "idle5": {
+   "top": 1,
+   "bottom": 103,
+   "exact_mirror": false,
+   "top_size": [
+    42,
+    83
+   ],
+   "bottom_size": [
+    42,
+    85
+   ]
+  },
+  "lose1": {
+   "top": 22,
+   "bottom": 124,
+   "exact_mirror": false,
+   "top_size": [
+    44,
+    88
+   ],
+   "bottom_size": [
+    44,
+    87
+   ]
+  },
+  "lose2": {
+   "top": 21,
+   "bottom": 123,
+   "exact_mirror": true,
+   "top_size": [
+    44,
+    87
+   ],
+   "bottom_size": [
+    44,
+    87
+   ]
+  },
+  "fly1": {
+   "top": 16,
+   "bottom": 122,
+   "exact_mirror": true,
+   "top_size": [
+    51,
+    79
+   ],
+   "bottom_size": [
+    51,
+    79
+   ]
+  },
+  "fly2": {
+   "top": 19,
+   "bottom": 121,
+   "exact_mirror": true,
+   "top_size": [
+    51,
+    72
+   ],
+   "bottom_size": [
+    51,
+    72
+   ]
+  },
+  "fly3": {
+   "top": 17,
+   "bottom": 120,
+   "exact_mirror": true,
+   "top_size": [
+    55,
+    77
+   ],
+   "bottom_size": [
+    55,
+    77
+   ]
+  },
+  "fly4": {
+   "top": 20,
+   "bottom": 119,
+   "exact_mirror": true,
+   "top_size": [
+    60,
+    78
+   ],
+   "bottom_size": [
+    60,
+    78
+   ]
+  },
+  "fly5": {
+   "top": 18,
+   "bottom": 118,
+   "exact_mirror": true,
+   "top_size": [
+    53,
+    82
+   ],
+   "bottom_size": [
+    53,
+    82
+   ]
+  },
+  "attack1": {
+   "top": 38,
+   "bottom": 149,
+   "exact_mirror": false,
+   "top_size": [
+    87,
+    82
+   ],
+   "bottom_size": [
+    87,
+    80
+   ]
+  }
+ },
+ "fx_mirror": [
+  {
+   "frame": 1,
+   "exact_mirror": true
+  },
+  {
+   "frame": 2,
+   "exact_mirror": true
+  },
+  {
+   "frame": 3,
+   "exact_mirror": true
+  },
+  {
+   "frame": 4,
+   "exact_mirror": true
+  },
+  {
+   "frame": 5,
+   "exact_mirror": true
+  },
+  {
+   "frame": 6,
+   "exact_mirror": true
+  }
+ ],
+ "fx_frames": {
+  "top": [
+   {
+    "bbox": [
+     110,
+     251,
+     146,
+     298
+    ],
+    "pieces": 1,
+    "comps": [
+     57,
+     77,
+     82
+    ]
+   },
+   {
+    "bbox": [
+     172,
+     241,
+     233,
+     296
+    ],
+    "pieces": 1,
+    "comps": [
+     45,
+     48,
+     75,
+     78,
+     79,
+     81,
+     84,
+     85
+    ]
+   },
+   {
+    "bbox": [
+     254,
+     238,
+     317,
+     309
+    ],
+    "pieces": 4,
+    "comps": [
+     41,
+     44,
+     46,
+     50,
+     66,
+     70,
+     71,
+     76,
+     83,
+     87
+    ]
+   },
+   {
+    "bbox": [
+     337,
+     234,
+     405,
+     308
+    ],
+    "pieces": 4,
+    "comps": [
+     34,
+     35,
+     51,
+     52,
+     56,
+     58,
+     61,
+     64,
+     67,
+     80,
+     86,
+     94,
+     96,
+     97,
+     99
+    ]
+   },
+   {
+    "bbox": [
+     429,
+     235,
+     498,
+     312
+    ],
+    "pieces": 5,
+    "comps": [
+     36,
+     39,
+     42,
+     47,
+     53,
+     60,
+     62,
+     65,
+     68,
+     69,
+     72,
+     91,
+     93,
+     100,
+     102
+    ]
+   },
+   {
+    "bbox": [
+     519,
+     235,
+     587,
+     308
+    ],
+    "pieces": 8,
+    "comps": [
+     37,
+     40,
+     43,
+     49,
+     54,
+     55,
+     59,
+     63,
+     88,
+     89,
+     90,
+     92,
+     95,
+     98,
+     101
+    ]
+   }
+  ],
+  "bottom": [
+   {
+    "bbox": [
+     155,
+     579,
+     223,
+     652
+    ],
+    "pieces": 8,
+    "comps": [
+     139,
+     142,
+     143,
+     150,
+     156,
+     157,
+     162,
+     165,
+     190,
+     191,
+     193,
+     195,
+     197,
+     200,
+     203
+    ]
+   },
+   {
+    "bbox": [
+     243,
+     577,
+     312,
+     654
+    ],
+    "pieces": 5,
+    "comps": [
+     136,
+     140,
+     141,
+     146,
+     152,
+     159,
+     163,
+     166,
+     168,
+     170,
+     172,
+     192,
+     194,
+     202,
+     204
+    ]
+   },
+   {
+    "bbox": [
+     331,
+     577,
+     399,
+     651
+    ],
+    "pieces": 4,
+    "comps": [
+     137,
+     138,
+     153,
+     154,
+     158,
+     160,
+     164,
+     167,
+     169,
+     182,
+     188,
+     196,
+     198,
+     199,
+     201
+    ]
+   },
+   {
+    "bbox": [
+     417,
+     582,
+     480,
+     653
+    ],
+    "pieces": 4,
+    "comps": [
+     144,
+     145,
+     148,
+     155,
+     171,
+     173,
+     174,
+     178,
+     185,
+     189
+    ]
+   },
+   {
+    "bbox": [
+     499,
+     585,
+     560,
+     640
+    ],
+    "pieces": 1,
+    "comps": [
+     147,
+     151,
+     177,
+     180,
+     181,
+     183,
+     186,
+     187
+    ]
+   },
+   {
+    "bbox": [
+     583,
+     594,
+     619,
+     641
+    ],
+    "pieces": 1,
+    "comps": [
+     161,
+     179,
+     184
+    ]
+   }
+  ]
+ },
+ "ledger": [
+  {
+   "anim": "idle",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "idle loop (top set)"
+  },
+  {
+   "anim": "idle",
+   "set": "top",
+   "group": "idle",
+   "frame": 2,
+   "component": 7,
+   "src_bbox": [
+    330,
+    20,
+    371,
+    92
+   ],
+   "offset": [
+    29,
+    15
+   ],
+   "render_dy": 0,
+   "role": "idle loop (top set)"
+  },
+  {
+   "anim": "idle",
+   "set": "top",
+   "group": "idle",
+   "frame": 3,
+   "component": 5,
+   "src_bbox": [
+    392,
+    18,
+    436,
+    95
+   ],
+   "offset": [
+    26,
+    14
+   ],
+   "render_dy": 0,
+   "role": "idle loop (top set)"
+  },
+  {
+   "anim": "idle",
+   "set": "top",
+   "group": "idle",
+   "frame": 4,
+   "component": 3,
+   "src_bbox": [
+    450,
+    17,
+    499,
+    95
+   ],
+   "offset": [
+    21,
+    14
+   ],
+   "render_dy": 0,
+   "role": "idle loop (top set)"
+  },
+  {
+   "anim": "idle",
+   "set": "top",
+   "group": "idle",
+   "frame": 5,
+   "component": 1,
+   "src_bbox": [
+    514,
+    15,
+    556,
+    98
+   ],
+   "offset": [
+    28,
+    13
+   ],
+   "render_dy": 0,
+   "role": "idle loop (top set)"
+  },
+  {
+   "anim": "walk",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "walk - REUSED Fly (hover; no walk pose)"
+  },
+  {
+   "anim": "walk",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "walk - REUSED Fly (hover; no walk pose)"
+  },
+  {
+   "anim": "walk",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "walk - REUSED Fly (hover; no walk pose)"
+  },
+  {
+   "anim": "walk",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "walk - REUSED Fly (hover; no walk pose)"
+  },
+  {
+   "anim": "walk",
+   "set": "top",
+   "group": "fly",
+   "frame": 5,
+   "component": 18,
+   "src_bbox": [
+    518,
+    120,
+    571,
+    202
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "walk - REUSED Fly (hover; no walk pose)"
+  },
+  {
+   "anim": "run",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "run - REUSED Fly (hover)"
+  },
+  {
+   "anim": "run",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "run - REUSED Fly (hover)"
+  },
+  {
+   "anim": "run",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "run - REUSED Fly (hover)"
+  },
+  {
+   "anim": "run",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "run - REUSED Fly (hover)"
+  },
+  {
+   "anim": "run",
+   "set": "top",
+   "group": "fly",
+   "frame": 5,
+   "component": 18,
+   "src_bbox": [
+    518,
+    120,
+    571,
+    202
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "run - REUSED Fly (hover)"
+  },
+  {
+   "anim": "dash",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "dash - REUSED Fly f2-3"
+  },
+  {
+   "anim": "dash",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "dash - REUSED Fly f2-3"
+  },
+  {
+   "anim": "jump",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "jump_rise - Fly f1"
+  },
+  {
+   "anim": "fall",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "jump_fall - Fly f4"
+  },
+  {
+   "anim": "crouch",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "crouch - REUSED Idle f1 (no crouch pose)"
+  },
+  {
+   "anim": "guard",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "block - Idle f1 (no block pose; block-hit reuses it)"
+  },
+  {
+   "anim": "light",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "JAB - Attack pose (the only attack body) + procedural short wind swipe"
+  },
+  {
+   "anim": "heavy",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "HEAVY - Attack pose + extended wind swipe (procedural + extracted arrow FX)"
+  },
+  {
+   "anim": "down",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    28
+   ],
+   "render_dy": 12,
+   "role": "LOW - Attack pose with a 12 px render-only low offset (hits low)"
+  },
+  {
+   "anim": "up",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    2
+   ],
+   "render_dy": -10,
+   "role": "LAUNCHER - Fly f1 raised 10 px (render-only \"tilt up\" offset) + upward gale"
+  },
+  {
+   "anim": "air",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "AIR - Fly f2 + forward wind"
+  },
+  {
+   "anim": "hurt",
+   "set": "top",
+   "group": "lose",
+   "frame": 1,
+   "component": 22,
+   "src_bbox": [
+    10,
+    126,
+    54,
+    214
+   ],
+   "offset": [
+    27,
+    12
+   ],
+   "render_dy": 0,
+   "role": "hit_react - REUSED grey Lose pose (hit_react_heavy fallback; no light-hit pose)"
+  },
+  {
+   "anim": "knockdown",
+   "set": "top",
+   "group": "lose",
+   "frame": 1,
+   "component": 22,
+   "src_bbox": [
+    10,
+    126,
+    54,
+    214
+   ],
+   "offset": [
+    27,
+    12
+   ],
+   "render_dy": 0,
+   "role": "knockdown - grey Lose pose (no knockdown pose)"
+  },
+  {
+   "anim": "getup",
+   "set": "top",
+   "group": "lose",
+   "frame": 1,
+   "component": 22,
+   "src_bbox": [
+    10,
+    126,
+    54,
+    214
+   ],
+   "offset": [
+    27,
+    12
+   ],
+   "render_dy": 0,
+   "role": "get-up - REUSED grey Lose -> Idle f1 (no get-up pose)"
+  },
+  {
+   "anim": "getup",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "get-up - REUSED grey Lose -> Idle f1 (no get-up pose)"
+  },
+  {
+   "anim": "dizzy",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "dizzy - REUSED Idle f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "dizzy",
+   "set": "top",
+   "group": "idle",
+   "frame": 2,
+   "component": 7,
+   "src_bbox": [
+    330,
+    20,
+    371,
+    92
+   ],
+   "offset": [
+    29,
+    15
+   ],
+   "render_dy": 0,
+   "role": "dizzy - REUSED Idle f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "roll",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "roll - REUSED Fly"
+  },
+  {
+   "anim": "roll",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "roll - REUSED Fly"
+  },
+  {
+   "anim": "roll",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "roll - REUSED Fly"
+  },
+  {
+   "anim": "roll",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "roll - REUSED Fly"
+  },
+  {
+   "anim": "roll",
+   "set": "top",
+   "group": "fly",
+   "frame": 5,
+   "component": 18,
+   "src_bbox": [
+    518,
+    120,
+    571,
+    202
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "roll - REUSED Fly"
+  },
+  {
+   "anim": "transform",
+   "set": "top",
+   "group": "transform",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    17,
+    18,
+    74,
+    101
+   ],
+   "offset": [
+    22,
+    11
+   ],
+   "render_dy": 0,
+   "role": "Omnitrix transform-in: green silhouette -> grey body"
+  },
+  {
+   "anim": "transform",
+   "set": "top",
+   "group": "transform",
+   "frame": 2,
+   "component": 6,
+   "src_bbox": [
+    98,
+    19,
+    151,
+    101
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "Omnitrix transform-in: green silhouette -> grey body"
+  },
+  {
+   "anim": "intro",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "intro - REUSED Idle (no intro pose)"
+  },
+  {
+   "anim": "intro",
+   "set": "top",
+   "group": "idle",
+   "frame": 2,
+   "component": 7,
+   "src_bbox": [
+    330,
+    20,
+    371,
+    92
+   ],
+   "offset": [
+    29,
+    15
+   ],
+   "render_dy": 0,
+   "role": "intro - REUSED Idle (no intro pose)"
+  },
+  {
+   "anim": "intro",
+   "set": "top",
+   "group": "idle",
+   "frame": 3,
+   "component": 5,
+   "src_bbox": [
+    392,
+    18,
+    436,
+    95
+   ],
+   "offset": [
+    26,
+    14
+   ],
+   "render_dy": 0,
+   "role": "intro - REUSED Idle (no intro pose)"
+  },
+  {
+   "anim": "intro",
+   "set": "top",
+   "group": "idle",
+   "frame": 4,
+   "component": 3,
+   "src_bbox": [
+    450,
+    17,
+    499,
+    95
+   ],
+   "offset": [
+    21,
+    14
+   ],
+   "render_dy": 0,
+   "role": "intro - REUSED Idle (no intro pose)"
+  },
+  {
+   "anim": "intro",
+   "set": "top",
+   "group": "idle",
+   "frame": 5,
+   "component": 1,
+   "src_bbox": [
+    514,
+    15,
+    556,
+    98
+   ],
+   "offset": [
+    28,
+    13
+   ],
+   "render_dy": 0,
+   "role": "intro - REUSED Idle (no intro pose)"
+  },
+  {
+   "anim": "win",
+   "set": "top",
+   "group": "idle",
+   "frame": 1,
+   "component": 2,
+   "src_bbox": [
+    272,
+    16,
+    311,
+    94
+   ],
+   "offset": [
+    31,
+    14
+   ],
+   "render_dy": 0,
+   "role": "win - REUSED Idle (no win pose)"
+  },
+  {
+   "anim": "win",
+   "set": "top",
+   "group": "idle",
+   "frame": 2,
+   "component": 7,
+   "src_bbox": [
+    330,
+    20,
+    371,
+    92
+   ],
+   "offset": [
+    29,
+    15
+   ],
+   "render_dy": 0,
+   "role": "win - REUSED Idle (no win pose)"
+  },
+  {
+   "anim": "win",
+   "set": "top",
+   "group": "idle",
+   "frame": 3,
+   "component": 5,
+   "src_bbox": [
+    392,
+    18,
+    436,
+    95
+   ],
+   "offset": [
+    26,
+    14
+   ],
+   "render_dy": 0,
+   "role": "win - REUSED Idle (no win pose)"
+  },
+  {
+   "anim": "win",
+   "set": "top",
+   "group": "idle",
+   "frame": 4,
+   "component": 3,
+   "src_bbox": [
+    450,
+    17,
+    499,
+    95
+   ],
+   "offset": [
+    21,
+    14
+   ],
+   "render_dy": 0,
+   "role": "win - REUSED Idle (no win pose)"
+  },
+  {
+   "anim": "win",
+   "set": "top",
+   "group": "idle",
+   "frame": 5,
+   "component": 1,
+   "src_bbox": [
+    514,
+    15,
+    556,
+    98
+   ],
+   "offset": [
+    28,
+    13
+   ],
+   "render_dy": 0,
+   "role": "win - REUSED Idle (no win pose)"
+  },
+  {
+   "anim": "lose",
+   "set": "top",
+   "group": "lose",
+   "frame": 1,
+   "component": 22,
+   "src_bbox": [
+    10,
+    126,
+    54,
+    214
+   ],
+   "offset": [
+    27,
+    12
+   ],
+   "render_dy": 0,
+   "role": "lose_pose - grey curled pose"
+  },
+  {
+   "anim": "timeout",
+   "set": "top",
+   "group": "lose",
+   "frame": 2,
+   "component": 21,
+   "src_bbox": [
+    75,
+    125,
+    119,
+    212
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "Omnitrix TIMEOUT revert - green curled silhouette"
+  },
+  {
+   "anim": "taunt",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "taunt - REUSED Attack pose (no taunt pose)"
+  },
+  {
+   "anim": "grab",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "grab - Attack pose (POSSESS reach)"
+  },
+  {
+   "anim": "gfPhase",
+   "set": "top",
+   "group": "transform",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    17,
+    18,
+    74,
+    101
+   ],
+   "offset": [
+    22,
+    11
+   ],
+   "render_dy": 0,
+   "role": "PHASE toggle flash - green Transform silhouette (8f transition)"
+  },
+  {
+   "anim": "gfFly",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "flight - Fly loop"
+  },
+  {
+   "anim": "gfFly",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "flight - Fly loop"
+  },
+  {
+   "anim": "gfFly",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "flight - Fly loop"
+  },
+  {
+   "anim": "gfFly",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "flight - Fly loop"
+  },
+  {
+   "anim": "gfFly",
+   "set": "top",
+   "group": "fly",
+   "frame": 5,
+   "component": 18,
+   "src_bbox": [
+    518,
+    120,
+    571,
+    202
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "flight - Fly loop"
+  },
+  {
+   "anim": "gfGale",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "SPECTRAL GALE - Attack pose (extracted swirl FX is the projectile)"
+  },
+  {
+   "anim": "gfWail",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "WAIL - Attack pose + procedural pixel rings"
+  },
+  {
+   "anim": "gfPossess",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "POSSESS - Attack reach -> green silhouette (dissolve in)"
+  },
+  {
+   "anim": "gfPossess",
+   "set": "top",
+   "group": "transform",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    17,
+    18,
+    74,
+    101
+   ],
+   "offset": [
+    22,
+    11
+   ],
+   "render_dy": 0,
+   "role": "POSSESS - Attack reach -> green silhouette (dissolve in)"
+  },
+  {
+   "anim": "gfBurst",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "POSSESS burst-out - Fly f1 + procedural pixel burst"
+  },
+  {
+   "anim": "gfRise",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "PHANTOM RISE - Fly loop + spiralling gale"
+  },
+  {
+   "anim": "gfRise",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "PHANTOM RISE - Fly loop + spiralling gale"
+  },
+  {
+   "anim": "gfRise",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "PHANTOM RISE - Fly loop + spiralling gale"
+  },
+  {
+   "anim": "gfRise",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "PHANTOM RISE - Fly loop + spiralling gale"
+  },
+  {
+   "anim": "gfRise",
+   "set": "top",
+   "group": "fly",
+   "frame": 5,
+   "component": 18,
+   "src_bbox": [
+    518,
+    120,
+    571,
+    202
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "PHANTOM RISE - Fly loop + spiralling gale"
+  },
+  {
+   "anim": "gfCold",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "COLD TOUCH (air) - Attack pose + downward gale"
+  },
+  {
+   "anim": "gfUltDissolve",
+   "set": "top",
+   "group": "transform",
+   "frame": 2,
+   "component": 6,
+   "src_bbox": [
+    98,
+    19,
+    151,
+    101
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST dissolve - grey body -> green silhouette"
+  },
+  {
+   "anim": "gfUltDissolve",
+   "set": "top",
+   "group": "transform",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    17,
+    18,
+    74,
+    101
+   ],
+   "offset": [
+    22,
+    11
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST dissolve - grey body -> green silhouette"
+  },
+  {
+   "anim": "gfUltStorm",
+   "set": "top",
+   "group": "fly",
+   "frame": 1,
+   "component": 16,
+   "src_bbox": [
+    266,
+    120,
+    317,
+    199
+   ],
+   "offset": [
+    28,
+    12
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST spectral storm - Fly loop"
+  },
+  {
+   "anim": "gfUltStorm",
+   "set": "top",
+   "group": "fly",
+   "frame": 2,
+   "component": 19,
+   "src_bbox": [
+    326,
+    122,
+    377,
+    194
+   ],
+   "offset": [
+    27,
+    13
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST spectral storm - Fly loop"
+  },
+  {
+   "anim": "gfUltStorm",
+   "set": "top",
+   "group": "fly",
+   "frame": 3,
+   "component": 17,
+   "src_bbox": [
+    384,
+    120,
+    439,
+    197
+   ],
+   "offset": [
+    23,
+    13
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST spectral storm - Fly loop"
+  },
+  {
+   "anim": "gfUltStorm",
+   "set": "top",
+   "group": "fly",
+   "frame": 4,
+   "component": 20,
+   "src_bbox": [
+    439,
+    123,
+    499,
+    201
+   ],
+   "offset": [
+    19,
+    12
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST spectral storm - Fly loop"
+  },
+  {
+   "anim": "gfUltStorm",
+   "set": "top",
+   "group": "fly",
+   "frame": 5,
+   "component": 18,
+   "src_bbox": [
+    518,
+    120,
+    571,
+    202
+   ],
+   "offset": [
+    26,
+    12
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST spectral storm - Fly loop"
+  },
+  {
+   "anim": "gfUltScream",
+   "set": "top",
+   "group": "attack",
+   "frame": 1,
+   "component": 38,
+   "src_bbox": [
+    10,
+    237,
+    97,
+    319
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "render_dy": 0,
+   "role": "FEAR FEAST final scream - Attack pose + enlarged procedural Wail rings"
+  }
+ ]
+}

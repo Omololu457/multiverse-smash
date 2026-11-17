@@ -3228,7 +3228,7 @@ function _setCrouchVariant(fighter, crouching, variant) {
 export function startMove(fighter, moveKey, moveData) {
   if (!fighter || !moveData) return false
   if (fighter.attacking || fighter.hitstun > 0 || fighter.attackCooldown > 0) return false
-  { const _rd = benReadyForm(fighter); if (_rd && _rd.moveFrames) moveData = _rd.moveFrames(fighter, moveKey, moveData) || moveData }   // READY Omnitrix form frame hook (XLR8 Flash Time ×0.7 startup/recovery); null for everyone else
+  { const _rd = benReadyForm(fighter); if (_rd && _rd.moveFrames) { const _md = _rd.moveFrames(fighter, moveKey, moveData); if (_md === false) return false; moveData = _md || moveData } }   // READY Omnitrix form frame hook (XLR8 Flash Time ×0.7 / Blur Step recovery refuses normals); null for everyone else
 
   // LUFFY frame-exact moves opt out of the global duration scaling so their startup/active/recovery
   // are honoured to the frame (enables tight command chaining). Non-frameExact moves (every other

@@ -134,6 +134,8 @@ nothing else sets); a form that defines none of them takes exactly the old path,
 |---|---|---|
 | `drainMult` (number, on the registry entry) | fighters.js `updateTransformDevice`, the transformed drain (before the Vow ×1.6) | multiplies this form's Omnitrix Power drain (Alien X ×1.5 ≈ 13 s from full). Absent = ×1. |
 | `negateSpecial(owner, target, commit)` | abilities.js `triggerSpecial` (after the readiness checks), via `benAlienNegatesSpecial` asked for the OPPONENT of the fighter pressing Special | `true` = negate that special (`commit=false` only asks; `commit=true` consumes the owner's state). The engine then plays a negated startup: the special the press would pick (fallback direction rule), its DECLARED specials-table Power cost spent (a kit with no table, e.g. Goku, spends 0), an attack state with its startup + recovery and no active frame (no hitbox, no projectile), posed with the special's own strip if shipped, else `special` / `heavy`. If that cost cannot be paid the press proceeds as an ordinary special attempt. Input polling and the simulation clock are untouched. Alien X UNMADE. |
+| `target._benPinT` (frames, set by a form on its OPPONENT) | physics.js `moveFighter` (decrements once per frame, before anything else) + the walk multiplier + `canJump` | while > 0 the pinned fighter walks at ×0.5 and cannot jump; self-clearing, so it never outlives the pin even if the setter swaps out. Absent / 0 = unchanged for every fighter. Alien X Gravity (30f on the grounded 2nd hit). |
+| `flightProfile: "alienx"` | flight.js `FLIGHT_PROFILES.alienx` (data only) via the existing `_alienFlightProfile` hook | reused per-alien flight hook (Megawhatt's); no flight-logic change. |
 
 ## Slot count — PICK FIVE (2026-11-17)
 
@@ -178,3 +180,5 @@ block/interrupt/launch behavior, human restore, resets, art in both directions a
 supported replay/network modes. Test stale saved loadouts and direct entry points.
 Do not replace failed assertions with broad tolerances or mark placeholders ready.
 Review Swampfire's README and ledger as an implemented example.
+
+Alien X reuses the existing ready-form hooks for everything else: `tick`, `fireSpecial` / `fireUltimate`, `onContact` (Void pips, pin, ult capture), `moveFrames` (Block + Light swallows the jab), `damageTaken` (Serena chip ×0.6), `drawHud` / `drawFx` / `drawUnder` (render-only voice + Void HUD, pixel rings, ult starfield) and `_benGlide` (Starfall Dash). Position history for Rewind is a bounded 60-entry ring buffer inside `formState` (no engine hook). Void Grasp is a form-owned command grab using `combat.resolveGrab`'s throw-escape rule (no engine hook).

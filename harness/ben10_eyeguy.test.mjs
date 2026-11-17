@@ -225,9 +225,9 @@ test('10. swap / revert / KO / rematch clear all Eyeguy state', () => {
 
 // ── 11 slot 6 + Vow + determinism ──────────────────────────────────────────────────────────────────────────
 test('11. registry: Eyeguy READY, slot count 6 from the registry; ready aliens untouched', () => {
-  const d = getAlienDefinition('eyeguy'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 6); assert.equal(BEN10_SLOT_COUNT, 6)
+  const d = getAlienDefinition('eyeguy'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 6); assert(BEN10_SLOT_COUNT >= 6, 'slot count (read from the registry) reaches slot 6')
   for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) assert.equal(getAlienDefinition(k).status, 'ready', k)
-  assert.equal(F.MAX_OMNITRIX_SLOTS, 6); assert.equal(buildLoadout().length, 6, 'buildLoadout fills 6 slots'); assert.equal(F.DEFAULT_OMNITRIX[5], 'eyeguy', 'default loadout slot 6 = Eyeguy'); assert.equal(F.DEFAULT_OMNITRIX[4], 'xlr8', 'slot 5 = XLR8 untouched')
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT, 'buildLoadout fills every registry slot'); assert.equal(F.DEFAULT_OMNITRIX[5], 'eyeguy', 'default loadout slot 6 = Eyeguy'); assert.equal(F.DEFAULT_OMNITRIX[4], 'xlr8', 'slot 5 = XLR8 untouched')
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(getAvailableAlienKeys(false).includes('eyeguy'))
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 950, 'shared health')

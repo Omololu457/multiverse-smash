@@ -11,7 +11,7 @@ import * as C from '../combat.js'
 import { physics } from '../physics.js'
 import { HEATBLAST, HB_HEAT, HB_SCORCH, HB_ULT, HB_FLIGHT, hbState, heatTier, addHeat } from '../heatblast.js'
 import { benAlienAbsorb } from '../ben10State.js'
-import { getAvailableAlienKeys, buildLoadout } from '../aliens.js'
+import { getAvailableAlienKeys, buildLoadout, BEN10_SLOT_COUNT } from '../aliens.js'
 import fs from 'node:fs'
 
 let passed = 0, failed = 0
@@ -228,9 +228,9 @@ test('10. swap / revert clear Heat + Scorch-owner state; rematch starts clean', 
 
 // ── 11 Vow + determinism + registry ────────────────────────────────────────────────────────────────────────
 test('11. registry: Heatblast READY in slot 2; default loadout = all five ready forms', () => {
-  assert.deepEqual(getAvailableAlienKeys(false), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
+  { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT, 'one READY alien per registry slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) }
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
-  assert.deepEqual(F.DEFAULT_OMNITRIX, ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
+  assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT, 'default loadout = every registry slot'); assert.deepEqual(F.DEFAULT_OMNITRIX.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Heatblast')
 })
 test('11. Vow pick includes Heatblast; same seed → same pick', () => {

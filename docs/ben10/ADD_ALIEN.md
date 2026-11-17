@@ -125,20 +125,26 @@ references (they make GAME_STATE circular / non-serializable).
 360° Vision needed no hook: the form tick sets `facing` (the engine ties facing to walk input and has no auto-face),
 and the shared guard is omnidirectional.
 
-## Slot count (raised 5 → 6 with Eyeguy, 2026-11-17)
+## Slot count (raised 5 → 6 with Eyeguy, 6 → 7 with Ghostfreak, 2026-11-17)
 
 The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` in `aliens.js`.
+- Tests must read the count (`BEN10_SLOT_COUNT`, `alienSelectState().cap`), never a literal.
 - `fighters.js` `MAX_OMNITRIX_SLOTS` reads it (loadout cap, default-loadout cap); `buildLoadout()` defaults to it; the
   Binding Vow pick is `hash(seed, frame, player) mod loadout length`, so it follows automatically; the alien-select
   pick cap and the HUD read `BEN10_SLOT_COMBOS.length`.
 - `game.js` `BEN10_SLOT_COMBOS` must hold one input per slot (a mismatch logs a warning; extra slots are unreachable,
-  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge) / **U (Ultimate) = slot 6**;
-  ↓↓ + ; (Block) reverts. Slot 6 only takes U when the loadout holds a 6th alien, and `_omxUltHold` swallows U until it
-  is released, so the pick never also fires the ultimate. U outside the ↓↓ window is still the ultimate.
+  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge) / **U (Ultimate) = slot 6** /
+  **I (Up-Attack; pad ↑ + Light) = slot 7**; ↓↓ + ; (Block) reverts. Slot 6 only takes U when the loadout holds a 6th alien,
+  and `_omxUltHold` swallows U until it is released, so the pick never also fires the ultimate. U outside the ↓↓ window is
+  still the ultimate. Slot 7 works the same way: only with a 7th alien; `_omxUpHold` + `_omxConsume.upAttack` swallow I
+  (the up-attack input is buffered, so the latch is needed); I outside the ↓↓ window is still the launcher.
+- Slot 7 input choice: the Ghostfreak brief asked for ↓↓ + Block+Special, which COLLIDES with Revert (↓↓ + Block) and is a
+  two-button chord (the dial is one-button by design). Nearest conflict-free single button = Up-Attack (I).
 - The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in `DEFAULT_OMNITRIX` / pick order).
   A registry `slot` is documentation of intent, never identity.
 
-To raise the count again (e.g. 6 → 7): bump `BEN10_SLOT_COUNT`, append one `{ field, label }` input to
+To raise the count again (e.g. 7 → 8; every face button is now used, so the next slot needs a new idea — e.g. ↓↓ + a
+direction, which must not collide with crouch / ↓↓-motion specials): bump `BEN10_SLOT_COUNT`, append one `{ field, label }` input to
 `BEN10_SLOT_COMBOS` on a button no other slot (or Revert) uses, add its branch to the pick ladder in
 `handleOmnitrixSwitch`, swallow the press (`_omxConsume` / a hold latch like `_omxUltHold`), and add slot-N assertions to
 the alien's harness (input works, no side effect from the button, HUD / select cap = N, Vow pick reaches it). Placeholder behaviour needs no change:

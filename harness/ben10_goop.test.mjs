@@ -9,7 +9,7 @@ import * as A from '../abilities.js'
 import * as C from '../combat.js'
 import { physics } from '../physics.js'
 import { GOOP, GP_BODY, GP_PROJ, GP_PUDDLE, GP_ACID, GP_LOB, GP_ULT, GP_POKE, GP_SPIT, gpState, projectorBox, addAcidPip, isPhysicalNormal } from '../goop.js'
-import { getAvailableAlienKeys, getAlienDefinition, buildLoadout } from '../aliens.js'
+import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT } from '../aliens.js'
 import fs from 'node:fs'
 
 let passed = 0, failed = 0
@@ -291,7 +291,7 @@ test('11. registry: Goop READY in the first placeholder slot (4); Megawhatt / He
   const d = getAlienDefinition('goop'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 4)
   for (const k of ['swampfire', 'heatblast', 'megawhatt']) assert.equal(getAlienDefinition(k).status, 'ready', k + ' still ready')
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
-  assert.deepEqual(getAvailableAlienKeys(false), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
+  { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT, 'one READY alien per registry slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) }
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Goop'); assert.equal(f.health, 950, 'shared health')
 })

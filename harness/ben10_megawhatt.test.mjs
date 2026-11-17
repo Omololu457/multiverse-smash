@@ -11,7 +11,7 @@ import { physics } from '../physics.js'
 import { tickFlightDriver, isFlying } from '../flight.js'
 import { MEGAWHATT, MW_VOLT, MW_STATIC, MW_ULT, MW_DISCHARGE, MW_FLIGHT_MAX, MW_FLIGHT_CAP, MW_DRAINED, MEGAWHATT_DRAINED_ANIM, MEGAWHATT_ANIM, mwState, addVolt } from '../megawhatt.js'
 import { benAlienAbsorb } from '../ben10State.js'
-import { getAvailableAlienKeys, getAlienDefinition, buildLoadout } from '../aliens.js'
+import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT } from '../aliens.js'
 import fs from 'node:fs'
 
 let passed = 0, failed = 0
@@ -249,7 +249,7 @@ test('10. swap / revert / rematch clear all Voltage / Static / flight state', ()
 test('11. registry: Megawhatt READY in the first placeholder slot (3); hurtbox matches the small sprite', () => {
   const d = getAlienDefinition('megawhatt'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 3)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
-  assert.deepEqual(getAvailableAlienKeys(false), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
+  { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT, 'one READY alien per registry slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) }
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Megawhatt')
   assert(f.h < 110 && f.w < 60, `small hurtbox (${f.w}x${f.h})`); assert.equal(f.h, 72)

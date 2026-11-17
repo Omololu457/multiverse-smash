@@ -10,6 +10,7 @@ const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/jav
 const server = await new Promise(r => { const s = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]); const f = path.join(ROOT, u === "/" ? "/index.html" : u); if (!f.startsWith(ROOT)) { res.writeHead(403).end(); return; } fs.readFile(f, (e, d) => { if (e) { res.writeHead(404).end(); return; } res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); res.end(d); }); }); s.listen(0, "127.0.0.1", () => r(s)); });
 const base = `http://127.0.0.1:${server.address().port}`;
 let pass = 0, fail = 0;
+const { BEN10_SLOT_COUNT: SLOTS } = await import("../aliens.js");   // the cap is one pick per registry slot (not a literal)
 const check = (n, c, e = "") => { console.log(`${c ? "✓" : "✗"} ${n}${e ? "  — " + e : ""}`); c ? pass++ : fail++; };
 const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -22,8 +23,8 @@ try {
   // Open the Omnitrix loadout screen with an EMPTY draft, then read the cap/maxPick.
   await page.evaluate(() => window.__harness.showAlienSelect(0));
   const st0 = await page.evaluate(() => window.__harness.alienSelectState());
-  check("pick-cap is 5 (one per slot combo)", st0.cap === 5, `cap=${st0.cap}`);
-  check("maxPick drives 'Pick up to 5' text", st0.maxPick === 5, `maxPick=${st0.maxPick}`);
+  check(`pick-cap is ${SLOTS} (one per slot combo; count read from the registry)`, st0.cap === SLOTS, `cap=${st0.cap}`);
+  check(`maxPick drives 'Pick up to ${SLOTS}' text`, st0.maxPick === SLOTS, `maxPick=${st0.maxPick}`);
   check("draft starts empty", st0.draft.length === 0, `draft=${JSON.stringify(st0.draft)}`);
 
   // Click every DISTINCT alien card through the real canvas click handler; the draft stops at the cap.
@@ -34,14 +35,14 @@ try {
     await page.waitForTimeout(40);
   }
   const st1 = await page.evaluate(() => window.__harness.alienSelectState());
-  check("clicking every card fills the draft to the cap (5) and never past it", st1.draft.length === Math.min(5, rects.length) && st1.draft.length <= 5, `cards=${rects.length} draft.length=${st1.draft.length} draft=${JSON.stringify(st1.draft)}`);
+  check(`clicking every card fills the draft to the cap (${SLOTS}) and never past it`, st1.draft.length === Math.min(SLOTS, rects.length) && st1.draft.length <= SLOTS, `cards=${rects.length} draft.length=${st1.draft.length} draft=${JSON.stringify(st1.draft)}`);
 
   // Clicking an already-picked card should DESELECT (toggle), dropping back to 3 — proves toggle still works.
   const r0 = rects[0];
   await page.mouse.click(r0.x + r0.w / 2, r0.y + r0.h / 2);
   await page.waitForTimeout(40);
   const st2 = await page.evaluate(() => window.__harness.alienSelectState());
-  check("re-click deselects (toggle) → 4", st2.draft.length === 4, `draft.length=${st2.draft.length}`);
+  check(`re-click deselects (toggle) → ${SLOTS - 1}`, st2.draft.length === SLOTS - 1, `draft.length=${st2.draft.length}`);
 
   check("no JS errors", jsErrors.length === 0, jsErrors.slice(0, 2).join(" | "));
 } catch (e) { console.log("FATAL", e); fail++; }

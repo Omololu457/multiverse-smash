@@ -5,6 +5,7 @@ import { MEGAWHATT } from "./megawhatt.js"
 import { XLR8 } from "./xlr8.js"
 import { GOOP } from "./goop.js"
 import { EYEGUY } from "./eyeguy.js"
+import { GHOSTFREAK } from "./ghostfreak.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -905,6 +906,12 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 8, maxJumps: 2, jumpPower: 22, sizeW: 40, sizeH: 72 },
     basic_attacks: MEGAWHATT.basic_attacks, specials: MEGAWHATT.moves,
     ultimate: { name: "Blackout", cost: 50, damage: 240 } },
+  // Ghostfreak (READY, ghostfreak.js): slim floating hurtbox (44 wide vs the standard 60); Phase / Dread / Possess /
+  // flight / specials / ult via the ready-form hooks. mods (speed 0.90 / dmg 1.00 / def 0.80 / weight 0.50) applied by applyAlien.
+  ghostfreak: { name: "Ghostfreak", color: "#d6d3d1", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 44, sizeH: 110 },
+    basic_attacks: GHOSTFREAK.basic_attacks, specials: GHOSTFREAK.moves,
+    ultimate: { name: "Fear Feast", cost: 50, damage: 240 } },
   // Goop (READY, goop.js): standard-size grounded form; specials / ult / puddle via the ready-form hooks.
   goop: { name: "Goop", color: "#84cc16", maxHealth: 1000,
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 60, sizeH: 110 },
@@ -1009,7 +1016,7 @@ function _readyDef(key) { const d = getAlienDefinition(key); return d && d.statu
 export const MAX_OMNITRIX_SLOTS = BEN10_SLOT_COUNT   // Omnitrix slot count from the registry config (aliens.js; 6: ↓↓ then ONE of Light/Heavy/Special/Grab/Charge/Ultimate; ↓↓ + Block reverts)
 // Default loadout = the first MAX_OMNITRIX_SLOTS art-backed aliens (fallback when the player
 // picks nothing). Capped so a fallback loadout never exceeds the number of reachable slots.
-export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8, 6 Eyeguy
+export const DEFAULT_OMNITRIX = ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy", "ghostfreak"]   // slot 1 Swampfire, 2 Heatblast, 3 Megawhatt, 4 Goop, 5 XLR8, 6 Eyeguy, 7 Ghostfreak
 export const EXPERIMENTAL_OMNITRIX = ["xlr8", "diamondhead", "feedback", "wildmutt", "heatblast"]
 
 const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)

@@ -10,7 +10,7 @@ import * as C from '../combat.js'
 import { physics } from '../physics.js'
 import { XLR8, XL_FLASH, XL_ECHO, XL_BLUR, XL_CYCLONE, XL_ULT, XL_SLASH, xlState } from '../xlr8.js'
 import { handleBenKO } from '../ben10State.js'
-import { getAvailableAlienKeys, getAlienDefinition, buildLoadout } from '../aliens.js'
+import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT } from '../aliens.js'
 import fs from 'node:fs'
 
 let passed = 0, failed = 0
@@ -235,7 +235,7 @@ test('10. swap / revert / KO / rematch clear Flash Time and echo state', () => {
 test('11. registry: XLR8 READY in the first placeholder slot (5); long, low hurtbox', () => {
   const d = getAlienDefinition('xlr8'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 5)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
-  assert.deepEqual(getAvailableAlienKeys(false), LOADOUT); assert.deepEqual(buildLoadout(5).map(a => a.id), LOADOUT)
+  { const _ready = getAvailableAlienKeys(false); assert.equal(_ready.length, BEN10_SLOT_COUNT, 'one READY alien per registry slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), LOADOUT) }; assert.deepEqual(buildLoadout(5).map(a => a.id), LOADOUT)
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'XLR8')
   assert(f.w > f.h, `long and low (${f.w}x${f.h})`); assert.equal(f.health, 950, 'shared health pool')
 })

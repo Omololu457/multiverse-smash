@@ -12102,6 +12102,7 @@ const BEN10_SLOT_COMBOS = [
   { field: "grab",          label: "↓↓ + Grab" },      // slot 4 (keyboard O) — one button, no chord
   { field: "charge",        label: "↓↓ + Charge" },    // slot 5 (keyboard P) — one button, no chord
   { field: "ultimate",      label: "↓↓ + Ultimate" },  // slot 6 (keyboard U) — one button, no chord; U outside the ↓↓ window is still the ultimate
+  { field: "upAttack",      label: "↓↓ + Up-Attack" }, // slot 7 (keyboard I; pad ↑ + Light) — one button, no chord; I outside the ↓↓ window is still the launcher
 ]
 // ↓↓ + Block (keyboard ;) turns back to human. Every Omnitrix input is ↓↓ then ONE button (no two-button chords).
 // Slot count lives in the registry (aliens.js BEN10_SLOT_COUNT → fighters.js MAX_OMNITRIX_SLOTS); this table must hold one
@@ -12159,6 +12160,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
   const special = !!inputState.special
   const grabB   = !!inputState.grab, chargeB = !!inputState.charge, blockB = !!inputState.block
   const ultB    = !!inputState.ultimate
+  const upB     = !!inputState.upAttack
 
   // ↓↓ detector: a fresh Down EDGE within OMX_DOUBLE_TAP_WINDOW of the previous one arms the menu.
   if (down && !held.down) {
@@ -12173,7 +12175,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     // Resolve the slot on a fresh edge of ONE button (no chords — every pick is ↓↓ then a single press).
     const eL = light && !held.light, eH = heavy && !held.heavy, eS = special && !held.special
     const eG = grabB && !held.grab, eC = chargeB && !held.charge, eB = blockB && !held.block
-    const eU = ultB && !held.ult
+    const eU = ultB && !held.ult, eUp = upB && !held.up
     let pick = null                                   // { slot } | "revert"
     if (eB)      pick = "revert"                      // ↓↓ + Block (;) → human
     else if (eL) pick = { slot: 0 }                   // slot 1 (Light J)
@@ -12182,6 +12184,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     else if (eG) pick = { slot: 3 }                   // slot 4 (Grab O)
     else if (eC) pick = { slot: 4 }                   // slot 5 (Charge P)
     else if (eU && fighter.omnitrix.aliens?.length > 5) pick = { slot: 5 }   // slot 6 (Ultimate U) — only with a 6th alien, else U stays the ultimate
+    else if (eUp && fighter.omnitrix.aliens?.length > 6) pick = { slot: 6 }  // slot 7 (Up-Attack I) — only with a 7th alien, else I stays the launcher
 
     if (pick === "revert") {
       if (ben10Revert(fighter)) {
@@ -12196,7 +12199,9 @@ function handleOmnitrixSwitch(fighter, inputState) {
         fighter._omxArm = 0; fighter.vx = 0
         fighter._omxConsume = { light: pick.slot === 0, heavy: pick.slot === 1, grab: pick.slot === 3 }
         if (pick.slot === 5) { fighter._omxUltHold = true; fighter._omxUltFree = 0 }                    // slot 6: swallow U until it is released (no ultimate)
+        if (pick.slot === 6) { fighter._omxUpHold = true; fighter._omxUpFree = 0; fighter._omxConsume.upAttack = true }   // slot 7: swallow I until it is released (no launcher)
         inputState.light = inputState.heavy = inputState.special = inputState.grab = inputState.charge = false   // consume this frame's press
+        if (pick.slot === 6) inputState.upAttack = false
       }
     }
   }
@@ -12232,6 +12237,13 @@ function handleOmnitrixSwitch(fighter, inputState) {
       fighter._omxConsume = { ...(fighter._omxConsume || {}), special: true }
       inputState.special = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
     } }
+  // A READY form may own Block + Light (Ghostfreak: PHASE) via its optional blockLight hook; no-op otherwise (Block + Light
+  // has no shared meaning). The Light press is consumed so it never also jabs.
+  { const _rdBL = benReadyForm(fighter)?.blockLight
+    if (_rdBL && !!inputState.block && light && !held.light && _rdBL(fighter, getAbilityContext())) {
+      fighter._omxConsume = { ...(fighter._omxConsume || {}), light: true }
+      inputState.light = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
+    } }
   // ENERGY GUARD (Block + Heavy): opens a 90f absorb window (negates one hit), costs 10 Power, 8s cd.
   // A READY form may own Block + Heavy instead (Heatblast: HEAT ABSORB) via its blockHeavy hook.
   const _rdBH = benReadyForm(fighter)?.blockHeavy
@@ -12251,7 +12263,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
 
   held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
   held.grab = grabB; held.charge = chargeB; held.block = blockB
-  held.ult = ultB
+  held.ult = ultB; held.up = upB
 }
 
 // ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────
@@ -12273,7 +12285,7 @@ function buildNormalControlState(fighter, vKeys) {
   const consume = fighter._omxConsume
   const cl = consume?.light, ch = consume?.heavy
   return {
-    upAttack: g  && vKeys[c.upAttack],                 // dedicated I = up-attack/launcher
+    upAttack: g  && vKeys[c.upAttack] && !consume?.upAttack,   // dedicated I = up-attack/launcher (↓↓ + Up-Attack Omnitrix slot 7 swallows it)
     grab:     g  && vKeys[c.grab] && !consume?.grab,    // dedicated O = grab (↓↓ + Grab Omnitrix slot 4 swallows it)
     air:      !g && vKeys[c.light] && !vKeys[c.down] && !cl,   // airborne J = air attack
     downAir:  !g && vKeys[c.light] &&  vKeys[c.down] && !cl,   // airborne S+J = down-air spike
@@ -12446,6 +12458,7 @@ function _updatePlayerCombatBody(fighter) {
 
   const inputState = getFighterInput(fighter)
   if (fighter._omxUltHold) { if (inputState.ultimate) { inputState.ultimate = false; fighter._omxUltFree = 0 } else if (!((fighter._attackInputLock | 0) > 0) && ++fighter._omxUltFree >= 2) fighter._omxUltHold = false }   // Omnitrix slot 6 (↓↓ + U): the U that picked the alien never also fires the ultimate; released for 2 unlocked frames (the input snapshot masks U during _attackInputLock, one frame stale) → U is the ultimate again
+  if (fighter._omxUpHold) { if (inputState.upAttack) { inputState.upAttack = false; fighter._omxUpFree = 0 } else if (!((fighter._attackInputLock | 0) > 0) && ++fighter._omxUpFree >= 2) fighter._omxUpHold = false }   // Omnitrix slot 7 (↓↓ + I): the I that picked the alien never also fires the launcher (same latch as slot 6)
 
   // SASUKE — M1 KAGUTSUCHI flame STEERING (CANON): while this Sasuke's Amaterasu flame is live, holding
   // Up/Down nudges its trajectory a limited amount (deterministic; input-driven). No-op unless a flame exists.

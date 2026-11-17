@@ -22406,6 +22406,7 @@ function renderHybridFighter(fighter) {
     drawCrowBlindOverlay(c, fighter)        // Itachi Crow Clone — black-feather blind veil over a fighter with the `obscured` debuff (Stage 5)
     drawVoidStarfield(c, fighter)       // Rick Void Form — cosmic starfield, ON TOP of the black sprite
     drawHeatblastFx(c, fighter, globalFrameCount)   // Heatblast — Pyronite Meteor mini-sun pixel rings (render-only; heatblast form only)
+    { const _rd = benReadyForm(fighter); if (_rd && _rd.drawFx) _rd.drawFx(c, fighter, globalFrameCount, getOpponent(fighter)) }   // READY Omnitrix form overlays (Megawhatt marker / Shock / swarm; render-only)
     drawAlienXStarfield(c, fighter)     // Alien X skin (Baki/Boruto/… ) — colourful Celestialsapien starfield, ON TOP of the void-black sprite (skinId endsWith "AlienX")
     drawKakashiAnbuTomoeField(c, fighter)   // Kakashi (ANBU) Alien X skin — floating RED SHARINGAN TOMOE over the void body (kakashi_anbu + skinId endsWith "AlienX")
     drawPhantomZoneOverlay(c, fighter)  // Superman Phantom Zone — spectral energy, ON TOP of the void sprite
@@ -24146,6 +24147,7 @@ function drawBattleScene() {
   drawSyndromeUnder(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
   drawDseylUnder(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
   drawFrozoneUnder(ctx, p1, p2, FROZONE_WORLD)   // Frozone — Black Ice patch, skate ribbon, ultimate floor ice + ramp (world-space, under the fighters; render-only; gated)
+  for (const _bf of [p1, p2]) { const _rd = benReadyForm(_bf); if (_rd && _rd.drawUnder) _rd.drawUnder(ctx, _bf) }   // READY Omnitrix form under-layer (Megawhatt Blackout stage dim; render-only)
   drawEnochUnder(ctx, p1, p2, ENOCH_WORLD)   // Enoch — ICE / FIRE / WATER patches + the hovering disc (world-space, under the fighters; render-only; gated)
   drawMrUnder(ctx,p1,p2) // authored, cached cosmetic foot shadows
   drawBatmanUnder(ctx, p1, p2)   // Batman — low smoke + far-side orbiting bombers under the fighters (render-only; gated)

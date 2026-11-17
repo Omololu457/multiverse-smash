@@ -132,15 +132,16 @@ The number of Omnitrix dial slots has ONE source of truth: `BEN10_SLOT_COUNT` in
   Binding Vow pick is `hash(seed, frame, player) mod loadout length`, so it follows automatically; the alien-select
   pick cap and the HUD read `BEN10_SLOT_COMBOS.length`.
 - `game.js` `BEN10_SLOT_COMBOS` must hold one input per slot (a mismatch logs a warning; extra slots are unreachable,
-  never a crash). Slot 6 = **↓↓ + Light + Heavy + Special**: in `handleOmnitrixSwitch` the 3-button chord is tested
-  FIRST, so all three pressed together beat the Revert chord (Light + Special). Add the slot's buttons to `_omxConsume`.
+  never a crash). Every slot is ↓↓ then ONE button (no chords): J / K / L / O (Grab) / P (Charge) / **U (Ultimate) = slot 6**;
+  ↓↓ + ; (Block) reverts. Slot 6 only takes U when the loadout holds a 6th alien, and `_omxUltHold` swallows U until it
+  is released, so the pick never also fires the ultimate. U outside the ↓↓ window is still the ultimate.
 - The dial is POSITIONAL: slot N = the N-th alien of the live loadout (ready forms, in `DEFAULT_OMNITRIX` / pick order).
   A registry `slot` is documentation of intent, never identity.
 
 To raise the count again (e.g. 6 → 7): bump `BEN10_SLOT_COUNT`, append one `{ field, label }` input to
-`BEN10_SLOT_COMBOS` that cannot collide with an existing chord (or Revert), add its branch to the pick ladder in
-`handleOmnitrixSwitch` (longer chords before shorter ones), extend `_omxConsume`, and add slot-N assertions to the alien's
-harness (input works, chord priority, HUD / select cap = N, Vow pick reaches it). Placeholder behaviour needs no change:
+`BEN10_SLOT_COMBOS` on a button no other slot (or Revert) uses, add its branch to the pick ladder in
+`handleOmnitrixSwitch`, swallow the press (`_omxConsume` / a hold latch like `_omxUltHold`), and add slot-N assertions to
+the alien's harness (input works, no side effect from the button, HUD / select cap = N, Vow pick reaches it). Placeholder behaviour needs no change:
 `buildLoadout()` fills every empty slot with `makePlaceholder(slot)`.
 
 ## Required lifecycle contract

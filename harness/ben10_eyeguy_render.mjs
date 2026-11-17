@@ -1,5 +1,5 @@
 // EYEGUY RENDER CHECK — boots the real game headless, picks Ben 10, starts a match, TRANSFORMS INTO EYEGUY with the
-// real SLOT 6 chord ↓↓ + Light + Heavy + Special (which beats the Revert chord L+S), charges an EX Eye Orb by holding Special, shows UNBLINKING, and repeats under the BINDING VOW.
+// real SLOT 6 input ↓↓ + Ultimate (U; the press never also fires the ultimate), charges an EX Eye Orb by holding Special, shows UNBLINKING, and repeats under the BINDING VOW.
 // Confirms both fighters + HUD render (sprites, not boxes), no page errors, no eyeguy asset 404s, no black screen.
 //   node harness/ben10_eyeguy_render.mjs   → shots in ben10_work/
 import { chromium } from "playwright"
@@ -62,12 +62,13 @@ const egProbe = (force = null) => page.evaluate(async force => {
   return s ? { pips: s.stare.pips, unblink: s.stare.unblinkT, exOrbs: s.stats.exOrbs, orbs: s.stats.orbs, hold: !!s.orbHold, cast: f._spriteCastMove || null, drained: s.stats.drained } : null
 }, force)
 try {
-  // ── 1. production match: Ben → Eyeguy (slot 6: ↓↓ + Light + Heavy + Special) ──
+  // ── 1. production match: Ben → Eyeguy (slot 6: ↓↓ + Ultimate) ──
   const d0 = await boot()
   ok(JSON.stringify(d0?.loadout) === JSON.stringify(["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"]), "default loadout: Eyeguy in slot 6", JSON.stringify(d0?.loadout))
   ok((await H("alienSelectState"))?.cap === 6, "alien select / HUD slot cap = 6 (registry count)", JSON.stringify(await H("alienSelectState")))
-  const d1 = await omx(["j", "k", "l"])
-  ok(d1?.form === "eyeguy", "↓↓ + Light + Heavy + Special (slot 6) transforms into Eyeguy", `form=${d1?.form}`)
+  const d1 = await omx(["u"])
+  ok(d1?.form === "eyeguy", "↓↓ + Ultimate (U, slot 6) transforms into Eyeguy", `form=${d1?.form}`)
+  ok(d1?.ultimateCooldown === 0 && (await page.evaluate(() => window.__harness.p1().energy)) >= 50, "the U press did not also fire an ultimate", `ultCd=${d1?.ultimateCooldown}`)
   ok(/ben10_eyeguy_ready_idle_uniform/.test(d1?.sheet || ""), "Eyeguy frame set active", d1?.sheet)
   const p1 = await H("p1"), p2 = await H("p2")
   ok(p1?.spriteReady !== false && p1?.hasSpriteHandler, "Eyeguy renders as sprites (no fallback box)", `action=${p1?.spriteAction || p1?.action}`)
@@ -91,20 +92,25 @@ try {
   const u = await egProbe("unblink"); await frames(6)
   ok(u && (await egProbe())?.unblink > 0, "Unblinking active (eye glyph over the opponent, HUD)")
   ok(await notBlack("_eyeguy_unblinking.png"), "no black screen (Unblinking)")
-  // ── 4. SLOT 6 from human Ben: slot 1 first, then ↓↓ + L+H+S swaps to slot 6 (beats the Revert chord L+S); slot 5 = XLR8 ──
+  // ── 4. SLOT 6 swap: slot 1 → slot 5 XLR8 (P) → slot 6 Eyeguy (U, held 20 frames: still no ultimate) ──
   await boot(false, { experimental: true, p1Aliens: ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"] })
   const s0 = await H("ben10Details", "p1")
   ok(s0?.loadout?.length === 6 && s0.loadout[5] === "eyeguy", "6-slot loadout, Eyeguy in slot 6", JSON.stringify(s0?.loadout))
   const s1 = await omx(["j"]); ok(s1?.form === "swampfire", "↓↓ + Light → slot 1", `form=${s1?.form}`)
   await H("ben10SetPower", "p1", 100); await frames(120)
-  const s5 = await omx(["k", "l"]); ok(s5?.form === "xlr8", "↓↓ + Heavy + Special → slot 5 XLR8 (unchanged)", `form=${s5?.form}`)
+  const s5 = await omx(["p"]); ok(s5?.form === "xlr8", "↓↓ + Charge (P) → slot 5 XLR8 (unchanged)", `form=${s5?.form}`)
   await H("ben10SetPower", "p1", 100); await frames(120)
-  const s2 = await omx(["j", "k", "l"])
-  ok(s2?.form === "eyeguy", "↓↓ + Light + Heavy + Special → SLOT 6 Eyeguy (chord beats Revert)", `form=${s2?.form}`)
+  await key("s", 2); await key("s", 2); await chord("keydown", ["u"]); await frames(20); await chord("keyup", ["u"]); await frames(60)
+  const s2 = await H("ben10Details", "p1")
+  ok(s2?.form === "eyeguy", "↓↓ + Ultimate → SLOT 6 Eyeguy (swap from XLR8)", `form=${s2?.form}`)
+  ok(s2?.ultimateCooldown === 0 && (await page.evaluate(() => window.__harness.p1().energy)) >= 50, "holding U through the swap fires no ultimate", `ultCd=${s2?.ultimateCooldown}`)
+  await H("ben10SetPower", "p1", 100); await frames(30); await key("u", 3); await frames(10)
+  const s3 = await H("ben10Details", "p1")
+  ok(s3?.ultimateCooldown > 0, "after release, a fresh U is the ultimate again (All-Seeing Eye)", `ultCd=${s3?.ultimateCooldown}`)
   ok(await notBlack("_eyeguy_slot6.png"), "no black screen (slot 6)")
   // ── 5. Binding Vow ──
   await boot(true)
-  const v1 = await omx(["j", "k", "l"])
+  const v1 = await omx(["u"])
   ok(!!v1?.form && ["swampfire", "heatblast", "megawhatt", "goop", "xlr8", "eyeguy"].includes(v1.form), "Vow transform picks a ready form by hash", `form=${v1?.form}`)
   await H("benForm", "eyeguy"); await frames(20)
   const v2 = await H("ben10Details", "p1")

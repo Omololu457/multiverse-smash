@@ -5011,8 +5011,8 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
     ctx.fillStyle = "#7dff6a"
     ctx.fillText("Omnitrix (tap S, S, then ONE key):", 32, panelY + 108)
     ctx.fillText("J Swampfire  K Heatblast  L Megawhatt", 32, panelY + 124)
-    ctx.fillText("O Goop  P XLR8   ; = turn back to Ben", 32, panelY + 140)
-    ctx.fillText("(pad: ↓↓ then Light/Heavy/Special/Grab/Charge/Block)", 32, panelY + 156)
+    ctx.fillText("O Goop  P XLR8  U Eyeguy   ; = back to Ben", 32, panelY + 140)
+    ctx.fillText("(pad: ↓↓ then Light/Heavy/Special/Grab/Charge/Ult/Block)", 32, panelY + 156)
     if (heatblast) {
       ctx.fillStyle = "#ffb347"
       ctx.fillText("Heatblast: L Fireball  fwd+L Rocket  S+L Supernova", 32, panelY + 172)

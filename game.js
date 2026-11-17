@@ -12195,7 +12195,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
       if (act) {
         fighter._omxArm = 0; fighter.vx = 0
         fighter._omxConsume = { light: pick.slot === 0, heavy: pick.slot === 1, grab: pick.slot === 3 }
-        if (pick.slot === 5) fighter._omxUltHold = true                    // slot 6: swallow U until it is released (no ultimate)
+        if (pick.slot === 5) { fighter._omxUltHold = true; fighter._omxUltFree = 0 }                    // slot 6: swallow U until it is released (no ultimate)
         inputState.light = inputState.heavy = inputState.special = inputState.grab = inputState.charge = false   // consume this frame's press
       }
     }
@@ -12252,7 +12252,6 @@ function handleOmnitrixSwitch(fighter, inputState) {
   held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
   held.grab = grabB; held.charge = chargeB; held.block = blockB
   held.ult = ultB
-  if (fighter._omxUltHold) { if (inputState.ultimate) inputState.ultimate = false; else fighter._omxUltHold = false }   // slot-6 pick: U never also fires the ultimate
 }
 
 // ── GHOSTFACE COMPANION SWAP combo ─────────────────────────────────────────
@@ -12446,6 +12445,7 @@ function _updatePlayerCombatBody(fighter) {
   if (isOmniManForcedDescent(fighter)) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }
 
   const inputState = getFighterInput(fighter)
+  if (fighter._omxUltHold) { if (inputState.ultimate) { inputState.ultimate = false; fighter._omxUltFree = 0 } else if (!((fighter._attackInputLock | 0) > 0) && ++fighter._omxUltFree >= 2) fighter._omxUltHold = false }   // Omnitrix slot 6 (↓↓ + U): the U that picked the alien never also fires the ultimate; released for 2 unlocked frames (the input snapshot masks U during _attackInputLock, one frame stale) → U is the ultimate again
 
   // SASUKE — M1 KAGUTSUCHI flame STEERING (CANON): while this Sasuke's Amaterasu flame is live, holding
   // Up/Down nudges its trajectory a limited amount (deterministic; input-driven). No-op unless a flame exists.

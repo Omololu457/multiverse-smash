@@ -374,3 +374,15 @@ raise the dial's slot count to 15: not done (owner decision: PICK FIVE, no new d
 | Conduit Dash | `_benGlide` + a riding hitbox (Brainstorm's Calculated Strike) |
 | Return Fire aim | `api.getOpponent` (the nearest other fighter in 1v1; uses `api.allFighters` if an engine ever provides it) |
 | Full Feedback | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` (System Takeover pattern) |
+
+### Big Chill (added 2026-11-18) — key `bigchill`
+
+READY Necrofriggian, catalog slot 18 (PICK FIVE: no new dial slot; Arcticguana holds 17). Reuses: the per-alien flight
+profile (`FLIGHT_PROFILES.bigchill`, data only), Arcticguana's ice status, Ghostfreak's intangibility tag tests
+(`isEnergyMelee` / `isEnergyProjectile`) through the existing `evade` / `phasing` / `bodyAlpha` hooks, `damageTaken`,
+`_benGlide`, `targetOffset`, `onContact` / projectile `alien` tags.
+
+| Shared rule / hook | Where | Contract |
+|---|---|---|
+| ICE STATUS (Chill → Popsicle → Shatter) | arcticguana.js exports `addChill` / `tickChill` / `endPopsicle` / `shatterPopsicle` / `frozen` / `AG_CHILL` | another ice alien keeps a `chill` record of the same shape in ITS formState and calls these — the rules and numbers (3 pips, 240f expiry, 30 ticks, mash-out, +25 shatter once, any other damage ends it) live in one place. `tickChill` was made an export (no behaviour change). |
+| SHARED ICE IMMUNITY `target._benIceImmuneUntil` | arcticguana.js `iceImmune(s, opp)` / `startIceImmunity(s, opp, extra)` | ONE refreeze-immunity timer per opponent across every ice alien: an absolute simulation frame (`s.frame` = ctx.frame, plain data). Set to start + 30 + 420 when a freeze starts (a mid-freeze swap cannot double-dip) and to thaw + 420 when it ends; `addChill` refuses while it runs. A state without `frame` never reads / writes it (old behaviour). |

@@ -70,6 +70,7 @@ function tick(f, input, ctx, api) {
   s.t++
   if (ctx && Number.isFinite(ctx.stageLeft)) s.stage.L = ctx.stageLeft
   if (ctx && Number.isFinite(ctx.stageWidth)) s.stage.R = ctx.stageWidth
+  if (ctx && Number.isFinite(ctx.frame)) s.frame = ctx.frame                // the shared ice-immunity clock (absolute sim frame)
   input = input || {}
   if (api && api.activeProjectiles) projRef = api.activeProjectiles()      // read-only reference (damage tag lookups / render)
   api0 = api
@@ -268,9 +269,15 @@ CONTACT.push((f, s, target, { proj, blocked }) => { if (proj && proj.alien && pr
 export const AG_CHILL = { MAX: 3, EXPIRE: 240, FREEZE: 30, MASH: 6, IMMUNE: 420, SHATTER: 25, HOLD: 2 }
 const MASH_KEYS = ["light", "heavy", "special", "jump", "grab", "block", "ultimate", "charge"]
 export const frozen = s => !!(s && s.chill.frozen)
+// SHARED ICE IMMUNITY (one timer per OPPONENT across every ice alien — Arcticguana, Big Chill): an absolute simulation frame
+// stored on the target (plain data, GAME_STATE), so a swap between ice aliens can never double-dip a freeze. Set for the
+// whole freeze + 420f when it starts (survives a mid-freeze swap), then 420f from the thaw. Optional: a state with no
+// `frame` (no ctx.frame) never reads or writes it, exactly as before.
+export const iceImmune = (s, opp) => !!opp && Number.isFinite(s.frame) && Number.isFinite(opp._benIceImmuneUntil) && s.frame < opp._benIceImmuneUntil
+export const startIceImmunity = (s, opp, extra = 0) => { if (opp && Number.isFinite(s.frame)) opp._benIceImmuneUntil = s.frame + AG_CHILL.IMMUNE + extra }
 export function addChill(f, s, opp, cast) {
   const c = s.chill
-  if (!opp || opp.eliminated || c.frozen || c.immuneT > 0) return false
+  if (!opp || opp.eliminated || c.frozen || c.immuneT > 0 || iceImmune(s, opp)) return false
   if (c.pipped.includes(cast)) return false                               // one pip per cast
   c.pipped.push(cast); if (c.pipped.length > 8) c.pipped.shift()
   c.pips = Math.min(AG_CHILL.MAX, c.pips + 1); c.lastT = s.t
@@ -281,11 +288,13 @@ function startPopsicle(f, s, opp) {
   const c = s.chill
   c.pips = 0; c.pops++
   c.frozen = { t: 0, until: AG_CHILL.FREEZE, x: opp.x, y: opp.y, hp: null, mash: 0, prev: 0 }
+  startIceImmunity(s, opp, AG_CHILL.FREEZE)
   opp.attacking = false; opp.currentAttack = null; opp.isCharging = false
 }
 export function endPopsicle(f, s, opp, why) {
   const c = s.chill, z = c.frozen; if (!z) return null
   c.frozen = null; c.immuneT = AG_CHILL.IMMUNE; c.pips = 0; c.endT = s.t
+  startIceImmunity(s, opp)
   c.ends.push(why); if (c.ends.length > 6) c.ends.shift()
   if (opp && (why === "expire" || why === "mash")) opp.hitstun = 0           // released at once (never left stuck)
   return z
@@ -297,7 +306,7 @@ export function shatterPopsicle(f, s, opp, api) {
   if (api) api.applyScaledDamage(opp, AG_CHILL.SHATTER * scale, { attacker: f, source: "ability", move: "ag_shatter" })
   return true
 }
-function tickChill(f, s, opp, api) {
+export function tickChill(f, s, opp, api) {
   const c = s.chill
   if (c.immuneT > 0) c.immuneT--
   if (c.pips > 0 && s.t - c.lastT >= AG_CHILL.EXPIRE) c.pips = 0

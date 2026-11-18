@@ -139,6 +139,58 @@ test('3/4. wings follow the flight flag only: closed on the ground / in a plain 
   clearBenFormState(f); assert.equal(f._alienFlightProfile, undefined, 'swap / revert wipe the flight profile')
 })
 
+// ── 4 shared ice ────────────────────────────────────────────────────────────────────────────────────────────
+const { AG_CHILL } = B
+const pip = (f, t, cast, extra = {}) => BIGCHILL.onContact(f, t, { proj: { alien: { chill: 1, cast, ...extra } }, blocked: false, ...extra.info })
+// the fixed +25 through the engine's own scaling (applyScaledDamage: combo scale × the global damage scale), as Arcticguana
+const shatterHp = f => { const r = foe(); const h = r.health; C.applyScaledDamage(r, AG_CHILL.SHATTER * C.getComboScale(f), { attacker: f, source: 'ability', move: 'ag_shatter' }); return h - r.health }
+const freeze = (f, t, base = 100) => { for (let i = 0; i < 3; i++) pip(f, t, base + i); return S(f).chill.frozen }
+test('5. shared ice: the SAME rule object as Arcticguana (3 pips, 240f expiry, 30 ticks, 420f immunity, +25 shatter)', () => {
+  assert.equal(B.AG_CHILL, G.AG_CHILL); assert.deepEqual([AG_CHILL.MAX, AG_CHILL.EXPIRE, AG_CHILL.FREEZE, AG_CHILL.IMMUNE, AG_CHILL.SHATTER], [3, 240, 30, 420, 25])
+})
+test('5. pips: one per cast, max 3 → Popsicle; never from blocks or untagged FX; 240f expiry', () => {
+  const f = ben(), t = foe(); reset(f, t)
+  pip(f, t, 1); pip(f, t, 1); assert.equal(S(f).chill.pips, 1, 'one per cast')
+  BIGCHILL.onContact(f, t, { proj: { alien: { chill: 1, cast: 2 } }, blocked: true }); assert.equal(S(f).chill.pips, 1, 'no pip on block')
+  BIGCHILL.onContact(f, t, { proj: { alien: { cast: 3 } } }); assert.equal(S(f).chill.pips, 1, 'no pip from an untagged effect')
+  step(f, t, AG_CHILL.EXPIRE); assert.equal(S(f).chill.pips, 0, 'expired after 240f')
+  pip(f, t, 4); pip(f, t, 5); assert(!S(f).chill.frozen); pip(f, t, 6); assert(S(f).chill.frozen, '3 pips → frozen'); assert.equal(S(f).chill.pips, 0)
+})
+test('5. Popsicle: held 30 ticks via hitstun leases, then released at once (never stuck), no clock change', () => {
+  const f = ben(), t = foe(); reset(f, t); const x0 = t.x; freeze(f, t); const fr0 = FRAME
+  for (let i = 0; i < AG_CHILL.FREEZE - 1; i++) { step(f, t, 1); assert(S(f).chill.frozen, 'held ' + i); assert(t.hitstun <= AG_CHILL.HOLD + 1, 'hitstun only leased'); assert.equal(t.x, x0) }
+  step(f, t, 2); assert(!S(f).chill.frozen, 'thawed'); assert.equal(t.hitstun, 0, 'released, not stuck'); assert.equal(FRAME - fr0, AG_CHILL.FREEZE + 1, 'the clock ran normally')
+})
+test('5. Shatter: a clean Heavy on a frozen foe ends it ONCE for +25; a second contact adds nothing', () => {
+  const f = ben(), t = foe(); reset(f, t); freeze(f, t); step(f, t, 1); const hp = t.health
+  BIGCHILL.onContact(f, t, { move: { name: 'heavy' } }); assert(!S(f).chill.frozen); assert.equal(S(f).chill.shatters, 1)
+  assert(Math.abs((hp - t.health) - shatterHp(f)) < 1e-6 && shatterHp(f) > 0, `+25 scaled (${hp - t.health} vs ${shatterHp(f)})`)
+  const h2 = t.health; BIGCHILL.onContact(f, t, { move: { name: 'heavy' } }); assert.equal(t.health, h2, 'once')
+})
+test('5. Shatter: Frost Wing Cut tag also shatters; any other damage (Jab / a beam / Ice Spire) ends it with NO bonus', () => {
+  const f = ben(), t = foe(); reset(f, t); freeze(f, t); step(f, t, 1); const hp = t.health
+  BIGCHILL.onContact(f, t, { proj: { alien: { shatter: true, cast: 900 } } }); assert.equal(S(f).chill.shatters, 1); assert(Math.abs((hp - t.health) - shatterHp(f)) < 1e-6, 'the same +25')
+  const g = ben(), u = foe(); reset(g, u); freeze(g, u); step(g, u, 1); const h2 = u.health
+  BIGCHILL.onContact(g, u, { move: { name: 'light' } }); assert(!S(g).chill.frozen); assert.equal(S(g).chill.shatters, 0); assert.equal(u.health, h2, 'no bonus')
+  const k = ben(), v = foe(); reset(k, v); freeze(k, v); step(k, v, 1); v.health -= 10; step(k, v, 1); assert(!S(k).chill.frozen, 'any damage ends it'); assert.equal(S(k).chill.ends.at(-1), 'damage')
+})
+test('5. ONE shared 420f immunity timer: an Arcticguana freeze blocks Big Chill pips (and vice versa), even across a swap', () => {
+  const f = ben('arcticguana'), t = foe(); reset(f, t); A.tickBenAlienForm(f, {}, ctxOf(f, t))
+  const ga = f.omnitrix.formState; for (let i = 0; i < 3; i++) G.addChill(f, ga, t, 50 + i); assert(ga.chill.frozen, 'Arcticguana froze them')
+  G.endPopsicle(f, ga, t, 'expire'); assert(t._benIceImmuneUntil > FRAME, 'immunity on the opponent')
+  assert(F.applyAlien(f, 'bigchill')); f.transformed = true; A.tickBenAlienForm(f, {}, ctxOf(f, t)); assert.equal(S(f).kind, 'bigchill')
+  for (let i = 0; i < 3; i++) pip(f, t, 60 + i); assert.equal(S(f).chill.pips, 0, 'no pips while the shared immunity runs'); assert(!S(f).chill.frozen)
+  FRAME += AG_CHILL.IMMUNE; A.tickBenAlienForm(f, {}, ctxOf(f, t)); freeze(f, t, 70); assert(S(f).chill.frozen, 'after 420f Big Chill freezes')
+  B.endPopsicle(f, S(f), t, 'expire')
+  assert(F.applyAlien(f, 'arcticguana')); A.tickBenAlienForm(f, {}, ctxOf(f, t)); const g2 = f.omnitrix.formState
+  for (let i = 0; i < 3; i++) G.addChill(f, g2, t, 80 + i); assert(!g2.chill.frozen && g2.chill.pips === 0, 'and Arcticguana is blocked by Big Chill\'s thaw')
+})
+test('5. a mid-freeze swap cannot double-dip (immunity covers the whole freeze + 420f from its start)', () => {
+  const f = ben(), t = foe(); reset(f, t); A.tickBenAlienForm(f, {}, ctxOf(f, t)); freeze(f, t); assert(S(f).chill.frozen)
+  assert(F.applyAlien(f, 'arcticguana')); A.tickBenAlienForm(f, {}, ctxOf(f, t)); step(f, t, 3); assert.equal(t.hitstun, 0, 'swap releases them (lease lapses)')
+  const ga = f.omnitrix.formState; for (let i = 0; i < 3; i++) G.addChill(f, ga, t, 90 + i); assert(!ga.chill.frozen, 'no refreeze')
+})
+
 //@@NEXT@@
 console.log(`BIG CHILL: ${passed} passed, ${failed} failed`)
 if (failed) process.exit(1)

@@ -7,6 +7,8 @@
 // Sheet: docs/ben10/aliens/bigchill/SPRITE_LEDGER.md.
 import { BIGCHILL_ANIM, BIGCHILL_GEOM, BIGCHILL_FX, BIGCHILL_ICE_FX } from "./bigchillAssets.js"
 import { flightTakeoff, isFlying, FLIGHT_PHASE, flightKnockedDown } from "./flight.js"   // reused (Ghostfreak / Alien X / Jetray do the same)
+import { AG_CHILL, addChill, endPopsicle, shatterPopsicle, tickChill, frozen, iceImmune } from "./arcticguana.js"   // the SHARED ice status (rules + numbers reused, never re-implemented)
+export { AG_CHILL, frozen, endPopsicle }
 export { BIGCHILL_ANIM, BIGCHILL_GEOM, BIGCHILL_FX, BIGCHILL_ICE_FX }
 
 export const BC_KEY = "bigchill"
@@ -46,6 +48,7 @@ export function freshBigChillState() {
   return { kind: BC_KEY, t: 0, frame: 0, seed: 1, castId: 0, noAttack: false,
     stage: { L: -1e6, R: 1e6 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5, spPrev: false, spHeld: false,
+    chill: freshChill(),   // the shared ice status record — Arcticguana's exact shape (its functions run on it)
     jumpHeld: 0, airborne: false, apexY: null, capY: null, flightUsed: 0, flyT: 0, flights: 0, diveUsed: false,
     stats: { casts: 0 } }
 }
@@ -190,7 +193,84 @@ TICKS.push(function tickFlight(f, s, input) {
   }
 })
 
+// ── 4. SHARED ICE SYSTEM (Arcticguana's Chill → Popsicle → Shatter, called — not re-implemented) ─────────────────
+// CHILL: one pip per CAST (a cast id on the tag) from Freeze Breath, Frost Wing Cut, Ice Spire, Cocoon's burst and Diving
+// Chill; max 3; 240f expiry; never from blocks, FX, trails or mist (only tags carrying `chill` count). 3 pips → the
+// shared POPSICLE freeze (30 ticks, held via hitstun leases, input polling + clock untouched, mash-out read only).
+// SHATTER: a clean Heavy or Frost Wing Cut on the frozen opponent ends it ONCE for the fixed +25. ANY other damage ends it
+// with no bonus. 420f refreeze immunity — ONE timer on the opponent shared with Arcticguana (arcticguana.iceImmune).
+// Big Chill only renders the shell differently: a procedural pixel ICE COCOON in his own colours (render-only).
+export function freshChill() { return { pips: 0, lastT: -999, pipped: [], immuneT: 0, frozen: null, pops: 0, shatters: 0, ends: [], endT: -999, shatterT: -999 } }
+export const BC_SHATTER_MOVES = ["heavy"]
+export const sharedImmune = (s, opp) => s.chill.immuneT > 0 || iceImmune(s, opp)
+TICKS.push((f, s, input, ctx, api, opp) => tickChill(f, s, opp, api))
+CONTACT.push((f, s, target, { proj, move, blocked }) => {   // shatter first, then chill (a shatter starts immunity)
+  if (blocked) return
+  const tag = proj && proj.alien
+  const shatters = (tag && tag.shatter) || (!proj && move && (move.bcShatter || BC_SHATTER_MOVES.includes(move.name)))
+  if (frozen(s)) { if (shatters) shatterPopsicle(f, s, target, api0); else endPopsicle(f, s, target, "damage") }
+  if (tag && tag.chill) addChill(f, s, target, tag.cast)
+})
+
 // ── HUD + render-only overlays (read GAME_STATE, never write it) ───────────────────────────────────────────
 const HUD = [], FX = []   // render sections, filled below
 export function drawBigChillHud(ctx, f, box = {}) { const s = bcState(f); if (!ctx || !s) return; for (const h of HUD) h(ctx, f, s, box) }
 export function drawBigChillFx(c, f, frame = 0, opp = null) { const s = bcState(f); if (!c || !s) return; for (const h of FX) h(c, f, s, frame, opp) }
+
+// ── render helpers (render-only) ──────────────────────────────────────────────────────────────────────────────
+export const ICE = "#bfefff", ICE2 = "#7dd3fc", DEEP = "#1e3a8a", WING = "#2b4fa8", INK = "#06121c", SNOW = "#f0fbff", GLOW = "#67e8f9"
+function px(c, x, y, k = 3) { c.fillRect(Math.round(x - k / 2), Math.round(y - k / 2), k, k) }
+const _imgs = {}
+function img(src) {
+  if (typeof Image === "undefined") return null
+  if (!_imgs[src]) { const im = new Image(); im.src = src; _imgs[src] = im }
+  const im = _imgs[src]; return im.complete && im.naturalWidth ? im : null
+}
+// one frame of a cut FX strip, integer-scaled, nearest-neighbour; `ax` / `ay` = the anchor inside the frame (0..1)
+function fx(c, name, frameI, x, y, k = 2, flip = 1, alpha = 1, ax = 0.5, ay = 0.5) {
+  const d = BIGCHILL_FX[name]; const im = d && img(d.sheet); if (!im) return false
+  const fi = ((frameI % d.frames) + d.frames) % d.frames
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha; c.translate(Math.round(x), Math.round(y)); c.scale(flip, 1)
+  c.drawImage(im, fi * d.w, 0, d.w, d.h, Math.round(-d.w * k * ax), Math.round(-d.h * k * ay), d.w * k, d.h * k); c.restore()
+  return true
+}
+// one of the SHARED ice-folder sprites (Arcticguana's copies), integer-scaled
+function iceFx(c, name, x, y, k = 3, alpha = 1) {
+  const im = img(BIGCHILL_ICE_FX[name]); if (!im) return false
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha
+  c.drawImage(im, Math.round(x - im.naturalWidth * k / 2), Math.round(y - im.naturalHeight * k / 2), im.naturalWidth * k, im.naturalHeight * k); c.restore()
+  return true
+}
+// a procedural pixel ICE COCOON (Big Chill's accent: moth-wing panels in his blue, frost rim, cyan glint) around a box
+export function iceCocoon(c, x0, y0, w, h, t, alpha = 1, crack = 0) {
+  c.save(); c.globalAlpha *= alpha
+  const midx = x0 + w / 2
+  c.globalAlpha *= 0.4; c.fillStyle = ICE; c.fillRect(Math.round(x0), Math.round(y0), Math.round(w), Math.round(h)); c.globalAlpha /= 0.4
+  for (let k = 0; k < 2; k++) {                                         // two folded wing panels wrapping the shell
+    const sx = k ? 1 : -1
+    for (let y = 0; y < h; y += 4) { const bulge = Math.sin(Math.PI * y / h) * w * 0.18, ex = midx + sx * (w / 2 + bulge)
+      c.fillStyle = (y >> 2) % 3 ? WING : DEEP; c.fillRect(Math.round(Math.min(ex, ex - sx * 6)), Math.round(y0 + y), 6, 4) }
+  }
+  c.fillStyle = ICE2; c.fillRect(Math.round(x0), Math.round(y0), Math.round(w), 3); c.fillRect(Math.round(x0), Math.round(y0 + h - 3), Math.round(w), 3)
+  c.fillStyle = SNOW; for (let k = 0; k < 4; k++) px(c, x0 + 8 + k * 6, y0 + 8 + k * 6, 3)
+  c.fillStyle = (t >> 3) % 2 ? GLOW : SNOW; px(c, midx + w * 0.22, y0 + h * 0.22, 4)
+  if (crack > 0) { c.fillStyle = INK; for (let k = 0; k < Math.round(6 * crack); k++) px(c, x0 + w * (0.2 + 0.1 * k), y0 + h * (0.3 + 0.08 * ((k * 3) % 5)), 2) }
+  c.restore()
+}
+// CHILL pips over the opponent + the frozen shell + the shatter (shared fx shards + the ice folder's burst / spray)
+FX.push(function drawChill(c, f, s, frame, opp) {
+  if (!opp) return
+  const ch = s.chill, ox = cx(opp), top = opp.y - 14
+  if (ch.pips > 0) for (let i = 0; i < AG_CHILL.MAX; i++) {
+    const x = ox + (i - 1) * 12
+    c.fillStyle = INK; px(c, x, top, 8); c.fillStyle = i < ch.pips ? ICE : "#334155"; px(c, x, top, 5); if (i < ch.pips) { c.fillStyle = WING; px(c, x + 1, top + 1, 2) }
+  }
+  const z = ch.frozen
+  if (z) { const w = (opp.w || 60) + 18, h = (opp.h || 110) + 10, left = Math.max(0, z.until - z.t)
+    iceCocoon(c, ox - w / 2, opp.y - 6, w, h, s.t, 1, left < 8 ? 1 - left / 8 : 0) }
+  if (s.t - ch.shatterT < 16) {
+    const k = (s.t - ch.shatterT) / 16, cy = opp.y + (opp.h || 110) * 0.5
+    iceFx(c, "burst2", ox, opp.y + (opp.h || 110) * 0.4, 3, 1 - k); iceFx(c, "spray", ox + 20, opp.y + (opp.h || 110) * 0.6, 3, 1 - k)
+    for (let a = 0; a < 8; a++) fx(c, "shard", a, ox + Math.cos(a * 0.785) * 90 * k, cy + Math.sin(a * 0.785) * 70 * k, 2, Math.cos(a * 0.785) < 0 ? -1 : 1, 1 - k)
+  }
+})

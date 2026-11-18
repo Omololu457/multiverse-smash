@@ -103,9 +103,24 @@ No dedicated jump, fall, crouch, block, hurt, get-up, win, low, launcher or air 
 ## Extracted vs procedural effects
 
 Extracted (real art): the spiral spin (S1–S8, R1–R6) with its fur flecks; the fur speed blur on B4; the snort puff on V3.
-Procedural (render-only, never GAME_STATE, no hitbox) — listed with the moves that draw them in `wildmutt.js`; see the final
-section below.
+Procedural (render-only, never GAME_STATE, no hitbox): see the final section below.
 
 ## Procedural effects (as built)
 
-_Filled in by the moves / ultimate phases._
+All drawn by `wildmutt.js` (`drawWildmuttFx` / `drawWildmuttHud` / `bodyOffset` / `targetOffset`): render-only, read GAME_STATE,
+never write it, no hitbox.
+
+| Effect | Used by | Why procedural |
+|---|---|---|
+| Claw slash: three stepped pixel arcs in white / light grey on the active frames | Jab, Heavy (bigger, further out), Low, Air, Claw Rush 2nd hit, Pounce, Scent Leap | the sheet has no slash / swipe art |
+| Render-only lunge / airborne offset (body draw offset) | Jab (up to 10 px), Heavy (up to 18 px), Air (−6 px) | normals reuse body frames; the lunge sells the reach |
+| Travel dust: fading tan pixel puffs behind his feet | Pounce, Claw Rush, Ground Shred while travelling | no dust art |
+| Spin blur ring: a rotating stepped pixel ellipse at the 140 px radius (shows the hit area) | Spin Slash active frames (the spiral art itself is EXTRACTED) | the radius is a gameplay fact the art does not show |
+| Curl ring: white pixel ring while the i-frames run | Feral Curl frames 4–10 | i-frame read |
+| FRENZY: red pixels bristling along his spine + a growl burst (two expanding white pixel arcs) when it starts | FRENZY | no tinted / roar-burst art |
+| Fury gauge (orange; FRENZY flashes red / white with its seconds left; grey while cooling down) | HUD under Omnitrix Power | HUD |
+| Ult barrage: the spin frames orbit the pinned opponent at each pass's hashed angle (body draw offset) + claw streaks across them at that angle; the opponent jolts per hit (target offset) | Primal Takedown | composition of extracted frames |
+| Ult finisher: the Heavy frames drawn ×1.35 (sprite.js `formState.renderScale`, a non-serialised derived getter) + a white impact ring | Primal Takedown slam | the brief's "scaled-up" slam; no separate art |
+
+Extracted (real art, never redrawn): the spiral spin cycle S1–S8 / R1–R6 with its fur flecks, the fur speed blur on B4, the snort
+puff on V3, every body pose listed above.

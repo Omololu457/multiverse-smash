@@ -231,6 +231,29 @@ hover-flight = hold Jump in the air, Dialogue Taunt = hold Block + Light 20f (co
 Surge = automatic at 100 Surge, Genetic Purge = the Ultimate. Tests: `npm run test:highbreed`, `test:highbreed-render`,
 `test:highbreed-framedata`.
 
+### Wildmutt hooks (added with Wildmutt, 2026-11-18) — key `wildmutt_ov`
+
+Same contract: optional, backward-compatible, ben10-gated, a strict no-op for every fighter that does not set them.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| **NO POSITIONAL BONUS tag** `tags: ["noPositionalBonus"]` on a READY registry entry | ben10State.js `benNoPositionalBonus(f)` / `benPositionalBehind(attacker, target)`; abilities.js Kakashi Sennen Goroshi (the one facing-based bonus in the game today) | A form carrying the tag perceives all around: **any** mechanic that grants a BONUS because the attacker is behind / on the blind side (a cross-up launch, a blind-spot damage modifier, a "can't react in time" tag) must ask `benPositionalBehind(attacker, target)` — the shared facing test — or `benNoPositionalBonus(target)`, and skip the bonus against a tagged form. Only the positional EXTRA goes: base damage, hitstun, combos, blocking and being hit are untouched (the engine's guard is not facing-based). **Every future cross-up-style bonus, on any alien or roster character, must use the helper.** false for everyone else → byte-identical (Kakashi's math is the same expression). |
+| **Render scale during a capture cinematic** (extends Highbreed's `formState.renderScale` contract) | sprite.js draw scale (unchanged) | A form MAY expose `renderScale` as a **non-enumerable getter derived from its cinematic's phase** (never stored, never serialised, not GAME_STATE) while it is invulnerable and both fighters are pinned by its own capture — no hurtbox can matter then. Wildmutt's Primal Takedown finisher draws the Heavy frames ×1.35 this way. Outside such a cinematic the original rule stands: renderScale only together with a matching `hurtbox(f)`. |
+
+Everything else is existing hooks: `moveFrames` (FRENZY −2f startup; Feral Curl takes the Light press after ←←, Jetray /
+BenWolf's input path), `damageDealt` (FRENZY +15 %, never the ult), `onContact` (Fury gains, chain bookkeeping, the Pounce
+knockdown), `api.startMove` (Rath's engine melee specials + chain runner), the hidden **radial** projectile box (`radial: true`
++ `radius`, Humongousaur's Roar / Arcticguana's coat burst pattern; 2f lifetime) for the Spin Slash, `_benLunge` / `_benGlide`
+(real travel / the Scent Leap dive), `bodyOffset` / `targetOffset` (render-only lunge / ult orbit / jolts). The **quadruped
+hurtbox** needs no hook: it is just the pool entry's `sizeW: 96, sizeH: 76` (low and wide vs human Ben's 60 × 110).
+
+**Wildmutt (2026-11-18)** is a PICK FIVE pick (registry `slot: 24`, catalog metadata). The brief asked for the first placeholder
+slot or slot 23 and a raised dial count; there is no placeholder slot, Highbreed (READY) already holds 23 and is never
+overwritten, and PICK FIVE (no new dial slots, ever) wins — so no slot count, chord, HUD or Vow change; he is picked into the
+5-slot loadout and reached with the Dial (↓↓ + slot key) like every pick. Inputs: Spin Slash ↓↘→ + Special, Pounce →→ + Special,
+Claw Rush ↓↙← + Special, Ground Shred ←↙↓ + Special, Scent Leap air + Special, Feral Curl ←← + Light, Primal Takedown = the
+Ultimate. Tests: `npm run test:wildmutt`, `test:wildmutt-render`, `test:wildmutt-framedata`.
+
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form

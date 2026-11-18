@@ -19,7 +19,7 @@ const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
   hitstun: 18, knockbackX: 3, knockbackY: -2, frameExact: true, electric: true, ...extra })
 
 export const FEEDBACK = {
-  id: FB_KEY, poolKey: FB_KEY, displayName: "Feedback", slot: 15,
+  id: FB_KEY, poolKey: FB_KEY, displayName: "Feedback", slot: 16,   // catalog slot (metadata; PICK FIVE): the brief said 15, but Humongousaur took 15 on main and ready slots must stay contiguous (ben10_moveset_p4)
   status: "ready", sheetPath: "./ben10_feedback_ready_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/feedback/SPRITE_LEDGER.md",
   mods: { speed: 1.05, damage: 0.95, defense: 0.90, weight: 0.85 },

@@ -3,7 +3,7 @@
 // Design totals: raw move damage × the form's damage mod (0.95) × 0.85^n (85% per move), within ±20%. The live routes then run
 // the real engine (its own curve) and assert the mechanics.
 // Test "slot 15 + Omnitrix Dial": PICK FIVE (owner decision) — the dial is positional over the 5 picked aliens, so the slot is
-// catalog metadata (15: ready slots stay contiguous); Feedback is picked into the loadout and reached with the Dial (↓↓ + slot key).
+// catalog metadata (16: Humongousaur took 15 on main; ready slots stay contiguous); Feedback is picked into the loadout and reached with the Dial (↓↓ + slot key).
 import assert from 'node:assert/strict'
 import * as F from '../fighters.js'
 import { clearBenFormState, handleBenKO } from '../ben10State.js'
@@ -297,12 +297,12 @@ test('swap / revert / KO / rematch clear Charge, the stored record, pips and Bla
   const k = ben(); dirty(k); k.health = 0; handleBenKO(k); assert.equal(U.fbState(k), null, 'KO')
   const r = S(ben()); assert.deepEqual([r.charge, r.stored], [0, null], 'rematch / round end: a fresh form state')
 })
-test('slot → PICK FIVE: slot count stays 5, Feedback READY + pickable (catalog slot 15, contiguous), nothing overwritten', () => {
+test('slot → PICK FIVE: slot count stays 5, Feedback READY + pickable (catalog slot 16, contiguous), nothing overwritten', () => {
   assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
-  const d = getAlienDefinition('feedback_ov'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 15); assert.equal(d.displayName, 'Feedback')
+  const d = getAlienDefinition('feedback_ov'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 16); assert.equal(d.displayName, 'Feedback')
   const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready').map(x => x.slot).sort((a, b) => a - b); assert.deepEqual(ready, ready.map((_, i) => i + 1), 'ready slots contiguous')
   assert.equal(getAlienDefinition('feedback').status, 'experimental', 'the experimental Feedback is untouched')
-  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur']) assert.equal(getAlienDefinition(k).status, 'ready', k)
   assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'feedback_ov').length, 1); assert(getAvailableAlienKeys(false).includes('feedback_ov'))
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))

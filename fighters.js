@@ -13,6 +13,7 @@ import { WILDVINE } from "./wildvine.js"
 import { JETRAY } from "./jetray.js"
 import { DIAMONDHEAD } from "./diamondhead.js"
 import { UPGRADE } from "./upgrade.js"
+import { HUMONGOUSAUR } from "./humongousaur.js"
 import { FEEDBACK } from "./feedback.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
@@ -1001,6 +1002,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 58, sizeH: 112 },
     basic_attacks: UPGRADE.basic_attacks, specials: UPGRADE.moves,
     ultimate: { name: "System Takeover", cost: 55, damage: 240 } },
+  // Humongousaur (READY, humongousaur.js): a big upright bruiser hurtbox (the Size tiers scale it through the hurtbox hook,
+  // feet-anchored and stage-clamped). Growth / Tremor / specials / ult via the ready-form hooks. mods (speed 0.85 / dmg 1.15 /
+  // def 1.20 / weight 1.50) via applyAlien.
+  humongousaur: { name: "Humongousaur", color: "#b45309", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 74, sizeH: 132 },
+    basic_attacks: HUMONGOUSAUR.basic_attacks, specials: HUMONGOUSAUR.moves,
+    ultimate: { name: "Extinction Event", cost: 55, damage: 240 } },
   // Feedback (READY, feedback.js; key feedback_ov — the experimental `feedback` mkAlien above is untouched): a lean body hurtbox
   // (the Siphon Cable joins it via the hurtbox hook). Charge / Plug Guard / stored projectile / Drain / Blackout / specials / ult via
   // the ready-form hooks. mods (speed 1.05 / dmg 0.95 / def 0.90 / weight 0.85) via applyAlien.

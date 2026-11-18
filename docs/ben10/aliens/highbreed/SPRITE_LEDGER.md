@@ -122,6 +122,14 @@ Per-state rows (the MOVE-SET SELECTOR picks the row by his current movement stat
 - **Procedural pixel-style, render-only (no hitbox, no GAME_STATE presence):** the MUTATED glow, the DNA-strand spiral of the Ultimate, the purge beam burst, the wing trail, dive streaks, screen shake. They READ simulation state; they never write it.
 
 
+## As built (2026-11-18, highbreed.js)
+
+- **Move-set selector:** grounded (idle / walking) → the walking rows, running (a dash or the 12f after it) → the running rows, flying (any airborne frame: jump, double jump, hover-flight) → the flying rows. Jab = `light` / `lightRun` / `lightFly`, Heavy = `heavy` / `heavyRun` / `heavyFly`, Air = `airFly`; Low and Launcher have one strip each. Same buttons and frame data in every state.
+- **Genetic Lance:** the melee fallback (projectile excluded): `hbLance` (Attack 2 running) lunge, 280 px real travel, 45.
+- **Flight take-off pose:** flight.js asks for `takeoff`; highbreed.js aliases it to `jump` (take off f0–f2) at runtime, no extra strip.
+- **Ultimate:** `hbUltRise` (take off f3 + flying above (attack)) → `hbUltCircle` (flying above, 20f top-down loop) → `hbUltDive` (Attack 1 flying) × 3 at hashed angles → `hbUltBeam` (Attack 2 walking) + the procedural Purge Beam.
+- **Hitboxes** are engine rect boxes sized to the briefed ranges (Claws 170 px, Heavy 170 px); no hitbox is cut from the art.
+
 Contact sheet: `docs/ben10/aliens/highbreed/contact_sheet.png` (every exported strip; green = feet row, yellow = centre column). Geometry, removed labels, the icon, the projectile sliver, anchors: `source_grid.json`.
 
 Credit: **Ripped by: Eeveeloverthespriter8**.

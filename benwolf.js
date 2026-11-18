@@ -41,7 +41,7 @@ export const BENWOLF = {
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshBenwolfState() {
   return { kind: BW_KEY, t: 0, castId: 0, noAttack: false, base: null, stage: { L: -1e6, R: 1e6 },
-    hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, backPrev: false, backTapT0: -999, backTapT: -999, dodgeTapT: -999, lastDir: 5,
+    oppDir: 1, hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, backPrev: false, backTapT0: -999, backTapT: -999, dodgeTapT: -999, lastDir: 5,
     howl: null, ring: null, ringUsed: null, lowRingUsed: null, rake: null, pounce: null, rise: null, low: null, lowRing: null, dive: null, diveUsed: false, dodge: null, dodgeCd: 0,
     lastHowl: null, lastRake: null, lastPounce: null, lastRise: null, lastLow: null, lastDive: null, landT: -999, ult: null, lastUlt: null,
     moonTimer: 0, moonStrength: 0, moonDur: 0, moonUsed: false, moonCasts: 0, moonEnds: [], lastE: null, regenAdded: 0,
@@ -77,8 +77,9 @@ function tick(f, input, ctx, api) {
   input = input || {}
   if (api && api.activeProjectiles) projRef = api.activeProjectiles()      // read-only reference (tag lookups / render)
   api0 = api
-  tickInputs(f, s, input)
   const opp = api && api.getOpponent ? api.getOpponent(f) : null
+  s.oppDir = opp && !opp.eliminated ? (cx(opp) >= cx(f) ? 1 : -1) : (f.facing || 1)
+  tickInputs(f, s, input, s.oppDir)
   for (const fn of TICKS) fn(f, s, input, api, opp)
   s.noAttack = busy(s)
 }
@@ -108,8 +109,10 @@ const numpad = (input, face) => {
   const v = input.down ? 0 : (input.up || input.jump) ? 6 : 3, h = fwd ? 3 : back ? 1 : 2
   return v + h
 }
-function tickInputs(f, s, input) {
-  const face = f.facing || 1, fwd = face > 0 ? !!input.right : !!input.left, back = face > 0 ? !!input.left : !!input.right
+// Directions are read RELATIVE TO THE OPPONENT (→ = toward them), not to `facing`: the engine turns a fighter with his walk
+// input, so a facing-relative ← would stop being "back" the moment the first ← tap turns him (←← would never register).
+function tickInputs(f, s, input, face) {
+  const fwd = face > 0 ? !!input.right : !!input.left, back = face > 0 ? !!input.left : !!input.right
   if (fwd && !s.fwdPrev && !input.down) { if (s.t - s.fwdTapT <= BW_DASH_WINDOW) s.dashTapT = s.t; s.fwdTapT = s.t }
   if (back && !s.backPrev && !input.down) { if (s.t - s.backTapT0 <= BW_DASH_WINDOW) s.backTapT = s.t; s.backTapT0 = s.t }
   s.fwdPrev = fwd; s.backPrev = back
@@ -253,6 +256,7 @@ function beginCast(f, s, api, poseName, cost, total, { commit = true } = {}) {
   if (!canAct(f, s)) return null
   if (cost && !api.spendEnergy(f, cost)) return null
   f.isCharging = false
+  if (s.oppDir) f.facing = s.oppDir                                          // every cast faces the opponent (a ← motion may have turned him)
   f._benActionEpoch = (f._benActionEpoch || 0) + 1
   f._spriteCastMove = poseName; f._spriteCastTimer = total
   f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
@@ -332,7 +336,7 @@ TICKS.push((f, s, input, api, opp) => {
 // 2. CLAW RAKE (→→ + P, 12) — Attack → f2–4: 8f startup, then a dash slash with REAL travel (15f × 20 px = 300 px,
 //    stage-clamped, no tracking). The first contact stops the dash; hits 2 / 3 follow 6f apart in front of him:
 //    14 / 14 / 22 = 50, −12 on block (on the last hit). The finisher (hit 3) adds +1 Scent on a clean hit. 18f recovery.
-export const BW_RAKE = { STARTUP: 8, SPEED: 20, TRAVEL: 300, HITS: [14, 14, 22], GAP: 6, ON_BLOCK: -12, RECOVERY: 18, W: 70, H: 80, REACH: 34 }
+export const BW_RAKE = { STARTUP: 8, SPEED: 20, TRAVEL: 300, HITS: [14, 14, 22], GAP: 6, ON_BLOCK: -12, RECOVERY: 18, W: 70, H: 80, REACH: 34, FOLLOW: 110 }
 BW_RAKE.FRAMES = Math.round(BW_RAKE.TRAVEL / BW_RAKE.SPEED)
 function castRake(f, s, api) {
   if (!grounded(f)) return false
@@ -344,10 +348,11 @@ function castRake(f, s, api) {
 CASTS.rake = castRake
 function rakeBox(f, s, d, k) {
   const last = k === BW_RAKE.HITS.length - 1
-  hitbox(f, api0, "bw_claw_rake", d.face, { damage: BW_RAKE.HITS[k], spawnX: cx(f) + d.face * ((f.w || 60) / 2 + BW_RAKE.REACH), spawnY: f.y + (f.h || 110) * 0.5,
-    w: BW_RAKE.W + (d.contact == null ? BW_RAKE.SPEED : 0), h: BW_RAKE.H, hitstun: last ? BW_RAKE.RECOVERY + 10 : BW_RAKE.GAP + 12,
+  const follow = d.contact != null                                            // hits 2 / 3: a deeper box in front (the swoosh arcs), never tracking
+  hitbox(f, api0, "bw_claw_rake", d.face, { damage: BW_RAKE.HITS[k], spawnX: cx(f) + d.face * ((f.w || 60) / 2 + (follow ? BW_RAKE.FOLLOW / 2 + 5 : BW_RAKE.REACH)), spawnY: f.y + (f.h || 110) * 0.5,
+    w: follow ? BW_RAKE.FOLLOW : BW_RAKE.W + BW_RAKE.SPEED, h: BW_RAKE.H, hitstun: last ? BW_RAKE.RECOVERY + 10 : BW_RAKE.GAP + 12,
     blockstun: last ? blockstunFor(BW_RAKE.RECOVERY, BW_RAKE.ON_BLOCK) : BW_RAKE.GAP + 8, noHitstop: !last,
-    knockbackX: last ? 6 : 0.8, knockbackY: last ? -3 : 0, alien: { bw: "rake", cast: d.cast, hit: k + 1, scent: last } })
+    knockbackX: last ? 6 : 0.3, knockbackY: last ? -3 : 0, alien: { bw: "rake", cast: d.cast, hit: k + 1, scent: last } })
   d.hits = k + 1
 }
 TICKS.push((f, s) => {
@@ -498,6 +503,7 @@ export const BW_DODGE = { TOTAL: 18, IFROM: 4, ITO: 10, CD: 300, DRIFT: 5 }
 export function castDodge(f, s) {
   if (s.dodgeCd > 0 || !canAct(f, s)) return false
   s.dodgeTapT = s.backTapT
+  if (s.oppDir) f.facing = s.oppDir
   s.dodge = { t: 0, face: f.facing || 1 }; s.dodgeCd = BW_DODGE.CD; s.stats.dodges++
   f.attackCooldown = BW_DODGE.TOTAL; f._benPowerCommit = BW_DODGE.TOTAL; f.vx = 0
   pose(f, "bwDodge", BW_DODGE.TOTAL)
@@ -629,6 +635,7 @@ function fireHowlingMoon(f, ctx, api) {
   const s = bwState(f); if (!s || !canAct(f, s) || moonOn(s) || s.moonUsed) return false
   if (!api.spendEnergy(f, BW_COST.ultimate)) return false
   s.castId++; s.moonUsed = true
+  if (s.oppDir) f.facing = s.oppDir
   const face = f.facing || 1, total = BW_ULT.OPENER_AT + BW_ULT.WHIFF
   f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
   f._spriteCastMove = "bwHowl"; f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
@@ -779,7 +786,7 @@ FX_DRAW.push((c, f, s, frame, opp) => {
 HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {                          // FULL MOON: a pixel moon icon + the seconds left
   const yy = y + 6, k = 2
   if (moonOn(s)) {
-    const ix = flip ? bx + w - 8 : bx + 8
+    const ix = flip ? bx + w - 11 : bx + 10
     ctx.fillStyle = INK; disc(ctx, ix, yy + 6, 4, k); ctx.fillStyle = MOON; disc(ctx, ix, yy + 6, 3, k); ctx.fillStyle = MOON2; ctx.fillRect(ix - 2, yy + 4, 2, 2)
     const frac = s.moonTimer / Math.max(1, s.moonDur), bw = w - 22, x0 = flip ? bx : bx + 20
     ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(x0 - 1, yy + 4, bw + 2, 5); ctx.fillStyle = MOON; const fw = Math.round(bw * frac); ctx.fillRect(flip ? x0 + bw - fw : x0, yy + 5, fw, 3)

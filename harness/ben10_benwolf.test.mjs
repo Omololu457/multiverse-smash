@@ -286,6 +286,101 @@ test('9. stage collision untouched during the night; the night fades in over 20f
   const end = out.findIndex(v => v <= 0); assert(end >= 28 && end <= 31, `fade out ${end}f`)
   assert(!JSON.stringify(S(f)).match(/night|lvl|stars/i), 'no night / star state in GAME_STATE (only the timer)')
 })
-// @@END-TESTS@@
+
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  rake: BW_RAKE.HITS.reduce((a, b) => a + b), pounce: BW_POUNCE.DMG, lowHowl: BW_LOW.HITS.reduce((a, b) => a + b) }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+const ROUTES = [
+  ['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 85],
+  ['2. Low, Heavy, Claw Rake', ['low', 'heavy', 'rake'], 108],
+  ['3. Pounce, Heavy, Low Howl', ['pounce', 'heavy', 'lowHowl'], 124],
+]
+for (const [name, route, target] of ROUTES) test('design total ' + name + ' ≈ ' + target, () => {
+  const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`)
+})
+const sum = d => d.reduce((a, b) => a + b, 0)
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.join('+'), '=', sum(d).toFixed(1))
+})
+test('route 2 live: Low, Heavy, Claw Rake (3 hits, the finisher +1 Scent)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 100); const hp = t.health; f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F'), 'Rake'); let n = 0; while (S(f).rake && n < 80) { world(f, t, 1); n++ } d.push(hp - t.health)
+  assert.equal(S(f).stats.rakeHits, 3, 'all 3 hits land'); assert.equal(S(f).scent.pips, 1); console.log('   HP', d.join('+'), '=', sum(d).toFixed(1))
+})
+test('route 3 live: Pounce (knockdown, +1 Scent), Heavy, Low Howl (2 hits)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 200); f.energy = 100; let hp = t.health; assert(cast(f, t, 'B')); let n = 0; while (S(f).pounce && n < 60) { world(f, t, 1); n++ }
+  const d = [hp - t.health]; assert(S(f).lastPounce.hit); assert.equal(S(f).scent.pips, 1)
+  reset(f, t, 10); d.push(melee(f, t, 'heavy')); reset(f, t, 60); hp = t.health; f.energy = 100; assert(cast(f, t, 'D')); n = 0; while ((S(f).low || S(f).lowRing) && n < 80) { world(f, t, 1); n++ }
+  d.push(hp - t.health); assert.equal(S(f).lowRingUsed.ticks, 2); console.log('   HP', d.join('+'), '=', sum(d).toFixed(1))
+})
+
+// ── 10 slot → PICK FIVE / Dial / HUD / Vow / determinism ─────────────────────────────────────────────────────
+test('10. slot → PICK FIVE: slot count read from the registry (BEN10_SLOT_COUNT), BenWolf READY + pickable at catalog slot 18 (contiguous), no ready alien overwritten', () => {
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('benwolf'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 18); assert.equal(d.displayName, 'BenWolf')
+  const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(ready.map(x => x.slot).sort((a, b) => a - b), ready.map((_, i) => i + 1), 'ready slots contiguous 1..18')
+  assert.equal(ready.length, 18); assert.equal(getAlienDefinition('arcticguana').slot, 17, 'slot 17 = Arcticguana, never overwritten')
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov', 'arcticguana']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'benwolf').length, 1); assert(getAvailableAlienKeys(false).includes('benwolf'))
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Sheet by Dragonrod/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
+})
+test('10. Omnitrix Dial: BenWolf picked into the last slot — same cost as any slot, no clock change, fresh state', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'benwolf'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const c = { seed: 1, frame: 0, playerIndex: 0 }; assert(F.ben10TransformOrSwap(f, slot, c)); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); assert.equal(c.frame, 0, 'clock untouched'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'benwolf'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert.equal(S(a.f).scent.pips, 0); assert.equal(S(a.f).moonTimer, 0); assert.equal(S(a.f).moonUsed, false)
+})
+test('10. HUD: the BenWolf rows stay inside the player bar (no overflow), both sides, every state (dodge cd, Hunted, Full Moon)', () => {
+  for (const flip of [false, true]) for (const st of ['idle', 'cd', 'hunted', 'moon']) {
+    const f = ben(), s = S(f); if (st === 'cd') s.dodgeCd = 120; if (st === 'hunted') s.scent.hunted = 100; if (st === 'moon') { s.moonTimer = 420; s.moonDur = 600; s.moonStrength = 1 }
+    let minX = Infinity, maxX = -Infinity
+    const ctx = { save() {}, restore() {}, fillRect(x, y, w) { minX = Math.min(minX, x); maxX = Math.max(maxX, x + w) }, fillText(str, x) { const w = str.length * 4.2; const x0 = this.textAlign === 'right' ? x - w : x; minX = Math.min(minX, x0); maxX = Math.max(maxX, x0 + w) }, strokeRect() {} }
+    const x = 100, pbw = 120; G.drawBenwolfHud(ctx, f, { x, enY: 40, enH: 8, pbw, flip }); assert(minX >= x && maxX <= x + 8 + pbw + 1, `flip ${flip} ${st}: ${minX}..${maxX}`)
+  }
+})
+test('10. Vow pick includes BenWolf (hash mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'benwolf'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('benwolf') && picks.size === L.length)
+})
+test('10. same-seed determinism: an identical scripted BenWolf sequence (every move, Hunted, the ult) yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light'); melee(f, t, 'heavy')
+    reset(f, t, 80); f.energy = 100; cast(f, t, 'N'); world(f, t, 60, { special: true }); reset(f, t, 200); cast(f, t, 'B'); world(f, t, 50)
+    reset(f, t, 120); S(f).dashTapT = S(f).t; f.energy = 100; cast(f, t, 'F'); world(f, t, 50); reset(f, t, 100); cast(f, t, 'D'); world(f, t, 60)
+    reset(f, t, 100); f.energy = 100; cast(f, t, 'U'); world(f, t, 40); reset(f, t, 200); f.energy = 100; cast(f, t, 'B'); world(f, t, 50)
+    reset(f, t, 100); ready(f); f.energy = 100; A.triggerUltimate(f, ctxOf(f, t)); world(f, t, 200); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x })
+  }
+  const a = run(), b = run(); assert.equal(a, b); assert(JSON.parse(a).s.lastUlt.captured, 'the scripted ult captured')
+})
+test('GAME_STATE stays plain data mid-cast (howl hold, rake, pounce, low ring, dive, dodge, Hunted, Full Moon, ult cinematic)', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; cast(f, t, 'N'); world(f, t, 20, { special: true }); assert(S(f).howl.holding); assert(plain(S(f)), 'howl hold')
+  clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; S(g).dashTapT = S(g).t; cast(g, u, 'F'); world(g, u, 12); assert(plain(S(g)), 'rake')
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 200); huntIt(h, v); h.energy = 100; cast(h, v, 'B'); world(h, v, 10); assert(plain(S(h)), 'pounce + hunted')
+  clearProj(); const k = ben(), w = foe(); far(k, w); k.energy = 100; cast(k, w, 'D'); world(k, w, 20); assert(S(k).lowRing); assert(plain(S(k)), 'low ring')
+  clearProj(); const m = ben(), x = foe(); reset(m, x, 30); m.energy = 100; m.y -= 160; m.onGround = m.grounded = false; cast(m, x, 'N'); world(m, x, 6); assert(plain(S(m)), 'dive')
+  clearProj(); const u2 = ben(), v2 = foe(); reset(u2, v2, 100); ready(u2); u2.energy = 100; A.triggerUltimate(u2, ctxOf(u2, v2)); world(u2, v2, 50)
+  assert(S(u2).ult && S(u2).ult.phase === 'claw', 'mid-cinematic'); assert(G.moonOn(S(u2))); assert(plain(S(u2)), 'ult + moon')
+})
+const stubCtx = () => new Proxy({ globalAlpha: 1, canvas: { width: 1280, height: 720 } }, { get: (o, k) => k in o ? o[k] : () => {}, set: (o, k, v) => (o[k] = v, true) })
+test('render: every move / Hunted / the ult / the night draw without throwing and drawing never changes GAME_STATE', () => {
+  const c = stubCtx(); const run = (f, t, n, input = {}) => { for (let i = 0; i < n; i++) { world(f, t, 1, input); const a = JSON.stringify(S(f)), x = [t.x, t.health, f.x, f.y, f.energy]
+    G.drawBenwolfUnder(c, f); G.drawBenwolfFx(c, f, FRAME, t); G.drawBenwolfHud(c, f, { x: 0, enY: 0, enH: 8, pbw: 200, flip: false }); BENWOLF.bodyOffset(f); BENWOLF.targetOffset(f, t)
+    assert.equal(JSON.stringify(S(f)), a); assert.deepEqual([t.x, t.health, f.x, f.y, f.energy], x) } }
+  for (const dir of ['N', 'B', 'U', 'D']) { clearProj(); const f = ben(), t = foe(); reset(f, t, 100); f.energy = 100; assert(cast(f, t, dir), dir); run(f, t, 70, { special: true }) }
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 120); f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); run(f, t, 45)
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; g.y -= 160; g.onGround = g.grounded = false; assert(cast(g, u, 'N')); run(g, u, 40)
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 100); huntIt(h, v); run(h, v, 3); ready(h); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v))); run(h, v, 200)
+  assert(S(h).lastUlt && S(h).lastUlt.captured); S(h).moonTimer = 2; run(h, v, 40)
+})
+test('no Math.random / gameRng in benwolf.js / benwolfAssets.js', () => {
+  for (const p of ['../benwolf.js', '../benwolfAssets.js']) { const src = fs.readFileSync(new URL(p, import.meta.url), 'utf8'); assert(!/Math\.random|gameRng/.test(src), p) }
+})
 console.log(`\nBENWOLF: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

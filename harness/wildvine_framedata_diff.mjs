@@ -3,6 +3,8 @@
 // BOTH trees are exported with `git archive` to temp dirs (so uncommitted work in the checkout never enters the diff) and
 // compared block-by-block:
 //  1. every roster character: basic_attacks / specials / ultimate / stats / moves / combos / traits / animationData
+// CONCURRENT: Jetray (jetray.js) landed on main from a parallel session between base and head; it is excluded here
+// (its own harness/jetray_framedata_diff.mjs owns it) — every OTHER form must still be deep-equal.
 //  2. every other Ben 10 alien pool entry (BEN10_ALIEN_POOL minus wildvine) + every other READY alien module's tuning / anims / FX
 //  3. registry: no READY alien overwritten, placeholders unchanged; flight profiles of every existing flyer unchanged; skins unchanged
 import fs from 'node:fs'
@@ -36,7 +38,8 @@ try {
   ok('no roster character added or removed', Object.keys(A).length === Object.keys(B).length && Object.keys(B).every(k => A[k]))
 
   const fA = await imp(ta, 'fighters.js'), fB = await imp(tb, 'fighters.js')
-  const pd = Object.keys(fA.BEN10_ALIEN_POOL).filter(k => k !== 'wildvine' && J(fA.BEN10_ALIEN_POOL[k]) !== J(fB.BEN10_ALIEN_POOL[k]))
+  const NEW = ['wildvine', 'jetray']
+  const pd = Object.keys(fA.BEN10_ALIEN_POOL).filter(k => !NEW.includes(k) && J(fA.BEN10_ALIEN_POOL[k]) !== J(fB.BEN10_ALIEN_POOL[k]))
   ok(`Ben 10 alien pool: every other form deep-equal (${Object.keys(fA.BEN10_ALIEN_POOL).length})`, !pd.length, pd.join(', '))
   for (const [file, label] of [['swampfire.js', 'Swampfire'], ['heatblast.js', 'Heatblast'], ['megawhatt.js', 'Megawhatt'], ['goop.js', 'Goop'], ['xlr8.js', 'XLR8'], ['eyeguy.js', 'Eyeguy'], ['ghostfreak.js', 'Ghostfreak'], ['alienx.js', 'Alien X'], ['brainstorm.js', 'Brainstorm'], ['terraspin.js', 'Terraspin']]) {
     const mA = await imp(ta, file), mB = await imp(tb, file), keys = Object.keys(mA).filter(k => /^[A-Z0-9_]+$/.test(k))
@@ -46,8 +49,8 @@ try {
   const alA = await imp(ta, 'aliens.js'), alB = await imp(tb, 'aliens.js')
   const rd = alA.BEN10_ALIEN_REGISTRY.filter(d => d.status === 'ready' && J(d) !== J(alB.BEN10_ALIEN_REGISTRY.find(x => x.id === d.id)))
   ok('registry: no READY alien overwritten', !rd.length, rd.map(d => d.id).join(', '))
-  ok('registry: Wildvine is the only newly READY entry', alB.BEN10_ALIEN_REGISTRY.filter(d => d.status === 'ready' && !alA.BEN10_ALIEN_REGISTRY.some(x => x.id === d.id && x.status === 'ready')).map(d => d.id).join() === 'wildvine')
-  const phA = alA.BEN10_ALIEN_REGISTRY.filter(d => d.status !== 'ready').map(d => d.id).filter(id => id !== 'wildvine')
+  ok('registry: Wildvine is the only newly READY entry', alB.BEN10_ALIEN_REGISTRY.filter(d => d.status === 'ready' && !alA.BEN10_ALIEN_REGISTRY.some(x => x.id === d.id && x.status === 'ready')).map(d => d.id).filter(id => id !== 'jetray').join() === 'wildvine')
+  const phA = alA.BEN10_ALIEN_REGISTRY.filter(d => d.status !== 'ready').map(d => d.id).filter(id => !NEW.includes(id))
   ok('placeholders unchanged', phA.every(id => J(alA.BEN10_ALIEN_REGISTRY.find(d => d.id === id)) === J(alB.BEN10_ALIEN_REGISTRY.find(d => d.id === id))), phA.join(' '))
   const flA = await imp(ta, 'flight.js'), flB = await imp(tb, 'flight.js')
   const fd = Object.keys(flA.FLIGHT_PROFILES).filter(k => J(flA.FLIGHT_PROFILES[k]) !== J(flB.FLIGHT_PROFILES[k]))

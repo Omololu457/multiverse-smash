@@ -209,6 +209,28 @@ chord, HUD or Vow change. Inputs: Pressure Blast ↓↘→ + Special (hold to ch
 Claw Lash →→ + Special, Puddle Form ↓ + Special (hold), Undertow Sweep ←↙↓ + Special, Geyser Dive air + Special,
 Tidal Discharge = the Ultimate. Tests: `npm run test:waterhazard`, `test:waterhazard-render`, `test:waterhazard-framedata`.
 
+### Highbreed hooks (added with Highbreed, 2026-11-18)
+
+Same contract: optional, backward-compatible, ben10-gated, a strict no-op for every fighter that does not set them. Owner
+note: in canon Ben never becomes a Highbreed; he is built as an Omnitrix form on purpose.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| **Move-set selector** `formState.moveAnim = { move, action }` | sprite.js `_resolveAction`, attacking branch (next to the `_crouchAttackVariant` swap) | A form whose sheet draws a different attack per MOVEMENT STATE stamps it from its `moveFrames` hook when a normal starts; the sprite plays `action` while `currentMove === move` and the strip exists. The input mapping and the frame data never change. Highbreed reads the state from the existing flags only: airborne → flying, a dash (`dashTimer`) or the 12f after it → running, else grounded. |
+| **Render scale** `formState.renderScale` (> 1) | sprite.js draw scale (next to `_trapShrinkFrac`) | A fixed-step plain number. A form must set it TOGETHER with a matching `hurtbox(f)` override from the same state (Highbreed: both read `mutT`), never as a free visual. Feet stay planted (the originY anchor). |
+
+Everything else is existing hooks: `hurtbox(f)` (MUTATED ×1.15), `damageDealt` (+15 %), `blockLight` (the Dialogue Taunt
+owns Block + Light), `bodyOffset` / `targetOffset` (render-only ult circling), the per-alien flight profile
+(`FLIGHT_PROFILES.highbreed`, data only, + `_alienFlightProfile`), `_benGlide` / `_benLunge` (dives / lunge travel).
+
+**Highbreed (2026-11-18)** is a PICK FIVE pick (registry `slot: 23`, catalog metadata; Water Hazard holds 22) — the brief
+asked for slot 22 and a raised count; PICK FIVE (no new dial slots, ever) wins, so no slot count, chord, HUD or Vow change.
+Inputs: Rending Claws ↓↘→ + Special, Genetic Lance ←↙↓ + Special (MELEE: the sheet's projectile frame was excluded as
+unclear — see the ledger), Talon Dive →→ + Special (cast grounded he leaps first, no jump spent), Wing Slash air + Special,
+hover-flight = hold Jump in the air, Dialogue Taunt = hold Block + Light 20f (cosmetic, zero gameplay frames), Mutation
+Surge = automatic at 100 Surge, Genetic Purge = the Ultimate. Tests: `npm run test:highbreed`, `test:highbreed-render`,
+`test:highbreed-framedata`.
+
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form

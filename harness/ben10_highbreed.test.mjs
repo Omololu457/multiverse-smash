@@ -257,6 +257,114 @@ test('8. ULTIMATE: whiff / block = no cinematic, 60f recovery; hash angles ident
   for (let i = 0; i < 70; i++) { world(h, v, 1); if (S(h).ult && S(h).ult.phase !== 'opener') assert(!A.activeProjectiles.some(p => p.owner === h), 'strand / beam: no hitbox') }
 })
 
+
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const sumA = a => a.reduce((x, y) => x + y, 0)
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  claws: sumA(HB_CLAWS.HITS), dive: HB_DIVE.DMG, lance: HB_LANCE.DMG }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+for (const [name, route, target] of [['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 90],
+  ['2. Low, Heavy, Rending Claws', ['low', 'heavy', 'claws'], 112], ['3. Talon Dive, Heavy, Genetic Lance (melee fallback)', ['dive', 'heavy', 'lance'], 128]])
+  test('design total ' + name + ' ≈ ' + target, () => { const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`) })
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 2 live: Low, Heavy, Rending Claws (both claw hits land)', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 80); f.comboCounter = 2; f.comboTimer = 30; d.push(runCast(f, t, 'N', { pre: m236 }).dmg); assert.equal(S(f).lastClaws.hits.length, 2); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 3 live: Talon Dive (air), Heavy, Genetic Lance', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; t.x = f.x + 140
+  const d = [runCast(f, t, 'F', { pre: dash, max: 80 }).dmg]; assert(S(f).lastDive.hit); world(f, t, 30)
+  f.facing = 1; reset(f, t, 10); d.push(melee(f, t, 'heavy')); reset(f, t, 150); d.push(runCast(f, t, 'B', { pre: q => { world(q, t, 1); m412(q) } }).dmg); assert.equal(S(f).lastLance.why, 'hit')
+  assert(d.every(x => x > 0)); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+
+// ── 9 swap / revert / KO / rematch (moves) ──────────────────────────────────────────────────────────────────────
+test('9. swap / revert / KO / rematch mid-cast leave no lingering body fields (glide / lunge / flight)', () => {
+  const L = ['highbreed', 'heatblast', 'goop', 'xlr8', 'megawhatt']
+  const mk = () => { const f = ben('highbreed', L), t = foe(); far(f, t); f.energy = 100; dash(f); assert(cast(f, t, 'F')); world(f, t, 12); S(f).surge = 70; S(f).mutCd = 50; return [f, t] }
+  const clean = ben(); const w0 = clean._benWalkSpeed, d0 = clean.dashSpeed
+  let [f] = mk(); assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, 'highbreed')); assert.deepEqual([S(f).dive, S(f).surge, S(f).mutCd], [null, 0, 0], 'swap')
+  assert(!('_benGlide' in f) && !('_benLunge' in f), 'swap: no glide / lunge')
+  ;[f] = mk(); S(f).surge = 100; world(f, foe(), 1); assert(G.mutated(S(f))); assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, 'highbreed'))
+  assert.equal(f._benWalkSpeed, w0, 'MUTATED −5 % undone by the swap'); assert.equal(f.dashSpeed, d0)
+  ;[f] = mk(); F.revertToHuman(f, { forced: true }); assert.equal(G.hbState(f), null); assert(!('_benGlide' in f) && !f._alienFlightProfile, 'revert: no glide / flight profile')
+  ;[f] = mk(); F.setupBen10(f, ['highbreed']); assert.equal(G.hbState(f), null, 'rematch')
+})
+
+// ── 10 slot → PICK FIVE / Dial / HUD / Vow / determinism ─────────────────────────────────────────────────────
+test('10. slot → PICK FIVE: slot count from the registry, Highbreed READY at catalog slot 23 (contiguous), no ready alien overwritten', () => {
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('highbreed'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 23); assert.equal(d.displayName, 'Highbreed')
+  const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(ready.map(x => x.slot).sort((a, b) => a - b), ready.map((_, i) => i + 1), 'ready slots contiguous')
+  for (const [k, sl] of [['goop', 4], ['ripjaws', 20], ['rath', 21], ['waterhazard', 22]]) assert.equal(getAlienDefinition(k).slot, sl, k + ' never overwritten')
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'highbreed').length, 1); assert(getAvailableAlienKeys(false).includes('highbreed'))
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Ripped by: Eeveeloverthespriter8/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
+})
+test('10. Omnitrix Dial: Highbreed picked into the last slot — same cost as any slot, no clock change, fresh state; a hit cancels the dial', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'highbreed'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const c = { seed: 1, frame: 0, playerIndex: 0 }; assert(F.ben10TransformOrSwap(f, slot, c)); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); assert.equal(c.frame, 0, 'clock untouched'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'highbreed'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert.deepEqual([S(a.f).surge, S(a.f).mutT, S(a.f).taunt], [0, 0, null])
+  const h = fresh(); F.applyBen10VariantStats(h, 'default'); F.setupBen10(h, pick); h.energy = 100; assert(F.ben10TransformOrSwap(h, BEN10_SLOT_COUNT - 1, { seed: 1, frame: 0, playerIndex: 0 }))
+  if (!h.transformed) { h.hitstun = 20; F.invalidateBenAction?.(h); for (let i = 0; i < 80; i++) F.updateTransformDevice?.(h, 1000 / 60); assert(!h.transformed || h.activeAlien === 'highbreed', 'a hit during startup cancels or the transform is atomic') }
+})
+test('10. HUD: the Surge gauge / MUTATED / cooldown label stay inside the player bar (both sides, every state)', () => {
+  for (const flip of [false, true]) for (const st of ['base', 'surge', 'full', 'mutated', 'cooldown']) {
+    const f = ben(), s = S(f); if (st === 'surge') s.surge = 40; if (st === 'full') s.surge = 100; if (st === 'mutated') s.mutT = 120; if (st === 'cooldown') { s.mutCd = 100; s.surge = 20 }
+    let minX = Infinity, maxX = -Infinity
+    const ctx = { save() {}, restore() {}, fillRect(x, y, w) { minX = Math.min(minX, x); maxX = Math.max(maxX, x + w) }, fillText(str, x) { const w = str.length * 4.8; const x0 = this.textAlign === 'right' ? x - w : x; minX = Math.min(minX, x0); maxX = Math.max(maxX, x0 + w) }, strokeRect() {} }
+    const x = 100, pbw = 120; G.drawHighbreedHud(ctx, f, { x, enY: 40, enH: 8, pbw, flip }); assert(minX >= x && maxX <= x + 8 + pbw + 1, `flip ${flip} ${st}: ${minX}..${maxX}`)
+  }
+})
+test('10. Vow pick includes Highbreed (hash mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'highbreed'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('highbreed') && picks.size === L.length)
+})
+test('10. same-seed determinism: an identical scripted sequence (every move, flight, Surge → MUTATED, taunt, the ult) yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light'); melee(f, t, 'heavy'); melee(f, t, 'down')
+    reset(f, t, 80); runCast(f, t, 'N', { pre: m236 }); reset(f, t, 150); runCast(f, t, 'B', { pre: m412 })
+    reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; t.x = f.x + 140; runCast(f, t, 'F', { pre: dash, max: 80 }); world(f, t, 30)
+    reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; t.x = f.x + 120; runCast(f, t, 'D', { max: 80 }); world(f, t, 30)
+    far(f, t); f.onGround = f.grounded = false; f.vy = -6; world(f, t, 40, { jump: true }); world(f, t, 60)
+    S(f).surge = 100; world(f, t, 10); world(f, t, HB_TAUNT.HOLD + 5, { block: true, light: true }); world(f, t, 10, { left: true })
+    reset(f, t, 80); ultRun(f, t); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x })
+  }
+  const a = run(), b = run(); assert.equal(a, b); const st = JSON.parse(a).s; assert(st.lastUlt.captured, 'the scripted ult captured'); assert(st.mutations >= 1 && st.taunts >= 1 && st.flights >= 1)
+})
+test('GAME_STATE stays plain data mid-cast (claws, dive, lance, wing, MUTATED, taunt, ult cinematic)', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  const mid = (dir, n, setup) => { const f = ben(), t = foe(); setup(f, t); f.energy = 100; assert(cast(f, t, dir), dir); world(f, t, n); return f }
+  let f = mid('N', 8, (a, b) => { far(a, b); m236(a) }); assert(S(f).claws); assert(plain(S(f)), 'claws')
+  f = mid('F', 12, (a, b) => { far(a, b); dash(a) }); assert(S(f).dive); assert(plain(S(f)), 'dive')
+  f = mid('B', 14, (a, b) => { far(a, b); m412(a) }); assert(S(f).lance); assert(plain(S(f)), 'lance')
+  f = mid('D', 8, (a, b) => { far(a, b); a.y -= 200; a.onGround = a.grounded = false }); assert(S(f).wing); assert(plain(S(f)), 'wing')
+  const m = ben(), mt = foe(); far(m, mt); S(m).surge = 100; world(m, mt, 2); world(m, mt, HB_TAUNT.HOLD, { block: true, light: true }); assert(S(m).mutT > 0 && S(m).taunt); assert(plain(S(m)), 'mutated + taunt')
+  const g = ben(), u = foe(); reset(g, u, 80); ready(g); g.energy = 100; A.triggerUltimate(g, ctxOf(g, u)); world(g, u, 60)
+  assert(S(g).ult && S(g).ult.phase === 'dives', 'mid-cinematic ' + S(g).ult?.phase); assert(plain(S(g)), 'ult')
+})
+const stubCtx = () => new Proxy({ globalAlpha: 1, canvas: { width: 1280, height: 720 } }, { get: (o, k) => k in o ? o[k] : () => {}, set: (o, k, v) => (o[k] = v, true) })
+test('render: every move / MUTATED / taunt / the ult draw without throwing and drawing never changes GAME_STATE', () => {
+  const c = stubCtx(); const run = (f, t, n, input = {}) => { for (let i = 0; i < n; i++) { world(f, t, 1, input); const a = JSON.stringify(S(f)), x = JSON.stringify([t.x, t.health, f.x, f.y, f.energy])
+    G.drawHighbreedFx(c, f, FRAME, t); G.drawHighbreedHud(c, f, { x: 0, enY: 0, enH: 8, pbw: 200, flip: false }); HB.targetOffset(f, t); HB.bodyOffset(f); HB.hurtbox(f); new SpriteHandler().determineAction(f)
+    assert.equal(JSON.stringify(S(f)), a); assert.equal(JSON.stringify([t.x, t.health, f.x, f.y, f.energy]), x) } }
+  for (const [dir, gap, pre] of [['N', 80, m236], ['B', 150, m412], ['F', 150, dash]]) { clearProj(); const f = ben(), t = foe(); reset(f, t, gap); f.energy = 100; pre(f); assert(cast(f, t, dir), dir); run(f, t, 60) }
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; g.y -= 160; g.onGround = g.grounded = false; assert(cast(g, u, 'D')); run(g, u, 40)
+  const m = ben(), mt = foe(); far(m, mt); S(m).surge = 100; run(m, mt, 10); run(m, mt, HB_TAUNT.HOLD + 10, { block: true, light: true })
+  const h = ben(), v = foe(); reset(h, v, 80); ready(h); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v))); run(h, v, 150)
+  assert(S(h).lastUlt && S(h).lastUlt.captured); run(h, v, 20)
+})
+test('no Math.random / gameRng in highbreed.js / highbreedAssets.js', () => {
+  for (const p of ['../highbreed.js', '../highbreedAssets.js']) { const src = fs.readFileSync(new URL(p, import.meta.url), 'utf8'); assert(!/Math\.random|gameRng/.test(src), p) }
+})
+
 // @@END-TESTS@@
 console.log(`\nHIGHBREED: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

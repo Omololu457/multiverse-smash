@@ -20,6 +20,7 @@ import { BIGCHILL } from "./bigchill.js"
 import { RIPJAWS } from "./ripjaws.js"
 import { RATH } from "./rath.js"
 import { WATERHAZARD } from "./waterhazard.js"
+import { HIGHBREED } from "./highbreed.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -66,6 +67,7 @@ export const BEN10_ALIEN_REGISTRY = [
   RIPJAWS,  // READY (2026-11-18): Dragonrod sheet + ledger; Piscciss Volann (STORM TIDE flood: depth states / swim / breath + drowning / fire + electric vs water / Maelstrom Feast); a NEW entry, a PICK-FIVE choice (catalog slot 20 — no new dial slot)
   RATH,     // READY (2026-11-18): blue-background sheet (source unknown) + ledger; Appoplexian brawler (Fury from dealing AND taking hits → RAGING → RATH'S FURY super armor / all-melee kit, no projectiles / Let Me Tell You Something command grab / Rath's Fury beatdown); a NEW entry, a PICK-FIVE choice (catalog slot 21 — no new dial slot)
   WATERHAZARD, // READY (2026-11-18): Fun-tech.tk sheet + ledger; Orishan, strictly water ("water" tag: waterborne in a STORM TIDE flood) — Pressure Core / Puddle Form (Goop's numbers) / Drenched → Short Fuse / Tidal Discharge; a NEW entry, a PICK-FIVE choice (catalog slot 22 — no new dial slot)
+  HIGHBREED, // READY (2026-11-18): DS Alien Force sheet (Ripped by: Eeveeloverthespriter8) + ledger; owner-requested non-canon form — per-movement-state move-set selector / Mutation Surge / Dialogue Taunt / Genetic Purge; a NEW entry, a PICK-FIVE choice (catalog slot 23 — no new dial slot)
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",

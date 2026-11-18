@@ -19,6 +19,7 @@ import { BIGCHILL } from "./bigchill.js"
 import { RIPJAWS } from "./ripjaws.js"
 import { RATH } from "./rath.js"
 import { WATERHAZARD } from "./waterhazard.js"
+import { HIGHBREED } from "./highbreed.js"
 import { FEEDBACK } from "./feedback.js"
 import { BENWOLF } from "./benwolf.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
@@ -1062,6 +1063,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 6, maxJumps: 2, jumpPower: 21, sizeW: 62, sizeH: 112 },
     basic_attacks: WATERHAZARD.basic_attacks, specials: WATERHAZARD.moves,
     ultimate: { name: "Tidal Discharge", cost: 55, damage: 240 } },
+  // Highbreed (READY, highbreed.js): a tall winged insectoid hurtbox. Move-set selector (grounded / running / flying rows) /
+  // Mutation Surge / Dialogue Taunt / Genetic Purge via the ready-form hooks; hover-flight via FLIGHT_PROFILES.highbreed.
+  // mods (speed 0.95 / dmg 1.10 / def 1.05 / weight 1.10) via applyAlien.
+  highbreed: { name: "Highbreed", color: "#b5cee7", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 21, sizeW: 60, sizeH: 124 },
+    basic_attacks: HIGHBREED.basic_attacks, specials: HIGHBREED.moves,
+    ultimate: { name: "Genetic Purge", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

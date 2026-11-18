@@ -115,6 +115,17 @@ FLIGHT_PROFILES.alienx = {
   landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
 }
 
+// HIGHBREED (Ben 10 ready alien, via fighter._alienFlightProfile while transformed): hold Jump in the air to fly on his bat
+// wings. Cruise 6.0, medium drag, 150 frames per airtime (refills on landing), no air dash, grounded 40f after a hard hit.
+// The apex+160 cap / jump bookkeeping live in highbreed.js (flight logic unchanged for every flyer).
+FLIGHT_PROFILES.highbreed = {
+  accel: 1.1, maxH: 6.0, maxV: 4.5, drag: 0.62, reverseBrake: 0.5,
+  overspeedDrag: 0.85, ceilEaseZone: 40, dashSpeed: 0, dashFrames: 0, maxAirDash: 0,
+  dashCost: 9999, energyMax: 150, drainPerFrame: 1, groundRefillPerFrame: 150, liftoff: -2,
+  takeoffFrames: 4, landRecovery: 4, landRecoveryAfterAir: 6, groundedLock: 40,
+  landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
+}
+
 // JETRAY (Ben 10 ready alien, via fighter._alienFlightProfile while transformed): the canon flyer, on the HOMELANDER / SUPERMAN
 // flight architecture (owner request): a P (Charge) TAP takes off / requests a descent-to-land (holding Jump in the air also
 // takes off), free 8-direction flight that stays up without holding anything, real accel / drag, 2 air dashes, 4 s of flight

@@ -1,0 +1,1827 @@
+{
+ "source": "assets/sprites/ben10/aliens/wildmutt.png",
+ "credit": "Sheet source: unknown, add credit if known",
+ "key_report": {
+  "colours": 15,
+  "key": [
+   255,
+   255,
+   255
+  ],
+  "tolerance": 0,
+  "flood_from_edges": true,
+  "keyed_connected_px": 386308,
+  "enclosed_pockets_keyed": {
+   "regions": 103,
+   "pixels": 568
+  },
+  "near_key_colours": [
+   [
+    253,
+    255,
+    192
+   ]
+  ],
+  "palette": {
+   "(0, 0, 0)": "black (eye band, arrows)",
+   "(41, 41, 41)": "Omnitrix dark",
+   "(64, 128, 0)": "Omnitrix shade",
+   "(74, 37, 0)": "outline",
+   "(90, 99, 111)": "Omnitrix ring",
+   "(102, 102, 102)": "claw grey",
+   "(126, 136, 150)": "Omnitrix ring light",
+   "(153, 217, 234)": "sniff puff blue",
+   "(181, 230, 29)": "Omnitrix green",
+   "(192, 0, 0)": "mouth interior red",
+   "(194, 115, 48)": "fur shade",
+   "(208, 223, 80)": "Omnitrix dot",
+   "(252, 146, 37)": "fur",
+   "(253, 255, 192)": "pale highlight",
+   "(255, 255, 255)": "background (key)"
+  }
+ },
+ "cell": [
+  80,
+  51
+ ],
+ "feetY": 47,
+ "centreX": 40,
+ "actionScale": 1.5,
+ "body": {
+  "arch": [
+   [
+    16,
+    45
+   ],
+   [
+    16,
+    121
+   ]
+  ],
+  "curl": [
+   [
+    203,
+    47
+   ]
+  ],
+  "gait": [
+   [
+    308,
+    18
+   ],
+   [
+    308,
+    86
+   ],
+   [
+    308,
+    154
+   ],
+   [
+    307,
+    229
+   ],
+   [
+    307,
+    304
+   ],
+   [
+    304,
+    371
+   ],
+   [
+    312,
+    424
+   ]
+  ],
+  "leap": [
+   [
+    367,
+    23
+   ],
+   [
+    368,
+    132
+   ]
+  ],
+  "stance": [
+   [
+    383,
+    228
+   ]
+  ],
+  "lunge": [
+   [
+    433,
+    70
+   ],
+   [
+    431,
+    135
+   ],
+   [
+    430,
+    206
+   ],
+   [
+    431,
+    283
+   ],
+   [
+    429,
+    367
+   ]
+  ],
+  "voice": [
+   [
+    553,
+    82
+   ],
+   [
+    558,
+    160
+   ],
+   [
+    558,
+    239
+   ]
+  ],
+  "spinA": [
+   [
+    491,
+    147
+   ],
+   [
+    487,
+    202
+   ],
+   [
+    488,
+    252
+   ],
+   [
+    493,
+    308
+   ],
+   [
+    491,
+    362
+   ],
+   [
+    487,
+    420
+   ],
+   [
+    486,
+    469
+   ],
+   [
+    493,
+    525
+   ]
+  ],
+  "spinB": [
+   [
+    651,
+    79
+   ],
+   [
+    647,
+    134
+   ],
+   [
+    648,
+    184
+   ],
+   [
+    646,
+    244
+   ],
+   [
+    650,
+    297
+   ],
+   [
+    652,
+    350
+   ]
+  ]
+ },
+ "duplicates": {
+  "stance": [
+   [
+    434,
+    16
+   ],
+   [
+    437,
+    437
+   ],
+   [
+    510,
+    6
+   ],
+   [
+    559,
+    9
+   ],
+   [
+    656,
+    15
+   ]
+  ],
+  "leap": [
+   [
+    489,
+    72
+   ]
+  ]
+ },
+ "excluded": {
+  "arrows": [
+   [
+    609,
+    252
+   ],
+   [
+    611,
+    84
+   ]
+  ],
+  "rig_parts": [
+   [
+    95,
+    217
+   ],
+   [
+    99,
+    30
+   ],
+   [
+    99,
+    94
+   ],
+   [
+    104,
+    65
+   ],
+   [
+    104,
+    129
+   ],
+   [
+    113,
+    173
+   ],
+   [
+    146,
+    44
+   ],
+   [
+    146,
+    79
+   ],
+   [
+    148,
+    170
+   ],
+   [
+    154,
+    105
+   ],
+   [
+    154,
+    136
+   ],
+   [
+    157,
+    216
+   ],
+   [
+    208,
+    173
+   ],
+   [
+    209,
+    198
+   ],
+   [
+    209,
+    222
+   ],
+   [
+    209,
+    251
+   ],
+   [
+    211,
+    159
+   ],
+   [
+    211,
+    267
+   ],
+   [
+    211,
+    289
+   ],
+   [
+    204,
+    13
+   ],
+   [
+    180,
+    94
+   ],
+   [
+    209,
+    94
+   ],
+   [
+    232,
+    94
+   ],
+   [
+    261,
+    99
+   ],
+   [
+    408,
+    337
+   ],
+   [
+    421,
+    77
+   ]
+  ]
+ },
+ "attached": {
+  "53": [
+   47,
+   50,
+   70
+  ],
+  "48": [
+   52,
+   71,
+   72
+  ],
+  "58": [
+   59
+  ],
+  "51": [
+   60
+  ],
+  "55": [
+   61,
+   62,
+   63
+  ],
+  "56": [
+   65,
+   66,
+   67
+  ],
+  "49": [
+   68
+  ],
+  "57": [
+   69
+  ],
+  "84": [
+   80,
+   83,
+   98
+  ],
+  "81": [
+   88
+  ],
+  "86": [
+   90,
+   91,
+   92
+  ],
+  "85": [
+   93,
+   94,
+   95
+  ],
+  "82": [
+   96
+  ],
+  "87": [
+   97
+  ],
+  "75": [
+   77
+  ]
+ },
+ "spin_relations": [
+  [
+   "spinA",
+   [
+    491,
+    147
+   ],
+   "A rot0"
+  ],
+  [
+   "spinA",
+   [
+    487,
+    202
+   ],
+   "B rot0"
+  ],
+  [
+   "spinA",
+   [
+    488,
+    252
+   ],
+   "A rot270"
+  ],
+  [
+   "spinA",
+   [
+    493,
+    308
+   ],
+   "B rot270"
+  ],
+  [
+   "spinA",
+   [
+    491,
+    362
+   ],
+   "A rot180"
+  ],
+  [
+   "spinA",
+   [
+    487,
+    420
+   ],
+   "B rot180"
+  ],
+  [
+   "spinA",
+   [
+    486,
+    469
+   ],
+   "A rot90"
+  ],
+  [
+   "spinA",
+   [
+    493,
+    525
+   ],
+   "B rot90"
+  ],
+  [
+   "spinB",
+   [
+    651,
+    79
+   ],
+   "A rot0"
+  ],
+  [
+   "spinB",
+   [
+    647,
+    134
+   ],
+   "B rot0"
+  ],
+  [
+   "spinB",
+   [
+    648,
+    184
+   ],
+   "A rot270"
+  ],
+  [
+   "spinB",
+   [
+    646,
+    244
+   ],
+   "B rot180 mirrored"
+  ],
+  [
+   "spinB",
+   [
+    650,
+    297
+   ],
+   "A rot180 mirrored"
+  ],
+  [
+   "spinB",
+   [
+    652,
+    350
+   ],
+   "B rot270 mirrored"
+  ]
+ ],
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "idle - C the crouched stance (the sheet's neutral pose: every row starts on it)"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "sniff idle variation - C -> V3 sniff + the blue puff (cosmetic) -> C"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "voice",
+   "frame": 3,
+   "components": [
+    75
+   ],
+   "attached": [
+    77
+   ],
+   "offset": [
+    17,
+    15
+   ],
+   "role": "sniff idle variation - C -> V3 sniff + the blue puff (cosmetic) -> C"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "voice",
+   "frame": 3,
+   "components": [
+    75
+   ],
+   "attached": [
+    77
+   ],
+   "offset": [
+    17,
+    15
+   ],
+   "role": "sniff idle variation - C -> V3 sniff + the blue puff (cosmetic) -> C"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "sniff idle variation - C -> V3 sniff + the blue puff (cosmetic) -> C"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 1,
+   "components": [
+    31
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    8
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 2,
+   "components": [
+    32
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    12
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 3,
+   "components": [
+    33
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    11
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 4,
+   "components": [
+    29
+   ],
+   "attached": [],
+   "offset": [
+    18,
+    11
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 5,
+   "components": [
+    30
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    9
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 6,
+   "components": [
+    28
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    3
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "gait",
+   "frame": 7,
+   "components": [
+    34
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    11
+   ],
+   "role": "walk - the bounding gait G1-G7 SLOWED (speed 8; no separate walk art)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 7,
+   "components": [
+    34
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    11
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 6,
+   "components": [
+    28
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    3
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 5,
+   "components": [
+    30
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    9
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 4,
+   "components": [
+    29
+   ],
+   "attached": [],
+   "offset": [
+    18,
+    11
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 3,
+   "components": [
+    33
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    11
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 2,
+   "components": [
+    32
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    12
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "gait",
+   "frame": 1,
+   "components": [
+    31
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    8
+   ],
+   "role": "walk back - the gait REVERSED and slowed (no opposite-facing row)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 1,
+   "components": [
+    31
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    8
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 2,
+   "components": [
+    32
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    12
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 3,
+   "components": [
+    33
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    11
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 4,
+   "components": [
+    29
+   ],
+   "attached": [],
+   "offset": [
+    18,
+    11
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 5,
+   "components": [
+    30
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    9
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 6,
+   "components": [
+    28
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    3
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "run",
+   "group": "gait",
+   "frame": 7,
+   "components": [
+    34
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    11
+   ],
+   "role": "run - the bounding gait G1-G7 cycled FAST (speed 4)"
+  },
+  {
+   "anim": "dash",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    35
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    7
+   ],
+   "role": "dash - L1 the airborne pounce"
+  },
+  {
+   "anim": "crouch",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "crouch - REUSED C (already his lowest stance)"
+  },
+  {
+   "anim": "jump",
+   "group": "gait",
+   "frame": 1,
+   "components": [
+    31
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    8
+   ],
+   "role": "jump rise - REUSED G1 (legs flung back; no jump art)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "gait",
+   "frame": 2,
+   "components": [
+    32
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    12
+   ],
+   "role": "double jump - REUSED G2-G5 (the tuck of the gait reads as a mid-air roll)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "gait",
+   "frame": 3,
+   "components": [
+    33
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    11
+   ],
+   "role": "double jump - REUSED G2-G5 (the tuck of the gait reads as a mid-air roll)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "gait",
+   "frame": 4,
+   "components": [
+    29
+   ],
+   "attached": [],
+   "offset": [
+    18,
+    11
+   ],
+   "role": "double jump - REUSED G2-G5 (the tuck of the gait reads as a mid-air roll)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "gait",
+   "frame": 5,
+   "components": [
+    30
+   ],
+   "attached": [],
+   "offset": [
+    22,
+    9
+   ],
+   "role": "double jump - REUSED G2-G5 (the tuck of the gait reads as a mid-air roll)"
+  },
+  {
+   "anim": "fall",
+   "group": "gait",
+   "frame": 7,
+   "components": [
+    34
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    11
+   ],
+   "role": "fall - REUSED G7 (limbs reaching for the ground; no fall art)"
+  },
+  {
+   "anim": "guard",
+   "group": "arch",
+   "frame": 1,
+   "components": [
+    1
+   ],
+   "attached": [],
+   "offset": [
+    17,
+    5
+   ],
+   "role": "block - REUSED A1 the arched braced stance (no block art)"
+  },
+  {
+   "anim": "crouchGuard",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "crouch block - REUSED C"
+  },
+  {
+   "anim": "blockHit",
+   "group": "arch",
+   "frame": 2,
+   "components": [
+    2
+   ],
+   "attached": [],
+   "offset": [
+    17,
+    5
+   ],
+   "role": "block hit - REUSED A2"
+  },
+  {
+   "anim": "hurt",
+   "group": "voice",
+   "frame": 1,
+   "components": [
+    73
+   ],
+   "attached": [],
+   "offset": [
+    15,
+    10
+   ],
+   "role": "hit light / heavy - REUSED V1 rearing back, jaws open (no hurt art)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "gait",
+   "frame": 4,
+   "components": [
+    29
+   ],
+   "attached": [],
+   "offset": [
+    18,
+    11
+   ],
+   "role": "hit in the air - REUSED G4 (tumbling)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "voice",
+   "frame": 1,
+   "components": [
+    73
+   ],
+   "attached": [],
+   "offset": [
+    15,
+    10
+   ],
+   "role": "knockdown - V1 -> the curled huddle (limbless rig torso, reads as tucked)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "curl",
+   "frame": 1,
+   "components": [
+    16
+   ],
+   "attached": [],
+   "offset": [
+    23,
+    20
+   ],
+   "role": "knockdown - V1 -> the curled huddle (limbless rig torso, reads as tucked)"
+  },
+  {
+   "anim": "getup",
+   "group": "curl",
+   "frame": 1,
+   "components": [
+    16
+   ],
+   "attached": [],
+   "offset": [
+    23,
+    20
+   ],
+   "role": "get-up - curl -> C"
+  },
+  {
+   "anim": "getup",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "get-up - curl -> C"
+  },
+  {
+   "anim": "dizzy",
+   "group": "arch",
+   "frame": 1,
+   "components": [
+    1
+   ],
+   "attached": [],
+   "offset": [
+    17,
+    5
+   ],
+   "role": "dizzy - REUSED A1/A2 swaying"
+  },
+  {
+   "anim": "dizzy",
+   "group": "arch",
+   "frame": 2,
+   "components": [
+    2
+   ],
+   "attached": [],
+   "offset": [
+    17,
+    5
+   ],
+   "role": "dizzy - REUSED A1/A2 swaying"
+  },
+  {
+   "anim": "transform",
+   "group": "curl",
+   "frame": 1,
+   "components": [
+    16
+   ],
+   "attached": [],
+   "offset": [
+    23,
+    20
+   ],
+   "role": "transform-in - curl -> B6 rising -> C (no human frames on this sheet)"
+  },
+  {
+   "anim": "transform",
+   "group": "lunge",
+   "frame": 5,
+   "components": [
+    40
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    9
+   ],
+   "role": "transform-in - curl -> B6 rising -> C (no human frames on this sheet)"
+  },
+  {
+   "anim": "transform",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "transform-in - curl -> B6 rising -> C (no human frames on this sheet)"
+  },
+  {
+   "anim": "taunt",
+   "group": "voice",
+   "frame": 2,
+   "components": [
+    74
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    15
+   ],
+   "role": "taunt - V2 bark"
+  },
+  {
+   "anim": "win",
+   "group": "voice",
+   "frame": 1,
+   "components": [
+    73
+   ],
+   "attached": [],
+   "offset": [
+    15,
+    10
+   ],
+   "role": "win - V1 rearing roar <-> V2 bark"
+  },
+  {
+   "anim": "win",
+   "group": "voice",
+   "frame": 2,
+   "components": [
+    74
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    15
+   ],
+   "role": "win - V1 rearing roar <-> V2 bark"
+  },
+  {
+   "anim": "lose",
+   "group": "curl",
+   "frame": 1,
+   "components": [
+    16
+   ],
+   "attached": [],
+   "offset": [
+    23,
+    20
+   ],
+   "role": "lose - the curled huddle"
+  },
+  {
+   "anim": "light",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "JAB - C -> B2 jaws-open claw reach (+ render lunge, procedural claw slash)"
+  },
+  {
+   "anim": "light",
+   "group": "lunge",
+   "frame": 1,
+   "components": [
+    44
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    16
+   ],
+   "role": "JAB - C -> B2 jaws-open claw reach (+ render lunge, procedural claw slash)"
+  },
+  {
+   "anim": "heavy",
+   "group": "arch",
+   "frame": 1,
+   "components": [
+    1
+   ],
+   "attached": [],
+   "offset": [
+    17,
+    5
+   ],
+   "role": "HEAVY - A1 wind-up -> B3 the extended claw stretch (160 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "lunge",
+   "frame": 2,
+   "components": [
+    42
+   ],
+   "attached": [],
+   "offset": [
+    5,
+    16
+   ],
+   "role": "HEAVY - A1 wind-up -> B3 the extended claw stretch (160 px)"
+  },
+  {
+   "anim": "down",
+   "group": "lunge",
+   "frame": 4,
+   "components": [
+    43
+   ],
+   "attached": [],
+   "offset": [
+    5,
+    16
+   ],
+   "role": "LOW - B5 the flat low claw stretch (hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "LAUNCHER - C -> B6 rearing up (the Pounce launch rise)"
+  },
+  {
+   "anim": "up",
+   "group": "lunge",
+   "frame": 5,
+   "components": [
+    40
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    9
+   ],
+   "role": "LAUNCHER - C -> B6 rearing up (the Pounce launch rise)"
+  },
+  {
+   "anim": "air",
+   "group": "gait",
+   "frame": 7,
+   "components": [
+    34
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    11
+   ],
+   "role": "AIR - REUSED G7 limbs forward (+ render-only airborne offset / claw slash)"
+  },
+  {
+   "anim": "grab",
+   "group": "lunge",
+   "frame": 2,
+   "components": [
+    42
+   ],
+   "attached": [],
+   "offset": [
+    5,
+    16
+   ],
+   "role": "grab - REUSED B3"
+  },
+  {
+   "anim": "wmSpinIn",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "SPIN SLASH entry - C -> L1 (spin row 1 opens exactly so)"
+  },
+  {
+   "anim": "wmSpinIn",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    35
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    7
+   ],
+   "role": "SPIN SLASH entry - C -> L1 (spin row 1 opens exactly so)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 1,
+   "components": [
+    55
+   ],
+   "attached": [
+    61,
+    62,
+    63
+   ],
+   "offset": [
+    17,
+    7
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 2,
+   "components": [
+    49
+   ],
+   "attached": [
+    68
+   ],
+   "offset": [
+    21,
+    3
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 3,
+   "components": [
+    53
+   ],
+   "attached": [
+    47,
+    50,
+    70
+   ],
+   "offset": [
+    19,
+    2
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 4,
+   "components": [
+    57
+   ],
+   "attached": [
+    69
+   ],
+   "offset": [
+    18,
+    9
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 5,
+   "components": [
+    56
+   ],
+   "attached": [
+    65,
+    66,
+    67
+   ],
+   "offset": [
+    18,
+    7
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 6,
+   "components": [
+    51
+   ],
+   "attached": [
+    60
+   ],
+   "offset": [
+    21,
+    3
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 7,
+   "components": [
+    48
+   ],
+   "attached": [
+    52,
+    71,
+    72
+   ],
+   "offset": [
+    21,
+    4
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpin",
+   "group": "spinA",
+   "frame": 8,
+   "components": [
+    58
+   ],
+   "attached": [
+    59
+   ],
+   "offset": [
+    18,
+    9
+   ],
+   "role": "SPIN SLASH active - the 8-step spiral cycle S1-S8 (each a quarter turn)"
+  },
+  {
+   "anim": "wmSpinB",
+   "group": "spinB",
+   "frame": 1,
+   "components": [
+    86
+   ],
+   "attached": [
+    90,
+    91,
+    92
+   ],
+   "offset": [
+    17,
+    7
+   ],
+   "role": "GROUND SHRED / ult passes - the 2nd spiral row R1-R6 (half mirrored = the reverse spin)"
+  },
+  {
+   "anim": "wmSpinB",
+   "group": "spinB",
+   "frame": 2,
+   "components": [
+    82
+   ],
+   "attached": [
+    96
+   ],
+   "offset": [
+    21,
+    3
+   ],
+   "role": "GROUND SHRED / ult passes - the 2nd spiral row R1-R6 (half mirrored = the reverse spin)"
+  },
+  {
+   "anim": "wmSpinB",
+   "group": "spinB",
+   "frame": 3,
+   "components": [
+    84
+   ],
+   "attached": [
+    80,
+    83,
+    98
+   ],
+   "offset": [
+    19,
+    2
+   ],
+   "role": "GROUND SHRED / ult passes - the 2nd spiral row R1-R6 (half mirrored = the reverse spin)"
+  },
+  {
+   "anim": "wmSpinB",
+   "group": "spinB",
+   "frame": 4,
+   "components": [
+    81
+   ],
+   "attached": [
+    88
+   ],
+   "offset": [
+    21,
+    3
+   ],
+   "role": "GROUND SHRED / ult passes - the 2nd spiral row R1-R6 (half mirrored = the reverse spin)"
+  },
+  {
+   "anim": "wmSpinB",
+   "group": "spinB",
+   "frame": 5,
+   "components": [
+    85
+   ],
+   "attached": [
+    93,
+    94,
+    95
+   ],
+   "offset": [
+    17,
+    7
+   ],
+   "role": "GROUND SHRED / ult passes - the 2nd spiral row R1-R6 (half mirrored = the reverse spin)"
+  },
+  {
+   "anim": "wmSpinB",
+   "group": "spinB",
+   "frame": 6,
+   "components": [
+    87
+   ],
+   "attached": [
+    97
+   ],
+   "offset": [
+    18,
+    9
+   ],
+   "role": "GROUND SHRED / ult passes - the 2nd spiral row R1-R6 (half mirrored = the reverse spin)"
+  },
+  {
+   "anim": "wmPounce",
+   "group": "stance",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "attached": [],
+   "offset": [
+    16,
+    16
+   ],
+   "role": "POUNCE - C -> L1 airborne -> L2 claws-down landing"
+  },
+  {
+   "anim": "wmPounce",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    35
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    7
+   ],
+   "role": "POUNCE - C -> L1 airborne -> L2 claws-down landing"
+  },
+  {
+   "anim": "wmPounce",
+   "group": "leap",
+   "frame": 2,
+   "components": [
+    36
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    6
+   ],
+   "role": "POUNCE - C -> L1 airborne -> L2 claws-down landing"
+  },
+  {
+   "anim": "wmRush",
+   "group": "lunge",
+   "frame": 2,
+   "components": [
+    42
+   ],
+   "attached": [],
+   "offset": [
+    5,
+    16
+   ],
+   "role": "CLAW RUSH - B3 -> B4 (fur speed blur) -> B5 running slashes"
+  },
+  {
+   "anim": "wmRush",
+   "group": "lunge",
+   "frame": 3,
+   "components": [
+    41
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    16
+   ],
+   "role": "CLAW RUSH - B3 -> B4 (fur speed blur) -> B5 running slashes"
+  },
+  {
+   "anim": "wmRush",
+   "group": "lunge",
+   "frame": 4,
+   "components": [
+    43
+   ],
+   "attached": [],
+   "offset": [
+    5,
+    16
+   ],
+   "role": "CLAW RUSH - B3 -> B4 (fur speed blur) -> B5 running slashes"
+  },
+  {
+   "anim": "wmLeap",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    35
+   ],
+   "attached": [],
+   "offset": [
+    9,
+    7
+   ],
+   "role": "SCENT LEAP - L1 -> G7 diving claws-first"
+  },
+  {
+   "anim": "wmLeap",
+   "group": "gait",
+   "frame": 7,
+   "components": [
+    34
+   ],
+   "attached": [],
+   "offset": [
+    3,
+    11
+   ],
+   "role": "SCENT LEAP - L1 -> G7 diving claws-first"
+  },
+  {
+   "anim": "wmCurl",
+   "group": "curl",
+   "frame": 1,
+   "components": [
+    16
+   ],
+   "attached": [],
+   "offset": [
+    23,
+    20
+   ],
+   "role": "FERAL CURL - the curled huddle"
+  },
+  {
+   "anim": "wmPin",
+   "group": "leap",
+   "frame": 2,
+   "components": [
+    36
+   ],
+   "attached": [],
+   "offset": [
+    8,
+    6
+   ],
+   "role": "PRIMAL TAKEDOWN pin - L2 claws pinning down"
+  },
+  {
+   "anim": "wmUltFinal",
+   "group": "arch",
+   "frame": 1,
+   "components": [
+    1
+   ],
+   "attached": [],
+   "offset": [
+    17,
+    5
+   ],
+   "role": "PRIMAL TAKEDOWN finisher - the Heavy frames (drawn scaled up, render-only)"
+  },
+  {
+   "anim": "wmUltFinal",
+   "group": "lunge",
+   "frame": 2,
+   "components": [
+    42
+   ],
+   "attached": [],
+   "offset": [
+    5,
+    16
+   ],
+   "role": "PRIMAL TAKEDOWN finisher - the Heavy frames (drawn scaled up, render-only)"
+  }
+ ]
+}

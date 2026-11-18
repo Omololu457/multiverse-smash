@@ -359,7 +359,7 @@ export const physics = {
       if (!fighter.onGround && _awayDir !== 0 && (fighter.vx - (_bd.pvx || 0)) * _awayDir > 0)
         fighter.vx = (_bd.pvx || 0) + (fighter.vx - (_bd.pvx || 0)) * _bd.air   // air control away from him: its change halved
       _bd.pvx = fighter.vx
-      fighter.x += ((_awayDir !== 0 && Math.sign(fighter.vx) === _awayDir) ? fighter.vx * _bd.ground : fighter.vx) * _grK
+      fighter.x += (_awayDir !== 0 && Math.sign(fighter.vx) === _awayDir) ? fighter.vx * _bd.ground : fighter.vx   // (one Ben form at a time: Gale Drag and Grounded never overlap)
     } else fighter.x += fighter.vx * _grK
 
     // ── STAGE / CAMERA BOUNDS ────────────────────────

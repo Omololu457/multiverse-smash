@@ -93,6 +93,24 @@
 - **Procedural pixel-style, render-only (no hitbox, no GAME_STATE presence):** the warp-bubble fading TRAIL (rebuilt), eye-laser beams and their glow, tail-laser bolts, wing-slash arcs, sonic-boom rings, Mach Time afterimages and echo ghosts, the Grounded leg crackle, Neuro pips, the barrel-roll rotation, the ultimate's hyperspace starfield / planets / ringed gas giant / asteroid belt / sun flare and screen shake. They READ simulation state; they never write it.
 
 
+## Gameplay build notes (Phases 2–8)
+
+- **PICK FIVE.** The brief's "slot 12 / ↓↓ + Block+Light+Heavy+Special" was NOT added — the owner kept 5 dial slots. Jetray is a
+  pick in the alien-select loadout; registry `slot: 12` is catalog metadata only. Test 13 asserts this instead.
+- **Hurtbox 70 × 96** = torso + inner wing. The drawn wingspan (≈ 146 px on screen) is ≈ 2.4× Ben's width; using it would make
+  him the easiest target in the game, so the wing tips are cosmetic. The 6 px grounded hover is baked into the anchor (render only).
+- **Eye anchor:** per-frame `JETRAY_EYES` (mean of the two small green eye components), mirrored for facing −1. The Eye Laser pose
+  (`jrEye`, front-on beak) puts the eyes almost on the body centre line; side-glide frames lead by ≈ 17 px.
+- **Cosmic Drag vs Superman / Homelander.** Theirs: eye-beam / grab opener → straight UP → slam DOWN. Jetray: low talon SWOOP →
+  SIDEWAYS through hyperspace (render-only parallax starfield + a hash(seed, frame, player) universe) → the 6 hits are the
+  asteroid / moon / ringed giant / belt they are dragged through → SUN SLINGSHOT → flung back in HORIZONTALLY (skid + bounce).
+- **In-game hitbox lifetime gotcha:** `combat.updateProjectiles` culls lifetime ≤ 0 BEFORE hits resolve — a lifetime-1 box never
+  connects in the real game (only a harness that resolves first would pass). All Jetray boxes are lifetime ≥ 2; per-frame boxes
+  replace their previous copy.
+- **Verification:** harness/ben10_jetray.test.mjs 29/0 · harness/ben10_jetray_render.mjs 34/0 (grounded, flying, every
+  special, Mach Time, ultimate, Vow) · harness/jetray_framedata_diff.mjs 20/0 (every other character / alien / flyer / skin
+  unchanged). Design combo totals 72.1 / 92.2 / 106.6 vs 80 / 98 / 112 (within ±20%).
+
 Contact sheet: `docs/ben10/aliens/jetray/contact_sheet.png` (every exported strip at ½ size; green = feet row, blue = anchor column). Geometry, removed glyphs, merged fragments, duplicates, anchors, eyes: `source_grid.json`.
 
 Credit: **Sheet from fun-tech.tk**.

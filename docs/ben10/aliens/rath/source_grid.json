@@ -1,0 +1,1260 @@
+{
+ "source": "assets/sprites/ben10/aliens/rath.png",
+ "credit": "Sheet source: unknown, add credit if known",
+ "key_report": {
+  "colours": 30,
+  "keyed_px": 838017,
+  "key": [
+   0,
+   91,
+   163
+  ],
+  "tolerance": 0,
+  "shared_silhouette_and_rath": [
+   [
+    0,
+    0,
+    0
+   ]
+  ],
+  "near_key_colours": [
+   [
+    9,
+    54,
+    123
+   ]
+  ],
+  "near_key_in_rath": []
+ },
+ "zero_tolerance_key": true,
+ "cell": [
+  84,
+  77
+ ],
+ "feetY": 75,
+ "centreX": 42,
+ "actionScale": 1.5,
+ "torso_window": 16,
+ "groups": {
+  "stand": [
+   [
+    3
+   ],
+   [
+    2
+   ],
+   [
+    5
+   ],
+   [
+    4
+   ]
+  ],
+  "run": [
+   [
+    14
+   ],
+   [
+    6
+   ],
+   [
+    8
+   ],
+   [
+    15
+   ],
+   [
+    7
+   ],
+   [
+    9
+   ]
+  ],
+  "roar": [
+   [
+    1
+   ]
+  ],
+  "crouch": [
+   [
+    22
+   ]
+  ],
+  "punch": [
+   [
+    18
+   ],
+   [
+    16
+   ],
+   [
+    12
+   ],
+   [
+    13
+   ],
+   [
+    17
+   ],
+   [
+    19
+   ],
+   [
+    10
+   ],
+   [
+    11
+   ]
+  ],
+  "leap": [
+   [
+    32
+   ]
+  ],
+  "charge": [
+   [
+    31
+   ],
+   [
+    33
+   ],
+   [
+    25
+   ],
+   [
+    26
+   ],
+   [
+    27
+   ],
+   [
+    28
+   ],
+   [
+    29
+   ]
+  ],
+  "guard": [
+   [
+    24
+   ]
+  ],
+  "rant": [
+   [
+    23
+   ]
+  ],
+  "claw": [
+   [
+    30
+   ],
+   [
+    35
+   ]
+  ],
+  "flex": [
+   [
+    34
+   ]
+  ]
+ },
+ "transform_figures": {
+  "human": 21,
+  "green": 20
+ },
+ "sheet_duplicates": [
+  [
+   "run f1",
+   "run f4"
+  ],
+  [
+   "run f2",
+   "run f5"
+  ],
+  [
+   "run f3",
+   "run f6"
+  ]
+ ],
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    3
+   ],
+   "offset": [
+    21,
+    15
+   ],
+   "role": "idle (Stand T2-T5 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 2,
+   "components": [
+    2
+   ],
+   "offset": [
+    21,
+    14
+   ],
+   "role": "idle (Stand T2-T5 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 3,
+   "components": [
+    5
+   ],
+   "offset": [
+    21,
+    16
+   ],
+   "role": "idle (Stand T2-T5 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 4,
+   "components": [
+    4
+   ],
+   "offset": [
+    21,
+    15
+   ],
+   "role": "idle (Stand T2-T5 loop)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    14
+   ],
+   "offset": [
+    12,
+    21
+   ],
+   "role": "walk - the upright run cycle T6-T11 SLOWED (speed 8)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    6
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "walk - the upright run cycle T6-T11 SLOWED (speed 8)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    8
+   ],
+   "offset": [
+    18,
+    18
+   ],
+   "role": "walk - the upright run cycle T6-T11 SLOWED (speed 8)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    15
+   ],
+   "offset": [
+    12,
+    21
+   ],
+   "role": "walk - the upright run cycle T6-T11 SLOWED (speed 8)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    7
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "walk - the upright run cycle T6-T11 SLOWED (speed 8)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    9
+   ],
+   "offset": [
+    18,
+    18
+   ],
+   "role": "walk - the upright run cycle T6-T11 SLOWED (speed 8)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    9
+   ],
+   "offset": [
+    18,
+    18
+   ],
+   "role": "walk back - the run cycle REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    7
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "walk back - the run cycle REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    15
+   ],
+   "offset": [
+    12,
+    21
+   ],
+   "role": "walk back - the run cycle REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    8
+   ],
+   "offset": [
+    18,
+    18
+   ],
+   "role": "walk back - the run cycle REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    6
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "walk back - the run cycle REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    14
+   ],
+   "offset": [
+    12,
+    21
+   ],
+   "role": "walk back - the run cycle REVERSED and slowed"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    14
+   ],
+   "offset": [
+    12,
+    21
+   ],
+   "role": "run - the upright run cycle T6-T11, fast"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    6
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "run - the upright run cycle T6-T11, fast"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    8
+   ],
+   "offset": [
+    18,
+    18
+   ],
+   "role": "run - the upright run cycle T6-T11, fast"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    15
+   ],
+   "offset": [
+    12,
+    21
+   ],
+   "role": "run - the upright run cycle T6-T11, fast"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    7
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "run - the upright run cycle T6-T11, fast"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    9
+   ],
+   "offset": [
+    18,
+    18
+   ],
+   "role": "run - the upright run cycle T6-T11, fast"
+  },
+  {
+   "anim": "dash",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "dash - the airborne leap B1"
+  },
+  {
+   "anim": "crouch",
+   "group": "crouch",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "offset": [
+    12,
+    36
+   ],
+   "role": "crouch - T13, on all fours (the only quadruped frame)"
+  },
+  {
+   "anim": "jump",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "jump rise - REUSED leap B1 (no jump art)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "double jump - REUSED leap B1"
+  },
+  {
+   "anim": "fall",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "jump fall - REUSED leap B1 (no fall art)"
+  },
+  {
+   "anim": "guard",
+   "group": "guard",
+   "frame": 1,
+   "components": [
+    24
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "guard / block - B2 side-on fists up (no block art; the closest defensive frame)"
+  },
+  {
+   "anim": "crouchGuard",
+   "group": "crouch",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "offset": [
+    12,
+    36
+   ],
+   "role": "crouch block - REUSED crouch T13"
+  },
+  {
+   "anim": "blockHit",
+   "group": "guard",
+   "frame": 1,
+   "components": [
+    24
+   ],
+   "offset": [
+    28,
+    17
+   ],
+   "role": "block hit - REUSED guard B2 (the engine block flash shows the hit)"
+  },
+  {
+   "anim": "hurt",
+   "group": "punch",
+   "frame": 5,
+   "components": [
+    17
+   ],
+   "offset": [
+    19,
+    20
+   ],
+   "role": "hit light / heavy - REUSED wind-up T18 (fists drawn in; no hurt art)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "hit in the air - REUSED leap B1"
+  },
+  {
+   "anim": "knockdown",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "knockdown - REUSED leap B1 -> crouch T13 (no knockdown / lying art)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "crouch",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "offset": [
+    12,
+    36
+   ],
+   "role": "knockdown - REUSED leap B1 -> crouch T13 (no knockdown / lying art)"
+  },
+  {
+   "anim": "getup",
+   "group": "crouch",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "offset": [
+    12,
+    36
+   ],
+   "role": "get-up - REUSED crouch T13 -> Stand T2 (no get-up art)"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    3
+   ],
+   "offset": [
+    21,
+    15
+   ],
+   "role": "get-up - REUSED crouch T13 -> Stand T2 (no get-up art)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    3
+   ],
+   "offset": [
+    21,
+    15
+   ],
+   "role": "dizzy - REUSED Stand T2 (no dizzy art)"
+  },
+  {
+   "anim": "transform",
+   "group": "_human",
+   "frame": 1,
+   "components": [
+    21
+   ],
+   "offset": [
+    30,
+    28
+   ],
+   "role": "TRANSFORM-IN - the sheet's two small figures: human Ben (T0) -> green silhouette (T1) -> Rath Stand T2"
+  },
+  {
+   "anim": "transform",
+   "group": "_green",
+   "frame": 1,
+   "components": [
+    20
+   ],
+   "offset": [
+    29,
+    28
+   ],
+   "role": "TRANSFORM-IN - the sheet's two small figures: human Ben (T0) -> green silhouette (T1) -> Rath Stand T2"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    3
+   ],
+   "offset": [
+    21,
+    15
+   ],
+   "role": "TRANSFORM-IN - the sheet's two small figures: human Ben (T0) -> green silhouette (T1) -> Rath Stand T2"
+  },
+  {
+   "anim": "taunt",
+   "group": "roar",
+   "frame": 1,
+   "components": [
+    1
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "taunt - T12 pointing / roaring"
+  },
+  {
+   "anim": "win",
+   "group": "flex",
+   "frame": 1,
+   "components": [
+    34
+   ],
+   "offset": [
+    5,
+    15
+   ],
+   "role": "win - B12 double-arm flex"
+  },
+  {
+   "anim": "lose",
+   "group": "crouch",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "offset": [
+    12,
+    36
+   ],
+   "role": "lose - REUSED crouch T13 (no lose art)"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    3
+   ],
+   "offset": [
+    21,
+    15
+   ],
+   "role": "idle alt - REUSED Stand T2"
+  },
+  {
+   "anim": "light",
+   "group": "punch",
+   "frame": 1,
+   "components": [
+    18
+   ],
+   "offset": [
+    29,
+    20
+   ],
+   "role": "JAB - T14 wind-up -> T15 straight"
+  },
+  {
+   "anim": "light",
+   "group": "punch",
+   "frame": 2,
+   "components": [
+    16
+   ],
+   "offset": [
+    18,
+    20
+   ],
+   "role": "JAB - T14 wind-up -> T15 straight"
+  },
+  {
+   "anim": "heavy",
+   "group": "punch",
+   "frame": 6,
+   "components": [
+    19
+   ],
+   "offset": [
+    18,
+    21
+   ],
+   "role": "HEAVY - T19 wind-up -> T16 long straight (the hit frame)"
+  },
+  {
+   "anim": "heavy",
+   "group": "punch",
+   "frame": 3,
+   "components": [
+    12
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "HEAVY - T19 wind-up -> T16 long straight (the hit frame)"
+  },
+  {
+   "anim": "down",
+   "group": "punch",
+   "frame": 4,
+   "components": [
+    13
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "LOW - T17 the low claw swipe"
+  },
+  {
+   "anim": "up",
+   "group": "punch",
+   "frame": 7,
+   "components": [
+    10
+   ],
+   "offset": [
+    19,
+    15
+   ],
+   "role": "LAUNCHER - T20 -> T21 the uppercut (real upward punch)"
+  },
+  {
+   "anim": "up",
+   "group": "punch",
+   "frame": 8,
+   "components": [
+    11
+   ],
+   "offset": [
+    15,
+    16
+   ],
+   "role": "LAUNCHER - T20 -> T21 the uppercut (real upward punch)"
+  },
+  {
+   "anim": "air",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "AIR - leap B1 -> straight T15 (REUSED in the air)"
+  },
+  {
+   "anim": "air",
+   "group": "punch",
+   "frame": 2,
+   "components": [
+    16
+   ],
+   "offset": [
+    18,
+    20
+   ],
+   "role": "AIR - leap B1 -> straight T15 (REUSED in the air)"
+  },
+  {
+   "anim": "grab",
+   "group": "punch",
+   "frame": 2,
+   "components": [
+    16
+   ],
+   "offset": [
+    18,
+    20
+   ],
+   "role": "grab - REUSED straight T15 (the reach)"
+  },
+  {
+   "anim": "rtRake",
+   "group": "claw",
+   "frame": 1,
+   "components": [
+    30
+   ],
+   "offset": [
+    16,
+    12
+   ],
+   "role": "CLAW RAKE - B10 wind-up -> B11 claw slash (its orange trail = the claw swipe)"
+  },
+  {
+   "anim": "rtRake",
+   "group": "claw",
+   "frame": 2,
+   "components": [
+    35
+   ],
+   "offset": [
+    15,
+    20
+   ],
+   "role": "CLAW RAKE - B10 wind-up -> B11 claw slash (its orange trail = the claw swipe)"
+  },
+  {
+   "anim": "rtRush",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 2,
+   "components": [
+    33
+   ],
+   "offset": [
+    14,
+    22
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 3,
+   "components": [
+    25
+   ],
+   "offset": [
+    28,
+    16
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 4,
+   "components": [
+    26
+   ],
+   "offset": [
+    19,
+    16
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 5,
+   "components": [
+    27
+   ],
+   "offset": [
+    14,
+    22
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 6,
+   "components": [
+    28
+   ],
+   "offset": [
+    28,
+    16
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 7,
+   "components": [
+    29
+   ],
+   "offset": [
+    19,
+    16
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRush",
+   "group": "charge",
+   "frame": 1,
+   "components": [
+    31
+   ],
+   "offset": [
+    16,
+    20
+   ],
+   "role": "RATH RUSH - leap B1 -> hunched charge B4-B9, B0"
+  },
+  {
+   "anim": "rtRushHit",
+   "group": "punch",
+   "frame": 3,
+   "components": [
+    12
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "RATH RUSH hits - REUSED long straight T16"
+  },
+  {
+   "anim": "rtGrab",
+   "group": "punch",
+   "frame": 2,
+   "components": [
+    16
+   ],
+   "offset": [
+    18,
+    20
+   ],
+   "role": "LET ME TELL YOU SOMETHING reach - REUSED straight T15"
+  },
+  {
+   "anim": "rtRant",
+   "group": "rant",
+   "frame": 1,
+   "components": [
+    23
+   ],
+   "offset": [
+    10,
+    5
+   ],
+   "role": "LET ME TELL YOU SOMETHING rant - B3 arms up, shouting"
+  },
+  {
+   "anim": "rtRantHit",
+   "group": "punch",
+   "frame": 1,
+   "components": [
+    18
+   ],
+   "offset": [
+    29,
+    20
+   ],
+   "role": "the rant punches - T14, T15, T18, T16 (REUSED punch frames)"
+  },
+  {
+   "anim": "rtRantHit",
+   "group": "punch",
+   "frame": 2,
+   "components": [
+    16
+   ],
+   "offset": [
+    18,
+    20
+   ],
+   "role": "the rant punches - T14, T15, T18, T16 (REUSED punch frames)"
+  },
+  {
+   "anim": "rtRantHit",
+   "group": "punch",
+   "frame": 5,
+   "components": [
+    17
+   ],
+   "offset": [
+    19,
+    20
+   ],
+   "role": "the rant punches - T14, T15, T18, T16 (REUSED punch frames)"
+  },
+  {
+   "anim": "rtRantHit",
+   "group": "punch",
+   "frame": 3,
+   "components": [
+    12
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "the rant punches - T14, T15, T18, T16 (REUSED punch frames)"
+  },
+  {
+   "anim": "rtSlam",
+   "group": "claw",
+   "frame": 1,
+   "components": [
+    30
+   ],
+   "offset": [
+    16,
+    12
+   ],
+   "role": "OVERHEAD SLAM - B10 overhead wind-up -> T17 swung down (render-only arc)"
+  },
+  {
+   "anim": "rtSlam",
+   "group": "punch",
+   "frame": 4,
+   "components": [
+    13
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "OVERHEAD SLAM - B10 overhead wind-up -> T17 swung down (render-only arc)"
+  },
+  {
+   "anim": "rtLunge",
+   "group": "leap",
+   "frame": 1,
+   "components": [
+    32
+   ],
+   "offset": [
+    18,
+    27
+   ],
+   "role": "PRIMAL LUNGE - leap B1 -> long straight T16"
+  },
+  {
+   "anim": "rtLunge",
+   "group": "punch",
+   "frame": 3,
+   "components": [
+    12
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "PRIMAL LUNGE - leap B1 -> long straight T16"
+  },
+  {
+   "anim": "rtRoar",
+   "group": "flex",
+   "frame": 1,
+   "components": [
+    34
+   ],
+   "offset": [
+    5,
+    15
+   ],
+   "role": "RATH'S FURY trigger roar - B12 flex (cosmetic, never a lock)"
+  },
+  {
+   "anim": "rtUltGrab",
+   "group": "rant",
+   "frame": 1,
+   "components": [
+    23
+   ],
+   "offset": [
+    10,
+    5
+   ],
+   "role": "RATH'S FURY collar grab + shouting - B3"
+  },
+  {
+   "anim": "rtUltPunch",
+   "group": "punch",
+   "frame": 2,
+   "components": [
+    16
+   ],
+   "offset": [
+    18,
+    20
+   ],
+   "role": "RATH'S FURY rant punches - T15, T16, T19, T18"
+  },
+  {
+   "anim": "rtUltPunch",
+   "group": "punch",
+   "frame": 3,
+   "components": [
+    12
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "RATH'S FURY rant punches - T15, T16, T19, T18"
+  },
+  {
+   "anim": "rtUltPunch",
+   "group": "punch",
+   "frame": 6,
+   "components": [
+    19
+   ],
+   "offset": [
+    18,
+    21
+   ],
+   "role": "RATH'S FURY rant punches - T15, T16, T19, T18"
+  },
+  {
+   "anim": "rtUltPunch",
+   "group": "punch",
+   "frame": 5,
+   "components": [
+    17
+   ],
+   "offset": [
+    19,
+    20
+   ],
+   "role": "RATH'S FURY rant punches - T15, T16, T19, T18"
+  },
+  {
+   "anim": "rtUltFinal",
+   "group": "flex",
+   "frame": 1,
+   "components": [
+    34
+   ],
+   "offset": [
+    5,
+    15
+   ],
+   "role": "RATH'S FURY finisher - B12 flex wind -> T16 haymaker"
+  },
+  {
+   "anim": "rtUltFinal",
+   "group": "punch",
+   "frame": 3,
+   "components": [
+    12
+   ],
+   "offset": [
+    15,
+    18
+   ],
+   "role": "RATH'S FURY finisher - B12 flex wind -> T16 haymaker"
+  }
+ ]
+}

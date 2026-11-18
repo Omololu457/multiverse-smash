@@ -277,7 +277,10 @@ CONTACT.push((f, s, target, { proj, blocked }) => { if (proj && proj.alien && pr
 // SHATTER: a clean Heavy, the Shatter Coat burst or an Ice Slide hit on a frozen opponent ends the Popsicle ONCE and adds a
 // fixed +25 (× the normal combo scale, one application: a simultaneous second contact finds no Popsicle and adds nothing).
 // ONE EXPLICIT RULE: ANY other damage ends the Popsicle at once with no bonus (the hit's own hitstun applies).
-export const AG_CHILL = { MAX: 3, EXPIRE: 240, FREEZE: 30, MASH: 6, IMMUNE: 420, SHATTER: 25, HOLD: 2 }
+// THE FREEZING CAST BREAKS OFF: the cast whose hit makes the Popsicle stops there (its later ticks would be "other damage"
+// and melt the Popsicle it just made) — its live hitboxes are dropped and he recovers in SNAP frames, so a Heavy / Slide can
+// still reach the Shatter inside the 30 ticks (Freeze Beam into Popsicle, Heavy Shatter).
+export const AG_CHILL = { MAX: 3, EXPIRE: 240, FREEZE: 30, MASH: 6, IMMUNE: 420, SHATTER: 25, HOLD: 2, SNAP: 8 }
 const MASH_KEYS = ["light", "heavy", "special", "jump", "grab", "block", "ultimate", "charge"]
 export const frozen = s => !!(s && s.chill.frozen)
 export function addChill(f, s, opp, cast) {
@@ -286,8 +289,16 @@ export function addChill(f, s, opp, cast) {
   if (c.pipped.includes(cast)) return false                               // one pip per cast
   c.pipped.push(cast); if (c.pipped.length > 8) c.pipped.shift()
   c.pips = Math.min(AG_CHILL.MAX, c.pips + 1); c.lastT = s.t
-  if (c.pips >= AG_CHILL.MAX) startPopsicle(f, s, opp)
+  if (c.pips >= AG_CHILL.MAX) { startPopsicle(f, s, opp); snapCast(f, s, opp, cast) }
   return true
+}
+function snapCast(f, s, opp, cast) {
+  if (projRef) for (const p of projRef) if (p && p.owner === f && p.alien && p.alien.cast === cast) { p.lifetime = 0; p._pierceHits = [...(p._pierceHits || []), opp && opp.side] }
+  let snapped = false
+  if (s.breath && s.breath.cast === cast) { const b = s.breath; s.lastBreath = { ticks: b.ticks, ext: b.ext, streamEnd: b.t, snapped: true }; s.breath = null; snapped = true }
+  if (s.beam && s.beam.cast === cast) { const b = s.beam; s.lastBeam = { hold: b.h, ticks: b.ticks, snapped: true }; s.beam = null; snapped = true }
+  if (s.slide && s.slide.cast === cast) { const d = s.slide; d.hit = true; d.end = Math.min(d.end, d.t + AG_CHILL.SNAP); delete f._benLunge; snapped = true }
+  if (snapped) { f.attackCooldown = AG_CHILL.SNAP; f._benPowerCommit = AG_CHILL.SNAP; if (!s.slide) { f._spriteCastMove = "agBeamFire"; f._spriteCastTimer = AG_CHILL.SNAP } }
 }
 function startPopsicle(f, s, opp) {
   const c = s.chill

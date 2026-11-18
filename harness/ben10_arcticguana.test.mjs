@@ -287,5 +287,107 @@ test('render: every move / the ult draw without throwing and drawing never chang
   assert(S(h).lastUlt && S(h).lastUlt.captured)
 })
 
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  breath: AG_BREATH.DMG * AG_BREATH.TICKS, beam: AG_BEAM.DMG * 3, shatter: AG_CHILL.SHATTER }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+const ROUTES = [
+  ['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 90],
+  ['2. Low, Heavy, Ice Breath', ['low', 'heavy', 'breath'], 112],
+  ['3. Freeze Beam → Popsicle, Heavy Shatter', ['beam', 'heavy', 'shatter'], 120],
+]
+for (const [name, route, target] of ROUTES) test('design total ' + name + ' ≈ ' + target, () => {
+  const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`)
+})
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 2 live: Low, Heavy, Ice Breath (5 ticks, +1 Chill)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 60); const hp = t.health; f.energy = 100; assert(cast(f, t, 'N'), 'Breath'); world(f, t, AG_BREATH.BASE_END + AG_BREATH.RECOVERY + 1); d.push(hp - t.health)
+  assert(d[2] > 0); assert.equal(S(f).lastBreath.ticks, AG_BREATH.TICKS); assert.equal(S(f).chill.pips, 1); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 3 live: Freeze Beam freezes (3rd pip), the beam breaks off, a Heavy reaches the Popsicle in time and Shatters', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 100); chill(f, t, 801); chill(f, t, 802); f.energy = 100; const hp0 = t.health; assert(cast(f, t, 'D'), 'Beam')
+  let n = 0; while (!G.frozen(S(f)) && n < 60) { world(f, t, 1); n++ } assert(G.frozen(S(f)), 'the first beam tick freezes')
+  assert.equal(S(f).beam, null, 'the freezing cast broke off'); assert(S(f).lastBeam.snapped); const d = [hp0 - t.health]
+  let w = 0; while ((f.attackCooldown > 0 || f._benPowerCommit > 0) && w < 60) { world(f, t, 1); w++ }
+  assert(G.frozen(S(f)), 'still frozen when he can act'); assert(w + BA.heavy.startup < AG_CHILL.FREEZE, `Heavy lands inside the Popsicle (${w}+${BA.heavy.startup} < 30)`)
+  reset(f, t, 10); S(f).chill.frozen.x = t.x; S(f).chill.frozen.y = t.y; d.push(melee(f, t, 'heavy'))
+  assert.equal(S(f).chill.ends.at(-1), 'shatter'); assert.equal(S(f).chill.shatters, 1); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b), '(heavy incl. Shatter)')
+})
+test('the freezing cast breaks off: Breath / Slide snap to 8f and their later ticks never melt the Popsicle they made', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 80); chill(f, t, 811); chill(f, t, 812); f.energy = 100; assert(cast(f, t, 'N'))
+  let n = 0; while (!G.frozen(S(f)) && n < 40) { world(f, t, 1); n++ } assert.equal(S(f).breath, null); assert.equal(S(f).lastBreath.ticks, 1)
+  world(f, t, AG_CHILL.SNAP); assert(G.frozen(S(f)), 'not melted by its own stream'); assert.equal(f.attackCooldown, 0, 'free after the 8f snap')
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 120); chill(g, u, 821); chill(g, u, 822); g.energy = 100; S(g).dashTapT = S(g).t; assert(cast(g, u, 'F'))
+  n = 0; while (!G.frozen(S(g)) && n < 40) { world(g, u, 1); n++ } assert(G.frozen(S(g))); world(g, u, AG_CHILL.SNAP + 1); assert.equal(S(g).slide, null)
+})
+// ── 11 / 12 / 14 lifecycle / slot → PICK FIVE / Dial / HUD / Vow / determinism ─────────────────────────────
+test('lifecycle: swap / revert / KO / rematch clear Coat, Chill, the Popsicle, the cloud and casts (fresh formState)', () => {
+  const dirty = (f, t) => { coatOn(f); freezeIt(f, t); S(f).cloud = { x: 0, y: 0, t: 50, cast: 1 } }
+  const t = foe(); const f = ben('arcticguana', LOAD); dirty(f, t); F.revertToHuman(f); assert.equal(f.omnitrix.formState, null)
+  for (let i = 0; i < 4; i++) world(ben(), t, 1); assert.equal(t.hitstun, 0, 'the held opponent is never left stuck')
+  const k = ben(); dirty(k, foe()); k.health = 0; F.revertToHuman(k); assert.equal(k.omnitrix.formState, null)
+  const g = ben('arcticguana', LOAD); dirty(g, foe()); F.applyAlien(g, 'heatblast'); F.applyAlien(g, 'arcticguana'); assert(!G.frozen(S(g))); assert.equal(S(g).cloud, null); assert.equal(S(g).coat.state, 'off')
+  const r = ben(); assert.equal(S(r).chill.pips, 0); assert.equal(S(r).coat.state, 'off', 'rematch: fresh')
+})
+test('14. slot → PICK FIVE: slot count stays 5, Arcticguana READY + pickable (catalog slot 17, contiguous), Feedback (16) untouched', () => {
+  assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('arcticguana'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 17); assert.equal(d.displayName, 'Arcticguana')
+  const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(ready.map(x => x.slot).sort((a, b) => a - b), ready.map((_, i) => i + 1), 'ready slots contiguous')
+  assert.equal(getAlienDefinition('feedback_ov').slot, 16, 'slot 16 = Feedback, never overwritten'); assert.equal(getAlienDefinition('humongousaur').slot, 15)
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'arcticguana').length, 1); assert(getAvailableAlienKeys(false).includes('arcticguana'))
+  assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit placeholder')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Arcticguana'); assert.equal(f.health, 950, 'shared health')
+})
+test('14. Omnitrix Dial: Arcticguana picked into the last slot — same cost as any slot, no clock change', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'arcticguana'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const c = { seed: 1, frame: 0, playerIndex: 0 }; assert(F.ben10TransformOrSwap(f, slot, c)); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); assert.equal(c.frame, 0, 'clock untouched'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'arcticguana'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert.equal(S(a.f).coat.state, 'off'); assert.equal(S(a.f).chill.pips, 0)
+})
+test('14. HUD: the Frost bar stays inside the player bar (no overflow), both sides, every coat state', () => {
+  for (const flip of [false, true]) for (const st of ['off', 'forming', 'on', 'cd']) {
+    const f = ben(); const co = S(f).coat; if (st === 'cd') co.cd = 120; else { co.state = st; co.t = st === 'forming' ? 7 : 200 }
+    let minX = Infinity, maxX = -Infinity
+    const ctx = { save() {}, restore() {}, fillRect(x, y, w) { minX = Math.min(minX, x); maxX = Math.max(maxX, x + w) }, fillText(s, x) { const w = s.length * 4.2; const x0 = this.textAlign === 'right' ? x - w : x; minX = Math.min(minX, x0); maxX = Math.max(maxX, x0 + w) }, strokeRect() {} }
+    const x = 100, pbw = 120; G.drawArcticguanaHud(ctx, f, { x, enY: 40, enH: 8, pbw, flip }); assert(minX >= x && maxX <= x + 8 + pbw + 1, `flip ${flip} ${st}: ${minX}..${maxX}`)
+  }
+})
+test('14. Vow pick includes Arcticguana (mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'arcticguana'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('arcticguana') && picks.size === L.length)
+})
+test('14. same-seed determinism: an identical scripted Arcticguana sequence yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light'); melee(f, t, 'heavy')
+    reset(f, t, 80); f.energy = 100; cast(f, t, 'N'); world(f, t, 60); reset(f, t, 200); cast(f, t, 'B'); world(f, t, 50)
+    reset(f, t, 120); S(f).dashTapT = S(f).t; f.energy = 100; cast(f, t, 'F'); world(f, t, 45); reset(f, t, 100); cast(f, t, 'D'); world(f, t, 80)
+    reset(f, t, 100); f.energy = 100; cast(f, t, 'U'); world(f, t, 40); reset(f, t, 100); ready(f); f.energy = 100; A.triggerUltimate(f, ctxOf(f, t)); world(f, t, 200); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x })
+  }
+  assert.equal(run(), run())
+})
+test('GAME_STATE stays plain data mid-cast (breath, beam hold, cloud, slide, Popsicle, ult cinematic)', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; cast(f, t, 'N'); world(f, t, 20); assert(plain(S(f)), 'breath')
+  clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; cast(g, u, 'D'); world(g, u, 30); assert(S(g).beam.phase === 'hold'); assert(plain(S(g)), 'beam')
+  clearProj(); const h = ben(), v = foe(); far(h, v); h.energy = 100; cast(h, v, 'U'); world(h, v, 20); assert(S(h).cloud); assert(plain(S(h)), 'cloud')
+  clearProj(); const k = ben(), w = foe(); far(k, w); k.energy = 100; S(k).dashTapT = S(k).t; cast(k, w, 'F'); world(k, w, 10); assert(plain(S(k)), 'slide')
+  clearProj(); const m = ben(), x = foe(); reset(m, x, 40); freezeIt(m, x); world(m, x, 4); assert(plain(S(m)), 'popsicle')
+  clearProj(); const u2 = ben(), v2 = foe(); reset(u2, v2, 100); ready(u2); u2.energy = 100; A.triggerUltimate(u2, ctxOf(u2, v2)); world(u2, v2, 80)
+  assert(S(u2).ult && S(u2).ult.phase === 'carve', 'mid-cinematic'); assert(plain(S(u2)), 'ult')
+})
+test('no Math.random / gameRng in arcticguana.js / arcticguanaAssets.js', () => {
+  for (const p of ['../arcticguana.js', '../arcticguanaAssets.js']) { const src = fs.readFileSync(new URL(p, import.meta.url), 'utf8'); assert(!/Math\.random|gameRng/.test(src), p) }
+})
+
 console.log(`\nARCTICGUANA: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

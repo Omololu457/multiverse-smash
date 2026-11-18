@@ -77,8 +77,8 @@ const ult = (f, t) => { ready(f); return A.triggerUltimate(f, ctxOf(f, t)) }
 const motion = (f, dirs) => { const s = S(f); for (const d of dirs) { s.t++; s.hist.push({ d, t: s.t }); s.lastDir = d } }
 
 // ── 2 registry + stats ──────────────────────────────────────────────────────────────────────────────────────
-test('2. registry: one READY entry, catalog slot 18 (contiguous after Arcticguana 17), sheet + ledger exist, no ready alien overwritten', () => {
-  const d = getAlienDefinition('bigchill'); assert(d && d.status === 'ready', 'ready'); assert.equal(d.slot, 18)
+test('2. registry: one READY entry, catalog slot 19 (contiguous after Arcticguana 17, BenWolf 18), sheet + ledger exist, no ready alien overwritten', () => {
+  const d = getAlienDefinition('bigchill'); assert(d && d.status === 'ready', 'ready'); assert.equal(d.slot, 19)
   const ready = BEN10_ALIEN_REGISTRY.filter(a => a.status === 'ready').map(a => a.slot).sort((a, b) => a - b)
   assert.deepEqual(ready, ready.map((_, i) => i + 1), 'contiguous'); assert.equal(getAlienDefinition('arcticguana').slot, 17, 'Arcticguana kept')
   assert(fs.existsSync(d.sheetPath.replace('./', '')) && fs.existsSync(d.ledgerPath) && fs.existsSync('assets/sprites/ben10/aliens/bigchill.png'))
@@ -361,10 +361,10 @@ test('11. swap / revert / KO / rematch clear Chill, Cocoon and Drift state', () 
   const k = ben(); dirty(k); k.health = 0; handleBenKO(k); assert.equal(B.bcState(k), null, 'KO')
   const r = S(ben()); assert.deepEqual([r.chill.pips, r.cocoon, r.drift], [0, null, null], 'rematch / round end: a fresh form state')
 })
-test('12. slot → PICK FIVE: slot count stays 5, Big Chill READY + pickable (catalog slot 18, contiguous), nothing overwritten', () => {
+test('12. slot → PICK FIVE: slot count stays 5, Big Chill READY + pickable (catalog slot 19, contiguous), nothing overwritten', () => {
   assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
-  const d = getAlienDefinition('bigchill'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 18); assert.equal(d.displayName, 'Big Chill')
-  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov', 'arcticguana']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  const d = getAlienDefinition('bigchill'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 19); assert.equal(d.displayName, 'Big Chill')
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov', 'arcticguana', 'benwolf']) assert.equal(getAlienDefinition(k).status, 'ready', k)
   assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'bigchill').length, 1); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(d.ledgerPath, 'utf8')), 'ledger credit placeholder')
 })

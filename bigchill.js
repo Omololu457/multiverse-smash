@@ -23,7 +23,7 @@ const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
   hitstun: 18, knockbackX: 3, knockbackY: -2, frameExact: true, ...extra })
 
 export const BIGCHILL = {
-  id: BC_KEY, poolKey: BC_KEY, displayName: "Big Chill", slot: 18,   // catalog slot (metadata; PICK FIVE): the next contiguous ready slot after Arcticguana (17)
+  id: BC_KEY, poolKey: BC_KEY, displayName: "Big Chill", slot: 19,   // catalog slot (metadata; PICK FIVE): the next contiguous ready slot after Arcticguana (17) and BenWolf (18)
   status: "ready", sheetPath: "./ben10_bigchill_ready_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/bigchill/SPRITE_LEDGER.md",
   mods: { speed: 1.00, damage: 1.05, defense: 0.95, weight: 0.80 },

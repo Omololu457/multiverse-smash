@@ -73,6 +73,7 @@ function melee(f, t, key, { block = false } = {}) {
   if (!block) { assert(t.health < hp, key + ' connects'); assert.equal(f.comboCounter, cc + 1, key + ' extends the combo') }
   return hp - t.health
 }
+const ult = (f, t) => { ready(f); return A.triggerUltimate(f, ctxOf(f, t)) }
 const motion = (f, dirs) => { const s = S(f); for (const d of dirs) { s.t++; s.hist.push({ d, t: s.t }); s.lastDir = d } }
 
 // ── 2 registry + stats ──────────────────────────────────────────────────────────────────────────────────────
@@ -235,6 +236,78 @@ test('7. Phase Drift: no attack during the drift; 5 s cooldown; the optional win
   const g = ben(), u = foe(); reset(g, u, 80); assert(drift(g, u)); glide(g, u, BC_DRIFT.STARTUP + 4, { heavy: true }); glide(g, u, BC_DRIFT.TRAVEL)
   u.x = g.x - 70 - u.w + 20; u.y = g.y + g.h - u.h; const hp = u.health; glide(g, u, 30)
   assert(S(g).stats.drifts === 1 && hp - u.health > 0, `slash connects (${hp - u.health})`); assert.equal(S(g).chill.pips, 0, 'no Chill')
+})
+
+// ── 6 specials + ult ────────────────────────────────────────────────────────────────────────────────────────
+const { BC_BREATH, BC_WING, BC_SPIRE, BC_COCOON, BC_DIVE, BC_ULT } = B
+const hitsOn = (t, fn) => { let n = 0, hp = t.health; fn(() => { if (t.health < hp) { n++; hp = t.health } }); return n }
+test('8. Freeze Breath: cost 10, 14f startup, 4 ticks of 10 (=40) one pip; HOLD extends ≤ 20f for +4 Power once', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); f.energy = 100; assert(cast(f, t, null)); assert.equal(100 - f.energy, BC_COST.breath)
+  let first = -1; const n = hitsOn(t, chk => { for (let i = 0; i < BC_BREATH.TOTAL + 2; i++) { world(f, t, 1); if (first < 0 && t.health < t.maxHealth) first = i + 1; t.hitstun = Math.min(t.hitstun, 13); chk() } })
+  assert.equal(first, BC_BREATH.STARTUP, '14f startup'); assert.equal(n, 4, '4 ticks'); assert.equal(S(f).chill.pips, 1, 'one pip per cast'); assert.equal(f.energy, 90, 'no hold cost')
+  const g = ben(), u = foe(); reset(g, u, 60); g.energy = 100; assert(cast(g, u, null)); let ext = 0, ticks = 0
+  for (let i = 0; i < BC_BREATH.TOTAL + 30; i++) { world(g, u, 1, { special: true }); if (S(g).breath) { ext = S(g).breath.ext; ticks = S(g).breath.ticks } }
+  assert.equal(100 - g.energy, BC_COST.breath + BC_BREATH.HOLD_COST, '+4 Power once'); assert.equal(ext, BC_BREATH.HOLD_MAX, '≤ 20f'); assert.equal(ticks, 7, 'a tick every 6f while held')
+  const k = ben(), v = foe(); reset(k, v, 60); v.isBlocking = true; assert(cast(k, v, null)); world(k, v, BC_BREATH.STARTUP - 1); A.tickBenAlienForm(k, {}, ctxOf(k, v))
+  const p = A.activeProjectiles.find(q => q.alien?.bc === 'breath'); assert.equal(p.blockstun, B.blockstunFor(BC_BREATH.TOTAL - BC_BREATH.STARTUP, -12), '−12 on block (the shared blockstunFor convention)'); clearProj()
+})
+test('8. Frost Wing Cut: cost 12, 18f, 2 hits 18 / 22 (=40), 420 px, ONE on screen, Chill + shatter tags', () => {
+  const f = ben(), t = foe(); reset(f, t, 200); f.energy = 100; assert(cast(f, t, 'B')); assert.equal(100 - f.energy, BC_COST.wingcut)
+  world(f, t, BC_WING.STARTUP); const bl = A.activeProjectiles.filter(p => p.alien?.bc === 'wingcut'); assert.equal(bl.length, 1); assert(bl[0].alien.shatter && bl[0].alien.chill)
+  assert.deepEqual(BC_WING.DMG, [18, 22]); assert.equal(BC_WING.LIFE * BC_WING.SPEED, BC_WING.RANGE)
+  ready(f); world(f, t, 1); ready(f); assert.equal(cast(f, t, 'B'), false, 'one on screen')
+  const g = ben(), u = foe(); reset(g, u, 160); assert(cast(g, u, 'B')); const n = hitsOn(u, chk => { for (let i = 0; i < 60; i++) { world(g, u, 1); chk() } }); assert.equal(n, 2, 'two hits')
+})
+test('8. Ice Spire: cost 14, spires at 80/160/240/320 6f apart, HITBOXES only (never solid), 60f lifetime, last pops up', () => {
+  const f = ben(), t = foe(); reset(f, t, 2000); t.x = 5000; f.energy = 100; assert(cast(f, t, 'U')); assert.equal(100 - f.energy, BC_COST.spire); const x0 = cx(f)
+  world(f, t, BC_SPIRE.STARTUP + 3 * BC_SPIRE.GAP); const sp = A.activeProjectiles.filter(p => p.alien?.bc === 'spire')
+  assert.equal(sp.length, 4); assert.deepEqual(sp.map(p => Math.round(p.x - x0)).map(v => Math.abs(v)).sort((a, b) => a - b).map(v => Math.round(v / 10) * 10), [80, 160, 240, 320])
+  for (const p of sp) { assert(!p.solid && !p.isWall && !p.blocksMovement, 'never solid'); assert(p.lifetime <= BC_SPIRE.LIFE) }
+  assert(sp[3].knockbackY <= BC_SPIRE.POP && sp[3].launcher, 'the last pops up')
+  world(f, t, BC_SPIRE.LIFE + 2); assert.equal(A.activeProjectiles.filter(p => p.alien?.bc === 'spire').length, 0, '60f lifetime'); clearProj()
+  const g = ben(), u = foe(); reset(g, u, 40); assert(cast(g, u, 'U')); const n = hitsOn(u, chk => { for (let i = 0; i < 70; i++) { const sp = S(g).spire; if (sp && sp.spawned.length) { u.x = sp.spawned.at(-1).x - u.w / 2; u.y = 410 - u.h; u.vx = u.vy = 0 } world(g, u, 1); chk() } })
+  assert.equal(n, 4, `4 hits of 12 (${n})`); assert.equal(S(g).chill.pips, 1, '+1 Chill')
+})
+test('6. Cocoon: cost 12, 14f window, physical hit takes 40 % and bursts (30, once, +1 Chill); 7 s cooldown', () => {
+  const f = ben(), t = foe(); reset(f, t, 20); f.energy = 100; assert(cast(f, t, 'D')); assert.equal(100 - f.energy, BC_COST.cocoon); assert(B.cocoonLive(S(f)))
+  const ref = ben(); const r0 = ref.health; C.applyScaledDamage(ref, 100, { source: 'melee', attacker: t, move: 'heavy' }); const full = r0 - ref.health
+  world(f, t, 5); const h0 = f.health; C.applyScaledDamage(f, 100, { source: 'melee', attacker: t, move: 'heavy' }); assert(Math.abs((h0 - f.health) - full * 0.4) <= 1, `40 % (${h0 - f.health} vs ${full}; health is stored rounded)`)
+  const hp = t.health; world(f, t, 2); assert(t.health < hp, 'the burst hits'); assert.equal(S(f).chill.pips, 1, '+1 Chill'); assert.equal(S(f).stats.bursts, 1)
+  const h1 = f.health; C.applyScaledDamage(f, 100, { source: 'melee', attacker: t, move: 'heavy' }); assert(Math.abs((h1 - f.health) - full) <= 1, 'once: the next hit is full')
+  assert.equal(S(f).cocoonCd > BC_COCOON.CD - 10, true); world(f, t, 30); ready(f); f.energy = 100; assert.equal(cast(f, t, 'D'), false, 'cooldown'); world(f, t, BC_COCOON.CD); ready(f); assert(cast(f, t, 'D'), 'after 7 s')
+})
+test('6. Cocoon: beams, throws and unblockables ignore it; no hit → 20f punishable recovery', () => {
+  for (const o of [{ source: 'projectile', move: 'laser_beam' }, { source: 'grab-throw', move: 'throw' }, { source: 'melee', move: 'heavy', unblockable: true }]) {
+    const f = ben(), t = foe(); reset(f, t); assert(cast(f, t, 'D')); world(f, t, 3); const h = f.health
+    const ref = ben(); const r0 = ref.health; C.applyScaledDamage(ref, 100, { ...o, attacker: t }); C.applyScaledDamage(f, 100, { ...o, attacker: t })
+    assert(Math.abs((h - f.health) - (r0 - ref.health)) < 1e-6, o.move + ' ignores it'); assert.equal(S(f).cocoon.burst, false)
+  }
+  const g = ben(), u = foe(); reset(g, u); u.x = g.x + 900; assert(cast(g, u, 'D')); world(g, u, BC_COCOON.WINDOW)
+  assert(g._benPowerCommit > 0 && S(g).cocoon, 'still committed after the window'); world(g, u, BC_COCOON.RECOVERY); assert.equal(S(g).cocoon, null, '20f recovery then free')
+})
+test('9. Diving Chill: air only, 50 + 1 Chill, once per airtime, never refills jumps', () => {
+  const f = ben(), t = foe(); f.onGround = f.grounded = false; f.y = 200; f.jumpCount = 2; A.tickBenAlienForm(f, {}, ctxOf(f, t)); t.x = f.x + 80; t.y = 410 - t.h
+  f.energy = 100; assert(cast(f, t, 'D')); assert.equal(100 - f.energy, BC_COST.dive); assert.equal(S(f).diveUsed, true)
+  const hp = t.health; let jc = new Set(); for (let i = 0; i < 60 && S(f).dive; i++) { world(f, t, 1); if (S(f).dive && S(f).dive.landT < 0) jc.add(f.jumpCount) }
+  assert(t.health < hp, 'connects'); assert.equal(S(f).chill.pips, 1); assert.deepEqual([...jc], [2], 'no refill during the dive')
+  const g = ben(); g.onGround = g.grounded = false; g.y = 100; A.tickBenAlienForm(g, {}, ctxOf(g, t)); assert(cast(g, t, 'D')); ready(g); S(g).dive = null; delete g._benGlide; assert.equal(cast(g, t, 'D'), false, 'once per airtime')
+})
+const ultRun = (f, t, n = BC_ULT.OPENER_AT + BC_ULT.END + 10) => { for (let i = 0; i < n; i++) world(f, t, 1) }
+test('10. Frozen Sky: whiff / block = no cinematic + 60f recovery; a clean hit = 240 raw (40 + 3×25 + 125), positions restore', () => {
+  const f = ben(), t = foe(); reset(f, t, 900); f.energy = 100; assert(ult(f, t)); assert.equal(100 - f.energy, BC_COST.ultimate); ultRun(f, t, BC_ULT.OPENER_AT + 4)
+  assert.equal(S(f).ult?.phase, 'opener', 'whiff: no cinematic'); assert(f._benPowerCommit > 0 && f._benPowerCommit <= BC_ULT.WHIFF, '60f recovery'); ultRun(f, t, BC_ULT.WHIFF); assert.equal(S(f).ult, null)
+  const g = ben(), u = foe(); reset(g, u, 60); u.isBlocking = true; g.energy = 100; assert(ult(g, u)); ultRun(g, u, BC_ULT.OPENER_AT + 4); assert.equal(S(g).ult?.phase, 'opener', 'block: no cinematic')
+  const k = ben(), v = foe(); reset(k, v, 60); k.energy = 100; const kx = k.x, vx = v.x
+  assert(ult(k, v)); for (let i = 0; i < BC_ULT.OPENER_AT + BC_ULT.END + 10 && !(S(k).ult && S(k).ult.t === BC_ULT.END - 1); i++) world(k, v, 1)
+  A.tickBenAlienForm(k, {}, ctxOf(k, v)); assert.equal(S(k).ult, null, 'the cinematic ends this frame'); const L = S(k).lastUlt
+  assert(L && L.raw === 240, `240 raw (${L && L.raw})`); assert.deepEqual(L.hits, [40, 25, 25, 25, 125]); assert.equal(k.x, kx, 'his position restored'); assert.equal(v.x, vx, 'theirs restored')
+  assert.equal(S(k).chill.frozen, null, 'released unfrozen'); assert(v._benIceImmuneUntil > FRAME, 'shared immunity started'); assert(k._benPowerCommit > 0 && k._benPowerCommit <= BC_ULT.LOCKOUT, '100f lockout')
+})
+test('10. Frozen Sky: no Shatter bonus on a frozen target; storm angles = hash(seed, frame, player) — identical for the same seed', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); freeze(f, t, 300); world(f, t, 1); f.energy = 100
+  assert(ult(f, t)); ultRun(f, t); assert.equal(S(f).lastUlt.raw, 240, 'no bonus on top'); assert.equal(S(f).chill.shatters, 0)
+  const a1 = B.ultAngles(4242, 777, 0), a2 = B.ultAngles(4242, 777, 0), a3 = B.ultAngles(4243, 777, 0)
+  assert.deepEqual(a1, a2); assert.notDeepEqual(a1, a3); assert(a1.every(a => a >= 0 && a < 360))
 })
 
 //@@NEXT@@

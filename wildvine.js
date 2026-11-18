@@ -33,7 +33,7 @@ export const WILDVINE = {
   },
   anim: ANIM, fx: WILDVINE_FX,
   drainMult: f => (wvState(f)?.bloom?.t > 0 ? WV_BLOOM.DRAIN : 1),   // FULL BLOOM −10% Power drain (function form, ADD_ALIEN.md)
-  onApply, tick, moveFrames, fireSpecial, damageDealt,
+  onApply, tick, moveFrames, fireSpecial, onContact, damageDealt,
   drawHud: drawWildvineHud, drawFx: drawWildvineFx, drawUnder: drawWildvineUnder
 }
 
@@ -44,6 +44,7 @@ export function freshWildvineState() {
     garden: [], plantSeq: 0, plant: null,
     bloom: { t: 0, cd: 0, count: 0 },
     snareT: 0,
+    ent: { pips: 0, pipT: 0, pipped: [], rootT: 0, immune: 0, roots: 0 },
     fwdPrev: false, fwdTapT: -999, dashTapT: -999, downHeld: 0,
     stats: { planted: { thorn: 0, snare: 0, bloom: 0 }, consumedBy: { contact: 0, self: 0, whip: 0, ult: 0, replaced: 0 },
       consumeLog: [], erupts: 0, snares: 0, heals: 0, healed: 0, blooms: 0 } }
@@ -80,6 +81,7 @@ function tick(f, input, ctx, api) {
   tickPlantCast(f, s)
   tickGarden(f, s, api, opp)
   tickBloom(s)
+  tickEntangle(s)
   tickRoot(s, opp)
   s.noAttack = busy(s)
 }
@@ -162,6 +164,7 @@ function eruptThorn(f, s, api, p, opp) {
 //    not a hit: the guard does not stop it.
 function snare(f, s, p, opp) {
   s.snareT = Math.max(s.snareT, WV_PLANT.snare.root); s.stats.snares++
+  addPip(s, p.cast)
 }
 // 3. BLOOM POD (grown): he stands on it → +12 HP (never above the HP he had before this round's damage = his pool's max,
 //    the round-start value) and +15 Power, then it is gone. The opponent touching it does nothing.
@@ -180,6 +183,34 @@ function tickRoot(s, opp) {
   if (opp && rootLeft(s) > 0) opp._benRootT = 2
 }
 export const rootLeft = s => Math.max(s.snareT || 0, s.ent?.rootT || 0)
+
+// ── ENTANGLE → ROOTED (a status on the OPPONENT, owned by this form's GAME_STATE) ─────────────────────────────
+// Clean hits from Thornspike, Snare Vine (its root), Vine Whip's finisher and Verdant Rise add ONE Entangle pip per cast
+// (regardless of hit ticks), max 3; none from blocks, FX or Bloom Pod. Pips expire 240f after the last. 3 pips → ROOTED 36f
+// (pips consumed): the `_benRootT` lease — no walk / run / dash / jump; they still block and use normals / specials where
+// they stand; input polling and the clock are untouched. No refresh while active; 360f immunity after (no pips meanwhile).
+export const WV_ENT = { MAX: 3, EXPIRE: 240, ROOT: 36, IMMUNE: 360 }
+export function addPip(s, cast) {
+  const e = s.ent
+  if (cast == null || e.pipped.includes(cast) || e.rootT > 0 || e.immune > 0) return false
+  e.pipped.push(cast); if (e.pipped.length > 12) e.pipped.shift()
+  e.pips = Math.min(WV_ENT.MAX, e.pips + 1); e.pipT = WV_ENT.EXPIRE
+  if (e.pips >= WV_ENT.MAX) { e.pips = 0; e.pipT = 0; e.rootT = WV_ENT.ROOT; e.roots++ }
+  return true
+}
+function tickEntangle(s) {
+  const e = s.ent
+  if (e.pips > 0 && --e.pipT <= 0) { e.pips = 0; e.pipT = 0 }
+  if (e.rootT > 0) { if (--e.rootT <= 0) { e.rootT = 0; e.immune = WV_ENT.IMMUNE } }
+  else if (e.immune > 0) e.immune--
+}
+export const rooted = s => !!s && s.ent.rootT > 0
+// contact hook (combat → ben10State.benAlienContact): Entangle pips on CLEAN hits of tagged casts
+function onContact(f, target, { proj = null, blocked = false } = {}) {
+  const s = wvState(f); if (!s || !proj || proj.visualOnly) return
+  const tag = proj.alien; if (!tag || !tag.wv) return
+  if (!blocked && tag.pip) addPip(s, tag.cast)
+}
 
 // ── FULL BLOOM ───────────────────────────────────────────────────────────────────────────────────────────────
 // All 3 plants GROWN at the same time → +10% damage (damageDealt) and −10% Power drain (drainMult) for 180f, once per 600f.
@@ -327,6 +358,17 @@ export function drawWildvineFx(c, f, frame = 0, opp = null) {
   const s = wvState(f); if (!c || !s) return
   c.save(); c.imageSmoothingEnabled = false
   const fx = cx(f), fy = f.y + (f.h || 110) * 0.5
+  if (opp && opp._lastDrawX != null && opp._lastDrawW != null) {
+    const ox = opp._lastDrawX + opp._lastDrawW / 2, top = opp._lastDrawY - 12, feet = opp.y + (opp.h || 110), e = s.ent
+    for (let k = 0; k < e.pips; k++) { const x = ox + (k - (e.pips - 1) / 2) * 12            // Entangle pips: pixel leaves
+      c.fillStyle = OUT; c.fillRect(x - 4, top - 4, 9, 7); c.fillStyle = k % 2 ? LIME : GREEN; c.fillRect(x - 3, top - 3, 7, 5) }
+    if (rootLeft(s) > 0) {                                                   // ROOTED / snared: vines coiling at their feet
+      const w = (opp.w || 60), x0 = opp.x
+      for (let k = 0; k < 4; k++) { const bx = x0 + 6 + k * (w - 12) / 3, h = 18 + 10 * Math.sin(frame / 6 + k)
+        vine(c, bx, feet, bx + (k % 2 ? 6 : -6), feet - h, k + (frame >> 3), 3, 3) }
+      if (e.rootT > 0) { c.fillStyle = LIME; c.font = "bold 9px Arial"; c.textAlign = "center"; c.fillText("ROOTED", ox, top - 10) }
+    }
+  }
   if (s.bloom.t > 0) {                                                       // FULL BLOOM: a petal ring + drifting leaves
     drawPixelRing(c, fx, fy, (f.w || 60) * 0.9, (f.h || 110) * 0.55, (s.bloom.t >> 3) % 2 ? POD : LIME, 3, 16, frame / 30)
     c.fillStyle = GREEN; for (let k = 0; k < 6; k++) px(c, fx - 40 + rHash(k, frame >> 3, 7) * 80, f.y + ((frame * 2 + k * 23) % (f.h || 110)), 3)
@@ -351,7 +393,9 @@ export function drawWildvineHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
     else { const r = grown ? 4 : 2; ctx.fillRect(sx + 9 - r, y + 7 - r, r * 2, r * 2); ctx.fillStyle = GREEN; ctx.fillRect(sx + 5, y + 10, 8, 2) }
     if (!grown) { ctx.fillStyle = "#e5e7eb"; ctx.fillRect(sx + 2, y + 12, Math.round(14 * Math.min(1, p.t / WV_GARDEN.SPROUT)), 1) }   // sprout progress
   }
-  const tx = bx
+  const tx = bx, e = s.ent
+  ctx.fillStyle = e.rootT > 0 ? LIME : "#e5e7eb"
+  ctx.fillText(`ENTANGLE ${e.rootT > 0 ? "ROOTED" : e.immune > 0 ? "IMMUNE" : "●".repeat(e.pips) + "○".repeat(WV_ENT.MAX - e.pips)}`, tx, y + 27)
   ctx.fillStyle = s.bloom.t > 0 ? "#fbcfe8" : "#9ca3af"
   ctx.fillText(s.bloom.t > 0 ? `FULL BLOOM ${Math.ceil(s.bloom.t / 60)}s` : s.bloom.cd > 0 ? `BLOOM ${Math.ceil(s.bloom.cd / 60)}s` : "GARDEN", tx, y + 17)
   ctx.restore()

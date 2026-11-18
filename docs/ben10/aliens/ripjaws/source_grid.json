@@ -1,0 +1,2441 @@
+{
+ "source": "assets/sprites/ben10/aliens/ripjaws.png",
+ "key_report": {
+  "key": [
+   127,
+   127,
+   127
+  ],
+  "edge_key_px": 644049,
+  "enclosed_key_px": 685,
+  "near_key_px": 0,
+  "art_grey_levels": [
+   0,
+   8,
+   23,
+   41,
+   195,
+   249,
+   255
+  ],
+  "key_in_art": false,
+  "fringe": "none (binary key, 0 near-key px)"
+ },
+ "excluded": {
+  "text_components": 129,
+  "credit_box": [
+   584,
+   398,
+   801,
+   463
+  ]
+ },
+ "fx_sparks": [
+  [
+   183,
+   299,
+   196,
+   315
+  ],
+  [
+   179,
+   366,
+   192,
+   382
+  ]
+ ],
+ "rows": {
+  "jump": [
+   [
+    560,
+    193,
+    605,
+    255
+   ]
+  ],
+  "fall": [
+   [
+    666,
+    200,
+    698,
+    263
+   ]
+  ],
+  "crouch": [
+   [
+    747,
+    215,
+    799,
+    257
+   ]
+  ],
+  "stand_land": [
+   [
+    20,
+    78,
+    72,
+    127
+   ],
+   [
+    81,
+    78,
+    131,
+    126
+   ],
+   [
+    141,
+    76,
+    193,
+    125
+   ],
+   [
+    199,
+    75,
+    252,
+    125
+   ]
+  ],
+  "stand_water": [
+   [
+    282,
+    50,
+    330,
+    137
+   ],
+   [
+    342,
+    50,
+    389,
+    134
+   ],
+   [
+    403,
+    48,
+    451,
+    136
+   ],
+   [
+    459,
+    47,
+    510,
+    131
+   ]
+  ],
+  "walk": [
+   [
+    15,
+    162,
+    81,
+    206
+   ],
+   [
+    93,
+    166,
+    159,
+    209
+   ],
+   [
+    167,
+    160,
+    233,
+    207
+   ],
+   [
+    239,
+    164,
+    305,
+    206
+   ],
+   [
+    310,
+    166,
+    376,
+    209
+   ],
+   [
+    387,
+    166,
+    453,
+    213
+   ]
+  ],
+  "swim": [
+   [
+    23,
+    230,
+    115,
+    269
+   ],
+   [
+    129,
+    238,
+    224,
+    271
+   ],
+   [
+    232,
+    233,
+    325,
+    271
+   ],
+   [
+    339,
+    238,
+    434,
+    271
+   ]
+  ],
+  "atk_land": [
+   [
+    17,
+    281,
+    70,
+    337
+   ],
+   [
+    78,
+    290,
+    128,
+    337
+   ],
+   [
+    135,
+    295,
+    185,
+    337
+   ],
+   [
+    197,
+    296,
+    245,
+    338
+   ]
+  ],
+  "atk_water": [
+   [
+    17,
+    353,
+    70,
+    445
+   ],
+   [
+    85,
+    358,
+    126,
+    449
+   ],
+   [
+    140,
+    362,
+    181,
+    447
+   ],
+   [
+    202,
+    364,
+    241,
+    450
+   ]
+  ],
+  "atk_fwd": [
+   [
+    19,
+    463,
+    67,
+    505
+   ],
+   [
+    81,
+    466,
+    133,
+    508
+   ],
+   [
+    150,
+    459,
+    207,
+    509
+   ],
+   [
+    232,
+    464,
+    304,
+    502
+   ],
+   [
+    319,
+    462,
+    404,
+    507
+   ]
+  ],
+  "down_land": [
+   [
+    22,
+    542,
+    71,
+    599
+   ],
+   [
+    92,
+    547,
+    176,
+    599
+   ],
+   [
+    191,
+    548,
+    259,
+    600
+   ]
+  ],
+  "down_water": [
+   [
+    21,
+    618,
+    66,
+    712
+   ],
+   [
+    99,
+    623,
+    175,
+    716
+   ],
+   [
+    199,
+    624,
+    258,
+    714
+   ]
+  ],
+  "atk_up": [
+   [
+    9,
+    759,
+    61,
+    808
+   ],
+   [
+    76,
+    755,
+    134,
+    809
+   ],
+   [
+    150,
+    754,
+    208,
+    808
+   ],
+   [
+    228,
+    756,
+    275,
+    815
+   ],
+   [
+    296,
+    750,
+    343,
+    831
+   ],
+   [
+    355,
+    753,
+    402,
+    845
+   ],
+   [
+    424,
+    759,
+    471,
+    854
+   ],
+   [
+    497,
+    760,
+    544,
+    852
+   ]
+  ]
+ },
+ "cell": [
+  156,
+  113
+ ],
+ "feetY": 64,
+ "centreX": 78,
+ "actionScale": 1.0,
+ "landH": 49,
+ "anchors": {
+  "jump:L": [
+   27.0,
+   61
+  ],
+  "fall:L": [
+   14.0,
+   62
+  ],
+  "crouch:L": [
+   31.0,
+   41
+  ],
+  "stand_land:L": [
+   31.0,
+   48
+  ],
+  "stand_water:W": [
+   24.0,
+   48
+  ],
+  "walk:L": [
+   39.0,
+   43
+  ],
+  "swim:S": [
+   75.66666666666667,
+   48
+  ],
+  "atk_land:L": [
+   27.0,
+   55
+  ],
+  "atk_water:W": [
+   27.0,
+   48
+  ],
+  "atk_fwd:L": [
+   27.0,
+   41
+  ],
+  "atk_fwd:S": [
+   59.0,
+   43
+  ],
+  "down_land:L": [
+   22.0,
+   56
+  ],
+  "down_water:W": [
+   22.0,
+   48
+  ],
+  "atk_up:L": [
+   31.0,
+   48
+  ],
+  "atk_up:W": [
+   31.0,
+   48
+  ]
+ },
+ "ledger": [
+  {
+   "anim": "idle",
+   "row": "stand_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    20,
+    78,
+    72,
+    127
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "idle (stand on land)"
+  },
+  {
+   "anim": "idle",
+   "row": "stand_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    78,
+    131,
+    126
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "idle (stand on land)"
+  },
+  {
+   "anim": "idle",
+   "row": "stand_land",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    141,
+    76,
+    193,
+    125
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "idle (stand on land)"
+  },
+  {
+   "anim": "idle",
+   "row": "stand_land",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    199,
+    75,
+    252,
+    125
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "idle (stand on land)"
+  },
+  {
+   "anim": "walk",
+   "row": "walk",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    15,
+    162,
+    81,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk (walk/run row)"
+  },
+  {
+   "anim": "walk",
+   "row": "walk",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    93,
+    166,
+    159,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk (walk/run row)"
+  },
+  {
+   "anim": "walk",
+   "row": "walk",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    167,
+    160,
+    233,
+    207
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk (walk/run row)"
+  },
+  {
+   "anim": "walk",
+   "row": "walk",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    239,
+    164,
+    305,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk (walk/run row)"
+  },
+  {
+   "anim": "walk",
+   "row": "walk",
+   "frame": 5,
+   "set": "L",
+   "src": [
+    310,
+    166,
+    376,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk (walk/run row)"
+  },
+  {
+   "anim": "walk",
+   "row": "walk",
+   "frame": 6,
+   "set": "L",
+   "src": [
+    387,
+    166,
+    453,
+    213
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk (walk/run row)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "walk",
+   "frame": 6,
+   "set": "L",
+   "src": [
+    387,
+    166,
+    453,
+    213
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk back = walk/run row REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "row": "walk",
+   "frame": 5,
+   "set": "L",
+   "src": [
+    310,
+    166,
+    376,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk back = walk/run row REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "row": "walk",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    239,
+    164,
+    305,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk back = walk/run row REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "row": "walk",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    167,
+    160,
+    233,
+    207
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk back = walk/run row REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "row": "walk",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    93,
+    166,
+    159,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk back = walk/run row REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "row": "walk",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    15,
+    162,
+    81,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "walk back = walk/run row REVERSED"
+  },
+  {
+   "anim": "run",
+   "row": "walk",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    15,
+    162,
+    81,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "run = walk/run row cycled FASTER (no separate run on the sheet)"
+  },
+  {
+   "anim": "run",
+   "row": "walk",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    93,
+    166,
+    159,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "run = walk/run row cycled FASTER (no separate run on the sheet)"
+  },
+  {
+   "anim": "run",
+   "row": "walk",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    167,
+    160,
+    233,
+    207
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "run = walk/run row cycled FASTER (no separate run on the sheet)"
+  },
+  {
+   "anim": "run",
+   "row": "walk",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    239,
+    164,
+    305,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "run = walk/run row cycled FASTER (no separate run on the sheet)"
+  },
+  {
+   "anim": "run",
+   "row": "walk",
+   "frame": 5,
+   "set": "L",
+   "src": [
+    310,
+    166,
+    376,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "run = walk/run row cycled FASTER (no separate run on the sheet)"
+  },
+  {
+   "anim": "run",
+   "row": "walk",
+   "frame": 6,
+   "set": "L",
+   "src": [
+    387,
+    166,
+    453,
+    213
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "run = walk/run row cycled FASTER (no separate run on the sheet)"
+  },
+  {
+   "anim": "dash",
+   "row": "walk",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    15,
+    162,
+    81,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "dash = walk/run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "walk",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    93,
+    166,
+    159,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "dash = walk/run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "walk",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    167,
+    160,
+    233,
+    207
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "dash = walk/run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "walk",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    239,
+    164,
+    305,
+    206
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "dash = walk/run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "walk",
+   "frame": 5,
+   "set": "L",
+   "src": [
+    310,
+    166,
+    376,
+    209
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "dash = walk/run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "walk",
+   "frame": 6,
+   "set": "L",
+   "src": [
+    387,
+    166,
+    453,
+    213
+   ],
+   "offset": [
+    39,
+    21
+   ],
+   "role": "dash = walk/run row cycled fastest"
+  },
+  {
+   "anim": "crouch",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "crouch"
+  },
+  {
+   "anim": "jump",
+   "row": "jump",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    560,
+    193,
+    605,
+    255
+   ],
+   "offset": [
+    51,
+    3
+   ],
+   "role": "jump rise (also the leap out of the water)"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    560,
+    193,
+    605,
+    255
+   ],
+   "offset": [
+    51,
+    3
+   ],
+   "role": "double jump = REUSED jump"
+  },
+  {
+   "anim": "fall",
+   "row": "fall",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    666,
+    200,
+    698,
+    263
+   ],
+   "offset": [
+    64,
+    2
+   ],
+   "role": "fall"
+  },
+  {
+   "anim": "guard",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "guard = REUSED crouch (no block pose on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "crouch guard = REUSED crouch"
+  },
+  {
+   "anim": "blockHit",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "block hit = REUSED crouch"
+  },
+  {
+   "anim": "hurt",
+   "row": "fall",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    666,
+    200,
+    698,
+    263
+   ],
+   "offset": [
+    64,
+    2
+   ],
+   "role": "hurt = REUSED fall"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "fall",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    666,
+    200,
+    698,
+    263
+   ],
+   "offset": [
+    64,
+    2
+   ],
+   "role": "air hurt = REUSED fall"
+  },
+  {
+   "anim": "knockdown",
+   "row": "fall",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    666,
+    200,
+    698,
+    263
+   ],
+   "offset": [
+    64,
+    2
+   ],
+   "role": "knockdown = REUSED fall"
+  },
+  {
+   "anim": "getup",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "get-up = REUSED crouch -> stand"
+  },
+  {
+   "anim": "getup",
+   "row": "stand_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    20,
+    78,
+    72,
+    127
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "get-up = REUSED crouch -> stand"
+  },
+  {
+   "anim": "dizzy",
+   "row": "stand_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    20,
+    78,
+    72,
+    127
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "dizzy = REUSED stand (land) cycled slowly"
+  },
+  {
+   "anim": "dizzy",
+   "row": "stand_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    78,
+    131,
+    126
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "dizzy = REUSED stand (land) cycled slowly"
+  },
+  {
+   "anim": "dizzy",
+   "row": "stand_land",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    141,
+    76,
+    193,
+    125
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "dizzy = REUSED stand (land) cycled slowly"
+  },
+  {
+   "anim": "dizzy",
+   "row": "stand_land",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    199,
+    75,
+    252,
+    125
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "dizzy = REUSED stand (land) cycled slowly"
+  },
+  {
+   "anim": "transform",
+   "row": "atk_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    17,
+    281,
+    70,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "transform = REUSED attack (land) f1 (arms flexed)"
+  },
+  {
+   "anim": "taunt",
+   "row": "atk_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    17,
+    281,
+    70,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "taunt = REUSED attack (land) f1-2 (flex + roar)"
+  },
+  {
+   "anim": "taunt",
+   "row": "atk_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    78,
+    290,
+    128,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "taunt = REUSED attack (land) f1-2 (flex + roar)"
+  },
+  {
+   "anim": "win",
+   "row": "stand_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    20,
+    78,
+    72,
+    127
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "win = REUSED stand (land)"
+  },
+  {
+   "anim": "win",
+   "row": "stand_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    78,
+    131,
+    126
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "win = REUSED stand (land)"
+  },
+  {
+   "anim": "win",
+   "row": "stand_land",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    141,
+    76,
+    193,
+    125
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "win = REUSED stand (land)"
+  },
+  {
+   "anim": "win",
+   "row": "stand_land",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    199,
+    75,
+    252,
+    125
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "win = REUSED stand (land)"
+  },
+  {
+   "anim": "lose",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "lose = REUSED crouch"
+  },
+  {
+   "anim": "light",
+   "row": "atk_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    17,
+    281,
+    70,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "JAB (attack on land f1-2)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    78,
+    290,
+    128,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "JAB (attack on land f1-2)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_fwd",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    19,
+    463,
+    67,
+    505
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "HEAVY bite (attack -> f1-3 land lunge; f2-3 active)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_fwd",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    466,
+    133,
+    508
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "HEAVY bite (attack -> f1-3 land lunge; f2-3 active)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_fwd",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    150,
+    459,
+    207,
+    509
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "HEAVY bite (attack -> f1-3 land lunge; f2-3 active)"
+  },
+  {
+   "anim": "down",
+   "row": "crouch",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    747,
+    215,
+    799,
+    257
+   ],
+   "offset": [
+    47,
+    23
+   ],
+   "role": "LOW bite = crouch + attack -> f2 (low bite)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_fwd",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    466,
+    133,
+    508
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "LOW bite = crouch + attack -> f2 (low bite)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_up",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    9,
+    759,
+    61,
+    808
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER (attack up f1-4, land)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_up",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    76,
+    755,
+    134,
+    809
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER (attack up f1-4, land)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_up",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    150,
+    754,
+    208,
+    808
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER (attack up f1-4, land)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_up",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    228,
+    756,
+    275,
+    815
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER (attack up f1-4, land)"
+  },
+  {
+   "anim": "air",
+   "row": "fall",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    666,
+    200,
+    698,
+    263
+   ],
+   "offset": [
+    64,
+    2
+   ],
+   "role": "AIR = fall frame + attack -> f3 (bite)"
+  },
+  {
+   "anim": "air",
+   "row": "atk_fwd",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    150,
+    459,
+    207,
+    509
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "AIR = fall frame + attack -> f3 (bite)"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_fwd",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    19,
+    463,
+    67,
+    505
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "grab = REUSED attack -> f1-2"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_fwd",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    466,
+    133,
+    508
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "grab = REUSED attack -> f1-2"
+  },
+  {
+   "anim": "rjSummon",
+   "row": "atk_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    17,
+    281,
+    70,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "STORM TIDE summon pose (attack on land f1, arms flexed)"
+  },
+  {
+   "anim": "rjJet",
+   "row": "atk_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    17,
+    281,
+    70,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "WATER JET (attack on land: f3 spark = release, f4 recovery)"
+  },
+  {
+   "anim": "rjJet",
+   "row": "atk_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    78,
+    290,
+    128,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "WATER JET (attack on land: f3 spark = release, f4 recovery)"
+  },
+  {
+   "anim": "rjJet",
+   "row": "atk_land",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    135,
+    295,
+    185,
+    337
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "WATER JET (attack on land: f3 spark = release, f4 recovery)"
+  },
+  {
+   "anim": "rjJet",
+   "row": "atk_land",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    197,
+    296,
+    245,
+    338
+   ],
+   "offset": [
+    51,
+    9
+   ],
+   "role": "WATER JET (attack on land: f3 spark = release, f4 recovery)"
+  },
+  {
+   "anim": "rjRush",
+   "row": "atk_fwd",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    19,
+    463,
+    67,
+    505
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "SHARK RUSH (attack -> f1-3 land lunge)"
+  },
+  {
+   "anim": "rjRush",
+   "row": "atk_fwd",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    81,
+    466,
+    133,
+    508
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "SHARK RUSH (attack -> f1-3 land lunge)"
+  },
+  {
+   "anim": "rjRush",
+   "row": "atk_fwd",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    150,
+    459,
+    207,
+    509
+   ],
+   "offset": [
+    51,
+    23
+   ],
+   "role": "SHARK RUSH (attack -> f1-3 land lunge)"
+  },
+  {
+   "anim": "rjFin",
+   "row": "down_land",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    22,
+    542,
+    71,
+    599
+   ],
+   "offset": [
+    56,
+    8
+   ],
+   "role": "FIN BLADE (attack down on land: crescent slash)"
+  },
+  {
+   "anim": "rjFin",
+   "row": "down_land",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    92,
+    547,
+    176,
+    599
+   ],
+   "offset": [
+    56,
+    8
+   ],
+   "role": "FIN BLADE (attack down on land: crescent slash)"
+  },
+  {
+   "anim": "rjFin",
+   "row": "down_land",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    191,
+    548,
+    259,
+    600
+   ],
+   "offset": [
+    56,
+    8
+   ],
+   "role": "FIN BLADE (attack down on land: crescent slash)"
+  },
+  {
+   "anim": "rjBreach",
+   "row": "atk_up",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    9,
+    759,
+    61,
+    808
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH (attack up f1-4, land anti-air chomp)"
+  },
+  {
+   "anim": "rjBreach",
+   "row": "atk_up",
+   "frame": 2,
+   "set": "L",
+   "src": [
+    76,
+    755,
+    134,
+    809
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH (attack up f1-4, land anti-air chomp)"
+  },
+  {
+   "anim": "rjBreach",
+   "row": "atk_up",
+   "frame": 3,
+   "set": "L",
+   "src": [
+    150,
+    754,
+    208,
+    808
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH (attack up f1-4, land anti-air chomp)"
+  },
+  {
+   "anim": "rjBreach",
+   "row": "atk_up",
+   "frame": 4,
+   "set": "L",
+   "src": [
+    228,
+    756,
+    275,
+    815
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH (attack up f1-4, land anti-air chomp)"
+  },
+  {
+   "anim": "rjDive",
+   "row": "fall",
+   "frame": 1,
+   "set": "L",
+   "src": [
+    666,
+    200,
+    698,
+    263
+   ],
+   "offset": [
+    64,
+    2
+   ],
+   "role": "DIVE BITE (fall frame, diagonal dive)"
+  },
+  {
+   "anim": "idle_w",
+   "row": "stand_water",
+   "frame": 1,
+   "set": "W",
+   "src": [
+    282,
+    50,
+    330,
+    137
+   ],
+   "offset": [
+    54,
+    16
+   ],
+   "role": "submerged idle / treading water (stand on water)"
+  },
+  {
+   "anim": "idle_w",
+   "row": "stand_water",
+   "frame": 2,
+   "set": "W",
+   "src": [
+    342,
+    50,
+    389,
+    134
+   ],
+   "offset": [
+    54,
+    16
+   ],
+   "role": "submerged idle / treading water (stand on water)"
+  },
+  {
+   "anim": "idle_w",
+   "row": "stand_water",
+   "frame": 3,
+   "set": "W",
+   "src": [
+    403,
+    48,
+    451,
+    136
+   ],
+   "offset": [
+    54,
+    16
+   ],
+   "role": "submerged idle / treading water (stand on water)"
+  },
+  {
+   "anim": "idle_w",
+   "row": "stand_water",
+   "frame": 4,
+   "set": "W",
+   "src": [
+    459,
+    47,
+    510,
+    131
+   ],
+   "offset": [
+    54,
+    16
+   ],
+   "role": "submerged idle / treading water (stand on water)"
+  },
+  {
+   "anim": "swim_w",
+   "row": "swim",
+   "frame": 1,
+   "set": "S",
+   "src": [
+    23,
+    230,
+    115,
+    269
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "SWIM loop (submerged move)"
+  },
+  {
+   "anim": "swim_w",
+   "row": "swim",
+   "frame": 2,
+   "set": "S",
+   "src": [
+    129,
+    238,
+    224,
+    271
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "SWIM loop (submerged move)"
+  },
+  {
+   "anim": "swim_w",
+   "row": "swim",
+   "frame": 3,
+   "set": "S",
+   "src": [
+    232,
+    233,
+    325,
+    271
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "SWIM loop (submerged move)"
+  },
+  {
+   "anim": "swim_w",
+   "row": "swim",
+   "frame": 4,
+   "set": "S",
+   "src": [
+    339,
+    238,
+    434,
+    271
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "SWIM loop (submerged move)"
+  },
+  {
+   "anim": "dash_w",
+   "row": "swim",
+   "frame": 1,
+   "set": "S",
+   "src": [
+    23,
+    230,
+    115,
+    269
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "swim dash = swim row cycled fast"
+  },
+  {
+   "anim": "dash_w",
+   "row": "swim",
+   "frame": 2,
+   "set": "S",
+   "src": [
+    129,
+    238,
+    224,
+    271
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "swim dash = swim row cycled fast"
+  },
+  {
+   "anim": "dash_w",
+   "row": "swim",
+   "frame": 3,
+   "set": "S",
+   "src": [
+    232,
+    233,
+    325,
+    271
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "swim dash = swim row cycled fast"
+  },
+  {
+   "anim": "dash_w",
+   "row": "swim",
+   "frame": 4,
+   "set": "S",
+   "src": [
+    339,
+    238,
+    434,
+    271
+   ],
+   "offset": [
+    2,
+    16
+   ],
+   "role": "swim dash = swim row cycled fast"
+  },
+  {
+   "anim": "light_w",
+   "row": "atk_water",
+   "frame": 1,
+   "set": "W",
+   "src": [
+    17,
+    353,
+    70,
+    445
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "JAB (attack on water f1-2)"
+  },
+  {
+   "anim": "light_w",
+   "row": "atk_water",
+   "frame": 2,
+   "set": "W",
+   "src": [
+    85,
+    358,
+    126,
+    449
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "JAB (attack on water f1-2)"
+  },
+  {
+   "anim": "heavy_w",
+   "row": "atk_fwd",
+   "frame": 4,
+   "set": "S",
+   "src": [
+    232,
+    464,
+    304,
+    502
+   ],
+   "offset": [
+    19,
+    21
+   ],
+   "role": "HEAVY bite submerged = attack -> f4-5 swim lunge"
+  },
+  {
+   "anim": "heavy_w",
+   "row": "atk_fwd",
+   "frame": 5,
+   "set": "S",
+   "src": [
+    319,
+    462,
+    404,
+    507
+   ],
+   "offset": [
+    19,
+    21
+   ],
+   "role": "HEAVY bite submerged = attack -> f4-5 swim lunge"
+  },
+  {
+   "anim": "up_w",
+   "row": "atk_up",
+   "frame": 5,
+   "set": "W",
+   "src": [
+    296,
+    750,
+    343,
+    831
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER submerged (attack up f5-8, tail rising lunge)"
+  },
+  {
+   "anim": "up_w",
+   "row": "atk_up",
+   "frame": 6,
+   "set": "W",
+   "src": [
+    355,
+    753,
+    402,
+    845
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER submerged (attack up f5-8, tail rising lunge)"
+  },
+  {
+   "anim": "up_w",
+   "row": "atk_up",
+   "frame": 7,
+   "set": "W",
+   "src": [
+    424,
+    759,
+    471,
+    854
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER submerged (attack up f5-8, tail rising lunge)"
+  },
+  {
+   "anim": "up_w",
+   "row": "atk_up",
+   "frame": 8,
+   "set": "W",
+   "src": [
+    497,
+    760,
+    544,
+    852
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "LAUNCHER submerged (attack up f5-8, tail rising lunge)"
+  },
+  {
+   "anim": "hurt_w",
+   "row": "stand_water",
+   "frame": 1,
+   "set": "W",
+   "src": [
+    282,
+    50,
+    330,
+    137
+   ],
+   "offset": [
+    54,
+    16
+   ],
+   "role": "hurt submerged = REUSED stand on water f1"
+  },
+  {
+   "anim": "rjSummon_w",
+   "row": "atk_water",
+   "frame": 1,
+   "set": "W",
+   "src": [
+    17,
+    353,
+    70,
+    445
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "STORM TIDE summon pose submerged (attack on water f1)"
+  },
+  {
+   "anim": "rjJet_w",
+   "row": "atk_water",
+   "frame": 1,
+   "set": "W",
+   "src": [
+    17,
+    353,
+    70,
+    445
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "WATER JET submerged (attack on water: f3 spark = release)"
+  },
+  {
+   "anim": "rjJet_w",
+   "row": "atk_water",
+   "frame": 2,
+   "set": "W",
+   "src": [
+    85,
+    358,
+    126,
+    449
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "WATER JET submerged (attack on water: f3 spark = release)"
+  },
+  {
+   "anim": "rjJet_w",
+   "row": "atk_water",
+   "frame": 3,
+   "set": "W",
+   "src": [
+    140,
+    362,
+    181,
+    447
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "WATER JET submerged (attack on water: f3 spark = release)"
+  },
+  {
+   "anim": "rjJet_w",
+   "row": "atk_water",
+   "frame": 4,
+   "set": "W",
+   "src": [
+    202,
+    364,
+    241,
+    450
+   ],
+   "offset": [
+    51,
+    16
+   ],
+   "role": "WATER JET submerged (attack on water: f3 spark = release)"
+  },
+  {
+   "anim": "rjRush_w",
+   "row": "atk_fwd",
+   "frame": 4,
+   "set": "S",
+   "src": [
+    232,
+    464,
+    304,
+    502
+   ],
+   "offset": [
+    19,
+    21
+   ],
+   "role": "SHARK RUSH submerged (attack -> f4-5 swim lunges)"
+  },
+  {
+   "anim": "rjRush_w",
+   "row": "atk_fwd",
+   "frame": 5,
+   "set": "S",
+   "src": [
+    319,
+    462,
+    404,
+    507
+   ],
+   "offset": [
+    19,
+    21
+   ],
+   "role": "SHARK RUSH submerged (attack -> f4-5 swim lunges)"
+  },
+  {
+   "anim": "rjFin_w",
+   "row": "down_water",
+   "frame": 1,
+   "set": "W",
+   "src": [
+    21,
+    618,
+    66,
+    712
+   ],
+   "offset": [
+    56,
+    16
+   ],
+   "role": "FIN BLADE submerged (attack down on water)"
+  },
+  {
+   "anim": "rjFin_w",
+   "row": "down_water",
+   "frame": 2,
+   "set": "W",
+   "src": [
+    99,
+    623,
+    175,
+    716
+   ],
+   "offset": [
+    56,
+    16
+   ],
+   "role": "FIN BLADE submerged (attack down on water)"
+  },
+  {
+   "anim": "rjFin_w",
+   "row": "down_water",
+   "frame": 3,
+   "set": "W",
+   "src": [
+    199,
+    624,
+    258,
+    714
+   ],
+   "offset": [
+    56,
+    16
+   ],
+   "role": "FIN BLADE submerged (attack down on water)"
+  },
+  {
+   "anim": "rjBreach_w",
+   "row": "atk_up",
+   "frame": 5,
+   "set": "W",
+   "src": [
+    296,
+    750,
+    343,
+    831
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH submerged: the surface-launch body (attack up f5-8)"
+  },
+  {
+   "anim": "rjBreach_w",
+   "row": "atk_up",
+   "frame": 6,
+   "set": "W",
+   "src": [
+    355,
+    753,
+    402,
+    845
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH submerged: the surface-launch body (attack up f5-8)"
+  },
+  {
+   "anim": "rjBreach_w",
+   "row": "atk_up",
+   "frame": 7,
+   "set": "W",
+   "src": [
+    424,
+    759,
+    471,
+    854
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH submerged: the surface-launch body (attack up f5-8)"
+  },
+  {
+   "anim": "rjBreach_w",
+   "row": "atk_up",
+   "frame": 8,
+   "set": "W",
+   "src": [
+    497,
+    760,
+    544,
+    852
+   ],
+   "offset": [
+    47,
+    16
+   ],
+   "role": "BREACH submerged: the surface-launch body (attack up f5-8)"
+  }
+ ]
+}

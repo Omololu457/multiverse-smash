@@ -13,6 +13,7 @@ export const WATER_AFFINITY_FORMS = {
   ripjaws: ["water"],   // Piscciss Volann
   arcticguana: ["ice"], // Cryoreptile
   bigchill: ["ice"],    // Necrofriggian
+  waterhazard: ["water"], // Orishan
 }
 // Considered and LEFT OUT (borderline): tobirama (a human Water Release user — still needs air), enoch (an ICE mode among
 // several, not an ice body), vilgax (tentacled, not established as aquatic), luffy (a Devil Fruit user: the opposite).

@@ -19,6 +19,7 @@ import { BENWOLF } from "./benwolf.js"
 import { BIGCHILL } from "./bigchill.js"
 import { RIPJAWS } from "./ripjaws.js"
 import { RATH } from "./rath.js"
+import { WATERHAZARD } from "./waterhazard.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -64,6 +65,7 @@ export const BEN10_ALIEN_REGISTRY = [
   BIGCHILL, // READY (2026-11-18): DS Vilgax Attacks sheet + the shared Arcticguana ice FX + ledger; Necrofriggian (flight / Phase Drift / shared Chill → Popsicle → Shatter / Frozen Sky); a NEW entry, a PICK-FIVE choice (catalog slot 19 — no new dial slot)
   RIPJAWS,  // READY (2026-11-18): Dragonrod sheet + ledger; Piscciss Volann (STORM TIDE flood: depth states / swim / breath + drowning / fire + electric vs water / Maelstrom Feast); a NEW entry, a PICK-FIVE choice (catalog slot 20 — no new dial slot)
   RATH,     // READY (2026-11-18): blue-background sheet (source unknown) + ledger; Appoplexian brawler (Fury from dealing AND taking hits → RAGING → RATH'S FURY super armor / all-melee kit, no projectiles / Let Me Tell You Something command grab / Rath's Fury beatdown); a NEW entry, a PICK-FIVE choice (catalog slot 21 — no new dial slot)
+  WATERHAZARD, // READY (2026-11-18): Fun-tech.tk sheet + ledger; Orishan, strictly water ("water" tag: waterborne in a STORM TIDE flood) — Pressure Core / Puddle Form (Goop's numbers) / Drenched → Short Fuse / Tidal Discharge; a NEW entry, a PICK-FIVE choice (catalog slot 22 — no new dial slot)
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",

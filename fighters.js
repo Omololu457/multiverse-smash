@@ -18,6 +18,7 @@ import { ARCTICGUANA } from "./arcticguana.js"
 import { BIGCHILL } from "./bigchill.js"
 import { RIPJAWS } from "./ripjaws.js"
 import { RATH } from "./rath.js"
+import { WATERHAZARD } from "./waterhazard.js"
 import { FEEDBACK } from "./feedback.js"
 import { BENWOLF } from "./benwolf.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
@@ -1054,6 +1055,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 21, sizeW: 64, sizeH: 118 },
     basic_attacks: RATH.basic_attacks, specials: RATH.moves,
     ultimate: { name: "Rath's Fury", cost: 55, damage: 240 } },
+  // Water Hazard (READY, waterhazard.js): a hunched Orishan hurtbox. Pressure Core / Puddle Form / Drenched → Short Fuse /
+  // Tidal Discharge via the ready-form hooks; "water"-tagged (waterAffinity.js). mods (speed 0.95 / dmg 1.05 / def 1.00 /
+  // weight 1.05) via applyAlien.
+  waterhazard: { name: "Water Hazard", color: "#8f1b31", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 6, maxJumps: 2, jumpPower: 21, sizeW: 62, sizeH: 112 },
+    basic_attacks: WATERHAZARD.basic_attacks, specials: WATERHAZARD.moves,
+    ultimate: { name: "Tidal Discharge", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

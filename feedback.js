@@ -85,6 +85,7 @@ function tick(f, input, ctx, api) {
   input = input || {}
   tickInputs(f, s, input)
   if (grounded(f)) s.voltUsed = false                                      // Volt Shot: once per airtime
+  tickCharge(f, s)
   //@@TICK@@
   s.noAttack = busy(s)
 }
@@ -160,16 +161,55 @@ const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, {
   alien: { hidden: true, ...(md.alien || {}) } }, {})
 const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
 
+// ── 3. CHARGE (0–100) ────────────────────────────────────────────────────────────────────────────────────────
+// Gains: PLUG GUARD absorbs (+0.5 × the absorbed damage, max +30; beams half), the stored projectile dissipating / being replaced
+// (its value), a clean SIPHON CABLE hit +15 (and the opponent loses 15 Power), any other clean ELECTRIC hit of his +4 (all his
+// normals and specials are electric-tagged; the ult's own pulses are not — its total is fixed). Idle 180f after the last gain →
+// −1 / f. Plasma Orb / Overload Burst / the ult's Discharge spend ALL of it. Swap / revert / KO / rematch clear it (formState).
+export const FB_CHARGE = { MAX: 100, ELECTRIC: 4, SIPHON: 15, IDLE: 180, DECAY: 1 }
+export function addCharge(s, n) {
+  if (!s || !(n > 0)) return 0
+  const before = s.charge
+  s.charge = Math.min(FB_CHARGE.MAX, s.charge + n); s.chargeT = 0
+  const got = s.charge - before; s.stats.chargeGained += got
+  return got
+}
+export function spendCharge(s) { const c = s ? s.charge : 0; if (s) { s.charge = 0; s.chargeT = 0 } return c }
+function tickCharge(f, s) {
+  s.chargeT++
+  if (s.chargeT > FB_CHARGE.IDLE && s.charge > 0) s.charge = Math.max(0, s.charge - FB_CHARGE.DECAY)
+}
+// is this hit of his electric? (his normals / specials carry electric: true; the ult's beats do not)
+const electricMove = m => !!m && (m.electric === true || /electric|lightning|volt|plasma/i.test(String(m.element || "")))
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
 function hurtbox(f) { return null }
 function absorb(f, info) { return false }
 function blockHeavy(f) { return false }
 function damageDealt(f, target, raw, opts) { return raw }
-function onContact(f, target, info) {}
+function onContact(f, target, { proj = null, move = null, blocked = false } = {}) {
+  const s = fbState(f); if (!s || blocked || !target || target === f) return
+  const tag = proj && proj.alien
+  //@@CONTACT@@
+  if (proj && tag && tag.fb === "siphon") return                                 // Siphon pays its own +15 (section 6)
+  if (proj && tag && /^ult/.test(String(tag.fb || ""))) return                  // the ult's beats: no Charge (fixed total)
+  if (proj ? electricMove(proj) : (!move || electricMove(move) || !!f.basic_attacks?.[move.name]?.electric)) addCharge(s, FB_CHARGE.ELECTRIC)   // a clean electric hit: +4
+}
 function fireUltimate(f, ctx, api) { return false }
 function targetOffset(f, target) { return null }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
 export function drawFeedbackUnder(c, f) {}
 export function drawFeedbackFx(c, f, frame = 0, opp = null) {}
-export function drawFeedbackHud(ctx, f, opts) {}
+const INK = "#05070d", BLU = "#38bdf8", CYN = "#a5f3fc", WHT = "#f0fbff", YEL = "#d9f99d", RED = "#ff5b5b"
+export function drawFeedbackHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
+  const s = fbState(f); if (!ctx || !s) return
+  const y = enY + enH + 3, w = 64, bx = flip ? x + 8 + (pbw || 120) - w : x + 8
+  ctx.save(); ctx.textBaseline = "top"
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(bx, y, w, 5)                                   // CHARGE bar
+  ctx.fillStyle = s.charge >= 25 ? BLU : CYN; ctx.fillRect(bx + 1, y + 1, Math.round((w - 2) * s.charge / FB_CHARGE.MAX), 3)
+  ctx.font = "bold 7px Arial"; ctx.textAlign = flip ? "right" : "left"; ctx.fillStyle = "#e5e7eb"
+  ctx.fillText(`CHARGE ${Math.round(s.charge)}`, flip ? bx + w : bx, y + 7)
+  //@@HUD@@
+  ctx.restore()
+}

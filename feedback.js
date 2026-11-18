@@ -85,7 +85,10 @@ function tick(f, input, ctx, api) {
   input = input || {}
   tickInputs(f, s, input)
   if (grounded(f)) s.voltUsed = false                                      // Volt Shot: once per airtime
+  s.blockHeld = !!input.block
   tickCharge(f, s)
+  tickGuard(f, s)
+  tickStored(f, s)
   //@@TICK@@
   s.noAttack = busy(s)
 }
@@ -182,10 +185,86 @@ function tickCharge(f, s) {
 // is this hit of his electric? (his normals / specials carry electric: true; the ult's beats do not)
 const electricMove = m => !!m && (m.electric === true || /electric|lightning|volt|plasma/i.test(String(m.element || "")))
 
+// ── 4. PLUG GUARD (Block + Heavy, cost 0, 5 s cooldown, 10f window) ─────────────────────────────────────────────
+// ABSORBS projectile hits and energy / electric / fire / beam-TAGGED hits: 0 damage, no hitstun, Charge +0.5 × the damage (max +30).
+// PASSES THROUGH: physical melee (untagged), throws / grabs, unblockables, ultimates / cinematics, his own pieces, and anything
+// already RETURNED by a Feedback (loop guard; other absorbers can still take it). Stationary hitboxes riding the projectile
+// pipeline (other aliens' hidden melee boxes) count as melee: absorbed only when element-tagged.
+// BEAMS: absorbed per tick while Block stays HELD, for at most 30f from the first beam tick, at HALF gain, never stored.
+// STORE: an absorbed (non-beam) projectile becomes the ONE stored record (damage, speed, size, tags, owner, look) for 180f, then it
+// dissipates into Charge (its value = the absorb gain); a new absorb replaces it and the old record's value is added to Charge.
+// ATOMIC: one absorb per projectile (stamped), the gain + record + consume happen in this one call; the engine then removes it.
+export const FB_GUARD = { WINDOW: 10, CD: 300, GAIN: 0.5, MAX_GAIN: 30, BEAM_MAX: 30, BEAM_GAIN: 0.5, STORE: 180 }
+const ELEMENT = /fire|flame|burn|electric|lightning|thunder|volt|plasma|beam|laser|energy|ki\b|chakra|blast/i
+const tagged = m => !!m && !!(m.fire || m.electric || m.beam || m.isBeam || m.laser || m.energy || (m.alien && m.alien.beam) ||
+  ELEMENT.test(String(m.element || "")) || ELEMENT.test(String(m.damageType || "")))
+const passes = m => !!m && !!(m.unblockable || m.isUltimate || m.isCinematic || m.cinematic || m.isGrab || m.isThrow || m.grab || m.throw ||
+  ["grab", "throw", "ultimate"].includes(m.category))
+const beamOf = p => isBeam(p) || !!(p && p.alien && p.alien.beam)
+export const guardOpen = s => !!s && s.guard.t > 0
+const beamOpen = s => !!s && s.guard.beamT > 0 && s.guard.beamT <= FB_GUARD.BEAM_MAX && s.blockHeld
+function blockHeavy(f) {
+  const s = fbState(f); if (!s) return false
+  const g = s.guard
+  if (g.cd > 0 || busy(s) || (f.hitstun || 0) > 0 || f.attacking || !f.transformed) return false
+  g.t = FB_GUARD.WINDOW; g.cd = FB_GUARD.CD; g.beamT = 0; s.stats.guards++
+  f._spriteCastMove = "fbGuard"; f._spriteCastTimer = FB_GUARD.WINDOW; f._benPowerCommit = FB_GUARD.WINDOW; f.attackCooldown = FB_GUARD.WINDOW; f.vx = 0
+  return true
+}
+function tickGuard(f, s) {
+  const g = s.guard
+  if (g.t > 0) g.t--
+  if (g.cd > 0) g.cd--
+  if (g.beamT > 0) { if (!s.blockHeld || g.beamT > FB_GUARD.BEAM_MAX) g.beamT = 0; else { g.beamT++; f._spriteCastMove = "fbGuard"; f._spriteCastTimer = 2 } }
+}
+const gainOf = dmg => Math.min(FB_GUARD.MAX_GAIN, Math.max(0, dmg || 0) * FB_GUARD.GAIN)
+const LOOK = ["color", "sheet", "spriteFrames", "spriteW", "spriteH", "spriteSpeed", "spriteScale", "radius", "w", "h", "rectHitbox", "frameW", "frameH"]
+const TAGS = ["fire", "electric", "energy", "element", "damageType", "isSpecial", "hitstun", "blockstun", "knockbackX", "knockbackY"]
+function absorb(f, info) {
+  const s = fbState(f); if (!s || !info) return false
+  const p = info.proj
+  if (!p) {                                                                    // the melee path: only element-tagged blows
+    const m = info.move
+    if (!guardOpen(s) || !m || passes(m) || !tagged(m)) return false
+    addCharge(s, gainOf(m.damage)); s.stats.absorbed++; s.guard.absorbed++
+    return true
+  }
+  if (p.visualOnly || p.owner === f || p._fbAbsorbed || p.fbReturned || passes(p)) return false
+  const beam = beamOf(p)
+  if (beam) {                                                                  // per tick while held, ≤30f, half gain, no record
+    if (!(guardOpen(s) || beamOpen(s))) return false
+    if (s.guard.beamT <= 0) s.guard.beamT = 1
+    p._fbAbsorbed = true
+    addCharge(s, gainOf(p.damage) * FB_GUARD.BEAM_GAIN); s.stats.absorbedBeams++; s.guard.absorbed++
+    return true
+  }
+  if (!guardOpen(s)) return false
+  const moving = Math.abs(p.vx || 0) >= 1 || Math.abs(p.vy || 0) >= 1 || (p.speed || 0) >= 1
+  if (!moving && !tagged(p)) return false                                       // a stationary melee box: physical → passes
+  p._fbAbsorbed = true                                                         // ATOMIC: this projectile can never be absorbed again
+  const gain = gainOf(p.damage)
+  addCharge(s, gain)
+  if (moving) storeRecord(s, p, info.attacker || p.owner, gain)
+  s.stats.absorbed++; s.guard.absorbed++
+  return true
+}
+function storeRecord(s, p, owner, value) {
+  if (s.stored) addCharge(s, s.stored.value)                                   // replaced: the old record's value goes to Charge
+  const look = {}, tags = {}
+  for (const k of LOOK) if (p[k] !== undefined && typeof p[k] !== "object") look[k] = p[k]
+  for (const k of TAGS) if (p[k] !== undefined && typeof p[k] !== "object") tags[k] = p[k]
+  if (p.alien && p.alien.hidden) look.hidden = true                            // drawn by its owner's module → he draws an orb instead
+  s.stored = { name: String(p.name || "proj"), damage: p.damage || 0, speed: Math.hypot(p.vx || 0, p.vy || 0) || p.speed || 8,
+    w: p.w || 0, h: p.h || 0, radius: p.radius || 0, tags, look, owner: owner && owner.side ? owner.side : null, value, t: FB_GUARD.STORE, id: ++s.castId }
+  s.stats.stores++
+}
+function tickStored(f, s) {
+  const r = s.stored; if (!r) return
+  if (--r.t <= 0) { addCharge(s, r.value); s.lastStored = { ...r, by: "dissipated" }; s.stored = null; s.stats.dissipated++ }
+}
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
 function hurtbox(f) { return null }
-function absorb(f, info) { return false }
-function blockHeavy(f) { return false }
 function damageDealt(f, target, raw, opts) { return raw }
 function onContact(f, target, { proj = null, move = null, blocked = false } = {}) {
   const s = fbState(f); if (!s || blocked || !target || target === f) return
@@ -210,6 +289,11 @@ export function drawFeedbackHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
   ctx.fillStyle = s.charge >= 25 ? BLU : CYN; ctx.fillRect(bx + 1, y + 1, Math.round((w - 2) * s.charge / FB_CHARGE.MAX), 3)
   ctx.font = "bold 7px Arial"; ctx.textAlign = flip ? "right" : "left"; ctx.fillStyle = "#e5e7eb"
   ctx.fillText(`CHARGE ${Math.round(s.charge)}`, flip ? bx + w : bx, y + 7)
+  const r = s.stored, sx = flip ? bx + w - 14 : bx + w + 4                                  // STORED slot + its 180f life
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(sx, y - 1, 12, 12); ctx.strokeStyle = r ? BLU : "#4b5563"; ctx.lineWidth = 1; ctx.strokeRect(sx + 0.5, y - 0.5, 11, 11)
+  if (r) { ctx.fillStyle = CYN; ctx.fillRect(sx + 3, y + 2, 6, 6); ctx.fillStyle = WHT; ctx.fillRect(sx + 1, y + 12, Math.round(10 * r.t / FB_GUARD.STORE), 1) }
+  ctx.fillStyle = s.guard.t > 0 || s.guard.beamT > 0 ? YEL : s.guard.cd > 0 ? "#9ca3af" : "#e5e7eb"
+  ctx.fillText(s.guard.t > 0 || s.guard.beamT > 0 ? "PLUG GUARD" : s.guard.cd > 0 ? `GUARD ${Math.ceil(s.guard.cd / 60)}s` : "GUARD", flip ? bx + w : bx, y + 14)
   //@@HUD@@
   ctx.restore()
 }

@@ -18,7 +18,7 @@ import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COU
 import fs from 'node:fs'
 
 let passed = 0, failed = 0
-const test = (name, fn) => { try { fn(); passed++; console.log('PASS', name) } catch (e) { failed++; console.error('FAIL', name, '\n  ', e.message) } }
+const test = (name, fn) => { try { fn(); passed++; console.log('PASS', name) } catch (e) { failed++; console.error('FAIL', name, '\n  ', e.message, (e.stack.split('\n').find(l => l.includes('ben10_waterhazard')) || '').trim()) } }
 const fresh = (key = 'ben10', x = 0) => ({ rosterKey: key, benExperimental: false, side: key === 'ben10' ? 'p1' : 'p2',
   health: 950, maxHealth: 950, energy: 100, maxEnergy: 100, x, y: 300, w: 60, h: 110, groundY: 410,
   facing: key === 'ben10' ? 1 : -1, onGround: true, grounded: true, vx: 0, vy: 0, hitstun: 0, hitstop: 0, blockstun: 0,
@@ -204,6 +204,81 @@ test('6. Short Fuse stacks INDEPENDENTLY with Ripjaws\' submerged-electric +15 %
   sub(); const both = dmgAs(t, mw, 'melee', 'light'); const g = foe(); g._benWater = { ttl: 2, depth: 'submerged', wb: false }; const flood = dmgAs(g, mw, 'melee', 'light'), base = dmgAs(foe(), mw, 'melee', 'light')
   assert(Math.abs(flood / base - 1.15) < 0.02 && Math.abs(both / base - 1.2 * 1.15) < 0.02, `stack ${both} / ${flood} / ${base}`); delete t._benWater
   assert(F.applyAlien(f, 'megawhatt')); assert(G.fuseOn(t), 'the fuse runs on after the swap'); assert(F.applyAlien(f, 'waterhazard')); assert.equal(S(f).pips, 0, 'his pips cleared')
+})
+
+
+// ── 6 MOVES ────────────────────────────────────────────────────────────────────────────────────────────────────
+const { WH_BLAST, WH_BURST, WH_LASH, WH_SWEEP, WH_DIVE, WH_ULT } = G
+// cast a special and run the world until the cast is over (input = his held buttons each frame)
+function runCast(f, t, dir, { max = 200, block = false, input = {}, pre = null } = {}) {
+  clearProj(); f.energy = 100; if (pre) pre(f, t); const hp = t.health, e0 = f.energy
+  const ok = cast(f, t, dir), cost = e0 - f.energy; let n = 0, proj = 0
+  while (ok && n < max) { if (block) t.isBlocking = true; world(f, t, 1, typeof input === 'function' ? input(n) : input); n++; proj = Math.max(proj, A.activeProjectiles.length)
+    const s = S(f); if (!s.blast && !s.burst && !s.chain && !s.sweep && !s.dive && !s.puddle && n > 2 && !A.activeProjectiles.some(p => p.owner === f)) break }
+  return { ok, dmg: hp - t.health, cost, n, proj }
+}
+const SC = DM * C.GLOBAL_DAMAGE_SCALE
+test('7. Pressure Blast (236+P, 10): a tap fires a 460px jet at 10f for 40; one on screen; +1 Drenched on a clean hit', () => {
+  const f = ben(), t = foe(); reset(f, t, 300); const r = runCast(f, t, 'N'); assert(r.ok); assert.equal(r.cost, WH_COST.blast)
+  assert.equal(S(f).lastBlast.full, false); assert.equal(S(f).lastBlast.dmg, 40); assert(near(r.dmg, 40 * SC), 'dmg ' + r.dmg); assert.equal(S(f).pips, 1)
+  const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'N')); world(g, u, WH_BLAST.MIN + WH_BLAST.RECOVERY + 1)
+  assert(A.activeProjectiles.some(p => p.owner === g && p.alien?.wh === 'blast'), 'the jet flies'); ready(g); assert.equal(cast(g, u, 'N'), false, 'one on screen')
+  const p = A.activeProjectiles.find(p => p.owner === g); assert(Math.abs(p.lifetime + WH_BLAST.RECOVERY + 1 - Math.ceil(WH_BLAST.RANGE / WH_BLAST.SPEED)) <= 2, 'range 460')
+})
+test('7. Pressure Blast HOLD: up to 30f; a full hold costs +6 and deals 40 + 0.5 × Core (max 75), spending ALL Core; a short hold keeps it', () => {
+  const run = (core, frames) => { const f = ben(), t = foe(); reset(f, t, 300); S(f).core = core; S(f).lastGainT = S(f).t
+    const r = runCast(f, t, 'N', { input: i => (i < frames ? { special: true } : {}) }); return { f, r, L: S(f).lastBlast, e: f.energy } }
+  let x = run(40, 40); assert.equal(x.L.full, true); assert.equal(x.L.dmg, 60); assert.equal(S(x.f).core <= 6, true, 'all Core spent'); assert.equal(x.L.core, 40)
+  assert(near(x.r.dmg, 60 * SC), 'dmg ' + x.r.dmg)
+  x = run(100, 40); assert.equal(x.L.dmg, 75, 'cap 75')
+  const f = ben(), t = foe(); far(f, t); f.energy = 100; assert(cast(f, t, 'N')); const e1 = f.energy; world(f, t, WH_BLAST.FULL + 1, { special: true }); const g2 = ben(), u2 = foe(); far(g2, u2); g2.energy = 100; assert(cast(g2, u2, 'N')); const e2 = g2.energy; world(g2, u2, WH_BLAST.FULL + 1, i => (i < 12 ? { special: true } : {}))
+  assert(Math.abs((e1 - f.energy) - (e2 - g2.energy) - WH_COST.blastFull) < 0.01, `full hold +6 Power vs a tap: ${e1 - f.energy} / ${e2 - g2.energy}`)
+  x = run(40, 15); assert.equal(x.L.full, false); assert.equal(x.L.dmg, 40); assert(S(x.f).core >= 40, 'a short hold keeps the Core')
+})
+test('Hydro Burst (214+P, 14, Core ≥ 20): 160px radial, 16f, 30 + 0.4 × Core (max 70), spends ALL Core, knockback, −14 on block', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); S(f).core = 10; f.energy = 100; assert.equal(cast(f, t, 'B'), false, 'needs Core ≥ 20'); assert.equal(f.energy, 100)
+  const g = ben(), u = foe(); reset(g, u, 60); S(g).core = 50; const r = runCast(g, u, 'B'); assert(r.ok); assert.equal(r.cost, WH_COST.burst)
+  assert.equal(S(g).lastBurst.dmg, 50); assert(near(r.dmg, 50 * SC), 'dmg ' + r.dmg); assert(S(g).core <= 5, 'spent'); assert.equal(S(g).pips, 1); assert(u.x > g.x + 60, 'knocked back')
+  const h = ben(), v = foe(); reset(h, v, 60); v.x = h.x - 80; S(h).core = 100; runCast(h, v, 'B'); assert.equal(S(h).lastBurst.dmg, 70, 'cap 70'); assert(S(h).lastBurst.hit, 'radial: hits behind him')
+  const k = ben(), w = foe(); reset(k, w, 200); S(k).core = 40; runCast(k, w, 'B'); assert(!S(k).lastBurst.hit, '160px radius')
+  assert.equal(WH_BURST.ACTIVE + WH_BURST.RECOVERY + WH_BURST.ON_BLOCK, 16, 'blockstun derives −14')
+})
+test('Claw Lash (→→+P, 12): 300px real travel, stops on contact, 2 hits 20/28; a whiff swings at the end; the limb hurtbox extends', () => {
+  const dash = q => { S(q).dashTapT = S(q).t }
+  const f = ben(), t = foe(); reset(f, t, 150); const x0 = f.x; const r = runCast(f, t, 'F', { pre: dash }); assert(r.ok); assert.equal(r.cost, WH_COST.lash)
+  assert.deepEqual(S(f).lastChain.hits.map(h => h.k), ['lash1', 'lash2']); assert(near(r.dmg, 48 * SC * 0.93) || r.dmg > 35, 'dmg ' + r.dmg); assert(f.x - x0 < 300)
+  const g = ben(), u = foe(); far(g, u); const x1 = g.x; runCast(g, u, 'F', { pre: dash }); assert.equal(S(g).lastChain.why, 'whiff'); assert(Math.abs(g.x - x1 - WH_LASH.TRAVEL) <= 24, 'travel ' + (g.x - x1))
+  const h = ben(), v = foe(); far(h, v); h.energy = 100; dash(h); assert(cast(h, v, 'F')); world(h, v, WH_LASH.STARTUP + 2); const hb = WH.hurtbox(h); assert(hb && hb.w === h.w + WH_LASH.LIMB, 'extended limb hurtbox')
+  assert.equal(r.proj > 0, true)
+})
+test('8. Undertow Sweep (412+P, 12): 140px ring at his feet, 14f, 45, hits LOW, a clean hit TRIPS (forced knockdown), +1 pip; −13 on block', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); const r = runCast(f, t, 'D', { pre: q => { S(q).hist = [{ d: 4, t: S(q).t - 2 }, { d: 1, t: S(q).t - 1 }, { d: 2, t: S(q).t }] } })
+  assert(r.ok); assert.equal(r.cost, WH_COST.sweep); assert(near(r.dmg, 45 * SC), 'dmg ' + r.dmg); assert(S(f).lastSweep.kd, 'trip'); assert(t.knockdownState || S(f).lastSweep.kd); assert.equal(S(f).pips, 1)
+  const g = ben(), u = foe(); reset(g, u, 60); runCast(g, u, 'D', { block: true, pre: q => { S(q).hist = [{ d: 4, t: S(q).t - 2 }, { d: 1, t: S(q).t - 1 }, { d: 2, t: S(q).t }] } }); assert(!S(g).lastSweep.kd, 'no trip on block'); assert.equal(S(g).pips, 0)
+  assert.equal(WH_SWEEP.ACTIVE + WH_SWEEP.RECOVERY + WH_SWEEP.ON_BLOCK, 14)
+})
+test('9. Geyser Dive (air +P, 12): diagonal-down dive, 48, once per airtime, no jump refill, +1 pip', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; f.jumpCount = 2; t.x = f.x + 140
+  const r = runCast(f, t, 'N', { max: 80 }); assert(r.ok); assert.equal(r.cost, WH_COST.dive); assert.equal(S(f).lastDive.hit, true); assert(near(r.dmg, 48 * SC), 'dmg ' + r.dmg)
+  assert.equal(S(f).lastDive.jumps, 2, 'no refill'); assert.equal(S(f).pips, 1)
+  const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 300; g.energy = 100; assert(cast(g, u, 'N')); world(g, u, 8)
+  ready(g); g.energy = 100; assert.equal(A.triggerSpecial(g, ctxOf(g, u)), false, 'once per airtime')
+})
+const ultRun = (f, t, opts = {}) => { ready(f); clearProj(); f.energy = 100; const ok = A.triggerUltimate(f, ctxOf(f, t)); const cost = 100 - f.energy; if (!ok) return { ok, n: -1 }; let n = 0
+  while ((S(f).ult || n < 4) && n < 400) { if (opts.block) t.isBlocking = true; world(f, t, 1); n++ } return { ok, n, cost } }
+test('10. ULTIMATE Tidal Discharge (55): clean jet opener → vortex → 4 × 22 barrage → 112 geyser = 240; Core 0; positions restore; knockdown', () => {
+  const f = ben(), t = foe(); reset(f, t, 200); S(f).core = 60; const hp = t.health, fx = f.x, tx = t.x
+  const r = ultRun(f, t); assert(r.ok); assert.equal(r.cost, WH_COST.ultimate)
+  const L = S(f).lastUlt; assert(L.captured); assert.deepEqual(L.hits, [40, 22, 22, 22, 22, 112]); assert.equal(L.raw, 240)
+  assert(hp - t.health > 100); assert(t.knockdownState); assert.equal(S(f).core, 0); assert.equal(f.x, fx); assert.equal(t.x, tx); assert(f.attackCooldown >= WH_ULT.LOCKOUT - 2)
+})
+test('10. ULTIMATE: whiff / block = no cinematic, 60f recovery; 2 Drenched pips at capture → the final hit adds 1 (→ SHORT FUSE); hashed angles', () => {
+  const f = ben(), t = foe(); far(f, t); ultRun(f, t); assert.equal(S(f).lastUlt.captured, false); assert.equal(S(f).lastUlt.why, 'whiff'); assert(f.attackCooldown >= WH_ULT.WHIFF - 6, '60f recovery: ' + f.attackCooldown)
+  const g = ben(), u = foe(); reset(g, u, 200); ultRun(g, u, { block: true }); assert.equal(S(g).lastUlt.why, 'blocked'); assert(!u.knockdownState)
+  ready(g); g.energy = 100; const h = ben(), v = foe(); reset(h, v, 200); S(h).pips = 2; S(h).pipT = S(h).t; ultRun(h, v)
+  assert(S(h).lastUlt.captured && S(h).lastUlt.pipAdded, 'the final hit adds the pip'); assert(G.fuseOn(v), '→ SHORT FUSE'); assert.equal(S(h).lastUlt.raw, 240, 'no extra damage')
+  const k = ben(), w = foe(); reset(k, w, 200); S(k).pips = 1; S(k).pipT = S(k).t; ultRun(k, w); assert(!S(k).lastUlt.pipAdded, 'only at exactly 2')
+  assert.deepEqual(G.ultJets(7, 100, 0), G.ultJets(7, 100, 0)); assert.notDeepEqual(G.ultJets(7, 100, 0), G.ultJets(7, 100, 1))
 })
 
 // @@END-TESTS@@

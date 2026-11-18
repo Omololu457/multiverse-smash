@@ -1,0 +1,175 @@
+// feedback.js — FEEDBACK (Conductoid), a READY Omnitrix alien. One registry entry + one sheet + one ledger.
+// Leaf module: imports only its generated art table (no engine imports, no cycles). The engine reaches it only through the
+// generic, ben10-gated ready-form hooks (ben10State.benReadyForm / abilities.tickBenAlienForm / fireSpecial / fireUltimate /
+// absorb / blockHeavy / onContact / damageDealt — see docs/ben10/ADD_ALIEN.md), which hand it an `api` with the shared primitives.
+// Registry / pool key `feedback_ov`: the experimental `feedback` entry (its legacy kit and art table) is left untouched.
+// All simulation state lives in fighter.omnitrix.formState (plain data, GAME_STATE): Charge, the stored-projectile record, Drain
+// pips / Blackout, casts. Render-only effects (sparks, glow, current, static, shake) never write it. Simulation randomness:
+// hash(match seed, frame, player index) only. Sheet source: see docs/ben10/aliens/feedback/SPRITE_LEDGER.md.
+import { FEEDBACK_ANIM, FEEDBACK_FX, FEEDBACK_GEOM } from "./feedbackAssets.js"
+export { FEEDBACK_ANIM, FEEDBACK_FX, FEEDBACK_GEOM }
+
+export const FB_KEY = "feedback_ov"
+const ANIM = { ...FEEDBACK_ANIM }
+
+// Pre-mod frame data (startup / damage / on-block advantage); blockstun derives the advantage. His normals are ELECTRIC-tagged
+// (plug strikes / sparks): a landed one gives +4 Charge, and other forms' tag filters read them as electric.
+const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
+  damage, startup, active, recovery, blockstun: active + recovery + advantage,
+  hitstun: 18, knockbackX: 3, knockbackY: -2, frameExact: true, electric: true, ...extra })
+
+export const FEEDBACK = {
+  id: FB_KEY, poolKey: FB_KEY, displayName: "Feedback", slot: 15,
+  status: "ready", sheetPath: "./ben10_feedback_ready_idle_uniform.png",
+  ledgerPath: "docs/ben10/aliens/feedback/SPRITE_LEDGER.md",
+  mods: { speed: 1.05, damage: 0.95, defense: 0.90, weight: 0.85 },
+  movement: "grounded", maxJumps: 2,            // the shared double jump
+  moves: { jab: "Jab", heavy: "Heavy", low: "Low", launcher: "Launcher", air: "Air",
+    special1: "Plasma Orb", special2: "Siphon Cable", special3: "Return Fire", special4: "Overload Burst",
+    special5: "Conduit Dash", special6: "Volt Shot", defense: "Plug Guard", ultimate: "Full Feedback" },
+  basic_attacks: {
+    light:  normal(16, 5, 3, 9, 1, { rangeX: 90 }),                                           // plug spark
+    heavy:  normal(48, 13, 4, 21, -5, { knockbackX: 7, rangeX: 150, plugArm: true }),        // plug strike, 150 px
+    down:   normal(22, 7, 3, 14, -3, { hitLevel: "low", rangeX: 110 }),                       // crouch + low plug spark, hits low
+    up:     normal(42, 11, 4, 24, -9, { launcher: true, launchVy: -15, selfVy: 0 }),          // rising spark arc
+    air:    normal(26, 7, 4, 11, 2)                                                           // jump frame + spark
+  },
+  anim: ANIM, fx: FEEDBACK_FX,
+  onApply, tick, moveFrames, hurtbox, fireSpecial, fireUltimate, absorb, blockHeavy, damageDealt, onContact, targetOffset,
+  drawHud: drawFeedbackHud, drawFx: drawFeedbackFx, drawUnder: drawFeedbackUnder
+}
+
+// ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
+export function freshFeedbackState() {
+  return { kind: FB_KEY, t: 0, castId: 0, noAttack: false,
+    stage: { L: -1e6, R: 1e6 },
+    charge: 0, chargeT: 0,                                 // Charge gauge 0–100; chargeT = frames since the last gain (decay)
+    guard: { t: 0, cd: 0, beamT: 0, absorbed: 0 },         // PLUG GUARD
+    stored: null, lastStored: null,                        // the ONE stored-projectile record
+    drain: { pips: 0, pipT: 0, pipped: [], boT: 0, immuneT: 0, lastE: null, blackouts: 0 },
+    orb: null, siphon: null, fire: null, burst: null, dash: null, volt: null, voltUsed: false, landT: -999,
+    ult: null, lastUltRaw: 0, lastUltDrain: 0,
+    hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5,
+    stats: { casts: 0, absorbed: 0, absorbedBeams: 0, stores: 0, dissipated: 0, returns: 0, orbs: 0, siphons: 0, drained: 0, bursts: 0,
+      burstRejects: 0, dashes: 0, volts: 0, pips: 0, blackouts: 0, ults: 0, guards: 0, chargeGained: 0 } }
+}
+export const fbState = f => (f?.omnitrix?.formState?.kind === FB_KEY && f.transformed && f.activeAlien === FB_KEY) ? f.omnitrix.formState : null
+
+function onApply(f) {
+  if (!f.omnitrix) return
+  f.omnitrix.formState = freshFeedbackState()
+}
+
+const cx = o => o.x + (o.w || 60) / 2
+let projRef = null   // the engine's live projectile list (render reads it; never written by render)
+const grounded = f => !!(f && (f.onGround || f.grounded))
+export const overlap = (a, b) => !!a && !!b && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+export const projBox = p => { const pw = p.w || (p.radius || 10) * 2, ph = p.h || (p.radius || 10) * 2; return { x: p.x - pw / 2, y: p.y - ph / 2, w: pw, h: ph } }
+export const isBeam = p => !!p && !!(p.beam || p.isBeam || p.laser || /beam|laser|kameha|ray\b|_ray|heat_?vision|getsuga|blast_wave/i.test(String(p.name || p.move || "")))
+export const pIndex = f => ({ p1: 0, p2: 1, p3: 2, p4: 3 }[f && f.side] ?? 0)
+// SIMULATION hash: (match seed, frame, player index, k) → [0, 1)
+export function fbHash(seed, frame, player, k = 0) {
+  let h = ((seed >>> 0) ^ Math.imul(frame | 0, 374761393) ^ Math.imul(player + 1, 668265263) ^ Math.imul(k + 7, 2246822519)) >>> 0
+  h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; h = (h ^ (h >>> 16)) >>> 0
+  return h / 4294967296
+}
+
+// ── per-frame tick (GAME_STATE only; called once per fighter per frame by abilities.tickBenAlienForm) ─────
+function tick(f, input, ctx, api) {
+  const s = fbState(f); if (!s) return
+  s.t++
+  if (ctx && Number.isFinite(ctx.stageLeft)) s.stage.L = ctx.stageLeft
+  if (ctx && Number.isFinite(ctx.stageWidth)) s.stage.R = ctx.stageWidth
+  if (api && api.activeProjectiles) projRef = api.activeProjectiles()      // read-only reference for the render
+  const opp = api && api.getOpponent ? api.getOpponent(f) : null
+  input = input || {}
+  tickInputs(f, s, input)
+  if (grounded(f)) s.voltUsed = false                                      // Volt Shot: once per airtime
+  //@@TICK@@
+  s.noAttack = busy(s)
+}
+const busy = s => !!(s.orb || s.siphon || s.fire || s.burst || s.dash || s.volt || s.ult)
+// moveFrames hook (combat.startMove): no normals while a cast owns him
+function moveFrames(f, key, md) { const s = fbState(f); if (!s) return md; return busy(s) ? false : md }
+
+// ── INPUTS: the shared alien motion inputs ──────────────────────────────────────────────────────────────────
+//   ↓↘→ + P (236) PLASMA ORB (air: VOLT SHOT)   ↓↙← + P (214) SIPHON CABLE   →↓↘ + P (623) RETURN FIRE
+//   ←↙↓ + P (412) OVERLOAD BURST                 →→ + P (a frame-counted double tap) CONDUIT DASH
+//   Block + Heavy: PLUG GUARD (the blockHeavy hook)
+// With no motion in the buffer (pad / harness `_specialHeldDir`), the held direction maps: neutral / → Plasma Orb (→ after a
+// double tap = Conduit Dash), ← Siphon Cable, ↑ Return Fire, ↓ Overload Burst.
+export const FB_DASH_WINDOW = 14, FB_MOTION_WINDOW = 18
+const numpad = (input, face) => {
+  const fwd = face > 0 ? !!input.right : !!input.left, back = face > 0 ? !!input.left : !!input.right
+  const v = input.down ? 0 : (input.up || input.jump) ? 6 : 3, h = fwd ? 3 : back ? 1 : 2
+  return v + h
+}
+function tickInputs(f, s, input) {
+  const face = f.facing || 1, fwd = face > 0 ? !!input.right : !!input.left
+  if (fwd && !s.fwdPrev && !input.down) { if (s.t - s.fwdTapT <= FB_DASH_WINDOW) s.dashTapT = s.t; s.fwdTapT = s.t }
+  s.fwdPrev = fwd
+  const d = numpad(input, face)
+  if (d !== s.lastDir) { s.hist.push({ d, t: s.t }); if (s.hist.length > 8) s.hist.shift(); s.lastDir = d }
+}
+const MOTIONS = [["623", "fire"], ["412", "burst"], ["214", "siphon"], ["236", "orb"]]
+export function readMotion(s) {
+  const recent = s.hist.filter(e => s.t - e.t <= FB_MOTION_WINDOW).map(e => e.d).join("")
+  let best = null
+  for (const [m, kind] of MOTIONS) {
+    let i = -1, j = 0
+    for (let k = 0; k < recent.length && j < m.length; k++) if (recent[k] === m[j]) { j++; i = k }
+    if (j === m.length && (!best || i > best.end)) best = { kind, end: i }
+  }
+  return best ? best.kind : null
+}
+export function pickSpecial(f, s) {
+  if (!grounded(f)) return "volt"
+  const m = readMotion(s); if (m) return m
+  const dir = (f._specialHeldDir === "N" ? null : f._specialHeldDir) || null
+  if (dir === "B") return "siphon"
+  if (dir === "D") return "burst"
+  if (dir === "U") return "fire"
+  if (dir === "F" && s.t - (s.dashTapT ?? -999) <= FB_DASH_WINDOW) return "dash"
+  return "orb"
+}
+
+// ── SPECIALS (dispatch) ─────────────────────────────────────────────────────────────────
+export const FB_COST = { orb: 10, siphon: 12, fire: 0, burst: 14, dash: 10, volt: 12, ultimate: 55 }
+const CASTS = {}   // kind → cast(f, s, api, ctx), filled by the sections below
+function fireSpecial(f, ctx, api) {
+  const s = fbState(f); if (!s) return false
+  const kind = pickSpecial(f, s); if (!kind || !CASTS[kind]) return false
+  return CASTS[kind](f, s, api, ctx)
+}
+function canAct(f, s) {
+  return f.transformed && f.activeAlien === FB_KEY && !f.attacking && !((f.attackCooldown || 0) > 0) && !((f.hitstun || 0) > 0) &&
+    !((f.blockstun || 0) > 0) && !(f._benPowerCommit > 0) && !busy(s)
+}
+function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
+  if (!canAct(f, s)) return null
+  if (cost && !api.spendEnergy(f, cost)) return null
+  f.isCharging = false
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = pose; f._spriteCastTimer = total
+  f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
+  s.castId++; s.stats.casts++
+  return { cast: s.castId, total }
+}
+// a hitbox riding the shared projectile pipeline (hidden: drawn by this module); vx carries the knockback direction
+const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, electric: true, ...md,
+  alien: { hidden: true, ...(md.alien || {}) } }, {})
+const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
+
+// ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
+function hurtbox(f) { return null }
+function absorb(f, info) { return false }
+function blockHeavy(f) { return false }
+function damageDealt(f, target, raw, opts) { return raw }
+function onContact(f, target, info) {}
+function fireUltimate(f, ctx, api) { return false }
+function targetOffset(f, target) { return null }
+
+// ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
+export function drawFeedbackUnder(c, f) {}
+export function drawFeedbackFx(c, f, frame = 0, opp = null) {}
+export function drawFeedbackHud(ctx, f, opts) {}

@@ -12,6 +12,7 @@ import { WILDVINE } from "./wildvine.js"
 import { JETRAY } from "./jetray.js"
 import { DIAMONDHEAD } from "./diamondhead.js"
 import { UPGRADE } from "./upgrade.js"
+import { FEEDBACK } from "./feedback.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -32,7 +33,7 @@ import { UPGRADE } from "./upgrade.js"
 // SLOT COUNT (single source of truth): how many Omnitrix dial slots exist. fighters.js MAX_OMNITRIX_SLOTS reads it and
 // game.js BEN10_SLOT_COMBOS must hold exactly this many slot inputs (asserted at load).
 // PICK FIVE (2026-11-17, owner decision): the Omnitrix holds FIVE aliens, chosen on the alien-select screen out of every
-// READY form (Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, Jetray, Diamondhead, Upgrade, …). More ready aliens never add dial slots;
+// READY form (Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, Jetray, Diamondhead, Upgrade, Feedback, …). More ready aliens never add dial slots;
 // the dial is ↓↓ then J / K / L / O / P for the 5 picks (↓↓ + ; reverts). See docs/ben10/ADD_ALIEN.md.
 export const BEN10_SLOT_COUNT = 5
 export const BEN10_ALIEN_REGISTRY = [
@@ -50,6 +51,7 @@ export const BEN10_ALIEN_REGISTRY = [
   JETRAY,      // READY (2026-11-17): Fun-tech.tk sheet + ledger; Aerophibian flyer (flight / Mach Time + echoes / Neuroshock → Grounded / Cosmic Drag); a NEW entry, a PICK-FIVE choice (catalog slot 12 — no new dial slot)
   DIAMONDHEAD, // READY (2026-11-17): Dragonrod / Arksalazar Omniverse sheet + ledger; Petrosapien (Crystal Body / Prism Wall / Shards → Shatter Burst / Prismatic); key diamondhead_ov (the experimental `diamondhead` below is untouched), a PICK-FIVE choice (catalog slot 13 — no new dial slot)
   UPGRADE,     // READY (2026-11-17): Dragonrod sheet + ledger; Galvanic Mechamorph (Terminal / Merge → Overclock / Virus → Crash / System Takeover); key upgrade_ov (the experimental `upgrade` below is untouched), a PICK-FIVE choice (catalog slot 14 — no new dial slot)
+  FEEDBACK,    // READY (2026-11-18): Dragonrod sheet + ledger; Conductoid (Charge / Plug Guard → Return Fire / Drain → Blackout / Full Feedback); key feedback_ov (the experimental `feedback` below is untouched), a PICK-FIVE choice (catalog slot 15 — no new dial slot)
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",

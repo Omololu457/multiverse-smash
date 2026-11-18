@@ -14,7 +14,7 @@ import { characters } from '../characters.js'
 import * as G from '../arcticguana.js'
 import * as B from '../bigchill.js'
 import { tickFlightDriver, isFlying, getFlightProfile } from '../flight.js'
-import { clearBenFormState } from '../ben10State.js'
+import { clearBenFormState, handleBenKO } from '../ben10State.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
 import fs from 'node:fs'
 
@@ -251,6 +251,11 @@ test('8. Freeze Breath: cost 10, 14f startup, 4 ticks of 10 (=40) one pip; HOLD 
   const k = ben(), v = foe(); reset(k, v, 60); v.isBlocking = true; assert(cast(k, v, null)); world(k, v, BC_BREATH.STARTUP - 1); A.tickBenAlienForm(k, {}, ctxOf(k, v))
   const p = A.activeProjectiles.find(q => q.alien?.bc === 'breath'); assert.equal(p.blockstun, B.blockstunFor(BC_BREATH.TOTAL - BC_BREATH.STARTUP, -12), '−12 on block (the shared blockstunFor convention)'); clearProj()
 })
+test('8. Freeze Breath delivering the 3rd pip: its later ticks skip the frozen shell (the freeze lasts its 30 ticks)', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); pip(f, t, 9101); pip(f, t, 9102); assert(cast(f, t, null))
+  world(f, t, BC_BREATH.STARTUP); assert(S(f).chill.frozen, 'tick 1 freezes'); const hp = t.health
+  world(f, t, BC_BREATH.LAST - BC_BREATH.STARTUP + 2); assert(S(f).chill.frozen, 'still frozen after the remaining ticks'); assert.equal(t.health, hp, 'no tick hit the shell')
+})
 test('8. Frost Wing Cut: cost 12, 18f, 2 hits 18 / 22 (=40), 420 px, ONE on screen, Chill + shatter tags', () => {
   const f = ben(), t = foe(); reset(f, t, 200); f.energy = 100; assert(cast(f, t, 'B')); assert.equal(100 - f.energy, BC_COST.wingcut)
   world(f, t, BC_WING.STARTUP); const bl = A.activeProjectiles.filter(p => p.alien?.bc === 'wingcut'); assert.equal(bl.length, 1); assert(bl[0].alien.shatter && bl[0].alien.chill)
@@ -310,6 +315,93 @@ test('10. Frozen Sky: no Shatter bonus on a frozen target; storm angles = hash(s
   assert.deepEqual(a1, a2); assert.notDeepEqual(a1, a3); assert(a1.every(a => a >= 0 && a < 360))
 })
 
-//@@NEXT@@
+// ── 7 combo totals (design model + live) ────────────────────────────────────────────────────────────────────
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  breath: BC_BREATH.TICKS * BC_BREATH.DMG, spire: BC_SPIRE.AT.length * BC_SPIRE.DMG, wing: BC_WING.DMG[0] + BC_WING.DMG[1] }
+const model = route => route.reduce((sum, k, i) => sum + (k === 'shatter' ? AG_CHILL.SHATTER * Math.pow(0.85, i - 1) : RAW[k] * DM * Math.pow(0.85, i)), 0)
+const ROUTES = [
+  ['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 80],
+  ['2. Low, Heavy, Freeze Breath', ['low', 'heavy', 'breath'], 98],
+  ['3. Ice Spire, Heavy, Frost Wing Cut (Chill ×3, Shatter)', ['spire', 'heavy', 'wing', 'shatter'], 128],
+]
+for (const [name, route, target] of ROUTES) test('design total ' + name + ' ≈ ' + target, () => {
+  const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`)
+})
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 2 live: Low, Heavy, Freeze Breath (4 ticks, +1 Chill)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 60); const hp = t.health; assert(cast(f, t, null), 'Breath'); for (let i = 0; i < BC_BREATH.TOTAL; i++) { world(f, t, 1); t.hitstun = Math.min(t.hitstun, 13) } d.push(hp - t.health)
+  assert(d.every(x => x > 0)); assert.equal(S(f).chill.pips, 1); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 3 live: Ice Spire, Heavy, Frost Wing Cut — the 3rd pip freezes on blade 1, blade 2 SHATTERS (+25 once)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); pip(f, t, 9001)               // a pip from an earlier exchange (Chill 1; its own cast id)
+  const hp0 = t.health; assert(cast(f, t, 'U'), 'Spire'); for (let i = 0; i < BC_SPIRE.TOTAL; i++) { const sp = S(f).spire; if (sp && sp.spawned.length) { t.x = sp.spawned.at(-1).x - t.w / 2; t.y = 410 - t.h; t.vx = t.vy = 0 } world(f, t, 1) }
+  const d = [hp0 - t.health]; assert.equal(S(f).chill.pips, 2, 'Chill 2'); clearProj(); reset(f, t, 10); d.push(melee(f, t, 'heavy'))
+  reset(f, t, 120); const hp = t.health; assert(cast(f, t, 'B'), 'Wing Cut'); for (let i = 0; i < 50; i++) world(f, t, 1); d.push(hp - t.health)
+  assert.equal(S(f).chill.pops, 1, 'Chill ×3 → frozen'); assert.equal(S(f).chill.shatters, 1, 'shattered once'); assert(d.every(x => x > 0))
+  console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+
+// ── 11 lifecycle / 12 slot → PICK FIVE / Dial / Vow / determinism ─────────────────────────────────────────
+test('11. swap / revert / KO / rematch clear Chill, Cocoon and Drift state', () => {
+  const dirty = f => { const t = foe(); reset(f, t); const s = S(f); pip(f, t, 501); pip(f, t, 502); s.cocoon = { t: 3, cast: 9, state: 'guard', burst: false, burstT: -1, taken: 0 }; s.cocoonCd = 300
+    s.drift = { t: 6, cast: 9, dir: 1, x0: f.x, y0: f.y, tx: f.x + 100, oppCx: f.x + 200, want: false, slash: null, done: false }; s.driftCd = 200 }
+  const f = ben('bigchill', LOAD); dirty(f)
+  assert(F.applyAlien(f, 'goop')); assert(F.applyAlien(f, 'bigchill')); const s = S(f)
+  assert.deepEqual([s.chill.pips, s.chill.frozen, s.cocoon, s.drift, s.cocoonCd, s.driftCd], [0, null, null, null, 0, 0], 'swap'); assert.equal(f._benGlide, undefined)
+  dirty(f); F.revertToHuman(f); assert.equal(f.omnitrix.formState, null, 'revert'); assert.equal(f._alienFlightProfile, undefined)
+  const k = ben(); dirty(k); k.health = 0; handleBenKO(k); assert.equal(B.bcState(k), null, 'KO')
+  const r = S(ben()); assert.deepEqual([r.chill.pips, r.cocoon, r.drift], [0, null, null], 'rematch / round end: a fresh form state')
+})
+test('12. slot → PICK FIVE: slot count stays 5, Big Chill READY + pickable (catalog slot 18, contiguous), nothing overwritten', () => {
+  assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('bigchill'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 18); assert.equal(d.displayName, 'Big Chill')
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov', 'arcticguana']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'bigchill').length, 1); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(d.ledgerPath, 'utf8')), 'ledger credit placeholder')
+})
+test('12. Omnitrix Dial: Big Chill picked into the last slot — same cost as any slot, no clock change; HUD labels fit', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'bigchill'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const fr0 = FRAME; assert(F.ben10TransformOrSwap(f, slot, { seed: 1, frame: 0, playerIndex: 0 })); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60)
+    assert.equal(FRAME, fr0, 'no clock change'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'bigchill'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert('Big Chill'.length <= 'Arcticguana'.length, 'the HUD name is no longer than an existing one (no overflow)')
+  const calls = []; const ctx = { save() {}, restore() {}, fillRect(x, y, w) { calls.push(x + w) }, fillText() {}, set fillStyle(v) {}, set font(v) {}, set textBaseline(v) {}, set textAlign(v) {} }
+  B.drawBigChillHud(ctx, a.f, { x: 10, enY: 50, enH: 8, pbw: 120, flip: false }); assert(calls.length > 0 && calls.every(r => r <= 10 + 8 + 120 + 1), 'HUD bars stay inside the 120 px panel')
+})
+test('12. a hit cancels the transform-in like any other dial pick (the device rule, unchanged)', () => {
+  const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, LOAD); f.energy = 100; assert(F.ben10TransformOrSwap(f, 4, { seed: 1, frame: 0, playerIndex: 0 }))
+  const g = fresh(); F.applyBen10VariantStats(g, 'default'); F.setupBen10(g, LOAD); g.energy = 100; assert(F.ben10TransformOrSwap(g, 0, { seed: 1, frame: 0, playerIndex: 0 }))
+  for (const x of [f, g]) { x.hitstun = 20; for (let i = 0; i < 5; i++) F.updateTransformDevice?.(x, 1000 / 60) }
+  assert.equal(f.transformed, g.transformed, 'Big Chill behaves exactly like slot 1 under a hit'); assert.equal(f.omnitrix.pendingAlien ?? null, g.omnitrix.pendingAlien ? f.omnitrix.pendingAlien : null)
+})
+test('12. Vow pick includes Big Chill (mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'bigchill'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('bigchill') && picks.size === L.length)
+})
+test('12. same-seed determinism: an identical scripted Big Chill sequence yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light')
+    reset(f, t, 60); ready(f); cast(f, t, null); world(f, t, 60); reset(f, t, 120); ready(f); cast(f, t, 'B'); world(f, t, 50)
+    reset(f, t, 40); ready(f); cast(f, t, 'U'); world(f, t, 80); reset(f, t, 80); ready(f); S(f).dashTapT = S(f).t; cast(f, t, 'F'); world(f, t, 40)
+    reset(f, t, 60); ult(f, t); world(f, t, 160); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x, im: t._benIceImmuneUntil })
+  }
+  assert.equal(run(), run())
+})
+test('GAME_STATE stays plain data mid-cast: breath, spires, cocoon, drift, ult cinematic', () => {
+  const plain = o => o === null || o === undefined || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 60); cast(f, t, null); world(f, t, 20); assert(plain(S(f)), 'breath')
+  ready(f); world(f, t, 60); reset(f, t, 40); ready(f); cast(f, t, 'U'); world(f, t, 30); assert(plain(S(f)), 'spires')
+  const g = ben(), u = foe(); reset(g, u, 60); ult(g, u); world(g, u, 60); assert(S(g).ult && S(g).ult.phase !== 'opener', 'mid-cinematic'); assert(plain(S(g)), 'ult'); clearProj()
+})
+test('no Math.random / gameRng in bigchill.js / bigchillAssets.js', () => {
+  for (const file of ['bigchill.js', 'bigchillAssets.js']) assert(!/Math\.random|gameRng/.test(fs.readFileSync(file, 'utf8')), file)
+})
 console.log(`BIG CHILL: ${passed} passed, ${failed} failed`)
 if (failed) process.exit(1)

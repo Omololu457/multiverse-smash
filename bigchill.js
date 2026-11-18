@@ -314,7 +314,8 @@ function bodyAlpha(f) { const s = bcState(f); return driftLive(s) ? 0.45 : 1 }  
 const mouth = f => ({ x: cx(f) + (f.facing || 1) * (f.w || 60) * 0.35, y: f.y + (f.h || 110) * 0.32 })
 
 // 1. FREEZE BREATH (↓↘→ + P, cost 10): a 280 px cone from the mouth, 14f startup, 4 ticks of 10 (6f apart) = 40, −12 on
-// block, one at a time, +1 Chill per cast. HOLD P through the last tick to extend it up to 20f (+4 Power once; a tick every
+// block, one at a time, +1 Chill per cast. A tick never fires at a FROZEN opponent (so the cast that delivers the 3rd pip
+// does not thaw its own freeze; Ice Spire's later spires likewise) — the shared rule "any other damage ends it" is unchanged. HOLD P through the last tick to extend it up to 20f (+4 Power once; a tick every
 // 6f while held). Extracted art: atk_AAA (the ice blast at the mouth) + the sheet's shard / particle FX.
 export const BC_BREATH = { STARTUP: 14, TICKS: 4, GAP: 6, DMG: 10, RANGE: 280, H: 70, RECOVERY: 20, ON_BLOCK: -12, HOLD_MAX: 20, HOLD_COST: 4 }
 BC_BREATH.LAST = BC_BREATH.STARTUP + (BC_BREATH.TICKS - 1) * BC_BREATH.GAP
@@ -328,6 +329,7 @@ function castBreath(f, s, api) {
 }
 CASTS.breath = castBreath
 function breathTick(f, s, api, b, total) {
+  if (frozen(s)) return                                     // the cast that froze them washes over the shell (no hit)
   const m = mouth(f)
   hitbox(f, api, "bc_breath", b.face, { damage: BC_BREATH.DMG, spawnX: m.x + b.face * BC_BREATH.RANGE / 2, spawnY: m.y, w: BC_BREATH.RANGE, h: BC_BREATH.H,
     lifetime: 2, hitstun: 14, blockstun: blockstunFor(total - b.t, BC_BREATH.ON_BLOCK), knockbackX: 0.5, knockbackY: 0,
@@ -397,10 +399,11 @@ TICKS.push(function tickSpire(f, s, input, ctx, api) {
   const n = BC_SPIRE.AT.length
   for (let k = 0; k < n; k++) if (sp.t === BC_SPIRE.STARTUP + k * BC_SPIRE.GAP) {
     const x = sp.x0 + sp.face * BC_SPIRE.AT[k], last = k === n - 1
+    sp.spawned.push({ x, t: s.t })                                               // the form clock (the render reads s.t - t)
+    if (frozen(s)) continue                                                       // the cast that froze them: later spires are art only
     hitbox(f, api, "bc_spire", sp.face, { damage: BC_SPIRE.DMG, spawnX: x, spawnY: sp.floor - BC_SPIRE.H / 2, w: BC_SPIRE.W, h: BC_SPIRE.H, lifetime: BC_SPIRE.LIFE,
       hitstun: last ? 30 : 18, blockstun: blockstunFor(Math.max(0, BC_SPIRE.TOTAL - sp.t), BC_SPIRE.ON_BLOCK), knockbackX: last ? 2 : 0.5, knockbackY: last ? BC_SPIRE.POP : 0,
       launcher: last, alien: { bc: "spire", k, chill: 1, cast: sp.cast } })
-    sp.spawned.push({ x, t: sp.t })
   }
   if (sp.t < BC_SPIRE.TOTAL) { f._spriteCastMove = "bcSpire"; f._spriteCastTimer = Math.max(2, BC_SPIRE.TOTAL - sp.t) }
   if (sp.t >= BC_SPIRE.STARTUP + (n - 1) * BC_SPIRE.GAP + BC_SPIRE.LIFE) s.spire = null   // the last spire's 60f are over (render record)
@@ -651,6 +654,8 @@ FX.push(function drawMoves(c, f, s, frame, opp) {
   const b = s.breath
   if (b && b.t >= BC_BREATH.STARTUP - 2 && b.t <= BC_BREATH.LAST + b.ext + 3) {          // FREEZE BREATH cone: shards + frost pixels
     const m = mouth(f), R = BC_BREATH.RANGE * Math.min(1, (b.t - BC_BREATH.STARTUP + 3) / 5)
+    c.save(); c.globalAlpha = 0.32; c.fillStyle = ICE; c.beginPath(); c.moveTo(m.x, m.y - 6); c.lineTo(m.x + b.face * R, m.y - BC_BREATH.H / 2)
+    c.lineTo(m.x + b.face * R, m.y + BC_BREATH.H / 2); c.lineTo(m.x, m.y + 6); c.closePath(); c.fill(); c.restore()
     for (let i = 0; i < 14; i++) { const d = ((i * 37 + b.t * 9) % 100) / 100 * R, spread = d / BC_BREATH.RANGE * BC_BREATH.H * 0.5
       const y = m.y + (((i * 53) % 21) - 10) / 10 * spread
       c.fillStyle = i % 3 ? ICE : SNOW; px(c, m.x + b.face * d, y, i % 2 ? 4 : 3) }
@@ -666,7 +671,8 @@ FX.push(function drawMoves(c, f, s, frame, opp) {
   const sp = s.spire
   if (sp) for (const e of sp.spawned) {                                                    // ICE SPIRES (the extracted spire strip)
     const age = s.t - e.t; if (age < 0 || age >= BC_SPIRE.LIFE) continue
-    const n = BIGCHILL_FX.spire ? BIGCHILL_FX.spire.frames : 1, fi = Math.min(n - 1, Math.floor(age / BC_SPIRE.LIFE * n))
+    const n = BIGCHILL_FX.spire ? BIGCHILL_FX.spire.frames : 1   // the sheet's own timing: grow fast, stand, crumble at the end
+    const fi = Math.min(n - 1, age < 3 ? 0 : age < 6 ? 1 : age < BC_SPIRE.LIFE - 12 ? 2 + ((age >> 3) % Math.max(1, n - 4)) : n - 2 + (age >= BC_SPIRE.LIFE - 6 ? 1 : 0))
     if (!fx(c, "spire", fi, e.x, sp.floor, 2, sp.face, 1, 0.5, 1)) { c.fillStyle = ICE2; c.fillRect(Math.round(e.x - 12), Math.round(sp.floor - 90), 24, 90) }
   }
   const co = s.cocoon

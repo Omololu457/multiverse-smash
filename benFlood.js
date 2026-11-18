@@ -56,6 +56,15 @@ export function startFlood(owner, ctx, fighters, seed = 1) {
     boiled: 0, boilAt: {}, breath: {}, drown: {}, wb: {}, events: 0 }
   return owner._benFlood
 }
+// the Ultimate's flood: straight to Level 2 (over 60f) for 300f in total — only when no flood is live and the cooldown is not
+// running (null otherwise: nothing changes)
+export const ULT_FLOOD_DUR = 300
+export function ultFlood(owner, ctx, fighters, seed = 1) {
+  if (!canStartFlood(owner, fighters)) return null
+  const r = startFlood(owner, ctx, fighters, seed)
+  r.level = 2; r.to = r.l2; r.rampN = FLOOD.RISE2; r.dur = ULT_FLOOD_DUR; r.byUlt = true
+  return r
+}
 export function raiseFlood(owner) {
   const r = floodOf(owner)
   if (!r || r.level !== 1 || !(r.phase === "rise" || r.phase === "hold")) return false
@@ -93,7 +102,7 @@ export function tickBenFlood(owner, ctx, api) {
   else r.line = r.to
   r.line = Math.max(0, Math.min(r.line, r.cap))                     // HARD CAP + air gap, always
   if (r.phase === "rise" && r.rampT >= r.rampN) r.phase = "hold"
-  if (r.phase === "hold" && r.t >= FLOOD.DUR) recedeFlood(owner, FLOOD.RECEDE, "time")
+  if (r.phase === "hold" && r.t >= (r.dur || FLOOD.DUR)) recedeFlood(owner, FLOOD.RECEDE, "time")
   if ((r.phase === "recede" || r.phase === "boil") && r.rampT >= r.rampN) {
     r.phase = "off"; r.line = 0; r.cd = FLOOD.CD; r.breath = {}; r.drown = {}; r.taken = {}
     for (const o of fighters) { delete o._benWater; delete o._benSinkT }
@@ -159,6 +168,7 @@ WORLD.push(function slowProjectiles(r, owner, fighters, ctx, api) {
 export const BREATH = { MAX: 100, DRAIN: 100 / 420, REFILL: 100 / 90, DROWN_HP: 4, DROWN_EVERY: 15, STEAL: 6, UNDERTOW: 15, SINK_T: 30, SINK_V: 6 }
 export const breathLive = r => floodLive(r) && r.end !== "swap" && r.end !== "boil"
 WORLD.push(function tickBreath(r, owner, fighters) {
+  if (r.paused) return   // the owner's Ultimate cinematic holds everyone: breath / drowning pause (no damage beyond the Ultimate's)
   for (const o of fighters) {
     const k = o.side || "p" + (sideIdx(o) + 1), w = o._benWater
     if (!breathLive(r) || (w && w.wb)) { if (k in r.breath) { delete r.breath[k]; delete r.drown[k] } if (w) { w.breath = null; w.drowning = false } continue }

@@ -372,6 +372,38 @@ test('13. DIVE BITE air ↓+P: cost 12, 48, once per airtime, no jump refill, UN
   assert(u.health < u.maxHealth, 'the bite lands'); assert(Math.abs(lo - (100 - 15)) < 0.01, `Undertow −15 once (low ${lo})`); assert.equal(r.taken[u.side].filter(x => x.startsWith('undertow')).length, 1); A.activeProjectiles.length = 0
 })
 
+// ── 9 / 14 ULTIMATE: MAELSTROM FEAST ───────────────────────────────────────────────────────────────────────
+const finish = (f, t) => { let n = 0; while (S(f).ult && n < 400) { world(f, t, 1); n++ } }   // step to the frame the Ultimate ends
+const feast = (f, t) => { f.energy = 100; assert(ult(f, t), 'ultimate cast'); world(f, t, R.RJ_ULT.OPENER_AT + 2) }
+test('14. opener 40 (cost 55); whiff or block → no cinematic, 60f recovery', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); reset(f, t, 500); f.energy = 100; assert(ult(f, t)); assert.equal(100 - f.energy, RJ_COST.ultimate)
+  world(f, t, R.RJ_ULT.OPENER_AT + 2); assert.equal(S(f).ult.phase, 'opener', 'whiff'); world(f, t, R.RJ_ULT.WHIFF + 2); assert.equal(S(f).ult, null); assert.equal(S(f).lastUlt, null, 'no cinematic')
+  const g = ben(), u = foe(); reset(g, u, 30); u.isBlocking = true; feast(g, u); assert.equal(S(g).ult.phase, 'opener', 'blocked: no cinematic'); A.activeProjectiles.length = 0
+})
+test('14. cinematic: wave 3×25 → abyss 4×20 (hash spots, plain numbers) → geyser 45 + knockdown = 240 unscaled; positions restore; 100f lockout', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); reset(f, t, 30); const home = { x: f.x, y: f.y }, thome = { x: t.x, y: t.y }; feast(f, t); const u = S(f).ult
+  assert.notEqual(u.phase, 'opener', 'clean opener → cinematic'); assert(u.spots.every(p => Number.isFinite(p.dx) && Number.isFinite(p.dy)))
+  assert.deepEqual(u.spots, R.abyssSpots(S(f).seed, u.spotFrame, 0), 'hash(seed, frame, player)'); assert.notDeepEqual(R.abyssSpots(S(f).seed, u.spotFrame + 1, 0), u.spots)
+  let n = 0; while (S(f).ult && n < 400) { world(f, t, 1); n++ } const L = S(f).lastUlt; assert.deepEqual(L.hits, [40, 25, 25, 25, 20, 20, 20, 20, 45]); assert.equal(L.raw, 240)
+  assert.equal(f.x, home.x); assert.equal(t.x, thome.x); assert(t.knockdownState, 'knockdown'); assert(Math.abs(f.attackCooldown - R.RJ_ULT.LOCKOUT) <= 1, '100f lockout')
+  const g = ben(), u2 = foe(); reset(g, u2, 30); const h0 = u2.health; feast(g, u2); g._benWater = { ttl: 2, depth: 'submerged', wb: true }; S(g).depth = 'submerged'; world(g, u2, R.RJ_ULT.END + 2)
+  assert.deepEqual(S(g).lastUlt.hits, [40, 25, 25, 25, 20, 20, 20, 20, 45], 'the depth edge never adds')
+})
+test('14. afterwards: the flood → Level 2 for 300f when none is live and no cooldown; opponent breath = min(current, 40) once', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); reset(f, t, 30); feast(f, t); finish(f, t); const r = FR(f)
+  assert(r && r.level === 2 && r.byUlt && r.dur === 300, 'ult flood at Level 2'); assert(Math.abs(r.breath[t.side] - 40) <= FL.BREATH.REFILL + 1e-9, 'breath = 40 (the flood tick of the same frame then refills one step)')
+  world(f, t, FL.FLOOD.RISE2 + 2); assert(Math.abs(r.line - r.l2) < 1e-6); world(f, t, 300 - FL.FLOOD.RISE2 - 6); assert(r.phase !== 'recede'); world(f, t, 8); assert.equal(r.phase, 'recede', '300f in total')
+  const g = ben(), u = foe(); const q = flood(g, u); world(g, u, 1); q.breath[u.side] = 70; reset(g, u, 30); ready(g); feast(g, u); finish(g, u)
+  assert.equal(FR(g), q, 'a live flood is kept'); assert.equal(q.level, 1); assert(Math.abs(q.breath[u.side] - 40) <= FL.BREATH.REFILL + 1e-9, 'min(70, 40)')
+  const h = ben(), v = foe(); h._benFlood = { phase: 'off', cd: 500, line: 0 }; reset(h, v, 30); feast(h, v); finish(h, v); assert.equal(FR(h).phase, 'off', 'cooldown running: no flood')
+  const m = ben(), n = foe(); const qm = flood(m, n); world(m, n, 1); reset(m, n, 30); feast(m, n); assert(qm.paused); qm.breath[n.side] = 20; finish(m, n); assert(Math.abs(qm.breath[n.side] - 20) <= FL.BREATH.REFILL + 1e-9, 'min(20, 40) keeps 20')
+})
+test('14. breath and drowning pause during the cinematic (no damage beyond the 240)', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); reset(f, t, 30); f.y = 410 - f.h; t.y = 410 - t.h; world(f, t, 1); r.breath[t.side] = 0
+  const hp = t.health; feast(f, t); const b0 = r.breath[t.side]; assert(S(f).ult.phase !== 'opener'); world(f, t, R.RJ_ULT.END - R.RJ_ULT.OPENER_AT)
+  assert.equal(r.breath[t.side], b0, 'breath frozen'); assert(r.paused); world(f, t, 20); assert.equal(r.paused, undefined, 'resumes after')
+})
+
 //@@NEXT@@
 console.log(`RIPJAWS: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

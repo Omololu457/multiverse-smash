@@ -6,7 +6,7 @@
 // render-only effects (rain, lightning, ripples, foam, bubbles, steam, the tidal wave, the abyss, shake) never write it.
 // Simulation randomness: hash(match seed, frame, player index). Sheet: docs/ben10/aliens/ripjaws/SPRITE_LEDGER.md.
 import { RIPJAWS_ANIM, RIPJAWS_GEOM, RIPJAWS_FX } from "./ripjawsAssets.js"
-import { FLOOD, floodOf, floodLive, canStartFlood, startFlood, raiseFlood, depthOf, waterOf, breathHit } from "./benFlood.js"   // the generic STORM TIDE flood
+import { FLOOD, floodOf, floodLive, canStartFlood, startFlood, raiseFlood, depthOf, waterOf, breathHit, ultFlood, isWaterborne } from "./benFlood.js"   // the generic STORM TIDE flood
 export { RIPJAWS_ANIM, RIPJAWS_GEOM, RIPJAWS_FX }
 
 export const RJ_KEY = "ripjaws"
@@ -48,7 +48,7 @@ export const RIPJAWS = {
     air:    normal(30, 7, 4, 12, 2, { rangeX: 90 })                                              // fall frame + bite
   },
   anim: ANIM_LAND,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt, hurtbox,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt, hurtbox, targetOffset,
   drawHud: (...a) => drawRipjawsHud(...a), drawFx: (...a) => drawRipjawsFx(...a)
 }
 
@@ -229,8 +229,9 @@ TICKS.push(function tickStorm(f, s, input, ctx, api, opp) {
 // swap), no breath. Swimming never touches jumps; at the surface Jump leaps him out (an ordinary jump). Specials keep their
 // normal costs. Faster, not tankier: no armor, no invulnerability. Mirror: each Ripjaws gets these from his own form.
 export const RJ_EDGE = { WADE_DMG: 1.10, WADE_SPD: 1.15, SUB_DMG: 1.15, SWIM: 1.4, SURFACE: 0.4 }
-function damageDealt(f, target, raw) {
+function damageDealt(f, target, raw, opts) {
   const s = rjState(f); if (!s) return raw
+  if (opts && /^rj_ult|^rj_maelstrom/.test(String(opts.move || ""))) return raw   // the Ultimate's 240 is fixed (no depth edge)
   return raw * (s.depth === "wading" ? RJ_EDGE.WADE_DMG : s.depth === "submerged" ? RJ_EDGE.SUB_DMG : 1)
 }
 export const swimSpeed = s => (s.baseSpeed ?? 6) * RJ_EDGE.SWIM
@@ -420,6 +421,89 @@ CONTACT.push((f, s, target, { proj, blocked }) => {
   s.dive.hit = true; if (!blocked) breathHit(f, target, "d" + a.cast, "undertow")
 })
 
+// ── 9. ULTIMATE: MAELSTROM FEAST (cost 55, the Omnitrix Overload input) ───────────────────────────────────────────
+// A clean OPENER BITE (40, 14f startup, 140 px) is required: whiff / block = no cinematic, 60f recovery. On a clean hit (the
+// shared capture pattern: both held, positions stored, the stage never changes): 1. TIDAL WAVE — 3 crashes of 25; 2. ABYSS —
+// 4 creature bites of 20 from positions chosen by hash(seed, frame, player index) (stored as plain numbers); 3. GEYSER — 45
+// and a knockdown. 240 unscaled (40 + 75 + 80 + 45; the depth edge never adds). Afterwards: the flood is set to LEVEL 2 for
+// 300f if none is active and the cooldown is not running; the opponent's breath = min(current, 40), once (non-waterborne,
+// only with a flood); camera and positions restore; 100f recovery lockout. Breath / drowning pause during the cinematic.
+export const RJ_ULT = { OPENER: 40, OPENER_AT: 14, RANGE: 140, H: 90, WHIFF: 60, WAVE_AT: [24, 36, 48], WAVE: 25, ABYSS_AT: [66, 78, 90, 102], ABYSS: 20,
+  GEYSER_AT: 124, GEYSER: 45, END: 136, LOCKOUT: 100, KD: 40, BREATH: 40 }
+BUSY.push(s => !!s.ult)
+ULT = function castUlt(f, s, api) {
+  if (!canAct(f, s)) return false
+  if (!api || !api.spendEnergy(f, RJ_COST.ultimate)) return false
+  s.castId++
+  const face = f.facing || 1, total = RJ_ULT.OPENER_AT + 3 + RJ_ULT.WHIFF
+  f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = "heavy"; f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
+  if (s.swimming) f._benGlide = { vx: 0, vy: 0, minY: f.y }
+  s.ult = { phase: "opener", t: 0, face, cast: s.castId, raw: 0, hits: [], spots: null }
+  s.stats.ults = (s.stats.ults || 0) + 1
+  api.focusCamera?.(f, api.getOpponent(f), 0.92, 20)
+  return true
+}
+export function abyssSpots(seed, frame, player) {   // creature offsets around the target: plain numbers (px, deg)
+  return [0, 1, 2, 3].map(k => ({ dx: Math.round((rjHash(seed, frame, player, 41 + k) - 0.5) * 240), dy: Math.round(60 + rjHash(seed, frame, player, 51 + k) * 90), side: rjHash(seed, frame, player, 61 + k) < 0.5 ? -1 : 1 }))
+}
+TICKS.push(function tickUlt(f, s, input, ctx, api, opp) {
+  const u = s.ult; if (!u) return
+  if (u.phase === "opener") {
+    u.t++
+    if (u.t === RJ_ULT.OPENER_AT) { const m = mouth(f)
+      hitbox(f, api, "rj_ult_open", u.face, { damage: RJ_ULT.OPENER, spawnX: m.x + u.face * RJ_ULT.RANGE / 2, spawnY: f.y + (f.h || 110) * 0.45, w: RJ_ULT.RANGE, h: RJ_ULT.H,
+        lifetime: 3, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0.01, knockbackY: 0, alien: { rj: "ultOpen", cast: u.cast } }) }
+    if (u.t > RJ_ULT.OPENER_AT + 3 + RJ_ULT.WHIFF) { s.ult = null; delete f._benGlide }               // whiff / block: no cinematic
+    return
+  }
+  if (!opp || opp.eliminated || !(opp.health > 0)) { endUlt(f, s, opp, api, ctx); return }
+  u.t++
+  opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y   // held (no collision change)
+  opp.attacking = false; opp.currentAttack = null; opp.isBlocking = false
+  f.vx = 0; f.vy = 0; f.x = u.home.x; f.y = u.home.y; f._benGlide = { vx: 0, vy: 0, minY: u.home.y }
+  const r = floodOf(f); if (r) r.paused = true
+  const hit = (dmg, shake) => { api.applyScaledDamage(opp, dmg, { attacker: f, move: "rj_maelstrom", source: "ability" }); u.raw += dmg; u.hits.push(dmg); opp.colorFlash = 8; api.shake?.(shake, 8) }
+  if (u.t < RJ_ULT.ABYSS_AT[0] - 6) { u.phase = "wave"; f._spriteCastMove = "rjSummon"; const k = RJ_ULT.WAVE_AT.indexOf(u.t); if (k >= 0) hit(RJ_ULT.WAVE, 6 + k * 2) }
+  else if (u.t < RJ_ULT.GEYSER_AT - 6) { u.phase = "abyss"; f._spriteCastMove = "rjFin"; const k = RJ_ULT.ABYSS_AT.indexOf(u.t); if (k >= 0) hit(RJ_ULT.ABYSS, 6) }
+  else if (u.t < RJ_ULT.END) { u.phase = "geyser"; f._spriteCastMove = "rjBreach"; if (u.t === RJ_ULT.GEYSER_AT) hit(RJ_ULT.GEYSER, 20) }
+  else { endUlt(f, s, opp, api, ctx); return }
+  f._spriteCastTimer = 2
+})
+function startUltCinematic(f, s, target) {
+  const u = s.ult
+  u.phase = "wave"; u.t = 0; u.raw = RJ_ULT.OPENER; u.hits.push(RJ_ULT.OPENER)
+  u.home = { x: f.x, y: f.y }; u.thome = { x: target.x, y: target.y }
+  u.spots = abyssSpots(s.seed, s.frame, pIndex(f)); u.spotFrame = s.frame
+  f.attackCooldown = RJ_ULT.END + RJ_ULT.LOCKOUT; f._benPowerCommit = RJ_ULT.END; f._spriteCastTimer = RJ_ULT.END
+  f.invulnTimer = Math.max(f.invulnTimer || 0, RJ_ULT.END + 2)                 // cinematic only (the opponent is held)
+}
+function endUlt(f, s, opp, api, ctx) {
+  const u = s.ult
+  if (u?.home) { f.x = u.home.x; f.y = u.home.y; f.vx = 0; f.vy = 0 }        // positions restore
+  delete f._benGlide
+  const r0 = floodOf(f); if (r0) delete r0.paused
+  if (opp && u?.thome) {
+    opp.x = u.thome.x; opp.y = u.thome.y; opp.vx = 0; opp.vy = 0
+    if (!opp.eliminated && opp.health > 0) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, RJ_ULT.KD); opp.hitstun = 0 }   // the geyser's knockdown
+    const fighters = [f, opp]
+    let r = floodOf(f); if (!floodLive(r)) r = ultFlood(f, { arenaTopY: s.arenaTopY }, fighters, (s.seed ^ Math.imul((s.frame | 0) + 7, 2654435761)) >>> 0) || r
+    if (floodLive(r) && !isWaterborne(opp)) { const k = opp.side || "p2"; r.breath[k] = Math.min(k in r.breath ? r.breath[k] : 100, RJ_ULT.BREATH) }   // once
+  }
+  s.lastUlt = u ? { raw: u.raw, hits: u.hits.slice(), spots: u.spots } : null
+  s.ult = null
+  f.attackCooldown = RJ_ULT.LOCKOUT; f._benPowerCommit = RJ_ULT.LOCKOUT; f._spriteCastMove = null; f._spriteCastTimer = 0
+}
+CONTACT.push((f, s, target, { proj, blocked }) => {
+  const a = proj && proj.alien
+  if (a && a.rj === "ultOpen" && !blocked && s.ult && s.ult.phase === "opener" && !target.eliminated) startUltCinematic(f, s, target)
+})
+// render-only: the geyser lifts the held opponent (the stage and both sim positions never change)
+function targetOffset(f, target) {
+  const s = rjState(f); const u = s && s.ult; if (!u || !u.thome || u.phase !== "geyser") return null
+  const k = u.t - (RJ_ULT.GEYSER_AT - 6); return { dx: 0, dy: -Math.round(Math.min(1, k / 6) * 120 * Math.max(0, 1 - Math.max(0, u.t - RJ_ULT.GEYSER_AT) / 12)) }
+}
+
 //@@SECTIONS@@
 
 // ── RENDER (HUD + FX; render-only, never GAME_STATE) ─────────────────────────────────────────────────────────
@@ -444,5 +528,23 @@ FX.push(function fxSpecials(c, f, frame) {
   if (s && ((s.rush && s.rush.t > RJ_RUSH.STARTUP && s.rush.t <= RJ_RUSH.STARTUP + RJ_RUSH.TRAVEL) || (s.breach && s.breach.t > RJ_BREACH.STARTUP && s.breach.t <= RJ_BREACH.STARTUP + RJ_BREACH.RISE))) {
     c.globalAlpha = 0.5; c.fillStyle = "#bae6fd"; for (let i = 0; i < 8; i++) c.fillRect(Math.round(cx(f) - 20 + ((i * 37 + frame * 5) % 40)), Math.round(f.y + (f.h || 110) * (0.2 + (i % 4) * 0.2)), 5, 3)
   }
+  c.restore()
+})
+// render-only: Maelstrom Feast — the tidal wave, the abyss creatures (at the stored hash spots), the geyser column
+FX.push(function fxUlt(c, f, frame, opp) {
+  const s = rjState(f); const u = s && s.ult; if (!u || !u.thome) return
+  const tx = u.thome.x + 30, ty = u.thome.y, floor = ty + 110; c.save()
+  if (u.phase === "wave") { const k = Math.min(1, u.t / 20)
+    c.globalAlpha = 0.75; c.fillStyle = "#1d4ed8"; for (let x = -260; x < 260; x += 8) { const h = Math.round(140 * k * (0.6 + 0.4 * Math.sin((x + frame * 6) * 0.03))); c.fillRect(Math.round(tx + x), floor - h, 8, h) }
+    c.fillStyle = "#e0f2fe"; for (let x = -260; x < 260; x += 16) c.fillRect(Math.round(tx + x), floor - Math.round(140 * k) - 4 + ((x >> 4) & 3) * 3, 10, 4) }
+  if (u.phase === "abyss" && u.spots) { c.globalAlpha = 0.85
+    c.fillStyle = "rgba(2,6,23,0.55)"; c.fillRect(tx - 300, ty - 160, 600, 300)
+    u.spots.forEach((p, k) => { const on = u.t >= RJ_ULT.ABYSS_AT[k] - 8 && u.t <= RJ_ULT.ABYSS_AT[k] + 6; if (!on) return
+      const x = tx + p.dx, y = ty + p.dy - 60; c.fillStyle = "#0f766e"; c.fillRect(Math.round(x - 22 * p.side), Math.round(y), 44, 18)
+      c.fillStyle = "#f8fafc"; for (let i = 0; i < 5; i++) c.fillRect(Math.round(x - 18 * p.side + i * 8 * p.side), Math.round(y + 14), 3, 6)
+      c.fillStyle = "#facc15"; c.fillRect(Math.round(x + 12 * p.side), Math.round(y + 4), 4, 4) }) }
+  if (u.phase === "geyser") { const k = Math.min(1, (u.t - (RJ_ULT.GEYSER_AT - 6)) / 6)
+    c.globalAlpha = 0.8; c.fillStyle = "#38bdf8"; c.fillRect(Math.round(tx - 26), Math.round(floor - 320 * k), 52, Math.round(320 * k))
+    c.fillStyle = "#f0f9ff"; for (let i = 0; i < 14; i++) c.fillRect(Math.round(tx - 30 + ((i * 23 + frame * 7) % 60)), Math.round(floor - 320 * k - (i % 4) * 10), 6, 6) }
   c.restore()
 })

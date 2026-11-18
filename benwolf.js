@@ -33,7 +33,7 @@ export const BENWOLF = {
     air:    normal(28, 7, 4, 12, 2, { rangeX: 85 })                                            // the fall frame (AIR body)
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt, bodyOffset,
   drawHud: drawBenwolfHud, drawFx: drawBenwolfFx
 }
 
@@ -41,8 +41,11 @@ export const BENWOLF = {
 export function freshBenwolfState() {
   return { kind: BW_KEY, t: 0, castId: 0, noAttack: false, base: null, stage: { L: -1e6, R: 1e6 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, backPrev: false, backTapT0: -999, backTapT: -999, dodgeTapT: -999, lastDir: 5,
+    howl: null, ring: null, ringUsed: null, lowRingUsed: null, rake: null, pounce: null, rise: null, low: null, lowRing: null, dive: null, diveUsed: false, dodge: null, dodgeCd: 0,
+    lastHowl: null, lastRake: null, lastPounce: null, lastRise: null, lastLow: null, lastDive: null, landT: -999, ult: null,
     scent: { pips: 0, lastT: -999, pipped: [], hunted: 0, immuneT: 0, hunts: 0, reaims: 0, ends: [] },
-    stats: { casts: 0, scentHits: 0, huntedBonus: 0 } }
+    stats: { casts: 0, scentHits: 0, huntedBonus: 0, howls: 0, howlTicks: 0, howlHolds: 0, howlRings: 0, rakes: 0, rakeHits: 0, pounces: 0, pounceHits: 0,
+      rises: 0, riseHits: 0, lows: 0, lowTicks: 0, dives: 0, diveHits: 0, dodges: 0 } }
 }
 export const bwState = f => (f?.omnitrix?.formState?.kind === BW_KEY && f.transformed && f.activeAlien === BW_KEY) ? f.omnitrix.formState : null
 
@@ -226,3 +229,353 @@ function drawScent(c, s, opp, frame) {
   }
   c.restore()
 }
+
+// ── 4. MOVES ────────────────────────────────────────────────────────────────────────────────────────────────
+const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
+// a hitbox riding the shared projectile pipeline (hidden: drawn by this module); vx carries the knockback direction.
+// Lifetime >= 2 (combat.updateProjectiles culls lifetime <= 0 before hits resolve: a 1f box never connects in the live game).
+const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, lifetime: 2, ...md,
+  alien: { hidden: true, ...(md.alien || {}) } }, {})
+export function inOwnActiveFrames(f) {
+  const a = f.attacking && f.currentAttack
+  if (!a) return false
+  const el = (a.total || 0) - (a.timer || 0)
+  return el >= (a.activeStart || 0) && el <= (a.activeEnd ?? a.activeStart ?? 0)
+}
+const MOON_CUT = []   // (s) → frames cut from every startup (the Full Moon's −1f, Phase 5)
+export const startupOf = (s, n) => Math.max(1, n - MOON_CUT.reduce((a, fn) => a + fn(s), 0))
+function canAct(f, s) {
+  return f.transformed && f.activeAlien === BW_KEY && !f.attacking && !((f.attackCooldown || 0) > 0) && !((f.hitstun || 0) > 0) &&
+    !((f.blockstun || 0) > 0) && !(f._benPowerCommit > 0) && !busy(s)
+}
+function beginCast(f, s, api, poseName, cost, total, { commit = true } = {}) {
+  if (!canAct(f, s)) return null
+  if (cost && !api.spendEnergy(f, cost)) return null
+  f.isCharging = false
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = poseName; f._spriteCastTimer = total
+  f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
+  s.castId++; s.stats.casts++
+  return { cast: s.castId, total }
+}
+const mouthX = (f, face) => cx(f) + face * (f.w || 60) * 0.55
+const mouthY = f => f.y + (f.h || 110) * 0.3
+const feetY = f => f.y + (f.h || 110)
+const ownLive = (f, api, bw) => !!api && api.activeProjectiles().some(p => p && p.owner === f && p.alien && p.alien.bw === bw && p.lifetime > 0)
+const pose = (f, name, left) => { f._spriteCastMove = name; f._spriteCastTimer = Math.max(2, left) }
+const stopCast = (f, key, s) => { s[key] = null; delete f._benLunge; delete f._benGlide }
+const overlaps = (a, o) => a.x < o.x + (o.w || 60) && a.x + a.w > o.x && a.y < o.y + (o.h || 110) && a.y + a.h > o.y
+const killOwn = (f, bw, cast) => { if (projRef) for (const p of projRef) if (p && p.owner === f && p.alien && p.alien.bw === bw && (cast == null || p.alien.cast === cast)) p.lifetime = 0 }
+BUSY.push(s => !!(s.howl || s.rake || s.pounce || s.rise || s.low || s.dive || s.dodge || s.ult))
+
+// RINGS (Sonic Howl, Low Howl): an owner-limited travelling record in formState (one of each on screen). The first tick
+// LATCHES the ring: it slows to LATCH px/f and carries the target (the pushback) through the rest of its ticks, still bounded by
+// its range. Contact is a
+// rectangle test in the form tick (never solid: nothing collides with a ring); each damage tick is a hidden hitbox over the
+// target so blocking / scaling / hit effects stay the engine's. A ring's tick budget belongs to its CAST.
+function tickRing(f, s, key, spec, opp, api) {
+  const r = s[key]; if (!r) return
+  const v = r.latched ? spec.LATCH : spec.SPEED; r.x += r.face * v; r.d += v           // a ring that has met its target slows and carries it
+  if (r.d > spec.RANGE || r.x < s.stage.L - 40 || r.x > s.stage.R + 40) { s[key] = null; return }
+  if (!opp || opp.eliminated || r.ticks >= spec.HITS.length) return
+  const box = { x: r.x - spec.W / 2, y: r.y - spec.H / 2, w: spec.W, h: spec.H }
+  if (!overlaps(box, opp) || s.t - r.lastHit < spec.EVERY) return
+  const k = r.ticks, last = k === spec.HITS.length - 1
+  r.ticks++; r.lastHit = s.t; r.latched = true; s.stats[spec.STAT]++; s[key + "Used"] = { cast: r.cast, ticks: r.ticks }
+  hitbox(f, api, spec.NAME, r.face, { damage: spec.HITS[k], spawnX: cx(opp), spawnY: opp.y + (opp.h || 110) / 2, w: (opp.w || 60) + 8, h: (opp.h || 110) + 8,
+    hitstun: spec.EVERY + 10, blockstun: last ? blockstunFor(spec.RECOVERY, spec.ON_BLOCK) : spec.EVERY + 6, noHitstop: !last,
+    knockbackX: spec.PUSH, knockbackY: 0, hitLevel: spec.LEVEL, alien: { bw: spec.TAG, cast: r.cast, tick: k, hitLevel: spec.LEVEL } })
+  if (r.ticks >= spec.HITS.length) s[key] = null                           // the budget is spent: the ring is done
+}
+
+// 1. SONIC HOWL (↓↘→ + P, 12) — Attack f3–4: 12f startup, then a ring (the sheet's ring loop) flies 450 px: 3 ticks × 10 = 30,
+//    pushback, ONE ring on screen, −10 on block, no Scent. HOLD P past the release to SUSTAIN the howl up to 30f (+4 Power,
+//    charged once when the hold starts): a fresh ring is re-emitted every 10f — it REPLACES the live ring (still one on
+//    screen) and carries on the same cast's 3-tick budget. Releasing ends it. 18f recovery.
+export const BW_HOWL = { STARTUP: 12, SPEED: 9, RANGE: 450, W: 34, H: 96, HITS: [10, 10, 10], EVERY: 6, PUSH: 5, ON_BLOCK: -10, RECOVERY: 18,
+  HOLD_MAX: 30, RESPAWN: 10, LATCH: 4, NAME: "bw_sonic_howl", TAG: "howl", STAT: "howlTicks", LEVEL: "mid" }
+function emitRing(f, s, key, face, cast, ticks = 0, low = false) {
+  s[key] = { x: mouthX(f, face), y: low ? feetY(f) - 22 : mouthY(f) + 8, face, d: 0, cast, ticks, lastHit: -999, latched: false }
+  if (key === "ring") s.stats.howlRings++
+}
+function castHowl(f, s, api) {
+  if (!grounded(f) || s.ring) return false                                  // one on screen
+  const st = startupOf(s, BW_HOWL.STARTUP), total = st + BW_HOWL.RECOVERY
+  const c = beginCast(f, s, api, "bwHowl", BW_COST.howl, total); if (!c) return false
+  s.howl = { t: 0, st, cast: c.cast, face: f.facing || 1, hold: 0, holding: false, paid: false, used: 0, end: total }; s.stats.howls++
+  return true
+}
+CASTS.howl = castHowl
+TICKS.push((f, s, input, api, opp) => {
+  const h = s.howl
+  if (h) {
+    h.t++
+    if ((f.hitstun || 0) > 0) { s.lastHowl = { hold: h.hold, paid: h.paid, interrupted: true }; stopCast(f, "howl", s) }
+    else {
+      if (h.t === h.st) emitRing(f, s, "ring", h.face, h.cast)
+      if (h.t === h.st + 1 && input.special && api && api.spendEnergy(f, BW_COST.howlHold)) { h.paid = true; h.holding = true; s.stats.howlHolds++ }
+      if (h.holding) {
+        if (!input.special || h.hold >= BW_HOWL.HOLD_MAX) h.holding = false
+        else { h.hold++; h.end = h.t + 1 + BW_HOWL.RECOVERY
+          if (h.hold % BW_HOWL.RESPAWN === 0 && h.used < BW_HOWL.HITS.length) emitRing(f, s, "ring", h.face, h.cast, h.used) }   // replaces the live ring
+      }
+      f.attackCooldown = Math.max(f.attackCooldown || 0, h.end - h.t); f._benPowerCommit = Math.max(f._benPowerCommit || 0, h.end - h.t)
+      pose(f, h.holding ? "bwHowlHold" : "bwHowl", h.end - h.t)
+      if (h.t >= h.end) { s.lastHowl = { hold: h.hold, paid: h.paid, used: h.used, end: h.t }; s.howl = null }
+    }
+  }
+  tickRing(f, s, "ring", BW_HOWL, opp, api)
+  if (s.howl && s.ringUsed && s.ringUsed.cast === s.howl.cast) s.howl.used = s.ringUsed.ticks   // the cast's tick budget spent so far
+})
+
+// 2. CLAW RAKE (→→ + P, 12) — Attack → f2–4: 8f startup, then a dash slash with REAL travel (15f × 20 px = 300 px,
+//    stage-clamped, no tracking). The first contact stops the dash; hits 2 / 3 follow 6f apart in front of him:
+//    14 / 14 / 22 = 50, −12 on block (on the last hit). The finisher (hit 3) adds +1 Scent on a clean hit. 18f recovery.
+export const BW_RAKE = { STARTUP: 8, SPEED: 20, TRAVEL: 300, HITS: [14, 14, 22], GAP: 6, ON_BLOCK: -12, RECOVERY: 18, W: 70, H: 80, REACH: 34 }
+BW_RAKE.FRAMES = Math.round(BW_RAKE.TRAVEL / BW_RAKE.SPEED)
+function castRake(f, s, api) {
+  if (!grounded(f)) return false
+  const st = startupOf(s, BW_RAKE.STARTUP), total = st + BW_RAKE.FRAMES + BW_RAKE.RECOVERY
+  const c = beginCast(f, s, api, "bwRake", BW_COST.rake, total); if (!c) return false
+  s.rake = { t: 0, st, cast: c.cast, face: f.facing || 1, x0: f.x, hits: 0, contact: null, end: total }; s.stats.rakes++
+  return true
+}
+CASTS.rake = castRake
+function rakeBox(f, s, d, k) {
+  const last = k === BW_RAKE.HITS.length - 1
+  hitbox(f, api0, "bw_claw_rake", d.face, { damage: BW_RAKE.HITS[k], spawnX: cx(f) + d.face * ((f.w || 60) / 2 + BW_RAKE.REACH), spawnY: f.y + (f.h || 110) * 0.5,
+    w: BW_RAKE.W + (d.contact == null ? BW_RAKE.SPEED : 0), h: BW_RAKE.H, hitstun: last ? BW_RAKE.RECOVERY + 10 : BW_RAKE.GAP + 12,
+    blockstun: last ? blockstunFor(BW_RAKE.RECOVERY, BW_RAKE.ON_BLOCK) : BW_RAKE.GAP + 8, noHitstop: !last,
+    knockbackX: last ? 6 : 0.8, knockbackY: last ? -3 : 0, alien: { bw: "rake", cast: d.cast, hit: k + 1, scent: last } })
+  d.hits = k + 1
+}
+TICKS.push((f, s) => {
+  const d = s.rake; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { s.lastRake = { travelled: Math.abs(f.x - d.x0), hits: d.hits, contact: d.contact != null, interrupted: true }; stopCast(f, "rake", s); return }
+  if (d.contact == null) {
+    if (d.t > d.st && d.t <= d.st + BW_RAKE.FRAMES) { f._benLunge = { frames: 1, speed: d.face * BW_RAKE.SPEED }; if (!ownLive(f, api0, "rake")) rakeBox(f, s, d, 0) }
+    if (d.t === d.st + BW_RAKE.FRAMES) killOwn(f, "rake", d.cast)
+  } else {
+    const k = Math.floor((d.t - d.contact) / BW_RAKE.GAP)
+    if ((d.t - d.contact) % BW_RAKE.GAP === 0 && k >= 1 && k < BW_RAKE.HITS.length && d.hits === k) rakeBox(f, s, d, k)
+  }
+  pose(f, "bwRake", d.end - d.t)
+  if (d.t >= d.end) { s.lastRake = { travelled: Math.abs(f.x - d.x0), hits: d.hits, contact: d.contact != null, x0: d.x0, x1: f.x }; s.rake = null }
+})
+function rakeContact(f, s, tag) {
+  const d = s.rake; if (!d || d.cast !== tag.cast) return
+  if (tag.hit === 1 && d.contact == null) {
+    d.contact = d.t; delete f._benLunge; killOwn(f, "rake", d.cast)
+    d.end = d.t + BW_RAKE.GAP * (BW_RAKE.HITS.length - 1) + BW_RAKE.RECOVERY
+  }
+}
+
+// 3. POUNCE (↓↙← + P, 14) — Attack → f1: an arc to the opponent's x AT CAST TIME (max 360 px), the hit at 18f (the landing),
+//    55, knockdown, −14 on block, 24f whiff recovery (16f on a hit). Ground only. +1 Scent on a clean hit.
+//    HUNTED: ONE mid-air re-aim 12f into the leap toward their position at that frame (once per Pounce; the arc then flies
+//    straight to that point — no tracking after; still bounded to 360 px from the take-off).
+export const BW_POUNCE = { LEAP: 2, LAND: 18, RANGE: 360, HEIGHT: 90, DMG: 55, ON_BLOCK: -14, WHIFF: 24, HIT_REC: 16, KD: 52, W: 96, H: 100, STOP: 30 }
+function castPounce(f, s, api, ctx) {
+  if (!grounded(f)) return false
+  const opp = api && api.getOpponent ? api.getOpponent(f) : null
+  const land = startupOf(s, BW_POUNCE.LAND), total = land + BW_POUNCE.WHIFF
+  const c = beginCast(f, s, api, "bwPounce", BW_COST.pounce, total); if (!c) return false
+  const face = f.facing || 1, x0 = cx(f), aim = opp ? cx(opp) - face * BW_POUNCE.STOP : x0 + face * BW_POUNCE.RANGE
+  const tx = Math.max(x0 - BW_POUNCE.RANGE, Math.min(x0 + BW_POUNCE.RANGE, aim))
+  s.pounce = { t: 0, land, cast: c.cast, face, x0, tx, aim0: tx, y0: f.y, reaimed: false, reaimT: null, hit: false, blocked: false, end: total }; s.stats.pounces++
+  return true
+}
+CASTS.pounce = castPounce
+const pounceY = (d, t) => { const span = d.land - BW_POUNCE.LEAP, p = Math.max(0, Math.min(1, (t - BW_POUNCE.LEAP) / span)); return d.y0 - 4 * BW_POUNCE.HEIGHT * p * (1 - p) }
+TICKS.push((f, s, input, api, opp) => {
+  const d = s.pounce; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { s.lastPounce = { hit: d.hit, reaimed: d.reaimed, interrupted: true }; stopCast(f, "pounce", s); return }
+  if (d.t === BW_POUNCE.LEAP + BW_SCENT.REAIM_AT && hunted(s) && !d.reaimed && opp && !opp.eliminated) {   // HUNTED: one re-aim, at this frame
+    d.tx = Math.max(d.x0 - BW_POUNCE.RANGE, Math.min(d.x0 + BW_POUNCE.RANGE, cx(opp) - d.face * BW_POUNCE.STOP)); d.reaimed = true; d.reaimT = d.t; s.scent.reaims++
+  }
+  if (d.t >= BW_POUNCE.LEAP && d.t < d.land) {
+    const left = d.land - d.t
+    f._benGlide = { vx: (d.tx - cx(f)) / left, vy: pounceY(d, d.t + 1) - f.y }
+  } else if (d.t === d.land) {
+    delete f._benGlide; f.y = d.y0
+    hitbox(f, api, "bw_pounce", d.face, { damage: BW_POUNCE.DMG, spawnX: cx(f) + d.face * 10, spawnY: f.y + (f.h || 110) / 2, w: BW_POUNCE.W, h: BW_POUNCE.H, lifetime: 3,
+      hitstun: 30, blockstun: blockstunFor(BW_POUNCE.WHIFF, BW_POUNCE.ON_BLOCK), knockbackX: 5, knockbackY: -4, alien: { bw: "pounce", cast: d.cast, scent: true } })
+  }
+  pose(f, "bwPounce", d.end - d.t)
+  if (d.t >= d.end) { s.lastPounce = { hit: d.hit, blocked: d.blocked, reaimed: d.reaimed, reaimT: d.reaimT, x0: d.x0, aim0: d.aim0, tx: d.tx, x1: cx(f), end: d.t }; s.pounce = null }
+})
+function pounceContact(f, s, target, tag, blocked) {
+  const d = s.pounce; if (!d || d.cast !== tag.cast) return
+  killOwn(f, "pounce", d.cast)
+  if (blocked) { d.blocked = true; return }
+  d.hit = true; s.stats.pounceHits++; d.end = Math.min(d.end, d.t + BW_POUNCE.HIT_REC)
+  if (!target.knockdownState && !target.eliminated) { target.knockdownState = true; target.knockdownTimer = Math.max(target.knockdownTimer || 0, BW_POUNCE.KD) }
+}
+
+// 4. RISING HOWL (→↓↘ + P, 14) — Attack ↑ f3–4: a vertical ring column beside him (45 px ahead, 240 px tall), 9f startup,
+//    8 active, 55, ANTI-AIR (reaches the air above him), LAUNCHES, −14 on block, 22f recovery. No Scent.
+export const BW_RISE = { STARTUP: 9, ACTIVE: 8, RECOVERY: 22, DMG: 55, AHEAD: 45, W: 80, H: 240, ON_BLOCK: -14, LAUNCH: -16 }
+function castRise(f, s, api) {
+  if (!grounded(f)) return false
+  const st = startupOf(s, BW_RISE.STARTUP), total = st + BW_RISE.ACTIVE + BW_RISE.RECOVERY
+  const c = beginCast(f, s, api, "bwRise", BW_COST.rise, total); if (!c) return false
+  s.rise = { t: 0, st, cast: c.cast, face: f.facing || 1, hit: false, end: total }; s.stats.rises++
+  return true
+}
+CASTS.rise = castRise
+TICKS.push((f, s, input, api) => {
+  const d = s.rise; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { s.lastRise = { hit: d.hit, interrupted: true }; stopCast(f, "rise", s); return }
+  if (d.t === d.st) hitbox(f, api, "bw_rising_howl", d.face, { damage: BW_RISE.DMG, spawnX: cx(f) + d.face * BW_RISE.AHEAD, spawnY: feetY(f) - BW_RISE.H / 2,
+    w: BW_RISE.W, h: BW_RISE.H, lifetime: BW_RISE.ACTIVE, hitstun: 34, blockstun: blockstunFor(BW_RISE.RECOVERY + BW_RISE.ACTIVE - 1, BW_RISE.ON_BLOCK),
+    knockbackX: 2, knockbackY: BW_RISE.LAUNCH, launcher: true, alien: { bw: "rise", cast: d.cast } })
+  pose(f, "bwRise", d.end - d.t)
+  if (d.t >= d.end) { s.lastRise = { hit: d.hit }; s.rise = null }
+})
+
+// 5. LOW HOWL (←↙↓ + P, 12) — Attack ↓ f1–4: 14f startup, a ground-skimming horizontal ring wave (the Attack ↓ rings),
+//    380 px, 2 hits 20 / 25 = 45, hits LOW, one on screen, −8 on block, 20f recovery. No Scent.
+export const BW_LOW = { STARTUP: 14, RECOVERY: 20, SPEED: 10, RANGE: 380, W: 40, H: 44, HITS: [20, 25], EVERY: 8, PUSH: 3, LATCH: 4, ON_BLOCK: -8,
+  NAME: "bw_low_howl", TAG: "low", STAT: "lowTicks", LEVEL: "low" }
+function castLow(f, s, api) {
+  if (!grounded(f) || s.lowRing) return false
+  const st = startupOf(s, BW_LOW.STARTUP), total = st + BW_LOW.RECOVERY
+  const c = beginCast(f, s, api, "bwLow", BW_COST.low, total); if (!c) return false
+  s.low = { t: 0, st, cast: c.cast, face: f.facing || 1, end: total }; s.stats.lows++
+  return true
+}
+CASTS.low = castLow
+TICKS.push((f, s, input, api, opp) => {
+  const d = s.low
+  if (d) { d.t++
+    if ((f.hitstun || 0) > 0) { s.lastLow = { interrupted: true }; stopCast(f, "low", s) }
+    else { if (d.t === d.st) emitRing(f, s, "lowRing", d.face, d.cast, 0, true)
+      pose(f, "bwLow", d.end - d.t); if (d.t >= d.end) { s.lastLow = { end: d.t }; s.low = null } } }
+  tickRing(f, s, "lowRing", BW_LOW, opp, api)
+})
+
+// 6. DIVE CLAW (air ↓ + P — any air Special; 12) — the Attack → swoosh frame: a diagonal dive (the shared `_benGlide`),
+//    48 on the body hit (one hit per cast), once per airtime, no jump refill, +1 Scent on a clean hit. 12f landing.
+export const BW_DIVE = { STARTUP: 4, VX: 7, VY: 12, MAX: 50, DMG: 48, W: 64, H: 70, LAND: 12 }
+function castDive(f, s, api) {
+  if (grounded(f) || s.diveUsed) return false
+  const c = beginCast(f, s, api, "bwDive", BW_COST.dive, BW_DIVE.MAX + BW_DIVE.LAND, { commit: false }); if (!c) return false
+  s.diveUsed = true
+  s.dive = { t: 0, st: startupOf(s, BW_DIVE.STARTUP), cast: c.cast, face: f.facing || 1, lastY: f.y, hit: false, jumps: f.jumpCount }; s.stats.dives++
+  f.vx = 0; f.vy = 0; f._benGlide = { vx: 0, vy: 0 }
+  return true
+}
+CASTS.dive = castDive
+TICKS.push((f, s, input, api) => {
+  if (grounded(f) && !s.dive) s.diveUsed = false                            // once per airtime
+  const d = s.dive; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { endDive(f, s, false); return }
+  if (d.t < d.st) { f._benGlide = { vx: 0, vy: 0 }; return }
+  const landed = d.t > d.st + 1 && (f.y === d.lastY || grounded(f))
+  d.lastY = f.y
+  if (landed || d.t >= BW_DIVE.MAX) { endDive(f, s, landed); return }
+  f._benGlide = { vx: d.face * BW_DIVE.VX, vy: BW_DIVE.VY }
+  if (!d.hit && !ownLive(f, api, "dive")) hitbox(f, api, "bw_dive_claw", d.face, { damage: BW_DIVE.DMG, spawnX: cx(f) + d.face * 16, spawnY: f.y + (f.h || 110) * 0.7,
+    w: BW_DIVE.W, h: BW_DIVE.H, hitstun: 24, blockstun: 12, knockbackX: 3, knockbackY: -4, alien: { bw: "dive", cast: d.cast, scent: true } })
+  pose(f, "bwDive", 2)
+})
+function endDive(f, s, landed) {
+  const d = s.dive; s.dive = null; delete f._benGlide; killOwn(f, "dive", d.cast)
+  if (landed) { s.landT = s.t; f.attackCooldown = BW_DIVE.LAND; f._benPowerCommit = BW_DIVE.LAND; pose(f, "crouch", BW_DIVE.LAND) }
+  else { f.attackCooldown = 0; f._spriteCastMove = null; f._spriteCastTimer = 0 }
+  s.lastDive = { landed, hit: d.hit, jumps: d.jumps }
+}
+
+// DEFENSE: LUPINE DODGE (←← + Light): no cost, i-frames on frames 4–10, 5 s cooldown, a short hop back on the run frame.
+// The ←← double tap + the Light press arrive through moveFrames (Jetray's Barrel Roll input): the jab never comes out.
+// Ordinary guard otherwise; no armor anywhere in his kit.
+export const BW_DODGE = { TOTAL: 18, IFROM: 4, ITO: 10, CD: 300, DRIFT: 5 }
+export function castDodge(f, s) {
+  if (s.dodgeCd > 0 || !canAct(f, s)) return false
+  s.dodgeTapT = s.backTapT
+  s.dodge = { t: 0, face: f.facing || 1 }; s.dodgeCd = BW_DODGE.CD; s.stats.dodges++
+  f.attackCooldown = BW_DODGE.TOTAL; f._benPowerCommit = BW_DODGE.TOTAL; f.vx = 0
+  pose(f, "bwDodge", BW_DODGE.TOTAL)
+  return true
+}
+MOVE_FRAMES.push((f, s, key) => (key === "light" && s.t - s.backTapT <= BW_DASH_WINDOW && s.backTapT > s.dodgeTapT && castDodge(f, s) ? false : undefined))
+TICKS.push((f, s) => {
+  if (s.dodgeCd > 0) s.dodgeCd--
+  const r = s.dodge; if (!r) return
+  r.t++
+  if (r.t === BW_DODGE.IFROM) f.invulnTimer = Math.max(f.invulnTimer || 0, BW_DODGE.ITO - BW_DODGE.IFROM + 1)   // frames 4–10
+  if (r.t <= BW_DODGE.ITO) f.x = Math.max(s.stage.L, Math.min(s.stage.R - (f.w || 60), f.x - r.face * BW_DODGE.DRIFT))
+  pose(f, "bwDodge", 2)
+  if (r.t >= BW_DODGE.TOTAL) s.dodge = null
+})
+
+CONTACT.unshift((f, s, target, { proj, blocked }) => {                     // move bookkeeping (runs before Scent)
+  const tag = proj && proj.alien; if (!tag) return
+  if (tag.bw === "rake") { rakeContact(f, s, tag); if (!blocked) s.stats.rakeHits++ }
+  if (tag.bw === "pounce") pounceContact(f, s, target, tag, blocked)
+  if (tag.bw === "rise") { killOwn(f, "rise", tag.cast); if (s.rise && s.rise.cast === tag.cast && !blocked) s.rise.hit = true }
+  if (tag.bw === "dive") { killOwn(f, "dive", tag.cast); if (s.dive && s.dive.cast === tag.cast) { s.dive.hit = true; if (!blocked) s.stats.diveHits++ } }
+})
+// render-only: the normals' lunge (the body draw offset; never collision) and Lupine Dodge's hop
+function bodyOffset(f) {
+  const s = bwState(f); if (!s) return null
+  if (s.dodge) return { dx: 0, dy: -Math.sin(s.dodge.t / BW_DODGE.TOTAL * Math.PI) * 14 }
+  const a = f.attacking && f.currentAttack; if (!a || a.name !== "light") return null
+  const el = (a.total || 0) - (a.timer || 0); return { dx: (f.facing || 1) * Math.min(8, el * 2), dy: 0 }
+}
+
+// ── the moves' render-only FX (the hitboxes are hidden; nothing here is GAME_STATE or collides) ──────────────────
+const _imgs = {}
+function img(src) {
+  if (typeof Image === "undefined") return null
+  if (!_imgs[src]) { const im = new Image(); im.src = src; _imgs[src] = im }
+  const im = _imgs[src]; return im.complete && im.naturalWidth ? im : null
+}
+// one frame of a cut ring strip, integer-scaled, nearest-neighbour (render only)
+function fx(c, name, frameI, x, y, k = 3, flip = 1) {
+  const d = BENWOLF_FX[name]; const im = d && img(d.sheet); if (!im) return
+  const fi = ((frameI % d.frames) + d.frames) % d.frames
+  c.save(); c.imageSmoothingEnabled = false; c.translate(Math.round(x), Math.round(y)); c.scale(flip, 1)
+  c.drawImage(im, fi * d.w, 0, d.w, d.h, Math.round(-d.w * k / 2), Math.round(-d.h * k / 2), d.w * k, d.h * k); c.restore()
+}
+// a ring's frame by age: the grow frames once, then the sheet's "loop" pair alternating (the sustain)
+const ringFrame = (name, age) => { const d = BENWOLF_FX[name], grow = d.loop[0]; return age < grow * 3 ? Math.floor(age / 3) : d.loop[Math.floor((age - grow * 3) / 4) % d.loop.length] }
+const spark = (c, x, y, k, frame) => { c.fillStyle = (frame & 2) ? "#ffffff" : MOON; for (let i = 0; i < 4; i++) px(c, x + Math.cos(i * 1.57 + k) * (4 + (frame % 3) * 3), y + Math.sin(i * 1.57 + k) * (4 + (frame % 3) * 3), 3) }
+FX_DRAW.push((c, f, s, frame) => {
+  const face = f.facing || 1, h = f.h || 110
+  const a = f.attacking && f.currentAttack
+  if (a) {                                                                   // normals: claw sparks (Low / Air), launcher ring puff
+    const el = (a.total || 0) - (a.timer || 0)
+    if ((a.name === "down" || a.name === "air") && el >= 5 && el <= 10) spark(c, cx(f) + face * 55, f.y + h * (a.name === "down" ? 0.85 : 0.6), el, frame)
+    if (a.name === "up" && el >= 9 && el <= 16) fx(c, "upRing", el - 9, cx(f) + face * 30, f.y + h * 0.2 - (el - 9) * 4, 2)
+  }
+  for (const [key, name, k] of [["ring", "howlRing", 3], ["lowRing", "lowRing", 2]]) {   // SONIC / LOW HOWL rings
+    const r = s[key]; if (!r) continue
+    const age = Math.round(r.d / (key === "ring" ? BW_HOWL.SPEED : BW_LOW.SPEED))
+    fx(c, name, ringFrame(name, age), r.x, r.y, k, r.face)
+    c.save(); c.globalAlpha = 0.35; fx(c, name, ringFrame(name, Math.max(0, age - 3)), r.x - r.face * 18, r.y, k - 1, r.face); c.restore()
+  }
+  const hw = s.howl
+  if (hw && hw.t < hw.st) fx(c, "howlRing", 0, mouthX(f, hw.face) + hw.face * 6, mouthY(f) + 8, 2, hw.face)
+  const ri = s.rise
+  if (ri && ri.t >= ri.st && ri.t < ri.st + BW_RISE.ACTIVE + 4) {           // RISING HOWL: the stacked rings climbing the column
+    const age = ri.t - ri.st, x = cx(f) + ri.face * BW_RISE.AHEAD
+    for (let i = 0; i < 5; i++) fx(c, "upRing", Math.min(4, i + (age >> 2)), x, feetY(f) - 20 - i * 44 - age * 3, 3)
+  }
+  const rk = s.rake
+  if (rk && rk.contact != null) { const age = rk.t - rk.contact; if (age < 16) spark(c, cx(f) + rk.face * 60, f.y + h * 0.45, age, frame) }
+  const po = s.pounce
+  if (po && po.t >= BW_POUNCE.LEAP && po.t < po.land) {                      // POUNCE: a short dust trail behind the leap
+    c.save(); c.globalAlpha = 0.5; c.fillStyle = MOON2; for (let i = 1; i <= 3; i++) px(c, cx(f) - po.face * i * 14, f.y + h * 0.6 + i * 3, 6 - i); c.restore()
+  }
+  if (s.t - s.landT < 10) { c.fillStyle = MOON2; for (let i = -2; i <= 2; i++) px(c, cx(f) + i * 12, feetY(f) - 4 - (10 - (s.t - s.landT)) * (2 - Math.abs(i)) * 0.5, 4) }
+})
+HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {                        // LUPINE DODGE cooldown (a thin bar under the Omnitrix bar)
+  const fill = s.dodgeCd > 0 ? 1 - s.dodgeCd / BW_DODGE.CD : 1, h = 3
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(bx - 1, y - 1, w + 2, h + 2)
+  ctx.fillStyle = s.dodgeCd > 0 ? "#475569" : "#cbd5e1"; const fw = Math.round(w * Math.max(0, Math.min(1, fill))); ctx.fillRect(flip ? bx + w - fw : bx, y, fw, h)
+})

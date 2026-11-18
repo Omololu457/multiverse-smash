@@ -327,3 +327,28 @@ exercise it) is untouched. PICK FIVE: catalog slot 14 is metadata (the brief ask
 | Heavy arm / Tendril Lash tendril hurtbox | `hurtbox` |
 | Spear Dive | `_benGlide` (Diamond Dive) |
 | System Takeover | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` (Diamond Cathedral pattern); 4 copies = hashed spots, render-only |
+
+### Humongousaur (added 2026-11-18) — key `humongousaur`, reused hooks only
+
+No new engine hook. PICK FIVE: catalog slot 15 is metadata (the brief asked for slot 14, which is Upgrade and is never
+overwritten; READY slots must stay contiguous, ben10_moveset_p4). `BEN10_SLOT_COUNT` stays 5; he is picked into the loadout
+and reached with the Dial (↓↓ + the slot's key). Files: `humongousaur.js`, `humongousaurAssets.js`, the sheet
+`assets/sprites/ben10/aliens/humongousaur.png`, the ledger `docs/ben10/aliens/humongousaur/SPRITE_LEDGER.md`.
+
+| Mechanic | Hook reused |
+|---|---|
+| GROWTH Size 0–100 → NORMAL / LARGE / HUGE / GIANT (300f) → SHRINK (150f); tier damage / taken / reach / speed | the form's `tick` (`_benWalkSpeed` from the onApply base, Jetray's pattern) + `damageDealt` / `damageTaken` + `moveFrames` (a reach-scaled copy of `rangeX`) + `hurtbox` (scaled body, stage-clamped) |
+| Tier sprites (stepped, never smooth) | the `_skinAnim` frame-set swap (Megawhatt / Diamondhead) between fixed copies of one table with a stepped `actionScale` |
+| HOLD THE LINE (LARGE+: no blockstun pushback) | the form's `tick` (`vx = 0` while in blockstun) |
+| Size gains (+5 hit / +3 blocked, Quake +10, Roar +30) | `onContact` + projectile `alien` tags (`noSize` on Roar / the ult opener) |
+| TREMOR pips → TOPPLE | `onContact` (once per cast, clean only) + the engine's own knockdown trio (`knockdownState` / `knockdownTimer`, tech roll + wake-up invuln unchanged) — Jetray's ult precedent |
+| Charging Tackle / Push Through travel | `_benLunge` (stage-clamped; pushed opponent moved with the same clamp) |
+| Quake Slam floor shockwave | a flat hidden hitbox spawned only while the opponent is grounded (never a floor change) |
+| Roar (radius 150, deletes one projectile) | the engine's `radial` collider + a splice of `api.activeProjectiles()` (Terraspin / Diamondhead: ownership-aware, beams skipped) |
+| Crush Grab | the form's `tick` with `combat.resolveGrab`'s own tests (both grounded, no combo, Grab-buffer tech outside hit/blockstun) — Wildmutt's Maul pattern; damage via `api.applyScaledDamage` (source `grab-throw`) |
+| Wall Splat knockdown | `onContact` (clean splat → the engine knockdown) |
+| Meteor Stomp | `_benGlide` (Spear Dive / Diamond Dive landing detection) + a radial landing hitbox |
+| EXTINCTION EVENT | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` + `api.focusCamera` (render-only zoom-out) + the `_skinAnim` swap for the GROW steps; debris = pure `ultDebris(seed, frame, player)` read by `drawFx` |
+| HUD Size gauge / FX | `drawHud` / `drawFx` |
+
+Gotcha (re-confirmed): a hidden hitbox needs `lifetime >= 2` — `updateProjectiles` culls lifetime ≤ 0 before hits resolve.

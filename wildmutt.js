@@ -26,6 +26,7 @@ export const WILDMUTT = {
   ledgerPath: "docs/ben10/aliens/wildmutt/SPRITE_LEDGER.md",
   mods: { speed: 1.10, damage: 1.00, defense: 1.00, weight: 1.00 },
   movement: "grounded", maxJumps: 2,            // the shared double jump
+  tags: ["noPositionalBonus"],                  // OMNIDIRECTIONAL SENSES (Phase 3; ben10State.benNoPositionalBonus / benPositionalBehind)
   moves: { jab: "Jab", heavy: "Heavy", low: "Low", launcher: "Launcher", air: "Air",
     special1: "Spin Slash", special2: "Pounce", special3: "Claw Rush", special4: "Ground Shred", special5: "Scent Leap",
     defense: "Feral Curl", passive: "Omnidirectional Senses", resource: "Feral Fury", ultimate: "Primal Takedown" },
@@ -50,7 +51,7 @@ export function freshWildmuttState() {
     chain: null, spin: null, leap: null, leapUsed: false, ult: null,
     lastUlt: null, lastChain: null, lastSpin: null, lastLeap: null, lastCurl: null,
     stats: { casts: 0, spins: 0, spinHits: 0, pounces: 0, pounceHits: 0, rushes: 0, rushHits: 0, shreds: 0, shredHits: 0,
-      leaps: 0, leapHits: 0, curls: 0, frenzies: 0, positionalDenied: 0 } }
+      leaps: 0, leapHits: 0, curls: 0, frenzies: 0 } }
 }
 export const wmState = f => (f?.omnitrix?.formState?.kind === WM_KEY && f.transformed && f.activeAlien === WM_KEY) ? f.omnitrix.formState : null
 
@@ -196,6 +197,18 @@ export function drawWildmuttFx(c, f, frame = 0, opp = null) {
   const s = wmState(f); if (!s || !c) return
   for (const d of FX_DRAW) d(c, f, s, frame, opp)
 }
+
+// ── 3. OMNIDIRECTIONAL SENSES (passive) ──────────────────────────────────────────────────────────────────────────
+// Canon: no eyes, no visible ears — he perceives by smell, sound and the spines on his back, all around him. Implemented as the
+// tag "noPositionalBonus" on HIS registry entry (above), read by the generic ben10-gated helpers in ben10State.js:
+// benNoPositionalBonus(f) / benPositionalBehind(attacker, target). Any mechanic that grants a bonus because the attacker is
+// BEHIND the target (a cross-up launch, a blind-spot modifier, a "can't react in time" tag) asks them and gets "not behind"
+// against him. Only the positional EXTRA is removed: a hit landing behind him still deals its normal, unmodified damage, still
+// combos, still hitstuns, can still be blocked or not exactly like any hit (the engine's guard is not facing-based). The one
+// existing bonus in the game today, Kakashi's Sennen Goroshi cross-up launch, routes its facing test through the helper (the
+// identical math for everyone else). No state: nothing here is GAME_STATE, nothing is stored or timed. Later aliens' and
+// characters' cross-up style bonuses must use the helper (docs/ben10/ADD_ALIEN.md).
+export const WM_SENSES_TAG = "noPositionalBonus"
 
 // ── NORMALS: render-only lunge on the Jab / Heavy (the body draw offset; never collision) ─────────────────────
 BODY_OFF.push((f, s) => {

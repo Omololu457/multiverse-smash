@@ -10,7 +10,7 @@ import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive 
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
 import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)
 import { SWAMPFIRE_FX } from "./swampfire.js"
-import { benReadyForm, benAlienNegatesSpecial, benAlienSpecialTax } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
+import { benReadyForm, benAlienNegatesSpecial, benAlienSpecialTax, benPositionalBehind } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
 import { tickBenFlood } from "./benFlood.js"   // Ripjaws STORM TIDE world tick (generic flood; gated on the owner's _benFlood field)
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
@@ -11724,7 +11724,7 @@ function fireKakashiWarSennen(fighter, context) {
     fighter.vx = 0
     if (o && !o.eliminated && kwarAABBHit(fighter, o, S.reach)) {
       // CROSS-UP: Kakashi is behind the foe (the foe's back is to him) → launch high.
-      const behind = (o.facing || 1) * ((fighter.x + (fighter.w || 60) / 2) - (o.x + (o.w || 60) / 2)) < 0
+      const behind = benPositionalBehind(fighter, o)   // the same facing test; false vs a "noPositionalBonus" READY form (Wildmutt's senses)
       if (behind) {
         o.hitstun = Math.max(o.hitstun || 0, 26); o.vy = S.launchVy; o.vx = (face) * 4; o.colorFlash = 14; o.knockdownState = false
         applyScaledDamage(o, S.launchRaw, { source: "kakashi_war-sennen-launch" }); kwarAddBond(fighter, KAKASHI_WAR_GIFT.bondSennen)

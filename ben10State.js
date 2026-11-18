@@ -75,6 +75,17 @@ export function benAlienBodyOffset(f, opp) {
   if (!a && !b) return null
   return { dx: (a?.dx || 0) + (b?.dx || 0), dy: (a?.dy || 0) + (b?.dy || 0) }
 }
+// NO POSITIONAL BONUS tag (added with Wildmutt's Omnidirectional Senses): a READY form whose registry entry lists
+// `tags: ["noPositionalBonus"]` perceives all around — any mechanic that grants a BONUS because the attacker is behind / on the
+// target's blind side (a cross-up launch, a blind-spot modifier, a "can't react in time" tag) must not apply it against such a
+// form. Base damage, hitstun, blocking and being hit are untouched: only the positional extra is removed. Every positional
+// bonus asks `benPositionalBehind(attacker, target)` (the shared facing test) or `benNoPositionalBonus(target)`. false for
+// everyone else (not Ben / Albedo, not transformed, no tag) → byte-identical.
+export function benNoPositionalBonus(f) { const d = benReadyForm(f); return !!(d && Array.isArray(d.tags) && d.tags.includes("noPositionalBonus")) }
+export function benPositionalBehind(attacker, target) {
+  if (!attacker || !target || benNoPositionalBonus(target)) return false
+  return (target.facing || 1) * ((attacker.x + (attacker.w || 60) / 2) - (target.x + (target.w || 60) / 2)) < 0
+}
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

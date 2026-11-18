@@ -100,6 +100,38 @@ test('inputs: the shared alien motions (236 / 214 / 412), →→ double tap, air
   f.onGround = f.grounded = false; assert.equal(G.pickSpecial(f, s), 'leap')
 })
 
+// ── 3 OMNIDIRECTIONAL SENSES ───────────────────────────────────────────────────────────────────────────────────
+// a live Kakashi Sennen Goroshi (the one facing-based bonus in the game: from BEHIND it launches for 40 instead of 24)
+function sennen(target, behind) {
+  clearProj(); const k = foe('kakashi_war'); k.energy = 100; k.attackCooldown = 0; k.attacking = false
+  target.facing = behind ? 1 : -1                                   // behind = his back to Kakashi
+  k.facing = 1; k.x = target.x - (k.w || 60) - 10; k.y = target.y + target.h - k.h
+  const hp = target.health; k._specialHeldDir = 'U'; assert(A.executeKakashiWarSpecial(k, { p1: target, p2: k, ...STAGE, seed: SEED, frame: FRAME }), 'sennen fires')
+  for (let i = 0; i < 12; i++) A.updatePendingSpawns()
+  return { dmg: hp - target.health, hitstun: target.hitstun, vy: target.vy }
+}
+test('3. senses: the tag lives on HIS entry only; ben10-gated helpers', () => {
+  assert.deepEqual(WILDMUTT.tags, ['noPositionalBonus']); assert.equal(G.WM_SENSES_TAG, 'noPositionalBonus')
+  const f = ben(), h = ben(null), x = ben('heatblast'), t = foe()
+  assert.equal(B.benNoPositionalBonus(f), true); assert.equal(B.benNoPositionalBonus(h), false, 'human Ben'); assert.equal(B.benNoPositionalBonus(x), false, 'other ready forms'); assert.equal(B.benNoPositionalBonus(t), false, 'other characters')
+  t.x = f.x - 100; f.facing = 1; assert.equal(B.benPositionalBehind(t, f), false, 'never "behind" him'); x.facing = 1; t.x = x.x - 100; assert.equal(B.benPositionalBehind(t, x), true, 'the plain facing test for everyone else')
+  assert(!BEN10_ALIEN_REGISTRY.some(d => d.poolKey !== KEY && Array.isArray(d.tags) && d.tags.includes('noPositionalBonus')), 'no other entry carries it')
+})
+test('4. senses: a cross-up (behind) hit on him deals its normal, unmodified damage — no positional bonus, still hits / combos', () => {
+  const ctl = ben('heatblast'), r0 = sennen(ctl, true), r1 = sennen(ben('heatblast'), false)
+  assert(r0.dmg > r1.dmg && r0.vy < 0, `control: the cross-up launch bonus applies to other forms (${r0.dmg} vs ${r1.dmg})`)
+  const back = sennen(ben(), true), front = sennen(ben(), false)
+  assert(back.dmg > 0 && back.hitstun > 0, 'the behind hit still lands with hitstun')
+  assert.equal(back.dmg, front.dmg, `behind ${back.dmg} == front ${front.dmg}: base damage unchanged`)
+  assert.equal(back.hitstun, front.hitstun, 'same hitstun'); assert(!(back.vy < 0), 'no cross-up launch')
+  const f = ben(), t = foe(); reset(f, t, 10); f.facing = -1; t.facing = -1; t.x = f.x + f.w + 10; ready(t)   // an ordinary normal from behind
+  const hp = f.health; assert(C.startMove(t, 'light', t.basic_attacks.light)); t.facing = -1
+  for (let i = 0; i < 30 && f.health === hp; i++) { t.hitstop = 0; C.updateCombat(t, f, {}, {}) }
+  const g = ben(), u = foe(); reset(g, u, 10); g.facing = 1; u.facing = -1; u.x = g.x + g.w + 10; ready(u); const hp2 = g.health; assert(C.startMove(u, 'light', u.basic_attacks.light))
+  for (let i = 0; i < 30 && g.health === hp2; i++) { u.hitstop = 0; C.updateCombat(u, g, {}, {}) }
+  assert.equal(hp - f.health, hp2 - g.health, 'a normal from behind = the same damage as from the front'); assert.equal(t.comboCounter, u.comboCounter, 'combos normally')
+})
+
 // @@END-TESTS@@
 console.log(`\nWILDMUTT: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

@@ -12,7 +12,6 @@ import { TERRASPIN } from "./terraspin.js"
 import { WILDVINE } from "./wildvine.js"
 import { JETRAY } from "./jetray.js"
 import { DIAMONDHEAD } from "./diamondhead.js"
-import { WILDMUTT } from "./wildmutt.js"
 import { UPGRADE } from "./upgrade.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
@@ -994,13 +993,6 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 66, sizeH: 118 },
     basic_attacks: DIAMONDHEAD.basic_attacks, specials: DIAMONDHEAD.moves,
     ultimate: { name: "Diamond Cathedral", cost: 55, damage: 240 } },
-  // Wildmutt (READY, wildmutt.js; key wildmutt_ov — the experimental `wildmutt` mkAlien above is untouched): a low, wide
-  // quadruped hurtbox. Scent / Fury / Frenzy / specials / ult via the ready-form hooks. mods (speed 1.15 / dmg 1.10 / def 0.90 /
-  // weight 0.95) via applyAlien.
-  wildmutt_ov: { name: "Wildmutt", color: "#ea580c", maxHealth: 1000,
-    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 72, sizeH: 100 },
-    basic_attacks: WILDMUTT.basic_attacks, specials: WILDMUTT.moves,
-    ultimate: { name: "Primal Hunt", cost: 55, damage: 240 } },
   // Upgrade (READY, upgrade.js; key upgrade_ov — the experimental `upgrade` mkAlien above is untouched): a hunched goo body
   // hurtbox (the stretched arm / tendril joins it via the hurtbox hook). Terminal / Merge / Overclock / Virus / Crash / specials /
   // ult via the ready-form hooks. mods (speed 1.00 / dmg 1.00 / def 0.95 / weight 0.85) via applyAlien.

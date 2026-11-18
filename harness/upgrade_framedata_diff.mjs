@@ -1,6 +1,6 @@
 // harness/upgrade_framedata_diff.mjs — adding the READY Upgrade (`upgrade_ov`) must leave EVERY other character's frame data
 // unchanged — including the EXPERIMENTAL `upgrade` pool entry, which keeps its legacy kit.
-//   node harness/upgrade_framedata_diff.mjs [baseCommit] [headCommit]    defaults: base = 017414c8d (main before Upgrade, after the Wildmutt sync), head = HEAD
+//   node harness/upgrade_framedata_diff.mjs [baseCommit] [headCommit]    defaults: base = 8eeb7882a (main before Upgrade), head = HEAD
 // BOTH trees are exported with `git archive` to temp dirs (so uncommitted work in the checkout never enters the diff) and
 // compared block-by-block:
 //  1. every roster character: basic_attacks / specials / ultimate / stats / moves / combos / traits / animationData
@@ -13,7 +13,7 @@ import { execSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BASE = process.argv[2] || '017414c8d', HEAD = process.argv[3] || 'HEAD'
+const BASE = process.argv[2] || '8eeb7882a', HEAD = process.argv[3] || 'HEAD'
 const tree = rev => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'up-fd-')); execSync(`git archive ${rev} | tar -x -C ${d}`, { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], shell: '/bin/bash', maxBuffer: 1 << 30 }); return d }
 const ta = tree(BASE), tb = tree(HEAD)
 const strip = v => {
@@ -40,7 +40,7 @@ try {
   const NEW = ['upgrade_ov']
   const pd = Object.keys(fA.BEN10_ALIEN_POOL).filter(k => !NEW.includes(k) && J(fA.BEN10_ALIEN_POOL[k]) !== J(fB.BEN10_ALIEN_POOL[k]))
   ok(`Ben 10 alien pool: every other form deep-equal (${Object.keys(fA.BEN10_ALIEN_POOL).length})`, !pd.length, pd.join(', '))
-  for (const [file, label] of [['swampfire.js', 'Swampfire'], ['heatblast.js', 'Heatblast'], ['megawhatt.js', 'Megawhatt'], ['goop.js', 'Goop'], ['xlr8.js', 'XLR8'], ['eyeguy.js', 'Eyeguy'], ['ghostfreak.js', 'Ghostfreak'], ['diamondhead.js', 'Diamondhead'], ['alienx.js', 'Alien X'], ['brainstorm.js', 'Brainstorm'], ['terraspin.js', 'Terraspin'], ['wildvine.js', 'Wildvine'], ['jetray.js', 'Jetray'], ['wildmutt.js', 'Wildmutt']]) {
+  for (const [file, label] of [['swampfire.js', 'Swampfire'], ['heatblast.js', 'Heatblast'], ['megawhatt.js', 'Megawhatt'], ['goop.js', 'Goop'], ['xlr8.js', 'XLR8'], ['eyeguy.js', 'Eyeguy'], ['ghostfreak.js', 'Ghostfreak'], ['diamondhead.js', 'Diamondhead'], ['alienx.js', 'Alien X'], ['brainstorm.js', 'Brainstorm'], ['terraspin.js', 'Terraspin'], ['wildvine.js', 'Wildvine'], ['jetray.js', 'Jetray']]) {
     const mA = await imp(ta, file), mB = await imp(tb, file), keys = Object.keys(mA).filter(k => /^[A-Z0-9_]+$/.test(k))
     const bad = keys.filter(k => J(mA[k]) !== J(mB[k]))
     ok(`${label} definition / anims / FX / tuning deep-equal (${keys.length} exports)`, !bad.length, bad.join(', '))

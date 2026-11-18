@@ -21,7 +21,7 @@ const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
   hitstun: 18, knockbackX: 3, knockbackY: -2, frameExact: true, ...extra })
 
 export const UPGRADE = {
-  id: UP_KEY, poolKey: UP_KEY, displayName: "Upgrade", slot: 15,
+  id: UP_KEY, poolKey: UP_KEY, displayName: "Upgrade", slot: 14,   // catalog slot (metadata; PICK FIVE): the brief said 15, but ready slots must stay contiguous 1..N (ben10_moveset_p4) and 14 is free
   status: "ready", sheetPath: "./ben10_upgrade_ready_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/upgrade/SPRITE_LEDGER.md",
   mods: { speed: 1.00, damage: 1.00, defense: 0.95, weight: 0.85 },

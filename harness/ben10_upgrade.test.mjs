@@ -3,7 +3,7 @@
 // Design totals: raw move damage × the form's damage mod (1.00) × 0.85^n (85% per move), within ±20%. The live routes
 // then run the real engine (its own curve) and assert the mechanics.
 // Test 13 (the brief's "slot 15 + Omnitrix Dial"): PICK FIVE (owner decision) — the dial is positional over the 5 picked
-// aliens, so slot 15 is catalog metadata; Upgrade is picked into the loadout and reached with the Dial (↓↓ + slot key).
+// aliens, so the slot is catalog metadata (14: ready slots stay contiguous); Upgrade is picked into the loadout and reached with the Dial (↓↓ + slot key).
 import assert from 'node:assert/strict'
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
@@ -279,7 +279,7 @@ test('route 3 live: Tendril Lash (2 hits), Heavy, Tendril Rise (2 pips)', () => 
   reset(f, t, 30); const hp = t.health; assert(cast(f, t, 'U'), 'Rise'); world(f, t, UP_RISE.STARTUP + 2); d.push(hp - t.health)
   assert(d.every(x => x > 0)); assert.equal(S(f).virus.pips, 2, 'lash finisher + rise'); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
 })
-// ── 13 lifecycle / slot 15 → PICK FIVE / Vow / determinism ──────────────────────────────────────────────────
+// ── 13 lifecycle / slot → PICK FIVE / Vow / determinism ──────────────────────────────────────────────────
 test('13. swap / revert / KO / rematch clear Terminal, Overclock, pips and Crash', () => {
   const dirty = f => { const t = foe(); far(f, t); deploy(f, t); const s = S(f); s.virus.pips = 2; s.virus.pipT = 100; s.oc.t = 90; step(f, t, 1) }
   const f = ben('upgrade_ov', LOAD); dirty(f); assert.equal(f._skinAnim, U.UP_FRAMESETS.overclock)
@@ -289,9 +289,9 @@ test('13. swap / revert / KO / rematch clear Terminal, Overclock, pips and Crash
   const k = ben(); dirty(k); k.health = 0; F.revertToHuman(k); assert.equal(k.omnitrix.formState, null)
   assert.equal(S(ben()).term, null, 'rematch / round end: a fresh form state')
 })
-test('13. slot 15 → PICK FIVE: slot count stays 5, Upgrade READY + pickable (catalog slot 15), nothing overwritten', () => {
+test('13. slot → PICK FIVE: slot count stays 5, Upgrade READY + pickable (catalog slot 14, contiguous), nothing overwritten', () => {
   assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
-  const d = getAlienDefinition('upgrade_ov'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 15); assert.equal(d.displayName, 'Upgrade')
+  const d = getAlienDefinition('upgrade_ov'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 14); assert.deepEqual(BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready').map(x => x.slot).sort((a, b) => a - b), BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready').map((_, i) => i + 1), 'ready slots contiguous'); assert.equal(d.displayName, 'Upgrade')
   assert.equal(getAlienDefinition('upgrade').status, 'experimental', 'the experimental Upgrade is untouched')
   for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov']) assert.equal(getAlienDefinition(k).status, 'ready', k)
   assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'upgrade_ov').length, 1); assert(getAvailableAlienKeys(false).includes('upgrade_ov'))

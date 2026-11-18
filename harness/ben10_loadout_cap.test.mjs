@@ -19,6 +19,10 @@ try {
   await page.goto(`${base}/index.html?harness=1&p1=ben10&p2=ben10`, { waitUntil: "load" });
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
+  // Let the warm-up click DRAIN before switching screens: mouseup sets mouse.clicked, which only clears at the end of the
+  // next game frame (endInputFrame). Without this wait the alien-select screen consumes it as a card click at (640,360) —
+  // empty space with ≤17 cards, but the 18th card sits exactly there.
+  await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))));
 
   // Open the Omnitrix loadout screen with an EMPTY draft, then read the cap/maxPick.
   await page.evaluate(() => window.__harness.showAlienSelect(0));

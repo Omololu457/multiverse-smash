@@ -386,3 +386,23 @@ profile (`FLIGHT_PROFILES.bigchill`, data only), Arcticguana's ice status, Ghost
 |---|---|---|
 | ICE STATUS (Chill → Popsicle → Shatter) | arcticguana.js exports `addChill` / `tickChill` / `endPopsicle` / `shatterPopsicle` / `frozen` / `AG_CHILL` | another ice alien keeps a `chill` record of the same shape in ITS formState and calls these — the rules and numbers (3 pips, 240f expiry, 30 ticks, mash-out, +25 shatter once, any other damage ends it) live in one place. `tickChill` was made an export (no behaviour change). |
 | SHARED ICE IMMUNITY `target._benIceImmuneUntil` | arcticguana.js `iceImmune(s, opp)` / `startIceImmunity(s, opp, extra)` | ONE refreeze-immunity timer per opponent across every ice alien: an absolute simulation frame (`s.frame` = ctx.frame, plain data). Set to start + 30 + 420 when a freeze starts (a mid-freeze swap cannot double-dip) and to thaw + 420 when it ends; `addChill` refuses while it runs. A state without `frame` never reads / writes it (old behaviour). |
+
+Big Chill's other mechanics need **no new engine hook**:
+
+| Mechanic | Reused hook | Note |
+|---|---|---|
+| Flight (hold Jump, 200f, apex + 200, 40f grounded lock, no jump refill) | `flightProfile` + `FLIGHT_PROFILES.bigchill` | Ghostfreak's hold-Jump model in the module; wings OPEN pose while flying via `_spriteCastMove` (`bcOpen` 6f → `bcFly`), never a lock |
+| PHASE DRIFT intangibility | `evade` + `phasing` + `bodyAlpha` | filter = Ghostfreak's exported `isEnergyMelee` / `isEnergyProjectile` (energy / fire / electric / beam / ult still hit); glide frames only |
+| Phase Drift / Diving Chill movement | `_benGlide` | landing fixed at cast time and clamped to `ctx.stageLeft` / `stageWidth` |
+| COCOON 40 % | `damageTaken` | beams / throws / unblockables / chip ignore it |
+| Frozen Sky lift | `targetOffset` (render-only) | sim positions pinned, restored on release |
+
+Cast rule (Big Chill only, not a freeze rule): a Freeze Breath tick / an Ice Spire spire is never spawned at a FROZEN
+opponent, so the cast that delivers the 3rd pip does not thaw its own freeze. Any other damage still ends it; Heavy and
+Frost Wing Cut still shatter.
+
+Slot: the brief asked for slot 17 + a raised dial slot count; on 2026-11-18 the owner chose PICK FIVE (no slot-count
+change). Arcticguana already holds catalog slot 17, so Big Chill is catalog slot 18 (ready slots stay contiguous) and is
+picked into the 5-slot loadout and reached with the Dial (↓↓ + slot key) like every other pick.
+
+Tests: `npm run test:bigchill` (module harness), `test:bigchill-render` (real game, Playwright), `test:bigchill-framedata`.

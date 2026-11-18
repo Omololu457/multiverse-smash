@@ -103,3 +103,10 @@ were needed, so no `bigchill_fx/` folder was created.
 
 **Procedural (render-only, pixel style):** the ice-cocoon freeze shell with Big Chill's colour accent, frost mist, the
 Phase Drift after-image, the Frozen Sky giant cocoon and its pixel shard ring. None writes GAME_STATE.
+
+## Render check findings (Phase 7–8, `harness/ben10_bigchill_render.mjs`, 45/0)
+Grounded (wings closed), flying (6f opening → open), Freeze Breath cone, the frozen opponent in Big Chill's procedural ice
+cocoon, Frost Wing Cut, Ice Spire (the cut spire strip at 80/160/240/320 px), Cocoon, Phase Drift (45 % body), Diving
+Chill, Frozen Sky (lift / storm / burst) and the Binding Vow all render — sprites, not boxes; no page errors, no 404s,
+no black screen. Spire strip timing on screen: f1 → f2 over 6f, f3-f7 standing, f8-f9 crumble in the last 12f of the
+60f spire life (the sheet's own order).

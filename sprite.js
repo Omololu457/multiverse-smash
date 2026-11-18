@@ -1096,6 +1096,10 @@ export class SpriteHandler {
     // baggage — no giant-bob, no giant-hurtbox path, no transient-giant copy-guards. Guarded on the field
     // → EXACTLY zero effect on every other fighter/frame.
     if (fighter._trapShrinkFrac != null && fighter._trapShrinkFrac < 1) scale *= fighter._trapShrinkFrac;
+    // READY Omnitrix form RENDER SCALE (Highbreed MUTATED ×1.15): formState.renderScale is a fixed-step plain number the form
+    // sets TOGETHER with its matching hurtbox override (never a free hitbox-only buff); the originY anchor keeps the feet
+    // planted. Gated on Ben's form state (> 1 only) → a strict no-op for every other fighter.
+    { const _brs = fighter.transformed && fighter.omnitrix?.formState?.renderScale; if (_brs > 1) scale *= _brs; }
 
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;

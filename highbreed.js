@@ -275,3 +275,66 @@ MD_XFORM.push((f, s, key, md) => {
   }
   return md
 })
+
+// ── 4. MUTATION SURGE (his unique system, GAME_STATE) ───────────────────────────────────────────────────────────────
+// Surge 0–100: +6 for a hit he lands, +3 for a hit he takes (melee / projectile / grab; blocked hits give nothing); −1/f after
+// 150f without a gain. At 100 he MUTATES for 200f (the full gauge is consumed): render scale ×1.15 (a fixed step) AND hurtbox
+// ×1.15 (always together — both read `s.mutT`), damage +15 %, walk / dash speed −5 %. It ends into a 240f cooldown where
+// Surge gains are halved, and he can mutate again only 600f after the moment it ended (a full gauge waits for that).
+// Swap / revert / KO / rematch build a fresh formState → Surge, MUTATED and both timers clear; the speed is restored.
+export const HB_SURGE = { MAX: 100, HIT: 6, TAKEN: 3, IDLE: 150, DECAY: 1, MUT: 200, SCALE: 1.15, DMG: 1.15, SPEED: 0.95, CD: 240, CD_GAIN: 0.5, LOCK: 600 }
+export const mutated = s => !!(s && s.mutT > 0)
+export function gainSurge(s, amount, why) {
+  if (s.mutT > 0) return 0                                                   // no gain while MUTATED (the gauge was consumed)
+  const k = s.mutCd > 0 ? HB_SURGE.CD_GAIN : 1, add = Math.min(HB_SURGE.MAX - s.surge, amount * k)
+  if (add <= 0) return 0
+  s.surge += add; s.lastGainT = s.t
+  if (why === "dealt") s.surgeDealt += add; else s.surgeTaken += add
+  return add
+}
+function setMutatedSpeed(f, s, on) {
+  if (!s.base) return
+  const k = on ? HB_SURGE.SPEED : 1
+  if (Number.isFinite(s.base.walk)) { f._benWalkSpeed = s.base.walk * k; f.speed = f.baseSpeed = f._benWalkSpeed }
+  if (Number.isFinite(s.base.dash)) f.dashSpeed = s.base.dash * k
+}
+TICKS.push((f, s) => {
+  if (s.mutT > 0) {
+    if (--s.mutT === 0) { s.renderScale = 1; s.mutCd = HB_SURGE.CD; s.mutLock = HB_SURGE.LOCK; setMutatedSpeed(f, s, false) }
+    return
+  }
+  if (s.mutCd > 0) s.mutCd--
+  if (s.mutLock > 0) s.mutLock--
+  if (s.surge >= HB_SURGE.MAX && s.mutLock === 0 && !s.ult) {
+    s.surge = 0; s.mutT = HB_SURGE.MUT; s.renderScale = HB_SURGE.SCALE; s.mutations++; setMutatedSpeed(f, s, true); return
+  }
+  if (s.surge > 0 && s.surge < HB_SURGE.MAX && s.t - s.lastGainT > HB_SURGE.IDLE) s.surge = Math.max(0, s.surge - HB_SURGE.DECAY)
+})
+CONTACT.push((f, s, target, { blocked }) => { if (!blocked) gainSurge(s, HB_SURGE.HIT, "dealt") })
+STRUCK.push((f, s, { blocked }) => { if (!blocked) gainSurge(s, HB_SURGE.TAKEN, "taken") })
+DEALT.push((f, s, target, raw) => (s.mutT > 0 ? raw * HB_SURGE.DMG : raw))
+// the hurtbox grows WITH the sprite (feet planted, centred): the same `mutT` the render scale reads
+HURTBOX.push((f, s) => {
+  if (!(s.mutT > 0)) return null
+  const w = (f.w || 60) * HB_SURGE.SCALE, h = (f.h || 124) * HB_SURGE.SCALE
+  return { x: f.x + (f.w || 60) / 2 - w / 2, y: f.y + (f.h || 124) - h, w, h }
+})
+// render-only: the Surge gauge under the Omnitrix Power bar (violet; MUTATED = a draining orange bar; cooldown = dim)
+HUD_PARTS.push((ctx, f, s, { bx, y, w }) => {
+  if (!(s.surge > 0 || s.mutT > 0 || s.mutCd > 0)) return
+  const h = 5
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(bx, y, w, h)
+  if (s.mutT > 0) { ctx.fillStyle = ORANGE; ctx.fillRect(bx, y, Math.round(w * s.mutT / HB_SURGE.MUT), h) }
+  else { ctx.fillStyle = s.mutCd > 0 ? "#6b4a86" : VIOLET; ctx.fillRect(bx, y, Math.round(w * s.surge / HB_SURGE.MAX), h) }
+  ctx.font = "bold 8px monospace"; ctx.textBaseline = "top"; ctx.textAlign = "left"; ctx.fillStyle = s.mutT > 0 ? ORANGE : WHITE
+  ctx.fillText(s.mutT > 0 ? "MUTATED" : `SURGE ${Math.floor(s.surge)}`, bx, y + h + 1)
+})
+// render-only: the MUTATED glow — a stepped violet / orange pixel aura that pulses around him
+FX_DRAW.push((c, f, s, frame) => {
+  if (!(s.mutT > 0)) return
+  c.save(); c.globalAlpha = 0.6
+  const x0 = cx(f), y0 = f.y + (f.h || 124) / 2, rw = (f.w || 60) * 0.95, rh = (f.h || 124) * 0.7
+  for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2 + (frame >> 2) * 0.35, r = 1 + ((frame + i * 3) % 8 < 4 ? 0.08 : 0)
+    c.fillStyle = i % 3 ? VIOLET : ORANGE; px(c, x0 + Math.cos(a) * rw * r, y0 + Math.sin(a) * rh * r, 4) }
+  c.restore()
+})

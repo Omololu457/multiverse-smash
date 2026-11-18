@@ -128,6 +128,48 @@ test('4. selector reads the existing movement flags only (dash → running for 1
   const h = ben('heatblast'), u = foe(); far(h, u); ready(h); assert(C.startMove(h, 'light', h.basic_attacks?.light || F.BEN10_ALIEN_POOL.heatblast.basic_attacks.light)); assert.notEqual(actionOf(h), 'lightRun', 'other forms: no-op')
 })
 
+
+// ── 5 MUTATION SURGE ───────────────────────────────────────────────────────────────────────────────────────────
+const { HB_SURGE: SU } = G
+const contactOn = (f, t, info) => HB.onContact(f, t, info)
+const struckBy = (f, info) => HB.struck(f, info)
+test('5. Surge gains: +6 per hit landed, +3 per hit taken, nothing from blocks; cap 100; −1/f after 150f idle', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t)
+  contactOn(f, t, { blocked: false }); assert.equal(s.surge, 6); contactOn(f, t, { blocked: true }); assert.equal(s.surge, 6, 'blocked: none')
+  struckBy(f, { kind: 'melee', blocked: false }); assert.equal(s.surge, 9); struckBy(f, { kind: 'projectile', blocked: true }); assert.equal(s.surge, 9)
+  world(f, t, SU.IDLE); assert.equal(s.surge, 9, 'held 150f'); world(f, t, 3); assert.equal(s.surge, 6, '−1/f after')
+  const g = ben(), u = foe(); far(g, u); reset(g, u, 10); melee(g, u, 'light'); assert.equal(S(g).surge, 6, 'a real landed hit')
+})
+test('5. at 100: MUTATED 200f (gauge consumed) — render ×1.15 AND hurtbox ×1.15 together, damage +15 %, speed −5 %', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t); const w0 = f._benWalkSpeed, d0 = f.dashSpeed
+  s.surge = 96; contactOn(f, t, { blocked: false }); world(f, t, 1)
+  assert(G.mutated(s)); assert.equal(s.surge, 0, 'consumed'); assert.equal(s.renderScale, SU.SCALE)
+  const hb = C.getHurtbox ? C.getHurtbox(f) : HB.hurtbox(f); const ob = HB.hurtbox(f)
+  assert(ob && Math.abs(ob.w - f.w * 1.15) < 1e-9 && Math.abs(ob.h - f.h * 1.15) < 1e-9 && Math.abs(ob.y + ob.h - (f.y + f.h)) < 1e-9, 'hurtbox ×1.15, feet planted')
+  if (C.getHurtbox) assert(Math.abs(hb.w - ob.w) < 1e-9, 'the engine reads it')
+  assert(Math.abs(f._benWalkSpeed / w0 - 0.95) < 1e-9 && Math.abs(f.dashSpeed / d0 - 0.95) < 1e-9, 'speed −5 %')
+  assert.equal(HB.damageDealt(f, t, 100, {}), 100 * 1.15, '+15 %')
+  // render and hurtbox are ONE state: every frame of the window both are on, every frame after both are off
+  for (let i = 0; i < SU.MUT + 5; i++) { const on = !!HB.hurtbox(f), sc = s.renderScale > 1; assert.equal(on, sc, 'together @' + i); world(f, t, 1) }
+  assert(!G.mutated(s) && s.renderScale === 1 && HB.hurtbox(f) === null); assert.equal(f._benWalkSpeed, w0, 'speed restored'); assert.equal(HB.damageDealt(f, t, 100, {}), 100)
+})
+test('5. 200f exactly; then a 240f half-gain cooldown; once per 600f from the end (a full gauge waits)', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t); s.surge = 100; world(f, t, 1); assert(G.mutated(s))
+  world(f, t, SU.MUT - 1); assert(G.mutated(s), 'frame 200 still MUTATED'); world(f, t, 1); assert(!G.mutated(s), 'ended after exactly 200f'); assert.equal(s.mutCd, SU.CD); assert.equal(s.mutLock, SU.LOCK)
+  contactOn(f, t, { blocked: false }); assert.equal(s.surge, 3, 'half gain in the cooldown'); world(f, t, SU.CD); assert.equal(s.mutCd, 0); const b4 = s.surge; contactOn(f, t, { blocked: false }); assert.equal(s.surge - b4, 6, 'full gain after')
+  s.surge = 100; s.lastGainT = s.t; world(f, t, 5); assert(!G.mutated(s) && s.surge === 100, 'locked: the gauge waits at 100')
+  world(f, t, SU.LOCK - SU.CD - 5 - 1); assert(!G.mutated(s)); world(f, t, 2); assert(G.mutated(s), 'mutates once 600f have passed since the end'); assert.equal(s.mutations, 2)
+})
+test('5 / 9. swap / revert / KO / rematch clear Surge, MUTATED and both timers; the render scale and hurtbox go with them', () => {
+  const L = ['highbreed', 'heatblast', 'goop', 'xlr8', 'megawhatt']
+  const mk = () => { const f = ben('highbreed', L), t = foe(); far(f, t); S(f).surge = 100; world(f, t, 1); assert(G.mutated(S(f))); return [f, t] }
+  let [f] = mk(); assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, 'highbreed')); assert.deepEqual([S(f).surge, S(f).mutT, S(f).mutCd, S(f).mutLock, S(f).renderScale], [0, 0, 0, 0, 1], 'swap')
+  assert.equal(HB.hurtbox(f), null)
+  ;[f] = mk(); F.revertToHuman(f, { forced: true }); assert.equal(G.hbState(f), null, 'revert'); assert.equal(HB.hurtbox(f), null); assert.notEqual(new SpriteHandler().determineAction(f), 'lightRun')
+  ;[f] = mk(); f.health = 0; F.handleBenKO?.(f); if (f.omnitrix.formState?.kind === 'highbreed') F.revertToHuman(f, { forced: true }); assert.equal(G.hbState(f), null, 'KO')
+  ;[f] = mk(); F.setupBen10(f, ['highbreed']); assert.equal(G.hbState(f), null, 'rematch: fresh Ben')
+})
+
 // @@END-TESTS@@
 console.log(`\nHIGHBREED: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

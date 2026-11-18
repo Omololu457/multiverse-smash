@@ -5,6 +5,8 @@
 // no floor, no wall, no friction, no KO zone; the line is a world Y only, and water never pushes anyone anywhere.
 // Render-only (never GAME_STATE): rain, lightning flashes, ripples (±6 px), foam, bubbles, steam — hash(seed, frame, layer).
 
+import { isWaterborneFighter } from "./waterAffinity.js"   // the waterborne tag map (data only)
+
 export const FLOOD = {
   L1: 0.18, L2: 0.42, CAP: 0.55, GAP: 140,          // fractions of the arena height H; the air gap (px) under the arena top
   HEAD_K: 1.3,                                      // Level 2 = 1.3 × the tallest standing hurtbox when 0.42 H would leave a head dry
@@ -108,9 +110,10 @@ export function depthOf(r, f) {
   if (feet <= lineY) return "dry"
   return head < lineY ? "wading" : "submerged"
 }
-// waterborne (Phase 6 extends this with the tag map): a READY form flagged `waterborne`
-export let isWaterborne = f => !!(f && f.omnitrix && f.transformed && f.omnitrix.formState && f.omnitrix.formState.kind === "ripjaws")
-export function setWaterborneTest(fn) { isWaterborne = fn }
+// WATERBORNE (waterAffinity.js tag map: the ACTIVE form's "water" / "ice" tag) — re-read every frame, so a transform completing
+// mid-flood (or a revert) updates the state on the next tick; breath is cleared / restarts at 100 accordingly (tickBreath)
+export let isWaterborne = isWaterborneFighter
+export function setWaterborneTest(fn) { isWaterborne = fn || isWaterborneFighter }   // harness override; null restores
 function stampWater(r, o) {
   const depth = depthOf(r, o), wb = isWaterborne(o)
   const w = o._benWater || (o._benWater = {})

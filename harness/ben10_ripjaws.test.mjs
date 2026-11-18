@@ -12,6 +12,7 @@ import { characters } from '../characters.js'
 import * as G from '../arcticguana.js'
 import * as R from '../ripjaws.js'
 import * as FL from '../benFlood.js'
+import * as WA from '../waterAffinity.js'
 import { tickFlightDriver, isFlying, getFlightProfile } from '../flight.js'
 import { clearBenFormState, handleBenKO } from '../ben10State.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
@@ -224,7 +225,7 @@ test('9. drowning stops when the target surfaces, the flood ends, the target bec
   const run = (mut) => { const f = ben('ripjaws', LOAD), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); r.breath[t.side] = 0; world(f, t, 15); mut(f, t, r); const hp = t.health; world(f, t, 45); return hp - t.health }
   assert.equal(run((f, t, r) => { t.y = FL.floodLineY(r) - t.h - 30; t.groundY = t.y + t.h }), 0, 'surfaced')
   assert.equal(run((f, t) => { t.health = 0; world(f, t, 1); t.health = 500 }), 0, 'flood ended')
-  assert.equal(run((f, t) => { FL.setWaterborneTest(q => q === t || (q.omnitrix?.formState?.kind === 'ripjaws' && q.transformed)) }), 0, 'became waterborne'); FL.setWaterborneTest(q => !!(q && q.omnitrix && q.transformed && q.omnitrix.formState && q.omnitrix.formState.kind === 'ripjaws'))
+  assert.equal(run((f, t) => { FL.setWaterborneTest(q => q === t || (q.omnitrix?.formState?.kind === 'ripjaws' && q.transformed)) }), 0, 'became waterborne'); FL.setWaterborneTest(null)
   assert.equal(run((f) => { assert(F.applyAlien(f, 'goop')) }), 0, 'owner swapped out: breath cleared at once')
 })
 test('9. BREATH STEAL −6 once per cast on a submerged target (blocked never); UNDERTOW −15 once + sink', () => {
@@ -242,6 +243,31 @@ test('5. breath HUD: a thin bar under the affected fighter, only while a flood e
   t.groundY = gy; t.y = gy - t.h; world(f, t, 30); FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120, flip: false }); assert(calls.length >= 2 && calls.every(c => typeof c === 'string' || c[0] + c[2] <= 10 + 120 + 2), 'inside the panel')
   r.breath[t.side] = 0; world(f, t, 1); calls.length = 0; FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120, flip: true }); assert(calls.includes('DROWNING'), 'drowning pulse')
   const snap = JSON.stringify(FR(f)); FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120 }); assert.equal(JSON.stringify(FR(f)), snap, 'render-only')
+})
+
+// ── 6 / 10 WATERBORNE AFFINITY ────────────────────────────────────────────────────────────────────────────
+test('10. tag map: data only; Ripjaws / Arcticguana / Big Chill forms + Frozone / Arlong roster are waterborne; human Ben and Goku are not', () => {
+  for (const k of ['ripjaws', 'arcticguana', 'bigchill']) { const f = ben(k, LOAD); assert(WA.isWaterborneFighter(f), k) }
+  assert.equal(WA.isWaterborneFighter(ben(null)), false, 'human Ben'); for (const k of ['frozone', 'arlong']) assert(WA.isWaterborneFighter(foe(k)), k)
+  for (const k of ['goku', 'tobirama', 'enoch', 'luffy']) assert.equal(WA.isWaterborneFighter(foe(k)), false, k)
+  for (const k of Object.keys(WA.WATER_AFFINITY_ROSTER)) assert(characters[k], 'roster id exists: ' + k)
+  for (const k of Object.keys(WA.WATER_AFFINITY_FORMS)) assert(BEN10_ALIEN_REGISTRY.some(a => a.id === k || a.key === k) || getAlienDefinition(k), 'alien id exists: ' + k)
+  assert(Object.values({ ...WA.WATER_AFFINITY_ROSTER, ...WA.WATER_AFFINITY_FORMS }).every(v => v.every(x => x === 'water' || x === 'ice')))
+})
+test('10. waterborne foes: no breath, no penalties, no Undertow / Breath Steal; ordinary physics', () => {
+  const f = ben(), t = foe('frozone'); const r = flood(f, t, { level: 2 }); world(f, t, 1); const w = FL.waterOf(t)
+  assert.equal(w.wb, true); assert.equal(w.depth, 'submerged'); world(f, t, 500); assert.equal(r.breath[t.side], undefined, 'no breath'); assert.equal(t.health, t.maxHealth, 'never drowns')
+  assert.equal(FL.breathHit(f, t, 'c1'), false); assert.equal(FL.breathHit(f, t, 'u1', 'undertow'), false); assert.equal(t._benSinkT, undefined)
+  const a = foe('frozone', 500), b = foe('frozone', 500); for (let i = 0; i < 30; i++) { b._benWater = { ttl: 2, depth: 'submerged', wb: true, lineY: 0 }; for (const q of [a, b]) { physics.moveFighter(q, { d: true }, CONTROLS); physics.applyGravity(q) } }
+  assert.equal(b.x, a.x, 'waterborne walk unchanged'); assert.equal(FL.benWaterKnockback(Object.assign(foe('frozone'), { vx: 10, vy: -10, _benWater: { ttl: 2, depth: 'submerged', wb: true } })), undefined)
+})
+test('10. transitions: a transform completing mid-flood updates waterborne next tick (breath cleared / restarts at 100); MIRROR — two Ripjaws, neither breathes', () => {
+  const f = ben(), g = ben('heatblast', LOAD); g.side = 'p2'; g.x = 520; const r = flood(f, g, { level: 2 }); world(f, g, 60)
+  assert(r.breath.p2 < 100, 'heatblast loses breath'); assert(F.applyAlien(g, 'bigchill')); world(f, g, 1); assert.equal(r.breath.p2, undefined, 'became waterborne: cleared'); assert.equal(FL.waterOf(g).wb, true)
+  assert(F.applyAlien(g, 'heatblast')); world(f, g, 1); assert(Math.abs(r.breath.p2 - (100 - FL.BREATH.DRAIN)) < 1e-9, 'non-waterborne again: restarts at 100')
+  const m = ben(), n = ben('ripjaws', LOAD); n.side = 'p2'; n.x = 520; const rm = flood(m, n, { level: 2 }); world(m, n, 200); A.tickBenAlienForm(n, {}, ctxOf(n, m))   // world() only ticks the first fighter's form
+  assert.equal(FL.waterOf(n).wb, true); assert.equal(S(n).depth, 'submerged'); assert.equal(n._skinAnim, R.ANIM_WATER, 'both swim'); world(m, n, 300)
+  assert.deepEqual(rm.breath, {}, 'mirror: no breath'); assert.equal(n.health, n.maxHealth)
 })
 
 //@@NEXT@@

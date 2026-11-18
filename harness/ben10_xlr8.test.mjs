@@ -99,16 +99,23 @@ test('route 3 live: Blur Step → (cancel) Tail Whip, Heavy, Mach Cyclone', () =
 })
 
 // ── 4 Flash Time ───────────────────────────────────────────────────────────────────────────────────────────
-test('4. Flash Time SLOWS THE OPPONENT: oppTimeScale 0.4 while active (game.js frame-skip), 0 otherwise', () => {
+test('4. Flash Time SLOWS THE OPPONENT: oppTimeScale 0.25 while active (game.js frame-skip), 0 otherwise', () => {
   const f = ben(), t = fresh('goku', 1300); assert.equal(XLR8.oppTimeScale(f), 0)
-  assert(XLR8.chargeSpecial(f, ctxOf(f, t))); assert.equal(XLR8.oppTimeScale(f), XL_FLASH.OPP); assert.equal(XL_FLASH.OPP, 0.4)
+  assert(XLR8.chargeSpecial(f, ctxOf(f, t))); assert.equal(XLR8.oppTimeScale(f), XL_FLASH.OPP); assert.equal(XL_FLASH.OPP, 0.25)
   tick(f, t, XL_FLASH.DURATION); assert.equal(XLR8.oppTimeScale(f), 0)
 })
-test('4. Flash Time: 25 Power, 150f, startup/recovery ×0.7, speed ×1.8 (P + L), opponent projectiles ×0.5, 600f cooldown, no re-activate', () => {
+test('4. P + L in EITHER ORDER: a Sonic Slash started by L is undone by a late P (refund, epoch bump) and Flash Time starts', () => {
+  const f = ben(), t = fresh('goku', 1300); f.energy = 100; const ctx = ctxOf(f, t)
+  A.clearAbilityState(); f._specialHeldDir = null; assert(A.triggerSpecial(f, ctx), 'L: Sonic Slash starts'); assert(S(f).slash)
+  const ep = f._benActionEpoch; tick(f, t, 2)
+  assert(XLR8.chargeSpecial(f, ctx, undefined, { late: true })); assert.equal(S(f).slash, null, 'slash undone'); assert(S(f).flashT > 0)
+  assert(f._benActionEpoch > ep); assert.equal(f.energy, 100 - XL_FLASH.COST, 'only Flash Time paid')
+})
+test('4. Flash Time: 25 Power, 210f, startup/recovery ×0.7, speed ×1.8 (P + L), opponent projectiles ×0.5, 600f cooldown, no re-activate', () => {
   const f = ben(), t = fresh('goku', 1300); tick(f, t)
   const sp = f._benWalkSpeed, ds = f.dashSpeed
   C.startMove(f, 'heavy', BA.heavy); const plain = { ...f.currentAttack }; f.attacking = false; f.currentAttack = null; f.attackCooldown = 0
-  assert(XLR8.blockSpecial(f, ctxOf(f, t)), 'Flash Time starts'); assert.equal(100 - f.energy, 25, '25 Power'); assert.equal(S(f).flashT, 150)
+  assert(XLR8.blockSpecial(f, ctxOf(f, t)), 'Flash Time starts'); assert.equal(100 - f.energy, 25, '25 Power'); assert.equal(S(f).flashT, XL_FLASH.DURATION); assert.equal(XL_FLASH.DURATION, 210)
   assert.equal(XLR8.blockSpecial(f, ctxOf(f, t)), false, 'no re-activate while active')
   f._specialHeldDir = null; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false, 'the activating Special press is swallowed (no stray cast)')
   tick(f, t, 2, { special: true }); assert.equal(S(f).swallow, XL_FLASH.SWALLOW, 'held: still swallowed'); tick(f, t, XL_FLASH.SWALLOW); assert.equal(S(f).swallow, 0, 'released: one buffer window later it is free')
@@ -126,7 +133,7 @@ test('4. Flash Time: 25 Power, 150f, startup/recovery ×0.7, speed ×1.8 (P + L)
   assert.equal(p.x - px, -5, 'opponent projectile ×0.5'); assert.equal(q.x - qx, 10, 'own projectile unchanged')
   // the opponent's own clock is untouched: its startMove frames are the authored ones
   C.startMove(t, 'light', { damage: 10, startup: 10, active: 3, recovery: 10, frameExact: true }); assert.equal(t.currentAttack.activeEnd, 10 + 3 - 1, 'opponent startup unchanged')
-  tick(f, t, 148 - 2 - XL_FLASH.SWALLOW); assert.equal(S(f).flashT, 0, 'lasts 150f'); assert.equal(S(f).flashCd, XL_FLASH.COOLDOWN, '600f cooldown after it ends')
+  tick(f, t, XL_FLASH.DURATION - 2 - 2 - XL_FLASH.SWALLOW); assert.equal(S(f).flashT, 0, 'lasts 210f'); assert.equal(S(f).flashCd, XL_FLASH.COOLDOWN, '600f cooldown after it ends')
   assert(Math.abs(f._benWalkSpeed - sp) < 1e-9, 'speed restored'); C.updateProjectiles(A.activeProjectiles, 3200); C.updateProjectiles(A.activeProjectiles, 3200); const px2 = p.x; tick(f, t); C.updateProjectiles(A.activeProjectiles, 3200)
   assert.equal(p.x - px2, -10, 'projectile lease lapsed (≤2f after Flash Time): full speed again')
   f.energy = 100; assert.equal(XLR8.blockSpecial(f, ctxOf(f, t)), false, 'no re-activate on cooldown')

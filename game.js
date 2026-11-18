@@ -12238,8 +12238,10 @@ function handleOmnitrixSwitch(fighter, inputState) {
     } }
   // A READY form may own Charge + Special (P + L: Jetray / XLR8 FLASH TIME) via its optional chargeSpecial hook; no-op otherwise.
   // Hold P and press L (or both together). The Special press is consumed so it never also casts; Charge stops refilling.
+  // EITHER ORDER: L first then P within 6 frames → `late`, and the form undoes the special that L just started.
   { const _rdCS = benReadyForm(fighter)?.chargeSpecial
-    if (_rdCS && !(fighter._benPowerCommit > 0) && chargeB && special && !held.special && _rdCS(fighter, getAbilityContext())) {
+    const _csLate = chargeB && !held.charge && special && held.special && (held.spAge ?? 99) < 6
+    if (_rdCS && (_csLate || (!(fighter._benPowerCommit > 0) && chargeB && special && !held.special)) && _rdCS(fighter, getAbilityContext(), undefined, { late: _csLate })) {
       fighter._omxConsume = { ...(fighter._omxConsume || {}), special: true }
       inputState.special = false; fighter.isCharging = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
     } }
@@ -12267,6 +12269,7 @@ function handleOmnitrixSwitch(fighter, inputState) {
     inputState.heavy = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
   }
 
+  held.spAge = special ? (held.special ? (held.spAge ?? 99) + 1 : 0) : 99   // frames since this Special press (P + L either order)
   held.down = down; held.light = light; held.heavy = heavy; held.special = special; held.back = back
   held.grab = grabB; held.charge = chargeB; held.block = blockB
   held.ult = ultB; held.up = upB

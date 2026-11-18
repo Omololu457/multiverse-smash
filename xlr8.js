@@ -12,7 +12,7 @@ export { XLR8_ANIM, XLR8_FX }
 const ANIM = { ...XLR8_ANIM, hbFire: XLR8_ANIM.xlSonicSlash }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
-export const XL_FLASH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.4, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
+export const XL_FLASH = { COST: 25, DURATION: 210, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.25, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
 export const XL_ECHO = { DELAY: 12, FRAC: 0.30, MAX: 3 }
 export const XL_COST = { slash: 10, blur: 12, whip: 12, cyclone: 16, dive: 12, ultimate: 50 }
 export const XL_SLASH = { STARTUP: 8, LUNGE_FRAMES: 19, LUNGE_SPEED: 20, HITS: [[4, 14], [10, 14], [16, 22]], TOTAL: 40, ON_BLOCK: -12 }
@@ -45,8 +45,8 @@ export const XLR8 = {
     air:   normal(26, 6, 4, 10, 2)                                                      // fall frame + claw
   },
   anim: ANIM, fx: XLR8_FX,
-  onApply, tick, fireSpecial, fireUltimate, blockSpecial, chargeSpecial: blockSpecial, onContact, moveFrames,
-  // FLASH TIME slows the OPPONENT: game.js runs them at 40% (the Killua Godspeed / Flash frame-skip — movement, attacks, animation)
+  onApply, tick, fireSpecial, fireUltimate, blockSpecial, chargeSpecial, onContact, moveFrames,
+  // FLASH TIME slows the OPPONENT: game.js runs them at 25% (the Killua Godspeed / Flash frame-skip — movement, attacks, animation)
   oppTimeScale: f => flashActive(xlState(f)) ? XL_FLASH.OPP : 0,
   drawHud: drawXlr8Hud, drawFx: drawXlr8Fx, drawUnder: drawXlr8Under, drawBehind: drawXlr8Behind, trailCount: f => xlTrailCount(f)
 }
@@ -77,7 +77,7 @@ export function xlHash(seed, frame, player, k = 0) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296
 }
 
-// ── FLASH TIME (P + L = Charge + Special via the chargeSpecial hook; Block + Special also works): 25 Power, 150f, then 600f cooldown. His side only. ───────────────────────
+// ── FLASH TIME (P + L = Charge + Special via the chargeSpecial hook; Block + Special also works; either press order): 25 Power, 210f, then 600f cooldown; the OPPONENT runs at 25%. ───────────────────────
 function blockSpecial(f, ctx, api) {
   const s = xlState(f); if (!s) return false
   if (s.flashT > 0 || s.flashCd > 0 || (f.hitstun || 0) > 0 || s.ult) return false   // no refresh / no re-activate
@@ -227,9 +227,28 @@ function beginCast(f, s, api, pose, cost, total, { kind = null, commit = true } 
   f._benActionEpoch = (f._benActionEpoch || 0) + 1
   f._spriteCastMove = pose; f._spriteCastTimer = total
   f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
-  s.castId++
+  s.castId++; s.lastCast = { at: s.t, id: s.castId, cost }
   return true
 }
+// P + L in EITHER ORDER: when L lands a few frames before P, the special it just started is UNDONE (cost refunded, its
+// scheduled hits killed via the action epoch, its state + any hitbox removed) and Flash Time starts instead.
+const UNDO_WIN = 6
+function undoFreshSpecial(f, s, api) {
+  const L = s.lastCast; s.lastCast = null
+  if (!L || L.id !== s.castId || s.t - L.at > UNDO_WIN) return
+  for (const k of ["slash", "blur", "whip", "cyclone", "dive"]) if (s[k] && s[k].cast === L.id) s[k] = null
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  if (L.cost && !f.infiniteEnergy) f.energy = Math.min(f.maxEnergy || 100, (f.energy || 0) + L.cost)
+  f._benPowerCommit = 0; f.attackCooldown = 0; f.attacking = false; f._spriteCastMove = null; f._spriteCastTimer = 0; f._benLunge = null
+  const list = api && api.activeProjectiles ? api.activeProjectiles() : null
+  if (list) for (let i = list.length - 1; i >= 0; i--) if (list[i].owner === f && list[i].alien && list[i].alien.cast === L.id) list.splice(i, 1)
+}
+function chargeSpecial(f, ctx, api, o) {
+  const s = xlState(f); if (!s) return false
+  if (o && o.late) { if (!!(s.flashT > 0 || s.flashCd > 0) || (f.hitstun || 0) > 0 || s.ult) return false; undoFreshSpecial(f, s, api || _api) }
+  return blockSpecial(f, ctx, api)
+}
+
 function hitbox(f, api, name, md) {   // alien.hidden: no generic coloured shape (ui.js) — the slash frames + hit sparks show the hit
   return api.spawnProjectile(f, name, { speed: 0, vx: 0, vy: 0, lifetime: 2, isSpecial: true, ...md, alien: { ...(md.alien || {}), hidden: true } }, {})
 }

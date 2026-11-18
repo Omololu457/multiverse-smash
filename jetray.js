@@ -13,7 +13,7 @@ const ANIM = { ...JETRAY_ANIM, jrFly: JETRAY_ANIM.fly }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
 export const JR_FLIGHT = { MAX: 240, HOLD: 8, TAP: 15 }   // TAP 15f ≈ 250 ms (Homelander's charge tap is 200 ms)   // energy budget (profile), hold-Jump-in-air takeoff, P-tap window
-export const JR_MACH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.4, SWALLOW: 10 }   // FLASH TIME (P + L); OPP = the opponent runs at 40% speed
+export const JR_MACH = { COST: 25, DURATION: 210, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.25, SWALLOW: 10 }   // FLASH TIME (P + L); OPP = the opponent runs at 25% speed
 export const JR_ECHO = { DELAY: 10, FRAC: 0.30, MAX: 3 }
 export const JR_BOOM = { R: 120, DMG: 25, LIFE: 2 }
 export const JR_NEURO = { MAX: 3, EXPIRE: 240, GROUNDED: 150, IMMUNE: 360, AIR: 0.5 }
@@ -58,8 +58,8 @@ export const JETRAY = {
     air:   normal(26, 6, 4, 10, 2)                                                      // diving slash
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, blockSpecial, chargeSpecial: blockSpecial, onContact, bodyOffset, targetOffset,
-  // FLASH TIME slows the OPPONENT: game.js runs them at 40% (the Killua Godspeed / Flash frame-skip — movement, attacks, animation)
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, blockSpecial, chargeSpecial, onContact, bodyOffset, targetOffset,
+  // FLASH TIME slows the OPPONENT: game.js runs them at 25% (the Killua Godspeed / Flash frame-skip — movement, attacks, animation)
   oppTimeScale: f => machActive(jrState(f)) ? JR_MACH.OPP : 0,
   drawHud: drawJetrayHud, drawFx: drawJetrayFx, drawUnder: drawJetrayUnder, drawBehind: drawJetrayBehind
 }
@@ -185,7 +185,7 @@ function tickFlight(f, s, input, grounded) {
   }
 }
 
-// ── FLASH TIME ("Mach Time" in code) — P + L (Charge + Special; Block + Special also works): 25 Power, 150f, then 600f cooldown. His side only (the opponent's clock / polling untouched).
+// ── FLASH TIME ("Mach Time" in code) — P + L (Charge + Special; Block + Special also works; either press order): 25 Power, 210f, then 600f cooldown; the OPPONENT runs at 25% (game.js frame-skip via oppTimeScale).
 function blockSpecial(f, ctx, api) {
   const s = jrState(f); if (!s) return false
   if (s.machT > 0 || s.machCd > 0 || (f.hitstun || 0) > 0 || s.ult) return false   // no refresh / no re-activate
@@ -280,9 +280,28 @@ function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
   f._benActionEpoch = (f._benActionEpoch || 0) + 1
   f._spriteCastMove = pose; f._spriteCastTimer = total
   f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
-  s.castId++
+  s.castId++; s.lastCast = { at: s.t, id: s.castId, cost }
   return { cast: s.castId, total }
 }
+// P + L in EITHER ORDER: when L lands a few frames before P, the special it just started is UNDONE (cost refunded, its
+// scheduled hits killed via the action epoch, its state + any hitbox removed) and Flash Time starts instead.
+const UNDO_WIN = 6
+function undoFreshSpecial(f, s, api) {
+  const L = s.lastCast; s.lastCast = null
+  if (!L || L.id !== s.castId || s.t - L.at > UNDO_WIN) return
+  for (const k of ["eye", "tail", "dash", "boom", "dive"]) if (s[k] && s[k].cast === L.id) s[k] = null
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  if (L.cost && !f.infiniteEnergy) f.energy = Math.min(f.maxEnergy || 100, (f.energy || 0) + L.cost)
+  f._benPowerCommit = 0; f.attackCooldown = 0; f.attacking = false; f._spriteCastMove = null; f._spriteCastTimer = 0; f._benLunge = null
+  const list = api && api.activeProjectiles ? api.activeProjectiles() : null
+  if (list) for (let i = list.length - 1; i >= 0; i--) if (list[i].owner === f && list[i].alien && list[i].alien.cast === L.id) list.splice(i, 1)
+}
+function chargeSpecial(f, ctx, api, o) {
+  const s = jrState(f); if (!s) return false
+  if (o && o.late) { if (!!(s.machT > 0 || s.machCd > 0) || (f.hitstun || 0) > 0 || s.ult) return false; undoFreshSpecial(f, s, api || _api) }
+  return blockSpecial(f, ctx, api)
+}
+
 // lifetime ≥ 2: combat.updateProjectiles decrements + culls (≤ 0) BEFORE hits resolve, so a lifetime-1 box never connects in-game.
 // Per-frame boxes (dive / ult swoop) replace their previous copy so only one is ever live (no double hit).
 const hitbox = (f, api, name, face, md) => {

@@ -120,14 +120,26 @@ try {
   ok(await notBlack("_jetray_mach.png"), "no black screen (Flash Time)")
   // the OPPONENT is really slowed: game.js skips most of their frames (Killua Godspeed / Flash frame-skip)
   const slowSample = () => page.evaluate(async () => { let fr = 0, n = 0; for (let i = 0; i < 40; i++) { await new Promise(r => requestAnimationFrame(r)); n++; if (window.__harness.p2()?.timeSlowFrozen) fr++ } return fr / n })
-  const slowOn = await slowSample(); ok(slowOn > 0.3, "Flash Time SLOWS THE OPPONENT (their frames are skipped)", `frozen ${(slowOn * 100).toFixed(0)}% of samples`)
+  const slowOn = await slowSample(); ok(slowOn > 0.6, "Flash Time SLOWS THE OPPONENT to a quarter speed (their frames are skipped)", `frozen ${(slowOn * 100).toFixed(0)}% of samples`)
   await jrProbe("cool"); await near(150); const hpD = (await H("p2")).health
   await jrProbe("dash"); await H("ben10Cast", "F"); await frames(4); const wd = await jrProbe()
   ok(wd?.dashes === 1 && wd?.cast === "jrDash", "Wing Dash in the warp-bubble frames", JSON.stringify({ dashes: wd?.dashes, cast: wd?.cast }))
   ok(await notBlack("_jetray_dash.png"), "no black screen (Wing Dash)")
   await frames(30); const wd2 = await jrProbe(); ok((await H("p2")).health < hpD && wd2?.booms === 1, "Wing Dash lands + Sonic Boom in Mach Time", JSON.stringify({ hp: `${hpD} → ${(await H("p2")).health}`, booms: wd2?.booms }))
+  await page.evaluate(async () => { const X = await import("./jetray.js"); for (let i = 0; i < 2000 && X.jrState(window.__jrLive)?.machT > 0; i++) await new Promise(r => requestAnimationFrame(r)); await new Promise(r => requestAnimationFrame(r)) })
   { const off = await page.evaluate(async () => { let fr = 0; for (let i = 0; i < 20; i++) { await new Promise(r => requestAnimationFrame(r)); if (window.__harness.p2()?.timeSlowFrozen) fr++ } return fr })
     ok(off === 0, "after Flash Time the opponent runs at full speed again", String(off)) }
+  // P + L in the OTHER order: L lands first (the Eye Laser starts), P a frame later → the laser is undone, Flash Time starts
+  { await settle(20); await page.evaluate(async () => { const X = await import("./jetray.js"); const s = X.jrState(window.__jrLive); s.machCd = 0; s.machT = 0 })
+    await H("ben10SetPower", "p1", 100); const e0 = await H("p1"); const g = await page.evaluate(async () => {
+      const ev = (t, k) => document.dispatchEvent(new KeyboardEvent(t, { key: k, code: "Key" + k.toUpperCase(), bubbles: true })), H = window.__harness
+      ev("keydown", "l"); const f0 = H.state().frame; while (H.state().frame < f0 + 2) await new Promise(r => requestAnimationFrame(r))
+      ev("keydown", "p"); const f1 = H.state().frame; while (H.state().frame < f1 + 4) await new Promise(r => requestAnimationFrame(r)); ev("keyup", "l"); ev("keyup", "p")
+      return H.state().frame - f0 })
+    await frames(4); const lp = await jrProbe(), e1 = await H("p1")
+    ok(lp?.mach > 0 && !lp.eye && !lp.beam, "L THEN P (L a couple of frames early) → Flash Time, the Eye Laser L started is undone", JSON.stringify({ mach: lp?.mach, eye: lp?.eye, gap: g }))
+    ok(Math.abs((e0.energy - e1.energy) - 25) < 3, "…only Flash Time's 25 Power is spent (the laser's cost refunded)", `${e0.energy} → ${e1.energy}`)
+    await page.evaluate(async () => { const X = await import("./jetray.js"); for (let i = 0; i < 2000 && X.jrState(window.__jrLive)?.machT > 0; i++) await new Promise(r => requestAnimationFrame(r)); await new Promise(r => requestAnimationFrame(r)) }) }
   // ── SONIC DIVE (air ↓ + P) ──
   await settle(40); await jrProbe("cool"); await near(120); await jrProbe("air"); await frames(2)
   await H("ben10Cast", "D"); await frames(6); ok((await jrProbe())?.dives === 1, "Sonic Dive (dive frame)")

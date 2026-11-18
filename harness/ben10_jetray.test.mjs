@@ -173,12 +173,21 @@ test('5. Flash Time: startup / recovery ×0.7 (min 1), movement ×1.8, flight ×
   S(g).swallow = 0; ready(g); A.clearAbilityState(); g._specialHeldDir = 'F'; A.triggerSpecial(g, ctxOf(g, u)); assert.equal(S(g).eye.st, Math.round(JR_EYE.STARTUP * 0.7), 'special startup ×0.7')
 })
 test('5. Flash Time is bound to P + L (chargeSpecial hook) as well as Block + Special', () => {
-  assert.equal(JETRAY.chargeSpecial, JETRAY.blockSpecial); const f = ben(); assert(JETRAY.chargeSpecial(f, {}, SPEND)); assert.equal(S(f).machT, JR_MACH.DURATION)
-  const src = fs.readFileSync(new URL('../game.js', import.meta.url), 'utf8'); assert(/benReadyForm\(fighter\)\?\.chargeSpecial/.test(src) && /chargeB && special && !held\.special && _rdCS/.test(src), 'game.js wires Charge + Special')
+  assert.equal(typeof JETRAY.chargeSpecial, 'function'); assert.equal(typeof JETRAY.blockSpecial, 'function'); const f = ben(); assert(JETRAY.chargeSpecial(f, {}, SPEND)); assert.equal(S(f).machT, JR_MACH.DURATION)
+  const src = fs.readFileSync(new URL('../game.js', import.meta.url), 'utf8'); assert(/benReadyForm\(fighter\)\?\.chargeSpecial/.test(src) && /chargeB && special && !held\.special/.test(src) && /_rdCS\(fighter, getAbilityContext\(\), undefined, \{ late: _csLate \}\)/.test(src), 'game.js wires Charge + Special (either order)')
 })
-test('5. Flash Time SLOWS THE OPPONENT: oppTimeScale 0.4 while active (game.js frame-skip), 0 otherwise', () => {
+test('5. P + L in EITHER ORDER: L first starts the Eye Laser, a late P undoes it (refund, no beam, scheduled hits dead) and starts Flash Time', () => {
+  const f = ben(), t = foe(); f.energy = 100; const SP = { ...SPEND, activeProjectiles: () => [] }
+  assert(JETRAY.fireSpecial(f, {}, SP), 'L: Eye Laser starts'); const afterEye = f.energy, ep = f._benActionEpoch; assert(S(f).eye)
+  tick(f, t, 2); assert(JETRAY.chargeSpecial(f, {}, SP, { late: true }), 'late P → Flash Time')
+  assert.equal(S(f).eye, null, 'laser undone'); assert(S(f).machT > 0); assert(f._benActionEpoch > ep, 'its scheduled hits are dead')
+  assert.equal(f._benPowerCommit, 0); assert.equal(f.attackCooldown, 0); assert.equal(f.energy, 100 - JR_MACH.COST, 'laser cost refunded, only Flash Time paid')
+  const g = ben(); g.energy = 100; assert(JETRAY.fireSpecial(g, {}, SP)); tick(g, t, 12); const e = S(g).eye
+  assert(JETRAY.chargeSpecial(g, {}, SP, { late: true })); assert.equal(S(g).eye, e, 'an older cast (past the 6f window) is never undone')
+})
+test('5. Flash Time SLOWS THE OPPONENT: oppTimeScale 0.25 while active (game.js frame-skip), 0 otherwise', () => {
   const f = ben(), t = foe(); assert.equal(JETRAY.oppTimeScale(f), 0, 'off before')
-  assert(JETRAY.chargeSpecial(f, {}, SPEND)); assert.equal(JETRAY.oppTimeScale(f), JR_MACH.OPP); assert.equal(JR_MACH.OPP, 0.4)
+  assert(JETRAY.chargeSpecial(f, {}, SPEND)); assert.equal(JETRAY.oppTimeScale(f), JR_MACH.OPP); assert.equal(JR_MACH.OPP, 0.25)
   tick(f, t, JR_MACH.DURATION); assert.equal(JETRAY.oppTimeScale(f), 0, 'off after'); F.revertToHuman(f); assert.equal(JETRAY.oppTimeScale(f), 0, 'off once he is gone')
   const src = fs.readFileSync(new URL('../game.js', import.meta.url), 'utf8'); assert(/benReadyForm\(user\)\?\.oppTimeScale\?\.\(user\)/.test(src), 'game.js _oppTimeScaleOf reads the hook')
 })

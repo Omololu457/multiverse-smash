@@ -67,8 +67,8 @@ try {
   const d2 = await H("ben10Details", "p1")
   ok(d2?.speed && Math.abs(d2.speed / spd0 - 1.8) < 0.01, "P + L → Flash Time active: movement ×1.8 (as fast as the Flash)", `${spd0} → ${d2?.speed}`)
   ok(Math.abs((await H("p1"))?.energy - 75) < 3, "Flash Time spent 25 Power (the Special press is consumed, no stray special)", `${(await H("p1"))?.energy}`)
-  { let fr = 0; for (let i = 0; i < 30; i++) { await frames(1); if ((await H("p2"))?.timeSlowFrozen) fr++ }
-    ok(fr > 8, "Flash Time SLOWS THE OPPONENT (their frames are skipped)", `frozen ${fr}/30 samples`) }
+  { const fr = await page.evaluate(async () => { const H = window.__harness; let n = 0, last = -1, seen = 0; while (seen < 40) { await new Promise(r => requestAnimationFrame(r)); const k = H.state().frame; if (k === last) continue; last = k; seen++; if (H.p2().timeSlowFrozen) n++ } return n })   // one sample per sim frame (frame-locked polling aliases the 1-in-4 pattern)
+    ok(fr >= 24, "Flash Time SLOWS THE OPPONENT to a quarter speed (their frames are skipped)", `frozen ${fr}/40 frames`) }
   // a live Sonic Slash during Flash Time
   await page.evaluate(() => window.__harness.setP2X(window.__harness.p1().x + 200))
   const hp0 = (await H("p2")).health, x0 = (await H("p1")).x; const cast = await H("ben10Cast", "N"); await frames(40)

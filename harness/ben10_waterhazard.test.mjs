@@ -169,6 +169,43 @@ test('5. FLOOD BONUS (stamp read only): wading +1/s, submerged +3/s, nothing dry
   const src = fs.readFileSync(new URL('../waterhazard.js', import.meta.url), 'utf8'); assert(!/_benWater\s*(=|\.\w+\s*=|\[)|_benFlood/.test(src.replace(/f\._benWater;/g, '')), 'waterhazard.js never writes the flood / its stamp')
 })
 
+
+// ── 5 DRENCHED → SHORT FUSE ────────────────────────────────────────────────────────────────────────────────────
+const { WH_DRENCH } = G
+const pipHit = (f, t, tag, cast, blocked = false) => contactOn(f, t, { proj: { alien: { wh: tag, cast } }, blocked })
+const contactOn = (f, t, info) => WH.onContact(f, t, info)
+// a raw damage write through the ONE choke-point, as a given attacker / source (no combo scaling)
+const dmgAs = (target, attacker, source, move) => { const hp = target.health; C.applyScaledDamage(target, 100, { attacker, source, move, scale: 1 }); return hp - target.health }
+test('6. Drenched: one pip per CAST (multi-tick casts count once), max 3, no pip from blocks / non-pip moves; expire 240f after the last', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t)
+  pipHit(f, t, 'blast', 101); pipHit(f, t, 'blast', 101); assert.equal(s.pips, 1, 'one per cast'); pipHit(f, t, 'burst', 102, true); assert.equal(s.pips, 1, 'blocked: none')
+  pipHit(f, t, 'lash', 103); assert.equal(s.pips, 1, 'Claw Lash gives none'); pipHit(f, t, 'geyser', 104); assert.equal(s.pips, 2)
+  world(f, t, WH_DRENCH.EXPIRE - 1); assert.equal(s.pips, 2); world(f, t, 1); assert.equal(s.pips, 0, 'expired 240f after the last')
+})
+test('6. 3 pips → SHORT FUSE 240f (pips consumed): +20 % from ELECTRIC hits only; no stun, no refresh; 360f immunity after', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t)
+  for (const [k, c] of [['blast', 1], ['sweep', 2], ['dive', 3]]) pipHit(f, t, k, c); assert.equal(s.pips, 0, 'consumed'); assert(G.fuseOn(t)); assert.equal(s.fuses, 1)
+  assert.equal(t.hitstun, 0, 'no stun'); const st = { ...t }
+  const mw = ben('megawhatt'), plain = foe('naruto')
+  const e = dmgAs(t, mw, 'melee', 'light'), n = dmgAs(t, plain, 'melee', 'light')
+  const e0 = dmgAs(foe(), mw, 'melee', 'light'), n0 = dmgAs(foe(), plain, 'melee', 'light')
+  assert(Math.abs(e / e0 - 1.2) < 0.02, `electric ×1.2: ${e} vs ${e0}`); assert(Math.abs(n - n0) < 1e-9, 'a non-electric hit is unchanged')
+  const ep = dmgAs(t, plain, 'projectile', 'mw_spark'), ep0 = dmgAs(foe(), plain, 'projectile', 'mw_spark'); assert(Math.abs(ep / ep0 - 1.2) < 0.02, 'tagged electric projectile ×1.2')
+  pipHit(f, t, 'blast', 9); assert.equal(s.pips, 0, 'no pip / refresh while it runs'); assert.equal(t._benShortFuse.left, WH_DRENCH.FUSE)
+  world(f, t, WH_DRENCH.FUSE); assert(!G.fuseOn(t), '240f'); assert(Math.abs(dmgAs(t, mw, 'melee', 'light') - e0) < 1e-9, 'over: no bonus')
+  pipHit(f, t, 'blast', 10); assert.equal(s.pips, 0, 'immune 360f'); world(f, t, WH_DRENCH.IMMUNE); assert(!('_benShortFuse' in t), 'the stamp is gone')
+  pipHit(f, t, 'blast', 11); assert.equal(s.pips, 1, 'pips again after the immunity')
+  assert.equal(st.facing, t.facing); assert.equal(FRAME, FRAME, 'no clock / polling field touched')
+})
+test('6. Short Fuse stacks INDEPENDENTLY with Ripjaws\' submerged-electric +15 % (×1.2 × 1.15); it outlives a swap (pips do not)', () => {
+  const f = ben('waterhazard', ['waterhazard', 'megawhatt', 'goop', 'xlr8', 'heatblast']), t = foe(), s = S(f); far(f, t)
+  for (const c of [1, 2, 3]) pipHit(f, t, 'blast', c); assert(G.fuseOn(t)); s.pips = 2
+  const mw = ben('megawhatt'), sub = () => { t._benWater = { ttl: 2, depth: 'submerged', wb: false } }
+  sub(); const both = dmgAs(t, mw, 'melee', 'light'); const g = foe(); g._benWater = { ttl: 2, depth: 'submerged', wb: false }; const flood = dmgAs(g, mw, 'melee', 'light'), base = dmgAs(foe(), mw, 'melee', 'light')
+  assert(Math.abs(flood / base - 1.15) < 0.02 && Math.abs(both / base - 1.2 * 1.15) < 0.02, `stack ${both} / ${flood} / ${base}`); delete t._benWater
+  assert(F.applyAlien(f, 'megawhatt')); assert(G.fuseOn(t), 'the fuse runs on after the swap'); assert(F.applyAlien(f, 'waterhazard')); assert.equal(S(f).pips, 0, 'his pips cleared')
+})
+
 // @@END-TESTS@@
 console.log(`\nWATER HAZARD: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

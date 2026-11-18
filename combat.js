@@ -326,7 +326,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
   { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) { rawDamage = (rawDamage ?? 0) / _rd.mods.defense; if (_rd.incomingScale) rawDamage *= benAlienIncoming(target) } }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
   if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
-  if (isBenDevice(target) || isBenDevice(opts.attacker || opts.boostFrom)) rawDamage = benAlienDamageMods(target, rawDamage, opts)   // READY Omnitrix form damage hooks (Goop goo body / projector / Corrode); untouched for everyone else
+  if (isBenDevice(target) || isBenDevice(opts.attacker || opts.boostFrom) || target?._benShortFuse) rawDamage = benAlienDamageMods(target, rawDamage, opts)   // READY Omnitrix form damage hooks (Goop goo body / projector / Corrode); untouched for everyone else
   const scale = opts.bypassScale ? 1
               : opts.scale != null ? opts.scale
               : GLOBAL_DAMAGE_SCALE

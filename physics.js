@@ -54,6 +54,7 @@ export const physics = {
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return
     if ((fighter._benPinT || 0) > 0) fighter._benPinT--   // READY-form PIN (Alien X Gravity): no jump + ×0.5 walk while > 0; field-gated, self-clearing
+    { const _sf = fighter._benShortFuse; if (_sf) { if (_sf.left > 0) _sf.left--; else if (_sf.imm > 1) _sf.imm--; else delete fighter._benShortFuse } }   // READY-form SHORT FUSE stamp (Water Hazard): 240f active → 360f immunity → gone; field-gated, self-clearing (plain data)
     // READY-form SLOW status (ADD_ALIEN.md; Arcticguana Frost Cloud): a ready form's tick stamps its OPPONENT with
     // `_benSlow = { ttl, k }` each frame it lasts (ttl lapses on its own here) → walk / run and dash / air dash ×k. Input polling
     // and the clock are untouched. Absent for everyone else → ×1 → byte-identical.

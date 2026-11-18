@@ -49,7 +49,7 @@ export function freshWaterHazardState() {
   return { kind: WH_KEY, t: 0, castId: 0, noAttack: false, base: null, stage: { L: -1e6, R: 1e6 },
     oppDir: 1, hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5, specialHeld: false,
     core: 0, lastGainT: 0, coreDealt: 0, coreTaken: 0, coreBlocked: 0, coreFlood: 0, floodDepth: "dry",
-    pips: 0, pipT: 0, pipCasts: [], fuses: 0,
+    pips: 0, pipT: 0, pipCasts: [], fuses: 0, fuseView: "",
     puddle: null, dp: { stage: 0, t: 0 }, blast: null, burst: null, chain: null, sweep: null, dive: null, diveUsed: false, ult: null,
     lastBlast: null, lastBurst: null, lastChain: null, lastSweep: null, lastDive: null, lastUlt: null, lastPuddle: null,
     stats: { casts: 0, puddles: 0, geysers: 0, evaded: 0, blasts: 0, blastHits: 0, bursts: 0, burstHits: 0, lashes: 0, lashHits: 0,
@@ -333,5 +333,52 @@ FX_DRAW.push((c, f, s, frame) => {
   const face = f.facing || 1, sc = (f.h || 112) / 260, ox = cx(f) + face * WATERHAZARD_GEOM.orb[0] * sc * 0.5, oy = f.y + (f.h || 112) * 0.25
   c.save(); c.globalAlpha = 0.35 + 0.25 * ((frame >> 3) % 2); c.fillStyle = CYAN
   for (let k = 0; k < 8; k++) { const an = k / 8 * Math.PI * 2 + frame * 0.05; px(c, ox + Math.cos(an) * 9, oy + Math.sin(an) * 9, 3) }
+  c.restore()
+})
+
+// ── 5. DRENCHED → SHORT FUSE (an opponent status) ───────────────────────────────────────────────────────────────────
+// CLEAN hits (not blocked) from Pressure Blast, Hydro Burst, Geyser Uppercut, Undertow Sweep and Geyser Dive add ONE Drenched
+// pip per CAST (multi-tick moves count once), max 3; no pip from blocks or FX; the pips expire 240f after the last one.
+// 3 pips → SHORT FUSE on the opponent for 240f: the pips are consumed; the opponent takes +20 % from ELECTRIC-tagged hits only
+// (Ripjaws' electric tag map, benFlood.isElectricHit — Megawhatt / Feedback bodies + the tagged electric projectiles), applied
+// in ben10State.benAlienDamageMods; it multiplies independently with Ripjaws' own +15 % submerged-electric rule (different tag,
+// different condition). Nothing else: no stun, no polling / clock change. No refresh while it runs; 360f immunity after.
+// Short Fuse is ONE plain-data stamp on the opponent, `_benShortFuse = { left, imm, mult }`, counted down by physics.js
+// (`left` 240 → 0, then `imm` 360 → 0, then deleted) — it outlives a swap on purpose (Ben swaps to an electric alien to cash
+// it in); his own pips are form state and clear with the swap / revert / KO / rematch.
+export const WH_DRENCH = { MAX: 3, EXPIRE: 240, FUSE: 240, IMMUNE: 360, MULT: 1.2 }
+export const PIP_SOURCES = ["blast", "burst", "geyser", "sweep", "dive"]
+export const fuseOf = o => (o && o._benShortFuse) || null
+export const fuseOn = o => { const z = fuseOf(o); return !!(z && z.left > 0) }
+export function addPip(f, s, opp, cast) {
+  if (!opp || opp.eliminated || s.pipCasts.includes(cast)) return false
+  s.pipCasts.push(cast); if (s.pipCasts.length > 8) s.pipCasts.shift()
+  if (fuseOf(opp)) return false                                             // no refresh while active / during the immunity
+  s.pips = Math.min(WH_DRENCH.MAX, s.pips + 1); s.pipT = s.t
+  if (s.pips >= WH_DRENCH.MAX) { s.pips = 0; s.fuses++; opp._benShortFuse = { left: WH_DRENCH.FUSE, imm: WH_DRENCH.IMMUNE, mult: WH_DRENCH.MULT } }
+  return true
+}
+TICKS.push((f, s, input, api, opp) => {
+  if (s.pips > 0 && s.t - s.pipT >= WH_DRENCH.EXPIRE) s.pips = 0
+  const z = fuseOf(opp); s.fuseView = z ? (z.left > 0 ? `SHORT FUSE ${Math.ceil(z.left / 60)}s` : "") : ""   // a plain string copy for the HUD
+})
+CONTACT.push((f, s, target, { proj, move, blocked }) => {
+  if (blocked) return
+  const tag = proj && proj.alien && proj.alien.wh, cast = proj && proj.alien && proj.alien.cast
+  if (tag && PIP_SOURCES.includes(tag)) addPip(f, s, target, cast)
+})
+// render-only: the Drenched pips under the Core gauge (a droplet per pip; SHORT FUSE: a yellow spark label)
+HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {
+  const yy = y + 17
+  for (let i = 0; i < WH_DRENCH.MAX; i++) { ctx.fillStyle = i < s.pips ? CYAN : "rgba(255,255,255,0.18)"; const x = flip ? bx + w - 8 - i * 9 : bx + i * 9; ctx.fillRect(x + 1, yy, 5, 6); ctx.fillRect(x + 2, yy - 2, 3, 2) }
+  if (s.fuseView) { ctx.font = "bold 8px monospace"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"; ctx.fillStyle = "#fde047"; ctx.fillText(s.fuseView, flip ? bx + w - 32 : bx + 32, yy - 1) }
+})
+// render-only: droplets dripping off a Drenched opponent, crackling yellow sparks over a SHORT FUSE one
+FX_DRAW.push((c, f, s, frame, opp) => {
+  if (!opp) return
+  const ox = cx(opp), oy = opp.y, oh = opp.h || 110
+  c.save()
+  if (s.pips > 0) { c.fillStyle = CYAN; for (let i = 0; i < s.pips * 2; i++) { const ph = (frame * 2 + i * 17) % 40; px(c, ox - 16 + (i * 13) % 32, oy + 10 + ph * oh / 40, 3) } }
+  if (fuseOn(opp)) { c.fillStyle = (frame & 2) ? "#fde047" : WHITE; for (let i = 0; i < 6; i++) { const a = (i * 2.4 + frame * 0.3) % (Math.PI * 2); px(c, ox + Math.cos(a) * 26, oy + oh * 0.4 + Math.sin(a) * oh * 0.4, 3) } }
   c.restore()
 })

@@ -37,6 +37,7 @@ import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDa
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak, benAlienStruck } from "./ben10State.js"
+import { benWaterKnockback } from "./benFlood.js"   // Ripjaws STORM TIDE: submerged knockback ×0.8 / launch ×0.75 (gated on the _benWater stamp)
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -3813,6 +3814,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     spdRedKnockback(attacker, defender, atk)
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
     if (benReadyForm(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }   // READY forms' weight (Swampfire unchanged)
+    benWaterKnockback(defender)   // STORM TIDE (benFlood.js): submerged non-waterborne → knockback ×0.8, launch ×0.75; no-op without a flood
 
     // WALL SPLAT (MK-feel Stage 2e): a STRONG hit (heavy/special/ultimate) with GENUINELY HEAVY horizontal
     // knockback (|vx| over the threshold) that projects the defender INTO the stage wall pins them there —
@@ -4690,6 +4692,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
           fighter.onGround = false; fighter.grounded = false
           fighter.vy = (proj.launchVy ?? proj.knockbackY ?? -14) * benKnockbackScale(fighter)
         }
+        benWaterKnockback(fighter)   // STORM TIDE: submerged non-waterborne → knockback ×0.8, launch ×0.75 (no-op without a flood)
         if (proj.connectHold) {
           fighter.vx = 0; fighter.vy = 0
           fighter.hitstun = Math.max(fighter.hitstun, Math.min(18, proj.connectHold + 2))

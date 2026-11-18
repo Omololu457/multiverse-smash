@@ -117,7 +117,33 @@ function stampWater(r, o) {
   w.ttl = 2; w.depth = depth; w.lineY = floodLineY(r); w.wb = wb; w.owner = r.owner
 }
 export const waterOf = f => (f && f._benWater && f._benWater.ttl > 0) ? f._benWater : null
+export const submergedPlain = f => { const w = waterOf(f); return !!(w && !w.wb && w.depth === "submerged") }
+// combat hook: a SUBMERGED non-waterborne fighter takes knockback distance ×0.8 and launch ×0.75 (floaty); hitstun unchanged
+export const WATER_KB = { X: 0.8, LAUNCH: 0.75 }
+export function benWaterKnockback(f) { if (!submergedPlain(f)) return; f.vx = (f.vx || 0) * WATER_KB.X; if ((f.vy || 0) < 0) f.vy *= WATER_KB.LAUNCH }
 export { WORLD as FLOOD_WORLD, sideIdx }
+
+// ── PROJECTILES under the line travel at ×0.75 (Phase 4) ───────────────────────────────────────────────────────
+// Each frame a projectile whose centre is below the line is held back by 0.25 of its velocity (the engine then moves it
+// the full velocity → net ×0.75). UNAFFECTED: beams / rays, floor shockwaves, spikes / pillars / geysers (by tag or name),
+// stationary or rect hitboxes (melee-style boxes), and Ripjaws' own Water Jet (alien.rj === "jet").
+export const WATER_PROJ = 0.75
+const STATIC_NAMES = /beam|laser|ray\b|wave|shock|quake|spike|pillar|geyser|erupt|tremor|slam/i
+export function projUnaffected(p) {
+  if (!p || p.visualOnly) return true
+  const a = p.alien || {}
+  if (a.rj === "jet" || a.beam || a.floor || a.spike || p.grounded || p.rectHitbox) return true
+  if (STATIC_NAMES.test(String(p.name || p.type || ""))) return true
+  return Math.abs(p.vx || 0) + Math.abs(p.vy || 0) < 0.5
+}
+export const projBelow = (r, p) => (p.y || 0) > floodLineY(r)
+WORLD.push(function slowProjectiles(r, owner, fighters, ctx, api) {
+  const list = api && api.activeProjectiles ? api.activeProjectiles() : null; if (!list || !(r.line > 0)) return
+  for (const p of list) {
+    if (projUnaffected(p) || !projBelow(r, p)) continue
+    p.x -= (p.vx || 0) * (1 - WATER_PROJ); p.y -= (p.vy || 0) * (1 - WATER_PROJ)
+  }
+})
 
 // ── RENDER (render-only; drawn over both fighters by game.js when a fighter carries a flood) ─────────────────────────
 function rh(a, b, k) {   // render hash → [0, 1)

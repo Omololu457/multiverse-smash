@@ -158,6 +158,54 @@ test('15. endings: swap / revert → 90f recede (cooldown still applies); KO / r
   const n = ben(), x = foe(); flood(n, x); F.setupBen10(n, LOAD); assert.equal(FR(n), undefined, 'round end / rematch (setupBen10) → instant')
 })
 
+// ── 4 / 7 / 8 WATER PHYSICS + RIPJAWS' EDGE ──────────────────────────────────────────────────────────────────
+const stamp = (q, depth, wb = false) => { q._benWater = { ttl: 2, depth, wb, lineY: 0, owner: 'p1' } }
+const walk = (depth, n = 30) => { const q = foe('goku', 500); for (let i = 0; i < n; i++) { if (depth) stamp(q, depth); physics.moveFighter(q, { d: true }, CONTROLS); physics.applyGravity(q) } return q.x - 500 }
+test('7. non-waterborne swim physics: wading walk ×0.9; submerged ×0.75 on the floor, ×0.8 swimming; sink ≤ 3 px/f', () => {
+  const dry = walk(null); assert(Math.abs(walk('wading') / dry - 0.9) < 1e-9, 'wading ×0.9'); assert(Math.abs(walk('submerged') / dry - 0.75) < 1e-9, 'submerged floor walk ×0.75')
+  const a = foe('goku', 500), b = foe('goku', 500); for (const q of [a, b]) { q.y = 100; q.onGround = q.grounded = false }
+  for (let i = 0; i < 10; i++) { stamp(b, 'submerged'); for (const q of [a, b]) { physics.moveFighter(q, { d: true }, CONTROLS); physics.applyGravity(q) } }
+  assert(Math.abs((b.x - 500) / (a.x - 500) - 0.8) < 0.02, `swimming horizontal ×0.8 (${(b.x - 500) / (a.x - 500)})`)
+  let mx = 0; for (let i = 0; i < 40; i++) { stamp(b, 'submerged'); const y0 = b.y; physics.moveFighter(b, {}, CONTROLS); physics.applyGravity(b); mx = Math.max(mx, b.y - y0) }
+  assert(mx <= 3 + 1e-9, `sink ≤ 3 px/f (${mx})`)
+})
+test('7. SWIM STROKE: Jump = +3 px/f up for 12f; no jump / double jump spent, none refilled; air dash + air jump disabled', () => {
+  const q = foe('goku', 500); const ys = []
+  for (let i = 0; i < 14; i++) { stamp(q, 'submerged'); physics.moveFighter(q, i === 0 ? { w: true } : {}, CONTROLS); physics.applyGravity(q); ys.push(q.y) }
+  for (let i = 1; i < 12; i++) assert(Math.abs(ys[i - 1] - ys[i] - 3) < 1e-9, 'stroke frame ' + i); assert.equal(q.jumpCount, 0, 'no jump spent')
+  q.jumpCount = 1; for (let i = 0; i < 6; i++) { stamp(q, 'submerged'); physics.moveFighter(q, { w: i % 2 === 0 }, CONTROLS); physics.applyGravity(q) } assert.equal(q.jumpCount, 1, 'never refilled, never spent (double jump unusable)')
+  const d = foe('goku', 500); d.y = 120; d.onGround = d.grounded = false; d.dashCooldown = 0; d.airDashCount = 0
+  for (let i = 0; i < 3; i++) { stamp(d, 'submerged'); d._dashTap = true; physics.moveFighter(d, { d: true }, CONTROLS) } assert.equal(d.airDashCount || 0, 0, 'no air dash submerged')
+  const e = foe('goku', 500); e.y = 120; e.onGround = e.grounded = false; e.dashCooldown = 0; e.airDashCount = 0; e._dashTap = true; physics.moveFighter(e, { d: true }, CONTROLS); assert.equal(e.airDashCount, 1, 'control: the air dash works dry')
+})
+test('7. knockback ×0.8 / launch ×0.75 on a SUBMERGED target (hitstun unchanged); dry + waterborne untouched', () => {
+  const hit = (depth, key, wb = false) => { const f = ben(), t = foe(); reset(f, t, 10); if (depth) stamp(t, depth, wb); melee(f, t, key); return { vx: t.vx, vy: t.vy, hs: t.hitstun } }
+  const d = hit(null, 'heavy'), w = hit('submerged', 'heavy'); assert(Math.abs(w.vx / d.vx - 0.8) < 1e-9, 'knockback ×0.8'); assert.equal(w.hs, d.hs, 'hitstun unchanged')
+  const dl = hit(null, 'up'), wl = hit('submerged', 'up'); assert(Math.abs(wl.vy / dl.vy - 0.75) < 1e-9, 'launch ×0.75')
+  const ww = hit('submerged', 'heavy', true); assert.equal(ww.vx, d.vx, 'waterborne: ordinary physics'); const wa = hit('wading', 'heavy'); assert.equal(wa.vx, d.vx, 'wading: unchanged')
+})
+test('7. projectiles under the line ×0.75; above the line, beams, floor waves, rect boxes and his Water Jet unaffected; no clock / polling change', () => {
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); const lineY = FL.floodLineY(r)
+  const mk = (y, extra = {}) => ({ name: 'ki_blast', owner: t, x: 800, y, vx: -8, vy: 0, w: 20, h: 20, lifetime: 60, ...extra })
+  const list = [mk(lineY + 40), mk(lineY - 40), mk(lineY + 40, { name: 'kamehameha_beam' }), mk(lineY + 40, { grounded: true }), mk(lineY + 40, { rectHitbox: true }), mk(lineY + 40, { owner: f, alien: { rj: 'jet' } })]
+  const api = { getOpponent: () => t, activeProjectiles: () => list }, x0 = list.map(p => p.x), fr0 = FRAME
+  for (let i = 0; i < 10; i++) { FL.tickBenFlood(f, ctxOf(f, t), api); for (const p of list) { p.x += p.vx; p.y += p.vy } }
+  const dx = list.map((p, i) => (p.x - x0[i]) / -80); assert(Math.abs(dx[0] - 0.75) < 1e-9, 'below ×0.75'); for (let i = 1; i < dx.length; i++) assert.equal(dx[i], 1, 'unaffected #' + i)
+  assert.equal(FRAME, fr0, 'no clock change')
+})
+test('8. Ripjaws edge: wading +10 % dmg / +15 % speed (land frames); submerged +15 % dmg, swim ×1.4 in 8 directions, no gravity, tail frames, no breath', () => {
+  const f = ben(), t = foe(); const base = f._benWalkSpeed; flood(f, t); world(f, t, 1); assert.equal(S(f).depth, 'wading'); assert.equal(f._skinAnim, R.ANIM_LAND)
+  assert(Math.abs(f._benWalkSpeed / base - 1.15) < 1e-9, 'speed +15 %'); reset(f, t, 10); const hpW = melee(f, t, 'heavy')
+  const g = ben(), u = foe(); flood(g, u, { level: 2 }); world(g, u, 1); assert.equal(S(g).depth, 'submerged'); assert.equal(g._skinAnim, R.ANIM_WATER, 'tail frames')
+  reset(g, u, 10); g.y = 410 - g.h; const hpS = melee(g, u, 'heavy'); const d = ben(), v = foe(); reset(d, v, 10); const hpD = melee(d, v, 'heavy')
+  assert(Math.abs(hpW / hpD - 1.10) < 0.05 && Math.abs(hpS / hpD - 1.15) < 0.05, `dmg ${hpD} / ${hpW} / ${hpS}`)
+  ready(g); world(g, u, 1, { right: true, up: true })   // the glide is integrated the frame after the tick sets it
+  const y0 = g.y, x0 = g.x; world(g, u, 10, { right: true, up: true }); const v8 = R.swimSpeed(S(g)) / Math.SQRT2
+  assert(Math.abs((g.x - x0) - v8 * 10) < 1e-6 && Math.abs((y0 - g.y) - v8 * 10) < 1e-6, `diagonal swim at ×1.4 (dx ${g.x - x0} dy ${y0 - g.y} want ${v8 * 10}; y0 ${y0} surf ${FL.waterOf(g).lineY})`); assert(Math.abs(R.swimSpeed(S(g)) / S(g).baseSpeed - 1.4) < 1e-9)
+  world(g, u, 1); const y1 = g.y; world(g, u, 20); assert.equal(g.y, y1, 'no gravity while swimming (also treading at the surface)'); assert.equal(g._skinAnim, R.ANIM_WATER); assert.equal(g.jumpCount, 0, 'swimming never touches jumps')
+  assert.equal(FL.waterOf(g).wb, true, 'waterborne → no breath (Phase 5)')
+})
+
 //@@NEXT@@
 console.log(`RIPJAWS: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

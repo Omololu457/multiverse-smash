@@ -48,7 +48,7 @@ export const RIPJAWS = {
     air:    normal(30, 7, 4, 12, 2, { rangeX: 90 })                                              // fall frame + bite
   },
   anim: ANIM_LAND,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt,
   drawHud: (...a) => drawRipjawsHud(...a), drawFx: (...a) => drawRipjawsFx(...a)
 }
 
@@ -219,6 +219,36 @@ TICKS.push(function tickStorm(f, s, input, ctx, api, opp) {
     else if (canStartFlood(f, [f, opp].filter(Boolean))) startFlood(f, { arenaTopY: s.arenaTopY }, [f, opp].filter(Boolean), (s.seed ^ Math.imul(s.frame | 0, 2654435761)) >>> 0)
   }
   if (st.t >= STORM_TOTAL) s.storm = null
+})
+
+// ── 4. WATER EDGE (his own form rules; the flood stamps his depth like everyone's, but he is WATERBORNE) ──────────
+// WADING: damage +10 %, speed +15 % (land frames). SUBMERGED: damage +15 %, full SWIM — 8-direction steering at ×1.4 of his
+// walk speed, no gravity (the reused `_benGlide` field: stage + floor clamped), swim / tail frames (the `_skinAnim` frame-set
+// swap), no breath. Swimming never touches jumps; at the surface Jump leaps him out (an ordinary jump). Specials keep their
+// normal costs. Faster, not tankier: no armor, no invulnerability. Mirror: each Ripjaws gets these from his own form.
+export const RJ_EDGE = { WADE_DMG: 1.10, WADE_SPD: 1.15, SUB_DMG: 1.15, SWIM: 1.4, SURFACE: 0.4 }
+function damageDealt(f, target, raw) {
+  const s = rjState(f); if (!s) return raw
+  return raw * (s.depth === "wading" ? RJ_EDGE.WADE_DMG : s.depth === "submerged" ? RJ_EDGE.SUB_DMG : 1)
+}
+export const swimSpeed = s => (s.baseSpeed ?? 6) * RJ_EDGE.SWIM
+TICKS.push(function tickWater(f, s, input) {
+  const w = waterOf(f); s.depth = w ? w.depth : "dry"
+  // swimming = submerged, or already swimming and treading at the surface (head out, feet under, off the floor)
+  const sub = s.depth === "submerged" || (!!s.swimming && s.depth === "wading" && !grounded(f))
+  const want = sub ? ANIM_WATER : ANIM_LAND; if (f._skinAnim !== want) f._skinAnim = want; s.set = sub ? "water" : "land"
+  const k = s.depth === "wading" ? RJ_EDGE.WADE_SPD : 1
+  if (s.baseSpeed != null) f._benWalkSpeed = s.baseSpeed * k
+  if (s.baseDash != null) f.dashSpeed = s.baseDash * k
+  if (!sub) { if (s.swimming) { delete f._benGlide; s.swimming = false } return }
+  const surfaceY = w.lineY - (f.h || 100) * RJ_EDGE.SURFACE          // the highest he swims: head and shoulders out
+  const jumpEdge = !!(input.jump || input.up) && !s.jumpPrev; s.jumpPrev = !!(input.jump || input.up)
+  if (jumpEdge && f.y <= surfaceY + 2) { if (s.swimming) { delete f._benGlide; s.swimming = false } return }   // leap out (an ordinary jump)
+  let dx = (input.right ? 1 : 0) - (input.left ? 1 : 0), dy = (input.down ? 1 : 0) - ((input.up || input.jump) ? 1 : 0)
+  if (f.attacking || busy(s) || (f.hitstun || 0) > 0) { dx = 0; dy = 0 }
+  const n = Math.hypot(dx, dy) || 1, v = swimSpeed(s)
+  f._benGlide = { vx: dx / n * v, vy: dy / n * v, minY: surfaceY }; s.swimming = true
+  if (dx) f.facing = dx > 0 ? 1 : -1
 })
 
 //@@SECTIONS@@

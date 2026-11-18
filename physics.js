@@ -57,7 +57,14 @@ export const physics = {
     // READY-form SLOW status (ADD_ALIEN.md; Arcticguana Frost Cloud): a ready form's tick stamps its OPPONENT with
     // `_benSlow = { ttl, k }` each frame it lasts (ttl lapses on its own here) → walk / run and dash / air dash ×k. Input polling
     // and the clock are untouched. Absent for everyone else → ×1 → byte-identical.
-    const _benSlowK = (fighter._benSlow && fighter._benSlow.ttl > 0) ? (fighter._benSlow.ttl--, fighter._benSlow.k) : 1
+    const _benSlowK0 = (fighter._benSlow && fighter._benSlow.ttl > 0) ? (fighter._benSlow.ttl--, fighter._benSlow.k) : 1
+    // READY-form WATER (ADD_ALIEN.md; Ripjaws STORM TIDE, benFlood.js): while a flood exists it stamps every fighter with
+    // `_benWater = { ttl, depth, wb }` each frame (ttl lapses here). A NON-waterborne fighter WADING: walk / run ×0.9;
+    // SUBMERGED: walk ×0.75 on the floor, ×0.8 swimming, Jump = a SWIM STROKE (no jump spent / refilled), no air dash or air
+    // jump. Absent (no flood, or waterborne) → ×1 → byte-identical.
+    const _benW = (fighter._benWater && fighter._benWater.ttl > 0) ? (fighter._benWater.ttl--, fighter._benWater) : null
+    const _benSub = !!(_benW && !_benW.wb && _benW.depth === "submerged")
+    const _benSlowK = _benSlowK0 * (!_benW || _benW.wb ? 1 : _benW.depth === "wading" ? 0.9 : _benSub ? (fighter.onGround ? 0.75 : 0.8) : 1)
 
     // ── BEN 10 OMNITRIX (self-driving setup) ──────────
     // Auto-setup on first frame from the player's chosen 5-alien loadout, then
@@ -232,10 +239,10 @@ export const physics = {
       // BEN 10 GROUNDED status (ADD_ALIEN.md; Jetray Neuroshock): `_benGrounded = { ttl, air }` stamped on the OPPONENT each
       // frame it lasts → no air dash, no double jump, air drift ×air. Absent for everyone else → byte-identical.
       const _benGr = fighter._benGrounded && fighter._benGrounded.ttl > 0
-      const maxAirDash = _benGr ? 0 : (mobility === "very_high") ? 2 : 1
+      const maxAirDash = (_benGr || _benSub) ? 0 : (mobility === "very_high") ? 2 : 1   // submerged in a STORM TIDE flood: no air dash
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
-        const adSpd = (fighter.dashSpeed || 14) * 0.8 * _benSlowK   // × Ben-form slow (1 unless stamped)
+        const adSpd = (fighter.dashSpeed || 14) * 0.8 * _benSlowK0   // × Ben-form slow (1 unless stamped)
         // ICHIGO 8-WAY AERIAL DASH (traits.directionalDash): the air-dash follows the HELD direction
         // (up / down / diagonals), not just facing. Diagonals are length-normalized so a diagonal dash
         // isn't faster than a cardinal one. _dashDirIdx maps to the ichigo_dash_But_in_different_directions
@@ -325,8 +332,11 @@ export const physics = {
       const launcherJC = !!(fighter.attacking && fighter.currentAttack &&
                             fighter.currentAttack.launcher && fighter.currentAttack.hasHit)
       const suppressJumpForUpAttack = fighter.onGround && attackHeld && !launcherJC
-      const canJump = fighter.canJump !== false && !((fighter._benPinT || 0) > 0) && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror && !(_benGr && fighter.jumpCount >= 1)   // Ben 10 Grounded: first jump only · Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
+      const canJump = fighter.canJump !== false && !((fighter._benPinT || 0) > 0) && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror && !(_benGr && fighter.jumpCount >= 1) && !_benSub   // Ben 10 Grounded: first jump only · Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
 
+      // SUBMERGED (STORM TIDE, non-waterborne): Jump is a SWIM STROKE — +3 px/f up for 12f (applyGravity), spends no jump,
+      // no double jump, refills nothing (landing refills as normal). canJump is false while submerged.
+      if (_benSub && U && !fighter.jumpHeld) { fighter._benStrokeT = 12; fighter.jumpHeld = true; fighter.onGround = false; fighter.grounded = false }
       if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
         if (launcherJC) {
           // Cancel the launcher's recovery into this pursuit jump.
@@ -482,7 +492,13 @@ export const physics = {
     // JUGGLE GRAVITY (MK-feel Stage 1b): each air hit landed on a juggled opponent bumps their
     // juggleCount (combat.js), which RAMPS gravity here — every successive air hit drops the target
     // faster, so juggles self-terminate instead of floating forever. Reset to 0 on ground contact below.
-    fighter.vy += this.gravity * (1 + (fighter.juggleCount || 0) * 0.12)
+    // SUBMERGED in a STORM TIDE flood (non-waterborne, benFlood.js): gravity becomes a slow sink (≤ 3 px/f; they still stand
+    // on the floor) and a swim stroke rises 3 px/f for its 12f. Field-gated → byte-identical without a flood.
+    const _benSubG = !!(fighter._benWater && fighter._benWater.ttl > 0 && !fighter._benWater.wb && fighter._benWater.depth === "submerged")
+    if (!_benSubG && fighter._benStrokeT) delete fighter._benStrokeT
+    if (_benSubG && (fighter._benStrokeT || 0) > 0) { fighter._benStrokeT--; fighter.vy = -3 }
+    else if (_benSubG) fighter.vy = Math.min(fighter.vy + this.gravity * (1 + (fighter.juggleCount || 0) * 0.12), 3)
+    else fighter.vy += this.gravity * (1 + (fighter.juggleCount || 0) * 0.12)
     if (fighter.vy > this.maxFallSpeed) fighter.vy = this.maxFallSpeed
     // Anchor Heel caps actual displacement as well as the saved velocity.
     if (fighter.rosterKey === 'luffy' && fighter.currentAttack?.lf?.kind === 'anchor') fighter.vy = Math.min(fighter.vy, 18)

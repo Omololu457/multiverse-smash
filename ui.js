@@ -3566,6 +3566,7 @@ export function drawProjectiles(ctx, projectiles = [], camera = null) {
   projectiles.forEach(p => {
     const x = p.x ?? 0
     const y = p.y ?? 0
+    if (p.alien && p.alien.hidden) return   // Ben 10 ready-form hitbox drawn by its own form module (Wildvine); tag nothing else sets
     _drawProjectileTrail(ctx, p, x, y)   // HIT FEEL (Phase B): lagging velocity trail, behind the projectile body
 
     // OPTIONAL SPRITE HOOK (Task 3): if the projectile carries a `sheet` (a

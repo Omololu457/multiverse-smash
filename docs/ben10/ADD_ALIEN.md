@@ -153,9 +153,10 @@ nothing else sets); a form that defines none of them takes exactly the old path,
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form
-(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, …); adding a ready alien adds a CHOICE, never a dial slot.
+(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, …); adding a ready alien adds a CHOICE, never a dial slot.
 Brainstorm (2026-11-17) was briefed as a new slot 9 (↓↓ + Block+Light+Special chord); under PICK FIVE it is a pick instead (registry `slot: 9` is catalog metadata only), so no slot count, chord, HUD or Vow change was made.
 Terraspin (2026-11-17) was briefed as a new slot 10 (↓↓ + Block+Heavy+Special chord); under PICK FIVE it is a pick as well (registry `slot: 10` is catalog metadata only) — no slot count, chord, HUD or Vow change.
+Wildvine (2026-11-17) was briefed as a new slot 11 (↓↓ + Block+Light+Heavy chord); under PICK FIVE it is a pick as well (registry `slot: 11` is catalog metadata only) — no slot count, chord, HUD or Vow change.
 (Eyeguy briefly raised the count 5 → 6 with a ↓↓ + Ultimate slot and Ghostfreak 6 → 7 with ↓↓ + Up-Attack; the owner
 reverted both to pick-five. Their dial branches stay in game.js, gated on `BEN10_SLOT_COMBOS.length`, so they are dormant.)
 
@@ -234,3 +235,15 @@ is replaced by a copy moving away at 70% — ownership unchanged), `struck` (Tho
 attacker per spin, cannot KO; Shell Guard marks the melee hit), `damageTaken` (Shell Guard: that hit at 40%), `blockHeavy`
 (Shell Guard), `bodyOffset` / `targetOffset` (normals' lunge, ult spin-in + held lift), `drawHud` (Pressure gauge) / `drawFx` /
 `drawUnder` (ult stage dim).
+
+### Wildvine hooks (added with Wildvine, 2026-11-17)
+
+Same contract: optional, backward-compatible, ben10-gated (a fighter field / projectile tag nothing else sets, or a registry
+field only a ready form defines); a form that does not use them takes exactly the old path.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `_benRootT` ROOT lease (frames, set by a form on its OPPONENT) | physics.js `moveFighter`: decremented next to `_benTerrorT`, and joins `canMove` | while > 0 the fighter cannot walk, run, dash or jump (exactly the `canMove = false` branch: friction only, gravity unchanged); guard, normals, specials, input polling and the clock are untouched. A 2-frame lease: the owner's form tick re-stamps it (to 2) every frame the root lasts, so swap / revert / KO end it within 2 frames. Absent for everyone else → byte-identical. Wildvine: Snare Vine (30f) and ROOTED (36f). |
+| `drainMult` as a FUNCTION `(fighter) => number` | fighters.js `updateTransformDevice` (the existing `drainMult` read) | a number keeps working exactly as before (Alien X ×1.5); a function is called with the fighter each drain step. Wildvine: ×0.9 while FULL BLOOM lasts, else ×1. |
+| projectile tag `alien.hidden: true` | ui.js `drawProjectiles`, first line of the per-projectile body | the hitbox is not drawn by the generic renderer (the form module draws its own plant / vine / thorn FX). Only a ready form's `alien` tag can carry it. |
+| OWNER-LIMITED PLANTED OBJECTS (pattern, no engine hook) | the form's own `tick` + `drawUnder` | plants are plain records in `formState.garden` ({ id, type, x, y, t, cast, consumed, by }) with a fixed position, growth stage and lifetime; contact is a rectangle test in the form tick (never solid collision — no walls / floor changes), consumed through ONE gate (`consumePlant`) so a plant fires at most once even with simultaneous contacts; damage goes through a hidden `api.spawnProjectile` hitbox (blocking, scaling and hit effects stay the engine's). Cleared with the formState on swap / revert / KO / rematch / round end. |

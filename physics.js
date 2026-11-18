@@ -163,6 +163,10 @@ export const physics = {
     // jump / double jump, walk ×0.6. Undefined for everyone else → unchanged.
     const _benTerror = fighter._benTerrorT > 0
     if (_benTerror) fighter._benTerrorT--
+    // Ben 10 ROOT (Wildvine Snare Vine / ROOTED; a 2-frame lease on the VICTIM, re-stamped by the owner's form tick): no walk /
+    // run / dash / jump — joins canMove below; guard, normals and specials are untouched. Undefined for everyone else → unchanged.
+    const _benRoot = fighter._benRootT > 0
+    if (_benRoot) fighter._benRootT--
     const dash = (!!keys[controls.dash] || !!fighter._dashTap) && !fighter.noDash && !_benTerror
     fighter._dashTap = false   // one-shot: consume the double-tap this frame
 
@@ -175,6 +179,7 @@ export const physics = {
       fighter.blockstun > 0 ||
       fighter.isGrabbed ||
       fighter._rooted ||          // opt-in root (e.g. Sasuke's lightning handseals) — defaults falsy → no effect
+      _benRoot ||                 // Ben 10 ready-form ROOT lease (Wildvine) — undefined for everyone else → no effect
       fighter.isCharging ||       // UNIVERSAL: holding a charge = fully committed → no walk/jump/dash (every char)
       fighter._forcedDescent ||   // Omni-Man crashing out of the sky (Smart Atoms depleted) — no control
       (fighter._descentLandTimer > 0) ||   // …and the crash-landing recovery window — fully vulnerable

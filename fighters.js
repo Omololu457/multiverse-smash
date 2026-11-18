@@ -1899,7 +1899,8 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
     const strong = alien ? Math.max(0.6, (alien.maxHealth || 1000) / 1000) : 1   // titans drain faster
     let drain = TRANSFORM_ENERGY.DRAIN_PER_SEC * (1 + (strong - 1) * TRANSFORM_ENERGY.STRONG_FORM_SCALE)
     if (fighter.attacking && fighter.currentAttack) drain += TRANSFORM_ENERGY.ATTACK_DRAIN_BONUS
-    drain *= _readyDef(fighter.activeAlien)?.drainMult ?? 1   // optional per-alien drain multiplier (Alien X ×1.5: deliberation is costly); 1 for every other form
+    { const _dm = _readyDef(fighter.activeAlien)?.drainMult   // optional per-alien drain multiplier (Alien X ×1.5: deliberation is costly); 1 for every other form
+      drain *= typeof _dm === "function" ? _dm(fighter) : (_dm ?? 1) }   // …or a function of the fighter (Wildvine Full Bloom ×0.9 while it lasts)
     if (omx.vowActive) drain *= TRANSFORM_ENERGY.VOW_DRAIN_MULT
     fighter.energy = Math.max(0, (fighter.energy || 0) - drain * dt)
   }

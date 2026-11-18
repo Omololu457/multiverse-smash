@@ -285,7 +285,9 @@ function tickPounce(f, s, api) {
   const P = WM_POUNCE, tr = p.t - P.STARTUP
   if (!p.hitT && tr >= 1 && tr <= P.TRAVEL) {
     f.x = clampX(s, f, p.x0 + p.dx * tr / P.TRAVEL); f.vx = 0
-    hitbox(f, api, "wm_pounce", p.face, { damage: P.DMG[0], spawnX: edgeX(f, p.face), spawnY: f.y + (f.h || 110) * 0.55, w: P.W, h: P.H, lifetime: 1,
+    // contact hitbox every OTHER frame, 2f life: the live projectile pass expires a 1f box before it can connect, and
+    // non-overlapping 2f boxes can never double-hit
+    if (tr % 2 === 1 || tr === P.TRAVEL) hitbox(f, api, "wm_pounce", p.face, { damage: P.DMG[0], spawnX: edgeX(f, p.face), spawnY: f.y + (f.h || 110) * 0.55, w: P.W, h: P.H, lifetime: 2,
       hitstun: 20, blockstun: 12, knockbackX: 0.5, knockbackY: 0, noHitstop: true, alien: { wm: "pounce", k: 0, cast: p.cast, scent: true } })
     if (tr === P.TRAVEL) { p.end = p.t + P.RECOVERY; f.attackCooldown = P.RECOVERY; f._benPowerCommit = P.RECOVERY }   // whiff: 24f recovery
   }
@@ -448,7 +450,7 @@ function tickRush(f, s, api, opp) {
     if (u.blocked) endRun(f, s)
     else if (!u.carry) {
       f.x = clampX(s, f, f.x + face * R.SPEED)
-      hitbox(f, api, "wm_rush", face, { damage: R.DMG, spawnX: edgeX(f, face), spawnY: f.y + (f.h || 110) * 0.6, w: R.W, h: R.H, lifetime: 1,
+      if (u.r % 2 === 1) hitbox(f, api, "wm_rush", face, { damage: R.DMG, spawnX: edgeX(f, face), spawnY: f.y + (f.h || 110) * 0.6, w: R.W + R.SPEED, h: R.H, lifetime: 2,
         hitstun: 16, blockstun: blockstunFor(R.RECOVERY, R.ON_BLOCK), knockbackX: 0.01, knockbackY: 0, noHitstop: true,
         alien: { wm: "rush", k: 0, cast: u.cast, scent: true } })
     } else if (opp && !opp.eliminated) {
@@ -458,7 +460,7 @@ function tickRush(f, s, api, opp) {
       s.stats.rushCarry = Math.max(s.stats.rushCarry, Math.abs(opp.x - u.from))
       if (u.hits < R.N && u.r - u.lastHit >= R.EVERY) {
         u.lastHit = u.r; u.hits++
-        hitbox(f, api, "wm_rush", face, { damage: R.DMG, spawnX: edgeX(f, face), spawnY: f.y + (f.h || 110) * 0.6, w: R.W + 30, h: R.H, lifetime: 1,
+        hitbox(f, api, "wm_rush", face, { damage: R.DMG, spawnX: edgeX(f, face), spawnY: f.y + (f.h || 110) * 0.6, w: R.W + 30, h: R.H, lifetime: 2,
           hitstun: 16, blockstun: 10, knockbackX: 0.01, knockbackY: 0, noHitstop: true, alien: { wm: "rush", k: u.hits - 1, cast: u.cast, scent: true } })
       }
       if (!u.wall && atWall(s, opp)) {                                       // WALL BONUS (once) + wall-bounce
@@ -496,8 +498,8 @@ function tickDive(f, s, api) {
   d.lastY = f.y
   if (landed || d.t >= WM_DIVE.MAX) { endDive(f, s, landed); return }
   f._benGlide = { vx: d.face * WM_DIVE.SPEED, vy: WM_DIVE.SPEED }
-  if (!d.hit) hitbox(f, api, "wm_dive", d.face, { damage: WM_DIVE.DMG, spawnX: cx(f) + d.face * 18, spawnY: f.y + (f.h || 110) * 0.7, w: WM_DIVE.W, h: WM_DIVE.H,
-    lifetime: 1, hitstun: 26, blockstun: 12, knockbackX: 5, knockbackY: -3, alien: { wm: "dive", cast: d.cast } })
+  if (!d.hit && d.t % 2 === 0) hitbox(f, api, "wm_dive", d.face, { damage: WM_DIVE.DMG, spawnX: cx(f) + d.face * 18, spawnY: f.y + (f.h || 110) * 0.7, w: WM_DIVE.W, h: WM_DIVE.H + WM_DIVE.SPEED,
+    lifetime: 2, hitstun: 26, blockstun: 12, knockbackX: 5, knockbackY: -3, alien: { wm: "dive", cast: d.cast } })
   f._spriteCastMove = "wmDive"; f._spriteCastTimer = 2
 }
 function endDive(f, s, landed) {

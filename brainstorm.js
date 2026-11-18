@@ -252,7 +252,7 @@ let api0 = null   // the last api handed to the tick (contact hooks get none); o
 // dome is fully up. Closing: refused.
 export const LIGHTNING = new Set(["bolt", "burst", "overcharge"])
 function pickSpecial(f, s) {
-  const dir = f._specialHeldDir || null
+  const dir = (f._specialHeldDir === "N" ? null : f._specialHeldDir) || null   // "N" = neutral (harness spelling)
   const air = !(f.onGround || f.grounded)
   if (air) return (dir === null || dir === "F" || dir === "D") ? "overcharge" : null
   if (dir === "B") return "burst"

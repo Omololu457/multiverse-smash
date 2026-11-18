@@ -15,6 +15,7 @@ import { UPGRADE } from "./upgrade.js"
 import { HUMONGOUSAUR } from "./humongousaur.js"
 import { FEEDBACK } from "./feedback.js"
 import { ARCTICGUANA } from "./arcticguana.js"
+import { BENWOLF } from "./benwolf.js"
 import { BIGCHILL } from "./bigchill.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -57,7 +58,8 @@ export const BEN10_ALIEN_REGISTRY = [
   HUMONGOUSAUR, // READY (2026-11-18): light-blue labeled sheet + ledger; Vaxasaurian bruiser (Growth tiers NORMAL → LARGE → HUGE → GIANT → Shrink / Tremor → Topple / Extinction Event); a NEW entry, a PICK-FIVE choice (catalog slot 15 — no new dial slot)
   FEEDBACK,    // READY (2026-11-18): Dragonrod sheet + ledger; Conductoid (Charge / Plug Guard → Return Fire / Drain → Blackout / Full Feedback); key feedback_ov (the experimental `feedback` below is untouched), a PICK-FIVE choice (catalog slot 16 — no new dial slot)
   ARCTICGUANA, // READY (2026-11-18): Dragonrod sheet + Frozone ice-FX folder + ledger; Cryoreptile (Frost Coat / Chill → Popsicle → Shatter / Absolute Popsicle); a NEW entry, a PICK-FIVE choice (catalog slot 17 — no new dial slot)
-  BIGCHILL, // READY (2026-11-18): DS Vilgax Attacks sheet + the shared Arcticguana ice FX + ledger; Necrofriggian (flight / Phase Drift / shared Chill → Popsicle → Shatter / Frozen Sky); a NEW entry, a PICK-FIVE choice (catalog slot 18 — no new dial slot)
+  BENWOLF,     // READY (2026-11-18): Dragonrod sheet + ledger; Loboan hunter (Scent → Hunted / Sonic Howl ring loop / Howling Moon → Full Moon buff); a NEW entry, a PICK-FIVE choice (catalog slot 18 — no new dial slot)
+  BIGCHILL, // READY (2026-11-18): DS Vilgax Attacks sheet + the shared Arcticguana ice FX + ledger; Necrofriggian (flight / Phase Drift / shared Chill → Popsicle → Shatter / Frozen Sky); a NEW entry, a PICK-FIVE choice (catalog slot 19 — no new dial slot)
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",

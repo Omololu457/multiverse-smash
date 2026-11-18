@@ -407,9 +407,35 @@ Frost Cloud (×0.8 for 60f, once).
 
 Gotcha: a form-owned freeze must ignore damage from the cast that froze (or end that cast), or a multi-tick move melts its
 own Popsicle on the next tick.
+
+### BenWolf (Loboan) — `benwolf`, READY (2026-11-18)
+
+Module `benwolf.js`, art `benwolfAssets.js` (sliced by `tools/ben10/slice_benwolf.py`, **Sheet by Dragonrod**), ledger
+`docs/ben10/aliens/benwolf/SPRITE_LEDGER.md`. Registry catalog **slot 18** (contiguous after Arcticguana 17); he is picked into
+the loadout and reached with the Dial (↓↓ + slot key). The brief asked for dial slot 18 by raising the slot count: **not done**
+(owner decision: PICK FIVE, `BEN10_SLOT_COUNT` stays 5). **No new hook.**
+
+⚠ Slot conflict: the unmerged `feat/ben10-bigchill` branch (another session) also claims catalog slot 18 — whichever merges
+second renumbers to 19 (the contiguity test in each harness will flag it).
+
+| Mechanic | Hook reused |
+|---|---|
+| stats 1.15 / 1.05 / 0.95 / weight 0.85, double jump | registry `mods` + `maxJumps` (shared Omnitrix health) |
+| motion inputs 623 / 412 / 214 / 236, →→ / ←← | his own numpad history in `tick` (directions RELATIVE TO THE OPPONENT — a ← tap turns the fighter, so facing-relative ←← never registers) |
+| SCENT pips → HUNTED (+10% dmg, re-aim, 360f immunity) | `onContact` (`alien.bw` tags, one pip per cast id) + `damageDealt` + `tick` |
+| Sonic / Low / Rising Howl rings (latching, tick budget) | `api.spawnProjectile` for the visual + hidden hitboxes (`lifetime ≥ 2`, `alien.hidden`); `hitLevel` lives in `alien.hitLevel` (the api copies only `alien`) |
+| Claw Rake / Pounce / Dive Claw | `_benLunge` / `_benGlide` + `_benPowerCommit`; knockdown trio |
+| Lupine Dodge (i-frames 4–10, 300f cd) | `invulnTimer` |
+| FULL MOON (×1.20 dealt, ×0.85 taken, ×1.15 speed / jump, ×0.75 drain, ×1.5 regen, −1f startup) | `damageDealt` / `damageTaken` / `drainMult` (function form) / `moveFrames` + stats rescaled from `s.base` each tick |
+| HOWLING MOON (opener → claws → Lunar Pounce, 240 raw, whiff = 300f moon) | `fireUltimate` + `scheduleBenSpawn` + `onContact` + `api.focusCamera`; claw angles = pure `ultClaws(seed, frame, player)` |
+| the NIGHT (tint, stars, pixel moon, rim glow) / HUD moon bar / Hunted paw print | `drawUnder` / `drawFx` / `drawHud` — render-only (night level in a render-local WeakMap, never GAME_STATE) |
+
+Gotcha: the API copies only `alien` / `fire` / `hb*` onto a spawned projectile — custom fields (e.g. `hitLevel`) must live under
+`alien`.
+
 ### Big Chill (added 2026-11-18) — key `bigchill`
 
-READY Necrofriggian, catalog slot 18 (PICK FIVE: no new dial slot; Arcticguana holds 17). Reuses: the per-alien flight
+READY Necrofriggian, catalog slot 19 (PICK FIVE: no new dial slot; Arcticguana holds 17, BenWolf 18). Reuses: the per-alien flight
 profile (`FLIGHT_PROFILES.bigchill`, data only), Arcticguana's ice status, Ghostfreak's intangibility tag tests
 (`isEnergyMelee` / `isEnergyProjectile`) through the existing `evade` / `phasing` / `bodyAlpha` hooks, `damageTaken`,
 `_benGlide`, `targetOffset`, `onContact` / projectile `alien` tags.
@@ -434,7 +460,7 @@ opponent, so the cast that delivers the 3rd pip does not thaw its own freeze. An
 Frost Wing Cut still shatter.
 
 Slot: the brief asked for slot 17 + a raised dial slot count; on 2026-11-18 the owner chose PICK FIVE (no slot-count
-change). Arcticguana already holds catalog slot 17, so Big Chill is catalog slot 18 (ready slots stay contiguous) and is
+change). Arcticguana holds catalog slot 17 and BenWolf 18, so Big Chill is catalog slot 19 (ready slots stay contiguous) and is
 picked into the 5-slot loadout and reached with the Dial (↓↓ + slot key) like every other pick.
 
 Tests: `npm run test:bigchill` (module harness), `test:bigchill-render` (real game, Playwright), `test:bigchill-framedata`.

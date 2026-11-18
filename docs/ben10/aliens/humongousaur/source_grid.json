@@ -1,0 +1,2356 @@
+{
+ "source": "assets/sprites/ben10/aliens/humongousaur.png",
+ "key_report": {
+  "key": [
+   0,
+   180,
+   243
+  ],
+  "keyed_exact": 2471586,
+  "fringe_removed": 114289,
+  "pockets_removed": 1252,
+  "teal_removed": 6187,
+  "teal_inside_art": 6153,
+  "specks_removed": 146,
+  "edge_pixels": 42252,
+  "edge_blue_dominant_left": 0,
+  "kept_blue_dominant_anywhere": 0,
+  "palette_collision_interior": 0,
+  "omnitrix_dot_core_kept": 899,
+  "omnitrix_dot_core_source": 901
+ },
+ "zero_tolerance_key": true,
+ "cell": [
+  152,
+  128
+ ],
+ "feetY": 126,
+ "centreX": 76,
+ "actionScale": 0.75,
+ "torso_window": 34,
+ "groups": {
+  "stand": [
+   3,
+   2,
+   4,
+   5,
+   7,
+   6
+  ],
+  "walk": [
+   9,
+   10,
+   12,
+   15,
+   13,
+   11,
+   16,
+   14
+  ],
+  "cj": [
+   21,
+   25,
+   18,
+   19,
+   20,
+   22,
+   23,
+   24
+  ],
+  "guard": [
+   27,
+   28,
+   29,
+   30
+  ],
+  "fall": [
+   33,
+   32,
+   34,
+   35
+  ],
+  "punch": [
+   37,
+   38,
+   39,
+   40
+  ],
+  "pup": [
+   48,
+   47,
+   46,
+   45,
+   41,
+   42
+  ],
+  "pback": [
+   53,
+   56,
+   54,
+   55,
+   51,
+   52
+  ],
+  "tackle": [
+   58,
+   59,
+   60,
+   61
+  ],
+  "gatk": [
+   64,
+   65,
+   66,
+   67,
+   68
+  ],
+  "gstrike": [
+   71,
+   73,
+   72,
+   76,
+   75,
+   74
+  ],
+  "crush": [
+   78,
+   79,
+   81,
+   82,
+   83,
+   80
+  ],
+  "push": [
+   87,
+   88,
+   85,
+   86,
+   89,
+   90,
+   91,
+   92
+  ],
+  "roar": [
+   95,
+   96,
+   94,
+   97,
+   98
+  ]
+ },
+ "removed_text_components": [
+  1,
+  8,
+  17,
+  26,
+  31,
+  36,
+  43,
+  44,
+  49,
+  50,
+  57,
+  62,
+  63,
+  69,
+  70,
+  77,
+  84,
+  93
+ ],
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 1,
+   "component": 3,
+   "src_bbox": [
+    19,
+    58,
+    86,
+    154
+   ],
+   "offset": [
+    38,
+    36
+   ],
+   "role": "idle (STAND f1-6 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 2,
+   "component": 2,
+   "src_bbox": [
+    101,
+    57,
+    169,
+    154
+   ],
+   "offset": [
+    38,
+    35
+   ],
+   "role": "idle (STAND f1-6 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 3,
+   "component": 4,
+   "src_bbox": [
+    182,
+    58,
+    252,
+    154
+   ],
+   "offset": [
+    37,
+    36
+   ],
+   "role": "idle (STAND f1-6 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 4,
+   "component": 5,
+   "src_bbox": [
+    264,
+    58,
+    332,
+    154
+   ],
+   "offset": [
+    37,
+    36
+   ],
+   "role": "idle (STAND f1-6 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 5,
+   "component": 7,
+   "src_bbox": [
+    346,
+    59,
+    414,
+    154
+   ],
+   "offset": [
+    37,
+    37
+   ],
+   "role": "idle (STAND f1-6 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 6,
+   "component": 6,
+   "src_bbox": [
+    428,
+    58,
+    496,
+    154
+   ],
+   "offset": [
+    37,
+    36
+   ],
+   "role": "idle (STAND f1-6 loop)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 1,
+   "component": 9,
+   "src_bbox": [
+    21,
+    211,
+    96,
+    304
+   ],
+   "offset": [
+    38,
+    39
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 2,
+   "component": 10,
+   "src_bbox": [
+    116,
+    211,
+    192,
+    304
+   ],
+   "offset": [
+    39,
+    39
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 3,
+   "component": 12,
+   "src_bbox": [
+    211,
+    212,
+    286,
+    306
+   ],
+   "offset": [
+    36,
+    39
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 4,
+   "component": 15,
+   "src_bbox": [
+    304,
+    213,
+    381,
+    305
+   ],
+   "offset": [
+    36,
+    40
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 5,
+   "component": 13,
+   "src_bbox": [
+    396,
+    212,
+    475,
+    304
+   ],
+   "offset": [
+    34,
+    41
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 6,
+   "component": 11,
+   "src_bbox": [
+    490,
+    211,
+    571,
+    303
+   ],
+   "offset": [
+    32,
+    40
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 7,
+   "component": 16,
+   "src_bbox": [
+    584,
+    213,
+    665,
+    302
+   ],
+   "offset": [
+    27,
+    43
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 8,
+   "component": 14,
+   "src_bbox": [
+    682,
+    212,
+    760,
+    304
+   ],
+   "offset": [
+    30,
+    40
+   ],
+   "role": "walk (WALK f1-8)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 8,
+   "component": 14,
+   "src_bbox": [
+    682,
+    212,
+    760,
+    304
+   ],
+   "offset": [
+    30,
+    40
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 7,
+   "component": 16,
+   "src_bbox": [
+    584,
+    213,
+    665,
+    302
+   ],
+   "offset": [
+    27,
+    43
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 6,
+   "component": 11,
+   "src_bbox": [
+    490,
+    211,
+    571,
+    303
+   ],
+   "offset": [
+    32,
+    40
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 5,
+   "component": 13,
+   "src_bbox": [
+    396,
+    212,
+    475,
+    304
+   ],
+   "offset": [
+    34,
+    41
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 4,
+   "component": 15,
+   "src_bbox": [
+    304,
+    213,
+    381,
+    305
+   ],
+   "offset": [
+    36,
+    40
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 3,
+   "component": 12,
+   "src_bbox": [
+    211,
+    212,
+    286,
+    306
+   ],
+   "offset": [
+    36,
+    39
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 2,
+   "component": 10,
+   "src_bbox": [
+    116,
+    211,
+    192,
+    304
+   ],
+   "offset": [
+    39,
+    39
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 1,
+   "component": 9,
+   "src_bbox": [
+    21,
+    211,
+    96,
+    304
+   ],
+   "offset": [
+    38,
+    39
+   ],
+   "role": "walk back - WALK REVERSED"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 1,
+   "component": 9,
+   "src_bbox": [
+    21,
+    211,
+    96,
+    304
+   ],
+   "offset": [
+    38,
+    39
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 2,
+   "component": 10,
+   "src_bbox": [
+    116,
+    211,
+    192,
+    304
+   ],
+   "offset": [
+    39,
+    39
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 3,
+   "component": 12,
+   "src_bbox": [
+    211,
+    212,
+    286,
+    306
+   ],
+   "offset": [
+    36,
+    39
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 4,
+   "component": 15,
+   "src_bbox": [
+    304,
+    213,
+    381,
+    305
+   ],
+   "offset": [
+    36,
+    40
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 5,
+   "component": 13,
+   "src_bbox": [
+    396,
+    212,
+    475,
+    304
+   ],
+   "offset": [
+    34,
+    41
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 6,
+   "component": 11,
+   "src_bbox": [
+    490,
+    211,
+    571,
+    303
+   ],
+   "offset": [
+    32,
+    40
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 7,
+   "component": 16,
+   "src_bbox": [
+    584,
+    213,
+    665,
+    302
+   ],
+   "offset": [
+    27,
+    43
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 8,
+   "component": 14,
+   "src_bbox": [
+    682,
+    212,
+    760,
+    304
+   ],
+   "offset": [
+    30,
+    40
+   ],
+   "role": "run - the WALK cycle played FASTER (speed 4 vs 7; no run art)"
+  },
+  {
+   "anim": "dash",
+   "group": "walk",
+   "frame": 3,
+   "component": 12,
+   "src_bbox": [
+    211,
+    212,
+    286,
+    306
+   ],
+   "offset": [
+    36,
+    39
+   ],
+   "role": "dash - WALK f3-5, fast"
+  },
+  {
+   "anim": "dash",
+   "group": "walk",
+   "frame": 4,
+   "component": 15,
+   "src_bbox": [
+    304,
+    213,
+    381,
+    305
+   ],
+   "offset": [
+    36,
+    40
+   ],
+   "role": "dash - WALK f3-5, fast"
+  },
+  {
+   "anim": "dash",
+   "group": "walk",
+   "frame": 5,
+   "component": 13,
+   "src_bbox": [
+    396,
+    212,
+    475,
+    304
+   ],
+   "offset": [
+    34,
+    41
+   ],
+   "role": "dash - WALK f3-5, fast"
+  },
+  {
+   "anim": "crouch",
+   "group": "cj",
+   "frame": 1,
+   "component": 21,
+   "src_bbox": [
+    21,
+    365,
+    98,
+    461
+   ],
+   "offset": [
+    34,
+    36
+   ],
+   "role": "crouch (CROUCH/JUMP f1-3: crouch down, crouch idle held on f3)"
+  },
+  {
+   "anim": "crouch",
+   "group": "cj",
+   "frame": 2,
+   "component": 25,
+   "src_bbox": [
+    124,
+    369,
+    212,
+    461
+   ],
+   "offset": [
+    33,
+    40
+   ],
+   "role": "crouch (CROUCH/JUMP f1-3: crouch down, crouch idle held on f3)"
+  },
+  {
+   "anim": "crouch",
+   "group": "cj",
+   "frame": 3,
+   "component": 18,
+   "src_bbox": [
+    233,
+    363,
+    315,
+    462
+   ],
+   "offset": [
+    35,
+    35
+   ],
+   "role": "crouch (CROUCH/JUMP f1-3: crouch down, crouch idle held on f3)"
+  },
+  {
+   "anim": "jump",
+   "group": "cj",
+   "frame": 4,
+   "component": 19,
+   "src_bbox": [
+    338,
+    364,
+    417,
+    466
+   ],
+   "offset": [
+    33,
+    31
+   ],
+   "role": "jump rise (CROUCH/JUMP f4-5) to apex (f6)"
+  },
+  {
+   "anim": "jump",
+   "group": "cj",
+   "frame": 5,
+   "component": 20,
+   "src_bbox": [
+    440,
+    364,
+    526,
+    457
+   ],
+   "offset": [
+    29,
+    39
+   ],
+   "role": "jump rise (CROUCH/JUMP f4-5) to apex (f6)"
+  },
+  {
+   "anim": "jump",
+   "group": "cj",
+   "frame": 6,
+   "component": 22,
+   "src_bbox": [
+    546,
+    366,
+    634,
+    457
+   ],
+   "offset": [
+    28,
+    42
+   ],
+   "role": "jump rise (CROUCH/JUMP f4-5) to apex (f6)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "cj",
+   "frame": 4,
+   "component": 19,
+   "src_bbox": [
+    338,
+    364,
+    417,
+    466
+   ],
+   "offset": [
+    33,
+    31
+   ],
+   "role": "double jump - REUSED jump rise f4-6"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "cj",
+   "frame": 5,
+   "component": 20,
+   "src_bbox": [
+    440,
+    364,
+    526,
+    457
+   ],
+   "offset": [
+    29,
+    39
+   ],
+   "role": "double jump - REUSED jump rise f4-6"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "cj",
+   "frame": 6,
+   "component": 22,
+   "src_bbox": [
+    546,
+    366,
+    634,
+    457
+   ],
+   "offset": [
+    28,
+    42
+   ],
+   "role": "double jump - REUSED jump rise f4-6"
+  },
+  {
+   "anim": "fall",
+   "group": "cj",
+   "frame": 7,
+   "component": 23,
+   "src_bbox": [
+    651,
+    366,
+    736,
+    457
+   ],
+   "offset": [
+    26,
+    42
+   ],
+   "role": "jump fall (CROUCH/JUMP f7-8)"
+  },
+  {
+   "anim": "fall",
+   "group": "cj",
+   "frame": 8,
+   "component": 24,
+   "src_bbox": [
+    757,
+    366,
+    838,
+    457
+   ],
+   "offset": [
+    28,
+    42
+   ],
+   "role": "jump fall (CROUCH/JUMP f7-8)"
+  },
+  {
+   "anim": "guard",
+   "group": "guard",
+   "frame": 1,
+   "component": 27,
+   "src_bbox": [
+    21,
+    504,
+    101,
+    601
+   ],
+   "offset": [
+    31,
+    35
+   ],
+   "role": "guard idle / block (GUARD f1-2)"
+  },
+  {
+   "anim": "guard",
+   "group": "guard",
+   "frame": 2,
+   "component": 28,
+   "src_bbox": [
+    128,
+    505,
+    221,
+    601
+   ],
+   "offset": [
+    28,
+    36
+   ],
+   "role": "guard idle / block (GUARD f1-2)"
+  },
+  {
+   "anim": "crouchGuard",
+   "group": "guard",
+   "frame": 2,
+   "component": 28,
+   "src_bbox": [
+    128,
+    505,
+    221,
+    601
+   ],
+   "offset": [
+    28,
+    36
+   ],
+   "role": "block while crouching - REUSED GUARD f2 (no crouch-guard art)"
+  },
+  {
+   "anim": "blockHit",
+   "group": "guard",
+   "frame": 3,
+   "component": 29,
+   "src_bbox": [
+    237,
+    511,
+    345,
+    601
+   ],
+   "offset": [
+    30,
+    42
+   ],
+   "role": "block hit (GUARD f3)"
+  },
+  {
+   "anim": "hurt",
+   "group": "fall",
+   "frame": 1,
+   "component": 33,
+   "src_bbox": [
+    21,
+    652,
+    114,
+    743
+   ],
+   "offset": [
+    33,
+    41
+   ],
+   "role": "hit react (FALL f1-2)"
+  },
+  {
+   "anim": "hurt",
+   "group": "fall",
+   "frame": 2,
+   "component": 32,
+   "src_bbox": [
+    137,
+    645,
+    229,
+    752
+   ],
+   "offset": [
+    45,
+    26
+   ],
+   "role": "hit react (FALL f1-2)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "fall",
+   "frame": 2,
+   "component": 32,
+   "src_bbox": [
+    137,
+    645,
+    229,
+    752
+   ],
+   "offset": [
+    45,
+    26
+   ],
+   "role": "hit in the air - REUSED FALL f2"
+  },
+  {
+   "anim": "knockdown",
+   "group": "fall",
+   "frame": 3,
+   "component": 34,
+   "src_bbox": [
+    247,
+    680,
+    352,
+    739
+   ],
+   "offset": [
+    50,
+    73
+   ],
+   "role": "knockdown (FALL f3) -> lying (f4)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "fall",
+   "frame": 4,
+   "component": 35,
+   "src_bbox": [
+    361,
+    695,
+    472,
+    745
+   ],
+   "offset": [
+    41,
+    82
+   ],
+   "role": "knockdown (FALL f3) -> lying (f4)"
+  },
+  {
+   "anim": "getup",
+   "group": "fall",
+   "frame": 4,
+   "component": 35,
+   "src_bbox": [
+    361,
+    695,
+    472,
+    745
+   ],
+   "offset": [
+    41,
+    82
+   ],
+   "role": "get-up - FALL f4 -> f3 REVERSED (no get-up art; the crouch follows)"
+  },
+  {
+   "anim": "getup",
+   "group": "fall",
+   "frame": 3,
+   "component": 34,
+   "src_bbox": [
+    247,
+    680,
+    352,
+    739
+   ],
+   "offset": [
+    50,
+    73
+   ],
+   "role": "get-up - FALL f4 -> f3 REVERSED (no get-up art; the crouch follows)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "guard",
+   "frame": 4,
+   "component": 30,
+   "src_bbox": [
+    354,
+    516,
+    440,
+    601
+   ],
+   "offset": [
+    35,
+    47
+   ],
+   "role": "dizzy - REUSED GUARD f4 curled guard (no dizzy pose)"
+  },
+  {
+   "anim": "transform",
+   "group": "roar",
+   "frame": 1,
+   "component": 95,
+   "src_bbox": [
+    33,
+    2032,
+    103,
+    2126
+   ],
+   "offset": [
+    43,
+    38
+   ],
+   "role": "transform-in - REUSED ROAR f1-5"
+  },
+  {
+   "anim": "transform",
+   "group": "roar",
+   "frame": 2,
+   "component": 96,
+   "src_bbox": [
+    135,
+    2032,
+    251,
+    2126
+   ],
+   "offset": [
+    18,
+    38
+   ],
+   "role": "transform-in - REUSED ROAR f1-5"
+  },
+  {
+   "anim": "transform",
+   "group": "roar",
+   "frame": 3,
+   "component": 94,
+   "src_bbox": [
+    263,
+    2031,
+    377,
+    2126
+   ],
+   "offset": [
+    20,
+    37
+   ],
+   "role": "transform-in - REUSED ROAR f1-5"
+  },
+  {
+   "anim": "transform",
+   "group": "roar",
+   "frame": 4,
+   "component": 97,
+   "src_bbox": [
+    389,
+    2032,
+    505,
+    2126
+   ],
+   "offset": [
+    18,
+    38
+   ],
+   "role": "transform-in - REUSED ROAR f1-5"
+  },
+  {
+   "anim": "transform",
+   "group": "roar",
+   "frame": 5,
+   "component": 98,
+   "src_bbox": [
+    517,
+    2033,
+    630,
+    2126
+   ],
+   "offset": [
+    19,
+    39
+   ],
+   "role": "transform-in - REUSED ROAR f1-5"
+  },
+  {
+   "anim": "taunt",
+   "group": "roar",
+   "frame": 1,
+   "component": 95,
+   "src_bbox": [
+    33,
+    2032,
+    103,
+    2126
+   ],
+   "offset": [
+    43,
+    38
+   ],
+   "role": "taunt (ROAR f1-5)"
+  },
+  {
+   "anim": "taunt",
+   "group": "roar",
+   "frame": 2,
+   "component": 96,
+   "src_bbox": [
+    135,
+    2032,
+    251,
+    2126
+   ],
+   "offset": [
+    18,
+    38
+   ],
+   "role": "taunt (ROAR f1-5)"
+  },
+  {
+   "anim": "taunt",
+   "group": "roar",
+   "frame": 3,
+   "component": 94,
+   "src_bbox": [
+    263,
+    2031,
+    377,
+    2126
+   ],
+   "offset": [
+    20,
+    37
+   ],
+   "role": "taunt (ROAR f1-5)"
+  },
+  {
+   "anim": "taunt",
+   "group": "roar",
+   "frame": 4,
+   "component": 97,
+   "src_bbox": [
+    389,
+    2032,
+    505,
+    2126
+   ],
+   "offset": [
+    18,
+    38
+   ],
+   "role": "taunt (ROAR f1-5)"
+  },
+  {
+   "anim": "taunt",
+   "group": "roar",
+   "frame": 5,
+   "component": 98,
+   "src_bbox": [
+    517,
+    2033,
+    630,
+    2126
+   ],
+   "offset": [
+    19,
+    39
+   ],
+   "role": "taunt (ROAR f1-5)"
+  },
+  {
+   "anim": "win",
+   "group": "roar",
+   "frame": 5,
+   "component": 98,
+   "src_bbox": [
+    517,
+    2033,
+    630,
+    2126
+   ],
+   "offset": [
+    19,
+    39
+   ],
+   "role": "win pose (ROAR f5)"
+  },
+  {
+   "anim": "lose",
+   "group": "fall",
+   "frame": 4,
+   "component": 35,
+   "src_bbox": [
+    361,
+    695,
+    472,
+    745
+   ],
+   "offset": [
+    41,
+    82
+   ],
+   "role": "lose pose (FALL f4 lying)"
+  },
+  {
+   "anim": "light",
+   "group": "punch",
+   "frame": 1,
+   "component": 37,
+   "src_bbox": [
+    21,
+    810,
+    115,
+    901
+   ],
+   "offset": [
+    36,
+    41
+   ],
+   "role": "JAB (PUNCH f1-2)"
+  },
+  {
+   "anim": "light",
+   "group": "punch",
+   "frame": 2,
+   "component": 38,
+   "src_bbox": [
+    141,
+    811,
+    224,
+    901
+   ],
+   "offset": [
+    37,
+    42
+   ],
+   "role": "JAB (PUNCH f1-2)"
+  },
+  {
+   "anim": "heavy",
+   "group": "punch",
+   "frame": 3,
+   "component": 39,
+   "src_bbox": [
+    262,
+    813,
+    369,
+    901
+   ],
+   "offset": [
+    33,
+    44
+   ],
+   "role": "HEAVY (PUNCH f3-4: swing with the extracted swoosh, 190 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "punch",
+   "frame": 4,
+   "component": 40,
+   "src_bbox": [
+    382,
+    813,
+    489,
+    901
+   ],
+   "offset": [
+    33,
+    44
+   ],
+   "role": "HEAVY (PUNCH f3-4: swing with the extracted swoosh, 190 px)"
+  },
+  {
+   "anim": "down",
+   "group": "gatk",
+   "frame": 2,
+   "component": 65,
+   "src_bbox": [
+    136,
+    1427,
+    229,
+    1506
+   ],
+   "offset": [
+    30,
+    53
+   ],
+   "role": "LOW (GROUND ATTACK f2-3: low swipe with dust, hits low)"
+  },
+  {
+   "anim": "down",
+   "group": "gatk",
+   "frame": 3,
+   "component": 66,
+   "src_bbox": [
+    251,
+    1428,
+    337,
+    1509
+   ],
+   "offset": [
+    23,
+    51
+   ],
+   "role": "LOW (GROUND ATTACK f2-3: low swipe with dust, hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "pup",
+   "frame": 1,
+   "component": 48,
+   "src_bbox": [
+    21,
+    971,
+    86,
+    1040
+   ],
+   "offset": [
+    50,
+    63
+   ],
+   "role": "LAUNCHER (PUNCH UP f1-6 wind-up crouch to rising fist; f5-6 uppercut)"
+  },
+  {
+   "anim": "up",
+   "group": "pup",
+   "frame": 2,
+   "component": 47,
+   "src_bbox": [
+    133,
+    958,
+    206,
+    1040
+   ],
+   "offset": [
+    39,
+    50
+   ],
+   "role": "LAUNCHER (PUNCH UP f1-6 wind-up crouch to rising fist; f5-6 uppercut)"
+  },
+  {
+   "anim": "up",
+   "group": "pup",
+   "frame": 3,
+   "component": 46,
+   "src_bbox": [
+    248,
+    955,
+    319,
+    1040
+   ],
+   "offset": [
+    38,
+    47
+   ],
+   "role": "LAUNCHER (PUNCH UP f1-6 wind-up crouch to rising fist; f5-6 uppercut)"
+  },
+  {
+   "anim": "up",
+   "group": "pup",
+   "frame": 4,
+   "component": 45,
+   "src_bbox": [
+    373,
+    950,
+    456,
+    1040
+   ],
+   "offset": [
+    37,
+    42
+   ],
+   "role": "LAUNCHER (PUNCH UP f1-6 wind-up crouch to rising fist; f5-6 uppercut)"
+  },
+  {
+   "anim": "up",
+   "group": "pup",
+   "frame": 5,
+   "component": 41,
+   "src_bbox": [
+    492,
+    913,
+    571,
+    1040
+   ],
+   "offset": [
+    45,
+    5
+   ],
+   "role": "LAUNCHER (PUNCH UP f1-6 wind-up crouch to rising fist; f5-6 uppercut)"
+  },
+  {
+   "anim": "up",
+   "group": "pup",
+   "frame": 6,
+   "component": 42,
+   "src_bbox": [
+    609,
+    915,
+    688,
+    1040
+   ],
+   "offset": [
+    46,
+    8
+   ],
+   "role": "LAUNCHER (PUNCH UP f1-6 wind-up crouch to rising fist; f5-6 uppercut)"
+  },
+  {
+   "anim": "air",
+   "group": "fall",
+   "frame": 1,
+   "component": 33,
+   "src_bbox": [
+    21,
+    652,
+    114,
+    743
+   ],
+   "offset": [
+    33,
+    41
+   ],
+   "role": "AIR - FALL f1 + a procedural render-only fist streak"
+  },
+  {
+   "anim": "grab",
+   "group": "crush",
+   "frame": 1,
+   "component": 78,
+   "src_bbox": [
+    26,
+    1735,
+    97,
+    1833
+   ],
+   "offset": [
+    39,
+    36
+   ],
+   "role": "grab - REUSED CRUSH f1-2 reach"
+  },
+  {
+   "anim": "grab",
+   "group": "crush",
+   "frame": 2,
+   "component": 79,
+   "src_bbox": [
+    136,
+    1740,
+    224,
+    1830
+   ],
+   "offset": [
+    25,
+    42
+   ],
+   "role": "grab - REUSED CRUSH f1-2 reach"
+  },
+  {
+   "anim": "hmTackle",
+   "group": "tackle",
+   "frame": 1,
+   "component": 58,
+   "src_bbox": [
+    21,
+    1260,
+    100,
+    1352
+   ],
+   "offset": [
+    35,
+    41
+   ],
+   "role": "CHARGING TACKLE (TACKLE f1-4 shoulder-first lunge)"
+  },
+  {
+   "anim": "hmTackle",
+   "group": "tackle",
+   "frame": 2,
+   "component": 59,
+   "src_bbox": [
+    126,
+    1262,
+    212,
+    1352
+   ],
+   "offset": [
+    34,
+    42
+   ],
+   "role": "CHARGING TACKLE (TACKLE f1-4 shoulder-first lunge)"
+  },
+  {
+   "anim": "hmTackle",
+   "group": "tackle",
+   "frame": 3,
+   "component": 60,
+   "src_bbox": [
+    231,
+    1266,
+    324,
+    1354
+   ],
+   "offset": [
+    32,
+    45
+   ],
+   "role": "CHARGING TACKLE (TACKLE f1-4 shoulder-first lunge)"
+  },
+  {
+   "anim": "hmTackle",
+   "group": "tackle",
+   "frame": 4,
+   "component": 61,
+   "src_bbox": [
+    338,
+    1266,
+    433,
+    1354
+   ],
+   "offset": [
+    32,
+    45
+   ],
+   "role": "CHARGING TACKLE (TACKLE f1-4 shoulder-first lunge)"
+  },
+  {
+   "anim": "hmQuake",
+   "group": "gstrike",
+   "frame": 1,
+   "component": 71,
+   "src_bbox": [
+    19,
+    1542,
+    81,
+    1672
+   ],
+   "offset": [
+    42,
+    2
+   ],
+   "role": "QUAKE SLAM (GROUND STRIKE f1 tall, f2 lean, f3 slam + dust, f4-6 aftermath)"
+  },
+  {
+   "anim": "hmQuake",
+   "group": "gstrike",
+   "frame": 2,
+   "component": 73,
+   "src_bbox": [
+    131,
+    1588,
+    248,
+    1672
+   ],
+   "offset": [
+    22,
+    48
+   ],
+   "role": "QUAKE SLAM (GROUND STRIKE f1 tall, f2 lean, f3 slam + dust, f4-6 aftermath)"
+  },
+  {
+   "anim": "hmQuake",
+   "group": "gstrike",
+   "frame": 3,
+   "component": 72,
+   "src_bbox": [
+    263,
+    1585,
+    367,
+    1673
+   ],
+   "offset": [
+    2,
+    47
+   ],
+   "role": "QUAKE SLAM (GROUND STRIKE f1 tall, f2 lean, f3 slam + dust, f4-6 aftermath)"
+  },
+  {
+   "anim": "hmQuake",
+   "group": "gstrike",
+   "frame": 4,
+   "component": 76,
+   "src_bbox": [
+    387,
+    1617,
+    488,
+    1673
+   ],
+   "offset": [
+    16,
+    76
+   ],
+   "role": "QUAKE SLAM (GROUND STRIKE f1 tall, f2 lean, f3 slam + dust, f4-6 aftermath)"
+  },
+  {
+   "anim": "hmQuake",
+   "group": "gstrike",
+   "frame": 5,
+   "component": 75,
+   "src_bbox": [
+    503,
+    1616,
+    611,
+    1673
+   ],
+   "offset": [
+    11,
+    75
+   ],
+   "role": "QUAKE SLAM (GROUND STRIKE f1 tall, f2 lean, f3 slam + dust, f4-6 aftermath)"
+  },
+  {
+   "anim": "hmQuake",
+   "group": "gstrike",
+   "frame": 6,
+   "component": 74,
+   "src_bbox": [
+    642,
+    1615,
+    736,
+    1673
+   ],
+   "offset": [
+    25,
+    74
+   ],
+   "role": "QUAKE SLAM (GROUND STRIKE f1 tall, f2 lean, f3 slam + dust, f4-6 aftermath)"
+  },
+  {
+   "anim": "hmRoar",
+   "group": "roar",
+   "frame": 1,
+   "component": 95,
+   "src_bbox": [
+    33,
+    2032,
+    103,
+    2126
+   ],
+   "offset": [
+    43,
+    38
+   ],
+   "role": "ROAR / GROWTH cast (ROAR f1 wind-up, f2-5 roar)"
+  },
+  {
+   "anim": "hmRoar",
+   "group": "roar",
+   "frame": 2,
+   "component": 96,
+   "src_bbox": [
+    135,
+    2032,
+    251,
+    2126
+   ],
+   "offset": [
+    18,
+    38
+   ],
+   "role": "ROAR / GROWTH cast (ROAR f1 wind-up, f2-5 roar)"
+  },
+  {
+   "anim": "hmRoar",
+   "group": "roar",
+   "frame": 3,
+   "component": 94,
+   "src_bbox": [
+    263,
+    2031,
+    377,
+    2126
+   ],
+   "offset": [
+    20,
+    37
+   ],
+   "role": "ROAR / GROWTH cast (ROAR f1 wind-up, f2-5 roar)"
+  },
+  {
+   "anim": "hmRoar",
+   "group": "roar",
+   "frame": 4,
+   "component": 97,
+   "src_bbox": [
+    389,
+    2032,
+    505,
+    2126
+   ],
+   "offset": [
+    18,
+    38
+   ],
+   "role": "ROAR / GROWTH cast (ROAR f1 wind-up, f2-5 roar)"
+  },
+  {
+   "anim": "hmRoar",
+   "group": "roar",
+   "frame": 5,
+   "component": 98,
+   "src_bbox": [
+    517,
+    2033,
+    630,
+    2126
+   ],
+   "offset": [
+    19,
+    39
+   ],
+   "role": "ROAR / GROWTH cast (ROAR f1 wind-up, f2-5 roar)"
+  },
+  {
+   "anim": "hmCrush",
+   "group": "crush",
+   "frame": 1,
+   "component": 78,
+   "src_bbox": [
+    26,
+    1735,
+    97,
+    1833
+   ],
+   "offset": [
+    39,
+    36
+   ],
+   "role": "CRUSH GRAB (CRUSH f1-2 reach, f3-5 hunching grab, f6 release)"
+  },
+  {
+   "anim": "hmCrush",
+   "group": "crush",
+   "frame": 2,
+   "component": 79,
+   "src_bbox": [
+    136,
+    1740,
+    224,
+    1830
+   ],
+   "offset": [
+    25,
+    42
+   ],
+   "role": "CRUSH GRAB (CRUSH f1-2 reach, f3-5 hunching grab, f6 release)"
+  },
+  {
+   "anim": "hmCrush",
+   "group": "crush",
+   "frame": 3,
+   "component": 81,
+   "src_bbox": [
+    262,
+    1753,
+    354,
+    1829
+   ],
+   "offset": [
+    25,
+    56
+   ],
+   "role": "CRUSH GRAB (CRUSH f1-2 reach, f3-5 hunching grab, f6 release)"
+  },
+  {
+   "anim": "hmCrush",
+   "group": "crush",
+   "frame": 4,
+   "component": 82,
+   "src_bbox": [
+    397,
+    1758,
+    481,
+    1833
+   ],
+   "offset": [
+    40,
+    58
+   ],
+   "role": "CRUSH GRAB (CRUSH f1-2 reach, f3-5 hunching grab, f6 release)"
+  },
+  {
+   "anim": "hmCrush",
+   "group": "crush",
+   "frame": 5,
+   "component": 83,
+   "src_bbox": [
+    504,
+    1761,
+    605,
+    1833
+   ],
+   "offset": [
+    22,
+    61
+   ],
+   "role": "CRUSH GRAB (CRUSH f1-2 reach, f3-5 hunching grab, f6 release)"
+  },
+  {
+   "anim": "hmCrush",
+   "group": "crush",
+   "frame": 6,
+   "component": 80,
+   "src_bbox": [
+    650,
+    1744,
+    719,
+    1832
+   ],
+   "offset": [
+    43,
+    44
+   ],
+   "role": "CRUSH GRAB (CRUSH f1-2 reach, f3-5 hunching grab, f6 release)"
+  },
+  {
+   "anim": "hmCrushHold",
+   "group": "crush",
+   "frame": 3,
+   "component": 81,
+   "src_bbox": [
+    262,
+    1753,
+    354,
+    1829
+   ],
+   "offset": [
+    25,
+    56
+   ],
+   "role": "CRUSH GRAB hold ticks (CRUSH f3-5 loop)"
+  },
+  {
+   "anim": "hmCrushHold",
+   "group": "crush",
+   "frame": 4,
+   "component": 82,
+   "src_bbox": [
+    397,
+    1758,
+    481,
+    1833
+   ],
+   "offset": [
+    40,
+    58
+   ],
+   "role": "CRUSH GRAB hold ticks (CRUSH f3-5 loop)"
+  },
+  {
+   "anim": "hmCrushHold",
+   "group": "crush",
+   "frame": 5,
+   "component": 83,
+   "src_bbox": [
+    504,
+    1761,
+    605,
+    1833
+   ],
+   "offset": [
+    22,
+    61
+   ],
+   "role": "CRUSH GRAB hold ticks (CRUSH f3-5 loop)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 1,
+   "component": 87,
+   "src_bbox": [
+    19,
+    1900,
+    122,
+    1989
+   ],
+   "offset": [
+    29,
+    43
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 2,
+   "component": 88,
+   "src_bbox": [
+    143,
+    1900,
+    247,
+    1989
+   ],
+   "offset": [
+    29,
+    43
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 3,
+   "component": 85,
+   "src_bbox": [
+    264,
+    1899,
+    372,
+    1989
+   ],
+   "offset": [
+    25,
+    43
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 4,
+   "component": 86,
+   "src_bbox": [
+    387,
+    1899,
+    497,
+    1988
+   ],
+   "offset": [
+    24,
+    44
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 5,
+   "component": 89,
+   "src_bbox": [
+    513,
+    1900,
+    622,
+    1988
+   ],
+   "offset": [
+    23,
+    45
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 6,
+   "component": 90,
+   "src_bbox": [
+    646,
+    1900,
+    747,
+    1988
+   ],
+   "offset": [
+    30,
+    44
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 7,
+   "component": 91,
+   "src_bbox": [
+    775,
+    1901,
+    872,
+    1985
+   ],
+   "offset": [
+    33,
+    48
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmPush",
+   "group": "push",
+   "frame": 8,
+   "component": 92,
+   "src_bbox": [
+    897,
+    1901,
+    997,
+    1988
+   ],
+   "offset": [
+    30,
+    45
+   ],
+   "role": "PUSH THROUGH (PUSH f1-8 loop, both arms forward)"
+  },
+  {
+   "anim": "hmStomp",
+   "group": "gatk",
+   "frame": 1,
+   "component": 64,
+   "src_bbox": [
+    21,
+    1392,
+    121,
+    1506
+   ],
+   "offset": [
+    37,
+    18
+   ],
+   "role": "METEOR STOMP dive body (GROUND ATTACK f1 arms-up)"
+  },
+  {
+   "anim": "hmStompLand",
+   "group": "gatk",
+   "frame": 4,
+   "component": 67,
+   "src_bbox": [
+    366,
+    1428,
+    452,
+    1507
+   ],
+   "offset": [
+    26,
+    53
+   ],
+   "role": "METEOR STOMP landing (GROUND ATTACK f4-5 crouched aftermath)"
+  },
+  {
+   "anim": "hmStompLand",
+   "group": "gatk",
+   "frame": 5,
+   "component": 68,
+   "src_bbox": [
+    477,
+    1429,
+    567,
+    1508
+   ],
+   "offset": [
+    23,
+    53
+   ],
+   "role": "METEOR STOMP landing (GROUND ATTACK f4-5 crouched aftermath)"
+  },
+  {
+   "anim": "hmBackhand",
+   "group": "pback",
+   "frame": 1,
+   "component": 53,
+   "src_bbox": [
+    21,
+    1108,
+    108,
+    1200
+   ],
+   "offset": [
+    39,
+    40
+   ],
+   "role": "TAIL SLAM / BACKHAND (PUNCH BACK f1-5 wind-up + spin with swoosh, f6 finisher arm)"
+  },
+  {
+   "anim": "hmBackhand",
+   "group": "pback",
+   "frame": 2,
+   "component": 56,
+   "src_bbox": [
+    158,
+    1116,
+    260,
+    1201
+   ],
+   "offset": [
+    20,
+    48
+   ],
+   "role": "TAIL SLAM / BACKHAND (PUNCH BACK f1-5 wind-up + spin with swoosh, f6 finisher arm)"
+  },
+  {
+   "anim": "hmBackhand",
+   "group": "pback",
+   "frame": 3,
+   "component": 54,
+   "src_bbox": [
+    298,
+    1110,
+    387,
+    1201
+   ],
+   "offset": [
+    34,
+    42
+   ],
+   "role": "TAIL SLAM / BACKHAND (PUNCH BACK f1-5 wind-up + spin with swoosh, f6 finisher arm)"
+  },
+  {
+   "anim": "hmBackhand",
+   "group": "pback",
+   "frame": 4,
+   "component": 55,
+   "src_bbox": [
+    427,
+    1111,
+    512,
+    1202
+   ],
+   "offset": [
+    28,
+    41
+   ],
+   "role": "TAIL SLAM / BACKHAND (PUNCH BACK f1-5 wind-up + spin with swoosh, f6 finisher arm)"
+  },
+  {
+   "anim": "hmBackhand",
+   "group": "pback",
+   "frame": 5,
+   "component": 51,
+   "src_bbox": [
+    538,
+    1098,
+    663,
+    1200
+   ],
+   "offset": [
+    13,
+    30
+   ],
+   "role": "TAIL SLAM / BACKHAND (PUNCH BACK f1-5 wind-up + spin with swoosh, f6 finisher arm)"
+  },
+  {
+   "anim": "hmBackhand",
+   "group": "pback",
+   "frame": 6,
+   "component": 52,
+   "src_bbox": [
+    673,
+    1103,
+    767,
+    1200
+   ],
+   "offset": [
+    12,
+    35
+   ],
+   "role": "TAIL SLAM / BACKHAND (PUNCH BACK f1-5 wind-up + spin with swoosh, f6 finisher arm)"
+  },
+  {
+   "anim": "hmUltStomp",
+   "group": "gatk",
+   "frame": 1,
+   "component": 64,
+   "src_bbox": [
+    21,
+    1392,
+    121,
+    1506
+   ],
+   "offset": [
+    37,
+    18
+   ],
+   "role": "EXTINCTION EVENT stomps (GROUND ATTACK f1-4 + GROUND STRIKE f3 slam)"
+  },
+  {
+   "anim": "hmUltStomp",
+   "group": "gatk",
+   "frame": 2,
+   "component": 65,
+   "src_bbox": [
+    136,
+    1427,
+    229,
+    1506
+   ],
+   "offset": [
+    30,
+    53
+   ],
+   "role": "EXTINCTION EVENT stomps (GROUND ATTACK f1-4 + GROUND STRIKE f3 slam)"
+  },
+  {
+   "anim": "hmUltStomp",
+   "group": "gatk",
+   "frame": 3,
+   "component": 66,
+   "src_bbox": [
+    251,
+    1428,
+    337,
+    1509
+   ],
+   "offset": [
+    23,
+    51
+   ],
+   "role": "EXTINCTION EVENT stomps (GROUND ATTACK f1-4 + GROUND STRIKE f3 slam)"
+  },
+  {
+   "anim": "hmUltStomp",
+   "group": "gatk",
+   "frame": 4,
+   "component": 67,
+   "src_bbox": [
+    366,
+    1428,
+    452,
+    1507
+   ],
+   "offset": [
+    26,
+    53
+   ],
+   "role": "EXTINCTION EVENT stomps (GROUND ATTACK f1-4 + GROUND STRIKE f3 slam)"
+  },
+  {
+   "anim": "hmUltStomp",
+   "group": "gstrike",
+   "frame": 3,
+   "component": 72,
+   "src_bbox": [
+    263,
+    1585,
+    367,
+    1673
+   ],
+   "offset": [
+    2,
+    47
+   ],
+   "role": "EXTINCTION EVENT stomps (GROUND ATTACK f1-4 + GROUND STRIKE f3 slam)"
+  }
+ ]
+}

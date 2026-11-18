@@ -140,6 +140,13 @@ Reused frames (no dedicated art on this sheet): walk / walk back = the RUN gallo
 - **Extracted: none.** This sheet has no separate effect art (no swipe arcs, dust or rings — the roll balls are body frames).
 - **Procedural pixel art (render-only, in `wildmutt.js`):** claw streaks / swipe arcs (Heavy, Air, Pounce, the ult's Hunt slashes), roar rings (Roar, Final Roar), the scent trail on a scented opponent, dust (Pounce landing, Bull Rush, Ground Pound shockwave), the ground-pound shock line, the ult's stage darkening and silhouette passes.
 
+## Verification (Phase 7, 2026-11-17)
+
+- `harness/ben10_wildmutt.test.mjs` 25/0 · `harness/ben10_wildmutt_render.mjs` 39/0 · `harness/wildmutt_framedata_diff.mjs` 23/0 (base `e8e541823`).
+- Battery vs main's baseline (recorded before any edit): every harness exit code and pass/fail count identical — determinism ✓, combo-standard **233/9 = 233/9**, roster integrity ✓; the pre-existing stage2/3/4/6/7, start_human, integration, loadout, Alien X and wildmutt_stage1 (experimental Wildmutt) failures are unchanged and not caused by this build.
+- Slot: PICK FIVE — Wildmutt is picked on the alien-select screen; transform = ↓↓ + the button of the slot he occupies (J/K/L/O/P). No Dial built, no slot count change (owner: "use the orange sheet and keep pick five"). Registry key `wildmutt_ov`; the experimental `wildmutt` is unchanged.
+- No new engine hooks. Ground Pound's "low" tag is inert in this engine (no crouch-block).
+
 ## Credits
 
 Sprites by ipmugenofficial (DeviantArt, "Wildmutt - sprites sheet"). Ben 10 © Cartoon Network.

@@ -14,6 +14,7 @@ import { characters } from '../characters.js'
 import * as G from '../waterhazard.js'
 import * as WA from '../waterAffinity.js'
 import { GP_PUDDLE } from '../goop.js'
+import * as FL from '../benFlood.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
 import fs from 'node:fs'
 
@@ -279,6 +280,128 @@ test('10. ULTIMATE: whiff / block = no cinematic, 60f recovery; 2 Drenched pips 
   assert(S(h).lastUlt.captured && S(h).lastUlt.pipAdded, 'the final hit adds the pip'); assert(G.fuseOn(v), '→ SHORT FUSE'); assert.equal(S(h).lastUlt.raw, 240, 'no extra damage')
   const k = ben(), w = foe(); reset(k, w, 200); S(k).pips = 1; S(k).pipT = S(k).t; ultRun(k, w); assert(!S(k).lastUlt.pipAdded, 'only at exactly 2')
   assert.deepEqual(G.ultJets(7, 100, 0), G.ultJets(7, 100, 0)); assert.notDeepEqual(G.ultJets(7, 100, 0), G.ultJets(7, 100, 1))
+})
+
+
+// ── 12 inside a real STORM TIDE flood (Ripjaws is merged: benFlood.js) ─────────────────────────────────────────
+test('12. in a REAL Ripjaws flood: waterborne (no breath record, no drowning, no HP lost), Core +1/s wading / +3/s submerged; the flood is never written by him', () => {
+  const f = ben(), t = foe(); far(f, t); f.energy = 100
+  const api = { getOpponent: o => (o === t ? f : t), activeProjectiles: () => A.activeProjectiles }
+  const r = FL.startFlood(t, { ...STAGE }, [t, f], 77); FL.raiseFlood(t)
+  const hp = f.health, s = S(f); let sub = 0, wade = 0, c0 = s.core
+  for (let i = 0; i < 900 && FL.floodLive(r); i++) { FL.tickBenFlood(t, ctxOf(f, t), api); const before = s.core; world(f, t, 1)
+    const d = FL.waterOf(f)?.depth; if (d === 'submerged') { sub++; assert(Math.abs(s.core - before - 3 / 60) < 1e-6 || s.core >= 100) } if (d === 'wading') { wade++; assert(Math.abs(s.core - before - 1 / 60) < 1e-6 || s.core >= 100) }
+    assert(!(f.side in r.breath), 'no breath record (waterborne)'); assert(!(f.side in r.drown), 'never drowning') }
+  assert(sub > 100 && wade > 10, `the flood reached him (sub ${sub} / wade ${wade})`); assert.equal(f.health, hp, 'no HP lost'); assert(FL.waterOf(f) === null || FL.waterOf(f).wb !== false)
+  assert(s.coreFlood > 5, 'Core from the flood: ' + s.coreFlood)
+  const plainBen = ben(null), t2 = foe(); far(plainBen, t2); const r2 = FL.startFlood(t2, { ...STAGE }, [t2, plainBen], 77); FL.raiseFlood(t2)
+  const api2 = { getOpponent: o => (o === t2 ? plainBen : t2) }; for (let i = 0; i < 400; i++) { FL.tickBenFlood(t2, ctxOf(plainBen, t2), api2); physics.moveFighter(plainBen, {}, CONTROLS); physics.applyGravity(plainBen) }
+  assert(plainBen.side in r2.breath && r2.breath[plainBen.side] < 100, 'control: human Ben (not water) does lose breath')
+  FL.clearFloodInstant(t, [t, f]); FL.clearFloodInstant(t2, [t2, plainBen])
+})
+
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const sumA = a => a.reduce((x, y) => x + y, 0)
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  blast: WH_BLAST.DMG, lash: sumA(WH_LASH.HITS), burst40: Math.min(WH_BURST.MAX, WH_BURST.DMG + WH_BURST.CORE_K * 40) }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+for (const [name, route, target] of [['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 86],
+  ['2. Low, Heavy, Pressure Blast (uncharged)', ['low', 'heavy', 'blast'], 108], ['3. Claw Lash, Heavy, Hydro Burst (Core 40)', ['lash', 'heavy', 'burst40'], 126]])
+  test('design total ' + name + ' ≈ ' + target, () => { const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`) })
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 2 live: Low, Heavy, Pressure Blast (uncharged) — the jet lands, +1 pip', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 120); d.push(runCast(f, t, 'N').dmg); assert(d[2] > 0); assert.equal(S(f).pips, 1); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 3 live: Claw Lash (2 hits), Heavy, Hydro Burst (Core 40)', () => {
+  const f = ben(), t = foe(); reset(f, t, 150); const d = [runCast(f, t, 'F', { pre: q => { S(q).dashTapT = S(q).t } }).dmg]; assert.equal(S(f).lastChain.hits.length, 2)
+  reset(f, t, 10); d.push(melee(f, t, 'heavy')); reset(f, t, 60); S(f).core = 40; d.push(runCast(f, t, 'B').dmg); assert.equal(S(f).lastBurst.dmg, 46)
+  console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+
+// ── 11 swap / revert / KO / rematch ────────────────────────────────────────────────────────────────────────────
+test('11. swap / revert / KO / rematch clear the Puddle, the Core and his Drenched pips (formState); no lingering body fields', () => {
+  const L = ['waterhazard', 'heatblast', 'goop', 'xlr8', 'megawhatt']
+  const mk = () => { const f = ben('waterhazard', L), t = foe(); far(f, t); f.energy = 100; assert(cast(f, t, 'D')); world(f, t, 10, { special: true }); S(f).core = 60; S(f).pips = 2; return [f, t] }
+  let [f, t] = mk(); assert(S(f).puddle); assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, 'waterhazard')); assert.deepEqual([S(f).puddle, S(f).core, S(f).pips], [null, 0, 0], 'swap')
+  ;[f, t] = mk(); F.revertToHuman(f, { forced: true }); assert.equal(G.whState(f), null, 'revert'); assert.equal(WH.bodyAlpha(f), 1); assert.equal(WH.evade(f, { move: BA.heavy }), false)
+  ;[f, t] = mk(); f.health = 0; F.handleBenKO?.(f); if (f.omnitrix.formState?.kind === 'waterhazard') F.revertToHuman(f, { forced: true }); assert.equal(G.whState(f), null, 'KO')
+  ;[f, t] = mk(); F.setupBen10(f, ['waterhazard']); assert.equal(G.whState(f), null, 'rematch / round reset: fresh Ben')
+  assert(!('_benGlide' in f) && !(f._benLunge && f._benLunge.frames > 1))
+})
+
+// ── 13 slot → PICK FIVE / Dial / HUD / Vow / determinism ─────────────────────────────────────────────────────
+test('13. slot → PICK FIVE: slot count from the registry, Water Hazard READY at catalog slot 22 (contiguous), no ready alien overwritten', () => {
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('waterhazard'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 22); assert.equal(d.displayName, 'Water Hazard')
+  const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(ready.map(x => x.slot).sort((a, b) => a - b), ready.map((_, i) => i + 1), 'ready slots contiguous')
+  for (const [k, sl] of [['goop', 4], ['ripjaws', 20], ['rath', 21]]) assert.equal(getAlienDefinition(k).slot, sl, k + ' never overwritten')
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'waterhazard').length, 1); assert(getAvailableAlienKeys(false).includes('waterhazard'))
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
+})
+test('13. Omnitrix Dial: Water Hazard picked into the last slot — same cost as any slot, no clock change, fresh state; a hit cancels the dial', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'waterhazard'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const c = { seed: 1, frame: 0, playerIndex: 0 }; assert(F.ben10TransformOrSwap(f, slot, c)); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); assert.equal(c.frame, 0, 'clock untouched'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'waterhazard'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert.deepEqual([S(a.f).core, S(a.f).pips, S(a.f).puddle], [0, 0, null])
+  const h = fresh(); F.applyBen10VariantStats(h, 'default'); F.setupBen10(h, pick); h.energy = 100; assert(F.ben10TransformOrSwap(h, BEN10_SLOT_COUNT - 1, { seed: 1, frame: 0, playerIndex: 0 }))
+  if (!h.transformed) { h.hitstun = 20; F.invalidateBenAction?.(h); for (let i = 0; i < 80; i++) F.updateTransformDevice?.(h, 1000 / 60); assert(!h.transformed || h.activeAlien === 'waterhazard', 'a hit during startup cancels or the transform is atomic') }
+})
+test('13. HUD: the Core gauge + Drenched pips + SHORT FUSE label stay inside the player bar (both sides, every state)', () => {
+  for (const flip of [false, true]) for (const st of ['base', 'full', 'flood', 'pips', 'fuse']) {
+    const f = ben(), s = S(f); if (st === 'full') s.core = 100; if (st === 'flood') { s.core = 50; s.floodDepth = 'submerged' } if (st === 'pips') s.pips = 2; if (st === 'fuse') s.fuseView = 'SHORT FUSE 4s'
+    let minX = Infinity, maxX = -Infinity
+    const ctx = { save() {}, restore() {}, fillRect(x, y, w) { minX = Math.min(minX, x); maxX = Math.max(maxX, x + w) }, fillText(str, x) { const w = str.length * 4.8; const x0 = this.textAlign === 'right' ? x - w : x; minX = Math.min(minX, x0); maxX = Math.max(maxX, x0 + w) }, strokeRect() {} }
+    const x = 100, pbw = 120; G.drawWaterHazardHud(ctx, f, { x, enY: 40, enH: 8, pbw, flip }); assert(minX >= x && maxX <= x + 8 + pbw + 1, `flip ${flip} ${st}: ${minX}..${maxX}`)
+  }
+})
+test('13. Vow pick includes Water Hazard (hash mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'waterhazard'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('waterhazard') && picks.size === L.length)
+})
+test('13. same-seed determinism: an identical scripted sequence (every move, Puddle, Core, pips → Short Fuse, the ult) yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light'); melee(f, t, 'heavy')
+    reset(f, t, 120); runCast(f, t, 'N', { input: i => (i < 35 ? { special: true } : {}) }); reset(f, t, 60); S(f).core = 40; runCast(f, t, 'B')
+    reset(f, t, 150); runCast(f, t, 'F', { pre: q => { S(q).dashTapT = S(q).t } }); reset(f, t, 60); runCast(f, t, 'D', { pre: q => { S(q).hist = [{ d: 4, t: S(q).t - 2 }, { d: 1, t: S(q).t - 1 }, { d: 2, t: S(q).t }] } })
+    reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; t.x = f.x + 140; runCast(f, t, 'N', { max: 80 }); world(f, t, 30)
+    far(f, t); f.energy = 100; cast(f, t, 'D'); world(f, t, 40, { special: true }); world(f, t, 20)
+    reset(f, t, 200); ultRun(f, t); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x, fuse: t._benShortFuse || null })
+  }
+  const a = run(), b = run(); assert.equal(a, b); const st = JSON.parse(a).s; assert(st.lastUlt.captured, 'the scripted ult captured'); assert(st.stats.puddles >= 1)
+})
+test('GAME_STATE stays plain data mid-cast (charge, burst, lash, sweep, dive, puddle, ult cinematic) + the Short Fuse stamp', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  const mid = (dir, n, setup, input = {}) => { const f = ben(), t = foe(); setup(f, t); f.energy = 100; assert(cast(f, t, dir), dir); world(f, t, n, input); return [f, t] }
+  let [f] = mid('N', 15, (a, b) => far(a, b), { special: true }); assert(S(f).blast); assert(plain(S(f)), 'charge')
+  ;[f] = mid('B', 8, (a, b) => { reset(a, b, 60); S(a).core = 40 }); assert(S(f).burst); assert(plain(S(f)), 'burst')
+  ;[f] = mid('F', 14, (a, b) => { far(a, b); S(a).dashTapT = S(a).t }); assert(S(f).chain); assert(plain(S(f)), 'lash')
+  ;[f] = mid('D', 30, (a, b) => far(a, b), { special: true }); assert(S(f).puddle); assert(plain(S(f)), 'puddle')
+  ;[f] = mid('N', 8, (a, b) => { far(a, b); a.y -= 200; a.onGround = a.grounded = false }); assert(S(f).dive); assert(plain(S(f)), 'dive')
+  const g = ben(), u = foe(); reset(g, u, 200); ready(g); g.energy = 100; A.triggerUltimate(g, ctxOf(g, u)); world(g, u, 60)
+  assert(S(g).ult && S(g).ult.phase === 'barrage', 'mid-cinematic ' + S(g).ult?.phase); assert(plain(S(g)), 'ult')
+  const h = ben(), v = foe(); for (const c of [1, 2, 3]) contactOn(h, v, { proj: { alien: { wh: 'blast', cast: c } } }); assert(plain(v._benShortFuse), 'the stamp')
+})
+const stubCtx = () => new Proxy({ globalAlpha: 1, canvas: { width: 1280, height: 720 } }, { get: (o, k) => k in o ? o[k] : () => {}, set: (o, k, v) => (o[k] = v, true) })
+test('render: every move / Puddle / pips / Short Fuse / the ult draw without throwing and drawing never changes GAME_STATE', () => {
+  const c = stubCtx(); const run = (f, t, n, input = {}) => { for (let i = 0; i < n; i++) { world(f, t, 1, input); const a = JSON.stringify(S(f)), x = JSON.stringify([t.x, t.health, f.x, f.y, f.energy, t._benShortFuse || null])
+    G.drawWaterHazardFx(c, f, FRAME, t); G.drawWaterHazardHud(c, f, { x: 0, enY: 0, enH: 8, pbw: 200, flip: false }); WH.targetOffset(f, t); WH.bodyAlpha(f); WH.hurtbox(f)
+    assert.equal(JSON.stringify(S(f)), a); assert.equal(JSON.stringify([t.x, t.health, f.x, f.y, f.energy, t._benShortFuse || null]), x) } }
+  for (const [dir, gap, pre, input] of [['N', 120, null, { special: true }], ['B', 60, q => { S(q).core = 60 }], ['F', 150, q => { S(q).dashTapT = S(q).t }], ['D', 60, null, { special: true }]]) {
+    clearProj(); const f = ben(), t = foe(); reset(f, t, gap); f.energy = 100; if (pre) pre(f); assert(cast(f, t, dir), dir); run(f, t, 60, input) }
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; g.y -= 160; g.onGround = g.grounded = false; assert(cast(g, u, 'N')); run(g, u, 40)
+  const h = ben(), v = foe(); reset(h, v, 200); S(h).pips = 2; S(h).pipT = S(h).t; ready(h); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v))); run(h, v, 150)
+  assert(S(h).lastUlt && S(h).lastUlt.captured); run(h, v, 20)
+})
+test('no Math.random / gameRng in waterhazard.js / waterhazardAssets.js', () => {
+  for (const p of ['../waterhazard.js', '../waterhazardAssets.js']) { const src = fs.readFileSync(new URL(p, import.meta.url), 'utf8'); assert(!/Math\.random|gameRng/.test(src), p) }
 })
 
 // @@END-TESTS@@

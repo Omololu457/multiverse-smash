@@ -164,6 +164,25 @@ the old path, and non-Ben fighters never reach them.
 Ripjaws holds 20 — is catalog metadata only), so no slot count, chord, HUD or Vow change. He is reached with the Dial
 (↓↓ + the picked slot's key) like any pick.
 
+### Water Hazard hooks (added with Water Hazard, 2026-11-18)
+
+Same contract: optional, backward-compatible, ben10-gated. Water Hazard adds **no flood hook**: he only READS Ripjaws'
+existing per-fighter flood stamp (`benFlood.waterOf(f)` → `_benWater.depth`) for his Pressure Core bonus and never writes
+`_benFlood` / `_benWater`. He is waterborne in a flood through the existing tag map: `waterAffinity.js`
+`WATER_AFFINITY_FORMS.waterhazard = ["water"]` (one line). His Puddle Form imports Goop's `GP_PUDDLE` / `GP_GEYSER` objects
+(goop.js) — the same numbers by construction, no projector weak point. The one new generic piece is the SHORT FUSE stamp:
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `target._benShortFuse = { left, imm, mult }` (plain data, set by a form on its OPPONENT) | physics.js `moveFighter` (one line next to `_benPinT`: `left` 240 → 0, then `imm` 360 → 0, then deleted) | field-gated and self-clearing; it outlives the setter's swap on purpose. Nothing else reads it except the damage line below. |
+| Short Fuse damage | ben10State.js `benAlienDamageMods`: `raw *= mult` while `left > 0` and `benFlood.isElectricHit(opts)` (Ripjaws' electric tag map, reused) | electric-tagged hits only; an independent multiplier, so it stacks with the submerged-electric +15 % (×1.2 × 1.15). |
+| Short Fuse gate | combat.js `applyScaledDamage`: the `benAlienDamageMods` gate also passes for `target?._benShortFuse` | so a non-Ben electric attacker (Zenitsu, Killua…) also cashes it in; untouched for every fighter without the stamp. |
+
+**Water Hazard (2026-11-18)** is a PICK FIVE pick (registry `slot: 22`, catalog metadata; Rath holds 21) — no slot count,
+chord, HUD or Vow change. Inputs: Pressure Blast ↓↘→ + Special (hold to charge), Hydro Burst ↓↙← + Special (Core ≥ 20),
+Claw Lash →→ + Special, Puddle Form ↓ + Special (hold), Undertow Sweep ←↙↓ + Special, Geyser Dive air + Special,
+Tidal Discharge = the Ultimate. Tests: `npm run test:waterhazard`, `test:waterhazard-render`, `test:waterhazard-framedata`.
+
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form

@@ -92,6 +92,40 @@ test('inputs: the shared alien motions (236 / 214 / 623 / 412), →→ double ta
   f.onGround = f.grounded = false; assert.equal(G.pickSpecial(f, s), 'dive')
 })
 
+
+// ── 4 Scent → Hunted ────────────────────────────────────────────────────────────────────────────────────────
+const { BW_SCENT } = G
+const tagHit = (f, t, cast, extra = {}, blocked = false) => BENWOLF.onContact(f, t, { proj: { owner: f, alien: { bw: 'test', cast, scent: true, ...extra } }, blocked })
+const huntIt = (f, t) => { tagHit(f, t, 9001); tagHit(f, t, 9002); tagHit(f, t, 9003); assert(G.hunted(S(f)), 'hunted'); return S(f).scent }
+test('4. Scent: one pip per cast (however many ticks), never from blocks / untagged (howl) contacts, max 3 → HUNTED 180f', () => {
+  const f = ben(), t = foe(), sc = S(f).scent
+  tagHit(f, t, 1); tagHit(f, t, 1); tagHit(f, t, 1); assert.equal(sc.pips, 1, 'one per cast')
+  tagHit(f, t, 2, {}, true); assert.equal(sc.pips, 1, 'blocked: none')
+  BENWOLF.onContact(f, t, { proj: { owner: f, alien: { bw: 'howl', cast: 3 } }, blocked: false }); assert.equal(sc.pips, 1, 'a howl tag carries no scent')
+  BENWOLF.onContact(f, t, { move: BA.heavy, blocked: false }); assert.equal(sc.pips, 1, 'normals: none')
+  tagHit(f, t, 4); assert.equal(sc.pips, 2); tagHit(f, t, 5); assert.equal(sc.pips, 0, 'consumed'); assert.equal(sc.hunted, BW_SCENT.HUNTED)
+  const fr = sc.hunted; world(f, t, 1); assert.equal(sc.hunted, fr - 1); world(f, t, BW_SCENT.HUNTED - 2); assert(G.hunted(S(f))); world(f, t, 1); assert(!G.hunted(S(f)), '180f')
+  assert.equal(sc.immuneT, BW_SCENT.IMMUNE); assert.equal(sc.ends.at(-1), 'timer')
+})
+test('4. Scent: pips expire 240f after the last one; no refresh while Hunted; 360f immunity after (no pips)', () => {
+  const f = ben(), t = foe(); far(f, t); const sc = S(f).scent
+  tagHit(f, t, 11); world(f, t, BW_SCENT.EXPIRE - 1); assert.equal(sc.pips, 1); world(f, t, 1); assert.equal(sc.pips, 0, 'expired at 240f')
+  huntIt(f, t); world(f, t, 10); const h = sc.hunted; tagHit(f, t, 12); tagHit(f, t, 13); tagHit(f, t, 14); assert.equal(sc.hunted, h, 'no refresh'); assert.equal(sc.pips, 0)
+  world(f, t, h); assert(!G.hunted(S(f))); tagHit(f, t, 15); assert.equal(sc.pips, 0, 'immune'); world(f, t, BW_SCENT.IMMUNE); tagHit(f, t, 16); assert.equal(sc.pips, 1, 'after 360f')
+})
+test('4. Hunted: BenWolf deals +10% to them (any of his damage), nothing else changes; their polling / clock untouched', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d0 = melee(f, t, 'heavy')
+  const g = ben(), u = foe(); reset(g, u, 10); huntIt(g, u); const d1 = melee(g, u, 'heavy'); const keys = Object.keys(t).sort().join()
+  assert(Math.abs(d1 / d0 - BW_SCENT.DMG) < 0.02, `${d1} vs ${d0}`); assert.equal(Object.keys(u).sort().join(), keys, 'no new fields on the target (same as an un-Hunted target)')
+  const a = u.health; C.applyScaledDamage(u, 100, { attacker: u, source: 'ability' }); const b = foe(); const bh = b.health; C.applyScaledDamage(b, 100, { attacker: b, source: 'ability' })
+  assert.equal(a - u.health, bh - b.health, 'damage from anyone else is unchanged')
+})
+test('4. Scent / Hunted clear on swap / revert / KO / rematch (fresh formState)', () => {
+  const t = foe(); const f = ben('benwolf', LOAD); huntIt(f, t); F.applyAlien(f, 'heatblast'); F.applyAlien(f, 'benwolf'); assert(!G.hunted(S(f))); assert.equal(S(f).scent.pips, 0)
+  const g = ben(); huntIt(g, t); F.revertToHuman(g); assert.equal(g.omnitrix.formState, null)
+  const k = ben(); huntIt(k, t); k.health = 0; F.revertToHuman(k); assert.equal(k.omnitrix.formState, null)
+  const u = foe(); const m = ben(); huntIt(m, u); u.health = 0; world(m, u, 1); assert(!G.hunted(S(m)), 'opponent KO ends it'); assert.equal(S(m).scent.ends.at(-1), 'ko')
+})
 // @@END-TESTS@@
 console.log(`\nBENWOLF: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

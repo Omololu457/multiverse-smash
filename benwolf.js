@@ -33,15 +33,16 @@ export const BENWOLF = {
     air:    normal(28, 7, 4, 12, 2, { rangeX: 85 })                                            // the fall frame (AIR body)
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate,
-  drawHud: drawBenwolfHud
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt,
+  drawHud: drawBenwolfHud, drawFx: drawBenwolfFx
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshBenwolfState() {
   return { kind: BW_KEY, t: 0, castId: 0, noAttack: false, base: null, stage: { L: -1e6, R: 1e6 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, backPrev: false, backTapT0: -999, backTapT: -999, dodgeTapT: -999, lastDir: 5,
-    stats: { casts: 0 } }
+    scent: { pips: 0, lastT: -999, pipped: [], hunted: 0, immuneT: 0, hunts: 0, reaims: 0, ends: [] },
+    stats: { casts: 0, scentHits: 0, huntedBonus: 0 } }
 }
 export const bwState = f => (f?.omnitrix?.formState?.kind === BW_KEY && f.transformed && f.activeAlien === BW_KEY) ? f.omnitrix.formState : null
 
@@ -152,4 +153,76 @@ export function drawBenwolfHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
   ctx.save()
   for (const p of HUD_PARTS) p(ctx, f, s, { bx, y, w, flip })
   ctx.restore()
+}
+
+const CONTACT = []   // onContact handlers (filled by the sections below)
+function onContact(f, target, info) {
+  const s = bwState(f); if (!s || !target) return
+  for (const h of CONTACT) h(f, s, target, info || {})
+}
+const DEALT = []     // damageDealt multipliers (f, s, target, raw, opts) → raw, filled by the sections below
+function damageDealt(f, target, raw, opts) {
+  const s = bwState(f); if (!s || !(raw > 0)) return raw
+  for (const fn of DEALT) raw = fn(f, s, target, raw, opts || {})
+  return raw
+}
+// his own ultimate's damage (the opener / capture) is authored as a fixed total: never boosted by Hunted or the Full Moon
+const isUltHit = opts => /^bw_ult/.test(String(opts.move || "")) || !!(opts.proj && opts.proj.alien && opts.proj.alien.bw === "ultOpen")
+
+// ── 3. SCENT → HUNTED (opponent status, GAME_STATE) ─────────────────────────────────────────────────────────────
+// SCENT: CLEAN hits from Claw Rake (its finisher), Pounce and Dive Claw add 1 pip — ONE per cast however many hit ticks
+// land (a cast id on the tag). Max 3. Never from blocks, FX or howls (only tags carrying `scent` count). Pips expire 240f
+// after the last one.
+// HUNTED: the 3rd pip consumes them → 180f: BenWolf deals +10% damage to them (damageDealt), and his Pounce gets ONE mid-air
+// re-aim 12f into the leap toward their position at that frame (once per Pounce, no tracking after, still bounded to its
+// 360 px range — section 4). Their input polling and the simulation clock are untouched. No refresh while active; 360f
+// immunity after (no pips). Render-only paw-print glyph. Swap / revert / KO / rematch: a fresh formState (cleared).
+export const BW_SCENT = { MAX: 3, EXPIRE: 240, HUNTED: 180, IMMUNE: 360, DMG: 1.10, REAIM_AT: 12 }
+export const hunted = s => !!(s && s.scent.hunted > 0)
+export function addScent(f, s, opp, cast) {
+  const c = s.scent
+  if (!opp || opp.eliminated || c.hunted > 0 || c.immuneT > 0) return false
+  if (c.pipped.includes(cast)) return false                               // one pip per cast
+  c.pipped.push(cast); if (c.pipped.length > 8) c.pipped.shift()
+  c.pips = Math.min(BW_SCENT.MAX, c.pips + 1); c.lastT = s.t; s.stats.scentHits++
+  if (c.pips >= BW_SCENT.MAX) { c.pips = 0; c.hunted = BW_SCENT.HUNTED; c.hunts++ }
+  return true
+}
+export function endHunted(s, why) {
+  const c = s.scent; if (c.hunted <= 0) return
+  c.hunted = 0; c.immuneT = BW_SCENT.IMMUNE; c.pips = 0; c.ends.push(why); if (c.ends.length > 6) c.ends.shift()
+}
+TICKS.push((f, s, input, api, opp) => {
+  const c = s.scent
+  if (c.immuneT > 0) c.immuneT--
+  if (c.pips > 0 && s.t - c.lastT >= BW_SCENT.EXPIRE) c.pips = 0
+  if (c.hunted > 0) { if (!opp || opp.eliminated || !(opp.health > 0)) endHunted(s, "ko"); else if (--c.hunted <= 0) { c.hunted = 1; endHunted(s, "timer") } }
+})
+CONTACT.push((f, s, target, { proj, blocked }) => { const tag = proj && proj.alien; if (!blocked && tag && tag.scent) addScent(f, s, target, tag.cast) })
+DEALT.push((f, s, target, raw, opts) => (hunted(s) && !isUltHit(opts) ? raw * BW_SCENT.DMG : raw))
+
+// ── RENDER-ONLY world overlays (read GAME_STATE, never write it) ───────────────────────────────────────────────
+function px(c, x, y, k = 3) { c.fillRect(Math.round(x - k / 2), Math.round(y - k / 2), k, k) }
+const FX_DRAW = []   // (c, f, s, frame, opp) render-only layers, filled by the sections below
+export function drawBenwolfFx(c, f, frame = 0, opp = null) {
+  const s = bwState(f); if (!s || !c) return
+  for (const d of FX_DRAW) d(c, f, s, frame, opp)
+  if (opp) drawScent(c, s, opp, frame)
+}
+// the pixel paw print (4 toes + a pad), integer-scaled
+export function pawPrint(c, x, y, k = 2, col = PAW) {
+  c.fillStyle = INK; for (const [dx, dy, w, h] of [[-4, -1, 4, 3], [-2, -4, 3, 3], [1, -4, 3, 3], [3, -1, 4, 3], [-3, 2, 7, 5]]) c.fillRect(Math.round(x + (dx - 1) * k), Math.round(y + (dy - 1) * k), (w + 2) * k, (h + 2) * k)
+  c.fillStyle = col; for (const [dx, dy, w, h] of [[-4, -1, 3, 2], [-2, -4, 2, 2], [1, -4, 2, 2], [3, -1, 3, 2], [-3, 2, 6, 4]]) c.fillRect(Math.round(x + dx * k), Math.round(y + dy * k), w * k, h * k)
+}
+function drawScent(c, s, opp, frame) {
+  const sc = s.scent, ox = cx(opp), top = opp.y - 14
+  c.save()
+  if (sc.pips > 0) for (let i = 0; i < BW_SCENT.MAX; i++) {                 // SCENT pips
+    const x = ox + (i - 1) * 12
+    c.fillStyle = INK; px(c, x, top, 8); c.fillStyle = i < sc.pips ? SCENT : "#3b4252"; px(c, x, top, 5)
+  }
+  if (sc.hunted > 0) {                                                      // HUNTED: the paw print over them (blinks in its last second)
+    if (sc.hunted > 60 || (frame >> 3) % 2 === 0) pawPrint(c, ox, top - 4, 2, sc.hunted > 60 ? PAW : SCENT)
+  }
+  c.restore()
 }

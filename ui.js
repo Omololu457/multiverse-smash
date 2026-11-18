@@ -4840,7 +4840,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip })
     drawHeatblastHud(ctx, fighter, { x, enY, enH, pbw, flip })   // Heatblast (ben10/albedo in the Heatblast form only)
     { const _rd = benReadyForm(fighter); if (_rd && _rd.drawHud) _rd.drawHud(ctx, fighter, { x, enY, enH, pbw, flip }) }   // READY Omnitrix form gauge (Megawhatt Voltage); no-op otherwise
-    drawBenBreathHud(ctx, fighter, { x, enY, enH, pbw, flip })   // STORM TIDE breath bar under this fighter's bars (benFlood.js; no-op without a flood)
+    drawBenBreathHud(ctx, fighter, { x: x + 8, y: hpY + barH + 26 + 3, w: pbw, flip })   // STORM TIDE breath bar just under this fighter's health panel (benFlood.js; no-op without a flood)
     noteSupermanEnergyPanel(fighter, { x, enY, pbw, flip })   // Superman: Heat Vision laser bar sits above this panel (drawn last by game.js)
     if (!hasEnergy) return
 

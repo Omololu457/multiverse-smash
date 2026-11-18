@@ -240,7 +240,7 @@ export const physics = {
       // BEN 10 GROUNDED status (ADD_ALIEN.md; Jetray Neuroshock): `_benGrounded = { ttl, air }` stamped on the OPPONENT each
       // frame it lasts → no air dash, no double jump, air drift ×air. Absent for everyone else → byte-identical.
       const _benGr = fighter._benGrounded && fighter._benGrounded.ttl > 0
-      const maxAirDash = (_benGr || _benSub) ? 0 : (mobility === "very_high") ? 2 : 1   // submerged in a STORM TIDE flood: no air dash
+      const maxAirDash = _benGr ? 0 : _benSub ? 0 : (mobility === "very_high") ? 2 : 1   // submerged in a STORM TIDE flood: no air dash
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
         const adSpd = (fighter.dashSpeed || 14) * 0.8 * _benSlowK0   // × Ben-form slow (1 unless stamped)

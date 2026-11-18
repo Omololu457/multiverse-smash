@@ -404,6 +404,96 @@ test('14. breath and drowning pause during the cinematic (no damage beyond the 2
   assert.equal(r.breath[t.side], b0, 'breath frozen'); assert(r.paused); world(f, t, 20); assert.equal(r.paused, undefined, 'resumes after')
 })
 
+// ── 10 COMBO ROUTES (85 % scaling, reset 90f, totals ±20 %; design model + live) ───────────────────────────────
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  jet: R.RJ_JET.DMG, rushSub: R.RJ_RUSH.SUB.DMG, fin: R.RJ_FIN.DMG }
+const modelHits = route => route.flatMap(k => Array.isArray(RAW[k]) ? RAW[k] : [RAW[k]])
+const model = (route, edge = 1) => modelHits(route).reduce((sum, d, i) => sum + d * DM * edge * Math.pow(0.85, i), 0)
+const ROUTES = [
+  ['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 98, 1],
+  ['2. Low, Heavy, Water Jet', ['low', 'heavy', 'jet'], 118, 1],
+  ['3. Shark Rush (submerged), Heavy, Fin Blade', ['rushSub', 'heavy', 'fin'], 140, R.RJ_EDGE.SUB_DMG],
+]
+for (const [name, route, target, edge] of ROUTES) test('design total ' + name + ' ≈ ' + target, () => {
+  const v = model(route, edge); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`)
+})
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d.every(x => x > 0)); assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 2 live: Low, Heavy, Water Jet', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 120); const hp = t.health; assert(cast(f, t, 'N'), 'Water Jet'); for (let i = 0; i < 40; i++) { world(f, t, 1); t.hitstun = Math.min(t.hitstun, 13) } d.push(hp - t.health)
+  assert(d.every(x => x > 0)); assert.equal(f.comboCounter, 3); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 3 live: Shark Rush (submerged), Heavy, Fin Blade — the submerged edge applies', () => {
+  clearProj(); const f = ben(), t = foe(); flood(f, t, { level: 2 }); reset(f, t, 60); f.y = 410 - f.h; t.y = 410 - t.h; world(f, t, 2); assert.equal(S(f).depth, 'submerged')
+  const hp0 = t.health; ready(f); rushTap(f); assert(cast(f, t, 'F'), 'Shark Rush'); world(f, t, R.RJ_RUSH.STARTUP + R.RJ_RUSH.TRAVEL); const d = [hp0 - t.health]; while (S(f).rush) { world(f, t, 1); t.hitstun = Math.max(t.hitstun, 10) }   // the rush recovers, the target stays in the combo
+  clearProj(); ready(f); reset(f, t, 10); t.y = 410 - t.h; d.push(melee(f, t, 'heavy')); reset(f, t, 150); t.y = 410 - t.h; const hp = t.health; ready(f); assert(cast(f, t, 'B'), 'Fin Blade')
+  for (let i = 0; i < R.RJ_FIN.TOTAL; i++) { world(f, t, 1); t.hitstun = Math.min(t.hitstun, 13) } d.push(hp - t.health)
+  assert(d.every(x => x > 0), d.join(',')); assert(f.comboCounter >= 4, 'one combo (4 hits)'); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b)); clearProj()
+})
+
+// ── 10 lifecycle / slot 20 via the Dial / Vow / determinism / performance ────────────────────────────────────
+test('15. swap / revert / KO / rematch / round end clear Ripjaws\' form state and the flood (breath, stamps, cooldown)', () => {
+  const f = ben('ripjaws', LOAD), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); r.breath[t.side] = 30; S(f).storm = null
+  assert(F.applyAlien(f, 'goop')); assert.equal(r.end, 'swap', 'swap: 90f recede'); world(f, t, FL.FLOOD.RECEDE + 2); assert.equal(FR(f).phase, 'off'); assert.equal(t._benWater, undefined)
+  const g = ben('ripjaws', LOAD), u = foe(); flood(g, u); F.revertToHuman(g); assert.equal(g.omnitrix.formState, null, 'revert'); assert.equal(FR(g).end, 'swap')
+  const k = ben(), v = foe(); flood(k, v); world(k, v, 1); k.health = 0; handleBenKO(k); assert.equal(FR(k), undefined, 'KO: instant, no cooldown'); assert.equal(v._benWater, undefined)
+  const n = S(ben()); assert.deepEqual([n.storm, n.jet, n.rush, n.fin, n.breach, n.dive, n.ult, n.swimming || false], [null, null, null, null, null, null, null, false], 'rematch: a fresh form state')
+})
+test('17. slot 20 → PICK FIVE: slot count stays 5, Ripjaws READY + pickable (catalog slot 20, contiguous), nothing overwritten', () => {
+  assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('ripjaws'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 20); assert.equal(d.displayName, 'Ripjaws')
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov', 'arcticguana', 'benwolf', 'bigchill']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'ripjaws').length, 1); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  const slots = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready' && Number.isFinite(x.slot)).map(x => x.slot); assert.equal(new Set(slots).size, slots.length, 'no slot collision')
+  assert(/Sheet by Dragonrod/.test(fs.readFileSync(d.ledgerPath, 'utf8')), 'ledger credit')
+})
+test('17. Omnitrix Dial: Ripjaws picked into the last slot — same cost as any slot, no clock change; a hit cancels like any pick; HUD fits', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'ripjaws'], go = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const fr0 = FRAME; assert(F.ben10TransformOrSwap(f, slot, { seed: 1, frame: 0, playerIndex: 0 })); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60)
+    assert.equal(FRAME, fr0, 'no clock change'); return { f, spent: 100 - f.energy } }
+  const a = go(BEN10_SLOT_COUNT - 1), b = go(0); assert.equal(a.f.activeAlien, 'ripjaws'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert('Ripjaws'.length <= 'Arcticguana'.length, 'the HUD name is no longer than an existing one (no overflow)')
+  const h = fresh(); F.applyBen10VariantStats(h, 'default'); F.setupBen10(h, pick); h.energy = 100; assert(F.ben10TransformOrSwap(h, 4, { seed: 1, frame: 0, playerIndex: 0 }))
+  const g = fresh(); F.applyBen10VariantStats(g, 'default'); F.setupBen10(g, pick); g.energy = 100; assert(F.ben10TransformOrSwap(g, 0, { seed: 1, frame: 0, playerIndex: 0 }))
+  for (const x of [h, g]) { x.hitstun = 20; for (let i = 0; i < 5; i++) F.updateTransformDevice?.(x, 1000 / 60) }
+  assert.equal(h.transformed, g.transformed, 'Ripjaws behaves exactly like slot 1 under a hit')
+})
+test('17. Vow pick includes Ripjaws (mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'ripjaws'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('ripjaws') && picks.size === L.length)
+})
+test('16. same-seed determinism: flood + breath + specials + Ultimate → identical GAME_STATE; lightning / rain / creature layout from the seed', () => {
+  const run = (seed = 4242) => {
+    FRAME = 0; SEED = seed; A.clearAbilityState(); const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); reset(f, t, 30); f.y = 410 - f.h; t.y = 410 - t.h; world(f, t, 30)
+    ready(f); cast(f, t, 'B'); world(f, t, 50); reset(f, t, 200); t.y = 410 - t.h; ready(f); cast(f, t, 'N'); world(f, t, 40); reset(f, t, 30); t.y = 410 - t.h; ready(f); f.energy = 100; ult(f, t); world(f, t, 200)
+    const flashes = []; for (let fr = 0; fr < 600; fr++) if (FR(f) && FL.lightningOn(FR(f), fr)) flashes.push(fr)
+    clearProj(); return JSON.stringify({ s: S(f), fl: FR(f), hp: t.health, e: f.energy, x: f.x, tx: t.x, flashes, sinkT: t._benSinkT ?? null })
+  }
+  const a = run(), b = run(); assert.equal(a, b); assert.notEqual(run(9999), a, 'a different seed differs')
+})
+test('16. GAME_STATE stays plain data (form state + flood record) mid-flood and mid-cinematic; replay state holds only GAME_STATE fields', () => {
+  const plain = o => o === null || o === undefined || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  clearProj(); const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 20); assert(plain(S(f)) && plain(r) && plain(t._benWater), 'flood')
+  reset(f, t, 30); ready(f); f.energy = 100; ult(f, t); world(f, t, 60); assert(S(f).ult && S(f).ult.phase !== 'opener', 'mid-cinematic'); assert(plain(S(f)) && plain(FR(f)), 'ult')
+  assert(!/rain|ripple|foam|bubble|steam|flash/i.test(Object.keys(r).join(',')), 'no render-only fields in the record'); clearProj()
+})
+test('16. performance: rain / ripples / bubbles draw from a pooled, cached table — no per-frame allocations, no pixel scans', () => {
+  const src = fs.readFileSync('benFlood.js', 'utf8'), body = src.slice(src.indexOf('export function drawBenFlood('), src.indexOf('export function drawBenFloodFlash'))
+  assert(!/getImageData|putImageData|createImageData|new Array|Array\.from|\[\]|\{ *x:/.test(body.replace(/STEAM\.splice[^;]*;/, '')), 'drawBenFlood allocates nothing per frame')
+  const f = ben(), t = foe(); flood(f, t, { level: 2 }); let calls = 0; const c = new Proxy({}, { get: (o, k) => k in o ? o[k] : (k === 'getImageData' ? () => { throw new Error('pixel scan') } : () => { calls++ }), set: (o, k, v) => { o[k] = v; return true } })
+  const t0 = performance.now(); for (let i = 0; i < 600; i++) FL.drawBenFlood(c, f, i, 1600); const ms = (performance.now() - t0) / 600
+  assert(calls > 0); console.log(`   drawBenFlood ${ms.toFixed(3)} ms/frame`); assert(ms < 2, 'cheap')
+  const t1 = performance.now(); for (let i = 0; i < 600; i++) FL.tickBenFlood(f, ctxOf(f, t), { getOpponent: () => t, activeProjectiles: () => A.activeProjectiles }); assert((performance.now() - t1) / 600 < 0.5, 'tick cheap')
+})
+test('no Math.random / gameRng in ripjaws.js / ripjawsAssets.js / benFlood.js / waterAffinity.js', () => {
+  for (const file of ['ripjaws.js', 'ripjawsAssets.js', 'benFlood.js', 'waterAffinity.js']) assert(!/Math\.random|gameRng/.test(fs.readFileSync(file, 'utf8')), file)
+})
+
 //@@NEXT@@
 console.log(`RIPJAWS: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

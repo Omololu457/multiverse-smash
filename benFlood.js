@@ -204,14 +204,16 @@ export function breathHit(owner, target, key, kind = "steal") {
   if (kind === "undertow") target._benSinkT = BREATH.SINK_T   // UNDERTOW: dragged toward the floor for 30f (tickSink)
   return true
 }
-// the breath bar (render-only): a thin bar under the affected fighter's health bar, only while a flood exists and breath < 100
+// the breath bar (render-only): a thin bar just UNDER the affected fighter's health panel (o.y = the panel's bottom + 3; o.x /
+// o.w = the bar track), only while a flood exists and breath < 100; a red DROWNING pulse at 0. Never wider than the track.
 export function drawBenBreathHud(ctx, f, o) {
   const w = waterOf(f); if (!w || w.wb || w.breath == null || w.breath >= BREATH.MAX) return
-  const W = Math.max(40, (o.pbw || 120)), y = (o.enY || 0) + (o.enH || 6) + 3, x = o.flip ? o.x + (o.pbw || 120) - W : o.x
-  ctx.save(); ctx.fillStyle = "rgba(8,15,30,0.85)"; ctx.fillRect(x - 1, y - 1, W + 2, 5)
-  const k = w.breath / BREATH.MAX, pulse = w.drowning ? ((w.t >> 3) & 1) : 0   // render-only blink (the flood's own frame count)
-  ctx.fillStyle = w.drowning ? (pulse ? "#f87171" : "#7f1d1d") : "#38bdf8"; ctx.fillRect(o.flip ? x + W * (1 - k) : x, y, Math.max(w.drowning ? W : 0, W * k), 3)
-  if (w.drowning) { ctx.font = "bold 9px monospace"; ctx.fillStyle = pulse ? "#fecaca" : "#f87171"; ctx.textAlign = o.flip ? "right" : "left"; ctx.fillText("DROWNING", o.flip ? x + W : x, y + 12) }
+  const W = Math.max(40, o.w || o.pbw || 120), x = o.x || 0, y = o.y != null ? o.y : (o.enY || 0) + (o.enH || 6) + 3
+  const k = Math.max(0, Math.min(1, w.breath / BREATH.MAX)), pulse = w.drowning ? ((w.t >> 3) & 1) : 0   // render-only blink (the flood's own frame count)
+  ctx.save(); ctx.fillStyle = "rgba(8,15,30,0.85)"; ctx.fillRect(x - 1, y - 1, W + 2, 6)
+  ctx.fillStyle = w.drowning ? (pulse ? "#f87171" : "#7f1d1d") : "#38bdf8"
+  const bw = w.drowning ? W : W * k; ctx.fillRect(o.flip ? x + W - bw : x, y, bw, 4)
+  if (w.drowning) { ctx.font = "bold 9px monospace"; ctx.fillStyle = pulse ? "#fecaca" : "#f87171"; ctx.textAlign = o.flip ? "right" : "left"; ctx.fillText("DROWNING", o.flip ? x + W : x, y + 13) }
   ctx.restore()
 }
 
@@ -297,8 +299,8 @@ export function drawBenFlood(c, owner, frame, stageW = 3200) {
     if (y > lineY) continue; c.moveTo(x, y); c.lineTo(x - 2, y + d.l) }
   c.stroke()
   // the water body (translucent, both fighters readable on bright and dark stages)
-  c.globalAlpha = 0.30; c.fillStyle = "#1d4ed8"; c.fillRect(-200, lineY, stageW + 400, r.floorY - lineY + 400)
-  c.globalAlpha = 0.18; c.fillStyle = "#0b1e4a"; c.fillRect(-200, lineY + 40, stageW + 400, r.floorY - lineY + 360)
+  c.globalAlpha = 0.36; c.fillStyle = "#1d4ed8"; c.fillRect(-200, lineY, stageW + 400, r.floorY - lineY + 400)
+  c.globalAlpha = 0.20; c.fillStyle = "#0b1e4a"; c.fillRect(-200, lineY + 40, stageW + 400, r.floorY - lineY + 360)
   // the surface: cosmetic ripple band (±6 px) + foam pixels; the gameplay line stays flat
   c.globalAlpha = 0.85; c.fillStyle = "#bfdbfe"
   for (let x = -200; x < stageW + 200; x += 8) { const dy = Math.round(Math.sin((x + frame * 3) * 0.035) * FLOOD.RIPPLE * 0.5 + (rh(r.seed, (x >> 3) + (frame >> 2), 5) - 0.5) * FLOOD.RIPPLE)

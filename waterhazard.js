@@ -292,3 +292,46 @@ FX_DRAW.push((c, f, s, frame) => {                                          // t
   for (let y = 0; y < hgt; y += 6) { const ww = 22 + Math.sin((y + frame * 4) / 14) * 6; c.fillStyle = (y / 6) % 2 ? CYAN : WHITE; c.fillRect(Math.round(x0 - ww / 2), Math.round(base - y - 6), Math.round(ww), 6) }
   c.restore()
 })
+
+// ── 4. PRESSURE CORE (his unique resource, GAME_STATE) ───────────────────────────────────────────────────────────────
+// A separate 0–100 gauge, shown under Omnitrix Power while he is active. GAINS: landing a hit +5 (onContact, not blocked),
+// taking a hit +3, blocking one +2 (struck). FLOOD BONUS: while he is WADING in a live STORM TIDE flood +1/s, SUBMERGED +3/s —
+// a READ-ONLY look at the flood's per-fighter stamp `_benWater` (plain data { ttl, depth, wb } that benFlood.js writes and
+// physics / combat already read; the same test as benFlood.waterOf): it never writes the stamp, the flood, the water level or
+// anyone else's data. −1/f after 150f with no gain. SPENDING: Pressure Blast (full charge) and Hydro Burst spend ALL of it
+// (scaling their damage). Swap / revert / KO / rematch: a fresh formState (cleared). Deterministic (frame counts only).
+export const WH_CORE = { MAX: 100, HIT: 5, TAKEN: 3, BLOCKED: 2, WADE_S: 1, SUB_S: 3, IDLE: 150, DECAY: 1 }
+export const floodDepth = f => { const w = f && f._benWater; return w && w.ttl > 0 && (w.depth === "wading" || w.depth === "submerged") ? w.depth : "dry" }
+export function gainCore(s, amount, side) {
+  if (!s || !(amount > 0)) return 0
+  const before = s.core; s.core = Math.min(WH_CORE.MAX, s.core + amount); s.lastGainT = s.t
+  const got = s.core - before
+  if (side === "dealt") s.coreDealt += got; else if (side === "taken") s.coreTaken += got; else if (side === "blocked") s.coreBlocked += got; else s.coreFlood += got
+  return got
+}
+export function spendCore(s) { const c = s.core; s.core = 0; return c }
+TICKS.push((f, s) => {
+  const d = floodDepth(f); s.floodDepth = d
+  if (d !== "dry") gainCore(s, (d === "submerged" ? WH_CORE.SUB_S : WH_CORE.WADE_S) / 60, "flood")
+  else if (s.core > 0 && s.t - s.lastGainT >= WH_CORE.IDLE) s.core = Math.max(0, s.core - WH_CORE.DECAY)
+})
+CONTACT.push((f, s, target, { blocked }) => { if (!blocked) gainCore(s, WH_CORE.HIT, "dealt") })
+STRUCK.push((f, s, { blocked }) => { gainCore(s, blocked ? WH_CORE.BLOCKED : WH_CORE.TAKEN, blocked ? "blocked" : "taken") })
+
+// render-only: the Pressure Core gauge (cyan; full = white pulse; the flood bonus shows a rising-bubble tick)
+HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {
+  const h = 5, fill = s.core / WH_CORE.MAX
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(bx - 1, y - 1, w + 2, h + 2)
+  ctx.fillStyle = s.core >= WH_CORE.MAX ? ((s.t >> 3) % 2 ? WHITE : CYAN) : CYAN
+  const fw = Math.round(w * Math.max(0, Math.min(1, fill))); ctx.fillRect(flip ? bx + w - fw : bx, y, fw, h)
+  ctx.font = "bold 8px monospace"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"; ctx.fillStyle = "#a5f3fc"
+  ctx.fillText(`CORE ${Math.floor(s.core)}${s.floodDepth !== "dry" ? (s.floodDepth === "submerged" ? " ▲▲▲" : " ▲") : ""}`, flip ? bx + w : bx, y + h + 2)
+})
+// render-only: the Core glow on the orb hand while it is ≥ 50
+FX_DRAW.push((c, f, s, frame) => {
+  if (s.core < 50 || s.puddle) return
+  const face = f.facing || 1, sc = (f.h || 112) / 260, ox = cx(f) + face * WATERHAZARD_GEOM.orb[0] * sc * 0.5, oy = f.y + (f.h || 112) * 0.25
+  c.save(); c.globalAlpha = 0.35 + 0.25 * ((frame >> 3) % 2); c.fillStyle = CYAN
+  for (let k = 0; k < 8; k++) { const an = k / 8 * Math.PI * 2 + frame * 0.05; px(c, ox + Math.cos(an) * 9, oy + Math.sin(an) * 9, 3) }
+  c.restore()
+})

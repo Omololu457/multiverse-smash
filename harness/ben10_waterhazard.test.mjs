@@ -133,6 +133,42 @@ test('4. Puddle Form: can\'t jump / attack inside; →↓↘ = GEYSER UPPERCUT 6
   assert(t.health < hp, 'geyser hits'); assert(near(hp - t.health, 60 * DM * C.GLOBAL_DAMAGE_SCALE) || hp - t.health > 40, 'dmg ' + (hp - t.health)); assert(t.vy < 0 || !t.onGround || t.isLaunched, 'launches')
 })
 
+
+// ── 4 PRESSURE CORE ────────────────────────────────────────────────────────────────────────────────────────────
+const { WH_CORE } = G
+function foeSwing(f, t, key = 'heavy', md = null) {
+  ready(t); t.facing = cx(f) >= cx(t) ? 1 : -1
+  const m = md || t.basic_attacks[key]; assert(C.startMove(t, key, m), 'foe startMove ' + key)
+  const hp = f.health, bs = f.blockstun
+  for (let i = 0; i < 60 && f.health === hp && !(f.blockstun > bs) && t.attacking; i++) { t.hitstop = 0; C.updateCombat(t, f, {}, {}) }
+  t.attacking = false; t.currentAttack = null
+  return { dmg: hp - f.health, hitstun: f.hitstun }
+}
+test('5. Pressure Core: landing +5 (a blocked hit gives none), taking +3, blocking +2 — tracked per source', () => {
+  const f = ben(), t = foe(), s = S(f); reset(f, t, 10)
+  melee(f, t, 'light'); assert.equal(s.core, 5); assert.equal(s.coreDealt, 5)
+  reset(f, t, 10); melee(f, t, 'heavy', { block: true }); assert.equal(s.core, 5, 'his hit blocked: nothing')
+  reset(f, t, 10); ready(f); assert(foeSwing(f, t, 'light').dmg > 0); assert.equal(s.coreTaken, 3)
+  ready(f); f.isBlocking = true; foeSwing(f, t, 'light'); f.isBlocking = false; assert.equal(s.coreBlocked, 2); assert.equal(s.core, 10)
+})
+test('5. Pressure Core: −1/f after 150f with no gain; caps at 100; spend-all; cleared by swap / revert / rematch', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t)
+  s.core = 40; s.lastGainT = s.t; world(f, t, WH_CORE.IDLE - 1); assert.equal(s.core, 40); world(f, t, 10); assert(s.core < 40 && s.core >= 29, 'decay ' + s.core)
+  s.core = 98; G.gainCore(s, 5, 'dealt'); assert.equal(s.core, 100); assert.equal(G.spendCore(s), 100); assert.equal(s.core, 0)
+  const g = ben('waterhazard', ['waterhazard', 'heatblast', 'goop', 'xlr8', 'megawhatt']); S(g).core = 70
+  assert(F.applyAlien(g, 'heatblast')); assert(F.applyAlien(g, 'waterhazard')); assert.equal(S(g).core, 0, 'swap')
+  S(g).core = 70; F.revertToHuman(g, { forced: true }); assert.equal(G.whState(g), null, 'revert'); F.setupBen10(g, ['waterhazard']); assert.equal(G.whState(g), null, 'rematch: fresh Ben')
+})
+test('5. FLOOD BONUS (stamp read only): wading +1/s, submerged +3/s, nothing dry; the stamp is never written', () => {
+  const run = depth => { const f = ben(), t = foe(); far(f, t); const s = S(f); let writes = 0
+    for (let i = 0; i < 120; i++) { const st = { ttl: 2, depth, wb: true, lineY: 300 }; f._benWater = st; world(f, t, 1)
+      assert.deepEqual({ ...st, ttl: 0 }, { ttl: 0, depth, wb: true, lineY: 300 }, 'only physics touches ttl') } delete f._benWater; return s }
+  const w = run('wading'), m = run('submerged'), d = run('dry')
+  assert(Math.abs(w.core - 2) < 0.05, 'wading 2 s → +2: ' + w.core); assert(Math.abs(m.core - 6) < 0.05, 'submerged 2 s → +6: ' + m.core); assert.equal(d.core, 0)
+  assert.equal(m.floodDepth, 'submerged'); assert(Math.abs(m.coreFlood - m.core) < 1e-9)
+  const src = fs.readFileSync(new URL('../waterhazard.js', import.meta.url), 'utf8'); assert(!/_benWater\s*(=|\.\w+\s*=|\[)|_benFlood/.test(src.replace(/f\._benWater;/g, '')), 'waterhazard.js never writes the flood / its stamp')
+})
+
 // @@END-TESTS@@
 console.log(`\nWATER HAZARD: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

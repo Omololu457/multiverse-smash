@@ -4990,7 +4990,8 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   const megawhatt = ben && p1?.transformed && p1?.activeAlien === "megawhatt"
   const xlr8 = ben && p1?.transformed && p1?.activeAlien === "xlr8"
   const ghostfreak = ben && p1?.transformed && p1?.activeAlien === "ghostfreak"
-  const extra = ben ? (heatblast ? 112 : megawhatt ? 128 : xlr8 ? 128 : ghostfreak ? 128 : 96) : 0
+  const jetray = ben && p1?.transformed && p1?.activeAlien === "jetray"
+  const extra = ben ? (heatblast ? 112 : megawhatt ? 128 : xlr8 ? 128 : ghostfreak ? 128 : jetray ? 128 : 96) : 0
   const panelY = h - 170 - extra
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"
@@ -5033,7 +5034,13 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
       ctx.fillStyle = "#38bdf8"
       ctx.fillText("XLR8: L Sonic Slash  fwd+L Blur Step  back+L Tail Whip", 32, panelY + 188)
       ctx.fillText("S+L Mach Cyclone   Air L = Sonic Dive", 32, panelY + 204)
-      ctx.fillText("; + L = Flash Time (slow-mo)   U = Time Sprint", 32, panelY + 220)
+      ctx.fillText("P + L = Flash Time (slow-mo)   U = Time Sprint", 32, panelY + 220)
+    }
+    if (jetray) {
+      ctx.fillStyle = "#facc15"
+      ctx.fillText("Jetray: tap P = fly / land   hold L = Eye Laser (aims itself)", 32, panelY + 188)
+      ctx.fillText("S+L Tail Lasers   fwd fwd+L Wing Dash   Air S+L Sonic Dive", 32, panelY + 204)
+      ctx.fillText("P + L = Flash Time   back back+J Barrel Roll   U = Cosmic Drag", 32, panelY + 220)
     }
     if (ghostfreak) {
       ctx.fillStyle = "#e7e5e4"

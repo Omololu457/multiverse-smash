@@ -12,7 +12,7 @@ export { XLR8_ANIM, XLR8_FX }
 const ANIM = { ...XLR8_ANIM, hbFire: XLR8_ANIM.xlSonicSlash }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
-export const XL_FLASH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.4, PROJ: 0.5, SWALLOW: 10 }   // SWALLOW = the shared input-buffer window
+export const XL_FLASH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
 export const XL_ECHO = { DELAY: 12, FRAC: 0.30, MAX: 3 }
 export const XL_COST = { slash: 10, blur: 12, whip: 12, cyclone: 16, dive: 12, ultimate: 50 }
 export const XL_SLASH = { STARTUP: 8, LUNGE_FRAMES: 19, LUNGE_SPEED: 20, HITS: [[4, 14], [10, 14], [16, 22]], TOTAL: 40, ON_BLOCK: -12 }
@@ -45,7 +45,7 @@ export const XLR8 = {
     air:   normal(26, 6, 4, 10, 2)                                                      // fall frame + claw
   },
   anim: ANIM, fx: XLR8_FX,
-  onApply, tick, fireSpecial, fireUltimate, blockSpecial, onContact, moveFrames,
+  onApply, tick, fireSpecial, fireUltimate, blockSpecial, chargeSpecial: blockSpecial, onContact, moveFrames,
   drawHud: drawXlr8Hud, drawFx: drawXlr8Fx, drawUnder: drawXlr8Under, drawBehind: drawXlr8Behind, trailCount: f => xlTrailCount(f)
 }
 
@@ -75,7 +75,7 @@ export function xlHash(seed, frame, player, k = 0) {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296
 }
 
-// ── FLASH TIME (Block + Special): 25 Power, 150f, then 600f cooldown. His side only. ───────────────────────
+// ── FLASH TIME (P + L = Charge + Special via the chargeSpecial hook; Block + Special also works): 25 Power, 150f, then 600f cooldown. His side only. ───────────────────────
 function blockSpecial(f, ctx, api) {
   const s = xlState(f); if (!s) return false
   if (s.flashT > 0 || s.flashCd > 0 || (f.hitstun || 0) > 0 || s.ult) return false   // no refresh / no re-activate
@@ -106,7 +106,7 @@ function tick(f, input, ctx, api) {
   if (s.cancelWin > 0) s.cancelWin--
   if (s.flashT > 0 && --s.flashT === 0) s.flashCd = XL_FLASH.COOLDOWN
   else if (s.flashCd > 0) s.flashCd--
-  // movement ×1.4 while Flash Time runs (his side only)
+  // movement ×1.8 while Flash Time runs (his side only)
   const fl = flashActive(s)
   if (s.baseSpeed != null) { f._benWalkSpeed = s.baseSpeed * (fl ? XL_FLASH.SPEED : 1); f.dashSpeed = s.baseDash * (fl ? XL_FLASH.SPEED : 1) }
   // opponent-owned projectiles ×0.5: a 2-frame lease the projectile step reads (expires by itself if he swaps out)
@@ -190,7 +190,7 @@ function tickCyclone(f, s, opp, api, ctx) {
     c.hits++
     api.spawnProjectile(f, "xl_cyclone_" + c.hits, { damage: XL_CYCLONE.DMG, speed: 0, vx: 0, vy: 0, spawnX: c.x, spawnY: c.floor - 60,
       w: 110, h: 120, radius: 60, lifetime: 2, isSpecial: true, noHitstop: c.hits < XL_CYCLONE.HITS, hitstun: 14, blockstun: 10,
-      knockbackX: 0, knockbackY: c.hits === XL_CYCLONE.HITS ? -9 : -1, alien: { xl: true, kind: "cyclone", cast: c.cast } }, {})
+      knockbackX: 0, knockbackY: c.hits === XL_CYCLONE.HITS ? -9 : -1, alien: { xl: true, kind: "cyclone", cast: c.cast, hidden: true } }, {})
   }
   if (c.t >= XL_CYCLONE.FRAMES) s.cyclone = null
 }
@@ -203,12 +203,15 @@ function tickDive(f, s, opp, api, grounded) {
     delete f._benGlide; if (d.hit) { f.vy = XL_DIVE.BOUNCE; f.vx = -d.face * 3 }
     s.dive = null; return
   }
-  const k = flashActive(s) ? XL_FLASH.SPEED : 1                                  // Flash Time movement ×1.4
+  const k = flashActive(s) ? XL_FLASH.SPEED : 1                                  // Flash Time movement ×1.8
   f._benGlide = { vx: d.face * XL_DIVE.VX * k, vy: XL_DIVE.VY * k }
   f._spriteCastMove = "xlDive"; f._spriteCastTimer = 2
+  // lifetime 2: combat.updateProjectiles culls lifetime ≤ 0 BEFORE hits resolve (a lifetime-1 box never connected in-game);
+  // the per-frame box replaces its previous copy so only one is ever live (no double hit)
+  const live = api.activeProjectiles?.(); if (live) for (let i = live.length - 1; i >= 0; i--) if (live[i].owner === f && live[i].name === "xl_dive") live.splice(i, 1)
   api.spawnProjectile(f, "xl_dive", { damage: XL_DIVE.DMG, speed: 0, vx: 0, vy: 0, spawnX: f.x + f.w / 2 + d.face * 30, spawnY: f.y + f.h * 0.6,
-    w: 90, h: 60, radius: 45, lifetime: 1, isSpecial: true, hitstun: 22, blockstun: 12, knockbackX: 5, knockbackY: -5,
-    alien: { xl: true, kind: "dive", cast: d.cast } }, {})
+    w: 90, h: 60, radius: 45, lifetime: 2, isSpecial: true, hitstun: 22, blockstun: 12, knockbackX: 5, knockbackY: -5,
+    alien: { xl: true, kind: "dive", cast: d.cast, hidden: true } }, {})
 }
 
 // ── casts ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -225,8 +228,8 @@ function beginCast(f, s, api, pose, cost, total, { kind = null, commit = true } 
   s.castId++
   return true
 }
-function hitbox(f, api, name, md) {
-  return api.spawnProjectile(f, name, { speed: 0, vx: 0, vy: 0, lifetime: 2, isSpecial: true, ...md }, {})
+function hitbox(f, api, name, md) {   // alien.hidden: no generic coloured shape (ui.js) — the slash frames + hit sparks show the hit
+  return api.spawnProjectile(f, name, { speed: 0, vx: 0, vy: 0, lifetime: 2, isSpecial: true, ...md, alien: { ...(md.alien || {}), hidden: true } }, {})
 }
 
 function fireSpecial(f, ctx, api) {
@@ -392,7 +395,7 @@ export function drawXlr8Hud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
   const col = s.flashT > 0 ? "#7dd3fc" : s.flashCd > 0 ? "#64748b" : "#38bdf8"
   const w = pbw * Math.max(0, Math.min(1, frac))
   ctx.fillStyle = col; ctx.fillRect(flip ? x + 8 + pbw - w : x + 8, y, w, h)
-  const label = s.flashT > 0 ? `FLASH TIME ${Math.ceil(s.flashT / 60 * 10) / 10}s · ECHO ${s.echoCount}/${XL_ECHO.MAX}` : s.flashCd > 0 ? `FLASH TIME ${Math.ceil(s.flashCd / 60)}s` : "FLASH TIME READY (; + L)"
+  const label = s.flashT > 0 ? `FLASH TIME ${Math.ceil(s.flashT / 60 * 10) / 10}s · ECHO ${s.echoCount}/${XL_ECHO.MAX}` : s.flashCd > 0 ? `FLASH TIME ${Math.ceil(s.flashCd / 60)}s` : "FLASH TIME READY (P + L)"
   ctx.font = "bold 8px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
   ctx.fillStyle = col; ctx.fillText(label, flip ? x + 8 + pbw : x + 8, y + h + 1)
   ctx.restore()
@@ -404,12 +407,25 @@ function sheetImg(src) {
   return _imgs[src].complete && _imgs[src].naturalWidth ? _imgs[src] : null
 }
 const _trail = new WeakMap()   // render-only afterimage memory (outside GAME_STATE)
+// The tint is applied on a small OFFSCREEN canvas (source-atop there only touches his pixels), then drawn onto the stage —
+// source-atop on the stage canvas itself painted a solid tinted rectangle over the background behind every afterimage.
+let _tintCv = null
+function tintedFrame(img, sx, fw, fh, tint) {
+  if (typeof document === "undefined") return null
+  if (!_tintCv) _tintCv = document.createElement("canvas")
+  if (_tintCv.width !== fw || _tintCv.height !== fh) { _tintCv.width = fw; _tintCv.height = fh }
+  const t = _tintCv.getContext("2d"); t.clearRect(0, 0, fw, fh); t.globalCompositeOperation = "source-over"
+  t.drawImage(img, sx, 0, fw, fh, 0, 0, fw, fh)
+  t.globalCompositeOperation = "source-atop"; t.fillStyle = tint; t.fillRect(0, 0, fw, fh); t.globalCompositeOperation = "source-over"
+  return _tintCv
+}
 function ghost(c, a, fi, cx, feetY, face, alpha, tint = null) {
   const img = sheetImg(a.sheet); if (!img) return
-  const sc = a.actionScale * 2, fw = a.width, fh = a.height
+  const sc = a.actionScale * 2, fw = a.width, fh = a.height, sx = (fi % a.frames) * fw
+  const src = tint ? tintedFrame(img, sx, fw, fh, tint) : null
   c.save(); c.globalAlpha = alpha; c.translate(Math.round(cx), Math.round(feetY)); if (face < 0) c.scale(-1, 1)
-  c.drawImage(img, (fi % a.frames) * fw, 0, fw, fh, -fw * sc / 2, -a.originY * sc, fw * sc, fh * sc)
-  if (tint) { c.globalCompositeOperation = "source-atop"; c.fillStyle = tint; c.fillRect(-fw * sc / 2, -a.originY * sc, fw * sc, fh * sc) }
+  if (src) c.drawImage(src, 0, 0, fw, fh, -fw * sc / 2, -a.originY * sc, fw * sc, fh * sc)
+  else c.drawImage(img, sx, 0, fw, fh, -fw * sc / 2, -a.originY * sc, fw * sc, fh * sc)
   c.restore()
 }
 export function drawXlr8Fx(c, f, frame = 0, opp = null) {

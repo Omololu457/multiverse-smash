@@ -61,9 +61,12 @@ const jrProbe = (poke = null) => page.evaluate(async poke => {
   if (s && poke === "air") { f.y -= 160; f.onGround = false; f.grounded = false; f.vy = -2 }
   return s ? { eyes: s.stats.eyes, tails: s.stats.tails, dashes: s.stats.dashes, dives: s.stats.dives, booms: s.stats.booms, mach: s.machT, flights: s.flights,
     flying: !!(f._flightCtl && FL.isFlying(f)), cast: f._spriteCastMove || null, ult: s.ult?.phase || null, lastUltRaw: s.lastUltRaw, onGround: !!f.onGround,
-    y: Math.round(f.y), pips: s.neuro.pips, echoes: s.echoesFired, eye: !!s.eye } : null
+    y: Math.round(f.y), pips: s.neuro.pips, echoes: s.echoesFired, eye: !!s.eye, beam: s.eye?.beam ? { ...s.eye.beam } : null,
+    pulses: (s.tail?.pulses || []).map(p => ({ ...p })), pulseCount: s.stats.pulses, eyeTicks: s.stats.eyeTicks, gauge: s.laser.gauge,
+    p2: (() => { const o = window.__harness.p2(); return o ? { x: o.x, y: o.y, w: o.w, h: o.h } : null })() } : null
 }, poke)
 const near = async (dx) => page.evaluate(dx => window.__harness.setP2X(window.__harness.p1().x + dx), dx)
+const ptap = async () => { await page.keyboard.down("p"); await frames(1); await page.keyboard.up("p"); await frames(1) }   // a real short tap (headless runs several sim frames per rAF)
 async function settle(n = 70) { await frames(n); await H("ben10SetPower", "p1", 100) }
 try {
   const PICK = ["swampfire", "heatblast", "megawhatt", "goop", "jetray"]
@@ -80,28 +83,41 @@ try {
   ok(p1?.health > 0 && p2?.health > 0, "both HP bars live (HUD)")
   ok(await notBlack("_jetray_standing.png"), "no black screen (grounded hover)")
   ok(await captureJr(), "live Jetray captured (HUD hook)")
-  // ── FLY: real Jump held ──
-  await settle(10); await chord("keydown", ["w"]); await frames(40)
-  const fl = await jrProbe(); ok(fl?.flying && fl?.flights >= 1, "holding Jump in the air → FLIGHT (flap loop)", JSON.stringify({ flying: fl?.flying, y: fl?.y, cast: fl?.cast }))
+  // ── FLY (Homelander / Superman architecture): real P TAP takes off, he stays up with nothing held, P tap again lands ──
+  await settle(10); await ptap(); await chord("keydown", ["w"]); await frames(25); await chord("keyup", ["w"]); await frames(40)
+  const fl = await jrProbe(); ok(fl?.flying && fl?.flights >= 1, "P tap → takeoff; still FLYING 40f after letting go of everything", JSON.stringify({ flying: fl?.flying, y: fl?.y, cast: fl?.cast }))
   ok(await notBlack("_jetray_flying.png"), "no black screen (flying)")
-  await chord("keyup", ["w"]); await frames(60)
-  // ── EYE LASER (↓↘→ + P) ──
-  await settle(20); await jrProbe("cool"); await near(200); const hpE = (await H("p2")).health
-  await H("ben10Cast", "F"); await frames(20); ok((await jrProbe())?.eyes === 1, "Eye Laser cast (beak open, eye beam)")
+  // ── EYE LASER fired FROM THE AIR at the grounded opponent: the beam must point DOWN onto them (lock-on) ──
+  await jrProbe("cool"); await near(260); const hpA = (await H("p2")).health
+  await H("ben10Cast", "F"); await chord("keydown", ["l"]); await frames(24)
+  const ea = await jrProbe(); const onTarget = (b, q) => !!b && b.hit && b.tx >= q.x - 2 && b.tx <= q.x + q.w + 2 && b.ty >= q.y - 2 && b.ty <= q.y + q.h + 2
+  ok(ea?.beam && ea.beam.ty > ea.beam.oy + 40 && onTarget(ea.beam, ea.p2), "airborne Eye Laser = a real BEAM angled DOWN onto the opponent", JSON.stringify({ beam: ea?.beam && [Math.round(ea.beam.ox), Math.round(ea.beam.oy), Math.round(ea.beam.tx), Math.round(ea.beam.ty)], p2: ea?.p2 }))
+  ok(await notBlack("_jetray_eye_air.png"), "no black screen (Eye Laser from the air)")
+  await chord("keyup", ["l"]); await frames(30); ok((await H("p2")).health < hpA, "air Eye Laser lands", `${hpA} → ${(await H("p2")).health}`)
+  const y0 = (await jrProbe()).y; await ptap(); await frames(8); const sk = await jrProbe()
+  ok(sk?.flying && sk.y > y0, "P tap again → he starts coming down (Homelander's descend-to-land)", JSON.stringify({ y0, y: sk?.y }))
+  await chord("keydown", ["s"]); await frames(60); await chord("keyup", ["s"]); await frames(10)
+  const ld = await jrProbe(); ok(!ld?.flying && ld?.onGround, "…hold Down → lands", JSON.stringify({ flying: ld?.flying, y: ld?.y }))
+  // ── EYE LASER on the ground, HELD (Homelander heat vision: sustained, locked on, heat gauge) ──
+  await settle(70); await jrProbe("cool"); await near(220); const hpE = (await H("p2")).health
+  await H("ben10Cast", "F"); await chord("keydown", ["l"]); await frames(22)
+  const eg = await jrProbe(); ok(eg?.eyes >= 2 && onTarget(eg?.beam, eg.p2), "held Eye Laser: beam from his eyes ends ON the opponent", JSON.stringify({ beam: eg?.beam && [Math.round(eg.beam.tx), Math.round(eg.beam.ty)], p2: eg?.p2 }))
   ok(await notBlack("_jetray_eye.png"), "no black screen (Eye Laser)")
-  await frames(30); ok((await H("p2")).health < hpE, "Eye Laser lands", `${hpE} → ${(await H("p2")).health}`)
-  // ── TAIL VOLLEY (←↙↓ + P) — three bolts fly BEHIND him (the live game turns him to face the opponent, so behind = away) ──
-  await settle(); await jrProbe("cool"); await near(200)
-  await H("ben10Cast", "D"); await frames(16); ok((await jrProbe())?.tails === 1, "Tail Volley cast")
-  const bolts = await page.evaluate(async () => { const f = window.__jrLive; return (await import("./abilities.js")).activeProjectiles.filter(p => /^jr_tail_/.test(p.name || "")).map(p => Math.sign(p.vx) === -(f.facing || 1)) })
-  ok(bolts.length === 3 && bolts.every(Boolean), "3 tail bolts fly BEHIND him", JSON.stringify(bolts))
+  await frames(30); await chord("keyup", ["l"]); await frames(20); const eg2 = await jrProbe()
+  ok((await H("p2")).health < hpE && eg2.eyeTicks >= 4 && eg2.gauge < 48, "held beam ticks repeatedly and spends heat", JSON.stringify({ hp: `${hpE} → ${(await H("p2")).health}`, ticks: eg2?.eyeTicks, gauge: eg2?.gauge }))
+  const boxes = await page.evaluate(async () => (await import("./abilities.js")).activeProjectiles.filter(p => p.owner === window.__jrLive && !(p.alien && p.alien.hidden)).length)
+  ok(boxes === 0, "no visible hitbox shapes (no 'bombs')", String(boxes))
+  // ── TAIL VOLLEY (←↙↓ + P): three LASER PULSES from the tail, aimed at the opponent ──
+  await settle(100); await jrProbe("cool"); await near(200); const hpT = (await H("p2")).health
+  await H("ben10Cast", "D"); await frames(14); const tv = await jrProbe()
+  ok(tv?.tails >= 1 && tv.pulses.length >= 1 && tv.pulses.every(p => p.hit), "Tail Volley: laser pulses from the tail tip, locked onto the opponent", JSON.stringify(tv?.pulses?.map(p => [Math.round(p.ox), Math.round(p.oy), Math.round(p.tx), Math.round(p.ty), p.hit])))
   ok(await notBlack("_jetray_tail.png"), "no black screen (Tail Volley)")
-  await frames(30)
-  // ── MACH TIME (real Block + Special) → WING DASH (→→ + P) + Sonic Boom ──
+  await frames(30); ok((await H("p2")).health < hpT && (await jrProbe()).pulseCount >= 3, "Tail Volley lands (3 pulses)", `${hpT} → ${(await H("p2")).health}`)
+  // ── FLASH TIME: real P + L (hold Charge, press Special) → WING DASH (→→ + P) + Sonic Boom ──
   await settle(30); await jrProbe("cool")
-  await chord("keydown", [";"]); await frames(2); await chord("keydown", ["l"]); await frames(3); await chord("keyup", ["l", ";"]); await frames(14)
-  const m = await jrProbe(); ok(m?.mach > 0, "Block + Special → MACH TIME (afterimages, warm wash)", JSON.stringify({ mach: m?.mach }))
-  ok(await notBlack("_jetray_mach.png"), "no black screen (Mach Time)")
+  await chord("keydown", ["p"]); await frames(2); await chord("keydown", ["l"]); await frames(3); await chord("keyup", ["l", "p"]); await frames(14)
+  const m = await jrProbe(); ok(m?.mach > 0 && !m.flying, "P + L → FLASH TIME (not a flight toggle, no special)", JSON.stringify({ mach: m?.mach, flying: m?.flying, eyes: m?.eyes }))
+  ok(await notBlack("_jetray_mach.png"), "no black screen (Flash Time)")
   await jrProbe("cool"); await near(150); const hpD = (await H("p2")).health
   await jrProbe("dash"); await H("ben10Cast", "F"); await frames(4); const wd = await jrProbe()
   ok(wd?.dashes === 1 && wd?.cast === "jrDash", "Wing Dash in the warp-bubble frames", JSON.stringify({ dashes: wd?.dashes, cast: wd?.cast }))

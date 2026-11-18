@@ -255,6 +255,17 @@ field only a ready form defines); a form that does not use them takes exactly th
 |---|---|---|
 | `_benGrounded` status `{ ttl, air }` (stamped by a form on its OPPONENT every frame it lasts; `ttl: 2` so it lapses on its own) | physics.js `moveFighter`: the air-dash cap (`maxAirDash`), the `canJump` gate, and the "Apply X movement" line | while `ttl > 0`: no air dash (cap 0), no double jump (`jumpCount >= 1` refuses the jump — the FIRST jump still works), and airborne horizontal displacement × `air` outside hitstun (air drift; knockback flight untouched). Ground walk / run / dash, input polling and the simulation clock are untouched. Absent for everyone else → byte-identical. Jetray NEUROSHOCK → GROUNDED: `air: 0.5`, 150f. |
 | `bodyOffset(f).rot` (optional, radians) | game.js body draw, untinted path (next to the existing `dx` / `dy` translate) | a render-only rotation of the body about its hurtbox centre. Absent / 0 → the old draw (the no-offset fast path is kept). Jetray BARREL ROLL: one full turn over the roll. |
+| `chargeSpecial(f, ctx)` (optional; Charge + Special = P + L) | game.js `handleOmnitrixSwitch`, right after the `blockSpecial` call | hold Charge and press Special (or both together): return true to own the press — the Special is consumed (never also casts) and Charge stops refilling. Absent → nothing changes. Jetray + XLR8 FLASH TIME (`chargeSpecial: blockSpecial`, so Block + Special still works too). |
+
+2026-11-17 owner rework: EYE LASER and TAIL VOLLEY are real LASERS on the Homelander / Superman heat-vision architecture
+(`beam.js`: `createLaser` / `laserStep` lock-on driver, `marchBeam` hitscan, `drawBeam3` look, `drawLaserGauge` HUD bar) — the eye
+beam applies damage the way Homelander's does (straight `api.applyScaledDamage` + hitstun / blockstun, so a held beam does not strobe
+the per-hit impact flash), the tail pulses are hidden hitscan hitboxes. FLIGHT is the Homelander / Superman model (P tap = take
+off / descend-to-land, stays up with nothing held, air dashes) on `FLIGHT_PROFILES.jetray`; the P tap is read on the SIM clock
+from the form's raw input (game.js's charge-tap uses the wall clock, which a Ben form must not). Every Jetray / XLR8 hitbox carries
+`alien.hidden` (no generic coloured shape). GOTCHA: `combat.updateProjectiles` culls lifetime ≤ 0 BEFORE hits resolve — a
+lifetime-1 hitbox never connects in the real game (XLR8's Sonic Dive had this; fixed to 2). GOTCHA: tinting a sprite with
+`source-atop` directly on the stage canvas paints a solid box — tint on an offscreen canvas first (Jetray + XLR8 afterimages).
 
 Everything else Jetray needs reuses existing hooks: the per-alien FLIGHT PROFILE (`_alienFlightProfile` → flight.js `FLIGHT_PROFILES.jetray`;
 MACH TIME swaps in `jetray_mach` ×1.5 by re-pointing the same field each tick), XLR8's Block+Special `blockSpecial` + buffered-press

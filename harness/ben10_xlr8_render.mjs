@@ -60,18 +60,20 @@ try {
   ok(p1?.w > p1?.h, "long, low hurtbox", `${p1?.w}x${p1?.h}`)
   ok(p1?.health > 0 && p2?.health > 0, "both HP bars live (HUD)")
   ok(await notBlack("_xlr8_form.png"), "no black screen (normal form)")
-  // ── 2. FLASH TIME: hold Block (;) + press Special (L) ──
+  // ── 2. FLASH TIME: hold Charge (P) + press Special (L) — owner: "P plus L" ──
   await H("ben10SetPower", "p1", 100); await frames(4)
   const spd0 = (await H("ben10Details", "p1"))?.speed
-  await page.keyboard.down(";"); await frames(2); await key("l", 3); await page.keyboard.up(";"); await frames(6)
+  await page.keyboard.down("p"); await frames(2); await key("l", 3); await page.keyboard.up("p"); await frames(6)
   const d2 = await H("ben10Details", "p1")
-  ok(d2?.speed && Math.abs(d2.speed / spd0 - 1.4) < 0.01, "Flash Time active: movement ×1.4", `${spd0} → ${d2?.speed}`)
+  ok(d2?.speed && Math.abs(d2.speed / spd0 - 1.8) < 0.01, "P + L → Flash Time active: movement ×1.8 (as fast as the Flash)", `${spd0} → ${d2?.speed}`)
   ok(Math.abs((await H("p1"))?.energy - 75) < 3, "Flash Time spent 25 Power (the Special press is consumed, no stray special)", `${(await H("p1"))?.energy}`)
   // a live Sonic Slash during Flash Time
   await page.evaluate(() => window.__harness.setP2X(window.__harness.p1().x + 200))
   const hp0 = (await H("p2")).health, x0 = (await H("p1")).x; const cast = await H("ben10Cast", "N"); await frames(40)
   ok((await H("p2")).health < hp0, "Sonic Slash lands in the live game", `cast=${cast} ${hp0} → ${(await H("p2")).health} x ${x0} → ${(await H("p1")).x} p2 ${(await H("p2")).x}`)
   ok(await notBlack("_xlr8_flash_time.png"), "no black screen (Flash Time: grey world + afterimages)")
+  const xlBoxes = await page.evaluate(async () => (await import("./abilities.js")).activeProjectiles.filter(p => p.alien && p.alien.xl && !p.alien.hidden).length)
+  ok(xlBoxes === 0, "no visible XLR8 hitbox shapes (no 'bombs')", String(xlBoxes))
   // Blur Step: reappears on the far side of the opponent
   await frames(30); await H("ben10SetPower", "p1", 100)
   const before = await H("p1"), op = await H("p2"); const side0 = Math.sign((op.x + op.w / 2) - (before.x + before.w / 2))

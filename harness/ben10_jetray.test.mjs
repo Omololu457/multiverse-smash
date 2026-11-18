@@ -10,7 +10,7 @@ import * as C from '../combat.js'
 import { physics } from '../physics.js'
 import { characters } from '../characters.js'
 import { tickFlightDriver, isFlying, getFlightProfile, FLIGHT_PROFILES } from '../flight.js'
-import { JETRAY, JR_FLIGHT, JR_MACH, JR_ECHO, JR_BOOM, JR_NEURO, JR_COST, JR_EYE, JR_TAIL, JR_DASH, JR_DIVE, JR_ROLL, JR_ULT,
+import { JETRAY, JR_LASER, JR_FLIGHT, JR_MACH, JR_ECHO, JR_BOOM, JR_NEURO, JR_COST, JR_EYE, JR_TAIL, JR_DASH, JR_DIVE, JR_ROLL, JR_ULT,
   JETRAY_EYES, JETRAY_GEOM, jrState, jrHash, addPip, eyePoint, eyeBeam, tailTip, jrStarLayout, drawJetrayUnder } from '../jetray.js'
 import { benAlienBodyOffset } from '../ben10State.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
@@ -99,7 +99,7 @@ test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
   const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
   assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
 })
-test('route 2 live: Low, Heavy, Eye Laser (10 Power, 3 ticks, +1 Neuro)', () => {
+test('route 2 live: Low, Heavy, Eye Laser (10 Power, tap burst, +1 Neuro)', () => {
   const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
   reset(f, t, 120); const e = f.energy, hp = t.health; assert(cast(f, t, 'F')); assert.equal(e - f.energy, JR_COST.eye)
   world(f, t, 50); const eye = hp - t.health; assert(eye > 0); assert.equal(S(f).neuro.pips, 1, '+1 Neuro for 3 ticks'); console.log('   HP', [...d, eye].join('+'))
@@ -112,18 +112,34 @@ test('route 3 live: Wing Dash (→→, 2 hits), Heavy, Tail Volley (behind)', ()
   assert(tv > 0, 'Tail Volley hits the opponent BEHIND him'); console.log('   HP', wd, '+', h, '+', tv)
 })
 
-// ── 4 Flight ──────────────────────────────────────────────────────────────────────────────────────────────
-test('4. Flight: hold Jump in the air → fly; 240f per airtime, apex + 220 cap, never refills jumps, profile cruise 8.0', () => {
-  const p = FLIGHT_PROFILES.jetray; assert.equal(p.maxH, 8.0); assert.equal(p.maxAirDash, 0); assert.equal(p.groundedLock, 40)
-  const f = ben(), t = foe(); assert.equal(getFlightProfile(f), p, 'profile via _alienFlightProfile')
-  f.vy = -14; f.onGround = f.grounded = false; f.jumpCount = 2; f.y -= 2
-  const r = flyFrames(f, t, 400); assert(r.flying > 30, `flew ${r.flying}f`); assert(r.flying <= JR_FLIGHT.MAX + 1, `≤ 240f (${r.flying})`)
-  assert.equal(r.minJumps, 2, 'jumps never refilled while flying'); assert(S(f).capY != null && r.minY >= S(f).capY - 1, `apex cap (${r.minY} vs ${S(f).capY})`)
-  const g0 = ben(); g0.vy = -14; g0.onGround = g0.grounded = false; g0.y -= 2; let apex = null, cap = null
-  for (let i = 0; i < 60 && cap == null; i++) { flyFrames(g0, t, 1); if (isFlying(g0)) { apex = S(g0).apexY; cap = S(g0).capY } }
-  assert.equal(cap, apex - JR_FLIGHT.CAP, 'cap = the jump apex − 220 px')
-  const g = ben(); g.vy = -14; g.onGround = g.grounded = false; g.y -= 2; flyFrames(g, t, 14); assert(isFlying(g), 'flying')
-  g.hitstun = 20; A.tickBenAlienForm(g, { jump: true }, ctxOf(g, t)); assert(!isFlying(g)); assert.equal(g._flightCtl.groundedLock, 40, 'grounded 40f after a hard hit')
+// ── 4 Flight (the Homelander / Superman architecture) ───────────────────────────────────────────────────────
+const pTap = (f, t) => { tick(f, t, 1, { charge: true }); tick(f, t, 1, { charge: true }); tick(f, t, 1, {}) }
+function flight(f, t, n, input = {}) {     // the real per-frame order: form tick → flight driver → physics (owns x / y while flying)
+  let flying = 0, minJumps = 99
+  for (let i = 0; i < n; i++) { FRAME++; A.updatePendingSpawns(); A.tickBenAlienForm(f, typeof input === 'function' ? input(i) : input, ctxOf(f, t)); tickFlightDriver(f)
+    const k = typeof input === 'function' ? input(i) : input
+    physics.moveFighter(f, { w: !!k.up, s: !!k.down, a: !!k.left, d: !!k.right }, CONTROLS); physics.applyGravity(f)
+    if (f._flightCtl && isFlying(f)) { flying++; minJumps = Math.min(minJumps, f.jumpCount) } }
+  return { flying, minJumps }
+}
+test('4. Flight: a P (Charge) TAP takes off from the ground and he STAYS up with nothing held; P tap again lands; Homelander-class profile', () => {
+  const p = FLIGHT_PROFILES.jetray; assert.equal(p.maxH, 18); assert.equal(p.maxAirDash, 2); assert.equal(p.groundedLock, 40); assert.equal(p.drag, FLIGHT_PROFILES.homelander.drag)
+  const f = ben(), t = foe('goku', 1200); assert.equal(getFlightProfile(f), p, 'profile via _alienFlightProfile')
+  pTap(f, t); tickFlightDriver(f); assert(isFlying(f), 'P tap → takeoff'); assert.equal(S(f).flights, 1)
+  const r = flight(f, t, 90, i => i < 20 ? { up: true } : {}); assert.equal(r.flying, 90, 'stays airborne with nothing held'); assert(f.y < 300, `climbed (${f.y})`)
+  assert.equal(r.minJumps, 0, 'flight never refills jumps (none used)')
+  const x0 = f.x; flight(f, t, 30, { right: true }); assert(f.x - x0 > 250, `fast 8-way cruise (${(f.x - x0).toFixed(0)} px / 30f)`)
+  pTap(f, t); assert(f._flightCtl.wantDescend, 'P tap in flight → descend-to-land'); assert.equal(S(f).landings, 1)
+  flight(f, t, 200); assert(!isFlying(f), 'landed')
+  const g = ben(); g._flightCtl = null; g.vy = -14; g.onGround = g.grounded = false; g.y -= 2; g.jumpCount = 1; g.jumpHeld = true   // Up already held from the jump (no second jump)
+  flight(g, t, 14, { up: true }); assert(isFlying(g), 'holding Jump in the air also takes off'); assert.equal(g.jumpCount, 1, 'jumps not refilled')
+  g.hitstun = 20; A.tickBenAlienForm(g, {}, ctxOf(g, t)); assert(!isFlying(g)); assert.equal(g._flightCtl.groundedLock, 40, 'grounded 40f after a hard hit')
+})
+test('4. P tap is not a flight toggle when it is P + L (Flash Time), ↓↓ + P (the dial) or a long hold (Charge)', () => {
+  const t = foe('goku', 1200)
+  const a = ben(); tick(a, t, 1, { charge: true }); tick(a, t, 1, { charge: true, special: true }); tick(a, t, 1, {}); tickFlightDriver(a); assert(!isFlying(a), 'P + L')
+  const b = ben(); b._omxLastDown = b.omnitrix.simFrame; tick(b, t, 1, { charge: true }); tick(b, t, 1, {}); tickFlightDriver(b); assert(!isFlying(b), '↓↓ + P')
+  const c = ben(); tick(c, t, 30, { charge: true }); tick(c, t, 1, {}); tickFlightDriver(c); assert(!isFlying(c), 'held Charge')
 })
 test('4. hurtbox = torso + inner wing (excludes the wing tips); grounded 6 px hover is render-only (feet on the floor)', () => {
   const f = ben(); const wing = Math.round(310 * JETRAY_GEOM.screenScale)
@@ -142,11 +158,11 @@ test('5. Mach Time: 25 Power, 150f, 600f cooldown, no re-activate, not in hitstu
   void e
 })
 const SPEND = { spendEnergy: (q, n) => (q.energy >= n ? (q.energy -= n, true) : false) }
-test('5. Mach Time: startup / recovery ×0.7 (min 1), movement + flight ×1.5, opponent projectiles ×0.5, clock + inputs untouched', () => {
+test('5. Flash Time: startup / recovery ×0.7 (min 1), movement ×1.8, flight ×1.5, opponent projectiles ×0.5, clock + inputs untouched', () => {
   const f = ben(), t = foe(); const w0 = f._benWalkSpeed, d0 = f.dashSpeed
   assert(JETRAY.blockSpecial(f, {}, SPEND)); tick(f, t)
-  assert(Math.abs(f._benWalkSpeed - w0 * 1.5) < 1e-9 && Math.abs(f.dashSpeed - d0 * 1.5) < 1e-9, 'movement ×1.5')
-  assert.equal(f._alienFlightProfile, 'jetray_mach'); assert.equal(FLIGHT_PROFILES.jetray_mach.maxH, FLIGHT_PROFILES.jetray.maxH * 1.5, 'flight ×1.5')
+  assert.equal(JR_MACH.SPEED, 1.8); assert(Math.abs(f._benWalkSpeed - w0 * 1.8) < 1e-9 && Math.abs(f.dashSpeed - d0 * 1.8) < 1e-9, 'movement ×1.8 (as fast as the Flash)')
+  assert.equal(f._alienFlightProfile, 'jetray_mach'); assert.equal(FLIGHT_PROFILES.jetray_mach.maxH, FLIGHT_PROFILES.jetray.maxH * 1.5, 'flight ×1.5'); assert(FLIGHT_PROFILES.jetray_mach.maxH > FLIGHT_PROFILES.homelander.maxH)
   const md = JETRAY.moveFrames(f, 'heavy', BA.heavy); assert.equal(md.startup, Math.round(13 * 0.7)); assert.equal(md.recovery, Math.round(22 * 0.7)); assert.equal(md.damage, BA.heavy.damage)
   assert.equal(JETRAY.moveFrames(f, 'light', { ...BA.light, startup: 1, recovery: 1 }).startup, 1, 'min 1f')
   const p = enemyShot(f, t); tick(f, t); assert.equal(p.timeScale, JR_MACH.PROJ, 'opponent projectile ×0.5'); clearProj()
@@ -156,7 +172,11 @@ test('5. Mach Time: startup / recovery ×0.7 (min 1), movement + flight ×1.5, o
   const g = ben(), u = foe(); reset(g, u, 120); assert(JETRAY.blockSpecial(g, {}, SPEND)); tick(g, u)
   S(g).swallow = 0; ready(g); A.clearAbilityState(); g._specialHeldDir = 'F'; A.triggerSpecial(g, ctxOf(g, u)); assert.equal(S(g).eye.st, Math.round(JR_EYE.STARTUP * 0.7), 'special startup ×0.7')
 })
-test('5. Mach Time press is swallowed (the buffered Special does not also cast)', () => {
+test('5. Flash Time is bound to P + L (chargeSpecial hook) as well as Block + Special', () => {
+  assert.equal(JETRAY.chargeSpecial, JETRAY.blockSpecial); const f = ben(); assert(JETRAY.chargeSpecial(f, {}, SPEND)); assert.equal(S(f).machT, JR_MACH.DURATION)
+  const src = fs.readFileSync(new URL('../game.js', import.meta.url), 'utf8'); assert(/benReadyForm\(fighter\)\?\.chargeSpecial/.test(src) && /chargeB && special && !held\.special && _rdCS/.test(src), 'game.js wires Charge + Special')
+})
+test('5. Flash Time press is swallowed (the buffered Special does not also cast)', () => {
   const f = ben(), t = foe(); assert(JETRAY.blockSpecial(f, {}, SPEND)); ready(f); f._specialHeldDir = 'F'; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false)
 })
 
@@ -182,20 +202,37 @@ test('6. Sonic Boom: Wing Dash in Mach Time ends in a r120 ring, 25 once per cas
   assert.equal(S(g).stats.booms, 0, 'no boom outside Mach Time'); clearProj()
 })
 
-// ── 7 Eye Laser ──────────────────────────────────────────────────────────────────────────────────────────
-test('7. Eye Laser: 16f, 3 × 15, 480 px, aim fixed at cast (neutral / ↑ 30° / ↘ 30°), one on screen, −10 on block', () => {
-  const f = ben(), t = foe(); reset(f, t, 200); assert(cast(f, t, 'F')); assert.equal(S(f).eye.ang, 0)
-  assert.equal(cast(f, t, 'F', true), false, 'one on screen')
-  let first = null, ticks = 0; for (let i = 1; i <= 40; i++) { tick(f, t); const p = A.activeProjectiles.find(q => /^jr_eye_/.test(q.name)); if (p) { first ??= i; ticks++; assert.equal(p.damage, 15); clearProj() } }
-  assert.equal(first, JR_EYE.STARTUP); assert.equal(ticks, 3)
-  const g = ben(), u = foe(); tick(g, u, 1, { up: true }); assert(cast(g, u, 'U')); assert(Math.abs(S(g).eye.ang + Math.PI / 6) < 1e-9, '↑ = 30° up')
-  tick(g, u, 5, { down: true }); assert(Math.abs(S(g).eye.ang + Math.PI / 6) < 1e-9, 'fixed at cast')
-  const h = ben(), v = foe(); tick(h, v, 1, { right: true, down: true }); assert(cast(h, v, 'F')); assert(Math.abs(S(h).eye.ang - Math.PI / 6) < 1e-9, '↘ = 30° down')
-  const b = eyeBeam(h, S(h)); assert(Math.abs(Math.hypot(b.x1 - b.x0, b.y1 - b.y0) - JR_EYE.RANGE) < 1e-6, '480 px'); clearProj()
-  const k = ben(), w = foe(); w.x = k.x + 600; assert(cast(k, w, 'F')); tick(k, w, 40); assert.equal(w.health, 950, 'out of range: no hit'); assert.equal(S(k).eye, null, 'bounded lifetime')
-  const m = ben(), z = foe(); reset(m, z, 150); assert(cast(m, z, 'F')); z.isBlocking = true
-  let bs = null; for (let i = 0; i < 40; i++) { world(m, z); if (S(m).eye && S(m).eye.t === S(m).eye.last && bs == null) bs = { theirs: z.blockstun, mine: m.attackCooldown } }
-  z.isBlocking = false; assert(bs, 'last tick blocked'); assert.equal(bs.theirs - bs.mine, JR_EYE.ON_BLOCK, `on block ${JSON.stringify(bs)}`); assert.equal(S(m).neuro.pips, 0, 'blocked: no pip')
+// ── 7 Eye Laser (Homelander / Superman HEAT VISION architecture) ─────────────────────────────────────────────
+const holdEye = (f, t, n, input = { special: true }) => { const ts = []; for (let i = 0; i < n; i++) { world(f, t, 1, input); const b = eyeBeam(f, S(f)); ts.push(b ? { ...b } : null) } return ts }
+test('7. Eye Laser: real BEAM from the eye anchor LOCKED ON the opponent (any height / side / range), hitscan, 12 every 6f, held = longer, heat gauge', () => {
+  for (const [dx, dy, label] of [[260, 0, 'level'], [260, -200, 'above'], [300, 160, 'below']]) {
+    const f = ben(), t = foe('goku', 0); clearProj(); t.x = f.x + dx; t.y = 410 - t.h + dy; t.onGround = dy === 0
+    assert(cast(f, t, 'F')); const bs = holdEye(f, t, 30, { special: true }).filter(Boolean)
+    assert(bs.length > 10, `${label}: beam drawn (${bs.length}f)`)
+    const b = bs[bs.length - 1], e = eyePoint(f, 'jrEye', 0)
+    assert(Math.abs(b.ox - e.x) < 1e-6 && Math.abs(b.oy - e.y) < 1e-6, 'starts at the eye anchor')
+    assert(b.hit && b.tx >= t.x - 1 && b.tx <= t.x + t.w + 1 && b.ty >= t.y - 1 && b.ty <= t.y + t.h + 1, `${label}: ends ON the opponent (${b.tx.toFixed(0)},${b.ty.toFixed(0)})`)
+    assert(t.health < 950, `${label}: it hurts (${950 - t.health})`)
+  }
+  const f = ben(), t = foe(); reset(f, t, 200); t.x = f.x - 300; assert(cast(f, t, 'F')); holdEye(f, t, 20); assert.equal(f.facing, -1, 'turns to face an opponent behind him'); assert(t.health < 950)
+  const g = ben(), u = foe(); reset(g, u, 200); assert(cast(g, u, 'F')); holdEye(g, u, 60, {}); const tap = 950 - u.health
+  const h = ben(), v = foe(); reset(h, v, 200); assert(cast(h, v, 'F')); holdEye(h, v, 90, { special: true }); const held = 950 - v.health
+  assert(tap > 0 && held > tap * 2, `tap burst ${tap} < held ${held}`); assert(S(h).laser.gauge < JR_LASER.max, 'heat spent')
+  assert.equal(cast(h, v, 'F'), false, 'cooldown / overheat after a beam')
+  assert.equal(S(h).neuro.pips, 1, 'one pip per cast')
+  const k = ben(), w = foe(); w.x = k.x + 900; assert(cast(k, w, 'F')); holdEye(k, w, 30); assert(w.health < 950, 'locked on: connects at any range (Homelander)')
+  const q = ben(), z = foe(); z.x = q.x + 900; assert(cast(q, z, 'F')); holdEye(q, z, 30, { special: true, up: true }); assert.equal(z.health, 950, 'hand-swept beam reaches 560 px only')
+})
+test('7. Eye Laser: Up / Down sweep it by hand (±35° cap), one beam at a time, blocked = blockstun + 30% chip, no projectile drawn', () => {
+  const f = ben(), t = foe(); reset(f, t, 200); assert(cast(f, t, 'F')); holdEye(f, t, 12)
+  const a0 = S(f).laser.angle; holdEye(f, t, 10, { special: true, down: true }); assert(S(f).laser.angle > a0 + 0.2, 'Down sweeps it down')
+  holdEye(f, t, 60, { special: true, down: true }); assert(S(f).laser.angle <= S(f).laser.base + JR_LASER.sweepCap + 1e-3, 'capped (angle kept to 4 decimals)')
+  assert.equal(cast(f, t, 'F', true), false, 'one beam at a time')
+  const g = ben(), u = foe(); reset(g, u, 150); u.isBlocking = true; assert(cast(g, u, 'F')); holdEye(g, u, 25); u.isBlocking = false
+  assert(u.blockstun > 0 || u.health === 950, 'blocked'); assert.equal(S(g).neuro.pips, 0, 'blocked: no pip')
+  const m = ben(), z = foe(); reset(m, z, 150); assert(cast(m, z, 'F')); let seen = 0
+  for (let i = 0; i < 25; i++) { tick(m, z, 1, { special: true }); seen += A.activeProjectiles.filter(p => p.owner === m).length; clearProj() }
+  assert.equal(seen, 0, 'Homelander beam path: no projectile at all (nothing for the generic renderer to draw as a box)'); assert(z.health < 950, 'it still hurts')
 })
 test('7. eye anchor: recorded per frame, mirrored correctly for both facings, airborne cast works', () => {
   const f = ben(); const r = eyePoint(f, 'jrEye', 0); f.facing = -1; const l = eyePoint(f, 'jrEye', 0)
@@ -206,22 +243,20 @@ test('7. eye anchor: recorded per frame, mirrored correctly for both facings, ai
   const g = ben(), t = foe(); g.onGround = g.grounded = false; g.y = 200; g._specialHeldDir = null; ready(g); A.clearAbilityState(); assert(A.triggerSpecial(g, ctxOf(g, t)), 'airborne Eye Laser'); assert(S(g).eye)
 })
 
-// ── 8 Tail Volley ────────────────────────────────────────────────────────────────────────────────────────
-test('8. Tail Volley: 3 bolts fire BEHIND in both facings (0 / 20 / 40° down-back), one hit each, −8 on block, pip on the first bolt only', () => {
-  for (const face of [1, -1]) {
-    const f = ben(), t = foe(); f.facing = face; clearProj(); assert(cast(f, t, 'D'))
-    tick(f, t, JR_TAIL.STARTUP); const bolts = A.activeProjectiles.filter(p => /^jr_tail_/.test(p.name))
-    assert.equal(bolts.length, 3, 'three bolts'); for (const b of bolts) assert(Math.sign(b.vx) === -face, 'behind'); assert(bolts.every(b => b.x * face < (f.x + f.w / 2) * face), 'spawned at the tail (behind)')
-    const angs = bolts.map(b => Math.round(Math.atan2(b.vy, Math.abs(b.vx)) * 180 / Math.PI)).sort((a, b) => a - b); assert.deepEqual(angs, [0, 20, 40])
-    const tip = tailTip(f); assert(Math.abs(bolts[0].x - tip.x) < 1e-6); clearProj()
+// ── 8 Tail Volley (3 aimed laser pulses) ─────────────────────────────────────────────────────────────────
+test('8. Tail Volley: 3 LASER PULSES from the tail tip, each AIMED at the opponent (front, behind, above), 10 each, one pip, hidden hitboxes', () => {
+  for (const [dx, dy, label] of [[250, 0, 'in front'], [-260, 0, 'behind'], [200, -180, 'above']]) {
+    const f = ben(), t = foe('goku', 0); clearProj(); t.x = f.x + dx; t.y = 410 - t.h + dy
+    assert(cast(f, t, 'D')); const tip = tailTip(f, S(f).tail.face); let pulses = []
+    for (let i = 0; i < 40 && S(f).tail; i++) { world(f, t); for (const p of S(f).tail?.pulses || []) if (!pulses.some(q => q.t === p.t)) pulses.push(p) }
+    assert.equal(pulses.length, 3, `${label}: 3 pulses`)
+    for (const p of pulses) { assert(Math.abs(p.ox - tip.x) < 1e-6 && Math.abs(p.oy - tip.y) < 1e-6, 'from the tail tip'); assert(p.hit, `${label}: aimed onto the opponent`) }
+    const dealt = 950 - t.health; assert(dealt > 0 && dealt <= 30 * DM + 1, `${label}: ≤ 30 (${dealt})`); assert.equal(S(f).neuro.pips, 1, 'one pip per cast')
   }
-  const f = ben(), t = foe(); t.x = f.x - t.w - 20; t.y = f.y + f.h - t.h; assert(cast(f, t, 'D')); const hp = t.health
-  world(f, t, 40); const dealt = hp - t.health; assert(dealt > 0 && dealt <= 30 * DM + 1, `≤ 30 (${dealt})`); assert.equal(S(f).neuro.pips, 1, 'ONE pip for the cast')
-  const g = ben(), u = foe(); u.x = g.x - u.w - 20; u.y = g.y + g.h - u.h; u.isBlocking = true; assert(cast(g, u, 'D')); tick(g, u, JR_TAIL.STARTUP)
-  const rem = g.attackCooldown - JR_TAIL.STARTUP; const b0 = A.activeProjectiles.find(p => p.name === 'jr_tail_0'); b0.x = u.x + u.w / 2; b0.y = u.y + u.h / 2; C.resolveProjectileHitsMulti(A.activeProjectiles, [u]); clearProj()
-  assert.equal((u.blockstun - 1) - rem, JR_TAIL.ON_BLOCK, `on block (${u.blockstun - 1} vs ${rem})`); assert.equal(S(g).neuro.pips, 0); u.isBlocking = false
+  const g = ben(), u = foe(); reset(g, u, 150); assert(cast(g, u, 'D')); let n = 0
+  for (let i = 0; i < 40; i++) { tick(g, u); for (const p of A.activeProjectiles) if (p.owner === g) { n++; assert(p.alien?.hidden) } clearProj() }
+  assert(n > 0, 'hitboxes spawned (hidden)'); assert.equal(A.activeProjectiles.filter(p => /^jr_tail/.test(p.name) && (p.vx || 0) !== 0 && Math.abs(p.vx) > 1).length, 0, 'no travelling bolts / bombs')
 })
-
 // ── 9 Neuro → Grounded ───────────────────────────────────────────────────────────────────────────────────
 test('9. Neuro: one pip per cast, max 3 → GROUNDED 150f, 360f immunity, pips expire 240f, none from boom / echo / block', () => {
   const f = ben(), t = foe(); const s = S(f)

@@ -99,7 +99,7 @@ test('route 3 live: Blur Step → (cancel) Tail Whip, Heavy, Mach Cyclone', () =
 })
 
 // ── 4 Flash Time ───────────────────────────────────────────────────────────────────────────────────────────
-test('4. Flash Time: 25 Power, 150f, startup/recovery ×0.7, speed ×1.4, opponent projectiles ×0.5, 600f cooldown, no re-activate', () => {
+test('4. Flash Time: 25 Power, 150f, startup/recovery ×0.7, speed ×1.8 (P + L), opponent projectiles ×0.5, 600f cooldown, no re-activate', () => {
   const f = ben(), t = fresh('goku', 1300); tick(f, t)
   const sp = f._benWalkSpeed, ds = f.dashSpeed
   C.startMove(f, 'heavy', BA.heavy); const plain = { ...f.currentAttack }; f.attacking = false; f.currentAttack = null; f.attackCooldown = 0
@@ -108,7 +108,7 @@ test('4. Flash Time: 25 Power, 150f, startup/recovery ×0.7, speed ×1.4, oppone
   f._specialHeldDir = null; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false, 'the activating Special press is swallowed (no stray cast)')
   tick(f, t, 2, { special: true }); assert.equal(S(f).swallow, XL_FLASH.SWALLOW, 'held: still swallowed'); tick(f, t, XL_FLASH.SWALLOW); assert.equal(S(f).swallow, 0, 'released: one buffer window later it is free')
   tick(f, t)
-  assert(Math.abs(f._benWalkSpeed - sp * 1.4) < 1e-9 && Math.abs(f.dashSpeed - ds * 1.4) < 1e-9, 'movement ×1.4')
+  assert.equal(XL_FLASH.SPEED, 1.8, 'owner: as fast as the Flash'); assert(Math.abs(f._benWalkSpeed - sp * 1.8) < 1e-9 && Math.abs(f.dashSpeed - ds * 1.8) < 1e-9, 'movement ×1.8')
   C.startMove(f, 'heavy', BA.heavy); const fast = f.currentAttack
   assert.equal(fast.activeEnd - plain.activeEnd, Math.round(12 * 0.7) - 12, `startup 12 → ${Math.round(12 * 0.7)}`)
   assert.equal(fast.damage, plain.damage, 'hit damage unchanged')

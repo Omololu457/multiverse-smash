@@ -12236,6 +12236,13 @@ function handleOmnitrixSwitch(fighter, inputState) {
       fighter._omxConsume = { ...(fighter._omxConsume || {}), special: true }
       inputState.special = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
     } }
+  // A READY form may own Charge + Special (P + L: Jetray / XLR8 FLASH TIME) via its optional chargeSpecial hook; no-op otherwise.
+  // Hold P and press L (or both together). The Special press is consumed so it never also casts; Charge stops refilling.
+  { const _rdCS = benReadyForm(fighter)?.chargeSpecial
+    if (_rdCS && !(fighter._benPowerCommit > 0) && chargeB && special && !held.special && _rdCS(fighter, getAbilityContext())) {
+      fighter._omxConsume = { ...(fighter._omxConsume || {}), special: true }
+      inputState.special = false; fighter.isCharging = false; fighter._attackInputLock = Math.max(fighter._attackInputLock || 0, 3)
+    } }
   // A READY form may own Block + Light (Ghostfreak: PHASE) via its optional blockLight hook; no-op otherwise (Block + Light
   // has no shared meaning). The Light press is consumed so it never also jabs.
   { const _rdBL = benReadyForm(fighter)?.blockLight

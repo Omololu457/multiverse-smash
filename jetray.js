@@ -6,19 +6,24 @@
 // effects (beam glow, bolts' glow, warp trail, afterimages, sonic rings, the ult's starfield / planets, shake) READ that state.
 import { JETRAY_ANIM, JETRAY_EYES, JETRAY_GEOM } from "./jetrayAssets.js"
 import { flightTakeoff, isFlying, FLIGHT_PHASE, flightKnockedDown } from "./flight.js"   // leaf module (Megawhatt / Ghostfreak / Alien X do the same)
+import { marchBeam, drawBeam3, createLaser, laserReady, laserStart, laserStep, laserCut, laserView, drawLaserGauge } from "./beam.js"   // Homelander / Superman HEAT VISION architecture (pure, no imports)
 export { JETRAY_ANIM, JETRAY_EYES, JETRAY_GEOM }
 
 const ANIM = { ...JETRAY_ANIM, jrFly: JETRAY_ANIM.fly }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
-export const JR_FLIGHT = { MAX: 240, CAP: 220, HOLD: 8 }
-export const JR_MACH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.5, PROJ: 0.5, SWALLOW: 10 }
+export const JR_FLIGHT = { MAX: 240, HOLD: 8, TAP: 15 }   // TAP 15f ≈ 250 ms (Homelander's charge tap is 200 ms)   // energy budget (profile), hold-Jump-in-air takeoff, P-tap window
+export const JR_MACH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, SWALLOW: 10 }   // FLASH TIME (P + L)
 export const JR_ECHO = { DELAY: 10, FRAC: 0.30, MAX: 3 }
 export const JR_BOOM = { R: 120, DMG: 25, LIFE: 2 }
 export const JR_NEURO = { MAX: 3, EXPIRE: 240, GROUNDED: 150, IMMUNE: 360, AIR: 0.5 }
 export const JR_COST = { eye: 10, tail: 12, dash: 12, dive: 12, ultimate: 55 }
-export const JR_EYE = { STARTUP: 16, TICKS: [0, 6, 12], DMG: 15, RANGE: 480, ANGLE: 30, RECOVERY: 18, ON_BLOCK: -10, BEAM_LIFE: 16 }
-export const JR_TAIL = { STARTUP: 14, ANGLES: [0, 20, 40], DMG: 10, RANGE: 380, SPEED: 19, RECOVERY: 16, ON_BLOCK: -8 }
+// EYE LASER = Homelander's HEAT VISION driver (beam.js): hold Special to sustain, heat gauge, min burst, LOCK-ON to the opponent
+// every frame (Up / Down sweep by hand), hitscan from the eye anchor, damage every TICK frames.
+export const JR_EYE = { STARTUP: 8, TICK: 6, DMG: 12, RANGE: 560, RECOVERY: 14, ON_BLOCK: -8, BLOCKSTUN: 7 }
+export const JR_LASER = { max: 48, drain: 1, refill: 0.4, cooldown: 45, overheat: 120, minBurst: 13, sweep: 0.026, sweepCap: 0.62 }
+// TAIL VOLLEY = three aimed laser PULSES from the tail tip, each locked onto the opponent at the moment it fires (hitscan).
+export const JR_TAIL = { STARTUP: 12, PULSES: [0, 5, 10], DMG: 10, RANGE: 460, SHOW: 6, RECOVERY: 16, ON_BLOCK: -8 }
 export const JR_DASH = { STARTUP: 8, DIST: 380, FRAMES: 16, HITS_AT: [3, 12], DMG: [20, 28], RECOVERY: 18, ON_BLOCK: -12 }
 export const JR_DIVE = { STARTUP: 4, VX: 9, VY: 13, DMG: 50, BOUNCE: -8, MAXF: 40, RECOVERY: 12 }
 export const JR_ROLL = { TOTAL: 18, IFROM: 4, ITO: 10, CD: 300, DRIFT: 4, WINDOW: 14 }
@@ -44,7 +49,7 @@ export const JETRAY = {
   flightProfile: "jetray",                            // flight.js FLIGHT_PROFILES.jetray (Mach Time swaps in jetray_mach)
   moves: { jab: "Wing Flick", heavy: "Wing Slash", low: "Low Glide", launcher: "Rising Sweep", air: "Air Slash",
     special1: "Eye Laser", special2: "Tail Volley", special3: "Wing Dash", special4: "Sonic Dive", defense: "Barrel Roll",
-    mach: "Mach Time", ultimate: "Cosmic Drag" },
+    mach: "Flash Time", ultimate: "Cosmic Drag" },
   basic_attacks: {
     light: normal(16, 5, 3, 10, 1, { rangeX: 110 }),                                    // glide frame + wing flick
     heavy: normal(50, 13, 4, 22, -6, { knockbackX: 7, rangeX: 170 }),                   // wing slash, 170 px
@@ -53,14 +58,15 @@ export const JETRAY = {
     air:   normal(26, 6, 4, 10, 2)                                                      // diving slash
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, blockSpecial, onContact, bodyOffset, targetOffset,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, blockSpecial, chargeSpecial: blockSpecial, onContact, bodyOffset, targetOffset,
   drawHud: drawJetrayHud, drawFx: drawJetrayFx, drawUnder: drawJetrayUnder, drawBehind: drawJetrayBehind
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshJetrayState() {
   return { kind: "jetray", t: 0, castId: 0, noAttack: false, baseSpeed: null, baseDash: null,
-    airborne: false, apexY: null, capY: null, jumpHeld: 0, flightUsed: 0, flights: 0,
+    airborne: false, jumpHeld: 0, flightUsed: 0, flights: 0, chPrev: false, chT0: -999, chClean: false, landings: 0,
+    laser: createLaser(JR_LASER),
     machT: 0, machCd: 0, machs: 0, swallow: 0,
     echoes: [], echoCount: 0, echoesFired: 0,
     neuro: { pips: 0, pipT: 0, lastPipCast: -1, groundT: 0, immune: 0, grounds: 0 },
@@ -68,7 +74,7 @@ export function freshJetrayState() {
     fwdPrev: false, fwdTapT: -999, dashTapT: -999, backPrev: false, backTapT0: -999, backTapT: -999, rollTapT: -999,
     lastIn: { up: false, down: false },
     ult: null, lastUltRaw: 0, lastUltLayout: null,
-    stats: { eyes: 0, lastEyeAngle: null, tails: 0, dashes: 0, booms: 0, dives: 0, rolls: 0, ults: 0, pipsAdded: 0 } }
+    stats: { eyes: 0, lastEyeAngle: null, eyeTicks: 0, tails: 0, pulses: 0, dashes: 0, booms: 0, dives: 0, rolls: 0, ults: 0, pipsAdded: 0 } }
 }
 export const jrState = f => (f?.omnitrix?.formState?.kind === "jetray" && f.transformed && f.activeAlien === "jetray") ? f.omnitrix.formState : null
 export const machActive = s => !!s && s.machT > 0
@@ -114,8 +120,8 @@ function tick(f, input, ctx, api) {
   tickFlight(f, s, input, grounded)
   tickEchoes(f, s, opp, api)
   tickNeuro(f, s, opp)
-  tickEye(f, s, opp, api)
-  tickTail(f, s)
+  tickEye(f, s, opp, api, input)
+  tickTail(f, s, opp, api)
   tickDash(f, s, opp, api, stage)
   tickBoom(s)
   tickDive(f, s, api, grounded)
@@ -139,34 +145,45 @@ function tickTaps(f, s, input) {   // →→ (Wing Dash) and ←← (Barrel Roll
   s.fwdPrev = fwd; s.backPrev = back
 }
 
-// ── FLIGHT (flight.js profile "jetray"): hold Jump in the air to fly. 240f per airtime, cruise 8.0, moderate drag,
-// 8-direction steering (flight.js), no altitude past the jump apex + 220 px, knocked out of the sky (40f grounded) by a hit,
-// never refills jumps. Mach Time swaps in "jetray_mach" (×1.5 speed). ────────────────────────────────────────────────
+// ── FLIGHT — the HOMELANDER / SUPERMAN architecture (flight.js profile "jetray"): a P (Charge) TAP takes off (ground or air)
+// and, while flying, requests the controlled descent-to-land (held Up cancels it) — exactly their charge-tap toggle, but read
+// on the SIM clock (frames) from his raw input so it stays deterministic. Holding Jump in the air also takes off. Once up he
+// STAYS up (no button held): free 8-direction flight with real accel / drag (cruise 18), 2 air dashes, 240 frames of flight
+// energy (refills on the floor), hold Down near the floor to land. A hard hit knocks him down (40f grounded lock). Flight
+// never refills his jumps. FLASH TIME swaps in "jetray_mach" (×1.5: cruise 27). ─────────────────────────────────────────────
+const omxRecent = f => { const o = f.omnitrix; return !!o && (((f._omxArm || 0) > 0) || (f._omxLastDown != null && (o.simFrame || 0) - f._omxLastDown <= 30)) }
 function tickFlight(f, s, input, grounded) {
   f._alienFlightProfile = machActive(s) ? "jetray_mach" : "jetray"
   const c = f._flightCtl, flying = !!c && isFlying(f)
+  // P TAP: Charge pressed and released within 15f with nothing else pressed (P + L = Flash Time; ↓↓ + P = the Omnitrix dial)
+  const ch = !!input.charge
+  if (ch && !s.chPrev) { s.chT0 = s.t; s.chClean = !omxRecent(f) }
+  if (ch && (input.special || input.light || input.heavy || input.grab || input.block || input.ultimate || input.down)) s.chClean = false
+  const tap = !ch && s.chPrev && s.chClean && s.t - s.chT0 <= JR_FLIGHT.TAP
+  s.chPrev = ch
   const jump = !!(input.jump || input.up)
   s.jumpHeld = jump ? s.jumpHeld + 1 : 0
-  if (grounded) { s.airborne = false; s.apexY = null; s.capY = null; s.flightUsed = 0 }
-  else { s.airborne = true; if (!flying) s.apexY = s.apexY == null ? f.y : Math.min(s.apexY, f.y) }
+  s.airborne = !grounded
   if (flying) {
     s.flightUsed++
     if ((f.hitstun || 0) > 0) { flightKnockedDown(f); return }                    // hard hit → drop + 40f grounded lock
-    if (!jump || s.flightUsed >= JR_FLIGHT.MAX || s.ult || s.dive || s.dash) { c.phase = FLIGHT_PHASE.GROUNDED; c.wantDescend = false; return }
-    if (s.capY != null && f.y < s.capY) { f.y = s.capY; if ((f.vy || 0) < 0) f.vy = 0 }   // no altitude past apex + 220
+    if (s.ult || s.dive || s.dash) { c.phase = FLIGHT_PHASE.GROUNDED; c.wantDescend = false; return }   // these own his movement
+    if (tap) { c.wantDescend = true; s.landings++ }                                // P tap again → come down and land
     if (!f.attacking && !busy(s)) { f._spriteCastMove = "jrFly"; f._spriteCastTimer = 2 }
     return
   }
-  if (grounded || !jump || s.jumpHeld < JR_FLIGHT.HOLD || s.flightUsed >= JR_FLIGHT.MAX || f.attacking || (f.hitstun || 0) > 0 || busy(s)) return
+  if (grounded) s.flightUsed = 0
+  if (f.attacking || (f.hitstun || 0) > 0 || busy(s)) return
+  if (!(tap || (!grounded && jump && s.jumpHeld >= JR_FLIGHT.HOLD))) return
   const jc = f.jumpCount
   if (flightTakeoff(f)) {
     f.jumpCount = jc                                                               // flight never refills jumps
-    s.capY = (s.apexY ?? f.y) - JR_FLIGHT.CAP; s.flights++
+    s.flights++
     if (!f._benSfx) f._benSfx = "jr_fly"
   }
 }
 
-// ── MACH TIME (Block + Special): 25 Power, 150f, then 600f cooldown. His side only (the opponent's clock / polling untouched).
+// ── FLASH TIME ("Mach Time" in code) — P + L (Charge + Special; Block + Special also works): 25 Power, 150f, then 600f cooldown. His side only (the opponent's clock / polling untouched).
 function blockSpecial(f, ctx, api) {
   const s = jrState(f); if (!s) return false
   if (s.machT > 0 || s.machCd > 0 || (f.hitstun || 0) > 0 || s.ult) return false   // no refresh / no re-activate
@@ -269,74 +286,96 @@ function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
 const hitbox = (f, api, name, face, md) => {
   const list = api.activeProjectiles?.()
   if (list && md.replace) for (let i = list.length - 1; i >= 0; i--) if (list[i].owner === f && list[i].name === name) list.splice(i, 1)
-  return api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, ...md, replace: undefined }, {})
+  // alien.hidden: the generic projectile renderer skips it (ui.js) — his beams / slashes / rings are drawn by this module
+  return api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, ...md, replace: undefined,
+    alien: { ...(md.alien || {}), hidden: true } }, {})
 }
 const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
 
-// 1. EYE LASER (↓↘→ + P, 10): a beam from the per-frame EYE ANCHOR (sheet data; mirrored for facing −1). Direction fixed at cast
-//    by the held up / down: neutral horizontal, ↑ 30° up, ↘ 30° down. 16f startup, 3 ticks × 15 = 45 (6f apart), range 480 px,
-//    bounded lifetime, one on screen, −10 on block, +1 Neuro. Grounded or airborne (the air cast freezes his drift).
-//    Each tick tests the beam SEGMENT against the opponent's hurtbox and, on overlap, lands a small hitbox at the entry point.
+// 1. EYE LASER (↓↘→ + P, 10 Power): HOMELANDER / SUPERMAN HEAT VISION — a real beam (beam.js drawBeam3 look) from the per-frame
+//    EYE ANCHOR. 8f beak-open startup, then the beam fires and LOCKS ONTO THE OPPONENT every frame (he turns to face them);
+//    Up / Down sweep it by hand (±35°). HOLD Special to sustain: heat gauge 48 (min burst 13 → a tap still fires a burst),
+//    overheat 120f, 45f re-fire cooldown. Hitscan (marchBeam); LOCKED ON it connects at any range (Homelander), a hand-swept
+//    beam reaches 560 px. 12 damage every 6 firing frames; one pip per cast;
+//    ≈ −8 on block. Grounded he plants; airborne he hovers; FLYING he keeps flying while he burns.
 function castEye(f, s, api) {
-  if (s.eye) return false                                                          // one on screen
-  const st = fs(s, JR_EYE.STARTUP), last = st + fs(s, JR_EYE.TICKS[2]), total = last + fs(s, JR_EYE.RECOVERY)
-  const c = beginCast(f, s, api, "jrEye", JR_COST.eye, total); if (!c) return false
-  const aim = s.lastIn.up || f._specialHeldDir === "U" ? -1 : (s.lastIn.down ? 1 : 0)
-  const ang = aim * JR_EYE.ANGLE * Math.PI / 180
-  s.eye = { t: 0, cast: c.cast, face: f.facing || 1, ang, aim, st, ticksAt: JR_EYE.TICKS.map(k => st + fs(s, k)), total, last, hits: 0, end: last + JR_EYE.BEAM_LIFE - 12 }
-  s.stats.eyes++; s.stats.lastEyeAngle = ang
+  if (s.eye || !laserReady(s.laser)) return false                                  // one beam; overheat / cooldown gate
+  const st = fs(s, JR_EYE.STARTUP), rec = fs(s, JR_EYE.RECOVERY), flying = !!f._flightCtl && isFlying(f)
+  const c = beginCast(f, s, api, "jrEye", JR_COST.eye, st + JR_LASER.minBurst + rec, { commit: !!(f.onGround || f.grounded) && !flying }); if (!c) return false
+  s.eye = { t: 0, cast: c.cast, st, rec, face: f.facing || 1, on: false, done: 0, beam: null, k: 0 }
+  s.stats.eyes++
   f._benSfx = "jr_eye"
-  if (!(f.onGround || f.grounded)) { f.vx = 0; f.vy = Math.min(f.vy || 0, 0) }
+  if (!(f.onGround || f.grounded) && !flying) { f.vx = 0; f.vy = Math.min(f.vy || 0, 0) }
   return true
 }
-export function eyeBeam(f, s) {        // the beam segment (sim + render share it): origin = eye anchor, fixed angle, 480 px
-  const e = s.eye, o = eyePoint(f, "jrEye", 0)
-  return { x0: o.x, y0: o.y, x1: o.x + e.face * Math.cos(e.ang) * JR_EYE.RANGE, y1: o.y + Math.sin(e.ang) * JR_EYE.RANGE }
-}
-function segBox(b, box) {              // segment ∩ AABB → entry point or null (slab test)
-  let t0 = 0, t1 = 1; const dx = b.x1 - b.x0, dy = b.y1 - b.y0
-  for (const [p, q] of [[-dx, b.x0 - box.x], [dx, box.x + box.w - b.x0], [-dy, b.y0 - box.y], [dy, box.y + box.h - b.y0]]) {
-    if (p === 0) { if (q < 0) return null; continue }
-    const r = q / p; if (p < 0) { if (r > t1) return null; if (r > t0) t0 = r } else { if (r < t0) return null; if (r < t1) t1 = r }
+const aimFrom = (ox, oy, face, opp) => opp && !opp.eliminated ? Math.atan2(opp.y + (opp.h || 110) * 0.45 - oy, (cx(opp) - ox) * face) : null
+const boxOf = o => ({ x: o.x, y: o.y, w: o.w || 60, h: o.h || 110 })
+export function eyeBeam(f, s) { return s && s.eye && s.eye.beam }                 // the live beam {ox, oy, tx, ty, hit, tick} (sim + render share it)
+function tickEye(f, s, opp, api, input = {}) {
+  const L = s.laser, e = s.eye
+  if (!e) { laserStep(L, JR_LASER, {}); return }                                   // idle: cooldown / overheat / heat refill
+  if ((f.hitstun || 0) > 0 || f.knockdownState) { laserCut(L, JR_LASER); s.eye = null; return }
+  e.t++
+  const flying = !!f._flightCtl && isFlying(f), grounded = !!(f.onGround || f.grounded)
+  if (e.done > 0) { if (--e.done <= 0) s.eye = null; e.beam = null; return }      // recovery after the beam
+  f._spriteCastMove = "jrEye"; f._spriteCastTimer = 2
+  if (!grounded && !flying) { f.vx = 0; f.vy = Math.min(f.vy || 0, 0.5) }
+  const manual = !!(input.up !== input.down && (input.up || input.down))
+  if (opp && !opp.eliminated && !manual) f.facing = cx(opp) >= cx(f) ? 1 : -1      // lock on: he turns to face them (Homelander)
+  const face = e.face = f.facing || 1, o = eyePoint(f, "jrEye", 0)
+  if (e.t < e.st) { laserStep(L, JR_LASER, {}); return }                           // beak-open startup
+  if (!e.on) { e.on = true; laserStart(L, JR_LASER, aimFrom(o.x, o.y, face, opp) ?? 0) }
+  const r = laserStep(L, JR_LASER, { held: !!input.special, up: !!input.up, down: !!input.down, aim: manual ? null : aimFrom(o.x, o.y, face, opp) })
+  if (r !== "fire") {                                                              // released / overheated → recovery
+    e.done = e.rec; e.beam = null; f.attackCooldown = e.rec; if (grounded) f._benPowerCommit = e.rec
+    f._spriteCastTimer = e.rec; return
   }
-  return { x: b.x0 + dx * t0, y: b.y0 + dy * t0, t: t0 }
-}
-function tickEye(f, s, opp, api) {
-  const e = s.eye; if (!e) return
-  if ((f.hitstun || 0) > 0 || ++e.t > e.end) { s.eye = null; return }
-  if (e.t <= e.last + 2) { f._spriteCastMove = "jrEye"; f._spriteCastTimer = 2; if (!(f.onGround || f.grounded)) { f.vx = 0; f.vy = Math.min(f.vy || 0, 0.5) } }
-  const k = e.ticksAt.indexOf(e.t); if (k < 0 || !opp || opp.eliminated) return
-  const hit = segBox(eyeBeam(f, s), { x: opp.x, y: opp.y, w: opp.w || 60, h: opp.h || 110 })
-  if (!hit) return
-  const fin = k === e.ticksAt.length - 1
-  hitbox(f, api, "jr_eye_" + k, e.face, { damage: JR_EYE.DMG, spawnX: hit.x + e.face * 8, spawnY: hit.y, w: 24, h: 24, radius: 12, lifetime: 2,
-    beam: true, noHitstop: !fin, hitstun: fin ? 22 : 14, blockstun: fin ? blockstunFor(e.total - e.t, JR_EYE.ON_BLOCK) : 12,
-    knockbackX: fin ? 4 : 0.5, knockbackY: 0, alien: { jr: true, kind: "eye", pip: true, cast: e.cast } })
+  f.attackCooldown = Math.max(f.attackCooldown || 0, e.rec + 1); if (grounded && !flying) f._benPowerCommit = Math.max(f._benPowerCommit || 0, e.rec + 1)
+  s.stats.lastEyeAngle = L.angle
+  const live = opp && !opp.eliminated
+  const b = marchBeam(o.x, o.y, L.angle, face, JR_EYE.RANGE, live ? boxOf(opp) : null)
+  if (!b.hit && live && !manual) { b.x = cx(opp); b.y = opp.y + (opp.h || 110) * 0.45; b.hit = true }   // locked on: connects at any range (Homelander)
+  e.beam = { ox: o.x, oy: o.y, tx: b.x, ty: b.y, hit: b.hit, tick: L.k }
+  if (!b.hit || (L.k - 1) % JR_EYE.TICK !== 0 || (opp.invulnTimer || 0) > 0) return   // first firing frame ticks, then every 6f
+  e.k++; s.stats.eyeTicks++
+  // Homelander's beam damage path (abilities.applyHomelanderHeatVision): straight to the target — blocked = blockstun + 30% chip,
+  // clean = hitstun + damage (combo-scaled) — not a hit-pipeline projectile, so a held beam does not strobe the impact flash
+  // every tick. Clean ticks feed Jetray's own systems: one Neuro pip per cast, Flash Time echoes.
+  const raw = JR_EYE.DMG                                                          // applyScaledDamage applies his damage mod (Ben device)
+  if (opp.isBlocking) { opp.blockstun = Math.max(opp.blockstun || 0, JR_EYE.BLOCKSTUN); api.applyScaledDamage(opp, raw * 0.3, { attacker: f, move: "jrEye", source: "ability" }); return }
+  opp.hitstun = Math.max(opp.hitstun || 0, 14); opp.colorFlash = Math.max(opp.colorFlash || 0, 4)
+  api.applyScaledDamage(opp, raw * api.getComboScale(f), { attacker: f, move: "jrEye", source: "ability" })
+  addPip(s, e.cast); scheduleEcho(f, s, opp, JR_EYE.DMG)
 }
 
-// 2. TAIL VOLLEY (←↙↓ + P, 12): three tail-tip bolts fire BEHIND him (facing-relative), fanned 0° / 20° / 40° down-and-back,
-//    10 each, one hit per target per bolt (30 total), 380 px, 14f startup, −8 on block, +1 Neuro (the first bolt that hits).
+// 2. TAIL VOLLEY (←↙↓ + P, 12): three LASER PULSES from the tail tip, 5f apart, each one AIMED at the opponent the frame it
+//    fires (hitscan 460 px, drawn as a real beam for 6f). 10 each, −8 on block, +1 Neuro per cast. Works on the ground or in
+//    flight; the beam starts at his tail (drawn behind his body) and points at the opponent wherever they are.
 function castTail(f, s, api) {
-  const st = fs(s, JR_TAIL.STARTUP), total = st + fs(s, JR_TAIL.RECOVERY)
-  const c = beginCast(f, s, api, "jrTail", JR_COST.tail, total, { commit: !!(f.onGround || f.grounded) }); if (!c) return false
-  const face = f.facing || 1, cast = c.cast
-  s.tail = { t: 0, total, cast, face }; s.stats.tails++
+  const st = fs(s, JR_TAIL.STARTUP), last = st + fs(s, JR_TAIL.PULSES[2]), total = last + fs(s, JR_TAIL.RECOVERY)
+  const flying = !!f._flightCtl && isFlying(f)
+  const c = beginCast(f, s, api, "jrTail", JR_COST.tail, total, { commit: !!(f.onGround || f.grounded) && !flying }); if (!c) return false
+  s.tail = { t: 0, total, cast: c.cast, face: f.facing || 1, at: JR_TAIL.PULSES.map(k => st + fs(s, k)), pulses: [] }
+  s.stats.tails++
   f._benSfx = "jr_tail"
-  const life = Math.round(JR_TAIL.RANGE / JR_TAIL.SPEED)
-  api.scheduleBenSpawn(f, st, () => JR_TAIL.ANGLES.forEach((deg, i) => {
-    const a = deg * Math.PI / 180, tip = tailTip(f, face)
-    api.spawnProjectile(f, "jr_tail_" + i, { damage: JR_TAIL.DMG, speed: 0, vx: -face * Math.cos(a) * JR_TAIL.SPEED, vy: Math.sin(a) * JR_TAIL.SPEED,
-      spawnX: tip.x, spawnY: tip.y, w: 22, h: 14, radius: 9, lifetime: life, isSpecial: true, noHitstop: true, hitstun: 16,
-      blockstun: blockstunFor(total - st, JR_TAIL.ON_BLOCK), knockbackX: -face * 2, knockbackY: -1,
-      alien: { jr: true, kind: "tail", bolt: i, pip: true, cast } }, {})
-  }))
   return true
 }
 export const tailTip = (f, face = f.facing || 1) => ({ x: cx(f) - face * ((f.w || 70) / 2 + 30), y: f.y + (f.h || 96) * 0.78 })
-function tickTail(f, s) {
+function tickTail(f, s, opp, api) {
   const t = s.tail; if (!t) return
   if ((f.hitstun || 0) > 0 || ++t.t > t.total) { s.tail = null; return }
   f._spriteCastMove = "jrTail"; f._spriteCastTimer = 2
+  t.pulses = t.pulses.filter(p => t.t - p.t < JR_TAIL.SHOW)
+  const k = t.at.indexOf(t.t); if (k < 0) return
+  const o = tailTip(f, t.face), live = opp && !opp.eliminated
+  const ang = live ? Math.atan2(opp.y + (opp.h || 110) * 0.45 - o.y, cx(opp) - o.x) : (t.face > 0 ? 0 : Math.PI)   // world angle
+  const b = marchBeam(o.x, o.y, ang, 1, JR_TAIL.RANGE, live ? boxOf(opp) : null)
+  t.pulses.push({ t: t.t, ox: o.x, oy: o.y, tx: b.x, ty: b.y, hit: b.hit }); s.stats.pulses++
+  if (!b.hit || (opp.invulnTimer || 0) > 0) return
+  const dir = Math.sign(Math.cos(ang)) || t.face, fin = k === t.at.length - 1
+  hitbox(f, api, "jr_tail_" + k, dir, { damage: JR_TAIL.DMG, spawnX: b.x, spawnY: b.y, w: 22, h: 22, radius: 11, lifetime: 2,
+    beam: true, noHitstop: !fin, hitstun: fin ? 20 : 14, blockstun: fin ? blockstunFor(t.total - t.t, JR_TAIL.ON_BLOCK) : 8,
+    knockbackX: dir * (fin ? 3 : 0.5), knockbackY: 0, alien: { jr: true, kind: "tail", bolt: k, pip: true, cast: t.cast } })
 }
 
 // 3. WING DASH (→→ + P, 12): a slashing dash in the warp-bubble frames — 380 px REAL travel, 2 hits 20 / 28, −12 on block, no
@@ -556,10 +595,12 @@ export function drawJetrayHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
   ctx.fillStyle = col; ctx.fillRect(flip ? x + 8 + pbw - w : x + 8, y, w, h)
   const v = s.neuro
   const neuro = v.groundT > 0 ? ` · GROUNDED ${Math.ceil(v.groundT / 60)}s` : v.immune > 0 ? " · NEURO IMMUNE" : ` · NEURO ${"●".repeat(v.pips)}${"○".repeat(JR_NEURO.MAX - v.pips)}`
-  const label = (s.machT > 0 ? `MACH TIME ${Math.ceil(s.machT / 6) / 10}s · ECHO ${s.echoCount}/${JR_ECHO.MAX}` : s.machCd > 0 ? `MACH TIME ${Math.ceil(s.machCd / 60)}s` : "MACH TIME READY (; + L)") + neuro
+  const label = (s.machT > 0 ? `FLASH TIME ${Math.ceil(s.machT / 6) / 10}s · ECHO ${s.echoCount}/${JR_ECHO.MAX}` : s.machCd > 0 ? `FLASH TIME ${Math.ceil(s.machCd / 60)}s` : "FLASH TIME READY (P + L)") + neuro
   ctx.font = "bold 8px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
   ctx.fillStyle = col; ctx.fillText(label, flip ? x + 8 + pbw : x + 8, y + h + 1)
   ctx.restore()
+  // Eye Laser heat gauge — the Homelander / Superman HEAT VISION bar (beam.js), above his energy panel
+  drawLaserGauge(ctx, laserView(s.laser, JR_LASER), x + 8, enY - 14 - 7 - 6, pbw, { flip, label: "EYE LASER", col: "#a3e635", low: "#facc15" })
 }
 const _imgs = {}
 function sheetImg(src) {
@@ -567,12 +608,25 @@ function sheetImg(src) {
   if (!_imgs[src]) { const im = new Image(); im.src = src; _imgs[src] = im }
   return _imgs[src].complete && _imgs[src].naturalWidth ? _imgs[src] : null
 }
+// The tint is applied on a small OFFSCREEN canvas (source-atop there only touches his pixels) and then drawn onto the stage —
+// doing source-atop on the stage canvas itself painted a solid tinted rectangle over the background.
+let _tintCv = null
+function tintedFrame(img, sx, fw, fh, tint) {
+  if (typeof document === "undefined") return null
+  if (!_tintCv) _tintCv = document.createElement("canvas")
+  if (_tintCv.width !== fw || _tintCv.height !== fh) { _tintCv.width = fw; _tintCv.height = fh }
+  const t = _tintCv.getContext("2d"); t.clearRect(0, 0, fw, fh); t.globalCompositeOperation = "source-over"
+  t.drawImage(img, sx, 0, fw, fh, 0, 0, fw, fh)
+  t.globalCompositeOperation = "source-atop"; t.fillStyle = tint; t.fillRect(0, 0, fw, fh); t.globalCompositeOperation = "source-over"
+  return _tintCv
+}
 function ghost(c, a, fi, x, feetY, face, alpha, tint) {     // a translucent copy of one of his frames (afterimages / echoes)
   const img = sheetImg(a.sheet); if (!img) return
-  const sc = JETRAY_GEOM.screenScale, fw = a.width, fh = a.height
+  const sc = JETRAY_GEOM.screenScale, fw = a.width, fh = a.height, sx = (fi % a.frames) * fw
+  const src = tint ? tintedFrame(img, sx, fw, fh, tint) : null
   c.save(); c.globalAlpha = alpha; c.translate(Math.round(x), Math.round(feetY)); if (face < 0) c.scale(-1, 1)
-  c.drawImage(img, (fi % a.frames) * fw, 0, fw, fh, -JETRAY_GEOM.centreX * sc, -a.originY * sc, fw * sc, fh * sc)
-  if (tint) { c.globalCompositeOperation = "source-atop"; c.fillStyle = tint; c.fillRect(-JETRAY_GEOM.centreX * sc, -a.originY * sc, fw * sc, fh * sc) }
+  if (src) c.drawImage(src, 0, 0, fw, fh, -JETRAY_GEOM.centreX * sc, -a.originY * sc, fw * sc, fh * sc)
+  else c.drawImage(img, sx, 0, fw, fh, -JETRAY_GEOM.centreX * sc, -a.originY * sc, fw * sc, fh * sc)
   c.restore()
 }
 const px = (c, x, y, s = 4) => c.fillRect(Math.round(x) - s / 2, Math.round(y) - s / 2, s, s)
@@ -593,22 +647,17 @@ function warpTrail(c, x, y, face, len, alpha) {
   }
   c.globalAlpha = 1
 }
+const EYE_COL = { glow: "rgba(163,230,53,0.50)", mid: "rgba(250,204,21,0.85)", core: "rgba(255,255,240,0.97)", dot: "rgba(217,249,157,0.95)", impact: "rgba(250,204,21,0.7)" }
+const TAIL_COL = { glow: "rgba(250,204,21,0.50)", mid: "rgba(253,224,71,0.85)", core: "rgba(255,255,255,0.95)", dot: "rgba(254,240,138,0.95)", impact: "rgba(253,224,71,0.7)", width: 0.8 }
 export function drawJetrayFx(c, f, frame = 0, opp = null) {
   const s = jrState(f); if (!c || !s) return
   c.save(); c.imageSmoothingEnabled = false
   const face = f.facing || 1, mid = f.y + (f.h || 96) / 2
-  // Eye Laser: twin red-gold beams from the eye anchor along the cast angle (glow = render only)
-  if (s.eye && s.eye.t > s.eye.st - 2) {
-    const b = eyeBeam(f, s), fade = s.eye.t > s.eye.last ? Math.max(0, 1 - (s.eye.t - s.eye.last) / 6) : 1
-    c.globalAlpha = 0.45 * fade; pixelLine(c, b.x0, b.y0, b.x1, b.y1, 12, "#f97316", 6)
-    c.globalAlpha = fade; pixelLine(c, b.x0, b.y0 - 3, b.x1, b.y1 - 3, 4, "#fde047", 4); pixelLine(c, b.x0, b.y0 + 3, b.x1, b.y1 + 3, 4, "#ef4444", 4)
-    c.globalAlpha = 1
-  } else if (s.eye) { const e = eyePoint(f, "jrEye", 0); c.fillStyle = "#fde047"; px(c, e.x, e.y, 6 + (frame & 2) * 2) }
-  // Tail Volley charge spark at the tail tip + the live bolts' glow
-  if (s.tail && s.tail.t < (s.tail.total || 30)) { const t = tailTip(f, s.tail.face); c.fillStyle = "#facc15"; px(c, t.x, t.y, 8) }
-  if (_api) for (const p of _api.activeProjectiles()) if (p.owner === f && /^jr_tail_/.test(p.name || "")) {
-    c.fillStyle = "#fef08a"; px(c, p.x, p.y, 8); c.fillStyle = "rgba(250,204,21,0.55)"; px(c, p.x - Math.sign(p.vx) * 10, p.y - Math.sign(p.vy || 0) * 4, 8)
-  }
+  // Eye Laser: the Homelander / Superman heat-vision beam (beam.js drawBeam3: glow + mid + white core, origin dot, impact disc)
+  // in Jetray's yellow-green, from the eye anchor to wherever it is locked on. Startup: the eyes charge.
+  const eb = eyeBeam(f, s)
+  if (eb) drawBeam3(c, eb, EYE_COL)
+  else if (s.eye && !s.eye.done) { const e = eyePoint(f, "jrEye", 0); c.fillStyle = "#d9f99d"; px(c, e.x, e.y, 6 + (frame & 2) * 2) }
   // Wing Dash: rebuilt warp trail behind the bubble core; normals' wing slashes
   if (s.dash && s.dash.t > s.dash.st && !s.dash.done) warpTrail(c, cx(f) - face * 40, mid, face, 220, 1)
   if (f.attacking && (f.currentMove === "heavy" || f.currentMove === "light" || f.currentMove === "up" || f.currentMove === "air" || f.currentMove === "down")) {
@@ -624,7 +673,7 @@ export function drawJetrayFx(c, f, frame = 0, opp = null) {
   for (const e of s.echoes) {
     const k = 1 - Math.max(0, e.at - s.t) / JR_ECHO.DELAY, ex = e.x - face * 120, ey = e.y - 30
     ghost(c, ANIM.jrEye, 0, ex, ey + 60, face, 0.2 + 0.4 * k, "rgba(253,224,71,0.6)")
-    if (k > 0.8) { c.globalAlpha = 0.8; pixelLine(c, ex + face * 20, ey, e.x, e.y, 5, "#fde047", 5); c.globalAlpha = 1 }
+    if (k > 0.8) { c.globalAlpha = 0.8; drawBeam3(c, { ox: ex + face * 20, oy: ey, tx: e.x, ty: e.y, hit: true, tick: frame }, { ...EYE_COL, width: 0.6 }); c.globalAlpha = 1 }
   }
   // Grounded crackle on the opponent's legs + Neuro pips over their head
   if (opp && !opp.eliminated) {
@@ -680,6 +729,14 @@ export function drawJetrayBehind(c, f, frame = 0) {
   if (!s) { _trail.delete(f); return }
   let tr = _trail.get(f); if (!tr) { tr = []; _trail.set(f, tr) }
   tr.push({ x: cx(f), feet: f.y + (f.h || 96), face: f.facing || 1 }); if (tr.length > 12) tr.shift()
+  // Tail Volley: each pulse is a real laser from the tail tip to its locked-on target, fading over 6f (behind his body)
+  if (s.tail) {
+    c.save()
+    const tip = tailTip(f, s.tail.face)
+    if (s.tail.t < s.tail.at[0]) { c.fillStyle = "#fde047"; px(c, tip.x, tip.y, 6 + (frame & 2) * 2) }
+    for (const p of s.tail.pulses) { c.globalAlpha = Math.max(0, 1 - (s.tail.t - p.t) / JR_TAIL.SHOW); drawBeam3(c, { ...p, tick: frame }, TAIL_COL) }
+    c.restore()
+  }
   if (!machActive(s) && !s.dash) return
   c.save(); c.imageSmoothingEnabled = false
   for (let i = 0; i < tr.length - 2; i += 3) ghost(c, s.dash ? ANIM.jrDash : ANIM.fly, (frame >> 2) + i, tr[i].x, tr[i].feet, tr[i].face, 0.1 + 0.05 * i / 3, "rgba(250,204,21,0.55)")

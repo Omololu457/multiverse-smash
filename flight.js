@@ -115,17 +115,19 @@ FLIGHT_PROFILES.alienx = {
   landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
 }
 
-// JETRAY (Ben 10 ready alien, via fighter._alienFlightProfile while transformed): the canon flyer. Hold Jump in the air to
-// fly: cruise 8.0, moderate drag (coast ×0.75), 8-direction steering, 240 frames per airtime (refills on landing), no air dash,
-// grounded 40f after a hard hit. The apex+220 cap / jump bookkeeping live in jetray.js. MACH TIME swaps in jetray_mach (×1.5).
+// JETRAY (Ben 10 ready alien, via fighter._alienFlightProfile while transformed): the canon flyer, on the HOMELANDER / SUPERMAN
+// flight architecture (owner request): a P (Charge) TAP takes off / requests a descent-to-land (holding Jump in the air also
+// takes off), free 8-direction flight that stays up without holding anything, real accel / drag, 2 air dashes, 4 s of flight
+// energy (refills on the floor), hold Down near the floor to land, grounded 40f after a hard hit. Slightly under their GODSPEED
+// cruise (18 vs 22). FLASH TIME swaps in jetray_mach (×1.5 → 27, faster than Homelander).
 FLIGHT_PROFILES.jetray = {
-  accel: 1.2, maxH: 8.0, maxV: 6.0, drag: 0.75, reverseBrake: 0.55,
-  overspeedDrag: 0.85, ceilEaseZone: 40, dashSpeed: 0, dashFrames: 0, maxAirDash: 0,
-  dashCost: 9999, energyMax: 240, drainPerFrame: 1, groundRefillPerFrame: 240, liftoff: -2,
-  takeoffFrames: 4, landRecovery: 4, landRecoveryAfterAir: 6, groundedLock: 40,
-  landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
+  accel: 2.0, maxH: 18.0, maxV: 15.0, drag: 0.84, reverseBrake: 0.64,
+  overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 30, dashFrames: 12, maxAirDash: 2,
+  dashCost: 30, energyMax: 240, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -9,
+  takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 40,
+  landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,
 }
-FLIGHT_PROFILES.jetray_mach = { ...FLIGHT_PROFILES.jetray, accel: 1.8, maxH: 12.0, maxV: 9.0 }
+FLIGHT_PROFILES.jetray_mach = { ...FLIGHT_PROFILES.jetray, accel: 3.0, maxH: 27.0, maxV: 22.5, dashSpeed: 45 }
 
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",

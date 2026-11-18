@@ -35,7 +35,7 @@ export const WILDVINE = {
   },
   anim: ANIM, fx: WILDVINE_FX,
   drainMult: f => (wvState(f)?.bloom?.t > 0 ? WV_BLOOM.DRAIN : 1),   // FULL BLOOM −10% Power drain (function form, ADD_ALIEN.md)
-  onApply, tick, moveFrames, fireSpecial, onContact, damageDealt, hurtbox,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt, hurtbox, targetOffset,
   drawHud: drawWildvineHud, drawFx: drawWildvineFx, drawUnder: drawWildvineUnder
 }
 
@@ -45,6 +45,7 @@ export function freshWildvineState() {
     stage: { L: -1e6, R: 1e6 },
     garden: [], plantSeq: 0, plant: null,
     whip: null, rise: null, riseUsed: false, seed: null,
+    ult: null, lastUltRaw: 0, lastUltSpots: [],
     bloom: { t: 0, cd: 0, count: 0 },
     snareT: 0,
     ent: { pips: 0, pipT: 0, pipped: [], rootT: 0, immune: 0, roots: 0 },
@@ -90,12 +91,13 @@ function tick(f, input, ctx, api) {
   tickRise(f, s, api)
   tickSeed(f, s, api)
   tickGarden(f, s, api, opp)
+  tickUlt(f, s, opp, api, ctx)
   tickBloom(s)
   tickEntangle(s)
   tickRoot(s, opp)
   s.noAttack = busy(s)
 }
-const busy = s => !!(s.plant || s.whip || s.rise || s.seed)
+const busy = s => !!(s.plant || s.whip || s.rise || s.seed || s.ult)
 // moveFrames hook (combat.startMove): no normals while a cast owns him
 function moveFrames(f, key, md) { const s = wvState(f); if (!s) return md; return busy(s) ? false : md }
 
@@ -155,6 +157,16 @@ function tickGarden(f, s, api, opp) {
     } else if (foe && overlap(box, foe)) {
       if (p.type === "thorn" && consumePlant(s, p, "contact")) eruptThorn(f, s, api, p, opp)
       if (p.type === "snare" && consumePlant(s, p, "contact")) snare(f, s, p, opp)
+    }
+  }
+  // WHIP-TRIGGER (Phase 6): Vine Whip's lash crossing his own GROWN Thornspike makes it erupt early (as its normal hit:
+  // 40 once, +1 Entangle on a clean hit), consumed. Runs AFTER the contact pass, through the same gate — if the opponent's
+  // contact consumed it first (this frame or before), the whip does nothing to it.
+  const w = s.whip, ext = w ? whipExt(w.t) : 0
+  if (w && ext > 0 && w.t <= WV_WHIP.HOLD_TO) {
+    const e = armEdge(f, w.face), lo = Math.min(e, e + w.face * ext), hi = Math.max(e, e + w.face * ext)
+    for (const p of s.garden) if (p.type === "thorn" && plantStage(p) === "grown" && p.x >= lo && p.x <= hi && consumePlant(s, p, "whip")) {
+      s.stats.whipTriggers++; eruptThorn(f, s, api, p, opp)
     }
   }
   s.garden = s.garden.filter(p => (p.consumed ? p.ct > 0 : p.t < WV_GARDEN.LIFE))   // withered / spent records dropped
@@ -220,6 +232,7 @@ function onContact(f, target, { proj = null, blocked = false } = {}) {
   const s = wvState(f); if (!s || !proj || proj.visualOnly) return
   const tag = proj.alien; if (!tag || !tag.wv) return
   if (!blocked && tag.pip) addPip(s, tag.cast)
+  if (tag.wv === "ultOpen" && !blocked && s.ult && s.ult.phase === "opener" && !target.eliminated) startUltCinematic(f, s, target)
 }
 
 // ── FULL BLOOM ───────────────────────────────────────────────────────────────────────────────────────────────
@@ -380,6 +393,81 @@ function tickSeed(f, s, api) {
   if (d.t >= WV_SEED.TOTAL) s.seed = null
 }
 
+// ── ULTIMATE: OVERGROWTH (same input as Omnitrix Overload, alien form only) ────────────────────────────────────
+// 55 Power. Needs a clean opener — a Vine-Whip-style lash (attack → pose, 300 px, 40); whiff / block = no cinematic, 60f
+// recovery. On a clean opener the opponent is held (no collision change) and:
+//   1. a procedural pixel FOREST erupts around them (render only, both fighters readable); he plants (the LOOP frames);
+//   2. CRUSH: vines close in — 4 hits × 22 = 88, at hash(seed, frame, player index)-chosen positions (the thorn growth frames
+//      + procedural vines draw there);
+//   3. GIANT THORN: the tallest thorn frame, integer-scaled ×5, bursts up under them — a launching 112.
+// 40 + 88 + 112 = 240 unscaled. Entangle pips up to 3 (no extra damage) only when they are not Rooted / Rooted-immune. All
+// his plants are consumed at the capture. Positions restore, forest gone, no hazards, 100f recovery lockout. The forest /
+// vines have no hitboxes and no GAME_STATE presence (only the hashed hit spots are kept, for the test / render).
+export const WV_ULT = { OPENER_AT: 14, OPENER: 40, RANGE: 300, WHIFF: 60, FOREST: 30, CRUSH_AT: [36, 46, 56, 66], CRUSH: 22,
+  GIANT_AT: 84, GIANT: 112, END: 100, LOCKOUT: 100, LAUNCH: -15, LIFT: 26, GIANT_SCALE: 5 }
+function fireUltimate(f, ctx, api) {
+  const s = wvState(f); if (!s) return false
+  if (!canAct(f, s)) return false
+  if (!api.spendEnergy(f, WV_COST.ultimate)) return false
+  s.castId++
+  const face = f.facing || 1, total = WV_ULT.OPENER_AT + WV_ULT.WHIFF
+  f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = "wvWhip"; f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
+  s.ult = { phase: "opener", t: 0, face, raw: 0, cast: s.castId, spots: [], hits: [] }
+  s.stats.ults++
+  api.focusCamera?.(f, api.getOpponent(f), 0.92, 20)
+  api.scheduleBenSpawn(f, WV_ULT.OPENER_AT, () => hitbox(f, api, "wv_ult_open", face, {
+    damage: WV_ULT.OPENER, spawnX: armEdge(f, face) + face * WV_ULT.RANGE / 2, spawnY: f.y + (f.h || 110) * WV_WHIP.ARM_Y + 10, w: WV_ULT.RANGE, h: 60,
+    lifetime: 3, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0.01, knockbackY: 0, alien: { wv: "ultOpen", cast: s.castId } }))
+  return true
+}
+function startUltCinematic(f, s, target) {
+  const u = s.ult
+  u.phase = "forest"; u.t = 0; u.raw = WV_ULT.OPENER; u.hits.push(WV_ULT.OPENER)
+  u.home = { x: f.x, y: f.y }; u.thome = { x: target.x, y: target.y }
+  for (const p of s.garden) if (!p.consumed) { p.consumed = true; p.by = "ult"; p.ct = WV_GARDEN.LINGER; s.stats.consumedBy.ult++ }   // all his plants
+  f.attackCooldown = WV_ULT.END + WV_ULT.LOCKOUT; f._benPowerCommit = WV_ULT.END; f._spriteCastTimer = WV_ULT.END
+  f.invulnTimer = Math.max(f.invulnTimer || 0, WV_ULT.END + 2)               // cinematic only (the opponent is held)
+}
+function tickUlt(f, s, opp, api, ctx) {
+  const u = s.ult; if (!u) return
+  if (u.phase === "opener") { if (++u.t > WV_ULT.OPENER_AT + 12) s.ult = null; return }   // whiff / block: no cinematic
+  if (!opp || opp.eliminated) { endUlt(f, s, null); return }
+  u.t++
+  opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y   // held (no collision change)
+  opp.attacking = false; opp.currentAttack = null
+  f.vx = 0; f.vy = 0; f.x = u.home.x; f.y = u.home.y
+  const hit = (dmg, shake) => { api.applyScaledDamage(opp, dmg, { attacker: f, move: "overgrowth", source: "ability" }); u.raw += dmg; u.hits.push(dmg); opp.colorFlash = 8; api.shake?.(shake, 8) }
+  if (u.t < WV_ULT.FOREST) { u.phase = "forest"; f._spriteCastMove = u.t < 10 ? "wvPlant" : "wvGrow" }
+  else if (u.t < WV_ULT.GIANT_AT) { u.phase = "crush"; f._spriteCastMove = "wvGrow"
+    const k = WV_ULT.CRUSH_AT.indexOf(u.t)
+    if (k >= 0) { const seed = ctx?.seed ?? 1, fr = ctx?.frame ?? u.t, pi = pIndex(f)
+      u.spots.push({ dx: Math.round((wvHash(seed, fr, pi, k) - 0.5) * 120), ang: Math.round(wvHash(seed, fr, pi, k + 16) * 6283) / 1000 })
+      hit(WV_ULT.CRUSH, 3 + k) } }
+  else if (u.t < WV_ULT.END) { u.phase = "giant"; f._spriteCastMove = "wvRise"
+    if (u.t === WV_ULT.GIANT_AT) hit(WV_ULT.GIANT, 18) }
+  else { endUlt(f, s, opp); return }
+  f._spriteCastTimer = 2
+}
+function endUlt(f, s, opp) {
+  const u = s.ult
+  if (u?.home) { f.x = u.home.x; f.y = u.home.y; f.vx = 0; f.vy = 0 }       // positions restore
+  if (opp && u?.thome) {                                                     // …then the Giant Thorn's launch
+    opp.x = u.thome.x; opp.y = u.thome.y; opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.vx = (cx(opp) >= cx(f) ? 1 : -1) * 3; opp.vy = WV_ULT.LAUNCH
+    opp.onGround = false; opp.grounded = false; opp.isLaunched = true
+    if (!(s.ent.rootT > 0) && !(s.ent.immune > 0)) for (let k = 0; k < WV_ENT.MAX && !(s.ent.rootT > 0); k++) addPip(s, `ult${u.cast}:${k}`)
+  }
+  s.lastUltRaw = u?.raw || 0; s.lastUltSpots = u?.spots ? u.spots.map(p => ({ ...p })) : []
+  s.ult = null
+  f.attackCooldown = WV_ULT.LOCKOUT; f._benPowerCommit = WV_ULT.LOCKOUT; f._spriteCastMove = null; f._spriteCastTimer = 0
+}
+// render-only: the held opponent floats a little as the forest lifts them, and rises with the Giant Thorn
+function targetOffset(f, target) {
+  const s = wvState(f); const u = s && s.ult; if (!u || !u.thome || u.phase === "opener") return null
+  const up = u.phase === "giant" ? Math.min(1, (u.t - WV_ULT.GIANT_AT + 1) / 4) * WV_ULT.LIFT * 2 : Math.min(1, u.t / 20) * 6
+  return { dx: 0, dy: -Math.round(up) }
+}
+
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
 const _imgs = {}
 function sheetImg(src) {
@@ -457,6 +545,17 @@ function drawPlant(c, p, frame) {
 export function drawWildvineUnder(c, f) {
   const s = wvState(f); if (!c || !s) return
   c.save(); c.imageSmoothingEnabled = false
+  const u = s.ult
+  if (u && u.thome && u.phase !== "opener") {                                // OVERGROWTH: a dim jungle + pixel forest (render only)
+    const a = Math.max(0, Math.min(1, u.t / 8) * Math.min(1, (WV_ULT.END - u.t) / 8)), gy = u.thome.y + (f.h || 110) + 14, ox = u.thome.x + 30
+    c.globalAlpha = 0.5 * a; c.fillStyle = "#03140a"; c.fillRect(-4000, -4000, 16000, 12000); c.globalAlpha = a
+    for (let k = 0; k < 14; k++) {                                           // trees: trunks + canopies, growing in over 20f
+      const tx = ox + (k - 6.5) * 46 + (rHash(u.cast, k, 1) - 0.5) * 20, th = (90 + rHash(u.cast, k, 2) * 120) * Math.min(1, u.t / 20)
+      c.fillStyle = OUT; c.fillRect(Math.round(tx - 5), Math.round(gy - th), 10, Math.round(th)); c.fillStyle = "#3f2a14"; c.fillRect(Math.round(tx - 3), Math.round(gy - th), 6, Math.round(th))
+      for (let j = 0; j < 7; j++) { c.fillStyle = j % 3 ? DK : GREEN; px(c, tx + (rHash(k, j, 3) - 0.5) * 50, gy - th + (rHash(k, j, 4) - 0.5) * 30, 10) }
+    }
+    c.globalAlpha = 1
+  }
   for (const p of s.garden) drawPlant(c, p, s.t)
   c.restore()
 }
@@ -491,6 +590,15 @@ export function drawWildvineFx(c, f, frame = 0, opp = null) {
   if (projRef) for (const p of projRef) if (p && p.owner === f && p.name === "wv_seed") {   // SEED SHOT: the fan of 2 extracted seeds
     const travelled = Math.max(0, Math.round(WV_SEED.RANGE / WV_SEED.SPEED) - (p.lifetime ?? 0)) * WV_SEED.SPEED, spread = 6 + Math.min(18, travelled * 0.05)
     for (const sd of [-1, 1]) fxFrame(c, "seed", sd < 0 ? 0 : 2, p.x, p.y + sd * spread + WILDVINE_FX.seed.h * FX_SCALE / 2, FX_SCALE) }
+  const u = s.ult
+  if (u && u.thome && opp && u.phase !== "opener") {                        // OVERGROWTH vines / crush thorns / Giant Thorn
+    const ox = u.thome.x + (opp.w || 60) / 2, gy = u.thome.y + (opp.h || 110), close = Math.min(1, u.t / WV_ULT.CRUSH_AT[0])
+    for (let k = 0; k < 6; k++) { const sd = k % 2 ? 1 : -1, r = 160 * (1 - close * 0.7)                 // vines closing in
+      vine(c, ox + sd * (r + k * 10), gy, ox + sd * 16, gy - 40 - k * 14, u.cast + k, 4, 5) }
+    u.spots.forEach((sp, k) => { const dd = u.t - WV_ULT.CRUSH_AT[k]; if (dd >= 0 && dd < 10)
+      fxFrame(c, "thorn", Math.min(5, 1 + (dd >> 1)), ox + sp.dx, gy, FX_SCALE, Math.cos(sp.ang) < 0 ? -1 : 1) })
+    if (u.phase === "giant") fxFrame(c, "thorn", 5, ox, gy, Math.max(FX_SCALE, Math.min(WV_ULT.GIANT_SCALE, 1 + ((u.t - WV_ULT.GIANT_AT) >> 1))))
+  }
   if (s.bloom.t > 0) {                                                       // FULL BLOOM: a petal ring + drifting leaves
     drawPixelRing(c, fx, fy, (f.w || 60) * 0.9, (f.h || 110) * 0.55, (s.bloom.t >> 3) % 2 ? POD : LIME, 3, 16, frame / 30)
     c.fillStyle = GREEN; for (let k = 0; k < 6; k++) px(c, fx - 40 + rHash(k, frame >> 3, 7) * 80, f.y + ((frame * 2 + k * 23) % (f.h || 110)), 3)

@@ -37,7 +37,7 @@ export const DIAMONDHEAD = {
     air:    normal(32, 7, 4, 11, 2)                                                           // FALL frame + blade
   },
   anim: ANIM, fx: DIAMONDHEAD_FX,
-  onApply, tick, moveFrames, hurtbox, fireSpecial, struck, damageTaken, damageDealt,
+  onApply, tick, moveFrames, hurtbox, fireSpecial, struck, damageTaken, damageDealt, onContact,
   drawHud: drawDiamondheadHud, drawFx: drawDiamondheadFx, drawUnder: drawDiamondheadUnder
 }
 
@@ -48,8 +48,9 @@ export function freshDiamondheadState() {
     wall: null, wallSeq: 0, wallCast: null, refrHit: [],
     crystal: { hits: [], fracT: 0, fracCd: 0 },
     prism: { t: 0, cd: 0, count: 0 },
+    shards: { pips: 0, pipT: 0, pipped: [] }, burst: null,
     stats: { casts: 0, reduced: 0, fractures: 0, walls: 0, caught: 0, shatters: { catch: 0, burst: 0, replaced: 0, expired: 0 },
-      refracted: 0, prismatics: 0 } }
+      refracted: 0, prismatics: 0, pips: 0, bursts: 0, burstHits: 0, burstPips: [] } }
 }
 export const dhState = f => (f?.omnitrix?.formState?.kind === DH_KEY && f.transformed && f.activeAlien === DH_KEY) ? f.omnitrix.formState : null
 
@@ -83,10 +84,12 @@ function tick(f, input, ctx, api) {
   tickWall(f, s, api)
   tickFans(f, s, api)
   tickCrystal(s)
+  tickBurst(f, s, api)
+  tickShards(s)
   tickPrism(f, s)
   s.noAttack = busy(s)
 }
-const busy = s => !!(s.wallCast)
+const busy = s => !!(s.wallCast || s.burst)
 // moveFrames hook (combat.startMove): no normals while a cast owns him
 function moveFrames(f, key, md) { const s = dhState(f); if (!s) return md; return busy(s) ? false : md }
 
@@ -240,12 +243,73 @@ function tickPrism(f, s) {
   if (f._skinAnim !== want) f._skinAnim = want
 }
 
+// ── SHARDS (a status on the OPPONENT, owned by this form's GAME_STATE; spend-on-demand) ─────────────────────
+// Clean hits from Shard Shot, Spike Eruption and Crystal Lance's finisher EMBED one Shard pip per cast (regardless of hit
+// ticks), max 3; none from blocks, FX or the Prism Wall. Pips expire 300f after the last one. Nothing refreshes them but a
+// new cast, and only Shatter Burst / the ultimate's Cathedral Shatter spend them. Swap / revert / KO / rematch clear them.
+export const DH_SHARD = { MAX: 3, EXPIRE: 300 }
+export function addPip(s, cast) {
+  const e = s.shards
+  if (cast == null || e.pipped.includes(cast)) return false
+  e.pipped.push(cast); if (e.pipped.length > 12) e.pipped.shift()
+  if (e.pips >= DH_SHARD.MAX) { e.pipT = DH_SHARD.EXPIRE; return false }     // capped: the timer still refreshes from a new cast
+  e.pips++; e.pipT = DH_SHARD.EXPIRE; s.stats.pips++
+  return true
+}
+function tickShards(s) {
+  const e = s.shards
+  if (e.pips > 0 && --e.pipT <= 0) { e.pips = 0; e.pipT = 0 }
+}
+// contact hook (combat → ben10State.benAlienContact): pips on CLEAN hits of tagged casts; Shatter Burst spends on a hit
+function onContact(f, target, { proj = null, blocked = false } = {}) {
+  const s = dhState(f); if (!s || !proj || proj.visualOnly) return
+  const tag = proj.alien; if (!tag || !tag.dh) return
+  if (tag.dh === "fan" && !s.refrHit.includes(tag.cast)) { s.refrHit.push(tag.cast); if (s.refrHit.length > 8) s.refrHit.shift() }
+  if (tag.dh === "burst" && !blocked) { s.stats.burstHits++; s.stats.burstPips.push(tag.pips); if (s.stats.burstPips.length > 8) s.stats.burstPips.shift()
+    s.shards.pips = Math.max(0, s.shards.pips - tag.pips); if (s.shards.pips === 0) s.shards.pipT = 0 }   // consumed on a HIT only
+  if (!blocked && tag.pip) addPip(s, tag.cast)
+}
+
+// ── SHATTER BURST (→↓↘ + P, read as ↑ + P; cost 12) ─────────────────────────────────────────────────────────
+// Detonates the embedded shards: 30 + 15 per pip (0 pips: a weak 30), radius 140 px around him, 16f startup, −12 on block.
+// The pip count is read when the burst goes off; pips are consumed only if it HITS (blocked / whiffed: they stay). No stun
+// or status beyond the pips. It also SHATTERS his own Prism Wall when the wall is inside the radius → PRISMATIC.
+export const DH_BURST = { COST: 12, STARTUP: 16, ACTIVE: 3, RECOVERY: 24, BASE: 30, PER_PIP: 15, RADIUS: 140, ON_BLOCK: -12 }
+DH_BURST.TOTAL = DH_BURST.STARTUP + DH_BURST.ACTIVE + DH_BURST.RECOVERY
+export const burstDamage = pips => DH_BURST.BASE + DH_BURST.PER_PIP * Math.max(0, Math.min(DH_SHARD.MAX, pips | 0))
+function castBurst(f, s, api) {
+  const c = beginCast(f, s, api, "dhBurst", DH_BURST.COST, DH_BURST.TOTAL); if (!c) return false
+  s.burst = { t: 0, cast: c.cast, face: f.facing || 1, pips: 0 }; s.stats.bursts++
+  return true
+}
+function tickBurst(f, s, api) {
+  const b = s.burst; if (!b) return
+  b.t++
+  if ((f.hitstun || 0) > 0) { s.burst = null; return }
+  if (b.t === DH_BURST.STARTUP) {
+    b.pips = s.shards.pips
+    const rem = DH_BURST.TOTAL - b.t, R = DH_BURST.RADIUS
+    hitbox(f, api, "dh_burst", b.face, { damage: burstDamage(b.pips), spawnX: cx(f), spawnY: f.y + (f.h || 110) / 2, w: (f.w || 60) + 2 * R, h: (f.h || 110) + R,
+      lifetime: DH_BURST.ACTIVE, hitstun: 22, blockstun: blockstunFor(rem, DH_BURST.ON_BLOCK), knockbackX: 5, knockbackY: -4,
+      vx: 0.01 * b.face, alien: { dh: "burst", pip: false, cast: b.cast, pips: b.pips } })
+    const w = s.wall
+    if (w && !w.gone && Math.abs(w.x - cx(f)) <= R + (f.w || 60) / 2 && endWall(s, "burst")) startPrism(s)
+  }
+  f._spriteCastMove = "dhBurst"; f._spriteCastTimer = Math.max(2, DH_BURST.TOTAL - b.t)
+  if (b.t >= DH_BURST.TOTAL) s.burst = null
+}
+// a hitbox riding the shared projectile pipeline (hidden: drawn by this module); vx carries the knockback direction
+const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, ...md,
+  alien: { hidden: true, ...(md.alien || {}) } }, {})
+const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
+
 // ── SPECIALS (dispatch; Phase 5 adds the rest) ─────────────────────────────────────────────────────────────────
-export const DH_COST = { wall: DH_WALL.COST }
+export const DH_COST = { wall: DH_WALL.COST, burst: 12 }
 function fireSpecial(f, ctx, api) {
   const s = dhState(f); if (!s) return false
   const dir = (f._specialHeldDir === "N" ? null : f._specialHeldDir) || null
   if (grounded(f) && dir === "B") return castWall(f, s, api)
+  if (grounded(f) && dir === "U") return castBurst(f, s, api)
   return false
 }
 function canAct(f, s) {
@@ -331,6 +395,17 @@ export function drawDiamondheadFx(c, f, frame = 0, opp = null) {
     const cols = ["#f472b6", "#facc15", "#5eead4", "#818cf8"]
     drawPixelRing(c, fx, fy, (f.w || 60) * 0.95, (f.h || 110) * 0.58, cols[(frame >> 3) % 4], 3, 18, frame / 30)
   }
+  if (opp && opp._lastDrawX != null && opp._lastDrawW != null) {              // SHARD pips embedded over the opponent
+    const ox = opp._lastDrawX + opp._lastDrawW / 2, top = opp._lastDrawY - 12, e = s.shards
+    for (let k = 0; k < e.pips; k++) { const x = ox + (k - (e.pips - 1) / 2) * 12
+      c.fillStyle = OUT; c.fillRect(x - 3, top - 6, 7, 10); c.fillStyle = k % 2 ? PALE : MINT; c.fillRect(x - 2, top - 5, 5, 8); c.fillStyle = WHITE; c.fillRect(x - 1, top - 5, 1, 3) }
+  }
+  const b = s.burst
+  if (b && b.t >= DH_BURST.STARTUP - 2 && b.t <= DH_BURST.STARTUP + 10) {   // SHATTER BURST: an expanding pixel shard ring
+    const q = Math.max(0, Math.min(1, (b.t - DH_BURST.STARTUP + 2) / 10)), r = DH_BURST.RADIUS * q
+    drawPixelRing(c, fx, fy, r, r * 0.8, b.pips ? PALE : MINT, 4, 24, b.cast)
+    drawPixelRing(c, fx, fy, r * 0.7, r * 0.56, TEAL, 3, 16, b.cast + 1)
+  }
   if (s.crystal.fracT > 0) {                                                   // FRACTURE: crack lines over the body
     c.fillStyle = "#fef08a"; for (let k = 0; k < 8; k++) px(c, fx - 14 + k * 4, f.y + (f.h || 110) * 0.3 + ((k * 7) % 11), 2)
   }
@@ -357,5 +432,7 @@ export function drawDiamondheadHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
   ctx.textAlign = flip ? "right" : "left"; ctx.font = "bold 7px Arial"
   ctx.fillStyle = s.prism.t > 0 ? "#f9a8d4" : "#9ca3af"
   ctx.fillText(s.prism.t > 0 ? `PRISMATIC ${Math.ceil(s.prism.t / 60)}s` : s.crystal.fracT > 0 ? `FRACTURED ${Math.ceil(s.crystal.fracT / 60)}s` : "CRYSTAL", tx, y)
+  ctx.fillStyle = s.shards.pips ? PALE : "#e5e7eb"
+  ctx.fillText(`SHARDS ${"◆".repeat(s.shards.pips)}${"◇".repeat(DH_SHARD.MAX - s.shards.pips)}`, tx, y + 7)
   ctx.restore()
 }

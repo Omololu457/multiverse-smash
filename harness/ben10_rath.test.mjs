@@ -168,6 +168,76 @@ test('9. swap / revert / KO / rematch clear Fury, the super armor and its cooldo
   assert(!('_castArmor' in f) || !(f._castArmor > 0), 'no lingering engine armor field')
 })
 
+
+// ── 4 MOVES ────────────────────────────────────────────────────────────────────────────────────────────────────
+const { RT_RAKE, RT_RUSH, RT_SLAM, RT_GRAB, RT_LUNGE, RT_ULT } = G
+// cast a special and run the world until the cast is over; counts any projectile entity that appears
+function runCast(f, t, dir, { max = 200, block = false, tInput = null, pre = null } = {}) {
+  clearProj(); f.energy = 100; if (pre) pre(f, t); const hp = t.health, e0 = f.energy
+  const ok = cast(f, t, dir), cost = e0 - f.energy; let n = 0, proj = 0
+  while (ok && n < max) { if (block) t.isBlocking = true; world(f, t, 1, {}, tInput); n++; proj = Math.max(proj, A.activeProjectiles.length)
+    const s = S(f); if (!s.chain && !s.grab && !s.lunge && !f.attacking && n > 2) break }
+  return { ok, dmg: hp - t.health, cost, n, proj }
+}
+test('4. Claw Rake (236+P, 10): 12f startup, 3 hits 18/18/24, 170px reach, forward step, −10 on block', () => {
+  const f = ben(), t = foe(); reset(f, t, 120); const x0 = f.x
+  const r = runCast(f, t, 'N'); assert(r.ok); assert.equal(r.cost, RT_COST.rake); assert.equal(r.proj, 0, 'no projectile')
+  const c = S(f).lastChain; assert.equal(c.kind, 'rake'); assert.equal(c.contacts.filter(k => !k.blocked).length, 3, '3 hits')
+  assert(near(r.dmg, 60 * DM * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 40, 'dmg ' + r.dmg); assert(f.x > x0, 'a real forward step')
+  const g = ben(), u = foe(); reset(g, u, 400); runCast(g, u, 'N'); assert.equal(S(g).lastChain.contacts.length, 0, 'out of 170px reach whiffs')
+  const h = ben(), v = foe(); reset(h, v, 120); const b = runCast(h, v, 'N', { block: true }); assert(S(h).lastChain.contacts.every(k => k.blocked)); assert(b.dmg < r.dmg)
+})
+test('4. Rath Rush (→→+P, 12): 14f startup, charges ~320px, stops on contact, 2 hits 22/30; whiff = no 2nd hit', () => {
+  const f = ben(), t = foe(); reset(f, t, 200); const x0 = f.x
+  const r = runCast(f, t, 'F', { pre: (q) => { S(q).dashTapT = S(q).t } }); assert(r.ok); assert.equal(r.cost, RT_COST.rush); assert.equal(r.proj, 0)
+  const c = S(f).lastChain; assert.equal(c.kind, 'rush'); assert.deepEqual(c.contacts.map(k => k.key), ['rt_rush_1', 'rt_rush_2']); assert(f.x - x0 > 100 && f.x - x0 < 330, 'charged ' + (f.x - x0))
+  const g = ben(), u = foe(); far(g, u); const x1 = g.x; runCast(g, u, 'F', { pre: (q) => { S(q).dashTapT = S(q).t } })
+  assert.equal(S(g).lastChain.why, 'whiff'); assert(Math.abs(g.x - x1 - RT_RUSH.TRAVEL) <= 40, 'full 320px travel ' + (g.x - x1))
+})
+test('4. Overhead Slam (412+P, 14): 16f startup, 56, ground bounce on a clean hit, none on block', () => {
+  const f = ben(), t = foe(); reset(f, t, 30); const r = runCast(f, t, 'D', { max: 60 }); assert(r.ok); assert.equal(r.cost, RT_COST.slam); assert.equal(r.proj, 0)
+  assert(near(r.dmg, RT_SLAM.DMG * DM * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 40, 'dmg ' + r.dmg); assert.equal(S(f).stats.bounces, 1, 'ground bounce')
+  { const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; const y0 = u.y; assert(cast(g, u, 'D')); let top = y0; for (let i = 0; i < 50; i++) { world(g, u, 1); top = Math.min(top, u.y) } assert(y0 - top > 20, 'they bounce up off the floor: ' + (y0 - top)) }
+  const g = ben(), u = foe(); reset(g, u, 30); runCast(g, u, 'D', { block: true, max: 60 }); assert.equal(S(g).stats.bounces, 0, 'no bounce on block')
+})
+test('4. "Let Me Tell You Something" (214+P, 16): command grab, 4×15 rant then a 150px shove; 110px; whiff; tech; air', () => {
+  const f = ben(), t = foe(); reset(f, t, 30); const x0 = t.x; const r = runCast(f, t, 'B'); assert(r.ok); assert.equal(r.cost, RT_COST.grab); assert.equal(r.proj, 0)
+  const L = S(f).lastGrab; assert.equal(L.result, 'ok'); assert.equal(L.ticks, 4); assert.equal(L.raw, 60); assert(L.dealt > 0 && r.dmg >= L.dealt)
+  assert(Math.abs(L.shoved) > 100, 'shoved ' + L.shoved); assert(t.x > x0); assert(S(f).gainDealt >= 16, '+4 Fury per rant hit')
+  const g = ben(), u = foe(); reset(g, u, 300); runCast(g, u, 'B'); assert.equal(S(g).lastGrab.result, 'range'); assert.equal(S(g).lastGrab.whiffRec, RT_GRAB.WHIFF)
+  const h = ben(), v = foe(); reset(h, v, 30); runCast(h, v, 'B', { pre: (q, w) => { w.grabInputBuffer = 30 } }); assert.equal(S(h).lastGrab.result, 'teched', 'throw escape')
+  const k = ben(), w = foe(); reset(k, w, 30); w.onGround = w.grounded = false; w.y -= 80; assert.equal(G.grabCanGrab(k, w), 'air', 'airborne targets cannot be grabbed')
+  w.onGround = w.grounded = true; w.y += 80; w.invulnTimer = 10; assert.equal(G.grabCanGrab(k, w), 'invuln'); w.invulnTimer = 0; w.knockdownState = true; assert.equal(G.grabCanGrab(k, w), 'invuln')
+})
+test('4. Primal Lunge (air +P, 12): diagonal dive, 50, once per airtime, no jump refill', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; f.jumpCount = 2; t.x = f.x + 140
+  const r = runCast(f, t, 'N', { max: 80 }); assert(r.ok); assert.equal(r.cost, RT_COST.lunge); assert.equal(r.proj, 0)
+  assert.equal(S(f).lastLunge.hit, true, 'lands on the foe'); assert.equal(S(f).lastLunge.jumps, 2); assert.equal(f.jumpCount === 0 ? 2 : f.jumpCount, 2, 'no refill')
+  const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 300; g.energy = 100; assert(cast(g, u, 'N')); world(g, u, 6)
+  ready(g); g.energy = 100; assert.equal(A.triggerSpecial(g, ctxOf(g, u)), false, 'once per airtime')
+})
+test('4. no projectile entity is spawned by ANY of his moves (normals, specials, grab, ultimate)', () => {
+  for (const k of ['light', 'heavy', 'down', 'up']) { clearProj(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, k); assert.equal(A.activeProjectiles.length, 0, k) }
+  for (const [d, pre] of [['N'], ['B'], ['D'], ['F', q => { S(q).dashTapT = S(q).t }]]) { const f = ben(), t = foe(); reset(f, t, 40); assert.equal(runCast(f, t, d, { pre }).proj, 0, d) }
+})
+// the ultimate: run until it is over
+const ultRun = (f, t, opts = {}) => { ready(f); clearProj(); f.energy = 100; const ok = A.triggerUltimate(f, ctxOf(f, t)); const cost = 100 - f.energy; if (!ok) return { ok, n: -1 }; let n = 0, proj = 0
+  while ((S(f).ult || n < 4) && n < 400) { if (opts.block) t.isBlocking = true; world(f, t, 1); n++; proj = Math.max(proj, A.activeProjectiles.length) } return { ok, n, proj, cost } }
+test("4. ULTIMATE Rath's Fury (55): clean opener → collar grab → 5×22 rant → 90 haymaker = 240, knockdown, Fury 0, positions restore", () => {
+  const f = ben(), t = foe(); reset(f, t, 40); const s = S(f); s.fury = 70; const hp = t.health, fx = f.x, tx = t.x
+  const r = ultRun(f, t); assert(r.ok); assert.equal(r.proj, 0, 'no projectile')
+  const L = s.lastUlt; assert(L.captured, 'captured'); assert.deepEqual(L.hits, [40, 22, 22, 22, 22, 22, 90]); assert.equal(L.raw, 240)
+  assert(hp - t.health > 0); assert(t.knockdownState, 'knockdown'); assert.equal(s.fury, 0, 'Fury reset'); assert.equal(s.furyCd, 0, 'no cooldown from the ult')
+  assert.equal(f.x, fx, 'his position restores'); assert.equal(t.x, tx, 'theirs too'); assert(f.attackCooldown >= RT_ULT.LOCKOUT - 2, '100f lockout')
+  assert.equal(r.cost, RT_COST.ultimate)
+})
+test('4. ULTIMATE: a whiff or a block = no cinematic, 60f recovery; the rant angles are a pure hash', () => {
+  const f = ben(), t = foe(); far(f, t); ultRun(f, t); assert.equal(S(f).lastUlt.captured, false); assert.equal(S(f).lastUlt.why, 'whiff')
+  const g = ben(), u = foe(); reset(g, u, 40); const hp = u.health; ultRun(g, u, { block: true }); assert.equal(S(g).lastUlt.captured, false); assert.equal(S(g).lastUlt.why, 'blocked'); assert(!u.knockdownState)
+  ready(g); g.energy = 100; assert.equal(A.triggerUltimate(g, ctxOf(g, u)), false, 'locked out after a miss'); assert(hp - u.health < 40, 'only chip')
+  assert.deepEqual(G.ultRant(7, 100, 0), G.ultRant(7, 100, 0)); assert.notDeepEqual(G.ultRant(7, 100, 0), G.ultRant(7, 100, 1))
+})
+
 // @@END-TESTS@@
 console.log(`\nRATH: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

@@ -89,8 +89,8 @@ Rush uses the leap + the hunched charge cycle); the bottom row's "running stride
 ## Effects — all procedural pixel-style, render-only (drawn by `rath.js`, never GAME_STATE, no hitboxes)
 
 Claw sparks (Low / Claw Rake / Primal Lunge), the Overhead Slam arc + impact dust, the Rath Rush dust trail, the RAGING heat
-shimmer and the RATH'S FURY armor glow (orange outline pulse), the roar burst rings, the speech-burst icon of Let Me Tell You
-Something / the ultimate (an empty jagged balloon with "!" glyph pixels — no text, no hitbox), screen shake, the HUD Fury gauge.
+shimmer and the RATH'S FURY armor glow (orange outline pulse), the roar burst rings, the speech burst of Let Me Tell You
+Something ("LET ME TELL YOU SOMETHING, <NAME>!") / the ultimate ("!!!") — a jagged pixel balloon, no hitbox, screen shake, the HUD Fury gauge.
 No effect is cut from the sheet (it has none apart from the B11 claw trail, which stays part of that frame).
 
 No art was invented: every pose above is a sheet frame; missing poses reuse the closest frame as listed.

@@ -29721,6 +29721,10 @@ function benAlienApi(context) {
     // read-only melee geometry (Upgrade's Terminal: an owner-limited object the OPPONENT's active melee box can hit) — the
     // engine's own box + active-frame test, so a form never re-derives them. Optional; nothing else changes.
     getAttackHitbox, attackIsActive,
+    // the engine's own MELEE move starter (combat.startMove: the move's box / block / chip / hitstun / combo scaling / onContact are
+    // the engine's), so a form can do melee specials with NO projectile entity (Rath: every special is melee). Optional; the
+    // form's moveFrames hook still sees the key. Nothing calls it unless a form does.
+    startMove: (f, key, md) => startMove(f, key, md),
     // read-only RAW CONTROLS of any fighter (input.readRawControls: the side-effect-free replay / LAN snapshot — never polls,
     // never touches a buffer), so a status a form owns can read its target's presses (Arcticguana's Popsicle mash-out).
     // Optional; nothing calls it unless a form does. null when the fighter has no controls (CPU).

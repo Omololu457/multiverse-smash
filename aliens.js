@@ -14,6 +14,7 @@ import { DIAMONDHEAD } from "./diamondhead.js"
 import { UPGRADE } from "./upgrade.js"
 import { HUMONGOUSAUR } from "./humongousaur.js"
 import { FEEDBACK } from "./feedback.js"
+import { ARCTICGUANA } from "./arcticguana.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -54,6 +55,7 @@ export const BEN10_ALIEN_REGISTRY = [
   UPGRADE,     // READY (2026-11-17): Dragonrod sheet + ledger; Galvanic Mechamorph (Terminal / Merge → Overclock / Virus → Crash / System Takeover); key upgrade_ov (the experimental `upgrade` below is untouched), a PICK-FIVE choice (catalog slot 14 — no new dial slot)
   HUMONGOUSAUR, // READY (2026-11-18): light-blue labeled sheet + ledger; Vaxasaurian bruiser (Growth tiers NORMAL → LARGE → HUGE → GIANT → Shrink / Tremor → Topple / Extinction Event); a NEW entry, a PICK-FIVE choice (catalog slot 15 — no new dial slot)
   FEEDBACK,    // READY (2026-11-18): Dragonrod sheet + ledger; Conductoid (Charge / Plug Guard → Return Fire / Drain → Blackout / Full Feedback); key feedback_ov (the experimental `feedback` below is untouched), a PICK-FIVE choice (catalog slot 16 — no new dial slot)
+  ARCTICGUANA, // READY (2026-11-18): Dragonrod sheet + Frozone ice-FX folder + ledger; Cryoreptile (Frost Coat / Chill → Popsicle → Shatter / Absolute Popsicle); a NEW entry, a PICK-FIVE choice (catalog slot 17 — no new dial slot)
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",

@@ -196,5 +196,96 @@ test('7. the Shatter Coat burst (live) adds 1 Chill on a clean hit', () => {
   assert.equal(S(f).stats.burstHits, 1); assert.equal(S(f).chill.pips, 1)
 })
 
+// ── 8-13 the specials, 14 the Ultimate ─────────────────────────────────────────────────────────────────────
+const { AG_BREATH, AG_SHARD, AG_CLOUD, AG_SLIDE, AG_BEAM, AG_ICICLE, AG_ULT } = G
+const runCast = (f, t, n, input = {}) => { let k = 0; while (k < n) { world(f, t, 1, input); k++ } }
+test('8. ICE BREATH: 14f startup, 5 ticks (one per 5f), +1 Chill per cast, cost 10, committed (no second stream)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 80); f.energy = 100; assert(cast(f, t, 'N')); assert.equal(100 - f.energy, AG_COST.breath)
+  assert.equal(cast(f, t, 'N'), false, 'one on screen'); const hp = t.health
+  runCast(f, t, AG_BREATH.STARTUP - 1); assert.equal(S(f).stats.breathTicks, 0, 'nothing before f14')
+  runCast(f, t, 60); assert.equal(S(f).lastBreath.ticks, AG_BREATH.TICKS); assert.equal(S(f).lastBreath.ext, false); assert(hp - t.health > 0); assert.equal(S(f).chill.pips, 1, 'one pip for 5 ticks')
+})
+test('8. ICE BREATH: holding P extends the stream by up to 20f (+4 Power once); 18f recovery', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; assert(cast(f, t, 'N')); const e = f.energy
+  let n = 0; while (S(f).breath && n < 200) { world(f, t, 1, { special: true }); n++ }
+  assert.equal(e - f.energy, AG_COST.breathHold); assert.equal(S(f).lastBreath.streamEnd, AG_BREATH.BASE_END + AG_BREATH.EXT); assert.equal(S(f).lastBreath.ticks, AG_BREATH.TICKS + 4)
+  assert.equal(n, AG_BREATH.BASE_END + AG_BREATH.EXT + AG_BREATH.RECOVERY, 'stream + 18f recovery')
+})
+test('9. ICE SHARD: two shards in a fan, 480 px, 22 each, ONE hit per target, one volley on screen, +1 Chill', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 200); f.energy = 100; assert(cast(f, t, 'B'))
+  runCast(f, t, AG_SHARD.RELEASE); const sh = A.activeProjectiles.filter(p => p.alien && p.alien.ag === 'shard'); assert.equal(sh.length, 2); assert(sh[0].vy !== sh[1].vy, 'a fan')
+  assert.equal(Math.round((sh[0].lifetime + 1) * AG_SHARD.SPEED), AG_SHARD.RANGE, "480 px (one frame already flown)")
+  ready(f); assert.equal(cast(f, t, 'B'), false, 'one volley on screen'); const hp = t.health
+  runCast(f, t, 50); assert.equal(S(f).stats.shardHits, 1, 'one hit max'); assert.equal(S(f).chill.pips, 1)
+  assert.equal(hp - t.health, Math.floor(AG_SHARD.DMG * DM * C.GLOBAL_DAMAGE_SCALE * 1) || hp - t.health); assert(near(hp - t.health, AG_SHARD.DMG * DM * C.GLOBAL_DAMAGE_SCALE))
+})
+test('10. FROST CLOUD: settles 200 px ahead for 120f, one per owner; first contact 15 + a ×0.8 run/dash slow for 60f once, consumed; no pips', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; assert(cast(f, t, 'U')); runCast(f, t, AG_CLOUD.SETTLE)
+  const cl = S(f).cloud; assert(cl); assert(Math.abs(cl.x - (cx(f) + f.facing * AG_CLOUD.AHEAD)) <= 1); runCast(f, t, 20); ready(f); assert(cast(f, t, 'U')); runCast(f, t, AG_CLOUD.SETTLE)
+  assert(S(f).cloud && S(f).cloud.cast !== cl.cast, 'a recast replaces it (one per owner)'); runCast(f, t, AG_CLOUD.LIFE + 2); assert.equal(S(f).cloud, null, 'expires after 120f')
+  clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'U')); runCast(g, u, AG_CLOUD.SETTLE); const c2 = S(g).cloud
+  u.x = c2.x - u.w / 2; const hp = u.health; world(g, u, 3); assert.equal(S(g).cloud, null, 'consumed'); assert.equal(S(g).stats.cloudHits, 1); assert(near(hp - u.health, AG_CLOUD.DMG * DM * C.GLOBAL_DAMAGE_SCALE))
+  assert.equal(S(g).chill.pips, 0, 'no pips'); assert(u._benSlow && u._benSlow.k === AG_CLOUD.SLOW)
+  ready(u); u.hitstun = 0; u.x = 300; physics.moveFighter(u, { d: true }, CONTROLS); const slowVx = u.vx; u.vx = 0; delete u._benSlow
+  const v = foe(); v.x = 300; physics.moveFighter(v, { d: true }, CONTROLS); assert(Math.abs(slowVx - v.vx * AG_CLOUD.SLOW) < 0.01, `walk ×0.8 (${slowVx} vs ${v.vx})`)
+  runCast(g, u, AG_CLOUD.SLOW_T + 3); assert(!(u._benSlow && u._benSlow.ttl > 0), 'lapses after 60f'); assert.equal(S(g).stats.slows, 1, 'once')
+})
+test('11. ICE SLIDE: 360 px low slide (real travel), ducks projectiles f6-24, no invulnerability, 50 on hit, finisher +1 Chill', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); const x0 = f.x
+  let ducked = 0; for (let i = 0; i < AG_SLIDE.TOTAL + 2; i++) { world(f, t, 1); if (G.slideLow(S(f))) ducked++ }
+  assert.equal(Math.round(Math.abs(f.x - x0)), AG_SLIDE.TRAVEL, `travel ${f.x - x0}`); assert.equal(ducked, AG_SLIDE.LOW[1] - AG_SLIDE.LOW[0] + 1)
+  clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; S(g).dashTapT = S(g).t; assert(cast(g, u, 'F')); runCast(g, u, 8)
+  assert.equal(ARCTICGUANA.evade(g, { proj: {} }), true, 'projectiles ducked'); assert.equal(ARCTICGUANA.evade(g, { move: {} }), false, 'melee still hits (no invulnerability)')
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 120); h.energy = 100; S(h).dashTapT = S(h).t; assert(cast(h, v, 'F')); const hp = v.health; runCast(h, v, 30)
+  assert.equal(S(h).stats.slideHits, 1, 'one hit'); assert(near(hp - v.health, AG_SLIDE.DMG * DM * C.GLOBAL_DAMAGE_SCALE)); assert.equal(S(h).chill.pips, 1)
+})
+test('11. ICE SLIDE shatters a Popsicle', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 120); freezeIt(f, t); world(f, t, 2); f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); runCast(f, t, 20)
+  assert.equal(S(f).chill.ends.at(-1), 'shatter'); assert.equal(S(f).chill.shatters, 1)
+})
+test('12. FREEZE BEAM: 22f startup, 3 ticks × 12 (only the first adds Chill), 420 px, hold 27f → up to 40f held, 26f recovery', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 300); f.energy = 100; assert(cast(f, t, 'D')); assert.equal(100 - f.energy, AG_COST.beam)
+  runCast(f, t, AG_BEAM.STARTUP); assert.equal(S(f).stats.beamTicks, 0, 'nothing in startup'); const hp = t.health
+  let n = AG_BEAM.STARTUP; while (S(f).beam && n < 200) { world(f, t, 1); n++ }
+  assert.equal(S(f).lastBeam.ticks, 3); assert.equal(S(f).lastBeam.hold, AG_BEAM.HOLD_MIN); assert.equal(n, AG_BEAM.STARTUP + AG_BEAM.HOLD_MIN + AG_BEAM.RECOVERY)
+  assert.equal(S(f).chill.pips, 1, 'first tick only'); assert(near(hp - t.health, 36 * DM * C.GLOBAL_DAMAGE_SCALE * 0.9), `${hp - t.health}`)
+  clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'D')); n = 0; while (S(g).beam && n < 300) { world(g, u, 1, { special: true }); n++ }
+  assert.equal(S(g).lastBeam.hold, AG_BEAM.HOLD_MAX, 'held: capped at 40f')
+})
+test('13. ICICLE DROP: air only, 48 on hit, once per airtime, no jump refill, +1 Chill, cosmetic landing pop', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 30); f.energy = 100; f.y -= 160; f.onGround = f.grounded = false; f.jumpCount = 2; const j = f.jumpCount
+  assert(cast(f, t, 'N')); assert.equal(S(f).icicle != null, true); assert.equal(cast(f, t, 'N'), false, 'busy'); const hp = t.health
+  let n = 0; while (S(f).icicle && n < 80) { world(f, t, 1); n++ }
+  assert(S(f).lastIcicle.hit, 'hit'); assert(near(hp - t.health, AG_ICICLE.DMG * DM * C.GLOBAL_DAMAGE_SCALE), `${hp - t.health}`); assert.equal(S(f).chill.pips, 1)
+  assert.equal(f.jumpCount, j, 'no jump refill from the move'); assert.equal(A.activeProjectiles.filter(p => p.owner === f && p.alien && p.alien.ag === 'icicle' && p.lifetime > 0).length, 0, 'no landing hitbox')
+  const g = ben(); g.energy = 100; g.y -= 200; g.onGround = g.grounded = false; S(g).icicleUsed = true; ready(g); assert.equal(cast(g, foe(), 'N'), false, 'once per airtime')
+})
+const ultRun = (f, t) => { ready(f); f.energy = 100; assert(A.triggerUltimate(f, ctxOf(f, t)), 'ult'); let n = 0; while ((S(f).ult || n < 20) && n < 400) { world(f, t, 1); n++ } return n }
+test('14. ULTIMATE: 55 Power; a whiff = no cinematic, 60f recovery', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); ultRun(f, t); assert.equal(100 - f.energy, AG_COST.ultimate); assert.equal(S(f).lastUlt.captured, false); assert.equal(t.health, t.maxHealth)
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 100); u.isBlocking = true; ultRun(g, u); assert.equal(S(g).lastUlt.captured, false, 'blocked: no cinematic')
+})
+test('14. ULTIMATE: clean opener → popsicle, 3 hashed carves × 25, final 125 = 240 raw, no Shatter bonus, released unfrozen with immunity, positions restored, 100f lockout', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 100); freezeIt(f, t); world(f, t, 1); const hp = t.health; ultRun(f, t); const L = S(f).lastUlt
+  assert(L.captured); assert.deepEqual(L.hits, [AG_ULT.OPENER, 25, 25, 25, AG_ULT.FINAL]); assert.equal(L.raw, 240); assert.equal(S(f).chill.shatters, 0, 'no Shatter bonus')
+  assert(!G.frozen(S(f))); assert(S(f).chill.immuneT > AG_CHILL.IMMUNE - 30, 'refreeze immunity started'); assert.equal(f.x, L.home.x); assert(Math.abs(t.x - L.thome.x) <= 6, "restored, then one frame of the release launch")
+  assert(f.attackCooldown > 0 && f.attackCooldown <= AG_ULT.LOCKOUT); assert(hp - t.health > 0)
+  const c1 = G.ultCarve(L.seed, L.f0, L.pi), c2 = G.ultCarve(L.seed, L.f0, L.pi); assert.deepEqual(c1, c2, 'carve angles are a pure hash')
+  assert.notDeepEqual(G.ultCarve(L.seed + 1, L.f0, L.pi), c1)
+  assert.equal(A.activeProjectiles.filter(p => p.owner === f && p.lifetime > 0).length, 0, 'no persistent hazards')
+})
+
+const stubCtx = () => new Proxy({ globalAlpha: 1 }, { get: (o, k) => k in o ? o[k] : () => {}, set: (o, k, v) => (o[k] = v, true) })
+test('render: every move / the ult draw without throwing and drawing never changes GAME_STATE', () => {
+  const c = stubCtx(); const run = (f, t, n, input = {}) => { for (let i = 0; i < n; i++) { world(f, t, 1, input); const a = JSON.stringify(S(f)), x = [t.x, t.health, f.x]
+    G.drawArcticguanaFx(c, f, FRAME, t); G.drawArcticguanaHud(c, f, { x: 0, enY: 0, enH: 8, pbw: 200, flip: false })
+    assert.equal(JSON.stringify(S(f)), a); assert.deepEqual([t.x, t.health, f.x], x) } }
+  for (const dir of ['N', 'B', 'U', 'D']) { clearProj(); const f = ben(), t = foe(); reset(f, t, 100); f.energy = 100; assert(cast(f, t, dir), dir); run(f, t, 80) }
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 120); f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); run(f, t, 45)
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; g.y -= 160; g.onGround = g.grounded = false; assert(cast(g, u, 'N')); run(g, u, 40)
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 100); freezeIt(h, v); run(h, v, 3); ready(h); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v))); run(h, v, 200)
+  assert(S(h).lastUlt && S(h).lastUlt.captured)
+})
+
 console.log(`\nARCTICGUANA: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

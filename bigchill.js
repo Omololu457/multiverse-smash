@@ -6,6 +6,7 @@
 // shards, ice overlays, the ice cocoon shell, shake) never write it. Simulation randomness: hash(match seed, frame, player).
 // Sheet: docs/ben10/aliens/bigchill/SPRITE_LEDGER.md.
 import { BIGCHILL_ANIM, BIGCHILL_GEOM, BIGCHILL_FX, BIGCHILL_ICE_FX } from "./bigchillAssets.js"
+import { flightTakeoff, isFlying, FLIGHT_PHASE, flightKnockedDown } from "./flight.js"   // reused (Ghostfreak / Alien X / Jetray do the same)
 export { BIGCHILL_ANIM, BIGCHILL_GEOM, BIGCHILL_FX, BIGCHILL_ICE_FX }
 
 export const BC_KEY = "bigchill"
@@ -24,6 +25,7 @@ export const BIGCHILL = {
   ledgerPath: "docs/ben10/aliens/bigchill/SPRITE_LEDGER.md",
   mods: { speed: 1.00, damage: 1.05, defense: 0.95, weight: 0.80 },
   movement: "flight", maxJumps: 2,            // the shared double jump; flight never refills it
+  flightProfile: "bigchill",                  // flight.js FLIGHT_PROFILES.bigchill (per-alien flight profile hook)
   moves: { jab: "Jab", heavy: "Heavy", low: "Low", launcher: "Launcher", air: "Air",
     special1: "Freeze Breath", special2: "Frost Wing Cut", special3: "Ice Spire", special4: "Cocoon",
     special5: "Phase Drift", special6: "Diving Chill", ultimate: "Frozen Sky" },
@@ -44,13 +46,16 @@ export function freshBigChillState() {
   return { kind: BC_KEY, t: 0, frame: 0, seed: 1, castId: 0, noAttack: false,
     stage: { L: -1e6, R: 1e6 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5, spPrev: false, spHeld: false,
+    jumpHeld: 0, airborne: false, apexY: null, capY: null, flightUsed: 0, flyT: 0, flights: 0, diveUsed: false,
     stats: { casts: 0 } }
 }
 export const bcState = f => (f?.omnitrix?.formState?.kind === BC_KEY && f.transformed && f.activeAlien === BC_KEY) ? f.omnitrix.formState : null
 
 function onApply(f) {
   if (!f.omnitrix) return
-  f.omnitrix.formState = freshBigChillState()
+  const s = f.omnitrix.formState = freshBigChillState()
+  f._alienFlightProfile = BIGCHILL.flightProfile; f._flightCtl = null   // cleared by clearBenFormState on swap / revert / KO
+  if (grounded(f)) s.airborne = false
 }
 
 export const cx = o => o.x + (o.w || 60) / 2
@@ -149,6 +154,41 @@ function onContact(f, target, info) {
   const s = bcState(f); if (!s || !target || target === f) return
   for (const h of CONTACT) h(f, s, target, info || {})
 }
+
+// ── 3. FLIGHT (flight.js, profile "bigchill"; Ghostfreak's hold-Jump model) ──────────────────────────────────────
+// Hold Jump in the air (8f) to fly: 200f per airtime, cruise 6.0, moderate drag, 8-direction steering (the flight
+// controller), never above the jump apex + 200 px, knocked out of the sky (40f grounded lock) by a hard hit, never refills
+// jumps. Wings: OPEN frames while flying (a 6f opening transition — render pose only, never a gameplay lock), CLOSED on the
+// ground; the pose follows the flight flag only (bcWings).
+export const BC_FLIGHT = { MAX: 200, CAP: 200, HOLD: 8, OPEN: 6 }
+export function bcWings(f) {
+  const s = bcState(f); if (!s) return "closed"
+  if (!isFlying(f)) return "closed"
+  return s.flyT < BC_FLIGHT.OPEN ? "opening" : "open"
+}
+const flightBlocked = s => busy(s)
+TICKS.push(function tickFlight(f, s, input) {
+  const c = f._flightCtl, flying = !!c && isFlying(f), g = grounded(f)
+  const jump = !!(input && (input.jump || input.up))
+  s.jumpHeld = jump ? s.jumpHeld + 1 : 0
+  if (g) { s.airborne = false; s.apexY = null; s.capY = null; s.flightUsed = 0; s.diveUsed = false }
+  else { s.airborne = true; if (!flying) s.apexY = s.apexY == null ? f.y : Math.min(s.apexY, f.y) }
+  if (flying) {
+    s.flightUsed++; s.flyT++
+    if ((f.hitstun || 0) > 0) { flightKnockedDown(f); s.flyT = 0; return }        // hard hit → drop + 40f grounded lock
+    if (!jump || flightBlocked(s) || s.flightUsed >= BC_FLIGHT.MAX) { c.phase = FLIGHT_PHASE.GROUNDED; c.wantDescend = false; s.flyT = 0; return }
+    if (s.capY != null && f.y < s.capY) { f.y = s.capY; if ((f.vy || 0) < 0) f.vy = 0 }   // no altitude past apex + 200
+    if (!f.attacking && !busy(s)) { f._spriteCastMove = s.flyT < BC_FLIGHT.OPEN ? "bcOpen" : "bcFly"; f._spriteCastTimer = 2 }
+    return
+  }
+  s.flyT = 0
+  if (g || flightBlocked(s) || !jump || s.jumpHeld < BC_FLIGHT.HOLD || s.flightUsed >= BC_FLIGHT.MAX || f.attacking || (f.hitstun || 0) > 0) return
+  const jc = f.jumpCount
+  if (flightTakeoff(f)) {
+    f.jumpCount = jc                                                               // flight never refills jumps
+    s.capY = (s.apexY ?? f.y) - BC_FLIGHT.CAP; s.flights++
+  }
+})
 
 // ── HUD + render-only overlays (read GAME_STATE, never write it) ───────────────────────────────────────────
 const HUD = [], FX = []   // render sections, filled below

@@ -13,6 +13,8 @@ import { physics } from '../physics.js'
 import { characters } from '../characters.js'
 import * as G from '../arcticguana.js'
 import * as B from '../bigchill.js'
+import { tickFlightDriver, isFlying, getFlightProfile } from '../flight.js'
+import { clearBenFormState } from '../ben10State.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
 import fs from 'node:fs'
 
@@ -103,6 +105,39 @@ test('2. shared motion inputs: 236 / 214 / 623 / 412 / →→ / air, and the hel
   assert.equal(pick(null, f => { f._specialHeldDir = 'D' }), 'cocoon'); assert.equal(pick(null), 'breath')
 })
 test('2. no Math.random / gameRng in bigchill.js', () => { const src = fs.readFileSync('bigchill.js', 'utf8'); assert(!/Math\.random|gameRng/.test(src)) })
+
+// ── 3 flight ────────────────────────────────────────────────────────────────────────────────────────────────
+const { BC_FLIGHT } = B
+const flyLoop = (f, t, n, input = { jump: true, up: true }, each) => { let flying = 0, minY = f.y
+  for (let i = 0; i < n; i++) {
+    physics.moveFighter(f, { w: !!input.jump, a: !!input.left, d: !!input.right, s: !!input.down }, CONTROLS); A.updatePendingSpawns(); A.tickBenAlienForm(f, input, ctxOf(f, t)); tickFlightDriver(f); physics.applyGravity(f)
+    if (f._flightCtl && isFlying(f)) { flying++; minY = Math.min(minY, f.y); assert.equal(f.jumpCount, 2, 'jumps not refilled') }
+    if (each) each(f, i)
+    if (f.onGround) break
+  } return { flying, minY } }
+const airborne = (f, t) => { f.onGround = f.grounded = false; f.y = 250; f.vy = 0; f.jumpCount = 2; A.tickBenAlienForm(f, {}, ctxOf(f, t)) }
+test('3/4. flight: profile cruise 6.0 / moderate drag / 200f / grounded 40; hold Jump → fly, ≤ 200f per airtime, apex + 200 cap, no jump refill', () => {
+  const f = ben(), t = fresh('goku', 900); const p = getFlightProfile(f)
+  assert(p && p.maxH === 6.0 && p.drag === 0.70 && p.energyMax === 200 && p.groundedLock === 40 && p.maxAirDash === 0, 'bigchill profile')
+  airborne(f, t); const apex = S(f).apexY; const { flying, minY } = flyLoop(f, t, 320)
+  assert(flying <= BC_FLIGHT.MAX && flying >= BC_FLIGHT.MAX - 12, `≤ 200 flying frames (${flying})`)
+  assert(minY >= apex - BC_FLIGHT.CAP - 1e-6, `no altitude past apex + 200 (${minY} vs ${apex - BC_FLIGHT.CAP})`)
+  assert.equal(S(f).flights, 1, 'one takeoff per airtime (the budget does not refill in the air)')
+})
+test('3/4. flight: 8-direction steering (left / right / down while held), knocked out by a hard hit → 40f grounded lock', () => {
+  const f = ben(), t = fresh('goku', 900); airborne(f, t); flyLoop(f, t, 14); assert(isFlying(f), 'flying'); const x0 = f.x, y0 = f.y
+  flyLoop(f, t, 20, { jump: true, up: true, right: true }); assert(f.x > x0 + 20, 'steers right')
+  const x1 = f.x; flyLoop(f, t, 20, { jump: true, up: true, left: true }); assert(f.x < x1 - 20, 'steers left')
+  const g = ben(), u = fresh('goku', 900); airborne(g, u); flyLoop(g, u, 14); assert(isFlying(g)); g.hitstun = 20; A.tickBenAlienForm(g, { jump: true }, ctxOf(g, u))
+  assert(!isFlying(g)); assert.equal(g._flightCtl.groundedLock, 40, 'grounded 40f')
+})
+test('3/4. wings follow the flight flag only: closed on the ground / in a plain jump, 6f opening, open while flying (render pose, no lock)', () => {
+  const f = ben(), t = fresh('goku', 900); assert.equal(B.bcWings(f), 'closed', 'ground: closed'); airborne(f, t); assert.equal(B.bcWings(f), 'closed', 'plain jump: closed')
+  const seen = []; flyLoop(f, t, 40, undefined, g => seen.push(B.bcWings(g)))
+  const first = seen.indexOf('opening'); assert(first >= 0, 'opening'); assert.equal(seen.slice(first, first + BC_FLIGHT.OPEN).every(w => w === 'opening'), true, '6f opening'); assert.equal(seen[first + BC_FLIGHT.OPEN], 'open')
+  assert.equal(f.attacking, false); assert(!(f._benPowerCommit > 0), 'the transition is not a gameplay lock')
+  clearBenFormState(f); assert.equal(f._alienFlightProfile, undefined, 'swap / revert wipe the flight profile')
+})
 
 //@@NEXT@@
 console.log(`BIG CHILL: ${passed} passed, ${failed} failed`)

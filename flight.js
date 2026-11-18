@@ -129,6 +129,18 @@ FLIGHT_PROFILES.jetray = {
 }
 FLIGHT_PROFILES.jetray_mach = { ...FLIGHT_PROFILES.jetray, accel: 10.0, maxH: 90.0, maxV: 40.0, dashSpeed: 100 }
 
+// BIG CHILL (Ben 10 ready alien, via fighter._alienFlightProfile while transformed): the canon flyer on Ghostfreak's
+// hold-Jump model. Cruise 6.0, MODERATE drag (coast ×0.7), 8-direction steering, 200 frames per airtime (refills on
+// landing), no air dash, grounded 40f after a hard hit. The apex+200 cap / jump bookkeeping live in bigchill.js (flight logic
+// unchanged for every flyer).
+FLIGHT_PROFILES.bigchill = {
+  accel: 1.0, maxH: 6.0, maxV: 5.0, drag: 0.70, reverseBrake: 0.5,
+  overspeedDrag: 0.85, ceilEaseZone: 40, dashSpeed: 0, dashFrames: 0, maxAirDash: 0,
+  dashCost: 9999, energyMax: 200, drainPerFrame: 1, groundRefillPerFrame: 200, liftoff: -2,
+  takeoffFrames: 4, landRecovery: 4, landRecoveryAfterAir: 6, groundedLock: 40,
+  landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
+}
+
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",
 })

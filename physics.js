@@ -338,7 +338,19 @@ export const physics = {
     }
 
     // Apply X movement
-    fighter.x += fighter.vx
+    // BEN 10 MOVEMENT DRAG status (ADD_ALIEN.md; Terraspin Gale Drag): a ready Omnitrix form's tick stamps its OPPONENT with
+    // `_benDrag = { x, ground, air, ttl, pvx }` while the status lasts (re-stamped each frame, ttl lapses on its own). Movement
+    // AWAY from x is scaled (×ground on the ground, the same on airborne momentum) and airborne control that pushes further away
+    // gets only ×air of its change. Input polling and the clock are untouched. Absent for everyone else → byte-identical.
+    const _bd = fighter._benDrag
+    if (_bd && _bd.ttl > 0) {
+      _bd.ttl--
+      const _awayDir = Math.sign((fighter.x + (fighter.w || 60) / 2) - _bd.x) || 0
+      if (!fighter.onGround && _awayDir !== 0 && (fighter.vx - (_bd.pvx || 0)) * _awayDir > 0)
+        fighter.vx = (_bd.pvx || 0) + (fighter.vx - (_bd.pvx || 0)) * _bd.air   // air control away from him: its change halved
+      _bd.pvx = fighter.vx
+      fighter.x += (_awayDir !== 0 && Math.sign(fighter.vx) === _awayDir) ? fighter.vx * _bd.ground : fighter.vx
+    } else fighter.x += fighter.vx
 
     // ── STAGE / CAMERA BOUNDS ────────────────────────
     const stageW = this.stageWidth

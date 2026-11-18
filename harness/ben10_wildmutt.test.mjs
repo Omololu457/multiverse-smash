@@ -132,6 +132,45 @@ test('4. senses: a cross-up (behind) hit on him deals its normal, unmodified dam
   assert.equal(hp - f.health, hp2 - g.health, 'a normal from behind = the same damage as from the front'); assert.equal(t.comboCounter, u.comboCounter, 'combos normally')
 })
 
+// ── 4 FERAL FURY ───────────────────────────────────────────────────────────────────────────────────────────────
+const { WM_FURY } = G
+const toFrenzy = (f, s) => { s.fury = 96; G.gainFury(f, s, 6); assert(G.frenzyOn(s), 'FRENZY') }
+test('5. Fury: landing +6 / blocked +3; −1/f after 150f with no gain', () => {
+  const f = ben(), t = foe(), s = S(f); reset(f, t, 10)
+  melee(f, t, 'light'); assert.equal(s.fury, 6); reset(f, t, 10); melee(f, t, 'heavy', { block: true }); assert.equal(s.fury, 9, 'blocked +3')
+  far(f, t); s.fury = 40; s.lastGainT = s.t; world(f, t, WM_FURY.IDLE - 1); assert.equal(s.fury, 40, 'no decay before 150f')
+  world(f, t, 10); assert(s.fury < 40 && s.fury >= 29, 'decays −1/f: ' + s.fury)
+})
+test('5. FRENZY at 100: consumes the gauge, 180f, startup −2f (min 1f), damage +15% (never on his ultimate), not armor', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t)
+  assert.equal(WILDMUTT.moveFrames(f, 'light', BA.light).startup, 5); assert.equal(WILDMUTT.damageDealt(f, null, 100, {}), 100)
+  toFrenzy(f, s); assert.equal(s.fury, 0, 'consumes the full gauge'); assert.equal(s.frenzyT, WM_FURY.FRENZY_T)
+  assert.equal(WILDMUTT.moveFrames(f, 'light', BA.light).startup, 3); assert.equal(WILDMUTT.moveFrames(f, 'heavy', BA.heavy).startup, 11)
+  assert.equal(WILDMUTT.moveFrames(f, 'x', { startup: 2 }).startup, 1, 'min 1f'); assert.equal(BA.light.startup, 5, 'the table is never mutated')
+  assert(Math.abs(WILDMUTT.damageDealt(f, null, 100, {}) - 115) < 1e-9); assert.equal(WILDMUTT.damageDealt(f, null, 100, { move: 'wm_ult_final' }), 100, 'the ult is never boosted')
+  assert(!('armor' in WILDMUTT), 'no armor hook'); G.gainFury(f, s, 6); assert.equal(s.fury, 0, 'no gain during FRENZY')
+  // live: a FRENZY jab comes out 2f sooner
+  const lag = q => { const t2 = foe(); reset(q, t2, 10); ready(q); assert(C.startMove(q, 'light', BA.light)); let n = 0; const hp = t2.health; while (t2.health === hp && n < 40) { q.hitstop = 0; C.updateCombat(q, t2, {}, {}); n++ } return n }
+  const a = lag(ben()), g = ben(); toFrenzy(g, S(g)); const b = lag(g); assert.equal(a - b, 2, `jab connects 2f sooner (${a} → ${b})`)
+  world(f, t, WM_FURY.FRENZY_T - 1); assert(G.frenzyOn(s)); world(f, t, 1); assert(!G.frenzyOn(s), '180f')
+})
+test('5. FRENZY → 240f half-gain cooldown → once per 600f from the moment it ends', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t); toFrenzy(f, s); world(f, t, WM_FURY.FRENZY_T)
+  assert(!G.frenzyOn(s)); assert.equal(s.frenzyCd, WM_FURY.CD); const endT = s.t
+  G.gainFury(f, s, 6); assert.equal(s.fury, 3, 'halved during the cooldown'); world(f, t, WM_FURY.CD); assert.equal(s.frenzyCd, 0)
+  assert.equal(s.fury, 0, 'the idle gauge decayed meanwhile'); G.gainFury(f, s, 6); assert.equal(s.fury, 6, 'full gains after the cooldown')
+  s.fury = 98; s.lastGainT = s.t; G.gainFury(f, s, 6); assert.equal(s.fury, 100); assert(!G.frenzyOn(s), 'not again before 600f')
+  const left = endT + WM_FURY.REUSE - s.t; world(f, t, left - 2, {}); s.fury = 100; s.lastGainT = s.t; assert(!G.frenzyOn(s)); world(f, t, 2); assert(G.frenzyOn(s), '600f after it ended'); assert.equal(s.frenzyUses, 2)
+})
+test('10. swap / revert / KO / rematch clear Fury, FRENZY and its cooldown', () => {
+  const mk = () => { const f = ben(KEY, [KEY, 'heatblast', 'goop', 'xlr8', 'megawhatt']); toFrenzy(f, S(f)); S(f).frenzyCd = 100; S(f).fury = 50; return f }
+  let f = mk(); assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, KEY)); assert.equal(S(f).fury, 0); assert(!G.frenzyOn(S(f))); assert.equal(S(f).frenzyCd, 0); assert.equal(S(f).frenzyReadyAt, 0)
+  f = mk(); F.revertToHuman(f, { forced: true }); assert.equal(G.wmState(f), null, 'reverted: no Wildmutt state'); assert.equal(WILDMUTT.damageDealt(f, null, 100, {}), 100)
+  f = mk(); f.health = 0; F.handleBenKO?.(f); if (f.omnitrix.formState) F.revertToHuman(f, { forced: true }); assert.equal(G.wmState(f), null, 'KO')
+  f = mk(); F.setupBen10(f, [KEY]); assert.equal(G.wmState(f), null, 'rematch / round reset: fresh Ben')
+  f = mk(); F.setupBen10(f, [KEY]); F.applyAlien(f, KEY); f.transformed = true; assert.equal(S(f).fury, 0); assert.equal(S(f).frenzyCd, 0); assert(!G.frenzyOn(S(f)))
+})
+
 // @@END-TESTS@@
 console.log(`\nWILDMUTT: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

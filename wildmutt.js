@@ -219,3 +219,69 @@ BODY_OFF.push((f, s) => {
   if (a.name === "air") return { dx: 0, dy: -6 }
   return null
 })
+
+// ── 4. FERAL FURY (his unique resource, GAME_STATE) ──────────────────────────────────────────────────────────────
+// A 0–100 gauge, shown under Omnitrix Power while he is active; starts at 0. Landing a hit +6 (blocked +3) — every contact HE
+// makes (onContact: normals, his melee specials and the hidden Spin Slash boxes). −1/f after 150f with no gain.
+// At 100 → FRENZY for 180f, CONSUMING the full gauge (Fury 0 while it runs; no gain during it): move startup −2f (min 1f) on his
+// normals and the first beat of each special, damage +15% (never on his ultimate, a fixed authored total). It is NOT armor. It
+// ends into a 240f COOLDOWN where gains are halved; FRENZY can only trigger again 600f after the moment it ended (a full gauge
+// waits at 100 meanwhile — still decaying after 150f idle — and fires the frame it becomes available). Swap / revert / KO / rematch: a fresh formState (Fury, the
+// FRENZY window and the cooldown all cleared). Deterministic: plain counters on his formState.
+export const WM_FURY = { MAX: 100, HIT: 6, HIT_BLOCKED: 3, IDLE: 150, DECAY: 1, FRENZY_T: 180, CUT: 2, DMG: 1.15, CD: 240, CD_GAIN: 0.5, REUSE: 600 }
+export const frenzyOn = s => !!(s && s.frenzyT > 0)
+function startFrenzy(f, s) {
+  s.fury = 0; s.frenzyT = WM_FURY.FRENZY_T; s.frenzyUses++; s.stats.frenzies++; s.growlT = s.t
+}
+export function gainFury(f, s, amount) {
+  if (!s || !(amount > 0) || frenzyOn(s)) return 0
+  const before = s.fury
+  s.fury = Math.min(WM_FURY.MAX, s.fury + amount * (s.frenzyCd > 0 ? WM_FURY.CD_GAIN : 1)); s.lastGainT = s.t
+  const got = s.fury - before
+  if (s.fury >= WM_FURY.MAX && s.t >= s.frenzyReadyAt) startFrenzy(f, s)
+  return got
+}
+export function endFrenzy(f, s) {
+  if (!frenzyOn(s)) return
+  s.frenzyT = 0; s.frenzyCd = WM_FURY.CD; s.frenzyReadyAt = s.t + WM_FURY.REUSE
+}
+TICKS.push((f, s) => {
+  if (s.frenzyT > 0) { if (--s.frenzyT <= 0) { s.frenzyT = 1; endFrenzy(f, s) } return }
+  if (s.frenzyCd > 0) s.frenzyCd--
+  if (s.fury >= WM_FURY.MAX && s.t >= s.frenzyReadyAt) { startFrenzy(f, s); return }
+  if (s.fury > 0 && s.t - s.lastGainT >= WM_FURY.IDLE) s.fury = Math.max(0, s.fury - WM_FURY.DECAY)
+})
+CONTACT.push((f, s, target, { blocked }) => { gainFury(f, s, blocked ? WM_FURY.HIT_BLOCKED : WM_FURY.HIT) })
+// his own ultimate's damage is a fixed authored total: never boosted (melee damage opts carry no move: read his live move)
+const isUltHit = (opts, f) => { const m = opts.move, p = opts.proj, n = typeof m === "string" ? m : (m && m.name) || (p && p.name) ||
+  ((opts.source === "melee" || opts.source === "block-chip") && f && f.currentAttack ? f.currentAttack.name : ""); return /^wm_ult/.test(String(n || "")) }
+DEALT.push((f, s, target, raw, opts) => (frenzyOn(s) && !isUltHit(opts, f) ? raw * WM_FURY.DMG : raw))
+MD_XFORM.push((f, s, key, md) => (frenzyOn(s) && !md.wmFollow ? { ...md, startup: Math.max(1, (md.startup ?? 5) - WM_FURY.CUT) } : md))
+export const startupOf = (s, n) => Math.max(1, n - (frenzyOn(s) ? WM_FURY.CUT : 0))   // his own scheduled beats (Spin Slash)
+
+// render-only: the Fury gauge under the Omnitrix bar (orange; FRENZY flashes red with its time left; the cooldown greys it)
+const FUR = "#fc9225", FURD = "#c27330", RED = "#dc2626", WHITE = "#f8fafc", INK = "#1b1b1f", OUT = "#4a2500"
+HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {
+  const h = 5, on = frenzyOn(s), fill = on ? s.frenzyT / WM_FURY.FRENZY_T : s.fury / WM_FURY.MAX
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(bx - 1, y - 1, w + 2, h + 2)
+  ctx.fillStyle = s.frenzyCd > 0 && !on ? "#6b7280" : on ? ((s.t >> 2) % 2 ? WHITE : RED) : s.fury >= WM_FURY.MAX ? RED : FUR
+  const fw = Math.round(w * Math.max(0, Math.min(1, fill))); ctx.fillRect(flip ? bx + w - fw : bx, y, fw, h)
+  const label = on ? `FRENZY ${Math.ceil(s.frenzyT / 60)}s` : s.frenzyCd > 0 ? "FURY COOLDOWN" : "FERAL FURY"
+  ctx.font = "bold 8px monospace"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
+  ctx.fillStyle = on ? WHITE : "#fdba74"; ctx.fillText(label, flip ? bx + w : bx, y + h + 2)
+})
+// render-only: FRENZY = bristling red pixels along his spine + a growl burst (two expanding pixel arcs) when it starts
+FX_DRAW.push((c, f, s, frame) => {
+  const x0 = f.x, y0 = f.y, w = f.w || 96, h = f.h || 76
+  c.save()
+  if (frenzyOn(s)) {
+    c.globalAlpha = 0.5 + 0.3 * ((frame >> 2) % 2); c.fillStyle = RED
+    for (let i = 0; i < 7; i++) { const ph = (frame + i * 7) % 12; px(c, x0 + 8 + i * (w - 16) / 6, y0 + 4 - ph, 3) }
+  }
+  const age = s.t - s.growlT
+  if (age >= 0 && age < 24) {
+    c.globalAlpha = 1 - age / 24; c.fillStyle = WHITE
+    for (const r0 of [age * 5 + 10, age * 3 + 4]) for (let k = 0; k < 14; k++) { const an = -Math.PI * (k / 13); px(c, cx(f) + Math.cos(an) * r0, y0 + h * 0.4 + Math.sin(an) * r0 * 0.7, 4) }
+  }
+  c.restore()
+})

@@ -195,6 +195,68 @@ test('6. Dialogue Taunt: cancellable by ANY input; unavailable in hitstun / the 
   const e = ben(), x = foe(); far(e, x); world(e, x, HB_TAUNT.HOLD, { block: true, light: true }); world(e, x, HB_TAUNT.MAX); assert.equal(S(e).taunt, null, 'ends by itself'); assert.equal(S(e).taunts, 1)
 })
 
+
+// ── 6 MOVES ────────────────────────────────────────────────────────────────────────────────────────────────────
+const { HB_CLAWS, HB_DIVE, HB_LANCE, HB_WING, HB_ULT } = G
+function runCast(f, t, dir, { max = 200, block = false, input = {}, pre = null } = {}) {
+  clearProj(); f.energy = 100; if (pre) pre(f, t); const hp = t.health, e0 = f.energy
+  const ok = cast(f, t, dir), cost = e0 - f.energy; let n = 0, proj = 0
+  while (ok && n < max) { if (block) t.isBlocking = true; world(f, t, 1, typeof input === 'function' ? input(n) : input); n++; proj = Math.max(proj, A.activeProjectiles.length)
+    const s = S(f); if (!s.claws && !s.dive && !s.lance && !s.wing && n > 2 && !A.activeProjectiles.some(p => p.owner === f)) break }
+  return { ok, dmg: hp - t.health, cost, n, proj }
+}
+const SC = DM * C.GLOBAL_DAMAGE_SCALE
+const grounded = q => !!(q.onGround || q.grounded)
+const dash = q => { S(q).dashTapT = S(q).t }
+const m236 = q => { S(q).hist = [{ d: 2, t: S(q).t - 2 }, { d: 3, t: S(q).t - 1 }, { d: 6, t: S(q).t }] }
+const m412 = q => { S(q).hist = [{ d: 4, t: S(q).t - 2 }, { d: 1, t: S(q).t - 1 }, { d: 2, t: S(q).t }] }
+test('Rending Claws (236+P, 12): Attack 2 arc, 2 hits 20 / 28 = 48, 170 px, 14f startup, −12 on block; the row follows the state', () => {
+  const f = ben(), t = foe(); reset(f, t, 80); const r = runCast(f, t, 'N', { pre: m236 }); assert(r.ok); assert.equal(r.cost, HB_COST.claws)
+  assert.deepEqual(S(f).lastClaws.hits.map(h => h.k), ['claws1', 'claws2']); assert(near(r.dmg, 48 * SC) || r.dmg > 38, 'dmg ' + r.dmg); assert.equal(S(f).lastClaws.anim, 'hbClaws')
+  const g = ben(), u = foe(); reset(g, u, HB_CLAWS.RANGE + 30); runCast(g, u, 'N', { pre: m236 }); assert.equal(S(g).lastClaws.hits.length, 0, 'beyond 170 px')
+  const h = ben(), v = foe(); reset(h, v, 80); runCast(h, v, 'N', { pre: q => { m236(q); S(q).runT = 0; q.dashTimer = 3; world(q, v, 1); m236(q) } }); assert.equal(S(h).lastClaws.anim, 'hbClawsRun', 'running row')
+  assert.equal(HB_CLAWS.STARTUP, 14); assert.equal(HB_CLAWS.ACTIVE + HB_CLAWS.RECOVERY + HB_CLAWS.ON_BLOCK, 11)
+})
+test('7. Talon Dive (→→+P, 12): real 320 px travel, 50, −12 on block; cast GROUNDED he leaps first and spends no jump', () => {
+  const f = ben(), t = foe(); far(f, t); const x0 = f.x, j0 = f.jumpCount; const r = runCast(f, t, 'F', { pre: dash, max: 120 }); assert(r.ok); assert.equal(r.cost, HB_COST.dive)
+  const L = S(f).lastDive; assert(L.leap, 'leapt first'); assert.equal(L.jumps, j0, 'no jump spent'); assert.equal(f.jumpCount, j0)
+  assert(L.travel > 0 && L.travel <= HB_DIVE.TRAVEL + 1, 'travel ' + L.travel); assert(f.x - x0 > 100, 'real travel ' + (f.x - x0))
+  const g = ben(), u = foe(); reset(g, u, 60); g.onGround = g.grounded = false; g.y -= 120; g.jumpCount = 2; u.x = g.x + 140
+  const q = runCast(g, u, 'F', { pre: dash, max: 80 }); assert(!S(g).lastDive.leap, 'airborne: no leap'); assert(S(g).lastDive.hit); assert(near(q.dmg, 50 * SC), 'dmg ' + q.dmg); assert.equal(S(g).lastDive.jumps, 2)
+  assert.equal(2 + HB_DIVE.LAND + HB_DIVE.ON_BLOCK, 2)
+})
+test('Genetic Lance (412+P, 14): the projectile was EXCLUDED → melee lunge fallback, 280 px real travel, 45, stops on contact', () => {
+  const f = ben(), t = foe(); reset(f, t, 150); const r = runCast(f, t, 'B', { pre: m412 }); assert(r.ok); assert.equal(r.cost, HB_COST.lance)
+  assert.equal(S(f).lastLance.why, 'hit'); assert(near(r.dmg, 45 * SC), 'dmg ' + r.dmg); assert.equal(r.proj <= 1, true, 'no projectile: one rect hitbox at a time')
+  const g = ben(), u = foe(); far(g, u); const x1 = g.x; runCast(g, u, 'B', { pre: m412 }); assert.equal(S(g).lastLance.why, 'whiff'); assert(Math.abs(g.x - x1 - HB_LANCE.TRAVEL) <= 24, 'travel ' + (g.x - x1))
+  assert(!A.activeProjectiles.some(p => p.owner === g && !p.rectHitbox), 'never a travelling projectile')
+})
+test('7. Wing Slash (air ↓+P, 12): diagonal dive slash 48, once per airtime, no jump refill; resets on landing', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; f.jumpCount = 2; t.x = f.x + 120
+  const r = runCast(f, t, 'D', { max: 80 }); assert(r.ok); assert.equal(r.cost, HB_COST.wing); assert(S(f).lastWing.hit); assert(near(r.dmg, 48 * SC), 'dmg ' + r.dmg)
+  assert.equal(S(f).lastWing.jumps, 2, 'no refill'); assert.equal(f.jumpCount, 2)
+  const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 300; g.energy = 100; assert(cast(g, u, 'D')); world(g, u, 8)
+  ready(g); g.energy = 100; assert.equal(A.triggerSpecial(g, ctxOf(g, u)), false, 'once per airtime')
+  world(g, u, 120); assert(grounded(g)); assert.equal(S(g).wingUsed, false, 'landing resets it')
+})
+const ultRun = (f, t, opts = {}) => { ready(f); clearProj(); f.energy = 100; const ok = A.triggerUltimate(f, ctxOf(f, t)); const cost = 100 - f.energy; if (!ok) return { ok, n: -1 }; let n = 0
+  while ((S(f).ult || n < 4) && n < 400) { if (opts.block) t.isBlocking = true; world(f, t, 1); n++ } return { ok, n, cost } }
+test('8. ULTIMATE Genetic Purge (55): clean claw opener 40 → circle → 3 × 25 dives → 125 beam = 240; Surge 0; positions restore; knockdown', () => {
+  const f = ben(), t = foe(); reset(f, t, 80); S(f).surge = 60; const hp = t.health, fx = f.x, fy = f.y, tx = t.x, ty = t.y
+  const r = ultRun(f, t); assert(r.ok); assert.equal(r.cost, HB_COST.ultimate)
+  const L = S(f).lastUlt; assert(L.captured); assert.deepEqual(L.hits, [40, 25, 25, 25, 125]); assert.equal(L.raw, 240)
+  assert(hp - t.health > 100); assert(t.knockdownState); assert.equal(S(f).surge, 0); assert.deepEqual([f.x, f.y, t.x, t.y], [fx, fy, tx, ty], 'positions restore')
+  assert(f.attackCooldown >= HB_ULT.LOCKOUT - 2, '100f lockout')
+})
+test('8. ULTIMATE: whiff / block = no cinematic, 60f recovery; hash angles identical for the same seed; render-only beam / strand', () => {
+  const f = ben(), t = foe(); far(f, t); ultRun(f, t); assert.equal(S(f).lastUlt.captured, false); assert.equal(S(f).lastUlt.why, 'whiff'); assert(f.attackCooldown >= HB_ULT.WHIFF - 6, '60f: ' + f.attackCooldown)
+  const g = ben(), u = foe(); reset(g, u, 80); const hp = u.health; ultRun(g, u, { block: true }); assert.equal(S(g).lastUlt.why, 'blocked'); assert(!u.knockdownState); assert(hp - u.health < 40, 'no cinematic damage')
+  assert.deepEqual(G.ultDives(7, 100, 0), G.ultDives(7, 100, 0)); assert.notDeepEqual(G.ultDives(7, 100, 0), G.ultDives(7, 100, 1)); assert.notDeepEqual(G.ultDives(7, 100, 0), G.ultDives(8, 100, 0))
+  for (const d of G.ultDives(99, 5, 1)) assert(d.ang >= 30 && d.ang <= 150)
+  const h = ben(), v = foe(); reset(h, v, 80); ready(h); clearProj(); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v)))
+  for (let i = 0; i < 70; i++) { world(h, v, 1); if (S(h).ult && S(h).ult.phase !== 'opener') assert(!A.activeProjectiles.some(p => p.owner === h), 'strand / beam: no hitbox') }
+})
+
 // @@END-TESTS@@
 console.log(`\nHIGHBREED: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

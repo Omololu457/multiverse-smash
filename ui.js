@@ -4991,7 +4991,7 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
   const xlr8 = ben && p1?.transformed && p1?.activeAlien === "xlr8"
   const ghostfreak = ben && p1?.transformed && p1?.activeAlien === "ghostfreak"
   const jetray = ben && p1?.transformed && p1?.activeAlien === "jetray"
-  const extra = ben ? (heatblast ? 112 : megawhatt ? 128 : xlr8 ? 128 : ghostfreak ? 128 : jetray ? 128 : 96) : 0
+  const extra = ben ? (heatblast ? 112 : megawhatt ? 128 : xlr8 ? 128 : ghostfreak ? 128 : jetray ? 144 : 96) : 0   // Jetray +16: clear of his EYE LASER heat bar
   const panelY = h - 170 - extra
   ctx.save()
   ctx.fillStyle = "rgba(0,0,0,0.45)"

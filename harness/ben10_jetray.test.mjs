@@ -123,14 +123,14 @@ function flight(f, t, n, input = {}) {     // the real per-frame order: form tic
   return { flying, minJumps }
 }
 test('4. Flight: a P (Charge) TAP takes off from the ground and he STAYS up with nothing held; P tap again lands; Homelander-class profile', () => {
-  const p = FLIGHT_PROFILES.jetray; assert.equal(p.maxH, 18); assert.equal(p.maxAirDash, 2); assert.equal(p.groundedLock, 40); assert.equal(p.drag, FLIGHT_PROFILES.homelander.drag)
+  const p = FLIGHT_PROFILES.jetray; assert.equal(p.maxH, 36); assert(p.maxH > FLIGHT_PROFILES.homelander.maxH, 'faster than Homelander'); assert.equal(p.maxAirDash, 2); assert.equal(p.groundedLock, 40); assert.equal(p.drag, FLIGHT_PROFILES.homelander.drag)
   const f = ben(), t = foe('goku', 1200); assert.equal(getFlightProfile(f), p, 'profile via _alienFlightProfile')
   pTap(f, t); tickFlightDriver(f); assert(isFlying(f), 'P tap → takeoff'); assert.equal(S(f).flights, 1)
   const r = flight(f, t, 90, i => i < 20 ? { up: true } : {}); assert.equal(r.flying, 90, 'stays airborne with nothing held'); assert(f.y < 300, `climbed (${f.y})`)
   assert.equal(r.minJumps, 0, 'flight never refills jumps (none used)')
   const x0 = f.x; flight(f, t, 30, { right: true }); assert(f.x - x0 > 250, `fast 8-way cruise (${(f.x - x0).toFixed(0)} px / 30f)`)
   pTap(f, t); assert(f._flightCtl.wantDescend, 'P tap in flight → descend-to-land'); assert.equal(S(f).landings, 1)
-  flight(f, t, 200); assert(!isFlying(f), 'landed')
+  { let n = 0; while (isFlying(f) && n < 600) { flight(f, t, 1); n++ } assert(!isFlying(f) && n <= 90, `landed quickly (${n}f; descendVy 14)`); assert.equal(FLIGHT_PROFILES.homelander.descendVy, undefined, 'other flyers keep the default 2'); console.log('   descent-to-land frames', n) }
   const g = ben(); g._flightCtl = null; g.vy = -14; g.onGround = g.grounded = false; g.y -= 2; g.jumpCount = 1; g.jumpHeld = true   // Up already held from the jump (no second jump)
   flight(g, t, 14, { up: true }); assert(isFlying(g), 'holding Jump in the air also takes off'); assert.equal(g.jumpCount, 1, 'jumps not refilled')
   g.hitstun = 20; A.tickBenAlienForm(g, {}, ctxOf(g, t)); assert(!isFlying(g)); assert.equal(g._flightCtl.groundedLock, 40, 'grounded 40f after a hard hit')
@@ -158,11 +158,11 @@ test('5. Mach Time: 25 Power, 150f, 600f cooldown, no re-activate, not in hitstu
   void e
 })
 const SPEND = { spendEnergy: (q, n) => (q.energy >= n ? (q.energy -= n, true) : false) }
-test('5. Flash Time: startup / recovery ×0.7 (min 1), movement ×1.8, flight ×1.5, opponent projectiles ×0.5, clock + inputs untouched', () => {
+test('5. Flash Time: startup / recovery ×0.7 (min 1), movement ×2.5, flight ×2.5, opponent projectiles ×0.5, clock + inputs untouched', () => {
   const f = ben(), t = foe(); const w0 = f._benWalkSpeed, d0 = f.dashSpeed
   assert(JETRAY.blockSpecial(f, {}, SPEND)); tick(f, t)
-  assert.equal(JR_MACH.SPEED, 1.8); assert(Math.abs(f._benWalkSpeed - w0 * 1.8) < 1e-9 && Math.abs(f.dashSpeed - d0 * 1.8) < 1e-9, 'movement ×1.8 (as fast as the Flash)')
-  assert.equal(f._alienFlightProfile, 'jetray_mach'); assert.equal(FLIGHT_PROFILES.jetray_mach.maxH, FLIGHT_PROFILES.jetray.maxH * 1.5, 'flight ×1.5'); assert(FLIGHT_PROFILES.jetray_mach.maxH > FLIGHT_PROFILES.homelander.maxH)
+  assert.equal(JR_MACH.SPEED, 2.5); assert(Math.abs(f._benWalkSpeed - w0 * 2.5) < 1e-9 && Math.abs(f.dashSpeed - d0 * 2.5) < 1e-9, 'movement ×2.5 (as fast as the Flash)')
+  assert.equal(f._alienFlightProfile, 'jetray_mach'); assert.equal(FLIGHT_PROFILES.jetray_mach.maxH, FLIGHT_PROFILES.jetray.maxH * 2.5, 'flight ×2.5'); assert(FLIGHT_PROFILES.jetray_mach.maxH > FLIGHT_PROFILES.homelander.maxH)
   const md = JETRAY.moveFrames(f, 'heavy', BA.heavy); assert.equal(md.startup, Math.round(13 * 0.7)); assert.equal(md.recovery, Math.round(22 * 0.7)); assert.equal(md.damage, BA.heavy.damage)
   assert.equal(JETRAY.moveFrames(f, 'light', { ...BA.light, startup: 1, recovery: 1 }).startup, 1, 'min 1f')
   const p = enemyShot(f, t); tick(f, t); assert.equal(p.timeScale, JR_MACH.PROJ, 'opponent projectile ×0.5'); clearProj()
@@ -381,7 +381,7 @@ test('13. pick five: slot count from the registry (5), Jetray READY + pickable, 
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')))
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Jetray'); assert.equal(f.health, 950, 'shared health')
-  assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.30 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.30')
+  assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 2.6 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×2.6')
   assert(Math.abs(f.defenseMultiplier - 0.80) < 1e-9 && Math.abs(f.damageMultiplier - 0.95) < 1e-9)
 })
 test('13. picked loadout: Jetray in the last dial slot and the transform reaches it; Vow pick includes him', () => {

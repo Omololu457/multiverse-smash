@@ -119,15 +119,15 @@ FLIGHT_PROFILES.alienx = {
 // flight architecture (owner request): a P (Charge) TAP takes off / requests a descent-to-land (holding Jump in the air also
 // takes off), free 8-direction flight that stays up without holding anything, real accel / drag, 2 air dashes, 4 s of flight
 // energy (refills on the floor), hold Down near the floor to land, grounded 40f after a hard hit. Slightly under their GODSPEED
-// cruise (18 vs 22). FLASH TIME swaps in jetray_mach (×1.5 → 27, faster than Homelander).
+// cruise was 18; owner 2026-11-17 "a lot a lot faster" → 36 (well past Homelander's 22). FLASH TIME swaps in jetray_mach (×2.5 → 90).
 FLIGHT_PROFILES.jetray = {
-  accel: 2.0, maxH: 18.0, maxV: 15.0, drag: 0.84, reverseBrake: 0.64,
-  overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 30, dashFrames: 12, maxAirDash: 2,
+  accel: 4.0, maxH: 36.0, maxV: 24.0, drag: 0.84, reverseBrake: 0.64,
+  overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 48, dashFrames: 12, maxAirDash: 2,
   dashCost: 30, energyMax: 240, drainPerFrame: 1, groundRefillPerFrame: 2, liftoff: -9,
   takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 40,
-  landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70,
+  landThreshold: 70, minPoseFrames: 4, cruiseFastFrac: 0.70, descendVy: 14,   // P-tap descent 14 px/f (others sink at 2)
 }
-FLIGHT_PROFILES.jetray_mach = { ...FLIGHT_PROFILES.jetray, accel: 3.0, maxH: 27.0, maxV: 22.5, dashSpeed: 45 }
+FLIGHT_PROFILES.jetray_mach = { ...FLIGHT_PROFILES.jetray, accel: 10.0, maxH: 90.0, maxV: 40.0, dashSpeed: 100 }
 
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",
@@ -329,7 +329,7 @@ export function stepFlight(fighter, input, env) {
     const descend = c.energy <= 0 || c.wantDescend    // out of energy OR charge-tapped to come down
     if ((input.holdDown || (D && !U)) && nearFloor) { beginLanding(fighter, p, c); landed = true }
     else if (descend && nearFloor) { beginLanding(fighter, p, c); landed = true }
-    else if (descend && fighter.vy < 2) { fighter.vy = 2 }   // up high → sink until near the floor, then land
+    else if (descend && fighter.vy < (p.descendVy || 2)) { fighter.vy = p.descendVy || 2 }   // up high → sink until near the floor, then land (optional per-profile descendVy, default 2)
   }
   return { landed }
 }

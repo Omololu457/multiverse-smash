@@ -13,7 +13,7 @@ const ANIM = { ...JETRAY_ANIM, jrFly: JETRAY_ANIM.fly }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
 export const JR_FLIGHT = { MAX: 240, HOLD: 8, TAP: 15 }   // TAP 15f ≈ 250 ms (Homelander's charge tap is 200 ms)   // energy budget (profile), hold-Jump-in-air takeoff, P-tap window
-export const JR_MACH = { COST: 25, DURATION: 210, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.25, SWALLOW: 10 }   // FLASH TIME (P + L); OPP = the opponent runs at 25% speed
+export const JR_MACH = { COST: 25, DURATION: 210, COOLDOWN: 600, FRAMES: 0.7, SPEED: 2.5, PROJ: 0.5, OPP: 0.25, SWALLOW: 10 }   // FLASH TIME (P + L); OPP = the opponent runs at 25% speed
 export const JR_ECHO = { DELAY: 10, FRAC: 0.30, MAX: 3 }
 export const JR_BOOM = { R: 120, DMG: 25, LIFE: 2 }
 export const JR_NEURO = { MAX: 3, EXPIRE: 240, GROUNDED: 150, IMMUNE: 360, AIR: 0.5 }
@@ -44,7 +44,7 @@ export const JETRAY = {
   id: "jetray", poolKey: "jetray", displayName: "Jetray", slot: 12,
   status: "ready", sheetPath: "./ben10_jetray_ready_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/jetray/SPRITE_LEDGER.md",
-  mods: { speed: 1.30, damage: 0.95, defense: 0.80, weight: 0.65 },
+  mods: { speed: 2.6, damage: 0.95, defense: 0.80, weight: 0.65 },   // owner: "a lot a lot faster" (1.30 → 2.6, walk ~23 px/f)
   movement: "flight", maxJumps: 2,                    // the shared double jump; flight never refills it
   flightProfile: "jetray",                            // flight.js FLIGHT_PROFILES.jetray (Mach Time swaps in jetray_mach)
   moves: { jab: "Wing Flick", heavy: "Wing Slash", low: "Low Glide", launcher: "Rising Sweep", air: "Air Slash",
@@ -381,7 +381,8 @@ function castTail(f, s, api) {
   f._benSfx = "jr_tail"
   return true
 }
-export const tailTip = (f, face = f.facing || 1) => ({ x: cx(f) - face * ((f.w || 70) / 2 + 30), y: f.y + (f.h || 96) * 0.78 })
+// ×1.43: owner asked for him "as big as the other aliens" (sprite 0.2 → 0.286, screenScale 0.472 → 0.675) — the tail tip scales with him
+export const tailTip = (f, face = f.facing || 1) => ({ x: cx(f) - face * ((f.w || 70) / 2 + 30) * 1.43, y: f.y + (f.h || 96) - (f.h || 96) * 0.22 * 1.43 })
 function tickTail(f, s, opp, api) {
   const t = s.tail; if (!t) return
   if ((f.hitstun || 0) > 0 || ++t.t > t.total) { s.tail = null; return }

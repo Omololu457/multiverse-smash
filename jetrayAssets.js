@@ -14,7 +14,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "walk": {
     "sheet": "./ben10_jetray_ready_walk_uniform.png",
@@ -26,7 +26,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "walk_back": {
     "sheet": "./ben10_jetray_ready_walk_back_uniform.png",
@@ -38,7 +38,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "run": {
     "sheet": "./ben10_jetray_ready_run_uniform.png",
@@ -50,7 +50,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "dash": {
     "sheet": "./ben10_jetray_ready_dash_uniform.png",
@@ -62,7 +62,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "turn": {
     "sheet": "./ben10_jetray_ready_turn_uniform.png",
@@ -74,7 +74,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jump": {
     "sheet": "./ben10_jetray_ready_jump_uniform.png",
@@ -86,7 +86,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "doubleJump": {
     "sheet": "./ben10_jetray_ready_doubleJump_uniform.png",
@@ -98,7 +98,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "fall": {
     "sheet": "./ben10_jetray_ready_fall_uniform.png",
@@ -110,7 +110,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "crouch": {
     "sheet": "./ben10_jetray_ready_crouch_uniform.png",
@@ -122,7 +122,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "guard": {
     "sheet": "./ben10_jetray_ready_guard_uniform.png",
@@ -134,7 +134,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "blockHit": {
     "sheet": "./ben10_jetray_ready_blockHit_uniform.png",
@@ -146,7 +146,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "transform": {
     "sheet": "./ben10_jetray_ready_transform_uniform.png",
@@ -158,7 +158,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "taunt": {
     "sheet": "./ben10_jetray_ready_taunt_uniform.png",
@@ -170,7 +170,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "win": {
     "sheet": "./ben10_jetray_ready_win_uniform.png",
@@ -182,7 +182,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "lose": {
     "sheet": "./ben10_jetray_ready_lose_uniform.png",
@@ -194,7 +194,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "hurt": {
     "sheet": "./ben10_jetray_ready_hurt_uniform.png",
@@ -206,7 +206,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "hurt_air": {
     "sheet": "./ben10_jetray_ready_hurt_air_uniform.png",
@@ -218,7 +218,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "knockdown": {
     "sheet": "./ben10_jetray_ready_knockdown_uniform.png",
@@ -230,7 +230,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "getup": {
     "sheet": "./ben10_jetray_ready_getup_uniform.png",
@@ -242,7 +242,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "dizzy": {
     "sheet": "./ben10_jetray_ready_dizzy_uniform.png",
@@ -254,7 +254,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "light": {
     "sheet": "./ben10_jetray_ready_light_uniform.png",
@@ -266,7 +266,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "heavy": {
     "sheet": "./ben10_jetray_ready_heavy_uniform.png",
@@ -278,7 +278,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "down": {
     "sheet": "./ben10_jetray_ready_down_uniform.png",
@@ -290,7 +290,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "up": {
     "sheet": "./ben10_jetray_ready_up_uniform.png",
@@ -302,7 +302,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "air": {
     "sheet": "./ben10_jetray_ready_air_uniform.png",
@@ -314,7 +314,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "fly": {
     "sheet": "./ben10_jetray_ready_fly_uniform.png",
@@ -326,7 +326,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "flyHover": {
     "sheet": "./ben10_jetray_ready_flyHover_uniform.png",
@@ -338,7 +338,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "flyCruise": {
     "sheet": "./ben10_jetray_ready_flyCruise_uniform.png",
@@ -350,7 +350,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrEye": {
     "sheet": "./ben10_jetray_ready_jrEye_uniform.png",
@@ -362,7 +362,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrTail": {
     "sheet": "./ben10_jetray_ready_jrTail_uniform.png",
@@ -374,7 +374,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrDash": {
     "sheet": "./ben10_jetray_ready_jrDash_uniform.png",
@@ -386,7 +386,7 @@ export const JETRAY_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrDive": {
     "sheet": "./ben10_jetray_ready_jrDive_uniform.png",
@@ -398,7 +398,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrRoll": {
     "sheet": "./ben10_jetray_ready_jrRoll_uniform.png",
@@ -410,7 +410,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrMach": {
     "sheet": "./ben10_jetray_ready_jrMach_uniform.png",
@@ -422,7 +422,7 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   },
   "jrFlash": {
     "sheet": "./ben10_jetray_ready_jrFlash_uniform.png",
@@ -434,8 +434,8 @@ export const JETRAY_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 257,
-    "actionScale": 0.2
+    "actionScale": 0.286
   }
 }
 export const JETRAY_EYES = {"idle": [[37.4, -200.3], [36.4, -200.0]], "walk": [[37.4, -200.3], [36.4, -200.0]], "walk_back": [[36.4, -200.0], [37.4, -200.3]], "run": [[37.4, -200.3], [36.4, -200.0]], "dash": [[36.4, -200.0]], "turn": [[12.0, -200.7]], "jump": [[3.8, -217.7]], "doubleJump": [[1.9, -193.6]], "fall": [[-18.7, -190.7]], "crouch": [[36.4, -200.0]], "guard": [[3.8, -217.7]], "blockHit": [[3.8, -217.7]], "transform": [[-4.9, -189.9], [12.0, -200.7]], "taunt": [[-4.9, -189.9]], "win": [[1.9, -193.6], [3.8, -217.7]], "lose": [[-4.9, -189.9]], "hurt": [[-18.7, -190.7]], "hurt_air": [[-18.7, -190.7]], "knockdown": [[-4.9, -189.9]], "getup": [[-18.7, -190.7], [3.8, -217.7]], "dizzy": [[-18.7, -190.7], [-4.9, -189.9]], "light": [[37.4, -200.3]], "heavy": [[36.4, -200.0], [37.4, -200.3]], "down": [[36.4, -200.0]], "up": [[1.9, -193.6]], "air": [[-4.9, -189.9]], "fly": [[37.4, -200.3], [36.4, -200.0]], "flyHover": [[37.4, -200.3], [36.4, -200.0]], "flyCruise": [[36.4, -200.0], [37.4, -200.3]], "jrEye": [[-4.9, -189.9]], "jrTail": [[37.4, -200.3]], "jrDash": [null, null, null], "jrDive": [[-4.9, -189.9]], "jrRoll": [[-18.7, -190.7]], "jrMach": [[12.0, -200.7]], "jrFlash": [[-4.9, -189.9]]}
-export const JETRAY_GEOM = {"cellW": 436, "cellH": 288, "centreX": 218, "feetY": 257, "actionScale": 0.2, "hoverPx": 6, "chestToFeet": 142.3, "screenScale": 0.472}
+export const JETRAY_GEOM = {"cellW": 436, "cellH": 288, "centreX": 218, "feetY": 257, "actionScale": 0.286, "hoverPx": 6, "chestToFeet": 142.3, "screenScale": 0.675}

@@ -12,7 +12,7 @@ export { XLR8_ANIM, XLR8_FX }
 const ANIM = { ...XLR8_ANIM, hbFire: XLR8_ANIM.xlSonicSlash }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
-export const XL_FLASH = { COST: 25, DURATION: 210, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.25, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
+export const XL_FLASH = { COST: 25, DURATION: 210, COOLDOWN: 600, FRAMES: 0.7, SPEED: 2.5, PROJ: 0.5, OPP: 0.25, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
 export const XL_ECHO = { DELAY: 12, FRAC: 0.30, MAX: 3 }
 export const XL_COST = { slash: 10, blur: 12, whip: 12, cyclone: 16, dive: 12, ultimate: 50 }
 export const XL_SLASH = { STARTUP: 8, LUNGE_FRAMES: 19, LUNGE_SPEED: 20, HITS: [[4, 14], [10, 14], [16, 22]], TOTAL: 40, ON_BLOCK: -12 }
@@ -32,7 +32,7 @@ export const XLR8 = {
   id: "xlr8", poolKey: "xlr8", displayName: "XLR8", slot: 5,
   status: "ready", sheetPath: "./ben10_xlr8_idle_uniform.png",
   ledgerPath: "docs/ben10/aliens/xlr8/SPRITE_LEDGER.md",
-  mods: { speed: 1.6, damage: 0.90, defense: 0.85, weight: 0.70 },   // speed raised 1.35 → 1.6 (owner: "as fast as Killua, really really fast") — walk 14.4 vs Killua 8.75
+  mods: { speed: 3.0, damage: 0.90, defense: 0.85, weight: 0.70 },   // speed 1.35 → 1.6 → 3.0 (owner 2026-11-17: "a lot a lot faster") — walk 27 vs Killua 8.75; Flash Time ×2.5 on top
   movement: "grounded", maxJumps: 2,   // the shared double jump
   moves: { jab: "Jab", heavy: "Claw Slash", low: "Tail Sweep", launcher: "Rising Slash", air: "Air Claw",
     special1: "Sonic Slash", special2: "Blur Step", special3: "Tail Whip", special4: "Mach Cyclone", special5: "Sonic Dive",

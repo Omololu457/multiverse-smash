@@ -68,7 +68,7 @@ import { activateGonAdultFormCinematic, isGonAdultFormCinematicActive } from "./
 import { activateHisokaOverdriveCinematic, isHisokaOverdriveCinematicActive } from "./hisokaOverdriveCinematic.js"   // Hisoka Bloodlust Overdrive activation cinematic (no cycle; mirrors Godspeed)
 import { activateTojiReincarnationCinematic, isTojiReincarnationCinematicActive } from "./tojiReincarnationCinematic.js"   // Toji Reincarnated Form activation cinematic (no cycle; mirrors Overdrive/Godspeed)
 import { activateTojiFlyHeadsSwarm, isTojiFlyHeadsSwarmActive } from "./tojiFlyHeadsSwarm.js"   // Toji Fly Heads — dense screen-clutter vision-denial swarm overlay (0 damage; no cycle)
-import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove, getComboScale } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
+import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, startMove, getComboScale, getAttackHitbox, attackIsActive } from "./combat.js"   // shared grab pipeline + the one damage-scale lever + the ONE scaled-damage choke-point + the shared command-normal cancel gate + the normal-move starter (combat.js doesn't import abilities.js → no cycle)
 import { spawnCubeTrap, activeCubeTraps } from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (+ the shared list, cleared by Shizuku Spring Cleaning); cubeTrap.js imports combat/input but NOT abilities → no cycle
 import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension" Kamui banishment engine (character-agnostic; imports nothing from abilities → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
@@ -29717,6 +29717,9 @@ function benAlienApi(context) {
   const getOpp = getTargetResolver(context)
   return {
     spendEnergy, scheduleBenSpawn, applyScaledDamage, getComboScale,
+    // read-only melee geometry (Upgrade's Terminal: an owner-limited object the OPPONENT's active melee box can hit) — the
+    // engine's own box + active-frame test, so a form never re-derives them. Optional; nothing else changes.
+    getAttackHitbox, attackIsActive,
     getOpponent: f => getOpp(f),
     activeProjectiles: () => activeProjectiles,
     spawnProjectile: (f, type, md, ctx) => { const p = spawnProjectile(f, type, md, ctx || {}); if (p) for (const k of Object.keys(md)) if (k === "fire" || k === "alien" || /^hb[A-Z]/.test(k)) p[k] = md[k]; return p },

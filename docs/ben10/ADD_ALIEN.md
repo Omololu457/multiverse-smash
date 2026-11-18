@@ -305,3 +305,18 @@ the Ben 10 harnesses that exercise it) is untouched. Everything rides existing r
 | Diamond Dive | `_benGlide` |
 | Diamond Cathedral | `fireUltimate` + `scheduleBenSpawn` + `targetOffset` (Wildvine / Brainstorm cinematic pattern) |
 
+
+### Upgrade (added 2026-11-17) — key `upgrade_ov`
+Registered under `upgrade_ov` so the experimental `upgrade` (its legacy kit, animation table and the Ben 10 harnesses that
+exercise it) is untouched. PICK FIVE: catalog slot 15 is metadata; he is picked into the loadout and reached with the Dial.
+
+**New optional hook (backward-compatible, Ben 10 only):**
+
+| Hook | Where | What |
+|---|---|---|
+| `api.getAttackHitbox(fighter)`, `api.attackIsActive(attack)` | `abilities.js` `benAlienApi` (re-exports of `combat.js`'s own functions) | read-only melee geometry, so an owner-limited world object (Upgrade's TERMINAL, 30 HP) can be destroyed by the OPPONENT's active melee box without re-deriving it. Nothing calls them unless a form does; no other behaviour changes. |
+
+| Mechanic | Hook reused |
+|---|---|
+| TERMINAL (owner-limited object, BOOT → ONLINE, periodic pulse at the foe, destructible) | the form's own `tick` + `drawUnder` (Prism Wall / planted-object pattern); pulses are tagged hidden projectiles (`alien.up = "pulse"`, drawn in `drawFx`); projectile hits splice `api.activeProjectiles()` (beams pass); melee via the new `api.getAttackHitbox` |
+| Pulse can't KO | `damageDealt` (caps the raw damage at health − 1 before the global scale) |

@@ -88,6 +88,8 @@ function tick(f, input, ctx, api) {
   input = input || {}
   tickInputs(f, s, input)
   if (grounded(f)) s.spearUsed = false                                     // Spear Dive: once per airtime
+  tickTerminal(f, s, api, opp)                                            // before the cast: a terminal planted this frame starts at t 0
+  tickTermCast(f, s)
   //@@TICK@@
   s.noAttack = busy(s)
   s.spPrev = !!input.special
@@ -167,16 +169,164 @@ const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, {
   alien: { hidden: true, ...(md.alien || {}) } }, {})
 const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
 
+// ── TERMINAL (←↙↓ + P, cost 14) ──────────────────────────────────────────────────────────────────────────────
+// One per owner (a new one replaces the old). Crouch cast: 20f startup, then the terminal is planted 120 px ahead on the
+// ground he stands on (stage-clamped = legal ground). BOOT 60f (the 10 extracted terminal frames, a visible telegraph, no
+// hitbox), then ONLINE 300f, then it shuts down and is removed. NOT solid: a gameplay object with a HURTBOX only (30 HP —
+// destroyed by any opponent hit, melee or projectile; no refund), never a floor / wall change, never traps anyone.
+// ONLINE PULSE: every 90f it fires a small pulse at the opponent's position AT FIRE TIME (a straight shot, no tracking),
+// 12 dmg, one on screen, blockable, can't KO (damageDealt caps it), no Virus pip. Plain data in formState; destroyed /
+// consumed atomically through ONE gate (`endTerminal`), so no double events. Swap / revert / KO / rematch clear formState.
+export const UP_TERM = { COST: 14, STARTUP: 20, TOTAL: 32, DIST: 120, BOOT: 60, ONLINE: 300, HP: 30, EVERY: 90, PULSE: 12,
+  PULSE_SPEED: 9, PULSE_RANGE: 700, PULSE_R: 9, W: 70, H: 80, SCREEN_Y: 0.72, LINGER: 14 }
+export const termBox = w => ({ x: w.x - UP_TERM.W / 2, y: w.y - UP_TERM.H, w: UP_TERM.W, h: UP_TERM.H })
+export const termLive = s => !!(s && s.term && !s.term.gone)
+export const termOnline = s => termLive(s) && s.term.t >= UP_TERM.BOOT
+function castTerminal(f, s, api) {
+  if (!grounded(f)) return false
+  const c = beginCast(f, s, api, "upDeploy", UP_COST.terminal, UP_TERM.TOTAL); if (!c) return false
+  s.termCast = { t: 0, cast: c.cast }
+  return true
+}
+CASTS.terminal = castTerminal
+function tickTermCast(f, s) {
+  const c = s.termCast; if (!c) return
+  c.t++
+  if ((f.hitstun || 0) > 0) { s.termCast = null; return }                  // knocked out before 20f: no terminal (Power spent)
+  if (c.t === UP_TERM.STARTUP) placeTerminal(f, s, c.cast)
+  f._spriteCastMove = "upDeploy"; f._spriteCastTimer = Math.max(2, UP_TERM.TOTAL - c.t)
+  if (c.t >= UP_TERM.TOTAL) s.termCast = null
+}
+function placeTerminal(f, s, cast) {
+  if (termLive(s)) endTerminal(s, "replaced")
+  const face = f.facing || 1
+  const x = Math.max(s.stage.L + 40, Math.min(s.stage.R - 40, Math.round(cx(f) + face * UP_TERM.DIST)))
+  s.term = { id: ++s.termSeq, x, y: f.y + (f.h || 110), t: 0, hp: UP_TERM.HP, gone: false, by: null, ct: 0, pulses: 0, cast }
+  s.stats.terminals++
+}
+// the ONE removal gate: returns false if it was already gone (a second hit / merge the same frame does nothing)
+export function endTerminal(s, by) {
+  const w = s.term; if (!w || w.gone) return false
+  w.gone = true; w.by = by; w.ct = UP_TERM.LINGER
+  s.stats.termEnds[by] = (s.stats.termEnds[by] || 0) + 1
+  s.lastTerm = { id: w.id, by, t: w.t, pulses: w.pulses }
+  return true
+}
+const ownPulses = (f, api) => api ? api.activeProjectiles().filter(p => p && p.owner === f && p.alien && p.alien.up === "pulse") : []
+function firePulse(f, s, api, opp, extra = false) {
+  const w = s.term; if (!w || !opp || opp.eliminated || !api) return false
+  if (!extra && ownPulses(f, api).length) return false                      // one (regular) pulse on screen
+  const ox = w.x, oy = w.y - UP_TERM.H * UP_TERM.SCREEN_Y
+  const tx = cx(opp), ty = opp.y + (opp.h || 110) * 0.5                      // the opponent's position AT FIRE TIME
+  const dx = tx - ox, dy = ty - oy, d = Math.max(1, Math.hypot(dx, dy))
+  const vx = dx / d * UP_TERM.PULSE_SPEED, vy = dy / d * UP_TERM.PULSE_SPEED, face = vx >= 0 ? 1 : -1
+  hitbox(f, api, "up_pulse", face, { damage: UP_TERM.PULSE, vx: Math.abs(vx) < 0.01 ? face * 0.01 : vx, vy, speed: UP_TERM.PULSE_SPEED,
+    spawnX: ox, spawnY: oy, w: UP_TERM.PULSE_R * 2, h: UP_TERM.PULSE_R * 2, lifetime: Math.round(UP_TERM.PULSE_RANGE / UP_TERM.PULSE_SPEED),
+    hitstun: 12, blockstun: 8, knockbackX: 1, knockbackY: 0, alien: { up: "pulse", pip: false, term: w.id, extra } })
+  w.pulses++; if (extra) s.stats.extraPulses++; else s.stats.pulses++
+  return true
+}
+const enemyShot = (f, p) => !!p && p.owner !== f && !p.visualOnly
+function tickTerminal(f, s, api, opp) {
+  const w = s.term; if (!w) return
+  if (w.gone) { if (--w.ct <= 0) s.term = null; return }
+  w.t++
+  if (w.t >= UP_TERM.BOOT + UP_TERM.ONLINE) { endTerminal(s, "expired"); return }   // shuts down
+  // the OPPONENT can destroy it: their active melee box (the engine's own geometry) or any of their projectiles touching it
+  const box = termBox(w)
+  if (opp && opp.attacking && opp.currentAttack && api && api.getAttackHitbox && api.attackIsActive && api.attackIsActive(opp.currentAttack)) {
+    const hb = api.getAttackHitbox(opp)
+    if (hb && overlap(hb, box)) { w.hp = 0; endTerminal(s, "destroyed"); return }
+  }
+  if (api && api.activeProjectiles) { const L = api.activeProjectiles()
+    for (let k = L.length - 1; k >= 0; k--) { const p = L[k]
+      if (enemyShot(f, p) && overlap(projBox(p), box)) {
+        w.hp = Math.max(0, w.hp - Math.max(1, p.damage || 1)); if (!isBeam(p)) L.splice(k, 1)   // the shot is spent on it (beams pass)
+        endTerminal(s, "destroyed"); return } } }
+  const ot = w.t - UP_TERM.BOOT
+  if (ot > 0 && ot % UP_TERM.EVERY === 0) firePulse(f, s, api, opp)
+}
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
 function hurtbox(f) { return null }
 function evade(f, info) { return false }
-function damageDealt(f, target, raw, opts) { return raw }
+// damage attributed to the form: Terminal pulses can't KO (capped at the target's health − 1 before the global ×0.6 scale,
+// which is the last step after this hook, so the dealt damage is always < health)
+function damageDealt(f, target, raw, opts) {
+  const s = upState(f); if (!s) return raw
+  //@@DEALT@@
+  if (opts && opts.move === "up_pulse") raw = Math.min(raw, Math.max(0, (target.health || 0) - 1))
+  return raw
+}
 function onContact(f, target, info) {}
 function fireUltimate(f, ctx, api) { return false }
 function targetOffset(f, target) { return null }
 function drainMultOf(f) { return 1 }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
-export function drawUpgradeUnder(c, f) {}
-export function drawUpgradeFx(c, f, frame = 0, opp = null) {}
+const _imgs = {}
+function sheetImg(src) {
+  if (typeof Image === "undefined") return null
+  if (!_imgs[src]) { const im = new Image(); im.src = src; _imgs[src] = im }
+  return _imgs[src].complete && _imgs[src].naturalWidth ? _imgs[src] : null
+}
+export const FX_SCALE = 2                                                     // extracted FX: integer nearest-neighbour ×2
+function fxFrame(c, key, i, x, bottomY, scale = FX_SCALE, flip = 1, alpha = 1) {
+  const a = UPGRADE_FX[key]; const img = a && sheetImg(a.sheet); if (!img) return false
+  const k = Math.max(0, Math.min(a.frames - 1, i | 0)), dw = a.w * scale, dh = a.h * scale
+  c.save(); c.globalAlpha *= alpha; c.imageSmoothingEnabled = false; c.translate(Math.round(x), Math.round(bottomY)); if (flip < 0) c.scale(-1, 1)
+  c.drawImage(img, k * a.w, 0, a.w, a.h, Math.round(-dw / 2), -dh, dw, dh); c.restore()
+  return true
+}
+function rHash(a, b, c) {   // render-only deterministic hash → [0, 1) (static / circuit jitter)
+  let h = Math.imul((a | 0) ^ 0x9e3779b9, 0x85ebca6b) >>> 0
+  h = Math.imul(h ^ ((b | 0) + 0x27d4eb2f), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((c | 0) + 0x165667b1), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  return (h >>> 0) / 4294967296
+}
+const INK = "#0a0f0d", GRN = "#39ff7a", LIME = "#a6ff4d", CYAN = "#5fe8ff", WHT = "#eafff1"
+function px(c, x, y, k = 3) { c.fillRect(Math.round(x - k / 2), Math.round(y - k / 2), k, k) }
+// a pixel "circuit trace": axis-aligned segments between two points (render-only)
+export function drawTrace(c, x0, y0, x1, y1, col, k = 3, seed = 0) {
+  const mx = rHash(seed, 1, 7) < 0.5 ? x1 : x0
+  c.fillStyle = col
+  const seg = (ax, ay, bx, by) => { const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / k)); for (let i = 0; i <= n; i++) px(c, ax + (bx - ax) * i / n, ay + (by - ay) * i / n, k) }
+  seg(x0, y0, mx, y0); seg(mx, y0, mx, y1); seg(mx, y1, x1, y1)
+}
+function drawTerminal(c, w, frame) {
+  const a = UPGRADE_FX.terminal, boot = w.t < UP_TERM.BOOT
+  const i = boot ? Math.min(a.frames - 2, Math.floor(w.t / (UP_TERM.BOOT / (a.frames - 1)))) : a.frames - 1
+  const alpha = w.gone ? Math.max(0, w.ct / UP_TERM.LINGER) : 1
+  if (!fxFrame(c, "terminal", i, w.x, w.y, FX_SCALE, 1, alpha)) {   // fallback (image not loaded): a pixel box
+    c.save(); c.globalAlpha *= alpha; c.fillStyle = INK; c.fillRect(w.x - 34, w.y - 76, 68, 76); c.fillStyle = boot ? "#2a6" : GRN; c.fillRect(w.x - 26, w.y - 68, 52, 34); c.restore()
+  }
+  if (w.gone) {   // shutdown / destroyed: sparks
+    c.fillStyle = w.by === "destroyed" ? LIME : CYAN
+    for (let k = 0; k < 8; k++) { const r = (UP_TERM.LINGER - w.ct) * 3; px(c, w.x + Math.cos(k * 0.785) * r, w.y - 40 + Math.sin(k * 0.785) * r * 0.7, 4) }
+    return
+  }
+  if (!boot) {   // ONLINE: a scan glint + a charge meter toward the next pulse
+    const ot = w.t - UP_TERM.BOOT, ph = (ot % UP_TERM.EVERY) / UP_TERM.EVERY
+    c.fillStyle = WHT; c.globalAlpha = 0.5; c.fillRect(w.x - 26, w.y - 66 + Math.round(ph * 30), 52, 2); c.globalAlpha = 1
+    c.fillStyle = GRN; c.fillRect(w.x - 30, w.y + 4, Math.round(60 * ph), 3)
+    if (ot > UP_TERM.ONLINE - 60 && (frame >> 2) % 2) { c.fillStyle = "#ff5b5b"; c.fillRect(w.x - 30, w.y + 4, 60, 3) }   // about to shut down
+  } else if ((frame >> 3) % 2) { c.fillStyle = CYAN; c.fillRect(w.x - 3, w.y - 84, 6, 6) }                               // booting blink
+}
+function drawPulse(c, p, frame) {
+  const r = UP_TERM.PULSE_R
+  c.fillStyle = GRN; px(c, p.x, p.y, r * 2); c.fillStyle = WHT; px(c, p.x, p.y, r)
+  c.fillStyle = LIME; for (let k = 1; k <= 3; k++) px(c, p.x - (p.vx || 0) * k * 1.6, p.y - (p.vy || 0) * k * 1.6, Math.max(2, r - k * 3))
+  const ph = frame * 0.4; for (let k = 0; k < 4; k++) px(c, p.x + Math.cos(ph + k * 1.57) * (r + 4), p.y + Math.sin(ph + k * 1.57) * (r + 4), 3)
+}
+export function drawUpgradeUnder(c, f) {
+  const s = upState(f); if (!s || !s.term) return
+  drawTerminal(c, s.term, s.t)
+}
+//@@DRAWFX_HELPERS@@
+export function drawUpgradeFx(c, f, frame = 0, opp = null) {
+  const s = upState(f); if (!s) return
+  if (projRef) for (const p of projRef) if (p && p.owner === f && p.alien && p.alien.up === "pulse") drawPulse(c, p, frame)
+  //@@DRAWFX@@
+}
 export function drawUpgradeHud(ctx, f, opts) {}

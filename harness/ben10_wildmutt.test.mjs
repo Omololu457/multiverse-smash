@@ -289,6 +289,83 @@ test('route 3 live: Claw Rush (2 hits), Heavy, Ground Shred (2 hits)', () => {
   console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
 })
 
+// ── 11 slot → PICK FIVE / Dial / HUD / Vow / determinism ─────────────────────────────────────────────────────
+test('11. slot: count from the registry; Wildmutt READY at catalog slot 24 (23 = Highbreed, never overwritten), contiguous', () => {
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition(KEY); assert.equal(d.status, 'ready'); assert.equal(d.slot, 24); assert.equal(d.displayName, 'Wildmutt')
+  const rd = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(rd.map(x => x.slot).sort((a, b) => a - b), rd.map((_, i) => i + 1), 'ready slots contiguous')
+  assert.equal(Math.max(...rd.map(x => x.slot)), rd.length, 'the highest catalog slot = the ready count (read from the registry)')
+  assert.equal(getAlienDefinition('highbreed').slot, 23, 'Highbreed keeps 23'); assert.equal(getAlienDefinition('waterhazard').slot, 22)
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === KEY).length, 1); assert(getAvailableAlienKeys(false).includes(KEY))
+  assert.equal(getAlienDefinition('wildmutt').status, 'experimental', 'the experimental entry is untouched')
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
+})
+test('11. Omnitrix Dial: Wildmutt picked into the last slot — same cost as any slot, no clock change, fresh state', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', KEY], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const c = { seed: 1, frame: 0, playerIndex: 0 }; assert(F.ben10TransformOrSwap(f, slot, c)); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); assert.equal(c.frame, 0, 'clock untouched'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, KEY); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert.equal(S(a.f).fury, 0); assert.equal(S(a.f).frenzyT, 0); assert.equal(S(a.f).frenzyCd, 0)
+})
+test('11. a hit cancels into the Dial: transforming out of Wildmutt mid-combo (hit-confirmed jab → swap) works like any form', () => {
+  const pick = [KEY, 'heatblast', 'megawhatt', 'goop', 'xlr8'], f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+  assert(F.ben10TransformOrSwap(f, 0, { seed: 1, frame: 0, playerIndex: 0 })); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60)
+  assert.equal(f.activeAlien, KEY); f.y = 410 - f.h; const t = foe(); reset(f, t, 10); melee(f, t, 'light')
+  const e = f.energy; assert(F.ben10TransformOrSwap(f, 1, { seed: 1, frame: 0, playerIndex: 0 }), 'swap accepted after a hit'); for (let i = 0; i < 80 && f.activeAlien !== 'heatblast'; i++) F.updateTransformDevice?.(f, 1000 / 60)
+  assert.equal(f.activeAlien, 'heatblast'); assert(e - f.energy >= 0)
+})
+test('11. HUD: the Fury gauge stays inside the player bar (both sides, base / full / FRENZY / cooldown)', () => {
+  for (const flip of [false, true]) for (const st of ['base', 'full', 'frenzy', 'cd']) {
+    const f = ben(), s = S(f); if (st === 'full') { s.fury = 100; s.frenzyReadyAt = 1e9 } if (st === 'frenzy') toFrenzy(f, s); if (st === 'cd') s.frenzyCd = 100
+    let minX = Infinity, maxX = -Infinity
+    const ctx = { save() {}, restore() {}, fillRect(x, y, w) { minX = Math.min(minX, x); maxX = Math.max(maxX, x + w) }, fillText(str, x) { const w = str.length * 4.8; const x0 = this.textAlign === 'right' ? x - w : x; minX = Math.min(minX, x0); maxX = Math.max(maxX, x0 + w) }, strokeRect() {} }
+    const x = 100, pbw = 120; G.drawWildmuttHud(ctx, f, { x, enY: 40, enH: 8, pbw, flip }); assert(minX >= x && maxX <= x + 8 + pbw + 1, `flip ${flip} ${st}: ${minX}..${maxX}`)
+  }
+})
+test('11. Vow pick includes Wildmutt (hash mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', KEY], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has(KEY) && picks.size === L.length)
+})
+test('11. same-seed determinism: an identical scripted Wildmutt sequence (every move, Fury / FRENZY, the curl, the ult) yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); clearProj(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light'); melee(f, t, 'heavy')
+    reset(f, t, 30); runCast(f, t, 'N'); reset(f, t, 180); runCast(f, t, 'F', { pre: dash }); reset(f, t, 150); runCast(f, t, 'B'); reset(f, t, 100); runCast(f, t, 'D')
+    reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 140; t.x = f.x + 180; runCast(f, t, 'N', { max: 80 }); world(f, t, 30)
+    toFrenzy(f, S(f)); reset(f, t, 10); melee(f, t, 'light'); S(f).backTapT = S(f).t; ready(f); C.startMove(f, 'light', BA.light); world(f, t, 20)
+    reset(f, t, 120); ultRun(f, t); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x })
+  }
+  const a = run(), b = run(); assert.equal(a, b); const st = JSON.parse(a).s; assert(st.lastUlt.captured, 'the scripted ult captured'); assert(st.stats.curls >= 1 && st.stats.frenzies >= 1)
+})
+test('GAME_STATE stays plain data mid-cast (spin, pounce, rush, shred, leap, curl, FRENZY, ult cinematic)', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  const mid = (dir, n, setup, pre) => { const f = ben(), t = foe(); setup(f, t); f.energy = 100; if (pre) pre(f); assert(cast(f, t, dir), dir); world(f, t, n); return f }
+  let f = mid('N', 18, (a, b) => reset(a, b, 30)); assert(S(f).spin); assert(plain(S(f)), 'spin')
+  f = mid('F', 16, (a, b) => far(a, b), dash); assert(S(f).chain); assert(plain(S(f)), 'pounce')
+  f = mid('B', 14, (a, b) => far(a, b)); assert(S(f).chain); assert(plain(S(f)), 'rush')
+  f = mid('D', 14, (a, b) => far(a, b)); assert(S(f).chain); assert(plain(S(f)), 'shred')
+  f = mid('N', 6, (a, b) => { far(a, b); a.y -= 160; a.onGround = a.grounded = false }); assert(S(f).leap); assert(plain(S(f)), 'leap')
+  const c = ben(), d = foe(); far(c, d); S(c).backTapT = S(c).t; ready(c); C.startMove(c, 'light', BA.light); world(c, d, 5); assert(S(c).curl); assert(plain(S(c)), 'curl')
+  const g = ben(), u = foe(); reset(g, u, 120); toFrenzy(g, S(g)); ready(g); g.energy = 100; A.triggerUltimate(g, ctxOf(g, u)); world(g, u, 40)
+  assert(S(g).ult && S(g).ult.phase === 'barrage', 'mid-cinematic: ' + S(g).ult?.phase); assert(plain(S(g)), 'ult (from FRENZY)')
+})
+const stubCtx = () => new Proxy({ globalAlpha: 1, canvas: { width: 1280, height: 720 } }, { get: (o, k) => k in o ? o[k] : () => {}, set: (o, k, v) => (o[k] = v, true) })
+test('render: every move / Fury / FRENZY / curl / the ult draw without throwing and drawing never changes GAME_STATE', () => {
+  const c = stubCtx(); const run = (f, t, n) => { for (let i = 0; i < n; i++) { world(f, t, 1); const a = JSON.stringify(S(f)), x = [t.x, t.health, f.x, f.y, f.energy]
+    G.drawWildmuttFx(c, f, FRAME, t); G.drawWildmuttHud(c, f, { x: 0, enY: 0, enH: 8, pbw: 200, flip: false }); WILDMUTT.bodyOffset(f); WILDMUTT.targetOffset(f, t); void S(f).renderScale
+    assert.equal(JSON.stringify(S(f)), a); assert.deepEqual([t.x, t.health, f.x, f.y, f.energy], x) } }
+  for (const [dir, gap, pre] of [['N', 30], ['B', 150], ['D', 100], ['F', 180, dash]]) { clearProj(); const f = ben(), t = foe(); reset(f, t, gap); f.energy = 100; if (pre) pre(f); assert(cast(f, t, dir), dir); run(f, t, 60) }
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; g.y -= 160; g.onGround = g.grounded = false; assert(cast(g, u, 'N')); run(g, u, 40)
+  const h = ben(), v = foe(); reset(h, v, 120); S(h).fury = 70; run(h, v, 5); toFrenzy(h, S(h)); run(h, v, 30); ready(h); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v)))
+  let maxScale = 1; for (let i = 0; i < 140; i++) { run(h, v, 1); maxScale = Math.max(maxScale, S(h).renderScale || 1) }
+  assert(S(h).lastUlt && S(h).lastUlt.captured); assert.equal(maxScale, WM_ULT.SCALE, 'the finisher is drawn scaled up'); assert.equal(S(h).renderScale, 1, 'and back to 1')
+})
+test('no Math.random / gameRng in wildmutt.js / wildmuttAssets.js', () => {
+  for (const p of ['../wildmutt.js', '../wildmuttAssets.js']) { const src = fs.readFileSync(new URL(p, import.meta.url), 'utf8'); assert(!/Math\.random|gameRng/.test(src), p) }
+})
+
 // @@END-TESTS@@
 console.log(`\nWILDMUTT: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

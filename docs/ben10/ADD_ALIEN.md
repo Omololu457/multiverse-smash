@@ -153,13 +153,15 @@ nothing else sets); a form that defines none of them takes exactly the old path,
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form
-(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, Jetray, Diamondhead, …); adding a ready alien adds a CHOICE, never a dial slot.
+(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, Jetray, Diamondhead, Wildmutt, …); adding a ready alien adds a CHOICE, never a dial slot.
 Brainstorm (2026-11-17) was briefed as a new slot 9 (↓↓ + Block+Light+Special chord); under PICK FIVE it is a pick instead (registry `slot: 9` is catalog metadata only), so no slot count, chord, HUD or Vow change was made.
 Terraspin (2026-11-17) was briefed as a new slot 10 (↓↓ + Block+Heavy+Special chord); under PICK FIVE it is a pick as well (registry `slot: 10` is catalog metadata only) — no slot count, chord, HUD or Vow change.
 Wildvine (2026-11-17) was briefed as a new slot 11 (↓↓ + Block+Light+Heavy chord); under PICK FIVE it is a pick as well (registry `slot: 11` is catalog metadata only) — no slot count, chord, HUD or Vow change.
 Jetray (2026-11-17) was briefed as a new slot 12 (↓↓ + Block+Light+Heavy+Special chord); under PICK FIVE it is a pick as well (registry `slot: 12` is catalog metadata only) — no slot count, chord, HUD or Vow change.
 Diamondhead (2026-11-17, key `diamondhead_ov`) was briefed as slot 13 with a new OMNITRIX DIAL "only if no alien-select wheel/dial exists";
 the alien-select screen IS that selector, so no Dial was built: Diamondhead is a pick (registry `slot: 13` = catalog metadata).
+Wildmutt (2026-11-17, key `wildmutt_ov`) was briefed as slot 14 "via the Omnitrix Dial"; the owner re-confirmed PICK FIVE ("use the
+orange sheet and keep pick five"), so Wildmutt is a pick as well (registry `slot: 14` = catalog metadata; no Dial, no slot count change).
 
 **Slots 13+ / more aliens:** every READY form beyond the five is reached the same way — the player picks it into the loadout
 on the alien-select screen and the dial's ↓↓ + J / K / L / O / P then addresses it positionally. Nothing else is needed.
@@ -305,6 +307,31 @@ the Ben 10 harnesses that exercise it) is untouched. Everything rides existing r
 | Diamond Dive | `_benGlide` |
 | Diamond Cathedral | `fireUltimate` + `scheduleBenSpawn` + `targetOffset` (Wildvine / Brainstorm cinematic pattern) |
 
+### Wildmutt (added 2026-11-17) — reused hooks only
+
+No new engine hook. Wildmutt is registered under `wildmutt_ov` so the experimental `wildmutt` (its legacy kit and the Ben 10
+harnesses that exercise it: stage6, render_check, wildmutt_stage1) is untouched. Everything rides existing ready-form hooks:
+
+| Mechanic | Hook reused |
+|---|---|
+| SCENT from clean normals; FRENZY damage ×1.20 | `damageDealt` (combat calls it for the form's melee with source `"melee"`; blocks never reach it) |
+| SCENT from Pounce / Maul / Bull Rush; Fury +5 / +8 per special hit | `onContact` + projectile `alien` tags (+ `alien.hidden`) |
+| Fury +4 per hit taken (not chip) | `damageTaken` (`opts.source !== "block-chip"`) |
+| Scented normals −1f, Frenzy Jab / Heavy −1f, no normals mid-cast | `moveFrames` (copied table / `false`) |
+| Instant facing while scented | the form's own `tick` (writes `facing` outside hitstun / own attack) |
+| FRENZY speed ×1.20 | `_benWalkSpeed` (saved in `formState`, restored at Exhaustion; a swap re-applies the form value) |
+| FRENZY no guard | `formState.noBlock` |
+| FRENZY red | the `_skinAnim` frame-set swap (a slicer-generated red-washed strip set; cleared on swap / revert) |
+| MAUL command grab | the form's own `tick`, replicating `combat.resolveGrab`'s tests (both grounded, no combo grab, tech when the defender has `grabInputBuffer` outside hitstun / blockstun); `isGrabbed` is NOT set (so `updateGrab`'s flat throw never runs) |
+| Bull Rush carry / wall bonus | the form's own `tick` (stage bounds from `ctx.stageLeft / stageWidth`, the opponent clamped, no pull-through) |
+| Claw Dive | `_benGlide` |
+| Pounce leap arc, Primal Hunt orbit | `bodyOffset` (render-only) |
+| Primal Hunt silhouette | `bodyAlpha` (render-only) |
+| Primal Hunt darkness / shock line / dust | `drawUnder`; scent trail, claws, roar rings → `drawFx`; Fury bar → `drawHud` |
+| Primal Hunt | `fireUltimate` + `scheduleBenSpawn` + `onContact` capture (Diamondhead's cinematic pattern); slash angles = hash(seed, frame, player index) |
+
+Caveat: Ground Pound is tagged `hitLevel: "low"`, but the engine's low level is inert (crouch-block was removed, combat.js
+`hitLevel` comment), so "must be blocked low" cannot be enforced without an engine change — it blocks like any hit.
 
 ### Upgrade (added 2026-11-17) — key `upgrade_ov`
 Registered under `upgrade_ov` so the experimental `upgrade` (its legacy kit, animation table and the Ben 10 harnesses that

@@ -115,6 +115,18 @@ FLIGHT_PROFILES.alienx = {
   landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
 }
 
+// JETRAY (Ben 10 ready alien, via fighter._alienFlightProfile while transformed): the canon flyer. Hold Jump in the air to
+// fly: cruise 8.0, moderate drag (coast ×0.75), 8-direction steering, 240 frames per airtime (refills on landing), no air dash,
+// grounded 40f after a hard hit. The apex+220 cap / jump bookkeeping live in jetray.js. MACH TIME swaps in jetray_mach (×1.5).
+FLIGHT_PROFILES.jetray = {
+  accel: 1.2, maxH: 8.0, maxV: 6.0, drag: 0.75, reverseBrake: 0.55,
+  overspeedDrag: 0.85, ceilEaseZone: 40, dashSpeed: 0, dashFrames: 0, maxAirDash: 0,
+  dashCost: 9999, energyMax: 240, drainPerFrame: 1, groundRefillPerFrame: 240, liftoff: -2,
+  takeoffFrames: 4, landRecovery: 4, landRecoveryAfterAir: 6, groundedLock: 40,
+  landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
+}
+FLIGHT_PROFILES.jetray_mach = { ...FLIGHT_PROFILES.jetray, accel: 1.8, maxH: 12.0, maxV: 9.0 }
+
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",
 })

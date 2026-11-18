@@ -225,7 +225,10 @@ export const physics = {
       // was dead. Read traits first (stats kept as a defensive fallback). Realizes the intended double
       // air-dash for EVERY very_high char: zenitsu, shinobu, nezuko, killua, flash, maki, toji (+ Saitama).
       const mobility = fighter.omnitrix?.formState?.mobility ?? fighter.traits?.mobility ?? fighter.stats?.mobility   // READY Omnitrix form may set it (XLR8 = very_high, Killua's double air-dash)
-      const maxAirDash = (mobility === "very_high") ? 2 : 1
+      // BEN 10 GROUNDED status (ADD_ALIEN.md; Jetray Neuroshock): `_benGrounded = { ttl, air }` stamped on the OPPONENT each
+      // frame it lasts → no air dash, no double jump, air drift ×air. Absent for everyone else → byte-identical.
+      const _benGr = fighter._benGrounded && fighter._benGrounded.ttl > 0
+      const maxAirDash = _benGr ? 0 : (mobility === "very_high") ? 2 : 1
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
         const adSpd = (fighter.dashSpeed || 14) * 0.8
@@ -318,7 +321,7 @@ export const physics = {
       const launcherJC = !!(fighter.attacking && fighter.currentAttack &&
                             fighter.currentAttack.launcher && fighter.currentAttack.hasHit)
       const suppressJumpForUpAttack = fighter.onGround && attackHeld && !launcherJC
-      const canJump = fighter.canJump !== false && !((fighter._benPinT || 0) > 0) && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror   // Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
+      const canJump = fighter.canJump !== false && !((fighter._benPinT || 0) > 0) && fighter.jumpCount < fighter.maxJumps && !zoroNoJump(fighter) && !sanjiNoJump(fighter) && !_benTerror && !(_benGr && fighter.jumpCount >= 1)   // Ben 10 Grounded: first jump only · Roronoa Zoro: ↗ after a QCF completes Shishi Sonson
 
       if (U && !fighter.jumpHeld && canJump && !suppressJumpForUpAttack) {
         if (launcherJC) {
@@ -347,6 +350,8 @@ export const physics = {
     // `_benDrag = { x, ground, air, ttl, pvx }` while the status lasts (re-stamped each frame, ttl lapses on its own). Movement
     // AWAY from x is scaled (×ground on the ground, the same on airborne momentum) and airborne control that pushes further away
     // gets only ×air of its change. Input polling and the clock are untouched. Absent for everyone else → byte-identical.
+    const _bgr = fighter._benGrounded
+    const _grK = (_bgr && _bgr.ttl > 0) ? (_bgr.ttl--, (!fighter.onGround && !((fighter.hitstun || 0) > 0)) ? _bgr.air : 1) : 1   // Grounded: air drift ×air
     const _bd = fighter._benDrag
     if (_bd && _bd.ttl > 0) {
       _bd.ttl--
@@ -354,8 +359,8 @@ export const physics = {
       if (!fighter.onGround && _awayDir !== 0 && (fighter.vx - (_bd.pvx || 0)) * _awayDir > 0)
         fighter.vx = (_bd.pvx || 0) + (fighter.vx - (_bd.pvx || 0)) * _bd.air   // air control away from him: its change halved
       _bd.pvx = fighter.vx
-      fighter.x += (_awayDir !== 0 && Math.sign(fighter.vx) === _awayDir) ? fighter.vx * _bd.ground : fighter.vx
-    } else fighter.x += fighter.vx
+      fighter.x += ((_awayDir !== 0 && Math.sign(fighter.vx) === _awayDir) ? fighter.vx * _bd.ground : fighter.vx) * _grK
+    } else fighter.x += fighter.vx * _grK
 
     // ── STAGE / CAMERA BOUNDS ────────────────────────
     const stageW = this.stageWidth

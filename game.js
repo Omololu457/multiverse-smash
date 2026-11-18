@@ -22537,10 +22537,13 @@ function renderHybridFighter(fighter) {
   // READY Omnitrix form render-only body offset (Brainstorm lunge / lift, its ult's held-opponent lift); null for everyone else.
   const _benBO = benAlienBodyOffset(fighter, getOpponent(fighter))
   const gfDX = (_gfP ? _gfP.dx : 0) + (_benBO ? _benBO.dx : 0), gfDY = _benBO ? _benBO.dy : 0
+  const gfROT = (_benBO && _benBO.rot) || 0   // optional render-only rotation about the body centre (Jetray Barrel Roll)
 
   if (!fighter.tintColor) {
-    if (bodyAlpha >= 1 && gfDX === 0 && gfDY === 0) { drawTo(ctx); return }
-    ctx.save(); ctx.globalAlpha *= bodyAlpha; if (gfDX || gfDY) ctx.translate(gfDX, gfDY); drawTo(ctx); ctx.restore(); return
+    if (bodyAlpha >= 1 && gfDX === 0 && gfDY === 0 && gfROT === 0) { drawTo(ctx); return }
+    ctx.save(); ctx.globalAlpha *= bodyAlpha; if (gfDX || gfDY) ctx.translate(gfDX, gfDY)
+    if (gfROT) { const _rx = fighter.x + fighter.w / 2, _ry = fighter.y + fighter.h / 2; ctx.translate(_rx, _ry); ctx.rotate(gfROT); ctx.translate(-_rx, -_ry) }
+    drawTo(ctx); ctx.restore(); return
   }
 
   // Tinted: render the fighter to an offscreen layer that mirrors the live camera

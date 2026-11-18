@@ -153,10 +153,11 @@ nothing else sets); a form that defines none of them takes exactly the old path,
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form
-(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, …); adding a ready alien adds a CHOICE, never a dial slot.
+(Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eyeguy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, Jetray, …); adding a ready alien adds a CHOICE, never a dial slot.
 Brainstorm (2026-11-17) was briefed as a new slot 9 (↓↓ + Block+Light+Special chord); under PICK FIVE it is a pick instead (registry `slot: 9` is catalog metadata only), so no slot count, chord, HUD or Vow change was made.
 Terraspin (2026-11-17) was briefed as a new slot 10 (↓↓ + Block+Heavy+Special chord); under PICK FIVE it is a pick as well (registry `slot: 10` is catalog metadata only) — no slot count, chord, HUD or Vow change.
 Wildvine (2026-11-17) was briefed as a new slot 11 (↓↓ + Block+Light+Heavy chord); under PICK FIVE it is a pick as well (registry `slot: 11` is catalog metadata only) — no slot count, chord, HUD or Vow change.
+Jetray (2026-11-17) was briefed as a new slot 12 (↓↓ + Block+Light+Heavy+Special chord); under PICK FIVE it is a pick as well (registry `slot: 12` is catalog metadata only) — no slot count, chord, HUD or Vow change.
 (Eyeguy briefly raised the count 5 → 6 with a ↓↓ + Ultimate slot and Ghostfreak 6 → 7 with ↓↓ + Up-Attack; the owner
 reverted both to pick-five. Their dial branches stay in game.js, gated on `BEN10_SLOT_COMBOS.length`, so they are dormant.)
 
@@ -247,3 +248,22 @@ field only a ready form defines); a form that does not use them takes exactly th
 | `drainMult` as a FUNCTION `(fighter) => number` | fighters.js `updateTransformDevice` (the existing `drainMult` read) | a number keeps working exactly as before (Alien X ×1.5); a function is called with the fighter each drain step. Wildvine: ×0.9 while FULL BLOOM lasts, else ×1. |
 | projectile tag `alien.hidden: true` | ui.js `drawProjectiles`, first line of the per-projectile body | the hitbox is not drawn by the generic renderer (the form module draws its own plant / vine / thorn FX). Only a ready form's `alien` tag can carry it. |
 | OWNER-LIMITED PLANTED OBJECTS (pattern, no engine hook) | the form's own `tick` + `drawUnder` | plants are plain records in `formState.garden` ({ id, type, x, y, t, cast, consumed, by }) with a fixed position, growth stage and lifetime; contact is a rectangle test in the form tick (never solid collision — no walls / floor changes), consumed through ONE gate (`consumePlant`) so a plant fires at most once even with simultaneous contacts; damage goes through a hidden `api.spawnProjectile` hitbox (blocking, scaling and hit effects stay the engine's). Cleared with the formState on swap / revert / KO / rematch / round end. |
+
+### Jetray hooks (added with Jetray, 2026-11-17)
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `_benGrounded` status `{ ttl, air }` (stamped by a form on its OPPONENT every frame it lasts; `ttl: 2` so it lapses on its own) | physics.js `moveFighter`: the air-dash cap (`maxAirDash`), the `canJump` gate, and the "Apply X movement" line | while `ttl > 0`: no air dash (cap 0), no double jump (`jumpCount >= 1` refuses the jump — the FIRST jump still works), and airborne horizontal displacement × `air` outside hitstun (air drift; knockback flight untouched). Ground walk / run / dash, input polling and the simulation clock are untouched. Absent for everyone else → byte-identical. Jetray NEUROSHOCK → GROUNDED: `air: 0.5`, 150f. |
+| `bodyOffset(f).rot` (optional, radians) | game.js body draw, untinted path (next to the existing `dx` / `dy` translate) | a render-only rotation of the body about its hurtbox centre. Absent / 0 → the old draw (the no-offset fast path is kept). Jetray BARREL ROLL: one full turn over the roll. |
+
+Everything else Jetray needs reuses existing hooks: the per-alien FLIGHT PROFILE (`_alienFlightProfile` → flight.js `FLIGHT_PROFILES.jetray`;
+MACH TIME swaps in `jetray_mach` ×1.5 by re-pointing the same field each tick), XLR8's Block+Special `blockSpecial` + buffered-press
+swallow, `moveFrames` (Mach Time ×0.7 startup / recovery; Barrel Roll takes the ←← + Light press; no normals while a special owns him),
+XLR8's projectile `timeScale` lease (opponent projectiles ×0.5) and its echo pattern (scheduled in formState, `api.applyScaledDamage`
+× `api.getComboScale` — bypasses `onContact`, so echoes never chain or add pips), `onContact` (Neuro pips per cast, ult capture, Wing
+Dash carry), `_benGlide` (Wing Dash / Sonic Dive / ult swoop travel), `invulnTimer` (Barrel Roll i-frames 4–10), the knockdown trio
+(ult skid + bounce), `drawHud` / `drawFx` / `drawUnder` (Mach wash; the ult's hyperspace "travel background" covers the stage —
+render-only, so no camera-mode hook was needed) / `drawBehind` (Mach afterimages) / `targetOffset`. Eye Laser: a per-frame EYE
+anchor table generated by the slicer (`JETRAY_EYES`, mirrored for facing −1) + a segment-vs-hurtbox test that lands a small
+hitbox at the entry point (angled beams without a rotated-hitbox hook). Tail Volley: rear bolts are ordinary `spawnProjectile`s with
+a negative facing-relative `vx` (no rear-spawn hook needed).

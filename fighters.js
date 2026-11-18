@@ -10,6 +10,7 @@ import { ALIENX } from "./alienx.js"
 import { BRAINSTORM } from "./brainstorm.js"
 import { TERRASPIN } from "./terraspin.js"
 import { WILDVINE } from "./wildvine.js"
+import { JETRAY } from "./jetray.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -976,8 +977,13 @@ export const BEN10_ALIEN_POOL = {
                         special: { name: "Atomic Slam", damage: 140, cost: 28, armor: true }, ult: { name: "Nucleo Fusion Cannon", damage: 260, startup: 20 } }),
   bloxx:      mkAlien({ name: "Bloxx", color: "#f97316", role: "brawler", hp: 1200, spd: 6, dmg: 1.0, flags: { armor: true }, weight: "heavy",
                         special: { name: "Block Cannon", ranged: true, damage: 100, cost: 20 }, ult: { name: "Fortress Smash", damage: 220, armor: true } }),
-  jetray:     mkAlien({ name: "Jetray", color: "#ef4444", role: "speed", hp: 920, spd: 10, jumps: 3, jump: 24, dmg: 0.8, weight: "light",
-                        special: { name: "Neuroshock", ranged: true, damage: 100, cost: 20, projectileId: "jetray_blast" }, ult: { name: "Solar Dive", damage: 190 } }),
+  // Jetray (READY, jetray.js; replaces the old unregistered mkAlien stub): hurtbox = torso + inner wing (70 × 96) — the wing tips
+  // (~±75 px of a ~146 px wingspan) are cosmetic. Flight / Mach Time / Neuroshock / specials / ult via the ready-form hooks.
+  // mods (speed 1.30 / dmg 0.95 / def 0.80 / weight 0.65) via applyAlien.
+  jetray: { name: "Jetray", color: "#b91c1c", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 70, sizeH: 96 },
+    basic_attacks: JETRAY.basic_attacks, specials: JETRAY.moves,
+    ultimate: { name: "Cosmic Drag", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

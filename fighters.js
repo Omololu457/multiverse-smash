@@ -16,6 +16,7 @@ import { UPGRADE } from "./upgrade.js"
 import { HUMONGOUSAUR } from "./humongousaur.js"
 import { ARCTICGUANA } from "./arcticguana.js"
 import { BIGCHILL } from "./bigchill.js"
+import { RIPJAWS } from "./ripjaws.js"
 import { FEEDBACK } from "./feedback.js"
 import { BENWOLF } from "./benwolf.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
@@ -1038,6 +1039,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 58, sizeH: 110 },
     basic_attacks: BIGCHILL.basic_attacks, specials: BIGCHILL.moves,
     ultimate: { name: "Frozen Sky", cost: 55, damage: 240 } },
+  // Ripjaws (READY, ripjaws.js): a heavy Piscciss Volann hurtbox (land legs / fish tail share it). Storm Tide flood, swim,
+  // breath, specials / ult via the ready-form hooks + the generic flood fields. mods (speed 0.90 / dmg 1.00 / def 1.05 /
+  // weight 1.10) via applyAlien.
+  ripjaws: { name: "Ripjaws", color: "#94a3b8", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 6, maxJumps: 2, jumpPower: 21, sizeW: 60, sizeH: 100 },
+    basic_attacks: RIPJAWS.basic_attacks, specials: RIPJAWS.moves,
+    ultimate: { name: "Maelstrom Feast", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

@@ -17,6 +17,7 @@ import { FEEDBACK } from "./feedback.js"
 import { ARCTICGUANA } from "./arcticguana.js"
 import { BENWOLF } from "./benwolf.js"
 import { BIGCHILL } from "./bigchill.js"
+import { RIPJAWS } from "./ripjaws.js"
 // aliens.js — BEN 10 ALIEN REGISTRY (Phase 4)
 // ────────────────────────────────────────────────────────────────────────────────────────────────
 // The declarative catalog of Omnitrix aliens. Each entry is pure DATA — the runtime form behaviour
@@ -60,6 +61,7 @@ export const BEN10_ALIEN_REGISTRY = [
   ARCTICGUANA, // READY (2026-11-18): Dragonrod sheet + Frozone ice-FX folder + ledger; Cryoreptile (Frost Coat / Chill → Popsicle → Shatter / Absolute Popsicle); a NEW entry, a PICK-FIVE choice (catalog slot 17 — no new dial slot)
   BENWOLF,     // READY (2026-11-18): Dragonrod sheet + ledger; Loboan hunter (Scent → Hunted / Sonic Howl ring loop / Howling Moon → Full Moon buff); a NEW entry, a PICK-FIVE choice (catalog slot 18 — no new dial slot)
   BIGCHILL, // READY (2026-11-18): DS Vilgax Attacks sheet + the shared Arcticguana ice FX + ledger; Necrofriggian (flight / Phase Drift / shared Chill → Popsicle → Shatter / Frozen Sky); a NEW entry, a PICK-FIVE choice (catalog slot 19 — no new dial slot)
+  RIPJAWS,  // READY (2026-11-18): Dragonrod sheet + ledger; Piscciss Volann (STORM TIDE flood: depth states / swim / breath + drowning / fire + electric vs water / Maelstrom Feast); a NEW entry, a PICK-FIVE choice (catalog slot 20 — no new dial slot)
 
   {
     id: "diamondhead", displayName: "Diamondhead", slot: 2, status: "experimental", poolKey: "diamondhead",

@@ -30,7 +30,7 @@ try {
   await boot("default")
   // ── REGISTRY: 5 ready slots wrapping pool aliens + placeholder factory ──
   const reg = await call("ben10Registry")
-  ok(reg && reg.registry.length === reg.registry.filter(a => a.status === "ready").length + 9, `registry = every READY form (count read from the registry) + the 9 retained experiments (Eyeguy replaced the 11th, Alien X the 10th; got ${reg?.registry.length})`)
+  ok(reg && reg.registry.length === reg.registry.filter(a => a.status === "ready").length + 8, `registry = every READY form (count read from the registry) + the 8 retained experiments (Eyeguy replaced the 11th, Alien X the 10th, Brainstorm the 9th; got ${reg?.registry.length})`)
   const approved = reg.registry.filter(a => a.status === "ready")
   ok(approved.length >= 5 && approved.map(a => a.slot).join() === approved.map((_, i) => i + 1).join() && approved.slice(0, 5).map(a => a.id).join() === "swampfire,heatblast,megawhatt,goop,xlr8" && approved.every(a => a.sheetPath && a.ledgerPath), "only art-backed forms are approved, one per registry slot (Swampfire / Heatblast / Megawhatt / Goop / XLR8 first)")
   ok(reg.registry.filter(a => a.status !== "ready").every(a => a.status === "experimental" && a.poolKey), "all retained placeholders are explicitly experimental")

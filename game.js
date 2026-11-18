@@ -169,7 +169,7 @@ const GREEN_RANGER_WORLD = MMPR_BLACK_WORLD   // Green Ranger: the same self-con
 import { SWAMPFIRE_FX } from "./swampfire.js"
 import { drawHeatblastFx } from "./heatblast.js"   // Heatblast ult pixel rings (render-only; heatblast form only)
 import { tickBenAlienForm } from "./abilities.js"   // READY Omnitrix form per-frame tick (Heatblast Heat / Scorch / flight / ult)
-import { benReadyForm } from "./ben10State.js"   // READY Omnitrix form lookup (null for everyone else)
+import { benReadyForm, benAlienBodyOffset } from "./ben10State.js"   // READY Omnitrix form lookup (null for everyone else) + render-only body offset
 import { clearBenIdentityState } from "./ben10State.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
 // game.js
@@ -22534,11 +22534,13 @@ function renderHybridFighter(fighter) {
   const _gfP = (fighter.rosterKey === "ghostface" || fighter._gfSwapActive || fighter._gfVanish || fighter._gfSwapCine) ? getGhostfacePresentation(fighter) : null
   // OBITO_DIMENSION: a banished foe fades into the Kamui void (the rift overlay is drawn on top) — render-only.
   const bodyAlpha = revealAlpha * (fighter._banished ? 0.22 : 1) * _tojiFlyFadeAlpha(fighter) * (_gfP ? _gfP.alpha : 1) * _byakuyaFadeAlpha(fighter)
-  const gfDX = _gfP ? _gfP.dx : 0
+  // READY Omnitrix form render-only body offset (Brainstorm lunge / lift, its ult's held-opponent lift); null for everyone else.
+  const _benBO = benAlienBodyOffset(fighter, getOpponent(fighter))
+  const gfDX = (_gfP ? _gfP.dx : 0) + (_benBO ? _benBO.dx : 0), gfDY = _benBO ? _benBO.dy : 0
 
   if (!fighter.tintColor) {
-    if (bodyAlpha >= 1 && gfDX === 0) { drawTo(ctx); return }
-    ctx.save(); ctx.globalAlpha *= bodyAlpha; if (gfDX) ctx.translate(gfDX, 0); drawTo(ctx); ctx.restore(); return
+    if (bodyAlpha >= 1 && gfDX === 0 && gfDY === 0) { drawTo(ctx); return }
+    ctx.save(); ctx.globalAlpha *= bodyAlpha; if (gfDX || gfDY) ctx.translate(gfDX, gfDY); drawTo(ctx); ctx.restore(); return
   }
 
   // Tinted: render the fighter to an offscreen layer that mirrors the live camera

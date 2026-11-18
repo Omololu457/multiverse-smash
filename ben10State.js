@@ -60,6 +60,15 @@ export function benAlienStruck(defender, info) { const d = benReadyForm(defender
 export function benAlienSpecialTax(owner, target) {
   const d = benReadyForm(owner); return d && d.specialTax ? d.specialTax(owner, target) || null : null
 }
+// Optional RENDER-ONLY body draw offset (Brainstorm normals' lunge / lift, the ult's held-opponent lift): the fighter's own
+// ready form `bodyOffset(f)` plus its opponent's ready form `targetOffset(owner, f)`, summed → { dx, dy } world px, or null.
+// game.js body draw only (a canvas translate, like the Ghostface staging dx) — never collision / hitboxes / GAME_STATE.
+export function benAlienBodyOffset(f, opp) {
+  const d = benReadyForm(f), o = opp ? benReadyForm(opp) : null
+  const a = d && d.bodyOffset ? d.bodyOffset(f) : null, b = o && o.targetOffset ? o.targetOffset(opp, f) : null
+  if (!a && !b) return null
+  return { dx: (a?.dx || 0) + (b?.dx || 0), dy: (a?.dy || 0) + (b?.dy || 0) }
+}
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

@@ -5,7 +5,7 @@ export const WILDVINE_ANIM = {
   "idle": {
     "sheet": "./ben10_wildvine_idle_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 9,
     "anchorY": 0,
@@ -17,7 +17,7 @@ export const WILDVINE_ANIM = {
   "walk": {
     "sheet": "./ben10_wildvine_walk_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 8,
     "anchorY": 0,
@@ -29,7 +29,7 @@ export const WILDVINE_ANIM = {
   "walk_back": {
     "sheet": "./ben10_wildvine_walk_back_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 8,
     "anchorY": 0,
@@ -41,7 +41,7 @@ export const WILDVINE_ANIM = {
   "run": {
     "sheet": "./ben10_wildvine_run_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -53,7 +53,7 @@ export const WILDVINE_ANIM = {
   "dash": {
     "sheet": "./ben10_wildvine_dash_uniform.png",
     "frames": 2,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 3,
     "anchorY": 0,
@@ -65,7 +65,7 @@ export const WILDVINE_ANIM = {
   "jump": {
     "sheet": "./ben10_wildvine_jump_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -77,7 +77,7 @@ export const WILDVINE_ANIM = {
   "doubleJump": {
     "sheet": "./ben10_wildvine_doubleJump_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -89,7 +89,7 @@ export const WILDVINE_ANIM = {
   "fall": {
     "sheet": "./ben10_wildvine_fall_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -101,7 +101,7 @@ export const WILDVINE_ANIM = {
   "crouch": {
     "sheet": "./ben10_wildvine_crouch_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -113,7 +113,7 @@ export const WILDVINE_ANIM = {
   "guard": {
     "sheet": "./ben10_wildvine_guard_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -125,7 +125,7 @@ export const WILDVINE_ANIM = {
   "blockHit": {
     "sheet": "./ben10_wildvine_blockHit_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -137,7 +137,7 @@ export const WILDVINE_ANIM = {
   "light": {
     "sheet": "./ben10_wildvine_light_uniform.png",
     "frames": 2,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 3,
     "anchorY": 0,
@@ -149,7 +149,7 @@ export const WILDVINE_ANIM = {
   "heavy": {
     "sheet": "./ben10_wildvine_heavy_uniform.png",
     "frames": 3,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -161,7 +161,7 @@ export const WILDVINE_ANIM = {
   "down": {
     "sheet": "./ben10_wildvine_down_uniform.png",
     "frames": 2,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 3,
     "anchorY": 0,
@@ -173,7 +173,7 @@ export const WILDVINE_ANIM = {
   "up": {
     "sheet": "./ben10_wildvine_up_uniform.png",
     "frames": 3,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 3,
     "anchorY": 0,
@@ -185,7 +185,7 @@ export const WILDVINE_ANIM = {
   "air": {
     "sheet": "./ben10_wildvine_air_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -197,7 +197,7 @@ export const WILDVINE_ANIM = {
   "hurt": {
     "sheet": "./ben10_wildvine_hurt_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -209,7 +209,7 @@ export const WILDVINE_ANIM = {
   "hurt_air": {
     "sheet": "./ben10_wildvine_hurt_air_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -221,7 +221,7 @@ export const WILDVINE_ANIM = {
   "knockdown": {
     "sheet": "./ben10_wildvine_knockdown_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -233,7 +233,7 @@ export const WILDVINE_ANIM = {
   "getup": {
     "sheet": "./ben10_wildvine_getup_uniform.png",
     "frames": 2,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -245,7 +245,7 @@ export const WILDVINE_ANIM = {
   "dizzy": {
     "sheet": "./ben10_wildvine_dizzy_uniform.png",
     "frames": 2,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 12,
     "anchorY": 0,
@@ -257,7 +257,7 @@ export const WILDVINE_ANIM = {
   "transform": {
     "sheet": "./ben10_wildvine_transform_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 5,
     "anchorY": 0,
@@ -269,7 +269,7 @@ export const WILDVINE_ANIM = {
   "taunt": {
     "sheet": "./ben10_wildvine_taunt_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 8,
     "anchorY": 0,
@@ -281,7 +281,7 @@ export const WILDVINE_ANIM = {
   "win": {
     "sheet": "./ben10_wildvine_win_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 9,
     "anchorY": 0,
@@ -293,7 +293,7 @@ export const WILDVINE_ANIM = {
   "lose": {
     "sheet": "./ben10_wildvine_lose_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -305,7 +305,7 @@ export const WILDVINE_ANIM = {
   "grab": {
     "sheet": "./ben10_wildvine_grab_uniform.png",
     "frames": 2,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -317,7 +317,7 @@ export const WILDVINE_ANIM = {
   "wvPlant": {
     "sheet": "./ben10_wildvine_wvPlant_uniform.png",
     "frames": 3,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -329,7 +329,7 @@ export const WILDVINE_ANIM = {
   "wvGrow": {
     "sheet": "./ben10_wildvine_wvGrow_uniform.png",
     "frames": 4,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -341,7 +341,7 @@ export const WILDVINE_ANIM = {
   "wvWhip": {
     "sheet": "./ben10_wildvine_wvWhip_uniform.png",
     "frames": 5,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -353,7 +353,7 @@ export const WILDVINE_ANIM = {
   "wvRise": {
     "sheet": "./ben10_wildvine_wvRise_uniform.png",
     "frames": 3,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 4,
     "anchorY": 0,
@@ -365,7 +365,7 @@ export const WILDVINE_ANIM = {
   "wvSeed": {
     "sheet": "./ben10_wildvine_wvSeed_uniform.png",
     "frames": 1,
-    "width": 196,
+    "width": 184,
     "height": 80,
     "speed": 6,
     "anchorY": 0,
@@ -474,4 +474,4 @@ export const WILDVINE_FX = {
     }
   }
 }
-export const WILDVINE_GEOM = {"cellW": 196, "cellH": 80, "centreX": 64, "feetY": 76, "actionScale": 1.5}
+export const WILDVINE_GEOM = {"cellW": 184, "cellH": 80, "centreX": 92, "feetY": 76, "actionScale": 1.5}

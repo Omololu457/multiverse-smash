@@ -180,7 +180,8 @@ function eruptThorn(f, s, api, p, opp) {
   const face = opp ? (cx(opp) >= p.x ? 1 : -1) : (f.facing || 1)
   s.stats.erupts++
   return hitbox(f, api, "wv_thorn", face, { damage: WV_PLANT.thorn.dmg, spawnX: p.x, spawnY: p.y - 60, w: 60, h: 120, lifetime: 3,
-    hitstun: 24, blockstun: 14, knockbackX: 2, knockbackY: -7, alien: { wv: "thorn", pip: true, cast: p.cast, plant: p.id } })
+    hitstun: 24, blockstun: 14, knockbackX: 2, knockbackY: -7, launcher: true, launchVy: -7,   // a SMALL pop-up (lifts a grounded target)
+    alien: { wv: "thorn", pip: true, cast: p.cast, plant: p.id } })
 }
 // 2. SNARE VINE (grown): roots the opponent 30f ONCE on contact, no damage, then consumed (+1 Entangle, Phase 4). A trap,
 //    not a hit: the guard does not stop it.
@@ -623,10 +624,12 @@ export function drawWildvineHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
     else { const r = grown ? 4 : 2; ctx.fillRect(sx + 9 - r, y + 7 - r, r * 2, r * 2); ctx.fillStyle = GREEN; ctx.fillRect(sx + 5, y + 10, 8, 2) }
     if (!grown) { ctx.fillStyle = "#e5e7eb"; ctx.fillRect(sx + 2, y + 12, Math.round(14 * Math.min(1, p.t / WV_GARDEN.SPROUT)), 1) }   // sprout progress
   }
-  const tx = bx, e = s.ent
-  ctx.fillStyle = e.rootT > 0 ? LIME : "#e5e7eb"
-  ctx.fillText(`ENTANGLE ${e.rootT > 0 ? "ROOTED" : e.immune > 0 ? "IMMUNE" : "●".repeat(e.pips) + "○".repeat(WV_ENT.MAX - e.pips)}`, tx, y + 27)
+  // text column BESIDE the 3 slots (two 7 px rows inside the slot height — never below the screen edge)
+  const e = s.ent, tx = flip ? bx - 6 : bx + WV_GARDEN.MAX * 22 + 4
+  ctx.textAlign = flip ? "right" : "left"; ctx.font = "bold 7px Arial"
   ctx.fillStyle = s.bloom.t > 0 ? "#fbcfe8" : "#9ca3af"
-  ctx.fillText(s.bloom.t > 0 ? `FULL BLOOM ${Math.ceil(s.bloom.t / 60)}s` : s.bloom.cd > 0 ? `BLOOM ${Math.ceil(s.bloom.cd / 60)}s` : "GARDEN", tx, y + 17)
+  ctx.fillText(s.bloom.t > 0 ? `FULL BLOOM ${Math.ceil(s.bloom.t / 60)}s` : s.bloom.cd > 0 ? `BLOOM ${Math.ceil(s.bloom.cd / 60)}s` : "GARDEN", tx, y)
+  ctx.fillStyle = e.rootT > 0 ? LIME : "#e5e7eb"
+  ctx.fillText(`ENTANGLE ${e.rootT > 0 ? "ROOTED" : e.immune > 0 ? "IMMUNE" : "●".repeat(e.pips) + "○".repeat(WV_ENT.MAX - e.pips)}`, tx, y + 7)
   ctx.restore()
 }

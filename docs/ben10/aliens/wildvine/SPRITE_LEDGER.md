@@ -18,8 +18,8 @@ Generator: `python3 -I tools/ben10/slice_wildvine.py` (deterministic, byte-ident
   every letter of the row labels, the arrows, the "LOOP" letters), the white credit box component #7
   (its lettering is inside it), and the LOOP bracket line #73 (130×6 px, pure black).
 - Cut: 8-connected components, every component assigned (asserted). Anchor = feet baseline (bottom row) + body centre =
-  centroid of the bottom 40 % (tentacle-leg base), never a vine arm, raised arm or tentacle tip. Uniform cell 196×80,
-  body centre x=64, feet y=76; nearest-neighbour only; nothing cropped (asserted). actionScale 1.5 (× Ben's spriteScale 2.0).
+  centroid of the bottom 40 % (tentacle-leg base), never a vine arm, raised arm or tentacle tip. Uniform cell 184×80,
+  body centre x=92 (= the cell centre: the engine centres the cell on the fighter), feet y=76; nearest-neighbour only; nothing cropped (asserted). actionScale 1.5 (× Ben's spriteScale 2.0).
 
 ## Real frames vs the brief's inventory (real frames win)
 - stand 4, walk 4, jump/fall/crouch 3, attack 5 + 4 seeds, attack → 5 — as inventoried.
@@ -57,76 +57,76 @@ Generator: `python3 -I tools/ben10/slice_wildvine.py` (deterministic, byte-ident
 ## Frame → animation → move
 | Animation | Sheet frame | Component | Source bbox [x0,y0,x1,y1] | Cell offset | Move / role |
 |---|---|---|---|---|---|
-| `idle` | stand f1 | #1 | [4, 4, 60, 52] | [42, 28] | idle (stand loop) |
-| `idle` | stand f2 | #2 | [69, 4, 126, 52] | [40, 28] | idle (stand loop) |
-| `idle` | stand f3 | #3 | [138, 4, 194, 52] | [42, 28] | idle (stand loop) |
-| `idle` | stand f4 | #4 | [207, 4, 261, 52] | [42, 28] | idle (stand loop) |
-| `walk` | walk f1 | #11 | [13, 74, 59, 121] | [42, 29] | walk |
-| `walk` | walk f2 | #12 | [83, 74, 130, 121] | [45, 29] | walk |
-| `walk` | walk f3 | #13 | [131, 74, 178, 121] | [40, 29] | walk |
-| `walk` | walk f4 | #14 | [197, 74, 246, 121] | [44, 29] | walk |
-| `walk_back` | walk f4 | #14 | [197, 74, 246, 121] | [44, 29] | walk back (walk REVERSED) |
-| `walk_back` | walk f3 | #13 | [131, 74, 178, 121] | [40, 29] | walk back (walk REVERSED) |
-| `walk_back` | walk f2 | #12 | [83, 74, 130, 121] | [45, 29] | walk back (walk REVERSED) |
-| `walk_back` | walk f1 | #11 | [13, 74, 59, 121] | [42, 29] | walk back (walk REVERSED) |
-| `run` | walk f1 | #11 | [13, 74, 59, 121] | [42, 29] | run (walk cycle played 2x faster - no run art) |
-| `run` | walk f2 | #12 | [83, 74, 130, 121] | [45, 29] | run (walk cycle played 2x faster - no run art) |
-| `run` | walk f3 | #13 | [131, 74, 178, 121] | [40, 29] | run (walk cycle played 2x faster - no run art) |
-| `run` | walk f4 | #14 | [197, 74, 246, 121] | [44, 29] | run (walk cycle played 2x faster - no run art) |
-| `dash` | walk f2 | #12 | [83, 74, 130, 121] | [45, 29] | dash (walk f2-3, fast) |
-| `dash` | walk f3 | #13 | [131, 74, 178, 121] | [40, 29] | dash (walk f2-3, fast) |
-| `jump` | jfc f1 | #19 | [46, 138, 101, 204] | [40, 10] | jump rise (jump/fall/crouch f1) |
-| `doubleJump` | jfc f1 | #19 | [46, 138, 101, 204] | [40, 10] | double jump - REUSED jump rise |
-| `fall` | jfc f2 | #20 | [116, 142, 155, 204] | [47, 14] | jump fall (jump/fall/crouch f2) |
-| `crouch` | jfc f3 | #38 | [168, 169, 203, 204] | [48, 41] | crouch (jump/fall/crouch f3) |
-| `guard` | jfc f3 | #38 | [168, 169, 203, 204] | [48, 41] | block - REUSED crouch |
-| `blockHit` | jfc f3 | #38 | [168, 169, 203, 204] | [48, 41] | block hit - REUSED crouch |
-| `light` | attack f1 | #39 | [20, 230, 64, 290] | [43, 16] | JAB (attack f1-2) |
-| `light` | attack f2 | #41 | [92, 241, 145, 290] | [42, 27] | JAB (attack f1-2) |
-| `heavy` | attack f3 | #43 | [159, 243, 212, 290] | [42, 29] | HEAVY (attack f3-5, right-reaching arm 170 px) |
-| `heavy` | attack f4 | #40 | [225, 230, 269, 290] | [43, 16] | HEAVY (attack f3-5, right-reaching arm 170 px) |
-| `heavy` | attack f5 | #42 | [288, 242, 354, 290] | [43, 28] | HEAVY (attack f3-5, right-reaching arm 170 px) |
-| `down` | jfc f3 | #38 | [168, 169, 203, 204] | [48, 41] | LOW (crouch -> attack v f2 low vine arms, hits low) |
-| `down` | down f2 | #75 | [87, 407, 150, 446] | [42, 37] | LOW (crouch -> attack v f2 low vine arms, hits low) |
-| `up` | up f1 | #95 | [8, 483, 62, 531] | [42, 28] | LAUNCHER (attack ^ f1-3, rising growth) |
-| `up` | up f2 | #94 | [70, 475, 121, 531] | [43, 20] | LAUNCHER (attack ^ f1-3, rising growth) |
-| `up` | up f3 | #92 | [131, 471, 183, 531] | [43, 16] | LAUNCHER (attack ^ f1-3, rising growth) |
-| `air` | jfc f2 | #20 | [116, 142, 155, 204] | [47, 14] | AIR (fall frame - the sheet has no air attack pose) |
-| `hurt` | jfc f2 | #20 | [116, 142, 155, 204] | [47, 14] | hit light/heavy - REUSED fall (no hurt pose) |
-| `hurt_air` | jfc f2 | #20 | [116, 142, 155, 204] | [47, 14] | hit in the air - REUSED fall |
-| `knockdown` | jfc f2 | #20 | [116, 142, 155, 204] | [47, 14] | knockdown - REUSED fall (no knockdown pose) |
-| `getup` | jfc f3 | #38 | [168, 169, 203, 204] | [48, 41] | get-up - REUSED crouch -> stand |
-| `getup` | stand f1 | #1 | [4, 4, 60, 52] | [42, 28] | get-up - REUSED crouch -> stand |
-| `dizzy` | stand f1 | #1 | [4, 4, 60, 52] | [42, 28] | dizzy - REUSED stand f1-2 (no dizzy pose) |
-| `dizzy` | stand f2 | #2 | [69, 4, 126, 52] | [40, 28] | dizzy - REUSED stand f1-2 (no dizzy pose) |
-| `transform` | stand f1 | #1 | [4, 4, 60, 52] | [42, 28] | transform-in - REUSED stand |
-| `transform` | stand f2 | #2 | [69, 4, 126, 52] | [40, 28] | transform-in - REUSED stand |
-| `transform` | stand f3 | #3 | [138, 4, 194, 52] | [42, 28] | transform-in - REUSED stand |
-| `transform` | stand f4 | #4 | [207, 4, 261, 52] | [42, 28] | transform-in - REUSED stand |
-| `taunt` | down f1 | #72 | [6, 398, 67, 446] | [42, 28] | taunt - REUSED attack v f1 (arms spread) |
-| `win` | stand f1 | #1 | [4, 4, 60, 52] | [42, 28] | win - REUSED stand (no win pose) |
-| `win` | stand f2 | #2 | [69, 4, 126, 52] | [40, 28] | win - REUSED stand (no win pose) |
-| `win` | stand f3 | #3 | [138, 4, 194, 52] | [42, 28] | win - REUSED stand (no win pose) |
-| `win` | stand f4 | #4 | [207, 4, 261, 52] | [42, 28] | win - REUSED stand (no win pose) |
-| `lose` | jfc f3 | #38 | [168, 169, 203, 204] | [48, 41] | lose - REUSED crouch (no lose pose) |
-| `grab` | attack f1 | #39 | [20, 230, 64, 290] | [43, 16] | grab - REUSED jab |
-| `grab` | attack f2 | #41 | [92, 241, 145, 290] | [42, 27] | grab - REUSED jab |
-| `wvPlant` | down f1 | #72 | [6, 398, 67, 446] | [42, 28] | PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod |
-| `wvPlant` | down f2 | #75 | [87, 407, 150, 446] | [42, 37] | PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod |
-| `wvPlant` | down f3 | #76 | [166, 407, 199, 446] | [48, 37] | PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod |
-| `wvGrow` | down f4 | #77 | [210, 407, 242, 446] | [48, 37] | planting / growth hold (attack v LOOP f4-7) |
-| `wvGrow` | down f5 | #78 | [254, 407, 286, 446] | [48, 37] | planting / growth hold (attack v LOOP f4-7) |
-| `wvGrow` | down f6 | #79 | [300, 407, 332, 446] | [48, 37] | planting / growth hold (attack v LOOP f4-7) |
-| `wvGrow` | down f7 | #80 | [341, 407, 373, 446] | [48, 37] | planting / growth hold (attack v LOOP f4-7) |
-| `wvWhip` | fwd f1 | #54 | [10, 306, 55, 365] | [43, 17] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
-| `wvWhip` | fwd f2 | #55 | [68, 317, 180, 365] | [43, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
-| `wvWhip` | fwd f3 | #56 | [184, 317, 282, 365] | [43, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
-| `wvWhip` | fwd f4 | #57 | [286, 317, 371, 365] | [43, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
-| `wvWhip` | fwd f5 | #58 | [386, 317, 455, 365] | [43, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
-| `wvRise` | up f2 | #94 | [70, 475, 121, 531] | [43, 20] | VERDANT RISE (attack ^ f2-4, the tall green growth) |
-| `wvRise` | up f3 | #92 | [131, 471, 183, 531] | [43, 16] | VERDANT RISE (attack ^ f2-4, the tall green growth) |
-| `wvRise` | up f4 | #93 | [189, 474, 241, 531] | [43, 19] | VERDANT RISE (attack ^ f2-4, the tall green growth) |
-| `wvSeed` | attack f5 | #42 | [288, 242, 354, 290] | [43, 28] | SEED SHOT (attack f5 reaching arm) |
+| `idle` | stand f1 | #1 | [4, 4, 60, 52] | [70, 28] | idle (stand loop) |
+| `idle` | stand f2 | #2 | [69, 4, 126, 52] | [68, 28] | idle (stand loop) |
+| `idle` | stand f3 | #3 | [138, 4, 194, 52] | [70, 28] | idle (stand loop) |
+| `idle` | stand f4 | #4 | [207, 4, 261, 52] | [70, 28] | idle (stand loop) |
+| `walk` | walk f1 | #11 | [13, 74, 59, 121] | [70, 29] | walk |
+| `walk` | walk f2 | #12 | [83, 74, 130, 121] | [73, 29] | walk |
+| `walk` | walk f3 | #13 | [131, 74, 178, 121] | [68, 29] | walk |
+| `walk` | walk f4 | #14 | [197, 74, 246, 121] | [72, 29] | walk |
+| `walk_back` | walk f4 | #14 | [197, 74, 246, 121] | [72, 29] | walk back (walk REVERSED) |
+| `walk_back` | walk f3 | #13 | [131, 74, 178, 121] | [68, 29] | walk back (walk REVERSED) |
+| `walk_back` | walk f2 | #12 | [83, 74, 130, 121] | [73, 29] | walk back (walk REVERSED) |
+| `walk_back` | walk f1 | #11 | [13, 74, 59, 121] | [70, 29] | walk back (walk REVERSED) |
+| `run` | walk f1 | #11 | [13, 74, 59, 121] | [70, 29] | run (walk cycle played 2x faster - no run art) |
+| `run` | walk f2 | #12 | [83, 74, 130, 121] | [73, 29] | run (walk cycle played 2x faster - no run art) |
+| `run` | walk f3 | #13 | [131, 74, 178, 121] | [68, 29] | run (walk cycle played 2x faster - no run art) |
+| `run` | walk f4 | #14 | [197, 74, 246, 121] | [72, 29] | run (walk cycle played 2x faster - no run art) |
+| `dash` | walk f2 | #12 | [83, 74, 130, 121] | [73, 29] | dash (walk f2-3, fast) |
+| `dash` | walk f3 | #13 | [131, 74, 178, 121] | [68, 29] | dash (walk f2-3, fast) |
+| `jump` | jfc f1 | #19 | [46, 138, 101, 204] | [68, 10] | jump rise (jump/fall/crouch f1) |
+| `doubleJump` | jfc f1 | #19 | [46, 138, 101, 204] | [68, 10] | double jump - REUSED jump rise |
+| `fall` | jfc f2 | #20 | [116, 142, 155, 204] | [75, 14] | jump fall (jump/fall/crouch f2) |
+| `crouch` | jfc f3 | #38 | [168, 169, 203, 204] | [76, 41] | crouch (jump/fall/crouch f3) |
+| `guard` | jfc f3 | #38 | [168, 169, 203, 204] | [76, 41] | block - REUSED crouch |
+| `blockHit` | jfc f3 | #38 | [168, 169, 203, 204] | [76, 41] | block hit - REUSED crouch |
+| `light` | attack f1 | #39 | [20, 230, 64, 290] | [71, 16] | JAB (attack f1-2) |
+| `light` | attack f2 | #41 | [92, 241, 145, 290] | [70, 27] | JAB (attack f1-2) |
+| `heavy` | attack f3 | #43 | [159, 243, 212, 290] | [70, 29] | HEAVY (attack f3-5, right-reaching arm 170 px) |
+| `heavy` | attack f4 | #40 | [225, 230, 269, 290] | [71, 16] | HEAVY (attack f3-5, right-reaching arm 170 px) |
+| `heavy` | attack f5 | #42 | [288, 242, 354, 290] | [71, 28] | HEAVY (attack f3-5, right-reaching arm 170 px) |
+| `down` | jfc f3 | #38 | [168, 169, 203, 204] | [76, 41] | LOW (crouch -> attack v f2 low vine arms, hits low) |
+| `down` | down f2 | #75 | [87, 407, 150, 446] | [70, 37] | LOW (crouch -> attack v f2 low vine arms, hits low) |
+| `up` | up f1 | #95 | [8, 483, 62, 531] | [70, 28] | LAUNCHER (attack ^ f1-3, rising growth) |
+| `up` | up f2 | #94 | [70, 475, 121, 531] | [71, 20] | LAUNCHER (attack ^ f1-3, rising growth) |
+| `up` | up f3 | #92 | [131, 471, 183, 531] | [71, 16] | LAUNCHER (attack ^ f1-3, rising growth) |
+| `air` | jfc f2 | #20 | [116, 142, 155, 204] | [75, 14] | AIR (fall frame - the sheet has no air attack pose) |
+| `hurt` | jfc f2 | #20 | [116, 142, 155, 204] | [75, 14] | hit light/heavy - REUSED fall (no hurt pose) |
+| `hurt_air` | jfc f2 | #20 | [116, 142, 155, 204] | [75, 14] | hit in the air - REUSED fall |
+| `knockdown` | jfc f2 | #20 | [116, 142, 155, 204] | [75, 14] | knockdown - REUSED fall (no knockdown pose) |
+| `getup` | jfc f3 | #38 | [168, 169, 203, 204] | [76, 41] | get-up - REUSED crouch -> stand |
+| `getup` | stand f1 | #1 | [4, 4, 60, 52] | [70, 28] | get-up - REUSED crouch -> stand |
+| `dizzy` | stand f1 | #1 | [4, 4, 60, 52] | [70, 28] | dizzy - REUSED stand f1-2 (no dizzy pose) |
+| `dizzy` | stand f2 | #2 | [69, 4, 126, 52] | [68, 28] | dizzy - REUSED stand f1-2 (no dizzy pose) |
+| `transform` | stand f1 | #1 | [4, 4, 60, 52] | [70, 28] | transform-in - REUSED stand |
+| `transform` | stand f2 | #2 | [69, 4, 126, 52] | [68, 28] | transform-in - REUSED stand |
+| `transform` | stand f3 | #3 | [138, 4, 194, 52] | [70, 28] | transform-in - REUSED stand |
+| `transform` | stand f4 | #4 | [207, 4, 261, 52] | [70, 28] | transform-in - REUSED stand |
+| `taunt` | down f1 | #72 | [6, 398, 67, 446] | [70, 28] | taunt - REUSED attack v f1 (arms spread) |
+| `win` | stand f1 | #1 | [4, 4, 60, 52] | [70, 28] | win - REUSED stand (no win pose) |
+| `win` | stand f2 | #2 | [69, 4, 126, 52] | [68, 28] | win - REUSED stand (no win pose) |
+| `win` | stand f3 | #3 | [138, 4, 194, 52] | [70, 28] | win - REUSED stand (no win pose) |
+| `win` | stand f4 | #4 | [207, 4, 261, 52] | [70, 28] | win - REUSED stand (no win pose) |
+| `lose` | jfc f3 | #38 | [168, 169, 203, 204] | [76, 41] | lose - REUSED crouch (no lose pose) |
+| `grab` | attack f1 | #39 | [20, 230, 64, 290] | [71, 16] | grab - REUSED jab |
+| `grab` | attack f2 | #41 | [92, 241, 145, 290] | [70, 27] | grab - REUSED jab |
+| `wvPlant` | down f1 | #72 | [6, 398, 67, 446] | [70, 28] | PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod |
+| `wvPlant` | down f2 | #75 | [87, 407, 150, 446] | [70, 37] | PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod |
+| `wvPlant` | down f3 | #76 | [166, 407, 199, 446] | [76, 37] | PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod |
+| `wvGrow` | down f4 | #77 | [210, 407, 242, 446] | [76, 37] | planting / growth hold (attack v LOOP f4-7) |
+| `wvGrow` | down f5 | #78 | [254, 407, 286, 446] | [76, 37] | planting / growth hold (attack v LOOP f4-7) |
+| `wvGrow` | down f6 | #79 | [300, 407, 332, 446] | [76, 37] | planting / growth hold (attack v LOOP f4-7) |
+| `wvGrow` | down f7 | #80 | [341, 407, 373, 446] | [76, 37] | planting / growth hold (attack v LOOP f4-7) |
+| `wvWhip` | fwd f1 | #54 | [10, 306, 55, 365] | [71, 17] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
+| `wvWhip` | fwd f2 | #55 | [68, 317, 180, 365] | [71, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
+| `wvWhip` | fwd f3 | #56 | [184, 317, 282, 365] | [71, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
+| `wvWhip` | fwd f4 | #57 | [286, 317, 371, 365] | [71, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
+| `wvWhip` | fwd f5 | #58 | [386, 317, 455, 365] | [71, 28] | VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract) |
+| `wvRise` | up f2 | #94 | [70, 475, 121, 531] | [71, 20] | VERDANT RISE (attack ^ f2-4, the tall green growth) |
+| `wvRise` | up f3 | #92 | [131, 471, 183, 531] | [71, 16] | VERDANT RISE (attack ^ f2-4, the tall green growth) |
+| `wvRise` | up f4 | #93 | [189, 474, 241, 531] | [71, 19] | VERDANT RISE (attack ^ f2-4, the tall green growth) |
+| `wvSeed` | attack f5 | #42 | [288, 242, 354, 290] | [71, 28] | SEED SHOT (attack f5 reaching arm) |
 
 ## FX frames
 | FX | Frames | Components |

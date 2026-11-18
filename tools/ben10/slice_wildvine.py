@@ -33,8 +33,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 SRC = os.path.join(ROOT, 'assets/sprites/ben10/aliens/wildvine.png')
 DOC = os.path.join(ROOT, 'docs/ben10/aliens/wildvine')
 BG = (195, 195, 195)
-CELL_W, CELL_H = 196, 80
-CX = 64                             # body centre column in the cell (vine arms reach right; raised arms / left arms fit)
+CELL_W, CELL_H = 184, 80
+CX = 92                             # body centre = cell centre (the engine centres the cell on the fighter); +-92 holds the 91 px vine reach
 FEET_Y = 76                         # ground line = originY
 ACTION_SCALE = 1.5
 PREFIX = 'ben10_wildvine_'

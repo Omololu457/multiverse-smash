@@ -7,11 +7,11 @@
  ],
  "nearest_art_distance": 103,
  "cell": [
-  196,
+  184,
   80
  ],
  "feetY": 76,
- "centreX": 64,
+ "centreX": 92,
  "actionScale": 1.5,
  "groups": {
   "stand": [
@@ -166,7 +166,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "idle (stand loop)"
@@ -183,7 +183,7 @@
     52
    ],
    "offset": [
-    40,
+    68,
     28
    ],
    "role": "idle (stand loop)"
@@ -200,7 +200,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "idle (stand loop)"
@@ -217,7 +217,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "idle (stand loop)"
@@ -234,7 +234,7 @@
     121
    ],
    "offset": [
-    42,
+    70,
     29
    ],
    "role": "walk"
@@ -251,7 +251,7 @@
     121
    ],
    "offset": [
-    45,
+    73,
     29
    ],
    "role": "walk"
@@ -268,7 +268,7 @@
     121
    ],
    "offset": [
-    40,
+    68,
     29
    ],
    "role": "walk"
@@ -285,7 +285,7 @@
     121
    ],
    "offset": [
-    44,
+    72,
     29
    ],
    "role": "walk"
@@ -302,7 +302,7 @@
     121
    ],
    "offset": [
-    44,
+    72,
     29
    ],
    "role": "walk back (walk REVERSED)"
@@ -319,7 +319,7 @@
     121
    ],
    "offset": [
-    40,
+    68,
     29
    ],
    "role": "walk back (walk REVERSED)"
@@ -336,7 +336,7 @@
     121
    ],
    "offset": [
-    45,
+    73,
     29
    ],
    "role": "walk back (walk REVERSED)"
@@ -353,7 +353,7 @@
     121
    ],
    "offset": [
-    42,
+    70,
     29
    ],
    "role": "walk back (walk REVERSED)"
@@ -370,7 +370,7 @@
     121
    ],
    "offset": [
-    42,
+    70,
     29
    ],
    "role": "run (walk cycle played 2x faster - no run art)"
@@ -387,7 +387,7 @@
     121
    ],
    "offset": [
-    45,
+    73,
     29
    ],
    "role": "run (walk cycle played 2x faster - no run art)"
@@ -404,7 +404,7 @@
     121
    ],
    "offset": [
-    40,
+    68,
     29
    ],
    "role": "run (walk cycle played 2x faster - no run art)"
@@ -421,7 +421,7 @@
     121
    ],
    "offset": [
-    44,
+    72,
     29
    ],
    "role": "run (walk cycle played 2x faster - no run art)"
@@ -438,7 +438,7 @@
     121
    ],
    "offset": [
-    45,
+    73,
     29
    ],
    "role": "dash (walk f2-3, fast)"
@@ -455,7 +455,7 @@
     121
    ],
    "offset": [
-    40,
+    68,
     29
    ],
    "role": "dash (walk f2-3, fast)"
@@ -472,7 +472,7 @@
     204
    ],
    "offset": [
-    40,
+    68,
     10
    ],
    "role": "jump rise (jump/fall/crouch f1)"
@@ -489,7 +489,7 @@
     204
    ],
    "offset": [
-    40,
+    68,
     10
    ],
    "role": "double jump - REUSED jump rise"
@@ -506,7 +506,7 @@
     204
    ],
    "offset": [
-    47,
+    75,
     14
    ],
    "role": "jump fall (jump/fall/crouch f2)"
@@ -523,7 +523,7 @@
     204
    ],
    "offset": [
-    48,
+    76,
     41
    ],
    "role": "crouch (jump/fall/crouch f3)"
@@ -540,7 +540,7 @@
     204
    ],
    "offset": [
-    48,
+    76,
     41
    ],
    "role": "block - REUSED crouch"
@@ -557,7 +557,7 @@
     204
    ],
    "offset": [
-    48,
+    76,
     41
    ],
    "role": "block hit - REUSED crouch"
@@ -574,7 +574,7 @@
     290
    ],
    "offset": [
-    43,
+    71,
     16
    ],
    "role": "JAB (attack f1-2)"
@@ -591,7 +591,7 @@
     290
    ],
    "offset": [
-    42,
+    70,
     27
    ],
    "role": "JAB (attack f1-2)"
@@ -608,7 +608,7 @@
     290
    ],
    "offset": [
-    42,
+    70,
     29
    ],
    "role": "HEAVY (attack f3-5, right-reaching arm 170 px)"
@@ -625,7 +625,7 @@
     290
    ],
    "offset": [
-    43,
+    71,
     16
    ],
    "role": "HEAVY (attack f3-5, right-reaching arm 170 px)"
@@ -642,7 +642,7 @@
     290
    ],
    "offset": [
-    43,
+    71,
     28
    ],
    "role": "HEAVY (attack f3-5, right-reaching arm 170 px)"
@@ -659,7 +659,7 @@
     204
    ],
    "offset": [
-    48,
+    76,
     41
    ],
    "role": "LOW (crouch -> attack v f2 low vine arms, hits low)"
@@ -676,7 +676,7 @@
     446
    ],
    "offset": [
-    42,
+    70,
     37
    ],
    "role": "LOW (crouch -> attack v f2 low vine arms, hits low)"
@@ -693,7 +693,7 @@
     531
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "LAUNCHER (attack ^ f1-3, rising growth)"
@@ -710,7 +710,7 @@
     531
    ],
    "offset": [
-    43,
+    71,
     20
    ],
    "role": "LAUNCHER (attack ^ f1-3, rising growth)"
@@ -727,7 +727,7 @@
     531
    ],
    "offset": [
-    43,
+    71,
     16
    ],
    "role": "LAUNCHER (attack ^ f1-3, rising growth)"
@@ -744,7 +744,7 @@
     204
    ],
    "offset": [
-    47,
+    75,
     14
    ],
    "role": "AIR (fall frame - the sheet has no air attack pose)"
@@ -761,7 +761,7 @@
     204
    ],
    "offset": [
-    47,
+    75,
     14
    ],
    "role": "hit light/heavy - REUSED fall (no hurt pose)"
@@ -778,7 +778,7 @@
     204
    ],
    "offset": [
-    47,
+    75,
     14
    ],
    "role": "hit in the air - REUSED fall"
@@ -795,7 +795,7 @@
     204
    ],
    "offset": [
-    47,
+    75,
     14
    ],
    "role": "knockdown - REUSED fall (no knockdown pose)"
@@ -812,7 +812,7 @@
     204
    ],
    "offset": [
-    48,
+    76,
     41
    ],
    "role": "get-up - REUSED crouch -> stand"
@@ -829,7 +829,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "get-up - REUSED crouch -> stand"
@@ -846,7 +846,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "dizzy - REUSED stand f1-2 (no dizzy pose)"
@@ -863,7 +863,7 @@
     52
    ],
    "offset": [
-    40,
+    68,
     28
    ],
    "role": "dizzy - REUSED stand f1-2 (no dizzy pose)"
@@ -880,7 +880,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "transform-in - REUSED stand"
@@ -897,7 +897,7 @@
     52
    ],
    "offset": [
-    40,
+    68,
     28
    ],
    "role": "transform-in - REUSED stand"
@@ -914,7 +914,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "transform-in - REUSED stand"
@@ -931,7 +931,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "transform-in - REUSED stand"
@@ -948,7 +948,7 @@
     446
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "taunt - REUSED attack v f1 (arms spread)"
@@ -965,7 +965,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "win - REUSED stand (no win pose)"
@@ -982,7 +982,7 @@
     52
    ],
    "offset": [
-    40,
+    68,
     28
    ],
    "role": "win - REUSED stand (no win pose)"
@@ -999,7 +999,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "win - REUSED stand (no win pose)"
@@ -1016,7 +1016,7 @@
     52
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "win - REUSED stand (no win pose)"
@@ -1033,7 +1033,7 @@
     204
    ],
    "offset": [
-    48,
+    76,
     41
    ],
    "role": "lose - REUSED crouch (no lose pose)"
@@ -1050,7 +1050,7 @@
     290
    ],
    "offset": [
-    43,
+    71,
     16
    ],
    "role": "grab - REUSED jab"
@@ -1067,7 +1067,7 @@
     290
    ],
    "offset": [
-    42,
+    70,
     27
    ],
    "role": "grab - REUSED jab"
@@ -1084,7 +1084,7 @@
     446
    ],
    "offset": [
-    42,
+    70,
     28
    ],
    "role": "PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod"
@@ -1101,7 +1101,7 @@
     446
    ],
    "offset": [
-    42,
+    70,
     37
    ],
    "role": "PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod"
@@ -1118,7 +1118,7 @@
     446
    ],
    "offset": [
-    48,
+    76,
     37
    ],
    "role": "PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod"
@@ -1135,7 +1135,7 @@
     446
    ],
    "offset": [
-    48,
+    76,
     37
    ],
    "role": "planting / growth hold (attack v LOOP f4-7)"
@@ -1152,7 +1152,7 @@
     446
    ],
    "offset": [
-    48,
+    76,
     37
    ],
    "role": "planting / growth hold (attack v LOOP f4-7)"
@@ -1169,7 +1169,7 @@
     446
    ],
    "offset": [
-    48,
+    76,
     37
    ],
    "role": "planting / growth hold (attack v LOOP f4-7)"
@@ -1186,7 +1186,7 @@
     446
    ],
    "offset": [
-    48,
+    76,
     37
    ],
    "role": "planting / growth hold (attack v LOOP f4-7)"
@@ -1203,7 +1203,7 @@
     365
    ],
    "offset": [
-    43,
+    71,
     17
    ],
    "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
@@ -1220,7 +1220,7 @@
     365
    ],
    "offset": [
-    43,
+    71,
     28
    ],
    "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
@@ -1237,7 +1237,7 @@
     365
    ],
    "offset": [
-    43,
+    71,
     28
    ],
    "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
@@ -1254,7 +1254,7 @@
     365
    ],
    "offset": [
-    43,
+    71,
     28
    ],
    "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
@@ -1271,7 +1271,7 @@
     365
    ],
    "offset": [
-    43,
+    71,
     28
    ],
    "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
@@ -1288,7 +1288,7 @@
     531
    ],
    "offset": [
-    43,
+    71,
     20
    ],
    "role": "VERDANT RISE (attack ^ f2-4, the tall green growth)"
@@ -1305,7 +1305,7 @@
     531
    ],
    "offset": [
-    43,
+    71,
     16
    ],
    "role": "VERDANT RISE (attack ^ f2-4, the tall green growth)"
@@ -1322,7 +1322,7 @@
     531
    ],
    "offset": [
-    43,
+    71,
     19
    ],
    "role": "VERDANT RISE (attack ^ f2-4, the tall green growth)"
@@ -1339,7 +1339,7 @@
     290
    ],
    "offset": [
-    43,
+    71,
     28
    ],
    "role": "SEED SHOT (attack f5 reaching arm)"

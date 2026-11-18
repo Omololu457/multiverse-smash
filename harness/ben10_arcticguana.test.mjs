@@ -87,5 +87,55 @@ test('normals connect through the real combat pipeline', () => {
   for (const k of ['light', 'heavy', 'down', 'up']) { const f = ben(), t = foe(); reset(f, t, 10); assert(melee(f, t, k) > 0, k) }
 })
 
+// ── 4 Frost Coat ────────────────────────────────────────────────────────────────────────────────────────────
+const { AG_COAT } = G
+const coatOn = f => { ready(f); assert(G.toggleCoat(f, S(f), null), 'coat'); for (let i = 0; i < AG_COAT.FORM; i++) A.tickBenAlienForm(f, {}, ctxOf(f, foe())) ; return S(f).coat }
+test('4. Frost Coat: Block+Light toggle, 14f to form (committed), cost 10, 240f max, 300f cooldown, refused in hitstun / cooldown', () => {
+  const f = ben(), t = foe(); far(f, t); f.energy = 100; ready(f)
+  assert.equal(ARCTICGUANA.blockLight(f), true, 'the Light press is consumed'); assert.equal(S(f).coat.state, 'forming'); assert.equal(100 - f.energy, AG_COST.coat)
+  assert.equal(f._benPowerCommit, AG_COAT.FORM, 'committed while forming'); assert.equal(ARCTICGUANA.moveFrames(f, 'light', BA.light), false, 'no normals while forming')
+  step(f, t, AG_COAT.FORM - 1); assert.equal(S(f).coat.state, 'forming'); step(f, t, 1); assert.equal(S(f).coat.state, 'on', '14f')
+  step(f, t, AG_COAT.MAX - 1); assert.equal(S(f).coat.state, 'on'); step(f, t, 1); assert.equal(S(f).coat.state, 'off', '240f max'); assert.equal(S(f).coat.cd, AG_COAT.CD)
+  ready(f); assert.equal(G.toggleCoat(f, S(f), null), false, 'cooldown'); step(f, t, AG_COAT.CD); ready(f); f.hitstun = 5; assert.equal(G.toggleCoat(f, S(f), null), false, 'hitstun')
+  f.hitstun = 0; assert(G.toggleCoat(f, S(f), null), 'after 300f'); step(f, t, AG_COAT.FORM + 3); ready(f); assert(G.toggleCoat(f, S(f), null), 'second tap ends it'); assert.equal(S(f).coat.state, 'off'); assert.equal(S(f).coat.cd, AG_COAT.CD)
+})
+test('4. Frost Coat: defense ×1.20, speed ×0.88 while coated; restored after', () => {
+  const f = ben(), t = foe(); far(f, t); const d0 = f.defenseMultiplier, w0 = f._benWalkSpeed, k0 = f.dashSpeed; coatOn(f); step(f, t, 1)
+  assert(Math.abs(f.defenseMultiplier - d0 * 1.2) < 1e-9 && Math.abs(f._benWalkSpeed - w0 * 0.88) < 1e-9 && Math.abs(f.dashSpeed - k0 * 0.88) < 1e-9)
+  const before = f.health; C.applyScaledDamage(f, 100, { source: 'ability', attacker: t }); const coatedTaken = before - f.health
+  const g = ben(); const b2 = g.health; C.applyScaledDamage(g, 100, { source: 'ability', attacker: t }); assert(coatedTaken < b2 - g.health, `non-melee ×1.20 defense (${coatedTaken} vs ${b2 - g.health})`)
+  ready(f); G.toggleCoat(f, S(f), null); step(f, t, 1); assert(Math.abs(f.defenseMultiplier - d0) < 1e-9 && Math.abs(f._benWalkSpeed - w0) < 1e-9, 'restored')
+})
+test('4. Frost Coat: FIRE-tagged damage ×1.25 while coated (tag test; a beam so it does not shatter)', () => {
+  const f = ben(), t = foe(); coatOn(f); const a = f.health; C.applyScaledDamage(f, 100, { source: 'ability', attacker: t, move: 'fire_ball' }); const fire = a - f.health
+  const g = ben(); coatOn(g); const b = g.health; C.applyScaledDamage(g, 100, { source: 'ability', attacker: t, move: 'ki_wave' }); const plain = b - g.health
+  assert(Math.abs(fire / plain - 1.25) < 0.05, `${fire} vs ${plain}`); assert.equal(S(f).coat.state, 'on', 'ability damage never shatters')
+})
+test('4. SHATTER COAT: the first landed hit takes 60%, ends the coat, shard burst 15 to the attacker once; never twice', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); coatOn(f)
+  const a = f.health; C.applyScaledDamage(f, 100, { source: 'projectile', attacker: t, move: 'ki_blast' }); const took = a - f.health
+  const g = ben(); const b = g.health; C.applyScaledDamage(g, 100, { source: 'projectile', attacker: t, move: 'ki_blast' }); const full = b - g.health
+  assert(Math.abs(took / (full / AG_COAT.DEF) - 0.6) < 0.06, `60% (${took} vs ${full})`); assert.equal(S(f).coat.state, 'off'); assert.equal(S(f).coat.shatters, 1)
+  const c = f.health; C.applyScaledDamage(f, 100, { source: 'projectile', attacker: t, move: 'ki_blast' }); assert.equal(c - f.health, full, 'no second shatter (full damage)')
+  const hp = t.health; world(f, t, 3); assert.equal(S(f).stats.bursts, 1); assert(t.health < hp, 'burst hits the attacker'); assert.equal(S(f).stats.burstHits, 1, 'once')
+})
+test('4. SHATTER COAT through the real melee pipeline (a Ben-form attacker lands a normal on the coated Arcticguana)', () => {
+  const f = ben(), atk = ben('heatblast'); atk.side = 'p2'; atk.facing = -1; atk.x = f.x + f.w + 10; coatOn(f)
+  const hp = f.health; ready(atk); assert(C.startMove(atk, 'light', atk.basic_attacks?.light || F.BEN10_ALIEN_POOL.heatblast.basic_attacks.light))
+  for (let i = 0; i < 40 && f.health === hp && atk.attacking; i++) { atk.hitstop = 0; C.updateCombat(atk, f, {}, {}); C.resolveAttackHit(atk, f, [], {}) }
+  assert(f.health < hp, 'landed'); assert.equal(S(f).coat.state, 'off', 'melee shatters'); assert.equal(S(f).coat.ends.at(-1), 'shatter')
+})
+test('4. SHATTER COAT ignores block chip, a guarded hit, beams and throws', () => {
+  const t = foe()
+  for (const [why, opts, blocking] of [['chip', { source: 'block-chip', attacker: t }, false], ['guarded', { source: 'projectile', attacker: t, move: 'ki_blast' }, true],
+    ['beam', { source: 'projectile', attacker: t, move: 'kamehameha_beam' }, false], ['throw', { source: 'grab-throw', attacker: t }, false]]) {
+    const f = ben(); coatOn(f); f.isBlocking = blocking; C.applyScaledDamage(f, 50, opts); assert.equal(S(f).coat.state, 'on', why) }
+})
+test('4. Frost Coat resets on swap / revert / KO (fresh state, mods re-applied)', () => {
+  const f = ben('arcticguana', LOAD); coatOn(f); F.applyAlien(f, 'heatblast'); F.applyAlien(f, 'arcticguana'); assert.equal(S(f).coat.state, 'off'); assert.equal(S(f).coat.cd, 0)
+  assert(Math.abs(f.defenseMultiplier - 1.10) < 1e-9, 'defense back to 1.10')
+  const g = ben(); coatOn(g); F.revertToHuman(g); assert.equal(g.omnitrix.formState, null)
+})
+
 console.log(`\nARCTICGUANA: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

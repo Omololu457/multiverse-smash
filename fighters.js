@@ -13,6 +13,7 @@ import { WILDVINE } from "./wildvine.js"
 import { JETRAY } from "./jetray.js"
 import { DIAMONDHEAD } from "./diamondhead.js"
 import { UPGRADE } from "./upgrade.js"
+import { HUMONGOUSAUR } from "./humongousaur.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -1000,6 +1001,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 58, sizeH: 112 },
     basic_attacks: UPGRADE.basic_attacks, specials: UPGRADE.moves,
     ultimate: { name: "System Takeover", cost: 55, damage: 240 } },
+  // Humongousaur (READY, humongousaur.js): a big upright bruiser hurtbox (the Size tiers scale it through the hurtbox hook,
+  // feet-anchored and stage-clamped). Growth / Tremor / specials / ult via the ready-form hooks. mods (speed 0.85 / dmg 1.15 /
+  // def 1.20 / weight 1.50) via applyAlien.
+  humongousaur: { name: "Humongousaur", color: "#b45309", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 74, sizeH: 132 },
+    basic_attacks: HUMONGOUSAUR.basic_attacks, specials: HUMONGOUSAUR.moves,
+    ultimate: { name: "Extinction Event", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

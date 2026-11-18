@@ -17,7 +17,7 @@ import { tickBenFlood } from "./benFlood.js"   // Ripjaws STORM TIDE world tick 
 // Each of the 7 starter characters has a fully implemented unique kit.
 
 import { characters } from "./characters.js"
-import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
+import { applyAlien, revertToHuman, BEN10_ALIEN_POOL, DEFAULT_OMNITRIX, retagBenReadyArt } from "./fighters.js"   // Ben-human "Hero Time" force-transform (fighters.js is a leaf module → no cycle)
 import { moveset }    from "./moveset.js"
 import { sound, SFX, juicePickVariant, juicePitch }      from "./sound.js"
 import { playHomelanderSfx, startHomelanderLaser, stopHomelanderLaser } from "./homelander_sfx_map.js"   // Homelander voice + SFX dispatch (pools, deterministic hash-pick, cooldowns, laser loop)
@@ -29753,6 +29753,7 @@ function benAlienApi(context) {
 export function tickBenAlienForm(fighter, input, context) {
   const d = benReadyForm(fighter)
   if (d && typeof d.tick === "function") d.tick(fighter, input || {}, context, benAlienApi(context))
+  if (d) retagBenReadyArt(fighter)   // render-only: a form's frame-set swap keeps Albedo's recolored sheets (cached; no-op for Ben)
   if (fighter && fighter._benFlood) tickBenFlood(fighter, context, benAlienApi(context))   // Ripjaws' STORM TIDE world tick (benFlood.js); runs through the recede even after a swap; field-gated
 }
 

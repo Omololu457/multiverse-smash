@@ -2126,7 +2126,13 @@ export const SKINS = {
   // scale + the recolored __albedo portrait; animationData:null so the character's own __albedo
   // sheets are used. No alt/tint skins (his identity IS the recolor).
   albedo: [
-    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale, animationData: null },
+    { id: "default", name: "Default", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale, animationData: null, benVariant: "alienforce" },
+    // The three Omnitrix variants mirror Ben's EXACTLY: same skin ids (applyBen10VariantStats keys on them → identical stats,
+    // normals and specials), Albedo's recolored art (tools/ben10/gen_albedo_ready.py; docs/ben10/albedo/HUMAN_PALETTE.md).
+    { id: "ben10Classic", name: "Classic", unlockLevel: 0, portrait: "./ben10_portrait__classic__albedo.png", spriteScale: characters.albedo?.spriteScale,
+      animationData: Object.fromEntries(Object.entries(BEN10_CLASSIC_ANIM).map(([k, d]) => [k, { ...d, sheet: d.sheet.replace(/\.png$/i, "__albedo.png") }])), benVariant: "classic" },
+    { id: "ben10Prime", name: "Prime (EXPERIMENTAL / pending art)", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale,
+      animationData: null, benVariant: "prime", primePending: true },
     // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (base = ben10_*__albedo.png; Albedo-on-Albedo dropped → Valk+AlienX)
     { id: "albedoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("albedo", "valkyrie"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "valkyrie") },
     { id: "albedoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("albedo", "alienx"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "alienx") },

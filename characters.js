@@ -11571,9 +11571,9 @@ export const characters = {
 // guards keyed on rosterKey) keep resolving and never throw. To bring one back:
 // remove its key from this list and restore its sprite PNGs from git history.
 const _WIPED_FOR_REDO = [
-  "albedo",   // ben10 REMOVED from the wipe (2026-10-24, feat/ben10-omnitrix-framework): human-Ben
-              // art re-extracted from the Alien Force + Classic source sheets (3-variant skins) → LIVE.
-              // albedo (the Ultimatrix clone) stays wiped — its __albedo recolor sheets are not regenerated here.
+  // ben10 REMOVED from the wipe (2026-10-24, feat/ben10-omnitrix-framework): human-Ben art re-extracted from the Alien
+  // Force + Classic source sheets (3-variant skins) → LIVE. albedo REMOVED from the wipe (2026-11-18): his __albedo sheets
+  // are regenerated for all 3 human variants + all 24 READY aliens by tools/ben10/gen_albedo_ready.py (docs/ben10/albedo/).
   "yamamoto",
   /* "batman" REVIVED 2026-11-14 (rebuild, batman*.js) */ "dark_knight", "brainiac", "deathstroke", "green_lantern",
   // superman REMOVED from the wipe (2026-10-23, feat/superman): full rebuild on the JUS-addons sheet

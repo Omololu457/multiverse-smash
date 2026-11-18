@@ -1163,13 +1163,27 @@ const SWITCH_COOLDOWN = 45 // frames between transforms (Omnitrix recharge)
 // (Edo Tensei's reanimation tint no longer uses a tag — it's a live ctx.filter gated on _edoActive.)
 // Cached per (anim,tag).
 const _alienTagCache = new WeakMap()
+const _alienTagOut = new WeakSet()   // every retagged table (so a retagged table is never retagged twice)
 function _retagAlienAnim(anim, tag) {
-  if (!tag || !anim) return anim
+  if (!tag || !anim || _alienTagOut.has(anim)) return anim
   let byTag = _alienTagCache.get(anim); if (!byTag) { byTag = new Map(); _alienTagCache.set(anim, byTag) }
   if (byTag.has(tag)) return byTag.get(tag)
   const out = {}
   for (const [k, d] of Object.entries(anim)) out[k] = d?.sheet ? { ...d, sheet: d.sheet.replace(/\.(png|jpe?g)$/i, `__${tag}.png`) } : d
-  byTag.set(tag, out); return out
+  _alienTagOut.add(out); byTag.set(tag, out); return out
+}
+// READY Omnitrix aliens have recolored art for these tags only (tools/ben10/gen_albedo_ready.py writes <strip>__albedo.png
+// for every body strip of all 24 READY forms, base + alternate tables). Any other tag (none today on ben10) keeps Ben's art.
+export const BEN_READY_ART_TAGS = new Set(["albedo"])
+// RENDER-ONLY: a READY form's own tick swaps its frame table (Heatblast Blue Flame, Megawhatt Drained, Brainstorm dome,
+// Diamondhead Prismatic, Upgrade Overclock, Humongousaur size tiers, Ripjaws land/water). Re-point whatever table it chose at
+// the device's recolored sheets. Same frames / sizes / anchors — only the sheet path differs. Cached per (table, tag): no
+// pixel work, no allocation after the first call, no GAME_STATE (the module's own state still decides WHICH table).
+export function retagBenReadyArt(fighter) {
+  const tag = fighter?._recolorTag
+  if (!BEN_READY_ART_TAGS.has(tag) || !fighter._skinAnim) return
+  const t = _retagAlienAnim(fighter._skinAnim, tag)
+  if (t !== fighter._skinAnim) fighter._skinAnim = t
 }
 
 const BEN10_FORM_ANIM = {
@@ -1630,7 +1644,7 @@ export function applyAlien(fighter, alienKey) {
   // table still swaps in above. When a form's real sheets arrive (benAlienHasArt), the retag path
   // (art-backed animationData, recolor-aware) lights up with no other change.
   if (benAlienHasArt(alienKey)) {
-    fighter._skinAnim = _retagAlienAnim(alienKey === "swampfire" ? SWAMPFIRE_ANIM : (RD?.anim || BEN10_FORM_ANIM[alienKey] || null), (alienKey === "swampfire" || RD?.anim) ? null : fighter._recolorTag)
+    fighter._skinAnim = _retagAlienAnim(alienKey === "swampfire" ? SWAMPFIRE_ANIM : (RD?.anim || BEN10_FORM_ANIM[alienKey] || null), (alienKey === "swampfire" || RD?.anim) ? (BEN_READY_ART_TAGS.has(fighter._recolorTag) ? fighter._recolorTag : null) : fighter._recolorTag)
     fighter.skinTint  = fighter._baseSkinTint ?? null
     fighter._benPlaceholderForm = false
   } else {

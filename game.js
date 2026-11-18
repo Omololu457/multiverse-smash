@@ -794,7 +794,7 @@ import { pickSupermanVoice, SUPERMAN_VOICE } from "./supermanVoice.js"
 import { getSupermanEyeWorld } from "./supermanEyeAnchors.js"   // Cyborg Superman skin — glowing red robotic eye at the per-frame eye anchor
 import { pickOnokiVoice, ONOKI_VOICE } from "./onokiVoice.js"     // Onoki intro ("for the future") + win ("you're the one going to sleep") — JA
 import { pickGenosVoice, GENOS_VOICE } from "./genosVoice.js"     // Genos intro ("a hero nobody knows") — EN
-import { pickAlbedoVoice, ALBEDO_VOICE } from "./albedoVoice.js"   // Albedo (Ben 10 villain) intro + win — EN
+import { ALBEDO_VOICE } from "./albedoVoice.js"   // Albedo (Ben 10 villain) intro + win — EN
 import { pickBardockVoice, BARDOCK_VOICE } from "./bardockVoice.js"   // Bardock intro/win voice pools (audio-only, EN)
 import { pickBakiVoice, BAKI_VOICE } from "./bakiVoice.js"   // Baki intro/win voice pools (audio-only, JA)
 import { pickByakuyaVoice, BYAKUYA_VOICE } from "./byakuyaVoice.js"   // Byakuya intro/win voice pools (audio-only, JA)
@@ -808,7 +808,8 @@ import { pickKakashiVoice, KAKASHI_VOICE } from "./kakashiVoice.js"   // Kakashi
 import { pickLRyuuzakiVoice, L_RYUUZAKI_VOICE } from "./lRyuuzakiVoice.js"   // L intro voice pool (audio-only, EN)
 import { pickPiccoloVoice, PICCOLO_VOICE } from "./piccoloVoice.js"   // Piccolo intro/win voice pools (audio-only, EN)
 import { pickMegumiVoice, MEGUMI_VOICE } from "./megumiVoice.js"   // Megumi intro/win voice pools (audio-only, JA-only per Stage 3)
-import { pickVilgaxVoice, VILGAX_VOICE } from "./vilgaxVoice.js"   // Vilgax taunt/hit voice pools (audio-only, EN; thin pack, no intro/win)
+import { playBen10Vo, pickBen10Vo, setBen10VoClock, ben10VoForSfxEvent } from "./ben10VoiceMap.js"   // Ben 10 cast VO dispatch (deterministic hash pools)
+import { VILGAX_VOICE } from "./vilgaxVoice.js"   // Vilgax taunt/hit voice pools (audio-only, EN; thin pack, no intro/win)
 import { pickYutaVoice, YUTA_VOICE } from "./yutaVoice.js"   // Yuta intro/win voice pools (audio-only, JA-only per Stage 3)
 import { pickIppoVoice, IPPO_VOICE } from "./ippoVoice.js"   // Ippo intro/win voice pools (audio-only, JA)
 import { pickTobiramaVoice, TOBIRAMA_VOICE } from "./tobiramaVoice.js"
@@ -5745,7 +5746,10 @@ const INTRO_VOICE = {
   superman: { pick: (rk) => pickSupermanVoice("intro", rk), gateReveal: false },
   onoki: { pick: () => pickOnokiVoice("intro"), gateReveal: false },   // "未来のために" — for the future (JA)
   genos: { pick: () => pickGenosVoice("intro"), gateReveal: false },   // "A hero nobody knows." (EN)
-  albedo: { pick: () => pickAlbedoVoice("intro"), gateReveal: false }, // "This human body is prison enough." (EN)
+  // Ben 10 cast: select-screen barks pick deterministically (ben10VoiceMap); the match intro is fighter-aware (maybeFireIntroVoice).
+  albedo: { pick: () => pickBen10Vo("intro", { rosterKey: "albedo" })?.clip || null, gateReveal: false },
+  ben10: { pick: () => pickBen10Vo("intro", { rosterKey: "ben10", _benVariant: "alienforce" })?.clip || null, gateReveal: false },
+  vilgax: { pick: () => pickBen10Vo("intro", { rosterKey: "vilgax" })?.clip || null, gateReveal: false },
   // Bardock picks ONE of his "I'm gonna change the future!" pre-fight resolve lines per match (EN). No taunt
   // action → the trash-talk pool rides the offense-connect trigger instead (see bardockVoice.js).
   bardock: { pool: BARDOCK_VOICE.intro, gateReveal: false },
@@ -5858,6 +5862,12 @@ const INTRO_VOICE = {
 }
 function maybeFireIntroVoice(fighter) {
   if (!fighter || fighter._introVoiceDone) return
+  // BEN 10 CAST (ben10 by variant / albedo / vilgax): fighter-aware deterministic pick (ben10VoiceMap).
+  if (["ben10", "albedo", "vilgax"].includes(String(fighter.rosterKey || "").toLowerCase())) {
+    fighter._introVoiceDone = true
+    playBen10Vo("intro", fighter, { seed: matchConfig?.seed, frame: globalFrameCount })
+    return
+  }
   // OMOLOLU: his intro line IS a per-opponent matchup taunt. Fired here on the same reveal beat (reusing the
   // single voice channel + timing), so it naturally REPLACES the generic intro pool. Named, non-excluded
   // opponent → that character's specific line; unnamed / hard-excluded (apparent minors) → a generic jeer.
@@ -10358,9 +10368,13 @@ function _checkMatchOver() {
       if (winFighter?.rosterKey === "onoki") {
         sound.playSfxFile?.(pickOnokiVoice("win"), null)
       }
-      // ALBEDO win voice — vengeful gloat. Fires only when the WINNER is Albedo (Ben 10 villain). EN.
-      if (winFighter?.rosterKey === "albedo") {
-        sound.playSfxFile?.(pickAlbedoVoice("win"), null)
+      // BEN 10 CAST win / lose voice (ben10 / albedo / their READY aliens / vilgax): deterministic pick (ben10VoiceMap).
+      // A transformed winner speaks as the alien, falling back to the human device user's pool.
+      {
+        const _loseFighter = winFighter === p1 ? p2 : winFighter === p2 ? p1 : null
+        const _ctx = { seed: matchConfig?.seed, frame: globalFrameCount }
+        playBen10Vo("win", winFighter, _ctx)
+        if (_loseFighter) playBen10Vo("lose", _loseFighter, _ctx)
       }
       // BARDOCK win voice — "I'm gonna change the future!" Fires only when the WINNER is Bardock. EN.
       if (winFighter?.rosterKey === "bardock") {
@@ -12130,6 +12144,7 @@ function ben10Sfx(fighter, id) {
   const r = (h >>> 0) / 4294967296
   const pitch = 1 + (r * 2 - 1) * 0.03                 // ±3% pitch variance from the hash
   try { sound.playBen10(id, pitch, (h >>> 0) || 1) } catch (_) {}
+  try { ben10VoForSfxEvent(fighter, id, { seed, frame: globalFrameCount }) } catch (_) {}   // VO: transform / special callout (same hash inputs)
 }
 
 function handleOmnitrixSwitch(fighter, inputState) {
@@ -27177,6 +27192,7 @@ const _ANNOUNCE_ON_ENTER = {
 }
 let _announcerPrevState = null
 function updateCurrentState() {
+  setBen10VoClock(matchConfig?.seed, globalFrameCount)   // Ben 10 cast VO clock (render-side; deterministic clip picks)
   // ANNOUNCER — fire a screen-entry line once when the game state CHANGES into a mapped screen (menus /
   // selects / pause). Match-flow events (VS, Fight, combo, low-HP, KO, perfect, victory) are wired at their
   // own event sites. Audio-only; never touches the sim.

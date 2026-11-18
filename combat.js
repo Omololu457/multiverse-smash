@@ -69,7 +69,7 @@ import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickSupermanVoice } from "./supermanVoice.js"
 import { pickOnokiVoice } from "./onokiVoice.js"   // Onoki taunt (Jinton callout) / low-HP defiance voice pools (audio-only, JA)
 import { pickGenosVoice } from "./genosVoice.js"   // Genos taunt-connect voice pool (audio-only, EN)
-import { pickAlbedoVoice } from "./albedoVoice.js"   // Albedo (Ben 10 villain) taunt / low-HP voice pools (audio-only, EN)
+import { playBen10Vo } from "./ben10VoiceMap.js"   // Ben 10 cast VO (ben10 / albedo humans, READY aliens, Vilgax): deterministic hash pools (audio-only)
 import { pickBardockVoice } from "./bardockVoice.js"   // Bardock hit-react / taunt-connect voice pools (audio-only, EN)
 import { pickIppoVoice } from "./ippoVoice.js"   // Ippo hit-react / taunt-connect / low-HP voice pools (audio-only, JA)
 import { pickItachiVoice } from "./itachiVoice.js"
@@ -2595,20 +2595,20 @@ function applyGenosOffenseVoice(attacker, cat, unblocked) {
   try { sound?.playSfxFile?.(pickGenosVoice("taunt"), null) } catch (_) {}
 }
 
-// ── ALBEDO VOICE (Ben 10 villain EN pack; audio-only) — taunt-connect + low-HP self-loathing.
-// The "blank" clips are near-silence (not grunts), so hitReact is omitted. See albedoVoice.js.
-function applyAlbedoOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || voiceKey(attacker.rosterKey) !== "albedo" || (attacker._atkVoiceCd > 0)) return
-  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
-  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
-  if (!strong && !longString) return
-  attacker._atkVoiceCd = 150
-  try { sound?.playSfxFile?.(pickAlbedoVoice("taunt"), null) } catch (_) {}
+// ── BEN 10 CAST VOICE (ben10 / albedo humans + READY aliens + Vilgax; audio-only). ben10VoiceMap.js picks the clip by
+// hash(match seed, frame, player) with per-pool cooldowns and the one-voice-per-character 40 ms fade (Homelander pattern).
+// A clean connect = effort grunt; a special / ultimate = callout; a long string = taunt. Taking a hit = hit-react.
+function applyBen10CastOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker) return
+  if (cat === "special" || cat === "ultimate") playBen10Vo("special", attacker)
+  else if ((attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN) playBen10Vo("taunt", attacker)
+  else playBen10Vo("attack", attacker)
 }
+function applyBen10CastHitVoice(defender) { if (defender) playBen10Vo("hit", defender) }
 function applyAlbedoLowHealthVoice(defender) {
   if (!defender || voiceKey(defender.rosterKey) !== "albedo" || defender._lowHealthVoiceDone) return
   const max = defender.maxHealth || 1000, hp = defender.health || 0
-  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true; try { sound?.playSfxFile?.(pickAlbedoVoice("lowHealth"), null) } catch (_) {} }
+  if (hp > 0 && hp <= max * 0.30) { defender._lowHealthVoiceDone = true; playBen10Vo("lowHealth", defender) }
 }
 
 // ── BARDOCK VOICE LINES ── (DBZ Extreme Butoden English pack; audio-only). Two combat hooks:
@@ -2814,20 +2814,7 @@ function applyMegumiLowHealthVoice(defender) {
     try { sound?.playSfxFile?.(pickMegumiVoice("lowHealth"), null) } catch (_) {} }
 }
 
-// ── VILGAX VOICE (EN; audio-only). Minimal thin pack — taunt shout + hit grunt only. See vilgaxVoice.js.
-function applyVilgaxHitVoice(defender, cat, dmg) {
-  if (!defender || (defender.rosterKey || "").toLowerCase() !== "vilgax" || (defender._hitVoiceCd > 0)) return
-  defender._hitVoiceCd = 150
-  try { sound?.playSfxFile?.(pickVilgaxVoice("hitReact"), null) } catch (_) {}
-}
-function applyVilgaxOffenseVoice(attacker, cat, unblocked) {
-  if (!unblocked || !attacker || (attacker.rosterKey || "").toLowerCase() !== "vilgax" || (attacker._atkVoiceCd > 0)) return
-  const strong     = cat === "heavy" || cat === "special" || cat === "ultimate"
-  const longString = (attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN
-  if (!strong && !longString) return
-  attacker._atkVoiceCd = 150
-  try { sound?.playSfxFile?.(pickVilgaxVoice("taunt"), null) } catch (_) {}
-}
+// (Vilgax's voice moved into the Ben 10 cast dispatch above: applyBen10CastOffenseVoice / applyBen10CastHitVoice.)
 
 // ── YUTA VOICE (JA-only per Stage 3; audio-only). Hit + taunt-connect + once-only low-HP (intro/win in game.js). See yutaVoice.js.
 function applyYutaHitVoice(defender, cat, dmg) {
@@ -3945,7 +3932,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyLRyuuzakiHitVoice(defender, cat, dmg) // L puzzled "Huh?" on hit
     applyPiccoloHitVoice(defender, cat, dmg)   // Piccolo flinch on hit
     applyMegumiHitVoice(defender, cat, dmg)    // Megumi reaction on hit
-    applyVilgaxHitVoice(defender, cat, dmg)    // Vilgax grunt on hit
+    applyBen10CastHitVoice(defender)           // Ben 10 cast (ben10 / albedo / READY aliens / Vilgax) hit-react
     applyYutaHitVoice(defender, cat, dmg)      // Yuta grunt on hit
     applyIppoHitVoice(defender, cat, dmg)      // Ippo reaction on hit
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
@@ -4112,7 +4099,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySupermanOffenseVoice(attacker, cat, !defender.isBlocking)  // Superman confident trash-talk (taunt pool) on a strong/long-string connect
   applyOnokiOffenseVoice(attacker, cat, !defender.isBlocking)   // Onoki Jinton callout / "this ends here" on a strong/long-string connect
   applyGenosOffenseVoice(attacker, cat, !defender.isBlocking)   // Genos "everything that I have!" on a strong/long-string connect
-  applyAlbedoOffenseVoice(attacker, cat, !defender.isBlocking)  // Albedo cold contempt on a strong/long-string connect
+  applyBen10CastOffenseVoice(attacker, cat, !defender.isBlocking)  // Ben 10 cast (ben10 / albedo / READY aliens / Vilgax) effort / callout / taunt
   applyBardockOffenseVoice(attacker, cat, !defender.isBlocking)   // Bardock aggressive trash-talk on a strong/long-string connect
   applyBakiOffenseVoice(attacker, cat, !defender.isBlocking)      // Baki quiet acknowledgement on a strong/long-string connect
   applyByakuyaOffenseVoice(attacker, cat, !defender.isBlocking)   // Byakuya "finishing blow" on a strong/long-string connect
@@ -4126,7 +4113,6 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applyLRyuuzakiOffenseVoice(attacker, cat, !defender.isBlocking) // L detached observation on a strong/long-string connect
   applyPiccoloOffenseVoice(attacker, cat, !defender.isBlocking)   // Piccolo "How do you like that?" on a strong/long-string connect
   applyMegumiOffenseVoice(attacker, cat, !defender.isBlocking)    // Megumi "I'll seriously deck you" on a strong/long-string connect
-  applyVilgaxOffenseVoice(attacker, cat, !defender.isBlocking)    // Vilgax "Die!" on a strong/long-string connect
   applyYutaOffenseVoice(attacker, cat, !defender.isBlocking)      // Yuta "getting stronger" on a strong/long-string connect
   applyIppoOffenseVoice(attacker, cat, !defender.isBlocking)      // Ippo "I felt that connect!" on a strong/long-string connect
   applyOmegaRangerOffenseVoice(attacker, cat, !defender.isBlocking)   // Omega "Had enough?" (strong heavy) / sword-chain combo-finisher

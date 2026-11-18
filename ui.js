@@ -5014,7 +5014,7 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
     ctx.fillStyle = "#7dff6a"
     ctx.fillText("Omnitrix (tap S, S, then ONE key):", 32, panelY + 108)
     // PICK FIVE: the 5 dial keys name the player's own picked loadout (slot order), not a fixed roster
-    const _omxNames = (p1?.omnitrix?.aliens || []).map(k => ({ swampfire: "Swampfire", heatblast: "Heatblast", megawhatt: "Megawhatt", goop: "Goop", xlr8: "XLR8", eyeguy: "Eyeguy", ghostfreak: "Ghostfreak", alienx: "Alien X", brainstorm: "Brainstorm", terraspin: "Terraspin", wildvine: "Wildvine", jetray: "Jetray" })[k] || k)
+    const _omxNames = (p1?.omnitrix?.aliens || []).map(k => ({ swampfire: "Swampfire", heatblast: "Heatblast", megawhatt: "Megawhatt", goop: "Goop", xlr8: "XLR8", eyeguy: "Eyeguy", ghostfreak: "Ghostfreak", alienx: "Alien X", brainstorm: "Brainstorm", terraspin: "Terraspin", wildvine: "Wildvine", jetray: "Jetray", diamondhead_ov: "Diamondhead" })[k] || k)
     const _omxKeys = ["J", "K", "L", "O", "P"].map((k, i) => _omxNames[i] ? `${k} ${_omxNames[i]}` : null).filter(Boolean)
     ctx.fillText(_omxKeys.slice(0, 3).join("  "), 32, panelY + 124)
     ctx.fillText(`${_omxKeys.slice(3).join("  ")}   ; = back to Ben`, 32, panelY + 140)

@@ -1,0 +1,1386 @@
+{
+ "source": "assets/sprites/ben10/aliens/diamondhead.png",
+ "key": [
+  0,
+  80,
+  255
+ ],
+ "key_distance": 90,
+ "fringe_pixels_snapped": 3052,
+ "nearest_dark_suit_distance": 188.0,
+ "cell": [
+  146,
+  80
+ ],
+ "feetY": 76,
+ "centreX": 73,
+ "actionScale": 1.5,
+ "groups": {
+  "stand": [
+   4,
+   3,
+   5,
+   6
+  ],
+  "run": [
+   13,
+   16,
+   15,
+   18,
+   17,
+   14
+  ],
+  "atk1": [
+   22,
+   23,
+   25,
+   26,
+   24
+  ],
+  "shoot": [
+   39,
+   37,
+   38
+  ],
+  "atk2": [
+   48,
+   50,
+   47,
+   46
+  ],
+  "atk3": [
+   58,
+   60,
+   61
+  ],
+  "jfc": [
+   67,
+   66,
+   65
+  ]
+ },
+ "fx": {
+  "shard": [
+   41,
+   40,
+   42
+  ],
+  "spike2": [
+   55,
+   51,
+   49,
+   43
+  ],
+  "spike3": [
+   64,
+   63,
+   59
+  ]
+ },
+ "alt_pal": {
+  "component": 33,
+  "white": [
+   243,
+   244,
+   242
+  ],
+  "dark": [
+   17,
+   21,
+   21
+  ],
+  "mint": [
+   152,
+   221,
+   200
+  ]
+ },
+ "removed_text_components": [
+  1,
+  2,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  20,
+  21,
+  27,
+  28,
+  29,
+  30,
+  31,
+  34,
+  35,
+  36,
+  44,
+  45,
+  56,
+  57,
+  68,
+  69,
+  70,
+  71,
+  72,
+  73,
+  74,
+  75,
+  76
+ ],
+ "of_which_title": [
+  2,
+  7,
+  8,
+  9,
+  10,
+  11
+ ],
+ "of_which_credit": [
+  68,
+  69,
+  70,
+  74,
+  75,
+  76
+ ],
+ "removed_promo": [
+  62
+ ],
+ "removed_alt_figure": [
+  33
+ ],
+ "removed_noise": [
+  19,
+  32,
+  52,
+  53,
+  54
+ ],
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    25,
+    33,
+    64,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "idle (STAND loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 2,
+   "component": 3,
+   "src_bbox": [
+    80,
+    32,
+    121,
+    96
+   ],
+   "offset": [
+    53,
+    12
+   ],
+   "role": "idle (STAND loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 3,
+   "component": 5,
+   "src_bbox": [
+    136,
+    33,
+    175,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "idle (STAND loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 4,
+   "component": 6,
+   "src_bbox": [
+    192,
+    35,
+    229,
+    96
+   ],
+   "offset": [
+    55,
+    15
+   ],
+   "role": "idle (STAND loop)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 1,
+   "component": 13,
+   "src_bbox": [
+    22,
+    134,
+    74,
+    192
+   ],
+   "offset": [
+    56,
+    18
+   ],
+   "role": "walk - the RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 2,
+   "component": 16,
+   "src_bbox": [
+    88,
+    136,
+    143,
+    192
+   ],
+   "offset": [
+    50,
+    20
+   ],
+   "role": "walk - the RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 3,
+   "component": 15,
+   "src_bbox": [
+    161,
+    135,
+    194,
+    192
+   ],
+   "offset": [
+    58,
+    19
+   ],
+   "role": "walk - the RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    217,
+    139,
+    267,
+    192
+   ],
+   "offset": [
+    54,
+    23
+   ],
+   "role": "walk - the RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 5,
+   "component": 17,
+   "src_bbox": [
+    283,
+    138,
+    340,
+    192
+   ],
+   "offset": [
+    51,
+    22
+   ],
+   "role": "walk - the RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 6,
+   "component": 14,
+   "src_bbox": [
+    356,
+    134,
+    389,
+    192
+   ],
+   "offset": [
+    59,
+    18
+   ],
+   "role": "walk - the RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 6,
+   "component": 14,
+   "src_bbox": [
+    356,
+    134,
+    389,
+    192
+   ],
+   "offset": [
+    59,
+    18
+   ],
+   "role": "walk back - RUN REVERSED, slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 5,
+   "component": 17,
+   "src_bbox": [
+    283,
+    138,
+    340,
+    192
+   ],
+   "offset": [
+    51,
+    22
+   ],
+   "role": "walk back - RUN REVERSED, slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    217,
+    139,
+    267,
+    192
+   ],
+   "offset": [
+    54,
+    23
+   ],
+   "role": "walk back - RUN REVERSED, slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 3,
+   "component": 15,
+   "src_bbox": [
+    161,
+    135,
+    194,
+    192
+   ],
+   "offset": [
+    58,
+    19
+   ],
+   "role": "walk back - RUN REVERSED, slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 2,
+   "component": 16,
+   "src_bbox": [
+    88,
+    136,
+    143,
+    192
+   ],
+   "offset": [
+    50,
+    20
+   ],
+   "role": "walk back - RUN REVERSED, slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 1,
+   "component": 13,
+   "src_bbox": [
+    22,
+    134,
+    74,
+    192
+   ],
+   "offset": [
+    56,
+    18
+   ],
+   "role": "walk back - RUN REVERSED, slowed"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 1,
+   "component": 13,
+   "src_bbox": [
+    22,
+    134,
+    74,
+    192
+   ],
+   "offset": [
+    56,
+    18
+   ],
+   "role": "run (RUN)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 2,
+   "component": 16,
+   "src_bbox": [
+    88,
+    136,
+    143,
+    192
+   ],
+   "offset": [
+    50,
+    20
+   ],
+   "role": "run (RUN)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 3,
+   "component": 15,
+   "src_bbox": [
+    161,
+    135,
+    194,
+    192
+   ],
+   "offset": [
+    58,
+    19
+   ],
+   "role": "run (RUN)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 4,
+   "component": 18,
+   "src_bbox": [
+    217,
+    139,
+    267,
+    192
+   ],
+   "offset": [
+    54,
+    23
+   ],
+   "role": "run (RUN)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 5,
+   "component": 17,
+   "src_bbox": [
+    283,
+    138,
+    340,
+    192
+   ],
+   "offset": [
+    51,
+    22
+   ],
+   "role": "run (RUN)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 6,
+   "component": 14,
+   "src_bbox": [
+    356,
+    134,
+    389,
+    192
+   ],
+   "offset": [
+    59,
+    18
+   ],
+   "role": "run (RUN)"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 2,
+   "component": 16,
+   "src_bbox": [
+    88,
+    136,
+    143,
+    192
+   ],
+   "offset": [
+    50,
+    20
+   ],
+   "role": "dash (RUN f2-3, fast)"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 3,
+   "component": 15,
+   "src_bbox": [
+    161,
+    135,
+    194,
+    192
+   ],
+   "offset": [
+    58,
+    19
+   ],
+   "role": "dash (RUN f2-3, fast)"
+  },
+  {
+   "anim": "jump",
+   "group": "jfc",
+   "frame": 2,
+   "component": 66,
+   "src_bbox": [
+    99,
+    636,
+    157,
+    704
+   ],
+   "offset": [
+    52,
+    8
+   ],
+   "role": "jump rise (JUMP)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "jfc",
+   "frame": 2,
+   "component": 66,
+   "src_bbox": [
+    99,
+    636,
+    157,
+    704
+   ],
+   "offset": [
+    52,
+    8
+   ],
+   "role": "double jump - REUSED JUMP"
+  },
+  {
+   "anim": "fall",
+   "group": "jfc",
+   "frame": 3,
+   "component": 65,
+   "src_bbox": [
+    188,
+    633,
+    228,
+    704
+   ],
+   "offset": [
+    53,
+    5
+   ],
+   "role": "jump fall (FALL)"
+  },
+  {
+   "anim": "crouch",
+   "group": "jfc",
+   "frame": 1,
+   "component": 67,
+   "src_bbox": [
+    32,
+    669,
+    64,
+    704
+   ],
+   "offset": [
+    55,
+    41
+   ],
+   "role": "crouch (CROUCH)"
+  },
+  {
+   "anim": "guard",
+   "group": "jfc",
+   "frame": 1,
+   "component": 67,
+   "src_bbox": [
+    32,
+    669,
+    64,
+    704
+   ],
+   "offset": [
+    55,
+    41
+   ],
+   "role": "block - REUSED CROUCH"
+  },
+  {
+   "anim": "blockHit",
+   "group": "jfc",
+   "frame": 1,
+   "component": 67,
+   "src_bbox": [
+    32,
+    669,
+    64,
+    704
+   ],
+   "offset": [
+    55,
+    41
+   ],
+   "role": "block hit - REUSED CROUCH"
+  },
+  {
+   "anim": "light",
+   "group": "atk1",
+   "frame": 1,
+   "component": 22,
+   "src_bbox": [
+    24,
+    227,
+    70,
+    296
+   ],
+   "offset": [
+    54,
+    7
+   ],
+   "role": "JAB (ATTACK 1 f1-2)"
+  },
+  {
+   "anim": "light",
+   "group": "atk1",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    88,
+    234,
+    132,
+    296
+   ],
+   "offset": [
+    60,
+    14
+   ],
+   "role": "JAB (ATTACK 1 f1-2)"
+  },
+  {
+   "anim": "heavy",
+   "group": "atk1",
+   "frame": 3,
+   "component": 25,
+   "src_bbox": [
+    144,
+    246,
+    228,
+    296
+   ],
+   "offset": [
+    49,
+    26
+   ],
+   "role": "HEAVY (ATTACK 1 f3-5: the arm extends into a crystal lance, 190 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "atk1",
+   "frame": 4,
+   "component": 26,
+   "src_bbox": [
+    232,
+    246,
+    327,
+    296
+   ],
+   "offset": [
+    49,
+    26
+   ],
+   "role": "HEAVY (ATTACK 1 f3-5: the arm extends into a crystal lance, 190 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "atk1",
+   "frame": 5,
+   "component": 24,
+   "src_bbox": [
+    336,
+    242,
+    396,
+    296
+   ],
+   "offset": [
+    44,
+    22
+   ],
+   "role": "HEAVY (ATTACK 1 f3-5: the arm extends into a crystal lance, 190 px)"
+  },
+  {
+   "anim": "down",
+   "group": "atk2",
+   "frame": 1,
+   "component": 48,
+   "src_bbox": [
+    24,
+    447,
+    86,
+    512
+   ],
+   "offset": [
+    42,
+    11
+   ],
+   "role": "LOW (ATTACK 2 f1-2 blade sweep, hits low)"
+  },
+  {
+   "anim": "down",
+   "group": "atk2",
+   "frame": 2,
+   "component": 50,
+   "src_bbox": [
+    104,
+    450,
+    162,
+    512
+   ],
+   "offset": [
+    43,
+    14
+   ],
+   "role": "LOW (ATTACK 2 f1-2 blade sweep, hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "atk2",
+   "frame": 3,
+   "component": 47,
+   "src_bbox": [
+    184,
+    442,
+    234,
+    512
+   ],
+   "offset": [
+    56,
+    6
+   ],
+   "role": "LAUNCHER (ATTACK 2 f3-4 rising blade swipe)"
+  },
+  {
+   "anim": "up",
+   "group": "atk2",
+   "frame": 4,
+   "component": 46,
+   "src_bbox": [
+    261,
+    438,
+    299,
+    512
+   ],
+   "offset": [
+    56,
+    2
+   ],
+   "role": "LAUNCHER (ATTACK 2 f3-4 rising blade swipe)"
+  },
+  {
+   "anim": "air",
+   "group": "jfc",
+   "frame": 3,
+   "component": 65,
+   "src_bbox": [
+    188,
+    633,
+    228,
+    704
+   ],
+   "offset": [
+    53,
+    5
+   ],
+   "role": "AIR (FALL frame + procedural blade)"
+  },
+  {
+   "anim": "hurt",
+   "group": "jfc",
+   "frame": 3,
+   "component": 65,
+   "src_bbox": [
+    188,
+    633,
+    228,
+    704
+   ],
+   "offset": [
+    53,
+    5
+   ],
+   "role": "hit light/heavy - REUSED FALL (no hurt pose)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "jfc",
+   "frame": 3,
+   "component": 65,
+   "src_bbox": [
+    188,
+    633,
+    228,
+    704
+   ],
+   "offset": [
+    53,
+    5
+   ],
+   "role": "hit in the air - REUSED FALL"
+  },
+  {
+   "anim": "knockdown",
+   "group": "jfc",
+   "frame": 3,
+   "component": 65,
+   "src_bbox": [
+    188,
+    633,
+    228,
+    704
+   ],
+   "offset": [
+    53,
+    5
+   ],
+   "role": "knockdown - REUSED FALL (no knockdown pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "jfc",
+   "frame": 1,
+   "component": 67,
+   "src_bbox": [
+    32,
+    669,
+    64,
+    704
+   ],
+   "offset": [
+    55,
+    41
+   ],
+   "role": "get-up - REUSED CROUCH -> STAND"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    25,
+    33,
+    64,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "get-up - REUSED CROUCH -> STAND"
+  },
+  {
+   "anim": "dizzy",
+   "group": "stand",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    25,
+    33,
+    64,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "dizzy - REUSED STAND f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "stand",
+   "frame": 2,
+   "component": 3,
+   "src_bbox": [
+    80,
+    32,
+    121,
+    96
+   ],
+   "offset": [
+    53,
+    12
+   ],
+   "role": "dizzy - REUSED STAND f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    25,
+    33,
+    64,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "transform-in - REUSED STAND"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 2,
+   "component": 3,
+   "src_bbox": [
+    80,
+    32,
+    121,
+    96
+   ],
+   "offset": [
+    53,
+    12
+   ],
+   "role": "transform-in - REUSED STAND"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 3,
+   "component": 5,
+   "src_bbox": [
+    136,
+    33,
+    175,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "transform-in - REUSED STAND"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 4,
+   "component": 6,
+   "src_bbox": [
+    192,
+    35,
+    229,
+    96
+   ],
+   "offset": [
+    55,
+    15
+   ],
+   "role": "transform-in - REUSED STAND"
+  },
+  {
+   "anim": "taunt",
+   "group": "atk3",
+   "frame": 1,
+   "component": 58,
+   "src_bbox": [
+    32,
+    547,
+    77,
+    616
+   ],
+   "offset": [
+    55,
+    7
+   ],
+   "role": "taunt - REUSED ATTACK 3 f1 (arm raised)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 1,
+   "component": 4,
+   "src_bbox": [
+    25,
+    33,
+    64,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "win - REUSED STAND (no win pose)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 2,
+   "component": 3,
+   "src_bbox": [
+    80,
+    32,
+    121,
+    96
+   ],
+   "offset": [
+    53,
+    12
+   ],
+   "role": "win - REUSED STAND (no win pose)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 3,
+   "component": 5,
+   "src_bbox": [
+    136,
+    33,
+    175,
+    96
+   ],
+   "offset": [
+    54,
+    13
+   ],
+   "role": "win - REUSED STAND (no win pose)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 4,
+   "component": 6,
+   "src_bbox": [
+    192,
+    35,
+    229,
+    96
+   ],
+   "offset": [
+    55,
+    15
+   ],
+   "role": "win - REUSED STAND (no win pose)"
+  },
+  {
+   "anim": "lose",
+   "group": "jfc",
+   "frame": 1,
+   "component": 67,
+   "src_bbox": [
+    32,
+    669,
+    64,
+    704
+   ],
+   "offset": [
+    55,
+    41
+   ],
+   "role": "lose - REUSED CROUCH (no lose pose)"
+  },
+  {
+   "anim": "grab",
+   "group": "atk1",
+   "frame": 1,
+   "component": 22,
+   "src_bbox": [
+    24,
+    227,
+    70,
+    296
+   ],
+   "offset": [
+    54,
+    7
+   ],
+   "role": "grab - REUSED JAB"
+  },
+  {
+   "anim": "grab",
+   "group": "atk1",
+   "frame": 2,
+   "component": 23,
+   "src_bbox": [
+    88,
+    234,
+    132,
+    296
+   ],
+   "offset": [
+    60,
+    14
+   ],
+   "role": "grab - REUSED JAB"
+  },
+  {
+   "anim": "dhShoot",
+   "group": "shoot",
+   "frame": 1,
+   "component": 39,
+   "src_bbox": [
+    24,
+    342,
+    65,
+    400
+   ],
+   "offset": [
+    54,
+    18
+   ],
+   "role": "SHARD SHOT cast (SHOOT f1-3)"
+  },
+  {
+   "anim": "dhShoot",
+   "group": "shoot",
+   "frame": 2,
+   "component": 37,
+   "src_bbox": [
+    88,
+    340,
+    138,
+    400
+   ],
+   "offset": [
+    53,
+    16
+   ],
+   "role": "SHARD SHOT cast (SHOOT f1-3)"
+  },
+  {
+   "anim": "dhShoot",
+   "group": "shoot",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    160,
+    341,
+    232,
+    400
+   ],
+   "offset": [
+    51,
+    17
+   ],
+   "role": "SHARD SHOT cast (SHOOT f1-3)"
+  },
+  {
+   "anim": "dhLance",
+   "group": "atk1",
+   "frame": 3,
+   "component": 25,
+   "src_bbox": [
+    144,
+    246,
+    228,
+    296
+   ],
+   "offset": [
+    49,
+    26
+   ],
+   "role": "CRYSTAL LANCE (ATTACK 1 f3 extend, f4 full lance held, f5 recover) + ult opener"
+  },
+  {
+   "anim": "dhLance",
+   "group": "atk1",
+   "frame": 4,
+   "component": 26,
+   "src_bbox": [
+    232,
+    246,
+    327,
+    296
+   ],
+   "offset": [
+    49,
+    26
+   ],
+   "role": "CRYSTAL LANCE (ATTACK 1 f3 extend, f4 full lance held, f5 recover) + ult opener"
+  },
+  {
+   "anim": "dhLance",
+   "group": "atk1",
+   "frame": 4,
+   "component": 26,
+   "src_bbox": [
+    232,
+    246,
+    327,
+    296
+   ],
+   "offset": [
+    49,
+    26
+   ],
+   "role": "CRYSTAL LANCE (ATTACK 1 f3 extend, f4 full lance held, f5 recover) + ult opener"
+  },
+  {
+   "anim": "dhLance",
+   "group": "atk1",
+   "frame": 5,
+   "component": 24,
+   "src_bbox": [
+    336,
+    242,
+    396,
+    296
+   ],
+   "offset": [
+    44,
+    22
+   ],
+   "role": "CRYSTAL LANCE (ATTACK 1 f3 extend, f4 full lance held, f5 recover) + ult opener"
+  },
+  {
+   "anim": "dhGround",
+   "group": "atk3",
+   "frame": 1,
+   "component": 58,
+   "src_bbox": [
+    32,
+    547,
+    77,
+    616
+   ],
+   "offset": [
+    55,
+    7
+   ],
+   "role": "PRISM WALL / SPIKE ERUPTION cast (ATTACK 3 f1-3: arm raised -> hand to ground)"
+  },
+  {
+   "anim": "dhGround",
+   "group": "atk3",
+   "frame": 2,
+   "component": 60,
+   "src_bbox": [
+    96,
+    567,
+    143,
+    616
+   ],
+   "offset": [
+    50,
+    27
+   ],
+   "role": "PRISM WALL / SPIKE ERUPTION cast (ATTACK 3 f1-3: arm raised -> hand to ground)"
+  },
+  {
+   "anim": "dhGround",
+   "group": "atk3",
+   "frame": 3,
+   "component": 61,
+   "src_bbox": [
+    160,
+    567,
+    205,
+    616
+   ],
+   "offset": [
+    48,
+    27
+   ],
+   "role": "PRISM WALL / SPIKE ERUPTION cast (ATTACK 3 f1-3: arm raised -> hand to ground)"
+  },
+  {
+   "anim": "dhHarden",
+   "group": "jfc",
+   "frame": 1,
+   "component": 67,
+   "src_bbox": [
+    32,
+    669,
+    64,
+    704
+   ],
+   "offset": [
+    55,
+    41
+   ],
+   "role": "HARDEN - holds the CROUCH frame (+ procedural crystal sheen)"
+  },
+  {
+   "anim": "dhDive",
+   "group": "jfc",
+   "frame": 3,
+   "component": 65,
+   "src_bbox": [
+    188,
+    633,
+    228,
+    704
+   ],
+   "offset": [
+    53,
+    5
+   ],
+   "role": "DIAMOND DIVE - FALL frame (+ procedural blade)"
+  },
+  {
+   "anim": "dhBurst",
+   "group": "atk2",
+   "frame": 4,
+   "component": 46,
+   "src_bbox": [
+    261,
+    438,
+    299,
+    512
+   ],
+   "offset": [
+    56,
+    2
+   ],
+   "role": "SHATTER BURST - ATTACK 2 f4 (blade raised)"
+  }
+ ]
+}

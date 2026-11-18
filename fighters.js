@@ -11,6 +11,7 @@ import { BRAINSTORM } from "./brainstorm.js"
 import { TERRASPIN } from "./terraspin.js"
 import { WILDVINE } from "./wildvine.js"
 import { JETRAY } from "./jetray.js"
+import { DIAMONDHEAD } from "./diamondhead.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -984,6 +985,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 70, sizeH: 96 },
     basic_attacks: JETRAY.basic_attacks, specials: JETRAY.moves,
     ultimate: { name: "Cosmic Drag", cost: 55, damage: 240 } },
+  // Diamondhead (READY, diamondhead.js; key diamondhead_ov — the experimental `diamondhead` mkAlien above is untouched): a broad
+  // crystal body hurtbox (blades / lance / spikes outside it, the lance joins it via the hurtbox hook). Crystal Body / Prism Wall /
+  // Shards / Prismatic / specials / ult via the ready-form hooks. mods (speed 0.95 / dmg 1.10 / def 1.15 / weight 1.20) via applyAlien.
+  diamondhead_ov: { name: "Diamondhead", color: "#5eead4", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 66, sizeH: 118 },
+    basic_attacks: DIAMONDHEAD.basic_attacks, specials: DIAMONDHEAD.moves,
+    ultimate: { name: "Diamond Cathedral", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

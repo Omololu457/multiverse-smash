@@ -327,3 +327,26 @@ exercise it) is untouched. PICK FIVE: catalog slot 14 is metadata (the brief ask
 | Heavy arm / Tendril Lash tendril hurtbox | `hurtbox` |
 | Spear Dive | `_benGlide` (Diamond Dive) |
 | System Takeover | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` (Diamond Cathedral pattern); 4 copies = hashed spots, render-only |
+
+### Feedback (added 2026-11-18) — key `feedback_ov`, reused hooks only
+Registered under `feedback_ov` so the experimental `feedback` (its legacy kit, animation table, the `_fbAbsorbWindow` absorb in
+`combat.js`, and the harnesses that exercise them) is untouched. PICK FIVE: catalog slot 15 is metadata (ready slots stay
+contiguous 1..15, ben10_moveset_p4); he is picked into the loadout and reached with the Dial (↓↓ + slot key). The brief asked to
+raise the dial's slot count to 15: not done (owner decision: PICK FIVE, no new dial slots).
+
+**No new engine hook.** The two hooks the brief anticipated were built inside the form:
+
+| Brief's possible hook | How it is done instead |
+|---|---|
+| stored-projectile record | the existing `absorb` hook (projectile path) stamps the projectile (`_fbAbsorbed`, atomic), copies a plain-data record (damage, speed, size, tags, owner side, look) into `formState.stored` and returns true (the engine consumes it). RETURN FIRE re-spawns it through `api.spawnProjectile`; its RETURNED flag rides in `alien.returned` because the shared spawn copies only `alien` / `fire` / hb* extras onto projectiles. |
+| "no energy regen" status (BLACKOUT) | the form's own `tick` inspects the opponent's per-frame `energy` rise (meter is `energy` here): ≤1.5 / f (passive regen, Charge-button charging) is undone, larger (on-hit / on-block meter) is halved; spending passes. Same pattern as Upgrade's CRASH clamp. No input polling, no clock change. |
+
+| Mechanic | Hook reused |
+|---|---|
+| CHARGE gauge (absorb / Siphon +15 / electric hit +4 / 180f idle decay) | `onContact` (his projectiles carry `alien.fb`; normals are `electric: true`) + `tick` |
+| PLUG GUARD (Block + Heavy, 10f, 5 s cd) | `blockHeavy` (Heatblast / Diamondhead) + `absorb` (melee path: element-tagged only; projectile path: everything except throws / unblockables / ultimates / RETURNED / stationary physical boxes). Beams: per tick while Block is held (`input.block` read in `tick`), ≤30f, half gain, no record |
+| DRAIN pips → BLACKOUT | `onContact` + `alien.pip` tags (Siphon / Plasma Orb / Conduit Dash only), once per cast id |
+| Siphon Cable tether + hurtbox | hidden `api.spawnProjectile` box + `hurtbox` (Upgrade's Lash) |
+| Conduit Dash | `_benGlide` + a riding hitbox (Brainstorm's Calculated Strike) |
+| Return Fire aim | `api.getOpponent` (the nearest other fighter in 1v1; uses `api.allFighters` if an engine ever provides it) |
+| Full Feedback | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` (System Takeover pattern) |

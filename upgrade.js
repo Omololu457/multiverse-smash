@@ -91,6 +91,7 @@ function tick(f, input, ctx, api) {
   tickTerminal(f, s, api, opp)                                            // before the cast: a terminal planted this frame starts at t 0
   tickTermCast(f, s)
   tickMerge(f, s)
+  tickVirus(f, s, opp)
   //@@TICK@@
   s.noAttack = busy(s)
   s.spPrev = !!input.special
@@ -288,6 +289,42 @@ function tickMerge(f, s) {
   if (f._skinAnim !== want) f._skinAnim = want
 }
 
+// ── VIRUS pips → CRASH (a status on the OPPONENT, owned by this form's GAME_STATE) ────────────────────────────────
+// Clean hits (not blocked) from Zap Bolt, Tendril Lash's finisher and Tendril Rise add ONE pip per cast (proj tag
+// `alien.pip`, counted once per cast id), max 3; the pips expire 240f after the last one. No pips from blocks, FX, Terminal
+// pulses or the ult's render copies. 3 pips → CRASH 180f: the opponent gains no Power / meter (every gain is clamped back by
+// this form's tick — meter is `energy` in this engine; spending still works) and immediately loses 15 Power, which Upgrade
+// gains (the amount actually lost). No refresh while active (pips can't build), then 360f immunity. Nothing polls the
+// opponent's inputs or touches any clock. Static lines on the opponent are render-only.
+export const UP_VIRUS = { MAX: 3, EXPIRE: 240, CRASH: 180, STEAL: 15, IMMUNE: 360 }
+export const crashed = s => !!s && s.virus.crashT > 0
+export function addPip(f, s, cast) {
+  const v = s.virus
+  if (v.crashT > 0 || v.immuneT > 0) return false                          // no refresh while active / immune afterwards
+  if (cast != null) { if (v.pipped.includes(cast)) return false; v.pipped.push(cast); if (v.pipped.length > 8) v.pipped.shift() }
+  v.pips = Math.min(UP_VIRUS.MAX, v.pips + 1); v.pipT = UP_VIRUS.EXPIRE; s.stats.pips++
+  return true
+}
+// CRASH: returns true if it started (3 pips, not immune). Used by the pip path and the ult's end beat.
+export function startCrash(f, s, opp) {
+  const v = s.virus
+  if (!opp || v.crashT > 0 || v.immuneT > 0) return false
+  v.pips = 0; v.pipT = 0; v.crashT = UP_VIRUS.CRASH; v.crashes++; s.stats.crashes++
+  const before = opp.energy || 0, after = Math.max(0, before - UP_VIRUS.STEAL), lost = before - after
+  opp.energy = after; v.cap = after; v.lastGain = lost
+  f.energy = Math.min(f.maxEnergy || 100, (f.energy || 0) + lost)
+  return true
+}
+function tickVirus(f, s, opp) {
+  const v = s.virus
+  if (v.crashT > 0) {
+    if (opp) { const e = opp.energy || 0; if (v.cap == null || e < v.cap) v.cap = e; else if (e > v.cap) opp.energy = v.cap }   // no Power gain
+    if (--v.crashT === 0) { v.immuneT = UP_VIRUS.IMMUNE; v.cap = null }
+  } else if (v.immuneT > 0) v.immuneT--
+  if (v.pips > 0 && v.crashT <= 0) { if (--v.pipT <= 0) { v.pips = 0; v.pipT = 0 } }
+  if (v.pips >= UP_VIRUS.MAX) startCrash(f, s, opp)
+}
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
 function hurtbox(f) { return null }
 function evade(f, info) { return false }
@@ -300,7 +337,14 @@ function damageDealt(f, target, raw, opts) {
   if (opts && opts.move === "up_pulse") raw = Math.min(raw, Math.max(0, (target.health || 0) - 1))
   return raw
 }
-function onContact(f, target, info) {}
+function onContact(f, target, { proj = null, blocked = false } = {}) {
+  const s = upState(f); if (!s || !proj || !proj.alien) return
+  const tag = proj.alien
+  //@@CONTACT@@
+  if (!blocked && tag.pip === true) {
+    if (addPip(f, s, tag.cast) && s.virus.pips >= UP_VIRUS.MAX) startCrash(f, s, target)   // crash the same frame the 3rd lands
+  }
+}
 function fireUltimate(f, ctx, api) { return false }
 function targetOffset(f, target) { return null }
 function drainMultOf(f) { const s = upState(f); if (!s) return 1; let m = 1
@@ -382,6 +426,37 @@ export function drawUpgradeFx(c, f, frame = 0, opp = null) {
     for (let i = 0; i < 6; i++) { const r = rHash(t >> 2, i, 31), y = top + h - ((t * 3 + i * 23) % h); px(c, bx + (r - 0.5) * (f.w || 58) * 1.4, y, 3) }
     if (s.oc.t < 40 && (t >> 2) % 2) { c.fillStyle = "#ff5b5b"; px(c, bx, top - 10, 5) }   // about to drop out
   }
+  if (opp && (s.virus.pips > 0 || s.virus.crashT > 0)) {   // VIRUS pips over the opponent; CRASH = glitch static lines on them
+    const ox = cx(opp), top = opp.y, h = opp.h || 110, v = s.virus
+    if (v.crashT > 0) {
+      for (let i = 0; i < 7; i++) { const r = rHash(s.t >> 1, i, 53); if (r < 0.25) continue
+        c.fillStyle = i % 3 === 0 ? WHT : i % 3 === 1 ? GRN : CYAN; c.globalAlpha = 0.75
+        c.fillRect(Math.round(ox - (opp.w || 60) * 0.7 + rHash(s.t >> 1, i, 59) * 12), Math.round(top + r * h), Math.round((opp.w || 60) * 1.4 * (0.4 + r * 0.6)), 2) }
+      c.globalAlpha = 1; c.fillStyle = (s.t >> 3) % 2 ? "#ff5b5b" : WHT; c.font = "bold 10px monospace"; c.textAlign = "center"; c.fillText("CRASH", ox, top - 18)
+    } else for (let k = 0; k < UP_VIRUS.MAX; k++) {
+      const x = ox - 12 + k * 12, y = top - 14; c.fillStyle = INK; c.fillRect(x - 4, y - 4, 9, 9)
+      c.fillStyle = k < v.pips ? GRN : "#334155"; c.fillRect(x - 3, y - 3, 7, 7); if (k < v.pips) { c.fillStyle = WHT; c.fillRect(x - 1, y - 1, 2, 2) }
+    }
+  }
   //@@DRAWFX@@
 }
-export function drawUpgradeHud(ctx, f, opts) {}
+export function drawUpgradeHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
+  const s = upState(f); if (!ctx || !s) return
+  const y = enY + enH + 3, bx = flip ? x + 8 + (pbw || 120) - 64 : x + 8
+  ctx.save(); ctx.textBaseline = "top"
+  const w = s.term                                                            // TERMINAL slot: boot / online life bar
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(bx, y, 18, 14)
+  const live = w && !w.gone, on = live && w.t >= UP_TERM.BOOT
+  ctx.strokeStyle = on ? GRN : live ? CYAN : "#4b5563"; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, y + 0.5, 17, 13)
+  if (live) { ctx.fillStyle = on ? GRN : CYAN; ctx.fillRect(bx + 4, y + 3, 10, 6)
+    ctx.fillStyle = "#e5e7eb"; ctx.fillRect(bx + 2, y + 11, Math.round(14 * (on ? 1 - (w.t - UP_TERM.BOOT) / UP_TERM.ONLINE : w.t / UP_TERM.BOOT)), 1) }
+  const tx = flip ? bx - 6 : bx + 22
+  ctx.textAlign = flip ? "right" : "left"; ctx.font = "bold 7px Arial"
+  const o = s.oc
+  ctx.fillStyle = o.t > 0 ? LIME : o.cdT > 0 ? "#fca5a5" : "#9ca3af"
+  ctx.fillText(o.t > 0 ? `OVERCLOCK ${Math.ceil(o.t / 60)}s` : o.cdT > 0 ? "COOLDOWN" : o.lockT > 0 ? `MERGE ${Math.ceil(o.lockT / 60)}s` : "MERGE", tx, y)
+  const v = s.virus
+  ctx.fillStyle = v.crashT > 0 ? "#ff5b5b" : v.pips ? GRN : "#e5e7eb"
+  ctx.fillText(v.crashT > 0 ? `CRASH ${Math.ceil(v.crashT / 60)}s` : v.immuneT > 0 ? `VIRUS (immune ${Math.ceil(v.immuneT / 60)}s)` : `VIRUS ${"■".repeat(v.pips)}${"□".repeat(UP_VIRUS.MAX - v.pips)}`, tx, y + 7)
+  ctx.restore()
+}

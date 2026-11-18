@@ -137,6 +137,28 @@ test('5. Overclock cleared on swap / revert', () => {
   assert(U.overclocked(S(f))); assert(F.applyAlien(f, 'goop')); assert(F.applyAlien(f, 'upgrade_ov')); assert(!U.overclocked(S(f))); assert.equal(f._benWalkSpeed, sp)
   assert.equal(S(f).oc.lockT, 0, 'fresh state')
 })
+// ── 6 Virus / Crash ─────────────────────────────────────────────────────────────────────────────────────────
+const { UP_VIRUS } = U
+const tagHit = (f, t, cast, { blocked = false, pip = true } = {}) => UPGRADE.onContact(f, t, { proj: { alien: { up: 'zap', pip, cast } }, blocked })
+test('6. Virus: one pip per cast on clean hits, max 3; none from blocks / pulses; expire 240f after the last', () => {
+  const f = ben(), t = foe(); far(f, t); const v = S(f).virus
+  tagHit(f, t, 1); tagHit(f, t, 1); assert.equal(v.pips, 1, 'once per cast'); tagHit(f, t, 2, { blocked: true }); assert.equal(v.pips, 1, 'blocked: none')
+  tagHit(f, t, 3, { pip: false }); assert.equal(v.pips, 1, 'pulse / FX tag: none')
+  step(f, t, UP_VIRUS.EXPIRE - 1); assert.equal(v.pips, 1); tagHit(f, t, 4); assert.equal(v.pips, 2); step(f, t, UP_VIRUS.EXPIRE - 1); assert.equal(v.pips, 2, 'timer refreshed by the last pip')
+  step(f, t, 1); assert.equal(v.pips, 0, 'expired')
+})
+test('6. CRASH: 3 pips → 180f; opponent loses 15 Power to Upgrade and gains none; no refresh; 360f immunity', () => {
+  const f = ben(), t = foe(); far(f, t); const v = S(f).virus; t.energy = 50; f.energy = 40
+  tagHit(f, t, 1); tagHit(f, t, 2); assert.equal(v.crashT, 0); tagHit(f, t, 3)
+  assert.equal(v.crashT, UP_VIRUS.CRASH, 'crash on the 3rd'); assert.equal(t.energy, 35, '−15'); assert.equal(f.energy, 55, 'Upgrade +15'); assert.equal(v.pips, 0)
+  t.energy += 20; step(f, t, 1); assert.equal(t.energy, 35, 'gain clamped back'); t.energy -= 10; step(f, t, 1); assert.equal(t.energy, 25, 'spending still works')
+  t.energy += 5; step(f, t, 1); assert.equal(t.energy, 25)
+  tagHit(f, t, 9); assert.equal(v.pips, 0, 'no refresh while active'); step(f, t, v.crashT); assert.equal(v.crashT, 0); assert.equal(v.immuneT, UP_VIRUS.IMMUNE)
+  t.energy += 20; step(f, t, 1); assert.equal(t.energy, 45, 'gains again after the crash')
+  for (const c of [10, 11, 12]) tagHit(f, t, c); assert.equal(v.pips, 0, 'immune: no pips'); step(f, t, UP_VIRUS.IMMUNE); for (const c of [13, 14, 15]) tagHit(f, t, c)
+  assert.equal(v.crashes, 2, 'crash again after 360f')
+  const g = ben(), u = foe(); u.energy = 6; g.energy = 99; for (const c of [1, 2, 3]) tagHit(g, u, c); assert.equal(u.energy, 0); assert.equal(g.energy, 100, 'steal = what was lost, capped')
+})
 //@@TESTS@@
 console.log(`UPGRADE: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

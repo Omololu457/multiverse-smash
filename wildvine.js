@@ -9,6 +9,8 @@ import { WILDVINE_ANIM, WILDVINE_FX, WILDVINE_GEOM } from "./wildvineAssets.js"
 export { WILDVINE_ANIM, WILDVINE_FX, WILDVINE_GEOM }
 
 const ANIM = { ...WILDVINE_ANIM }
+// Vine Whip timing: f1 wind-up 0–4, f2 curl 5–9, f3 extended 10–14 (hit 1 at 14), f4 full reach 15–19 (hit 2 at 18), f5 retract
+ANIM.wvWhip = { ...ANIM.wvWhip, speed: 5 }
 
 // Pre-mod frame data (startup / damage / on-block advantage); blockstun derives the advantage.
 const normal = (damage, startup, active, recovery, advantage, extra = {}) => ({
@@ -33,7 +35,7 @@ export const WILDVINE = {
   },
   anim: ANIM, fx: WILDVINE_FX,
   drainMult: f => (wvState(f)?.bloom?.t > 0 ? WV_BLOOM.DRAIN : 1),   // FULL BLOOM −10% Power drain (function form, ADD_ALIEN.md)
-  onApply, tick, moveFrames, fireSpecial, onContact, damageDealt,
+  onApply, tick, moveFrames, fireSpecial, onContact, damageDealt, hurtbox,
   drawHud: drawWildvineHud, drawFx: drawWildvineFx, drawUnder: drawWildvineUnder
 }
 
@@ -42,12 +44,14 @@ export function freshWildvineState() {
   return { kind: "wildvine", t: 0, castId: 0, noAttack: false,
     stage: { L: -1e6, R: 1e6 },
     garden: [], plantSeq: 0, plant: null,
+    whip: null, rise: null, riseUsed: false, seed: null,
     bloom: { t: 0, cd: 0, count: 0 },
     snareT: 0,
     ent: { pips: 0, pipT: 0, pipped: [], rootT: 0, immune: 0, roots: 0 },
     fwdPrev: false, fwdTapT: -999, dashTapT: -999, downHeld: 0,
     stats: { planted: { thorn: 0, snare: 0, bloom: 0 }, consumedBy: { contact: 0, self: 0, whip: 0, ult: 0, replaced: 0 },
-      consumeLog: [], erupts: 0, snares: 0, heals: 0, healed: 0, blooms: 0 } }
+      consumeLog: [], erupts: 0, snares: 0, heals: 0, healed: 0, blooms: 0,
+      whips: 0, rises: 0, seeds: 0, whipTriggers: 0, ults: 0 } }
 }
 export const wvState = f => (f?.omnitrix?.formState?.kind === "wildvine" && f.transformed && f.activeAlien === "wildvine") ? f.omnitrix.formState : null
 
@@ -64,6 +68,7 @@ export function wvHash(seed, frame, player, k = 0) {
   h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; h = (h ^ (h >>> 16)) >>> 0
   return h / 4294967296
 }
+let projRef = null   // the engine's live projectile list (render reads it; never written by render)
 const grounded = f => !!(f && (f.onGround || f.grounded))
 export const overlap = (a, b) => !!a && !!b && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
 const bodyBox = o => ({ x: o.x, y: o.y, w: o.w || 60, h: o.h || 110 })
@@ -77,15 +82,20 @@ function tick(f, input, ctx, api) {
   if (ctx && Number.isFinite(ctx.stageLeft)) s.stage.L = ctx.stageLeft
   if (ctx && Number.isFinite(ctx.stageWidth)) s.stage.R = ctx.stageWidth
   const opp = api && api.getOpponent ? api.getOpponent(f) : null
+  if (api && api.activeProjectiles) projRef = api.activeProjectiles()      // read-only reference for the seed render
   tickInputs(f, s, input)
+  if (grounded(f)) s.riseUsed = false                                      // Verdant Rise: once per airtime
   tickPlantCast(f, s)
+  tickWhip(f, s, api)
+  tickRise(f, s, api)
+  tickSeed(f, s, api)
   tickGarden(f, s, api, opp)
   tickBloom(s)
   tickEntangle(s)
   tickRoot(s, opp)
   s.noAttack = busy(s)
 }
-const busy = s => !!(s.plant)
+const busy = s => !!(s.plant || s.whip || s.rise || s.seed)
 // moveFrames hook (combat.startMove): no normals while a cast owns him
 function moveFrames(f, key, md) { const s = wvState(f); if (!s) return md; return busy(s) ? false : md }
 
@@ -227,19 +237,28 @@ function damageDealt(f, target, raw, opts) { const s = wvState(f); return s && s
 
 // ── SPECIALS (dispatch) ──────────────────────────────────────────────────────────────────────────────────
 // The shared alien motion inputs = the direction held the frame Special is pressed:
-//   ↓↘→ + P (neutral / →) Thornspike   ↓↙← + P (←) Snare Vine   ←↙↓ + P (↓) Bloom Pod
-export const WV_COST = { thorn: WV_PLANT.thorn.cost, snare: WV_PLANT.snare.cost, bloom: WV_PLANT.bloom.cost }
-function pickSpecial(f, s) {
+//   ↓↘→ + P (neutral / →) Thornspike   ↓↙← + P (←) Snare Vine   ←↙↓ + P (↓ tapped) Bloom Pod
+//   →→ + P Vine Whip (a frame-counted double tap)   →↓↘ + P → ↑ + P Verdant Rise (↓↘→ is Thornspike's; the engine's held
+//   direction has no diagonals, so the DP motion is read as its ↑ — documented)   ↓ held ≥ 20f + P Seed Shot ("hold ↓, tap P")
+//   Air: ↓ + P Seed Shot, anything else Verdant Rise (once per airtime). Plants are ground only.
+export const WV_SEED_HOLD = 20
+export const WV_COST = { thorn: WV_PLANT.thorn.cost, snare: WV_PLANT.snare.cost, bloom: WV_PLANT.bloom.cost, whip: 12, rise: 14, seed: 8, ultimate: 55 }
+export function pickSpecial(f, s) {
   const dir = (f._specialHeldDir === "N" ? null : f._specialHeldDir) || null
-  if (!grounded(f)) return null
+  if (!grounded(f)) return dir === "D" ? "seed" : "rise"
+  if (dir === "U") return "rise"
   if (dir === "B") return "snare"
-  if (dir === "D") return "bloom"
+  if (dir === "D") return s.downHeld >= WV_SEED_HOLD ? "seed" : "bloom"
+  if (dir === "F" && s.t - (s.dashTapT ?? -999) <= WV_DASH_WINDOW) return "whip"
   return "thorn"
 }
 function fireSpecial(f, ctx, api) {
   const s = wvState(f); if (!s) return false
   const kind = pickSpecial(f, s); if (!kind) return false
   if (kind === "thorn" || kind === "snare" || kind === "bloom") return castPlant(f, s, api, kind)
+  if (kind === "whip") return castWhip(f, s, api)
+  if (kind === "rise") return castRise(f, s, api)
+  if (kind === "seed") return castSeed(f, s, api)
   return false
 }
 function canAct(f, s) {
@@ -272,6 +291,93 @@ function tickPlantCast(f, s) {
   if (c.t === WV_CAST.AT) c.planted = addPlant(f, s, c.type, c.cast).id
   f._spriteCastMove = c.t < WV_CAST.POSE ? "wvPlant" : "wvGrow"; f._spriteCastTimer = Math.max(2, WV_CAST.TOTAL - c.t)
   if (c.t >= WV_CAST.TOTAL) s.plant = null
+}
+
+// 4. VINE WHIP (→→ + P, 12) — attack → f1–5. 14f startup, the vine arm lashes 340 px: 2 hits 20 / 28 = 48, −12 on block,
+//    22f recovery after the last hit (whiff-punishable: the extended arm is part of his hurtbox while it is out). The
+//    finisher's clean hit +1 Entangle. (Phase 6: crossing a GROWN Thornspike of his makes it erupt early.)
+export const WV_WHIP = { HITS_AT: [14, 18], DMG: [20, 28], REACH: 340, EXT_FROM: 6, FULL_AT: 14, HOLD_TO: 20, RETRACT_TO: 28, RECOVERY: 22,
+  ON_BLOCK: -12, H: 44, ARM_Y: 0.3 }
+WV_WHIP.TOTAL = WV_WHIP.HITS_AT[1] + 2 + WV_WHIP.RECOVERY
+export function whipExt(t) {
+  const W = WV_WHIP
+  if (t < W.EXT_FROM) return 0
+  if (t <= W.FULL_AT) return W.REACH * (t - W.EXT_FROM) / (W.FULL_AT - W.EXT_FROM)
+  if (t <= W.HOLD_TO) return W.REACH
+  if (t <= W.RETRACT_TO) return W.REACH * (W.RETRACT_TO - t) / (W.RETRACT_TO - W.HOLD_TO)
+  return 0
+}
+const armEdge = (f, face) => cx(f) + face * (f.w || 60) / 2
+function castWhip(f, s, api) {
+  const c = beginCast(f, s, api, "wvWhip", WV_COST.whip, WV_WHIP.TOTAL); if (!c) return false
+  s.whip = { t: 0, cast: c.cast, face: f.facing || 1 }; s.stats.whips++
+  return true
+}
+function tickWhip(f, s, api) {
+  const w = s.whip; if (!w) return
+  w.t++
+  if ((f.hitstun || 0) > 0) { s.whip = null; return }
+  const k = WV_WHIP.HITS_AT.indexOf(w.t)
+  if (k >= 0) { const last = k === WV_WHIP.HITS_AT.length - 1, rem = WV_WHIP.TOTAL - w.t, ext = whipExt(w.t), edge = armEdge(f, w.face)
+    hitbox(f, api, "wv_whip", w.face, { damage: WV_WHIP.DMG[k], spawnX: edge + w.face * ext / 2, spawnY: f.y + (f.h || 110) * WV_WHIP.ARM_Y + 10,
+      w: ext, h: WV_WHIP.H, lifetime: 2, hitstun: last ? rem + 8 : 16, blockstun: last ? blockstunFor(rem, WV_WHIP.ON_BLOCK) : 12, noHitstop: !last,
+      knockbackX: last ? 6 : 0.4, knockbackY: last ? -3 : 0, alien: { wv: "whip", pip: last, cast: w.cast } }) }
+  f._spriteCastMove = "wvWhip"; f._spriteCastTimer = Math.max(2, WV_WHIP.TOTAL - w.t)
+  if (w.t >= WV_WHIP.TOTAL) s.whip = null
+}
+// hurtbox hook (combat): while the vine arm is out it is part of his hurtbox (punishable on whiff)
+function hurtbox(f) {
+  const s = wvState(f); const w = s && s.whip; if (!w) return null
+  const ext = whipExt(w.t); if (!(ext > 0)) return null
+  const body = { x: f.x + 6, y: f.y + 6, w: Math.max(1, (f.w || 60) - 12), h: Math.max(1, (f.h || 110) - 6) }
+  const edge = armEdge(f, w.face), ay = f.y + (f.h || 110) * WV_WHIP.ARM_Y
+  const x0 = Math.min(body.x, edge, edge + w.face * ext), x1 = Math.max(body.x + body.w, edge, edge + w.face * ext)
+  return { x: x0, y: Math.min(body.y, ay), w: x1 - x0, h: Math.max(body.y + body.h, ay + WV_WHIP.H) - Math.min(body.y, ay) }
+}
+
+// 5. VERDANT RISE (↑ + P, 14; ground or air) — attack ↑ f2–4: the green growth rises beside him with a launching hit, 55,
+//    anti-air, −14 on block, +1 Entangle on a clean hit. In the air: once per airtime, no jump refill.
+export const WV_RISE = { STARTUP: 10, ACTIVE: 4, RECOVERY: 26, DMG: 55, ON_BLOCK: -14, W: 76, H: 180, OFF: 34 }
+WV_RISE.TOTAL = WV_RISE.STARTUP + WV_RISE.ACTIVE + WV_RISE.RECOVERY
+function castRise(f, s, api) {
+  const air = !grounded(f)
+  if (air && s.riseUsed) return false
+  const c = beginCast(f, s, api, "wvRise", WV_COST.rise, WV_RISE.TOTAL, { commit: !air }); if (!c) return false
+  if (air) s.riseUsed = true
+  s.rise = { t: 0, cast: c.cast, face: f.facing || 1, air }; s.stats.rises++
+  return true
+}
+function tickRise(f, s, api) {
+  const r = s.rise; if (!r) return
+  r.t++
+  if ((f.hitstun || 0) > 0) { s.rise = null; return }
+  if (r.t === WV_RISE.STARTUP) { const rem = WV_RISE.TOTAL - r.t, base = f.y + (f.h || 110)
+    hitbox(f, api, "wv_rise", r.face, { damage: WV_RISE.DMG, spawnX: cx(f) + r.face * ((f.w || 60) / 2 + WV_RISE.OFF), spawnY: base - WV_RISE.H / 2,
+      w: WV_RISE.W, h: WV_RISE.H, lifetime: WV_RISE.ACTIVE, hitstun: 34, blockstun: blockstunFor(rem, WV_RISE.ON_BLOCK),
+      knockbackX: 2, knockbackY: -14, alien: { wv: "rise", pip: true, cast: r.cast } }) }
+  f._spriteCastMove = "wvRise"; f._spriteCastTimer = Math.max(2, WV_RISE.TOTAL - r.t)
+  if (r.t >= WV_RISE.TOTAL || (r.air && grounded(f) && r.t > WV_RISE.STARTUP + WV_RISE.ACTIVE)) { s.rise = null; if (r.air) { f.attackCooldown = 0; f._spriteCastTimer = 0; f._spriteCastMove = null } }
+}
+
+// 6. SEED SHOT (hold ↓ + tap P, 8; air: ↓ + P) — attack f5 + the 4 extracted seeds: a quick fan of 2 seeds flying 400 px,
+//    14 each, ONE hit max per target (the fan is a single hitbox: one contact = 14). Bait for his plants.
+export const WV_SEED = { STARTUP: 8, RECOVERY: 16, DMG: 14, SPEED: 16, RANGE: 400, W: 34, H: 56 }
+WV_SEED.TOTAL = WV_SEED.STARTUP + WV_SEED.RECOVERY
+function castSeed(f, s, api) {
+  const c = beginCast(f, s, api, "wvSeed", WV_COST.seed, WV_SEED.TOTAL, { commit: grounded(f) }); if (!c) return false
+  s.seed = { t: 0, cast: c.cast, face: f.facing || 1 }; s.stats.seeds++
+  return true
+}
+function tickSeed(f, s, api) {
+  const d = s.seed; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { s.seed = null; return }
+  if (d.t === WV_SEED.STARTUP) hitbox(f, api, "wv_seed", d.face, { damage: WV_SEED.DMG, vx: d.face * WV_SEED.SPEED, speed: WV_SEED.SPEED,
+    spawnX: armEdge(f, d.face) + d.face * 30, spawnY: f.y + (f.h || 110) * WV_WHIP.ARM_Y + 10, w: WV_SEED.W, h: WV_SEED.H,
+    lifetime: Math.round(WV_SEED.RANGE / WV_SEED.SPEED), hitstun: 14, blockstun: 8, knockbackX: 1.5, knockbackY: 0,
+    alien: { wv: "seed", pip: false, cast: d.cast } })
+  f._spriteCastMove = "wvSeed"; f._spriteCastTimer = Math.max(2, WV_SEED.TOTAL - d.t)
+  if (d.t >= WV_SEED.TOTAL) s.seed = null
 }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
@@ -369,6 +475,22 @@ export function drawWildvineFx(c, f, frame = 0, opp = null) {
       if (e.rootT > 0) { c.fillStyle = LIME; c.font = "bold 9px Arial"; c.textAlign = "center"; c.fillText("ROOTED", ox, top - 10) }
     }
   }
+  const w = s.whip, ext = w ? whipExt(w.t) : 0
+  if (w && ext > 0) {                                                        // the vine past the sheet's arm (procedural, 340 px reach)
+    const e = armEdge(f, w.face), ay = f.y + (f.h || 110) * WV_WHIP.ARM_Y + 10, art = Math.min(ext, 150)
+    vine(c, e + w.face * art, ay, e + w.face * ext, ay + Math.sin(w.t / 2) * 3, w.cast, 3, 2)
+    c.fillStyle = OUT; px(c, e + w.face * ext, ay, 9); c.fillStyle = LIME; px(c, e + w.face * ext, ay, 5)
+  }
+  const r = s.rise
+  if (r && r.t >= 4 && r.t <= WV_RISE.STARTUP + WV_RISE.ACTIVE + 2) {        // the extracted blue spark over the rising growth
+    const sp = WILDVINE_FX.spark.anchor || { dx: 0, dyFromFeet: -58 }
+    fxFrame(c, "spark", 0, cx(f) + (f.facing || 1) * sp.dx * FX_SCALE, f.y + (f.h || 110) + sp.dyFromFeet * FX_SCALE * 0.75, FX_SCALE)
+    c.fillStyle = LIME; const bx = cx(f) + (r.face) * ((f.w || 60) / 2 + WV_RISE.OFF)
+    for (let k = 0; k < 6; k++) px(c, bx - 14 + rHash(r.cast, k, 3) * 28, f.y + (f.h || 110) - ((r.t * 12 + k * 30) % WV_RISE.H), 4)
+  }
+  if (projRef) for (const p of projRef) if (p && p.owner === f && p.name === "wv_seed") {   // SEED SHOT: the fan of 2 extracted seeds
+    const travelled = Math.max(0, Math.round(WV_SEED.RANGE / WV_SEED.SPEED) - (p.lifetime ?? 0)) * WV_SEED.SPEED, spread = 6 + Math.min(18, travelled * 0.05)
+    for (const sd of [-1, 1]) fxFrame(c, "seed", sd < 0 ? 0 : 2, p.x, p.y + sd * spread + WILDVINE_FX.seed.h * FX_SCALE / 2, FX_SCALE) }
   if (s.bloom.t > 0) {                                                       // FULL BLOOM: a petal ring + drifting leaves
     drawPixelRing(c, fx, fy, (f.w || 60) * 0.9, (f.h || 110) * 0.55, (s.bloom.t >> 3) % 2 ? POD : LIME, 3, 16, frame / 30)
     c.fillStyle = GREEN; for (let k = 0; k < 6; k++) px(c, fx - 40 + rHash(k, frame >> 3, 7) * 80, f.y + ((frame * 2 + k * 23) % (f.h || 110)), 3)

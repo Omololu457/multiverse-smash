@@ -320,3 +320,4 @@ exercise it) is untouched. PICK FIVE: catalog slot 15 is metadata; he is picked 
 |---|---|
 | TERMINAL (owner-limited object, BOOT → ONLINE, periodic pulse at the foe, destructible) | the form's own `tick` + `drawUnder` (Prism Wall / planted-object pattern); pulses are tagged hidden projectiles (`alien.up = "pulse"`, drawn in `drawFx`); projectile hits splice `api.activeProjectiles()` (beams pass); melee via the new `api.getAttackHitbox` |
 | Pulse can't KO | `damageDealt` (caps the raw damage at health − 1 before the global scale) |
+| MERGE → OVERCLOCK (speed ×1.20, damage ×1.15, ALT PAL) and its 60f cooldown | the form's `tick` (`_benWalkSpeed` / `dashSpeed` from the onApply base, Jetray's pattern) + `damageDealt` + the `_skinAnim` frame-set swap (Diamondhead's Prismatic) + `drainMult` function form (Wildvine) for the cooldown's +50% drain |

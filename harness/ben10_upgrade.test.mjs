@@ -111,6 +111,32 @@ test('4. Terminal: removed on swap / revert / KO', () => {
   assert(F.applyAlien(f, 'goop')); assert(!f.omnitrix.formState || f.omnitrix.formState.kind !== 'upgrade_ov'); assert(F.applyAlien(f, 'upgrade_ov')); assert.equal(S(f).term, null)
   deploy(f, t); F.revertToHuman(f); assert.equal(f.omnitrix.formState, null)
 })
+// ── 5 Merge / Overclock ────────────────────────────────────────────────────────────────────────────────────
+const { UP_MERGE } = U
+const nearTerm = (f, w) => { f.x = w.x - f.w / 2 - 40 }
+test('5. Merge: only with an ONLINE Terminal within 100 px (booting / out of range → rejected at no cost or Tendril Rise)', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); const w = deploy(f, t); nearTerm(f, w); ready(f); const e = f.energy
+  assert(!cast(f, t, 'U'), 'booting terminal: rejected'); assert.equal(f.energy, e, 'no cost'); assert(S(f).stats.mergeRejects >= 1)
+  step(f, t, UP_TERM.BOOT); assert(U.termOnline(S(f))); f.x = w.x + 150; assert(!U.termNear(f, S(f)), '150 px away')
+  nearTerm(f, w); const e2 = f.energy; assert(cast(f, t, 'U'), 'Merge'); assert.equal(e2 - f.energy, UP_COST.merge)
+  assert(w.gone && w.by === 'merged', 'terminal consumed'); assert.equal(f._spriteCastMove, 'upMerge')
+  step(f, t, UP_MERGE.FRAMES - 1); assert(!U.overclocked(S(f))); step(f, t, 1); assert.equal(S(f).oc.t, UP_MERGE.OC, 'OVERCLOCK after the 20f Merge')
+})
+test('5. Overclock: speed ×1.20, damage ×1.15, ALT PAL frame set; then 60f cooldown (drain +50%, no Merge); once per 900f', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); const sp = f._benWalkSpeed, w = online(f, t); nearTerm(f, w); assert(cast(f, t, 'U')); step(f, t, UP_MERGE.FRAMES + 1)
+  assert(U.overclocked(S(f))); assert(Math.abs(f._benWalkSpeed - sp * 1.2) < 1e-9, 'speed ×1.2'); assert.equal(f._skinAnim, U.UP_FRAMESETS.overclock, 'alt pal')
+  assert(Math.abs(UPGRADE.damageDealt(f, t, 100, { move: 'light' }) - 115) < 1e-9, 'damage ×1.15')
+  assert.equal(UPGRADE.drainMult(f), 1); step(f, t, S(f).oc.t); assert.equal(S(f).oc.t, 0); assert.equal(f._benWalkSpeed, sp, 'speed restored')
+  assert.equal(f._skinAnim, U.UP_FRAMESETS.normal); assert(S(f).oc.cdT > 0); assert.equal(UPGRADE.drainMult(f), 1.5, 'cooldown drain +50%')
+  const w2 = online(f, t); nearTerm(f, w2); const e = f.energy; assert(!cast(f, t, 'U'), 'no Merge in cooldown / lock'); assert.equal(f.energy, e)
+  step(f, t, S(f).oc.cdT + 1); assert.equal(UPGRADE.drainMult(f), 1); assert(S(f).oc.lockT > 0); assert(!cast(f, t, 'U'), 'once per 900f')
+  step(f, t, S(f).oc.lockT); const w3 = online(f, t); nearTerm(f, w3); assert(cast(f, t, 'U'), 'again after 900f'); assert.equal(S(f).stats.merges, 2)
+})
+test('5. Overclock cleared on swap / revert', () => {
+  clearProj(); const f = ben('upgrade_ov', LOAD), t = foe(); far(f, t); const sp = f._benWalkSpeed; const w = online(f, t); nearTerm(f, w); assert(cast(f, t, 'U')); step(f, t, UP_MERGE.FRAMES + 2)
+  assert(U.overclocked(S(f))); assert(F.applyAlien(f, 'goop')); assert(F.applyAlien(f, 'upgrade_ov')); assert(!U.overclocked(S(f))); assert.equal(f._benWalkSpeed, sp)
+  assert.equal(S(f).oc.lockT, 0, 'fresh state')
+})
 //@@TESTS@@
 console.log(`UPGRADE: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

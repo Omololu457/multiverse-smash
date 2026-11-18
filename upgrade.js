@@ -90,6 +90,7 @@ function tick(f, input, ctx, api) {
   if (grounded(f)) s.spearUsed = false                                     // Spear Dive: once per airtime
   tickTerminal(f, s, api, opp)                                            // before the cast: a terminal planted this frame starts at t 0
   tickTermCast(f, s)
+  tickMerge(f, s)
   //@@TICK@@
   s.noAttack = busy(s)
   s.spPrev = !!input.special
@@ -247,6 +248,46 @@ function tickTerminal(f, s, api, opp) {
   if (ot > 0 && ot % UP_TERM.EVERY === 0) firePulse(f, s, api, opp)
 }
 
+// ── MERGE (→↓↘ + P, cost 10) → OVERCLOCK ──────────────────────────────────────────────────────────────────────
+// Only when his ONLINE Terminal is within 100 px (centre to terminal): the Merge frame for 20f, the Terminal is CONSUMED at
+// the start (atomic, through endTerminal), then OVERCLOCK 240f: speed ×1.20, damage ×1.15 (damageDealt), Zap Bolt becomes a
+// 2-hit piercing bolt, the ALT PAL palette (render-only frame-set swap; the flag lives in formState). Then a 60f COOLDOWN:
+// Power drain +50% (drainMult), no Merge. Once per 900f (from the Merge). formState is cleared on swap / revert / KO / rematch.
+// Routing: →↓↘ + P with NO Terminal within 100 px is TENDRIL RISE (Phase 6). With one within 100 px that can't merge yet
+// (still booting, Overclocked, cooling down, inside the 900f lock) the Merge is REJECTED at no cost.
+export const UP_MERGE = { COST: 10, RANGE: 100, FRAMES: 20, OC: 240, CD: 60, LOCK: 900, SPEED: 1.20, DMG: 1.15, DRAIN_CD: 1.5 }
+export const overclocked = s => !!s && s.oc.t > 0
+export const termNear = (f, s) => termLive(s) && Math.abs(cx(f) - s.term.x) <= UP_MERGE.RANGE
+export function canMerge(f, s) { return termOnline(s) && termNear(f, s) && s.oc.t <= 0 && s.oc.cdT <= 0 && s.oc.lockT <= 0 }
+function castMerge(f, s, api, ctx) {
+  if (!termNear(f, s)) return CASTS.rise ? CASTS.rise(f, s, api, ctx) : false     // no Terminal near → Tendril Rise
+  if (!grounded(f) || !canMerge(f, s) || !canAct(f, s)) { s.stats.mergeRejects++; return false }   // rejected at no cost
+  const c = beginCast(f, s, api, "upMerge", UP_COST.merge, UP_MERGE.FRAMES); if (!c) { s.stats.mergeRejects++; return false }
+  endTerminal(s, "merged")                                                   // consumed (atomic: one gate)
+  s.merge = { t: 0, cast: c.cast, x: s.term ? s.term.x : cx(f) }
+  s.oc.lockT = UP_MERGE.LOCK; s.stats.merges++
+  return true
+}
+CASTS.merge = castMerge
+function tickMerge(f, s) {
+  const o = s.oc                                                            // count down first: an Overclock starting this frame keeps its full 240f
+  if (o.lockT > 0) o.lockT--
+  if (o.t > 0) { if (--o.t === 0) o.cdT = UP_MERGE.CD }
+  else if (o.cdT > 0) o.cdT--
+  const m = s.merge
+  if (m) {
+    m.t++
+    if ((f.hitstun || 0) > 0) s.merge = null                                 // hit out of the Merge: Terminal already spent, no Overclock
+    else {
+      f._spriteCastMove = "upMerge"; f._spriteCastTimer = Math.max(2, UP_MERGE.FRAMES - m.t)
+      if (m.t >= UP_MERGE.FRAMES) { s.merge = null; s.oc.t = UP_MERGE.OC; s.oc.count++; s.stats.overclocks++ }
+    }
+  }
+  if (s.baseSpeed != null) { const k = o.t > 0 ? UP_MERGE.SPEED : 1; f._benWalkSpeed = s.baseSpeed * k; if (s.baseDash != null) f.dashSpeed = s.baseDash * k }
+  const want = o.t > 0 ? OC_ANIM : ANIM                                     // render-only frame-set swap (ALT PAL)
+  if (f._skinAnim !== want) f._skinAnim = want
+}
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
 function hurtbox(f) { return null }
 function evade(f, info) { return false }
@@ -254,6 +295,7 @@ function evade(f, info) { return false }
 // which is the last step after this hook, so the dealt damage is always < health)
 function damageDealt(f, target, raw, opts) {
   const s = upState(f); if (!s) return raw
+  if (s.oc.t > 0) raw *= UP_MERGE.DMG                                        // OVERCLOCK damage ×1.15
   //@@DEALT@@
   if (opts && opts.move === "up_pulse") raw = Math.min(raw, Math.max(0, (target.health || 0) - 1))
   return raw
@@ -261,7 +303,10 @@ function damageDealt(f, target, raw, opts) {
 function onContact(f, target, info) {}
 function fireUltimate(f, ctx, api) { return false }
 function targetOffset(f, target) { return null }
-function drainMultOf(f) { return 1 }
+function drainMultOf(f) { const s = upState(f); if (!s) return 1; let m = 1
+  if (s.oc.t <= 0 && s.oc.cdT > 0) m *= UP_MERGE.DRAIN_CD                      // OVERCLOCK cooldown: Power drain +50%
+  //@@DRAIN@@
+  return m }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
 const _imgs = {}
@@ -327,6 +372,16 @@ export function drawUpgradeUnder(c, f) {
 export function drawUpgradeFx(c, f, frame = 0, opp = null) {
   const s = upState(f); if (!s) return
   if (projRef) for (const p of projRef) if (p && p.owner === f && p.alien && p.alien.up === "pulse") drawPulse(c, p, frame)
+  if (s.merge) {   // MERGE: circuit traces pulling from where the terminal stood into his body
+    const k = s.merge.t / UP_MERGE.FRAMES, bx = cx(f), by = f.y + (f.h || 110) * 0.55
+    for (let i = 0; i < 4; i++) drawTrace(c, s.merge.x + (bx - s.merge.x) * k, f.y + (f.h || 110) - 10 - i * 16, bx, by - i * 8, i % 2 ? GRN : CYAN, 3, s.merge.cast * 7 + i)
+  }
+  if (s.oc.t > 0) {   // OVERCLOCK: a pixel circuit halo + rising glints (the palette itself is the frame-set swap)
+    const bx = cx(f), top = f.y, h = f.h || 110, t = s.t
+    c.fillStyle = (t >> 2) % 2 ? LIME : WHT
+    for (let i = 0; i < 6; i++) { const r = rHash(t >> 2, i, 31), y = top + h - ((t * 3 + i * 23) % h); px(c, bx + (r - 0.5) * (f.w || 58) * 1.4, y, 3) }
+    if (s.oc.t < 40 && (t >> 2) % 2) { c.fillStyle = "#ff5b5b"; px(c, bx, top - 10, 5) }   // about to drop out
+  }
   //@@DRAWFX@@
 }
 export function drawUpgradeHud(ctx, f, opts) {}

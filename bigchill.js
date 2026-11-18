@@ -211,7 +211,10 @@ CONTACT.push((f, s, target, { proj, move, blocked }) => {   // shatter first, th
   const tag = proj && proj.alien
   const shatters = (tag && tag.shatter) || (!proj && move && (move.bcShatter || BC_SHATTER_MOVES.includes(move.name)))
   if (frozen(s)) { if (shatters) shatterPopsicle(f, s, target, api0); else endPopsicle(f, s, target, "damage") }
-  if (tag && tag.chill) addChill(f, s, target, tag.cast)
+  // pip id namespaced "bc:<cast>": one pip per cast as before, and Arcticguana's own freezing-cast SNAP (which matches by cast
+  // id against HIS casts / projectiles) never cancels Big Chill's — Wing Cut blade 2 still shatters; his own no-tick-at-a-
+  // frozen-target rule keeps the freezing cast from thawing itself
+  if (tag && tag.chill) addChill(f, s, target, "bc:" + tag.cast)
 })
 
 // ── cast helpers (shared by every special) ──────────────────────────────────────────────────────────────────

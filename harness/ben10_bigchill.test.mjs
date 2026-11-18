@@ -256,6 +256,11 @@ test('8. Freeze Breath delivering the 3rd pip: its later ticks skip the frozen s
   world(f, t, BC_BREATH.STARTUP); assert(S(f).chill.frozen, 'tick 1 freezes'); const hp = t.health
   world(f, t, BC_BREATH.LAST - BC_BREATH.STARTUP + 2); assert(S(f).chill.frozen, 'still frozen after the remaining ticks'); assert.equal(t.health, hp, 'no tick hit the shell')
 })
+test("shared ice: Arcticguana's freezing-cast SNAP never cancels a Big Chill cast (Wing Cut blade 2 survives the freeze)", () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 120); pip(f, t, 9201); pip(f, t, 9202); assert(cast(f, t, 'B'))
+  let agPose = false; for (let i = 0; i < 50; i++) { world(f, t, 1); if (/^ag/.test(f._spriteCastMove || '')) agPose = true }
+  clearProj(); assert.equal(S(f).chill.pops, 1, 'blade 1 freezes'); assert.equal(S(f).chill.shatters, 1, 'blade 2 shatters'); assert(!agPose, 'no Arcticguana pose on Big Chill')
+})
 test('8. Frost Wing Cut: cost 12, 18f, 2 hits 18 / 22 (=40), 420 px, ONE on screen, Chill + shatter tags', () => {
   const f = ben(), t = foe(); reset(f, t, 200); f.energy = 100; assert(cast(f, t, 'B')); assert.equal(100 - f.energy, BC_COST.wingcut)
   world(f, t, BC_WING.STARTUP); const bl = A.activeProjectiles.filter(p => p.alien?.bc === 'wingcut'); assert.equal(bl.length, 1); assert(bl[0].alien.shatter && bl[0].alien.chill)

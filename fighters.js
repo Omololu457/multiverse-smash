@@ -15,6 +15,7 @@ import { DIAMONDHEAD } from "./diamondhead.js"
 import { UPGRADE } from "./upgrade.js"
 import { HUMONGOUSAUR } from "./humongousaur.js"
 import { ARCTICGUANA } from "./arcticguana.js"
+import { BIGCHILL } from "./bigchill.js"
 import { FEEDBACK } from "./feedback.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
@@ -1023,6 +1024,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 66, sizeH: 110 },
     basic_attacks: ARCTICGUANA.basic_attacks, specials: ARCTICGUANA.moves,
     ultimate: { name: "Absolute Popsicle", cost: 55, damage: 240 } },
+  // Big Chill (READY, bigchill.js): torso + inner-wing hurtbox (the wing TIPS are cosmetic, never hurtbox). Flight / Phase
+  // Drift / the shared Chill → Popsicle → Shatter / specials / ult via the ready-form hooks. mods (speed 1.00 / dmg 1.05 /
+  // def 0.95 / weight 0.80) via applyAlien.
+  bigchill: { name: "Big Chill", color: "#3b82f6", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 58, sizeH: 110 },
+    basic_attacks: BIGCHILL.basic_attacks, specials: BIGCHILL.moves,
+    ultimate: { name: "Frozen Sky", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

@@ -197,3 +197,15 @@ Do not replace failed assertions with broad tolerances or mark placeholders read
 Review Swampfire's README and ledger as an implemented example.
 
 Alien X reuses the existing ready-form hooks for everything else: `tick`, `fireSpecial` / `fireUltimate`, `onContact` (Void pips, pin, ult capture), `moveFrames` (Block + Light swallows the jab), `damageTaken` (Serena chip ×0.6), `drawHud` / `drawFx` / `drawUnder` (render-only voice + Void HUD, pixel rings, ult starfield) and `_benGlide` (Starfall Dash). Position history for Rewind is a bounded 60-entry ring buffer inside `formState` (no engine hook). Void Grasp is a form-owned command grab using `combat.resolveGrab`'s throw-escape rule (no engine hook).
+
+### Brainstorm hooks (added with Brainstorm, 2026-11-17)
+
+Same contract: optional, backward-compatible, ben10-gated (through `benReadyForm`, or a fighter field nothing else sets);
+a form that defines none of them takes exactly the old path, and non-Ben fighters never reach them.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `struck(f, info)` (per-category "last attack seen") | combat.js melee contact (next to `benAlienContact`), projectile contact (next to `benAlienContact`) and `resolveGrab` connect, via `benAlienStruck(defender, info)` | told every attack that LANDED on this form or was BLOCKED by it: `info = { kind: "melee" \| "projectile" \| "grab", move \| proj, attacker, blocked, air }` (`air` = the melee attacker was airborne). Observation only — no return value, changes nothing. Brainstorm PATTERN READ logs HIGH / LOW / PROJECTILE / GRAB / AIR. Command grabs that bypass `resolveGrab` are not reported. |
+
+The DOME reuses existing hooks only: `blockLight` (the toggle; Ghostfreak's), `moveFrames` (no normals while it moves),
+`damageDealt` (lightning ×1.25 while exposed) and the Megawhatt `_skinAnim` frame-set swap (closed / dome-up tables).

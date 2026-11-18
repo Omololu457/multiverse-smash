@@ -48,6 +48,10 @@ export function benAlienGuardBreak(owner, target, info) {
 export function benAlienNegatesSpecial(owner, target, commit = false) {
   const d = benReadyForm(owner); return !!(d && d.negateSpecial && d.negateSpecial(owner, target, !!commit))
 }
+// Optional STRUCK-BY log (Brainstorm Pattern Read): `struck(f, info)` on the DEFENDER's ready form, told every attack that
+// landed on it or was blocked by it — info = { kind: "melee" | "projectile" | "grab", move | proj, attacker, blocked, air }
+// (combat.js melee contact, projectile contact, resolveGrab connect). Observation only: no return value, no-op otherwise.
+export function benAlienStruck(defender, info) { const d = benReadyForm(defender); if (d && d.struck) d.struck(defender, info || {}) }
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

@@ -36,7 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
-import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak } from "./ben10State.js"
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak, benAlienStruck } from "./ben10State.js"
 /**
  * COMBAT ENGINE — merged clean version
  * Features:
@@ -3112,6 +3112,7 @@ export function resolveGrab(attacker, defender, context = {}, range = 75) {
   }
 
   defender.isGrabbed = true
+  benAlienStruck(defender, { kind: "grab", attacker })   // READY form "struck by" log (Brainstorm Pattern Read); no-op otherwise
   defender.grabTimer = 28
   defender.hitstun = 28
   defender.vx = 0
@@ -3614,6 +3615,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     const _defTook = !defender.isBlocking || !!atk.unblockable
     if (_defTook && _isBen(defender)) defender.energy = Math.min(defender.maxEnergy || 100, (defender.energy || 0) + 2)
     benAlienContact(attacker, defender, { move: atk, blocked: !!defender.isBlocking && !atk.unblockable })   // READY Omnitrix form contact hook (Heatblast Heat); no-op otherwise
+    benAlienStruck(defender, { kind: "melee", move: atk, attacker, blocked: !!defender.isBlocking && !atk.unblockable, air: !attacker.onGround && !attacker.grounded })   // READY form "struck by" log (Brainstorm Pattern Read); no-op otherwise
   }
 
   if (defender.isBlocking && !atk.unblockable) {
@@ -4735,6 +4737,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)
       applyScaledDamage(fighter, dmg, { source: "projectile", attacker: proj.owner, move: proj.name })
       benAlienContact(proj.owner, fighter, { proj, blocked: !!fighter.isBlocking, dealDamage: applyScaledDamage, comboScale: getComboScale })   // READY Omnitrix form contact (Heatblast Heat / Scorch / Flashpoint / ult capture); no-op otherwise   // attacker+move → Brutality killing-blow-move stamp (projectile specials key off proj.name, not the owner's stale currentMove)
+      benAlienStruck(fighter, { kind: "projectile", proj, attacker: proj.owner, blocked: !!fighter.isBlocking })   // READY form "struck by" log (Brainstorm Pattern Read); no-op otherwise
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts
       trackBanditEchoMark(fighter, proj.owner, proj, fighter.isBlocking, true)   // Bandit's Echo: any opponent PROJECTILE connect marks it (special-tier; independent of Skill Hunter)
 

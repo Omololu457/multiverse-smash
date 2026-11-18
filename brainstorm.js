@@ -37,13 +37,15 @@ export const BRAINSTORM = {
     air:    normal(28, 8, 4, 12, 2)                                                           // air claw
   },
   anim: ANIM,
-  onApply, tick, blockLight, moveFrames, damageDealt, fireSpecial
+  onApply, tick, blockLight, moveFrames, damageDealt, fireSpecial, struck,
+  drawHud: drawBrainstormHud
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshBrainstormState() {
   return { kind: "brainstorm", t: 0, castId: 0,
-    dome: "closed", domeT: 0, toggles: 0, buffer: null, drained: 0 }
+    dome: "closed", domeT: 0, toggles: 0, buffer: null, drained: 0,
+    read: { log: [], cat: null, t: 0, lock: 0, lastCat: null, lastT: -999, triggers: 0, consumed: 0 } }
 }
 export const bsState = f => (f?.omnitrix?.formState?.kind === "brainstorm" && f.transformed && f.activeAlien === "brainstorm") ? f.omnitrix.formState : null
 
@@ -58,6 +60,7 @@ function tick(f, input, ctx, api) {
   const s = bsState(f); if (!s) return
   s.t++
   tickDome(f, s, api)
+  tickRead(s)
 }
 
 // ── THE DOME (GAME_STATE) ─────────────────────────────────────────────────────────────────────────────────
@@ -127,6 +130,53 @@ function damageDealt(f, target, raw, opts) {
   return isLightningMove(opts.move) && domeExposed(s) ? raw * BS_DOME.LTN_MULT : raw
 }
 
+// ── PATTERN READ (his unique system, GAME_STATE) ─────────────────────────────────────────────────────────
+// He logs the category of the last 3 attacks the opponent LANDED on him or had BLOCKED by him (the struck-by hook:
+// combat melee contact / projectile contact / grab connect): HIGH, LOW, PROJECTILE, GRAB, AIR. The same category at
+// least 2 times in the last 3 → READ that category for 300f (HUD). While READ is active and the opponent's most recent
+// logged attack (within 90f) matches it, his NEXT special gets startup −3f (min 1f) and damage +30%, and READ is
+// consumed. Expires at 300f; after it is consumed no new READ for 300f. Swap / revert / KO / rematch clear the log and
+// READ (fresh formState); the ultimate clears it too.
+export const BS_READ = { LOG: 3, NEED: 2, DUR: 300, LOCK: 300, RECENT: 90, STARTUP: -3, DMG: 1.30 }
+export const READ_CATS = ["HIGH", "LOW", "PROJECTILE", "GRAB", "AIR"]
+export function categorize(info) {
+  if (!info) return null
+  if (info.kind === "grab") return "GRAB"
+  if (info.kind === "projectile") return "PROJECTILE"
+  const m = info.move || {}
+  if (m.isGrab) return "GRAB"
+  if (info.air) return "AIR"
+  if (m.hitLevel === "low" || m.name === "down" || /low|sweep|crouch/i.test(String(m.name || ""))) return "LOW"
+  return "HIGH"
+}
+export function logRead(s, cat) {
+  const r = s.read; if (!cat) return
+  r.log.push(cat); if (r.log.length > BS_READ.LOG) r.log.shift()
+  r.lastCat = cat; r.lastT = s.t
+  if (r.t > 0 || r.lock > 0) return                                        // one READ at a time; locked after a consume
+  if (r.log.filter(c => c === cat).length >= BS_READ.NEED) { r.cat = cat; r.t = BS_READ.DUR; r.triggers++ }
+}
+// struck hook (ben10State.benAlienStruck): observation only
+function struck(f, info) {
+  const s = bsState(f); if (!s || !info || info.attacker === f) return
+  if (info.proj && info.proj.visualOnly) return
+  logRead(s, categorize(info))
+}
+function tickRead(s) {
+  const r = s.read
+  if (r.t > 0 && --r.t <= 0) { r.t = 0; r.cat = null }
+  if (r.lock > 0) r.lock--
+}
+export const readArmed = s => !!s && s.read.t > 0 && s.read.lastCat === s.read.cat && s.t - s.read.lastT <= BS_READ.RECENT
+// asked by every cast: { startup delta, damage mult }; consumes READ when it applies
+export function takeRead(s) {
+  if (!readArmed(s)) return { startup: 0, dmg: 1, read: null }
+  const cat = s.read.cat
+  s.read.t = 0; s.read.cat = null; s.read.lock = BS_READ.LOCK; s.read.consumed++
+  return { startup: BS_READ.STARTUP, dmg: BS_READ.DMG, read: cat }
+}
+export function clearRead(s) { if (s) s.read = { ...s.read, log: [], cat: null, t: 0, lastCat: null, lastT: -999 } }
+
 // ── SPECIALS (dispatch; the casts themselves are below) ───────────────────────────────────────────────────
 // A LIGHTNING special pressed while the dome is CLOSED starts the dome opening first (+18f startup) and is buffered for
 // one input; pressed while it is OPENING it is buffered. The buffered special casts (and spends its Power) on the frame the
@@ -160,3 +210,17 @@ function castBuffered(f, s, api, b) {
 }
 // filled in by the moves (Phase 6)
 function cast(f, s, api, kind, ctx) { return false }
+
+// ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
+export function drawBrainstormHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
+  const s = bsState(f); if (!ctx || !s) return
+  const y = enY + enH + 3, tx = flip ? x + 8 + pbw : x + 8
+  ctx.save()
+  ctx.font = "bold 8px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
+  const dome = { closed: "CLOSED", opening: "OPENING…", open: "OPEN", closing: "CLOSING…" }[s.dome]
+  ctx.fillStyle = domeExposed(s) ? "#c084fc" : "#fdba74"; ctx.fillText(`DOME ${dome}`, tx, y)
+  const r = s.read
+  ctx.fillStyle = r.t > 0 ? "#facc15" : "#9ca3af"
+  ctx.fillText(r.t > 0 ? `READ ${r.cat} (${Math.ceil(r.t / 60)}s)` : r.lock > 0 ? "READ —" : `READ ${r.log.map(c => c[0]).join("")}`, tx, y + 10)
+  ctx.restore()
+}

@@ -338,3 +338,43 @@ FX_DRAW.push((c, f, s, frame) => {
     c.fillStyle = i % 3 ? VIOLET : ORANGE; px(c, x0 + Math.cos(a) * rw * r, y0 + Math.sin(a) * rh * r, 4) }
   c.restore()
 })
+
+// ── 5. DIALOGUE TAUNT (cosmetic, no hitbox) ─────────────────────────────────────────────────────────────────────────
+// No shared cosmetic taunt binding exists (the engine's own taunt is a 10 s Down-hold HEAL — gameplay, not reused), so the
+// brief's fallback: hold Block + Light 20f (grounded, not in hitstun / a cast / the Ultimate). The existing blockLight hook
+// owns the Light press so it never also jabs. He then plays the "Idle (during dialouge)" loop with the sheet's Text icon
+// beside him (render-only). ZERO gameplay frames: no attackCooldown, no power commit, no movement lock, no hitbox — the only
+// state is the display flag `s.taunt` (+ a counter). ANY other input (a direction, Jump, Heavy, Special, Ultimate, Grab,
+// Charge, dash) or a fresh Light press cancels it at once, as does hitstun, an attack or the Ultimate; it ends by itself
+// after 195f (three loops). Holding Block keeps his ordinary guard (the guard is the engine's, untouched).
+export const HB_TAUNT = { HOLD: 20, MAX: 195 }
+const TAUNT_CANCEL = ["left", "right", "up", "down", "jump", "heavy", "special", "ultimate", "grab", "charge", "dash", "upAttack"]
+const canTaunt = (f, s) => grounded(f) && !s.ult && !((f.hitstun || 0) > 0) && !f.attacking && !busy(s) && !f.knockdownState
+export function endTaunt(f, s) {
+  if (!s.taunt) return
+  s.taunt = null
+  if (f._spriteCastMove === "taunt") { f._spriteCastMove = null; f._spriteCastTimer = 0 }
+}
+BLOCK_LIGHT.push((f, s) => !s.ult && !((f.hitstun || 0) > 0))
+TICKS.push((f, s, input) => {
+  if (s.taunt) {
+    s.taunt.t++
+    const relit = !!input.light && !s.taunt.lightHeld
+    s.taunt.lightHeld = !!input.light
+    if (TAUNT_CANCEL.some(k => input[k]) || relit || !canTaunt(f, s) || s.taunt.t >= HB_TAUNT.MAX) { endTaunt(f, s); s.tauntHold = 0; return }
+    f._spriteCastMove = "taunt"; f._spriteCastTimer = 2                      // the display channel (sprite.js cast pose)
+    return
+  }
+  s.tauntHold = input.block && input.light && canTaunt(f, s) ? s.tauntHold + 1 : 0
+  if (s.tauntHold >= HB_TAUNT.HOLD) { s.taunt = { t: 0, lightHeld: true }; s.taunts++; f._spriteCastMove = "taunt"; f._spriteCastTimer = 2 }
+})
+// render-only: the sheet's Text icon (dialogue UI) bobbing beside his head, nearest-neighbour ×2
+let ICON = null
+const iconImg = () => { if (!ICON && typeof Image !== "undefined") { ICON = new Image(); ICON.src = HIGHBREED_GEOM.icon.sheet } return ICON }
+FX_DRAW.push((c, f, s, frame) => {
+  if (!s.taunt) return
+  const img = iconImg(); if (!img || !img.complete || !img.naturalWidth) return
+  const k = 2, w = HIGHBREED_GEOM.icon.w * k, h = HIGHBREED_GEOM.icon.h * k, face = f.facing || 1
+  const x = Math.round(cx(f) + face * ((f.w || 60) / 2 + 14) - (face > 0 ? 0 : w)), y = Math.round(f.y - h - 6 + ((frame >> 3) & 1) * 2)
+  c.save(); c.imageSmoothingEnabled = false; c.drawImage(img, x, y, w, h); c.restore()
+})

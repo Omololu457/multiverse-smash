@@ -170,6 +170,31 @@ test('5 / 9. swap / revert / KO / rematch clear Surge, MUTATED and both timers; 
   ;[f] = mk(); F.setupBen10(f, ['highbreed']); assert.equal(G.hbState(f), null, 'rematch: fresh Ben')
 })
 
+
+// ── 6 DIALOGUE TAUNT ───────────────────────────────────────────────────────────────────────────────────────────
+const { HB_TAUNT } = G
+const gameplay = f => JSON.stringify([f.attackCooldown || 0, f._benPowerCommit || 0, f.attacking, f.currentAttack, f.hitstun, f.energy, f.health, A.activeProjectiles.length])
+test('6. Dialogue Taunt: Block + Light held 20f plays the dialogue loop; ZERO gameplay frames, no hitbox; Light never jabs', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t); clearProj()
+  assert.equal(HB.blockLight(f, ctxOf(f, t)), true, 'owns Block + Light (no jab)')
+  const g0 = gameplay(f); world(f, t, HB_TAUNT.HOLD - 1, { block: true, light: true }); assert.equal(s.taunt, null, 'not before 20f')
+  world(f, t, 1, { block: true, light: true }); assert(s.taunt, 'starts at 20f'); assert.equal(gameplay(f), g0, 'no cooldown / commit / attack / hitbox')
+  assert.equal(new SpriteHandler().determineAction(f), 'taunt'); assert.deepEqual(Object.keys(s.taunt), ['t', 'lightHeld'], 'only a display flag'); world(f, t, 30); assert(s.taunt, 'loops (keys released)'); assert.equal(gameplay(f), g0)
+  ready(f); assert(C.startMove(f, 'light', BA.light), 'he can act at once'); world(f, t, 1); assert.equal(s.taunt, null, 'an attack cancels it')
+})
+test('6. Dialogue Taunt: cancellable by ANY input; unavailable in hitstun / the Ultimate / the air; ends by itself', () => {
+  for (const k of ['left', 'right', 'up', 'down', 'jump', 'heavy', 'special', 'ultimate', 'grab', 'charge', 'dash']) {
+    const f = ben(), t = foe(), s = S(f); far(f, t); world(f, t, HB_TAUNT.HOLD, { block: true, light: true }); assert(s.taunt, k)
+    world(f, t, 1, { [k]: true }); assert.equal(s.taunt, null, k + ' cancels')
+  }
+  const r = ben(), rt = foe(); far(r, rt); world(r, rt, HB_TAUNT.HOLD, { block: true, light: true }); world(r, rt, 2); world(r, rt, 1, { light: true }); assert.equal(S(r).taunt, null, 'a fresh Light press cancels')
+  const h = ben(), u = foe(); far(h, u); h.hitstun = 30; world(h, u, HB_TAUNT.HOLD + 2, { block: true, light: true }); assert.equal(S(h).taunt, null, 'not in hitstun')
+  assert.equal(HB.blockLight(h, ctxOf(h, u)), false)
+  const q = ben(), v = foe(); far(q, v); S(q).ult = { phase: 'x' }; world(q, v, HB_TAUNT.HOLD + 2, { block: true, light: true }); assert.equal(S(q).taunt, null, 'not in the Ultimate'); S(q).ult = null
+  const a = ben(), w = foe(); far(a, w); world(a, w, HB_TAUNT.HOLD, { block: true, light: true }); a.hitstun = 10; world(a, w, 1); assert.equal(S(a).taunt, null, 'a hit cancels it')
+  const e = ben(), x = foe(); far(e, x); world(e, x, HB_TAUNT.HOLD, { block: true, light: true }); world(e, x, HB_TAUNT.MAX); assert.equal(S(e).taunt, null, 'ends by itself'); assert.equal(S(e).taunts, 1)
+})
+
 // @@END-TESTS@@
 console.log(`\nHIGHBREED: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

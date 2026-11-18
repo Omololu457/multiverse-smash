@@ -10,7 +10,7 @@ import { buggyRegen } from './buggyState.js'   // Buggy the Clown: Chop passive 
 import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu timed form
 import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)
 import { SWAMPFIRE_FX } from "./swampfire.js"
-import { benReadyForm, benAlienNegatesSpecial } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
+import { benReadyForm, benAlienNegatesSpecial, benAlienSpecialTax } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -29721,7 +29721,19 @@ function benAlienApi(context) {
     activeProjectiles: () => activeProjectiles,
     spawnProjectile: (f, type, md, ctx) => { const p = spawnProjectile(f, type, md, ctx || {}); if (p) for (const k of Object.keys(md)) if (k === "fire" || k === "alien" || /^hb[A-Z]/.test(k)) p[k] = md[k]; return p },
     shake: (amount, frames) => shakeCamera(context, amount, frames),
-    focusCamera: (f, t, zoom, frames) => focusCameraOnAction(context, f, t, zoom, frames)
+    focusCamera: (f, t, zoom, frames) => focusCameraOnAction(context, f, t, zoom, frames),
+    // SPECIAL TAX release (benAlienSpecialTax): fire the held special through triggerSpecial, then charge costMult − 1 of
+    // what it spent (clamped to what is left). true = the special started.
+    fireTaxedSpecial: t => {
+      const p = t && t._benTaxedSpecial; if (!p) return false
+      delete t._benTaxedSpecial
+      t._specialHeldDir = p.dir; t.attackCooldown = 0; t._benTaxPass = true
+      const e0 = t.energy || 0; let ok = false
+      try { ok = triggerSpecial(t, context) } finally { delete t._benTaxPass }
+      const spent = e0 - (t.energy || 0)
+      if (ok && spent > 0) t.energy = (t.energy || 0) - Math.min(t.energy || 0, spent * (p.costMult - 1))
+      return ok
+    }
   }
 }
 // Per-frame tick of the active READY form (game.js calls it once per fighter after the Omnitrix device update).
@@ -35022,6 +35034,13 @@ export function triggerSpecial(fighter, context = {}) {
   // READY Omnitrix form NEGATE (Alien X UNMADE): the opponent's next special plays its startup, spends its Power and makes
   // no hitbox / projectile. Asks the OPPONENT's ready form only — false for every match without one (unchanged path).
   { const _ngOwner = getTargetResolver(context)(fighter); if (_ngOwner && benAlienNegatesSpecial(_ngOwner, fighter) && negatedSpecialStartup(fighter, _ngOwner)) return true }
+  // READY Omnitrix form SPECIAL TAX (Brainstorm SHORT-CIRCUIT): the press is held `startup` frames, then fires through this same
+  // path (_benTaxPass) with costMult on what it spends — fired by the owner's form tick (benAlienApi.fireTaxedSpecial). Asks the
+  // OPPONENT's ready form only; null for every match without one (unchanged path).
+  if (fighter._benTaxedSpecial) delete fighter._benTaxedSpecial                       // stale (the owner left before firing it)
+  if (!fighter._benTaxPass) { const _txOwner = getTargetResolver(context)(fighter), _tx = _txOwner ? benAlienSpecialTax(_txOwner, fighter) : null
+    if (_tx) { fighter._benTaxedSpecial = { t: _tx.startup, dir: fighter._specialHeldDir ?? null, costMult: _tx.costMult }
+      fighter.attackCooldown = Math.max(fighter.attackCooldown || 0, _tx.startup); return true } }
 
   // ADDITIVE: Naruto-universe clone-choreography summon/select, intercepted before the signature-kit switch.
   if (cloneChoreoInterceptSpecial(fighter)) return true

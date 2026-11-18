@@ -52,6 +52,14 @@ export function benAlienNegatesSpecial(owner, target, commit = false) {
 // landed on it or was blocked by it — info = { kind: "melee" | "projectile" | "grab", move | proj, attacker, blocked, air }
 // (combat.js melee contact, projectile contact, resolveGrab connect). Observation only: no return value, no-op otherwise.
 export function benAlienStruck(defender, info) { const d = benReadyForm(defender); if (d && d.struck) d.struck(defender, info || {}) }
+// Optional SPECIAL TAX status (Brainstorm Short-Circuit): `specialTax(owner, target)` on the OWNER's ready form, asked by
+// abilities.triggerSpecial for the opponent of the fighter pressing Special. Return { startup, costMult } to tax that special
+// (it is held for `startup` frames — the fighter can do nothing else — then fires through the normal path, and costMult − 1
+// of whatever Power / energy it spent is charged on top), or null. The fighter's authored frame data, input polling and the
+// simulation clock are untouched. null for everyone else (no ready form / no hook).
+export function benAlienSpecialTax(owner, target) {
+  const d = benReadyForm(owner); return d && d.specialTax ? d.specialTax(owner, target) || null : null
+}
 export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)

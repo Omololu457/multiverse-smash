@@ -37,15 +37,16 @@ export const BRAINSTORM = {
     air:    normal(28, 8, 4, 12, 2)                                                           // air claw
   },
   anim: ANIM,
-  onApply, tick, blockLight, moveFrames, damageDealt, fireSpecial, struck,
-  drawHud: drawBrainstormHud
+  onApply, tick, blockLight, moveFrames, damageDealt, fireSpecial, struck, specialTax, onContact,
+  drawHud: drawBrainstormHud, drawFx: drawBrainstormFx
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
 export function freshBrainstormState() {
   return { kind: "brainstorm", t: 0, castId: 0,
     dome: "closed", domeT: 0, toggles: 0, buffer: null, drained: 0,
-    read: { log: [], cat: null, t: 0, lock: 0, lastCat: null, lastT: -999, triggers: 0, consumed: 0 } }
+    read: { log: [], cat: null, t: 0, lock: 0, lastCat: null, lastT: -999, triggers: 0, consumed: 0 },
+    syn: { pips: 0, pipT: 0, lastPipCast: -1, scT: 0, immune: 0, scs: 0, taxed: 0 } }
 }
 export const bsState = f => (f?.omnitrix?.formState?.kind === "brainstorm" && f.transformed && f.activeAlien === "brainstorm") ? f.omnitrix.formState : null
 
@@ -61,6 +62,9 @@ function tick(f, input, ctx, api) {
   s.t++
   tickDome(f, s, api)
   tickRead(s)
+  tickSynapse(s)
+  const opp = api && api.getOpponent ? api.getOpponent(f) : null
+  if (opp && opp._benTaxedSpecial && --opp._benTaxedSpecial.t <= 0) api.fireTaxedSpecial(opp)   // Short-Circuit: release the held special
 }
 
 // ── THE DOME (GAME_STATE) ─────────────────────────────────────────────────────────────────────────────────
@@ -177,6 +181,47 @@ export function takeRead(s) {
 }
 export function clearRead(s) { if (s) s.read = { ...s.read, log: [], cat: null, t: 0, lastCat: null, lastT: -999 } }
 
+// ── SYNAPSE → SHORT-CIRCUIT (status on the OPPONENT, owned by this form's GAME_STATE) ─────────────────────────
+// Clean hits from Brain Bolt, Neural Burst (final tick only) and Overcharge add ONE Synapse pip per cast (however many
+// ticks hit), max 3; none from blocks, FX or Psychic Pull. Pips expire 240f after the last. 3 pips → SHORT-CIRCUIT for
+// 240f (pips consumed): the opponent's specials start 6f later and cost +50% energy / Power (the generic specialTax hook:
+// the press is held 6f, then fires through the normal path; their frame data, input polling and the clock are untouched).
+// No refresh while active; 360f immunity after. Swap / revert / KO / rematch clear it (fresh formState). Static overlay =
+// render only.
+export const BS_SYN = { MAX: 3, EXPIRE: 240, SC: 240, IMMUNE: 360, STARTUP: 6, COST: 1.5 }
+function tickSynapse(s) {
+  const v = s.syn
+  if (v.pips > 0 && --v.pipT <= 0) { v.pips = 0; v.pipT = 0 }
+  if (v.scT > 0) { if (--v.scT <= 0) { v.scT = 0; v.immune = BS_SYN.IMMUNE } }
+  else if (v.immune > 0) v.immune--
+}
+// one pip per CAST id; never while Short-Circuit is active or the opponent is immune
+export function addSynapse(s, cast, n = 1) {
+  const v = s.syn
+  if (cast == null || cast === v.lastPipCast) return false
+  if (v.scT > 0 || v.immune > 0) return false
+  v.lastPipCast = cast
+  v.pips = Math.min(BS_SYN.MAX, v.pips + n); v.pipT = BS_SYN.EXPIRE
+  if (v.pips >= BS_SYN.MAX) { v.pips = 0; v.pipT = 0; v.scT = BS_SYN.SC; v.scs++ }
+  return true
+}
+export const shortCircuited = s => !!s && s.syn.scT > 0
+// specialTax hook (abilities.triggerSpecial, asked for the fighter pressing Special)
+function specialTax(f, target) {
+  const s = bsState(f); if (!s || !target || target === f || !(s.syn.scT > 0)) return null
+  s.syn.taxed++
+  return { startup: BS_SYN.STARTUP, costMult: BS_SYN.COST }
+}
+// contact hook (combat → ben10State.benAlienContact): pips on CLEAN hits of pip-tagged casts; the moves add their own
+// effects (Phase 6) through onMoveContact.
+function onContact(f, target, { proj = null, blocked = false } = {}) {
+  const s = bsState(f); if (!s || !proj || proj.visualOnly) return
+  const tag = proj.alien; if (!tag || !tag.bs) return
+  if (!blocked && tag.pip) addSynapse(s, tag.cast)
+  onMoveContact(f, s, target, tag, blocked)
+}
+function onMoveContact(f, s, target, tag, blocked) {}
+
 // ── SPECIALS (dispatch; the casts themselves are below) ───────────────────────────────────────────────────
 // A LIGHTNING special pressed while the dome is CLOSED starts the dome opening first (+18f startup) and is buffered for
 // one input; pressed while it is OPENING it is buffered. The buffered special casts (and spends its Power) on the frame the
@@ -212,6 +257,39 @@ function castBuffered(f, s, api, b) {
 function cast(f, s, api, kind, ctx) { return false }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
+// render-only deterministic hash (a, b, c) → [0, 1) — sparks / static jitter
+function rHash(a, b, c) {
+  let h = Math.imul((a | 0) ^ 0x9e3779b9, 0x85ebca6b) >>> 0
+  h = Math.imul(h ^ ((b | 0) + 0x27d4eb2f), 0xcc9e2d51) >>> 0
+  h = Math.imul(h ^ ((c | 0) + 0x165667b1), 0x1b873593) >>> 0
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b) >>> 0; h ^= h >>> 13
+  return (h >>> 0) / 4294967296
+}
+// world-space overlays over / around the fighters. Render-only.
+export function drawBrainstormFx(c, f, frame = 0, opp = null) {
+  const s = bsState(f); if (!c || !s) return
+  c.save(); c.imageSmoothingEnabled = false
+  if (opp && opp._lastDrawX != null && opp._lastDrawW != null) {
+    const ox = opp._lastDrawX + opp._lastDrawW / 2, oy = opp._lastDrawY - 12
+    const v = s.syn
+    for (let i = 0; i < v.pips; i++) drawSynapsePip(c, ox + (i - (v.pips - 1) / 2) * 12, oy, frame)
+    if (v.scT > 0) {                                                       // SHORT-CIRCUIT static: crackling pixels over the body
+      const w = opp._lastDrawW, h = opp._lastDrawH || 120
+      for (let i = 0; i < 18; i++) {
+        const px = opp._lastDrawX + rHash(frame >> 1, i, 1) * w, py = opp._lastDrawY + rHash(frame >> 1, i, 2) * h
+        c.fillStyle = i % 3 ? "#fde047" : "#ffffff"; c.fillRect(Math.round(px), Math.round(py), 3, 3)
+        if (i % 4 === 0) c.fillRect(Math.round(px + 3), Math.round(py + 3), 3, 3)
+      }
+      c.fillStyle = "#fde047"; c.font = "bold 9px Arial"; c.textAlign = "center"; c.fillText("SHORT-CIRCUIT", ox, oy - 8)
+    }
+  }
+  c.restore()
+}
+function drawSynapsePip(c, x, y, frame) {             // 5×5 pixel lightning node
+  const rows = [".y.", "yWy", ".y."], k = 3, pal = { y: (frame >> 3) % 2 ? "#facc15" : "#fde047", W: "#ffffff" }
+  for (let r = 0; r < 3; r++) for (let i = 0; i < 3; i++) { const ch = rows[r][i]; if (ch === ".") continue
+    c.fillStyle = pal[ch]; c.fillRect(Math.round(x + (i - 1.5) * k), Math.round(y + (r - 1.5) * k), k, k) }
+}
 export function drawBrainstormHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
   const s = bsState(f); if (!ctx || !s) return
   const y = enY + enH + 3, tx = flip ? x + 8 + pbw : x + 8
@@ -222,5 +300,8 @@ export function drawBrainstormHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
   const r = s.read
   ctx.fillStyle = r.t > 0 ? "#facc15" : "#9ca3af"
   ctx.fillText(r.t > 0 ? `READ ${r.cat} (${Math.ceil(r.t / 60)}s)` : r.lock > 0 ? "READ —" : `READ ${r.log.map(c => c[0]).join("")}`, tx, y + 10)
+  const v = s.syn
+  ctx.fillStyle = v.scT > 0 ? "#fde047" : "#e5e7eb"
+  ctx.fillText(`SYNAPSE ${v.scT > 0 ? "SHORT-CIRCUIT" : v.immune > 0 ? "IMMUNE" : "●".repeat(v.pips) + "○".repeat(BS_SYN.MAX - v.pips)}`, tx, y + 20)
   ctx.restore()
 }

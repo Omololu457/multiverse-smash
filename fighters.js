@@ -8,6 +8,7 @@ import { EYEGUY } from "./eyeguy.js"
 import { GHOSTFREAK } from "./ghostfreak.js"
 import { ALIENX } from "./alienx.js"
 import { BRAINSTORM } from "./brainstorm.js"
+import { TERRASPIN } from "./terraspin.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -950,6 +951,12 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 90, sizeH: 96 },
     basic_attacks: BRAINSTORM.basic_attacks, specials: BRAINSTORM.moves,
     ultimate: { name: "Neural Tempest", cost: 55, damage: 250 } },
+  // Terraspin (READY, terraspin.js): wide, low hurtbox matching his ~125 px tall / ~140 px wide sprite; Pressure / Shear /
+  // Thorn Shell / specials / ult via the ready-form hooks. mods (speed 0.90 / dmg 1.05 / def 1.20 / weight 1.25) via applyAlien.
+  terraspin: { name: "Terraspin", color: "#65a30d", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 84, sizeH: 100 },
+    basic_attacks: TERRASPIN.basic_attacks, specials: TERRASPIN.moves,
+    ultimate: { name: "Eye of the Storm", cost: 55, damage: 238 } },
   ampfibian:  mkAlien({ name: "Ampfibian", color: "#3b82f6", role: "speed", hp: 930, spd: 9, jumps: 3, jump: 23, dmg: 0.8, weight: "light",
                         special: { name: "Shock Pulse", ranged: true, damage: 95, cost: 18 }, ult: { name: "Electro Cyclone", damage: 185, active: 10 } }),
   gravattack: mkAlien({ name: "Gravattack", color: "#9333ea", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 18, dmg: 1.2, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,

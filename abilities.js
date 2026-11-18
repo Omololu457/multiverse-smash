@@ -37,7 +37,7 @@ import { activateObitoJuubi } from "./obitoJuubiCinematic.js"   // Obito ult cin
 import { activateTobiNineTails } from "./tobiNineTailsCinematic.js"   // Tobi ult cinematic — giant NINE-Tails Bijūdama (own module/state, NOT Obito's Ten-Tails)
 import { activateEdoTenseiCinematic, isEdoTenseiCinematicActive } from "./tobiramaEdoTenseiCinematic.js"   // Tobirama Edo Tensei summon/un-summon cinematic (no cycle: it imports only characters/sound)
 import { activateChrolloSkillHunterCinematic, isChrolloSkillHunterCinematicActive } from "./chrolloSkillHunterCinematic.js"   // Chrollo Skill Hunter transform cinematic (swap fires at reveal beat via onResolve)
-import { clearInputBuffer } from "./input.js"   // clear buffered presses when Edo Tensei swaps bodies (input.js imports nothing → no cycle)
+import { clearInputBuffer, readRawControls } from "./input.js"   // clear buffered presses when Edo Tensei swaps bodies; readRawControls = the side-effect-free raw snapshot (Ben ready-form api.readControls) (input.js imports nothing → no cycle)
 import { activateSasukeEyesCinematic } from "./sasukeCinematic.js"   // Sasuke Susanoo Lv2 escalation cinematic (no cycle)
 import { activateSSJRoseCinematic, isSSJRoseCinematicActive } from "./ssjRoseCinematic.js"   // Goku Black SSJ Rose transform cinematic (no cycle)
 import { activateFormActivationCinematic, isFormActivationCinematicActive } from "./formActivationCinematic.js"   // Piccolo/Bardock transform ACTIVATION beat (short freeze; no cycle)
@@ -29720,6 +29720,10 @@ function benAlienApi(context) {
     // read-only melee geometry (Upgrade's Terminal: an owner-limited object the OPPONENT's active melee box can hit) — the
     // engine's own box + active-frame test, so a form never re-derives them. Optional; nothing else changes.
     getAttackHitbox, attackIsActive,
+    // read-only RAW CONTROLS of any fighter (input.readRawControls: the side-effect-free replay / LAN snapshot — never polls,
+    // never touches a buffer), so a status a form owns can read its target's presses (Arcticguana's Popsicle mash-out).
+    // Optional; nothing calls it unless a form does. null when the fighter has no controls (CPU).
+    readControls: f => readRawControls(f),
     getOpponent: f => getOpp(f),
     activeProjectiles: () => activeProjectiles,
     spawnProjectile: (f, type, md, ctx) => { const p = spawnProjectile(f, type, md, ctx || {}); if (p) for (const k of Object.keys(md)) if (k === "fire" || k === "alien" || /^hb[A-Z]/.test(k)) p[k] = md[k]; return p },

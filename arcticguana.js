@@ -42,6 +42,7 @@ export function freshArcticguanaState() {
   return { kind: AG_KEY, t: 0, castId: 0, noAttack: false, baseSpeed: null, baseDash: null,
     stage: { L: -1e6, R: 1e6 }, baseDef: null,
     coat: { state: "off", t: 0, cd: 0, burst: false, shatterT: -999, coats: 0, shatters: 0, ends: [] },
+    chill: { pips: 0, lastT: -999, pipped: [], immuneT: 0, frozen: null, pops: 0, shatters: 0, ends: [], endT: -999, shatterT: -999 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5, spPrev: false,
     stats: { casts: 0, bursts: 0, burstHits: 0, fireHits: 0 } }
 }
@@ -74,6 +75,7 @@ function tick(f, input, ctx, api) {
   api0 = api
   tickInputs(f, s, input)
   tickCoat(f, s, api)
+  tickChill(f, s, api && api.getOpponent ? api.getOpponent(f) : null, api)
   s.noAttack = busy(s)
   s.spPrev = !!input.special
 }
@@ -250,6 +252,80 @@ function onContact(f, target, info) {
 }
 CONTACT.push((f, s, target, { proj, blocked }) => { if (proj && proj.alien && proj.alien.ag === "coatBurst" && !blocked) s.stats.burstHits++ })
 
+// ── 4. CHILL → POPSICLE → SHATTER (opponent status, GAME_STATE; Frozone's ice-system contract) ────────────────────
+// CHILL: clean hits from Ice Breath, Ice Shard, Freeze Beam (first tick only), Ice Slide's finisher, Icicle Drop and the
+// Shatter Coat burst add 1 pip — ONE per cast however many ticks hit (a cast id on the tag). Max 3. Never from blocks,
+// FX, Frost Cloud or his cosmetic trails (only tags carrying `chill` count). Pips expire 240f after the last one.
+// POPSICLE: the 3rd pip consumes them and encases the opponent for 30 ticks: held in place (x / y pinned, hitstun topped
+// up 2 ticks at a time — never beyond what the hold needs, so the moment the hold stops they are free), they cannot act or
+// move, they CAN be hit. Their input polling and the simulation clock are untouched. Escape rules respected: an engine
+// escape that clears their hitstun ends it; the MASH-OUT (each fresh button press read through the read-only
+// api.readControls) shortens it by 1 tick, at most 6. Ends on expiry / escape / grab / KO / any damage; then 420f refreeze
+// immunity (no pips, no refreeze); never refreshed while frozen.
+// SHATTER: a clean Heavy, the Shatter Coat burst or an Ice Slide hit on a frozen opponent ends the Popsicle ONCE and adds a
+// fixed +25 (× the normal combo scale, one application: a simultaneous second contact finds no Popsicle and adds nothing).
+// ONE EXPLICIT RULE: ANY other damage ends the Popsicle at once with no bonus (the hit's own hitstun applies).
+export const AG_CHILL = { MAX: 3, EXPIRE: 240, FREEZE: 30, MASH: 6, IMMUNE: 420, SHATTER: 25, HOLD: 2 }
+const MASH_KEYS = ["light", "heavy", "special", "jump", "grab", "block", "ultimate", "charge"]
+export const frozen = s => !!(s && s.chill.frozen)
+export function addChill(f, s, opp, cast) {
+  const c = s.chill
+  if (!opp || opp.eliminated || c.frozen || c.immuneT > 0) return false
+  if (c.pipped.includes(cast)) return false                               // one pip per cast
+  c.pipped.push(cast); if (c.pipped.length > 8) c.pipped.shift()
+  c.pips = Math.min(AG_CHILL.MAX, c.pips + 1); c.lastT = s.t
+  if (c.pips >= AG_CHILL.MAX) startPopsicle(f, s, opp)
+  return true
+}
+function startPopsicle(f, s, opp) {
+  const c = s.chill
+  c.pips = 0; c.pops++
+  c.frozen = { t: 0, until: AG_CHILL.FREEZE, x: opp.x, y: opp.y, hp: null, mash: 0, prev: 0 }
+  opp.attacking = false; opp.currentAttack = null; opp.isCharging = false
+}
+export function endPopsicle(f, s, opp, why) {
+  const c = s.chill, z = c.frozen; if (!z) return null
+  c.frozen = null; c.immuneT = AG_CHILL.IMMUNE; c.pips = 0; c.endT = s.t
+  c.ends.push(why); if (c.ends.length > 6) c.ends.shift()
+  if (opp && (why === "expire" || why === "mash")) opp.hitstun = 0           // released at once (never left stuck)
+  return z
+}
+export function shatterPopsicle(f, s, opp, api) {
+  if (!frozen(s) || !opp) return false
+  endPopsicle(f, s, opp, "shatter"); s.chill.shatters++; s.chill.shatterT = s.t
+  const scale = api && api.getComboScale ? api.getComboScale(f) : 1
+  if (api) api.applyScaledDamage(opp, AG_CHILL.SHATTER * scale, { attacker: f, source: "ability", move: "ag_shatter" })
+  return true
+}
+function tickChill(f, s, opp, api) {
+  const c = s.chill
+  if (c.immuneT > 0) c.immuneT--
+  if (c.pips > 0 && s.t - c.lastT >= AG_CHILL.EXPIRE) c.pips = 0
+  const z = c.frozen; if (!z) return
+  if (!opp || opp.eliminated || !(opp.health > 0)) { endPopsicle(f, s, opp, "ko"); return }
+  z.t++
+  if (z.hp == null) z.hp = opp.health                                       // the freezing hit's own damage has landed
+  else if (opp.health < z.hp) { endPopsicle(f, s, opp, "damage"); return } // ONE RULE: any other damage ends it
+  if (z.t > 1 && !((opp.hitstun || 0) > 0)) { endPopsicle(f, s, opp, "escape"); return }   // an engine escape cleared the hitstun
+  if (opp.isGrabbed) { endPopsicle(f, s, opp, "grab"); return }
+  const ctl = api && api.readControls ? api.readControls(opp) : null       // MASH-OUT (read only)
+  if (ctl) { let m = 0; MASH_KEYS.forEach((k, i) => { if (ctl[k]) m |= 1 << i })
+    if ((m & ~z.prev) && z.mash < AG_CHILL.MASH) { z.mash++; z.until-- }
+    z.prev = m }
+  if (z.t >= z.until) { endPopsicle(f, s, opp, z.mash ? "mash" : "expire"); return }
+  opp.hitstun = Math.max(opp.hitstun || 0, AG_CHILL.HOLD); opp.vx = 0; opp.vy = 0; opp.x = z.x; opp.y = z.y
+  opp.isBlocking = false; opp.attacking = false; opp.currentAttack = null; opp.isCharging = false
+  z.hp = opp.health
+}
+CONTACT.push((f, s, target, { proj, move, blocked }) => {                   // shatter first, then chill (a shatter starts immunity)
+  if (blocked) return
+  const tag = proj && proj.alien
+  const shatters = (tag && tag.shatter) || (!proj && move && (move.agShatter || BA_SHATTER.includes(move.name)))
+  if (frozen(s)) { if (shatters) shatterPopsicle(f, s, target, api0); else endPopsicle(f, s, target, "damage") }
+  if (tag && tag.chill) addChill(f, s, target, tag.cast)
+})
+const BA_SHATTER = ["heavy"]
+
 // ── HUD (render-only) ──────────────────────────────────────────────────────────────────────────────────────────
 const ICE = "#bfefff", ICE2 = "#7dd3fc", DEEP = "#0369a1", INK = "#06121c", SNOW = "#f0fbff"
 export function drawArcticguanaHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
@@ -299,9 +375,36 @@ export function drawArcticguanaFx(c, f, frame = 0, opp = null) {
     c.fillStyle = ICE2; for (let y = f.y + 10; y < f.y + h; y += 9) px(c, f.x - 4, y, 2), px(c, f.x + w + 4, y, 2)
     c.restore()
   }
+  if (opp) drawChill(c, s, opp, frame)
   if (s.t - co.shatterT < 14) {                                             // SHATTER COAT burst (the ice-folder burst + shards)
     const k = (s.t - co.shatterT) / 14
     iceFx(c, "burst", bx, f.y + h * 0.45, 3, 1 - k)
     c.fillStyle = ICE; for (let a = 0; a < 10; a++) px(c, bx + Math.cos(a * 0.628) * AG_COAT.BURST_R * k, f.y + h / 2 + Math.sin(a * 0.628) * AG_COAT.BURST_R * k * 0.7, 4)
+  }
+}
+
+// CHILL pips over the opponent + the POPSICLE block (translucent: their silhouette stays visible) and its stick
+function drawChill(c, s, opp, frame) {
+  const ch = s.chill, ox = cx(opp), top = opp.y - 14
+  if (ch.pips > 0) for (let i = 0; i < AG_CHILL.MAX; i++) {
+    const x = ox + (i - 1) * 12
+    c.fillStyle = INK; px(c, x, top, 8); c.fillStyle = i < ch.pips ? ICE : "#334155"; px(c, x, top, 5); if (i < ch.pips) { c.fillStyle = SNOW; px(c, x - 1, top - 1, 2) }
+  }
+  const z = ch.frozen
+  if (z) {
+    const w = (opp.w || 60) + 16, h = (opp.h || 110) + 10, x0 = Math.round(ox - w / 2), y0 = Math.round(opp.y - 6)
+    c.save()
+    c.globalAlpha = 0.38; c.fillStyle = ICE; c.fillRect(x0, y0, w, h)
+    c.globalAlpha = 0.9; c.fillStyle = ICE2; c.fillRect(x0, y0, w, 3); c.fillRect(x0, y0 + h - 3, w, 3); c.fillRect(x0, y0, 3, h); c.fillRect(x0 + w - 3, y0, 3, h)
+    c.fillStyle = SNOW; for (let k = 0; k < 4; k++) px(c, x0 + 8 + k * 6, y0 + 8 + k * 6, 3)   // a highlight streak
+    c.fillStyle = "#c08a4a"; c.fillRect(Math.round(ox - 4), y0 - 18, 8, 18); c.fillStyle = "#8a5a2a"; c.fillRect(Math.round(ox + 2), y0 - 18, 2, 18)   // the stick
+    const left = Math.max(0, z.until - z.t)
+    if (left < 8) { c.fillStyle = INK; for (let k = 0; k < 6; k++) px(c, x0 + w * (0.2 + 0.1 * k), y0 + h * (0.3 + 0.08 * ((k * 3) % 5)), 2) }   // cracking
+    c.restore()
+  }
+  if (s.t - ch.shatterT < 16) {                                              // SHATTER: the ice-folder burst + flying shards
+    const k = (s.t - ch.shatterT) / 16
+    iceFx(c, "burst2", ox, opp.y + (opp.h || 110) * 0.4, 3, 1 - k); iceFx(c, "spray", ox + 20, opp.y + (opp.h || 110) * 0.6, 3, 1 - k)
+    c.fillStyle = ICE; for (let a = 0; a < 12; a++) px(c, ox + Math.cos(a * 0.5236) * 90 * k, opp.y + (opp.h || 110) / 2 + Math.sin(a * 0.5236) * 70 * k, 5 - Math.floor(k * 3))
   }
 }

@@ -137,5 +137,64 @@ test('4. Frost Coat resets on swap / revert / KO (fresh state, mods re-applied)'
   const g = ben(); coatOn(g); F.revertToHuman(g); assert.equal(g.omnitrix.formState, null)
 })
 
+// ── 5-7 Chill → Popsicle → Shatter ──────────────────────────────────────────────────────────────────────────
+const { AG_CHILL } = G
+import { keys as KEYS } from '../input.js'
+const chill = (f, t, cast, { blocked = false, extra = {} } = {}) => ARCTICGUANA.onContact(f, t, { proj: { alien: { ag: 'x', chill: 1, cast, ...extra } }, blocked })
+const freezeIt = (f, t) => { chill(f, t, 901); chill(f, t, 902); chill(f, t, 903); assert(G.frozen(S(f)), 'frozen') }
+test('5. Chill: one pip per cast (however many ticks), max 3, no pips from blocks, 240f expiry after the last', () => {
+  const f = ben(), t = foe(); reset(f, t, 40)
+  chill(f, t, 1); chill(f, t, 1); chill(f, t, 1); assert.equal(S(f).chill.pips, 1, 'one per cast')
+  chill(f, t, 2, { blocked: true }); assert.equal(S(f).chill.pips, 1, 'blocked: none')
+  ARCTICGUANA.onContact(f, t, { proj: { alien: { ag: 'trail', cast: 3 } }, blocked: false }); assert.equal(S(f).chill.pips, 1, 'untagged FX / trail: none')
+  chill(f, t, 4); assert.equal(S(f).chill.pips, 2)
+  step(f, t, AG_CHILL.EXPIRE - 1); assert.equal(S(f).chill.pips, 2); step(f, t, 1); assert.equal(S(f).chill.pips, 0, '240f after the last')
+})
+test('6. Popsicle: the 3rd pip encases for 30 ticks — held in place, cannot act, can be hit; input / clock untouched; then released', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); const x0 = t.x, y0 = t.y; freezeIt(f, t); assert.equal(S(f).chill.pips, 0, 'pips consumed')
+  const fr0 = FRAME; let held = 0
+  for (let i = 0; i < AG_CHILL.FREEZE + 2; i++) { t.vx = 9; t.vy = -5; world(f, t, 1); if (G.frozen(S(f))) { held++; assert.equal(t.x, x0); assert.equal(t.y, y0); assert(t.hitstun > 0 && t.hitstun <= AG_CHILL.HOLD + 1, 'cannot act, hitstun only as needed') } }
+  assert.equal(held, AG_CHILL.FREEZE - 1, '30 ticks (the 30th tick releases)'); assert.equal(S(f).chill.ends.at(-1), 'expire'); assert.equal(t.hitstun, 0, 'released, never left stuck')
+  assert.equal(FRAME - fr0, AG_CHILL.FREEZE + 2, 'the simulation clock is never touched by the form')
+})
+test('6. Popsicle: the mash-out shortens it by at most 6 ticks (fresh presses read through api.readControls)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); t.controls = { light: 'KeyJ', heavy: 'KeyK' }; freezeIt(f, t); let n = 0
+  while (G.frozen(S(f)) && n < 60) { KEYS.KeyJ = n % 2 === 0; world(f, t, 1); n++ }
+  KEYS.KeyJ = false; assert.equal(n, AG_CHILL.FREEZE - AG_CHILL.MASH, `mash capped at 6 (${n})`); assert.equal(S(f).chill.ends.at(-1), 'mash')
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 40); u.controls = { light: 'KeyJ' }; freezeIt(g, u); n = 0; KEYS.KeyJ = true
+  while (G.frozen(S(g)) && n < 60) { world(g, u, 1); n++ } KEYS.KeyJ = false; assert.equal(n, AG_CHILL.FREEZE - 1, 'a HELD key is one press, not a mash'); delete t.controls; delete u.controls
+})
+test('6. Popsicle: 420f refreeze immunity (no pips), never refreshed while frozen (a hit ends it instead), no refreeze loop', () => {
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 40); freezeIt(g, u); const until = S(g).chill.frozen.until; world(g, u, 2)
+  assert.equal(S(g).chill.frozen.until, until, 'the timer is never extended'); chill(g, u, 950)
+  assert(!G.frozen(S(g)), 'a Chill hit on a Popsicle is OTHER damage: it ends it'); assert.equal(S(g).chill.ends.at(-1), 'damage'); assert.equal(S(g).chill.pips, 0, 'and adds no pip (immunity)')
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); freezeIt(f, t)
+  world(f, t, AG_CHILL.FREEZE + 1); assert(!G.frozen(S(f))); assert.equal(S(f).chill.immuneT, AG_CHILL.IMMUNE - 1, "ended on tick 30, one tick of immunity since")
+  chill(f, t, 960); assert.equal(S(f).chill.pips, 0, 'immune: no pips'); step(f, t, AG_CHILL.IMMUNE); chill(f, t, 961); assert.equal(S(f).chill.pips, 1, 'after 420f')
+})
+test('6. Popsicle: ANY other damage ends it at once (no bonus); an engine escape that clears hitstun ends it; never stuck', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); freezeIt(f, t); world(f, t, 3)
+  const hp = t.health; C.applyScaledDamage(t, 10, { source: 'ability' }); world(f, t, 1); assert(!G.frozen(S(f))); assert.equal(S(f).chill.ends.at(-1), 'damage'); assert.equal(hp - t.health, Math.floor(10 * C.GLOBAL_DAMAGE_SCALE), 'no bonus')
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 40); freezeIt(g, u); world(g, u, 3); u.hitstun = 0; world(g, u, 1); assert.equal(S(g).chill.ends.at(-1), 'escape')
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 40); freezeIt(h, v); world(h, v, 3); F.revertToHuman(h); for (let i = 0; i < 4; i++) world(h, v, 1); assert.equal(v.hitstun, 0, 'his revert: free within the hold window')
+})
+test('7. Shatter: a clean Heavy on a Popsicle ends it once, +25 × the combo scale; a simultaneous second contact adds nothing', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); freezeIt(f, t); world(f, t, 2); const scale = C.getComboScale(f)
+  const hp = t.health; ARCTICGUANA.onContact(f, t, { move: { name: 'heavy', agShatter: true }, blocked: false }); const bonus = hp - t.health
+  assert.equal(S(f).chill.shatters, 1); assert(!G.frozen(S(f))); assert.equal(S(f).chill.ends.at(-1), 'shatter')
+  const exp = Math.floor(AG_CHILL.SHATTER * scale * f.damageMultiplier * C.GLOBAL_DAMAGE_SCALE); assert(Math.abs(bonus - exp) <= 1, `+25 × combo scale × his dmg × the global scale (${bonus} vs ${exp})`)
+  const hp2 = t.health; ARCTICGUANA.onContact(f, t, { move: { name: 'heavy', agShatter: true }, blocked: false }); assert.equal(t.health, hp2, 'no stacking'); assert.equal(S(f).chill.shatters, 1)
+})
+test('7. Shatter: the real Heavy (combat pipeline) shatters; the Shatter Coat burst qualifies; a blocked Heavy does not', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); freezeIt(f, t); world(f, t, 2); melee(f, t, 'heavy'); assert.equal(S(f).chill.ends.at(-1), 'shatter')
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 10); freezeIt(g, u); world(g, u, 2); ARCTICGUANA.onContact(g, u, { proj: { alien: { ag: 'coatBurst', chill: 1, shatter: true, cast: 77 } }, blocked: false }); assert.equal(S(g).chill.ends.at(-1), 'shatter')
+  assert.equal(S(g).chill.pips, 0, 'the shatter starts immunity: the burst adds no pip')
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 10); freezeIt(h, v); world(h, v, 2); ARCTICGUANA.onContact(h, v, { move: { name: 'heavy', agShatter: true }, blocked: true }); assert(G.frozen(S(h)), 'blocked: nothing')
+})
+test('7. the Shatter Coat burst (live) adds 1 Chill on a clean hit', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); coatOn(f); C.applyScaledDamage(f, 40, { source: 'projectile', attacker: t, move: 'ki_blast' }); world(f, t, 3)
+  assert.equal(S(f).stats.burstHits, 1); assert.equal(S(f).chill.pips, 1)
+})
+
 console.log(`\nARCTICGUANA: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

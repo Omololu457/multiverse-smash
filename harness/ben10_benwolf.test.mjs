@@ -222,6 +222,70 @@ test('7. LUPINE DODGE (←← + Light): no cost, i-frames on frames 4–10 only,
   f.attacking = false; f.currentAttack = null; world(f, t, s.dodgeCd); ready(f); world(f, t, 1, { left: true }); world(f, t, 1); world(f, t, 1, { left: true }); ready(f)
   assert.equal(C.startMove(f, 'light', BA.light), false, 'after 300f'); assert(s.dodge)
 })
+
+// ── 8-9 Howling Moon / Full Moon ─────────────────────────────────────────────────────────────────────────────
+const { BW_MOON, BW_ULT } = G
+const ultRun = (f, t, opts = {}) => { ready(f); f.energy = 100; const ok = A.triggerUltimate(f, ctxOf(f, t)); if (!ok) return -1; let n = 0; while ((S(f).ult || n < 4) && n < 400) { world(f, t, 1); n++; if (opts.block) t.isBlocking = true } return n }
+const moonUp = (f, t) => { reset(f, t, 100); assert(ultRun(f, t) > 0); assert(G.moonOn(S(f)), 'moon up'); return S(f) }
+test('8. Full Moon: 600f on a clean hit, 300f on a whiff or a block; once per transformation; not castable while it is up; no stacking', () => {
+  clearProj(); const f = ben(), t = foe(); const s = moonUp(f, t); assert(S(f).lastUlt.captured); assert.equal(s.moonDur, BW_MOON.HIT)
+  assert(s.moonTimer > BW_MOON.HIT - 10, `the capture did not consume buff time (${s.moonTimer})`)
+  ready(f); f.energy = 100; assert.equal(A.triggerUltimate(f, ctxOf(f, t)), false, 'not while the moon is up'); assert.equal(f.energy, 100)
+  world(f, t, s.moonTimer); assert(!G.moonOn(S(f))); assert.equal(S(f).moonEnds.at(-1), 'timer'); ready(f); f.energy = 100; assert.equal(A.triggerUltimate(f, ctxOf(f, t)), false, 'once per transformation')
+  clearProj(); const g = ben(), u = foe(); far(g, u); ultRun(g, u); assert.equal(S(g).lastUlt.captured, false); assert.equal(S(g).moonDur, BW_MOON.WHIFF, 'whiff: 300f')
+  assert.equal(100 - g.energy, BW_COST.ultimate)
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 100); v.isBlocking = true; ultRun(h, v, { block: true }); assert.equal(S(h).lastUlt.captured, false, 'blocked: no capture'); assert.equal(S(h).moonDur, BW_MOON.WHIFF)
+  assert.equal(S(h).moonCasts, 1, 'one moon')
+})
+test('8. Full Moon buffs apply to BenWolf ONLY: dmg +20%, taken −15%, speed / jump +15%, drain −25%, regen +50%, startup −1f (min 1)', () => {
+  clearProj(); const f = ben(), t = foe(), g = ben(), u = foe(); far(f, t); world(f, t, 1); const w0 = f._benWalkSpeed, d0 = f.dashSpeed, j0 = f.jumpForce
+  const tKeys0 = JSON.stringify({ sp: t.speed, dm: t.damageMultiplier, df: t.defenseMultiplier, j: t.jumpForce })
+  far(f, t); ultRun(f, t); assert(G.moonOn(S(f))); world(f, t, 1)
+  assert(Math.abs(f._benWalkSpeed / w0 - 1.15) < 1e-9 && Math.abs(f.dashSpeed / d0 - 1.15) < 1e-9 && Math.abs(f.jumpForce / j0 - 1.15) < 1e-9, 'speed / jump')
+  assert.equal(JSON.stringify({ sp: t.speed, dm: t.damageMultiplier, df: t.defenseMultiplier, j: t.jumpForce }), tKeys0, 'the opponent is untouched')
+  ready(f); reset(f, t, 10); const a = melee(f, t, 'heavy'); reset(g, u, 10); const b = melee(g, u, 'heavy'); assert(Math.abs(a / b - 1.2) < 0.02, `dmg ${a} vs ${b}`)
+  const h1 = f.health; C.applyScaledDamage(f, 100, { attacker: t, source: 'ability' }); const h2 = g.health; C.applyScaledDamage(g, 100, { attacker: u, source: 'ability' })
+  assert(Math.abs((h1 - f.health) / (h2 - g.health) - 0.85) < 0.01, 'taken −15%')
+  assert.equal(BENWOLF.drainMult(f), 0.75); assert.equal(BENWOLF.drainMult(g), 1)
+  const m = BENWOLF.moveFrames(f, 'light', BA.light); assert.equal(m.startup, BA.light.startup - 1); assert.equal(BENWOLF.moveFrames(f, 'x', { startup: 1 }).startup, 1, 'min 1f')
+  assert.equal(BENWOLF.moveFrames(g, 'light', BA.light), BA.light, 'no moon: unchanged'); assert.equal(G.startupOf(S(f), 12), 11); assert.equal(G.startupOf(S(g), 12), 12)
+  f.energy = 40; world(f, t, 1); const e0 = f.energy; f.energy += 10; world(f, t, 1); assert(Math.abs(f.energy - (e0 + 15)) < 1e-6, `regen +50% (${f.energy - e0})`)
+  g.energy = 40; world(g, u, 1); const e1 = g.energy; g.energy += 10; world(g, u, 1); assert(Math.abs(g.energy - (e1 + 10)) < 1e-6, 'no moon: +10')
+  const dv = F.BEN10_ALIEN_POOL.benwolf; f.isCharging = false; f.energy = 60; S(f).lastE = null; F.updateTransformDevice(f); const df = 60 - f.energy
+  g.isCharging = false; g.energy = 60; F.updateTransformDevice(g); const dg = 60 - g.energy; assert(Math.abs(df / dg - 0.75) < 1e-6, `drain ${df} vs ${dg}`)
+})
+test('8. Full Moon ends and clears on timer / swap / revert / KO / round end / rematch; stats restored', () => {
+  const t = foe(); const f = ben('benwolf', LOAD); const w0 = f._benWalkSpeed; far(f, t); ultRun(f, t); assert(G.moonOn(S(f)))
+  F.applyAlien(f, 'heatblast'); F.applyAlien(f, 'benwolf'); assert(!G.moonOn(S(f))); assert(Math.abs(f._benWalkSpeed - w0) < 1e-9, 'swap: base speed'); assert.equal(S(f).moonUsed, false, 'a new transformation')
+  const g = ben(); far(g, t); ultRun(g, t); F.revertToHuman(g); assert.equal(g.omnitrix.formState, null); assert.equal(g.transformed, false)
+  const k = ben(); far(k, t); ultRun(k, t); k.health = 0; F.updateTransformDevice(k); assert.equal(k.omnitrix.formState, null, 'KO')
+  const r = ben(); far(r, t); ultRun(r, t); F.setupBen10(r, r.omnitrix.aliens); assert.equal(r.omnitrix.formState ?? null, null, 'round end / rematch (setupBen10)'); assert.equal(r.transformed, false)
+})
+test('9. ULTIMATE: no capture on a whiff / block; 40 + 4×20 + 120 = 240 raw on a clean hit; positions restore; knockdown; 100f lockout', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); const hp = t.health; ultRun(f, t); assert.equal(S(f).lastUlt.captured, false); assert.equal(t.health, hp)
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 100); const h0 = u.health, gx = g.x; ultRun(g, u); const L = S(g).lastUlt
+  assert(L.captured); assert.deepEqual(L.hits, [BW_ULT.OPENER, 20, 20, 20, 20, BW_ULT.FINAL]); assert.equal(L.raw, 240)
+  assert.equal(g.x, L.home.x); assert.equal(g.x, gx); assert(Math.abs(u.x - L.thome.x) <= 6, 'restored'); assert(u.knockdownState || u.knockdownTimer > 0 || h0 > u.health)
+  assert(g.attackCooldown > 0 && g.attackCooldown <= BW_ULT.LOCKOUT); assert(h0 - u.health > 0)
+  assert.equal(A.activeProjectiles.filter(p => p.owner === g && p.lifetime > 0).length, 0, 'no persistent hazards')
+  const c1 = G.ultClaws(L.seed, L.f0, L.pi), c2 = G.ultClaws(L.seed, L.f0, L.pi); assert.deepEqual(c1, c2, 'claw angles are a pure hash'); assert.notDeepEqual(G.ultClaws(L.seed + 1, L.f0, L.pi), c1)
+})
+test('9. ULTIMATE vs HUNTED: the final hit +20 once and Hunted is consumed; never without Hunted', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 100); huntIt(f, t); ultRun(f, t); const L = S(f).lastUlt
+  assert.equal(L.bonus, 20); assert.equal(L.raw, 260); assert.equal(L.hits.at(-1), BW_ULT.FINAL + 20); assert(!G.hunted(S(f)), 'consumed'); assert.equal(S(f).scent.ends.at(-1), 'ult')
+  assert.equal(S(f).stats.huntedBonus, 1)
+})
+test('9. stage collision untouched during the night; the night fades in over 20f, back out over 30f after the moon ends (render-only)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 100); const stage0 = JSON.stringify({ L: physics.stageLeft, W: physics.stageWidth, g: physics.groundY })
+  ready(f); f.energy = 100; assert(A.triggerUltimate(f, ctxOf(f, t))); let lv = []
+  for (let i = 0; i < 60; i++) { world(f, t, 1); lv.push(G.nightLevel(f, S(f))) }
+  assert.equal(JSON.stringify({ L: physics.stageLeft, W: physics.stageWidth, g: physics.groundY }), stage0, 'stage untouched')
+  const k = lv.findIndex(v => v >= 1), z = lv.findIndex(v => v > 0); assert(z >= 0 && k - z + 1 >= 19 && k - z + 1 <= 21, `fade in ${k - z + 1}f`)
+  while (S(f).ult) { world(f, t, 1); G.nightLevel(f, S(f)) }
+  S(f).moonTimer = 1; world(f, t, 1); assert(!G.moonOn(S(f))); const out = []; for (let i = 0; i < 32; i++) { out.push(G.nightLevel(f, S(f))); world(f, t, 1) }
+  const end = out.findIndex(v => v <= 0); assert(end >= 28 && end <= 31, `fade out ${end}f`)
+  assert(!JSON.stringify(S(f)).match(/night|lvl|stars/i), 'no night / star state in GAME_STATE (only the timer)')
+})
 // @@END-TESTS@@
 console.log(`\nBENWOLF: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

@@ -33,8 +33,9 @@ export const BENWOLF = {
     air:    normal(28, 7, 4, 12, 2, { rangeX: 85 })                                            // the fall frame (AIR body)
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt, bodyOffset,
-  drawHud: drawBenwolfHud, drawFx: drawBenwolfFx
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, damageDealt, damageTaken, bodyOffset, targetOffset,
+  drainMult: f => (moonOn(bwState(f)) ? BW_MOON.DRAIN : 1),   // the Full Moon's −25% Power drain (the drainMult function form, Wildvine's)
+  drawHud: drawBenwolfHud, drawFx: drawBenwolfFx, drawUnder: drawBenwolfUnder
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -42,7 +43,8 @@ export function freshBenwolfState() {
   return { kind: BW_KEY, t: 0, castId: 0, noAttack: false, base: null, stage: { L: -1e6, R: 1e6 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, backPrev: false, backTapT0: -999, backTapT: -999, dodgeTapT: -999, lastDir: 5,
     howl: null, ring: null, ringUsed: null, lowRingUsed: null, rake: null, pounce: null, rise: null, low: null, lowRing: null, dive: null, diveUsed: false, dodge: null, dodgeCd: 0,
-    lastHowl: null, lastRake: null, lastPounce: null, lastRise: null, lastLow: null, lastDive: null, landT: -999, ult: null,
+    lastHowl: null, lastRake: null, lastPounce: null, lastRise: null, lastLow: null, lastDive: null, landT: -999, ult: null, lastUlt: null,
+    moonTimer: 0, moonStrength: 0, moonDur: 0, moonUsed: false, moonCasts: 0, moonEnds: [], lastE: null, regenAdded: 0,
     scent: { pips: 0, lastT: -999, pipped: [], hunted: 0, immuneT: 0, hunts: 0, reaims: 0, ends: [] },
     stats: { casts: 0, scentHits: 0, huntedBonus: 0, howls: 0, howlTicks: 0, howlHolds: 0, howlRings: 0, rakes: 0, rakeHits: 0, pounces: 0, pounceHits: 0,
       rises: 0, riseHits: 0, lows: 0, lowTicks: 0, dives: 0, diveHits: 0, dodges: 0 } }
@@ -84,12 +86,12 @@ const BUSY = []    // predicates: a cast owns him
 const busy = s => BUSY.some(p => p(s))
 let projRef = null, api0 = null   // the engine's live projectile list + the api of the last tick (hooks called outside the tick)
 // moveFrames hook (combat.startMove): no normals while a cast owns him (later sections add Lupine Dodge + the moon's −1f)
-const MOVE_FRAMES = []
+const MOVE_FRAMES = [], MD_XFORM = []   // MD_XFORM: (f, s, key, md) → a (copied) md (the Full Moon's −1f startup)
 function moveFrames(f, key, md) {
   const s = bwState(f); if (!s || !md) return md
   for (const fn of MOVE_FRAMES) { const r = fn(f, s, key, md); if (r !== undefined) return r }
   if (busy(s)) return false
-  return md
+  return MD_XFORM.reduce((m, fn) => fn(f, s, key, m), md)
 }
 
 // ── INPUTS: the shared alien motion inputs ──────────────────────────────────────────────────────────────────
@@ -144,8 +146,7 @@ function fireSpecial(f, ctx, api) {
   const kind = pickSpecial(f, s); if (!kind || !CASTS[kind]) return false
   return CASTS[kind](f, s, api, ctx)
 }
-let ULT = null     // the ultimate (Phase 5)
-function fireUltimate(f, ctx, api) { return ULT ? ULT(f, ctx, api) : false }
+function fireUltimate(f, ctx, api) { return fireHowlingMoon(f, ctx, api) }
 
 // ── HUD (render-only) ──────────────────────────────────────────────────────────────────────────────────────────
 const MOON = "#f5f3d7", MOON2 = "#c9c4a0", NIGHT = "#1e2a5a", INK = "#0b1022", RING = "#3f48cc", RING2 = "#99d9ea", SCENT = "#b5e61d", PAW = "#e8e1c0"
@@ -578,4 +579,214 @@ HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {                        // LU
   const fill = s.dodgeCd > 0 ? 1 - s.dodgeCd / BW_DODGE.CD : 1, h = 3
   ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(bx - 1, y - 1, w + 2, h + 2)
   ctx.fillStyle = s.dodgeCd > 0 ? "#475569" : "#cbd5e1"; const fw = Math.round(w * Math.max(0, Math.min(1, fill))); ctx.fillRect(flip ? bx + w - fw : bx, y, fw, h)
+})
+
+// ── 5. ULTIMATE: HOWLING MOON (the Omnitrix Overload input; 55 Power; once per transformation; never while the moon is up) ──
+// FULL MOON BUFF (GAME_STATE: moonTimer, moonStrength): 600f on a clean-hit cast, 300f if the howl whiffs or is blocked (no
+// cinematic, no capture, 60f recovery). While it lasts — HIS side only (his own fields + his own hooks; no other fighter is
+// touched): damage +20% (damageDealt), damage taken −15% (damageTaken), walk / run / dash and jump +15% (`_benWalkSpeed`,
+// `dashSpeed`, `jumpForce` from the onApply base), Power drain −25% (drainMult), Power regen +50% (every Power GAIN between his
+// ticks is matched by half again, capped at max — Feedback's per-tick energy read), move startup −1f (min 1f: normals via
+// moveFrames, specials via startupOf). No refresh, no stacking. Ends on its timer (the night fades back over 30f, render-only),
+// swap / revert / KO / round end / rematch (a fresh formState + the engine's own stat re-apply: every visual is gone at once).
+export const BW_MOON = { HIT: 600, WHIFF: 300, DMG: 1.20, TAKEN: 0.85, SPEED: 1.15, JUMP: 1.15, DRAIN: 0.75, REGEN: 1.5, CUT: 1 }
+export const moonOn = s => !!(s && s.moonTimer > 0)
+function startMoon(f, s, dur) {
+  if (moonOn(s)) return false                                               // no refresh, no stacking
+  s.moonTimer = dur; s.moonDur = dur; s.moonStrength = 1; s.moonCasts++
+  return true
+}
+function endMoon(f, s, why) { s.moonTimer = 0; s.moonStrength = 0; s.moonEnds.push(why); if (s.moonEnds.length > 4) s.moonEnds.shift() }
+TICKS.push((f, s) => {                                                       // the buff: timer + his stats from the onApply base
+  if (s.moonTimer > 0 && !s.ult) { if (--s.moonTimer <= 0) endMoon(f, s, "timer") }   // the capture does not consume buff time
+  const on = moonOn(s), b = s.base
+  if (b) {
+    if (Number.isFinite(b.walk)) f._benWalkSpeed = b.walk * (on ? BW_MOON.SPEED : 1)
+    if (Number.isFinite(b.dash)) f.dashSpeed = b.dash * (on ? BW_MOON.SPEED : 1)
+    if (Number.isFinite(b.jump)) f.jumpForce = b.jump * (on ? BW_MOON.JUMP : 1)
+  }
+  const e = f.energy || 0, max = f.maxEnergy || 100
+  if (on && s.lastE != null && e > s.lastE) { const add = Math.min(max - e, (e - s.lastE) * (BW_MOON.REGEN - 1)); f.energy = e + add; s.regenAdded += add }
+  s.lastE = f.energy || 0
+})
+MOON_CUT.push(s => (moonOn(s) ? BW_MOON.CUT : 0))
+MD_XFORM.push((f, s, key, md) => (moonOn(s) ? { ...md, startup: Math.max(1, (md.startup ?? 5) - BW_MOON.CUT) } : md))
+DEALT.push((f, s, target, raw, opts) => (moonOn(s) && !isUltHit(opts) ? raw * BW_MOON.DMG : raw))
+function damageTaken(f, raw) { return moonOn(bwState(f)) ? raw * BW_MOON.TAKEN : raw }
+
+// SEQUENCE: 1. the cast: he rears back and howls (Attack f3–4 + the ring loop) — the 40 clean opener (a ring burst 320 px
+// ahead at 16f). A whiff / block: Full Moon 300f, no capture, 60f recovery.
+// 2. THE NIGHT FALLS (render-only: drawUnder) — the stage fades to night blue over 20f, a pixel FULL MOON rises, stars come
+// out; both fighters keep a moonlight rim (readable on bright and dark stages, never a black screen); the HUD shows a moon
+// icon with the time left. Never touches collision or the stage's gameplay.
+// 3. CAPTURE: 4 moonlit claw hits × 20 = 80 (Attack → swoosh frames) at angles hash(match seed, start frame, player index).
+// 4. LUNAR POUNCE: a full-moon leap (the Pounce frame + a procedural moon-glow trail) → 120, knockdown.
+// Total 240 raw (40 + 80 + 120); HUNTED at the capture: the final hit +20 once and Hunted is consumed. Then camera and
+// positions restore, the Full Moon (600f, untouched by the cinematic) runs on, 100f recovery lockout.
+export const BW_ULT = { OPENER_AT: 16, OPENER: 40, REACH: 320, H: 120, WHIFF: 60, NIGHT: 22, CLAW_AT: [28, 40, 52, 64], CLAW: 20,
+  LEAP_AT: 72, FINAL_AT: 92, FINAL: 120, HUNT_BONUS: 20, END: 112, LOCKOUT: 100, ZOOM: 0.85, LEAP_H: 140, KD: 60 }
+function fireHowlingMoon(f, ctx, api) {
+  const s = bwState(f); if (!s || !canAct(f, s) || moonOn(s) || s.moonUsed) return false
+  if (!api.spendEnergy(f, BW_COST.ultimate)) return false
+  s.castId++; s.moonUsed = true
+  const face = f.facing || 1, total = BW_ULT.OPENER_AT + BW_ULT.WHIFF
+  f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = "bwHowl"; f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
+  s.ult = { phase: "opener", t: 0, face, raw: 0, hits: [], cast: s.castId, seed: (ctx?.seed ?? 1) >>> 0, f0: ctx?.frame ?? s.t, pi: pIndex(f), hunted: false, bonus: 0 }
+  const cast = s.castId
+  api.scheduleBenSpawn(f, BW_ULT.OPENER_AT, () => hitbox(f, api, "bw_ult_howl", face, {
+    damage: BW_ULT.OPENER, spawnX: mouthX(f, face) + face * BW_ULT.REACH / 2, spawnY: mouthY(f) + 8, w: BW_ULT.REACH, h: BW_ULT.H,
+    lifetime: 3, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0.01, knockbackY: 0, alien: { bw: "ultOpen", cast } }))
+  return true
+}
+function ultMiss(f, s, why) {                                                // whiff / block: the shorter moon, no capture
+  s.lastUlt = { captured: false, why, raw: 0 }; s.ult = null
+  startMoon(f, s, BW_MOON.WHIFF)
+}
+function startCapture(f, s, target) {
+  const u = s.ult
+  u.phase = "night"; u.t = 0; u.raw = BW_ULT.OPENER; u.hits.push(BW_ULT.OPENER)
+  u.home = { x: f.x, y: f.y }; u.thome = { x: target.x, y: target.y }; u.hunted = hunted(s)
+  startMoon(f, s, BW_MOON.HIT)
+  f.attackCooldown = BW_ULT.END + BW_ULT.LOCKOUT; f._benPowerCommit = BW_ULT.END; f._spriteCastTimer = BW_ULT.END
+  f.invulnTimer = Math.max(f.invulnTimer || 0, BW_ULT.END + 2)
+}
+// pure: the capture claws of one cast (render + damage beats share them; the same seed → the same angles)
+export function ultClaws(seed, frame0, pi) {
+  return BW_ULT.CLAW_AT.map((at, i) => ({ at, ang: Math.round((bwHash(seed, frame0, pi, i) * 2 - 1) * 75), len: 80 + Math.floor(bwHash(seed, frame0, pi, i + 16) * 50),
+    side: bwHash(seed, frame0, pi, i + 32) < 0.5 ? -1 : 1 }))
+}
+TICKS.push((f, s, input, api, opp) => {
+  const u = s.ult; if (!u) return
+  if (u.phase === "opener") { if (++u.t > BW_ULT.OPENER_AT + 4) { ultMiss(f, s, "whiff"); f.attackCooldown = Math.max(f.attackCooldown || 0, BW_ULT.WHIFF - 4) } else pose(f, "bwHowl", 2); return }
+  if (!opp || opp.eliminated) { endUlt(f, s, null, api); return }
+  u.t++
+  if (u.t === 1) api?.focusCamera?.(f, opp, BW_ULT.ZOOM, BW_ULT.END)       // render-only framing
+  opp.hitstun = Math.max(opp.hitstun || 0, 4); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y
+  opp.attacking = false; opp.currentAttack = null; opp.isBlocking = false
+  f.vx = 0; f.vy = 0
+  const hit = (dmg, shake, move) => { api.applyScaledDamage(opp, dmg, { attacker: f, move, source: "ability" }); u.raw += dmg; u.hits.push(dmg); opp.colorFlash = 8; api.shake?.(shake, 10) }
+  const face = u.face, near = u.thome.x - face * ((f.w || 60) + 6)
+  if (u.t < BW_ULT.NIGHT) { u.phase = "night"; f.x = u.home.x; f.y = u.home.y; f._spriteCastMove = "bwHowlHold" }
+  else if (u.t < BW_ULT.LEAP_AT) {
+    u.phase = "claw"; f.x = near; f.y = u.home.y; f._spriteCastMove = "bwClaw"
+    const k = BW_ULT.CLAW_AT.indexOf(u.t); if (k >= 0) hit(BW_ULT.CLAW, 6 + k * 2, "bw_ult_claw")
+  } else if (u.t <= BW_ULT.FINAL_AT) {                                     // LUNAR POUNCE: back out and over, landing on them
+    u.phase = "pounce"; f._spriteCastMove = "bwPounce"
+    const p = (u.t - BW_ULT.LEAP_AT) / (BW_ULT.FINAL_AT - BW_ULT.LEAP_AT), x0 = near - face * 160
+    f.x = x0 + (near - x0) * p; f.y = u.home.y - 4 * BW_ULT.LEAP_H * p * (1 - p)
+    if (u.t === BW_ULT.FINAL_AT) {
+      const bonus = u.hunted && hunted(s) ? BW_ULT.HUNT_BONUS : 0
+      if (bonus) { u.bonus = bonus; endHunted(s, "ult"); s.stats.huntedBonus++ }
+      hit(BW_ULT.FINAL + bonus, 18, "bw_ult_lunar_pounce")
+    }
+  } else if (u.t < BW_ULT.END) { u.phase = "land"; f.x = near; f.y = u.home.y; f._spriteCastMove = "bwRake" }
+  else { endUlt(f, s, opp, api); return }
+  f._spriteCastTimer = 2
+})
+function endUlt(f, s, opp, api) {
+  const u = s.ult
+  if (u?.home) { f.x = u.home.x; f.y = u.home.y; f.vx = 0; f.vy = 0 }
+  if (opp && u?.thome) { opp.x = u.thome.x; opp.y = u.thome.y; opp.hitstun = Math.max(opp.hitstun || 0, 30)
+    if (!opp.eliminated) { opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, BW_ULT.KD) } }
+  s.lastUlt = { captured: !!u?.home, raw: u?.raw || 0, hits: u?.hits ? u.hits.slice() : [], seed: u?.seed, f0: u?.f0, pi: u?.pi, bonus: u?.bonus || 0,
+    home: u?.home ? { ...u.home } : null, thome: u?.thome ? { ...u.thome } : null, endT: s.t }
+  s.ult = null
+  api?.focusCamera?.(f, opp, 1, 12)
+  f.attackCooldown = BW_ULT.LOCKOUT; f._benPowerCommit = BW_ULT.LOCKOUT; f._spriteCastMove = null; f._spriteCastTimer = 0
+}
+CONTACT.unshift((f, s, target, { proj, blocked }) => {
+  const tag = proj && proj.alien; if (!tag || tag.bw !== "ultOpen") return
+  const u = s.ult; if (!u || u.phase !== "opener" || u.cast !== tag.cast) return
+  killOwn(f, "ultOpen", tag.cast)
+  if (blocked || target.eliminated) { ultMiss(f, s, "blocked"); f.attackCooldown = Math.max(f.attackCooldown || 0, BW_ULT.WHIFF - BW_ULT.OPENER_AT) }
+  else startCapture(f, s, target)
+})
+// render-only: the held opponent sways under the claws (never collision)
+function targetOffset(f, t) {
+  const s = bwState(f), u = s && s.ult; if (!u || u.phase !== "claw") return null
+  const k = BW_ULT.CLAW_AT.findIndex(at => u.t >= at && u.t < at + 6); if (k < 0) return null
+  return { dx: u.face * (6 - (u.t - BW_ULT.CLAW_AT[k])), dy: 0 }
+}
+
+// ── THE NIGHT (render-only: drawUnder, under both fighters; nothing here is GAME_STATE or collides) ──────────────
+// The night LEVEL is render-local memory (a WeakMap keyed by the fighter, stepped by his sim tick so it is frame-rate
+// independent): toward 1 over 20f while the moon is up / the capture runs, back to 0 over 30f after the timer ends. When his
+// formState goes (swap / revert / KO / round end / rematch) this layer is simply not drawn: every visual is gone at once.
+const _night = new WeakMap(), _opp = new WeakMap()
+export const BW_NIGHT = { IN: 20, OUT: 30, TINT: 0.5, STARS: 46 }
+export function nightLevel(f, s) {
+  let m = _night.get(f); if (!m || m.formT > s.t) m = { lvl: 0, formT: s.t }
+  const dt = Math.max(0, s.t - m.formT), up = moonOn(s) || !!(s.ult && s.ult.phase !== "opener")
+  m.lvl = up ? Math.min(1, m.lvl + dt / BW_NIGHT.IN) : Math.max(0, m.lvl - dt / BW_NIGHT.OUT); m.formT = s.t
+  _night.set(f, m); return m.lvl
+}
+export function drawBenwolfUnder(c, f) {
+  const s = bwState(f); if (!s || !c) return
+  const L = nightLevel(f, s); if (L <= 0) return
+  const W = (c.canvas && c.canvas.width) || 1280, H = (c.canvas && c.canvas.height) || 720
+  c.save()
+  if (typeof c.setTransform === "function") c.setTransform(1, 0, 0, 1, 0, 0)  // the sky is SCREEN space
+  c.imageSmoothingEnabled = false
+  c.globalAlpha = BW_NIGHT.TINT * L; c.fillStyle = "#0b1a4a"; c.fillRect(0, 0, W, H)
+  const P = Math.max(2, Math.round(H / 240))                                 // the pixel size of the sky art
+  for (let i = 0; i < BW_NIGHT.STARS; i++) {                                 // stars (hash-placed: a fixed render seed)
+    const sx = bwHash(7, i, 0, 1) * W, sy = bwHash(7, i, 0, 2) * H * 0.55, tw = ((s.t >> 3) + i) % 7 === 0
+    c.globalAlpha = L * (tw ? 0.45 : 0.95); c.fillStyle = i % 5 ? "#e8edff" : "#fff6c8"; c.fillRect(Math.round(sx / P) * P, Math.round(sy / P) * P, P, P)
+    if (i % 9 === 0 && !tw) { c.fillRect(Math.round(sx / P) * P - P, Math.round(sy / P) * P, P * 3, P / 2 | 0 || 1) }
+  }
+  const R = 14, mx = Math.round(W * 0.78 / P) * P, my = Math.round((H * 0.2 + (1 - L) * H * 0.18) / P) * P   // the FULL MOON rises
+  c.globalAlpha = 0.18 * L; c.fillStyle = "#fffbe0"
+  for (let r = R + 6; r > R; r -= 2) disc(c, mx, my, r, P)                   // a stepped halo
+  c.globalAlpha = L; c.fillStyle = MOON; disc(c, mx, my, R, P)
+  c.fillStyle = MOON2; for (const [dx, dy, r] of [[-5, -4, 3], [4, 3, 4], [-2, 7, 2], [7, -6, 2]]) disc(c, mx + dx * P, my + dy * P, r, P)   // craters
+  c.restore()
+  // MOONLIGHT RIM behind both fighters (world space, under them): a pale stepped glow so dark sprites stay readable
+  c.save(); c.globalAlpha = 0.22 * L; c.fillStyle = "#cfe0ff"
+  for (const q of [f, _opp.get(f)]) if (q && !q.eliminated) { const qx = q.x + (q.w || 60) / 2, qy = q.y + (q.h || 110) / 2
+    for (let k = 0; k < 3; k++) c.fillRect(Math.round(qx - (q.w || 60) / 2 - 8 + k * 4), Math.round(q.y - 6 + k * 4), Math.round((q.w || 60) + 16 - k * 8), Math.round((q.h || 110) + 8 - k * 8)) }
+  c.restore()
+}
+function disc(c, x, y, r, P) {                                               // a pixel disc of radius r (in sky pixels)
+  for (let j = -r; j <= r; j++) { const w = Math.floor(Math.sqrt(r * r - j * j)); c.fillRect(x - w * P, y + j * P, (2 * w + 1) * P, P) }
+}
+FX_DRAW.push((c, f, s, frame, opp) => {
+  if (opp) _opp.set(f, opp)
+  const u = s.ult; if (!u) return
+  const face = u.face
+  if (u.phase === "opener" && u.t >= BW_ULT.OPENER_AT - 8) {                 // the opener howl: the ring loop rushing out
+    for (let i = 0; i < 4; i++) fx(c, "howlRing", ringFrame("howlRing", u.t - BW_ULT.OPENER_AT + 8 + i * 3), mouthX(f, face) + face * (30 + i * 70 + (u.t - BW_ULT.OPENER_AT + 8) * 6), mouthY(f) + 8, 3, face)
+    return
+  }
+  if (!opp) return
+  const ox = cx(opp), oy = opp.y + (opp.h || 110) / 2
+  if (u.phase === "claw" || u.phase === "pounce") for (const cl of ultClaws(u.seed, u.f0, u.pi)) {   // the hashed moonlit claw slashes
+    const age = u.t - cl.at; if (age < 0 || age > 16) continue
+    const r = cl.ang * Math.PI / 180, dx = Math.cos(r) * cl.len / 2 * cl.side, dy = Math.sin(r) * cl.len / 2
+    c.save(); c.globalAlpha = Math.max(0.25, 1 - age / 16)
+    for (let k = -1; k <= 1; k++) { c.strokeStyle = age < 5 ? "#ffffff" : MOON; c.lineWidth = 3; c.beginPath()
+      c.moveTo(Math.round(ox - dx + k * 8 * Math.sin(r)), Math.round(oy - dy - k * 8 * Math.cos(r))); c.lineTo(Math.round(ox + dx + k * 8 * Math.sin(r)), Math.round(oy + dy - k * 8 * Math.cos(r))); c.stroke() }
+    c.restore(); if (age < 6) spark(c, ox + dx, oy + dy, age, frame)
+  }
+  if (u.phase === "pounce") {                                                // LUNAR POUNCE: the moon-glow trail
+    c.save(); for (let i = 1; i <= 6; i++) { c.globalAlpha = 0.5 - i * 0.07; c.fillStyle = i % 2 ? MOON : "#cfe0ff"; px(c, cx(f) - face * i * 12, f.y + (f.h || 110) * 0.5 + i * 4, 10 - i) } c.restore()
+  }
+  if (u.t >= BW_ULT.FINAL_AT && u.t < BW_ULT.FINAL_AT + 14) {               // the landing: a moon-white ring burst
+    const k = (u.t - BW_ULT.FINAL_AT) / 14; c.save(); c.globalAlpha = 1 - k; c.strokeStyle = MOON; c.lineWidth = 4
+    c.beginPath(); c.arc(Math.round(ox), Math.round(oy), 20 + 120 * k, 0, Math.PI * 2); c.stroke(); c.restore()
+  }
+})
+HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {                          // FULL MOON: a pixel moon icon + the seconds left
+  const yy = y + 6, k = 2
+  if (moonOn(s)) {
+    const ix = flip ? bx + w - 8 : bx + 8
+    ctx.fillStyle = INK; disc(ctx, ix, yy + 6, 4, k); ctx.fillStyle = MOON; disc(ctx, ix, yy + 6, 3, k); ctx.fillStyle = MOON2; ctx.fillRect(ix - 2, yy + 4, 2, 2)
+    const frac = s.moonTimer / Math.max(1, s.moonDur), bw = w - 22, x0 = flip ? bx : bx + 20
+    ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(x0 - 1, yy + 4, bw + 2, 5); ctx.fillStyle = MOON; const fw = Math.round(bw * frac); ctx.fillRect(flip ? x0 + bw - fw : x0, yy + 5, fw, 3)
+    ctx.font = "bold 7px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"; ctx.fillStyle = MOON
+    ctx.fillText(`FULL MOON ${Math.ceil(s.moonTimer / 60)}s`, flip ? x0 + bw : x0, yy + 11)
+  } else if (s.scent.hunted > 0) {
+    ctx.font = "bold 7px Arial"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"; ctx.fillStyle = PAW
+    ctx.fillText(`HUNTED ${Math.ceil(s.scent.hunted / 60)}s`, flip ? bx + w : bx, yy + 4)
+  }
 })

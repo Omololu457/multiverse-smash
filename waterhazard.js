@@ -11,6 +11,7 @@
 // write it. Simulation randomness: hash(match seed, frame, player index) only.
 // Sheet from fun-tech.tk: docs/ben10/aliens/waterhazard/SPRITE_LEDGER.md.
 import { WATERHAZARD_ANIM, WATERHAZARD_GEOM } from "./waterhazardAssets.js"
+import { GP_PUDDLE, GP_GEYSER } from "./goop.js"   // Goop's Puddle Form / Geyser numbers, READ (identical by construction; goop.js imports only its art)
 export { WATERHAZARD_ANIM, WATERHAZARD_GEOM }
 
 export const WH_KEY = "waterhazard"
@@ -39,7 +40,7 @@ export const WATERHAZARD = {
     air:    normal(28, 7, 4, 12, 2, { rangeX: 85 })                                             // Col 2 R5 leap body
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, struck, damageDealt,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, struck, damageDealt, evade, bodyAlpha,
   drawHud: drawWaterHazardHud, drawFx: drawWaterHazardFx
 }
 
@@ -182,3 +183,112 @@ export function drawWaterHazardFx(c, f, frame = 0, opp = null) {
   const s = whState(f); if (!s || !c) return
   for (const d of FX_DRAW) d(c, f, s, frame, opp)
 }
+
+// ── 3. PUDDLE FORM (↓ + Special, hold) — Goop's Puddle Form, his numbers READ from goop.js (GP_PUDDLE / GP_GEYSER) ─────────
+// melt (Col 4 R2 sinking, 6f) → slide (a procedural pixel puddle in his palette — the sheet has no puddle frame; speed 6,
+// Power −4/s, max 150f) → release = reform (Col 4 R2 → Col 1 R1, 12f, punishable) or →↓↘ (+ P still held) = GEYSER UPPERCUT
+// (60, launches). Entry costs 10. Low profile: in the puddle (melt / slide) high / mid melee and projectiles miss his body
+// (the engine's generic `evade` hook — Goop's exact rule); a LOW melee move still hits. Can't jump, block or attack except to
+// exit (power commit + cooldown). NO projector weak point (that was Goop's own; omitted for Water Hazard).
+export const WH_PUDDLE = GP_PUDDLE, WH_GEYSER = GP_GEYSER
+function canAct(f, s) {
+  return f.transformed && f.activeAlien === WH_KEY && !f.attacking && !((f.attackCooldown || 0) > 0) && !((f.hitstun || 0) > 0) &&
+    !((f.blockstun || 0) > 0) && !(f._benPowerCommit > 0) && !busy(s)
+}
+export const hold = (f, n) => { f._benPowerCommit = Math.max(f._benPowerCommit || 0, n); f.attackCooldown = Math.max(f.attackCooldown || 0, n) }
+const pose = (f, name, left) => { f._spriteCastMove = name; f._spriteCastTimer = Math.max(2, left) }
+BUSY.push(s => !!s.puddle)
+function enterPuddle(f, s, api) {
+  if (!grounded(f) || !canAct(f, s)) return false
+  if (!api.spendEnergy(f, WH_PUDDLE.COST)) return false
+  f.isCharging = false; f.vx = 0
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  s.castId++; s.stats.casts++; s.puddle = { phase: "melt", t: 0, pt: 0, cast: s.castId }; s.dp = { stage: 0, t: 0 }; s.stats.puddles++
+  hold(f, 2)
+  return true
+}
+CASTS.puddle = enterPuddle
+function endPuddle(f, s, how) {
+  const pd = s.puddle; if (!pd) return
+  if (how === "reform") { pd.phase = "reform"; pd.pt = 0; hold(f, WH_PUDDLE.REFORM); return }
+  s.lastPuddle = { how, t: pd.t }; s.puddle = null
+}
+TICKS.push((f, s, input, api) => {
+  const pd = s.puddle; if (!pd) return
+  if ((f.hitstun || 0) > 0 || (f.health || 0) <= 0) { s.lastPuddle = { how: "hit", t: pd.t }; s.puddle = null; return }   // knocked out of the puddle
+  pd.pt++
+  f.vx = 0
+  if (pd.phase === "melt") {
+    hold(f, 2); pose(f, "whMelt", 2)
+    if (pd.pt >= WH_PUDDLE.MELT) { pd.phase = "slide"; pd.t = 0 }
+    return
+  }
+  if (pd.phase === "reform") {
+    pose(f, "whReform", 2)
+    if (pd.pt >= WH_PUDDLE.REFORM) { s.lastPuddle = { how: "reform", t: pd.t }; s.puddle = null; f._spriteCastMove = null; f._spriteCastTimer = 0 }
+    return
+  }
+  pd.t++
+  hold(f, 2); pose(f, "whMelt", 2)
+  if (!f.infiniteEnergy) f.energy = Math.max(0, (f.energy || 0) - WH_PUDDLE.DRAIN_PER_S / 60)
+  const face = f.facing || 1, fwd = face > 0 ? !!input.right : !!input.left, down = !!input.down
+  const dp = s.dp                                                           // GEYSER: →↓↘ inside the puddle (frame-counted)
+  if (dp.stage > 0 && s.t - dp.t > WH_PUDDLE.DP_WINDOW) dp.stage = 0
+  if (dp.stage === 0 && fwd && !down) { dp.stage = 1; dp.t = s.t }
+  else if (dp.stage === 1 && down && !fwd) dp.stage = 2
+  else if (dp.stage === 2 && down && fwd) { dp.stage = 0; castGeyser(f, s, api); return }
+  if (!input.special) { endPuddle(f, s, "reform"); return }                 // release = reform (12f, punishable)
+  if (pd.t >= WH_PUDDLE.MAX || (f.energy || 0) <= 0) { endPuddle(f, s, "reform"); return }
+  const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0)
+  if (dir) f._benLunge = { frames: 1, speed: dir * WH_PUDDLE.SPEED }       // slide at speed 6 (stage-clamped by physics)
+})
+// GEYSER UPPERCUT (from the puddle): Col 4 R2 → Col 3 R3 rising arm; a geyser box under / in front of him on frame 8 — 60,
+// launches (Goop's numbers). The geyser column itself is drawn procedurally (render-only).
+function castGeyser(f, s, api) {
+  s.lastPuddle = { how: "geyser", t: s.puddle.t }; s.puddle = null; s.stats.geysers++; s.castId++
+  const cast = s.castId, face = f.facing || 1
+  pose(f, "whGeyser", WH_GEYSER.FRAMES); hold(f, WH_GEYSER.FRAMES + WH_GEYSER.RECOVERY)
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  s.geyserT = s.t
+  api.scheduleBenSpawn(f, WH_GEYSER.HIT_AT, () => {
+    api.spawnProjectile(f, "wh_geyser", { damage: WH_GEYSER.DMG, speed: 0, vx: 0, vy: 0, rectHitbox: true,
+      spawnX: f.x + f.w / 2 + face * 50, spawnY: f.y + f.h * 0.3, w: 100, h: 160, lifetime: 3,
+      isSpecial: true, hitstun: 32, blockstun: 16, knockbackX: 3 * face, knockbackY: -14,
+      alien: { wh: "geyser", cast } }, {})
+  })
+  return true
+}
+// Low profile (Goop's exact rule): in the puddle (melt / slide) everything but a LOW grounded melee move misses the body.
+function evade(f, { move = null, proj = null, attacker = null } = {}) {
+  const s = whState(f); if (!s || !s.puddle || s.puddle.phase === "reform") return false
+  const low = !proj && !!move && !!attacker && !!(attacker.onGround || attacker.grounded) && move.hitLevel === "low"
+  if (!low) s.stats.evaded++
+  return !low
+}
+// render-only: the body sinks into the puddle during the melt and is replaced by it during the slide
+function bodyAlpha(f) {
+  const s = whState(f), pd = s && s.puddle; if (!pd) return 1
+  return pd.phase === "slide" ? 0 : pd.phase === "melt" ? Math.max(0, 1 - pd.pt / WH_PUDDLE.MELT) : 1
+}
+const MAROON = "#8f1b31", DARKM = "#530c24", CYAN = "#00cccc", GREEN = "#00ff6c", WHITE = "#f1f5f9", INK = "#14141a"
+FX_DRAW.push((c, f, s, frame) => {                                          // the procedural pixel puddle + its ripple
+  const pd = s.puddle; if (!pd || pd.phase === "reform") return
+  const k = pd.phase === "melt" ? Math.min(1, pd.pt / WH_PUDDLE.MELT) : 1, w = 30 + 46 * k, x0 = cx(f), y0 = f.y + (f.h || 112) - 3
+  c.save()
+  for (let i = -w; i <= w; i += 4) {
+    const e = 1 - (i / w) ** 2, hh = Math.max(1, Math.round(6 * e))
+    c.fillStyle = DARKM; c.fillRect(Math.round(x0 + i - 2), Math.round(y0 - hh), 4, hh + 2)
+    c.fillStyle = MAROON; if (hh > 2) c.fillRect(Math.round(x0 + i - 2), Math.round(y0 - hh), 4, 2)
+  }
+  c.fillStyle = GREEN; px(c, x0 - 8, y0 - 4, 3); px(c, x0 + 8, y0 - 4, 3)               // the eyes, under the surface
+  const r = (frame % 30) / 30; c.globalAlpha = 1 - r; c.fillStyle = CYAN                // a ripple ring
+  for (let a = 0; a < 16; a++) { const an = a / 16 * Math.PI * 2; px(c, x0 + Math.cos(an) * w * (0.6 + r * 0.6), y0 - 2 + Math.sin(an) * 3, 2) }
+  c.restore()
+})
+FX_DRAW.push((c, f, s, frame) => {                                          // the geyser column (render-only)
+  const age = s.t - (s.geyserT ?? -999); if (age < WH_GEYSER.HIT_AT - 2 || age > WH_GEYSER.FRAMES) return
+  const face = f.facing || 1, x0 = cx(f) + face * 50, base = f.y + (f.h || 112), hgt = Math.min(1, (age - WH_GEYSER.HIT_AT + 2) / 5) * 170
+  c.save(); c.globalAlpha = 0.85
+  for (let y = 0; y < hgt; y += 6) { const ww = 22 + Math.sin((y + frame * 4) / 14) * 6; c.fillStyle = (y / 6) % 2 ? CYAN : WHITE; c.fillRect(Math.round(x0 - ww / 2), Math.round(base - y - 6), Math.round(ww), 6) }
+  c.restore()
+})

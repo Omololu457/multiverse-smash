@@ -99,6 +99,40 @@ test('12. waterAffinity: his id is tagged "water" (one entry; the active form re
   const h = ben(null); assert(!WA.isWaterborneFighter(h), 'human Ben'); assert.deepEqual(WH.tags, ['water'])
 })
 
+
+// ── 3 PUDDLE FORM ──────────────────────────────────────────────────────────────────────────────────────────────
+const { WH_PUDDLE, WH_GEYSER } = G
+const HOLD = { special: true }
+const enterPud = (f, t) => { ready(f); f.energy = 100; const e0 = f.energy; assert(cast(f, t, 'D'), 'puddle'); return e0 - f.energy }
+test('4. Puddle Form: Goop\'s numbers (the SAME object read from goop.js): 10 to enter, −4 Power/s, 150f cap, slide speed 6, 12f reform', () => {
+  assert.equal(WH_PUDDLE, GP_PUDDLE, 'identical by construction'); assert.equal(WH_GEYSER.DMG, 60)
+  assert.deepEqual([GP_PUDDLE.COST, GP_PUDDLE.DRAIN_PER_S, GP_PUDDLE.MAX, GP_PUDDLE.SPEED, GP_PUDDLE.REFORM], [10, 4, 150, 6, 12])
+  const f = ben(), t = foe(); far(f, t); assert.equal(enterPud(f, t), 10)
+  world(f, t, WH_PUDDLE.MELT + 60, HOLD); assert.equal(S(f).puddle.phase, 'slide'); const e1 = f.energy; world(f, t, 60, HOLD)
+  assert(Math.abs(e1 - f.energy - 4) < 0.6, 'drain ~4/s: ' + (e1 - f.energy))
+  world(f, t, 200, HOLD); assert(!S(f).puddle || S(f).puddle.phase === 'reform', 'the 150f cap ends the slide'); assert(S(f).lastPuddle || S(f).puddle?.phase === 'reform')
+  const g = ben(), u = foe(); far(g, u); enterPud(g, u); world(g, u, 20, HOLD); const x0 = g.x; world(g, u, 10, { special: true, right: true }); assert(Math.abs(g.x - x0 - 60) <= 8, 'slides at speed 6: ' + (g.x - x0))
+  world(g, u, 1, {}); assert.equal(S(g).puddle.phase, 'reform', 'release = reform'); let n = 0; while (S(g).puddle && n < 30) { world(g, u, 1); n++ } assert(Math.abs(n - WH_PUDDLE.REFORM) <= 1, 'reform 12f: ' + n)
+})
+test('4. Puddle Form low profile: a mid normal and a projectile miss his body, a LOW normal still hits; no projector weak point', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); enterPud(f, t); world(f, t, 10, HOLD); assert.equal(S(f).puddle.phase, 'slide')
+  const hp = f.health; ready(t); t.facing = -1; assert(C.startMove(t, 'heavy', t.basic_attacks.heavy)); for (let i = 0; i < 40 && t.attacking; i++) { world(f, t, 1, HOLD) }
+  assert.equal(f.health, hp, 'mid Heavy misses'); assert(S(f).stats.evaded >= 1)
+  const p = A.spawnProjectile(t, 'wh_test_bolt', { damage: 30, speed: 0, vx: -0.01, vy: 0, spawnX: cx(f), spawnY: f.y + f.h - 10, rectHitbox: true, w: 40, h: 30, lifetime: 3 }, {}); C.resolveProjectileHitsMulti([p], [f]); clearProj()
+  assert.equal(f.health, hp, 'projectile misses')
+  ready(t); assert(C.startMove(t, 'crouchLight', { ...t.basic_attacks.crouchLight, hitLevel: 'low' })); let hit = false; for (let i = 0; i < 40 && t.attacking; i++) { world(f, t, 1, HOLD); if (f.health < hp) { hit = true; break } }
+  assert(hit, 'a low still hits'); world(f, t, 1, HOLD); assert(!S(f).puddle, 'knocked out of the puddle (the next tick)')
+  assert(!('weakpoint' in WH) && !('onWeakpoint' in WH), 'no projector weak point (Goop-only)')
+})
+test('4. Puddle Form: can\'t jump / attack inside; →↓↘ = GEYSER UPPERCUT 60, launches', () => {
+  const f = ben(), t = foe(); reset(f, t, 30); enterPud(f, t); world(f, t, 10, HOLD)
+  assert.equal(C.startMove(f, 'light', BA.light), false, 'no normals in the puddle'); assert(f._benPowerCommit > 0 && f.attackCooldown > 0)
+  const hp = t.health, seq = [{ special: true, right: true }, { special: true, down: true }, { special: true, down: true, right: true }]
+  for (const i of seq) world(f, t, 1, i)
+  assert(!S(f).puddle && S(f).lastPuddle.how === 'geyser'); world(f, t, 20)
+  assert(t.health < hp, 'geyser hits'); assert(near(hp - t.health, 60 * DM * C.GLOBAL_DAMAGE_SCALE) || hp - t.health > 40, 'dmg ' + (hp - t.health)); assert(t.vy < 0 || !t.onGround || t.isLaunched, 'launches')
+})
+
 // @@END-TESTS@@
 console.log(`\nWATER HAZARD: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

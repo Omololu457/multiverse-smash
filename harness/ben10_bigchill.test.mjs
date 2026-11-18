@@ -191,6 +191,52 @@ test('5. a mid-freeze swap cannot double-dip (immunity covers the whole freeze +
   const ga = f.omnitrix.formState; for (let i = 0; i < 3; i++) G.addChill(f, ga, t, 90 + i); assert(!ga.chill.frozen, 'no refreeze')
 })
 
+// ── 5 Phase Drift ───────────────────────────────────────────────────────────────────────────────────────────
+const { BC_DRIFT } = B
+const drift = (f, t) => { ready(f); S(f).dashTapT = S(f).t; return cast(f, t, 'F') }
+const glide = (f, t, n, input = {}) => { for (let i = 0; i < n; i++) world(f, t, 1, input) }
+test('7. Phase Drift: cost 14, lands 60 px BEHIND the opponent (cast-time spot) facing them, no tracking after', () => {
+  const f = ben(), t = foe(); reset(f, t, 80); f.energy = 100; const oc = cx(t)
+  assert(drift(f, t), 'cast'); assert.equal(100 - f.energy, BC_COST.drift); assert.equal(S(f).drift.dir, 1)
+  glide(f, t, BC_DRIFT.STARTUP + 3); t.x += 150                                   // the foe moves mid-drift: no tracking
+  glide(f, t, BC_DRIFT.TRAVEL); const gap = f.x - (oc + t.w / 2)
+  assert(Math.abs(gap - BC_DRIFT.BEHIND) < 1.01, `60 px behind the cast-time body (${gap})`); assert.equal(f.facing, -1, 'facing them')
+})
+test('7. Phase Drift: at most 300 px of travel; never inside a wall / out of bounds (stage clamp)', () => {
+  const f = ben(), t = foe(); reset(f, t); t.x = f.x + 900; const x0 = f.x; assert(drift(f, t)); glide(f, t, BC_DRIFT.STARTUP + BC_DRIFT.TRAVEL)
+  assert(Math.abs((f.x - x0) - BC_DRIFT.DIST) < 1.01, `300 px cap (${f.x - x0})`)
+  const g = ben(), u = foe(); g.x = STAGE.stageWidth - 200; reset(g, u, 10); u.x = STAGE.stageWidth - u.w; assert(drift(g, u))
+  for (let i = 0; i < BC_DRIFT.TOTAL; i++) { world(g, u, 1); assert(g.x >= STAGE.stageLeft && g.x + g.w <= STAGE.stageWidth + 1e-6, 'inside the stage ' + i) }
+  const h = ben(), v = foe(); h.x = 30; h.facing = -1; v.x = 120; v.facing = -1; reset(h, v, 10); v.x = h.x - 5 - v.w + 40; h.facing = -1
+  assert(drift(h, v)); glide(h, v, BC_DRIFT.TOTAL); assert(h.x >= STAGE.stageLeft, 'left wall')
+})
+test('7. Phase Drift: intangible to physical melee + non-energy projectiles ONLY (energy / fire / electric / beam / ult hit)', () => {
+  const f = ben(), t = foe(); reset(f, t, 80); assert(drift(f, t)); glide(f, t, BC_DRIFT.STARTUP + 1); assert(B.driftLive(S(f)))
+  const ev = o => BIGCHILL.evade(f, o)
+  assert.equal(ev({ move: { name: 'heavy', damage: 40 }, attacker: t }), true, 'physical melee passes')
+  assert.equal(ev({ proj: { name: 'kunai', damage: 20 } }), true, 'physical projectile passes')
+  for (const p of [{ name: 'fire_ball', fire: true }, { name: 'zap', electric: true }, { name: 'laser_beam', beam: true }, { name: 'energy_orb', energy: true }, { name: 'kunai', isUltimate: true }])
+    assert.equal(ev({ proj: p }), false, p.name + ' still hits')
+  assert.equal(ev({ move: { name: 'flame_punch', fire: true }, attacker: t }), false, 'fire melee still hits')
+  assert.equal(BIGCHILL.phasing(f), true, 'no pushbox'); assert.equal(S(f).noBlock, true)
+  // through the real projectile pipeline
+  const hp = f.health; A.activeProjectiles.push({ name: 'kunai', owner: t, x: cx(f), y: f.y + 40, vx: -1, vy: 0, w: 30, h: 30, damage: 30, lifetime: 30 })
+  C.resolveProjectileHitsMulti(A.activeProjectiles, [f]); assert.equal(f.health, hp, 'kunai passed through')
+  clearProj(); A.activeProjectiles.push({ name: 'fire_ball', fire: true, owner: t, x: cx(f), y: f.y + 40, vx: -1, vy: 0, w: 30, h: 30, damage: 30, lifetime: 30 })
+  C.resolveProjectileHitsMulti(A.activeProjectiles, [f]); assert(f.health < hp, 'fire hits'); clearProj()
+  const g = ben(), u = foe(); reset(g, u, 80); assert(drift(g, u)); assert.equal(BIGCHILL.evade(g, { move: { name: 'heavy' }, attacker: u }), false, 'startup frames are tangible')
+})
+test('7. Phase Drift: no attack during the drift; 5 s cooldown; the optional wing slash (35, no Chill)', () => {
+  const f = ben(), t = foe(); reset(f, t, 80); assert(drift(f, t)); glide(f, t, 6)
+  assert.equal(BIGCHILL.moveFrames(f, 'light', BA.light), false, 'no normals'); assert.equal(S(f).noAttack, true)
+  f.attacking = false; f.attackCooldown = 0; f._benPowerCommit = 0; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false, 'no specials')
+  glide(f, t, BC_DRIFT.TOTAL); assert.equal(S(f).drift, null, 'ended with no slash'); assert.equal(A.activeProjectiles.filter(p => p.alien?.bc === 'slash').length, 0)
+  ready(f); S(f).dashTapT = S(f).t; f.energy = 100; assert.equal(cast(f, t, 'F'), false, 'cooldown'); world(f, t, BC_DRIFT.CD); ready(f); assert(drift(f, t), 'after 300f')
+  const g = ben(), u = foe(); reset(g, u, 80); assert(drift(g, u)); glide(g, u, BC_DRIFT.STARTUP + 4, { heavy: true }); glide(g, u, BC_DRIFT.TRAVEL)
+  u.x = g.x - 70 - u.w + 20; u.y = g.y + g.h - u.h; const hp = u.health; glide(g, u, 30)
+  assert(S(g).stats.drifts === 1 && hp - u.health > 0, `slash connects (${hp - u.health})`); assert.equal(S(g).chill.pips, 0, 'no Chill')
+})
+
 //@@NEXT@@
 console.log(`BIG CHILL: ${passed} passed, ${failed} failed`)
 if (failed) process.exit(1)

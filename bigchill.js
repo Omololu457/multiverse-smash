@@ -7,6 +7,7 @@
 // Sheet: docs/ben10/aliens/bigchill/SPRITE_LEDGER.md.
 import { BIGCHILL_ANIM, BIGCHILL_GEOM, BIGCHILL_FX, BIGCHILL_ICE_FX } from "./bigchillAssets.js"
 import { flightTakeoff, isFlying, FLIGHT_PHASE, flightKnockedDown } from "./flight.js"   // reused (Ghostfreak / Alien X / Jetray do the same)
+import { isEnergyMelee, isEnergyProjectile } from "./ghostfreak.js"   // REUSED intangibility tag filter (energy / fire / electric / beam still hit)
 import { AG_CHILL, addChill, endPopsicle, shatterPopsicle, tickChill, frozen, iceImmune } from "./arcticguana.js"   // the SHARED ice status (rules + numbers reused, never re-implemented)
 export { AG_CHILL, frozen, endPopsicle }
 export { BIGCHILL_ANIM, BIGCHILL_GEOM, BIGCHILL_FX, BIGCHILL_ICE_FX }
@@ -39,7 +40,7 @@ export const BIGCHILL = {
     air:    normal(26, 7, 4, 12, 2, { rangeX: 90 })                                             // atk_jump_A wing flip slash
   },
   anim: ANIM,
-  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact,
+  onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, evade, phasing, bodyAlpha,
   drawHud: drawBigChillHud, drawFx: drawBigChillFx
 }
 
@@ -48,6 +49,7 @@ export function freshBigChillState() {
   return { kind: BC_KEY, t: 0, frame: 0, seed: 1, castId: 0, noAttack: false,
     stage: { L: -1e6, R: 1e6 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5, spPrev: false, spHeld: false,
+    drift: null, driftCd: 0,
     chill: freshChill(),   // the shared ice status record — Arcticguana's exact shape (its functions run on it)
     jumpHeld: 0, airborne: false, apexY: null, capY: null, flightUsed: 0, flyT: 0, flights: 0, diveUsed: false,
     stats: { casts: 0 } }
@@ -87,7 +89,7 @@ function tick(f, input, ctx, api) {
   tickInputs(f, s, input)
   const opp = api && api.getOpponent ? api.getOpponent(f) : null
   for (const fn of TICKS) fn(f, s, input, ctx, api, opp)
-  s.noAttack = busy(s)
+  s.noAttack = busy(s); s.noBlock = driftLive(s)
   s.spPrev = !!input.special; s.spHeld = !!input.special
 }
 const BUSY = []   // (s) => bool, filled by the sections below (a cast that owns him)
@@ -211,6 +213,102 @@ CONTACT.push((f, s, target, { proj, move, blocked }) => {   // shatter first, th
   if (frozen(s)) { if (shatters) shatterPopsicle(f, s, target, api0); else endPopsicle(f, s, target, "damage") }
   if (tag && tag.chill) addChill(f, s, target, tag.cast)
 })
+
+// ── cast helpers (shared by every special) ──────────────────────────────────────────────────────────────────
+export function canAct(f, s) {
+  return f.transformed && f.activeAlien === BC_KEY && !f.attacking && !((f.attackCooldown || 0) > 0) && !((f.hitstun || 0) > 0) &&
+    !((f.blockstun || 0) > 0) && !(f._benPowerCommit > 0) && !busy(s)
+}
+function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
+  if (!canAct(f, s)) return null
+  if (cost && !(api ? api.spendEnergy(f, cost) : false)) return null
+  f.isCharging = false
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = pose; f._spriteCastTimer = total
+  f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
+  s.castId++; s.stats.casts++
+  return { cast: s.castId, total }
+}
+// a hitbox riding the shared projectile pipeline (hidden: drawn by this module); vx carries the knockback direction.
+// Lifetime >= 2 (combat.updateProjectiles culls lifetime <= 0 before hits resolve).
+const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, lifetime: 2, ...md,
+  alien: { hidden: true, ...(md.alien || {}) } }, {})
+export const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
+const pressed = (input, s) => !!(input.light || input.heavy || (input.special && !s.spPrev))
+
+// ── 5. PHASE DRIFT (→→ + P, cost 14, 5 s cooldown) — Ghostfreak's tag-based intangibility, bounded ───────────────
+// 4f startup, then a 16f intangible glide THROUGH the opponent (no pushbox; legal stage collision — physics clamps the glide
+// and the landing is clamped to the stage, so he never ends in a wall or out of bounds). The landing is fixed AT CAST TIME:
+// 60 px behind the opponent's cast-time body (at most 300 px of travel), facing them; no tracking after. During the glide
+// he is intangible to physical melee and non-energy projectiles (energy / fire / electric / beam / ultimates still hit —
+// Ghostfreak's isEnergyMelee / isEnergyProjectile) and cannot attack or block. Then 12f recovery, in which an attack press
+// (buffered from the glide) cancels into the optional WING SLASH: 35, no Chill.
+export const BC_DRIFT = { STARTUP: 4, TRAVEL: 16, RECOVERY: 12, DIST: 300, BEHIND: 60, CD: 300,
+  SLASH: 35, SLASH_STARTUP: 6, SLASH_ACTIVE: 3, SLASH_RECOVERY: 14, SLASH_W: 120, SLASH_H: 80 }
+BC_DRIFT.TOTAL = BC_DRIFT.STARTUP + BC_DRIFT.TRAVEL + BC_DRIFT.RECOVERY
+export const driftLive = s => !!(s && s.drift && s.drift.t >= BC_DRIFT.STARTUP && s.drift.t < BC_DRIFT.STARTUP + BC_DRIFT.TRAVEL)
+BUSY.push(s => !!s.drift)
+export function driftTarget(f, opp, stage) {
+  const me = cx(f), w = f.w || 60
+  const dir = opp ? (cx(opp) > me ? 1 : cx(opp) < me ? -1 : (f.facing || 1)) : (f.facing || 1)
+  const want = opp ? cx(opp) + dir * ((opp.w || 60) / 2 + BC_DRIFT.BEHIND + w / 2) : me + dir * BC_DRIFT.DIST
+  const dist = Math.min(Math.abs(want - me), BC_DRIFT.DIST)
+  const L = stage ? stage.L : -1e6, R = stage ? stage.R : 1e6
+  const x = Math.max(L, Math.min(R - w, me + dir * dist - w / 2))
+  return { dir, x, oppCx: opp ? cx(opp) : me + dir * 1e3 }
+}
+function castDrift(f, s, api) {
+  if (!grounded(f) || s.driftCd > 0) return false
+  const opp = api && api.getOpponent ? api.getOpponent(f) : null
+  const c = beginCast(f, s, api, "bcDrift", BC_COST.drift, BC_DRIFT.TOTAL); if (!c) return false
+  const tg = driftTarget(f, opp, s.stage)
+  s.drift = { t: 0, cast: c.cast, dir: tg.dir, x0: f.x, y0: f.y, tx: tg.x, oppCx: tg.oppCx, want: false, slash: null, done: false }
+  s.driftCd = BC_DRIFT.CD; s.stats.drifts = (s.stats.drifts || 0) + 1
+  return true
+}
+CASTS.drift = castDrift
+function endDrift(f, s) { delete f._benGlide; f.vx = 0; s.drift = null; f._spriteCastMove = null; f._spriteCastTimer = 0; f._benPowerCommit = 0; f.attackCooldown = 0 }
+TICKS.push(function tickDrift(f, s, input, ctx, api) {
+  if (s.driftCd > 0) s.driftCd--
+  const d = s.drift; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { endDrift(f, s); return }                         // an energy hit knocks him out of it
+  const travelEnd = BC_DRIFT.STARTUP + BC_DRIFT.TRAVEL
+  if (d.t >= BC_DRIFT.STARTUP && d.t < travelEnd) {
+    const left = travelEnd - d.t
+    f._benGlide = { vx: (d.tx - f.x) / left, vy: 0, minY: d.y0 }                  // the exact cast-time landing, stage-clamped
+    if (pressed(input, s)) d.want = true
+  } else if (d.t === travelEnd) {
+    delete f._benGlide; f.x = Math.max(s.stage.L, Math.min(s.stage.R - (f.w || 60), d.tx)); f.vx = 0
+    const me = cx(f); f.facing = d.oppCx > me ? 1 : d.oppCx < me ? -1 : -d.dir     // facing them (their cast-time spot)
+  }
+  if (d.t >= travelEnd && !d.slash) {
+    if (pressed(input, s)) d.want = true
+    if (d.want) {                                                                 // WING SLASH (cancel-optional)
+      d.slash = { t: 0 }; const tot = BC_DRIFT.SLASH_STARTUP + BC_DRIFT.SLASH_ACTIVE + BC_DRIFT.SLASH_RECOVERY
+      f._spriteCastMove = "bcSlash"; f._spriteCastTimer = tot; f.attackCooldown = tot; f._benPowerCommit = tot
+    } else if (d.t >= BC_DRIFT.TOTAL) { endDrift(f, s); return }
+  }
+  if (d.slash) {
+    const sl = d.slash; sl.t++
+    if (sl.t === BC_DRIFT.SLASH_STARTUP) { const face = f.facing || 1
+      hitbox(f, api, "bc_drift_slash", face, { damage: BC_DRIFT.SLASH, spawnX: cx(f) + face * ((f.w || 60) / 2 + BC_DRIFT.SLASH_W / 2 - 10), spawnY: f.y + (f.h || 110) * 0.45,
+        w: BC_DRIFT.SLASH_W, h: BC_DRIFT.SLASH_H, lifetime: BC_DRIFT.SLASH_ACTIVE + 1, hitstun: 22, blockstun: blockstunFor(BC_DRIFT.SLASH_RECOVERY, -6),
+        knockbackX: 5, knockbackY: -2, alien: { bc: "slash", cast: d.cast } }) }
+    if (sl.t >= BC_DRIFT.SLASH_STARTUP + BC_DRIFT.SLASH_ACTIVE + BC_DRIFT.SLASH_RECOVERY) { endDrift(f, s); return }
+  } else if (d.t < BC_DRIFT.TOTAL) { f._spriteCastMove = d.t < travelEnd ? "bcDrift" : "idle"; f._spriteCastTimer = 2 }
+})
+// INTANGIBLE (glide frames only): physical melee and non-energy projectiles pass through — Ghostfreak's tag filter
+function evade(f, { move = null, proj = null, attacker = null } = {}) {
+  const s = bcState(f); if (!s || !driftLive(s)) return false
+  let pass = false
+  if (proj) pass = !proj.visualOnly && !isEnergyProjectile(proj) && !proj.isUltimate
+  else if (move) pass = !isEnergyMelee(attacker, move) && !move.isUltimate && !["grab", "throw"].includes(move.category)
+  if (pass) s.stats.evaded = (s.stats.evaded || 0) + 1
+  return pass
+}
+function phasing(f) { return driftLive(bcState(f)) }                            // no body push: he passes THROUGH them
+function bodyAlpha(f) { const s = bcState(f); return driftLive(s) ? 0.45 : 1 }   // render-only
 
 // ── HUD + render-only overlays (read GAME_STATE, never write it) ───────────────────────────────────────────
 const HUD = [], FX = []   // render sections, filled below

@@ -47,7 +47,7 @@ export function freshUpgradeState() {
   return { kind: UP_KEY, t: 0, castId: 0, noAttack: false, baseSpeed: null, baseDash: null,
     stage: { L: -1e6, R: 1e6 },
     term: null, termSeq: 0, termCast: null, lastTerm: null,
-    oc: { t: 0, cdT: 0, lockT: 0, count: 0 }, merge: null,
+    oc: { t: 0, cdT: 0, lockT: 0, count: 0 }, merge: null, boostCasts: [],
     virus: { pips: 0, pipT: 0, pipped: [], crashT: 0, immuneT: 0, cap: null, crashes: 0, lastGain: 0 },
     zap: null, lash: null, dive: null, rise: null, spear: null, spearUsed: false, landT: -999,
     ult: null, lastUltRaw: 0, lastUltSpots: [], lastUltCrash: false,
@@ -92,6 +92,13 @@ function tick(f, input, ctx, api) {
   tickTermCast(f, s)
   tickMerge(f, s)
   tickVirus(f, s, opp)
+  tickZap(f, s, api)
+  tickZapBoost(f, s, api, opp)
+  tickLash(f, s, api)
+  tickDive(f, s, input, api)
+  tickRise(f, s, api)
+  tickSpear(f, s, api)
+  tickUlt(f, s, opp, api, ctx)
   //@@TICK@@
   s.noAttack = busy(s)
   s.spPrev = !!input.special
@@ -325,9 +332,277 @@ function tickVirus(f, s, opp) {
   if (v.pips >= UP_VIRUS.MAX) startCrash(f, s, opp)
 }
 
+// ── 6. MOVES ──────────────────────────────────────────────────────────────────────────────────────────────────
+const armEdge = (f, face) => cx(f) + face * (f.w || 60) / 2
+// ZAP BOLT (↓↘→ + P, 10) — the extracted bolt: 480 px, 40 dmg, one on screen, a clean hit +1 Virus pip. A bolt passing through his
+// ONLINE Terminal is boosted +10 ONCE per cast (atomic: one flag per cast) and the Terminal fires an extra pulse. OVERCLOCKED: a
+// 2-hit piercing bolt (two piercing bolts 6f apart, 22 each, one pip per cast).
+export const UP_ZAP = { STARTUP: 12, RECOVERY: 18, DMG: 40, SPEED: 16, RANGE: 480, W: 44, H: 18, ARM_Y: 0.36, BOOST: 10, OC_DMG: 22, OC_GAP: 6 }
+UP_ZAP.TOTAL = UP_ZAP.STARTUP + UP_ZAP.RECOVERY
+const ownZaps = (f, api) => api ? api.activeProjectiles().filter(p => p && p.owner === f && p.alien && p.alien.up === "zap") : []
+function castZap(f, s, api) {
+  if (ownZaps(f, api).length) return false                                  // one on screen
+  const c = beginCast(f, s, api, "upZap", UP_COST.zap, UP_ZAP.TOTAL); if (!c) return false
+  s.zap = { t: 0, cast: c.cast, face: f.facing || 1, oc: overclocked(s), boosted: false }; s.stats.zaps++
+  return true
+}
+CASTS.zap = castZap
+function spawnZap(f, s, api, d, k) {
+  const L = Math.round(UP_ZAP.RANGE / UP_ZAP.SPEED)
+  hitbox(f, api, "up_zap", d.face, { damage: d.oc ? UP_ZAP.OC_DMG : UP_ZAP.DMG, vx: d.face * UP_ZAP.SPEED, speed: UP_ZAP.SPEED,
+    spawnX: armEdge(f, d.face) + d.face * UP_ZAP.W / 2, spawnY: f.y + (f.h || 110) * UP_ZAP.ARM_Y, w: UP_ZAP.W, h: UP_ZAP.H, lifetime: L,
+    hitstun: 20, blockstun: 10, knockbackX: 2, knockbackY: -1, ...(d.oc ? { piercesMulti: true } : {}),
+    alien: { up: "zap", pip: true, cast: d.cast, k, oc: d.oc } })
+}
+function tickZap(f, s, api) {
+  const d = s.zap; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { s.zap = null; return }
+  if (d.t === UP_ZAP.STARTUP) spawnZap(f, s, api, d, 0)
+  if (d.oc && d.t === UP_ZAP.STARTUP + UP_ZAP.OC_GAP) spawnZap(f, s, api, d, 1)
+  f._spriteCastMove = "upZap"; f._spriteCastTimer = Math.max(2, UP_ZAP.TOTAL - d.t)
+  if (d.t >= UP_ZAP.TOTAL) s.zap = null
+}
+// a bolt crossing the ONLINE terminal: +10 once per cast + one extra pulse (runs every frame; the per-cast flag makes it atomic)
+const boostedCasts = s => s.boostCasts
+function tickZapBoost(f, s, api, opp) {
+  if (!termOnline(s) || !api) return
+  const box = termBox(s.term)
+  for (const p of ownZaps(f, api)) {
+    const cast = p.alien.cast; if (boostedCasts(s).includes(cast) || !overlap(projBox(p), box)) continue
+    boostedCasts(s).push(cast); if (boostedCasts(s).length > 8) boostedCasts(s).shift()
+    for (const q of ownZaps(f, api)) if (q.alien.cast === cast) { q.damage = (q.damage || 0) + (q === p ? UP_ZAP.BOOST : 0); q.alien.boosted = true }
+    s.stats.boosted++
+    firePulse(f, s, api, opp, true)
+  }
+}
+
+// TENDRIL LASH (→→ + P, 12) — 14f startup, a 340 px tendril, 2 hits 20 / 28, −12 on block, 22f recovery after the last hit (whiff-
+// punishable: the tendril is part of his hurtbox while it is out). The finisher's clean hit +1 Virus pip.
+export const UP_LASH = { HITS_AT: [14, 18], DMG: [20, 28], REACH: 340, EXT_FROM: 6, FULL_AT: 14, HOLD_TO: 20, RETRACT_TO: 28, RECOVERY: 22,
+  ON_BLOCK: -12, H: 30, ARM_Y: 0.34 }
+UP_LASH.TOTAL = UP_LASH.HITS_AT[1] + 2 + UP_LASH.RECOVERY
+export function lashExt(t, reach = UP_LASH.REACH) {
+  const L = UP_LASH
+  if (t < L.EXT_FROM) return 0
+  if (t <= L.FULL_AT) return reach * (t - L.EXT_FROM) / (L.FULL_AT - L.EXT_FROM)
+  if (t <= L.HOLD_TO) return reach
+  if (t <= L.RETRACT_TO) return reach * (L.RETRACT_TO - t) / (L.RETRACT_TO - L.HOLD_TO)
+  return 0
+}
+function castLash(f, s, api) {
+  const c = beginCast(f, s, api, "upLash", UP_COST.lash, UP_LASH.TOTAL); if (!c) return false
+  s.lash = { t: 0, cast: c.cast, face: f.facing || 1 }; s.stats.lashes++
+  return true
+}
+CASTS.lash = castLash
+function tickLash(f, s, api) {
+  const w = s.lash; if (!w) return
+  w.t++
+  if ((f.hitstun || 0) > 0) { s.lash = null; return }
+  const k = UP_LASH.HITS_AT.indexOf(w.t)
+  if (k >= 0) { const last = k === UP_LASH.HITS_AT.length - 1, rem = UP_LASH.TOTAL - w.t, ext = lashExt(w.t), edge = armEdge(f, w.face)
+    hitbox(f, api, "up_lash", w.face, { damage: UP_LASH.DMG[k], spawnX: edge + w.face * ext / 2, spawnY: f.y + (f.h || 110) * UP_LASH.ARM_Y + 10,
+      w: ext, h: UP_LASH.H, lifetime: 2, hitstun: last ? rem + 8 : 16, blockstun: last ? blockstunFor(rem, UP_LASH.ON_BLOCK) : 12, noHitstop: !last,
+      knockbackX: last ? 6 : 0.4, knockbackY: last ? -3 : 0, alien: { up: "lash", pip: last, cast: w.cast } }) }
+  f._spriteCastMove = "upLash"; f._spriteCastTimer = Math.max(2, UP_LASH.TOTAL - w.t)
+  if (w.t >= UP_LASH.TOTAL) s.lash = null
+}
+
+// GOO DIVE (↓↙← + P, 10) — MELT 6f, then a puddle that slides (← / →) at speed 6 for up to 120f while Special is HELD. Low profile:
+// high / mid melee and every projectile miss his body (evade hook); a LOW melee move still hits; no invulnerability. He can't
+// attack in it except by exiting. Drains 3 Power/s. RELEASE Special → REFORM (12f, punishable); P → TENDRIL RISE (a fresh
+// Special press inside the first 6f of the reform, or the Light / Attack button while melted) — the Rise out of the dive is
+// already paid for (no extra cost). 120f / no Power → reform. Knocked out (hitstun) → he simply reforms instantly.
+export const UP_DIVE = { MELT: 6, SPEED: 6, MAX: 120, DRAIN_PER_S: 3, REFORM: 12, RISE_WINDOW: 6 }
+function castDive(f, s, api) {
+  if (!grounded(f)) return false
+  const c = beginCast(f, s, api, "upMelt", UP_COST.dive, 2); if (!c) return false
+  s.dive = { phase: "melt", t: 0, pt: 0, cast: c.cast, lightPrev: true }; s.stats.dives++
+  hold(f, 2)
+  return true
+}
+CASTS.dive = castDive
+function hold(f, n) { f._benPowerCommit = Math.max(f._benPowerCommit || 0, n); f.attackCooldown = Math.max(f.attackCooldown || 0, n) }
+function tickDive(f, s, input, api) {
+  const d = s.dive; if (!d) return
+  if ((f.hitstun || 0) > 0 || (f.health || 0) <= 0) { s.dive = null; f._spriteCastMove = null; f._spriteCastTimer = 0; return }
+  d.pt++; f.vx = 0
+  if (d.phase === "melt") {
+    hold(f, 2); f._spriteCastMove = "upMelt"; f._spriteCastTimer = 2
+    if (d.pt >= UP_DIVE.MELT) { d.phase = "slide"; d.t = 0 }
+    return
+  }
+  const pressP = !!input.special && !s.spPrev, pressL = !!input.light && !d.lightPrev
+  d.lightPrev = !!input.light
+  if (d.phase === "reform") {
+    if (pressP && d.pt <= UP_DIVE.RISE_WINDOW) { s.dive = null; startRise(f, s, api, true); return }
+    f._spriteCastMove = "upReform"; f._spriteCastTimer = 2
+    if (d.pt >= UP_DIVE.REFORM) { s.dive = null; f._spriteCastMove = null; f._spriteCastTimer = 0 }
+    return
+  }
+  d.t++
+  hold(f, 2); f._spriteCastMove = "upPuddle"; f._spriteCastTimer = 2
+  if (!f.infiniteEnergy) f.energy = Math.max(0, (f.energy || 0) - UP_DIVE.DRAIN_PER_S / 60)
+  if (pressL) { s.dive = null; startRise(f, s, api, true); return }
+  if (!input.special || d.t >= UP_DIVE.MAX || (f.energy || 0) <= 0) { d.phase = "reform"; d.pt = 0; hold(f, UP_DIVE.REFORM); return }
+  const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0)
+  if (dir) f._benLunge = { frames: 1, speed: dir * UP_DIVE.SPEED }            // slide at speed 6 (stage-clamped by physics)
+}
+function evade(f, { move = null, proj = null, attacker = null } = {}) {
+  const s = upState(f); if (!s || !s.dive || s.dive.phase === "reform") return false
+  const low = !proj && !!move && !!attacker && !!(attacker.onGround || attacker.grounded) && move.hitLevel === "low"
+  if (!low) s.stats.evaded++
+  return !low
+}
+
+// TENDRIL RISE (from Goo Dive, or →↓↘ + P with no Terminal within 100 px; 10 standalone) — ATTACK ↑ f4–6: a goo column erupts
+// in front: 13f startup, 55 dmg, launches, −14 on block, a clean hit +1 Virus pip.
+export const UP_RISE = { STARTUP: 13, ACTIVE: 3, RECOVERY: 26, DMG: 55, ON_BLOCK: -14, W: 96, H: 170, AHEAD: 40 }
+UP_RISE.TOTAL = UP_RISE.STARTUP + UP_RISE.ACTIVE + UP_RISE.RECOVERY
+function castRise(f, s, api) { if (!grounded(f)) return false; return startRise(f, s, api, false) }
+CASTS.rise = castRise
+function startRise(f, s, api, fromDive) {
+  if (fromDive) {
+    s.castId++; s.stats.casts++
+    f._benActionEpoch = (f._benActionEpoch || 0) + 1
+    f._spriteCastMove = "upRise"; f._spriteCastTimer = UP_RISE.TOTAL; f.attackCooldown = UP_RISE.TOTAL; f._benPowerCommit = UP_RISE.TOTAL; f.vx = 0
+    s.rise = { t: 0, cast: s.castId, face: f.facing || 1, fromDive: true }
+  } else {
+    const c = beginCast(f, s, api, "upRise", UP_COST.rise, UP_RISE.TOTAL); if (!c) return false
+    s.rise = { t: 0, cast: c.cast, face: f.facing || 1, fromDive: false }
+  }
+  s.stats.rises++
+  return true
+}
+function tickRise(f, s, api) {
+  const r = s.rise; if (!r) return
+  r.t++
+  if ((f.hitstun || 0) > 0) { s.rise = null; return }
+  if (r.t === UP_RISE.STARTUP) { const rem = UP_RISE.TOTAL - r.t
+    hitbox(f, api, "up_rise", r.face, { damage: UP_RISE.DMG, spawnX: armEdge(f, r.face) + r.face * UP_RISE.AHEAD, spawnY: f.y + (f.h || 110) - UP_RISE.H / 2,
+      w: UP_RISE.W, h: UP_RISE.H, lifetime: UP_RISE.ACTIVE, hitstun: 34, blockstun: blockstunFor(rem, UP_RISE.ON_BLOCK),
+      knockbackX: 2, knockbackY: -12, launcher: true, launchVy: -13, alien: { up: "rise", pip: true, cast: r.cast } }) }
+  f._spriteCastMove = "upRise"; f._spriteCastTimer = Math.max(2, UP_RISE.TOTAL - r.t)
+  if (r.t >= UP_RISE.TOTAL) s.rise = null
+}
+
+// SPEAR DIVE (air ↓↘→ + P — any air Special; 12) — the body narrows into a goo spear: a diagonal dive down-forward (the shared
+// ready-form `_benGlide`), 48 on a hit (one hit per cast), once per airtime, no jump refill.
+export const UP_SPEAR = { STARTUP: 4, SPEED: 10, MAX: 50, DMG: 48, W: 64, H: 60, LAND_RECOVERY: 14 }
+function castSpear(f, s, api) {
+  if (grounded(f) || s.spearUsed) return false
+  const c = beginCast(f, s, api, "upSpear", UP_COST.spear, UP_SPEAR.MAX + UP_SPEAR.LAND_RECOVERY, { commit: false }); if (!c) return false
+  s.spearUsed = true
+  s.spear = { t: 0, cast: c.cast, face: f.facing || 1, lastY: f.y, hit: false }; s.stats.spears++
+  f.vx = 0; f.vy = 0; f._benGlide = { vx: 0, vy: 0 }
+  return true
+}
+CASTS.spear = castSpear
+function tickSpear(f, s, api) {
+  const d = s.spear; if (!d) return
+  d.t++
+  if ((f.hitstun || 0) > 0) { endSpear(f, s, false); return }
+  if (d.t < UP_SPEAR.STARTUP) { f._benGlide = { vx: 0, vy: 0 }; return }
+  const landed = d.t > UP_SPEAR.STARTUP + 1 && f.y === d.lastY
+  d.lastY = f.y
+  if (landed || d.t >= UP_SPEAR.MAX) { endSpear(f, s, landed); return }
+  f._benGlide = { vx: d.face * UP_SPEAR.SPEED, vy: UP_SPEAR.SPEED }
+  const live = api && api.activeProjectiles().some(p => p && p.owner === f && p.alien && p.alien.up === "spear")
+  if (!d.hit && !live) hitbox(f, api, "up_spear", d.face, { damage: UP_SPEAR.DMG, spawnX: cx(f) + d.face * 18, spawnY: f.y + (f.h || 110) * 0.7, w: UP_SPEAR.W, h: UP_SPEAR.H,
+    lifetime: 2, hitstun: 26, blockstun: 12, knockbackX: 5, knockbackY: -3, alien: { up: "spear", pip: false, cast: d.cast } })
+  f._spriteCastMove = "upSpear"; f._spriteCastTimer = 2
+}
+function endSpear(f, s, landed) {
+  s.spear = null; delete f._benGlide
+  if (landed) { s.landT = s.t; f.attackCooldown = UP_SPEAR.LAND_RECOVERY; f._benPowerCommit = UP_SPEAR.LAND_RECOVERY; f._spriteCastMove = "crouch"; f._spriteCastTimer = UP_SPEAR.LAND_RECOVERY }
+  else { f.attackCooldown = 0; f._spriteCastMove = null; f._spriteCastTimer = 0 }
+}
+
+// HEAVY / TENDRIL LASH: the stretched arm / tendril is part of his hurtbox while it is out (whiff-punishable)
+export const UP_HEAVY_ARM = { REACH: 180, ARM_Y: 0.34, H: 28 }
+function armHurtbox(f, face, ext, armY, armH) {
+  const body = { x: f.x + 6, y: f.y + 6, w: Math.max(1, (f.w || 60) - 12), h: Math.max(1, (f.h || 110) - 6) }
+  const edge = armEdge(f, face), ay = f.y + (f.h || 110) * armY
+  const x0 = Math.min(body.x, edge, edge + face * ext), x1 = Math.max(body.x + body.w, edge, edge + face * ext)
+  return { x: x0, y: Math.min(body.y, ay), w: x1 - x0, h: Math.max(body.y + body.h, ay + armH) - Math.min(body.y, ay) }
+}
+
+// ── ULTIMATE: SYSTEM TAKEOVER (cost 55) ─────────────────────────────────────────────────────────────────────
+// Needs a CLEAN opener lash (40, 300 px at 14f); a whiff or block = no cinematic, 60f recovery. Then (opponent held, no collision
+// change; he is invulnerable only inside the scripted cinematic):
+//   Beat 1 NETWORK 0–40f: he melts into a procedural circuit network + cage (render-only, no hitbox, nothing in GAME_STATE but t).
+//   Beat 2 TERMINALS 40–110f: 4 render-only terminal copies at hash(seed, frame, playerIndex) spots fire 4 × 25.
+//   Beat 3 HARD RESET 110–150f: the MERGE frame + a punch, 100.
+// Total 40 + 100 + 100 = 240 raw. At the end, if the opponent carries Virus pips, CRASH applies (respecting immunity). Positions
+// restore; 100f lockout. Copies have no hitboxes and no GAME_STATE presence beyond the hashed spots (kept for test / render).
+export const UP_ULT = { OPENER_AT: 14, OPENER: 40, RANGE: 300, WHIFF: 60, NET: 40, TERM_AT: [52, 66, 80, 94], TERM: 25, RESET_AT: 124, RESET: 100,
+  END: 150, LOCKOUT: 100, LAUNCH: -12 }
+function fireUltimateImpl(f, ctx, api) {
+  const s = upState(f); if (!s) return false
+  if (!canAct(f, s)) return false
+  if (!api.spendEnergy(f, UP_COST.ultimate)) return false
+  s.castId++
+  const face = f.facing || 1, total = UP_ULT.OPENER_AT + UP_ULT.WHIFF
+  f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = "upLash"; f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
+  s.ult = { phase: "opener", t: 0, face, raw: 0, cast: s.castId, spots: [], hits: [], crash: false }
+  s.stats.ults++
+  api.focusCamera?.(f, api.getOpponent(f), 0.92, 20)
+  api.scheduleBenSpawn(f, UP_ULT.OPENER_AT, () => hitbox(f, api, "up_ult_open", face, {
+    damage: UP_ULT.OPENER, spawnX: armEdge(f, face) + face * UP_ULT.RANGE / 2, spawnY: f.y + (f.h || 110) * UP_LASH.ARM_Y + 10, w: UP_ULT.RANGE, h: 60,
+    lifetime: 3, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0.01, knockbackY: 0, alien: { up: "ultOpen", pip: false, cast: s.castId } }))
+  return true
+}
+function startUltCinematic(f, s, target) {
+  const u = s.ult
+  u.phase = "network"; u.t = 0; u.raw = UP_ULT.OPENER; u.hits.push(UP_ULT.OPENER)
+  u.home = { x: f.x, y: f.y }; u.thome = { x: target.x, y: target.y }
+  f.attackCooldown = UP_ULT.END + UP_ULT.LOCKOUT; f._benPowerCommit = UP_ULT.END; f._spriteCastTimer = UP_ULT.END
+  f.invulnTimer = Math.max(f.invulnTimer || 0, UP_ULT.END + 2)                // cinematic only (the opponent is held)
+}
+function tickUlt(f, s, opp, api, ctx) {
+  const u = s.ult; if (!u) return
+  if (u.phase === "opener") { if (++u.t > UP_ULT.OPENER_AT + 12) s.ult = null; return }   // whiff / block: no cinematic
+  if (!opp || opp.eliminated) { endUlt(f, s, null); return }
+  u.t++
+  opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y   // held (no collision change)
+  opp.attacking = false; opp.currentAttack = null
+  f.vx = 0; f.vy = 0; f.x = u.home.x; f.y = u.home.y
+  const hit = (dmg, shake) => { api.applyScaledDamage(opp, dmg, { attacker: f, move: "system_takeover", source: "ability" }); u.raw += dmg; u.hits.push(dmg); opp.colorFlash = 8; api.shake?.(shake, 8) }
+  if (u.t < UP_ULT.NET) { u.phase = "network"; f._spriteCastMove = "upPuddle" }
+  else if (u.t < UP_ULT.RESET_AT - 14) { u.phase = "terminals"; f._spriteCastMove = "upPuddle"
+    const k = UP_ULT.TERM_AT.indexOf(u.t)
+    if (k === 0) { const seed = ctx?.seed ?? 1, fr = ctx?.frame ?? u.t, pi = pIndex(f)   // 4 hashed copy spots, fixed when the beat starts
+      for (let i = 0; i < UP_ULT.TERM_AT.length; i++) u.spots.push({ dx: Math.round((upHash(seed, fr, pi, i) - 0.5) * 360), lift: Math.round(upHash(seed, fr, pi, i + 16) * 60) }) }
+    if (k >= 0) hit(UP_ULT.TERM, 4 + k * 2) }
+  else if (u.t < UP_ULT.END) { u.phase = "reset"; f._spriteCastMove = "upMerge"
+    if (u.t === UP_ULT.RESET_AT) hit(UP_ULT.RESET, 18) }
+  else { endUlt(f, s, opp); return }
+  f._spriteCastTimer = 2
+}
+function endUlt(f, s, opp) {
+  const u = s.ult
+  if (u?.home) { f.x = u.home.x; f.y = u.home.y; f.vx = 0; f.vy = 0 }       // positions restore
+  if (opp && u?.thome) {
+    opp.x = u.thome.x; opp.y = u.thome.y; opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.vx = (cx(opp) >= cx(f) ? 1 : -1) * 3; opp.vy = UP_ULT.LAUNCH
+    opp.onGround = false; opp.grounded = false; opp.isLaunched = true
+    if (s.virus.pips > 0 && u) u.crash = startCrash(f, s, opp)                // CRASH at the end if pips exist (respects immunity)
+  }
+  s.lastUltRaw = u?.raw || 0; s.lastUltSpots = u?.spots ? u.spots.map(p => ({ ...p })) : []; s.lastUltCrash = !!u?.crash
+  s.ult = null
+  f.attackCooldown = UP_ULT.LOCKOUT; f._benPowerCommit = UP_ULT.LOCKOUT; f._spriteCastMove = null; f._spriteCastTimer = 0
+}
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
-function hurtbox(f) { return null }
-function evade(f, info) { return false }
+function hurtbox(f) {
+  const s = upState(f); if (!s) return null
+  const L = s.lash || (s.ult && s.ult.phase === "opener" ? { t: s.ult.t, face: s.ult.face } : null), lext = L ? lashExt(L.t) : 0
+  if (L && lext > 0) return armHurtbox(f, L.face, lext, UP_LASH.ARM_Y, UP_LASH.H)          // TENDRIL LASH: the tendril is hittable
+  const atk = f.attacking && f.currentAttack
+  if (!(atk && atk.name === "heavy")) return null
+  return armHurtbox(f, f.facing || 1, UP_HEAVY_ARM.REACH - (f.w || 60) / 2, UP_HEAVY_ARM.ARM_Y, UP_HEAVY_ARM.H)   // HEAVY: the 180 px arm
+}
 // damage attributed to the form: Terminal pulses can't KO (capped at the target's health − 1 before the global ×0.6 scale,
 // which is the last step after this hook, so the dealt damage is always < health)
 function damageDealt(f, target, raw, opts) {
@@ -340,13 +615,18 @@ function damageDealt(f, target, raw, opts) {
 function onContact(f, target, { proj = null, blocked = false } = {}) {
   const s = upState(f); if (!s || !proj || !proj.alien) return
   const tag = proj.alien
-  //@@CONTACT@@
+  if (tag.up === "spear" && s.spear && s.spear.cast === tag.cast) s.spear.hit = true      // one hit per cast
+  if (tag.up === "ultOpen" && !blocked && s.ult && s.ult.phase === "opener" && !target.eliminated) startUltCinematic(f, s, target)
   if (!blocked && tag.pip === true) {
     if (addPip(f, s, tag.cast) && s.virus.pips >= UP_VIRUS.MAX) startCrash(f, s, target)   // crash the same frame the 3rd lands
   }
 }
-function fireUltimate(f, ctx, api) { return false }
-function targetOffset(f, target) { return null }
+function fireUltimate(f, ctx, api) { return fireUltimateImpl(f, ctx, api) }
+// render-only: the held opponent jitters inside the cage (circuit glitch)
+function targetOffset(f, target) {
+  const s = upState(f); const u = s && s.ult; if (!u || !u.thome || u.phase === "opener") return null
+  return { dx: u.phase === "terminals" && (u.t >> 1) % 2 ? 2 : 0, dy: -Math.round(Math.min(1, u.t / 20) * 8) }
+}
 function drainMultOf(f) { const s = upState(f); if (!s) return 1; let m = 1
   if (s.oc.t <= 0 && s.oc.cdT > 0) m *= UP_MERGE.DRAIN_CD                      // OVERCLOCK cooldown: Power drain +50%
   //@@DRAIN@@
@@ -437,6 +717,49 @@ export function drawUpgradeFx(c, f, frame = 0, opp = null) {
       const x = ox - 12 + k * 12, y = top - 14; c.fillStyle = INK; c.fillRect(x - 4, y - 4, 9, 9)
       c.fillStyle = k < v.pips ? GRN : "#334155"; c.fillRect(x - 3, y - 3, 7, 7); if (k < v.pips) { c.fillStyle = WHT; c.fillRect(x - 1, y - 1, 2, 2) }
     }
+  }
+  if (projRef) for (const p of projRef) {   // his hidden hitboxes that are visible things
+    if (!p || p.owner !== f || !p.alien) continue
+    if (p.alien.up === "zap") { const face = (p.vx || 0) >= 0 ? 1 : -1
+      if (!fxFrame(c, "bolt", 0, p.x, p.y + UPGRADE_FX.bolt.h, FX_SCALE, face)) { c.fillStyle = CYAN; c.fillRect(p.x - 22, p.y - 5, 44, 10) }
+      if (p.alien.boosted) { c.fillStyle = (frame >> 1) % 2 ? WHT : LIME; for (let k = 0; k < 5; k++) px(c, p.x - face * k * 9, p.y + ((k * 7 + frame) % 9) - 4, 4) } }
+  }
+  const tendril = (face, ext, y, col = GRN) => {   // a 3-px-pixel goo tendril with circuit nodes (render-only)
+    if (!(ext > 0)) return
+    const edge = cx(f) + face * (f.w || 58) / 2
+    c.fillStyle = INK; c.fillRect(Math.round(face > 0 ? edge : edge - ext), Math.round(y - 7), Math.round(ext), 14)
+    c.fillStyle = col; c.fillRect(Math.round(face > 0 ? edge : edge - ext), Math.round(y - 5), Math.round(ext), 10)
+    c.fillStyle = WHT; for (let x = 18; x < ext; x += 26) px(c, edge + face * x, y, 4)
+    c.fillStyle = LIME; px(c, edge + face * ext, y, 12)
+  }
+  if (s.lash) tendril(s.lash.face, lashExt(s.lash.t), f.y + (f.h || 110) * UP_LASH.ARM_Y + 10)
+  if (s.ult && s.ult.phase === "opener") tendril(s.ult.face, lashExt(s.ult.t, UP_ULT.RANGE), f.y + (f.h || 110) * UP_LASH.ARM_Y + 10, LIME)
+  if (f.attacking && f.currentAttack && f.currentAttack.name === "heavy") { const a = f.currentAttack, e = a.total - a.timer
+    if (e >= a.activeStart - 3 && e <= a.activeEnd + 4) tendril(f.facing || 1, (UP_HEAVY_ARM.REACH - (f.w || 58) / 2) * Math.min(1, (e - a.activeStart + 4) / 4), f.y + (f.h || 110) * UP_HEAVY_ARM.ARM_Y + 8) }
+  if (s.rise && s.rise.t >= UP_RISE.STARTUP - 3 && s.rise.t <= UP_RISE.STARTUP + UP_RISE.ACTIVE + 6) {   // the goo column
+    const r = s.rise, x = armEdge(f, r.face) + r.face * UP_RISE.AHEAD, g = f.y + (f.h || 110), k = Math.min(1, (r.t - UP_RISE.STARTUP + 4) / 4)
+    const hh = UP_RISE.H * k, ww = UP_RISE.W * 0.6
+    c.fillStyle = INK; c.fillRect(Math.round(x - ww / 2 - 2), Math.round(g - hh - 2), Math.round(ww + 4), Math.round(hh + 2))
+    c.fillStyle = GRN; c.fillRect(Math.round(x - ww / 2), Math.round(g - hh), Math.round(ww), Math.round(hh))
+    c.fillStyle = WHT; for (let y = 10; y < hh; y += 22) px(c, x + ((y >> 3) % 2 ? -8 : 8), g - y, 5)
+  }
+  if (s.spear) { c.fillStyle = LIME; for (let k = 1; k <= 4; k++) px(c, cx(f) - s.spear.face * k * 10, f.y + (f.h || 110) * 0.3 - k * 10, 6 - k) }
+  if (s.dive && s.dive.phase === "slide") { c.fillStyle = GRN; for (let k = 0; k < 3; k++) px(c, cx(f) + ((s.t * 3 + k * 20) % 60) - 30, f.y + (f.h || 110) - 2, 3) }
+  if (s.ult && s.ult.thome && opp) {   // SYSTEM TAKEOVER (render-only): network → cage → terminal copies → hard reset
+    const u = s.ult, ox = cx(opp), oy = opp.y + (opp.h || 110) / 2, gy = u.thome.y + (opp.h || 110), hx = cx(f), hy = f.y + (f.h || 110) - 8
+    const n = Math.min(8, 1 + (u.t >> 2))
+    for (let i = 0; i < n; i++) drawTrace(c, hx, hy - i * 4, ox + (rHash(u.cast, i, 3) - 0.5) * 120, gy - rHash(u.cast, i, 5) * (opp.h || 110), i % 2 ? GRN : CYAN, 3, u.cast * 13 + i)
+    const cw = (opp.w || 60) + 40, ch = (opp.h || 110) + 30, k = Math.min(1, u.t / 30)   // the cage
+    c.fillStyle = (u.t >> 2) % 2 ? GRN : LIME
+    for (let x = 0; x <= cw; x += 12) { px(c, ox - cw / 2 + x, gy - ch * k, 3); px(c, ox - cw / 2 + x, gy, 3) }
+    for (let y = 0; y <= ch * k; y += 12) { px(c, ox - cw / 2, gy - y, 3); px(c, ox + cw / 2, gy - y, 3) }
+    if (u.phase === "terminals" || u.phase === "reset") u.spots.forEach((sp, i) => {
+      const tx = ox + sp.dx, ty = gy - sp.lift, fired = u.t >= UP_ULT.TERM_AT[i]
+      fxFrame(c, "terminal", UPGRADE_FX.terminal.frames - 1, tx, ty, FX_SCALE, 1, u.phase === "reset" ? 0.5 : 1)
+      if (fired && u.t - UP_ULT.TERM_AT[i] < 8) { c.fillStyle = WHT; drawTrace(c, tx, ty - 50, ox, oy, LIME, 4, i) }
+    })
+    if (u.phase === "reset" && Math.abs(u.t - UP_ULT.RESET_AT) < 6) { c.save(); c.globalAlpha = 0.6; c.fillStyle = WHT; c.fillRect(ox - 90, oy - 90, 180, 180); c.restore()
+      c.fillStyle = INK; c.font = "bold 14px monospace"; c.textAlign = "center"; c.fillText("HARD RESET", ox, oy - 100) }
   }
   //@@DRAWFX@@
 }

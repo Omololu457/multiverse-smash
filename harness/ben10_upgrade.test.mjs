@@ -159,6 +159,99 @@ test('6. CRASH: 3 pips → 180f; opponent loses 15 Power to Upgrade and gains no
   assert.equal(v.crashes, 2, 'crash again after 360f')
   const g = ben(), u = foe(); u.energy = 6; g.energy = 99; for (const c of [1, 2, 3]) tagHit(g, u, c); assert.equal(u.energy, 0); assert.equal(g.energy, 100, 'steal = what was lost, capped')
 })
+// ── 7 normals ───────────────────────────────────────────────────────────────────────────────────────────────
+const { UP_ZAP, UP_LASH, UP_DIVE, UP_RISE, UP_SPEAR, UP_ULT } = U
+test('7. normals: Jab 5/18/0, Heavy 14/52/−6 (180 px arm hurtbox), Low 7/24/−4 low, Launcher 11/46/−9, Air 7/28/+2', () => {
+  const want = { light: [5, 18, 0], heavy: [14, 52, -6], down: [7, 24, -4], up: [11, 46, -9], air: [7, 28, 2] }
+  for (const [k, [st, dmg, adv]] of Object.entries(want)) { const m = BA[k]; assert.equal(m.startup, st, k); assert.equal(m.damage, dmg, k); assert.equal(m.blockstun - m.active - m.recovery, adv, k + ' on block') }
+  assert.equal(BA.down.hitLevel, 'low'); assert.equal(BA.heavy.rangeX, 180)
+  const f = ben(), t = foe(); ready(f); assert(C.startMove(f, 'heavy', BA.heavy)); const hb = UPGRADE.hurtbox(f); assert(hb && hb.x + hb.w - cx(f) >= 175, 'arm in the hurtbox')
+  f.attacking = false; f.currentAttack = null; assert.equal(UPGRADE.hurtbox(f), null)
+  assert.deepEqual(UPGRADE.mods, { speed: 1.00, damage: 1.00, defense: 0.95, weight: 0.85 }); assert.equal(UPGRADE.maxJumps, 2)
+})
+// ── 8 Zap Bolt ──────────────────────────────────────────────────────────────────────────────────────────────
+test('8. Zap Bolt: 10 Power, 40 dmg, 480 px, one on screen, +1 Virus on a clean hit', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 200); const e = f.energy, hp = t.health
+  assert(cast(f, t, null), 'Zap'); assert.equal(e - f.energy, UP_COST.zap); world(f, t, UP_ZAP.STARTUP)
+  const b = A.activeProjectiles.find(p => p.owner === f && p.alien?.up === 'zap'); assert(b); assert.equal(b.damage, 40); assert(Math.abs((b.lifetime + 1) * Math.abs(b.vx) - UP_ZAP.RANGE) <= UP_ZAP.SPEED, '480 px travel')
+  ready(f); assert(!cast(f, t, null), 'one on screen'); world(f, t, 30); assert(t.health < hp, 'hits'); assert.equal(S(f).virus.pips, 1)
+})
+test('8. Zap Bolt through an ONLINE Terminal: +10 once (atomic) + an extra pulse', () => {
+  clearProj(); const f = ben(), t = foe(); f.x = 200; t.x = 900; t.y = f.y + f.h - t.h; const w = online(f, t); f.x = w.x - 200; ready(f)
+  const pulses = S(f).stats.extraPulses; assert(cast(f, t, null)); world(f, t, UP_ZAP.STARTUP + 14)
+  const b = A.activeProjectiles.find(p => p.owner === f && p.alien?.up === 'zap'); assert(b, 'bolt still flying'); assert.equal(b.damage, 50, '+10 once')
+  assert.equal(S(f).stats.extraPulses, pulses + 1, 'one extra pulse'); world(f, t, 4); assert.equal(b.damage, 50, 'still +10 only'); assert.equal(S(f).stats.boosted, 1)
+})
+test('8. Overclocked Zap Bolt: 2-hit piercing (two bolts, one pip per cast)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 200); S(f).oc.t = 200; ready(f); const hp = t.health
+  assert(cast(f, t, null)); world(f, t, UP_ZAP.STARTUP + UP_ZAP.OC_GAP); const bs = A.activeProjectiles.filter(p => p.owner === f && p.alien?.up === 'zap')
+  assert.equal(bs.length, 2); assert(bs.every(p => p.piercesMulti)); world(f, t, 30); assert(t.health < hp); assert.equal(S(f).virus.pips, 1, 'one pip per cast')
+})
+// ── 9 Tendril Lash ──────────────────────────────────────────────────────────────────────────────────────────
+test('9. Tendril Lash: 12 Power, 14f, 340 px, 2 hits 20/28, −12 on block, finisher +1 Virus, tendril is hittable', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 260); const e = f.energy, hp = t.health
+  S(f).dashTapT = S(f).t; assert(cast(f, t, 'F'), 'Lash (→→)'); assert.equal(e - f.energy, UP_COST.lash)
+  world(f, t, UP_LASH.HITS_AT[0] - 1); assert.equal(t.health, hp, 'nothing before 14f'); world(f, t, 1); assert(t.health < hp, 'first hit at 14f (260 px away)')
+  const hb = UPGRADE.hurtbox(f); assert(hb.x + hb.w - cx(f) > 250, 'the tendril is part of his hurtbox')
+  world(f, t, UP_LASH.TOTAL); assert.equal(S(f).virus.pips, 1, 'finisher pip')
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 100); u.isBlocking = true; S(g).dashTapT = S(g).t; assert(cast(g, u, 'F'))
+  let bsAt = -1; for (let i = 1; i <= UP_LASH.TOTAL; i++) { const b0 = u.blockstun; world(g, u, 1); if (S(g).lash?.t === UP_LASH.HITS_AT[1] && u.blockstun > 0) bsAt = i; void b0 }
+  assert.equal(S(g).virus.pips, 0, 'blocked: no pip')
+  const rem = UP_LASH.TOTAL - UP_LASH.HITS_AT[1]; assert.equal(Math.max(1, rem + 1 + UP_LASH.ON_BLOCK) - rem - 1, -12, '−12 on block (blockstun model)')
+})
+// ── 10 Goo Dive / Tendril Rise ──────────────────────────────────────────────────────────────────────────────
+test('10. Goo Dive: 10 Power, melt 6f, slide 6 up to 120f while held, low profile (high/mid + projectiles miss, low hits), 3 Power/s', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); const e = f.energy; assert(cast(f, t, 'B'), 'Goo Dive'); assert.equal(e - f.energy, UP_COST.dive)
+  const H = { special: true }; step(f, t, UP_DIVE.MELT, {}, H); assert.equal(S(f).dive.phase, 'slide')
+  assert(UPGRADE.evade(f, { move: { name: 'heavy' }, attacker: t }), 'mid melee misses'); assert(UPGRADE.evade(f, { proj: { name: 'ki' } }), 'projectile misses')
+  assert(!UPGRADE.evade(f, { move: { name: 'down', hitLevel: 'low' }, attacker: t }), 'a low hits')
+  const e2 = f.energy; step(f, t, 60, {}, H); assert(Math.abs((e2 - f.energy) - 3) < 0.05, '3 Power/s'); assert.equal(f.invulnTimer || 0, 0, 'no invulnerability')
+  step(f, t, 1, {}, { special: true, right: true }); assert.equal(f._benLunge?.speed, UP_DIVE.SPEED)
+  step(f, t, 120, {}, H); assert.equal(S(f).dive?.phase ?? 'done', S(f).dive ? 'reform' : 'done', '120f max → reform')
+})
+test('10. Goo Dive: release → reform 12f (punishable); P → Tendril Rise (55, launches, +1 Virus, −14 on block)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 30); assert(cast(f, t, 'B')); step(f, t, UP_DIVE.MELT + 10, {}, { special: true })
+  step(f, t, 1, {}, {}); assert.equal(S(f).dive.phase, 'reform'); assert(!UPGRADE.evade(f, { proj: {} }), 'reform is hittable'); step(f, t, UP_DIVE.REFORM); assert.equal(S(f).dive, null)
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); const hp = u.health; assert(cast(g, u, 'B')); const e = g.energy
+  step(g, u, UP_DIVE.MELT + 4, {}, { special: true }); step(g, u, 1, {}, {}); world(g, u, 1, { special: true })   // release, then press P inside 6f
+  assert(S(g).rise && S(g).rise.fromDive, 'Tendril Rise out of the dive'); assert(Math.abs(g.energy - e) < 1, 'no extra cost')
+  world(g, u, UP_RISE.STARTUP + 1); assert(hp - u.health > 0, 'Rise hits'); assert(u.isLaunched || u.vy < 0, 'launches'); assert.equal(S(g).virus.pips, 1)
+  const rem = UP_RISE.TOTAL - UP_RISE.STARTUP; assert.equal(Math.max(1, rem + 1 + UP_RISE.ON_BLOCK) - rem - 1, -14)
+})
+test('10. →↓↘+P with no Terminal near = Tendril Rise (10 Power, 13f)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 30); const e = f.energy, hp = t.health
+  assert(cast(f, t, 'U'), 'Rise'); assert.equal(e - f.energy, UP_COST.rise); assert(S(f).rise && !S(f).rise.fromDive)
+  world(f, t, UP_RISE.STARTUP - 1); assert.equal(t.health, hp); world(f, t, 1); assert(t.health < hp, 'hits at 13f')
+})
+// ── 11 Spear Dive ──────────────────────────────────────────────────────────────────────────────────────────
+test('11. Spear Dive: air only, 12 Power, 48 dmg, one hit, once per airtime, no jump refill', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 40); f.onGround = f.grounded = false; f.y -= 120; const j = f.jumpCount = 2; const e = f.energy, hp = t.health
+  assert(cast(f, t, null), 'Spear'); assert.equal(e - f.energy, UP_COST.spear); world(f, t, 3); const jAir = f.jumpCount; world(f, t, 37); const d = hp - t.health
+  assert(d > 0, 'hits'); assert(d <= Math.ceil(UP_SPEAR.DMG * C.GLOBAL_DAMAGE_SCALE) + 1, 'one hit only'); assert.equal(jAir, j, 'no jump refill')
+  const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 300; assert(cast(g, u, null)); world(g, u, 3); assert(!g.onGround)
+  S(g).spear = null; delete g._benGlide; ready(g); assert(!cast(g, u, null), 'once per airtime (same airtime)')
+})
+// ── 12 System Takeover ─────────────────────────────────────────────────────────────────────────────────────
+const runUlt = (f, t) => { ready(f); f.energy = 100; assert(A.triggerUltimate(f, ctxOf(f, t)), 'ult'); let n = 0; while ((S(f).ult || n < 20) && n < 300) { world(f, t, 1); n++ } }
+test('12. System Takeover: 55 Power, clean opener → 40 + 4×25 + 100 = 240 raw, hashed copies, positions restore, 100f lockout', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 150); const fx = f.x, tx = t.x, hp = t.health
+  ready(f); f.energy = 100; assert(A.triggerUltimate(f, ctxOf(f, t))); assert.equal(f.energy, 45)
+  let n = 0; while ((S(f).ult || n < 20) && n < 300) { world(f, t, 1); n++ }
+  assert.equal(S(f).lastUltRaw, 240); assert.equal(S(f).lastUltSpots.length, 4); assert.equal(f.x, fx, 'he is back home'); assert(Math.abs(t.x - tx) <= 8, 'foe restored (then launched)')
+  assert(hp - t.health > 100); assert(f.attackCooldown >= UP_ULT.LOCKOUT - 2, 'lockout')
+  assert.equal(A.activeProjectiles.filter(p => p.owner === f && p.alien?.up && p.alien.up !== 'ultOpen').length, 0, 'copies are render-only')
+})
+test('12. System Takeover: whiff / block = no cinematic, 60f recovery; Crash at the end if pips (respecting immunity)', () => {
+  clearProj(); const f = ben(), t = foe(); far(f, t); runUlt(f, t); assert.equal(S(f).lastUltRaw, 0, 'whiff: no cinematic'); assert(f.attackCooldown <= UP_ULT.WHIFF)
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 150); u.isBlocking = true; u.facing = -1; runUlt(g, u); assert.equal(S(g).lastUltRaw, 0, 'blocked: no cinematic')
+  clearProj(); const h = ben(), v = foe(); reset(h, v, 150); S(h).virus.pips = 1; S(h).virus.pipT = 200; v.energy = 40; runUlt(h, v)
+  assert(S(h).lastUltCrash, 'crash at the end'); assert(S(h).virus.crashT > 0)
+  clearProj(); const k = ben(), w = foe(); reset(k, w, 150); S(k).virus.pips = 2; S(k).virus.immuneT = 500; runUlt(k, w); assert(!S(k).lastUltCrash, 'immune: no crash')
+})
+test('12. System Takeover copies: deterministic hash(seed, frame, playerIndex)', () => {
+  const spots = () => { clearProj(); FRAME = 1000; const f = ben(), t = foe(); reset(f, t, 150); runUlt(f, t); return JSON.stringify(S(f).lastUltSpots) }
+  const a = spots(), b = spots(); assert.equal(a, b); SEED = 99; const c = spots(); SEED = 4242; assert.notEqual(a, c, 'seed changes them')
+})
 //@@TESTS@@
 console.log(`UPGRADE: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

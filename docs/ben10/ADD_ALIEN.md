@@ -323,3 +323,8 @@ exercise it) is untouched. PICK FIVE: catalog slot 15 is metadata; he is picked 
 | MERGE → OVERCLOCK (speed ×1.20, damage ×1.15, ALT PAL) and its 60f cooldown | the form's `tick` (`_benWalkSpeed` / `dashSpeed` from the onApply base, Jetray's pattern) + `damageDealt` + the `_skinAnim` frame-set swap (Diamondhead's Prismatic) + `drainMult` function form (Wildvine) for the cooldown's +50% drain |
 | VIRUS pips (once per cast, clean hits only) | `onContact` + projectile `alien` tags (`pip: true` only on Zap Bolt / Lash finisher / Tendril Rise; pulses carry `pip: false`) |
 | CRASH "opponent gains no Power / meter" | **no new hook**: meter is `energy`, so the form's own `tick` clamps the opponent's `energy` back to a running cap (the cap follows spending down, never up) — gains that land between two of his ticks are undone on his next tick |
+| Zap Bolt boost through the Terminal (+10 once per cast, extra pulse) | the form's `tick` (bolt box vs terminal box, one flag per cast id) |
+| Goo Dive low profile / slide / drain | `evade` (Goop's Puddle rule) + `_benLunge` + direct `energy` drain (Goop) |
+| Heavy arm / Tendril Lash tendril hurtbox | `hurtbox` |
+| Spear Dive | `_benGlide` (Diamond Dive) |
+| System Takeover | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` (Diamond Cathedral pattern); 4 copies = hashed spots, render-only |

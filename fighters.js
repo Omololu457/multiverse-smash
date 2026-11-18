@@ -12,6 +12,7 @@ import { TERRASPIN } from "./terraspin.js"
 import { WILDVINE } from "./wildvine.js"
 import { JETRAY } from "./jetray.js"
 import { DIAMONDHEAD } from "./diamondhead.js"
+import { WILDMUTT } from "./wildmutt.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -992,6 +993,13 @@ export const BEN10_ALIEN_POOL = {
     stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 66, sizeH: 118 },
     basic_attacks: DIAMONDHEAD.basic_attacks, specials: DIAMONDHEAD.moves,
     ultimate: { name: "Diamond Cathedral", cost: 55, damage: 240 } },
+  // Wildmutt (READY, wildmutt.js; key wildmutt_ov — the experimental `wildmutt` mkAlien above is untouched): a low, wide
+  // quadruped hurtbox. Scent / Fury / Frenzy / specials / ult via the ready-form hooks. mods (speed 1.15 / dmg 1.10 / def 0.90 /
+  // weight 0.95) via applyAlien.
+  wildmutt_ov: { name: "Wildmutt", color: "#ea580c", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 72, sizeH: 100 },
+    basic_attacks: WILDMUTT.basic_attacks, specials: WILDMUTT.moves,
+    ultimate: { name: "Primal Hunt", cost: 55, damage: 240 } },
   chromastone:mkAlien({ name: "Chromastone", color: "#a855f7", role: "zoner", hp: 1050, spd: 6, dmg: 1.0,
                         special: { name: "Ultraviolet Beam", ranged: true, damage: 110, cost: 24, effect: "absorbs energy attacks" }, ult: { name: "Prism Burst", damage: 210 } }),
   waybig:     mkAlien({ name: "Way Big", color: "#dc2626", role: "titan", hp: 1500, spd: 4, jumps: 1, jump: 16, dmg: 1.6, flags: { armor: true, bigSpike: true }, weight: "heavy", sizeW: 92, sizeH: 150,

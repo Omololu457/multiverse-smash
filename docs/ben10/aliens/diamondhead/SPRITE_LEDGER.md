@@ -160,3 +160,10 @@ the shirt can stay green); render only — the PRISMATIC flag itself lives in GA
 | `dhHarden` | jfc f1 | #67 | [32, 669, 64, 704] | [55, 41] | HARDEN - holds the CROUCH frame (+ procedural crystal sheen) |
 | `dhDive` | jfc f3 | #65 | [188, 633, 228, 704] | [53, 5] | DIAMOND DIVE - FALL frame (+ procedural blade) |
 | `dhBurst` | atk2 f4 | #46 | [261, 438, 299, 512] | [56, 2] | SHATTER BURST - ATTACK 2 f4 (blade raised) |
+
+## Verification (Phase 7, 2026-11-17)
+
+- `harness/ben10_diamondhead.test.mjs` 27/0 (3 consecutive runs) · `harness/ben10_diamondhead_render.mjs` 43/0 · `harness/diamondhead_framedata_diff.mjs` 22/0 (base `caeb831db`).
+- Battery vs main's baseline (recorded before any edit): determinism 14/0, combo-standard **233/9 = 233/9**, roster integrity ✓, every Ben 10 harness count identical (pre-existing stage2/3/4/6/7, start_human, integration, loadout and Alien X failures are unchanged and not caused by this build).
+- Slot: PICK FIVE — Diamondhead is picked on the alien-select screen; transform = ↓↓ + the button of the slot he occupies (J/K/L/O/P). No Dial built (an alien select already exists); no slot count change. Registry key `diamondhead_ov`; the experimental `diamondhead` is unchanged.
+- No new engine hooks.

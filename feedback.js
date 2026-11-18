@@ -201,7 +201,9 @@ const electricMove = m => !!m && (m.electric === true || /electric|lightning|vol
 // STORE: an absorbed (non-beam) projectile becomes the ONE stored record (damage, speed, size, tags, owner, look) for 180f, then it
 // dissipates into Charge (its value = the absorb gain); a new absorb replaces it and the old record's value is added to Charge.
 // ATOMIC: one absorb per projectile (stamped), the gain + record + consume happen in this one call; the engine then removes it.
-export const FB_GUARD = { WINDOW: 10, CD: 300, GAIN: 0.5, MAX_GAIN: 30, BEAM_MAX: 30, BEAM_GAIN: 0.5, STORE: 180 }
+// LOCK: the guard pose / lock lasts 12f (the absorb window stays 10f) so it outlives the shared 10f input buffer — a shorter lock
+// lets the very Heavy press that raised the guard replay as a Heavy normal the frame the lock ends (seen in the render check).
+export const FB_GUARD = { WINDOW: 10, LOCK: 12, CD: 300, GAIN: 0.5, MAX_GAIN: 30, BEAM_MAX: 30, BEAM_GAIN: 0.5, STORE: 180 }
 const ELEMENT = /fire|flame|burn|electric|lightning|thunder|volt|plasma|beam|laser|energy|ki\b|chakra|blast/i
 const tagged = m => !!m && !!(m.fire || m.electric || m.beam || m.isBeam || m.laser || m.energy || (m.alien && m.alien.beam) ||
   ELEMENT.test(String(m.element || "")) || ELEMENT.test(String(m.damageType || "")))
@@ -217,7 +219,7 @@ function blockHeavy(f) {
   const g = s.guard
   if (g.cd > 0 || busy(s) || (f.hitstun || 0) > 0 || f.attacking || !f.transformed) return false
   g.t = FB_GUARD.WINDOW; g.cd = FB_GUARD.CD; g.beamT = 0; s.stats.guards++
-  f._spriteCastMove = "fbGuard"; f._spriteCastTimer = FB_GUARD.WINDOW; f._benPowerCommit = FB_GUARD.WINDOW; f.attackCooldown = FB_GUARD.WINDOW; f.vx = 0
+  f._spriteCastMove = "fbGuard"; f._spriteCastTimer = FB_GUARD.LOCK; f._benPowerCommit = FB_GUARD.LOCK; f.attackCooldown = FB_GUARD.LOCK; f.vx = 0
   return true
 }
 function tickGuard(f, s) {

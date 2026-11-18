@@ -88,13 +88,13 @@ try {
   // ── 2. INHALE: hold the REAL Special key (neutral) ──
   await settle(10); await tsProbe("cool"); await near(260); const x0 = (await H("p2")).x
   await chord("keydown", ["l"]); await frames(30)
-  const ih = await tsProbe(); ok(ih?.inhale && ih?.cast === "tsInhale", "holding Special → INHALE (arms up, cyclone cone)", JSON.stringify({ inhale: ih?.inhale, cast: ih?.cast, pulled: ih?.pulled }))
+  const ih = await tsProbe(); ok(ih?.inhale && /^ts(Spin|Cyclone)$/.test(ih?.cast || ""), "holding Special → INHALE (spin frames, cyclone cone)", JSON.stringify({ inhale: ih?.inhale, cast: ih?.cast, pulled: ih?.pulled }))
   ok(await notBlack("_terraspin_inhale.png"), "no black screen (during Inhale)")
   await frames(10); await chord("keyup", ["l"]); await frames(4)
   const ih2 = await tsProbe(); ok(ih2?.pulled > 0 && (await H("p2")).x < x0 && ih2?.pressure > 0, "Inhale pulled the opponent in + built Pressure", JSON.stringify({ x: `${Math.round(x0)} → ${Math.round((await H("p2")).x)}`, pressure: ih2?.pressure }))
   // ── 3. EXHALE (↓↙← + P) ──
   await settle(30); await tsProbe("cool"); await tsProbe("p50"); await near(140); const hpE = (await H("p2")).health
-  await H("ben10Cast", "B"); await frames(18); ok((await tsProbe())?.exhales === 1, "Exhale cast (arms pushing)")
+  await H("ben10Cast", "B"); await frames(18); const ex = await tsProbe(); ok(ex?.exhales === 1 && /^ts(Spin|Cyclone)$/.test(ex?.cast || ""), "Exhale cast (spin frames)", JSON.stringify({ cast: ex?.cast }))
   ok(await notBlack("_terraspin_exhale.png"), "no black screen (Exhale)")
   await frames(20); ok((await H("p2")).health < hpE, "Exhale lands", `${hpE} → ${(await H("p2")).health}`)
   // ── 4. WIND CHOP (→→ + P) ──

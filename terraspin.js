@@ -189,11 +189,13 @@ const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock
 //    ownership-aware): +12 Pressure each. +0.5 Pressure per frame per target pulled. Release → 14f recovery (P again within it
 //    = Exhale), or release with ←/↙ held = Exhale at once.
 export const TS_INH = { STARTUP: 6, HOLD: 60, DRAIN: 4, RANGE: 320, SPEED: 5, H: 220, RECOVERY: 14 }
+// Inhale / Exhale (and the ult's suction opener + blowout) play the SPIN frames: the shell whirls to draw the air in / blast it out.
+const spinPose = t => (t % 6 < 3 ? "tsCyclone" : "tsSpin")
 function castInhale(f, s, api) {
   if (!canAct(f, s) || !api.spendEnergy(f, TS_COST.inhale)) return false
   s.castId++; f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
   s.inhale = { t: 0, held: 0, pulled: 0, caught: 0, cast: s.castId }; s.stats.inhales++
-  f._benPowerCommit = 2; f.vx = 0; f._spriteCastMove = "tsInhale"; f._spriteCastTimer = 2
+  f._benPowerCommit = 2; f.vx = 0; f._spriteCastMove = spinPose(0); f._spriteCastTimer = 2
   return true
 }
 export const inhaleCone = f => { const face = f.facing || 1, x0 = cx(f) + face * (f.w || 60) / 2
@@ -203,7 +205,7 @@ function tickInhale(f, s, api, input, opp, stage) {
   i.t++
   if ((f.hitstun || 0) > 0) { endInhale(f, s, api, false, true); return }              // knocked out of it: no recovery
   if (input.block) { s.pullLock = Math.max(s.pullLock, i.pulled); s.inhale = null; f._benPowerCommit = 0; f._spriteCastMove = null; f._spriteCastTimer = 0; return }   // block-cancel
-  f._benPowerCommit = 2; f.vx = 0; f._spriteCastMove = "tsInhale"; f._spriteCastTimer = 2
+  f._benPowerCommit = 2; f.vx = 0; f._spriteCastMove = spinPose(i.t); f._spriteCastTimer = 2
   if (i.t <= TS_INH.STARTUP) return
   i.held++
   const d = Math.min(f.energy || 0, TS_INH.DRAIN / 60); f.energy = (f.energy || 0) - d
@@ -238,7 +240,7 @@ function endInhale(f, s, api, exhaleNow, cancelled = false) {
   f._benPowerCommit = 0; f._spriteCastMove = null; f._spriteCastTimer = 0
   if (cancelled) return
   if (exhaleNow && s.pressure >= TS_EXH.MIN && castExhale(f, s, api, true)) return
-  s.post = TS_INH.RECOVERY; s.repress = false; f._benPowerCommit = TS_INH.RECOVERY; f._spriteCastMove = "tsInhale"; f._spriteCastTimer = TS_INH.RECOVERY
+  s.post = TS_INH.RECOVERY; s.repress = false; f._benPowerCommit = TS_INH.RECOVERY; f._spriteCastMove = "tsSpin"; f._spriteCastTimer = TS_INH.RECOVERY
 }
 
 // 2. EXHALE — Col 2 R6 arms pushing. No extra cost; needs ≥ 15 Pressure and spends ALL of it. 16f startup; everything within
@@ -250,7 +252,7 @@ function castExhale(f, s, api, fromInhale) {
   if (s.pressure < TS_EXH.MIN) return false
   const total = TS_EXH.STARTUP + TS_EXH.ACTIVE + TS_EXH.RECOVERY
   if (fromInhale) { s.post = 0; s.repress = false; f._benPowerCommit = 0; f.attackCooldown = 0 }
-  const c = beginCast(f, s, api, "tsExhale", 0, total); if (!c) return false
+  const c = beginCast(f, s, api, spinPose(0), 0, total); if (!c) return false
   const P = s.pressure, dmg = exhaleDamage(P), kd = P >= TS_EXH.KD, face = f.facing || 1
   s.pressure = 0
   s.exhale = { t: 0, cast: c.cast, spent: P, dmg, kd, face }; s.stats.exhales++; s.stats.lastExhale = { spent: P, dmg, kd }
@@ -262,7 +264,9 @@ function castExhale(f, s, api, fromInhale) {
   return true
 }
 function tickExhale(f, s, opp, stage) {
-  if (s.exhale && ++s.exhale.t > TS_EXH.STARTUP + TS_EXH.ACTIVE + 6) s.exhale = null
+  if (s.exhale) { const t = ++s.exhale.t
+    if ((f._spriteCastTimer || 0) > 0) f._spriteCastMove = t > TS_EXH.STARTUP + TS_EXH.ACTIVE ? "tsSpin" : spinPose(t)
+    if (t > TS_EXH.STARTUP + TS_EXH.ACTIVE + 6) s.exhale = null }
   const p = s.push
   if (p && opp) { opp.x = Math.max(stage.L, Math.min(stage.R - (opp.w || 60), opp.x + p.dir * TS_EXH.PUSH)); opp.vx = 0
     if (--p.t <= 0) s.push = null }
@@ -464,7 +468,7 @@ function fireUltimate(f, ctx, api) {
   s.castId++
   const face = f.facing || 1, total = TS_ULT.OPENER_AT + TS_ULT.WHIFF
   f.isCharging = false; f._benActionEpoch = (f._benActionEpoch || 0) + 1
-  f._spriteCastMove = "tsInhale"; f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
+  f._spriteCastMove = spinPose(0); f._spriteCastTimer = total; f.attackCooldown = total; f._benPowerCommit = total; f.vx = 0
   s.ult = { phase: "opener", t: 0, face, raw: 0, cast: s.castId, angles: [], hits: [] }
   s.stats.ults++
   api.focusCamera?.(f, api.getOpponent(f), 0.92, 20)
@@ -482,7 +486,7 @@ function startUltCinematic(f, s, target) {
 }
 function tickUlt(f, s, opp, api, ctx) {
   const u = s.ult; if (!u) return
-  if (u.phase === "opener") { if (++u.t > TS_ULT.OPENER_AT + 12) s.ult = null; return }   // whiff / block
+  if (u.phase === "opener") { ++u.t; if ((f._spriteCastTimer || 0) > 0) f._spriteCastMove = spinPose(u.t); if (u.t > TS_ULT.OPENER_AT + 12) s.ult = null; return }   // whiff / block
   if (!opp || opp.eliminated) { endUlt(f, s, null); return }
   u.t++
   opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y   // held (no collision change)
@@ -494,7 +498,7 @@ function tickUlt(f, s, opp, api, ctx) {
     const k = TS_ULT.CHOPS_AT.indexOf(u.t)
     if (k >= 0) { u.angles.push(tsHash(ctx?.seed ?? 1, ctx?.frame ?? u.t, pIndex(f), k) * Math.PI * 2); hit(TS_ULT.CHOP, 3 + k) }
     const near = TS_ULT.CHOPS_AT.some(a => u.t >= a && u.t < a + 4); f._spriteCastMove = near ? "tsChop" : "tsCyclone" }
-  else if (u.t < TS_ULT.END) { u.phase = "blowout"; f._spriteCastMove = "tsExhale"
+  else if (u.t < TS_ULT.END) { u.phase = "blowout"; f._spriteCastMove = spinPose(u.t)
     if (u.t === TS_ULT.BLOW_AT) { const P = s.pressure; u.pressure = P; s.pressure = 0; hit(blowoutDamage(P), 18) } }
   else { endUlt(f, s, opp); return }
   f._spriteCastTimer = 2

@@ -38,8 +38,8 @@
 | Col 2 R2 | light |
 | Col 2 R3 | heavy |
 | Col 2 R4 | jump, fall, win, heavy |
-| Col 2 R5 | taunt, win, up, tsInhale |
-| Col 2 R6 | down, tsExhale |
+| Col 2 R5 | taunt, win, up (tsInhale strip kept, unused) |
+| Col 2 R6 | down (tsExhale strip kept, unused) |
 | Col 2 R7 | dash, doubleJump, air, tsSpin |
 | Col 2 R8 | dash, doubleJump, air, tsSpin |
 | Col 3 R1 | tsCyclone |
@@ -78,8 +78,8 @@
 | `down` | 1 | 4 | LOW = Col 2 R6 arms low + procedural low sweep |
 | `up` | 1 | 6 | LAUNCHER = Col 2 R5 arm raised + procedural upward gale |
 | `air` | 2 | 3 | AIR = Col 2 R7–R8 spin + procedural wind ring |
-| `tsInhale` | 1 | 6 | INHALE cast = Col 2 R5 arm raised (+ Col 3 cyclone cone FX) |
-| `tsExhale` | 1 | 6 | EXHALE cast = Col 2 R6 arms pushing low |
+| `tsInhale` | 1 | 6 | unused since 2026-11-17 (owner: Inhale / Exhale use the SPIN frames — `tsSpin` / `tsCyclone` alternating every 3f) |
+| `tsExhale` | 1 | 6 | unused since 2026-11-17 (see `tsInhale`) |
 | `tsSpin` | 2 | 2 | SHELL SPIN loop = Col 2 R7–R8 |
 | `tsCyclone` | 3 | 2 | CYCLONE loop = Col 3 R1–R3 strong wind (Shell Spin active frames, Cyclone Drop, ultimate) |
 | `tsChop` | 1 | 6 | WIND CHOP body = Col 3 R4 one arm raised, leaning (chop pose) |

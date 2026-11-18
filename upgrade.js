@@ -99,7 +99,6 @@ function tick(f, input, ctx, api) {
   tickRise(f, s, api)
   tickSpear(f, s, api)
   tickUlt(f, s, opp, api, ctx)
-  //@@TICK@@
   s.noAttack = busy(s)
   s.spPrev = !!input.special
 }
@@ -608,7 +607,6 @@ function hurtbox(f) {
 function damageDealt(f, target, raw, opts) {
   const s = upState(f); if (!s) return raw
   if (s.oc.t > 0) raw *= UP_MERGE.DMG                                        // OVERCLOCK damage ×1.15
-  //@@DEALT@@
   if (opts && opts.move === "up_pulse") raw = Math.min(raw, Math.max(0, (target.health || 0) - 1))
   return raw
 }
@@ -629,7 +627,6 @@ function targetOffset(f, target) {
 }
 function drainMultOf(f) { const s = upState(f); if (!s) return 1; let m = 1
   if (s.oc.t <= 0 && s.oc.cdT > 0) m *= UP_MERGE.DRAIN_CD                      // OVERCLOCK cooldown: Power drain +50%
-  //@@DRAIN@@
   return m }
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
@@ -692,7 +689,6 @@ export function drawUpgradeUnder(c, f) {
   const s = upState(f); if (!s || !s.term) return
   drawTerminal(c, s.term, s.t)
 }
-//@@DRAWFX_HELPERS@@
 export function drawUpgradeFx(c, f, frame = 0, opp = null) {
   const s = upState(f); if (!s) return
   if (projRef) for (const p of projRef) if (p && p.owner === f && p.alien && p.alien.up === "pulse") drawPulse(c, p, frame)
@@ -761,7 +757,6 @@ export function drawUpgradeFx(c, f, frame = 0, opp = null) {
     if (u.phase === "reset" && Math.abs(u.t - UP_ULT.RESET_AT) < 6) { c.save(); c.globalAlpha = 0.6; c.fillStyle = WHT; c.fillRect(ox - 90, oy - 90, 180, 180); c.restore()
       c.fillStyle = INK; c.font = "bold 14px monospace"; c.textAlign = "center"; c.fillText("HARD RESET", ox, oy - 100) }
   }
-  //@@DRAWFX@@
 }
 export function drawUpgradeHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
   const s = upState(f); if (!ctx || !s) return

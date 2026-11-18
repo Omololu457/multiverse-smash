@@ -252,6 +252,86 @@ test('12. System Takeover copies: deterministic hash(seed, frame, playerIndex)',
   const spots = () => { clearProj(); FRAME = 1000; const f = ben(), t = foe(); reset(f, t, 150); runUlt(f, t); return JSON.stringify(S(f).lastUltSpots) }
   const a = spots(), b = spots(); assert.equal(a, b); SEED = 99; const c = spots(); SEED = 4242; assert.notEqual(a, c, 'seed changes them')
 })
-//@@TESTS@@
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  zap: UP_ZAP.DMG, lash: UP_LASH.DMG[0] + UP_LASH.DMG[1], rise: UP_RISE.DMG }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+const ROUTES = [
+  ['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 82],
+  ['2. Low, Heavy, Zap Bolt', ['low', 'heavy', 'zap'], 100],
+  ['3. Tendril Lash, Heavy, Tendril Rise', ['lash', 'heavy', 'rise'], 120],
+]
+for (const [name, route, target] of ROUTES) test('design total ' + name + ' ≈ ' + target, () => {
+  const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`)
+})
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 2 live: Low, Heavy, Zap Bolt (+1 Virus pip)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 160); const hp = t.health; assert(cast(f, t, null), 'Zap'); world(f, t, UP_ZAP.STARTUP + 14); d.push(hp - t.health)
+  assert(d[2] > 0); assert.equal(S(f).virus.pips, 1); assert.equal(f.comboCounter, 3); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+test('route 3 live: Tendril Lash (2 hits), Heavy, Tendril Rise (2 pips)', () => {
+  clearProj(); const f = ben(), t = foe(); reset(f, t, 120); const hp0 = t.health; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); world(f, t, UP_LASH.TOTAL + 1)
+  const d = [hp0 - t.health]; clearProj(); reset(f, t, 10); d.push(melee(f, t, 'heavy'))
+  reset(f, t, 30); const hp = t.health; assert(cast(f, t, 'U'), 'Rise'); world(f, t, UP_RISE.STARTUP + 2); d.push(hp - t.health)
+  assert(d.every(x => x > 0)); assert.equal(S(f).virus.pips, 2, 'lash finisher + rise'); console.log('   HP', d.join('+'), '=', d.reduce((a, b) => a + b))
+})
+// ── 13 lifecycle / slot 15 → PICK FIVE / Vow / determinism ──────────────────────────────────────────────────
+test('13. swap / revert / KO / rematch clear Terminal, Overclock, pips and Crash', () => {
+  const dirty = f => { const t = foe(); far(f, t); deploy(f, t); const s = S(f); s.virus.pips = 2; s.virus.pipT = 100; s.oc.t = 90; step(f, t, 1) }
+  const f = ben('upgrade_ov', LOAD); dirty(f); assert.equal(f._skinAnim, U.UP_FRAMESETS.overclock)
+  assert(F.applyAlien(f, 'goop')); assert.notEqual(f._skinAnim, U.UP_FRAMESETS.overclock, 'swap: palette gone')
+  assert(F.applyAlien(f, 'upgrade_ov')); const s = S(f); assert.equal(s.term, null); assert.equal(s.virus.pips, 0); assert.equal(s.oc.t, 0); assert.equal(s.virus.crashT, 0)
+  dirty(f); F.revertToHuman(f); assert.equal(f.omnitrix.formState, null)
+  const k = ben(); dirty(k); k.health = 0; F.revertToHuman(k); assert.equal(k.omnitrix.formState, null)
+  assert.equal(S(ben()).term, null, 'rematch / round end: a fresh form state')
+})
+test('13. slot 15 → PICK FIVE: slot count stays 5, Upgrade READY + pickable (catalog slot 15), nothing overwritten', () => {
+  assert.equal(BEN10_SLOT_COUNT, 5); assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('upgrade_ov'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 15); assert.equal(d.displayName, 'Upgrade')
+  assert.equal(getAlienDefinition('upgrade').status, 'experimental', 'the experimental Upgrade is untouched')
+  for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov']) assert.equal(getAlienDefinition(k).status, 'ready', k)
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'upgrade_ov').length, 1); assert(getAvailableAlienKeys(false).includes('upgrade_ov'))
+  assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Dragonrod/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Upgrade'); assert.equal(f.health, 950, 'shared health')
+  assert(Math.abs(f.defenseMultiplier - 0.95) < 1e-9 && Math.abs(f.damageMultiplier - 1.00) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.95 / dmg 1.00 / weight 0.85')
+  assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.00 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.00')
+})
+test('13. Omnitrix Dial: Upgrade picked into the last slot, the transform reaches it at the same cost as any slot', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'upgrade_ov'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    assert(F.ben10TransformOrSwap(f, slot, { seed: 1, frame: 0, playerIndex: 0 })); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'upgrade_ov'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+})
+test('13. Vow pick includes Upgrade (mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'upgrade_ov'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('upgrade_ov') && picks.size === L.length)
+})
+test('13. same-seed determinism: an identical scripted Upgrade sequence yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light')
+    reset(f, t, 300); online(f, t); world(f, t, 100); f.x = S(f).term.x - f.w / 2 - 40; ready(f); cast(f, t, 'U'); world(f, t, 30)
+    reset(f, t, 160); cast(f, t, null); world(f, t, 40); reset(f, t, 30); cast(f, t, 'B'); step(f, t, 20, {}, { special: true }); world(f, t, 1, { light: true }); world(f, t, 50)
+    reset(f, t, 150); runUlt(f, t); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, te: t.energy, x: f.x, tx: t.x })
+  }
+  assert.equal(run(), run())
+})
+test('GAME_STATE stays plain data mid-cast: terminal, merge, overclock, dive, ult cinematic', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  clearProj(); const f = ben(), t = foe(); far(f, t); const w = online(f, t); f.x = w.x - f.w / 2 - 40; ready(f); assert(cast(f, t, 'U')); step(f, t, 5); assert(plain(S(f)), 'merge')
+  step(f, t, 30); assert(plain(S(f)), 'overclock'); ready(f); S(f).oc.t = 0; assert(cast(f, t, 'B')); step(f, t, 10, {}, { special: true }); assert(plain(S(f)), 'dive')
+  clearProj(); const u = ben(), v = foe(); reset(u, v, 150); u.energy = 100; ready(u); A.triggerUltimate(u, ctxOf(u, v)); world(u, v, 70)
+  assert(S(u).ult && S(u).ult.phase !== 'opener', 'mid-cinematic'); assert(plain(S(u)), 'ult'); clearProj()
+})
+test('no Math.random / gameRng in upgrade.js / upgradeAssets.js', () => {
+  for (const file of ['../upgrade.js', '../upgradeAssets.js']) assert(!/Math\.random|gameRng/.test(fs.readFileSync(new URL(file, import.meta.url), 'utf8')), file)
+})
 console.log(`UPGRADE: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

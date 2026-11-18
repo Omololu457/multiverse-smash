@@ -1,0 +1,1436 @@
+{
+ "source": "assets/sprites/ben10/aliens/feedback.png",
+ "key": [
+  255,
+  255,
+  255
+ ],
+ "zero_tolerance": true,
+ "flood_fill_from_edges": true,
+ "enclosed_white_kept": 4893,
+ "guides_removed": {
+  "red": 2115,
+  "magenta_crosshairs": 96,
+  "grey_x5_text": 56
+ },
+ "cell": [
+  94,
+  92
+ ],
+ "feetY": 90,
+ "centreX": 47,
+ "actionScale": 1.25,
+ "groups": {
+  "idle": [
+   37,
+   38,
+   39,
+   40
+  ],
+  "run": [
+   50,
+   53,
+   54,
+   55,
+   51,
+   52
+  ],
+  "r3": [
+   66,
+   63,
+   67
+  ],
+  "aim": [
+   70,
+   76
+  ],
+  "orb": [
+   72,
+   71,
+   73,
+   74
+  ],
+  "r5": [
+   80,
+   81,
+   78,
+   79
+  ],
+  "r6": [
+   82,
+   83
+  ],
+  "fire": [
+   90,
+   84,
+   85,
+   86,
+   91
+  ],
+  "stored": [
+   88,
+   87,
+   89,
+   92
+  ]
+ },
+ "row3": {
+  "stand": 66,
+  "jump": 63,
+  "crouch": 67
+ },
+ "row5": {
+  "run": 80,
+  "electrified": 81,
+  "burst_streak_fx": 78,
+  "figure": 79
+ },
+ "parts": {
+  "bend_extend": [
+   22,
+   23,
+   24,
+   25,
+   26,
+   27
+  ],
+  "bend_retract_dark": [
+   29,
+   30,
+   31,
+   32,
+   33,
+   34
+  ],
+  "cable": [
+   45,
+   46,
+   47
+  ],
+  "plug": [
+   44,
+   43
+  ],
+  "excluded": {
+   "1": [
+    492,
+    23,
+    522,
+    47
+   ],
+   "2": [
+    556,
+    46,
+    573,
+    61
+   ],
+   "3": [
+    749,
+    64,
+    773,
+    87
+   ],
+   "4": [
+    776,
+    64,
+    794,
+    87
+   ],
+   "5": [
+    506,
+    71,
+    517,
+    80
+   ],
+   "6": [
+    556,
+    71,
+    567,
+    91
+   ],
+   "7": [
+    581,
+    71,
+    589,
+    92
+   ],
+   "8": [
+    599,
+    71,
+    609,
+    91
+   ],
+   "9": [
+    622,
+    71,
+    630,
+    92
+   ],
+   "10": [
+    795,
+    71,
+    805,
+    81
+   ],
+   "11": [
+    639,
+    72,
+    648,
+    92
+   ],
+   "12": [
+    660,
+    72,
+    668,
+    93
+   ],
+   "13": [
+    813,
+    81,
+    820,
+    86
+   ],
+   "14": [
+    810,
+    89,
+    822,
+    106
+   ],
+   "15": [
+    697,
+    98,
+    708,
+    110
+   ],
+   "16": [
+    748,
+    98,
+    757,
+    122
+   ],
+   "17": [
+    767,
+    99,
+    777,
+    123
+   ],
+   "18": [
+    725,
+    100,
+    734,
+    111
+   ],
+   "19": [
+    697,
+    116,
+    706,
+    140
+   ],
+   "20": [
+    792,
+    117,
+    802,
+    137
+   ],
+   "21": [
+    825,
+    117,
+    833,
+    138
+   ],
+   "28": [
+    722,
+    121,
+    733,
+    133
+   ],
+   "35": [
+    703,
+    149,
+    714,
+    180
+   ],
+   "36": [
+    739,
+    150,
+    750,
+    181
+   ],
+   "41": [
+    582,
+    183,
+    593,
+    204
+   ],
+   "42": [
+    541,
+    185,
+    552,
+    208
+   ],
+   "48": [
+    565,
+    217,
+    587,
+    231
+   ],
+   "49": [
+    782,
+    231,
+    797,
+    244
+   ],
+   "56": [
+    757,
+    239,
+    769,
+    251
+   ],
+   "57": [
+    813,
+    239,
+    824,
+    250
+   ],
+   "58": [
+    691,
+    241,
+    702,
+    251
+   ],
+   "59": [
+    721,
+    241,
+    733,
+    251
+   ],
+   "60": [
+    562,
+    246,
+    577,
+    282
+   ],
+   "61": [
+    540,
+    257,
+    556,
+    275
+   ],
+   "62": [
+    647,
+    270,
+    657,
+    280
+   ],
+   "64": [
+    723,
+    300,
+    735,
+    330
+   ],
+   "65": [
+    750,
+    301,
+    762,
+    331
+   ],
+   "68": [
+    685,
+    336,
+    700,
+    358
+   ],
+   "69": [
+    385,
+    381,
+    415,
+    405
+   ],
+   "75": [
+    756,
+    400,
+    765,
+    424
+   ],
+   "77": [
+    775,
+    401,
+    785,
+    425
+   ]
+  }
+ },
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 1,
+   "component": 37,
+   "src_bbox": [
+    18,
+    151,
+    60,
+    201
+   ],
+   "offset": [
+    21,
+    40
+   ],
+   "role": "idle (Row 1 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 2,
+   "component": 38,
+   "src_bbox": [
+    67,
+    151,
+    109,
+    201
+   ],
+   "offset": [
+    21,
+    40
+   ],
+   "role": "idle (Row 1 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 3,
+   "component": 39,
+   "src_bbox": [
+    119,
+    151,
+    161,
+    201
+   ],
+   "offset": [
+    21,
+    40
+   ],
+   "role": "idle (Row 1 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 4,
+   "component": 40,
+   "src_bbox": [
+    171,
+    151,
+    211,
+    201
+   ],
+   "offset": [
+    22,
+    40
+   ],
+   "role": "idle (Row 1 loop)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 1,
+   "component": 50,
+   "src_bbox": [
+    14,
+    234,
+    69,
+    281
+   ],
+   "offset": [
+    16,
+    43
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 2,
+   "component": 53,
+   "src_bbox": [
+    75,
+    235,
+    130,
+    281
+   ],
+   "offset": [
+    15,
+    44
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 3,
+   "component": 54,
+   "src_bbox": [
+    138,
+    235,
+    193,
+    281
+   ],
+   "offset": [
+    20,
+    44
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 4,
+   "component": 55,
+   "src_bbox": [
+    206,
+    235,
+    261,
+    281
+   ],
+   "offset": [
+    17,
+    44
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 5,
+   "component": 51,
+   "src_bbox": [
+    270,
+    234,
+    325,
+    281
+   ],
+   "offset": [
+    15,
+    43
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 6,
+   "component": 52,
+   "src_bbox": [
+    333,
+    234,
+    388,
+    281
+   ],
+   "offset": [
+    19,
+    43
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (no walk art)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 6,
+   "component": 52,
+   "src_bbox": [
+    333,
+    234,
+    388,
+    281
+   ],
+   "offset": [
+    19,
+    43
+   ],
+   "role": "walk back - Row 2 REVERSED + slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 5,
+   "component": 51,
+   "src_bbox": [
+    270,
+    234,
+    325,
+    281
+   ],
+   "offset": [
+    15,
+    43
+   ],
+   "role": "walk back - Row 2 REVERSED + slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 4,
+   "component": 55,
+   "src_bbox": [
+    206,
+    235,
+    261,
+    281
+   ],
+   "offset": [
+    17,
+    44
+   ],
+   "role": "walk back - Row 2 REVERSED + slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 3,
+   "component": 54,
+   "src_bbox": [
+    138,
+    235,
+    193,
+    281
+   ],
+   "offset": [
+    20,
+    44
+   ],
+   "role": "walk back - Row 2 REVERSED + slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 2,
+   "component": 53,
+   "src_bbox": [
+    75,
+    235,
+    130,
+    281
+   ],
+   "offset": [
+    15,
+    44
+   ],
+   "role": "walk back - Row 2 REVERSED + slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 1,
+   "component": 50,
+   "src_bbox": [
+    14,
+    234,
+    69,
+    281
+   ],
+   "offset": [
+    16,
+    43
+   ],
+   "role": "walk back - Row 2 REVERSED + slowed"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 1,
+   "component": 50,
+   "src_bbox": [
+    14,
+    234,
+    69,
+    281
+   ],
+   "offset": [
+    16,
+    43
+   ],
+   "role": "run (Row 2)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 2,
+   "component": 53,
+   "src_bbox": [
+    75,
+    235,
+    130,
+    281
+   ],
+   "offset": [
+    15,
+    44
+   ],
+   "role": "run (Row 2)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 3,
+   "component": 54,
+   "src_bbox": [
+    138,
+    235,
+    193,
+    281
+   ],
+   "offset": [
+    20,
+    44
+   ],
+   "role": "run (Row 2)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 4,
+   "component": 55,
+   "src_bbox": [
+    206,
+    235,
+    261,
+    281
+   ],
+   "offset": [
+    17,
+    44
+   ],
+   "role": "run (Row 2)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 5,
+   "component": 51,
+   "src_bbox": [
+    270,
+    234,
+    325,
+    281
+   ],
+   "offset": [
+    15,
+    43
+   ],
+   "role": "run (Row 2)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 6,
+   "component": 52,
+   "src_bbox": [
+    333,
+    234,
+    388,
+    281
+   ],
+   "offset": [
+    19,
+    43
+   ],
+   "role": "run (Row 2)"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 2,
+   "component": 53,
+   "src_bbox": [
+    75,
+    235,
+    130,
+    281
+   ],
+   "offset": [
+    15,
+    44
+   ],
+   "role": "dash - Row 2 f2-3, fast"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 3,
+   "component": 54,
+   "src_bbox": [
+    138,
+    235,
+    193,
+    281
+   ],
+   "offset": [
+    20,
+    44
+   ],
+   "role": "dash - Row 2 f2-3, fast"
+  },
+  {
+   "anim": "jump",
+   "group": "r3",
+   "frame": 2,
+   "component": 63,
+   "src_bbox": [
+    58,
+    300,
+    93,
+    373
+   ],
+   "offset": [
+    27,
+    17
+   ],
+   "role": "jump rise (Row 3 f2, jump with tail)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "r3",
+   "frame": 2,
+   "component": 63,
+   "src_bbox": [
+    58,
+    300,
+    93,
+    373
+   ],
+   "offset": [
+    27,
+    17
+   ],
+   "role": "double jump - REUSED Row 3 f2"
+  },
+  {
+   "anim": "fall",
+   "group": "r3",
+   "frame": 2,
+   "component": 63,
+   "src_bbox": [
+    58,
+    300,
+    93,
+    373
+   ],
+   "offset": [
+    27,
+    17
+   ],
+   "role": "jump fall - REUSED Row 3 f2 (no fall art)"
+  },
+  {
+   "anim": "crouch",
+   "group": "r3",
+   "frame": 3,
+   "component": 67,
+   "src_bbox": [
+    113,
+    331,
+    147,
+    373
+   ],
+   "offset": [
+    26,
+    48
+   ],
+   "role": "crouch (Row 3 f3)"
+  },
+  {
+   "anim": "guard",
+   "group": "r3",
+   "frame": 1,
+   "component": 66,
+   "src_bbox": [
+    20,
+    317,
+    45,
+    373
+   ],
+   "offset": [
+    35,
+    34
+   ],
+   "role": "block (Row 3 f1 narrow stand)"
+  },
+  {
+   "anim": "blockHit",
+   "group": "r3",
+   "frame": 1,
+   "component": 66,
+   "src_bbox": [
+    20,
+    317,
+    45,
+    373
+   ],
+   "offset": [
+    35,
+    34
+   ],
+   "role": "block hit - REUSED Row 3 f1"
+  },
+  {
+   "anim": "light",
+   "group": "aim",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    17,
+    395,
+    61,
+    445
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "JAB - Row 4 aim f1 body + render-only lunge + procedural pixel plug spark"
+  },
+  {
+   "anim": "heavy",
+   "group": "aim",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    17,
+    395,
+    61,
+    445
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "HEAVY - Row 4 aim f1-2 body + lunge + procedural plug strike (150 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "aim",
+   "frame": 2,
+   "component": 76,
+   "src_bbox": [
+    80,
+    401,
+    138,
+    445
+   ],
+   "offset": [
+    33,
+    46
+   ],
+   "role": "HEAVY - Row 4 aim f1-2 body + lunge + procedural plug strike (150 px)"
+  },
+  {
+   "anim": "down",
+   "group": "r3",
+   "frame": 3,
+   "component": 67,
+   "src_bbox": [
+    113,
+    331,
+    147,
+    373
+   ],
+   "offset": [
+    26,
+    48
+   ],
+   "role": "LOW - Row 3 crouch + procedural low plug spark (hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "run",
+   "frame": 3,
+   "component": 54,
+   "src_bbox": [
+    138,
+    235,
+    193,
+    281
+   ],
+   "offset": [
+    20,
+    44
+   ],
+   "role": "LAUNCHER - Row 2 run f3 body + procedural rising spark arc"
+  },
+  {
+   "anim": "air",
+   "group": "r3",
+   "frame": 2,
+   "component": 63,
+   "src_bbox": [
+    58,
+    300,
+    93,
+    373
+   ],
+   "offset": [
+    27,
+    17
+   ],
+   "role": "AIR - Row 3 jump frame + procedural spark"
+  },
+  {
+   "anim": "hurt",
+   "group": "r3",
+   "frame": 3,
+   "component": 67,
+   "src_bbox": [
+    113,
+    331,
+    147,
+    373
+   ],
+   "offset": [
+    26,
+    48
+   ],
+   "role": "hit - REUSED Row 3 crouch (no hurt pose)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "r3",
+   "frame": 2,
+   "component": 63,
+   "src_bbox": [
+    58,
+    300,
+    93,
+    373
+   ],
+   "offset": [
+    27,
+    17
+   ],
+   "role": "hit in the air - REUSED Row 3 jump"
+  },
+  {
+   "anim": "knockdown",
+   "group": "r3",
+   "frame": 3,
+   "component": 67,
+   "src_bbox": [
+    113,
+    331,
+    147,
+    373
+   ],
+   "offset": [
+    26,
+    48
+   ],
+   "role": "knockdown - REUSED Row 3 crouch (no knockdown pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "r3",
+   "frame": 3,
+   "component": 67,
+   "src_bbox": [
+    113,
+    331,
+    147,
+    373
+   ],
+   "offset": [
+    26,
+    48
+   ],
+   "role": "get-up - REUSED crouch -> narrow stand"
+  },
+  {
+   "anim": "getup",
+   "group": "r3",
+   "frame": 1,
+   "component": 66,
+   "src_bbox": [
+    20,
+    317,
+    45,
+    373
+   ],
+   "offset": [
+    35,
+    34
+   ],
+   "role": "get-up - REUSED crouch -> narrow stand"
+  },
+  {
+   "anim": "dizzy",
+   "group": "idle",
+   "frame": 1,
+   "component": 37,
+   "src_bbox": [
+    18,
+    151,
+    60,
+    201
+   ],
+   "offset": [
+    21,
+    40
+   ],
+   "role": "dizzy - REUSED idle f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "idle",
+   "frame": 2,
+   "component": 38,
+   "src_bbox": [
+    67,
+    151,
+    109,
+    201
+   ],
+   "offset": [
+    21,
+    40
+   ],
+   "role": "dizzy - REUSED idle f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "transform",
+   "group": "r6",
+   "frame": 1,
+   "component": 82,
+   "src_bbox": [
+    17,
+    556,
+    66,
+    644
+   ],
+   "offset": [
+    24,
+    2
+   ],
+   "role": "transform-in - REUSED Row 6 f1 (spike burst over the hands)"
+  },
+  {
+   "anim": "taunt",
+   "group": "r6",
+   "frame": 1,
+   "component": 82,
+   "src_bbox": [
+    17,
+    556,
+    66,
+    644
+   ],
+   "offset": [
+    24,
+    2
+   ],
+   "role": "taunt - REUSED Row 6 f1"
+  },
+  {
+   "anim": "win",
+   "group": "r6",
+   "frame": 2,
+   "component": 83,
+   "src_bbox": [
+    78,
+    556,
+    128,
+    644
+   ],
+   "offset": [
+    22,
+    2
+   ],
+   "role": "win - REUSED Row 6 f2 (no win pose)"
+  },
+  {
+   "anim": "lose",
+   "group": "r3",
+   "frame": 3,
+   "component": 67,
+   "src_bbox": [
+    113,
+    331,
+    147,
+    373
+   ],
+   "offset": [
+    26,
+    48
+   ],
+   "role": "lose - REUSED Row 3 crouch (no lose pose)"
+  },
+  {
+   "anim": "grab",
+   "group": "aim",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    17,
+    395,
+    61,
+    445
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "grab - REUSED Row 4 aim f1"
+  },
+  {
+   "anim": "fbOrb",
+   "group": "aim",
+   "frame": 1,
+   "component": 70,
+   "src_bbox": [
+    17,
+    395,
+    61,
+    445
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "PLASMA ORB cast (Row 4 plug-arm aim f1-2)"
+  },
+  {
+   "anim": "fbOrb",
+   "group": "aim",
+   "frame": 2,
+   "component": 76,
+   "src_bbox": [
+    80,
+    401,
+    138,
+    445
+   ],
+   "offset": [
+    33,
+    46
+   ],
+   "role": "PLASMA ORB cast (Row 4 plug-arm aim f1-2)"
+  },
+  {
+   "anim": "fbGuard",
+   "group": "r6",
+   "frame": 1,
+   "component": 82,
+   "src_bbox": [
+    17,
+    556,
+    66,
+    644
+   ],
+   "offset": [
+    24,
+    2
+   ],
+   "role": "PLUG GUARD catch flash (Row 6 f1)"
+  },
+  {
+   "anim": "fbBurst",
+   "group": "r6",
+   "frame": 1,
+   "component": 82,
+   "src_bbox": [
+    17,
+    556,
+    66,
+    644
+   ],
+   "offset": [
+    24,
+    2
+   ],
+   "role": "OVERLOAD BURST (Row 6 f1 -> f2 burst) + ult Overload pulses"
+  },
+  {
+   "anim": "fbBurst",
+   "group": "r6",
+   "frame": 2,
+   "component": 83,
+   "src_bbox": [
+    78,
+    556,
+    128,
+    644
+   ],
+   "offset": [
+    22,
+    2
+   ],
+   "role": "OVERLOAD BURST (Row 6 f1 -> f2 burst) + ult Overload pulses"
+  },
+  {
+   "anim": "fbDash",
+   "group": "r5",
+   "frame": 1,
+   "component": 80,
+   "src_bbox": [
+    15,
+    485,
+    70,
+    531
+   ],
+   "offset": [
+    15,
+    44
+   ],
+   "role": "CONDUIT DASH body (Row 5 f1 run, f2 electrified, f5 burst figure; f3 / f4 = FX)"
+  },
+  {
+   "anim": "fbDash",
+   "group": "r5",
+   "frame": 2,
+   "component": 81,
+   "src_bbox": [
+    85,
+    485,
+    140,
+    531
+   ],
+   "offset": [
+    17,
+    44
+   ],
+   "role": "CONDUIT DASH body (Row 5 f1 run, f2 electrified, f5 burst figure; f3 / f4 = FX)"
+  },
+  {
+   "anim": "fbDash",
+   "group": "r5",
+   "frame": 4,
+   "component": 79,
+   "src_bbox": [
+    279,
+    477,
+    337,
+    531
+   ],
+   "offset": [
+    15,
+    36
+   ],
+   "role": "CONDUIT DASH body (Row 5 f1 run, f2 electrified, f5 burst figure; f3 / f4 = FX)"
+  },
+  {
+   "anim": "fbFire",
+   "group": "fire",
+   "frame": 1,
+   "component": 90,
+   "src_bbox": [
+    9,
+    673,
+    68,
+    717
+   ],
+   "offset": [
+    33,
+    46
+   ],
+   "role": "RETURN FIRE (Row 7 plug-forward firing f1-5) + ult Discharge"
+  },
+  {
+   "anim": "fbFire",
+   "group": "fire",
+   "frame": 2,
+   "component": 84,
+   "src_bbox": [
+    81,
+    667,
+    128,
+    717
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "RETURN FIRE (Row 7 plug-forward firing f1-5) + ult Discharge"
+  },
+  {
+   "anim": "fbFire",
+   "group": "fire",
+   "frame": 3,
+   "component": 85,
+   "src_bbox": [
+    138,
+    667,
+    187,
+    717
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "RETURN FIRE (Row 7 plug-forward firing f1-5) + ult Discharge"
+  },
+  {
+   "anim": "fbFire",
+   "group": "fire",
+   "frame": 4,
+   "component": 86,
+   "src_bbox": [
+    193,
+    667,
+    237,
+    717
+   ],
+   "offset": [
+    27,
+    40
+   ],
+   "role": "RETURN FIRE (Row 7 plug-forward firing f1-5) + ult Discharge"
+  },
+  {
+   "anim": "fbFire",
+   "group": "fire",
+   "frame": 5,
+   "component": 91,
+   "src_bbox": [
+    249,
+    673,
+    307,
+    717
+   ],
+   "offset": [
+    33,
+    46
+   ],
+   "role": "RETURN FIRE (Row 7 plug-forward firing f1-5) + ult Discharge"
+  },
+  {
+   "anim": "fbSiphon",
+   "group": "fire",
+   "frame": 1,
+   "component": 90,
+   "src_bbox": [
+    9,
+    673,
+    68,
+    717
+   ],
+   "offset": [
+    33,
+    46
+   ],
+   "role": "SIPHON CABLE cast (Row 7 f1 plug forward; the cable is FX)"
+  },
+  {
+   "anim": "fbVolt",
+   "group": "r3",
+   "frame": 2,
+   "component": 63,
+   "src_bbox": [
+    58,
+    300,
+    93,
+    373
+   ],
+   "offset": [
+    27,
+    17
+   ],
+   "role": "VOLT SHOT (air: Row 3 jump frame; the orb is FX)"
+  }
+ ]
+}

@@ -206,6 +206,44 @@ test('8. Ripjaws edge: wading +10 % dmg / +15 % speed (land frames); submerged +
   assert.equal(FL.waterOf(g).wb, true, 'waterborne → no breath (Phase 5)')
 })
 
+// ── 5 / 9 BREATH + DROWNING ───────────────────────────────────────────────────────────────────────────────
+const BR = (f, t) => FR(f).breath[t.side]
+test('9. breath: 100 → 0 in 420f submerged; refills in 90f with the head above water; only non-waterborne fighters have one', () => {
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); assert.equal(FL.waterOf(t).depth, 'submerged')
+  r.t = 0; r.breath[t.side] = 100; let n = 0; while (BR(f, t) > 1e-9 && n < 500)   // r.t = 0: keep the flood alive for the measurement
+  { world(f, t, 1); n++ } assert(Math.abs(n - 420) <= 1, `emptied in ${n}f`)
+  t.y = FL.floodLineY(r) - t.h - 30; t.onGround = true; t.groundY = t.y + t.h; n = 0; while (BR(f, t) < 100 && n < 200) { world(f, t, 1); n++ } assert(Math.abs(n - 90) <= 1, `refilled in ${n}f`)
+  assert.equal(r.breath[f.side], undefined, 'Ripjaws (waterborne) has no breath')
+})
+test('9. DROWNING at 0: 4 HP / 15f, not scaled, no hitstun / knockback, combo untouched, cannot KO (stops at 1 HP)', () => {
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); r.breath[t.side] = 0; t.comboCounter = 3; f.comboCounter = 3
+  const hp = t.health; world(f, t, 60); assert.equal(hp - t.health, 16, '4 HP every 15f'); assert.equal(t.hitstun, 0); assert.equal(t.vx, 0); assert.equal(f.comboCounter, 3, 'combo untouched')
+  assert(FL.waterOf(t).drowning, 'drowning flag (HUD pulse)'); t.health = 6; world(f, t, 60); assert.equal(t.health, 1, 'stops at 1 HP, never KOs'); world(f, t, 30); assert.equal(t.health, 1)
+})
+test('9. drowning stops when the target surfaces, the flood ends, the target becomes waterborne, or Ripjaws swaps out', () => {
+  const run = (mut) => { const f = ben('ripjaws', LOAD), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); r.breath[t.side] = 0; world(f, t, 15); mut(f, t, r); const hp = t.health; world(f, t, 45); return hp - t.health }
+  assert.equal(run((f, t, r) => { t.y = FL.floodLineY(r) - t.h - 30; t.groundY = t.y + t.h }), 0, 'surfaced')
+  assert.equal(run((f, t) => { t.health = 0; world(f, t, 1); t.health = 500 }), 0, 'flood ended')
+  assert.equal(run((f, t) => { FL.setWaterborneTest(q => q === t || (q.omnitrix?.formState?.kind === 'ripjaws' && q.transformed)) }), 0, 'became waterborne'); FL.setWaterborneTest(q => !!(q && q.omnitrix && q.transformed && q.omnitrix.formState && q.omnitrix.formState.kind === 'ripjaws'))
+  assert.equal(run((f) => { assert(F.applyAlien(f, 'goop')) }), 0, 'owner swapped out: breath cleared at once')
+})
+test('9. BREATH STEAL −6 once per cast on a submerged target (blocked never); UNDERTOW −15 once + sink', () => {
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); r.breath[t.side] = 80
+  assert(FL.breathHit(f, t, 'c7')); assert.equal(BR(f, t), 74); assert.equal(FL.breathHit(f, t, 'c7'), false, 'once per cast'); assert(FL.breathHit(f, t, 'c8')); assert.equal(BR(f, t), 68)
+  reset(f, t, 10); t.y = 410 - t.h; world(f, t, 1); const b0 = BR(f, t); melee(f, t, 'light'); assert(Math.abs(BR(f, t) - (b0 - 6)) < 0.5, 'a clean jab steals 6')
+  const b1 = BR(f, t); R.RIPJAWS.onContact(f, t, { blocked: true, move: BA.light }); assert.equal(BR(f, t), b1, 'blocked: no steal')
+  assert(FL.breathHit(f, t, 'u1', 'undertow')); assert(Math.abs(BR(f, t) - (b1 - 15)) < 1e-9); assert.equal(t._benSinkT, 30); assert.equal(FL.breathHit(f, t, 'u1', 'undertow'), false, 'undertow once')
+  const d = ben(), u = foe(); flood(d, u); world(d, u, 1); assert.equal(FL.breathHit(d, u, 'c1'), false, 'steal needs a SUBMERGED target'); assert(FL.breathHit(d, u, 'u2', 'undertow'), 'undertow on a wading target')
+})
+test('5. breath HUD: a thin bar under the affected fighter, only while a flood exists and breath < 100; render-only', () => {
+  const calls = []; const ctx = { save() {}, restore() {}, fillRect(x, y, w, h) { calls.push([x, y, w, h]) }, fillText(t) { calls.push(t) }, set fillStyle(v) {}, set font(v) {}, set textAlign(v) {} }
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); world(f, t, 1); const gy = t.groundY; t.groundY = FL.floodLineY(r) - 30; t.y = t.groundY - t.h; r.breath[t.side] = 100; world(f, t, 1)
+  calls.length = 0; FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120, flip: false }); assert.equal(calls.length, 0, 'hidden at 100')
+  t.groundY = gy; t.y = gy - t.h; world(f, t, 30); FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120, flip: false }); assert(calls.length >= 2 && calls.every(c => typeof c === 'string' || c[0] + c[2] <= 10 + 120 + 2), 'inside the panel')
+  r.breath[t.side] = 0; world(f, t, 1); calls.length = 0; FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120, flip: true }); assert(calls.includes('DROWNING'), 'drowning pulse')
+  const snap = JSON.stringify(FR(f)); FL.drawBenBreathHud(ctx, t, { x: 10, enY: 50, enH: 8, pbw: 120 }); assert.equal(JSON.stringify(FR(f)), snap, 'render-only')
+})
+
 //@@NEXT@@
 console.log(`RIPJAWS: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

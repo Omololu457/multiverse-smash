@@ -24,6 +24,7 @@ import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite
 import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
 import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
 import { isBenDevice, benReadyForm } from "./ben10State.js"   // Controls box: Omnitrix transform hint for Ben (render-only)
+import { drawBenBreathHud } from "./benFlood.js"   // Ripjaws STORM TIDE breath bar (render-only; shown only while a flood exists and breath < 100)
 import { animeMeterRatio } from "./animeJuice.js"   // ANIME JUICE: displayed ultimate-meter fill (render-only)
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
@@ -4839,6 +4840,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip })
     drawHeatblastHud(ctx, fighter, { x, enY, enH, pbw, flip })   // Heatblast (ben10/albedo in the Heatblast form only)
     { const _rd = benReadyForm(fighter); if (_rd && _rd.drawHud) _rd.drawHud(ctx, fighter, { x, enY, enH, pbw, flip }) }   // READY Omnitrix form gauge (Megawhatt Voltage); no-op otherwise
+    drawBenBreathHud(ctx, fighter, { x, enY, enH, pbw, flip })   // STORM TIDE breath bar under this fighter's bars (benFlood.js; no-op without a flood)
     noteSupermanEnergyPanel(fighter, { x, enY, pbw, flip })   // Superman: Heat Vision laser bar sits above this panel (drawn last by game.js)
     if (!hasEnergy) return
 

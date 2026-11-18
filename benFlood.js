@@ -72,7 +72,7 @@ const STAMPED = new WeakMap()
 export function clearFloodInstant(owner, fighters = []) {
   if (!owner || !owner._benFlood) return
   delete owner._benFlood
-  for (const o of [...fighters, ...(STAMPED.get(owner) || [])]) if (o && o._benWater) delete o._benWater
+  for (const o of [...fighters, ...(STAMPED.get(owner) || [])]) if (o) { delete o._benWater; delete o._benSinkT }
   STAMPED.delete(owner)
 }
 
@@ -92,8 +92,8 @@ export function tickBenFlood(owner, ctx, api) {
   if (r.phase === "rise" && r.rampT >= r.rampN) r.phase = "hold"
   if (r.phase === "hold" && r.t >= FLOOD.DUR) recedeFlood(owner, FLOOD.RECEDE, "time")
   if ((r.phase === "recede" || r.phase === "boil") && r.rampT >= r.rampN) {
-    r.phase = "off"; r.line = 0; r.cd = FLOOD.CD; r.breath = {}; r.drown = {}
-    for (const o of fighters) if (o._benWater) delete o._benWater
+    r.phase = "off"; r.line = 0; r.cd = FLOOD.CD; r.breath = {}; r.drown = {}; r.taken = {}
+    for (const o of fighters) { delete o._benWater; delete o._benSinkT }
     return
   }
   for (const o of fighters) stampWater(r, o)
@@ -114,7 +114,7 @@ export function setWaterborneTest(fn) { isWaterborne = fn }
 function stampWater(r, o) {
   const depth = depthOf(r, o), wb = isWaterborne(o)
   const w = o._benWater || (o._benWater = {})
-  w.ttl = 2; w.depth = depth; w.lineY = floodLineY(r); w.wb = wb; w.owner = r.owner
+  w.ttl = 2; w.depth = depth; w.lineY = floodLineY(r); w.wb = wb; w.owner = r.owner; w.t = r.t
 }
 export const waterOf = f => (f && f._benWater && f._benWater.ttl > 0) ? f._benWater : null
 export const submergedPlain = f => { const w = waterOf(f); return !!(w && !w.wb && w.depth === "submerged") }
@@ -144,6 +144,62 @@ WORLD.push(function slowProjectiles(r, owner, fighters, ctx, api) {
     p.x -= (p.vx || 0) * (1 - WATER_PROJ); p.y -= (p.vy || 0) * (1 - WATER_PROJ)
   }
 })
+
+// ── BREATH + DROWNING (Phase 5; GAME_STATE: the flood record's breath / drown maps, keyed by side) ─────────────────
+// Only NON-waterborne fighters, only while a flood exists. Breath 0–100, 100 at the flood's start. SUBMERGED: −100 / 420f;
+// head above water (dry / wading / at the surface): +100 / 90f. At 0 while submerged: DROWNING — 4 HP every 15f, not
+// combo-scaled, no hitstun / knockback, never breaks or resets a combo, and it CANNOT KO (stops at 1 HP). No refill while
+// drowning until the head is above water. Stops at once when the flood ends, the target surfaces / is dry / wading, or
+// becomes waterborne, or when the owner stops being Ripjaws (a swap / revert recede): every breath record is cleared.
+// BREATH STEAL (−6, once per cast) and UNDERTOW (−15 once + sink) come from Ripjaws' contact (breathHit).
+export const BREATH = { MAX: 100, DRAIN: 100 / 420, REFILL: 100 / 90, DROWN_HP: 4, DROWN_EVERY: 15, STEAL: 6, UNDERTOW: 15, SINK_T: 30, SINK_V: 6 }
+export const breathLive = r => floodLive(r) && r.end !== "swap" && r.end !== "boil"
+WORLD.push(function tickBreath(r, owner, fighters) {
+  for (const o of fighters) {
+    const k = o.side || "p" + (sideIdx(o) + 1), w = o._benWater
+    if (!breathLive(r) || (w && w.wb)) { if (k in r.breath) { delete r.breath[k]; delete r.drown[k] } if (w) { w.breath = null; w.drowning = false } continue }
+    let b = k in r.breath ? r.breath[k] : BREATH.MAX
+    const sub = w && w.depth === "submerged"
+    if (sub) {
+      b = Math.max(0, b - BREATH.DRAIN)
+      if (b <= 0) { r.drown[k] = (r.drown[k] || 0) + 1; if (r.drown[k] % BREATH.DROWN_EVERY === 0 && o.health > 1) o.health = Math.max(1, o.health - BREATH.DROWN_HP) }
+    } else { b = Math.min(BREATH.MAX, b + BREATH.REFILL); delete r.drown[k] }
+    r.breath[k] = b
+    if (w) { w.breath = b; w.drowning = sub && b <= 0 }
+  }
+})
+// UNDERTOW sink: while _benSinkT runs the target is pulled down at 6 px/f (never through the floor: physics clamps) — wading
+// or submerged non-waterborne targets only; lapses with the flood
+WORLD.push(function tickSink(r, owner, fighters) {
+  for (const o of fighters) if ((o._benSinkT || 0) > 0) {
+    const w = o._benWater; if (!breathLive(r) || !w || w.wb) { delete o._benSinkT; continue }
+    o._benSinkT--; if ((o.vy || 0) < BREATH.SINK_V) o.vy = BREATH.SINK_V; if (!o._benSinkT) delete o._benSinkT
+  }
+})
+// Ripjaws' clean hit on a SUBMERGED non-waterborne target: −6 once per cast (key); Undertow: −15 once per cast + the sink
+export function breathHit(owner, target, key, kind = "steal") {
+  const r = floodOf(owner) || floodOf(target); if (!breathLive(r)) return false
+  const w = waterOf(target); if (!w || w.wb) return false
+  if (kind === "steal" && w.depth !== "submerged") return false
+  if (kind === "undertow" && w.depth === "dry") return false
+  const k = target.side || "p" + (sideIdx(target) + 1), tag = kind + ":" + key
+  r.taken = r.taken || {}; const seen = r.taken[k] || (r.taken[k] = [])
+  if (seen.includes(tag)) return false
+  seen.push(tag); if (seen.length > 8) seen.shift()
+  r.breath[k] = Math.max(0, (k in r.breath ? r.breath[k] : BREATH.MAX) - (kind === "undertow" ? BREATH.UNDERTOW : BREATH.STEAL))
+  if (kind === "undertow") target._benSinkT = BREATH.SINK_T   // UNDERTOW: dragged toward the floor for 30f (tickSink)
+  return true
+}
+// the breath bar (render-only): a thin bar under the affected fighter's health bar, only while a flood exists and breath < 100
+export function drawBenBreathHud(ctx, f, o) {
+  const w = waterOf(f); if (!w || w.wb || w.breath == null || w.breath >= BREATH.MAX) return
+  const W = Math.max(40, (o.pbw || 120)), y = (o.enY || 0) + (o.enH || 6) + 3, x = o.flip ? o.x + (o.pbw || 120) - W : o.x
+  ctx.save(); ctx.fillStyle = "rgba(8,15,30,0.85)"; ctx.fillRect(x - 1, y - 1, W + 2, 5)
+  const k = w.breath / BREATH.MAX, pulse = w.drowning ? ((w.t >> 3) & 1) : 0   // render-only blink (the flood's own frame count)
+  ctx.fillStyle = w.drowning ? (pulse ? "#f87171" : "#7f1d1d") : "#38bdf8"; ctx.fillRect(o.flip ? x + W * (1 - k) : x, y, Math.max(w.drowning ? W : 0, W * k), 3)
+  if (w.drowning) { ctx.font = "bold 9px monospace"; ctx.fillStyle = pulse ? "#fecaca" : "#f87171"; ctx.textAlign = o.flip ? "right" : "left"; ctx.fillText("DROWNING", o.flip ? x + W : x, y + 12) }
+  ctx.restore()
+}
 
 // ── RENDER (render-only; drawn over both fighters by game.js when a fighter carries a flood) ─────────────────────────
 function rh(a, b, k) {   // render hash → [0, 1)

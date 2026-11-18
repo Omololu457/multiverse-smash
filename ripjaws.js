@@ -6,7 +6,7 @@
 // render-only effects (rain, lightning, ripples, foam, bubbles, steam, the tidal wave, the abyss, shake) never write it.
 // Simulation randomness: hash(match seed, frame, player index). Sheet: docs/ben10/aliens/ripjaws/SPRITE_LEDGER.md.
 import { RIPJAWS_ANIM, RIPJAWS_GEOM, RIPJAWS_FX } from "./ripjawsAssets.js"
-import { FLOOD, floodOf, floodLive, canStartFlood, startFlood, raiseFlood, depthOf, waterOf } from "./benFlood.js"   // the generic STORM TIDE flood
+import { FLOOD, floodOf, floodLive, canStartFlood, startFlood, raiseFlood, depthOf, waterOf, breathHit } from "./benFlood.js"   // the generic STORM TIDE flood
 export { RIPJAWS_ANIM, RIPJAWS_GEOM, RIPJAWS_FX }
 
 export const RJ_KEY = "ripjaws"
@@ -107,6 +107,7 @@ export const busy = s => BUSY.some(b => b(s))
 function moveFrames(f, key, md) {
   const s = rjState(f); if (!s) return md
   if (busy(s)) return false
+  s.meleeSeq = (s.meleeSeq || 0) + 1   // each normal is its own "cast" for Breath Steal
   return md
 }
 
@@ -249,6 +250,14 @@ TICKS.push(function tickWater(f, s, input) {
   const n = Math.hypot(dx, dy) || 1, v = swimSpeed(s)
   f._benGlide = { vx: dx / n * v, vy: dy / n * v, minY: surfaceY }; s.swimming = true
   if (dx) f.facing = dx > 0 ? 1 : -1
+})
+
+// ── 5. BREATH STEAL (benFlood.breathHit): each CLEAN Ripjaws hit on a SUBMERGED non-waterborne opponent takes −6 breath,
+// once per cast (a special's cast id; each normal counts as its own cast). Blocked hits never steal.
+CONTACT.push(function stealBreath(f, s, target, { proj, blocked }) {
+  if (blocked) return
+  const key = proj && proj.alien && proj.alien.cast != null ? "c" + proj.alien.cast : "m" + (s.meleeSeq || 0)
+  breathHit(f, target, key, "steal")
 })
 
 //@@SECTIONS@@

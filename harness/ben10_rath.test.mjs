@@ -238,6 +238,96 @@ test('4. ULTIMATE: a whiff or a block = no cinematic, 60f recovery; the rant ang
   assert.deepEqual(G.ultRant(7, 100, 0), G.ultRant(7, 100, 0)); assert.notDeepEqual(G.ultRant(7, 100, 0), G.ultRant(7, 100, 1))
 })
 
+
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const sumA = a => a.reduce((x, y) => x + y, 0)
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  rake: sumA(RT_RAKE.HITS), rush: sumA(RT_RUSH.HITS), slam: RT_SLAM.DMG }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+for (const [name, route, target] of [['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 112],
+  ['2. Low, Heavy, Claw Rake', ['low', 'heavy', 'rake'], 136], ['3. Rath Rush, Heavy, Overhead Slam', ['rush', 'heavy', 'slam'], 158]])
+  test('design total ' + name + ' ≈ ' + target, () => { const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`) })
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 2 live: Low, Heavy, Claw Rake (all 3 rake hits land)', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 100); const r = runCast(f, t, 'N'); d.push(r.dmg); assert.equal(S(f).lastChain.contacts.filter(k => !k.blocked).length, 3)
+  console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 3 live: Rath Rush (2 hits), Heavy, Overhead Slam (bounce)', () => {
+  const f = ben(), t = foe(); reset(f, t, 200); const d = [runCast(f, t, 'F', { pre: q => { S(q).dashTapT = S(q).t } }).dmg]; assert.equal(S(f).lastChain.contacts.length, 2)
+  reset(f, t, 10); d.push(melee(f, t, 'heavy')); reset(f, t, 30); d.push(runCast(f, t, 'D', { max: 60 }).dmg); assert.equal(S(f).stats.bounces, 1)
+  console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+
+// ── 10 slot → PICK FIVE / Dial / HUD / Vow / determinism ─────────────────────────────────────────────────────
+test('10. slot → PICK FIVE: slot count from the registry, Rath READY at catalog slot 21 (contiguous), no ready alien overwritten', () => {
+  assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
+  const d = getAlienDefinition('rath'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 21); assert.equal(d.displayName, 'Rath')
+  const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(ready.map(x => x.slot).sort((a, b) => a - b), ready.map((_, i) => i + 1), 'ready slots contiguous')
+  for (const [k, sl] of [['benwolf', 18], ['bigchill', 19], ['ripjaws', 20]]) assert.equal(getAlienDefinition(k).slot, sl, k + ' never overwritten')
+  assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'rath').length, 1); assert(getAvailableAlienKeys(false).includes('rath'))
+  assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
+  assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
+})
+test('10. Omnitrix Dial: Rath picked into the last slot — same cost as any slot, no clock change, fresh state (Fury 0)', () => {
+  const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'rath'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100
+    const c = { seed: 1, frame: 0, playerIndex: 0 }; assert(F.ben10TransformOrSwap(f, slot, c)); for (let i = 0; i < 80 && !f.transformed; i++) F.updateTransformDevice?.(f, 1000 / 60); assert.equal(c.frame, 0, 'clock untouched'); return { f, spent: 100 - f.energy } }
+  const a = cost(BEN10_SLOT_COUNT - 1), b = cost(0); assert.equal(a.f.activeAlien, 'rath'); assert(Math.abs(a.spent - b.spent) < 1e-9, `same cost ${a.spent} vs ${b.spent}`)
+  assert.equal(S(a.f).fury, 0); assert.equal(S(a.f).furyT, 0); assert.equal(S(a.f).furyCd, 0)
+})
+test('10. HUD: the Fury gauge stays inside the player bar (both sides, every tier, cooldown)', () => {
+  for (const flip of [false, true]) for (const st of ['base', 'raging', 'fury', 'cd']) {
+    const f = ben(), s = S(f); if (st === 'raging') s.fury = 80; if (st === 'fury') maxFury(f, s); if (st === 'cd') s.furyCd = 100
+    let minX = Infinity, maxX = -Infinity
+    const ctx = { save() {}, restore() {}, fillRect(x, y, w) { minX = Math.min(minX, x); maxX = Math.max(maxX, x + w) }, fillText(str, x) { const w = str.length * 4.8; const x0 = this.textAlign === 'right' ? x - w : x; minX = Math.min(minX, x0); maxX = Math.max(maxX, x0 + w) }, strokeRect() {} }
+    const x = 100, pbw = 120; G.drawRathHud(ctx, f, { x, enY: 40, enH: 8, pbw, flip }); assert(minX >= x && maxX <= x + 8 + pbw + 1, `flip ${flip} ${st}: ${minX}..${maxX}`)
+  }
+})
+test('10. Vow pick includes Rath (hash mod loadout length); same seed → same pick', () => {
+  const L = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'rath'], mk = () => { const f = ben(null); f.omnitrix.aliens = L.slice(); return f }
+  const a = mk(), b = mk(), picks = new Set()
+  for (let frame = 0; frame < 400; frame++) { const x = F.ben10VowPick(a, 777, frame, 0); assert.equal(x, F.ben10VowPick(b, 777, frame, 0)); assert(x < L.length); picks.add(L[x]) }
+  assert(picks.has('rath') && picks.size === L.length)
+})
+test('10. same-seed determinism: an identical scripted Rath sequence (every move, Fury, the grab, the ult) yields identical GAME_STATE', () => {
+  const run = () => {
+    FRAME = 0; SEED = 4242; A.clearAbilityState(); const f = ben(), t = foe(); reset(f, t, 10); melee(f, t, 'light'); melee(f, t, 'heavy')
+    reset(f, t, 100); runCast(f, t, 'N'); reset(f, t, 200); runCast(f, t, 'F', { pre: q => { S(q).dashTapT = S(q).t } }); reset(f, t, 30); runCast(f, t, 'D', { max: 60 })
+    reset(f, t, 30); runCast(f, t, 'B'); reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 120; t.x = f.x + 140; runCast(f, t, 'N', { max: 80 }); world(f, t, 30)
+    maxFury(f, S(f)); reset(f, t, 10); ready(f); foeSwing(f, t, 'heavy'); world(f, t, 20)
+    reset(f, t, 40); ultRun(f, t); clearProj()
+    return JSON.stringify({ s: S(f), hp: t.health, e: f.energy, x: f.x, tx: t.x })
+  }
+  const a = run(), b = run(); assert.equal(a, b); const st = JSON.parse(a).s; assert(st.lastUlt.captured, 'the scripted ult captured'); assert(st.armored >= 1)
+})
+test('GAME_STATE stays plain data mid-cast (rake, rush, slam, grab rant, lunge, RATH\'S FURY, ult cinematic)', () => {
+  const plain = o => o === null || ['number', 'string', 'boolean'].includes(typeof o) || (Array.isArray(o) ? o.every(plain) : typeof o === 'object' && Object.values(o).every(plain))
+  const mid = (dir, n, setup, pre) => { const f = ben(), t = foe(); setup(f, t); f.energy = 100; if (pre) pre(f); assert(cast(f, t, dir), dir); world(f, t, n); return f }
+  let f = mid('N', 14, (a, b) => reset(a, b, 100)); assert(S(f).chain); assert(plain(S(f)), 'rake')
+  f = mid('F', 18, (a, b) => far(a, b), q => { S(q).dashTapT = S(q).t }); assert(S(f).chain); assert(plain(S(f)), 'rush')
+  f = mid('D', 10, (a, b) => reset(a, b, 30)); assert(plain(S(f)), 'slam')
+  f = mid('B', 30, (a, b) => reset(a, b, 30)); assert(S(f).grab && S(f).grab.held); assert(plain(S(f)), 'grab rant')
+  f = mid('N', 6, (a, b) => { reset(a, b, 30); far(a, b); a.y -= 160; a.onGround = a.grounded = false }); assert(S(f).lunge); assert(plain(S(f)), 'lunge')
+  const g = ben(), u = foe(); reset(g, u, 40); maxFury(g, S(g)); ready(g); g.energy = 100; A.triggerUltimate(g, ctxOf(g, u)); world(g, u, 40)
+  assert(S(g).ult && S(g).ult.phase === 'rant', 'mid-cinematic'); assert(plain(S(g)), 'ult (from RATH\'S FURY)')
+})
+const stubCtx = () => new Proxy({ globalAlpha: 1, canvas: { width: 1280, height: 720 } }, { get: (o, k) => k in o ? o[k] : () => {}, set: (o, k, v) => (o[k] = v, true) })
+test('render: every move / Fury tiers / armor / grab / the ult draw without throwing and drawing never changes GAME_STATE', () => {
+  const c = stubCtx(); const run = (f, t, n) => { for (let i = 0; i < n; i++) { world(f, t, 1); const a = JSON.stringify(S(f)), x = [t.x, t.health, f.x, f.y, f.energy]
+    G.drawRathFx(c, f, FRAME, t); G.drawRathHud(c, f, { x: 0, enY: 0, enH: 8, pbw: 200, flip: false }); RATH.targetOffset(f, t)
+    assert.equal(JSON.stringify(S(f)), a); assert.deepEqual([t.x, t.health, f.x, f.y, f.energy], x) } }
+  for (const [dir, gap, pre] of [['N', 100], ['B', 30], ['D', 30], ['F', 200, q => { S(q).dashTapT = S(q).t }]]) { clearProj(); const f = ben(), t = foe(); reset(f, t, gap); f.energy = 100; if (pre) pre(f); assert(cast(f, t, dir), dir); run(f, t, 70) }
+  clearProj(); const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; g.y -= 160; g.onGround = g.grounded = false; assert(cast(g, u, 'N')); run(g, u, 40)
+  const h = ben(), v = foe(); reset(h, v, 40); S(h).fury = 70; run(h, v, 5); maxFury(h, S(h)); run(h, v, 30); ready(h); h.energy = 100; assert(A.triggerUltimate(h, ctxOf(h, v))); run(h, v, 140)
+  assert(S(h).lastUlt && S(h).lastUlt.captured)
+})
+test('no Math.random / gameRng in rath.js / rathAssets.js', () => {
+  for (const p of ['../rath.js', '../rathAssets.js']) { const src = fs.readFileSync(new URL(p, import.meta.url), 'utf8'); assert(!/Math\.random|gameRng/.test(src), p) }
+})
+
 // @@END-TESTS@@
 console.log(`\nRATH: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

@@ -150,6 +150,20 @@ nothing else sets); a form that defines none of them takes exactly the old path,
 | `target._benPinT` (frames, set by a form on its OPPONENT) | physics.js `moveFighter` (decrements once per frame, before anything else) + the walk multiplier + `canJump` | while > 0 the pinned fighter walks at ×0.5 and cannot jump; self-clearing, so it never outlives the pin even if the setter swaps out. Absent / 0 = unchanged for every fighter. Alien X Gravity (30f on the grounded 2nd hit). |
 | `flightProfile: "alienx"` | flight.js `FLIGHT_PROFILES.alienx` (data only) via the existing `_alienFlightProfile` hook | reused per-alien flight hook (Megawhatt's); no flight-logic change. |
 
+### Rath hooks (added with Rath, 2026-11-18)
+
+Same contract: optional, backward-compatible, ben10-gated through `benReadyForm`; a form that defines neither takes exactly
+the old path, and non-Ben fighters never reach them.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `armor(f, info)` (on the registry entry) | combat.js melee hit (OR-ed into the existing `castArmored` test) + the projectile hit (a new branch after Superman's armor), via `ben10State.benAlienArmor` | `true` = this hit lands with its FULL damage but no hitstun / knockback / move cancel (the engine's existing cast-armor branch: armor flash + a small hitstop). `info` = `{ move, attacker, cat }` (melee) or `{ proj, attacker }` (projectile). The engine still lets launchers / spikes / the ultimate category pierce melee armor, and ultimates / unblockables pierce projectile armor, before the hook is asked; throws never consult it. Read live each hit, so swap / revert / KO clear it with the form state. Rath: RATH'S FURY (180f). |
+| `api.startMove(f, key, md)` | abilities.js `benAlienApi` → `combat.startMove` | the engine's own MELEE move starter for a form's specials: the box in front of him, block / chip / hitstun / combo scaling / onContact exactly like a normal, no projectile entity. Keys the form owns (Rath: `rt_*`) reach its `moveFrames` hook like any move; `frameExact: true` moves end with 0 cooldown, so a form can chain steps one move per hit. Rath: every special is a chain of these. |
+
+**Rath (2026-11-18)** was briefed as slot 20 with a raised count; under PICK FIVE he is a pick (registry `slot: 21` —
+Ripjaws holds 20 — is catalog metadata only), so no slot count, chord, HUD or Vow change. He is reached with the Dial
+(↓↓ + the picked slot's key) like any pick.
+
 ## Slot count — PICK FIVE (2026-11-17)
 
 The Omnitrix holds **five** aliens. The player PICKS five on the alien-select screen out of every READY form

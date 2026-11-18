@@ -1,0 +1,1820 @@
+{
+ "source": "assets/sprites/ben10/aliens/arcticguana.png",
+ "key_report": {
+  "colours": 19,
+  "keyed_px": 366508,
+  "red_line_px": 3182,
+  "asterisks": [
+   [
+    354,
+    300,
+    362,
+    308
+   ],
+   [
+    144,
+    302,
+    152,
+    310
+   ],
+   [
+    249,
+    303,
+    257,
+    311
+   ],
+   [
+    388,
+    311,
+    396,
+    319
+   ]
+  ],
+  "mouths_kept": 9,
+  "loop_label_components": 5,
+  "enclosed_white_kept_px": 50,
+  "enclosed_white_regions": 16
+ },
+ "zero_tolerance_key": true,
+ "flood_fill_from_edges": true,
+ "cell": [
+  284,
+  49
+ ],
+ "feetY": 47,
+ "centreX": 142,
+ "actionScale": 1.5,
+ "torso_window": 20,
+ "groups": {
+  "idle": [
+   [
+    22
+   ],
+   [
+    24,
+    30
+   ],
+   [
+    23,
+    27
+   ],
+   [
+    20,
+    28,
+    31,
+    26,
+    29
+   ]
+  ],
+  "run": [
+   [
+    57
+   ],
+   [
+    58
+   ],
+   [
+    59
+   ],
+   [
+    60
+   ],
+   [
+    61
+   ],
+   [
+    62
+   ]
+  ],
+  "air": [
+   [
+    75
+   ],
+   [
+    78
+   ],
+   [
+    79
+   ]
+  ],
+  "breath": [
+   [
+    80
+   ],
+   [
+    81
+   ],
+   [
+    82
+   ],
+   [
+    83
+   ]
+  ],
+  "spit": [
+   [
+    94
+   ],
+   [
+    95
+   ],
+   [
+    96
+   ],
+   [
+    97
+   ],
+   [
+    98
+   ],
+   [
+    99
+   ],
+   [
+    100
+   ]
+  ],
+  "cloud": [
+   [
+    103
+   ],
+   [
+    104
+   ],
+   [
+    105
+   ],
+   [
+    106
+   ]
+  ],
+  "beam": [
+   [
+    122
+   ],
+   [
+    123
+   ],
+   [
+    124
+   ],
+   [
+    125
+   ],
+   [
+    126
+   ],
+   [
+    127
+   ]
+  ],
+  "stand": [
+   [
+    129
+   ]
+  ],
+  "pbody": [
+   [
+    76
+   ],
+   [
+    77
+   ]
+  ]
+ },
+ "fx_groups": {
+  "stream": [
+   [
+    84
+   ],
+   [
+    85
+   ],
+   [
+    90,
+    88,
+    92,
+    86
+   ],
+   [
+    91,
+    89,
+    93,
+    87
+   ]
+  ],
+  "shard": [
+   [
+    101
+   ],
+   [
+    102
+   ]
+  ],
+  "puff": [
+   [
+    117
+   ],
+   [
+    112
+   ],
+   [
+    108
+   ],
+   [
+    116,
+    111,
+    120,
+    113,
+    107,
+    115
+   ],
+   [
+    109,
+    119,
+    121,
+    114,
+    110,
+    118
+   ]
+  ],
+  "beamTile": [
+   [
+    128
+   ]
+  ],
+  "tailA": [
+   [
+    34
+   ],
+   [
+    35
+   ],
+   [
+    36
+   ],
+   [
+    37
+   ],
+   [
+    38
+   ],
+   [
+    39
+   ]
+  ],
+  "tailB": [
+   [
+    45
+   ],
+   [
+    46
+   ],
+   [
+    47
+   ],
+   [
+    48
+   ],
+   [
+    49
+   ],
+   [
+    50
+   ]
+  ]
+ },
+ "head_swaps": {
+  "glowA": {
+   "head": 130,
+   "body": "beam f4",
+   "at": [
+    222,
+    458
+   ]
+  },
+  "glowB": {
+   "head": 131,
+   "body": "beam f5",
+   "at": [
+    281,
+    458
+   ]
+  }
+ },
+ "excluded": {
+  "heads_identical_to_body_frames": {
+   "components": [
+    3,
+    1,
+    4,
+    2,
+    5,
+    40,
+    41,
+    42,
+    43,
+    44
+   ],
+   "reason": "pixel-identical to the heads already drawn on Row 1 f1, Row 4 f2-4, Row 3 f1, Row 2 f1-3, Row 6 f4 (template match 100%): the breath casts already show them through those body frames, a swap adds nothing"
+  },
+  "heads_blink_row3": {
+   "components": [
+    8,
+    6,
+    7
+   ],
+   "reason": "eye / blink variants that align only with the Row 3 f1 jump-rise head (82-91% match); no breath cast uses that body and a blink inside a 6-frame jump rise is never seen"
+  },
+  "torso_shells": {
+   "components": [
+    11,
+    10,
+    16,
+    15
+   ],
+   "reason": "belly shells without head / limbs: only usable by assembling new body poses (forbidden)"
+  },
+  "loose_spikes": {
+   "components": [
+    9,
+    14,
+    21,
+    25
+   ],
+   "reason": "single loose back spikes: no pose uses them on their own"
+  },
+  "loose_limbs": {
+   "components": [
+    12,
+    13,
+    17,
+    18,
+    19,
+    32,
+    33,
+    54,
+    56,
+    52,
+    55,
+    51,
+    53,
+    65,
+    66,
+    63,
+    64,
+    71,
+    72,
+    69,
+    70,
+    67,
+    68,
+    74,
+    73
+   ],
+   "reason": "detached arms / legs / feet: only usable by assembling new body poses (forbidden)"
+  }
+ },
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "idle (Row 1 f1-4 loop; f2/f3/f4 carry their small ice puff / breath dots)"
+  },
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 2,
+   "components": [
+    24,
+    30
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "idle (Row 1 f1-4 loop; f2/f3/f4 carry their small ice puff / breath dots)"
+  },
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 3,
+   "components": [
+    23,
+    27
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "idle (Row 1 f1-4 loop; f2/f3/f4 carry their small ice puff / breath dots)"
+  },
+  {
+   "anim": "idle",
+   "group": "idle",
+   "frame": 4,
+   "components": [
+    20,
+    28,
+    31,
+    26,
+    29
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    4
+   ],
+   "role": "idle (Row 1 f1-4 loop; f2/f3/f4 carry their small ice puff / breath dots)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    57
+   ],
+   "head_swap": null,
+   "offset": [
+    128,
+    3
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (speed 9 vs run 5; no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    58
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    3
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (speed 9 vs run 5; no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    59
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (speed 9 vs run 5; no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (speed 9 vs run 5; no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    61
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    3
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (speed 9 vs run 5; no walk art)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    62
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    3
+   ],
+   "role": "walk - the Row 2 RUN cycle SLOWED (speed 9 vs run 5; no walk art)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    62
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    3
+   ],
+   "role": "walk back - Row 2 REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    61
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    3
+   ],
+   "role": "walk back - Row 2 REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "walk back - Row 2 REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    59
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "walk back - Row 2 REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    58
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    3
+   ],
+   "role": "walk back - Row 2 REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    57
+   ],
+   "head_swap": null,
+   "offset": [
+    128,
+    3
+   ],
+   "role": "walk back - Row 2 REVERSED and slowed"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    57
+   ],
+   "head_swap": null,
+   "offset": [
+    128,
+    3
+   ],
+   "role": "run (Row 2 f1-6)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    58
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    3
+   ],
+   "role": "run (Row 2 f1-6)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    59
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "run (Row 2 f1-6)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "run (Row 2 f1-6)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    61
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    3
+   ],
+   "role": "run (Row 2 f1-6)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    62
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    3
+   ],
+   "role": "run (Row 2 f1-6)"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    58
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    3
+   ],
+   "role": "dash - Row 2 f2-4, fast"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    59
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "dash - Row 2 f2-4, fast"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "dash - Row 2 f2-4, fast"
+  },
+  {
+   "anim": "crouch",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "crouch (Row 3 f3 crouched)"
+  },
+  {
+   "anim": "jump",
+   "group": "air",
+   "frame": 1,
+   "components": [
+    75
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    2
+   ],
+   "role": "jump rise (Row 3 f1 lean)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "air",
+   "frame": 1,
+   "components": [
+    75
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    2
+   ],
+   "role": "double jump - REUSED Row 3 f1"
+  },
+  {
+   "anim": "fall",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    78
+   ],
+   "head_swap": null,
+   "offset": [
+    115,
+    7
+   ],
+   "role": "jump fall (Row 3 f2 flip)"
+  },
+  {
+   "anim": "guard",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "guard / block - REUSED Row 3 f3 crouched (no guard art)"
+  },
+  {
+   "anim": "crouchGuard",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "block while crouching - REUSED Row 3 f3"
+  },
+  {
+   "anim": "blockHit",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "block hit - REUSED Row 3 f3 (the engine block flash shows the hit)"
+  },
+  {
+   "anim": "hurt",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "hit react - REUSED Row 3 f3 crouched recoil (no hurt art)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    78
+   ],
+   "head_swap": null,
+   "offset": [
+    115,
+    7
+   ],
+   "role": "hit in the air - REUSED Row 3 f2 flip"
+  },
+  {
+   "anim": "knockdown",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    78
+   ],
+   "head_swap": null,
+   "offset": [
+    115,
+    7
+   ],
+   "role": "knockdown - REUSED Row 3 f2 flip -> f3 crouched (no knockdown / lying art)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "knockdown - REUSED Row 3 f2 flip -> f3 crouched (no knockdown / lying art)"
+  },
+  {
+   "anim": "getup",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "get-up - REUSED Row 3 f3 -> f1 (no get-up art)"
+  },
+  {
+   "anim": "getup",
+   "group": "air",
+   "frame": 1,
+   "components": [
+    75
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    2
+   ],
+   "role": "get-up - REUSED Row 3 f3 -> f1 (no get-up art)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "idle",
+   "frame": 1,
+   "components": [
+    22
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "dizzy - REUSED Row 1 f1 (no dizzy art)"
+  },
+  {
+   "anim": "transform",
+   "group": "pbody",
+   "frame": 2,
+   "components": [
+    77
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "transform-in - PARTS-BIN body 2 (blue-lit belly: the Omnitrix flash) -> parts-bin body 1"
+  },
+  {
+   "anim": "transform",
+   "group": "pbody",
+   "frame": 1,
+   "components": [
+    76
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "transform-in - PARTS-BIN body 2 (blue-lit belly: the Omnitrix flash) -> parts-bin body 1"
+  },
+  {
+   "anim": "taunt",
+   "group": "cloud",
+   "frame": 1,
+   "components": [
+    103
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "taunt - REUSED Row 6 f1-4 (mouth opening to a red-open hiss)"
+  },
+  {
+   "anim": "taunt",
+   "group": "cloud",
+   "frame": 2,
+   "components": [
+    104
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "taunt - REUSED Row 6 f1-4 (mouth opening to a red-open hiss)"
+  },
+  {
+   "anim": "taunt",
+   "group": "cloud",
+   "frame": 3,
+   "components": [
+    105
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "taunt - REUSED Row 6 f1-4 (mouth opening to a red-open hiss)"
+  },
+  {
+   "anim": "taunt",
+   "group": "cloud",
+   "frame": 4,
+   "components": [
+    106
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "taunt - REUSED Row 6 f1-4 (mouth opening to a red-open hiss)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    129
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "win pose (Row 8 stand)"
+  },
+  {
+   "anim": "lose",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "lose - REUSED Row 3 f3 crouched (no lose art)"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "pbody",
+   "frame": 1,
+   "components": [
+    76
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "idle alt (PARTS-BIN body 1, the plain standing body)"
+  },
+  {
+   "anim": "light",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    59
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "JAB - Row 2 f3-4 run frames + render-only lunge + procedural frost claw"
+  },
+  {
+   "anim": "light",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "JAB - Row 2 f3-4 run frames + render-only lunge + procedural frost claw"
+  },
+  {
+   "anim": "heavy",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    61
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    3
+   ],
+   "role": "HEAVY - Row 2 f5-6 + the parts-bin BEND STRIP A drawn at the tail as the 180 px tail sweep (render)"
+  },
+  {
+   "anim": "heavy",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    62
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    3
+   ],
+   "role": "HEAVY - Row 2 f5-6 + the parts-bin BEND STRIP A drawn at the tail as the 180 px tail sweep (render)"
+  },
+  {
+   "anim": "down",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    79
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "LOW - Row 3 f3 crouched (LOW start) + parts-bin BEND STRIP B low tail sweep (render)"
+  },
+  {
+   "anim": "up",
+   "group": "air",
+   "frame": 1,
+   "components": [
+    75
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    2
+   ],
+   "role": "LAUNCHER - Row 3 f1 head-up lean + procedural ice uppercut frost (render)"
+  },
+  {
+   "anim": "air",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    78
+   ],
+   "head_swap": null,
+   "offset": [
+    115,
+    7
+   ],
+   "role": "AIR - Row 3 f2 flip frame"
+  },
+  {
+   "anim": "grab",
+   "group": "spit",
+   "frame": 1,
+   "components": [
+    94
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "grab - REUSED Row 5 f1-2 lean forward"
+  },
+  {
+   "anim": "grab",
+   "group": "spit",
+   "frame": 2,
+   "components": [
+    95
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "grab - REUSED Row 5 f1-2 lean forward"
+  },
+  {
+   "anim": "agBreath",
+   "group": "breath",
+   "frame": 1,
+   "components": [
+    80
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE BREATH cast (Row 4 f1-4, the mouth opening; the stream is the FX strip)"
+  },
+  {
+   "anim": "agBreath",
+   "group": "breath",
+   "frame": 2,
+   "components": [
+    81
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE BREATH cast (Row 4 f1-4, the mouth opening; the stream is the FX strip)"
+  },
+  {
+   "anim": "agBreath",
+   "group": "breath",
+   "frame": 3,
+   "components": [
+    82
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE BREATH cast (Row 4 f1-4, the mouth opening; the stream is the FX strip)"
+  },
+  {
+   "anim": "agBreath",
+   "group": "breath",
+   "frame": 4,
+   "components": [
+    83
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE BREATH cast (Row 4 f1-4, the mouth opening; the stream is the FX strip)"
+  },
+  {
+   "anim": "agBreathHold",
+   "group": "breath",
+   "frame": 3,
+   "components": [
+    82
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE BREATH hold (Row 4 f3-4 loop)"
+  },
+  {
+   "anim": "agBreathHold",
+   "group": "breath",
+   "frame": 4,
+   "components": [
+    83
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE BREATH hold (Row 4 f3-4 loop)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 1,
+   "components": [
+    94
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 2,
+   "components": [
+    95
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 3,
+   "components": [
+    96
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 4,
+   "components": [
+    97
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 5,
+   "components": [
+    98
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 6,
+   "components": [
+    99
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agShard",
+   "group": "spit",
+   "frame": 7,
+   "components": [
+    100
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    6
+   ],
+   "role": "ICE SHARD cast (Row 5 f1-7; asterisk frames f3 / f5 / f7 = release frames)"
+  },
+  {
+   "anim": "agCloud",
+   "group": "cloud",
+   "frame": 1,
+   "components": [
+    103
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "FROST CLOUD cast (Row 6 f1-4)"
+  },
+  {
+   "anim": "agCloud",
+   "group": "cloud",
+   "frame": 2,
+   "components": [
+    104
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "FROST CLOUD cast (Row 6 f1-4)"
+  },
+  {
+   "anim": "agCloud",
+   "group": "cloud",
+   "frame": 3,
+   "components": [
+    105
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "FROST CLOUD cast (Row 6 f1-4)"
+  },
+  {
+   "anim": "agCloud",
+   "group": "cloud",
+   "frame": 4,
+   "components": [
+    106
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    13
+   ],
+   "role": "FROST CLOUD cast (Row 6 f1-4)"
+  },
+  {
+   "anim": "agCoat",
+   "group": "pbody",
+   "frame": 1,
+   "components": [
+    76
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "FROST COAT forming - REUSED parts-bin body 1 -> body 2 (blue-lit belly = the coat taking)"
+  },
+  {
+   "anim": "agCoat",
+   "group": "pbody",
+   "frame": 2,
+   "components": [
+    77
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    5
+   ],
+   "role": "FROST COAT forming - REUSED parts-bin body 1 -> body 2 (blue-lit belly = the coat taking)"
+  },
+  {
+   "anim": "agSlide",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    57
+   ],
+   "head_swap": null,
+   "offset": [
+    128,
+    3
+   ],
+   "role": "ICE SLIDE - Row 2 run frames played fast (the low profile is the hurtbox, the art is the run)"
+  },
+  {
+   "anim": "agSlide",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    58
+   ],
+   "head_swap": null,
+   "offset": [
+    123,
+    3
+   ],
+   "role": "ICE SLIDE - Row 2 run frames played fast (the low profile is the hurtbox, the art is the run)"
+  },
+  {
+   "anim": "agSlide",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    59
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "ICE SLIDE - Row 2 run frames played fast (the low profile is the hurtbox, the art is the run)"
+  },
+  {
+   "anim": "agSlide",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "ICE SLIDE - Row 2 run frames played fast (the low profile is the hurtbox, the art is the run)"
+  },
+  {
+   "anim": "agSlide",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    61
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    3
+   ],
+   "role": "ICE SLIDE - Row 2 run frames played fast (the low profile is the hurtbox, the art is the run)"
+  },
+  {
+   "anim": "agSlide",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    62
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    3
+   ],
+   "role": "ICE SLIDE - Row 2 run frames played fast (the low profile is the hurtbox, the art is the run)"
+  },
+  {
+   "anim": "agCharge",
+   "group": "beam",
+   "frame": 1,
+   "components": [
+    122
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM charge (Row 7 f1-3)"
+  },
+  {
+   "anim": "agCharge",
+   "group": "beam",
+   "frame": 2,
+   "components": [
+    123
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM charge (Row 7 f1-3)"
+  },
+  {
+   "anim": "agCharge",
+   "group": "beam",
+   "frame": 3,
+   "components": [
+    124
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM charge (Row 7 f1-3)"
+  },
+  {
+   "anim": "agBeamLoop",
+   "group": "beam",
+   "frame": 4,
+   "components": [
+    125
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM hold = the LOOP f4-5, alternating with the Row 8 glow heads swapped on at their template-matched position"
+  },
+  {
+   "anim": "agBeamLoop",
+   "group": "beam",
+   "frame": 5,
+   "components": [
+    126
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM hold = the LOOP f4-5, alternating with the Row 8 glow heads swapped on at their template-matched position"
+  },
+  {
+   "anim": "agBeamLoop",
+   "group": "beam",
+   "frame": 4,
+   "components": [
+    125
+   ],
+   "head_swap": "glowA",
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM hold = the LOOP f4-5, alternating with the Row 8 glow heads swapped on at their template-matched position"
+  },
+  {
+   "anim": "agBeamLoop",
+   "group": "beam",
+   "frame": 5,
+   "components": [
+    126
+   ],
+   "head_swap": "glowB",
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM hold = the LOOP f4-5, alternating with the Row 8 glow heads swapped on at their template-matched position"
+  },
+  {
+   "anim": "agBeamFire",
+   "group": "beam",
+   "frame": 6,
+   "components": [
+    127
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    4
+   ],
+   "role": "FREEZE BEAM fire (Row 7 f6 WITH its boxed long beam: one component, never cut)"
+  },
+  {
+   "anim": "agIcicle",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    78
+   ],
+   "head_swap": null,
+   "offset": [
+    115,
+    7
+   ],
+   "role": "ICICLE DROP dive (Row 3 f2 flip frame)"
+  },
+  {
+   "anim": "agCarve",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    60
+   ],
+   "head_swap": null,
+   "offset": [
+    122,
+    3
+   ],
+   "role": "ABSOLUTE POPSICLE carving slashes (Row 2 f4-6 + bend-strip tail FX)"
+  },
+  {
+   "anim": "agCarve",
+   "group": "run",
+   "frame": 5,
+   "components": [
+    61
+   ],
+   "head_swap": null,
+   "offset": [
+    125,
+    3
+   ],
+   "role": "ABSOLUTE POPSICLE carving slashes (Row 2 f4-6 + bend-strip tail FX)"
+  },
+  {
+   "anim": "agCarve",
+   "group": "run",
+   "frame": 6,
+   "components": [
+    62
+   ],
+   "head_swap": null,
+   "offset": [
+    127,
+    3
+   ],
+   "role": "ABSOLUTE POPSICLE carving slashes (Row 2 f4-6 + bend-strip tail FX)"
+  },
+  {
+   "fx": "stream",
+   "components": [
+    [
+     84
+    ],
+    [
+     85
+    ],
+    [
+     90,
+     88,
+     92,
+     86
+    ],
+    [
+     91,
+     89,
+     93,
+     87
+    ]
+   ]
+  },
+  {
+   "fx": "shard",
+   "components": [
+    [
+     101
+    ],
+    [
+     102
+    ]
+   ]
+  },
+  {
+   "fx": "puff",
+   "components": [
+    [
+     117
+    ],
+    [
+     112
+    ],
+    [
+     108
+    ],
+    [
+     116,
+     111,
+     120,
+     113,
+     107,
+     115
+    ],
+    [
+     109,
+     119,
+     121,
+     114,
+     110,
+     118
+    ]
+   ]
+  },
+  {
+   "fx": "beamTile",
+   "components": [
+    [
+     128
+    ]
+   ]
+  },
+  {
+   "fx": "tailA",
+   "components": [
+    [
+     34
+    ],
+    [
+     35
+    ],
+    [
+     36
+    ],
+    [
+     37
+    ],
+    [
+     38
+    ],
+    [
+     39
+    ]
+   ]
+  },
+  {
+   "fx": "tailB",
+   "components": [
+    [
+     45
+    ],
+    [
+     46
+    ],
+    [
+     47
+    ],
+    [
+     48
+    ],
+    [
+     49
+    ],
+    [
+     50
+    ]
+   ]
+  }
+ ]
+}

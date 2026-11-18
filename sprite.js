@@ -810,6 +810,11 @@ function _resolveAction(fighter, currentAction = "idle") {
       const cv = fighter._crouchAttackVariant;
       if (cv && (move === "light" || move === "heavy") &&
           (fighter._skinAnim?.[cv] || fighter.animationData?.[cv])) return cv;
+      // READY Omnitrix form MOVE-SET SELECTOR (Highbreed): a form that drew a different attack per MOVEMENT STATE stamps
+      // formState.moveAnim = { move, action } when the normal starts (its moveFrames hook); same input, the strip follows the
+      // state. Gated on Ben's form state + the strip existing → a strict no-op for every other fighter.
+      const bmv = fighter.transformed && fighter.omnitrix?.formState?.moveAnim;
+      if (bmv && bmv.move === move && (fighter._skinAnim?.[bmv.action] || fighter.animationData?.[bmv.action])) return bmv.action;
       return MOVE_TO_ACTION[move] || move;
     }
   }

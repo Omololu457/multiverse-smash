@@ -13,6 +13,7 @@ import { physics } from '../physics.js'
 import { characters } from '../characters.js'
 import * as G from '../highbreed.js'
 import * as FL from '../flight.js'
+import { SpriteHandler } from '../sprite.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
 import fs from 'node:fs'
 
@@ -97,6 +98,34 @@ test('flight: hold Jump in the air ≥ 8f takes off (no jump refill), capped at 
   const f = ben(), t = foe(); far(f, t); f.onGround = f.grounded = false; f.vy = -6; f.jumpCount = 1
   world(f, t, 12, { jump: true }); assert(FL.isFlying(f), 'flying'); assert.equal(f.jumpCount, 1, 'no refill'); assert.equal(S(f).flights, 1)
   assert.equal(S(f).moveState, 'flying'); world(f, t, 200, { jump: true }); assert(!FL.isFlying(f) || S(f).flightUsed <= G.HB_FLIGHT.MAX, 'max 150f')
+})
+
+
+// ── 3/4 MOVE-SET SELECTOR ──────────────────────────────────────────────────────────────────────────────────────
+const actionOf = f => new SpriteHandler().determineAction(f)
+const toState = (f, t, state) => {
+  ready(f); f.onGround = f.grounded = true; f.y = 410 - f.h; f.vy = 0; f.dashTimer = 0; S(f).runT = 99
+  if (state === 'running') f.dashTimer = 6
+  if (state === 'flying') { f.onGround = f.grounded = false; f.y -= 150 }
+  world(f, t, 1)
+}
+test('4. move-set selector: Jab / Heavy / Air pull the grounded / running / flying row; same button, same frame data; the sprite plays it', () => {
+  const want = { light: ['light', 'lightRun', 'lightFly'], heavy: ['heavy', 'heavyRun', 'heavyFly'] }
+  for (const [key, rows] of Object.entries(want)) ['grounded', 'running', 'flying'].forEach((st, i) => {
+    const f = ben(), t = foe(); far(f, t); toState(f, t, st); assert.equal(S(f).moveState, st, 'state ' + st)
+    ready(f); assert(C.startMove(f, key, BA[key]), key + ' starts in ' + st)
+    assert.deepEqual(S(f).moveAnim, { move: key, action: rows[i], state: st }); assert.equal(actionOf(f), rows[i], `${key} ${st} → ${rows[i]}`)
+    assert.equal(f.currentAttack.startup ?? BA[key].startup, BA[key].startup, 'same frame data')
+  })
+  const f = ben(), t = foe(); far(f, t); toState(f, t, 'flying'); ready(f); assert(C.startMove(f, 'air', BA.air)); assert.equal(actionOf(f), 'airFly')
+  for (const k of ['down', 'up']) { const g = ben(), u = foe(); far(g, u); toState(g, u, 'running'); ready(g); assert(C.startMove(g, k, BA[k])); assert.equal(actionOf(g), k) }
+})
+test('4. selector reads the existing movement flags only (dash → running for 12f after; walking stays grounded); no input remap', () => {
+  const f = ben(), t = foe(); far(f, t); f.dashTimer = 4; world(f, t, 1); assert.equal(S(f).moveState, 'running')
+  f.dashTimer = 0; world(f, t, G.HB_RUN_GRACE); assert.equal(S(f).moveState, 'running'); world(f, t, 2); assert.equal(S(f).moveState, 'grounded')
+  world(f, t, 10, { right: true }); assert.equal(S(f).moveState, 'grounded', 'walking is the grounded row')
+  assert.deepEqual(Object.keys(HB.basic_attacks), ['light', 'heavy', 'down', 'up', 'air'], 'the same five normals')
+  const h = ben('heatblast'), u = foe(); far(h, u); ready(h); assert(C.startMove(h, 'light', h.basic_attacks?.light || F.BEN10_ALIEN_POOL.heatblast.basic_attacks.light)); assert.notEqual(actionOf(h), 'lightRun', 'other forms: no-op')
 })
 
 // @@END-TESTS@@

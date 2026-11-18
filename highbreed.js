@@ -245,4 +245,33 @@ function canAct(f, s) {
 }
 export const hold = (f, n) => { f._benPowerCommit = Math.max(f._benPowerCommit || 0, n); f.attackCooldown = Math.max(f.attackCooldown || 0, n) }
 const pose = (f, name, left) => { f._spriteCastMove = name; f._spriteCastTimer = Math.max(2, left) }
-void canAct; void hold; void pose; void CASTS; void HUD_PARTS; void FX_DRAW
+
+// ── 3. MOVE-SET SELECTOR (GAME_STATE) ────────────────────────────────────────────────────────────────────────────────
+// The sheet drew a distinct attack per movement state, so when a normal STARTS (the moveFrames hook) the state read from the
+// existing movement flags picks its strip: formState.moveAnim = { move, action, state } (plain data), read by sprite.js's
+// generic selector (ADD_ALIEN.md). The button never changes: Light is still "light", Heavy still "heavy"; the frame data is the
+// same in every state (as briefed). Low and Launcher have one strip each (Low = Hurt (walking) reversed; Launcher = Attack 1
+// (running), an anti-air lunge). Specials pick their cast strip the same way (HB_SPECIAL_ANIM, read by each cast).
+export const HB_MOVE_ANIM = {
+  light: { grounded: "light", running: "lightRun", flying: "lightFly" },
+  heavy: { grounded: "heavy", running: "heavyRun", flying: "heavyFly" },
+  air:   { grounded: "air", running: "air", flying: "airFly" },
+  down:  { grounded: "down", running: "down", flying: "down" },
+  up:    { grounded: "up", running: "up", flying: "up" },
+}
+export const HB_SPECIAL_ANIM = {
+  claws: { grounded: "hbClaws", running: "hbClawsRun", flying: "hbClawsFly" },
+  lance: { grounded: "hbLance", running: "hbLance", flying: "hbLanceFly" },
+  dive:  { grounded: "hbDive", running: "hbDive", flying: "hbDive" },
+  wing:  { grounded: "hbWing", running: "hbWing", flying: "hbWing" },
+}
+export const animFor = (table, key, state) => (table[key] && table[key][state]) || null
+MD_XFORM.push((f, s, key, md) => {
+  const action = animFor(HB_MOVE_ANIM, key, s.moveState)
+  if (action) {
+    s.moveAnim = { move: key, action, state: s.moveState }
+    s.lastNormal = { key, state: s.moveState, action, t: s.t }
+    s.stats.normals[s.moveState] = (s.stats.normals[s.moveState] || 0) + 1
+  }
+  return md
+})

@@ -40,7 +40,7 @@ export const TERRASPIN = {
 export function freshTerraspinState() {
   return { kind: "terraspin", t: 0, castId: 0, noAttack: false,
     pressure: 0, idle: 0, landCast: -1,
-    inhale: null, post: 0, pullLock: 0, exhale: null, push: null,
+    inhale: null, post: 0, repress: false, prevSpecial: false, pullLock: 0, exhale: null, push: null,
     shear: { pips: 0, pipT: 0, lastPipCast: -1, dragT: 0, immune: 0, drags: 0 },
     spin: null, chop: null, drop: null, dropUsed: false, heavyCut: false,
     guard: { t: 0, cd: 0, hit: null, counter: null },
@@ -83,8 +83,9 @@ function tick(f, input, ctx, api) {
   tickPressure(s)
   tickShear(f, s, opp)
   tickGuard(f, s, api, opp)
-  if (s.post > 0 && --s.post <= 0) s.post = 0
+  tickPost(f, s, api, input || {})
   tickInhale(f, s, api, input || {}, opp, stage)
+  s.prevSpecial = !!(input && input.special)
   tickExhale(f, s, opp, stage)
   tickSpin(f, s, api, opp, stage)
   tickChop(f, s, api, opp, stage)
@@ -147,7 +148,8 @@ function pickSpecial(f, s) {
 function fireSpecial(f, ctx, api) {
   const s = tsState(f); if (!s) return false
   api0 = api
-  if (s.post > 0) return castExhale(f, s, api, true)                     // P again after an Inhale release
+  if (s.post > 0) return s.repress ? castExhale(f, s, api, true) : true   // Inhale recovery: only a NEW press Exhales (tickPost);
+                                                                           // a still-held / buffered press is swallowed
   const kind = pickSpecial(f, s); if (!kind) return false
   if (kind === "inhale") return castInhale(f, s, api)
   if (kind === "exhale") return castExhale(f, s, api, false)
@@ -221,13 +223,22 @@ function tickInhale(f, s, api, input, opp, stage) {
   if (!input.special) endInhale(f, s, api, back)
   else if (i.held >= TS_INH.HOLD || !(f.energy > 0)) endInhale(f, s, api, false)
 }
+// "P again" = a NEW Special press (released, then pressed) seen on the raw input during the 14f recovery — the game's own
+// input state can trail the raw keys by a frame, so a still-held press arriving after the release never counts.
+function tickPost(f, s, api, input) {
+  if (!(s.post > 0)) { s.repress = false; return }
+  if (input.special && !s.prevSpecial) s.repress = true
+  if (s.repress && s.pressure >= TS_EXH.MIN && castExhale(f, s, api, true)) return
+  if (s.repress && s.pressure < TS_EXH.MIN) s.repress = false
+  if (--s.post <= 0) { s.post = 0; s.repress = false }
+}
 function endInhale(f, s, api, exhaleNow, cancelled = false) {
   const i = s.inhale; s.inhale = null
   s.pullLock = Math.max(s.pullLock, i ? i.pulled : 0)
   f._benPowerCommit = 0; f._spriteCastMove = null; f._spriteCastTimer = 0
   if (cancelled) return
   if (exhaleNow && s.pressure >= TS_EXH.MIN && castExhale(f, s, api, true)) return
-  s.post = TS_INH.RECOVERY; f._benPowerCommit = TS_INH.RECOVERY; f._spriteCastMove = "tsInhale"; f._spriteCastTimer = TS_INH.RECOVERY
+  s.post = TS_INH.RECOVERY; s.repress = false; f._benPowerCommit = TS_INH.RECOVERY; f._spriteCastMove = "tsInhale"; f._spriteCastTimer = TS_INH.RECOVERY
 }
 
 // 2. EXHALE — Col 2 R6 arms pushing. No extra cost; needs ≥ 15 Pressure and spends ALL of it. 16f startup; everything within
@@ -238,7 +249,7 @@ export const exhaleDamage = p => Math.min(TS_EXH.MAX, TS_EXH.BASE + TS_EXH.PER *
 function castExhale(f, s, api, fromInhale) {
   if (s.pressure < TS_EXH.MIN) return false
   const total = TS_EXH.STARTUP + TS_EXH.ACTIVE + TS_EXH.RECOVERY
-  if (fromInhale) { s.post = 0; f._benPowerCommit = 0; f.attackCooldown = 0 }
+  if (fromInhale) { s.post = 0; s.repress = false; f._benPowerCommit = 0; f.attackCooldown = 0 }
   const c = beginCast(f, s, api, "tsExhale", 0, total); if (!c) return false
   const P = s.pressure, dmg = exhaleDamage(P), kd = P >= TS_EXH.KD, face = f.facing || 1
   s.pressure = 0

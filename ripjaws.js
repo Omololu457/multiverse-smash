@@ -6,6 +6,7 @@
 // render-only effects (rain, lightning, ripples, foam, bubbles, steam, the tidal wave, the abyss, shake) never write it.
 // Simulation randomness: hash(match seed, frame, player index). Sheet: docs/ben10/aliens/ripjaws/SPRITE_LEDGER.md.
 import { RIPJAWS_ANIM, RIPJAWS_GEOM, RIPJAWS_FX } from "./ripjawsAssets.js"
+import { FLOOD, floodOf, floodLive, canStartFlood, startFlood, raiseFlood, depthOf, waterOf } from "./benFlood.js"   // the generic STORM TIDE flood
 export { RIPJAWS_ANIM, RIPJAWS_GEOM, RIPJAWS_FX }
 
 export const RJ_KEY = "ripjaws"
@@ -90,6 +91,7 @@ function tick(f, input, ctx, api) {
   if (ctx && Number.isFinite(ctx.stageWidth)) s.stage.R = ctx.stageWidth
   if (ctx && Number.isFinite(ctx.frame)) s.frame = ctx.frame
   if (ctx && Number.isFinite(ctx.seed)) s.seed = ctx.seed >>> 0
+  s.arenaTopY = ctx && Number.isFinite(ctx.arenaTopY) ? ctx.arenaTopY : null
   input = input || {}
   if (api && api.activeProjectiles) projRef = api.activeProjectiles()
   api0 = api
@@ -167,6 +169,57 @@ function onContact(f, target, info) {
   const s = rjState(f); if (!s || !target || target === f) return
   for (const h of CONTACT) h(f, s, target, info || {})
 }
+
+// ── cast helpers (shared by every special) ──────────────────────────────────────────────────────────────────
+export function canAct(f, s) {
+  return f.transformed && f.activeAlien === RJ_KEY && !f.attacking && !((f.attackCooldown || 0) > 0) && !((f.hitstun || 0) > 0) &&
+    !((f.blockstun || 0) > 0) && !(f._benPowerCommit > 0) && !busy(s)
+}
+function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
+  if (!canAct(f, s)) return null
+  if (cost && !(api ? api.spendEnergy(f, cost) : false)) return null
+  f.isCharging = false
+  f._benActionEpoch = (f._benActionEpoch || 0) + 1
+  f._spriteCastMove = pose; f._spriteCastTimer = total
+  f.attackCooldown = total; if (commit) { f._benPowerCommit = total; f.vx = 0 }
+  s.castId++; s.stats.casts++
+  return { cast: s.castId, total }
+}
+export const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
+// a hitbox riding the shared projectile pipeline (hidden: drawn by this module); vx carries the knockback direction.
+// Lifetime >= 2 (combat.updateProjectiles culls lifetime <= 0 before hits resolve).
+const hitbox = (f, api, name, face, md) => api && api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, lifetime: 2, ...md,
+  alien: { hidden: true, ...(md.alien || {}) } }, {})
+
+// ── 3. STORM TIDE (←↙↓ + P): the flood (benFlood.js holds the schedule, cap and air gap) ──────────────────────────
+// Cast (cost 18, 24f startup, the summon pose — land or tail version via the frame-set swap): Level 1 (0.18 H) over 90f.
+// Recast while HIS flood is at Level 1 (cost 12, 24f): Level 2 over 60f. Never beyond Level 2, never extends the 480f from
+// the first cast; then a 90f recede and a 900f cooldown. One flood at a time (a mirror Ripjaws cannot stack one). Not in
+// hitstun, not during another move's active frames, not during the Ultimate (canAct / busy).
+export const RJ_STORM = { STARTUP: 24, RECOVERY: 10 }
+const STORM_TOTAL = RJ_STORM.STARTUP + RJ_STORM.RECOVERY
+BUSY.push(s => !!(s.storm && s.storm.t < STORM_TOTAL))
+export function stormCastable(f, s, opp) {
+  const r = floodOf(f), fighters = [f, opp].filter(Boolean)
+  if (floodLive(r)) return r.level === 1 && (r.phase === "rise" || r.phase === "hold") ? "raise" : null
+  return canStartFlood(f, fighters) ? "start" : null
+}
+CASTS.storm = (f, s, api) => {
+  if (s.ult) return false
+  const opp = api && api.getOpponent ? api.getOpponent(f) : null, mode = stormCastable(f, s, opp); if (!mode) return false
+  const c = beginCast(f, s, api, "rjSummon", mode === "raise" ? RJ_COST.stormRaise : RJ_COST.storm, STORM_TOTAL); if (!c) return false
+  s.storm = { t: 0, cast: c.cast, mode }; s.stats.storms = (s.stats.storms || 0) + 1
+  return true
+}
+TICKS.push(function tickStorm(f, s, input, ctx, api, opp) {
+  const st = s.storm; if (!st) return
+  st.t++
+  if (st.t === RJ_STORM.STARTUP) {
+    if (st.mode === "raise") raiseFlood(f)
+    else if (canStartFlood(f, [f, opp].filter(Boolean))) startFlood(f, { arenaTopY: s.arenaTopY }, [f, opp].filter(Boolean), (s.seed ^ Math.imul(s.frame | 0, 2654435761)) >>> 0)
+  }
+  if (st.t >= STORM_TOTAL) s.storm = null
+})
 
 //@@SECTIONS@@
 

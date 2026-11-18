@@ -11,6 +11,7 @@ import { updateZoroSantoryu } from './zoroState.js'   // Roronoa Zoro Santoryu t
 import { violetRegen } from './violetState.js'   // Violet Parr: Force Field regen 5 / s (violet-gated)
 import { SWAMPFIRE_FX } from "./swampfire.js"
 import { benReadyForm, benAlienNegatesSpecial, benAlienSpecialTax } from "./ben10State.js"   // generic READY Omnitrix form hooks (Heatblast); null for everyone else
+import { tickBenFlood } from "./benFlood.js"   // Ripjaws STORM TIDE world tick (generic flood; gated on the owner's _benFlood field)
 // abilities.js
 // Central ability system — specials, ultimates, transformations, projectiles, summons.
 // Each of the 7 starter characters has a fully implemented unique kit.
@@ -29748,6 +29749,7 @@ function benAlienApi(context) {
 export function tickBenAlienForm(fighter, input, context) {
   const d = benReadyForm(fighter)
   if (d && typeof d.tick === "function") d.tick(fighter, input || {}, context, benAlienApi(context))
+  if (fighter && fighter._benFlood) tickBenFlood(fighter, context, benAlienApi(context))   // Ripjaws' STORM TIDE world tick (benFlood.js); runs through the recede even after a swap; field-gated
 }
 
 function executeBen10Special(fighter, context) {

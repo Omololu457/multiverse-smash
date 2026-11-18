@@ -1,5 +1,6 @@
 // Serializable Ben state shared by the device and damage pipeline. No DOM, clocks or RNG.
 import { getAlienDefinition } from "./aliens.js"
+import { recedeFlood, clearFloodInstant } from "./benFlood.js"   // the generic STORM TIDE flood (Ripjaws); leaf module
 export const isBenDevice = f => ["ben10", "albedo"].includes((f?.rosterKey || "").toLowerCase())
 // GENERIC READY-FORM HOOK (ADD_ALIEN.md): the active alien's registry entry when it is status "ready", else null.
 // Every engine site that used to test `activeAlien === "swampfire"` for a ready-form rule (mods, lunge, power commit,
@@ -95,10 +96,13 @@ export function clearBenFormState(f) {
   if (f.omnitrix && f.omnitrix.formState) f.omnitrix.formState = null
   if (f._benGlide) delete f._benGlide
   if (f._alienFlightProfile) { delete f._alienFlightProfile; f._flightCtl = null }   // per-alien flight profile (Megawhatt) + its flight controller
+  if (f._benFlood) recedeFlood(f, undefined, "swap")   // Ripjaws' STORM TIDE outlives the form: swap / revert starts the 90f recede (benFlood.js)
 }
 export function resetBenDefense(f) {
   for (const k of Object.keys(f)) if (k.startsWith("_omx")) delete f[k]
   for (const k of ["_benRoll", "_benRollCd", "_benEnergyGuard", "_benGuardCd", "_benDR", "_benLastResortUsed", "_benBackLast", "_benBackArm", "_benVowHold", "_benVowChecked", "_benKOHandled"]) delete f[k]
+  if (f._benFlood) clearFloodInstant(f)   // KO / round end / rematch: the STORM TIDE flood is gone instantly (benFlood.js)
+  delete f._benWater; delete f._benStandH
   f.invulnTimer = 0
 }
 export function consumeBenGuard(f) {

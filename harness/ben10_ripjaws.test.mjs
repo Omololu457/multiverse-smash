@@ -11,6 +11,7 @@ import { physics } from '../physics.js'
 import { characters } from '../characters.js'
 import * as G from '../arcticguana.js'
 import * as R from '../ripjaws.js'
+import * as FL from '../benFlood.js'
 import { tickFlightDriver, isFlying, getFlightProfile } from '../flight.js'
 import { clearBenFormState, handleBenKO } from '../ben10State.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
@@ -101,6 +102,60 @@ test('2. two frame sets: LAND table by default, the WATER (tail) table maps ever
   const f = ben(); assert.equal(f._skinAnim, R.ANIM_LAND)
   for (const k of ['idle', 'walk', 'light', 'heavy', 'up', 'rjJet', 'rjRush', 'rjFin', 'rjBreach', 'rjSummon']) assert(R.ANIM_WATER[k] && /_w_uniform/.test(R.ANIM_WATER[k].sheet), 'water ' + k)
   const s = S(f); for (const [m, k] of [[[2, 3, 6], 'jet'], [[2, 1, 4], 'fin'], [[6, 2, 3], 'breach'], [[4, 1, 2], 'storm']]) { s.hist = []; motion(f, m); assert.equal(R.readMotion(s), k) }
+})
+
+// ── 3 / 4 / 5 / 6 STORM TIDE: schedule, cap + air gap, depth states ─────────────────────────────────────────
+const FR = f => f._benFlood
+const H0 = 410 - FL.ARENA_TOP_Y   // the harness floor (groundY 410) to the arena top
+function flood(f, t, { level = 1, settle = true } = {}) {
+  reset(f, t, 300); ready(f); assert(cast(f, t, 'D'), 'Storm Tide'); world(f, t, R.RJ_STORM.STARTUP + (settle ? FL.FLOOD.RISE1 + 2 : 0))
+  if (level === 2) { ready(f); assert(cast(f, t, 'D'), 'recast'); world(f, t, R.RJ_STORM.STARTUP + (settle ? FL.FLOOD.RISE2 + 2 : 0)) }
+  return FR(f)
+}
+test('4. flood schedule: cost 18 / 24f → Level 1 (0.18 H) over 90f; recast cost 12 → Level 2 over 60f; 480f total; 90f recede; 900f cooldown; no extension', () => {
+  const f = ben(), t = foe(); reset(f, t, 300); f.energy = 100; assert(cast(f, t, 'D')); assert.equal(100 - f.energy, RJ_COST.storm)
+  world(f, t, R.RJ_STORM.STARTUP - 1); assert.equal(FR(f), undefined, 'nothing before the 24f startup'); world(f, t, 1); const r = FR(f); assert(r && r.phase === 'rise' && r.level === 1)
+  assert(Math.abs(r.l1 - 0.18 * H0) < 1e-6, 'Level 1 = 0.18 H'); world(f, t, FL.FLOOD.RISE1 - 2); assert(r.line < r.l1 && r.line > r.l1 * 0.9); world(f, t, 1); assert(Math.abs(r.line - r.l1) < 1e-6, 'reaches L1 at 90f')
+  ready(f); f.energy = 100; assert(cast(f, t, 'D'), 'recast'); assert.equal(100 - f.energy, RJ_COST.stormRaise); world(f, t, R.RJ_STORM.STARTUP + FL.FLOOD.RISE2); assert.equal(r.level, 2)
+  assert(Math.abs(r.line - r.l2) < 1e-6, 'Level 2 over 60f'); assert(Math.abs(r.l2 - Math.max(0.42 * H0, 0)) < 1e-6)
+  ready(f); f.energy = 100; assert.equal(cast(f, t, 'D'), false, 'never beyond Level 2'); assert.equal(f.energy, 100, 'a refused cast costs nothing')
+  world(f, t, FL.FLOOD.DUR - r.t - 1); assert.equal(r.phase, 'hold'); world(f, t, 1); assert.equal(r.phase, 'recede', '480f from the FIRST cast (no extension)')
+  world(f, t, FL.FLOOD.RECEDE); assert.equal(r.phase, 'off'); assert.equal(r.line, 0); assert.equal(r.cd, FL.FLOOD.CD)
+  ready(f); f.energy = 100; assert.equal(cast(f, t, 'D'), false, 'cooldown'); world(f, t, FL.FLOOD.CD); assert.equal(FR(f), undefined, 'cooldown over')
+  ready(f); assert(cast(f, t, 'D'), 'castable again')
+})
+test('4. no Storm Tide in hitstun, during another move, or during the Ultimate', () => {
+  const f = ben(), t = foe(); reset(f, t, 300); ready(f); f.hitstun = 10; f._specialHeldDir = 'D'; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false, 'hitstun')
+  ready(f); assert(C.startMove(f, 'light', BA.light)); f._specialHeldDir = 'D'; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false, 'active frames of another move')
+  ready(f); S(f).ult = { phase: 'abyss', t: 1 }; assert.equal(R.stormCastable(f, S(f), t) && !S(f).ult, false, 'ultimate'); f._specialHeldDir = 'D'; assert.equal(A.triggerSpecial(f, ctxOf(f, t)), false); S(f).ult = null
+})
+test('5. CAP + AIR GAP: never above 0.55 H, always ≥ 140 px under the arena top; a short stage → the cap wins', () => {
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); assert(r.line <= 0.55 * r.H + 1e-9 && r.H - r.line >= FL.FLOOD.GAP)
+  const g = ben(), u = foe(); reset(g, u, 300); ready(g); const short = { ...ctxOf(g, u), arenaTopY: 410 - 250 }
+  g._specialHeldDir = 'D'; assert(A.triggerSpecial(g, short)); for (let i = 0; i < 160; i++) { FRAME++; A.tickBenAlienForm(g, {}, { ...short, frame: FRAME }) }
+  ready(g); g._specialHeldDir = 'D'; assert(A.triggerSpecial(g, short)); let mx = 0; for (let i = 0; i < 120; i++) { FRAME++; A.tickBenAlienForm(g, {}, { ...short, frame: FRAME }); mx = Math.max(mx, FR(g).line) }
+  const q = FR(g); assert.equal(q.H, 250); assert(Math.abs(q.cap - 110) < 1e-9, 'cap = min(0.55 H, H − 140) = 110'); assert(mx <= 110 + 1e-9, 'never past the cap'); assert(q.H - mx >= 140, 'air gap')
+})
+test('5. platforms above the line are DRY; nothing solid changes (stage bounds, floor, walls), nobody is moved by the water', () => {
+  const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); const lineY = FL.floodLineY(r)
+  const plat = foe('goku', 900); plat.y = lineY - plat.h - 20; plat.onGround = true; assert.equal(FL.depthOf(r, plat), 'dry', 'on a platform above the line')
+  assert.equal(physics.stageLeft, STAGE.stageLeft); assert.equal(physics.stageWidth, STAGE.stageWidth); assert.equal(t.groundY, 410)
+  const x0 = t.x; for (let i = 0; i < 30; i++) FL.tickBenFlood(f, ctxOf(f, t), { getOpponent: () => t }); assert.equal(t.x, x0, 'the flood tick never moves anyone')
+})
+test('6. depth states from the STANDING hurtbox: DRY / WADING / SUBMERGED; crouching does not change depth', () => {
+  const f = ben(), t = foe(); const r = flood(f, t); assert.equal(FL.depthOf(r, t), 'wading', 'Level 1 = wading (feet under, head above)')
+  const g = ben(), u = foe(); const q = flood(g, u, { level: 2 }); assert.equal(FL.depthOf(q, u), 'submerged', 'Level 2 = submerged (head under)')
+  u.isCrouching = true; const h = u.h; u.y += h / 2; u.h = h / 2; assert.equal(FL.depthOf(q, u), 'submerged', 'crouching never dodges depth'); u.isCrouching = false; u.h = h; u.y -= h / 2
+  u.y = FL.floodLineY(q) - u.h - 1; assert.equal(FL.depthOf(q, u), 'dry', 'feet above the line → dry')
+  assert.equal(FL.waterOf(u).depth, 'submerged'); assert.equal(FL.waterOf(u).wb, false); assert.equal(FL.waterOf(g).wb, true, 'Ripjaws is waterborne')
+})
+test('15. endings: swap / revert → 90f recede (cooldown still applies); KO / round end / rematch → gone instantly', () => {
+  const f = ben('ripjaws', LOAD), t = foe(); const r = flood(f, t); assert(F.applyAlien(f, 'goop')); assert.equal(r.phase, 'recede', 'swap → recede')
+  world(f, t, FL.FLOOD.RECEDE); assert.equal(FR(f).phase, 'off'); assert(FR(f).cd > 0, 'cooldown applies')
+  const g = ben('ripjaws', LOAD), u = foe(); flood(g, u); F.revertToHuman(g); assert.equal(FR(g).phase, 'recede', 'revert → recede')
+  const k = ben(), v = foe(); flood(k, v); k.health = 0; handleBenKO(k); assert.equal(FR(k), undefined, 'owner KO → instant'); assert.equal(v._benWater, undefined)
+  const m = ben(), w = foe(); flood(m, w); w.health = 0; world(m, w, 1); assert.equal(FR(m), undefined, 'opponent KO → instant')
+  const n = ben(), x = foe(); flood(n, x); F.setupBen10(n, LOAD); assert.equal(FR(n), undefined, 'round end / rematch (setupBen10) → instant')
 })
 
 //@@NEXT@@

@@ -171,6 +171,7 @@ import { drawHeatblastFx } from "./heatblast.js"   // Heatblast ult pixel rings 
 import { tickBenAlienForm } from "./abilities.js"   // READY Omnitrix form per-frame tick (Heatblast Heat / Scorch / flight / ult)
 import { benReadyForm, benAlienBodyOffset } from "./ben10State.js"   // READY Omnitrix form lookup (null for everyone else) + render-only body offset
 import { clearBenIdentityState } from "./ben10State.js"
+import { drawBenFlood, drawBenFloodFlash } from "./benFlood.js"   // Ripjaws STORM TIDE flood render (render-only)
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition } from "./aliens.js"
 // game.js
 
@@ -24207,6 +24208,7 @@ function drawBattleScene() {
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
+  for (const _bf of [p1, p2]) if (_bf && _bf._benFlood) { drawBenFlood(ctx, _bf, globalFrameCount, getStageWorldWidth()); drawBenFloodFlash(ctx, _bf, globalFrameCount, canvas.width, canvas.height) }   // Ripjaws STORM TIDE water / rain / lightning over both fighters (benFlood.js; render-only; gated on the field)
   // Naruto Uzumaki Barrage clone GHOST BODIES — drawn through the EXACT SAME path as the real fighter
   // (renderHybridFighter), so each clone is pixel-identical to Naruto. Only bodies whose beat window is open.
   for (const g of getNarutoChoreoBodies()) renderHybridFighter(g)

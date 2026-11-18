@@ -1,0 +1,170 @@
+[
+ {
+  "key": "swampfire",
+  "strips": 29,
+  "colours": 7,
+  "pct": 74.029,
+  "verdict": "recolored (green body)"
+ },
+ {
+  "key": "heatblast",
+  "strips": 64,
+  "colours": 1,
+  "pct": 0.137,
+  "verdict": "recolored (Omnitrix mark only)"
+ },
+ {
+  "key": "megawhatt",
+  "strips": 60,
+  "colours": 1,
+  "pct": 2.051,
+  "verdict": "recolored (Omnitrix lime: eyes + mark)"
+ },
+ {
+  "key": "goop",
+  "strips": 41,
+  "colours": 12,
+  "pct": 95.674,
+  "verdict": "recolored (green body)"
+ },
+ {
+  "key": "xlr8",
+  "strips": 33,
+  "colours": 2,
+  "pct": 0.806,
+  "verdict": "recolored (Omnitrix mark + green visor/eye)"
+ },
+ {
+  "key": "eyeguy",
+  "strips": 34,
+  "colours": 1,
+  "pct": 6.973,
+  "verdict": "recolored (Omnitrix lime eyes); shorts AMBIGUOUS-left"
+ },
+ {
+  "key": "ghostfreak",
+  "strips": 36,
+  "colours": 1,
+  "pct": 6.442,
+  "verdict": "recolored (Omnitrix timeout flash)"
+ },
+ {
+  "key": "alienx",
+  "strips": 32,
+  "colours": 2,
+  "pct": 0.678,
+  "verdict": "recolored (Omnitrix mark only)"
+ },
+ {
+  "key": "brainstorm",
+  "strips": 35,
+  "colours": 3876,
+  "pct": 9.847,
+  "verdict": "recolored (green stripes / collar / eyes)"
+ },
+ {
+  "key": "terraspin",
+  "strips": 33,
+  "colours": 13917,
+  "pct": 81.455,
+  "verdict": "recolored (green-olive shell body)"
+ },
+ {
+  "key": "wildvine",
+  "strips": 31,
+  "colours": 4,
+  "pct": 48.227,
+  "verdict": "recolored (green body + mark)"
+ },
+ {
+  "key": "jetray",
+  "strips": 36,
+  "colours": 1808,
+  "pct": 3.082,
+  "verdict": "recolored (Omnitrix mark + green eyes)"
+ },
+ {
+  "key": "diamondhead_ov",
+  "strips": 64,
+  "colours": 2287,
+  "pct": 8.15,
+  "verdict": "recolored (green shirt + mark); crystal left"
+ },
+ {
+  "key": "upgrade_ov",
+  "strips": 70,
+  "colours": 1,
+  "pct": 0.173,
+  "verdict": "recolored (Omnitrix mark); body AMBIGUOUS-left"
+ },
+ {
+  "key": "humongousaur",
+  "strips": 37,
+  "colours": 126,
+  "pct": 0.236,
+  "verdict": "recolored (Omnitrix mark only)"
+ },
+ {
+  "key": "feedback_ov",
+  "strips": 33,
+  "colours": 2,
+  "pct": 1.079,
+  "verdict": "recolored (Omnitrix eye/mark)"
+ },
+ {
+  "key": "arcticguana",
+  "strips": 39,
+  "colours": 1,
+  "pct": 0.565,
+  "verdict": "recolored (Omnitrix mark); one tint AMBIGUOUS-left"
+ },
+ {
+  "key": "benwolf",
+  "strips": 37,
+  "colours": 2,
+  "pct": 0.408,
+  "verdict": "recolored (Omnitrix eyes + mark)"
+ },
+ {
+  "key": "bigchill",
+  "strips": 40,
+  "colours": 1,
+  "pct": 0.099,
+  "verdict": "recolored (Omnitrix mark only)"
+ },
+ {
+  "key": "ripjaws",
+  "strips": 45,
+  "colours": 1,
+  "pct": 0.142,
+  "verdict": "recolored (Omnitrix mark); lure AMBIGUOUS-left"
+ },
+ {
+  "key": "rath",
+  "strips": 40,
+  "colours": 5,
+  "pct": 0.943,
+  "verdict": "recolored (Omnitrix chest mark)"
+ },
+ {
+  "key": "waterhazard",
+  "strips": 39,
+  "colours": 280,
+  "pct": 2.203,
+  "verdict": "recolored (Omnitrix + green eye/port lenses)"
+ },
+ {
+  "key": "highbreed",
+  "strips": 47,
+  "colours": 0,
+  "pct": 0.0,
+  "verdict": "NO GREEN FOUND (identical art, registered)"
+ },
+ {
+  "key": "wildmutt_ov",
+  "strips": 37,
+  "colours": 3,
+  "pct": 0.352,
+  "verdict": "recolored (flank Omnitrix dot)"
+ }
+]

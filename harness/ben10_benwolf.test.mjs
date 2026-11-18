@@ -321,7 +321,7 @@ test('10. slot → PICK FIVE: slot count read from the registry (BEN10_SLOT_COUN
   assert.equal(F.MAX_OMNITRIX_SLOTS, BEN10_SLOT_COUNT); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT); assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   const d = getAlienDefinition('benwolf'); assert.equal(d.status, 'ready'); assert.equal(d.slot, 18); assert.equal(d.displayName, 'BenWolf')
   const ready = BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready'); assert.deepEqual(ready.map(x => x.slot).sort((a, b) => a - b), ready.map((_, i) => i + 1), 'ready slots contiguous 1..18')
-  assert.equal(ready.length, 18); assert.equal(getAlienDefinition('arcticguana').slot, 17, 'slot 17 = Arcticguana, never overwritten')
+  assert(ready.length >= 18, 'at least 18 ready (more aliens may follow BenWolf)'); assert.equal(getAlienDefinition('arcticguana').slot, 17, 'slot 17 = Arcticguana, never overwritten')
   for (const k of ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy', 'ghostfreak', 'alienx', 'brainstorm', 'terraspin', 'wildvine', 'jetray', 'diamondhead_ov', 'upgrade_ov', 'humongousaur', 'feedback_ov', 'arcticguana']) assert.equal(getAlienDefinition(k).status, 'ready', k)
   assert.equal(BEN10_ALIEN_REGISTRY.filter(x => x.id === 'benwolf').length, 1); assert(getAvailableAlienKeys(false).includes('benwolf'))
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))

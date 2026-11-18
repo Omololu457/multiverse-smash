@@ -1,0 +1,1348 @@
+{
+ "source": "assets/sprites/ben10/aliens/wildvine.png",
+ "key": [
+  195,
+  195,
+  195
+ ],
+ "nearest_art_distance": 103,
+ "cell": [
+  196,
+  80
+ ],
+ "feetY": 76,
+ "centreX": 64,
+ "actionScale": 1.5,
+ "groups": {
+  "stand": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "walk": [
+   11,
+   12,
+   13,
+   14
+  ],
+  "jfc": [
+   19,
+   20,
+   38
+  ],
+  "attack": [
+   39,
+   41,
+   43,
+   40,
+   42
+  ],
+  "fwd": [
+   54,
+   55,
+   56,
+   57,
+   58
+  ],
+  "down": [
+   72,
+   75,
+   76,
+   77,
+   78,
+   79,
+   80
+  ],
+  "up": [
+   95,
+   94,
+   92,
+   93
+  ]
+ },
+ "fx": {
+  "seed": [
+   50,
+   44,
+   45,
+   46
+  ],
+  "thorn": [
+   90,
+   89,
+   81,
+   74,
+   71,
+   70
+  ],
+  "spark": [
+   91
+  ]
+ },
+ "thorn_sheet_order": [
+  71,
+  90,
+  89,
+  81,
+  74,
+  70
+ ],
+ "removed_text_components": [
+  5,
+  6,
+  8,
+  9,
+  10,
+  15,
+  16,
+  17,
+  18,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  35,
+  36,
+  37,
+  47,
+  48,
+  49,
+  51,
+  52,
+  53,
+  59,
+  60,
+  61,
+  62,
+  63,
+  64,
+  65,
+  66,
+  67,
+  68,
+  69,
+  82,
+  83,
+  84,
+  85,
+  86,
+  87,
+  88,
+  96,
+  97,
+  98,
+  99,
+  100,
+  101,
+  102
+ ],
+ "removed_box_component": [
+  7
+ ],
+ "removed_loop_bracket": [
+  73
+ ],
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 1,
+   "component": 1,
+   "src_bbox": [
+    4,
+    4,
+    60,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "idle (stand loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 2,
+   "component": 2,
+   "src_bbox": [
+    69,
+    4,
+    126,
+    52
+   ],
+   "offset": [
+    40,
+    28
+   ],
+   "role": "idle (stand loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 3,
+   "component": 3,
+   "src_bbox": [
+    138,
+    4,
+    194,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "idle (stand loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 4,
+   "component": 4,
+   "src_bbox": [
+    207,
+    4,
+    261,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "idle (stand loop)"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 1,
+   "component": 11,
+   "src_bbox": [
+    13,
+    74,
+    59,
+    121
+   ],
+   "offset": [
+    42,
+    29
+   ],
+   "role": "walk"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    83,
+    74,
+    130,
+    121
+   ],
+   "offset": [
+    45,
+    29
+   ],
+   "role": "walk"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 3,
+   "component": 13,
+   "src_bbox": [
+    131,
+    74,
+    178,
+    121
+   ],
+   "offset": [
+    40,
+    29
+   ],
+   "role": "walk"
+  },
+  {
+   "anim": "walk",
+   "group": "walk",
+   "frame": 4,
+   "component": 14,
+   "src_bbox": [
+    197,
+    74,
+    246,
+    121
+   ],
+   "offset": [
+    44,
+    29
+   ],
+   "role": "walk"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 4,
+   "component": 14,
+   "src_bbox": [
+    197,
+    74,
+    246,
+    121
+   ],
+   "offset": [
+    44,
+    29
+   ],
+   "role": "walk back (walk REVERSED)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 3,
+   "component": 13,
+   "src_bbox": [
+    131,
+    74,
+    178,
+    121
+   ],
+   "offset": [
+    40,
+    29
+   ],
+   "role": "walk back (walk REVERSED)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    83,
+    74,
+    130,
+    121
+   ],
+   "offset": [
+    45,
+    29
+   ],
+   "role": "walk back (walk REVERSED)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "walk",
+   "frame": 1,
+   "component": 11,
+   "src_bbox": [
+    13,
+    74,
+    59,
+    121
+   ],
+   "offset": [
+    42,
+    29
+   ],
+   "role": "walk back (walk REVERSED)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 1,
+   "component": 11,
+   "src_bbox": [
+    13,
+    74,
+    59,
+    121
+   ],
+   "offset": [
+    42,
+    29
+   ],
+   "role": "run (walk cycle played 2x faster - no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    83,
+    74,
+    130,
+    121
+   ],
+   "offset": [
+    45,
+    29
+   ],
+   "role": "run (walk cycle played 2x faster - no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 3,
+   "component": 13,
+   "src_bbox": [
+    131,
+    74,
+    178,
+    121
+   ],
+   "offset": [
+    40,
+    29
+   ],
+   "role": "run (walk cycle played 2x faster - no run art)"
+  },
+  {
+   "anim": "run",
+   "group": "walk",
+   "frame": 4,
+   "component": 14,
+   "src_bbox": [
+    197,
+    74,
+    246,
+    121
+   ],
+   "offset": [
+    44,
+    29
+   ],
+   "role": "run (walk cycle played 2x faster - no run art)"
+  },
+  {
+   "anim": "dash",
+   "group": "walk",
+   "frame": 2,
+   "component": 12,
+   "src_bbox": [
+    83,
+    74,
+    130,
+    121
+   ],
+   "offset": [
+    45,
+    29
+   ],
+   "role": "dash (walk f2-3, fast)"
+  },
+  {
+   "anim": "dash",
+   "group": "walk",
+   "frame": 3,
+   "component": 13,
+   "src_bbox": [
+    131,
+    74,
+    178,
+    121
+   ],
+   "offset": [
+    40,
+    29
+   ],
+   "role": "dash (walk f2-3, fast)"
+  },
+  {
+   "anim": "jump",
+   "group": "jfc",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    46,
+    138,
+    101,
+    204
+   ],
+   "offset": [
+    40,
+    10
+   ],
+   "role": "jump rise (jump/fall/crouch f1)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "jfc",
+   "frame": 1,
+   "component": 19,
+   "src_bbox": [
+    46,
+    138,
+    101,
+    204
+   ],
+   "offset": [
+    40,
+    10
+   ],
+   "role": "double jump - REUSED jump rise"
+  },
+  {
+   "anim": "fall",
+   "group": "jfc",
+   "frame": 2,
+   "component": 20,
+   "src_bbox": [
+    116,
+    142,
+    155,
+    204
+   ],
+   "offset": [
+    47,
+    14
+   ],
+   "role": "jump fall (jump/fall/crouch f2)"
+  },
+  {
+   "anim": "crouch",
+   "group": "jfc",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    168,
+    169,
+    203,
+    204
+   ],
+   "offset": [
+    48,
+    41
+   ],
+   "role": "crouch (jump/fall/crouch f3)"
+  },
+  {
+   "anim": "guard",
+   "group": "jfc",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    168,
+    169,
+    203,
+    204
+   ],
+   "offset": [
+    48,
+    41
+   ],
+   "role": "block - REUSED crouch"
+  },
+  {
+   "anim": "blockHit",
+   "group": "jfc",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    168,
+    169,
+    203,
+    204
+   ],
+   "offset": [
+    48,
+    41
+   ],
+   "role": "block hit - REUSED crouch"
+  },
+  {
+   "anim": "light",
+   "group": "attack",
+   "frame": 1,
+   "component": 39,
+   "src_bbox": [
+    20,
+    230,
+    64,
+    290
+   ],
+   "offset": [
+    43,
+    16
+   ],
+   "role": "JAB (attack f1-2)"
+  },
+  {
+   "anim": "light",
+   "group": "attack",
+   "frame": 2,
+   "component": 41,
+   "src_bbox": [
+    92,
+    241,
+    145,
+    290
+   ],
+   "offset": [
+    42,
+    27
+   ],
+   "role": "JAB (attack f1-2)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "frame": 3,
+   "component": 43,
+   "src_bbox": [
+    159,
+    243,
+    212,
+    290
+   ],
+   "offset": [
+    42,
+    29
+   ],
+   "role": "HEAVY (attack f3-5, right-reaching arm 170 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "frame": 4,
+   "component": 40,
+   "src_bbox": [
+    225,
+    230,
+    269,
+    290
+   ],
+   "offset": [
+    43,
+    16
+   ],
+   "role": "HEAVY (attack f3-5, right-reaching arm 170 px)"
+  },
+  {
+   "anim": "heavy",
+   "group": "attack",
+   "frame": 5,
+   "component": 42,
+   "src_bbox": [
+    288,
+    242,
+    354,
+    290
+   ],
+   "offset": [
+    43,
+    28
+   ],
+   "role": "HEAVY (attack f3-5, right-reaching arm 170 px)"
+  },
+  {
+   "anim": "down",
+   "group": "jfc",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    168,
+    169,
+    203,
+    204
+   ],
+   "offset": [
+    48,
+    41
+   ],
+   "role": "LOW (crouch -> attack v f2 low vine arms, hits low)"
+  },
+  {
+   "anim": "down",
+   "group": "down",
+   "frame": 2,
+   "component": 75,
+   "src_bbox": [
+    87,
+    407,
+    150,
+    446
+   ],
+   "offset": [
+    42,
+    37
+   ],
+   "role": "LOW (crouch -> attack v f2 low vine arms, hits low)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "frame": 1,
+   "component": 95,
+   "src_bbox": [
+    8,
+    483,
+    62,
+    531
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "LAUNCHER (attack ^ f1-3, rising growth)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "frame": 2,
+   "component": 94,
+   "src_bbox": [
+    70,
+    475,
+    121,
+    531
+   ],
+   "offset": [
+    43,
+    20
+   ],
+   "role": "LAUNCHER (attack ^ f1-3, rising growth)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "frame": 3,
+   "component": 92,
+   "src_bbox": [
+    131,
+    471,
+    183,
+    531
+   ],
+   "offset": [
+    43,
+    16
+   ],
+   "role": "LAUNCHER (attack ^ f1-3, rising growth)"
+  },
+  {
+   "anim": "air",
+   "group": "jfc",
+   "frame": 2,
+   "component": 20,
+   "src_bbox": [
+    116,
+    142,
+    155,
+    204
+   ],
+   "offset": [
+    47,
+    14
+   ],
+   "role": "AIR (fall frame - the sheet has no air attack pose)"
+  },
+  {
+   "anim": "hurt",
+   "group": "jfc",
+   "frame": 2,
+   "component": 20,
+   "src_bbox": [
+    116,
+    142,
+    155,
+    204
+   ],
+   "offset": [
+    47,
+    14
+   ],
+   "role": "hit light/heavy - REUSED fall (no hurt pose)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "jfc",
+   "frame": 2,
+   "component": 20,
+   "src_bbox": [
+    116,
+    142,
+    155,
+    204
+   ],
+   "offset": [
+    47,
+    14
+   ],
+   "role": "hit in the air - REUSED fall"
+  },
+  {
+   "anim": "knockdown",
+   "group": "jfc",
+   "frame": 2,
+   "component": 20,
+   "src_bbox": [
+    116,
+    142,
+    155,
+    204
+   ],
+   "offset": [
+    47,
+    14
+   ],
+   "role": "knockdown - REUSED fall (no knockdown pose)"
+  },
+  {
+   "anim": "getup",
+   "group": "jfc",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    168,
+    169,
+    203,
+    204
+   ],
+   "offset": [
+    48,
+    41
+   ],
+   "role": "get-up - REUSED crouch -> stand"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "frame": 1,
+   "component": 1,
+   "src_bbox": [
+    4,
+    4,
+    60,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "get-up - REUSED crouch -> stand"
+  },
+  {
+   "anim": "dizzy",
+   "group": "stand",
+   "frame": 1,
+   "component": 1,
+   "src_bbox": [
+    4,
+    4,
+    60,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "dizzy - REUSED stand f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "stand",
+   "frame": 2,
+   "component": 2,
+   "src_bbox": [
+    69,
+    4,
+    126,
+    52
+   ],
+   "offset": [
+    40,
+    28
+   ],
+   "role": "dizzy - REUSED stand f1-2 (no dizzy pose)"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 1,
+   "component": 1,
+   "src_bbox": [
+    4,
+    4,
+    60,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 2,
+   "component": 2,
+   "src_bbox": [
+    69,
+    4,
+    126,
+    52
+   ],
+   "offset": [
+    40,
+    28
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 3,
+   "component": 3,
+   "src_bbox": [
+    138,
+    4,
+    194,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 4,
+   "component": 4,
+   "src_bbox": [
+    207,
+    4,
+    261,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "transform-in - REUSED stand"
+  },
+  {
+   "anim": "taunt",
+   "group": "down",
+   "frame": 1,
+   "component": 72,
+   "src_bbox": [
+    6,
+    398,
+    67,
+    446
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "taunt - REUSED attack v f1 (arms spread)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 1,
+   "component": 1,
+   "src_bbox": [
+    4,
+    4,
+    60,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "win - REUSED stand (no win pose)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 2,
+   "component": 2,
+   "src_bbox": [
+    69,
+    4,
+    126,
+    52
+   ],
+   "offset": [
+    40,
+    28
+   ],
+   "role": "win - REUSED stand (no win pose)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 3,
+   "component": 3,
+   "src_bbox": [
+    138,
+    4,
+    194,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "win - REUSED stand (no win pose)"
+  },
+  {
+   "anim": "win",
+   "group": "stand",
+   "frame": 4,
+   "component": 4,
+   "src_bbox": [
+    207,
+    4,
+    261,
+    52
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "win - REUSED stand (no win pose)"
+  },
+  {
+   "anim": "lose",
+   "group": "jfc",
+   "frame": 3,
+   "component": 38,
+   "src_bbox": [
+    168,
+    169,
+    203,
+    204
+   ],
+   "offset": [
+    48,
+    41
+   ],
+   "role": "lose - REUSED crouch (no lose pose)"
+  },
+  {
+   "anim": "grab",
+   "group": "attack",
+   "frame": 1,
+   "component": 39,
+   "src_bbox": [
+    20,
+    230,
+    64,
+    290
+   ],
+   "offset": [
+    43,
+    16
+   ],
+   "role": "grab - REUSED jab"
+  },
+  {
+   "anim": "grab",
+   "group": "attack",
+   "frame": 2,
+   "component": 41,
+   "src_bbox": [
+    92,
+    241,
+    145,
+    290
+   ],
+   "offset": [
+    42,
+    27
+   ],
+   "role": "grab - REUSED jab"
+  },
+  {
+   "anim": "wvPlant",
+   "group": "down",
+   "frame": 1,
+   "component": 72,
+   "src_bbox": [
+    6,
+    398,
+    67,
+    446
+   ],
+   "offset": [
+    42,
+    28
+   ],
+   "role": "PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod"
+  },
+  {
+   "anim": "wvPlant",
+   "group": "down",
+   "frame": 2,
+   "component": 75,
+   "src_bbox": [
+    87,
+    407,
+    150,
+    446
+   ],
+   "offset": [
+    42,
+    37
+   ],
+   "role": "PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod"
+  },
+  {
+   "anim": "wvPlant",
+   "group": "down",
+   "frame": 3,
+   "component": 76,
+   "src_bbox": [
+    166,
+    407,
+    199,
+    446
+   ],
+   "offset": [
+    48,
+    37
+   ],
+   "role": "PLANT cast (attack v f1-2 + f3 crouch): Thornspike / Snare Vine / Bloom Pod"
+  },
+  {
+   "anim": "wvGrow",
+   "group": "down",
+   "frame": 4,
+   "component": 77,
+   "src_bbox": [
+    210,
+    407,
+    242,
+    446
+   ],
+   "offset": [
+    48,
+    37
+   ],
+   "role": "planting / growth hold (attack v LOOP f4-7)"
+  },
+  {
+   "anim": "wvGrow",
+   "group": "down",
+   "frame": 5,
+   "component": 78,
+   "src_bbox": [
+    254,
+    407,
+    286,
+    446
+   ],
+   "offset": [
+    48,
+    37
+   ],
+   "role": "planting / growth hold (attack v LOOP f4-7)"
+  },
+  {
+   "anim": "wvGrow",
+   "group": "down",
+   "frame": 6,
+   "component": 79,
+   "src_bbox": [
+    300,
+    407,
+    332,
+    446
+   ],
+   "offset": [
+    48,
+    37
+   ],
+   "role": "planting / growth hold (attack v LOOP f4-7)"
+  },
+  {
+   "anim": "wvGrow",
+   "group": "down",
+   "frame": 7,
+   "component": 80,
+   "src_bbox": [
+    341,
+    407,
+    373,
+    446
+   ],
+   "offset": [
+    48,
+    37
+   ],
+   "role": "planting / growth hold (attack v LOOP f4-7)"
+  },
+  {
+   "anim": "wvWhip",
+   "group": "fwd",
+   "frame": 1,
+   "component": 54,
+   "src_bbox": [
+    10,
+    306,
+    55,
+    365
+   ],
+   "offset": [
+    43,
+    17
+   ],
+   "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
+  },
+  {
+   "anim": "wvWhip",
+   "group": "fwd",
+   "frame": 2,
+   "component": 55,
+   "src_bbox": [
+    68,
+    317,
+    180,
+    365
+   ],
+   "offset": [
+    43,
+    28
+   ],
+   "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
+  },
+  {
+   "anim": "wvWhip",
+   "group": "fwd",
+   "frame": 3,
+   "component": 56,
+   "src_bbox": [
+    184,
+    317,
+    282,
+    365
+   ],
+   "offset": [
+    43,
+    28
+   ],
+   "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
+  },
+  {
+   "anim": "wvWhip",
+   "group": "fwd",
+   "frame": 4,
+   "component": 57,
+   "src_bbox": [
+    286,
+    317,
+    371,
+    365
+   ],
+   "offset": [
+    43,
+    28
+   ],
+   "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
+  },
+  {
+   "anim": "wvWhip",
+   "group": "fwd",
+   "frame": 5,
+   "component": 58,
+   "src_bbox": [
+    386,
+    317,
+    455,
+    365
+   ],
+   "offset": [
+    43,
+    28
+   ],
+   "role": "VINE WHIP / STRETCH POKE (attack -> f1 wind-up, f2-4 extend, f5 retract)"
+  },
+  {
+   "anim": "wvRise",
+   "group": "up",
+   "frame": 2,
+   "component": 94,
+   "src_bbox": [
+    70,
+    475,
+    121,
+    531
+   ],
+   "offset": [
+    43,
+    20
+   ],
+   "role": "VERDANT RISE (attack ^ f2-4, the tall green growth)"
+  },
+  {
+   "anim": "wvRise",
+   "group": "up",
+   "frame": 3,
+   "component": 92,
+   "src_bbox": [
+    131,
+    471,
+    183,
+    531
+   ],
+   "offset": [
+    43,
+    16
+   ],
+   "role": "VERDANT RISE (attack ^ f2-4, the tall green growth)"
+  },
+  {
+   "anim": "wvRise",
+   "group": "up",
+   "frame": 4,
+   "component": 93,
+   "src_bbox": [
+    189,
+    474,
+    241,
+    531
+   ],
+   "offset": [
+    43,
+    19
+   ],
+   "role": "VERDANT RISE (attack ^ f2-4, the tall green growth)"
+  },
+  {
+   "anim": "wvSeed",
+   "group": "attack",
+   "frame": 5,
+   "component": 42,
+   "src_bbox": [
+    288,
+    242,
+    354,
+    290
+   ],
+   "offset": [
+    43,
+    28
+   ],
+   "role": "SEED SHOT (attack f5 reaching arm)"
+  }
+ ]
+}

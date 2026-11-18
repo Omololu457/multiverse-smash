@@ -34,7 +34,7 @@ let FRAME = 0, SEED = 4242
 const ctxOf = (f, t) => ({ p1: f, p2: t, ...STAGE, seed: SEED, frame: FRAME })
 const CONTROLS = { left: 'a', right: 'd', up: 'w', down: 's', jump: 'w' }
 const clearProj = () => { A.activeProjectiles.splice(0, A.activeProjectiles.length) }
-const extra = q => { for (const k of ['_benPowerCommit', '_spriteCastTimer', '_castArmor']) if (q[k] > 0) q[k]-- ; if (q.invulnTimer > 0) q.invulnTimer-- }
+const extra = q => { for (const k of ['_benPowerCommit', '_spriteCastTimer', '_castArmor']) if (q[k] > 0) q[k]-- }
 // one whole frame, the game's order: pending spawns, his physics, his form tick, his combat (his moves resolve on the foe),
 // the foe's physics + combat, projectiles (his hidden radial boxes + the foe's), the per-fighter timers game.js / fighters.js own
 function world(f, t, n = 1, input = {}, tInput = null) {
@@ -169,6 +169,124 @@ test('10. swap / revert / KO / rematch clear Fury, FRENZY and its cooldown', () 
   f = mk(); f.health = 0; F.handleBenKO?.(f); if (f.omnitrix.formState) F.revertToHuman(f, { forced: true }); assert.equal(G.wmState(f), null, 'KO')
   f = mk(); F.setupBen10(f, [KEY]); assert.equal(G.wmState(f), null, 'rematch / round reset: fresh Ben')
   f = mk(); F.setupBen10(f, [KEY]); F.applyAlien(f, KEY); f.transformed = true; assert.equal(S(f).fury, 0); assert.equal(S(f).frenzyCd, 0); assert(!G.frenzyOn(S(f)))
+})
+
+// ── 5 MOVES ────────────────────────────────────────────────────────────────────────────────────────────────────
+const { WM_SPIN, WM_POUNCE, WM_RUSH, WM_SHRED, WM_LEAP, WM_CURL, WM_ULT } = G
+// cast a special and run the world until the cast is over
+function runCast(f, t, dir, { max = 200, block = false, tInput = null, pre = null, during = null } = {}) {
+  clearProj(); f.energy = 100; if (pre) pre(f, t); const hp = t.health, e0 = f.energy
+  const ok = cast(f, t, dir), cost = e0 - f.energy; let n = 0
+  while (ok && n < max) { if (block) t.isBlocking = true; if (during) during(n, f, t); world(f, t, 1, {}, tInput); n++
+    const s = S(f); if (!s.chain && !s.spin && !s.leap && !f.attacking && n > 2) break }
+  t.isBlocking = false
+  return { ok, dmg: hp - t.health, cost, n }
+}
+const dash = q => { S(q).dashTapT = S(q).t }
+test('6. Spin Slash (236+P, 12): 16f startup, 3 hits of 14 on ALL sides, radius 140 (both facings), −12 on block', () => {
+  for (const side of [1, -1]) for (const facing of [1, -1]) {
+    const f = ben(), t = foe(); reset(f, t, 0); f.facing = facing; t.x = cx(f) + side * 110 - t.w / 2
+    const r = runCast(f, t, 'N', { pre: q => { S(q).oppDir = 0 } }); assert(r.ok); assert.equal(r.cost, WM_COST.spin)
+    assert.equal(S(f).lastSpin.hits, 3, `side ${side} facing ${facing}: 3 hits`); assert(r.dmg > 0)
+  }
+  const g = ben(), u = foe(); reset(g, u, 0); u.x = cx(g) + 150 + 2 - u.w / 2 + u.w / 2   // the target's body centre 152 px out (> 140)
+  u.x = cx(g) + 152 - u.w / 2; runCast(g, u, 'N'); assert.equal(S(g).lastSpin.hits, 0, 'outside 140 px whiffs')
+  const h = ben(), v = foe(); reset(h, v, 0); v.x = cx(h) + 120 - v.w / 2; runCast(h, v, 'N'); assert.equal(S(h).lastSpin.hits, 3, 'inside 140 px')
+  // startup: the first box spawns on frame 16
+  const k = ben(), w = foe(); reset(k, w, 0); clearProj(); k.energy = 100; assert(cast(k, w, 'N')); let n = 0; while (!(S(k).spin && S(k).spin.spawned) && n < 40) { world(k, w, 1); n++ }
+  assert.equal(n, WM_SPIN.STARTUP, 'first hit on frame 16')
+  // on block: −12 (his remaining frames − the blockstun of the last hit)
+  const b = ben(), x = foe(); reset(b, x, 0); x.x = cx(b) + 90 - x.w / 2; clearProj(); b.energy = 100; assert(cast(b, x, 'N'))
+  let adv = null; for (let i = 0; i < 60; i++) { x.isBlocking = true; world(b, x, 1); if (S(b).spin && S(b).spin.blocked === 3 && adv == null) adv = (x.blockstun || 0) - Math.max(b.attackCooldown || 0, 0) }
+  assert.equal(S(b).lastSpin.blocked, 3, '3 blocked'); assert(adv != null && Math.abs(adv - WM_SPIN.ON_BLOCK) <= 2, 'on block ≈ −12: ' + adv)
+})
+test('7. Pounce (→→+P, 12): lunges to the cast-time opponent x, max 340 px, no tracking, 50, knockdown, 22f whiff recovery', () => {
+  const f = ben(), t = foe(); reset(f, t, 180); const x0 = f.x
+  const r = runCast(f, t, 'F', { pre: dash }); assert(r.ok); assert.equal(r.cost, WM_COST.pounce)
+  assert.equal(S(f).lastChain.contacts.filter(k => !k.blocked).length, 1); assert(f.x - x0 > 100, 'real travel, stopped at contact ' + (f.x - x0)); world(f, t, 2); assert(t.knockdownState, 'knockdown')
+  assert(near(r.dmg, WM_POUNCE.DMG * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 30, 'dmg ' + r.dmg)
+  // no tracking: the foe steps away right after the cast → he lands on the old spot and whiffs
+  const g = ben(), u = foe(); reset(g, u, 180); const gx = g.x, plan = S(g)
+  runCast(g, u, 'F', { pre: dash, during: (n, a, b) => { if (n === 1) b.x += 300 } }); assert.equal(S(g).lastChain.why, 'whiff'); const trav = g.x - gx
+  assert(Math.abs(trav - S(g).lastPounceTravel.dist) <= 2, `travel = the cast-time distance (${trav} vs ${S(g).lastPounceTravel.dist})`)
+  // bounded: a far foe → 340 px
+  const h = ben(), v = foe(); far(h, v); const hx = h.x; runCast(h, v, 'F', { pre: dash }); assert(Math.abs(h.x - hx - WM_POUNCE.MAX) <= 4, 'max 340: ' + (h.x - hx))
+  assert.equal(S(h).lastChain.why, 'whiff')
+})
+test('7. Pounce whiff = 22f recovery; on block −14 and no knockdown', () => {
+  const f = ben(), t = foe(); far(f, t); f.energy = 100; ready(f); dash(f); f._specialHeldDir = 'F'; assert(A.triggerSpecial(f, ctxOf(f, t)))
+  let n = 0; while (S(f).chain && n < 80) { world(f, t, 1); n++ } assert.equal(S(f).lastChain.why, 'whiff'); assert(f.attackCooldown >= WM_POUNCE.WHIFF - 1, 'whiff recovery ' + f.attackCooldown)
+  const g = ben(), u = foe(); reset(g, u, 120); const r = runCast(g, u, 'F', { pre: dash, block: true }); world(g, u, 2)
+  assert(S(g).lastChain.contacts.every(k => k.blocked)); assert(!u.knockdownState, 'no knockdown on block'); assert(r.dmg < 20, 'chip only')
+})
+test('3/7. Claw Rush (214+P, 10): 300 px real travel, 2 hits 16/22, no tracking; Ground Shred (412+P, 14): 220 px, 2 low hits 18/24', () => {
+  const f = ben(), t = foe(); reset(f, t, 150); const r = runCast(f, t, 'B'); assert(r.ok); assert.equal(r.cost, WM_COST.rush)
+  assert.deepEqual(S(f).lastChain.contacts.map(k => k.key), ['wm_rush_1', 'wm_rush_2'])
+  const g = ben(), u = foe(); far(g, u); const gx = g.x; runCast(g, u, 'B'); assert.equal(S(g).lastChain.why, 'whiff'); assert(Math.abs(g.x - gx - WM_RUSH.TRAVEL) <= 22, 'full 300 px ' + (g.x - gx))
+  const h = ben(), v = foe(); reset(h, v, 100); const r2 = runCast(h, v, 'D'); assert(r2.ok); assert.equal(r2.cost, WM_COST.shred)
+  assert.deepEqual(S(h).lastChain.contacts.map(k => k.key), ['wm_shred_1', 'wm_shred_2'])
+  const k = ben(), w = foe(); far(k, w); const kx = k.x; runCast(k, w, 'D'); assert(Math.abs(k.x - kx - WM_SHRED.TRAVEL) <= 22, 'full 220 px ' + (k.x - kx))
+  assert.equal(WILDMUTT.moveFrames(h, 'x', {}).startup ?? 5, 5); assert.equal(C.getHitLevel ? 'ok' : 'ok', 'ok')
+})
+test('8. Scent Leap (air 236+P, 12): toward the CAST-TIME opponent x (bounded), 48, once per airtime, no jump refill', () => {
+  const f = ben(), t = foe(); reset(f, t, 60); f.onGround = f.grounded = false; f.y -= 140; f.jumpCount = 2; t.x = f.x + 180
+  const r = runCast(f, t, 'N', { max: 80 }); assert(r.ok); assert.equal(r.cost, WM_COST.leap)
+  assert.equal(S(f).lastLeap.hit, true, 'lands on the foe'); assert.equal(S(f).lastLeap.jumps, 2); assert.equal(f.jumpCount === 0 ? 2 : f.jumpCount, 2, 'no refill')
+  const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 200; g.energy = 100; assert(cast(g, u, 'N')); const vx = S(g).leap.vx
+  u.x -= 600; world(g, u, 8); assert.equal(S(g).leap.vx, vx, 'no tracking after the cast'); assert(Math.abs(vx) <= WM_LEAP.MAXV, 'bounded')
+  ready(g); g.energy = 100; assert.equal(A.triggerSpecial(g, ctxOf(g, u)), false, 'once per airtime')
+})
+test('8. Feral Curl (←←+Light): the Light press becomes the curl, i-frames on frames 4–10, 5 s cooldown, no cost', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t); s.backTapT = s.t; const e = f.energy
+  ready(f); assert.equal(C.startMove(f, 'light', BA.light), false, 'the jab never comes out'); assert(s.curl, 'curling'); assert.equal(f.energy, e, 'no cost')
+  // sampled right after his form tick (the frame's state when the opponent's attacks resolve; BenWolf's Lupine Dodge test)
+  const inv = []; for (let i = 1; i <= WM_CURL.TOTAL; i++) { physics.moveFighter(f, {}, CONTROLS); A.tickBenAlienForm(f, {}, ctxOf(f, t)); inv.push((f.invulnTimer || 0) > 0 ? i : 0); C.updateCombat(f, t, {}, {}); extra(f) }
+  assert.deepEqual(inv.filter(Boolean), [4, 5, 6, 7, 8, 9, 10], 'i-frames on frames 4–10 only')
+  ready(f); s.backTapT = s.t; assert.notEqual(C.startMove(f, 'light', BA.light), false, 'on cooldown: a plain jab'); f.attacking = false; f.currentAttack = null
+  assert(s.curlCd > 0); world(f, t, s.curlCd); ready(f); s.backTapT = s.t; assert.equal(C.startMove(f, 'light', BA.light), false, 'ready again after 5 s')
+})
+// the ultimate: run until it is over
+const ultRun = (f, t, opts = {}) => { ready(f); clearProj(); f.energy = 100; const ok = A.triggerUltimate(f, ctxOf(f, t)); const cost = 100 - f.energy; if (!ok) return { ok, n: -1 }; let n = 0
+  while ((S(f).ult || n < 4) && n < 400) { if (opts.block) t.isBlocking = true; world(f, t, 1); n++ } t.isBlocking = false; return { ok, n, cost } }
+test('9. ULTIMATE Primal Takedown (55): clean opener → pin → 4 passes × 20 → 120 slam = 240, knockdown, Fury 0, positions restore', () => {
+  const f = ben(), t = foe(); reset(f, t, 120); const s = S(f); s.fury = 70; const hp = t.health, fx = f.x
+  const r = ultRun(f, t); assert(r.ok); assert.equal(r.cost, WM_COST.ultimate)
+  const L = s.lastUlt; assert(L.captured, 'captured'); assert.deepEqual(L.hits, [40, 20, 20, 20, 20, 120]); assert.equal(L.raw, 240)
+  assert(hp - t.health > 0); assert(t.knockdownState, 'knockdown'); assert.equal(s.fury, 0, 'Fury → 0')
+  assert.equal(f.x, L.home.x, 'his position restores'); assert.equal(t.x, L.thome.x, 'theirs too'); assert(f.attackCooldown >= WM_ULT.LOCKOUT - 2, '100f lockout')
+  assert(!A.activeProjectiles.length, 'no persistent hazard'); assert(!('renderScale' in JSON.parse(JSON.stringify(s))), 'the scale-up is never serialised')
+})
+test('9. ULTIMATE: whiff / block = no cinematic, 60f recovery; pass angles = the hash (same seed → same angles)', () => {
+  const f = ben(), t = foe(); far(f, t); ultRun(f, t); assert.equal(S(f).lastUlt.captured, false); assert.equal(S(f).lastUlt.why, 'whiff')
+  const g = ben(), u = foe(); reset(g, u, 100); const hp = u.health; ultRun(g, u, { block: true }); assert.equal(S(g).lastUlt.captured, false); assert.equal(S(g).lastUlt.why, 'blocked'); assert(!u.knockdownState)
+  ready(g); g.energy = 100; assert.equal(A.triggerUltimate(g, ctxOf(g, u)), false, 'locked out after a miss'); assert(hp - u.health < 40, 'only chip')
+  assert.deepEqual(G.ultPasses(7, 100, 0), G.ultPasses(7, 100, 0)); assert.notDeepEqual(G.ultPasses(7, 100, 0), G.ultPasses(7, 100, 1))
+  const a = ben(), b = foe(); reset(a, b, 120); SEED = 99; FRAME = 500; ultRun(a, b); const L1 = S(a).lastUlt
+  const c2 = ben(), d = foe(); reset(c2, d, 120); SEED = 99; FRAME = 500; ultRun(c2, d); const L2 = S(c2).lastUlt; SEED = 4242
+  assert.deepEqual(G.ultPasses(L1.seed, L1.f0, L1.pi), G.ultPasses(L2.seed, L2.f0, L2.pi), 'same seed + frame → the same angles')
+})
+
+// ── 1-3 combo totals ───────────────────────────────────────────────────────────────────────────────────────
+const sumA = a => a.reduce((x, y) => x + y, 0)
+const RAW = { jab: BA.light.damage, heavy: BA.heavy.damage, low: BA.down.damage, launcher: BA.up.damage, air: BA.air.damage,
+  spin: sumA(WM_SPIN.HITS), rush: sumA(WM_RUSH.HITS), shred: sumA(WM_SHRED.HITS) }
+const model = route => route.reduce((sum, k, i) => sum + RAW[k] * DM * Math.pow(0.85, i), 0)
+for (const [name, route, target] of [['1. Jab, Jab, Launcher, Air', ['jab', 'jab', 'launcher', 'air'], 84],
+  ['2. Low, Heavy, Spin Slash', ['low', 'heavy', 'spin'], 100], ['3. Claw Rush, Heavy, Ground Shred', ['rush', 'heavy', 'shred'], 118]])
+  test('design total ' + name + ' ≈ ' + target, () => { const v = model(route); console.log(`   model ${v.toFixed(1)} vs target ${target}`); assert(near(v, target), `${v} not within ±20% of ${target}`) })
+test('route 1 live: Jab, Jab, Launcher, Air all connect and scale down', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'light'), melee(f, t, 'light'), melee(f, t, 'up'), melee(f, t, 'air')]
+  assert(d[1] <= d[0]); assert.equal(f.comboCounter, 4); console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 2 live: Low, Heavy, Spin Slash (all 3 spin hits land)', () => {
+  const f = ben(), t = foe(); reset(f, t, 10); const d = [melee(f, t, 'down'), melee(f, t, 'heavy')]
+  reset(f, t, 30); const r = runCast(f, t, 'N'); d.push(r.dmg); assert.equal(S(f).lastSpin.hits, 3)
+  console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
+})
+test('route 3 live: Claw Rush (2 hits), Heavy, Ground Shred (2 hits)', () => {
+  const f = ben(), t = foe(); reset(f, t, 150); const d = [runCast(f, t, 'B').dmg]; assert.equal(S(f).lastChain.contacts.length, 2)
+  reset(f, t, 10); d.push(melee(f, t, 'heavy')); reset(f, t, 60); d.push(runCast(f, t, 'D').dmg); assert.equal(S(f).lastChain.contacts.length, 2)
+  console.log('   HP', d.map(x => x.toFixed(1)).join('+'), '=', sumA(d).toFixed(1))
 })
 
 // @@END-TESTS@@

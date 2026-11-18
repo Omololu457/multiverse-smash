@@ -1,0 +1,1203 @@
+{
+ "source": "assets/sprites/ben10/aliens/benwolf.png",
+ "credit": "Sheet by Dragonrod",
+ "key_report": {
+  "colours": 18,
+  "keyed_px": 212903,
+  "key": [
+   196,
+   197,
+   167
+  ],
+  "tolerance": 0,
+  "pure_white_only_in_credit_box": true,
+  "ring_blue_shared_with_diagram_arrow": true,
+  "black_shared_by_outline_and_text": true
+ },
+ "zero_tolerance_key": true,
+ "cell": [
+  102,
+  90
+ ],
+ "feetY": 69,
+ "centreX": 51,
+ "actionScale": 1.5,
+ "torso_window": 20,
+ "groups": {
+  "stand": [
+   [
+    8
+   ],
+   [
+    9
+   ],
+   [
+    6
+   ],
+   [
+    7
+   ]
+  ],
+  "run": [
+   [
+    20
+   ],
+   [
+    18
+   ],
+   [
+    19
+   ],
+   [
+    21
+   ]
+  ],
+  "air": [
+   [
+    37
+   ],
+   [
+    38
+   ],
+   [
+    39
+   ]
+  ],
+  "atk": [
+   [
+    54
+   ],
+   [
+    55
+   ],
+   [
+    56
+   ],
+   [
+    57
+   ]
+  ],
+  "fwd": [
+   [
+    67
+   ],
+   [
+    68
+   ],
+   [
+    69
+   ],
+   [
+    70
+   ]
+  ],
+  "up": [
+   [
+    78
+   ],
+   [
+    79
+   ],
+   [
+    80
+   ],
+   [
+    81
+   ]
+  ],
+  "low": [
+   [
+    110
+   ],
+   [
+    106
+   ],
+   [
+    107
+   ],
+   [
+    108
+   ]
+  ]
+ },
+ "fx_groups": {
+  "howlRing": [
+   [
+    59
+   ],
+   [
+    58
+   ],
+   [
+    53
+   ],
+   [
+    51
+   ],
+   [
+    52
+   ]
+  ],
+  "upRing": [
+   [
+    82
+   ],
+   [
+    83
+   ],
+   [
+    84
+   ],
+   [
+    85
+   ],
+   [
+    89
+   ]
+  ],
+  "lowRing": [
+   [
+    112
+   ],
+   [
+    111
+   ],
+   [
+    109
+   ],
+   [
+    104
+   ],
+   [
+    105
+   ]
+  ]
+ },
+ "fx_loop": {
+  "howlRing": [
+   3,
+   4
+  ],
+  "upRing": [
+   3,
+   4
+  ],
+  "lowRing": [
+   3,
+   4
+  ]
+ },
+ "excluded": {
+  "labels": {
+   "components": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    71,
+    72,
+    73,
+    74,
+    76,
+    77,
+    93,
+    94,
+    95,
+    96,
+    101,
+    102
+   ],
+   "reason": "row label text (\"Stand\", \"walk/run\", \"jump\", \"fall\", \"crouch\", \"Attack\" x4): annotation, not art"
+  },
+  "arrow_glyphs": {
+   "components": [
+    66,
+    75,
+    97
+   ],
+   "reason": "the ->, ^, v glyphs after \"Attack\": annotation, not art"
+  },
+  "loop_labels": {
+   "components": [
+    46,
+    47,
+    48,
+    49,
+    50,
+    86,
+    87,
+    88,
+    90,
+    91,
+    92,
+    98,
+    99,
+    100,
+    103
+   ],
+   "reason": "the three \"loop\" words + their bracket lines (Attack / Attack ^ / Attack v rings): annotation; recorded as FX_LOOP"
+  },
+  "move_diagram": {
+   "components": [
+    113,
+    115,
+    114,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121
+   ],
+   "reason": "the small figure under Attack v: a 15x20 mini BenWolf (a shrunk Attack v pose) with a grey <- arrow and a dashed blue ring with a -> arrow = a MOVE DIAGRAM (the howl goes out ahead while he leans back), not an animation frame. Excluded: at x3 a 15x20 icon of a pose already on the sheet adds nothing to the HUD, and its arrows are annotation"
+  },
+  "credit_box": {
+   "components": [
+    122
+   ],
+   "reason": "the white credit box and its text (\"BenWolf sprite sheet made by Dragonrod / please, give credits if used!\"): kept as the ledger credit line, not art"
+  }
+ },
+ "ledger": [
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    8
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "idle (Stand f1-4 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 2,
+   "components": [
+    9
+   ],
+   "offset": [
+    20,
+    22
+   ],
+   "role": "idle (Stand f1-4 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 3,
+   "components": [
+    6
+   ],
+   "offset": [
+    16,
+    21
+   ],
+   "role": "idle (Stand f1-4 loop)"
+  },
+  {
+   "anim": "idle",
+   "group": "stand",
+   "frame": 4,
+   "components": [
+    7
+   ],
+   "offset": [
+    14,
+    21
+   ],
+   "role": "idle (Stand f1-4 loop)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    20
+   ],
+   "offset": [
+    4,
+    30
+   ],
+   "role": "walk - the walk/run row SLOWED (speed 9; the row is one 4-frame cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    18
+   ],
+   "offset": [
+    2,
+    34
+   ],
+   "role": "walk - the walk/run row SLOWED (speed 9; the row is one 4-frame cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    19
+   ],
+   "offset": [
+    9,
+    23
+   ],
+   "role": "walk - the walk/run row SLOWED (speed 9; the row is one 4-frame cycle)"
+  },
+  {
+   "anim": "walk",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    21
+   ],
+   "offset": [
+    11,
+    33
+   ],
+   "role": "walk - the walk/run row SLOWED (speed 9; the row is one 4-frame cycle)"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    21
+   ],
+   "offset": [
+    11,
+    33
+   ],
+   "role": "walk back - walk/run REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    19
+   ],
+   "offset": [
+    9,
+    23
+   ],
+   "role": "walk back - walk/run REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    18
+   ],
+   "offset": [
+    2,
+    34
+   ],
+   "role": "walk back - walk/run REVERSED and slowed"
+  },
+  {
+   "anim": "walk_back",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    20
+   ],
+   "offset": [
+    4,
+    30
+   ],
+   "role": "walk back - walk/run REVERSED and slowed"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 3,
+   "components": [
+    19
+   ],
+   "offset": [
+    9,
+    23
+   ],
+   "role": "run - walk/run f3-4 low gallop cycled FASTER (speed 4, 2-frame loop)"
+  },
+  {
+   "anim": "run",
+   "group": "run",
+   "frame": 4,
+   "components": [
+    21
+   ],
+   "offset": [
+    11,
+    33
+   ],
+   "role": "run - walk/run f3-4 low gallop cycled FASTER (speed 4, 2-frame loop)"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 1,
+   "components": [
+    20
+   ],
+   "offset": [
+    4,
+    30
+   ],
+   "role": "dash - walk/run f1-2 (crouched push + full-stretch leap), fast"
+  },
+  {
+   "anim": "dash",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    18
+   ],
+   "offset": [
+    2,
+    34
+   ],
+   "role": "dash - walk/run f1-2 (crouched push + full-stretch leap), fast"
+  },
+  {
+   "anim": "crouch",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "crouch (the crouch frame)"
+  },
+  {
+   "anim": "jump",
+   "group": "air",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "offset": [
+    25,
+    19
+   ],
+   "role": "jump rise (the jump frame)"
+  },
+  {
+   "anim": "doubleJump",
+   "group": "air",
+   "frame": 1,
+   "components": [
+    37
+   ],
+   "offset": [
+    25,
+    19
+   ],
+   "role": "double jump - REUSED jump frame"
+  },
+  {
+   "anim": "fall",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    38
+   ],
+   "offset": [
+    38,
+    13
+   ],
+   "role": "jump fall (the fall frame) = the AIR body"
+  },
+  {
+   "anim": "guard",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "guard / block - REUSED crouch (no block art)"
+  },
+  {
+   "anim": "crouchGuard",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "crouch block - REUSED crouch"
+  },
+  {
+   "anim": "blockHit",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "block hit - REUSED crouch (the engine block flash shows the hit)"
+  },
+  {
+   "anim": "hurt",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    38
+   ],
+   "offset": [
+    38,
+    13
+   ],
+   "role": "hit light / heavy - REUSED fall frame (no hurt art)"
+  },
+  {
+   "anim": "hurt_air",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    38
+   ],
+   "offset": [
+    38,
+    13
+   ],
+   "role": "hit in the air - REUSED fall frame"
+  },
+  {
+   "anim": "knockdown",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    38
+   ],
+   "offset": [
+    38,
+    13
+   ],
+   "role": "knockdown - REUSED fall -> crouch (no knockdown / lying art)"
+  },
+  {
+   "anim": "knockdown",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "knockdown - REUSED fall -> crouch (no knockdown / lying art)"
+  },
+  {
+   "anim": "getup",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "get-up - REUSED crouch -> Stand f1 (no get-up art)"
+  },
+  {
+   "anim": "getup",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    8
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "get-up - REUSED crouch -> Stand f1 (no get-up art)"
+  },
+  {
+   "anim": "dizzy",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    8
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "dizzy - REUSED Stand f1 (no dizzy art)"
+  },
+  {
+   "anim": "transform",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    8
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "transform-in - REUSED Stand f1 (no transform art; the engine Omnitrix flash plays over it)"
+  },
+  {
+   "anim": "taunt",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    8
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "taunt - REUSED Stand f1-4"
+  },
+  {
+   "anim": "taunt",
+   "group": "stand",
+   "frame": 2,
+   "components": [
+    9
+   ],
+   "offset": [
+    20,
+    22
+   ],
+   "role": "taunt - REUSED Stand f1-4"
+  },
+  {
+   "anim": "taunt",
+   "group": "stand",
+   "frame": 3,
+   "components": [
+    6
+   ],
+   "offset": [
+    16,
+    21
+   ],
+   "role": "taunt - REUSED Stand f1-4"
+  },
+  {
+   "anim": "taunt",
+   "group": "stand",
+   "frame": 4,
+   "components": [
+    7
+   ],
+   "offset": [
+    14,
+    21
+   ],
+   "role": "taunt - REUSED Stand f1-4"
+  },
+  {
+   "anim": "win",
+   "group": "up",
+   "frame": 4,
+   "components": [
+    81
+   ],
+   "offset": [
+    39,
+    27
+   ],
+   "role": "win - REUSED Attack ^ f4 (howling up)"
+  },
+  {
+   "anim": "lose",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "lose - REUSED crouch (no lose art)"
+  },
+  {
+   "anim": "idleAlt",
+   "group": "stand",
+   "frame": 1,
+   "components": [
+    8
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "idle alt - REUSED Stand f1"
+  },
+  {
+   "anim": "light",
+   "group": "atk",
+   "frame": 1,
+   "components": [
+    54
+   ],
+   "offset": [
+    20,
+    22
+   ],
+   "role": "JAB - Attack f1-2"
+  },
+  {
+   "anim": "light",
+   "group": "atk",
+   "frame": 2,
+   "components": [
+    55
+   ],
+   "offset": [
+    21,
+    22
+   ],
+   "role": "JAB - Attack f1-2"
+  },
+  {
+   "anim": "heavy",
+   "group": "fwd",
+   "frame": 2,
+   "components": [
+    68
+   ],
+   "offset": [
+    24,
+    5
+   ],
+   "role": "HEAVY - Attack -> f2 (big claw swoosh, the hit frame) -> f4 low follow-through"
+  },
+  {
+   "anim": "heavy",
+   "group": "fwd",
+   "frame": 4,
+   "components": [
+    70
+   ],
+   "offset": [
+    14,
+    23
+   ],
+   "role": "HEAVY - Attack -> f2 (big claw swoosh, the hit frame) -> f4 low follow-through"
+  },
+  {
+   "anim": "down",
+   "group": "air",
+   "frame": 3,
+   "components": [
+    39
+   ],
+   "offset": [
+    4,
+    37
+   ],
+   "role": "LOW - the crouch frame + a procedural claw spark (render)"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "frame": 1,
+   "components": [
+    78
+   ],
+   "offset": [
+    39,
+    27
+   ],
+   "role": "LAUNCHER - Attack ^ f1-2"
+  },
+  {
+   "anim": "up",
+   "group": "up",
+   "frame": 2,
+   "components": [
+    79
+   ],
+   "offset": [
+    39,
+    27
+   ],
+   "role": "LAUNCHER - Attack ^ f1-2"
+  },
+  {
+   "anim": "air",
+   "group": "air",
+   "frame": 2,
+   "components": [
+    38
+   ],
+   "offset": [
+    38,
+    13
+   ],
+   "role": "AIR - the fall frame (the AIR body) + a procedural claw spark (render)"
+  },
+  {
+   "anim": "grab",
+   "group": "fwd",
+   "frame": 4,
+   "components": [
+    70
+   ],
+   "offset": [
+    14,
+    23
+   ],
+   "role": "grab - REUSED Attack -> f4"
+  },
+  {
+   "anim": "bwHowl",
+   "group": "atk",
+   "frame": 3,
+   "components": [
+    56
+   ],
+   "offset": [
+    16,
+    22
+   ],
+   "role": "SONIC HOWL cast (Attack f3-4; the ring loop is the FX strip howlRing)"
+  },
+  {
+   "anim": "bwHowl",
+   "group": "atk",
+   "frame": 4,
+   "components": [
+    57
+   ],
+   "offset": [
+    15,
+    22
+   ],
+   "role": "SONIC HOWL cast (Attack f3-4; the ring loop is the FX strip howlRing)"
+  },
+  {
+   "anim": "bwHowlHold",
+   "group": "atk",
+   "frame": 4,
+   "components": [
+    57
+   ],
+   "offset": [
+    15,
+    22
+   ],
+   "role": "SONIC HOWL hold (Attack f4, mouth open, while the rings keep spawning)"
+  },
+  {
+   "anim": "bwRake",
+   "group": "fwd",
+   "frame": 2,
+   "components": [
+    68
+   ],
+   "offset": [
+    24,
+    5
+   ],
+   "role": "CLAW RAKE (Attack -> f2-4: the two big swooshes, then the follow-through)"
+  },
+  {
+   "anim": "bwRake",
+   "group": "fwd",
+   "frame": 3,
+   "components": [
+    69
+   ],
+   "offset": [
+    19,
+    13
+   ],
+   "role": "CLAW RAKE (Attack -> f2-4: the two big swooshes, then the follow-through)"
+  },
+  {
+   "anim": "bwRake",
+   "group": "fwd",
+   "frame": 4,
+   "components": [
+    70
+   ],
+   "offset": [
+    14,
+    23
+   ],
+   "role": "CLAW RAKE (Attack -> f2-4: the two big swooshes, then the follow-through)"
+  },
+  {
+   "anim": "bwPounce",
+   "group": "fwd",
+   "frame": 1,
+   "components": [
+    67
+   ],
+   "offset": [
+    19,
+    2
+   ],
+   "role": "POUNCE leap (Attack -> f1)"
+  },
+  {
+   "anim": "bwRise",
+   "group": "up",
+   "frame": 3,
+   "components": [
+    80
+   ],
+   "offset": [
+    39,
+    27
+   ],
+   "role": "RISING HOWL cast (Attack ^ f3-4; the stacked rings are the FX strip upRing)"
+  },
+  {
+   "anim": "bwRise",
+   "group": "up",
+   "frame": 4,
+   "components": [
+    81
+   ],
+   "offset": [
+    39,
+    27
+   ],
+   "role": "RISING HOWL cast (Attack ^ f3-4; the stacked rings are the FX strip upRing)"
+  },
+  {
+   "anim": "bwLow",
+   "group": "low",
+   "frame": 1,
+   "components": [
+    110
+   ],
+   "offset": [
+    33,
+    21
+   ],
+   "role": "LOW HOWL cast (Attack v f1-4; the horizontal rings are the FX strip lowRing)"
+  },
+  {
+   "anim": "bwLow",
+   "group": "low",
+   "frame": 2,
+   "components": [
+    106
+   ],
+   "offset": [
+    33,
+    20
+   ],
+   "role": "LOW HOWL cast (Attack v f1-4; the horizontal rings are the FX strip lowRing)"
+  },
+  {
+   "anim": "bwLow",
+   "group": "low",
+   "frame": 3,
+   "components": [
+    107
+   ],
+   "offset": [
+    33,
+    20
+   ],
+   "role": "LOW HOWL cast (Attack v f1-4; the horizontal rings are the FX strip lowRing)"
+  },
+  {
+   "anim": "bwLow",
+   "group": "low",
+   "frame": 4,
+   "components": [
+    108
+   ],
+   "offset": [
+    34,
+    20
+   ],
+   "role": "LOW HOWL cast (Attack v f1-4; the horizontal rings are the FX strip lowRing)"
+  },
+  {
+   "anim": "bwDive",
+   "group": "fwd",
+   "frame": 2,
+   "components": [
+    68
+   ],
+   "offset": [
+    24,
+    5
+   ],
+   "role": "DIVE CLAW (Attack -> f2 swoosh frame)"
+  },
+  {
+   "anim": "bwDodge",
+   "group": "run",
+   "frame": 2,
+   "components": [
+    18
+   ],
+   "offset": [
+    2,
+    34
+   ],
+   "role": "LUPINE DODGE (walk/run f2, the full-stretch leap frame)"
+  },
+  {
+   "anim": "bwClaw",
+   "group": "fwd",
+   "frame": 2,
+   "components": [
+    68
+   ],
+   "offset": [
+    24,
+    5
+   ],
+   "role": "HOWLING MOON capture claws (Attack -> f2-3 swoosh frames)"
+  },
+  {
+   "anim": "bwClaw",
+   "group": "fwd",
+   "frame": 3,
+   "components": [
+    69
+   ],
+   "offset": [
+    19,
+    13
+   ],
+   "role": "HOWLING MOON capture claws (Attack -> f2-3 swoosh frames)"
+  },
+  {
+   "fx": "howlRing",
+   "components": [
+    [
+     59
+    ],
+    [
+     58
+    ],
+    [
+     53
+    ],
+    [
+     51
+    ],
+    [
+     52
+    ]
+   ],
+   "loop": [
+    3,
+    4
+   ]
+  },
+  {
+   "fx": "upRing",
+   "components": [
+    [
+     82
+    ],
+    [
+     83
+    ],
+    [
+     84
+    ],
+    [
+     85
+    ],
+    [
+     89
+    ]
+   ],
+   "loop": [
+    3,
+    4
+   ]
+  },
+  {
+   "fx": "lowRing",
+   "components": [
+    [
+     112
+    ],
+    [
+     111
+    ],
+    [
+     109
+    ],
+    [
+     104
+    ],
+    [
+     105
+    ]
+   ],
+   "loop": [
+    3,
+    4
+   ]
+  }
+ ]
+}

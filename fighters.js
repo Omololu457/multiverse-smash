@@ -7,6 +7,7 @@ import { GOOP } from "./goop.js"
 import { EYEGUY } from "./eyeguy.js"
 import { GHOSTFREAK } from "./ghostfreak.js"
 import { ALIENX } from "./alienx.js"
+import { BRAINSTORM } from "./brainstorm.js"
 import { clearBenFormState, resetBenDefense, invalidateBenAction, handleBenKO, beginRegrowth, tickRegrowth } from "./ben10State.js"
 // fighters.js
 // Unique procedural canvas drawings for each character.
@@ -943,8 +944,12 @@ export const BEN10_ALIEN_POOL = {
     ultimate: { name: "Absolute Decree", cost: 60, damage: 250 } },
   clockwork:  mkAlien({ name: "Clockwork", color: "#65a30d", role: "zoner", hp: 1050, spd: 74, dmg: 0.95, weight: "heavy",
                         special: { name: "Time Ray", ranged: true, damage: 100, cost: 25, effect: "slows target" }, ult: { name: "Time Stop", damage: 200, effect: "freezes opponent briefly" } }),
-  brainstorm: mkAlien({ name: "Brainstorm", color: "#7c3aed", role: "zoner", hp: 960, spd: 6, dmg: 0.95,
-                        special: { name: "Lightning Storm", ranged: true, damage: 115, cost: 25, projectileId: "brainstorm_bolt" }, ult: { name: "Mind Surge", damage: 205 } }),
+  // Brainstorm (READY, brainstorm.js): crab-wide, low hurtbox matching his ~124 px tall / ~180 px wide sprite; Dome / Pattern
+  // Read / Synapse / specials / ult via the ready-form hooks. mods (speed 0.85 / dmg 1.00 / def 1.10 / weight 1.00) via applyAlien.
+  brainstorm: { name: "Brainstorm", color: "#c2410c", maxHealth: 1000,
+    stats: { maxHealth: 1000, speed: 7, maxJumps: 2, jumpPower: 22, sizeW: 90, sizeH: 96 },
+    basic_attacks: BRAINSTORM.basic_attacks, specials: BRAINSTORM.moves,
+    ultimate: { name: "Neural Tempest", cost: 55, damage: 250 } },
   ampfibian:  mkAlien({ name: "Ampfibian", color: "#3b82f6", role: "speed", hp: 930, spd: 9, jumps: 3, jump: 23, dmg: 0.8, weight: "light",
                         special: { name: "Shock Pulse", ranged: true, damage: 95, cost: 18 }, ult: { name: "Electro Cyclone", damage: 185, active: 10 } }),
   gravattack: mkAlien({ name: "Gravattack", color: "#9333ea", role: "heavy", hp: 1250, spd: 5, jumps: 1, jump: 18, dmg: 1.2, flags: { armor: true }, weight: "heavy", sizeW: 70, sizeH: 120,

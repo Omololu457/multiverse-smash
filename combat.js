@@ -36,7 +36,7 @@ import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack 
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
-import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak, benAlienStruck } from "./ben10State.js"
+import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak, benAlienStruck, benAlienArmor } from "./ben10State.js"
 import { benWaterKnockback } from "./benFlood.js"   // Ripjaws STORM TIDE: submerged knockback ×0.8 / launch ×0.75 (gated on the _benWater stamp)
 /**
  * COMBAT ENGINE — merged clean version
@@ -3703,7 +3703,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
     // WOOD-CLONE CAST ARMOR (Hashirama one-shot strike): brief window shrugging a non-launcher hit — he can't
     // be flinched out of committing the wood-clone strike (wood durability, translated to a one-shot shape).
-    const castArmored = (defender._castArmor || 0) > 0 && !atk.launcher && !atk.spike && cat !== "ultimate"
+    const castArmored = ((defender._castArmor || 0) > 0 || benAlienArmor(defender, { move: atk, attacker, cat })) && !atk.launcher && !atk.spike && cat !== "ultimate"   // + a READY form's optional super armor (Rath's Fury); same exclusions
     // SUPERMAN — SUPER ARMOR on Heavy: while committing his Heavy he shrugs ONE hit without flinching (still
     // takes the damage), then it goes on an 8s cooldown. Launchers/spikes/ultimates pierce it. Gated on
     // superman → no effect on any other character.
@@ -4668,6 +4668,9 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const supArmoredProj = !fighter.isBlocking && (fighter.rosterKey || "").toLowerCase() === "superman" &&
         fighter.attacking && fighter.currentAttack && fighter.currentAttack.name === "heavy" &&
         (fighter._supArmorCd || 0) <= 0 && !proj.isUltimate
+      // READY Omnitrix form super armor on a PROJECTILE (optional `armor` hook; Rath's Fury): no hitstun / knockback / move
+      // cancel, damage still applies below. Ultimates and unblockables pierce it. benReadyForm-gated → false for everyone else.
+      const benArmoredProj = !fighter.isBlocking && !proj.isUltimate && !proj.unblockable && !supArmoredProj && benAlienArmor(fighter, { proj, attacker: proj.owner })
       if (fighter.isBlocking) {
         dmg *= 0.15
         dmg = krybotProjectileChip(proj, dmg)
@@ -4675,6 +4678,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else if (supArmoredProj) {
         fighter.armorFlash = 8; fighter._supArmorCd = 480   // shrug the projectile; damage still applies below
+      } else if (benArmoredProj) {
+        fighter.armorFlash = 8   // READY form super armor: shrug the projectile; damage still applies below
       } else {
         delete fighter._benVineHold
         invalidateBenAction(fighter)

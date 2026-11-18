@@ -181,3 +181,89 @@ export function drawRathFx(c, f, frame = 0, opp = null) {
   const s = rtState(f); if (!s || !c) return
   for (const d of FX_DRAW) d(c, f, s, frame, opp)
 }
+
+// ── 3. FURY (his unique system, GAME_STATE) ─────────────────────────────────────────────────────────────────────
+// A 0–100 gauge, shown under Omnitrix Power while he is active; starts at 0. It GAINS FROM BOTH SIDES OF A FIGHT (unlike
+// every other alien's pips): landing a hit +4 (blocked +2) — every contact HE makes (onContact: normals + his melee specials;
+// the command-grab rant adds its own) — and TAKING a hit +5 (blocking one +2) — every attack that lands on him or that he
+// blocks (struck: melee / projectile / throw). −1/f after 150f with neither gain. Caps at 100.
+// TIERS: 0–59 base. 60–99 RAGING: damage +10%, move startup −1f (min 1f). 100 → RATH'S FURY: 180f of SUPER ARMOR (the
+// optional `armor` hook: hits from normal- / special-tagged melee and projectiles land WITHOUT hitstun / knockback / a move
+// cancel — he still takes the full damage; launchers / spikes, unblockables, throws and cinematic / ultimate hits still
+// combo / knock him down: armor against flinch, not invulnerability), damage +15% (−1f startup kept). It ends into COOLDOWN:
+// Fury 0, 240f where gains are halved; it can only trigger again 600f after it ended (until then a full gauge is RAGING).
+// Swap / revert / KO / rematch: a fresh formState (Fury, the armor window, the cooldown all cleared; the armor is read live
+// from formState, so nothing lingers on the fighter).
+export const RT_FURY = { MAX: 100, HIT: 4, HIT_BLOCKED: 2, TAKEN: 5, TAKEN_BLOCKED: 2, IDLE: 150, DECAY: 1, RAGE: 60,
+  RAGE_DMG: 1.10, CUT: 1, FURY_T: 180, FURY_DMG: 1.15, CD: 240, CD_GAIN: 0.5, REUSE: 600 }
+export const furyOn = s => !!(s && s.furyT > 0)
+export const furyTier = s => (!s ? 0 : furyOn(s) ? 3 : s.fury >= RT_FURY.RAGE ? 2 : 1)
+export function gainFury(f, s, amount, side) {
+  if (!s || !(amount > 0) || furyOn(s)) return 0
+  const add = amount * (s.furyCd > 0 ? RT_FURY.CD_GAIN : 1)
+  const before = s.fury
+  s.fury = Math.min(RT_FURY.MAX, s.fury + add); s.lastGainT = s.t
+  const got = s.fury - before
+  if (side === "dealt") s.gainDealt += got; else s.gainTaken += got
+  if (s.fury >= RT_FURY.MAX && s.t >= s.furyReadyAt) { s.furyT = RT_FURY.FURY_T; s.furyUses++; s.roarT = s.t }   // RATH'S FURY
+  return got
+}
+export function endFury(f, s, why) {
+  if (!furyOn(s)) return
+  s.furyT = 0; s.fury = 0; s.furyCd = RT_FURY.CD; s.furyReadyAt = s.t + RT_FURY.REUSE
+  s.furyEnds.push(why); if (s.furyEnds.length > 4) s.furyEnds.shift()
+}
+TICKS.push((f, s) => {
+  if (s.furyT > 0) { if (--s.furyT <= 0) { s.furyT = 1; endFury(f, s, "timer") } return }
+  if (s.furyCd > 0) s.furyCd--
+  if (s.fury > 0 && s.t - s.lastGainT >= RT_FURY.IDLE) s.fury = Math.max(0, s.fury - RT_FURY.DECAY)
+})
+CONTACT.push((f, s, target, { blocked }) => { gainFury(f, s, blocked ? RT_FURY.HIT_BLOCKED : RT_FURY.HIT, "dealt") })
+STRUCK.push((f, s, { blocked }) => { gainFury(f, s, blocked ? RT_FURY.TAKEN_BLOCKED : RT_FURY.TAKEN, "taken") })
+DEALT.push((f, s, target, raw, opts) => (isUltHit(opts) ? raw : raw * (furyOn(s) ? RT_FURY.FURY_DMG : furyTier(s) >= 2 ? RT_FURY.RAGE_DMG : 1)))
+MD_XFORM.push((f, s, key, md) => (furyTier(s) >= 2 && !md.rtFollow ? { ...md, startup: Math.max(1, (md.startup ?? 5) - RT_FURY.CUT) } : md))
+export const startupOf = (s, n) => Math.max(1, n - (furyTier(s) >= 2 ? RT_FURY.CUT : 0))   // his own scheduled beats (grab)
+// the SUPER ARMOR test (combat.js via ben10State.benAlienArmor). Plain reads + counters only.
+function armor(f, info) {
+  const s = rtState(f); if (!furyOn(s)) return false
+  const m = info.move, p = info.proj
+  const pierce = m ? (m.unblockable || m.launcher || m.spike || m.isUltimate || info.cat === "ultimate" || info.cat === "grab" || m.category === "grab")
+    : p ? (p.unblockable || p.isUltimate) : true
+  if (pierce) { s.pierced++; return false }
+  s.armored++; return true
+}
+RATH.armor = armor
+
+// render-only: the Fury gauge under the Omnitrix bar (orange; RAGING pulses red; RATH'S FURY flashes with its time left;
+// the cooldown greys it out)
+const ORANGE = "#ff5500", DARKOR = "#bd4204", RAGE = "#ef4444", WHITE = "#f1f1f0", INK = "#1b1b1f"
+HUD_PARTS.push((ctx, f, s, { bx, y, w, flip }) => {
+  const h = 5, tier = furyTier(s), fill = furyOn(s) ? s.furyT / RT_FURY.FURY_T : s.fury / RT_FURY.MAX
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(bx - 1, y - 1, w + 2, h + 2)
+  ctx.fillStyle = s.furyCd > 0 && !furyOn(s) ? "#6b7280" : tier === 3 ? ((s.t >> 2) % 2 ? WHITE : ORANGE) : tier === 2 ? ((s.t >> 3) % 2 ? RAGE : ORANGE) : DARKOR
+  const fw = Math.round(w * Math.max(0, Math.min(1, fill))); ctx.fillRect(flip ? bx + w - fw : bx, y, fw, h)
+  ctx.fillStyle = INK; const mk = Math.round(w * RT_FURY.RAGE / RT_FURY.MAX); ctx.fillRect(flip ? bx + w - mk : bx + mk, y, 1, h)   // the RAGING mark
+  const label = furyOn(s) ? `RATH'S FURY ${Math.ceil(s.furyT / 60)}s` : s.furyCd > 0 ? "FURY COOLDOWN" : tier === 2 ? "RAGING" : "FURY"
+  ctx.font = "bold 8px monospace"; ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"
+  ctx.fillStyle = tier >= 2 ? WHITE : "#fdba74"; ctx.fillText(label, flip ? bx + w : bx, y + h + 2)
+})
+// render-only: RAGING heat shimmer, the RATH'S FURY armor glow (a pulsing pixel outline) + the trigger roar burst
+FX_DRAW.push((c, f, s, frame) => {
+  const tier = furyTier(s), x0 = f.x, y0 = f.y, w = f.w || 64, h = f.h || 118
+  c.save()
+  if (tier >= 2) {                                                          // heat shimmer: pixels rising off his shoulders
+    c.globalAlpha = 0.55; c.fillStyle = tier === 3 ? "#fde047" : ORANGE
+    for (let i = 0; i < 6; i++) { const ph = (frame * 2 + i * 13) % 40; px(c, x0 + 6 + ((i * 23) % (w - 12)), y0 + 20 - ph, 3) }
+  }
+  if (tier === 3) {                                                         // armor glow: a stepped orange outline, pulsing
+    const a = 0.45 + 0.35 * ((frame >> 2) % 2); c.globalAlpha = a; c.fillStyle = ORANGE
+    for (let yy = 0; yy < h; yy += 6) { px(c, x0 - 3, y0 + yy, 3); px(c, x0 + w + 3, y0 + yy, 3) }
+    for (let xx = 0; xx < w; xx += 6) { px(c, x0 + xx, y0 - 3, 3) }
+  }
+  const age = s.t - s.roarT
+  if (age >= 0 && age < 24) {                                               // the roar burst: two pixel rings expanding
+    c.globalAlpha = 1 - age / 24; c.fillStyle = WHITE
+    for (const r0 of [age * 5 + 10, age * 3 + 4]) for (let k = 0; k < 16; k++) { const an = k / 16 * Math.PI * 2; px(c, cx(f) + Math.cos(an) * r0, y0 + h * 0.3 + Math.sin(an) * r0 * 0.7, 4) }
+  }
+  c.restore()
+})

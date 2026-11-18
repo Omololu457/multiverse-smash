@@ -53,6 +53,11 @@ export function benAlienNegatesSpecial(owner, target, commit = false) {
 // landed on it or was blocked by it — info = { kind: "melee" | "projectile" | "grab", move | proj, attacker, blocked, air }
 // (combat.js melee contact, projectile contact, resolveGrab connect). Observation only: no return value, no-op otherwise.
 export function benAlienStruck(defender, info) { const d = benReadyForm(defender); if (d && d.struck) d.struck(defender, info || {}) }
+// SUPER ARMOR (optional `armor(f, { move, attacker, cat } | { proj, attacker })` hook, added with Rath): true = this hit lands
+// WITHOUT hitstun / knockback / move cancel (damage still applies). combat.js asks it at the melee cast-armor test (launchers /
+// spikes / ultimates still pierce, the engine-wide armor rule) and at the projectile hit (ultimates / unblockables pierce).
+// Throws (resolveGrab) never consult it. null form / no hook → false: every other fighter / form is byte-identical.
+export function benAlienArmor(defender, info) { const d = benReadyForm(defender); return !!(d && d.armor && d.armor(defender, info || {})) }
 // Optional SPECIAL TAX status (Brainstorm Short-Circuit): `specialTax(owner, target)` on the OWNER's ready form, asked by
 // abilities.triggerSpecial for the opponent of the fighter pressing Special. Return { startup, costMult } to tax that special
 // (it is held for `startup` frames — the fighter can do nothing else — then fires through the normal path, and costMult − 1

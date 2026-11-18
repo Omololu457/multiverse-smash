@@ -94,6 +94,80 @@ test('inputs: the shared alien motions (236 / 214 / 412), →→ double tap, air
   f.onGround = f.grounded = false; assert.equal(G.pickSpecial(f, s), 'lunge')
 })
 
+
+// ── 3 FURY ─────────────────────────────────────────────────────────────────────────────────────────────────────
+const { RT_FURY } = G
+// the foe swings a real normal at him (the engine's startMove + updateCombat); returns { dmg, hitstun, kept }
+function foeSwing(f, t, key = 'heavy', md = null) {
+  ready(t); t.facing = cx(f) >= cx(t) ? 1 : -1
+  const m = md || t.basic_attacks[key]; assert(C.startMove(t, key, m), 'foe startMove ' + key)
+  if (m.unblockable) t.currentAttack.unblockable = true   // the engine sets it on the live attack after startMove (abilities.js Zenitsu ult)
+  const hp = f.health, bs = f.blockstun
+  for (let i = 0; i < 60 && f.health === hp && !(f.blockstun > bs) && t.attacking; i++) { t.hitstop = 0; C.updateCombat(t, f, {}, {}) }
+  t.attacking = false; t.currentAttack = null
+  return { dmg: hp - f.health, hitstun: f.hitstun }
+}
+const foeBolt = (f, t, md = {}) => { const p = A.spawnProjectile(t, 'rt_test_bolt', { damage: 30, speed: 0, vx: -0.01, vy: 0, spawnX: cx(f), spawnY: f.y + 50, rectHitbox: true, w: 30, h: 30, lifetime: 3, hitstun: 20, ...md }, {}); assert(p, 'bolt'); if (md.unblockable) p.unblockable = true; const hp = f.health; C.resolveProjectileHitsMulti([p], [f]); clearProj(); return { dmg: hp - f.health, hitstun: f.hitstun } }
+const maxFury = (f, s) => { s.fury = 96; G.gainFury(f, s, 5, 'dealt'); assert(G.furyOn(s), "RATH'S FURY") }
+test('5. Fury gains from LANDING (+4 / blocked +2) and from TAKING hits (+5 / blocked +2), tracked separately', () => {
+  const f = ben(), t = foe(), s = S(f); reset(f, t, 10)
+  melee(f, t, 'light'); assert.equal(s.fury, 4); assert.equal(s.gainDealt, 4)
+  reset(f, t, 10); melee(f, t, 'heavy', { block: true }); assert.equal(s.fury, 6, 'blocked +2'); assert.equal(s.gainDealt, 6)
+  reset(f, t, 10); ready(f); const r = foeSwing(f, t, 'light'); assert(r.dmg > 0); assert.equal(s.gainTaken, 5, 'taken +5'); assert.equal(s.fury, 11)
+  ready(f); f.isBlocking = true; foeSwing(f, t, 'light'); f.isBlocking = false; assert.equal(s.gainTaken, 7, 'blocked by him +2')
+  ready(f); foeBolt(f, t); assert.equal(s.gainTaken, 12, 'a projectile that lands +5')
+  assert.equal(s.gainDealt + s.gainTaken, s.fury)
+})
+test('5. Fury: −1/f after 150f with neither gain; caps at 100', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t)
+  s.fury = 40; s.lastGainT = s.t; world(f, t, RT_FURY.IDLE - 1); assert.equal(s.fury, 40, 'no decay before 150f')
+  world(f, t, 10); assert(s.fury < 40 && s.fury >= 29, 'decays −1/f after 150f: ' + s.fury)
+  s.furyReadyAt = 1e9; s.fury = 98; G.gainFury(f, s, 5, 'taken'); assert.equal(s.fury, 100, 'caps at 100'); assert(!G.furyOn(s), 'no window while not ready')
+})
+test('5. tiers: 0–59 base / 60–99 RAGING (+10% dmg, −1f startup, min 1f) / 100 RATH\'S FURY (+15%)', () => {
+  const f = ben(), s = S(f)
+  s.fury = 59; assert.equal(G.furyTier(s), 1); assert.equal(RATH.damageDealt(f, null, 100, {}), 100); assert.equal(RATH.moveFrames(f, 'light', BA.light).startup, 5)
+  s.fury = 60; assert.equal(G.furyTier(s), 2); assert(Math.abs(RATH.damageDealt(f, null, 100, {}) - 110) < 1e-9); assert.equal(RATH.moveFrames(f, 'light', BA.light).startup, 4)
+  assert.equal(RATH.moveFrames(f, 'x', { startup: 1 }).startup, 1, 'min 1f'); assert.equal(BA.light.startup, 5, 'the table is never mutated')
+  maxFury(f, s); assert.equal(G.furyTier(s), 3); assert(Math.abs(RATH.damageDealt(f, null, 100, {}) - 115) < 1e-9); assert.equal(s.furyT, RT_FURY.FURY_T)
+  assert.equal(RATH.damageDealt(f, null, 100, { move: 'rt_ult_final' }), 100, 'his ultimate is never boosted')
+})
+test('5. RATH\'S FURY super armor: a normal or a projectile lands with full damage but NO hitstun / knockback / move cancel', () => {
+  const f = ben(), t = foe(), s = S(f); reset(f, t, 10)
+  ready(f); assert(C.startMove(f, 'heavy', BA.heavy)); const base = foeSwing(f, t, 'heavy'); assert(base.hitstun > 0 && base.dmg > 0, 'unarmored: flinches (counter hit mid-Heavy)'); assert(!f.attacking, 'unarmored: his Heavy is cancelled')
+  const g = ben(), u = foe(); reset(g, u, 10); maxFury(g, S(g)); ready(g); assert(C.startMove(g, 'heavy', BA.heavy), 'he swings')
+  const r = foeSwing(g, u, 'heavy'); assert.equal(r.hitstun, 0, 'no hitstun'); assert(Math.abs(r.dmg - base.dmg) <= 1, `full damage ${r.dmg} vs ${base.dmg}`)
+  assert(g.attacking && g.currentAttack?.name === 'heavy', 'his Heavy was not cancelled'); assert.equal(g.vx || 0, 0, 'no knockback'); assert.equal(S(g).armored, 1)
+  const h = ben(), v = foe(); reset(h, v, 10); const b0 = foeBolt(h, v); assert(b0.hitstun > 0, 'unarmored bolt flinches')
+  const k = ben(), w = foe(); reset(k, w, 10); maxFury(k, S(k)); const b1 = foeBolt(k, w); assert.equal(b1.hitstun, 0, 'armored bolt'); assert.equal(b1.dmg, b0.dmg, 'full damage')
+})
+test('5. super armor is NOT invulnerability: launchers, unblockables, throws and ultimates still combo / knock him down', () => {
+  const all = [], mk = () => { const f = ben(), t = foe(); reset(f, t, 10); maxFury(f, S(f)); ready(f); all.push(f); return [f, t] }
+  let [f, t] = mk(); let r = foeSwing(f, t, 'up', t.basic_attacks.upAttack); assert(r.hitstun > 0 || f.isLaunched, 'a launcher pierces')
+  ;[f, t] = mk(); r = foeSwing(f, t, 'heavy', { ...t.basic_attacks.heavy, unblockable: true }); assert(r.hitstun > 0, 'an unblockable pierces')
+  ;[f, t] = mk(); r = foeSwing(f, t, 'heavy', { ...t.basic_attacks.heavy, isUltimate: true, category: 'ultimate' }); assert(r.hitstun > 0, 'an ultimate pierces')
+  ;[f, t] = mk(); ready(t); t.x = f.x + f.w - 10; t.facing = -1; assert(C.resolveGrab(t, f, {}), 'a throw connects'); assert(f.hitstun > 0 || f.isGrabbed, 'a throw is never armored')
+  ;[f, t] = mk(); r = foeBolt(f, t, { isUltimate: true }); assert(r.hitstun > 0, 'an ultimate projectile pierces')
+  ;[f, t] = mk(); r = foeBolt(f, t, { unblockable: true }); assert(r.hitstun > 0, 'an unblockable projectile pierces')
+  assert(all.reduce((a, q) => a + S(q).pierced, 0) >= 2, 'the armor test reported the piercing hits'); assert(all.every(q => G.furyOn(S(q))), 'still in RATH\'S FURY')
+})
+test('5. RATH\'S FURY lasts 180f → COOLDOWN (Fury 0, gains halved 240f) → once per 600f from the moment it ends', () => {
+  const f = ben(), t = foe(), s = S(f); far(f, t); maxFury(f, s)
+  world(f, t, RT_FURY.FURY_T - 1); assert(G.furyOn(s)); world(f, t, 1); assert(!G.furyOn(s), '180f'); assert.equal(s.fury, 0); assert.equal(s.furyCd, RT_FURY.CD); assert.equal(s.furyEnds.at(-1), 'timer')
+  const endT = s.t; G.gainFury(f, s, 4, 'dealt'); assert.equal(s.fury, 2, 'halved during the cooldown')
+  world(f, t, RT_FURY.CD); assert.equal(s.furyCd, 0); s.fury = 96; s.lastGainT = s.t; G.gainFury(f, s, 4, 'dealt'); assert.equal(s.fury, 100); assert(!G.furyOn(s), 'not again before 600f'); assert.equal(G.furyTier(s), 2, 'a full gauge is RAGING meanwhile')
+  world(f, t, endT + RT_FURY.REUSE - s.t); s.fury = 99; s.lastGainT = s.t; G.gainFury(f, s, 4, 'dealt'); assert(G.furyOn(s), '600f after it ended: available again'); assert.equal(s.furyUses, 2)
+})
+test('9. swap / revert / KO / rematch clear Fury, the super armor and its cooldown', () => {
+  const mk = () => { const f = ben('rath', ['rath', 'heatblast', 'goop', 'xlr8', 'megawhatt']); maxFury(f, S(f)); S(f).furyCd = 100; return f }
+  let f = mk(); assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, 'rath')); assert.equal(S(f).fury, 0); assert(!G.furyOn(S(f))); assert.equal(S(f).furyCd, 0)
+  assert.equal(RATH.armor(f, { move: BA.heavy }), false, 'no armor after a swap')
+  f = mk(); F.revertToHuman(f, { forced: true }); assert.equal(G.rtState(f), null, 'reverted: no Rath state'); assert.equal(RATH.armor(f, { move: BA.heavy }), false)
+  f = mk(); f.health = 0; F.handleBenKO?.(f); if (f.omnitrix.formState) F.revertToHuman(f, { forced: true }); assert.equal(RATH.armor(f, { move: BA.heavy }), false, 'KO')
+  f = mk(); F.setupBen10(f, ['rath']); assert.equal(G.rtState(f), null, 'rematch / round reset: fresh Ben')
+  assert(!('_castArmor' in f) || !(f._castArmor > 0), 'no lingering engine armor field')
+})
+
 // @@END-TESTS@@
 console.log(`\nRATH: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

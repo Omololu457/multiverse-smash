@@ -37,7 +37,8 @@ export const WILDMUTT = {
     air:    normal(32, 7, 4, 11, 2)                                                           // RUN f5 + claw swipe
   },
   anim: ANIM,
-  onApply, tick, moveFrames, damageDealt, drawFx: drawWildmuttFx
+  onApply, tick, moveFrames, damageTaken, damageDealt,
+  drawHud: drawWildmuttHud, drawFx: drawWildmuttFx
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -77,7 +78,12 @@ function tick(f, input, ctx, api) {
   if (ctx && Number.isFinite(ctx.stageWidth)) s.stage.R = ctx.stageWidth
   const opp = api && api.getOpponent ? api.getOpponent(f) : null
   if (s.scent.t > 0) s.scent.t--
+  tickFury(f, s)
   tickFacing(f, s, opp)
+  const want = s.fury.frenzyT > 0 ? FRENZY_ANIM : ANIM                       // render-only frame-set swap (the red wash)
+  if (f._skinAnim !== want) f._skinAnim = want
+  s.noBlock = s.fury.frenzyT > 0                                            // FRENZY: no guard (engine reads formState.noBlock)
+  s.noAttack = busy(s)
 }
 const busy = s => !!(s.pounce || s.gp || s.maul || s.roar || s.rush || s.dive || s.ult)
 // ── SCENT (a status on the OPPONENT, owned by this form's GAME_STATE) ─────────────────────────────────────────
@@ -97,17 +103,55 @@ function tickFacing(f, s, opp) {
 function moveFrames(f, key, md) {
   const s = wmState(f); if (!s || !md) return md
   if (busy(s)) return false
-  const cut = (scented(s) ? 1 : 0) + (false && (key === "light" || key === "heavy") ? 1 : 0)
+  const cut = (scented(s) ? 1 : 0) + (s.fury.frenzyT > 0 && (key === "light" || key === "heavy") ? 1 : 0)
   return cut ? { ...md, startup: Math.max(1, (md.startup ?? 5) - cut) } : md
 }
 
+// ── FERAL FURY + FRENZY ─────────────────────────────────────────────────────────────────────────────────────
+// Fury 0–100 (a gauge under Omnitrix Power, Heatblast's Heat pattern): +5 per hit landed, +8 per Pounce hit, +4 per hit
+// taken; −1/f after 120f without a gain. At 100: FRENZY 300f — speed ×1.20, damage ×1.20, Jab / Heavy startup −1f, a
+// render-only red-washed frame set; no guard, no Roar, no Maul. It ends in EXHAUSTION: Fury 0 and 90f without Pounce or
+// Bull Rush. ROAR spends ALL Fury (roar early, or build to Frenzy).
+export const WM_FURY = { MAX: 100, HIT: 5, POUNCE: 8, TAKEN: 4, IDLE: 120, FRENZY: 300, EXHAUST: 90, SPEED: 1.20, DMG: 1.20 }
+export function gainFury(f, s, n) {
+  const u = s.fury
+  if (u.frenzyT > 0 || !(n > 0)) return
+  u.v = Math.min(WM_FURY.MAX, u.v + n); u.idle = 0; s.stats.furyGain += n
+  if (u.v >= WM_FURY.MAX) startFrenzy(f, s)
+}
+function startFrenzy(f, s) {
+  const u = s.fury
+  u.v = WM_FURY.MAX; u.frenzyT = WM_FURY.FRENZY; s.stats.frenzies++
+  if (Number.isFinite(f._benWalkSpeed)) { u.baseWalk = f._benWalkSpeed; f._benWalkSpeed = u.baseWalk * WM_FURY.SPEED }
+}
+function tickFury(f, s) {
+  const u = s.fury
+  if (u.frenzyT > 0) {
+    if (--u.frenzyT === 0) {                                                // EXHAUSTION
+      u.v = 0; u.idle = 0; u.exhaustT = WM_FURY.EXHAUST
+      if (u.baseWalk != null) { f._benWalkSpeed = u.baseWalk; u.baseWalk = null }
+    }
+    return
+  }
+  if (u.exhaustT > 0) u.exhaustT--
+  if (++u.idle > WM_FURY.IDLE && u.v > 0) u.v--
+}
+export const frenzied = s => !!s && s.fury.frenzyT > 0
 
-// damage observation: normals' clean hits (combat `applyScaledDamage` → damageDealt with source "melee") mark Scent
+// damage observation: normals' clean hits (combat `applyScaledDamage` → damageDealt with source "melee") scent + Fury;
+// FRENZY ×1.20 on everything the form deals
 function damageDealt(f, target, raw, opts) {
   const s = wmState(f); if (!s) return raw
-  if (opts && opts.source === "melee" && target && target !== f) markScent(s)
+  if (opts && opts.source === "melee" && target && target !== f) { markScent(s); gainFury(f, s, WM_FURY.HIT) }
+  return s.fury.frenzyT > 0 ? raw * WM_FURY.DMG : raw
+}
+// hits taken (not chip) build Fury
+function damageTaken(f, raw, opts) {
+  const s = wmState(f); if (!s) return raw
+  if (!opts || opts.source !== "block-chip") gainFury(f, s, WM_FURY.TAKEN)
   return raw
 }
+
 
 // ── RENDER-ONLY (reads GAME_STATE, never writes it; no sim effect) ────────────────────────────────────────
 function rHash(a, b, c) {   // render-only deterministic hash → [0, 1) (dust / trail jitter)
@@ -153,5 +197,25 @@ export function drawWildmuttFx(c, f, frame = 0, opp = null) {
       drawPixelRing(c, s.lastPounce.lockX, oy, 26, 34, SCENT, 3, 14, frame / 12) }
     c.globalAlpha = 1
   }
+  if (s.fury.frenzyT > 0) {                                                  // FRENZY: red sparks
+    c.fillStyle = RED; for (let k = 0; k < 6; k++) px(c, fx + (rHash(k, frame >> 2, 3) - 0.5) * (f.w || 60) * 1.4, f.y + rHash(k, frame >> 2, 4) * (f.h || 110), 3)
+  }
   c.restore()
 }
+export function drawWildmuttHud(ctx, f, { x, enY, enH = 8, pbw, flip }) {
+  const s = wmState(f); if (!ctx || !s) return
+  const y = enY + enH + 3, w = Math.max(60, (pbw || 120) - 40), bx = flip ? x + 8 + (pbw || 120) - w : x + 8
+  const u = s.fury
+  ctx.save()
+  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(bx, y, w, 5)
+  ctx.fillStyle = u.frenzyT > 0 ? RED : u.exhaustT > 0 ? "#6b7280" : ORANGE
+  const fill = u.frenzyT > 0 ? u.frenzyT / WM_FURY.FRENZY : u.v / WM_FURY.MAX
+  ctx.fillRect(flip ? bx + w - Math.round(w * fill) : bx, y, Math.round(w * fill), 5)
+  ctx.fillStyle = "#fde68a"; const m = Math.round(w * 25 / WM_FURY.MAX); ctx.fillRect(flip ? bx + w - m : bx + m, y - 1, 1, 7)   // the Roar line
+  ctx.textBaseline = "top"; ctx.textAlign = flip ? "right" : "left"; ctx.font = "bold 7px Arial"
+  ctx.fillStyle = u.frenzyT > 0 ? "#fca5a5" : "#e5e7eb"
+  const label = u.frenzyT > 0 ? `FRENZY ${Math.ceil(u.frenzyT / 60)}s` : u.exhaustT > 0 ? "EXHAUSTED" : `FURY ${Math.round(u.v)}`
+  ctx.fillText(`${label}${s.scent.t > 0 ? `  SCENT ${Math.ceil(s.scent.t / 60)}s` : ""}`, flip ? bx + w : bx, y + 7)
+  ctx.restore()
+}
+

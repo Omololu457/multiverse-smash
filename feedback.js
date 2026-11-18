@@ -89,6 +89,7 @@ function tick(f, input, ctx, api) {
   tickCharge(f, s)
   tickGuard(f, s)
   tickStored(f, s)
+  tickDrain(f, s, opp)
   //@@TICK@@
   s.noAttack = busy(s)
 }
@@ -263,12 +264,52 @@ function tickStored(f, s) {
   if (--r.t <= 0) { addCharge(s, r.value); s.lastStored = { ...r, by: "dissipated" }; s.stored = null; s.stats.dissipated++ }
 }
 
+// ── 5. DRAIN pips → BLACKOUT ───────────────────────────────────────────────────────────────────────────────
+// A clean hit of SIPHON CABLE / PLASMA ORB / CONDUIT DASH = +1 Drain pip (tagged `alien.pip`, counted once per cast id), max 3; the
+// pips expire 240f after the last one. No pips from blocks, Overload Burst, Return Fire, Volt Shot, normals or the ult.
+// 3 pips → BLACKOUT 240f on the opponent: NO energy regen and meter gained from hits HALVED. Done in this form's tick with no engine
+// edit (meter is `energy` in this engine): each frame the opponent's energy rise since the last frame is inspected — a rise of
+// ≤1.5 / f (passive regen, Charge-button charging) is removed, a bigger one (an on-hit / on-block meter gain) is halved; spending
+// still works. Nothing polls the opponent's inputs or touches any clock. No refresh while active (pips can't build), then 360f
+// immunity. The static overlay on the opponent is render-only.
+export const FB_DRAIN = { MAX: 3, EXPIRE: 240, BLACKOUT: 240, IMMUNE: 360, REGEN_MAX: 1.5, HIT_MULT: 0.5 }
+export const blackedOut = s => !!s && s.drain.boT > 0
+export function addPip(f, s, cast) {
+  const d = s.drain
+  if (d.boT > 0 || d.immuneT > 0) return false                               // no refresh while active / immune afterwards
+  if (cast != null) { if (d.pipped.includes(cast)) return false; d.pipped.push(cast); if (d.pipped.length > 8) d.pipped.shift() }
+  d.pips = Math.min(FB_DRAIN.MAX, d.pips + 1); d.pipT = FB_DRAIN.EXPIRE; s.stats.pips++
+  return true
+}
+export function startBlackout(f, s, opp) {
+  const d = s.drain
+  if (!opp || d.boT > 0 || d.immuneT > 0) return false
+  d.pips = 0; d.pipT = 0; d.boT = FB_DRAIN.BLACKOUT; d.lastE = opp.energy || 0; d.blackouts++; s.stats.blackouts++
+  return true
+}
+function tickDrain(f, s, opp) {
+  const d = s.drain
+  if (d.boT > 0) {
+    if (opp) {
+      const e = opp.energy || 0
+      if (d.lastE == null) d.lastE = e
+      const rise = e - d.lastE
+      if (rise > 0) opp.energy = rise <= FB_DRAIN.REGEN_MAX ? d.lastE : d.lastE + rise * FB_DRAIN.HIT_MULT
+      d.lastE = opp.energy || 0
+    }
+    if (--d.boT === 0) { d.immuneT = FB_DRAIN.IMMUNE; d.lastE = null }
+  } else if (d.immuneT > 0) d.immuneT--
+  if (d.pips > 0 && d.boT <= 0) { if (--d.pipT <= 0) { d.pips = 0; d.pipT = 0 } }
+  if (d.pips >= FB_DRAIN.MAX) startBlackout(f, s, opp)
+}
+
 // ── hooks filled by the later sections (defaults: no-op) ───────────────────────────────────────────────────
 function hurtbox(f) { return null }
 function damageDealt(f, target, raw, opts) { return raw }
 function onContact(f, target, { proj = null, move = null, blocked = false } = {}) {
   const s = fbState(f); if (!s || blocked || !target || target === f) return
   const tag = proj && proj.alien
+  if (proj && tag && tag.pip === true && addPip(f, s, tag.cast) && s.drain.pips >= FB_DRAIN.MAX) startBlackout(f, s, target)   // the same frame the 3rd lands
   //@@CONTACT@@
   if (proj && tag && tag.fb === "siphon") return                                 // Siphon pays its own +15 (section 6)
   if (proj && tag && /^ult/.test(String(tag.fb || ""))) return                  // the ult's beats: no Charge (fixed total)
@@ -294,6 +335,9 @@ export function drawFeedbackHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
   if (r) { ctx.fillStyle = CYN; ctx.fillRect(sx + 3, y + 2, 6, 6); ctx.fillStyle = WHT; ctx.fillRect(sx + 1, y + 12, Math.round(10 * r.t / FB_GUARD.STORE), 1) }
   ctx.fillStyle = s.guard.t > 0 || s.guard.beamT > 0 ? YEL : s.guard.cd > 0 ? "#9ca3af" : "#e5e7eb"
   ctx.fillText(s.guard.t > 0 || s.guard.beamT > 0 ? "PLUG GUARD" : s.guard.cd > 0 ? `GUARD ${Math.ceil(s.guard.cd / 60)}s` : "GUARD", flip ? bx + w : bx, y + 14)
+  const d = s.drain
+  ctx.fillStyle = d.boT > 0 ? RED : d.pips ? BLU : "#e5e7eb"
+  ctx.fillText(d.boT > 0 ? `BLACKOUT ${Math.ceil(d.boT / 60)}s` : d.immuneT > 0 ? `DRAIN (immune ${Math.ceil(d.immuneT / 60)}s)` : `DRAIN ${"■".repeat(d.pips)}${"□".repeat(FB_DRAIN.MAX - d.pips)}`, flip ? bx + w : bx, y + 21)
   //@@HUD@@
   ctx.restore()
 }

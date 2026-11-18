@@ -21,7 +21,7 @@ Rules (see docs/ben10/aliens/diamondhead/SPRITE_LEDGER.md):
   * anchor = feet baseline (bottom row) + body centre = the centroid of the frame's BOTTOM 40 % (legs / boots), so a lance,
     blade or raised arm never drags it.
   * nearest-neighbour only: frames are copied 1:1, never cropped (asserted inside the cell); on-screen size = Ben
-    spriteScale 2.0 x actionScale 1.5 (native x3, like the Dragonrod Heatblast / Wildvine sheets).
+    spriteScale 2.0 x actionScale 0.9 (native x1.8; about his hurtbox height).
 Deterministic: re-running is byte-identical.
 """
 import json, os
@@ -36,7 +36,7 @@ BG = (0, 80, 255)
 KEY_DIST = 90
 FRINGE = (17, 21, 21)               # his dark outline / suit colour (sampled) - JPEG blue fringe snaps to it
 FEET_Y = 76
-ACTION_SCALE = 1.5
+ACTION_SCALE = 0.9    # was 1.5 (towered over the roster) — now about his hurtbox height, a head over Goku
 PREFIX = 'ben10_diamondhead_'
 
 im = np.array(Image.open(SRC).convert('RGB')).astype(np.int32)

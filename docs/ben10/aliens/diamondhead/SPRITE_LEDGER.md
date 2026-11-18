@@ -54,7 +54,7 @@ tallest is a double spike). JUMP / FALL / CROUCH 1 each; STAND 4; RUN 6; SHOOT 3
 Feet baseline (bottom row) + body centre = the centroid of the frame's bottom 40 % (legs / boots — never the lance,
 blade or raised arm). Cell 146×80, body centre x=73 (= the cell centre: the engine
 centres the cell on the fighter), feet y=76. Frames copied 1:1, nearest-neighbour, never cropped (asserted).
-On-screen: Ben spriteScale 2.0 × actionScale 1.5 (native ×3).
+On-screen: Ben spriteScale 2.0 × actionScale 0.9 (native ×1.8; about his hurtbox height — reduced from 1.5, which made him tower over the roster).
 
 ## Reused frames (missing poses)
 

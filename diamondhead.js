@@ -720,7 +720,7 @@ export function drawDiamondheadFx(c, f, frame = 0, opp = null) {
   }
   const L = s.lance, lext = L ? lanceExt(L.t) : 0
   if (L && lext > 0) {                                                       // CRYSTAL LANCE: the crystal past the sheet's lance art (360 px)
-    const e = armEdge(f, L.face), ay = f.y + (f.h || 110) * DH_LANCE.ARM_Y + 10, art = Math.min(lext, 140)
+    const e = armEdge(f, L.face), ay = f.y + (f.h || 110) * DH_LANCE.ARM_Y + 10, art = Math.min(lext, 16)   // starts at the hand in every lance pose (extend / hold / retract), so no gap at any sprite scale
     if (lext > art) { const x0 = e + L.face * art, x1 = e + L.face * lext
       c.fillStyle = OUT; c.fillRect(Math.round(Math.min(x0, x1)), Math.round(ay - 7), Math.round(Math.abs(x1 - x0)), 14)
       c.fillStyle = MINT; c.fillRect(Math.round(Math.min(x0, x1)), Math.round(ay - 5), Math.round(Math.abs(x1 - x0)), 10)

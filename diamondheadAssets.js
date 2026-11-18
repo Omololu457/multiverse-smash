@@ -14,7 +14,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "walk": {
     "sheet": "./ben10_diamondhead_walk_uniform.png",
@@ -26,7 +26,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "walk_back": {
     "sheet": "./ben10_diamondhead_walk_back_uniform.png",
@@ -38,7 +38,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "run": {
     "sheet": "./ben10_diamondhead_run_uniform.png",
@@ -50,7 +50,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dash": {
     "sheet": "./ben10_diamondhead_dash_uniform.png",
@@ -62,7 +62,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "jump": {
     "sheet": "./ben10_diamondhead_jump_uniform.png",
@@ -74,7 +74,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "doubleJump": {
     "sheet": "./ben10_diamondhead_doubleJump_uniform.png",
@@ -86,7 +86,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "fall": {
     "sheet": "./ben10_diamondhead_fall_uniform.png",
@@ -98,7 +98,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "crouch": {
     "sheet": "./ben10_diamondhead_crouch_uniform.png",
@@ -110,7 +110,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "guard": {
     "sheet": "./ben10_diamondhead_guard_uniform.png",
@@ -122,7 +122,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "blockHit": {
     "sheet": "./ben10_diamondhead_blockHit_uniform.png",
@@ -134,7 +134,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "light": {
     "sheet": "./ben10_diamondhead_light_uniform.png",
@@ -146,7 +146,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "heavy": {
     "sheet": "./ben10_diamondhead_heavy_uniform.png",
@@ -158,7 +158,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "down": {
     "sheet": "./ben10_diamondhead_down_uniform.png",
@@ -170,7 +170,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "up": {
     "sheet": "./ben10_diamondhead_up_uniform.png",
@@ -182,7 +182,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "air": {
     "sheet": "./ben10_diamondhead_air_uniform.png",
@@ -194,7 +194,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "hurt": {
     "sheet": "./ben10_diamondhead_hurt_uniform.png",
@@ -206,7 +206,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "hurt_air": {
     "sheet": "./ben10_diamondhead_hurt_air_uniform.png",
@@ -218,7 +218,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "knockdown": {
     "sheet": "./ben10_diamondhead_knockdown_uniform.png",
@@ -230,7 +230,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "getup": {
     "sheet": "./ben10_diamondhead_getup_uniform.png",
@@ -242,7 +242,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dizzy": {
     "sheet": "./ben10_diamondhead_dizzy_uniform.png",
@@ -254,7 +254,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "transform": {
     "sheet": "./ben10_diamondhead_transform_uniform.png",
@@ -266,7 +266,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "taunt": {
     "sheet": "./ben10_diamondhead_taunt_uniform.png",
@@ -278,7 +278,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "win": {
     "sheet": "./ben10_diamondhead_win_uniform.png",
@@ -290,7 +290,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "lose": {
     "sheet": "./ben10_diamondhead_lose_uniform.png",
@@ -302,7 +302,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "grab": {
     "sheet": "./ben10_diamondhead_grab_uniform.png",
@@ -314,7 +314,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhShoot": {
     "sheet": "./ben10_diamondhead_dhShoot_uniform.png",
@@ -326,7 +326,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhLance": {
     "sheet": "./ben10_diamondhead_dhLance_uniform.png",
@@ -338,7 +338,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhGround": {
     "sheet": "./ben10_diamondhead_dhGround_uniform.png",
@@ -350,7 +350,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhHarden": {
     "sheet": "./ben10_diamondhead_dhHarden_uniform.png",
@@ -362,7 +362,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhDive": {
     "sheet": "./ben10_diamondhead_dhDive_uniform.png",
@@ -374,7 +374,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhBurst": {
     "sheet": "./ben10_diamondhead_dhBurst_uniform.png",
@@ -386,7 +386,7 @@ export const DIAMONDHEAD_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   }
 }
 export const DIAMONDHEAD_PRISM_ANIM = {
@@ -400,7 +400,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "walk": {
     "sheet": "./ben10_diamondhead_prism_walk_uniform.png",
@@ -412,7 +412,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "walk_back": {
     "sheet": "./ben10_diamondhead_prism_walk_back_uniform.png",
@@ -424,7 +424,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "run": {
     "sheet": "./ben10_diamondhead_prism_run_uniform.png",
@@ -436,7 +436,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dash": {
     "sheet": "./ben10_diamondhead_prism_dash_uniform.png",
@@ -448,7 +448,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "jump": {
     "sheet": "./ben10_diamondhead_prism_jump_uniform.png",
@@ -460,7 +460,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "doubleJump": {
     "sheet": "./ben10_diamondhead_prism_doubleJump_uniform.png",
@@ -472,7 +472,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "fall": {
     "sheet": "./ben10_diamondhead_prism_fall_uniform.png",
@@ -484,7 +484,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "crouch": {
     "sheet": "./ben10_diamondhead_prism_crouch_uniform.png",
@@ -496,7 +496,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "guard": {
     "sheet": "./ben10_diamondhead_prism_guard_uniform.png",
@@ -508,7 +508,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "blockHit": {
     "sheet": "./ben10_diamondhead_prism_blockHit_uniform.png",
@@ -520,7 +520,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "light": {
     "sheet": "./ben10_diamondhead_prism_light_uniform.png",
@@ -532,7 +532,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "heavy": {
     "sheet": "./ben10_diamondhead_prism_heavy_uniform.png",
@@ -544,7 +544,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "down": {
     "sheet": "./ben10_diamondhead_prism_down_uniform.png",
@@ -556,7 +556,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "up": {
     "sheet": "./ben10_diamondhead_prism_up_uniform.png",
@@ -568,7 +568,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "air": {
     "sheet": "./ben10_diamondhead_prism_air_uniform.png",
@@ -580,7 +580,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "hurt": {
     "sheet": "./ben10_diamondhead_prism_hurt_uniform.png",
@@ -592,7 +592,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "hurt_air": {
     "sheet": "./ben10_diamondhead_prism_hurt_air_uniform.png",
@@ -604,7 +604,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "knockdown": {
     "sheet": "./ben10_diamondhead_prism_knockdown_uniform.png",
@@ -616,7 +616,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "getup": {
     "sheet": "./ben10_diamondhead_prism_getup_uniform.png",
@@ -628,7 +628,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dizzy": {
     "sheet": "./ben10_diamondhead_prism_dizzy_uniform.png",
@@ -640,7 +640,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "transform": {
     "sheet": "./ben10_diamondhead_prism_transform_uniform.png",
@@ -652,7 +652,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "taunt": {
     "sheet": "./ben10_diamondhead_prism_taunt_uniform.png",
@@ -664,7 +664,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "win": {
     "sheet": "./ben10_diamondhead_prism_win_uniform.png",
@@ -676,7 +676,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": true,
     "lockLastFrame": false,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "lose": {
     "sheet": "./ben10_diamondhead_prism_lose_uniform.png",
@@ -688,7 +688,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "grab": {
     "sheet": "./ben10_diamondhead_prism_grab_uniform.png",
@@ -700,7 +700,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhShoot": {
     "sheet": "./ben10_diamondhead_prism_dhShoot_uniform.png",
@@ -712,7 +712,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhLance": {
     "sheet": "./ben10_diamondhead_prism_dhLance_uniform.png",
@@ -724,7 +724,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhGround": {
     "sheet": "./ben10_diamondhead_prism_dhGround_uniform.png",
@@ -736,7 +736,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhHarden": {
     "sheet": "./ben10_diamondhead_prism_dhHarden_uniform.png",
@@ -748,7 +748,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhDive": {
     "sheet": "./ben10_diamondhead_prism_dhDive_uniform.png",
@@ -760,7 +760,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   },
   "dhBurst": {
     "sheet": "./ben10_diamondhead_prism_dhBurst_uniform.png",
@@ -772,7 +772,7 @@ export const DIAMONDHEAD_PRISM_ANIM = {
     "loop": false,
     "lockLastFrame": true,
     "originY": 76,
-    "actionScale": 1.5
+    "actionScale": 0.9
   }
 }
 export const DIAMONDHEAD_FX = {
@@ -864,5 +864,5 @@ export const DIAMONDHEAD_FX = {
     ]
   }
 }
-export const DIAMONDHEAD_GEOM = {"cellW": 146, "cellH": 80, "centreX": 73, "feetY": 76, "actionScale": 1.5}
+export const DIAMONDHEAD_GEOM = {"cellW": 146, "cellH": 80, "centreX": 73, "feetY": 76, "actionScale": 0.9}
 export const DIAMONDHEAD_ALT_PAL = {"white": [243, 244, 242], "dark": [17, 21, 21], "mint": [152, 221, 200]}

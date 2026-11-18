@@ -14,7 +14,7 @@
  ],
  "feetY": 76,
  "centreX": 73,
- "actionScale": 1.5,
+ "actionScale": 0.9,
  "groups": {
   "stand": [
    4,

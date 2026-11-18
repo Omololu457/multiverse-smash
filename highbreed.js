@@ -51,7 +51,7 @@ export function freshHighbreedState() {
     airborne: false, apexY: null, capY: null, jumpHeld: 0, flightUsed: 0, flights: 0,
     surge: 0, lastGainT: 0, mutT: 0, mutCd: 0, mutLock: 0, mutations: 0, surgeDealt: 0, surgeTaken: 0,
     taunt: null, tauntHold: 0, taunts: 0,
-    claws: null, dive: null, lance: null, wing: null, wingUsed: false, ult: null,
+    claws: null, dive: null, diveUsed: false, lance: null, wing: null, wingUsed: false, ult: null,
     lastClaws: null, lastDive: null, lastLance: null, lastWing: null, lastUlt: null, lastNormal: null,
     stats: { casts: 0, claws: 0, clawHits: 0, dives: 0, diveHits: 0, lances: 0, lanceHits: 0, wings: 0, wingHits: 0, normals: { grounded: 0, running: 0, flying: 0 } } }
 }
@@ -440,8 +440,9 @@ TICKS.push((f, s, input, api) => {
 //    first (8f of take-off, his own lift — no jump is spent). Ends on landing or after the travel (12f landing recovery).
 export const HB_DIVE = { LEAP: 8, LEAP_VY: -9, VX: 16, VY: 7, TRAVEL: 320, DMG: 50, ON_BLOCK: -12, LAND: 12 }
 function castDive(f, s, api) {
+  if (!grounded(f) && s.diveUsed) return false                                    // once per airtime (like Wing Slash); resets on landing
   const cast = beginCast(f, s, api, HB_COST.dive); if (cast == null) return false
-  const leap = grounded(f)
+  const leap = grounded(f); s.diveUsed = true
   s.dive = { t: 0, cast, face: f.facing || 1, leap, x0: null, hit: false, jumps: f.jumpCount, lastY: f.y }; s.stats.dives++
   if (leap) { f.vy = HB_DIVE.LEAP_VY; f.onGround = f.grounded = false }
   f.vx = 0; hold(f, 2); pose(f, leap ? "hbDiveUp" : "hbDive", 2)
@@ -512,7 +513,7 @@ function castWing(f, s, api) {
   return true
 }
 CASTS.wing = castWing
-TICKS.push((f, s) => { if (grounded(f) && !s.wing) s.wingUsed = false })
+TICKS.push((f, s) => { if (grounded(f) && !s.wing) s.wingUsed = false; if (grounded(f) && !s.dive) s.diveUsed = false })
 TICKS.push((f, s, input, api) => {
   const d = s.wing; if (!d) return
   d.t++

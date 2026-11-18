@@ -493,7 +493,7 @@ function tickDive(f, s, api) {
   if (landed || d.t >= DH_DIVE.MAX) { endDive(f, s, landed); return }
   f._benGlide = { vx: d.face * DH_DIVE.SPEED, vy: DH_DIVE.SPEED }
   if (!d.hit) hitbox(f, api, "dh_dive", d.face, { damage: DH_DIVE.DMG, spawnX: cx(f) + d.face * 18, spawnY: f.y + (f.h || 110) * 0.7, w: DH_DIVE.W, h: DH_DIVE.H,
-    lifetime: 1, hitstun: 26, blockstun: 12, knockbackX: 5, knockbackY: -3, alien: { dh: "dive", pip: false, cast: d.cast } })
+    lifetime: 2, hitstun: 26, blockstun: 12, knockbackX: 5, knockbackY: -3, alien: { dh: "dive", pip: false, cast: d.cast } })   // 2, not 1: the live loop ages a box BEFORE hits resolve (a 1f box is deleted unseen)
   f._spriteCastMove = "dhDive"; f._spriteCastTimer = 2
 }
 function endDive(f, s, landed) {

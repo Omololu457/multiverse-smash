@@ -289,8 +289,8 @@ function onContact(f, target, { proj = null, move = null, blocked = false, dealD
   if (proj.hbRocket != null && s.rocketCast !== proj.hbRocket) {          // Fire Rocket: +12 once per cast (half on block)
     s.rocketCast = proj.hbRocket; addHeat(f, blocked ? HB_HEAT.ROCKET / 2 : HB_HEAT.ROCKET)
   }
+  if (proj.hbDive && s.dive) s.dive.hit = true                            // one contact per dive, blocked or clean (a blocked dive ends too)
   if (blocked) return
-  if (proj.hbDive && s.dive) s.dive.hit = true
   if (proj.hbScorch != null) addScorchPip(f, s, proj.hbScorch)
   const sc = s.scorch
   if (proj.hbSupernova && sc.burnT > 0 && !sc.flashUsed && dealDamage) {  // FLASHPOINT: end the burn, +25 once

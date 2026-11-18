@@ -83,6 +83,7 @@ export function freshGhostfreakState() {
     gale: null, wail: null, possess: null, rise: null, cold: null, ult: null,
     riseUsed: false, coldUsed: false, lastUltRaw: 0, healed: false,
     airborne: false, apexY: null, capY: null, jumpHeld: 0, flightUsed: 0, floorY: null,
+    hist: [], lastDir: 5, fwdPrev: false, fwdTapT: -999, dashTapT: -999,
     stats: { evaded: 0, possessed: 0, techs: 0, ambush: 0 } }
 }
 export const gfState = f => (f?.omnitrix?.formState?.kind === "ghostfreak" && f.transformed && f.activeAlien === "ghostfreak") ? f.omnitrix.formState : null
@@ -105,6 +106,7 @@ function tick(f, input, ctx, api) {
   const grounded = !!(f.onGround || f.grounded)
   if (grounded) { s.floorY = f.y + f.h; if (!s.rise) s.riseUsed = false; if (!s.cold) s.coldUsed = false }   // a rise's grounded startup frames are not a landing
   if (s.swallow > 0) s.swallow = input && input.light ? GF_PHASE.SWALLOW : s.swallow - 1   // the Block + Light press never also jabs
+  tickInputs(f, s, input || {}, opp)
   tickPhase(f, s, api)
   tickAmbush(s)
   tickFlight(f, s, input, grounded)
@@ -290,14 +292,51 @@ function beginCast(f, s, api, pose, cost, total, { commit = true, fromPhase = fa
 // the WIND tag (damageTypes metadata; spawnProjectile does not copy damageType from the move data)
 const wind = p => { if (p) p.damageType = "wind"; return p }
 // ↓↘→ + P Spectral Gale (air: Cold Touch) · ↓↙← + P Wail · →→ + P Possess · ←↙↓ + P Phantom Rise
+// The motions are READ frame by frame (tickInputs: numpad history relative to the opponent, 18f window; →→ = a 14f double
+// tap). With no motion in the buffer (pad / harness `_specialHeldDir`) the held direction maps as before:
+// → Possess, ↓ Wail, ← Phantom Rise, neutral / ↑ Spectral Gale (air: Cold Touch).
+export const GF_DASH_WINDOW = 14, GF_MOTION_WINDOW = 18
+const GF_MOTIONS = [["412", "rise"], ["214", "wail"], ["236", "gale"]]
+const gfNumpad = (input, face) => {
+  const fwd = face > 0 ? !!input.right : !!input.left, back = face > 0 ? !!input.left : !!input.right
+  return (input.down ? 0 : (input.up || input.jump) ? 6 : 3) + (fwd ? 3 : back ? 1 : 2)
+}
+function tickInputs(f, s, input, opp) {
+  if (!s.hist) { s.hist = []; s.lastDir = 5; s.fwdPrev = false; s.fwdTapT = -999; s.dashTapT = -999 }
+  const ox = opp && !opp.eliminated ? (opp.x + (opp.w || 60) / 2) - (f.x + (f.w || 60) / 2) : 0
+  const face = ox > 0 ? 1 : ox < 0 ? -1 : (f.facing || 1)
+  const fwd = face > 0 ? !!input.right : !!input.left
+  if (fwd && !s.fwdPrev && !input.down) { if (s.t - s.fwdTapT <= GF_DASH_WINDOW) s.dashTapT = s.t; s.fwdTapT = s.t }
+  s.fwdPrev = fwd
+  const d = gfNumpad(input, face)
+  if (d !== s.lastDir) { s.hist.push({ d, t: s.t }); if (s.hist.length > 8) s.hist.shift(); s.lastDir = d }
+}
+export function gfReadMotion(s) {
+  if (!s.hist) return null
+  const recent = s.hist.filter(e => s.t - e.t <= GF_MOTION_WINDOW).map(e => e.d).join("")
+  let best = null
+  for (const [m, kind] of GF_MOTIONS) {
+    let i = -1, j = 0
+    for (let k = 0; k < recent.length && j < m.length; k++) if (recent[k] === m[j]) { j++; i = k }
+    if (j === m.length && (!best || i > best.end)) best = { kind, end: i }
+  }
+  if (best) return best.kind
+  return s.t - (s.dashTapT ?? -999) <= GF_DASH_WINDOW ? "possess" : null
+}
+export function gfPickSpecial(f, s) {
+  const m = gfReadMotion(s); if (m) return m
+  const dir = f._specialHeldDir || null
+  return dir === "F" ? "possess" : dir === "D" ? "wail" : dir === "B" ? "rise" : "gale"
+}
 function fireSpecial(f, ctx, api) {
   const s = gfState(f); if (!s) return false
-  const dir = f._specialHeldDir || null, face = f.facing || 1
+  const face = f.facing || 1
   const grounded = !!(f.onGround || f.grounded)
-  if (s.ph === "intangible" && dir !== "F" && dir !== "D") return false            // phased: only Possess / Wail
-  if (dir === "F") return castPossess(f, s, api, face)
-  if (dir === "D") return castWail(f, s, api)
-  if (dir === "B") return castRise(f, s, api, face, grounded)
+  const kind = gfPickSpecial(f, s)
+  if (s.ph === "intangible" && kind !== "possess" && kind !== "wail") return false  // phased: only Possess / Wail
+  if (kind === "possess") return castPossess(f, s, api, face)
+  if (kind === "wail") return castWail(f, s, api)
+  if (kind === "rise") return castRise(f, s, api, face, grounded)
   if (!grounded) return castCold(f, s, api, face)
   return castGale(f, s, api, face)
 }

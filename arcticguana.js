@@ -722,6 +722,7 @@ function endUlt(f, s, opp, api) {
   if (opp && u?.thome) { opp.x = u.thome.x; opp.y = u.thome.y; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.vx = (cx(opp) >= cx(f) ? 1 : -1) * 5; opp.vy = -8
     opp.onGround = false; opp.grounded = false; opp.isLaunched = true }
   s.chill.frozen = null; s.chill.pips = 0; s.chill.immuneT = AG_CHILL.IMMUNE        // released UNFROZEN, refreeze immunity started
+  if (opp) startIceImmunity(s, opp)                                                // …on the SHARED per-opponent timer too (every ice alien reads it)
   s.lastUlt = { captured: !!u?.home, raw: u?.raw || 0, hits: u?.hits ? u.hits.slice() : [], seed: u?.seed, f0: u?.f0, pi: u?.pi,
     home: u?.home ? { ...u.home } : null, thome: u?.thome ? { ...u.thome } : null, endT: s.t }
   s.ult = null

@@ -122,6 +122,7 @@ test('4. flood schedule: cost 18 / 24f → Level 1 (0.18 H) over 90f; recast cos
   ready(f); f.energy = 100; assert.equal(cast(f, t, 'D'), false, 'never beyond Level 2'); assert.equal(f.energy, 100, 'a refused cast costs nothing')
   world(f, t, FL.FLOOD.DUR - r.t - 1); assert.equal(r.phase, 'hold'); world(f, t, 1); assert.equal(r.phase, 'recede', '480f from the FIRST cast (no extension)')
   world(f, t, FL.FLOOD.RECEDE); assert.equal(r.phase, 'off'); assert.equal(r.line, 0); assert.equal(r.cd, FL.FLOOD.CD)
+  world(f, t, 60); f.y = 410 - f.h; f.vy = 0; f.onGround = f.grounded = true   // on the floor: ↓+P is Storm Tide (in the air it is Dive Bite)
   ready(f); f.energy = 100; assert.equal(cast(f, t, 'D'), false, 'cooldown'); world(f, t, FL.FLOOD.CD); assert.equal(FR(f), undefined, 'cooldown over')
   ready(f); assert(cast(f, t, 'D'), 'castable again')
 })
@@ -314,6 +315,61 @@ test('12. ELECTRIC on a SUBMERGED fighter +15 % (waterborne too); dry / wading /
   assert.equal(dmg('wading', 'projectile', 'rj', 'zoldyck_bolt'), base, 'wading unchanged'); assert.equal(dmg('submerged', 'projectile', 'rj', 'kiBlast'), dmg(null, 'projectile', 'rj', 'kiBlast'), 'non-electric unchanged')
   const z = foe('zenitsu'), f = ben(); f._benWater = { ttl: 2, depth: 'submerged', wb: true }; const h0 = f.health; C.applyScaledDamage(f, 100, { scale: 1, source: 'melee', attacker: z, defenseApplied: true, offenseApplied: true }); const sub = h0 - f.health
   delete f._benWater; f.health = h0; C.applyScaledDamage(f, 100, { scale: 1, source: 'melee', attacker: z, defenseApplied: true, offenseApplied: true }); assert(Math.abs(sub / (h0 - f.health) - 1.15) < 0.02, 'a waterborne Ripjaws takes it too')
+})
+
+// ── 8 / 13 SPECIALS ───────────────────────────────────────────────────────────────────────────────────────
+const SPAWNED = []; { const push0 = A.activeProjectiles.push; A.activeProjectiles.push = function (...a) { SPAWNED.push(...a); for (const p of a) if (p) p.__life0 = p.lifetime; return push0.apply(this, a) } }   // spawn log (hitboxes can land and vanish the frame they spawn)
+const projs = (f, rj) => SPAWNED.filter(p => p.owner === f && p.alien && p.alien.rj === rj)
+const rushTap = f => { S(f).dashTapT = S(f).t }
+test('13. WATER JET ↓↘→+P: cost 10, 14f, 450 px at full speed even under water, 35, water-tagged, one on screen, −10 on block', () => {
+  A.activeProjectiles.length = 0; SPAWNED.length = 0; const f = ben(), t = foe(); reset(f, t, 200); f.energy = 100; assert(cast(f, t, 'N')); assert.equal(100 - f.energy, RJ_COST.jet)
+  world(f, t, R.RJ_JET.STARTUP - 1); assert.equal(projs(f, 'jet').length, 0); world(f, t, 1); const [p] = projs(f, 'jet'); assert(p, 'spawned at 14f')
+  assert.equal(p.damage, 35); assert.equal(p.alien.element, 'water'); assert.equal(p.__life0 * Math.abs(p.vx), 450, '450 px'); assert.equal(WA.isFireProj(p), false)
+  assert.equal(p.blockstun, R.blockstunFor(R.RJ_JET.RECOVERY, -10), '−10 on block'); ready(f); f.energy = 100; assert.equal(cast(f, t, 'N'), false, 'one on screen'); assert.equal(f.energy, 100)
+  const hp = t.health; world(f, t, 30); assert(hp - t.health > 0 && !A.activeProjectiles.includes(p), 'it connects (35 before the global damage scale)'); A.activeProjectiles.length = 0
+  const g = ben(), u = foe(); const r = flood(g, u, { level: 2 }); reset(g, u, 380); g.y = 410 - g.h; u.y = 410 - u.h; ready(g); g.energy = 100; assert(cast(g, u, 'N')); world(g, u, R.RJ_JET.STARTUP)
+  const [q] = projs(g, 'jet'); assert(FL.projBelow(r, q), 'below the line'); const x0 = q.x; world(g, u, 3); assert.equal(q.x - x0, 3 * R.RJ_JET.SPEED, 'full speed in water'); A.activeProjectiles.length = 0
+})
+test('13. SHARK RUSH →→+P: dry 320 px / 45 / −13; submerged 8-direction (fixed at the cast) 420 px / 55 / −11 + Breath Steal', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); reset(f, t, 600); f.energy = 100; rushTap(f); assert(cast(f, t, 'F')); assert.equal(100 - f.energy, RJ_COST.rush)
+  const x0 = f.x; world(f, t, R.RJ_RUSH.STARTUP + R.RJ_RUSH.TRAVEL + 2); assert(Math.abs(f.x - x0 - 320) < 1e-6, `dry 320 px (${f.x - x0})`)
+  const d = ben(), v = foe(); reset(d, v, 40); rushTap(d); assert(cast(d, v, 'F')); world(d, v, R.RJ_RUSH.STARTUP + 1); const [hb] = projs(d, 'rush'); assert.equal(hb.damage, 45)
+  assert.equal(hb.blockstun, R.blockstunFor(R.RJ_RUSH.RECOVERY + R.RJ_RUSH.TRAVEL - 1, -13))
+  A.activeProjectiles.length = 0; const g = ben(), u = foe(); const r = flood(g, u, { level: 2 }); reset(g, u, 600); g.y = 300; world(g, u, 2)
+  assert(S(g).swimming); rushTap(g); g.x = 300; const gx = g.x, gy = g.y; world(g, u, 1, { right: true, down: true }); ready(g); g.energy = 100; rushTap(g); assert(cast(g, u, 'F'))
+  world(g, u, R.RJ_RUSH.STARTUP + R.RJ_RUSH.TRAVEL + 2, i => i < 3 ? { right: true, down: true } : { left: true, up: true })
+  const dx = g.x - gx, dy = g.y - gy; assert(dx > 0 && dy > 0, `diagonal down-forward (${dx}, ${dy})`); assert(Math.abs(Math.hypot(dx, dy) - 420) < 40 || g.y >= 410 - g.h - 1, `≈420 px or floor-clamped (${Math.hypot(dx, dy)})`)
+  A.activeProjectiles.length = 0; const h = ben(), w = foe(); const r2 = flood(h, w, { level: 2 }); reset(h, w, 30); h.y = 410 - h.h; w.y = 410 - w.h; world(h, w, 1); r2.breath[w.side] = 80
+  ready(h); rushTap(h); assert(cast(h, w, 'F')); world(h, w, R.RJ_RUSH.STARTUP + 1); const [hb2] = projs(h, 'rush'); assert.equal(hb2.damage, 55); assert.equal(hb2.blockstun, R.blockstunFor(R.RJ_RUSH.RECOVERY + R.RJ_RUSH.TRAVEL - 1, -11))
+  world(h, w, 4); assert(w.health < w.maxHealth, 'connects'); assert(r2.breath[w.side] < 80 - 5, 'Breath Steal −6'); A.activeProjectiles.length = 0
+})
+test('13. FIN BLADE ↓↙←+P: cost 12, 14f, 2 hits 18 / 22, 260 px, −12 on block, extended-limb hurtbox', () => {
+  A.activeProjectiles.length = 0; SPAWNED.length = 0; const f = ben(), t = foe(); reset(f, t, 150); f.energy = 100; const hb0 = C.getHurtbox(f); assert(cast(f, t, 'B')); assert.equal(100 - f.energy, RJ_COST.fin)
+  world(f, t, R.RJ_FIN.STARTUP - 1); assert.equal(projs(f, 'fin').length, 0); assert.deepEqual(C.getHurtbox(f), hb0, 'no extension before the active frames')
+  const hp = t.health; world(f, t, 1); const h1 = SPAWNED.find(p => p.name === 'rj_fin_0'); assert(h1 && h1.damage === 18 && h1.w === 260, 'hit 1: 18, 260 px')
+  const hx = C.getHurtbox(f); assert(hx.w > hb0.w + 200 && hx.x === hb0.x, 'the hurtbox reaches out with the fin')
+  assert.equal(h1.blockstun, R.blockstunFor(R.RJ_FIN.TOTAL - R.RJ_FIN.STARTUP - R.RJ_FIN.ACTIVE, -12), '−12 on block')
+  world(f, t, R.RJ_FIN.GAP); const h2 = SPAWNED.find(p => p.name === 'rj_fin_1'); assert(h2 && h2.damage === 22); world(f, t, 4); assert(hp - t.health > 22, `both hits connect at 150 px (${hp - t.health}; one hit alone scales to ≤ 13)`)
+  world(f, t, R.RJ_FIN.TOTAL); assert.deepEqual(C.getHurtbox(f), hb0, 'back to normal'); A.activeProjectiles.length = 0
+})
+test('13. BREACH →↓↘+P: dry anti-air 55 + launch; submerged surface-launch to the line + 60 px, 60, pops an opponent within 160 px; once per airtime, no jump refill', () => {
+  A.activeProjectiles.length = 0; SPAWNED.length = 0; const f = ben(), t = foe(); reset(f, t, 20); t.y -= 80; t.onGround = t.grounded = false; f.energy = 100; assert(cast(f, t, 'U')); assert.equal(100 - f.energy, RJ_COST.breach)
+  world(f, t, R.RJ_BREACH.STARTUP + 1); const [hb] = projs(f, 'breach'); assert(hb.damage === 55 && hb.launcher, 'dry: 55, launches'); const y1 = f.y; world(f, t, 3); assert(f.y < y1, 'rising')
+  world(f, t, R.RJ_BREACH.RISE); ready(f); f.jumpCount = 1; f.energy = 100; assert.equal(cast(f, t, 'U'), false, 'once per airtime'); assert.equal(f.jumpCount, 1, 'no refill')
+  A.activeProjectiles.length = 0; const g = ben(), u = foe(); const r = flood(g, u, { level: 2 }); reset(g, u, 60); g.y = 410 - g.h; u.y = 410 - u.h; world(g, u, 2); ready(g); g.energy = 100
+  assert(cast(g, u, 'U')); world(g, u, R.RJ_BREACH.STARTUP + 1); const [hs] = projs(g, 'breach'); assert.equal(hs.damage, 60); world(g, u, R.RJ_BREACH.RISE)   // the last rise step is integrated the frame after
+  assert(Math.abs((g.y + g.h) - (FL.floodLineY(r) - 60)) < 2, `burst to the surface + 60 px (feet ${g.y + g.h} vs ${FL.floodLineY(r) - 60})`)
+  assert(u.y + u.h <= FL.floodLineY(r) + 1 || (u.hitstun > 0 && u.vy < 0), 'popped above the line (or launched by the bite)')
+  const p = ben(), q = foe(); const r2 = flood(p, q, { level: 2 }); reset(p, q, 400); p.y = 410 - p.h; q.y = 410 - q.h; world(p, q, 2); ready(p); p.energy = 100; assert(cast(p, q, 'U')); world(p, q, R.RJ_BREACH.STARTUP + R.RJ_BREACH.RISE + 1)
+  assert(q.y + q.h > FL.floodLineY(r2), 'beyond 160 px: not popped'); A.activeProjectiles.length = 0
+})
+test('13. DIVE BITE air ↓+P: cost 12, 48, once per airtime, no jump refill, UNDERTOW on a wading / submerged target', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); reset(f, t, 10); f.y = 200; f.onGround = f.grounded = false; world(f, t, 1); f.energy = 100; f.jumpCount = 2
+  assert(cast(f, t, 'D')); assert.equal(100 - f.energy, RJ_COST.dive); world(f, t, R.RJ_DIVE.STARTUP + 1); const [hb] = projs(f, 'dive'); assert.equal(hb.damage, 48)
+  world(f, t, 3); assert(!f.onGround); assert.equal(f.jumpCount, 2, 'the bite never refills a jump (landing refills as normal)'); ready(f); assert.equal(cast(f, t, 'D'), false, 'once per airtime')
+  A.activeProjectiles.length = 0; const g = ben(), u = foe(); const r = flood(g, u); reset(g, u, 10); u.y = 410 - u.h; world(g, u, 1); assert.equal(FL.waterOf(u).depth, 'wading'); r.breath[u.side] = 100
+  g.y = 120; g.onGround = g.grounded = false; world(g, u, 1); ready(g); g.energy = 100; assert(cast(g, u, 'D')); let lo = 100; for (let i = 0; i < 30; i++) { world(g, u, 1); lo = Math.min(lo, r.breath[u.side]) }
+  assert(u.health < u.maxHealth, 'the bite lands'); assert(Math.abs(lo - (100 - 15)) < 0.01, `Undertow −15 once (low ${lo})`); assert.equal(r.taken[u.side].filter(x => x.startsWith('undertow')).length, 1); A.activeProjectiles.length = 0
 })
 
 //@@NEXT@@

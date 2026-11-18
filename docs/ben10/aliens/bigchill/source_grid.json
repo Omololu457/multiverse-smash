@@ -1,0 +1,8837 @@
+{
+ "source": "assets/sprites/ben10/aliens/bigchill.png",
+ "key_report": {
+  "key": "alpha==0 (source transparency)",
+  "partial_alpha_px": 0,
+  "teal_px_copied": 0,
+  "opaque_black_px": 962,
+  "marker_px_removed": 824,
+  "marker_kept_touching_art": 38,
+  "magenta_keyed_px": 498
+ },
+ "rows": {
+  "atk_A": [
+   [
+    30,
+    12,
+    123,
+    123
+   ],
+   [
+    30,
+    141,
+    123,
+    123
+   ],
+   [
+    30,
+    270,
+    123,
+    123
+   ],
+   [
+    30,
+    399,
+    123,
+    123
+   ],
+   [
+    30,
+    528,
+    123,
+    123
+   ],
+   [
+    30,
+    657,
+    123,
+    123
+   ],
+   [
+    30,
+    786,
+    123,
+    123
+   ],
+   [
+    30,
+    915,
+    123,
+    123
+   ]
+  ],
+  "hit_knock_back": [
+   [
+    168,
+    12,
+    118,
+    75
+   ],
+   [
+    168,
+    93,
+    118,
+    75
+   ],
+   [
+    168,
+    174,
+    118,
+    75
+   ]
+  ],
+  "hit_knock_back_idle": [
+   [
+    301,
+    12,
+    112,
+    72
+   ],
+   [
+    301,
+    90,
+    112,
+    72
+   ],
+   [
+    301,
+    168,
+    112,
+    72
+   ],
+   [
+    301,
+    246,
+    112,
+    72
+   ],
+   [
+    301,
+    324,
+    112,
+    72
+   ],
+   [
+    301,
+    402,
+    112,
+    72
+   ],
+   [
+    301,
+    480,
+    112,
+    72
+   ],
+   [
+    301,
+    558,
+    112,
+    72
+   ]
+  ],
+  "hit_knock_back_recover": [
+   [
+    428,
+    12,
+    126,
+    78
+   ],
+   [
+    428,
+    96,
+    126,
+    78
+   ],
+   [
+    428,
+    180,
+    126,
+    78
+   ],
+   [
+    428,
+    264,
+    126,
+    78
+   ],
+   [
+    428,
+    348,
+    126,
+    78
+   ],
+   [
+    428,
+    432,
+    126,
+    78
+   ],
+   [
+    428,
+    516,
+    126,
+    78
+   ],
+   [
+    428,
+    600,
+    126,
+    78
+   ],
+   [
+    428,
+    684,
+    126,
+    78
+   ],
+   [
+    428,
+    768,
+    126,
+    78
+   ],
+   [
+    428,
+    852,
+    126,
+    78
+   ],
+   [
+    428,
+    936,
+    126,
+    78
+   ],
+   [
+    428,
+    1020,
+    126,
+    78
+   ],
+   [
+    428,
+    1104,
+    126,
+    78
+   ],
+   [
+    428,
+    1188,
+    126,
+    78
+   ],
+   [
+    428,
+    1272,
+    126,
+    78
+   ],
+   [
+    428,
+    1356,
+    126,
+    78
+   ],
+   [
+    428,
+    1440,
+    126,
+    78
+   ],
+   [
+    428,
+    1524,
+    126,
+    78
+   ],
+   [
+    428,
+    1608,
+    126,
+    78
+   ],
+   [
+    428,
+    1692,
+    126,
+    78
+   ],
+   [
+    428,
+    1776,
+    126,
+    78
+   ],
+   [
+    428,
+    1860,
+    126,
+    78
+   ],
+   [
+    428,
+    1944,
+    126,
+    78
+   ],
+   [
+    428,
+    2028,
+    126,
+    78
+   ]
+  ],
+  "hit_L": [
+   [
+    569,
+    12,
+    122,
+    81
+   ],
+   [
+    569,
+    99,
+    122,
+    81
+   ],
+   [
+    569,
+    186,
+    122,
+    81
+   ],
+   [
+    569,
+    273,
+    122,
+    81
+   ],
+   [
+    569,
+    360,
+    122,
+    81
+   ]
+  ],
+  "idle": [
+   [
+    706,
+    12,
+    122,
+    80
+   ],
+   [
+    706,
+    98,
+    122,
+    80
+   ],
+   [
+    706,
+    184,
+    122,
+    80
+   ],
+   [
+    706,
+    270,
+    122,
+    80
+   ],
+   [
+    706,
+    356,
+    122,
+    80
+   ],
+   [
+    706,
+    442,
+    122,
+    80
+   ],
+   [
+    706,
+    528,
+    122,
+    80
+   ],
+   [
+    706,
+    614,
+    122,
+    80
+   ],
+   [
+    706,
+    700,
+    122,
+    80
+   ],
+   [
+    706,
+    786,
+    122,
+    80
+   ],
+   [
+    706,
+    872,
+    122,
+    80
+   ],
+   [
+    706,
+    958,
+    122,
+    80
+   ],
+   [
+    706,
+    1044,
+    122,
+    80
+   ],
+   [
+    706,
+    1130,
+    122,
+    80
+   ],
+   [
+    706,
+    1216,
+    122,
+    80
+   ],
+   [
+    706,
+    1302,
+    122,
+    80
+   ]
+  ],
+  "idle2block": [
+   [
+    843,
+    12,
+    114,
+    104
+   ],
+   [
+    843,
+    122,
+    114,
+    104
+   ]
+  ],
+  "idle2duck": [
+   [
+    972,
+    12,
+    122,
+    80
+   ]
+  ],
+  "idle2run": [
+   [
+    1109,
+    12,
+    121,
+    79
+   ]
+  ],
+  "jump_double": [
+   [
+    1245,
+    12,
+    212,
+    117
+   ],
+   [
+    1245,
+    135,
+    212,
+    117
+   ],
+   [
+    1245,
+    258,
+    212,
+    117
+   ],
+   [
+    1245,
+    381,
+    212,
+    117
+   ],
+   [
+    1245,
+    504,
+    212,
+    117
+   ],
+   [
+    1245,
+    627,
+    212,
+    117
+   ],
+   [
+    1245,
+    750,
+    212,
+    117
+   ]
+  ],
+  "jump_double_land": [
+   [
+    1472,
+    12,
+    186,
+    128
+   ],
+   [
+    1472,
+    146,
+    186,
+    128
+   ],
+   [
+    1472,
+    280,
+    186,
+    128
+   ],
+   [
+    1472,
+    414,
+    186,
+    128
+   ],
+   [
+    1472,
+    548,
+    186,
+    128
+   ],
+   [
+    1472,
+    682,
+    186,
+    128
+   ]
+  ],
+  "jump_down": [
+   [
+    1673,
+    12,
+    121,
+    75
+   ]
+  ],
+  "jump_land": [
+   [
+    1809,
+    12,
+    122,
+    80
+   ],
+   [
+    1809,
+    98,
+    122,
+    80
+   ],
+   [
+    1809,
+    184,
+    122,
+    80
+   ],
+   [
+    1809,
+    270,
+    122,
+    80
+   ],
+   [
+    1809,
+    356,
+    122,
+    80
+   ]
+  ],
+  "jump_peak": [
+   [
+    1946,
+    12,
+    123,
+    92
+   ],
+   [
+    1946,
+    110,
+    123,
+    92
+   ],
+   [
+    1946,
+    208,
+    123,
+    92
+   ],
+   [
+    1946,
+    306,
+    123,
+    92
+   ],
+   [
+    1946,
+    404,
+    123,
+    92
+   ],
+   [
+    1946,
+    502,
+    123,
+    92
+   ]
+  ],
+  "jump_start": [
+   [
+    2084,
+    12,
+    122,
+    84
+   ],
+   [
+    2084,
+    102,
+    122,
+    84
+   ],
+   [
+    2084,
+    192,
+    122,
+    84
+   ]
+  ],
+  "jump_up": [
+   [
+    2221,
+    12,
+    121,
+    84
+   ]
+  ],
+  "run": [
+   [
+    2357,
+    12,
+    122,
+    88
+   ],
+   [
+    2357,
+    106,
+    122,
+    88
+   ],
+   [
+    2357,
+    200,
+    122,
+    88
+   ],
+   [
+    2357,
+    294,
+    122,
+    88
+   ],
+   [
+    2357,
+    388,
+    122,
+    88
+   ],
+   [
+    2357,
+    482,
+    122,
+    88
+   ],
+   [
+    2357,
+    576,
+    122,
+    88
+   ],
+   [
+    2357,
+    670,
+    122,
+    88
+   ],
+   [
+    2357,
+    764,
+    122,
+    88
+   ],
+   [
+    2357,
+    858,
+    122,
+    88
+   ],
+   [
+    2357,
+    952,
+    122,
+    88
+   ]
+  ],
+  "run2idle": [
+   [
+    2494,
+    12,
+    124,
+    81
+   ]
+  ],
+  "teeter": [
+   [
+    2633,
+    12,
+    123,
+    86
+   ],
+   [
+    2633,
+    104,
+    123,
+    86
+   ],
+   [
+    2633,
+    196,
+    123,
+    86
+   ],
+   [
+    2633,
+    288,
+    123,
+    86
+   ],
+   [
+    2633,
+    380,
+    123,
+    86
+   ],
+   [
+    2633,
+    472,
+    123,
+    86
+   ],
+   [
+    2633,
+    564,
+    123,
+    86
+   ],
+   [
+    2633,
+    656,
+    123,
+    86
+   ],
+   [
+    2633,
+    748,
+    123,
+    86
+   ],
+   [
+    2633,
+    840,
+    123,
+    86
+   ],
+   [
+    2633,
+    932,
+    123,
+    86
+   ],
+   [
+    2633,
+    1024,
+    123,
+    86
+   ],
+   [
+    2633,
+    1116,
+    123,
+    86
+   ],
+   [
+    2633,
+    1208,
+    123,
+    86
+   ],
+   [
+    2633,
+    1300,
+    123,
+    86
+   ],
+   [
+    2633,
+    1392,
+    123,
+    86
+   ]
+  ],
+  "timeout": [
+   [
+    2771,
+    12,
+    122,
+    84
+   ],
+   [
+    2771,
+    102,
+    122,
+    84
+   ],
+   [
+    2771,
+    192,
+    122,
+    84
+   ],
+   [
+    2771,
+    282,
+    122,
+    84
+   ],
+   [
+    2771,
+    372,
+    122,
+    84
+   ],
+   [
+    2771,
+    462,
+    122,
+    84
+   ],
+   [
+    2771,
+    552,
+    122,
+    84
+   ],
+   [
+    2771,
+    642,
+    122,
+    84
+   ],
+   [
+    2771,
+    732,
+    122,
+    84
+   ],
+   [
+    2771,
+    822,
+    122,
+    84
+   ],
+   [
+    2771,
+    912,
+    122,
+    84
+   ],
+   [
+    2771,
+    1002,
+    122,
+    84
+   ],
+   [
+    2771,
+    1092,
+    122,
+    84
+   ],
+   [
+    2771,
+    1182,
+    122,
+    84
+   ],
+   [
+    2771,
+    1272,
+    122,
+    84
+   ],
+   [
+    2771,
+    1362,
+    122,
+    84
+   ],
+   [
+    2771,
+    1452,
+    122,
+    84
+   ],
+   [
+    2771,
+    1542,
+    122,
+    84
+   ],
+   [
+    2771,
+    1632,
+    122,
+    84
+   ],
+   [
+    2771,
+    1722,
+    122,
+    84
+   ]
+  ],
+  "transform": [
+   [
+    2908,
+    12,
+    122,
+    78
+   ]
+  ],
+  "atk_AA": [
+   [
+    3045,
+    12,
+    123,
+    121
+   ],
+   [
+    3045,
+    139,
+    123,
+    121
+   ],
+   [
+    3045,
+    266,
+    123,
+    121
+   ],
+   [
+    3045,
+    393,
+    123,
+    121
+   ],
+   [
+    3045,
+    520,
+    123,
+    121
+   ],
+   [
+    3045,
+    647,
+    123,
+    121
+   ],
+   [
+    3045,
+    774,
+    123,
+    121
+   ],
+   [
+    3045,
+    901,
+    123,
+    121
+   ],
+   [
+    3045,
+    1028,
+    123,
+    121
+   ],
+   [
+    3045,
+    1155,
+    123,
+    121
+   ],
+   [
+    3045,
+    1282,
+    123,
+    121
+   ]
+  ],
+  "atk_AAA": [
+   [
+    3183,
+    12,
+    122,
+    125
+   ],
+   [
+    3183,
+    143,
+    122,
+    125
+   ],
+   [
+    3183,
+    274,
+    122,
+    125
+   ],
+   [
+    3183,
+    405,
+    122,
+    125
+   ],
+   [
+    3183,
+    536,
+    122,
+    125
+   ],
+   [
+    3183,
+    667,
+    122,
+    125
+   ],
+   [
+    3183,
+    798,
+    122,
+    125
+   ],
+   [
+    3183,
+    929,
+    122,
+    125
+   ],
+   [
+    3183,
+    1060,
+    122,
+    125
+   ],
+   [
+    3183,
+    1191,
+    122,
+    125
+   ],
+   [
+    3183,
+    1322,
+    122,
+    125
+   ],
+   [
+    3183,
+    1453,
+    122,
+    125
+   ]
+  ],
+  "atk_AAS": [
+   [
+    3320,
+    12,
+    128,
+    118
+   ],
+   [
+    3320,
+    136,
+    128,
+    118
+   ],
+   [
+    3320,
+    260,
+    128,
+    118
+   ],
+   [
+    3320,
+    384,
+    128,
+    118
+   ],
+   [
+    3320,
+    508,
+    128,
+    118
+   ],
+   [
+    3320,
+    632,
+    128,
+    118
+   ],
+   [
+    3320,
+    756,
+    128,
+    118
+   ],
+   [
+    3320,
+    880,
+    128,
+    118
+   ],
+   [
+    3320,
+    1004,
+    128,
+    118
+   ],
+   [
+    3320,
+    1128,
+    128,
+    118
+   ],
+   [
+    3320,
+    1252,
+    128,
+    118
+   ],
+   [
+    3320,
+    1376,
+    128,
+    118
+   ]
+  ],
+  "atk_AS": [
+   [
+    3463,
+    12,
+    123,
+    125
+   ],
+   [
+    3463,
+    143,
+    123,
+    125
+   ],
+   [
+    3463,
+    274,
+    123,
+    125
+   ],
+   [
+    3463,
+    405,
+    123,
+    125
+   ],
+   [
+    3463,
+    536,
+    123,
+    125
+   ],
+   [
+    3463,
+    667,
+    123,
+    125
+   ],
+   [
+    3463,
+    798,
+    123,
+    125
+   ],
+   [
+    3463,
+    929,
+    123,
+    125
+   ],
+   [
+    3463,
+    1060,
+    123,
+    125
+   ],
+   [
+    3463,
+    1191,
+    123,
+    125
+   ],
+   [
+    3463,
+    1322,
+    123,
+    125
+   ],
+   [
+    3463,
+    1453,
+    123,
+    125
+   ],
+   [
+    3463,
+    1584,
+    123,
+    125
+   ],
+   [
+    3463,
+    1715,
+    123,
+    125
+   ],
+   [
+    3463,
+    1846,
+    123,
+    125
+   ],
+   [
+    3463,
+    1977,
+    123,
+    125
+   ],
+   [
+    3463,
+    2108,
+    123,
+    125
+   ],
+   [
+    3463,
+    2239,
+    123,
+    125
+   ]
+  ],
+  "atk_cS": [
+   [
+    3601,
+    12,
+    122,
+    112
+   ],
+   [
+    3601,
+    130,
+    122,
+    112
+   ],
+   [
+    3601,
+    248,
+    122,
+    112
+   ],
+   [
+    3601,
+    366,
+    122,
+    112
+   ],
+   [
+    3601,
+    484,
+    122,
+    112
+   ],
+   [
+    3601,
+    602,
+    122,
+    112
+   ],
+   [
+    3601,
+    720,
+    122,
+    112
+   ],
+   [
+    3601,
+    838,
+    122,
+    112
+   ],
+   [
+    3601,
+    956,
+    122,
+    112
+   ],
+   [
+    3601,
+    1074,
+    122,
+    112
+   ],
+   [
+    3601,
+    1192,
+    122,
+    112
+   ],
+   [
+    3601,
+    1310,
+    122,
+    112
+   ],
+   [
+    3601,
+    1428,
+    122,
+    112
+   ],
+   [
+    3601,
+    1546,
+    122,
+    112
+   ],
+   [
+    3601,
+    1664,
+    122,
+    112
+   ],
+   [
+    3601,
+    1782,
+    122,
+    112
+   ]
+  ],
+  "atk_jump_A": [
+   [
+    3738,
+    12,
+    112,
+    110
+   ],
+   [
+    3738,
+    128,
+    112,
+    110
+   ],
+   [
+    3738,
+    244,
+    112,
+    110
+   ]
+  ],
+  "atk_jump_A2": [
+   [
+    3865,
+    12,
+    123,
+    104
+   ],
+   [
+    3865,
+    122,
+    123,
+    104
+   ],
+   [
+    3865,
+    232,
+    123,
+    104
+   ],
+   [
+    3865,
+    342,
+    123,
+    104
+   ],
+   [
+    3865,
+    452,
+    123,
+    104
+   ],
+   [
+    3865,
+    562,
+    123,
+    104
+   ],
+   [
+    3865,
+    672,
+    123,
+    104
+   ]
+  ],
+  "atk_jump_cS": [
+   [
+    4003,
+    12,
+    123,
+    102
+   ],
+   [
+    4003,
+    120,
+    123,
+    102
+   ],
+   [
+    4003,
+    228,
+    123,
+    102
+   ],
+   [
+    4003,
+    336,
+    123,
+    102
+   ],
+   [
+    4003,
+    444,
+    123,
+    102
+   ],
+   [
+    4003,
+    552,
+    123,
+    102
+   ],
+   [
+    4003,
+    660,
+    123,
+    102
+   ],
+   [
+    4003,
+    768,
+    123,
+    102
+   ],
+   [
+    4003,
+    876,
+    123,
+    102
+   ],
+   [
+    4003,
+    984,
+    123,
+    102
+   ],
+   [
+    4003,
+    1092,
+    123,
+    102
+   ],
+   [
+    4003,
+    1200,
+    123,
+    102
+   ],
+   [
+    4003,
+    1308,
+    123,
+    102
+   ],
+   [
+    4003,
+    1416,
+    123,
+    102
+   ],
+   [
+    4003,
+    1524,
+    123,
+    102
+   ],
+   [
+    4003,
+    1632,
+    123,
+    102
+   ]
+  ],
+  "atk_jump_S": [
+   [
+    4141,
+    12,
+    123,
+    101
+   ],
+   [
+    4141,
+    119,
+    123,
+    101
+   ],
+   [
+    4141,
+    226,
+    123,
+    101
+   ],
+   [
+    4141,
+    333,
+    123,
+    101
+   ],
+   [
+    4141,
+    440,
+    123,
+    101
+   ],
+   [
+    4141,
+    547,
+    123,
+    101
+   ],
+   [
+    4141,
+    654,
+    123,
+    101
+   ],
+   [
+    4141,
+    761,
+    123,
+    101
+   ],
+   [
+    4141,
+    868,
+    123,
+    101
+   ],
+   [
+    4141,
+    975,
+    123,
+    101
+   ],
+   [
+    4141,
+    1082,
+    123,
+    101
+   ]
+  ],
+  "atk_S": [
+   [
+    4279,
+    12,
+    122,
+    98
+   ],
+   [
+    4279,
+    116,
+    122,
+    98
+   ],
+   [
+    4279,
+    220,
+    122,
+    98
+   ],
+   [
+    4279,
+    324,
+    122,
+    98
+   ],
+   [
+    4279,
+    428,
+    122,
+    98
+   ],
+   [
+    4279,
+    532,
+    122,
+    98
+   ],
+   [
+    4279,
+    636,
+    122,
+    98
+   ],
+   [
+    4279,
+    740,
+    122,
+    98
+   ],
+   [
+    4279,
+    844,
+    122,
+    98
+   ],
+   [
+    4279,
+    948,
+    122,
+    98
+   ],
+   [
+    4279,
+    1052,
+    122,
+    98
+   ],
+   [
+    4279,
+    1156,
+    122,
+    98
+   ]
+  ],
+  "block_hit": [
+   [
+    4416,
+    12,
+    112,
+    101
+   ],
+   [
+    4416,
+    119,
+    112,
+    101
+   ],
+   [
+    4416,
+    226,
+    112,
+    101
+   ],
+   [
+    4416,
+    333,
+    112,
+    101
+   ],
+   [
+    4416,
+    440,
+    112,
+    101
+   ]
+  ],
+  "block_idle": [
+   [
+    4543,
+    12,
+    113,
+    92
+   ],
+   [
+    4543,
+    110,
+    113,
+    92
+   ],
+   [
+    4543,
+    208,
+    113,
+    92
+   ],
+   [
+    4543,
+    306,
+    113,
+    92
+   ],
+   [
+    4543,
+    404,
+    113,
+    92
+   ],
+   [
+    4543,
+    502,
+    113,
+    92
+   ],
+   [
+    4543,
+    600,
+    113,
+    92
+   ],
+   [
+    4543,
+    698,
+    113,
+    92
+   ],
+   [
+    4543,
+    796,
+    113,
+    92
+   ],
+   [
+    4543,
+    894,
+    113,
+    92
+   ],
+   [
+    4543,
+    992,
+    113,
+    92
+   ],
+   [
+    4543,
+    1090,
+    113,
+    92
+   ],
+   [
+    4543,
+    1188,
+    113,
+    92
+   ]
+  ],
+  "block2idle": [
+   [
+    4671,
+    12,
+    114,
+    104
+   ],
+   [
+    4671,
+    122,
+    114,
+    104
+   ]
+  ],
+  "duck_idle": [
+   [
+    4800,
+    12,
+    122,
+    83
+   ],
+   [
+    4800,
+    101,
+    122,
+    83
+   ],
+   [
+    4800,
+    190,
+    122,
+    83
+   ],
+   [
+    4800,
+    279,
+    122,
+    83
+   ],
+   [
+    4800,
+    368,
+    122,
+    83
+   ],
+   [
+    4800,
+    457,
+    122,
+    83
+   ],
+   [
+    4800,
+    546,
+    122,
+    83
+   ],
+   [
+    4800,
+    635,
+    122,
+    83
+   ],
+   [
+    4800,
+    724,
+    122,
+    83
+   ],
+   [
+    4800,
+    813,
+    122,
+    83
+   ]
+  ],
+  "duck2idle": [
+   [
+    4937,
+    12,
+    122,
+    80
+   ]
+  ],
+  "glide": [
+   [
+    5074,
+    12,
+    184,
+    95
+   ],
+   [
+    5074,
+    113,
+    184,
+    95
+   ],
+   [
+    5074,
+    214,
+    184,
+    95
+   ],
+   [
+    5074,
+    315,
+    184,
+    95
+   ],
+   [
+    5074,
+    416,
+    184,
+    95
+   ],
+   [
+    5074,
+    517,
+    184,
+    95
+   ],
+   [
+    5074,
+    618,
+    184,
+    95
+   ],
+   [
+    5074,
+    719,
+    184,
+    95
+   ],
+   [
+    5074,
+    820,
+    184,
+    95
+   ],
+   [
+    5074,
+    921,
+    184,
+    95
+   ],
+   [
+    5074,
+    1022,
+    184,
+    95
+   ],
+   [
+    5074,
+    1123,
+    184,
+    95
+   ],
+   [
+    5074,
+    1224,
+    184,
+    95
+   ]
+  ],
+  "hit_H": [
+   [
+    5273,
+    12,
+    122,
+    82
+   ],
+   [
+    5273,
+    100,
+    122,
+    82
+   ],
+   [
+    5273,
+    188,
+    122,
+    82
+   ],
+   [
+    5273,
+    276,
+    122,
+    82
+   ],
+   [
+    5273,
+    364,
+    122,
+    82
+   ],
+   [
+    5273,
+    452,
+    122,
+    82
+   ],
+   [
+    5273,
+    540,
+    122,
+    82
+   ],
+   [
+    5273,
+    628,
+    122,
+    82
+   ],
+   [
+    5273,
+    716,
+    122,
+    82
+   ],
+   [
+    5273,
+    804,
+    122,
+    82
+   ],
+   [
+    5273,
+    892,
+    122,
+    82
+   ]
+  ],
+  "ChrgParticle2": [
+   [
+    5411,
+    6,
+    16,
+    16
+   ]
+  ],
+  "atk_JS": [
+   [
+    5442,
+    6,
+    20,
+    31
+   ]
+  ],
+  "atk_JS2": [
+   [
+    5477,
+    6,
+    25,
+    29
+   ]
+  ],
+  "atk_JS3": [
+   [
+    5517,
+    6,
+    30,
+    24
+   ]
+  ],
+  "atk_JS4": [
+   [
+    5562,
+    6,
+    31,
+    20
+   ]
+  ],
+  "atk_S_proj": [
+   [
+    5608,
+    6,
+    20,
+    25
+   ]
+  ],
+  "ChrgParticle1": [
+   [
+    5643,
+    6,
+    16,
+    16
+   ]
+  ]
+ },
+ "cell": [
+  152,
+  216
+ ],
+ "feetY": 193,
+ "centreX": 76,
+ "actionScale": 1.0,
+ "torso_window": 16,
+ "row_anchor": {
+  "idle": [
+   63.0,
+   121
+  ],
+  "run": [
+   67.0,
+   120
+  ],
+  "duck_idle": [
+   68.0,
+   121
+  ],
+  "jump_start": [
+   66.0,
+   121
+  ],
+  "jump_up": [
+   71.0,
+   120
+  ],
+  "jump_double": [
+   66.0,
+   191
+  ],
+  "jump_peak": [
+   72.0,
+   120
+  ],
+  "jump_down": [
+   58.0,
+   120
+  ],
+  "block_idle": [
+   60.0,
+   112
+  ],
+  "block_hit": [
+   55.0,
+   106
+  ],
+  "hit_L": [
+   62.0,
+   121
+  ],
+  "hit_H": [
+   61.0,
+   120
+  ],
+  "hit_knock_back": [
+   56.0,
+   117
+  ],
+  "hit_knock_back_idle": [
+   49.0,
+   110
+  ],
+  "hit_knock_back_recover": [
+   45.0,
+   114
+  ],
+  "teeter": [
+   63.0,
+   120
+  ],
+  "transform": [
+   65.0,
+   121
+  ],
+  "idle2block": [
+   58.0,
+   113
+  ],
+  "block2idle": [
+   56.0,
+   112
+  ],
+  "timeout": [
+   64.0,
+   121
+  ],
+  "glide": [
+   45.0,
+   183
+  ],
+  "atk_A": [
+   67.0,
+   122
+  ],
+  "atk_AAS": [
+   74.0,
+   121
+  ],
+  "atk_S": [
+   61.0,
+   121
+  ],
+  "atk_jump_S": [
+   58.0,
+   118
+  ],
+  "atk_jump_A": [
+   55.0,
+   111
+  ],
+  "atk_AA": [
+   68.0,
+   120
+  ],
+  "atk_AAA": [
+   73.0,
+   120
+  ],
+  "atk_AS": [
+   63.0,
+   121
+  ],
+  "atk_cS": [
+   61.0,
+   121
+  ],
+  "atk_jump_A2": [
+   47.0,
+   122
+  ],
+  "atk_jump_cS": [
+   55.0,
+   119
+  ]
+ },
+ "ledger": [
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 1,
+   "canvas": [
+    706,
+    12,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 2,
+   "canvas": [
+    706,
+    98,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 3,
+   "canvas": [
+    706,
+    184,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 4,
+   "canvas": [
+    706,
+    270,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 5,
+   "canvas": [
+    706,
+    356,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 6,
+   "canvas": [
+    706,
+    442,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 7,
+   "canvas": [
+    706,
+    528,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 8,
+   "canvas": [
+    706,
+    614,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 9,
+   "canvas": [
+    706,
+    700,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 10,
+   "canvas": [
+    706,
+    786,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 11,
+   "canvas": [
+    706,
+    872,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 12,
+   "canvas": [
+    706,
+    958,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 13,
+   "canvas": [
+    706,
+    1044,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 14,
+   "canvas": [
+    706,
+    1130,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 15,
+   "canvas": [
+    706,
+    1216,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "idle",
+   "row": "idle",
+   "frame": 16,
+   "canvas": [
+    706,
+    1302,
+    122,
+    80
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "idle, wings CLOSED (hooded cloak)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 1,
+   "canvas": [
+    2357,
+    12,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 2,
+   "canvas": [
+    2357,
+    106,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 3,
+   "canvas": [
+    2357,
+    200,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 4,
+   "canvas": [
+    2357,
+    294,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 5,
+   "canvas": [
+    2357,
+    388,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 6,
+   "canvas": [
+    2357,
+    482,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 7,
+   "canvas": [
+    2357,
+    576,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 8,
+   "canvas": [
+    2357,
+    670,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 9,
+   "canvas": [
+    2357,
+    764,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 10,
+   "canvas": [
+    2357,
+    858,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk",
+   "row": "run",
+   "frame": 11,
+   "canvas": [
+    2357,
+    952,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk = the run row cycled SLOWLY (no separate walk on the sheet)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 1,
+   "canvas": [
+    2357,
+    12,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 2,
+   "canvas": [
+    2357,
+    106,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 3,
+   "canvas": [
+    2357,
+    200,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 4,
+   "canvas": [
+    2357,
+    294,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 5,
+   "canvas": [
+    2357,
+    388,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 6,
+   "canvas": [
+    2357,
+    482,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 7,
+   "canvas": [
+    2357,
+    576,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 8,
+   "canvas": [
+    2357,
+    670,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 9,
+   "canvas": [
+    2357,
+    764,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 10,
+   "canvas": [
+    2357,
+    858,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "walk_back",
+   "row": "run",
+   "frame": 11,
+   "canvas": [
+    2357,
+    952,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "walk back = the run row cycled slowly (mirrored by the engine facing)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 1,
+   "canvas": [
+    2357,
+    12,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 2,
+   "canvas": [
+    2357,
+    106,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 3,
+   "canvas": [
+    2357,
+    200,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 4,
+   "canvas": [
+    2357,
+    294,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 5,
+   "canvas": [
+    2357,
+    388,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 6,
+   "canvas": [
+    2357,
+    482,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 7,
+   "canvas": [
+    2357,
+    576,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 8,
+   "canvas": [
+    2357,
+    670,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 9,
+   "canvas": [
+    2357,
+    764,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 10,
+   "canvas": [
+    2357,
+    858,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "run",
+   "row": "run",
+   "frame": 11,
+   "canvas": [
+    2357,
+    952,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "run, wings closed (cycled fast)"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 1,
+   "canvas": [
+    2357,
+    12,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 2,
+   "canvas": [
+    2357,
+    106,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 3,
+   "canvas": [
+    2357,
+    200,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 4,
+   "canvas": [
+    2357,
+    294,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 5,
+   "canvas": [
+    2357,
+    388,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 6,
+   "canvas": [
+    2357,
+    482,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 7,
+   "canvas": [
+    2357,
+    576,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 8,
+   "canvas": [
+    2357,
+    670,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 9,
+   "canvas": [
+    2357,
+    764,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 10,
+   "canvas": [
+    2357,
+    858,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "dash",
+   "row": "run",
+   "frame": 11,
+   "canvas": [
+    2357,
+    952,
+    122,
+    88
+   ],
+   "offset": [
+    9,
+    73
+   ],
+   "role": "dash = the run row cycled fastest"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 1,
+   "canvas": [
+    4800,
+    12,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 2,
+   "canvas": [
+    4800,
+    101,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 3,
+   "canvas": [
+    4800,
+    190,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 4,
+   "canvas": [
+    4800,
+    279,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 5,
+   "canvas": [
+    4800,
+    368,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 6,
+   "canvas": [
+    4800,
+    457,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 7,
+   "canvas": [
+    4800,
+    546,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 8,
+   "canvas": [
+    4800,
+    635,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 9,
+   "canvas": [
+    4800,
+    724,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "crouch",
+   "row": "duck_idle",
+   "frame": 10,
+   "canvas": [
+    4800,
+    813,
+    122,
+    83
+   ],
+   "offset": [
+    8,
+    72
+   ],
+   "role": "crouch (duck_idle)"
+  },
+  {
+   "anim": "jump",
+   "row": "jump_start",
+   "frame": 1,
+   "canvas": [
+    2084,
+    12,
+    122,
+    84
+   ],
+   "offset": [
+    10,
+    72
+   ],
+   "role": "jump rise (jump_start + jump_up)"
+  },
+  {
+   "anim": "jump",
+   "row": "jump_start",
+   "frame": 2,
+   "canvas": [
+    2084,
+    102,
+    122,
+    84
+   ],
+   "offset": [
+    10,
+    72
+   ],
+   "role": "jump rise (jump_start + jump_up)"
+  },
+  {
+   "anim": "jump",
+   "row": "jump_start",
+   "frame": 3,
+   "canvas": [
+    2084,
+    192,
+    122,
+    84
+   ],
+   "offset": [
+    10,
+    72
+   ],
+   "role": "jump rise (jump_start + jump_up)"
+  },
+  {
+   "anim": "jump",
+   "row": "jump_up",
+   "frame": 1,
+   "canvas": [
+    2221,
+    12,
+    121,
+    84
+   ],
+   "offset": [
+    5,
+    73
+   ],
+   "role": "jump rise (jump_start + jump_up)"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 1,
+   "canvas": [
+    1245,
+    12,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 2,
+   "canvas": [
+    1245,
+    135,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 3,
+   "canvas": [
+    1245,
+    258,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 4,
+   "canvas": [
+    1245,
+    381,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 5,
+   "canvas": [
+    1245,
+    504,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 6,
+   "canvas": [
+    1245,
+    627,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "doubleJump",
+   "row": "jump_double",
+   "frame": 7,
+   "canvas": [
+    1245,
+    750,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "double jump: the wing-opening spin"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_peak",
+   "frame": 1,
+   "canvas": [
+    1946,
+    12,
+    123,
+    92
+   ],
+   "offset": [
+    4,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_peak",
+   "frame": 2,
+   "canvas": [
+    1946,
+    110,
+    123,
+    92
+   ],
+   "offset": [
+    4,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_peak",
+   "frame": 3,
+   "canvas": [
+    1946,
+    208,
+    123,
+    92
+   ],
+   "offset": [
+    4,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_peak",
+   "frame": 4,
+   "canvas": [
+    1946,
+    306,
+    123,
+    92
+   ],
+   "offset": [
+    4,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_peak",
+   "frame": 5,
+   "canvas": [
+    1946,
+    404,
+    123,
+    92
+   ],
+   "offset": [
+    4,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_peak",
+   "frame": 6,
+   "canvas": [
+    1946,
+    502,
+    123,
+    92
+   ],
+   "offset": [
+    4,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "fall",
+   "row": "jump_down",
+   "frame": 1,
+   "canvas": [
+    1673,
+    12,
+    121,
+    75
+   ],
+   "offset": [
+    18,
+    73
+   ],
+   "role": "fall (jump_peak + jump_down)"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 1,
+   "canvas": [
+    4543,
+    12,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 2,
+   "canvas": [
+    4543,
+    110,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 3,
+   "canvas": [
+    4543,
+    208,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 4,
+   "canvas": [
+    4543,
+    306,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 5,
+   "canvas": [
+    4543,
+    404,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 6,
+   "canvas": [
+    4543,
+    502,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 7,
+   "canvas": [
+    4543,
+    600,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 8,
+   "canvas": [
+    4543,
+    698,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 9,
+   "canvas": [
+    4543,
+    796,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 10,
+   "canvas": [
+    4543,
+    894,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 11,
+   "canvas": [
+    4543,
+    992,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 12,
+   "canvas": [
+    4543,
+    1090,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "guard",
+   "row": "block_idle",
+   "frame": 13,
+   "canvas": [
+    4543,
+    1188,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "guard = wings wrapped (block_idle); also the COCOON hold"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 1,
+   "canvas": [
+    4543,
+    12,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 2,
+   "canvas": [
+    4543,
+    110,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 3,
+   "canvas": [
+    4543,
+    208,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 4,
+   "canvas": [
+    4543,
+    306,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 5,
+   "canvas": [
+    4543,
+    404,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 6,
+   "canvas": [
+    4543,
+    502,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 7,
+   "canvas": [
+    4543,
+    600,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 8,
+   "canvas": [
+    4543,
+    698,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 9,
+   "canvas": [
+    4543,
+    796,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 10,
+   "canvas": [
+    4543,
+    894,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 11,
+   "canvas": [
+    4543,
+    992,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 12,
+   "canvas": [
+    4543,
+    1090,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "crouchGuard",
+   "row": "block_idle",
+   "frame": 13,
+   "canvas": [
+    4543,
+    1188,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "crouch guard = block_idle (no crouch block on the sheet)"
+  },
+  {
+   "anim": "blockHit",
+   "row": "block_hit",
+   "frame": 1,
+   "canvas": [
+    4416,
+    12,
+    112,
+    101
+   ],
+   "offset": [
+    21,
+    87
+   ],
+   "role": "block hit (wings wrapped, jolt)"
+  },
+  {
+   "anim": "blockHit",
+   "row": "block_hit",
+   "frame": 2,
+   "canvas": [
+    4416,
+    119,
+    112,
+    101
+   ],
+   "offset": [
+    21,
+    87
+   ],
+   "role": "block hit (wings wrapped, jolt)"
+  },
+  {
+   "anim": "blockHit",
+   "row": "block_hit",
+   "frame": 3,
+   "canvas": [
+    4416,
+    226,
+    112,
+    101
+   ],
+   "offset": [
+    21,
+    87
+   ],
+   "role": "block hit (wings wrapped, jolt)"
+  },
+  {
+   "anim": "blockHit",
+   "row": "block_hit",
+   "frame": 4,
+   "canvas": [
+    4416,
+    333,
+    112,
+    101
+   ],
+   "offset": [
+    21,
+    87
+   ],
+   "role": "block hit (wings wrapped, jolt)"
+  },
+  {
+   "anim": "blockHit",
+   "row": "block_hit",
+   "frame": 5,
+   "canvas": [
+    4416,
+    440,
+    112,
+    101
+   ],
+   "offset": [
+    21,
+    87
+   ],
+   "role": "block hit (wings wrapped, jolt)"
+  },
+  {
+   "anim": "hurt",
+   "row": "hit_L",
+   "frame": 1,
+   "canvas": [
+    569,
+    12,
+    122,
+    81
+   ],
+   "offset": [
+    14,
+    72
+   ],
+   "role": "light hurt (hit_L)"
+  },
+  {
+   "anim": "hurt",
+   "row": "hit_L",
+   "frame": 2,
+   "canvas": [
+    569,
+    99,
+    122,
+    81
+   ],
+   "offset": [
+    14,
+    72
+   ],
+   "role": "light hurt (hit_L)"
+  },
+  {
+   "anim": "hurt",
+   "row": "hit_L",
+   "frame": 3,
+   "canvas": [
+    569,
+    186,
+    122,
+    81
+   ],
+   "offset": [
+    14,
+    72
+   ],
+   "role": "light hurt (hit_L)"
+  },
+  {
+   "anim": "hurt",
+   "row": "hit_L",
+   "frame": 4,
+   "canvas": [
+    569,
+    273,
+    122,
+    81
+   ],
+   "offset": [
+    14,
+    72
+   ],
+   "role": "light hurt (hit_L)"
+  },
+  {
+   "anim": "hurt",
+   "row": "hit_L",
+   "frame": 5,
+   "canvas": [
+    569,
+    360,
+    122,
+    81
+   ],
+   "offset": [
+    14,
+    72
+   ],
+   "role": "light hurt (hit_L)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 1,
+   "canvas": [
+    5273,
+    12,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 2,
+   "canvas": [
+    5273,
+    100,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 3,
+   "canvas": [
+    5273,
+    188,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 4,
+   "canvas": [
+    5273,
+    276,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 5,
+   "canvas": [
+    5273,
+    364,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 6,
+   "canvas": [
+    5273,
+    452,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 7,
+   "canvas": [
+    5273,
+    540,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 8,
+   "canvas": [
+    5273,
+    628,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 9,
+   "canvas": [
+    5273,
+    716,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 10,
+   "canvas": [
+    5273,
+    804,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "hurt_air",
+   "row": "hit_H",
+   "frame": 11,
+   "canvas": [
+    5273,
+    892,
+    122,
+    82
+   ],
+   "offset": [
+    15,
+    73
+   ],
+   "role": "air / heavy hurt (hit_H)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back",
+   "frame": 1,
+   "canvas": [
+    168,
+    12,
+    118,
+    75
+   ],
+   "offset": [
+    20,
+    76
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back",
+   "frame": 2,
+   "canvas": [
+    168,
+    93,
+    118,
+    75
+   ],
+   "offset": [
+    20,
+    76
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back",
+   "frame": 3,
+   "canvas": [
+    168,
+    174,
+    118,
+    75
+   ],
+   "offset": [
+    20,
+    76
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 1,
+   "canvas": [
+    301,
+    12,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 2,
+   "canvas": [
+    301,
+    90,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 3,
+   "canvas": [
+    301,
+    168,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 4,
+   "canvas": [
+    301,
+    246,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 5,
+   "canvas": [
+    301,
+    324,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 6,
+   "canvas": [
+    301,
+    402,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 7,
+   "canvas": [
+    301,
+    480,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "knockdown",
+   "row": "hit_knock_back_idle",
+   "frame": 8,
+   "canvas": [
+    301,
+    558,
+    112,
+    72
+   ],
+   "offset": [
+    27,
+    83
+   ],
+   "role": "knockdown (hit_knock_back + lying idle)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 1,
+   "canvas": [
+    428,
+    12,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 2,
+   "canvas": [
+    428,
+    96,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 3,
+   "canvas": [
+    428,
+    180,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 4,
+   "canvas": [
+    428,
+    264,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 5,
+   "canvas": [
+    428,
+    348,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 6,
+   "canvas": [
+    428,
+    432,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 7,
+   "canvas": [
+    428,
+    516,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 8,
+   "canvas": [
+    428,
+    600,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 9,
+   "canvas": [
+    428,
+    684,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 10,
+   "canvas": [
+    428,
+    768,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 11,
+   "canvas": [
+    428,
+    852,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 12,
+   "canvas": [
+    428,
+    936,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 13,
+   "canvas": [
+    428,
+    1020,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 14,
+   "canvas": [
+    428,
+    1104,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 15,
+   "canvas": [
+    428,
+    1188,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 16,
+   "canvas": [
+    428,
+    1272,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 17,
+   "canvas": [
+    428,
+    1356,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 18,
+   "canvas": [
+    428,
+    1440,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 19,
+   "canvas": [
+    428,
+    1524,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 20,
+   "canvas": [
+    428,
+    1608,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 21,
+   "canvas": [
+    428,
+    1692,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 22,
+   "canvas": [
+    428,
+    1776,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 23,
+   "canvas": [
+    428,
+    1860,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 24,
+   "canvas": [
+    428,
+    1944,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "getup",
+   "row": "hit_knock_back_recover",
+   "frame": 25,
+   "canvas": [
+    428,
+    2028,
+    126,
+    78
+   ],
+   "offset": [
+    31,
+    79
+   ],
+   "role": "get-up (hit_knock_back_recover, 25 frames played fast)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 1,
+   "canvas": [
+    2633,
+    12,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 2,
+   "canvas": [
+    2633,
+    104,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 3,
+   "canvas": [
+    2633,
+    196,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 4,
+   "canvas": [
+    2633,
+    288,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 5,
+   "canvas": [
+    2633,
+    380,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 6,
+   "canvas": [
+    2633,
+    472,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 7,
+   "canvas": [
+    2633,
+    564,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 8,
+   "canvas": [
+    2633,
+    656,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 9,
+   "canvas": [
+    2633,
+    748,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 10,
+   "canvas": [
+    2633,
+    840,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 11,
+   "canvas": [
+    2633,
+    932,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 12,
+   "canvas": [
+    2633,
+    1024,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 13,
+   "canvas": [
+    2633,
+    1116,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 14,
+   "canvas": [
+    2633,
+    1208,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 15,
+   "canvas": [
+    2633,
+    1300,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "dizzy",
+   "row": "teeter",
+   "frame": 16,
+   "canvas": [
+    2633,
+    1392,
+    123,
+    86
+   ],
+   "offset": [
+    13,
+    73
+   ],
+   "role": "dizzy = REUSED teeter row (no dizzy on the sheet)"
+  },
+  {
+   "anim": "transform",
+   "row": "transform",
+   "frame": 1,
+   "canvas": [
+    2908,
+    12,
+    122,
+    78
+   ],
+   "offset": [
+    11,
+    72
+   ],
+   "role": "transform (1 frame)"
+  },
+  {
+   "anim": "taunt",
+   "row": "idle2block",
+   "frame": 1,
+   "canvas": [
+    843,
+    12,
+    114,
+    104
+   ],
+   "offset": [
+    18,
+    80
+   ],
+   "role": "taunt = wing flare (idle2block + block2idle)"
+  },
+  {
+   "anim": "taunt",
+   "row": "idle2block",
+   "frame": 2,
+   "canvas": [
+    843,
+    122,
+    114,
+    104
+   ],
+   "offset": [
+    18,
+    80
+   ],
+   "role": "taunt = wing flare (idle2block + block2idle)"
+  },
+  {
+   "anim": "taunt",
+   "row": "block2idle",
+   "frame": 1,
+   "canvas": [
+    4671,
+    12,
+    114,
+    104
+   ],
+   "offset": [
+    20,
+    81
+   ],
+   "role": "taunt = wing flare (idle2block + block2idle)"
+  },
+  {
+   "anim": "taunt",
+   "row": "block2idle",
+   "frame": 2,
+   "canvas": [
+    4671,
+    122,
+    114,
+    104
+   ],
+   "offset": [
+    20,
+    81
+   ],
+   "role": "taunt = wing flare (idle2block + block2idle)"
+  },
+  {
+   "anim": "win",
+   "row": "jump_double",
+   "frame": 7,
+   "canvas": [
+    1245,
+    750,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "win = REUSED jump_double f7 (upright, wings open)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 1,
+   "canvas": [
+    2771,
+    12,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 2,
+   "canvas": [
+    2771,
+    102,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 3,
+   "canvas": [
+    2771,
+    192,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 4,
+   "canvas": [
+    2771,
+    282,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 5,
+   "canvas": [
+    2771,
+    372,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 6,
+   "canvas": [
+    2771,
+    462,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 7,
+   "canvas": [
+    2771,
+    552,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 8,
+   "canvas": [
+    2771,
+    642,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 9,
+   "canvas": [
+    2771,
+    732,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 10,
+   "canvas": [
+    2771,
+    822,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 11,
+   "canvas": [
+    2771,
+    912,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 12,
+   "canvas": [
+    2771,
+    1002,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 13,
+   "canvas": [
+    2771,
+    1092,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 14,
+   "canvas": [
+    2771,
+    1182,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 15,
+   "canvas": [
+    2771,
+    1272,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 16,
+   "canvas": [
+    2771,
+    1362,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 17,
+   "canvas": [
+    2771,
+    1452,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 18,
+   "canvas": [
+    2771,
+    1542,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 19,
+   "canvas": [
+    2771,
+    1632,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "lose",
+   "row": "timeout",
+   "frame": 20,
+   "canvas": [
+    2771,
+    1722,
+    122,
+    84
+   ],
+   "offset": [
+    12,
+    72
+   ],
+   "role": "lose / timeout revert (timeout row)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 1,
+   "canvas": [
+    5074,
+    12,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 2,
+   "canvas": [
+    5074,
+    113,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 3,
+   "canvas": [
+    5074,
+    214,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 4,
+   "canvas": [
+    5074,
+    315,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 5,
+   "canvas": [
+    5074,
+    416,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 6,
+   "canvas": [
+    5074,
+    517,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 7,
+   "canvas": [
+    5074,
+    618,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 8,
+   "canvas": [
+    5074,
+    719,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 9,
+   "canvas": [
+    5074,
+    820,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 10,
+   "canvas": [
+    5074,
+    921,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 11,
+   "canvas": [
+    5074,
+    1022,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 12,
+   "canvas": [
+    5074,
+    1123,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "idleAlt",
+   "row": "glide",
+   "frame": 13,
+   "canvas": [
+    5074,
+    1224,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "wings-OPEN hover idle = glide row (the flight frames)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 1,
+   "canvas": [
+    30,
+    12,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 2,
+   "canvas": [
+    30,
+    141,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 3,
+   "canvas": [
+    30,
+    270,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 4,
+   "canvas": [
+    30,
+    399,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 5,
+   "canvas": [
+    30,
+    528,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 6,
+   "canvas": [
+    30,
+    657,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 7,
+   "canvas": [
+    30,
+    786,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "light",
+   "row": "atk_A",
+   "frame": 8,
+   "canvas": [
+    30,
+    915,
+    123,
+    123
+   ],
+   "offset": [
+    9,
+    71
+   ],
+   "role": "JAB: claw + frost streak (atk_A)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 1,
+   "canvas": [
+    3320,
+    12,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 2,
+   "canvas": [
+    3320,
+    136,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 3,
+   "canvas": [
+    3320,
+    260,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 4,
+   "canvas": [
+    3320,
+    384,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 5,
+   "canvas": [
+    3320,
+    508,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 6,
+   "canvas": [
+    3320,
+    632,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 7,
+   "canvas": [
+    3320,
+    756,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 8,
+   "canvas": [
+    3320,
+    880,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 9,
+   "canvas": [
+    3320,
+    1004,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 10,
+   "canvas": [
+    3320,
+    1128,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 11,
+   "canvas": [
+    3320,
+    1252,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "heavy",
+   "row": "atk_AAS",
+   "frame": 12,
+   "canvas": [
+    3320,
+    1376,
+    128,
+    118
+   ],
+   "offset": [
+    2,
+    72
+   ],
+   "role": "HEAVY: wing strike with the ice edge skimming the ground (atk_AAS)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 1,
+   "canvas": [
+    4279,
+    12,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 2,
+   "canvas": [
+    4279,
+    116,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 3,
+   "canvas": [
+    4279,
+    220,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 4,
+   "canvas": [
+    4279,
+    324,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 5,
+   "canvas": [
+    4279,
+    428,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 6,
+   "canvas": [
+    4279,
+    532,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 7,
+   "canvas": [
+    4279,
+    636,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 8,
+   "canvas": [
+    4279,
+    740,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 9,
+   "canvas": [
+    4279,
+    844,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 10,
+   "canvas": [
+    4279,
+    948,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 11,
+   "canvas": [
+    4279,
+    1052,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "down",
+   "row": "atk_S",
+   "frame": 12,
+   "canvas": [
+    4279,
+    1156,
+    122,
+    98
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "LOW: the low crouching claw (atk_S)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 1,
+   "canvas": [
+    4141,
+    12,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 2,
+   "canvas": [
+    4141,
+    119,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 3,
+   "canvas": [
+    4141,
+    226,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 4,
+   "canvas": [
+    4141,
+    333,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 5,
+   "canvas": [
+    4141,
+    440,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 6,
+   "canvas": [
+    4141,
+    547,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 7,
+   "canvas": [
+    4141,
+    654,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 8,
+   "canvas": [
+    4141,
+    761,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 9,
+   "canvas": [
+    4141,
+    868,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 10,
+   "canvas": [
+    4141,
+    975,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "up",
+   "row": "atk_jump_S",
+   "frame": 11,
+   "canvas": [
+    4141,
+    1082,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "LAUNCHER: rising wing sweep with the crescent (atk_jump_S, ground-anchored)"
+  },
+  {
+   "anim": "air",
+   "row": "atk_jump_A",
+   "frame": 1,
+   "canvas": [
+    3738,
+    12,
+    112,
+    110
+   ],
+   "offset": [
+    21,
+    82
+   ],
+   "role": "AIR: wing flip slash (atk_jump_A)"
+  },
+  {
+   "anim": "air",
+   "row": "atk_jump_A",
+   "frame": 2,
+   "canvas": [
+    3738,
+    128,
+    112,
+    110
+   ],
+   "offset": [
+    21,
+    82
+   ],
+   "role": "AIR: wing flip slash (atk_jump_A)"
+  },
+  {
+   "anim": "air",
+   "row": "atk_jump_A",
+   "frame": 3,
+   "canvas": [
+    3738,
+    244,
+    112,
+    110
+   ],
+   "offset": [
+    21,
+    82
+   ],
+   "role": "AIR: wing flip slash (atk_jump_A)"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 1,
+   "canvas": [
+    3045,
+    12,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 2,
+   "canvas": [
+    3045,
+    139,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 3,
+   "canvas": [
+    3045,
+    266,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 4,
+   "canvas": [
+    3045,
+    393,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 5,
+   "canvas": [
+    3045,
+    520,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 6,
+   "canvas": [
+    3045,
+    647,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 7,
+   "canvas": [
+    3045,
+    774,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 8,
+   "canvas": [
+    3045,
+    901,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 9,
+   "canvas": [
+    3045,
+    1028,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 10,
+   "canvas": [
+    3045,
+    1155,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "grab",
+   "row": "atk_AA",
+   "frame": 11,
+   "canvas": [
+    3045,
+    1282,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "grab = REUSED atk_AA reach"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 1,
+   "canvas": [
+    3183,
+    12,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 2,
+   "canvas": [
+    3183,
+    143,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 3,
+   "canvas": [
+    3183,
+    274,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 4,
+   "canvas": [
+    3183,
+    405,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 5,
+   "canvas": [
+    3183,
+    536,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 6,
+   "canvas": [
+    3183,
+    667,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 7,
+   "canvas": [
+    3183,
+    798,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 8,
+   "canvas": [
+    3183,
+    929,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 9,
+   "canvas": [
+    3183,
+    1060,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 10,
+   "canvas": [
+    3183,
+    1191,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 11,
+   "canvas": [
+    3183,
+    1322,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreath",
+   "row": "atk_AAA",
+   "frame": 12,
+   "canvas": [
+    3183,
+    1453,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH (atk_AAA: the ice blast at the mouth / claws)"
+  },
+  {
+   "anim": "bcBreathHold",
+   "row": "atk_AAA",
+   "frame": 6,
+   "canvas": [
+    3183,
+    667,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH hold (atk_AAA f6-9 loop)"
+  },
+  {
+   "anim": "bcBreathHold",
+   "row": "atk_AAA",
+   "frame": 7,
+   "canvas": [
+    3183,
+    798,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH hold (atk_AAA f6-9 loop)"
+  },
+  {
+   "anim": "bcBreathHold",
+   "row": "atk_AAA",
+   "frame": 8,
+   "canvas": [
+    3183,
+    929,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH hold (atk_AAA f6-9 loop)"
+  },
+  {
+   "anim": "bcBreathHold",
+   "row": "atk_AAA",
+   "frame": 9,
+   "canvas": [
+    3183,
+    1060,
+    122,
+    125
+   ],
+   "offset": [
+    3,
+    73
+   ],
+   "role": "FREEZE BREATH hold (atk_AAA f6-9 loop)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 1,
+   "canvas": [
+    4141,
+    12,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 2,
+   "canvas": [
+    4141,
+    119,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 3,
+   "canvas": [
+    4141,
+    226,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 4,
+   "canvas": [
+    4141,
+    333,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 5,
+   "canvas": [
+    4141,
+    440,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 6,
+   "canvas": [
+    4141,
+    547,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 7,
+   "canvas": [
+    4141,
+    654,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 8,
+   "canvas": [
+    4141,
+    761,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 9,
+   "canvas": [
+    4141,
+    868,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 10,
+   "canvas": [
+    4141,
+    975,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcWingCut",
+   "row": "atk_jump_S",
+   "frame": 11,
+   "canvas": [
+    4141,
+    1082,
+    123,
+    101
+   ],
+   "offset": [
+    18,
+    75
+   ],
+   "role": "FROST WING CUT (atk_jump_S: wing slash + crescent)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 1,
+   "canvas": [
+    3463,
+    12,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 2,
+   "canvas": [
+    3463,
+    143,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 3,
+   "canvas": [
+    3463,
+    274,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 4,
+   "canvas": [
+    3463,
+    405,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 5,
+   "canvas": [
+    3463,
+    536,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 6,
+   "canvas": [
+    3463,
+    667,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 7,
+   "canvas": [
+    3463,
+    798,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 8,
+   "canvas": [
+    3463,
+    929,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 9,
+   "canvas": [
+    3463,
+    1060,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 10,
+   "canvas": [
+    3463,
+    1191,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 11,
+   "canvas": [
+    3463,
+    1322,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 12,
+   "canvas": [
+    3463,
+    1453,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 13,
+   "canvas": [
+    3463,
+    1584,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 14,
+   "canvas": [
+    3463,
+    1715,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 15,
+   "canvas": [
+    3463,
+    1846,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 16,
+   "canvas": [
+    3463,
+    1977,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 17,
+   "canvas": [
+    3463,
+    2108,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcSpire",
+   "row": "atk_AS",
+   "frame": 18,
+   "canvas": [
+    3463,
+    2239,
+    123,
+    125
+   ],
+   "offset": [
+    13,
+    72
+   ],
+   "role": "ICE SPIRE (atk_AS body; the spires are cut to fx:spire)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "idle2block",
+   "frame": 1,
+   "canvas": [
+    843,
+    12,
+    114,
+    104
+   ],
+   "offset": [
+    18,
+    80
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "idle2block",
+   "frame": 2,
+   "canvas": [
+    843,
+    122,
+    114,
+    104
+   ],
+   "offset": [
+    18,
+    80
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 1,
+   "canvas": [
+    4543,
+    12,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 2,
+   "canvas": [
+    4543,
+    110,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 3,
+   "canvas": [
+    4543,
+    208,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 4,
+   "canvas": [
+    4543,
+    306,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 5,
+   "canvas": [
+    4543,
+    404,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 6,
+   "canvas": [
+    4543,
+    502,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 7,
+   "canvas": [
+    4543,
+    600,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 8,
+   "canvas": [
+    4543,
+    698,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 9,
+   "canvas": [
+    4543,
+    796,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 10,
+   "canvas": [
+    4543,
+    894,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 11,
+   "canvas": [
+    4543,
+    992,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 12,
+   "canvas": [
+    4543,
+    1090,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcCocoon",
+   "row": "block_idle",
+   "frame": 13,
+   "canvas": [
+    4543,
+    1188,
+    113,
+    92
+   ],
+   "offset": [
+    16,
+    81
+   ],
+   "role": "COCOON (closing the wings \u2192 the wrapped hold)"
+  },
+  {
+   "anim": "bcBurst",
+   "row": "block_hit",
+   "frame": 5,
+   "canvas": [
+    4416,
+    440,
+    112,
+    101
+   ],
+   "offset": [
+    21,
+    87
+   ],
+   "role": "COCOON burst: wings flung open"
+  },
+  {
+   "anim": "bcBurst",
+   "row": "jump_double",
+   "frame": 2,
+   "canvas": [
+    1245,
+    135,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "COCOON burst: wings flung open"
+  },
+  {
+   "anim": "bcBurst",
+   "row": "jump_double",
+   "frame": 3,
+   "canvas": [
+    1245,
+    258,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "COCOON burst: wings flung open"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 1,
+   "canvas": [
+    3601,
+    12,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 2,
+   "canvas": [
+    3601,
+    130,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 3,
+   "canvas": [
+    3601,
+    248,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 4,
+   "canvas": [
+    3601,
+    366,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 5,
+   "canvas": [
+    3601,
+    484,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 6,
+   "canvas": [
+    3601,
+    602,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 7,
+   "canvas": [
+    3601,
+    720,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 8,
+   "canvas": [
+    3601,
+    838,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 9,
+   "canvas": [
+    3601,
+    956,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 10,
+   "canvas": [
+    3601,
+    1074,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 11,
+   "canvas": [
+    3601,
+    1192,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 12,
+   "canvas": [
+    3601,
+    1310,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 13,
+   "canvas": [
+    3601,
+    1428,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 14,
+   "canvas": [
+    3601,
+    1546,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 15,
+   "canvas": [
+    3601,
+    1664,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcDrift",
+   "row": "atk_cS",
+   "frame": 16,
+   "canvas": [
+    3601,
+    1782,
+    122,
+    112
+   ],
+   "offset": [
+    15,
+    72
+   ],
+   "role": "PHASE DRIFT (atk_cS: wings spread, gliding lunge)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 1,
+   "canvas": [
+    3045,
+    12,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 2,
+   "canvas": [
+    3045,
+    139,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 3,
+   "canvas": [
+    3045,
+    266,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 4,
+   "canvas": [
+    3045,
+    393,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 5,
+   "canvas": [
+    3045,
+    520,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 6,
+   "canvas": [
+    3045,
+    647,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 7,
+   "canvas": [
+    3045,
+    774,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 8,
+   "canvas": [
+    3045,
+    901,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 9,
+   "canvas": [
+    3045,
+    1028,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 10,
+   "canvas": [
+    3045,
+    1155,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcSlash",
+   "row": "atk_AA",
+   "frame": 11,
+   "canvas": [
+    3045,
+    1282,
+    123,
+    121
+   ],
+   "offset": [
+    8,
+    73
+   ],
+   "role": "PHASE DRIFT wing slash (atk_AA)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 1,
+   "canvas": [
+    3865,
+    12,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 2,
+   "canvas": [
+    3865,
+    122,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 3,
+   "canvas": [
+    3865,
+    232,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 4,
+   "canvas": [
+    3865,
+    342,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 5,
+   "canvas": [
+    3865,
+    452,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 6,
+   "canvas": [
+    3865,
+    562,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcDive",
+   "row": "atk_jump_A2",
+   "frame": 7,
+   "canvas": [
+    3865,
+    672,
+    123,
+    104
+   ],
+   "offset": [
+    29,
+    71
+   ],
+   "role": "DIVING CHILL (atk_jump_A2: dive with the icicle trail)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 1,
+   "canvas": [
+    4003,
+    12,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 2,
+   "canvas": [
+    4003,
+    120,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 3,
+   "canvas": [
+    4003,
+    228,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 4,
+   "canvas": [
+    4003,
+    336,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 5,
+   "canvas": [
+    4003,
+    444,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 6,
+   "canvas": [
+    4003,
+    552,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 7,
+   "canvas": [
+    4003,
+    660,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 8,
+   "canvas": [
+    4003,
+    768,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 9,
+   "canvas": [
+    4003,
+    876,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 10,
+   "canvas": [
+    4003,
+    984,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 11,
+   "canvas": [
+    4003,
+    1092,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 12,
+   "canvas": [
+    4003,
+    1200,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 13,
+   "canvas": [
+    4003,
+    1308,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 14,
+   "canvas": [
+    4003,
+    1416,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 15,
+   "canvas": [
+    4003,
+    1524,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcStorm",
+   "row": "atk_jump_cS",
+   "frame": 16,
+   "canvas": [
+    4003,
+    1632,
+    123,
+    102
+   ],
+   "offset": [
+    21,
+    74
+   ],
+   "role": "FROZEN SKY Winter Storm (atk_jump_cS: air wing beats)"
+  },
+  {
+   "anim": "bcOpen",
+   "row": "jump_double",
+   "frame": 1,
+   "canvas": [
+    1245,
+    12,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "wings-OPENING transition (render-only, 6f)"
+  },
+  {
+   "anim": "bcOpen",
+   "row": "jump_double",
+   "frame": 2,
+   "canvas": [
+    1245,
+    135,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "wings-OPENING transition (render-only, 6f)"
+  },
+  {
+   "anim": "bcOpen",
+   "row": "jump_double",
+   "frame": 3,
+   "canvas": [
+    1245,
+    258,
+    212,
+    117
+   ],
+   "offset": [
+    10,
+    2
+   ],
+   "role": "wings-OPENING transition (render-only, 6f)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 1,
+   "canvas": [
+    5074,
+    12,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 2,
+   "canvas": [
+    5074,
+    113,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 3,
+   "canvas": [
+    5074,
+    214,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 4,
+   "canvas": [
+    5074,
+    315,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 5,
+   "canvas": [
+    5074,
+    416,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 6,
+   "canvas": [
+    5074,
+    517,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 7,
+   "canvas": [
+    5074,
+    618,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 8,
+   "canvas": [
+    5074,
+    719,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 9,
+   "canvas": [
+    5074,
+    820,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 10,
+   "canvas": [
+    5074,
+    921,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 11,
+   "canvas": [
+    5074,
+    1022,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 12,
+   "canvas": [
+    5074,
+    1123,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "anim": "bcFly",
+   "row": "glide",
+   "frame": 13,
+   "canvas": [
+    5074,
+    1224,
+    184,
+    95
+   ],
+   "offset": [
+    31,
+    10
+   ],
+   "role": "flight (glide, wings open)"
+  },
+  {
+   "fx": "shard",
+   "rows": [
+    "atk_JS",
+    "atk_JS2",
+    "atk_JS3",
+    "atk_JS4"
+   ]
+  },
+  {
+   "fx": "proj",
+   "rows": [
+    "atk_S_proj"
+   ]
+  },
+  {
+   "fx": "particle",
+   "rows": [
+    "ChrgParticle1",
+    "ChrgParticle2"
+   ]
+  },
+  {
+   "fx": "spire",
+   "rows": [
+    "atk_AS"
+   ],
+   "frames": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+   ]
+  }
+ ]
+}

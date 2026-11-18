@@ -34,7 +34,7 @@ export const HUMONGOUSAUR = {
   },
   anim: ANIM,
   onApply, tick, moveFrames, fireSpecial, fireUltimate, onContact, hurtbox, damageDealt, damageTaken,
-  drawHud: drawHumongousaurHud
+  drawHud: drawHumongousaurHud, drawFx: drawHumongousaurFx
 }
 
 // ── state ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -42,6 +42,7 @@ export function freshHumongousaurState() {
   return { kind: HM_KEY, t: 0, castId: 0, noAttack: false, baseSpeed: null, baseDash: null,
     stage: { L: -1e6, R: 1e6 },
     size: { v: 0, idleT: 0, giantT: 0, shrinkT: 0, gained: [], giants: 0, shrinks: 0, peak: 0 },
+    tremor: { pips: 0, pipT: 0, pipped: [], immuneT: 0, topples: 0, lastTopple: null, burstT: 0 },
     hist: [], fwdPrev: false, fwdTapT: -999, dashTapT: -999, lastDir: 5, spPrev: false,
     stats: { casts: 0, gains: 0, gained: 0 } }
 }
@@ -72,6 +73,7 @@ function tick(f, input, ctx, api) {
   input = input || {}
   tickInputs(f, s, input)
   tickSize(f, s)
+  tickTremor(f, s)
   s.noAttack = busy(s)
   s.spPrev = !!input.special
 }
@@ -235,6 +237,46 @@ function onContact(f, target, { proj = null, move = null, blocked = false } = {}
 }
 const CONTACT = []   // later phases' contact handlers (Tremor pips, ult capture)
 
+// ── 4. TREMOR → TOPPLE (a status on the OPPONENT, owned by this form's GAME_STATE) ─────────────────────────────
+// Clean hits (not blocked) from Quake Slam, Meteor Stomp and Charging Tackle add 1 Tremor pip PER CAST (projectile tag
+// `alien.pip` = 1, counted once per cast id however many ticks hit); at HUGE+ Roar and Quake Slam add +1 (`alien.tierPip`).
+// No pips from blocks, FX, Roar below HUGE, Push Through or the ult. Max 3; they expire 240f after the last one.
+// 3 pips → TOPPLE: the pips are consumed and the opponent is forced into ONE knockdown — the engine's own knockdown
+// (`knockdownState` + `knockdownTimer` 52, the engine's standard length: tech roll / neutral wake-up invulnerability /
+// hits ignored while down all apply unchanged). No extra stun is added (their hitstun is left as the hit set it), and a
+// fighter already down is never re-armed (no chain-lock). Then 360f immunity (pips can't build). Nothing polls the
+// opponent's inputs or touches any clock. The burst / pips drawn on them are render-only.
+export const HM_TREMOR = { MAX: 3, EXPIRE: 240, IMMUNE: 360, KD: 52 }
+export function addTremor(f, s, opp, cast, n = 1) {
+  const r = s.tremor
+  if (!(n > 0) || r.immuneT > 0) return 0
+  if (cast != null) { if (r.pipped.includes(cast)) return 0; r.pipped.push(cast); if (r.pipped.length > 8) r.pipped.shift() }
+  const before = r.pips
+  r.pips = Math.min(HM_TREMOR.MAX, r.pips + n); r.pipT = HM_TREMOR.EXPIRE
+  if (r.pips >= HM_TREMOR.MAX) topple(f, s, opp)
+  return r.pips - before
+}
+export function topple(f, s, opp) {
+  const r = s.tremor
+  if (!opp || r.immuneT > 0) return false
+  r.pips = 0; r.pipT = 0; r.immuneT = HM_TREMOR.IMMUNE; r.topples++; r.burstT = 24
+  const already = !!opp.knockdownState
+  if (!already) { opp.knockdownState = true; opp.knockdownTimer = HM_TREMOR.KD }   // exactly one knockdown, the existing rules
+  r.lastTopple = { t: s.t, already }
+  return true
+}
+function tickTremor(f, s) {
+  const r = s.tremor
+  if (r.burstT > 0) r.burstT--
+  if (r.immuneT > 0) r.immuneT--
+  if (r.pips > 0 && --r.pipT <= 0) { r.pips = 0; r.pipT = 0 }
+}
+CONTACT.push((f, s, target, { proj, blocked }) => {
+  const tag = proj && proj.alien; if (!tag || blocked) return
+  const n = (tag.pip || 0) + (tag.tierPip ? tierOf(s).pip : 0)
+  if (n > 0) addTremor(f, s, target, tag.cast, n)
+})
+
 // ── RENDER-ONLY HUD (reads GAME_STATE, never writes it) ───────────────────────────────────────────────────────
 const TIER_COL = { normal: "#d6b36a", large: "#f59e0b", huge: "#f97316", giant: "#ef4444", shrink: "#9ca3af" }
 export function drawHumongousaurHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {}) {
@@ -252,4 +294,23 @@ export function drawHumongousaurHud(ctx, f, { x, enY, enH = 8, pbw, flip } = {})
   const label = k === "giant" ? `GIANT ${Math.ceil(z.giantT / 60)}s` : k === "shrink" ? `SHRINK ${Math.ceil(z.shrinkT / 60)}s` : `${HM_TIERS[k].name} ${Math.floor(z.v)}`
   ctx.fillText(`SIZE · ${label}`, flip ? bx + w : bx, y + h + 2)
   ctx.restore()
+}
+
+// ── RENDER-ONLY world overlays (read GAME_STATE, never write it) ───────────────────────────────────────────────
+const INK = "#140c06", SAND = "#e8c78a", RUST = "#b45309", BONE = "#fff4dc"
+function px(c, x, y, k = 3) { c.fillRect(Math.round(x - k / 2), Math.round(y - k / 2), k, k) }
+export function drawHumongousaurFx(c, f, frame = 0, opp = null) {
+  const s = hmState(f); if (!s) return
+  const r = s.tremor
+  if (opp && (r.pips > 0 || r.burstT > 0)) {   // TREMOR pips over the opponent; TOPPLE = a pixel ground-crack burst under them
+    const ox = cx(opp), top = opp.y, foot = opp.y + (opp.h || 110)
+    if (r.burstT > 0) { const k = 24 - r.burstT
+      c.fillStyle = (k >> 1) % 2 ? SAND : RUST
+      for (let i = -3; i <= 3; i++) px(c, ox + i * (8 + k), foot - Math.abs(i) * 2 - (k % 3), 4)
+      c.fillStyle = BONE; c.font = "bold 10px monospace"; c.textAlign = "center"; c.fillText("TOPPLE", ox, top - 18 - k) }
+    else for (let k = 0; k < HM_TREMOR.MAX; k++) {
+      const x = ox - 12 + k * 12, y = top - 14; c.fillStyle = INK; c.fillRect(x - 4, y - 4, 9, 9)
+      c.fillStyle = k < r.pips ? RUST : "#3f3a33"; c.fillRect(x - 3, y - 3, 7, 7); if (k < r.pips) { c.fillStyle = SAND; c.fillRect(x - 1, y - 1, 2, 2) }
+    }
+  }
 }

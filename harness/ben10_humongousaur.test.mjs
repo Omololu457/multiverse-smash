@@ -137,11 +137,57 @@ test('4. Growth: the drawn scale follows the tier in fixed steps (frame-set swap
   const base = HUMONGOUSAUR.anim.idle.actionScale
   assert.deepEqual([...seen].sort(), [1, 1.2, 1.35, 1.5].map(k => +(base * k).toFixed(4)).sort(), 'exactly four render steps')
 })
-test('11. Swap / revert / KO / rematch clear Size and Shrink', () => {
+// ── 5 Tremor → Topple ────────────────────────────────────────────────────────────────────────────────────────
+const { HM_TREMOR } = H
+const tag = (f, t, hm, cast, { blocked = false, pip = 1, tierPip = false } = {}) => HUMONGOUSAUR.onContact(f, t, { proj: { alien: { hm, pip, tierPip, cast } }, blocked })
+test('5. Tremor: one pip per cast however many ticks hit; blocks give none; max 3', () => {
+  const f = ben(), t = foe(); far(f, t); const r = () => S(f).tremor
+  tag(f, t, 'quake', 1); tag(f, t, 'quake', 1); assert.equal(r().pips, 1, 'two ticks of one cast = 1 pip')
+  tag(f, t, 'tackle', 2, { blocked: true }); assert.equal(r().pips, 1, 'blocked: no pip')
+  tag(f, t, 'roar', 3, { pip: 0, tierPip: true }); assert.equal(r().pips, 1, 'Roar below HUGE: no pip')
+  tag(f, t, 'push', 4, { pip: 0 }); assert.equal(r().pips, 1, 'Push Through: no pip')
+  tag(f, t, 'tackle', 5); assert.equal(r().pips, 2)
+})
+test('5. Tremor: pips expire 240f after the last one', () => {
+  const f = ben(), t = foe(); far(f, t)
+  tag(f, t, 'quake', 1); step(f, t, 100); tag(f, t, 'stomp', 2); step(f, t, HM_TREMOR.EXPIRE - 1); assert.equal(S(f).tremor.pips, 2, 'refreshed by the 2nd')
+  step(f, t, 1); assert.equal(S(f).tremor.pips, 0, 'gone 240f after the last')
+})
+test('5. Tremor: HUGE+ — Roar and Quake Slam add +1 pip; Tackle / Stomp unchanged', () => {
+  const f = ben(), t = foe(); far(f, t); setSize(f, 85)
+  tag(f, t, 'roar', 1, { pip: 0, tierPip: true }); assert.equal(S(f).tremor.pips, 1, 'Roar at HUGE = 1')
+  tag(f, t, 'tackle', 2); assert.equal(S(f).tremor.pips, 2, 'Tackle = 1')
+  const g = ben(); setSize(g, 85); tag(g, t, 'quake', 1, { tierPip: true }); assert.equal(S(g).tremor.pips, 2, 'Quake at HUGE = 2')
+})
+test('5. TOPPLE: 3 pips → exactly one forced knockdown (existing rules), no extra stun, pips consumed, 360f immunity', () => {
+  const f = ben(), t = foe(); far(f, t); t.hitstun = 7
+  const before = JSON.stringify({ x: t.x, vx: t.vx, vy: t.vy, energy: t.energy, health: t.health, gib: t.grabInputBuffer, facing: t.facing })
+  tag(f, t, 'quake', 1); tag(f, t, 'stomp', 2); assert(!t.knockdownState); tag(f, t, 'tackle', 3)
+  assert(t.knockdownState, 'knocked down'); assert.equal(t.knockdownTimer, HM_TREMOR.KD, 'the engine\'s standard knockdown length')
+  assert.equal(t.hitstun, 7, 'no extra stun'); assert.equal(S(f).tremor.pips, 0, 'pips consumed'); assert.equal(S(f).tremor.topples, 1)
+  assert.equal(JSON.stringify({ x: t.x, vx: t.vx, vy: t.vy, energy: t.energy, health: t.health, gib: t.grabInputBuffer, facing: t.facing }), before, 'nothing else on the opponent changes (no polling, no position, no meter)')
+  for (let c = 10; c < 16; c++) tag(f, t, 'quake', c); assert.equal(S(f).tremor.pips, 0, 'immune: pips cannot build')
+  step(f, t, HM_TREMOR.IMMUNE); assert.equal(S(f).tremor.immuneT, 0); tag(f, t, 'quake', 20); assert.equal(S(f).tremor.pips, 1, 'builds again after 360f')
+})
+test('5. TOPPLE never re-arms a fighter already down (no chain-lock) and the knockdown ends by the normal timer', () => {
+  const f = ben(), t = foe(); far(f, t); t.knockdownState = true; t.knockdownTimer = 5
+  tag(f, t, 'quake', 1); tag(f, t, 'stomp', 2); tag(f, t, 'tackle', 3)
+  assert.equal(t.knockdownTimer, 5, 'not re-armed'); assert.equal(S(f).tremor.lastTopple.already, true)
+  const g = ben(), u = foe(); far(g, u); for (let c = 1; c <= 3; c++) tag(g, u, 'quake', c)
+  let n = 0; while (u.knockdownState && n < 200) { world(g, u, 1); n++ }
+  assert.equal(n, HM_TREMOR.KD, 'one knockdown of the standard length'); assert(u.invulnTimer > 0, 'neutral wake-up invulnerability applies')
+})
+test('5. Tremor: the simulation clock and the opponent\'s inputs are untouched (FRAME advances 1 per world frame)', () => {
+  const f = ben(), t = foe(); far(f, t); const f0 = FRAME; for (let c = 1; c <= 3; c++) tag(f, t, 'quake', c); world(f, t, 10)
+  assert.equal(FRAME - f0, 10); assert.equal(t._timeSlowFlag, undefined); assert.equal(t._benRootT, undefined); assert.equal(t._benPinT, undefined)
+})
+test('11. Swap / revert / KO / rematch clear Size, Shrink and Tremor', () => {
   const f = ben('humongousaur', LOAD); setSize(f, 100)
   assert(F.applyAlien(f, 'heatblast')); assert(F.applyAlien(f, 'humongousaur')); f.transformed = true
   assert.equal(S(f).size.v, 0); assert.equal(S(f).size.giantT, 0)
   S(f).size.shrinkT = 50; F.applyAlien(f, 'heatblast'); F.applyAlien(f, 'humongousaur'); assert.equal(S(f).size.shrinkT, 0, 'Shrink cleared by a swap')
+  const t = foe(); far(f, t); f.transformed = true; tag(f, t, 'quake', 1); S(f).tremor.immuneT = 99; F.applyAlien(f, 'heatblast'); F.applyAlien(f, 'humongousaur')
+  assert.equal(S(f).tremor.pips, 0); assert.equal(S(f).tremor.immuneT, 0, 'Tremor state cleared by a swap')
 })
 
 console.log(`\nHUMONGOUSAUR: ${passed} passed, ${failed} failed`)

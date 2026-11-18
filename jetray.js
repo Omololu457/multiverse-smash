@@ -264,7 +264,13 @@ function beginCast(f, s, api, pose, cost, total, { commit = true } = {}) {
   s.castId++
   return { cast: s.castId, total }
 }
-const hitbox = (f, api, name, face, md) => api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, ...md }, {})
+// lifetime ≥ 2: combat.updateProjectiles decrements + culls (≤ 0) BEFORE hits resolve, so a lifetime-1 box never connects in-game.
+// Per-frame boxes (dive / ult swoop) replace their previous copy so only one is ever live (no double hit).
+const hitbox = (f, api, name, face, md) => {
+  const list = api.activeProjectiles?.()
+  if (list && md.replace) for (let i = list.length - 1; i >= 0; i--) if (list[i].owner === f && list[i].name === name) list.splice(i, 1)
+  return api.spawnProjectile(f, name, { speed: 0, vx: face * 0.01, vy: 0, rectHitbox: true, isSpecial: true, ...md, replace: undefined }, {})
+}
 const blockstunFor = (remaining, onBlock) => Math.max(1, remaining + 1 + onBlock)
 
 // 1. EYE LASER (↓↘→ + P, 10): a beam from the per-frame EYE ANCHOR (sheet data; mirrored for facing −1). Direction fixed at cast
@@ -303,7 +309,7 @@ function tickEye(f, s, opp, api) {
   const hit = segBox(eyeBeam(f, s), { x: opp.x, y: opp.y, w: opp.w || 60, h: opp.h || 110 })
   if (!hit) return
   const fin = k === e.ticksAt.length - 1
-  hitbox(f, api, "jr_eye_" + k, e.face, { damage: JR_EYE.DMG, spawnX: hit.x + e.face * 8, spawnY: hit.y, w: 24, h: 24, radius: 12, lifetime: 1,
+  hitbox(f, api, "jr_eye_" + k, e.face, { damage: JR_EYE.DMG, spawnX: hit.x + e.face * 8, spawnY: hit.y, w: 24, h: 24, radius: 12, lifetime: 2,
     beam: true, noHitstop: !fin, hitstun: fin ? 22 : 14, blockstun: fin ? blockstunFor(e.total - e.t, JR_EYE.ON_BLOCK) : 12,
     knockbackX: fin ? 4 : 0.5, knockbackY: 0, alien: { jr: true, kind: "eye", pip: true, cast: e.cast } })
 }
@@ -401,7 +407,7 @@ function tickDive(f, s, api, grounded) {
   const k = machActive(s) ? JR_MACH.SPEED : 1
   f._benGlide = { vx: d.face * JR_DIVE.VX * k, vy: JR_DIVE.VY * k }
   hitbox(f, api, "jr_dive", d.face, { damage: JR_DIVE.DMG, spawnX: cx(f) + d.face * 24, spawnY: f.y + (f.h || 96) * 0.65, w: 96, h: 60, radius: 48,
-    lifetime: 1, hitstun: 22, blockstun: 12, knockbackX: 5, knockbackY: -5, alien: { jr: true, kind: "dive", pip: true, cast: d.cast } })
+    lifetime: 2, replace: true, hitstun: 22, blockstun: 12, knockbackX: 5, knockbackY: -5, alien: { jr: true, kind: "dive", pip: true, cast: d.cast } })
 }
 
 // DEFENSE: BARREL ROLL (←← + Light): no cost, i-frames on frames 4–10, 5 s cooldown, a short drift back; rotation render-only.
@@ -480,7 +486,7 @@ function tickUlt(f, s, opp, api, ctx, stage) {
     if (u.t <= st + JR_ULT.SWOOP_F && !u.stopped) {                                // the low talon swoop: real travel, talons ride him
       f._benGlide = { vx: u.face * JR_ULT.SWOOP_V, vy: 0 }; f._spriteCastMove = "jrDash"; f._spriteCastTimer = 2
       hitbox(f, api, "jr_ult_swoop", u.face, { damage: JR_ULT.OPENER, spawnX: cx(f) + u.face * 30, spawnY: f.y + (f.h || 96) * 0.6, w: 110, h: 80,
-        radius: 55, lifetime: 1, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0, knockbackY: 0, alien: { jr: true, kind: "ultOpen", cast: u.cast } })
+        radius: 55, lifetime: 2, replace: true, isUltimate: true, hitstun: 40, blockstun: 16, knockbackX: 0, knockbackY: 0, alien: { jr: true, kind: "ultOpen", cast: u.cast } })
       if (opp && (opp.blockstun || 0) > 0 && Math.abs(cx(opp) - cx(f)) < 110) { u.stopped = true; delete f._benGlide }   // blocked: stop, no capture
       return
     }

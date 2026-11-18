@@ -99,6 +99,11 @@ test('route 3 live: Blur Step → (cancel) Tail Whip, Heavy, Mach Cyclone', () =
 })
 
 // ── 4 Flash Time ───────────────────────────────────────────────────────────────────────────────────────────
+test('4. Flash Time SLOWS THE OPPONENT: oppTimeScale 0.4 while active (game.js frame-skip), 0 otherwise', () => {
+  const f = ben(), t = fresh('goku', 1300); assert.equal(XLR8.oppTimeScale(f), 0)
+  assert(XLR8.chargeSpecial(f, ctxOf(f, t))); assert.equal(XLR8.oppTimeScale(f), XL_FLASH.OPP); assert.equal(XL_FLASH.OPP, 0.4)
+  tick(f, t, XL_FLASH.DURATION); assert.equal(XLR8.oppTimeScale(f), 0)
+})
 test('4. Flash Time: 25 Power, 150f, startup/recovery ×0.7, speed ×1.8 (P + L), opponent projectiles ×0.5, 600f cooldown, no re-activate', () => {
   const f = ben(), t = fresh('goku', 1300); tick(f, t)
   const sp = f._benWalkSpeed, ds = f.dashSpeed

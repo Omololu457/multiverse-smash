@@ -21226,6 +21226,7 @@ function _oppTimeScaleOf(user) {
   if (user._shiFlickerActive) return user._shiOppTimeScale || 0.36 // SHISUI (FALLEN) "Flicker Time" — same slow-time engine, own emerald aura
   { const _dpTs = dashParrOppTimeScale(user); if (_dpTs > 0) return _dpTs }   // DASH "Flash Time" — same slow-time engine (0 for everyone else)
   { const _dsTs = dseylOppTimeScale(user); if (_dsTs > 0) return _dsTs }   // DSEYL "Flash Time" — same slow-time engine (0 for everyone else)
+  { const _bnTs = benReadyForm(user)?.oppTimeScale?.(user); if (_bnTs > 0) return _bnTs }   // BEN 10 ready form (Jetray / XLR8 "Flash Time", ADD_ALIEN.md) — same slow-time engine (no hook → 0)
   return 0
 }
 function _updateGodspeedTimeSlow() {

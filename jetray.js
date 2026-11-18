@@ -13,7 +13,7 @@ const ANIM = { ...JETRAY_ANIM, jrFly: JETRAY_ANIM.fly }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
 export const JR_FLIGHT = { MAX: 240, HOLD: 8, TAP: 15 }   // TAP 15f ≈ 250 ms (Homelander's charge tap is 200 ms)   // energy budget (profile), hold-Jump-in-air takeoff, P-tap window
-export const JR_MACH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, SWALLOW: 10 }   // FLASH TIME (P + L)
+export const JR_MACH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.4, SWALLOW: 10 }   // FLASH TIME (P + L); OPP = the opponent runs at 40% speed
 export const JR_ECHO = { DELAY: 10, FRAC: 0.30, MAX: 3 }
 export const JR_BOOM = { R: 120, DMG: 25, LIFE: 2 }
 export const JR_NEURO = { MAX: 3, EXPIRE: 240, GROUNDED: 150, IMMUNE: 360, AIR: 0.5 }
@@ -59,6 +59,8 @@ export const JETRAY = {
   },
   anim: ANIM,
   onApply, tick, moveFrames, fireSpecial, fireUltimate, blockSpecial, chargeSpecial: blockSpecial, onContact, bodyOffset, targetOffset,
+  // FLASH TIME slows the OPPONENT: game.js runs them at 40% (the Killua Godspeed / Flash frame-skip — movement, attacks, animation)
+  oppTimeScale: f => machActive(jrState(f)) ? JR_MACH.OPP : 0,
   drawHud: drawJetrayHud, drawFx: drawJetrayFx, drawUnder: drawJetrayUnder, drawBehind: drawJetrayBehind
 }
 

@@ -118,11 +118,16 @@ try {
   await chord("keydown", ["p"]); await frames(2); await chord("keydown", ["l"]); await frames(3); await chord("keyup", ["l", "p"]); await frames(14)
   const m = await jrProbe(); ok(m?.mach > 0 && !m.flying, "P + L → FLASH TIME (not a flight toggle, no special)", JSON.stringify({ mach: m?.mach, flying: m?.flying, eyes: m?.eyes }))
   ok(await notBlack("_jetray_mach.png"), "no black screen (Flash Time)")
+  // the OPPONENT is really slowed: game.js skips most of their frames (Killua Godspeed / Flash frame-skip)
+  const slowSample = () => page.evaluate(async () => { let fr = 0, n = 0; for (let i = 0; i < 40; i++) { await new Promise(r => requestAnimationFrame(r)); n++; if (window.__harness.p2()?.timeSlowFrozen) fr++ } return fr / n })
+  const slowOn = await slowSample(); ok(slowOn > 0.3, "Flash Time SLOWS THE OPPONENT (their frames are skipped)", `frozen ${(slowOn * 100).toFixed(0)}% of samples`)
   await jrProbe("cool"); await near(150); const hpD = (await H("p2")).health
   await jrProbe("dash"); await H("ben10Cast", "F"); await frames(4); const wd = await jrProbe()
   ok(wd?.dashes === 1 && wd?.cast === "jrDash", "Wing Dash in the warp-bubble frames", JSON.stringify({ dashes: wd?.dashes, cast: wd?.cast }))
   ok(await notBlack("_jetray_dash.png"), "no black screen (Wing Dash)")
   await frames(30); const wd2 = await jrProbe(); ok((await H("p2")).health < hpD && wd2?.booms === 1, "Wing Dash lands + Sonic Boom in Mach Time", JSON.stringify({ hp: `${hpD} → ${(await H("p2")).health}`, booms: wd2?.booms }))
+  { const off = await page.evaluate(async () => { let fr = 0; for (let i = 0; i < 20; i++) { await new Promise(r => requestAnimationFrame(r)); if (window.__harness.p2()?.timeSlowFrozen) fr++ } return fr })
+    ok(off === 0, "after Flash Time the opponent runs at full speed again", String(off)) }
   // ── SONIC DIVE (air ↓ + P) ──
   await settle(40); await jrProbe("cool"); await near(120); await jrProbe("air"); await frames(2)
   await H("ben10Cast", "D"); await frames(6); ok((await jrProbe())?.dives === 1, "Sonic Dive (dive frame)")

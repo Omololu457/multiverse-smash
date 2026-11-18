@@ -12,7 +12,7 @@ export { XLR8_ANIM, XLR8_FX }
 const ANIM = { ...XLR8_ANIM, hbFire: XLR8_ANIM.xlSonicSlash }
 
 // ── tuning (pre-mod numbers from the brief) ─────────────────────────────────────────────────────────────────
-export const XL_FLASH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
+export const XL_FLASH = { COST: 25, DURATION: 150, COOLDOWN: 600, FRAMES: 0.7, SPEED: 1.8, PROJ: 0.5, OPP: 0.4, SWALLOW: 10 }   // P + L (Charge + Special); SPEED 1.4 → 1.8 (owner: "as fast as the Flash")   // SWALLOW = the shared input-buffer window
 export const XL_ECHO = { DELAY: 12, FRAC: 0.30, MAX: 3 }
 export const XL_COST = { slash: 10, blur: 12, whip: 12, cyclone: 16, dive: 12, ultimate: 50 }
 export const XL_SLASH = { STARTUP: 8, LUNGE_FRAMES: 19, LUNGE_SPEED: 20, HITS: [[4, 14], [10, 14], [16, 22]], TOTAL: 40, ON_BLOCK: -12 }
@@ -46,6 +46,8 @@ export const XLR8 = {
   },
   anim: ANIM, fx: XLR8_FX,
   onApply, tick, fireSpecial, fireUltimate, blockSpecial, chargeSpecial: blockSpecial, onContact, moveFrames,
+  // FLASH TIME slows the OPPONENT: game.js runs them at 40% (the Killua Godspeed / Flash frame-skip — movement, attacks, animation)
+  oppTimeScale: f => flashActive(xlState(f)) ? XL_FLASH.OPP : 0,
   drawHud: drawXlr8Hud, drawFx: drawXlr8Fx, drawUnder: drawXlr8Under, drawBehind: drawXlr8Behind, trailCount: f => xlTrailCount(f)
 }
 

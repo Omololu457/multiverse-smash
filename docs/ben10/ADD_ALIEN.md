@@ -375,6 +375,38 @@ raise the dial's slot count to 15: not done (owner decision: PICK FIVE, no new d
 | Return Fire aim | `api.getOpponent` (the nearest other fighter in 1v1; uses `api.allFighters` if an engine ever provides it) |
 | Full Feedback | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `targetOffset` (System Takeover pattern) |
 
+### Arcticguana (added 2026-11-18) — key `arcticguana`, TWO new optional hooks
+PICK FIVE: catalog slot 17 is metadata (the brief said 16, which Feedback holds on main; ready slots stay contiguous
+1..17); he is picked into the loadout and reached with the Dial (↓↓ + slot key). The brief asked to raise the dial's slot
+count to 16: not done (owner decision: PICK FIVE, no new dial slots). Sheet + ledger: `docs/ben10/aliens/arcticguana/`.
+Ice FX: the ice-effect folder `assets/frozone/skins/infinity_ice/fx/` copied byte-for-byte to
+`assets/sprites/ben10/aliens/arcticguana_fx/` (render-only; no Frozone character art is used).
+
+**New hook 1 — `api.readControls(f)`** (abilities.js `benAlienApi`): returns `input.readRawControls(f)`, the
+side-effect-free raw snapshot the replay / LAN path already uses (never polls, never touches the input buffer; `null` for a
+fighter with no controls). Lets a status a form owns read its TARGET's presses. Used by the Popsicle mash-out (each fresh
+button edge shortens it 1 tick, max 6). Optional: nothing calls it unless a form does.
+
+**New hook 2 — `_benSlow = { ttl, k }`** (physics.js `moveFighter`): a ready form's tick stamps its OPPONENT each frame the
+status lasts (ttl ≥ 2, lapses on its own in moveFighter); walk / run, ground dash and air dash speed × k. Input polling and
+the clock untouched. Absent → ×1 → every other fighter byte-identical (frame-data diff 0, combo-standard unchanged). Used by
+Frost Cloud (×0.8 for 60f, once).
+
+| Mechanic | Hook reused |
+|---|---|
+| FROST COAT (Block + Light, 14f / 240f / 300f cd) | `blockLight` (Ghostfreak / Brainstorm) + `tick`; defense via `defenseMultiplier` (melee) + `incomingScale` (other sources); speed via `_benWalkSpeed` / `dashSpeed` |
+| Fire ×1.25 / SHATTER COAT (60%, 120 px burst 15) | `damageTaken` (tag test: fire names / tags; throws, beams, block chip and guarded hits never shatter) + a radial hidden hitbox |
+| CHILL pips → POPSICLE (30 ticks) | `onContact` (`alien.chill` tags, one pip per cast id) + `tick` (hitstun top-up 2 at a time, x / y pinned — Frozone's ice contract); ends on expiry / escape / grab / KO / any other damage; 420f immunity |
+| SHATTER (+25 × combo scale, once) | `onContact` (`move.agShatter` Heavy, `alien.shatter` tags) + `api.applyScaledDamage` / `api.getComboScale` |
+| the freezing cast breaks off (8f) | his `tick` (its own later ticks would otherwise melt the Popsicle it made) |
+| Ice Slide projectile duck (f6–24, melee still hits) | `evade` (Goop Puddle's low-profile filter, projectiles only) + `_benLunge` travel |
+| Ice Shard one hit per target | `onContact` writes the target into the twin's `_pierceHits` (the engine already skips listed targets, same resolve pass) |
+| Icicle Drop | `_benGlide` (Meteor Stomp / Spear Dive landing detection) |
+| ABSOLUTE POPSICLE | `fireUltimate` + `scheduleBenSpawn` + `onContact` (clean opener) + `api.focusCamera`; carve angles = pure `ultCarve(seed, frame, player)` read by `drawFx` |
+| HUD Frost bar / chill pips / FX | `drawHud` / `drawFx` (render-only) |
+
+Gotcha: a form-owned freeze must ignore damage from the cast that froze (or end that cast), or a multi-tick move melts its
+own Popsicle on the next tick.
 ### Big Chill (added 2026-11-18) — key `bigchill`
 
 READY Necrofriggian, catalog slot 18 (PICK FIVE: no new dial slot; Arcticguana holds 17). Reuses: the per-alien flight

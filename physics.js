@@ -54,6 +54,10 @@ export const physics = {
   moveFighter(fighter, keys = {}, controls = {}, camera = null) {
     if (!fighter || fighter.hitstop > 0) return
     if ((fighter._benPinT || 0) > 0) fighter._benPinT--   // READY-form PIN (Alien X Gravity): no jump + ×0.5 walk while > 0; field-gated, self-clearing
+    // READY-form SLOW status (ADD_ALIEN.md; Arcticguana Frost Cloud): a ready form's tick stamps its OPPONENT with
+    // `_benSlow = { ttl, k }` each frame it lasts (ttl lapses on its own here) → walk / run and dash / air dash ×k. Input polling
+    // and the clock are untouched. Absent for everyone else → ×1 → byte-identical.
+    const _benSlowK = (fighter._benSlow && fighter._benSlow.ttl > 0) ? (fighter._benSlow.ttl--, fighter._benSlow.k) : 1
 
     // ── BEN 10 OMNITRIX (self-driving setup) ──────────
     // Auto-setup on first frame from the player's chosen 5-alien loadout, then
@@ -113,7 +117,7 @@ export const physics = {
     //   • it protects the out-of-band cases the old [4,9] clamp caught — buff forms that SET fighter.speed
     //     to raw-scale values (Godspeed 120→cap 9.5, Gon-adult 40→floor 4.5 "lumber"), plus the low
     //     placeholders (Ben10 human 5, Morty 72) which would otherwise go negative / below-floor.
-    const speed = (fighter.rosterKey === "mr_incredible" && fighter._mrIncredible?.remaining > 0 ? (fighter.onGround ? 1.15 : 1.10) : 1) * ((["ben10", "albedo"].includes(fighter.rosterKey) && Number.isFinite(fighter._benWalkSpeed)) ? fighter._benWalkSpeed : clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5)) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1)   // Mr. Incredible boost × (Ben 10 human walk | the speed-tier band) × Clockwork Time Ray
+    const speed = (fighter.rosterKey === "mr_incredible" && fighter._mrIncredible?.remaining > 0 ? (fighter.onGround ? 1.15 : 1.10) : 1) * ((["ben10", "albedo"].includes(fighter.rosterKey) && Number.isFinite(fighter._benWalkSpeed)) ? fighter._benWalkSpeed : clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5)) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1) * _benSlowK   // Mr. Incredible boost × (Ben 10 human walk | the speed-tier band) × Clockwork Time Ray × Ben-form slow (1 unless stamped)
 
     const defaults = {
       vx: 0, vy: 0,
@@ -231,7 +235,7 @@ export const physics = {
       const maxAirDash = _benGr ? 0 : (mobility === "very_high") ? 2 : 1
 
       if (air && dash && fighter.airDashCount < maxAirDash && fighter.dashCooldown <= 0) {
-        const adSpd = (fighter.dashSpeed || 14) * 0.8
+        const adSpd = (fighter.dashSpeed || 14) * 0.8 * _benSlowK   // × Ben-form slow (1 unless stamped)
         // ICHIGO 8-WAY AERIAL DASH (traits.directionalDash): the air-dash follows the HELD direction
         // (up / down / diagonals), not just facing. Diagonals are length-normalized so a diagonal dash
         // isn't faster than a cardinal one. _dashDirIdx maps to the ichigo_dash_But_in_different_directions
@@ -269,7 +273,7 @@ export const physics = {
 
       if (!air && fighter.dashTimer > 0) {
         fighter.dashTimer--
-        const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter)   // Arlong swim-dash ×1.25 (1 for everyone else)
+        const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter) * _benSlowK   // Arlong swim-dash ×1.25 (1 for everyone else) × Ben-form slow (1 unless stamped)
         fighter.vx = (fighter.facing || 1) * dashSpeed
         fighter.vy = 0
       } else if (!fighter.airDashing) {

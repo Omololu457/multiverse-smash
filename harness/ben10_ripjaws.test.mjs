@@ -270,6 +270,52 @@ test('10. transitions: a transform completing mid-flood updates waterborne next 
   assert.deepEqual(rm.breath, {}, 'mirror: no breath'); assert.equal(n.health, n.maxHealth)
 })
 
+// ── 7 / 11 / 12 FIRE + ELECTRIC ───────────────────────────────────────────────────────────────────────────
+const fireP = (owner, x, y, extra = {}) => { const p = { name: 'heatblast_fire', owner, x, y, w: 30, h: 30, vx: -10, vy: 0, damage: 30, lifetime: 120, ...extra }; A.activeProjectiles.push(p); return p }
+const alive = p => A.activeProjectiles.includes(p)
+const tickOwn = (f, t, n = 1) => { for (let i = 0; i < n; i++) { FRAME++; FL.tickBenFlood(f, ctxOf(f, t), { getOpponent: () => t, activeProjectiles: () => A.activeProjectiles }) } }
+test('11. FIZZLE: a fire cast anchored below the line never exists (deleted before it can hit; cost stays spent); steam is render-only', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); const ly = FL.floodLineY(r)
+  const p = fireP(t, 700, ly + 60), hp = f.health; tickOwn(f, t)
+  assert.equal(alive(p), false, 'deleted'); assert.equal(r.fizzles, 1); assert.equal(f.health, hp, 'no hit'); assert.equal(r.boiled, 0, 'a fizzle never boils')
+  assert(!/steam/i.test(JSON.stringify(r)) && !/steam/i.test(JSON.stringify(Object.keys(f))), 'no steam in GAME_STATE')
+  const q = fireP(t, 700, ly - 200); tickOwn(f, t, 3); assert(alive(q), 'fire above the line burns on'); assert.equal(WA.isFireProj({ name: 'kiBlast' }), false); A.activeProjectiles.length = 0
+})
+test('11. PUT OUT + BOIL: fire crossing the line from above is deleted and drops it 30 px — once per 180f per owner, ≤ 90 px per flood', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe(); const r = flood(f, t, { level: 2 }); const L0 = r.line
+  const drop = () => { const ly = FL.floodLineY(r), p = fireP(t, 700, ly - 40, { vx: 0, vy: 10 }); for (let i = 0; i < 12 && alive(p); i++) { tickOwn(f, t); p.y += p.vy } assert.equal(alive(p), false, 'put out'); return r.boiled }
+  assert.equal(drop(), 30); assert(Math.abs(r.line - (L0 - 30)) < 1e-9, 'line −30 px'); assert.equal(r.putOut, 1)
+  assert.equal(drop(), 30, 'same owner inside 180f: put out, no boil'); assert.equal(r.putOut, 2)
+  const g = foe('goku'); g.side = 'p3'; const ly = FL.floodLineY(r), p = fireP(g, 700, ly - 40, { vx: 0, vy: 10 }); for (let i = 0; i < 12 && alive(p); i++) { tickOwn(f, t); p.y += p.vy } assert.equal(r.boiled, 60, 'another owner boils on its own clock')
+  tickOwn(f, t, 180); assert.equal(drop(), 90); r.boilAt = {}; assert.equal(drop(), 90, 'capped at 90 px per flood'); assert(Math.abs(r.line - (L0 - 90)) < 1e-9)
+  A.activeProjectiles.length = 0
+})
+test('11. BURN ENDS when the burning fighter is submerged (Heatblast Scorch, Enoch, Sanji); a dry burn runs on', () => {
+  const f = ben(), t = foe(); flood(f, t, { level: 2 }); world(f, t, 1); assert.equal(FL.waterOf(f).depth, 'submerged')
+  t.omnitrix = { formState: { kind: 'heatblast', scorch: { burnT: 40, burnTick: 3, immune: 0 } } }; t.transformed = true
+  t._enoch = { aff: { [f.side]: { burn: 2, burnT: 30 } } }; t._sanji = { burn: 80, burnTick: 4 }; f._fireBurn = { t: 0, max: 60 }
+  tickOwn(f, t); const sc = t.omnitrix.formState.scorch; assert.equal(sc.burnT, 0); assert(sc.immune > 0, 'the natural post-burn immunity'); assert.equal(t._enoch.aff[f.side].burn, 0); assert.equal(t._sanji.burn, 0); assert.equal(f._fireBurn, null)
+  const d = ben(), u = foe(); flood(d, u); world(d, u, 1); u._sanji = { burn: 80, burnTick: 4 }; tickOwn(d, u); assert.equal(u._sanji.burn, 80, 'wading: burn continues')
+})
+test('11. FIRE ULTIMATE: the flood drops to 0 over 60f, ends, cooldown starts (by ultimate element or a fire ultimate projectile); breath stops', () => {
+  A.activeProjectiles.length = 0; const f = ben(), t = foe('madara'); const r = flood(f, t, { level: 2 }); world(f, t, 1); r.breath[t.side] = 30
+  t.ultimateCooldown = 0; tickOwn(f, t); t.ultimateCooldown = 600; tickOwn(f, t); assert.equal(r.phase, 'boil'); assert.equal(r.fireUlts, 1); const L = r.line
+  tickOwn(f, t, 30); assert(r.line < L && r.line > 0); const fp = fireP(t, 700, FL.floodLineY(r) + 40); tickOwn(f, t); assert(alive(fp), 'nothing is put out while it boils away')
+  tickOwn(f, t, 29); assert.equal(r.phase, 'off'); assert.equal(r.line, 0); assert.equal(r.cd, FL.FLOOD.CD, '900f cooldown'); assert.equal(f.energy >= 0, true)
+  const g = ben(), u = foe(); const q = flood(g, u, { level: 2 }); A.activeProjectiles.length = 0; fireP(u, 700, 40, { name: 'hb_ult_opener', isUltimate: true }); tickOwn(g, u); assert.equal(q.phase, 'boil', 'a fire ultimate projectile'); A.activeProjectiles.length = 0
+  const h = ben(), v = foe('goku'); const q2 = flood(h, v, { level: 2 }); tickOwn(h, v); v.ultimateCooldown = 600; tickOwn(h, v); assert.equal(q2.phase, 'hold', 'a ki ultimate does nothing'); A.activeProjectiles.length = 0
+})
+test('12. ELECTRIC on a SUBMERGED fighter +15 % (waterborne too); dry / wading / non-electric unchanged', () => {
+  const dmg = (depth, src, atk, move) => { const t = foe('goku'); t.health = 1000; if (depth) t._benWater = { ttl: 2, depth, wb: false }; const a = ben(atk === 'mw' ? 'megawhatt' : 'ripjaws', LOAD)
+    C.applyScaledDamage(t, 100, { scale: 1, source: src, attacker: a, move, defenseApplied: true, offenseApplied: true }); return 1000 - t.health }
+  const base = dmg(null, 'projectile', 'rj', 'zoldyck_bolt'); assert(base > 0)
+  assert(Math.abs(dmg('submerged', 'projectile', 'rj', 'zoldyck_bolt') / base - 1.15) < 0.02, 'electric projectile +15 %')
+  assert(Math.abs(dmg('submerged', 'melee', 'mw') / dmg(null, 'melee', 'mw') - 1.15) < 0.02, 'Megawhatt body (melee) +15 %')
+  assert.equal(dmg('wading', 'projectile', 'rj', 'zoldyck_bolt'), base, 'wading unchanged'); assert.equal(dmg('submerged', 'projectile', 'rj', 'kiBlast'), dmg(null, 'projectile', 'rj', 'kiBlast'), 'non-electric unchanged')
+  const z = foe('zenitsu'), f = ben(); f._benWater = { ttl: 2, depth: 'submerged', wb: true }; const h0 = f.health; C.applyScaledDamage(f, 100, { scale: 1, source: 'melee', attacker: z, defenseApplied: true, offenseApplied: true }); const sub = h0 - f.health
+  delete f._benWater; f.health = h0; C.applyScaledDamage(f, 100, { scale: 1, source: 'melee', attacker: z, defenseApplied: true, offenseApplied: true }); assert(Math.abs(sub / (h0 - f.health) - 1.15) < 0.02, 'a waterborne Ripjaws takes it too')
+})
+
 //@@NEXT@@
 console.log(`RIPJAWS: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

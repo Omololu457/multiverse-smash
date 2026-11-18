@@ -5,7 +5,8 @@
 // no floor, no wall, no friction, no KO zone; the line is a world Y only, and water never pushes anyone anywhere.
 // Render-only (never GAME_STATE): rain, lightning flashes, ripples (±6 px), foam, bubbles, steam — hash(seed, frame, layer).
 
-import { isWaterborneFighter } from "./waterAffinity.js"   // the waterborne tag map (data only)
+import { isWaterborneFighter, isFireProj, isElectricProj, isElectricBody, isFireUltimate } from "./waterAffinity.js"   // the waterborne + fire / electric tag maps (data only)
+import { HB_SCORCH } from "./heatblast.js"   // leaf module: Heatblast's Scorch burn constants (a submerged burn ends)
 
 export const FLOOD = {
   L1: 0.18, L2: 0.42, CAP: 0.55, GAP: 140,          // fractions of the arena height H; the air gap (px) under the arena top
@@ -204,6 +205,65 @@ export function drawBenBreathHud(ctx, f, o) {
   ctx.restore()
 }
 
+// ── FIRE + ELECTRIC (Phase 7) ──────────────────────────────────────────────────────────────────────────────
+// Each fire event is ATOMIC (resolved whole, inside this one section, the frame it happens):
+//  • FIZZLE: a fire projectile / hitbox first seen with its anchor below the line never exists — deleted the frame it
+//    appears, before it can hit (the cast's cost stays spent). Cosmetic steam.
+//  • PUT OUT: a fire projectile that was above the line and is now below is deleted; if it CROSSED from above it BOILS the
+//    flood: the line drops 30 px, once per 180f per fire owner, at most 90 px per flood.
+//  • BURN ENDS when the burning fighter is submerged (Heatblast's Scorch, Enoch's burn, Sanji's Diable burn).
+//  • FIRE ULTIMATE during a flood (a fire-tagged ultimate projectile, or an ultimate cast whose element is fire): the flood
+//    drops to 0 over 60f, ends, and its 900f cooldown starts. Nothing is put out while it boils away.
+// ELECTRIC: an electric hit on a SUBMERGED fighter (waterborne or not) deals +15 % (benFloodDamage, the damage hook).
+export const FIRE = { BOIL: 30, BOIL_CD: 180, BOIL_MAX: 90, ULT_DRAIN: 60, ELECTRIC: 1.15 }
+const STEAM = []   // render-only puffs {x, y, t} — never GAME_STATE
+function steam(p, r) { if (STEAM.length > 24) STEAM.shift(); STEAM.push({ x: p.x + (p.w || 0) / 2, y: floodLineY(r), t: 0 }) }
+const ownerKey = p => { const o = p && p.owner; return o ? (o.side || "p" + (sideIdx(o) + 1)) : "?" }
+WORLD.push(function tickFire(r, owner, fighters, ctx, api) {
+  r.ultCd = r.ultCd || {}
+  for (const o of fighters) {                                                // fire ULTIMATE cast (the cooldown edge)
+    const k = o.side || "p" + (sideIdx(o) + 1), cd = o.ultimateCooldown || 0
+    if (cd > (r.ultCd[k] || 0) && r.phase !== "boil" && isFireUltimate(o)) { recedeFlood(owner, FIRE.ULT_DRAIN, "boil"); r.fireUlts = (r.fireUlts || 0) + 1 }
+    r.ultCd[k] = cd
+  }
+  const list = api && api.activeProjectiles ? api.activeProjectiles() : null
+  if (list) for (let i = list.length - 1; i >= 0; i--) {
+    const p = list[i]; if (!isFireProj(p)) continue
+    if (p.isUltimate && r.phase !== "boil") { recedeFlood(owner, FIRE.ULT_DRAIN, "boil"); r.fireUlts = (r.fireUlts || 0) + 1 }
+    if (r.phase === "boil") { p._benFireSeen = 1; continue }
+    const below = (p.y || 0) + (p.h || 0) / 2 > floodLineY(r) && r.line > 0
+    if (!p._benFireSeen) { p._benFireSeen = 1; if (below) { list.splice(i, 1); r.fizzles = (r.fizzles || 0) + 1; steam(p, r) } else p._benFireAbove = 1; continue }
+    if (!below) { p._benFireAbove = 1; continue }
+    list.splice(i, 1); r.putOut = (r.putOut || 0) + 1; steam(p, r)
+    const k = ownerKey(p)
+    if (p._benFireAbove && r.boiled < FIRE.BOIL_MAX && !(r.t < (r.boilAt[k] ?? -Infinity) + FIRE.BOIL_CD)) {
+      const d = Math.min(FIRE.BOIL, FIRE.BOIL_MAX - r.boiled); r.boiled += d; r.boilAt[k] = r.t
+      r.to = Math.max(0, r.to - d); r.from = Math.max(0, r.from - d); if (r.rampT >= r.rampN) r.line = r.to   // holding: drops now; rising: the ramp continues to the lower target
+    }
+  }
+  for (const o of fighters) {                                                // a submerged fighter's burn ends
+    const w = o._benWater; if (!w || w.depth !== "submerged") continue
+    for (const b of fighters) if (b !== o) {
+      const fs = b.omnitrix && b.transformed && b.omnitrix.formState, sc = fs && fs.kind === "heatblast" && fs.scorch
+      if (sc && sc.burnT > 0) { sc.burnT = 0; sc.burnTick = 0; sc.immune = HB_SCORCH.IMMUNE; r.burnsEnded = (r.burnsEnded || 0) + 1 }
+      const ea = b._enoch && b._enoch.aff && b._enoch.aff[o.side]
+      if (ea && (ea.burn > 0 || ea.burnT > 0)) { ea.burn = 0; ea.burnT = 0; r.burnsEnded = (r.burnsEnded || 0) + 1 }
+      if (b._sanji && b._sanji.burn > 0) { b._sanji.burn = 0; b._sanji.burnTick = 0; r.burnsEnded = (r.burnsEnded || 0) + 1 }
+    }
+    if (o._fireBurn) o._fireBurn = null                                      // the render-only burn overlay too
+  }
+})
+// damage hook (ben10State.benAlienDamageMods → every damage write with a Ben on either side): electric on a SUBMERGED target
+export function isElectricHit(opts) {
+  const a = opts && (opts.attacker || opts.boostFrom); if (!a) return false
+  if (opts.source === "projectile") return isElectricProj({ name: opts.move }) || (isElectricBody(a) && !!opts.move)
+  return opts.source === "melee" && isElectricBody(a)
+}
+export function benFloodDamage(target, raw, opts) {
+  const w = waterOf(target); if (!w || w.depth !== "submerged") return raw
+  return isElectricHit(opts) ? raw * FIRE.ELECTRIC : raw
+}
+
 // ── RENDER (render-only; drawn over both fighters by game.js when a fighter carries a flood) ─────────────────────────
 function rh(a, b, k) {   // render hash → [0, 1)
   let h = Math.imul((a | 0) ^ 0x9e3779b9, 0x85ebca6b) >>> 0
@@ -238,6 +298,10 @@ export function drawBenFlood(c, owner, frame, stageW = 3200) {
   // bubbles (render-only)
   c.globalAlpha = 0.55; c.fillStyle = "#e0f2fe"
   for (let i = 0; i < 24; i++) { const x = rh(r.seed, i, 31) * stageW, y = r.floorY - ((frame * (1 + (i & 3)) + rh(r.seed, i, 32) * 600) % Math.max(1, r.line)); if (y > lineY + 4) c.fillRect(Math.round(x), Math.round(y), 3, 3) }
+  // steam where fire was put out / fizzled (render-only puffs, aged here)
+  for (let i = STEAM.length - 1; i >= 0; i--) { const q = STEAM[i]; q.t++; if (q.t > 40) { STEAM.splice(i, 1); continue }
+    c.globalAlpha = 0.5 * (1 - q.t / 40); c.fillStyle = "#f1f5f9"
+    for (let j = 0; j < 5; j++) c.fillRect(Math.round(q.x - 12 + j * 6 + Math.sin(q.t * 0.2 + j) * 3), Math.round(q.y - q.t * 1.2 - (j & 1) * 6), 6, 6) }
   c.restore()
 }
 // screen-space lightning flash (render-only; never damages, never gameplay)

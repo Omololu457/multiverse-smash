@@ -1,6 +1,6 @@
 // Serializable Ben state shared by the device and damage pipeline. No DOM, clocks or RNG.
 import { getAlienDefinition } from "./aliens.js"
-import { recedeFlood, clearFloodInstant } from "./benFlood.js"   // the generic STORM TIDE flood (Ripjaws); leaf module
+import { recedeFlood, clearFloodInstant, benFloodDamage } from "./benFlood.js"   // the generic STORM TIDE flood (Ripjaws); leaf module
 export const isBenDevice = f => ["ben10", "albedo"].includes((f?.rosterKey || "").toLowerCase())
 // GENERIC READY-FORM HOOK (ADD_ALIEN.md): the active alien's registry entry when it is status "ready", else null.
 // Every engine site that used to test `activeAlien === "swampfire"` for a ready-form rule (mods, lunge, power commit,
@@ -79,6 +79,7 @@ export function benAlienDamageMods(target, raw, opts) {
   const dt = benReadyForm(target); if (dt && dt.damageTaken) raw = dt.damageTaken(target, raw, opts || {})
   const src = opts && (opts.attacker || opts.boostFrom)
   const da = src && src !== target ? benReadyForm(src) : null; if (da && da.damageDealt) raw = da.damageDealt(src, target, raw, opts || {})
+  if (target && target._benWater) raw = benFloodDamage(target, raw, opts || {})   // STORM TIDE: electric on a SUBMERGED target +15 % (benFlood.js; stamp-gated)
   return raw
 }
 export const isSwampfire = f => isBenDevice(f) && f.transformed && f.activeAlien === "swampfire"

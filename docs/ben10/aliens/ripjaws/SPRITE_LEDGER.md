@@ -23,7 +23,23 @@ Source: `assets/sprites/ben10/aliens/ripjaws.png` — byte copy of the repo-root
 
 ## Procedural pixel-style effects (render-only, never GAME_STATE)
 
-Water surface + wave ripples (±6 px cosmetic) and foam, rain, lightning flashes, bubbles, steam (fire put out / boiled), the Water Jet stream, the Ultimate's tidal wave, abyss gradient, sea creatures (eels, anglers, the huge jaw) and geyser, breath bar + drowning pulse. All drawn in code with a hash of (match seed, frame, layer id); none has a hitbox.
+As built (benFlood.js `drawBenFlood` / `drawBenFloodFlash` / `drawBenBreathHud`; ripjaws.js `fxSpecials` / `fxUlt`):
+
+| Effect | Where | Notes |
+|---|---|---|
+| Rain | benFlood.js | a pooled 140-drop table built once at load (hash of fixed ids) — no per-frame allocation, no pixel scans |
+| Water body | benFlood.js | two translucent fills under the line (readable on bright and dark stages) |
+| Surface ripples + foam | benFlood.js | ±6 px cosmetic band from hash(flood seed, x, frame); the gameplay line stays flat |
+| Bubbles | benFlood.js | rise from the floor below the line |
+| Lightning flashes | benFlood.js | ~3f screen flashes, picked by hash(flood seed, frame) |
+| Steam | benFlood.js | puffs where fire is put out / fizzles / boils (a runtime list, never GAME_STATE) |
+| Breath bar + DROWNING pulse | benFlood.js (ui.js call) | under the affected fighter's health panel |
+| Water Jet stream + spray | ripjaws.js | drawn over the hidden jet projectile |
+| Fin Blade arc | ripjaws.js | the 260 px sweep during its active frames |
+| Shark Rush / Breach wake | ripjaws.js | spray streaks while travelling |
+| Ultimate: tidal wave, abyss creatures, geyser | ripjaws.js | creatures drawn at the stored hash spots (plain numbers in the cast record); the geyser lift uses `targetOffset` |
+
+None has a hitbox; none writes GAME_STATE.
 
 ## Frame sets and anchors
 

@@ -164,6 +164,32 @@ the old path, and non-Ben fighters never reach them.
 Ripjaws holds 20 — is catalog metadata only), so no slot count, chord, HUD or Vow change. He is reached with the Dial
 (↓↓ + the picked slot's key) like any pick.
 
+### Ripjaws hooks — the STORM TIDE flood (added with Ripjaws, 2026-11-18)
+
+Same contract: optional, backward-compatible, ben10-gated. The flood is a GENERIC module (`benFlood.js`) any form can own; its
+whole record is plain data on the OWNER (`f._benFlood`: schedule, line, cap, breath / drowning by side, boil bookkeeping) and
+each frame it stamps every fighter with `f._benWater = { ttl: 2, depth, lineY, wb, owner }` (physics lapses the ttl). With no
+flood there is no stamp, and every call site below is a no-op (byte-identical for every other fighter and every other form).
+Waterborne / fire / electric classification is a data-only tag map, `waterAffinity.js`.
+
+| Hook | Engine call site | Contract |
+|---|---|---|
+| `tickBenFlood(owner, ctx, api)` | abilities.js `tickBenAlienForm` (one line, when `fighter._benFlood`) | the schedule (rise / hold 480f / recede 90f / cooldown 900f), the cap (0.55 H, ≥ 140 px air gap), depth stamps, then the world sections (projectiles ×0.75, breath + drowning, Undertow sink, fire events). KO of either fighter clears it instantly. |
+| `recedeFlood` / `clearFloodInstant` | ben10State.js `clearBenFormState` (swap / revert → 90f recede) and `resetBenDefense` (KO / round end / rematch → instant, stamps lapse) | owner-side endings; the cooldown survives a swap, not a KO. |
+| `_benWater` stamp | physics.js `moveFighter` / `applyGravity` | NON-waterborne only: wading walk ×0.9; submerged floor walk ×0.75, swimming ×0.8 (folded into the existing `_benSlowK` factor), no air dash / air jump, Jump = a 12f +3 px/f stroke (no jump spent or refilled), gravity → a ≤ 3 px/f sink. |
+| `benWaterKnockback(f)` | combat.js — after the READY-weight knockback line and after the projectile launcher block | submerged non-waterborne: knockback ×0.8, launch ×0.75; hitstun unchanged. |
+| `benFloodDamage(target, raw, opts)` | ben10State.js `benAlienDamageMods` (stamp-gated) | electric hit (tag map: element table + side map, or an electric body: Megawhatt / Feedback / Zenitsu) on a SUBMERGED fighter: ×1.15. `isElectricHit(opts)` is exported (Water Hazard's Short Fuse reuses it). |
+| `drawBenFlood` / `drawBenFloodFlash` | game.js, after both fighters are drawn | render-only: rain (pooled), the water body, ripples / foam, bubbles, steam, lightning. |
+| `drawBenBreathHud(ctx, f, o)` | ui.js energy panel (one line) | render-only breath bar just under the health panel, only while a flood exists and breath < 100; DROWNING pulse at 0. |
+| `ultFlood(owner, ctx, fighters, seed)` | ripjaws.js Maelstrom Feast | Level 2 for 300f — only when no flood is live and the cooldown is not running. |
+
+Ripjaws' own form uses the existing hooks only: the `_skinAnim` frame-set swap (land / tail), `_benGlide` (8-direction swim,
+torpedo, breach, dive), `hurtbox` (Fin Blade's extended limb), `damageDealt` (the depth edge), `targetOffset` (the geyser lift),
+`onContact` / projectile `alien` tags. The fire / boil rules read the engine's element table (`juice_elements.js`, data) plus the
+hand-tagged moves in `waterAffinity.js` (`FIRE_MOVES` / `FIRE_PREFIX`), and end Heatblast's Scorch, Enoch's and Sanji's burns
+for a submerged fighter. Slot: catalog slot 20 (PICK FIVE — no slot-count change; reached with the Dial like any pick).
+Tests: `npm run test:ripjaws`, `test:ripjaws-render`, `test:ripjaws-framedata`.
+
 ### Water Hazard hooks (added with Water Hazard, 2026-11-18)
 
 Same contract: optional, backward-compatible, ben10-gated. Water Hazard adds **no flood hook**: he only READS Ripjaws'

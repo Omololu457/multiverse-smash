@@ -41,4 +41,7 @@ docs/msv1/MERGE_DESIGN.md
 nsDuo.js
 assets/windrangers
 harness/msv1_merge.test.mjs
+harness/msv1_merge_netreplay.test.mjs
 docs/msv1/screenshots_merge
+harness/msv1_merge_combos.mjs
+docs/msv1/MERGE_COMBOS.md

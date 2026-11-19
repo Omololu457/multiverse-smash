@@ -749,3 +749,46 @@ DRAFT PR: pending push and PR creation.
 
 Luffy should branch from this exact commit after the checkpoint fields above are
 updated and verified. Do not use the original dirty checkout as the branch base.
+
+══════════════════════════════════════════════════════════════════════════════════════════════
+ ALBEDO SKINS — 20 themes × kid / older, cascading to all 24 of Albedo's forms   2026-11-19
+ Branch feat/albedo-skin-themes (NOT merged). Albedo-only; Ben 10's skins are unchanged.
+══════════════════════════════════════════════════════════════════════════════════════════════
+What: Albedo's skin list now has "Kid — <theme>" and "Older — <theme>" for 20 themes. That is 40 skins, on top of the two
+preserved defaults (Default = older, Classic = kid) and Prime. Picking one recolors his human sprite by region (no
+full-image tint) and every alien form he transforms into, including the alternate frame sets, with no per-alien menu. It
+persists through transform / revert / ultimate / rematch / restart.
+
+Themes:
+- Originals: 1 Scarlet Inversion, 2 Ashen Prototype.
+- Fan cosmetics, not canonical Albedo outfits:
+  3 Alien X — Red Singularity · 4 Upgrade — Redline Virus · 5 Chromastone — Blood Prism · 6 Diamondhead — Ruby Facet
+  7 Big Chill — Crimson Winter · 8 Ghostfreak — Haunted Signal · 9 Ultimate Echo Echo — Red Resonance
+  10 Heatblast — White Furnace · 11 Superman — Red Sun · 12 Batman Beyond — Scarlet Protocol
+  13 Reverse-Flash — Negative Velocity · 14 JJK — Cursed Rose · 15 JJK — Violet Reversal · 16 Frieza — Imperial Pearl
+  17 Winning Valkyrie — Crimson Victory · 18 Anodite — Magenta Aftershock · 19 Black Gold — False Emperor
+  20 Ruby Opal — Glitter Overload
+- Full table and sources: docs/skins/albedo/README.md.
+
+Controls (existing, unchanged):
+- Skin select: D-pad / left stick to move, Cross = confirm, Circle = back, Options = start / pause (mouse: click a card).
+- In-match controls are unchanged.
+
+Gameplay: none. Each theme uses its appearance's variant numbers (kid = Classic HP 900, older = Alien Force HP 950).
+Frame-data diff vs origin/main is zero for every character and every Ben/Albedo form table.
+
+Verified (simulated input, headless real game):
+- New tests: albedo_themes.test.mjs 55/0. albedo_themes_render.mjs: all 40 combos, 960/960 theme × form transforms
+  themed.
+- Ben shows his own art in the same match / same alien. Two Albedos keep separate themes. Save + reload restores the pick.
+- determinism 14/0 · combo-standard 233/9 (same 9 as origin/main) · roster-integrity ✓ · albedo_mirror 80/1 (same
+  pre-existing ben10VoiceMap lint as origin/main).
+
+Limitations:
+- No physical DualSense was tested.
+- Effect / projectile FX sheets keep their colours, as before.
+- Older jacket trim stays white (it shares a colour with the eyes / soles, so recoloring it needs new art).
+- A form used for the first time outside the loadout shows default art for a few frames while its themed sheets generate.
+- Headless pacing measurements are noisy on a loaded machine (docs/albedo/skins/VERIFICATION.md).
+- The old albedoAlienX / albedoValkyrie ids (whose art never existed) now mean Older Red Singularity / Older Crimson
+  Victory.

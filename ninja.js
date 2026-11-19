@@ -276,6 +276,8 @@ function stepStreak(f, opp, s, p, raw) {
         if (r === true) cue(f, 'streakHit')
       }
       if (!k.crossed && k.startSide && Math.sign(ctrX(opp) - ctrX(f)) === -k.startSide) k.crossed = true
+      // TREMOR STREAK: underground it surfaces right UNDER the foe once it has passed their centre (a cross-up from below → Erupt)
+      if (k.under && k.crossed && grounded(opp)) { f.x = clampX(f, ctrX(opp) - (f.w || 48) / 2 + k.dir * 18); k.t = P.travel; finishStreakTravel(f, opp, s, p, k); return }
     }
     k.t++
     if (k.t === P.travel) finishStreakTravel(f, opp, s, p, k)

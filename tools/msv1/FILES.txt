@@ -23,3 +23,5 @@ docs/msv1/screenshots
 harness/msv1_framedata_diff.mjs
 harness/msv1_scen_c_shane.mjs
 harness/msv1_scen_d_dustin.mjs
+harness/msv1_combos.mjs
+docs/msv1/COMBOS.md

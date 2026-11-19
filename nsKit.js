@@ -31,11 +31,12 @@ export const NS_RED_KIT = { type: 'Air Ninja / Aerial Rushdown', energy: 'Ninja 
   ],
   mobility: SHARED.mobility,
   ultimate: { name: 'STORM ASCENSION (Super, 1 bar) · HAWK MIRAGE (Ultimate, 2 bars, Mirror only)', input: '↓↘→↓↘→ + Special / Ultimate', cost: 50, desc: 'Storm Ascension: 2 clones, 6 streak hits from 6 directions + rising tornado, 310. Hawk Mirage: real, illusion and 2 clones dive from 4 angles at once, 380.' },
-  combos: [
-    { name: 'Sky line', sequence: 'Jab → kick string → Rising flip kick → air streak → Hawk Dive', desc: 'docs/msv1/COMBOS.md' },
-    { name: 'Run-over', sequence: 'Streak Strike (cross-up) → Gale Crescent → Ninja Beam', desc: '' },
-    { name: 'Gale angle', sequence: 'Air Tornado on ±30° → Wind Float → air Kunai fan → Hawk Dive', desc: '' },
-    { name: 'Mirage', sequence: 'Ninja Mirror → swap behind them → echo + real hit the same beat → Storm Ascension', desc: '' },
+  combos: [   // measured on the real loop by harness/msv1_combos.mjs (docs/msv1/COMBOS.md)
+    { name: 'Kick string', sequence: 'Light → Heavy → Heavy → Heavy', desc: '4 hits, 109.' },
+    { name: 'Launch', sequence: 'Light → Heavy → Heavy → Up-Attack', desc: '4 hits, 114; the uppercut launches.' },
+    { name: 'Run-over', sequence: '→→ (Light during: Streak Strike) → ↓↘→ + Special', desc: 'Cross-up into the Tornado, 4 hits, 69.' },
+    { name: 'Storm cash-out', sequence: 'Light → Heavy → Heavy → ↓↘→↓↘→ + Special', desc: '10 hits, 258 (1 bar).' },
+    { name: 'Mirage', sequence: '↓↓ + Charge → Ultimate', desc: 'Hawk Mirage, 364 (2 bars).' },
   ] }
 export const NS_YELLOW_KIT = { type: 'Earth Ninja / Trap & Burrow', energy: 'Ninja Power', difficulty: '5',
   summary: 'Dustin Brooks, Yellow Wind Ranger: S.P.D. Red\'s ground speed, heavier and sturdier (+8% health). Owns the ground: burrows, tremor streaks, kunai traps and REV.',
@@ -58,9 +59,11 @@ export const NS_YELLOW_KIT = { type: 'Earth Ninja / Trap & Burrow', energy: 'Nin
   ],
   mobility: SHARED.mobility,
   ultimate: { name: 'EARTHQUAKE NINJA ART (Super, 1 bar) · FAULT LINE (Ultimate, 2 bars, Mirror only)', input: '↓↘→↓↘→ + Special / Ultimate', cost: 50, desc: 'Earthquake: stage shake, pop-up, 3 eruptions + sword finisher, 320. Fault Line: real + illusion slam, a shockwave between them, 4 bodies erupt, 390.' },
-  combos: [
-    { name: 'Pound', sequence: 'Jab → string → Rising kick → Ground Pound OTG', desc: 'docs/msv1/COMBOS.md' },
-    { name: 'Full REV', sequence: 'Full REV run → Tremor Streak under them → Erupt → sword → Beam', desc: '' },
-    { name: 'Bait', sequence: 'Earth Kunai trap → bait them onto it → trip → Earthquake', desc: '' },
-    { name: 'Decoy', sequence: 'Earth Double → they hit it → eruption counter → Burrow swap → Fault Line', desc: '' },
+  combos: [   // measured on the real loop by harness/msv1_combos.mjs (docs/msv1/COMBOS.md)
+    { name: 'Kick string', sequence: 'Light → Heavy → Heavy → Heavy', desc: '4 hits, 122.' },
+    { name: 'Rock route', sequence: 'Light → → + Heavy (Rock Slash)', desc: '2 hits, 97.' },
+    { name: 'Full REV', sequence: '3 REV pips → ↓↓ hold Special → →→ under them → release', desc: 'Tremor Streak surfaces under the foe, Erupt +30%: 112.' },
+    { name: 'Trip & pound', sequence: 'Earth Kunai trips them → hop, ↓ + Heavy at once', desc: 'Ground Pound OTG, 108 total.' },
+    { name: 'Quake cash-out', sequence: 'Light → Heavy → Heavy → ↓↘→↓↘→ + Special', desc: '8 hits, 276 (1 bar).' },
+    { name: 'Fault Line', sequence: '↓↓ + Charge (Earth Double) → Ultimate', desc: '372 (2 bars).' },
   ] }

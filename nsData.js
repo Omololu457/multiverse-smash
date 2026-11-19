@@ -148,8 +148,8 @@ const shaneNormal = (b, d, ground, ctx) => {
   if (ctx.from === 'kString2') return 'kString3'
   return 'kString1'
 }
-const GATLING = { light: ['kString1', 'sLow', 'sword', 'up', 'swordCrouch', 'sUpper'], kString1: ['kString2', 'up', 'sword'], kString2: ['kString3', 'up', 'sword'],
-  sLow: ['kString1', 'sword', 'up', 'swordLow'], swordCrouch: ['up', 'sword'], sword: ['up'], kString3: [], sUpper: [] }
+const GATLING = { light: ['kString1', 'sLow', 'sword', 'up', 'swordCrouch', 'sUpper'], kString1: ['kString2', 'up', 'sUpper', 'sword'], kString2: ['kString3', 'up', 'sUpper', 'sword'],
+  sLow: ['kString1', 'sword', 'up', 'sUpper', 'swordLow'], swordCrouch: ['up', 'sUpper', 'sword'], sword: ['up', 'sUpper'], kString3: [], sUpper: [] }   // ↑+Heavy arrives as Up-Attack on some layouts → both launchers cancel alike
 export const SHANE_COMMANDS = {
   normal: (b, d, g, ctx) => shaneNormal(b, d, g, { ...ctx, fwdHeavy: 'sGale' }), gatling: GATLING,
   // motion specials (checked before normals; first match wins). button 'light' motions beat ↓+Light.
@@ -163,7 +163,7 @@ export const SHANE_COMMANDS = {
   specialsSet: ['sGale'],   // command normals that are really specials (Ninja Power cost, cancel rules)
 }
 export const DUSTIN_COMMANDS = {
-  normal: (b, d, g, ctx) => shaneNormal(b, d, g, { ...ctx, fwdHeavy: 'sRock' }), gatling: { ...GATLING, kString3: [], sRock: [] },
+  normal: (b, d, g, ctx) => shaneNormal(b, d, g, { ...ctx, fwdHeavy: 'sRock' }), gatling: { ...GATLING, light: [...GATLING.light, 'sRock'], kString1: [...GATLING.kString1, 'sRock'], kString2: [...GATLING.kString2, 'sRock'], kString3: [], sRock: [] },   // Rock Slash ends his strings
   specials: [
     { motion: '236236', button: 'special', key: 'sSuper', win: 40 },
     { downDown: true, button: 'special', key: 'nsBurrow', ground: true },

@@ -1,0 +1,66 @@
+// nsKit.js — MSV1 Move List (kits.js entries) for Shane (ns_red) and Dustin (ns_yellow). Numbers = authored raw values from
+// nsData.js (roster parity ×1.6, S.P.D. Red's tier, applies in play). Combos + measured damage: docs/msv1/COMBOS.md.
+const SHARED = {
+  mobility: { name: 'Ninja Streak', input: 'Double-tap ← / → (S.P.D. Red\'s teleport input)', cost: 10, desc: '40% of the screen in 8 frames, passes THROUGH the foe, projectile-intangible frames 2–6. Chain ×3 (third costs 20), 14f recovery (specials cancel frames 9–14). Press an attack during it = STREAK STRIKE 45 (blunt). Hold the direction after it to run (10.5 px/f).' },
+  framework: [
+    { name: 'Smoke Vanish', input: 'Charge + Light + Heavy', cost: 30, desc: 'Vanish in your own smoke, reappear behind (or above, hold ↑) the foe. In blockstun: escape (40 NP, 6 invulnerable frames, 12 s cooldown).' },
+    { name: 'Shadow Clones', input: 'Back + Charge', cost: 35, desc: 'Hand sign → smoke pop → two clones fan out → unison strike (60% damage each, never the KO) → smoke exit. One hit pops a clone.' },
+    { name: 'NINJA MIRROR', input: '↓↓ + Charge', cost: 50, desc: '8 s: one REAL body and one ILLUSION 30% screen apart. Tap Charge = SWAP (10 NP, max 3). The tell: the illusion casts no shadow and its visor glints every 1.5 s. Hit the illusion → it counters; hit the real one → mode ends.' },
+    { name: 'Ninja Barrier', input: 'Forward + Charge', cost: 25, desc: '8-frame parry window, then the R19 electric dome.' },
+  ],
+}
+export const NS_RED_KIT = { type: 'Air Ninja / Aerial Rushdown', energy: 'Ninja Power', difficulty: '5',
+  summary: 'Shane Clarke, Red Wind Ranger: S.P.D. Red\'s ground speed, +10% air speed, a triple jump and a Wind Float. Streaks 8-way in the air (2 per airtime) and owns the sky.',
+  passive: { name: 'Ninja Power + Wind Float', effect: 'Ninja Power 0–100 (starts 50, +6/s while not streaking, +4 per hit). Hold Jump while falling = Wind Float (1.2 s per airtime; slows the fall, never climbs).' },
+  basics: [
+    { name: 'Jab', input: 'Light', desc: '38, 5f (blunt).' }, { name: 'Kick string', input: 'Heavy, Heavy, Heavy', desc: '30 / 30 / 52 (blunt).' },
+    { name: 'Rising flip kick', input: 'Up + Heavy', desc: '70, 8f anti-air, launches (blunt).' }, { name: 'Uppercut', input: 'Up-Attack', desc: '62, launches.' },
+    { name: 'Low sweep', input: 'Down + Light', desc: '44, low (blunt).' }, { name: 'Sword slash', input: 'Forward + Light', desc: '64 (slash). Running: 60 running slash.' },
+    { name: 'Rising slash / crouch slash / low swipe', input: 'Up + Light / Down + Heavy / Down-Back + Heavy', desc: '56 / 48 low / 54 low (slash).' },
+    { name: 'Axe kick', input: 'Back + Heavy', desc: '56 overhead.' }, { name: 'Skate Slide', input: 'Down-Forward + Heavy', desc: '50 low, slides under projectiles.' },
+    { name: 'Air sword / air kick', input: 'Air Light / Air Heavy', desc: '58 (slash) / 46.' }, { name: 'Hawk Dive', input: 'Air Down + Heavy', desc: '72 dive kick, ground bounce.' },
+  ],
+  specials: [
+    { name: 'Air Ninja Tornado', input: '↓↘→ + Special', cost: 20, desc: 'Drill tornado over 50% of the screen, 5 × 13 (energy). In the air: on the held angle (0 / ±30°).' },
+    { name: 'Gale Crescent', input: 'Forward + Heavy', cost: 12, desc: 'The sword crescent flies 35% of the screen, 55 (slash).' },
+    { name: 'Ninja Beam', input: '↓↘→ + Light (or Special)', cost: 15, desc: 'Wind Morpher beam, full screen, 50. In the air: a diagonal beam downward.' },
+    { name: 'Kunai', input: '↓↙← + Light', cost: 10, desc: '1 straight (ground), a 3-kunai fan (air), 30 each.' },
+    { name: 'Wind Ward', input: 'Forward + Charge', cost: 25, desc: 'Ninja Barrier: a parry REFLECTS projectiles at 1.2× speed and damage.' },
+    ...SHARED.framework,
+    { name: 'Wind Mirage (illusion)', input: 'Ninja Mirror', cost: 50, desc: 'The illusion ECHOES your inputs 8 frames late. Struck: it bursts into a mini tornado (3 × 18, launches).' },
+  ],
+  mobility: SHARED.mobility,
+  ultimate: { name: 'STORM ASCENSION (Super, 1 bar) · HAWK MIRAGE (Ultimate, 2 bars, Mirror only)', input: '↓↘→↓↘→ + Special / Ultimate', cost: 50, desc: 'Storm Ascension: 2 clones, 6 streak hits from 6 directions + rising tornado, 310. Hawk Mirage: real, illusion and 2 clones dive from 4 angles at once, 380.' },
+  combos: [
+    { name: 'Sky line', sequence: 'Jab → kick string → Rising flip kick → air streak → Hawk Dive', desc: 'docs/msv1/COMBOS.md' },
+    { name: 'Run-over', sequence: 'Streak Strike (cross-up) → Gale Crescent → Ninja Beam', desc: '' },
+    { name: 'Gale angle', sequence: 'Air Tornado on ±30° → Wind Float → air Kunai fan → Hawk Dive', desc: '' },
+    { name: 'Mirage', sequence: 'Ninja Mirror → swap behind them → echo + real hit the same beat → Storm Ascension', desc: '' },
+  ] }
+export const NS_YELLOW_KIT = { type: 'Earth Ninja / Trap & Burrow', energy: 'Ninja Power', difficulty: '5',
+  summary: 'Dustin Brooks, Yellow Wind Ranger: S.P.D. Red\'s ground speed, heavier and sturdier (+8% health). Owns the ground: burrows, tremor streaks, kunai traps and REV.',
+  passive: { name: 'Ninja Power + REV', effect: 'Ninja Power as Shane. REV: every 0.8 s of running builds a pip (max 3); the next streak or special spends them all, +10% damage each. Lost on block or hit.' },
+  basics: [
+    { name: 'Jab', input: 'Light', desc: '42.' }, { name: 'Kick string', input: 'Heavy, Heavy, Heavy', desc: '34 / 34 / 58.' },
+    { name: 'Rising kick', input: 'Up + Heavy', desc: '76 anti-air.' }, { name: 'Low sweep', input: 'Down + Light', desc: '50 low.' },
+    { name: 'Sword', input: 'Forward + Light', desc: '70 (slash).' }, { name: 'Rock Slash', input: 'Forward + Heavy', desc: '72 (slash).' },
+    { name: 'Air sword / air kick', input: 'Air Light / Air Heavy', desc: '60 / 50.' }, { name: 'Ground Pound', input: 'Air Down + Heavy', desc: 'Landing shockwave 80 (blunt), hits OTG.' },
+    { name: 'Dirt Slide', input: 'Down-Forward + Heavy', desc: '54 low (motocross).' },
+  ],
+  specials: [
+    { name: 'Earth Burrow', input: '↓↓ + Special (hold)', cost: 20, desc: 'Under the ground for up to 1.5 s at run speed; only lows / ground hits reach him. Release = ERUPT, 90, launches.' },
+    { name: 'Tremor Streak', input: 'Double-tap ← / → while burrowed', cost: 10, desc: 'The streak travels underground: a cross-up from below.' },
+    { name: 'Earth Kunai', input: '↓↙← + Light', cost: 15, desc: 'A kunai in the floor (max 2, 6 s) erupts when the foe steps on it: 45, trips.' },
+    { name: 'Ninja Beam', input: '↓↘→ + Light (or Special)', cost: 15, desc: 'Ground only, 50.' },
+    { name: 'Rock Hold', input: 'Forward + Charge', cost: 25, desc: 'Ninja Barrier as ARMOR: absorbs 2 hits for 1 s, then a shockwave counter (70).' },
+    ...SHARED.framework,
+    { name: 'Earth Double (illusion)', input: 'Ninja Mirror', cost: 50, desc: 'A still, guarding decoy. Burrow to it and swap from underground. Struck: a heavy eruption under the attacker (80, wall-bounce).' },
+  ],
+  mobility: SHARED.mobility,
+  ultimate: { name: 'EARTHQUAKE NINJA ART (Super, 1 bar) · FAULT LINE (Ultimate, 2 bars, Mirror only)', input: '↓↘→↓↘→ + Special / Ultimate', cost: 50, desc: 'Earthquake: stage shake, pop-up, 3 eruptions + sword finisher, 320. Fault Line: real + illusion slam, a shockwave between them, 4 bodies erupt, 390.' },
+  combos: [
+    { name: 'Pound', sequence: 'Jab → string → Rising kick → Ground Pound OTG', desc: 'docs/msv1/COMBOS.md' },
+    { name: 'Full REV', sequence: 'Full REV run → Tremor Streak under them → Erupt → sword → Beam', desc: '' },
+    { name: 'Bait', sequence: 'Earth Kunai trap → bait them onto it → trip → Earthquake', desc: '' },
+    { name: 'Decoy', sequence: 'Earth Double → they hit it → eruption counter → Burrow swap → Fault Line', desc: '' },
+  ] }

@@ -31,6 +31,7 @@ import { elastigirl } from './elastigirlData.js'   // Elastigirl (Helen Parr, Th
 import { zoro } from './zoroData.js'
 import { sanji } from './sanjiData.js'   // Sanji (One Piece) — sanjiData.js
 import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) — spdRedData.js / spdRed*.js on the rangers.js framework
+import { ns_red, ns_yellow } from './nsData.js'   // MSV1 Ninja Storm: Shane (Red Wind) + Dustin (Yellow Wind) — ninja.js / ns*.js on rangers.js
 import { arlong } from './arlongData.js'   // Arlong (One Piece) — arlongData.js
 import { buggy } from './buggyData.js'   // Buggy the Clown (One Piece) — buggyData.js   // Roronoa Zoro (One Piece) — zoroData.js
 
@@ -11457,6 +11458,7 @@ export const characters = {
   green_samurai_ranger: greenSamuraiRanger,
   red_ranger_mmpr: redRangerMmpr,
   spd_red: spdRed,                   // S.P.D. Red Ranger (Jack Landors, B-Squad) — Teleport Rushdown / Judge; first Ranger on rangers.js
+  ns_red, ns_yellow,                 // MSV1 Ninja Storm — Shane Clarke (Air Ninja / Aerial Rushdown) + Dustin Brooks (Earth Ninja / Trap & Burrow); ninja.js
   // ── RANGERS block: keep future Rangers here, in team order (S.P.D. Blue / Green / Yellow / Pink, …) — `follow the ranger framework` ──
   netero,
   saiki,

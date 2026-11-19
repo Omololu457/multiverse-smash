@@ -80,6 +80,8 @@ export const SPRITE_MANIFEST = {
   sanji: { actions: { idle: './assets/sanji/idle.png' } },
   arlong: { actions: { idle: './assets/arlong/idle.png' } },
   spd_red: { actions: { idle: './assets/spd_red/idle.png' } },
+  ns_red: { actions: { idle: './assets/ns_red/idle.png' } },   // MSV1 Shane (msv1Sprites.js strips)
+  ns_yellow: { actions: { idle: './assets/ns_yellow/idle.png' } },   // MSV1 Dustin
   // Gojo's existing ./gojo_<action>_sheet.png strips. Replacement art must keep
   // these exact filenames + the per-action layout documented in GOJO SPRITE SPEC
   // above. Sheets that haven't been replaced yet still load fine.

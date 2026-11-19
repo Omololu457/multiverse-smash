@@ -36445,6 +36445,7 @@ export function doEnergyCharge(fighter) {
   if (fighter?.rosterKey === 'sanji') return  // Heat only comes from his kicks (landed / blocked), the passive and the Course
   if (fighter?.rosterKey === 'arlong') return // Tide only comes from hits, the passive and his own water
   if (fighter?.rosterKey === 'spd_red') return // Delta only comes from hits, blocked hits, the passive and blink dodges
+  if (fighter?._ninja) return   // MSV1: Charge is the ninjas' "Teleport" button, never a meter charge
 
   if (!fighter?.maxEnergy) return
   if (fighter.hitstun > 0 || fighter.blockstun > 0) return

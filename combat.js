@@ -35,6 +35,7 @@ import { sanjiHitbox, sanjiBlockstun, sanjiComboScale, sanjiHit, sanjiKnockback 
 import { sanjiProjectileHit } from './sanjiState.js'   // Sanji: Plate Kick hit bookkeeping (sanji-gated)
 import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack box descriptor (spd_red-gated)
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
+import { ninjaHitbox, ninjaEvades, ninjaKnockback, ninjaComboScale, isNinja } from './ninja.js'   // MSV1 Ninja Storm hooks (ninja-gated no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak, benAlienStruck, benAlienArmor } from "./ben10State.js"
@@ -558,6 +559,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   if (fighter?.rosterKey === 'sanji' && curve === COMBO_DAMAGE_CURVE) return sanjiComboScale(fighter)   // Sanji: 85% per hit (sanji-gated)
   if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
   if (fighter?.rosterKey === 'spd_red' && curve === COMBO_DAMAGE_CURVE) return spdRedComboScale(fighter)   // S.P.D. Red: 85% per hit (spd_red-gated)
+  if (curve === COMBO_DAMAGE_CURVE && isNinja(fighter)) return ninjaComboScale(fighter)   // MSV1 85% per hit
   if (fighter?.rosterKey === 'violet' && curve === COMBO_DAMAGE_CURVE) return violetComboScale(fighter)   // Violet Parr: 85% per hit (violet-gated)
   if (fighter?.rosterKey === 'dash_parr' && curve === COMBO_DAMAGE_CURVE) return dashParrComboScale(fighter)   // Dash Parr: 85% per combo step (dash_parr-gated)
   const base = (fighter?.comboCounter || 0)
@@ -826,6 +828,7 @@ export function getAttackHitbox(fighter) {
   if (a?.sj && fighter.rosterKey === 'sanji') return sanjiHitbox(fighter)   // Sanji: his own box descriptor (sanji-gated)
   if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
   if (a?.sr && fighter.rosterKey === 'spd_red') return spdRedHitbox(fighter)   // S.P.D. Red: his own box descriptor (spd_red-gated)
+  if (a?.nj && isNinja(fighter)) return ninjaHitbox(fighter)   // MSV1
 
   if (a?.krybot && fighter.rosterKey === 'krybot') return krybotHitbox(fighter)
   if (a?.blue && fighter.rosterKey === 'spd_blue') return spdBlueHitbox(fighter)
@@ -3384,7 +3387,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   const hitbox = getAttackHitbox(attacker)
   const hurtbox = getHurtbox(defender)
   const _benWeak = benAlienWeakHit(defender, hitbox, { move: attacker.currentAttack, attacker })   // READY Omnitrix form weak point (Goop projector); false for everyone else
-  if (((!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) || benAlienEvades(defender, { move: attacker.currentAttack, attacker })) && !_benWeak) return   // + READY form low profile (Goop Puddle): false for everyone else
+  if (((!rectsOverlap(hitbox, hurtbox) && !rectsOverlap(hitbox, luffyLimbHurtbox(defender))) || benAlienEvades(defender, { move: attacker.currentAttack, attacker }) || ninjaEvades(defender, { move: attacker.currentAttack, attacker })) && !_benWeak) return   // + READY form low profile (Goop Puddle): false for everyone else
   // S.P.D. PINK — Baton Reprisal: same top-priority negate contract as the counters below, but NO riposte damage/stun
   // here — Syd answers next tick with one ordinary blockable strike. spd_pink-gated (see spdPinkCounter).
   if (spdPinkCounter(defender, attacker)) { try { sound?.play?.(SFX?.COUNTER_HIT) } catch (_) {} ; return }
@@ -3808,6 +3811,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     sanjiKnockback(attacker, defender, atk)
     arlongKnockback(attacker, defender, atk)
     spdRedKnockback(attacker, defender, atk)
+    ninjaKnockback(attacker, defender)   // MSV1 weight
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
     if (benReadyForm(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }   // READY forms' weight (Swampfire unchanged)
     benWaterKnockback(defender)   // STORM TIDE (benFlood.js): submerged non-waterborne → knockback ×0.8, launch ×0.75; no-op without a flood
@@ -4546,7 +4550,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
       const _benWeak = benAlienWeakHit(fighter, pb, { proj })   // READY Omnitrix form weak point (Goop projector); false for everyone else
-      if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
+      if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj }) || ninjaEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
       if (fighter.isBlocking && isBenDevice(proj.owner) && benAlienGuardBreak(proj.owner, fighter, { proj })) fighter.isBlocking = false   // READY form guard-break (Eyeguy Unblinking); false for everyone else
 

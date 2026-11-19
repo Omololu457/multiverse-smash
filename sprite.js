@@ -1177,6 +1177,7 @@ export class SpriteHandler {
       while (this.frameIndex > 0 && profileAction.groundClearance[this.frameIndex] * scale > clearance) this.frameIndex--;
     }
     if (fighter.rosterKey === 'spd_yellow') fighter._lastSpriteFrame = this.frameIndex;   // S.P.D. Yellow: presentation read for skin materials (spdYellowFx)
+    if (fighter._ninja) fighter._lastSpriteFrame = this.frameIndex;   // MSV1: presentation read for the Wind Mirage echo pose (nsFx)
     if (fighter.rosterKey === 'cyborg') fighter._lastSpriteFrame = this.frameIndex;   // Cyborg: presentation read for skin material overlays (cyborgFx)
     if (fighter.rosterKey === 'beast_boy') fighter._lastSpriteFrame = this.frameIndex;   // Beast Boy: presentation read for skin material overlays (beastBoyFx)
     if (fighter.rosterKey === 'raven') fighter._lastSpriteFrame = this.frameIndex;   // Raven: presentation read for skin material overlays (ravenFx)

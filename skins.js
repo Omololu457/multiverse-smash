@@ -243,6 +243,8 @@ export const SKINS = {
     { id: "sanji_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("sanji", "albedo"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "albedo"), recolorTag: "albedo" },
     { id: "sanjiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("sanji", "alienx"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "alienx"), recolorTag: "alienx" },
   ],
+  ns_red: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }],   // MSV1
+  ns_yellow: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }],
   spd_red: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.spd_red.portrait, spriteScale: characters.spd_red.spriteScale, animationData: null }],
   arlong: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.arlong.portrait, spriteScale: characters.arlong.spriteScale, animationData: null }],
   buggy: [

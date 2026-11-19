@@ -1,0 +1,23 @@
+# MSV1-owned paths (staged explicitly by tools/msv1/build_tree.sh; directories = every file inside)
+ninja.js
+ninjaCommand.js
+nsData.js
+nsSupers.js
+nsFx.js
+nsSound.js
+nsKit.js
+nsHarness.js
+msv1Sprites.js
+assets/ns_red
+assets/ns_yellow
+tools/msv1/pack_msv1.py
+tools/msv1/hooks.py
+tools/msv1/build_tree.sh
+tools/msv1/FILES.txt
+harness/msv1.test.mjs
+harness/msv1_render.mjs
+harness/msv1_scen_a_core.mjs
+harness/msv1_scen_b_framework.mjs
+docs/msv1/NINJA_FRAMEWORK.md
+docs/msv1/screenshots
+harness/msv1_framedata_diff.mjs

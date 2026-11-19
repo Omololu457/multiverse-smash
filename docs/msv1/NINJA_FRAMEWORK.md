@@ -150,3 +150,21 @@ Applied by `tools/msv1/hooks.py` (idempotent and anchor-based; it can patch the 
 All gameplay state lives on `f._ninja` and `f._ranger` as plain JSON, and `ninjaSnapshot(f)` is pushed into the
 replay / LAN checkpoint. Randomness comes only from `rangerHash(match seed, frame, player index, slot)`; there is
 no `Math.random`. Smoke drift, tilts, speed lines, sparks, glints and camera punch are render-only (`nsFx.js`).
+* **The hash's frame is the lockstep sim frame** (`MSV1_WORLD.frame = _replayFrame`), not `globalFrameCount`.
+  `globalFrameCount` counts loop/render frames (menus included), so two LAN peers or a replay see different values,
+  and the Mirror's real spot came out different on host and joiner. Phase 8 found this with
+  `harness/msv1_netreplay.test.mjs`. The test now plays a recorded match with zero desync and keeps both LAN sims
+  bit-identical, hidden identity included, with both ninjas using Mirror, clones and streaks.
+  * S.P.D. Red's own `SPD_RED_WORLD` still uses `globalFrameCount`. That was left unchanged: it isn't MSV1 code, and
+    its frame data must stay byte-identical.
+
+## CPU vs the Mirror (no cheating)
+`ai.js getAIInput` passes the opponent through `ninjaAiPerceive(cpu, opp, difficulty)`. While a ninja's Mirror is
+up, the CPU makes **one guess per Mirror / swap**:
+* with the tell rate (easy 20%, normal/adaptive 45%, hard/impossible 70%), it reads the visible tell and picks the
+  real body;
+* otherwise a 50/50 `rangerHash` picks a spot.
+
+It then fights a perceived proxy at the spot it believes in. The function never reads which spot is real. It only
+uses the two visible spots, the Mirror serial and swap count, and the hash. Over 1,000 sampled Mirrors per tier,
+the measured tell rates are 19.7%, 44.0% and 68.8% (msv1_scen_f_final F3).

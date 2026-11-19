@@ -11,13 +11,13 @@ const server = await serve()
 const browser = await chromium.launch({ headless: true, args: ['--autoplay-policy=no-user-gesture-required'] })
 const errors = []
 let page
-async function boot(p1, p2) {
+async function boot(p1, p2, seed = null) {
   page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
   page.on('pageerror', e => errors.push(e.message))
   await page.addInitScript(() => { window.requestAnimationFrame = () => 0 })
   await page.goto(`${server.base}/index.html?harness=1&p1=${p1}&p2=${p2}`, { waitUntil: 'load' })
   await page.waitForFunction(() => !!window.__harness?.luffyTest && !!window.__harness?.ninjaTest, null, { timeout: 30000 })
-  await page.evaluate(() => { __harness.start(); __harness.skipToBattle() })
+  await page.evaluate(s => { if (s != null) __harness.rng.forceSeed(s); __harness.start(); __harness.skipToBattle() }, seed)
   await step(2)
   await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { timeout: 30000 })
   for (let i = 0; i < 4; i++) { await step(5); await new Promise(r => setTimeout(r, 200)) }
@@ -51,7 +51,7 @@ const PHASES = (process.argv[2] || 'all')
 try {
   await boot('ns_red', 'ns_yellow')
   const mods = fs.readdirSync('harness').filter(f => /^msv1_scen_.*\.mjs$/.test(f)).sort()
-  const X = { step, S, call, shot, tap, dtap, motion, fresh, settle, hp, check, section, boot: async (a, b) => { await page.close(); await boot(a, b) }, get page() { return page } }
+  const X = { step, S, call, shot, tap, dtap, motion, fresh, settle, hp, check, section, boot: async (a, b, seed) => { await page.close(); await boot(a, b, seed) }, get page() { return page } }
   for (const m of mods) { if (PHASES !== 'all' && !m.includes(PHASES)) continue; await (await import(`./${m}`)).run(X) }
 } catch (e) { check('MSV1 test ran to completion', false, e.stack || e.message) }
 check('MSV1 no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))

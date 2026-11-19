@@ -26,3 +26,6 @@ harness/msv1_scen_d_dustin.mjs
 harness/msv1_combos.mjs
 docs/msv1/COMBOS.md
 harness/msv1_scen_e_presentation.mjs
+docs/msv1/BALANCE_NOTES.md
+harness/msv1_scen_f_final.mjs
+harness/msv1_netreplay.test.mjs

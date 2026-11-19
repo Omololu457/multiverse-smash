@@ -29,7 +29,7 @@ const MOVE_STRIP = {
   nsMirror: 'stance', nsClone: 'guard', nsBarrier: 'swordDome', nsDome: 'dome', nsBarrierEnd: 'guard', nsBurrow: 'duck',
   landRecover: 'landRecover', land: 'land', dropDive: 'dive', sSuper: 'stance', sUlt: 'stance', superTornado: 'tornado', superFinish: 'galeCrescent2', superSlam: 'land', superDive: 'diveKick',
 }
-function buildAnims(key, moves) {
+function buildAnims(key, moves, stripOver = {}) {
   const out = {
     idle: A(key, 'idle', 9, { loop: true }), walk: A(key, 'run', 6, { loop: true }), walk_back: A(key, 'run', 7, { loop: true }), run: A(key, 'run', 4, { loop: true }),
     dash: A(key, 'streak', 3), jump: A(key, 'jump', 5), fall: A(key, 'airRecover', 8), crouch: A(key, 'crouch', 4), guard: A(key, 'guard', 6, { loop: true }),
@@ -40,9 +40,14 @@ function buildAnims(key, moves) {
     superFinish: A(key, 'galeCrescent2', 4), superSlam: A(key, 'land', 4), superDive: A(key, 'diveKick', 4),
   }
   for (const [k, md] of Object.entries(moves)) {
-    const strip = MOVE_STRIP[k]; if (!strip) continue
+    const strip = stripOver[k] || MOVE_STRIP[k]; if (!strip) continue
     const loop = /^(sTornado|nsDome|nsBurrow|nsStreak|nsTremor|nsVanishGone)$/.test(k)
     out[k] = A(key, strip, loop ? 3 : 5, loop ? { loop: true } : { frameTimeline: TL(strip, md) })
+  }
+  // POSE-ONLY keys (no move of their own: setPose swaps currentMove to them mid-move, or the engine's grab / throw)
+  for (const k of ['nsStreakStrike', 'nsVanishGone', 'nsDome', 'grab', 'throw']) if (!out[k]) {
+    const strip = stripOver[k] || MOVE_STRIP[k], loop = /^(nsDome|nsVanishGone)$/.test(k)
+    out[k] = A(key, strip, loop ? 3 : 4, loop ? { loop: true } : {})
   }
   return out
 }
@@ -201,8 +206,8 @@ export const DUSTIN_PROFILE = registerNinjaProfile('ns_yellow', {
 // ── ROSTER ENTRIES ───────────────────────────────────────────────────────────────────────────────────────────────
 const SCALE = 2.8 / 1.18   // the engine draws ×1.18 → 2.8× = the 47 px idle body ≈ 132 px (S.P.D. Red's on-screen height)
 const grab = { damage: 35, startup: 7, active: 3, recovery: 20, hitstun: 20, throwForceX: 8, throwForceY: -4, damageType: 'grab' }
-function roster(key, o, moves) {
-  const anims = buildAnims(key, moves)
+function roster(key, o, moves, strips) {
+  const anims = buildAnims(key, moves, strips)
   return {
     rosterKey: key, universe: 'power_rangers', subUniverse: 'Ninja Storm', portrait: `./assets/${key}/portrait_large.png`, hudIcon: `./assets/${key}/portrait_small.png`,
     hasSprites: true, spriteScale: SCALE, spriteSheet: anims.idle.sheet, fatalityVictimArt: false, grabCastPose: 'grab',
@@ -227,6 +232,6 @@ export const ns_yellow = roster('ns_yellow', {
   primary: 'setplay', secondary: ['grappler'], archetypes: ['setplay', 'trap'],
   stats: { maxHealth: 1296, maxEnergy: 100, attack: 84, defense: 80, speed: 88, jumpPower: 31, maxJumps: 2, weight: 1.0, dashSpeed: 15.3, dashDuration: 10, dashCooldownMax: 28 },
   ultimate: { name: 'Fault Line', cost: 100 },
-}, DUSTIN_MOVES)
+}, DUSTIN_MOVES, { dive: 'throwAir' })   // Ground Pound = the R20 air throw-down (Dustin has no air kunai, so the strip lives here)
 export const NS_MOVE_STRIP = MOVE_STRIP
 SHANE_PROFILE.stats = ns_red.stats; DUSTIN_PROFILE.stats = ns_yellow.stats   // ninjaRoundReset restores these (S.P.D. Red's tier)

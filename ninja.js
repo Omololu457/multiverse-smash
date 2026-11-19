@@ -359,6 +359,7 @@ export function startCloneJob(f, opp, job) {
   if (!C) return false
   s.clones = s.clones.filter(c => !c.dead)
   const n = Math.min(C.max, job.count ?? C.max)
+  s.stats.cloneJobs = (s.stats.cloneJobs || 0) + 1
   s.cloneJob = { t: 0, ...job, n, struck: false }
   s.clones = []
   for (let i = 0; i < n; i++) {
@@ -891,4 +892,24 @@ function stepQuotes(f, opp, s, p) {
   }
   if (s.replyAt && s.clock === s.replyAt) { const vs = Q.vs[opp?.rosterKey]; if (vs) say(f, vs.line); s.replyAt = 0 }
   if (!s.wonSaid && opp && !(opp.health > 0) && f.health > 0) { s.wonSaid = true; say(f, Q.win, 150) }
+}
+
+// ── CPU vs the NINJA MIRROR (no cheating): the CPU never reads the hidden identity. Each Mirror / swap it makes ONE
+// guess: with the difficulty's chance it reads THE TELL (the shadow / glint both players see → the real body),
+// otherwise a hash picks one of the two spots. It then fights the body it believes in (a perceived proxy at that spot).
+export const NINJA_AI_TELL = { dummy: 0, easy: 0.20, normal: 0.45, adaptive: 0.45, hard: 0.70, impossible: 0.70 }
+export function ninjaAiPerceive(ai, opp, difficulty = 'easy') {
+  const s = opp?._ninja, m = s?.mirror
+  if (!m || !isNinja(opp) || !ai) return opp
+  const key = m.n * 16 + m.swaps
+  let g = ai._nsGuess
+  if (!g || g.key !== key || g.who !== pidx(opp)) {
+    const rate = NINJA_AI_TELL[difficulty] ?? NINJA_AI_TELL.easy
+    const tell = hash(opp, 200 + pidx(ai) * 7 + (key % 97)) < rate
+    const real = tell || hash(opp, 300 + pidx(ai) * 7 + (key % 97)) < 0.5
+    g = ai._nsGuess = { key, who: pidx(opp), tell, real }
+  }
+  if (g.real || m.swap) return opp
+  const h = opp.h || 94
+  return { ...opp, x: m.ix, y: m.ifeet - h, vx: 0, vy: 0, _nsPerceived: true }
 }

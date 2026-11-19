@@ -15,7 +15,7 @@ M = '   // MSV1'
 HOOKS = [
   # ── game.js ──
   ('game.js', "import { rangerFacingFix } from './rangers.js'", "import { tickNinja, isNinja, clearNinja, ninjaRoundReset, ninjaBodyAlpha, ninjaSnapshot } from './ninja.js'" + M + " Ninja Storm framework (ns_red / ns_yellow; ninja-gated)\nimport { updateNinjaCommand } from './ninjaCommand.js'" + M + " generic ninja command layer\nimport { drawNinjaFx, drawNinjaUnder, playNinjaCues } from './nsFx.js'" + M + " render-only ninja FX + cues\nimport { ninjaHarnessApi } from './nsHarness.js'" + M + " test accessor", 'after'),
-  ('game.js', "const ARLONG_WORLD = {", "const MSV1_WORLD = { ...SPD_RED_WORLD, attackBoxRaw: o => (o && o.attacking && getAttackPhase(o) === 'active') ? getAttackHitbox(o) : null, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) } }" + M + " ninja world (S.P.D. Red's + own box / projectile list)", 'before'),
+  ('game.js', "const ARLONG_WORLD = {", "const MSV1_WORLD = { ...SPD_RED_WORLD, frame: () => _replayFrame, attackBoxRaw: o => (o && o.attacking && getAttackPhase(o) === 'active') ? getAttackHitbox(o) : null, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) } }" + M + " ninja world (S.P.D. Red's + the LOCKSTEP sim frame for the hash — globalFrameCount counts render/menu frames and differs across LAN peers / replay — + own box / projectile list)", 'before'),
   ('game.js', "  tickSpdRed(fighter, nearest, readRawControls(fighter) || {}, SPD_RED_WORLD)", "  tickNinja(fighter, nearest, readRawControls(fighter) || {}, MSV1_WORLD); playNinjaCues(fighter)" + M + " ninjas (FFA step)", 'after'),
   ('game.js', "  tickSpdRed(fighter, getOpponent(fighter), readRawControls(fighter) || {}, SPD_RED_WORLD)", "  tickNinja(fighter, getOpponent(fighter), readRawControls(fighter) || {}, MSV1_WORLD); playNinjaCues(fighter)" + M + " ninjas (1v1 step)", 'after'),
   ('game.js', "  if (isElastigirl(fighter)) { const mc=updateElastigirlCommandCombat(fighter,inputState,nearest,ELASTIGIRL_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }", "  if (isNinja(fighter)) { const nc=updateNinjaCommand(fighter,inputState,nearest,MSV1_WORLD);if(nc)ctrlState=nc==='grab'?{grab:!!inputState.grab}:{} }" + M + " ninja command layer (FFA)", 'after'),
@@ -48,6 +48,9 @@ HOOKS = [
   ('input.js', "&& !fighter._elastigirlRemoteInput) {", "&& !fighter._elastigirlRemoteInput && !fighter._msv1RemoteInput) {", 'inline'),
   ("input.js", "fighter.rosterKey === 'elastigirl') && !fighter._aiControlled", "fighter.rosterKey === 'elastigirl' || fighter.rosterKey === 'ns_red' || fighter.rosterKey === 'ns_yellow') && !fighter._aiControlled", 'inline'),
   ("input.js", "&& !fighter._elastigirlRemoteInput && inputSettings[", "&& !fighter._elastigirlRemoteInput && !fighter._msv1RemoteInput && inputSettings[", 'inline'),
+  # ── ai.js ──
+  ('ai.js', 'import { aiPickDroneTarget } from "./drones.js"', "import { ninjaAiPerceive } from './ninja.js'" + M + " CPU vs the Ninja Mirror: guesses by the visible tell (difficulty-rated) else hash — never reads the identity", 'after'),
+  ('ai.js', "export function getAIInput(controller, fighter, opponent, world = {}) {", "  opponent = ninjaAiPerceive(fighter, opponent, controller?.difficulty)" + M + " (the opponent itself unless it is a ninja with the Mirror up)", 'after'),
   # ── roster / metadata ──
   ('characters.js', "import { spdRed } from './spdRedData.js'", "import { ns_red, ns_yellow } from './nsData.js'" + M + " Ninja Storm: Shane (Red Wind) + Dustin (Yellow Wind) — ninja.js / ns*.js on rangers.js", 'after'),
   ('characters.js', "  spd_red: spdRed,", "  ns_red, ns_yellow,                 // MSV1 Ninja Storm — Shane Clarke (Air Ninja / Aerial Rushdown) + Dustin Brooks (Earth Ninja / Trap & Burrow); ninja.js", 'after'),
@@ -63,8 +66,14 @@ HOOKS = [
   ('ui.js', "    drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip })", "    drawNinjaHud(ctx, fighter, { x, enY, pbw, flip, hpY, barH })" + M + " Ninja Power bar under health (ninjas only)", 'after'),
 ]
 
+# earlier versions of a hook line (an older commit carries them): dropped before the table is applied, so the result
+# is the same whether the base is the pre-MSV1 commit or a commit that already had the old line
+SUPERSEDED = [('game.js', "const MSV1_WORLD = { ...SPD_RED_WORLD, attackBoxRaw:")]
+
 def apply(path, text):
     out, notes = text, []
+    for f, prefix in SUPERSEDED:
+        if f == path: out = ''.join(l for l in out.splitlines(True) if not l.startswith(prefix))
     for h in HOOKS:
         f, anchor, ins, mode = h[0], h[1], h[2], h[3]
         allocc = len(h) > 4 and h[4] == 'all'

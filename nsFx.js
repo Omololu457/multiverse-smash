@@ -26,7 +26,7 @@ function drawPose(c, f, key, frame, x, feet, dir, alpha = 1, tilt = 0) {
   const A = anim(f, key) || anim(f, 'idle'); if (!A) return
   const im = image(A.sheet); if (!ready(im)) return
   const s = SC(f), fr = Math.max(0, Math.min((A.frames || 1) - 1, frame | 0)), W = MSV1_CELL.width, H = MSV1_CELL.height
-  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha; c.globalCompositeOperation = 'source-over'; try { c.filter = 'none' } catch (_) {}   // own state: never inherit another FX pass's dim / tint (the illusion must be pixel-identical)
   c.translate(Math.round(x), Math.round(feet)); if (tilt) c.rotate(tilt * Math.PI / 180); if (dir < 0) c.scale(-1, 1)
   c.drawImage(im, fr * W, 0, W, H, -MSV1_CELL.originX * s, -MSV1_CELL.originY * s, W * s, H * s)
   c.restore()
@@ -133,7 +133,9 @@ export function drawNinjaFx(c, f, frameNo = 0) {
         c.save(); c.strokeStyle = '#f2ead2'; c.lineWidth = 3; c.globalAlpha = 0.85 * (1 - u)
         c.beginPath(); c.ellipse(e.x, e.y - 2, 20 + u * (e.k === 'shock' ? 120 : 70), 6 + u * 10, 0, 0, Math.PI * 2); c.stroke()
         if (e.k !== 'ring') { c.fillStyle = '#8a6a3a'; for (let i = 0; i < 6; i++) { const a2 = i / 6 * Math.PI; c.globalAlpha = 0.8 * (1 - u); c.fillRect(e.x + Math.cos(a2) * u * 50 - 3, e.y - Math.sin(a2) * u * 60 - 3 - 10, 6, 6) } }
-        c.restore(); break
+        c.restore()
+        if (e.k === 'erupt') for (const d of [-1, 1]) drawFx(c, f, 'proj_beamDiag', Math.floor(u * 3), e.x + d * (16 + u * 46), e.y - 34 - u * 70, d, 0.9 * (1 - u), SC(f) * 0.7, -0.25 * d)   // R21 diagonal energy as the two rock jets of the eruption
+        break
       }
       case 'hit': case 'zap': drawFx(c, f, 'fx_hitSpark', 0, e.x, e.y, 1, 1 - u, SC(f) * (0.8 + u * 0.4)); break
       case 'parry': drawFx(c, f, 'proj_burst', Math.floor(u * 4), e.x, e.y, 1, 1 - u); break

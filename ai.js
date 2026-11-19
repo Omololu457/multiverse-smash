@@ -18,6 +18,7 @@
 import { gameRng } from "./rng.js"   // Stage 11A: seeded gameplay RNG — all AI rolls route through rand()
 import { templateForCharacter, applyTemplateToProfile } from "./aiTemplates.js"   // Part 2: per-character behavior templates
 import { aiPickDroneTarget } from "./drones.js"   // drone-hunting hook (opt-in per drone profile via aiPriority — Buggy's body parts)
+import { ninjaAiPerceive } from './ninja.js'   // MSV1 CPU vs the Ninja Mirror: guesses by the visible tell (difficulty-rated) else hash — never reads the identity
 
 export const AI_DIFFICULTIES = {
   dummy: {
@@ -1321,6 +1322,7 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
 }
 
 export function getAIInput(controller, fighter, opponent, world = {}) {
+  opponent = ninjaAiPerceive(fighter, opponent, controller?.difficulty)   // MSV1 (the opponent itself unless it is a ninja with the Mirror up)
   return aiHuntDrones(controller, fighter, updateAIController(controller, fighter, opponent, world))
 }
 

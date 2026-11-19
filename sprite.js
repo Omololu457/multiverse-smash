@@ -9,6 +9,7 @@
 //
 // Exports: SpriteHandler, preloadCharacterSprites, preloadSheets, processPendingSpawns
 
+import { benThemedSheet } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES: the same sheet, recoloured once + cached (render-only, ben10-gated)
 import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
 import { violetSpriteAction, violetAlpha } from './violetView.js'   // Violet Parr: invisible strips + 35 % alpha (render-only, violet-gated)
 
@@ -1019,6 +1020,8 @@ export class SpriteHandler {
     // UNWIRED-PLACEHOLDER GUARD: a truly unwired action (no profile sheet AND no idle fallback sheet —
     // a procedural fighter with no animationData) still falls back to the box, matching the old intent.
     if (!profileAction.sheet && !legacyFrameData?.sheet) sheet = null;
+    // BEN 10 THEME: swap in the recoloured copy of THIS sheet (same size / alpha / layout → slicing unchanged). null = original.
+    if (sheet && fighter._benTheme) sheet = benThemedSheet(fighter, profileAction.sheet || legacyFrameData?.sheet, sheet) || sheet;
 
     const frameData = {
       // SLICING dims come from `dim` — the fighter's idle def when we fell back (so a small idle strip

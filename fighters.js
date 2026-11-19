@@ -1,5 +1,6 @@
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition, BEN10_SLOT_COUNT } from "./aliens.js"
+import { benThemeBaseSkin } from "./benThemes.js"   // a themed skin wears its original appearance's variant
 import { HEATBLAST } from "./heatblast.js"
 import { MEGAWHATT } from "./megawhatt.js"
 import { XLR8 } from "./xlr8.js"
@@ -2072,6 +2073,7 @@ export function applyBen10VariantStats(fighter, skinId = "default") {
   if (!fighter) return
   const k = (fighter.rosterKey || "").toLowerCase()
   if (k !== "ben10" && k !== "albedo") return
+  skinId = benThemeBaseSkin(skinId)          // "classic-<theme>" → ben10Classic, "jacket-<theme>" → default: cosmetic only, same stats
   if (skinId === "ben10Prime" && !fighter.benExperimental) skinId = "default"
   const V = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
   fighter.maxHealth = V.maxHealth

@@ -40,7 +40,7 @@ function _loadSrc(path) {
 
 // Generation is QUEUED and pumped once per animation frame under a small time budget (GEN_BUDGET_MS), so warming a whole
 // form (Jetray: 36 large strips) never lands in one frame. The sheet the renderer is asking for right now jumps the queue.
-const GEN_BUDGET_MS = 6
+const GEN_BUDGET_MS = 4
 const _queue = []
 let _pumping = false
 const _now = () => (typeof performance !== "undefined" ? performance.now() : Date.now())

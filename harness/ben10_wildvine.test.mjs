@@ -4,6 +4,7 @@
 // (Snare Vine deals no damage and is not a scaled hit). The live routes then run the real engine and assert the mechanics.
 // Test 12 (the brief's "slot 11") is PICK FIVE: the owner kept 5 slots; Wildvine is a pick, not a new slot / chord.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -190,7 +191,7 @@ test('9. Verdant Rise: 55 launcher, once per airtime, no jump refill; Seed Shot:
   assert(A.triggerSpecial(g, ctxOf(g, u)), 'air rise'); tick(g, u, 20); S(g).rise = null; ready(g); assert.equal(A.triggerSpecial(g, ctxOf(g, u)), false, 'once per airtime'); assert.equal(g.jumpCount, 2, 'no jump refill')
   g.onGround = g.grounded = true; tick(g, u, 1); assert.equal(S(g).riseUsed, false, 'refreshed on landing'); clearProj()
   const h = ben(), v = foe(); reset(h, v, 120); S(h).downHeld = WV_SEED_HOLD; h._specialHeldDir = 'D'; assert.equal(W.pickSpecial(h, S(h)), 'seed')
-  ready(h); const hp = v.health; assert(A.triggerSpecial(h, ctxOf(h, v))); world(h, v, 40); assert.equal(hp - v.health, Math.floor(14 * DM * C.GLOBAL_DAMAGE_SCALE), 'one hit of 14')
+  ready(h); const hp = v.health; assert(A.triggerSpecial(h, ctxOf(h, v))); world(h, v, 40); assert.equal(hp - v.health, Math.floor(14 * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE), 'one hit of 14')
   S(h).downHeld = 3; assert.equal(W.pickSpecial(h, S(h)), 'bloom', 'a short ↓ stays Bloom Pod'); clearProj()
 })
 // ── 10 ultimate ────────────────────────────────────────────────────────────────────────────────────────────
@@ -234,7 +235,7 @@ test('12. pick five: slot count from the registry (5), Wildvine READY + pickable
   assert(/Sheet by Dragonrod/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Wildvine'); assert.equal(f.health, 950, 'shared health')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.95 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.95')
-  assert(Math.abs(f.defenseMultiplier - 1.00) < 1e-9 && Math.abs(f.damageMultiplier - 1.05) < 1e-9 && Math.abs(f._benWeight - 0.95) < 1e-9, 'def 1.00 / dmg 1.05 / weight 0.95')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.00) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.05) < 1e-9 && Math.abs(f._benWeight - 0.95) < 1e-9, 'def 1.00 / dmg 1.05 / weight 0.95')
 })
 test('12. picked loadout: Wildvine in the last dial slot and the transform reaches it', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'wildvine']

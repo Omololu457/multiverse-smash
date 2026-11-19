@@ -4,6 +4,7 @@
 // Slot: PICK FIVE (owner decision, no new dial slots) — Ripjaws is catalog slot 20 (after Big Chill 19), picked into the
 // 5-slot loadout and reached with the Dial (↓↓ + slot key) like any other pick.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -87,7 +88,7 @@ test('2. registry: one READY entry, catalog slot 20 (contiguous after Big Chill 
 })
 test('2. stats: speed ×0.90 / damage ×1.00 / defense ×1.05 / weight ×1.10 (dry), double jump, shared health', () => {
   const f = ben()
-  assert(Math.abs(f.damageMultiplier - 1.00) < 1e-9 && Math.abs(f.defenseMultiplier - 1.05) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
+  assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.00) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.05) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.90 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.90')
   assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Ripjaws')
 })

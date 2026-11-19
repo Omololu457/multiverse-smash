@@ -7,6 +7,7 @@
 // loadout and reached with the Dial (↓↓ + slot key) like any other pick. Counts read BEN10_SLOT_COUNT, never a literal.
 // Every frame runs the REAL combat.updateCombat for both fighters (his specials are engine melee moves).
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -72,7 +73,7 @@ function melee(f, t, key, { block = false } = {}) {
 // ── 2 stats / normals / inputs ──────────────────────────────────────────────────────────────────────────────
 test('stats: speed ×1.00 / damage ×1.25 / defense ×0.90 / weight ×1.10, double jump, shared health', () => {
   const f = ben()
-  assert(Math.abs(f.damageMultiplier - 1.25) < 1e-9 && Math.abs(f.defenseMultiplier - 0.90) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
+  assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.25) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.90) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.00 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.00')
   assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Rath')
   assert(!('projectile' in RATH) && !('projectiles' in RATH), 'no projectile-related fields')
@@ -183,7 +184,7 @@ test('4. Claw Rake (236+P, 10): 12f startup, 3 hits 18/18/24, 170px reach, forwa
   const f = ben(), t = foe(); reset(f, t, 120); const x0 = f.x
   const r = runCast(f, t, 'N'); assert(r.ok); assert.equal(r.cost, RT_COST.rake); assert.equal(r.proj, 0, 'no projectile')
   const c = S(f).lastChain; assert.equal(c.kind, 'rake'); assert.equal(c.contacts.filter(k => !k.blocked).length, 3, '3 hits')
-  assert(near(r.dmg, 60 * DM * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 40, 'dmg ' + r.dmg); assert(f.x > x0, 'a real forward step')
+  assert(near(r.dmg, 60 * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 40, 'dmg ' + r.dmg); assert(f.x > x0, 'a real forward step')
   const g = ben(), u = foe(); reset(g, u, 400); runCast(g, u, 'N'); assert.equal(S(g).lastChain.contacts.length, 0, 'out of 170px reach whiffs')
   const h = ben(), v = foe(); reset(h, v, 120); const b = runCast(h, v, 'N', { block: true }); assert(S(h).lastChain.contacts.every(k => k.blocked)); assert(b.dmg < r.dmg)
 })
@@ -196,7 +197,7 @@ test('4. Rath Rush (→→+P, 12): 14f startup, charges ~320px, stops on contact
 })
 test('4. Overhead Slam (412+P, 14): 16f startup, 56, ground bounce on a clean hit, none on block', () => {
   const f = ben(), t = foe(); reset(f, t, 30); const r = runCast(f, t, 'D', { max: 60 }); assert(r.ok); assert.equal(r.cost, RT_COST.slam); assert.equal(r.proj, 0)
-  assert(near(r.dmg, RT_SLAM.DMG * DM * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 40, 'dmg ' + r.dmg); assert.equal(S(f).stats.bounces, 1, 'ground bounce')
+  assert(near(r.dmg, RT_SLAM.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE) || r.dmg > 40, 'dmg ' + r.dmg); assert.equal(S(f).stats.bounces, 1, 'ground bounce')
   { const g = ben(), u = foe(); reset(g, u, 30); g.energy = 100; const y0 = u.y; assert(cast(g, u, 'D')); let top = y0; for (let i = 0; i < 50; i++) { world(g, u, 1); top = Math.min(top, u.y) } assert(y0 - top > 20, 'they bounce up off the floor: ' + (y0 - top)) }
   const g = ben(), u = foe(); reset(g, u, 30); runCast(g, u, 'D', { block: true, max: 60 }); assert.equal(S(g).stats.bounces, 0, 'no bounce on block')
 })

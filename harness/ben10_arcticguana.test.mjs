@@ -6,6 +6,7 @@
 // the 5 picked aliens, and catalog slot 16 is Feedback (never overwritten), so Arcticguana's catalog slot is 17 (ready slots
 // stay contiguous); he is picked into the loadout and reached with the Dial (↓↓ + slot key) like any other pick.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -74,7 +75,7 @@ function melee(f, t, key, { block = false } = {}) {
 // ── 2 stats ─────────────────────────────────────────────────────────────────────────────────────────────────
 test('stats: speed ×0.95 / damage ×1.05 / defense ×1.10 / weight ×1.05, double jump, shared health', () => {
   const f = ben()
-  assert(Math.abs(f.damageMultiplier - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier - 1.10) < 1e-9 && Math.abs(f._benWeight - 1.05) < 1e-9, 'mods')
+  assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.10) < 1e-9 && Math.abs(f._benWeight - 1.05) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.95 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.95')
   assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Arcticguana')
 })
@@ -133,7 +134,7 @@ test('4. SHATTER COAT ignores block chip, a guarded hit, beams and throws', () =
 })
 test('4. Frost Coat resets on swap / revert / KO (fresh state, mods re-applied)', () => {
   const f = ben('arcticguana', LOAD); coatOn(f); F.applyAlien(f, 'heatblast'); F.applyAlien(f, 'arcticguana'); assert.equal(S(f).coat.state, 'off'); assert.equal(S(f).coat.cd, 0)
-  assert(Math.abs(f.defenseMultiplier - 1.10) < 1e-9, 'defense back to 1.10')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.10) < 1e-9, 'defense back to 1.10')
   const g = ben(); coatOn(g); F.revertToHuman(g); assert.equal(g.omnitrix.formState, null)
 })
 
@@ -217,14 +218,14 @@ test('9. ICE SHARD: two shards in a fan, 480 px, 22 each, ONE hit per target, on
   assert.equal(Math.round((sh[0].lifetime + 1) * AG_SHARD.SPEED), AG_SHARD.RANGE, "480 px (one frame already flown)")
   ready(f); assert.equal(cast(f, t, 'B'), false, 'one volley on screen'); const hp = t.health
   runCast(f, t, 50); assert.equal(S(f).stats.shardHits, 1, 'one hit max'); assert.equal(S(f).chill.pips, 1)
-  assert.equal(hp - t.health, Math.floor(AG_SHARD.DMG * DM * C.GLOBAL_DAMAGE_SCALE * 1) || hp - t.health); assert(near(hp - t.health, AG_SHARD.DMG * DM * C.GLOBAL_DAMAGE_SCALE))
+  assert.equal(hp - t.health, Math.floor(AG_SHARD.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE * 1) || hp - t.health); assert(near(hp - t.health, AG_SHARD.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE))
 })
 test('10. FROST CLOUD: settles 200 px ahead for 120f, one per owner; first contact 15 + a ×0.8 run/dash slow for 60f once, consumed; no pips', () => {
   clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; assert(cast(f, t, 'U')); runCast(f, t, AG_CLOUD.SETTLE)
   const cl = S(f).cloud; assert(cl); assert(Math.abs(cl.x - (cx(f) + f.facing * AG_CLOUD.AHEAD)) <= 1); runCast(f, t, 20); ready(f); assert(cast(f, t, 'U')); runCast(f, t, AG_CLOUD.SETTLE)
   assert(S(f).cloud && S(f).cloud.cast !== cl.cast, 'a recast replaces it (one per owner)'); runCast(f, t, AG_CLOUD.LIFE + 2); assert.equal(S(f).cloud, null, 'expires after 120f')
   clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'U')); runCast(g, u, AG_CLOUD.SETTLE); const c2 = S(g).cloud
-  u.x = c2.x - u.w / 2; const hp = u.health; world(g, u, 3); assert.equal(S(g).cloud, null, 'consumed'); assert.equal(S(g).stats.cloudHits, 1); assert(near(hp - u.health, AG_CLOUD.DMG * DM * C.GLOBAL_DAMAGE_SCALE))
+  u.x = c2.x - u.w / 2; const hp = u.health; world(g, u, 3); assert.equal(S(g).cloud, null, 'consumed'); assert.equal(S(g).stats.cloudHits, 1); assert(near(hp - u.health, AG_CLOUD.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE))
   assert.equal(S(g).chill.pips, 0, 'no pips'); assert(u._benSlow && u._benSlow.k === AG_CLOUD.SLOW)
   ready(u); u.hitstun = 0; u.x = 300; physics.moveFighter(u, { d: true }, CONTROLS); const slowVx = u.vx; u.vx = 0; delete u._benSlow
   const v = foe(); v.x = 300; physics.moveFighter(v, { d: true }, CONTROLS); assert(Math.abs(slowVx - v.vx * AG_CLOUD.SLOW) < 0.01, `walk ×0.8 (${slowVx} vs ${v.vx})`)
@@ -237,7 +238,7 @@ test('11. ICE SLIDE: 360 px low slide (real travel), ducks projectiles f6-24, no
   clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; S(g).dashTapT = S(g).t; assert(cast(g, u, 'F')); runCast(g, u, 8)
   assert.equal(ARCTICGUANA.evade(g, { proj: {} }), true, 'projectiles ducked'); assert.equal(ARCTICGUANA.evade(g, { move: {} }), false, 'melee still hits (no invulnerability)')
   clearProj(); const h = ben(), v = foe(); reset(h, v, 120); h.energy = 100; S(h).dashTapT = S(h).t; assert(cast(h, v, 'F')); const hp = v.health; runCast(h, v, 30)
-  assert.equal(S(h).stats.slideHits, 1, 'one hit'); assert(near(hp - v.health, AG_SLIDE.DMG * DM * C.GLOBAL_DAMAGE_SCALE)); assert.equal(S(h).chill.pips, 1)
+  assert.equal(S(h).stats.slideHits, 1, 'one hit'); assert(near(hp - v.health, AG_SLIDE.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE)); assert.equal(S(h).chill.pips, 1)
 })
 test('11. ICE SLIDE shatters a Popsicle', () => {
   clearProj(); const f = ben(), t = foe(); reset(f, t, 120); freezeIt(f, t); world(f, t, 2); f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); runCast(f, t, 20)
@@ -248,7 +249,7 @@ test('12. FREEZE BEAM: 22f startup, 3 ticks × 12 (only the first adds Chill), 4
   runCast(f, t, AG_BEAM.STARTUP); assert.equal(S(f).stats.beamTicks, 0, 'nothing in startup'); const hp = t.health
   let n = AG_BEAM.STARTUP; while (S(f).beam && n < 200) { world(f, t, 1); n++ }
   assert.equal(S(f).lastBeam.ticks, 3); assert.equal(S(f).lastBeam.hold, AG_BEAM.HOLD_MIN); assert.equal(n, AG_BEAM.STARTUP + AG_BEAM.HOLD_MIN + AG_BEAM.RECOVERY)
-  assert.equal(S(f).chill.pips, 1, 'first tick only'); assert(near(hp - t.health, 36 * DM * C.GLOBAL_DAMAGE_SCALE * 0.9), `${hp - t.health}`)
+  assert.equal(S(f).chill.pips, 1, 'first tick only'); assert(near(hp - t.health, 36 * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE * 0.9), `${hp - t.health}`)
   clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'D')); n = 0; while (S(g).beam && n < 300) { world(g, u, 1, { special: true }); n++ }
   assert.equal(S(g).lastBeam.hold, AG_BEAM.HOLD_MAX, 'held: capped at 40f')
 })
@@ -256,7 +257,7 @@ test('13. ICICLE DROP: air only, 48 on hit, once per airtime, no jump refill, +1
   clearProj(); const f = ben(), t = foe(); reset(f, t, 30); f.energy = 100; f.y -= 160; f.onGround = f.grounded = false; f.jumpCount = 2; const j = f.jumpCount
   assert(cast(f, t, 'N')); assert.equal(S(f).icicle != null, true); assert.equal(cast(f, t, 'N'), false, 'busy'); const hp = t.health
   let n = 0; while (S(f).icicle && n < 80) { world(f, t, 1); n++ }
-  assert(S(f).lastIcicle.hit, 'hit'); assert(near(hp - t.health, AG_ICICLE.DMG * DM * C.GLOBAL_DAMAGE_SCALE), `${hp - t.health}`); assert.equal(S(f).chill.pips, 1)
+  assert(S(f).lastIcicle.hit, 'hit'); assert(near(hp - t.health, AG_ICICLE.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE), `${hp - t.health}`); assert.equal(S(f).chill.pips, 1)
   assert.equal(f.jumpCount, j, 'no jump refill from the move'); assert.equal(A.activeProjectiles.filter(p => p.owner === f && p.alien && p.alien.ag === 'icicle' && p.lifetime > 0).length, 0, 'no landing hitbox')
   const g = ben(); g.energy = 100; g.y -= 200; g.onGround = g.grounded = false; S(g).icicleUsed = true; ready(g); assert.equal(cast(g, foe(), 'N'), false, 'once per airtime')
 })

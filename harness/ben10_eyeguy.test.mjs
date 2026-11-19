@@ -4,6 +4,7 @@
 // ±20%. The live routes then run the real engine (its combo curve, the form's ×1.15, the global damage scale) and
 // assert the mechanics: every hit connects, the counter grows, later hits scale down.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -232,7 +233,7 @@ test('11. registry: Eyeguy READY and pickable; slot count from the registry; rea
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(getAvailableAlienKeys(false).includes('eyeguy'))
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 950, 'shared health')
-  assert(Math.abs(f.damageMultiplier - 1.15) < 1e-9 && Math.abs(f.defenseMultiplier - 1.05) < 1e-9)
+  assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.15) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.05) < 1e-9)
 })
 test('11. picked loadout: Eyeguy in the last dial slot and the transform reaches it', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8', 'eyeguy'].slice(-BEN10_SLOT_COUNT)

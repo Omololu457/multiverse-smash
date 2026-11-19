@@ -102,3 +102,20 @@ changed to make him strong or weak.
 
 Tests: `harness/ben10_swampfire_combos.test.mjs` (combo routes, Regrowth, Vow),
 `harness/ben10_integration.test.mjs`, `harness/ben10_swampfire_live.mjs`.
+
+# Global alien buff — damage and toughness (2026-11-19)
+
+Owner request: every Ben 10 alien gets a damage and health buff, not a speed buff.
+
+- **One knob:** `benAlienBalance.js`, `BEN_ALIEN_BUFF = { damage: 1.15, defense: 1.20 }`. It applies to every READY form.
+- **Why toughness, not max health:** Ben's health bar is one shared pool (Classic 900 / Jacket 950 / Prime 1000) for every
+  form, and transforming never heals or resizes it. The roster median max health is about 1150. Defense ×1.20 means an
+  alien takes 1/1.20 of each hit, so a 950 pool lasts like about 1140 (≈ the roster median) while Ben is transformed. Human
+  Ben is unchanged.
+- **Damage ×1.15** on top of each alien's own damage mod.
+- **Identity kept:** each alien's `mods` stay its design numbers. The buff multiplies on top where mods become live
+  multipliers: `applyAlien` and the defense re-sync (fighters.js), combat's READY-form damage divide, Alien X's voice
+  stance, and Brainstorm's dome. Rath still hits hardest (1.25 → 1.44), Ghostfreak is still the frailest
+  (defense 0.80 → 0.96), and Humongousaur / Terraspin are still the tankiest (1.20 → 1.44).
+- **Not changed:** speed, weight, frame data, Power costs, the human form. Albedo uses the same forms, so the mirror is even.
+- **Design-total tests** (`harness/ben10_<alien>.test.mjs`) still check the per-alien design numbers before the buff.

@@ -826,3 +826,12 @@ Limitations:
 - Credits screen / CREDITS.txt: new attribution line, plus a clear notice that the game is free and none of its
   characters or art belong to its maker.
 - Check: harness/alien_portraits_render.mjs (34/0, simulated input).
+
+2026-11-19 — Ben 10: bolder skins, real glitter, alien buff
+- Skins: every theme is more pronounced. Deeper darks and richer colours, stronger shading on muscles, folds and facets,
+  and the outline takes a deep shade of the theme, so each theme reads differently even in silhouette.
+- Opal — Glitterstorm now has real glitter: dense multi-colour sparkles that twinkle, with star flares, in-game and
+  on its skin card. Alien X — Event Horizon's stars twinkle. Black Gold, Emerald Cut and Prism Break get glints.
+  "Reduce flashing" keeps the sparkles still and sparse.
+- Balance: every Ben 10 alien deals ×1.15 damage and takes ×1/1.20 damage (≈ +20 % effective health). Speed is not changed.
+  Human Ben is unchanged. Each alien keeps its own strengths and weaknesses. Tune in benAlienBalance.js.

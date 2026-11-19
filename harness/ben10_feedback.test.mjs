@@ -5,6 +5,7 @@
 // Test "slot 15 + Omnitrix Dial": PICK FIVE (owner decision) — the dial is positional over the 5 picked aliens, so the slot is
 // catalog metadata (16: Humongousaur took 15 on main; ready slots stay contiguous); Feedback is picked into the loadout and reached with the Dial (↓↓ + slot key).
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import { clearBenFormState, handleBenKO } from '../ben10State.js'
 import * as A from '../abilities.js'
@@ -308,7 +309,7 @@ test('slot → PICK FIVE: slot count stays 5, Feedback READY + pickable (catalog
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Feedback'); assert.equal(f.health, 950, 'shared health')
-  assert(Math.abs(f.defenseMultiplier - 0.90) < 1e-9 && Math.abs(f.damageMultiplier - 0.95) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.90 / dmg 0.95 / weight 0.85')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.90) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 0.95) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.90 / dmg 0.95 / weight 0.85')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.05 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.05')
 })
 test('Omnitrix Dial: Feedback picked into the last slot, the transform reaches it at the same cost as any slot', () => {

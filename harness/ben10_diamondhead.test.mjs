@@ -5,6 +5,7 @@
 // Test 13 (the brief's "slot 13 + Omnitrix Dial"): an alien-select screen already exists (PICK FIVE, owner decision), so per
 // the brief's step 1 it is used and no Dial / slot is added — Diamondhead is a pick; the assertions read the registry count.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -119,7 +120,7 @@ test('4. Crystal Body: −15% from physical melee normals only (not specials / p
   assert.equal(hit({ source: 'melee', defenseApplied: true, offenseApplied: true, scale: 1 }, { name: 'light', fire: true }), 100, 'fire untouched')
   assert.equal(hit({ source: 'melee', defenseApplied: true, offenseApplied: true, scale: 1 }, { name: 'heavy', element: 'electric' }), 100, 'electric untouched')
   const p1 = hit({ source: 'projectile', move: 'ki_blast' }, null), g = ben('heatblast'); const hp = g.health; C.applyScaledDamage(g, 100, { attacker: t, source: 'projectile', move: 'ki_blast' })
-  assert.equal(p1, Math.floor(100 * C.GLOBAL_DAMAGE_SCALE / 1.15) || p1, 'projectile: only the def mod'); void hp
+  assert.equal(p1, Math.floor(100 * C.GLOBAL_DAMAGE_SCALE / (1.15 * BEN_ALIEN_BUFF.defense)) || p1, 'projectile: only the def mod'); void hp
   const live = takeMelee(f, t, 'light'), h = ben('heatblast'), u = foe(); const ref = takeMelee(h, u, 'light')
   assert(live < ref * (1 / 1.15 / (1 / getAlienDefinition('heatblast').mods.defense)) + 1, `live melee ${live} reduced vs ${ref}`)
 })
@@ -159,7 +160,7 @@ test('5. Refraction: Shard Shot through his wall → 3-way fan at 40%, one hit p
   const hp = t.health; assert(cast(f, t, null)); let fans = 0
   for (let i = 0; i < 50; i++) { world(f, t, 1); fans = Math.max(fans, A.activeProjectiles.filter(p => p.alien && p.alien.dh === 'fan').length) }
   assert.equal(S(f).stats.refracted, DH_SHOT.N, 'each shard refracted once'); assert(fans >= 1)
-  assert.equal(hp - t.health, Math.floor(Math.round(DH_SHOT.DMG * DH_WALL.REFR_MULT) * DM * C.GLOBAL_DAMAGE_SCALE), 'one fan hit (40%) for the cast')
+  assert.equal(hp - t.health, Math.floor(Math.round(DH_SHOT.DMG * DH_WALL.REFR_MULT) * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE), 'one fan hit (40%) for the cast')
   assert.equal(S(f).shards.pips, 1, '1 pip'); assert.equal(w.caught, 0, 'his shards are not caught'); clearProj()
 })
 test('5. walls removed on swap / revert / KO / rematch', () => {
@@ -181,7 +182,7 @@ test('6. Shatter Burst: 30 + 15 per pip, 140 px radius, 16f, −12 on block, pip
   for (const pips of [0, 1, 3]) { clearProj(); const f = ben(), t = foe(); reset(f, t, 40); S(f).shards.pips = pips; S(f).shards.pipT = 200
     const hp = t.health, e = f.energy; assert(cast(f, t, 'U')); assert.equal(e - f.energy, DH_BURST.COST)
     world(f, t, DH_BURST.STARTUP - 1); assert.equal(t.health, hp, 'nothing before 16f'); world(f, t, 3)
-    assert.equal(hp - t.health, Math.floor(D.burstDamage(pips) * DM * C.GLOBAL_DAMAGE_SCALE), `${pips} pips`); assert.equal(S(f).shards.pips, 0) }
+    assert.equal(hp - t.health, Math.floor(D.burstDamage(pips) * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE), `${pips} pips`); assert.equal(S(f).shards.pips, 0) }
   clearProj(); const f = ben(), t = foe(); reset(f, t, 40); S(f).shards.pips = 2; S(f).shards.pipT = 200; t.isBlocking = true; assert(cast(f, t, 'U'))
   let adv = null; for (let i = 0; i < 80; i++) { t.isBlocking = true; world(f, t, 1); if (adv === null && t.blockstun > 0) adv = t.blockstun - (DH_BURST.TOTAL - S(f).burst.t) }
   assert.equal(S(f).shards.pips, 2, 'blocked: pips stay'); assert.equal(adv, DH_BURST.ON_BLOCK, `on block ${adv}`)
@@ -225,7 +226,7 @@ test('10. Diamond Dive: air only, 12 Power, diagonal down, 50, once per airtime,
   clearProj(); const f = ben(), t = foe(); reset(f, t, 40); f.y -= 160; f.onGround = f.grounded = false; f.jumpCount = 2; ready(f); f._specialHeldDir = null
   const e = f.energy, hp = t.health, x0 = f.x, y0 = f.y; assert(A.triggerSpecial(f, ctxOf(f, t))); assert.equal(e - f.energy, DH_COST.dive)
   world(f, t, 8); assert(f.x > x0 && f.y > y0, 'down-forward'); let n = 0; while (S(f).dive && n < 80) { world(f, t, 1); n++ }
-  assert.equal(hp - t.health, Math.floor(DH_DIVE.DMG * DM * C.GLOBAL_DAMAGE_SCALE), 'one hit of 50'); assert.equal(f.jumpCount, 2, 'no jump refill')
+  assert.equal(hp - t.health, Math.floor(DH_DIVE.DMG * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE), 'one hit of 50'); assert.equal(f.jumpCount, 2, 'no jump refill')
   assert.equal(S(f).landT > 0, true, 'landing pop stamped')
   const g = ben(), u = foe(); far(g, u); g.y -= 200; g.onGround = g.grounded = false; ready(g); assert(A.triggerSpecial(g, ctxOf(g, u))); S(g).dive = null; delete g._benGlide; ready(g)
   assert.equal(A.triggerSpecial(g, ctxOf(g, u)), false, 'once per airtime'); g.onGround = g.grounded = true; tick(g, u, 1); assert.equal(S(g).diveUsed, false); clearProj()
@@ -268,7 +269,7 @@ test('13. pick five: slot count from the registry (5), Diamondhead READY + picka
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sprites by Dragonrod, recolor by Arksalazar/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Diamondhead'); assert.equal(f.health, 950, 'shared health')
-  assert(Math.abs(f.defenseMultiplier - 1.15) < 1e-9 && Math.abs(f.damageMultiplier - 1.10) < 1e-9 && Math.abs(f._benWeight - 1.20) < 1e-9, 'def 1.15 / dmg 1.10 / weight 1.20')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.15) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.10) < 1e-9 && Math.abs(f._benWeight - 1.20) < 1e-9, 'def 1.15 / dmg 1.10 / weight 1.20')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.95 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.95')
 })
 test('13. picked loadout: Diamondhead in the last dial slot, the transform reaches it at the same cost as any slot', () => {

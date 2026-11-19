@@ -1,4 +1,5 @@
 import { albedoBaseSkinId } from "./albedoThemes.js"   // Albedo skin themes → variant id (identity for every non-theme id)
+import { benAlienDamageMult, benAlienDefenseMult } from "./benAlienBalance.js"   // global READY-alien damage / toughness buff (2026-11-19)
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition, BEN10_SLOT_COUNT } from "./aliens.js"
 import { benThemeBaseSkin } from "./benThemes.js"   // a themed skin wears its original appearance's variant
@@ -1624,9 +1625,9 @@ export function applyAlien(fighter, alienKey) {
     fighter.baseSpeed = fighter.speed = fighter._benWalkSpeed
     fighter.jumpForce = -V.jumpPower; fighter.maxJumps = RD.maxJumps ?? 1
     fighter.dashSpeed = V.dashSpeed * RD.mods.speed
-    fighter._benFormDamage = RD.mods.damage
-    fighter.damageMultiplier = RD.mods.damage * (fighter.omnitrix?.vowActive ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
-    fighter.defenseMultiplier = RD.mods.defense
+    fighter._benFormDamage = benAlienDamageMult(RD.mods)   // design mods × the global alien balance layer (benAlienBalance.js)
+    fighter.damageMultiplier = fighter._benFormDamage * (fighter.omnitrix?.vowActive ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
+    fighter.defenseMultiplier = benAlienDefenseMult(RD.mods)
     fighter._benWeight = V.weight * RD.mods.weight
     if (alienKey === "swampfire") beginRegrowth(fighter)
     if (typeof RD.onApply === "function") RD.onApply(fighter)
@@ -1941,7 +1942,7 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   const omx = fighter.omnitrix
   if ((fighter.health ?? 1) <= 0) { handleBenKO(fighter); return }
   fighter.currentForm = fighter.transformed ? "ben10_" + fighter.activeAlien : "base"
-  fighter.defenseMultiplier = fighter.transformed ? (_readyDef(fighter.activeAlien)?.mods.defense ?? 1) : 1   // ready forms (Swampfire 1.10 unchanged)
+  fighter.defenseMultiplier = fighter.transformed ? (_readyDef(fighter.activeAlien) ? benAlienDefenseMult(_readyDef(fighter.activeAlien).mods) : 1) : 1   // ready forms (Swampfire 1.10 unchanged)
   omx.simFrame = (omx.simFrame || 0) + 1
   if ((fighter.hitstun > 0 || fighter.blockstun > 0) && (omx.startup > 0 || fighter._benPowerCommit > 0 || fighter._axUltWindup)) invalidateBenAction(fighter)
   // Phase 3: tick lockouts/cooldowns every frame (even during Alien X windup / transform startup).

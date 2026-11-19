@@ -4,6 +4,7 @@
 // The live routes then run the real engine and assert the mechanics. Test 13 (the brief's "slot 12") is PICK FIVE: the owner
 // kept 5 slots; Jetray is a pick, not a new slot / chord.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -382,7 +383,7 @@ test('13. pick five: slot count from the registry (5), Jetray READY + pickable, 
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')))
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Jetray'); assert.equal(f.health, 950, 'shared health')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 2.6 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×2.6')
-  assert(Math.abs(f.defenseMultiplier - 0.80) < 1e-9 && Math.abs(f.damageMultiplier - 0.95) < 1e-9)
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.80) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 0.95) < 1e-9)
 })
 test('13. picked loadout: Jetray in the last dial slot and the transform reaches it; Vow pick includes him', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'jetray']

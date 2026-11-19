@@ -6,6 +6,7 @@
 // the 5 picked aliens; Water Hazard's catalog slot is 22 (the next contiguous ready slot after Rath 21); he is picked into
 // the loadout and reached with the Dial (↓↓ + slot key) like any other pick. Counts read BEN10_SLOT_COUNT, never a literal.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -75,7 +76,7 @@ function melee(f, t, key, { block = false } = {}) {
 // ── 2 stats / normals / inputs / water tag ─────────────────────────────────────────────────────────────────────
 test('stats: speed ×0.95 / damage ×1.05 / defense ×1.00 / weight ×1.05, double jump, shared health', () => {
   const f = ben()
-  assert(Math.abs(f.damageMultiplier - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier - 1.00) < 1e-9 && Math.abs(f._benWeight - 1.05) < 1e-9, 'mods')
+  assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.00) < 1e-9 && Math.abs(f._benWeight - 1.05) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.95 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.95')
   assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Water Hazard')
 })
@@ -131,7 +132,7 @@ test('4. Puddle Form: can\'t jump / attack inside; →↓↘ = GEYSER UPPERCUT 6
   const hp = t.health, seq = [{ special: true, right: true }, { special: true, down: true }, { special: true, down: true, right: true }]
   for (const i of seq) world(f, t, 1, i)
   assert(!S(f).puddle && S(f).lastPuddle.how === 'geyser'); world(f, t, 20)
-  assert(t.health < hp, 'geyser hits'); assert(near(hp - t.health, 60 * DM * C.GLOBAL_DAMAGE_SCALE) || hp - t.health > 40, 'dmg ' + (hp - t.health)); assert(t.vy < 0 || !t.onGround || t.isLaunched, 'launches')
+  assert(t.health < hp, 'geyser hits'); assert(near(hp - t.health, 60 * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE) || hp - t.health > 40, 'dmg ' + (hp - t.health)); assert(t.vy < 0 || !t.onGround || t.isLaunched, 'launches')
 })
 
 
@@ -218,7 +219,7 @@ function runCast(f, t, dir, { max = 200, block = false, input = {}, pre = null }
     const s = S(f); if (!s.blast && !s.burst && !s.chain && !s.sweep && !s.dive && !s.puddle && n > 2 && !A.activeProjectiles.some(p => p.owner === f)) break }
   return { ok, dmg: hp - t.health, cost, n, proj }
 }
-const SC = DM * C.GLOBAL_DAMAGE_SCALE
+const SC = DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE
 test('7. Pressure Blast (236+P, 10): a tap fires a 460px jet at 10f for 40; one on screen; +1 Drenched on a clean hit', () => {
   const f = ben(), t = foe(); reset(f, t, 300); const r = runCast(f, t, 'N'); assert(r.ok); assert.equal(r.cost, WH_COST.blast)
   assert.equal(S(f).lastBlast.full, false); assert.equal(S(f).lastBlast.dmg, 40); assert(near(r.dmg, 40 * SC), 'dmg ' + r.dmg); assert.equal(S(f).pips, 1)

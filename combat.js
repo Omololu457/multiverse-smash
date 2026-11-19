@@ -1,4 +1,5 @@
 import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
+import { benAlienDefenseMult } from "./benAlienBalance.js"   // global READY-alien toughness buff (the registry-mods divide below)
 import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
 import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated)
 import { zoroHitbox } from './zoroState.js'
@@ -324,7 +325,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   //                      (equivalent to scale:1). Must be passed on purpose; each use is justified
   //                      in the Stage 1 report. Distinct in intent from callers who pre-scaled
   //                      upstream and pass scale:1 to avoid double-scaling (melee/projectile).
-  { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) { rawDamage = (rawDamage ?? 0) / _rd.mods.defense; if (_rd.incomingScale) rawDamage *= benAlienIncoming(target) } }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
+  { const _rd = benReadyForm(target); if (_rd && !opts.defenseApplied) { rawDamage = (rawDamage ?? 0) / benAlienDefenseMult(_rd.mods); if (_rd.incomingScale) rawDamage *= benAlienIncoming(target) } }   // READY Omnitrix forms (Swampfire 1.10 unchanged, Heatblast 0.92); null for everyone else
   if (isBenDevice(opts.attacker) && !opts.offenseApplied) rawDamage = (rawDamage ?? 0) * Math.max(opts.attacker.damageMultiplier ?? 1, opts.attacker.attackMultiplier ?? 1)
   if (isBenDevice(target) || isBenDevice(opts.attacker || opts.boostFrom) || target?._benShortFuse) rawDamage = benAlienDamageMods(target, rawDamage, opts)   // READY Omnitrix form damage hooks (Goop goo body / projector / Corrode); untouched for everyone else
   const scale = opts.bypassScale ? 1

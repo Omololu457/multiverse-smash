@@ -3,6 +3,7 @@
 // Design totals use the brief's UNSCALED model: raw move damage x 0.85^n (85% per move), within ±20%. The live routes
 // run the real engine (its combo curve, the form's mods, the global damage scale) and assert the mechanics.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -264,7 +265,7 @@ test('12. normals: Jab 5f/16/0, Heavy 14f/48/−6 170 px, Low 7f/22/−4 hits lo
   const want = { light: [5, 16, 0], heavy: [14, 48, -6], down: [7, 22, -4], up: [11, 42, -9], air: [7, 26, 2] }
   for (const [k, [st, dmg, a]] of Object.entries(want)) { assert.equal(BA[k].startup, st, k); assert.equal(BA[k].damage, dmg, k); assert.equal(adv(BA[k]), a, k) }
   assert.equal(BA.heavy.rangeX, 170); assert.equal(BA.down.hitLevel, 'low'); assert(BA.up.launcher)
-  const f = ben(); assert(Math.abs(f.damageMultiplier - 1.0) < 1e-9 && Math.abs(f.defenseMultiplier - 0.8) < 1e-9, 'mods dmg 1.00 / def 0.80')
+  const f = ben(); assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.0) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.8) < 1e-9, 'mods dmg 1.00 / def 0.80')
   assert.equal(f.w, 44, 'slim hurtbox'); assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health')
 })
 test('13. Spectral Gale (↓↘→, 10): 380 px swirl, 4 × 10, pushes 6 px/f (8f max), one on screen, final tick +1 Dread', () => {

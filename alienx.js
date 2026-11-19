@@ -5,6 +5,7 @@
 // All simulation state lives in fighter.omnitrix.formState (plain data, GAME_STATE); render-only effects never write it.
 // No randomness in the simulation.
 import { ALIENX_ANIM, ALIENX_GEOM } from "./alienxAssets.js"
+import { benAlienDefenseMult } from "./benAlienBalance.js"   // global READY-alien toughness buff
 import { flightTakeoff, isFlying, FLIGHT_PHASE, flightKnockedDown } from "./flight.js"
 export { ALIENX_ANIM, ALIENX_GEOM }
 
@@ -175,7 +176,7 @@ function tickVoice(f, s, input) {
 function applyVoiceMods(f, s) {
   const v = voiceOf(s)
   f.damageMultiplier = s.baseDmg * v.dmg
-  f.defenseMultiplier = ALIENX.mods.defense * v.def
+  f.defenseMultiplier = benAlienDefenseMult(ALIENX.mods) * v.def
 }
 // Decree timing / cost under the current voice (Bellicus +2f startup; Serena −3 Power, min 6)
 export const decreeStartup = (s, base) => base + voiceOf(s).startup

@@ -5,6 +5,7 @@
 // engine (its combo curve, the form's mods, the global damage scale) and assert the mechanics.
 // Test 12 (the brief's "slot 9") is PICK FIVE: the owner kept 5 slots; Brainstorm is a pick, not a new slot / chord.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -143,12 +144,12 @@ test('4. Dome: no toggle in hitstun, during his own active frames or during the 
 })
 test('4. Dome: closed ×1.10 / open ×0.80 defense, lightning ×1.25 only while open, +2 Power/s only while open, frame-set swap', () => {
   const f = ben(), t = foe(); tick(f, t)
-  assert(Math.abs(f.defenseMultiplier - 1.10) < 1e-9); assert.equal(f._skinAnim, BS_CLOSED_ANIM)
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.10) < 1e-9); assert.equal(f._skinAnim, BS_CLOSED_ANIM)
   const dmgIn = g => { const hp = g.health; C.applyScaledDamage(g, 100, { attacker: t, source: 'ability', scale: 1 }); return hp - g.health }
   const closedIn = dmgIn(f)
   assert.equal(BRAINSTORM.damageDealt(f, t, 100, { move: 'bs_ltn_bolt' }), 100, 'closed: no lightning bonus')
   let e = f.energy; tick(f, t, 60); assert.equal(f.energy, e, 'closed: no extra drain')
-  openDome(f); assert(Math.abs(f.defenseMultiplier - 0.80) < 1e-9); assert.equal(f._skinAnim, BS_OPEN_ANIM)
+  openDome(f); assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.80) < 1e-9); assert.equal(f._skinAnim, BS_OPEN_ANIM)
   const openIn = dmgIn(f); assert(Math.abs(openIn / closedIn - 1.10 / 0.80) < 0.02, `open takes ${openIn} vs closed ${closedIn}`)
   assert.equal(BRAINSTORM.damageDealt(f, t, 100, { move: 'bs_ltn_bolt' }), 125, 'open: lightning ×1.25')
   assert.equal(BRAINSTORM.damageDealt(f, t, 100, { move: 'bs_pull' }), 100, 'non-lightning untouched')
@@ -333,7 +334,7 @@ test('11. swap / revert / KO / rematch clear the dome, READ, Synapse and Short-C
   assert(F.applyAlien(f, 'goop')); assert.notEqual(f.omnitrix.formState?.kind, 'brainstorm', 'swap clears')
   assert(F.applyAlien(f, 'brainstorm')); const s = S(f)
   assert.equal(s.dome, 'closed'); assert.equal(s.read.cat, null); assert.deepEqual(s.read.log, []); assert.equal(s.syn.pips, 0); assert.equal(s.syn.scT, 0); assert.equal(s.shield.cd, 0)
-  assert(Math.abs(f.defenseMultiplier - 1.10) < 1e-9, 'closed defense on re-apply')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.10) < 1e-9, 'closed defense on re-apply')
   dirty(f); F.revertToHuman(f); assert.equal(f.omnitrix.formState, null, 'revert clears')
   const t = foe(); assert.equal(benAlienSpecialTax(f, t), null, 'no Short-Circuit after revert')
   const k = ben(); dirty(k); k.health = 0; F.revertToHuman(k); assert.equal(k.omnitrix.formState, null, 'KO revert clears')

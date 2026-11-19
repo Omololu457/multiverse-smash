@@ -4,6 +4,7 @@
 // (Inhale deals no damage and is not a scaled hit). The live routes then run the real engine and assert the mechanics.
 // Test 14 (the brief's "slot 10") is PICK FIVE: the owner kept 5 slots; Terraspin is a pick, not a new slot / chord.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -379,7 +380,7 @@ test('14. pick five: slot count from the registry (5), Terraspin READY + pickabl
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Terraspin'); assert.equal(f.health, 950, 'shared health')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.90 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.90')
-  assert(Math.abs(f.defenseMultiplier - 1.20) < 1e-9 && Math.abs(f.damageMultiplier - 1.05) < 1e-9, 'defense 1.20 / damage 1.05')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.20) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.05) < 1e-9, 'defense 1.20 / damage 1.05')
 })
 test('14. picked loadout: Terraspin in the last dial slot and the transform reaches it', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'terraspin']

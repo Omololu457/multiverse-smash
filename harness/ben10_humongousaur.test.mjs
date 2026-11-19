@@ -6,6 +6,7 @@
 // and catalog slot 14 is Upgrade (never overwritten), so Humongousaur's catalog slot is 15 (ready slots stay contiguous);
 // he is picked into the loadout and reached with the Dial (↓↓ + slot key) like any other pick.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -198,7 +199,7 @@ test('normals: frame data (startup / dmg / on-block) as briefed, pre-mod', () =>
   const chk = (k, st, dmg, adv, extra) => { const m = BA[k]; assert.equal(m.startup, st, k + ' startup'); assert.equal(m.damage, dmg, k + ' dmg'); assert.equal(m.blockstun - m.active - m.recovery, adv, k + ' on block'); if (extra) extra(m) }
   chk('light', 6, 22, 0); chk('heavy', 15, 64, -7, m => assert.equal(m.rangeX, 190)); chk('down', 8, 28, -4, m => { assert.equal(m.hitLevel, 'low'); assert.equal(m.rangeX, 170) })
   chk('up', 12, 52, -10, m => assert(m.launcher)); chk('air', 8, 34, 2)
-  const f = ben(); assert(Math.abs(f._benWeight - 1.5) < 1e-9 && Math.abs(f.defenseMultiplier - 1.2) < 1e-9 && Math.abs(f.damageMultiplier - 1.15) < 1e-9, 'mods 1.15 / 1.20 / 1.50')
+  const f = ben(); assert(Math.abs(f._benWeight - 1.5) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.2) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.15) < 1e-9, 'mods 1.15 / 1.20 / 1.50')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.85 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.85')
 })
 test('Charging Tackle: 12f startup, 340 px real travel on a whiff, no tracking, cost 12', () => {

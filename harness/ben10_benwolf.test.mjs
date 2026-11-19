@@ -6,6 +6,7 @@
 // the 5 picked aliens; BenWolf's catalog slot is 18 (the next contiguous ready slot after Arcticguana 17); he is picked into
 // the loadout and reached with the Dial (↓↓ + slot key) like any other pick. Counts read BEN10_SLOT_COUNT, never a literal.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -71,7 +72,7 @@ function melee(f, t, key, { block = false } = {}) {
 // ── 2 stats / normals / inputs ──────────────────────────────────────────────────────────────────────────────
 test('stats: speed ×1.15 / damage ×1.05 / defense ×0.95 / weight ×0.85, double jump, shared health', () => {
   const f = ben()
-  assert(Math.abs(f.damageMultiplier - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier - 0.95) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'mods')
+  assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.95) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.15 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.15')
   assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'BenWolf')
 })
@@ -137,7 +138,7 @@ test('5. SONIC HOWL: 12 Power, 12f startup, a ring 450 px, 3 ticks × 10 = 30 wi
   world(f, t, BW_HOWL.STARTUP - 1); assert.equal(S(f).ring, null, 'nothing before 12f'); world(f, t, 1); assert(S(f).ring, 'ring out at 12f')
   ready(f); assert.equal(cast(f, t, 'N'), false, 'one on screen'); const hp = t.health, x0 = t.x
   let n = 0; while (S(f).ring && n < 80) { world(f, t, 1); n++ }
-  assert.equal(S(f).ringUsed.ticks, 3); assert(near(hp - t.health, 30 * DM * GS * 0.9), `${hp - t.health}`); assert(t.x > x0 + 10, 'pushback'); assert.equal(S(f).scent.pips, 0, 'howls give no Scent')
+  assert.equal(S(f).ringUsed.ticks, 3); assert(near(hp - t.health, 30 * DM * BEN_ALIEN_BUFF.damage * GS * 0.9), `${hp - t.health}`); assert(t.x > x0 + 10, 'pushback'); assert.equal(S(f).scent.pips, 0, 'howls give no Scent')
   clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'N')); world(g, u, BW_HOWL.STARTUP); const r = S(g).ring
   let d = 0; while (S(g).ring && d < 100) { world(g, u, 1); d++ } assert(Math.abs(d * BW_HOWL.SPEED - BW_HOWL.RANGE) <= BW_HOWL.SPEED, `range ${d * BW_HOWL.SPEED}`)
 })
@@ -149,7 +150,7 @@ test('5. SONIC HOWL hold: +4 Power once, sustain capped at 30f, a ring re-emitte
   assert.equal(S(f).stats.howlRings, 1 + BW_HOWL.HOLD_MAX / BW_HOWL.RESPAWN, 'a ring every 10f'); assert.equal(n, BW_HOWL.STARTUP + 1 + BW_HOWL.HOLD_MAX + BW_HOWL.RECOVERY)
   clearProj(); const g = ben(), u = foe(); reset(g, u, 60); g.energy = 100; const hp = u.health; assert(cast(g, u, 'N')); n = 0
   while ((S(g).howl || S(g).ring) && n < 200) { world(g, u, 1, { special: true }); n++; reset(g, u, 60) }
-  assert.equal(S(g).stats.howlTicks, 3, 'held point-blank: still 3 ticks for the cast'); assert(hp - u.health <= 30 * DM * GS + 1)
+  assert.equal(S(g).stats.howlTicks, 3, 'held point-blank: still 3 ticks for the cast'); assert(hp - u.health <= 30 * DM * BEN_ALIEN_BUFF.damage * GS + 1)
   clearProj(); const h = ben(), v = foe(); far(h, v); h.energy = 100; assert(cast(h, v, 'N')); world(h, v, BW_HOWL.STARTUP + 4); assert.equal(100 - h.energy, BW_COST.howl, 'no hold: no +4')
 })
 test('5. LOW HOWL: ground wave 380 px, 2 hits 20 / 25, hits low, one on screen, no Scent', () => {
@@ -159,7 +160,7 @@ test('5. LOW HOWL: ground wave 380 px, 2 hits 20 / 25, hits low, one on screen, 
   const orig = A.activeProjectiles.push; const pushed = []; A.activeProjectiles.push = function (...a) { pushed.push(...a); return orig.apply(this, a) }
   let n = 0; try { while (S(f).lowRing && n < 60) { world(f, t, 1); n++ } } finally { delete A.activeProjectiles.push }
   for (const p of pushed) if (p && p.alien && p.alien.bw === 'low') lvl = p.alien.hitLevel
-  assert.equal(S(f).lowRingUsed.ticks, 2); assert.equal(lvl, 'low', 'hits low'); assert(near(hp - t.health, 45 * DM * GS * 0.95), `${hp - t.health}`); assert.equal(S(f).scent.pips, 0)
+  assert.equal(S(f).lowRingUsed.ticks, 2); assert.equal(lvl, 'low', 'hits low'); assert(near(hp - t.health, 45 * DM * BEN_ALIEN_BUFF.damage * GS * 0.95), `${hp - t.health}`); assert.equal(S(f).scent.pips, 0)
   clearProj(); const g = ben(), u = foe(); far(g, u); g.energy = 100; assert(cast(g, u, 'D')); world(g, u, BW_LOW.STARTUP); let d = 0; while (S(g).lowRing && d < 100) { world(g, u, 1); d++ }
   assert(Math.abs(d * BW_LOW.SPEED - BW_LOW.RANGE) <= BW_LOW.SPEED, `range ${d * BW_LOW.SPEED}`)
 })
@@ -167,7 +168,7 @@ test('5. RISING HOWL: 14 Power, anti-air column (hits an airborne foe above him)
   clearProj(); const f = ben(), t = foe(); reset(f, t, 0); t.x = cx(f) + 20; t.y = f.y - 110; t.onGround = t.grounded = false; f.energy = 100
   assert(cast(f, t, 'U')); assert.equal(100 - f.energy, BW_COST.rise); const hp = t.health; let n = 0
   while (t.health === hp && n < 30) { world(f, t, 1); t.y = Math.min(t.y, f.y - 110); n++ }
-  assert(t.health < hp, 'anti-air hit'); assert(near(hp - t.health, BW_RISE.DMG * DM * GS), `${hp - t.health}`); assert(t.vy < 0 || t.isLaunched, 'launched')
+  assert(t.health < hp, 'anti-air hit'); assert(near(hp - t.health, BW_RISE.DMG * DM * BEN_ALIEN_BUFF.damage * GS), `${hp - t.health}`); assert(t.vy < 0 || t.isLaunched, 'launched')
   assert.equal(n, BW_RISE.STARTUP, 'hits on its startup frame')
   clearProj(); const g = ben(), u = foe(); reset(g, u, 10); u.isBlocking = true; g.energy = 100; assert(cast(g, u, 'U')); world(g, u, BW_RISE.STARTUP)
   assert(u.blockstun > 0); const adv = u.blockstun - ((g.attackCooldown || 0)); assert(Math.abs(adv - BW_RISE.ON_BLOCK) <= 2, `on block ${adv}`)
@@ -181,7 +182,7 @@ test('6. POUNCE: aims at the opponent\'s x AT CAST TIME (no tracking), 360 px ca
   assert(Math.abs(S(g).lastPounce.x1 - x0 - BW_POUNCE.RANGE) <= 2, `360 px cap (${S(g).lastPounce.x1 - x0})`)
   clearProj(); const h = ben(), v = foe(); reset(h, v, 200); h.energy = 100; const hv = v.health; assert(cast(h, v, 'B')); n = 0; let at = null
   while (S(h).pounce && n < 60) { world(h, v, 1); n++; if (at == null && v.health < hv) at = n }
-  assert.equal(at, BW_POUNCE.LAND, 'hit at 18f'); assert(near(hv - v.health, BW_POUNCE.DMG * DM * GS), `${hv - v.health}`); assert(v.knockdownState || v.knockdownTimer > 0 || S(h).lastPounce.hit, 'knockdown')
+  assert.equal(at, BW_POUNCE.LAND, 'hit at 18f'); assert(near(hv - v.health, BW_POUNCE.DMG * DM * BEN_ALIEN_BUFF.damage * GS), `${hv - v.health}`); assert(v.knockdownState || v.knockdownTimer > 0 || S(h).lastPounce.hit, 'knockdown')
   assert(S(h).lastPounce.hit); assert.equal(S(h).scent.pips, 1, '+1 Scent'); assert.equal(n, BW_POUNCE.LAND + BW_POUNCE.HIT_REC)
   const w = ben(); w.onGround = w.grounded = false; w.y -= 100; w.energy = 100; assert.equal(cast(w, foe(), 'B') && S(w).pounce != null, false, 'ground only')
 })
@@ -199,7 +200,7 @@ test('CLAW RAKE: real 300 px travel (no tracking), 3 hits 14 / 14 / 22 = 50, −
   clearProj(); const f = ben(), t = foe(); far(f, t); f.energy = 100; S(f).dashTapT = S(f).t; assert(cast(f, t, 'F')); assert.equal(100 - f.energy, BW_COST.rake); const x0 = f.x
   let n = 0; while (S(f).rake && n < 80) { world(f, t, 1); n++ } assert.equal(Math.round(Math.abs(f.x - x0)), BW_RAKE.TRAVEL, 'travel'); assert.equal(n, BW_RAKE.STARTUP + BW_RAKE.FRAMES + BW_RAKE.RECOVERY)
   clearProj(); const g = ben(), u = foe(); reset(g, u, 120); g.energy = 100; S(g).dashTapT = S(g).t; const hp = u.health; assert(cast(g, u, 'F')); n = 0; while (S(g).rake && n < 80) { world(g, u, 1); n++ }
-  assert.equal(S(g).lastRake.hits, 3); assert.equal(S(g).stats.rakeHits, 3); assert(near(hp - u.health, 50 * DM * GS * 0.95), `${hp - u.health}`); assert.equal(S(g).scent.pips, 1, 'one pip for the cast')
+  assert.equal(S(g).lastRake.hits, 3); assert.equal(S(g).stats.rakeHits, 3); assert(near(hp - u.health, 50 * DM * BEN_ALIEN_BUFF.damage * GS * 0.95), `${hp - u.health}`); assert.equal(S(g).scent.pips, 1, 'one pip for the cast')
   clearProj(); const h = ben(), v = foe(); reset(h, v, 120); v.isBlocking = true; h.energy = 100; S(h).dashTapT = S(h).t; assert(cast(h, v, 'F')); n = 0; while (S(h).rake && n < 80) { world(h, v, 1); n++; v.isBlocking = true }
   assert.equal(S(h).scent.pips, 0, 'blocked: no Scent')
 })
@@ -207,7 +208,7 @@ test('7. DIVE CLAW: air only, 48 on hit, once per airtime, no jump refill, +1 Sc
   clearProj(); const f = ben(), t = foe(); reset(f, t, 30); f.energy = 100; f.y -= 160; f.onGround = f.grounded = false; f.jumpCount = 2; const j = f.jumpCount
   assert(cast(f, t, 'N')); assert(S(f).dive); assert.equal(cast(f, t, 'N'), false, 'busy'); const hp = t.health
   let n = 0; while (S(f).dive && n < 80) { world(f, t, 1); n++ }
-  assert(S(f).lastDive.hit, 'hit'); assert(near(hp - t.health, BW_DIVE.DMG * DM * GS), `${hp - t.health}`); assert.equal(S(f).scent.pips, 1); assert.equal(f.jumpCount, j, 'no jump refill')
+  assert(S(f).lastDive.hit, 'hit'); assert(near(hp - t.health, BW_DIVE.DMG * DM * BEN_ALIEN_BUFF.damage * GS), `${hp - t.health}`); assert.equal(S(f).scent.pips, 1); assert.equal(f.jumpCount, j, 'no jump refill')
   const g = ben(); g.energy = 100; g.y -= 200; g.onGround = g.grounded = false; S(g).diveUsed = true; ready(g); assert.equal(cast(g, foe(), 'N'), false, 'once per airtime')
 })
 test('7. LUPINE DODGE (←← + Light): no cost, i-frames on frames 4–10 only, 5 s cooldown, the jab never comes out', () => {

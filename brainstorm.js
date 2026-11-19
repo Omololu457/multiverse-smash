@@ -5,6 +5,7 @@
 // All simulation state lives in fighter.omnitrix.formState (plain data, GAME_STATE); render-only effects never write it.
 // Simulation randomness: hash(match seed, frame, player index) only (bsHash).
 import { BRAINSTORM_ANIM, BRAINSTORM_GEOM } from "./brainstormAssets.js"
+import { BEN_ALIEN_BUFF } from "./benAlienBalance.js"   // the dome's defense numbers ride the global alien toughness buff
 export { BRAINSTORM_ANIM, BRAINSTORM_GEOM }
 
 // CLOSED (dome down) frame set = the generated table. OPEN (dome up) frame set = the same table with the locomotion / idle /
@@ -57,7 +58,7 @@ export const bsState = f => (f?.omnitrix?.formState?.kind === "brainstorm" && f.
 function onApply(f) {
   if (!f.omnitrix) return
   f.omnitrix.formState = freshBrainstormState()
-  f.defenseMultiplier = BS_DOME.CLOSED_DEF
+  f.defenseMultiplier = BS_DOME.CLOSED_DEF * BEN_ALIEN_BUFF.defense
 }
 
 // ── per-frame tick (GAME_STATE only; called once per fighter per frame by abilities.tickBenAlienForm) ─────
@@ -128,7 +129,7 @@ function tickDome(f, s, api) {
       if (s.dome === "closed") s.buffer = null
     }
   }
-  f.defenseMultiplier = domeExposed(s) ? BS_DOME.OPEN_DEF : BS_DOME.CLOSED_DEF
+  f.defenseMultiplier = (domeExposed(s) ? BS_DOME.OPEN_DEF : BS_DOME.CLOSED_DEF) * BEN_ALIEN_BUFF.defense
   if (domeExposed(s) && !s.ult) {                                         // +2 Power/s on top of the device drain
     const d = Math.min(f.energy || 0, BS_DOME.DRAIN_PER_SEC / 60); f.energy = (f.energy || 0) - d; s.drained += d
   }

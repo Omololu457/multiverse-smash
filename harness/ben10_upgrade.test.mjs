@@ -5,6 +5,7 @@
 // Test 13 (the brief's "slot 15 + Omnitrix Dial"): PICK FIVE (owner decision) — the dial is positional over the 5 picked
 // aliens, so the slot is catalog metadata (14: ready slots stay contiguous); Upgrade is picked into the loadout and reached with the Dial (↓↓ + slot key).
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -227,7 +228,7 @@ test('10. →↓↘+P with no Terminal near = Tendril Rise (10 Power, 13f)', () 
 test('11. Spear Dive: air only, 12 Power, 48 dmg, one hit, once per airtime, no jump refill', () => {
   clearProj(); const f = ben(), t = foe(); reset(f, t, 40); f.onGround = f.grounded = false; f.y -= 120; const j = f.jumpCount = 2; const e = f.energy, hp = t.health
   assert(cast(f, t, null), 'Spear'); assert.equal(e - f.energy, UP_COST.spear); world(f, t, 3); const jAir = f.jumpCount; world(f, t, 37); const d = hp - t.health
-  assert(d > 0, 'hits'); assert(d <= Math.ceil(UP_SPEAR.DMG * C.GLOBAL_DAMAGE_SCALE) + 1, 'one hit only'); assert.equal(jAir, j, 'no jump refill')
+  assert(d > 0, 'hits'); assert(d <= Math.ceil(UP_SPEAR.DMG * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE) + 1, 'one hit only'); assert.equal(jAir, j, 'no jump refill')
   const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 300; assert(cast(g, u, null)); world(g, u, 3); assert(!g.onGround)
   S(g).spear = null; delete g._benGlide; ready(g); assert(!cast(g, u, null), 'once per airtime (same airtime)')
 })
@@ -299,7 +300,7 @@ test('13. slot → PICK FIVE: slot count stays 5, Upgrade READY + pickable (cata
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Dragonrod/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
   const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Upgrade'); assert.equal(f.health, 950, 'shared health')
-  assert(Math.abs(f.defenseMultiplier - 0.95) < 1e-9 && Math.abs(f.damageMultiplier - 1.00) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.95 / dmg 1.00 / weight 0.85')
+  assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.95) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.00) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.95 / dmg 1.00 / weight 0.85')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.00 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.00')
 })
 test('13. Omnitrix Dial: Upgrade picked into the last slot, the transform reaches it at the same cost as any slot', () => {

@@ -5,6 +5,7 @@
 // assert the mechanics: every hit connects, the counter grows, later hits scale down.
 // Test 14 (the brief's "slot 8") is PICK FIVE: the owner kept 5 slots; Alien X is a pick, not a new slot.
 import assert from 'node:assert/strict'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -117,14 +118,14 @@ test('route 3 live: Gravity (16 Power, 2 hits), Heavy, Void Grasp (→→, 14 Po
 // ── 4 Three Voices ─────────────────────────────────────────────────────────────────────────────────────────
 test('4. Voices: Ben → Bellicus → Serena → Ben, 20f switch, 120f cooldown, per-stance modifiers', () => {
   const f = ben(), t = foe(), base = f.damageMultiplier
-  assert.equal(S(f).voice, 'ben'); assert(Math.abs(base - 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25) < 1e-9)
+  assert.equal(S(f).voice, 'ben'); assert(Math.abs(base / BEN_ALIEN_BUFF.damage - 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * BEN_ALIEN_BUFF.defense) < 1e-9)
   tap(f, t); assert.equal(S(f).voice, 'bellicus')
-  assert(Math.abs(f.damageMultiplier - base * 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * 0.85) < 1e-9, 'Bellicus +20% dmg / −15% def')
+  assert(Math.abs(f.damageMultiplier - base * 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * BEN_ALIEN_BUFF.defense * 0.85) < 1e-9, 'Bellicus +20% dmg / −15% def')
   assert.equal(S(f).switchT, AX_VOICE.SWITCH - 1, '20f switch'); assert.equal(f._spriteCastMove, 'axVoice', 'Stance frame during the switch')
   tick(f, t, 30); assert.equal(S(f).switchT, 0)
   tap(f, t); assert.equal(S(f).voice, 'bellicus', 'cooldown blocks the next tap')
   tick(f, t, AX_VOICE.COOLDOWN); tap(f, t); assert.equal(S(f).voice, 'serena')
-  assert(Math.abs(f.damageMultiplier - base * 0.85) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * 1.20) < 1e-9, 'Serena −15% dmg / +20% def')
+  assert(Math.abs(f.damageMultiplier - base * 0.85) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * BEN_ALIEN_BUFF.defense * 1.20) < 1e-9, 'Serena −15% dmg / +20% def')
   tick(f, t, AX_VOICE.COOLDOWN + 2); tap(f, t); assert.equal(S(f).voice, 'ben', 'wraps to Ben'); assert(Math.abs(f.damageMultiplier - base) < 1e-9)
 })
 test('4. Voices: Bellicus Decree startup +2f; Serena Decree Power −3 (min 6) + block chip ×0.6; the tap never throws a jab', () => {

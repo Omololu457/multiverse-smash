@@ -811,6 +811,7 @@ import { pickLRyuuzakiVoice, L_RYUUZAKI_VOICE } from "./lRyuuzakiVoice.js"   // 
 import { pickPiccoloVoice, PICCOLO_VOICE } from "./piccoloVoice.js"   // Piccolo intro/win voice pools (audio-only, EN)
 import { pickMegumiVoice, MEGUMI_VOICE } from "./megumiVoice.js"   // Megumi intro/win voice pools (audio-only, JA-only per Stage 3)
 import { playBen10Vo, pickBen10Vo, setBen10VoClock, ben10VoForSfxEvent } from "./ben10VoiceMap.js"   // Ben 10 cast VO dispatch (deterministic hash pools)
+import { playIncrediblesVo, pickIncrediblesVo, setIncrediblesVoClock, INCREDIBLES_VO_KEYS } from "./incrediblesVoiceMap.js"   // Incredibles cast VO dispatch (deterministic hash pools; audio-only)
 import { VILGAX_VOICE } from "./vilgaxVoice.js"   // Vilgax taunt/hit voice pools (audio-only, EN; thin pack, no intro/win)
 import { pickYutaVoice, YUTA_VOICE } from "./yutaVoice.js"   // Yuta intro/win voice pools (audio-only, JA-only per Stage 3)
 import { pickIppoVoice, IPPO_VOICE } from "./ippoVoice.js"   // Ippo intro/win voice pools (audio-only, JA)
@@ -5753,6 +5754,8 @@ const INTRO_VOICE = {
   albedo: { pick: () => pickBen10Vo("intro", { rosterKey: "albedo" })?.clip || null, gateReveal: false },
   ben10: { pick: () => pickBen10Vo("intro", { rosterKey: "ben10", _benVariant: "alienforce" })?.clip || null, gateReveal: false },
   vilgax: { pick: () => pickBen10Vo("intro", { rosterKey: "vilgax" })?.clip || null, gateReveal: false },
+  // Incredibles cast: select-screen barks pick deterministically (incrediblesVoiceMap); the match intro is fighter-aware.
+  ...Object.fromEntries(INCREDIBLES_VO_KEYS.map(k => [k, { pick: () => pickIncrediblesVo("intro", { rosterKey: k })?.clip || null, gateReveal: false }])),
   // Bardock picks ONE of his "I'm gonna change the future!" pre-fight resolve lines per match (EN). No taunt
   // action → the trash-talk pool rides the offense-connect trigger instead (see bardockVoice.js).
   bardock: { pool: BARDOCK_VOICE.intro, gateReveal: false },
@@ -5866,6 +5869,12 @@ const INTRO_VOICE = {
 function maybeFireIntroVoice(fighter) {
   if (!fighter || fighter._introVoiceDone) return
   // BEN 10 CAST (ben10 by variant / albedo / vilgax): fighter-aware deterministic pick (ben10VoiceMap).
+  // INCREDIBLES CAST: fighter-aware deterministic pick (incrediblesVoiceMap).
+  if (INCREDIBLES_VO_KEYS.includes(String(fighter.rosterKey || "").toLowerCase())) {
+    fighter._introVoiceDone = true
+    playIncrediblesVo("intro", fighter, { seed: matchConfig?.seed, frame: globalFrameCount })
+    return
+  }
   if (["ben10", "albedo", "vilgax"].includes(String(fighter.rosterKey || "").toLowerCase())) {
     fighter._introVoiceDone = true
     playBen10Vo("intro", fighter, { seed: matchConfig?.seed, frame: globalFrameCount })
@@ -10418,6 +10427,8 @@ function _checkMatchOver() {
         const _ctx = { seed: matchConfig?.seed, frame: globalFrameCount }
         playBen10Vo("win", winFighter, _ctx)
         if (_loseFighter) playBen10Vo("lose", _loseFighter, _ctx)
+        playIncrediblesVo("win", winFighter, _ctx)                       // Incredibles cast win / lose (no-op for others)
+        if (_loseFighter) playIncrediblesVo("lose", _loseFighter, _ctx)
       }
       // BARDOCK win voice — "I'm gonna change the future!" Fires only when the WINNER is Bardock. EN.
       if (winFighter?.rosterKey === "bardock") {
@@ -27235,6 +27246,7 @@ const _ANNOUNCE_ON_ENTER = {
 }
 let _announcerPrevState = null
 function updateCurrentState() {
+  setIncrediblesVoClock(matchConfig?.seed, globalFrameCount)   // Incredibles cast VO clock (render-side)
   setBen10VoClock(matchConfig?.seed, globalFrameCount)   // Ben 10 cast VO clock (render-side; deterministic clip picks)
   // ANNOUNCER — fire a screen-entry line once when the game state CHANGES into a mapped screen (menus /
   // selects / pause). Match-flow events (VS, Fight, combo, low-HP, KO, perfect, victory) are wired at their

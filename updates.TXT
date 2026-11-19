@@ -816,3 +816,13 @@ Limitations:
 - Headless pacing measurements are noisy on a loaded machine (docs/albedo/skins/VERIFICATION.md).
 - The old albedoAlienX / albedoValkyrie ids (whose art never existed) now mean Older Red Singularity / Older Crimson
   Victory.
+
+=== 2026-11-19 — Ben 10: alien profile pictures ===
+- Omnitrix loadout screen (PICK FIVE): every alien card now shows that alien's picture. Cards are bigger (6 per row), and
+  all 24 aliens still fit on one page.
+- In a match, Ben's HUD portrait switches to the alien he has turned into. Albedo keeps his own red-coloured portrait.
+- Pictures: official show artwork (mostly Ben 10: Omniverse), taken from the Ben 10 fan wiki (ben10.fandom.com) and only
+  cropped. Every source file is listed in alienPortraits.js; the crop boxes are in tools/ben10/alien_portraits/.
+- Credits screen / CREDITS.txt: new attribution line, plus a clear notice that the game is free and none of its
+  characters or art belong to its maker.
+- Check: harness/alien_portraits_render.mjs (34/0, simulated input).

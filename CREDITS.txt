@@ -21,3 +21,15 @@ gojo_sheet_source.png).
 
 This is a non-commercial personal fan project. All characters and source
 material are the property of their respective creators and rights holders.
+
+This game is free and will always be free. None of the characters, artwork,
+sprites, voices, music or other material in it belong to the maker of this
+game, and it is not affiliated with or endorsed by any of the rights holders
+(including Cartoon Network, Warner Bros. Discovery, Man of Action, DC, Marvel,
+Disney / Pixar, Toei, Shueisha, Hasbro and Amazon). If you own something used
+here and want it credited differently or removed, get in touch and it will be.
+
+Ben 10 alien profile pictures (assets/portraits/ben10_aliens/): official show
+artwork by Cartoon Network / Man of Action, as hosted on the Ben 10 fan wiki
+(ben10.fandom.com). Cropped only; the exact source file for each alien is
+listed in alienPortraits.js.

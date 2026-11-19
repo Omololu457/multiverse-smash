@@ -26,6 +26,7 @@ import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: m
 import { isBenDevice, benReadyForm } from "./ben10State.js"   // Controls box: Omnitrix transform hint for Ben (render-only)
 import { drawBenBreathHud } from "./benFlood.js"   // Ripjaws STORM TIDE breath bar (render-only; shown only while a flood exists and breath < 100)
 import { animeMeterRatio } from "./animeJuice.js"   // ANIME JUICE: displayed ultimate-meter fill (render-only)
+import { getAlienPortrait } from "./alienPortraits.js"   // Ben 10 alien profile pictures: alien-select cards + Ben's HUD while transformed (render-only)
 
 // Universe-specific in-UI energy resource names, keyed by characters.js traits.energyType.
 // Display-only (HUD energy-bar label) — no mechanics/costs read from this. Rick keeps his explicit
@@ -1272,9 +1273,9 @@ export function controlsOverlayPadRows(G = padGlyphs()) { return padHelpRows(G, 
 function alienCardMetrics(canvas) {
   const { width: w } = getCanvasSize(canvas)
   const gap   = 12
-  const cols  = 7
-  const cardW = clamp((Math.min(w, 1280) * 0.92 - (cols - 1) * gap) / cols, 96, 168)
-  const cardH = 58
+  const cols  = 6     // 6 × 100 px rows: room for each alien's profile picture (24 aliens still fit without scrolling)
+  const cardW = clamp((Math.min(w, 1280) * 0.92 - (cols - 1) * gap) / cols, 96, 196)
+  const cardH = 100
   return { gap, cols, cardW, cardH, startY: 168 }
 }
 
@@ -1351,12 +1352,20 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
     _bevelPath(ctx, r.x, r.y, r.w, r.h, 10)
     if (st.hover > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (8 + 14 * pulse) * st.hover; ctx.shadowColor = accent }
     ctx.strokeStyle = (picked || st.hover > 0.01) ? accent : "rgba(255,255,255,0.14)"; ctx.lineWidth = picked ? 3 : 2; ctx.stroke(); ctx.shadowBlur = 0
-    // colour swatch (beveled)
-    _bevelPath(ctx, r.x + 8, r.y + r.h / 2 - 9, 18, 18, 4); ctx.fillStyle = a.color || "#888"; ctx.fill()
-    drawCenteredText(ctx, a.name, r.x + 34, r.y + r.h / 2 - 6, { font: "700 13px Arial", fill: "#fff", align: "left", baseline: "middle" })
+    // profile picture (alienPortraits.js) in a beveled frame; the old colour swatch while it loads / if missing
+    const pic = getAlienPortrait(a.key), ps = r.h - 12, px = r.x + 6, py = r.y + 6
+    if (pic) {
+      ctx.save(); _bevelPath(ctx, px, py, ps, ps, 6); ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fill(); ctx.clip()
+      ctx.drawImage(pic, px, py, ps, ps); ctx.restore()
+      _bevelPath(ctx, px, py, ps, ps, 6); ctx.strokeStyle = _withAlpha(a.color || "#888", 0.9); ctx.lineWidth = 2; ctx.stroke()
+    } else { _bevelPath(ctx, r.x + 8, r.y + r.h / 2 - 9, 18, 18, 4); ctx.fillStyle = a.color || "#888"; ctx.fill() }
+    const tx = pic ? px + ps + 8 : r.x + 34, tw = r.x + r.w - 6 - tx
+    let nf = 13; ctx.font = `700 ${nf}px Arial`; while (nf > 9 && ctx.measureText(a.name).width > tw) { nf--; ctx.font = `700 ${nf}px Arial` }
+    drawCenteredText(ctx, a.name, tx, r.y + r.h / 2 - 6, { font: `700 ${nf}px Arial`, fill: "#fff", align: "left", baseline: "middle" })
     if (picked) {
       const combo = slotCombos[slot]
-      if (combo) drawCenteredText(ctx, `Charge + ${combo}`, r.x + 34, r.y + r.h / 2 + 11, { font: "600 10px Arial", fill: "#86efac", align: "left", baseline: "middle" })
+      if (combo) { const ct = `Charge + ${combo}`; let cf = 10; ctx.font = `600 ${cf}px Arial`; while (cf > 7 && ctx.measureText(ct).width > tw) { cf--; ctx.font = `600 ${cf}px Arial` }
+        drawCenteredText(ctx, ct, tx, r.y + r.h / 2 + 11, { font: `600 ${cf}px Arial`, fill: "#86efac", align: "left", baseline: "middle" }) }
       ctx.fillStyle = "#052e16"; ctx.beginPath(); ctx.arc(r.x + r.w - 16, r.y + 16, 11, 0, Math.PI * 2); ctx.fill()
       drawCenteredText(ctx, String(slot + 1), r.x + r.w - 16, r.y + 16, { font: "800 13px Arial", fill: "#bbf7d0" })
     }
@@ -4094,6 +4103,11 @@ function _makeFallbackPortrait(letter, accent) {
 // Resolve the drawable portrait for a fighter → { src: canvas|img, isFallback }.
 function _resolveHudPortrait(fighter, accent) {
   const key = String(fighter?.rosterKey || "").toLowerCase()
+  // Ben transformed → that alien's profile picture (alienPortraits.js). Albedo keeps his own red / themed crop below.
+  if (key === "ben10" && fighter?.transformed && fighter?.activeAlien) {
+    const pic = getAlienPortrait(fighter.activeAlien)
+    if (pic) return { src: pic, isFallback: false }
+  }
   const tag = _formTag(fighter)
   const ov  = getPortraitOverride(key, tag)
   // Signature: form tag + override identity → recompute only when the form/override changes.

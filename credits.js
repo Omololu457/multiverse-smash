@@ -795,13 +795,21 @@ export const EXTRA_SPRITE_CREDITS = [
   { work: "Ben 10 — Heatblast, Four Arms, Diamondhead, Wildvine, Cannonbolt, Ripjaws (alien forms)", artists: ["dragonrod342"], source: "fan sprite sheets" },
   { work: "Ben 10 — Cannonbolt, Clockwork, Upchuck & Ultimate forms (alien forms)", artists: ["ipmugenofficial"], source: "M.U.G.E.N sheets" },
   { work: "Superman (custom chibi) — portrait", artists: ["Protokitty (portrait)", "Soulfire (sprites)"], source: "fan art" },
-  { work: "Guest sprite (older Megumi-era sheet)", artists: ["saxcreed"], source: "fan sprite sheet" }
+  { work: "Guest sprite (older Megumi-era sheet)", artists: ["saxcreed"], source: "fan sprite sheet" },
+  { work: "Ben 10 — alien profile pictures (alien-select cards + Ben's HUD)", artists: ["Cartoon Network / Man of Action (official show artwork)"], source: "official artwork as hosted on the Ben 10 fan wiki, ben10.fandom.com; cropped only (alienPortraits.js lists each file)" }
 ]
 
 // ── LEGAL NOTICE — the standing non-commercial fan-project notice, verbatim from CREDITS.txt ──
 export const LEGAL_NOTICE = [
   "This is a non-commercial personal fan project. All characters and source",
-  "material are the property of their respective creators and rights holders."
+  "material are the property of their respective creators and rights holders.",
+  "",
+  "This game is free and will always be free. None of the characters, artwork,",
+  "sprites, voices, music or other material in it belong to the maker of this",
+  "game, and it is not affiliated with or endorsed by any of the rights holders",
+  "(including Cartoon Network, Warner Bros. Discovery, Man of Action, DC, Marvel,",
+  "Disney / Pixar, Toei, Shueisha, Hasbro and Amazon). If you own something used",
+  "here and want it credited differently or removed, get in touch and it will be."
 ]
 
 // ── STRUCTURED CREDITS for the scrolling screen ──────────────────────────────

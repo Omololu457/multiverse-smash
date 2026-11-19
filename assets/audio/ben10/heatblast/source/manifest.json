@@ -278,8 +278,9 @@
    "voiced_ratio": 0.195,
    "silence_ratio": 0.073,
    "rms_slope_db": -1.13,
-   "pool": "SFX",
+   "pool": "TAUNT",
    "skipped": null,
+   "moved": true,
    "flags": []
   },
   {
@@ -300,11 +301,10 @@
    "voiced_ratio": 0.437,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.58,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "heatblast_young_014.ogg",
@@ -480,11 +480,10 @@
    "voiced_ratio": 0.454,
    "silence_ratio": 0.06,
    "rms_slope_db": -1.88,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "heatblast_young_022.ogg",
@@ -528,11 +527,10 @@
    "voiced_ratio": 0.424,
    "silence_ratio": 0.125,
    "rms_slope_db": -2.86,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "heatblast_young_024.ogg",
@@ -642,8 +640,8 @@
    "voiced_ratio": 0.545,
    "silence_ratio": 0.045,
    "rms_slope_db": -3.82,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Heatblast (pitch / timbre far off)",
    "flags": []
   },
   {
@@ -664,8 +662,8 @@
    "voiced_ratio": 0.343,
    "silence_ratio": 0.057,
    "rms_slope_db": 6.89,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Heatblast (pitch / timbre far off)",
    "flags": []
   },
   {
@@ -686,8 +684,8 @@
    "voiced_ratio": 0.976,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.11,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Heatblast (pitch / timbre far off)",
    "flags": []
   }
  ]

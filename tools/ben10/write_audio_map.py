@@ -5,6 +5,8 @@ from collections import Counter, OrderedDict
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 A = json.load(open(os.path.join(ROOT, "docs/ben10/AUDIO_ANALYSIS.json")))
+_sp = os.path.join(ROOT, "docs/ben10/AUDIO_SPEAKER_CHECK.json")
+SPK = json.load(open(_sp)) if os.path.exists(_sp) else {}
 
 def legacy(path, name):
     src = open(os.path.join(ROOT, path)).read()
@@ -43,6 +45,14 @@ L = ["# Ben 10 cast — voice-over map", "",
      "Every clip was sorted by **waveform shape only** (ffprobe duration; peak / RMS; zero-crossing rate; spectral centroid; "
      "voiced-energy ratio; silence ratio; loudness slope). **Nobody listened to these clips and no clip was transcribed**, so "
      "every pool assignment is a shape guess for a human to spot-check.", "",
+     "## Speaker review (2026-11-18)", "",
+     "Owner report: some clips were not the right character. Every wired clip was then transcribed offline (faster-whisper "
+     "small.en) and voice-matched against its pool (median pitch + MFCC timbre: `tools/ben10/vo_speaker_check.py` → "
+     "`docs/ben10/AUDIO_SPEAKER_CHECK.json`). A reviewer read each transcript and dropped lines that belong to another "
+     "character (Gwen, Kevin, Grandpa, narrators), mixed multi-speaker clips, fragments, and speech-to-text hallucinations "
+     "on non-speech. A few clips whose transcript showed a clear role were moved. The decisions and reasons are in "
+     "`tools/ben10/vo_curation.json`; dropped clips stay on disk, unwired. The transcript column below is machine "
+     "speech-to-text, so it can mishear words.", "",
      "## Phase 0 findings", "",
      "- **Vilgax**: a roster character (`characters.vilgax`, universe `ben_10`, sprite-backed). He already had a thin, "
      "transcript-verified pack (`vilgaxVoice.js`: 1 taunt + 2 grunts). The owner chose to **copy and wire** the 23 new clips "
@@ -98,11 +108,11 @@ for title, folders in SECTIONS.items():
         ver = recs[0]["verified_era"]
         L += [f"Source folder `{f}`: era {'verified by ear (per the delivery manifest)' if ver else '**⚠ UNVERIFIED**: every clip below is flagged, even when assigned'} · "
               f"dest `{os.path.dirname(recs[0]['path'])[2:]}`", "",
-              "| clip | dur s | voiced | vRMS dB | slope dB | pool | flags / skip reason |", "|---|---|---|---|---|---|---|"]
+              "| clip | dur s | voiced | vRMS dB | slope dB | pool | transcript (speech-to-text) | flags / skip reason |", "|---|---|---|---|---|---|---|---|"]
         for r in recs:
             flags = "; ".join(r["flags"] + ([r["skipped"]] if r["skipped"] else []))
             L.append(f"| `{r['file']}` | {r['duration']:.2f} | {r['voiced_ratio']:.2f} | {r['voiced_rms_db']:.1f} | {r['rms_slope_db']:.1f} | "
-                     f"{r['pool'] or '—'} | {flags} |")
+                     f"{r['pool'] or '—'} | {(SPK.get(r['path'], {}).get('text') or '').replace('|', '/')[:90]} | {flags} |")
         L.append("")
     if "albedo" in folders:
         L += ["Merged from the earlier **transcript-verified** Albedo pack (`albedoVoice.js`, `voice/albedo/*.mp3`):", "",

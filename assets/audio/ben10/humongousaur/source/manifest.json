@@ -146,8 +146,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -7.17,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -218,8 +218,8 @@
    "voiced_ratio": 0.652,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.52,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -242,8 +242,8 @@
    "voiced_ratio": 0.498,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.41,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -530,8 +530,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.6,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]

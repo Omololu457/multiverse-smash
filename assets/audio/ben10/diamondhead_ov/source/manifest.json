@@ -122,8 +122,8 @@
    "voiced_ratio": 0.761,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.32,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -242,8 +242,8 @@
    "voiced_ratio": 0.485,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.72,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -290,8 +290,8 @@
    "voiced_ratio": 0.38,
    "silence_ratio": 0.0,
    "rms_slope_db": -7.98,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -506,8 +506,8 @@
    "voiced_ratio": 0.422,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.19,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]

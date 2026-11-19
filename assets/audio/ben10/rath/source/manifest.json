@@ -194,8 +194,8 @@
    "voiced_ratio": 0.0,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.32,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -314,8 +314,8 @@
    "voiced_ratio": 0.742,
    "silence_ratio": 0.006,
    "rms_slope_db": 1.2,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -506,8 +506,8 @@
    "voiced_ratio": 0.452,
    "silence_ratio": 0.29,
    "rms_slope_db": -8.35,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -530,8 +530,8 @@
    "voiced_ratio": 0.231,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.04,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -578,8 +578,8 @@
    "voiced_ratio": 0.857,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.93,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -626,8 +626,8 @@
    "voiced_ratio": 0.625,
    "silence_ratio": 0.25,
    "rms_slope_db": 19.29,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -650,8 +650,8 @@
    "voiced_ratio": 0.583,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.35,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -770,8 +770,8 @@
    "voiced_ratio": 0.75,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.49,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -962,8 +962,8 @@
    "voiced_ratio": 0.833,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.09,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1010,8 +1010,8 @@
    "voiced_ratio": 0.576,
    "silence_ratio": 0.0,
    "rms_slope_db": -9.8,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1034,8 +1034,8 @@
    "voiced_ratio": 0.3,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.0,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1058,8 +1058,8 @@
    "voiced_ratio": 0.348,
    "silence_ratio": 0.03,
    "rms_slope_db": 1.45,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1202,8 +1202,8 @@
    "voiced_ratio": 0.6,
    "silence_ratio": 0.031,
    "rms_slope_db": -2.58,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1226,8 +1226,8 @@
    "voiced_ratio": 0.849,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.48,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1250,8 +1250,8 @@
    "voiced_ratio": 0.615,
    "silence_ratio": 0.0,
    "rms_slope_db": -13.4,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]

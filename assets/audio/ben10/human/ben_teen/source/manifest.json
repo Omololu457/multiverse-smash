@@ -26,11 +26,9 @@
    "voiced_ratio": 0.674,
    "silence_ratio": 0.065,
    "rms_slope_db": -0.13,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
+   "flags": []
   },
   {
    "file": "ben_teen_002.ogg",
@@ -50,8 +48,8 @@
    "voiced_ratio": 0.647,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.16,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": []
   },
   {
@@ -140,10 +138,11 @@
    "voiced_ratio": 0.659,
    "silence_ratio": 0.14,
    "rms_slope_db": -1.32,
-   "pool": "LOSE",
+   "pool": "WIN",
    "skipped": null,
+   "moved": true,
    "flags": [
-    "wording unverified (shape-assigned)"
+    "role set from the transcript"
    ]
   }
  ]

@@ -70,8 +70,8 @@
    "voiced_ratio": 0.6,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.15,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -92,8 +92,8 @@
    "voiced_ratio": 0.667,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.52,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -114,8 +114,8 @@
    "voiced_ratio": 0.125,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.32,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -136,8 +136,8 @@
    "voiced_ratio": 0.5,
    "silence_ratio": 0.0,
    "rms_slope_db": -2.4,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -158,8 +158,8 @@
    "voiced_ratio": 0.8,
    "silence_ratio": 0.0,
    "rms_slope_db": -5.7,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -180,11 +180,9 @@
    "voiced_ratio": 0.356,
    "silence_ratio": 0.227,
    "rms_slope_db": -0.4,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
+   "flags": []
   },
   {
    "file": "vilgax_009.ogg",
@@ -204,8 +202,8 @@
    "voiced_ratio": 0.217,
    "silence_ratio": 0.217,
    "rms_slope_db": 4.54,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -226,8 +224,8 @@
    "voiced_ratio": 0.2,
    "silence_ratio": 0.2,
    "rms_slope_db": 6.61,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -248,8 +246,8 @@
    "voiced_ratio": 0.222,
    "silence_ratio": 0.222,
    "rms_slope_db": 1.54,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -270,8 +268,8 @@
    "voiced_ratio": 0.256,
    "silence_ratio": 0.231,
    "rms_slope_db": 2.45,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -292,8 +290,8 @@
    "voiced_ratio": 0.471,
    "silence_ratio": 0.143,
    "rms_slope_db": 0.36,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -314,8 +312,8 @@
    "voiced_ratio": 0.308,
    "silence_ratio": 0.077,
    "rms_slope_db": 7.1,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -336,8 +334,8 @@
    "voiced_ratio": 0.277,
    "silence_ratio": 0.277,
    "rms_slope_db": 2.74,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -358,11 +356,9 @@
    "voiced_ratio": 0.244,
    "silence_ratio": 0.185,
    "rms_slope_db": -1.17,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
+   "flags": []
   },
   {
    "file": "vilgax_017.ogg",
@@ -382,8 +378,8 @@
    "voiced_ratio": 0.275,
    "silence_ratio": 0.377,
    "rms_slope_db": 2.75,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -404,8 +400,8 @@
    "voiced_ratio": 0.294,
    "silence_ratio": 0.353,
    "rms_slope_db": -1.47,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -426,8 +422,8 @@
    "voiced_ratio": 0.564,
    "silence_ratio": 0.282,
    "rms_slope_db": 1.05,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -448,8 +444,8 @@
    "voiced_ratio": 0.711,
    "silence_ratio": 0.211,
    "rms_slope_db": -6.12,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -470,8 +466,8 @@
    "voiced_ratio": 0.636,
    "silence_ratio": 0.0,
    "rms_slope_db": -15.55,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -492,8 +488,8 @@
    "voiced_ratio": 0.81,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.59,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -514,8 +510,8 @@
    "voiced_ratio": 0.55,
    "silence_ratio": 0.113,
    "rms_slope_db": -2.15,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   }
  ]

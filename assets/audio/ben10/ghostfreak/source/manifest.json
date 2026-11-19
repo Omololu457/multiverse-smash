@@ -604,10 +604,11 @@
    "voiced_ratio": 0.264,
    "silence_ratio": 0.164,
    "rms_slope_db": -0.73,
-   "pool": "WIN",
+   "pool": "LOSE",
    "skipped": null,
+   "moved": true,
    "flags": [
-    "wording unverified (shape-assigned)"
+    "role set from the transcript"
    ]
   },
   {
@@ -650,10 +651,11 @@
    "voiced_ratio": 0.466,
    "silence_ratio": 0.06,
    "rms_slope_db": 3.65,
-   "pool": "WIN",
+   "pool": "LOSE",
    "skipped": null,
+   "moved": true,
    "flags": [
-    "wording unverified (shape-assigned)"
+    "role set from the transcript"
    ]
   },
   {
@@ -834,8 +836,8 @@
    "voiced_ratio": 0.917,
    "silence_ratio": 0.0,
    "rms_slope_db": -13.7,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1002,8 +1004,8 @@
    "voiced_ratio": 0.739,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.84,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1050,8 +1052,8 @@
    "voiced_ratio": 0.806,
    "silence_ratio": 0.0,
    "rms_slope_db": 3.52,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1074,8 +1076,8 @@
    "voiced_ratio": 0.762,
    "silence_ratio": 0.048,
    "rms_slope_db": -7.16,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1122,8 +1124,8 @@
    "voiced_ratio": 0.571,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.85,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1194,8 +1196,8 @@
    "voiced_ratio": 0.789,
    "silence_ratio": 0.042,
    "rms_slope_db": -0.23,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1218,8 +1220,8 @@
    "voiced_ratio": 0.075,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.55,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1242,8 +1244,8 @@
    "voiced_ratio": 0.138,
    "silence_ratio": 0.03,
    "rms_slope_db": -1.56,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -1290,8 +1292,8 @@
    "voiced_ratio": 0.609,
    "silence_ratio": 0.011,
    "rms_slope_db": -0.89,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]

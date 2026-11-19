@@ -24,6 +24,8 @@ Rules (first match wins):
   INTRO/WIN/LOSE→TAUNT). INTRO/WIN/LOSE from verified folders are flagged "wording unverified (shape-assigned)":
   the owner chose (2026-11-18) to fill them by shape for spot-checking by ear.
 
+CURATION: tools/ben10/vo_curation.json lists clips a reviewer dropped because the transcript / voice match shows another
+speaker (or not this character); they are kept on disk but never wired.
 Outputs: the copies (byte-identical), <dest>/manifest.json per destination (origin folder, features, pool, flags),
 ben10VoicePools.js (the generated pool tables), docs/ben10/AUDIO_ANALYSIS.json. Deterministic.
 USAGE: python3 tools/ben10/classify_vo.py
@@ -56,6 +58,10 @@ DEST = {
   "kevin11":          ("assets/audio/_unassigned/kevin11",          None),                 # not a roster character: copied, NOT wired
 }
 GENERIC = {"ATTACK_EFFORT", "SFX", "TAUNT"}
+# path → reason. Written after reviewing the transcript + voice-match evidence (tools/ben10/vo_speaker_check.py).
+_cur = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vo_curation.json")
+_CJ = json.load(open(_cur)) if os.path.exists(_cur) else {}
+CURATION, MOVES = _CJ.get("drop", {}), _CJ.get("move", {})
 
 def decode(path):
     raw = subprocess.check_output(["ffmpeg", "-v", "quiet", "-i", path, "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"])
@@ -129,9 +135,13 @@ def main():
             r["pool"], r["skipped"] = classify(r["duration"], r, verified, med)
             if owner is None: r["pool"], r["skipped"] = None, "not wired (Kevin 11 is not a roster character)"
         rank_long(recs)
+        for r in recs:   # reviewer curation (tools/ben10/vo_curation.json): drop clips that are another speaker / not this character
+            c = CURATION.get(r["path"])
+            if c and r["pool"]: r["pool"], r["skipped"] = None, "wrong speaker / not this character: " + c
+            if r["pool"] and r["path"] in MOVES: r["pool"], r["moved"] = MOVES[r["path"]], True   # the transcript shows the role
         for r in recs:
             r["flags"] = (["UNVERIFIED era (source folder)"] if not verified else []) + \
-                         (["wording unverified (shape-assigned)"] if r["pool"] in ("INTRO", "WIN", "LOSE") else [])
+                         ((["role set from the transcript"] if r.get("moved") else ["wording unverified (shape-assigned)"]) if r["pool"] in ("INTRO", "WIN", "LOSE") else [])
             per_dest.setdefault(dest, []).append(r); analysis.setdefault(folder, []).append(r)
             if r["pool"]: pools.setdefault(owner, {}).setdefault(r["pool"], []).append(r["path"])
     for dest, recs in per_dest.items():

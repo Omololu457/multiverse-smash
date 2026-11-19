@@ -61,6 +61,10 @@ export function registerNinjaProfile(id, p = {}) {
 }
 export const getNinjaProfile = f => NINJA_PROFILES[typeof f === 'string' ? f : f?.rosterKey] || null
 export const isNinja = f => !!getNinjaProfile(f)
+// MSV1-MERGE: multi-form characters (nsDuo.js registers; null = no duo hooks → every path below is unchanged)
+let _duo = null
+export function registerDuo(h) { _duo = h }
+export const duoCommand = (f, s, opp, raw) => (f?._duo && _duo ? _duo.command(f, s, opp, raw) : false)
 
 // ── helpers ───────────────────────────────────────────────────────────────────────────────────────────────────────
 export const ctrX = f => (f.x || 0) + (f.w || 48) / 2
@@ -105,6 +109,7 @@ export function clearNinja(f) {
 // Round reset: the engine's generic stat pass leaves custom fighters at speed 84 / dash 16 — every bespoke kit restores its
 // own stats here (S.P.D. Red: spdRedRoundReset). profile.stats = the roster stats (nsData attaches them).
 export function ninjaRoundReset(f) {
+  _duo?.roundReset(f)   // MSV1-MERGE: a duo becomes its start form first
   if (!isNinja(f)) return
   clearNinja(f); const p = getNinjaProfile(f); f._nsBaseSpeed = null
   const st = p?.stats
@@ -147,7 +152,7 @@ export function registerNinjaStartMove(fn) { _startMove = fn }
 let _proj = null
 export function registerNinjaProjectiles(p) { _proj = p }
 export function nsStartMove(f, key, extra = {}) {
-  const p = getNinjaProfile(f), md = p?.moves[key]; if (!md || !_startMove) return false
+  const p = getNinjaProfile(f), md = p?.moves[key] || (f._duo && _duo?.moves[key]); if (!md || !_startMove) return false
   if (f.attacking) { f.attacking = false; f.currentAttack = null; f.currentMove = null }
   f.attackCooldown = 0
   if (!_startMove(f, key, md)) return false
@@ -160,6 +165,7 @@ export function nsStartMove(f, key, extra = {}) {
   if (md.isSpecial || md.isUltimate) { f.isBlocking = false; if (grounded(f)) f.vx = 0 }
   const s = f._ninja
   if (s && md.isSpecial && s.rev.pips && p.rev) { a.nj.rev = s.rev.pips; s.rev.pips = 0; s.rev.t = 0 }   // REV: the next special spends every pip
+  if (f._duo) _duo?.onStart(f, a, md)   // MSV1-MERGE: tag bonus
   return true
 }
 export const endMove = f => { f.attacking = false; f.currentAttack = null; f.currentMove = null; f._rooted = false }
@@ -625,7 +631,7 @@ export function placeTrap(f, x) {
   cue(f, 'trapSet')
 }
 function stepTraps(f, opp, s, p) {
-  const T = p.traps; if (!T || !s.traps.length) return
+  const T = p.traps || (f._duo && _duo?.traps(f)); if (!T || !s.traps.length) return   // a duo's traps outlive the swap
   for (const t of s.traps) {
     t.life--; t.armed++
     if (opp && opp.health > 0 && grounded(opp) && t.armed > 10 && Math.abs(ctrX(opp) - t.x) < (T.radius || 26) && !(opp.invulnTimer > 0)) {
@@ -646,7 +652,7 @@ function stepRev(f, s, p) {
     if (s.rev.t % 6 === 0) burst(s, 'dust', ctrX(f) - (f.facing || 1) * 24, feetY(f), 10)
   } else s.rev.t = 0
 }
-export const revMul = (f, a) => 1 + 0.1 * (a?.nj?.rev || 0)
+export const revMul = (f, a) => (1 + 0.1 * (a?.nj?.rev || 0)) * (a?.nj?.tag || 1)   // REV pips × the duo's tag bonus (1 for everyone else)
 
 // ── OPTIONAL: WIND FLOAT (hold jump while falling: slow fall, never a climb) ─────────────────────────────────────
 function stepFloat(f, s, p, raw) {
@@ -671,6 +677,7 @@ function stepAirSpeed(f, s, p) {
 
 // ── MAIN TICK (once per sim frame, before the command layer and updateCombat) ───────────────────────────────────
 export function tickNinja(f, opp, raw = {}, W = null) {
+  if (f?.rosterKey === 'windrangers' && _duo) { setNinjaWorld(W); _duo.ensure(f) }   // MSV1-MERGE: a path that skipped the round reset
   if (!isNinja(f)) { if (f?._ninja) clearNinja(f); return }
   setNinjaWorld(W)
   { const st = getNinjaProfile(f)?.stats   // the engine's generic stat pass leaves bespoke fighters at 84 / 16 → restore (Robin / Batman / Elastigirl pattern)
@@ -680,6 +687,7 @@ export function tickNinja(f, opp, raw = {}, W = null) {
   const tok = dirToken(raw, f.facing || 1), last = s.dirs[s.dirs.length - 1]
   for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock; s.edgeDir[k] = tok } s.prev[k] = v }
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 24) s.dirs.shift() }
+  if (f._duo) _duo?.input(f, raw)   // MSV1-MERGE: the Ben 10 ↓↓ + button detector (sim frames)
   // the Ranger framework: SAME double-tap detector as S.P.D. Red (12-tick window, diagonal rule), blink vetoed
   const r = ensureRangerState(f); if (r) r.blinkVeto = true
   if (f.health > 0) tickRanger(f, opp, raw, W)
@@ -706,6 +714,7 @@ export function tickNinja(f, opp, raw = {}, W = null) {
   stepShots(f, opp, s)
   stepBounce(f, opp, s)
   stepQuotes(f, opp, s, p)
+  if (f._duo) _duo?.tick(f, opp, s)   // MSV1-MERGE: swap request / cooldown / tag bonus timer
   if (opp?._nsWallBounce > 0) { opp._nsWallBounce--; const sw = stageW(); if ((opp.x <= 2 || opp.x >= sw - (opp.w || 48) - 2) && opp.vx) { opp.vx = -opp.vx * 0.6; opp.vy = Math.min(opp.vy || 0, -8); opp._nsWallBounce = 0; burst(s, 'hit', ctrX(opp), ctrY(opp)); cue(f, 'impact') } }
   const a = f.attacking ? f.currentAttack : null
   if (a?.nj) runMoveKind(f, opp, s, p, a, raw)
@@ -763,12 +772,13 @@ export function ninjaKnockback(attacker, defender) { const p = getNinjaProfile(d
 // game.js body alpha (render): hidden while underground / gone in the smoke
 export function ninjaBodyAlpha(f) {
   const s = f?._ninja; if (!s) return 1
+  if (f._duo) { const da = _duo?.alpha(f); if (da != null) return da }   // MSV1-MERGE: inside the swap smoke
   if (isBurrowed(f)) return 0
   if (s.vanish && s.vanish.t > (getNinjaProfile(f)?.vanish?.pop || 6) && s.vanish.t <= (getNinjaProfile(f).vanish.pop + getNinjaProfile(f).vanish.gone)) return 0
   return 1
 }
 export const ninjaOwnsCharge = f => isNinja(f)   // Charge = the "Teleport" button (Vanish / Mirror / Swap / Barrier / Clones)
-export function ninjaSnapshot(f) { return f?._ninja ? { ...f._ninja, fx: undefined } : null }
+export function ninjaSnapshot(f) { return f?._ninja ? { ...f._ninja, fx: undefined, duo: f._duo || undefined } : null }   // duo GAME_STATE rides along (omitted for single-form ninjas)
 
 // API handed to the profile move scripts
 export const NINJA_API = { comboScale: f => ninjaComboScale(f), nsStrike, nsStartMove, endMove, setPose, burst, cue, addShot, placeTrap, startCloneJob, gainNP, spendNP, ctrX, ctrY, feetY, overlaps,
@@ -811,7 +821,7 @@ function fireProj(f, s, a, P, i) {
   if (m && M.mode === 'echo') (m.shotQ ||= []).push({ at: s.clock + M.echoDelay, vx, vy, dmg: P.dmg, oy: P.oy ?? 58, ox: P.ox || 40, w, h, sprite: spr, dir })
 }
 function runMoveKind(f, opp, s, p, a, raw) {
-  const g = a.nj, t = elapsed(a), md = p.moves[a.name] || {}
+  const g = a.nj, t = elapsed(a), md = p.moves[a.name] || (f._duo && _duo?.moves[a.name]) || {}
   if (g.hits) scriptedHits(f, opp, s, a, g.hits, t, g.fixedScale)
   if (g.selfVy != null && t === (g.riseAt ?? md.startup)) { f.vy = g.selfVy; f.onGround = false; f.grounded = false; f.y -= 2 }
   switch (g.kind) {
@@ -872,7 +882,8 @@ function runMoveKind(f, opp, s, p, a, raw) {
       }
       break
     }
-    case 'super': { const fn = p.supers[a.name]; if (fn) fn(f, opp, s, a, t, NINJA_API); break }
+    case 'super': { const fn = p.supers[a.name] || (f._duo && _duo?.supers[a.name]); if (fn) fn(f, opp, s, a, t, NINJA_API); break }
+    default: if (f._duo) _duo?.run(f, opp, s, a, t)   // MSV1-MERGE: duo move kinds (the swap)
   }
 }
 // Hawk Dive ground bounce: the spiked foe bounces once off the floor (combo extender)

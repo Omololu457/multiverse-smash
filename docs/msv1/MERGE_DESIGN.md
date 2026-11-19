@@ -87,3 +87,21 @@ The start form rides on the skin id, so it is recorded in replays and LAN `MATCH
 * Smoke and portraits are render-only.
 * No Math.random anywhere. The CPU's swap choice uses only visible state (distance, airborne, projectiles on screen)
   plus the cooldown.
+
+## Changes made during the build (Phases 1-4)
+* **Name (owner's request, 2026-11-19):** the character is called **"Ninja Storm MS_V1 Ranger Version"**. The id stays
+  `windrangers`, and the subtitle stays "Wind Rangers". The brief's working title was "Shane & Dustin".
+* **Shane in the air.** A quick ↓↓ (within his 12-frame double-tap) is his down air streak, so a swap pressed with it
+  comes out when the streak ends. A slower ↓…↓ (13-16 frames apart, still inside Ben's 16-frame window) swaps straight
+  away. Both moves are kept.
+* **The tag bonus is per form.** Each swap-in strike tags the ranger who just left. Both rangers can hold a tag at the
+  same time, so a round trip (strike → strike) still pays off the first one.
+* **The Storm and Stone chord.** With a full meter and the ↓↘→↓↘→ motion, a lone Special press waits up to 2 frames
+  for Heavy before it becomes the 1-bar super. This happens only in that exact state.
+* **The CPU** presses the real ↓ ↓ · Grab sequence through `duoAiInput` (an ai.js hook), holding each step 2 frames.
+  * It wants Shane when the foe is airborne or 42% of the screen away, and Dustin within 170 px.
+  * It swaps only when grounded, idle and with at least 25 NP, at most once per 150 frames after Ben's cooldown.
+  * Training dummies never swap.
+* **The swap cooldown starts when the 14-frame swap ends**, so there are at least 44 frames from one swap's start to the
+  next.
+* **Swap combos off normals are tag pressure, not true combos.** See MERGE_COMBOS.md.

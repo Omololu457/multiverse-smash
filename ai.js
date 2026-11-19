@@ -19,6 +19,7 @@ import { gameRng } from "./rng.js"   // Stage 11A: seeded gameplay RNG — all A
 import { templateForCharacter, applyTemplateToProfile } from "./aiTemplates.js"   // Part 2: per-character behavior templates
 import { aiPickDroneTarget } from "./drones.js"   // drone-hunting hook (opt-in per drone profile via aiPriority — Buggy's body parts)
 import { ninjaAiPerceive } from './ninja.js'   // MSV1 CPU vs the Ninja Mirror: guesses by the visible tell (difficulty-rated) else hash — never reads the identity
+import { duoAiInput } from './nsDuo.js'   // MSV1-MERGE CPU form swap through the real ↓↓ + Grab input (visible state only)
 
 export const AI_DIFFICULTIES = {
   dummy: {
@@ -1323,7 +1324,7 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
 
 export function getAIInput(controller, fighter, opponent, world = {}) {
   opponent = ninjaAiPerceive(fighter, opponent, controller?.difficulty)   // MSV1 (the opponent itself unless it is a ninja with the Mirror up)
-  return aiHuntDrones(controller, fighter, updateAIController(controller, fighter, opponent, world))
+  return duoAiInput(controller, fighter, opponent, aiHuntDrones(controller, fighter, updateAIController(controller, fighter, opponent, world)))
 }
 
 // DRONE HUNT: ~25% of 8-frame windows (hash-decided in drones.aiPickDroneTarget — no RNG) the CPU goes after an

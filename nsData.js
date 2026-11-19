@@ -218,6 +218,7 @@ function roster(key, o, moves, strips) {
   }
 }
 export const ns_red = roster('ns_red', {
+  hidden: true,   // MSV1-MERGE: a FORM of Shane & Dustin (windrangers, nsDuo.js); the id stays for replays / tests
   name: 'Shane', displayName: 'Shane Clarke — Red Wind Ranger', hudName: 'Red Wind', color: '#e0201c',
   difficulty: 5, archetype: 'Air Ninja / Aerial Rushdown', tagline: 'Faster than the wind.',
   bio: 'Shane Clarke, Red Wind Ranger and leader of the Wind Ninja Academy\'s three. A skateboarder who never wanted to be a ninja, he masters the air: wind techniques, the Ninja Streak, and the Hawk Blaster he would later wield.',
@@ -226,6 +227,7 @@ export const ns_red = roster('ns_red', {
   ultimate: { name: 'Hawk Mirage', cost: 100 },
 }, SHANE_MOVES)
 export const ns_yellow = roster('ns_yellow', {
+  hidden: true,   // MSV1-MERGE: a FORM of Shane & Dustin (windrangers, nsDuo.js); the id stays for replays / tests
   name: 'Dustin', displayName: 'Dustin Brooks — Yellow Wind Ranger', hudName: 'Yellow Wind', color: '#f2c40c',
   difficulty: 5, archetype: 'Earth Ninja / Trap & Burrow', tagline: 'Rock solid.',
   bio: 'Dustin Brooks, Yellow Wind Ranger of the Wind Ninja Academy\'s Earth students. A motocross rider with a big heart, kind and a little gullible, who fights from the ground up: burrows, tremors and the Lion Hammer\'s earth power.',

@@ -12,6 +12,8 @@ import { startMove } from './combat.js'
 import { spawnProjectile, activeProjectiles } from './abilities.js'
 import { registerNinjaStartMove, registerNinjaProjectiles } from './ninja.js'
 import './nsData.js'   // registers the ns_red / ns_yellow profiles
+import './nsDuo.js'    // MSV1-MERGE: registers the Shane & Dustin duo (windrangers) hooks
+import { duoCommand } from './ninja.js'
 
 registerNinjaStartMove(startMove)
 registerNinjaProjectiles({ spawn: spawnProjectile, list: activeProjectiles })
@@ -111,6 +113,7 @@ export function updateNinjaCommand(f, inp, opp, W) {
   }
   if (f.hitstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0) || f.knockdownState) return false
   if (s.sup || s.vanish || s.streak || s.mirror?.swap) return 'consumed'
+  { const dc = duoCommand(f, s, opp, raw); if (dc) return dc }   // MSV1-MERGE: the swap's Grab press / the swap itself / Storm and Stone
   const a = f.attacking ? f.currentAttack : null
   const el = a ? a.total - a.timer : 0
   const contact = a && (a._contact || (a.hasHit && !a.nj?.noHit)) && el >= (a.activeStart ?? 0)

@@ -8,6 +8,7 @@ import { sound } from './sound.js'
 import { triggerShake } from './effects.js'
 import { MSV1_CELL, MSV1_FX } from './msv1Sprites.js'
 import { getNinjaProfile, isNinja } from './ninja.js'
+import { duoFormAnim, duoFormProfile, duoOther, DUO } from './nsDuo.js'   // MSV1-MERGE: the duo's per-form smoke / HUD / intro (render-only)
 
 const cache = new Map()
 const image = src => { let im = cache.get(src); if (!im) { im = new Image(); im.src = src; cache.set(src, im) } return im }
@@ -22,8 +23,8 @@ const frameAt = (A, t) => {
   return A.loop ? k % n : Math.min(n - 1, k)
 }
 // draw one cell of an animation strip with the feet point at world (x, feet), facing dir, optional tilt (degrees)
-function drawPose(c, f, key, frame, x, feet, dir, alpha = 1, tilt = 0) {
-  const A = anim(f, key) || anim(f, 'idle'); if (!A) return
+function drawPose(c, f, key, frame, x, feet, dir, alpha = 1, tilt = 0, Aov = null) {
+  const A = Aov || anim(f, key) || anim(f, 'idle'); if (!A) return
   const im = image(A.sheet); if (!ready(im)) return
   const s = SC(f), fr = Math.max(0, Math.min((A.frames || 1) - 1, frame | 0)), W = MSV1_CELL.width, H = MSV1_CELL.height
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha; c.globalCompositeOperation = 'source-over'; try { c.filter = 'none' } catch (_) {}   // own state: never inherit another FX pass's dim / tint (the illusion must be pixel-identical)
@@ -123,9 +124,9 @@ export function drawNinjaFx(c, f, frameNo = 0) {
     const u = 1 - e.t / e.t0
     switch (e.k) {
       case 'smoke':
-        if (e.big) { const A = anim(f, 'smoke'); drawPose(c, f, 'smoke', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, Math.min(0.9, 1.2 * (1 - u))) }
-        puffs(c, e.x, e.y, p.smoke, u, 7, 30); break
-      case 'smokeFade': { const A = anim(f, 'smokeFade'); if (e.t0 >= 20) drawPose(c, f, 'smokeFade', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, 0.85 * (1 - u)); puffs(c, e.x, e.y, p.smoke, u, 5, 22, 0.45); break }
+        if (e.big) { const A = e.form ? duoFormAnim(e.form, 'smoke') : anim(f, 'smoke'); drawPose(c, f, 'smoke', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, Math.min(0.9, 1.2 * (1 - u)), 0, A) }
+        puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || p.smoke) : p.smoke, u, 7, 30); break
+      case 'smokeFade': { const A = e.form ? duoFormAnim(e.form, 'smokeFade') : anim(f, 'smokeFade'); if (e.t0 >= 20) drawPose(c, f, 'smokeFade', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, 0.85 * (1 - u), 0, A); puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || p.smoke) : p.smoke, u, 5, 22, 0.45); break }
       case 'dust': case 'skid': puffs(c, e.x, e.y + 14, '#c9b48a', u, 4, 12, 0.5); break
       case 'ripple': puffs(c, e.x, e.y + 16, '#8a6a3a', u, 3, 10, 0.5); break
       case 'wind': c.save(); c.strokeStyle = '#e8f6ff'; c.globalAlpha = 0.6 * (1 - u); c.lineWidth = 2; c.beginPath(); c.ellipse(e.x, e.y - 40, 20 + u * 40, 50 + u * 30, 0, 0, Math.PI * 2); c.stroke(); c.restore(); break
@@ -143,6 +144,8 @@ export function drawNinjaFx(c, f, frameNo = 0) {
       case 'kunai': drawFx(c, f, 'proj_spark', 0, e.x, e.y - 8, 1, 1 - u); break
     }
   }
+  // MSV1-MERGE STORM AND STONE: Shane as the R11 tornado streaking down through the foe (Dustin = the R8 rings / bursts)
+  if (s.sup?.kind === 'sTag' && s.sup.tx != null) { const A = duoFormAnim('ns_red', 'superTornado'); drawPose(c, f, 'superTornado', Math.floor((s.clock || 0) / 3) % (A?.frames || 1), s.sup.tx, s.sup.ty + (f.h || 94), f.facing || 1, 1, 0, A) }
   // FAULT LINE shockwave between the two bodies
   if (s.sup?.wave) { const wv = s.sup.wave; c.save(); c.fillStyle = '#c9a25a'; c.globalAlpha = 0.8; c.fillRect(Math.min(wv.x0, wv.x) , (f._rangerFloorY ?? f.y + 94) - 8, Math.abs(wv.x - wv.x0), 8); c.restore(); puffs(c, wv.x, (f._rangerFloorY ?? f.y + 94), '#c9b48a', 0.3, 5, 18) }
   // Ninja Barrier dome glow (the dome itself is the R19 strip)
@@ -157,6 +160,14 @@ export function drawNinjaFx(c, f, frameNo = 0) {
 function drawIntroStreak(c, f) {
   if (!f._introPlaying) { f._nsIntroFx = 0; return }
   const t = (f._nsIntroFx = (f._nsIntroFx || 0) + 1), T = 26
+  if (f._duo) {   // MSV1-MERGE: the partner's SMOKE SILHOUETTE behind the morphing ranger
+    const o = duoOther(f._duo.form), A = duoFormAnim(o, 'idle'), P = duoFormProfile(o), dir = f.facing || 1, bx = f.x + (f.w || 48) / 2 - dir * 46, feet = (f.y || 0) + (f.h || 94)
+    puffs(c, bx, feet - 30, P?.smoke || '#888', 0.25 + 0.1 * Math.sin(t / 9), 7, 34, 0.5)
+    c.save(); try { c.filter = 'brightness(0.25)' } catch (_) {}; c.globalAlpha = 0.55; c.translate(0, 0)
+    const im = A && image(A.sheet)
+    if (im && ready(im)) { const sc = SC(f); c.translate(Math.round(bx), Math.round(feet)); if (dir < 0) c.scale(-1, 1); c.imageSmoothingEnabled = false; c.drawImage(im, 0, 0, MSV1_CELL.width, MSV1_CELL.height, -MSV1_CELL.originX * sc, -MSV1_CELL.originY * sc, MSV1_CELL.width * sc, MSV1_CELL.height * sc) }
+    c.restore()
+  }
   if (t > T || calm()) return
   const p = getNinjaProfile(f), w = f.w || 48, feet = (f.y || 0) + (f.h || 94), dir = f.facing || 1, u = t / T
   for (let i = 3; i >= 1; i--) drawPose(c, f, 'streakTail', i % 2, f.x - dir * (60 * i) * (1 - u), f.y, dir, 0.5 * (1 - u) / i)
@@ -190,11 +201,35 @@ export function drawNinjaHud(ctx, f, o = {}) {
   ctx.save()
   ctx.fillStyle = 'rgba(10,12,20,0.8)'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2)
   const u = s.np / p.np.max
-  ctx.fillStyle = p.color; if (o.flip) ctx.fillRect(x + w * (1 - u), y, w * u, h); else ctx.fillRect(x, y, w * u, h)
+  const col = f._duo ? duoHudColor(f) : p.color
+  ctx.fillStyle = col; if (o.flip) ctx.fillRect(x + w * (1 - u), y, w * u, h); else ctx.fillRect(x, y, w * u, h)
   ctx.fillStyle = 'rgba(255,255,255,0.85)'; for (let i = 1; i <= 3; i++) ctx.fillRect(Math.round(x + w * i / 4), y - 1, 1, h + 2)   // three notches
   ctx.font = 'bold 8px Arial'; ctx.textAlign = o.flip ? 'left' : 'right'; ctx.fillStyle = '#ffffff'   // label at the bar's INNER end (the engine's BREAK badge owns the outer corner)
   const tag = s.mirror ? `MIRROR ${Math.ceil((p.mirror.frames - s.mirror.t) / 60)}s · SWAPS ${p.mirror.maxSwaps - s.mirror.swaps}` : 'NINJA'
   ctx.fillText(tag, o.flip ? x : x + w, y + h + 9)
+  ctx.restore()
+  if (f._duo) drawDuoHud(ctx, f, x, y, w, o)
+}
+// MSV1-MERGE duo HUD: the partner's portrait SMALL + greyed beside the bar (the engine portrait = the active form, large),
+// the swap cooldown sweeping over it, and the NP bar colour blending red ⇄ yellow through the swap. Reads f._duo only.
+const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))
+function duoHudColor(f) {
+  const d = f._duo, sw = d.swap; if (!sw) return duoFormProfile(d.form)?.color || '#fff'
+  const a = hexRgb(duoFormProfile(sw.from).color), b = hexRgb(duoFormProfile(sw.to).color), k = Math.min(1, sw.t / (DUO.swapFrames - 1))
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`
+}
+function drawDuoHud(ctx, f, x, y, w, o) {
+  if (!f._duoPre) { f._duoPre = true; preloadNinjaFx(f) }   // both forms' smoke / portraits / tornado (render cache)
+  const d = f._duo, oth = duoOther(d.form), im = image(`./assets/${oth}/portrait_small.png`), S = 22
+  const px = o.flip ? x - S - 6 : x + w + 6, py = y - S + 8
+  ctx.save()
+  ctx.fillStyle = 'rgba(10,12,20,0.85)'; ctx.fillRect(px - 2, py - 2, S + 4, S + 4)
+  if (ready(im)) { try { ctx.filter = 'grayscale(1) brightness(0.7)' } catch (_) {}; ctx.imageSmoothingEnabled = false; ctx.drawImage(im, px, py, S, S); try { ctx.filter = 'none' } catch (_) {} }
+  ctx.strokeStyle = duoFormProfile(oth)?.color || '#888'; ctx.globalAlpha = 0.8; ctx.lineWidth = 1.5; ctx.strokeRect(px - 1, py - 1, S + 2, S + 2); ctx.globalAlpha = 1
+  const lock = d.swap ? 1 : d.cd > 0 ? d.cd / 30 : 0
+  if (lock > 0) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(px, py + S * (1 - Math.min(1, lock)), S, S * Math.min(1, lock)) }
+  ctx.font = 'bold 7px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = (f._ninja?.np || 0) >= 15 && !lock ? '#ffffff' : '#8a8f99'
+  ctx.fillText('↓↓+GRAB', px + S / 2, py + S + 9)
   ctx.restore()
 }
 
@@ -208,4 +243,4 @@ export function playNinjaCues(f) {
   }
   f._nsCues = null
 }
-export function preloadNinjaFx(f) { for (const A of Object.values(f?.animationData || {})) if (A?.sheet) image(A.sheet); for (const n of Object.keys(MSV1_FX)) image(`./assets/${f.rosterKey}/${n}.png`) }
+export function preloadNinjaFx(f) { if (f?._duo) for (const k of ['ns_red', 'ns_yellow']) { image(`./assets/${k}/portrait_small.png`); for (const n of ['smoke', 'smokeFade', 'idle', 'superTornado']) { const A = duoFormAnim(k, n); if (A?.sheet) image(A.sheet) } } for (const A of Object.values(f?.animationData || {})) if (A?.sheet) image(A.sheet); for (const n of Object.keys(MSV1_FX)) image(`./assets/${f.rosterKey}/${n}.png`) }

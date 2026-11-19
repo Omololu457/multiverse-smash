@@ -127,6 +127,7 @@ import { drawSpdRedFx, drawSpdRedUnder, spdRedBodyAlpha } from './spdRedFx.js'  
 import { spdRedHarnessApi } from './spdRedHarness.js'   // S.P.D. Red test API (window.__harness.spdRedTest)
 import { rangerFacingFix } from './rangers.js'   // Ranger framework: PHASE STEP face lock (no-op unless a Ranger crossed up)
 import { tickNinja, isNinja, clearNinja, ninjaRoundReset, ninjaBodyAlpha, ninjaSnapshot } from './ninja.js'   // MSV1 Ninja Storm framework (ns_red / ns_yellow; ninja-gated)
+import { duoResolveSaved, duoPreloadKeys } from './nsDuo.js'; import { duoKitView, duoKitToggle } from './nsKit.js'; import { TRANSFORM_ENERGY as MSV1_TE } from './fighters.js'   // MSV1-MERGE Shane & Dustin
 import { updateNinjaCommand } from './ninjaCommand.js'   // MSV1 generic ninja command layer
 import { drawNinjaFx, drawNinjaUnder, playNinjaCues } from './nsFx.js'   // MSV1 render-only ninja FX + cues
 import { ninjaHarnessApi } from './nsHarness.js'   // MSV1 test accessor
@@ -145,6 +146,7 @@ const SPD_RED_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => glo
   attackBox: o => (o && o.attacking && getAttackPhase(o) === 'active' && !(o.currentAttack && o.currentAttack.hasHit)) ? getAttackHitbox(o) : null,
   projectiles: o => activeProjectiles.filter(p => p.owner === o).map(p => { const r = p.radius || (p.w || 20) / 2; return { x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 } }) }
 const MSV1_WORLD = { ...SPD_RED_WORLD, frame: () => _replayFrame, attackBoxRaw: o => (o && o.attacking && getAttackPhase(o) === 'active') ? getAttackHitbox(o) : null, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) } }   // MSV1 ninja world (S.P.D. Red's + the LOCKSTEP sim frame for the hash — globalFrameCount counts render/menu frames and differs across LAN peers / replay — + own box / projectile list)
+MSV1_WORLD.benSwap = () => ({ dbl: OMX_DOUBLE_TAP_WINDOW, arm: OMX_ARM_WINDOW, cost: MSV1_TE.SWAP_COST, lockout: MSV1_TE.SWAP_LOCKOUT })   // MSV1-MERGE: the duo's form swap reads Ben 10's live swap numbers
 const ARLONG_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Arlong world accessors (sim reads stage width / frame / the damage choke-point)
 const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Buggy the Clown world accessors
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), teleport: f => teleportBehindTarget(f) })   // Roronoa Zoro world accessors
@@ -4904,6 +4906,7 @@ function restoreSession() {
   if (m.p2CharKey && characters[m.p2CharKey]) { matchConfig.p2CharKey = m.p2CharKey; matchConfig.p2Char = characters[m.p2CharKey] }
   if (typeof m.p1Skin === "string") matchConfig.p1Skin = m.p1Skin
   if (typeof m.p2Skin === "string") matchConfig.p2Skin = m.p2Skin
+  for (const _sd of ['p1', 'p2']) { const _r = duoResolveSaved(matchConfig[_sd + 'CharKey'], matchConfig[_sd + 'Skin']); if (_r.key !== matchConfig[_sd + 'CharKey']) { matchConfig[_sd + 'CharKey'] = _r.key; matchConfig[_sd + 'Char'] = characters[_r.key]; matchConfig[_sd + 'Skin'] = _r.skin } }   // MSV1-MERGE: a saved ns_red / ns_yellow pick → Shane & Dustin starting as that ranger
   if (m.selectingSide) matchConfig.selectingSide = m.selectingSide
   const t = s.training || {}
   if (typeof t.infiniteResources === "boolean") trainingState.infiniteResources = t.infiniteResources
@@ -6393,6 +6396,7 @@ function startMatch() {
   // ADDS the decode-and-gate layer on top (body + skin + FX) without altering this.
   if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
+  for (const _k of duoPreloadKeys(matchConfig)) { preloadCharacterSprites?.(_k); loadSpriteSheets(_k) }   // MSV1-MERGE: both forms' sheets
   // Full decode-and-gate preload: body sheets (both fighters + skins) AND spawned FX. This Promise is
   // what gates the INTRO→BATTLE hop so no move first-use-faults to the _FALLBACK box mid-fight.
   preloadMatch(matchConfig)
@@ -10890,7 +10894,7 @@ function handlePauseInput(key) {
       if (sel === "restartMatch") _doRematch(); else _changeCharacter()
     }
     else if (sel === "moveList") {   // opens on YOUR fighter; Back / Esc returns to this pause menu (match stays frozen)
-      const fl = getMoveListFighters(), i = fl.findIndex(f => f.key === p1?.rosterKey)
+      const fl = getMoveListFighters(), i = fl.findIndex(f => f.key === (p1?._duo ? (duoKitView(p1._duo.form), p1._duo.id) : p1?.rosterKey))
       moveListIndex = Math.max(0, i); moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0
       try { const r = getMoveListCardRects(canvas, fl.length)[moveListIndex], vp = getMoveListViewport(canvas); if (r && vp) moveListScroll = Math.max(0, r.y - vp.top - 40) } catch (_) {}   // scroll your row into view
       moveListReturnState = GAME_STATES.PAUSED; gameState = GAME_STATES.MOVE_LIST
@@ -27633,6 +27637,7 @@ function _aiVsAiFastForwardState() {
 // ------------------------------------------------------------------
 window.addEventListener("keydown", e => {
   const key = String(e.key || "").toLowerCase()
+  if (gameState === GAME_STATES.MOVE_LIST && key === "tab" && getMoveListFighters()[moveListIndex]?.key === "windrangers") { e.preventDefault(); duoKitToggle(); moveListPanelScroll = 0; return }   // MSV1-MERGE: Shane ⇄ Dustin list
 
   // ONLINE JOIN address entry (Stage 3): typing the host's ws:// address. Enter connects, Esc goes back.
   // Captured before gameplay/shortcut keys so letters/numbers type into the field. Only while on the join

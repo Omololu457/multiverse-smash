@@ -63,12 +63,12 @@ export async function run(X) {
     const kit = K.CHARACTER_KITS || K.KITS || K.kits || K.default
     const cr = { ns_red: Cr.attributionForCharacter('ns_red'), ns_yellow: Cr.attributionForCharacter('ns_yellow') }
     const out = {}
-    for (const k of ['ns_red', 'ns_yellow']) { const c = C[k]; out[k] = { name: c.name, universe: c.universe, sub: c.subUniverse, playable: c.isPlayable !== false && !c.hidden, portrait: !!c.portrait, bio: !!(c.bio || c.description), kit: !!(kit && kit[k] && kit[k].specials?.length), credit: !!(cr && cr[k]), creditText: cr && cr[k] ? JSON.stringify(cr[k]) + ' ' + (Cr.artistLineForCharacter(k) || '') : '' } }
+    for (const k of ['ns_red', 'ns_yellow']) { const c = C[k]; out[k] = { name: c.name, universe: c.universe, sub: c.subUniverse, playable: c.isPlayable !== false && (!c.hidden || !!C.windrangers?.duoForms?.includes(k)), formOf: C.windrangers?.duoForms?.includes(k) ? 'windrangers' : null,   /* MSV1-MERGE: a hidden FORM, played through the duo */ portrait: !!c.portrait, bio: !!(c.bio || c.description), kit: !!(kit && kit[k] && kit[k].specials?.length), credit: !!(cr && cr[k]), creditText: cr && cr[k] ? JSON.stringify(cr[k]) + ' ' + (Cr.artistLineForCharacter(k) || '') : '' } }
     return out
   })
   for (const k of ['ns_red', 'ns_yellow']) {
     const m = meta[k]
-    check(`${k}: on the roster under Power Rangers / Ninja Storm, playable, portrait + bio`, m.universe === 'power_rangers' && m.sub === 'Ninja Storm' && m.playable && m.portrait && m.bio, m)
+    check(`${k}: on the roster under Power Rangers / Ninja Storm, playable (MSV1-MERGE: as a form of windrangers), portrait + bio`, m.universe === 'power_rangers' && m.sub === 'Ninja Storm' && m.playable && m.portrait && m.bio, m)
     check(`${k}: Move List (kits.js) has specials`, m.kit)
     check(`${k}: credits.js names Grim / spritedatabase.net / Super Legends (DS)`, m.credit && /Grim/.test(m.creditText) && /spritedatabase/.test(m.creditText) && /Super Legends/.test(m.creditText), m.creditText.slice(0, 120))
   }

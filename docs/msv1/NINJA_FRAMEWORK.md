@@ -168,3 +168,51 @@ up, the CPU makes **one guess per Mirror / swap**:
 It then fights a perceived proxy at the spot it believes in. The function never reads which spot is real. It only
 uses the two visible spots, the Mirror serial and swap count, and the hash. Over 1,000 sampled Mirrors per tier,
 the measured tell rates are 19.7%, 44.0% and 68.8% (msv1_scen_f_final F3).
+
+## Multi-form characters (MSV1-MERGE: "Ninja Storm MS_V1 Ranger Version", `windrangers`)
+
+A multi-form character is **one roster entry whose forms are ordinary ninja profiles**. `nsDuo.js` is the only code
+that knows about the forms; ninja.js only offers hooks through `registerDuo(h)`, and every hook is a no-op when a fighter
+has no `f._duo`.
+
+**How it works**
+* The roster entry (`windrangers`) spreads its start form's roster object and overrides id, name, health and meta.
+* At round start, `ninjaRoundReset` calls `h.roundReset(f)` first. That builds `f._duo` (GAME_STATE) and **sets
+  `f.rosterKey` to the active form id**. Every keyed system then just works: the ninja and Ranger profiles,
+  sprite sheets, the HUD portrait, sound prefixes, quotes, CPU perception and roster parity.
+* A swap calls `applyForm(f, form)`. It copies the form's presentation fields (`animationData`, portrait, name,
+  colour, basic attacks, traits) and its movement stats (speed, dash, jumps, jump power, weight). Health, meter,
+  NP, combo, position, facing and velocity stay on the fighter.
+* The forms' own roster entries get `hidden: true` and keep their ids, so replays, tests and `?p1=` URLs still boot a
+  plain form bit-identically.
+
+**The hooks in ninja.js**
+
+| Hook | Where | Purpose |
+|---|---|---|
+| `h.roundReset(f)` | `ninjaRoundReset` | init + start form |
+| `h.ensure(f)` | top of `tickNinja` | paths that never ran the round reset (FFA) |
+| `h.input(f, raw)` | after the press-edge bookkeeping, before the hitstop return | the swap gesture detector, on sim frames |
+| `h.tick(f, opp, s)` | after the framework steps | swap request, cooldown, tag-bonus timer |
+| `h.command(f, s, opp, raw)` | `updateNinjaCommand`, after the stun gates | eats the picking button; the duo's own moves |
+| `h.moves` / `h.supers` / `h.run` | `nsStartMove`, `runMoveKind` | duo-only moves (the swap, the tag ultimate), so the form profiles stay byte-identical |
+| `h.onStart(f, a, md)` | `nsStartMove` | the tag bonus folds into `revMul` through `a.nj.tag` |
+| `h.traps(f)` | `stepTraps` | a form's traps keep ticking after it swaps out |
+| `h.alpha(f)` | `ninjaBodyAlpha` | body hidden inside the swap smoke |
+| `duo` field | `ninjaSnapshot` | the duo state rides the replay / LAN checkpoints (omitted for single-form ninjas, so old replays stay identical) |
+
+**Swap input.** The swap reuses Ben 10's Omnitrix gesture (↓↓, then one button) with Ben's live numbers through
+`W.benSwap()`:
+* the double-tap window is `OMX_DOUBLE_TAP_WINDOW` and the pick window is `OMX_ARM_WINDOW`;
+* cost and cooldown are `TRANSFORM_ENERGY.SWAP_COST` / `SWAP_LOCKOUT`.
+
+**CPU.** `duoAiInput` (an ai.js hook) makes the CPU press the real ↓ · ↓ Grab sequence. It decides from visible state
+only, and the cooldown and a 150-frame dwell limit how often it swaps. Because the swap goes through real input, it
+replays and runs in lockstep like a player's.
+
+**Adding a form or a new duo**
+1. Register each form as a normal ninja profile (nsData pattern) and mark its roster entry `hidden: true`.
+2. Add a roster entry for the duo and list the forms in `FORM_CHAR` / `DUO_FORMS`.
+3. Pick the start form from the skin id.
+
+No engine changes are needed.

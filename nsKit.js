@@ -67,3 +67,25 @@ export const NS_YELLOW_KIT = { type: 'Earth Ninja / Trap & Burrow', energy: 'Nin
     { name: 'Quake cash-out', sequence: 'Light → Heavy → Heavy → ↓↘→↓↘→ + Special', desc: '8 hits, 276 (1 bar).' },
     { name: 'Fault Line', sequence: '↓↓ + Charge (Earth Double) → Ultimate', desc: '372 (2 bars).' },
   ] }
+
+// ── MSV1-MERGE: "Shane & Dustin" (windrangers) — the ACTIVE form's list, with a toggle to the other form's (TAB on the
+//    Move List screen; the pause menu opens on the form you are playing). The view is UI state only, never the sim's.
+let DUO_VIEW = 'ns_red'
+export const duoKitView = form => { if (form === 'ns_red' || form === 'ns_yellow') DUO_VIEW = form; return DUO_VIEW }
+export const duoKitToggle = () => (DUO_VIEW = DUO_VIEW === 'ns_red' ? 'ns_yellow' : 'ns_red')
+const DUO_CUR = () => DUO_VIEW === 'ns_yellow' ? NS_YELLOW_KIT : NS_RED_KIT
+const DUO_SHARED = [
+  { name: 'FORM SWAP (Omnitrix input)', input: '↓↓ then Grab (pad: ↓↓ then L1 / LB)', cost: 15, desc: 'Ben 10\'s swap gesture. The ranger vanishes in his smoke and his partner bursts out of it in the same spot: 14 frames, 6 invulnerable, 30-frame cooldown (Ben\'s). Grounded, airborne, at the end of a streak or in a normal\'s recovery; never in hitstun / blockstun / a super. Keeps health, NP, meter, combo, position, facing, momentum. Ends the Mirror, clones, REV, burrow, Wind Float; traps and Gale shots stay.' },
+  { name: 'Swap-in strike', input: '(automatic)', cost: 0, desc: '30 blunt, small stagger. If it connects, the OTHER ranger\'s next special within 3 s deals +10% (tag bonus).' },
+  { name: 'STORM AND STONE (tag ultimate)', input: '↓↘→↓↘→ + Special + Heavy', cost: 100, desc: 'The full meter, outside the Mirror: Shane streaks through from the air as the tornado while Dustin erupts underneath, then tornado and shockwave meet. 420 (energy / blunt).' },
+]
+export const NS_DUO_KIT = {
+  type: 'Ninja Duo / Form Swapper', energy: 'Ninja Power (shared)', difficulty: '5', name: 'Ninja Storm MS_V1 Ranger Version',
+  get summary() { const red = DUO_VIEW === 'ns_red'; return `Two elements. One storm. Health 1248 (one pool), NP and meter shared. Showing ${red ? 'SHANE (Red Wind)' : 'DUSTIN (Yellow Wind)'}'s list — press TAB for ${red ? 'Dustin' : 'Shane'}'s. ` + DUO_CUR().summary },
+  get passive() { return DUO_CUR().passive },
+  get basics() { return DUO_CUR().basics },
+  get specials() { return [...DUO_SHARED, ...DUO_CUR().specials] },
+  get mobility() { return DUO_CUR().mobility },
+  get ultimate() { return DUO_CUR().ultimate },
+  get combos() { return DUO_CUR().combos },
+}

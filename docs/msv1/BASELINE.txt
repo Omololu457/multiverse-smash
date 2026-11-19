@@ -1,0 +1,27 @@
+MSV1 BASELINE — clean HEAD 51b4aaa5524e99b965bfe95b1080ff4f2f88c291 (git archive export, dirty worktree excluded), 2026-11-19
+
+determinism.test.mjs         DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo_standard_audit.mjs     COMBO-STANDARD AUDIT: 233 passed, 9 failed
+up_attack_roster.test.mjs    UP-ATTACK ROSTER: 77 passed, 2 failed
+credits.test.mjs             RESULT: 11 passed, 3 failed
+roster_integrity.test.mjs    ✅ roster integrity guard verified
+replay_playback.test.mjs     REPLAY PLAYBACK (Stage 11C): 10 passed, 0 failed
+net_online.test.mjs          NET ONLINE (Stage 3): 11 passed, 0 failed
+
+Pre-existing failures (green = no worse than these):
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, goku_rose, green_arrow, green_ranger, higuruma, homelander, krybot, megum
+  ❌  classification covers the full roster exactly  — covered 122 vs roster 157
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (121)  — classified 122, roster 157
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 157 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 155/157
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8
+
+roster size: 157

@@ -1,0 +1,350 @@
+[
+ {
+  "row": "R1",
+  "a": 0,
+  "b": 6,
+  "anim": "idle"
+ },
+ {
+  "row": "R2",
+  "a": 0,
+  "b": 7,
+  "anim": "run"
+ },
+ {
+  "row": "R2",
+  "a": 8,
+  "b": 11,
+  "anim": "runStop"
+ },
+ {
+  "row": "R3",
+  "a": 0,
+  "b": 2,
+  "anim": "streak"
+ },
+ {
+  "row": "R3",
+  "a": 3,
+  "b": 4,
+  "anim": "streakTail"
+ },
+ {
+  "row": "R4",
+  "a": 0,
+  "b": 3,
+  "anim": "jab"
+ },
+ {
+  "row": "R4",
+  "a": 4,
+  "b": 9,
+  "anim": "string"
+ },
+ {
+  "row": "R4",
+  "a": 10,
+  "b": 15,
+  "anim": "stringEnd"
+ },
+ {
+  "row": "R5",
+  "a": 0,
+  "b": 5,
+  "anim": "kickHeavy"
+ },
+ {
+  "row": "R5",
+  "a": 6,
+  "b": 12,
+  "anim": "crouchStrike"
+ },
+ {
+  "row": "R6",
+  "a": 0,
+  "b": 4,
+  "anim": "punchAlt"
+ },
+ {
+  "row": "R6",
+  "a": 5,
+  "b": 9,
+  "anim": "risingKick"
+ },
+ {
+  "row": "R6",
+  "a": 10,
+  "b": 12,
+  "anim": "tumble"
+ },
+ {
+  "row": "R7",
+  "a": 0,
+  "b": 1,
+  "anim": "guard"
+ },
+ {
+  "row": "R7",
+  "a": 2,
+  "b": 5,
+  "anim": "crouch"
+ },
+ {
+  "row": "R7",
+  "a": 6,
+  "b": 9,
+  "anim": "axe"
+ },
+ {
+  "row": "R8",
+  "a": 0,
+  "b": 6,
+  "anim": "jump"
+ },
+ {
+  "row": "R8",
+  "a": 7,
+  "b": 11,
+  "anim": "land"
+ },
+ {
+  "row": "R8",
+  "a": 12,
+  "b": 15,
+  "anim": "landRecover"
+ },
+ {
+  "row": "R9",
+  "a": 0,
+  "b": 7,
+  "anim": "airSpin"
+ },
+ {
+  "row": "R9",
+  "a": 8,
+  "b": 12,
+  "anim": "diveKick"
+ },
+ {
+  "row": "R10",
+  "a": 0,
+  "b": 5,
+  "anim": "airAttack"
+ },
+ {
+  "row": "R10",
+  "a": 6,
+  "b": 13,
+  "anim": "airTumble"
+ },
+ {
+  "row": "R10",
+  "a": 14,
+  "b": 15,
+  "anim": "airRecover"
+ },
+ {
+  "row": "R11",
+  "a": 0,
+  "b": 3,
+  "anim": "tornado"
+ },
+ {
+  "row": "R11",
+  "a": 4,
+  "b": 4,
+  "anim": "dive"
+ },
+ {
+  "row": "R11",
+  "a": 5,
+  "b": 8,
+  "anim": "skid"
+ },
+ {
+  "row": "R11",
+  "a": 9,
+  "b": 10,
+  "anim": "getUp"
+ },
+ {
+  "row": "R11",
+  "a": 11,
+  "b": 11,
+  "anim": "hitSpark"
+ },
+ {
+  "row": "R11",
+  "a": 12,
+  "b": 12,
+  "anim": "flipKick"
+ },
+ {
+  "row": "R12",
+  "a": 0,
+  "b": 10,
+  "anim": "low"
+ },
+ {
+  "row": "R13",
+  "a": 0,
+  "b": 2,
+  "anim": "duck"
+ },
+ {
+  "row": "R13",
+  "a": 3,
+  "b": 6,
+  "anim": "uppercut"
+ },
+ {
+  "row": "R13",
+  "a": 7,
+  "b": 11,
+  "anim": "hurt"
+ },
+ {
+  "row": "R14",
+  "a": 0,
+  "b": 11,
+  "anim": "sword"
+ },
+ {
+  "row": "R15",
+  "a": 0,
+  "b": 4,
+  "anim": "galeCrescent"
+ },
+ {
+  "row": "R15",
+  "a": 5,
+  "b": 14,
+  "anim": "swordMove"
+ },
+ {
+  "row": "R16",
+  "a": 0,
+  "b": 4,
+  "anim": "galeCrescent2"
+ },
+ {
+  "row": "R16",
+  "a": 5,
+  "b": 9,
+  "anim": "swordLow"
+ },
+ {
+  "row": "R16",
+  "a": 10,
+  "b": 11,
+  "anim": "swordRise"
+ },
+ {
+  "row": "R17",
+  "a": 0,
+  "b": 6,
+  "anim": "swordCrouch"
+ },
+ {
+  "row": "R18",
+  "a": 0,
+  "b": 7,
+  "anim": "swordAir"
+ },
+ {
+  "row": "R19",
+  "a": 0,
+  "b": 3,
+  "anim": "swordDome"
+ },
+ {
+  "row": "R19",
+  "a": 4,
+  "b": 10,
+  "anim": "dome"
+ },
+ {
+  "row": "R20",
+  "a": 0,
+  "b": 5,
+  "anim": "throw"
+ },
+ {
+  "row": "R20",
+  "a": 6,
+  "b": 11,
+  "anim": "throwAir"
+ },
+ {
+  "row": "R21",
+  "a": 0,
+  "b": 0,
+  "anim": "fxSpark"
+ },
+ {
+  "row": "R21",
+  "a": 1,
+  "b": 3,
+  "anim": "beam"
+ },
+ {
+  "row": "R21",
+  "a": 4,
+  "b": 6,
+  "anim": "beamDiag"
+ },
+ {
+  "row": "R21",
+  "a": 7,
+  "b": 10,
+  "anim": "fxBurst"
+ },
+ {
+  "row": "R22",
+  "a": 0,
+  "b": 12,
+  "anim": "stance"
+ },
+ {
+  "row": "R23",
+  "a": 0,
+  "b": 0,
+  "anim": "seated"
+ },
+ {
+  "row": "R23",
+  "a": 1,
+  "b": 6,
+  "anim": "smoke"
+ },
+ {
+  "row": "R24",
+  "a": 0,
+  "b": 4,
+  "anim": "smokeFade"
+ },
+ {
+  "row": "R25",
+  "a": 0,
+  "b": 5,
+  "anim": "victory"
+ },
+ {
+  "row": "R26",
+  "a": 0,
+  "b": 10,
+  "anim": "knockdown"
+ },
+ {
+  "row": "R27",
+  "a": 0,
+  "b": 8,
+  "anim": "lying"
+ },
+ {
+  "row": "R27",
+  "a": 9,
+  "b": 17,
+  "anim": "getUpRoll"
+ }
+]

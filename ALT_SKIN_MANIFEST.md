@@ -173,3 +173,20 @@ his iconic blue hair, so PANTS is the only robust (pose-independent) target. Fla
 Plus kept: Flash `flashBlue`; bespoke costumes gojo2/sukuna3/pinkFit/megumi2; Edo-Tensei `reanim`.
 All targeted (tools/recolor_palette.py) — costume-only, skin/hair/outlines/identity-colors preserved.
 0 identity collisions. All regression green across every batch.
+
+## Ben 10 — 20 THEMES (2026-11-18, runtime regional recolour)
+One pick on human Ben: **appearance** (Classic / Jacket) × **theme** (1 of 20) = 40 skins, `classic-<theme>` / `jacket-<theme>`.
+The theme recolours that human set AND every READY alien he transforms into, automatically. No per-alien choice.
+- **Registry (single source of truth):** `benThemes.js`. Each theme has 5 roles, PRIMARY / SECONDARY / ACCENT / ENERGY /
+  HIGHLIGHT, as [dark, mid, light] swatches, plus an honest source label.
+- **Regional maps:** `benThemeRegions.js`, one ordered HSV rule list per sprite set (2 humans + 24 READY aliens). Each rule
+  assigns a region a role and records its reference tone. Brightness relative to that tone picks the ramp point, so shading
+  survives, like `recolor_palette.py`'s luminance-preserving remap.
+- **Engine:** `benThemeRecolor.js` recolours the sheet the renderer is about to draw, once, into a same-size canvas. Alpha
+  is copied untouched. It is cached in an LRU (24 M px) keyed by owner | `__ASSET_V` | appearance | form | theme | path.
+  Not pre-baked: 20 × ~1,000 strips would be ~20k PNGs.
+- **Cosmetic only:** frame data and stats are those of the original appearance (`benThemeBaseSkin`). Albedo is excluded
+  (ben10-gated; his `__albedo` art never passes through it).
+- **Docs:** `docs/ben10/skins/THEMES.md` (theme table, coverage, controls), `docs/ben10/skins/<set>_REGIONS.md`, contact
+  sheets `docs/ben10/skins/img/contact_<set>.png`, `docs/ben10/skins/VERIFICATION.md`.
+- **Tests:** `harness/ben10_themes.test.mjs`, `harness/ben10_themes_render.mjs`.

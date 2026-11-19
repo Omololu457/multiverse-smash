@@ -27,6 +27,8 @@ const tap = () => page.evaluate(async () => {
 })
 // Ben 10 cast clips: the new assets/audio packs + Albedo's / Vilgax's merged transcript-verified mp3s (passed as bare names)
 const vo = () => page.evaluate(() => (window.__vo || []).filter(e => /assets\/audio\/(ben10|albedo|vilgax)\/|^(albedo|vilgax)_\d+\.mp3$/.test(e.f)))
+// does this event have ANY clip for a human Alien Force Ben? (an empty pool after the speaker review = correctly silent)
+const afHas = ev => page.evaluate(async ev => !!(await import("./ben10VoiceMap.js")).pickBen10Vo(ev, { rosterKey: "ben10", _benVariant: "alienforce" }), ev)
 const played = e => !!e.r   // playSfxFile returns the Audio element when the cue starts, false when it does not
 async function boot(p1, p2, aliens, skin) {
   await page.goto(`${base}/index.html?harness=1&p1=${p1}&p2=${p2}`, { waitUntil: "load" })
@@ -49,7 +51,7 @@ try {
   for (const [gi, g] of groups.entries()) {
     for (const loser of ["p2", "p1"]) {
       await boot("ben10", "goku", g)
-      const intro = await vo(); if (gi === 0 && loser === "p2") ok(intro.some(e => /ben_teen/.test(e.f)), "ben10 (Alien Force) intro line from ben_teen", intro.map(e => e.f.split("/").pop()).join(","))
+      const intro = await vo(); if (gi === 0 && loser === "p2") ok(intro.every(e => /ben_teen/.test(e.f)) && (intro.length > 0 || !(await afHas("intro"))), "ben10 (Alien Force) intro: a ben_teen line, or silent when that pool is empty", intro.map(e => e.f.split("/").pop()).join(","))
       for (const [slot, alien] of g.entries()) {
         if (!READY_VO.includes(alien)) continue
         await H("ben10SetPower", "p1", 100); await page.evaluate(() => { window.__vo = [] })
@@ -69,13 +71,13 @@ try {
       await page.evaluate(() => { window.__vo = [] })
       await endMatch(loser)
       const end = await vo()
-      ok(end.length > 0 && end.every(played), `group ${gi + 1}: ${loser === "p2" ? "WIN" : "LOSE"} cue plays for Ben (as the alien, else his human pool)`, end.map(e => e.f.split("/").slice(-3).join("/")).join(","))
+      ok(end.every(played) && (end.length > 0 || !(await afHas(loser === "p2" ? "win" : "lose"))), `group ${gi + 1}: ${loser === "p2" ? "WIN" : "LOSE"} cue plays for Ben (as the alien, else his human pool; silent only when no valid clip exists)`, end.map(e => e.f.split("/").slice(-3).join("/")).join(","))
     }
   }
   // Albedo human (intro + win) and Vilgax (intro / hit / win)
   await boot("albedo", "vilgax", null)
   await H("fireIntroVoice", "p2"); await frames(4)   // skipToBattle jumps past p2's intro beat; fire it through the harness hook
-  const a0 = await vo(); ok(a0.some(e => /albedo/.test(e.f)) && a0.some(e => /vilgax/.test(e.f)), "albedo + vilgax intro lines", a0.map(e => e.f.split("/").pop()).join(","))
+  const a0 = await vo(); ok(a0.some(e => /albedo/.test(e.f)) && !a0.some(e => /assets\/audio\/vilgax/.test(e.f)), "albedo intro line (Vilgax has no verified intro: silent)", a0.map(e => e.f.split("/").pop()).join(","))
   await page.evaluate(() => { window.__vo = [] }); await endMatch("p2")
   const a1 = await vo(); ok(a1.some(e => /albedo/.test(e.f)) && a1.every(played), "albedo WIN / vilgax LOSE cues", a1.map(e => e.f.split("/").pop()).join(","))
   // Classic Ben speaks with the kid (ben_young) pools; Prime has no clips (silent, no crash)

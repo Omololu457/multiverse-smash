@@ -1,4 +1,6 @@
 import { updateLuffyCommandCombat } from './luffy.js'
+import { benThemeFieldsForSkin, benThemeLast, benThemeCardImage } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES (skin fields + select-screen cards)
+import { benThemeCardLabel, BEN_THEME_BY_ID } from "./benThemes.js"
 import { updateKrybotCommandCombat } from './krybot.js'
 import { updateSpdBlueCommandCombat } from './spdBlue.js'
 import { tickSpdBlue,isSpdBlue,clearSpdBlue,spdBlueLocked,spdBlueCanStep,spdBlueStepSpent } from './spdBlueState.js'
@@ -3619,6 +3621,7 @@ function applySkin(fighter, skinId) {
   // tintColor; null clears it so non-tinted skins render natively.
   fighter.skinTint = skin?.skinTint || null
   fighter.skinId = skinId
+  Object.assign(fighter, benThemeFieldsForSkin(fighter.rosterKey, skinId))   // Ben 10 THEME (cosmetic; null for everyone else, incl. Albedo)
   mrVisual(fighter) // cosmetic selection preserves veteran / prime
   fighter._voidFX = null   // drop any prior Void Form starfield; it regenerates on next draw if re-applied
   fighter._pzFX = null     // drop any prior Phantom Zone spectral overlay likewise
@@ -6547,23 +6550,25 @@ function getSkinSelectRects(canvas, count) {
   let cardW = 180, cardH = 230
   const availW = canvas.width - sidePad * 2
   const availH = canvas.height - topPad - botPad
-  // columns that fit at full size; then compute rows and shrink to fit vertically if needed.
-  let cols = Math.max(1, Math.min(count, Math.floor((availW + gap) / (cardW + gap))))
-  let rows = Math.ceil(count / cols)
-  const maxH = (availH - (rows - 1) * gap) / rows
-  if (cardH > maxH) { const s = maxH / cardH; cardH = maxH; cardW = Math.round(cardW * s) }
-  // re-fit columns to the (possibly shrunk) width so a wide-but-short set doesn't overflow.
-  cols = Math.max(1, Math.min(count, Math.floor((availW + gap) / (cardW + gap))))
-  rows = Math.ceil(count / cols)
-  const blockH = rows * cardH + (rows - 1) * gap
+  // Pick the column count that gives the LARGEST card (most columns first, so a set that fits at full size keeps the exact
+  // layout it always had). The old shrink-to-height-then-refit pass could leave a 40+ card grid at a fraction of the space.
+  let cols = 1, rows = count, sBest = -1, g = gap
+  for (let c = count; c >= 1; c--) {
+    const r = Math.ceil(count / c)
+    const gg = (c - 1) * gap <= availW && r * cardH + (r - 1) * gap <= availH && c * cardW + (c - 1) * gap <= availW ? gap : 12
+    const s = Math.min(1, (availW - (c - 1) * gg) / (c * cardW), (availH - (r - 1) * gg) / (r * cardH))
+    if (s > sBest + 1e-9) { sBest = s; cols = c; rows = r; g = gg }
+  }
+  cardW = Math.round(cardW * sBest); cardH = Math.round(cardH * sBest)
+  const blockH = rows * cardH + (rows - 1) * g
   const y0 = topPad + Math.max(0, (availH - blockH) / 2)
   const rects = []
   for (let i = 0; i < count; i++) {
     const row = Math.floor(i / cols), col = i % cols
     const inRow = Math.min(cols, count - row * cols)
-    const rowW = inRow * cardW + (inRow - 1) * gap
+    const rowW = inRow * cardW + (inRow - 1) * g
     const x0 = canvas.width / 2 - rowW / 2
-    rects.push({ x: x0 + col * (cardW + gap), y: y0 + row * (cardH + gap), w: cardW, h: cardH, index: i })
+    rects.push({ x: x0 + col * (cardW + g), y: y0 + row * (cardH + g), w: cardW, h: cardH, index: i })
   }
   return rects
 }
@@ -6597,14 +6602,18 @@ function drawSkinSelectScreen() {
     // Dark bevel-shaped backing + the skin portrait (contain-fit, clipped to the MK card shape).
     ctx.save(); _bevelPath(ctx, r.x, r.y, r.w, r.h, 12); ctx.clip()
     ctx.fillStyle = "#101c2e"; ctx.fillRect(r.x, r.y, r.w, r.h)
-    const img = _skinPortrait(skin.portrait)
-    if (img && img.complete && img.naturalWidth > 0) drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - 64, { fit: "contain" })
+    // the label strip scales with the card (it was a fixed 64 px, which left a tiny picture on a crowded grid)
+    const labH = Math.max(28, Math.min(64, Math.round(r.h * 0.27)))
+    const benCard = _benSkinCard(charKey, skin)   // Ben 10: a large crisp full-body card in the skin's own theme
+    if (benCard) _drawBenSkinCard(ctx, benCard, skin, r, labH)
+    else { const img = _skinPortrait(skin.portrait); if (img && img.complete && img.naturalWidth > 0) drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - labH, { fit: "contain" }) }
     ctx.restore()
     // Selection language on top (hover tint/border/glow-pulse + confirm flash) — transparent base fill
     // so the portrait shows through until hovered.
     drawSelectCardFrame(ctx, r, { accent, hover: a.hover, confirm: a.confirm, locked: !unlocked, cut: 12, baseFill: "rgba(0,0,0,0)" })
     ctx.textAlign = "center"; ctx.fillStyle = "#e6edf7"; ctx.font = "700 16px Arial"
-    if (ctx.measureText(skin.name).width <= r.w - 8) ctx.fillText(skin.name, cx, r.y + r.h - 22)
+    if (benCard) _drawBenSkinLabel(ctx, skin, r, cx, labH)
+    else if (ctx.measureText(skin.name).width <= r.w - 8) ctx.fillText(skin.name, cx, r.y + r.h - 22)
     else {   // long names (e.g. "… — Inspired" crossover skins on a 20+ card grid): two lines split at " — ", shrunk to the card width
       const k = skin.name.lastIndexOf(" — "), lines = k > 0 ? [skin.name.slice(0, k), skin.name.slice(k + 1)] : [skin.name]
       let px = 16; while (px > 8 && lines.some(l => (ctx.font = `700 ${px}px Arial`, ctx.measureText(l).width > r.w - 8))) px--
@@ -6614,13 +6623,47 @@ function drawSkinSelectScreen() {
       ctx.save(); _bevelPath(ctx, r.x, r.y, r.w, r.h, 12); ctx.clip()
       ctx.fillStyle = "rgba(8,12,24,0.66)"; ctx.fillRect(r.x, r.y, r.w, r.h)
       ctx.fillStyle = "#94a3b8"; ctx.font = "700 22px Arial"; ctx.fillText("🔒", cx, cy - 10)
-      ctx.fillStyle = "#cbd5e1"; ctx.font = "600 14px Arial"; ctx.fillText(`Unlocks at Lv. ${skin.unlockLevel}`, cx, cy + 18)
+      { let px = 14; const t = `Unlocks at Lv. ${skin.unlockLevel}`; while (px > 8 && (ctx.font = `600 ${px}px Arial`, ctx.measureText(t).width > r.w - 8)) px--; ctx.fillStyle = "#cbd5e1"; ctx.fillText(t, cx, cy + 18) }   // fits small cards
       ctx.restore()
     }
     ctx.restore()
   })
   ctx.fillStyle = "#94a3b8"; ctx.font = "14px Arial"
-  ctx.fillText("Click an unlocked skin to continue · locked skins need the level (or the dev code)", canvas.width / 2, canvas.height - 60)
+  const _lastCard = rects[rects.length - 1]   // a large grid reaches the bottom: skip the hint rather than print over the cards
+  if (!_lastCard || _lastCard.y + _lastCard.h < canvas.height - 76) ctx.fillText("Click an unlocked skin to continue · locked skins need the level (or the dev code)", canvas.width / 2, canvas.height - 60)
+}
+
+// BEN 10 SKIN CARDS (2026-11-19): Ben's appearance + theme cards show his full-body idle frame, recoloured in the card's
+// theme, drawn LARGE and nearest-neighbour (crisp pixels), with the theme's role colours as a strip underneath.
+function _benSkinCard(charKey, skin) {
+  if (charKey !== "ben10") return null
+  const ap = skin.benAppearance || (skin.id === "ben10Classic" ? "classic" : skin.id === "default" ? "jacket" : null)
+  if (!ap) return null
+  const idle = (getSkinAnimationData("ben10", skin.id) || characters.ben10?.animationData)?.idle
+  return benThemeCardImage(idle, ap, skin.benTheme || null)
+}
+function _drawBenSkinCard(ctx, img, skin, r, labH) {
+  const t = skin.benTheme ? BEN_THEME_BY_ID[skin.benTheme] : null
+  const sw = t ? Math.max(5, Math.round(r.h * 0.035)) : 0
+  const ax = r.x + 4, ay = r.y + 5, aw = r.w - 8, ah = r.h - labH - 6 - (sw ? sw + 3 : 0)
+  let s = Math.min(aw / img.width, ah / img.height); if (s >= 2) s = Math.floor(s)
+  const w = Math.round(img.width * s), h = Math.round(img.height * s)
+  ctx.save(); ctx.imageSmoothingEnabled = false
+  ctx.drawImage(img, Math.round(ax + (aw - w) / 2), Math.round(ay + ah - h), w, h)
+  ctx.restore()
+  if (t) {
+    const roles = ["P", "S", "A", "E", "H"].filter(k => t.roles[k]), gap = 2, y = ay + ah + 3
+    const bw = Math.min(18, (aw - gap * (roles.length - 1)) / roles.length), x0 = r.x + r.w / 2 - (bw * roles.length + gap * (roles.length - 1)) / 2
+    roles.forEach((k, i) => { ctx.fillStyle = t.roles[k][1]; ctx.fillRect(x0 + i * (bw + gap), y, bw, sw); ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 1; ctx.strokeRect(x0 + i * (bw + gap) + 0.5, y + 0.5, bw - 1, sw - 1) })
+  }
+}
+function _drawBenSkinLabel(ctx, skin, r, cx, labH) {
+  const L = benThemeCardLabel(skin)
+  const big = Math.max(9, Math.min(16, Math.round(labH * 0.32))), small = Math.max(8, Math.round(big * 0.72))
+  const fit = (txt, px, weight) => { while (px > 7 && (ctx.font = `${weight} ${px}px Arial`, ctx.measureText(txt).width > r.w - 6)) px--; ctx.font = `${weight} ${px}px Arial` }
+  ctx.textAlign = "center"
+  fit(L.tag, small, 700); ctx.fillStyle = "#94a3b8"; ctx.fillText(L.tag, cx, r.y + r.h - labH + small + 2)
+  fit(L.title, big, 700); ctx.fillStyle = "#e6edf7"; ctx.fillText(L.title, cx, r.y + r.h - 8)
 }
 
 const _skinPortraitCache = new Map()
@@ -28316,6 +28359,8 @@ gameLoop()
     skipToBattle,
     // ── BEN 10 OMNITRIX harness (Phase 3) ──────────────────────────────────────
     ben10Vow: (who = "p1", on = true) => { const f = who === "p2" ? p2 : p1; if (f?.omnitrix) f.omnitrix.vowActive = !!on; return !!(f?.omnitrix?.vowActive) },
+    // Ben 10 THEMES (render checks): the LIVE fighter's theme fields + what it last drew themed; `set` overrides the theme id
+    benTheme: (who = "p1", set) => { const f = who === "p2" ? p2 : p1; if (!f) return null; if (set !== undefined) f._benTheme = set; return { theme: f._benTheme || null, appearance: f._benAppearance || null, skinId: f.skinId, rosterKey: f.rosterKey, transformed: !!f.transformed, alien: f.activeAlien || null, variant: f._benVariant || null, tint: f.tintColor || null, last: benThemeLast(f) } },
     ben10Details: (who = "p1") => {
       const f = who === "p2" ? p2 : p1
       return f ? { speed: f._benWalkSpeed, jump: f.jumpForce, variant: f._benVariant, form: f.activeAlien,

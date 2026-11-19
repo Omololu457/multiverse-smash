@@ -30,7 +30,7 @@ test("every wired clip exists on disk; > 8 s and near-silent clips are never wir
 test("UNVERIFIED-era clips only in ATTACK_EFFORT / SFX / TAUNT; shape-assigned INTRO/WIN/LOSE are flagged", () => {
   for (const r of all) {
     if (!r.verified_era && r.pool) assert(GENERIC.has(r.pool), `${r.file} → ${r.pool}`)
-    if (["INTRO", "WIN", "LOSE"].includes(r.pool)) assert(r.flags.some(x => /wording unverified/.test(x)), r.file)
+    if (["INTRO", "WIN", "LOSE"].includes(r.pool)) assert(r.flags.some(x => /wording unverified|role set from the transcript/.test(x)), r.file)
     if (!r.verified_era) assert(r.flags.some(x => /UNVERIFIED/.test(x)), r.file)
   }
 })
@@ -53,6 +53,13 @@ test("who speaks: alien pools for Ben AND Albedo; human pools by variant; win fa
 test("the old transcript-verified Albedo / Vilgax lines are kept (merged into their pools)", () => {
   assert(V.BEN10_VO.albedo.INTRO.includes("albedo_089.mp3") && V.BEN10_VO.albedo.LOW_HEALTH.includes("albedo_014.mp3"))
   assert(V.BEN10_VO.vilgax.TAUNT.includes("vilgax_018.mp3") && V.BEN10_VO.vilgax.HIT_REACT.includes("vilgax_002.mp3"))
+})
+test("speaker review: every clip in tools/ben10/vo_curation.json 'drop' is unwired; every new Vilgax clip is dropped (not his voice)", () => {
+  const C = JSON.parse(fs.readFileSync(path.join(ROOT, "tools/ben10/vo_curation.json"), "utf8"))
+  const wired = new Set(Object.values(V.BEN10_VO).flatMap(P => Object.values(P).flat()))
+  for (const p of Object.keys(C.drop)) assert(!wired.has(p), p)
+  assert(!Object.values(V.BEN10_VO.vilgax).flat().some(c => c.startsWith("./assets/audio/vilgax/")), "no new vilgax clip wired")
+  for (const [p, pool] of Object.entries(C.move)) { const r = all.find(x => x.path === p); assert.equal(r?.pool, pool, p) }
 })
 console.log(`\nBEN 10 VO: ${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

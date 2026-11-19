@@ -6,6 +6,7 @@
 //      are untouched, the theme module never reads Ben's sheets, Ben's skins never change Albedo.
 //   D. ENGINE: deterministic, alpha / size preserved, every form + appearance gets themed pixels under every theme (no
 //      silent fallback), dark themes keep internal shading, no Math.random in any new file.
+import { BEN_THEMES, benThemeSkinId } from '../benThemes.js'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -143,7 +144,10 @@ test('C1. no Albedo theme can attach to Ben (or anyone but albedo), for any id',
   }
 })
 test('C2. Ben\'s skins, variant stats and frame data are unchanged (no theme skin, no __albedo sheet, same table)', () => {
-  assert.deepEqual(getSkins('ben10').map(s => s.id), ['default', 'ben10Classic', 'ben10Prime', 'ben10_crimson', 'ben10_azure'])
+  // Ben's own list = his 5 originals + his OWN 40 themes (benThemes.js, landed on main separately); no Albedo id in it
+  assert.deepEqual(getSkins('ben10').map(s => s.id), ['default', 'ben10Classic', 'ben10Prime', 'ben10_crimson', 'ben10_azure',
+    ...['classic', 'jacket'].flatMap(ap => BEN_THEMES.map(t => benThemeSkinId(ap, t.id)))])
+  for (const s of getSkins('ben10')) assert(!ALBEDO_THEME_SKIN_IDS.includes(s.id) && !s.albedoTheme, 'Albedo theme on Ben: ' + s.id)
   for (const s of getSkins('ben10')) for (const d of Object.values(s.animationData || characters.ben10.animationData)) assert(!/albedo/.test(d.sheet), d.sheet)
   for (const id of ['default', 'ben10Classic', 'ben10Prime']) {
     const b = device('ben10', id, 0, 1); assert.deepEqual(plain(b._benHumanStats), plain({ ...F.BEN10_VARIANT_STATS[id] }), id)

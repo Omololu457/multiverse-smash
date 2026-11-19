@@ -394,8 +394,8 @@
    "voiced_ratio": 0.512,
    "silence_ratio": 0.047,
    "rms_slope_db": -13.66,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: Ben, but story dialogue with no fight context",
    "flags": []
   },
   {
@@ -416,8 +416,8 @@
    "voiced_ratio": 0.467,
    "silence_ratio": 0.1,
    "rms_slope_db": -8.79,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: Ben, but story dialogue with no fight context",
    "flags": []
   },
   {
@@ -482,8 +482,8 @@
    "voiced_ratio": 0.375,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.32,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -504,8 +504,8 @@
    "voiced_ratio": 0.377,
    "silence_ratio": 0.075,
    "rms_slope_db": 1.12,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -526,11 +526,9 @@
    "voiced_ratio": 0.614,
    "silence_ratio": 0.02,
    "rms_slope_db": 3.43,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
+   "flags": []
   },
   {
    "file": "ben_young_025.ogg",
@@ -550,8 +548,8 @@
    "voiced_ratio": 0.769,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.22,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -572,8 +570,8 @@
    "voiced_ratio": 0.588,
    "silence_ratio": 0.206,
    "rms_slope_db": -7.33,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -968,11 +966,9 @@
    "voiced_ratio": 0.864,
    "silence_ratio": 0.012,
    "rms_slope_db": 0.73,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "ben_young_045.ogg",
@@ -1278,8 +1274,8 @@
    "voiced_ratio": 0.689,
    "silence_ratio": 0.095,
    "rms_slope_db": -3.55,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1300,11 +1296,9 @@
    "voiced_ratio": 0.685,
    "silence_ratio": 0.038,
    "rms_slope_db": 2.45,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
+   "flags": []
   },
   {
    "file": "ben_young_060.ogg",
@@ -1324,8 +1318,8 @@
    "voiced_ratio": 0.718,
    "silence_ratio": 0.042,
    "rms_slope_db": -4.9,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   }
  ],
@@ -1348,11 +1342,9 @@
    "voiced_ratio": 0.674,
    "silence_ratio": 0.065,
    "rms_slope_db": -0.13,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
+   "flags": []
   },
   {
    "file": "ben_teen_002.ogg",
@@ -1372,8 +1364,8 @@
    "voiced_ratio": 0.647,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.16,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": []
   },
   {
@@ -1462,10 +1454,11 @@
    "voiced_ratio": 0.659,
    "silence_ratio": 0.14,
    "rms_slope_db": -1.32,
-   "pool": "LOSE",
+   "pool": "WIN",
    "skipped": null,
+   "moved": true,
    "flags": [
-    "wording unverified (shape-assigned)"
+    "role set from the transcript"
    ]
   }
  ],
@@ -1488,11 +1481,9 @@
    "voiced_ratio": 0.423,
    "silence_ratio": 0.02,
    "rms_slope_db": 2.49,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_002.ogg",
@@ -1600,8 +1591,8 @@
    "voiced_ratio": 0.226,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.9,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -1644,8 +1635,8 @@
    "voiced_ratio": 0.532,
    "silence_ratio": 0.032,
    "rms_slope_db": 4.35,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1754,8 +1745,8 @@
    "voiced_ratio": 0.438,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.32,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -1776,8 +1767,8 @@
    "voiced_ratio": 0.263,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.4,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Albedo (pitch / timbre) and the line is not his",
    "flags": []
   },
   {
@@ -1798,11 +1789,10 @@
    "voiced_ratio": 0.333,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.42,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "albedo_016.ogg",
@@ -1822,11 +1812,10 @@
    "voiced_ratio": 0.475,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.2,
-   "pool": "INTRO",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "albedo_017.ogg",
@@ -1868,11 +1857,9 @@
    "voiced_ratio": 0.526,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.43,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_019.ogg",
@@ -1936,11 +1923,9 @@
    "voiced_ratio": 0.212,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.28,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_022.ogg",
@@ -1960,8 +1945,8 @@
    "voiced_ratio": 0.765,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.27,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1982,8 +1967,8 @@
    "voiced_ratio": 0.725,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.94,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -2070,11 +2055,9 @@
    "voiced_ratio": 0.887,
    "silence_ratio": 0.006,
    "rms_slope_db": -4.31,
-   "pool": "LOSE",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_028.ogg",
@@ -2094,8 +2077,8 @@
    "voiced_ratio": 0.737,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.03,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Albedo (pitch / timbre) and the line is not his",
    "flags": []
   },
   {
@@ -2206,11 +2189,9 @@
    "voiced_ratio": 0.53,
    "silence_ratio": 0.009,
    "rms_slope_db": 0.16,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_034.ogg",
@@ -2230,8 +2211,8 @@
    "voiced_ratio": 0.691,
    "silence_ratio": 0.0,
    "rms_slope_db": -2.34,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Albedo (pitch / timbre) and the line is not his",
    "flags": []
   },
   {
@@ -2406,11 +2387,9 @@
    "voiced_ratio": 0.73,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.54,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_043.ogg",
@@ -2496,11 +2475,9 @@
    "voiced_ratio": 0.485,
    "silence_ratio": 0.0,
    "rms_slope_db": 11.88,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_047.ogg",
@@ -2542,8 +2519,8 @@
    "voiced_ratio": 0.512,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.06,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -2564,8 +2541,8 @@
    "voiced_ratio": 0.581,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.42,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -2586,11 +2563,9 @@
    "voiced_ratio": 0.342,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.71,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_051.ogg",
@@ -2918,11 +2893,9 @@
    "voiced_ratio": 0.421,
    "silence_ratio": 0.009,
    "rms_slope_db": -3.81,
-   "pool": "LOSE",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_066.ogg",
@@ -2942,8 +2915,8 @@
    "voiced_ratio": 0.744,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.54,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -3030,8 +3003,8 @@
    "voiced_ratio": 0.562,
    "silence_ratio": 0.047,
    "rms_slope_db": -0.61,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -3206,8 +3179,8 @@
    "voiced_ratio": 0.727,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.98,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -3360,11 +3333,9 @@
    "voiced_ratio": 0.714,
    "silence_ratio": 0.009,
    "rms_slope_db": 6.43,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_086.ogg",
@@ -3384,11 +3355,9 @@
    "voiced_ratio": 0.417,
    "silence_ratio": 0.008,
    "rms_slope_db": -2.77,
-   "pool": "LOSE",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   }
  ],
  "ghostfreak_young": [
@@ -3984,10 +3953,11 @@
    "voiced_ratio": 0.264,
    "silence_ratio": 0.164,
    "rms_slope_db": -0.73,
-   "pool": "WIN",
+   "pool": "LOSE",
    "skipped": null,
+   "moved": true,
    "flags": [
-    "wording unverified (shape-assigned)"
+    "role set from the transcript"
    ]
   },
   {
@@ -4030,10 +4000,11 @@
    "voiced_ratio": 0.466,
    "silence_ratio": 0.06,
    "rms_slope_db": 3.65,
-   "pool": "WIN",
+   "pool": "LOSE",
    "skipped": null,
+   "moved": true,
    "flags": [
-    "wording unverified (shape-assigned)"
+    "role set from the transcript"
    ]
   },
   {
@@ -4216,8 +4187,8 @@
    "voiced_ratio": 0.917,
    "silence_ratio": 0.0,
    "rms_slope_db": -13.7,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4384,8 +4355,8 @@
    "voiced_ratio": 0.739,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.84,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4432,8 +4403,8 @@
    "voiced_ratio": 0.806,
    "silence_ratio": 0.0,
    "rms_slope_db": 3.52,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4456,8 +4427,8 @@
    "voiced_ratio": 0.762,
    "silence_ratio": 0.048,
    "rms_slope_db": -7.16,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4504,8 +4475,8 @@
    "voiced_ratio": 0.571,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.85,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4576,8 +4547,8 @@
    "voiced_ratio": 0.789,
    "silence_ratio": 0.042,
    "rms_slope_db": -0.23,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4600,8 +4571,8 @@
    "voiced_ratio": 0.075,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.55,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4624,8 +4595,8 @@
    "voiced_ratio": 0.138,
    "silence_ratio": 0.03,
    "rms_slope_db": -1.56,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -4672,8 +4643,8 @@
    "voiced_ratio": 0.609,
    "silence_ratio": 0.011,
    "rms_slope_db": -0.89,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: human Ben / another character talking, not Ghostfreak",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -5046,8 +5017,9 @@
    "voiced_ratio": 0.195,
    "silence_ratio": 0.073,
    "rms_slope_db": -1.13,
-   "pool": "SFX",
+   "pool": "TAUNT",
    "skipped": null,
+   "moved": true,
    "flags": []
   },
   {
@@ -5068,11 +5040,10 @@
    "voiced_ratio": 0.437,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.58,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "heatblast_young_014.ogg",
@@ -5248,11 +5219,10 @@
    "voiced_ratio": 0.454,
    "silence_ratio": 0.06,
    "rms_slope_db": -1.88,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "heatblast_young_022.ogg",
@@ -5296,11 +5266,10 @@
    "voiced_ratio": 0.424,
    "silence_ratio": 0.125,
    "rms_slope_db": -2.86,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "heatblast_young_024.ogg",
@@ -5410,8 +5379,8 @@
    "voiced_ratio": 0.545,
    "silence_ratio": 0.045,
    "rms_slope_db": -3.82,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Heatblast (pitch / timbre far off)",
    "flags": []
   },
   {
@@ -5432,8 +5401,8 @@
    "voiced_ratio": 0.343,
    "silence_ratio": 0.057,
    "rms_slope_db": 6.89,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Heatblast (pitch / timbre far off)",
    "flags": []
   },
   {
@@ -5454,8 +5423,8 @@
    "voiced_ratio": 0.976,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.11,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Heatblast (pitch / timbre far off)",
    "flags": []
   }
  ],
@@ -6468,8 +6437,8 @@
    "voiced_ratio": 0.564,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.01,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6492,8 +6461,8 @@
    "voiced_ratio": 0.405,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.49,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6516,8 +6485,8 @@
    "voiced_ratio": 0.569,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.75,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6540,8 +6509,8 @@
    "voiced_ratio": 0.733,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.53,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6684,8 +6653,8 @@
    "voiced_ratio": 0.462,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.05,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice far too deep for Big Chill; another character",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6708,8 +6677,8 @@
    "voiced_ratio": 0.464,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.29,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice far too deep for Big Chill; another character",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6732,8 +6701,8 @@
    "voiced_ratio": 0.093,
    "silence_ratio": 0.0,
    "rms_slope_db": -2.36,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -6852,8 +6821,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -5.7,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -7166,8 +7135,8 @@
    "voiced_ratio": 0.761,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.32,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -7286,8 +7255,8 @@
    "voiced_ratio": 0.485,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.72,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -7334,8 +7303,8 @@
    "voiced_ratio": 0.38,
    "silence_ratio": 0.0,
    "rms_slope_db": -7.98,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -7550,8 +7519,8 @@
    "voiced_ratio": 0.422,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.19,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -7720,8 +7689,8 @@
    "voiced_ratio": 0.683,
    "silence_ratio": 0.033,
    "rms_slope_db": 0.41,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -7960,8 +7929,8 @@
    "voiced_ratio": 0.594,
    "silence_ratio": 0.047,
    "rms_slope_db": -1.23,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -8274,8 +8243,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -7.17,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -8346,8 +8315,8 @@
    "voiced_ratio": 0.652,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.52,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -8370,8 +8339,8 @@
    "voiced_ratio": 0.498,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.41,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -8658,8 +8627,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.6,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -8972,8 +8941,8 @@
    "voiced_ratio": 0.0,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.32,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9092,8 +9061,8 @@
    "voiced_ratio": 0.742,
    "silence_ratio": 0.006,
    "rms_slope_db": 1.2,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9284,8 +9253,8 @@
    "voiced_ratio": 0.452,
    "silence_ratio": 0.29,
    "rms_slope_db": -8.35,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9308,8 +9277,8 @@
    "voiced_ratio": 0.231,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.04,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9356,8 +9325,8 @@
    "voiced_ratio": 0.857,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.93,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9404,8 +9373,8 @@
    "voiced_ratio": 0.625,
    "silence_ratio": 0.25,
    "rms_slope_db": 19.29,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9428,8 +9397,8 @@
    "voiced_ratio": 0.583,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.35,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9548,8 +9517,8 @@
    "voiced_ratio": 0.75,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.49,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9740,8 +9709,8 @@
    "voiced_ratio": 0.833,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.09,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9788,8 +9757,8 @@
    "voiced_ratio": 0.576,
    "silence_ratio": 0.0,
    "rms_slope_db": -9.8,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9812,8 +9781,8 @@
    "voiced_ratio": 0.3,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.0,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9836,8 +9805,8 @@
    "voiced_ratio": 0.348,
    "silence_ratio": 0.03,
    "rms_slope_db": 1.45,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -9980,8 +9949,8 @@
    "voiced_ratio": 0.6,
    "silence_ratio": 0.031,
    "rms_slope_db": -2.58,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10004,8 +9973,8 @@
    "voiced_ratio": 0.849,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.48,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10028,8 +9997,8 @@
    "voiced_ratio": 0.615,
    "silence_ratio": 0.0,
    "rms_slope_db": -13.4,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10150,8 +10119,8 @@
    "voiced_ratio": 0.698,
    "silence_ratio": 0.0,
    "rms_slope_db": 5.23,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10222,8 +10191,8 @@
    "voiced_ratio": 0.184,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.45,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10246,8 +10215,8 @@
    "voiced_ratio": 0.5,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.6,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10294,8 +10263,8 @@
    "voiced_ratio": 0.176,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.03,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10318,8 +10287,8 @@
    "voiced_ratio": 0.624,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.52,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10510,8 +10479,8 @@
    "voiced_ratio": 0.859,
    "silence_ratio": 0.004,
    "rms_slope_db": 2.14,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10534,8 +10503,8 @@
    "voiced_ratio": 0.533,
    "silence_ratio": 0.017,
    "rms_slope_db": 0.45,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10558,8 +10527,8 @@
    "voiced_ratio": 0.394,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.0,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10606,8 +10575,8 @@
    "voiced_ratio": 0.792,
    "silence_ratio": 0.0,
    "rms_slope_db": 3.59,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10630,8 +10599,8 @@
    "voiced_ratio": 0.952,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.98,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10654,8 +10623,8 @@
    "voiced_ratio": 0.822,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.3,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10678,8 +10647,8 @@
    "voiced_ratio": 0.516,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.51,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10750,8 +10719,8 @@
    "voiced_ratio": 0.541,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.75,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10846,8 +10815,8 @@
    "voiced_ratio": 0.731,
    "silence_ratio": 0.038,
    "rms_slope_db": -0.85,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -10968,8 +10937,8 @@
    "voiced_ratio": 0.694,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.06,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11160,8 +11129,8 @@
    "voiced_ratio": 0.312,
    "silence_ratio": 0.0,
    "rms_slope_db": -5.16,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11184,8 +11153,8 @@
    "voiced_ratio": 0.533,
    "silence_ratio": 0.0,
    "rms_slope_db": -17.53,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11208,8 +11177,8 @@
    "voiced_ratio": 0.572,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.73,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11232,8 +11201,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.59,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11256,8 +11225,8 @@
    "voiced_ratio": 0.746,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.91,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11280,8 +11249,8 @@
    "voiced_ratio": 0.647,
    "silence_ratio": 0.0,
    "rms_slope_db": -10.62,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11304,8 +11273,8 @@
    "voiced_ratio": 0.958,
    "silence_ratio": 0.042,
    "rms_slope_db": 1.6,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11376,8 +11345,8 @@
    "voiced_ratio": 0.289,
    "silence_ratio": 0.0,
    "rms_slope_db": -9.71,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11424,8 +11393,8 @@
    "voiced_ratio": 0.808,
    "silence_ratio": 0.069,
    "rms_slope_db": -0.49,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11472,8 +11441,8 @@
    "voiced_ratio": 0.865,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.37,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11496,8 +11465,8 @@
    "voiced_ratio": 0.875,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.59,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11592,8 +11561,8 @@
    "voiced_ratio": 0.49,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.2,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11616,8 +11585,8 @@
    "voiced_ratio": 0.552,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.42,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11640,8 +11609,8 @@
    "voiced_ratio": 0.665,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.39,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11762,8 +11731,8 @@
    "voiced_ratio": 0.297,
    "silence_ratio": 0.0,
    "rms_slope_db": 6.24,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11786,8 +11755,8 @@
    "voiced_ratio": 0.417,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.8,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11834,8 +11803,8 @@
    "voiced_ratio": 1.0,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.21,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11930,8 +11899,8 @@
    "voiced_ratio": 0.414,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.27,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -11978,8 +11947,8 @@
    "voiced_ratio": 0.327,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.44,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12002,8 +11971,8 @@
    "voiced_ratio": 0.522,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.03,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12026,8 +11995,8 @@
    "voiced_ratio": 0.194,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.38,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: a fragment with no clear speaker",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12050,8 +12019,8 @@
    "voiced_ratio": 0.4,
    "silence_ratio": 0.041,
    "rms_slope_db": 0.54,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12074,8 +12043,8 @@
    "voiced_ratio": 0.527,
    "silence_ratio": 0.004,
    "rms_slope_db": 0.97,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12122,8 +12091,8 @@
    "voiced_ratio": 0.475,
    "silence_ratio": 0.013,
    "rms_slope_db": 2.68,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: Ben out of the fight talking to Grandpa",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12266,8 +12235,8 @@
    "voiced_ratio": 0.403,
    "silence_ratio": 0.022,
    "rms_slope_db": -5.17,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12290,8 +12259,8 @@
    "voiced_ratio": 0.407,
    "silence_ratio": 0.0,
    "rms_slope_db": -2.7,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
    "flags": [
     "UNVERIFIED era (source folder)"
    ]
@@ -12408,8 +12377,8 @@
    "voiced_ratio": 0.6,
    "silence_ratio": 0.0,
    "rms_slope_db": 4.15,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12430,8 +12399,8 @@
    "voiced_ratio": 0.667,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.52,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12452,8 +12421,8 @@
    "voiced_ratio": 0.125,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.32,
-   "pool": "SFX",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12474,8 +12443,8 @@
    "voiced_ratio": 0.5,
    "silence_ratio": 0.0,
    "rms_slope_db": -2.4,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12496,8 +12465,8 @@
    "voiced_ratio": 0.8,
    "silence_ratio": 0.0,
    "rms_slope_db": -5.7,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12518,11 +12487,9 @@
    "voiced_ratio": 0.356,
    "silence_ratio": 0.227,
    "rms_slope_db": -0.4,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
+   "flags": []
   },
   {
    "file": "vilgax_009.ogg",
@@ -12542,8 +12509,8 @@
    "voiced_ratio": 0.217,
    "silence_ratio": 0.217,
    "rms_slope_db": 4.54,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12564,8 +12531,8 @@
    "voiced_ratio": 0.2,
    "silence_ratio": 0.2,
    "rms_slope_db": 6.61,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12586,8 +12553,8 @@
    "voiced_ratio": 0.222,
    "silence_ratio": 0.222,
    "rms_slope_db": 1.54,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12608,8 +12575,8 @@
    "voiced_ratio": 0.256,
    "silence_ratio": 0.231,
    "rms_slope_db": 2.45,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12630,8 +12597,8 @@
    "voiced_ratio": 0.471,
    "silence_ratio": 0.143,
    "rms_slope_db": 0.36,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12652,8 +12619,8 @@
    "voiced_ratio": 0.308,
    "silence_ratio": 0.077,
    "rms_slope_db": 7.1,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12674,8 +12641,8 @@
    "voiced_ratio": 0.277,
    "silence_ratio": 0.277,
    "rms_slope_db": 2.74,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12696,11 +12663,9 @@
    "voiced_ratio": 0.244,
    "silence_ratio": 0.185,
    "rms_slope_db": -1.17,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
+   "flags": []
   },
   {
    "file": "vilgax_017.ogg",
@@ -12720,8 +12685,8 @@
    "voiced_ratio": 0.275,
    "silence_ratio": 0.377,
    "rms_slope_db": 2.75,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12742,8 +12707,8 @@
    "voiced_ratio": 0.294,
    "silence_ratio": 0.353,
    "rms_slope_db": -1.47,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12764,8 +12729,8 @@
    "voiced_ratio": 0.564,
    "silence_ratio": 0.282,
    "rms_slope_db": 1.05,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12786,8 +12751,8 @@
    "voiced_ratio": 0.711,
    "silence_ratio": 0.211,
    "rms_slope_db": -6.12,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12808,8 +12773,8 @@
    "voiced_ratio": 0.636,
    "silence_ratio": 0.0,
    "rms_slope_db": -15.55,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12830,8 +12795,8 @@
    "voiced_ratio": 0.81,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.59,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   },
   {
@@ -12852,8 +12817,8 @@
    "voiced_ratio": 0.55,
    "silence_ratio": 0.113,
    "rms_slope_db": -2.15,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not Vilgax: high-pitched (~300-440 Hz) grunts and 'Dude!'/'Yeah yeah' \u2014 Vilgax's voice is deep",
    "flags": []
   }
  ],

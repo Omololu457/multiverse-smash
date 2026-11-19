@@ -15,6 +15,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
 import { ALBEDO_THEMES, ALBEDO_APPEARANCES, albedoThemeSkinId } from "./albedoThemes.js"   // Albedo skin themes (Albedo list only)
+import { BEN_THEMES, BEN_APPEARANCES, benThemeSkinId } from "./benThemes.js"   // Ben 10: 20 cosmetic themes × Classic / Jacket
 import { KRYBOT_SKINS } from './krybotSkins.js'
 import { SPD_PINK_SKINS } from './spdPinkSkins.js'   // S.P.D. Pink default + 6 appearance skins (cosmetic, precomputed)
 import { MMPR_PINK_SKINS } from './mmprPinkSkins.js'   // Pink Ranger default + 6 inspired palettes (cosmetic, precomputed)
@@ -2118,7 +2119,16 @@ export const SKINS = {
     { id: "ben10Classic", name: "Classic",     unlockLevel: 0, portrait: "./ben10_portrait__classic.png",   spriteScale: characters.ben10?.spriteScale, animationData: BEN10_CLASSIC_ANIM, benVariant: "classic" },
     { id: "ben10Prime",   name: "Prime (EXPERIMENTAL / pending art)",       unlockLevel: 0, portrait: characters.ben10?.portrait,        spriteScale: characters.ben10?.spriteScale, animationData: null,              benVariant: "prime", primePending: true, auraOverlay: "#39ff14" },
     { id: "ben10_crimson", name: "Crimson", unlockLevel: 2, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#cf4a3f", tintStrength: 0.4 },
-    { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 }
+    { id: "ben10_azure",   name: "Azure",   unlockLevel: 4, portrait: characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale, animationData: null, skinTint: "#3f7fcf", tintStrength: 0.4 },
+    // THEMES (2026-11-18): 20 cosmetic themes worn on either human appearance = 40 skins, ids "<classic|jacket>-<theme>"
+    // (benThemes.js is the one registry). Each is the ORIGINAL appearance's skin (same art map, same variant: classic →
+    // Classic stats / normals / voice, jacket → Alien Force) plus benTheme/benAppearance; benThemeRecolor.js recolours the
+    // human sheets AND every READY alien he transforms into, at draw time. The two originals above stay unnumbered.
+    ...["classic", "jacket"].flatMap(ap => BEN_THEMES.map(t => ({
+      id: benThemeSkinId(ap, t.id), name: `${BEN_APPEARANCES[ap].label} — ${t.name}`, unlockLevel: 0,
+      portrait: ap === "classic" ? "./ben10_portrait__classic.png" : characters.ben10?.portrait, spriteScale: characters.ben10?.spriteScale,
+      animationData: ap === "classic" ? BEN10_CLASSIC_ANIM : null, benVariant: ap === "classic" ? "classic" : "alienforce",
+      benTheme: t.id, benAppearance: ap, themeSource: t.source })))
   ],
 
   // Albedo — needs its OWN default entry so getSkins() doesn't fall back to the synthesized

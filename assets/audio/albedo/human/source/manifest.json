@@ -26,11 +26,9 @@
    "voiced_ratio": 0.423,
    "silence_ratio": 0.02,
    "rms_slope_db": 2.49,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_002.ogg",
@@ -138,8 +136,8 @@
    "voiced_ratio": 0.226,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.9,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -182,8 +180,8 @@
    "voiced_ratio": 0.532,
    "silence_ratio": 0.032,
    "rms_slope_db": 4.35,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -292,8 +290,8 @@
    "voiced_ratio": 0.438,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.32,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -314,8 +312,8 @@
    "voiced_ratio": 0.263,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.4,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Albedo (pitch / timbre) and the line is not his",
    "flags": []
   },
   {
@@ -336,11 +334,10 @@
    "voiced_ratio": 0.333,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.42,
-   "pool": "LOSE",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "albedo_016.ogg",
@@ -360,11 +357,10 @@
    "voiced_ratio": 0.475,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.2,
-   "pool": "INTRO",
+   "pool": "TAUNT",
    "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "moved": true,
+   "flags": []
   },
   {
    "file": "albedo_017.ogg",
@@ -406,11 +402,9 @@
    "voiced_ratio": 0.526,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.43,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_019.ogg",
@@ -474,11 +468,9 @@
    "voiced_ratio": 0.212,
    "silence_ratio": 0.0,
    "rms_slope_db": 2.28,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_022.ogg",
@@ -498,8 +490,8 @@
    "voiced_ratio": 0.765,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.27,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -520,8 +512,8 @@
    "voiced_ratio": 0.725,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.94,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -608,11 +600,9 @@
    "voiced_ratio": 0.887,
    "silence_ratio": 0.006,
    "rms_slope_db": -4.31,
-   "pool": "LOSE",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_028.ogg",
@@ -632,8 +622,8 @@
    "voiced_ratio": 0.737,
    "silence_ratio": 0.0,
    "rms_slope_db": -4.03,
-   "pool": "ATTACK_EFFORT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Albedo (pitch / timbre) and the line is not his",
    "flags": []
   },
   {
@@ -744,11 +734,9 @@
    "voiced_ratio": 0.53,
    "silence_ratio": 0.009,
    "rms_slope_db": 0.16,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_034.ogg",
@@ -768,8 +756,8 @@
    "voiced_ratio": 0.691,
    "silence_ratio": 0.0,
    "rms_slope_db": -2.34,
-   "pool": "SPECIAL_CALLOUT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: voice does not match Albedo (pitch / timbre) and the line is not his",
    "flags": []
   },
   {
@@ -944,11 +932,9 @@
    "voiced_ratio": 0.73,
    "silence_ratio": 0.0,
    "rms_slope_db": 1.54,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_043.ogg",
@@ -1034,11 +1020,9 @@
    "voiced_ratio": 0.485,
    "silence_ratio": 0.0,
    "rms_slope_db": 11.88,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_047.ogg",
@@ -1080,8 +1064,8 @@
    "voiced_ratio": 0.512,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.06,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1102,8 +1086,8 @@
    "voiced_ratio": 0.581,
    "silence_ratio": 0.0,
    "rms_slope_db": -6.42,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1124,11 +1108,9 @@
    "voiced_ratio": 0.342,
    "silence_ratio": 0.0,
    "rms_slope_db": -0.71,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_051.ogg",
@@ -1456,11 +1438,9 @@
    "voiced_ratio": 0.421,
    "silence_ratio": 0.009,
    "rms_slope_db": -3.81,
-   "pool": "LOSE",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "albedo_066.ogg",
@@ -1480,8 +1460,8 @@
    "voiced_ratio": 0.744,
    "silence_ratio": 0.0,
    "rms_slope_db": -1.54,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1568,8 +1548,8 @@
    "voiced_ratio": 0.562,
    "silence_ratio": 0.047,
    "rms_slope_db": -0.61,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1744,8 +1724,8 @@
    "voiced_ratio": 0.727,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.98,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1898,11 +1878,9 @@
    "voiced_ratio": 0.714,
    "silence_ratio": 0.009,
    "rms_slope_db": 6.43,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   },
   {
    "file": "albedo_086.ogg",
@@ -1922,11 +1900,9 @@
    "voiced_ratio": 0.417,
    "silence_ratio": 0.008,
    "rms_slope_db": -2.77,
-   "pool": "LOSE",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
+   "flags": []
   }
  ]
 }

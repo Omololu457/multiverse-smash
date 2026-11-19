@@ -402,8 +402,8 @@
    "voiced_ratio": 0.512,
    "silence_ratio": 0.047,
    "rms_slope_db": -13.66,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: Ben, but story dialogue with no fight context",
    "flags": []
   },
   {
@@ -424,8 +424,8 @@
    "voiced_ratio": 0.467,
    "silence_ratio": 0.1,
    "rms_slope_db": -8.79,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: Ben, but story dialogue with no fight context",
    "flags": []
   },
   {
@@ -490,8 +490,8 @@
    "voiced_ratio": 0.375,
    "silence_ratio": 0.0,
    "rms_slope_db": -3.32,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -512,8 +512,8 @@
    "voiced_ratio": 0.377,
    "silence_ratio": 0.075,
    "rms_slope_db": 1.12,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -534,11 +534,9 @@
    "voiced_ratio": 0.614,
    "silence_ratio": 0.02,
    "rms_slope_db": 3.43,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
+   "flags": []
   },
   {
    "file": "ben_young_025.ogg",
@@ -558,8 +556,8 @@
    "voiced_ratio": 0.769,
    "silence_ratio": 0.0,
    "rms_slope_db": 0.22,
-   "pool": "HIT_REACT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -580,8 +578,8 @@
    "voiced_ratio": 0.588,
    "silence_ratio": 0.206,
    "rms_slope_db": -7.33,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
    "flags": []
   },
   {
@@ -976,11 +974,9 @@
    "voiced_ratio": 0.864,
    "silence_ratio": 0.012,
    "rms_slope_db": 0.73,
-   "pool": "INTRO",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: not speech: transcription hallucination / fragment",
+   "flags": []
   },
   {
    "file": "ben_young_045.ogg",
@@ -1286,8 +1282,8 @@
    "voiced_ratio": 0.689,
    "silence_ratio": 0.095,
    "rms_slope_db": -3.55,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   },
   {
@@ -1308,11 +1304,9 @@
    "voiced_ratio": 0.685,
    "silence_ratio": 0.038,
    "rms_slope_db": 2.45,
-   "pool": "WIN",
-   "skipped": null,
-   "flags": [
-    "wording unverified (shape-assigned)"
-   ]
+   "pool": null,
+   "skipped": "wrong speaker / not this character: several speakers in one clip",
+   "flags": []
   },
   {
    "file": "ben_young_060.ogg",
@@ -1332,8 +1326,8 @@
    "voiced_ratio": 0.718,
    "silence_ratio": 0.042,
    "rms_slope_db": -4.9,
-   "pool": "TAUNT",
-   "skipped": null,
+   "pool": null,
+   "skipped": "wrong speaker / not this character: another character's line (transcript)",
    "flags": []
   }
  ]

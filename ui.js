@@ -4,6 +4,7 @@ import { drawSanjiHud, drawSanjiHeatFill } from './sanjiFx.js'   // Sanji — gl
 import { noteSupermanEnergyPanel } from './supermanLaser.js'   // Superman Heat Vision laser bar (render-only)
 import { drawSpdRedHud } from './spdRedFx.js'
 import { drawNinjaHud } from './nsFx.js'   // MSV1 Ninja Power bar
+import { drawNinjaStormHud } from './ninjaStormFx.js'   // MSv2 Vanish pips / stance tag / clone + Mode bars
 import { drawHeatblastHud } from './heatblast.js'   // Heatblast — Heat gauge under the Omnitrix bar + Scorch pips (render-only)   // S.P.D. Red — gem-badged Delta bar + teleport pips + JUDGMENT meter (render-only)
 import { drawArlongHud } from './arlongFx.js'   // Arlong — Tide badge + teeth counter + Kiribachi icon (render-only)
 import { drawBuggyHud } from './buggyFx.js'   // Buggy the Clown — Chop badge + part pips (render-only)   // Roronoa Zoro — Going Merry Spirit badge (render-only)
@@ -4854,6 +4855,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     drawArlongHud(ctx, fighter, { x, enY, pbw, flip })
     drawSpdRedHud(ctx, fighter, { x, enY, pbw, flip })
     drawNinjaHud(ctx, fighter, { x, enY, pbw, flip, hpY, barH })   // MSV1 Ninja Power bar under health (ninjas only)
+    drawNinjaStormHud(ctx, fighter, { x, enY, pbw, flip })   // MSv2
     drawHeatblastHud(ctx, fighter, { x, enY, enH, pbw, flip })   // Heatblast (ben10/albedo in the Heatblast form only)
     { const _rd = benReadyForm(fighter); if (_rd && _rd.drawHud) _rd.drawHud(ctx, fighter, { x, enY, enH, pbw, flip }) }   // READY Omnitrix form gauge (Megawhatt Voltage); no-op otherwise
     drawBenBreathHud(ctx, fighter, { x: x + 8, y: hpY + barH + 26 + 3, w: pbw, flip })   // STORM TIDE breath bar just under this fighter's health panel (benFlood.js; no-op without a flood)

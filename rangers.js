@@ -126,6 +126,13 @@ const overlaps = (a, b) => !!a && !!b && a.x < b.x + b.w && a.x + a.w > b.x && a
 
 // ── 1. BLINK TELEPORT ──────────────────────────────────────────────────────────────────────────────────────────
 export const blinkTotal = p => p.blink.startup + p.blink.travel + p.blink.recovery
+// GENERALIZED BLINK PARAMETERS (MSv2 Ninja Academy): a fighter may carry a temporary per-fighter override on its own
+// Ranger state (`f._ranger.blinkMod`, plain JSON → GAME_STATE), e.g. Lightning Mode's −1 f Vanish startup. No override
+// (every S.P.D. Ranger) → the profile's own frozen object, so their numbers are untouched.
+export function blinkParams(f, p = getRangerProfile(f)) {
+  const m = f?._ranger?.blinkMod
+  return m ? { ...p.blink, ...m } : p.blink
+}
 export const isBlinking = f => !!f?._ranger?.blink
 export const blinkPhase = f => f?._ranger?.blink?.phase || null
 // Free to start a blink right now? (opts.cancel = a move the character module is cancelling out of)
@@ -187,7 +194,7 @@ function resolveDest(f, opp, b, p, W) {
   b.oppFacing = opp?.facing || 1   // PHASE STEP locks the foe to the way it faced BEFORE he passed through it
 }
 function stepBlink(f, opp, r, p, W) {
-  const b = r.blink, B = p.blink, t = b.t
+  const b = r.blink, B = blinkParams(f, p), t = b.t
   const tEnd = B.startup + B.travel, total = tEnd + B.recovery
   f._rooted = true; f.dashTimer = 0
   if (t < B.startup) {   // wind-up: planted on the ground, frozen in the air
@@ -397,7 +404,7 @@ export function rangerWalkMul(f, dir = 0) {
 // Render helper: body opacity (0 while travelling = he is gone; fades in/out around it). Pure.
 export function rangerBodyAlpha(f) {
   const b = f?._ranger?.blink; if (!b) return 1
-  const B = getRangerProfile(f).blink
+  const B = blinkParams(f)
   if (b.phase === 'travel') return 0
   if (b.phase === 'start') return 1 - 0.55 * ((b.t + 1) / B.startup)       // dissolve out
   return 0.45 + 0.55 * ((b.t - B.startup - B.travel + 1) / B.recovery)      // re-form

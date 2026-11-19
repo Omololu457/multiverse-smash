@@ -68,7 +68,10 @@ export const BEN_THEME_REGIONS = {
     R("P", ANY, [0, 0.15], [0.4, 0.92], "#c9c1bd"),                // ghost body greys (#d3cac5 … #73706f): shading kept by ref
     R("P", ANY, [0, 0.15], [0.17, 0.4], "#c9c1bd"),                // dark creases / shadow (#363534): SAME ramp, so they stay darker than the body
   ] },
-  // alienx: Phase 4 (the Alien X special case)
+  alienx: { label: "Alien X", mat: "dark (starfield)", rules: [
+    R("E", [75, 95], [0.4, 0.8], [0.6, 0.9], "#89c041"),           // the chest Omnitrix mark
+    R("P", ANY, [0, 0.1], [0.0, 0.2], "#080808"),                  // the black cosmic body (incl. pure black: it IS his body)
+  ] },                                                             // the white stars / eyes are kept: bright existing eye pixels
   brainstorm: { label: "Brainstorm", mat: "carapace (organic armour)", rules: [
     R("E", [90, 150], [0.35, 1], [0.3, 1], "#299428"),             // green stripes, collar, eyes (energy); near-black green edge pixels stay as drawn
     R("A", [270, 350], [0.25, 1], [0.2, 1], "#874588"),            // purple / magenta joints (#874588 and its pink anti-aliasing)

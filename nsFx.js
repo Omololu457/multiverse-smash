@@ -174,9 +174,9 @@ export function drawNinjaHud(ctx, f, o = {}) {
   const u = s.np / p.np.max
   ctx.fillStyle = p.color; if (o.flip) ctx.fillRect(x + w * (1 - u), y, w * u, h); else ctx.fillRect(x, y, w * u, h)
   ctx.fillStyle = 'rgba(255,255,255,0.85)'; for (let i = 1; i <= 3; i++) ctx.fillRect(Math.round(x + w * i / 4), y - 1, 1, h + 2)   // three notches
-  ctx.font = 'bold 8px Arial'; ctx.textAlign = o.flip ? 'right' : 'left'; ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 8px Arial'; ctx.textAlign = o.flip ? 'left' : 'right'; ctx.fillStyle = '#ffffff'   // label at the bar's INNER end (the engine's BREAK badge owns the outer corner)
   const tag = s.mirror ? `MIRROR ${Math.ceil((p.mirror.frames - s.mirror.t) / 60)}s · SWAPS ${p.mirror.maxSwaps - s.mirror.swaps}` : 'NINJA'
-  ctx.fillText(tag, o.flip ? x + w : x, y + h + 9)
+  ctx.fillText(tag, o.flip ? x : x + w, y + h + 9)
   ctx.restore()
 }
 

@@ -22,3 +22,4 @@ docs/msv1/NINJA_FRAMEWORK.md
 docs/msv1/screenshots
 harness/msv1_framedata_diff.mjs
 harness/msv1_scen_c_shane.mjs
+harness/msv1_scen_d_dustin.mjs

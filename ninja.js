@@ -109,6 +109,8 @@ export function ninjaRoundReset(f) {
   clearNinja(f); const p = getNinjaProfile(f); f._nsBaseSpeed = null
   const st = p?.stats
   if (st) { f.baseSpeed = f.speed = st.speed; if (st.dashSpeed) f.dashSpeed = st.dashSpeed; if (st.dashDuration) f.dashDuration = st.dashDuration; if (st.dashCooldownMax) f.dashCooldownMax = st.dashCooldownMax }
+  if (p?.quotes?.intro) say(f, p.quotes.intro, 150)   // "Ninja Storm, Ranger Form! Ha!" over the match intro (counts down once the round runs)
+  f._nsIntroFx = 0
 }
 export const ninjaPower = f => f?._ninja?.np ?? 0
 export function spendNP(f, n) { const s = f._ninja; if (!s || s.np < n) return false; s.np -= n; return true }
@@ -884,7 +886,7 @@ function stepQuotes(f, opp, s, p) {
   if (!Q) return
   if (s.clock === 1) {   // round start: the morph call, or a match-up line
     const vs = opp && Q.vs?.[opp.rosterKey]
-    if (vs && !vs.reply) say(f, vs.line); else if (!vs) say(f, Q.intro)   // a reply line waits for its cue
+    if (vs && !vs.reply) say(f, vs.line); else if (!vs && !(f._nsBubble?.t > 0)) say(f, Q.intro)   // the intro call stays up from the round reset; a reply line waits for its cue
     if (vs?.reply) s.replyAt = vs.reply
   }
   if (s.replyAt && s.clock === s.replyAt) { const vs = Q.vs[opp?.rosterKey]; if (vs) say(f, vs.line); s.replyAt = 0 }

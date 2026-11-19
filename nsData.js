@@ -183,7 +183,7 @@ export const SHANE_PROFILE = registerNinjaProfile('ns_red', {
   float: { frames: 72, fall: 2.2 },   // WIND FLOAT: hold jump while falling, 1.2 s per airtime, capped fall (never a climb)
   mirror: { mode: 'echo', echoDelay: 8, counter: { kind: 'tornado', hits: 3, dmg: 18, every: 6, launch: -15 } },   // WIND MIRAGE
   barrier: { kind: 'reflect', reflectMul: 1.2 },                                                               // WIND WARD
-  quotes: { intro: 'Ninja Storm, Ranger Form! Ha!', win: 'Air ninjas rule.', vs: { ns_yellow: { line: 'Keep up, Dustin.' }, spd_red: { line: "Space Patrol, huh? Let's see who's faster." } } },
+  quotes: { intro: 'Ninja Storm, Ranger Form! Ha!', win: 'Air ninjas rule.', vs: { ns_yellow: { line: 'Keep up, Dustin.' }, ns_red: { line: 'Only one Air Ninja owns this sky.', reply: 70 }, spd_red: { line: "Space Patrol, huh? Let's see who's faster." } } },
   moves: SHANE_MOVES, commands: SHANE_COMMANDS, supers: { sSuper: shaneSuper, sUlt: shaneUlt },
 })
 export const DUSTIN_PROFILE = registerNinjaProfile('ns_yellow', {
@@ -194,7 +194,7 @@ export const DUSTIN_PROFILE = registerNinjaProfile('ns_yellow', {
   rev: { every: 48, max: 3 },                                                  // REV: 0.8 s of running per pip, up to 3
   mirror: { mode: 'decoy', counter: { kind: 'eruption', dmg: 80, wall: true } },   // EARTH DOUBLE
   barrier: { kind: 'armor', absorb: 2, armorFrames: 60, counter: { dmg: 70, radius: 130 } },   // ROCK HOLD
-  quotes: { intro: 'Ninja Storm, Ranger Form! Ha!', win: 'Earth power, dude!', vs: { ns_red: { line: 'Dude, I was born ready!', reply: 70 } } },
+  quotes: { intro: 'Ninja Storm, Ranger Form! Ha!', win: 'Earth power, dude!', vs: { ns_red: { line: 'Dude, I was born ready!', reply: 70 }, ns_yellow: { line: 'Whoa... dude. Nice helmet.', reply: 70 }, spd_red: { line: 'Space cop! Totally rad. Still gonna win though.', reply: 70 } } },
   moves: DUSTIN_MOVES, commands: DUSTIN_COMMANDS, supers: { sSuper: dustinSuper, sUlt: dustinUlt },
 })
 

@@ -63,7 +63,9 @@ function illusionPose(f, s, m) {
 
 // ── BEHIND the body ──
 export function drawNinjaUnder(c, f) {
-  const s = f?._ninja; if (!s || !isNinja(f)) return
+  if (!isNinja(f)) return
+  drawIntroStreak(c, f)
+  const s = f._ninja; if (!s) return
   const p = getNinjaProfile(f), w = f.w || 48, feet = (f.y || 0) + (f.h || 94)
   // R3 streak tail (the smear left behind) + speed lines while streaking
   for (const e of s.fx) if (e.k === 'streakTail') { const u = 1 - e.t / e.t0; drawPose(c, f, 'streakTail', u < 0.5 ? 0 : 1, e.x, e.y, e.dir || 1, 0.85 * (1 - u)) }
@@ -91,7 +93,8 @@ export function drawNinjaUnder(c, f) {
 
 // ── IN FRONT of the body ──
 export function drawNinjaFx(c, f, frameNo = 0) {
-  const s = f?._ninja; if (!s || !isNinja(f)) return
+  if (!isNinja(f)) return
+  const s = f._ninja; if (!s) { drawBubble(c, f); return }   // the match intro runs before the sim creates f._ninja
   rememberPose(f)
   const p = getNinjaProfile(f), w = f.w || 48
   // ILLUSION: drawn exactly like the body (same strip / frame / scale / facing), NO ground shadow, visor glint every 90 f
@@ -147,13 +150,26 @@ export function drawNinjaFx(c, f, frameNo = 0) {
   drawBubble(c, f)
 }
 
+// ── INTRO STREAK: he arrives as a red / yellow streak from behind (afterimages + speed lines) while the match intro plays.
+// Render-only: a per-fighter presentation counter (_nsIntroFx, never read by the sim, not in the snapshot).
+function drawIntroStreak(c, f) {
+  if (!f._introPlaying) { f._nsIntroFx = 0; return }
+  const t = (f._nsIntroFx = (f._nsIntroFx || 0) + 1), T = 26
+  if (t > T || calm()) return
+  const p = getNinjaProfile(f), w = f.w || 48, feet = (f.y || 0) + (f.h || 94), dir = f.facing || 1, u = t / T
+  for (let i = 3; i >= 1; i--) drawPose(c, f, 'streakTail', i % 2, f.x - dir * (60 * i) * (1 - u), f.y, dir, 0.5 * (1 - u) / i)
+  c.save(); c.strokeStyle = p.color; c.lineWidth = 2; c.globalAlpha = 0.55 * (1 - u)
+  for (let i = 0; i < 6; i++) { const yy = feet - 14 - i * 15, len = 120 + (i * 53) % 140; c.beginPath(); c.moveTo(f.x + w / 2 - dir * 16, yy); c.lineTo(f.x + w / 2 - dir * (16 + len), yy); c.stroke() }
+  c.restore()
+}
+
 // ── TEXT BUBBLES (intro / mirror match / vs S.P.D. Red / win). The Spider-Man quip bubbles are pre-cut balloon images
 // gated to spiderman in game.js; these reuse their contract: {text, t, max} timing with ease in / hold / ease out,
 // the "Quip bubbles" setting (ms_quip_bubbles) + Reduce Flashing / Motion, and they fade when they would cover the foe.
 function bubbleOn() { try { return localStorage.getItem('ms_quip_bubbles') !== '0' } catch (_) { return true } }
 function drawBubble(c, f) {
   const b = f._nsBubble; if (!b || b.t <= 0 || !bubbleOn()) return
-  const life = b.max || 120, a0 = b.t > life * 0.85 ? (life - b.t) / (life * 0.15) : b.t < life * 0.3 ? b.t / (life * 0.3) : 1
+  const life = b.max || 120, a0 = f._introPlaying ? 1 : b.t > life * 0.85 ? (life - b.t) / (life * 0.15) : b.t < life * 0.3 ? b.t / (life * 0.3) : 1
   c.save(); c.font = 'bold 15px Arial'; const tw = c.measureText(b.text).width, bw = tw + 22, bh = 30
   const bx = f.x + (f.w || 48) / 2 - bw / 2, by = f.y - bh - 26
   c.globalAlpha = Math.max(0, Math.min(1, a0)); c.fillStyle = '#ffffff'; c.strokeStyle = '#111'; c.lineWidth = 2.5

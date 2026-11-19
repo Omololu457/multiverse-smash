@@ -10,7 +10,7 @@ Every hook is (file, anchor, text, mode). mode: 'after' (insert text on new line
 A hook is skipped when its marker (the text) is already present → re-running never duplicates.
 """
 import subprocess, sys, os
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.environ.get('MSV1_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 M = '   // MSV1'
 HOOKS = [
   # ── game.js ──

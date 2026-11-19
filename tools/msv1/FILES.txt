@@ -25,3 +25,4 @@ harness/msv1_scen_c_shane.mjs
 harness/msv1_scen_d_dustin.mjs
 harness/msv1_combos.mjs
 docs/msv1/COMBOS.md
+harness/msv1_scen_e_presentation.mjs

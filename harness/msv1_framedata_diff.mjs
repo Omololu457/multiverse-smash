@@ -53,7 +53,7 @@ try {
   const rd = Object.keys(gA).filter(k => J(gA[k]) !== J(gB[k]))
   ok(`MSV1 every pre-existing rangers.js profile unchanged (${Object.keys(gA).join(',')})`, !rd.length, rd.join(','))
   // shared files at head == base + EXACTLY the hook table (tools/msv1/hooks.py re-applied to base reproduces every blob)
-  const want = Object.fromEntries(sh(`python3 tools/msv1/hooks.py blobs ${BASE}`).trim().split('\n').map(l => l.split(' ')))
+  const want = Object.fromEntries(sh(`H=$(mktemp -d)/hooks.py; git show ${HEAD}:tools/msv1/hooks.py > $H; MSV1_ROOT="${ROOT}" python3 $H blobs ${BASE}`)   /* the hook table AS COMMITTED in the tree under test */.trim().split('\n').map(l => l.split(' ')))
   const mism = Object.keys(want).filter(f => sh(`git rev-parse ${HEAD}:${f}`).trim() !== want[f])
   ok(`MSV1 shared files (${Object.keys(want).length}) = base + exactly the hooks.py table, nothing else`, !mism.length, mism.join(','))
   const others = sh(`git diff --name-only ${BASE} ${HEAD}`).trim().split('\n').filter(Boolean).filter(f => !want[f])

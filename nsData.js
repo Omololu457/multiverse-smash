@@ -144,6 +144,8 @@ const shaneNormal = (b, d, ground, ctx) => {
   if (d.up) return 'up'
   if (d.back) return 'axe'
   if (d.fwd) return ctx.fwdHeavy
+  if (ctx.from === 'kString1') return 'kString2'   // Heavy, Heavy, Heavy = the kick string
+  if (ctx.from === 'kString2') return 'kString3'
   return 'kString1'
 }
 const GATLING = { light: ['kString1', 'sLow', 'sword', 'up', 'swordCrouch', 'sUpper'], kString1: ['kString2', 'up', 'sword'], kString2: ['kString3', 'up', 'sword'],

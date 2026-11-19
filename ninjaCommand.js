@@ -63,7 +63,7 @@ function tryButtons(f, s, p, raw, g, ctx, cancelFrom) {
     let key = pickSpecial(f, s, C, b, d, g)
     if (key === undefined && (b === 'light' || b === 'heavy' || b === 'upAttack')) {
       if (cancelFrom === 'special') continue
-      key = C.normal(b, d, g, ctx)
+      key = C.normal(b, d, g, { ...ctx, from: cancelFrom })
       if (key && cancelFrom && cancelFrom !== 'any') {
         const isSp = C.specialsSet.includes(key)
         if (!isSp && !(C.gatling[cancelFrom] || []).includes(key)) continue

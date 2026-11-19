@@ -842,6 +842,13 @@ function runMoveKind(f, opp, s, p, a, raw) {
             a._contact = true
           }
         }
+        // a locked (unblocked) drill CARRIES the foe in front of it for the rest of the travel (every hit lands, full distance)
+        if (a._mlock && g.multi && g.carry !== false && opp && opp.health > 0) {
+          const ow = opp.w || 48, fw = f.w || 48
+          opp.x = clampX(opp, g.dir > 0 ? f.x + fw + 2 : f.x - ow - 2); opp.vx = 0
+          if (Math.abs(opp.x - (g.dir > 0 ? f.x + fw + 2 : f.x - ow - 2)) > 1) f.x = clampX(f, g.dir > 0 ? opp.x - fw - 2 : opp.x + ow + 2)   // pinned on a wall
+          if (a._vy) { opp.y = Math.min(opp.y, f.y); opp.vy = 0 }
+        }
         if (k % 4 === 0) burst(s, g.trail || 'dust', ctrX(f), feetY(f), 10, { dir: g.dir })
       }
       break

@@ -78,8 +78,15 @@ L = ["# Ben 10 — cosmetic THEMES", "",
      "- **Cache:** the key is owner | asset version (`window.__ASSET_V`, the existing cache-bust stamp) | appearance | form | "
      "theme | sheet path. It is an LRU bounded at 24 M pixels (≈ 96 MB). A stale entry, from a changed size or a new asset "
      "version, never matches. Nothing is generated at startup; a sheet is recoloured the first time it is drawn (a few ms).",
-     "- **Sparkle** (Alien X stars, Opal glitter): a fixed integer hash of each pixel's sheet coordinate, baked once into the "
-     "cached canvas. It is not animated and uses no randomness. With *reduce flashing* on, it thins to a quarter.",
+     "- **Glitter / stars / glints** (Opal Glitterstorm; Alien X Event Horizon; Black Gold, Emerald Cut, Prism Break): which "
+     "pixels sparkle, their colour and their twinkle offset are a fixed integer hash of the sheet coordinate (no randomness). "
+     "Glitter is dense multi-colour 4-point sparkle, coloured for contrast with the pixel under it (bright on dark, saturated on "
+     "pale). Each sparkle steps through 4 twinkle stages (peak with a star flare, dot, faint, off). There is one cached canvas "
+     "per phase, stepped every 7 draws of that fighter (or card), never by wall clock or gameplay RNG. With *reduce flashing* "
+     "on, sparkles thin to a quarter and do not animate.",
+     "- **More pronounced (2026-11-19):** swatches have deep darks and saturated mids; the shading ramp is steeper (gain 1.5), "
+     "so folds, muscles and facets read more strongly; the near-black outline takes a deep shade of the theme's most "
+     "saturated dark role (kept at luminance ≤ 30, so it still separates the fighter from the stage; grey themes keep true black).",
      "- **Persistence:** the theme rides on the skin id, so it is saved, restored, sent over LAN and recorded in replays exactly "
      "like any skin. `applySkin` stamps `_benTheme` / `_benAppearance`. Transform, revert and swap only change the frame set, so "
      "the same theme follows every form. A new round re-applies the skin; a rematch keeps the fighter's fields.",

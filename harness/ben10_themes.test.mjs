@@ -77,7 +77,8 @@ await test("recolour: deterministic, alpha never written, unclaimed colours unto
   const a = Array.from(d.filter((_, i) => i % 4 === 3))
   recolorImageData(d, w, h, "jacket", "neonleap")
   assert.deepEqual(Array.from(d.filter((_, i) => i % 4 === 3)), a, "alpha unchanged")
-  assert.deepEqual(Array.from(d.slice(8, 12)), [0, 0, 0, 255], "outline black untouched")
+  const ol = Array.from(d.slice(8, 12)), oLum = ol[0] * 0.299 + ol[1] * 0.587 + ol[2] * 0.114
+  assert(ol[3] === 255 && oLum <= 32 && ol.some(v => v > 0), `outline stays near-black but takes the theme's tint (${ol})`)
   assert.deepEqual(Array.from(d.slice(12, 16)), [231, 148, 99, 255], "skin untouched")
   assert.deepEqual(Array.from(d.slice(16, 20)), [0, 147, 0, 0], "fully transparent pixel untouched")
   const lum = c => c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114
@@ -89,6 +90,17 @@ await test("dark themes keep visible shading on dark-bodied forms (Alien X / Gho
     const g1 = benThemeColor("ghostfreak", t, 0xd3, 0xca, 0xc5), g2 = benThemeColor("ghostfreak", t, 0x73, 0x70, 0x6f)
     assert(lum(g1) - lum(g2) > 12, `${t}: ghostfreak light vs dark body still distinct (${lum(g1)} vs ${lum(g2)})`)
   }
+})
+await test("glitter: real twinkle (4 cached phases differ), same phase = same pixels, reduce-flashing = static + thinner", () => {
+  const w = 40, h = 40, src = new Uint8ClampedArray(w * h * 4)
+  for (let i = 0; i < w * h; i++) src.set([0, 147, 0, 255], i * 4)          // a flat jacket-green patch
+  const run = o => Array.from(recolorImageData(new Uint8ClampedArray(src), w, h, "jacket", "glitterstorm", o))
+  const p0 = run({ phase: 0 }), p1 = run({ phase: 1 })
+  assert.deepEqual(run({ phase: 0 }), p0, "deterministic per phase")
+  assert.notDeepEqual(p0, p1, "phases differ (it twinkles)")
+  const lit = a => { const base = run({ phase: 0, reduce: true }); let n = 0; for (let i = 0; i < a.length; i += 4) n += a[i] !== base[i] || a[i + 1] !== base[i + 1] ? 1 : 0; return n }
+  assert(lit(p0) > 40, `glitter is dense enough to read (${lit(p0)} px of 1600)`)
+  assert.deepEqual(run({ phase: 2, reduce: true }), run({ phase: 0, reduce: true }), "reduce-flashing: no animation")
 })
 await test("sparkle: a fixed, sparse, sprite-local pattern (no randomness)", () => {
   let n = 0; for (let y = 0; y < 100; y++) for (let x = 0; x < 100; x++) { const s = sparkleAt(x, y, 40); assert.equal(s, sparkleAt(x, y, 40)); n += s }

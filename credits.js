@@ -98,6 +98,9 @@ export const SOURCED_ART = {
   sanji: { work: 'Sanji — One Piece (Game Boy Advance)', artists: ['Paddy (ripper)'],
     source: 'Supplied sheet; visible credit: Ripped by Paddy / No credit needed (credit text excluded from the game, see docs/sanji/CREDITS.md). Original pixels retained; mirrored / tinted strips are derived copies.',
     files: ['assets/sanji/*.png'] },
+  ninja_storm_rangers: { work: 'Ninja Storm Red + Yellow Rangers — Power Rangers Super Legends (DS)', artists: ['Grim (ripper, spritedatabase.net)'],
+    source: 'Ninja Storm Red/Yellow Ranger from \'Power Rangers Super Legends\' (DS), ripped by Grim, spritedatabase.net. Supplied sheets (MSv2); the credit block is excluded from every frame; original pixels, nearest-neighbour, no art invented (docs/ninja_storm_rangers/SPRITE_LEDGER.md).',
+    files: ['assets/ninja_storm/red/*.png', 'assets/ninja_storm/yellow/*.png'] },   // MSv2
   windrangers: { work: 'Ninja Storm Red + Yellow Rangers — Power Rangers Super Legends (DS)', artists: ['Grim (ripper, spritedatabase.net)'],
     source: 'Shane & Dustin plays the two MSV1 sheets (assets/ns_red, assets/ns_yellow); the select portrait is a composite of the two supplied portraits, no art invented.',
     files: ['assets/windrangers/*.png', 'assets/ns_red/*.png', 'assets/ns_yellow/*.png'] },   // MSV1-MERGE

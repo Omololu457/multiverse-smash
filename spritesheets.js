@@ -81,6 +81,7 @@ export const SPRITE_MANIFEST = {
   arlong: { actions: { idle: './assets/arlong/idle.png' } },
   spd_red: { actions: { idle: './assets/spd_red/idle.png' } },
   windrangers: { actions: { idle: './assets/ns_red/idle.png' } },   // MSV1-MERGE Shane & Dustin (starts on the form's own sheets)
+  ninja_storm_rangers: { actions: { idle: './assets/ninja_storm/red/idle.png' } },   // MSv2 (strips: ninjaStormSprites.js)
   ns_red: { actions: { idle: './assets/ns_red/idle.png' } },   // MSV1 Shane (msv1Sprites.js strips)
   ns_yellow: { actions: { idle: './assets/ns_yellow/idle.png' } },   // MSV1 Dustin
   // Gojo's existing ./gojo_<action>_sheet.png strips. Replacement art must keep

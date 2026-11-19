@@ -1,0 +1,17 @@
+# MSv2 NINJA STORM RANGERS — files this build owns (new files; shared-file edits live in tools/msv2/hooks.py)
+ninjaAcademy.js
+ninjaStorm.js
+ninjaStormData.js
+ninjaStormState.js
+ninjaStormFx.js
+ninjaStormSprites.js
+ninjaStormSound.js
+ninjaStormKit.js
+ninjaStormHarness.js
+assets/ninja_storm
+assets/incoming/ninja_storm
+tools/ninja_storm_build/extract.py
+tools/ninja_storm_build/segment.py
+tools/msv2
+docs/ninja_storm_rangers
+# per-phase commits: tools/msv2/phases.py · per-phase test tree: tools/msv2/phase_test.sh

@@ -8,8 +8,8 @@ import { launch, reporter } from './msv2_lib.mjs'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const R = reporter('MSv2 TEST'), D = await launch()
 const ONLY = process.argv[2] || 'all'
-const SECTIONS = ['roster', 'vanish', 'focus', 'clone', 'kawarimi', 'dial']   // grew phase by phase
-const ULT_STANCES = []
+const SECTIONS = ['roster', 'vanish', 'focus', 'clone', 'kawarimi', 'dial', 'red', 'ult']   // grew phase by phase
+const ULT_STANCES = ['red']
 const want = k => SECTIONS.includes(k) && (ONLY === 'all' || ONLY === k)
 const near = (a, b, tol) => Math.abs(a - b) <= tol
 const S = D.S, step = D.step, call = D.call

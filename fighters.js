@@ -1,3 +1,4 @@
+import { albedoBaseSkinId } from "./albedoThemes.js"   // Albedo skin themes → variant id (identity for every non-theme id)
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition, BEN10_SLOT_COUNT } from "./aliens.js"
 import { HEATBLAST } from "./heatblast.js"
@@ -2072,6 +2073,7 @@ export function applyBen10VariantStats(fighter, skinId = "default") {
   if (!fighter) return
   const k = (fighter.rosterKey || "").toLowerCase()
   if (k !== "ben10" && k !== "albedo") return
+  if (k === "albedo") skinId = albedoBaseSkinId(skinId)   // Albedo theme skins (cosmetic) → their appearance's variant numbers
   if (skinId === "ben10Prime" && !fighter.benExperimental) skinId = "default"
   const V = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
   fighter.maxHealth = V.maxHealth

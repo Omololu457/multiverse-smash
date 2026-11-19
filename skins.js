@@ -14,6 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
+import { ALBEDO_THEMES, ALBEDO_APPEARANCES, albedoThemeSkinId } from "./albedoThemes.js"   // Albedo skin themes (Albedo list only)
 import { KRYBOT_SKINS } from './krybotSkins.js'
 import { SPD_PINK_SKINS } from './spdPinkSkins.js'   // S.P.D. Pink default + 6 appearance skins (cosmetic, precomputed)
 import { MMPR_PINK_SKINS } from './mmprPinkSkins.js'   // Pink Ranger default + 6 inspired palettes (cosmetic, precomputed)
@@ -2133,9 +2134,12 @@ export const SKINS = {
       animationData: Object.fromEntries(Object.entries(BEN10_CLASSIC_ANIM).map(([k, d]) => [k, { ...d, sheet: d.sheet.replace(/\.png$/i, "__albedo.png") }])), benVariant: "classic" },
     { id: "ben10Prime", name: "Prime (EXPERIMENTAL / pending art)", unlockLevel: 0, portrait: characters.albedo?.portrait, spriteScale: characters.albedo?.spriteScale,
       animationData: null, benVariant: "prime", primePending: true },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (base = ben10_*__albedo.png; Albedo-on-Albedo dropped → Valk+AlienX)
-    { id: "albedoValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("albedo", "valkyrie"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "valkyrie") },
-    { id: "albedoAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("albedo", "alienx"), spriteScale: characters.albedo?.spriteScale, animationData: recolorSkinAnim("albedo", "alienx") },
+    // ALBEDO SKIN THEMES (feat/albedo-skin-themes): 20 themes × kid / older = 40 cosmetic skins, Albedo-only (albedoThemes.js).
+    // The old "albedoValkyrie" / "albedoAlienX" batch skins pointed at __albedo__valkyrie / __albedo__alienx sheets that were
+    // never generated (they rendered nothing); their ids are REUSED for "Older — Crimson Victory" / "Older — Red Singularity".
+    // Kid skins carry the Classic __albedo frames, older skins the base __albedo frames; the theme recolor is applied at render
+    // time (albedoThemeCache.js), and applyBen10VariantStats maps each id to its appearance's variant (gameplay unchanged).
+    ...albedoThemeSkinEntries(),
   ],
 
   // Ghostface — the 5 KILLER-IDENTITY skins ONLY (NO "Default"). In the source material there is no
@@ -2790,6 +2794,21 @@ export function buildUnlockedSkinsSnapshot(level = 1, dev = false, beta = false)
     out[rosterKey] = list
       .filter(s => s.unlockLevel <= 0 || dev || beta || level >= s.unlockLevel)
       .map(s => s.id)
+  }
+  return out
+}
+
+// Albedo theme skins (feat/albedo-skin-themes). Function declaration → hoisted, usable inside the skin table above.
+// ALBEDO-ONLY: only the albedo list spreads these; Ben's list is untouched.
+function albedoThemeSkinEntries() {
+  const kidAnim = Object.fromEntries(Object.entries(BEN10_CLASSIC_ANIM).map(([k, d]) => [k, { ...d, sheet: d.sheet.replace(/\.png$/i, "__albedo.png") }]))
+  const out = []
+  for (const app of ["kid", "older"]) for (const t of ALBEDO_THEMES) {
+    const id = albedoThemeSkinId(app, t.id)
+    out.push({ id, name: `${ALBEDO_APPEARANCES[app].label} — ${t.short}`, unlockLevel: 0,
+      portrait: `./assets/sprites/albedo/themes/portraits/${id}.png`, spriteScale: characters.albedo?.spriteScale,
+      animationData: app === "kid" ? kidAnim : null, benVariant: ALBEDO_APPEARANCES[app].art,
+      albedoTheme: t.id, albedoAppearance: app, themeSource: t.source })
   }
   return out
 }

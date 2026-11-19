@@ -55,12 +55,14 @@ export const ALBEDO_THEMES = [
     primary: "#1f4fbf", secondary: "#f2f2f4", accent: "#e0b020", energy: "#e0402a", energyCore: "#fff0c0", hair: "#e8eaf0" },
   { n: 18, id: "magentaAftershock", name: "Anodite — Magenta Aftershock",       source: FAN("Anodite (Ben 10)"),
     primary: "#d0208a", secondary: "#2e2e34", accent: "#4a1a6e", energy: "#d8c8ff", energyCore: "#ffffff", hair: "#b8442a" },
-  { n: 19, id: "falseEmperor",      name: "Black Gold — False Emperor",         source: FAN("a black-and-gold emperor look"),
+  { n: 19, id: "falseEmperor",      name: "Black Gold — False Emperor",         short: "Black Gold — False Emperor", source: FAN("a black-and-gold emperor look"),
     primary: "#1a1a1c", secondary: "#3a3a3e", accent: "#c9a646", energy: "#7a1028", energyCore: "#e8a0b0", hair: "#5a5e66", fx: "metal" },
-  { n: 20, id: "rubyOpal",          name: "Ruby Opal — Glitter Overload",       source: FAN("opal gemstones"),
+  { n: 20, id: "rubyOpal",          name: "Ruby Opal — Glitter Overload",       short: "Ruby Opal — Glitter Overload", source: FAN("opal gemstones"),
     primary: "#f0e8ec", secondary: "#b8a8d8", accent: "#f08aa8", accentAlt: "#8ae0e8", energy: "#d0103a", energyCore: "#ffe0e8", hair: "#ff7060", fx: "glitter" },
 ]
 
+// Short label used in the skin name ("Kid — Red Singularity"): the part after the inspiration, unless the whole name IS the theme.
+for (const t of ALBEDO_THEMES) t.short ||= t.name.replace(/^.* — /, "")
 export const ALBEDO_THEME_BY_ID = Object.fromEntries(ALBEDO_THEMES.map(t => [t.id, t]))
 export const ALBEDO_APPEARANCES = {
   kid:   { label: "Kid",   baseSkinId: "ben10Classic", art: "classic"    },

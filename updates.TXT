@@ -749,3 +749,27 @@ DRAFT PR: pending push and PR creation.
 
 Luffy should branch from this exact commit after the checkpoint fields above are
 updated and verified. Do not use the original dirty checkout as the branch base.
+
+=== 2026-11-18 — Ben 10: 20 cosmetic THEMES (Classic + Jacket, cascade to every READY alien) ===
+Pick Ben → skin grid: Classic 1–20 and Jacket 1–20 (40 new skins). The originals Alien Force (jacket) and Classic stay.
+Your theme recolours Ben AND every READY alien he turns into during the match, automatically. There is no extra menu.
+Themes:
+  1 Dimension 23 — Blue Hour · 2 Alien X — Event Horizon · 3 Upgrade — Living Circuit · 4 Chromastone — Prism Break
+  5 Heatblast — Solar Furnace · 6 Big Chill — Midnight Glacier · 7 Ghostfreak — Phantom Frequency · 8 Feedback — Live Wire
+  9 Diamondhead — Emerald Cut · 10 Superman — Tomorrow's Hero · 11 Batman Beyond — Neo Gotham · 12 Spider-Verse — Neon Leap
+  13 JJK — Cursed Rose · 14 JJK — Limitless Blue · 15 Naruto — Nine-Tails Sunrise · 16 Luffy — Dawn Breaker
+  17 Winning Valkyrie — Victory Rush · 18 Anodite — Violet Afterglow · 19 Black Gold — Midnight Champion · 20 Opal — Glitterstorm
+Covered (all 24 READY aliens):
+  Swampfire, Heatblast, Megawhatt, Goop, XLR8, Eye Guy, Ghostfreak, Alien X, Brainstorm, Terraspin, Wildvine, Jetray,
+  Diamondhead, Upgrade, Humongousaur, Feedback, Arcticguana, Benwolf, Big Chill, Ripjaws, Rath, Water Hazard, Highbreed, Wildmutt.
+Cosmetic only:
+  - Same stats, moves and frame data as the original appearance.
+  - Alien-named themes grant nothing.
+  - Albedo is never affected.
+Controls (unchanged): mouse click, or PS5 / gamepad D-pad or left stick to move, ✕ to pick, ◯ to go back.
+Known limits:
+  - Projectiles, beams and the transform flash keep their own colours.
+  - Each alien's map follows the colours its art actually has. Regions the art doesn't separate are listed in
+    docs/ben10/skins/<alien>_REGIONS.md.
+  - The legacy experimental alien twins are not themed.
+Docs: docs/ben10/skins/THEMES.md.

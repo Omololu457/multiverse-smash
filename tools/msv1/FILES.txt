@@ -42,6 +42,9 @@ nsDuo.js
 assets/windrangers
 harness/msv1_merge.test.mjs
 harness/msv1_merge_netreplay.test.mjs
+harness/msv1_merge_framediff.mjs
 docs/msv1/screenshots_merge
 harness/msv1_merge_combos.mjs
 docs/msv1/MERGE_COMBOS.md
+docs/msv1/MERGE_FRAME_DIFF.md
+docs/msv1/MERGE_FINAL_TESTS.txt

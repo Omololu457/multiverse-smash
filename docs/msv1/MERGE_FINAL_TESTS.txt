@@ -1,0 +1,32 @@
+MSV1-MERGE FINAL — tree c0e7c1b58cc9d001af1082e7a0c93c34495ad9b0 (git archive export; dirty worktree excluded), 2026-11-19
+
+DETERMINISM (Stage 11A): 14 passed, 0 failed
+COMBO-STANDARD AUDIT: 233 passed, 9 failed
+UP-ATTACK ROSTER: 77 passed, 2 failed
+RESULT: 11 passed, 3 failed
+✅ roster integrity guard verified
+REPLAY PLAYBACK (Stage 11C): 10 passed, 0 failed
+NET ONLINE (Stage 3): 11 passed, 0 failed
+MSV1 RENDER CHECK ns_red vs ns_yellow: 12 passed, 0 failed
+MSV1 TEST: 135 passed, 0 failed
+MSV1 NET + REPLAY: 10 passed, 0 failed
+MSV1-MERGE TEST: 47 passed, 0 failed
+MSV1-MERGE NET + REPLAY: 12 passed, 0 failed
+MSV1-MERGE FRAME-DATA DIFF: 12 passed, 0 failed
+roster size: 160 (159 + windrangers; roster_integrity needed no count edit)
+
+Failures (all pre-existing; same counts as MERGE_BASELINE.txt):
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, goku_rose, green_arrow, green_ranger, higuruma, homelander, krybot, megumi_fushiguro, meruem, mmpr_black, mmpr_pink, mmpr_white, ns_red, ns_yellow, raven, robin, sanji, shisui_itachi_kids, soldier_boy, spd_blue, spd_green, spd_pink, spd_red, spd_yellow, starfire, syndrome, violet, windrangers, zoldyck
+  ❌  classification covers the full roster exactly  — covered 122 vs roster 160
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (121)  — classified 122, roster 160
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 160 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 158/160
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster

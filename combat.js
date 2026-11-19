@@ -69,6 +69,7 @@ import { pickOmniManVoice } from "./omnimanVoice.js"
 import { pickSupermanVoice } from "./supermanVoice.js"
 import { pickOnokiVoice } from "./onokiVoice.js"   // Onoki taunt (Jinton callout) / low-HP defiance voice pools (audio-only, JA)
 import { pickGenosVoice } from "./genosVoice.js"   // Genos taunt-connect voice pool (audio-only, EN)
+import { playIncrediblesVo } from "./incrediblesVoiceMap.js"   // Incredibles cast VO (dash_parr / elastigirl / frozone / mr_incredible / syndrome / violet): deterministic hash pools (audio-only)
 import { playBen10Vo } from "./ben10VoiceMap.js"   // Ben 10 cast VO (ben10 / albedo humans, READY aliens, Vilgax): deterministic hash pools (audio-only)
 import { pickBardockVoice } from "./bardockVoice.js"   // Bardock hit-react / taunt-connect voice pools (audio-only, EN)
 import { pickIppoVoice } from "./ippoVoice.js"   // Ippo hit-react / taunt-connect / low-HP voice pools (audio-only, JA)
@@ -2605,6 +2606,13 @@ function applyBen10CastOffenseVoice(attacker, cat, unblocked) {
   else playBen10Vo("attack", attacker)
 }
 function applyBen10CastHitVoice(defender) { if (defender) playBen10Vo("hit", defender) }
+// ── INCREDIBLES CAST VOICE (audio-only): the same split via incrediblesVoiceMap.js (no-op for every other rosterKey).
+function applyIncrediblesOffenseVoice(attacker, cat, unblocked) {
+  if (!unblocked || !attacker) return
+  if (cat === "special" || cat === "ultimate") playIncrediblesVo("special", attacker)
+  else if ((attacker.comboCounter || 0) >= NARUTO_COMBO_BURST_MIN) playIncrediblesVo("taunt", attacker)
+  else playIncrediblesVo("attack", attacker)
+}
 function applyAlbedoLowHealthVoice(defender) {
   if (!defender || voiceKey(defender.rosterKey) !== "albedo" || defender._lowHealthVoiceDone) return
   const max = defender.maxHealth || 1000, hp = defender.health || 0
@@ -3933,6 +3941,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     applyPiccoloHitVoice(defender, cat, dmg)   // Piccolo flinch on hit
     applyMegumiHitVoice(defender, cat, dmg)    // Megumi reaction on hit
     applyBen10CastHitVoice(defender)           // Ben 10 cast (ben10 / albedo / READY aliens / Vilgax) hit-react
+    playIncrediblesVo("hit", defender)         // Incredibles cast hit-react (audio-only)
     applyYutaHitVoice(defender, cat, dmg)      // Yuta grunt on hit
     applyIppoHitVoice(defender, cat, dmg)      // Ippo reaction on hit
     // OMEGA RANGER hit-reaction voice — light stagger only ("No!"); heavy tier stays silent (no clip).
@@ -4099,6 +4108,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   applySupermanOffenseVoice(attacker, cat, !defender.isBlocking)  // Superman confident trash-talk (taunt pool) on a strong/long-string connect
   applyOnokiOffenseVoice(attacker, cat, !defender.isBlocking)   // Onoki Jinton callout / "this ends here" on a strong/long-string connect
   applyGenosOffenseVoice(attacker, cat, !defender.isBlocking)   // Genos "everything that I have!" on a strong/long-string connect
+  applyIncrediblesOffenseVoice(attacker, cat, !defender.isBlocking)   // Incredibles cast effort / callout / taunt (audio-only)
   applyBen10CastOffenseVoice(attacker, cat, !defender.isBlocking)  // Ben 10 cast (ben10 / albedo / READY aliens / Vilgax) effort / callout / taunt
   applyBardockOffenseVoice(attacker, cat, !defender.isBlocking)   // Bardock aggressive trash-talk on a strong/long-string connect
   applyBakiOffenseVoice(attacker, cat, !defender.isBlocking)      // Baki quiet acknowledgement on a strong/long-string connect

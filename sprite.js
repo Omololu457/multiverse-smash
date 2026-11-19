@@ -11,6 +11,7 @@
 
 import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
 import { violetSpriteAction, violetAlpha } from './violetView.js'   // Violet Parr: invisible strips + 35 % alpha (render-only, violet-gated)
+import { albedoThemeSheet } from './albedoThemeCache.js'   // Albedo skin themes: render-only, null for every non-Albedo-theme fighter
 
 // ─────────────────────────────────────────────────────────────────
 // SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
@@ -1013,7 +1014,7 @@ export class SpriteHandler {
     const fellBack = !profileAction.sheet;
     const dim = (fellBack && legacyFrameData?.sheet) ? legacyFrameData : profileAction;
 
-    let sheet = profileAction.sheet ? _loadSheet(profileAction.sheet)
+    let sheet = profileAction.sheet ? (albedoThemeSheet(fighter, profileAction.sheet) || _loadSheet(profileAction.sheet))
               : (fellBack && legacyFrameData?.sheet ? _loadSheet(legacyFrameData.sheet) : legacySheet);
 
     // UNWIRED-PLACEHOLDER GUARD: a truly unwired action (no profile sheet AND no idle fallback sheet —

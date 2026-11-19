@@ -1,0 +1,128 @@
+[
+ {
+  "name": "Jab → Straight → Kick",
+  "stance": "red",
+  "hits": 3,
+  "damage": 118,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": ""
+ },
+ {
+  "name": "Jab → Rising Kick (↑+H) launcher",
+  "stance": "red",
+  "hits": 2,
+  "damage": 93,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": ""
+ },
+ {
+  "name": "Jab → Straight → Crescent Blade (↓↘→+S)",
+  "stance": "red",
+  "hits": 5,
+  "damage": 111,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": ""
+ },
+ {
+  "name": "Low Kick → Kick",
+  "stance": "red",
+  "hits": 2,
+  "damage": 86,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": ""
+ },
+ {
+  "name": "Lightning: Jab → Straight → Kick (+15%)",
+  "stance": "red",
+  "hits": 3,
+  "damage": 136,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": ""
+ },
+ {
+  "name": "Shadow Clone → Jab → Straight → Kick (echoes)",
+  "stance": "red",
+  "hits": 5,
+  "damage": 139,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": ""
+ },
+ {
+  "name": "Tackle → Shoulder Check → Stomp Kick",
+  "stance": "yellow",
+  "hits": 3,
+  "damage": 118,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": ""
+ },
+ {
+  "name": "Tackle → Low Sweep → Stomp Kick",
+  "stance": "yellow",
+  "hits": 3,
+  "damage": 106,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": ""
+ },
+ {
+  "name": "Quake: Tackle → Shoulder Check → Stomp (kb ×1.6)",
+  "stance": "yellow",
+  "hits": 3,
+  "damage": 118,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": ""
+ },
+ {
+  "name": "Tackle → Earth Blade (↓↘→+S)",
+  "stance": "yellow",
+  "hits": 4,
+  "damage": 73,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": ""
+ },
+ {
+  "name": "Red Rising Kick → ↓↓+H (Dustin) → jump → Air Stomp",
+  "stance": "red",
+  "hits": 2,
+  "damage": 120,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": "launcher → swap → air finisher"
+ },
+ {
+  "name": "Red Jab → Straight → ↓↓+H → Yellow Low Sweep",
+  "stance": "red",
+  "hits": 3,
+  "damage": 104,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": "tag out of a connected normal"
+ },
+ {
+  "name": "Red Rising Kick → ↓↓+H → jump → Rock Drop (air Heavy)",
+  "stance": "red",
+  "hits": 2,
+  "damage": 120,
+  "trueCombo": true,
+  "endStance": "yellow",
+  "note": "launcher → swap → air finisher (wider window: 2–8 f)"
+ },
+ {
+  "name": "Yellow Stomp → ↓↓+L (Shane) → Crescent Wave",
+  "stance": "yellow",
+  "hits": 2,
+  "damage": 93,
+  "trueCombo": true,
+  "endStance": "red",
+  "note": "knockdown → swap → projectile follow-up"
+ }
+]

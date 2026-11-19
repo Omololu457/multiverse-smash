@@ -1,0 +1,1080 @@
+{
+ "airMul": 0.9,
+ "barrier": {
+  "absorb": 2,
+  "armorFrames": 60,
+  "cost": 25,
+  "counter": {
+   "dmg": 70,
+   "radius": 130
+  },
+  "dome": 30,
+  "kind": "armor",
+  "parry": 8,
+  "reflectMul": 1.2
+ },
+ "burrow": {
+  "cost": 20,
+  "frames": 90,
+  "sink": 6,
+  "speed": 10.5
+ },
+ "clones": {
+  "cost": 35,
+  "dmgPct": 0.6,
+  "max": 2,
+  "strike": 60
+ },
+ "combo": 0.85,
+ "commands": {
+  "gatling": {
+   "kString1": [
+    "kString2",
+    "up",
+    "sUpper",
+    "sword",
+    "sRock"
+   ],
+   "kString2": [
+    "kString3",
+    "up",
+    "sUpper",
+    "sword",
+    "sRock"
+   ],
+   "kString3": [],
+   "light": [
+    "kString1",
+    "sLow",
+    "sword",
+    "up",
+    "swordCrouch",
+    "sUpper",
+    "sRock"
+   ],
+   "sLow": [
+    "kString1",
+    "sword",
+    "up",
+    "sUpper",
+    "swordLow"
+   ],
+   "sRock": [],
+   "sUpper": [],
+   "sword": [
+    "up",
+    "sUpper"
+   ],
+   "swordCrouch": [
+    "up",
+    "sUpper",
+    "sword"
+   ]
+  },
+  "normal": "[fn normal]",
+  "specials": [
+   {
+    "button": "special",
+    "key": "sSuper",
+    "motion": "236236",
+    "win": 40
+   },
+   {
+    "button": "special",
+    "downDown": true,
+    "ground": true,
+    "key": "nsBurrow"
+   },
+   {
+    "button": "light",
+    "ground": true,
+    "key": "sBeam",
+    "motion": "236"
+   },
+   {
+    "button": "light",
+    "ground": true,
+    "key": "sTrap",
+    "motion": "214"
+   },
+   {
+    "button": "special",
+    "ground": true,
+    "key": "sBeam"
+   }
+  ],
+  "specialsSet": []
+ },
+ "engine": {
+  "basic_attacks": {
+   "airAttack": {
+    "active": 4,
+    "blockstun": 10,
+    "damage": 60,
+    "damageType": "slash",
+    "frameExact": true,
+    "hitstun": 20,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "boxY": 4,
+     "kind": "normal"
+    },
+    "rangeX": 82,
+    "rangeY": 90,
+    "recovery": 13,
+    "startup": 6
+   },
+   "crouchLight": {
+    "active": 3,
+    "blockstun": 10,
+    "damage": 50,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitLevel": "low",
+    "hitstun": 18,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "boxY": 62,
+     "kind": "normal"
+    },
+    "rangeX": 86,
+    "rangeY": 30,
+    "recovery": 15,
+    "startup": 7
+   },
+   "downAir": {
+    "active": 30,
+    "blockstun": 10,
+    "damage": 0,
+    "damageType": "blunt",
+    "frameExact": true,
+    "groundHit": true,
+    "hitstun": 18,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "kind": "dive",
+     "landPose": "land",
+     "landRec": 16,
+     "noHit": true,
+     "shock": {
+      "dmg": 80,
+      "radius": 120
+     },
+     "vx": 0,
+     "vy": 17
+    },
+    "rangeX": 64,
+    "rangeY": 50,
+    "recovery": 4,
+    "startup": 6
+   },
+   "grab": {
+    "active": 3,
+    "damage": 35,
+    "damageType": "grab",
+    "hitstun": 20,
+    "recovery": 20,
+    "startup": 7,
+    "throwForceX": 8,
+    "throwForceY": -4
+   },
+   "heavy": {
+    "active": 2,
+    "blockstun": 10,
+    "damage": 34,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 18,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "kind": "normal"
+    },
+    "rangeX": 66,
+    "rangeY": 50,
+    "recovery": 11,
+    "startup": 6
+   },
+   "light": {
+    "active": 2,
+    "blockstun": 10,
+    "damage": 42,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 16,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "kind": "normal"
+    },
+    "rangeX": 60,
+    "rangeY": 50,
+    "recovery": 9,
+    "startup": 5
+   },
+   "upAttack": {
+    "active": 4,
+    "blockstun": 10,
+    "damage": 76,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 28,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "launchVy": -19,
+    "launcher": true,
+    "nj": {
+     "boxY": -40,
+     "kind": "normal"
+    },
+    "rangeX": 64,
+    "rangeY": 130,
+    "recovery": 19,
+    "startup": 8
+   }
+  },
+  "specials": {},
+  "ultimate": {
+   "cost": 100,
+   "name": "Fault Line"
+  }
+ },
+ "float": null,
+ "health": 1296,
+ "hurtbox": {
+  "h": null,
+  "spriteScale": 2.3728813559322033,
+  "w": null
+ },
+ "id": "ns_yellow",
+ "mirror": {
+  "cost": 50,
+  "counter": {
+   "dmg": 80,
+   "kind": "eruption",
+   "wall": true
+  },
+  "dmgPct": 0.5,
+  "echoDelay": 8,
+  "frames": 480,
+  "gapPct": 0.3,
+  "glintEvery": 90,
+  "maxSwaps": 3,
+  "meterPct": 0.5,
+  "mode": "decoy",
+  "swapCost": 10,
+  "swapFrames": 6
+ },
+ "moves": {
+  "air": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 60,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 20,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 4,
+    "kind": "normal"
+   },
+   "rangeX": 82,
+   "rangeY": 90,
+   "recovery": 13,
+   "startup": 6
+  },
+  "airKick": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 50,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 10,
+    "kind": "normal"
+   },
+   "rangeX": 72,
+   "rangeY": 80,
+   "recovery": 13,
+   "startup": 5
+  },
+  "axe": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 62,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitLevel": "overhead",
+   "hitstun": 26,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 17,
+   "startup": 15
+  },
+  "dive": {
+   "active": 30,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "groundHit": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "dive",
+    "landPose": "land",
+    "landRec": 16,
+    "noHit": true,
+    "shock": {
+     "dmg": 80,
+     "radius": 120
+    },
+    "vx": 0,
+    "vy": 17
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 4,
+   "startup": 6
+  },
+  "kString1": {
+   "active": 2,
+   "blockstun": 10,
+   "damage": 34,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 66,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 6
+  },
+  "kString2": {
+   "active": 2,
+   "blockstun": 10,
+   "damage": 34,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 20,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 70,
+   "rangeY": 50,
+   "recovery": 12,
+   "startup": 7
+  },
+  "kString3": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 58,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 30,
+   "knockbackX": 8,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 80,
+   "rangeY": 50,
+   "recovery": 17,
+   "startup": 9
+  },
+  "light": {
+   "active": 2,
+   "blockstun": 10,
+   "damage": 42,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 16,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 60,
+   "rangeY": 50,
+   "recovery": 9,
+   "startup": 5
+  },
+  "nsBarrier": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "barrier",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 98,
+   "startup": 0
+  },
+  "nsBarrierEnd": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "barrierEnd",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 9,
+   "startup": 0
+  },
+  "nsBurrow": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "burrow",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 98,
+   "startup": 0
+  },
+  "nsClone": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "clone",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 13,
+   "startup": 0
+  },
+  "nsMirror": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "mirror",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 0
+  },
+  "nsStreak": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "streak",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 0
+  },
+  "nsStreakRec": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "streakRec",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 13,
+   "startup": 0
+  },
+  "nsTremor": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "streak",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 0
+  },
+  "nsVanish": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "vanish",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 19,
+   "startup": 0
+  },
+  "nsVanishOut": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "vanishOut",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 7,
+   "startup": 0
+  },
+  "sBeam": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 50,
+   "damageType": "projectile",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "at": 12,
+     "cue": "beam",
+     "dmg": 50,
+     "frames": 3,
+     "h": 20,
+     "name": "nsBeam",
+     "oy": 62,
+     "radius": 22,
+     "sh": 16,
+     "speed": 24,
+     "sprite": "proj_beam",
+     "sw": 47,
+     "w": 60
+    }
+   },
+   "np": 15,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 12
+  },
+  "sErupt": {
+   "active": 4,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "invuln": 6,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "hits": [
+     {
+      "at": 4,
+      "cue": "eruption",
+      "dmg": 90,
+      "dx": -40,
+      "dy": -150,
+      "h": 150,
+      "hitstun": 36,
+      "kb": 3,
+      "launch": -19,
+      "w": 110
+     }
+    ],
+    "kind": "hits",
+    "noHit": true,
+    "riseAt": 4,
+    "selfVy": -9
+   },
+   "np": 0,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 22,
+   "startup": 4
+  },
+  "sKunai": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 30,
+   "damageType": "projectile",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "at": 9,
+     "cue": "kunai",
+     "dmg": 30,
+     "h": 16,
+     "name": "nsKunai",
+     "oy": 60,
+     "radius": 16,
+     "scale": 2,
+     "sh": 18,
+     "speed": 18,
+     "sprite": "proj_spark",
+     "sw": 34,
+     "w": 34
+    }
+   },
+   "np": 10,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 14,
+   "startup": 9
+  },
+  "sLow": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 50,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 62,
+    "kind": "normal"
+   },
+   "rangeX": 86,
+   "rangeY": 30,
+   "recovery": 15,
+   "startup": 7
+  },
+  "sRock": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 72,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 28,
+   "knockbackX": 8,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 96,
+   "rangeY": 50,
+   "recovery": 20,
+   "startup": 12
+  },
+  "sSuper": {
+   "active": 1,
+   "bars": 1,
+   "blockstun": 10,
+   "category": "ultimate",
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "invuln": 98,
+   "isUltimate": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "super",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 96,
+   "startup": 1
+  },
+  "sTrap": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "dist": 230,
+    "kind": "trap",
+    "noHit": true
+   },
+   "np": 15,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 15,
+   "startup": 9
+  },
+  "sUlt": {
+   "active": 1,
+   "bars": 2,
+   "blockstun": 10,
+   "category": "ultimate",
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "invuln": 78,
+   "isUltimate": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "super",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 76,
+   "startup": 1
+  },
+  "sUpper": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 66,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 28,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "launchVy": -17,
+   "launcher": true,
+   "nj": {
+    "boxY": -30,
+    "kind": "normal"
+   },
+   "rangeX": 58,
+   "rangeY": 120,
+   "recovery": 19,
+   "startup": 7
+  },
+  "sWake": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 64,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 24,
+   "invuln": 6,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 72,
+   "rangeY": 50,
+   "recovery": 23,
+   "startup": 5
+  },
+  "slide": {
+   "active": 12,
+   "blockstun": 10,
+   "damage": 54,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 22,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 60,
+    "dist": 0.2,
+    "frames": 12,
+    "kind": "travel",
+    "trail": "dust"
+   },
+   "rangeX": 50,
+   "rangeY": 34,
+   "recovery": 16,
+   "startup": 7
+  },
+  "sword": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 70,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 24,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 92,
+   "rangeY": 50,
+   "recovery": 17,
+   "startup": 10
+  },
+  "swordCrouch": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 52,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 20,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 58,
+    "kind": "normal"
+   },
+   "rangeX": 90,
+   "rangeY": 34,
+   "recovery": 16,
+   "startup": 8
+  },
+  "swordLow": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 58,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 22,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 52,
+    "kind": "normal"
+   },
+   "rangeX": 84,
+   "rangeY": 40,
+   "recovery": 18,
+   "startup": 9
+  },
+  "swordMove": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 66,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 24,
+   "knockbackX": 7,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 96,
+   "rangeY": 50,
+   "recovery": 17,
+   "startup": 9
+  },
+  "swordRise": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 60,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 24,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "launchVy": -15,
+   "launcher": true,
+   "nj": {
+    "boxY": -50,
+    "kind": "normal"
+   },
+   "rangeX": 70,
+   "rangeY": 130,
+   "recovery": 19,
+   "startup": 8
+  },
+  "up": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 76,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 28,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "launchVy": -19,
+   "launcher": true,
+   "nj": {
+    "boxY": -40,
+    "kind": "normal"
+   },
+   "rangeX": 64,
+   "rangeY": 130,
+   "recovery": 19,
+   "startup": 8
+  }
+ },
+ "name": "Dustin",
+ "ninjaPower": {
+  "max": 100,
+  "onHit": 4,
+  "regen": 6,
+  "start": 50
+ },
+ "rev": {
+  "every": 48,
+  "max": 3
+ },
+ "runSpeed": {
+  "blink": {
+   "air": true,
+   "airMomentumMax": 14,
+   "charges": 2,
+   "crossup": false,
+   "distPct": 0.22,
+   "dodge": null,
+   "faceLockOnCross": 0,
+   "gap": 6,
+   "recharge": 90,
+   "recovery": 3,
+   "run": {
+    "speed": 8.4,
+    "walk": 5.6
+   },
+   "startup": 3,
+   "tapWindow": 12,
+   "travel": 5,
+   "vertical": true,
+   "verticalPct": 0.25
+  },
+  "run": 10.500000000000002,
+  "walk": 7
+ },
+ "stats": {
+  "attack": 84,
+  "dashCooldownMax": 28,
+  "dashDuration": 10,
+  "dashSpeed": 15.3,
+  "defense": 80,
+  "jumpPower": 31,
+  "maxEnergy": 100,
+  "maxHealth": 1296,
+  "maxJumps": 2,
+  "speed": 88,
+  "weight": 1
+ },
+ "streak": {
+  "air": null,
+  "cancelFrom": 9,
+  "chain": 3,
+  "chainWindow": 10,
+  "cost": 10,
+  "distPct": 0.4,
+  "intangible": [
+   2,
+   6
+  ],
+  "recovery": 14,
+  "strike": {
+   "blockstun": 12,
+   "damageType": "blunt",
+   "dmg": 45,
+   "hitstun": 24
+  },
+  "thirdCost": 20,
+  "travel": 8,
+  "underground": true
+ },
+ "supers": {
+  "sSuper": "[fn dustinSuper]",
+  "sUlt": "[fn dustinUlt]"
+ },
+ "traps": {
+  "dmg": 45,
+  "life": 360,
+  "max": 2,
+  "radius": 26
+ },
+ "vanish": {
+  "above": 150,
+  "behind": 70,
+  "cloud": 30,
+  "cost": 30,
+  "escapeCooldown": 720,
+  "escapeCost": 40,
+  "escapeInvuln": 6,
+  "fade": 8,
+  "gone": 6,
+  "pop": 6
+ },
+ "weight": 1
+}

@@ -1,0 +1,32 @@
+MSV1-MERGE BASELINE — clean HEAD 8bdcd4e337f90f45aea321a5d3497f617a79820c (git archive export; dirty worktree excluded), 2026-11-19
+
+determinism.test.mjs         DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo_standard_audit.mjs     COMBO-STANDARD AUDIT: 233 passed, 9 failed
+up_attack_roster.test.mjs    UP-ATTACK ROSTER: 77 passed, 2 failed
+credits.test.mjs             RESULT: 11 passed, 3 failed
+roster_integrity.test.mjs    ✅ roster integrity guard verified
+replay_playback.test.mjs     REPLAY PLAYBACK (Stage 11C): 10 passed, 0 failed
+net_online.test.mjs          NET ONLINE (Stage 3): 11 passed, 0 failed
+msv1_render.mjs              MSV1 RENDER CHECK ns_red vs ns_yellow: 12 passed, 0 failed
+msv1.test.mjs                MSV1 TEST: 135 passed, 0 failed
+roster size (roster_integrity): 159
+
+Pre-existing failures (green = no worse than these):
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, goku_rose, green_arrow, green_ranger, higuruma, homelander, krybot, megumi_fushiguro, meruem, mmpr_black, mmpr_pink, mmpr_white, ns_red, ns_yellow, raven, robin, sanji, shisui_itachi_kids, soldier_boy, spd_blue, spd_green, spd_pink, spd_red, spd_yellow, starfire, syndrome, violet, zoldyck
+  ❌  classification covers the full roster exactly  — covered 122 vs roster 159
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (121)  — classified 122, roster 159
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 159 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 157/159
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8
+
+Extra MSV1 suites at the same clean HEAD:
+msv1_netreplay.test.mjs      MSV1 NET + REPLAY: 10 passed, 0 failed
+msv1_framedata_diff.mjs      MSV1 FRAME-DATA DIFF: 11 passed, 0 failed   (2f61c6294 → HEAD)

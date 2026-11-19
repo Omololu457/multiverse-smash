@@ -1,0 +1,1133 @@
+{
+ "airMul": 1.1,
+ "barrier": {
+  "absorb": 2,
+  "armorFrames": 60,
+  "cost": 25,
+  "counter": null,
+  "dome": 30,
+  "kind": "reflect",
+  "parry": 8,
+  "reflectMul": 1.2
+ },
+ "burrow": null,
+ "clones": {
+  "cost": 35,
+  "dmgPct": 0.6,
+  "max": 2,
+  "strike": 60
+ },
+ "combo": 0.85,
+ "commands": {
+  "gatling": {
+   "kString1": [
+    "kString2",
+    "up",
+    "sUpper",
+    "sword"
+   ],
+   "kString2": [
+    "kString3",
+    "up",
+    "sUpper",
+    "sword"
+   ],
+   "kString3": [],
+   "light": [
+    "kString1",
+    "sLow",
+    "sword",
+    "up",
+    "swordCrouch",
+    "sUpper"
+   ],
+   "sLow": [
+    "kString1",
+    "sword",
+    "up",
+    "sUpper",
+    "swordLow"
+   ],
+   "sUpper": [],
+   "sword": [
+    "up",
+    "sUpper"
+   ],
+   "swordCrouch": [
+    "up",
+    "sUpper",
+    "sword"
+   ]
+  },
+  "normal": "[fn normal]",
+  "specials": [
+   {
+    "button": "special",
+    "key": "sSuper",
+    "motion": "236236",
+    "win": 40
+   },
+   {
+    "air": "sTornado",
+    "button": "special",
+    "key": "sTornado",
+    "motion": "236"
+   },
+   {
+    "air": "sBeamAir",
+    "button": "light",
+    "key": "sBeam",
+    "motion": "236"
+   },
+   {
+    "air": "sKunaiAir",
+    "button": "light",
+    "key": "sKunai",
+    "motion": "214"
+   },
+   {
+    "air": "sBeamAir",
+    "button": "special",
+    "key": "sBeam"
+   }
+  ],
+  "specialsSet": [
+   "sGale"
+  ]
+ },
+ "engine": {
+  "basic_attacks": {
+   "airAttack": {
+    "active": 4,
+    "blockstun": 10,
+    "damage": 58,
+    "damageType": "slash",
+    "frameExact": true,
+    "hitstun": 20,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "boxY": 4,
+     "kind": "normal"
+    },
+    "rangeX": 82,
+    "rangeY": 90,
+    "recovery": 12,
+    "startup": 5
+   },
+   "crouchLight": {
+    "active": 3,
+    "blockstun": 10,
+    "damage": 44,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitLevel": "low",
+    "hitstun": 18,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "boxY": 62,
+     "kind": "normal"
+    },
+    "rangeX": 86,
+    "rangeY": 30,
+    "recovery": 14,
+    "startup": 7
+   },
+   "downAir": {
+    "active": 30,
+    "blockstun": 10,
+    "damage": 72,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 30,
+    "knockbackX": 3,
+    "knockbackY": 10,
+    "nj": {
+     "boxY": 30,
+     "kind": "dive",
+     "landRec": 12,
+     "vx": 9,
+     "vy": 15
+    },
+    "rangeX": 60,
+    "rangeY": 80,
+    "recovery": 4,
+    "startup": 6
+   },
+   "grab": {
+    "active": 3,
+    "damage": 35,
+    "damageType": "grab",
+    "hitstun": 20,
+    "recovery": 20,
+    "startup": 7,
+    "throwForceX": 8,
+    "throwForceY": -4
+   },
+   "heavy": {
+    "active": 2,
+    "blockstun": 10,
+    "damage": 30,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 18,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "kind": "normal"
+    },
+    "rangeX": 66,
+    "rangeY": 50,
+    "recovery": 10,
+    "startup": 6
+   },
+   "light": {
+    "active": 2,
+    "blockstun": 10,
+    "damage": 38,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 16,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "nj": {
+     "kind": "normal"
+    },
+    "rangeX": 60,
+    "rangeY": 50,
+    "recovery": 8,
+    "startup": 5
+   },
+   "upAttack": {
+    "active": 4,
+    "blockstun": 10,
+    "damage": 70,
+    "damageType": "blunt",
+    "frameExact": true,
+    "hitstun": 28,
+    "knockbackX": 3,
+    "knockbackY": 0,
+    "launchVy": -20,
+    "launcher": true,
+    "nj": {
+     "boxY": -40,
+     "kind": "normal"
+    },
+    "rangeX": 64,
+    "rangeY": 130,
+    "recovery": 18,
+    "startup": 8
+   }
+  },
+  "specials": {},
+  "ultimate": {
+   "cost": 100,
+   "name": "Hawk Mirage"
+  }
+ },
+ "float": {
+  "fall": 2.2,
+  "frames": 72
+ },
+ "health": 1200,
+ "hurtbox": {
+  "h": null,
+  "spriteScale": 2.3728813559322033,
+  "w": null
+ },
+ "id": "ns_red",
+ "mirror": {
+  "cost": 50,
+  "counter": {
+   "dmg": 18,
+   "every": 6,
+   "hits": 3,
+   "kind": "tornado",
+   "launch": -15
+  },
+  "dmgPct": 0.5,
+  "echoDelay": 8,
+  "frames": 480,
+  "gapPct": 0.3,
+  "glintEvery": 90,
+  "maxSwaps": 3,
+  "meterPct": 0.5,
+  "mode": "echo",
+  "swapCost": 10,
+  "swapFrames": 6
+ },
+ "moves": {
+  "air": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 58,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 20,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 4,
+    "kind": "normal"
+   },
+   "rangeX": 82,
+   "rangeY": 90,
+   "recovery": 12,
+   "startup": 5
+  },
+  "airKick": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 46,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 10,
+    "kind": "normal"
+   },
+   "rangeX": 72,
+   "rangeY": 80,
+   "recovery": 12,
+   "startup": 4
+  },
+  "axe": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 56,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitLevel": "overhead",
+   "hitstun": 24,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 14
+  },
+  "dive": {
+   "active": 30,
+   "blockstun": 10,
+   "damage": 72,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 30,
+   "knockbackX": 3,
+   "knockbackY": 10,
+   "nj": {
+    "boxY": 30,
+    "kind": "dive",
+    "landRec": 12,
+    "vx": 9,
+    "vy": 15
+   },
+   "rangeX": 60,
+   "rangeY": 80,
+   "recovery": 4,
+   "startup": 6
+  },
+  "kString1": {
+   "active": 2,
+   "blockstun": 10,
+   "damage": 30,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 66,
+   "rangeY": 50,
+   "recovery": 10,
+   "startup": 6
+  },
+  "kString2": {
+   "active": 2,
+   "blockstun": 10,
+   "damage": 30,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 20,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 70,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 6
+  },
+  "kString3": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 52,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 30,
+   "knockbackX": 7,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 80,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 8
+  },
+  "light": {
+   "active": 2,
+   "blockstun": 10,
+   "damage": 38,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 16,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 60,
+   "rangeY": 50,
+   "recovery": 8,
+   "startup": 5
+  },
+  "nsBarrier": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "barrier",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 98,
+   "startup": 0
+  },
+  "nsBarrierEnd": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "barrierEnd",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 9,
+   "startup": 0
+  },
+  "nsBurrow": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "burrow",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 98,
+   "startup": 0
+  },
+  "nsClone": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "clone",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 13,
+   "startup": 0
+  },
+  "nsMirror": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "mirror",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 0
+  },
+  "nsStreak": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "streak",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 0
+  },
+  "nsStreakRec": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "streakRec",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 13,
+   "startup": 0
+  },
+  "nsTremor": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "streak",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 11,
+   "startup": 0
+  },
+  "nsVanish": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "vanish",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 19,
+   "startup": 0
+  },
+  "nsVanishOut": {
+   "active": 1,
+   "blockstun": 10,
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "vanishOut",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 7,
+   "startup": 0
+  },
+  "sBeam": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 50,
+   "damageType": "projectile",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "at": 12,
+     "cue": "beam",
+     "dmg": 50,
+     "frames": 3,
+     "h": 20,
+     "name": "nsBeam",
+     "oy": 62,
+     "radius": 22,
+     "sh": 16,
+     "speed": 24,
+     "sprite": "proj_beam",
+     "sw": 47,
+     "w": 60
+    }
+   },
+   "np": 15,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 12
+  },
+  "sBeamAir": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 50,
+   "damageType": "projectile",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "angle": 40,
+     "at": 10,
+     "cue": "beam",
+     "dmg": 50,
+     "frames": 3,
+     "h": 40,
+     "name": "nsBeam",
+     "oy": 50,
+     "radius": 24,
+     "sh": 47,
+     "speed": 20,
+     "sprite": "proj_beamDiag",
+     "sw": 64,
+     "w": 40
+    }
+   },
+   "np": 15,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 14,
+   "startup": 10
+  },
+  "sGale": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 55,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "at": 10,
+     "cue": "gale",
+     "dmg": 55,
+     "h": 60,
+     "life": 38,
+     "name": "nsGale",
+     "oy": 60,
+     "radius": 30,
+     "scale": 2.4,
+     "sh": 43,
+     "speed": 12,
+     "sprite": "proj_crescent",
+     "sw": 26,
+     "type": "slash",
+     "w": 30
+    }
+   },
+   "np": 12,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 18,
+   "startup": 10
+  },
+  "sKunai": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 30,
+   "damageType": "projectile",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "at": 9,
+     "cue": "kunai",
+     "dmg": 30,
+     "h": 16,
+     "name": "nsKunai",
+     "oy": 60,
+     "radius": 16,
+     "scale": 2,
+     "sh": 18,
+     "speed": 18,
+     "sprite": "proj_spark",
+     "sw": 34,
+     "w": 34
+    }
+   },
+   "np": 10,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 14,
+   "startup": 9
+  },
+  "sKunaiAir": {
+   "active": 1,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 30,
+   "damageType": "projectile",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "proj",
+    "noHit": true,
+    "proj": {
+     "angles": [
+      12,
+      28,
+      44
+     ],
+     "at": 8,
+     "count": 3,
+     "cue": "kunai",
+     "dmg": 30,
+     "gap": 0,
+     "h": 16,
+     "name": "nsKunai",
+     "oy": 56,
+     "radius": 16,
+     "scale": 2,
+     "sh": 18,
+     "speed": 17,
+     "sprite": "proj_spark",
+     "sw": 34,
+     "w": 34
+    }
+   },
+   "np": 10,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 14,
+   "startup": 8
+  },
+  "sLow": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 44,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 18,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 62,
+    "kind": "normal"
+   },
+   "rangeX": 86,
+   "rangeY": 30,
+   "recovery": 14,
+   "startup": 7
+  },
+  "sSuper": {
+   "active": 1,
+   "bars": 1,
+   "blockstun": 10,
+   "category": "ultimate",
+   "damage": 0,
+   "damageType": "energy",
+   "frameExact": true,
+   "hitstun": 18,
+   "invuln": 94,
+   "isUltimate": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "super",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 92,
+   "startup": 1
+  },
+  "sTornado": {
+   "active": 30,
+   "blockstun": 10,
+   "category": "special",
+   "damage": 0,
+   "damageType": "energy",
+   "frameExact": true,
+   "hitstun": 18,
+   "isSpecial": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "airAngle": true,
+    "dist": 0.5,
+    "frames": 30,
+    "kind": "travel",
+    "multi": {
+     "cue": "tornadoHit",
+     "dmg": 13,
+     "every": 6,
+     "launch": -12,
+     "n": 5,
+     "type": "energy"
+    },
+    "noHit": true,
+    "trail": "wind"
+   },
+   "np": 20,
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 8
+  },
+  "sUlt": {
+   "active": 1,
+   "bars": 2,
+   "blockstun": 10,
+   "category": "ultimate",
+   "damage": 0,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 18,
+   "invuln": 76,
+   "isUltimate": true,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "super",
+    "noHit": true
+   },
+   "rangeX": 64,
+   "rangeY": 50,
+   "recovery": 74,
+   "startup": 1
+  },
+  "sUpper": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 62,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 28,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "launchVy": -18,
+   "launcher": true,
+   "nj": {
+    "boxY": -30,
+    "kind": "normal"
+   },
+   "rangeX": 58,
+   "rangeY": 120,
+   "recovery": 18,
+   "startup": 7
+  },
+  "sWake": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 60,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 24,
+   "invuln": 6,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 72,
+   "rangeY": 50,
+   "recovery": 22,
+   "startup": 5
+  },
+  "slide": {
+   "active": 14,
+   "blockstun": 10,
+   "damage": 50,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 22,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 60,
+    "dist": 0.24,
+    "frames": 14,
+    "kind": "travel",
+    "trail": "dust",
+    "underProjectiles": 20
+   },
+   "rangeX": 50,
+   "rangeY": 34,
+   "recovery": 14,
+   "startup": 6
+  },
+  "sword": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 64,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 24,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 92,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 9
+  },
+  "swordCrouch": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 48,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 20,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 58,
+    "kind": "normal"
+   },
+   "rangeX": 90,
+   "rangeY": 34,
+   "recovery": 15,
+   "startup": 8
+  },
+  "swordLow": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 54,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitLevel": "low",
+   "hitstun": 22,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "nj": {
+    "boxY": 52,
+    "kind": "normal"
+   },
+   "rangeX": 84,
+   "rangeY": 40,
+   "recovery": 17,
+   "startup": 9
+  },
+  "swordMove": {
+   "active": 3,
+   "blockstun": 10,
+   "damage": 60,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 24,
+   "knockbackX": 6,
+   "knockbackY": 0,
+   "nj": {
+    "kind": "normal"
+   },
+   "rangeX": 96,
+   "rangeY": 50,
+   "recovery": 16,
+   "startup": 8
+  },
+  "swordRise": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 56,
+   "damageType": "slash",
+   "frameExact": true,
+   "hitstun": 24,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "launchVy": -16,
+   "launcher": true,
+   "nj": {
+    "boxY": -50,
+    "kind": "normal"
+   },
+   "rangeX": 70,
+   "rangeY": 130,
+   "recovery": 18,
+   "startup": 7
+  },
+  "up": {
+   "active": 4,
+   "blockstun": 10,
+   "damage": 70,
+   "damageType": "blunt",
+   "frameExact": true,
+   "hitstun": 28,
+   "knockbackX": 3,
+   "knockbackY": 0,
+   "launchVy": -20,
+   "launcher": true,
+   "nj": {
+    "boxY": -40,
+    "kind": "normal"
+   },
+   "rangeX": 64,
+   "rangeY": 130,
+   "recovery": 18,
+   "startup": 8
+  }
+ },
+ "name": "Shane",
+ "ninjaPower": {
+  "max": 100,
+  "onHit": 4,
+  "regen": 6,
+  "start": 50
+ },
+ "rev": null,
+ "runSpeed": {
+  "blink": {
+   "air": true,
+   "airMomentumMax": 14,
+   "charges": 2,
+   "crossup": false,
+   "distPct": 0.22,
+   "dodge": null,
+   "faceLockOnCross": 0,
+   "gap": 6,
+   "recharge": 90,
+   "recovery": 3,
+   "run": {
+    "speed": 8.4,
+    "walk": 5.6
+   },
+   "startup": 3,
+   "tapWindow": 12,
+   "travel": 5,
+   "vertical": true,
+   "verticalPct": 0.25
+  },
+  "run": 10.500000000000002,
+  "walk": 7
+ },
+ "stats": {
+  "attack": 82,
+  "dashCooldownMax": 28,
+  "dashDuration": 10,
+  "dashSpeed": 15.3,
+  "defense": 74,
+  "jumpPower": 31,
+  "maxEnergy": 100,
+  "maxHealth": 1200,
+  "maxJumps": 3,
+  "speed": 88,
+  "weight": 0.85
+ },
+ "streak": {
+  "air": {
+   "eightWay": true,
+   "perAirtime": 2
+  },
+  "cancelFrom": 9,
+  "chain": 3,
+  "chainWindow": 10,
+  "cost": 10,
+  "distPct": 0.4,
+  "intangible": [
+   2,
+   6
+  ],
+  "recovery": 14,
+  "strike": {
+   "blockstun": 12,
+   "damageType": "blunt",
+   "dmg": 45,
+   "hitstun": 24
+  },
+  "thirdCost": 20,
+  "travel": 8,
+  "underground": false
+ },
+ "supers": {
+  "sSuper": "[fn shaneSuper]",
+  "sUlt": "[fn shaneUlt]"
+ },
+ "traps": null,
+ "vanish": {
+  "above": 150,
+  "behind": 70,
+  "cloud": 30,
+  "cost": 30,
+  "escapeCooldown": 720,
+  "escapeCost": 40,
+  "escapeInvuln": 6,
+  "fade": 8,
+  "gone": 6,
+  "pop": 6
+ },
+ "weight": 0.85
+}

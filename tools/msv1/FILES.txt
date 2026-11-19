@@ -29,3 +29,12 @@ harness/msv1_scen_e_presentation.mjs
 docs/msv1/BALANCE_NOTES.md
 harness/msv1_scen_f_final.mjs
 harness/msv1_netreplay.test.mjs
+# MSV1-MERGE
+tools/msv1/merge_snapshot.mjs
+docs/msv1/MERGE_START_COMMIT.txt
+docs/msv1/MERGE_BASELINE.txt
+docs/msv1/MERGE_SNAPSHOT_SHANE.json
+docs/msv1/MERGE_SNAPSHOT_DUSTIN.json
+docs/msv1/MERGE_BEN10_SWAP_REFERENCE.md
+docs/msv1/MERGE_AUDIT.md
+docs/msv1/MERGE_DESIGN.md

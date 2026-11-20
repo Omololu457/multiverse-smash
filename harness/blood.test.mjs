@@ -29,7 +29,7 @@ const A = await page.evaluate(async () => {
   let LV = 'full'; B.bloodSetLevelSource(() => LV)
   const mk = (key, side, hp = 1000) => ({ rosterKey: key, side, health: hp, maxHealth: 1000, facing: 1, x: 0, y: 0, w: 60, h: 100, grounded: true, vx: 0 })
   const tierAt = (frac) => { B.bloodMatchStart(1); const f = mk('goku', 'p1', 1000 - frac * 1000); B.bloodTick(f, 1, 100); return B.bloodStatus().slots.p1.tier }
-  out.tiers = [0.10, 0.20, 0.40, 0.70, 0.90].map(tierAt)
+  out.tiers = [0.05, 0.15, 0.30, 0.50, 0.80].map(tierAt)
   // regions + damageTypes
   // one fresh fighter per damageType (hits on the same slot grow one wound, so types are tested apart)
   const one = (t, y) => { B.bloodMatchStart(2); const g = mk('goku', 'p1', 900); B.bloodHit({ target: g, x: 30, y, damage: 40, damageType: t, frame: 5 }); return (B.bloodStatus().slots.p1?.wounds || []).join(' ') }
@@ -57,8 +57,8 @@ const A = await page.evaluate(async () => {
   const before = B.bloodStatus().slots.p1.tier
   B.bloodRoundStart(); rd.health = 1000; B.bloodTick(rd, 2, 100)
   out.round = { before, after: B.bloodStatus().slots.p1.tier, carry: B.bloodStatus().slots.p1.carry }
-  // damage adds up over rounds: 30 % lost in round 1 (T1) + 30 % in round 2 → 60 % of the match total (T3)
-  B.bloodMatchStart(7); const ac = mk('goku', 'p1', 700); B.bloodTick(ac, 1, 100); const r1 = B.bloodStatus().slots.p1.tier
+  // damage adds up over rounds: 20 % lost in round 1 (T1) + 30 % in round 2 → 50 % of the match total (T3)
+  B.bloodMatchStart(7); const ac = mk('goku', 'p1', 800); B.bloodTick(ac, 1, 100); const r1 = B.bloodStatus().slots.p1.tier
   B.bloodRoundStart(); ac.health = 1000; B.bloodTick(ac, 2, 100); const r2start = B.bloodStatus().slots.p1.tier
   ac.health = 700; B.bloodTick(ac, 3, 100); out.accum = { r1, r2start, r2end: B.bloodStatus().slots.p1.tier }
   B.bloodMatchStart(8); const he = mk('goku', 'p1', 100); B.bloodTick(he, 1, 100); const hb = B.bloodStatus().slots.p1.tier
@@ -92,7 +92,7 @@ const A = await page.evaluate(async () => {
   out.digest = [run(11), run(11), run(12)]
   return out
 })
-check('tiers by damage taken: 10%→0, 20%→1, 40%→2, 70%→3, 90%→4', JSON.stringify(A.tiers) === '[0,1,2,3,4]', JSON.stringify(A.tiers))
+check('tiers by damage taken (8/25/45/70 %): 5%→0, 15%→1, 30%→2, 50%→3, 80%→4', JSON.stringify(A.tiers) === '[0,1,2,3,4]', JSON.stringify(A.tiers))
 const T = A.types
 check('blunt to the head opens nose / mouth / brow', /^(nose|mouth|brow):blunt/.test(T.blunt), T.blunt)
 check('slash to the body makes a cut', /^(chest|abdomen|side|upper|fore|hand):slash/.test(T.slash), T.slash)
@@ -109,8 +109,8 @@ const F = A.fluids
 check('fluid types: human blood, machines oil, Rangers suit, Edo cracks, sand, alien colour',
   F.goku === 'blood' && F.naruto === 'blood' && F.genos === 'oil' && F.krybot === 'oil' && F.cyborg === 'oil' && F.spd_red === 'ranger' && F.windrangers === 'ranger' && F.madara === 'crack:edo' && F.gaara === 'sand' && F.vilgax.startsWith('alien'), JSON.stringify(F))
 check('between rounds the body keeps its wounds (no tier lost)', A.round.before === 4 && A.round.after === 4, JSON.stringify(A.round))
-check('damage adds up over rounds: 30 % + 30 % → tier 3', A.accum.r1 === 1 && A.accum.r2start === 1 && A.accum.r2end === 3, JSON.stringify(A.accum))
-check('healing removes tiers with the health restored', A.heal.before === 4 && A.heal.after === 2, JSON.stringify(A.heal))
+check('damage adds up over rounds: 20 % + 30 % → 50 % → tier 3', A.accum.r1 === 1 && A.accum.r2start === 1 && A.accum.r2end === 3, JSON.stringify(A.accum))
+check('healing removes tiers with the health restored (90 % → 50 % lost: T4 → T3)', A.heal.before === 4 && A.heal.after === 3, JSON.stringify(A.heal))
 check('T3+ drips fall', A.floor.drops > 0, JSON.stringify(A.floor))
 check('T4 standing still builds a pool', A.floor.pools > 0, JSON.stringify(A.floor))
 check('walking through a pool leaves smeared steps', A.floor.smears > 0, JSON.stringify(A.floor))

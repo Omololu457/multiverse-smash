@@ -98,7 +98,7 @@ for (const key of keys) {
           const bc = B.bloodFrame(f, { sheet: p.sheet, sourceX: p.sx, sourceY: p.sy, width: p.w, height: p.h, frames: p.n }, p.i, p.act, im, fx, p.sy, 420)
           if (bc) {
             g.drawImage(bc, p.cx, p.cy, p.cw, p.ch, x, y, p.cw * S, p.ch * S)
-            // verification: coverage ≤ 15 %, nothing outside the alpha, nothing in the eye box
+            // verification: coverage ≤ 45 % at T4 (lines 18 % + soak 27 %), nothing outside the alpha, nothing in the eye box
             const t = document.createElement('canvas'); t.width = p.w; t.height = p.h; const tg = t.getContext('2d'); tg.drawImage(im, fx, p.sy, p.w, p.h, 0, 0, p.w, p.h)
             const A = tg.getImageData(0, 0, p.w, p.h).data, Bd = bc.getContext('2d').getImageData(0, 0, p.w, p.h).data
             let op = 0, bl = 0; const e = p.fm.e
@@ -114,7 +114,7 @@ for (const key of keys) {
   if (r.err) { console.log(`  ⚠️  ${key}: ${r.err}`); results.push(r); continue }
   fs.writeFileSync(path.join(process.env.EXTRA ? EXTRA_OUT : OUT, `${key}.png`), Buffer.from(r.png.split(',')[1], 'base64'))
   delete r.png; results.push(r)
-  console.log(`  ${r.coverMax <= 0.15 && !r.eyeHits && !r.outside ? '✅' : '❌'} ${key.padEnd(22)} frames ${r.frames} · coverage max ${(r.coverMax * 100).toFixed(1)}% · eye px ${r.eyeHits} · outside-body px ${r.outside} · fluid ${r.fluid}`)
+  console.log(`  ${r.coverMax <= 0.45 && !r.eyeHits && !r.outside ? '✅' : '❌'} ${key.padEnd(22)} frames ${r.frames} · coverage max ${(r.coverMax * 100).toFixed(1)}% · eye px ${r.eyeHits} · outside-body px ${r.outside} · fluid ${r.fluid}`)
 }
 if (!process.env.EXTRA) fs.writeFileSync(path.join(ROOT, 'docs/msv1/blood/sheets_results.json'), JSON.stringify(results, null, 1))
 if (errs.length) console.log('page errors:', errs.slice(0, 3))

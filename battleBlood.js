@@ -25,9 +25,12 @@ function H(a, b = 0, c = 0, d = 0) {
 }
 
 // ── constants ────────────────────────────────────────────────────────────────────────────────────────────────
-export const BLOOD_TIER_FRAC = [0.15, 0.35, 0.60, 0.85]          // T1..T4 thresholds (health lost / max)
+export const BLOOD_TIER_FRAC = [0.08, 0.25, 0.45, 0.70]          // T1..T4 thresholds (health lost / max, match total) — shows early
 export const BLOOD_SPRAY_DAMAGE = 88                               // top ~25 % of roster move damage (p75, x parity)
-export const BLOOD_COVERAGE_CAP = 0.15                             // max share of a frame's opaque pixels
+export const BLOOD_COVERAGE_CAP = 0.15                             // (legacy flat cap; the real caps are per tier below)
+export const BLOOD_LINE_CAP = [0, 0.06, 0.10, 0.14, 0.18]          // cuts / trickles / spatter: share of the frame's opaque pixels
+export const BLOOD_SOAK_CAP = [0, 0.07, 0.13, 0.20, 0.27]          // soaked stains (sprite recolour) around wounds
+const SOAK_A = [0, 0.50, 0.58, 0.66, 0.74]                         // soak opacity per tier (core; edges ~70 % of it)
 export const BLOOD_FLOOR_CAP = 64
 export const BLOOD_FLOOR_LIFE = 1200                               // 20 s at 60 fps
 const DRY_FRAMES = 360                                             // ~6 s fresh → dried
@@ -290,6 +293,11 @@ function worldOf(r, ax, ay) {
 
 // ── painting the body (sprite.js) ──────────────────────────────────────────────────────────────────────────
 const _canvas = new Map()   // slot → { cv, key }
+function soakColor(fluid, age, core) {
+  if (fluid === 'oil') return PAL.oil[core ? 2 : 1]
+  const pal = fluid.startsWith('alien') ? (PAL[fluid.split(':')[1]] || PAL.blood) : PAL.blood
+  return age > DRY_FRAMES ? pal[core ? 5 : 4] : pal[core ? 2 : 1]
+}
 function colorAt(fluid, age, shadow, deep) {
   if (fluid === 'oil') return PAL.oil[deep ? 2 : shadow ? 1 : 0]
   const pal = fluid.startsWith('alien') ? (PAL[fluid.split(':')[1]] || PAL.blood) : PAL.blood
@@ -337,7 +345,8 @@ function dstOf(f, def) {
 const STEP = { d: [0, 1], a: [-1, 1], b: [1, 1], l: [-1, 0], r: [1, 0] }
 function paintWounds(g, r, fm, cellH, frame) {
   const u = Math.max(1, Math.round(cellH / 120))
-  let budget = Math.floor(fm.o * BLOOD_COVERAGE_CAP)
+  let budget = Math.floor(fm.o * BLOOD_LINE_CAP[r.tier])
+  let soakBudget = Math.floor(fm.o * BLOOD_SOAK_CAP[r.tier])
   const e = fm.e, eye = e[0] >= 0
   const ends = []
   const fluid = r.fluid
@@ -347,6 +356,23 @@ function paintWounds(g, r, fm, cellH, frame) {
     if (eye && x + u - 1 >= e[0] && x <= e[2] && y + u - 1 >= e[1] && y <= e[3]) return true   // never over the eyes (whole block tested)
     g.fillStyle = col; g.fillRect(x, y, u, u); budget -= u * u
     return true
+  }
+  // SOAK: the sprite itself turns bloody around a wound — an irregular, downward-running stain painted
+  // semi-transparent, so the cloth / skin shading still shows through (clothes soaking up blood)
+  const soak = (ax, ay, w, head, age) => {
+    const R = head ? 1 + r.tier * 0.5 + w.sev * 0.4 : 2 + r.tier * 1.7 + w.sev * 1.3   // faces stay readable
+    const down = 1.6, up = head ? 0.7 : 0.45   // blood runs DOWN: a stain barely creeps upward (keeps faces clear of chest wounds)
+    const col = soakColor(fluid, age, false), core = soakColor(fluid, age, true), a0 = SOAK_A[r.tier]
+    for (let dy = -Math.ceil(R * up); dy <= Math.ceil(R * down); dy += u) for (let dx = -Math.ceil(R); dx <= Math.ceil(R); dx += u) {
+      const ny = dy < 0 ? dy / (R * up) : dy / (R * down), d = Math.hypot(dx / R, ny)
+      if (d > 0.62 + 0.48 * H(w.seed, dx + 97, dy + 97, 41)) continue
+      const x = ax + dx, y = ay + dy
+      if (eye && x + u - 1 >= e[0] && x <= e[2] && y + u - 1 >= e[1] && y <= e[3]) continue
+      if (soakBudget <= 0) { g.globalAlpha = 1; return }
+      g.globalAlpha = d < 0.45 ? a0 : a0 * 0.7
+      g.fillStyle = d < 0.45 ? core : col; g.fillRect(x, y, u, u); soakBudget -= u * u
+    }
+    g.globalAlpha = 1
   }
   const shown = r.wounds.slice(0, MAX_WOUNDS[r.tier])
   for (let wi = 0; wi < shown.length; wi++) {
@@ -361,6 +387,8 @@ function paintWounds(g, r, fm, cellH, frame) {
     const shade = fm.a[si * 3 + 2] === 1
     const age = frame - w.born, sinceFresh = frame - w.fresh
     const s = w.seed
+    // 0) the soaked stain under it (real fluids only; scorch soaks only once it bleeds at T3+)
+    if ((fluid === 'blood' || fluid === 'oil' || fluid.startsWith('alien')) && (w.kind !== 'scorch' || r.tier >= 3)) soak(ax, ay, w, REGION_OF[SLOTS[si]] === 'head', age)
     // 1) the wound itself
     if (fluid.startsWith('crack')) { paintCrack(plot, CRACK[fluid.split(':')[1]] || CRACK.edo, ax, ay, w, r.tier, u); continue }
     if (fluid === 'sand') { paintSand(plot, ax, ay, w, r.tier, u); continue }
@@ -386,12 +414,12 @@ function paintWounds(g, r, fm, cellH, frame) {
     const maxLen = Math.min(fluid === 'ranger' ? 5 : 99, Math.round(TRICKLE_MAX[r.tier] * (0.45 + 0.18 * w.sev + 0.3 * H(s, 71)) * amount))   // each trickle its own length; a suit only stains around the tear
     const grown = Math.min(maxLen, path.length, 2 + Math.floor((frame - w.born) / 5))
     let x = ax, y = ay
-    const thick = r.tier >= 3 && fluid !== 'ranger'
+    const thick = r.tier >= 2 && fluid !== 'ranger'
     for (let i = 0; i < grown; i++) {
       const c = path[i], st = STEP[c.toLowerCase()], sh = c !== c.toLowerCase()
       x += st[0] * 1; y += st[1] * 1
       if (!plot(x, y, colorAt(fluid, age - i * 4, sh, false))) break
-      if (thick && (i & 1) === 0 && i < grown - 2) plot(x + (H(s, i, 72) < 0.5 ? -u : u), y, colorAt(fluid, age - i * 4, true, false))   // heavy flow widens
+      if (thick && (r.tier >= 3 || (i & 1) === 0) && i < grown - 2) plot(x + (H(s, i, 72) < 0.5 ? -u : u), y, colorAt(fluid, age - i * 4, true, false))   // heavy flow widens
       if (fluid === 'oil' && i % 2 === 1) plot(x, y, PAL.oil[3])                                                                       // oil's glossy sheen
       else if (i === 2 && sinceFresh < 90 && !sh && fluid === 'blood') plot(x, y, PAL.blood[3])                                         // rare 1 px wet highlight
     }
@@ -532,3 +560,5 @@ export function bloodDigest() {
   for (const c of s.join('|')) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0 }
   return h.toString(16)
 }
+/** Harness / debugging only: the slot's current blood overlay canvas + its last cache key (no effect on the game). */
+export function bloodDebugCanvas(slot) { const c = _canvas.get(slot); return c ? { cv: c.cv, key: c.key } : null }

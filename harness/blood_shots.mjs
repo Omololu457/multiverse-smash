@@ -45,10 +45,10 @@ async function shot(name, p2, frac, hits, opts = {}) {
 }
 const ALL = [[0.08, 'blunt'], [0.12, 'slash'], [0.4, 'blunt'], [0.45, 'slash'], [0.5, 'projectile'], [0.75, 'slash'], [0.9, 'blunt']]
 console.log('── tiers')
-for (const [t, frac] of [[0, 0.05], [1, 0.25], [2, 0.5], [3, 0.72], [4, 0.92]]) await shot(`tier${t}`, 'aoi_todo', frac, frac < 0.15 ? [] : ALL.slice(0, 2 + t))
+for (const [t, frac] of [[0, 0.04], [1, 0.16], [2, 0.35], [3, 0.57], [4, 0.85]]) await shot(`tier${t}`, 'aoi_todo', frac, frac < 0.08 ? [] : ALL.slice(0, 2 + t))
 console.log('── slash vs blunt (tier 2)')
-await shot('slash', 'aoi_todo', 0.45, [[0.12, 'slash'], [0.4, 'slash'], [0.5, 'slash'], [0.45, 'slash'], [0.75, 'slash']])
-await shot('blunt', 'aoi_todo', 0.45, [[0.08, 'blunt'], [0.1, 'blunt'], [0.4, 'blunt'], [0.5, 'blunt'], [0.75, 'blunt']])
+await shot('slash', 'aoi_todo', 0.35, [[0.12, 'slash'], [0.4, 'slash'], [0.5, 'slash'], [0.45, 'slash'], [0.75, 'slash']])
+await shot('blunt', 'aoi_todo', 0.35, [[0.08, 'blunt'], [0.1, 'blunt'], [0.4, 'blunt'], [0.5, 'blunt'], [0.75, 'blunt']])
 console.log('── floor pool (tier 4, standing still ~10 s)')
 await shot('pool', 'aoi_todo', 0.93, ALL, { wait: 10000 })
 console.log('── fluids')

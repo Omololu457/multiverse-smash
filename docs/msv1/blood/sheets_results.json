@@ -2,7 +2,7 @@
  {
   "key": "albedo",
   "frames": 6,
-  "coverMax": 0.06509695290858726,
+  "coverMax": 0.1591240875912409,
   "eyeHits": 0,
   "outside": 0,
   "unique": 61,
@@ -13,7 +13,7 @@
  {
   "key": "alt_sukuna",
   "frames": 6,
-  "coverMax": 0.12606060606060607,
+  "coverMax": 0.3152454780361757,
   "eyeHits": 0,
   "outside": 0,
   "unique": 73,
@@ -24,7 +24,7 @@
  {
   "key": "aoi_todo",
   "frames": 6,
-  "coverMax": 0.12832699619771862,
+  "coverMax": 0.30133079847908745,
   "eyeHits": 0,
   "outside": 0,
   "unique": 75,
@@ -35,7 +35,7 @@
  {
   "key": "arlong",
   "frames": 6,
-  "coverMax": 0.12268266085059978,
+  "coverMax": 0.3029850746268657,
   "eyeHits": 0,
   "outside": 0,
   "unique": 54,
@@ -46,7 +46,7 @@
  {
   "key": "baki",
   "frames": 6,
-  "coverMax": 0.1162227602905569,
+  "coverMax": 0.28852459016393445,
   "eyeHits": 0,
   "outside": 0,
   "unique": 121,
@@ -57,7 +57,7 @@
  {
   "key": "batman",
   "frames": 6,
-  "coverMax": 0.12585720048406615,
+  "coverMax": 0.30126728110599077,
   "eyeHits": 0,
   "outside": 0,
   "unique": 113,
@@ -68,7 +68,7 @@
  {
   "key": "beast_boy",
   "frames": 6,
-  "coverMax": 0.1272294887039239,
+  "coverMax": 0.29395604395604397,
   "eyeHits": 0,
   "outside": 0,
   "unique": 139,
@@ -79,7 +79,7 @@
  {
   "key": "beerus",
   "frames": 5,
-  "coverMax": 0.1259259259259259,
+  "coverMax": 0.31555555555555553,
   "eyeHits": 0,
   "outside": 0,
   "unique": 123,
@@ -90,7 +90,7 @@
  {
   "key": "ben10",
   "frames": 6,
-  "coverMax": 0.06509695290858726,
+  "coverMax": 0.1591240875912409,
   "eyeHits": 0,
   "outside": 0,
   "unique": 1617,
@@ -101,7 +101,7 @@
  {
   "key": "buggy",
   "frames": 6,
-  "coverMax": 0.12621951219512195,
+  "coverMax": 0.3245109321058688,
   "eyeHits": 0,
   "outside": 0,
   "unique": 127,
@@ -112,7 +112,7 @@
  {
   "key": "byakuya",
   "frames": 5,
-  "coverMax": 0.1242067089755213,
+  "coverMax": 0.28001277139208175,
   "eyeHits": 0,
   "outside": 0,
   "unique": 96,
@@ -123,7 +123,7 @@
  {
   "key": "chrollo",
   "frames": 5,
-  "coverMax": 0.12439024390243902,
+  "coverMax": 0.3042973286875726,
   "eyeHits": 0,
   "outside": 0,
   "unique": 118,
@@ -134,7 +134,7 @@
  {
   "key": "cyborg",
   "frames": 6,
-  "coverMax": 0.1050767414403778,
+  "coverMax": 0.2895306859205776,
   "eyeHits": 0,
   "outside": 0,
   "unique": 136,
@@ -145,7 +145,7 @@
  {
   "key": "dash_parr",
   "frames": 6,
-  "coverMax": 0.11590296495956873,
+  "coverMax": 0.15363881401617252,
   "eyeHits": 0,
   "outside": 0,
   "unique": 31,
@@ -156,7 +156,7 @@
  {
   "key": "dseyl",
   "frames": 5,
-  "coverMax": 0.1254355400696864,
+  "coverMax": 0.34265734265734266,
   "eyeHits": 0,
   "outside": 0,
   "unique": 30,
@@ -167,7 +167,7 @@
  {
   "key": "elastigirl",
   "frames": 6,
-  "coverMax": 0.12136752136752137,
+  "coverMax": 0.28888888888888886,
   "eyeHits": 0,
   "outside": 0,
   "unique": 158,
@@ -178,7 +178,7 @@
  {
   "key": "enoch",
   "frames": 5,
-  "coverMax": 0.11570247933884298,
+  "coverMax": 0.2736660929432014,
   "eyeHits": 0,
   "outside": 0,
   "unique": 46,
@@ -189,7 +189,7 @@
  {
   "key": "flash",
   "frames": 4,
-  "coverMax": 0.11879949979157982,
+  "coverMax": 0.2842851187994998,
   "eyeHits": 0,
   "outside": 0,
   "unique": 52,
@@ -200,7 +200,7 @@
  {
   "key": "frozone",
   "frames": 5,
-  "coverMax": 0.10611510791366907,
+  "coverMax": 0.2697841726618705,
   "eyeHits": 0,
   "outside": 0,
   "unique": 54,
@@ -211,7 +211,7 @@
  {
   "key": "gaara",
   "frames": 6,
-  "coverMax": 0.09182098765432099,
+  "coverMax": 0.0941358024691358,
   "eyeHits": 0,
   "outside": 0,
   "unique": 100,
@@ -222,7 +222,7 @@
  {
   "key": "genos",
   "frames": 6,
-  "coverMax": 0.10318331503841932,
+  "coverMax": 0.3348164627363737,
   "eyeHits": 0,
   "outside": 0,
   "unique": 121,
@@ -233,7 +233,7 @@
  {
   "key": "ghostface",
   "frames": 6,
-  "coverMax": 0.0952516349161217,
+  "coverMax": 0.2805095541401274,
   "eyeHits": 0,
   "outside": 0,
   "unique": 29,
@@ -244,7 +244,7 @@
  {
   "key": "gojo",
   "frames": 5,
-  "coverMax": 0.12680115273775217,
+  "coverMax": 0.31316042267050914,
   "eyeHits": 0,
   "outside": 0,
   "unique": 75,
@@ -255,7 +255,7 @@
  {
   "key": "goku",
   "frames": 6,
-  "coverMax": 0.1191304347826087,
+  "coverMax": 0.3207171314741036,
   "eyeHits": 0,
   "outside": 0,
   "unique": 56,
@@ -266,7 +266,7 @@
  {
   "key": "goku_black",
   "frames": 5,
-  "coverMax": 0.12512030798845045,
+  "coverMax": 0.3164983164983165,
   "eyeHits": 0,
   "outside": 0,
   "unique": 99,
@@ -277,7 +277,7 @@
  {
   "key": "gold_samurai_ranger",
   "frames": 5,
-  "coverMax": 0.1135593220338983,
+  "coverMax": 0.13389830508474576,
   "eyeHits": 0,
   "outside": 0,
   "unique": 103,
@@ -288,7 +288,7 @@
  {
   "key": "green_arrow",
   "frames": 6,
-  "coverMax": 0.12546468401486988,
+  "coverMax": 0.26979611190137504,
   "eyeHits": 0,
   "outside": 0,
   "unique": 89,
@@ -310,7 +310,7 @@
  {
   "key": "green_samurai_ranger",
   "frames": 5,
-  "coverMax": 0.11061285500747384,
+  "coverMax": 0.13153961136023917,
   "eyeHits": 0,
   "outside": 0,
   "unique": 94,
@@ -321,7 +321,7 @@
  {
   "key": "gwen",
   "frames": 6,
-  "coverMax": 0.11836115326251896,
+  "coverMax": 0.3110773899848255,
   "eyeHits": 0,
   "outside": 0,
   "unique": 39,
@@ -332,7 +332,7 @@
  {
   "key": "hashirama",
   "frames": 5,
-  "coverMax": 0.12876550502067335,
+  "coverMax": 0.2987730061349693,
   "eyeHits": 0,
   "outside": 0,
   "unique": 157,
@@ -343,7 +343,7 @@
  {
   "key": "higuruma",
   "frames": 6,
-  "coverMax": 0.12741751990898748,
+  "coverMax": 0.3003412969283277,
   "eyeHits": 0,
   "outside": 0,
   "unique": 115,
@@ -354,7 +354,7 @@
  {
   "key": "hinata",
   "frames": 6,
-  "coverMax": 0.126890756302521,
+  "coverMax": 0.3159533073929961,
   "eyeHits": 0,
   "outside": 0,
   "unique": 108,
@@ -365,7 +365,7 @@
  {
   "key": "hisoka",
   "frames": 5,
-  "coverMax": 0.13138686131386862,
+  "coverMax": 0.3048128342245989,
   "eyeHits": 0,
   "outside": 0,
   "unique": 96,
@@ -376,7 +376,7 @@
  {
   "key": "homelander",
   "frames": 5,
-  "coverMax": 0.13033175355450238,
+  "coverMax": 0.3467614533965245,
   "eyeHits": 0,
   "outside": 0,
   "unique": 34,
@@ -387,7 +387,7 @@
  {
   "key": "ichigo",
   "frames": 6,
-  "coverMax": 0.1193058568329718,
+  "coverMax": 0.33221476510067116,
   "eyeHits": 0,
   "outside": 0,
   "unique": 156,
@@ -398,7 +398,7 @@
  {
   "key": "inosuke",
   "frames": 6,
-  "coverMax": 0.11708482676224612,
+  "coverMax": 0.2931258106355383,
   "eyeHits": 0,
   "outside": 0,
   "unique": 74,
@@ -409,7 +409,7 @@
  {
   "key": "ippo",
   "frames": 6,
-  "coverMax": 0.12468193384223919,
+  "coverMax": 0.3155216284987277,
   "eyeHits": 0,
   "outside": 0,
   "unique": 87,
@@ -420,7 +420,7 @@
  {
   "key": "isshiki",
   "frames": 5,
-  "coverMax": 0.13186338089061825,
+  "coverMax": 0.3220230473751601,
   "eyeHits": 0,
   "outside": 0,
   "unique": 54,
@@ -431,7 +431,7 @@
  {
   "key": "itachi",
   "frames": 5,
-  "coverMax": 0.12943432406519656,
+  "coverMax": 0.3432406519654842,
   "eyeHits": 0,
   "outside": 0,
   "unique": 86,
@@ -442,7 +442,7 @@
  {
   "key": "jason",
   "frames": 6,
-  "coverMax": 0.08498759305210918,
+  "coverMax": 0.258148941232453,
   "eyeHits": 0,
   "outside": 0,
   "unique": 44,
@@ -453,7 +453,7 @@
  {
   "key": "jesus",
   "frames": 6,
-  "coverMax": 0.12389380530973451,
+  "coverMax": 0.3259958071278826,
   "eyeHits": 0,
   "outside": 0,
   "unique": 76,
@@ -464,7 +464,7 @@
  {
   "key": "jiraiya",
   "frames": 5,
-  "coverMax": 0.13121361397223466,
+  "coverMax": 0.2979591836734694,
   "eyeHits": 0,
   "outside": 0,
   "unique": 127,
@@ -475,7 +475,7 @@
  {
   "key": "kakashi",
   "frames": 6,
-  "coverMax": 0.12728857890148212,
+  "coverMax": 0.32432432432432434,
   "eyeHits": 0,
   "outside": 0,
   "unique": 93,
@@ -486,7 +486,7 @@
  {
   "key": "kakashi_anbu",
   "frames": 6,
-  "coverMax": 0.13099630996309963,
+  "coverMax": 0.31123388581952116,
   "eyeHits": 0,
   "outside": 0,
   "unique": 99,
@@ -497,7 +497,7 @@
  {
   "key": "kakashi_war",
   "frames": 6,
-  "coverMax": 0.12849584278155707,
+  "coverMax": 0.32275132275132273,
   "eyeHits": 0,
   "outside": 0,
   "unique": 92,
@@ -508,7 +508,7 @@
  {
   "key": "killua",
   "frames": 4,
-  "coverMax": 0.1266891891891892,
+  "coverMax": 0.2777777777777778,
   "eyeHits": 0,
   "outside": 0,
   "unique": 119,
@@ -519,7 +519,7 @@
  {
   "key": "krybot",
   "frames": 6,
-  "coverMax": 0.10204081632653061,
+  "coverMax": 0.2896440129449838,
   "eyeHits": 0,
   "outside": 0,
   "unique": 28,
@@ -530,7 +530,7 @@
  {
   "key": "l_ryuuzaki",
   "frames": 5,
-  "coverMax": 0.12771739130434784,
+  "coverMax": 0.3542600896860987,
   "eyeHits": 0,
   "outside": 0,
   "unique": 114,
@@ -541,7 +541,7 @@
  {
   "key": "light",
   "frames": 6,
-  "coverMax": 0.132486388384755,
+  "coverMax": 0.3218884120171674,
   "eyeHits": 0,
   "outside": 0,
   "unique": 68,
@@ -552,7 +552,7 @@
  {
   "key": "luffy",
   "frames": 6,
-  "coverMax": 0.07871720116618076,
+  "coverMax": 0.228099173553719,
   "eyeHits": 0,
   "outside": 0,
   "unique": 147,
@@ -563,7 +563,7 @@
  {
   "key": "madara",
   "frames": 6,
-  "coverMax": 0.09705648369132856,
+  "coverMax": 0.1099476439790576,
   "eyeHits": 0,
   "outside": 0,
   "unique": 134,
@@ -574,7 +574,7 @@
  {
   "key": "maki",
   "frames": 6,
-  "coverMax": 0.12357414448669202,
+  "coverMax": 0.3067608476286579,
   "eyeHits": 0,
   "outside": 0,
   "unique": 89,
@@ -585,7 +585,7 @@
  {
   "key": "mayuri",
   "frames": 5,
-  "coverMax": 0.12033195020746888,
+  "coverMax": 0.2663503896984073,
   "eyeHits": 0,
   "outside": 0,
   "unique": 92,
@@ -596,7 +596,7 @@
  {
   "key": "megumi_fushiguro",
   "frames": 6,
-  "coverMax": 0.1242603550295858,
+  "coverMax": 0.2978303747534517,
   "eyeHits": 0,
   "outside": 0,
   "unique": 393,
@@ -607,7 +607,7 @@
  {
   "key": "minato",
   "frames": 6,
-  "coverMax": 0.12850678733031673,
+  "coverMax": 0.3233766233766234,
   "eyeHits": 0,
   "outside": 0,
   "unique": 137,
@@ -618,7 +618,7 @@
  {
   "key": "miwa",
   "frames": 6,
-  "coverMax": 0.12565997888067582,
+  "coverMax": 0.2946145723336853,
   "eyeHits": 0,
   "outside": 0,
   "unique": 107,
@@ -629,7 +629,7 @@
  {
   "key": "mmpr_black",
   "frames": 6,
-  "coverMax": 0.11907810499359796,
+  "coverMax": 0.1203585147247119,
   "eyeHits": 0,
   "outside": 0,
   "unique": 54,
@@ -640,7 +640,7 @@
  {
   "key": "mmpr_pink",
   "frames": 6,
-  "coverMax": 0.11907810499359796,
+  "coverMax": 0.1203585147247119,
   "eyeHits": 0,
   "outside": 0,
   "unique": 62,
@@ -651,7 +651,7 @@
  {
   "key": "mmpr_white",
   "frames": 6,
-  "coverMax": 0.11444141689373297,
+  "coverMax": 0.1226158038147139,
   "eyeHits": 0,
   "outside": 0,
   "unique": 59,
@@ -662,7 +662,7 @@
  {
   "key": "mr_incredible",
   "frames": 6,
-  "coverMax": 0.12126696832579185,
+  "coverMax": 0.3316953316953317,
   "eyeHits": 0,
   "outside": 0,
   "unique": 181,
@@ -673,7 +673,7 @@
  {
   "key": "naruto",
   "frames": 6,
-  "coverMax": 0.12339930151338765,
+  "coverMax": 0.31029810298102983,
   "eyeHits": 0,
   "outside": 0,
   "unique": 98,
@@ -684,7 +684,7 @@
  {
   "key": "naruto_seventh",
   "frames": 6,
-  "coverMax": 0.12541620421753608,
+  "coverMax": 0.3426423200859291,
   "eyeHits": 0,
   "outside": 0,
   "unique": 218,
@@ -695,7 +695,7 @@
  {
   "key": "netero",
   "frames": 5,
-  "coverMax": 0.12121212121212122,
+  "coverMax": 0.29035874439461884,
   "eyeHits": 0,
   "outside": 0,
   "unique": 88,
@@ -706,7 +706,7 @@
  {
   "key": "nezuko",
   "frames": 6,
-  "coverMax": 0.06804733727810651,
+  "coverMax": 0.1659919028340081,
   "eyeHits": 0,
   "outside": 0,
   "unique": 119,
@@ -717,7 +717,7 @@
  {
   "key": "ninja_storm_cgpt",
   "frames": 6,
-  "coverMax": 0.12032520325203253,
+  "coverMax": 0.13658536585365855,
   "eyeHits": 0,
   "outside": 0,
   "unique": 264,
@@ -728,7 +728,7 @@
  {
   "key": "ninja_storm_rangers",
   "frames": 6,
-  "coverMax": 0.11812297734627832,
+  "coverMax": 0.13915857605177995,
   "eyeHits": 0,
   "outside": 0,
   "unique": 260,
@@ -739,7 +739,7 @@
  {
   "key": "obito",
   "frames": 6,
-  "coverMax": 0.13378378378378378,
+  "coverMax": 0.3087837837837838,
   "eyeHits": 0,
   "outside": 0,
   "unique": 75,
@@ -750,7 +750,7 @@
  {
   "key": "omega_ranger",
   "frames": 5,
-  "coverMax": 0.10975609756097561,
+  "coverMax": 0.13064516129032258,
   "eyeHits": 0,
   "outside": 0,
   "unique": 208,
@@ -761,7 +761,7 @@
  {
   "key": "omololu",
   "frames": 6,
-  "coverMax": 0.13243243243243244,
+  "coverMax": 0.29864864864864865,
   "eyeHits": 0,
   "outside": 0,
   "unique": 75,
@@ -772,7 +772,7 @@
  {
   "key": "pain",
   "frames": 6,
-  "coverMax": 0.13302217036172695,
+  "coverMax": 0.326271186440678,
   "eyeHits": 0,
   "outside": 0,
   "unique": 103,
@@ -783,7 +783,7 @@
  {
   "key": "raven",
   "frames": 6,
-  "coverMax": 0.13029315960912052,
+  "coverMax": 0.3314814814814815,
   "eyeHits": 0,
   "outside": 0,
   "unique": 133,
@@ -794,7 +794,7 @@
  {
   "key": "red_ranger_mmpr",
   "frames": 5,
-  "coverMax": 0.1111111111111111,
+  "coverMax": 0.11522633744855967,
   "eyeHits": 0,
   "outside": 0,
   "unique": 95,
@@ -805,7 +805,7 @@
  {
   "key": "rengoku",
   "frames": 6,
-  "coverMax": 0.13071895424836602,
+  "coverMax": 0.3566350710900474,
   "eyeHits": 0,
   "outside": 0,
   "unique": 134,
@@ -816,7 +816,7 @@
  {
   "key": "rick",
   "frames": 4,
-  "coverMax": 0.12259615384615384,
+  "coverMax": 0.31971153846153844,
   "eyeHits": 0,
   "outside": 0,
   "unique": 117,
@@ -827,7 +827,7 @@
  {
   "key": "rickPrime",
   "frames": 4,
-  "coverMax": 0.1248665955176094,
+  "coverMax": 0.3161057692307692,
   "eyeHits": 0,
   "outside": 0,
   "unique": 117,
@@ -838,7 +838,7 @@
  {
   "key": "robin",
   "frames": 6,
-  "coverMax": 0.1231079717457114,
+  "coverMax": 0.32593340060544906,
   "eyeHits": 0,
   "outside": 0,
   "unique": 153,
@@ -849,7 +849,7 @@
  {
   "key": "saiki",
   "frames": 5,
-  "coverMax": 0.08756567425569177,
+  "coverMax": 0.1408,
   "eyeHits": 0,
   "outside": 0,
   "unique": 68,
@@ -860,7 +860,7 @@
  {
   "key": "saitama",
   "frames": 5,
-  "coverMax": 0.11469072164948453,
+  "coverMax": 0.31829896907216493,
   "eyeHits": 0,
   "outside": 0,
   "unique": 195,
@@ -871,7 +871,7 @@
  {
   "key": "sakura",
   "frames": 6,
-  "coverMax": 0.12823061630218688,
+  "coverMax": 0.33300198807157055,
   "eyeHits": 0,
   "outside": 0,
   "unique": 88,
@@ -882,7 +882,7 @@
  {
   "key": "samurai_red_ranger",
   "frames": 5,
-  "coverMax": 0.10476190476190476,
+  "coverMax": 0.11587301587301588,
   "eyeHits": 0,
   "outside": 0,
   "unique": 157,
@@ -893,7 +893,7 @@
  {
   "key": "sanji",
   "frames": 5,
-  "coverMax": 0.08759124087591241,
+  "coverMax": 0.2542372881355932,
   "eyeHits": 0,
   "outside": 0,
   "unique": 52,
@@ -904,7 +904,7 @@
  {
   "key": "sasuke",
   "frames": 5,
-  "coverMax": 0.12834978843441466,
+  "coverMax": 0.30486008836524303,
   "eyeHits": 0,
   "outside": 0,
   "unique": 94,
@@ -915,7 +915,7 @@
  {
   "key": "sasuke_adult",
   "frames": 6,
-  "coverMax": 0.12355736591989137,
+  "coverMax": 0.2919212491513917,
   "eyeHits": 0,
   "outside": 0,
   "unique": 103,
@@ -926,7 +926,7 @@
  {
   "key": "sasuke_sensei",
   "frames": 6,
-  "coverMax": 0.12971175166297116,
+  "coverMax": 0.30465116279069765,
   "eyeHits": 0,
   "outside": 0,
   "unique": 166,
@@ -937,7 +937,7 @@
  {
   "key": "shinobu",
   "frames": 6,
-  "coverMax": 0.13232104121475055,
+  "coverMax": 0.31412337662337664,
   "eyeHits": 0,
   "outside": 0,
   "unique": 82,
@@ -948,7 +948,7 @@
  {
   "key": "shisui_fallen",
   "frames": 6,
-  "coverMax": 0.12283345892991711,
+  "coverMax": 0.30461073318216175,
   "eyeHits": 0,
   "outside": 0,
   "unique": 49,
@@ -959,7 +959,7 @@
  {
   "key": "six_paths_pain",
   "frames": 6,
-  "coverMax": 0.1273209549071618,
+  "coverMax": 0.3157894736842105,
   "eyeHits": 0,
   "outside": 0,
   "unique": 57,
@@ -970,7 +970,7 @@
  {
   "key": "soldier_boy",
   "frames": 6,
-  "coverMax": 0.06586056084383844,
+  "coverMax": 0.24286081811165422,
   "eyeHits": 0,
   "outside": 0,
   "unique": 138,
@@ -981,7 +981,7 @@
  {
   "key": "spd_blue",
   "frames": 6,
-  "coverMax": 0.11359404096834265,
+  "coverMax": 0.1378026070763501,
   "eyeHits": 0,
   "outside": 0,
   "unique": 34,
@@ -992,7 +992,7 @@
  {
   "key": "spd_green",
   "frames": 6,
-  "coverMax": 0.11141678129298486,
+  "coverMax": 0.1253968253968254,
   "eyeHits": 0,
   "outside": 0,
   "unique": 49,
@@ -1003,7 +1003,7 @@
  {
   "key": "spd_pink",
   "frames": 6,
-  "coverMax": 0.11141678129298486,
+  "coverMax": 0.1253968253968254,
   "eyeHits": 0,
   "outside": 0,
   "unique": 42,
@@ -1014,7 +1014,7 @@
  {
   "key": "spd_red",
   "frames": 6,
-  "coverMax": 0.11498257839721254,
+  "coverMax": 0.13588850174216027,
   "eyeHits": 0,
   "outside": 0,
   "unique": 48,
@@ -1025,7 +1025,7 @@
  {
   "key": "spd_yellow",
   "frames": 6,
-  "coverMax": 0.11251980982567353,
+  "coverMax": 0.13629160063391443,
   "eyeHits": 0,
   "outside": 0,
   "unique": 48,
@@ -1036,7 +1036,7 @@
  {
   "key": "spiderman",
   "frames": 4,
-  "coverMax": 0.1116111611161116,
+  "coverMax": 0.2893789378937894,
   "eyeHits": 0,
   "outside": 0,
   "unique": 145,
@@ -1047,7 +1047,7 @@
  {
   "key": "starfire",
   "frames": 6,
-  "coverMax": 0.12557077625570776,
+  "coverMax": 0.3382198952879581,
   "eyeHits": 0,
   "outside": 0,
   "unique": 122,
@@ -1058,7 +1058,7 @@
  {
   "key": "sukuna",
   "frames": 5,
-  "coverMax": 0.13475935828877006,
+  "coverMax": 0.3106796116504854,
   "eyeHits": 0,
   "outside": 0,
   "unique": 41,
@@ -1069,7 +1069,7 @@
  {
   "key": "superman",
   "frames": 5,
-  "coverMax": 0.12549537648612946,
+  "coverMax": 0.33380281690140845,
   "eyeHits": 0,
   "outside": 0,
   "unique": 32,
@@ -1080,7 +1080,7 @@
  {
   "key": "syndrome",
   "frames": 5,
-  "coverMax": 0.12871287128712872,
+  "coverMax": 0.3553459119496855,
   "eyeHits": 0,
   "outside": 0,
   "unique": 439,
@@ -1091,7 +1091,7 @@
  {
   "key": "tobi",
   "frames": 6,
-  "coverMax": 0.12920738327904452,
+  "coverMax": 0.3073639274279616,
   "eyeHits": 0,
   "outside": 0,
   "unique": 86,
@@ -1102,7 +1102,7 @@
  {
   "key": "tobirama",
   "frames": 6,
-  "coverMax": 0.12666666666666668,
+  "coverMax": 0.3058461538461538,
   "eyeHits": 0,
   "outside": 0,
   "unique": 124,
@@ -1113,7 +1113,7 @@
  {
   "key": "toji",
   "frames": 6,
-  "coverMax": 0.12545787545787546,
+  "coverMax": 0.3081570996978852,
   "eyeHits": 0,
   "outside": 0,
   "unique": 148,
@@ -1124,7 +1124,7 @@
  {
   "key": "vegeta",
   "frames": 6,
-  "coverMax": 0.11483253588516747,
+  "coverMax": 0.2809734513274336,
   "eyeHits": 0,
   "outside": 0,
   "unique": 263,
@@ -1135,7 +1135,7 @@
  {
   "key": "vegeta_dark",
   "frames": 4,
-  "coverMax": 0.1060419235511714,
+  "coverMax": 0.31072749691738594,
   "eyeHits": 0,
   "outside": 0,
   "unique": 64,
@@ -1146,7 +1146,7 @@
  {
   "key": "vilgax",
   "frames": 6,
-  "coverMax": 0.126890756302521,
+  "coverMax": 0.34269662921348315,
   "eyeHits": 0,
   "outside": 0,
   "unique": 78,
@@ -1157,7 +1157,7 @@
  {
   "key": "violet",
   "frames": 6,
-  "coverMax": 0.09090909090909091,
+  "coverMax": 0.14114832535885166,
   "eyeHits": 0,
   "outside": 0,
   "unique": 111,
@@ -1168,7 +1168,7 @@
  {
   "key": "windrangers",
   "frames": 6,
-  "coverMax": 0.12032520325203253,
+  "coverMax": 0.13658536585365855,
   "eyeHits": 0,
   "outside": 0,
   "unique": 255,
@@ -1179,7 +1179,7 @@
  {
   "key": "yuji",
   "frames": 6,
-  "coverMax": 0.11624649859943978,
+  "coverMax": 0.301056338028169,
   "eyeHits": 0,
   "outside": 0,
   "unique": 150,
@@ -1190,7 +1190,7 @@
  {
   "key": "yuta",
   "frames": 5,
-  "coverMax": 0.13161875945537066,
+  "coverMax": 0.37375745526838966,
   "eyeHits": 0,
   "outside": 0,
   "unique": 102,
@@ -1201,7 +1201,7 @@
  {
   "key": "zaraki",
   "frames": 6,
-  "coverMax": 0.13133208255159476,
+  "coverMax": 0.3064415259537211,
   "eyeHits": 0,
   "outside": 0,
   "unique": 126,
@@ -1212,7 +1212,7 @@
  {
   "key": "zaraki_shikai",
   "frames": 5,
-  "coverMax": 0.10449050086355786,
+  "coverMax": 0.2994413407821229,
   "eyeHits": 0,
   "outside": 0,
   "unique": 173,
@@ -1223,7 +1223,7 @@
  {
   "key": "zenitsu",
   "frames": 6,
-  "coverMax": 0.11018957345971564,
+  "coverMax": 0.32545454545454544,
   "eyeHits": 0,
   "outside": 0,
   "unique": 73,
@@ -1234,7 +1234,7 @@
  {
   "key": "zoro",
   "frames": 6,
-  "coverMax": 0.09666666666666666,
+  "coverMax": 0.2611111111111111,
   "eyeHits": 0,
   "outside": 0,
   "unique": 31,

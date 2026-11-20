@@ -15,7 +15,7 @@ def strip(names, labels, out):
     o = Image.new('RGB', (W, H), (16, 17, 20)); d = ImageDraw.Draw(o); x = 8
     for c, l in zip(cs, labels): o.paste(c, (x, 26)); d.text((x + 4, 8), l, fill=(230, 230, 230)); x += c.width + 8
     o.save(f'{D}/{out}'); print(out, o.size)
-strip([f'tier{t}' for t in range(5)], ['T0 (<15% lost) · blue box = training hurtbox overlay', 'T1 (15-35%)', 'T2 (35-60%)', 'T3 (60-85%)', 'T4 (85%+)'], 'tiers.png')
+strip([f'tier{t}' for t in range(5)], ['T0 (<8% lost) · blue box = training hurtbox overlay', 'T1 (8-25%)', 'T2 (25-45%)', 'T3 (45-70%)', 'T4 (70%+)'], 'tiers.png')
 strip(['slash', 'blunt'], ['SLASH: line cuts + streaks', 'BLUNT: nose/mouth/brow + bruising'], 'slash_vs_blunt.png')
 strip(['pool'], ['T4 standing still: pool + drips'], 'floor_pool.png')
 strip(['oil_genos'], ['OIL: Genos (machine)'], 'oil_robot.png')

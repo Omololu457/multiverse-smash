@@ -7,11 +7,11 @@
   "decals": 0,
   "decalKinds": {},
   "rect": {
-   "x": 820.2274251824459,
-   "y": 311.2346495985002,
-   "w": 59.98149381079714,
-   "h": 99.96915635132856,
-   "zoom": 0.9996915635132857
+   "x": 820.427075080408,
+   "y": 312.7692974091093,
+   "w": 59.94528904735181,
+   "h": 99.90881507891967,
+   "zoom": 0.9990881507891968
   },
   "cw": 1280,
   "ch": 720
@@ -21,18 +21,19 @@
   "fluid": "blood",
   "tier": 1,
   "wounds": [
-   "nose:blunt:2",
-   "side:blunt:1",
+   "nose:blunt:1",
+   "cheek:slash:1",
+   "chest:blunt:1",
    "fore:scrape:1"
   ],
   "decals": 0,
   "decalKinds": {},
   "rect": {
-   "x": 820.2487705755341,
-   "y": 311.39798442803766,
-   "w": 59.97813541221824,
-   "h": 99.96355902036373,
-   "zoom": 0.9996355902036373
+   "x": 820.6169317791889,
+   "y": 313.1358635472778,
+   "w": 59.93536046990296,
+   "h": 99.89226744983827,
+   "zoom": 0.9989226744983827
   },
   "cw": 1280,
   "ch": 720
@@ -42,20 +43,20 @@
   "fluid": "blood",
   "tier": 2,
   "wounds": [
-   "nose:blunt:1",
+   "brow:blunt:1",
    "cheek:slash:1",
-   "abdomen:blunt:1",
-   "side:slash:1",
+   "side:blunt:1",
+   "abdomen:slash:1",
    "fore:scrape:1"
   ],
   "decals": 0,
   "decalKinds": {},
   "rect": {
-   "x": 820.2889576260732,
-   "y": 311.3137788304445,
-   "w": 59.97988457800196,
-   "h": 99.96647429666993,
-   "zoom": 0.9996647429666993
+   "x": 820.7622981974467,
+   "y": 312.4455932795766,
+   "w": 59.95369261670843,
+   "h": 99.92282102784739,
+   "zoom": 0.9992282102784739
   },
   "cw": 1280,
   "ch": 720
@@ -65,23 +66,22 @@
   "fluid": "blood",
   "tier": 3,
   "wounds": [
-   "nose:blunt:2",
-   "chest:blunt:3",
+   "brow:blunt:1",
+   "cheek:slash:1",
+   "abdomen:blunt:2",
+   "chest:slash:1",
    "fore:scrape:1",
-   "brow:slash:1",
    "upper:slash:2",
    "side:pierce:2"
   ],
-  "decals": 1,
-  "decalKinds": {
-   "splat": 1
-  },
+  "decals": 0,
+  "decalKinds": {},
   "rect": {
-   "x": 820.2300955323469,
-   "y": 311.6844239308587,
-   "w": 59.97192125460968,
-   "h": 99.95320209101614,
-   "zoom": 0.9995320209101614
+   "x": 820.5489249855675,
+   "y": 312.02961042969247,
+   "w": 59.96394097079098,
+   "h": 99.93990161798496,
+   "zoom": 0.9993990161798496
   },
   "cw": 1280,
   "ch": 720
@@ -91,26 +91,27 @@
   "fluid": "blood",
   "tier": 4,
   "wounds": [
-   "nose:blunt:1",
-   "cheek:slash:1",
-   "chest:blunt:1",
-   "side:slash:2",
-   "thigh:slash:1",
+   "nose:blunt:2",
+   "side:blunt:2",
+   "chest:pierce:1",
+   "shin:slash:1",
    "fore:scrape:1",
+   "brow:slash:1",
    "upper:slash:2",
+   "thigh:slash:2",
    "abdomen:slash:2"
   ],
-  "decals": 2,
+  "decals": 5,
   "decalKinds": {
-   "splat": 1,
+   "splat": 4,
    "pool": 1
   },
   "rect": {
-   "x": 820.7734676211401,
-   "y": 312.29822598879974,
-   "w": 59.95739719560287,
-   "h": 99.92899532600478,
-   "zoom": 0.9992899532600479
+   "x": 821.2825417124443,
+   "y": 315.4863317168086,
+   "w": 59.863100317792046,
+   "h": 99.77183386298675,
+   "zoom": 0.9977183386298675
   },
   "cw": 1280,
   "ch": 720
@@ -120,21 +121,21 @@
   "fluid": "blood",
   "tier": 2,
   "wounds": [
-   "brow:slash:1",
-   "abdomen:slash:1",
+   "nose:slash:1",
+   "abdomen:slash:2",
    "side:slash:1",
-   "chest:slash:1",
-   "shin:slash:1",
-   "fore:scrape:1"
+   "thigh:slash:1",
+   "fore:scrape:1",
+   "brow:slash:1"
   ],
   "decals": 0,
   "decalKinds": {},
   "rect": {
-   "x": 820.2173341445248,
-   "y": 311.39798442803766,
-   "w": 59.97813541221824,
-   "h": 99.96355902036373,
-   "zoom": 0.9996355902036373
+   "x": 820.427075080408,
+   "y": 312.7692974091093,
+   "w": 59.94528904735181,
+   "h": 99.90881507891967,
+   "zoom": 0.9990881507891968
   },
   "cw": 1280,
   "ch": 720
@@ -147,18 +148,18 @@
    "nose:blunt:2",
    "side:blunt:1",
    "abdomen:blunt:1",
-   "thigh:blunt:1",
+   "shin:blunt:1",
    "fore:scrape:1",
    "brow:slash:1"
   ],
   "decals": 0,
   "decalKinds": {},
   "rect": {
-   "x": 820.222589893013,
-   "y": 311.3137788304445,
-   "w": 59.97988457800196,
-   "h": 99.96647429666993,
-   "zoom": 0.9996647429666993
+   "x": 820.6306255612315,
+   "y": 311.90732340712145,
+   "w": 59.96682568757087,
+   "h": 99.94470947928478,
+   "zoom": 0.9994470947928478
   },
   "cw": 1280,
   "ch": 720
@@ -168,26 +169,27 @@
   "fluid": "blood",
   "tier": 4,
   "wounds": [
-   "brow:blunt:2",
-   "abdomen:blunt:1",
-   "chest:slash:1",
-   "side:pierce:1",
+   "nose:blunt:1",
+   "cheek:slash:1",
+   "chest:blunt:1",
+   "abdomen:slash:2",
    "shin:slash:1",
    "thigh:blunt:1",
    "fore:scrape:1",
-   "upper:slash:2"
+   "upper:slash:2",
+   "side:pierce:2"
   ],
-  "decals": 27,
+  "decals": 24,
   "decalKinds": {
-   "splat": 26,
+   "splat": 23,
    "pool": 1
   },
   "rect": {
-   "x": 819.9999926621872,
-   "y": 310.0028406349722,
-   "w": 59.99999476972887,
-   "h": 99.99999128288145,
-   "zoom": 0.9999999128288145
+   "x": 819.9999675788475,
+   "y": 310.0142098633156,
+   "w": 59.999954286898124,
+   "h": 99.99992381149687,
+   "zoom": 0.9999992381149687
   },
   "cw": 1280,
   "ch": 720
@@ -197,27 +199,27 @@
   "fluid": "oil",
   "tier": 4,
   "wounds": [
-   "brow:blunt:1",
+   "nose:blunt:1",
    "mouth:slash:1",
-   "side:blunt:1",
-   "chest:slash:1",
-   "abdomen:pierce:1",
+   "abdomen:blunt:1",
+   "chest:slash:2",
    "thigh:slash:1",
    "shin:blunt:1",
    "fore:scrape:1",
-   "upper:slash:2"
+   "upper:slash:2",
+   "side:pierce:2"
   ],
-  "decals": 12,
+  "decals": 10,
   "decalKinds": {
-   "splat": 11,
+   "splat": 9,
    "pool": 1
   },
   "rect": {
-   "x": 820.0400655099853,
-   "y": 310.40383472827375,
-   "w": 59.99587429654538,
-   "h": 99.99312382757563,
-   "zoom": 0.9999312382757564
+   "x": 820.1219968434434,
+   "y": 311.6844239308587,
+   "w": 59.97192125460968,
+   "h": 99.95320209101614,
+   "zoom": 0.9995320209101614
   },
   "cw": 1280,
   "ch": 720
@@ -227,26 +229,25 @@
   "fluid": "crack:edo",
   "tier": 4,
   "wounds": [
-   "nose:blunt:2",
-   "abdomen:blunt:1",
-   "side:slash:1",
-   "chest:pierce:1",
-   "shin:slash:1",
-   "thigh:blunt:1",
+   "mouth:blunt:1",
+   "nose:slash:1",
+   "side:blunt:2",
+   "abdomen:slash:1",
+   "shin:slash:2",
    "fore:scrape:1",
-   "brow:slash:1",
-   "upper:slash:2"
+   "upper:slash:2",
+   "thigh:slash:2"
   ],
   "decals": 1,
   "decalKinds": {
    "pool": 1
   },
   "rect": {
-   "x": 820.1016835920243,
-   "y": 310.850561773717,
-   "w": 59.9887786775829,
-   "h": 99.9812977959715,
-   "zoom": 0.999812977959715
+   "x": 820.1252881525164,
+   "y": 311.3137788304445,
+   "w": 59.97988457800196,
+   "h": 99.96647429666993,
+   "zoom": 0.9996647429666993
   },
   "cw": 1280,
   "ch": 720
@@ -256,19 +257,20 @@
   "fluid": "ranger",
   "tier": 4,
   "wounds": [
-   "upper:blunt:1",
+   "upper:blunt:2",
+   "side:blunt:1",
    "chest:slash:3",
-   "abdomen:blunt:3",
-   "side:pierce:1"
+   "abdomen:slash:2",
+   "fore:blunt:1"
   ],
   "decals": 0,
   "decalKinds": {},
   "rect": {
-   "x": 820.2173341445248,
-   "y": 311.39798442803766,
-   "w": 59.97813541221824,
-   "h": 99.96355902036373,
-   "zoom": 0.9996355902036373
+   "x": 820.4043862249994,
+   "y": 312.29822598879974,
+   "w": 59.95739719560287,
+   "h": 99.92899532600478,
+   "zoom": 0.9992899532600479
   },
   "cw": 1280,
   "ch": 720

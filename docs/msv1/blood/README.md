@@ -5,11 +5,16 @@ and from Tier 3 it drips to the floor. Render-only, deterministic, drawn in spri
 
 | health lost (match total) | tier | what shows |
 |---|---|---|
-| 0–15 % | — | nothing |
-| 15–35 % | T1 | split lip / nose trickle + small scrape |
-| 35–60 % | T2 | brow cut running down the face + first torso stain |
-| 60–85 % | T3 | arm / torso wounds, steady trickles, drips fall |
-| 85 %+ | T4 | heavy continuous drips, pooling when standing still |
+| 0–8 % | — | nothing |
+| 8–25 % | T1 | split lip / nose trickle + a scrape, first soaked patch |
+| 25–45 % | T2 | brow cut + torso wound, soaked stains spreading, thicker trickles |
+| 45–70 % | T3 | arm / torso wounds, clothes visibly soaked, drips fall |
+| 70 %+ | T4 | heavily blood-soaked body, continuous drips, pooling when standing still |
+
+**On the sprite:** every wound recolours the sprite around it. An irregular, downward-running stain is painted
+semi-transparent over the clothes and skin, so the shading still shows through; it grows with the tier and with repeat
+hits on the same spot. Faces stay readable: stains barely creep upward and never touch the eyes. Coverage per tier is
+lines (6/10/14/18 %) + soak (7/13/20/27 %) of the frame's opaque pixels; the highest measured on all 113 sheets is 37 %.
 
 Every landed (unblocked) hit also opens or grows a wound where it landed: **slash** = line cut + streak, **blunt**
 (and haki / anything else) = nose / mouth / brow bleeding + bruised pixels, **pierce / projectile** = puncture +

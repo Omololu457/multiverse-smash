@@ -109,3 +109,14 @@ wounds carry over through transformations. `battleBlood.js` has no Math.random (
 ## Process notes
 - One `rm -rf` (resetting the scratch test copy) was blocked by the safety check. No removal was done; I copied over it instead.
 - Pushing main also publishes the other session's commit `0cabc28b4` (approved).
+
+## Update 2026-11-20 (user feedback: "the blood is supposed to show on the enemy, on the sprite")
+In a real match the body blood was too faint (thin 1 px lines, flat 15 % cap), so you mainly noticed the floor. Changes:
+- **Soak recolour**: each wound stains the sprite around it, semi-transparent, running downward and growing with tier
+  and repeat hits. Faces stay clear: stains barely creep upward, and the eye box is never touched.
+- Trickles are 2 px wide from T2; tiers now at 8 / 25 / 45 / 70 % health lost (match total, see the cumulative-rounds
+  change); coverage cap per tier (max measured 37 %).
+- Bug found and fixed while doing this: a stain that ran out of budget left the canvas half-transparent for every
+  stroke drawn after it.
+- All 113 sheets re-checked (0 eye px, 0 outside px) and looked at; blood.test tier / heal expectations moved to the new
+  thresholds (28 / 0).

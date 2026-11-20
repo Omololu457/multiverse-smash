@@ -444,5 +444,40 @@
  "vilgax": {
   "batch": 7,
   "note": "ALIEN: canon green (Ben 10 shows Vilgax / Chimera Sui Generis with green blood) — documented assumption."
+ },
+ "violet": {
+  "batch": 8,
+  "note": "young. jump: eye box landed on the legs → noFace on that strip.",
+  "hand": true
+ },
+ "windrangers": {
+  "batch": 8,
+  "note": "RANGER (ns_red / ns_yellow stance sets both mapped)."
+ },
+ "yuji": {
+  "batch": 8,
+  "note": ""
+ },
+ "yuta": {
+  "batch": 8,
+  "note": "Rika is a separate summon (no blood); katana kept clean by the arm-reach rule."
+ },
+ "zaraki": {
+  "batch": 8,
+  "note": ""
+ },
+ "zaraki_shikai": {
+  "batch": 8,
+  "note": "giant cleaver: hand / forearm anchors dropped. KNOWN MINOR: 1-2 px of a trickle can cross the blade where it overlaps the body.",
+  "hand": true
+ },
+ "zenitsu": {
+  "batch": 8,
+  "note": ""
+ },
+ "zoro": {
+  "batch": 8,
+  "note": "jump: eye box landed on a sword → noFace on that strip.",
+  "hand": true
  }
 }

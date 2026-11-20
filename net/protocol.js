@@ -65,8 +65,16 @@ export function decode(raw) {
 // ─────────────────────────────────────────────────────────────────
 
 // client → host. `name` is optional cosmetic identity for later UI; the stamp is what actually gates entry.
+// MSV1-HOST: the hello also carries this page's BUILD fingerprint — `code` is window.__ASSET_V (sha256 over every
+// game module, stamped by tools/stamp_version.mjs) and `app` the desktop app version if any. The internet host
+// relay (hostServer.mjs) refuses any joiner whose code fingerprint differs from the host's, so mismatched
+// gameplay code can never start a lockstep match. The LAN relay ignores the extra field (compatible).
 export function makeHello(name = null) {
-  return { t: MSG.HELLO, stamp: buildStamp(), name }
+  const g = (typeof globalThis !== "undefined") ? globalThis : {}
+  const build = (typeof g.__ASSET_V === "string")
+    ? { code: g.__ASSET_V, app: (typeof g.__MS_APP_VERSION === "string") ? g.__MS_APP_VERSION : null }
+    : null
+  return { t: MSG.HELLO, stamp: buildStamp(), name, build }
 }
 
 // host → client. `side` is "p1" | "p2" — which fighter this client drives (host is conventionally p1).

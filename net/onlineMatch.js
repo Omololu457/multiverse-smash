@@ -15,6 +15,7 @@
 import { LanClient } from "./lanClient.js"
 import { LanSession } from "./lanSession.js"
 import { MSG, makeMatchSetup, makeBye } from "./protocol.js"
+import { hostRelayUrl } from "./hostLink.js"   // MSV1-HOST: hosting UI (DOM overlay) + the desktop host's own-room URL
 
 let _client = null      // active LanClient (transport), or null
 let _session = null     // active LanSession (lockstep), created once our seat is known
@@ -35,6 +36,9 @@ export function getSession()   { return _session }
 // rejects on build-mismatch/refusal/socket error. `cbs` receives lifecycle events for the UI to render.
 export async function connect(url, roleWanted, cbs = {}) {
   disconnect()                 // never stack two connections
+  // MSV1-HOST: in the desktop app while hosting, the HOST joins its own room on the host server as seat p1
+  // (host token) — the same relay protocol, just room-scoped — so internet joiners land in this match.
+  if (roleWanted === "host") { const own = hostRelayUrl(); if (own) url = own }
   _cb = cbs || {}
   _role = roleWanted
   _side = null

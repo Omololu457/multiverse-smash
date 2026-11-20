@@ -7037,6 +7037,19 @@ function leaveOnline(reason = null) {
   _pushHitstopStyle()
 }
 
+// MSV1-HOST: always-on seam for net/hostLink.js (the hosting panel / join-link overlay). UI flow only — it calls
+// the SAME host/join functions the ONLINE screens use, so lockstep, MATCH_SETUP and the sim are untouched.
+try {
+  window.__msOnline = Object.freeze({
+    join:    (url) => { if (netMatch.isActive()) return false; openOnlineMenu(); startJoinFlow(); onlineUi.joinInput = String(url || ""); joinConnect(); return true },
+    host:    () => { if (netMatch.isActive()) return false; if (online.isConnected() && online.role() === "host") { if (online.bothPresent()) hostChooseMatchup(); return true } openOnlineMenu(); startHostFlow(); return true },
+    status:  () => onlineUi.status,
+    error:   () => onlineUi.error,
+    state:   () => gameState,
+    inMatch: () => netMatch.isActive(),
+  })
+} catch (_) {}
+
 // ── AI vs AI — SPECTATOR / TESTING MODE ──────────────────────────────────────
 // Two CPU fighters battle with no human input. Reuses the SAME per-fighter AI path
 // as the 1v1 CPU (getAIInput → applyAIInputToKeys), just wired to BOTH slots with

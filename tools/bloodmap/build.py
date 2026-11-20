@@ -315,14 +315,19 @@ def analyse(rgba, prev=None, ov=None):
     bh, bw = ys.max() - ys.min() + 1, xs.max() - xs.min() + 1
     face_right = ov.get('face', 'right') != 'left'
     skin = skin_mask(rgba)
-    horizontal = bw > 1.25 * bh
+    horizontal = bw > 1.25 * bh and not ov.get('upright') and (bh < 0.6 * body.shape[0] or ov.get('lying'))   # lying bodies are short in their cell
+    if horizontal and not ov.get('lying'):
+        # a lunge / skate / dash is wide but upright: a face up top with the body below means don't lay it down
+        y0 = int(ys.min()); fb = face_box(body, skin, y0, bh, prev)
+        if fb is not None and fb[1] < y0 + 0.40 * bh:
+            horizontal = False
     if horizontal:
         # lying / dashing: lay the body upright, analyse, rotate the anchors back. Head end tracked from the previous
         # frame of the strip; with no history the head goes to the LEFT end (knocked back while facing right).
         cands = []
         for k in (3, 1):   # np.rot90 k=3: LEFT end → top (default head end) ; k=1: right end → top
             rb, rp = np.rot90(body, k), np.rot90(paint, k)
-            A, eye, R = upright_layout(rb, True, None, np.rot90(skin, k))
+            A, eye, R = upright_layout(rb, True, {x: v for x, v in ov.items() if x in ('noFace', 'headSkip')}, np.rot90(skin, k))
             H, W = body.shape
 
             def back(p, k=k):
@@ -341,6 +346,8 @@ def analyse(rgba, prev=None, ov=None):
         if prev and prev.get('brow'):
             px, py = prev['brow']
             cands.sort(key=lambda c: ((c[1]['brow'][0] - px) ** 2 + (c[1]['brow'][1] - py) ** 2) if c[1]['brow'] else 1e9)
+        if ov.get('headEnd') in ('left', 'right'):          # hand fix: which end of a lying body is the head
+            cands.sort(key=lambda c: 0 if c[0] == (3 if ov['headEnd'] == 'left' else 1) else 1)
         A = cands[0][1]
         eye, regions = None, None
         # eye box around the rotated brow → nose span
@@ -371,6 +378,9 @@ def analyse(rgba, prev=None, ov=None):
     for i, s in enumerate(SLOTS):
         p = A.get(s)
         if s in ov.get('drop', []):
+            p = None
+        # an arm anchor far out from the chest is on a blade / whip / slash / beam held at arm's length, not the arm
+        if p is not None and s in ('upper', 'fore', 'hand') and A.get('chest') is not None and abs(p[0] - A['chest'][0]) > 0.6 * (bw if horizontal else bh):
             p = None
         if p is not None and s in ov.get('move', {}):
             p = (p[0] + ov['move'][s][0], p[1] + ov['move'][s][1])

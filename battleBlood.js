@@ -177,7 +177,7 @@ function regionOf(target, x, y) {
   return 'leg'
 }
 function addWound(r, slot, kind, sev, frame, seed) {
-  if (r.fluid === 'ranger' && REGION_OF[slot] === 'head') slot = H(seed, 3) < 0.5 ? 'chest' : 'upper'   // helmets don't bleed
+  if (r.fluid === 'ranger' && (REGION_OF[slot] === 'head' || REGION_OF[slot] === 'leg')) slot = ['chest', 'upper', 'abdomen', 'fore'][Math.floor(H(seed, 3) * 4)]   // helmets don't bleed; suit damage on torso / arms only
   let w = r.wounds.find(x => x.slot === slot)
   if (w) { w.sev = Math.min(3, w.sev + 1); w.fresh = frame; if (kind !== 'scrape' && w.kind === 'scrape') w.kind = kind }
   else { w = { slot, kind, sev, born: frame, fresh: frame, seed: seed >>> 0 }; r.wounds.push(w) }
@@ -375,7 +375,7 @@ function paintWounds(g, r, fm, cellH, frame) {
     // 2) the trickle running down the body (grows in over ~1.5 s after each fresh hit)
     if (w.kind === 'scrape' && r.tier < 2) continue
     const path = fm.p[si] || ''
-    const maxLen = Math.round(TRICKLE_MAX[r.tier] * (0.45 + 0.18 * w.sev + 0.3 * H(s, 71)) * amount)   // each trickle its own length
+    const maxLen = Math.min(fluid === 'ranger' ? 5 : 99, Math.round(TRICKLE_MAX[r.tier] * (0.45 + 0.18 * w.sev + 0.3 * H(s, 71)) * amount))   // each trickle its own length; a suit only stains around the tear
     const grown = Math.min(maxLen, path.length, 2 + Math.floor((frame - w.born) / 5))
     let x = ax, y = ay
     const thick = r.tier >= 3 && fluid !== 'ranger'

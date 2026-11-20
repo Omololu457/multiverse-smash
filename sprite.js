@@ -157,6 +157,15 @@ function _loadSheet(path) {
   // refresh. tools/stamp_version.mjs stamps window.__ASSET_V (a content hash of modules + sheet
   // sizes) into index.html; appending it means every build ships fresh sheet URLs automatically.
   const v = (typeof globalThis !== "undefined" && globalThis.__ASSET_V) || "";
+  // MSV1-EDO: a premade "Edo Tensei" sheet (`x__edo.png`, same frame map) that is missing on disk falls back to the
+  // DEFAULT sheet `x.png` — logged once, never a blank fighter, never a desync (render-only; the sim never reads art).
+  if (path.indexOf("__edo.") > 0) img.onerror = () => {
+    if (img._edoFellBack) return;
+    img._edoFellBack = true;
+    const base = path.replace(/__edo\.png$/i, ".png");
+    try { console.warn("[edo] missing Edo Tensei sheet → default:", path); } catch (_) {}
+    img.src = v ? (base + (base.indexOf("?") >= 0 ? "&" : "?") + "v=" + v) : base;
+  };
   img.src = v ? (path + (path.indexOf("?") >= 0 ? "&" : "?") + "v=" + v) : path;
   _cache.set(path, img);
   return img;
@@ -1204,7 +1213,7 @@ export class SpriteHandler {
     else if (fighter._piccoloOrangeActive) spriteFilter = PICCOLO_ORANGE_TINT;
     else if (fighter._piccoloPotentialActive) spriteFilter = PICCOLO_POTENTIAL_TINT;
     else if (fighter._reincarnated) spriteFilter = TOJI_REINCARNATED_TINT;
-    else if (fighter._edoActive) spriteFilter = EDO_REANIM_TINT;        // Edo Tensei undead-corpse wash
+    else if (fighter._edoActive && !fighter._edoSkinned) spriteFilter = EDO_REANIM_TINT;   // Edo Tensei undead-corpse wash (only vessels WITHOUT premade Edo art — MSV1-EDO)
     // ITEM 3: Goku transformed → tint his ATTACK frames toward the form colour (no per-form attack art exists;
     // placeholder, Piccolo precedent). ONLY the attack actions — locomotion already uses real recoloured sheets.
     else if ((fighter.rosterKey || "").toLowerCase() === "goku" && (fighter.transformIndex || 0) > 0 && GOKU_TINTED_ACTIONS.has(this.currentAction)) {

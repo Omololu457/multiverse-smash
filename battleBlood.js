@@ -96,7 +96,8 @@ export function bloodFluidOf(f) {
   if (!f) return 'none'
   const al = f.transformed && f.activeAlien ? String(f.activeAlien).toLowerCase() : null
   if (al && FORM_FLUID[al]) return FORM_FLUID[al]
-  if (f._edoActive) return 'crack:edo'                                                      // Tobirama's Edo Tensei: the body on screen is a reanimated vessel
+  if (f._edoActive) return 'crack:edo'
+  if (f._recolorTag === 'edo') return 'crack:edo'                                              // MSV1-EDO: the premade Edo Tensei skin cracks, it doesn't bleed                                                      // Tobirama's Edo Tensei: the body on screen is a reanimated vessel
   if (/edo_?reanim|ashen_?reanim|ashenreanim/i.test(String(f.skinId || f._skinId || ''))) return 'crack:edo'   // Edo / reanimation skins
   return BLOOD_FLUID[String(f.rosterKey || '').toLowerCase()] || 'blood'
 }

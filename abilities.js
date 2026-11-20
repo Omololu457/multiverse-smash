@@ -74,7 +74,7 @@ import { resolveGrab, GLOBAL_DAMAGE_SCALE, applyScaledDamage, rekkaContinue, sta
 import { spawnCubeTrap, activeCubeTraps } from "./cubeTrap.js"   // Isshiki Daikokuten cube shrink-trap (+ the shared list, cleared by Shizuku Spring Cleaning); cubeTrap.js imports combat/input but NOT abilities → no cycle
 import { spawnObitoDimension } from "./obitoDimension.js"   // "Obito_dimension" Kamui banishment engine (character-agnostic; imports nothing from abilities → no cycle)
 import { isBetaUnlocked } from "./progression.js"   // beta-only single-direction input simplification (progression.js imports only account.js → no cycle)
-import { getSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
+import { getSkin, getEdoSkin } from "./skins.js"   // Ghostface Companion Swap applies each companion's "_crew" affiliation skin (skins.js imports only characters/progression/manifest → no cycle)
 import { detectMotion, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe elevated specials; motionInput.js imports nothing → no cycle)
 import { registerDroneProfile, registerBehaviour, spawnDrone, recallDrones, countDrones, getActiveDrones, DRONE_PROFILES, cycleDroneOrder, setDroneKamikazeHandler } from "./drones.js"
 import { flightAxisStep, flightSoftLimit, hashRandom } from "./flight.js"   // GREEN ARROW Grapple pull + Super scatter RNG (flight.js is a leaf → no cycle)
@@ -29051,6 +29051,13 @@ function applyEdoTensei(fighter, vesselKey, worldWidth) {
   fighter._skinAnim        = null
   fighter._baseSkinAnim    = null
   fighter._recolorTag      = null
+  // MSV1-EDO: an ELIGIBLE vessel wears its premade "Edo Tensei" skin instead (real ashen sheets: grey skin, cracks,
+  // black sclera — tools/edoskin). PER INSTANCE: only Tobirama's fighter object changes, so an opponent playing the
+  // same character keeps its own skin. Ineligible vessels (non-human / energy bodies) keep the live tint + overlay.
+  // Render-only: the Edo anim is a pure sheet-path retag of the vessel's own animationData (same frames / timing).
+  const edoSkin = getEdoSkin(vesselKey)
+  fighter._edoSkinned      = !!edoSkin
+  if (edoSkin) { fighter._skinAnim = edoSkin.animationData; fighter._baseSkinAnim = edoSkin.animationData; fighter._recolorTag = edoSkin.recolorTag }
   fighter.maxEnergy        = vessel.stats?.maxEnergy || fighter.maxEnergy || 200
   fighter.energyType       = vessel.traits?.energyType || fighter.energyType
   fighter.energy           = fighter.maxEnergy           // FRESH FULL bar = the window fuel; it drains over the summon and funds the borrowed kit
@@ -29106,7 +29113,7 @@ export function revertEdoTensei(fighter) {
   _edoClearTransient(fighter)                            // clears own attack/cast state (NOT hitstun/knockback)
   // Tobirama re-inhabits at the vessel's FINAL position (no reposition → the revert can't teleport out of a
   // punish). The standing dummy simply vanishes as the seal completes.
-  fighter._edoActive = false; fighter._edoDummy = null; fighter._edoStash = null; fighter._edoVessel = null
+  fighter._edoActive = false; fighter._edoDummy = null; fighter._edoStash = null; fighter._edoVessel = null; fighter._edoSkinned = false
   clearInputBuffer(fighter)      // symmetric: Tobirama doesn't inherit the vessel's buffered presses
   fighter.teleportFlash = 14                             // reanimation dissolves back — a visible flash (never a hard snap)
   // Graceful reform pose (the water body-flicker dissolve→reform). Purely cosmetic — grants no invuln

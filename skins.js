@@ -14,6 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
+import { EDO_SKIN_KEYS } from "./edoSkinKeys.js"   // MSV1-EDO: characters with premade Edo Tensei art (generated)
 import { ALBEDO_THEMES, ALBEDO_APPEARANCES, albedoThemeSkinId } from "./albedoThemes.js"   // Albedo skin themes (Albedo list only)
 import { BEN_THEMES, BEN_APPEARANCES, benThemeSkinId } from "./benThemes.js"   // Ben 10: 20 cosmetic themes × Classic / Jacket
 import { KRYBOT_SKINS } from './krybotSkins.js'
@@ -2779,6 +2780,24 @@ for (const key of Object.keys(SKINS)) {
 }
 SKINS.batman = BATMAN_SKINS   // Batman REBUILT: replaces the legacy batman list (its sheets belong to the old art set)
 SKINS.violet = VIOLET_SKINS   // Violet Parr: her own skin list (no generic auto-recolours)
+
+// MSV1-EDO — the premade "Edo Tensei" skin: ash-grey skin, one-pixel cracks, black sclera, desaturated clothes. Generated
+// OFFLINE into real sheets (tools/edoskin/gen.py → `<sheet>__edo.png` beside every default + form sheet) and registered as an
+// ordinary recolour skin, so the selector, in-match, LAN, replay and companion paths all use the normal skin path; form
+// swaps follow it through `recolorTag` (abilities.js retagFormAnim). Free, cosmetic-only. A missing sheet falls back to
+// the default art (sprite.js _loadSheet). Tobirama's Edo Tensei dresses an eligible vessel in it (abilities.js applyEdoTensei).
+export const EDO_TAG = "edo"
+export const edoSkinId = rosterKey => `${rosterKey}_edoTensei`
+const EDO_SKINS = new Map()
+for (const key of EDO_SKIN_KEYS) {
+  if (!characters[key]) continue
+  const skin = { id: edoSkinId(key), name: "Edo Tensei", unlockLevel: 0, portrait: recolorPortrait(key, EDO_TAG),
+                 spriteScale: characters[key]?.spriteScale, animationData: recolorSkinAnim(key, EDO_TAG), recolorTag: EDO_TAG, edoTensei: true }
+  EDO_SKINS.set(key, skin)
+  if (!SKINS[key]) SKINS[key] = [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: characters[key]?.spriteScale ?? 1, animationData: null }]
+  if (!SKINS[key].some(s => s.id === skin.id)) SKINS[key].push(skin)
+}
+export function getEdoSkin(rosterKey) { return EDO_SKINS.get(rosterKey) || null }
 
 export function getSkins(rosterKey) {
   return SKINS[rosterKey] || [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: 1, animationData: null }]

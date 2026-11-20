@@ -593,7 +593,7 @@ import { voiceClipName, NEXUS_VOICE_DIR } from "./nexusVoice.js"   // Story Mode
 import { getStoryProgress, isChapterUnlocked, completeStoryChapter } from "./storyProgress.js"
 import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
-import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot } from "./skins.js"
+import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot, getEdoSkin } from "./skins.js"
 import * as personality from "./personality.js"   // Big-Five trait inference from in-game behaviour (TIPI prior + Bayesian refinement)
 import * as theme from "./theme.js"                // live-swappable UI theme registry (APPEARANCE screen)
 import * as musicPersonality from "./musicPersonality.js"   // trait→music mapping + trait-informed song selection
@@ -5077,6 +5077,9 @@ function assignEdoBackup(fighter, chosen) {
   const pool = getEdoBackupRoster()
   const valid = chosen && characters[chosen] && chosen !== "tobirama"
   fighter._edoBackup = valid ? chosen : (pool[0]?.id || "naruto")
+  // MSV1-EDO: warm the vessel's premade Edo Tensei sheets now, so the summoned body never draws an unloaded frame
+  // (render-only; fire-and-forget through the normal bounded preload pool)
+  try { const es = getEdoSkin(fighter._edoBackup); if (es) preloadSheets(Object.values(es.animationData || {}).map(d => d?.sheet).filter(Boolean), () => {}) } catch (_) {}
 }
 
 function getUniverseCharacters() {
@@ -15297,7 +15300,7 @@ function seedEdoReanimField(fighter) {
   fighter._edoReanimFX = { seams, mottle }
 }
 function drawEdoReanimOverlay(c, fighter) {
-  if (!c || !fighter?._edoActive) return
+  if (!c || !fighter?._edoActive || fighter._edoSkinned) return   // MSV1-EDO: a vessel wearing its premade Edo Tensei skin already shows ash skin + cracks
   if (!fighter._edoReanimFX) seedEdoReanimField(fighter)
   const x = fighter._lastDrawX, y = fighter._lastDrawY, w = fighter._lastDrawW, h = fighter._lastDrawH
   if (x == null || w == null) return

@@ -5,6 +5,7 @@
 //   node harness/msv1_host_e2e.mjs            (opens real app windows on this machine)
 // Internet routes are stubbed (fake cloudflared prints a URL; UPnP off) so nothing is exposed publicly; the
 // browser joins over the LAN/loopback link exactly as a same-network friend would.
+import { randomBytes, randomInt } from "node:crypto"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
@@ -21,13 +22,13 @@ fs.mkdirSync(SHOTS, { recursive: true })
 let pass = 0, fail = 0
 const ok = (n, c, d = "") => { if (c) { pass++; console.log(`  ✅ ${n}${d ? "  — " + d : ""}`) } else { fail++; console.log(`  ❌ ${n}${d ? "  — " + d : ""}`) } }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-const tag = Math.random().toString(36).slice(2, 8)
+const tag = randomBytes(4).toString("hex").slice(0, 6)
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "mse2e-"))
 
 // stub cloudflared: prints a (fake, unreachable) trycloudflare URL so the panel's "Online" path is exercised
 const stub = path.join(tmp, "cloudflared")
 fs.writeFileSync(stub, `#!${process.execPath}\nrequire('fs').appendFileSync(${JSON.stringify(path.join(tmp, "pids"))},process.pid+'\\n');setTimeout(()=>console.error('INF |  https://e2e-stub-${tag}.trycloudflare.com  |'),200);setInterval(()=>{},1e6)\n`, { mode: 0o755 })
-const baseEnv = { ...process.env, MS_CLOUDFLARED: stub, MS_CLOUDFLARED_DOWNLOAD: "off", MS_HOST_UPNP: "off", MS_WINDOWED: "1", LAN_PORT: String(20000 + Math.floor(Math.random() * 20000)) }
+const baseEnv = { ...process.env, MS_CLOUDFLARED: stub, MS_CLOUDFLARED_DOWNLOAD: "off", MS_HOST_UPNP: "off", MS_WINDOWED: "1", LAN_PORT: String(20000 + randomInt(20000)) }
 const profiles = []
 function launchApp(profile, extraEnv = {}, query = "harness=1&hostui=1") {
   profiles.push(profile)

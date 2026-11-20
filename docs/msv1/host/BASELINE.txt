@@ -1,0 +1,31 @@
+MSV1-HOST baseline — run on a CLEAN export of HEAD 262b1cbba9ced642b6a4c8969a649b8418c4bf20 (git archive → scratch dir; the main worktree is dirty with other sessions' WIP)
+Date: 2026-11-20
+
+determinism.test.mjs rc=0 6s :: DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo_standard_audit.mjs rc=1 1s :: COMBO-STANDARD AUDIT: 233 passed, 9 failed
+up_attack_roster.test.mjs rc=1 1s :: UP-ATTACK ROSTER: 77 passed, 2 failed
+credits.test.mjs rc=1 7s :: RESULT: 11 passed, 3 failed
+roster_integrity.test.mjs rc=0 0s :: ✅ characters.js imported cleanly — load-path guard PASSED (no duplicate in the working tree)
+replay_playback.test.mjs rc=0 36s :: REPLAY PLAYBACK (Stage 11C): 10 passed, 0 failed
+net_online.test.mjs rc=0 43s :: NET ONLINE (Stage 3): 11 passed, 0 failed
+net_lancode.test.mjs rc=0 0s :: NET LANCODE (Stage 3b): 6 passed, 0 failed
+net_lockstep.mjs rc=0 1s :: net-lockstep: 6/6 passed
+net_inject.test.mjs rc=1 16s :: NET INJECT (Stage 2): 5 passed, 2 failed
+
+Known pre-existing failures at baseline (NOT caused by this work):
+  [combo_standard_audit] ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, goku_rose, green_arrow, green_
+  [combo_standard_audit] ❌  classification covers the full roster exactly  — covered 122 vs roster 162
+  [combo_standard_audit] ❌  true zoners = 34  — got 35
+  [combo_standard_audit] ❌  grand total = roster (121)  — classified 122, roster 162
+  [combo_standard_audit] ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  [combo_standard_audit] ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  [combo_standard_audit] ❌  ALL 162 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 160/162
+  [combo_standard_audit] ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  [combo_standard_audit] ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  [up_attack_roster.test] ❌  superman: frames = 5/4/10  — 5/4/12
+  [up_attack_roster.test] ❌  ghostface: frames = 4/3/6  — 5/3/8
+  [credits.test] ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  [credits.test] ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  [credits.test] ❌ FAIL  in-game attributed-key set covers the full roster
+  [net_inject.test] ❌ FAIL  sim STALLS when peer withholds input (frame counter plateaus)  — fa=71 fb=81
+  [net_inject.test] ❌ FAIL  stall held at the withheld frame (not before, not past)  — plateau=71 expected=88

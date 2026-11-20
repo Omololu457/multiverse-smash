@@ -58,23 +58,23 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `light` | HUMAN | 13 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 11px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: select-screen portrait: pale blond hair reads close to ash (portraits use a per-pixel rule, no face box) |
 | `luffy` | HUMAN | 39 | 1 | black sclera | 2 face / 1 arm | automatic · verify ok | face area 19px → 2 face cracks (wanted 6) |
 | `madara` | ALREADY_EDO | — | — | — | — | — | no Edo skin: already a reanimated (Edo Tensei) body: the blood system already gives him crack:edo |
-| `maki` | HUMAN | pending (later batch) | | | | | |
-| `mayuri` | HUMAN | pending (later batch) | | | | | |
-| `megumi_fushiguro` | HUMAN | pending (later batch) | | | | | |
-| `minato` | HUMAN | pending (later batch) | | | | | |
-| `miwa` | HUMAN | pending (later batch) | | | | | |
-| `mmpr_black` | MASKED | pending (later batch) | | | | | |
-| `mmpr_pink` | MASKED | pending (later batch) | | | | | |
-| `mmpr_white` | MASKED | pending (later batch) | | | | | |
-| `mr_incredible` | HUMAN | pending (later batch) | | | | | |
+| `maki` | HUMAN | 20 | 4 | black sclera | 1 face / 1 arm | automatic · verify ok | face area 9px → 1 face cracks (wanted 5) |
+| `mayuri` | HUMAN | 22 | 0 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 6); no bare forearm skin → 0 arm cracks; reviewed: white face paint — no exposed skin colour, clothes desaturated |
+| `megumi_fushiguro` | HUMAN | 54 | 54 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 8px → 1 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
+| `minato` | HUMAN | 19 | 8 | black sclera | 2 face / 0 arm | automatic · verify ok | face area 19px → 2 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: select-screen portrait: pale blond hair reads close to ash |
+| `miwa` | HUMAN | 23 | 2 | black sclera | 3 face / 0 arm | automatic · verify ok | face area 22px → 3 face cracks (wanted 5) |
+| `mmpr_black` | MASKED | 38 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `mmpr_pink` | MASKED | 36 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `mmpr_white` | MASKED | 41 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `mr_incredible` | HUMAN | 47 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `naruto` | NONHUMAN | — | — | — | — | — | no Edo skin: default sheet is the Nine-Tails chakra mode: an energy body |
-| `naruto_seventh` | HUMAN | pending (later batch) | | | | | |
-| `netero` | HUMAN | pending (later batch) | | | | | |
-| `nezuko` | HUMAN | pending (later batch) | | | | | |
-| `ninja_storm_cgpt` | MASKED | pending (later batch) | | | | | |
-| `ninja_storm_rangers` | MASKED | pending (later batch) | | | | | |
-| `obito` | HUMAN | pending (later batch) | | | | | |
-| `omega_ranger` | MASKED | pending (later batch) | | | | | |
+| `naruto_seventh` | HUMAN | 32 | 3 | black sclera | 5 face / 0 arm | automatic · verify ok | face area 37px → 5 face cracks (wanted 6); no bare forearm skin → 0 arm cracks |
+| `netero` | HUMAN | 13 | 5 | black sclera | 3 face / 4 arm | automatic · verify ok |  |
+| `nezuko` | HUMAN | 33 | 4 | black sclera | 5 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `ninja_storm_cgpt` | MASKED | 58 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok | reviewed: the red streak at the feet is drawn in suit colours and joined to the body → desaturated with the suit |
+| `ninja_storm_rangers` | MASKED | 71 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `obito` | HUMAN | 22 | 5 | black sclera | 5 face / 2 arm | automatic · verify ok |  |
+| `omega_ranger` | MASKED | 29 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
 | `omololu` | HUMAN | pending (later batch) | | | | | |
 | `pain` | HUMAN | pending (later batch) | | | | | |
 | `raven` | HUMAN | pending (later batch) | | | | | |

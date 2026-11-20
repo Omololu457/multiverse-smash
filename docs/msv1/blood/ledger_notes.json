@@ -383,5 +383,66 @@
  "spd_blue": {
   "batch": 6,
   "note": "RANGER."
+ },
+ "spd_green": {
+  "batch": 7,
+  "note": "RANGER."
+ },
+ "spd_pink": {
+  "batch": 7,
+  "note": "RANGER."
+ },
+ "spd_red": {
+  "batch": 7,
+  "note": "RANGER."
+ },
+ "spd_yellow": {
+  "batch": 7,
+  "note": "RANGER."
+ },
+ "spiderman": {
+  "batch": 7,
+  "note": "full mask: face detection off the head → noFace (head geometry; lenses protected). Blood may show on the mask.",
+  "hand": true
+ },
+ "starfire": {
+  "batch": 7,
+  "note": "Tamaranean: red blood (canon)."
+ },
+ "sukuna": {
+  "batch": 7,
+  "note": ""
+ },
+ "superman": {
+  "batch": 7,
+  "note": "blue suit / red cape: dark blood reads on the suit."
+ },
+ "syndrome": {
+  "batch": 7,
+  "note": "white suit shows trickles strongly (≤ 15 %)."
+ },
+ "tobi": {
+  "batch": 7,
+  "note": "orange mask: blood allowed on the mask, eye hole protected."
+ },
+ "tobirama": {
+  "batch": 7,
+  "note": "Edo Tensei summon window: a reanimated vessel cracks instead of bleeding (_edoActive)."
+ },
+ "toji": {
+  "batch": 7,
+  "note": "Inventory curse round the shoulders is part of the art."
+ },
+ "vegeta": {
+  "batch": 7,
+  "note": ""
+ },
+ "vegeta_dark": {
+  "batch": 7,
+  "note": ""
+ },
+ "vilgax": {
+  "batch": 7,
+  "note": "ALIEN: canon green (Ben 10 shows Vilgax / Chimera Sui Generis with green blood) — documented assumption."
  }
 }

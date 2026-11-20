@@ -83,36 +83,36 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `red_ranger_mmpr` | Red Ranger (Mighty Morphin) | auto | 0 | ranger | 95 / 96 | 0.0% | ? | ? | batch 5 | RANGER. |
 | `rengoku` | Kyojuro Rengoku | auto | 0 | blood | 134 / 140 | 0.0% | ? | ? | batch 5 | flame haori is part of the costume art (not an aura): blood on body / haori. |
 | `rick` | Rick Sanchez | hand-fixed | 2 | blood | 117 / 130 | 0.0% | ? | ? | batch 5 | light (portal-gun effect) and hurt (after-image ghosts) strips skipped. |
-| `rickPrime` | Rick Prime | hand-fixed | 2 | blood | 117 / 130 | 12.5% | 0 | 0 | batch 6 | light (portal effect) and hurt (after-images) strips skipped. |
-| `robin` | Robin | auto | 0 | blood | 153 / 3344 | 12.3% | 0 | 0 | batch 6 | cape excluded from torso anchors. |
-| `saiki` | Saiki Kusuo | hand-fixed | 1 | blood (young) | 68 / 77 | 8.8% | 0 | 0 | batch 6 | young. light attack is a psychic speed-blur → skip. |
-| `saitama` | Saitama | auto | 0 | blood | 195 / 213 | 11.5% | 0 | 0 | batch 6 | hurt face is dark in the original art (not blood). |
-| `sakura` | Sakura Haruno | hand-fixed | 1 | blood | 88 / 90 | 12.8% | 0 | 0 | batch 6 | light attack punch-blur effect → skip. |
-| `samurai_red_ranger` | Samurai Red Ranger (Fire) | hand-fixed | 1 | ranger | 157 / 165 | 10.5% | 0 | 0 | batch 6 | RANGER. light crescent slash → skip. |
-| `sanji` | Sanji | auto | 0 | blood | 52 / 147 | 8.8% | 0 | 0 | batch 6 |  |
-| `sasuke` | Sasuke | auto | 0 | blood | 94 / 94 | 12.8% | 0 | 0 | batch 6 | Chidori / slash effects kept clean by the arm-reach rule. |
-| `sasuke_adult` | Sasuke (Adult) | auto | 0 | blood | 103 / 105 | 12.4% | 0 | 0 | batch 6 |  |
-| `sasuke_sensei` | Sasuke (Sensei) | hand-fixed | 1 | blood | 166 / 170 | 13.0% | 0 | 0 | batch 6 | light is a lightning-blade effect → skip. |
-| `shinobu` | Shinobu Kocho | auto | 0 | blood | 82 / 84 | 13.2% | 0 | 0 | batch 6 | butterfly haori shows trickles. |
-| `shisui_fallen` | Shisui (Fallen) | auto | 0 | blood | 49 / 51 | 12.3% | 0 | 0 | batch 6 | red outfit: dark blood stays subtle. |
-| `six_paths_pain` | Six Paths of Pain | auto | 0 | blood | 57 / 57 | 12.7% | 0 | 0 | batch 6 |  |
-| `soldier_boy` | Soldier Boy | hand-fixed | 1 | blood | 138 / 153 | 6.6% | 0 | 0 | batch 6 | gold shield (held prop) picked up trickles → excludeGold paint mask (new override). |
-| `spd_blue` | S.P.D. Blue Ranger | auto | 0 | ranger | 34 / 1694 | 11.4% | 0 | 0 | batch 6 | RANGER. |
-| `spd_green` | S.P.D. Green Ranger | auto | 0 | ranger | 49 / 679 | 0.0% | ? | ? | — |  |
-| `spd_pink` | S.P.D. Pink Ranger | auto | 0 | ranger | 42 / 672 | 0.0% | ? | ? | — |  |
-| `spd_red` | SPDRed | auto | 0 | ranger | 48 / 112 | 0.0% | ? | ? | — |  |
-| `spd_yellow` | S.P.D. Yellow Ranger | auto | 0 | ranger | 48 / 774 | 0.0% | ? | ? | — |  |
-| `spiderman` | Spider-Man | auto | 0 | blood | 145 / 152 | 0.0% | ? | ? | — |  |
-| `starfire` | Starfire | auto | 0 | blood | 122 / 3091 | 0.0% | ? | ? | — |  |
-| `sukuna` | Sukuna | auto | 0 | blood | 41 / 46 | 0.0% | ? | ? | — |  |
-| `superman` | Superman | auto | 0 | blood | 32 / 36 | 0.0% | ? | ? | — |  |
-| `syndrome` | Syndrome | auto | 0 | blood | 439 / 2355 | 0.0% | ? | ? | — |  |
-| `tobi` | Tobi | auto | 0 | blood | 86 / 88 | 0.0% | ? | ? | — |  |
-| `tobirama` | Tobirama Senju | auto | 0 | blood | 124 / 145 | 0.0% | ? | ? | — |  |
-| `toji` | Toji Fushiguro | auto | 0 | blood | 148 / 156 | 0.0% | ? | ? | — |  |
-| `vegeta` | Vegeta | auto | 0 | blood | 263 / 268 | 0.0% | ? | ? | — |  |
-| `vegeta_dark` | Dark Vegeta | auto | 0 | blood | 64 / 65 | 0.0% | ? | ? | — |  |
-| `vilgax` | Vilgax | auto | 0 | alien:green | 78 / 87 | 0.0% | ? | ? | — |  |
+| `rickPrime` | Rick Prime | hand-fixed | 2 | blood | 117 / 130 | 0.0% | ? | ? | batch 6 | light (portal effect) and hurt (after-images) strips skipped. |
+| `robin` | Robin | auto | 0 | blood | 153 / 3344 | 0.0% | ? | ? | batch 6 | cape excluded from torso anchors. |
+| `saiki` | Saiki Kusuo | hand-fixed | 1 | blood (young) | 68 / 77 | 0.0% | ? | ? | batch 6 | young. light attack is a psychic speed-blur → skip. |
+| `saitama` | Saitama | auto | 0 | blood | 195 / 213 | 0.0% | ? | ? | batch 6 | hurt face is dark in the original art (not blood). |
+| `sakura` | Sakura Haruno | hand-fixed | 1 | blood | 88 / 90 | 0.0% | ? | ? | batch 6 | light attack punch-blur effect → skip. |
+| `samurai_red_ranger` | Samurai Red Ranger (Fire) | hand-fixed | 1 | ranger | 157 / 165 | 0.0% | ? | ? | batch 6 | RANGER. light crescent slash → skip. |
+| `sanji` | Sanji | auto | 0 | blood | 52 / 147 | 0.0% | ? | ? | batch 6 |  |
+| `sasuke` | Sasuke | auto | 0 | blood | 94 / 94 | 0.0% | ? | ? | batch 6 | Chidori / slash effects kept clean by the arm-reach rule. |
+| `sasuke_adult` | Sasuke (Adult) | auto | 0 | blood | 103 / 105 | 0.0% | ? | ? | batch 6 |  |
+| `sasuke_sensei` | Sasuke (Sensei) | hand-fixed | 1 | blood | 166 / 170 | 0.0% | ? | ? | batch 6 | light is a lightning-blade effect → skip. |
+| `shinobu` | Shinobu Kocho | auto | 0 | blood | 82 / 84 | 0.0% | ? | ? | batch 6 | butterfly haori shows trickles. |
+| `shisui_fallen` | Shisui (Fallen) | auto | 0 | blood | 49 / 51 | 0.0% | ? | ? | batch 6 | red outfit: dark blood stays subtle. |
+| `six_paths_pain` | Six Paths of Pain | auto | 0 | blood | 57 / 57 | 0.0% | ? | ? | batch 6 |  |
+| `soldier_boy` | Soldier Boy | hand-fixed | 1 | blood | 138 / 153 | 0.0% | ? | ? | batch 6 | gold shield (held prop) picked up trickles → excludeGold paint mask (new override). |
+| `spd_blue` | S.P.D. Blue Ranger | auto | 0 | ranger | 34 / 1694 | 0.0% | ? | ? | batch 6 | RANGER. |
+| `spd_green` | S.P.D. Green Ranger | auto | 0 | ranger | 49 / 679 | 11.1% | 0 | 0 | batch 7 | RANGER. |
+| `spd_pink` | S.P.D. Pink Ranger | auto | 0 | ranger | 42 / 672 | 11.1% | 0 | 0 | batch 7 | RANGER. |
+| `spd_red` | SPDRed | auto | 0 | ranger | 48 / 112 | 11.5% | 0 | 0 | batch 7 | RANGER. |
+| `spd_yellow` | S.P.D. Yellow Ranger | auto | 0 | ranger | 48 / 774 | 11.3% | 0 | 0 | batch 7 | RANGER. |
+| `spiderman` | Spider-Man | hand-fixed | 1 | blood | 145 / 152 | 11.2% | 0 | 0 | batch 7 | full mask: face detection off the head → noFace (head geometry; lenses protected). Blood may show on the mask. |
+| `starfire` | Starfire | auto | 0 | blood | 122 / 3091 | 12.6% | 0 | 0 | batch 7 | Tamaranean: red blood (canon). |
+| `sukuna` | Sukuna | auto | 0 | blood | 41 / 46 | 13.5% | 0 | 0 | batch 7 |  |
+| `superman` | Superman | auto | 0 | blood | 32 / 36 | 12.5% | 0 | 0 | batch 7 | blue suit / red cape: dark blood reads on the suit. |
+| `syndrome` | Syndrome | auto | 0 | blood | 439 / 2355 | 12.9% | 0 | 0 | batch 7 | white suit shows trickles strongly (≤ 15 %). |
+| `tobi` | Tobi | auto | 0 | blood | 86 / 88 | 12.9% | 0 | 0 | batch 7 | orange mask: blood allowed on the mask, eye hole protected. |
+| `tobirama` | Tobirama Senju | auto | 0 | blood | 124 / 145 | 12.7% | 0 | 0 | batch 7 | Edo Tensei summon window: a reanimated vessel cracks instead of bleeding (_edoActive). |
+| `toji` | Toji Fushiguro | auto | 0 | blood | 148 / 156 | 12.5% | 0 | 0 | batch 7 | Inventory curse round the shoulders is part of the art. |
+| `vegeta` | Vegeta | auto | 0 | blood | 263 / 268 | 11.5% | 0 | 0 | batch 7 |  |
+| `vegeta_dark` | Dark Vegeta | auto | 0 | blood | 64 / 65 | 10.6% | 0 | 0 | batch 7 |  |
+| `vilgax` | Vilgax | auto | 0 | alien:green | 78 / 87 | 12.7% | 0 | 0 | batch 7 | ALIEN: canon green (Ben 10 shows Vilgax / Chimera Sui Generis with green blood) — documented assumption. |
 | `violet` | Violet Parr | auto | 0 | blood (young) | 109 / 1830 | 0.0% | ? | ? | — |  |
 | `windrangers` | Ninja Storm MS_V1 Ranger Version | auto | 0 | ranger | 255 / 3516 | 0.0% | ? | ? | — |  |
 | `yuji` | Yuji Itadori | auto | 0 | blood | 150 / 174 | 0.0% | ? | ? | — |  |
@@ -122,5 +122,5 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `zenitsu` | Zenitsu Agatsuma | auto | 0 | blood | 73 / 86 | 0.0% | ? | ? | — |  |
 | `zoro` | Zoro | auto | 0 | blood | 30 / 99 | 0.0% | ? | ? | — |  |
 
-**113 characters · 25 hand-fixed · 88 auto · 90 reviewed.**
+**113 characters · 26 hand-fixed · 87 auto · 105 reviewed.**
 

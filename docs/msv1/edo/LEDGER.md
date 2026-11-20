@@ -75,22 +75,22 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `ninja_storm_rangers` | MASKED | 71 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
 | `obito` | HUMAN | 22 | 5 | black sclera | 5 face / 2 arm | automatic · verify ok |  |
 | `omega_ranger` | MASKED | 29 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
-| `omololu` | HUMAN | pending (later batch) | | | | | |
-| `pain` | HUMAN | pending (later batch) | | | | | |
-| `raven` | HUMAN | pending (later batch) | | | | | |
-| `red_ranger_mmpr` | MASKED | pending (later batch) | | | | | |
-| `rengoku` | HUMAN | pending (later batch) | | | | | |
-| `rick` | HUMAN | pending (later batch) | | | | | |
-| `rickPrime` | HUMAN | pending (later batch) | | | | | |
-| `robin` | HUMAN | pending (later batch) | | | | | |
-| `saiki` | HUMAN | pending (later batch) | | | | | |
-| `saitama` | HUMAN | pending (later batch) | | | | | |
-| `sakura` | HUMAN | pending (later batch) | | | | | |
-| `samurai_red_ranger` | MASKED | pending (later batch) | | | | | |
-| `sanji` | HUMAN | pending (later batch) | | | | | |
-| `sasuke` | HUMAN | pending (later batch) | | | | | |
-| `sasuke_adult` | HUMAN | pending (later batch) | | | | | |
-| `sasuke_sensei` | HUMAN | pending (later batch) | | | | | |
+| `omololu` | HUMAN | 22 | 18 | black sclera | 4 face / 0 arm | automatic · verify ok |  |
+| `pain` | HUMAN | 23 | 7 | black sclera | 2 face / 0 arm | automatic · verify ok | face area 16px → 2 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
+| `raven` | HUMAN | 45 | 0 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: her grey skin is outside the warm skin detector and already ashen; material treatment on the cloak / suit only |
+| `red_ranger_mmpr` | MASKED | 21 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `rengoku` | HUMAN | 27 | 5 | black sclera | 5 face / 0 arm | automatic · verify ok | face area 39px → 5 face cracks (wanted 6) |
+| `rick` | HUMAN | 17 | 2 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 6px → 0 face cracks (wanted 3) |
+| `rickPrime` | HUMAN | 17 | 2 | black sclera | 0 face / 2 arm | automatic · verify ok | face area 6px → 0 face cracks (wanted 4) |
+| `robin` | HUMAN | 40 | 2 | black sclera | 1 face / 4 arm | automatic · verify ok | face area 11px → 1 face cracks (wanted 3) |
+| `saiki` | HUMAN | 17 | 2 | black sclera | 1 face / 3 arm | automatic · verify ok | face area 9px → 1 face cracks (wanted 4); reviewed: motion streaks overlapping the body are partly desaturated |
+| `saitama` | HUMAN | 27 | 2 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `sakura` | HUMAN | 21 | 1 | black sclera | 2 face / 4 arm | automatic · verify ok | face area 18px → 2 face cracks (wanted 4) |
+| `samurai_red_ranger` | MASKED | 13 | 0 | n/a (masked) | 2 face / 0 arm | hand-fixed (noSkin) · verify ok | fully helmeted: light red helmet shades passed the warm skin test; no exposed skin, material treatment only; reviewed: helmet shades excluded from skin (overrides.json) |
+| `sanji` | HUMAN | 52 | 2 | black sclera | 4 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `sasuke` | HUMAN | 15 | 4 | black sclera | 3 face / 3 arm | automatic · verify ok | face area 27px → 3 face cracks (wanted 4); reviewed: a kick trail drawn in his skin tones and fused to the bare foot takes the ash ramp (detached trail stays original) |
+| `sasuke_adult` | HUMAN | 26 | 3 | black sclera | 6 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `sasuke_sensei` | HUMAN | 35 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok | face area 33px → 4 face cracks (wanted 5); no bare forearm skin → 0 arm cracks |
 | `shinobu` | HUMAN | pending (later batch) | | | | | |
 | `shisui_fallen` | HUMAN | pending (later batch) | | | | | |
 | `six_paths_pain` | HUMAN | pending (later batch) | | | | | |

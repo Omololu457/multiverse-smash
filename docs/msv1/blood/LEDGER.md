@@ -68,36 +68,36 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `mmpr_black` | Black Ranger | auto | 0 | ranger | 54 / 658 | 0.0% | ? | ? | batch 4 | RANGER: suit tears + dark stains, torso / arms. |
 | `mmpr_pink` | Pink Ranger | auto | 0 | ranger | 62 / 672 | 0.0% | ? | ? | batch 4 | RANGER. |
 | `mmpr_white` | White Ranger | auto | 0 | ranger | 59 / 700 | 0.0% | ? | ? | batch 4 | RANGER. |
-| `mr_incredible` | Mr. Incredible | auto | 0 | blood | 181 / 2882 | 12.1% | 0 | 0 | batch 5 |  |
-| `naruto` | Naruto | auto | 0 | blood | 98 / 98 | 12.3% | 0 | 0 | batch 5 | default art is the glowing chakra-cloak mode: glow pixels excluded from paint, thin dark wounds on the body only. |
-| `naruto_seventh` | Naruto (Seventh Hokage) | auto | 0 | blood | 218 / 230 | 12.5% | 0 | 0 | batch 5 | KCM / Four-Tails form art shares the action layout (byAction fallback). |
-| `netero` | Isaac Netero | auto | 0 | blood | 88 / 92 | 12.1% | 0 | 0 | batch 5 |  |
-| `nezuko` | Nezuko Kamado | auto | 0 | blood (young) | 119 / 119 | 6.8% | 0 | 0 | batch 5 | young (tier cap 2, no spray / pools). Bamboo muzzle inside the eye box rule. |
-| `ninja_storm_cgpt` | Ninja Storm CGPT | auto | 0 | ranger | 264 / 6710 | 12.0% | 0 | 0 | batch 5 | RANGER. |
-| `ninja_storm_rangers` | Ninja Storm Rangers | auto | 0 | ranger | 260 / 351 | 11.8% | 0 | 0 | batch 5 | RANGER. |
-| `obito` | Obito Uchiha | auto | 0 | blood | 75 / 78 | 13.4% | 0 | 0 | batch 5 |  |
-| `omega_ranger` | Omega Ranger (White Ranger, S.P.D.) | auto | 0 | ranger | 208 / 212 | 11.0% | 0 | 0 | batch 5 | RANGER: white suit shows tears clearly. |
-| `omololu` | Omololu | auto | 0 | blood | 75 / 78 | 13.2% | 0 | 0 | batch 5 |  |
-| `pain` | Pain | auto | 0 | blood | 103 / 110 | 13.3% | 0 | 0 | batch 5 | Deva Path (a corpse body in canon) kept as blood: reads as grounded. |
-| `raven` | Raven | hand-fixed | 1 | blood | 133 / 3537 | 13.0% | 0 | 0 | batch 5 | hood + grey skin: eye box landed above the hood → noFace. |
-| `red_ranger_mmpr` | Red Ranger (Mighty Morphin) | auto | 0 | ranger | 95 / 96 | 11.1% | 0 | 0 | batch 5 | RANGER. |
-| `rengoku` | Kyojuro Rengoku | auto | 0 | blood | 134 / 140 | 13.1% | 0 | 0 | batch 5 | flame haori is part of the costume art (not an aura): blood on body / haori. |
-| `rick` | Rick Sanchez | hand-fixed | 2 | blood | 117 / 130 | 12.3% | 0 | 0 | batch 5 | light (portal-gun effect) and hurt (after-image ghosts) strips skipped. |
-| `rickPrime` | Rick Prime | auto | 0 | blood | 133 / 146 | 0.0% | ? | ? | — |  |
-| `robin` | Robin | auto | 0 | blood | 153 / 3344 | 0.0% | ? | ? | — |  |
-| `saiki` | Saiki Kusuo | auto | 0 | blood (young) | 73 / 82 | 0.0% | ? | ? | — |  |
-| `saitama` | Saitama | auto | 0 | blood | 195 / 213 | 0.0% | ? | ? | — |  |
-| `sakura` | Sakura Haruno | auto | 0 | blood | 97 / 99 | 0.0% | ? | ? | — |  |
-| `samurai_red_ranger` | Samurai Red Ranger (Fire) | auto | 0 | ranger | 157 / 169 | 0.0% | ? | ? | — |  |
-| `sanji` | Sanji | auto | 0 | blood | 52 / 147 | 0.0% | ? | ? | — |  |
-| `sasuke` | Sasuke | auto | 0 | blood | 94 / 94 | 0.0% | ? | ? | — |  |
-| `sasuke_adult` | Sasuke (Adult) | auto | 0 | blood | 103 / 105 | 0.0% | ? | ? | — |  |
-| `sasuke_sensei` | Sasuke (Sensei) | auto | 0 | blood | 170 / 174 | 0.0% | ? | ? | — |  |
-| `shinobu` | Shinobu Kocho | auto | 0 | blood | 82 / 84 | 0.0% | ? | ? | — |  |
-| `shisui_fallen` | Shisui (Fallen) | auto | 0 | blood | 49 / 51 | 0.0% | ? | ? | — |  |
-| `six_paths_pain` | Six Paths of Pain | auto | 0 | blood | 57 / 57 | 0.0% | ? | ? | — |  |
-| `soldier_boy` | Soldier Boy | auto | 0 | blood | 138 / 153 | 0.0% | ? | ? | — |  |
-| `spd_blue` | S.P.D. Blue Ranger | auto | 0 | ranger | 34 / 1694 | 0.0% | ? | ? | — |  |
+| `mr_incredible` | Mr. Incredible | auto | 0 | blood | 181 / 2882 | 0.0% | ? | ? | batch 5 |  |
+| `naruto` | Naruto | auto | 0 | blood | 98 / 98 | 0.0% | ? | ? | batch 5 | default art is the glowing chakra-cloak mode: glow pixels excluded from paint, thin dark wounds on the body only. |
+| `naruto_seventh` | Naruto (Seventh Hokage) | auto | 0 | blood | 218 / 230 | 0.0% | ? | ? | batch 5 | KCM / Four-Tails form art shares the action layout (byAction fallback). |
+| `netero` | Isaac Netero | auto | 0 | blood | 88 / 92 | 0.0% | ? | ? | batch 5 |  |
+| `nezuko` | Nezuko Kamado | auto | 0 | blood (young) | 119 / 119 | 0.0% | ? | ? | batch 5 | young (tier cap 2, no spray / pools). Bamboo muzzle inside the eye box rule. |
+| `ninja_storm_cgpt` | Ninja Storm CGPT | auto | 0 | ranger | 264 / 6710 | 0.0% | ? | ? | batch 5 | RANGER. |
+| `ninja_storm_rangers` | Ninja Storm Rangers | auto | 0 | ranger | 260 / 351 | 0.0% | ? | ? | batch 5 | RANGER. |
+| `obito` | Obito Uchiha | auto | 0 | blood | 75 / 78 | 0.0% | ? | ? | batch 5 |  |
+| `omega_ranger` | Omega Ranger (White Ranger, S.P.D.) | auto | 0 | ranger | 208 / 212 | 0.0% | ? | ? | batch 5 | RANGER: white suit shows tears clearly. |
+| `omololu` | Omololu | auto | 0 | blood | 75 / 78 | 0.0% | ? | ? | batch 5 |  |
+| `pain` | Pain | auto | 0 | blood | 103 / 110 | 0.0% | ? | ? | batch 5 | Deva Path (a corpse body in canon) kept as blood: reads as grounded. |
+| `raven` | Raven | hand-fixed | 1 | blood | 133 / 3537 | 0.0% | ? | ? | batch 5 | hood + grey skin: eye box landed above the hood → noFace. |
+| `red_ranger_mmpr` | Red Ranger (Mighty Morphin) | auto | 0 | ranger | 95 / 96 | 0.0% | ? | ? | batch 5 | RANGER. |
+| `rengoku` | Kyojuro Rengoku | auto | 0 | blood | 134 / 140 | 0.0% | ? | ? | batch 5 | flame haori is part of the costume art (not an aura): blood on body / haori. |
+| `rick` | Rick Sanchez | hand-fixed | 2 | blood | 117 / 130 | 0.0% | ? | ? | batch 5 | light (portal-gun effect) and hurt (after-image ghosts) strips skipped. |
+| `rickPrime` | Rick Prime | hand-fixed | 2 | blood | 117 / 130 | 12.5% | 0 | 0 | batch 6 | light (portal effect) and hurt (after-images) strips skipped. |
+| `robin` | Robin | auto | 0 | blood | 153 / 3344 | 12.3% | 0 | 0 | batch 6 | cape excluded from torso anchors. |
+| `saiki` | Saiki Kusuo | hand-fixed | 1 | blood (young) | 68 / 77 | 8.8% | 0 | 0 | batch 6 | young. light attack is a psychic speed-blur → skip. |
+| `saitama` | Saitama | auto | 0 | blood | 195 / 213 | 11.5% | 0 | 0 | batch 6 | hurt face is dark in the original art (not blood). |
+| `sakura` | Sakura Haruno | hand-fixed | 1 | blood | 88 / 90 | 12.8% | 0 | 0 | batch 6 | light attack punch-blur effect → skip. |
+| `samurai_red_ranger` | Samurai Red Ranger (Fire) | hand-fixed | 1 | ranger | 157 / 165 | 10.5% | 0 | 0 | batch 6 | RANGER. light crescent slash → skip. |
+| `sanji` | Sanji | auto | 0 | blood | 52 / 147 | 8.8% | 0 | 0 | batch 6 |  |
+| `sasuke` | Sasuke | auto | 0 | blood | 94 / 94 | 12.8% | 0 | 0 | batch 6 | Chidori / slash effects kept clean by the arm-reach rule. |
+| `sasuke_adult` | Sasuke (Adult) | auto | 0 | blood | 103 / 105 | 12.4% | 0 | 0 | batch 6 |  |
+| `sasuke_sensei` | Sasuke (Sensei) | hand-fixed | 1 | blood | 166 / 170 | 13.0% | 0 | 0 | batch 6 | light is a lightning-blade effect → skip. |
+| `shinobu` | Shinobu Kocho | auto | 0 | blood | 82 / 84 | 13.2% | 0 | 0 | batch 6 | butterfly haori shows trickles. |
+| `shisui_fallen` | Shisui (Fallen) | auto | 0 | blood | 49 / 51 | 12.3% | 0 | 0 | batch 6 | red outfit: dark blood stays subtle. |
+| `six_paths_pain` | Six Paths of Pain | auto | 0 | blood | 57 / 57 | 12.7% | 0 | 0 | batch 6 |  |
+| `soldier_boy` | Soldier Boy | hand-fixed | 1 | blood | 138 / 153 | 6.6% | 0 | 0 | batch 6 | gold shield (held prop) picked up trickles → excludeGold paint mask (new override). |
+| `spd_blue` | S.P.D. Blue Ranger | auto | 0 | ranger | 34 / 1694 | 11.4% | 0 | 0 | batch 6 | RANGER. |
 | `spd_green` | S.P.D. Green Ranger | auto | 0 | ranger | 49 / 679 | 0.0% | ? | ? | — |  |
 | `spd_pink` | S.P.D. Pink Ranger | auto | 0 | ranger | 42 / 672 | 0.0% | ? | ? | — |  |
 | `spd_red` | SPDRed | auto | 0 | ranger | 48 / 112 | 0.0% | ? | ? | — |  |
@@ -122,5 +122,5 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `zenitsu` | Zenitsu Agatsuma | auto | 0 | blood | 73 / 86 | 0.0% | ? | ? | — |  |
 | `zoro` | Zoro | auto | 0 | blood | 30 / 99 | 0.0% | ? | ? | — |  |
 
-**113 characters · 19 hand-fixed · 94 auto · 75 reviewed.**
+**113 characters · 25 hand-fixed · 88 auto · 90 reviewed.**
 

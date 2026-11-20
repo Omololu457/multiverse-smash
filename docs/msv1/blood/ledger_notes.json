@@ -317,5 +317,71 @@
   "batch": 5,
   "note": "light (portal-gun effect) and hurt (after-image ghosts) strips skipped.",
   "hand": true
+ },
+ "rickPrime": {
+  "batch": 6,
+  "note": "light (portal effect) and hurt (after-images) strips skipped.",
+  "hand": true
+ },
+ "robin": {
+  "batch": 6,
+  "note": "cape excluded from torso anchors."
+ },
+ "saiki": {
+  "batch": 6,
+  "note": "young. light attack is a psychic speed-blur → skip.",
+  "hand": true
+ },
+ "saitama": {
+  "batch": 6,
+  "note": "hurt face is dark in the original art (not blood)."
+ },
+ "sakura": {
+  "batch": 6,
+  "note": "light attack punch-blur effect → skip.",
+  "hand": true
+ },
+ "samurai_red_ranger": {
+  "batch": 6,
+  "note": "RANGER. light crescent slash → skip.",
+  "hand": true
+ },
+ "sanji": {
+  "batch": 6,
+  "note": ""
+ },
+ "sasuke": {
+  "batch": 6,
+  "note": "Chidori / slash effects kept clean by the arm-reach rule."
+ },
+ "sasuke_adult": {
+  "batch": 6,
+  "note": ""
+ },
+ "sasuke_sensei": {
+  "batch": 6,
+  "note": "light is a lightning-blade effect → skip.",
+  "hand": true
+ },
+ "shinobu": {
+  "batch": 6,
+  "note": "butterfly haori shows trickles."
+ },
+ "shisui_fallen": {
+  "batch": 6,
+  "note": "red outfit: dark blood stays subtle."
+ },
+ "six_paths_pain": {
+  "batch": 6,
+  "note": ""
+ },
+ "soldier_boy": {
+  "batch": 6,
+  "note": "gold shield (held prop) picked up trickles → excludeGold paint mask (new override).",
+  "hand": true
+ },
+ "spd_blue": {
+  "batch": 6,
+  "note": "RANGER."
  }
 }

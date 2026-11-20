@@ -309,6 +309,9 @@ def trickle(paint, lum, eye, start, seed):
 def analyse(rgba, prev=None, ov=None):
     ov = ov or {}
     body, paint = body_masks(rgba)
+    if paint is not None and ov.get('excludeGold'):          # held gold props (shields, armour plates): no blood paints there
+        r_, g_, b_ = (rgba[..., i].astype(np.int32) for i in range(3))
+        paint = paint & ~((r_ > 110) & (g_ * 100 > 72 * r_) & (b_ * 100 < 55 * g_))
     if body is None or ov.get('skip'):
         return None
     ys, xs = np.nonzero(body)

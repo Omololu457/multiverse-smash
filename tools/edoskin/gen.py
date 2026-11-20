@@ -157,7 +157,7 @@ def analyse_palette(key, cls, defs, ov):
             if bodym is None:
                 continue
             ys, xs = np.nonzero(bodym)
-            fb = BM.face_box(bodym, sk, int(ys.min()), int(ys.max() - ys.min() + 1)) if cls == 'HUMAN' else None
+            fb = BM.face_box(bodym, sk, int(ys.min()), int(ys.max() - ys.min() + 1))
             if fb:
                 y0, y1, x0, x1, n = fb
                 sub = fr[y0:y1 + 1, x0:x1 + 1]; m = sk[y0:y1 + 1, x0:x1 + 1]
@@ -175,6 +175,13 @@ def analyse_palette(key, cls, defs, ov):
                 arm_px = int(sk.sum()) - face_area
     skin = {c for c in skn if skn[c] >= 0.6 * tot.get(c, 1) and c in inface and tot[c] >= 2 and above.get(c, 0) < 0.35 * tot[c]}   # mostly above the face = hair
     if cls != 'HUMAN':
+        # MASKED / ARMOURED: the ash ramp only on EXPOSED skin a face box confirms (Cyborg's face, Batman's jaw), and
+        # never on saturated warm plating (gold / yellow / orange suits pass the warm skin test)
+        def _sat(c):
+            r, g, b = (c >> 16) & 255, (c >> 8) & 255, c & 255
+            return (max(r, g, b) - min(r, g, b)) / max(1, max(r, g, b))
+        skin = {c for c in skin if _sat(c) < 0.55}
+    if ov.get('noSkin'):                        # a fully helmeted / suited body whose warm suit shades passed the skin test
         skin = set()
     for c in ov.get('addSkin', []):
         skin.add(int(c.lstrip('#'), 16))
@@ -182,7 +189,8 @@ def analyse_palette(key, cls, defs, ov):
         skin.discard(int(c.lstrip('#'), 16))
     for c in ov.get('notBody', []):            # a colour that belongs to an effect even though it shows in a calm frame
         body.discard(int(c.lstrip('#'), 16))
-    return skin, body, face_area, arm_px
+    hair = {c for c in body if above.get(c, 0) >= 0.35 * tot.get(c, 1) and c not in skin}   # colours mostly above the face = hair
+    return skin, body, face_area, arm_px, hair
 
 
 def build_lut(skin, body):
@@ -206,7 +214,7 @@ def build_lut(skin, body):
     return lut
 
 
-def effect_mask(fr, skin=frozenset()):
+def effect_mask(fr, skin=frozenset(), hair=frozenset()):
     """baked-in effects (slash trails, sparks, glows) are drawn WITHOUT the dark outline sprite bodies have: any patch of
     non-outline pixels whose border faces transparency more than it faces linework is an effect → left untouched.
     Skin-coloured and other pixels are tested as separate patches (a trail painted in skin tones off a bare foot)."""
@@ -227,13 +235,14 @@ def effect_mask(fr, skin=frozenset()):
         idx = range(1, n + 1)
         t = ndi.sum(part & ring_t, lab, idx); l = ndi.sum(part & ring_l, lab, idx); sz = ndi.sum(part, lab, idx)
         eff = np.zeros(n + 1, bool)
-        for i, (tt, ll, zz) in enumerate(zip(t, l, sz), 1):
-            eff[i] = tt > 1.5 * ll and zz >= 6
+        hl = ndi.sum(part & np.isin(pk, np.fromiter(hair, np.int64)), lab, idx) if hair else np.zeros(n)
+        for i, (tt, ll, zz, hh) in enumerate(zip(t, l, sz, hl), 1):
+            eff[i] = tt > 1.5 * ll and 6 <= zz < 0.2 * a.sum() and hh < 0.5 * zz   # un-outlined HAIR is body; a patch this big is the (flat-shaded) body itself
         out |= eff[lab]
     return out
 
 
-def recolor_sheet(path, lut, defs_here, skin=frozenset()):
+def recolor_sheet(path, lut, defs_here, skin=frozenset(), hair=frozenset()):
     """palette LUT applied ONLY inside each frame's BODY silhouette (blood builder body mask: the main figure and the
     pieces overlapping it). Detached effect pieces (slash trails, projectiles, flashes) stay byte-identical even when
     they share a colour with the body; so do pixels outside every frame rect."""
@@ -248,8 +257,14 @@ def recolor_sheet(path, lut, defs_here, skin=frozenset()):
                 continue
             fr = img[y0:min(Hh, y0 + d['h']), x0:min(Ww, x0 + d['w'])]
             body, _ = BM.body_masks(fr)
+            fa = fr[..., 3] > 0
+            if fa.any():                                # a HIT-FLASH frame (the whole silhouette in one near-white) is an effect
+                fp = (fr[..., 0].astype(np.int64) << 16) | (fr[..., 1].astype(np.int64) << 8) | fr[..., 2]
+                u, cnt = np.unique(fp[fa], return_counts=True); top = int(u[np.argmax(cnt)])
+                if cnt.max() > 0.7 * fa.sum() and near_white(((top >> 16) & 255, (top >> 8) & 255, top & 255)):
+                    continue
             if body is not None:
-                bodyall[y0:y0 + body.shape[0], x0:x0 + body.shape[1]] |= body & ~effect_mask(fr, skin)
+                bodyall[y0:y0 + body.shape[0], x0:x0 + body.shape[1]] |= (body if d.get('act') in CALM else body & ~effect_mask(fr, skin, hair))   # calm frames carry no baked effects
     m0 = bodyall & (img[..., 3] > 0)
     out = img.copy()
     keys = np.array(list(lut.keys()), np.int64)
@@ -361,7 +376,7 @@ def main():
         cls = elig['classes'][key]
         ov = overrides.get(key, {})
         ds = char_defs(key, defs[key], elig)
-        skin, body, face_area, arm_px = analyse_palette(key, cls, ds, ov)
+        skin, body, face_area, arm_px, hair = analyse_palette(key, cls, ds, ov)
         lut = build_lut(skin, body)
         plan, notes = crack_plan(key, cls, face_area if cls == 'HUMAN' else 99, arm_px >= 30)
         if 'cracks' in ov:
@@ -376,7 +391,7 @@ def main():
         for sh, dd in sorted(by_sheet.items()):
             if not os.path.exists(os.path.join(ROOT, sh)):
                 continue
-            img, out, bodyall = recolor_sheet(sh, lut, dd, frozenset(skin))
+            img, out, bodyall = recolor_sheet(sh, lut, dd, frozenset(skin), frozenset(hair))
             stats['_body'] = bodyall
             paint_frames(key, cls, img, out, dd, bm, skin, plan, stats)
             assert (out[..., 3] == img[..., 3]).all()

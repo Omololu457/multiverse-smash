@@ -1,6 +1,25 @@
 {
  "beast_boy": {
-  "addSkin": ["#b8f8c8", "#40f890", "#00a868", "#006050"],
+  "addSkin": [
+   "#b8f8c8",
+   "#40f890",
+   "#00a868",
+   "#006050"
+  ],
   "note": "green skin is outside the warm skin detector: his four skin greens (idle face) are set as the skin palette by hand; teal hair stays hair"
+ },
+ "cyborg": {
+  "note": "his face shares its exact palette with the orange armour trim (#c06800 / #985000 / #601000 / #f88808): no separable skin, material treatment only"
+ },
+ "genos": {
+  "notSkin": [
+   "#a5916b",
+   "#4e3829"
+  ],
+  "note": "blond hair shades passed the warm skin test (the hair cluster sits inside his face box): kept as hair"
+ },
+ "samurai_red_ranger": {
+  "noSkin": true,
+  "note": "fully helmeted: light red helmet shades passed the warm skin test; no exposed skin, material treatment only"
  }
 }

@@ -2,4 +2,20 @@
 // Characters with premade "Edo Tensei" art (<sheet>__edo.png beside every default / form sheet, tools/edoskin/gen.py).
 // Eligibility + reasons for everyone left out: tools/edoskin/eligibility.json · docs/msv1/edo/LEDGER.md
 export const EDO_SKIN_KEYS = Object.freeze([
+  "alt_sukuna",
+  "aoi_todo",
+  "baki",
+  "batman",
+  "beast_boy",
+  "ben10",
+  "buggy",
+  "byakuya",
+  "chrollo",
+  "cyborg",
+  "dash_parr",
+  "dseyl",
+  "elastigirl",
+  "enoch",
+  "flash",
+  "frozone",
 ])

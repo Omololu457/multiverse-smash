@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """tools/edoskin/ledger.py — docs/msv1/edo/LEDGER.md: one row per playable character id (eligible or not)."""
-import json, os
+import json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
 e = json.load(open(os.path.join(HERE, 'eligibility.json')))
 ov = json.load(open(os.path.join(HERE, 'overrides.json'))) if os.path.exists(os.path.join(HERE, 'overrides.json')) else {}
 ver = json.load(open(os.path.join(HERE, 'verify.json'))) if os.path.exists(os.path.join(HERE, 'verify.json')) else {}
 review = json.load(open(os.path.join(HERE, 'review.json'))) if os.path.exists(os.path.join(HERE, 'review.json')) else {}
+ONLY = set(open(sys.argv[1]).read().split()) if len(sys.argv) > 1 else None   # optional: keys shipped so far (batch commits)
 rows = []
 for k in sorted(e['classes'], key=str.lower):
     c = e['classes'][k]
@@ -14,6 +15,8 @@ for k in sorted(e['classes'], key=str.lower):
     if c not in ('HUMAN', 'MASKED'):
         rows.append(f"| `{k}` | {c} | — | — | — | — | — | no Edo skin: {e['why'].get(k, '')} |"); continue
     p = os.path.join(HERE, 'report', k + '.json')
+    if ONLY is not None and k not in ONLY:
+        rows.append(f"| `{k}` | {c} | pending (later batch) | | | | | |"); continue
     if not os.path.exists(p):
         rows.append(f"| `{k}` | {c} | MISSING | | | | | |"); continue
     r = json.load(open(p)); v = ver.get(k, {})

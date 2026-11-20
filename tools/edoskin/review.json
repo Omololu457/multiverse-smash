@@ -1,0 +1,22 @@
+{
+ "sasuke": "reviewed: a kick trail drawn in his skin tones and fused to the bare foot takes the ash ramp (detached trail stays original)",
+ "ninja_storm_cgpt": "reviewed: the red streak at the feet is drawn in suit colours and joined to the body → desaturated with the suit",
+ "windrangers": "reviewed: same attached red streak as ninja_storm_cgpt",
+ "saiki": "reviewed: motion streaks overlapping the body are partly desaturated",
+ "raven": "reviewed: her grey skin is outside the warm skin detector and already ashen; material treatment on the cloak / suit only",
+ "beast_boy": "reviewed: green skin hand-set (overrides.json)",
+ "starfire": "reviewed: orange skin only partly passes the skin detector → partial ash on the face; suit desaturated",
+ "isshiki": "reviewed: white painted face is near-white, outside the skin ramp → only clothes desaturated",
+ "mayuri": "reviewed: white face paint — no exposed skin colour, clothes desaturated",
+ "inosuke": "reviewed: boar mask head (no face) → torso / arms take the ramp",
+ "kakashi": "reviewed: masked lower face; eye area too small for cracks",
+ "kakashi_anbu": "reviewed: masked lower face",
+ "itachi": "reviewed: face shadowed inside the hood (5 px of skin) → no face cracks",
+ "kevin_levin": "reviewed: no MSV1-BLOOD body map exists for kevin_levin → no landmark-anchored cracks or sclera; skin ramp + clothes only",
+ "frozone": "reviewed: dark skin mostly under the suit / goggles; subtle change",
+ "cyborg": "reviewed: face palette shared with armour trim → material treatment only",
+ "genos": "reviewed: blond hair kept as hair (overrides.json)",
+ "samurai_red_ranger": "reviewed: helmet shades excluded from skin (overrides.json)",
+ "light": "reviewed: select-screen portrait: pale blond hair reads close to ash (portraits use a per-pixel rule, no face box)",
+ "minato": "reviewed: select-screen portrait: pale blond hair reads close to ash"
+}

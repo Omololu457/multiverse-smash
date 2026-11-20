@@ -1,0 +1,19 @@
+{
+ "armCracks": 0,
+ "bodyColours": 16,
+ "class": "MASKED",
+ "crackPlan": 1,
+ "crackPx": 331,
+ "eyes": "skipped (no separable whites)",
+ "faceArea": 0,
+ "faceCracks": 1,
+ "hidden": 5,
+ "noMap": 0,
+ "notes": [],
+ "overrides": [
+  "note"
+ ],
+ "sclera": 0,
+ "sheets": 40,
+ "skinColours": 0
+}

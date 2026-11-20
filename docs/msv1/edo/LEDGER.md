@@ -23,7 +23,7 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `elastigirl` | HUMAN | 40 | 5 | black sclera | 5 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `enoch` | HUMAN | 98 | 3 | skipped: no separable whites | 3 face / 0 arm | automatic · verify ok | face area 21px → 3 face cracks (wanted 6); no bare forearm skin → 0 arm cracks |
 | `flash` | MASKED | 1 | 1 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
-| `frozone` | HUMAN | 42 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 9px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: dark skin mostly under the suit / goggles; subtle change |
+| `frozone` | HUMAN | 37 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 9px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: dark skin mostly under the suit / goggles; subtle change |
 | `gaara` | HUMAN | 23 | 48 | black sclera | 3 face / 1 arm | automatic · verify ok |  |
 | `genos` | MASKED | 24 | 2 | n/a (masked) | 1 face / 0 arm | hand-fixed (notSkin) · verify ok | blond hair shades passed the warm skin test (the hair cluster sits inside his face box): kept as hair; reviewed: blond hair kept as hair (overrides.json) |
 | `ghostface` | MASKED → EXCLUDED | — | — | — | — | — | Ghostface has no base identity: every skin id is one of 5 killer identities (game.js applySkin forces one); an Edo skin id would be replaced by a random killer, and adding a list would change his selector. Tobirama's Edo Tensei keeps the live tint for him. |
@@ -60,7 +60,7 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `madara` | ALREADY_EDO | — | — | — | — | — | no Edo skin: already a reanimated (Edo Tensei) body: the blood system already gives him crack:edo |
 | `maki` | HUMAN | 20 | 4 | black sclera | 1 face / 1 arm | automatic · verify ok | face area 9px → 1 face cracks (wanted 5) |
 | `mayuri` | HUMAN | 22 | 0 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 6); no bare forearm skin → 0 arm cracks; reviewed: white face paint — no exposed skin colour, clothes desaturated |
-| `megumi_fushiguro` | HUMAN | 54 | 54 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 8px → 1 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
+| `megumi_fushiguro` | HUMAN | 42 | 54 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 8px → 1 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
 | `minato` | HUMAN | 19 | 8 | black sclera | 2 face / 0 arm | automatic · verify ok | face area 19px → 2 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: select-screen portrait: pale blond hair reads close to ash |
 | `miwa` | HUMAN | 23 | 2 | black sclera | 3 face / 0 arm | automatic · verify ok | face area 22px → 3 face cracks (wanted 5) |
 | `mmpr_black` | MASKED | 38 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
@@ -72,7 +72,7 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `netero` | HUMAN | 13 | 5 | black sclera | 3 face / 4 arm | automatic · verify ok |  |
 | `nezuko` | HUMAN | 33 | 4 | black sclera | 5 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `ninja_storm_cgpt` | MASKED | 58 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok | reviewed: the red streak at the feet is drawn in suit colours and joined to the body → desaturated with the suit |
-| `ninja_storm_rangers` | MASKED | 71 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `ninja_storm_rangers` | MASKED | 60 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
 | `obito` | HUMAN | 22 | 5 | black sclera | 5 face / 2 arm | automatic · verify ok |  |
 | `omega_ranger` | MASKED | 29 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
 | `omololu` | HUMAN | 22 | 18 | black sclera | 4 face / 0 arm | automatic · verify ok |  |
@@ -104,14 +104,14 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `starfire` | HUMAN | 38 | 1 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 7px → 1 face cracks (wanted 5); reviewed: orange skin only partly passes the skin detector → partial ash on the face; suit desaturated |
 | `sukuna` | HUMAN | 10 | 4 | black sclera | 4 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `superman` | HUMAN | 20 | 5 | black sclera | 4 face / 3 arm | automatic · verify ok |  |
-| `syndrome` | HUMAN | 123 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `syndrome` | HUMAN | 31 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `tobi` | MASKED | 20 | 3 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
 | `tobirama` | TOBIRAMA | — | — | — | — | — | no Edo skin: the summoner |
 | `toji` | HUMAN | 18 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok |  |
 | `vegeta` | HUMAN | 28 | 4 | black sclera | 3 face / 1 arm | automatic · verify ok | face area 25px → 3 face cracks (wanted 5) |
 | `vegeta_dark` | HUMAN | 19 | 4 | black sclera | 3 face / 2 arm | automatic · verify ok | face area 26px → 3 face cracks (wanted 4) |
 | `vilgax` | NONHUMAN | — | — | — | — | — | no Edo skin: Chimera Sui Generis alien |
-| `violet` | HUMAN | 41 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `violet` | HUMAN | 36 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `windrangers` | MASKED | 106 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok | reviewed: same attached red streak as ninja_storm_cgpt |
 | `yuji` | HUMAN | 24 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `yuta` | HUMAN | 20 | 10 | black sclera | 4 face / 2 arm | automatic · verify ok | face area 28px → 4 face cracks (wanted 6) |

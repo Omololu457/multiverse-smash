@@ -3,15 +3,15 @@
  "bodyColours": 14,
  "class": "MASKED",
  "crackPlan": 1,
- "crackPx": 411,
+ "crackPx": 391,
  "eyes": "skipped (no separable whites)",
  "faceArea": 0,
  "faceCracks": 1,
- "hidden": 13,
+ "hidden": 10,
  "noMap": 0,
  "notes": [],
  "overrides": [],
  "sclera": 0,
- "sheets": 71,
+ "sheets": 60,
  "skinColours": 0
 }

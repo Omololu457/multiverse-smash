@@ -1,0 +1,842 @@
+{
+ "alt_sukuna": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 22
+ },
+ "aoi_todo": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 25
+ },
+ "baki": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 22
+ },
+ "batman": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 1
+ },
+ "beast_boy": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 42
+ },
+ "ben10": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 21
+ },
+ "buggy": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 44
+ },
+ "byakuya": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 28
+ },
+ "chrollo": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 18
+ },
+ "cyborg": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 40
+ },
+ "dash_parr": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 27
+ },
+ "dseyl": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 31
+ },
+ "elastigirl": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 40
+ },
+ "enoch": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 98
+ },
+ "flash": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 1
+ },
+ "frozone": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 37
+ },
+ "gaara": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 23
+ },
+ "genos": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 24
+ },
+ "gojo": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "goku": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 19
+ },
+ "goku_black": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "gold_samurai_ranger": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 11
+ },
+ "green_arrow": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 31
+ },
+ "green_ranger": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 42
+ },
+ "green_samurai_ranger": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 11
+ },
+ "gwen": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "hashirama": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 30
+ },
+ "higuruma": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 39
+ },
+ "hinata": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 20
+ },
+ "hisoka": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 19
+ },
+ "homelander": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 18
+ },
+ "ichigo": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 32
+ },
+ "inosuke": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 19
+ },
+ "ippo": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 27
+ },
+ "isshiki": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 23
+ },
+ "itachi": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 14
+ },
+ "jason": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 11
+ },
+ "jesus": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 14
+ },
+ "jiraiya": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 22
+ },
+ "kakashi": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 25
+ },
+ "kakashi_anbu": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 21
+ },
+ "kakashi_war": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 26
+ },
+ "killua": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 1
+ },
+ "krybot": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 30
+ },
+ "l_ryuuzaki": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 21
+ },
+ "light": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 13
+ },
+ "luffy": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 39
+ },
+ "maki": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 20
+ },
+ "mayuri": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 22
+ },
+ "megumi_fushiguro": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 42
+ },
+ "minato": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 19
+ },
+ "miwa": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 23
+ },
+ "mmpr_black": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 38
+ },
+ "mmpr_pink": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 36
+ },
+ "mmpr_white": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 41
+ },
+ "mr_incredible": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 47
+ },
+ "naruto_seventh": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 32
+ },
+ "netero": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 13
+ },
+ "nezuko": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 33
+ },
+ "ninja_storm_cgpt": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 58
+ },
+ "ninja_storm_rangers": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 60
+ },
+ "obito": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 22
+ },
+ "omega_ranger": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 29
+ },
+ "omololu": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 22
+ },
+ "pain": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 23
+ },
+ "raven": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 45
+ },
+ "red_ranger_mmpr": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 21
+ },
+ "rengoku": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 27
+ },
+ "rick": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "rickPrime": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "robin": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 40
+ },
+ "saiki": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "saitama": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 27
+ },
+ "sakura": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 21
+ },
+ "samurai_red_ranger": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 13
+ },
+ "sanji": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 52
+ },
+ "sasuke": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 15
+ },
+ "sasuke_adult": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 26
+ },
+ "sasuke_sensei": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 35
+ },
+ "shinobu": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 18
+ },
+ "shisui_fallen": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 12
+ },
+ "six_paths_pain": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 10
+ },
+ "soldier_boy": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 31
+ },
+ "spd_blue": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 31
+ },
+ "spd_green": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 42
+ },
+ "spd_pink": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 42
+ },
+ "spd_red": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 44
+ },
+ "spd_yellow": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 38
+ },
+ "spiderman": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 23
+ },
+ "starfire": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 38
+ },
+ "sukuna": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 10
+ },
+ "superman": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 20
+ },
+ "syndrome": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 31
+ },
+ "tobi": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 20
+ },
+ "toji": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 18
+ },
+ "vegeta": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 28
+ },
+ "vegeta_dark": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 19
+ },
+ "violet": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 36
+ },
+ "windrangers": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 106
+ },
+ "yuji": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 24
+ },
+ "yuta": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 20
+ },
+ "zaraki": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 21
+ },
+ "zaraki_shikai": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 14
+ },
+ "zenitsu": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 17
+ },
+ "zoro": {
+  "alpha": 0,
+  "dims": 0,
+  "effectPxChanged": 0,
+  "missing": 0,
+  "outline": 0,
+  "sheets": 44
+ }
+}

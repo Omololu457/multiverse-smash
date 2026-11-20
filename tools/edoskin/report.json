@@ -1,0 +1,94 @@
+{
+ "baki": {
+  "armCracks": 2,
+  "bodyColours": 47,
+  "class": "HUMAN",
+  "crackPlan": 4,
+  "crackPx": 348,
+  "eyes": "handled",
+  "faceArea": 20,
+  "faceCracks": 2,
+  "hidden": 6,
+  "noMap": 0,
+  "notes": [
+   "face area 20px \u2192 2 face cracks (wanted 5)"
+  ],
+  "overrides": [],
+  "sclera": 51,
+  "sheets": 22,
+  "skinColours": 9
+ },
+ "gojo": {
+  "armCracks": 2,
+  "bodyColours": 402,
+  "class": "HUMAN",
+  "crackPlan": 6,
+  "crackPx": 322,
+  "eyes": "handled",
+  "faceArea": 52,
+  "faceCracks": 4,
+  "hidden": 0,
+  "noMap": 0,
+  "notes": [],
+  "overrides": [],
+  "sclera": 533,
+  "sheets": 17,
+  "skinColours": 13
+ },
+ "itachi": {
+  "armCracks": 0,
+  "bodyColours": 74,
+  "class": "HUMAN",
+  "crackPlan": 0,
+  "crackPx": 0,
+  "eyes": "handled",
+  "faceArea": 5,
+  "faceCracks": 0,
+  "hidden": 0,
+  "noMap": 0,
+  "notes": [
+   "face area 5px \u2192 0 face cracks (wanted 4)",
+   "no bare forearm skin \u2192 0 arm cracks"
+  ],
+  "overrides": [],
+  "sclera": 41,
+  "sheets": 14,
+  "skinColours": 7
+ },
+ "red_ranger_mmpr": {
+  "armCracks": 0,
+  "bodyColours": 9,
+  "class": "MASKED",
+  "crackPlan": 1,
+  "crackPx": 189,
+  "eyes": "skipped (no separable whites)",
+  "faceArea": 0,
+  "faceCracks": 1,
+  "hidden": 2,
+  "noMap": 0,
+  "notes": [],
+  "overrides": [],
+  "sclera": 0,
+  "sheets": 21,
+  "skinColours": 0
+ },
+ "sasuke": {
+  "armCracks": 3,
+  "bodyColours": 35,
+  "class": "HUMAN",
+  "crackPlan": 6,
+  "crackPx": 112,
+  "eyes": "handled",
+  "faceArea": 27,
+  "faceCracks": 3,
+  "hidden": 3,
+  "noMap": 0,
+  "notes": [
+   "face area 27px \u2192 3 face cracks (wanted 4)"
+  ],
+  "overrides": [],
+  "sclera": 361,
+  "sheets": 15,
+  "skinColours": 4
+ }
+}

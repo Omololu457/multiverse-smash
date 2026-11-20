@@ -7,14 +7,14 @@
  "eyes": "handled",
  "faceArea": 8,
  "faceCracks": 1,
- "hidden": 8,
+ "hidden": 0,
  "noMap": 1,
  "notes": [
   "face area 8px \u2192 1 face cracks (wanted 4)",
   "no bare forearm skin \u2192 0 arm cracks"
  ],
  "overrides": [],
- "sclera": 52,
- "sheets": 54,
+ "sclera": 16,
+ "sheets": 42,
  "skinColours": 54
 }

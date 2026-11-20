@@ -255,5 +255,67 @@
  "mmpr_white": {
   "batch": 4,
   "note": "RANGER."
+ },
+ "mr_incredible": {
+  "batch": 5,
+  "note": ""
+ },
+ "naruto": {
+  "batch": 5,
+  "note": "default art is the glowing chakra-cloak mode: glow pixels excluded from paint, thin dark wounds on the body only."
+ },
+ "naruto_seventh": {
+  "batch": 5,
+  "note": "KCM / Four-Tails form art shares the action layout (byAction fallback)."
+ },
+ "netero": {
+  "batch": 5,
+  "note": ""
+ },
+ "nezuko": {
+  "batch": 5,
+  "note": "young (tier cap 2, no spray / pools). Bamboo muzzle inside the eye box rule."
+ },
+ "ninja_storm_cgpt": {
+  "batch": 5,
+  "note": "RANGER."
+ },
+ "ninja_storm_rangers": {
+  "batch": 5,
+  "note": "RANGER."
+ },
+ "obito": {
+  "batch": 5,
+  "note": ""
+ },
+ "omega_ranger": {
+  "batch": 5,
+  "note": "RANGER: white suit shows tears clearly."
+ },
+ "omololu": {
+  "batch": 5,
+  "note": ""
+ },
+ "pain": {
+  "batch": 5,
+  "note": "Deva Path (a corpse body in canon) kept as blood: reads as grounded."
+ },
+ "raven": {
+  "batch": 5,
+  "note": "hood + grey skin: eye box landed above the hood → noFace.",
+  "hand": true
+ },
+ "red_ranger_mmpr": {
+  "batch": 5,
+  "note": "RANGER."
+ },
+ "rengoku": {
+  "batch": 5,
+  "note": "flame haori is part of the costume art (not an aura): blood on body / haori."
+ },
+ "rick": {
+  "batch": 5,
+  "note": "light (portal-gun effect) and hurt (after-image ghosts) strips skipped.",
+  "hand": true
  }
 }

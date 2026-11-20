@@ -111,7 +111,7 @@ that opens in the browser, ready to copy and send to friends on the same Wi-Fi, 
 fighter on their own screen**.
 
 - **Removed**: the ONLINE (LAN) entries in the main menu and PLAY menu, the hosting badge/panel, the
-  first-run popup, the floating "Open Desktop Version" button, the join box, and the join page's second
+  first-run popup, the join box, and the join page's second
   button ("Open in desktop app"). The old ONLINE screens remain in code for the existing net tests only.
 - **Added**:
   - The title-screen **PLAY WITH A FRIEND** button. In the desktop app it starts hosting and shows the friend
@@ -127,3 +127,7 @@ fighter on their own screen**.
   returning to the title/main menu, and on quit. `multiversesmash://open` just opens the app.
 - In a plain browser (no desktop app), PLAY WITH A FRIEND explains that hosting needs the desktop app.
 - Sim untouched: the changes are UI/select-flow only (`game.js` seam + select hooks, `ui.js` menu entries).
+- **"Open Desktop Version" is back** (owner request): in the browser version, the corner button on the title screen /
+  main menu launches the installed desktop app (`multiversesmash://open`); if nothing opens within ~1.5 s it offers the
+  download. The browser's PLAY WITH A FRIEND popup also has "Open the desktop app". Not shown inside the desktop app,
+  on a friend's join link, or once you leave the home screens.

@@ -9,11 +9,12 @@
 // always-on UI seam in game.js) and to the desktop app only through window.msDesktop (electron/preload.cjs).
 //   • DESKTOP APP: makes sure the host server is running, then shows the invite link while waiting.
 //   • BROWSER opened from a host's link (/?room=CODE on the host's own origin): auto-joins that room.
-//   • BROWSER otherwise: PLAY WITH A FRIEND explains that hosting needs the desktop app.
+//   • BROWSER otherwise: PLAY WITH A FRIEND explains that hosting needs the desktop app, and an "Open Desktop
+//     Version" button sits in the corner of the title screen / main menu (launches the installed app).
 // Hidden under automation (navigator.webdriver or ?harness) unless ?hostui=1, so tests of the game itself are
 // unaffected.
 
-import { RELEASES_URL, normalizeRoomCode, parseJoinInput, relayUrlFor } from "./hostConfig.js"
+import { PROTOCOL_SCHEME, RELEASES_URL, normalizeRoomCode, parseJoinInput, relayUrlFor } from "./hostConfig.js"
 
 const hasDom = typeof window !== "undefined" && typeof document !== "undefined"
 let _desk = null          // window.msDesktop when running inside the desktop app
@@ -41,7 +42,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const CSS = `
 #ms-host{position:fixed;inset:0;pointer-events:none;z-index:2147483000;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;color:#e8f1ff}
 #ms-host *{box-sizing:border-box}
-#ms-host .mh-screen,#ms-host .mh-toast,#ms-host .mh-modal{pointer-events:auto}
+#ms-host .mh-screen,#ms-host .mh-toast,#ms-host .mh-modal,#ms-host .mh-btn-float{pointer-events:auto}
+#ms-host button.mh-btn-float{position:absolute;bottom:18px;right:18px;padding:10px 16px;border-radius:10px;border:1px solid #4ad5ff;background:rgba(6,18,37,.9);color:#4ad5ff;font:700 14px system-ui;cursor:pointer}
+#ms-host button.mh-btn-float:hover{background:#0d2547}
 #ms-host .mh-screen{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,#10284f,#030914)}
 #ms-host .mh-box{width:min(620px,100%);background:#0b1a33;border:1px solid #1d3a66;border-radius:16px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.55);text-align:center}
 #ms-host h2{margin:0 0 6px;font:800 28px system-ui;letter-spacing:.5px}
@@ -201,7 +204,7 @@ function friendStart() {
     modal("Hosting needs the desktop app", [
       "To start a game for friends, open Multiverse Smash in the desktop app and press PLAY WITH A FRIEND there.",
       "To join a friend instead, open the link they sent you.",
-    ], [{ label: "Download the desktop app", cls: "pri", fn: openReleases }, { label: "Close" }])
+    ], [{ label: "Open the desktop app", cls: "pri", fn: () => openDesktopApp() }, { label: "Download the desktop app", fn: openReleases }, { label: "Close" }])
     return true
   }
   if (_state && _state.status === "online") { g.friend(); return true }
@@ -221,6 +224,31 @@ function friendStart() {
     } catch (e) { startError = String((e && e.message) || e); render() }
   })()
   return true
+}
+
+// ── BROWSER: the "Open Desktop Version" button (title screen / main menu) ─────────────────────────────────
+let desktopBtn = null
+function openDesktopApp(url = `${PROTOCOL_SCHEME}://open`) {
+  // A custom-protocol launch gives the page no success signal; if the OS hands off to the app, this page loses
+  // focus / becomes hidden. No blur within ~1.5 s → assume the app is not installed. One attempt per click.
+  let left = false
+  const mark = () => { left = true }
+  window.addEventListener("blur", mark, { once: true })
+  document.addEventListener("visibilitychange", mark, { once: true })
+  window.location.href = url
+  setTimeout(() => {
+    window.removeEventListener("blur", mark); document.removeEventListener("visibilitychange", mark)
+    if (left) return
+    modal("Desktop app not found", ["It looks like Multiverse Smash isn't installed on this computer (or your browser blocked the request)."],
+      [{ label: "Download", cls: "pri", fn: openReleases }, { label: "Keep playing in the browser" }])
+  }, 1500)
+}
+function updateDesktopBtn() {
+  if (!desktopBtn) return
+  const g = gameApi()
+  const st = g ? g.state() : "start"
+  const home = (st === "start" || st === "mainMenu") && !(g && g.inMatch())
+  desktopBtn.style.display = home ? "" : "none"
 }
 
 // ── desktop: a multiversesmash://join link (or pasted link) → join that room ────────────────────────────────
@@ -268,6 +296,11 @@ if (hasDom) {
           if (!g) return toast("The game did not finish loading.")
           g.join(relayUrlFor(location.origin, room))
         })
+      } else {
+        ensureRoot()
+        desktopBtn = el("button", { class: "mh-btn-float", text: "Open Desktop Version", title: "Launch the installed desktop app (it can host games for friends)", onclick: () => openDesktopApp() })
+        root.append(desktopBtn)
+        setInterval(updateDesktopBtn, 250)
       }
     }
     setInterval(render, 200)

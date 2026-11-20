@@ -29892,6 +29892,7 @@ gameLoop()
       bloodDigest:     () => bloodDigest(),                                     // MSV1-BLOOD: digest of the visible blood state (LAN / replay parity)
       setBloodLevel:   (v) => { juiceSettings.setBlood(v); return juiceSettings.blood },
       bloodFluid:      (side = "p1") => bloodFluidOf(side === "p2" ? p2 : p1),
+      bloodFighter:    (side = "p2") => (side === "p2" ? p2 : side === "p1" ? p1 : (ffaState.fighters || [])[Number(String(side).replace(/\D/g, "")) - 1]) || null,   // MSV1-BLOOD screenshots / perf only
       setBattleDamage: (v) => { juiceSettings.setBattleDamage(v); return juiceSettings.battleDamage },
       bdApply: (slot = "p2", dmg = 300, element = "ki", eligible = true, maxHp = 1000) => { bdRecordHit({ slot, dmg, maxHp, element, big: null, eligible }); return bdStatus() },
       bdEligibleFor: (key) => _bloodEligible(key),   // the REAL existing-rule check (adults bleed; children/obito don't)

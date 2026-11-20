@@ -6,6 +6,7 @@
 import { chromium } from 'playwright'
 import http from 'node:http'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -16,6 +17,8 @@ let keys = (args[0] && !args[0].startsWith('--') ? args[0] : 'all')
 if (keys === 'all') keys = fs.readdirSync(path.join(ROOT, 'data/bloodmaps')).filter(f => f.endsWith('.json')).map(f => f.replace('.json', '')).sort()
 else keys = keys.split(',')
 const OUT = path.join(ROOT, 'docs/msv1/blood/sheets'); fs.mkdirSync(OUT, { recursive: true })
+// EXTRA=1: review the runtime-only strips (tools/bloodmap/extra_defs.json) — written to EXTRA_OUT (default <tmp>/blood_extra), never to docs
+const EXTRA_OUT = process.env.EXTRA_OUT || path.join(os.tmpdir(), 'blood_extra'); if (process.env.EXTRA) fs.mkdirSync(EXTRA_OUT, { recursive: true })
 const server = await new Promise(r => { const s = http.createServer((q, res) => { const u = decodeURIComponent(q.url.split('?')[0]); const f = path.join(ROOT, u); if (!f.startsWith(ROOT)) return res.writeHead(403).end(); fs.readFile(f, (e, d) => { if (e) return res.writeHead(404).end(); res.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); res.end(d) }) }); s.listen(0, '127.0.0.1', () => r(s)) })
 const base = `http://127.0.0.1:${server.address().port}`
 const browser = await chromium.launch({ headless: true })
@@ -24,7 +27,7 @@ await page.goto(`${base}/__blank__`)
 const errs = []; page.on('pageerror', e => errs.push(e.message))
 const results = []
 for (const key of keys) {
-  const r = await page.evaluate(async (key) => {
+  const r = await page.evaluate(async ([key, EXTRA]) => {
     const B = await import('/battleBlood.js?' + Date.now())
     const map = await (await fetch(`/data/bloodmaps/${key}.json`)).json()
     const WANT = [['idle'], ['walk', 'run'], ['light', 'heavy', 'attack'], ['hurt', 'hit'], ['jump', 'fall'], ['knockdown', 'down', 'lose']]
@@ -37,6 +40,15 @@ for (const key of keys) {
       let i = Math.min(ids.length - 1, Math.floor(Number(n) / 2)); while (i > 0 && ids[i] < 0) i--
       if (ids[i] < 0) continue
       picks.push({ act, sheet, sx: +sx, sy: +sy, w: +w, h: +h, n: +n, i, fm: map.frames[ids[i]] })
+    }
+    if (EXTRA) {   // review mode: the runtime-only strips (tools/bloodmap/extra_defs.json) instead of the key frames
+      picks.length = 0
+      const xd = await (await fetch('/tools/bloodmap/extra_defs.json')).json()
+      for (const d of (xd[key] || xd[key.toLowerCase()] || [])) {
+        const k = [d.sheet, d.sx, d.sy, d.w, d.h, d.n].join('|'), ids = map.index[k]; if (!ids) continue
+        let i = Math.min(ids.length - 1, Math.floor(d.n / 2)); while (i > 0 && ids[i] < 0) i--
+        if (ids[i] >= 0) picks.push({ act: d.act + '*', sheet: d.sheet, sx: d.sx, sy: d.sy, w: d.w, h: d.h, n: d.n, i, fm: map.frames[ids[i]] })
+      }
     }
     if (!picks.length) return { key, err: 'no key frames' }
     const imgs = await Promise.all([...new Set(picks.map(p => p.sheet))].map(s => new Promise(res => { const im = new Image(); im.onload = () => res([s, im]); im.onerror = () => res([s, null]); im.src = '/' + s })))
@@ -98,12 +110,12 @@ for (const key of keys) {
       x += p.cw * S + pad
     }
     return { key, png: cv.toDataURL('image/png'), frames: picks.length, coverMax, eyeHits, outside, unique: map.frames.length, indexed: Object.values(map.index).reduce((a, v) => a + v.length, 0), overrides: Object.keys(map.overrides || {}).length, fluid: B.bloodFluidOf(f) }
-  }, key)
+  }, [key, !!process.env.EXTRA])
   if (r.err) { console.log(`  ⚠️  ${key}: ${r.err}`); results.push(r); continue }
-  fs.writeFileSync(path.join(OUT, `${key}.png`), Buffer.from(r.png.split(',')[1], 'base64'))
+  fs.writeFileSync(path.join(process.env.EXTRA ? EXTRA_OUT : OUT, `${key}.png`), Buffer.from(r.png.split(',')[1], 'base64'))
   delete r.png; results.push(r)
   console.log(`  ${r.coverMax <= 0.15 && !r.eyeHits && !r.outside ? '✅' : '❌'} ${key.padEnd(22)} frames ${r.frames} · coverage max ${(r.coverMax * 100).toFixed(1)}% · eye px ${r.eyeHits} · outside-body px ${r.outside} · fluid ${r.fluid}`)
 }
-fs.writeFileSync(path.join(ROOT, 'docs/msv1/blood/sheets_results.json'), JSON.stringify(results, null, 1))
+if (!process.env.EXTRA) fs.writeFileSync(path.join(ROOT, 'docs/msv1/blood/sheets_results.json'), JSON.stringify(results, null, 1))
 if (errs.length) console.log('page errors:', errs.slice(0, 3))
 await browser.close(); server.close()

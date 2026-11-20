@@ -510,6 +510,15 @@ def main():
     ap.add_argument('--jobs', type=int, default=8)
     a = ap.parse_args()
     allc = json.load(open(a.defs))
+    # frames the runtime drew that no static scan found (collected by harness/blood_coverage.mjs) — mapped too
+    xp = os.path.join(ROOT, 'tools', 'bloodmap', 'extra_defs.json')
+    if os.path.exists(xp):
+        lower = {c.lower(): c for c in allc}
+        for k, lst in json.load(open(xp)).items():
+            k = lower.get(k.lower(), k)
+            if k in allc:
+                have = {(d['sheet'], d['sx'], d['sy'], d['w'], d['h'], d['n']) for d in allc[k]['defs']}
+                allc[k]['defs'] += [d for d in lst if (d['sheet'], d['sx'], d['sy'], d['w'], d['h'], d['n']) not in have]
     keys = [k for k in allc if not a.only or k in a.only.split(',')]
     with ProcessPoolExecutor(a.jobs) as ex:
         for key, nf, ni, size in ex.map(build_char, [(k, allc[k]) for k in keys]):

@@ -134,7 +134,7 @@
  {
   "key": "cyborg",
   "frames": 6,
-  "coverMax": 0.11097992916174734,
+  "coverMax": 0.1050767414403778,
   "eyeHits": 0,
   "outside": 0,
   "unique": 136,
@@ -222,7 +222,7 @@
  {
   "key": "genos",
   "frames": 6,
-  "coverMax": 0.10647639956092206,
+  "coverMax": 0.10318331503841932,
   "eyeHits": 0,
   "outside": 0,
   "unique": 121,
@@ -519,7 +519,7 @@
  {
   "key": "krybot",
   "frames": 6,
-  "coverMax": 0.11131725417439703,
+  "coverMax": 0.10204081632653061,
   "eyeHits": 0,
   "outside": 0,
   "unique": 28,

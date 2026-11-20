@@ -20,7 +20,7 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `buggy` | Buggy | auto | 0 | blood | 127 / 364 | 12.6% | 0 | 0 | batch 1 | big coat: arms found inside the neck..hip band only. |
 | `byakuya` | Byakuya Kuchiki | auto | 0 | blood | 96 / 134 | 12.4% | 0 | 0 | batch 1 | haori + scarf: trickles run over the white haori (reads well). |
 | `chrollo` | Chrollo Lucilfer | auto | 0 | blood | 118 / 120 | 12.4% | 0 | 0 | batch 1 | fur collar excluded from the face box. |
-| `cyborg` | Cyborg | auto | 0 | oil | 136 / 2385 | 11.1% | 0 | 0 | batch 1 | OIL: dark streaks + glossy 1 px sheen on the grey plates, sparks shed at T2+. |
+| `cyborg` | Cyborg | auto | 0 | oil | 136 / 2385 | 10.5% | 0 | 0 | batch 1 | OIL: dark streaks + glossy 1 px sheen on the grey plates, sparks shed at T2+. |
 | `dash_parr` | Dash | auto | 0 | blood (young) | 31 / 1092 | 11.6% | 0 | 0 | batch 1 | young. Speed blur frames are part of the sprite (mask excludes the detached blur). |
 | `dseyl` | Dseyl | auto | 0 | blood | 30 / 145 | 12.5% | 0 | 0 | batch 1 | tribute; white shirt shows blood strongly — within the 15 % cap. |
 | `elastigirl` | Elastigirl | auto | 0 | blood | 158 / 2431 | 12.1% | 0 | 0 | batch 2 | red suit: dark-red blood stays subtle on red (by design: grounded, never bright red). |
@@ -28,7 +28,7 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `flash` | The Flash | hand-fixed | 4 | blood | 52 / 54 | 11.9% | 0 | 0 | batch 2 | run strip is mostly a painted speed trail the mask cannot separate → skip that strip only. |
 | `frozone` | Frozone | hand-fixed | 0 | blood | 54 / 1248 | 10.6% | 0 | 0 | batch 2 | wide skating walk was laid down as lying → detector fix: wide frames with a face up top / tall in the cell stay upright (general). |
 | `gaara` | Gaara | auto | 0 | sand | 100 / 113 | 9.2% | 0 | 0 | batch 2 | SAND: crumbling sand grains + dry sand cracks, grains fall and settle. |
-| `genos` | Genos | auto | 0 | oil | 121 / 133 | 10.6% | 0 | 0 | batch 2 | OIL: cyborg arms/torso, sheen + sparks. |
+| `genos` | Genos | auto | 0 | oil | 121 / 133 | 10.3% | 0 | 0 | batch 2 | OIL: cyborg arms/torso, sheen + sparks. |
 | `ghostface` | Ghostface | hand-fixed | 2 | blood | 29 / 41 | 9.5% | 0 | 0 | batch 2 | white mask is not skin → knockdown: upright + noFace (the knife was taken for the face). Blood can show on the mask. |
 | `gojo` | Gojo Satoru | auto | 0 | blood | 75 / 76 | 12.7% | 0 | 0 | batch 2 | blindfold region sits inside the eye box (never bled on). |
 | `goku` | Goku | auto | 0 | blood | 56 / 57 | 11.9% | 0 | 0 | batch 2 | orange gi: dark blood darker than the gi shadow, reads at T3+. |
@@ -55,7 +55,7 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `kakashi_anbu` | Kakashi (ANBU) | auto | 0 | blood | 99 / 102 | 13.1% | 0 | 0 | batch 3 |  |
 | `kakashi_war` | Kakashi (Kamui) | auto | 0 | blood | 92 / 104 | 12.8% | 0 | 0 | batch 4 |  |
 | `killua` | Killua Zoldyck | hand-fixed | 1 | blood | 119 / 129 | 12.7% | 0 | 0 | batch 4 | hurt strip is mostly a lightning flash + glitch effect → skip. Godspeed aura is a separate overlay (stays on top). |
-| `krybot` | Krybot | auto | 0 | oil | 28 / 1806 | 11.1% | 0 | 0 | batch 4 | OIL: robot foot soldier, dark oil + sparks. |
+| `krybot` | Krybot | auto | 0 | oil | 28 / 1806 | 10.2% | 0 | 0 | batch 4 | OIL: robot foot soldier, dark oil + sparks. |
 | `l_ryuuzaki` | L | auto | 0 | blood | 114 / 155 | 12.8% | 0 | 0 | batch 4 | upside-down hurt handled by the 180° retry. |
 | `light` | Light Yagami | auto | 0 | blood | 68 / 76 | 13.2% | 0 | 0 | batch 4 |  |
 | `luffy` | Monkey D. Luffy | auto | 0 | blood | 147 / 221 | 7.9% | 0 | 0 | batch 4 | hurt cell holds 3 poses (game data); each pose bleeds consistently. |

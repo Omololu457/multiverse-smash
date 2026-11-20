@@ -48,7 +48,7 @@ const PAL = {
   blue: ['#24477a', '#1a3762', '#132a4c', '#325c94', '#142640', '#0f1d32'],
   purple: ['#5a2466', '#481a52', '#36123e', '#6e3080', '#2c1232', '#220d28'],
   orange: ['#8a4a14', '#713a0e', '#56290a', '#a35e1e', '#40220a', '#321a08'],
-  oil: ['#1f1a15', '#15110d', '#0d0a08', '#5c544a', '#14110e', '#0d0b09'],
+  oil: ['#2e2318', '#1e1710', '#120d09', '#8a7a62', '#1a140e', '#100c08'],   // warm machine oil; [3] = sheen (reads on black cloth and metal)
 }
 const RANGER_TEAR = ['#1a1416', '#0f0b0d', '#8a8890']                 // tear core, tear shadow, torn-edge fabric
 const CRACK = {                                                          // Edo Tensei paper / crystal / magma cracks
@@ -68,7 +68,7 @@ export const BLOOD_FLUID = {
   omega_ranger: 'ranger', samurai_red_ranger: 'ranger', gold_samurai_ranger: 'ranger', green_samurai_ranger: 'ranger',
   red_ranger_mmpr: 'ranger', spd_red: 'ranger', spd_blue: 'ranger', spd_green: 'ranger', spd_pink: 'ranger', spd_yellow: 'ranger',
   mmpr_pink: 'ranger', mmpr_black: 'ranger', mmpr_white: 'ranger', green_ranger: 'ranger',
-  ninja_storm_cgpt: 'ranger', windrangers: 'ranger', ninja_storm_rangers: 'ranger',
+  ninja_storm_cgpt: 'ranger', ns_red: 'ranger', ns_yellow: 'ranger', windrangers: 'ranger', ninja_storm_rangers: 'ranger',
   // reanimated (Edo Tensei) body: cracks and flakes like dry paper / ash
   madara: 'crack:edo',
   // sand armour: crumbles
@@ -87,7 +87,7 @@ const FORM_FLUID = {
 // Young characters (the existing brutality CHILDREN rule): blood capped at Tier 2, no spray, no pooling.
 export const BLOOD_YOUNG = new Set(['ben10', 'albedo', 'saiki', 'nezuko', 'dash_parr', 'violet'])
 // Characters whose form art lives in another character's map (loaded alongside).
-const ALSO_MAPS = { albedo: ['ben10'] }
+const ALSO_MAPS = { albedo: ['ben10'], ns_red: ['windrangers'], ns_yellow: ['windrangers'] }   // Wind Rangers draw as their ns_red / ns_yellow form profiles
 
 export function bloodFluidOf(f) {
   if (!f) return 'none'
@@ -106,12 +106,13 @@ const level = () => { const v = _levelFn(); return v === 'off' || v === 'low' ? 
 // ── body maps (lazy fetch, shared) ─────────────────────────────────────────────────────────────────────────
 const maps = new Map()          // characterId → { frames, index: Map, byAction: Map } | 'loading' | 'none'
 export const BLOOD_MAP_DIR = './data/bloodmaps/'
+const MAP_FILE = { rickprime: 'rickPrime' }   // map files keep the roster key's case (case-sensitive hosts)
 function loadMap(id) {
   if (!id || maps.has(id) || typeof fetch !== 'function') return
   maps.set(id, 'loading')
-  fetch(`${BLOOD_MAP_DIR}${id}.json`).then(r => (r.ok ? r.json() : null)).then(j => {
+  fetch(`${BLOOD_MAP_DIR}${MAP_FILE[id] || id}.json`).then(r => (r.ok ? r.json() : null)).then(j => {
     if (!j) { maps.set(id, 'none'); return }
-    maps.set(id, { frames: j.frames, index: new Map(Object.entries(j.index)), byAction: new Map(Object.entries(j.byAction || {})) })
+    maps.set(id, { frames: j.frames, index: new Map(Object.entries(j.index)), byAction: new Map(Object.entries(j.byAction || {})), skip: new Set(Object.entries(j.overrides || {}).filter(([, o]) => o && o.skip && !o.frames).map(([k]) => k)) })
   }).catch(() => maps.set(id, 'none'))
 }
 export function bloodPreload(rosterKey) { const k = String(rosterKey || '').toLowerCase(); loadMap(k); for (const o of ALSO_MAPS[k] || []) loadMap(o) }
@@ -137,10 +138,15 @@ function lookupFrame(f, def, frameIndex, action) {
     const ix = kk && m.index.get(kk)
     if (ix) { const n = ix[frameIndex]; _stats.actionFallback++; return n >= 0 ? m.frames[n] : null }
   }
+  // diagnostics only: a map still loading, or a strip skipped on purpose (effect art), is not a mapping gap
+  if (ids.some(id => maps.get(id) === 'loading')) { _stats.loading++; return null }
+  if (ids.some(id => { const m = maps.get(id); return m && typeof m === 'object' && (m.skip.has(action) || m.skip.has(sheet) || m.skip.has('*')) })) { _stats.skipped++; return null }
   _stats.unmapped++
+  if (_miss.size < 4000) _miss.add(`${k} ${action} ${sheet}${tail}`)
   return null
 }
-const _stats = { painted: 0, unmapped: 0, actionFallback: 0, frames: 0 }
+const _miss = new Set()   // diagnostics: first unmapped frame keys (harness/blood_coverage.mjs)
+const _stats = { painted: 0, unmapped: 0, actionFallback: 0, frames: 0, loading: 0, skipped: 0 }
 
 // ── per-slot records ───────────────────────────────────────────────────────────────────────────────────────
 const recs = new Map()    // slot → record
@@ -301,9 +307,9 @@ export function bloodFrame(f, def, frameIndex, action, sheetImg, sx, sy, frame) 
   const r = recs.get(bloodSlotOf(f))
   if (!r || r.tier < 1 || r.fluid === 'none' || !r.wounds.length) { if (r) { r.dst = dstOf(f, def); r.ends = [] } return null }
   r.dst = dstOf(f, def)
+  _stats.frames++
   const fm = lookupFrame(f, def, frameIndex, action)
   if (!fm) { r.ends = []; return null }
-  _stats.frames++
   const ageBucket = Math.floor(frame / 6)
   const key = `${fm.o}|${fm.a[0]}|${fm.a[1]}|${r.version}|${r.tier}|${ageBucket}|${r.fluid}|${level()}`
   let c = _canvas.get(r.slot)
@@ -384,7 +390,7 @@ function paintWounds(g, r, fm, cellH, frame) {
       x += st[0] * 1; y += st[1] * 1
       if (!plot(x, y, colorAt(fluid, age - i * 4, sh, false))) break
       if (thick && (i & 1) === 0 && i < grown - 2) plot(x + (H(s, i, 72) < 0.5 ? -u : u), y, colorAt(fluid, age - i * 4, true, false))   // heavy flow widens
-      if (fluid === 'oil' && i % 3 === 1) plot(x, y, PAL.oil[3])                                                                       // oil's glossy sheen
+      if (fluid === 'oil' && i % 2 === 1) plot(x, y, PAL.oil[3])                                                                       // oil's glossy sheen
       else if (i === 2 && sinceFresh < 90 && !sh && fluid === 'blood') plot(x, y, PAL.blood[3])                                         // rare 1 px wet highlight
     }
     if (grown >= 3) ends.push([x, y])
@@ -512,7 +518,7 @@ export function bloodReset() { recs.clear(); _canvas.clear(); _decals = []; _dro
 export function bloodStatus() {
   const slots = {}
   for (const [k, r] of recs) slots[k] = { key: r.key, fluid: r.fluid, tier: r.tier, carry: r.carry, young: r.young, wounds: r.wounds.map(w => `${w.slot}:${w.kind}:${w.sev}`), ends: r.ends.length, mapReady: bloodMapReady(r.key) }
-  return { level: level(), slots, decals: _decals.length, drops: _drops.length, sprays: _sprays.length, parts: _parts.length, stats: { ..._stats }, decalKinds: _decals.reduce((a, d) => (a[d.kind] = (a[d.kind] || 0) + 1, a), {}) }
+  return { level: level(), slots, decals: _decals.length, drops: _drops.length, sprays: _sprays.length, parts: _parts.length, stats: { ..._stats }, miss: [..._miss], decalKinds: _decals.reduce((a, d) => (a[d.kind] = (a[d.kind] || 0) + 1, a), {}) }
 }
 /** A stable digest of the visible blood state (for the LAN / replay "identical on every screen" check). */
 export function bloodDigest() {

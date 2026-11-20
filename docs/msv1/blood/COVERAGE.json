@@ -1,0 +1,917 @@
+{
+ "secsPerCharacter": 4,
+ "total": {
+  "frames": 5140,
+  "painted": 1590,
+  "unmapped": 0,
+  "fallback": 0,
+  "skipped": 26,
+  "loading": 271
+ },
+ "perCharacter": {
+  "albedo": {
+   "frames": 33,
+   "painted": 8,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "alt_sukuna": {
+   "frames": 41,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 9
+  },
+  "aoi_todo": {
+   "frames": 47,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 4
+  },
+  "arlong": {
+   "frames": 44,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "baki": {
+   "frames": 52,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "batman": {
+   "frames": 39,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "beast_boy": {
+   "frames": 41,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "beerus": {
+   "frames": 41,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "ben10": {
+   "frames": 35,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "buggy": {
+   "frames": 44,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "byakuya": {
+   "frames": 35,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "chrollo": {
+   "frames": 45,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "cyborg": {
+   "frames": 47,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "dash_parr": {
+   "frames": 30,
+   "painted": 8,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "dseyl": {
+   "frames": 46,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "elastigirl": {
+   "frames": 48,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "enoch": {
+   "frames": 45,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "flash": {
+   "frames": 51,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "frozone": {
+   "frames": 40,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "gaara": {
+   "frames": 48,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "genos": {
+   "frames": 52,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "ghostface": {
+   "frames": 35,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "gojo": {
+   "frames": 46,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "goku": {
+   "frames": 36,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "goku_black": {
+   "frames": 38,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "gold_samurai_ranger": {
+   "frames": 51,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "green_arrow": {
+   "frames": 30,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 6
+  },
+  "green_ranger": {
+   "frames": 38,
+   "painted": 10,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "green_samurai_ranger": {
+   "frames": 45,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "gwen": {
+   "frames": 46,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "hashirama": {
+   "frames": 52,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "higuruma": {
+   "frames": 40,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "hinata": {
+   "frames": 40,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 9
+  },
+  "hisoka": {
+   "frames": 51,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 6
+  },
+  "homelander": {
+   "frames": 49,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "ichigo": {
+   "frames": 42,
+   "painted": 5,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 25,
+   "loading": 2
+  },
+  "inosuke": {
+   "frames": 47,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "ippo": {
+   "frames": 44,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 6
+  },
+  "isshiki": {
+   "frames": 47,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "itachi": {
+   "frames": 45,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "jason": {
+   "frames": 46,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "jesus": {
+   "frames": 44,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "jiraiya": {
+   "frames": 43,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "kakashi": {
+   "frames": 47,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "kakashi_anbu": {
+   "frames": 51,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "kakashi_war": {
+   "frames": 44,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "killua": {
+   "frames": 43,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 4
+  },
+  "krybot": {
+   "frames": 41,
+   "painted": 7,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 6
+  },
+  "l_ryuuzaki": {
+   "frames": 42,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "light": {
+   "frames": 32,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 9
+  },
+  "luffy": {
+   "frames": 39,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "madara": {
+   "frames": 41,
+   "painted": 22,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "maki": {
+   "frames": 47,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "mayuri": {
+   "frames": 35,
+   "painted": 7,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "megumi_fushiguro": {
+   "frames": 43,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "minato": {
+   "frames": 44,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "miwa": {
+   "frames": 46,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "mmpr_black": {
+   "frames": 39,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "mmpr_pink": {
+   "frames": 42,
+   "painted": 10,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "mmpr_white": {
+   "frames": 45,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "mr_incredible": {
+   "frames": 50,
+   "painted": 20,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "naruto": {
+   "frames": 50,
+   "painted": 22,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "naruto_seventh": {
+   "frames": 50,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "netero": {
+   "frames": 47,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "nezuko": {
+   "frames": 47,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "ninja_storm_cgpt": {
+   "frames": 39,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "ninja_storm_rangers": {
+   "frames": 0,
+   "painted": 0,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "obito": {
+   "frames": 39,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "omega_ranger": {
+   "frames": 49,
+   "painted": 19,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "omololu": {
+   "frames": 39,
+   "painted": 10,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "pain": {
+   "frames": 39,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "raven": {
+   "frames": 47,
+   "painted": 19,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "red_ranger_mmpr": {
+   "frames": 39,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "rengoku": {
+   "frames": 43,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 10
+  },
+  "rick": {
+   "frames": 38,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "rickPrime": {
+   "frames": 54,
+   "painted": 21,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "robin": {
+   "frames": 40,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "saiki": {
+   "frames": 52,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "saitama": {
+   "frames": 45,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "sakura": {
+   "frames": 42,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "samurai_red_ranger": {
+   "frames": 43,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 5
+  },
+  "sanji": {
+   "frames": 41,
+   "painted": 9,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "sasuke": {
+   "frames": 52,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "sasuke_adult": {
+   "frames": 52,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "sasuke_sensei": {
+   "frames": 56,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 1,
+   "loading": 1
+  },
+  "shinobu": {
+   "frames": 53,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "shisui_fallen": {
+   "frames": 52,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "six_paths_pain": {
+   "frames": 55,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "soldier_boy": {
+   "frames": 57,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "spd_blue": {
+   "frames": 51,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "spd_green": {
+   "frames": 53,
+   "painted": 11,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "spd_pink": {
+   "frames": 52,
+   "painted": 10,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "spd_red": {
+   "frames": 57,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "spd_yellow": {
+   "frames": 54,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "spiderman": {
+   "frames": 55,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "starfire": {
+   "frames": 57,
+   "painted": 21,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "sukuna": {
+   "frames": 54,
+   "painted": 20,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "superman": {
+   "frames": 57,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "syndrome": {
+   "frames": 60,
+   "painted": 22,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "tobi": {
+   "frames": 60,
+   "painted": 20,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "tobirama": {
+   "frames": 52,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "toji": {
+   "frames": 47,
+   "painted": 12,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "vegeta": {
+   "frames": 52,
+   "painted": 21,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "vegeta_dark": {
+   "frames": 52,
+   "painted": 15,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "vilgax": {
+   "frames": 40,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 0
+  },
+  "violet": {
+   "frames": 52,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 4
+  },
+  "windrangers": {
+   "frames": 40,
+   "painted": 14,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "yuji": {
+   "frames": 48,
+   "painted": 21,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "yuta": {
+   "frames": 52,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "zaraki": {
+   "frames": 46,
+   "painted": 16,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 1
+  },
+  "zaraki_shikai": {
+   "frames": 56,
+   "painted": 17,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 3
+  },
+  "zenitsu": {
+   "frames": 56,
+   "painted": 18,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  },
+  "zoro": {
+   "frames": 47,
+   "painted": 13,
+   "unmapped": 0,
+   "fallback": 0,
+   "skipped": 0,
+   "loading": 2
+  }
+ }
+}

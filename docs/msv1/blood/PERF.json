@@ -1,0 +1,59 @@
+{
+ "fighters": [
+  "aoi_todo",
+  "goku",
+  "genos",
+  "madara"
+ ],
+ "runs": [
+  {
+   "level": "full",
+   "frames": 288,
+   "cpuMsPerFrame": 34.666,
+   "scriptMsPerFrame": 8.11,
+   "meanFrameMs": 35.3,
+   "p95FrameMs": 50.1,
+   "over20ms": 255,
+   "decals": 64,
+   "drops": 15,
+   "tiers": "4444"
+  },
+  {
+   "level": "off",
+   "frames": 302,
+   "cpuMsPerFrame": 34.982,
+   "scriptMsPerFrame": 7.654,
+   "meanFrameMs": 36.09,
+   "p95FrameMs": 65.6,
+   "over20ms": 264,
+   "decals": 64,
+   "drops": 0,
+   "tiers": "0000"
+  },
+  {
+   "level": "low",
+   "frames": 283,
+   "cpuMsPerFrame": 35.058,
+   "scriptMsPerFrame": 8.24,
+   "meanFrameMs": 35.45,
+   "p95FrameMs": 50.1,
+   "over20ms": 263,
+   "decals": 64,
+   "drops": 0,
+   "tiers": "2222"
+  },
+  {
+   "level": "full",
+   "frames": 287,
+   "cpuMsPerFrame": 34.632,
+   "scriptMsPerFrame": 8.087,
+   "meanFrameMs": 34.9,
+   "p95FrameMs": 50.4,
+   "over20ms": 263,
+   "decals": 64,
+   "drops": 11,
+   "tiers": "4444"
+  }
+ ],
+ "fullMinusOffMs": -0.333
+}

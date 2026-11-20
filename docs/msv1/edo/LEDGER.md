@@ -41,22 +41,22 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `hisoka` | HUMAN | 19 | 1 | black sclera | 2 face / 2 arm | automatic · verify ok | face area 20px → 2 face cracks (wanted 5) |
 | `homelander` | HUMAN | 18 | 5 | black sclera | 6 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `ichigo` | HUMAN | 32 | 1 | black sclera | 3 face / 0 arm | automatic · verify ok | face area 23px → 3 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
-| `inosuke` | HUMAN | pending (later batch) | | | | | |
-| `ippo` | HUMAN | pending (later batch) | | | | | |
-| `isshiki` | HUMAN | pending (later batch) | | | | | |
-| `itachi` | HUMAN | pending (later batch) | | | | | |
-| `jason` | MASKED | pending (later batch) | | | | | |
-| `jesus` | HUMAN | pending (later batch) | | | | | |
-| `jiraiya` | HUMAN | pending (later batch) | | | | | |
-| `kakashi` | HUMAN | pending (later batch) | | | | | |
-| `kakashi_anbu` | HUMAN | pending (later batch) | | | | | |
-| `kakashi_war` | HUMAN | pending (later batch) | | | | | |
-| `kevin_levin` | HUMAN | pending (later batch) | | | | | |
-| `killua` | HUMAN | pending (later batch) | | | | | |
-| `krybot` | MASKED | pending (later batch) | | | | | |
-| `l_ryuuzaki` | HUMAN | pending (later batch) | | | | | |
-| `light` | HUMAN | pending (later batch) | | | | | |
-| `luffy` | HUMAN | pending (later batch) | | | | | |
+| `inosuke` | HUMAN | 19 | 6 | black sclera | 0 face / 4 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 6); reviewed: boar mask head (no face) → torso / arms take the ramp |
+| `ippo` | HUMAN | 27 | 3 | black sclera | 4 face / 4 arm | automatic · verify ok | face area 28px → 4 face cracks (wanted 6) |
+| `isshiki` | HUMAN | 23 | 0 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 4); no bare forearm skin → 0 arm cracks; reviewed: white painted face is near-white, outside the skin ramp → only clothes desaturated |
+| `itachi` | HUMAN | 14 | 6 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 5px → 0 face cracks (wanted 4); no bare forearm skin → 0 arm cracks; reviewed: face shadowed inside the hood (5 px of skin) → no face cracks |
+| `jason` | MASKED | 11 | 3 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `jesus` | HUMAN | 14 | 3 | black sclera | 3 face / 4 arm | automatic · verify ok |  |
+| `jiraiya` | HUMAN | 22 | 45 | black sclera | 4 face / 4 arm | automatic · verify ok | face area 33px → 4 face cracks (wanted 5) |
+| `kakashi` | HUMAN | 25 | 2 | black sclera | 0 face / 4 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 5); reviewed: masked lower face; eye area too small for cracks |
+| `kakashi_anbu` | HUMAN | 21 | 2 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 5); reviewed: masked lower face |
+| `kakashi_war` | HUMAN | 26 | 3 | black sclera | 4 face / 2 arm | automatic · verify ok | face area 34px → 4 face cracks (wanted 6) |
+| `kevin_levin` | HUMAN | 12 | 65 | skipped: no separable whites | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks; reviewed: no MSV1-BLOOD body map exists for kevin_levin → no landmark-anchored cracks or sclera; skin ramp + clothes only |
+| `killua` | HUMAN | 1 | 3 | black sclera | 2 face / 0 arm | automatic · verify ok | face area 17px → 2 face cracks (wanted 3); no bare forearm skin → 0 arm cracks |
+| `krybot` | MASKED | 30 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `l_ryuuzaki` | HUMAN | 21 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 11px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks |
+| `light` | HUMAN | 13 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 11px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: select-screen portrait: pale blond hair reads close to ash (portraits use a per-pixel rule, no face box) |
+| `luffy` | HUMAN | 39 | 1 | black sclera | 2 face / 1 arm | automatic · verify ok | face area 19px → 2 face cracks (wanted 6) |
 | `madara` | ALREADY_EDO | — | — | — | — | — | no Edo skin: already a reanimated (Edo Tensei) body: the blood system already gives him crack:edo |
 | `maki` | HUMAN | pending (later batch) | | | | | |
 | `mayuri` | HUMAN | pending (later batch) | | | | | |

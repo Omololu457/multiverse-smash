@@ -1,0 +1,6 @@
+{
+ "beast_boy": {
+  "addSkin": ["#b8f8c8", "#40f890", "#00a868", "#006050"],
+  "note": "green skin is outside the warm skin detector: his four skin greens (idle face) are set as the skin palette by hand; teal hair stays hair"
+ }
+}

@@ -192,5 +192,68 @@
  "kakashi_anbu": {
   "batch": 3,
   "note": ""
+ },
+ "kakashi_war": {
+  "batch": 4,
+  "note": ""
+ },
+ "killua": {
+  "batch": 4,
+  "note": "hurt strip is mostly a lightning flash + glitch effect → skip. Godspeed aura is a separate overlay (stays on top).",
+  "hand": true
+ },
+ "krybot": {
+  "batch": 4,
+  "note": "OIL: robot foot soldier, dark oil + sparks."
+ },
+ "l_ryuuzaki": {
+  "batch": 4,
+  "note": "upside-down hurt handled by the 180° retry."
+ },
+ "light": {
+  "batch": 4,
+  "note": ""
+ },
+ "luffy": {
+  "batch": 4,
+  "note": "hurt cell holds 3 poses (game data); each pose bleeds consistently."
+ },
+ "madara": {
+  "batch": 4,
+  "note": "EDO TENSEI: no blood; dry cracks + pale flaking edges, flakes drift down."
+ },
+ "maki": {
+  "batch": 4,
+  "note": "spear / naginata kept clean by the arm-reach rule."
+ },
+ "mayuri": {
+  "batch": 4,
+  "note": "white haori shows trickles strongly (≤ 15 %)."
+ },
+ "megumi_fushiguro": {
+  "batch": 4,
+  "note": "light attack is a big crescent slash → skip. Shikigami are separate summons (no blood).",
+  "hand": true
+ },
+ "minato": {
+  "batch": 4,
+  "note": ""
+ },
+ "miwa": {
+  "batch": 4,
+  "note": "light attack: tall sword frame was flipped by the upside-down retry → upright (retry now blocked by upright, general).",
+  "hand": true
+ },
+ "mmpr_black": {
+  "batch": 4,
+  "note": "RANGER: suit tears + dark stains, torso / arms."
+ },
+ "mmpr_pink": {
+  "batch": 4,
+  "note": "RANGER."
+ },
+ "mmpr_white": {
+  "batch": 4,
+  "note": "RANGER."
  }
 }

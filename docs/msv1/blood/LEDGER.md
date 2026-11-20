@@ -38,36 +38,36 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `green_ranger` | Green Ranger | auto | 0 | ranger | 77 / 1166 | 0.0% | ? | ? | batch 2 | RANGER: tears + dark stains, torso / arms only. |
 | `green_samurai_ranger` | Green Samurai Ranger (Forest) | hand-fixed | 1 | ranger | 94 / 102 | 0.0% | ? | ? | batch 2 | RANGER. light attack is a huge crescent slash → skip that strip. |
 | `gwen` | Gwen | hand-fixed | 2 | blood | 39 / 46 | 0.0% | ? | ? | batch 2 | hurt (falling back) picked the feet as the head → headEnd left + lying. |
-| `hashirama` | Hashirama Senju | auto | 0 | blood | 157 / 202 | 12.9% | 0 | 0 | batch 3 | Edo-themed skins (Ashen Reanimation) switch to Edo cracks at runtime. |
-| `higuruma` | Hiromi Higuruma | auto | 0 | blood | 115 / 1826 | 12.7% | 0 | 0 | batch 3 | gavel / sword are held props, kept out by the arm-reach rule. |
-| `hinata` | Hinata Hyuga | auto | 0 | blood | 108 / 113 | 12.7% | 0 | 0 | batch 3 |  |
-| `hisoka` | Hisoka Morrow | auto | 0 | blood | 96 / 99 | 13.1% | 0 | 0 | batch 3 |  |
-| `homelander` | Homelander | hand-fixed | 1 | blood | 34 / 41 | 13.0% | 0 | 0 | batch 3 | light attack is a blue whirl effect → skip that strip. |
-| `ichigo` | Ichigo Kurosaki | hand-fixed | 2 | blood | 156 / 170 | 11.9% | 0 | 0 | batch 3 | light (Getsuga slash) and jump (companion figure) strips skipped: no blood on effects or summons. |
-| `inosuke` | Inosuke Hashibira | auto | 0 | blood | 74 / 81 | 11.7% | 0 | 0 | batch 3 | boar mask: blood may show on the mask; eyes of the mask protected. |
-| `ippo` | Ippo Makunouchi | auto | 0 | blood | 87 / 96 | 12.5% | 0 | 0 | batch 3 | gloves / bare torso read well. |
-| `isshiki` | Isshiki Otsutsuki | auto | 0 | blood | 54 / 62 | 13.2% | 0 | 0 | batch 3 |  |
-| `itachi` | Itachi Uchiha | auto | 0 | blood | 86 / 88 | 12.9% | 0 | 0 | batch 3 | Akatsuki cloak: dark-on-dark, reads in trickles. |
-| `jason` | Jason Voorhees | auto | 0 | blood | 44 / 45 | 8.5% | 0 | 0 | batch 3 | hockey mask: blood on the mask allowed, eyes protected. |
-| `jesus` | Jesus | hand-fixed | 1 | blood | 76 / 80 | 12.4% | 0 | 0 | batch 3 | jump: raised hand taken for the face → noFace on that strip. |
-| `jiraiya` | Jiraiya | auto | 0 | blood | 127 / 137 | 13.1% | 0 | 0 | batch 3 | toads on the shoulders sit inside the body mask (part of the art); wounds stay on Jiraiya. |
-| `kakashi` | Kakashi | auto | 0 | blood | 93 / 99 | 12.7% | 0 | 0 | batch 3 | Chidori / lightning blade kept clean by the arm-reach rule. |
-| `kakashi_anbu` | Kakashi (ANBU) | auto | 0 | blood | 99 / 102 | 13.1% | 0 | 0 | batch 3 |  |
-| `kakashi_war` | Kakashi (Kamui) | auto | 0 | blood | 92 / 104 | 0.0% | ? | ? | — |  |
-| `killua` | Killua Zoldyck | auto | 0 | blood | 123 / 133 | 0.0% | ? | ? | — |  |
-| `krybot` | Krybot | auto | 0 | oil | 28 / 1806 | 0.0% | ? | ? | — |  |
-| `l_ryuuzaki` | L | auto | 0 | blood | 114 / 155 | 0.0% | ? | ? | — |  |
-| `light` | Light Yagami | auto | 0 | blood | 68 / 76 | 0.0% | ? | ? | — |  |
-| `luffy` | Monkey D. Luffy | auto | 0 | blood | 147 / 221 | 0.0% | ? | ? | — |  |
-| `madara` | Madara Uchiha | auto | 0 | crack:edo | 134 / 148 | 0.0% | ? | ? | — |  |
-| `maki` | Maki Zenin | auto | 0 | blood | 89 / 95 | 0.0% | ? | ? | — |  |
-| `mayuri` | Mayuri Kurotsuchi | auto | 0 | blood | 92 / 143 | 0.0% | ? | ? | — |  |
-| `megumi_fushiguro` | Megumi Fushiguro | auto | 0 | blood | 402 / 3764 | 0.0% | ? | ? | — |  |
-| `minato` | Minato Namikaze | auto | 0 | blood | 137 / 152 | 0.0% | ? | ? | — |  |
-| `miwa` | Kasumi Miwa | auto | 0 | blood | 107 / 117 | 0.0% | ? | ? | — |  |
-| `mmpr_black` | Black Ranger | auto | 0 | ranger | 54 / 658 | 0.0% | ? | ? | — |  |
-| `mmpr_pink` | Pink Ranger | auto | 0 | ranger | 62 / 672 | 0.0% | ? | ? | — |  |
-| `mmpr_white` | White Ranger | auto | 0 | ranger | 59 / 700 | 0.0% | ? | ? | — |  |
+| `hashirama` | Hashirama Senju | auto | 0 | blood | 157 / 202 | 0.0% | ? | ? | batch 3 | Edo-themed skins (Ashen Reanimation) switch to Edo cracks at runtime. |
+| `higuruma` | Hiromi Higuruma | auto | 0 | blood | 115 / 1826 | 0.0% | ? | ? | batch 3 | gavel / sword are held props, kept out by the arm-reach rule. |
+| `hinata` | Hinata Hyuga | auto | 0 | blood | 108 / 113 | 0.0% | ? | ? | batch 3 |  |
+| `hisoka` | Hisoka Morrow | auto | 0 | blood | 96 / 99 | 0.0% | ? | ? | batch 3 |  |
+| `homelander` | Homelander | hand-fixed | 1 | blood | 34 / 41 | 0.0% | ? | ? | batch 3 | light attack is a blue whirl effect → skip that strip. |
+| `ichigo` | Ichigo Kurosaki | hand-fixed | 2 | blood | 156 / 170 | 0.0% | ? | ? | batch 3 | light (Getsuga slash) and jump (companion figure) strips skipped: no blood on effects or summons. |
+| `inosuke` | Inosuke Hashibira | auto | 0 | blood | 74 / 81 | 0.0% | ? | ? | batch 3 | boar mask: blood may show on the mask; eyes of the mask protected. |
+| `ippo` | Ippo Makunouchi | auto | 0 | blood | 87 / 96 | 0.0% | ? | ? | batch 3 | gloves / bare torso read well. |
+| `isshiki` | Isshiki Otsutsuki | auto | 0 | blood | 54 / 62 | 0.0% | ? | ? | batch 3 |  |
+| `itachi` | Itachi Uchiha | auto | 0 | blood | 86 / 88 | 0.0% | ? | ? | batch 3 | Akatsuki cloak: dark-on-dark, reads in trickles. |
+| `jason` | Jason Voorhees | auto | 0 | blood | 44 / 45 | 0.0% | ? | ? | batch 3 | hockey mask: blood on the mask allowed, eyes protected. |
+| `jesus` | Jesus | hand-fixed | 1 | blood | 76 / 80 | 0.0% | ? | ? | batch 3 | jump: raised hand taken for the face → noFace on that strip. |
+| `jiraiya` | Jiraiya | auto | 0 | blood | 127 / 137 | 0.0% | ? | ? | batch 3 | toads on the shoulders sit inside the body mask (part of the art); wounds stay on Jiraiya. |
+| `kakashi` | Kakashi | auto | 0 | blood | 93 / 99 | 0.0% | ? | ? | batch 3 | Chidori / lightning blade kept clean by the arm-reach rule. |
+| `kakashi_anbu` | Kakashi (ANBU) | auto | 0 | blood | 99 / 102 | 0.0% | ? | ? | batch 3 |  |
+| `kakashi_war` | Kakashi (Kamui) | auto | 0 | blood | 92 / 104 | 12.8% | 0 | 0 | batch 4 |  |
+| `killua` | Killua Zoldyck | hand-fixed | 1 | blood | 119 / 129 | 12.7% | 0 | 0 | batch 4 | hurt strip is mostly a lightning flash + glitch effect → skip. Godspeed aura is a separate overlay (stays on top). |
+| `krybot` | Krybot | auto | 0 | oil | 28 / 1806 | 11.1% | 0 | 0 | batch 4 | OIL: robot foot soldier, dark oil + sparks. |
+| `l_ryuuzaki` | L | auto | 0 | blood | 114 / 155 | 12.8% | 0 | 0 | batch 4 | upside-down hurt handled by the 180° retry. |
+| `light` | Light Yagami | auto | 0 | blood | 68 / 76 | 13.2% | 0 | 0 | batch 4 |  |
+| `luffy` | Monkey D. Luffy | auto | 0 | blood | 147 / 221 | 7.9% | 0 | 0 | batch 4 | hurt cell holds 3 poses (game data); each pose bleeds consistently. |
+| `madara` | Madara Uchiha | auto | 0 | crack:edo | 134 / 148 | 9.7% | 0 | 0 | batch 4 | EDO TENSEI: no blood; dry cracks + pale flaking edges, flakes drift down. |
+| `maki` | Maki Zenin | auto | 0 | blood | 89 / 95 | 12.4% | 0 | 0 | batch 4 | spear / naginata kept clean by the arm-reach rule. |
+| `mayuri` | Mayuri Kurotsuchi | auto | 0 | blood | 92 / 143 | 12.0% | 0 | 0 | batch 4 | white haori shows trickles strongly (≤ 15 %). |
+| `megumi_fushiguro` | Megumi Fushiguro | hand-fixed | 1 | blood | 393 / 3665 | 12.4% | 0 | 0 | batch 4 | light attack is a big crescent slash → skip. Shikigami are separate summons (no blood). |
+| `minato` | Minato Namikaze | auto | 0 | blood | 137 / 152 | 12.9% | 0 | 0 | batch 4 |  |
+| `miwa` | Kasumi Miwa | hand-fixed | 1 | blood | 107 / 117 | 12.6% | 0 | 0 | batch 4 | light attack: tall sword frame was flipped by the upside-down retry → upright (retry now blocked by upright, general). |
+| `mmpr_black` | Black Ranger | auto | 0 | ranger | 54 / 658 | 11.9% | 0 | 0 | batch 4 | RANGER: suit tears + dark stains, torso / arms. |
+| `mmpr_pink` | Pink Ranger | auto | 0 | ranger | 62 / 672 | 11.9% | 0 | 0 | batch 4 | RANGER. |
+| `mmpr_white` | White Ranger | auto | 0 | ranger | 59 / 700 | 11.4% | 0 | 0 | batch 4 | RANGER. |
 | `mr_incredible` | Mr. Incredible | auto | 0 | blood | 181 / 2882 | 0.0% | ? | ? | — |  |
 | `naruto` | Naruto | auto | 0 | blood | 98 / 98 | 0.0% | ? | ? | — |  |
 | `naruto_seventh` | Naruto (Seventh Hokage) | auto | 0 | blood | 218 / 230 | 0.0% | ? | ? | — |  |
@@ -122,5 +122,5 @@ pixels outside the body alpha (must be 0). **Reviewed** = the batch whose contac
 | `zenitsu` | Zenitsu Agatsuma | auto | 0 | blood | 73 / 86 | 0.0% | ? | ? | — |  |
 | `zoro` | Zoro | auto | 0 | blood | 30 / 99 | 0.0% | ? | ? | — |  |
 
-**113 characters · 14 hand-fixed · 99 auto · 45 reviewed.**
+**113 characters · 17 hand-fixed · 96 auto · 60 reviewed.**
 

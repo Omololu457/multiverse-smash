@@ -358,7 +358,7 @@ def analyse(rgba, prev=None, ov=None):
         A, eye, regions = upright_layout(body, face_right, ov, skin, prev)
         # flips / upside-down falls: if the face jumped far from last frame's, try the body rotated 180° and keep
         # whichever layout tracks (a head never teleports between two frames of one strip)
-        if prev and prev.get('brow') and A.get('brow') and not ov.get('set'):
+        if prev and prev.get('brow') and A.get('brow') and not ov.get('set') and not ov.get('upright'):
             px, py = prev['brow']
             far = ((A['brow'][0] - px) ** 2 + (A['brow'][1] - py) ** 2) ** 0.5 > 0.4 * bh
             if far:

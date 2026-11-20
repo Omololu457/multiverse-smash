@@ -108,14 +108,14 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `tobi` | MASKED | 20 | 3 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
 | `tobirama` | TOBIRAMA | — | — | — | — | — | no Edo skin: the summoner |
 | `toji` | HUMAN | 18 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok |  |
-| `vegeta` | HUMAN | pending (later batch) | | | | | |
-| `vegeta_dark` | HUMAN | pending (later batch) | | | | | |
+| `vegeta` | HUMAN | 28 | 4 | black sclera | 3 face / 1 arm | automatic · verify ok | face area 25px → 3 face cracks (wanted 5) |
+| `vegeta_dark` | HUMAN | 19 | 4 | black sclera | 3 face / 2 arm | automatic · verify ok | face area 26px → 3 face cracks (wanted 4) |
 | `vilgax` | NONHUMAN | — | — | — | — | — | no Edo skin: Chimera Sui Generis alien |
-| `violet` | HUMAN | pending (later batch) | | | | | |
-| `windrangers` | MASKED | pending (later batch) | | | | | |
-| `yuji` | HUMAN | pending (later batch) | | | | | |
-| `yuta` | HUMAN | pending (later batch) | | | | | |
-| `zaraki` | HUMAN | pending (later batch) | | | | | |
-| `zaraki_shikai` | HUMAN | pending (later batch) | | | | | |
-| `zenitsu` | HUMAN | pending (later batch) | | | | | |
-| `zoro` | HUMAN | pending (later batch) | | | | | |
+| `violet` | HUMAN | 41 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `windrangers` | MASKED | 106 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok | reviewed: same attached red streak as ninja_storm_cgpt |
+| `yuji` | HUMAN | 24 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `yuta` | HUMAN | 20 | 10 | black sclera | 4 face / 2 arm | automatic · verify ok | face area 28px → 4 face cracks (wanted 6) |
+| `zaraki` | HUMAN | 21 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok | face area 32px → 4 face cracks (wanted 5); no bare forearm skin → 0 arm cracks |
+| `zaraki_shikai` | HUMAN | 14 | 3 | black sclera | 3 face / 2 arm | automatic · verify ok |  |
+| `zenitsu` | HUMAN | 17 | 6 | black sclera | 4 face / 2 arm | automatic · verify ok |  |
+| `zoro` | HUMAN | 44 | 1 | black sclera | 1 face / 1 arm | automatic · verify ok | face area 10px → 1 face cracks (wanted 6) |

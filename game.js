@@ -126,6 +126,10 @@ import { tickSpdRed, isSpdRed, clearSpdRed, spdRedRoundReset } from './spdRedSta
 import { drawSpdRedFx, drawSpdRedUnder, spdRedBodyAlpha } from './spdRedFx.js'   // S.P.D. Red render-only FX (blink streak / dissolve, sparks)
 import { spdRedHarnessApi } from './spdRedHarness.js'   // S.P.D. Red test API (window.__harness.spdRedTest)
 import { rangerFacingFix } from './rangers.js'   // Ranger framework: PHASE STEP face lock (no-op unless a Ranger crossed up)
+import { tickNinjaStorm, isNinjaStorm, clearNinjaStorm, ninjaStormSnapshot } from './ninjaStormState.js'   // MSv2 NINJA STORM RANGERS (one fighter, Red / Yellow stance; ninjaAcademy.js)
+import { updateNinjaStormCommandCombat } from './ninjaStorm.js'   // MSv2 command layer
+import { drawNinjaStormFx, drawNinjaStormUnder, ninjaStormBodyAlpha, takeNinjaStormCues } from './ninjaStormFx.js'   // MSv2 render-only FX + cues
+import { ninjaStormHarnessApi } from './ninjaStormHarness.js'   // MSv2 test accessor
 import { tickNinja, isNinja, clearNinja, ninjaRoundReset, ninjaBodyAlpha, ninjaSnapshot } from './ninja.js'   // MSV1 Ninja Storm framework (ns_red / ns_yellow; ninja-gated)
 import { duoResolveSaved, duoPreloadKeys } from './nsDuo.js'; import { duoKitView, duoKitToggle } from './nsKit.js'; import { TRANSFORM_ENERGY as MSV1_TE } from './fighters.js'   // MSV1-MERGE Shane & Dustin
 import { updateNinjaCommand } from './ninjaCommand.js'   // MSV1 generic ninja command layer
@@ -147,6 +151,7 @@ const SPD_RED_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => glo
   projectiles: o => activeProjectiles.filter(p => p.owner === o).map(p => { const r = p.radius || (p.w || 20) / 2; return { x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 } }) }
 const MSV1_WORLD = { ...SPD_RED_WORLD, frame: () => _replayFrame, attackBoxRaw: o => (o && o.attacking && getAttackPhase(o) === 'active') ? getAttackHitbox(o) : null, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) } }   // MSV1 ninja world (S.P.D. Red's + the LOCKSTEP sim frame for the hash — globalFrameCount counts render/menu frames and differs across LAN peers / replay — + own box / projectile list)
 MSV1_WORLD.benSwap = () => ({ dbl: OMX_DOUBLE_TAP_WINDOW, arm: OMX_ARM_WINDOW, cost: MSV1_TE.SWAP_COST, lockout: MSV1_TE.SWAP_LOCKOUT })   // MSV1-MERGE: the duo's form swap reads Ben 10's live swap numbers
+const MSV2_WORLD = { ...SPD_RED_WORLD, frame: () => _replayFrame, projectileList: () => activeProjectiles }   // MSv2 Ninja Storm Rangers world (S.P.D. Red's + the LOCKSTEP sim frame + the projectile list)
 const ARLONG_WORLD = { stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Arlong world accessors (sim reads stage width / frame / the damage choke-point)
 const BUGGY_WORLD = { projectiles: activeProjectiles, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), frame: () => globalFrameCount, seed: () => (matchConfig?.seed >>> 0) || 1, damage: (t, n, o) => applyScaledDamage(t, n, o) }   // Buggy the Clown world accessors
 const ZORO_WORLD = zoroWorld({ projectiles: activeProjectiles, summons: activeSummons, spawn: (f, t, d) => spawnProjectile(f, t, d), stageWidth: () => getStageWorldWidth(), teleport: f => teleportBehindTarget(f) })   // Roronoa Zoro world accessors
@@ -1562,6 +1567,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
+  for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
@@ -4553,6 +4559,8 @@ function updateFFACombat(fighter, others, opts) {
   tickSanji(fighter, nearest, readRawControls(fighter) || {}, SANJI_WORLD)
   tickSpdRed(fighter, nearest, readRawControls(fighter) || {}, SPD_RED_WORLD)
   tickNinja(fighter, nearest, readRawControls(fighter) || {}, MSV1_WORLD); playNinjaCues(fighter)   // MSV1 ninjas (FFA step)
+  tickNinjaStorm(fighter, nearest, readRawControls(fighter) || {}, MSV2_WORLD); for (const _c of takeNinjaStormCues(fighter)) sound.play(_c)   // MSv2 (FFA step)
+  if (isNinjaStorm(fighter) && (fighter.hitstun > 0 || fighter.blockstun > 0) && updateNinjaStormCommandCombat(fighter, getFighterInput(fighter), nearest)) { updateCombat(fighter, nearest, {}, opts); return }   // MSv2 Kawarimi out of stun (FFA)
   if (fighter._spdRedCues) { for (const c of fighter._spdRedCues) sound.play('spdred_' + c); fighter._spdRedCues = null }   // S.P.D. Red SFX cues (FFA step)
   if (fighter._sanjiCues) { for (const c of fighter._sanjiCues) sound.play('sanji_' + c); fighter._sanjiCues = null }   // Sanji SFX cues (FFA step)
   if (fighter._arlongCues) { for (const c of fighter._arlongCues) sound.play('arlong_' + c); fighter._arlongCues = null }   // Arlong SFX cues (FFA step)
@@ -4589,6 +4597,7 @@ function updateFFACombat(fighter, others, opts) {
   if (isViolet(fighter)) { const vc=updateVioletCommandCombat(fighter,inputState,nearest,VIOLET_WORLD);if(vc)ctrlState=vc==='grab'?{grab:!!inputState.grab}:{} }
   if (isElastigirl(fighter)) { const mc=updateElastigirlCommandCombat(fighter,inputState,nearest,ELASTIGIRL_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isNinja(fighter)) { const nc=updateNinjaCommand(fighter,inputState,nearest,MSV1_WORLD);if(nc)ctrlState=nc==='grab'?{grab:!!inputState.grab}:{} }   // MSV1 ninja command layer (FFA)
+  if (isNinjaStorm(fighter)) { const nc=updateNinjaStormCommandCombat(fighter,inputState,nearest);if(nc)ctrlState=nc==='grab'?{grab:!!inputState.grab}:{} }   // MSv2 command layer (FFA)
   if (isKrybot(fighter)) {
     const kc = updateKrybotCommandCombat(fighter, inputState, nearest, KRYBOT_WORLD)
     ctrlState = kc === 'grab' ? { grab: !!inputState.grab } : {}
@@ -5569,6 +5578,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
+  for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -6309,6 +6319,7 @@ function _replaySnap(f) {
   if (isArlong(f)) snap.push(JSON.stringify(f._arlong || null), JSON.stringify(f.currentAttack || null))
   if (isSpdRed(f) || f._ranger) snap.push(JSON.stringify(f._spdRed || null), JSON.stringify(f._ranger || null), JSON.stringify(f.currentAttack || null))   // S.P.D. Red + Ranger framework GAME_STATE
   if (isNinja(f)) snap.push(JSON.stringify(ninjaSnapshot(f)))   // MSV1 ninja GAME_STATE (streak, NP, clones, mirror identity, burrow, traps)
+  if (isNinjaStorm(f)) snap.push(JSON.stringify(ninjaStormSnapshot(f)))   // MSv2 GAME_STATE (stance, Focus lockout, clone, echoes, Mode, lock-on, Ultimate)
   if (isSanji(f)) snap.push(JSON.stringify(f._sanji || null), JSON.stringify(f.currentAttack || null))
   if (isKrybot(f)) snap.push(JSON.stringify(f._krybot || null), JSON.stringify(f.currentAttack || null))
   if (groundTeleportProfile(f)) snap.push(JSON.stringify(f._groundTeleport || null))
@@ -6769,6 +6780,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
+  for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -10731,6 +10743,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
+  for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
   for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
@@ -12462,6 +12475,7 @@ function _updatePlayerCombatBody(fighter) {
   tickSanji(fighter, getOpponent(fighter), readRawControls(fighter) || {}, SANJI_WORLD)
   tickSpdRed(fighter, getOpponent(fighter), readRawControls(fighter) || {}, SPD_RED_WORLD)
   tickNinja(fighter, getOpponent(fighter), readRawControls(fighter) || {}, MSV1_WORLD); playNinjaCues(fighter)   // MSV1 ninjas (1v1 step)
+  tickNinjaStorm(fighter, getOpponent(fighter), readRawControls(fighter) || {}, MSV2_WORLD); for (const _c of takeNinjaStormCues(fighter)) sound.play(_c)   // MSv2 (1v1 step)
   if (fighter._spdRedCues) { for (const c of fighter._spdRedCues) sound.play('spdred_' + c); fighter._spdRedCues = null }   // S.P.D. Red SFX cues (1v1 step)
   if (fighter._sanjiCues) { for (const c of fighter._sanjiCues) sound.play('sanji_' + c); fighter._sanjiCues = null }   // Sanji SFX cues (1v1 step)
   if (fighter._arlongCues) { for (const c of fighter._arlongCues) sound.play('arlong_' + c); fighter._arlongCues = null }   // Arlong SFX cues (1v1 step)
@@ -12533,6 +12547,7 @@ function _updatePlayerCombatBody(fighter) {
     }
   }
 
+  if (isNinjaStorm(fighter) && (fighter.hitstun > 0 || fighter.blockstun > 0) && updateNinjaStormCommandCombat(fighter, getFighterInput(fighter), getOpponent(fighter))) { updateCombat(fighter, getOpponent(fighter), {}, opts); return }   // MSv2 Kawarimi out of stun (1v1)
   // CRITICAL: updateCombat() is the ONLY place hitstun/hitstop/blockstun and the
   // attack-recovery timers decrement. It must run EVERY frame or a hit fighter
   // gets stuck forever (the timer that locks them never ticks down). While
@@ -12743,6 +12758,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isSanji(fighter)) {   // Sanji command layer: 'consumed' | 'grab' | false
     const sc = updateSanjiCommandCombat(fighter, inputState, getOpponent(fighter), { world: SANJI_WORLD })
     if (sc) { updateCombat(fighter, getOpponent(fighter), sc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
+  }
+  if (isNinjaStorm(fighter)) {   // MSv2 command layer: 'consumed' | 'grab' | false
+    const nc = updateNinjaStormCommandCombat(fighter, inputState, getOpponent(fighter))
+    if (nc) { updateCombat(fighter, getOpponent(fighter), nc === 'grab' ? { grab: !!inputState.grab } : {}, opts); return }
   }
   if (isNinja(fighter)) {   // MSV1 ninja command layer: 'consumed' | 'grab' | false
     const nc = updateNinjaCommand(fighter, inputState, getOpponent(fighter), MSV1_WORLD)
@@ -21030,6 +21049,7 @@ function resetTraining() {
     clearElastigirl(f)
     clearSpdRed(f)
     clearNinja(f)   // MSV1
+    clearNinjaStorm(f, MSV2_WORLD)   // MSv2
     f.comboCounter = 0; f.currentAttack = null; f.currentMove = null
     f.attacking = false; f.isBlocking = false; f.isLaunched = false
     if (isTransformDevice(f)) {
@@ -21581,6 +21601,7 @@ function updateBattle() {
     if (isMr(f)) f._mrRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isElastigirl(f)) f._elastigirlRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isNinja(f)) f._msv1RemoteInput = replay.isPlayback() || netMatch.isActive()   // MSV1
+    if (isNinjaStorm(f)) f._nsrRemoteInput = replay.isPlayback() || netMatch.isActive()   // MSv2
   }
   academyTick()        // CHARACTER ACADEMY drill timing + READ-ONLY success detection (no-op unless academySession)
   updateCPUInput()
@@ -22435,6 +22456,7 @@ function renderHybridFighter(fighter) {
     if (dashParrBodyAlpha(fighter) === 0) fighter._juiceTrailBuf = null; else _drawJuiceDashTrail(c, fighter)     // JUICE (Phase 3) [Dash: no ghost of the hidden body during Laps / Incredi-Rush]: dash afterimage ghosts (actual current frame), BEHIND the body (non-flicker)
     drawSpdRedUnder(c, fighter, globalFrameCount)   // S.P.D. Red — blink streak afterimages + dissolve, BEHIND the body (render-only; spd_red only)
     drawNinjaUnder(c, fighter)   // MSV1 streak tail / mirror shadow / traps / burrow ripple, BEHIND the body (render-only)
+    drawNinjaStormUnder(c, fighter)   // MSv2 Vanish streak / Kawarimi streaks, BEHIND the body (render-only)
     drawDashParrUnder(c, fighter, getOpponent(fighter))   // Dash — Blur afterimages, Laps loop, Incredi-Rush storm, BEHIND the body (render-only; dash_parr only)
     fighter._sprDrawCount = (fighter._sprDrawCount | 0) + 1   // harness: body-draw tally (once/frame normally) → catches a "two instances" double-render after a body-swap transform
     // JUICE (Phase 3) dash squash/stretch + wind-up lean + HIT FEEL (Phase A) visual knockback nudge —
@@ -22452,7 +22474,7 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (_ssA === 0 && (dashParrBodyAlpha(fighter) === 0 || ninjaBodyAlpha(fighter) === 0)) { c.beginPath(); c.rect(0, 0, 0, 0); c.clip() }   // Dash: body fully hidden while Laps / Incredi-Rush draw him at render offsets (the sprite's tint + transition-ghost passes reset globalAlpha)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
@@ -22526,6 +22548,7 @@ function renderHybridFighter(fighter) {
     drawVioletFx(c, fighter)   // Violet Parr — push ring, dome, shell, trap bubble + telegraph, FULL FORCE (render-only; violet only)
     drawElastigirlFx(c, fighter)   // Elastigirl — slingshot arm to the anchor, parachute shadow ovals, guard / raft splash (render-only; elastigirl only)
     drawNinjaFx(c, fighter)   // MSV1 illusion / clones / smoke / bubbles (render-only; ninjas only)
+    drawNinjaStormFx(c, fighter)   // MSv2 clone ghost / stance ring / Mode aura / lock-on / Ultimate burst (render-only)
     drawSpdPinkFx(c, fighter)               // S.P.D. Pink — phase-step streaks, Iron Reserve steel ring/pip, Reprisal ring, muzzle star (render-only; spd_pink only)
     drawSpdGreenFx(c, fighter)              // S.P.D. Green — phase-step streak ghosts, Aura Read pulse/mark ring, muzzle star (render-only; spd_green only)
     drawDashParrFx(c, fighter)              // Dash — dash / flurry speed lines, sidestep flash, Blur glint (render-only; dash_parr only)
@@ -28356,6 +28379,7 @@ gameLoop()
     violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,projectiles:()=>activeProjectiles,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     elastigirlTest: elastigirlHarnessApi({p1:()=>p1,p2:()=>p2,world:ELASTIGIRL_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     ninjaTest: ninjaHarnessApi({p1:()=>p1,p2:()=>p2,world:MSV1_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    nsrTest: ninjaStormHarnessApi({p1:()=>p1,p2:()=>p2,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     spdPinkTest: spdPinkHarnessApi({p1:()=>p1,p2:()=>p2,world:SPD_BLUE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     sanjiTest: sanjiHarnessApi({ p1: () => p1, p2: () => p2, projectiles: () => activeProjectiles, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),
     spdRedTest: spdRedHarnessApi({ p1: () => p1, p2: () => p2, reset: () => { resetTraining(); clearInputBuffers([p1, p2]) } }),

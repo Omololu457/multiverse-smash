@@ -36,6 +36,7 @@ import { sanjiProjectileHit } from './sanjiState.js'   // Sanji: Plate Kick hit 
 import { spdRedHitbox } from './spdRedState.js'   // S.P.D. Red: his own attack box descriptor (spd_red-gated)
 import { spdRedBlockstun, spdRedHit, spdRedKnockback, spdRedComboScale, spdRedDamageMods } from './spdRedState.js'   // S.P.D. Red hooks (spd_red-gated no-ops for everyone else)
 import { ninjaHitbox, ninjaEvades, ninjaKnockback, ninjaComboScale, isNinja } from './ninja.js'   // MSV1 Ninja Storm hooks (ninja-gated no-ops for everyone else)
+import { ninjaStormHitbox, ninjaStormBlock, ninjaStormHit, ninjaStormKnockback, nsComboScale, ninjaStormDamageMods, isNinjaStorm } from './ninjaStormState.js'   // MSv2 Ninja Storm Rangers hooks (no-ops for everyone else)
 import { arlongHitbox, arlongBlockstun, arlongComboScale, arlongHit, arlongKnockback, arlongHurtbox, arlongDamageMods } from './arlongState.js'   // Arlong hooks (arlong-gated no-ops for everyone else)
 import { forceGround as _gaForceGround } from "./flight.js"   // GREEN ARROW Net Arrow grounds flyers (flight.js is a leaf → no cycle; no-op for non-flyers)
 import { isBenDevice, isSwampfire, invalidateBenAction, consumeBenGuard, recordRegrowthDamage, handleBenKO, benKnockbackScale, benReadyForm, benAlienAbsorb, benAlienContact, benAlienHurtbox, benAlienIncoming, benAlienWeakHit, benAlienDamageMods, benAlienEvades, benAlienGuardBreak, benAlienStruck, benAlienArmor } from "./ben10State.js"
@@ -307,6 +308,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   if (buggyNullifyDamage(target, opts)) return 0   // BUGGY — a SLASH damage call passes through him (buggy-gated no-op for everyone else)
   rawDamage = dashParrDamageMods(target, rawDamage, opts)   // DASH PARR — Super Speed / Momentum on hit + Can't Catch Me (dash_parr-gated; raw untouched for everyone else)
   rawDamage = spdRedDamageMods(target, rawDamage, opts)   // S.P.D. Red — containment card absorb / post-dodge buff (returns rawDamage untouched unless a Ranger is involved)
+  rawDamage = ninjaStormDamageMods(target, rawDamage, opts)   // MSv2 Lightning +15% / Quake −10% taken / post-dodge +15%
   rawDamage = (rawDamage || 0) * rosterDamageBoost(opts.attacker || opts.boostFrom)   // ROSTER PARITY: listed recent fighters hit harder (1 for everyone else)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
   rawDamage = elastigirlDamageMods(target, rawDamage, opts)   // ELASTIGIRL — Rubber Body (−15% melee normals) + Elasticity +4 landed / +3 taken (returns rawDamage untouched unless she is involved)
@@ -560,6 +562,7 @@ function _comboScale(fighter, curve, useStarter = false) {
   if (fighter?.rosterKey === 'arlong' && curve === COMBO_DAMAGE_CURVE) return arlongComboScale(fighter)   // Arlong: 85% per hit (arlong-gated)
   if (fighter?.rosterKey === 'spd_red' && curve === COMBO_DAMAGE_CURVE) return spdRedComboScale(fighter)   // S.P.D. Red: 85% per hit (spd_red-gated)
   if (curve === COMBO_DAMAGE_CURVE && isNinja(fighter)) return ninjaComboScale(fighter)   // MSV1 85% per hit
+  if (curve === COMBO_DAMAGE_CURVE && isNinjaStorm(fighter)) return nsComboScale(fighter)   // MSv2 85% per hit
   if (fighter?.rosterKey === 'violet' && curve === COMBO_DAMAGE_CURVE) return violetComboScale(fighter)   // Violet Parr: 85% per hit (violet-gated)
   if (fighter?.rosterKey === 'dash_parr' && curve === COMBO_DAMAGE_CURVE) return dashParrComboScale(fighter)   // Dash Parr: 85% per combo step (dash_parr-gated)
   const base = (fighter?.comboCounter || 0)
@@ -829,6 +832,7 @@ export function getAttackHitbox(fighter) {
   if (a?.al && fighter.rosterKey === 'arlong') return arlongHitbox(fighter)   // Arlong: his own box descriptor (arlong-gated)
   if (a?.sr && fighter.rosterKey === 'spd_red') return spdRedHitbox(fighter)   // S.P.D. Red: his own box descriptor (spd_red-gated)
   if (a?.nj && isNinja(fighter)) return ninjaHitbox(fighter)   // MSV1
+  if (a?.nsr && isNinjaStorm(fighter)) return ninjaStormHitbox(fighter)   // MSv2
 
   if (a?.krybot && fighter.rosterKey === 'krybot') return krybotHitbox(fighter)
   if (a?.blue && fighter.rosterKey === 'spd_blue') return spdBlueHitbox(fighter)
@@ -3661,6 +3665,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) sanjiBlockstun(attacker, defender, atk)  // Sanji: per-move block stun + Heat on a blocked kick; sanji-gated
     if (!flawless) arlongBlockstun(attacker, defender, atk) // Arlong: per-move block stun; arlong-gated
     if (!flawless) spdRedBlockstun(attacker, defender, atk) // S.P.D. Red: per-move block stun + Delta on a blocked hit; spd_red-gated
+    if (!flawless) ninjaStormBlock(attacker, defender, atk)   // MSv2 per-move block stun + Focus on a blocked hit
     if (flawless) { defender._flawlessFlash = FLAWLESS_BLOCK.flashFrames; defender.parryFlash = Math.max(defender.parryFlash || 0, 10) }   // distinct guard-pop cue
     // FEEL PASS (Phase 1): a BLOCK now imparts a light shared impact-freeze (Scaled only; Classic = 0,
     // the historical "freeze is a clean-hit reward" rule). Both fighters freeze equally and blockstun
@@ -3741,6 +3746,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     violetHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Violet: +4 Force Field on a landed hit; violet-gated
     elastigirlHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Elastigirl: clean flag (Long Arm pull, Whip bounce, raft carry); elastigirl-gated
     spdRedHit(attacker, defender, atk)
+    ninjaStormHit(attacker, defender, atk)   // MSv2 Focus, clone echo, string knockdown
     if (bossArmored || castArmored || supArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
@@ -3812,6 +3818,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     arlongKnockback(attacker, defender, atk)
     spdRedKnockback(attacker, defender, atk)
     ninjaKnockback(attacker, defender)   // MSV1 weight
+    ninjaStormKnockback(attacker, defender)   // MSv2 stance weight (0.8 Red / 0.85 Yellow)
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
     if (benReadyForm(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }   // READY forms' weight (Swampfire unchanged)
     benWaterKnockback(defender)   // STORM TIDE (benFlood.js): submerged non-waterborne → knockback ×0.8, launch ×0.75; no-op without a flood

@@ -11,6 +11,7 @@ import { SPD_YELLOW_KIT } from './spdYellowKit.js'   // S.P.D. Yellow (spd_yello
 import { NS_RED_KIT, NS_YELLOW_KIT } from './nsKit.js'   // MSV1 Ninja Storm move lists
 import { NS_CGPT_KIT } from './nsCgptKit.js'   // NS CGPT move list
 import { NS_DUO_KIT } from './nsKit.js'   // MSV1-MERGE Shane & Dustin move list (active form + TAB toggle)
+import { NINJA_STORM_KIT } from './ninjaStormKit.js'   // MSv2 Ninja Storm Rangers move list
 import { CYBORG_KIT } from './cyborgKit.js'   // Cyborg (cyborg) Move List
 import { BEAST_BOY_KIT } from './beastBoyKit.js'   // Beast Boy (beast_boy) Move List
 import { RAVEN_KIT } from './ravenKit.js'   // Raven (raven) Move List
@@ -114,6 +115,7 @@ export const KITS = {
   ns_red: NS_RED_KIT, ns_yellow: NS_YELLOW_KIT,   // MSV1
   ninja_storm_cgpt: NS_CGPT_KIT,   // NS CGPT
   windrangers: NS_DUO_KIT,   // MSV1-MERGE
+  ninja_storm_rangers: NINJA_STORM_KIT,   // MSv2
   cyborg: CYBORG_KIT,
   beast_boy: BEAST_BOY_KIT,
   raven: RAVEN_KIT,

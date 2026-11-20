@@ -34,6 +34,7 @@ import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) 
 import { ns_red, ns_yellow } from './nsData.js'   // MSV1 Ninja Storm: Shane (Red Wind) + Dustin (Yellow Wind) — ninja.js / ns*.js on rangers.js
 import { ninja_storm_cgpt } from './nsCgptData.js'   // NS CGPT: ONE Ninja Storm Ranger, Red / Yellow appearances + shadow clone (nsCgpt*.js)
 import { windrangers } from './nsDuo.js'   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
+import { ninjaStormRangers } from './ninjaStormData.js'   // MSv2 NINJA STORM RANGERS: ONE fighter, Red (Shane) / Yellow (Dustin) stance
 import { arlong } from './arlongData.js'   // Arlong (One Piece) — arlongData.js
 import { buggy } from './buggyData.js'   // Buggy the Clown (One Piece) — buggyData.js   // Roronoa Zoro (One Piece) — zoroData.js
 
@@ -11463,6 +11464,7 @@ export const characters = {
   ns_red, ns_yellow,                 // MSV1 Ninja Storm — Shane Clarke (Air Ninja / Aerial Rushdown) + Dustin Brooks (Earth Ninja / Trap & Burrow); ninja.js
   ninja_storm_cgpt,                  // NS CGPT — "Ninja Storm CGPT" (Storm Ninja / Clone Rushdown): Red / Yellow looks of one Ranger; nsCgpt*.js
   windrangers,                       // MSV1-MERGE Shane & Dustin — Wind Rangers (Ninja Duo / Form Swapper); swaps ns_red ⇄ ns_yellow
+  ninja_storm_rangers: ninjaStormRangers,   // MSv2 Ninja Storm Rangers — Teleport Rushdown / Mixup Ninja, dual-stance (ninjaAcademy.js)
   // ── RANGERS block: keep future Rangers here, in team order (S.P.D. Blue / Green / Yellow / Pink, …) — `follow the ranger framework` ──
   netero,
   saiki,

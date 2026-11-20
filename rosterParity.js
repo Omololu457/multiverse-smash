@@ -14,6 +14,7 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
   // S.P.D.
   ns_red: 1.6, ns_yellow: 1.6,   // MSV1 Ninja Storm: S.P.D. Red's tier (same authoring scale as his frame data)
   windrangers: 1.6,   // MSV1-MERGE (its live rosterKey is always a form id)
+  ninja_storm_rangers: 1.6,   // MSv2 Ninja Storm Rangers: S.P.D. Red's tier (same authoring scale as his frame data)
   ninja_storm_cgpt: 1.6,   // NS CGPT: S.P.D. Red's tier (MSV1 authoring scale)
   spd_red: 1.6, spd_blue: 1.45, spd_green: 1.5, spd_pink: 1.43, spd_yellow: 1.38, krybot: 1.6,
   // Mighty Morphin (Dinozord) Rangers

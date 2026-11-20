@@ -245,6 +245,7 @@ export const SKINS = {
     { id: "sanjiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("sanji", "alienx"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "alienx"), recolorTag: "alienx" },
   ],
   ninja_storm_cgpt: NS_CGPT_SKINS,   // NS CGPT: 22 appearances (2 supplied bases + 20 skins)
+  ninja_storm_rangers: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ninja_storm_rangers.portrait, spriteScale: characters.ninja_storm_rangers.spriteScale, animationData: null }],   // MSv2
   windrangers: [{ id: 'default', name: 'Start as: Red (Shane)', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }, { id: 'start_yellow', name: 'Start as: Yellow (Dustin)', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }],   // MSV1-MERGE start form = skin
   ns_red: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }],   // MSV1
   ns_yellow: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }],

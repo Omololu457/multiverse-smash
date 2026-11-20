@@ -26,6 +26,7 @@
 
 import { SpriteHandler } from "./sprite.js"
 import { characters } from "./characters.js"
+import { ccRunStart, ccRunStep, ccRunEnd, ccCasterPose, ccFormationStart, ccFormationStep, ccFormationEnd, styleFor as ccStyleFor } from "./clonechoreo.js"   // MSV1-CLONES (Sasuke / Madara / Tobirama / Hashirama only)
 import { cloneScaling, formationOffsets, formationCloneCount, scaleHitDamage } from "./cloneFormScaling.js"   // STAGE 6: form-dependent clone multipliers (deterministic)
 
 // ── ACCESS CONSTANTS ─────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ export function startChoreo(caster, target, rosterKey, seqKey = "pureAttack") {
   // changes mid-sequence) → sublinear scaling of every beat/finisher hit. 1.0 when out of form.
   _runs.push({ caster, target, rosterKey, fx: set.fx, seq, frame: 0, bodies, fired: new Set(),
                finisherFired: false, startX: caster.x, startY: caster.y, dmgMult: cloneScaling(caster).dmgMult })
+  ccRunStart(_runs[_runs.length - 1], rosterKey)   // MSV1-CLONES: no-op unless the caster has a CLONE_STYLE (the five)
   caster._choreoLock = true; caster.vx = 0; caster._forceAction = "idle"
   return true
 }
@@ -122,11 +124,13 @@ export function startFormation(caster, target, rosterKey) {
   const offsets = formationOffsets(formationCloneCount(caster))
   const bodies = offsets.map(() => makeGhostBody(caster, rosterKey))
   _forms.push({ caster, target, rosterKey, bodies, offsets, frame: 0, window: SELECT_WINDOW })
+  ccFormationStart(_forms[_forms.length - 1], rosterKey)   // MSV1-CLONES (no-op without a style)
   caster.vx = 0; caster._forceAction = "idle"; caster._choreoSelectWindow = SELECT_WINDOW; caster._inChoreoFormation = true
   return true
 }
 
 function _releaseFormationCaster(fm) {
+  ccFormationEnd(fm)   // MSV1-CLONES
   if (fm && fm.caster) { fm.caster._choreoSelectWindow = 0; fm.caster._forceAction = null; fm.caster._inChoreoFormation = false }
 }
 
@@ -142,6 +146,7 @@ export function updateFormations(worldWidth) {
       b.facing = off.dx < 0 ? 1 : -1   // clones face inward
       b._forceAction = "idle"
     })
+    ccFormationStep(fm)   // MSV1-CLONES: pop at the caster → staggered fan-out (no-op without a style)
     c.vx = 0; c._forceAction = "idle"
     if (fm.frozen) continue   // test hold
     fm.frame++; fm.window--; c._choreoSelectWindow = fm.window
@@ -153,6 +158,7 @@ export function updateFormations(worldWidth) {
 export function chooseSequence(caster, seqKey) {
   const fm = _formFor(caster); if (!fm) return false
   const idx = _forms.indexOf(fm); if (idx >= 0) _forms.splice(idx, 1)
+  ccFormationEnd(fm)   // MSV1-CLONES
   caster._choreoSelectWindow = 0; caster._inChoreoFormation = false
   return startChoreo(caster, fm.target, fm.rosterKey, seqKey)
 }
@@ -172,7 +178,8 @@ export function getChoreoBodies() {
 export function updateChoreo(fireHit, worldWidth) {
   if (worldWidth) _worldW = worldWidth
   for (let ri = _runs.length - 1; ri >= 0; ri--) {
-    const r = _runs[ri], seq = r.seq, t = r.target, caster = r.caster, f = r.frame
+    const r = _runs[ri], seq = r.seq, t = r.target, caster = r.caster, f = r.frame - (r.lead || 0)   // MSV1-CLONES: authored frame (lead 0 for everyone else)
+    ccCasterPose(r, f)
 
     // Reset visibility first (a slot may be reused across beats), then only ever set TRUE.
     for (const body of Object.values(r.bodies)) body._choreoVisible = false
@@ -196,6 +203,8 @@ export function updateChoreo(fireHit, worldWidth) {
         if (b.hit && fireHit) fireHit(caster, t, scaleHitDamage(_resolveHit(b.hit, r.fx), r.dmgMult), _dirTo(body, t), body)
       }
     }
+
+    ccRunStep(r, f, r.startY + (caster.h || 0))   // MSV1-CLONES (no-op without a style)
 
     // Finisher — performed by the REAL character. Types mirror narutoChoreography exactly:
     // "spike" (default) · "projectile" · "escape" · "strike".
@@ -246,11 +255,12 @@ export function updateChoreo(fireHit, worldWidth) {
 }
 
 function _endRun(r) {
+  ccRunEnd(r)   // MSV1-CLONES
   if (r && r.caster) { r.caster._choreoLock = false; r.caster._forceAction = null }
 }
 
 // ── TEST / HARNESS ────────────────────────────────────────────────────────────
-export function holdChoreoAt(caster, frame) { const r = _runFor(caster); if (!r) return false; r.frozen = true; r.frame = frame; return true }
+export function holdChoreoAt(caster, frame) { const r = _runFor(caster); if (!r) return false; r.frozen = true; r.frame = frame + (r.lead || 0); return true }   // `frame` = authored beat frame
 export function holdFormation(caster)       { const fm = _formFor(caster); if (!fm) return false; fm.frozen = true; return true }
 
 export function clearChoreoFor(caster) {

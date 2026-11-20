@@ -1,0 +1,8 @@
+MSV1-CLONES baseline — clean HEAD ece81fd04e4abf243e65c6a6a70c68920f5606c4 (git archive export; dirty worktree of other sessions excluded), 2026-11-19
+determinism.test.mjs        14 passed, 0 failed
+combo_standard_audit.mjs    233 passed, 9 failed  (roster classification 122 vs 162; gogeta/goku_rose missing upAttack + air normals)
+up_attack_roster.test.mjs   77 passed, 2 failed   (superman 5/4/12, ghostface 5/3/8)
+credits.test.mjs            11 passed, 3 failed   (5 unattributed keys: green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy; stale key sasuke_war_susano; in-game set not full roster)
+roster_integrity.test.mjs   verified (pass)
+replay_playback.test.mjs    10 passed, 0 failed
+"Green" for this task = no worse than these numbers.

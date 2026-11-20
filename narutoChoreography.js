@@ -37,6 +37,7 @@
 
 import { SpriteHandler } from "./sprite.js"
 import { characters } from "./characters.js"
+import { ccRunStart, ccRunStep, ccRunEnd, ccCasterPose, ccFormationStart, ccFormationStep, ccFormationEnd } from "./clonechoreo.js"   // MSV1-CLONES: the anime clone choreography (Naruto)
 import { cloneScaling, formationOffsets, formationCloneCount, scaleHitDamage } from "./cloneFormScaling.js"   // STAGE 6: form-dependent clone multipliers (Naruto's Kurama shroud)
 
 // ── STAGE 2: UZUMAKI BARRAGE ────────────────────────────────────────────────
@@ -187,6 +188,7 @@ export function startNarutoChoreo(caster, target, sequence = UZUMAKI_BARRAGE) {
   // STAGE 6: capture the Kurama-shroud damage multiplier ONCE at run start (stable for the whole run) →
   // sublinear scaling of every beat/finisher hit. 1.0 when Naruto is out of shroud (shroudStage 0).
   _run = { caster, target, seq: sequence, frame: 0, bodies, fired: new Set(), finisherFired: false, startX: caster.x, startY: caster.y, dmgMult: cloneScaling(caster).dmgMult }
+  ccRunStart(_run, "naruto")   // MSV1-CLONES: hand sign + pop + fan-out lead-in (r.lead frames in front of the authored beats)
   // Lock the real Naruto's INPUT while the sequence plays (physics still runs so the
   // finisher teleport-in can descend). game.js honours _choreoLock in updatePlayerCombat.
   caster._choreoLock = true
@@ -218,6 +220,7 @@ export function startNarutoFormation(caster, target) {
   const offsets = formationOffsets(formationCloneCount(caster))
   const bodies = offsets.map(() => makeGhostBody(caster))
   _formation = { caster, target, bodies, offsets, frame: 0, window: SELECT_WINDOW }
+  ccFormationStart(_formation, "naruto")   // MSV1-CLONES
   // STAGE 4: SOFT-HOLD (NOT the hard _choreoLock) — matches the generic roster's startCloneFormation. The hard
   // lock makes updatePlayerCombat `return` early (game.js ~7572), which blocked the follow-up SELECT press from
   // ever reaching executeNarutoSpecial via real input. A soft hold (vx=0 + idle pose) pins Naruto in place while
@@ -242,6 +245,7 @@ export function updateNarutoFormation() {
     b.facing = off.dx < 0 ? 1 : -1   // clones face inward toward Naruto
     b._forceAction = "idle"
   })
+  ccFormationStep(fm)   // MSV1-CLONES: pop at Naruto → staggered fan-out to the formation spots
   c.vx = 0; c._forceAction = "idle"   // keep the soft-hold each frame (planted + idle) while input still samples the select
   if (fm.frozen) return   // test-only: hold the staged formation for a screenshot
   fm.frame++
@@ -260,11 +264,13 @@ export function chooseNarutoSequence(key) {
   const c = _formation.caster, t = _formation.target
   c._narutoSelectWindow = 0
   c._inChoreoFormation = false; c._choreoSelectWindow = 0   // drop the shared hint fields; startNarutoChoreo takes over (hard lock)
+  ccFormationEnd(_formation)   // MSV1-CLONES
   _formation = null   // release WITHOUT unlocking — startNarutoChoreo re-locks immediately
   return startNarutoChoreo(c, t, SEQUENCES[key] || UZUMAKI_BARRAGE)
 }
 
 export function clearNarutoFormation() {
+  ccFormationEnd(_formation)   // MSV1-CLONES: the staged clones leave through smoke
   if (_formation && _formation.caster) {
     _formation.caster._choreoLock = false
     _formation.caster._forceAction = null
@@ -280,7 +286,8 @@ const _dirTo = (from, to) => Math.sign((to.x + (to.w || 0) / 2) - (from.x + (fro
 // game.js and wraps spawnGuaranteedCloneHit (the real hit primitive). No RNG anywhere.
 export function updateNarutoChoreo(fireHit) {
   if (!_run) return
-  const r = _run, seq = r.seq, t = r.target, caster = r.caster, f = r.frame
+  const r = _run, seq = r.seq, t = r.target, caster = r.caster, f = r.frame - (r.lead || 0)   // MSV1-CLONES: authored frame (negative = lead-in)
+  ccCasterPose(r, f)
 
   // Clone beats: position + pose each visible body; fire its hit exactly once at beat.at.
   // A body is visible if ANY of its beats' windows is open (a slot may be reused across beats, e.g.
@@ -309,6 +316,8 @@ export function updateNarutoChoreo(fireHit) {
       if (b.hit && fireHit) fireHit(caster, t, scaleHitDamage(b.hit, r.dmgMult), _dirTo(body, t), body)   // body → projectile spawn origin
     }
   }
+
+  ccRunStep(r, f, r.startY + (caster.h || 0))   // MSV1-CLONES: arrival / hold / unison strike / exit for bodies the script is not showing
 
   // Finisher: performed by the REAL Naruto. Default "spike" (= Uzumaki Barrage, UNCHANGED); the new
   // sequences use "projectile" (throw in place), "escape" (defensive teleport + i-frames), or "strike"
@@ -364,6 +373,7 @@ export function updateNarutoChoreo(fireHit) {
 function endRun() {
   if (!_run) return
   const caster = _run.caster
+  ccRunEnd(_run)
   caster._choreoLock = false
   caster._forceAction = null
   _run = null
@@ -374,13 +384,13 @@ function endRun() {
 export function holdNarutoChoreoAt(frame) {
   if (!_run) return false
   _run.frozen = true
-  _run.frame = frame
+  _run.frame = frame + (_run.lead || 0)   // MSV1-CLONES: `frame` stays the AUTHORED beat frame
   return true
 }
 
 // Hard reset (round reset / match reset). Releases any locked caster (run OR staged formation).
 export function clearNarutoChoreo() {
-  if (_run && _run.caster) { _run.caster._choreoLock = false; _run.caster._forceAction = null; _run.caster._narutoSelectWindow = 0 }
+  if (_run && _run.caster) { ccRunEnd(_run); _run.caster._choreoLock = false; _run.caster._forceAction = null; _run.caster._narutoSelectWindow = 0 }
   _run = null
   clearNarutoFormation()
 }

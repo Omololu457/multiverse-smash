@@ -4,6 +4,7 @@
 
 // Shadow clones read the fighters' live attack state to mimic / to poof when hit.
 // combat.js imports only physics + sound → no cycle back to summons.
+import { ccPersistFx } from "./clonechoreo.js"   // MSV1-CLONES: element-themed spawn / despawn for the persistent clones (render-only)
 import { getAttackHitbox, getHurtbox, rectsOverlap, attackIsActive, applyScaledDamage } from "./combat.js"
 import { physics } from "./physics.js" // clones fall + rest on the floor via the SAME applyGravity fighters use
 import { sound, SFX } from "./sound.js"   // one-shot clone spawn/despawn + strike SFX
@@ -1287,7 +1288,7 @@ export function spawnShadowClone(owner, target, spawnAt = null) {
   }
   setCloneSheet(s, "idle")
   activeSummons.push(s)
-  spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)   // spawn-in smoke; body reveals once it clears
+  if (!ccPersistFx('pop', owner.rosterKey, s.x + s.w / 2, s.y + s.h, facing, owner.spriteScale, 16)) spawnClonePuff(s.x + s.w / 2, s.y + s.h / 2)   // spawn-in smoke; body reveals once it clears (MSV1-CLONES: Tobirama rises out of water, Hashirama grows, Madara dark smoke)
   // NOTE: the summon SFX is NOT played here anymore — it's played ONCE per audio window in
   // summonShadowClone (so rapid presses / delayed spawns never restack the clip). This
   // function is now purely the entity+puff spawn (called delayed for a first press, or
@@ -1538,6 +1539,8 @@ export function getWoodReleaseFxCount() { return _woodReleaseFxTotal }   // harn
 function spawnCloneDespawnFx(s, reason = "destroy") {
   const key = (s.owner?.rosterKey || "").toLowerCase()
   const cx = s.x + (s.w || 0) / 2, footY = s.y + (s.h || 0)
+  if (key === "madara") { ccPersistFx('exit', key, cx, footY, s.facing, s.owner?.spriteScale, 16); return }   // MSV1-CLONES: Madara's are SHADOW clones → heavy dark smoke, not wood
+  if (key === "tobirama") ccPersistFx('exit', key, cx, footY, s.facing, s.owner?.spriteScale, 14)   // MSV1-CLONES: collapses back into water (his own cells) + the existing ripple / burst
   if (key === "hashirama" || key === "madara") {   // both are Mokuton wood clones → revert to logs on despawn
     woodReleaseFx.push({ x: cx, y: footY, facing: s.facing || 1, t: 0, max: WOOD_RELEASE_FRAMES * WOOD_RELEASE_FRAME_HOLD })
     _woodReleaseFxTotal++

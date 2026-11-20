@@ -517,6 +517,7 @@ import {
 import { SASUKE_DOJUTSU_BIND, dojutsuBindOf, amenotejikaraKunaiSwap, portalChidori, counterSwap, portalRedirect, steerKagutsuchi, tickSasukeDojutsu, rinneganLocked, addRinneganStrain } from "./sasukeDojutsu.js"   // SHARED Sasuke Mangekyou/Rinnegan space-time (dispatch hooks + per-frame tick + FX gating)
 import { spawnProjectileFromMove } from "./projectiles.js"
 // Naruto-ONLY authored clone choreography (replaces his persistent + one-shot clone systems).
+import { drawCloneGhost, drawCloneFx } from "./clonechoreoFx.js"   // MSV1-CLONES: clone tilt + ring / poof / water / wood FX (render-only)
 import { startNarutoChoreo, updateNarutoChoreo, getNarutoChoreoBodies, isNarutoChoreoActive, clearNarutoChoreo, getNarutoChoreoState, holdNarutoChoreoAt,
          startNarutoFormation, updateNarutoFormation, chooseNarutoSequence, isNarutoFormationActive, holdNarutoFormation, SELECT_MAP, SEQUENCES } from "./narutoChoreography.js"
 // GENERIC authored clone choreography for the rest of the Naruto-universe roster (everyone EXCEPT Naruto).
@@ -24328,10 +24329,11 @@ function drawBattleScene() {
   for (const _bf of [p1, p2]) if (_bf && _bf._benFlood) { drawBenFlood(ctx, _bf, globalFrameCount, getStageWorldWidth()); drawBenFloodFlash(ctx, _bf, globalFrameCount, canvas.width, canvas.height) }   // Ripjaws STORM TIDE water / rain / lightning over both fighters (benFlood.js; render-only; gated on the field)
   // Naruto Uzumaki Barrage clone GHOST BODIES — drawn through the EXACT SAME path as the real fighter
   // (renderHybridFighter), so each clone is pixel-identical to Naruto. Only bodies whose beat window is open.
-  for (const g of getNarutoChoreoBodies()) renderHybridFighter(g)
+  for (const g of getNarutoChoreoBodies()) drawCloneGhost(ctx, g, renderHybridFighter)   // MSV1-CLONES: same path, tilted about the feet
   // GENERIC clone choreography ghost bodies (rest of the Naruto-universe roster) — same renderHybridFighter
   // path, so each clone is pixel-identical to its real character (the Stage-0 visual-fidelity guarantee).
-  for (const g of getCloneChoreoBodies()) renderHybridFighter(g)
+  for (const g of getCloneChoreoBodies()) drawCloneGhost(ctx, g, renderHybridFighter)
+  drawCloneFx(ctx)   // MSV1-CLONES: rings, smoke / water / wood arrivals + exits (render-only)
   // CLONE-SUMMON SELECT HINT (ease-of-use, 2026-10-07) — while a formation is staged, show the available
   // picks so the summon-then-select is discoverable. Drawn in SCREEN space (reset transform, then restore the
   // world transform) at the top-centre so it's always visible. Render-only; never touches the sim.

@@ -13,8 +13,8 @@
  *   C SMOKE VANISH  Charge + Light + Heavy; also a blockstun escape (dearer, cooldown).
  *   D SHADOW CLONES max 2, five-step choreography (hand sign → smoke pop → staggered fan-out → tilt (render) → unison
  *                   strike → smoke exit). Hittable (1 hit pops), 60% damage, never the KO hit.
- *                   clonechoreo.js does not exist in this repo → the clone engine lives HERE (cloneJob / clones) so it can
- *                   be migrated later without touching the profiles.
+ *                   The engine lives in clonechoreo.js (moved out 2026-11-19, MSV1-CLONES) so the Naruto roster can reuse it;
+ *                   state stays in f._ninja (cloneJob / clones).
  *   E NINJA MIRROR  ↓↓ + Charge: one REAL body (the fighter itself) + one ILLUSION. Which spot became real is a seeded hash;
  *                   identity is GAME_STATE only. Renderers draw both bodies the same way except THE TELL (no ground
  *                   shadow on the illusion + a visor glint every 90 f), visible to both players.
@@ -25,6 +25,7 @@
  * game.js). No Math.random: rangerHash(match seed, frame, player index + slot). Smoke drift, tilts, speed lines, glints and
  * camera punch live in nsFx.js and only READ f._ninja. The framework never imports the engine: game.js hands in W.
  */
+import { choreoStart, choreoStep } from './clonechoreo.js'   // MSV1-CLONES: the shared clone choreography engine
 import { registerRangerProfile, tickRanger, clearRanger, ensureRangerState, rangerHash, RANGER_SCREEN, getRangerProfile } from './rangers.js'
 
 export const NINJA_PROFILES = {}
@@ -360,55 +361,14 @@ function stepVanish(f, opp, s, p) {
   if (v.t >= V.pop + V.gone + V.fade) { s.vanish = null; f._rooted = false }
 }
 
-// ── D. SHADOW CLONES (five-step choreography; clonechoreo.js-shaped so it can migrate) ────────────────────────────
-// job: { t, kind, steps:{sign, pop, fan:[t per clone], strike, exit}, slots:[{dx, dy}], dmg, pct, move, onStrike }
+// ── D. SHADOW CLONES — the five-step choreography lives in clonechoreo.js (shared); this is ninja.js's host binding ─
+const CLONE_HOST = { ctrX, feetY, hash, burst, cue, overlaps, strike: (f, foe, dmg, o) => nsStrike(f, foe, dmg, o) }   // clonechoreo.js host
 export function startCloneJob(f, opp, job) {
   const s = ninjaState(f), p = getNinjaProfile(f), C = p.clones
   if (!C) return false
-  s.clones = s.clones.filter(c => !c.dead)
-  const n = Math.min(C.max, job.count ?? C.max)
-  s.stats.cloneJobs = (s.stats.cloneJobs || 0) + 1
-  s.cloneJob = { t: 0, ...job, n, struck: false }
-  s.clones = []
-  for (let i = 0; i < n; i++) {
-    s.clones.push({ id: ++s.cloneSerial, slot: i, x: ctrX(f), feet: feetY(f), dir: f.facing || 1, t: 0, phase: 'wait', pose: 'guard', dead: false,
-      tilt: (hash(f, 11 + i) < 0.5 ? -1 : 1) * 6 })   // ±6° tilt: chosen in the sim (hash), drawn by the render layer
-  }
-  return true
+  return choreoStart(f, s, Math.min(C.max, job.count ?? C.max), job, CLONE_HOST)
 }
-function cloneTarget(f, opp, job, i) {
-  const sl = job.slots?.[i] || { dx: i === 0 ? -1 : 1, dy: 0 }
-  const ox = opp ? ctrX(opp) : ctrX(f) + (f.facing || 1) * 200, of = opp ? feetY(opp) : feetY(f)
-  return { x: ox + sl.dx * (job.spread ?? 90), feet: of + (sl.dy || 0) }
-}
-function stepCloneJob(f, opp, s, p) {
-  const J = s.cloneJob; if (!J) return
-  const st = J.steps || { sign: 8, pop: 14, fan: [16, 22], strike: 40, exit: 52 }
-  J.t++
-  s.clones.forEach((c, i) => {
-    if (c.dead) return
-    c.t++
-    if (J.t === st.pop) { c.phase = 'pop'; c.x = ctrX(f); c.feet = feetY(f); burst(s, 'smoke', c.x, c.feet, 16); if (i === 0) cue(f, 'smokePop') }
-    if (J.t === (st.fan[i] ?? st.fan[0])) { c.phase = 'fan'; c.from = { x: c.x, feet: c.feet }; c.to = cloneTarget(f, opp, J, i); c.ft = 0; c.pose = 'run' }
-    if (c.phase === 'fan') { c.ft++; const u = Math.min(1, c.ft / 6); c.x = c.from.x + (c.to.x - c.from.x) * u; c.feet = c.from.feet + (c.to.feet - c.from.feet) * u; if (opp) c.dir = ctrX(opp) < c.x ? -1 : 1; if (u >= 1) { c.phase = 'ready'; c.pose = J.pose || 'uppercut' } }
-  })
-  if (J.t === st.strike && !J.struck) {   // UNISON STRIKE: every live clone hits on the same frame
-    J.struck = true
-    let hits = 0
-    for (const c of s.clones) {
-      if (c.dead || c.phase !== 'ready') continue
-      c.phase = 'strike'; c.pose = J.pose || 'uppercut'
-      const cd = opp ? (Math.sign(ctrX(opp) - c.x) || c.dir || 1) : (c.dir || 1), reach = (J.spread ?? 90) + 30   // strikes TOWARD the foe from its fan-out spot
-      const box = { x: cd > 0 ? c.x - 10 : c.x - reach, y: c.feet - (f.h || 94) - (J.reachY || 20), w: reach + 10, h: (f.h || 94) + (J.reachY || 20) }
-      if (opp && overlaps(box, { x: opp.x, y: opp.y, w: opp.w || 48, h: opp.h || 94 })) {
-        const r = nsStrike(f, opp, J.dmg ?? p.clones.strike, { pct: J.pct ?? p.clones.dmgPct, noKO: true, damageType: J.damageType || 'blunt', move: J.move || 'nsClone', launch: J.launch, hitstun: 30, dir: Math.sign(ctrX(opp) - c.x) || 1, fixedScale: J.fixedScale, locked: J.locked, sparkX: (c.x + ctrX(opp)) / 2 })
-        if (r === true) hits++
-      }
-    }
-    J.hits = hits; cue(f, 'cloneStrike')
-  }
-  if (J.t === st.exit) { for (const c of s.clones) if (!c.dead) { burst(s, 'smokeFade', c.x, c.feet, 16); c.dead = true } s.clones = []; s.cloneJob = null; cue(f, 'smokePop') }
-}
+function stepCloneJob(f, opp, s, p) { choreoStep(f, opp, s, p, CLONE_HOST) }
 // a ninja clone is popped by ANYTHING that would hit a fighter: the foe's live attack box or any of the foe's projectiles
 // (Naruto-family clone strikes included). Ninja clones only ever target the foe's BODY.
 function tickCloneHurt(f, opp, s) {

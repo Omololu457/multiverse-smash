@@ -91,23 +91,23 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `sasuke` | HUMAN | 15 | 4 | black sclera | 3 face / 3 arm | automatic · verify ok | face area 27px → 3 face cracks (wanted 4); reviewed: a kick trail drawn in his skin tones and fused to the bare foot takes the ash ramp (detached trail stays original) |
 | `sasuke_adult` | HUMAN | 26 | 3 | black sclera | 6 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
 | `sasuke_sensei` | HUMAN | 35 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok | face area 33px → 4 face cracks (wanted 5); no bare forearm skin → 0 arm cracks |
-| `shinobu` | HUMAN | pending (later batch) | | | | | |
-| `shisui_fallen` | HUMAN | pending (later batch) | | | | | |
-| `six_paths_pain` | HUMAN | pending (later batch) | | | | | |
-| `soldier_boy` | HUMAN | pending (later batch) | | | | | |
-| `spd_blue` | MASKED | pending (later batch) | | | | | |
-| `spd_green` | MASKED | pending (later batch) | | | | | |
-| `spd_pink` | MASKED | pending (later batch) | | | | | |
-| `spd_red` | MASKED | pending (later batch) | | | | | |
-| `spd_yellow` | MASKED | pending (later batch) | | | | | |
-| `spiderman` | MASKED | pending (later batch) | | | | | |
-| `starfire` | HUMAN | pending (later batch) | | | | | |
-| `sukuna` | HUMAN | pending (later batch) | | | | | |
-| `superman` | HUMAN | pending (later batch) | | | | | |
-| `syndrome` | HUMAN | pending (later batch) | | | | | |
-| `tobi` | MASKED | pending (later batch) | | | | | |
+| `shinobu` | HUMAN | 18 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok | face area 32px → 4 face cracks (wanted 6); no bare forearm skin → 0 arm cracks |
+| `shisui_fallen` | HUMAN | 12 | 4 | black sclera | 4 face / 3 arm | automatic · verify ok | face area 32px → 4 face cracks (wanted 6) |
+| `six_paths_pain` | HUMAN | 10 | 5 | black sclera | 3 face / 0 arm | automatic · verify ok | face area 25px → 3 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
+| `soldier_boy` | HUMAN | 31 | 5 | black sclera | 6 face / 3 arm | automatic · verify ok |  |
+| `spd_blue` | MASKED | 31 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `spd_green` | MASKED | 42 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `spd_pink` | MASKED | 42 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `spd_red` | MASKED | 44 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `spd_yellow` | MASKED | 38 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `spiderman` | MASKED | 23 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `starfire` | HUMAN | 38 | 1 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 7px → 1 face cracks (wanted 5); reviewed: orange skin only partly passes the skin detector → partial ash on the face; suit desaturated |
+| `sukuna` | HUMAN | 10 | 4 | black sclera | 4 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `superman` | HUMAN | 20 | 5 | black sclera | 4 face / 3 arm | automatic · verify ok |  |
+| `syndrome` | HUMAN | 123 | 3 | black sclera | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `tobi` | MASKED | 20 | 3 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
 | `tobirama` | TOBIRAMA | — | — | — | — | — | no Edo skin: the summoner |
-| `toji` | HUMAN | pending (later batch) | | | | | |
+| `toji` | HUMAN | 18 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok |  |
 | `vegeta` | HUMAN | pending (later batch) | | | | | |
 | `vegeta_dark` | HUMAN | pending (later batch) | | | | | |
 | `vilgax` | NONHUMAN | — | — | — | — | — | no Edo skin: Chimera Sui Generis alien |

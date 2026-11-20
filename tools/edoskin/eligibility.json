@@ -121,10 +121,18 @@
  },
  "exclude": {
   "albedo": "Albedo's identity IS a recolour tag of Ben's art (fighters.js forces _recolorTag='albedo'); an Edo tag would replace it and turn him back into Ben, so no Edo skin.",
-  "ghostface": "Ghostface has no base identity: every skin id is one of 5 killer identities (game.js applySkin forces one); an Edo skin id would be replaced by a random killer, and adding a list would change his selector. Tobirama's Edo Tensei keeps the live tint for him."
+  "ghostface": "Ghostface has no base identity: every skin id is one of 5 killer identities (game.js applySkin forces one); an Edo skin id would be replaced by a random killer, and adding a list would change his selector. Tobirama's Edo Tensei keeps the live tint for him.",
+  "kevin_levin": "Not on main yet: Kevin Levin (kevinData.js + assets/kevin/) is another session's uncommitted work; generate his Edo skin (python3 tools/edoskin/gen.py --only kevin_levin, default skin only) once he lands."
  },
  "notes": {
   "baseOnly": "Ben / Albedo: only the human default sheets; the Omnitrix alien forms are non-human and keep their normal art (their recolour retag is already gated to the Albedo tag)."
+ },
+ "skipSources": {
+  "FROZONE_PARTS": "Frozone ice effects",
+  "MEGUMI_SUMMON_ANIM": "Megumi's shikigami summons",
+  "NS_FX": "Ninja Storm effect strips",
+  "SYNDROME_PARTS": "Syndrome's machines / drones (summons + effects)",
+  "VIOLET_FX": "Violet force-field effects"
  },
  "why": {
   "arlong": "fish-man (non-human skin and body)",

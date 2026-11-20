@@ -351,6 +351,8 @@ def char_defs(key, info, elig):
             continue                                  # a tagged FORM sheet is another skin's recolour; a tagged BASE sheet is this character's own default art (rickPrime)
         if key in elig.get('baseOnly', []) and d['src'] != 'characters.js':
             continue
+        if d['src'].split(':')[-1] in elig.get('skipSources', {}):
+            continue                                  # summons / machines / effect strips exported by a module: no Edo twin
         out.append(d)
     return out
 

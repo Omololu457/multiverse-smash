@@ -44,7 +44,6 @@ export const EDO_SKIN_KEYS = Object.freeze([
   "kakashi",
   "kakashi_anbu",
   "kakashi_war",
-  "kevin_levin",
   "killua",
   "krybot",
   "l_ryuuzaki",

@@ -51,7 +51,7 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `kakashi` | HUMAN | 25 | 2 | black sclera | 0 face / 4 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 5); reviewed: masked lower face; eye area too small for cracks |
 | `kakashi_anbu` | HUMAN | 21 | 2 | black sclera | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 5); reviewed: masked lower face |
 | `kakashi_war` | HUMAN | 26 | 3 | black sclera | 4 face / 2 arm | automatic · verify ok | face area 34px → 4 face cracks (wanted 6) |
-| `kevin_levin` | HUMAN | 12 | 65 | skipped: no separable whites | 3 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks; reviewed: no MSV1-BLOOD body map exists for kevin_levin → no landmark-anchored cracks or sclera; skin ramp + clothes only |
+| `kevin_levin` | HUMAN → EXCLUDED | — | — | — | — | — | Not on main yet: Kevin Levin (kevinData.js + assets/kevin/) is another session's uncommitted work; generate his Edo skin (python3 tools/edoskin/gen.py --only kevin_levin, default skin only) once he lands. |
 | `killua` | HUMAN | 1 | 3 | black sclera | 2 face / 0 arm | automatic · verify ok | face area 17px → 2 face cracks (wanted 3); no bare forearm skin → 0 arm cracks |
 | `krybot` | MASKED | 30 | 0 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
 | `l_ryuuzaki` | HUMAN | 21 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 11px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks |

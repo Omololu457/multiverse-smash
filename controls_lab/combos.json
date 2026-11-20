@@ -1,8 +1,56 @@
 {
  "version": 1,
- "generated": "2026-11-15",
+ "generated": "2026-11-20",
  "note": "Every entry was verified in the real engine (tools/controls_lab/build_combos.mjs). Add your own: same shape, status \"verified\" after harness/controls_lab_combos.test.mjs passes.",
  "combos": [
+  {
+   "id": "albedo:Light>Light",
+   "char": "albedo",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 24,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "albedo:Heavy>Special",
+   "char": "albedo",
+   "name": "Heavy Attack → —",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    29
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 58,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
   {
    "id": "alt_sukuna:Up-Attack>Jump>Light",
    "char": "alt_sukuna",
@@ -26,7 +74,7 @@
    "damage": 76,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -53,7 +101,7 @@
    "damage": 73,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -83,7 +131,7 @@
    "damage": 198,
    "difficulty": 3,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/arlong/COMBOS.md"
   },
@@ -110,7 +158,7 @@
    "damage": 143,
    "difficulty": 3,
    "note": "uses 20 Tide",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/arlong/COMBOS.md"
   },
@@ -137,7 +185,7 @@
    "damage": 162,
    "difficulty": 3,
    "note": "uses 20 Tide",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/arlong/COMBOS.md"
   },
@@ -164,7 +212,7 @@
    "damage": 150,
    "difficulty": 3,
    "note": "uses 25 Tide",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/arlong/COMBOS.md"
   },
@@ -191,9 +239,135 @@
    "damage": 142,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "arlong:Light>Up-Attack",
+   "char": "arlong",
+   "name": "Jab → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 94,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "arlong:Down+Light>Heavy",
+   "char": "arlong",
+   "name": "Low saw → Kiribachi swing",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 102,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "arlong:Light>Heavy",
+   "char": "arlong",
+   "name": "Jab → Kiribachi swing",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 94,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "baki:Light>Up-Attack",
+   "char": "baki",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 100,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "baki:Light>Light",
+   "char": "baki",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 86,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
   },
   {
    "id": "beast_boy:Light>Heavy>Special",
@@ -218,7 +392,7 @@
    "damage": 141,
    "difficulty": 2,
    "note": "uses 15 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -245,7 +419,7 @@
    "damage": 98,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -272,7 +446,7 @@
    "damage": 75,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -296,7 +470,7 @@
    "damage": 65,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -320,9 +494,108 @@
    "damage": 88,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Light>Heavy",
+   "char": "beast_boy",
+   "name": "Quick Jab → Long Straight → Turning Finish → Full Stretch",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Heavy>Special",
+   "char": "beast_boy",
+   "name": "Full Stretch → Gorilla Break",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    31
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 122,
+   "difficulty": 1,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "beast_boy:Light>Down+Special",
+   "char": "beast_boy",
+   "name": "Quick Jab → Long Straight → Turning Finish → Tiger Cross",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "uses 18 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "byakuya:Light>Light",
+   "char": "byakuya",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
   },
   {
    "id": "cyborg:Light>Heavy>Special",
@@ -347,7 +620,7 @@
    "damage": 136,
    "difficulty": 2,
    "note": "uses 12 Power",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -374,7 +647,7 @@
    "damage": 129,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -398,7 +671,7 @@
    "damage": 79,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -422,7 +695,7 @@
    "damage": 110,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -446,7 +719,79 @@
    "damage": 102,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Heavy>Special",
+   "char": "cyborg",
+   "name": "Power Straight → Sonic Shot",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    35
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 111,
+   "difficulty": 1,
+   "note": "uses 12 Power",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Light>Special",
+   "char": "cyborg",
+   "name": "Jab → Cross → Hammer (J1-J3) → Sonic Shot",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 62,
+   "difficulty": 1,
+   "note": "uses 12 Power",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "cyborg:Light>Light",
+   "char": "cyborg",
+   "name": "Jab → Cross → Hammer (J1-J3) → Jab → Cross → Hammer (J1-J3)",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 58,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -476,7 +821,7 @@
    "damage": 110,
    "difficulty": 4,
    "note": "uses 10 Super Speed",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/dash/COMBOS.md"
   },
@@ -506,7 +851,7 @@
    "damage": 84,
    "difficulty": 5,
    "note": "uses 35 Super Speed",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/dash/COMBOS.md"
   },
@@ -533,9 +878,33 @@
    "damage": 74,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dash_parr:Heavy>→→+Special",
+   "char": "dash_parr",
+   "name": "Heavy → Blur Dash",
+   "steps": [
+    "Heavy",
+    "→→ + Special"
+   ],
+   "gaps": [
+    0,
+    23
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 104,
+   "difficulty": 2,
+   "note": "the CPU landed this 1× in 90 s of play · uses 10 Super Speed",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "dash_parr:Light>Up-Attack",
@@ -557,7 +926,7 @@
    "damage": 62,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -581,7 +950,181 @@
    "damage": 65,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dash_parr:Light>Light",
+   "char": "dash_parr",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 35,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dseyl:Light>Light>Heavy",
+   "char": "dseyl",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Spinner Snap → Drone Cross → Spinner Pass → Claw Drive",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    11,
+    11
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 115,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dseyl:Up-Attack>Jump>Light",
+   "char": "dseyl",
+   "name": "Up-Attack → jump → Spinner Snap → Drone Cross → Spinner Pass",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    6
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 84,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dseyl:Light>Up-Attack",
+   "char": "dseyl",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 78,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dseyl:Down+Light>Heavy",
+   "char": "dseyl",
+   "name": "Low Spinner Skim → Claw Drive",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dseyl:Light>Heavy",
+   "char": "dseyl",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Claw Drive",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 92,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "dseyl:Light>Light",
+   "char": "dseyl",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Spinner Snap → Drone Cross → Spinner Pass",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 58,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -608,7 +1151,7 @@
    "damage": 93,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -635,7 +1178,7 @@
    "damage": 75,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -659,7 +1202,7 @@
    "damage": 70,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -683,7 +1226,7 @@
    "damage": 85,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -707,9 +1250,240 @@
    "damage": 78,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "elastigirl:Light>Light",
+   "char": "elastigirl",
+   "name": "Stretch Jab → Stretch Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 42,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "enoch:Light>Light>Heavy",
+   "char": "enoch",
+   "name": "Jab → Jab → Heavy frost palm",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8,
+    8
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 109,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "enoch:Down+Light>Heavy",
+   "char": "enoch",
+   "name": "Low sweep → Heavy frost palm",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "enoch:Light>Heavy",
+   "char": "enoch",
+   "name": "Jab → Heavy frost palm",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 76,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "enoch:Light>Light",
+   "char": "enoch",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 61,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "flash:Light>Up-Attack",
+   "char": "flash",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
+  },
+  {
+   "id": "flash:Down+Light>Heavy",
+   "char": "flash",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 55,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "flash:Light>Heavy",
+   "char": "flash",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 55,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "flash:Light>Light",
+   "char": "flash",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 36,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 8-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 8,
+   "gapAllowed": 12
   },
   {
    "id": "frozone:Light>Heavy>Special",
@@ -734,7 +1508,7 @@
    "damage": 143,
    "difficulty": 2,
    "note": "uses 15 Frost",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -761,7 +1535,7 @@
    "damage": 112,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -788,7 +1562,7 @@
    "damage": 84,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -812,7 +1586,7 @@
    "damage": 78,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -836,9 +1610,162 @@
    "damage": 88,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Light>Heavy",
+   "char": "frozone",
+   "name": "Ice strike chain → Crystal strike",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Heavy>Special",
+   "char": "frozone",
+   "name": "Crystal strike → Ice Lance",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    30
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 114,
+   "difficulty": 1,
+   "note": "uses 15 Frost",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "frozone:Light>Special",
+   "char": "frozone",
+   "name": "Ice strike chain → Ice Lance",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "uses 15 Frost",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "genos:Forward+Special>Light>Light",
+   "char": "genos",
+   "name": "Jet Dash → Light Attack → Light Attack",
+   "steps": [
+    "Forward + Special",
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13,
+    7
+   ],
+   "hits": 11,
+   "hitsAt": [
+    2,
+    3,
+    11
+   ],
+   "damage": 56,
+   "difficulty": 2,
+   "note": "the CPU landed this 1× in 90 s of play · uses 25 core",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "ghostface:Light>Light",
+   "char": "ghostface",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 42,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "ghostface:Light>Up-Attack",
+   "char": "ghostface",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 57,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
   },
   {
    "id": "gojo:Light>Light>Heavy",
@@ -863,7 +1790,7 @@
    "damage": 92,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -887,7 +1814,7 @@
    "damage": 69,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -911,7 +1838,7 @@
    "damage": 69,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -935,7 +1862,7 @@
    "damage": 54,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -951,7 +1878,7 @@
    "gaps": [
     0,
     14,
-    13
+    14
    ],
    "hits": 3,
    "hitsAt": [
@@ -962,7 +1889,7 @@
    "damage": 92,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -986,7 +1913,7 @@
    "damage": 69,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1010,7 +1937,7 @@
    "damage": 69,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1034,7 +1961,7 @@
    "damage": 54,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1061,9 +1988,33 @@
    "damage": 92,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "goku_black:Light>Light",
+   "char": "goku_black",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "goku_black:Down+Light>Heavy",
@@ -1085,7 +2036,7 @@
    "damage": 69,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1109,31 +2060,7 @@
    "damage": 69,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
-   "status": "verified",
-   "source": "generated (frame-data chain)"
-  },
-  {
-   "id": "goku_black:Light>Light",
-   "char": "goku_black",
-   "name": "Light Attack → Light Attack",
-   "steps": [
-    "Light",
-    "Light"
-   ],
-   "gaps": [
-    0,
-    14
-   ],
-   "hits": 2,
-   "hitsAt": [
-    1,
-    2
-   ],
-   "damage": 54,
-   "difficulty": 1,
-   "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1157,7 +2084,7 @@
    "damage": 78,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1181,7 +2108,7 @@
    "damage": 48,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1205,7 +2132,7 @@
    "damage": 48,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1232,7 +2159,7 @@
    "damage": 171,
    "difficulty": 2,
    "note": "uses 12 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1259,9 +2186,57 @@
    "damage": 132,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Light>Down+Special",
+   "char": "green_ranger",
+   "name": "Straight Punch → Body Hook → Roundhouse Finish → Rising Talon",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 99,
+   "difficulty": 1,
+   "note": "uses 20 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Heavy>ForwardSpecial",
+   "char": "green_ranger",
+   "name": "Turning Kick → Emerald Advance",
+   "steps": [
+    "Heavy",
+    "Forward Special"
+   ],
+   "gaps": [
+    0,
+    34
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 165,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 18 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "green_ranger:Light>Up-Attack",
@@ -1283,7 +2258,7 @@
    "damage": 93,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1307,7 +2282,7 @@
    "damage": 107,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1331,7 +2306,31 @@
    "damage": 145,
    "difficulty": 1,
    "note": "uses 12 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "green_ranger:Light>Special",
+   "char": "green_ranger",
+   "name": "Straight Punch → Body Hook → Roundhouse Finish → Dragon Edge",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 94,
+   "difficulty": 1,
+   "note": "uses 12 Morph Energy",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1355,9 +2354,63 @@
    "damage": 105,
    "difficulty": 1,
    "note": "uses 12 Cursed Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "hinata:Light>Light",
+   "char": "hinata",
+   "name": "Palm Jab String → Palm Jab String",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "hisoka:Light>Light",
+   "char": "hisoka",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 60,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
   },
   {
    "id": "homelander:Up-Attack>Jump>Light",
@@ -1382,9 +2435,198 @@
    "damage": 83,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ichigo:Light>Light",
+   "char": "ichigo",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 52,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "inosuke:Light>Up-Attack",
+   "char": "inosuke",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 104,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
+  },
+  {
+   "id": "inosuke:Down+Light>Heavy",
+   "char": "inosuke",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 110,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "inosuke:Light>Heavy",
+   "char": "inosuke",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 110,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "inosuke:Light>Light",
+   "char": "inosuke",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 9-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 9,
+   "gapAllowed": 12
+  },
+  {
+   "id": "ippo:Light>Light",
+   "char": "ippo",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "isshiki:Light>Light",
+   "char": "isshiki",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 32,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 2-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 2,
+   "gapAllowed": 12
   },
   {
    "id": "itachi:Light>Light>Heavy",
@@ -1409,7 +2651,7 @@
    "damage": 90,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1433,7 +2675,7 @@
    "damage": 66,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1457,7 +2699,7 @@
    "damage": 66,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1481,7 +2723,7 @@
    "damage": 120,
    "difficulty": 1,
    "note": "uses 25 Chakra",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1505,7 +2747,7 @@
    "damage": 54,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1532,9 +2774,144 @@
    "damage": 68,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "jesus:Light>Up-Attack",
+   "char": "jesus",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 109,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "jesus:Light>Light",
+   "char": "jesus",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 98,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 9-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 9,
+   "gapAllowed": 12
+  },
+  {
+   "id": "jiraiya:Light>Light",
+   "char": "jiraiya",
+   "name": "Palm Combo → Palm Combo",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 96,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "killua:Light>Light",
+   "char": "killua",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
+  },
+  {
+   "id": "killua:Light>Up-Attack",
+   "char": "killua",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 58,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
   },
   {
    "id": "krybot:Light>Heavy>Special",
@@ -1559,9 +2936,33 @@
    "damage": 159,
    "difficulty": 2,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Light,freshLight,freshLight>Forward+Special",
+   "char": "krybot",
+   "name": "Servo Jab → Follow-up Strike → Driving Kick → Breach Step",
+   "steps": [
+    "Light, fresh Light, fresh Light",
+    "Forward + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 98,
+   "difficulty": 1,
+   "note": "the CPU landed this 5× in 90 s of play · uses 15 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "krybot:Light>Up-Attack",
@@ -1583,7 +2984,7 @@
    "damage": 89,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1607,7 +3008,7 @@
    "damage": 106,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1631,7 +3032,7 @@
    "damage": 134,
    "difficulty": 1,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1655,9 +3056,60 @@
    "damage": 89,
    "difficulty": 1,
    "note": "uses 18 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "krybot:Light>Light",
+   "char": "krybot",
+   "name": "Servo Jab → Follow-up Strike → Driving Kick → Servo Jab → Follow-up Strike → Driving Kick",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 53,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "light:Light>Light",
+   "char": "light",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 50,
+   "difficulty": 1,
+   "note": "the CPU landed this 3× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
   },
   {
    "id": "luffy:Light>Heavy>Special",
@@ -1682,7 +3134,7 @@
    "damage": 166,
    "difficulty": 2,
    "note": "uses 12 Stamina",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1709,7 +3161,7 @@
    "damage": 98,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1733,7 +3185,7 @@
    "damage": 108,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1757,7 +3209,7 @@
    "damage": 141,
    "difficulty": 1,
    "note": "uses 12 Stamina",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1781,9 +3233,87 @@
    "damage": 88,
    "difficulty": 1,
    "note": "uses 12 Stamina",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "luffy:Light>Light",
+   "char": "luffy",
+   "name": "Quick Knuckle → Body Hook → Stretch Finish → Quick Knuckle → Body Hook → Stretch Finish",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    12
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 53,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "maki:Light>Up-Attack",
+   "char": "maki",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 104,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "maki:Light>Light",
+   "char": "maki",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 86,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
   },
   {
    "id": "mayuri:Up-Attack>Jump>Light",
@@ -1808,7 +3338,7 @@
    "damage": 62,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1835,7 +3365,7 @@
    "damage": 108,
    "difficulty": 2,
    "note": "uses 12 Cursed Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1862,9 +3392,33 @@
    "damage": 90,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Special>Light,freshLight,freshLight",
+   "char": "megumi_fushiguro",
+   "name": "Divine Dog → Jab → Kick → Staff (Light chain)",
+   "steps": [
+    "Special",
+    "Light, fresh Light, fresh Light"
+   ],
+   "gaps": [
+    0,
+    24
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 57,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 12 Cursed Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "megumi_fushiguro:Down+Light>Heavy",
@@ -1886,7 +3440,7 @@
    "damage": 79,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1910,7 +3464,7 @@
    "damage": 72,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1934,9 +3488,84 @@
    "damage": 90,
    "difficulty": 1,
    "note": "uses 12 Cursed Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Light>Special",
+   "char": "megumi_fushiguro",
+   "name": "Jab → Kick → Staff (Light chain) → Divine Dog",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 57,
+   "difficulty": 1,
+   "note": "uses 12 Cursed Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "megumi_fushiguro:Light>Light",
+   "char": "megumi_fushiguro",
+   "name": "Jab → Kick → Staff (Light chain) → Jab → Kick → Staff (Light chain)",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 41,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "miwa:Light>Light",
+   "char": "miwa",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 52,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
   },
   {
    "id": "mmpr_black:Light>Heavy>Special",
@@ -1961,7 +3590,7 @@
    "damage": 179,
    "difficulty": 2,
    "note": "uses 15 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -1988,7 +3617,7 @@
    "damage": 134,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2012,7 +3641,31 @@
    "damage": 153,
    "difficulty": 1,
    "note": "uses 15 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Special",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Crescent Break",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 102,
+   "difficulty": 1,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2036,7 +3689,7 @@
    "damage": 92,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2060,7 +3713,55 @@
    "damage": 110,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Down+Special",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Rising Mastodon",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 92,
+   "difficulty": 1,
+   "note": "uses 18 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_black:Light>Light",
+   "char": "mmpr_black",
+   "name": "Palm Check → Turning Strike → Driving Heel → Palm Check → Turning Strike → Driving Heel",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 58,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2087,7 +3788,7 @@
    "damage": 135,
    "difficulty": 2,
    "note": "uses 10 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2114,7 +3815,7 @@
    "damage": 119,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2138,7 +3839,7 @@
    "damage": 80,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2162,7 +3863,7 @@
    "damage": 97,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2186,7 +3887,55 @@
    "damage": 112,
    "difficulty": 1,
    "note": "uses 10 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Light>Special",
+   "char": "mmpr_pink",
+   "name": "Palm Snap → Turning Check → Crescent Finish → Power Bow — Quick Shot",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 64,
+   "difficulty": 1,
+   "note": "uses 10 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_pink:Light>Light",
+   "char": "mmpr_pink",
+   "name": "Palm Snap → Turning Check → Crescent Finish → Palm Snap → Turning Check → Crescent Finish",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 51,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2213,7 +3962,7 @@
    "damage": 171,
    "difficulty": 2,
    "note": "uses 15 Morph Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2240,9 +3989,57 @@
    "damage": 133,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:ForwardSpecial>Light,freshLight,freshLight",
+   "char": "mmpr_white",
+   "name": "Twin Fist → Open Palm → Body Check → Tiger Heel",
+   "steps": [
+    "Forward Special",
+    "Light, fresh Light, fresh Light"
+   ],
+   "gaps": [
+    0,
+    24
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 82,
+   "difficulty": 1,
+   "note": "the CPU landed this 3× in 90 s of play · uses 15 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "mmpr_white:ForwardSpecial>Forward+Heavy→freshHeavy→freshHeavy",
+   "char": "mmpr_white",
+   "name": "Twin Fist → Command chain",
+   "steps": [
+    "Forward Special",
+    "Forward + Heavy → fresh Heavy → fresh Heavy"
+   ],
+   "gaps": [
+    0,
+    24
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 91,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 15 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "mmpr_white:Light>Up-Attack",
@@ -2264,7 +4061,7 @@
    "damage": 91,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2288,7 +4085,7 @@
    "damage": 119,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2312,9 +4109,57 @@
    "damage": 109,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mmpr_white:Heavy>Special",
+   "char": "mmpr_white",
+   "name": "Saba Cut → Saba's Answer",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    35
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 145,
+   "difficulty": 1,
+   "note": "uses 15 Morph Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "mr_incredible:Heavy/Forward+Heavy>Forward+Special",
+   "char": "mr_incredible",
+   "name": "Heavy / Advancing Punch → Freight Train",
+   "steps": [
+    "Heavy / Forward + Heavy",
+    "Forward + Special"
+   ],
+   "gaps": [
+    0,
+    34
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 161,
+   "difficulty": 1,
+   "note": "the CPU landed this 3× in 90 s of play · uses 20 Power",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "mr_incredible:Light>Up-Attack",
@@ -2336,7 +4181,7 @@
    "damage": 97,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2360,7 +4205,7 @@
    "damage": 171,
    "difficulty": 1,
    "note": "uses 18 Power",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2384,7 +4229,7 @@
    "damage": 74,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2411,33 +4256,33 @@
    "damage": 88,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
   {
-   "id": "naruto:Heavy>Special",
+   "id": "naruto:Light>Light",
    "char": "naruto",
-   "name": "Power Strike → Rasengan",
+   "name": "Jab Combo → Jab Combo",
    "steps": [
-    "Heavy",
-    "Special"
+    "Light",
+    "Light"
    ],
    "gaps": [
     0,
-    27
+    14
    ],
    "hits": 2,
    "hitsAt": [
     1,
     2
    ],
-   "damage": 115,
+   "damage": 52,
    "difficulty": 1,
-   "note": "uses 35 Chakra",
-   "verified": "2026-11-15",
+   "note": "the CPU landed this 1× in 90 s of play",
+   "verified": "2026-11-20",
    "status": "verified",
-   "source": "generated (frame-data chain)"
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "naruto:Down+Light>Heavy",
@@ -2459,7 +4304,7 @@
    "damage": 65,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2483,21 +4328,21 @@
    "damage": 65,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
   {
-   "id": "naruto:Light>Light",
-   "char": "naruto",
-   "name": "Jab Combo → Jab Combo",
+   "id": "naruto_seventh:Light>Light",
+   "char": "naruto_seventh",
+   "name": "Light Attack → Light Attack",
    "steps": [
     "Light",
     "Light"
    ],
    "gaps": [
     0,
-    14
+    18
    ],
    "hits": 2,
    "hitsAt": [
@@ -2506,10 +4351,535 @@
    ],
    "damage": 52,
    "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "netero:Light>Light",
+   "char": "netero",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 56,
+   "difficulty": 1,
+   "note": "the CPU landed this 3× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "netero:Light>Up-Attack",
+   "char": "netero",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 71,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "nezuko:Light>Up-Attack",
+   "char": "nezuko",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 104,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
+  },
+  {
+   "id": "nezuko:Light>Heavy",
+   "char": "nezuko",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 106,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "nezuko:Light>Light",
+   "char": "nezuko",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 88,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 9-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 9,
+   "gapAllowed": 12
+  },
+  {
+   "id": "ninja_storm_cgpt:Light>Light>Heavy",
+   "char": "ninja_storm_cgpt",
+   "name": "Rapid punches → Rapid punches → Sword string",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    7,
+    7
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 90,
+   "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_cgpt:Light>Up-Attack",
+   "char": "ninja_storm_cgpt",
+   "name": "Rapid punches → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 77,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_cgpt:Down+Light>Heavy",
+   "char": "ninja_storm_cgpt",
+   "name": "Down + Light → Sword string",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 80,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_cgpt:Light>Heavy",
+   "char": "ninja_storm_cgpt",
+   "name": "Rapid punches → Sword string",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 73,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_cgpt:Light>Light",
+   "char": "ninja_storm_cgpt",
+   "name": "Rapid punches → Rapid punches",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 57,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_rangers:Special>Heavy>Special>Light>Light>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Shuriken Throw / Sand Spin Throw → Kick / Stomp Kick → Shuriken Throw / Sand Spin Throw → Jab / Tackle → Jab / Tackle → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Special",
+    "Heavy",
+    "Special",
+    "Light",
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    13,
+    19,
+    18,
+    12,
+    7
+   ],
+   "hits": 6,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "damage": 145,
+   "difficulty": 5,
+   "note": "the CPU landed this 1× in 90 s of play · uses 24 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "ninja_storm_rangers:Heavy>Special>Special>Special>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Kick / Stomp Kick → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Heavy",
+    "Special",
+    "Special",
+    "Special",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    19,
+    13,
+    18,
+    24
+   ],
+   "hits": 5,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "damage": 120,
+   "difficulty": 4,
+   "note": "the CPU landed this 1× in 90 s of play · uses 32 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "ninja_storm_rangers:Light>Heavy>Special>Special>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Jab / Tackle → Kick / Stomp Kick → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special",
+    "Special",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    7,
+    19,
+    18,
+    18
+   ],
+   "hits": 5,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "damage": 124,
+   "difficulty": 4,
+   "note": "the CPU landed this 1× in 90 s of play · uses 24 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "ninja_storm_rangers:Heavy>Special>Special>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Kick / Stomp Kick → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Heavy",
+    "Special",
+    "Special",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    19,
+    13,
+    18
+   ],
+   "hits": 4,
+   "hitsAt": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "damage": 108,
+   "difficulty": 3,
+   "note": "the CPU landed this 4× in 90 s of play · uses 24 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "ninja_storm_rangers:Special>Special>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Special",
+    "Special",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    13,
+    18
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 61,
+   "difficulty": 2,
+   "note": "the CPU landed this 1× in 90 s of play · uses 24 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "ninja_storm_rangers:Light>Heavy>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Jab / Tackle → Kick / Stomp Kick → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Light",
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    7,
+    19
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 98,
+   "difficulty": 2,
+   "note": "uses 8 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_rangers:Light>Light>Heavy",
+   "char": "ninja_storm_rangers",
+   "name": "Jab / Tackle → Jab / Tackle → Kick / Stomp Kick",
+   "steps": [
+    "Light",
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    7,
+    7
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 118,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "ninja_storm_rangers:Special>Special",
+   "char": "ninja_storm_rangers",
+   "name": "Shuriken Throw / Sand Spin Throw → Shuriken Throw / Sand Spin Throw",
+   "steps": [
+    "Special",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · uses 16 Focus",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "omega_ranger:Light>Light",
+   "char": "omega_ranger",
+   "name": "Saber Jab → Saber Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 56,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
   },
   {
    "id": "raven:Light>Heavy>Special",
@@ -2534,7 +4904,7 @@
    "damage": 113,
    "difficulty": 2,
    "note": "uses 10 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2561,9 +4931,33 @@
    "damage": 98,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Light,freshLight,freshLight>Up+Heavy/Up-Attack",
+   "char": "raven",
+   "name": "Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Rising Palm",
+   "steps": [
+    "Light, fresh Light, fresh Light",
+    "Up + Heavy / Up-Attack"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "raven:Light>Up-Attack",
@@ -2585,7 +4979,7 @@
    "damage": 65,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2609,7 +5003,7 @@
    "damage": 88,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2633,9 +5027,111 @@
    "damage": 79,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Heavy>Special",
+   "char": "raven",
+   "name": "Dark Palm → Dark Pulse",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    31
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 94,
+   "difficulty": 1,
+   "note": "uses 10 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "raven:Light>Special",
+   "char": "raven",
+   "name": "Shadow Jab → Palm Extension → Cloaked Finish (J1-J3) → Dark Pulse",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 56,
+   "difficulty": 1,
+   "note": "uses 10 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rengoku:Light>Up-Attack",
+   "char": "rengoku",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 123,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "rengoku:Light>Light",
+   "char": "rengoku",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 110,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 8-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 8,
+   "gapAllowed": 12
   },
   {
    "id": "rick:Up-Attack>Jump>Light",
@@ -2660,7 +5156,7 @@
    "damage": 55,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2684,7 +5180,7 @@
    "damage": 57,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2708,7 +5204,31 @@
    "damage": 57,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rick:Light>Light",
+   "char": "rick",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    15
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2732,9 +5252,60 @@
    "damage": 70,
    "difficulty": 1,
    "note": "uses 30 Gadget Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "rickPrime:Light>Light",
+   "char": "rickPrime",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 66,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "robin:Forward+Special>Forward+Special",
+   "char": "robin",
+   "name": "Staff Express → Staff Express",
+   "steps": [
+    "Forward + Special",
+    "Forward + Special"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 38,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · uses 32 Gadget Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "robin:Light>Heavy>Special",
@@ -2759,7 +5330,7 @@
    "damage": 119,
    "difficulty": 2,
    "note": "uses 12 Gadget Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2786,7 +5357,7 @@
    "damage": 90,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2813,7 +5384,7 @@
    "damage": 67,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2837,7 +5408,7 @@
    "damage": 60,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2861,9 +5432,138 @@
    "damage": 79,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Light>Heavy",
+   "char": "robin",
+   "name": "Back-fist → Straight → Rising Finish (Punch 1-3) → Staff Sweep",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 72,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "robin:Heavy>Special",
+   "char": "robin",
+   "name": "Staff Sweep → Bird's-Eye Bomb",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    28
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 101,
+   "difficulty": 1,
+   "note": "uses 12 Gadget Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "saitama:Light>Light",
+   "char": "saitama",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
+  },
+  {
+   "id": "saitama:Light>Up-Attack",
+   "char": "saitama",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 66,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "sakura:Light>Light",
+   "char": "sakura",
+   "name": "Jab Combo → Jab Combo",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 50,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
   },
   {
    "id": "sanji:Light>Forward+Light>Heavy>↓↘→+Special",
@@ -2891,7 +5591,7 @@
    "damage": 186,
    "difficulty": 4,
    "note": "uses 15 Heat",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/sanji/COMBOS.md"
   },
@@ -2918,7 +5618,7 @@
    "damage": 134,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2945,7 +5645,7 @@
    "damage": 115,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2972,7 +5672,7 @@
    "damage": 114,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -2996,9 +5696,291 @@
    "damage": 95,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Down+Light>Heavy",
+   "char": "sanji",
+   "name": "Crouch kick → 3 · Côtelette (ribs)",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 86,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Light>Heavy",
+   "char": "sanji",
+   "name": "1 · Collier (neck) → 3 · Côtelette (ribs)",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sanji:Heavy>Special",
+   "char": "sanji",
+   "name": "3 · Côtelette (ribs) → Wake-up crescent",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    26
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 113,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sasuke_sensei:Light>Light",
+   "char": "sasuke_sensei",
+   "name": "Fist/Kick String → Fist/Kick String",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 52,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "shinobu:Down+Light>Heavy",
+   "char": "shinobu",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 109,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "shinobu:Light>Heavy",
+   "char": "shinobu",
+   "name": "Light Attack → Heavy Attack",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 109,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "shinobu:Light>Light",
+   "char": "shinobu",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 8-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 8,
+   "gapAllowed": 12
+  },
+  {
+   "id": "shisui_fallen:Special>Light",
+   "char": "shisui_fallen",
+   "name": "Kunai Barrage → Blade String",
+   "steps": [
+    "Special",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 3,
+   "hitsAt": [
+    2,
+    3
+   ],
+   "damage": 41,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 16 Chakra",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "six_paths_pain:Light>Light",
+   "char": "six_paths_pain",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 40,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "soldier_boy:Light>Light",
+   "char": "soldier_boy",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 36,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 11-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 11,
+   "gapAllowed": 12
+  },
+  {
+   "id": "spd_blue:Light,freshLight,freshLight>ForwardSpecial",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Baton Pursuit",
+   "steps": [
+    "Light, fresh Light, fresh Light",
+    "Forward Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 99,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 18 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "spd_blue:Light>Heavy>Special",
@@ -3023,7 +6005,7 @@
    "damage": 160,
    "difficulty": 2,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3047,7 +6029,7 @@
    "damage": 86,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3071,7 +6053,7 @@
    "damage": 108,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3095,7 +6077,7 @@
    "damage": 134,
    "difficulty": 1,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3119,9 +6101,105 @@
    "damage": 91,
    "difficulty": 1,
    "note": "uses 18 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Light>Special",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Deltamax Shot",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 82,
+   "difficulty": 1,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_blue:Light>Light",
+   "char": "spd_blue",
+   "name": "Intercept Jab → Baton Check → Driving Strike → Intercept Jab → Baton Check → Driving Strike",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 55,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Forward+Light>ForwardSpecial",
+   "char": "spd_green",
+   "name": "Step-in Elbow → Acrobat Step",
+   "steps": [
+    "Forward + Light",
+    "Forward Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 114,
+   "difficulty": 1,
+   "note": "the CPU landed this 3× in 90 s of play · uses 18 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "spd_green:Heavy>ForwardSpecial",
+   "char": "spd_green",
+   "name": "Turning Side Kick → Acrobat Step",
+   "steps": [
+    "Heavy",
+    "Forward Special"
+   ],
+   "gaps": [
+    0,
+    33
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    3
+   ],
+   "damage": 141,
+   "difficulty": 1,
+   "note": "the CPU landed this 2× in 90 s of play · uses 18 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "spd_green:Light>Heavy>Special",
@@ -3146,7 +6224,7 @@
    "damage": 153,
    "difficulty": 2,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3170,7 +6248,7 @@
    "damage": 88,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3194,7 +6272,7 @@
    "damage": 103,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3218,7 +6296,7 @@
    "damage": 128,
    "difficulty": 1,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3242,7 +6320,31 @@
    "damage": 85,
    "difficulty": 1,
    "note": "uses 18 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_green:Light>Special",
+   "char": "spd_green",
+   "name": "Quick Jab → Step Punch → High Kick → Deltamax Check",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 79,
+   "difficulty": 1,
+   "note": "uses 12 Energy",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3269,7 +6371,7 @@
    "damage": 159,
    "difficulty": 2,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3296,7 +6398,7 @@
    "damage": 131,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3320,7 +6422,7 @@
    "damage": 84,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3344,7 +6446,7 @@
    "damage": 108,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3368,7 +6470,55 @@
    "damage": 135,
    "difficulty": 1,
    "note": "uses 12 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Light>Down+Special",
+   "char": "spd_pink",
+   "name": "Baton Jab → Cross → Body Lunge → Rising Check",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 84,
+   "difficulty": 1,
+   "note": "uses 18 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_pink:Light>Light",
+   "char": "spd_pink",
+   "name": "Baton Jab → Cross → Body Lunge → Baton Jab → Cross → Body Lunge",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 54,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3398,9 +6548,63 @@
    "damage": 159,
    "difficulty": 4,
    "note": "uses 15 Delta",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/spd_red/COMBOS.md"
+  },
+  {
+   "id": "spd_red:Heavy>Down+Special>Down+Special",
+   "char": "spd_red",
+   "name": "Kick → Delta Blaster → Delta Blaster",
+   "steps": [
+    "Heavy",
+    "Down + Special",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    14,
+    8
+   ],
+   "hits": 6,
+   "hitsAt": [
+    1,
+    2,
+    6
+   ],
+   "damage": 135,
+   "difficulty": 2,
+   "note": "the CPU landed this 4× in 90 s of play · uses 20 Delta",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "spd_red:Heavy>Down+Special>→→+Special",
+   "char": "spd_red",
+   "name": "Kick → Delta Blaster → Delta Charge",
+   "steps": [
+    "Heavy",
+    "Down + Special",
+    "→→ + Special"
+   ],
+   "gaps": [
+    0,
+    14,
+    18
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 136,
+   "difficulty": 3,
+   "note": "the CPU landed this 1× in 90 s of play · uses 25 Delta",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "spd_red:Light>Light>Heavy",
@@ -3425,9 +6629,57 @@
    "damage": 130,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_red:Heavy>Down+Special",
+   "char": "spd_red",
+   "name": "Kick → Delta Blaster",
+   "steps": [
+    "Heavy",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 102,
+   "difficulty": 1,
+   "note": "the CPU landed this 3× in 90 s of play · uses 10 Delta",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "spd_red:Heavy>→→+Special",
+   "char": "spd_red",
+   "name": "Kick → Delta Charge",
+   "steps": [
+    "Heavy",
+    "→→ + Special"
+   ],
+   "gaps": [
+    0,
+    27
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 138,
+   "difficulty": 2,
+   "note": "the CPU landed this 1× in 90 s of play · uses 15 Delta",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "spd_red:Light>Up-Attack",
@@ -3449,7 +6701,7 @@
    "damage": 102,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3473,31 +6725,7 @@
    "damage": 90,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
-   "status": "verified",
-   "source": "generated (frame-data chain)"
-  },
-  {
-   "id": "spd_red:Light>Down+Special",
-   "char": "spd_red",
-   "name": "Jab → Delta Blaster",
-   "steps": [
-    "Light",
-    "Down + Special"
-   ],
-   "gaps": [
-    0,
-    7
-   ],
-   "hits": 2,
-   "hitsAt": [
-    1,
-    2
-   ],
-   "damage": 78,
-   "difficulty": 1,
-   "note": "uses 10 Delta",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3524,7 +6752,7 @@
    "damage": 130,
    "difficulty": 2,
    "note": "uses 10 Delta Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3551,9 +6779,33 @@
    "damage": 117,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:NeutralSpecial>Light,freshLight,freshLight",
+   "char": "spd_yellow",
+   "name": "Compact Pistol → Snap Jab → Draw Thrust → High-Low Cut",
+   "steps": [
+    "Neutral Special",
+    "Light, fresh Light, fresh Light"
+   ],
+   "gaps": [
+    0,
+    24
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 62,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 10 Delta Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "spd_yellow:Light>Up-Attack",
@@ -3575,7 +6827,7 @@
    "damage": 80,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3599,7 +6851,7 @@
    "damage": 104,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3623,9 +6875,84 @@
    "damage": 94,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Heavy>Special",
+   "char": "spd_yellow",
+   "name": "Cross Cut → Compact Pistol",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    33
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 107,
+   "difficulty": 1,
+   "note": "uses 10 Delta Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spd_yellow:Light>Special",
+   "char": "spd_yellow",
+   "name": "Snap Jab → Draw Thrust → High-Low Cut → Compact Pistol",
+   "steps": [
+    "Light",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 62,
+   "difficulty": 1,
+   "note": "uses 10 Delta Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "spiderman:Light>Light",
+   "char": "spiderman",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
   },
   {
    "id": "starfire:Light>Heavy>Special",
@@ -3650,7 +6977,7 @@
    "damage": 108,
    "difficulty": 2,
    "note": "uses 10 Energy",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3677,9 +7004,33 @@
    "damage": 95,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Heavy>Forward+Special",
+   "char": "starfire",
+   "name": "Heavy Starfist → Solar Rush",
+   "steps": [
+    "Heavy",
+    "Forward + Special"
+   ],
+   "gaps": [
+    0,
+    30
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 107,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 15 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "starfire:Light>Up-Attack",
@@ -3701,7 +7052,7 @@
    "damage": 62,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3725,7 +7076,7 @@
    "damage": 83,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3749,7 +7100,55 @@
    "damage": 76,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Heavy>Special",
+   "char": "starfire",
+   "name": "Heavy Starfist → Starbolt",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    30
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 90,
+   "difficulty": 1,
+   "note": "uses 10 Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "starfire:Light>Down+Special",
+   "char": "starfire",
+   "name": "Star Jab → Advancing Strike → Tamaranean Finisher (J1-J3) → Orbital Star",
+   "steps": [
+    "Light",
+    "Down + Special"
+   ],
+   "gaps": [
+    0,
+    8
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 48,
+   "difficulty": 1,
+   "note": "uses 16 Energy",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3776,9 +7175,33 @@
    "damage": 101,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "sukuna:Heavy>Special",
+   "char": "sukuna",
+   "name": "Heavy Cut → Cleave",
+   "steps": [
+    "Heavy",
+    "Special"
+   ],
+   "gaps": [
+    0,
+    24
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 148,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play · uses 40 Cursed Energy",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "sukuna:Up-Attack>Jump>Light",
@@ -3803,7 +7226,7 @@
    "damage": 80,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3827,7 +7250,7 @@
    "damage": 75,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3851,31 +7274,31 @@
    "damage": 75,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
   {
-   "id": "sukuna:Heavy>Special",
+   "id": "sukuna:Light>Light",
    "char": "sukuna",
-   "name": "Heavy Cut → Cleave",
+   "name": "Slash → Slash",
    "steps": [
-    "Heavy",
-    "Special"
+    "Light",
+    "Light"
    ],
    "gaps": [
     0,
-    24
+    14
    ],
    "hits": 2,
    "hitsAt": [
     1,
     2
    ],
-   "damage": 148,
+   "damage": 60,
    "difficulty": 1,
-   "note": "uses 40 Cursed Energy",
-   "verified": "2026-11-15",
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3902,7 +7325,7 @@
    "damage": 115,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3929,7 +7352,7 @@
    "damage": 84,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3953,7 +7376,7 @@
    "damage": 78,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -3977,7 +7400,7 @@
    "damage": 90,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4001,7 +7424,31 @@
    "damage": 92,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "syndrome:Light>Light",
+   "char": "syndrome",
+   "name": "Spinner Snap → Drone Cross → Spinner Pass → Spinner Snap → Drone Cross → Spinner Pass",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    11
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 58,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4028,9 +7475,33 @@
    "damage": 76,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "tobi:Light>Light",
+   "char": "tobi",
+   "name": "Light Attack → Light Attack",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    14
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 44,
+   "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
   },
   {
    "id": "tobi:Down+Light>Heavy",
@@ -4052,7 +7523,7 @@
    "damage": 56,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4076,13 +7547,40 @@
    "damage": 56,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
   {
-   "id": "tobi:Light>Light",
-   "char": "tobi",
+   "id": "toji:Light>Up-Attack",
+   "char": "toji",
+   "name": "Light Attack → Up-Attack",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 75,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "toji:Light>Light",
+   "char": "toji",
    "name": "Light Attack → Light Attack",
    "steps": [
     "Light",
@@ -4090,19 +7588,22 @@
    ],
    "gaps": [
     0,
-    14
+    18
    ],
    "hits": 2,
    "hitsAt": [
     1,
     2
    ],
-   "damage": 44,
+   "damage": 62,
    "difficulty": 1,
-   "note": "",
-   "verified": "2026-11-15",
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 10-frame gap",
+   "verified": "2026-11-20",
    "status": "verified",
-   "source": "generated (frame-data chain)"
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 10,
+   "gapAllowed": 12
   },
   {
    "id": "vegeta:Heavy>Special",
@@ -4124,7 +7625,7 @@
    "damage": 70,
    "difficulty": 1,
    "note": "uses 30 Ki",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4148,7 +7649,7 @@
    "damage": 48,
    "difficulty": 1,
    "note": "uses 25 Ki",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4172,31 +7673,181 @@
    "damage": 48,
    "difficulty": 1,
    "note": "uses 30 Ki",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
   {
-   "id": "yuji:Down+Light>Heavy",
-   "char": "yuji",
-   "name": "Down + Light → Heavy Attack",
+   "id": "windrangers:Heavy,Heavy,Heavy>↓↘→↓↘→+Special/Ultimate",
+   "char": "windrangers",
+   "name": "Kick string → STORM ASCENSION (Super, 1 bar) · HAWK MIRAGE (Ultimate, 2 bars, Mirror only)",
    "steps": [
-    "Down + Light",
+    "Heavy, Heavy, Heavy",
+    "↓↘→↓↘→ + Special / Ultimate"
+   ],
+   "gaps": [
+    0,
+    10
+   ],
+   "hits": 8,
+   "hitsAt": [
+    1,
+    8
+   ],
+   "damage": 277,
+   "difficulty": 2,
+   "note": "the CPU landed this 1× in 90 s of play · uses 50 Ninja Power (shared)",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "windrangers:Light>Light>Heavy",
+   "char": "windrangers",
+   "name": "Jab → Jab → Kick string",
+   "steps": [
+    "Light",
+    "Light",
     "Heavy"
    ],
    "gaps": [
     0,
-    13
+    12,
+    7
+   ],
+   "hits": 3,
+   "hitsAt": [
+    1,
+    2,
+    3
+   ],
+   "damage": 85,
+   "difficulty": 2,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "windrangers:Up-Attack>Jump>Light",
+   "char": "windrangers",
+   "name": "Uppercut → jump → Jab",
+   "steps": [
+    "Up-Attack",
+    "Jump",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    22,
+    4
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    1,
+    2
+   ],
+   "damage": 105,
+   "difficulty": 3,
+   "note": "jump right as the launcher connects",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "windrangers:Light>Up-Attack",
+   "char": "windrangers",
+   "name": "Jab → Uppercut",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    7
    ],
    "hits": 2,
    "hitsAt": [
     1,
     2
    ],
-   "damage": 70,
+   "damage": 84,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "windrangers:Down+Light>Heavy",
+   "char": "windrangers",
+   "name": "Low sweep → Kick string",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    16
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "windrangers:Light>Heavy",
+   "char": "windrangers",
+   "name": "Jab → Kick string",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    7
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 59,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "windrangers:Light>Light",
+   "char": "windrangers",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    12
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 65,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4219,8 +7870,32 @@
    ],
    "damage": 70,
    "difficulty": 1,
+   "note": "the CPU landed this 1× in 90 s of play",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (watched the CPU play)"
+  },
+  {
+   "id": "yuji:Down+Light>Heavy",
+   "char": "yuji",
+   "name": "Down + Light → Heavy Attack",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    13
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 70,
+   "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4244,7 +7919,7 @@
    "damage": 93,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4271,7 +7946,7 @@
    "damage": 63,
    "difficulty": 3,
    "note": "jump right as the launcher connects",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4298,7 +7973,7 @@
    "damage": 70,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4322,7 +7997,7 @@
    "damage": 44,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4346,7 +8021,7 @@
    "damage": 44,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4370,9 +8045,117 @@
    "damage": 44,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zenitsu:Light>Up-Attack",
+   "char": "zenitsu",
+   "name": "Quick Slash → Rising Bolt",
+   "steps": [
+    "Light",
+    "Up-Attack"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 114,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 9-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 9,
+   "gapAllowed": 12
+  },
+  {
+   "id": "zenitsu:Down+Light>Heavy",
+   "char": "zenitsu",
+   "name": "Down + Light → Heavy Cut",
+   "steps": [
+    "Down + Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 118,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "zenitsu:Light>Heavy",
+   "char": "zenitsu",
+   "name": "Quick Slash → Heavy Cut",
+   "steps": [
+    "Light",
+    "Heavy"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 118,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 12-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 12,
+   "gapAllowed": 12
+  },
+  {
+   "id": "zenitsu:Light>Light",
+   "char": "zenitsu",
+   "name": "Quick Slash → Quick Slash",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    18
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 96,
+   "difficulty": 1,
+   "note": "combo string: the game counts every hit, but a real opponent could block in the 8-frame gap",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)",
+   "kind": "string",
+   "freeFrames": 8,
+   "gapAllowed": 12
   },
   {
    "id": "zoro:Light>Light>Heavy>↓↘→+Special",
@@ -4400,7 +8183,7 @@
    "damage": 154,
    "difficulty": 4,
    "note": "uses 10 Spirit",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "docs/zoro/COMBOS.md"
   },
@@ -4427,7 +8210,7 @@
    "damage": 128,
    "difficulty": 2,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4451,7 +8234,7 @@
    "damage": 80,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4475,7 +8258,7 @@
    "damage": 105,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   },
@@ -4499,7 +8282,31 @@
    "damage": 97,
    "difficulty": 1,
    "note": "",
-   "verified": "2026-11-15",
+   "verified": "2026-11-20",
+   "status": "verified",
+   "source": "generated (frame-data chain)"
+  },
+  {
+   "id": "zoro:Light>Light",
+   "char": "zoro",
+   "name": "Jab → Jab",
+   "steps": [
+    "Light",
+    "Light"
+   ],
+   "gaps": [
+    0,
+    9
+   ],
+   "hits": 2,
+   "hitsAt": [
+    1,
+    2
+   ],
+   "damage": 73,
+   "difficulty": 1,
+   "note": "",
+   "verified": "2026-11-20",
    "status": "verified",
    "source": "generated (frame-data chain)"
   }

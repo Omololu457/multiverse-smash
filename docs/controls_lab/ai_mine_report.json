@@ -1,0 +1,686 @@
+{
+ "frames": 5400,
+ "stats": {
+  "albedo": {
+   "attacks": 109,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 4
+  },
+  "baki": {
+   "attacks": 25,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 8
+  },
+  "ben10": {
+   "attacks": 118,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 4
+  },
+  "gwen": {
+   "attacks": 52,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 6
+  },
+  "byakuya": {
+   "attacks": 86,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 5
+  },
+  "vilgax": {
+   "attacks": 68,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "ichigo": {
+   "attacks": 80,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 7
+  },
+  "zaraki_shikai": {
+   "attacks": 70,
+   "runs": 2,
+   "routes": 1,
+   "mapped": 5
+  },
+  "zaraki": {
+   "attacks": 56,
+   "runs": 6,
+   "routes": 5,
+   "mapped": 6
+  },
+  "kevin_levin": {
+   "attacks": 67,
+   "runs": 0,
+   "routes": 0,
+   "mapped": 0
+  },
+  "mayuri": {
+   "attacks": 89,
+   "runs": 10,
+   "routes": 6,
+   "mapped": 5
+  },
+  "batman": {
+   "attacks": 12,
+   "runs": 1,
+   "routes": 1,
+   "mapped": 13
+  },
+  "green_arrow": {
+   "attacks": 38,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 4
+  },
+  "cyborg": {
+   "attacks": 95,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 12
+  },
+  "homelander": {
+   "attacks": 70,
+   "runs": 4,
+   "routes": 4,
+   "mapped": 8
+  },
+  "beast_boy": {
+   "attacks": 89,
+   "runs": 11,
+   "routes": 1,
+   "mapped": 11
+  },
+  "starfire": {
+   "attacks": 72,
+   "runs": 5,
+   "routes": 3,
+   "mapped": 10
+  },
+  "robin": {
+   "attacks": 56,
+   "runs": 3,
+   "routes": 2,
+   "mapped": 10
+  },
+  "superman": {
+   "attacks": 69,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 7
+  },
+  "light": {
+   "attacks": 75,
+   "runs": 12,
+   "routes": 6,
+   "mapped": 4
+  },
+  "raven": {
+   "attacks": 102,
+   "runs": 11,
+   "routes": 6,
+   "mapped": 11
+  },
+  "l_ryuuzaki": {
+   "attacks": 58,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 5
+  },
+  "flash": {
+   "attacks": 84,
+   "runs": 4,
+   "routes": 4,
+   "mapped": 4
+  },
+  "inosuke": {
+   "attacks": 18,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 4
+  },
+  "shinobu": {
+   "attacks": 17,
+   "runs": 0,
+   "routes": 0,
+   "mapped": 5
+  },
+  "nezuko": {
+   "attacks": 42,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 6
+  },
+  "rengoku": {
+   "attacks": 17,
+   "runs": 0,
+   "routes": 0,
+   "mapped": 5
+  },
+  "zenitsu": {
+   "attacks": 29,
+   "runs": 4,
+   "routes": 3,
+   "mapped": 5
+  },
+  "vegeta_dark": {
+   "attacks": 82,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 6
+  },
+  "beerus": {
+   "attacks": 78,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "ippo": {
+   "attacks": 70,
+   "runs": 11,
+   "routes": 6,
+   "mapped": 5
+  },
+  "goku": {
+   "attacks": 22,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 5
+  },
+  "jesus": {
+   "attacks": 63,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 3
+  },
+  "vegeta": {
+   "attacks": 70,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 6
+  },
+  "hisoka": {
+   "attacks": 74,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 5
+  },
+  "ghostface": {
+   "attacks": 69,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "chrollo": {
+   "attacks": 66,
+   "runs": 3,
+   "routes": 3,
+   "mapped": 5
+  },
+  "aoi_todo": {
+   "attacks": 92,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 5
+  },
+  "goku_black": {
+   "attacks": 19,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 3
+  },
+  "netero": {
+   "attacks": 80,
+   "runs": 12,
+   "routes": 6,
+   "mapped": 5
+  },
+  "alt_sukuna": {
+   "attacks": 70,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 5
+  },
+  "jason": {
+   "attacks": 59,
+   "runs": 5,
+   "routes": 5,
+   "mapped": 4
+  },
+  "maki": {
+   "attacks": 20,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 5
+  },
+  "gojo": {
+   "attacks": 71,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "miwa": {
+   "attacks": 68,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 5
+  },
+  "killua": {
+   "attacks": 77,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 5
+  },
+  "yuji": {
+   "attacks": 75,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "toji": {
+   "attacks": 35,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 8
+  },
+  "megumi_fushiguro": {
+   "attacks": 96,
+   "runs": 5,
+   "routes": 4,
+   "mapped": 14
+  },
+  "gaara": {
+   "attacks": 68,
+   "runs": 5,
+   "routes": 5,
+   "mapped": 7
+  },
+  "higuruma": {
+   "attacks": 103,
+   "runs": 8,
+   "routes": 5,
+   "mapped": 12
+  },
+  "spiderman": {
+   "attacks": 17,
+   "runs": 1,
+   "routes": 1,
+   "mapped": 5
+  },
+  "yuta": {
+   "attacks": 84,
+   "runs": 13,
+   "routes": 6,
+   "mapped": 5
+  },
+  "itachi": {
+   "attacks": 54,
+   "runs": 5,
+   "routes": 4,
+   "mapped": 4
+  },
+  "sukuna": {
+   "attacks": 66,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "hashirama": {
+   "attacks": 52,
+   "runs": 5,
+   "routes": 3,
+   "mapped": 5
+  },
+  "isshiki": {
+   "attacks": 83,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "soldier_boy": {
+   "attacks": 56,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 5
+  },
+  "kakashi_war": {
+   "attacks": 85,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 7
+  },
+  "jiraiya": {
+   "attacks": 40,
+   "runs": 4,
+   "routes": 4,
+   "mapped": 5
+  },
+  "kakashi_anbu": {
+   "attacks": 83,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 6
+  },
+  "hinata": {
+   "error": "page.evaluate: ReferenceError: executeHinataUltimate is not defined\n    at triggerUltimate (http://127.0.0.1:49909/abilities.js?v=132d2dc47a:35357:23)\n    at _updatePlayerCombatBody (http://127.0.0.1:"
+  },
+  "naruto": {
+   "attacks": 55,
+   "runs": 3,
+   "routes": 3,
+   "mapped": 4
+  },
+  "kakashi": {
+   "attacks": 79,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 7
+  },
+  "madara": {
+   "attacks": 79,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 8
+  },
+  "minato": {
+   "attacks": 73,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 4
+  },
+  "sakura": {
+   "attacks": 63,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 8
+  },
+  "naruto_seventh": {
+   "attacks": 70,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 7
+  },
+  "pain": {
+   "attacks": 83,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 5
+  },
+  "sasuke": {
+   "attacks": 70,
+   "runs": 4,
+   "routes": 4,
+   "mapped": 4
+  },
+  "obito": {
+   "attacks": 61,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 6
+  },
+  "shisui_fallen": {
+   "attacks": 76,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 6
+  },
+  "six_paths_pain": {
+   "attacks": 84,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 6
+  },
+  "sasuke_adult": {
+   "attacks": 70,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 8
+  },
+  "sasuke_sensei": {
+   "attacks": 86,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 13
+  },
+  "tobi": {
+   "attacks": 73,
+   "runs": 6,
+   "routes": 5,
+   "mapped": 6
+  },
+  "tobirama": {
+   "attacks": 14,
+   "runs": 1,
+   "routes": 1,
+   "mapped": 5
+  },
+  "buggy": {
+   "attacks": 122,
+   "runs": 9,
+   "routes": 5,
+   "mapped": 15
+  },
+  "arlong": {
+   "attacks": 61,
+   "runs": 6,
+   "routes": 4,
+   "mapped": 18
+  },
+  "genos": {
+   "attacks": 76,
+   "runs": 5,
+   "routes": 5,
+   "mapped": 7
+  },
+  "sanji": {
+   "attacks": 169,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 16
+  },
+  "luffy": {
+   "attacks": 75,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 18
+  },
+  "zoro": {
+   "attacks": 91,
+   "runs": 12,
+   "routes": 6,
+   "mapped": 15
+  },
+  "omololu": {
+   "attacks": 11,
+   "runs": 1,
+   "routes": 1,
+   "mapped": 7
+  },
+  "saitama": {
+   "attacks": 72,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 7
+  },
+  "dseyl": {
+   "attacks": 99,
+   "runs": 13,
+   "routes": 6,
+   "mapped": 14
+  },
+  "green_samurai_ranger": {
+   "attacks": 71,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 5
+  },
+  "gold_samurai_ranger": {
+   "attacks": 64,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 5
+  },
+  "mmpr_black": {
+   "attacks": 99,
+   "runs": 12,
+   "routes": 4,
+   "mapped": 9
+  },
+  "enoch": {
+   "attacks": 80,
+   "runs": 5,
+   "routes": 3,
+   "mapped": 15
+  },
+  "ninja_storm_rangers": {
+   "attacks": 167,
+   "runs": 11,
+   "routes": 6,
+   "mapped": 13
+  },
+  "ninja_storm_cgpt": {
+   "attacks": 114,
+   "runs": 0,
+   "routes": 0,
+   "mapped": 3
+  },
+  "krybot": {
+   "attacks": 76,
+   "runs": 9,
+   "routes": 5,
+   "mapped": 10
+  },
+  "green_ranger": {
+   "attacks": 51,
+   "runs": 1,
+   "routes": 1,
+   "mapped": 11
+  },
+  "omega_ranger": {
+   "attacks": 73,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 7
+  },
+  "mmpr_pink": {
+   "attacks": 67,
+   "runs": 5,
+   "routes": 2,
+   "mapped": 9
+  },
+  "spd_blue": {
+   "attacks": 83,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 19
+  },
+  "samurai_red_ranger": {
+   "attacks": 60,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 4
+  },
+  "windrangers": {
+   "attacks": 172,
+   "runs": 6,
+   "routes": 6,
+   "mapped": 20
+  },
+  "spd_green": {
+   "attacks": 74,
+   "runs": 12,
+   "routes": 6,
+   "mapped": 18
+  },
+  "rick": {
+   "attacks": 76,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 6
+  },
+  "spd_pink": {
+   "attacks": 63,
+   "runs": 8,
+   "routes": 6,
+   "mapped": 17
+  },
+  "red_ranger_mmpr": {
+   "attacks": 69,
+   "runs": 5,
+   "routes": 4,
+   "mapped": 5
+  },
+  "frozone": {
+   "attacks": 97,
+   "runs": 7,
+   "routes": 2,
+   "mapped": 10
+  },
+  "mmpr_white": {
+   "attacks": 69,
+   "runs": 7,
+   "routes": 3,
+   "mapped": 9
+  },
+  "spd_red": {
+   "attacks": 97,
+   "runs": 11,
+   "routes": 6,
+   "mapped": 13
+  },
+  "spd_yellow": {
+   "attacks": 67,
+   "runs": 8,
+   "routes": 4,
+   "mapped": 12
+  },
+  "saiki": {
+   "attacks": 72,
+   "runs": 9,
+   "routes": 6,
+   "mapped": 5
+  },
+  "dash_parr": {
+   "attacks": 37,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 9
+  },
+  "rickPrime": {
+   "attacks": 47,
+   "runs": 7,
+   "routes": 6,
+   "mapped": 4
+  },
+  "mr_incredible": {
+   "attacks": 82,
+   "runs": 5,
+   "routes": 3,
+   "mapped": 10
+  },
+  "elastigirl": {
+   "attacks": 134,
+   "runs": 2,
+   "routes": 2,
+   "mapped": 9
+  },
+  "syndrome": {
+   "attacks": 106,
+   "runs": 13,
+   "routes": 3,
+   "mapped": 15
+  },
+  "violet": {
+   "attacks": 73,
+   "runs": 5,
+   "routes": 4,
+   "mapped": 9
+  }
+ }
+}

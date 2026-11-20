@@ -10,10 +10,12 @@ import { stepOf } from "../../controls_lab/combos.js"
 
 const ROOT = path.resolve(process.argv[2] || ".")
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d }
-const WORKERS = +arg("--workers", 6), ONLY = arg("--only", null), MAX = +arg("--max", 5), TURBO = +arg("--turbo", 8)
+const GAP = +arg("--allow-gap", 0)   // >0: also keep COMBO STRINGS (counter keeps counting, ≤ GAP free frames between hits)
+const WORKERS = +arg("--workers", 6), ONLY = arg("--only", null), MAX = +arg("--max", 8), TURBO = +arg("--turbo", 8)
 const TODAY = arg("--date", new Date().toISOString().slice(0, 10))
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const DOC = JSON.parse(fs.readFileSync(path.join(HERE, "combo_candidates.json"), "utf8"))
+let AI = {}; try { AI = JSON.parse(fs.readFileSync(path.join(HERE, "combo_candidates_ai.json"), "utf8")).candidates || {} } catch (_) {}   // routes the CPU landed (ai_combo_mine.mjs)
 const GENERIC = [
   ["Light", "Heavy", "Special"], ["Light", "Light", "Heavy"], ["Up-Attack", "Jump", "Light"], ["Light", "Up-Attack"],
   ["Down + Light", "Heavy"], ["Light", "Heavy"], ["Heavy", "Special"], ["Light", "Down + Special"], ["Light", "Special"], ["Light", "Light"],
@@ -95,7 +97,7 @@ async function worker(keys, wi) {
       const L = window.__lab, r = L.api.buildMoves(k)
       return { energy: r.kit?.energy || "meter", moves: r.moves.map(m => ({ name: m.name, input: m.input, cat: m.cat, air: m.parsed.air, steps: m.parsed.steps, startup: m.startup, active: m.active, recovery: m.recovery, cost: m.cost })) }
     }, key)
-    const cands = [...(DOC[key] || []).map(d => ({ ...d, source: `docs/${d.doc || key}/COMBOS.md` })), ...GENERIC.map(steps => ({ steps, source: "generated (frame-data chain)" }))]
+    const cands = [...(DOC[key] || []).map(d => ({ ...d, source: `docs/${d.doc || key}/COMBOS.md` })), ...(AI[key] || []).map(d => ({ ...d, source: "generated (watched the CPU play)" })), ...GENERIC.map(steps => ({ steps, source: "generated (frame-data chain)" }))]
     let kept = 0
     // PRE-FILTER: a grounded step that cannot land a hit on its own from close range can't start or extend a combo;
     // test each one once (turbo) and drop every candidate that uses a dead step, before any timing search.
@@ -119,7 +121,7 @@ async function worker(keys, wi) {
         const tries = prev === "Jump" ? [6, 8, 10, 12, 4] : gapCandidates(frameDataFor(info.moves, prev))
         let found = false
         for (const g of tries) {
-          const c = { char: key, steps: cand.steps.slice(0, i + 1), gaps: [...gaps, g], tail: 40 }
+          const c = { char: key, steps: cand.steps.slice(0, i + 1), gaps: [...gaps, g], tail: 40, gapAllowed: GAP }
           last = await turboVerify(c)
           if (last.ok) { gaps.push(g); found = true; break }
         }
@@ -127,9 +129,9 @@ async function worker(keys, wi) {
       }
       if (failed || !last?.ok) { report.push({ char: key, steps: cand.steps, source: cand.source, rejected: last?.reason || "did not connect" }); continue }
       // CONFIRM at real 1x speed, twice (the search ran in turbo): run 1 measures, run 2 must match it exactly
-      const real = await page.evaluate(c => window.__lab.api.verifyCombo(c, { expect: false }), { char: key, steps: cand.steps, gaps })
+      const real = await page.evaluate(c => window.__lab.api.verifyCombo(c, { expect: false }), { char: key, steps: cand.steps, gaps, gapAllowed: GAP })
       if (!real.ok) { report.push({ char: key, steps: cand.steps, source: cand.source, rejected: `failed at real speed: ${real.reason}` }); continue }
-      const c = { char: key, steps: cand.steps, gaps, hits: real.comboCounter }
+      const c = { char: key, steps: cand.steps, gaps, hits: real.comboCounter, gapAllowed: GAP }
       const again = await page.evaluate(c => window.__lab.api.verifyCombo(c), c)
       if (!again.ok || again.damage !== real.damage) { report.push({ char: key, steps: cand.steps, source: cand.source, rejected: `re-verify differed: ${again.reason || `damage ${real.damage} vs ${again.damage}`}` }); continue }
       const cost = cand.steps.reduce((t, s) => t + (s !== "Jump" ? (frameDataFor(info.moves, s)?.cost || 0) : 0), 0)
@@ -137,10 +139,13 @@ async function worker(keys, wi) {
       if (cand.note) notes.push(cand.note)
       if (cost > 0) notes.push(`uses ${cost} ${info.energy}`)
       if (cand.steps.includes("Jump")) notes.push("jump right as the launcher connects")
+      const isString = (again.freeFrames || real.freeFrames || 0) > 0
+      if (isString) notes.push(`combo string: the game counts every hit, but a real opponent could block in the ${Math.max(again.freeFrames, real.freeFrames)}-frame gap`)
       const entry = {
         id: `${key}:${cand.steps.join(">").replace(/\s+/g, "")}`, char: key, name: cand.name || nameFor(cand.steps, info.moves),
         steps: cand.steps, gaps, hits: again.comboCounter, hitsAt: again.hitsAt, damage: again.damage,
         difficulty: difficultyFor(cand.steps), note: notes.join(" · "), verified: TODAY, status: "verified", source: cand.source,
+        ...(isString ? { kind: "string", freeFrames: Math.max(again.freeFrames, real.freeFrames), gapAllowed: GAP } : {}),
       }
       results.push(entry); kept++
       report.push({ char: key, steps: cand.steps, source: cand.source, verified: true, hits: entry.hits, damage: entry.damage })

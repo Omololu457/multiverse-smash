@@ -86,7 +86,10 @@ export async function verifyCombo(eng, c, { expect = true } = {}) {
   let reason = null
   if (!hitEvents) reason = "no hit landed"
   else if (stepMiss >= 0) reason = `step ${stepMiss + 1} (${c.steps[stepMiss]}) did not connect`
-  else if (freeAfterFirst > 0) reason = `dummy had ${freeAfterFirst} free frame(s) between hits (not a true combo)`
+  // A COMBO STRING (entry `gapAllowed`, kind "string"): the game's combo counter keeps counting every hit, but the dummy gets a
+  // few free frames between two of them (a link a real opponent could block). Up to `gapAllowed` is accepted; true combos have 0.
+  else if (freeAfterFirst > (c.gapAllowed || 0)) reason = `dummy had ${freeAfterFirst} free frame(s) between hits (not a true combo)`
+  else if (freeAfterFirst > 0 && maxCombo < hitEvents) reason = `the game's combo counter reset mid-string (${maxCombo} of ${hitEvents} hits)`
   else if (expect && c.hits != null && maxCombo !== c.hits) reason = `combo counter ${maxCombo}, expected ${c.hits}`
-  return { ok: !reason, hits: Math.max(maxCombo, hitEvents), comboCounter: maxCombo, hitEvents, hitsAt, damage, reason }
+  return { ok: !reason, hits: Math.max(maxCombo, hitEvents), comboCounter: maxCombo, hitEvents, hitsAt, damage, freeFrames: freeAfterFirst, reason }
 }

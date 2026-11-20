@@ -263,7 +263,7 @@ function comboCard(c, i) {
     <div class="nm">${esc(c.name)}</div>
     <div class="row"><span class="inp">${comboSteps(c).map(s => stepGlyphs(s)).join(`<span class="g plus">›</span>`)}</span></div>
     <div class="row"><span class="stat">DMG <b>${c.damage}</b> · Hits <b>${c.hits}</b> · Difficulty <span class="diff">${"★".repeat(c.difficulty)}${"☆".repeat(5 - c.difficulty)}</span></span>
-      <span class="verified">✔ verified ${esc(c.verified)}</span>${done ? `<span class="verified">★ mastered</span>` : ""}</div>
+      <span class="verified">✔ verified ${esc(c.verified)}</span>${c.kind === "string" ? `<span class="stat" title="The game counts every hit as one combo, but there is a short gap a real opponent could block in">STRING · gap ${c.freeFrames}f</span>` : `<span class="stat">TRUE COMBO</span>`}${done ? `<span class="verified">★ mastered</span>` : ""}</div>
     ${c.note ? `<div class="desc">${esc(c.note)}</div>` : ""}
   </div>`
 }
@@ -451,7 +451,7 @@ function trialFrame(T, ev, raw) {
     guideTrial(T); renderTrialSteps(T)
     T.endAt = ev.frame + (T.ptr > stage.to ? 70 : 90)
   }
-  if (T.freeAfterHit > 0 && !T.failed) return fail(T, T.ptr > stage.to ? "Dropped — the hits didn't link" : "Too slow — the combo dropped", T.log)
+  if (T.freeAfterHit > (T.combo?.gapAllowed || 0) && !T.failed) return fail(T, T.ptr > stage.to ? "Dropped — the hits didn't link" : "Too slow — the combo dropped", T.log)
   if (T.ptr > stage.to && T.hitEvents >= T.hitsNeeded && !T.failed) return stageCleared(T)
   if (T.endAt != null && ev.frame >= T.endAt && !T.failed) fail(T, T.ptr > stage.to ? "Dropped — the hits didn't link" : "Too slow — the combo dropped", T.log)
 }

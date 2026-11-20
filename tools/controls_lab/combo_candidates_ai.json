@@ -1,0 +1,4822 @@
+{
+ "note": "Routes the IMPOSSIBLE CPU landed in AI-vs-AI play (tools/controls_lab/ai_combo_mine.mjs). Candidates only — build_combos.mjs verifies them.",
+ "candidates": {
+  "albedo": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Light",
+     "Heavy",
+     "Up-Attack",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "baki": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "ben10": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "gwen": [
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "byakuya": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Special",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "vilgax": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Forward + Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "ichigo": [
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "zaraki_shikai": [
+   {
+    "steps": [
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   }
+  ],
+  "zaraki": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "kevin_levin": [],
+  "mayuri": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "batman": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "green_arrow": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "cyborg": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Forward + Special",
+     "Forward + Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up + Heavy / Up-Attack",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "homelander": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "beast_boy": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 11× in 90 s of play"
+   }
+  ],
+  "starfire": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "robin": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up + Special",
+     "Forward + Heavy",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "superman": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "light": [
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "raven": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 6× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Neutral Special",
+     "Forward + Special",
+     "Forward + Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Up + Heavy / Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "l_ryuuzaki": [
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Up-Attack",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "flash": [
+   {
+    "steps": [
+     "Special",
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Special",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "inosuke": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "shinobu": [],
+  "nezuko": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "rengoku": [],
+  "zenitsu": [
+   {
+    "steps": [
+     "Light",
+     "Ultimate"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Ultimate"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "vegeta_dark": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   }
+  ],
+  "beerus": [
+   {
+    "steps": [
+     "Up-Attack",
+     "Up-Attack",
+     "Up-Attack",
+     "Up-Attack",
+     "Up-Attack",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Up-Attack",
+     "Up-Attack",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "ippo": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   }
+  ],
+  "goku": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "jesus": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "vegeta": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Special",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "hisoka": [
+   {
+    "steps": [
+     "Up-Attack",
+     "Special",
+     "Up-Attack",
+     "Heavy",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "ghostface": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Forward + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "chrollo": [
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Special",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special",
+     "Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "aoi_todo": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "goku_black": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "netero": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Jump",
+     "Light",
+     "Down + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "alt_sukuna": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "jason": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Heavy",
+     "Special",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "maki": [
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Heavy",
+     "Light",
+     "Special",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "gojo": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "miwa": [
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Jump",
+     "Down + Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Special",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "killua": [
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   }
+  ],
+  "yuji": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "toji": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "megumi_fushiguro": [
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up + Heavy",
+     "Light",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Back + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "gaara": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Down + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "higuruma": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 4× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Forward + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "spiderman": [
+   {
+    "steps": [
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "yuta": [
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   }
+  ],
+  "itachi": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "sukuna": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "hashirama": [
+   {
+    "steps": [
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Jump",
+     "Down + Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "isshiki": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "soldier_boy": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "kakashi_war": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "jiraiya": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Up + Special",
+     "Up + Special",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "kakashi_anbu": [
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Jump",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "naruto": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "kakashi": [
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Jump",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "madara": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "minato": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "sakura": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Special",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Forward + Special",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Special",
+     "Up-Attack"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "naruto_seventh": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "pain": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Jump",
+     "Down + Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "sasuke": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "obito": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "shisui_fallen": [
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "six_paths_pain": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "sasuke_adult": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special",
+     "Light",
+     "Light",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "sasuke_sensei": [
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Back + Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "tobi": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Forward + Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "tobirama": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "buggy": [
+   {
+    "steps": [
+     "→→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "↓↙← + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "→→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "arlong": [
+   {
+    "steps": [
+     "Forward + Heavy",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "Light",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "↓↘→ + Heavy",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Back + Heavy",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "genos": [
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Special",
+     "Light",
+     "Light",
+     "Jump",
+     "Down + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Forward + Special",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "sanji": [
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Heavy",
+     "→ · → + Special",
+     "Special",
+     "→ · → + Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "→ · → + Special",
+     "Special",
+     "→ · → + Special",
+     "Forward + Light",
+     "Forward + Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "luffy": [
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward + Special",
+     "Forward + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Heavy",
+     "Forward + Special",
+     "Forward + Special",
+     "Forward + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Heavy",
+     "Forward + Special",
+     "Heavy",
+     "Forward + Heavy, fresh Heavy, fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Heavy",
+     "Forward + Heavy, fresh Heavy, fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral + Special",
+     "Forward + Light",
+     "Forward + Heavy, fresh Heavy, fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Up-Attack / Up + Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "zoro": [
+   {
+    "steps": [
+     "→→ + Special",
+     "→→ + Special",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "→→ + Special",
+     "Light",
+     "→→ + Special",
+     "↓↘→ + Special",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "↓↘→ + Special",
+     "→→ + Special",
+     "→→ + Special",
+     "Light",
+     "→→ + Special",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "→→ + Special",
+     "Heavy",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "→→ + Special",
+     "Light",
+     "→→ + Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "omololu": [
+   {
+    "steps": [
+     "Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "saitama": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Forward + Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "dseyl": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 5× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Heavy",
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "green_samurai_ranger": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Heavy",
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "gold_samurai_ranger": [
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Special",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "mmpr_black": [
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 5× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 4× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Forward + Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "enoch": [
+   {
+    "steps": [
+     "Heavy",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack / Up + Heavy",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "ninja_storm_rangers": [
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 4× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Heavy",
+     "Special",
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Special",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Special",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "ninja_storm_cgpt": [],
+  "krybot": [
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 5× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral + Special",
+     "Forward + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Neutral + Special",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Forward + Heavy, fresh Heavy, fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "green_ranger": [
+   {
+    "steps": [
+     "Heavy",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "omega_ranger": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Jump",
+     "Down + Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Heavy",
+     "Heavy",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "mmpr_pink": [
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 4× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Forward Special",
+     "Forward + Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "spd_blue": [
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Back + Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "samurai_red_ranger": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "windrangers": [
+   {
+    "steps": [
+     "Forward + Heavy",
+     "↓↘→ + Light",
+     "↓↘→ + Light",
+     "↓↘→ + Light",
+     "↓↘→ + Light",
+     "Forward + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Forward + Light",
+     "↓↘→ + Light",
+     "Forward + Light",
+     "↓↘→ + Light",
+     "Forward + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Heavy",
+     "Forward + Light",
+     "Forward + Heavy",
+     "Light",
+     "Double-tap ← / →",
+     "↓↘→↓↘→ + Special / Ultimate"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Double-tap ← / →",
+     "Heavy, Heavy, Heavy",
+     "Double-tap ← / →"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Heavy",
+     "Forward + Light",
+     "Double-tap ← / →"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy, Heavy, Heavy",
+     "↓↘→↓↘→ + Special / Ultimate"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "spd_green": [
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Neutral Special",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward+Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward+Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward+Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "rick": [
+   {
+    "steps": [
+     "Light",
+     "Jump",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Up-Attack",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "spd_pink": [
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward Special",
+     "Forward + Light",
+     "Forward Special",
+     "Forward+Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward Special",
+     "Forward Special",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward+Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward Special",
+     "Forward+Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward + Light",
+     "Forward Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Light",
+     "Forward + Light",
+     "Forward Special",
+     "Forward + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light, fresh Light, fresh Light",
+     "Forward Special",
+     "Forward + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "red_ranger_mmpr": [
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Heavy",
+     "Light",
+     "Down + Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "frozone": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 6× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "mmpr_white": [
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward Special",
+     "Forward + Heavy → fresh Heavy → fresh Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "spd_red": [
+   {
+    "steps": [
+     "Heavy",
+     "Down + Special",
+     "Down + Special"
+    ],
+    "note": "the CPU landed this 4× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Down + Special"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "↓↘→ + Special",
+     "Down + Special",
+     "Down + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Down + Special",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "spd_yellow": [
+   {
+    "steps": [
+     "Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 5× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Heavy",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Neutral Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "saiki": [
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Special",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Special",
+     "Light",
+     "Heavy",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Light",
+     "Light",
+     "Heavy",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   }
+  ],
+  "dash_parr": [
+   {
+    "steps": [
+     "Heavy",
+     "→→ + Special",
+     "Jump",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "→→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "rickPrime": [
+   {
+    "steps": [
+     "Light",
+     "Heavy",
+     "Light",
+     "Special",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Heavy",
+     "Jump",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Light",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Special",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "Light",
+     "Heavy"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "mr_incredible": [
+   {
+    "steps": [
+     "Heavy / Forward + Heavy",
+     "Forward + Special"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy / Forward + Heavy",
+     "Forward + Special",
+     "Light, Light, Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Forward + Special",
+     "Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "elastigirl": [
+   {
+    "steps": [
+     "Heavy",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "Light",
+     "↓↘→ + Special",
+     "Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "syndrome": [
+   {
+    "steps": [
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 9× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Forward + Special",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 3× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Heavy",
+     "Heavy",
+     "Light, fresh Light, fresh Light",
+     "Light, fresh Light, fresh Light"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ],
+  "violet": [
+   {
+    "steps": [
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 2× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Light",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "Up-Attack",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   },
+   {
+    "steps": [
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special",
+     "↓↘→ + Special"
+    ],
+    "note": "the CPU landed this 1× in 90 s of play"
+   }
+  ]
+ }
+}

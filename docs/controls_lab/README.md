@@ -43,3 +43,16 @@ The page only shows entries with `status: "verified"`, so run the combos test be
 `test:controls-lab-roster` (every fighter loads and animates, every move demos), `test:controls-lab-combos`
 (every combo re-verifies), `test:controls-lab-links` (main menu / Academy links plus a main-game render check).
 Screenshots: `docs/controls_lab/screenshots/`.
+
+## Watching the CPU (2026-11-20)
+`node tools/controls_lab/ai_combo_mine.mjs . [--only key,key] [--frames 5400]` plays each fighter as the IMPOSSIBLE CPU against an
+EASY mirror in a real AI-vs-AI match, logs every attack it starts and its combo counter, and maps each run of hits back to Lab
+notation (each move's engine attack name is learned from the Lab's own move demos). The most common routes go to
+`tools/controls_lab/combo_candidates_ai.json`; `build_combos.mjs` tries them (after the documented routes, before the generic
+chains) and keeps only the ones that verify. Library entries from it have `source: "generated (watched the CPU play)"`.
+
+**Combo strings.** `build_combos.mjs --allow-gap N` also keeps routes where every step lands and the game's combo counter counts
+every hit, but the dummy gets up to N free frames between two hits (a gap a real opponent could block in). These entries carry
+`kind: "string"`, `freeFrames` and `gapAllowed`; the card shows **STRING · gap Nf** (true combos show **TRUE COMBO**), the
+verifier and the trial judge accept up to `gapAllowed` free frames. Used (N = 12) only for fighters with no true combo.
+Fighters still without a combo after that have no route under a 12-frame gap (see combo_build_report.json for the reasons).

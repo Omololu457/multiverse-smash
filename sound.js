@@ -216,6 +216,8 @@ export const JUICE_STANDINS = {
   weather_wind_STANDIN:       { src: "whoosh_medium_01",    rate: 0.6,  filter: { type: "lowpass",  freq: 820  }, offset: 0, duration: 0.6,  gain: 0.35 },
   weather_snow_STANDIN:       { src: "swish_fast_03",       rate: 0.4,  filter: { type: "lowpass",  freq: 420  }, offset: 0, duration: 0.5,  gain: 0.12 },
   hail_clack_STANDIN:         { src: "impact_crack_01",     rate: 1.3,  filter: { type: "highpass", freq: 2800 }, offset: 0, duration: 0.05, gain: 0.2 },
+  // MSV1-BLOOD — a quiet, low-passed wet layer under HEAVY hits only (Blood: Full). Subtle on purpose.
+  blood_wet_STANDIN:          { src: "impact_hit_01",       rate: 0.62, filter: { type: "lowpass",  freq: 520  }, offset: 0, duration: 0.09, gain: 0.22 },
   thunder_STANDIN:            { src: "boom_huge_01",        rate: 0.6,  filter: { type: "lowpass",  freq: 220  }, offset: 0, duration: 0.8,  gain: 0.7 },
 }
 

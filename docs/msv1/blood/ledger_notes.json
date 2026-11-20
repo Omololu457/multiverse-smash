@@ -1,0 +1,17 @@
+{
+ "albedo": {"batch": 1, "note": "young (tier cap 2, no spray/pool). Shares Ben's alien form maps (ALSO_MAPS)."},
+ "alt_sukuna": {"batch": 1, "note": "pink hair over face handled by skin face box; red tattoos read under blood fine."},
+ "aoi_todo": {"batch": 1, "note": "bare torso: chest/abdomen cuts read clearly."},
+ "arlong": {"batch": 1, "note": "long saw-nose: eye box sits on the face, not the nose."},
+ "baki": {"batch": 1, "hand": true, "note": "raised fists were taken for the face → detector now tracks the face cluster frame-to-frame; upside-down knockdown → 180° re-try when the head jumps (both fixes general)."},
+ "batman": {"batch": 1, "note": "cowl: face box on the lower face only; cape excluded from torso anchors."},
+ "beast_boy": {"batch": 1, "hand": true, "note": "green skin is not 'skin' to the detector → noFace + headSkip 0.08 (head wounds were in the hair). Human blood (canon red)."},
+ "beerus": {"batch": 1, "hand": true, "note": "tall ears read as the head → headSkip 0.14 + noFace. walk sheet's energy burst excluded by the body mask."},
+ "ben10": {"batch": 1, "note": "young. Omnitrix alien forms: FORM_FLUID (Upgrade oil, Diamondhead/Chromastone crystal crack, Heatblast magma crack, Alien X/Megawhatt none, Goop/Wildvine green)."},
+ "buggy": {"batch": 1, "note": "big coat: arms found inside the neck..hip band only."},
+ "byakuya": {"batch": 1, "note": "haori + scarf: trickles run over the white haori (reads well)."},
+ "chrollo": {"batch": 1, "note": "fur collar excluded from the face box."},
+ "cyborg": {"batch": 1, "note": "OIL: dark streaks + glossy 1 px sheen on the grey plates, sparks shed at T2+."},
+ "dash_parr": {"batch": 1, "note": "young. Speed blur frames are part of the sprite (mask excludes the detached blur)."},
+ "dseyl": {"batch": 1, "note": "tribute; white shirt shows blood strongly — within the 15 % cap."}
+}

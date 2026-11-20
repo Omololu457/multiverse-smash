@@ -32,6 +32,7 @@ const LS_KEYS = {
   perfOverlay: "ms_perf_overlay",        // "1" (show FPS / frame-time / counts overlay) | "0" — default OFF
   autoSuggestLow: "ms_autosuggest_low",  // "1" (offer Low graphics when FPS is low) | "0" — default ON
   hitstop:    "ms_hitstop_style",        // "scaled" | "classic"  (FEEL PASS Phase 1; default "classic" since the main merge)
+  blood: "ms_blood_level",             // "off" | "low" | "full"  (MSV1-BLOOD progressive damage blood; default "full")
   battleDamage: "ms_battle_damage",      // "off" | "marks" | "full"  (FEEL PASS Phase 2; default "marks")
   weather:    "ms_weather",              // "1" (on) | "0"  (FEEL PASS Phase 3; legacy — superseded by weatherSource)
   weatherIntensity: "ms_weather_intensity",   // "low" | "full"  (FEEL PASS Phase 3; default "full")
@@ -204,6 +205,10 @@ export const juiceSettings = {
   setBattleDamage(v) { if (v !== "off" && v !== "marks" && v !== "full") return; this.battleDamage = v; _set(LS_KEYS.battleDamage, v) },
   cycleBattleDamage() { const o = ["off", "marks", "full"]; this.setBattleDamage(o[(o.indexOf(this.battleDamage) + 1) % o.length]) },
   battleDamageOn() { return this.battleDamage !== "off" },
+  // MSV1-BLOOD: progressive damage blood (battleBlood.js). Render-only — gameplay identical in all three.
+  blood: (() => { const v = _get(LS_KEYS.blood, "full"); return (v === "off" || v === "low" || v === "full") ? v : "full" })(),
+  setBlood(v) { if (v !== "off" && v !== "low" && v !== "full") return; this.blood = v; _set(LS_KEYS.blood, v) },
+  cycleBlood() { const o = ["full", "low", "off"]; this.setBlood(o[(o.indexOf(this.blood) + 1) % o.length]) },
   battleDamageBlood() { return this.battleDamage === "full" },   // blood STILL additionally gated on bloodFx + eligibility at the call site
 
   // ── Weather (Off / On) + Intensity (Low / Full) — FEEL PASS Phase 3. COSMETIC ONLY (rain/snow/fog/…

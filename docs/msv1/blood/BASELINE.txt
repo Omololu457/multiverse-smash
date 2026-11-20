@@ -1,0 +1,28 @@
+MSV1-BLOOD BASELINE — clean HEAD 0cabc28b48c38a8f29366bcbc2983dc030d6b8cb (git archive copy, not the dirty worktree), 2026-11-20
+
+determinism.test        14 passed, 0 failed
+combo_standard_audit    233 passed, 9 failed
+up_attack_roster.test   77 passed, 2 failed  (superman frames 5/4/12, ghostface 5/3/8)
+credits.test            11 passed, 3 failed  (unattributed keys, stale sasuke_war_susano.., in-game set)
+roster_integrity.test   PASS (guard verified)
+replay_playback.test    10 passed, 0 failed (zero desync 4/4)
+net_online.test         11 passed, 0 failed (bit-identical 150 frames)
+RENDER CHECK gojo vs sukuna: PASS, 0 page errors
+
+Green = no worse than this.
+
+Raw failing lines:
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, goku_rose, green_arrow, green_ranger, higuruma, homelander, krybot, megumi_fushiguro, meruem, mmpr_black, mmpr_pink, mmpr_white, ninja_storm_cgpt, ninja_
+  ❌  classification covers the full roster exactly  — covered 122 vs roster 162
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (121)  — classified 122, roster 162
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 162 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 160/162
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8

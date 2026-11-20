@@ -784,6 +784,10 @@ import { fireJuiceExplosion, fireJuiceAnticipation, fireJuiceDust, fireJuiceHitS
 import { animeJuiceOnSpark, animeJuiceTick, animeJuiceReset, drawAnimeJuiceFloor, drawAnimeJuiceWorld, drawAnimeJuiceHud, animeJuiceStatus, __animeJuiceTest, animeSigTakeImpacts, animeSigFeel, setAnimeSplitGate } from "./animeJuice.js"   // ANIME JUICE: game-wide presentation-only pass (ultimate ready, gather, parry, gatling, slash, aftermath)
 import { HITFEEL, HIT_TIER, hitTierFor } from "./hitfeel_config.js"   // HIT FEEL pass — single tunable config + tier rules
 import { bdSetSeed, bdRecordHit, bdLevel, bdMarkTex, bdFloorDecal, bdDrawFloor, bdMaybeDrip, bdTickDrips, bdDrawDrips, bdReset, bdStatus } from "./battleDamage.js"   // FEEL PASS (Phase 2): persistent battle-damage marks + floor decals (render-layer only)
+import { bloodHit, bloodTick, bloodTickWorld, bloodDrawFloor, bloodMatchStart, bloodRoundStart, bloodReset, bloodStatus, bloodDigest, bloodSetLevelSource, bloodFluidOf } from "./battleDamage.js"   // MSV1-BLOOD: progressive damage blood (battleBlood.js via the battle-damage entry point; render-only)
+import { sourceDamageType } from "./damageTypes.js"   // MSV1-BLOOD: a hit's damageType picks the wound (slash / blunt / puncture / scorch)
+import { PROJECTILE_TAGS } from "./damageTags.js"
+bloodSetLevelSource(() => juiceSettings.blood)   // MSV1-BLOOD: Blood Off / Low / Full (saved with the visual settings)
 import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weatherDraw, weatherCurrent, weatherTarget, weatherCycle, weatherReset, weatherStatus, resolveWeather, weatherPickForStage, allowedWeatherFor } from "./weather.js"   // FEEL PASS (Phase 3): cosmetic weather overlay (render-layer only)
 import { mapOpenMeteo, resolveLive, getLocation, setLocation, geocodeCity, cacheGet as _wxCacheGet } from "./weatherLive.js"   // FEEL PASS (Phase 4): real-world weather (Open-Meteo), host-authoritative in LAN
 import { weatherForAbility, WEATHER_ABILITY_HOLD_FRAMES, WEATHER_ABILITY_COOLDOWN_FRAMES, WEATHER_ABILITY_GAMEPLAY_EFFECTS } from "./weather_abilities.js"   // FEEL PASS (Phase 5): themed moves conjure weather (VISUAL ONLY)
@@ -3081,6 +3085,19 @@ function _bloodEligible(rosterKey) { const k = (rosterKey || "").toLowerCase(); 
 function _bdBloodAllowed() { return juiceSettings.battleDamageBlood() && bloodFx }
 setAnimeSplitGate(att => _bloodEligible(att?.rosterKey) && _bdBloodAllowed())   // SIGNATURES: iai / moon-slash SPLIT only where the existing blood / brutality rule allows it
 
+// MSV1-BLOOD: every landed hit (an unblocked spark from the sim: frame, position, damage, move, attacker, victim)
+// opens / grows a wound where it landed. Independent of the hit-effects setting; never touches GAME_STATE.
+function _bloodOnSpark(spark) {
+  if (!spark || spark.blocked || !((spark.damage || 0) > 0) || juiceSettings.blood === "off") return
+  const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
+  const attacker = _juiceFighterFor(side), target = attacker ? getOpponent(attacker) : null
+  if (!target) return
+  const mv = spark.moveName || ""
+  const damageType = PROJECTILE_TAGS[mv] || (mv === "projectile" ? "projectile" : sourceDamageType({ attacker, move: mv }))
+  const r = bloodHit({ target, attacker, x: spark.x, y: spark.y, damage: spark.damage || 0, damageType, ultimate: spark.category === "ultimate", frame: globalFrameCount })
+  if (r?.wet && juiceSettings.blood === "full") sound.playJuiceSfx?.("blood_wet_STANDIN", { gain: 0.32, pitch: juicePitch(globalFrameCount, (side === "p2" || side === "p4") ? 1 : 0) })   // a quiet wet layer under heavy hits
+}
+
 function _fireHitFeel(spark) {
   if (!juiceSettings.hitEffectsOn() || !spark || brutalityState.active) return
   const side = spark.attackerSide || ((p1?.comboCounter || 0) >= (p2?.comboCounter || 0) ? "p1" : "p2")
@@ -3180,6 +3197,7 @@ function _drawWhiffOpenTint(c, fighter) {
 // Ease every fighter's visual knockback offset back toward 0 (called each sim frame per fighter).
 function _tickHitFeel(f) {
   if (!f) return
+  bloodTick(f, globalFrameCount, (f.groundY != null) ? f.groundY : ((f.y || 0) + (f.h || 100)), getStageTheme())   // MSV1-BLOOD: tier from health lost, drips / pools / smears (render-only)
   // FEEL PASS (Phase 2): keep the battle-damage mark texture current for the sprite layer, and shed an
   // occasional pooled drip at damage level 2+. Render-layer only; _bdMarkTex is read by sprite.js.
   if (juiceSettings.battleDamageOn()) {
@@ -4651,7 +4669,7 @@ function updateFFAEffects(live) {
   updateEnergyRegen(live)
   for (let i = hitSparks.length - 1; i >= 0; i--) {
     const spark = hitSparks[i]
-    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); _fireHitFeel(spark); _maybeWeatherAbility(spark); spark._fresh = false }   // JUICE (Phase 2) + HIT FEEL (Phase A) + FEEL PASS (Phase 5): detonation + punchy-hit + weather-ability (FFA path)
+    if (spark?._fresh !== false) { spark.maxTimer = spark.maxTimer || spark.timer; spawnDamageNumber(spark); _fireJuiceDetonation(spark); _fireHitFeel(spark); _bloodOnSpark(spark); _maybeWeatherAbility(spark); spark._fresh = false }   // JUICE (Phase 2) + HIT FEEL (Phase A) + FEEL PASS (Phase 5): detonation + punchy-hit + weather-ability (FFA path)
     spark.timer--
     const _pAlive = _tickSparkParticles(spark)   // FFA path: same debris burst as the 1v1 loop
     if (spark.timer <= 0 && _pAlive === 0) hitSparks.splice(i, 1)
@@ -4660,6 +4678,7 @@ function updateFFAEffects(live) {
   // JUICE (Phase 2+3) + HIT FEEL (Phase A): per-attacker detonation cooldown + dash FX + kb ease + FX advance (FFA path).
   for (const f of live) { if (!f) continue; if (f._juiceDetCd > 0) f._juiceDetCd--; _tickJuiceDash(f, (f.ffaSlot | 0) % 2); _tickHitFeel(f) }
   if (juiceSettings.battleDamageOn()) bdTickDrips()   // FEEL PASS (Phase 2): FFA path — advance drips → floor stamp
+  bloodTickWorld(globalFrameCount)   // MSV1-BLOOD: drips / sprays / flakes fall and land
   _tickWeather()   // FEEL PASS (Phase 3): advance weather (FFA path)
   updateJuiceFx()
 }
@@ -5400,6 +5419,7 @@ function ensureTrainingOpponent() {
 
 function resetRound() {
   damageNumbers.length = 0
+  bloodRoundStart()   // MSV1-BLOOD: floor cleared, every fighter's wounds drop ONE tier
   // FEEL PASS (Phase 5): each fighter gets ONE weather-ability trigger per round → re-arm them all now.
   for (const f of [p1, p2, ...(ffaState?.fighters || [])]) if (f) f._weatherAbilityUsedRound = false
   clearNarutoChoreo()   // release any in-flight Uzumaki Barrage (unlocks the caster) on a fresh round
@@ -6378,6 +6398,7 @@ function startMatch() {
   matchConfig.seed = _matchSeed
   reseedRng(_matchSeed)
   _pushHitstopStyle()   // FEEL PASS (Phase 1): tell the sim the agreed Hitstop Style (local, or the host's in LAN) before any hit lands
+  bloodMatchStart(_matchSeed, [], globalFrameCount)   // MSV1-BLOOD: fresh wounds + floor, hash seed = the match seed (LAN / replay identical)
   bdSetSeed(_matchSeed); bdReset()   // FEEL PASS (Phase 2): fresh battle-damage records + deterministic mark/decal seed (LAN-identical) for the new match
   _weatherStartForMatch(_matchSeed)   // FEEL PASS (Phase 3): seed + choose this match's weather (stage-allowed), or clear
   _roundEndAudioStopped = false
@@ -7242,7 +7263,7 @@ function _victoryFlavor(key) {
 // draw/double-KO, or a non-final round. A short procedural beat (bright saturated-red cartoon gore burst
 // over the loser's EXISTING sprite + red impact flash + a "BRUTALITY!" stamp), then the victory screen.
 // No new/realistic art: reuses the same visual language as the blood hit-effect, brightened.
-function _enterVictoryScreen() { bdReset(); sound.playMenuMusic?.(); gameState = GAME_STATES.VICTORY }   // FEEL PASS (Phase 2): battle damage is removed at match end (never carries to the next match)
+function _enterVictoryScreen() { bdReset(); bloodReset(); sound.playMenuMusic?.(); gameState = GAME_STATES.VICTORY }   // FEEL PASS (Phase 2): battle damage is removed at match end (never carries to the next match)
 function _tryStartBrutality(winner) {
   if (!brutalityFx) return false
   if (winner !== "p1" && winner !== "p2") return false           // no finisher on a draw / double-KO
@@ -20964,6 +20985,7 @@ function updateEffectsAndDomains() {
       if (!spark.blocked) { const _sh = _sparkCfg(spark).shake; if (_sh) camera.shake?.(_sh, _sh + 2) }
       _fireJuiceDetonation(spark)   // JUICE (Phase 2): explosive-move detonation treatment (presentation-only, tier-classified)
       _fireHitFeel(spark)           // HIT FEEL (Phase A): punchy-hit treatment (sound/particles/knockback/shake)
+      _bloodOnSpark(spark)          // MSV1-BLOOD: open / grow a wound where the hit landed (render-only)
       if (spark.perfectParry) _triggerJuiceSlowmo(globalFrameCount, spark.attackerSide === "p2" ? 0 : 1)   // PARRY: a PERFECT parry slows time (setting / LAN / replay-gated, 2s cooldown)
       animeJuiceOnSpark(spark, p1, p2, globalFrameCount)   // ANIME JUICE: parry / gatling rings / slash cut / aftermath (render-only)
       for (const im of animeSigTakeImpacts()) _fireJuiceImpactFrame(im.tier, gameState !== GAME_STATES.FFA_BATTLE)   // SIGNATURES: the impact frame (presentation)
@@ -20987,6 +21009,7 @@ function updateEffectsAndDomains() {
   _tickJuiceDash(p1, 0); _tickJuiceDash(p2, 1)   // JUICE (Phase 3): dash wind-up/squash/afterimage/dust/lead
   _tickHitFeel(p1); _tickHitFeel(p2)             // HIT FEEL (Phase A): ease the visual knockback offset back
   if (juiceSettings.battleDamageOn()) bdTickDrips()   // FEEL PASS (Phase 2): advance falling drips → stamp floor on landing
+  bloodTickWorld(globalFrameCount)   // MSV1-BLOOD: drips / sprays / flakes fall and land
   _tickWeather()   // FEEL PASS (Phase 3): advance weather (2p path)
   _tickAnimFinisher()                            // HIT FEEL (Phase C): advance the anime-finisher sequence + cooldown
   updateJuiceFx()   // advance pooled explosion + dash-dust + hit FX (deterministic; frozen on slow-mo skip frames with the sim)
@@ -24323,6 +24346,7 @@ function drawBattleScene() {
   drawPlatforms(ctx)      // Wood Release climbable terrain — draw platforms behind the fighters (world space; Stage 1 procedural rect = collision box)
   if (!brutalityState.active) drawAnimeJuiceFloor(ctx)   // ANIME JUICE: aftermath floor marks (crater / burn / puddle / frost / scar / crack), under the fighters
   if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): persistent floor decals + falling drips (world space, behind fighters)
+  bloodDrawFloor(ctx)   // MSV1-BLOOD: floor splats / pools / smears + falling drips (world space, behind fighters)
   drawProjectiles(ctx, activeProjectiles, camera)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
@@ -25033,6 +25057,7 @@ function drawFFAScene() {
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   if (hasTransform) camera.applyTransform(ctx, canvas)
   if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): FFA — persistent floor decals + drips behind fighters
+  bloodDrawFloor(ctx)   // MSV1-BLOOD: floor splats / pools / smears + falling drips (world space, behind fighters)
   drawProjectiles(ctx, activeProjectiles, camera)
   for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
   drawHitSparksEnhanced()
@@ -25194,7 +25219,8 @@ const gfxPresetRect     = { x: 0, y: 978, w: 190, h: 30 }   // Phase 1: Low/Stan
 // HITSTOP STYLE toggle — Scaled (power-scaled impact freeze, default) / Classic (exact old values). x set by _layoutSettings.
 const hitstopStyleRect  = { x: 0, y: 828, w: 190, h: 30 }
 // BATTLE DAMAGE toggle — Off / Marks Only / Full (persistent marks + floor decals; blood only where eligible). x set by _layoutSettings.
-const battleDmgRect     = { x: 0, y: 864, w: 190, h: 30 }
+const battleDmgRect     = { x: 0, y: 864, w: 92, h: 30 }
+const bloodLvlRect      = { x: 0, y: 864, w: 92, h: 30 }   // MSV1-BLOOD: Blood Off / Low / Full (right half of the battle-damage row)
 // WEATHER — Source (Off/Random/Manual/Live) + Intensity (Low/Full) + a context control (manual type /
 // set-location). Cosmetic overlay. x set by _layoutSettings.
 const weatherRect       = { x: 0, y: 900, w: 92, h: 30 }
@@ -25276,6 +25302,7 @@ function _layoutSettings() {
   animeFxRect.x       = rx
   hitstopStyleRect.x  = rx
   battleDmgRect.x     = rx
+  bloodLvlRect.x      = rx + 98
   weatherRect.x       = rx
   weatherIntensRect.x = rx + 98
   weatherCfgRect.x    = rx
@@ -25368,7 +25395,7 @@ function drawSettingsScreen() {
   ctx.fillText("BLOOD EFFECTS", bloodToggleRect.x, bloodToggleRect.y - 10)
   box(bloodToggleRect, bloodFx ? "rgba(74,23,23,0.92)" : "rgba(20,26,40,0.9)", bloodFx ? "#f05555" : "rgba(120,150,200,0.4)", 2, bloodFx)
   ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
-  ctx.fillText(`Blood: ${bloodFx ? "ON" : "OFF"}`, bloodToggleRect.x + bloodToggleRect.w / 2, bloodToggleRect.y + 22)
+  ctx.fillText(`Gore FX: ${bloodFx ? "ON" : "OFF"}`, bloodToggleRect.x + bloodToggleRect.w / 2, bloodToggleRect.y + 22)
   ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
   ctx.fillText("Red hit-spray (saved)", bloodToggleRect.x, bloodToggleRect.y + bloodToggleRect.h + 13)
 
@@ -25430,7 +25457,8 @@ function drawSettingsScreen() {
     fxBox(hitstopStyleRect, `Hitstop: ${juiceSettings.hitstopStyle === "scaled" ? "SCALED" : "CLASSIC"}`, juiceSettings.hitstopStyle === "scaled", "#f59e0b")
     // FEEL PASS (Phase 2): Battle Damage — Off / Marks Only / Full (blood only where eligible + Blood on).
     const _bdLbl = juiceSettings.battleDamage === "off" ? "OFF" : juiceSettings.battleDamage === "full" ? "FULL" : "MARKS"
-    fxBox(battleDmgRect, `Battle Damage: ${_bdLbl}`, juiceSettings.battleDamageOn(), "#c0564a")
+    fxBox(battleDmgRect, `Marks: ${_bdLbl}`, juiceSettings.battleDamageOn(), "#c0564a")
+    fxBox(bloodLvlRect, `Blood: ${juiceSettings.blood.toUpperCase()}`, juiceSettings.blood !== "off", "#8f1a14")   // MSV1-BLOOD
     // FEEL PASS (Phase 3/4): Weather Source + Intensity + a context control (manual type / set location).
     const _wsrc = juiceSettings.weatherSource
     const _wsLbl = _wsrc === "off" ? "OFF" : _wsrc === "random" ? "RANDOM" : _wsrc === "manual" ? "MANUAL" : "LIVE"
@@ -25443,7 +25471,7 @@ function drawSettingsScreen() {
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.fillText("HUD: Themed portrait + accent bars / Classic (saved)", hudStyleToggleRect.x, hudStyleToggleRect.y + hudStyleToggleRect.h + 13)
     ctx.fillText("Hitstop: Scaled = weightier impact freeze / Classic = exact old (saved)", hitstopStyleRect.x, hitstopStyleRect.y + hitstopStyleRect.h + 13)
-    ctx.fillText("Battle Damage: persistent scuffs/scorch/decals · Full adds blood (eligible + Blood on)", battleDmgRect.x, battleDmgRect.y + battleDmgRect.h + 13)
+    ctx.fillText("Marks: scuffs/scorch/decals · Blood: grows with damage taken (Low = light, no pools)", battleDmgRect.x, battleDmgRect.y + battleDmgRect.h + 13)
     ctx.fillText("Weather: Off/Random/Manual/Live(real-world) · Training: Shift+F8 cycles types", weatherRect.x, weatherRect.y + weatherRect.h + 13)
     ctx.textAlign = "center" }
 
@@ -26708,7 +26736,8 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, _smy, gfxPresetRect)) { juiceSettings.cycleGraphicsPreset(); break }   // Phase 1: Low → Standard → Full
       if (pointInRect(mouse.x, _smy, hudStyleToggleRect)) { setHudStyle(!hudThemed); break }   // THEMED HUD / Classic
       if (pointInRect(mouse.x, _smy, hitstopStyleRect)) { juiceSettings.cycleHitstopStyle(); _pushHitstopStyle(); break }   // FEEL PASS (Phase 1): Scaled ↔ Classic (re-push so a live match picks it up when not net-locked)
-      if (pointInRect(mouse.x, _smy, battleDmgRect)) { juiceSettings.cycleBattleDamage(); break }   // FEEL PASS (Phase 2): Off → Marks Only → Full
+      if (pointInRect(mouse.x, _smy, battleDmgRect)) { juiceSettings.cycleBattleDamage(); break }
+      if (pointInRect(mouse.x, _smy, bloodLvlRect)) { juiceSettings.cycleBlood(); break }   // MSV1-BLOOD: Full → Low → Off   // FEEL PASS (Phase 2): Off → Marks Only → Full
       if (pointInRect(mouse.x, _smy, weatherRect)) { juiceSettings.cycleWeatherSource(); if (juiceSettings.weatherSource === "local" && !getLocation()) _weatherSetupLocation(); if (gameState === GAME_STATES.BATTLE || gameState === GAME_STATES.FFA_BATTLE) _weatherStartForMatch(matchConfig.seed >>> 0); break }   // FEEL PASS (Phase 4): Off → Random → Manual → Live
       if (pointInRect(mouse.x, _smy, weatherIntensRect)) { juiceSettings.cycleWeatherIntensity(); break }   // FEEL PASS (Phase 3): Low ↔ Full
       if (pointInRect(mouse.x, _smy, weatherCfgRect)) {   // FEEL PASS (Phase 4): context control — cycle manual type, or set the live-weather location
@@ -29859,6 +29888,10 @@ gameLoop()
       // FEEL PASS (Phase 2): Battle Damage hooks — read the live record, set the setting, or inject damage
       // on a slot to exercise the mark/decal pipeline deterministically in tests.
       battleDamage:    () => bdStatus(),
+      blood:           () => bloodStatus(),                                     // MSV1-BLOOD read-out (tiers, wounds, floor)
+      bloodDigest:     () => bloodDigest(),                                     // MSV1-BLOOD: digest of the visible blood state (LAN / replay parity)
+      setBloodLevel:   (v) => { juiceSettings.setBlood(v); return juiceSettings.blood },
+      bloodFluid:      (side = "p1") => bloodFluidOf(side === "p2" ? p2 : p1),
       setBattleDamage: (v) => { juiceSettings.setBattleDamage(v); return juiceSettings.battleDamage },
       bdApply: (slot = "p2", dmg = 300, element = "ki", eligible = true, maxHp = 1000) => { bdRecordHit({ slot, dmg, maxHp, element, big: null, eligible }); return bdStatus() },
       bdEligibleFor: (key) => _bloodEligible(key),   // the REAL existing-rule check (adults bleed; children/obito don't)

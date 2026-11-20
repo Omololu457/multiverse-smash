@@ -13,6 +13,7 @@ import { benThemedSheet } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEME
 import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
 import { violetSpriteAction, violetAlpha } from './violetView.js'   // Violet Parr: invisible strips + 35 % alpha (render-only, violet-gated)
 import { albedoThemeSheet } from './albedoThemeCache.js'   // Albedo skin themes: render-only, null for every non-Albedo-theme fighter
+import { bloodFrame } from "./battleBlood.js"   // MSV1-BLOOD: progressive damage blood (sprite-pixel wounds from data/bloodmaps; render-only)
 
 // ─────────────────────────────────────────────────────────────────
 // SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
@@ -1291,6 +1292,8 @@ export class SpriteHandler {
       mctx.globalCompositeOperation = "source-over";
       bdMarkClipCanvas = mc;
     }
+    // MSV1-BLOOD: this frame's blood overlay (sprite pixel space, clipped to the frame's alpha); null = none.
+    const bloodCanvas = _sheetReady(sheet) ? bloodFrame(fighter, { sheet: profileAction.sheet || legacyFrameData?.sheet, sourceX: frameData.sourceX, sourceY: frameData.sourceY, width: drawWidth, height: drawHeight, frames: frameData.frames }, this.frameIndex, action, sheet, sx, sy) : null;
 
     // STAGE 1 — WOODCUT / SCREEN-PRINT posterize: crush the frame to 2-3 FLAT grayscale tones (a hard
     // threshold, no smooth shading) on an offscreen canvas — a true posterize (ctx.filter has no posterize,
@@ -1359,6 +1362,7 @@ export class SpriteHandler {
         if (bdMarkClipCanvas) {   // FEEL PASS (Phase 2): battle-damage marks, pre-clipped to the frame
           ctx.filter = "none"; ctx.drawImage(bdMarkClipCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH);
         }
+        if (bloodCanvas) { ctx.filter = "none"; ctx.drawImage(bloodCanvas, 0, 0, drawWidth, drawHeight, -fighter.x + offsetX - dstW, drawY, dstW, dstH); }   // MSV1-BLOOD
       } else {
         ctx.drawImage(
           _spr,
@@ -1384,6 +1388,7 @@ export class SpriteHandler {
         if (bdMarkClipCanvas) {   // FEEL PASS (Phase 2): battle-damage marks, pre-clipped to the frame
           ctx.filter = "none"; ctx.drawImage(bdMarkClipCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH);
         }
+        if (bloodCanvas) { ctx.filter = "none"; ctx.drawImage(bloodCanvas, 0, 0, drawWidth, drawHeight, fighter.x - offsetX, drawY, dstW, dstH); }   // MSV1-BLOOD
       }
     } else {
       // Fallback procedural box

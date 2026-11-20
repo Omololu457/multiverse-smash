@@ -14,6 +14,9 @@
 // bloodFx + "Full"); this module just honors the `bloodAllowed` flags it is handed.
 
 import { poolAcquire, poolRelease } from "./pool.js"
+// MSV1-BLOOD: progressive damage blood is the blood layer of this battle-damage system (same render-only,
+// hash-seeded rules); re-exported so callers keep one battle-damage entry point.
+export * from "./battleBlood.js"
 
 // ── deterministic hash → [0,1) ───────────────────────────────────────────────
 let _seed = 0x1234
@@ -94,13 +97,8 @@ function _buildTex(r, bloodAllowed) {
     _blot(c, x, y, 9 + h(s, i, 8) * 11, "rgba(196,224,255,0.42)")
     c.fillStyle = "rgba(255,255,255,0.6)"; for (let k = 0; k < 3; k++) c.fillRect(x + (h(s, i, 9 + k) - 0.5) * 16, y + (h(s, i, 12 + k) - 0.5) * 16, 2, 2)
   }
-  // 5) BLOOD — only when the caller allows it (eligible + Full + bloodFx). Dark-red streaks that run DOWN.
-  if (bloodAllowed && r.eligible && base >= 1) for (let i = 0; i < base * 2; i++) {
-    const x = px(i + 60), y = py(i + 60)
-    _blot(c, x, y, 5 + h(s, i, 13) * 6, "rgba(120,12,22,0.6)")
-    const run = 10 + h(s, i, 14) * 26; c.strokeStyle = "rgba(120,12,22,0.5)"; c.lineWidth = 2 + h(s, i, 15) * 2
-    c.beginPath(); c.moveTo(x, y); c.lineTo(x + (h(s, i, 16) - 0.5) * 5, y + run); c.stroke()
-  }
+  // 5) BLOOD — MSV1-BLOOD moved blood out of this smooth texture into battleBlood.js (sprite-pixel wounds on the
+  //    body maps, damage-tiered, per-region, real floor drips). These marks keep only scuffs / scorch / frost.
   if (!r.tex) r.tex = {}
   r.tex._cv = cv
   return cv
@@ -171,7 +169,7 @@ export function bdMaybeDrip(slot, x, y, groundY, frame, bloodAllowed) {
   if (r.level < 2) return
   if (h(frame, x | 0, 7) > 0.012) return   // ~1.2%/frame → a drip roughly every ~1.4s
   if (drips.length >= DRIP_CAP) return
-  const blood = bloodAllowed && r.eligible
+  const blood = false   // MSV1-BLOOD: blood drips come from battleBlood.js (wound trickles); this drip is grime only
   const d = poolAcquire("bdDrip", DRIP_CAP)
   d.x = x + (h(frame, slot.length, 8) - 0.5) * 14; d.y = y; d.vy = 0.6; d.groundY = groundY
   d.blood = blood; d.active = true

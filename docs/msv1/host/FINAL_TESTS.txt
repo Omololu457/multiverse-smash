@@ -1,0 +1,17 @@
+MSV1-HOST final tests — clean export of e09774cdc + MSV1-HOST changes only (2026-11-20T20:08:55Z)
+determinism.test.mjs rc=0 5s ::   ✅ PASS  un-forced matches each get a stamped seed  — seeds=4203482467,4203482468,4203482468   DETERMINISM (Stage 11A): 14 passed, 0 failed 
+combo_standard_audit.mjs rc=1 0s ::   ✅  ALL 162 kits teach a grammar-accurate combo string  — 162/162   COMBO-STANDARD AUDIT: 233 passed, 9 failed 
+up_attack_roster.test.mjs rc=1 1s ::   ✅  netero: frames = 4/3/6  — 4/3/6   UP-ATTACK ROSTER: 77 passed, 2 failed 
+credits.test.mjs rc=1 6s ::   ✅ PASS  no uncaught JS exceptions on the CREDITS screen   RESULT: 11 passed, 3 failed 
+roster_integrity.test.mjs rc=0 0s ::   ✅ characters.js imported cleanly — load-path guard PASSED (no duplicate in the working tree)   ✅ guard error message names the failure clearly 
+replay_playback.test.mjs rc=0 26s ::   ✅ PASS  ZERO desync — every checkpoint matched  — matched=4/4 firstDesync=null   REPLAY PLAYBACK (Stage 11C): 10 passed, 0 failed 
+net_online.test.mjs rc=0 15s ::   ✅ PASS  sims are BIT-IDENTICAL on every shared frame (no desync)  — mismatched=0/135 NET ONLINE (Stage 3): 11 passed, 0 failed 
+net_lancode.test.mjs rc=0 0s ::   ✅ PASS  invalid IP → null code NET LANCODE (Stage 3b): 6 passed, 0 failed 
+net_lockstep.mjs rc=0 0s :: net-lockstep: 6/6 passed 
+net_inject.test.mjs rc=1 7s ::   ✅ PASS  no longer in a LAN match (standalone path restored) NET INJECT (Stage 2): 5 passed, 2 failed 
+DONE
+MSV1-HOST SERVER: 77 passed, 0 failed
+MSV1-HOST TUNNEL: 20 passed, 0 failed
+MSV1-HOST E2E: 36 passed, 0 failed  (run A: 2×90 s timer rounds, 10,800 frames, 0/385 mismatched)
+MSV1-HOST E2E: 36 passed, 0 failed  (run B, after the e2e was fixed to walk in: 2 KO rounds, 2033 dmg / 84 hits, 0/153 mismatched)
+frame-data diff (blood_framedata_diff.mjs e09774cdc vs final): 6 passed, 0 failed

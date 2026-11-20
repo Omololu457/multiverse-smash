@@ -1,0 +1,10 @@
+MSV1-EDO baseline — CLEAN HEAD eb24611ede50b6a2499c49c9e67b463cdadcf7a3 (git archive HEAD → scratch tree, no worktree changes),
+run 2026-11-20 before any MSV1-EDO change. "Green" = no worse than these counts.
+
+determinism.test.mjs        DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo_standard_audit.mjs    COMBO-STANDARD AUDIT: 233 passed, 9 failed      (9 pre-existing)
+up_attack_roster.test.mjs   UP-ATTACK ROSTER: 77 passed, 2 failed           (2 pre-existing)
+credits.test.mjs            RESULT: 11 passed, 3 failed                     (3 pre-existing)
+roster_integrity.test.mjs   ✅ roster integrity guard verified
+replay_playback.test.mjs    REPLAY PLAYBACK (Stage 11C): 10 passed, 0 failed
+net_online.test.mjs         NET ONLINE (Stage 3): 11 passed, 0 failed

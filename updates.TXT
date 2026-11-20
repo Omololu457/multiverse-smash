@@ -935,3 +935,43 @@ Limitations:
    pre-existing flake: on pure HEAD (without this character) it failed 1 of 2 runs (11/1, 12/0).
    Commit snapshot (HEAD + only these files) re-tested in isolation: ns_cgpt 74/0, msv1 135/0.
  Known/inherited: Charge-button commands wait 3 frames for the Smoke Vanish chord (framework rule).
+
+=== 2026-11-19 — Ninja Storm MS_V1 Ranger Version (windrangers): 10-skin pack ===
+Skin select now lists 12 entries: Start as: Red (Shane), Start as: Yellow (Dustin), then:
+  1. Alien X — Constellation Leak (showcase)  wr_alienx
+  2. Disco Ball in a Blackout (glitter)        wr_disco
+  3. Winning Valkyrie — Final Rotation         wr_valkyrie
+  4. Ghostfreak — Split Seam                   wr_ghostfreak
+  5. Feedback — Live Wire                      wr_feedback
+  6. JJK — Divergent Impact                    wr_divergent
+  7. JJK — Salaryman Overtime                  wr_salaryman
+  8. Kintsugi Aftershock                       wr_kintsugi
+  9. Midnight Pit Crew                         wr_pitcrew
+ 10. Woodblock Storm                           wr_woodblock
+All ten start as Red and wear the skin in BOTH forms (the swap to Yellow keeps it).
+How: every frame of the supplied Ranger sprites (ns_red + ns_yellow, 66 strips each) recoloured by tools/wr_skins/build.py
+(spec tools/wr_skins/skins.json) into assets/windrangers/skins/<tag>/{ns_red,ns_yellow}[,clone_*]/. Costume details
+(stars, seam, tracks, notch, fork, lights…) are found per frame on the costume itself, so they follow the wrist/body through
+punches, flips and mirroring. Per-frame anchors → windrangersSkinAnchors.js. Move-linked touches are render-only
+(windrangersSkinFx.js): Alien X stars light in order on a sword draw + nebula, ultimate completes the constellation (ivory/
+turquoise); Disco idle tile glint + spinning-kick boot band; Valkyrie red/blue/gold arc sections on the spinning sword
+(line up, then scatter on landing); Ghostfreak violet eye in the departing Ninja Step afterimage; Feedback spark elbow→muzzle
+on the blaster; Divergent blue ink splash + delayed black outline on a connected punch (visual only); Salaryman gold line
+from the blade notch on heavy slashes; Kintsugi forked seam on the first eruption frame; Pit Crew amber→green forearm
+lights on the blink + checkered heel streak; Woodblock brushstroke wind + stacked ink-block eruption. Own clone strips:
+Alien X (turquoise stars), Feedback (dark copper tracks), Woodblock (offset red print edge); other clones wear the skin.
+Hooks: skins.js (entries), nsDuo.js applyForm (skin follows the form), nsFx.js (clone strips, afterimage, wind, FX layer).
+Unchanged: move timing, damage, hitboxes/collision, controls, player indicators (all cosmetic). The Wind Mirage illusion
+deliberately stays pixel-identical to the body (its tell is the visor glint).
+Checks actually run (harness/wr_skins.test.mjs: 61 passed, 0 failed):
+  - Power Rangers character select lists windrangers; real skin-select screen shows 12 entries, the 10 names in order;
+    each skin hovered (preview screenshot docs/windrangers_skins/screenshots/select_<tag>.png) and picked via the confirm path.
+  - 550 referenced portraits/strips load (HTTP 200).
+  - Alpha mask of every checked strip (idle/sword/swordDome/streakTail, both forms, all 10) identical to the supplied sprites.
+  - Each skin in a real match: Red body + FX folder wear it; form swap → Yellow strips + FX folder; clone strips correct.
+  - Same seed + same 230-frame input script → identical x/y/health/moves/hurtbox vs the default skin (alienx, valkyrie,
+    pitcrew, woodblock).
+  - Skin FX layer runs mid-move for all 10 (fx_<tag>.png screenshots); its memory is not in the sim state; no page errors.
+  Regression: ns_cgpt 74/0, determinism 14/0, replay_playback 10/0, roster integrity OK, msv1_merge_framediff both forms
+  0 fields differ. Known/pre-existing (not from this pack): msv1_merge.test 48/1 and msv2.test 85/2 (roster-count checks),
+  msv1_merge_netreplay 11/1 (CPU swap — fails identically with the skin hook removed; another session is editing the swap input).

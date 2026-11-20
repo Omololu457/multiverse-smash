@@ -1,0 +1,22 @@
+{ "skins": [
+  { "tag": "alienx", "name": "Alien X — Constellation Leak", "showcase": true, "keepSuit": true, "clone": true, "fx": "#9b6bff",
+    "notes": "Helmet, crest, visor, boots and most of the suit untouched; one forearm + its shoulder + a diagonal chest slice are midnight space with three ivory stars (turquoise on the clone)." },
+  { "tag": "disco", "name": "Disco Ball in a Blackout", "glitter": true, "suit": "#8e8e98", "metal": "#5a2a5e", "gold": "#ff8fd0", "dark": "#1a0d1c", "fx": "#ff3fa4",
+    "notes": "Smoked-silver armor, plum undersuit, hot-pink mirrored tiles on the shoulders and outer boots." },
+  { "tag": "valkyrie", "name": "Winning Valkyrie — Final Rotation", "suit": "#1f4fd8", "gold": "#f2c230", "fx": "#5aa0ff",
+    "notes": "Cobalt armor, gold crest, three red wing marks swept back along one shoulder." },
+  { "tag": "ghostfreak", "name": "Ghostfreak — Split Seam", "suit": "#d9d2be", "metal": "#5c3f86", "gold": "#b9a7d6", "dark": "#14081f", "fx": "#9a6cff",
+    "notes": "Bone-white panels over deep lavender; a crooked black seam from the visor down the ribs." },
+  { "tag": "feedback", "name": "Feedback — Live Wire", "suit": "#3a3a40", "metal": "#efe6d0", "gold": "#e0a040", "dark": "#101012", "fx": "#ffd65a", "clone": true,
+    "notes": "Charcoal + warm ivory, copper fingertips, a thick gold track along each forearm (dark copper on the clone)." },
+  { "tag": "divergent", "name": "JJK — Divergent Impact", "suit": "#141a3a", "metal": "#2a3150", "gold": "#b08a3a", "dark": "#05060f", "fx": "#3a7bff",
+    "notes": "Midnight school-uniform palette, scarlet collar, rose-pink helmet crown (the helmet stays)." },
+  { "tag": "salaryman", "name": "JJK — Salaryman Overtime", "suit": "#cdbb93", "metal": "#e2d6b8", "gold": "#b89a4a", "dark": "#1d2a4a", "fx": "#f2d45c",
+    "notes": "Sand suit panels, navy gloves, a mustard diagonal strip across the chest; the sword is a blunt ink-black edge with a bright notch at 70%." },
+  { "tag": "kintsugi", "name": "Kintsugi Aftershock", "suit": "#2b3a8c", "metal": "#5a6bb8", "gold": "#e6b84a", "dark": "#0b0f26", "fx": "#e6b84a",
+    "notes": "Cracked indigo pottery mended with gold; one bold forked gold seam on the chest." },
+  { "tag": "pitcrew", "name": "Midnight Pit Crew", "suit": "#4a4d52", "metal": "#2f3236", "gold": "#ff9a2e", "dark": "#0e0f11", "fx": "#ffb02e",
+    "notes": "Pearl-white helmet, asphalt suit, orange gloves, a checkered calf stripe, three start lights on the forearm." },
+  { "tag": "woodblock", "name": "Woodblock Storm", "suit": "#e34234", "metal": "#f3e6c8", "gold": "#e8b04a", "dark": "#0d0d0d", "fx": "#22305c", "clone": true,
+    "notes": "A moving print: warm paper highlights, flat indigo shadows, vermilion armor, thick black folds; the clone has an offset red print edge." }
+] }

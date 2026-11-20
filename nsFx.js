@@ -9,7 +9,9 @@ import { triggerShake } from './effects.js'
 import { MSV1_CELL, MSV1_FX } from './msv1Sprites.js'
 import { getNinjaProfile, isNinja } from './ninja.js'
 import { duoFormAnim, duoFormProfile, duoOther, DUO } from './nsDuo.js'   // MSV1-MERGE: the duo's per-form smoke / HUD / intro (render-only)
-import { drawCgptUnder, drawCgptFx } from './nsCgptFx.js'   // NS CGPT (ninja_storm_cgpt only; render-only)
+import { drawCgptUnder, drawCgptFx } from './nsCgptFx.js'
+import { drawWrSkinFx, wrAfterimageFx, wrWindFx } from './windrangersSkinFx.js'   // windrangers skin pack (render-only)
+import { wrCloneAnim } from './windrangersSkins.js'   // NS CGPT (ninja_storm_cgpt only; render-only)
 
 const cache = new Map()
 const image = src => { let im = cache.get(src); if (!im) { im = new Image(); im.src = src; cache.set(src, im) } return im }
@@ -71,7 +73,7 @@ export function drawNinjaUnder(c, f) {
   const s = f._ninja; if (!s) return
   const p = getNinjaProfile(f), w = f.w || 48, feet = (f.y || 0) + (f.h || 94)
   // R3 streak tail (the smear left behind) + speed lines while streaking
-  for (const e of s.fx) if (e.k === 'streakTail') { const u = 1 - e.t / e.t0; drawPose(c, f, 'streakTail', u < 0.5 ? 0 : 1, e.x, e.y, e.dir || 1, 0.85 * (1 - u)) }
+  for (const e of s.fx) if (e.k === 'streakTail') { const u = 1 - e.t / e.t0; drawPose(c, f, 'streakTail', u < 0.5 ? 0 : 1, e.x, e.y, e.dir || 1, 0.85 * (1 - u)); wrAfterimageFx(c, f, 'streakTail', u < 0.5 ? 0 : 1, e.x, e.y, e.dir || 1, 0.85 * (1 - u), SC(f)) }
   if (s.streak && !calm()) {
     c.save(); c.strokeStyle = f._nsColor || p.color; c.lineWidth = 2; c.globalAlpha = 0.45
     for (let i = 0; i < 5; i++) { const yy = feet - 20 - i * 16, len = 50 + (i * 37) % 60; c.beginPath(); c.moveTo(f.x + w / 2 - (s.streak.dir || 1) * 20, yy); c.lineTo(f.x + w / 2 - (s.streak.dir || 1) * (20 + len), yy); c.stroke() }
@@ -99,6 +101,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
   if (!isNinja(f)) return
   const s = f._ninja; if (!s) { drawBubble(c, f); return }   // the match intro runs before the sim creates f._ninja
   rememberPose(f)
+  drawWrSkinFx(c, f)   // windrangers skin pack: move-linked touches over the body (render-only)
   const p = getNinjaProfile(f), w = f.w || 48
   // ILLUSION: drawn exactly like the body (same strip / frame / scale / facing), NO ground shadow, visor glint every 90 f
   const m = s.mirror
@@ -117,7 +120,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
   for (const k of s.clones) {
     if (k.dead || k.phase === 'wait') continue
     const A = anim(f, k.pose) || anim(f, 'guard')
-    drawPose(c, f, k.pose, frameAt(A, k.phase === 'strike' ? 10 : k.t), k.x, k.feet, k.dir || 1, 0.9, k.phase === 'pop' ? 0 : k.tilt)
+    drawPose(c, f, k.pose, frameAt(A, k.phase === 'strike' ? 10 : k.t), k.x, k.feet, k.dir || 1, 0.9, k.phase === 'pop' ? 0 : k.tilt, wrCloneAnim(f, k.pose))
   }
   // ninja-owned echo shots
   for (const sh of s.shots) drawFx(c, f, sh.sprite || 'proj_beam', Math.floor(sh.t / 3) % (MSV1_FX[sh.sprite || 'proj_beam']?.frames || 1), sh.x, sh.y, Math.sign(sh.vx) || 1, 0.85)
@@ -131,7 +134,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
       case 'smokeFade': { const A = e.form ? duoFormAnim(e.form, 'smokeFade') : anim(f, 'smokeFade'); if (e.t0 >= 20) drawPose(c, f, 'smokeFade', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, 0.85 * (1 - u), 0, A); puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || (f._nsSmoke || p.smoke)) : (f._nsSmoke || p.smoke), u, 5, 22, 0.45); break }
       case 'dust': case 'skid': puffs(c, e.x, e.y + 14, '#c9b48a', u, 4, 12, 0.5); break
       case 'ripple': puffs(c, e.x, e.y + 16, '#8a6a3a', u, 3, 10, 0.5); break
-      case 'wind': c.save(); c.strokeStyle = '#e8f6ff'; c.globalAlpha = 0.6 * (1 - u); c.lineWidth = 2; c.beginPath(); c.ellipse(e.x, e.y - 40, 20 + u * 40, 50 + u * 30, 0, 0, Math.PI * 2); c.stroke(); c.restore(); break
+      case 'wind': if (wrWindFx(c, f, e, u)) break; c.save(); c.strokeStyle = '#e8f6ff'; c.globalAlpha = 0.6 * (1 - u); c.lineWidth = 2; c.beginPath(); c.ellipse(e.x, e.y - 40, 20 + u * 40, 50 + u * 30, 0, 0, Math.PI * 2); c.stroke(); c.restore(); break
       case 'ring': case 'shock': case 'erupt': {   // the R8 landing-dust ring idea, drawn as an expanding ground ring + debris
         c.save(); c.strokeStyle = '#f2ead2'; c.lineWidth = 3; c.globalAlpha = 0.85 * (1 - u)
         c.beginPath(); c.ellipse(e.x, e.y - 2, 20 + u * (e.k === 'shock' ? 120 : 70), 6 + u * 10, 0, 0, Math.PI * 2); c.stroke()

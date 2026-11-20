@@ -8,6 +8,7 @@
 // game.js + fighters.js TRANSFORM_ENERGY through the world (W.benSwap), so the duo follows Ben's numbers.
 // See docs/msv1/MERGE_DESIGN.md + MERGE_BEN10_SWAP_REFERENCE.md.
 import { ns_red, ns_yellow } from './nsData.js'
+import { wrApplyForm } from './windrangersSkins.js'   // the 10-skin pack follows every form swap (cosmetic only)
 import { registerDuo, getNinjaProfile, ninjaState, nsStartMove, endMove, endMirror, burst, cue, spendNP, nsStrike, hasMotion, fresh, use, ctrX, overlaps,
   ninjaComboScale, NINJA_API } from './ninja.js'
 
@@ -56,6 +57,7 @@ function applyForm(f, form) {
   const c = FORM_CHAR[form]
   f.rosterKey = form
   for (const k of FORM_FIELDS) if (c[k] !== undefined) f[k] = c[k]
+  wrApplyForm(f, form)   // windrangers skin pack: this form's skin strips / FX folder (no-op for default / start_yellow)
   const st = c.stats
   f.stats = { ...st, maxHealth: f.maxHealth }
   f.baseSpeed = f.speed = st.speed; f.dashSpeed = st.dashSpeed; f.dashDuration = st.dashDuration; f.dashCooldownMax = st.dashCooldownMax

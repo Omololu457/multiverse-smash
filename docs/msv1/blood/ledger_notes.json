@@ -129,5 +129,68 @@
   "batch": 2,
   "note": "hurt (falling back) picked the feet as the head → headEnd left + lying.",
   "hand": true
+ },
+ "hashirama": {
+  "batch": 3,
+  "note": "Edo-themed skins (Ashen Reanimation) switch to Edo cracks at runtime."
+ },
+ "higuruma": {
+  "batch": 3,
+  "note": "gavel / sword are held props, kept out by the arm-reach rule."
+ },
+ "hinata": {
+  "batch": 3,
+  "note": ""
+ },
+ "hisoka": {
+  "batch": 3,
+  "note": ""
+ },
+ "homelander": {
+  "batch": 3,
+  "note": "light attack is a blue whirl effect → skip that strip.",
+  "hand": true
+ },
+ "ichigo": {
+  "batch": 3,
+  "note": "light (Getsuga slash) and jump (companion figure) strips skipped: no blood on effects or summons.",
+  "hand": true
+ },
+ "inosuke": {
+  "batch": 3,
+  "note": "boar mask: blood may show on the mask; eyes of the mask protected."
+ },
+ "ippo": {
+  "batch": 3,
+  "note": "gloves / bare torso read well."
+ },
+ "isshiki": {
+  "batch": 3,
+  "note": ""
+ },
+ "itachi": {
+  "batch": 3,
+  "note": "Akatsuki cloak: dark-on-dark, reads in trickles."
+ },
+ "jason": {
+  "batch": 3,
+  "note": "hockey mask: blood on the mask allowed, eyes protected."
+ },
+ "jesus": {
+  "batch": 3,
+  "note": "jump: raised hand taken for the face → noFace on that strip.",
+  "hand": true
+ },
+ "jiraiya": {
+  "batch": 3,
+  "note": "toads on the shoulders sit inside the body mask (part of the art); wounds stay on Jiraiya."
+ },
+ "kakashi": {
+  "batch": 3,
+  "note": "Chidori / lightning blade kept clean by the arm-reach rule."
+ },
+ "kakashi_anbu": {
+  "batch": 3,
+  "note": ""
  }
 }

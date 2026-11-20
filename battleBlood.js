@@ -155,7 +155,7 @@ function rec(f) {
   const slot = bloodSlotOf(f)
   let r = recs.get(slot)
   if (!r) { r = { slot, pi: (parseInt(String(slot).replace(/\D/g, ''), 10) || (recs.size + 1)),   // from the slot, never from call order
-         key: '', wounds: [], carry: 0, tier: 0, hpTier: 0, lastHp: null, version: 1, still: 0, dst: null, ends: [], pool: null, fluid: 'blood', young: false, scripted: {} }; recs.set(slot, r) }
+         key: '', wounds: [], carry: 0, prevLost: 0, curLost: 0, tier: 0, hpTier: 0, lastHp: null, version: 1, still: 0, dst: null, ends: [], pool: null, fluid: 'blood', young: false, scripted: {} }; recs.set(slot, r) }
   const k = String(f.rosterKey || '').toLowerCase()
   if (r.key !== k) { r.key = k; r.young = BLOOD_YOUNG.has(k); bloodPreload(k) }
   r.fluid = bloodFluidOf(f)
@@ -233,8 +233,10 @@ export function bloodTick(f, frame, groundY, stage = null) {
   r.floorY = groundY
   _water = !!stage && /water|ocean|sea|beach|lake|river|flood|harbor|harbour|bay|rain/i.test(String(stage.id || stage.key || stage.name || ''))
   const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000
-  const hpT = tierFor(Math.max(0, (max - hp) / max))
-  if (r.lastHp != null && hp > r.lastHp + 0.5 && hpT < r.carry) r.carry = hpT          // healing washes blood away
+  // damage ADDS UP over the whole match: health lost in earlier rounds + health lost this round (healing only
+  // washes away this round's part)
+  r.curLost = Math.max(0, Math.min(1, (max - hp) / max))
+  const hpT = tierFor(Math.min(1, r.prevLost + r.curLost))
   r.lastHp = hp
   const t = capTier(r, Math.max(hpT, r.carry))
   if (t !== r.tier) {
@@ -502,13 +504,14 @@ export function bloodMatchStart(seed, fighters = [], frame0 = 0) {
   recs.clear(); _canvas.clear(); _decals = []; _drops.length = 0; _sprays.length = 0; _parts.length = 0
   for (const f of fighters) if (f) bloodPreload(f.rosterKey)
 }
-/** New round: the floor is cleared and every fighter's wounds drop ONE tier (healed a little, not reset). */
+/** New round: the floor is cleared, but the BODY keeps everything — every wound stays, and the health lost this
+ *  round is added to the match total, so the next round starts as bloody as this one ended and gets worse. */
 export function bloodRoundStart() {
   _decals = []; _drops.length = 0; _sprays.length = 0; _parts.length = 0
   for (const r of recs.values()) {
-    r.carry = Math.max(0, r.tier - 1)
-    r.tier = r.carry; r.lastHp = null; r.pool = null; r.still = 0
-    r.wounds = r.wounds.slice(0, MAX_WOUNDS[r.carry]).map(w => ({ ...w, sev: Math.max(1, w.sev - 1) }))
+    r.prevLost = Math.min(1, r.prevLost + r.curLost); r.curLost = 0
+    r.carry = r.tier
+    r.lastHp = null; r.pool = null; r.still = 0
     r.version++
   }
 }

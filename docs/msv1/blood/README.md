@@ -1,9 +1,9 @@
 # MSV1-BLOOD — progressive damage blood
 
-Blood is part of normal damage: the more health a fighter has lost **this round**, the more shows on the body,
+Blood is part of normal damage: the more health a fighter has lost **over the whole match** (all rounds added up), the more shows on the body,
 and from Tier 3 it drips to the floor. Render-only, deterministic, drawn in sprite pixel space.
 
-| health lost this round | tier | what shows |
+| health lost (match total) | tier | what shows |
 |---|---|---|
 | 0–15 % | — | nothing |
 | 15–35 % | T1 | split lip / nose trickle + small scrape |
@@ -33,8 +33,9 @@ Young fighters (ben10, albedo, saiki, nezuko, dash_parr, violet — the brutalit
 no spray and no pools.
 
 ## Match rules
-Round start: floor cleared, every fighter's wounds drop **one** tier. Healing removes tiers in step with health
-restored. Transformations keep wounds by region (fluid follows the current form). Blood draws over any skin, under
+Round start: floor cleared, but the body keeps **every** wound, and the health lost that round is added to the
+match total, so each round starts as bloody as the last one ended and gets worse. Repeat hits on the same spot
+deepen that wound. Healing washes away only the current round's part. Transformations keep wounds by region (fluid follows the current form). Blood draws over any skin, under
 effects (auras / Susanoo / armour overlays draw after the body). Floor: drips splat, T4 standing still builds a pool,
 walking through it leaves faint smeared steps, decals darken then fade after ~20 s, hard cap 64 (oldest goes; a pool
 still being fed stays newest), cleared at round start, water stages swallow drops.

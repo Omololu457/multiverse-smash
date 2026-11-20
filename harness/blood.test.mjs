@@ -57,6 +57,10 @@ const A = await page.evaluate(async () => {
   const before = B.bloodStatus().slots.p1.tier
   B.bloodRoundStart(); rd.health = 1000; B.bloodTick(rd, 2, 100)
   out.round = { before, after: B.bloodStatus().slots.p1.tier, carry: B.bloodStatus().slots.p1.carry }
+  // damage adds up over rounds: 30 % lost in round 1 (T1) + 30 % in round 2 → 60 % of the match total (T3)
+  B.bloodMatchStart(7); const ac = mk('goku', 'p1', 700); B.bloodTick(ac, 1, 100); const r1 = B.bloodStatus().slots.p1.tier
+  B.bloodRoundStart(); ac.health = 1000; B.bloodTick(ac, 2, 100); const r2start = B.bloodStatus().slots.p1.tier
+  ac.health = 700; B.bloodTick(ac, 3, 100); out.accum = { r1, r2start, r2end: B.bloodStatus().slots.p1.tier }
   B.bloodMatchStart(8); const he = mk('goku', 'p1', 100); B.bloodTick(he, 1, 100); const hb = B.bloodStatus().slots.p1.tier
   he.health = 500; B.bloodTick(he, 2, 100); out.heal = { before: hb, after: B.bloodStatus().slots.p1.tier }
   // floor: drips, pool, smear, cap, fade (drive a T4 fighter with a fake draw rect so world positions exist)
@@ -104,7 +108,8 @@ check('young fighters: tier ≤ 2, no spray', A.young.tier <= 2 && A.young.spray
 const F = A.fluids
 check('fluid types: human blood, machines oil, Rangers suit, Edo cracks, sand, alien colour',
   F.goku === 'blood' && F.naruto === 'blood' && F.genos === 'oil' && F.krybot === 'oil' && F.cyborg === 'oil' && F.spd_red === 'ranger' && F.windrangers === 'ranger' && F.madara === 'crack:edo' && F.gaara === 'sand' && F.vilgax.startsWith('alien'), JSON.stringify(F))
-check('between rounds wounds drop ONE tier', A.round.before === 4 && A.round.after === 3, JSON.stringify(A.round))
+check('between rounds the body keeps its wounds (no tier lost)', A.round.before === 4 && A.round.after === 4, JSON.stringify(A.round))
+check('damage adds up over rounds: 30 % + 30 % → tier 3', A.accum.r1 === 1 && A.accum.r2start === 1 && A.accum.r2end === 3, JSON.stringify(A.accum))
 check('healing removes tiers with the health restored', A.heal.before === 4 && A.heal.after === 2, JSON.stringify(A.heal))
 check('T3+ drips fall', A.floor.drops > 0, JSON.stringify(A.floor))
 check('T4 standing still builds a pool', A.floor.pools > 0, JSON.stringify(A.floor))

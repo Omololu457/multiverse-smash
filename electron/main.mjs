@@ -6,20 +6,57 @@
 // logic (the exact live import-map injection from tools/serve.mjs / stamp_version.mjs) on a random
 // localhost port inside the Electron main process, then load http://127.0.0.1:PORT. This makes the
 // Electron runtime byte-for-byte identical to a real browser / GitHub Pages — so ZERO game-code changes.
-import { app, BrowserWindow, Menu, shell } from "electron";
+import { app, BrowserWindow, Menu, shell, ipcMain, clipboard } from "electron";
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildModuleBlock, injectBlock } from "../tools/stamp_version.mjs";
+import { buildModuleBlock, injectBlock, MARK_END } from "../tools/stamp_version.mjs";
 import { startLanServer, lanAddresses } from "../net/lanServer.mjs";   // LAN multiplayer (Stage 3): relay + IP discovery
+import { createHostController } from "./host.js";                    // MSV1-HOST: auto online host
+import { buildClientManifest } from "../net/clientManifest.mjs";
+import { computeVersion } from "../tools/stamp_version.mjs";
+import { PROTOCOL_SCHEME, RELEASES_URL, parseJoinInput, relayUrlFor } from "../net/hostConfig.js";
+
+// MSV1-HOST: MS_PROFILE=<name> gives a separate userData dir (and so a separate single-instance lock) — used to
+// run a SECOND desktop instance on one machine for testing a desktop-to-desktop join.
+if (process.env.MS_PROFILE && /^[\w-]{1,32}$/.test(process.env.MS_PROFILE)) {
+  app.setPath("userData", path.join(app.getPath("appData"), `multiverse-smash-desktop-${process.env.MS_PROFILE}`));
+}
+
+// ── MSV1-HOST: single instance + multiversesmash:// protocol ──────────────────────────────────────────
+// A second launch (e.g. the website's "Open Desktop Version" button, or a join link) must NOT start a second
+// game: it hands its URL to the running app and exits. macOS delivers protocol URLs via "open-url";
+// Windows/Linux pass them on the second instance's argv.
+let pendingProtocolUrl = (process.argv.find((a) => typeof a === "string" && a.startsWith(`${PROTOCOL_SCHEME}://`)) || null);
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) { app.quit(); }
+if (process.defaultApp) {
+  // dev mode (`electron .`): register "electron <this app path>" as the handler
+  if (process.argv.length >= 2) app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, process.execPath, [path.resolve(process.argv[1])]);
+} else {
+  app.setAsDefaultProtocolClient(PROTOCOL_SCHEME);
+}
+app.on("open-url", (e, url) => { e.preventDefault(); handleProtocolUrl(url); });
+app.on("second-instance", (_e, argv) => {
+  const url = argv.find((a) => typeof a === "string" && a.startsWith(`${PROTOCOL_SCHEME}://`));
+  focusMainWindow();
+  if (url) handleProtocolUrl(url);
+});
 
 // LAN multiplayer relay (Stage 3): a ws server on ALL interfaces so a 2nd device can reach this host. The
 // game (served on 127.0.0.1) connects to it as a client. Additive & best-effort — if it can't start, ONLINE
 // is simply unavailable and the rest of the app is unaffected.
 const LAN_PORT = +(process.env.LAN_PORT || 8787);
 let LAN_RELAY_PORT = null;
-try { startLanServer({ port: LAN_PORT, relay: true, log: () => {} }); LAN_RELAY_PORT = LAN_PORT; }
+try {
+  if (gotLock) {
+    const lan = startLanServer({ port: LAN_PORT, relay: true, log: () => {} }); LAN_RELAY_PORT = LAN_PORT;
+    // EADDRINUSE arrives ASYNCHRONOUSLY as an "error" event (the try/catch never sees it): report the relay
+    // as absent instead of pointing the game at whatever process owns the port. Never crashes.
+    lan.wss.once("error", (e) => { console.log(`[lan] relay unavailable on ${LAN_PORT}: ${e.code || e.message}`); LAN_RELAY_PORT = null; });
+  }
+}
 catch (e) { console.log(`[lan] relay failed to start on ${LAN_PORT}: ${e.message}`); }
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -43,7 +80,13 @@ function readSaveBody(req) {
 }
 function handleSaveApi(url, req, res) {
   if (url === "/api/health") { res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify({ ok: true, version: "1" })); return true; }
-  if (url === "/api/lan-info") { res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify({ ok: true, port: LAN_RELAY_PORT, addresses: lanAddresses().map((a) => a.address) })); return true; }
+  if (url === "/api/lan-info") {
+    // MSV1-HOST: while hosting, the in-game ONLINE (LAN) screens point at the host server (its legacy LAN path
+    // joins the hosted room), so the LAN code shown in-game and the hosting panel describe the same room.
+    const hs = host && host.state();
+    const port = hs && hs.status === "online" && hs.port ? hs.port : LAN_RELAY_PORT;
+    res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify({ ok: true, port, addresses: lanAddresses().map((a) => a.address) })); return true;
+  }
   if (url === "/api/save" && req.method === "GET") {
     const { file } = saveFilePaths();
     fs.readFile(file, "utf8", (e, data) => { if (e || !data) { res.writeHead(204, { "cache-control": "no-store" }).end(); return; } res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(data); });
@@ -90,15 +133,19 @@ function handleSaveApi(url, req, res) {
 // --- 1) Serve the repo exactly like tools/serve.mjs (live import-map, versioned modules) -------------
 function startServer() {
   return new Promise(resolve => {
-    const server = http.createServer((req, res) => {
+    const server = http.createServer((req, res) => { try { serveLocal(req, res); } catch (e) { try { res.writeHead(500).end("error"); } catch {} } });   // MSV1-HOST: one bad request can't throw in main
+    function serveLocal(req, res) {
       const url = decodeURIComponent(req.url.split("?")[0]);
       if (handleSaveApi(url, req, res)) return;   // durable save tier (health / save GET+POST) before static
       const rel = url === "/" ? "/index.html" : url;
       const file = path.join(REPO, rel);
       if (!file.startsWith(REPO)) { res.writeHead(403).end(); return; }
       if (rel === "/index.html") {
-        let html = fs.readFileSync(file, "utf8");
+        let html;
+        try { html = fs.readFileSync(file, "utf8"); } catch (e) { res.writeHead(503, { "retry-after": "1" }).end("index.html busy"); return; }   // MSV1-HOST: never throw out of the handler
         html = injectBlock(html, buildModuleBlock().html);   // re-inject the import map live
+        html = html.replace("<head>", `<head><script>window.__MS_APP_VERSION=${JSON.stringify(app.getVersion())};</script>`);   // MSV1-HOST: build id for the join handshake
+        if (TEST_CODE_OVERRIDE) html = html.replace(MARK_END, `${MARK_END}<script>window.__ASSET_V=${JSON.stringify(TEST_CODE_OVERRIDE)};</script>`);
         res.writeHead(200, { "content-type": "text/html", "cache-control": "no-store" });
         res.end(html); return;
       }
@@ -110,13 +157,109 @@ function startServer() {
         res.writeHead(200, headers);
         res.end(data);
       });
-    });
+    }
     server.listen(0, "127.0.0.1", () => resolve(server.address().port));   // port 0 → OS picks a free port
   });
 }
 
+// ── MSV1-HOST: host controller, settings, IPC ───────────────────────────────────────────────────────────
+let mainWin = null, localOrigin = null, host = null, ensureHostBuilt = () => null;
+// Test-only: pretend to be a DIFFERENT build (version-mismatch test). Hex only; never set in normal use.
+const TEST_WINDOWED = process.env.MS_WINDOWED === "1";
+const TEST_CODE_OVERRIDE = /^[0-9a-f]{10}$/.test(process.env.MS_TEST_CODE_OVERRIDE || "") ? process.env.MS_TEST_CODE_OVERRIDE : null;
+const hostSettingsFile = () => path.join(app.getPath("userData"), "host-settings.json");
+function readHostSettings() {
+  try { const j = JSON.parse(fs.readFileSync(hostSettingsFile(), "utf8")); return { autoHost: j.autoHost !== false, noticeShown: !!j.noticeShown }; }
+  catch { return { autoHost: true, noticeShown: false }; }
+}
+function writeHostSettings(patch) {
+  const next = { ...readHostSettings(), ...patch };
+  try { fs.mkdirSync(path.dirname(hostSettingsFile()), { recursive: true }); fs.writeFileSync(hostSettingsFile(), JSON.stringify(next, null, 2)); } catch {}
+  return next;
+}
+function focusMainWindow() {
+  if (!mainWin) return;
+  if (mainWin.isMinimized()) mainWin.restore();
+  mainWin.show(); mainWin.focus();
+}
+function pushToWindow(channel, payload) { if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send(channel, payload); }
+// multiversesmash://open → focus + start hosting. multiversesmash://join?link=<url>&room=<CODE> → join it.
+function handleProtocolUrl(url) {
+  let u; try { u = new URL(url); } catch { return; }
+  if (u.protocol !== `${PROTOCOL_SCHEME}:`) return;
+  if (!app.isReady() || !mainWin) { pendingProtocolUrl = url; return; }
+  focusMainWindow();
+  const action = (u.hostname || u.pathname.replace(/^\/+/, "")).toLowerCase();
+  if (action === "open") { if (host) host.start(); return; }
+  if (action === "join") {
+    const p = parseJoinInput(url);
+    pushToWindow("host:join-request", p.kind === "link" ? { ok: true, origin: p.origin, room: p.room } : { ok: false, reason: p.reason || "That link has no host address." });
+  }
+}
+function initHost(appVersion) {
+  // Built lazily on the first start (git ls-files + hashing every module takes a few seconds; the window must
+  // not wait for it).
+  const manifest = new Set();
+  let built = false;
+  const ensureBuilt = () => {
+    if (built) return;
+    built = true;
+    for (const f of buildClientManifest(REPO)) manifest.add(f);
+    buildInfo.codeHash = TEST_CODE_OVERRIDE || computeVersion();   // == window.__ASSET_V the pages report in their hello
+  };
+  const buildInfo = { appVersion, codeHash: null };
+  ensureHostBuilt = () => { ensureBuilt(); return buildInfo.codeHash; };
+  host = createHostController({
+    root: REPO, manifest, prepare: ensureBuilt,
+    renderIndex: () => injectBlock(fs.readFileSync(path.join(REPO, "index.html"), "utf8"), buildModuleBlock().html),
+    buildInfo,
+    cacheDir: path.join(app.getPath("userData"), "cloudflared"),
+    bundledCloudflaredDir: app.isPackaged ? path.join(process.resourcesPath, "cloudflared") : null,
+    log: (m) => { if (process.env.HOST_LOG === "1") console.log(m); },
+    onState: (s) => pushToWindow("host:state", s),
+  });
+}
+// IPC: only our own window, loaded from our own loopback origin, may call these.
+function trusted(e) {
+  try { return !!mainWin && e.sender === mainWin.webContents && new URL(e.senderFrame.url).origin === localOrigin; } catch { return false; }
+}
+function handle(channel, fn) {
+  ipcMain.handle(channel, async (e, ...args) => { if (!trusted(e)) throw new Error("forbidden"); return fn(...args); });
+}
+handle("host:get-state", () => host.state());
+handle("host:start", () => host.start());
+handle("host:stop", () => host.stop());
+handle("host:get-settings", () => readHostSettings());
+handle("host:set-auto-host", (on) => writeHostSettings({ autoHost: !!on }));
+handle("host:ack-notice", () => writeHostSettings({ noticeShown: true }));
+handle("host:copy", (text) => { clipboard.writeText(String(text).slice(0, 2048)); return true; });
+handle("host:open-releases", () => shell.openExternal(RELEASES_URL).then(() => true));
+handle("host:take-pending-join", () => { const u = pendingJoin; pendingJoin = null; return u; });
+// Pre-flight a join link from the MAIN process (no CORS, no page access to arbitrary hosts): room exists?
+// same build? Returns the room's relay URL for the in-game join.
+handle("host:check-room", async (link) => {
+  const p = parseJoinInput(link);
+  if (p.kind !== "link") return { ok: false, reason: p.reason || "Paste the full join link (a room code alone has no host address)." };
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch(`${p.origin}/api/room/${p.room}?code=${encodeURIComponent(ensureHostBuilt() || "")}`, { signal: ctl.signal, cache: "no-store" });
+    clearTimeout(t);
+    if (r.status === 429) return { ok: false, reason: "Too many attempts — wait a few minutes and try again." };
+    const j = await r.json().catch(() => null);
+    if (!j || !j.ok) return { ok: false, reason: "That room does not exist or has closed. Ask your friend for a new link." };
+    if (j.full) return { ok: false, reason: "That room is full (2 players)." };
+    if (j.compatible === false) return { ok: false, mismatch: true, hostVersion: j.hostVersion, myVersion: app.getVersion(), reason: (j.hostVersion && j.hostVersion !== app.getVersion())
+      ? `Version mismatch: your friend runs version ${j.hostVersion} and you have ${app.getVersion()}. Download the matching version to join.`
+      : `Different game build: you both have version ${app.getVersion()}, but the game files differ (yours ${ensureHostBuilt()}, theirs ${j.hostCode || "?"}). One of you has local changes or a different download — get the same release as your friend.` };
+    return { ok: true, origin: p.origin, room: p.room, relayUrl: relayUrlFor(p.origin, p.room) };
+  } catch (e) { return { ok: false, reason: `Could not reach the host (${e.name === "AbortError" ? "timed out" : e.message}).` }; }
+});
+let pendingJoin = null;
+
 async function createWindow() {
+  initHost(app.getVersion());
   const port = await startServer();
+  localOrigin = `http://127.0.0.1:${port}`;
 
   // Kill the application menu entirely — no File/Edit/View menu, and (critically) no menu accelerators
   // that could open dev-tools or reload into a stray state. This is a game, so it presents as a pure
@@ -128,15 +271,24 @@ async function createWindow() {
     // fullscreen:true → the window launches NATIVE-fullscreen (item 2). Native (not the in-page web
     // Fullscreen API) means it survives menu navigation, entering/leaving a match, and alt-tab away/back
     // with no code in the game needed to "keep" it. width/height are the pre-fullscreen restore size only.
-    width: 1280,
-    height: 800,
-    fullscreen: true,
+    width: TEST_WINDOWED ? 960 : 1280,
+    height: TEST_WINDOWED ? 540 : 800,
+    fullscreen: !TEST_WINDOWED,   // MS_WINDOWED=1 (tests only): a small window that doesn't take over the screen
     backgroundColor: "#061225",
     title: "Multiverse Smash Ultimate",
     autoHideMenuBar: true,
     show: false,                 // avoid a windowed flash before fullscreen engages; shown on ready-to-show
-    webPreferences: { contextIsolation: true, nodeIntegration: false },   // game needs no Node access
+    // MSV1-HOST: the preload adds window.msDesktop (fixed IPC surface); sandboxed, isolated, no Node.
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, backgroundThrottling: false, preload: path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.cjs") },
   });
+  mainWin = win;
+  win.on("closed", () => { if (mainWin === win) mainWin = null; });
+  // MSV1-HOST: always log why the window/app would go away (a host vanishing mid-match must be explainable).
+  win.webContents.on("render-process-gone", (_e, d) => console.log(`[app] renderer gone: ${JSON.stringify(d)}`));
+  win.on("close", () => console.log(`[app] window close (quitting=${quitting})`));
+  app.on("child-process-gone", (_e, d) => console.log(`[app] child process gone: ${JSON.stringify(d)}`));
+  // Never let the page (or anything it loads) gain extra powers.
+  win.webContents.session.setPermissionRequestHandler((_wc, perm, cb) => cb(perm === "clipboard-sanitized-write" || perm === "fullscreen"));
 
   // DIAGNOSTIC (DIAG=1): surface WHY the window would close on its own — renderer crash / OOM, page
   // errors, failed loads, unhandled exceptions. Prints with timestamps so a "closes shortly after"
@@ -189,7 +341,7 @@ async function createWindow() {
   });
   // Re-assert native fullscreen the instant it's shown (covers platforms where the constructor flag races
   // the first paint) and show once the first frame is ready so the user never sees a windowed flash.
-  win.once("ready-to-show", () => { if (!win.isFullScreen()) win.setFullScreen(true); win.show(); });
+  win.once("ready-to-show", () => { if (TEST_WINDOWED) { win.showInactive(); return; } if (!win.isFullScreen()) win.setFullScreen(true); win.show(); });
 
   // UNLOCK THE GAMEPAD API ON THE HOME SCREEN (controller-on-menus fix).
   // Chromium gates navigator.getGamepads() behind a sticky USER ACTIVATION (a real mouse/keyboard/touch
@@ -208,10 +360,30 @@ async function createWindow() {
   // BATTLE=1 drives the game's own test harness into a live match so the screenshot shows real gameplay
   // (canvas render loop + sprites), not just menus. Plain launch (neither var) just opens the window.
   const battle = process.env.BATTLE === "1";
+  // tests: show the host UI under automation (HOSTUI=1) or pass a simple query (MS_URL_QUERY="harness=1&hostui=1")
+  const q = process.env.MS_URL_QUERY;
+  const hostui = q && /^[\w=&.-]{1,200}$/.test(q) ? `?${q}` : (process.env.HOSTUI === "1" ? "?hostui=1" : "");
   const url = battle
     ? `http://127.0.0.1:${port}/index.html?harness=1&p1=miwa&p2=maki`
-    : `http://127.0.0.1:${port}/index.html`;
-  await win.loadURL(url);   // resolves once the page has loaded
+    : `http://127.0.0.1:${port}/index.html${hostui}`;
+  // MSV1-HOST: hosting must not wait for the page's full `load` (thousands of assets). Start it right away.
+  // A real network failure of the main page (not an abort) is retried a few times instead of leaving a dead window.
+  let loadRetries = 0;
+  win.webContents.on("did-fail-load", (_e, code, desc, failedUrl, isMainFrame) => {
+    if (!isMainFrame || code === -3 || loadRetries >= 3) return;
+    loadRetries++;
+    console.log(`[app] page load failed (${code} ${desc}) — retry ${loadRetries}`);
+    setTimeout(() => { if (!win.isDestroyed()) win.loadURL(url).catch(() => {}); }, 750);
+  });
+  const loaded = win.loadURL(url).catch((e) => console.log(`[app] load: ${e.message}`));   // resolves once the page has loaded
+  const launchUrl = pendingProtocolUrl; pendingProtocolUrl = null;
+  if (launchUrl && /^multiversesmash:\/\/join/i.test(launchUrl)) {
+    const p = parseJoinInput(launchUrl);
+    pendingJoin = p.kind === "link" ? { ok: true, origin: p.origin, room: p.room } : { ok: false, reason: p.reason };
+    pushToWindow("host:join-request", pendingJoin);
+  }
+  if (readHostSettings().autoHost || (launchUrl && /^multiversesmash:\/\/open/i.test(launchUrl))) host.start();
+  await loaded;
 
   // Self-check: VERIFY_GAMEPAD=1 confirms the launcher opened the Gamepad-API gate on the COLD home screen
   // (no user input performed) — the whole point of the activation grant above. Prints the gate state + that
@@ -248,5 +420,17 @@ async function createWindow() {
   }
 }
 
-app.whenReady().then(createWindow);
+if (gotLock) app.whenReady().then(createWindow);
 app.on("window-all-closed", () => app.quit());
+
+// MSV1-HOST: quitting closes the public listener and kills cloudflared (graceful first, then a hard kill).
+let quitting = false;
+app.on("before-quit", (e) => {
+  if (quitting || !host) return;
+  e.preventDefault(); quitting = true;
+  const hard = setTimeout(() => { host.killNow(); app.exit(0); }, 4000);
+  host.stop().catch(() => {}).finally(() => { clearTimeout(hard); app.quit(); });
+});
+app.on("will-quit", () => { if (host) host.killNow(); });
+process.on("exit", () => { if (host) host.killNow(); });
+for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => { if (host) host.killNow(); app.exit(0); });

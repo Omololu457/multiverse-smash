@@ -1,0 +1,35 @@
+{
+ "pass": 5,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "PS5 L2 summons the shadow clone",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "PS5 □ = Light (jab)",
+   "ok": true,
+   "d": "light"
+  },
+  {
+   "n": "PS5 ✕ = Jump, double jump",
+   "ok": true,
+   "d": {
+    "j1": 1,
+    "j2": 2
+   }
+  },
+  {
+   "n": "PS5 → → (D-pad double-tap) = Ninja Step",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "PS5 R2 = Twin Tempest (full meter)",
+   "ok": true,
+   "d": ""
+  }
+ ]
+}

@@ -9,13 +9,14 @@ import { triggerShake } from './effects.js'
 import { MSV1_CELL, MSV1_FX } from './msv1Sprites.js'
 import { getNinjaProfile, isNinja } from './ninja.js'
 import { duoFormAnim, duoFormProfile, duoOther, DUO } from './nsDuo.js'   // MSV1-MERGE: the duo's per-form smoke / HUD / intro (render-only)
+import { drawCgptUnder, drawCgptFx } from './nsCgptFx.js'   // NS CGPT (ninja_storm_cgpt only; render-only)
 
 const cache = new Map()
 const image = src => { let im = cache.get(src); if (!im) { im = new Image(); im.src = src; cache.set(src, im) } return im }
 const ready = im => im && im.complete && im.naturalWidth > 0
 const calm = () => !!(juiceSettings.reduceMotion || juiceSettings.reduceFlashing)
 const SC = f => (f._lastDrawW ? f._lastDrawW / MSV1_CELL.width : (f.spriteScale || 2.37) * 1.18)
-const anim = (f, key) => (f.animationData || {})[key] || null
+const anim = (f, key) => (f._skinAnim || f.animationData || {})[key] || null   // a skin's own strips first (NS CGPT appearances; null for every default skin)
 const frameAt = (A, t) => {
   if (!A) return 0
   if (A.frameTimeline) return A.frameTimeline.reduce((i, [at, fr]) => t >= at ? fr : i, 0)
@@ -34,7 +35,7 @@ function drawPose(c, f, key, frame, x, feet, dir, alpha = 1, tilt = 0, Aov = nul
 }
 function drawFx(c, f, name, frame, x, y, dir = 1, alpha = 1, scale = null, rot = 0) {
   const meta = MSV1_FX[name]; if (!meta) return
-  const im = image(`./assets/${f.rosterKey}/${name}.png`); if (!ready(im)) return
+  const im = image(`${f._nsAssetDir || './assets/' + f.rosterKey}/${name}.png`); if (!ready(im)) return
   const s = scale ?? SC(f), fr = Math.min(meta.frames - 1, frame | 0)
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha; c.translate(Math.round(x), Math.round(y)); if (rot) c.rotate(rot); if (dir < 0) c.scale(-1, 1)
   c.drawImage(im, fr * meta.w, 0, meta.w, meta.h, -meta.w * s / 2, -meta.h * s / 2, meta.w * s, meta.h * s); c.restore()
@@ -66,12 +67,13 @@ function illusionPose(f, s, m) {
 export function drawNinjaUnder(c, f) {
   if (!isNinja(f)) return
   drawIntroStreak(c, f)
+  drawCgptUnder(c, f)
   const s = f._ninja; if (!s) return
   const p = getNinjaProfile(f), w = f.w || 48, feet = (f.y || 0) + (f.h || 94)
   // R3 streak tail (the smear left behind) + speed lines while streaking
   for (const e of s.fx) if (e.k === 'streakTail') { const u = 1 - e.t / e.t0; drawPose(c, f, 'streakTail', u < 0.5 ? 0 : 1, e.x, e.y, e.dir || 1, 0.85 * (1 - u)) }
   if (s.streak && !calm()) {
-    c.save(); c.strokeStyle = p.color; c.lineWidth = 2; c.globalAlpha = 0.45
+    c.save(); c.strokeStyle = f._nsColor || p.color; c.lineWidth = 2; c.globalAlpha = 0.45
     for (let i = 0; i < 5; i++) { const yy = feet - 20 - i * 16, len = 50 + (i * 37) % 60; c.beginPath(); c.moveTo(f.x + w / 2 - (s.streak.dir || 1) * 20, yy); c.lineTo(f.x + w / 2 - (s.streak.dir || 1) * (20 + len), yy); c.stroke() }
     c.restore()
   }
@@ -109,7 +111,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
       c.save(); c.fillStyle = '#ffffff'; c.globalAlpha = 0.95 * k
       c.beginPath(); c.moveTo(hx, hy - 9); c.lineTo(hx + 2, hy - 2); c.lineTo(hx + 9, hy); c.lineTo(hx + 2, hy + 2); c.lineTo(hx, hy + 9); c.lineTo(hx - 2, hy + 2); c.lineTo(hx - 9, hy); c.lineTo(hx - 2, hy - 2); c.closePath(); c.fill(); c.restore()
     }
-    if (m.swap) { const u = m.swap.t / P.swapFrames; puffs(c, ix, m.ifeet, p.smoke, u, 7, 30); puffs(c, f.x + w / 2, f.y + (f.h || 94), p.smoke, u, 7, 30) }
+    if (m.swap) { const u = m.swap.t / P.swapFrames; puffs(c, ix, m.ifeet, (f._nsSmoke || p.smoke), u, 7, 30); puffs(c, f.x + w / 2, f.y + (f.h || 94), (f._nsSmoke || p.smoke), u, 7, 30) }
   }
   // SHADOW CLONES (tilt ±6° chosen in the sim; drawn slightly translucent so the real one reads)
   for (const k of s.clones) {
@@ -125,8 +127,8 @@ export function drawNinjaFx(c, f, frameNo = 0) {
     switch (e.k) {
       case 'smoke':
         if (e.big) { const A = e.form ? duoFormAnim(e.form, 'smoke') : anim(f, 'smoke'); drawPose(c, f, 'smoke', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, Math.min(0.9, 1.2 * (1 - u)), 0, A) }
-        puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || p.smoke) : p.smoke, u, 7, 30); break
-      case 'smokeFade': { const A = e.form ? duoFormAnim(e.form, 'smokeFade') : anim(f, 'smokeFade'); if (e.t0 >= 20) drawPose(c, f, 'smokeFade', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, 0.85 * (1 - u), 0, A); puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || p.smoke) : p.smoke, u, 5, 22, 0.45); break }
+        puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || (f._nsSmoke || p.smoke)) : (f._nsSmoke || p.smoke), u, 7, 30); break
+      case 'smokeFade': { const A = e.form ? duoFormAnim(e.form, 'smokeFade') : anim(f, 'smokeFade'); if (e.t0 >= 20) drawPose(c, f, 'smokeFade', Math.min((A?.frames || 1) - 1, Math.floor(u * (A?.frames || 1))), e.x, e.y, f.facing || 1, 0.85 * (1 - u), 0, A); puffs(c, e.x, e.y, e.form ? (duoFormProfile(e.form)?.smoke || (f._nsSmoke || p.smoke)) : (f._nsSmoke || p.smoke), u, 5, 22, 0.45); break }
       case 'dust': case 'skid': puffs(c, e.x, e.y + 14, '#c9b48a', u, 4, 12, 0.5); break
       case 'ripple': puffs(c, e.x, e.y + 16, '#8a6a3a', u, 3, 10, 0.5); break
       case 'wind': c.save(); c.strokeStyle = '#e8f6ff'; c.globalAlpha = 0.6 * (1 - u); c.lineWidth = 2; c.beginPath(); c.ellipse(e.x, e.y - 40, 20 + u * 40, 50 + u * 30, 0, 0, Math.PI * 2); c.stroke(); c.restore(); break
@@ -152,6 +154,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
   if (s.barrier && s.barrier.phase === 'parry') { c.save(); c.strokeStyle = '#ffffff'; c.globalAlpha = 0.7; c.lineWidth = 2; c.beginPath(); c.arc(f.x + w / 2, f.y + (f.h || 94) * 0.5, 60, 0, Math.PI * 2); c.stroke(); c.restore() }
   // REV pips (motocross): three small dots behind him
   if (p.rev && s.rev.pips) { c.save(); for (let i = 0; i < s.rev.pips; i++) { c.fillStyle = p.color; c.globalAlpha = 0.9; c.beginPath(); c.arc(f.x + w / 2 - (f.facing || 1) * (34 + i * 10), f.y + (f.h || 94) - 8, 4, 0, Math.PI * 2); c.fill() } c.restore() }
+  drawCgptFx(c, f)   // NS CGPT clone / tell / fault / eruption / ultimate (ninja_storm_cgpt only)
   drawBubble(c, f)
 }
 
@@ -243,4 +246,4 @@ export function playNinjaCues(f) {
   }
   f._nsCues = null
 }
-export function preloadNinjaFx(f) { if (f?._duo) for (const k of ['ns_red', 'ns_yellow']) { image(`./assets/${k}/portrait_small.png`); for (const n of ['smoke', 'smokeFade', 'idle', 'superTornado']) { const A = duoFormAnim(k, n); if (A?.sheet) image(A.sheet) } } for (const A of Object.values(f?.animationData || {})) if (A?.sheet) image(A.sheet); for (const n of Object.keys(MSV1_FX)) image(`./assets/${f.rosterKey}/${n}.png`) }
+export function preloadNinjaFx(f) { if (f?._duo) for (const k of ['ns_red', 'ns_yellow']) { image(`./assets/${k}/portrait_small.png`); for (const n of ['smoke', 'smokeFade', 'idle', 'superTornado']) { const A = duoFormAnim(k, n); if (A?.sheet) image(A.sheet) } } for (const A of Object.values(f?.animationData || {})) if (A?.sheet) image(A.sheet); for (const n of Object.keys(MSV1_FX)) image(`${f._nsAssetDir || './assets/' + f.rosterKey}/${n}.png`) }

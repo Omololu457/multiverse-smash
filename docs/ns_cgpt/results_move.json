@@ -1,0 +1,72 @@
+{
+ "pass": 8,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "walk distance over 30 frames comparable to S.P.D. Red (±10%)",
+   "ok": true,
+   "d": {
+    "cgpt": 114,
+    "spdRed": 114
+   }
+  },
+  {
+   "n": "double jump: a second jump in the air",
+   "ok": true,
+   "d": {
+    "j1": 1,
+    "j2": 2,
+    "vy": -26.749999999999993
+   }
+  },
+  {
+   "n": "no third jump (the fall keeps accelerating)",
+   "ok": true,
+   "d": {
+    "jc": 2,
+    "before": -21.649999999999984,
+    "after": -17.399999999999977
+   }
+  },
+  {
+   "n": "double-tap → → starts the Ninja Step (streak) and spends 1 of 3 charges",
+   "ok": true,
+   "d": {
+    "streak": true,
+    "n": 2
+   }
+  },
+  {
+   "n": "three steps chained → 0 charges, chain recovery lock armed",
+   "ok": true,
+   "d": {
+    "n": 0,
+    "chain": 3
+   }
+  },
+  {
+   "n": "a 4th step with 0 charges is refused (he just runs)",
+   "ok": true,
+   "d": {
+    "streak": false
+   }
+  },
+  {
+   "n": "charges regenerate (1 per 80 frames)",
+   "ok": true,
+   "d": {
+    "n": 1,
+    "t": 26
+   }
+  },
+  {
+   "n": "air Ninja Step: once per airtime",
+   "ok": true,
+   "d": {
+    "first": true,
+    "second": false
+   }
+  }
+ ]
+}

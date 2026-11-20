@@ -1,0 +1,45 @@
+{
+ "pass": 2,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "as a CPU it fights with its kit for 1200 frames without errors",
+   "ok": true,
+   "d": {
+    "moves": [
+     "sBlaster",
+     "nsStreakRec",
+     "sBlasterAir",
+     "nsStreakStrike",
+     "sKunaiAir",
+     "airKick",
+     "sGale",
+     "jab2",
+     "light",
+     "nsStreak",
+     "nsClone"
+    ],
+    "dealt": 442
+   }
+  },
+  {
+   "n": "the CPU summons and uses its shadow clone through the real Charge input",
+   "ok": true,
+   "d": {
+    "summons": 2,
+    "echoes": 5,
+    "echoHits": 1,
+    "guards": 0,
+    "guardHits": 0,
+    "swaps": 0,
+    "recalls": 0,
+    "switches": 3,
+    "faults": 0,
+    "erupts": 0,
+    "ults": 0,
+    "ultHits": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,42 @@
+{
+ "pass": 2,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "Red, Yellow and a skin: identical damage, travel, fault positions and hurtbox for the same inputs",
+   "ok": true,
+   "d": {
+    "red": [
+     1148,
+     930,
+     1172,
+     1373,
+     1200,
+     "[985]"
+    ],
+    "yellow": [
+     1148,
+     930,
+     1172,
+     1373,
+     1200,
+     "[985]"
+    ],
+    "neon": [
+     1148,
+     930,
+     1172,
+     1373,
+     1200,
+     "[985]"
+    ]
+   }
+  },
+  {
+   "n": "every appearance exposes the identical animation key set (no per-skin moves)",
+   "ok": true,
+   "d": ""
+  }
+ ]
+}

@@ -40,6 +40,7 @@ import { VIOLET_SKINS } from './violetSkins.js'   // Violet Parr: Supersuit defa
 import { ELASTIGIRL_SKINS } from './elastigirlSkins.js'   // Elastigirl default + palette skins (cosmetic, precomputed)
 import { SPD_GREEN_SKINS } from './spdGreenSkins.js'   // S.P.D. Green default + 6 appearance skins (cosmetic, precomputed)
 import { DASH_PARR_SKINS } from './dashParrSkins.js'   // Dash: Supersuit + Incredibles 2 + Track Star palette swaps (cosmetic, precomputed)
+import { NS_CGPT_SKINS } from './nsCgptSkins.js'   // NS CGPT: Red / Yellow base appearances + 20 palette skins (cosmetic, precomputed)
 import { SPD_BLUE_SKINS } from './spdBlueSkins.js'   // S.P.D. Blue default + 6 appearance skins (cosmetic)
 import { getLevel, isFullyUnlocked } from "./progression.js"
 import { isChallengeSkinUnlocked } from "./challenges.js"   // challenge-reward skins (guest-safe, persisted)
@@ -243,6 +244,7 @@ export const SKINS = {
     { id: "sanji_albedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("sanji", "albedo"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "albedo"), recolorTag: "albedo" },
     { id: "sanjiAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("sanji", "alienx"), spriteScale: characters.sanji.spriteScale, animationData: recolorSkinAnim("sanji", "alienx"), recolorTag: "alienx" },
   ],
+  ninja_storm_cgpt: NS_CGPT_SKINS,   // NS CGPT: 22 appearances (2 supplied bases + 20 skins)
   windrangers: [{ id: 'default', name: 'Start as: Red (Shane)', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }, { id: 'start_yellow', name: 'Start as: Yellow (Dustin)', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }],   // MSV1-MERGE start form = skin
   ns_red: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }],   // MSV1
   ns_yellow: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }],

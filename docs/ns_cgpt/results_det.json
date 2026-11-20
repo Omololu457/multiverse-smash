@@ -1,0 +1,17 @@
+{
+ "pass": 2,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "two runs with the same seed + inputs give byte-identical ninja / clone state (replay / LAN safe)",
+   "ok": true,
+   "d": "2547 chars"
+  },
+  {
+   "n": "the clone state rides in the ninja snapshot (f._ninja.cg)",
+   "ok": true,
+   "d": ""
+  }
+ ]
+}

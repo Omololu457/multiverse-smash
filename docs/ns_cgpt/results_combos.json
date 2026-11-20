@@ -1,0 +1,65 @@
+{
+ "pass": 6,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "□ □ □ → ↑+□: rapid punch flurry into the sword launcher (launches)",
+   "ok": true,
+   "d": {
+    "m3": "jab3",
+    "vy": -18,
+    "rise": 180,
+    "dmg": 105
+   }
+  },
+  {
+   "n": "↓↘→+R1 Gale Rush lifts both, then △ = air sword follow-up that connects",
+   "ok": true,
+   "d": {
+    "air": true,
+    "followed": true,
+    "dmg": 68
+   }
+  },
+  {
+   "n": "↓↙←+R1 Faultline Strike hits and leaves a FAULT MARKER",
+   "ok": true,
+   "d": {
+    "faults": [
+     {
+      "id": 1,
+      "x": 985,
+      "feet": 500,
+      "life": 300
+     }
+    ]
+   }
+  },
+  {
+   "n": "↓↓+R1 Earth Eruption bursts FROM the marker (consumed) and launches",
+   "ok": true,
+   "d": {
+    "launched": true,
+    "faults": 0
+   }
+  },
+  {
+   "n": "Eruption → △ Sky Blade: airborne sword follow-up connects",
+   "ok": true,
+   "d": {
+    "sky": true,
+    "dmg": 124
+   }
+  },
+  {
+   "n": "R1 Blaster → →→ Ninja Step (cancels the shot recovery) → □ close-range punish",
+   "ok": true,
+   "d": {
+    "step": true,
+    "punished": true,
+    "dmg": 42
+   }
+  }
+ ]
+}

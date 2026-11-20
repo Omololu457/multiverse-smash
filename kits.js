@@ -9,6 +9,7 @@ import { GREEN_RANGER_KIT } from './greenRangerKit.js'   // Green Ranger (green_
 import { MMPR_WHITE_KIT } from './mmprWhiteKit.js'   // White Ranger (mmpr_white) Move List
 import { SPD_YELLOW_KIT } from './spdYellowKit.js'   // S.P.D. Yellow (spd_yellow) Move List
 import { NS_RED_KIT, NS_YELLOW_KIT } from './nsKit.js'   // MSV1 Ninja Storm move lists
+import { NS_CGPT_KIT } from './nsCgptKit.js'   // NS CGPT move list
 import { NS_DUO_KIT } from './nsKit.js'   // MSV1-MERGE Shane & Dustin move list (active form + TAB toggle)
 import { CYBORG_KIT } from './cyborgKit.js'   // Cyborg (cyborg) Move List
 import { BEAST_BOY_KIT } from './beastBoyKit.js'   // Beast Boy (beast_boy) Move List
@@ -111,6 +112,7 @@ export const KITS = {
   mmpr_white: MMPR_WHITE_KIT,
   spd_yellow: SPD_YELLOW_KIT,
   ns_red: NS_RED_KIT, ns_yellow: NS_YELLOW_KIT,   // MSV1
+  ninja_storm_cgpt: NS_CGPT_KIT,   // NS CGPT
   windrangers: NS_DUO_KIT,   // MSV1-MERGE
   cyborg: CYBORG_KIT,
   beast_boy: BEAST_BOY_KIT,

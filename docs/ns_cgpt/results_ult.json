@@ -1,0 +1,76 @@
+{
+ "pass": 10,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "one explicit damage schedule: 40 + 6×28 + 60 + 150 = 418",
+   "ok": true,
+   "d": 418
+  },
+  {
+   "n": "needs a full meter (2 bars): half meter → no ultimate",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "full meter: R2 starts it, the opening sword connects, the clone appears opposite",
+   "ok": true,
+   "d": {
+    "sawClone": true
+   }
+  },
+  {
+   "n": "the foe is carried up the rising wind spiral (≥ 150 px)",
+   "ok": true,
+   "d": 210
+  },
+  {
+   "n": "alternating hits + descending strike + earth eruption all land (9 hits)",
+   "ok": true,
+   "d": 9
+  },
+  {
+   "n": "the schedule landed in full: 418 raw (40 + 6×28 + 60 + 150), applied through the engine damage path",
+   "ok": true,
+   "d": {
+    "raw": 418,
+    "dealtAfterDefenseAndParity": 395
+   }
+  },
+  {
+   "n": "states restored afterwards: not rooted, no super state, the clone dissolved, Ranger free",
+   "ok": true,
+   "d": {
+    "rooted": false,
+    "sup": false,
+    "ult": false,
+    "clone": false,
+    "attacking": false,
+    "force": null,
+    "zKO": true,
+    "energy": 34.800000000000054
+   }
+  },
+  {
+   "n": "the camera / draw scale is unchanged by the ultimate (render-only framing)",
+   "ok": true,
+   "d": {
+    "before": 728,
+    "after": 728
+   }
+  },
+  {
+   "n": "opening whiffs → the ultimate ends at once (no spiral, no damage), states clean",
+   "ok": true,
+   "d": {
+    "move": null
+   }
+  },
+  {
+   "n": "↓↘→↓↘→+R1 also starts it",
+   "ok": true,
+   "d": ""
+  }
+ ]
+}

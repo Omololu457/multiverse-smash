@@ -1,0 +1,193 @@
+{
+ "pass": 20,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "ninja_storm_cgpt is ONE roster character named \"Ninja Storm CGPT\" (Power Rangers / Ninja Storm), visible",
+   "ok": true,
+   "d": {
+    "has": true,
+    "name": "Ninja Storm CGPT",
+    "uni": "power_rangers",
+    "sub": "Ninja Storm",
+    "hidden": false,
+    "hp": 1240,
+    "jumps": 2,
+    "speed": 88,
+    "spd": 88,
+    "kit": true,
+    "skins": [
+     "default",
+     "yellow",
+     "cgpt_alienx",
+     "cgpt_upgrade",
+     "cgpt_chromastone",
+     "cgpt_cursedpink",
+     "cgpt_valkyrie",
+     "cgpt_starlight",
+     "cgpt_opal",
+     "cgpt_diamondhead",
+     "cgpt_heatblast",
+     "cgpt_bigchill",
+     "cgpt_midnight",
+     "cgpt_jade",
+     "cgpt_frost",
+     "cgpt_sakura",
+     "cgpt_sandstorm",
+     "cgpt_viper",
+     "cgpt_abyss",
+     "cgpt_neon",
+     "cgpt_obsidian",
+     "cgpt_lunar"
+    ],
+    "entries": 1,
+    "others": [
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "n": "one health bar 1240, double jump, S.P.D. Red speed tier (88)",
+   "ok": true,
+   "d": {
+    "hp": 1240,
+    "j": 2,
+    "speed": 88,
+    "spd": 88
+   }
+  },
+  {
+   "n": "move list (kits.js) registered",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "the other Ninja Storm characters are untouched (windrangers / ns_red / ns_yellow still present)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "normal entry point: the Power Rangers character select lists it",
+   "ok": true,
+   "d": [
+    "ninja_storm_cgpt",
+    "windrangers"
+   ]
+  },
+  {
+   "n": "22 selectable appearances = 2 supplied bases + 20 skins",
+   "ok": true,
+   "d": 22
+  },
+  {
+   "n": "skin theme present: Alien X",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Upgrade",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Chromastone",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: JJK",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Winning Valkyrie",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Glitter",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Opal",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "original designs present (≥ 8)",
+   "ok": true,
+   "d": 13
+  },
+  {
+   "n": "all 22 appearance folders carry the full 66-file set (strips + projectiles + FX + portraits)",
+   "ok": true,
+   "d": []
+  },
+  {
+   "n": "every skin sheet + portrait the game references loads (HTTP 200)",
+   "ok": true,
+   "d": []
+  },
+  {
+   "n": "skins keep every frame's silhouette pixel-exact (alpha mask identical to Red) and recolour the body",
+   "ok": true,
+   "d": {
+    "yellow": {
+     "alpha": 0,
+     "col": 5249
+    },
+    "alienx": {
+     "alpha": 0,
+     "col": 9365
+    },
+    "chromastone": {
+     "alpha": 0,
+     "col": 10032
+    },
+    "cursedpink": {
+     "alpha": 0,
+     "col": 10032
+    },
+    "valkyrie": {
+     "alpha": 0,
+     "col": 10032
+    },
+    "opal": {
+     "alpha": 0,
+     "col": 7788
+    }
+   }
+  },
+  {
+   "n": "skin \"yellow\" selected through startMatch → body + FX folder follow it",
+   "ok": true,
+   "d": {
+    "skin": "yellow",
+    "sheet": "./assets/ninja_storm_cgpt/skins/yellow/idle.png",
+    "dir": "./assets/ninja_storm_cgpt/skins/yellow"
+   }
+  },
+  {
+   "n": "skin \"cgpt_alienx\" selected through startMatch → body + FX folder follow it",
+   "ok": true,
+   "d": {
+    "skin": "cgpt_alienx",
+    "sheet": "./assets/ninja_storm_cgpt/skins/alienx/idle.png",
+    "dir": "./assets/ninja_storm_cgpt/skins/alienx"
+   }
+  },
+  {
+   "n": "skin \"cgpt_valkyrie\" selected through startMatch → body + FX folder follow it",
+   "ok": true,
+   "d": {
+    "skin": "cgpt_valkyrie",
+    "sheet": "./assets/ninja_storm_cgpt/skins/valkyrie/idle.png",
+    "dir": "./assets/ninja_storm_cgpt/skins/valkyrie"
+   }
+  }
+ ]
+}

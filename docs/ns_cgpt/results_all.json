@@ -1,0 +1,671 @@
+{
+ "pass": 74,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "ninja_storm_cgpt is ONE roster character named \"Ninja Storm CGPT\" (Power Rangers / Ninja Storm), visible",
+   "ok": true,
+   "d": {
+    "has": true,
+    "name": "Ninja Storm CGPT",
+    "uni": "power_rangers",
+    "sub": "Ninja Storm",
+    "hidden": false,
+    "hp": 1240,
+    "jumps": 2,
+    "speed": 88,
+    "spd": 88,
+    "kit": true,
+    "skins": [
+     "default",
+     "yellow",
+     "cgpt_alienx",
+     "cgpt_upgrade",
+     "cgpt_chromastone",
+     "cgpt_cursedpink",
+     "cgpt_valkyrie",
+     "cgpt_starlight",
+     "cgpt_opal",
+     "cgpt_diamondhead",
+     "cgpt_heatblast",
+     "cgpt_bigchill",
+     "cgpt_midnight",
+     "cgpt_jade",
+     "cgpt_frost",
+     "cgpt_sakura",
+     "cgpt_sandstorm",
+     "cgpt_viper",
+     "cgpt_abyss",
+     "cgpt_neon",
+     "cgpt_obsidian",
+     "cgpt_lunar"
+    ],
+    "entries": 1,
+    "others": [
+     true,
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "n": "one health bar 1240, double jump, S.P.D. Red speed tier (88)",
+   "ok": true,
+   "d": {
+    "hp": 1240,
+    "j": 2,
+    "speed": 88,
+    "spd": 88
+   }
+  },
+  {
+   "n": "move list (kits.js) registered",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "the other Ninja Storm characters are untouched (windrangers / ns_red / ns_yellow still present)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "normal entry point: the Power Rangers character select lists it",
+   "ok": true,
+   "d": [
+    "ninja_storm_cgpt",
+    "windrangers"
+   ]
+  },
+  {
+   "n": "22 selectable appearances = 2 supplied bases + 20 skins",
+   "ok": true,
+   "d": 22
+  },
+  {
+   "n": "skin theme present: Alien X",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Upgrade",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Chromastone",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: JJK",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Winning Valkyrie",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Glitter",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "skin theme present: Opal",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "original designs present (≥ 8)",
+   "ok": true,
+   "d": 13
+  },
+  {
+   "n": "all 22 appearance folders carry the full 66-file set (strips + projectiles + FX + portraits)",
+   "ok": true,
+   "d": []
+  },
+  {
+   "n": "every skin sheet + portrait the game references loads (HTTP 200)",
+   "ok": true,
+   "d": []
+  },
+  {
+   "n": "skins keep every frame's silhouette pixel-exact (alpha mask identical to Red) and recolour the body",
+   "ok": true,
+   "d": {
+    "yellow": {
+     "alpha": 0,
+     "col": 5249
+    },
+    "alienx": {
+     "alpha": 0,
+     "col": 9365
+    },
+    "chromastone": {
+     "alpha": 0,
+     "col": 10032
+    },
+    "cursedpink": {
+     "alpha": 0,
+     "col": 10032
+    },
+    "valkyrie": {
+     "alpha": 0,
+     "col": 10032
+    },
+    "opal": {
+     "alpha": 0,
+     "col": 7788
+    }
+   }
+  },
+  {
+   "n": "skin \"yellow\" selected through startMatch → body + FX folder follow it",
+   "ok": true,
+   "d": {
+    "skin": "yellow",
+    "sheet": "./assets/ninja_storm_cgpt/skins/yellow/idle.png",
+    "dir": "./assets/ninja_storm_cgpt/skins/yellow"
+   }
+  },
+  {
+   "n": "skin \"cgpt_alienx\" selected through startMatch → body + FX folder follow it",
+   "ok": true,
+   "d": {
+    "skin": "cgpt_alienx",
+    "sheet": "./assets/ninja_storm_cgpt/skins/alienx/idle.png",
+    "dir": "./assets/ninja_storm_cgpt/skins/alienx"
+   }
+  },
+  {
+   "n": "skin \"cgpt_valkyrie\" selected through startMatch → body + FX folder follow it",
+   "ok": true,
+   "d": {
+    "skin": "cgpt_valkyrie",
+    "sheet": "./assets/ninja_storm_cgpt/skins/valkyrie/idle.png",
+    "dir": "./assets/ninja_storm_cgpt/skins/valkyrie"
+   }
+  },
+  {
+   "n": "Red, Yellow and a skin: identical damage, travel, fault positions and hurtbox for the same inputs",
+   "ok": true,
+   "d": {
+    "red": [
+     1148,
+     930,
+     1172,
+     1373,
+     1151,
+     "[985]"
+    ],
+    "yellow": [
+     1148,
+     930,
+     1172,
+     1373,
+     1151,
+     "[985]"
+    ],
+    "neon": [
+     1148,
+     930,
+     1172,
+     1373,
+     1151,
+     "[985]"
+    ]
+   }
+  },
+  {
+   "n": "every appearance exposes the identical animation key set (no per-skin moves)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "walk distance over 30 frames comparable to S.P.D. Red (±10%)",
+   "ok": true,
+   "d": {
+    "cgpt": 114,
+    "spdRed": 114
+   }
+  },
+  {
+   "n": "double jump: a second jump in the air",
+   "ok": true,
+   "d": {
+    "j1": 1,
+    "j2": 2,
+    "vy": -26.749999999999993
+   }
+  },
+  {
+   "n": "no third jump (the fall keeps accelerating)",
+   "ok": true,
+   "d": {
+    "jc": 2,
+    "before": -21.649999999999984,
+    "after": -17.399999999999977
+   }
+  },
+  {
+   "n": "double-tap → → starts the Ninja Step (streak) and spends 1 of 3 charges",
+   "ok": true,
+   "d": {
+    "streak": true,
+    "n": 2
+   }
+  },
+  {
+   "n": "three steps chained → 0 charges, chain recovery lock armed",
+   "ok": true,
+   "d": {
+    "n": 0,
+    "chain": 3
+   }
+  },
+  {
+   "n": "a 4th step with 0 charges is refused (he just runs)",
+   "ok": true,
+   "d": {
+    "streak": false
+   }
+  },
+  {
+   "n": "charges regenerate (1 per 80 frames)",
+   "ok": true,
+   "d": {
+    "n": 1,
+    "t": 26
+   }
+  },
+  {
+   "n": "air Ninja Step: once per airtime",
+   "ok": true,
+   "d": {
+    "first": true,
+    "second": false
+   }
+  },
+  {
+   "n": "□ □ □ → ↑+□: rapid punch flurry into the sword launcher (launches)",
+   "ok": true,
+   "d": {
+    "m3": "jab3",
+    "vy": -18,
+    "rise": 180,
+    "dmg": 105
+   }
+  },
+  {
+   "n": "↓↘→+R1 Gale Rush lifts both, then △ = air sword follow-up that connects",
+   "ok": true,
+   "d": {
+    "air": true,
+    "followed": true,
+    "dmg": 68
+   }
+  },
+  {
+   "n": "↓↙←+R1 Faultline Strike hits and leaves a FAULT MARKER",
+   "ok": true,
+   "d": {
+    "faults": [
+     {
+      "id": 1,
+      "x": 985,
+      "feet": 500,
+      "life": 300
+     }
+    ]
+   }
+  },
+  {
+   "n": "↓↓+R1 Earth Eruption bursts FROM the marker (consumed) and launches",
+   "ok": true,
+   "d": {
+    "launched": true,
+    "faults": 0
+   }
+  },
+  {
+   "n": "Eruption → △ Sky Blade: airborne sword follow-up connects",
+   "ok": true,
+   "d": {
+    "sky": true,
+    "dmg": 124
+   }
+  },
+  {
+   "n": "R1 Blaster → →→ Ninja Step (cancels the shot recovery) → □ close-range punish",
+   "ok": true,
+   "d": {
+    "step": true,
+    "punished": true,
+    "dmg": 42
+   }
+  },
+  {
+   "n": "L2 summons ONE clone (30 NP), Echo by default, behind the Ranger",
+   "ok": true,
+   "d": {
+    "mode": "echo",
+    "x": 860
+   }
+  },
+  {
+   "n": "a second L2 does NOT make a second clone (switches behaviour instead)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "ECHO repeats the jab 14 f later from the clone's own spot and lands (normal hitbox / overlap)",
+   "ok": true,
+   "d": {
+    "echoes": 1,
+    "hits": 1,
+    "allow": 5
+   }
+  },
+  {
+   "n": "an Echo far from the foe whiffs (no hit from across the screen)",
+   "ok": true,
+   "d": {
+    "hits": 1
+   }
+  },
+  {
+   "n": "switching Echo → Guard keeps lifetime, attack allowance and cooldown (only time passes)",
+   "ok": true,
+   "d": {
+    "pre": [
+     512,
+     4,
+     30
+    ],
+    "post": [
+     508,
+     4,
+     26
+    ]
+   }
+  },
+  {
+   "n": "GUARD sees the foe's attack, shows a telegraph (\"!\") and then counters",
+   "ok": true,
+   "d": {
+    "tell": true,
+    "counter": true
+   }
+  },
+  {
+   "n": "the Guard counter lands on the opening (damage)",
+   "ok": true,
+   "d": {
+    "hits": 1,
+    "dmg": 28
+   }
+  },
+  {
+   "n": "→+L2 SWAP trades places with the clone and spends 1 Ninja Step charge",
+   "ok": true,
+   "d": {
+    "to": {
+     "t": 0,
+     "from": {
+      "x": 648,
+      "feet": 500,
+      "air": false
+     },
+     "to": {
+      "x": 828,
+      "feet": 500
+     }
+    },
+    "at": {
+     "ranger": 828,
+     "clone": 657
+    },
+    "n": 2
+   }
+  },
+  {
+   "n": "a swap onto the foe resolves collision (the Ranger never ends inside the foe)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "no Ninja Step charge → no swap",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "no swap during hitstun (recovery rules)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "←+L2 RECALL pulls the clone back in (shorter cooldown)",
+   "ok": true,
+   "d": {
+    "cd": 134
+   }
+  },
+  {
+   "n": "no re-summon during the cooldown",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "the clone never refills: lifetime only falls, allowance unchanged without attacks, it cannot summon",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "one hit pops the clone",
+   "ok": true,
+   "d": {
+    "atk": true,
+    "end": "popped",
+    "clone": false
+   }
+  },
+  {
+   "n": "the clone dissolves at the end of its lifetime (cooldown starts)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "one explicit damage schedule: 40 + 6×28 + 60 + 150 = 418",
+   "ok": true,
+   "d": 418
+  },
+  {
+   "n": "needs a full meter (2 bars): half meter → no ultimate",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "full meter: R2 starts it, the opening sword connects, the clone appears opposite",
+   "ok": true,
+   "d": {
+    "sawClone": true
+   }
+  },
+  {
+   "n": "the foe is carried up the rising wind spiral (≥ 150 px)",
+   "ok": true,
+   "d": 210
+  },
+  {
+   "n": "alternating hits + descending strike + earth eruption all land (9 hits)",
+   "ok": true,
+   "d": 9
+  },
+  {
+   "n": "the schedule landed in full: 418 raw (40 + 6×28 + 60 + 150), applied through the engine damage path",
+   "ok": true,
+   "d": {
+    "raw": 418,
+    "dealtAfterDefenseAndParity": 395
+   }
+  },
+  {
+   "n": "states restored afterwards: not rooted, no super state, the clone dissolved, Ranger free",
+   "ok": true,
+   "d": {
+    "rooted": false,
+    "sup": false,
+    "ult": false,
+    "clone": false,
+    "attacking": false,
+    "force": null,
+    "zKO": true,
+    "energy": 34.800000000000054
+   }
+  },
+  {
+   "n": "the camera / draw scale is unchanged by the ultimate (render-only framing)",
+   "ok": true,
+   "d": {
+    "before": 728,
+    "after": 728
+   }
+  },
+  {
+   "n": "opening whiffs → the ultimate ends at once (no spiral, no damage), states clean",
+   "ok": true,
+   "d": {
+    "move": null
+   }
+  },
+  {
+   "n": "↓↘→↓↘→+R1 also starts it",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "two runs with the same seed + inputs give byte-identical ninja / clone state (replay / LAN safe)",
+   "ok": true,
+   "d": "2547 chars"
+  },
+  {
+   "n": "the clone state rides in the ninja snapshot (f._ninja.cg)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "PS5 L2 summons the shadow clone",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "PS5 □ = Light (jab)",
+   "ok": true,
+   "d": "light"
+  },
+  {
+   "n": "PS5 ✕ = Jump, double jump",
+   "ok": true,
+   "d": {
+    "j1": 1,
+    "j2": 2
+   }
+  },
+  {
+   "n": "PS5 → → (D-pad double-tap) = Ninja Step",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "PS5 R2 = Twin Tempest (full meter)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "as a CPU it fights with its kit for 1200 frames without errors",
+   "ok": true,
+   "d": {
+    "moves": [
+     "sBlaster",
+     "nsStreakRec",
+     "sBlasterAir",
+     "nsStreakStrike",
+     "sKunaiAir",
+     "airKick",
+     "sGale",
+     "jab2",
+     "light",
+     "nsStreak",
+     "nsClone"
+    ],
+    "dealt": 442
+   }
+  },
+  {
+   "n": "the CPU summons and uses its shadow clone through the real Charge input",
+   "ok": true,
+   "d": {
+    "summons": 2,
+    "echoes": 5,
+    "echoHits": 1,
+    "guards": 0,
+    "guardHits": 0,
+    "swaps": 0,
+    "recalls": 0,
+    "switches": 3,
+    "faults": 0,
+    "erupts": 0,
+    "ults": 0,
+    "ultHits": 0
+   }
+  },
+  {
+   "n": "KO: the Ranger lands the KO (p2 at 0) and the clone dissolves with the round",
+   "ok": true,
+   "d": {
+    "zh": 0,
+    "clone": false,
+    "alive": true
+   }
+  },
+  {
+   "n": "rematch: same character + skin, full health both, fresh clone / step / fault state, stats restored",
+   "ok": true,
+   "d": {
+    "key": "ninja_storm_cgpt",
+    "skin": "cgpt_chromastone",
+    "hp": 1240,
+    "max": 1240,
+    "zhp": 1200,
+    "cg": {
+     "clone": null,
+     "n": 3,
+     "faults": 0
+    },
+    "speed": 88,
+    "jumps": 2
+   }
+  },
+  {
+   "n": "after the rematch the clone works again",
+   "ok": true,
+   "d": {
+    "summons": 1,
+    "echoes": 0,
+    "echoHits": 0,
+    "guards": 0,
+    "guardHits": 0,
+    "swaps": 0,
+    "recalls": 0,
+    "switches": 0,
+    "faults": 0,
+    "erupts": 0,
+    "ults": 0,
+    "ultHits": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "pass": 3,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "KO: the Ranger lands the KO (p2 at 0)",
+   "ok": true,
+   "d": {
+    "zh": 0,
+    "clone": true,
+    "alive": true
+   }
+  },
+  {
+   "n": "rematch: same character + skin, full health both, fresh clone / step / fault state, stats restored",
+   "ok": true,
+   "d": {
+    "key": "ninja_storm_cgpt",
+    "skin": "cgpt_chromastone",
+    "hp": 1240,
+    "max": 1240,
+    "zhp": 1200,
+    "cg": {
+     "clone": null,
+     "n": 3,
+     "faults": 0
+    },
+    "speed": 88,
+    "jumps": 2
+   }
+  },
+  {
+   "n": "after the rematch the clone works again",
+   "ok": true,
+   "d": {
+    "summons": 1,
+    "echoes": 0,
+    "echoHits": 0,
+    "guards": 0,
+    "guardHits": 0,
+    "swaps": 0,
+    "recalls": 0,
+    "switches": 0,
+    "faults": 0,
+    "erupts": 0,
+    "ults": 0,
+    "ultHits": 0
+   }
+  }
+ ]
+}

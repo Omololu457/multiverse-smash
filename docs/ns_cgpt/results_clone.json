@@ -1,0 +1,137 @@
+{
+ "pass": 16,
+ "fail": 0,
+ "errors": [],
+ "results": [
+  {
+   "n": "L2 summons ONE clone (30 NP), Echo by default, behind the Ranger",
+   "ok": true,
+   "d": {
+    "mode": "echo",
+    "x": 890
+   }
+  },
+  {
+   "n": "a second L2 does NOT make a second clone (switches behaviour instead)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "ECHO repeats the jab 14 f later from the clone's own spot and lands (normal hitbox / overlap)",
+   "ok": true,
+   "d": {
+    "echoes": 1,
+    "hits": 1,
+    "allow": 5
+   }
+  },
+  {
+   "n": "an Echo far from the foe whiffs (no hit from across the screen)",
+   "ok": true,
+   "d": {
+    "hits": 1
+   }
+  },
+  {
+   "n": "switching Echo → Guard keeps lifetime, attack allowance and cooldown (only time passes)",
+   "ok": true,
+   "d": {
+    "pre": [
+     512,
+     4,
+     30
+    ],
+    "post": [
+     508,
+     4,
+     26
+    ]
+   }
+  },
+  {
+   "n": "GUARD sees the foe's attack, shows a telegraph (\"!\") and then counters",
+   "ok": true,
+   "d": {
+    "tell": true,
+    "counter": true
+   }
+  },
+  {
+   "n": "the Guard counter lands on the opening (damage)",
+   "ok": true,
+   "d": {
+    "hits": 1,
+    "dmg": 28
+   }
+  },
+  {
+   "n": "→+L2 SWAP trades places with the clone and spends 1 Ninja Step charge",
+   "ok": true,
+   "d": {
+    "to": {
+     "t": 0,
+     "from": {
+      "x": 648,
+      "feet": 500,
+      "air": false
+     },
+     "to": {
+      "x": 828,
+      "feet": 500
+     }
+    },
+    "at": {
+     "ranger": 828,
+     "clone": 657
+    },
+    "n": 2
+   }
+  },
+  {
+   "n": "a swap onto the foe resolves collision (the Ranger never ends inside the foe)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "no Ninja Step charge → no swap",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "no swap during hitstun (recovery rules)",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "←+L2 RECALL pulls the clone back in (shorter cooldown)",
+   "ok": true,
+   "d": {
+    "cd": 134
+   }
+  },
+  {
+   "n": "no re-summon during the cooldown",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "the clone never refills: lifetime only falls, allowance unchanged without attacks, it cannot summon",
+   "ok": true,
+   "d": ""
+  },
+  {
+   "n": "one hit pops the clone",
+   "ok": true,
+   "d": {
+    "atk": true,
+    "end": "popped",
+    "clone": false
+   }
+  },
+  {
+   "n": "the clone dissolves at the end of its lifetime (cooldown starts)",
+   "ok": true,
+   "d": ""
+  }
+ ]
+}

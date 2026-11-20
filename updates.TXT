@@ -835,3 +835,103 @@ Limitations:
   "Reduce flashing" keeps the sparkles still and sparse.
 - Balance: every Ben 10 alien deals ×1.15 damage and takes ×1/1.20 damage (≈ +20 % effective health). Speed is not changed.
   Human Ben is unchanged. Each alien keeps its own strengths and weaknesses. Tune in benAlienBalance.js.
+
+
+══════════════════════════════════════════════════════════════════════════════════════════════
+ NINJA STORM CGPT — ONE Ninja Storm Ranger, Red / Yellow appearances + shadow clone   2026-11-19
+ Roster key: ninja_storm_cgpt · name "Ninja Storm CGPT" · Power Rangers / Ninja Storm
+ A NEW separate character. windrangers / ns_red / ns_yellow / ninja_storm_rangers untouched.
+══════════════════════════════════════════════════════════════════════════════════════════════
+ ONE roster entry, ID, health bar (1240), Ninja Power meter, progression record and controller
+ mapping. Red and Yellow are two selectable base appearances (skins "default" / "yellow") of the
+ same Ranger: identical moves, damage, movement, cooldowns and hitboxes (verified). Speed 88 =
+ S.P.D. Red tier, double jump, roster damage parity ×1.6 (same as the MSV1 Rangers).
+
+ FILES (new): nsCgpt.js (systems: Ninja Step charges, clone, faults, ultimate, CPU), nsCgptData.js
+   (roster entry, moves, command table), nsCgptSkins.js + nsCgptSkinTable.js (22 appearances),
+   nsCgptFx.js (render only), nsCgptKit.js (move list), tools/ns_cgpt/ (skin builder),
+   assets/ninja_storm_cgpt/ (22 appearance folders × 66 files + roster portraits),
+   harness/ns_cgpt.test.mjs, docs/ns_cgpt/ (SPRITE_AUDIT.md, screenshots, results JSON).
+ SHARED HOOKS (one-liners, commented "NS CGPT"; no-ops for everyone else): ninja.js (profile
+   `ext` = tick / command / run / stepGate / onStep / alpha; projectile sheet follows the skin
+   folder), ninjaCommand.js (ext command), nsFx.js (skin strips, skin smoke / colour, clone FX),
+   characters.js, skins.js, spritesheets.js, rosterParity.js, credits.js, kits.js,
+   input.js (PS5 raw-press list), ai.js (CPU clone use through the real Charge input).
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ PS5 CONTROLS (keyboard in brackets) — one table for both appearances
+──────────────────────────────────────────────────────────────────────────────────────────────
+  Move / crouch ........... Left stick or D-pad ←→ / ↓         [A D / S]
+  Jump / double jump ...... ✕ (press again in the air)          [W / Space]
+  Light (punches) ......... □                                   [J]
+  Heavy (sword) ........... △                                   [K]
+  Up-Attack sword launcher  ↑ + □                               [I or W+J]
+  Special ................. R1                                  [L]
+  Ultimate ................ R2 (or ↓↘→↓↘→ + R1), full meter      [U]
+  Block ................... ○                                   [;]
+  Grab .................... L1                                  [O]
+  Shadow clone ............ L2: summon · again = Echo ⇄ Guard   [P]
+  Clone swap / recall ..... → + L2 / ← + L2                      [D+P / A+P]
+  Smoke Vanish ............ L2 + □ + △                           [P+J+K]
+  Ninja Step .............. double-tap ← / → (air: once/jump)    [AA / DD]
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ MOVESET (raw authored damage; ×1.6 roster parity in play)
+──────────────────────────────────────────────────────────────────────────────────────────────
+ Normals: □ □ □ rapid punches 36 → 30 → Storm flurry 3×(14/14/18) · △ △ △ sword string 50 → 46
+   → 68 · ↑+□ sword launcher 56 (launches) · ↑+△ rising flip kick 66 · ↓+□ low sweep 42 · ↓+△
+   crouch slash 48 · ↙+△ low swipe 54 · ←+△ axe kick 58 (overhead) · ↘+△ skate slide 50 · air □
+   46 / air △ 58 / air ↓+△ Hawk dive 70.
+ WIND:  →+△ Gale Crescent (flying crescent, 52) · ↓↘→+R1 Gale Rush wind drill 3×16, lifts both.
+ EARTH: ↓↙←+R1 Faultline Strike 52 low + FAULT MARKER (max 2, 5 s) · ↓↓+R1 Earth Eruption 80,
+   launches; from a nearby marker ×1.25 and higher. On hit: □/△ = Sky Blade 62 (airborne sword).
+ BLASTER: R1 (or ↓↘→+□) Ninja Blaster 44 full screen (air: diagonal) — recovery cancels into the
+   double-tap Ninja Step. ↓↙←+□ kunai 28 (3-kunai fan in the air).
+ NINJA STEP: double-tap, 40% screen in 8 f, projectile-intangible f2–6, □/△ = Streak Strike 45.
+   3 charges, 1 back every 80 f; the 3rd in a row locks the full recovery; air: once per jump.
+ SHADOW CLONE (L2, 30 Ninja Power): one clone, 10 s life, 6 attacks, 5 s cooldown (2.5 s after a
+   recall). ECHO repeats eligible ground melee 14 f later from the clone's own position at 50%,
+   with the normal hitbox / overlap (whiffs from across the screen). GUARD watches for a threat,
+   shows a "!" telegraph and ring, then counter-slashes the first opening (48). Only one behaviour
+   at a time; switching keeps lifetime, allowance and cooldown. SWAP (→+L2) trades places, spends
+   1 Ninja Step charge, resolves collision, only when free or cancelling a connected hit. RECALL
+   (←+L2). One hit pops it; it cannot make clones, refill itself or land the KO; a KO ends it.
+ ULTIMATE — TWIN TEMPEST: FAULTLINE CATACLYSM (R2, 2 bars): the sword opener must connect (40);
+   the clone appears opposite; 6 alternating hits in a rising wind spiral (6 × 28); the Ranger's
+   fast descending strike (60) → huge earth eruption (150) with the supplied burst + dome frames;
+   the clone dissolves. ONE schedule: 40 + 168 + 60 + 150 = 418 raw. Whiff/blocked → ends at once.
+   Camera / draw scale and every character state are restored (verified).
+ COMBOS: □□□ → ↑+□ launcher · ↓↘→+R1 → air △ · ↓↙←+R1 marker → ↓↓+R1 · ↓↓+R1 → △ Sky Blade ·
+   R1 → →→ → □ punish · L2 (Echo) → □□□ (clone catches the foe after the first strike).
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ 22 APPEARANCES (2 supplied bases + 20 palette skins; alpha mask pixel-exact to Red in every frame;
+ each one recolours the body, clone, sword/crescent, blaster, kunai, sparks, smoke, eruption and
+ the ultimate's spiral)
+──────────────────────────────────────────────────────────────────────────────────────────────
+  Red Wind (supplied) · Yellow Wind (supplied) · Alien X — Inspired · Upgrade — Inspired ·
+  Chromastone — Inspired · Cursed Bloom — JJK-Inspired Pink · Winning Valkyrie · Starlight Glitter ·
+  Opal Prism · Diamondhead — Inspired · Heatblast — Inspired · Big Chill — Inspired ·
+  originals: Midnight Shinobi · Jade Typhoon · Frost Gale · Sakura Bloom · Desert Sandstorm ·
+  Toxic Viper · Abyssal Tide · Neon Ronin · Obsidian Gold · Lunar Silver
+
+ SPRITE AUDIT: docs/ns_cgpt/SPRITE_AUDIT.md — both sheets (305 frames each, pure palette swap per
+ MSV1's proof), all 58 strips mapped to a job and referenced (0 unused), frames / anchors / effects
+ preserved (base folders are byte copies).
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+ VERIFICATION — actual results (normal game entry point: character select → startMatch)
+──────────────────────────────────────────────────────────────────────────────────────────────
+ node harness/ns_cgpt.test.mjs → 74 passed, 0 failed:
+   roster 5/5 · appearances 15/15 · appearance parity 2/2 (Red / Yellow / skin give identical
+   damage, travel, fault positions, hurtbox) · movement + Ninja Step 8/8 (walk 114 px vs S.P.D.
+   Red 114) · the 6 combos 6/6 · shadow clone 16/16 · ultimate 10/10 (418 raw, 9 hits, foe
+   carried 210 px, states + camera restored, whiff ends at once) · determinism 2/2 (byte-identical
+   replay state) · PS5 pad 5/5 (stubbed DualSense through the real input path) · CPU 2/2 ·
+   KO + rematch 3/3. Screenshots: docs/ns_cgpt/screenshots/.
+ Other suites: msv1.test 135/0 · msv1_merge_framediff 12/0 · msv1_merge.test 48/1 — the 1 is its
+   assertion that windrangers is the ONLY visible Ninja Storm character (it now also sees
+   ninja_storm_cgpt, by design). msv1_merge_netreplay 11/1 — its CPU-duo-swap check is a
+   pre-existing flake: on pure HEAD (without this character) it failed 1 of 2 runs (11/1, 12/0).
+   Commit snapshot (HEAD + only these files) re-tested in isolation: ns_cgpt 74/0, msv1 135/0.
+ Known/inherited: Charge-button commands wait 3 frames for the Smoke Vanish chord (framework rule).

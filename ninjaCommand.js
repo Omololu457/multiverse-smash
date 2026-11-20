@@ -13,6 +13,7 @@ import { spawnProjectile, activeProjectiles } from './abilities.js'
 import { registerNinjaStartMove, registerNinjaProjectiles } from './ninja.js'
 import './nsData.js'   // registers the ns_red / ns_yellow profiles
 import './nsDuo.js'    // MSV1-MERGE: registers the Shane & Dustin duo (windrangers) hooks
+import './nsCgptData.js'   // NS CGPT: registers the ninja_storm_cgpt profile (+ its ext hooks)
 import { duoCommand } from './ninja.js'
 
 registerNinjaStartMove(startMove)
@@ -114,6 +115,7 @@ export function updateNinjaCommand(f, inp, opp, W) {
   if (f.hitstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0) || f.knockdownState) return false
   if (s.sup || s.vanish || s.streak || s.mirror?.swap) return 'consumed'
   { const dc = duoCommand(f, s, opp, raw); if (dc) return dc }   // MSV1-MERGE: the swap's Grab press / the swap itself / Storm and Stone
+  { const ec = p.ext?.command?.(f, s, opp, raw, g); if (ec) return ec }   // NS CGPT: clone commands / follow-ups / shot → step cancel (no-op without ext)
   const a = f.attacking ? f.currentAttack : null
   const el = a ? a.total - a.timer : 0
   const contact = a && (a._contact || (a.hasHit && !a.nj?.noHit)) && el >= (a.activeStart ?? 0)

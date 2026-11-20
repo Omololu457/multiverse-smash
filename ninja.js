@@ -50,7 +50,7 @@ export function registerNinjaProfile(id, p = {}) {
     vanish: merge(D.vanish, p.vanish), clones: merge(D.clones, p.clones), mirror: merge(D.mirror, p.mirror), barrier: merge(D.barrier, p.barrier),
     burrow: p.burrow || null, traps: p.traps || null, rev: p.rev || null, float: p.float || null,
     airMul: p.airMul ?? 1, weight: p.weight ?? 1, combo: p.combo ?? D.combo,
-    moves: p.moves || {}, commands: p.commands || null, supers: p.supers || {}, anims: p.anims || {}, quotes: p.quotes || null,
+    moves: p.moves || {}, commands: p.commands || null, supers: p.supers || {}, anims: p.anims || {}, quotes: p.quotes || null, ext: p.ext || null,
   }
   NINJA_PROFILES[id] = prof
   // The rangers.js profile: the SAME blink numbers block as S.P.D. Red (tapWindow 12, run 8.4 / 5.6 → 10.5 px/f run),
@@ -243,6 +243,7 @@ export function startStreak(f, opp, dir, vdir = 0, o = {}) {
   const s = ninjaState(f), p = getNinjaProfile(f)
   const air = !grounded(f) && !s.burrow
   if (!canStreak(f, s, p, air)) return false
+  if (p.ext?.stepGate && !p.ext.stepGate(f, s)) return false   // NS CGPT: Ninja Step charges (profile ext; no-op for everyone else)
   const n = s.chainOpen > 0 ? s.chain + 1 : 1
   if (n > p.streak.chain) return false
   const cost = n >= 3 ? p.streak.thirdCost : p.streak.cost
@@ -260,6 +261,7 @@ export function startStreak(f, opp, dir, vdir = 0, o = {}) {
   if (sdir) f.facing = sdir; f._rooted = true; f.vx = 0; if (air) f.vy = 0
   f.isBlocking = false
   cue(f, under ? 'tremor' : 'streak'); burst(s, 'streakTail', ctrX(f), feetY(f), 18, { dir: s.streak.dir })
+  p.ext?.onStep?.(f, s)
   return true
 }
 function stepStreak(f, opp, s, p, raw) {
@@ -715,6 +717,7 @@ export function tickNinja(f, opp, raw = {}, W = null) {
   stepBounce(f, opp, s)
   stepQuotes(f, opp, s, p)
   if (f._duo) _duo?.tick(f, opp, s)   // MSV1-MERGE: swap request / cooldown / tag bonus timer
+  p.ext?.tick?.(f, opp, s, raw, NINJA_API)   // NS CGPT: profile ext (clone / step charges / fault markers); no-op without ext
   if (opp?._nsWallBounce > 0) { opp._nsWallBounce--; const sw = stageW(); if ((opp.x <= 2 || opp.x >= sw - (opp.w || 48) - 2) && opp.vx) { opp.vx = -opp.vx * 0.6; opp.vy = Math.min(opp.vy || 0, -8); opp._nsWallBounce = 0; burst(s, 'hit', ctrX(opp), ctrY(opp)); cue(f, 'impact') } }
   const a = f.attacking ? f.currentAttack : null
   if (a?.nj) runMoveKind(f, opp, s, p, a, raw)
@@ -773,6 +776,7 @@ export function ninjaKnockback(attacker, defender) { const p = getNinjaProfile(d
 export function ninjaBodyAlpha(f) {
   const s = f?._ninja; if (!s) return 1
   if (f._duo) { const da = _duo?.alpha(f); if (da != null) return da }   // MSV1-MERGE: inside the swap smoke
+  { const ea = getNinjaProfile(f)?.ext?.alpha?.(f); if (ea != null) return ea }   // NS CGPT: inside the clone-swap smoke
   if (isBurrowed(f)) return 0
   if (s.vanish && s.vanish.t > (getNinjaProfile(f)?.vanish?.pop || 6) && s.vanish.t <= (getNinjaProfile(f).vanish.pop + getNinjaProfile(f).vanish.gone)) return 0
   return 1
@@ -812,7 +816,7 @@ function fireProj(f, s, a, P, i) {
   const md = { damage: P.dmg * revMul(f, a), speed: P.speed, vx, vy, spawnX: ctrX(f) + dir * (P.ox || 40), spawnY: feetY(f) - (P.oy ?? 58),
     w, h, radius: P.radius || 22, lifetime: P.life || Math.ceil(RANGER_SCREEN / P.speed) + 4, hitstun: P.hitstun || 18, knockbackX: P.kb ?? 3, knockbackY: 0,
     color: getNinjaProfile(f).color, isSpecial: true, category: 'special', hitFlag: '_nsShotHit',
-    sheet: `./assets/${key}/${spr}.png`, spriteFrames: P.frames || 1, spriteW: P.sw, spriteH: P.sh, spriteScale: sc }
+    sheet: `${f._nsAssetDir || './assets/' + key}/${spr}.png`, spriteFrames: P.frames || 1, spriteW: P.sw, spriteH: P.sh, spriteScale: sc }
   const pr = _proj.spawn(f, P.name || 'nsShot', md)
   if (pr) { pr.damageType = P.type || 'projectile'; if (P.groundHit) pr.groundHit = true }
   cue(f, P.cue || 'shot')
@@ -884,6 +888,7 @@ function runMoveKind(f, opp, s, p, a, raw) {
     }
     case 'super': { const fn = p.supers[a.name] || (f._duo && _duo?.supers[a.name]); if (fn) fn(f, opp, s, a, t, NINJA_API); break }
     default: if (f._duo) _duo?.run(f, opp, s, a, t)   // MSV1-MERGE: duo move kinds (the swap)
+      else p.ext?.run?.(f, opp, s, a, t, NINJA_API)   // NS CGPT: profile ext move kinds
   }
 }
 // Hawk Dive ground bounce: the spiked foe bounces once off the floor (combo extender)

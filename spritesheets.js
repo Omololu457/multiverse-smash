@@ -80,6 +80,7 @@ export const SPRITE_MANIFEST = {
   sanji: { actions: { idle: './assets/sanji/idle.png' } },
   arlong: { actions: { idle: './assets/arlong/idle.png' } },
   spd_red: { actions: { idle: './assets/spd_red/idle.png' } },
+  ninja_storm_cgpt: { actions: { idle: './assets/ninja_storm_cgpt/skins/red/idle.png' } },   // NS CGPT (msv1Sprites.js frame map, skin folders)
   windrangers: { actions: { idle: './assets/ns_red/idle.png' } },   // MSV1-MERGE Shane & Dustin (starts on the form's own sheets)
   ns_red: { actions: { idle: './assets/ns_red/idle.png' } },   // MSV1 Shane (msv1Sprites.js strips)
   ns_yellow: { actions: { idle: './assets/ns_yellow/idle.png' } },   // MSV1 Dustin

@@ -1,0 +1,105 @@
+# MSV1-HOST: build the desktop app for Windows / macOS / Linux when a version tag (v*) is pushed, and attach
+# the installers to a GitHub Release. Nothing here runs on ordinary pushes. No secrets are stored in the repo:
+# the only token used is the per-run GITHUB_TOKEN that GitHub injects. Code-signing is OFF (see
+# docs/msv1/host/RELEASING.md for where signing secrets would go).
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # create the release + upload assets (GITHUB_TOKEN only)
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-14,       cf: darwin-arm64, args: "--mac dmg --arm64" }
+          - { os: macos-13,       cf: darwin-x64,   args: "--mac dmg --x64" }
+          - { os: windows-latest, cf: win32-x64,    args: "--win nsis portable --x64" }
+          - { os: ubuntu-latest,  cf: linux-x64,    args: "--linux AppImage --x64" }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check tag matches electron/package.json version
+        shell: bash
+        run: |
+          V=$(node -p "require('./electron/package.json').version")
+          if [ "v$V" != "${GITHUB_REF_NAME}" ]; then echo "::error::tag ${GITHUB_REF_NAME} != electron/package.json version v$V"; exit 1; fi
+
+      - name: Install (root runtime dep `ws`; skip browser downloads)
+        shell: bash
+        run: npm ci --ignore-scripts
+
+      - name: Install electron + electron-builder
+        working-directory: electron
+        shell: bash
+        run: npm ci
+
+      - name: Fetch cloudflared (pinned version, SHA-256 verified)
+        shell: bash
+        run: node electron/scripts/fetch-cloudflared.mjs ${{ matrix.cf }}
+
+      - name: Stage the app (client whitelist only)
+        shell: bash
+        run: node electron/scripts/stage.mjs
+
+      - name: Build installers (unsigned)
+        working-directory: electron
+        shell: bash
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder ${{ matrix.args }} --publish never
+
+      - name: Check GitHub's 2 GiB per-asset limit
+        shell: bash
+        run: |
+          fail=0
+          for f in electron/dist/*.{dmg,exe,AppImage}; do
+            [ -f "$f" ] || continue
+            s=$(node -p "require('fs').statSync(process.argv[1]).size" "$f")
+            echo "$f: $s bytes"
+            if [ "$s" -ge 2147483648 ]; then echo "::error::$f is over GitHub's 2 GiB release-asset limit"; fail=1; fi
+          done
+          exit $fail
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.cf }}
+          path: |
+            electron/dist/*.dmg
+            electron/dist/*.exe
+            electron/dist/*.AppImage
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create the GitHub Release and attach the installers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ls -la dist
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Multiverse Smash ${GITHUB_REF_NAME}" \
+            --notes "Desktop builds (unsigned). Windows: run the Setup .exe (or the portable .exe). macOS: open the .dmg and drag to Applications. Linux: chmod +x the .AppImage and run it. First launch warnings and how to get past them: docs/msv1/host/RELEASING.md."

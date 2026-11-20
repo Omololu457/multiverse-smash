@@ -1,15 +1,34 @@
 {
   "name": "multiverse-smash-desktop",
-  "version": "0.0.1",
+  "productName": "Multiverse Smash",
+  "version": "0.1.0",
   "private": true,
-  "description": "Electron desktop-wrapper proof-of-concept for Multiverse Smash Ultimate",
+  "description": "Multiverse Smash Ultimate desktop app (auto-hosts online games)",
+  "author": "Multiverse Smash",
   "type": "module",
   "main": "main.mjs",
   "scripts": {
     "start": "electron .",
-    "capture": "CAPTURE=1 electron ."
+    "capture": "CAPTURE=1 electron .",
+    "stage": "node scripts/stage.mjs",
+    "dist": "node scripts/stage.mjs && electron-builder --publish never"
   },
   "devDependencies": {
-    "electron": "^33.4.11"
+    "electron": "^33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "io.github.omololu457.multiversesmash",
+    "productName": "Multiverse Smash",
+    "directories": { "app": "stage", "output": "dist" },
+    "asar": false,
+    "npmRebuild": false,
+    "protocols": [{ "name": "Multiverse Smash", "schemes": ["multiversesmash"] }],
+    "extraResources": [{ "from": "vendor/cloudflared", "to": "cloudflared", "filter": ["**/*"] }],
+    "mac": { "target": ["dmg"], "category": "public.app-category.games", "identity": null },
+    "win": { "target": ["nsis", "portable"] },
+    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true },
+    "portable": { "artifactName": "${productName}-${version}-portable.${ext}" },
+    "linux": { "target": ["AppImage"], "category": "Game" }
   }
 }

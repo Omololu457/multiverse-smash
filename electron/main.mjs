@@ -169,8 +169,11 @@ const TEST_WINDOWED = process.env.MS_WINDOWED === "1";
 const TEST_CODE_OVERRIDE = /^[0-9a-f]{10}$/.test(process.env.MS_TEST_CODE_OVERRIDE || "") ? process.env.MS_TEST_CODE_OVERRIDE : null;
 const hostSettingsFile = () => path.join(app.getPath("userData"), "host-settings.json");
 function readHostSettings() {
-  try { const j = JSON.parse(fs.readFileSync(hostSettingsFile(), "utf8")); return { autoHost: j.autoHost !== false, noticeShown: !!j.noticeShown }; }
-  catch { return { autoHost: true, noticeShown: false }; }
+  // Hosting now starts from the title screen's PLAY WITH A FRIEND button (there is no always-on hosting badge
+  // any more), so auto-host at launch is OFF unless MS_AUTO_HOST=1 (tests) turns it on.
+  const forced = process.env.MS_AUTO_HOST === "1";
+  try { const j = JSON.parse(fs.readFileSync(hostSettingsFile(), "utf8")); return { autoHost: forced, noticeShown: !!j.noticeShown }; }
+  catch { return { autoHost: forced, noticeShown: false }; }
 }
 function writeHostSettings(patch) {
   const next = { ...readHostSettings(), ...patch };
@@ -190,7 +193,7 @@ function handleProtocolUrl(url) {
   if (!app.isReady() || !mainWin) { pendingProtocolUrl = url; return; }
   focusMainWindow();
   const action = (u.hostname || u.pathname.replace(/^\/+/, "")).toLowerCase();
-  if (action === "open") { if (host) host.start(); return; }
+  if (action === "open") return;   // just open/focus the app (hosting starts from PLAY WITH A FRIEND)
   if (action === "join") {
     const p = parseJoinInput(url);
     pushToWindow("host:join-request", p.kind === "link" ? { ok: true, origin: p.origin, room: p.room } : { ok: false, reason: p.reason || "That link has no host address." });
@@ -382,7 +385,7 @@ async function createWindow() {
     pendingJoin = p.kind === "link" ? { ok: true, origin: p.origin, room: p.room } : { ok: false, reason: p.reason };
     pushToWindow("host:join-request", pendingJoin);
   }
-  if (readHostSettings().autoHost || (launchUrl && /^multiversesmash:\/\/open/i.test(launchUrl))) host.start();
+  if (readHostSettings().autoHost) host.start();
   await loaded;
 
   // Self-check: VERIFY_GAMEPAD=1 confirms the launcher opened the Gamepad-API gate on the COLD home screen

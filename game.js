@@ -6573,6 +6573,7 @@ function proceedAfterCharacter(side) {
 // Advance the select flow after the skin is chosen: P1 → P2's universe pick (or
 // stage in training/tower); P2 → stage select.
 function _proceedAfterSkin(side) {
+  if (_onlinePickLocked(side)) return   // PLAY WITH A FRIEND: own pick done → wait for the other player
   if (side === "p1") {
     if (matchConfig.mode === "tower") {
       applyTowerFloor()                       // opponent + difficulty + auto-assigned stage
@@ -6893,11 +6894,16 @@ const onlineUi = {
   joinInput: "",         // what the joiner types: a short code (preferred) OR a full ws:// address
   error:     "",
   hover:     0,
+  // PLAY WITH A FRIEND (title-screen button): each player picks their OWN fighter on their own screen.
+  pickOwn:   false,      // this connection uses pick-your-own select
+  peerPick:  null,       // the other player's locked-in fighter { char, skin, aliens } (protocol PICK)
+  locked:    false,      // we've locked our own fighter in
 }
 
 function openOnlineMenu() {
   leaveOnline()
   onlineUi.status = "idle"; onlineUi.message = ""; onlineUi.error = ""; onlineUi.hover = 0
+  onlineUi.pickOwn = false; onlineUi.peerPick = null; onlineUi.locked = false
   gameState = GAME_STATES.ONLINE_MENU
 }
 
@@ -6938,8 +6944,13 @@ function startHostFlow() {
     if (!url) { onlineUi.status = "error"; onlineUi.error = "No LAN relay found — launch via `npm run dev` or the desktop app."; return }
     online.connect(url, "host", {
       onWelcome: () => { onlineUi.status = "waiting"; onlineUi.message = "Waiting for an opponent to join…" },
-      onLobby:   (m) => { const ready = (m.count || 0) >= 2; onlineUi.status = ready ? "ready" : "waiting"; onlineUi.message = ready ? "Opponent connected — choose the matchup!" : "Waiting for an opponent to join…" },
-      onBye:     ()  => { onlineUi.status = "waiting"; onlineUi.message = "Opponent left — waiting for another…" },
+      onLobby:   (m) => {
+        const ready = (m.count || 0) >= 2; onlineUi.status = ready ? "ready" : "waiting"; onlineUi.message = ready ? "Opponent connected — choose the matchup!" : "Waiting for an opponent to join…"
+        if (ready && onlineUi.pickOwn && !onlineUi.locked && gameState === GAME_STATES.ONLINE_HOST) hostChooseMatchup()   // friend is here → both pick
+        if (!ready && onlineUi.pickOwn && gameState !== GAME_STATES.ONLINE_HOST) _friendLeftDuringPick()   // friend vanished (no BYE)
+      },
+      onBye:     ()  => { onlineUi.status = "waiting"; onlineUi.message = "Opponent left — waiting for another…"; if (onlineUi.pickOwn) _friendLeftDuringPick() },
+      onPick:    (m) => { if (_friendOnPick(m)) return; if (gameState === GAME_STATES.ONLINE_HOST) _hostTryStage() },
       onError:   (e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) },
     }).then(() => _fillHostShareAddress()).catch((e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) })
   })
@@ -6949,6 +6960,7 @@ function startHostFlow() {
 // matchConfig.online === "host" flag makes stage-confirm start an ONLINE match instead of a local one.
 function hostChooseMatchup() {
   if (!online.bothPresent()) return
+  if (onlineUi.pickOwn) { resetSelections(); onlineUi.locked = false }   // P1 picks only their own fighter
   matchConfig.mode = "pvp"; matchConfig.online = "host"
   inputSettings.p1Type = "keyboard"
   beginUniverseSelect()
@@ -6975,11 +6987,92 @@ function joinConnect() {
   if (!url) { onlineUi.error = "Enter the host code shown on the other screen (or a full ws:// address)."; return }
   onlineUi.status = "connecting"; onlineUi.message = `Connecting…`; onlineUi.error = ""
   online.connect(url, "join", {
-    onWelcome: () => { onlineUi.status = "joined"; onlineUi.message = "Connected — waiting for the host to start…" },
+    onWelcome: () => { onlineUi.status = "joined"; onlineUi.message = "Connected — waiting for the host to start…"; if (onlineUi.pickOwn) _joinerBeginPick() },
     onSetup:   (m) => applyOnlineSetup(m),
-    onBye:     ()  => { onlineUi.status = "error"; onlineUi.error = "Host left the match." },
+    onPick:    (m) => { _friendOnPick(m) },
+    onBye:     ()  => { onlineUi.status = "error"; onlineUi.error = "Host left the match."; if (onlineUi.pickOwn) { _endFriendMatchLocally(); gameState = GAME_STATES.ONLINE_JOIN } },
+    onLobby:   (m) => { if (onlineUi.pickOwn && (m.count || 0) < 2 && onlineUi.status !== "error") { onlineUi.status = "error"; onlineUi.error = "Host left the match."; _endFriendMatchLocally(); gameState = GAME_STATES.ONLINE_JOIN } },
     onError:   (e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) },
   }).catch((e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) })
+}
+
+// ── PLAY WITH A FRIEND (title-screen button) ──────────────────────────────────────────────────────────────
+// Host opens a room (the desktop app's host server, or the LAN relay), shares a link; the friend opens it in a
+// browser. Each player then picks THEIR OWN fighter on their own screen (PICK messages), the host picks the
+// stage, and the host's MATCH_SETUP starts the same lockstep match as before. UI flow only — no sim change.
+function startFriendMatch() {
+  if (netMatch.isActive()) return false
+  // net/hostLink.js may take over first (desktop: make sure the host server is up so the link works; plain
+  // browser: explain that hosting needs the desktop app). It calls back into _startFriendMatchNow().
+  try { if (typeof window.__msFriendStart === "function" && window.__msFriendStart()) return true } catch (_) {}
+  return _startFriendMatchNow()
+}
+function _startFriendMatchNow() {
+  if (netMatch.isActive()) return false
+  openOnlineMenu()
+  onlineUi.pickOwn = true
+  startHostFlow()
+  return true
+}
+function _joinerBeginPick() {
+  resetSelections()
+  matchConfig.mode = "pvp"; matchConfig.online = "join"
+  matchConfig.selectingSide = "p2"      // the friend is P2 and picks only their own fighter
+  onlineUi.locked = false
+  beginUniverseSelect()
+}
+// Called from _proceedAfterSkin: our own fighter (and skin) is locked in → tell the other player and wait.
+function _onlinePickLocked(side) {
+  if (!onlineUi.pickOwn || !matchConfig.online || netMatch.isActive()) return false
+  const mine = matchConfig.online === "host" ? "p1" : matchConfig.online === "join" ? "p2" : null
+  if (side !== mine) return false
+  online.sendPick({ char: matchConfig[side + "CharKey"], skin: matchConfig[side + "Skin"], aliens: matchConfig[side + "Aliens"] })
+  onlineUi.locked = true
+  if (mine === "p1") _hostTryStage()
+  else { onlineUi.status = "joined"; onlineUi.message = "Locked in! Waiting for your friend…"; gameState = GAME_STATES.ONLINE_JOIN }
+  return true
+}
+// HOST: both fighters locked in → stage select (stage confirm calls startOnlineHostMatch as before).
+function _hostTryStage() {
+  if (!onlineUi.locked) return
+  const pk = onlineUi.peerPick
+  if (!pk || !characters[pk.char]) { onlineUi.status = "ready"; onlineUi.message = "Locked in! Waiting for your friend to pick…"; gameState = GAME_STATES.ONLINE_HOST; return }
+  matchConfig.p2CharKey = pk.char; matchConfig.p2Char = characters[pk.char]
+  matchConfig.p2Skin = pk.skin || "default"; matchConfig.p2Aliens = Array.isArray(pk.aliens) && pk.aliens.length ? pk.aliens.slice() : null
+  _applyHomeStageDefault()
+  gameState = GAME_STATES.SELECT_STAGE
+}
+// PLAY AGAIN (REMATCH / CHANGE CHARACTER on the result screen): both players go back to picking their own
+// fighter, on a fresh lockstep session. Either player can press it; the other follows via a PICK token.
+const _PLAY_AGAIN = "__play_again__"
+function _friendPlayAgain(fromPeer = false) {
+  if (!online.isConnected()) { openOnlineMenu(); resetToStart(); return }
+  if (!fromPeer) online.sendPick({ char: _PLAY_AGAIN })
+  sound.stopAllSfx?.({ includePersistent: true })
+  victoryState.active = false
+  netMatch.end(); online.resetSession()
+  onlineUi.peerPick = null; onlineUi.locked = false
+  if (matchConfig.online === "host") { if (online.bothPresent()) hostChooseMatchup(); else gameState = GAME_STATES.ONLINE_HOST }
+  else _joinerBeginPick()
+}
+function _friendOnPick(m) {
+  if (m && m.char === _PLAY_AGAIN) { if (gameState === GAME_STATES.VICTORY || gameState === GAME_STATES.MATCH_END) _friendPlayAgain(true); return true }
+  onlineUi.peerPick = m
+  return false
+}
+function _friendLeftDuringPick() {
+  if (!onlineUi.pickOwn || matchConfig.online !== "host") return
+  onlineUi.peerPick = null; onlineUi.locked = false
+  _endFriendMatchLocally()
+  gameState = GAME_STATES.ONLINE_HOST
+  onlineUi.status = "waiting"; onlineUi.message = "Your friend left — send the link again to play."
+}
+// The other player vanished (left / closed the tab / lost Wi-Fi) mid-match or on the result screen: a
+// lockstep match can't continue alone, so end it cleanly here (same cleanup as leaving to the title).
+function _endFriendMatchLocally() {
+  const inGame = netMatch.isActive() || gameState === GAME_STATES.VICTORY || gameState === GAME_STATES.MATCH_END
+  if (netMatch.isActive()) { netMatch.end(); online.resetSession() }
+  if (inGame) resetToStart()
 }
 
 // HOST: called at stage-confirm in place of startMatch(). Generate the seed, sync it + the roster/stage to the
@@ -7041,7 +7134,13 @@ function leaveOnline(reason = null) {
 // the SAME host/join functions the ONLINE screens use, so lockstep, MATCH_SETUP and the sim are untouched.
 try {
   window.__msOnline = Object.freeze({
-    join:    (url) => { if (netMatch.isActive()) return false; openOnlineMenu(); startJoinFlow(); onlineUi.joinInput = String(url || ""); joinConnect(); return true },
+    join:    (url) => { if (netMatch.isActive()) return false; openOnlineMenu(); startJoinFlow(); onlineUi.pickOwn = true; onlineUi.joinInput = String(url || ""); joinConnect(); return true },
+    friend:  () => _startFriendMatchNow(),
+    matchup: () => [matchConfig.p1CharKey || null, matchConfig.p2CharKey || null],
+    stageButtons: () => getStageCardRects(canvas, stages).map((r, i) => ({ name: stages[i] && stages[i].name, x: r.x, y: r.y, w: r.w, h: r.h })),   // stage cards (canvas px)
+    startButtons: () => getStartMenuRects(canvas).map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),   // title-screen buttons (canvas px)
+    toTitle: () => { if (netMatch.isActive()) return false; openOnlineMenu(); gameState = GAME_STATES.START; return true },
+    friendInfo: () => ({ pickOwn: onlineUi.pickOwn, locked: onlineUi.locked, peerPick: onlineUi.peerPick ? onlineUi.peerPick.char : null, peerName: onlineUi.peerPick && characters[onlineUi.peerPick.char] ? characters[onlineUi.peerPick.char].name : null, role: matchConfig.online, message: onlineUi.message, present: online.bothPresent() }),
     host:    () => { if (netMatch.isActive()) return false; if (online.isConnected() && online.role() === "host") { if (online.bothPresent()) hostChooseMatchup(); return true } openOnlineMenu(); startHostFlow(); return true },
     status:  () => onlineUi.status,
     error:   () => onlineUi.error,
@@ -26583,6 +26682,7 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, settingsButtonRect)) { gameState = GAME_STATES.SETTINGS; break }
       const clicked = getStartMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
       if (clicked?.id === "play") gameState = GAME_STATES.MAIN_MENU
+      else if (clicked?.id === "friend") startFriendMatch()   // PLAY WITH A FRIEND (same Wi-Fi link; each picks their own fighter)
       break
     }
     case GAME_STATES.MAIN_MENU: {
@@ -27036,6 +27136,8 @@ function handleMenuClicks() {
     case GAME_STATES.MATCH_END: resetToStart(); break
     case GAME_STATES.VICTORY: {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
+      if (onlineUi.pickOwn && matchConfig.online && (action === "rematch" || action === "changeChar")) { _friendPlayAgain(); break }   // PLAY WITH A FRIEND: both pick again
+      if (onlineUi.pickOwn && matchConfig.online && action === "menu") leaveOnline("left")   // tell the friend we left
       if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match · Story: next chapter map
       if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
       if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
@@ -27914,6 +28016,8 @@ window.addEventListener("keydown", e => {
     // happens to be hovered. Force those confirm keys to "rematch" (→ resumeCutsceneAfterFight) so the story
     // never drops to the title on a normal advance. Only the explicit MAIN MENU button / Escape still quits.
     if (matchConfig._cutsceneFight && (key === "enter" || key === " " || key === "spacebar")) action = "rematch"
+    if (onlineUi.pickOwn && matchConfig.online && (action === "rematch" || action === "changeChar")) { _friendPlayAgain(); return }   // PLAY WITH A FRIEND: both pick again
+    if (onlineUi.pickOwn && matchConfig.online && action === "menu") leaveOnline("left")   // tell the friend we left
     if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
     if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
     return

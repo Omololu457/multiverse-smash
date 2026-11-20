@@ -69,15 +69,18 @@ Declared in `electron/package.json → build.protocols`, so the installers regis
 
 ---
 
-## "How to join" (paste this to friends)
+## How to play with a friend (same Wi-Fi)
 
-> **Join my Multiverse Smash game**
-> 1. Open this link: **<paste the link from the Hosting panel>**
-> 2. Click **Play in browser**. That's it, no install. (The first load can take a minute.)
->
-> Have the desktop app? Click **Open in desktop app** on that page instead, or paste the link into the app's
-> hosting panel (top-right badge → *Join a friend's game*).
-> Don't have it but want it? Download it from https://github.com/Omololu457/multiverse-smash/releases/latest.
-> If it says *different game version*, download the version I'm on from that page.
->
-> On the same Wi-Fi as me? You can also use the LAN link from my panel.
+**Host (desktop app):** on the title screen press **PLAY WITH A FRIEND**. Click the link that appears. It opens in
+your browser with a **Copy link** button (or copy it from the address bar). Send it to your friend.
+
+**Paste this to your friend:**
+
+> **Come play Multiverse Smash with me!**
+> 1. Make sure you're on the **same Wi-Fi** as me.
+> 2. Open this link: **<paste the link>**
+> 3. Press **JOIN THE GAME**. No download needed, it runs in your browser (the first load can take a minute).
+> 4. Pick your fighter. I pick mine on my screen, then I choose the stage and we fight.
+
+Each player sees their own screen and picks their own fighter. The match only starts when both builds are identical
+(if not, the game says so and links to the download page).

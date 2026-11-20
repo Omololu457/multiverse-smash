@@ -21,7 +21,7 @@ import path from "node:path"
 import crypto from "node:crypto"
 import { WebSocketServer } from "ws"
 import {
-  decode, encode, checkHello, makeWelcome, makeReject, makeLobby, makeMatchSetup, MSG,
+  decode, encode, checkHello, makeWelcome, makeReject, makeLobby, makeMatchSetup, makePick, MSG,
 } from "./protocol.js"
 import {
   ROOM_ALPHABET, ROOM_CODE_LEN, MAX_PLAYERS_PER_ROOM, normalizeRoomCode, RELEASES_URL, PROTOCOL_SCHEME,
@@ -105,26 +105,48 @@ function joinPageHtml(room, nonce) {
   // Static template; the ONLY dynamic value is a validated room code (alphabet-checked), so nothing a
   // visitor sends is ever echoed into the page.
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Join a Multiverse Smash match</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Multiverse Smash — play with a friend</title>
 <style>
 :root{--bg:#061225;--card:#0d1f3c;--fg:#e8f1ff;--mut:#9fb3d1;--acc:#4ad5ff;--bad:#ff6b6b}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;padding:16px}
 .card{max-width:440px;width:100%;background:var(--card);border:1px solid #1d3a66;border-radius:14px;padding:24px}
 h1{font-size:20px;margin:0 0 4px}.code{font:700 28px ui-monospace,Menlo,monospace;letter-spacing:4px;color:var(--acc)}
-p{color:var(--mut);margin:8px 0}a.btn,button{display:block;width:100%;text-align:center;margin-top:12px;padding:12px;border-radius:10px;border:0;font:600 16px system-ui;cursor:pointer;text-decoration:none}
+p{color:var(--mut);margin:8px 0}.link{font:600 15px ui-monospace,Menlo,monospace;word-break:break-all;background:#061225;border:1px solid #2a4a7a;border-radius:8px;padding:10px;color:var(--fg);user-select:all}[hidden]{display:none!important}a.btn,button{display:block;width:100%;text-align:center;margin-top:12px;padding:12px;border-radius:10px;border:0;font:600 16px system-ui;cursor:pointer;text-decoration:none}
 .pri{background:var(--acc);color:#04203a}.sec{background:#183156;color:var(--fg)}.st{min-height:1.5em}.bad{color:var(--bad)}small{color:var(--mut)}
-</style></head><body><main class="card">
-<h1>Multiverse Smash — join a match</h1>
+</style></head><body><main class="card" id="join">
+<h1>Your friend invited you to Multiverse Smash</h1>
 <div class="code" id="code">${room || "------"}</div>
 <p class="st" id="st">${room ? "Checking the room…" : "This link has no valid room code."}</p>
-<a class="btn pri" id="play" href="${room ? `/?room=${room}` : "/"}">Play in browser</a>
-<a class="btn sec" id="desk" href="#">Open in desktop app</a>
-<p><small>No desktop app? <a href="${RELEASES_URL}" rel="noopener noreferrer" style="color:var(--acc)">Download it from GitHub</a>, or just play in the browser.</small></p>
+<a class="btn pri" id="play" href="${room ? `/?room=${room}` : "/"}">JOIN THE GAME</a>
+<p><small>Plays right here in your browser — no download. You'll pick your own fighter.</small></p>
+</main>
+<main class="card" id="invite" hidden>
+<h1>Your invite link is ready</h1>
+<p>Copy this link and send it to your friends. Anyone on the <b>same Wi-Fi</b> as you can open it to join.</p>
+<div class="link" id="lnk"></div>
+<button class="pri" id="copy" type="button">Copy link</button>
+<p class="st" id="ist">Waiting for your friend to open it… Keep the game open — you'll both pick your fighters there.</p>
 </main>
 <script nonce="${nonce}">
 (function(){var room=${JSON.stringify(room || "")};var st=document.getElementById('st');
 var link=location.origin+'/join?room='+room;
-document.getElementById('desk').href='${PROTOCOL_SCHEME}://join?link='+encodeURIComponent(link)+'&room='+room;
+if(room&&location.hash==='#invite'){
+ // The HOST opened this from the game: show a copy-and-send page and drop "#invite" from the address bar,
+ // so copying the address bar gives the friend the plain join link.
+ try{history.replaceState(null,'',link)}catch(e){}
+ document.getElementById('join').hidden=true;document.getElementById('invite').hidden=false;
+ document.getElementById('lnk').textContent=link;
+ var cb=document.getElementById('copy');
+ cb.onclick=function(){var done=function(){cb.textContent='Copied ✓ — now paste it to your friend';setTimeout(function(){cb.textContent='Copy link'},2500)};
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(link).then(done,fallback)}else fallback();
+  function fallback(){var r=document.createRange();r.selectNodeContents(document.getElementById('lnk'));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand('copy');done()}catch(e){cb.textContent='Select the link above and copy it'}}};
+ var ist=document.getElementById('ist');
+ setInterval(function(){fetch('/api/room/'+room,{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+  if(!j.ok){ist.textContent='This room has closed. Click PLAY WITH A FRIEND in the game for a new link.';ist.className='st bad';return}
+  ist.textContent=j.players>=2?'Your friend is in! Go back to the game window to pick your fighter.':'Waiting for your friend to open it… Keep the game open — you will both pick your fighters there.';
+ }).catch(function(){})},2000);
+ return;
+}
 if(!room)return;
 fetch('/api/room/'+room,{cache:'no-store'}).then(function(r){return r.json().then(function(j){return{s:r.status,j:j}})}).then(function(x){
  if(x.s===429){st.textContent='Too many attempts from your network. Try again in a few minutes.';st.className='st bad';return}
@@ -428,6 +450,11 @@ export function createHostServer(opts = {}) {
         }
         case MSG.BYE:
           return fwd({ t: MSG.BYE, reason: typeof msg.reason === "string" ? msg.reason.slice(0, 80) : null })
+        case MSG.PICK: {                                  // "my fighter" (pick-your-own select): rebuilt, ids only
+          const clean = makePick(msg)
+          if (!clean.char) return strike()
+          return fwd(clean)
+        }
         default:
           return strike()
       }

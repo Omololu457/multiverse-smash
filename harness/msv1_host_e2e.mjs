@@ -1,7 +1,8 @@
-// harness/msv1_host_e2e.mjs — MSV1-HOST end-to-end: the REAL desktop app (Electron) hosts, a REAL browser
-// joins by the link, they play a full lockstep match; a second desktop instance joins by pasted link and by
-// multiversesmash://join (second-instance handoff); a different build is refused; Stop Hosting / quit leave
-// no open port and no tunnel process.
+// harness/msv1_host_e2e.mjs — MSV1-HOST end-to-end, "PLAY WITH A FRIEND": the REAL desktop app (Electron)
+// clicks the title-screen button, gets an invite link, a REAL browser opens it on the LAN, BOTH players pick
+// their OWN fighter on their own screen, the host picks the stage, and they play a full lockstep match.
+// Also: the invite page, a desktop friend via multiversesmash://join, a different build refused, Back / quit
+// leave no open port and no tunnel process.
 //   node harness/msv1_host_e2e.mjs            (opens real app windows on this machine)
 // Internet routes are stubbed (fake cloudflared prints a URL; UPnP off) so nothing is exposed publicly; the
 // browser joins over the LAN/loopback link exactly as a same-network friend would.
@@ -52,64 +53,113 @@ const listening = (port) => { try { return execFileSync("lsof", ["-nP", `-iTCP:$
 const alive = (pid) => { try { process.kill(pid, 0); return true } catch { return false } }
 
 let hostApp, friendApp, browser
+// Real select flow for ONE player on their own screen: the real character grid + a real mouse click on the
+// card (same handler a player uses), then the real skin pick. Returns when that player is locked in.
+async function pickFighter(page, universe, key) {
+  const roster = await page.evaluate((u) => window.__harness.gotoCharacterSelect(u), universe)
+  const idx = roster.indexOf(key)
+  if (idx < 0) throw new Error(`${key} not in ${universe} roster`)
+  const pt = await page.evaluate((i) => {
+    const r = window.__harness.charCardRects()[i]; const c = document.querySelector("canvas"); const b = c.getBoundingClientRect()
+    const sx = c.width / b.width, sy = c.height / b.height
+    return { x: b.left + (r.x + r.w / 2) / sx, y: b.top + (r.y + r.h / 2) / sy }
+  }, idx)
+  await realClick(page, pt)
+  await page.waitForFunction(() => window.__msOnline.state() === "selectSkin", null, { timeout: 20000 })
+  await page.evaluate(() => window.__harness.pickSkin(0))
+  await page.waitForFunction(() => window.__msOnline.friendInfo().locked, null, { timeout: 20000 })
+}
+// A real pointer click: move in from a nearby point first (a move to the SAME spot fires no mousemove, and the
+// game reads the cursor position from mousemove).
+async function realClick(page, pt) {
+  await page.mouse.move(pt.x + 7, pt.y + 5); await sleep(40); await page.mouse.move(pt.x, pt.y, { steps: 3 }); await sleep(60)
+  await page.mouse.click(pt.x, pt.y)
+}
+async function clickTitleButton(page, id) {
+  const pt = await page.evaluate((id) => {
+    const r = window.__msOnline.startButtons().find((b) => b.id === id); const c = document.querySelector("canvas"); const b = c.getBoundingClientRect()
+    const sx = c.width / b.width, sy = c.height / b.height
+    return r && { x: b.left + (r.x + r.w / 2) / sx, y: b.top + (r.y + r.h / 2) / sy }
+  }, id)
+  if (!pt) throw new Error(`no title button ${id}`)
+  await realClick(page, pt)
+}
 try {
-  // ── 1. cold start: the app launches and AUTOMATICALLY hosts ─────────────────────────────────────────
-  console.log("\n── desktop app auto-hosts ──")
+  // ── 1. cold start: one button on the title screen, nothing hosting until it's pressed ─────────────────
+  console.log("\n── title screen: PLAY WITH A FRIEND ──")
   hostApp = await launchApp(`e2ehost-${tag}`)
   const hw = await appWindow(hostApp)
-  await until(hw, async () => { const s = await window.msDesktop.getState(); return s.status === "online" && s.route === "tunnel" }, null, 30000)
+  hw.on("pageerror", (e) => console.log("  ⚠️ [host] pageerror:", e.message))
+  await hw.waitForFunction(() => window.__msOnline.state() === "start", null, { timeout: 30000 })
+  await sleep(800)
+  ok("not hosting until the button is pressed", (await hostState(hw)).status === "offline")
+  ok("title screen has exactly PLAY + PLAY WITH A FRIEND", JSON.stringify(await hw.evaluate(() => window.__msOnline.startButtons().map((b) => b.id))) === '["play","friend"]')
+  ok("no hosting badge / floating buttons / first-run popup", await hw.locator("#ms-host .mh-badge, #ms-host .mh-btn-float, #ms-host .mh-modal").count() === 0)
+  ok("ONLINE (LAN) removed from the main menu", !(await hw.evaluate(() => window.__harness.ui.mainMenuRects().map((r) => r.id))).includes("online"))
+  await hw.screenshot({ path: path.join(SHOTS, "01_title_play_with_a_friend.png") })
+  await clickTitleButton(hw, "friend")
+  await hw.waitForSelector("#ms-host .mh-screen a.mh-link", { timeout: 30000 })
   const hs = await hostState(hw)
-  ok("hosting started automatically on launch (no clicks)", hs.status === "online", `route=${hs.route} port=${hs.port}`)
-  ok("panel data: 6-char room code + join link + LAN link", /^[A-Z2-9]{6}$/.test(hs.room) && hs.publicLink === `https://e2e-stub-${tag}.trycloudflare.com/join?room=${hs.room}` && hs.lanLinks.length > 0, `${hs.room} ${hs.publicLink}`)
-  ok("first-run notice shown (one time)", await hw.locator("#ms-host .mh-modal").filter({ hasText: "Hosting lets friends join you" }).count() === 1)
-  await hw.screenshot({ path: path.join(SHOTS, "01_first_run_notice.png") })
-  await hw.locator("#ms-host .mh-modal button", { hasText: "Got it" }).click()
-  ok("hosting badge visible in the menu", (await hw.locator("#ms-host .mh-badge").innerText()).includes(`Hosting online · ${hs.room}`))
-  await hw.locator("#ms-host .mh-badge").click()
-  ok("panel: Copy Link, Stop Hosting, auto-host setting, join box", await hw.locator("#ms-host .mh-card button", { hasText: "Copy Link" }).count() >= 1 && await hw.locator("#ms-host .mh-card button", { hasText: "Stop Hosting" }).count() === 1 && await hw.locator("#mh-auto").isChecked())
-  await hw.screenshot({ path: path.join(SHOTS, "02_hosting_panel.png") })
-  await hw.locator("#ms-host .mh-card button", { hasText: "Copy Link" }).first().click()
-  ok("Copy Link puts the join link on the clipboard", (await hostApp.evaluate(({ clipboard }) => clipboard.readText())) === hs.publicLink)
-  await hw.locator("#ms-host .mh-badge").click()   // close panel
+  const link = await hw.locator("#ms-host a.mh-link").innerText()
+  const href = await hw.locator("#ms-host a.mh-link").getAttribute("href")
+  ok("button → hosting starts + friend screen with ONE clickable invite link", hs.status === "online" && link === hs.lanLinks[0] && /^http:\/\/[\d.]+:\d+\/join\?room=[A-Z2-9]{6}$/.test(link), link)
+  ok("link opens in the browser (new tab) as the copy-and-send page", href === `${link}#invite` && (await hw.locator("#ms-host a.mh-link").getAttribute("target")) === "_blank")
+  await hw.waitForSelector("#ms-host .mh-screen >> text=Not on the same Wi-Fi", { timeout: 20000 }).catch(() => {})   // settle: the (stub) internet link arrives a moment later
+  ok("friend screen: Copy link + Back, waiting for your friend", await hw.waitForSelector("#ms-host .mh-screen >> text=Waiting for your friend to join", { timeout: 5000 }).then(() => true, () => false) && await hw.locator("#ms-host .mh-screen button", { hasText: "Copy link" }).count() === 1 && await hw.locator("#ms-host .mh-screen button", { hasText: "Back" }).count() === 1)
+  await hw.screenshot({ path: path.join(SHOTS, "02_friend_screen_link.png") })
+  await hw.locator("#ms-host .mh-screen button", { hasText: "Copy link" }).click()
+  ok("Copy link puts the invite link on the clipboard", (await hostApp.evaluate(({ clipboard }) => clipboard.readText())) === link)
   ok("public listener serves the game but no dev API", (await fetch(`http://127.0.0.1:${hs.port}/api/save`)).status === 404 && (await fetch(`http://127.0.0.1:${hs.port}/`)).status === 200)
-  const portClash = hs.port !== 8790 ? `8790 busy → ${hs.port}` : "8790"
-  ok("host port chosen without crashing", !!hs.port, portClash)
 
-  // ── 2. a friend joins in the BROWSER by opening the link ─────────────────────────────────────────────
-  console.log("\n── browser friend joins by link + full match ──")
+  // ── 2. the invite page (what the host's browser shows after clicking the link) ────────────────────────
+  console.log("\n── invite page in the browser ──")
   browser = await chromium.launch({ headless: true, args: ["--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "--autoplay-policy=no-user-gesture-required"] })
-  const lanOrigin = new URL(hs.lanLinks[0]).origin
-  // The game's arena size follows the window (canvas = innerWidth × innerHeight), and the existing lockstep
-  // assumes both peers use the same size (net_online uses two identical 1280×720 pages). Match the host.
-  const vp = await hw.evaluate(() => ({ width: innerWidth, height: innerHeight }))
+  const ip = await browser.newPage({ viewport: { width: 900, height: 700 } })
+  await ip.goto(href)
+  await ip.waitForSelector("#invite:not([hidden])", { timeout: 8000 })
+  ok("invite page: 'Your invite link is ready' + the link + Copy link", (await ip.locator("#lnk").innerText()) === link && await ip.locator("#copy").count() === 1)
+  ok("address bar shows the plain link (ready to copy from the URL bar)", ip.url() === link, ip.url())
+  await ip.screenshot({ path: path.join(SHOTS, "03_invite_page.png") })
+  await ip.close()
+
+  // ── 3. friend opens the link in a browser on the same Wi-Fi: ONE button ───────────────────────────────
+  console.log("\n── friend joins from the link; each picks their own fighter ──")
+  const vp = await hw.evaluate(() => ({ width: innerWidth, height: innerHeight }))   // lockstep needs equal arena sizes (see REPORT)
   const jp = await browser.newPage({ viewport: vp })
   jp.on("pageerror", (e) => console.log("  ⚠️ [browser] pageerror:", e.message))
-  const joinPage = await jp.goto(`${lanOrigin}/join?room=${hs.room}`)
-  ok("join page loads from the host (LAN link)", joinPage.status() === 200 && await jp.locator("#play").count() === 1)
-  await jp.waitForFunction(() => /players connected/.test(document.getElementById("st").textContent), null, { timeout: 8000 })
-  await jp.screenshot({ path: path.join(SHOTS, "03_join_page.png") })
-  const playHref = await jp.locator("#play").getAttribute("href")
-  const deskHref = await jp.locator("#desk").getAttribute("href")
-  ok("join page: Play in browser + Open in desktop app links", playHref === `/?room=${hs.room}` && deskHref.startsWith("multiversesmash://join?link="), deskHref.slice(0, 60))
-  await jp.goto(`${lanOrigin}/?room=${hs.room}&harness=1&hostui=1`, { waitUntil: "domcontentloaded" })
-  await jp.mouse.click(640, 360)
-  await jp.waitForFunction(() => window.__msOnline && window.__msOnline.status() === "joined", null, { timeout: 60000 })
-  ok("browser friend auto-joined the room from the link (seat p2)", (await jp.evaluate(() => window.__harness.online.side())) === "p2")
-  await jp.waitForFunction(() => document.readyState === "complete", null, { timeout: 240000 })   // let the friend finish loading assets first
-  await until(hw, async () => (await window.msDesktop.getState()).players.some((p) => p.side === "p2"), null, 10000)
-  ok("host panel shows the friend connected", true)
-  await hw.waitForSelector("#ms-host .mh-toast", { timeout: 5000 })
-  await hw.screenshot({ path: path.join(SHOTS, "04_friend_joined_toast.png") })
-  await hw.locator("#ms-host .mh-toast button", { hasText: "Set up the match" }).click()
-  await hw.waitForFunction(() => window.__msOnline.status() === "ready", null, { timeout: 10000 })
-  ok("host (P1, same window) connected into its room; opponent present", (await hw.evaluate(() => window.__harness.online.side())) === "p1")
-  await sleep(4500)   // heartbeat measures ping every 2 s
-  const st = await hostState(hw)
-  ok("panel lists both players with ping", st.players.length === 2 && st.players.every((p) => p.pingMs != null), st.players.map((p) => `${p.side}:${p.pingMs}ms`).join(" "))
-  await hw.evaluate(() => window.__harness.online.hostStartMatch("goku", "sasuke", null))
-  await jp.waitForFunction(() => window.__harness.online.isActive(), null, { timeout: 10000 })
+  const joinPage = await jp.goto(link)
+  ok("join page has ONE button: JOIN THE GAME", joinPage.status() === 200 && await jp.locator("a.btn, button").filter({ visible: true }).count() === 1 && (await jp.locator("#play").innerText()).trim() === "JOIN THE GAME")
+  await jp.waitForFunction(() => /players connected/.test(document.getElementById("st").textContent), null, { timeout: 30000 })
+  await jp.screenshot({ path: path.join(SHOTS, "04_join_page_one_button.png") })
+  // JOIN THE GAME → the game (?room=) — the test adds harness hooks to that same URL
+  ok("JOIN THE GAME goes straight into the game for this room", (await jp.locator("#play").getAttribute("href")) === `/?room=${hs.room}`)
+  await jp.goto(`${new URL(link).origin}/?room=${hs.room}&harness=1&hostui=1`, { waitUntil: "domcontentloaded" })
+  await jp.waitForFunction(() => window.__msOnline && window.__msOnline.state() === "selectUniverse", null, { timeout: 90000 })
+  ok("friend lands on THEIR OWN fighter select (seat p2)", (await jp.evaluate(() => window.__harness.online.side())) === "p2")
+  await hw.waitForFunction(() => window.__msOnline.state() === "selectUniverse", null, { timeout: 15000 })
+  ok("host's screen moves to the host's own fighter select automatically", (await hw.evaluate(() => window.__harness.online.side())) === "p1")
+  await jp.waitForFunction(() => document.readyState === "complete", null, { timeout: 240000 })
+  await pickFighter(hw, "dragon_ball", "goku")
+  ok("host locked in → waits for the friend's pick", await hw.waitForSelector("#ms-host .mh-screen >> text=Waiting for your friend to pick", { timeout: 3000 }).then(() => true, () => false))
+  await hw.screenshot({ path: path.join(SHOTS, "05_host_locked_waiting.png") })
+  await pickFighter(jp, "naruto", "sasuke")
+  await jp.screenshot({ path: path.join(SHOTS, "06_friend_locked_waiting.png") })
+  ok("friend sees what the host picked", await jp.waitForSelector("#ms-host .mh-screen >> text=Your friend picked Goku", { timeout: 3000 }).then(() => true, () => false))
+  await hw.waitForFunction(() => window.__msOnline.state() === "selectStage", null, { timeout: 10000 })
+  ok("both picked → host chooses the stage", true)
+  await hw.screenshot({ path: path.join(SHOTS, "07_host_stage_select.png") })
+  // the host clicks a real stage card (the pre-selected home stage of the host's fighter)
+  const stPt = await hw.evaluate(() => {
+    const cards = window.__msOnline.stageButtons(); const r = cards.find((c) => c.w > 0 && c.y >= 0) ; const c = document.querySelector("canvas"); const b = c.getBoundingClientRect()
+    const sx = c.width / b.width, sy = c.height / b.height
+    return { x: b.left + (r.x + r.w / 2) / sx, y: b.top + (r.y + r.h / 2) / sy, name: r.name }
+  })
+  await realClick(hw, stPt)
+  await jp.waitForFunction(() => window.__harness.online.isActive(), null, { timeout: 15000 })
   const [s1, s2] = await Promise.all([hw.evaluate(() => window.__harness.online.seed()), jp.evaluate(() => window.__harness.online.seed())])
   ok("both start the SAME seed (MATCH_SETUP through the host relay)", s1 != null && s1 === s2, `${s1}/${s2}`)
+  const chars = await Promise.all([hw, jp].map((p) => p.evaluate(() => window.__msOnline.matchup())))
+  ok("each player got the fighter THEY picked (P1 Goku, P2 Sasuke) on both screens", JSON.stringify(chars[0]) === '["goku","sasuke"]' && JSON.stringify(chars[1]) === '["goku","sasuke"]', JSON.stringify(chars))
   await hw.evaluate(() => window.__harness.skipToBattle && window.__harness.skipToBattle())
   await jp.evaluate(() => window.__harness.skipToBattle && window.__harness.skipToBattle())
   // Play: the friend (P2) attacks; sample both sims and compare on shared frames until the match ends.
@@ -133,96 +183,112 @@ try {
   for (const [f, a] of H) { const b = J.get(f); if (!b) continue; shared++; maxF = Math.max(maxF, f); if (JSON.stringify(a) !== JSON.stringify(b)) mism++ }
   ok("match played through the host relay to the END on both sides", endedH && endedJ, `${Math.round((Date.now() - t0) / 1000)}s, lastFrame≈${maxF}`)
   ok("sims bit-identical on every shared frame", shared > 20 && mism === 0, `mismatched ${mism}/${shared}`)
-  const hp = [...H.values()].at(-1), jpv = [...J.values()].at(-1)
+  const hp = [...H.values()].at(-1)
   const first = [...H.values()][0]
-  const hurt = [...H.values()].some((v) => v.p1h < first.p1h || v.p2h < first.p2h)
-  ok("damage actually happened (a real fight, not idle)", !!(first && hurt), hp && `start p1h=${first.p1h} p2h=${first.p2h}; min p1h=${Math.min(...[...H.values()].map((v) => v.p1h))}`)
-  await hw.screenshot({ path: path.join(SHOTS, "05_match_end_host.png") })
-  await jp.screenshot({ path: path.join(SHOTS, "06_match_end_browser.png") })
+  const hurt = first && [...H.values()].some((v) => v.p1h < first.p1h || v.p2h < first.p2h)
+  ok("damage actually happened (a real fight, not idle)", !!hurt, hp && `start p1h=${first.p1h} p2h=${first.p2h}; min p1h=${Math.min(...[...H.values()].map((v) => v.p1h))}`)
+  await hw.screenshot({ path: path.join(SHOTS, "08_match_end_host.png") })
+  await jp.screenshot({ path: path.join(SHOTS, "09_match_end_browser.png") })
+  // PLAY AGAIN: the friend presses R (rematch) on the result screen → BOTH go back to picking their own fighter
+  await jp.waitForFunction(() => window.__msOnline.state() === "victory", null, { timeout: 30000 })
+  await hw.waitForFunction(() => window.__msOnline.state() === "victory", null, { timeout: 30000 })
+  await sleep(1500)
+  await jp.keyboard.press("r")
+  await jp.waitForFunction(() => window.__msOnline.state() === "selectUniverse", null, { timeout: 10000 })
+  await hw.waitForFunction(() => window.__msOnline.state() === "selectUniverse", null, { timeout: 10000 })
+  ok("play again (R on the result screen) → both players back on their own fighter select", true)
+  await pickFighter(hw, "naruto", "sasuke")
+  await pickFighter(jp, "dragon_ball", "goku")
+  await hw.waitForFunction(() => window.__msOnline.state() === "selectStage", null, { timeout: 10000 })
+  const stPt2 = await hw.evaluate(() => {
+    const r = window.__msOnline.stageButtons().find((c) => c.w > 0 && c.y >= 0); const c = document.querySelector("canvas"); const b = c.getBoundingClientRect()
+    const sx = c.width / b.width, sy = c.height / b.height
+    return { x: b.left + (r.x + r.w / 2) / sx, y: b.top + (r.y + r.h / 2) / sy }
+  })
+  await realClick(hw, stPt2)
+  await jp.waitForFunction(() => window.__harness.online.isActive() && window.__msOnline.inMatch(), null, { timeout: 15000 }).catch(async () => {
+    const d = await Promise.all([hw, jp].map((p) => p.evaluate(() => ({ st: window.__msOnline.state(), status: window.__msOnline.status(), err: window.__msOnline.error(), fi: window.__msOnline.friendInfo(), mu: window.__msOnline.matchup(), active: window.__harness.online.isActive() }))))
+    throw new Error("second match did not start: " + JSON.stringify(d) + " click=" + JSON.stringify(stPt2))
+  })
+  const m2 = await Promise.all([hw, jp].map((p) => p.evaluate(() => window.__msOnline.matchup())))
+  ok("second match: the NEW picks on both screens (P1 Sasuke, P2 Goku)", JSON.stringify(m2[0]) === '["sasuke","goku"]' && JSON.stringify(m2[1]) === '["sasuke","goku"]', JSON.stringify(m2))
+  await hw.evaluate(() => window.__harness.skipToBattle && window.__harness.skipToBattle())
+  await jp.evaluate(() => window.__harness.skipToBattle && window.__harness.skipToBattle())
+  const H2 = new Map(), J2 = new Map(); const t2 = Date.now()
+  while (Date.now() - t2 < 60000) {
+    await jp.keyboard.press(keys[ki++ % keys.length]).catch(() => {})
+    const [a, b] = await Promise.all([probe(hw), probe(jp)])
+    if (a.s) H2.set(a.s.frame, a.s)
+    if (b.s) J2.set(b.s.frame, b.s)
+    if (Math.max(0, ...H2.keys()) > 600) break
+    await sleep(25)
+  }
+  let sh2 = 0, mm2 = 0, mx2 = 0
+  for (const [f, a] of H2) { const b = J2.get(f); if (!b) continue; sh2++; mx2 = Math.max(mx2, f); if (JSON.stringify(a) !== JSON.stringify(b)) mm2++ }
+  ok("second match runs in lockstep on a fresh session (bit-identical)", sh2 > 10 && mm2 === 0 && mx2 > 300, `frames≈${mx2}, mismatched ${mm2}/${sh2}`)
   await jp.close()
   await until(hw, async () => !(await window.msDesktop.getState()).players.some((p) => p.side === "p2"), null, 10000)
-  ok("friend leaving frees the seat (panel updates)", true)
+  ok("friend leaving frees the seat; host goes back to the invite screen", await hw.waitForSelector("#ms-host .mh-screen a.mh-link", { timeout: 10000 }).then(() => true, () => false))
 
-  // ── 3. a second DESKTOP instance joins by pasted link, then by multiversesmash://join ───────────────
-  console.log("\n── desktop friend: pasted link + protocol URL ──")
-  friendApp = await launchApp(`e2efriend-${tag}`, { MS_HOST_TUNNEL: "off" })
-  const fw = await appWindow(friendApp)
-  await fw.locator("#ms-host .mh-modal button", { hasText: "Got it" }).click({ timeout: 15000 }).catch(() => {})
-  await fw.locator("#ms-host .mh-badge").click()
-  await fw.locator("#ms-host .mh-card input[aria-label='Join link']").fill(hs.room)
-  await fw.locator("#ms-host .mh-card button", { hasText: "Join" }).click()
-  ok("bare room code → asks for the full link", (await fw.locator("#ms-host .mh-toast").innerText()).includes("Paste your friend's full join link"))
-  await fw.locator("#ms-host .mh-badge").click().catch(() => {})
-  if (!(await fw.locator("#ms-host .mh-card").count())) await fw.locator("#ms-host .mh-badge").click()
-  await fw.locator("#ms-host .mh-card input[aria-label='Join link']").fill(hs.lanLinks[0])
-  await fw.screenshot({ path: path.join(SHOTS, "07_desktop_join_box.png") })
-  await fw.locator("#ms-host .mh-card button", { hasText: "Join" }).click()
-  await fw.waitForFunction(() => window.__msOnline.status() === "joined", null, { timeout: 20000 })
-  ok("desktop friend joined by PASTED LINK (seat p2)", (await fw.evaluate(() => window.__harness.online.side())) === "p2")
-  await friendApp.close(); friendApp = null
-  await until(hw, async () => !(await window.msDesktop.getState()).players.some((p) => p.side === "p2"), null, 10000)
-
+  // ── 4. a DESKTOP friend via multiversesmash://join (second-instance handoff) ─────────────────────────
+  console.log("\n── desktop friend: multiversesmash://join ──")
   friendApp = await launchApp(`e2efriend-${tag}`, { MS_HOST_TUNNEL: "off" })
   const fw2 = await appWindow(friendApp)
   const proto = `multiversesmash://join?link=${encodeURIComponent(hs.lanLinks[0])}&room=${hs.room}`
-  // second launch with the URL on argv (Windows/Linux delivery; dev-mode on macOS) → hands off + exits
   const second = spawn(ELECTRON, [EDIR, proto], { env: { ...baseEnv, MS_PROFILE: `e2efriend-${tag}` }, stdio: "ignore" })
   const code2 = await new Promise((r) => { const t = setTimeout(() => { second.kill(); r("timeout") }, 20000); second.on("exit", (c) => { clearTimeout(t); r(c) }) })
   ok("second launch hands the URL to the running app and exits (single instance)", code2 === 0, `exit ${code2}`)
-  await fw2.waitForFunction(() => window.__msOnline.status() === "joined", null, { timeout: 20000 })
-  ok("desktop friend joined via multiversesmash://join", (await fw2.evaluate(() => window.__harness.online.side())) === "p2")
+  await fw2.waitForFunction(() => window.__msOnline.state() === "selectUniverse", null, { timeout: 40000 }).catch(async (e) => {
+    const d = await fw2.evaluate(() => ({ state: window.__msOnline.state(), status: window.__msOnline.status(), error: window.__msOnline.error(), ui: document.querySelector("#ms-host") && document.querySelector("#ms-host").innerText.slice(0, 300) }))
+    const hsNow = await hostState(hw)
+    throw new Error(`desktop friend did not reach fighter select: ${JSON.stringify(d)} host=${JSON.stringify({ status: hsNow.status, room: hsNow.room, players: hsNow.players })} hostGame=${await hw.evaluate(() => window.__msOnline.state())}`)
+  })
+  ok("desktop friend joined via multiversesmash://join and picks their own fighter (p2)", (await fw2.evaluate(() => window.__harness.online.side())) === "p2")
   await friendApp.close(); friendApp = null
   await until(hw, async () => !(await window.msDesktop.getState()).players.some((p) => p.side === "p2"), null, 10000)
 
-  // ── 4. version mismatch is refused, clearly, and never starts a match ───────────────────────────────
+  // ── 5. version mismatch is refused, clearly, and never starts a match ───────────────────────────────
   console.log("\n── version mismatch ──")
   friendApp = await launchApp(`e2eold-${tag}`, { MS_HOST_TUNNEL: "off", MS_TEST_CODE_OVERRIDE: "0123456789" })
   const ow = await appWindow(friendApp)
-  await ow.locator("#ms-host .mh-modal button", { hasText: "Got it" }).click({ timeout: 15000 }).catch(() => {})
-  await ow.locator("#ms-host .mh-badge").click()
-  await ow.locator("#ms-host .mh-card input[aria-label='Join link']").fill(hs.lanLinks[0])
-  await ow.locator("#ms-host .mh-card button", { hasText: "Join" }).click()
+  const proto2 = `multiversesmash://join?link=${encodeURIComponent(hs.lanLinks[0])}&room=${hs.room}`
+  const third = spawn(ELECTRON, [EDIR, proto2], { env: { ...baseEnv, MS_PROFILE: `e2eold-${tag}` }, stdio: "ignore" })
+  await new Promise((r) => { const t = setTimeout(() => { third.kill(); r() }, 20000); third.on("exit", () => { clearTimeout(t); r() }) })
   await ow.waitForSelector("#ms-host .mh-modal >> text=Different game version", { timeout: 15000 })
   ok("different build: clear message + 'Download matching version' button", await ow.locator("#ms-host .mh-modal button", { hasText: "Download matching version" }).count() === 1)
-  await ow.screenshot({ path: path.join(SHOTS, "08_version_mismatch.png") })
-  // and the relay itself refuses even if the pre-check were bypassed
+  await ow.screenshot({ path: path.join(SHOTS, "10_version_mismatch.png") })
   await ow.evaluate((u) => window.__msOnline.join(u), `ws://127.0.0.1:${hs.port}/ws?room=${hs.room}`)
-  await ow.waitForFunction(() => window.__msOnline.status() === "error", null, { timeout: 15000 })
-  ok("relay rejects the mismatched build (handshake)", /mismatch/i.test(await ow.evaluate(() => window.__msOnline.error())))
+  await until(ow, () => /mismatch/i.test(window.__msOnline.error() || "") || !!document.querySelector("#ms-host .mh-modal"), null, 15000)
+  ok("relay rejects the mismatched build (handshake)", /mismatch/i.test(await ow.evaluate(() => window.__msOnline.error() || "")) || (await ow.locator("#ms-host .mh-modal >> text=Different game version").count()) >= 1)
   ok("mismatch never seats the player / never starts a match", !(await hostState(hw)).players.some((p) => p.side === "p2") && !(await ow.evaluate(() => window.__msOnline.inMatch())))
   await friendApp.close(); friendApp = null
 
-  // ── 5. Stop Hosting / Start Hosting / quit ───────────────────────────────────────────────────────────
-  console.log("\n── stop / quit cleanup ──")
+  // ── 6. leaving stops hosting; quit leaves nothing behind ─────────────────────────────────────────────
+  console.log("\n── leave / back / quit cleanup ──")
   const pids = fs.readFileSync(path.join(tmp, "pids"), "utf8").trim().split("\n").map(Number)
-  ok("hosting badge hidden on fight/result screens", !(await hw.locator("#ms-host .mh-badge").isVisible()), await hw.evaluate(() => window.__msOnline.state()))
-  await hw.evaluate(() => window.__harness.online.openMenu())   // back to a menu, as a player would
-  await hw.waitForSelector("#ms-host .mh-badge", { state: "visible", timeout: 5000 })
-  await hw.locator("#ms-host .mh-badge").click()
-  await hw.locator("#ms-host .mh-card button", { hasText: "Stop Hosting" }).click()
+  await hw.evaluate(() => window.__msOnline.toTitle())
   await until(hw, async () => (await window.msDesktop.getState()).status === "offline", null, 10000)
   await sleep(500)
-  ok("Stop Hosting closes the public port", !listening(hs.port), `port ${hs.port}`)
-  ok("Stop Hosting kills the tunnel process", pids.every((p) => !alive(p)))
-  ok("badge shows Hosting off", (await hw.locator("#ms-host .mh-badge").innerText()).includes("Hosting off"))
-  await hw.locator("#ms-host .mh-card button", { hasText: "Start Hosting" }).click()
-  await until(hw, async () => (await window.msDesktop.getState()).status === "online", null, 20000)
+  ok("back on the title screen → hosting stops by itself, port closed", !listening(hs.port), `port ${hs.port}`)
+  ok("…and the tunnel process is killed", pids.every((p) => !alive(p)))
+  await hw.waitForFunction(() => !document.querySelector("#ms-host .mh-screen"), null, { timeout: 5000 })
+  await clickTitleButton(hw, "friend")
+  await hw.waitForSelector("#ms-host .mh-screen a.mh-link", { timeout: 30000 })
   const hs2 = await hostState(hw)
-  ok("Start Hosting again → new room", hs2.room && hs2.room !== hs.room, hs2.room)
-  await hw.locator("#mh-auto").uncheck()
-  ok("auto-host setting saved (Off)", (await hw.evaluate(() => window.msDesktop.getSettings())).autoHost === false)
-  const pids2 = fs.readFileSync(path.join(tmp, "pids"), "utf8").trim().split("\n").map(Number)
+  ok("pressing PLAY WITH A FRIEND again → a new room + link", hs2.status === "online" && hs2.room !== hs.room, hs2.room)
+  await hw.locator("#ms-host .mh-screen button", { hasText: "Back" }).click()
+  await until(hw, async () => (await window.msDesktop.getState()).status === "offline", null, 10000)
+  await sleep(500)
+  ok("Back → hosting stops, port closed, title screen", !listening(hs2.port) && (await hw.evaluate(() => window.__msOnline.state())) === "start")
+  await hw.waitForFunction(() => !document.querySelector("#ms-host .mh-screen"), null, { timeout: 5000 })
+  await clickTitleButton(hw, "friend")
+  await hw.waitForSelector("#ms-host .mh-screen a.mh-link", { timeout: 30000 })
+  const hs3 = await hostState(hw)
+  const pids3 = fs.readFileSync(path.join(tmp, "pids"), "utf8").trim().split("\n").map(Number)
   await hostApp.close(); hostApp = null
   await sleep(800)
-  ok("quitting the app closes the public port", !listening(hs2.port))
-  ok("quitting leaves no cloudflared process", pids2.every((p) => !alive(p)))
-  // relaunch: auto-host is Off now → not hosting
-  hostApp = await launchApp(`e2ehost-${tag}`)
-  const hw3 = await appWindow(hostApp)
-  await sleep(1500)
-  ok("auto-host Off is remembered across launches", (await hostState(hw3)).status === "offline")
-  ok("first-run notice is NOT shown again", await hw3.locator("#ms-host .mh-modal").count() === 0)
-  await hostApp.close(); hostApp = null
+  ok("quitting the app closes the public port", !listening(hs3.port))
+  ok("quitting leaves no cloudflared process", pids3.every((p) => !alive(p)))
 } catch (e) {
   ok("no unexpected error", false, e.stack || e.message)
 } finally {

@@ -100,3 +100,30 @@ The packaged run used `MS_HOST_TUNNEL=off`, so it hosted LAN-only. I unregistere
   `__msOnline` seam. If that session commits from the default index, the seam is reverted and the hosting panel's
   automatic Host/Join (and browser auto-join from a link) stop working; the panel, links and the in-game ONLINE
   screens still work. I did not touch that session's staged copy; its owner should re-apply the seam if needed.
+
+
+---
+
+## Update (same day): one button, "PLAY WITH A FRIEND", pick-your-own select
+
+The owner asked for a single way to play together: **one button on the title screen**. It gives a **clickable link**
+that opens in the browser, ready to copy and send to friends on the same Wi-Fi, and **each player picks their own
+fighter on their own screen**.
+
+- **Removed**: the ONLINE (LAN) entries in the main menu and PLAY menu, the hosting badge/panel, the
+  first-run popup, the floating "Open Desktop Version" button, the join box, and the join page's second
+  button ("Open in desktop app"). The old ONLINE screens remain in code for the existing net tests only.
+- **Added**:
+  - The title-screen **PLAY WITH A FRIEND** button. In the desktop app it starts hosting and shows the friend
+    screen: a clickable LAN link (opens in the default browser on a copy-and-send "invite" page that strips
+    `#invite` from the address bar), plus Copy link and Back.
+  - A friend opening the link sees **one** button, **JOIN THE GAME**, and lands on their own fighter select.
+  - The host moves to their own fighter select automatically. Each player locks in on their own screen
+    (new `pick` message, relayed and sanitized by the host server). The host then picks the stage, and the
+    host's MATCH_SETUP starts the usual lockstep match.
+  - On the result screen, REMATCH or CHANGE CHARACTER means **play again**: both go back to picking, on a
+    fresh lockstep session. MAIN MENU leaves and tells the friend.
+- **Hosting is now only on while you use it**. It no longer starts at app launch; it stops on Back, on
+  returning to the title/main menu, and on quit. `multiversesmash://open` just opens the app.
+- In a plain browser (no desktop app), PLAY WITH A FRIEND explains that hosting needs the desktop app.
+- Sim untouched: the changes are UI/select-flow only (`game.js` seam + select hooks, `ui.js` menu entries).

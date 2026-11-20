@@ -14,7 +14,7 @@
 
 import { LanClient } from "./lanClient.js"
 import { LanSession } from "./lanSession.js"
-import { MSG, makeMatchSetup, makeBye } from "./protocol.js"
+import { MSG, makeMatchSetup, makeBye, makePick } from "./protocol.js"
 import { hostRelayUrl } from "./hostLink.js"   // MSV1-HOST: hosting UI (DOM overlay) + the desktop host's own-room URL
 
 let _client = null      // active LanClient (transport), or null
@@ -49,6 +49,7 @@ export async function connect(url, roleWanted, cbs = {}) {
   client.on(MSG.LOBBY, (m) => { _peers = m.count || _peers; _cb.onLobby && _cb.onLobby(m) })
   client.on(MSG.MATCH_SETUP, (m) => { _cb.onSetup && _cb.onSetup(m) })
   client.on(MSG.BYE, (m) => { _cb.onBye && _cb.onBye(m) })
+  client.on(MSG.PICK, (m) => { _cb.onPick && _cb.onPick(m) })   // pick-your-own select: the other player's fighter
   // Route the peer's per-frame input into the lockstep session (created just below, on WELCOME).
   client.on(MSG.INPUT, (m) => { if (_session) _session.onMessage(m) })
 
@@ -71,6 +72,23 @@ export async function connect(url, roleWanted, cbs = {}) {
 export function sendSetup(meta) {
   const msg = makeMatchSetup(meta)
   if (_client) _client.send(msg)
+  return msg
+}
+
+// A fresh lockstep session for the NEXT match on the same connection (play again): the old one's buffered
+// masks are keyed by frame number and would otherwise leak into the new match.
+export function resetSession() {
+  if (!_client || !_side) return null
+  const client = _client
+  _session = new LanSession({ side: _side, send: (msg) => { try { client.send(msg) } catch {} } })
+  return _session
+}
+
+// Pick-your-own select: tell the other player which fighter we locked in (UI only; the host's MATCH_SETUP stays
+// the single source of truth for the match).
+export function sendPick(meta) {
+  const msg = makePick(meta)
+  if (_client && msg.char) _client.send(msg)
   return msg
 }
 

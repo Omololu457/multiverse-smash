@@ -878,7 +878,9 @@ function drawFooterHint(ctx, canvas, text) {
 // ─────────────────────────────────────────────
 export function getStartMenuRects(canvas) {
   return getVerticalMenuLayout(canvas, [
-    { id: "play", label: "PLAY", subLabel: "Enter the multiverse" }
+    { id: "play", label: "PLAY", subLabel: "Enter the multiverse" },
+    // ONE way to play online: host a match and send your friend a link (same Wi-Fi); each picks their own fighter.
+    { id: "friend", label: "PLAY WITH A FRIEND", subLabel: "Send a link — they join on the same Wi-Fi" }
   ])
 }
 
@@ -892,7 +894,6 @@ export function getGameplaySelectRects(canvas) {
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
     { id: "bracket",  label: "TOURNAMENT", subLabel: "Local 4/8-fighter single-elim bracket" },
     { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
-    { id: "online",   label: "ONLINE (LAN)", subLabel: "2-device match over your local network" },
     { id: "aivsai",   label: "AI vs AI",  subLabel: "Watch/test two CPUs — logged, fast-forwardable" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
   ])
@@ -1170,8 +1171,9 @@ export function drawStartScreen(ctx, canvas) {
     fill: "rgba(220,230,255,0.85)"
   })
 
-  const [playButton] = getStartMenuRects(canvas)
+  const [playButton, friendButton] = getStartMenuRects(canvas)
   drawMkButton(ctx, playButton, { label: "PLAY", subLabel: "Enter the multiverse", active: true, accent: "#ff8ac4", cut: 14 })
+  if (friendButton) drawMkButton(ctx, friendButton, { label: "PLAY WITH A FRIEND", subLabel: "Send a link — they join on the same Wi-Fi", active: false, accent: "#4ad5ff", cut: 14 })
   // gentle accent pulse ring around PLAY
   ctx.save(); ctx.globalAlpha = 0.35 + (pulse - 0.9) * 2; ctx.shadowBlur = 18; ctx.shadowColor = "#ff8ac4"
   ctx.strokeStyle = "#ff8ac4"; ctx.lineWidth = 1.5
@@ -1396,9 +1398,6 @@ export function getMainMenuRects(canvas) {
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
     { id: "playTutorial", label: "TUTORIAL", subLabel: "Interactive guided walkthrough — learn the basics" },
     { id: "story",    label: "STORY MODE", subLabel: "A dimensional narrative campaign — coming soon" },
-    // ONLINE opens the real LAN host/join flow (2-device match over the local network). No longer gated —
-    // the LAN netcode is live; this is the same destination as PLAY → "ONLINE (LAN)".
-    { id: "online",   label: "ONLINE (LAN)", subLabel: "Host or join a 2-device match on your local network" },
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
     { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },

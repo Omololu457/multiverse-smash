@@ -33,6 +33,7 @@ export const MSG = Object.freeze({
   BYE:         "bye",          // either → either: leaving the match cleanly (opponent forfeits / returns to menu)
   PING:        "ping",         // either → either: liveness / round-trip probe (echo target for the Stage-0 spike)
   PONG:        "pong",         // reply to PING, echoes the original payload back
+  PICK:        "pick",         // either → either: "this is the fighter I locked in" (pick-your-own online select; UI only)
 })
 
 // The single string both ends compare. If these differ, the two builds may diverge mid-match, so we refuse
@@ -128,6 +129,19 @@ export function makeMatchSetup(meta = {}) {
     hitstopStyle: ["scaled", "classic"].includes(meta.hitstopStyle) ? meta.hitstopStyle : null,
     weather: typeof meta.weather === "string" ? meta.weather : null,
     weatherFx: typeof meta.weatherFx === "boolean" ? meta.weatherFx : false,
+  }
+}
+
+// Pick-your-own online select: each player chooses their fighter on their OWN screen and tells the other.
+// The host still sends the one authoritative MATCH_SETUP afterwards, so this never touches the sim.
+const _PICK_ID = /^[\w .:'()&+-]{1,64}$/
+export function makePick(meta = {}) {
+  const id = (v) => (typeof v === "string" && _PICK_ID.test(v)) ? v : null
+  return {
+    t: MSG.PICK,
+    char: id(meta.char),
+    skin: id(meta.skin) || "default",
+    aliens: Array.isArray(meta.aliens) && meta.aliens.length <= 16 ? meta.aliens.map(id).filter((x) => x !== null) : null,
   }
 }
 

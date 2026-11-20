@@ -1,6 +1,7 @@
 # MSV1-HOST — Security: everything hosting exposes, and how it was tested
 
-Hosting opens **one** listener to the network: the public host server (`net/hostServer.mjs`, port 8790 or
+Hosting is **off until you press PLAY WITH A FRIEND** on the title screen, and it stops again when you press
+Back on the friend screen, go back to the title or main menu, or quit. While it is on, it opens **one** listener to the network: the public host server (`net/hostServer.mjs`, port 8790 or
 the next free port, bound to all interfaces so LAN friends and the local cloudflared can reach it). Internet
 traffic reaches it only through the Cloudflare tunnel (or a verified UPnP mapping). **Nothing else is
 exposed.** In particular, the app's own page server, the one with the save/feedback/lan-info APIs, stays on
@@ -36,7 +37,8 @@ Response headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `R
   `p2`; a third client → "room full" (max 2, the game's lockstep limit; no spectating).
 - **Shape validation, then rebuild**: `input` (side must be the sender's own seat, integer frame, 14-bit
   mask), `match_setup` (host only; every field re-created through `makeMatchSetup` with identifier
-  whitelists), `bye` (reason ≤ 80 chars), `ping` (payload ≤ 64 chars). Unknown fields are dropped; client
+  whitelists), `pick` (either seat: "my fighter", rebuilt through `makePick`; fighter/skin must be plain
+  identifiers ≤ 64 chars, else dropped and counted as invalid), `bye` (reason ≤ 80 chars), `ping` (payload ≤ 64 chars). Unknown fields are dropped; client
   JSON is never evaluated and never forwarded raw.
 - **Room isolation**: messages go only to the other seat of the sender's own room.
 - **Limits**: 2 KB per message (`maxPayload`), 150 msgs/s per client (→ close 4008), 20 invalid messages

@@ -108,7 +108,7 @@ export function startLanServer({ port = DEFAULT_PORT, log = console.log, relay =
         log(`[lan] client #${id} ping → pong (payload: ${JSON.stringify(msg.payload)})`)
         return
       }
-      if (relay && (msg.t === MSG.INPUT || msg.t === MSG.MATCH_SETUP || msg.t === MSG.BYE)) {
+      if (relay && (msg.t === MSG.INPUT || msg.t === MSG.MATCH_SETUP || msg.t === MSG.BYE || msg.t === MSG.PICK)) {
         // Star relay: forward this peer's gameplay message to every OTHER handshook client, verbatim.
         for (const other of clients) {
           if (other !== socket && other._lanHandshook && other.readyState === 1) other.send(encode(msg))

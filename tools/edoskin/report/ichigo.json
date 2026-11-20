@@ -1,0 +1,20 @@
+{
+ "armCracks": 0,
+ "bodyColours": 13,
+ "class": "HUMAN",
+ "crackPlan": 3,
+ "crackPx": 78,
+ "eyes": "handled",
+ "faceArea": 23,
+ "faceCracks": 3,
+ "hidden": 30,
+ "noMap": 2,
+ "notes": [
+  "face area 23px \u2192 3 face cracks (wanted 4)",
+  "no bare forearm skin \u2192 0 arm cracks"
+ ],
+ "overrides": [],
+ "sclera": 64,
+ "sheets": 32,
+ "skinColours": 1
+}

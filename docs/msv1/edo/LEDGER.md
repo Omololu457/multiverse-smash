@@ -24,23 +24,23 @@ to the ash ramp. Contact sheets: `docs/msv1/edo/sheets/<id>.png` (top original, 
 | `enoch` | HUMAN | 98 | 3 | skipped: no separable whites | 3 face / 0 arm | automatic · verify ok | face area 21px → 3 face cracks (wanted 6); no bare forearm skin → 0 arm cracks |
 | `flash` | MASKED | 1 | 1 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
 | `frozone` | HUMAN | 42 | 2 | black sclera | 1 face / 0 arm | automatic · verify ok | face area 9px → 1 face cracks (wanted 5); no bare forearm skin → 0 arm cracks; reviewed: dark skin mostly under the suit / goggles; subtle change |
-| `gaara` | HUMAN | pending (later batch) | | | | | |
-| `genos` | MASKED | pending (later batch) | | | | | |
+| `gaara` | HUMAN | 23 | 48 | black sclera | 3 face / 1 arm | automatic · verify ok |  |
+| `genos` | MASKED | 24 | 2 | n/a (masked) | 1 face / 0 arm | hand-fixed (notSkin) · verify ok | blond hair shades passed the warm skin test (the hair cluster sits inside his face box): kept as hair; reviewed: blond hair kept as hair (overrides.json) |
 | `ghostface` | MASKED → EXCLUDED | — | — | — | — | — | Ghostface has no base identity: every skin id is one of 5 killer identities (game.js applySkin forces one); an Edo skin id would be replaced by a random killer, and adding a list would change his selector. Tobirama's Edo Tensei keeps the live tint for him. |
-| `gojo` | HUMAN | pending (later batch) | | | | | |
-| `goku` | HUMAN | pending (later batch) | | | | | |
-| `goku_black` | HUMAN | pending (later batch) | | | | | |
-| `gold_samurai_ranger` | MASKED | pending (later batch) | | | | | |
-| `green_arrow` | HUMAN | pending (later batch) | | | | | |
-| `green_ranger` | MASKED | pending (later batch) | | | | | |
-| `green_samurai_ranger` | MASKED | pending (later batch) | | | | | |
-| `gwen` | HUMAN | pending (later batch) | | | | | |
-| `hashirama` | HUMAN | pending (later batch) | | | | | |
-| `higuruma` | HUMAN | pending (later batch) | | | | | |
-| `hinata` | HUMAN | pending (later batch) | | | | | |
-| `hisoka` | HUMAN | pending (later batch) | | | | | |
-| `homelander` | HUMAN | pending (later batch) | | | | | |
-| `ichigo` | HUMAN | pending (later batch) | | | | | |
+| `gojo` | HUMAN | 17 | 13 | black sclera | 4 face / 2 arm | automatic · verify ok |  |
+| `goku` | HUMAN | 19 | 4 | black sclera | 2 face / 1 arm | automatic · verify ok | face area 15px → 2 face cracks (wanted 6) |
+| `goku_black` | HUMAN | 17 | 6 | black sclera | 5 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `gold_samurai_ranger` | MASKED | 11 | 1 | n/a (masked) | 2 face / 0 arm | automatic · verify ok |  |
+| `green_arrow` | HUMAN | 31 | 0 | skipped: no separable whites | 0 face / 0 arm | automatic · verify ok | face area 0px → 0 face cracks (wanted 6); no bare forearm skin → 0 arm cracks |
+| `green_ranger` | MASKED | 42 | 0 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `green_samurai_ranger` | MASKED | 11 | 1 | n/a (masked) | 1 face / 0 arm | automatic · verify ok |  |
+| `gwen` | HUMAN | 17 | 3 | black sclera | 4 face / 0 arm | automatic · verify ok | face area 33px → 4 face cracks (wanted 6); no bare forearm skin → 0 arm cracks |
+| `hashirama` | HUMAN | 30 | 3 | black sclera | 5 face / 0 arm | automatic · verify ok | face area 41px → 5 face cracks (wanted 6) |
+| `higuruma` | HUMAN | 39 | 2 | black sclera | 5 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `hinata` | HUMAN | 20 | 21 | black sclera | 6 face / 3 arm | automatic · verify ok |  |
+| `hisoka` | HUMAN | 19 | 1 | black sclera | 2 face / 2 arm | automatic · verify ok | face area 20px → 2 face cracks (wanted 5) |
+| `homelander` | HUMAN | 18 | 5 | black sclera | 6 face / 0 arm | automatic · verify ok | no bare forearm skin → 0 arm cracks |
+| `ichigo` | HUMAN | 32 | 1 | black sclera | 3 face / 0 arm | automatic · verify ok | face area 23px → 3 face cracks (wanted 4); no bare forearm skin → 0 arm cracks |
 | `inosuke` | HUMAN | pending (later batch) | | | | | |
 | `ippo` | HUMAN | pending (later batch) | | | | | |
 | `isshiki` | HUMAN | pending (later batch) | | | | | |

@@ -2396,6 +2396,10 @@ const STAGE_DEFS = [
   // parallax sea + yacht, bobbing ship with an animated cheering crowd, line-scroll perspective dock, barrels + bollards.
   { name: "Harbor Dock",            series: "other",       landmark: "ken_harbor",   sky: "#b1e0ff", mid: "#173961", floor: "#7a4422", accent: "#fde68a", worldWidth: 2400,
     layers: "ken_harbor", backgroundImage: "stages/ken_harbor/preview.png" },
+  // HOLOGRAM TRAINING CENTER (stageLayers.js room3d): E. Honda's bathhouse layout (SFII sheet → tools/stage_layers/
+  // slice_honda_training.py) rebuilt as a white 3D hologram room — mural → projection screen, tub → platform, ring glows.
+  { name: "Training Center",        series: "other",       music: "Subliminals - pz'.mp3", landmark: "honda_training", sky: "#eef5fa", mid: "#dbeaf4", floor: "#f6fafd", accent: "#46c4ff", worldWidth: 2400,
+    layers: "honda_training", backgroundImage: "stages/honda_training/preview.png" },
   { name: "Test Map",               series: "other",       landmark: "test_map",     sky: "#aebccc", mid: "#c6bfb2", floor: "#8c8c94", accent: "#e5e7eb", backgroundImage: "test_map_bg.png",
     hazards: [{ id: "arc_pylon", x: 2000, w: 46, height: 156, damage: 55, hitstun: 26 }] },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame

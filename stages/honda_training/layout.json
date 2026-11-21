@@ -1,0 +1,42 @@
+{
+ "source": "Street Fighter II / Super SFII \u2014 E. Honda's Stage sheet, ripped by Maxim; re-rendered as a hologram training center",
+ "pieces": {
+  "wall": {
+   "file": "wall.png",
+   "w": 575,
+   "h": 127,
+   "mural": [
+    96,
+    8,
+    319,
+    105
+   ]
+  },
+  "door": {
+   "file": "door.png",
+   "w": 96,
+   "h": 199
+  },
+  "tub": {
+   "file": "tub.png",
+   "w": 336,
+   "h": 56
+  },
+  "bucket": {
+   "file": "bucket.png",
+   "w": 32,
+   "h": 26
+  }
+ },
+ "wallRepeat": {
+  "left": [
+   0,
+   96
+  ],
+  "right": [
+   424,
+   574
+  ]
+ },
+ "preview": "preview.png"
+}

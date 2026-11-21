@@ -949,19 +949,51 @@ function drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p }) {
 
 // below the riverbank rock: the river itself, flowing past (bands of light sliding sideways, foam along the edge)
 function valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
-  const P = c.layout.pieces, S = def.S, t = now(), top = dockTop + P.deck.h * S
+  const P = c.layout.pieces, S = def.S, t = now(), DH = P.deck.h, top = dockTop + DH * S
+  // 1. the river from the foot of the falls runs down the MIDDLE of the ground toward the viewer: a channel that widens
+  //    row by row with the floor's perspective (each row follows that floor row's scroll), its water sliding forward
+  const halfAt = r => 70 + 210 * Math.pow(r / (DH - 1), 1.25)
+  for (let r = 0; r < DH; r++) {
+    const y = dockTop + r * S, cx = W / 2 + shift(rowFactor(def, r), W), hw = halfAt(r), u = r / (DH - 1)
+    ctx.fillStyle = `rgb(${Math.round(40 + 18 * u)},${Math.round(112 + 22 * u)},${Math.round(122 + 14 * u)})`
+    ctx.fillRect(Math.floor(cx - hw), y, Math.ceil(hw * 2), S)
+    const n = 7 + Math.floor(u * 6)                                  // ripples rolling toward us (row phase moves with time)
+    for (let i = 0; i < n; i++) {
+      const ph = (r * 0.55 - t * 9 + _h(i + 70) * 20) % 6
+      if (ph < -1 || ph > 0) continue
+      const x = cx - hw + (i + 0.5) / n * hw * 2 + (_h(i + r * 3) - 0.5) * 10
+      ctx.fillStyle = `rgba(210,245,245,${0.35 + 0.4 * u})`; ctx.fillRect(Math.floor(x - 6 - 10 * u), y, Math.ceil(12 + 20 * u), S)
+    }
+    ctx.fillStyle = "rgba(235,250,250,0.85)"                         // foam where the water meets the rock on each side
+    const fw = 3 + 3 * u + 2 * Math.sin(t * 6 + r)
+    ctx.fillRect(Math.floor(cx - hw - fw / 2), y, Math.ceil(fw), S); ctx.fillRect(Math.floor(cx + hw - fw / 2), y, Math.ceil(fw), S)
+  }
   if (coverBottom <= top) return
+  // 2. below the bank: the wide river, fed from the middle — its streaks run outward from the centre
   const g = ctx.createLinearGradient(0, top, 0, coverBottom); g.addColorStop(0, "#2f7880"); g.addColorStop(0.4, "#1b4d55"); g.addColorStop(1, "#0b2226")
   ctx.fillStyle = g; ctx.fillRect(padL, top, padR - padL, coverBottom - top)
+  const mid = W / 2 + shift(def.floor.rimFactor, W), fhw = halfAt(DH - 1)
   ctx.fillStyle = "rgba(235,250,250,0.7)"
-  for (let x = padL - ((t * 40) % 24); x < padR; x += 24) ctx.fillRect(Math.floor(x), top, 14, 2)        // foam at the bank
-  const off = shift(1.15, W)
+  for (let x = padL - ((t * 40) % 24); x < padR; x += 24) if (Math.abs(x - mid) > fhw) ctx.fillRect(Math.floor(x), top, 14, 2)   // foam at the bank
   for (let r = 0; r < 7; r++) {
-    const yy = top + 10 + r * 16, sp = 50 + r * 12, len = 40 + r * 10
+    const yy = top + 10 + r * 16, sp = 50 + r * 12, len = 40 + r * 10, span = 1400
     ctx.fillStyle = `rgba(170,230,235,${0.32 - r * 0.035})`
-    for (let i = 0; i < 30; i++) {
-      const x = padL + ((i * 157 + t * sp + off + r * 61) % (padR - padL + 200)) - 100
+    for (let i = 0; i < 22; i++) for (const dir of [-1, 1]) {
+      const d = ((i * 97 + t * sp + r * 61) % span), x = mid + dir * d - (dir < 0 ? len : 0)
+      if (x + len < padL || x > padR) continue
       ctx.fillRect(Math.floor(x), Math.floor(yy + 3 * Math.sin(t + i)), len, 2)
     }
+  }
+  // 3. where the channel reaches the front of the bank it spills over in a short cascade, splashing into the river
+  const cTop = top - 2, cH = 34
+  const cg = ctx.createLinearGradient(0, cTop, 0, cTop + cH); cg.addColorStop(0, "#5fb4bc"); cg.addColorStop(1, "#2a7680")
+  ctx.fillStyle = cg; ctx.fillRect(Math.floor(mid - fhw), cTop, Math.ceil(fhw * 2), cH)
+  for (let i = 0; i < 40; i++) {
+    const lx = mid - fhw + _h(i + 900) * fhw * 2, len = 8 + 12 * _h(i + 940), ly = cTop + ((t * (90 + 60 * _h(i + 980)) + _h(i) * cH) % (cH + len)) - len
+    ctx.fillStyle = `rgba(240,252,252,${0.35 + 0.4 * _h(i + 20)})`; ctx.fillRect(Math.floor(lx), Math.floor(Math.max(cTop, ly)), 2, Math.min(len, cTop + cH - Math.max(cTop, ly)))
+  }
+  for (let i = 0; i < 16; i++) {                                     // splash + mist at the bottom of the cascade
+    const ph = (t * 0.8 + _h(i + 50)) % 1, x = mid - fhw + _h(i + 60) * fhw * 2, y = cTop + cH - ph * 10, rr = 4 + 10 * ph
+    ctx.fillStyle = `rgba(240,252,252,${0.45 * (1 - ph)})`; ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill()
   }
 }

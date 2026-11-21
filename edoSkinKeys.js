@@ -21,6 +21,7 @@ export const EDO_SKIN_KEYS = Object.freeze([
   "gaara",
   "genos",
   "gojo",
+  "gojo_shinjuku",
   "goku",
   "goku_black",
   "gold_samurai_ranger",

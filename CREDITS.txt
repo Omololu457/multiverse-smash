@@ -19,6 +19,11 @@ These sprites are used with the attribution required by the sheet's terms.
 Source files: gojo_*_sheet.png  (and the original full sheet if re-added as
 gojo_sheet_source.png).
 
+Satoru Gojo (Shinjuku Arc) sprites by FinhJ, credits ZebrasBlack and R0B4N
+  (the new `gojo_shinjuku` fighter; supplied sheet
+  satoru_gojo_shinjuku_arc_jus_sprite_sheet_by_finhj_by_finhj_dhxrc7c.png)
+Source files: assets/gojo_shinjuku/**  (ledger: docs/msv1/gojo/LEDGER.md)
+
 This is a non-commercial personal fan project. All characters and source
 material are the property of their respective creators and rights holders.
 

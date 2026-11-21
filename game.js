@@ -2359,7 +2359,7 @@ const NAMECALL_AUDIO = {
 // are case-sensitive and must match the files on disk exactly; a missing file
 // falls back gracefully to the procedural theme (sound.playMusicFile onerror).
 const STAGE_DEFS = [
-  { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJk_3.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
+  { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJk_3.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", worldWidth: 2400, layers: "ryu_jujutsu", backgroundImage: "stages/ryu_jujutsu/preview.png" },
   // STAGE INTERACTABLES 2nd pilot: a crimson "cursed rail" hazard (same stageHazards.js mechanic; `tint`
   // recolors the pylon glow so it reads as cursed-energy, not the Test Map's electric one).
   { name: "Shibuya Incident",       series: "jjk",         music: "Glokk40Spaz - Turbo.mp3", shuffle: true, playlist: ["Glokk40Spaz - Turbo.mp3", "Glokk40spaz - Backdoor (Official Audio).mp3", "Glokk40Spaz - Remember Me (Jhene Aiko Stranger Remix).mp3"], landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", worldWidth: 2400, layers: "chunli_shibuya", backgroundImage: "stages/chunli_shibuya/preview.png" },   // cursed_rail hazard removed (user request 2026-11-21)

@@ -1,0 +1,52 @@
+{
+ "source": "Street Fighter II \u2014 Ryu's Stage sheet, ripped by ultimategab; repainted as Jujutsu High",
+ "pieces": {
+  "sky": {
+   "file": "sky.png",
+   "w": 1024,
+   "h": 144
+  },
+  "hall": {
+   "file": "hall.png",
+   "w": 139,
+   "h": 76
+  },
+  "eave": {
+   "file": "eave.png",
+   "w": 149,
+   "h": 212
+  },
+  "wall": {
+   "file": "wall.png",
+   "w": 395,
+   "h": 95
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 896,
+   "h": 36
+  },
+  "trim": {
+   "file": "trim.png",
+   "w": 895,
+   "h": 12
+  },
+  "sign": {
+   "file": "sign.png",
+   "w": 35,
+   "h": 103,
+   "paper": [
+    5,
+    5,
+    30,
+    74
+   ]
+  }
+ },
+ "colors": {
+  "skyTop": "#3a1030",
+  "under": "#1a0f0a",
+  "seaBottom": "#1a0f0a"
+ },
+ "preview": "preview.png"
+}

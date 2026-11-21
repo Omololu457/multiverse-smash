@@ -175,6 +175,27 @@ SETS.chunli_shibuya = {
   animRate: {},
 }
 
+// JUJUTSU HIGH — Ryu's Stage (SFII sheet) repainted by tools/stage_layers/slice_ryu_jujutsu.py: the school in the hills
+// at dusk, with a watching crowd of JJK characters and multiverse visitors (drawJujutsuBack / jujutsuFx).
+SETS.ryu_jujutsu = {
+  dir: "./stages/ryu_jujutsu/",
+  S: 2,
+  standRow: 24,
+  deckFrontRow: 35,
+  floor: { piece: "floor", farFactor: 0.72, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "jujutsu", p: 0.15 },
+    { piece: "wall", p: 0.85, tile: "mirror", bottomRow: 1, scale: 0.7 },
+  ],
+  props: [
+    { piece: "sign", x: 0.36, bottomRow: 3 },
+    { piece: "sign", x: 0.64, bottomRow: 3 },
+  ],
+  front: [],
+  fx: "jujutsu",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -292,6 +313,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "jujutsu") { drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "shibuya") { drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "nullvoid") { drawNullVoidBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "castle") { drawCastleBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
@@ -381,6 +403,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "jujutsu") jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "shibuya") shibuyaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "nullvoid") nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
@@ -404,6 +427,7 @@ function drawProps(ctx, c, def, list, W, dockTop) {
 /** Foreground props, drawn AFTER the fighters (world space). No-op for stages without a layer set. */
 export function drawLayeredStageFront(ctx, stage, worldWidth, groundY, world = null) {
   const set = stage?.layers, def = SETS[set]
+  _lastWorld = world
   if (def?.fx === "shibuya" && world && layeredStageReady(stage)) shibuyaFront(ctx, def, cache.get(set), worldWidth, groundY, world)
   if (def?.mode === "room3d") { if (layeredStageReady(stage)) drawRoomFront(ctx, def, worldWidth, groundY); return }
   if (def?.mode === "ssf2") { if (layeredStageReady(stage)) drawSsf2Front(ctx, def, cache.get(set), worldWidth, groundY); return }
@@ -1692,4 +1716,133 @@ export const shibuyaDebug = {
   stats: shibuyaStats,
   ped(x) { const seq = SB.seq++; SB.peds.push({ kind: "ped", seed: seq * 977 + 13, x, dir: 1, speed: 0, t: 0, freeze: true, panic: 0, held: true, frames: pedFrames(seq * 977 + 13), sc: 1 }); return SB.peds.length },
   kill(cause, rosterKey = "") { const pd = SB.peds.find(p => !p.dead); if (!pd) return null; const n = SB.pieces.length; sbKill(pd, cause, pd.x - 50, rosterKey); return SB.pieces.length - n },
+}
+
+// ───────────────────────────── JUJUTSU HIGH (render-only, wall clock) ─────────────────────────────
+// Ryu's rooftop sheet rebuilt as Tokyo Jujutsu High at dusk: wooded hills, the main hall up among the cedars, a
+// vermilion torii, school eaves, stone lanterns, maple leaves falling. A crowd watches from the back of the deck:
+// the JJK students and teachers in their own colours, plus visitors from the rest of the multiverse wearing one of
+// their skins — drawn from the game's own idle sprites (the two fighters in the match are left out of the crowd).
+const JJ_CROWD = [
+  ["yuji", 0.08, 0], ["naruto", 0.15, 1], ["megumi_fushiguro", 0.22, 0], ["killua", 0.29, 1], ["maki", 0.36, 0], ["ichigo", 0.43, 1],
+  ["gojo", 0.52, 0], ["luffy", 0.6, 1], ["aoi_todo", 0.67, 0], ["zenitsu", 0.74, 1], ["miwa", 0.81, 0], ["goku", 0.87, 1], ["yuta", 0.93, 0],
+]
+let _jjCrowd = null, _jjLoading = false, _lastWorld = null
+function jjLoadCrowd() {
+  if (_jjLoading) return; _jjLoading = true
+  Promise.all([import("./characters.js"), import("./skins.js")]).then(([C, Sk]) => {
+    const chars = C.characters || {}, out = []
+    for (const [key, fx, visitor] of JJ_CROWD) {
+      const ch = chars[key]; if (!ch) continue
+      const skins = (Sk.getSkins?.(key) || []).filter(s => s && s.id !== "default" && s.animationData?.idle?.sheet)
+      const skin = visitor && skins.length ? skins[Math.floor(_h(key.length * 131 + fx * 1000) * skins.length)] : null
+      const idle = skin?.animationData?.idle || ch.animationData?.idle
+      if (!idle?.sheet || typeof idle.frames !== "number" || !idle.width || !idle.height) continue
+      const im = new Image(); im.src = idle.sheet
+      out.push({ key, fx, idle, im, skin: skin?.id || "default", sc: (skin?.spriteScale || ch.spriteScale || 1) * 1.18 * 0.6 })
+    }
+    _jjCrowd = out
+  }).catch(() => { _jjCrowd = [] })
+}
+export const jujutsuCrowd = () => (_jjCrowd || []).map(s => ({ key: s.key, skin: s.skin, ready: ready(s.im), shown: !!s.shown }))
+
+function drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), P = c.layout.pieces, S = def.S
+  const horizon = dockTop - 150
+  const g = ctx.createLinearGradient(0, coverTop, 0, horizon); g.addColorStop(0, "#2a0a24"); g.addColorStop(1, "#6a1420")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, horizon - coverTop)
+  // the sheet's sunset sky, wide, its bottom on the hills
+  const sk = P.sky, sim = c.img[sk.file], sw = sk.w * S * 1.2, sh = sk.h * S * 1.2, sy = horizon + 40 - sh, ss = shift(0.08, W)
+  if (ready(sim)) for (let k = Math.floor((padL - ss) / sw) - 1, x; (x = ss + k * sw) < padR; k++) {
+    if (k % 2) { ctx.save(); ctx.translate(Math.floor(x) + sw, sy); ctx.scale(-1, 1); ctx.drawImage(sim, 0, 0, Math.ceil(sw) + 1, sh); ctx.restore() }
+    else ctx.drawImage(sim, Math.floor(x), sy, Math.ceil(sw) + 1, sh)
+  }
+  ctx.fillStyle = "#f0a050"; ctx.fillRect(padL, horizon + 38, padR - padL, dockTop - horizon)
+  // hills: two ridges, then rows of cedars with the sunset on their tips
+  const ridge = (p, base, amp, col, seed, step) => {
+    const sh2 = shift(p, W); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(padL, dockTop)
+    for (let x = padL - step; x <= padR + step; x += step) { const wx = Math.floor((x - sh2) / step); ctx.lineTo(x - ((x - sh2) % step), base - amp * (0.5 + 0.5 * Math.sin(wx * 0.37 + seed)) * (0.6 + 0.4 * _h(wx + seed))) }
+    ctx.lineTo(padR, dockTop); ctx.closePath(); ctx.fill()
+  }
+  ridge(0.12, horizon + 20, 170, "#5a2440", 1, 60); ridge(0.2, horizon + 50, 120, "#3a1a34", 7, 44)
+  const cedars = (p, base, hgt, col, tip, seed) => {
+    const sh2 = shift(p, W), step = 26, k0 = Math.floor((padL - sh2) / step) - 1, k1 = Math.ceil((padR - sh2) / step) + 1
+    for (let k = k0; k <= k1; k++) {
+      const x = sh2 + k * step, h = hgt * (0.7 + 0.5 * _h(k * 13 + seed)), w = 40 + 18 * _h(k * 7 + seed), b = base + 10 * _h(k + seed)
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - w / 2, b); ctx.lineTo(x, b - h); ctx.lineTo(x + w / 2, b); ctx.closePath(); ctx.fill()
+      ctx.fillStyle = tip; ctx.beginPath(); ctx.moveTo(x - w * 0.12, b - h * 0.8); ctx.lineTo(x, b - h); ctx.lineTo(x + w * 0.05, b - h * 0.8); ctx.closePath(); ctx.fill()
+    }
+  }
+  cedars(0.25, horizon + 90, 150, "#1e2a24", "rgba(255,150,90,0.5)", 3)
+  // the main hall up on the hill among the trees, smaller halls either side
+  const hall = P.hall, him = c.img[hall.file]
+  if (ready(him)) for (const [fx, sc, p] of [[0.5, 3.4, 0.3], [0.18, 2.2, 0.26], [0.84, 2.2, 0.26]]) {
+    const w = hall.w * sc, h = hall.h * sc, x = W * fx + shift(p, W) - w / 2
+    ctx.drawImage(him, Math.floor(x), horizon + 110 - h, w, h)
+    for (let i = 0; i < 5; i++) { const lx = x + w * (0.2 + 0.15 * i); ctx.fillStyle = `rgba(255,200,110,${0.55 + 0.2 * Math.sin(t * 2 + i)})`; ctx.fillRect(lx, horizon + 110 - h * 0.3, 6, 8) }
+  }
+  cedars(0.38, horizon + 150, 190, "#182018", "rgba(255,140,80,0.45)", 11)
+  // the torii on the path up to the hall
+  { const p = 0.45, x = W * 0.33 + shift(p, W), b = dockTop - 70, h = 200, w = 170
+    ctx.fillStyle = "#c8341e"; ctx.fillRect(x - w * 0.36, b - h, 18, h); ctx.fillRect(x + w * 0.36 - 18, b - h, 18, h)
+    ctx.fillRect(x - w * 0.46, b - h * 0.82, w * 0.92, 14)
+    ctx.fillStyle = "#1a1012"; ctx.beginPath(); ctx.moveTo(x - w * 0.6, b - h - 4); ctx.quadraticCurveTo(x, b - h + 10, x + w * 0.6, b - h - 4); ctx.lineTo(x + w * 0.56, b - h + 14); ctx.quadraticCurveTo(x, b - h + 26, x - w * 0.56, b - h + 14); ctx.closePath(); ctx.fill()
+    ctx.fillStyle = "#c8341e"; ctx.fillRect(x - w * 0.5, b - h + 18, w, 10)
+    ctx.fillStyle = "#1a1012"; ctx.fillRect(x - w * 0.36 - 3, b - 16, 24, 16); ctx.fillRect(x + w * 0.36 - 21, b - 16, 24, 16) }
+  // school eaves at the sides (the sheet's roof corner), nearer
+  const ev = P.eave, eim = c.img[ev.file]
+  if (ready(eim)) for (const [fx, flip] of [[0.06, true], [0.94, false], [-0.2, true], [1.2, false]]) {
+    const sc = 1.7, w = ev.w * sc, h = ev.h * sc, x = W * fx + shift(0.65, W) - w / 2, y = dockTop + 2 - h
+    if (flip) { ctx.save(); ctx.translate(Math.floor(x) + w, y); ctx.scale(-1, 1); ctx.drawImage(eim, 0, 0, w, h); ctx.restore() } else ctx.drawImage(eim, Math.floor(x), y, w, h)
+  }
+  // stone lanterns
+  for (const fx of [0.3, 0.42, 0.58, 0.7]) {
+    const x = W * fx + shift(0.75, W), b = dockTop - 30
+    ctx.fillStyle = "#6a6266"; ctx.fillRect(x - 6, b - 60, 12, 60); ctx.fillRect(x - 16, b - 6, 32, 6); ctx.fillRect(x - 14, b - 84, 28, 24)
+    ctx.fillStyle = `rgba(255,190,100,${0.7 + 0.2 * Math.sin(t * 3 + fx * 10)})`; ctx.fillRect(x - 7, b - 78, 14, 12)
+    ctx.fillStyle = "#4a4448"; ctx.beginPath(); ctx.moveTo(x - 24, b - 84); ctx.lineTo(x, b - 104); ctx.lineTo(x + 24, b - 84); ctx.closePath(); ctx.fill()
+  }
+  // maple leaves drifting down
+  for (let i = 0; i < 26; i++) {
+    const ph = (t * (0.05 + 0.04 * _h(i)) + _h(i + 9)) % 1, x = padL + ((_h(i + 3) * (padR - padL) + t * 20 + Math.sin(t + i) * 30) % (padR - padL)), y = coverTop + ph * (dockTop - coverTop + 60)
+    ctx.save(); ctx.translate(x, y); ctx.rotate(t * 2 + i); ctx.fillStyle = i % 3 ? "#d8442a" : "#f0902a"; ctx.fillRect(-3, -2, 6, 4); ctx.restore()
+  }
+}
+
+function jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now()
+  // the deck's front edge (the sheet's trim), then the gravel courtyard below it
+  const bot = dockTop + P.floor.h * S, tr = P.trim, tim = c.img[tr.file], tw = tr.w * S, ts = shift(def.floor.rimFactor, W)
+  if (coverBottom > bot) {
+    const g = ctx.createLinearGradient(0, bot, 0, coverBottom); g.addColorStop(0, "#4a3a2c"); g.addColorStop(1, "#1e160f")
+    ctx.fillStyle = g; ctx.fillRect(padL, bot, padR - padL, coverBottom - bot)
+    for (let i = 0; i < 260; i++) { const x = padL + _h(i * 3 + 1) * (padR - padL), y = bot + 30 + _h(i * 3 + 2) * (coverBottom - bot); ctx.fillStyle = i % 2 ? "rgba(140,120,100,0.5)" : "rgba(20,14,10,0.5)"; ctx.fillRect(x, y, 3, 2) }
+  }
+  if (ready(tim)) for (let k = Math.floor((padL - ts - W / 2) / tw) - 1; ts + W / 2 + k * tw < padR; k++) ctx.drawImage(tim, Math.floor(ts + W / 2 + k * tw), bot, Math.ceil(tw) + 1, tr.h * S)
+  // the boards: the school's name, and the crowd's cheer
+  const b = P.sign, w = b.w * S, h = b.h * S
+  ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  for (const [fx, text] of [[0.36, "呪術高専"], [0.64, "東京校"]]) {
+    const x = fx * W - w / 2 + shift(rowFactor(def, 3), W), y = dockTop + 3 * S - h
+    const [px0, py0, px1, py1] = b.paper, cx = x + (px0 + px1) / 2 * S, n = text.length, cell = (py1 - py0) * S / n
+    ctx.fillStyle = "#1a1010"; ctx.font = `900 ${Math.floor(Math.min(cell * 0.86, (px1 - px0) * S * 0.86))}px 'Hiragino Mincho ProN','Noto Serif JP',serif`
+    for (let i = 0; i < n; i++) ctx.fillText(text[i], cx, y + py0 * S + cell * (i + 0.5))
+  }
+  ctx.restore()
+  // the crowd watching from the back of the deck
+  if (!_jjCrowd) { jjLoadCrowd(); return }
+  const fighting = new Set((_lastWorld?.fighters || []).filter(Boolean).map(f => f.rosterKey))
+  const feet = dockTop + 1 * S, sh = shift(rowFactor(def, 1), W), cam = camera.x ?? W / 2
+  for (const s of _jjCrowd) {
+    s.shown = !fighting.has(s.key) && ready(s.im)
+    if (!s.shown) continue
+    const d = s.idle, n = Math.max(1, Math.min(d.frames, Math.floor(s.im.naturalWidth / d.width)))
+    const f = Math.floor((t * 60) / (d.speed || 8) + s.fx * 17) % n
+    const w = d.width * s.sc, h = d.height * s.sc, x = s.fx * W + sh
+    const ox = (d.originX ?? d.width / 2) * s.sc, oy = (d.originY ?? d.height) * s.sc
+    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, feet, w * 0.3, 5, 0, 0, 7); ctx.fill()
+    ctx.save(); ctx.translate(Math.round(x), feet); if (x > cam) ctx.scale(-1, 1)
+    ctx.filter = "brightness(0.78) saturate(0.85)"                   // background people: a step darker than the fighters
+    ctx.drawImage(s.im, f * d.width, 0, d.width, d.height, -ox, -oy, w, h); ctx.filter = "none"; ctx.restore()
+  }
 }

@@ -1728,6 +1728,7 @@ const JJ_CROWD = [
   ["gojo", 0.52, 0], ["luffy", 0.6, 1], ["aoi_todo", 0.67, 0], ["zenitsu", 0.74, 1], ["miwa", 0.81, 0], ["goku", 0.87, 1], ["yuta", 0.93, 0],
 ]
 let _jjCrowd = null, _jjLoading = false, _lastWorld = null
+const JJ = { last: 0, hp: new WeakMap() }
 function jjLoadCrowd() {
   if (_jjLoading) return; _jjLoading = true
   Promise.all([import("./characters.js"), import("./skins.js")]).then(([C, Sk]) => {
@@ -1736,15 +1737,20 @@ function jjLoadCrowd() {
       const ch = chars[key]; if (!ch) continue
       const skins = (Sk.getSkins?.(key) || []).filter(s => s && s.id !== "default" && s.animationData?.idle?.sheet)
       const skin = visitor && skins.length ? skins[Math.floor(_h(key.length * 131 + fx * 1000) * skins.length)] : null
-      const idle = skin?.animationData?.idle || ch.animationData?.idle
-      if (!idle?.sheet || typeof idle.frames !== "number" || !idle.width || !idle.height) continue
-      const im = new Image(); im.src = idle.sheet
-      out.push({ key, fx, idle, im, skin: skin?.id || "default", sc: (skin?.spriteScale || ch.spriteScale || 1) * 1.18 * 0.6 })
+      const anims = {}
+      for (const a of ["idle", "walk", "jump", "guard", "win"]) {
+        const d = skin?.animationData?.[a] || ch.animationData?.[a]
+        if (!d?.sheet || typeof d.frames !== "number" || !d.width || !d.height) continue
+        const im = new Image(); im.src = d.sheet; anims[a] = { d, im }
+      }
+      if (!anims.idle) continue
+      out.push({ key, fx, idle: anims.idle.d, im: anims.idle.im, anims, skin: skin?.id || "default", sc: (skin?.spriteScale || ch.spriteScale || 1) * 1.18 * 0.6,
+        off: 0, mood: "idle", hop: 0, bubble: null, bubbleT: 0, seed: Math.floor(fx * 1000) })
     }
     _jjCrowd = out
   }).catch(() => { _jjCrowd = [] })
 }
-export const jujutsuCrowd = () => (_jjCrowd || []).map(s => ({ key: s.key, skin: s.skin, ready: ready(s.im), shown: !!s.shown }))
+export const jujutsuCrowd = () => (_jjCrowd || []).map(s => ({ key: s.key, skin: s.skin, ready: ready(s.im), shown: !!s.shown, mood: s.mood, anim: s.drawn, off: Math.round(s.off), bubble: s.bubbleT > 0 ? s.bubble : null }))
 
 function drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   const t = now(), P = c.layout.pieces, S = def.S
@@ -1829,20 +1835,62 @@ function jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     for (let i = 0; i < n; i++) ctx.fillText(text[i], cx, y + py0 * S + cell * (i + 0.5))
   }
   ctx.restore()
-  // the crowd watching from the back of the deck
+  // the crowd watching from the back of the deck — and reacting to the fight
   if (!_jjCrowd) { jjLoadCrowd(); return }
-  const fighting = new Set((_lastWorld?.fighters || []).filter(Boolean).map(f => f.rosterKey))
+  const F = (_lastWorld?.fighters || []).filter(Boolean), fighting = new Set(F.map(f => f.rosterKey))
   const feet = dockTop + 1 * S, sh = shift(rowFactor(def, 1), W), cam = camera.x ?? W / 2
-  for (const s of _jjCrowd) {
-    s.shown = !fighting.has(s.key) && ready(s.im)
-    if (!s.shown) continue
-    const d = s.idle, n = Math.max(1, Math.min(d.frames, Math.floor(s.im.naturalWidth / d.width)))
-    const f = Math.floor((t * 60) / (d.speed || 8) + s.fx * 17) % n
-    const w = d.width * s.sc, h = d.height * s.sc, x = s.fx * W + sh
-    const ox = (d.originX ?? d.width / 2) * s.sc, oy = (d.originY ?? d.height) * s.sc
-    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, feet, w * 0.3, 5, 0, 0, 7); ctx.fill()
-    ctx.save(); ctx.translate(Math.round(x), feet); if (x > cam) ctx.scale(-1, 1)
+  const dt = Math.min(0.05, Math.max(0, t - (JJ.last || t))); JJ.last = t
+  // what the crowd sees this frame: a big hit, someone close to dying, a knockout
+  let bigHit = false, danger = false, ko = false
+  for (const f of F) {
+    const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = JJ.hp.get(f)
+    JJ.hp.set(f, hp)
+    if (was != null && was - hp >= 60) bigHit = true
+    if (hp <= 0) ko = true; else if (hp / max <= 0.2) danger = true
+  }
+  const say = (sp, list, dur = 1.3) => { if (sp.bubbleT > 0.3) return; sp.bubble = list[Math.floor(_h(sp.seed + Math.floor(t * 3)) * list.length)]; sp.bubbleT = dur }
+  for (const sp of _jjCrowd) {
+    sp.shown = !fighting.has(sp.key) && ready(sp.im)
+    if (!sp.shown) continue
+    const home = sp.fx * W + sh
+    sp.bubbleT = Math.max(0, sp.bubbleT - dt); sp.hop = Math.max(0, sp.hop - dt)
+    // a fighter right next to them: back away and cover up
+    let near = null, nd = 1e9
+    for (const f of F) { const d = (f.x + (f.w || 50) / 2) - (home + sp.off); if (Math.abs(d) < Math.abs(nd)) { nd = d; near = f } }
+    const scared = near && Math.abs(nd) < 170
+    const target = scared ? Math.max(-110, Math.min(110, -Math.sign(nd) * (170 - Math.abs(nd)) * 1.2)) : 0
+    const step = 130 * dt, moving = Math.abs(target - sp.off) > 2
+    sp.off += Math.max(-step, Math.min(step, target - sp.off))
+    if (scared) { sp.mood = "scared"; if (_h(sp.seed * 3 + Math.floor(t)) < 0.5) say(sp, ["!", "WHOA!", "HEY!", "うわっ!"], 0.9) }
+    else if (ko) { sp.mood = "cheer"; if (sp.hop <= 0) sp.hop = 0.55; say(sp, ["WOOO!", "IT'S OVER!", "LET'S GO!", "すげぇ!"], 1.6) }
+    else if (danger) { sp.mood = "tense"; if (sp.hop <= 0 && _h(sp.seed + Math.floor(t * 1.5)) < 0.35) sp.hop = 0.45; if (_h(sp.seed * 7 + Math.floor(t * 0.7)) < 0.3) say(sp, ["FINISH IT!", "GET UP!", "NO WAY…", "ONE MORE!"], 1.4) }
+    else sp.mood = moving ? "walk" : "idle"
+    if (bigHit && !scared) { sp.hop = 0.6; if (_h(sp.seed + Math.floor(t * 10)) < 0.45) say(sp, ["OOH!", "!!", "DAMN!", "ヤバ!"], 1.1) }
+    // pick the animation for the mood (falling back to idle when the character doesn't have it)
+    const A = sp.anims, pick = (moving && A.walk) ? A.walk : sp.mood === "scared" ? (A.guard || A.idle)
+      : sp.mood === "cheer" ? (A.win || (sp.hop > 0 && A.jump) || A.idle) : (sp.hop > 0 && A.jump) ? A.jump : A.idle
+    const use = ready(pick.im) ? pick : A.idle
+    const d = use.d, n = Math.max(1, Math.min(d.frames, Math.floor(use.im.naturalWidth / d.width)))
+    const f = Math.floor((t * 60) / (d.speed || 8) + sp.fx * 17) % n
+    const w = d.width * sp.sc, h = d.height * sp.sc, x = home + sp.off
+    const ox = (d.originX ?? d.width / 2) * sp.sc, oy = (d.originY ?? d.height) * sp.sc
+    const lift = sp.hop > 0 ? Math.sin((sp.hop / 0.6) * Math.PI) * 22 : 0
+    sp.drawn = use === A.idle ? "idle" : Object.keys(A).find(k => A[k] === use)
+    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, feet, w * 0.3 * (1 - lift / 60), 5, 0, 0, 7); ctx.fill()
+    ctx.save(); ctx.translate(Math.round(x), feet - lift)
+    const faceLeft = scared ? nd < 0 : x > cam                                    // watch the fight; when backing off, face the threat
+    if (moving && !scared ? target - sp.off < 0 : faceLeft) ctx.scale(-1, 1)
+    if (sp.mood === "tense") ctx.scale(1, 1 + 0.03 * Math.sin(t * 9 + sp.seed))
     ctx.filter = "brightness(0.78) saturate(0.85)"                   // background people: a step darker than the fighters
-    ctx.drawImage(s.im, f * d.width, 0, d.width, d.height, -ox, -oy, w, h); ctx.filter = "none"; ctx.restore()
+    ctx.drawImage(use.im, f * d.width, 0, d.width, d.height, -ox, -oy, w, h); ctx.filter = "none"; ctx.restore()
+    if (sp.bubbleT > 0 && sp.bubble) {                               // reaction bubble
+      const a = Math.min(1, sp.bubbleT * 4), by = feet - lift - (d.originY ?? d.height) * sp.sc - 18
+      ctx.save(); ctx.globalAlpha = a; ctx.font = "900 15px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+      const tw2 = ctx.measureText(sp.bubble).width + 14
+      ctx.fillStyle = "#fffaf0"; ctx.strokeStyle = "#1a1010"; ctx.lineWidth = 2
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - tw2 / 2, by - 12, tw2, 24, 8) : ctx.rect(x - tw2 / 2, by - 12, tw2, 24); ctx.fill(); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x - 4, by + 12); ctx.lineTo(x, by + 19); ctx.lineTo(x + 4, by + 12); ctx.fill()
+      ctx.fillStyle = "#1a1010"; ctx.fillText(sp.bubble, x, by + 1); ctx.restore()
+    }
   }
 }

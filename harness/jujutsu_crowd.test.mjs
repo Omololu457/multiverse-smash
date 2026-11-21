@@ -28,6 +28,32 @@ try {
   check("JJK students / teachers watch in their own colours", C.filter(c => jjk.includes(c.key) && c.skin === "default").length >= 6)
   check("multiverse visitors wear one of their skins", C.filter(c => !jjk.includes(c.key) && c.skin !== "default").length >= 4, C.filter(c => !jjk.includes(c.key)).map(c => c.key + ":" + c.skin).join(" "))
   check("the two fighters in the match aren't also in the crowd", C.filter(c => c.key === "yuji" || c.key === "gojo").every(c => !c.shown) && C.filter(c => c.shown).length >= 9)
+  // REACTIONS
+  const crowd = () => page.evaluate(async () => (await import("./stageLayers.js")).jujutsuCrowd().filter(c => c.shown))
+  // 1. a fighter walks right up to them → they back away and cover up
+  await page.keyboard.down("KeyA"); await sleep(2600)
+  let R = await crowd(); await page.screenshot({ path: path.join(OUT, "react_near.png") }); await page.keyboard.up("KeyA")
+  check("a fighter walking up makes the nearby crowd back away (scared)", R.some(c => c.mood === "scared" && c.off !== 0), R.map(c => `${c.key}:${c.mood}:${c.off}`).join(" "))
+  const wasScared = R.filter(c => c.mood === "scared").map(c => c.key)
+  await page.keyboard.down("KeyD"); await sleep(2500); await page.keyboard.up("KeyD"); await sleep(1500)
+  R = await crowd()
+  check("once the fighter leaves they walk back to their spot", R.filter(c => c.mood !== "scared").every(c => Math.abs(c.off) < 4) && R.some(c => wasScared.includes(c.key) && c.mood !== "scared"),
+    R.map(c => `${c.key}:${c.mood}:${c.off}`).join(" "))
+  // training mode refills health, so hold the (real fighter's, via brutality.setHp) value the scenario needs for its duration
+  const holdHp = f => page.evaluate(src => { clearInterval(window.__jjHold); const fn = eval(src); const H = window.__harness, q = H.p2(); window.__jjHold = setInterval(() => H.brutality.setHp("p2", fn(q)), 5) }, String(f))
+  // 2. a big hit lands → they jump and shout
+  { const base = await page.evaluate(() => window.__harness.p2().health); await holdHp(new Function(`return () => ${base - 150}`)()) } await sleep(250)
+  R = await crowd(); await page.screenshot({ path: path.join(OUT, "react_bighit.png") })
+  check("a big hit makes the crowd jump and shout", R.filter(c => c.bubble).length >= 2 && R.some(c => c.anim === "jump"), R.map(c => `${c.key}:${c.anim}:${c.bubble || ""}`).join(" "))
+  // 3. someone about to die → the crowd gets tense
+  await holdHp(q => Math.round((q.maxHealth || 1000) * 0.12)); await sleep(1800)
+  R = await crowd(); await page.screenshot({ path: path.join(OUT, "react_danger.png") })
+  check("a fighter close to dying puts the crowd on edge (tense)", R.filter(c => c.mood === "tense").length >= 5, R.map(c => c.mood).join(" "))
+  // 4. the knockout → they cheer
+  await holdHp(q => 0); await sleep(300)
+  R = await crowd(); await page.screenshot({ path: path.join(OUT, "react_ko.png") })
+  await page.evaluate(() => clearInterval(window.__jjHold))
+  check("a knockout makes the crowd cheer", R.filter(c => c.mood === "cheer").length >= 5, R.map(c => `${c.key}:${c.mood}:${c.anim}`).join(" "))
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }
 await browser.close(); server.close()

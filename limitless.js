@@ -178,7 +178,7 @@ export function infinityShell(owner, lvP, W, opt = {}) {
     if (!approaching) continue
     const k = Math.max(0, Math.min(1, (d - lvP.boundary) / lvP.slow))
     const sp = Math.hypot(p.vx || 0, p.vy || 0)
-    if (d <= lvP.boundary || k * k * sp < 0.2) {                                   // at the boundary (or stalled just outside it)
+    if (d <= lvP.boundary || k * k * sp < 0.5) {                                   // at the boundary (or stalled just outside it)
       if (lvP.repel > 0) {                                                        // L2/L3: pushed back toward its owner at half speed
         p.vx = -(p.vx || 0) * 0.5; p.vy = -(p.vy || 0) * 0.5; p._gsRepelled = true
       } else { p._gsHang = 0; p.timeScaleT = 1; p.timeScale = 0 }

@@ -69,6 +69,10 @@ import { updateHigurumaCommandCombat } from './higuruma.js'   // Hiromi Higuruma
 import { tickHiguruma, isHiguruma, clearHiguruma, higurumaLocked, isHigurumaUltActive, updateHigurumaUlt, clearHigurumaUlt } from './higurumaState.js'
 import { drawHigurumaFx, drawHigurumaHud, drawHigurumaIntroCard, drawHigurumaCourt, drawHigurumaUnder, playHigurumaCues } from './higurumaFx.js'
 import { higurumaHarnessApi } from './higurumaHarness.js'
+import { updateGsCommandCombat } from './gojoShinjuku.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc) — gojo_shinjuku-gated command layer
+import { tickGs, isGs, clearGs, clearGsMarks, gsLockedForMovement, gsOwnsCharge, markGsCpu } from './gojoShinjukuState.js'
+import { drawGsFx, drawGsHud, playGsCues } from './gojoShinjukuFx.js'
+import { gojoShinjukuHarnessApi } from './gojoShinjukuHarness.js'
 import { updateSyndromeCommandCombat } from './syndrome.js'   // Syndrome (The Incredibles) — syndrome-gated command layer
 import { tickSyndrome, isSyndrome, clearSyndrome, syndromeLocked, syndromeOwnsCharge, isSyndromeUltActive, updateSyndromeUlt, clearSyndromeUlt } from './syndromeState.js'
 import { drawSyndromeUnder, drawSyndromeOver, drawSyndromeHud, drawSyndromeIntroCard, playSyndromeCues } from './syndromeFx.js'
@@ -171,6 +175,7 @@ const STARFIRE_WORLD = MMPR_BLACK_WORLD   // Starfire: the same self-contained w
 const ROBIN_WORLD = MMPR_BLACK_WORLD   // Robin: the same self-contained world (stage width, projectiles = bombs / blasts, ultimate damage through W.damage)
 const MEGUMI_WORLD = MMPR_BLACK_WORLD   // Megumi: the same self-contained world (stage width, projectiles = summon hit volumes, ultimate damage through W.damage)
 const HIGURUMA_WORLD = MMPR_BLACK_WORLD   // Higuruma: the same self-contained world (stage width, fighters, ultimate damage through W.damage)
+const GOJO_SHINJUKU_WORLD = { ...MMPR_BLACK_WORLD, frame: () => _replayFrame, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) }, summons: () => activeSummons, removeSummon: o => { const i = activeSummons.indexOf(o); if (i >= 0) activeSummons.splice(i, 1) }, drones: () => activeDrones, removeDrone: o => { const i = activeDrones.indexOf(o); if (i >= 0) activeDrones.splice(i, 1) }, munitions: () => activeMunitions, removeMunition: o => { const i = activeMunitions.indexOf(o); if (i >= 0) activeMunitions.splice(i, 1) }, clones: o => (o?._ninja?.clones || []).filter(c => !c.dead).map(c => ({ x: c.x - (o.w || 48) / 2, y: c.feet - (o.h || 94), w: o.w || 48, h: o.h || 94, ref: c })), removeClone: (o, c) => { if (c?.ref) c.ref.dead = true }, patches: () => MMPR_BLACK_WORLD.fighters().flatMap(o => (o?._enoch?.field?.patches || []).map(patch => ({ owner: o, patch }))), removePatch: (o, p) => { const L = o?._enoch?.field?.patches; const i = L ? L.indexOf(p) : -1; if (i >= 0) L.splice(i, 1) }, raw: f => readRawControls(f) || {} }   // MSV1-GOJO Satoru Gojo (Shinjuku): Black Ranger's world + lockstep frame + every list Limitless acts on (projectiles, summons, drones, munitions, ninja clones, Enoch patches)
 const SYNDROME_WORLD = MMPR_BLACK_WORLD   // Syndrome: the same self-contained world (stage width, fighters, projectiles = machine hit volumes, attackBox / projectileRects for turret damage, ultimate damage through W.damage)
 const FROZONE_WORLD = MMPR_BLACK_WORLD   // Frozone: the same self-contained world (stage width, fighters, projectiles = Lance / Black Ice volumes, Shatter + ultimate damage through W.damage)
 const ENOCH_WORLD = MMPR_BLACK_WORLD   // Enoch: the same self-contained world (stage width, frame + seed, fighters, projectiles = blast / orb volumes, attackBox for the disc, W.damage for bursts / beam / patches / supers)
@@ -1564,6 +1569,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -2401,8 +2407,6 @@ const STAGE_DEFS = [
   // F-16 → Batwing, tarmac → steel deck with a Bat-symbol, horizon → cave depths + Batcomputer, airmen → Alfred-style butlers.
   { name: "The Batcave",            series: "dc",          music: "PISSY PAMPER - Playboi Cardi (with Young Nudy).mp3", landmark: "guile_batcave", sky: "#05070b", mid: "#0d1220", floor: "#1a1e27", accent: "#facc15", worldWidth: 2400,
     layers: "guile_batcave", backgroundImage: "stages/guile_batcave/preview.png" },
-  { name: "Stark Lab",              series: "marvel",      music: "Chérie  23  (Sloweddd).mp3", shuffle: true, playlist: ["Chérie  23  (Sloweddd).mp3", "At The Club.mp3", "Chris Brown - Under The Influence (Audio).mp3"], landmark: "starklab", sky: "#05070c", mid: "#121826", floor: "#1a1f2a", accent: "#5ee6ff", worldWidth: 2400,
-    layers: "guile_starklab", backgroundImage: "stages/guile_starklab/preview.png" },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
   // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
   // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
@@ -4527,6 +4531,7 @@ function updateFFAAIInputs(live) {
     f._aiTargetSlot = target ? target.ffaSlot : null
     if (!target) { clearAIControlKeys(f); continue }   // no valid opponent (shouldn't happen mid-match)
     applyAIInputToKeys(f, getAIInput(f._aiController, f, target, { stage: getStageTheme(), roundNumber, mode: "ffa" }))
+    markGsCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
   }
 }
 
@@ -4567,6 +4572,8 @@ function updateFFACombat(fighter, others, opts) {
   playMegumiCues(fighter)
   tickHiguruma(fighter,nearest,readRawControls(fighter)||{},HIGURUMA_WORLD)
   playHigurumaCues(fighter)
+  tickGs(fighter,nearest,readRawControls(fighter)||{},GOJO_SHINJUKU_WORLD)
+  playGsCues(fighter)
   tickSyndrome(fighter,nearest,readRawControls(fighter)||{},SYNDROME_WORLD)
   tickDseyl(fighter,nearest,readRawControls(fighter)||{},SYNDROME_WORLD)
   playSyndromeCues(fighter)
@@ -4619,6 +4626,7 @@ function updateFFACombat(fighter, others, opts) {
   if (isRobin(fighter)) { const mc=updateRobinCommandCombat(fighter,inputState,nearest,ROBIN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMegumi(fighter)) { const mc=updateMegumiCommandCombat(fighter,inputState,nearest,MEGUMI_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isHiguruma(fighter)) { const mc=updateHigurumaCommandCombat(fighter,inputState,nearest,HIGURUMA_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
+  if (isGs(fighter)) { updateGsCommandCombat(fighter,inputState,nearest,GOJO_SHINJUKU_WORLD);ctrlState={} }   // Satoru Gojo (Shinjuku): every move starts in his command layer
   if (isSyndrome(fighter)) { const mc=updateSyndromeCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isDseyl(fighter)) { const mc=updateDseylCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isFrozone(fighter)) { const mc=updateFrozoneCommandCombat(fighter,inputState,nearest,FROZONE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
@@ -5605,6 +5613,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -6375,6 +6384,8 @@ function _replaySnap(f) {
   if (isRobin(f)) snap.push(JSON.stringify([f._robin || null, f.currentAttack?.rb || null, f._rbLand || 0]))   // Robin GAME_STATE (smoke, planted bomb, live bombs, remote press, airtime allowances, press edges, move descriptor)
   if (isMegumi(f)) snap.push(JSON.stringify([f._megumi || null, f.currentAttack?.mg || null]))   // Megumi GAME_STATE (summon, rabbits, pull, Shadow Route, step cooldown, airtime allowances, press edges, move descriptor)
   if (isHiguruma(f)) snap.push(JSON.stringify([f._higuruma || null, f.currentAttack?.hg || null, f._hgPose || null, f._hgPoseT || 0]))   // Higuruma GAME_STATE (Case File, Precedent token / combo lock, airtime allowance, press edges, move descriptor incl. Objection phase)
+  if (isGs(f)) snap.push(JSON.stringify([f._gs ? { ...f._gs, cues: undefined, fx: undefined } : null, f.currentAttack?.gs || null, f._gsHalf || 0]))   // Satoru Gojo (Shinjuku) GAME_STATE: CE, Infinity level / press, fields, imaginary mass, chant, cooldowns, burnout, domain / clash, CPU reaction
+  if (f && (f._gsTechBurnout || f._gsSawInfinity != null)) snap.push(JSON.stringify([f._gsTechBurnout || 0, f._gsSawInfinity ?? null]))   // marks Gojo (Shinjuku) writes on an opponent (clash burnout, what the CPU has seen)
   if (isSyndrome(f)) snap.push(JSON.stringify([f._syndrome ? { ...f._syndrome, cues: undefined } : null, f.currentAttack?.sy || null]))   // Syndrome GAME_STATE (machine slots / squads / turret / Omnidroid action / Zero-Point hold / press edges / move descriptor; render cue queue excluded)
   if (isDseyl(f)) snap.push(JSON.stringify([f._dseyl ? { ...f._dseyl, cues: undefined } : null, f.currentAttack?.sy || null]))   // Dseyl GAME_STATE (machine slots / squads / turret / Omnidroid action / Zero-Point hold / press edges / move descriptor; render cue queue excluded)
   if (isFrozone(f)) snap.push(JSON.stringify([f._frozone ? { ...f._frozone, cues: undefined } : null, f.currentAttack?.fz || null, f.dashSpeed || 0]))   // Frozone GAME_STATE (Chill pips / Freeze / immunity / Black Ice patch / skate profile / ribbon / press edges / move descriptor; render cue queue excluded)
@@ -6562,7 +6573,7 @@ function pickRandomCharacter(universeOnly) {
 // character's universe → series → that series' first non-FFA stage; else a neutral fallback.
 const _UNIVERSE_SERIES = { jujutsu_kaisen: "jjk", naruto: "naruto", dragon_ball: "dragonball", demon_slayer: "demonslayer", rick_and_morty: "rickmorty", ben_10: "ben10",
   // 8 gap universes now have dedicated stages → route each to its new home stage (was falling back to the neutral stage).
-  bleach: "bleach", dc: "dc", horror: "horror", hunter_x_hunter: "hxh", invincible: "invincible", power_rangers: "powerrangers", saiki_k: "saiki", original: "original", marvel: "marvel" }
+  bleach: "bleach", dc: "dc", horror: "horror", hunter_x_hunter: "hxh", invincible: "invincible", power_rangers: "powerrangers", saiki_k: "saiki", original: "original" }
 function homeStageFor(charKey) {
   const c = characters[charKey]; if (!c) return null
   if (c.homeStage) { const s = stages.find(st => st.name === c.homeStage); if (s) return s }
@@ -6809,6 +6820,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -10816,7 +10828,7 @@ function _doRematch() {
   clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD)
   clearDashParr(p1);clearDashParr(p2)
   clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
-  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
+  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
   clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2)
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
@@ -10883,6 +10895,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearRobin(_f,ROBIN_WORLD)
   for (const _f of [p1, p2]) if (_f) clearMegumi(_f,MEGUMI_WORLD)
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
+  for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -10968,10 +10981,12 @@ function updateCPUInput() {
       if (isTransformDevice(p1) && !p1.transformed) tryTransform(p1)
       updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
       applyAIInputToKeys(p1, getAIInput(p1AI, p1, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
+      markGsCpu(p1, matchConfig.aiDifficulty)
     }
     if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
     applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
+    markGsCpu(p2, matchConfig.aiDifficulty)
     return
   }
   if (isPvP()) { clearAIControlKeys(p2); return }
@@ -10987,6 +11002,7 @@ function updateCPUInput() {
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
   }
   applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
+  if (matchConfig.mode !== "training") markGsCpu(p2, matchConfig.aiDifficulty)   // CPU Gojo (Shinjuku): reacts to a coming super with Infinity (never reads the foe's hidden state)
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
   // AFTER the AI keys are written, and ONLY in training — this is training-specific state,
@@ -11534,6 +11550,7 @@ function handleChargeRelease(fighter, key) {
   // FLIGHT MODULE (Homelander + future flyers): a charge-TAP takes off / requests a descent-to-land.
   // Gated on traits.flightProfile → separate from the simple canFly path below (no collision).
   if (isDseyl(fighter)) return   // DSEYL: his Charge-tap flight toggle is measured on the SIM clock in dseylPowers.js (deterministic), not here
+  if (isGs(fighter)) return   // SATORU GOJO (Shinjuku): Charge = Infinity / RCT / Falling Blossom, measured on the SIM clock in gojoShinjukuState.js
   if (fighter.traits?.flightProfile) { flightToggleInput(fighter); return }
   if (fighter.traits?.canFly) { toggleOmniManFlight(fighter); return }
   if (fighter.rosterKey === "gojo") {
@@ -12198,7 +12215,7 @@ function updateMovementInput(fighter) {
   const inputState = getFighterInput(fighter)
   if (isMr(fighter)) { const raw=readRawControls(fighter)||{}; inputState.jump=!!raw.jump; inputState._noJumpUp=!raw.jump; inputState.light=!!raw.light; inputState.heavy=!!raw.heavy } // fresh jump releases, shared physics
   if (isKrybot(fighter) && fighter.attacking) inputState.block = false
-  if (mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || syndromeLocked(fighter, readRawControls(fighter)) || dseylLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || enochLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
+  if (mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || gsLockedForMovement(fighter) || syndromeLocked(fighter, readRawControls(fighter)) || dseylLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || enochLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
     // No steering/jump/guard during committed attacks. Shared physics still
     // integrates velocity and bounds; the character timeline owns that velocity.
@@ -12288,7 +12305,7 @@ function updateMovementInput(fighter) {
     fighter._zGsTogglePrev = !!inputState.charge
   } else { fighter._zGsTogglePrev = false }
   // CYBORG: Charge (L2 / P) is the Heat VENT (cyborgState.tickCyborg) and must never recharge Power → excluded here.
-  if (!zdGsCharge && inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !greenOwnsCharge(fighter) && !isCyborg(fighter) && !isRaven(fighter) && !isStarfire(fighter) && !robinOwnsCharge(fighter) && !megumiOwnsCharge(fighter) && !syndromeOwnsCharge(fighter) && !dseylOwnsCharge(fighter) && !isEnoch(fighter) && !batmanOwnsCharge(fighter) && !isNinja(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
+  if (!zdGsCharge && inputState.charge && !fighter._suppressChargeUntilRelease && !isTransformDevice(fighter) && !greenOwnsCharge(fighter) && !isCyborg(fighter) && !isRaven(fighter) && !isStarfire(fighter) && !robinOwnsCharge(fighter) && !megumiOwnsCharge(fighter) && !gsOwnsCharge(fighter) && !syndromeOwnsCharge(fighter) && !dseylOwnsCharge(fighter) && !isEnoch(fighter) && !batmanOwnsCharge(fighter) && !isNinja(fighter) && !fighter.attacking && ((fighter.maxEnergy || 0) > 0 || noEnergyCharger) && !omniCantCharge) {
     if ((fighter.maxEnergy || 0) > 0) doEnergyCharge(fighter)
     fighter.isCharging = true
     // SAMURAI RANGERS — AUTO Mega Mode (owner-requested): the instant Symbol Power crosses the threshold
@@ -12601,6 +12618,8 @@ function _updatePlayerCombatBody(fighter) {
   playMegumiCues(fighter)
   tickHiguruma(fighter,getOpponent(fighter),readRawControls(fighter)||{},HIGURUMA_WORLD)
   playHigurumaCues(fighter)
+  tickGs(fighter,getOpponent(fighter),readRawControls(fighter)||{},GOJO_SHINJUKU_WORLD)
+  playGsCues(fighter)
   tickSyndrome(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD)
   tickDseyl(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD)
   playSyndromeCues(fighter)
@@ -12870,6 +12889,10 @@ function _updatePlayerCombatBody(fighter) {
   if (isHiguruma(fighter)) {   // Higuruma command layer: 'consumed' | 'grab'
     const mc=updateHigurumaCommandCombat(fighter,inputState,getOpponent(fighter),HIGURUMA_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isGs(fighter)) {   // Satoru Gojo (Shinjuku) command layer: every move (normals and throw included) starts there
+    updateGsCommandCombat(fighter,inputState,getOpponent(fighter),GOJO_SHINJUKU_WORLD)
+    updateCombat(fighter,getOpponent(fighter),{},opts); return
   }
   if (isMr(fighter)) { mrCommand(fighter); updateCombat(fighter,getOpponent(fighter),{},opts); return }
   if (isSyndrome(fighter)) {   // Syndrome command layer: 'consumed' | 'grab'
@@ -21190,6 +21213,7 @@ function resetTraining() {
     clearRobin(f,ROBIN_WORLD)
     clearMegumi(f,MEGUMI_WORLD)
     clearHiguruma(f)
+    clearGs(f); clearGsMarks(f)
     clearSyndrome(f,SYNDROME_WORLD)
     clearDseyl(f,SYNDROME_WORLD)
     clearFrozone(f,FROZONE_WORLD)
@@ -21364,7 +21388,7 @@ function checkRoundEnd() {
   if (_roundOver) { clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearDashParr(p1);clearDashParr(p2) }
   if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
-  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) ;clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2) }
+  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) ;clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2) }
   if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
@@ -21744,6 +21768,7 @@ function updateBattle() {
     if (isRobin(f)) f._robinRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMegumi(f)) f._megumiRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isHiguruma(f)) f._higurumaRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isGs(f)) f._gsRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isSyndrome(f)) f._syndromeRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isDseyl(f)) f._dseylRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isFrozone(f)) f._frozoneRemoteInput = replay.isPlayback() || netMatch.isActive()
@@ -22695,6 +22720,7 @@ function renderHybridFighter(fighter) {
     drawRobinFx(c, fighter, getOpponent(fighter))   // Robin — smoke, planted bomb, blasts, Smoke Step echoes, OUTPLAY, skin material (render-only; robin only)
     drawMegumiFx(c, fighter)   // Megumi — shikigami, rabbits, Shadow Step echoes, Mahoraga intro showcase, ultimate shikigami (render-only; megumi only)
     drawHigurumaFx(c, fighter)   // Higuruma — Case File marks, PRECEDENT, OBJECTION, Order-in-the-Court dust ring, sword stroke, skin material (render-only; higuruma only)
+    drawGsFx(c, fighter, matchConfig.mode === "training")   // Satoru Gojo (Shinjuku) — Blue / Red / Purple, chant captions, nosebleed; Infinity draws NOTHING (training debug ring only) (render-only; gated)
     drawBatmanFx(c, fighter)   // Batman — support fleet, payloads, batarang / grapnel lines, smoke, bracket, explosions, KNIGHTFALL aircraft (render-only; batman only)
     drawVioletFx(c, fighter)   // Violet Parr — push ring, dome, shell, trap bubble + telegraph, FULL FORCE (render-only; violet only)
     drawElastigirlFx(c, fighter)   // Elastigirl — slingshot arm to the anchor, parachute shadow ovals, guard / raft splash (render-only; elastigirl only)
@@ -24635,6 +24661,7 @@ function drawBattleHud() {
   drawRobinHud(ctx, canvas, p1, p2)   // Robin: expression icon + smoke / Dead Drop status under his health; CHECKMATE cut-in (gated)
   drawMegumiHud(ctx, canvas, p1, p2)   // Megumi: Shadow Route stocks (supplied Divine Dog silhouette) + Shadow Step status; domain cut-in (gated)
   drawHigurumaHud(ctx, canvas, p1, p2)   // Higuruma: Case File marks + PRECEDENT under his health; Deadly Sentencing captions / CASE REVIEW / portrait cut-in (gated)
+  drawGsHud(ctx, canvas, p1, p2)   // Satoru Gojo (Shinjuku): CE bar (Infinity's only tell), Void cooldown, burnout, FBE / RCT cooldowns (gated)
   drawSyndromeHud(ctx, canvas, p1, p2)   // Syndrome: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
   drawDseylHud(ctx, canvas, p1, p2)   // Dseyl: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
   drawFrozoneHud(ctx, canvas, p1, p2)   // Frozone: Black Ice / Freeze / air-skate readout under his health; Absolute Zero cut-in (gated)
@@ -28534,6 +28561,7 @@ gameLoop()
     robinTest: robinHarnessApi({p1:()=>p1,p2:()=>p2,world:ROBIN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     megumiTest: megumiHarnessApi({p1:()=>p1,p2:()=>p2,world:MEGUMI_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     higurumaTest: higurumaHarnessApi({p1:()=>p1,p2:()=>p2,world:HIGURUMA_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    gojoShinjukuTest: gojoShinjukuHarnessApi({p1:()=>p1,p2:()=>p2,world:GOJO_SHINJUKU_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     syndromeTest: syndromeHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     dseylTest: dseylHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     frozoneTest: frozoneHarnessApi({p1:()=>p1,p2:()=>p2,world:FROZONE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),

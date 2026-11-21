@@ -28,3 +28,11 @@ Raw failing lines at baseline:
   ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
   ❌  superman: frames = 5/4/10  — 5/4/12
   ❌  ghostface: frames = 4/3/6  — 5/3/8
+
+ADDENDUM (phase 3, 2026-11-21): HEAD moved under this build (another session committed 686ac7deb, ca28bfc1e, 23395aa1d).
+replay_playback.test on CLEAN trees (git archive, no MSV1-GOJO hooks beyond what each commit holds):
+  e00801b0d (msv1-gojo phase 2)            10 passed, 0 failed
+  686ac7deb (stages: Jujutsu High Courtyard, other session)   8 passed, 1 failed  (playback frame wait times out)
+  23395aa1d (current HEAD, other session)  8 passed, 1 failed
+→ the replay regression comes from 686ac7deb, not from this build. From phase 3 on, "green" for replay_playback = 8/1
+  (the HEAD baseline). The other six suites are unchanged from the table above.

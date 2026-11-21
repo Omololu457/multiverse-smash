@@ -1,0 +1,18 @@
+{
+ "infinity": {
+  "drainL1": 5,
+  "drainL3half": 11,
+  "L1proj": {
+   "minTs": 0,
+   "hung": true,
+   "hp": 0,
+   "stopped": 1
+  },
+  "supers": {
+   "off": 60,
+   "L1": 60,
+   "L2": 30,
+   "L3": 0
+  }
+ }
+}

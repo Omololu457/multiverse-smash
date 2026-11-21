@@ -17,6 +17,7 @@ import { ravenHitbox, ravenBlock, ravenHit, ravenProjectileHit, absorbRaven } fr
 import { starfireHitbox, starfireBlock, starfireHit, starfireProjectileHit } from './starfireState.js'   // Starfire hooks (starfire-gated)
 import { robinHitbox, robinBlock, robinHit, robinProjectileHit } from './robinState.js'   // Robin hooks (robin-gated)
 import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './megumiState.js'   // Megumi hooks (megumi-gated)
+import { gsHitbox, gsBlock, gsHit, gsMeleeGate, gsGrabGate, gsProjectileGate, gsDamageMods } from './gojoShinjukuState.js'   // Satoru Gojo (Shinjuku) hooks: Infinity / Falling Blossom gates + his move boxes (gojo_shinjuku-gated)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
 import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
@@ -312,6 +313,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   rawDamage = (rawDamage || 0) * rosterDamageBoost(opts.attacker || opts.boostFrom)   // ROSTER PARITY: listed recent fighters hit harder (1 for everyone else)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
   rawDamage = elastigirlDamageMods(target, rawDamage, opts)   // ELASTIGIRL — Rubber Body (−15% melee normals) + Elasticity +4 landed / +3 taken (returns rawDamage untouched unless she is involved)
+  rawDamage = gsDamageMods(target, rawDamage, opts)   // SATORU GOJO (Shinjuku) — Infinity on every other damage path (beams, cinematics, patches, scripted strikes): stopped / L2 supers ×0.5 (raw untouched for everyone else)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6
@@ -850,6 +852,7 @@ export function getAttackHitbox(fighter) {
   if (a?.sf && fighter.rosterKey === 'starfire') return starfireHitbox(fighter)   // Starfire: per-move fist box; Star Sight = the eye-beam entry point (both beams one contract); projectiles have no body box
   if (a?.rb && fighter.rosterKey === 'robin') return robinHitbox(fighter)   // Robin: per-move fist / staff box; gadgets (bombs / smoke / hack / step) have no body box
   if (a?.mg && fighter.rosterKey === 'megumi_fushiguro') return megumiHitbox(fighter)   // Megumi: per-move body box; summon gestures have none (the shikigami's projectile volume hits)
+  if (a?.gs && fighter.rosterKey === 'gojo_shinjuku') return gsHitbox(fighter)   // Satoru Gojo (Shinjuku): per-move body box; technique casts have none (their fields strike through gojoShinjukuState)
   if (a?.hg && fighter.rosterKey === 'higuruma') return higurumaHitbox(fighter)   // Higuruma: per-move gavel / extension / giant-gavel box from the drawn weapon (body hurtbox unchanged)
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
@@ -3105,6 +3108,7 @@ export function resolveGrab(attacker, defender, context = {}, range = 75) {
   // shroud-gated Chakra Arm Grab) pass a larger value. Everything else — tech window,
   // grab state, and the updateGrab() pop-up-and-drop throw — is shared unchanged.
   if (Math.abs(aCX - dCX) > range) return false
+  if (gsGrabGate(defender, attacker)) { attacker.attackCooldown = 18; return false }   // Satoru Gojo (Shinjuku): Infinity cannot be grabbed; gojo_shinjuku-gated
 
   const canTech = !(defender.hitstun > 0 || defender.blockstun > 0)
   if (canTech && (defender.grabInputBuffer || 0) > 0) {
@@ -3446,6 +3450,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
 
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
+  if (gsMeleeGate(defender, attacker)) { attacker.currentAttack.hasHit = true; return }   // Satoru Gojo (Shinjuku): Falling Blossom auto-counter / INFINITY stops the strike (silent, no flash: it is invisible); L1/L2 supers pass; gojo_shinjuku-gated
   if (shouldGojoAutoDodge(defender) || shouldSasukeAbsoluteDefenseNegate(defender)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -3651,6 +3656,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) starfireBlock(attacker, defender, atk)   // Starfire: authored blockstun; starfire-gated
     if (!flawless) robinBlock(attacker, defender, atk)   // Robin: authored blockstun; robin-gated
     if (!flawless) megumiBlock(attacker, defender, atk)   // Megumi: authored blockstun; megumi-gated
+    if (!flawless) gsBlock(attacker, defender, atk)   // Satoru Gojo (Shinjuku): authored blockstun, contact flag; gojo_shinjuku-gated
     if (!flawless) higurumaBlock(attacker, defender, atk)   // Higuruma: authored blockstun; no evidence on block; higuruma-gated
     if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
     if (!flawless) dseylBlock(attacker, defender, atk)   // Dseyl: authored blockstun; syndrome-gated
@@ -3736,6 +3742,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     starfireHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Starfire: clean flag (chain / special / ult cancels), laser hit FX; starfire-gated
     robinHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Robin: clean flag (chain / staff / special / ult cancels), OUTPLAY cue; robin-gated
     megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
+    gsHit(attacker, defender, atk)   // Satoru Gojo (Shinjuku): clean flag, +4 CE, Black Flash window, Blue Fist pull, Red Rush crumple; gojo_shinjuku-gated
     higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
     syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
     dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
@@ -4559,6 +4566,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       const _benWeak = benAlienWeakHit(fighter, pb, { proj })   // READY Omnitrix form weak point (Goop projector); false for everyone else
       if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj }) || ninjaEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
+      if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Satoru Gojo (Shinjuku): Infinity stops it at contact (L1/L2 supers pass) / Falling Blossom; gojo_shinjuku-gated
       if (fighter.isBlocking && isBenDevice(proj.owner) && benAlienGuardBreak(proj.owner, fighter, { proj })) fighter.isBlocking = false   // READY form guard-break (Eyeguy Unblinking); false for everyone else
 
       if (consumeBenGuard(fighter)) {

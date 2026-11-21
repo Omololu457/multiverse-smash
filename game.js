@@ -199,6 +199,7 @@ import {
 } from "./fighters.js"
 import { BEN10_ALIEN_REGISTRY, buildLoadout, makePlaceholder } from "./aliens.js"   // Phase 4: alien catalog of record
 import { camera } from "./camera.js"
+import { drawLayeredStageFront } from "./stageLayers.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount, GLOBAL_SPRITE_SCALE } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
 import { fxSheetsForFighters } from "./preloadManifest.js"
@@ -2391,6 +2392,10 @@ const STAGE_DEFS = [
   // full-scroll background test_map_bg.png (2752x1536). A normal selectable stage, not FFA-only.
   // STAGE INTERACTABLES PILOT: one mid-stage "arc pylon" hazard (stageHazards.js) — a fighter knocked
   // into it takes contact damage + a wall-splat reaction. Data-driven → rollout to other stages is trivial.
+  // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):
+  // parallax sea + yacht, bobbing ship with an animated cheering crowd, line-scroll perspective dock, barrels + bollards.
+  { name: "Harbor Dock",            series: "other",       landmark: "ken_harbor",   sky: "#b1e0ff", mid: "#173961", floor: "#7a4422", accent: "#fde68a", worldWidth: 2400,
+    layers: "ken_harbor", backgroundImage: "stages/ken_harbor/preview.png" },
   { name: "Test Map",               series: "other",       landmark: "test_map",     sky: "#aebccc", mid: "#c6bfb2", floor: "#8c8c94", accent: "#e5e7eb", backgroundImage: "test_map_bg.png",
     hazards: [{ id: "arc_pylon", x: 2000, w: 46, height: 156, damage: 55, hitstun: 26 }] },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
@@ -24531,6 +24536,7 @@ function drawBattleScene() {
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
+  drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY)   // LAYERED stages: foreground props in front of the fighters
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
 
   ctx.restore()

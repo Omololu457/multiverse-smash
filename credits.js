@@ -806,6 +806,7 @@ export function artistLineForCharacter(key) {
 // keyed by roster key + drives the per-key harness) but surfaced on the Credits screen
 // via the Sprite Art section so no attribution from the source sheets is ever lost.
 export const EXTRA_SPRITE_CREDITS = [
+  { work: "Harbor Dock stage — Street Fighter II / Super Street Fighter II (Arcade), Ken's Stage sheet", artists: ["Maxim (rip)", "shezzor (additional rip)"], source: "Supplied sheet; on-sheet credit \"ripped by Maxim / additional ripped by shezzor\" (excluded from the stage). Cut into layers by tools/stage_layers/slice_ken_harbor.py" },
   { work: "Superman (Justice League Task Force / SNES)", artists: ["HijodeKrypton (rip)"], source: "SNES sprite rip" },
   { work: "Ben 10 — Heatblast, Four Arms, Diamondhead, Wildvine, Cannonbolt, Ripjaws (alien forms)", artists: ["dragonrod342"], source: "fan sprite sheets" },
   { work: "Ben 10 — Cannonbolt, Clockwork, Upchuck & Ultimate forms (alien forms)", artists: ["ipmugenofficial"], source: "M.U.G.E.N sheets" },

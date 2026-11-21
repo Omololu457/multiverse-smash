@@ -1,4 +1,5 @@
 // ui.js
+import { drawLayeredStageBack } from "./stageLayers.js"
 import { drawZoroHud } from './zoroFx.js'
 import { drawSanjiHud, drawSanjiHeatFill } from './sanjiFx.js'   // Sanji — glass badge, warming Heat bar, Course pips (render-only)
 import { noteSupermanEnergyPanel } from './supermanLaser.js'   // Superman Heat Vision laser bar (render-only)
@@ -3393,6 +3394,10 @@ export function drawBattleBackground(ctx, canvas, stage = {}, groundY = 600, flo
   lastBattleBgRect.bottom = covBot
   lastBattleBgRect.imgTop = imgTop     // drawn-image world-y span (diagnostics: verify the floor anchor holds)
   lastBattleBgRect.imgBot = imgBot
+
+  // LAYERED stage (stageLayers.js): parallax layers + line-scroll floor + animated crowd from cut sprite-sheet art.
+  // Until its art has loaded it falls through to the normal backdrop (its `backgroundImage` preview).
+  if (stage?.layers && drawLayeredStageBack(ctx, stage, { canvasWidth: w, worldWidth, groundY, coverTop: covTop, coverBottom: covBot })) return
 
   const bg = ctx.createLinearGradient(0, 0, 0, h)
   bg.addColorStop(0, sky)

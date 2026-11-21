@@ -65,7 +65,7 @@ SETS.guile_batcave = {
 }
 
 // CITADEL OF RICKS — Zangief's factory (SFII sheet) repainted by tools/stage_layers/slice_zangief_citadel.py: a hall of the
-// Citadel open to space (the Citadel itself, a space cruiser, shuttles), portal-fluid reactor, portals, sci-fi crew.
+// Citadel looking out on space through its windows (a city, a space cruiser, shuttles), portal-fluid reactor, portals, sci-fi crew.
 SETS.zangief_citadel = {
   dir: "./stages/zangief_citadel/",
   S: 2,
@@ -208,8 +208,9 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
       const y = dockTop + ly.bottomRow * S - h
       drawn[ly.piece] = { x: x0, y, S: ls }
       if (ly.tile !== "mirror") { ctx.drawImage(im, x0, y, w, h); continue }
+      if (ly.fx === "citadelWall") citadelWindows(ctx, { x: x0, y, S: ls }, { W, w, padL, padR, p: ly.p })   // the view, behind the frames
       const after = ly.fx === "batcomputer" ? () => batcomputer(ctx, c, drawn[ly.piece], S)
-        : ly.fx === "citadelWall" ? () => citadelWall(ctx, def, c, drawn[ly.piece], { W, w, h, padL, padR, dockTop, p: ly.p }) : null
+        : ly.fx === "citadelWall" ? () => citadelWall(ctx, def, c, drawn[ly.piece], { W, w, h, padL, padR, dockTop, coverTop, p: ly.p }) : null
       for (let k = Math.floor((padL - x0) / w); x0 + k * w < padR; k++) {
         const xx = x0 + k * w, odd = Math.abs(k) % 2 === 1
         if (!odd) { ctx.drawImage(im, Math.floor(xx), y, w + 1, h); continue }
@@ -626,20 +627,71 @@ function drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p }) {
     const a = 0.4 + 0.6 * Math.abs(Math.sin(t * (0.6 + _h(i + 5)) + i)), sz = _h(i + 77) > 0.92 ? 2 : 1
     ctx.fillStyle = `rgba(230,236,255,${a})`; ctx.fillRect(x, y, sz, sz)
   }
-  drawCitadel(ctx, W * 0.5 + sh * 1.3, dockTop - 330, 0.8, t)
   for (let i = 0; i < 5; i++) {                                        // Citadel shuttles drifting
     const dir = i % 2 ? 1 : -1, span = W + 1200, sp = 18 + 14 * _h(i + 3)
-    const x = ((_h(i + 11) * span + dir * t * sp) % span + span) % span - 600 + sh * 1.6, y = dockTop - 330 - 260 * _h(i + 21)
+    const x = ((_h(i + 11) * span + dir * t * sp) % span + span) % span - 600 + sh * 1.6, y = dockTop - 150 - 150 * _h(i + 21)
     ctx.fillStyle = "#b8c4d4"; ctx.beginPath(); ctx.ellipse(x, y, 9, 3, 0, 0, Math.PI * 2); ctx.fill()
     ctx.fillStyle = (Math.floor(t * 2 + i) % 2) ? "#9dff6a" : "#ff6a6a"; ctx.fillRect(x - 1, y + 2, 2, 2)
   }
-  const per = 11, ph = (t % per) / per, dir = Math.floor(t / per) % 2 ? -1 : 1     // the cruiser crossing
-  const cxr = dir > 0 ? padL - 120 + (padR - padL + 240) * ph : padR + 120 - (padR - padL + 240) * ph
-  drawCruiser(ctx, cxr, dockTop - 300 + Math.sin(t * 2.3) * 12 - 120 * Math.sin(ph * Math.PI), 1.4, dir, t)
 }
 
-function citadelWall(ctx, def, c, d, { W, w, h, padL, padR, dockTop, p }) {
+// what you see through each viewport (rows 70..150, x < 392 of every wall copy): deep space framed by the window —
+// the Citadel's tower city, a ringed planet, and a cruiser gliding past. Drawn BEFORE the wall, so frames/pillars sit on top.
+function citadelWindows(ctx, d, { W, w, padL, padR, p }) {
+  const t = now(), S = d.S, vy0 = d.y + 66 * S, vh = 90 * S, vw = 392 * S, sh = shift(p, W)
+  for (let k = Math.floor((padL - d.x) / w); d.x + k * w < padR; k++) {
+    const odd = Math.abs(k) % 2 === 1, x0 = d.x + k * w, vx0 = odd ? x0 + w - vw : x0
+    if (vx0 > padR || vx0 + vw < padL) continue
+    ctx.save(); ctx.beginPath(); ctx.rect(vx0, vy0, vw, vh); ctx.clip()
+    const g = ctx.createLinearGradient(0, vy0, 0, vy0 + vh); g.addColorStop(0, "#07051a"); g.addColorStop(1, "#1d0f3e")
+    ctx.fillStyle = g; ctx.fillRect(vx0, vy0, vw, vh)
+    const par = -sh * 0.25                                      // the view shifts a little as the camera moves: depth
+    const ng = ctx.createRadialGradient(vx0 + vw * 0.3 + par, vy0 + vh * 0.4, 0, vx0 + vw * 0.3 + par, vy0 + vh * 0.4, vw * 0.5)
+    ng.addColorStop(0, "rgba(60,170,120,0.35)"); ng.addColorStop(1, "rgba(60,170,120,0)"); ctx.fillStyle = ng; ctx.fillRect(vx0, vy0, vw, vh)
+    for (let i = 0; i < 90; i++) {
+      const sx = vx0 + ((_h(i + k * 131) * vw * 1.4 + par * 0.5) % (vw * 1.4)) - vw * 0.2, sy = vy0 + _h(i + 500 + k) * vh
+      ctx.fillStyle = `rgba(235,240,255,${0.35 + 0.65 * Math.abs(Math.sin(t * (0.5 + _h(i)) + i))})`; ctx.fillRect(sx, sy, _h(i + 9) > 0.9 ? 2 : 1, _h(i + 9) > 0.9 ? 2 : 1)
+    }
+    // a ringed planet low on one side
+    const px = vx0 + vw * (odd ? 0.2 : 0.82) + par * 0.6, py = vy0 + vh * 0.78, pr = vh * 0.42
+    const pg = ctx.createRadialGradient(px - pr * 0.4, py - pr * 0.4, pr * 0.1, px, py, pr)
+    pg.addColorStop(0, "#f2a35e"); pg.addColorStop(0.7, "#a2462e"); pg.addColorStop(1, "#3a1420")
+    ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fill()
+    ctx.strokeStyle = "rgba(240,210,160,0.7)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(px, py, pr * 1.7, pr * 0.32, -0.25, 0, Math.PI * 2); ctx.stroke()
+    // the Citadel city, floating in the middle distance
+    drawCitadel(ctx, vx0 + vw * (odd ? 0.62 : 0.4) + par, vy0 + vh * 0.5, vh / 300, t)
+    // a cruiser gliding past this window now and then
+    const per = 9 + (Math.abs(k) % 3) * 2, ph = ((t + k * 3.7) % per) / per, dir = (k % 2) ? -1 : 1
+    if (ph < 0.6) {
+      const u = ph / 0.6, cx = dir > 0 ? vx0 - 60 + (vw + 120) * u : vx0 + vw + 60 - (vw + 120) * u
+      drawCruiser(ctx, cx, vy0 + vh * 0.3 + Math.sin(t * 2.3 + k) * 4, vh / 160, dir, t)
+    }
+    ctx.restore()
+  }
+}
+
+function citadelWall(ctx, def, c, d, { W, w, h, padL, padR, dockTop, coverTop, p }) {
   if (!d) return
+  if (d.y > coverTop) {                                            // the hall's ceiling above the wall (enclosed, no open sky)
+    const g = ctx.createLinearGradient(0, coverTop, 0, d.y); g.addColorStop(0, "#05070c"); g.addColorStop(1, "#141a26")
+    ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, d.y - coverTop + 1)
+    ctx.fillStyle = "#1f2735"
+    for (let k = Math.floor((padL - d.x) / 90); d.x + k * 90 < padR; k++) ctx.fillRect(d.x + k * 90, coverTop, 6, d.y - coverTop)
+    for (let yy = d.y - 14; yy > coverTop; yy -= 46) ctx.fillRect(padL, yy, padR - padL, 4)
+  }
+  { // glass reflections on the viewport (rows 70..150, x < 392 of each wall copy)
+    const S = d.S, vy0 = d.y + 70 * S, vh = 80 * S   // (the view itself: citadelWindows)
+    ctx.save(); ctx.beginPath(); ctx.rect(padL, vy0, padR - padL, vh); ctx.clip()
+    for (let k = Math.floor((padL - d.x) / w); d.x + k * w < padR; k++) {
+      const odd = Math.abs(k) % 2 === 1, x0 = d.x + k * w, vx0 = odd ? x0 + w - 392 * S : x0, vw = 392 * S
+      ctx.fillStyle = "rgba(120,200,255,0.05)"; ctx.fillRect(vx0, vy0, vw, vh)
+      for (const [f, ww] of [[0.12, 26], [0.2, 9], [0.58, 34], [0.67, 10]]) {
+        ctx.fillStyle = "rgba(210,240,255,0.07)"; ctx.beginPath()
+        ctx.moveTo(vx0 + vw * f, vy0 + vh); ctx.lineTo(vx0 + vw * f + ww, vy0 + vh); ctx.lineTo(vx0 + vw * f + ww + vh * 0.6, vy0); ctx.lineTo(vx0 + vw * f + vh * 0.6, vy0); ctx.fill()
+      }
+    }
+    ctx.restore()
+  }
   const t = now(), L = c.layout, S = d.S
   const [rx, ry, rw, rh] = L.pieces.wall.reactor
   ctx.save(); ctx.globalCompositeOperation = "lighter"

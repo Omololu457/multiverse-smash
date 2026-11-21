@@ -1215,8 +1215,23 @@ class SoundManager {
     // Queue until the first gesture, then resolve file → procedural fallback.
     if (!this._gestured) { this._pendingMusic = { kind: "stage", stage }; return }
     this._fileFallbackTheme = this._proceduralThemeForStage(stage)
+    const list = Array.isArray(stage?.playlist) && stage.playlist.length > 1 ? stage.playlist : null
+    if (list) {                                       // a stage playlist: songs play in turn, then wrap around
+      const cur = list.findIndex(f => this._resolveSrc(f) === this._musicFileSrc)
+      if (this._playStageList(stage, list, cur < 0 ? 0 : cur)) return
+    }
     if (stage?.music && this.playMusicFile(stage.music, true)) return
     this.playMusic(this._fileFallbackTheme, true)
+  }
+
+  _playStageList(stage, list, i) {
+    const n = list.length, k = ((i % n) + n) % n
+    if (!this.playMusicFile(list[k], false)) return false
+    if (this._musicFile) this._musicFile.onended = () => {
+      if (this._menuPlaylistActive || this._lastStage !== stage) return   // menu / another stage took over
+      this._playStageList(stage, list, k + 1)
+    }
+    return true
   }
 
   // Restore the current map's own track (used when a domain that hijacked the

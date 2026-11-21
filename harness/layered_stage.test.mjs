@@ -14,6 +14,8 @@ const server = await new Promise(r => { const s = http.createServer((req, res) =
 let pass = 0, fail = 0; const check = (n, c, e = "") => { console.log(`${c ? "✓" : "❌"} ${n}${e ? "  — " + e : ""}`); c ? pass++ : fail++ }
 const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] })
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
+// remember every Audio() the game makes, so a playlist test can end the current song
+await page.addInitScript(() => { const A = window.Audio; window.__audios = []; window.Audio = function (...a) { const x = new A(...a); window.__audios.push(x); return x }; window.Audio.prototype = A.prototype })
 const errors = []; page.on("pageerror", e => errors.push(String(e)))
 const sleep = t => new Promise(r => setTimeout(r, t))
 try {
@@ -64,6 +66,19 @@ try {
     const ms = await page.evaluate(() => window.__harness.musicState())
     const ok = await page.evaluate(async f => (await fetch("./" + encodeURI(f))).ok, want)
     check(`stage song "${want}" playing and its file loads`, String(ms.fileSrc || "").includes(want.slice(0, 10)) && ok, JSON.stringify(ms.fileSrc))
+  }
+  // a stage playlist: when a song ends the next one plays, and the last wraps back to the first
+  const line = fs.readFileSync(path.join(ROOT, "game.js"), "utf8").split("\n").find(l => l.includes(`name: ${JSON.stringify(STAGE)}`)) || ""
+  const pm = line.match(/playlist:\s*(\[[^\]]*\])/), list = pm ? JSON.parse(pm[1]) : null
+  if (Array.isArray(list) && list.length > 1) {
+    const seen = []
+    for (let i = 0; i < list.length; i++) {
+      await page.evaluate(() => { const a = window.__audios.find(x => x.src && !x.paused) || window.__audios.find(x => x.src); a?.dispatchEvent(new Event("ended")) })
+      await sleep(600); seen.push((await page.evaluate(() => window.__harness.musicState())).fileSrc)
+    }
+    const files = await Promise.all(list.map(f => page.evaluate(async f => (await fetch("./" + encodeURI(f))).ok, f)))
+    const exp = [...list.slice(1), list[0]]
+    check(`playlist cycles ${list.join(" → ")} → (wraps)`, files.every(Boolean) && exp.every((f, i) => String(seen[i] || "").includes(encodeURI(f).slice(0, 12)) || String(seen[i] || "").includes(f.slice(0, 12))), JSON.stringify(seen))
   }
   // stage select: the card shows the stage's preview picture
   const idx = await page.evaluate(n => window.__harness.selectStageByName("__none__").have.indexOf(n), STAGE)

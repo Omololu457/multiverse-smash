@@ -1,8 +1,8 @@
 # tools/stage_layers/slice_zangief_citadel.py — Zangief's factory (SFII sheet) → CITADEL OF RICKS (sci-fi hall).
 #   python3 -I tools/stage_layers/slice_zangief_citadel.py <sheet.png> <repoRoot>
 # Reads the sheet's pieces and repaints them as the inside of the Citadel of Ricks:
-#   factory wall → dark steel hall; its dark window + glass dome + far corner become OPEN to space (transparent, the
-#   renderer draws space, the Citadel and passing ships behind); green pipes → glowing portal-fluid conduits; the
+#   factory wall → an enclosed dark steel hall; space is seen only THROUGH WINDOWS: a long framed viewport in the
+#   brick wall and the glass skylight panes of the dome (the renderer draws space, the city and passing ships behind); green pipes → glowing portal-fluid conduits; the
 #   yellow turbine → a portal-fluid reactor; the Russian sign → "CITADEL OF RICKS"; catwalk workers → station crew;
 #   the balcony crowd → an original sci-fi crew (white lab coats, teal / orange / violet jumpsuits; the two uniformed
 #   men stay station security); red steel → gunmetal;
@@ -77,11 +77,16 @@ crew = box(wall, 398, 44, 416, 70); sci = box(wall, 418, 40, 440, 70)
 cm = crew & (s_ > 0.15) & (h_ > 90) & (h_ < 180); col[cm] = ramp(v[cm], *TEAL)
 coat = sci & (s_ < 0.2) & (v_ > 0.45); col[coat] = ramp(v[coat], *LABCOAT)
 wall[..., :3] = col
-viewport = (ys >= 68) & (ys < 116) & (xs < 392) & ~pipes                   # a long viewport onto space through the brick wall
-frame = ((ys >= 65) & (ys < 68) | (ys >= 116) & (ys < 119)) & (xs < 392)
-wall[frame & ~pipes, :3] = [150, 170, 190]
-wall[open_win | corner | viewport, 3] = 0
-wall[dome, 3] = 24                                                              # glass: space shows through, faint tint
+viewport = (ys >= 70) & (ys < 150) & (xs < 392) & ~pipes                   # a tall viewport onto space through the brick wall
+frame = ((ys >= 66) & (ys < 70) | (ys >= 150) & (ys < 155)) & (xs < 392) & ~pipes
+wall[frame, :3] = ramp(np.where((ys[frame] % 4) < 2, 0.8, 0.55), (60, 70, 84), (170, 186, 204))
+wall[(ys >= 155) & (ys < 157) & (xs < 392) & ~pipes, :3] = [20, 24, 32]    # sill shadow
+panel = open_win | corner                                                  # unframed dark areas → ceiling panels, not sky
+wall[panel, :3] = ramp(np.where(((xs[panel] // 24) + (ys[panel] // 16)) % 2 == 0, 0.35, 0.25), (10, 12, 20), (90, 100, 120))
+sign_keep = (xs >= 262) & (xs <= 392) & (ys >= 70) & (ys <= 95)            # the sign + its post stay solid steel
+wall[viewport & sign_keep, :3] = ramp(v[viewport & sign_keep], (10, 13, 22), (74, 86, 112), 1.3)
+wall[viewport & ~sign_keep, 3] = 0
+wall[dome, 3] = 70                                                         # skylight glass: tinted, space visible behind                                                              # glass: space shows through, faint tint
 wall[dome, :3] = [150, 220, 210]
 # the sign → CITADEL OF RICKS
 img = Image.fromarray(np.clip(wall, 0, 255).astype(np.uint8)); d = ImageDraw.Draw(img)

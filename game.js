@@ -2369,7 +2369,7 @@ const STAGE_DEFS = [
   { name: "Planet Namek",           series: "dragonball",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
   { name: "World Tournament Arena", series: "dragonball",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b", backgroundImage: "mugen_train_bg.png" },
-  { name: "Citadel of Ricks",       series: "rickmorty",   music: "Playboi Carti - Tattoo.mp3", landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14", worldWidth: 2400, layers: "zangief_citadel", backgroundImage: "stages/zangief_citadel/preview.png" },
+  { name: "Citadel of Ricks",       series: "rickmorty",   music: "Playboi Carti - Tattoo.mp3", playlist: ["Playboi Carti - Tattoo.mp3", "Cochise - Knicks (Official Video).mp3"], landmark: "citadel",      sky: "#11182b", mid: "#1e293b", floor: "#0f172a", accent: "#39ff14", worldWidth: 2400, layers: "zangief_citadel", backgroundImage: "stages/zangief_citadel/preview.png" },
   { name: "Null Void",              series: "ben10",       landmark: "null_void",    sky: "#1a0b2e", mid: "#2e1065", floor: "#170a28", accent: "#22d3ee" },
   // ── UNIVERSE STAGES — fill the 8 gap universes that previously fell back to the generic "other" maps.
   // No dedicated background art on disk → each renders via a bespoke procedural landmark (ui.js

@@ -12,6 +12,8 @@ const ROOT = path.resolve(process.argv[2] || ".")
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : d }
 const GAP = +arg("--allow-gap", 0)   // >0: also keep COMBO STRINGS (counter keeps counting, ≤ GAP free frames between hits)
 const WORKERS = +arg("--workers", 6), ONLY = arg("--only", null), MAX = +arg("--max", 8), TURBO = +arg("--turbo", 8)
+const TARGET = +arg("--target", 0)          // >0: after the listed routes, EXTEND every verified chain until TARGET combos per fighter
+const BUDGET = +arg("--budget-min", 25) * 60000   // wall-clock cap per fighter for the extension search
 const TODAY = arg("--date", new Date().toISOString().slice(0, 10))
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const DOC = JSON.parse(fs.readFileSync(path.join(HERE, "combo_candidates.json"), "utf8"))
@@ -97,8 +99,10 @@ async function worker(keys, wi) {
       const L = window.__lab, r = L.api.buildMoves(k)
       return { energy: r.kit?.energy || "meter", moves: r.moves.map(m => ({ name: m.name, input: m.input, cat: m.cat, air: m.parsed.air, steps: m.parsed.steps, startup: m.startup, active: m.active, recovery: m.recovery, cost: m.cost })) }
     }, key)
+    // --target: CONTINUE from the combos this fighter already has (they seed the extension search and count toward the target)
+    if (TARGET > 0) for (const c of existing.filter(c => c.char === key && /^generated|^docs\//.test(c.source || ""))) if (!results.some(r => r.id === c.id)) results.push(c)
     const cands = [...(DOC[key] || []).map(d => ({ ...d, source: `docs/${d.doc || key}/COMBOS.md` })), ...(AI[key] || []).map(d => ({ ...d, source: "generated (watched the CPU play)" })), ...GENERIC.map(steps => ({ steps, source: "generated (frame-data chain)" }))]
-    let kept = 0
+    let kept = TARGET > 0 ? results.filter(r => r.char === key).length : 0
     // PRE-FILTER: a grounded step that cannot land a hit on its own from close range can't start or extend a combo;
     // test each one once (turbo) and drop every candidate that uses a dead step, before any timing search.
     const alone = {}
@@ -150,6 +154,54 @@ async function worker(keys, wi) {
       results.push(entry); kept++
       report.push({ char: key, steps: cand.steps, source: cand.source, verified: true, hits: entry.hits, damage: entry.damage })
     }
+    // ── EXTENSION SEARCH (--target): every move that hits on its own is a "hitter"; breadth-first, append each hitter to every
+    // chain that already verified (searching only the new step's timing), confirm each new chain twice at real speed.
+    if (TARGET > 0 && kept < TARGET) {
+      const strip = s => String(s).replace(/\s*\([^)]*\)/g, "").trim()
+      const pool = ["Light", "Heavy", "Up-Attack", "Down + Light", ...info.moves.filter(m => !m.air && m.steps.length && ["special", "mobility", "light", "heavy", "upAttack"].includes(m.cat)).map(m => strip(m.input))]
+      const hitters = []
+      for (const s of [...new Set(pool)]) {
+        if (hitters.length >= 12) break
+        if (!(s in alone)) { if (!frameDataFor(info.moves, s) && !isNormal(stepOf(s))) continue; alone[s] = (await turboVerify({ char: key, steps: [s], gaps: [0], tail: 40 })).ok }
+        if (alone[s]) hitters.push(s)
+      }
+      const have = new Set(results.filter(r => r.char === key).map(r => JSON.stringify(r.steps)))
+      let level = [...results.filter(r => r.char === key).map(r => ({ steps: r.steps, gaps: r.gaps })), ...hitters.map(h => ({ steps: [h], gaps: [0] }))]
+      const tried = new Set()
+      while (kept < TARGET && level.length && Date.now() - t0 < BUDGET) {
+        const next = []
+        for (const base of level) {
+          if (kept >= TARGET || Date.now() - t0 > BUDGET) break
+          if (base.steps.length >= 6) continue
+          for (const h of hitters) {
+            if (kept >= TARGET || Date.now() - t0 > BUDGET) break
+            const steps = [...base.steps, h], sk = JSON.stringify(steps)
+            if (tried.has(sk) || have.has(sk)) continue; tried.add(sk)
+            if (steps.length >= 3 && steps.slice(-3).every(x => x === h)) continue   // no x, x, x padding
+            const fd = frameDataFor(info.moves, base.steps[base.steps.length - 1])
+            const S = fd?.startup ?? 6, A = fd?.active ?? 3, R = fd?.recovery ?? 12
+            let ok = null
+            for (const g of [...new Set([S + 2, S + A + R - 8, 9, 13].map(g => Math.max(3, Math.min(40, Math.round(g)))))]) {
+              const r = await turboVerify({ char: key, steps, gaps: [...base.gaps, g], tail: 40, gapAllowed: GAP })
+              if (r.ok) { ok = [...base.gaps, g]; break }
+            }
+            if (!ok) continue
+            next.push({ steps, gaps: ok })
+            const real = await page.evaluate(c => window.__lab.api.verifyCombo(c, { expect: false }), { char: key, steps, gaps: ok, gapAllowed: GAP })
+            if (!real.ok) continue
+            const again = await page.evaluate(c => window.__lab.api.verifyCombo(c), { char: key, steps, gaps: ok, hits: real.comboCounter, gapAllowed: GAP })
+            if (!again.ok || again.damage !== real.damage) continue
+            const ff = Math.max(again.freeFrames || 0, real.freeFrames || 0)
+            const cost = steps.reduce((t, s) => t + (frameDataFor(info.moves, s)?.cost || 0), 0)
+            const notes = [cost > 0 ? `uses ${cost} ${info.energy}` : null, ff ? `combo string: the game counts every hit, but a real opponent could block in the ${ff}-frame gap` : null].filter(Boolean)
+            results.push({ id: `${key}:${steps.join(">").replace(/\s+/g, "")}`, char: key, name: nameFor(steps, info.moves), steps, gaps: ok, hits: again.comboCounter, hitsAt: again.hitsAt, damage: again.damage,
+              difficulty: difficultyFor(steps), note: notes.join(" · "), verified: TODAY, status: "verified", source: "generated (extended chain search)", ...(ff ? { kind: "string", freeFrames: ff, gapAllowed: GAP } : {}) })
+            have.add(sk); kept++
+          }
+        }
+        level = next
+      }
+    }
     console.log(`[w${wi}] ${key}: ${kept} verified (${((Date.now() - t0) / 1000).toFixed(0)}s)`)
   }
   await page.close()
@@ -163,7 +215,7 @@ results.sort((a, b) => a.char.localeCompare(b.char) || (a.source.startsWith("doc
 const outCombos = path.join(ROOT, "controls_lab", "combos.json")
 // MERGE: keep every entry for fighters not in this run, and hand-written entries (any other `source`) for all fighters
 let prev = []; try { prev = JSON.parse(fs.readFileSync(outCombos, "utf8")).combos || [] } catch (_) {}
-const ran = new Set(roster), generated = c => /^(docs\/|generated)/.test(c.source || "")
+const ran = new Set(roster), generated = c => /^(docs\/|generated)/.test(c.source || "") && c.source !== "generated (Ben 10 alien search)"   // the Ben search owns its own entries
 const kept = prev.filter(c => !ran.has(c.char) || !generated(c)).filter(c => !results.some(r => r.id === c.id))
 const merged = [...kept, ...results].sort((a, b) => a.char.localeCompare(b.char))
 fs.writeFileSync(outCombos, JSON.stringify({ version: 1, generated: TODAY, note: "Every entry was verified in the real engine (tools/controls_lab/build_combos.mjs). Add your own: same shape, status \"verified\" after harness/controls_lab_combos.test.mjs passes.", combos: merged }, null, 1) + "\n")

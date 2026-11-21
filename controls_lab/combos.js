@@ -18,6 +18,18 @@ export function stepOf(notation) {
   return { ...st }
 }
 export function comboSteps(c) { return (c.steps || []).map(stepOf) }
+// ALIEN SWAP steps (Ben 10 / Albedo Omnitrix dial, entry field `swaps: [step indices]`): the swap need not land its own
+// hit (it may, e.g. a transform burst) — but the combo must stay unbroken across it (no free dummy frame).
+export const isSwapStep = (c, i) => Array.isArray(c?.swaps) && c.swaps.includes(i)
+// Per-combo setup the engine needs before the reset (entry field `benLoadout`: the five Omnitrix slots, in order).
+export function applyComboSetup(eng, c) {
+  if (Array.isArray(c?.benLoadout) && c.benLoadout.length) {
+    try {   // rebuilding the Omnitrix is expensive (alien art) — only when the slots actually differ
+      const cur = eng.h.benLoadout()?.aliens || []
+      if (cur.join("+") !== c.benLoadout.join("+")) eng.h.benLoadout(c.benLoadout)
+    } catch (_) {}
+  }
+}
 
 // Build the frame script. Each step's BUTTON goes down exactly at its press frame; motion/direction lead-ins are
 // placed in the frames before it (compressed when the gap is short) — like a player rolling into the button.
@@ -49,6 +61,7 @@ function holdOf(s) { return s.kind === "jump" ? 3 : Math.max(4, s.hold || 0) }
 
 // Run a combo in the engine and measure it. Returns { ok, hits, hitsAt, damage, reason }.
 export async function verifyCombo(eng, c, { expect = true } = {}) {
+  applyComboSetup(eng, c)
   await eng.reset()
   const { script, at } = comboScript(c)
   const frames = eng.facing() >= 0 ? script : script.map(r => ({ ...r, left: !!r.right, right: !!r.left }))
@@ -77,6 +90,11 @@ export async function verifyCombo(eng, c, { expect = true } = {}) {
   let ptr = 0, stepMiss = -1
   steps.forEach((st, s) => {
     if (st.kind === "jump") { firstOf.push(null); return }
+    if (isSwapStep(c, s)) {   // claims a hit only if one lands before the next press
+      let j = ptr; while (j < hitFrames.length && hitFrames[j] < at[s]) j++
+      if (j < hitFrames.length && (s + 1 >= at.length || hitFrames[j] < at[s + 1])) { firstOf.push(j); ptr = j + 1 } else firstOf.push(null)
+      return
+    }
     let j = ptr; while (j < hitFrames.length && hitFrames[j] < at[s]) j++
     if (j >= hitFrames.length) { if (stepMiss < 0) stepMiss = s; firstOf.push(null); return }
     firstOf.push(j); ptr = j + 1

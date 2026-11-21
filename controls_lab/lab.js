@@ -4,7 +4,7 @@ import { LabEngine, FIELDS, mirrorRaw } from "./engine.js"
 import { ControllerView, mirrorNum } from "./controller.js"
 import { buildMoves } from "./moves.js"
 import { rawToNumpad, rawButtons, NUMPAD_ARROW } from "./notation.js"
-import { comboScript, comboSteps, verifyCombo } from "./combos.js"
+import { comboScript, comboSteps, verifyCombo, applyComboSetup, isSwapStep } from "./combos.js"
 
 const $ = s => document.querySelector(s)
 const LS = { state: "ms_controls_lab", mastered: "ms_controls_lab_mastered", big: "ms_controls_lab_big", zoom2: "ms_controls_lab_zoom2" }
@@ -386,6 +386,7 @@ function buildStages(c) {
 }
 async function startTrial(c, { showDemo = true } = {}) {
   stopTask()
+  applyComboSetup(eng, c)
   const steps = comboSteps(c), sc = comboScript(c)
   if (showDemo) { await runDemo({ script: sc.script, at: sc.at, steps, label: "WATCH" }); if (S.mode !== "trial") return }
   const T = S.task = { kind: "trial", combo: c, steps, at: sc.at, stages: buildStages(c), stageIdx: 0, attempts: 0, clearedSteps: new Set(), fb: "", fbClass: "", log: "", ptr: 0 }
@@ -396,10 +397,11 @@ async function armStage(T) {
   if (S.task !== T) return
   const stage = T.stages[T.stageIdx]
   if (!stage) return trialComplete(T)
+  applyComboSetup(eng, T.combo)
   await eng.reset()
   if (S.task !== T) return
   T.ptr = stage.from; T.lastPress = null; T.pressFrames = []; T.failed = false; T.endAt = null; T.prevRaw = {}
-  T.hitsNeeded = T.steps.slice(stage.from, stage.to + 1).filter(s => s.kind !== "jump").length
+  T.hitsNeeded = T.steps.slice(stage.from, stage.to + 1).filter((s, i) => s.kind !== "jump" && !isSwapStep(T.combo, stage.from + i)).length
   T.hitEvents = 0; T.firstHitAt = null; T.freeAfterHit = 0; T.lastHp = null
   T.armSeq = (T.armSeq || 0) + 1
   $("#arenaBadge").textContent = `TRIAL · ${stage.label.toUpperCase()}`
@@ -669,7 +671,7 @@ function wireUI() {
     const mc = e.target.closest("[data-move]")
     if (mc) { const m = S.moves[+mc.dataset.move]; if (S.mode === "free") return; return demoMove(m) }
     const cc = e.target.closest("[data-combo]")
-    if (cc) { S.selCombo = S.combos[+cc.dataset.combo]; renderMode(); const c = S.selCombo; const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c) }) }
+    if (cc) { S.selCombo = S.combos[+cc.dataset.combo]; renderMode(); const c = S.selCombo; applyComboSetup(eng, c); const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c) }) }
   }
   document.addEventListener("keydown", onKey, true)
   document.addEventListener("keyup", onKeyUp, true)
@@ -707,10 +709,10 @@ function onAction(act) {
   if (act === "replay" && m) return demoMove(m)
   if (act === "slow" && m) return demoMove(m, true)
   if (act === "yourturn" && m) return yourTurnMove(m)
-  if ((act === "cdemo" || act === "cslow") && c) { const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c), slow: act === "cslow" }) }
+  if ((act === "cdemo" || act === "cslow") && c) { applyComboSetup(eng, c); const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c), slow: act === "cslow" }) }
   if (act === "ctrial" && c) { setMode("trial"); return startTrial(c) }
   if (act === "tstart" && c) return startTrial(c)
-  if (act === "tshow" && c) { const T = S.task; const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c), label: "WATCH" }).then(() => { if (T && T.kind === "trial") { S.task = T; takeControl(true); armStage(T) } }) }
+  if (act === "tshow" && c) { const T = S.task; applyComboSetup(eng, c); const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c), label: "WATCH" }).then(() => { if (T && T.kind === "trial") { S.task = T; takeControl(true); armStage(T) } }) }
   if (act === "tpick" && S.combos.length) { const i = S.combos.indexOf(c); S.selCombo = S.combos[(i + 1) % S.combos.length]; stopTask(); renderMode() }
 }
 function onKey(e) {

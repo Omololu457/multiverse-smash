@@ -56,3 +56,13 @@ every hit, but the dummy gets up to N free frames between two hits (a gap a real
 `kind: "string"`, `freeFrames` and `gapAllowed`; the card shows **STRING · gap Nf** (true combos show **TRUE COMBO**), the
 verifier and the trial judge accept up to `gapAllowed` free frames. Used (N = 12) only for fighters with no true combo.
 Fighters still without a combo after that have no route under a 12-frame gap (see combo_build_report.json for the reasons).
+
+## Ben 10 alien combos (2026-11-21)
+`node tools/controls_lab/ben_combos.mjs . [--target 30] [--budget-min 90] [--rotate 1] [--swaps-only]` searches Ben's combos
+through his Omnitrix. The 24 ready aliens are covered by five loadouts (the default XLR8 / Diamondhead / Feedback / Wildmutt /
+Heatblast first); `--rotate 1` shifts every loadout one slot (the slot-1 Light dial also throws a jab, which breaks an opener).
+Engine facts the search uses: human → alien takes ~40 frames (Ben keeps fighting meanwhile); **alien → alien is instant** and
+opens with the new alien's swap-in attack, so a swap dial 4-12 frames after a hit keeps the combo alive and the next press
+comes ~26-34 frames later. Entries carry `benLoadout` (applied before the reset — only when the slots differ, rebuilding the
+Omnitrix is expensive) and `swaps` (dial step indices: they need not land their own hit, but no free dummy frame is allowed
+across them). The card notes the loadout; demos and trials equip it automatically.

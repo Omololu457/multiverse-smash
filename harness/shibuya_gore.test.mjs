@@ -52,6 +52,25 @@ try {
   const s2 = await S()
   check("landed hits blow holes in the towers", s2.holes > h0 && s2.total > 0, JSON.stringify(s2))
   await page.screenshot({ path: path.join(OUT, "destruction.png") })
+  // who kills: villains / the ones who don't care do; heroes (Yuji, the Rangers, …) only knock bystanders down
+  { const k = await page.evaluate(async () => { const M = await import("./stageLayers.js"); return ["sukuna", "toji", "madara", "homelander", "yuji", "gojo", "naruto", "spd_red", "mmpr_pink", "green_ranger", "superman", "spiderman"].map(r => r + ":" + (M.shibuyaKills(r) ? "kill" : "spare")) })
+    const want = s => /sukuna|toji|madara|homelander/.test(s) ? s.endsWith(":kill") : s.endsWith(":spare")
+    check("villains kill bystanders, heroes and Rangers spare them", k.every(want), k.join(" ")) }
+  // a HERO's real attack in a match: the bystander is knocked down, not killed
+  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=yuji&p2=naruto`, { waitUntil: "load" })
+  await page.waitForFunction(() => !!window.__harness?.boot, null, { timeout: 30000 })
+  await page.mouse.click(640, 360)
+  await page.evaluate(n => window.__harness.selectStageByName(n), STAGE)
+  await page.evaluate(() => window.__harness.start())
+  await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
+  await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
+  await page.evaluate(() => window.__harness.skipToBattle()); await sleep(3500)
+  { const b = await S()
+    await page.evaluate(async () => { const D = (await import("./stageLayers.js")).shibuyaDebug, h = window.__harness, p = h.p1(), q = h.p2(); D.ped(p.x + (p.w || 50) / 2 + Math.sign(q.x - p.x) * 70) })
+    for (let i = 0; i < 6; i++) { await page.keyboard.down("KeyJ"); await sleep(70); await page.keyboard.up("KeyJ"); await sleep(260) }
+    await sleep(600); await page.screenshot({ path: path.join(OUT, "hero_spares.png") })
+    const a = await S()
+    check("a hero's (Yuji's) attack knocks a bystander down without killing them", a.spared > b.spared && a.dead + a.pieces === b.dead + b.pieces, `spared ${b.spared}→${a.spared}, dead ${b.dead + b.pieces}→${a.dead + a.pieces}`) }
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }
 await browser.close(); server.close()

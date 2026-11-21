@@ -1282,7 +1282,7 @@ function nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
 // screens dying, towers collapsing, shop glass breaking, craters in the street. Nothing here touches the fight:
 // the state is read from the fighters / attack boxes / projectiles the frame hands over, never written back.
 const SB = { p1: null, peds: [], pieces: [], rest: [], blood: [], pools: [], wall: [], glass: [], craters: [], debris: [], towers: null,
-  hp: new WeakMap(), last: 0, spawnT: 0, total: 0, ambientT: 0, seq: 0, yG: 0, W: 2400, cracks: [] }
+  hp: new WeakMap(), last: 0, spared: 0, spawnT: 0, total: 0, ambientT: 0, seq: 0, yG: 0, W: 2400, cracks: [] }
 const SB_TOWER_P = 0.35, SB_SHOP_P = 0.92, SB_SHOP_SC = 1.5
 let _sbSeed = 0x9e3779b9   // render-only PRNG (the sim never sees it)
 const sbRnd = () => { _sbSeed ^= _sbSeed << 13; _sbSeed ^= _sbSeed >>> 17; _sbSeed ^= _sbSeed << 5; return (_sbSeed >>> 0) / 4294967296 }
@@ -1301,7 +1301,7 @@ function sbTowers(W) {
 }
 function sbReset(p1, W) {
   Object.assign(SB, { p1, peds: [], pieces: [], rest: [], blood: [], pools: [], wall: [], glass: [], craters: [], debris: [], towers: sbTowers(W),
-    hp: new WeakMap(), spawnT: 0, total: 0, ambientT: 0, seq: 0, W, cracks: [] })
+    hp: new WeakMap(), spared: 0, spawnT: 0, total: 0, ambientT: 0, seq: 0, W, cracks: [] })
 }
 
 // a bystander drawn in chunky pixels (adults only): walk 0/1, panic 0/1
@@ -1350,6 +1350,17 @@ function sbBleed(x, y, n, vx0, spread, wallFrac = 0.3) {
     const a = -Math.PI / 2 + (sbRnd() - 0.5) * spread, sp = 120 + sbRnd() * 520
     SB.blood.push({ x, y, vx: vx0 + Math.cos(a) * sp, vy: Math.sin(a) * sp, s: 2 + sbRnd() * 4, wall: sbRnd() < wallFrac, life: 0.25 + sbRnd() * 0.5 })
   }
+}
+// Who kills bystanders: villains and the ones who don't care. Heroes (and anyone not listed) only knock them down —
+// the bystander gets up and runs.
+const SB_KILLERS = new Set(["goku_black", "vegeta_dark", "vegeta", "sukuna", "alt_sukuna", "toji", "madara", "obito", "tobi", "pain", "six_paths_pain",
+  "rick", "rickPrime", "beerus", "albedo", "kevin_levin", "hisoka", "chrollo", "ghostface", "jason", "isshiki", "zaraki", "zaraki_shikai", "mayuri", "light",
+  "homelander", "vilgax", "shisui_fallen", "soldier_boy", "buggy", "arlong", "krybot", "syndrome", "dseyl"])
+export const shibuyaKills = rk => SB_KILLERS.has(String(rk || ""))
+function sbStrike(pd, cause, fromX, rosterKey = "") {
+  if (pd.down > 0) return
+  if (shibuyaKills(rosterKey)) return sbKill(pd, cause, fromX, rosterKey)
+  pd.down = 0.9; pd.panic = 3; pd.freeze = false; pd.held = false; pd.dir = Math.sign(pd.x - fromX) || pd.dir; SB.spared++
 }
 function sbKill(pd, cause, fromX, rosterKey = "") {
   const { im, w, h } = pedSprite(pd), away = Math.sign(pd.x - fromX) || 1, flip = pd.dir < 0 ? -1 : 1
@@ -1433,7 +1444,7 @@ function sbUpdate(c, W, groundY, world) {
     const d = was - hp, x = f.x + (f.w || 50) / 2, att = F.find(o => o !== f)
     SB.total += d
     sbHitCity(x, d, t, W)
-    if (d >= 110) for (const pd of SB.peds) if (!pd.dead && Math.abs(pd.x - x) < 170) sbKill(pd, att?.currentAttack?.name || "blast", x, att?.rosterKey)
+    if (d >= 110) for (const pd of SB.peds) if (!pd.dead && Math.abs(pd.x - x) < 170) sbStrike(pd, att?.currentAttack?.name || "blast", x, att?.rosterKey)
   }
   // the fight elsewhere in Shibuya: as the match wears on, explosions go off in the towers on their own
   SB.ambientT -= dt
@@ -1453,15 +1464,16 @@ function sbUpdate(c, W, groundY, world) {
     for (const f of F) { const d = Math.abs(f.x + (f.w || 50) / 2 - pd.x); if (d < nd) { nd = d; near = f } }
     if (near && nd < 280 && pd.kind !== "biker" && !pd.held) { pd.panic = 1.5; pd.dir = Math.sign(pd.x - (near.x + (near.w || 50) / 2)) || pd.dir }
     pd.panic = Math.max(0, pd.panic - dt)
+    if (pd.down > 0) { pd.down -= dt; continue }                       // knocked over by a hero: lies there, then gets up and runs
     const sp = pd.freeze && pd.panic > 0 ? 0 : pd.speed * (pd.panic > 0 ? 3 : 1)
     pd.x += pd.dir * sp * dt
     if (pd.x < 10 || pd.x > W - 10) pd.dir *= -1                      // the dome: nobody gets out
     const { w, h } = pedSprite(pd), L = pd.x - w * 0.3, R = pd.x + w * 0.3, T = SB.yG - h, B = SB.yG
-    for (const [f, b] of boxes) if (b.x < R && b.x + b.w > L && b.y < B + 30 && b.y + b.h > T - 20) { sbKill(pd, f.currentAttack?.name, f.x + (f.w || 50) / 2, f.rosterKey); break }
+    for (const [f, b] of boxes) if (b.x < R && b.x + b.w > L && b.y < B + 30 && b.y + b.h > T - 20) { sbStrike(pd, f.currentAttack?.name, f.x + (f.w || 50) / 2, f.rosterKey); break }
     if (pd.dead) continue
     for (const p of world.projectiles || []) {
       const r = p.radius || (p.w || 20) / 2
-      if (p.x + r > L && p.x - r < R && p.y + r > T - 10 && p.y - r < B + 20) { const o = p.owner; sbKill(pd, p.name || p.type || "blast", p.x - (p.vx || 0), o?.rosterKey || ""); break }
+      if (p.x + r > L && p.x - r < R && p.y + r > T - 10 && p.y - r < B + 20) { const o = p.owner; sbStrike(pd, p.name || p.type || "blast", p.x - (p.vx || 0), o?.rosterKey || ""); break }
     }
   }
   SB.peds = SB.peds.filter(p => !p.dead && p.x > v.left - 1400 && p.x < v.right + 1400)
@@ -1657,7 +1669,9 @@ function shibuyaFx(ctx, def, c, { dockTop, padL, padR, coverBottom }) {
     const { im, w, h } = pedSprite(pd)
     if (pd.x + w < padL || pd.x - w > padR || !(ready(im) || im.getContext)) continue
     ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(pd.x, yG, w * 0.35, 4, 0, 0, 7); ctx.fill()
-    ctx.save(); ctx.translate(pd.x, yG); if (pd.dir < 0) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore()
+    ctx.save(); ctx.translate(pd.x, yG); if (pd.dir < 0) ctx.scale(-1, 1)
+    if (pd.down > 0) { ctx.rotate(-Math.PI / 2 * Math.min(1, (0.9 - pd.down) * 8)); ctx.translate(0, Math.min(1, (0.9 - pd.down) * 8) * w * 0.3) }
+    ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore()
   }
 }
 
@@ -1671,7 +1685,7 @@ function shibuyaFront(ctx, def, c, W, groundY, world) {
   for (const g of SB.glass) ctx.fillRect(g.x, g.y, g.s, g.s * 0.6)
 }
 // harness / debugging: what the street has seen so far
-export function shibuyaStats() { return { peds: SB.peds.length, pieces: SB.pieces.length, dead: SB.rest.length, blood: SB.blood.length, pools: SB.pools.length, holes: (SB.towers || []).reduce((n, t) => n + t.holes.length, 0), fallen: (SB.towers || []).filter(t => t.fall).length, total: SB.total } }
+export function shibuyaStats() { return { peds: SB.peds.length, pieces: SB.pieces.length, dead: SB.rest.length, blood: SB.blood.length, pools: SB.pools.length, holes: (SB.towers || []).reduce((n, t) => n + t.holes.length, 0), fallen: (SB.towers || []).filter(t => t.fall).length, total: SB.total, spared: SB.spared } }
 
 // harness hook: put a bystander standing still at world x; kill one with a named cause; read the counters
 export const shibuyaDebug = {

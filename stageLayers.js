@@ -160,6 +160,21 @@ SETS.blanka_nullvoid = {
   animRate: {},
 }
 
+// SHIBUYA INCIDENT — Chun-Li's Stage (SFII sheet) repainted by tools/stage_layers/slice_chunli_shibuya.py: the market
+// street at night under the dome, towers behind; bystanders, gore and city destruction drawn live (see drawShibuyaBack).
+SETS.chunli_shibuya = {
+  dir: "./stages/chunli_shibuya/",
+  S: 2,
+  standRow: 34,
+  deckFrontRow: 79,
+  floor: { piece: "street", farFactor: 0.8, rimFactor: 1.08, center: true, mirror: true },
+  back: [{ procedural: "shibuya", p: 0.35 }],
+  props: [],
+  front: [],
+  fx: "shibuya",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -277,6 +292,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "shibuya") { drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "nullvoid") { drawNullVoidBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "castle") { drawCastleBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "valley") { drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
@@ -365,6 +381,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "shibuya") shibuyaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "nullvoid") nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
@@ -385,8 +402,9 @@ function drawProps(ctx, c, def, list, W, dockTop) {
 }
 
 /** Foreground props, drawn AFTER the fighters (world space). No-op for stages without a layer set. */
-export function drawLayeredStageFront(ctx, stage, worldWidth, groundY) {
+export function drawLayeredStageFront(ctx, stage, worldWidth, groundY, world = null) {
   const set = stage?.layers, def = SETS[set]
+  if (def?.fx === "shibuya" && world && layeredStageReady(stage)) shibuyaFront(ctx, def, cache.get(set), worldWidth, groundY, world)
   if (def?.mode === "room3d") { if (layeredStageReady(stage)) drawRoomFront(ctx, def, worldWidth, groundY); return }
   if (def?.mode === "ssf2") { if (layeredStageReady(stage)) drawSsf2Front(ctx, def, cache.get(set), worldWidth, groundY); return }
   if (!def || !def.front?.length || !layeredStageReady(stage)) return
@@ -1255,4 +1273,409 @@ function nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     const ph = (t * (0.25 + 0.2 * _h(i)) + _h(i + 30)) % 1, x = padL + _h(i + 50) * (padR - padL), y = top + 40 + ph * (coverBottom - top)
     ctx.fillStyle = `rgba(120,96,150,${1 - ph})`; ctx.fillRect(x, y, 3 + 3 * _h(i), 3)
   }
+}
+
+// ───────────────────────────── SHIBUYA INCIDENT (render-only, wall clock) ─────────────────────────────
+// Chun-Li's street at night under the dome. A crowd of bystanders walks the kerb, panics when the fight comes near,
+// and dies to whatever reaches them: slashes cut them in half (Dismantle / Cleave dice them), blasts blow them apart,
+// strikes launch them. Every landed hit also damages the city behind: holes punched in the towers, fires, smoke,
+// screens dying, towers collapsing, shop glass breaking, craters in the street. Nothing here touches the fight:
+// the state is read from the fighters / attack boxes / projectiles the frame hands over, never written back.
+const SB = { p1: null, peds: [], pieces: [], rest: [], blood: [], pools: [], wall: [], glass: [], craters: [], debris: [], towers: null,
+  hp: new WeakMap(), last: 0, spawnT: 0, total: 0, ambientT: 0, seq: 0, yG: 0, W: 2400, cracks: [] }
+const SB_TOWER_P = 0.35, SB_SHOP_P = 0.92, SB_SHOP_SC = 1.05
+let _sbSeed = 0x9e3779b9   // render-only PRNG (the sim never sees it)
+const sbRnd = () => { _sbSeed ^= _sbSeed << 13; _sbSeed ^= _sbSeed >>> 17; _sbSeed ^= _sbSeed << 5; return (_sbSeed >>> 0) / 4294967296 }
+const SLASHERS = /sukuna|zoro|toji|tanjiro|zenitsu|inosuke|rengoku|ichigo|kenpachi|zaraki|yamamoto|killua|maki|miwa|kakashi|sasuke|itachi|madara|minato|hashirama|tobirama|hisoka/
+const isSlash = n => /slash|cleave|dismantle|sword|blade|cut|katana|slice|claw|scythe|sever|edge|fang|kunai|iai|tachi|zan|chidori|wind|whip/i.test(n)
+const isBlast = n => /ki\b|beam|blast|bomb|fire|flame|explo|kame|cannon|laser|rasen|purple|ball|wave|nuke|burst|meteor|arrow|shot|orb|ray|bullet|gun|missile|domain|ult/i.test(n)
+
+function sbTowers(W) {
+  const T = []; let x = -900, i = 0
+  while (x < W + 900) {
+    const w = 150 + 170 * _h(i * 17 + 3), h = 380 + 520 * _h(i * 29 + 7)
+    T.push({ x, w, h, i, holes: [], dmg: 0, fall: null, cut: 1, screen: _h(i * 41 + 1) > 0.62, neon: _h(i * 5 + 9) > 0.4 })
+    x += w + 14 + 40 * _h(i * 7 + 2); i++
+  }
+  return T
+}
+function sbReset(p1, W) {
+  Object.assign(SB, { p1, peds: [], pieces: [], rest: [], blood: [], pools: [], wall: [], glass: [], craters: [], debris: [], towers: sbTowers(W),
+    hp: new WeakMap(), spawnT: 0, total: 0, ambientT: 0, seq: 0, W, cracks: [] })
+}
+
+// a bystander drawn in chunky pixels (adults only): walk 0/1, panic 0/1
+const _pedCache = new Map()
+function pedFrames(seed) {
+  if (_pedCache.has(seed)) return _pedCache.get(seed)
+  const pick = (a, k) => a[Math.floor(_h(seed * 13 + k) * a.length)]
+  const skin = pick(["#f1c9a5", "#e0b08a", "#c58c64", "#8d5b3e", "#5e3c28"], 1), coat = pick(["#2b2f3a", "#5a2a2a", "#2f4a3a", "#bdb4a2", "#3a3f6a", "#7a5a30", "#141418", "#6a6f78", "#8a2f4a"], 2)
+  const pants = pick(["#1d1f26", "#33363f", "#2a3550", "#4a3a2a", "#111"], 3), hair = pick(["#141414", "#3a2618", "#6b4a2a", "#c9b07a", "#8a8a8a", "#1a1a2a"], 4)
+  const long = _h(seed * 13 + 5) > 0.6, bag = _h(seed * 13 + 6) > 0.6, px = 3, GW = 16, GH = 36
+  const fr = []
+  for (let f = 0; f < 4; f++) {
+    const cv = document.createElement("canvas"); cv.width = GW * px; cv.height = GH * px
+    const g = cv.getContext("2d"), R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x * px, y * px, w * px, h * px) }
+    const panic = f >= 2, step = f % 2
+    R(6, 2, 4, 5, skin); R(6, 1, 4, 2, hair); if (long) { R(5, 2, 1, 6, hair); R(10, 2, 1, 6, hair) } else R(5, 2, 1, 2, hair)
+    R(7, 7, 2, 1, skin); R(5, 8, 6, 11, coat); R(5, 8, 6, 1, "rgba(255,255,255,0.15)")
+    if (panic) { R(3, 2 + step, 2, 7, coat); R(11, 2 + (1 - step), 2, 7, coat); R(3, 1 + step, 2, 1, skin); R(11, 1 + (1 - step), 2, 1, skin) }
+    else { R(4, 9 + step, 1, 9, coat); R(11, 10 - step, 1, 9, coat); R(4, 18 + step, 1, 1, skin); R(11, 19 - step, 1, 1, skin) }
+    if (bag && !panic) R(11, 15 - step, 2, 4, "#3a2a1a")
+    const s = panic ? 2 : 1
+    R(6 - step * s, 19, 2, 15, pants); R(8 + step * s, 19, 2, 15, pants)
+    R(5 - step * s, 34, 3, 1, "#0c0c0c"); R(8 + step * s, 34, 3, 1, "#0c0c0c")
+    fr.push(cv)
+  }
+  _pedCache.set(seed, fr); return fr
+}
+function sbSpawn(c, viewL, viewR) {
+  const seq = SB.seq++, side = _h(seq * 3 + 1) < 0.5 ? -1 : 1, P = c.layout.peds
+  const kind = _h(seq * 7 + 2) < 0.12 ? "biker" : _h(seq * 7 + 3) < 0.1 ? "hatman" : "ped"
+  const x = side < 0 ? Math.max(20, viewL - 80) : Math.min(SB.W - 20, viewR + 80)
+  SB.peds.push({ kind, seed: seq * 977 + 13, x, dir: -side, speed: kind === "biker" ? 170 : 38 + 30 * _h(seq * 11), t: _h(seq) * 3,
+    freeze: kind === "ped" && _h(seq * 5 + 4) < 0.3, panic: 0, frames: kind === "ped" ? pedFrames(seq * 977 + 13) : P[kind].map(f => c.img[f.file]),
+    sc: kind === "ped" ? 1 : kind === "biker" ? 1.05 : 1.5 })
+}
+function pedSprite(pd) {
+  const k = pd.kind === "ped" ? (pd.panic > 0 ? 2 : 0) + (Math.floor(pd.t / (pd.panic > 0 ? 0.09 : 0.2)) % 2)
+    : Math.floor(pd.t / (pd.kind === "biker" ? 0.08 : 0.3)) % pd.frames.length
+  const im = pd.frames[k]; return { im, w: (im.width || 48) * pd.sc, h: (im.height || 108) * pd.sc }
+}
+
+// ── gore ──
+function sbBleed(x, y, n, vx0, spread, wallFrac = 0.3) {
+  for (let i = 0; i < n; i++) {
+    if (SB.blood.length > 900) SB.blood.shift()
+    const a = -Math.PI / 2 + (sbRnd() - 0.5) * spread, sp = 120 + sbRnd() * 520
+    SB.blood.push({ x, y, vx: vx0 + Math.cos(a) * sp, vy: Math.sin(a) * sp, s: 2 + sbRnd() * 4, wall: sbRnd() < wallFrac, life: 0.25 + sbRnd() * 0.5 })
+  }
+}
+function sbKill(pd, cause, fromX, rosterKey = "") {
+  const { im, w, h } = pedSprite(pd), away = Math.sign(pd.x - fromX) || 1, flip = pd.dir < 0 ? -1 : 1
+  const name = String(cause || "").toLowerCase()
+  const type = /dismantle|cleave/.test(name) ? "dice" : isSlash(name) || (SLASHERS.test(rosterKey) && !isBlast(name)) ? "cut" : isBlast(name) ? "gib" : "launch"
+  const base = { im, w, h, flip, landed: false }
+  const add = (poly, vx, vy, va, delay = 0, bleed = 0, cuts = []) => {
+    let cx = 0, cy = 0; for (const [a, b] of poly) { cx += a; cy += b } cx /= poly.length; cy /= poly.length
+    let r = 0; for (const [a, b] of poly) r = Math.max(r, Math.hypot(a - cx, b - cy))
+    SB.pieces.push({ ...base, poly, cx, cy, r, x: pd.x + cx, y: SB.yG + cy, vx, vy, a: 0, va, delay, bleed, cuts })
+  }
+  const L = -w / 2, R = w / 2
+  if (type === "cut") {
+    const y0 = -h * (0.45 + 0.2 * sbRnd()), tilt = (sbRnd() - 0.5) * 0.7 * w
+    const cut = [[L, y0 - tilt / 2], [R, y0 + tilt / 2]]
+    add([[L, -h], [R, -h], cut[1], cut[0]], away * (180 + sbRnd() * 200), -300 - sbRnd() * 200, away * (4 + sbRnd() * 5), 0, 0.6, [cut])
+    add([cut[0], cut[1], [R, 0], [L, 0]], away * 30, -40, away * 1.6, 0.45, 2.2, [cut])
+    sbBleed(pd.x, SB.yG + y0, 110, away * 120, 1.6)
+  } else if (type === "dice") {
+    const ys = [-h, -h * (0.72 + 0.06 * sbRnd()), -h * (0.5 + 0.06 * sbRnd()), -h * (0.27 + 0.06 * sbRnd()), 0]
+    for (let k = 0; k < 4; k++) for (const [x0, x1] of (k === 1 || k === 2 ? [[L, 0], [0, R]] : [[L, R]])) {
+      const sl = (sbRnd() - 0.5) * 10
+      add([[x0, ys[k] + sl], [x1, ys[k] - sl], [x1, ys[k + 1]], [x0, ys[k + 1]]], (x0 < 0 && x1 <= 0 ? -1 : x0 >= 0 ? 1 : away) * (40 + 120 * sbRnd()) + away * 60,
+        -120 - 160 * sbRnd() + k * 40, (sbRnd() - 0.5) * 10, 0.18 + 0.1 * k * sbRnd(), 0.8, [[[x0, ys[k]], [x1, ys[k]]], [[x0, ys[k + 1]], [x1, ys[k + 1]]]])
+    }
+    sbBleed(pd.x, SB.yG - h * 0.5, 220, away * 60, 2.8, 0.45)
+  } else if (type === "gib") {
+    for (let gy = 0; gy < 4; gy++) for (let gx = 0; gx < 3; gx++) {
+      const x0 = L + (w * gx) / 3, x1 = L + (w * (gx + 1)) / 3, y0 = -h + (h * gy) / 4, y1 = -h + (h * (gy + 1)) / 4
+      const j = () => (sbRnd() - 0.5) * 6
+      const poly = [[x0 + j(), y0 + j()], [x1 + j(), y0 + j()], [x1 + j(), y1 + j()], [x0 + j(), y1 + j()]]
+      const ang = Math.atan2(((y0 + y1) / 2 + h / 2), ((x0 + x1) / 2) || 0.01), sp = 380 + 520 * sbRnd()
+      add(poly, Math.cos(ang) * sp + away * 260, Math.sin(ang) * sp - 420, (sbRnd() - 0.5) * 22, 0, 0.5, [[poly[0], poly[1]], [poly[2], poly[3]]])
+    }
+    sbBleed(pd.x, SB.yG - h * 0.5, 260, away * 160, 6.2, 0.5)
+    SB.craters.push({ x: pd.x, r: 38, scorch: true })
+  } else {
+    add([[L, -h], [R, -h], [R, 0], [L, 0]], away * (620 + 300 * sbRnd()), -420 - 200 * sbRnd(), away * (7 + 6 * sbRnd()), 0, 0.9, [])
+    sbBleed(pd.x, SB.yG - h * 0.7, 70, away * 300, 1.2)
+    SB.pieces[SB.pieces.length - 1].splat = true
+  }
+  pd.dead = true
+}
+
+// ── city damage ──
+function sbHitCity(x, d, t, W) {
+  const tx = x - shift(SB_TOWER_P, W), T = SB.towers
+  let best = T[0], bd = 1e9
+  for (const tw of T) { const dd = Math.abs(tw.x + tw.w / 2 - tx); if (dd < bd && !tw.fall) { bd = dd; best = tw } }
+  const n = d >= 110 ? 2 : 1
+  for (let k = 0; k < n; k++) {
+    if (best.holes.length > 14) break
+    const s = SB.seq++
+    best.holes.push({ u: 0.12 + 0.76 * _h(s * 3 + 1), v: 0.05 + 0.9 * _h(s * 3 + 2), r: 14 + Math.min(46, d * 0.22) * (0.6 + 0.6 * _h(s * 3 + 5)), t0: t, seed: s })
+    for (let i = 0; i < 10; i++) SB.debris.push({ x: best.x + best.w * best.holes[best.holes.length - 1].u, y: null, hv: best.holes[best.holes.length - 1].v, tw: best,
+      vx: (sbRnd() - 0.5) * 160, vy: -60 - sbRnd() * 120, s: 3 + sbRnd() * 6, life: 2.5 })
+  }
+  best.dmg += d / 260
+  if (best.dmg > 1.25 && !best.fall && best.h > 300) best.fall = { t0: t, cut: 0.45 + 0.2 * _h(best.i * 3) }
+  // the shop front behind the impact: broken glass
+  const sx = x - shift(SB_SHOP_P, W)
+  SB.cracks.push({ x: sx, y: 0.35 + 0.35 * sbRnd(), r: 20 + Math.min(40, d * 0.3), seed: SB.seq++ })
+  if (SB.cracks.length > 40) SB.cracks.shift()
+  for (let i = 0; i < 14; i++) SB.glass.push({ x, y: SB.yG - 60 - sbRnd() * 90, vx: (sbRnd() - 0.5) * 300, vy: -100 - sbRnd() * 200, s: 2 + sbRnd() * 3, life: 1.2 })
+  if (d >= 80) SB.craters.push({ x, r: 26 + Math.min(50, d * 0.25) })
+  if (SB.craters.length > 30) SB.craters.shift()
+}
+
+// per-frame update, from the front pass (it alone sees the fighters); the back pass draws the result next frame
+function sbUpdate(c, W, groundY, world) {
+  const t = now(), dt = Math.min(0.05, Math.max(0, t - (SB.last || t))); SB.last = t
+  const F = (world.fighters || []).filter(Boolean)
+  if (F[0] !== SB.p1 || !SB.towers || SB.W !== W) sbReset(F[0], W)
+  SB.yG = groundY - 24
+  const v = view(1280, W)
+  // hits landed this frame (a fighter's health dropped) → the city takes it; big ones blow away nearby bystanders
+  for (const f of F) {
+    const hp = f.health ?? 0, was = SB.hp.get(f)
+    SB.hp.set(f, hp)
+    if (was == null || hp >= was) continue
+    const d = was - hp, x = f.x + (f.w || 50) / 2, att = F.find(o => o !== f)
+    SB.total += d
+    sbHitCity(x, d, t, W)
+    if (d >= 110) for (const pd of SB.peds) if (!pd.dead && Math.abs(pd.x - x) < 170) sbKill(pd, att?.currentAttack?.name || "blast", x, att?.rosterKey)
+  }
+  // the fight elsewhere in Shibuya: as the match wears on, explosions go off in the towers on their own
+  SB.ambientT -= dt
+  if (SB.total > 250 && SB.ambientT <= 0) {
+    SB.ambientT = Math.max(2.5, 9 - SB.total / 250)
+    const T = SB.towers, tw = T[Math.floor(sbRnd() * T.length)]
+    sbHitCity(tw.x + tw.w / 2 + shift(SB_TOWER_P, W), 40 + sbRnd() * 80, t, W)
+  }
+  // crowd: keep the kerb busy
+  SB.spawnT -= dt
+  if (SB.spawnT <= 0 && SB.peds.filter(p => !p.dead).length < 8) { sbSpawn(c, v.left, v.right); SB.spawnT = 0.9 + sbRnd() * 1.2 }
+  const boxes = F.map(f => [f, world.attackBox?.(f)]).filter(([, b]) => b)
+  for (const pd of SB.peds) {
+    if (pd.dead) continue
+    pd.t += dt
+    let near = null, nd = 1e9
+    for (const f of F) { const d = Math.abs(f.x + (f.w || 50) / 2 - pd.x); if (d < nd) { nd = d; near = f } }
+    if (near && nd < 280 && pd.kind !== "biker" && !pd.held) { pd.panic = 1.5; pd.dir = Math.sign(pd.x - (near.x + (near.w || 50) / 2)) || pd.dir }
+    pd.panic = Math.max(0, pd.panic - dt)
+    const sp = pd.freeze && pd.panic > 0 ? 0 : pd.speed * (pd.panic > 0 ? 3 : 1)
+    pd.x += pd.dir * sp * dt
+    if (pd.x < 10 || pd.x > W - 10) pd.dir *= -1                      // the dome: nobody gets out
+    const { w, h } = pedSprite(pd), L = pd.x - w * 0.3, R = pd.x + w * 0.3, T = SB.yG - h, B = SB.yG
+    for (const [f, b] of boxes) if (b.x < R && b.x + b.w > L && b.y < B + 30 && b.y + b.h > T - 20) { sbKill(pd, f.currentAttack?.name, f.x + (f.w || 50) / 2, f.rosterKey); break }
+    if (pd.dead) continue
+    for (const p of world.projectiles || []) {
+      const r = p.radius || (p.w || 20) / 2
+      if (p.x + r > L && p.x - r < R && p.y + r > T - 10 && p.y - r < B + 20) { const o = p.owner; sbKill(pd, p.name || p.type || "blast", p.x - (p.vx || 0), o?.rosterKey || ""); break }
+    }
+  }
+  SB.peds = SB.peds.filter(p => !p.dead && p.x > v.left - 1400 && p.x < v.right + 1400)
+  // pieces in flight
+  for (const pc of SB.pieces) {
+    if (pc.delay > 0) { pc.delay -= dt; if (pc.bleed > 0 && sbRnd() < 0.6) sbBleed(pc.x, pc.y - pc.r * 0.5, 2, 0, 0.6, 0.1); continue }
+    pc.vy += 1500 * dt; pc.x += pc.vx * dt; pc.y += pc.vy * dt; pc.a += pc.va * dt
+    if (pc.bleed > 0) { pc.bleed -= dt; if (sbRnd() < 0.8) sbBleed(pc.x, pc.y, 2, pc.vx * 0.2, 1, 0.05) }
+    const floorY = SB.yG - Math.min(pc.r * 0.45, 16)
+    if (pc.y >= floorY) {
+      pc.y = floorY
+      if (pc.splat && Math.abs(pc.vy) > 200) sbBleed(pc.x, pc.y, 40, pc.vx * 0.3, 2.4, 0)
+      if (Math.abs(pc.vy) > 260) { pc.vy *= -0.25; pc.vx *= 0.5; pc.va *= 0.5 }
+      else { pc.landed = true; pc.a = Math.round(pc.a / (Math.PI / 2)) * (Math.PI / 2) + (pc.cuts.length ? 0.2 : 0); SB.pools.push({ x: pc.x, r: 6, R: 24 + pc.r * 0.5 }) }
+    }
+  }
+  for (const pc of SB.pieces) if (pc.landed) SB.rest.push(pc)
+  SB.pieces = SB.pieces.filter(p => !p.landed)
+  if (SB.rest.length > 90) SB.rest.splice(0, SB.rest.length - 90)
+  // blood
+  for (const b of SB.blood) {
+    b.life -= dt; b.vy += 1300 * dt; b.x += b.vx * dt; b.y += b.vy * dt
+    if (b.wall && b.life <= 0) { SB.wall.push({ x: b.x - shift(SB_SHOP_P, W), y: b.y, s: b.s * (1.2 + sbRnd()) }); b.dead = true }
+    else if (b.y >= SB.yG + 8 && b.vy > 0) {
+      b.dead = true
+      const pool = SB.pools.find(p => Math.abs(p.x - b.x) < p.R * 0.8)
+      if (pool) pool.R = Math.min(90, pool.R + 0.25); else SB.pools.push({ x: b.x, r: 2, R: 6 + sbRnd() * 8 })
+    }
+  }
+  SB.blood = SB.blood.filter(b => !b.dead)
+  if (SB.wall.length > 500) SB.wall.splice(0, SB.wall.length - 500)
+  if (SB.pools.length > 160) SB.pools.splice(0, SB.pools.length - 160)
+  for (const p of SB.pools) p.r = Math.min(p.R, p.r + 30 * dt)
+  for (const g of SB.glass) { g.life -= dt; g.vy += 1200 * dt; g.x += g.vx * dt; g.y += g.vy * dt; if (g.y > SB.yG + 6) { g.y = SB.yG + 6; g.vx *= 0.8; g.vy = 0 } }
+  SB.glass = SB.glass.filter(g => g.life > 0)
+  for (const d of SB.debris) { d.life -= dt; d.vy += 600 * dt; d.x += d.vx * dt; if (d.y == null) d.y = 0; d.y += d.vy * dt }
+  SB.debris = SB.debris.filter(d => d.life > 0)
+}
+
+function drawPiece(ctx, pc) {
+  ctx.save(); ctx.translate(pc.x, pc.y); ctx.rotate(pc.a); ctx.translate(-pc.cx, -pc.cy)
+  ctx.beginPath(); ctx.moveTo(pc.poly[0][0], pc.poly[0][1]); for (const [a, b] of pc.poly.slice(1)) ctx.lineTo(a, b); ctx.closePath()
+  ctx.save(); ctx.clip()
+  if (pc.flip < 0) { ctx.scale(-1, 1) }
+  if (ready(pc.im) || pc.im.getContext) ctx.drawImage(pc.im, -pc.w / 2, -pc.h, pc.w, pc.h)
+  ctx.restore()
+  for (const [a, b] of pc.cuts) {                                     // the wound along each cut
+    ctx.strokeStyle = "#7a0008"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke()
+    ctx.strokeStyle = "#d0202a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke()
+  }
+  ctx.restore()
+}
+
+// BACK: the night sky, the dome, the towers (and their damage), the shop row
+function drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), P = c.layout.pieces
+  if (!SB.towers || SB.W !== W) sbReset(SB.p1, W)
+  const shopTop = dockTop + 4 - P.shops.h * SB_SHOP_SC
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#020205"); g.addColorStop(0.55, "#0a0712"); g.addColorStop(1, "#2a0f1c")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  // the dome: a black curtain closed over the district, its rim faintly shimmering
+  const cx = W / 2 + shift(0.05, W), cy = dockTop + 2600, R = 3150
+  ctx.save(); ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, dockTop - coverTop); ctx.clip()
+  ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, dockTop - coverTop); ctx.arc(cx, cy, R, 0, Math.PI * 2, true); ctx.fill()
+  for (let k = 0; k < 3; k++) {
+    ctx.strokeStyle = `rgba(${k ? "90,40,110" : "160,60,90"},${0.25 + 0.15 * Math.sin(t * 1.3 + k)})`; ctx.lineWidth = 2 + k * 3
+    ctx.beginPath(); ctx.arc(cx, cy, R - k * 6 + Math.sin(t * 0.7 + k) * 3, Math.PI * 1.25, Math.PI * 1.75); ctx.stroke()
+  }
+  ctx.restore()
+  // towers
+  const st = shift(SB_TOWER_P, W), base = shopTop + 120
+  for (const tw of SB.towers) {
+    const x = tw.x + st
+    if (x + tw.w < padL - 40 || x > padR + 40) continue
+    let h = tw.h, top = base - h
+    if (tw.fall) {
+      const k = Math.min(1, (t - tw.fall.t0) / 2.6), cutY = base - h * tw.fall.cut
+      if (k < 1) {                                                    // the top section shears off and drops
+        ctx.save(); ctx.globalAlpha = 1 - k * k; ctx.translate(x + tw.w / 2, cutY + 900 * k * k); ctx.rotate((tw.i % 2 ? 1 : -1) * 0.6 * k)
+        sbTowerBody(ctx, tw, -tw.w / 2, -(h * (1 - tw.fall.cut)), tw.w, h * (1 - tw.fall.cut), t, true); ctx.restore()
+        for (let i = 0; i < 18; i++) { ctx.fillStyle = `rgba(120,110,110,${0.35 * (1 - k)})`; const a = _h(i + tw.i) * 6.28; ctx.beginPath(); ctx.arc(x + tw.w / 2 + Math.cos(a) * 160 * k, cutY + Math.sin(a) * 60 * k, 30 + 60 * k, 0, 7); ctx.fill() }
+      }
+      h = h * tw.fall.cut; top = base - h
+    }
+    sbTowerBody(ctx, tw, x, top, tw.w, h, t, false)
+    if (tw.fall) {                                                    // jagged broken top, burning
+      ctx.fillStyle = "#020205"; ctx.beginPath(); ctx.moveTo(x - 1, top - 2)
+      for (let i = 0; i <= 8; i++) ctx.lineTo(x + (tw.w * i) / 8, top + 4 + 26 * _h(tw.i * 9 + i)); ctx.lineTo(x + tw.w + 1, top - 2); ctx.closePath(); ctx.fill()
+      for (let i = 0; i < 5; i++) sbFire(ctx, x + tw.w * (0.1 + 0.2 * i), top + 20, 16, t + i)
+    }
+    for (const ho of tw.holes) {
+      // holes land in the part of the tower the camera sees (between the shop roofs and the top of the screen)
+      const hx = x + tw.w * ho.u, hy = shopTop - 30 - ho.v * 300
+      if (hy < top + 10) continue
+      const fresh = Math.max(0, 1 - (t - ho.t0) / 0.5)
+      ctx.fillStyle = "#050307"; ctx.beginPath()
+      for (let i = 0; i < 10; i++) { const a = (i / 10) * 6.28, rr = ho.r * (0.65 + 0.5 * _h(ho.seed * 11 + i)); i ? ctx.lineTo(hx + Math.cos(a) * rr, hy + Math.sin(a) * rr) : ctx.moveTo(hx + Math.cos(a) * rr, hy + Math.sin(a) * rr) }
+      ctx.closePath(); ctx.fill(); ctx.strokeStyle = "rgba(255,120,40,0.55)"; ctx.lineWidth = 2; ctx.stroke()
+      ctx.strokeStyle = "rgba(10,10,14,0.9)"; ctx.lineWidth = 1.2; ctx.beginPath()          // cracks running out of it
+      for (let i = 0; i < 5; i++) { const a = _h(ho.seed * 3 + i) * 6.28, l = ho.r * (1.4 + _h(ho.seed + i)); ctx.moveTo(hx + Math.cos(a) * ho.r * 0.8, hy + Math.sin(a) * ho.r * 0.8); ctx.lineTo(hx + Math.cos(a + 0.3) * l, hy + Math.sin(a + 0.3) * l); ctx.lineTo(hx + Math.cos(a) * l * 1.5, hy + Math.sin(a) * l * 1.5) }
+      ctx.stroke()
+      sbFire(ctx, hx, hy + ho.r * 0.45, ho.r * 0.45, t + ho.seed)
+      for (let i = 0; i < 4; i++) {                                   // smoke rising from it
+        const ph = (t * 0.18 + i / 4 + _h(ho.seed)) % 1
+        ctx.fillStyle = `rgba(40,36,40,${0.45 * (1 - ph)})`; ctx.beginPath(); ctx.arc(hx + Math.sin(ph * 4 + i) * 14 + ph * 30, hy - ph * 260, ho.r * (0.5 + ph * 1.4), 0, 7); ctx.fill()
+      }
+      if (fresh > 0) { ctx.fillStyle = `rgba(255,220,140,${fresh})`; ctx.beginPath(); ctx.arc(hx, hy, ho.r * (1.6 - fresh * 0.6), 0, 7); ctx.fill() }
+    }
+  }
+  for (const d of SB.debris) {                                         // chunks falling off the towers
+    ctx.fillStyle = "#4a4650"; ctx.fillRect(d.x + st - d.s / 2, shopTop - 30 - d.hv * 300 + d.y, d.s, d.s * 0.8)
+  }
+  // the shop row (the sheet's market street, at night), tiled + mirrored; broken glass + blood on it
+  const sp = shift(SB_SHOP_P, W), sw = P.shops.w * SB_SHOP_SC, sh = P.shops.h * SB_SHOP_SC, im = c.img[P.shops.file]
+  if (ready(im)) {
+    const k0 = Math.floor((padL - sp) / sw) - 1, k1 = Math.ceil((padR - sp) / sw)
+    for (let k = k0; k <= k1; k++) {
+      const x = Math.floor(sp + k * sw)
+      if (k % 2) { ctx.save(); ctx.translate(x + sw, shopTop); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, Math.ceil(sw) + 1, sh); ctx.restore() }
+      else ctx.drawImage(im, x, shopTop, Math.ceil(sw) + 1, sh)
+    }
+    const dark = 0.3 + Math.min(0.45, SB.total / 4000)              // night; the street dims further as the power goes
+    { ctx.fillStyle = `rgba(0,0,0,${dark})`; ctx.fillRect(padL, shopTop, padR - padL, sh) }
+  }
+  ctx.strokeStyle = "rgba(220,235,255,0.75)"; ctx.lineWidth = 1.2
+  for (const k of SB.cracks) {
+    const x = k.x + sp, y = shopTop + sh * k.y
+    if (x < padL - 80 || x > padR + 80) continue
+    ctx.fillStyle = "rgba(10,10,20,0.55)"; ctx.beginPath(); ctx.arc(x, y, k.r * 0.35, 0, 7); ctx.fill()
+    ctx.beginPath()
+    for (let i = 0; i < 9; i++) { const a = _h(k.seed * 7 + i) * 6.28; ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * k.r * 0.6, y + Math.sin(a) * k.r * 0.6); ctx.lineTo(x + Math.cos(a + 0.2) * k.r, y + Math.sin(a + 0.2) * k.r) }
+    ctx.stroke()
+  }
+  for (const b of SB.wall) { const x = b.x + sp; if (x < padL || x > padR) continue; ctx.fillStyle = "rgba(120,0,10,0.85)"; ctx.beginPath(); ctx.ellipse(x, b.y, b.s, b.s * 0.8, 0, 0, 7); ctx.fill(); ctx.fillRect(x - 0.7, b.y, 1.4, b.s * 3) }
+}
+function sbTowerBody(ctx, tw, x, top, w, h, t, falling) {
+  const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, "#14141e"); g.addColorStop(0.7, "#1c1b28"); g.addColorStop(1, "#0b0b12")
+  ctx.fillStyle = g; ctx.fillRect(x, top, w, h)
+  const lightsOut = Math.min(0.9, tw.dmg * 0.6 + SB.total / 5000)
+  for (let yy = 14; yy < h - 10; yy += 16) for (let xx = 8; xx < w - 10; xx += 13) {
+    const k = _h(tw.i * 7919 + Math.floor(yy) * 31 + xx)
+    if (k < 0.45 + lightsOut * 0.5) continue
+    ctx.fillStyle = k > 0.93 ? "#ffe6a8" : k > 0.8 ? "#d9b878" : "#6a6a88"; ctx.fillRect(x + xx, top + yy, 6, 8)
+  }
+  if (tw.neon && !falling) {                                          // a vertical neon sign down the side
+    const on = tw.dmg < 0.6 || Math.sin(t * 23 + tw.i) > 0.3, col = ["#ff3aa0", "#38e8ff", "#ffd23a", "#9a5bff"][tw.i % 4]
+    ctx.fillStyle = on ? col : "#2a2a33"; ctx.globalAlpha = on ? 0.9 : 1; ctx.fillRect(x + w - 20, top + 40, 12, Math.min(220, h * 0.4)); ctx.globalAlpha = 1
+    ctx.fillStyle = "#0b0b12"; for (let i = 0; i < 6; i++) ctx.fillRect(x + w - 18, top + 50 + i * 34, 8, 3)
+  }
+  if (tw.screen && !falling && h > 200) {                             // the big video screen
+    const sx = x + w * 0.12, sy = top + 60, sw = w * 0.7, sh = Math.min(90, sw * 0.55)
+    if (tw.dmg < 0.5) {
+      const hue = (t * 40 + tw.i * 90) % 360
+      const sg = ctx.createLinearGradient(sx, sy, sx + sw, sy + sh); sg.addColorStop(0, `hsl(${hue},80%,55%)`); sg.addColorStop(1, `hsl(${(hue + 120) % 360},80%,35%)`)
+      ctx.fillStyle = sg; ctx.fillRect(sx, sy, sw, sh)
+      ctx.fillStyle = "rgba(0,0,0,0.25)"; for (let y = sy; y < sy + sh; y += 3) ctx.fillRect(sx, y, sw, 1)
+    } else if (tw.dmg < 0.9) {
+      for (let i = 0; i < 40; i++) { const v = Math.floor(_h(i + Math.floor(t * 20) * 97) * 200); ctx.fillStyle = `rgb(${v},${v},${v})`; ctx.fillRect(sx + _h(i * 3 + Math.floor(t * 20)) * sw, sy + _h(i * 5) * sh, sw / 8, 3) }
+    } else { ctx.fillStyle = "#050508"; ctx.fillRect(sx, sy, sw, sh); ctx.strokeStyle = "#555"; ctx.beginPath(); ctx.moveTo(sx + sw * 0.3, sy); ctx.lineTo(sx + sw * 0.5, sy + sh * 0.6); ctx.lineTo(sx + sw * 0.8, sy + sh); ctx.stroke() }
+  }
+  ctx.fillStyle = "#08080c"; ctx.fillRect(x, top, w, 4)
+}
+function sbFire(ctx, x, y, r, t) {
+  ctx.save(); ctx.globalCompositeOperation = "lighter"
+  for (let i = 0; i < 5; i++) {
+    const ox = (i - 2) * r * 0.45, fh = r * (1.4 + 0.9 * Math.abs(Math.sin(t * (6 + i) + i * 1.7))), fw = r * 0.5
+    const g = ctx.createLinearGradient(0, y, 0, y - fh); g.addColorStop(0, "rgba(255,230,150,0.75)"); g.addColorStop(0.45, "rgba(255,120,30,0.55)"); g.addColorStop(1, "rgba(200,30,10,0)")
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x + ox - fw, y); ctx.quadraticCurveTo(x + ox - fw * 0.6 + Math.sin(t * 8 + i) * fw * 0.5, y - fh * 0.6, x + ox + Math.sin(t * 5 + i) * fw * 0.6, y - fh)
+    ctx.quadraticCurveTo(x + ox + fw * 0.6, y - fh * 0.5, x + ox + fw, y); ctx.closePath(); ctx.fill()
+  }
+  ctx.restore()
+}
+
+// FX (after the street): craters, blood pools, the dead, and the living crowd — all behind the fighters
+function shibuyaFx(ctx, def, c, { dockTop, padL, padR, coverBottom }) {
+  const bot = dockTop + c.layout.pieces.street.h * def.S              // the road carries on toward the viewer
+  if (coverBottom > bot) { const g = ctx.createLinearGradient(0, bot, 0, coverBottom); g.addColorStop(0, "#1c1c24"); g.addColorStop(1, "#07070a"); ctx.fillStyle = g; ctx.fillRect(padL, bot, padR - padL, coverBottom - bot); ctx.fillStyle = "#3a3a46"; ctx.fillRect(padL, bot, padR - padL, 3) }
+  const yG = SB.yG || 0; if (!yG) return
+  for (const k of SB.craters) {
+    if (k.x < padL - 100 || k.x > padR + 100) continue
+    ctx.fillStyle = k.scorch ? "rgba(10,6,6,0.75)" : "rgba(6,6,10,0.85)"; ctx.beginPath(); ctx.ellipse(k.x, yG + 14, k.r * 1.5, k.r * 0.35, 0, 0, 7); ctx.fill()
+    ctx.strokeStyle = "rgba(90,90,110,0.7)"; ctx.lineWidth = 1.5; ctx.beginPath()
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * 6.28; ctx.moveTo(k.x + Math.cos(a) * k.r * 1.2, yG + 14 + Math.sin(a) * k.r * 0.3); ctx.lineTo(k.x + Math.cos(a) * k.r * 2.3, yG + 14 + Math.sin(a) * k.r * 0.55) }
+    ctx.stroke()
+  }
+  for (const p of SB.pools) {
+    if (p.x < padL - 100 || p.x > padR + 100) continue
+    ctx.fillStyle = "rgba(95,0,8,0.9)"; ctx.beginPath(); ctx.ellipse(p.x, yG + 10, p.r, p.r * 0.28, 0, 0, 7); ctx.fill()
+    ctx.fillStyle = "rgba(200,40,50,0.35)"; ctx.beginPath(); ctx.ellipse(p.x - p.r * 0.25, yG + 9, p.r * 0.4, p.r * 0.08, 0, 0, 7); ctx.fill()
+  }
+  for (const pc of SB.rest) if (pc.x > padL - 120 && pc.x < padR + 120) drawPiece(ctx, pc)
+  for (const pd of SB.peds) {
+    const { im, w, h } = pedSprite(pd)
+    if (pd.x + w < padL || pd.x - w > padR || !(ready(im) || im.getContext)) continue
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(pd.x, yG, w * 0.35, 4, 0, 0, 7); ctx.fill()
+    ctx.save(); ctx.translate(pd.x, yG); if (pd.dir < 0) ctx.scale(-1, 1); ctx.drawImage(im, -w / 2, -h, w, h); ctx.restore()
+  }
+}
+
+// FRONT: update, then the flying pieces / blood / glass over the fighters
+function shibuyaFront(ctx, def, c, W, groundY, world) {
+  sbUpdate(c, W, groundY, world)
+  for (const pc of SB.pieces) drawPiece(ctx, pc)
+  ctx.fillStyle = "#a00010"
+  for (const b of SB.blood) ctx.fillRect(b.x - b.s / 2, b.y - b.s / 2, b.s, b.s)
+  ctx.fillStyle = "rgba(200,230,255,0.85)"
+  for (const g of SB.glass) ctx.fillRect(g.x, g.y, g.s, g.s * 0.6)
+}
+// harness / debugging: what the street has seen so far
+export function shibuyaStats() { return { peds: SB.peds.length, pieces: SB.pieces.length, dead: SB.rest.length, blood: SB.blood.length, pools: SB.pools.length, holes: (SB.towers || []).reduce((n, t) => n + t.holes.length, 0), fallen: (SB.towers || []).filter(t => t.fall).length, total: SB.total } }
+
+// harness hook: put a bystander standing still at world x; kill one with a named cause; read the counters
+export const shibuyaDebug = {
+  stats: shibuyaStats,
+  ped(x) { const seq = SB.seq++; SB.peds.push({ kind: "ped", seed: seq * 977 + 13, x, dir: 1, speed: 0, t: 0, freeze: true, panic: 0, held: true, frames: pedFrames(seq * 977 + 13), sc: 1 }); return SB.peds.length },
+  kill(cause, rosterKey = "") { const pd = SB.peds.find(p => !p.dead); if (!pd) return null; const n = SB.pieces.length; sbKill(pd, cause, pd.x - 50, rosterKey); return SB.pieces.length - n },
 }

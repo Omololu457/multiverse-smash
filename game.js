@@ -2362,7 +2362,7 @@ const STAGE_DEFS = [
   { name: "Jujutsu High Courtyard", series: "jjk",         music: "JJk_3.mp3", landmark: "jujutsu_high", sky: "#87bfff", mid: "#6aa86a", floor: "#556b2f", accent: "#cbd5e1", backgroundImage: "jujutsu_high_courtyard.png" },
   // STAGE INTERACTABLES 2nd pilot: a crimson "cursed rail" hazard (same stageHazards.js mechanic; `tint`
   // recolors the pylon glow so it reads as cursed-energy, not the Test Map's electric one).
-  { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", backgroundImage: "shibuya_incident_bg.png",
+  { name: "Shibuya Incident",       series: "jjk",         music: "Glokk40Spaz - Turbo.mp3", shuffle: true, playlist: ["Glokk40Spaz - Turbo.mp3", "Glokk40spaz - Backdoor (Official Audio).mp3", "Glokk40Spaz - Remember Me (Jhene Aiko Stranger Remix).mp3"], landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", worldWidth: 2400, layers: "chunli_shibuya", backgroundImage: "stages/chunli_shibuya/preview.png",
     hazards: [{ id: "cursed_rail", x: 1180, w: 46, height: 150, damage: 55, hitstun: 26, tint: "#ef4444" }] },
   { name: "Hidden Leaf Village",    series: "naruto",      music: "Cochise - Knicks (Official Video).mp3", shuffle: true, playlist: ["Cochise - Knicks (Official Video).mp3", "DaBaby - JUMP ft. YoungBoy Never Broke Again.mp3", "NBA YoungBoy - BossManeDlow (TOP MIX).mp3", "NBA YoungBoy - House Arrest Tingz (Lyrics).mp3", "NBA YoungBoy - I Hate YoungBoy (Lyrics).mp3", "NBA YoungBoy - Vette Motors.mp3", "NBA Youngboy - 4 Sons of a King (Official Audio).mp3", "NBA Youngboy - Fish Scale.mp3", "YoungBoy Never Broke Again - 1.5 [Official Audio].mp3", "YoungBoy Never Broke Again - Big Truck [Official Music Video].mp3", "YoungBoy Never Broke Again - By Myself [Official Audio].mp3", "YoungBoy Never Broke Again - DIESEL OVER - [Official Music Video].mp3", "YoungBoy Never Broke Again - FWYT [Official Audio].mp3", "YoungBoy Never Broke Again - Guitar Hero (Lyrics) New Song.mp3", "YoungBoy Never Broke Again - Make No Sense [Official Audio].mp3", "YoungBoy Never Broke Again - Mr. Gaulden [Official Audio].mp3", "YoungBoy Never Broke Again - Nevada [Official Audio].mp3", "YoungBoy Never Broke Again - Out Nothing [Official Audio].mp3", "YoungBoy Never Broke Again - Show Me Your Love (Official Audio).mp3", "YoungBoy Never Broke Again - TOP TINGZ [Official Music Video].mp3", "Youngboy Never Broke Again - Green Dot (Lyrics).mp3"], landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e", worldWidth: 1720, layers: "ssf2_leaf", backgroundImage: "stages/ssf2_leaf/preview.png" },
   { name: "Valley of the End",      series: "naruto",      music: "Anime Kei - Bad Situation (Naruto Sad).mp3", landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0", worldWidth: 2400, layers: "guile_valley", backgroundImage: "valley_of_the_end_bg.png" },
@@ -2463,6 +2463,8 @@ const domainCine = { caster: null, domain: null, timer: 0, savedMaxZoom: null, s
 
 // Use the imported activeProjectiles array directly — do NOT create a second one
 const projectiles  = activeProjectiles
+// read-only view of the fight for layered stages that react to it (Shibuya's bystanders / destruction) — render only
+const _layeredWorld = { get fighters() { return [p1, p2] }, attackBox: o => (o && o.attacking && getAttackPhase(o) === 'active') ? getAttackHitbox(o) : null, projectiles: activeProjectiles }
 const hitSparks    = []
 // activeDomains is the SINGLE domains.js module array (imported above) so the
 // domains abilities.js pushes are the same ones updateDomains() ticks & draws.
@@ -24538,7 +24540,7 @@ function drawBattleScene() {
   if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
-  drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY)   // LAYERED stages: foreground props in front of the fighters
+  drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
 
   ctx.restore()

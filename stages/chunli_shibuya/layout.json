@@ -1,0 +1,117 @@
+{
+ "source": "Street Fighter II \u2014 Chun-Li's Stage sheet, ripped by shezzor; repainted as Shibuya at night",
+ "pieces": {
+  "shops": {
+   "file": "shops.png",
+   "w": 704,
+   "h": 208
+  },
+  "street": {
+   "file": "street.png",
+   "w": 1040,
+   "h": 80
+  },
+  "hatman_0": {
+   "file": "hatman_0.png",
+   "w": 41,
+   "h": 64
+  },
+  "hatman_1": {
+   "file": "hatman_1.png",
+   "w": 42,
+   "h": 64
+  },
+  "hatman_2": {
+   "file": "hatman_2.png",
+   "w": 42,
+   "h": 64
+  },
+  "biker_0": {
+   "file": "biker_0.png",
+   "w": 124,
+   "h": 86
+  },
+  "biker_1": {
+   "file": "biker_1.png",
+   "w": 124,
+   "h": 86
+  },
+  "biker_2": {
+   "file": "biker_2.png",
+   "w": 124,
+   "h": 86
+  },
+  "biker_3": {
+   "file": "biker_3.png",
+   "w": 124,
+   "h": 86
+  },
+  "biker_4": {
+   "file": "biker_4.png",
+   "w": 124,
+   "h": 86
+  },
+  "biker_5": {
+   "file": "biker_5.png",
+   "w": 124,
+   "h": 86
+  }
+ },
+ "peds": {
+  "hatman": [
+   {
+    "file": "hatman_0.png",
+    "w": 41,
+    "h": 64
+   },
+   {
+    "file": "hatman_1.png",
+    "w": 42,
+    "h": 64
+   },
+   {
+    "file": "hatman_2.png",
+    "w": 42,
+    "h": 64
+   }
+  ],
+  "biker": [
+   {
+    "file": "biker_0.png",
+    "w": 124,
+    "h": 86
+   },
+   {
+    "file": "biker_1.png",
+    "w": 124,
+    "h": 86
+   },
+   {
+    "file": "biker_2.png",
+    "w": 124,
+    "h": 86
+   },
+   {
+    "file": "biker_3.png",
+    "w": 124,
+    "h": 86
+   },
+   {
+    "file": "biker_4.png",
+    "w": 124,
+    "h": 86
+   },
+   {
+    "file": "biker_5.png",
+    "w": 124,
+    "h": 86
+   }
+  ]
+ },
+ "colors": {
+  "skyTop": "#04030a",
+  "under": "#07070c",
+  "seaBottom": "#07070c"
+ },
+ "preview": "preview.png"
+}

@@ -2396,6 +2396,10 @@ const STAGE_DEFS = [
   // slice_honda_training.py) rebuilt as a white 3D hologram room — mural → projection screen, tub → platform, ring glows.
   { name: "Training Center",        series: "other",       music: "Subliminals - pz'.mp3", landmark: "honda_training", sky: "#eef5fa", mid: "#dbeaf4", floor: "#f6fafd", accent: "#46c4ff", worldWidth: 2400,
     layers: "honda_training", backgroundImage: "stages/honda_training/preview.png" },
+  // THE BATCAVE (stageLayers.js): Guile's air base (SFII CE sheet → tools/stage_layers/slice_guile_batcave.py) repainted —
+  // F-16 → Batwing, tarmac → steel deck with a Bat-symbol, horizon → cave depths + Batcomputer, airmen → Alfred-style butlers.
+  { name: "The Batcave",            series: "dc",          landmark: "guile_batcave", sky: "#05070b", mid: "#0d1220", floor: "#1a1e27", accent: "#facc15", worldWidth: 2400,
+    layers: "guile_batcave", backgroundImage: "stages/guile_batcave/preview.png" },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
   // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
   // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.

@@ -1,0 +1,115 @@
+{
+ "source": "Street Fighter II CE \u2014 Guile's Stage sheet, ripped/drawn by V. Signal; repainted as the Batcave",
+ "pieces": {
+  "ceiling": {
+   "file": "ceiling.png",
+   "w": 1024,
+   "h": 76
+  },
+  "depths": {
+   "file": "depths.png",
+   "w": 691,
+   "h": 144
+  },
+  "batwing": {
+   "file": "batwing.png",
+   "w": 1024,
+   "h": 112
+  },
+  "deck": {
+   "file": "deck.png",
+   "w": 1024,
+   "h": 64,
+   "emblem": [
+    436,
+    31,
+    151,
+    18
+   ]
+  },
+  "butlers_crates": {
+   "frames": [
+    "butlers_crates_0.png",
+    "butlers_crates_1.png",
+    "butlers_crates_2.png",
+    "butlers_crates_3.png",
+    "butlers_crates_4.png",
+    "butlers_crates_5.png"
+   ],
+   "w": 128,
+   "h": 80,
+   "file": "butlers_crates_0.png"
+  },
+  "butler_pair": {
+   "frames": [
+    "butler_pair_0.png",
+    "butler_pair_1.png",
+    "butler_pair_2.png"
+   ],
+   "w": 61,
+   "h": 90,
+   "file": "butler_pair_0.png"
+  },
+  "mechanic": {
+   "frames": [
+    "mechanic_0.png",
+    "mechanic_1.png",
+    "mechanic_2.png"
+   ],
+   "w": 64,
+   "h": 112,
+   "file": "mechanic_0.png"
+  },
+  "fence": {
+   "file": "fence.png",
+   "w": 125,
+   "h": 119
+  },
+  "crate": {
+   "file": "crate.png",
+   "w": 96,
+   "h": 80
+  }
+ },
+ "anims": [],
+ "computer": {
+  "main": [
+   350,
+   30,
+   84,
+   48
+  ],
+  "small": [
+   [
+    300,
+    30,
+    44,
+    22
+   ],
+   [
+    300,
+    58,
+    44,
+    22
+   ],
+   [
+    440,
+    30,
+    44,
+    22
+   ],
+   [
+    440,
+    58,
+    44,
+    22
+   ]
+  ]
+ },
+ "colors": {
+  "skyTop": "#05070b",
+  "under": "#07080c",
+  "seaBottom": "#07080c"
+ },
+ "preview": "preview.png"
+}

@@ -40,6 +40,30 @@ const SETS = {
   },
 }
 
+// THE BATCAVE — Guile's air base (SFII CE sheet) repainted by tools/stage_layers/slice_guile_batcave.py.
+SETS.guile_batcave = {
+  dir: "./stages/guile_batcave/",
+  S: 2,
+  standRow: 44,
+  deckFrontRow: 63,
+  floor: { piece: "deck", farFactor: 0.72, rimFactor: 1.12, center: true },   // Bat-symbol centred in the world
+  back: [
+    { piece: "depths",  p: 0.32, tile: "mirror", bottomRow: 2, fx: "batcomputer" }, // cave depths: vehicle bays, Batcomputer
+    { piece: "ceiling", p: 0.26, tile: "mirror", bottomRow: -120 },            // rock ceiling, stalactites over the depths
+    { piece: "batwing", p: 0.74, x: 0.42, bottomRow: 3 },                      // the Batwing on its deck
+  ],
+  props: [
+    { piece: "fence",          x: 0.04, bottomRow: 10 },
+    { piece: "mechanic",       x: 0.13, bottomRow: 16, rate: 20 },
+    { piece: "butler_pair",    x: 0.31, bottomRow: 14, rate: 24 },
+    { piece: "butlers_crates", x: 0.84, bottomRow: 18, rate: 16 },
+  ],
+  front: [],
+  under: { piece: "ceiling", fromRow: 0, cols: [0, 1024], p: 1.12, darken: 0.35 },   // rock below the platform edge
+  fx: "batcave",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -77,6 +101,7 @@ function load(set) {
   fetch(def.dir + "layout.json").then(r => r.json()).then(L => {
     const files = new Set(Object.values(L.pieces).map(p => p.file))
     for (const a of L.anims || []) for (const f of a.frames) files.add(f.file)
+    for (const p of Object.values(L.pieces)) for (const f of p.frames || []) files.add(f)
     for (const f of files) { const im = new Image(); im.src = def.dir + f; c.img[f] = im }
     c.layout = L
   }).catch(() => { c.failed = true })
@@ -152,8 +177,23 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
 
   // 2. far layers (parallax, edge-anchored)
   const t = (typeof performance !== "undefined" ? performance.now() : 0) / 1000
+  const drawn = {}
   for (const ly of def.back) {
     const pc = P[ly.piece], im = c.img[pc.file], w = pc.w * S, h = pc.h * S
+    if (ly.tile === "mirror" || ly.x != null) {               // repeating cave walls / a single placed object
+      const x0 = (ly.x != null ? ly.x * W : W / 2) - w / 2 + shift(ly.p, W)
+      const y = dockTop + ly.bottomRow * S - h
+      drawn[ly.piece] = { x: x0, y, S }
+      if (ly.tile !== "mirror") { ctx.drawImage(im, x0, y, w, h); continue }
+      const after = ly.fx === "batcomputer" ? () => batcomputer(ctx, c, drawn[ly.piece], S) : null
+      for (let k = Math.floor((padL - x0) / w); x0 + k * w < padR; k++) {
+        const xx = x0 + k * w, odd = Math.abs(k) % 2 === 1
+        if (!odd) { ctx.drawImage(im, Math.floor(xx), y, w + 1, h); continue }
+        ctx.save(); ctx.translate(Math.floor(xx) + w, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, w + 1, h); ctx.restore()
+      }
+      if (after) after()
+      continue
+    }
     let x
     if (ly.anchor === "right") x = Math.max(W / 2 + ly.edge + shift(ly.p, W), v.right + 2) - w
     else if (ly.anchor === "left") x = Math.min(W / 2 + ly.edge + shift(ly.p, W), v.left - 2)
@@ -181,8 +221,9 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
 
   // 3. the floor, one row at a time (perspective line-scroll), tiled across the view
   const fl = P[def.floor.piece], fim = c.img[fl.file], tw = fl.w * S
+  const org = def.floor.center ? W / 2 - tw / 2 : 0
   for (let r = 0; r < fl.h; r++) {
-    const off = shift(rowFactor(def, r), W)
+    const off = shift(rowFactor(def, r), W) + org
     let x = ((off - padL) % tw + tw) % tw - tw + padL      // first tile start at or left of the view's left edge
     for (; x < padR; x += tw) ctx.drawImage(fim, 0, r, fl.w, 1, Math.floor(x), dockTop + r * S, tw + 1, S)
   }
@@ -207,6 +248,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
 
   // 4. props standing on the deck, behind the fighters
   drawProps(ctx, c, def, def.props, W, dockTop)
+  if (def.fx === "batcave") batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -215,7 +257,8 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
 function drawProps(ctx, c, def, list, W, dockTop) {
   const S = def.S
   for (const pr of list) {
-    const pc = c.layout.pieces[pr.piece], im = c.img[pc.file]
+    const pc = c.layout.pieces[pr.piece]
+    const im = c.img[pc.frames ? pc.frames[frameOf(pc.frames.length, pr.rate || 14, Math.round(pr.x * 10))] : pc.file]
     if (!ready(im)) continue
     const w = pc.w * S, h = pc.h * S
     const x = pr.x * W - w / 2 + shift(rowFactor(def, pr.bottomRow), W)
@@ -399,4 +442,70 @@ function drawRoomFront(ctx, def, W, groundY) {
   ctx.save()
   for (const q of def.cubes.filter(q => q.front)) drawCube(ctx, def, P, q, W, t)
   ctx.restore()
+}
+
+// ───────────────────────────── BATCAVE ambience (render-only, wall clock) ─────────────────────────────
+const _h = n => { let x = (n * 2654435761) >>> 0; x ^= x >>> 15; x = Math.imul(x, 2246822519) >>> 0; return (x >>> 0) / 4294967296 }
+// Batcomputer: live screens on the centre copy of the cave depths (drawn with that layer, so behind the Batwing)
+function batcomputer(ctx, c, d, S) {
+  const t = now(), L = c.layout
+  if (d && L.computer) {
+    const scr = ([x, y, w, h]) => [d.x + x * S, d.y + y * S, w * S, h * S]
+    const [mx, my, mw, mh] = scr(L.computer.main)
+    const g = ctx.createLinearGradient(0, my, 0, my + mh)
+    g.addColorStop(0, "rgba(40,120,220,0.55)"); g.addColorStop(1, "rgba(10,40,100,0.55)")
+    ctx.fillStyle = g; ctx.fillRect(mx, my, mw, mh)
+    ctx.strokeStyle = "rgba(140,210,255,0.85)"; ctx.lineWidth = 1.5; ctx.beginPath()            // waveform
+    for (let i = 0; i <= 40; i++) { const xx = mx + (i / 40) * mw, yy = my + mh * (0.55 + 0.25 * Math.sin(i * 0.6 + t * 4) * Math.sin(i * 0.17 + t)); i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy) }
+    ctx.stroke()
+    ctx.fillStyle = "rgba(170,225,255,0.9)"; ctx.font = `700 ${Math.round(5 * S)}px monospace`; ctx.textAlign = "left"; ctx.textBaseline = "top"
+    ctx.fillText(["GOTHAM CITY  ● LIVE", "ARKHAM  ● SECURE", "BATWING  ● READY"][Math.floor(t / 2.5) % 3], mx + 3, my + 3)
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; for (let y = my; y < my + mh; y += 3) ctx.fillRect(mx, y, mw, 1)
+    L.computer.small.forEach((r, i) => {
+      const [sx, sy, sw, sh] = scr(r), on = 0.35 + 0.35 * Math.abs(Math.sin(t * (1.3 + i * 0.4) + i))
+      ctx.fillStyle = `rgba(60,150,255,${on})`; ctx.fillRect(sx, sy, sw, sh)
+      ctx.fillStyle = "rgba(200,235,255,0.6)"
+      for (let k = 0; k < 4; k++) ctx.fillRect(sx + 3, sy + 4 + k * 4 * S / 2, sw * (0.3 + 0.6 * _h(i * 9 + k + Math.floor(t * 2))), 2)
+    })
+  }
+}
+function batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S
+  // spotlights from the ceiling onto the Batwing
+  const b = drawn.batwing
+  if (b) for (const fx of [0.42, 0.66]) {
+    const cx = b.x + 1024 * S * fx, top = coverTop, bot = dockTop + 20 * S
+    const g = ctx.createLinearGradient(0, top, 0, bot)
+    g.addColorStop(0, "rgba(160,200,255,0.0)"); g.addColorStop(0.6, "rgba(160,200,255,0.07)"); g.addColorStop(1, "rgba(160,200,255,0.12)")
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(cx - 30, top); ctx.lineTo(cx + 30, top); ctx.lineTo(cx + 190, bot); ctx.lineTo(cx - 190, bot); ctx.closePath(); ctx.fill()
+  }
+  // bats: a loose colony crossing the upper cave (parallax with the depths)
+  const sh = (b0 => b0)(((camera.x ?? W / 2) - W / 2) * (1 - 0.45))
+  for (let i = 0; i < 14; i++) {
+    const dir = _h(i) < 0.5 ? -1 : 1, sp = 40 + 70 * _h(i + 50), span = W + 800
+    const x = ((_h(i + 9) * span + dir * t * sp) % span + span) % span - 400 + sh
+    if (x < padL - 40 || x > padR + 40) continue
+    const y = dockTop - 170 * S + _h(i + 20) * 110 * S + Math.sin(t * 2 + i) * 14
+    const sz = 6 + 9 * _h(i + 30), flap = Math.sin(t * (14 + i % 5) + i)
+    ctx.fillStyle = "#04050a"; ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.quadraticCurveTo(x - sz * 0.6 * dir, y - sz * flap, x - sz * 1.6, y - sz * 0.6 * flap)
+    ctx.quadraticCurveTo(x - sz * 0.8, y + sz * 0.15, x, y + sz * 0.3)
+    ctx.quadraticCurveTo(x + sz * 0.8, y + sz * 0.15, x + sz * 1.6, y - sz * 0.6 * flap)
+    ctx.quadraticCurveTo(x + sz * 0.6 * dir, y - sz * flap, x, y)
+    ctx.fill()
+  }
+  // water dripping from the stalactites
+  for (let i = 0; i < 7; i++) {
+    const per = 2.2 + 1.6 * _h(i + 70), ph = ((t + _h(i + 80) * per) % per) / per
+    const x = W * (0.08 + 0.13 * i) + shift(0.55, W), y0 = dockTop - 120 * S, y1 = dockTop + 6 * S
+    if (ph < 0.55) {
+      const y = y0 + (y1 - y0) * (ph / 0.55) ** 2
+      ctx.fillStyle = "rgba(150,200,255,0.55)"; ctx.fillRect(x, y, 2, 7)
+    } else if (ph < 0.7) {
+      const k = (ph - 0.55) / 0.15
+      ctx.strokeStyle = `rgba(150,200,255,${0.5 * (1 - k)})`; ctx.lineWidth = 1
+      ctx.beginPath(); ctx.ellipse(x + 1, y1, 4 + 14 * k, 2 + 3 * k, 0, 0, Math.PI * 2); ctx.stroke()
+    }
+  }
 }

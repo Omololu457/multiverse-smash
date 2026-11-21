@@ -217,6 +217,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Shadow Garden":          [WEATHER.FOG, WEATHER.RAIN, WEATHER.WIND, WEATHER.THUNDERSTORM],
   "Harbor Dock":            OUTDOOR_FULL,
   "Training Center":        [],               // hologram room: no weather
+  "The Batcave":            INDOOR_ONLY,      // underground: cave mist only
   "Battle Royale Colosseum": OUTDOOR_FULL,
 })
 // nearest-allowed fallback chain for a disallowed type

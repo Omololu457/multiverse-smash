@@ -143,6 +143,23 @@ SETS.infinity_castle = {
   animRate: {},
 }
 
+// THE NULL VOID — Blanka's Stage (SFII sheet) repainted by tools/stage_layers/slice_blanka_nullvoid.py: an endless prison
+// dimension — a void lit like the Unlimited Void (stars, nebulae, a faint grid), a swirling rift pulling debris in,
+// glowing mist, drifting rock islands (one with a petrified tree, one with a wrecked shack), and the jagged underside of
+// the floating island the fighters stand on.
+SETS.blanka_nullvoid = {
+  dir: "./stages/blanka_nullvoid/",
+  S: 2,
+  standRow: 44,
+  deckFrontRow: 63,
+  floor: { piece: "floor", farFactor: 0.72, rimFactor: 1.12, center: true, mirror: true },
+  back: [{ procedural: "nullvoid", p: 0.12 }],
+  props: [],
+  front: [],
+  fx: "nullvoid",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -260,6 +277,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "nullvoid") { drawNullVoidBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "castle") { drawCastleBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "valley") { drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "heavenHall") { drawHeavenHall(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
@@ -347,6 +365,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "nullvoid") nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -1117,5 +1136,123 @@ function infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   if (coverBottom > top + fh) {
     const g = ctx.createLinearGradient(0, top + fh, 0, coverBottom); g.addColorStop(0, "#1a0e06"); g.addColorStop(1, "#050302")
     ctx.fillStyle = g; ctx.fillRect(padL, top + fh, padR - padL, coverBottom - top - fh)
+  }
+}
+
+// ───────────────────────────── THE NULL VOID (render-only, wall clock) ─────────────────────────────
+// a jagged floating rock: flat-ish lit top, ragged underside tapering to a point; deterministic from its seed
+function nvRock(ctx, x, y, w, seed, lit = "#6a5590", body = "#2a1d3e", glow = null) {
+  const n = 9, h = w * (0.55 + 0.3 * _h(seed + 1))
+  ctx.beginPath(); ctx.moveTo(x - w / 2, y)
+  for (let i = 1; i < n; i++) ctx.lineTo(x - w / 2 + (w * i) / n, y - 3 - 6 * _h(seed + i * 3))          // bumpy top
+  ctx.lineTo(x + w / 2, y)
+  for (let i = n - 1; i > 0; i--) {                                                                   // ragged underside
+    const u = i / n, depth = h * Math.sin(u * Math.PI) ** 0.8 * (0.6 + 0.5 * _h(seed + i * 7))
+    ctx.lineTo(x - w / 2 + w * u, y + depth)
+  }
+  ctx.closePath()
+  const g = ctx.createLinearGradient(0, y - 8, 0, y + h); g.addColorStop(0, lit); g.addColorStop(0.15, body); g.addColorStop(1, "#0b0614")
+  ctx.fillStyle = g; ctx.fill()
+  if (glow) { ctx.strokeStyle = glow; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - w * 0.2, y + h * 0.15); ctx.lineTo(x - w * 0.05, y + h * 0.45); ctx.lineTo(x + w * 0.1, y + h * 0.3); ctx.stroke() }
+  return h
+}
+
+function drawNullVoidBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p }) {
+  const t = now(), P = c.layout.pieces, bot = dockTop + 4 * def.S, sh = shift(p, W)
+  const vt = Math.max(coverTop, bot - 440)                           // the part of the void actually on screen
+  // 1. the void: near-black violet, Unlimited-Void-style stars + nebulae + a faint grid
+  const g = ctx.createLinearGradient(0, coverTop, 0, bot); g.addColorStop(0, "#05020b"); g.addColorStop(0.6, "#160828"); g.addColorStop(1, "#2a0c30")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, bot - coverTop)
+  for (const [nx, ny, r, col] of [[0.2, 0.35, 420, "150,30,140"], [0.75, 0.5, 520, "70,20,150"], [0.5, 0.2, 360, "200,40,80"], [0.95, 0.15, 300, "30,120,150"]]) {
+    const cx = W * nx + sh * 1.4, cy = coverTop + (bot - coverTop) * ny, ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+    ng.addColorStop(0, `rgba(${col},0.28)`); ng.addColorStop(1, `rgba(${col},0)`); ctx.fillStyle = ng; ctx.fillRect(cx - r, cy - r, r * 2, r * 2)
+  }
+  for (let i = 0; i < 260; i++) {
+    const x = _h(i) * (W + 1400) - 700 + sh + (t * 3 * (i % 4)) % 40, y = coverTop + _h(i + 777) * (bot - coverTop)
+    if (x < padL || x > padR) continue
+    ctx.fillStyle = `rgba(235,225,255,${0.3 + 0.7 * Math.abs(Math.sin(t * (0.4 + _h(i + 3)) + i))})`; ctx.fillRect(x, y, i % 9 === 0 ? 2 : 1, i % 9 === 0 ? 2 : 1)
+  }
+  ctx.strokeStyle = "rgba(200,170,255,0.045)"; ctx.lineWidth = 1                       // the faint endless grid
+  const gs = 64, gx0 = ((sh * 1.5 - padL) % gs + gs) % gs + padL - gs
+  for (let x = gx0; x < padR; x += gs) { ctx.beginPath(); ctx.moveTo(x, coverTop); ctx.lineTo(x, bot); ctx.stroke() }
+  for (let y = bot - ((t * 6) % gs); y > coverTop; y -= gs) { ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padR, y); ctx.stroke() }
+  // 2. the rift: a swirling vortex high up where things are dragged in from outside
+  const rx = W * 0.56 + sh * 1.2, ry = vt + (bot - vt) * 0.42, rr = 95
+  const rg = ctx.createRadialGradient(rx, ry, 0, rx, ry, rr * 2.2); rg.addColorStop(0, "rgba(255,120,200,0.55)"); rg.addColorStop(0.35, "rgba(150,40,170,0.3)"); rg.addColorStop(1, "rgba(80,10,120,0)")
+  ctx.fillStyle = rg; ctx.fillRect(rx - rr * 2.2, ry - rr * 2.2, rr * 4.4, rr * 4.4)
+  ctx.save(); ctx.translate(rx, ry); ctx.scale(1, 0.55)
+  for (let arm = 0; arm < 6; arm++) {
+    ctx.strokeStyle = arm % 2 ? "rgba(255,140,220,0.55)" : "rgba(120,40,200,0.65)"; ctx.lineWidth = 6 - arm * 0.6
+    ctx.beginPath()
+    for (let i = 0; i <= 40; i++) { const u = i / 40, a = -t * 0.9 + arm * Math.PI / 3 + u * 5.2, r = rr * (1 - u * 0.92); i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r) }
+    ctx.stroke()
+  }
+  ctx.fillStyle = "#fff0fa"; ctx.beginPath(); ctx.arc(0, 0, 10 + 3 * Math.sin(t * 3), 0, Math.PI * 2); ctx.fill()
+  ctx.restore()
+  for (let i = 0; i < 10; i++) {                                     // debris spiralling into the rift
+    const ph = (t * (0.05 + 0.03 * _h(i)) + _h(i + 40)) % 1, a = _h(i + 60) * 6.28 + ph * 9, r = rr * 3.2 * (1 - ph)
+    const dx = rx + Math.cos(a) * r, dy = ry + Math.sin(a) * r * 0.55, sz = 2 + 6 * (1 - ph)
+    ctx.fillStyle = `rgba(120,100,150,${0.9 * (1 - ph)})`; ctx.save(); ctx.translate(dx, dy); ctx.rotate(a * 2); ctx.fillRect(-sz / 2, -sz / 2, sz, sz * 0.7); ctx.restore()
+  }
+  // 3. glowing mist (the repainted clouds), drifting
+  const mi = c.img[P.mist.file]
+  if (ready(mi)) {
+    const mw = P.mist.w * 1.5, mh = P.mist.h * 1.5, my = bot - mh - 10, mx0 = ((sh * 2 + t * 6 - padL) % mw + mw) % mw - mw + padL
+    ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 0.38
+    for (let x = mx0, k = 0; x < padR; x += mw, k++) {
+      if (k % 2 === 0) ctx.drawImage(mi, Math.floor(x), my, Math.ceil(mw) + 1, mh)
+      else { ctx.save(); ctx.translate(Math.floor(x) + mw, my); ctx.scale(-1, 1); ctx.drawImage(mi, 0, 0, Math.ceil(mw) + 1, mh); ctx.restore() }
+    }
+    ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = false
+  }
+  // 4. floating rock islands at several depths, bobbing; two carry the petrified tree and the wrecked shack
+  const ISL = [[0.08, 0.3, 150, 0.25], [0.3, 0.55, 230, 0.4, "tree"], [0.47, 0.2, 90, 0.2], [0.68, 0.62, 260, 0.45, "shack"], [0.9, 0.4, 170, 0.32], [0.18, 0.72, 120, 0.55], [0.82, 0.78, 140, 0.6]]
+  ISL.forEach(([fx, fy, w, depth, carry], i) => {
+    const x = W * fx + shift(depth, W), y = vt + (bot - vt) * fy * 0.85 + Math.sin(t * (0.3 + 0.2 * _h(i)) + i * 2) * 10
+    if (x + w < padL - 200 || x - w > padR + 200) return
+    if (carry) {
+      const pc = P[carry], im = c.img[pc.file], s = carry === "tree" ? 1.1 : 0.85, iw = pc.w * s, ih = pc.h * s
+      if (ready(im)) ctx.drawImage(im, Math.floor(x - iw / 2 + (carry === "shack" ? 10 : 0)), Math.floor(y - ih + 6), Math.ceil(iw), Math.ceil(ih))
+    }
+    nvRock(ctx, x, y, w, i * 31 + 5, depth > 0.4 ? "#7a63a2" : "#4e3e6c", depth > 0.4 ? "#2e2044" : "#1e1530", i % 2 ? "rgba(230,80,200,0.6)" : null)
+  })
+  for (let i = 0; i < 16; i++) {                                     // small debris drifting past
+    const x = padL + ((t * (6 + 10 * _h(i)) + _h(i + 90) * 4000) % (padR - padL + 200)) - 100, y = vt + _h(i + 120) * (bot - vt) * 0.85
+    nvRock(ctx, x, y + Math.sin(t + i) * 4, 10 + 16 * _h(i + 140), i * 13 + 400, "#4e3e6c", "#1e1530")
+  }
+}
+
+// below the fighters' rock: the island's jagged underside, cracks glowing, crumbs falling away into the void
+function nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now(), top = dockTop + P.floor.h * S
+  if (coverBottom <= top) return
+  ctx.fillStyle = "#05020b"; ctx.fillRect(padL, top, padR - padL, coverBottom - top)
+  const off = shift(def.floor.rimFactor, W)
+  // irregular hanging rock: each world column k gets its own width and depth (big crags + small teeth between)
+  const cols = [], X0 = padL - 200
+  let k = Math.floor((X0 - off) / 50)
+  for (let x = off + k * 50; x < padR + 200; k++) { const w = 26 + 70 * _h(k * 11 + 1); cols.push([x, w, k]); x += w }
+  for (const layer of [0, 1]) {
+    ctx.beginPath(); ctx.moveTo(cols[0][0], top)
+    for (const [x, w, kk] of cols) {
+      const big = _h(kk * 5 + layer) > 0.7, d = (big ? 150 + 120 * _h(kk * 3 + 9) : 30 + 70 * _h(kk * 3 + 4)) * (layer ? 0.6 : 1)
+      ctx.lineTo(x + w * (0.3 + 0.4 * _h(kk + 77)), top + d); ctx.lineTo(x + w, top + 10 + 30 * _h(kk * 9 + layer))
+    }
+    ctx.lineTo(padR + 200, top); ctx.closePath()
+    const g = ctx.createLinearGradient(0, top, 0, top + 270)
+    if (layer) { g.addColorStop(0, "#4a3670"); g.addColorStop(1, "#1a1030") } else { g.addColorStop(0, "#2a1c42"); g.addColorStop(0.5, "#140b22"); g.addColorStop(1, "#06030c") }
+    ctx.fillStyle = g; ctx.fill()
+  }
+  ctx.strokeStyle = `rgba(230,80,200,${0.45 + 0.3 * Math.sin(t * 2)})`; ctx.lineWidth = 1.2
+  for (const [x, w, kk] of cols) {                                   // a few thin glowing veins
+    if (_h(kk * 13 + 2) < 0.75) continue
+    let vx = x + w * 0.5, vy = top + 8; ctx.beginPath(); ctx.moveTo(vx, vy)
+    for (let j = 0; j < 4; j++) { vx += (_h(kk + j * 5) - 0.5) * 18; vy += 12 + 10 * _h(kk * 2 + j); ctx.lineTo(vx, vy) }
+    ctx.stroke()
+  }
+  ctx.fillStyle = "#e8e0f8"; ctx.fillRect(padL, top, padR - padL, 2)
+  for (let i = 0; i < 14; i++) {                                     // crumbs falling off
+    const ph = (t * (0.25 + 0.2 * _h(i)) + _h(i + 30)) % 1, x = padL + _h(i + 50) * (padR - padL), y = top + 40 + ph * (coverBottom - top)
+    ctx.fillStyle = `rgba(120,96,150,${1 - ph})`; ctx.fillRect(x, y, 3 + 3 * _h(i), 3)
   }
 }

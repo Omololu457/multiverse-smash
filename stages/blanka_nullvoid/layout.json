@@ -1,0 +1,31 @@
+{
+ "source": "Street Fighter II \u2014 Blanka's Stage sheet, ripped by shezzor; repainted as the Null Void",
+ "pieces": {
+  "mist": {
+   "file": "mist.png",
+   "w": 512,
+   "h": 160
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 896,
+   "h": 64
+  },
+  "tree": {
+   "file": "tree.png",
+   "w": 126,
+   "h": 189
+  },
+  "shack": {
+   "file": "shack.png",
+   "w": 246,
+   "h": 129
+  }
+ },
+ "colors": {
+  "skyTop": "#05020b",
+  "under": "#05020b",
+  "seaBottom": "#05020b"
+ },
+ "preview": "preview.png"
+}

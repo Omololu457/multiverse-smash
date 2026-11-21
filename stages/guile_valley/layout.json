@@ -1,0 +1,33 @@
+{
+ "source": "valley_of_the_end_bg.png (the game's backdrop) + Street Fighter II CE Guile's Stage sheet (V. Signal)",
+ "pieces": {
+  "valley": {
+   "file": "valley.png",
+   "w": 1024,
+   "h": 477,
+   "falls": [
+    473,
+    157,
+    100,
+    248
+   ],
+   "river": [
+    389,
+    410,
+    276,
+    67
+   ]
+  },
+  "deck": {
+   "file": "deck.png",
+   "w": 1024,
+   "h": 64
+  }
+ },
+ "colors": {
+  "skyTop": "#c9d4dc",
+  "under": "#16343a",
+  "seaBottom": "#0b2226"
+ },
+ "preview": "preview.png"
+}

@@ -2365,7 +2365,7 @@ const STAGE_DEFS = [
   { name: "Shibuya Incident",       series: "jjk",         music: "JJK_2.mp3", landmark: "shibuya",      sky: "#0b1022", mid: "#1f2937", floor: "#111827", accent: "#ef4444", backgroundImage: "shibuya_incident_bg.png",
     hazards: [{ id: "cursed_rail", x: 1180, w: 46, height: 150, damage: 55, hitstun: 26, tint: "#ef4444" }] },
   { name: "Hidden Leaf Village",    series: "naruto",      landmark: "hidden_leaf",  sky: "#bfdbfe", mid: "#86efac", floor: "#a16207", accent: "#22c55e" },
-  { name: "Valley of the End",      series: "naruto",      music: "Anime Kei - Bad Situation (Naruto Sad).mp3", landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0", backgroundImage: "valley_of_the_end_bg.png" },
+  { name: "Valley of the End",      series: "naruto",      music: "Anime Kei - Bad Situation (Naruto Sad).mp3", landmark: "valley_of_end",sky: "#9fb6c9", mid: "#5b7184", floor: "#2f3b46", accent: "#e2e8f0", worldWidth: 2400, layers: "guile_valley", backgroundImage: "valley_of_the_end_bg.png" },
   { name: "Planet Namek",           series: "dragonball",  landmark: "namek",        sky: "#5eead4", mid: "#34d399", floor: "#15803d", accent: "#fef08a" },
   { name: "World Tournament Arena", series: "dragonball",  landmark: "tournament",   sky: "#93c5fd", mid: "#fde68a", floor: "#b45309", accent: "#ffffff" },
   { name: "Mugen Train",            series: "demonslayer", landmark: "mugen_train",  sky: "#0c1330", mid: "#241a3a", floor: "#1a1326", accent: "#f59e0b", backgroundImage: "mugen_train_bg.png" },

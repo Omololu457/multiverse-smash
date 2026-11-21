@@ -108,6 +108,21 @@ SETS.ryu_heaven = {
   animRate: {},
 }
 
+// VALLEY OF THE END — the game's own painted backdrop (cliffs, the two statues, the waterfall) brought into 16-bit style
+// and mixed with Guile's Stage (SFII CE): its tarmac is the wet riverbank rock. tools/stage_layers/slice_guile_valley.py.
+SETS.guile_valley = {
+  dir: "./stages/guile_valley/",
+  S: 2,
+  standRow: 44,
+  deckFrontRow: 63,
+  floor: { piece: "deck", farFactor: 0.72, rimFactor: 1.12, center: true },
+  back: [{ procedural: "valley", p: 0.35 }],
+  props: [],
+  front: [],
+  fx: "valley",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -224,6 +239,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "valley") { drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "heavenHall") { drawHeavenHall(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     const pc = P[ly.piece], im = c.img[pc.file], ls = S * (ly.scale || 1), w = pc.w * ls, h = pc.h * ls
     if (ly.tile === "mirror" || ly.x != null) {               // repeating cave walls / a single placed object
@@ -307,6 +323,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "batcave") batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop })
   if (def.fx === "citadel") citadelFloor(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -884,5 +901,67 @@ function heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     const dg = ctx.createLinearGradient(0, dropTop, 0, coverBottom); dg.addColorStop(0, "#1a1030"); dg.addColorStop(1, "#08040f")
     ctx.fillStyle = dg; ctx.fillRect(padL, dropTop, padR - padL, coverBottom - dropTop)
     ctx.fillStyle = `rgba(214,177,74,${0.35 + 0.15 * Math.sin(t * 1.5)})`; ctx.fillRect(padL, dropTop, padR - padL, 3)   // floor lights
+  }
+}
+
+// ───────────────────────────── VALLEY OF THE END (render-only, wall clock) ─────────────────────────────
+// The painting is drawn ONCE, centred, scaled to fill from the top of the view down to the riverbank; past its edges the
+// outer cliff strips (no statues) repeat mirrored, so the two statues are never duplicated however far the camera goes.
+function drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p }) {
+  const t = now(), pc = c.layout.pieces.valley, im = c.img[pc.file]
+  if (!ready(im)) return
+  const S = def.S, bottom = dockTop + 4 * S
+  const viewH = (padR - padL - 16) * 9 / 16, sc = (viewH * 0.5) / pc.h      // fits the part of the view above the bank
+  if (bottom - pc.h * sc > coverTop) {                            // a tall view: sky colour above the painting's top
+    ctx.fillStyle = c.layout.colors.skyTop; ctx.fillRect(padL, coverTop, padR - padL, bottom - pc.h * sc - coverTop + 2)
+  }
+  const w = pc.w * sc, h = pc.h * sc, x0 = W / 2 - w / 2 + shift(p, W), y0 = bottom - h
+  ctx.drawImage(im, Math.floor(x0), Math.floor(y0), Math.ceil(w), Math.ceil(h))
+  const edge = Math.round(pc.w * 0.18), ew = edge * sc
+  for (let k = 0, x = x0; x > padL; k++) {                       // left: cols [0, edge) mirrored outward
+    x -= ew; ctx.save(); ctx.translate(Math.floor(x) + (k % 2 ? 0 : ew), Math.floor(y0)); ctx.scale(k % 2 ? 1 : -1, 1)
+    ctx.drawImage(im, 0, 0, edge, pc.h, 0, 0, Math.ceil(ew) + 1, Math.ceil(h)); ctx.restore()
+  }
+  for (let k = 0, x = x0 + w; x < padR; k++, x += ew) {          // right: cols [w-edge, w) mirrored outward
+    ctx.save(); ctx.translate(Math.floor(x) + (k % 2 ? 0 : ew), Math.floor(y0)); ctx.scale(k % 2 ? 1 : -1, 1)
+    ctx.drawImage(im, pc.w - edge, 0, edge, pc.h, 0, 0, Math.ceil(ew) + 1, Math.ceil(h)); ctx.restore()
+  }
+  // the waterfall: bright streaks pouring down its face, mist where it lands
+  const [fx, fy, fw, fh] = pc.falls, X = x0 + fx * sc, Y = y0 + fy * sc, FW = fw * sc, FH = fh * sc
+  ctx.save(); ctx.beginPath(); ctx.rect(X, Y, FW, FH); ctx.clip()
+  for (let i = 0; i < 26; i++) {
+    const lx = X + _h(i) * FW, len = 18 + 30 * _h(i + 40), sp = 120 + 80 * _h(i + 80)
+    const ly = Y + ((t * sp + _h(i + 120) * FH) % (FH + len)) - len
+    ctx.fillStyle = `rgba(255,255,255,${0.25 + 0.35 * _h(i + 160)})`; ctx.fillRect(Math.floor(lx), Math.floor(ly), 2, len)
+  }
+  ctx.restore()
+  for (let i = 0; i < 9; i++) {
+    const ph = (t * 0.35 + _h(i)) % 1, mx = X + FW / 2 + (_h(i + 9) - 0.5) * FW * 1.6, my = Y + FH - ph * 40, r = 14 + 26 * ph
+    ctx.fillStyle = `rgba(235,245,250,${0.22 * (1 - ph)})`; ctx.beginPath(); ctx.arc(mx, my, r, 0, Math.PI * 2); ctx.fill()
+  }
+  // the river below the falls glints
+  const [rx, ry, rw, rh] = pc.river
+  for (let i = 0; i < 14; i++) {
+    const gx = x0 + (rx + _h(i + 300) * rw) * sc, gy = y0 + (ry + _h(i + 330) * rh) * sc, a = Math.max(0, Math.sin(t * 2 + i * 1.7))
+    ctx.fillStyle = `rgba(255,255,255,${0.5 * a})`; ctx.fillRect(Math.floor(gx), Math.floor(gy), 6, 2)
+  }
+}
+
+// below the riverbank rock: the river itself, flowing past (bands of light sliding sideways, foam along the edge)
+function valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now(), top = dockTop + P.deck.h * S
+  if (coverBottom <= top) return
+  const g = ctx.createLinearGradient(0, top, 0, coverBottom); g.addColorStop(0, "#2f7880"); g.addColorStop(0.4, "#1b4d55"); g.addColorStop(1, "#0b2226")
+  ctx.fillStyle = g; ctx.fillRect(padL, top, padR - padL, coverBottom - top)
+  ctx.fillStyle = "rgba(235,250,250,0.7)"
+  for (let x = padL - ((t * 40) % 24); x < padR; x += 24) ctx.fillRect(Math.floor(x), top, 14, 2)        // foam at the bank
+  const off = shift(1.15, W)
+  for (let r = 0; r < 7; r++) {
+    const yy = top + 10 + r * 16, sp = 50 + r * 12, len = 40 + r * 10
+    ctx.fillStyle = `rgba(170,230,235,${0.32 - r * 0.035})`
+    for (let i = 0; i < 30; i++) {
+      const x = padL + ((i * 157 + t * sp + off + r * 61) % (padR - padL + 200)) - 100
+      ctx.fillRect(Math.floor(x), Math.floor(yy + 3 * Math.sin(t + i)), len, 2)
+    }
   }
 }

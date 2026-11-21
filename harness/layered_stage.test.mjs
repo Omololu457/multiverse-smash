@@ -21,9 +21,15 @@ try {
   await page.mouse.click(640, 360)
   const sel = await page.evaluate(() => window.__harness.selectStageByName("Harbor Dock"))
   check("Harbor Dock is a selectable stage", !sel.error, JSON.stringify(sel).slice(0, 120))
-  await page.evaluate(() => { window.__harness.start({ stage: "Harbor Dock" }); window.__harness.skipToBattle() })
+  // pick it the way a player does: fighters set, then Stage Select → Enter on the Harbor Dock card
+  await page.evaluate(() => window.__harness.start())
+  const idx0 = await page.evaluate(() => window.__harness.selectStageByName("__none__").have.indexOf("Harbor Dock"))
+  await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
+  // click the card (stage cards start the match on click); its rect comes from the same layout the screen draws
+  await page.mouse.move(115, 600); await sleep(150); await page.mouse.click(115, 600); await sleep(2500)
+  await page.evaluate(() => window.__harness.skipToBattle())
   await page.waitForFunction(() => window.__harness.camera().worldWidth === 2400, null, { timeout: 15000 }).catch(() => {})
-  check("match world uses the stage width (2400)", (await page.evaluate(() => window.__harness.camera().worldWidth)) === 2400)
+  { const ww = await page.evaluate(() => window.__harness.camera().worldWidth); check("match world uses the stage width (2400)", ww === 2400, String(ww)) }
   await sleep(2500)   // art load
   const shot = async n => page.screenshot({ path: path.join(OUT, n + ".png") })
   await shot("center")

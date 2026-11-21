@@ -1394,7 +1394,20 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
 // ─────────────────────────────────────────────
 // MAIN MENU (after pressing PLAY on the title)
 // ─────────────────────────────────────────────
+// MAIN MENU SCROLL: 15 buttons don't fit at the 46px minimum row height, so the list scrolls (mouse wheel, or it
+// follows the keyboard / pad selection) inside the band between the header and the footer.
+let _mainMenuScroll = 0
+const _MM_TOP = 140, _MM_BOTTOM = 62
+function _mainMenuBand(canvas) { const { height: h } = getCanvasSize(canvas); return { top: _MM_TOP, bottom: h - _MM_BOTTOM } }
+export function scrollMainMenu(dy, canvas) { _mainMenuScroll += dy; getMainMenuRects(canvas) }
 export function getMainMenuRects(canvas) {
+  const rects = _mainMenuRectsRaw(canvas), band = _mainMenuBand(canvas), last = rects[rects.length - 1]
+  const max = Math.max(0, last.y + last.h - band.bottom)
+  _mainMenuScroll = Math.max(0, Math.min(max, _mainMenuScroll))
+  for (const r of rects) { r.y -= _mainMenuScroll; r.scrollMax = max }
+  return rects
+}
+function _mainMenuRectsRaw(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
     { id: "playTutorial", label: "TUTORIAL", subLabel: "Interactive guided walkthrough — learn the basics" },
@@ -1530,8 +1543,17 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null, 
   ctx.textAlign = "center"; ctx.fillText(label, w - bw / 2 - 24, 41)
   ctx.restore()
 
-  const rects = getMainMenuRects(canvas)
+  let rects = getMainMenuRects(canvas)
+  const band = _mainMenuBand(canvas), hov = rects[hoverIndex]
+  if (hov && (hov.y < band.top || hov.y + hov.h > band.bottom)) {      // keep the selected button in view
+    _mainMenuScroll += hov.y < band.top ? hov.y - band.top - 8 : hov.y + hov.h - band.bottom + 8
+    rects = getMainMenuRects(canvas)
+  }
+  const scrollMax = rects[0]?.scrollMax || 0
+  ctx.save()
+  if (scrollMax > 0) { ctx.beginPath(); ctx.rect(0, band.top - 6, getCanvasSize(canvas).width, band.bottom - band.top + 12); ctx.clip() }
   rects.forEach((r, i) => {
+    if (r.y + r.h < band.top - 6 || r.y > band.bottom + 6) return
     drawMkButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex && !r.locked,
       locked: r.locked, accent: _MK_ACCENT, id: `mainmenu:${i}` })
     if (r.locked) {
@@ -1547,6 +1569,14 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null, 
       ctx.restore()
     }
   })
+  ctx.restore()
+  if (scrollMax > 0) {                                                // scroll bar + "more below / above" arrows
+    const x = rects[0].x + rects[0].w + 14, H = band.bottom - band.top, th = Math.max(30, H * H / (H + scrollMax)), ty = band.top + (H - th) * (_mainMenuScroll / scrollMax)
+    ctx.save(); ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(x, band.top, 5, H); ctx.fillStyle = "rgba(220,230,255,0.75)"; ctx.fillRect(x, ty, 5, th)
+    ctx.fillStyle = "rgba(220,230,255,0.85)"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
+    if (_mainMenuScroll < scrollMax - 1) ctx.fillText("▼ scroll for more", rects[0].x + rects[0].w / 2, band.bottom + 18)
+    ctx.restore()
+  }
   drawFooterHint(ctx, canvas, "Tip: new here? Open HOW TO PLAY for the controls and core mechanics")
 
   // DAILY CHALLENGES panel (Track D): today's 3 featured challenges + the login streak,

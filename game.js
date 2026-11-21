@@ -549,7 +549,7 @@ import {
   lastBattleBgRect,
   drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons, alienGridOpts,
   CHAR_GRID_OPTS, UNIVERSE_GRID_OPTS, charSelectGridOpts, getSelectDetailRect, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
-  getMainMenuRects, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
+  getMainMenuRects, scrollMainMenu, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
   drawCreditsScreen,
   drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
   drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, getAcademyWatchBrutButton, getAcademyLabButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
@@ -1915,6 +1915,8 @@ function activeScrollGrid() {
 }
 
 canvas.addEventListener("wheel", e => {
+  // MAIN MENU: the button list is taller than the screen — the wheel scrolls it (Settings / Credits / Back at the bottom)
+  if (gameState === GAME_STATES.MAIN_MENU) { e.preventDefault(); scrollMainMenu(e.deltaY, canvas); return }
   // CREDITS screen consumes wheel to scroll the attribution list (Stage 18).
   if (gameState === GAME_STATES.CREDITS) {
     e.preventDefault()

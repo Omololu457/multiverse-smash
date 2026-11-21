@@ -23,7 +23,6 @@ const near = (a,b,eps=1.5) => Math.abs(a-b) <= eps;
 const STAGES = [
   { name: "Jujutsu High Courtyard", bitmap: true },
   { name: "Valley of the End",      bitmap: true },
-  { name: "Test Map",               bitmap: true },
   { name: "Hidden Leaf Village",    bitmap: false },  // procedural control
 ];
 // windowed → fullscreen(16:9) → tall → back to windowed  (both directions covered)

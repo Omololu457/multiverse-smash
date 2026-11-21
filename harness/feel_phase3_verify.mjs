@@ -20,7 +20,7 @@ check("warm (Planet Namek) snow → falls back (no snow)", resolveWeather({ name
 check("void (Null Void) thunderstorm → clear or fog", [WEATHER.CLEAR, WEATHER.FOG].includes(resolveWeather({ name: "Null Void" }, WEATHER.THUNDERSTORM)))
 check("outdoor rain resolves to rain (allowed, unchanged)", resolveWeather({ name: "Hidden Leaf Village" }, WEATHER.RAIN) === WEATHER.RAIN)
 check("unknown stage → open outdoor default allows snow", allowedWeatherFor({ name: "???" }).includes(WEATHER.SNOW))
-check("deterministic per-stage pick is stable for a seed", weatherPickForStage({ name: "Test Map" }, 12345) === weatherPickForStage({ name: "Test Map" }, 12345))
+check("deterministic per-stage pick is stable for a seed", weatherPickForStage({ name: "Harbor Dock" }, 12345) === weatherPickForStage({ name: "Harbor Dock" }, 12345))
 
 // ── Part B — live rendering ──
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")

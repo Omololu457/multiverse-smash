@@ -215,7 +215,8 @@ export const STAGE_WEATHER = Object.freeze({
   "PK Academy":             OUTDOOR_FULL,
   "Analysis Nexus":         INDOOR_ONLY,
   "Shadow Garden":          [WEATHER.FOG, WEATHER.RAIN, WEATHER.WIND, WEATHER.THUNDERSTORM],
-  "Test Map":               OUTDOOR_FULL,
+  "Harbor Dock":            OUTDOOR_FULL,
+  "Training Center":        [],               // hologram room: no weather
   "Battle Royale Colosseum": OUTDOOR_FULL,
 })
 // nearest-allowed fallback chain for a disallowed type

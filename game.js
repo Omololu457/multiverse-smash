@@ -2388,10 +2388,6 @@ const STAGE_DEFS = [
   { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3" },
   { name: "Analysis Nexus",         series: "original",     music: "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", landmark: "analysis_nexus",  sky: "#051a1f", mid: "#0a2e33", floor: "#04141a", accent: "#2dd4bf" },
   { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" },
-  // Neutral grid-floor TEST MAP — a plain reference stage (no series flavor). Standard 3200 world;
-  // full-scroll background test_map_bg.png (2752x1536). A normal selectable stage, not FFA-only.
-  // STAGE INTERACTABLES PILOT: one mid-stage "arc pylon" hazard (stageHazards.js) — a fighter knocked
-  // into it takes contact damage + a wall-splat reaction. Data-driven → rollout to other stages is trivial.
   // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):
   // parallax sea + yacht, bobbing ship with an animated cheering crowd, line-scroll perspective dock, barrels + bollards.
   { name: "Harbor Dock",            series: "other",       landmark: "ken_harbor",   sky: "#b1e0ff", mid: "#173961", floor: "#7a4422", accent: "#fde68a", worldWidth: 2400,
@@ -2400,8 +2396,6 @@ const STAGE_DEFS = [
   // slice_honda_training.py) rebuilt as a white 3D hologram room — mural → projection screen, tub → platform, ring glows.
   { name: "Training Center",        series: "other",       music: "Subliminals - pz'.mp3", landmark: "honda_training", sky: "#eef5fa", mid: "#dbeaf4", floor: "#f6fafd", accent: "#46c4ff", worldWidth: 2400,
     layers: "honda_training", backgroundImage: "stages/honda_training/preview.png" },
-  { name: "Test Map",               series: "other",       landmark: "test_map",     sky: "#aebccc", mid: "#c6bfb2", floor: "#8c8c94", accent: "#e5e7eb", backgroundImage: "test_map_bg.png",
-    hazards: [{ id: "arc_pylon", x: 2000, w: 46, height: 156, damage: 55, hitstun: 26 }] },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
   // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
   // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
@@ -6558,14 +6552,14 @@ function pickRandomCharacter(universeOnly) {
 // HOME STAGE (Stage 23). characters[key].homeStage (a stage NAME) wins; otherwise derive from the
 // character's universe → series → that series' first non-FFA stage; else a neutral fallback.
 const _UNIVERSE_SERIES = { jujutsu_kaisen: "jjk", naruto: "naruto", dragon_ball: "dragonball", demon_slayer: "demonslayer", rick_and_morty: "rickmorty", ben_10: "ben10",
-  // 8 gap universes now have dedicated stages → route each to its new home stage (was falling back to Test Map).
+  // 8 gap universes now have dedicated stages → route each to its new home stage (was falling back to the neutral stage).
   bleach: "bleach", dc: "dc", horror: "horror", hunter_x_hunter: "hxh", invincible: "invincible", power_rangers: "powerrangers", saiki_k: "saiki", original: "original" }
 function homeStageFor(charKey) {
   const c = characters[charKey]; if (!c) return null
   if (c.homeStage) { const s = stages.find(st => st.name === c.homeStage); if (s) return s }
   const series = _UNIVERSE_SERIES[c.universe]
   if (series) { const s = stages.find(st => st.series === series && !st.ffa); if (s) return s }
-  return stages.find(st => st.name === "Test Map") || stages[0]
+  return stages.find(st => st.name === "Training Center") || stages[0]
 }
 // Pre-select the P1 fighter's home stage when the stage-select opens (player can still change it).
 function _applyHomeStageDefault() {
@@ -10191,7 +10185,7 @@ const SPEEDRUN_PANELS = [   // speedrun — real stage backgrounds + tinted fill
   { img: "./valley_of_the_end_bg.png" }, { grad: ["#1a2a4a", "#0a1020"] },
   { img: "./shibuya_incident_bg.png" },  { grad: ["#3a1020", "#140408"] },
   { img: "./mugen_train_bg.png" },       { grad: ["#0a2a1a", "#041008"] },
-  { img: "./test_map_bg.png" },          { grad: ["#2a1a3a", "#0a0614"] },
+  { img: "./stages/ken_harbor/preview.png" }, { grad: ["#2a1a3a", "#0a0614"] },
 ]
 const CHRONO_PANELS = [   // chronorun — eras: primordial lava → Jurassic → ice age → antiquity → modern → neon-future → white far-future
   { grad: ["#5a1a08", "#1a0602"] }, { grad: ["#1e3a16", "#07140a"] }, { grad: ["#8aa8c8", "#3a5a7a"] }, { grad: ["#c8a85a", "#5a4420"] },

@@ -33,7 +33,6 @@ const STAGES = [
   ["Woodsboro",           "proc stars"],
   ["Heaven's Arena",      "proc motes"],
   ["Jujutsu High Courtyard", "bitmap clouds"],
-  ["Test Map",            "NEW bitmap clouds (Stage A)"],
   ["Mugen Train",         "placeholder — ambient REMOVED (Stage A)"],
   ["Citadel of Ricks",    "CONTROL (already animated)"],
 ];

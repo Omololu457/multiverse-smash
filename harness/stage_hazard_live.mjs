@@ -59,7 +59,6 @@ try {
   await page.evaluate(() => window.__harness.start());
   await page.evaluate(() => window.__harness.skipToBattle());
 
-  await verifyStage("Test Map",        "arc_pylon",   "TESTMAP_hazard_pylon.png");
   await verifyStage("Shibuya Incident", "cursed_rail", "SHIBUYA_hazard_rail.png");
 
   check("no JS page errors across both stages", errs.length === 0, errs.slice(0,2).join(" | "));

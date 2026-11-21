@@ -17,7 +17,6 @@ const STAGES = [
   { name: "Jujutsu High Courtyard", kind: "BITMAP 1408x768" },
   { name: "Valley of the End",      kind: "BITMAP 2752x1536" },
   { name: "Hidden Leaf Village",    kind: "PROCEDURAL (control)" },
-  { name: "Test Map",               kind: "BITMAP 2752x1536" },
 ];
 const SIZES = [ {w:1280,h:720,tag:"win720"}, {w:1280,h:1080,tag:"tall1080"}, {w:1280,h:1440,tag:"tall1440"}, {w:1920,h:1080,tag:"fhd1080"} ];
 

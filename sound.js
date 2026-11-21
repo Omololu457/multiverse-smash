@@ -1209,7 +1209,7 @@ class SoundManager {
 
   // Preferred entry point: play a stage's assigned audio file, else fall back
   // to the procedural theme that best fits the stage/series.
-  playStageTrack(stage) {
+  playStageTrack(stage, { restore = false } = {}) {
     this._stopMenuPlaylist()  // MATCH START: menu playlist stops cleanly, stage music takes over
     this._lastStage = stage   // remembered so a domain can restore it on collapse
     // Queue until the first gesture, then resolve file → procedural fallback.
@@ -1218,7 +1218,14 @@ class SoundManager {
     const list = Array.isArray(stage?.playlist) && stage.playlist.length > 1 ? stage.playlist : null
     if (list) {                                       // a stage playlist: songs play in turn, then wrap around
       const cur = list.findIndex(f => this._resolveSrc(f) === this._musicFileSrc)
-      if (this._playStageList(stage, list, cur < 0 ? 0 : cur)) return
+      // shuffle: each time the stage is entered a DIFFERENT song from the list starts (wall-clock pick — audio only,
+      // never touches the match simulation); a domain collapsing back (restore) keeps the song that was playing
+      let start = cur < 0 ? 0 : cur
+      if (stage.shuffle && !(restore && cur >= 0)) {
+        start = Math.floor(((typeof performance !== "undefined" ? performance.now() : 0) * 7.31) % list.length)
+        if (start === cur) start = (start + 1) % list.length
+      }
+      if (this._playStageList(stage, list, start)) return
     }
     if (stage?.music && this.playMusicFile(stage.music, true)) return
     this.playMusic(this._fileFallbackTheme, true)
@@ -1237,7 +1244,7 @@ class SoundManager {
   // Restore the current map's own track (used when a domain that hijacked the
   // music collapses). Falls back to menu music if no stage was ever set.
   restoreStageMusic() {
-    if (this._lastStage) this.playStageTrack(this._lastStage)
+    if (this._lastStage) this.playStageTrack(this._lastStage, { restore: true })
     else this.playMenuMusic()
   }
 

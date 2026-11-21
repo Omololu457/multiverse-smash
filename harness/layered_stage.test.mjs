@@ -32,8 +32,9 @@ try {
   const cx = 115 + (idx0 % 6) * 210, cy = 215 + Math.floor(idx0 / 6) * 130     // stage-select card grid (6 per row)
   await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
   await page.evaluate(() => window.__harness.skipToBattle())
-  await page.waitForFunction(() => window.__harness.camera().worldWidth === 2400, null, { timeout: 15000 }).catch(() => {})
-  { const ww = await page.evaluate(() => window.__harness.camera().worldWidth); check("match world uses the stage width (2400)", ww === 2400, String(ww)) }
+  const WANT_W = +((fs.readFileSync(path.join(ROOT, "game.js"), "utf8").split("\n").find(l => l.includes(`name: ${JSON.stringify(STAGE)}`)) || "").match(/worldWidth:\s*(\d+)/) || [0, 2400])[1]
+  await page.waitForFunction(w => window.__harness.camera().worldWidth === w, WANT_W, { timeout: 15000 }).catch(() => {})
+  { const ww = await page.evaluate(() => window.__harness.camera().worldWidth); check(`match world uses the stage width (${WANT_W})`, ww === WANT_W, String(ww)) }
   await sleep(2500)   // art load
   const shot = async n => page.screenshot({ path: path.join(OUT, n + ".png") })
   await shot("center")
@@ -52,7 +53,9 @@ try {
   const xl = await camX(); await shot("left")
   await page.keyboard.down("KeyD"); await sleep(7000); await page.keyboard.up("KeyD"); await sleep(600)
   const xr = await camX(); await shot("right")
-  check("camera scrolls with the fighters", xl < x0 - 100 && xr > xl + 200, `centre ${x0 | 0} → left ${xl | 0} → right ${xr | 0}`)
+  // a smaller world (an SSF2 island) has less room to scroll: the left move is scaled to the room the camera has
+  const room = Math.max(0, (WANT_W - 1280) / 2), needL = Math.min(100, room * 0.15)
+  check("camera scrolls with the fighters", xl < x0 - needL && xr > xl + Math.min(200, room), `centre ${x0 | 0} → left ${xl | 0} → right ${xr | 0} (room ±${room | 0})`)
   // crowd + flag animate (render-only): the ship/yacht band changes over time while the fighters stay put
   const band = () => page.screenshot({ clip: { x: 0, y: 90, width: 1280, height: 210 } })
   const pa = await page.evaluate(() => [window.__harness.p1().x, window.__harness.p2?.().x])
@@ -65,12 +68,20 @@ try {
   if (want) {
     const ms = await page.evaluate(() => window.__harness.musicState())
     const ok = await page.evaluate(async f => (await fetch("./" + encodeURI(f))).ok, want)
-    check(`stage song "${want}" playing and its file loads`, String(ms.fileSrc || "").includes(want.slice(0, 10)) && ok, JSON.stringify(ms.fileSrc))
+    const shuf = /shuffle:\s*true/.test(fs.readFileSync(path.join(ROOT, "game.js"), "utf8").split("\n").find(l => l.includes(`name: ${JSON.stringify(STAGE)}`)) || "")
+    if (!shuf) check(`stage song "${want}" playing and its file loads`, String(ms.fileSrc || "").includes(want.slice(0, 10)) && ok, JSON.stringify(ms.fileSrc))
   }
   // a stage playlist: when a song ends the next one plays, and the last wraps back to the first
   const line = fs.readFileSync(path.join(ROOT, "game.js"), "utf8").split("\n").find(l => l.includes(`name: ${JSON.stringify(STAGE)}`)) || ""
-  const pm = line.match(/playlist:\s*(\[[^\]]*\])/), list = pm ? JSON.parse(pm[1]) : null
-  if (Array.isArray(list) && list.length > 1) {
+  const pm = line.match(/playlist:\s*(\[(?:\s*"[^"]*",?)*\s*\])/), list = pm ? JSON.parse(pm[1]) : null
+  const shuffled = /shuffle:\s*true/.test(line)
+  if (Array.isArray(list) && list.length > 1 && shuffled) {   // shuffle: a song from the list plays, and the next match picks another
+    const src = (await page.evaluate(() => window.__harness.musicState())).fileSrc || ""
+    const files = await Promise.all(list.map(f => page.evaluate(async f => (await fetch("./" + encodeURI(f))).ok, f)))
+    check(`shuffle playlist: the playing song is one of the ${list.length} and every file loads`, list.some(f => src.includes(f.slice(0, 14))) && files.every(Boolean), src)
+    const again = await page.evaluate(() => { window.__harness.playStageMusicNow(); return window.__harness.musicState().fileSrc })
+    check("shuffle: entering the stage again starts a different song", again && again !== src, `${src} → ${again}`)
+  } else if (Array.isArray(list) && list.length > 1) {
     const seen = []
     for (let i = 0; i < list.length; i++) {
       await page.evaluate(() => { const a = window.__audios.find(x => x.src && !x.paused) || window.__audios.find(x => x.src); a?.dispatchEvent(new Event("ended")) })

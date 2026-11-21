@@ -123,6 +123,10 @@ SETS.guile_valley = {
   animRate: {},
 }
 
+// HIDDEN LEAF VILLAGE — the "Hidden Leaf Village (SSF2)" stage pack by Guybesideyou64 (tools/stage_layers/import_ssf2_leaf.py):
+// the far backdrop, the floating island with the village (fighters on its sand) and the pack's foreground, as layers.
+SETS.ssf2_leaf = { dir: "./stages/ssf2_leaf/", mode: "ssf2", S: 1.35, bgScale: 1.3, bgVillageRow: 720 }
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -223,6 +227,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const set = stage?.layers, def = SETS[set]
   if (!def || !layeredStageReady(stage)) return false
   if (def.mode === "room3d") return drawRoom3d(ctx, def, cache.get(set), { canvasWidth, W, groundY, coverTop, coverBottom })
+  if (def.mode === "ssf2") return drawSsf2Back(ctx, def, cache.get(set), { canvasWidth, W, groundY, coverTop, coverBottom })
   const c = cache.get(set), L = c.layout, P = L.pieces, S = def.S
   const dockTop = groundY - def.standRow * S
   const v = view(canvasWidth, W), padL = v.left - 8, padR = v.right + 8
@@ -346,6 +351,7 @@ function drawProps(ctx, c, def, list, W, dockTop) {
 export function drawLayeredStageFront(ctx, stage, worldWidth, groundY) {
   const set = stage?.layers, def = SETS[set]
   if (def?.mode === "room3d") { if (layeredStageReady(stage)) drawRoomFront(ctx, def, worldWidth, groundY); return }
+  if (def?.mode === "ssf2") { if (layeredStageReady(stage)) drawSsf2Front(ctx, def, cache.get(set), worldWidth, groundY); return }
   if (!def || !def.front?.length || !layeredStageReady(stage)) return
   const wasSmooth = ctx.imageSmoothingEnabled
   ctx.save(); ctx.imageSmoothingEnabled = false
@@ -996,4 +1002,47 @@ function valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     const ph = (t * 0.8 + _h(i + 50)) % 1, x = mid - fhw + _h(i + 60) * fhw * 2, y = cTop + cH - ph * 10, rr = 4 + 10 * ph
     ctx.fillStyle = `rgba(240,252,252,${0.45 * (1 - ph)})`; ctx.beginPath(); ctx.arc(x, y, rr, 0, Math.PI * 2); ctx.fill()
   }
+}
+
+// ───────────────────────────── SSF2 stage pack (Hidden Leaf Village) ─────────────────────────────
+function ssf2Place(def, c, W, groundY) {
+  const P = c.layout.pieces, S = def.S, mw = P.mg.w * S, mh = P.mg.h * S
+  return { S, x: W / 2 - mw / 2, y: groundY - c.layout.standRow * S, w: mw, h: mh }
+}
+function drawSsf2Back(ctx, def, c, { canvasWidth, W, groundY, coverTop, coverBottom }) {
+  const P = c.layout.pieces, C = c.layout.colors, t = now(), v = view(canvasWidth, W), padL = v.left - 8, padR = v.right + 8
+  const isl = ssf2Place(def, c, W, groundY)
+  ctx.save()
+  const g = ctx.createLinearGradient(0, coverTop, 0, coverBottom); g.addColorStop(0, C.skyTop); g.addColorStop(1, C.skyLow)
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, coverBottom - coverTop)
+  // far: the Hokage-rock backdrop, slow parallax; mirrored copies if the view ever runs past it
+  const bg = c.img[P.hokage.file], bs = def.bgScale, bw = P.hokage.w * bs, bh = P.hokage.h * bs
+  const bx = W / 2 - bw / 2 + shift(0.3, W), by = isl.y + 150 * isl.S - def.bgVillageRow * bs
+  if (ready(bg)) for (let k = Math.floor((padL - bx) / bw); bx + k * bw < padR; k++) {
+    const x = bx + k * bw
+    if (Math.abs(k) % 2 === 0) ctx.drawImage(bg, Math.floor(x), Math.floor(by), Math.ceil(bw) + 1, Math.ceil(bh))
+    else { ctx.save(); ctx.translate(Math.floor(x) + bw, Math.floor(by)); ctx.scale(-1, 1); ctx.drawImage(bg, 0, 0, Math.ceil(bw) + 1, Math.ceil(bh)); ctx.restore() }
+  }
+  if (by + bh < coverBottom) { ctx.fillStyle = C.skyLow; ctx.fillRect(padL, by + bh - 1, padR - padL, coverBottom - by - bh + 1) }
+  // soft clouds drifting past below the island
+  for (let i = 0; i < 10; i++) {
+    const cx = padL + ((_h(i) * 3000 + t * (8 + 6 * _h(i + 5))) % (padR - padL + 400)) - 200, cy = isl.y + isl.h * (0.55 + 0.4 * _h(i + 9))
+    ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.beginPath(); ctx.ellipse(cx, cy, 70 + 50 * _h(i + 2), 16 + 8 * _h(i + 3), 0, 0, Math.PI * 2); ctx.fill()
+  }
+  // the island with the village (locked to the fighters)
+  const mg = c.img[P.mg.file]; if (ready(mg)) ctx.drawImage(mg, Math.floor(isl.x), Math.floor(isl.y), Math.ceil(isl.w), Math.ceil(isl.h))
+  ctx.restore()
+  return true
+}
+function drawSsf2Front(ctx, def, c, W, groundY) {
+  const isl = ssf2Place(def, c, W, groundY), fg = c.img[c.layout.pieces.fg.file], t = now()
+  ctx.save(); ctx.imageSmoothingEnabled = false
+  if (ready(fg)) ctx.drawImage(fg, Math.floor(isl.x), Math.floor(isl.y), Math.ceil(isl.w), Math.ceil(isl.h))
+  for (let i = 0; i < 18; i++) {                                    // leaves drifting down across the village
+    const ph = ((t * (0.06 + 0.04 * _h(i + 1)) + _h(i)) % 1), x = isl.x + isl.w * _h(i + 30) + Math.sin(t * 1.3 + i) * 40 - ph * 120
+    const y = isl.y + ph * isl.h * 0.75, a = t * 2 + i
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = i % 3 ? "#5fae3c" : "#8bd05a"
+    ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.4, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore()
+  }
+  ctx.restore()
 }

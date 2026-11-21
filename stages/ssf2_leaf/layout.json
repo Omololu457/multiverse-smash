@@ -1,0 +1,26 @@
+{
+ "source": "Hidden Leaf Village (SSF2) stage pack by Guybesideyou64",
+ "pieces": {
+  "hokage": {
+   "file": "hokage.png",
+   "w": 1172,
+   "h": 996
+  },
+  "mg": {
+   "file": "mg.png",
+   "w": 1279,
+   "h": 526
+  },
+  "fg": {
+   "file": "fg.png",
+   "w": 1279,
+   "h": 526
+  }
+ },
+ "standRow": 286,
+ "colors": {
+  "skyTop": "#359ccc",
+  "skyLow": "#89b9c3"
+ },
+ "preview": "preview.png"
+}

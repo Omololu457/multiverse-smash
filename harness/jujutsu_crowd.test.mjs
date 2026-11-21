@@ -8,6 +8,7 @@ let pass = 0, fail = 0; const check = (n, c, e = "") => { console.log(`${c ? "âœ
 const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] })
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = []; page.on("pageerror", e => errors.push(String(e)))
+const missing = []; page.on("response", r => { if (r.status() === 404 && /\.png/.test(r.url())) missing.push(r.url().replace(/^.*\//, "")) })
 const sleep = t => new Promise(r => setTimeout(r, t))
 const STAGE = "Jujutsu High Courtyard", OUT = path.join(ROOT, "harness", "shots", "jujutsu_crowd"); fs.mkdirSync(OUT, { recursive: true })
 try {
@@ -26,7 +27,7 @@ try {
   const jjk = ["yuji", "megumi_fushiguro", "maki", "gojo", "aoi_todo", "miwa", "yuta"]
   check("the crowd loads from the game's own sprites (10+ characters)", C.length >= 10 && C.filter(c => c.ready).length >= 10, C.map(c => c.key + ":" + c.skin).join(" "))
   check("JJK students / teachers watch in their own colours", C.filter(c => jjk.includes(c.key) && c.skin === "default").length >= 6)
-  check("multiverse visitors wear one of their skins", C.filter(c => !jjk.includes(c.key) && c.skin !== "default").length >= 4, C.filter(c => !jjk.includes(c.key)).map(c => c.key + ":" + c.skin).join(" "))
+  check("multiverse visitors wear one of their skins", C.filter(c => !jjk.includes(c.key) && c.skin !== "default").length >= 5, C.filter(c => !jjk.includes(c.key)).map(c => c.key + ":" + c.skin).join(" "))
   check("the two fighters in the match aren't also in the crowd", C.filter(c => c.key === "yuji" || c.key === "gojo").every(c => !c.shown) && C.filter(c => c.shown).length >= 9)
   // REACTIONS
   const crowd = () => page.evaluate(async () => (await import("./stageLayers.js")).jujutsuCrowd().filter(c => c.shown))
@@ -54,6 +55,7 @@ try {
   R = await crowd(); await page.screenshot({ path: path.join(OUT, "react_ko.png") })
   await page.evaluate(() => clearInterval(window.__jjHold))
   check("a knockout makes the crowd cheer", R.filter(c => c.mood === "cheer").length >= 5, R.map(c => `${c.key}:${c.mood}:${c.anim}`).join(" "))
+  check("every crowd sprite loads (no missing skin art)", !missing.length, missing.slice(0, 3).join(" | "))
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }
 await browser.close(); server.close()

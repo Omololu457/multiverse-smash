@@ -196,6 +196,24 @@ SETS.ryu_jujutsu = {
   animRate: {},
 }
 
+// THE ARMOR LAB — Guile's air base (SFII CE sheet) repainted by tools/stage_layers/slice_guile_starklab.py: an inventor's
+// workshop — suits in glass pods, holograms, robot arms, reactor core, the prototype jet on its lift (drawLabBack / labFx).
+SETS.guile_starklab = {
+  dir: "./stages/guile_starklab/",
+  S: 2,
+  standRow: 44,
+  deckFrontRow: 63,
+  floor: { piece: "deck", farFactor: 0.72, rimFactor: 1.12, center: true },
+  back: [
+    { procedural: "starklab", p: 0.6 },
+    { piece: "jet", p: 0.74, x: 0.16, bottomRow: 3, scale: 0.36 },
+  ],
+  props: [],
+  front: [],
+  fx: "starklab",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -313,6 +331,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "starklab") { drawLabBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "jujutsu") { drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "shibuya") { drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "nullvoid") { drawNullVoidBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
@@ -403,6 +422,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "starklab") labFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "jujutsu") jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "shibuya") shibuyaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "nullvoid") nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -1724,8 +1744,10 @@ export const shibuyaDebug = {
 // the JJK students and teachers in their own colours, plus visitors from the rest of the multiverse wearing one of
 // their skins — drawn from the game's own idle sprites (the two fighters in the match are left out of the crowd).
 const JJ_CROWD = [
-  ["yuji", 0.08, 0], ["naruto", 0.15, 1], ["megumi_fushiguro", 0.22, 0], ["killua", 0.29, 1], ["maki", 0.36, 0], ["ichigo", 0.43, 1],
-  ["gojo", 0.52, 0], ["luffy", 0.6, 1], ["aoi_todo", 0.67, 0], ["zenitsu", 0.74, 1], ["miwa", 0.81, 0], ["goku", 0.87, 1], ["yuta", 0.93, 0],
+  // [key, place, skin] — visitors wear a skin whose every sheet exists on disk (some recolour skins have art missing)
+  ["yuji", 0.08, 0], ["naruto", 0.15, "naruto_red"], ["megumi_fushiguro", 0.22, 0], ["killua", 0.29, "killua_brownhair"], ["maki", 0.36, 0],
+  ["ichigo", 0.43, "ichigoFrostShinigami"], ["gojo", 0.52, 0], ["luffy", 0.6, "luffy_ace"], ["aoi_todo", 0.67, 0], ["zenitsu", 0.74, "zenitsuValkyrie"],
+  ["miwa", 0.81, 0], ["goku", 0.87, 0], ["yuta", 0.93, 0],
 ]
 let _jjCrowd = null, _jjLoading = false, _lastWorld = null
 const JJ = { last: 0, hp: new WeakMap() }
@@ -1735,8 +1757,7 @@ function jjLoadCrowd() {
     const chars = C.characters || {}, out = []
     for (const [key, fx, visitor] of JJ_CROWD) {
       const ch = chars[key]; if (!ch) continue
-      const skins = (Sk.getSkins?.(key) || []).filter(s => s && s.id !== "default" && s.animationData?.idle?.sheet)
-      const skin = visitor && skins.length ? skins[Math.floor(_h(key.length * 131 + fx * 1000) * skins.length)] : null
+      const skin = visitor ? (Sk.getSkins?.(key) || []).find(s => s && s.id === visitor && s.animationData?.idle?.sheet) || null : null
       const anims = {}
       for (const a of ["idle", "walk", "jump", "guard", "win"]) {
         const d = skin?.animationData?.[a] || ch.animationData?.[a]
@@ -1894,3 +1915,156 @@ function jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     }
   }
 }
+
+// ───────────────────────────── THE ARMOR LAB (render-only, wall clock) ─────────────────────────────
+// Guile's air base rebuilt as a billionaire inventor's workshop under a cliff-top house: the night ocean through the
+// window wall, a gallery of armored suits in glass pods (original designs, drawn here), floating holograms, a reactor
+// core, a half-built suit on a gantry with two robot arms welding it, helper bots rolling around, and the prototype
+// jet on its lift. The lab reacts: big hits glitch the holograms and spark the arms, a fighter close to dying sets
+// off the red alert, a knockout lights every suit's eyes.
+const LAB = { last: 0, hp: new WeakMap(), glitch: 0, flash: 0, alert: false, sparks: [], bots: null }
+const SUITS = [
+  ["MK I", "#b3121c", "#e0b030", 1], ["MK II", "#b8bec8", "#6a7280", 1], ["MK III", "#1c1e24", "#3a3f4a", 1],
+  ["MK IV", "#5a5e66", "#d08a20", 1.25], ["MK V", "#e8ecf0", "#3a7ad8", 1], ["MK VI", "#d8a830", "#8a1a12", 1],
+]
+const _suitCache = new Map()
+function suitSprite(i, partial = false) {
+  const k = i + (partial ? "p" : ""); if (_suitCache.has(k)) return _suitCache.get(k)
+  const [, A, B, bulk] = SUITS[i], px = 3, GW = 22, GH = 40, cv = document.createElement("canvas"); cv.width = GW * px; cv.height = GH * px
+  const g = cv.getContext("2d"), R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x * px), y * px, Math.round(w * px), h * px) }
+  const cx = 11, wb = bulk
+  R(cx - 3, 1, 6, 6, A); R(cx - 2, 3, 4, 3, B); R(cx - 2, 4, 4, 1, "#e8fbff")            // helmet, faceplate, eye slit
+  R(cx - 1.5, 7, 3, 1, "#2a2d34")
+  R(cx - 5 * wb, 8, 10 * wb, 10, A); R(cx - 3.5 * wb, 10, 7 * wb, 5, B); R(cx - 1, 11, 2, 2, "#bff6ff")   // torso, chest plate, core
+  R(cx - 7 * wb, 8, 3 * wb, 3, B); R(cx + 4 * wb, 8, 3 * wb, 3, B)                         // shoulders
+  if (!partial) {
+    R(cx - 7 * wb, 11, 2 * wb, 10, A); R(cx + 5 * wb, 11, 2 * wb, 10, A)                  // arms + gauntlets
+    R(cx - 7 * wb, 19, 2 * wb, 3, B); R(cx + 5 * wb, 19, 2 * wb, 3, B)
+  }
+  for (let y = 18; y < 22; y += 2) R(cx - 4 * wb, y, 8 * wb, 1, B)                      // segmented abdomen
+  R(cx - 4 * wb, 18, 8 * wb, 4, "rgba(0,0,0,0.15)")
+  R(cx - 4 * wb, 22, 3.5 * wb, 14, A); R(cx + 0.5 * wb, 22, 3.5 * wb, 14, A)             // legs
+  R(cx - 4 * wb, 28, 3.5 * wb, 2, B); R(cx + 0.5 * wb, 28, 3.5 * wb, 2, B)                 // knee plates
+  R(cx - 4.5 * wb, 36, 4.5 * wb, 3, B); R(cx, 36, 4.5 * wb, 3, B)                          // boots
+  g.fillStyle = "rgba(255,255,255,0.18)"; g.fillRect((cx - 5 * wb) * px, 8 * px, 2 * px, 10 * px)   // edge highlight
+  _suitCache.set(k, cv); return cv
+}
+function labGlow(ctx, x, y, r, rgb, a) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, `rgba(${rgb},0)`); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2) }
+
+function drawLabBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S, floorY = dockTop + 4
+  // what the lab sees (from the fighters, handed over by the front pass)
+  const dt = Math.min(0.05, Math.max(0, t - (LAB.last || t))); LAB.last = t
+  const F = (_lastWorld?.fighters || []).filter(Boolean); let ko = false; LAB.alert = false
+  for (const f of F) {
+    const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = LAB.hp.get(f); LAB.hp.set(f, hp)
+    if (was != null && was - hp >= 60) { LAB.glitch = 0.45; for (let i = 0; i < 24; i++) LAB.sparks.push({ x: 0, y: 0, arm: i % 2, vx: (_h(i + t) - 0.5) * 300, vy: -100 - 200 * _h(i * 3 + t), life: 0.6 }) }
+    if (hp <= 0) ko = true; else if (hp / max <= 0.2) LAB.alert = true
+  }
+  if (ko) LAB.flash = 1.2
+  LAB.glitch = Math.max(0, LAB.glitch - dt); LAB.flash = Math.max(0, LAB.flash - dt)
+  // back wall + the window band onto the night ocean
+  const wallTop = coverTop, winTop = dockTop - 340, winBot = dockTop - 215
+  const wg = ctx.createLinearGradient(0, wallTop, 0, floorY); wg.addColorStop(0, "#0c0f16"); wg.addColorStop(1, "#1c222e")
+  ctx.fillStyle = wg; ctx.fillRect(padL, wallTop, padR - padL, floorY - wallTop)
+  const og = ctx.createLinearGradient(0, winTop, 0, winBot); og.addColorStop(0, "#050a1a"); og.addColorStop(0.55, "#0e1c38"); og.addColorStop(0.56, "#0a1830"); og.addColorStop(1, "#06101f")
+  ctx.fillStyle = og; ctx.fillRect(padL, winTop, padR - padL, winBot - winTop)
+  const sw = shift(0.06, W), horizonY = winTop + (winBot - winTop) * 0.55
+  ctx.fillStyle = "#f2efe0"; ctx.beginPath(); ctx.arc(W * 0.3 + sw, winTop + 40, 16, 0, 7); ctx.fill(); labGlow(ctx, W * 0.3 + sw, winTop + 40, 60, "220,220,255", 0.25)
+  for (let i = 0; i < 70; i++) { const x = padL + _h(i * 5) * (padR - padL), y = winTop + _h(i * 5 + 1) * (horizonY - winTop - 6); ctx.fillStyle = `rgba(255,255,255,${0.3 + 0.5 * Math.abs(Math.sin(t + i))})`; ctx.fillRect(x, y, 1, 1) }
+  for (let i = 0; i < 40; i++) { const x = W * 0.3 + sw + (_h(i * 7) - 0.5) * 60 + Math.sin(t * 1.5 + i) * 6, y = horizonY + 3 + i * 2.2; ctx.fillStyle = `rgba(230,230,255,${0.4 - i * 0.009})`; ctx.fillRect(x, y, 6 + _h(i) * 14, 1) }   // moon on the water
+  for (let i = 0; i < 30; i++) { const x = padL + ((_h(i * 13) * (padR - padL) + t * 8 * (1 + i % 3)) % (padR - padL)), y = horizonY + 6 + _h(i * 13 + 4) * (winBot - horizonY - 8); ctx.fillStyle = "rgba(120,160,220,0.18)"; ctx.fillRect(x, y, 10, 1) }
+  const fw = 220, fs = shift(0.5, W), k0 = Math.floor((padL - fs) / fw) - 1                                           // window mullions
+  ctx.fillStyle = "#2a313e"; for (let k = k0; fs + k * fw < padR + fw; k++) ctx.fillRect(fs + k * fw, winTop, 8, winBot - winTop)
+  ctx.fillRect(padL, winTop - 10, padR - padL, 12); ctx.fillRect(padL, winBot, padR - padL, 14)
+  ctx.fillStyle = "rgba(255,255,255,0.04)"; for (let k = k0; fs + k * fw < padR + fw; k++) { ctx.beginPath(); ctx.moveTo(fs + k * fw + 30, winTop); ctx.lineTo(fs + k * fw + 90, winTop); ctx.lineTo(fs + k * fw + 40, winBot); ctx.lineTo(fs + k * fw - 20, winBot); ctx.fill() }
+  // wall panels + light strips under the window
+  const ps = shift(0.6, W)
+  for (let k = Math.floor((padL - ps) / 160) - 1; ps + k * 160 < padR; k++) { ctx.strokeStyle = "rgba(120,140,170,0.12)"; ctx.strokeRect(ps + k * 160, winBot + 14, 160, floorY - winBot - 14) }
+  ctx.fillStyle = LAB.alert && Math.sin(t * 10) > 0 ? "rgba(255,60,50,0.85)" : "rgba(90,220,255,0.75)"; ctx.fillRect(padL, winBot + 16, padR - padL, 3)
+  // the reactor core on the wall
+  { const x = W * 0.5 + shift(0.55, W), y = dockTop - 150, pulse = 0.75 + 0.25 * Math.sin(t * 3)
+    labGlow(ctx, x, y, 130 * pulse, "90,220,255", 0.35)
+    ctx.strokeStyle = "#3a4250"; ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(x, y, 58, 0, 7); ctx.stroke()
+    for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283 + t * 0.4; ctx.strokeStyle = "rgba(160,240,255,0.9)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 44, a, a + 0.4); ctx.stroke() }
+    ctx.fillStyle = `rgba(230,252,255,${pulse})`; ctx.beginPath(); ctx.arc(x, y, 18, 0, 7); ctx.fill() }
+  // the suit gallery: glass pods along the wall
+  const gs = shift(0.62, W)
+  SUITS.forEach((su, i) => {
+    const fx = [0.64, 0.7, 0.76, 0.82, 0.88, 0.94][i], x = W * fx + gs, base = floorY - 6, im = suitSprite(i), sc = 1.15, w = im.width * sc, h = im.height * sc
+    if (x < padL - 120 || x > padR + 120) return
+    ctx.fillStyle = "#2a2f3a"; ctx.fillRect(x - 46, base - 14, 92, 14); ctx.fillStyle = "rgba(120,220,255,0.8)"; ctx.fillRect(x - 40, base - 16, 80, 3)
+    labGlow(ctx, x, base - 20, 70, "120,210,255", 0.25)
+    ctx.drawImage(im, Math.round(x - w / 2), Math.round(base - 16 - h), w, h)
+    const eyes = LAB.flash > 0 ? Math.min(1, LAB.flash * 2) : 0.35 + 0.15 * Math.sin(t * 2 + i)
+    labGlow(ctx, x, base - 16 - h + 13 * sc, 26, "200,250,255", eyes)
+    ctx.strokeStyle = "rgba(170,220,255,0.35)"; ctx.lineWidth = 2; ctx.strokeRect(x - 42, base - 16 - h - 16, 84, h + 16)      // the glass case
+    ctx.fillStyle = "rgba(170,220,255,0.06)"; ctx.fillRect(x - 42, base - 16 - h - 16, 84, h + 16)
+    ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(x - 34, base - 16 - h - 10, 5, h)
+    ctx.fillStyle = "#c8d4e4"; ctx.font = "700 10px monospace"; ctx.textAlign = "center"; ctx.fillText(su[0], x, base - 3); ctx.textAlign = "start"
+  })
+  // holograms floating over the benches
+  for (const [fx, wdt, hgt, kind] of [[0.42, 120, 80, "helmet"], [0.58, 120, 80, "suit"], [0.5, 110, 46, "graph"]]) {
+    const gl = LAB.glitch > 0, x = W * fx + shift(0.7, W) + (gl ? (_h(Math.floor(t * 40)) - 0.5) * 18 : 0), y = (kind === "graph" ? dockTop - 52 : dockTop - 70) + Math.sin(t + fx * 9) * 4
+    const col = LAB.alert ? "255,90,80" : gl ? "255,140,200" : "110,225,255"
+    ctx.fillStyle = `rgba(${col},0.10)`; ctx.fillRect(x - wdt / 2, y - hgt, wdt, hgt); ctx.strokeStyle = `rgba(${col},0.7)`; ctx.lineWidth = 1.2; ctx.strokeRect(x - wdt / 2, y - hgt, wdt, hgt)
+    ctx.strokeStyle = `rgba(${col},0.85)`; ctx.fillStyle = `rgba(${col},0.85)`
+    if (LAB.flash > 0) { ctx.font = "900 34px Arial"; ctx.textAlign = "center"; ctx.fillText("K.O.", x, y - hgt / 2 + 12); ctx.textAlign = "start" }
+    else if (LAB.alert && Math.sin(t * 6) > -0.3) { ctx.font = "900 20px Arial"; ctx.textAlign = "center"; ctx.fillText("⚠ ALERT", x, y - hgt / 2 + 8); ctx.textAlign = "start" }
+    else if (kind === "graph") { ctx.beginPath(); for (let i = 0; i <= 20; i++) { const gx = x - wdt / 2 + 8 + i * (wdt - 16) / 20, gy = y - hgt / 2 + Math.sin(t * 3 + i * 0.7) * hgt * 0.3; i ? ctx.lineTo(gx, gy) : ctx.moveTo(gx, gy) } ctx.stroke()
+      for (let i = 0; i < 5; i++) ctx.fillRect(x - wdt / 2 + 10 + i * 22, y - 8 - 30 * Math.abs(Math.sin(t * 2 + i)), 12, 30 * Math.abs(Math.sin(t * 2 + i))) }
+    else { const cxh = x - wdt * 0.15, cyh = y - hgt / 2, sq = Math.cos(t * 1.2)                     // rotating wireframe
+      if (kind === "helmet") { ctx.beginPath(); ctx.ellipse(cxh, cyh, 26 * Math.abs(sq) + 4, 32, 0, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cxh - 20 * sq, cyh - 4); ctx.lineTo(cxh + 20 * sq, cyh - 4); ctx.stroke(); for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.ellipse(cxh, cyh, (26 * Math.abs(sq) + 4) * Math.abs(Math.cos(k * 0.5)), 32, 0, 0, 7); ctx.stroke() } }
+      else { ctx.strokeRect(cxh - 10 * Math.abs(sq) - 2, cyh - 30, 20 * Math.abs(sq) + 4, 12); ctx.strokeRect(cxh - 16 * Math.abs(sq) - 2, cyh - 16, 32 * Math.abs(sq) + 4, 22); ctx.strokeRect(cxh - 12 * Math.abs(sq) - 2, cyh + 8, 24 * Math.abs(sq) + 4, 26) }
+      ctx.font = "9px monospace"; for (let i = 0; i < 6; i++) ctx.fillText(((_h(i + Math.floor(t * 2)) * 1e6) | 0).toString(16).toUpperCase(), x + wdt * 0.12, y - hgt + 14 + i * 12) }
+  }
+  // the half-built suit on its gantry, two robot arms working on it
+  { const x = W * 0.34 + shift(0.8, W), base = floorY - 2, im = suitSprite(0, true), sc = 1.25, w = im.width * sc, h = im.height * sc
+    ctx.fillStyle = "#3a414e"; ctx.fillRect(x - 60, base - h - 50, 8, h + 50); ctx.fillRect(x + 52, base - h - 50, 8, h + 50); ctx.fillRect(x - 60, base - h - 50, 120, 8)
+    ctx.drawImage(im, Math.round(x - w / 2), Math.round(base - h), w, h)
+    for (const side of [-1, 1]) {
+      const sx = x + side * 120, sy = base - h - 70, a1 = (side < 0 ? 0.6 : Math.PI - 0.6) + Math.sin(t * 2 + side) * 0.25 + (LAB.glitch > 0 ? Math.sin(t * 60) * 0.3 : 0)
+      const ex = sx + Math.cos(a1) * 80, ey = sy + Math.sin(a1) * 80 + 30, tx2 = x + side * 22 + Math.sin(t * 3) * 6, ty2 = base - h * 0.55 + Math.cos(t * 2.5) * 10
+      ctx.strokeStyle = "#8a93a3"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.lineTo(tx2, ty2); ctx.stroke()
+      ctx.strokeStyle = "#d0a030"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke()
+      ctx.fillStyle = "#2a2f3a"; ctx.beginPath(); ctx.arc(ex, ey, 7, 0, 7); ctx.fill(); ctx.fillRect(sx - 14, sy - 10, 28, 12)
+      if (Math.sin(t * 7 + side * 2) > 0.2) { labGlow(ctx, tx2, ty2, 22, "255,230,160", 0.8); for (let i = 0; i < 4; i++) { const ph = (t * 3 + i / 4 + side) % 1; ctx.fillStyle = `rgba(255,210,120,${1 - ph})`; ctx.fillRect(tx2 + (_h(i + Math.floor(t * 8)) - 0.5) * 40 * ph, ty2 + ph * 40, 2, 2) } }
+      for (const sp of LAB.sparks) if (sp.arm === (side < 0 ? 0 : 1)) { if (sp.x === 0) { sp.x = tx2; sp.y = ty2 } }
+    }
+    ctx.lineCap = "butt" }
+  for (const sp of LAB.sparks) { sp.life -= dt; sp.vy += 700 * dt; sp.x += sp.vx * dt; sp.y += sp.vy * dt; ctx.fillStyle = `rgba(255,220,130,${Math.max(0, sp.life / 0.6)})`; ctx.fillRect(sp.x, sp.y, 2, 2) }
+  LAB.sparks = LAB.sparks.filter(s => s.life > 0)
+  // workbenches + parts crates
+  const cr = c.layout.pieces.crate, cim = c.img[cr.file], bs = shift(0.85, W)
+  for (const fx of [0.44, 0.56]) { const x = W * fx + bs; ctx.fillStyle = "#3a414e"; ctx.fillRect(x - 70, floorY - 44, 140, 8); ctx.fillRect(x - 64, floorY - 36, 6, 36); ctx.fillRect(x + 58, floorY - 36, 6, 36)
+    ctx.fillStyle = "#6a7282"; ctx.fillRect(x - 50, floorY - 52, 30, 8); ctx.fillStyle = "#d0a030"; ctx.fillRect(x + 10, floorY - 50, 18, 6); ctx.fillStyle = "rgba(120,220,255,0.7)"; ctx.fillRect(x - 6, floorY - 58, 12, 14) }
+  if (ready(cim)) for (const fx of [0.05, 0.95, 1.05]) ctx.drawImage(cim, Math.round(W * fx + bs - cr.w * 0.7), floorY - cr.h * 1.4 + 2, cr.w * 1.4, cr.h * 1.4)
+}
+
+// floor fx: the arc-reactor ring set into the floor, helper bots behind the fighters
+function labFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now(), ring = P.deck.ring
+  if (ring) {
+    const cx = W / 2 - P.deck.w * S / 2 + (ring[0] + ring[2] / 2) * S + shift(rowFactor(def, ring[1] + ring[3] / 2), W), cy = dockTop + (ring[1] + ring[3] / 2) * S
+    const rx = ring[2] * S * 0.55, ry = ring[3] * S * 0.55, pulse = LAB.alert ? (Math.sin(t * 10) > 0 ? "255,70,60" : "120,30,30") : "110,230,255"
+    ctx.strokeStyle = `rgba(${pulse},0.85)`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 7); ctx.stroke()
+    ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 0.6, ry * 0.6, 0, 0, 7); ctx.stroke()
+    for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283 + t * 0.5; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * rx * 0.62, cy + Math.sin(a) * ry * 0.62); ctx.lineTo(cx + Math.cos(a) * rx * 0.95, cy + Math.sin(a) * ry * 0.95); ctx.stroke() }
+  }
+  const bot = dockTop + P.deck.h * S
+  if (coverBottom > bot) { const g = ctx.createLinearGradient(0, bot, 0, coverBottom); g.addColorStop(0, "#1a1f2a"); g.addColorStop(1, "#06080c"); ctx.fillStyle = g; ctx.fillRect(padL, bot, padR - padL, coverBottom - bot); ctx.fillStyle = "rgba(110,230,255,0.7)"; ctx.fillRect(padL, bot, padR - padL, 2) }
+  // helper bots: roll around the back of the floor, get out of the way of the fighters
+  if (!LAB.bots) LAB.bots = [{ x: W * 0.35, dir: 1 }, { x: W * 0.68, dir: -1 }]
+  const F = (_lastWorld?.fighters || []).filter(Boolean), dt = 1 / 60, yb = dockTop + 8 * S
+  for (const b of LAB.bots) {
+    let flee = 0; for (const f of F) { const d = b.x - (f.x + (f.w || 50) / 2); if (Math.abs(d) < 150) flee = Math.sign(d) || 1 }
+    if (flee) b.dir = flee                                             // keeps rolling the way it fled (no jitter at the edge)
+    b.x += (flee ? flee * 150 : b.dir * 40) * dt; if (b.x < W * 0.1 || b.x > W * 0.9) b.dir *= -1, b.x = Math.max(W * 0.1, Math.min(W * 0.9, b.x))
+    const x = b.x, arm = Math.sin(t * 3 + x) * 0.5 - (flee ? 0.9 : 0)
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(x, yb, 22, 5, 0, 0, 7); ctx.fill()
+    ctx.fillStyle = "#4a5262"; ctx.fillRect(x - 16, yb - 22, 32, 18); ctx.fillStyle = "#2a2f3a"; ctx.beginPath(); ctx.arc(x, yb - 4, 6, 0, 7); ctx.fill()
+    ctx.strokeStyle = "#8a93a3"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x, yb - 22); ctx.lineTo(x + Math.cos(-1.2 + arm) * 30, yb - 22 + Math.sin(-1.2 + arm) * 30); ctx.lineTo(x + Math.cos(-1.2 + arm) * 30 + 14, yb - 22 + Math.sin(-1.2 + arm) * 30 + 8); ctx.stroke()
+    ctx.fillStyle = flee ? "#ff5040" : "#6ee6ff"; ctx.fillRect(x - 10, yb - 18, 6, 3)
+  }
+}
+export const labState = () => ({ glitch: LAB.glitch, flash: LAB.flash, alert: LAB.alert, sparks: LAB.sparks.length, bots: (LAB.bots || []).map(b => Math.round(b.x)) })

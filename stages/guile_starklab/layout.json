@@ -1,0 +1,32 @@
+{
+ "source": "Street Fighter II CE \u2014 Guile's Stage sheet (ripped by Y. Signal); repainted as an armor lab",
+ "pieces": {
+  "jet": {
+   "file": "jet.png",
+   "w": 1024,
+   "h": 112
+  },
+  "deck": {
+   "file": "deck.png",
+   "w": 1024,
+   "h": 64,
+   "ring": [
+    436,
+    31,
+    151,
+    18
+   ]
+  },
+  "crate": {
+   "file": "crate.png",
+   "w": 96,
+   "h": 80
+  }
+ },
+ "colors": {
+  "skyTop": "#05070c",
+  "under": "#07090e",
+  "seaBottom": "#07090e"
+ },
+ "preview": "preview.png"
+}

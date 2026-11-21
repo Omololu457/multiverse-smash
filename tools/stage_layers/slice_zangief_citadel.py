@@ -82,7 +82,8 @@ frame = ((ys >= 66) & (ys < 70) | (ys >= 150) & (ys < 155)) & (xs < 392) & ~pipe
 wall[frame, :3] = ramp(np.where((ys[frame] % 4) < 2, 0.8, 0.55), (60, 70, 84), (170, 186, 204))
 wall[(ys >= 155) & (ys < 157) & (xs < 392) & ~pipes, :3] = [20, 24, 32]    # sill shadow
 panel = open_win | corner                                                  # unframed dark areas → ceiling panels, not sky
-wall[panel, :3] = ramp(np.where(((xs[panel] // 24) + (ys[panel] // 16)) % 2 == 0, 0.35, 0.25), (10, 12, 20), (90, 100, 120))
+rib = (xs[panel] % 32)                                                     # vertical ribbed steel, lit from the left
+wall[panel, :3] = ramp(np.where(rib < 2, 0.55, np.where(rib < 4, 0.12, 0.3 - 0.08 * (rib / 32))), (10, 12, 20), (90, 100, 120))
 sign_keep = (xs >= 262) & (xs <= 392) & (ys >= 70) & (ys <= 95)            # the sign + its post stay solid steel
 wall[viewport & sign_keep, :3] = ramp(v[viewport & sign_keep], (10, 13, 22), (74, 86, 112), 1.3)
 wall[viewport & ~sign_keep, 3] = 0

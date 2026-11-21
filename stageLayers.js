@@ -282,7 +282,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   // 4. props standing on the deck, behind the fighters
   drawProps(ctx, c, def, def.props, W, dockTop)
   if (def.fx === "batcave") batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop })
-  if (def.fx === "citadel") citadelFloor(ctx, def, c, { W, dockTop })
+  if (def.fx === "citadel") citadelFloor(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -724,8 +724,41 @@ function citadelWall(ctx, def, c, d, { W, w, h, padL, padR, dockTop, coverTop, p
 const easeOutBack = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2) }
 
 // a portal lying flat in the middle of the floor, where the old emblem was
-function citadelFloor(ctx, def, c, { W, dockTop }) {
+function citadelFloor(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   const fl = c.layout.pieces.floor, [ex, ey, ew, eh] = fl.emblem, S = def.S
+  // below the deck: the platform's front face (a lit lip + armour plates), then the lower machine level
+  const top = dockTop + fl.h * S, t = now()
+  if (coverBottom > top) {
+    const lipH = 10, faceH = 46, off = shift(1.12, W)
+    ctx.fillStyle = "#2c3644"; ctx.fillRect(padL, top, padR - padL, lipH)
+    ctx.fillStyle = "#8fa3b8"; ctx.fillRect(padL, top, padR - padL, 2)
+    ctx.fillStyle = `rgba(170,255,90,${0.75 + 0.25 * Math.sin(t * 2)})`; ctx.fillRect(padL, top + lipH - 3, padR - padL, 2)
+    const fg = ctx.createLinearGradient(0, top + lipH, 0, top + lipH + faceH); fg.addColorStop(0, "#1a2230"); fg.addColorStop(1, "#0d121b")
+    ctx.fillStyle = fg; ctx.fillRect(padL, top + lipH, padR - padL, faceH)
+    const pw = 120, x0 = ((off - padL) % pw + pw) % pw - pw + padL
+    for (let x = x0, i = 0; x < padR; x += pw, i++) {                 // armour plates with rivets and a vent
+      ctx.fillStyle = "#0a0e15"; ctx.fillRect(Math.floor(x), top + lipH, 3, faceH)
+      ctx.fillStyle = "#4a5768"; for (const rx of [12, pw - 14]) for (const ry of [8, faceH - 10]) ctx.fillRect(Math.floor(x) + rx, top + lipH + ry, 3, 3)
+      if (i % 2 === 0) { ctx.fillStyle = "#06090e"; for (let v = 0; v < 4; v++) ctx.fillRect(Math.floor(x) + 40, top + lipH + 14 + v * 6, 40, 3) }
+    }
+    const low = top + lipH + faceH                                     // the lower level: dark, with glowing conduits
+    if (coverBottom > low) {
+      const lg = ctx.createLinearGradient(0, low, 0, coverBottom); lg.addColorStop(0, "#070a10"); lg.addColorStop(1, "#020305")
+      ctx.fillStyle = lg; ctx.fillRect(padL, low, padR - padL, coverBottom - low)
+      const off2 = shift(1.2, W)
+      for (const [dy, wdt, a] of [[18, 6, 0.8], [40, 4, 0.5], [70, 8, 0.35]]) {
+        if (low + dy > coverBottom) continue
+        ctx.fillStyle = `rgba(40,110,30,${a})`; ctx.fillRect(padL, low + dy, padR - padL, wdt)
+        ctx.fillStyle = `rgba(190,255,110,${a * (0.6 + 0.4 * Math.sin(t * 3 + dy))})`; ctx.fillRect(padL, low + dy + 1, padR - padL, 1)
+        const bw = 220, bx0 = ((off2 - padL) % bw + bw) % bw - bw + padL
+        ctx.fillStyle = "#1a2230"; for (let x = bx0; x < padR; x += bw) ctx.fillRect(Math.floor(x), low + dy - 2, 10, wdt + 4)   // pipe clamps
+      }
+      for (let i = 0; i < 12; i++) {                                    // portal-fluid droplets of light drifting along
+        const x = padL + ((t * (30 + 20 * _h(i)) + _h(i + 3) * 4000) % (padR - padL + 40)) - 20
+        ctx.fillStyle = "rgba(220,255,150,0.9)"; ctx.fillRect(x, low + [18, 40, 70][i % 3] + 1, 4, 2)
+      }
+    }
+  }
   const x = W / 2 - (fl.w * S) / 2 + ex * S + shift(rowFactor(def, ey), W)
   const y = dockTop + ey * S
   ctx.save(); ctx.globalAlpha = 0.8; drawPortal(ctx, x, y, ew * S * 0.26, eh * S * 0.26, now() * 0.6, 1); ctx.restore()

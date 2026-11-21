@@ -86,6 +86,28 @@ SETS.zangief_citadel = {
   animRate: { scaffold: [18] },
 }
 
+// HEAVEN'S ARENA — Ryu's Stage (SFII sheet) repainted by tools/stage_layers/slice_ryu_heaven.py: a fighting floor high
+// in a tower above the clouds — dusk sky through tall windows, tiered stands with a crowd, a scoreboard, the stone
+// barrier wall, a raised stone ring with a gold edge, banners naming the arena and the floor.
+SETS.ryu_heaven = {
+  dir: "./stages/ryu_heaven/",
+  S: 2,
+  standRow: 24,
+  deckFrontRow: 35,
+  floor: { piece: "floor", farFactor: 0.72, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "heavenHall", p: 0.15 },
+    { piece: "wall", p: 0.8, tile: "mirror", bottomRow: 1, scale: 0.6 },
+  ],
+  props: [
+    { piece: "banner", x: 0.3, bottomRow: 3 },
+    { piece: "banner", x: 0.7, bottomRow: 3 },
+  ],
+  front: [],
+  fx: "heaven",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -202,6 +224,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "heavenHall") { drawHeavenHall(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     const pc = P[ly.piece], im = c.img[pc.file], ls = S * (ly.scale || 1), w = pc.w * ls, h = pc.h * ls
     if (ly.tile === "mirror" || ly.x != null) {               // repeating cave walls / a single placed object
       const x0 = (ly.x != null ? ly.x * W : W / 2) - w / 2 + shift(ly.p, W)
@@ -283,6 +306,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   drawProps(ctx, c, def, def.props, W, dockTop)
   if (def.fx === "batcave") batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop })
   if (def.fx === "citadel") citadelFloor(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -762,4 +786,103 @@ function citadelFloor(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   const x = W / 2 - (fl.w * S) / 2 + ex * S + shift(rowFactor(def, ey), W)
   const y = dockTop + ey * S
   ctx.save(); ctx.globalAlpha = 0.8; drawPortal(ctx, x, y, ew * S * 0.26, eh * S * 0.26, now() * 0.6, 1); ctx.restore()
+}
+
+// ───────────────────────────── HEAVEN'S ARENA (render-only, wall clock) ─────────────────────────────
+function drawHeavenHall(ctx, def, c, { W, dockTop, padL, padR, coverTop, p }) {
+  const t = now(), P = c.layout.pieces, sk = P.sky, im = c.img[sk.file], S = def.S
+  const wallH = P.wall.h * S * 0.6, standTop = dockTop - wallH - 100, sh = shift(p, W)
+  // 1. the sky: the repainted SFII dusk, stretched tall, then a sea of clouds far below the tower
+  const skH = Math.max(standTop - coverTop + 60, 200), skW = sk.w * (skH / sk.h)
+  if (ready(im)) for (let k = Math.floor((padL - sh) / skW) - 1, x; (x = sh + k * skW) < padR; k++) {
+    if (Math.abs(k) % 2 === 0) ctx.drawImage(im, Math.floor(x), coverTop, skW + 1, skH)
+    else { ctx.save(); ctx.translate(Math.floor(x) + skW, coverTop); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, skW + 1, skH); ctx.restore() }
+  }
+  const cloudY = standTop - 70
+  for (let layer = 0; layer < 3; layer++) {                       // cloud tops seen from far above, drifting
+    const yy = cloudY + layer * 22, sp = 4 + layer * 3, par = shift(p + layer * 0.05, W)
+    ctx.fillStyle = ["rgba(255,214,200,0.55)", "rgba(240,170,190,0.6)", "rgba(190,120,170,0.7)"][layer]
+    for (let i = -2; i < 40; i++) {
+      const cx = ((i * 130 + t * sp + par) % 5200 + 5200) % 5200 - 600 + padL * 0, r = 40 + 30 * _h(i + layer * 50)
+      if (cx < padL - 120 || cx > padR + 120) continue
+      ctx.beginPath(); ctx.ellipse(cx, yy + 10 * _h(i + 7), r * 1.6, r * 0.45, 0, 0, Math.PI * 2); ctx.fill()
+    }
+  }
+  ctx.fillStyle = "rgba(190,120,170,0.75)"; ctx.fillRect(padL, cloudY + 60, padR - padL, standTop - cloudY)
+  // 2. the hall's window wall: tall panes between stone mullions, a heavy beam across the top
+  const mw = 300, mx0 = ((sh * 2.2 - padL) % mw + mw) % mw - mw + padL
+  for (let x = mx0; x < padR + mw; x += mw) {
+    const g = ctx.createLinearGradient(x - 14, 0, x + 14, 0); g.addColorStop(0, "#2a1c44"); g.addColorStop(0.5, "#6d5a96"); g.addColorStop(1, "#1d1232")
+    ctx.fillStyle = g; ctx.fillRect(Math.floor(x) - 14, coverTop, 28, standTop - coverTop + 4)
+    ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(Math.floor(x) + 40, coverTop, 22, standTop - coverTop); ctx.fillRect(Math.floor(x) + 74, coverTop, 8, standTop - coverTop)
+  }
+  ctx.fillStyle = "#24173c"; ctx.fillRect(padL, standTop - 8, padR - padL, 10)
+  // 3. the stands: three tiers of spectators (original crowd: little heads + shoulders, bobbing, camera flashes)
+  const tiers = 3, th = 100 / tiers, cpar = shift(0.55, W)
+  for (let r = 0; r < tiers; r++) {
+    const y0 = standTop + r * th
+    ctx.fillStyle = r % 2 ? "#2d1f4a" : "#36265a"; ctx.fillRect(padL, y0, padR - padL, th + 1)
+    ctx.fillStyle = "#4d3a7a"; ctx.fillRect(padL, y0 + th - 4, padR - padL, 3)
+    const step = 15, x0 = ((cpar - padL) % step + step) % step - step + padL
+    for (let x = x0, i = Math.floor((x0 - cpar) / step); x < padR + step; x += step, i++) {
+      const id = i * 7 + r * 1013
+      if (_h(id) < 0.12) continue                                   // an empty seat here and there
+      const hue = Math.floor(_h(id + 1) * 6), bob = Math.max(0, Math.sin(t * (3 + _h(id + 2) * 3) + id)) * (_h(id + 3) > 0.6 ? 4 : 1.5)
+      const bx = x + (_h(id + 4) - 0.5) * 5, by = y0 + th - 6 - bob
+      ctx.fillStyle = ["#7a4b8f", "#3f6a9a", "#9a5a4a", "#5a7a4a", "#b08a3a", "#6a5a7a"][hue]
+      ctx.beginPath(); ctx.ellipse(bx, by - 6, 6.5, 7, 0, Math.PI, 0); ctx.fill()                  // shoulders
+      ctx.fillStyle = ["#f0c8a0", "#c89068", "#8a5a3a", "#e8b890"][Math.floor(_h(id + 5) * 4)]
+      ctx.beginPath(); ctx.arc(bx, by - 15, 4.2, 0, Math.PI * 2); ctx.fill()                       // head
+      ctx.fillStyle = ["#2a1a10", "#5a3a20", "#d8c070", "#1a1a1a", "#7a2a2a"][Math.floor(_h(id + 6) * 5)]
+      ctx.beginPath(); ctx.arc(bx, by - 16.5, 4.3, Math.PI, 0); ctx.fill()                        // hair
+      if (_h(id + 8) > 0.55) { ctx.strokeStyle = ctx.fillStyle = "#f0c8a0"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx + 4, by - 10); ctx.lineTo(bx + 6, by - 20 - bob * 1.5); ctx.stroke() }  // a raised fist
+      if (_h(id + Math.floor(t * 3)) > 0.995) { ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.beginPath(); ctx.arc(bx, by - 14, 6, 0, Math.PI * 2); ctx.fill() }   // camera flash
+    }
+  }
+  // 4. the scoreboard hanging over the stands
+  const sx = W / 2 + 460 + shift(0.35, W), sy = standTop - 84, sw = 250, shh = 62
+  ctx.fillStyle = "#120a22"; ctx.fillRect(sx - 3, coverTop, 6, sy - coverTop)
+  ctx.fillStyle = "#1b1030"; ctx.fillRect(sx - sw / 2 - 6, sy - 6, sw + 12, shh + 12)
+  ctx.fillStyle = "#d6b14a"; ctx.fillRect(sx - sw / 2 - 6, sy - 6, sw + 12, 3); ctx.fillRect(sx - sw / 2 - 6, sy + shh + 3, sw + 12, 3)
+  const sg = ctx.createLinearGradient(0, sy, 0, sy + shh); sg.addColorStop(0, "#0a1530"); sg.addColorStop(1, "#05091a")
+  ctx.fillStyle = sg; ctx.fillRect(sx - sw / 2, sy, sw, shh)
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  ctx.fillStyle = "#ffe08a"; ctx.font = "800 22px 'Hiragino Sans','Noto Sans JP',system-ui,sans-serif"; ctx.fillText("天空闘技場", sx, sy + 20)
+  ctx.fillStyle = `rgba(140,220,255,${0.75 + 0.25 * Math.sin(t * 4)})`; ctx.font = "800 16px system-ui,sans-serif"
+  ctx.fillText(Math.floor(t / 4) % 2 ? "FLOOR 200" : "HEAVEN'S ARENA", sx, sy + 45)
+  ctx.textAlign = "start"; ctx.textBaseline = "alphabetic"
+}
+
+function heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now()
+  // banner writing (vertical): the arena name on the left banner, the floor on the right
+  const b = P.banner, w = b.w * S, h = b.h * S
+  ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  for (const [fx, text] of [[0.3, "天空闘技場"], [0.7, "二百階"]]) {
+    const x = fx * W - w / 2 + shift(rowFactor(def, 3), W), y = dockTop + 3 * S - h
+    const [px0, py0, px1, py1] = b.paper, cx = x + (px0 + px1) / 2 * S, n = text.length, cell = (py1 - py0) * S / n
+    ctx.fillStyle = "#1a1030"; ctx.font = `900 ${Math.floor(Math.min(cell * 0.86, (px1 - px0) * S * 0.86))}px 'Hiragino Mincho ProN','Noto Serif JP',serif`
+    for (let i = 0; i < n; i++) ctx.fillText(text[i], cx, y + py0 * S + cell * (i + 0.5))
+  }
+  ctx.restore()
+  // the ring is raised: a gold edge (the SFII floor trim), then its stone face, then the drop to the hall floor
+  const top = dockTop + P.floor.h * S
+  if (coverBottom <= top) return
+  const tr = P.trim, tim = c.img[tr.file], tw = tr.w * S, off = shift(def.floor.rimFactor, W) + W / 2 - tw / 2
+  if (ready(tim)) for (let k = Math.floor((padL - off) / tw); off + k * tw < padR; k++) ctx.drawImage(tim, Math.floor(off + k * tw), top, tw + 1, tr.h * S)
+  const fTop = top + tr.h * S, faceH = 70
+  const fg = ctx.createLinearGradient(0, fTop, 0, fTop + faceH); fg.addColorStop(0, "#b8b2c8"); fg.addColorStop(1, "#6a6282")
+  ctx.fillStyle = fg; ctx.fillRect(padL, fTop, padR - padL, faceH)
+  const bw = 96, bx0 = ((off - padL) % bw + bw) % bw - bw + padL
+  ctx.fillStyle = "rgba(40,30,60,0.55)"
+  for (let row = 0; row < 3; row++) {
+    ctx.fillRect(padL, fTop + row * 24, padR - padL, 2)
+    for (let x = bx0 + (row % 2) * bw / 2; x < padR; x += bw) ctx.fillRect(Math.floor(x), fTop + row * 24, 2, 24)
+  }
+  const dropTop = fTop + faceH
+  if (coverBottom > dropTop) {
+    const dg = ctx.createLinearGradient(0, dropTop, 0, coverBottom); dg.addColorStop(0, "#1a1030"); dg.addColorStop(1, "#08040f")
+    ctx.fillStyle = dg; ctx.fillRect(padL, dropTop, padR - padL, coverBottom - dropTop)
+    ctx.fillStyle = `rgba(214,177,74,${0.35 + 0.15 * Math.sin(t * 1.5)})`; ctx.fillRect(padL, dropTop, padR - padL, 3)   // floor lights
+  }
 }

@@ -2381,7 +2381,7 @@ const STAGE_DEFS = [
   // sourced; until then a distinct track per stage beats the procedural fallback.
   { name: "Soul Society",           series: "bleach",       music: "jhene__aiko_-_stay_ready__instrumental_.mp3", landmark: "seireitei",       sky: "#f2d5c4", mid: "#dbe3ec", floor: "#7d8794", accent: "#c8a24a" },
   { name: "Woodsboro",              series: "horror",       music: "Noble_f3mii_Instrumental.mp3", landmark: "woodsboro",       sky: "#20293e", mid: "#2b3446", floor: "#181c26", accent: "#b91c1c" },
-  { name: "Heaven's Arena",         series: "hxh",          music: "Rochelle_Jordan_-_Lowkey___sped_up__.mp3", landmark: "heavens_arena",   sky: "#c4b5fd", mid: "#7c6bb8", floor: "#3b2f63", accent: "#e879f9" },
+  { name: "Heaven's Arena",         series: "hxh",          music: "Jhené Aiko - stranger (Audio).mp3", landmark: "heavens_arena",   sky: "#c4b5fd", mid: "#7c6bb8", floor: "#3b2f63", accent: "#e879f9", worldWidth: 2400, layers: "ryu_heaven", backgroundImage: "stages/ryu_heaven/preview.png" },
   { name: "Viltrumite Warzone",     series: "invincible",   music: "needybounce.mp3", landmark: "viltrum_warzone", sky: "#3d2020", mid: "#2a1a1e", floor: "#160e10", accent: "#60a5fa" },
   { name: "Command Center",         series: "powerrangers", music: "neddy sped up.mp3", landmark: "command_center",  sky: "#f6c68a", mid: "#cf9560", floor: "#8f6038", accent: "#f43f5e" },
   { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3" },

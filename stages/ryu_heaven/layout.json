@@ -1,0 +1,42 @@
+{
+ "source": "Street Fighter II \u2014 Ryu's Stage sheet, ripped by ultimategab; repainted as Heaven's Arena",
+ "pieces": {
+  "sky": {
+   "file": "sky.png",
+   "w": 1024,
+   "h": 144
+  },
+  "wall": {
+   "file": "wall.png",
+   "w": 395,
+   "h": 95
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 896,
+   "h": 36
+  },
+  "trim": {
+   "file": "trim.png",
+   "w": 895,
+   "h": 12
+  },
+  "banner": {
+   "file": "banner.png",
+   "w": 35,
+   "h": 103,
+   "paper": [
+    3,
+    4,
+    31,
+    84
+   ]
+  }
+ },
+ "colors": {
+  "skyTop": "#22103f",
+  "under": "#0c0718",
+  "seaBottom": "#0c0718"
+ },
+ "preview": "preview.png"
+}

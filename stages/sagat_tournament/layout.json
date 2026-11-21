@@ -1,0 +1,26 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Sagat's Stage background sheet (ripped by TonyWanKenobian); repainted as the World Tournament",
+ "pieces": {
+  "sky": {
+   "file": "sky.png",
+   "w": 896,
+   "h": 176
+  },
+  "hall": {
+   "file": "hall.png",
+   "w": 768,
+   "h": 177
+  },
+  "grass": {
+   "file": "grass.png",
+   "w": 768,
+   "h": 47
+  }
+ },
+ "colors": {
+  "skyTop": "#5aa0e8",
+  "under": "#3a5a10",
+  "seaBottom": "#3a5a10"
+ },
+ "preview": "preview.png"
+}

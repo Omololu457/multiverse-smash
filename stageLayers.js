@@ -214,6 +214,24 @@ SETS.guile_starklab = {
   animRate: {},
 }
 
+// WORLD TOURNAMENT ARENA — Sagat's Stage (Street Fighter 1987 sheet) repainted by tools/stage_layers/slice_sagat_tournament.py:
+// the hall + stairs behind, banners, packed stands, the white-tiled ring that cracks, ringside celebrities, the announcer.
+SETS.sagat_tournament = {
+  dir: "./stages/sagat_tournament/",
+  S: 2,
+  standRow: 30,
+  deckFrontRow: 46,
+  floor: { piece: "grass", farFactor: 0.75, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "tournament", p: 0.1 },
+    { piece: "hall", p: 0.6, tile: "mirror", bottomRow: 1 },
+  ],
+  props: [],
+  front: [],
+  fx: "tournament",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -331,6 +349,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "tournament") { drawTournamentBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "starklab") { drawLabBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "jujutsu") { drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "shibuya") { drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -422,6 +441,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "tournament") tournamentFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "starklab") labFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "jujutsu") jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "shibuya") shibuyaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -1749,13 +1769,15 @@ const JJ_CROWD = [
   ["ichigo", 0.43, "ichigoFrostShinigami"], ["gojo", 0.52, 0], ["luffy", 0.6, "luffy_ace"], ["aoi_todo", 0.67, 0], ["zenitsu", 0.74, "zenitsuValkyrie"],
   ["miwa", 0.81, 0], ["goku", 0.87, 0], ["yuta", 0.93, 0],
 ]
-let _jjCrowd = null, _jjLoading = false, _lastWorld = null
-const JJ = { last: 0, hp: new WeakMap() }
-function jjLoadCrowd() {
-  if (_jjLoading) return; _jjLoading = true
+let _lastWorld = null
+// a reactive crowd of real fighter sprites (shared by Jujutsu High and the World Tournament)
+function makeCrowd(list, scale = 0.6) { return { list, scale, sprites: null, loading: false, last: 0, hp: new WeakMap() } }
+const JJ = makeCrowd(JJ_CROWD)
+function loadCrowd(CR) {
+  if (CR.loading) return; CR.loading = true
   Promise.all([import("./characters.js"), import("./skins.js")]).then(([C, Sk]) => {
     const chars = C.characters || {}, out = []
-    for (const [key, fx, visitor] of JJ_CROWD) {
+    for (const [key, fx, visitor] of CR.list) {
       const ch = chars[key]; if (!ch) continue
       const skin = visitor ? (Sk.getSkins?.(key) || []).find(s => s && s.id === visitor && s.animationData?.idle?.sheet) || null : null
       const anims = {}
@@ -1765,13 +1787,14 @@ function jjLoadCrowd() {
         const im = new Image(); im.src = d.sheet; anims[a] = { d, im }
       }
       if (!anims.idle) continue
-      out.push({ key, fx, idle: anims.idle.d, im: anims.idle.im, anims, skin: skin?.id || "default", sc: (skin?.spriteScale || ch.spriteScale || 1) * 1.18 * 0.6,
+      out.push({ key, fx, idle: anims.idle.d, im: anims.idle.im, anims, skin: skin?.id || "default", sc: (skin?.spriteScale || ch.spriteScale || 1) * 1.18 * CR.scale,
         off: 0, mood: "idle", hop: 0, bubble: null, bubbleT: 0, seed: Math.floor(fx * 1000) })
     }
-    _jjCrowd = out
-  }).catch(() => { _jjCrowd = [] })
+    CR.sprites = out
+  }).catch(() => { CR.sprites = [] })
 }
-export const jujutsuCrowd = () => (_jjCrowd || []).map(s => ({ key: s.key, skin: s.skin, ready: ready(s.im), shown: !!s.shown, mood: s.mood, anim: s.drawn, off: Math.round(s.off), bubble: s.bubbleT > 0 ? s.bubble : null }))
+const crowdState = CR => (CR.sprites || []).map(s => ({ key: s.key, skin: s.skin, ready: ready(s.im), shown: !!s.shown, mood: s.mood, anim: s.drawn, off: Math.round(s.off), bubble: s.bubbleT > 0 ? s.bubble : null }))
+export const jujutsuCrowd = () => crowdState(JJ)
 
 function drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   const t = now(), P = c.layout.pieces, S = def.S
@@ -1857,63 +1880,7 @@ function jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   }
   ctx.restore()
   // the crowd watching from the back of the deck — and reacting to the fight
-  if (!_jjCrowd) { jjLoadCrowd(); return }
-  const F = (_lastWorld?.fighters || []).filter(Boolean), fighting = new Set(F.map(f => f.rosterKey))
-  const feet = dockTop + 1 * S, sh = shift(rowFactor(def, 1), W), cam = camera.x ?? W / 2
-  const dt = Math.min(0.05, Math.max(0, t - (JJ.last || t))); JJ.last = t
-  // what the crowd sees this frame: a big hit, someone close to dying, a knockout
-  let bigHit = false, danger = false, ko = false
-  for (const f of F) {
-    const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = JJ.hp.get(f)
-    JJ.hp.set(f, hp)
-    if (was != null && was - hp >= 60) bigHit = true
-    if (hp <= 0) ko = true; else if (hp / max <= 0.2) danger = true
-  }
-  const say = (sp, list, dur = 1.3) => { if (sp.bubbleT > 0.3) return; sp.bubble = list[Math.floor(_h(sp.seed + Math.floor(t * 3)) * list.length)]; sp.bubbleT = dur }
-  for (const sp of _jjCrowd) {
-    sp.shown = !fighting.has(sp.key) && ready(sp.im)
-    if (!sp.shown) continue
-    const home = sp.fx * W + sh
-    sp.bubbleT = Math.max(0, sp.bubbleT - dt); sp.hop = Math.max(0, sp.hop - dt)
-    // a fighter right next to them: back away and cover up
-    let near = null, nd = 1e9
-    for (const f of F) { const d = (f.x + (f.w || 50) / 2) - (home + sp.off); if (Math.abs(d) < Math.abs(nd)) { nd = d; near = f } }
-    const scared = near && Math.abs(nd) < 170
-    const target = scared ? Math.max(-110, Math.min(110, -Math.sign(nd) * (170 - Math.abs(nd)) * 1.2)) : 0
-    const step = 130 * dt, moving = Math.abs(target - sp.off) > 2
-    sp.off += Math.max(-step, Math.min(step, target - sp.off))
-    if (scared) { sp.mood = "scared"; if (_h(sp.seed * 3 + Math.floor(t)) < 0.5) say(sp, ["!", "WHOA!", "HEY!", "うわっ!"], 0.9) }
-    else if (ko) { sp.mood = "cheer"; if (sp.hop <= 0) sp.hop = 0.55; say(sp, ["WOOO!", "IT'S OVER!", "LET'S GO!", "すげぇ!"], 1.6) }
-    else if (danger) { sp.mood = "tense"; if (sp.hop <= 0 && _h(sp.seed + Math.floor(t * 1.5)) < 0.35) sp.hop = 0.45; if (_h(sp.seed * 7 + Math.floor(t * 0.7)) < 0.3) say(sp, ["FINISH IT!", "GET UP!", "NO WAY…", "ONE MORE!"], 1.4) }
-    else sp.mood = moving ? "walk" : "idle"
-    if (bigHit && !scared) { sp.hop = 0.6; if (_h(sp.seed + Math.floor(t * 10)) < 0.45) say(sp, ["OOH!", "!!", "DAMN!", "ヤバ!"], 1.1) }
-    // pick the animation for the mood (falling back to idle when the character doesn't have it)
-    const A = sp.anims, pick = (moving && A.walk) ? A.walk : sp.mood === "scared" ? (A.guard || A.idle)
-      : sp.mood === "cheer" ? (A.win || (sp.hop > 0 && A.jump) || A.idle) : (sp.hop > 0 && A.jump) ? A.jump : A.idle
-    const use = ready(pick.im) ? pick : A.idle
-    const d = use.d, n = Math.max(1, Math.min(d.frames, Math.floor(use.im.naturalWidth / d.width)))
-    const f = Math.floor((t * 60) / (d.speed || 8) + sp.fx * 17) % n
-    const w = d.width * sp.sc, h = d.height * sp.sc, x = home + sp.off
-    const ox = (d.originX ?? d.width / 2) * sp.sc, oy = (d.originY ?? d.height) * sp.sc
-    const lift = sp.hop > 0 ? Math.sin((sp.hop / 0.6) * Math.PI) * 22 : 0
-    sp.drawn = use === A.idle ? "idle" : Object.keys(A).find(k => A[k] === use)
-    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, feet, w * 0.3 * (1 - lift / 60), 5, 0, 0, 7); ctx.fill()
-    ctx.save(); ctx.translate(Math.round(x), feet - lift)
-    const faceLeft = scared ? nd < 0 : x > cam                                    // watch the fight; when backing off, face the threat
-    if (moving && !scared ? target - sp.off < 0 : faceLeft) ctx.scale(-1, 1)
-    if (sp.mood === "tense") ctx.scale(1, 1 + 0.03 * Math.sin(t * 9 + sp.seed))
-    ctx.filter = "brightness(0.78) saturate(0.85)"                   // background people: a step darker than the fighters
-    ctx.drawImage(use.im, f * d.width, 0, d.width, d.height, -ox, -oy, w, h); ctx.filter = "none"; ctx.restore()
-    if (sp.bubbleT > 0 && sp.bubble) {                               // reaction bubble
-      const a = Math.min(1, sp.bubbleT * 4), by = feet - lift - (d.originY ?? d.height) * sp.sc - 18
-      ctx.save(); ctx.globalAlpha = a; ctx.font = "900 15px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
-      const tw2 = ctx.measureText(sp.bubble).width + 14
-      ctx.fillStyle = "#fffaf0"; ctx.strokeStyle = "#1a1010"; ctx.lineWidth = 2
-      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - tw2 / 2, by - 12, tw2, 24, 8) : ctx.rect(x - tw2 / 2, by - 12, tw2, 24); ctx.fill(); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(x - 4, by + 12); ctx.lineTo(x, by + 19); ctx.lineTo(x + 4, by + 12); ctx.fill()
-      ctx.fillStyle = "#1a1010"; ctx.fillText(sp.bubble, x, by + 1); ctx.restore()
-    }
-  }
+  drawCrowd(ctx, JJ, { W, feet: dockTop + 1 * S, sh: shift(rowFactor(def, 1), W) })
 }
 
 // ───────────────────────────── THE ARMOR LAB (render-only, wall clock) ─────────────────────────────
@@ -2068,3 +2035,186 @@ function labFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   }
 }
 export const labState = () => ({ glitch: LAB.glitch, flash: LAB.flash, alert: LAB.alert, sparks: LAB.sparks.length, bots: (LAB.bots || []).map(b => Math.round(b.x)) })
+
+// a reactive crowd: backs away from fighters who come close, jumps + shouts at big hits, goes tense when someone is
+// close to dying, cheers the knockout (each character's own walk / jump / guard / win animation; render-only)
+function drawCrowd(ctx, CR, { W, feet, sh }) {
+  if (!CR.sprites) { loadCrowd(CR); return }
+  const F = (_lastWorld?.fighters || []).filter(Boolean), fighting = new Set(F.map(f => f.rosterKey))
+  const cam = camera.x ?? W / 2, t = now()
+  const dt = Math.min(0.05, Math.max(0, t - (CR.last || t))); CR.last = t
+  // what the crowd sees this frame: a big hit, someone close to dying, a knockout
+  let bigHit = false, danger = false, ko = false
+  for (const f of F) {
+    const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = CR.hp.get(f)
+    CR.hp.set(f, hp)
+    if (was != null && was - hp >= 60) bigHit = true
+    if (hp <= 0) ko = true; else if (hp / max <= 0.2) danger = true
+  }
+  CR.events = { bigHit, danger, ko }
+  const say = (sp, list, dur = 1.3) => { if (sp.bubbleT > 0.3) return; sp.bubble = list[Math.floor(_h(sp.seed + Math.floor(t * 3)) * list.length)]; sp.bubbleT = dur }
+  for (const sp of CR.sprites) {
+    sp.shown = !fighting.has(sp.key) && ready(sp.im)
+    if (!sp.shown) continue
+    const home = sp.fx * W + sh
+    sp.bubbleT = Math.max(0, sp.bubbleT - dt); sp.hop = Math.max(0, sp.hop - dt)
+    // a fighter right next to them: back away and cover up
+    let near = null, nd = 1e9
+    for (const f of F) { const d = (f.x + (f.w || 50) / 2) - (home + sp.off); if (Math.abs(d) < Math.abs(nd)) { nd = d; near = f } }
+    const scared = near && Math.abs(nd) < 170
+    const target = scared ? Math.max(-110, Math.min(110, -Math.sign(nd) * (170 - Math.abs(nd)) * 1.2)) : 0
+    const step = 130 * dt, moving = Math.abs(target - sp.off) > 2
+    sp.off += Math.max(-step, Math.min(step, target - sp.off))
+    if (scared) { sp.mood = "scared"; if (_h(sp.seed * 3 + Math.floor(t)) < 0.5) say(sp, ["!", "WHOA!", "HEY!", "うわっ!"], 0.9) }
+    else if (ko) { sp.mood = "cheer"; if (sp.hop <= 0) sp.hop = 0.55; say(sp, ["WOOO!", "IT'S OVER!", "LET'S GO!", "すげぇ!"], 1.6) }
+    else if (danger) { sp.mood = "tense"; if (sp.hop <= 0 && _h(sp.seed + Math.floor(t * 1.5)) < 0.35) sp.hop = 0.45; if (_h(sp.seed * 7 + Math.floor(t * 0.7)) < 0.3) say(sp, ["FINISH IT!", "GET UP!", "NO WAY…", "ONE MORE!"], 1.4) }
+    else sp.mood = moving ? "walk" : "idle"
+    if (bigHit && !scared) { sp.hop = 0.6; if (_h(sp.seed + Math.floor(t * 10)) < 0.45) say(sp, ["OOH!", "!!", "DAMN!", "ヤバ!"], 1.1) }
+    // pick the animation for the mood (falling back to idle when the character doesn't have it)
+    const A = sp.anims, pick = (moving && A.walk) ? A.walk : sp.mood === "scared" ? (A.guard || A.idle)
+      : sp.mood === "cheer" ? (A.win || (sp.hop > 0 && A.jump) || A.idle) : (sp.hop > 0 && A.jump) ? A.jump : A.idle
+    const use = ready(pick.im) ? pick : A.idle
+    const d = use.d, n = Math.max(1, Math.min(d.frames, Math.floor(use.im.naturalWidth / d.width)))
+    const f = Math.floor((t * 60) / (d.speed || 8) + sp.fx * 17) % n
+    const w = d.width * sp.sc, h = d.height * sp.sc, x = home + sp.off
+    const ox = (d.originX ?? d.width / 2) * sp.sc, oy = (d.originY ?? d.height) * sp.sc
+    const lift = sp.hop > 0 ? Math.sin((sp.hop / 0.6) * Math.PI) * 22 : 0
+    sp.drawn = use === A.idle ? "idle" : Object.keys(A).find(k => A[k] === use)
+    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, feet, w * 0.3 * (1 - lift / 60), 5, 0, 0, 7); ctx.fill()
+    ctx.save(); ctx.translate(Math.round(x), feet - lift)
+    const faceLeft = scared ? nd < 0 : x > cam                                    // watch the fight; when backing off, face the threat
+    if (moving && !scared ? target - sp.off < 0 : faceLeft) ctx.scale(-1, 1)
+    if (sp.mood === "tense") ctx.scale(1, 1 + 0.03 * Math.sin(t * 9 + sp.seed))
+    ctx.filter = "brightness(0.78) saturate(0.85)"                   // background people: a step darker than the fighters
+    ctx.drawImage(use.im, f * d.width, 0, d.width, d.height, -ox, -oy, w, h); ctx.filter = "none"; ctx.restore()
+    if (sp.bubbleT > 0 && sp.bubble) {                               // reaction bubble
+      const a = Math.min(1, sp.bubbleT * 4), by = feet - lift - (d.originY ?? d.height) * sp.sc - 18
+      ctx.save(); ctx.globalAlpha = a; ctx.font = "900 15px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+      const tw2 = ctx.measureText(sp.bubble).width + 14
+      ctx.fillStyle = "#fffaf0"; ctx.strokeStyle = "#1a1010"; ctx.lineWidth = 2
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - tw2 / 2, by - 12, tw2, 24, 8) : ctx.rect(x - tw2 / 2, by - 12, tw2, 24); ctx.fill(); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x - 4, by + 12); ctx.lineTo(x, by + 19); ctx.lineTo(x + 4, by + 12); ctx.fill()
+      ctx.fillStyle = "#1a1010"; ctx.fillText(sp.bubble, x, by + 1); ctx.restore()
+    }
+  }
+  return CR.events
+}
+
+// ───────────────────────────── WORLD TOURNAMENT ARENA (render-only, wall clock) ─────────────────────────────
+// Sagat's temple courtyard (Street Fighter, 1987) as the World Tournament: the hall + great stairs behind, banners,
+// packed stands, a raised white-tiled ring on the lawn whose tiles crack and crater under big hits (kept for the
+// match), famous spectators from around the multiverse at the ringside (the shared reactive crowd), and an announcer
+// with a microphone calling the fight.
+const TW_CROWD = [
+  ["vegeta", 0.07, 0], ["beerus", 0.13, 0], ["goku", 0.19, 0], ["naruto", 0.82, "naruto_blue"], ["ichigo", 0.88, "ichigoCrimsonReaper"], ["saitama", 0.94, 0],
+]
+const TW = makeCrowd(TW_CROWD, 0.72)
+const TWS = { p1: null, cracks: [], hp: new WeakMap(), call: null, callT: 0, last: 0, R0: 8, R1: 40 }
+export const tournamentState = () => ({ cracks: TWS.cracks.length, call: TWS.callT > 0 ? TWS.call : null, crowd: crowdState(TW) })
+
+function drawTournamentBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const P = c.layout.pieces, S = def.S, t = now()
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#3d86e0"); g.addColorStop(1, "#a8d4ff")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const sk = P.sky, im = c.img[sk.file], sw = sk.w * S, sh = sk.h * S, ss = shift(0.08, W) + (t * 6) % sw, sy = dockTop - 280 - sh * 0.6
+  if (ready(im)) for (let k = Math.floor((padL - ss) / sw) - 1, x; (x = ss + k * sw) < padR; k++) {
+    if (k % 2) { ctx.save(); ctx.translate(Math.floor(x) + sw, sy); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, Math.ceil(sw) + 1, sh); ctx.restore() }
+    else ctx.drawImage(im, Math.floor(x), sy, Math.ceil(sw) + 1, sh)
+  }
+  // far hills + palms beyond the temple wall
+  const hs = shift(0.2, W); ctx.fillStyle = "#6a9a5a"; ctx.beginPath(); ctx.moveTo(padL, dockTop)
+  for (let x = padL - 40; x <= padR + 40; x += 40) ctx.lineTo(x, dockTop - 250 - 40 * Math.sin((x - hs) * 0.004) - 20 * _h(Math.floor((x - hs) / 40)))
+  ctx.lineTo(padR, dockTop); ctx.closePath(); ctx.fill()
+}
+
+function tournamentFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now(), F = (_lastWorld?.fighters || []).filter(Boolean)
+  if (F[0] !== TWS.p1) { TWS.p1 = F[0]; TWS.cracks = []; TWS.hp = new WeakMap() }
+  const dt = Math.min(0.05, Math.max(0, t - (TWS.last || t))); TWS.last = t
+  const rowY = r => dockTop + r * S, rowX = (fx, r) => W * fx + shift(rowFactor(def, r), W)
+  // banners on the temple wall
+  const ws = shift(0.6, W)
+  for (const fx of [0.3, 0.7]) {
+    const x = W * fx + ws, y = dockTop - 250, w = 44, h = 190, sway = Math.sin(t * 1.3 + fx * 7) * 3
+    ctx.fillStyle = "#8a1010"; ctx.beginPath(); ctx.moveTo(x - w / 2, y); ctx.lineTo(x + w / 2, y); ctx.lineTo(x + w / 2 + sway, y + h); ctx.lineTo(x + sway, y + h - 14); ctx.lineTo(x - w / 2 + sway, y + h); ctx.closePath(); ctx.fill()
+    ctx.fillStyle = "#d8a830"; ctx.fillRect(x - w / 2 - 4, y - 6, w + 8, 6)
+    ctx.save(); ctx.fillStyle = "#f8d860"; ctx.font = "900 22px 'Hiragino Mincho ProN','Noto Serif JP',serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+    const txt = "天下一武道会"; for (let i = 0; i < txt.length; i++) ctx.fillText(txt[i], x + sway * (i / txt.length), y + 18 + i * 27)
+    ctx.restore()
+  }
+  // the packed stands in front of the wall (either side of the stairs)
+  const ev = TW.events || {}, crowdY = rowY(5)
+  for (let r = 0; r < 3; r++) for (let i = 0; i < 70; i++) {
+    const u = (i + 0.5 * (r % 2)) / 70, fx = 0.02 + u * 0.96
+    if (fx > 0.41 && fx < 0.59) continue
+    const x = rowX(fx, 3) , seed = r * 97 + i, base = crowdY - r * 16
+    const jump = ev.ko ? Math.abs(Math.sin(t * 9 + seed)) * 10 : ev.bigHit ? 8 : Math.max(0, Math.sin(t * 2 + seed)) * 2
+    const y = base - jump, col = ["#c83a3a", "#3a6ac8", "#e8c040", "#3aa860", "#e8e8e8", "#8a4ac8", "#e87a30"][seed % 7], skin = ["#f1c9a5", "#c58c64", "#8d5b3e"][seed % 3]
+    ctx.fillStyle = col; ctx.fillRect(x - 6, y - 18, 12, 18)
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x, y - 23, 5, 0, 7); ctx.fill()
+    ctx.fillStyle = ["#1a1a1a", "#5a3a1a", "#d8b060"][seed % 3]; ctx.fillRect(x - 5, y - 29, 10, 4)
+    if (ev.ko || ev.bigHit || (seed % 5 === 0 && Math.sin(t * 3 + seed) > 0.6)) { ctx.fillStyle = col; ctx.fillRect(x - 9, y - 30, 3, 12); ctx.fillRect(x + 6, y - 30, 3, 12) }
+  }
+  // the lawn carries on toward the viewer
+  const gbot = rowY(P.grass.h)
+  if (coverBottom > gbot) { const gg = ctx.createLinearGradient(0, gbot, 0, coverBottom); gg.addColorStop(0, "#4a7a10"); gg.addColorStop(1, "#223a08"); ctx.fillStyle = gg; ctx.fillRect(padL, gbot, padR - padL, coverBottom - gbot)
+    for (let i = 0; i < 400; i++) { const x = padL + _h(i * 3 + 7) * (padR - padL), y = gbot + _h(i * 3 + 8) * (coverBottom - gbot); ctx.fillStyle = i % 3 ? "rgba(120,170,40,0.5)" : "rgba(20,40,0,0.5)"; ctx.fillRect(x, y, 2, 4) } }
+  // the ring: raised white tiles from row R0 (far) to R1 (near), its front face below
+  const R0 = TWS.R0, R1 = TWS.R1, L0 = rowX(0.2, R0), L1 = rowX(0.2, R1), Q0 = rowX(0.8, R0), Q1 = rowX(0.8, R1), y0 = rowY(R0), y1 = rowY(R1), fh = 13 * S
+  ctx.fillStyle = "#e4dfd2"; ctx.beginPath(); ctx.moveTo(L0, y0); ctx.lineTo(Q0, y0); ctx.lineTo(Q1, y1); ctx.lineTo(L1, y1); ctx.closePath(); ctx.fill()
+  ctx.strokeStyle = "rgba(120,110,95,0.55)"; ctx.lineWidth = 1.5
+  for (let k = 1; k < 6; k++) { const r = R0 + (R1 - R0) * (k / 6) ** 1.15, y = rowY(r); ctx.beginPath(); ctx.moveTo(rowX(0.2, r), y); ctx.lineTo(rowX(0.8, r), y); ctx.stroke() }
+  for (let k = 1; k < 16; k++) { const f = 0.2 + 0.6 * k / 16; ctx.beginPath(); ctx.moveTo(rowX(f, R0), y0); ctx.lineTo(rowX(f, R1), y1); ctx.stroke() }
+  const fg = ctx.createLinearGradient(0, y1, 0, y1 + fh); fg.addColorStop(0, "#c9c2b2"); fg.addColorStop(1, "#8f887a")
+  ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(L1, y1); ctx.lineTo(Q1, y1); ctx.lineTo(Q1 + 6, y1 + fh); ctx.lineTo(L1 - 6, y1 + fh); ctx.closePath(); ctx.fill()
+  ctx.strokeStyle = "rgba(90,84,72,0.6)"; for (let k = 0; k <= 24; k++) { const x = L1 + (Q1 - L1) * k / 24; ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x + (k / 24 - 0.5) * 12, y1 + fh); ctx.stroke() }
+  ctx.fillStyle = "#a8a090"; ctx.beginPath(); ctx.moveTo(L0, y0); ctx.lineTo(L1, y1); ctx.lineTo(L1 - 6, y1 + fh); ctx.lineTo(L0 - 4, y0 + fh * 0.6); ctx.closePath(); ctx.fill()   // side faces
+  ctx.beginPath(); ctx.moveTo(Q0, y0); ctx.lineTo(Q1, y1); ctx.lineTo(Q1 + 6, y1 + fh); ctx.lineTo(Q0 + 4, y0 + fh * 0.6); ctx.closePath(); ctx.fill()
+  ctx.fillStyle = "#f4f0e6"; ctx.fillRect(L1, y1 - 2, Q1 - L1, 3)
+  ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fillRect(L1 - 6, y1 + fh, Q1 - L1 + 12, 6)
+  // big hits crack the tiles where the fighter lands (they stay for the match)
+  let bigHitNow = false, danger = false, ko = false
+  for (const f of F) {
+    const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = TWS.hp.get(f); TWS.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.2) danger = true
+    if (was == null || was - hp < 80) continue
+    bigHitNow = true
+    const x = f.x + (f.w || 50) / 2
+    if (x > L1 + 30 && x < Q1 - 30 && TWS.cracks.length < 24) TWS.cracks.push({ x, r: 18 + Math.min(40, (was - hp) * 0.18), seed: (TWS.cracks.length * 37 + Math.floor(t * 100)) | 0 })
+  }
+  const cy = rowY(R0 + (R1 - R0) * 0.7)
+  ctx.save(); ctx.beginPath(); ctx.moveTo(L0, y0); ctx.lineTo(Q0, y0); ctx.lineTo(Q1, y1); ctx.lineTo(L1, y1); ctx.closePath(); ctx.clip()   // cracks stay on the tiles
+  for (const k of TWS.cracks) {
+    ctx.fillStyle = "rgba(60,54,46,0.75)"; ctx.beginPath()
+    for (let i = 0; i < 10; i++) { const a = i / 10 * 6.283, rr = k.r * (0.6 + 0.5 * _h(k.seed + i)); i ? ctx.lineTo(k.x + Math.cos(a) * rr * 1.6, cy + Math.sin(a) * rr * 0.4) : ctx.moveTo(k.x + Math.cos(a) * rr * 1.6, cy + Math.sin(a) * rr * 0.4) }
+    ctx.closePath(); ctx.fill()
+    ctx.strokeStyle = "rgba(70,62,52,0.9)"; ctx.lineWidth = 1.5; ctx.beginPath()
+    for (let i = 0; i < 7; i++) { const a = _h(k.seed * 3 + i) * 6.283, l = k.r * (1.6 + 1.4 * _h(k.seed + i * 5)); ctx.moveTo(k.x, cy); ctx.lineTo(k.x + Math.cos(a) * l * 1.2, cy + Math.sin(a) * l * 0.3); ctx.lineTo(k.x + Math.cos(a + 0.3) * l * 2, cy + Math.sin(a + 0.3) * l * 0.5) }
+    ctx.stroke()
+    ctx.fillStyle = "#cfc8b8"; for (let i = 0; i < 4; i++) ctx.fillRect(k.x + (_h(k.seed + i * 9) - 0.5) * k.r * 2.4, cy - 4 - 6 * _h(k.seed + i), 6, 4)   // tile chunks
+  }
+  ctx.restore()
+  // the famous spectators at the ringside (behind the far edge)
+  drawCrowd(ctx, TW, { W, feet: rowY(R0 - 1), sh: shift(rowFactor(def, R0 - 1), W) })
+  // the announcer at the near-left corner of the ring, calling the fight
+  { const x = L0 - 70, y = rowY(R0 + 6), bob = Math.sin(t * 4) * 1.5
+    if (ko) { TWS.call = "IT'S OVER!!"; TWS.callT = 1.5 } else if (bigHitNow) { TWS.call = ["WHAT A HIT!", "INCREDIBLE!", "UNBELIEVABLE!"][TWS.cracks.length % 3]; TWS.callT = 1.4 }
+    else if (danger && TWS.callT <= 0 && Math.sin(t * 0.8) > 0.95) { TWS.call = "HE CAN'T TAKE MUCH MORE!"; TWS.callT = 1.6 }
+    TWS.callT = Math.max(0, TWS.callT - dt)
+    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(x, y, 14, 4, 0, 0, 7); ctx.fill()
+    ctx.fillStyle = "#1a1a22"; ctx.fillRect(x - 5, y - 26 + bob, 4, 26 - bob); ctx.fillRect(x + 1, y - 26 + bob, 4, 26 - bob)        // trousers
+    ctx.fillRect(x - 8, y - 50 + bob, 16, 25); ctx.fillStyle = "#f4f4f4"; ctx.fillRect(x - 2, y - 50 + bob, 4, 14)                   // jacket, shirt
+    ctx.fillStyle = "#b01818"; ctx.fillRect(x - 1, y - 48 + bob, 2, 9)                                                                  // tie
+    ctx.fillStyle = "#e8c090"; ctx.fillRect(x - 5, y - 62 + bob, 10, 12); ctx.fillStyle = "#3a2a1a"; ctx.fillRect(x - 6, y - 65 + bob, 12, 5)
+    ctx.fillStyle = "#101010"; ctx.fillRect(x - 5, y - 58 + bob, 10, 3)                                                                 // sunglasses
+    const arm = TWS.callT > 0 ? -0.6 : 0.2
+    ctx.strokeStyle = "#1a1a22"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x + 7, y - 46 + bob); ctx.lineTo(x + 12, y - 54 + bob + arm * 8); ctx.stroke()
+    ctx.fillStyle = "#2a2a2a"; ctx.fillRect(x + 10, y - 60 + bob + arm * 8, 3, 8); ctx.fillStyle = "#888"; ctx.fillRect(x + 9, y - 62 + bob + arm * 8, 5, 4)   // the microphone
+    if (TWS.callT > 0 && TWS.call) {
+      ctx.save(); ctx.globalAlpha = Math.min(1, TWS.callT * 4); ctx.font = "900 16px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+      const tw = ctx.measureText(TWS.call).width + 16, by = y - 86
+      ctx.fillStyle = "#fff8e0"; ctx.strokeStyle = "#1a1010"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(x + 4 - tw / 2 + 30, by - 13, tw, 26); ctx.fill(); ctx.stroke()
+      ctx.fillStyle = "#c01818"; ctx.fillText(TWS.call, x + 34, by + 1); ctx.restore()
+    }
+  }
+}

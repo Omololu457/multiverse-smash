@@ -232,6 +232,24 @@ SETS.sagat_tournament = {
   animRate: {},
 }
 
+// PLANET NAMEK — Eagle's Stage (Street Fighter 1987 sheet) repainted by tools/stage_layers/slice_eagle_namek.py, under
+// Frieza's invasion: the ship, soldiers, bombs, villagers fleeing and dying, warriors fighting back, villages burning.
+SETS.eagle_namek = {
+  dir: "./stages/eagle_namek/",
+  S: 2,
+  standRow: 24,
+  deckFrontRow: 40,
+  floor: { piece: "ground", farFactor: 0.75, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "namek", p: 0.1 },
+    { piece: "land", p: 0.6, tile: "mirror", bottomRow: 1 },
+  ],
+  props: [],
+  front: [],
+  fx: "namek",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -349,6 +367,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "namek") { drawNamekBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "tournament") { drawTournamentBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "starklab") { drawLabBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "jujutsu") { drawJujutsuBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -441,6 +460,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "namek") namekFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "tournament") tournamentFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "starklab") labFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "jujutsu") jujutsuFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -2216,5 +2236,263 @@ function tournamentFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
       ctx.fillStyle = "#fff8e0"; ctx.strokeStyle = "#1a1010"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(x + 4 - tw / 2 + 30, by - 13, tw, 26); ctx.fill(); ctx.stroke()
       ctx.fillStyle = "#c01818"; ctx.fillText(TWS.call, x + 34, by + 1); ctx.restore()
     }
+  }
+}
+
+// ───────────────────────────── PLANET NAMEK — THE INVASION (render-only, wall clock, own PRNG) ─────────────────────────────
+// Eagle's Stage (Street Fighter, 1987) repainted as Namek. Frieza's round ship hangs in the green sky dropping bombs; his
+// armored soldiers fly over the hills firing ki blasts; Namekian villagers run for their lives (a hit kills them — they
+// fall, purple blood, and stay down); Namekian warriors stand and fire back, shooting soldiers out of the sky; dome
+// villages burn; craters and bodies stay for the match. Big hits in the fight draw a strike from the ship; the knockout
+// sets off a huge blast on the horizon.
+let _nmSeed = 0x9e3779b9
+const nmRnd = () => { _nmSeed ^= _nmSeed << 13; _nmSeed ^= _nmSeed >>> 17; _nmSeed ^= _nmSeed << 5; return (_nmSeed >>> 0) / 4294967296 }
+const NM = { p1: null, last: 0, hp: new WeakMap(), people: [], soldiers: [], shots: [], bombs: [], booms: [], craters: [], bodies: [], debris: [],
+  spawnP: 0, spawnS: 0, bombT: 2, kills: 0, downed: 0, strikes: 0, bigBoom: 0, koBoom: false,
+  jets: [], jetT: 1.5, flyT: 8, jetsDown: 0, flybys: 0, shakes: 0, orb: 0, finale: null, start: 0 }
+// the flying war uses real sprites: Vilgax's attack drones (idle 4 frames / death 4 frames) as Frieza's drones, and the
+// jet from the Stark Lab sheet as the planes that dogfight them — tiny and hazy, far away over the hills
+const NM_IMG = {}
+function nmImg(k, src) { if (!NM_IMG[k]) { const im = new Image(); im.src = src; NM_IMG[k] = im } return NM_IMG[k] }
+function nmShake(s, d) { NM.shakes++; camera.shake?.(s, d) }
+export const namekState = () => ({ people: NM.people.length, warriors: NM.people.filter(p => p.warrior).length, soldiers: NM.soldiers.length,
+  bombs: NM.bombs.length, booms: NM.booms.length, craters: NM.craters.length, bodies: NM.people.filter(p => p.dead).length, jets: NM.jets.length, jetsDown: NM.jetsDown, flybys: NM.flybys, shakes: NM.shakes, finale: NM.finale ? NM.finale.stage : null, orb: NM.orb, kills: NM.kills, downed: NM.downed, strikes: NM.strikes, koBoom: NM.koBoom })
+const NM_HOUSES = [[0.08, 0], [0.15, 1], [0.27, 0], [0.55, 2], [0.62, 1], [0.69, 0], [0.88, 1], [0.95, 2]]   // [x, state 0 whole / 1 burning / 2 wrecked]
+
+function drawNamekBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now()
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#3fbf7f"); g.addColorStop(0.6, "#8ee6b0"); g.addColorStop(1, "#c8f5c0")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  // three suns
+  const ss = shift(0.04, W)
+  for (const [fx, fy, r] of [[0.18, 420, 26], [0.27, 470, 16], [0.84, 440, 20]]) {
+    const x = W * fx + ss, y = dockTop - fy, gl = ctx.createRadialGradient(x, y, 0, x, y, r * 4)
+    gl.addColorStop(0, "rgba(255,255,230,0.95)"); gl.addColorStop(0.25, "rgba(255,255,200,0.5)"); gl.addColorStop(1, "rgba(255,255,200,0)")
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, r * 4, 0, 7); ctx.fill(); ctx.fillStyle = "#fffff0"; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+  }
+  // smoke columns from the burning villages far off, leaning in the wind
+  const fs = shift(0.15, W)
+  for (let i = 0; i < 6; i++) {
+    const bx = W * (0.05 + i * 0.19) + fs, by = dockTop - 240
+    for (let k = 0; k < 14; k++) {
+      const u = ((t * 0.08 + k / 14 + i * 0.37) % 1), x = bx + u * 120 + Math.sin(u * 6 + i) * 10, y = by - u * 260, r = 10 + u * 40
+      ctx.fillStyle = `rgba(40,46,44,${0.35 * (1 - u)})`; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill()
+    }
+    if (Math.sin(t * 2.3 + i * 4) > 0.97) { ctx.fillStyle = "rgba(255,200,120,0.6)"; ctx.beginPath(); ctx.arc(bx, by, 26, 0, 7); ctx.fill() }   // far explosion flash
+  }
+  // Frieza's ship: a round saucer with a ring of lights, hovering over the far hills
+  const sx = W * 0.7 + shift(0.12, W), sy = dockTop - 285 + Math.sin(t * 0.7) * 6
+  const hull = ctx.createLinearGradient(0, sy - 60, 0, sy + 40); hull.addColorStop(0, "#f2f2f8"); hull.addColorStop(0.6, "#b8bccb"); hull.addColorStop(1, "#6a6e80")
+  ctx.fillStyle = hull; ctx.beginPath(); ctx.ellipse(sx, sy, 130, 62, 0, Math.PI, 0); ctx.lineTo(sx + 130, sy + 6); ctx.ellipse(sx, sy + 6, 130, 30, 0, 0, Math.PI); ctx.closePath(); ctx.fill()
+  ctx.fillStyle = "#4a4e60"; ctx.fillRect(sx - 130, sy, 260, 8)
+  for (let i = 0; i < 12; i++) { const a = i / 12, on = Math.sin(t * 5 - i * 0.8) > 0; ctx.fillStyle = on ? "#ffd040" : "#806020"; ctx.beginPath(); ctx.arc(sx - 120 + a * 240, sy + 4, 4, 0, 7); ctx.fill() }
+  ctx.fillStyle = "rgba(40,60,90,0.8)"; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(sx - 70 + i * 35, sy - 26, 7, 0, 7); ctx.fill() }
+  ctx.fillStyle = "#9aa0b4"; for (const k of [-1, 1]) { ctx.fillRect(sx + k * 80 - 4, sy + 30, 8, 30); ctx.fillRect(sx + k * 80 - 12, sy + 58, 24, 5) }   // landing legs
+  NM.ship = { x: sx, y: sy + 30 }
+}
+
+function nmNamekian(ctx, x, y, sc, p, t) {
+  // a Namekian: green skin, antennae, white robe + purple sash (pixel figure ~46px tall at sc 1)
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc * (p.dir || 1), sc)
+  if (p.dead) {                                                     // lying in the grass
+    ctx.rotate(-Math.PI / 2 * Math.min(1, p.deadT * 4))
+  }
+  const run = p.dead ? 0 : p.warrior ? 0 : Math.sin(t * 14 + p.seed) * 0.6
+  ctx.fillStyle = "#2f8a3a"; ctx.save(); ctx.translate(-3, -16); ctx.rotate(run); ctx.fillRect(-2, 0, 5, 16); ctx.restore(); ctx.save(); ctx.translate(3, -16); ctx.rotate(-run); ctx.fillRect(-2, 0, 5, 16); ctx.restore()
+  ctx.fillStyle = "#6a3a12"; ctx.fillRect(-5, -2, 6, 3); ctx.fillRect(1, -2, 6, 3)
+  ctx.fillStyle = p.elder ? "#e8e0d0" : "#f4f4f0"; ctx.fillRect(-8, -36, 16, 22)                     // robe / gi
+  ctx.fillStyle = "#6a2a9a"; ctx.fillRect(-8, -20, 16, 4)                                              // sash
+  ctx.fillStyle = "#3aa048"
+  if (p.warrior && p.aim > 0) ctx.fillRect(6, -33, 16, 5)                                             // arm out, firing
+  else { ctx.save(); ctx.translate(7, -34); ctx.rotate(-run * 1.2 - (p.panic ? 2.4 : 0)); ctx.fillRect(-2, 0, 5, 14); ctx.restore() }
+  ctx.fillRect(-5, -47, 11, 11); ctx.fillStyle = "#2a7a34"; ctx.fillRect(-7, -44, 3, 5); ctx.fillRect(5, -44, 3, 5)   // head, pointed ears
+  ctx.strokeStyle = "#3aa048"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-2, -47); ctx.quadraticCurveTo(-6, -56, -8, -58); ctx.moveTo(2, -47); ctx.quadraticCurveTo(5, -56, 3, -59); ctx.stroke()
+  ctx.fillStyle = "#111"; ctx.fillRect(2, -44, 2, 2)
+  ctx.restore()
+}
+
+function nmBoom(x, y, r, big) { NM.booms.push({ x, y, r, t: 0, life: big ? 1.4 : 0.8 }); for (let i = 0; i < (big ? 14 : 6); i++) NM.debris.push({ x, y, vx: (nmRnd() - 0.5) * r * 6, vy: -nmRnd() * r * 7, life: 0.6 + nmRnd() * 0.6, purple: false }) }
+
+function namekFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const S = def.S, t = now(), F = (_lastWorld?.fighters || []).filter(Boolean)
+  if (F[0] !== NM.p1) { NM.p1 = F[0]; NM.people = []; NM.soldiers = []; NM.shots = []; NM.bombs = []; NM.booms = []; NM.craters = []; NM.bodies = []; NM.debris = []; NM.kills = 0; NM.downed = 0; NM.strikes = 0; NM.koBoom = false; NM.hp = new WeakMap()
+    NM.jets = []; NM.jetsDown = 0; NM.flybys = 0; NM.shakes = 0; NM.orb = 0; NM.finale = null; NM.start = t; NM.flyT = 8 }
+  const dt = Math.min(0.05, Math.max(0, t - (NM.last || t))); NM.last = t
+  const off = shift(0.75, W), lineY = NM.lineY = dockTop + 3 * S, L = padL - 80, R = padR + 80, sc = 0.9
+  // villages along the far edge of the field (dome houses on stalks — some burning, some wrecked)
+  for (const [fx, st] of NM_HOUSES) {
+    const x = W * fx * 1.4 - W * 0.2 + shift(0.62, W), y = dockTop - 6
+    ctx.fillStyle = "#cfd8c8"; ctx.fillRect(x - 5, y - 26, 10, 26)
+    if (st === 2) { ctx.fillStyle = "#9aa294"; ctx.beginPath(); ctx.moveTo(x - 26, y - 22); ctx.lineTo(x - 18, y - 46); ctx.lineTo(x - 6, y - 34); ctx.lineTo(x + 4, y - 52); ctx.lineTo(x + 26, y - 22); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#2a2a28"; ctx.fillRect(x - 8, y - 36, 14, 10) }
+    else { const dg = ctx.createLinearGradient(0, y - 64, 0, y - 22); dg.addColorStop(0, "#ffffff"); dg.addColorStop(1, "#b4c0b0"); ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(x, y - 34, 28, 30, 0, Math.PI, 0); ctx.lineTo(x + 28, y - 22); ctx.lineTo(x - 28, y - 22); ctx.closePath(); ctx.fill()
+      ctx.fillStyle = "#3a5a7a"; for (const k of [-14, 0, 14]) { ctx.beginPath(); ctx.arc(x + k, y - 40, 4, 0, 7); ctx.fill() } }
+    if (st) for (let k = 0; k < 5; k++) {                                       // fire + smoke
+      const u = (t * 1.6 + k / 5 + fx * 3) % 1, fl = 1 - u
+      ctx.fillStyle = `rgba(255,${140 + 80 * fl | 0},40,${0.8 * fl})`; ctx.beginPath(); ctx.arc(x + Math.sin(t * 9 + k) * 6, y - 50 - u * 30, 7 * fl + 2, 0, 7); ctx.fill()
+      ctx.fillStyle = `rgba(30,32,30,${0.4 * fl})`; ctx.beginPath(); ctx.arc(x + u * 30, y - 80 - u * 90, 10 + u * 24, 0, 7); ctx.fill()
+    }
+  }
+  // the field carries on toward the viewer (trampled grass)
+  const gbot = dockTop + c.layout.pieces.ground.h * S
+  if (coverBottom > gbot) { const gg = ctx.createLinearGradient(0, gbot, 0, coverBottom); gg.addColorStop(0, "#8ad0a0"); gg.addColorStop(1, "#3a7a52"); ctx.fillStyle = gg; ctx.fillRect(padL, gbot, padR - padL, coverBottom - gbot)
+    for (let i = 0; i < 400; i++) { const x = padL + _h(i * 3 + 11) * (padR - padL), y = gbot + _h(i * 3 + 12) * (coverBottom - gbot); ctx.fillStyle = i % 3 ? "rgba(170,230,180,0.45)" : "rgba(30,80,50,0.45)"; ctx.fillRect(x, y, 2, 4) } }
+  // craters + scorch along the field
+  for (const k of NM.craters) { ctx.fillStyle = "rgba(30,36,24,0.55)"; ctx.beginPath(); ctx.ellipse(k.x + off, lineY + 3, k.r, k.r * 0.22, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(10,10,8,0.5)"; ctx.beginPath(); ctx.ellipse(k.x + off, lineY + 3, k.r * 0.5, k.r * 0.1, 0, 0, 7); ctx.fill() }
+  // ── spawn: villagers fleeing, warriors standing their ground, soldiers flying in, bombs from the ship
+  NM.spawnP -= dt; NM.spawnS -= dt; NM.bombT -= dt
+  if (NM.finale?.stage === "boom") NM.spawnP = NM.spawnS = NM.bombT = 99          // after the blast: nothing left out there
+  if (NM.spawnP <= 0 && NM.people.filter(p => !p.dead).length < 9) {
+    NM.spawnP = 0.7 + nmRnd() * 1.1
+    const warrior = NM.people.filter(p => p.warrior && !p.dead).length < 2 || nmRnd() < 0.2, fromL = nmRnd() < 0.5, x0 = fromL ? L - off : R - off
+    NM.people.push({ x: warrior ? W * (0.1 + nmRnd() * 0.8) - off : x0, warrior, dir: warrior ? (nmRnd() < 0.5 ? 1 : -1) : fromL ? 1 : -1, speed: 70 + nmRnd() * 60, seed: nmRnd() * 100,
+      elder: nmRnd() < 0.15, panic: nmRnd() < 0.5, aim: 0, fireT: 1 + nmRnd() * 2, rise: warrior ? 1 : 0, dead: false, deadT: 0 })
+  }
+  if (NM.spawnS <= 0 && NM.soldiers.filter(s => !s.down).length < 5) {
+    NM.spawnS = 1.2 + nmRnd() * 1.6
+    const fromL = nmRnd() < 0.5
+    const dsc = 0.28 + nmRnd() * 0.3                                           // far away = small
+    NM.soldiers.push({ x: (fromL ? L : R) - off, y: dockTop - 110 - nmRnd() * 190, sc: dsc, dir: fromL ? 1 : -1, vx: (fromL ? 1 : -1) * (160 + nmRnd() * 220) * (0.6 + dsc), vy: 0,
+      fireT: 0.8 + nmRnd() * 1.5, charge: 0, down: false, spin: 0, seed: nmRnd() * 100, skin: ["#d890d0", "#8ad0e0", "#e8b088", "#a0c060"][Math.floor(nmRnd() * 4)], trim: ["#3a2a6a", "#6a3a1a", "#1a4a6a"][Math.floor(nmRnd() * 3)] })
+  }
+  const shipBomb = (tx) => { const s = NM.ship || { x: W * 0.7, y: dockTop - 300 }; NM.bombs.push({ x: s.x - off * 0.16, y: s.y, tx, vx: 0, vy: 40, t: 0 }) }
+  if (NM.bombT <= 0) { NM.bombT = 1.6 + nmRnd() * 2.4; shipBomb(W * (0.05 + nmRnd() * 0.9) - off) }
+  // ── the fight drives the war: big hits draw a strike from the ship, the knockout a huge blast
+  let ko = false
+  for (const f of F) { const hp = f.health ?? 0, was = NM.hp.get(f); NM.hp.set(f, hp); if (hp <= 0) ko = true; if (was != null && was - hp >= 60) { NM.strikes++; shipBomb((f.x || W / 2) - off + (nmRnd() - 0.5) * 300) } }
+  // ── the planes: far-off jets crossing the sky, gunning drones down (and sometimes getting shot down themselves)
+  NM.jetT -= dt; NM.flyT -= dt
+  if (NM.finale?.stage === "boom") NM.jetT = NM.flyT = 99
+  if (NM.jetT <= 0) { NM.jetT = 1.4 + nmRnd() * 2.2; const fromL = nmRnd() < 0.5, sc = 0.07 + nmRnd() * 0.07
+    NM.jets.push({ x: (fromL ? L - 200 : R + 200) - off, y: dockTop - 160 - nmRnd() * 200, dir: fromL ? 1 : -1, vx: (fromL ? 1 : -1) * (520 + nmRnd() * 300), sc, fireT: 0.3, doomed: nmRnd() < 0.3, down: false, vy: 0, spin: 0 }) }
+  // a close flyby: a big jet screams across the whole screen and the screen shakes
+  if (NM.flyT <= 0) { NM.flyT = 9 + nmRnd() * 8; NM.flybys++; const fromL = nmRnd() < 0.5
+    NM.jets.push({ x: (fromL ? L - 700 : R + 700) - off, y: dockTop - 250 - nmRnd() * 60, dir: fromL ? 1 : -1, vx: (fromL ? 1 : -1) * 1900, sc: 0.55, near: true, fireT: 9, down: false, vy: 0, spin: 0, shook: false }) }
+  // the finale: when a fighter is close to losing, the ship charges a giant orb; the knockout drops it — the horizon
+  // goes up in one huge explosion (white-out, long heavy shake, a shockwave, everything in the background wiped out)
+  const danger = F.some(f => (f.health ?? 1) > 0 && (f.health ?? 0) / (f.maxHealth || f.maxHp || 1000) <= 0.25)
+  if ((danger || ko) && !NM.finale) NM.finale = { stage: "charge", t: 0 }
+  if (NM.finale) {
+    const fin = NM.finale; fin.t += dt
+    if (fin.stage === "charge") { NM.orb = Math.min(1, NM.orb + dt * 0.25); if (ko) { fin.stage = "drop"; fin.t = 0; fin.y = (NM.ship?.y || dockTop - 255) + 60 } }
+    else if (fin.stage === "drop") { fin.y += dt * (120 + fin.t * 400); if (fin.y >= dockTop - 60) { fin.stage = "boom"; fin.t = 0; NM.koBoom = true; NM.bigBoom = 3.2; nmShake(18, 70)
+        for (let i = 0; i < 7; i++) nmBoom(W * (0.05 + i * 0.15) - off, dockTop - 20 - nmRnd() * 40, 90 + nmRnd() * 60, true)
+        for (const p of NM.people) if (!p.dead) { p.dead = true; p.deadT = 0; NM.kills++ }
+        for (const d of NM.soldiers) if (!d.down) { d.down = true; d.vy = -200; NM.downed++ } } }
+    else if (fin.stage === "boom" && fin.t > 1.2 && fin.t < 1.3) nmShake(12, 40)                     // the aftershock
+  }
+  // ── update + draw villagers / warriors
+  const targets = () => NM.people.filter(p => !p.dead)
+  for (const p of NM.people) {
+    const x = p.x + off
+    if (p.dead) p.deadT += dt
+    else if (p.warrior) {
+      const foe = NM.soldiers.filter(s => !s.down).sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0]
+      if (foe) p.dir = foe.x > p.x ? 1 : -1
+      p.fireT -= dt; p.aim = Math.max(0, p.aim - dt)
+      if (foe && p.fireT <= 0) { p.fireT = 1.4 + nmRnd() * 1.6; p.aim = 0.35; NM.shots.push({ x: p.x + p.dir * 18, y: lineY - 30 * sc, tx: foe.x, ty: foe.y, sp: 620, good: true, life: 2.5, foe }) }
+    } else { p.x += p.dir * p.speed * dt }
+    nmNamekian(ctx, x, lineY, sc, p, t)
+  }
+  NM.people = NM.people.filter(p => (p.dead ? p.deadT < 20 : p.x + off > L - 40 && p.x + off < R + 40)).slice(-40)
+  // ── Frieza's drones (real sprites): zip across far away, fire at the villagers; shot down they flip to their death
+  // frames, trail smoke, spiral into the hills and blow up
+  const dIdle = nmImg("di", "./vilgax_drone_idle_uniform.png"), dDie = nmImg("dd", "./vilgax_drone_death_uniform.png"), jetIm = nmImg("jet", "./stages/guile_starklab/jet.png")
+  for (const s of NM.soldiers) {
+    if (s.down) { s.vy += 380 * dt; s.x += s.vx * dt * 0.35; s.y += s.vy * dt; s.spin += dt * 9; s.dieT = (s.dieT || 0) + dt
+      if (s.y >= dockTop - 8) { s.gone = true; nmBoom(s.x, dockTop - 14, 30 + s.sc * 40); NM.craters.push({ x: s.x, r: 16 }); if (s.sc > 0.45) nmShake(3, 8) } }
+    else {
+      s.x += s.vx * dt; s.y += Math.sin(t * 3 + s.seed) * 30 * dt; s.fireT -= dt
+      s.charge = s.fireT < 0.4 ? 1 - s.fireT / 0.4 : 0
+      if (s.fireT <= 0) { s.fireT = 0.9 + nmRnd() * 1.3; const all = targets(), run = all.filter(p => !p.warrior), tg = run.length && nmRnd() < 0.85 ? run : all, v = tg[Math.floor(nmRnd() * tg.length)]
+        NM.shots.push({ x: s.x, y: s.y + 8, tx: v ? v.x : s.x + s.dir * 200, ty: lineY - 20, sp: 520, good: false, life: 2 }) }
+      if (s.x + off < L - 120 || s.x + off > R + 120) s.gone = true
+    }
+    const im = s.down ? dDie : dIdle, fw = s.down ? 97 : 92, fh = s.down ? 49 : 48, fr = s.down ? Math.min(3, Math.floor((s.dieT || 0) * 8)) : Math.floor(t * 12 + s.seed) % 4
+    if (ready(im)) { ctx.save(); ctx.translate(s.x + off, s.y); if (s.down) ctx.rotate(s.spin * 0.4); ctx.scale(-s.dir * s.sc, s.sc); ctx.globalAlpha = Math.min(1, 0.7 + s.sc * 0.5)
+      ctx.drawImage(im, fr * fw, 0, fw, fh, -fw / 2, -fh / 2, fw, fh); ctx.restore() }
+    if (s.down) { for (let k = 1; k < 7; k++) { ctx.fillStyle = `rgba(50,50,50,${0.5 - k * 0.06})`; ctx.beginPath(); ctx.arc(s.x + off - s.vx * k * 0.012, s.y - s.vy * k * 0.02, 3 + k * 2.4 * s.sc * 2, 0, 7); ctx.fill() }
+      ctx.fillStyle = "rgba(255,160,40,0.8)"; ctx.beginPath(); ctx.arc(s.x + off, s.y, 4 + s.sc * 6, 0, 7); ctx.fill() }
+    else if (s.charge > 0) { ctx.fillStyle = "rgba(255,120,220,0.9)"; ctx.beginPath(); ctx.arc(s.x + off, s.y + 8, 2 + s.charge * 4, 0, 7); ctx.fill() }
+  }
+  NM.soldiers = NM.soldiers.filter(s => !s.gone)
+  // ── jets (real sprite, nose left in the art): tracer fire at the drones; doomed ones get hit, burn and crash
+  for (const j of NM.jets) {
+    if (j.down) { j.vy += 260 * dt; j.y += j.vy * dt; j.x += j.vx * dt * 0.6; j.spin += dt * 1.5
+      if (j.y >= dockTop - 10) { j.gone = true; nmBoom(j.x, dockTop - 16, 70, true); NM.craters.push({ x: j.x, r: 40 }); nmShake(5, 12) } }
+    else {
+      j.x += j.vx * dt
+      if (j.near && !j.shook && Math.abs(j.x + off - W / 2) < W * 0.4) { j.shook = true; nmShake(6, 22) }
+      j.fireT -= dt
+      if (!j.near && j.fireT <= 0) { j.fireT = 0.25; const foe = NM.soldiers.find(d => !d.down && Math.abs(d.x - j.x) < 520 && Math.sign(d.x - j.x) === j.dir)
+        if (foe) NM.shots.push({ x: j.x + j.dir * 40, y: j.y, tx: foe.x, ty: foe.y, sp: 1100, good: true, tracer: true, life: 1, foe }) }
+      if (j.doomed && !j.near && Math.abs(j.x + off - W / 2) < W * 0.25) { j.down = true; j.vy = 20; NM.jetsDown++; nmBoom(j.x, j.y, 26) }
+      if ((j.dir > 0 && j.x + off > R + 800) || (j.dir < 0 && j.x + off < L - 800)) j.gone = true
+    }
+    if (ready(jetIm)) { const jw = 1024, jh = 90; ctx.save(); ctx.translate(j.x + off, j.y); ctx.rotate(j.down ? Math.min(0.9, j.spin) * j.dir : 0); ctx.scale(-j.dir * j.sc, j.sc)
+      ctx.globalAlpha = j.near ? 1 : 0.85; ctx.drawImage(jetIm, 0, 0, jw, jh, -jw / 2, -jh / 2, jw, jh); ctx.restore()
+      ctx.fillStyle = "rgba(255,190,90,0.85)"; ctx.beginPath(); ctx.arc(j.x + off - j.dir * 512 * j.sc, j.y, 3 + j.sc * 14, 0, 7); ctx.fill()
+      ctx.strokeStyle = j.near ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.35)"; ctx.lineWidth = j.near ? 3 : 1.5
+      ctx.beginPath(); ctx.moveTo(j.x + off - j.dir * 520 * j.sc, j.y); ctx.lineTo(j.x + off - j.dir * (520 * j.sc + (j.near ? 900 : 260)), j.y); ctx.stroke()
+      if (j.down) for (let k = 1; k < 9; k++) { ctx.fillStyle = `rgba(40,40,40,${0.55 - k * 0.05})`; ctx.beginPath(); ctx.arc(j.x + off - j.vx * k * 0.03, j.y - j.vy * k * 0.03, 4 + k * 3, 0, 7); ctx.fill() } }
+  }
+  NM.jets = NM.jets.filter(j => !j.gone)
+  // ── ki blasts: pink from soldiers (kill villagers), yellow from Namekian warriors (shoot soldiers down)
+  for (const b of NM.shots) {
+    if (b.foe && !b.foe.down && !b.foe.gone) { b.tx = b.foe.x; b.ty = b.foe.y }          // blasts at the drones home in
+    const dx = b.tx - b.x, dy = b.ty - b.y, d = Math.hypot(dx, dy) || 1, st = Math.min(d, b.sp * dt)
+    b.x += dx / d * st; b.y += dy / d * st; b.life -= dt
+    const col = b.good ? "255,230,80" : "255,110,220"
+    ctx.strokeStyle = `rgba(${col},0.5)`; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(b.x + off, b.y); ctx.lineTo(b.x + off - dx / d * 26, b.y - dy / d * 26); ctx.stroke()
+    ctx.fillStyle = `rgb(${col})`; ctx.beginPath(); ctx.arc(b.x + off, b.y, 5, 0, 7); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(b.x + off, b.y, 2.4, 0, 7); ctx.fill()
+    if (d < 6) {
+      b.done = true
+      if (b.good) { const s = b.foe && !b.foe.down ? b.foe : NM.soldiers.find(s => !s.down && Math.hypot(s.x - b.x, s.y - b.y) < 40); if (s) { s.down = true; s.vy = -60; NM.downed++ } nmBoom(b.x, b.y, 14) }
+      else { nmBoom(b.x, b.y + 10, 20); NM.craters.push({ x: b.x, r: 14 }); nmKill(b.x, 34) }
+    }
+  }
+  NM.shots = NM.shots.filter(b => !b.done && b.life > 0)
+  // ── bombs from the ship: whistle down, blow a crater, kill anyone close
+  for (const b of NM.bombs) {
+    b.t += dt; b.vy += 300 * dt; b.y += b.vy * dt; b.x += (b.tx - b.x) * Math.min(1, dt * 1.5)
+    ctx.fillStyle = "#3a3a46"; ctx.beginPath(); ctx.ellipse(b.x + off, b.y, 5, 9, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#ff4040"; ctx.fillRect(b.x + off - 1, b.y - 11, 2, 3)
+    ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(b.x + off, b.y - 10); ctx.lineTo(b.x + off, b.y - 50); ctx.stroke()
+    if (b.y >= lineY - 2) { b.done = true; nmBoom(b.x, lineY - 10, 60, true); if (Math.abs(b.x + off - W / 2) < W * 0.6) nmShake(4, 10); NM.craters.push({ x: b.x, r: 54 }); nmKill(b.x, 90) }
+  }
+  NM.bombs = NM.bombs.filter(b => !b.done); if (NM.craters.length > 40) NM.craters.splice(0, NM.craters.length - 40)
+  // ── explosions + debris + purple blood
+  for (const e of NM.booms) {
+    e.t += dt; const u = e.t / e.life, x = e.x + off
+    const fg = ctx.createRadialGradient(x, e.y, 0, x, e.y, e.r * (0.6 + u))
+    fg.addColorStop(0, `rgba(255,255,220,${1 - u})`); fg.addColorStop(0.35, `rgba(255,170,50,${0.9 * (1 - u)})`); fg.addColorStop(1, "rgba(120,40,10,0)")
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(x, e.y - u * e.r * 0.4, e.r * (0.6 + u), 0, 7); ctx.fill()
+    ctx.strokeStyle = `rgba(255,255,255,${0.6 * (1 - u)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, e.y + 8, e.r * 1.8 * u, e.r * 0.35 * u, 0, 0, 7); ctx.stroke()
+    ctx.fillStyle = `rgba(40,40,38,${0.5 * u * (1 - u) * 3})`; ctx.beginPath(); ctx.arc(x, e.y - e.r * u * 1.4, e.r * 0.7 * (0.5 + u), 0, 7); ctx.fill()
+  }
+  NM.booms = NM.booms.filter(e => e.t < e.life)
+  for (const d of NM.debris) { d.life -= dt; d.vy += 600 * dt; d.x += d.vx * dt; d.y += d.vy * dt; if (d.y > lineY + 4) { d.y = lineY + 4; d.vx *= 0.5; d.vy = 0 }
+    ctx.fillStyle = d.purple ? "#7a2a9a" : "#4a5a3a"; ctx.fillRect(d.x + off, d.y, d.purple ? 3 : 4, d.purple ? 3 : 4) }
+  NM.debris = NM.debris.filter(d => d.life > 0).slice(-300)
+  // pools of purple blood under the dead
+  for (const p of NM.people) if (p.dead) { ctx.fillStyle = "rgba(110,30,140,0.7)"; ctx.beginPath(); ctx.ellipse(p.x + off, lineY + 2, Math.min(16, 4 + p.deadT * 10), 3, 0, 0, 7); ctx.fill() }
+  // the ship's giant orb (charging while a fighter is close to losing), then dropping on the knockout
+  if (NM.orb > 0 && NM.finale && NM.finale.stage !== "boom") {
+    const sx = NM.ship?.x ?? W * 0.7, oy = NM.finale.stage === "drop" ? NM.finale.y : (NM.ship?.y ?? dockTop - 255) + 60, r = 10 + NM.orb * 60 + Math.sin(t * 20) * 2
+    const og = ctx.createRadialGradient(sx, oy, 0, sx, oy, r * 1.8); og.addColorStop(0, "rgba(255,240,200,1)"); og.addColorStop(0.45, "rgba(255,120,40,0.95)"); og.addColorStop(0.7, "rgba(200,40,20,0.6)"); og.addColorStop(1, "rgba(200,40,20,0)")
+    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(sx, oy, r * 1.8, 0, 7); ctx.fill()
+    for (let k = 0; k < 8; k++) { const a = t * 3 + k * 0.785, rr = r * (2.2 + Math.sin(t * 7 + k)); ctx.strokeStyle = "rgba(255,180,90,0.5)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx + Math.cos(a) * rr, oy + Math.sin(a) * rr); ctx.lineTo(sx + Math.cos(a) * r, oy + Math.sin(a) * r); ctx.stroke() }
+  }
+  if (NM.finale?.stage === "boom") {                                                 // the mushroom of fire over the horizon
+    const u = Math.min(1, NM.finale.t / 2.5), x = W * 0.5 + shift(0.3, W), base = dockTop - 20
+    const fb = ctx.createRadialGradient(x, base - 160 * u, 0, x, base - 160 * u, 80 + 320 * u); fb.addColorStop(0, `rgba(255,255,230,${1 - u * 0.4})`); fb.addColorStop(0.4, `rgba(255,150,40,${0.9 - u * 0.3})`); fb.addColorStop(1, "rgba(120,30,10,0)")
+    ctx.fillStyle = fb; ctx.beginPath(); ctx.arc(x, base - 160 * u, 80 + 320 * u, 0, 7); ctx.fill()
+    ctx.strokeStyle = `rgba(255,255,255,${0.8 * (1 - u)})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(x, base, 200 + 1800 * u, 30 + 120 * u, 0, 0, 7); ctx.stroke()
+  }
+  // the knockout blast lights the whole sky
+  if (NM.bigBoom > 0) { NM.bigBoom -= dt; ctx.fillStyle = `rgba(255,245,220,${Math.min(0.85, NM.bigBoom * 0.35)})`; ctx.fillRect(padL, 0, padR - padL, coverBottom) }
+}
+function nmKill(x, r) {
+  for (const p of NM.people) if (!p.dead && Math.abs(p.x - x) < r) {
+    p.dead = true; p.deadT = 0; p.warrior = false; NM.kills++
+    for (let i = 0; i < 10; i++) NM.debris.push({ x: p.x, y: NM.lineY || 0, vx: (nmRnd() - 0.5) * 160, vy: -nmRnd() * 220, life: 0.8, purple: true })
   }
 }

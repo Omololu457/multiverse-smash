@@ -1,0 +1,25 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Eagle's Stage background sheet (ripped by TonyWanKenobian); repainted as Planet Namek",
+ "pieces": {
+  "land": {
+   "file": "land.png",
+   "w": 768,
+   "h": 172,
+   "village": [
+    510,
+    70
+   ]
+  },
+  "ground": {
+   "file": "ground.png",
+   "w": 768,
+   "h": 42
+  }
+ },
+ "colors": {
+  "skyTop": "#7fe0a8",
+  "under": "#4a8a5a",
+  "seaBottom": "#4a8a5a"
+ },
+ "preview": "preview.png"
+}

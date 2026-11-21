@@ -807,6 +807,7 @@ export function artistLineForCharacter(key) {
 // via the Sprite Art section so no attribution from the source sheets is ever lost.
 export const EXTRA_SPRITE_CREDITS = [
   { work: "The Batcave stage — Street Fighter II CE (Arcade), Guile's Stage sheet", artists: ["V. Signal (rip / drawing)"], source: "Supplied sheet; on-sheet note \"ripped/drawn by your boy, V. Signal — credit is not needed but don't claim as your own\" (excluded from the stage). Repainted as the Batcave by tools/stage_layers/slice_guile_batcave.py" },
+  { work: "Citadel of Ricks stage — Street Fighter II (Arcade), Zangief's Stage sheet", artists: ["V. Signal (rip / drawing)"], source: "Supplied sheet; on-sheet note \"ripped/drawn by your boy, V. Signal — credit is not needed but don't claim as your own\" (excluded from the stage). Repainted as a sci-fi hall by tools/stage_layers/slice_zangief_citadel.py" },
   { work: "Harbor Dock stage — Street Fighter II / Super Street Fighter II (Arcade), Ken's Stage sheet", artists: ["Maxim (rip)", "shezzor (additional rip)"], source: "Supplied sheet; on-sheet credit \"ripped by Maxim / additional ripped by shezzor\" (excluded from the stage). Cut into layers by tools/stage_layers/slice_ken_harbor.py" },
   { work: "Superman (Justice League Task Force / SNES)", artists: ["HijodeKrypton (rip)"], source: "SNES sprite rip" },
   { work: "Ben 10 — Heatblast, Four Arms, Diamondhead, Wildvine, Cannonbolt, Ripjaws (alien forms)", artists: ["dragonrod342"], source: "fan sprite sheets" },

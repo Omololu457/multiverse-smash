@@ -64,6 +64,28 @@ SETS.guile_batcave = {
   animRate: {},
 }
 
+// CITADEL OF RICKS — Zangief's factory (SFII sheet) repainted by tools/stage_layers/slice_zangief_citadel.py: a hall of the
+// Citadel open to space (the Citadel itself, a space cruiser, shuttles), portal-fluid reactor, portals, sci-fi crew.
+SETS.zangief_citadel = {
+  dir: "./stages/zangief_citadel/",
+  S: 2,
+  standRow: 40,
+  deckFrontRow: 59,
+  floor: { piece: "floor", farFactor: 0.7, rimFactor: 1.12, center: true, mirror: true },
+  back: [
+    { procedural: "space", p: 0.1 },
+    { piece: "wall", p: 0.5, tile: "mirror", bottomRow: 1, scale: 0.7, fx: "citadelWall" },
+  ],
+  props: [
+    { piece: "scaffold", x: 0.12, bottomRow: 2 },
+    { piece: "fence",    x: 0.56, bottomRow: 2 },
+    { piece: "pillar",   x: 0.90, bottomRow: 2 },
+  ],
+  front: [],
+  fx: "citadel",
+  animRate: { scaffold: [18] },
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -137,7 +159,7 @@ function drawAnims(ctx, c, def, parent, x0, y0, S) {
     k++
     const rate = (def.animRate[parent] || [])[k] || 16
     const fi = frameOf(a.frames.length, rate, k)
-    if (fi === a.anchor) continue                      // the anchor frame is already painted on the parent art
+    if (fi === a.anchor) continue                      // the anchor frame is already painted on the parent art (-1: none)
     const f = a.frames[fi], im = c.img[f.file]
     if (ready(im)) ctx.drawImage(im, x0 + f.x * S, y0 + f.y * S, f.w * S, f.h * S)
   }
@@ -179,13 +201,15 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const t = (typeof performance !== "undefined" ? performance.now() : 0) / 1000
   const drawn = {}
   for (const ly of def.back) {
-    const pc = P[ly.piece], im = c.img[pc.file], w = pc.w * S, h = pc.h * S
+    if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    const pc = P[ly.piece], im = c.img[pc.file], ls = S * (ly.scale || 1), w = pc.w * ls, h = pc.h * ls
     if (ly.tile === "mirror" || ly.x != null) {               // repeating cave walls / a single placed object
       const x0 = (ly.x != null ? ly.x * W : W / 2) - w / 2 + shift(ly.p, W)
       const y = dockTop + ly.bottomRow * S - h
-      drawn[ly.piece] = { x: x0, y, S }
+      drawn[ly.piece] = { x: x0, y, S: ls }
       if (ly.tile !== "mirror") { ctx.drawImage(im, x0, y, w, h); continue }
-      const after = ly.fx === "batcomputer" ? () => batcomputer(ctx, c, drawn[ly.piece], S) : null
+      const after = ly.fx === "batcomputer" ? () => batcomputer(ctx, c, drawn[ly.piece], S)
+        : ly.fx === "citadelWall" ? () => citadelWall(ctx, def, c, drawn[ly.piece], { W, w, h, padL, padR, dockTop, p: ly.p }) : null
       for (let k = Math.floor((padL - x0) / w); x0 + k * w < padR; k++) {
         const xx = x0 + k * w, odd = Math.abs(k) % 2 === 1
         if (!odd) { ctx.drawImage(im, Math.floor(xx), y, w + 1, h); continue }
@@ -224,6 +248,14 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const org = def.floor.center ? W / 2 - tw / 2 : 0
   for (let r = 0; r < fl.h; r++) {
     const off = shift(rowFactor(def, r), W) + org
+    if (def.floor.mirror) {                                // tiles alternately mirrored (art that doesn't tile seamlessly)
+      const k0 = Math.floor((padL - off) / tw)
+      for (let k = k0, x = off + k0 * tw; x < padR; k++, x += tw) {
+        if (Math.abs(k) % 2 === 0) { ctx.drawImage(fim, 0, r, fl.w, 1, Math.floor(x), dockTop + r * S, tw + 1, S); continue }
+        ctx.save(); ctx.translate(Math.floor(x) + tw, dockTop + r * S); ctx.scale(-1, 1); ctx.drawImage(fim, 0, r, fl.w, 1, 0, 0, tw + 1, S); ctx.restore()
+      }
+      continue
+    }
     let x = ((off - padL) % tw + tw) % tw - tw + padL      // first tile start at or left of the view's left edge
     for (; x < padR; x += tw) ctx.drawImage(fim, 0, r, fl.w, 1, Math.floor(x), dockTop + r * S, tw + 1, S)
   }
@@ -249,6 +281,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   // 4. props standing on the deck, behind the fighters
   drawProps(ctx, c, def, def.props, W, dockTop)
   if (def.fx === "batcave") batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop })
+  if (def.fx === "citadel") citadelFloor(ctx, def, c, { W, dockTop })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -263,6 +296,7 @@ function drawProps(ctx, c, def, list, W, dockTop) {
     const w = pc.w * S, h = pc.h * S
     const x = pr.x * W - w / 2 + shift(rowFactor(def, pr.bottomRow), W)
     drawSprite(ctx, im, Math.round(x), dockTop + pr.bottomRow * S - h, w, h, pr.flip)
+    if (!pr.flip) drawAnims(ctx, c, def, pr.piece, Math.round(x), dockTop + pr.bottomRow * S - h, S)
   }
 }
 
@@ -508,4 +542,139 @@ function batcaveFx(ctx, def, c, drawn, { W, dockTop, padL, padR, coverTop }) {
       ctx.beginPath(); ctx.ellipse(x + 1, y1, 4 + 14 * k, 2 + 3 * k, 0, 0, Math.PI * 2); ctx.stroke()
     }
   }
+}
+
+// ───────────────────────────── CITADEL OF RICKS (render-only, wall clock) ─────────────────────────────
+// a portal, the show's way: bright lime rim + glow, pale yellow-green core, darker green arms swirling inward
+function drawPortal(ctx, x, y, rx, ry, t, open = 1) {
+  if (open <= 0.01) return
+  rx *= open; ry *= open
+  ctx.save(); ctx.translate(x, y)
+  const glow = ctx.createRadialGradient(0, 0, Math.min(rx, ry) * 0.6, 0, 0, Math.max(rx, ry) * 1.7)
+  glow.addColorStop(0, "rgba(150,230,80,0.35)"); glow.addColorStop(1, "rgba(150,230,80,0)")
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.ellipse(0, 0, rx * 1.7, ry * 1.7, 0, 0, Math.PI * 2); ctx.fill()
+  ctx.scale(1, ry / rx)
+  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, rx)
+  core.addColorStop(0, "#f4ffb8"); core.addColorStop(0.45, "#b8ee5a"); core.addColorStop(0.85, "#62c22e"); core.addColorStop(1, "#2f8f1c")
+  ctx.fillStyle = core; ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill()
+  ctx.lineCap = "round"
+  for (let arm = 0; arm < 5; arm++) {                     // swirl arms
+    ctx.strokeStyle = arm % 2 ? "rgba(40,120,20,0.55)" : "rgba(230,255,150,0.5)"; ctx.lineWidth = Math.max(1.5, rx * 0.07)
+    ctx.beginPath()
+    for (let i = 0; i <= 24; i++) {
+      const u = i / 24, ang = t * 2.4 + arm * (Math.PI * 2 / 5) + u * 4.2, rr = rx * (0.95 - u * 0.85)
+      const px = Math.cos(ang) * rr, py = Math.sin(ang) * rr
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)
+    }
+    ctx.stroke()
+  }
+  ctx.strokeStyle = "#c8ff6a"; ctx.lineWidth = Math.max(2, rx * 0.09); ctx.beginPath(); ctx.arc(0, 0, rx * 0.97, 0, Math.PI * 2); ctx.stroke()
+  ctx.restore()
+}
+
+// a space cruiser: grey saucer-car hull, glass bubble with a little alien pilot, thruster
+function drawCruiser(ctx, x, y, sc, dir, t) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc * dir, sc)
+  const fl = 0.6 + 0.4 * Math.sin(t * 30)
+  ctx.fillStyle = `rgba(120,240,255,${0.55 * fl})`; ctx.beginPath(); ctx.ellipse(-46, 4, 14 + 6 * fl, 5, 0, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = "#5d646e"; ctx.beginPath(); ctx.ellipse(0, 9, 40, 9, 0, 0, Math.PI * 2); ctx.fill()           // underside
+  ctx.fillStyle = "#c9ced6"; ctx.beginPath(); ctx.moveTo(-42, 4); ctx.quadraticCurveTo(-36, -8, -6, -8); ctx.lineTo(30, -6)
+  ctx.quadraticCurveTo(46, -2, 44, 6); ctx.lineTo(-42, 8); ctx.closePath(); ctx.fill()                         // hull
+  ctx.fillStyle = "#e8ebef"; ctx.fillRect(-30, -5, 56, 3)
+  ctx.fillStyle = "#b0373a"; ctx.fillRect(-40, -1, 8, 4)                                                       // tail light
+  ctx.fillStyle = "#d8dce2"; ctx.beginPath(); ctx.moveTo(-36, -4); ctx.lineTo(-44, -14); ctx.lineTo(-30, -6); ctx.fill()   // fin
+  ctx.fillStyle = "#7fd36a"; ctx.beginPath(); ctx.arc(2, -13, 4.6, 0, Math.PI * 2); ctx.fill()                 // the pilot: a small green alien
+  ctx.fillStyle = "#111"; ctx.fillRect(0, -14, 1.6, 2); ctx.fillRect(3.4, -14, 1.6, 2)
+  ctx.strokeStyle = "#7fd36a"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(2, -17); ctx.lineTo(0, -22); ctx.stroke()
+  ctx.fillStyle = "#e9ff7a"; ctx.beginPath(); ctx.arc(0, -22, 1.4, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = "rgba(170,230,255,0.35)"; ctx.strokeStyle = "rgba(220,245,255,0.8)"; ctx.lineWidth = 1
+  ctx.beginPath(); ctx.ellipse(3, -9, 17, 13, 0, Math.PI, 0); ctx.fill(); ctx.stroke()                         // bubble
+  ctx.restore()
+}
+
+// the Citadel of Ricks: a disc with a city of towers rising above and hanging below
+function drawCitadel(ctx, x, y, sc, t) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc)
+  const g = ctx.createRadialGradient(0, 0, 10, 0, 0, 200); g.addColorStop(0, "rgba(120,170,255,0.18)"); g.addColorStop(1, "rgba(120,170,255,0)")
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 200, 0, Math.PI * 2); ctx.fill()
+  for (const dirY of [-1, 1]) for (let i = -9; i <= 9; i++) {
+    const hh = (dirY < 0 ? 120 : 86) * (1 - Math.abs(i) / 11) * (0.6 + 0.4 * _h(i * 7 + (dirY + 3))), w = 8 + 6 * _h(i + 40)
+    const bx = i * 11 - w / 2
+    ctx.fillStyle = dirY < 0 ? "#7d8ea6" : "#5f6f87"; ctx.fillRect(bx, dirY < 0 ? -hh : 0, w, hh)
+    ctx.fillStyle = "#c4d2e4"; ctx.fillRect(bx, dirY < 0 ? -hh : 0, 2, hh)
+    for (let k = 6; k < hh - 4; k += 9) if (_h(i * 31 + k + dirY) > 0.45) {
+      ctx.fillStyle = `rgba(255,236,160,${0.5 + 0.5 * Math.abs(Math.sin(t * 0.7 + i + k))})`; ctx.fillRect(bx + 3, dirY < 0 ? -k : k, 2, 2)
+    }
+  }
+  ctx.fillStyle = "#9fb0c6"; ctx.beginPath(); ctx.ellipse(0, 0, 118, 20, 0, 0, Math.PI * 2); ctx.fill()           // the disc
+  ctx.fillStyle = "#c9d6e6"; ctx.beginPath(); ctx.ellipse(0, -4, 112, 11, 0, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = "rgba(140,255,120,0.9)"; for (let i = -10; i <= 10; i++) if ((i + Math.floor(t * 3)) % 4 === 0) ctx.fillRect(i * 10, 7, 3, 2)
+  ctx.restore()
+}
+
+function drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p }) {
+  const t = now(), sh = shift(p, W), top = coverTop, bot = dockTop
+  const g = ctx.createLinearGradient(0, top, 0, bot); g.addColorStop(0, "#03020a"); g.addColorStop(1, "#140a2e")
+  ctx.fillStyle = g; ctx.fillRect(padL, top, padR - padL, bot - top + 2)
+  for (const [nx, ny, r, c] of [[0.25, 0.35, 380, "90,40,160"], [0.7, 0.5, 460, "40,140,90"], [0.5, 0.15, 300, "40,70,170"]]) {
+    const cx = W * nx + sh, cy = top + (bot - top) * ny, ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+    ng.addColorStop(0, `rgba(${c},0.32)`); ng.addColorStop(1, `rgba(${c},0)`); ctx.fillStyle = ng; ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r)
+  }
+  for (let i = 0; i < 220; i++) {
+    const x = (_h(i) * (W + 1600) - 800) + sh, y = top + _h(i + 999) * (bot - top)
+    if (x < padL || x > padR) continue
+    const a = 0.4 + 0.6 * Math.abs(Math.sin(t * (0.6 + _h(i + 5)) + i)), sz = _h(i + 77) > 0.92 ? 2 : 1
+    ctx.fillStyle = `rgba(230,236,255,${a})`; ctx.fillRect(x, y, sz, sz)
+  }
+  drawCitadel(ctx, W * 0.5 + sh * 1.3, dockTop - 330, 0.8, t)
+  for (let i = 0; i < 5; i++) {                                        // Citadel shuttles drifting
+    const dir = i % 2 ? 1 : -1, span = W + 1200, sp = 18 + 14 * _h(i + 3)
+    const x = ((_h(i + 11) * span + dir * t * sp) % span + span) % span - 600 + sh * 1.6, y = dockTop - 330 - 260 * _h(i + 21)
+    ctx.fillStyle = "#b8c4d4"; ctx.beginPath(); ctx.ellipse(x, y, 9, 3, 0, 0, Math.PI * 2); ctx.fill()
+    ctx.fillStyle = (Math.floor(t * 2 + i) % 2) ? "#9dff6a" : "#ff6a6a"; ctx.fillRect(x - 1, y + 2, 2, 2)
+  }
+  const per = 11, ph = (t % per) / per, dir = Math.floor(t / per) % 2 ? -1 : 1     // the cruiser crossing
+  const cxr = dir > 0 ? padL - 120 + (padR - padL + 240) * ph : padR + 120 - (padR - padL + 240) * ph
+  drawCruiser(ctx, cxr, dockTop - 300 + Math.sin(t * 2.3) * 12 - 120 * Math.sin(ph * Math.PI), 1.4, dir, t)
+}
+
+function citadelWall(ctx, def, c, d, { W, w, h, padL, padR, dockTop, p }) {
+  if (!d) return
+  const t = now(), L = c.layout, S = d.S
+  const [rx, ry, rw, rh] = L.pieces.wall.reactor
+  ctx.save(); ctx.globalCompositeOperation = "lighter"
+  const pulse = 0.18 + 0.14 * Math.sin(t * 3.1)
+  for (let k = Math.floor((padL - d.x) / w); d.x + k * w < padR; k++) {      // the reactor glow on every copy of the wall
+    const odd = Math.abs(k) % 2 === 1, x0 = d.x + k * w
+    const gx = odd ? x0 + w - (rx + rw) * S : x0 + rx * S
+    const g = ctx.createLinearGradient(0, d.y + ry * S, 0, d.y + (ry + rh) * S)
+    g.addColorStop(0, "rgba(160,255,80,0)"); g.addColorStop(0.5, `rgba(160,255,80,${pulse})`); g.addColorStop(1, "rgba(160,255,80,0)")
+    ctx.fillStyle = g; ctx.fillRect(gx, d.y + ry * S, rw * S, rh * S)
+  }
+  ctx.restore()
+  const [qx0, qy0, qx1, qy1] = L.pieces.wall.sign                   // the hall sign, crisp at any scale
+  ctx.save(); ctx.fillStyle = "#123c28"; ctx.font = `800 ${Math.round((qy1 - qy0) * S * 0.7)}px system-ui, sans-serif`
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  for (let k = Math.floor((padL - d.x) / w); d.x + k * w < padR; k++) {
+    const odd = Math.abs(k) % 2 === 1, x0 = d.x + k * w, cx = (qx0 + qx1) / 2 * S
+    ctx.fillText("CITADEL OF RICKS", odd ? x0 + w - cx : x0 + cx, d.y + (qy0 + qy1) / 2 * S + 1, (qx1 - qx0) * S * 0.92)
+  }
+  ctx.restore()
+  // portals opening and closing on the hall wall (world positions, the wall's parallax)
+  const sh = shift(p, W)
+  const SPOTS = [[0.16, 150], [0.38, 205], [0.63, 165], [0.86, 215], [0.5, 120]]
+  SPOTS.forEach(([fx, hgt], i) => {
+    const per = 7 + i * 1.3, ph = ((t + i * 2.9) % per) / per
+    const open = ph < 0.12 ? easeOutBack(ph / 0.12) : ph < 0.55 ? 1 : ph < 0.65 ? 1 - (ph - 0.55) / 0.1 : 0
+    drawPortal(ctx, W * fx + sh, dockTop - hgt * 0.75, 28, 36, t + i, open)
+  })
+}
+const easeOutBack = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2) }
+
+// a portal lying flat in the middle of the floor, where the old emblem was
+function citadelFloor(ctx, def, c, { W, dockTop }) {
+  const fl = c.layout.pieces.floor, [ex, ey, ew, eh] = fl.emblem, S = def.S
+  const x = W / 2 - (fl.w * S) / 2 + ex * S + shift(rowFactor(def, ey), W)
+  const y = dockTop + ey * S
+  ctx.save(); ctx.globalAlpha = 0.8; drawPortal(ctx, x, y, ew * S * 0.26, eh * S * 0.26, now() * 0.6, 1); ctx.restore()
 }

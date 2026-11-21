@@ -1,0 +1,89 @@
+{
+ "source": "Street Fighter II \u2014 Zangief's Stage sheet, ripped/drawn by V. Signal; repainted as the Citadel of Ricks",
+ "pieces": {
+  "wall": {
+   "file": "wall.png",
+   "w": 768,
+   "h": 224,
+   "reactor": [
+    440,
+    128,
+    328,
+    96
+   ],
+   "window": [
+    0,
+    0,
+    224,
+    62
+   ],
+   "sign": [
+    268,
+    75,
+    386,
+    91
+   ]
+  },
+  "scaffold": {
+   "file": "scaffold.png",
+   "w": 271,
+   "h": 229
+  },
+  "fence": {
+   "file": "fence.png",
+   "w": 365,
+   "h": 108
+  },
+  "pillar": {
+   "file": "pillar.png",
+   "w": 35,
+   "h": 229
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 842,
+   "h": 60,
+   "emblem": [
+    490,
+    37,
+    218,
+    44
+   ]
+  }
+ },
+ "anims": [
+  {
+   "parent": "scaffold",
+   "anchor": -1,
+   "frames": [
+    {
+     "file": "crowd_0.png",
+     "x": 112,
+     "y": 49,
+     "w": 128,
+     "h": 166
+    },
+    {
+     "file": "crowd_1.png",
+     "x": 112,
+     "y": 49,
+     "w": 128,
+     "h": 166
+    },
+    {
+     "file": "crowd_2.png",
+     "x": 112,
+     "y": 49,
+     "w": 128,
+     "h": 166
+    }
+   ]
+  }
+ ],
+ "colors": {
+  "skyTop": "#04030b",
+  "under": "#05070c",
+  "seaBottom": "#05070c"
+ },
+ "preview": "preview.png"
+}

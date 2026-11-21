@@ -3234,21 +3234,6 @@ function drawStageLandmarks(ctx, stage, worldWidth, groundY, h, accent) {
       _ambientClouds(ctx, worldWidth, t, { bandTop: 42, bandH: 70, count: 3, speed: 7, scale: 1.15, color: "255,248,240", alpha: 0.11, seed: 11 })
       break
     }
-    case "gotham": {
-      // DC — Gotham rooftops at night: spire-topped gothic towers + a bat-signal beam in the smog.
-      const cols = 8
-      for (let i = 0; i < cols; i++) {
-        const bw = worldWidth / cols, bx = i * bw, bh = 220 + ((i * 71) % 180)
-        ctx.fillStyle = i % 2 ? "#0b141a" : "#101d24"; ctx.fillRect(bx + 6, groundY - bh, bw - 12, bh)
-        ctx.beginPath(); ctx.moveTo(bx + 6, groundY - bh); ctx.lineTo(bx + bw / 2, groundY - bh - 46); ctx.lineTo(bx + bw - 6, groundY - bh); ctx.closePath(); ctx.fill()
-        _litWindows(ctx, bx + 6, groundY - bh, bw - 12, bh, 4, Math.max(1, Math.floor(bh / 30)), "rgba(120,150,120,0.35)", i)
-      }
-      const sx = worldWidth * 0.3
-      ctx.globalAlpha = 0.16 + Math.sin(t * 2) * 0.05; ctx.fillStyle = accent
-      ctx.beginPath(); ctx.moveTo(sx, groundY - 120); ctx.lineTo(worldWidth * 0.5, 40); ctx.lineTo(worldWidth * 0.66, 40); ctx.lineTo(sx + 80, groundY - 120); ctx.closePath(); ctx.fill()
-      ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(worldWidth * 0.58, 72, 34, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1
-      break
-    }
     case "woodsboro": {
       // Horror — Woodsboro at night: a big pale moon, suburban gable houses (one blood-lit window), picket fence.
       ctx.fillStyle = "rgba(226,232,240,0.85)"; ctx.beginPath(); ctx.arc(worldWidth * 0.22, 120, 58, 0, Math.PI * 2); ctx.fill()

@@ -41,7 +41,7 @@ const check = (label, ok, detail) => { console.log(`  ${ok ? "✅" : "❌"} ${la
 // [stage name, representative char, universe]
 const NEW = [
   ["Soul Society",       "ichigo",       "bleach"],
-  ["Gotham Rooftops",    "batman",       "dc"],
+  ["The Batcave",        "batman",       "dc"],
   ["Woodsboro",          "ghostface",    "horror"],
   ["Heaven's Arena",     "killua",       "hunter_x_hunter"],
   ["Viltrumite Warzone", "omniman",      "invincible"],

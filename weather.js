@@ -207,7 +207,6 @@ export const STAGE_WEATHER = Object.freeze({
   "Citadel of Ricks":       INDOOR_ONLY,
   "Null Void":              VOID_ONLY,
   "Soul Society":           OUTDOOR_COLD,
-  "Gotham Rooftops":        OUTDOOR_COLD,
   "Woodsboro":              [WEATHER.RAIN, WEATHER.THUNDERSTORM, WEATHER.FOG, WEATHER.WIND, WEATHER.RAINBOW],
   "Heaven's Arena":         INDOOR_ONLY,
   "Viltrumite Warzone":     OUTDOOR_WARM,   // wasteland → heat/wind/dust, no snow

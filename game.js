@@ -2380,7 +2380,6 @@ const STAGE_DEFS = [
   // universe themes exist yet). Each is a real, verified file and a one-line swap once real themes are
   // sourced; until then a distinct track per stage beats the procedural fallback.
   { name: "Soul Society",           series: "bleach",       music: "jhene__aiko_-_stay_ready__instrumental_.mp3", landmark: "seireitei",       sky: "#f2d5c4", mid: "#dbe3ec", floor: "#7d8794", accent: "#c8a24a" },
-  { name: "Gotham Rooftops",        series: "dc",           music: "Future___Young_Thug_-_No_Cap__Official_Audio_.mp3", landmark: "gotham",          sky: "#0e1a1e", mid: "#16232a", floor: "#0a1114", accent: "#fcd34d" },
   { name: "Woodsboro",              series: "horror",       music: "Noble_f3mii_Instrumental.mp3", landmark: "woodsboro",       sky: "#20293e", mid: "#2b3446", floor: "#181c26", accent: "#b91c1c" },
   { name: "Heaven's Arena",         series: "hxh",          music: "Rochelle_Jordan_-_Lowkey___sped_up__.mp3", landmark: "heavens_arena",   sky: "#c4b5fd", mid: "#7c6bb8", floor: "#3b2f63", accent: "#e879f9" },
   { name: "Viltrumite Warzone",     series: "invincible",   music: "needybounce.mp3", landmark: "viltrum_warzone", sky: "#3d2020", mid: "#2a1a1e", floor: "#160e10", accent: "#60a5fa" },
@@ -2398,7 +2397,7 @@ const STAGE_DEFS = [
     layers: "honda_training", backgroundImage: "stages/honda_training/preview.png" },
   // THE BATCAVE (stageLayers.js): Guile's air base (SFII CE sheet → tools/stage_layers/slice_guile_batcave.py) repainted —
   // F-16 → Batwing, tarmac → steel deck with a Bat-symbol, horizon → cave depths + Batcomputer, airmen → Alfred-style butlers.
-  { name: "The Batcave",            series: "dc",          landmark: "guile_batcave", sky: "#05070b", mid: "#0d1220", floor: "#1a1e27", accent: "#facc15", worldWidth: 2400,
+  { name: "The Batcave",            series: "dc",          music: "PISSY PAMPER - Playboi Cardi (with Young Nudy).mp3", landmark: "guile_batcave", sky: "#05070b", mid: "#0d1220", floor: "#1a1e27", accent: "#facc15", worldWidth: 2400,
     layers: "guile_batcave", backgroundImage: "stages/guile_batcave/preview.png" },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
   // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the

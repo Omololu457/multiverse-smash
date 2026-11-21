@@ -36,7 +36,7 @@ const check = (label, ok, detail) => { console.log(`  ${ok ? "✅" : "❌"} ${la
 
 const EXPECT = [
   ["Soul Society",       "jhene__aiko_-_stay_ready__instrumental_.mp3"],
-  ["Gotham Rooftops",    "Future___Young_Thug_-_No_Cap__Official_Audio_.mp3"],
+  ["The Batcave",        "PISSY PAMPER - Playboi Cardi (with Young Nudy).mp3"],
   ["Woodsboro",          "Noble_f3mii_Instrumental.mp3"],
   ["Heaven's Arena",     "Rochelle_Jordan_-_Lowkey___sped_up__.mp3"],
   ["Viltrumite Warzone", "needybounce.mp3"],

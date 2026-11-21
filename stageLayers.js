@@ -127,6 +127,22 @@ SETS.guile_valley = {
 // the far backdrop, the floating island with the village (fighters on its sand) and the pack's foreground, as layers.
 SETS.ssf2_leaf = { dir: "./stages/ssf2_leaf/", mode: "ssf2", S: 1.35, bgScale: 1.3, bgVillageRow: 720 }
 
+// INFINITY CASTLE — the "Infinity Castle (over Pokémon Stadium 3)" SSF2 mod's bitmaps (tools/stage_layers/import_infinity_castle.py):
+// the castle backdrop with floating rooms drifting through it, the wooden platform's planks as the floor, its front
+// wall below, and a row of its lanterns along the back edge, flickering.
+SETS.infinity_castle = {
+  dir: "./stages/infinity_castle/",
+  S: 2,
+  standRow: 44,
+  deckFrontRow: 66,
+  floor: { piece: "deck", farFactor: 0.7, rimFactor: 1.12, center: true, mirror: true },
+  back: [{ procedural: "castle", p: 0.25 }],
+  props: [0.06, 0.2, 0.34, 0.48, 0.62, 0.76, 0.9].map(x => ({ piece: "lantern", x, bottomRow: 4 })),
+  front: [],
+  fx: "infinity",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -244,6 +260,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "castle") { drawCastleBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "valley") { drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "heavenHall") { drawHeavenHall(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     const pc = P[ly.piece], im = c.img[pc.file], ls = S * (ly.scale || 1), w = pc.w * ls, h = pc.h * ls
@@ -329,6 +346,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "citadel") citadelFloor(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   ctx.restore()
   ctx.imageSmoothingEnabled = wasSmooth
   return true
@@ -1045,4 +1063,59 @@ function drawSsf2Front(ctx, def, c, W, groundY) {
     ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.4, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore()
   }
   ctx.restore()
+}
+
+// ───────────────────────────── INFINITY CASTLE (render-only, wall clock) ─────────────────────────────
+function drawCastleBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p }) {
+  const t = now(), P = c.layout.pieces, im = c.img[P.castle.file], cw = P.castle.w, ch = P.castle.h
+  const range = Math.abs(shift(p, W)) * 2 + 400
+  const sc = Math.max((dockTop + 20 - coverTop) / ch, (padR - padL + range) / cw)
+  const w = cw * sc, h = ch * sc, drift = Math.sin(t * 0.07) * 18                  // the castle slowly shifting
+  const x = W / 2 - w / 2 + shift(p, W), y = dockTop + 20 - h + drift
+  if (ready(im)) ctx.drawImage(im, Math.floor(x), Math.floor(y), Math.ceil(w), Math.ceil(h + 24))
+  // warm light breathing in the depths
+  const gx = x + w * 0.52, gy = y + h * 0.42, gr = h * 0.45, a = 0.12 + 0.08 * Math.sin(t * 0.9)
+  const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr); g.addColorStop(0, `rgba(255,170,70,${a})`); g.addColorStop(1, "rgba(255,170,70,0)")
+  ctx.fillStyle = g; ctx.fillRect(gx - gr, gy - gr, gr * 2, gr * 2)
+  // floating rooms: small platforms rising and sinking at different depths (nearer = larger, faster parallax)
+  const fp = c.img[P.float.file]
+  if (ready(fp)) for (let i = 0; i < 9; i++) {
+    const depth = 0.35 + 0.6 * _h(i + 3), fs = 0.6 + 1.4 * depth, per = 26 + 18 * _h(i + 8)
+    const ph = ((t / per + _h(i)) % 1), fx = W * (0.05 + 0.9 * _h(i + 20)) + shift(p + 0.4 * depth, W)
+    const fy = dockTop + 60 - ph * (dockTop + 60 - coverTop + 120) + Math.sin(t * 0.6 + i) * 6
+    if (fx < padL - 300 || fx > padR + 300) continue
+    ctx.globalAlpha = 0.45 + 0.5 * depth
+    ctx.drawImage(fp, Math.floor(fx), Math.floor(fy), Math.ceil(P.float.w * fs), Math.ceil(P.float.h * fs))
+  }
+  ctx.globalAlpha = 1
+  const vg = ctx.createLinearGradient(0, coverTop, 0, dockTop + 20)                    // dark at the top, deep shadow
+  vg.addColorStop(0, "rgba(0,0,0,0.55)"); vg.addColorStop(0.6, "rgba(0,0,0,0.1)"); vg.addColorStop(1, "rgba(10,4,2,0.35)")
+  ctx.fillStyle = vg; ctx.fillRect(padL, coverTop, padR - padL, dockTop + 20 - coverTop)
+}
+
+function infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const P = c.layout.pieces, S = def.S, t = now()
+  // lantern flames flicker: a warm glow over each lantern head
+  const lw = P.lantern.w * S, lh = P.lantern.h * S
+  ctx.save(); ctx.globalCompositeOperation = "lighter"
+  for (const pr of def.props) {
+    const x = pr.x * W + shift(rowFactor(def, pr.bottomRow), W), y = dockTop + pr.bottomRow * S - lh + 8
+    const f = 0.55 + 0.25 * Math.sin(t * 9 + pr.x * 40) + 0.2 * Math.sin(t * 23 + pr.x * 90)
+    const g = ctx.createRadialGradient(x, y, 0, x, y, 46); g.addColorStop(0, `rgba(255,200,90,${0.55 * f})`); g.addColorStop(1, "rgba(255,140,40,0)")
+    ctx.fillStyle = g; ctx.fillRect(x - 46, y - 46, 92, 92)
+  }
+  ctx.restore()
+  // the platform's front wall below the planks (mirror-tiled, scrolling with the floor's front edge)
+  const top = dockTop + P.deck.h * S
+  if (coverBottom <= top) return
+  const fc = c.img[P.face.file], fw = P.face.w * S, fh = P.face.h * S, off = W / 2 - fw / 2 + shift(def.floor.rimFactor, W)
+  if (ready(fc)) for (let k = Math.floor((padL - off) / fw); off + k * fw < padR; k++) {
+    const x = off + k * fw
+    if (Math.abs(k) % 2 === 0) ctx.drawImage(fc, Math.floor(x), top, Math.ceil(fw) + 1, fh)
+    else { ctx.save(); ctx.translate(Math.floor(x) + fw, top); ctx.scale(-1, 1); ctx.drawImage(fc, 0, 0, Math.ceil(fw) + 1, fh); ctx.restore() }
+  }
+  if (coverBottom > top + fh) {
+    const g = ctx.createLinearGradient(0, top + fh, 0, coverBottom); g.addColorStop(0, "#1a0e06"); g.addColorStop(1, "#050302")
+    ctx.fillStyle = g; ctx.fillRect(padL, top + fh, padR - padL, coverBottom - top - fh)
+  }
 }

@@ -1,0 +1,36 @@
+{
+ "source": "Infinity Castle stage (over Pok\u00e9mon Stadium 3) SSF2 mod \u2014 embedded bitmaps",
+ "pieces": {
+  "castle": {
+   "file": "castle.png",
+   "w": 1400,
+   "h": 700
+  },
+  "deck": {
+   "file": "deck.png",
+   "w": 109,
+   "h": 67
+  },
+  "face": {
+   "file": "face.png",
+   "w": 435,
+   "h": 194
+  },
+  "lantern": {
+   "file": "lantern.png",
+   "w": 17,
+   "h": 47
+  },
+  "float": {
+   "file": "float.png",
+   "w": 133,
+   "h": 32
+  }
+ },
+ "colors": {
+  "skyTop": "#0a0604",
+  "under": "#120a06",
+  "seaBottom": "#050302"
+ },
+ "preview": "preview.png"
+}

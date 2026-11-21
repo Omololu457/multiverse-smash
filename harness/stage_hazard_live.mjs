@@ -59,7 +59,10 @@ try {
   await page.evaluate(() => window.__harness.start());
   await page.evaluate(() => window.__harness.skipToBattle());
 
-  await verifyStage("Shibuya Incident", "cursed_rail", "SHIBUYA_hazard_rail.png");
+  // The Shibuya cursed_rail pylon was the only stage hazard; the owner had it removed (2026-11-21), so this now checks
+  // it stays gone. Re-add a hazard to a stage and point verifyStage at it to exercise the hazard pipeline again.
+  { const line = fs.readFileSync(path.join(ROOT, "game.js"), "utf8").split("\n").filter(l => l.includes('name: "Shibuya Incident"')).join("")
+    check("Shibuya Incident has no hazard (removed on request)", !/hazards:/.test(line)) }
 
   check("no JS page errors across both stages", errs.length === 0, errs.slice(0,2).join(" | "));
 } catch (e) { console.error("HAZARD LIVE ERROR:", e); FAIL++; }

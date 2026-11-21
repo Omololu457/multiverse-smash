@@ -38,8 +38,10 @@ try {
   // a real attack in the match reaches a bystander standing in front of the attacker
   const before = (await S()).dead + (await S()).pieces
   await page.evaluate(async () => { const D = (await import("./stageLayers.js")).shibuyaDebug, h = window.__harness, p = h.p1(), q = h.p2(); D.ped(p.x + (p.w || 50) / 2 + Math.sign(q.x - p.x) * 70) })
-  for (let i = 0; i < 4; i++) { await page.keyboard.press("KeyJ"); await sleep(260) }
+  const atk = []
+  for (let i = 0; i < 6; i++) { await page.keyboard.down("KeyJ"); await sleep(70); atk.push(await page.evaluate(() => { const p = window.__harness.p1(); return p.attacking ? "A" : "-" })); await page.keyboard.up("KeyJ"); await sleep(260) }
   await sleep(1200)
+  console.log("  attacking samples", atk.join(""), JSON.stringify(await page.evaluate(() => { const p = window.__harness.p1(), q = window.__harness.p2(); return { p: [p.x | 0, p.w, p.facing], q: q.x | 0 } })))
   const after = (await S()).dead + (await S()).pieces
   check("a real attack in the match kills a bystander", after > before, `${before} → ${after}`)
   // the city takes the hits landed on the fighters

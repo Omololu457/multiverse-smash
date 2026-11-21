@@ -1283,7 +1283,7 @@ function nullVoidUnder(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
 // the state is read from the fighters / attack boxes / projectiles the frame hands over, never written back.
 const SB = { p1: null, peds: [], pieces: [], rest: [], blood: [], pools: [], wall: [], glass: [], craters: [], debris: [], towers: null,
   hp: new WeakMap(), last: 0, spawnT: 0, total: 0, ambientT: 0, seq: 0, yG: 0, W: 2400, cracks: [] }
-const SB_TOWER_P = 0.35, SB_SHOP_P = 0.92, SB_SHOP_SC = 1.05
+const SB_TOWER_P = 0.35, SB_SHOP_P = 0.92, SB_SHOP_SC = 1.5
 let _sbSeed = 0x9e3779b9   // render-only PRNG (the sim never sees it)
 const sbRnd = () => { _sbSeed ^= _sbSeed << 13; _sbSeed ^= _sbSeed >>> 17; _sbSeed ^= _sbSeed << 5; return (_sbSeed >>> 0) / 4294967296 }
 const SLASHERS = /sukuna|zoro|toji|tanjiro|zenitsu|inosuke|rengoku|ichigo|kenpachi|zaraki|yamamoto|killua|maki|miwa|kakashi|sasuke|itachi|madara|minato|hashirama|tobirama|hisoka/
@@ -1520,12 +1520,12 @@ function drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   const t = now(), P = c.layout.pieces
   if (!SB.towers || SB.W !== W) sbReset(SB.p1, W)
   const shopTop = dockTop + 4 - P.shops.h * SB_SHOP_SC
-  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#020205"); g.addColorStop(0.55, "#0a0712"); g.addColorStop(1, "#2a0f1c")
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#0e0c1c"); g.addColorStop(0.55, "#22183a"); g.addColorStop(1, "#5a2a48")
   ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
   // the dome: a black curtain closed over the district, its rim faintly shimmering
   const cx = W / 2 + shift(0.05, W), cy = dockTop + 2600, R = 3150
   ctx.save(); ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, dockTop - coverTop); ctx.clip()
-  ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, dockTop - coverTop); ctx.arc(cx, cy, R, 0, Math.PI * 2, true); ctx.fill()
+  ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, dockTop - coverTop); ctx.arc(cx, cy, R, 0, Math.PI * 2, true); ctx.fill()
   for (let k = 0; k < 3; k++) {
     ctx.strokeStyle = `rgba(${k ? "90,40,110" : "160,60,90"},${0.25 + 0.15 * Math.sin(t * 1.3 + k)})`; ctx.lineWidth = 2 + k * 3
     ctx.beginPath(); ctx.arc(cx, cy, R - k * 6 + Math.sin(t * 0.7 + k) * 3, Math.PI * 1.25, Math.PI * 1.75); ctx.stroke()
@@ -1583,7 +1583,7 @@ function drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
       if (k % 2) { ctx.save(); ctx.translate(x + sw, shopTop); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, Math.ceil(sw) + 1, sh); ctx.restore() }
       else ctx.drawImage(im, x, shopTop, Math.ceil(sw) + 1, sh)
     }
-    const dark = 0.3 + Math.min(0.45, SB.total / 4000)              // night; the street dims further as the power goes
+    const dark = Math.min(0.4, SB.total / 5000)              // night; the street dims further as the power goes
     { ctx.fillStyle = `rgba(0,0,0,${dark})`; ctx.fillRect(padL, shopTop, padR - padL, sh) }
   }
   ctx.strokeStyle = "rgba(220,235,255,0.75)"; ctx.lineWidth = 1.2
@@ -1598,12 +1598,12 @@ function drawShibuyaBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   for (const b of SB.wall) { const x = b.x + sp; if (x < padL || x > padR) continue; ctx.fillStyle = "rgba(120,0,10,0.85)"; ctx.beginPath(); ctx.ellipse(x, b.y, b.s, b.s * 0.8, 0, 0, 7); ctx.fill(); ctx.fillRect(x - 0.7, b.y, 1.4, b.s * 3) }
 }
 function sbTowerBody(ctx, tw, x, top, w, h, t, falling) {
-  const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, "#14141e"); g.addColorStop(0.7, "#1c1b28"); g.addColorStop(1, "#0b0b12")
+  const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, "#2a2a3c"); g.addColorStop(0.7, "#35344a"); g.addColorStop(1, "#1c1c28")
   ctx.fillStyle = g; ctx.fillRect(x, top, w, h)
   const lightsOut = Math.min(0.9, tw.dmg * 0.6 + SB.total / 5000)
   for (let yy = 14; yy < h - 10; yy += 16) for (let xx = 8; xx < w - 10; xx += 13) {
     const k = _h(tw.i * 7919 + Math.floor(yy) * 31 + xx)
-    if (k < 0.45 + lightsOut * 0.5) continue
+    if (k < 0.3 + lightsOut * 0.5) continue
     ctx.fillStyle = k > 0.93 ? "#ffe6a8" : k > 0.8 ? "#d9b878" : "#6a6a88"; ctx.fillRect(x + xx, top + yy, 6, 8)
   }
   if (tw.neon && !falling) {                                          // a vertical neon sign down the side

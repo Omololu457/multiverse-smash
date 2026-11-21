@@ -30,7 +30,7 @@ P = {}
 
 # shop row → night storefronts (interiors warm-lit, signboards neon); the people inside are shopkeepers in the art
 sh = crop(176, 8, 879, 215); h_, s_, v_ = hsv(sh); v = lum(sh)
-ns = night(sh, 0.5, (0.86, 0.82, 1.02))
+ns = night(sh, 0.8, (0.92, 0.9, 1.02))
 board = (s_ > 0.5) & (v_ > 0.4) & ((h_ < 20) | (h_ > 330))         # red signboards → hot pink neon
 ns[board, :3] = np.array([255, 70, 160]) * (0.6 + 0.4 * v[board])[..., None]
 SH, SW = sh.shape[:2]
@@ -38,7 +38,7 @@ P["shops"] = {"file": save("shops", ns), "w": SW, "h": SH}
 
 # street → wet asphalt + zebra crossing (white bars across the middle third)
 fl = crop(8, 224, 1047, 303); v = lum(fl); FH, FW = fl.shape[:2]
-asph = 18 + 38 * v
+asph = 40 + 55 * v
 fl[..., :3] = np.stack([asph * 0.9, asph * 0.92, asph * 1.08], -1)
 yy = np.arange(FH)[:, None] + np.zeros((1, FW)); xx = np.zeros((FH, 1)) + np.arange(FW)[None, :]
 cx = FW / 2; spread = 0.55 + 0.45 * yy / (FH - 1)                    # bars fan out toward the viewer

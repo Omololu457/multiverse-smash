@@ -2410,7 +2410,8 @@ const STAGE_DEFS = [
       layers: "mike_command", backgroundImage: "stages/mike_command/preview.png" },
   { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3" },
   { name: "Analysis Nexus",         series: "original",     music: "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", landmark: "analysis_nexus",  sky: "#051a1f", mid: "#0a2e33", floor: "#04141a", accent: "#2dd4bf" },
-  { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" },
+  { name: "Shadow Garden",          series: "other",       music: "Brent Faiyaz - Wish You Well (Full Version).mp3", landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", worldWidth: 2400,
+      layers: "eagle_shadow", backgroundImage: "stages/eagle_shadow/preview.png" },   // layered (Eagle sheet, moonlit); song picked by me (user: "not Japanese, not one I've picked")
   // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):
   // parallax sea + yacht, bobbing ship with an animated cheering crowd, line-scroll perspective dock, barrels + bollards.
   { name: "Harbor Dock",            series: "other",       music: "stereo love but its slowed to perfection.mp3", landmark: "ken_harbor",   sky: "#b1e0ff", mid: "#173961", floor: "#7a4422", accent: "#fde68a", worldWidth: 2400,

@@ -1,0 +1,38 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Eagle's Stage sheet (ripped by TonyWanKenobian); repainted as a moonlit night for Shadow Garden",
+ "pieces": {
+  "land": {
+   "file": "land.png",
+   "w": 768,
+   "h": 176,
+   "castle": [
+    447,
+    10,
+    572,
+    92
+   ],
+   "lakes": [
+    [
+     292,
+     145,
+     355
+    ],
+    [
+     442,
+     145,
+     605
+    ]
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 346
+  }
+ },
+ "colors": {
+  "skyTop": "#05060f",
+  "under": "#141a2a"
+ },
+ "preview": "preview.png"
+}

@@ -289,6 +289,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// SHADOW GARDEN (The Eminence in Shadow) — Eagle's stage (SF 1987 sheet) repainted as a moonlit night by
+// tools/stage_layers/slice_eagle_shadow.py; the sky, moon, agents, the Seven Shadows and ATOMIC are drawn in code.
+SETS.eagle_shadow = {
+  dir: "./stages/eagle_shadow/",
+  S: 1.9,
+  standRow: 14,
+  deckFrontRow: 40,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "shadow", p: 0.05 },
+    { piece: "land", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "shadow",
+  animRate: {},
+}
+
 // ASAKUSA (Demon Slayer) — Gen's stage (SF 1987 sheet) re-lit for night, signs repainted, by
 // tools/stage_layers/slice_gen_asakusa.py; the sky, the Ryōunkaku, lanterns, lettering and townsfolk are drawn in code.
 SETS.gen_asakusa = {
@@ -619,6 +637,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "shadow") { drawShadowSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "asakusa") { drawAsakusaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "queens") { drawQueensBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "harbor") { drawHarborSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -728,6 +747,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "shadow") shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "asakusa") asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "queens") queensFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "harbor") harborFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5165,4 +5185,87 @@ function asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   AS.shout = AS.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── SHADOW GARDEN (The Eminence in Shadow; render-only, wall clock, own PRNG) ─────────────────────────────
+// Eagle's stage (SF 1987) repainted as a moonlit night: the castle on its hill is Shadow Garden's hideout (violet light in
+// its windows), the lakes shimmer under a huge moon, fireflies drift, and black-suited Shadow Garden agents keep watch
+// from the ridges. Big hit → agents blink in on the near ridges, slime swords glinting violet ("…the Shadow is
+// watching."); ≤25% → the SEVEN SHADOWS stand in a row on the far hill, eyes glowing, violet mist rolls in; KO →
+// "I AM… ATOMIC.": a violet-white blast swells behind the castle with rings of light, the screen whites out, night returns.
+let _sgSeed = 0x5be0cd19 ^ 0x6a09e667
+const sgRnd = () => { _sgSeed ^= _sgSeed << 13; _sgSeed ^= _sgSeed >>> 17; _sgSeed ^= _sgSeed << 5; return (_sgSeed >>> 0) / 4294967296 }
+const SG = { p1: null, last: 0, hp: new WeakMap(), flies: null, agents: [], seven: 0, atomic: null, shout: [], geo: null,
+  st: { agents: 0, seven: 0, atomic: 0 } }
+export const shadowState = () => ({ ...SG.st, flies: (SG.flies || []).length, agentsUp: SG.agents.filter(a => a.t < a.life).length, seven: +SG.seven.toFixed(2), atomic: SG.atomic ? +SG.atomic.t.toFixed(2) : 0,
+  shouting: SG.shout.filter(s => s.t > 0).map(s => s.txt) })
+function sgGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.land, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, Y: py => y0 + py * S }
+}
+function sgShout(x, y, txt, col) { if (SG.shout.filter(s => s.t > 0).length < 3) SG.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
+function sgAgent(ctx, x, y, s, t, k, eyes) {   // a Shadow Garden agent: black bodysuit, hood, a violet slime sword
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * (k % 2 ? -1 : 1), s)
+  ctx.fillStyle = "#06060c"; ctx.fillRect(-4, -18, 3, 18); ctx.fillRect(1, -18, 3, 18); ctx.beginPath(); ctx.moveTo(-6, -40); ctx.lineTo(6, -40); ctx.lineTo(9, -16); ctx.lineTo(-9, -16); ctx.fill()
+  ctx.beginPath(); ctx.arc(0, -45, 6, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(-8, -44); ctx.quadraticCurveTo(-14, -20, -12, -8); ctx.lineTo(-6, -30); ctx.fill()   // cloak tail
+  if (eyes) { ctx.fillStyle = "#c870ff"; ctx.fillRect(1, -47, 3, 1.6) }
+  const gl = 0.5 + 0.5 * Math.sin(t * 3 + k); ctx.strokeStyle = `rgba(190,110,255,${0.6 + 0.4 * gl})`; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(6, -28); ctx.lineTo(22, -46); ctx.stroke()
+  ctx.strokeStyle = `rgba(220,170,255,${0.25 * gl})`; ctx.lineWidth = 6; ctx.stroke(); ctx.restore()
+}
+function drawShadowSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = SG.geo = sgGeo(def, c, W, dockTop), S = def.S, a = SG.atomic ? Math.max(0, 1 - Math.abs(SG.atomic.t - 1.2) / 1.2) : 0
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#03040c"); g.addColorStop(0.6, "#0e1230"); g.addColorStop(1, "#1e2448")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  for (let i = 0; i < 140; i++) { const x = padL + (padR - padL) * ((i * 0.6180339) % 1), y = coverTop + (G.Y(60) - coverTop) * ((i * 0.7548776) % 1), tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.3 + i))
+    ctx.fillStyle = `rgba(220,226,255,${0.7 * tw})`; ctx.fillRect(x + shift(0.02, W) * 0.2, y, 1.6, 1.6) }
+  // the huge moon
+  { const mx = W / 2 + shift(0.03, W) - 380, my = G.Y(-10), R = 90 * S * 0.6
+    const halo = ctx.createRadialGradient(mx, my, R * 0.8, mx, my, R * 3); halo.addColorStop(0, "rgba(200,210,255,0.28)"); halo.addColorStop(1, "rgba(200,210,255,0)"); ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(mx, my, R * 3, 0, 7); ctx.fill()
+    ctx.fillStyle = "#eef0ff"; ctx.beginPath(); ctx.arc(mx, my, R, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(150,160,200,0.25)"; for (const [dx, dy, r] of [[-20, -14, 16], [24, 10, 12], [-6, 26, 9], [30, -22, 7]]) { ctx.beginPath(); ctx.arc(mx + dx * S * 0.6, my + dy * S * 0.6, r * S * 0.6, 0, 7); ctx.fill() } }
+  // the Seven Shadows on the far ridge
+  if (SG.seven > 0) { const base = G.Y(40), cx = W / 2 + shift(0.2, W) + 80; for (let i = 0; i < 7; i++) { ctx.save(); ctx.globalAlpha = Math.min(1, SG.seven * 1.5 - i * 0.1); sgAgent(ctx, cx + (i - 3) * 34 * S * 0.6, base, S * 0.8, t, i, true); ctx.restore() } }
+  // ATOMIC behind the castle
+  if (SG.atomic) { const k = SG.atomic.t, cx = W / 2 + shift(0.2, W) + 200, cy = G.Y(40), R = Math.min(1, k / 1.1) * 520, fade = Math.max(0, 1 - Math.max(0, k - 2) / 1.6)
+    const bl = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 1); bl.addColorStop(0, `rgba(255,255,255,${fade})`); bl.addColorStop(0.35, `rgba(200,150,255,${0.9 * fade})`); bl.addColorStop(0.7, `rgba(110,60,220,${0.6 * fade})`); bl.addColorStop(1, "rgba(60,20,140,0)")
+    ctx.fillStyle = bl; ctx.beginPath(); ctx.arc(cx, cy, R + 1, 0, 7); ctx.fill()
+    for (let r = 0; r < 4; r++) { const rr = ((k * 300 + r * 140) % 700); ctx.strokeStyle = `rgba(220,190,255,${Math.max(0, 0.6 - rr / 1000) * fade})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(cx, cy, rr, rr * 0.35, 0, 0, 7); ctx.stroke() } }
+}
+function shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S, G = SG.geo || sgGeo(def, c, W, dockTop)
+  if (F[0] !== SG.p1) { Object.assign(SG, { p1: F[0], hp: new WeakMap(), flies: null, agents: [], seven: 0, atomic: null, shout: [] }); for (const k in SG.st) SG.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (SG.last || t))); SG.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = SG.hp.get(f); SG.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  // castle windows (violet) + moonlight on the lakes, on every mirrored copy
+  for (const cp of mirrorCopies(G, G.w, padL, padR)) { const [x0, y0, x1, y1] = G.pc.castle
+    for (let i = 0; i < 9; i++) { const px = x0 + 22 + (i % 5) * 18, py = y0 + 30 + Math.floor(i / 5) * 20, x = cp.X(px), y = G.Y(py), on = Math.sin(t * 0.7 + i * 1.9) > -0.6
+      if (on) { ctx.fillStyle = "rgba(180,110,255,0.22)"; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill(); ctx.fillStyle = "#d8a8ff"; ctx.fillRect(x - 2, y - 3, 4, 6) } }
+    for (const [la, ly, lb] of G.pc.lakes) { const xa = Math.min(cp.X(la), cp.X(lb)), xb = Math.max(cp.X(la), cp.X(lb)), y = G.Y(ly)
+      for (let j = 0; j < 7; j++) { const yy = y + 4 + j * 6, w = (xb - xa) * (0.15 + 0.1 * Math.sin(t * 2 + j)), x = (xa + xb) / 2 + Math.sin(t * 1.5 + j * 2) * 8; ctx.fillStyle = `rgba(220,226,255,${0.35 - j * 0.04})`; ctx.fillRect(x - w / 2, yy, w, 1.6) } } }
+  if (big && !SG.atomic) { SG.st.agents++; for (let i = 0; i < 3; i++) SG.agents.push({ x: mid + (sgRnd() - 0.5) * 900, y: G.Y(150 - 30 * sgRnd()), t: 0, life: 2.6, k: SG.agents.length })
+    if (SG.st.agents % 2 === 1) sgShout(mid, G.Y(110), ["…the Shadow is watching.", "Shadow Garden is here.", "We lurk in the shadows…"][Math.floor(SG.st.agents / 2) % 3], "#5a2a9a") }
+  if (low && !SG.st.seven && !SG.atomic) { SG.st.seven++; sgShout(mid, feet - 230, "THE SEVEN SHADOWS!", "#5a2a9a") }
+  if (SG.st.seven && !SG.atomic) SG.seven = Math.min(1, SG.seven + dt * 0.8)
+  if (ko && !SG.atomic) { SG.atomic = { t: 0 }; SG.st.atomic++; sgShout(mid, feet - 260, "I AM… ATOMIC.", "#5a2a9a"); camera.shake?.(6, 60) }
+  if (SG.atomic) { SG.atomic.t += dt; if (SG.atomic.t > 1 && !SG.atomic.boom) { SG.atomic.boom = true; camera.shake?.(16, 50) } if (SG.atomic.t > 2) SG.seven = Math.max(0, SG.seven - dt * 0.6) }
+  // agents blinking in on the ridges
+  for (const a of SG.agents) { a.t += dt; const al = a.t < 0.2 ? a.t / 0.2 : a.t > a.life - 0.3 ? Math.max(0, (a.life - a.t) / 0.3) : 1
+    if (al > 0) { ctx.save(); ctx.globalAlpha = al; sgAgent(ctx, a.x, a.y, S * 0.7, t, a.k, true); ctx.restore() }
+    if (a.t < 0.25) { ctx.strokeStyle = `rgba(200,140,255,${1 - a.t * 4})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(a.x, a.y - 20, 30 * a.t * 4, 0, 7); ctx.stroke() } }
+  SG.agents = SG.agents.filter(a => a.t < a.life)
+  // fireflies
+  if (!SG.flies) SG.flies = Array.from({ length: 40 }, (_, i) => ({ x: (i * 0.6180339) % 1, y: (i * 0.7548776) % 1, ph: i }))
+  for (const f of SG.flies) { const x = padL + (padR - padL) * ((f.x + Math.sin(t * 0.2 + f.ph) * 0.03 + 1) % 1), y = feet - 40 - 260 * f.y + Math.sin(t * 0.9 + f.ph * 2) * 12, a = Math.max(0, Math.sin(t * 1.7 + f.ph * 3))
+    ctx.fillStyle = `rgba(200,255,170,${0.15 * a})`; ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); ctx.fillStyle = `rgba(230,255,200,${0.9 * a})`; ctx.fillRect(x - 1, y - 1, 2.2, 2.2) }
+  // violet mist when the Seven appear
+  if (SG.seven > 0) for (let i = 0; i < 3; i++) { const y = feet - 30 - i * 80 + Math.sin(t * 0.6 + i) * 12, gr = ctx.createLinearGradient(0, y - 60, 0, y + 60); gr.addColorStop(0, "rgba(120,60,200,0)"); gr.addColorStop(0.5, `rgba(120,60,200,${0.22 * SG.seven})`); gr.addColorStop(1, "rgba(120,60,200,0)")
+    ctx.fillStyle = gr; ctx.fillRect(padL, y - 60, padR - padL, 120) }
+  if (SG.atomic) { const k = SG.atomic.t, wo = k > 0.9 && k < 2.4 ? Math.max(0, 1 - Math.abs(k - 1.2) / 1.2) : 0; if (wo > 0) { ctx.fillStyle = `rgba(240,225,255,${0.75 * wo})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) } }
+  for (const s of SG.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  SG.shout = SG.shout.filter(s => s.t > 0)
 }

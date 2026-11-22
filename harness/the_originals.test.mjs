@@ -33,7 +33,14 @@ try {
   check("the screen shakes, reality cracks, a rift opens into Dseyl's sky", s1.dim === 1 && s1.swaps >= 1 && s1.shakes >= 2, JSON.stringify({ d: s1.dim, sw: s1.swaps, sh: s1.shakes }))
   await go(2); await sleep(2700); const s2 = await T(); await page.screenshot({ path: path.join(OUT, "frost.png") })
   check("…and into Enoch's frost & flame — all three dimensions seen", s2.dim === 2 && s2.seen.every(Boolean), JSON.stringify({ d: s2.dim, seen: s2.seen }))
-  await go(0); await sleep(2700)
+  await page.evaluate(async () => (await import("./stageLayers.js")).originalsFlash()); await sleep(1200); { const sf = await T(); await page.screenshot({ path: path.join(OUT, "sky_flash.png") })
+    check("Dseyl's sky: FLASH TIME — the world drops to slow motion", sf.flashes >= 1 && sf.flash > 0.5, JSON.stringify({ n: sf.flashes, k: sf.flash })) }
+  await go(0); await sleep(2700); await sleep(3000)
+  { const sw = await T(); await page.screenshot({ path: path.join(OUT, "lab_windows.png") })
+    check("the lab windows look into OTHER maps of the game (random)", sw.windows.some(n => !/OMOLOLU|DSEYL|ENOCH/.test(n)), JSON.stringify(sw.windows)) }
+  await page.evaluate(async () => (await import("./stageLayers.js")).originalsGlitch(true)); await sleep(120); await page.screenshot({ path: path.join(OUT, "glitch_full.png") })
+  await sleep(1500); await page.evaluate(async () => (await import("./stageLayers.js")).originalsGlitch(false)); await sleep(150); await page.screenshot({ path: path.join(OUT, "glitch_bands.png") })
+  { const sg = await T(); check("the glitch flashes other maps of the game through", sg.glitches >= 2 && sg.glimpsed.length >= 1, JSON.stringify({ g: sg.glitches, seen: sg.glimpsed })) }
   await page.keyboard.down("KeyA"); await sleep(3500); await page.keyboard.up("KeyA"); await page.screenshot({ path: path.join(OUT, "edge_left.png") })
   await page.keyboard.down("KeyD"); await sleep(6000); await page.keyboard.up("KeyD"); await page.screenshot({ path: path.join(OUT, "edge_right.png") })
   { const a = await T(); let b = a; for (let i = 0; i < 34 && b.swaps === a.swaps; i++) { await sleep(1000); b = await T() }

@@ -688,7 +688,9 @@ function drawSprite(ctx, im, x, y, w, h, flip) {
  * Draw the stage behind the fighters (world space, inside the camera transform). Returns false when the stage has no
  * layer set or its art is still loading (the caller then draws its normal backdrop).
  */
+let _backArgs = null   // the last draw's frame (The Originals draws OTHER maps in place with it)
 export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, groundY, coverTop, coverBottom }) {
+  if (!_orNest) _backArgs = { canvasWidth, worldWidth: W, groundY, coverTop, coverBottom }
   const set = stage?.layers, def = SETS[set]
   if (!def || !layeredStageReady(stage)) return false
   if (def.mode === "room3d") return drawRoom3d(ctx, def, cache.get(set), { canvasWidth, W, groundY, coverTop, coverBottom })
@@ -5730,14 +5732,18 @@ function nexusFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
 // ───────────────────────────── THE ORIGINALS (homage to the game's creators; render-only, wall clock, own PRNG) ─────────────────────────────
 // One map, three dimensions — one per original fighter — and the multiverse keeps splitting between them:
 //   0 OMOLOLU'S LAB   a multiverse research lab: Kamui-swirl portal gates, WASD cadence monitors (his Recursive Cadence),
-//                     bubbling tubes — and through the windows you can see the other two dimensions, live;
-//   1 DSEYL'S SKY     floating islands at sunset over a sea of clouds, the giant FLASH TIME clock, a hooded speedster
-//                     streaking across the sky in yellow lightning;
-//   2 ENOCH'S FROST & FLAME   a world split between glacier and volcano: aurora + ice spires, basalt + lava, waterfalls
-//                     steaming where the two meet, snow on one side and embers on the other.
-// Every 14–26 s (6–11 s once someone is close to losing) the screen rumbles, the sky cracks and a rift opens from the
-// centre into the next dimension. Big hit → reality flickers (a band of another dimension) + a dimension-flavoured
-// shout; ≤25% → "THE MULTIVERSE IS SPLITTING!"; KO → all three dimensions at once, side by side — "THE ORIGINALS".
+//                     bubbling tubes — and windows that look into OTHER MAPS of the game, a random one each, re-tuned
+//                     every few seconds (static between channels);
+//   1 DSEYL'S SKY     a sky world at sunset: floating islands with homes + waterfalls, hot-air balloons, the DSEYL AIRWAYS
+//                     blimp, bird flocks, a ring course, the hooded speedster (straight / wave / loop runs, sonic booms) —
+//                     and every so often FLASH TIME: the whole world drops to slow motion (clock hands crawl, birds hang in
+//                     the air) while the speedster alone keeps full speed, leaving afterimages;
+//   2 ENOCH'S FROST & FLAME   glacier + aurora vs a live volcano (eruptions, lava bombs, volcanic lightning); the ice front
+//                     and the fire front push each other back and forth all match (snowmen sweat, then melt into puddles);
+//                     an ice skater builds his own ice slide across the sky; waterfalls, geysers, snow vs embers.
+// The full SWITCH (rumble → cracks → a rift from the centre) only moves between these three; the GLITCH — random, and on
+// big hits — flashes ANY other map of the game for a split second (bands of it, or the whole screen).
+// ≤25% → "THE MULTIVERSE IS SPLITTING!" (switches every 6–11 s); KO → all three dimensions side by side, "THE ORIGINALS".
 // Omololu / Dseyl / Enoch watch from the sidelines when they aren't fighting (shared crowd).
 let _orSeed = 0x9e3779b9 ^ 0x7f4a7c15
 const orRnd = () => { _orSeed ^= _orSeed << 13; _orSeed ^= _orSeed >>> 17; _orSeed ^= _orSeed << 5; return (_orSeed >>> 0) / 4294967296 }
@@ -5745,15 +5751,46 @@ const OR_CROWD = [["omololu", 0.16, 0], ["dseyl", 0.5, 0], ["enoch", 0.84, 0]]
 const ORC = makeCrowd(OR_CROWD, 0.6)
 const OR_NAMES = ["OMOLOLU'S LAB", "DSEYL'S SKY", "ENOCH'S FROST & FLAME"], OR_WHO = ["OMOLOLU", "DSEYL", "ENOCH"]
 const OR_TINT = ["170,80,255", "255,200,70", "120,220,255"]
-const OR = { p1: null, last: 0, hp: new WeakMap(), dim: 0, phase: null, nextSwap: 0, flick: null, merged: null, banner: null, unstable: false, forceTo: null, shout: [],
-  st: { swaps: 0, shakes: 0, flickers: 0, unstable: 0, merged: 0, seen: [1, 0, 0] } }
-export const originalsState = () => ({ swaps: OR.st.swaps, shakes: OR.st.shakes, flickers: OR.st.flickers, unstable: OR.st.unstable, mergedCount: OR.st.merged,
+// the other maps the windows + glitches can show (layered sets drawn by drawLayeredStageBack; room3d / ssf2 ones excluded)
+const OR_MAPS = [["ryu_jujutsu", "Jujutsu High Courtyard"], ["chunli_shibuya", "Shibuya Incident"], ["lee_suna", "Sunagakure"], ["oro_forest", "Forest of Death"],
+  ["guile_valley", "Valley of the End"], ["eagle_namek", "Planet Namek"], ["sagat_tournament", "World Tournament Arena"], ["infinity_castle", "Infinity Castle"],
+  ["gen_asakusa", "Asakusa"], ["joe_mugen", "Mugen Train"], ["zangief_citadel", "Citadel of Ricks"], ["birdie_bellwood", "Bellwood"], ["blanka_nullvoid", "Null Void"],
+  ["retsu_seireitei", "Soul Society"], ["code_woodsboro", "Woodsboro"], ["yun_yorknew", "Yorknew City"], ["ryu_heaven", "Heaven's Arena"], ["adon_viltrum", "Viltrumite Warzone"],
+  ["sean_angelgrove", "Angel Grove"], ["mike_command", "Command Center"], ["code_pk", "PK Academy"], ["code_nexus", "Analysis Nexus"], ["eagle_shadow", "Shadow Garden"],
+  ["ken_harbor", "Harbor Dock"], ["guile_batcave", "The Batcave"], ["necro_krypton", "Krypton"], ["retsu_arlong", "Arlong Park"], ["ken3_baratie", "The Baratie"],
+  ["alex_queens", "Queens Alley"], ["guile_starklab", "Stark Lab"], ["code_colosseum", "Battle Royale Colosseum"]].filter(([s]) => SETS[s] && !SETS[s].mode)
+const OR = { p1: null, last: 0, hp: new WeakMap(), dim: 0, phase: null, nextSwap: 0, flick: null, nextGlitch: 0, merged: null, banner: null, unstable: false, forceTo: null, shout: [],
+  pool: [], win: new Map(), skyT: 0, flashK: 0, flashUntil: 0, nextFlash: 0,
+  st: { swaps: 0, shakes: 0, flickers: 0, glitches: 0, glimpsed: [], unstable: 0, merged: 0, flashes: 0, seen: [1, 0, 0] } }
+export const originalsState = () => ({ swaps: OR.st.swaps, shakes: OR.st.shakes, flickers: OR.st.flickers, glitches: OR.st.glitches, glimpsed: OR.st.glimpsed.slice(),
+  windows: [...OR.win.values()].map(w => w.name), flashes: OR.st.flashes, flash: +OR.flashK.toFixed(2), tide: Math.round(orTide(now())), unstable: OR.st.unstable, mergedCount: OR.st.merged,
   merged: OR.merged ? +OR.merged.t.toFixed(2) : 0, dim: OR.dim, name: OR_NAMES[OR.dim], phase: OR.phase ? OR.phase.k : "", seen: OR.st.seen.slice(),
   nextIn: +(OR.nextSwap - now()).toFixed(1), crowd: crowdState(ORC), shouting: OR.shout.filter(s => s.t > 0).map(s => s.txt) })
-export const originalsGo = k => { OR.forceTo = k }   // tests / screenshots: open a rift to dimension k now
+export const originalsGo = k => { OR.forceTo = k }                 // tests / screenshots: open a rift to dimension k now
+export const originalsGlitch = full => { OR.nextGlitch = 0; OR.glitchFull = full }   // tests / screenshots: glitch now
+export const originalsFlash = () => { OR.nextFlash = 0 }           // tests / screenshots: FLASH TIME now
 function orShout(x, y, txt, col) { if (OR.shout.filter(s => s.t > 0).length < 3) OR.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
-const orPar = (p, W, padL, padR, step, fn) => { const ps = shift(p, W); for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) fn(i * step + ps, i) }
+const orPar = (p, W, padL, padR, step, fn, drift = 0) => { const ps = shift(p, W) + (((drift % step) + step) % step); for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) fn(i * step + ps, i) }
 const orOdd = i => ((i % 2) + 2) % 2
+// another map's whole backdrop, drawn in place (its own art + procedural layers); false until its art has loaded
+let _orNest = false
+function orDrawOther(ctx, set) {
+  if (_orNest || !_backArgs || !SETS[set]) return false
+  _orNest = true; let ok = false
+  try { ctx.save(); ok = drawLayeredStageBack(ctx, { layers: set }, _backArgs) } catch (e) { ok = false } finally { ctx.restore(); _orNest = false }
+  return ok
+}
+// a small queue of random maps, loading ahead so a glitch / window always has a ready one
+function orPoolTick() { let guard = 0; while (OR.pool.length < 4 && guard++ < 20) { const m = OR_MAPS[Math.floor(orRnd() * OR_MAPS.length)]; if (m && !OR.pool.includes(m)) OR.pool.push(m) } for (const m of OR.pool) layeredStageReady({ layers: m[0] }) }
+function orTakeReady() { const i = OR.pool.findIndex(m => layeredStageReady({ layers: m[0] })); return i < 0 ? null : OR.pool.splice(i, 1)[0] }
+// the whole current view of a dimension / map, shrunk into a window rect
+function orMini(ctx, g, x, y, w, h, draw) {
+  const vw = g.padR - g.padL, vh = vw * 9 / 16, gy = _backArgs ? _backArgs.groundY : g.dockTop, vt = gy - vh * 0.6
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip()
+  const s = Math.max(w / vw, h / vh); ctx.translate(x + w / 2, y + h / 2); ctx.scale(s, s); ctx.translate(-(g.padL + vw / 2), -(vt + vh / 2))
+  try { draw() } finally { ctx.restore() }
+}
+function orStatic(ctx, x, y, w, h, t) { ctx.fillStyle = "#18161e"; ctx.fillRect(x, y, w, h); for (let j = 0; j < 60; j++) { const k = Math.floor(t * 30) * 61 + j; ctx.fillStyle = `rgba(230,230,240,${0.2 + 0.5 * _h(k * 3)})`; ctx.fillRect(x + w * _h(k), y + h * _h(k * 7), 3 + 20 * _h(k * 5), 2) } }
 
 // ── 0: OMOLOLU'S LAB ──
 function orPortal(ctx, x, y, R, t, tint) {   // a portal gate: machine ring with running lights around a Kamui-style swirl
@@ -5774,13 +5811,17 @@ function orLab(ctx, g) {
   orPar(0.7, W, padL, padR, 110, x => { ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(x, coverTop, 2, D - coverTop); ctx.fillStyle = "rgba(255,255,255,0.04)"; ctx.fillRect(x + 2, coverTop, 1, D - coverTop) })
   ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(padL, D - 96, padR - padL, 3); ctx.fillStyle = "#0a0910"; ctx.fillRect(padL, coverTop, padR - padL, D - 292 - coverTop)
   orPar(0.75, W, padL, padR, 220, x => { ctx.fillStyle = "#e8e2ff"; ctx.fillRect(x, D - 296, 90, 5); const lg = ctx.createLinearGradient(0, D - 291, 0, D - 200); lg.addColorStop(0, "rgba(220,210,255,0.14)"); lg.addColorStop(1, "rgba(220,210,255,0)"); ctx.fillStyle = lg; ctx.beginPath(); ctx.moveTo(x, D - 291); ctx.lineTo(x + 90, D - 291); ctx.lineTo(x + 130, D - 200); ctx.lineTo(x - 40, D - 200); ctx.fill() })
-  // windows: live views into the other two dimensions
-  orPar(0.6, W, padL, padR, 880, (x0, i) => { const x = x0 + 440 - 115, y = D - 268, w = 230, h = 136, k = 1 + orOdd(i)
+  // windows: each one looks into a RANDOM other map of the game, re-tuned every few seconds
+  orPar(0.6, W, padL, padR, 880, (x0, i) => { const x = x0 + 440 - 125, y = D - 272, w = 250, h = 142
+    let wn = OR.win.get(i); if (!wn || t > wn.until) { const m = orTakeReady(); wn = m ? { set: m[0], name: m[1].toUpperCase(), born: t, until: t + 6 + 6 * orRnd() } : { set: null, k: 1 + orOdd(i), name: OR_NAMES[1 + orOdd(i)], born: t, until: t + 3 }; OR.win.set(i, wn); if (OR.win.size > 8) OR.win.delete(OR.win.keys().next().value) }
     ctx.fillStyle = "#07060b"; ctx.fillRect(x - 9, y - 9, w + 18, h + 18)
-    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); (k === 1 ? orSky : orFrost)(ctx, g); ctx.fillStyle = "rgba(150,170,255,0.08)"; ctx.fillRect(x, y, w, h)
-    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.beginPath(); ctx.moveTo(x + 20, y); ctx.lineTo(x + 70, y); ctx.lineTo(x + 10, y + h); ctx.lineTo(x - 40, y + h); ctx.fill(); ctx.restore()
-    ctx.fillStyle = "#1a1820"; ctx.fillRect(x + w / 2 - 3, y, 6, h); ctx.fillRect(x, y + h * 0.42 - 3, w, 6)
-    ctx.font = "700 11px monospace"; ctx.textAlign = "center"; ctx.fillStyle = `rgb(${OR_TINT[k]})`; ctx.fillText(k === 1 ? "DIMENSION 02 · DSEYL" : "DIMENSION 03 · ENOCH", x + w / 2, y + h + 22) })
+    if (t - wn.born < 0.35) orStatic(ctx, x, y, w, h, t)
+    else orMini(ctx, g, x, y, w, h, () => { if (!wn.set || !orDrawOther(ctx, wn.set)) (wn.k === 2 ? orFrost : orSky)(ctx, g) })
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.fillStyle = "rgba(150,170,255,0.07)"; ctx.fillRect(x, y, w, h)
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.beginPath(); ctx.moveTo(x + 20, y); ctx.lineTo(x + 70, y); ctx.lineTo(x + 10, y + h); ctx.lineTo(x - 40, y + h); ctx.fill()
+    ctx.fillStyle = "rgba(0,0,0,0.12)"; for (let sy = y; sy < y + h; sy += 4) ctx.fillRect(x, sy, w, 1); ctx.restore()
+    ctx.strokeStyle = "#2a2632"; ctx.lineWidth = 4; ctx.strokeRect(x - 2, y - 2, w + 4, h + 4)
+    ctx.font = "700 11px monospace"; ctx.textAlign = "center"; ctx.fillStyle = "#c8a8ff"; ctx.fillText("◉ DIMENSION · " + wn.name, x + w / 2, y + h + 21) })
   // portal gates
   orPar(0.75, W, padL, padR, 880, (x, i) => { const y = D - 150, k = 1 + orOdd(i + 1)
     ctx.fillStyle = "#2a2632"; ctx.fillRect(x - 128, y - 30, 16, D - y); ctx.fillRect(x + 112, y - 30, 16, D - y)
@@ -5799,109 +5840,212 @@ function orLab(ctx, g) {
       for (let b = 0; b < 3; b++) { const u = (t * 0.7 + b / 3 + j * 0.2) % 1; ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.beginPath(); ctx.arc(tx + 4 + 8 * _h(b + j * 5), top - 6 - u * 40 * lvl, 1.6, 0, 7); ctx.fill() } } })
 }
 // ── 1: DSEYL'S SKY ──
+function orDseylFig(ctx, x, y, dir, rot, a = 1) {   // the hooded speedster: grey hoodie, dark-red pants, shades
+  ctx.save(); ctx.globalAlpha *= a; ctx.translate(x, y); ctx.scale(dir, 1); ctx.rotate(rot)
+  ctx.fillStyle = "#7a1a24"; ctx.fillRect(-9, 4, 9, 5); ctx.fillRect(-14, 6, 6, 4); ctx.fillStyle = "#c8c8cc"; ctx.fillRect(-6, -8, 14, 13); ctx.fillRect(6, -6, 8, 4)
+  ctx.fillStyle = "#5a3a26"; ctx.beginPath(); ctx.arc(4, -13, 5, 0, 7); ctx.fill(); ctx.fillStyle = "#a8a8ae"; ctx.beginPath(); ctx.arc(2, -14, 5.6, Math.PI * 0.8, Math.PI * 1.9); ctx.fill()
+  ctx.fillStyle = "#111"; ctx.fillRect(4, -15, 6, 2); ctx.restore()
+}
+function orBalloon(ctx, x, y, s, i) {
+  const c = [["#e84a5f", "#ffd166"], ["#3aa0ff", "#ffffff"], ["#7bd389", "#2a6f97"], ["#c77dff", "#ffd6ff"]][((i % 4) + 4) % 4]
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s)
+  ctx.strokeStyle = "rgba(60,40,40,0.8)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-18, 18); ctx.lineTo(-6, 42); ctx.moveTo(18, 18); ctx.lineTo(6, 42); ctx.stroke()
+  ctx.fillStyle = c[0]; ctx.beginPath(); ctx.ellipse(0, 0, 26, 30, 0, 0, 7); ctx.fill(); ctx.fillStyle = c[1]; ctx.beginPath(); ctx.ellipse(0, 0, 14, 30, 0, 0, 7); ctx.fill()
+  ctx.fillStyle = c[0]; ctx.beginPath(); ctx.ellipse(0, 0, 5, 30, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(40,20,60,0.25)"; ctx.beginPath(); ctx.ellipse(8, 4, 18, 26, 0, 0, 7); ctx.fill()
+  ctx.fillStyle = "#7a4a2a"; ctx.fillRect(-7, 42, 14, 10); ctx.restore()
+}
+function orBlimp(ctx, x, y, T) {
+  ctx.strokeStyle = "rgba(60,40,50,0.7)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 92, y); ctx.lineTo(x - 140, y + 6); ctx.stroke()
+  const wave = k => 4 * Math.sin(T * 3 + k)
+  ctx.fillStyle = "#fff8f0"; ctx.beginPath(); ctx.moveTo(x - 140, y - 4 + wave(0)); ctx.lineTo(x - 300, y - 4 + wave(1.5)); ctx.lineTo(x - 300, y + 20 + wave(1.5)); ctx.lineTo(x - 140, y + 20 + wave(0)); ctx.fill()
+  ctx.font = "900 13px Arial"; ctx.textAlign = "center"; ctx.fillStyle = "#c81e3a"; ctx.fillText("DSEYL AIRWAYS · FLY FAST", x - 220, y + 12 + wave(0.75))
+  ctx.fillStyle = "#4a4458"; ctx.beginPath(); ctx.moveTo(x - 78, y); ctx.lineTo(x - 100, y - 26); ctx.lineTo(x - 64, y - 6); ctx.fill(); ctx.beginPath(); ctx.moveTo(x - 78, y); ctx.lineTo(x - 100, y + 26); ctx.lineTo(x - 64, y + 6); ctx.fill()
+  ctx.fillStyle = "#e8e4ee"; ctx.beginPath(); ctx.ellipse(x, y, 92, 26, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(80,60,110,0.25)"; ctx.beginPath(); ctx.ellipse(x, y + 9, 88, 14, 0, 0, 7); ctx.fill()
+  ctx.fillStyle = "#c81e3a"; ctx.fillRect(x - 60, y - 4, 120, 6); ctx.fillStyle = "#3a3444"; ctx.fillRect(x - 18, y + 22, 36, 10)
+  ctx.strokeStyle = "#3a3444"; ctx.lineWidth = 2; const pw = 9 * Math.abs(Math.sin(T * 20)); ctx.beginPath(); ctx.moveTo(x + 22, y + 27 - pw); ctx.lineTo(x + 22, y + 27 + pw); ctx.stroke()
+}
 function orSky(ctx, g) {
-  const { W, dockTop: D, padL, padR, coverTop, t } = g
+  const { W, dockTop: D, padL, padR, coverTop, t } = g, T = OR.skyT, fk = OR.flashK
   const gr = ctx.createLinearGradient(0, D - 330, 0, D); gr.addColorStop(0, "#22245c"); gr.addColorStop(0.5, "#b0587a"); gr.addColorStop(0.85, "#ffaa66"); gr.addColorStop(1, "#ffd89a")
   ctx.fillStyle = gr; ctx.fillRect(padL, coverTop, padR - padL, D - coverTop)
-  { const sx = W / 2 + shift(0.03, W) - 320, sy = D - 70, sg = ctx.createRadialGradient(sx, sy, 10, sx, sy, 170); sg.addColorStop(0, "rgba(255,230,170,0.7)"); sg.addColorStop(1, "rgba(255,230,170,0)")
-    ctx.fillStyle = sg; ctx.fillRect(sx - 170, sy - 170, 340, 340); ctx.fillStyle = "#fff2c8"; ctx.beginPath(); ctx.arc(sx, sy, 44, 0, 7); ctx.fill() }
-  { const cx = W / 2 + shift(0.05, W) + 280, cy = D - 205, R = 72, sp = OR.unstable ? 3 : 1   // the FLASH TIME clock
-    ctx.strokeStyle = "rgba(255,232,150,0.6)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke(); ctx.fillStyle = "rgba(255,232,150,0.08)"; ctx.fill()
+  const sx = W / 2 + shift(0.03, W) - 320, sy = D - 70
+  ctx.save(); ctx.globalCompositeOperation = "lighter"; for (let r = 0; r < 9; r++) { const a = -Math.PI / 2 + (r - 4) * 0.3 + 0.06 * Math.sin(T * 0.2 + r); ctx.fillStyle = "rgba(255,200,150,0.05)"; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + Math.cos(a - 0.05) * 700, sy + Math.sin(a - 0.05) * 700); ctx.lineTo(sx + Math.cos(a + 0.05) * 700, sy + Math.sin(a + 0.05) * 700); ctx.fill() } ctx.restore()
+  { const sg = ctx.createRadialGradient(sx, sy, 10, sx, sy, 170); sg.addColorStop(0, "rgba(255,230,170,0.7)"); sg.addColorStop(1, "rgba(255,230,170,0)"); ctx.fillStyle = sg; ctx.fillRect(sx - 170, sy - 170, 340, 340); ctx.fillStyle = "#fff2c8"; ctx.beginPath(); ctx.arc(sx, sy, 44, 0, 7); ctx.fill() }
+  orPar(0.08, W, padL, padR, 420, (x, i) => { const y = D - 285 + 50 * _h(i * 5); ctx.fillStyle = "rgba(255,190,210,0.45)"; ctx.beginPath(); ctx.ellipse(x, y, 80, 14, 0, 0, 7); ctx.ellipse(x + 50, y - 8, 50, 12, 0, 0, 7); ctx.fill() }, T * 6)
+  { const cx = W / 2 + shift(0.05, W) + 280, cy = D - 205, R = 78   // the FLASH TIME clock, gears turning behind it
+    for (const [gx, gy, gr2, sp] of [[cx - 70, cy - 40, 34, 0.6], [cx + 68, cy + 30, 26, -0.8]]) { ctx.save(); ctx.translate(gx, gy); ctx.rotate(T * sp); ctx.fillStyle = "rgba(255,225,140,0.18)"; for (let k = 0; k < 10; k++) { ctx.rotate(Math.PI / 5); ctx.fillRect(-4, -gr2 - 6, 8, 10) } ctx.beginPath(); ctx.arc(0, 0, gr2, 0, 7); ctx.fill(); ctx.restore() }
+    ctx.strokeStyle = `rgba(255,232,150,${0.6 + 0.4 * fk})`; ctx.lineWidth = 3 + 2 * fk; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke(); ctx.fillStyle = `rgba(255,232,150,${0.08 + 0.15 * fk})`; ctx.fill()
     for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * 0.84, cy + Math.sin(a) * R * 0.84); ctx.lineTo(cx + Math.cos(a) * R * 0.96, cy + Math.sin(a) * R * 0.96); ctx.stroke() }
-    for (const [len, sp2] of [[0.5, 0.25], [0.8, 2.5]]) { const a = t * sp2 * sp - Math.PI / 2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * R * len, cy + Math.sin(a) * R * len); ctx.stroke() }
-    ctx.fillStyle = "rgba(255,225,90,0.85)"; ctx.beginPath(); ctx.moveTo(cx + 4, cy - 18); ctx.lineTo(cx - 8, cy + 2); ctx.lineTo(cx, cy + 2); ctx.lineTo(cx - 4, cy + 18); ctx.lineTo(cx + 8, cy - 2); ctx.lineTo(cx, cy - 2); ctx.fill()
+    for (const [len, sp2] of [[0.5, 0.25], [0.8, 2.5]]) { const a = T * sp2 * (OR.unstable ? 3 : 1) - Math.PI / 2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * R * len, cy + Math.sin(a) * R * len); ctx.stroke() }
+    ctx.fillStyle = "rgba(255,225,90,0.9)"; ctx.beginPath(); ctx.moveTo(cx + 4, cy - 18); ctx.lineTo(cx - 8, cy + 2); ctx.lineTo(cx, cy + 2); ctx.lineTo(cx - 4, cy + 18); ctx.lineTo(cx + 8, cy - 2); ctx.lineTo(cx, cy - 2); ctx.fill()
     ctx.font = "900 11px monospace"; ctx.textAlign = "center"; ctx.fillText("FLASH TIME", cx, cy + R + 16) }
-  orPar(0.2, W, padL, padR, 640, (x, i) => { const y = D - 150 - 60 * _h(i * 3) + Math.sin(t * 0.5 + i) * 6, w = 70 + 60 * _h(i)
+  orPar(0.2, W, padL, padR, 640, (x, i) => { const y = D - 150 - 60 * _h(i * 3) + Math.sin(T * 0.5 + i) * 6, w = 70 + 60 * _h(i)   // floating islands with a home
     ctx.fillStyle = "#4a2e44"; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w * 0.2, y + w * 1.1); ctx.lineTo(x - w * 0.3, y + w * 0.8); ctx.fill()
-    ctx.fillStyle = "#6a7a4a"; ctx.beginPath(); ctx.ellipse(x, y, w, 9, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(230,240,255,0.55)"; ctx.fillRect(x + w * 0.5, y + 2, 3, w * 0.7) })
-  orPar(0.35, W, padL, padR, 900, (x, i) => { const y = D - 95 + Math.sin(t * 0.7 + i) * 5; ctx.fillStyle = "#5a3448"; ctx.beginPath(); ctx.moveTo(x - 50, y); ctx.lineTo(x + 50, y); ctx.lineTo(x + 6, y + 50); ctx.fill(); ctx.fillStyle = "#7a8a52"; ctx.fillRect(x - 50, y - 4, 100, 6) })
-  orPar(0.45, W, padL, padR, 130, (x, i) => { const y = D - 26 + 6 * Math.sin(i + t * 0.4); ctx.fillStyle = "rgba(255,214,196,0.95)"; ctx.beginPath(); ctx.ellipse(x, y, 90, 26, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(200,120,140,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 12, 86, 12, 0, 0, 7); ctx.fill() })
+    ctx.fillStyle = "#6a7a4a"; ctx.beginPath(); ctx.ellipse(x, y, w, 9, 0, 0, 7); ctx.fill()
+    const hx = x - w * 0.4; ctx.fillStyle = "#e8d8c0"; ctx.fillRect(hx, y - 20, 22, 16); ctx.fillStyle = "#9a3a3a"; ctx.beginPath(); ctx.moveTo(hx - 3, y - 20); ctx.lineTo(hx + 11, y - 31); ctx.lineTo(hx + 25, y - 20); ctx.fill(); ctx.fillStyle = "#ffd890"; ctx.fillRect(hx + 4, y - 15, 5, 5)
+    ctx.fillStyle = "#4a3a2a"; ctx.fillRect(x + w * 0.3, y - 18, 3, 14); ctx.fillStyle = "#7a9a5a"; ctx.beginPath(); ctx.arc(x + w * 0.3 + 1, y - 22, 10 + Math.sin(T * 2 + i) * 0.8, 0, 7); ctx.fill()
+    ctx.fillStyle = "rgba(230,240,255,0.65)"; ctx.fillRect(x + w * 0.55, y + 2, 4, w * 0.9); for (let d = 0; d < 3; d++) { const u = (T * 1.2 + d / 3) % 1; ctx.fillRect(x + w * 0.55 - 2 + d * 3, y + 4 + u * w * 0.9, 2, 6) } })
+  orPar(0.3, W, padL, padR, 560, (x, i) => orBalloon(ctx, x + 20 * Math.sin(T * 0.2 + i), D - 215 + 40 * _h(i * 9) + 22 * Math.sin(T * 0.35 + i * 2), 0.75 + 0.35 * _h(i), i), T * 9)
+  orPar(0.35, W, padL, padR, 1900, (x, i) => orBlimp(ctx, x, D - 255 + 20 * _h(i), T), T * 22)
+  for (let f = 0; f < 3; f++) { const span = padR - padL + 500, x = padL - 250 + ((T * 45 * (1 + f * 0.25) + f * 560) % span), y = D - 240 + f * 46 + 10 * Math.sin(T * 0.5 + f)   // bird flocks
+    ctx.strokeStyle = "#2a1e3a"; ctx.lineWidth = 2; for (let b = 0; b < 5; b++) { const bx = x - Math.abs(b - 2) * 16, by = y + Math.abs(b - 2) * 9 + (b - 2) * 3, fl = 5 * Math.sin(T * 10 + b)
+      ctx.beginPath(); ctx.moveTo(bx - 7, by - fl); ctx.quadraticCurveTo(bx - 3, by - 2, bx, by); ctx.quadraticCurveTo(bx + 3, by - 2, bx + 7, by - fl); ctx.stroke() } }
+  orPar(0.6, W, padL, padR, 700, (x, i) => { const y = D - 130 - 60 * _h(i * 4) + 6 * Math.sin(T + i), lit = (Math.floor(t * 1.6) + i) % 4 === 0   // the ring course
+    ctx.strokeStyle = lit ? "rgba(255,250,210,0.95)" : "rgba(255,200,70,0.8)"; ctx.lineWidth = lit ? 6 : 4; ctx.beginPath(); ctx.ellipse(x, y, 16, 36, 0, 0, 7); ctx.stroke()
+    if (lit) { ctx.strokeStyle = "rgba(255,220,90,0.3)"; ctx.lineWidth = 14; ctx.stroke() } })
+  orPar(0.45, W, padL, padR, 130, (x, i) => { const y = D - 26 + 6 * Math.sin(i + T * 0.4); ctx.fillStyle = "rgba(255,214,196,0.95)"; ctx.beginPath(); ctx.ellipse(x, y, 90, 26, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(200,120,140,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 12, 86, 12, 0, 0, 7); ctx.fill() }, T * 4)
   ctx.fillStyle = "rgba(255,214,196,0.95)"; ctx.fillRect(padL, D - 12, padR - padL, 12)
-  const P = 1.7, K = Math.floor(t / P)   // the speedster: yellow lightning across the sky
-  for (const k of [K, K - 1]) { const u = (t - k * P) / 0.75; if (u < 0 || u > 1.4) continue
-    const dir = _h(k * 3) < 0.5 ? 1 : -1, y = D - 90 - 190 * _h(k * 7), hx = dir > 0 ? padL + (padR - padL) * u : padR - (padR - padL) * u, a = Math.max(0, Math.min(1, 1.4 - u))
-    ctx.beginPath(); for (let j = 0; j <= 14; j++) { const px = hx - dir * j * 28, py = y + (j ? (_h(k * 31 + j) - 0.5) * 22 : 0); j ? ctx.lineTo(px, py) : ctx.moveTo(px, py) }
+  // the speedster (real time — he isn't slowed by Flash Time; everything else is)
+  const P = 1.9, K = Math.floor(t / P)
+  for (const k of [K, K - 1]) { const u = (t - k * P) / 0.8; if (u < 0 || u > 1.5) continue
+    const dir = _h(k * 3) < 0.5 ? 1 : -1, y0 = D - 100 - 170 * _h(k * 7), type = Math.floor(_h(k * 5) * 3), lc = 0.3 + 0.4 * _h(k * 11)
+    const pos = uu => { uu = Math.max(0, uu); let x = dir > 0 ? padL + (padR - padL) * uu : padR - (padR - padL) * uu, y = y0
+      if (type === 1) y += 40 * Math.sin(uu * 12)
+      if (type === 2) { const cx = dir > 0 ? padL + (padR - padL) * lc : padR - (padR - padL) * lc, lw = 0.1; if (uu > lc && uu < lc + lw) { const a = (uu - lc) / lw * Math.PI * 2; return [cx + dir * Math.sin(a) * 70, y0 - (1 - Math.cos(a)) * 70] } if (uu >= lc + lw) x -= dir * (padR - padL) * lw }
+      return [x, y] }
+    const a = Math.max(0, Math.min(1, 1.5 - u))
+    ctx.beginPath(); for (let j = 0; j <= 18; j++) { const [px, py] = pos(u - j * 0.02); const jy = j ? (_h(k * 31 + j) - 0.5) * 18 : 0; j ? ctx.lineTo(px, py + jy) : ctx.moveTo(px, py) }
     ctx.strokeStyle = `rgba(255,220,60,${0.8 * a})`; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = `rgba(255,255,230,${a})`; ctx.lineWidth = 1.6; ctx.stroke()
-    ctx.save(); ctx.translate(hx, y); ctx.scale(dir, 1); ctx.rotate(0.5); ctx.fillStyle = "#c8c8cc"; ctx.fillRect(-6, -8, 12, 14); ctx.fillStyle = "#7a1a24"; ctx.fillRect(-6, 6, 12, 6); ctx.fillStyle = "#5a3a26"; ctx.beginPath(); ctx.arc(2, -12, 4.5, 0, 7); ctx.fill(); ctx.restore() }
+    if (u > 0.04 && u < 0.6) { const [bx, by] = pos(0.04), r = (u - 0.04) * 260; ctx.strokeStyle = `rgba(255,255,255,${0.7 * (1 - (u - 0.04) / 0.56)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(bx, by, r * 0.35, r, 0, 0, 7); ctx.stroke() }   // sonic boom
+    if (u <= 1) { if (fk > 0.2) for (let j = 4; j >= 1; j--) { const [px, py] = pos(u - j * 0.05); orDseylFig(ctx, px, py, dir, 0.5, 0.18 * j * fk) }
+      const [hx, hy] = pos(u), [qx, qy] = pos(u - 0.01); orDseylFig(ctx, hx, hy, dir, 0.5 + 0.2 * Math.atan2(hy - qy, Math.abs(hx - qx) + 0.01), 1) } }
+  if (fk > 0) { ctx.fillStyle = `rgba(110,130,255,${0.2 * fk})`; ctx.fillRect(padL, coverTop, padR - padL, D - coverTop) }
 }
 // ── 2: ENOCH'S FROST & FLAME ──
-const orIce = i => orOdd(i) === 0
+const orTide = t => 800 + 300 * Math.sin(t * 0.22)   // how much of each 1600 px of world is ice (the rest is fire)
+function orEnochFig(ctx, x, y, rot) {   // the skater: blue suit, orange fire visor, arms out
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot)
+  ctx.strokeStyle = "#2a4aa8"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(-2, -14); ctx.lineTo(-6, 0); ctx.moveTo(2, -14); ctx.lineTo(7, -1); ctx.stroke()
+  ctx.fillStyle = "#c8f0ff"; ctx.fillRect(-9, -1, 8, 3); ctx.fillRect(3, -2, 8, 3)
+  ctx.fillStyle = "#3a6ad8"; ctx.fillRect(-5, -28, 10, 15); ctx.strokeStyle = "#3a6ad8"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-4, -25); ctx.lineTo(-15, -30); ctx.moveTo(4, -25); ctx.lineTo(15, -20); ctx.stroke()
+  ctx.fillStyle = "#5a3a26"; ctx.beginPath(); ctx.arc(0, -33, 5, 0, 7); ctx.fill(); ctx.fillStyle = "#ff7a2a"; ctx.fillRect(-1, -35, 7, 2.5); ctx.restore()
+}
 function orFrost(ctx, g) {
-  const { W, dockTop: D, padL, padR, coverTop, t } = g
-  orPar(0.15, W, padL, padR, 800, (x, i) => { const ice = orIce(i), gr = ctx.createLinearGradient(0, D - 320, 0, D)
-    gr.addColorStop(0, ice ? "#06142e" : "#160404"); gr.addColorStop(1, ice ? "#4a8ac0" : "#b8461a"); ctx.fillStyle = gr; ctx.fillRect(x, coverTop, 801, D - coverTop)
-    if (ice) for (let r = 0; r < 2; r++) { ctx.beginPath(); for (let xx = 0; xx <= 800; xx += 20) { const py = D - 270 + r * 34 + 22 * Math.sin(xx / 90 + t * 0.6 + r * 2); xx ? ctx.lineTo(x + xx, py) : ctx.moveTo(x + xx, py) } ctx.strokeStyle = r ? "rgba(90,220,255,0.22)" : "rgba(80,255,170,0.25)"; ctx.lineWidth = 18; ctx.stroke() }
-    else for (let s = 0; s < 6; s++) { const u = (t * 0.05 + s / 6) % 1; ctx.fillStyle = "rgba(50,20,20,0.35)"; ctx.beginPath(); ctx.ellipse(x + 100 + 110 * s, D - 80 - u * 260, 70, 30, 0, 0, 7); ctx.fill() }
-    const sg = ctx.createLinearGradient(x - 110, 0, x + 110, 0); sg.addColorStop(0, "rgba(220,230,240,0)"); sg.addColorStop(0.5, "rgba(220,230,240,0.45)"); sg.addColorStop(1, "rgba(220,230,240,0)"); ctx.fillStyle = sg; ctx.fillRect(x - 110, coverTop, 220, D - coverTop) })
-  orPar(0.4, W, padL, padR, 800, (x, i) => { const ice = orIce(i)
-    for (let j = 0; j < 5; j++) { const px = x + 80 + j * 150 + 30 * _h(i * 9 + j), h = 120 + 110 * _h(i * 5 + j), w = 70 + 30 * _h(j + i)
-      if (ice) { ctx.fillStyle = "#d8ecf8"; ctx.beginPath(); ctx.moveTo(px - w, D); ctx.lineTo(px, D - h); ctx.lineTo(px + w, D); ctx.fill(); ctx.fillStyle = "#8ab8d8"; ctx.beginPath(); ctx.moveTo(px, D - h); ctx.lineTo(px + w, D); ctx.lineTo(px + w * 0.2, D); ctx.fill() }
-      else { ctx.fillStyle = "#1e1414"; ctx.beginPath(); ctx.moveTo(px - w, D); ctx.lineTo(px - 12, D - h); ctx.lineTo(px + 12, D - h); ctx.lineTo(px + w, D); ctx.fill()
-        ctx.strokeStyle = `rgba(255,${100 + 40 * Math.sin(t * 3 + j) | 0},30,0.9)`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, D - h); ctx.quadraticCurveTo(px + 14, D - h * 0.5, px + 4, D); ctx.stroke()
-        ctx.fillStyle = "rgba(255,120,40,0.35)"; ctx.beginPath(); ctx.arc(px, D - h, 16, 0, 7); ctx.fill() } } })
-  orPar(0.55, W, padL, padR, 800, x => {   // a waterfall where frost meets flame, steaming at the foot
-    ctx.fillStyle = "#2a2a34"; ctx.fillRect(x - 40, D - 250, 80, 250)
-    const wg = ctx.createLinearGradient(x - 26, 0, x + 26, 0); wg.addColorStop(0, "rgba(170,210,240,0.6)"); wg.addColorStop(0.5, "rgba(240,250,255,0.95)"); wg.addColorStop(1, "rgba(170,210,240,0.6)"); ctx.fillStyle = wg; ctx.fillRect(x - 26, D - 250, 52, 250)
-    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2; for (let j = 0; j < 6; j++) { const y = D - 250 + ((t * 220 + j * 41) % 250); ctx.beginPath(); ctx.moveTo(x - 20 + j * 8, y); ctx.lineTo(x - 20 + j * 8, y + 18); ctx.stroke() }
-    for (let j = 0; j < 6; j++) { const u = (t * 0.4 + j / 6) % 1; ctx.fillStyle = `rgba(235,240,245,${0.45 * (1 - u)})`; ctx.beginPath(); ctx.arc(x + (j - 2.5) * 16, D - 10 - u * 90, 18 + 26 * u, 0, 7); ctx.fill() } })
-  orPar(0.8, W, padL, padR, 800, (x, i) => { const ice = orIce(i)
-    for (let j = 0; j < 4; j++) { const px = x + 160 + j * 160 + 30 * _h(i + j * 3)
-      if (ice) { ctx.fillStyle = "rgba(170,230,255,0.75)"; for (const [dx, h, w] of [[-10, 46, 9], [6, 64, 11], [20, 34, 8]]) { ctx.beginPath(); ctx.moveTo(px + dx - w, D); ctx.lineTo(px + dx, D - h); ctx.lineTo(px + dx + w, D); ctx.fill() } }
-      else for (let f = 0; f < 3; f++) { const fh = 26 + 16 * Math.sin(t * 9 + j * 2 + f); ctx.fillStyle = f === 1 ? "rgba(255,220,90,0.9)" : "rgba(255,110,30,0.8)"; ctx.beginPath(); ctx.moveTo(px + f * 10 - 12, D); ctx.quadraticCurveTo(px + f * 10 - 6, D - fh, px + f * 10, D - fh * 1.1); ctx.quadraticCurveTo(px + f * 10 + 4, D - fh * 0.5, px + f * 10 + 8, D); ctx.fill() } } })
+  const { W, dockTop: D, padL, padR, coverTop, t } = g, iw = orTide(t)
+  const zones = (p, fn) => { const ps = shift(p, W); for (let i = Math.floor((padL - ps) / 1600) - 1; i * 1600 + ps < padR + 1600; i++) { const a = i * 1600 + ps; fn(a, a + iw, a + 1600, i) } }
+  zones(0.15, (a, m, e, i) => {
+    let gr = ctx.createLinearGradient(0, D - 320, 0, D); gr.addColorStop(0, "#050f26"); gr.addColorStop(1, "#3f7fb8"); ctx.fillStyle = gr; ctx.fillRect(a, coverTop, m - a + 1, D - coverTop)
+    for (let s = 0; s < 26; s++) { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.35 * Math.sin(t * 3 + s)})`; ctx.fillRect(a + (m - a) * _h(i * 50 + s), D - 330 + 190 * _h(s * 7 + i * 3), 2, 2) }
+    for (let c = 0; c < 3; c++) { const col = ["80,255,170", "90,200,255", "190,120,255"][c]; for (let xx = a; xx < m; xx += 12) { const y0 = D - 295 + c * 28 + 26 * Math.sin(xx / 130 + t * 0.5 + c * 2), h = 70 + 30 * Math.sin(xx / 50 + t), al = 0.13 * (0.6 + 0.4 * Math.sin(xx / 37 + t * 2 + c))
+      ctx.fillStyle = `rgba(${col},${al})`; ctx.fillRect(xx, y0, 12, h * 0.5); ctx.fillStyle = `rgba(${col},${al * 0.4})`; ctx.fillRect(xx, y0 + h * 0.5, 12, h * 0.5) } }
+    gr = ctx.createLinearGradient(0, D - 320, 0, D); gr.addColorStop(0, "#1a0505"); gr.addColorStop(1, "#c4471a"); ctx.fillStyle = gr; ctx.fillRect(m, coverTop, e - m + 1, D - coverTop)
+    for (let s = 0; s < 5; s++) { ctx.fillStyle = "rgba(40,20,22,0.7)"; ctx.beginPath(); ctx.ellipse(m + (e - m) * (s + 0.5) / 5 + 20 * Math.sin(t * 0.3 + s), D - 255 + 24 * _h(s + i), 120, 38, 0, 0, 7); ctx.fill() }
+    { const kk = t / 1.9 + i * 0.37, k = Math.floor(kk); if (_h(k * 7 + i) < 0.6 && kk % 1 < 0.1) { let bx = m + (e - m) * (0.2 + 0.6 * _h(k + 3)), by = D - 255; ctx.beginPath(); ctx.moveTo(bx, by); for (let j = 0; j < 6; j++) { bx += (_h(k * 13 + j) - 0.5) * 40; by += 18; ctx.lineTo(bx, by) }
+      ctx.strokeStyle = "rgba(200,160,255,0.35)"; ctx.lineWidth = 7; ctx.stroke(); ctx.strokeStyle = "rgba(240,230,255,0.95)"; ctx.lineWidth = 2; ctx.stroke() } }   // volcanic lightning
+    for (const [x, w2] of [[m, 150], [a, 110]]) { const sg = ctx.createLinearGradient(x - w2, 0, x + w2, 0); sg.addColorStop(0, "rgba(225,232,240,0)"); sg.addColorStop(0.5, "rgba(225,232,240,0.5)"); sg.addColorStop(1, "rgba(225,232,240,0)"); ctx.fillStyle = sg; ctx.fillRect(x - w2, coverTop, 2 * w2, D - coverTop) } })
+  zones(0.4, (a, m, e, i) => {
+    for (let px = a + 70; px < m - 50; px += 140) { const h = 120 + 100 * _h(Math.round(px - a) + i * 7), w = 70 + 30 * _h(px - a + 3)
+      ctx.fillStyle = "#d8ecf8"; ctx.beginPath(); ctx.moveTo(px - w, D); ctx.lineTo(px, D - h); ctx.lineTo(px + w, D); ctx.fill(); ctx.fillStyle = "#8ab8d8"; ctx.beginPath(); ctx.moveTo(px, D - h); ctx.lineTo(px + w, D); ctx.lineTo(px + w * 0.2, D); ctx.fill() }
+    if (e - m > 300) { const vx = (m + e) / 2, ph = (t + i * 1.7) % 5.2   // the volcano
+      for (const sx of [-1, 1]) { ctx.fillStyle = "#170f10"; ctx.beginPath(); ctx.moveTo(vx + sx * 140, D); ctx.lineTo(vx + sx * 210, D - 110); ctx.lineTo(vx + sx * 270, D); ctx.fill() }
+      for (let s = 0; s < 6; s++) { const u = (t * 0.12 + s / 6) % 1; ctx.fillStyle = `rgba(50,40,44,${0.5 * (1 - u)})`; ctx.beginPath(); ctx.arc(vx + 30 * Math.sin(u * 5 + s), D - 210 - u * 160, 30 + 40 * u, 0, 7); ctx.fill() }
+      ctx.fillStyle = "#221616"; ctx.beginPath(); ctx.moveTo(vx - 240, D); ctx.lineTo(vx - 50, D - 200); ctx.lineTo(vx + 50, D - 200); ctx.lineTo(vx + 240, D); ctx.fill()
+      ctx.strokeStyle = `rgba(255,${100 + 50 * Math.sin(t * 3) | 0},30,0.9)`; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(vx - 20, D - 200); ctx.quadraticCurveTo(vx - 60, D - 100, vx - 90, D); ctx.moveTo(vx + 25, D - 200); ctx.quadraticCurveTo(vx + 50, D - 120, vx + 110, D); ctx.stroke()
+      ctx.fillStyle = `rgba(255,130,40,${0.4 + 0.4 * (ph < 2 ? 1 : 0)})`; ctx.beginPath(); ctx.ellipse(vx, D - 200, 52, 12, 0, 0, 7); ctx.fill()
+      if (ph < 2) for (let n = 0; n < 28; n++) { const age = ph - n * 0.05; if (age <= 0 || age > 1.5) continue; const ang = -Math.PI / 2 + (_h(n * 3 + i) - 0.5) * 1.3, v = 240 + 170 * _h(n + i * 5)
+        const x = vx + Math.cos(ang) * v * age, y = D - 200 + Math.sin(ang) * v * age + 210 * age * age; if (y < D) { ctx.fillStyle = n % 3 ? "#ff8a2a" : "#ffe27a"; ctx.beginPath(); ctx.arc(x, y, n % 4 ? 3 : 5, 0, 7); ctx.fill() } } } })
+  zones(0.55, a => {   // a waterfall where flame turns back into frost, steaming at the foot
+    ctx.fillStyle = "#2a2a34"; ctx.fillRect(a - 40, D - 250, 80, 250)
+    const wg = ctx.createLinearGradient(a - 26, 0, a + 26, 0); wg.addColorStop(0, "rgba(170,210,240,0.6)"); wg.addColorStop(0.5, "rgba(240,250,255,0.95)"); wg.addColorStop(1, "rgba(170,210,240,0.6)"); ctx.fillStyle = wg; ctx.fillRect(a - 26, D - 250, 52, 250)
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2; for (let j = 0; j < 6; j++) { const y = D - 250 + ((t * 220 + j * 41) % 250); ctx.beginPath(); ctx.moveTo(a - 20 + j * 8, y); ctx.lineTo(a - 20 + j * 8, y + 18); ctx.stroke() }
+    for (let j = 0; j < 6; j++) { const u = (t * 0.4 + j / 6) % 1; ctx.fillStyle = `rgba(235,240,245,${0.45 * (1 - u)})`; ctx.beginPath(); ctx.arc(a + (j - 2.5) * 16, D - 10 - u * 90, 18 + 26 * u, 0, 7); ctx.fill() } })
+  zones(0.7, (a, m, e, i) => { if (m - a < 360) return   // the skater builds an ice slide across the sky as he goes
+    const kk = (t + i * 1.3) / 6, k = Math.floor(kk), u = (kk % 1) * 6 / 3.6, H = 120 + 80 * _h(k + i), x0 = a + 120, x1 = m - 120
+    const pos = s => [x0 + (x1 - x0) * s, D - 30 - H * Math.sin(Math.PI * s)]
+    if (u > 1.4) return; const fade = u > 1 ? (1.4 - u) / 0.4 : 1, s0 = Math.max(0, u - 0.7), s1 = Math.min(1, u)
+    ctx.lineCap = "round"; ctx.beginPath(); for (let s = s0, f = 1; s <= s1 + 0.001; s += 0.02, f = 0) { const [px, py] = pos(s); f ? ctx.moveTo(px, py) : ctx.lineTo(px, py) }
+    ctx.strokeStyle = `rgba(170,225,255,${0.8 * fade})`; ctx.lineWidth = 10; ctx.stroke(); ctx.strokeStyle = `rgba(255,255,255,${0.9 * fade})`; ctx.lineWidth = 3; ctx.stroke()
+    for (let s = Math.ceil(s0 * 12) / 12; s < s1; s += 1 / 12) { const [px, py] = pos(s); ctx.fillStyle = `rgba(200,240,255,${0.7 * fade})`; ctx.beginPath(); ctx.moveTo(px - 4, py + 4); ctx.lineTo(px, py + 16 + 6 * _h(s * 99)); ctx.lineTo(px + 4, py + 4); ctx.fill() }
+    if (u <= 1) { const [px, py] = pos(u), [qx, qy] = pos(Math.max(0, u - 0.01)); orEnochFig(ctx, px, py - 3, Math.atan2(py - qy, px - qx) * 0.8)
+      for (let n = 0; n < 5; n++) { ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.fillRect(px - 10 - n * 6 * _h(n + k), py - 2 - 8 * _h(n * 3 + k + Math.floor(t * 20)), 2, 2) } } })
+  zones(0.85, (a, m, e, i) => {
+    for (let j = 0; j < 2; j++) { const sx = a + 170 + j * 330
+      if (sx > m - 40) { ctx.fillStyle = "rgba(150,200,240,0.65)"; ctx.beginPath(); ctx.ellipse(sx, D - 3, 26, 5, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#ff8a2a"; ctx.fillRect(sx + 4, D - 6, 8, 3); ctx.fillStyle = "#111"; ctx.fillRect(sx - 8, D - 5, 3, 3); ctx.fillRect(sx - 2, D - 6, 3, 3); continue }   // melted
+      const near = m - sx < 140, wave = Math.sin(t * 3 + j * 2 + i) * 0.5
+      ctx.fillStyle = "#f4f8ff"; for (const [r, y] of [[17, -17], [13, -43], [10, -63]]) { ctx.beginPath(); ctx.arc(sx, D + y, r, 0, 7); ctx.fill() }
+      ctx.fillStyle = "#111"; ctx.fillRect(sx - 4, D - 66, 2.5, 2.5); ctx.fillRect(sx + 2, D - 66, 2.5, 2.5); ctx.fillRect(sx - 1, D - 47, 2, 2); ctx.fillRect(sx - 1, D - 40, 2, 2)
+      ctx.fillStyle = "#ff8a2a"; ctx.beginPath(); ctx.moveTo(sx, D - 63); ctx.lineTo(sx + 12, D - 61); ctx.lineTo(sx, D - 59); ctx.fill(); ctx.fillStyle = j ? "#d02a3a" : "#2a8ad0"; ctx.fillRect(sx - 11, D - 55, 22, 5)
+      if (j === 0) { ctx.fillStyle = "#14141a"; ctx.fillRect(sx - 9, D - 75, 18, 4); ctx.fillRect(sx - 6, D - 88, 12, 13) }
+      ctx.strokeStyle = "#5a3a22"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx - 12, D - 44); ctx.lineTo(sx - 28, D - 54 + wave * 14); ctx.moveTo(sx + 12, D - 44); ctx.lineTo(sx + 28, D - 52 - wave * 10); ctx.stroke()
+      if (near) for (let d = 0; d < 3; d++) { const u = (t * 1.5 + d / 3) % 1; ctx.fillStyle = "rgba(120,190,255,0.85)"; ctx.beginPath(); ctx.arc(sx + 9 + d * 2, D - 70 + u * 30, 1.8, 0, 7); ctx.fill() } }   // sweating near the fire
+    if (e - m > 200) { const lx = m + (e - m) * 0.28, gx = m + (e - m) * 0.78
+      const lg = ctx.createRadialGradient(lx, D - 2, 4, lx, D - 2, 60); lg.addColorStop(0, "rgba(255,200,80,0.95)"); lg.addColorStop(1, "rgba(255,80,20,0)"); ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(lx, D - 2, 60, 10, 0, 0, 7); ctx.fill()
+      for (let b = 0; b < 4; b++) { const u = (t * 0.8 + b / 4) % 1; ctx.strokeStyle = `rgba(255,220,120,${1 - u})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(lx - 30 + b * 20, D - 4, 3 + 6 * u, Math.PI, 0); ctx.stroke() }
+      const ph = (t + i * 0.9) % 3.3; if (ph < 0.9) { const hh = 150 * Math.sin(ph / 0.9 * Math.PI); const fg = ctx.createLinearGradient(0, D - hh, 0, D); fg.addColorStop(0, "rgba(255,230,120,0)"); fg.addColorStop(0.3, "rgba(255,170,60,0.9)"); fg.addColorStop(1, "rgba(255,80,20,0.95)")
+        ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(gx - 14, D); ctx.quadraticCurveTo(gx - 20, D - hh * 0.5, gx, D - hh); ctx.quadraticCurveTo(gx + 20, D - hh * 0.5, gx + 14, D); ctx.fill() }
+      ctx.fillStyle = "#2a1a16"; ctx.beginPath(); ctx.ellipse(gx, D - 2, 22, 6, 0, 0, 7); ctx.fill() } })
 }
 const orBackDim = (k, ctx, g) => (k === 0 ? orLab : k === 1 ? orSky : orFrost)(ctx, g)
 
 // ── floors (painted in the fx pass, over the generated base floor; world-locked, simple perspective) ──
 function orFloorDim(k, ctx, g) {
-  const { dockTop: D, padL, padR, B, t } = g, vx = (padL + padR) / 2, bot = x0 => x0 + (x0 - vx) * 1.6
+  const { dockTop: D, padL, padR, B, t } = g, vx = (padL + padR) / 2, bot = x0 => x0 + (x0 - vx) * 1.6, T = OR.skyT
   const slab = (x0, x1, top, botc) => { const gr = ctx.createLinearGradient(0, D, 0, B); gr.addColorStop(0, top); gr.addColorStop(1, botc); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x0, D); ctx.lineTo(x1, D); ctx.lineTo(bot(x1), B); ctx.lineTo(bot(x0), B); ctx.fill() }
   const grid = (step, col) => { ctx.strokeStyle = col; ctx.lineWidth = 2; for (let x0 = Math.floor((padL - 1600) / step) * step; x0 < padR + 1600; x0 += step) { ctx.beginPath(); ctx.moveTo(x0, D); ctx.lineTo(bot(x0), B); ctx.stroke() }
     for (let n = 1; D + 6 * n ** 1.7 < B; n++) { const y = D + 6 * n ** 1.7; ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padR, y); ctx.stroke() } }
   if (k === 0) { slab(padL - 3000, padR + 3000, "#34303e", "#14121a"); grid(120, "rgba(0,0,0,0.45)")
     for (let x = Math.floor(padL / 24) * 24; x < padR; x += 24) { ctx.fillStyle = (x / 24) % 2 ? "#e8c020" : "#14121a"; ctx.beginPath(); ctx.moveTo(x, D); ctx.lineTo(x + 24, D); ctx.lineTo(x + 18, D + 8); ctx.lineTo(x - 6, D + 8); ctx.fill() }
     ctx.fillStyle = `rgba(170,80,255,${0.35 + 0.2 * Math.sin(t * 3)})`; ctx.fillRect(padL, D + 30, padR - padL, 3) }
-  else if (k === 1) { slab(padL - 3000, padR + 3000, "#c89a68", "#5a3e30"); grid(150, "rgba(60,30,20,0.3)")
-    ctx.fillStyle = "#8ab05a"; ctx.fillRect(padL, D, padR - padL, 9); ctx.fillStyle = "#a8c868"; for (let x = Math.floor(padL / 14) * 14; x < padR; x += 14) { ctx.beginPath(); ctx.moveTo(x, D + 4); ctx.lineTo(x + 4, D - 6 - 4 * _h(x)); ctx.lineTo(x + 8, D + 4); ctx.fill() } }
-  else { for (let i = Math.floor(padL / 800) - 3; i * 800 < padR + 2400; i++) { const ice = orIce(i), x0 = i * 800
-      slab(x0, x0 + 801, ice ? "#d4ecf6" : "#3a2a26", ice ? "#7aa8c8" : "#120c0c")
-      ctx.strokeStyle = ice ? "rgba(255,255,255,0.7)" : `rgba(255,120,40,${0.6 + 0.3 * Math.sin(t * 2 + i)})`; ctx.lineWidth = ice ? 1.5 : 2.5
-      for (let c = 0; c < 7; c++) { const cx = x0 + 60 + 100 * c + 40 * _h(i * 13 + c), cy = D + 20 + (B - D - 40) * _h(i * 7 + c * 3); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 30, cy + 8); ctx.lineTo(cx + 46, cy - 4); ctx.lineTo(cx + 80, cy + 6); ctx.stroke() }
-      const sg = ctx.createLinearGradient(x0 - 40, 0, x0 + 40, 0); sg.addColorStop(0, "rgba(200,220,235,0)"); sg.addColorStop(0.5, "rgba(200,220,235,0.3)"); sg.addColorStop(1, "rgba(200,220,235,0)"); ctx.fillStyle = sg; ctx.fillRect(x0 - 40, D, 80, 26) }
-    for (let n = 0; n < 70; n++) { const x = padL + (padR - padL) * ((n * 0.6180339 + 0.37 * Math.floor(n / 35)) % 1), ice = orIce(Math.floor(x / 800)), u = (t * (ice ? 0.12 : 0.18) + n * 0.137) % 1
+  else if (k === 1) { slab(padL - 3000, padR + 3000, "#c89a68", "#5a3e30"); grid(150, "rgba(60,30,20,0.25)")
+    for (let i = Math.floor(padL / 1000) - 1; i * 1000 < padR + 1000; i++) { const px = i * 1000 + 500, py = D + 46   // launch pads
+      ctx.fillStyle = "#3a3a46"; ctx.beginPath(); ctx.ellipse(px, py, 120, 20, 0, 0, 7); ctx.fill(); ctx.strokeStyle = "#ffc840"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(px, py, 104, 16, 0, 0, 7); ctx.stroke()
+      ctx.save(); ctx.translate(px, py); ctx.scale(1, 0.28); ctx.font = "900 70px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#ffc840"; ctx.fillText("D", 0, 4); ctx.restore()
+      for (let l = 0; l < 10; l++) { const a = l / 10 * Math.PI * 2; ctx.fillStyle = (Math.floor(t * 8) % 10) === l ? "#fff6c0" : "#7a6a3a"; ctx.beginPath(); ctx.arc(px + Math.cos(a) * 112, py + Math.sin(a) * 18, 2.6, 0, 7); ctx.fill() } }
+    for (let x = Math.floor(padL / 37) * 37; x < padR; x += 37) if (_h(x) < 0.35) { const y = D + 12 + 60 * _h(x * 3); ctx.fillStyle = ["#ff6a8a", "#ffe066", "#ffffff", "#b07aff"][Math.floor(_h(x * 7) * 4)]; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill() }
+    ctx.fillStyle = "#8ab05a"; ctx.fillRect(padL, D, padR - padL, 9); ctx.fillStyle = "#a8c868"
+    for (let x = Math.floor(padL / 12) * 12; x < padR; x += 12) { const sw = 4 * Math.sin(T * 2 + x * 0.03); ctx.beginPath(); ctx.moveTo(x, D + 5); ctx.lineTo(x + 4 + sw, D - 7 - 4 * _h(x)); ctx.lineTo(x + 8, D + 5); ctx.fill() }
+    for (let n = 0; n < 26; n++) { const span = padR - padL + 200, x = padL - 100 + ((n * 137 + T * 90 * (1 + _h(n))) % span), y = D - 300 + ((n * 53 + T * 25) % 420) + 20 * Math.sin(T * 2 + n)   // drifting petals
+      ctx.save(); ctx.translate(x, y); ctx.rotate(T * 3 + n); ctx.fillStyle = n % 2 ? "rgba(255,170,200,0.9)" : "rgba(255,220,120,0.9)"; ctx.beginPath(); ctx.ellipse(0, 0, 4, 2, 0, 0, 7); ctx.fill(); ctx.restore() } }
+  else { const iw = orTide(t)
+    for (let i = Math.floor(padL / 1600) - 2; i * 1600 < padR + 3200; i++) { const b = i * 1600, m = b + iw
+      slab(b, m + 1, "#d4ecf6", "#7aa8c8"); slab(m, b + 1601, "#3a2a26", "#120c0c")
+      ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2; for (let c = 0; c < 4; c++) { const cx = b + 160 + 170 * c; if (cx > m - 80) break; ctx.beginPath(); ctx.ellipse(cx, D + 45 + 30 * _h(i + c), 70 + 20 * _h(c * 3), 12, 0, 0.2, 2.6); ctx.stroke() }   // skate marks
+      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5; for (let c = 0; c < 5; c++) { const cx = b + 60 + 140 * c + 40 * _h(i * 13 + c); if (cx > m - 90) break; const cy = D + 20 + (B - D - 40) * _h(i * 7 + c * 3); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 30, cy + 8); ctx.lineTo(cx + 46, cy - 4); ctx.lineTo(cx + 80, cy + 6); ctx.stroke() }
+      ctx.strokeStyle = `rgba(255,120,40,${0.6 + 0.3 * Math.sin(t * 2 + i)})`; ctx.lineWidth = 2.5; for (let c = 0; c < 6; c++) { const cx = m + 70 + 130 * c + 30 * _h(i * 17 + c); if (cx > b + 1520) break; const cy = D + 20 + (B - D - 40) * _h(i * 5 + c * 3); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 30, cy + 8); ctx.lineTo(cx + 46, cy - 4); ctx.lineTo(cx + 80, cy + 6); ctx.stroke() }
+      const sg = ctx.createLinearGradient(m - 50, 0, m + 50, 0); sg.addColorStop(0, "rgba(220,230,240,0)"); sg.addColorStop(0.5, "rgba(220,230,240,0.5)"); sg.addColorStop(1, "rgba(220,230,240,0)"); ctx.fillStyle = sg; ctx.fillRect(m - 50, D, 100, 30)
+      ctx.fillStyle = "rgba(120,180,230,0.45)"; ctx.fillRect(b - 40, D, 80, 14) }
+    for (let n = 0; n < 70; n++) { const x = padL + (padR - padL) * ((n * 0.6180339 + 0.37 * Math.floor(n / 35)) % 1), ice = (((x % 1600) + 1600) % 1600) < iw, u = (t * (ice ? 0.12 : 0.18) + n * 0.137) % 1
       const y = ice ? D - 320 + (B - D + 320) * u : B - (B - D + 320) * u
       ctx.fillStyle = ice ? "rgba(255,255,255,0.85)" : `rgba(255,${140 + 80 * _h(n) | 0},40,${0.9 * (1 - u)})`; ctx.beginPath(); ctx.arc(x + Math.sin(t + n) * 8, y, ice ? 2.2 : 1.8, 0, 7); ctx.fill() } }
 }
 
-// paint one layer for every dimension that is on screen: the current one; a rift opening into the next; a flicker band;
-// or all three side by side after the knockout
-function orPaint(ctx, g, fn, withFlick) {
+// paint one layer for every dimension that is on screen: the current one; a rift opening into the next; or all three
+// side by side after the knockout
+function orPaint(ctx, g, fn) {
   const { padL, padR, dockTop: D, coverTop } = g, top = coverTop - 50, bottom = (g.B || D) + 50
   if (OR.merged) { const w = (padR - padL) / 3; for (let k = 0; k < 3; k++) { ctx.save(); ctx.beginPath(); ctx.rect(padL + k * w, top, w + 1, bottom - top); ctx.clip(); fn(k); ctx.restore() } return }
   const ph = OR.phase
   if (ph && ph.k === "wipe") { fn(ph.from); ctx.save(); ctx.beginPath(); ctx.arc((padL + padR) / 2, D - 150, orR(ph, g), 0, 7); ctx.clip(); fn(ph.to); ctx.restore(); return }
   fn(OR.dim)
-  if (withFlick && OR.flick) { ctx.save(); ctx.beginPath(); ctx.rect(padL, OR.flick.y, padR - padL, OR.flick.h); ctx.clip(); fn(OR.flick.k); ctx.restore() }
 }
 const orR = (ph, g) => { const u = Math.min(1, ph.t / 0.9), e = u * u * (3 - 2 * u); return 4 + e * Math.hypot(g.padR - g.padL, 1500) }
 
 function drawOriginalsBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   const g = { W, dockTop, padL, padR, coverTop, t: now() }
-  orPaint(ctx, g, k => orBackDim(k, ctx, g), true)
+  orPaint(ctx, g, k => orBackDim(k, ctx, g))
+  const f = OR.flick; if (!f || OR.merged) return   // the GLITCH: another map of the game shows through
+  const draw = () => { if (!f.set || !orDrawOther(ctx, f.set)) orBackDim(f.k ?? (OR.dim + 1) % 3, ctx, g) }
+  if (f.full) { ctx.save(); ctx.beginPath(); ctx.rect(padL - 20, coverTop - 50, padR - padL + 40, 4000); ctx.clip(); draw(); ctx.restore(); return }
+  for (const b of f.bands) { ctx.save(); ctx.beginPath(); ctx.rect(padL - 20, b.y, padR - padL + 40, b.h); ctx.clip(); ctx.translate(b.dx, 0); draw(); ctx.restore() }
 }
 function originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S, D = dockTop
-  if (F[0] !== OR.p1) { Object.assign(OR, { p1: F[0], hp: new WeakMap(), dim: 0, phase: null, nextSwap: t + 9 + 4 * orRnd(), flick: null, merged: null, banner: { txt: OR_NAMES[0], t: 2.4 }, unstable: false, shout: [] })
-    OR.st = { swaps: 0, shakes: 0, flickers: 0, unstable: 0, merged: 0, seen: [1, 0, 0] } }
+  if (F[0] !== OR.p1) { Object.assign(OR, { p1: F[0], hp: new WeakMap(), dim: 0, phase: null, nextSwap: t + 9 + 4 * orRnd(), flick: null, nextGlitch: t + 3 + 3 * orRnd(), merged: null, banner: { txt: OR_NAMES[0], t: 2.4 }, unstable: false, shout: [], win: new Map(), nextFlash: t + 6 + 4 * orRnd(), flashUntil: 0 })
+    OR.st = { swaps: 0, shakes: 0, flickers: 0, glitches: 0, glimpsed: [], unstable: 0, merged: 0, flashes: 0, seen: [1, 0, 0] } }
   const dt = Math.min(0.05, Math.max(0, t - (OR.last || t))); OR.last = t
   const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = D + def.standRow * S, cx = (padL + padR) / 2
+  orPoolTick()
+  // FLASH TIME (Dseyl's sky drops to slow motion; the speedster doesn't)
+  if (t > OR.nextFlash) { OR.flashUntil = t + 3; OR.nextFlash = t + 11 + 6 * orRnd(); OR.st.flashes++; if (OR.dim === 1 && !OR.merged && !OR.phase) orShout(cx, D - 175, "⚡ FLASH TIME ⚡", "#c89a10") }
+  OR.flashK = Math.max(0, Math.min(1, OR.flashK + (t < OR.flashUntil ? 4 : -3) * dt)); OR.skyT += dt * (1 - 0.85 * OR.flashK)
   let big = false, low = false, ko = false
   for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = OR.hp.get(f); OR.hp.set(f, hp)
     if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
     if (was != null && was - hp >= 60) big = true }
-  // the multiverse timeline
+  // the multiverse timeline (the full switch only moves between the three originals)
   if (low && !OR.unstable && !OR.merged) { OR.st.unstable++; orShout(mid, feet - 240, "THE MULTIVERSE IS SPLITTING!", "#8a2ad0"); OR.nextSwap = Math.min(OR.nextSwap, t + 2.5) }
   OR.unstable = low
-  if (ko && !OR.merged) { OR.merged = { t: 0 }; OR.phase = null; OR.st.merged++; OR.st.seen = [1, 1, 1]; camera.shake?.(12, 30); OR.st.shakes++ }
+  if (ko && !OR.merged) { OR.merged = { t: 0 }; OR.phase = null; OR.flick = null; OR.st.merged++; OR.st.seen = [1, 1, 1]; camera.shake?.(12, 30); OR.st.shakes++ }
   if (OR.merged) { OR.merged.t += dt; if (!ko && OR.merged.t > 4) { OR.merged = null; OR.nextSwap = t + 8; OR.banner = { txt: OR_NAMES[OR.dim], t: 2.4 } } }
   if (!OR.merged) {
     const start = to => { OR.phase = { k: "rumble", t: 0, to }; camera.shake?.(4, 60); OR.st.shakes++ }
@@ -5910,14 +6054,24 @@ function originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     const ph = OR.phase
     if (ph) { ph.t += dt
       if (ph.k === "rumble" && ph.t > 1) { OR.phase = { k: "wipe", t: 0, to: ph.to, from: OR.dim }; camera.shake?.(10, 24); OR.st.shakes++ }
-      else if (ph.k === "wipe" && ph.t > 0.9) { OR.dim = ph.to; OR.st.seen[ph.to] = 1; OR.st.swaps++; OR.phase = null; OR.nextSwap = t + (OR.unstable ? 6 + 5 * orRnd() : 14 + 12 * orRnd()); OR.banner = { txt: OR_NAMES[ph.to], t: 2.4 } } } }
-  if (big && !OR.merged) { OR.st.flickers++; OR.flick = { k: (OR.dim + 1 + (orRnd() < 0.5 ? 0 : 1)) % 3, y: D - 300 + orRnd() * 220, h: 30 + orRnd() * 50, t: 0.22 }; camera.shake?.(3, 8)
-    if (OR.st.flickers % 2 === 1) orShout(mid + (orRnd() - 0.5) * 260, D - 120, [["ANOMALY DETECTED.", "KAMUI!", "DATA LOGGED."], ["TOO SLOW!", "FLASH TIME!", "BLINK AND YOU MISS IT!"], ["CHILL OUT!", "TURN UP THE HEAT!", "STAY FROSTY!"]][OR.dim][(OR.st.flickers >> 1) % 3], `rgb(${OR_TINT[OR.dim]})`) }
-  if (OR.flick) { OR.flick.t -= dt; if (OR.flick.t <= 0) OR.flick = null }
-  // floors for whatever is on screen, then the watchers
+      else if (ph.k === "wipe" && ph.t > 0.9) { OR.dim = ph.to; OR.st.seen[ph.to] = 1; OR.st.swaps++; OR.phase = null; OR.nextSwap = t + (OR.unstable ? 6 + 5 * orRnd() : 14 + 12 * orRnd()); OR.banner = { txt: OR_NAMES[ph.to], t: 2.4 } } }
+    // the GLITCH: at random (and on big hits) another map of the game flashes through for a split second
+    if (!OR.flick && !OR.phase && (t > OR.nextGlitch || big)) { const m = orTakeReady(), full = OR.glitchFull ?? orRnd() < 0.35; OR.glitchFull = null
+      OR.flick = m ? { set: m[0], name: m[1].toUpperCase(), full, t: full ? 0.3 : 0.45, bands: [], next: 0 } : { set: null, k: (OR.dim + 1 + (orRnd() < 0.5 ? 0 : 1)) % 3, name: "", full: false, t: 0.4, bands: [], next: 0 }
+      OR.st.glitches++; if (m && !OR.st.glimpsed.includes(m[1])) OR.st.glimpsed.push(m[1]); OR.nextGlitch = t + (OR.unstable ? 2 : 3.5) + 4 * orRnd(); camera.shake?.(full ? 5 : 3, 8) }
+    if (big) { OR.st.flickers++; if (OR.st.flickers % 2 === 1) orShout(mid + (orRnd() - 0.5) * 260, D - 120, [["ANOMALY DETECTED.", "KAMUI!", "DATA LOGGED."], ["TOO SLOW!", "FLASH TIME!", "BLINK AND YOU MISS IT!"], ["CHILL OUT!", "TURN UP THE HEAT!", "STAY FROSTY!"]][OR.dim][(OR.st.flickers >> 1) % 3], `rgb(${OR_TINT[OR.dim]})`) } }
+  const f = OR.flick
+  if (f) { f.t -= dt; if (f.t <= 0) OR.flick = null
+    else if (!f.full && t > f.next) { f.next = t + 0.07; f.bands = Array.from({ length: 2 + Math.floor(orRnd() * 3) }, () => ({ y: D - 330 + orRnd() * 300, h: 14 + orRnd() * 60, dx: (orRnd() - 0.5) * 40 })) } }
+  // floors for whatever is on screen, then the watchers (a full-screen glitch shows the other map's own floor)
   const g = { W, dockTop: D, padL, padR, coverTop: D - 900, B: coverBottom, t }
-  orPaint(ctx, g, k => orFloorDim(k, ctx, g), false)
-  drawCrowd(ctx, ORC, { W, feet, sh: shift(0.9, W) })
+  if (!(OR.flick && OR.flick.full)) { orPaint(ctx, g, k => orFloorDim(k, ctx, g)); drawCrowd(ctx, ORC, { W, feet, sh: shift(0.9, W) }) }
+  if (OR.flick) { const fl = OR.flick   // glitch dressing: RGB split lines + the glimpsed map's name
+    const rows = fl.full ? [{ y: D - 330, h: coverBottom - D + 330 }] : fl.bands
+    for (const b of rows) { ctx.fillStyle = "rgba(255,0,80,0.28)"; ctx.fillRect(padL, b.y, padR - padL, 2); ctx.fillStyle = "rgba(0,255,230,0.28)"; ctx.fillRect(padL, b.y + b.h - 2, padR - padL, 2) }
+    for (let j = 0; j < 8; j++) { const y = D - 330 + 400 * _h(Math.floor(t * 40) * 9 + j); ctx.fillStyle = j % 2 ? "rgba(255,40,120,0.18)" : "rgba(40,255,230,0.18)"; ctx.fillRect(padL, y, padR - padL, 3) }
+    if (fl.name) { ctx.save(); ctx.font = "900 15px monospace"; ctx.textAlign = "left"; ctx.fillStyle = "rgba(0,0,0,0.6)"; const tx = padL + 30, ty = D - 300; ctx.fillRect(tx - 8, ty - 14, ctx.measureText("▓ SIGNAL: " + fl.name).width + 16, 22)
+      ctx.fillStyle = "#ff3a7a"; ctx.fillText("▓ SIGNAL: " + fl.name, tx + 2, ty + 2); ctx.fillStyle = "#7affef"; ctx.fillText("▓ SIGNAL: " + fl.name, tx, ty); ctx.restore() } }
   // cracks in reality (the rumble before a rift; faint and constant once the multiverse is unstable)
   const ph = OR.phase, crack = ph && ph.k === "rumble" ? Math.min(1, ph.t) : OR.unstable && !OR.merged ? 0.25 : 0
   if (crack > 0) { const seed = OR.st.swaps * 17 + (ph ? ph.to : 9), col = OR_TINT[ph ? ph.to : (OR.dim + 1) % 3]
@@ -5932,7 +6086,6 @@ function originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.font = "900 38px Arial"; ctx.lineWidth = 7; ctx.strokeStyle = "#120a1e"; ctx.strokeText("THE ORIGINALS", cx, D - 245); ctx.fillStyle = "#fff"; ctx.fillText("THE ORIGINALS", cx, D - 245)
     ctx.font = "900 20px Arial"; for (let k = 0; k < 3; k++) { const x = padL + (k + 0.5) * w; ctx.lineWidth = 5; ctx.strokeText(OR_WHO[k], x, D - 200); ctx.fillStyle = `rgb(${OR_TINT[k]})`; ctx.fillText(OR_WHO[k], x, D - 200) }
     ctx.restore() }
-  // the dimension's name as it arrives
   if (OR.banner && !OR.merged) { const b = OR.banner; b.t -= dt; if (b.t <= 0) OR.banner = null; else {
     ctx.save(); ctx.globalAlpha = Math.min(1, b.t * 2, (2.4 - b.t) * 4); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "900 26px Arial"; ctx.lineJoin = "round"; ctx.lineWidth = 6; ctx.strokeStyle = "#120a1e"
     ctx.strokeText(b.txt, cx, D - 240); ctx.fillStyle = `rgb(${OR_TINT[OR.dim]})`; ctx.fillText(b.txt, cx, D - 240); ctx.restore() } }

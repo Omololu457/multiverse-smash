@@ -814,6 +814,7 @@ import { fatalityStatus as _fatalityStatus } from "./fatalityCinematic.js"
 const fatalityStatusPhase = () => _fatalityStatus().phase
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { screenBreakerInput, startScreenBreaker, screenBreakerActive, screenBreakerDone, updateScreenBreaker, screenBreakerWorld, drawScreenBreaker, clearScreenBreaker } from "./screenBreaker.js"   // SCREEN BREAKER — in-game FINISH-window finisher (GRAB → SPECIAL/DOWN): throw the loser into the screen, the glass cracks
+import { signatureFatalityInput, startSignatureFatality, signatureFatalityActive, signatureFatalityDone, updateSignatureFatality, drawSignatureFatalityUnder, drawSignatureFatalityOver, drawSignatureFatalityScreen, clearSignatureFatality } from "./signatureFatality.js"   // SIGNATURE FATALITIES — FINISH window, SPECIAL: each fighter's defining technique, in the arena
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
 import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"   // canon BRUTALITY concept table (per-winner finisher themes)
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
@@ -21954,13 +21955,20 @@ function _drawParryClashFlash() {
 
 function updateBattle() {
   if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
+  if (signatureFatalityActive()) {   // SIGNATURE FATALITY plays out in the arena (cosmetic, match already decided) → victory
+    updateSignatureFatality()
+    if (signatureFatalityDone()) { clearSignatureFatality(); _enterVictoryScreen() }
+    return
+  }
   if (screenBreakerActive()) {   // SCREEN BREAKER plays out in the arena (cosmetic, match already decided) → victory
     updateScreenBreaker(canvas.width, canvas.height)
     if (screenBreakerDone()) { clearScreenBreaker(); _enterVictoryScreen() }
     return
   }
   if (isFatalityActive()) {   // FINISH-window fatality — read the winner's Ultimate press; on done → fatality?victory : brutality
-    { const _sbw = fatalityWinner(); if (_sbw && fatalityStatusPhase() === "window" && screenBreakerInput(readRawControls(_sbw)) && startScreenBreaker(_sbw, _sbw === p1 ? p2 : p1)) { clearFatalityCinematic(); return } }
+    { const _sbw = fatalityWinner(), _raw = _sbw ? readRawControls(_sbw) : null
+      if (_sbw && fatalityStatusPhase() === "window" && screenBreakerInput(_raw) && startScreenBreaker(_sbw, _sbw === p1 ? p2 : p1)) { clearFatalityCinematic(); return }
+      if (_sbw && fatalityStatusPhase() === "window" && signatureFatalityInput(_raw) && startSignatureFatality(_sbw, _sbw === p1 ? p2 : p1)) { clearFatalityCinematic(); return } }
     const _fwf = fatalityWinner(); updateFatalityCinematic({ ultPressed: _fwf ? !!(readRawControls(_fwf) || {}).ultimate : false, sound })
     if (fatalityDone()) {
       const _perf = fatalityWasPerformed(), _fw = fatalityWinner()
@@ -22956,7 +22964,7 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1) * (fighter._sksAlpha || 1)   // × MSV1-SUKUNA Datto see-through (render-only) × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (_ssA === 0 && (dashParrBodyAlpha(fighter) === 0 || ninjaBodyAlpha(fighter) === 0)) { c.beginPath(); c.rect(0, 0, 0, 0); c.clip() }   // Dash: body fully hidden while Laps / Incredi-Rush draw him at render offsets (the sprite's tint + transition-ghost passes reset globalAlpha)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
@@ -24803,6 +24811,7 @@ function drawBattleScene() {
   drawDseylUnder(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
   drawFrozoneUnder(ctx, p1, p2, FROZONE_WORLD)   // Frozone — Black Ice patch, skate ribbon, ultimate floor ice + ramp (world-space, under the fighters; render-only; gated)
   for (const _bf of [p1, p2]) { const _rd = benReadyForm(_bf); if (_rd && _rd.drawUnder) _rd.drawUnder(ctx, _bf) }   // READY Omnitrix form under-layer (Megawhatt Blackout stage dim; render-only)
+  drawSignatureFatalityUnder(ctx, canvas)   // SIGNATURE FATALITY: the arena darkens (Hollow Purple: the map goes black), under the fighters
   drawEnochUnder(ctx, p1, p2, ENOCH_WORLD)   // Enoch — ICE / FIRE / WATER patches + the hovering disc (world-space, under the fighters; render-only; gated)
   drawMrUnder(ctx,p1,p2) // authored, cached cosmetic foot shadows
   drawBatmanUnder(ctx, p1, p2)   // Batman — low smoke + far-side orbiting bombers under the fighters (render-only; gated)
@@ -24850,7 +24859,8 @@ function drawBattleScene() {
   drawSyndromeOver(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — commanded machines in front (claws, Spinner, Drones, Velocipod, shots, Zero-Point field; render-only; gated)
   drawDseylOver(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — commanded machines in front (claws, Spinner, Drones, Velocipod, shots, Zero-Point field; render-only; gated)
   drawFrozoneOver(ctx, p1, p2, FROZONE_WORLD)   // Frozone — ice strikes, lance, guard plate, Chill pips, freeze shell, shatter fragments (render-only; gated)
-  drawEnochOver(ctx, p1, p2, ENOCH_WORLD)   // Enoch — visor beam, reaction bursts, steam clouds (capped), super presentation (render-only; gated)
+  drawEnochOver(ctx, p1, p2, ENOCH_WORLD)
+  drawSignatureFatalityOver(ctx)   // SIGNATURE FATALITY: the technique + the victim's redrawn sprite (world space, over the fighters)   // Enoch — visor beam, reaction bursts, steam clouds (capped), super presentation (render-only; gated)
   drawMrEffects(ctx,p1,p2) // restrained form flash / skin-coordinated impact rings
   drawKevinFx(ctx,[p1,p2])
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
@@ -25427,9 +25437,10 @@ function drawBattle() {
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
+  drawSignatureFatalityScreen(ctx, canvas)   // SIGNATURE FATALITY: Death Note page, flash, technique name + FATALITY (screen space)
   drawScreenBreaker(ctx, canvas)       // SCREEN BREAKER: the cracked glass + smear + banner (screen space)
   drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
-  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
+  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || signatureFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
   if (!_cineHidesHud) drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
@@ -31064,6 +31075,7 @@ gameLoop()
       p2: p2 ? { maxHealth: p2.maxHealth, key: p2.rosterKey } : null, gravity: physics.gravity }),
     setModifiers: (mods = []) => { matchConfig.modifiers = Array.isArray(mods) ? mods : []; if (p1 && p2) _applyMatchModifiers(); return matchConfig.modifiers },
     forceP1Win: () => { if (p2) p2.health = 0 },
+    forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },   // test hook: the match-ending KO right now (→ the FINISH window)
     forceP1Lose: () => { if (p1) p1.health = 0 },
     // ── ARCADE diagnostics + drivers (Stage 19) ──────────────────────────────
     arcadeInfo: () => ({

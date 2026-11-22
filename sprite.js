@@ -1350,8 +1350,13 @@ export class SpriteHandler {
     const _spr    = impactPostCanvas || sheet;
     const _sprX   = impactPostCanvas ? 0 : sx;
     const _sprY   = impactPostCanvas ? 0 : sy;
-    const _sprFilter = impactPostCanvas ? "none" : spriteFilter;
+    const _sprFilter = fighter._fxFilter || (impactPostCanvas ? "none" : spriteFilter);   // _fxFilter: post-match finisher tint (signatureFatality.js)
     if (fighter.rosterKey === 'violet') ctx.globalAlpha *= violetAlpha(fighter);   // Violet VANISH: 35 % while invisible (render-only)
+    // FINISHER PRESENTATION (signatureFatality.js, post-match only): _fxAlpha fades/hides the sprite; _fxRecord asks for the
+    // exact frame drawn (sheet + source rect + world rect) so the finisher can redraw it cut, shattered or dissolving.
+    // Both unset → strict no-op for every fighter.
+    if (fighter._fxAlpha != null) ctx.globalAlpha *= fighter._fxAlpha;
+    if (fighter._fxRecord) fighter._lastFrameDraw = { img: _spr, sx: _sprX, sy: _sprY, sw: drawWidth, sh: drawHeight, x: fighter.x - offsetX, y: drawY, w: dstW, h: dstH, flip: drawFacing === -1 };
 
     if (_sheetReady(sheet)) {
       if (_sprFilter !== "none") ctx.filter = _sprFilter;

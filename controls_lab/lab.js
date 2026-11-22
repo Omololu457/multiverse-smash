@@ -101,7 +101,7 @@ async function finisherDemo(m) {
   const steps = m.parsed.steps
   for (let i = 0; i < steps.length; i++) { if (ctl) ctl.setGuide(steps[i], { text: "" }); await eng.frames(14); if (S.task !== task) { S.finisher = null; return null } }
   if (ctl) ctl.setGuide(null)
-  const a = eng.p1(), b = eng.p2(), ok = m.fin === "sb" ? eng.mods.sb.startScreenBreaker(a, b) : eng.mods.sig.startSignatureFatality(a, b)
+  const ok = eng.h.finisherDemo(m.fin)   // on the LIVE fighters (eng.p1() is a snapshot)
   // the finisher plays out in the arena; it is over when the game clears it (a match then goes to its victory screen;
   // the Lab's training match stays in battle)
   const live = () => { try { return m.fin === "sb" ? eng.mods.sb.screenBreakerActive() || eng.mods.sb.screenBreakerDone() : !!eng.mods.sig.signatureFatalityState().phase } catch (_) { return false } }

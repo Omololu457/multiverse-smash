@@ -19,6 +19,9 @@ try {
   await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1`, { waitUntil: "load" })
   const cov = await page.evaluate(async () => { const [m, s] = await Promise.all([import("./characters.js"), import("./signatureFatality.js")]); const C = m.characters || m.default; return Object.keys(C).filter(k => !C[k].hidden && !s.SIGNATURE_TABLE[k]) })
   check("every roster fighter has a signature fatality", cov.length === 0, JSON.stringify(cov))
+  const noAct = await page.evaluate(async () => { const [m, s] = await Promise.all([import("./characters.js"), import("./signatureFatality.js")]); const C = m.characters || m.default
+    return Object.keys(C).filter(k => !C[k].hidden).filter(k => { const A = C[k].animationData || {}, p = s.signatureFatalityPlan({ ...C[k], rosterKey: k, animationData: undefined }); return !(p.windup in A && p.release in A && p.strikes.length && p.strikes.every(a => a in A)) }) })
+  check("every roster fighter ACTS their fatality with their own strips (wind-up, release, strikes all exist)", noAct.length === 0, JSON.stringify(noAct))
   for (const cs of CASES) { const [key, kind] = cs.split(":")
     await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=${key}&p2=naruto`, { waitUntil: "load" })
     await page.waitForFunction(() => !!window.__harness?.boot, null, { timeout: 30000 }); await page.mouse.click(640, 360)

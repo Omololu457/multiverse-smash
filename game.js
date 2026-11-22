@@ -25070,7 +25070,7 @@ function drawBattleScene() {
   drawHitSparksEnhanced()
   drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion fireball/debris/smoke/shockwave/swell (world space, over sparks)
   if (!brutalityState.active) drawAnimeJuiceWorld(ctx, p1, p2)   // ANIME JUICE: gather spirals, ready pillar, parry sparks, gatling rings, slash cuts
-  if (trainingState.enabled) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)
+  if (trainingState.enabled && !signatureFatalityActive() && !screenBreakerActive()) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)   // (hidden while a finisher plays — Controls Lab demos)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
   drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
@@ -31292,7 +31292,8 @@ gameLoop()
       p2: p2 ? { maxHealth: p2.maxHealth, key: p2.rosterKey } : null, gravity: physics.gravity }),
     setModifiers: (mods = []) => { matchConfig.modifiers = Array.isArray(mods) ? mods : []; if (p1 && p2) _applyMatchModifiers(); return matchConfig.modifiers },
     forceP1Win: () => { if (p2) p2.health = 0 },
-    forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },   // test hook: the match-ending KO right now (→ the FINISH window)
+    forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },
+    finisherDemo: (which) => !!(p1 && p2 && (which === "sb" ? startScreenBreaker(p1, p2) : startSignatureFatality(p1, p2))),   // Controls Lab: play a finisher on the LIVE fighters (p1()/p2() are snapshots)   // test hook: the match-ending KO right now (→ the FINISH window)
     forceP1Lose: () => { if (p1) p1.health = 0 },
     // ── ARCADE diagnostics + drivers (Stage 19) ──────────────────────────────
     arcadeInfo: () => ({

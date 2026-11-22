@@ -17,8 +17,10 @@ check("F1 Gojo's move list has a FINISHERS section: HOLLOW PURPLE fatality + SCR
 const idx = await page.evaluate(() => window.__lab.S.moves.findIndex(m => m.fin === "sig"))
 await page.click(`[data-move="${idx}"]`)
 let seen = null
-for (let i = 0; i < 400; i++) { const s = await page.evaluate(() => window.__lab.eng.mods.sig.signatureFatalityState()); if (s.phase) { seen = s; if (s.t > 100) { await page.screenshot({ path: "docs/controls_lab/fatality_gojo.png" }); break } } await page.waitForTimeout(100) }
+const acted = new Set()
+for (let i = 0; i < 400; i++) { const s = await page.evaluate(() => window.__lab.eng.mods.sig.signatureFatalityState()); if (s.phase) { seen = s; if (s.acting) acted.add(s.acting); if (s.t > 100) { await page.screenshot({ path: "docs/controls_lab/fatality_gojo.png" }); break } } await page.waitForTimeout(100) }
 const back = await page.waitForFunction(() => !window.__lab.S.finisher && window.__lab.eng.ready && window.__lab.eng.gameState() === "battle" && /performed in the engine/.test(document.querySelector("#moveStatus")?.textContent || ""), null, { timeout: 90000 }).then(() => true, () => false)
+check("F2b Gojo ACTS it out with his own strips (hollow_purple_charge → hollow_purple_cast), not standing still", acted.has("hollow_purple_charge") && acted.has("hollow_purple_cast"), JSON.stringify([...acted]))
 check("F2 clicking it plays HOLLOW PURPLE in the arena, then the Lab is back in a fresh training match", seen?.kind === "void" && back, JSON.stringify({ seen, back }))
 // F3/F4: FATALITIES tab
 await page.click('[data-mode="fatal"]'); await page.waitForTimeout(300)
@@ -30,6 +32,12 @@ let s2 = null
 for (let i = 0; i < 500; i++) { const s = await page.evaluate(() => window.__lab.S.key === "itachi" && window.__lab.eng.ready ? window.__lab.eng.mods.sig.signatureFatalityState() : { phase: null }); if (s.phase) { s2 = s; if (s.t > 90) { await page.screenshot({ path: "docs/controls_lab/fatality_itachi.png" }); break } } await page.waitForTimeout(100) }
 const back2 = await page.waitForFunction(() => !window.__lab.S.finisher && window.__lab.eng.ready && window.__lab.eng.gameState() === "battle", null, { timeout: 90000 }).then(() => true, () => false)
 check("F4 picking Itachi there switches fighter and plays AMATERASU", s2?.name === "AMATERASU" && back2, JSON.stringify({ s2, back2 }))
+// F4b Sukuna: domain → dash → a cleave / dismantle flurry
+await page.click('[data-mode="fatal"]'); await page.waitForTimeout(300); await page.click('[data-fatal="sukuna"]')
+const sk = new Set()
+for (let i = 0; i < 600; i++) { const s = await page.evaluate(() => window.__lab.S.key === "sukuna" && window.__lab.eng.ready ? window.__lab.eng.mods.sig.signatureFatalityState() : { phase: null }); if (s.phase && s.acting) sk.add(s.acting); if (sk.size && !s.phase) break; await page.waitForTimeout(100) }
+await page.waitForFunction(() => !window.__lab.S.finisher && window.__lab.eng.ready && window.__lab.eng.gameState() === "battle", null, { timeout: 90000 }).catch(() => {})
+check("F4b Sukuna ACTS it out: Domain, then Cleave + Dismantle", sk.has("cleave") && sk.has("dismantle"), JSON.stringify([...sk]))
 // F5 Screen Breaker card
 await page.evaluate(() => window.__lab.api.setMode("moves"))
 const sbi = await page.evaluate(() => window.__lab.S.moves.findIndex(m => m.fin === "sb"))

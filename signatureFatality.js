@@ -9,6 +9,7 @@
 // shattered, burned, frozen, squashed, dissolved or sucked into a vortex; the original draw is hidden (_fxAlpha 0).
 import { sound } from "./sound.js"
 import { camera } from "./camera.js"
+import { characters } from "./characters.js"
 
 // kind, technique, colour, variant
 const SIG = {
@@ -70,9 +71,10 @@ let S = null
 let _in = { special: false, grab: false, grabAt: -99, t: 0 }
 export const signatureFatalityActive = () => !!S && S.phase !== "done"
 export const signatureFatalityDone = () => !!S && S.phase === "done"
-export const signatureFatalityState = () => S ? { phase: S.phase, t: S.t, kind: S.sig.kind, name: S.sig.name, gone: !!S.gone } : { phase: null }
+export const signatureFatalityState = () => S ? { phase: S.phase, t: S.t, kind: S.sig.kind, name: S.sig.name, gone: !!S.gone, plan: S.plan, acting: S.w.attacking ? S.w.currentMove : null } : { phase: null }
 export function clearSignatureFatality() {
   if (S) for (const f of [S.w, S.v]) { f._fxAlpha = null; f._fxFilter = null; f._fxRecord = false; f._fxRot = 0; f._fxRenderScale = 0 }
+  if (S) { S.w.attacking = false; S.w.currentMove = null; S.w.dashTimer = 0 }
   S = null; _in = { special: false, grab: false, grabAt: -99, t: 0 }
 }
 // FINISH-window input: SPECIAL (any direction) — but not right after GRAB (that's GRAB → SPECIAL = Screen Breaker)
@@ -84,12 +86,39 @@ export function signatureFatalityInput(raw) {
   _in.special = sp; _in.grab = g
   return hit
 }
-const has = (f, a) => !!(f._skinAnim?.[a] || f.animationData?.[a])
-function pose(f, list) { for (const a of list) if (has(f, a)) { f.attacking = true; f.currentMove = a; f.currentAttack = null; return a } f.attacking = false; return null }
+// ── CHOREOGRAPHY: the winner ACTS the technique with their own strips. The fighter's animation set (skin, else the
+// character's animationData — Sukuna & co. keep theirs only in characters.js) is searched for strips named after the
+// technique (Gojo hollow_purple_charge → hollow_purple_cast, Itachi amaterasuCast, Light lightUltWrite, Sukuna cleave /
+// dismantle, Saitama saitamaSerious…), else the generic charge / ultimate / heavy strips; a WIND-UP, a RELEASE (or a
+// chain of STRIKES for melee kinds) and a FINISH pose (win / taunt).
+const KW = { void: ["purple", "hollow", "void", "domain"], beam: ["beam", "kame", "flash", "blast", "laser", "eye", "galick", "cannon", "wave"], slash: ["slash", "sword", "blade", "giri", "katana", "iai", "cut", "lasso"],
+  dismantle: ["dismantle", "cleave", "slash"], fire: ["fire", "flame", "amaterasu", "fuga", "burn"], ice: ["ice", "freeze", "frost", "cold"], lightning: ["chidori", "raikiri", "lightning", "thunder", "electric", "shock", "kirin"],
+  crush: ["meteor", "crush", "shinsei", "stomp", "slam", "planet"], punch: ["serious", "punch", "fist", "smash", "impact", "headbutt"], vortex: ["kamui", "vortex", "spiral", "warp", "portal"],
+  blitz: ["rush", "combo", "barrage", "flurry", "speed"], barrage: ["arrow", "shot", "gun", "storm", "barrage", "shoot", "volley", "missile"], bind: ["burial", "sand", "bind", "wood", "web", "coffin", "chain"],
+  explode: ["nuclear", "blast", "bomb", "explo", "burst"], erase: ["hakai", "erase", "destr"], poison: ["poison", "sting", "butterfly", "venom", "needle"], psychic: ["psych", "mind", "telek", "lift"],
+  note: ["write", "note", "scythe"], holy: ["holy", "judg", "pray", "miracle", "heal"] }
+const NOT_ACT = /^(idle|walk|run|jump|fall|dash|hurt|guard|knockdown|getup|lose|crouch|land|fly|block|launched|stagger|takeoff|dive|slide|doublejump|grab|throw|down_air|air|intro\d|introsettle|idlelow|swake|teleport|win|taunt)/i
+function animKeys(f) { const k = String(f.rosterKey || f.key || f.id || ""); return Object.keys(f._skinAnim || f.animationData || (characters[k] || characters[k.toLowerCase()])?.animationData || {}) }
+function planFor(f, sig) {
+  const ks = animKeys(f), set = new Set(ks), first = list => list.find(a => set.has(a)) || null
+  const own = sig.name.toLowerCase().match(/[a-z]{4,}/g) || [], kw = KW[sig.kind] || []   // the technique's own words count triple
+  const score = a => { const l = a.toLowerCase(); return own.reduce((n, w) => n + (l.includes(w.slice(0, 6)) ? 3 : 0), 0) + kw.reduce((n, w) => n + (l.includes(w.slice(0, 6)) ? 1 : 0), 0) }
+  const sigA = ks.filter(a => !NOT_ACT.test(a) && score(a) > 0).sort((a, b) => score(b) - score(a))
+  const windup = sigA.find(a => /charge|open|pose|rise|ready|stance/i.test(a)) || first(["ultOpen", "ultPose", "charge", "domain", "ultimate"])
+    || ks.find(a => !NOT_ACT.test(a) && /cast|charge/i.test(a) && a !== sigA[0]) || first(["ultimate", "domain", "transform", "taunt", "intro", "heavy"])
+  const castOf = a => a && /charge/i.test(a) ? a.replace(/charge/i, m => (m[0] === "C" ? "Cast" : "cast")) : null
+  const release = (set.has(castOf(windup)) ? castOf(windup) : null) || sigA.find(a => a !== windup && !/charge|open|ready/i.test(a)) || first(["ultimate", "ultCast", "special", "heavy", "light"]) || ks.find(a => !NOT_ACT.test(a) && !/intro|transform/i.test(a)) || ks.find(a => !NOT_ACT.test(a))
+  const strikes = [...new Set([...sigA.filter(a => !/charge|open|pose|rise|ready|cast/i.test(a)).slice(0, 2), ...["heavy", "light", "up"].filter(a => set.has(a))])]
+  if (strikes.length < 2) strikes.push(...ks.filter(a => !NOT_ACT.test(a) && !/intro|transform|charge|cast/i.test(a) && a !== windup && !strikes.includes(a)).slice(0, 3 - strikes.length))
+  if (!strikes.length && release) strikes.push(release)
+  return { windup, release, strikes, finish: first(["win", "win2", "taunt", "intro", "ultLand"]) }
+}
+export const signatureFatalityPlan = (f, sig = signatureFor(f)) => planFor(f, sig)
+function act(f, a) { if (!a) { f.attacking = false; f.currentMove = null; return } f.attacking = true; f.currentMove = a; f.currentAttack = null }
 export function startSignatureFatality(winner, victim) {
   if (!winner || !victim) return false
   const sig = signatureFor(winner)
-  S = { phase: "run", t: 0, w: winner, v: victim, sig, M: null, parts: [], holes: [], seed: 0x2545f491, gone: false }
+  S = { phase: "run", t: 0, w: winner, v: victim, sig, M: null, parts: [], holes: [], seed: 0x2545f491, gone: false, plan: planFor(winner, sig) }
   winner.vx = victim.vx = 0
   victim.knockdownState = false; victim.knockdownTimer = 0; victim.hitstun = 999; victim.attacking = false   // dazed on their feet: "FINISH THEM"
   victim._fxRecord = true; victim._fxAlpha = 0                                                               // drawn here from now on
@@ -104,16 +133,25 @@ export function updateSignatureFatality() {
   if (!S || S.phase === "done") return
   const t = ++S.t, w = S.w, v = S.v, k = S.sig.kind, d = ctr(v).x >= ctr(w).x ? 1 : -1
   w.hitstun = 0; w.isBlocking = false
-  if (!MELEE.has(k) || t < 26) { w.facing = d; if (t === 1) pose(w, ["ultimate", "ultOpen", "ultPose", "charge", "domain", "transform", "heavy"]) }
+  const P = S.plan, chain = (from, to, every) => { if (t >= from && t <= to && (t - from) % every === 0) act(w, P.strikes[((t - from) / every) % P.strikes.length]) }
+  if (!MELEE.has(k) || t < 26) { w.facing = d
+    if (t === 1) act(w, P.windup)                                                  // wind-up: charge / open the technique
+    if (!MELEE.has(k) && t === HIT - 12) act(w, P.release)                         // release it
+    if (k === "barrage") chain(HIT - 12, HIT + 40, 10)                              // keep firing
+  }
   if (MELEE.has(k)) {
     if (t >= 26 && t < 38) {   // close the distance
-      const tx = v.x - d * ((w.w || 50) + 14), st = (tx - w.x) / Math.max(1, 38 - t); w.x += st; w.vx = st; w.dashTimer = 2; w.facing = d; w.attacking = false
+      const tx = v.x - d * ((w.w || 50) + 14), st = (tx - w.x) / Math.max(1, 38 - t); w.x += st; w.vx = st; w.dashTimer = 2; w.facing = d; act(w, null)
       if (t === 26) sfx("whoosh", S.sig)
-    } else if (t === 38) { w.vx = 0; w.dashTimer = 0; pose(w, k === "slash" || k === "dismantle" ? ["heavy", "light"] : ["heavy", "ultimate", "light"]) }
-    if (k === "slash" && t === HIT + 2) { w.x = v.x + d * ((v.w || 50) + 40); w.facing = -d; w.attacking = false }   // through and past
-    if (k === "blitz" && t > 38 && t < 96) { w._fxAlpha = (t % 6 < 3) ? 0.9 : 0.15; w.x = v.x + ((t >> 2) % 2 ? 1 : -1) * ((v.w || 50) + 10); w.facing = ((t >> 2) % 2) ? -1 : 1 }
-    if (k === "blitz" && t === 96) { w._fxAlpha = null; w.x = v.x - d * ((w.w || 50) + 60); w.facing = d }
+    } else if (t === 38) { w.vx = 0; w.dashTimer = 0; act(w, P.strikes[0]) }
+    if (k === "dismantle" || k === "poison") chain(38, HIT + 26, 8)                 // a flurry of cuts / stings
+    if (k === "punch" && t === HIT - 6) act(w, P.release && !/charge|open/i.test(P.release) ? P.release : P.strikes[0])   // the one that lands
+    if (k === "lightning" && t === HIT - 4) act(w, P.release || P.strikes[0])
+    if (k === "slash" && t === HIT + 2) { w.x = v.x + d * ((v.w || 50) + 40); w.facing = -d; act(w, null) }   // through and past, back turned
+    if (k === "blitz" && t > 38 && t < 96) { w._fxAlpha = (t % 6 < 3) ? 0.9 : 0.15; w.x = v.x + ((t >> 2) % 2 ? 1 : -1) * ((v.w || 50) + 10); w.facing = ((t >> 2) % 2) ? -1 : 1; if (t % 4 === 0) act(w, P.strikes[(t >> 2) % P.strikes.length]) }
+    if (k === "blitz" && t === 96) { w._fxAlpha = null; w.x = v.x - d * ((w.w || 50) + 60); w.facing = d; act(w, null) }
   }
+  if (t === HIT + 95) act(w, P.finish)                                               // the finishing pose
   // the beats
   if (t === HIT) { sfx(k === "slash" || k === "dismantle" ? "slash" : k === "ice" ? "freeze" : k === "lightning" ? "zap" : k === "note" ? "write" : k === "holy" ? "choir" : "boom", S.sig); camera.shake?.(k === "void" || k === "explode" || k === "crush" ? 18 : 9, 26) }
   if (k === "slash" && t === HIT + 24) { sfx("splat", S.sig); S.gone = true }
@@ -175,6 +213,21 @@ export function drawSignatureFatalityOver(c) {
   c.save()
   if (t < HIT && k !== "note" && k !== "holy") { const u = t / HIT; glow(c, H.x, H.y, 20 + 50 * u, col === "#140814" ? "#6a2a8a" : col, 0.4 + 0.5 * u)   // the charge
     for (let i = 0; i < 6; i++) { const a = t * 0.2 + i, r = 90 * (1 - ((t * 0.04 + i / 6) % 1)); c.fillStyle = hexA(col === "#140814" ? "#8a4aaa" : col, 0.8); c.fillRect(H.x + Math.cos(a) * r, H.y + Math.sin(a) * r, 3, 3) } }
+  { // POWER-UP AURA around the winner while they wind up (melee kinds until the dash), and the IMPACT SHOCKWAVE on the victim
+    const W = S.w, wc = ctr(W), ac = col === "#140814" ? "#8a4aaa" : col, upTo = MELEE.has(k) ? 26 : HIT - 8
+    if (t < upTo + 10) { const a = Math.min(1, t / 12) * Math.min(1, (upTo + 10 - t) / 10), pul = 1 + 0.12 * Math.sin(t * 0.5), wh = (W.h || 100), ww = (W.w || 50)
+      c.save(); c.globalCompositeOperation = "lighter"
+      const g = c.createRadialGradient(wc.x, wc.y, 4, wc.x, wc.y, wh * 0.95 * pul); g.addColorStop(0, hexA(ac, 0.42 * a)); g.addColorStop(0.55, hexA(ac, 0.18 * a)); g.addColorStop(1, hexA(ac, 0))
+      c.fillStyle = g; c.beginPath(); c.ellipse(wc.x, wc.y, ww * 1.5 * pul, wh * 0.95 * pul, 0, 0, 7); c.fill()
+      for (let i = 0; i < 9; i++) { const ph = ((t * 0.035 + i / 9) % 1), fx = wc.x + Math.sin(i * 2.3 + t * 0.08) * ww * 0.9, fy = W.y + wh - ph * wh * 1.3   // flames licking upward
+        c.fillStyle = hexA(ac, a * (1 - ph) * 0.9); c.beginPath(); c.ellipse(fx, fy, 3 + 5 * (1 - ph), 9 + 14 * (1 - ph), 0, 0, 7); c.fill() }
+      c.strokeStyle = hexA(ac, 0.6 * a); c.lineWidth = 3; c.beginPath(); c.ellipse(wc.x, W.y + wh, ww * (1.2 + 0.4 * ((t * 0.06) % 1)), 8 + 6 * ((t * 0.06) % 1), 0, 0, 7); c.stroke()   // ground ring
+      if (t % 3 === 0) S.parts.push({ x: wc.x + (rnd() - 0.5) * ww * 1.6, y: W.y + wh * (0.4 + rnd() * 0.6), vx: 0, vy: -2 - rnd() * 3, g: -0.02, life: 30, max: 30, col: ac, size: 3 })
+      c.restore() }
+    if (t >= HIT && t < HIT + 22 && k !== "note") { const u = (t - HIT) / 22   // the shockwave
+      c.save(); c.strokeStyle = hexA("#ffffff", 0.8 * (1 - u)); c.lineWidth = 10 * (1 - u) + 1; c.beginPath(); c.ellipse(B.cx, B.cy, 30 + 260 * u, (30 + 260 * u) * 0.55, 0, 0, 7); c.stroke()
+      c.strokeStyle = hexA(ac, 0.7 * (1 - u)); c.lineWidth = 5 * (1 - u) + 1; c.beginPath(); c.ellipse(B.cx, B.cy, 20 + 180 * u, (20 + 180 * u) * 0.55, 0, 0, 7); c.stroke(); c.restore() }
+  }
   const alive = !S.gone
   switch (k) {
     case "void": {   // red + blue orbs converge, become purple, sweep through: erased
@@ -242,8 +295,18 @@ export function drawSignatureFatalityOver(c) {
       if (s > 0) { c.fillStyle = "rgba(110,0,0,0.85)"; c.beginPath(); c.ellipse(B.cx, B.gy, Math.min(150, s * 8), 12, 0, 0, 7); c.fill() }
       const oy = s < 30 ? fallY : B.gy - 40 - (obj === "meteor" || obj === "cube" ? 0 : Math.max(0, s - 30) * 12)
       if (t > 20 && oy > -2000) { c.save(); c.translate(B.cx, oy)
-        if (obj === "meteor") { c.fillStyle = col; c.beginPath(); c.arc(0, -110, 160, 0, 7); c.fill(); c.fillStyle = "rgba(0,0,0,0.25)"; for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(-90 + i * 30, -130 + (i % 3) * 40, 16, 0, 7); c.fill() } if (s < 0) glow(c, 0, -110, 220, "#ff7a2a", 0.3) }
-        else if (obj === "cube") { c.fillStyle = col; c.fillRect(-150, -300, 300, 300); c.strokeStyle = "#5a5a68"; c.lineWidth = 4; c.strokeRect(-150, -300, 300, 300); c.fillStyle = "#4a4a58"; c.fillRect(-150, -300, 300, 20) }
+        if (obj === "meteor") {   // a burning rock: fiery tail, lit from below by its own heat, cratered, embers peeling off
+          if (s < 0) { c.save(); c.globalCompositeOperation = "lighter"; for (let i = 0; i < 6; i++) { const ty = -110 - 160 - i * 70; const tg = c.createRadialGradient(0, ty, 0, 0, ty, 150 - i * 18); tg.addColorStop(0, `rgba(255,190,90,${0.35 - i * 0.05})`); tg.addColorStop(1, "rgba(255,80,20,0)"); c.fillStyle = tg; c.beginPath(); c.arc(0, ty, 150 - i * 18, 0, 7); c.fill() } c.restore()
+            if (t % 2 === 0) S.parts.push({ x: B.cx + (rnd() - 0.5) * 260, y: oy - 110 - 120 * rnd(), vx: (rnd() - 0.5) * 2, vy: -1 - rnd() * 2, g: 0.05, life: 40, max: 40, col: "#ff8a2a", size: 5 }) }
+          const rg = c.createRadialGradient(-50, -170, 20, 0, -110, 170); rg.addColorStop(0, "#9a8a78"); rg.addColorStop(0.6, "#5e5044"); rg.addColorStop(1, "#2e241c"); c.fillStyle = rg
+          c.beginPath(); for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2, r = 160 * (0.9 + 0.1 * Math.sin(i * 2.7) * Math.cos(i * 1.3)); i ? c.lineTo(Math.cos(a) * r, -110 + Math.sin(a) * r) : c.moveTo(Math.cos(a) * r, -110 + Math.sin(a) * r) } c.closePath(); c.fill()
+          for (let i = 0; i < 9; i++) { const cx = -100 + (i * 53) % 200, cy = -190 + (i * 41) % 150, cr = 10 + (i * 7) % 18; c.fillStyle = "rgba(0,0,0,0.3)"; c.beginPath(); c.arc(cx, cy, cr, 0, 7); c.fill(); c.fillStyle = "rgba(255,255,255,0.08)"; c.beginPath(); c.arc(cx - cr * 0.3, cy - cr * 0.3, cr * 0.5, 0, 7); c.fill() }
+          if (s < 0) { const hg = c.createRadialGradient(0, 30, 10, 0, 30, 200); hg.addColorStop(0, "rgba(255,140,50,0.45)"); hg.addColorStop(1, "rgba(255,90,30,0)"); c.fillStyle = hg; c.beginPath(); c.ellipse(0, 30, 200, 70, 0, 0, 7); c.fill() }   // heat glow underneath
+          if (s === 0) { for (let i = 0; i < 26; i++) S.parts.push({ x: B.cx + (rnd() - 0.5) * 120, y: B.gy - 10, vx: (rnd() - 0.5) * 18, vy: -6 - rnd() * 12, g: 0.55, life: 80, max: 80, col: i % 3 ? "#4a3e34" : "#ff7a2a", size: 6 + rnd() * 8 }); camera.shake?.(22, 26) } }
+        else if (obj === "cube") { const cg = c.createLinearGradient(-150, -300, 150, 0); cg.addColorStop(0, "#b8b8c8"); cg.addColorStop(1, "#4a4a5a"); c.fillStyle = cg; c.fillRect(-150, -300, 300, 300)
+          c.fillStyle = "rgba(255,255,255,0.18)"; c.fillRect(-150, -300, 300, 14); c.fillRect(-150, -300, 14, 300); c.fillStyle = "rgba(0,0,0,0.3)"; c.fillRect(136, -300, 14, 300); c.fillRect(-150, -14, 300, 14)
+          c.strokeStyle = "rgba(0,0,0,0.25)"; c.lineWidth = 2; for (let i = 1; i < 4; i++) { c.beginPath(); c.moveTo(-150 + i * 75, -300); c.lineTo(-150 + i * 75, 0); c.stroke(); c.beginPath(); c.moveTo(-150, -300 + i * 75); c.lineTo(150, -300 + i * 75); c.stroke() }
+          if (s === 0) { for (let i = 0; i < 20; i++) S.parts.push({ x: B.cx + (rnd() - 0.5) * 300, y: B.gy - 6, vx: (rnd() - 0.5) * 14, vy: -4 - rnd() * 8, g: 0.5, life: 60, max: 60, col: "#6a5a4a", size: 6 + rnd() * 6 }); camera.shake?.(20, 24) } }
         else if (obj === "foot") { c.fillStyle = col; c.fillRect(-120, -420, 150, 330); c.beginPath(); c.ellipse(-10, -60, 190, 70, 0, 0, 7); c.fill(); c.fillStyle = "rgba(0,0,0,0.25)"; for (let i = 0; i < 4; i++) { c.beginPath(); c.ellipse(-150 + i * 95 + 40, -30, 34, 26, 0, 0, 7); c.fill() } }
         else { c.fillStyle = col; c.beginPath(); c.roundRect ? c.roundRect(-140, -260, 280, 220, 40) : c.rect(-140, -260, 280, 220); c.fill(); c.fillStyle = "rgba(0,0,0,0.22)"; for (let i = 0; i < 4; i++) c.fillRect(-120 + i * 64, -110, 50, 70); c.fillRect(-60, -420, 120, 170) }
         c.restore() }
@@ -284,9 +347,16 @@ export function drawSignatureFatalityOver(c) {
     case "bind": {
       const v = S.sig.v, u = Math.max(0, Math.min(1, (t - 26) / 40)), s = t - HIT - 26
       if (alive) { V(c, { sx: s > 0 ? 1 - Math.min(0.5, s * 0.02) : 1 })
-        const top = B.gy - (B.h + 16) * u, wx = s > 0 ? B.w * Math.min(0.5, s * 0.02) / 2 : 0
-        c.fillStyle = col; c.fillRect(B.x - 10 + wx, top, B.w + 20 - wx * 2, B.gy - top)
-        c.strokeStyle = "rgba(0,0,0,0.3)"; c.lineWidth = 2; for (let y = top + 6; y < B.gy; y += v === "web" ? 8 : 12) { c.beginPath(); c.moveTo(B.x - 10 + wx, y); c.quadraticCurveTo(B.cx, y + (v === "wood" ? 8 : 4), B.x + B.w + 10 - wx, y); c.stroke() }
+        const top = B.gy - (B.h + 16) * u, wx = s > 0 ? B.w * Math.min(0.5, s * 0.02) / 2 : 0, hw = (B.w + 20 - wx * 2) / 2
+        // spiralling bands (sand / wood / web) wind up around the body from the floor, then squeeze
+        const base = c.createLinearGradient(B.cx - hw, 0, B.cx + hw, 0); base.addColorStop(0, hexA(col, 0.95)); base.addColorStop(0.45, hexA("#ffffff", 0.25)); base.addColorStop(0.55, hexA(col, 0.95)); base.addColorStop(1, hexA("#000000", 0.5))
+        c.save(); c.beginPath(); c.moveTo(B.cx - hw - 6, B.gy); for (let y = B.gy; y >= top; y -= 6) c.lineTo(B.cx - hw + Math.sin(y * 0.09 + t * 0.3) * 4, y); for (let y = top; y <= B.gy; y += 6) c.lineTo(B.cx + hw + Math.sin(y * 0.09 - t * 0.3) * 4, y); c.lineTo(B.cx + hw + 6, B.gy); c.closePath()
+        c.fillStyle = col; c.fill(); c.fillStyle = base; c.fill(); c.clip()
+        c.strokeStyle = v === "web" ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.35)"; c.lineWidth = v === "web" ? 1.5 : 3
+        for (let i = -12; i < 30; i++) { const y0 = B.gy - i * 14 + ((t * 1.6) % 14); c.beginPath(); c.moveTo(B.cx - hw - 4, y0); c.bezierCurveTo(B.cx - hw * 0.3, y0 - 18, B.cx + hw * 0.3, y0 + 4, B.cx + hw + 4, y0 - 14); c.stroke() }
+        if (v !== "web" && v !== "wood") for (let i = 0; i < 40; i++) { c.fillStyle = `rgba(255,240,200,${0.25 + 0.2 * ((i * 7) % 3)})`; c.fillRect(B.cx - hw + ((i * 37 + t * 3) % (hw * 2)), top + ((i * 53 + t * 5) % Math.max(1, B.gy - top)), 2, 2) }   // grains
+        c.restore()
+        if (u < 1 && t % 2 === 0) S.parts.push({ x: B.cx + (rnd() - 0.5) * B.w * 1.6, y: B.gy - 4, vx: (rnd() - 0.5) * 3, vy: -3 - rnd() * 4, g: 0.25, life: 30, max: 30, col, size: 3 })   // kicked-up sand
         if (s >= 24) { S.gone = true; burst(60, B.cx, B.cy, v === "web" ? BLOOD : col, 8, 3, 70, 6); burst(30, B.cx, B.cy, BLOOD, 6, 3, 60, 5); camera.shake?.(10, 16); sfx("splat", S.sig) } }
       break }
     case "explode": {
@@ -331,6 +401,13 @@ export function drawSignatureFatalityScreen(c, canvas) {
   if (!S) return
   const W = canvas.width, H = canvas.height, t = S.t, k = S.sig.kind
   c.save()
+  { // CINEMA: letterbox bars slide in, a vignette closes in, speed lines rush toward the centre before the hit
+    const inA = Math.min(1, t / 16) * Math.min(1, (END - t) / 14), bh = H * 0.085 * inA
+    const vg = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.85); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, `rgba(0,0,0,${0.55 * inA})`); c.fillStyle = vg; c.fillRect(0, 0, W, H)
+    if (t > HIT - 22 && t < HIT + 2 && k !== "note") { const a = Math.min(1, (t - HIT + 22) / 8); c.strokeStyle = `rgba(255,255,255,${0.35 * a})`; c.lineWidth = 2
+      for (let i = 0; i < 48; i++) { const ang = i * 2.399 + t * 0.07, r0 = H * (0.32 + ((i * 37 + t * 9) % 40) / 100), r1 = H * 1.1; c.beginPath(); c.moveTo(W / 2 + Math.cos(ang) * r0, H / 2 + Math.sin(ang) * r0); c.lineTo(W / 2 + Math.cos(ang) * r1, H / 2 + Math.sin(ang) * r1); c.stroke() } }
+    c.fillStyle = "#000"; c.fillRect(0, 0, W, bh); c.fillRect(0, H - bh, W, bh)
+  }
   if (t >= HIT && t < HIT + 6 && k !== "note" && k !== "holy") { c.fillStyle = `rgba(255,255,255,${0.7 * (1 - (t - HIT) / 6)})`; c.fillRect(0, 0, W, H) }
   if (k === "note" && t > 20 && t < HIT + 110) {
     const a = Math.min(1, (t - 20) / 15, (HIT + 110 - t) / 15), pw = W * 0.34, ph = H * 0.5, x = W / 2 - pw / 2, y = H * 0.18
@@ -340,10 +417,12 @@ export function drawSignatureFatalityScreen(c, canvas) {
     let n = Math.max(0, Math.floor((t - 30) * 0.7))
     lines.forEach((ln, i) => { const show = ln.slice(0, Math.max(0, n)); n -= ln.length + 4; c.fillText(show, x + 22, y + 60 + i * 52) })
     c.globalAlpha = 1 }
-  if (t > HIT + 50) { const al = Math.min(1, (t - HIT - 50) / 14) * Math.min(1, (END - t) / 12); c.globalAlpha = al; c.textAlign = "center"; c.lineWidth = 6; c.strokeStyle = "#000"
+  if (t > HIT + 50) { const al = Math.min(1, (t - HIT - 50) / 10) * Math.min(1, (END - t) / 12), pop = 1 + 0.5 * Math.max(0, 1 - (t - HIT - 50) / 9)   // punches in
+    c.globalAlpha = al; c.textAlign = "center"; c.lineWidth = 6; c.strokeStyle = "#000"; c.translate(W / 2, H * 0.19); c.scale(pop, pop); c.translate(-W / 2, -H * 0.19)
+    c.shadowColor = S.sig.color === "#140814" ? "#b070e0" : S.sig.color; c.shadowBlur = 24
     let fs = Math.floor(H * 0.085); c.font = `900 ${fs}px Arial`; while (c.measureText(S.sig.name).width > W * 0.9 && fs > 20) { fs -= 2; c.font = `900 ${fs}px Arial` }
     c.strokeText(S.sig.name, W / 2, H * 0.16); c.fillStyle = S.sig.color === "#140814" ? "#b070e0" : S.sig.color; c.fillText(S.sig.name, W / 2, H * 0.16)
-    c.font = `800 ${Math.floor(H * 0.05)}px Arial`; c.strokeText("FATALITY", W / 2, H * 0.24); c.fillStyle = "#e61e22"; c.fillText("FATALITY", W / 2, H * 0.24) }
+    c.shadowColor = "#ff0000"; c.shadowBlur = 18; c.font = `800 ${Math.floor(H * 0.05)}px Arial`; c.strokeText("FATALITY", W / 2, H * 0.24); c.fillStyle = "#e61e22"; c.fillText("FATALITY", W / 2, H * 0.24); c.shadowBlur = 0 }
   c.restore()
 }
 // ── synth sound (SFX master) ──

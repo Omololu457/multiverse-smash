@@ -218,6 +218,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Harbor Dock":            OUTDOOR_FULL,
   "Training Center":        [],               // hologram room: no weather
   "The Batcave":            INDOOR_ONLY,      // underground: cave mist only
+  "The Baratie":            OUTDOOR_WARM,     // out at sea, warm → no snow
   "Stark Lab":              INDOOR_ONLY,      // the workshop: indoors
   "Battle Royale Colosseum": OUTDOOR_FULL,
 })

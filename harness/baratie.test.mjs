@@ -1,0 +1,47 @@
+// harness/baratie.test.mjs — The Baratie (One Piece): the sea battle, Sea King, cooks, plates, crowd, ship crew reacting in a real match.
+import { chromium } from "playwright"
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url"
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".webp": "image/webp", ".ogg": "audio/ogg", ".wav": "audio/wav" }
+const server = await new Promise(r => { const s = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]); const f = path.join(ROOT, u === "/" ? "/index.html" : u); fs.readFile(f, (e, d) => { if (e) { res.writeHead(404).end(); return } res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); res.end(d) }) }); s.listen(0, "127.0.0.1", () => r(s)) })
+let pass = 0, fail = 0; const check = (n, c, e = "") => { console.log(`${c ? "✓" : "❌"} ${n}${e ? "  — " + e : ""}`); c ? pass++ : fail++ }
+const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] })
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
+const errors = []; page.on("pageerror", e => errors.push(String(e)))
+const sleep = t => new Promise(r => setTimeout(r, t))
+const STAGE = "The Baratie", OUT = path.join(ROOT, "harness", "shots", "baratie"); fs.mkdirSync(OUT, { recursive: true })
+try {
+  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=luffy&p2=sanji`, { waitUntil: "load" })
+  await page.waitForFunction(() => !!window.__harness?.boot, null, { timeout: 30000 })
+  await page.mouse.click(640, 360)
+  await page.evaluate(n => window.__harness.selectStageByName(n), STAGE)
+  await page.evaluate(() => window.__harness.start())
+  const idx0 = await page.evaluate(n => window.__harness.selectStageByName("__none__").have.indexOf(n), STAGE)
+  await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
+  const cx = 115 + (idx0 % 6) * 210, cy = 215 + Math.floor(idx0 / 6) * 130
+  await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
+  await page.evaluate(() => window.__harness.skipToBattle()); await sleep(4000)
+  const T = () => page.evaluate(async () => (await import("./stageLayers.js")).baratieState())
+  const holdHp = f => page.evaluate(src => { clearInterval(window.__h); const fn = eval(src); const H = window.__harness, q = H.p2(); window.__h = setInterval(() => H.brutality.setHp("p2", fn(q)), 5) }, String(f))
+  await sleep(6000)
+  const t0 = await T(); await page.screenshot({ path: path.join(OUT, "deck.png") })
+  check("One Piece crowd at the railing (real sprites), the fighting Luffy + Sanji left out", t0.crowd.filter(c => c.ready).length >= 4 && t0.crowd.filter(c => c.key === "luffy" || c.key === "sanji").every(c => !c.shown), t0.crowd.map(c => c.key + ":" + c.shown).join(" "))
+  check("cannon fire across the horizon", t0.shots >= 2, `shots ${t0.shots}`)
+  check("the warship is afloat, nothing eaten yet", t0.warship === true && t0.eaten === false)
+  { const base = await page.evaluate(() => window.__harness.p2().health); await holdHp(new Function(`return () => ${base - 150}`)()) } await sleep(250)
+  const t1 = await T(); await page.screenshot({ path: path.join(OUT, "big_hit.png") })
+  check("a big hit: the cooks throw plates + meat", t1.plates >= 3, String(t1.plates))
+  check("a big hit: the moored galleon fires a broadside, its crew cheers", t1.broadside >= 1 && t1.cheer, JSON.stringify({ broadside: t1.broadside, cheer: t1.cheer }))
+  check("a big hit: the railing crowd reacts", t1.crowd.some(c => c.anim === "jump" || c.bubble), t1.crowd.map(c => `${c.key}:${c.anim}`).join(" "))
+  await sleep(14000); const t2 = await T()
+  check("cannonballs that land close throw a water spout over the railing", t2.spouts >= 1, `spouts ${t2.spouts}`)
+  await holdHp(q => 0); await sleep(2000)
+  const t3 = await T(); await page.screenshot({ path: path.join(OUT, "sea_king.png") }); await sleep(3000)
+  const t4 = await T(); await page.evaluate(() => clearInterval(window.__h))
+  check("the knockout: the Sea King rises", t3.king != null, String(t3.king))
+  check("…and swallows the Marine warship", t4.eaten === true && t4.warship === false, JSON.stringify({ eaten: t4.eaten, warship: t4.warship }))
+  check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
+} catch (e) { check("run", false, String(e).slice(0, 300)) }
+await browser.close(); server.close()
+console.log(`baratie: ${pass} passed, ${fail} failed`)
+process.exit(fail ? 1 : 0)

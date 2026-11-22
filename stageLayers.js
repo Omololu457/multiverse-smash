@@ -250,6 +250,25 @@ SETS.eagle_namek = {
   animRate: {},
 }
 
+// THE BARATIE (One Piece) — Ken's Stage, San Francisco (Street Fighter III: 2nd Impact sheet) repainted by
+// tools/stage_layers/slice_ken3_baratie.py: open sea, a moored pirate galleon, a sea battle, a Sea King, cooks, the crowd.
+SETS.ken3_baratie = {
+  dir: "./stages/ken3_baratie/",
+  S: 1.5,
+  standRow: 22,
+  deckFrontRow: 50,
+  floor: { piece: "deck", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "baratie_sea", p: 0.08 },
+    { procedural: "baratie_ship", p: 0.82 },
+    { piece: "pier", p: 0.9, x: 0.5, bottomRow: 1 },
+  ],
+  props: [],
+  front: [],
+  fx: "baratie",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -367,6 +386,8 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "baratie_sea") { drawBaratieSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
+    if (ly.procedural === "baratie_ship") { drawBaratieMoored(ctx, def, c, { W, dockTop }); continue }
     if (ly.procedural === "namek") { drawNamekBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "tournament") { drawTournamentBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "starklab") { drawLabBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -460,6 +481,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "baratie") baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "namek") namekFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "tournament") tournamentFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "starklab") labFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -2495,4 +2517,189 @@ function nmKill(x, r) {
     p.dead = true; p.deadT = 0; p.warrior = false; NM.kills++
     for (let i = 0; i < 10; i++) NM.debris.push({ x: p.x, y: NM.lineY || 0, vx: (nmRnd() - 0.5) * 160, vy: -nmRnd() * 220, life: 0.8, purple: true })
   }
+}
+
+// ───────────────────────────── THE BARATIE (One Piece; render-only, wall clock, own PRNG) ─────────────────────────────
+// Ken's pier (Street Fighter III) as the Baratie, the floating seafood restaurant out at sea: open ocean to the horizon,
+// a pirate galleon moored alongside with its crew cheering the fight, a Marine warship and a pirate ship trading cannon
+// fire far out (splashes, now and then a water spout over the railing), a Sea King surfacing — on the knockout it rises
+// and swallows the warship whole. One Piece fighters stand at the railing watching (the shared reactive crowd), the cooks
+// in the doorway yell when the fight gets near the kitchen and throw plates on big hits, and seagulls scatter.
+let _brSeed = 0x2545f491
+const brRnd = () => { _brSeed ^= _brSeed << 13; _brSeed ^= _brSeed >>> 17; _brSeed ^= _brSeed << 5; return (_brSeed >>> 0) / 4294967296 }
+const BR_CROWD = [["sanji", 0.14, 0], ["luffy", 0.33, 0], ["zoro", 0.45, 0], ["buggy", 0.66, 0], ["arlong", 0.88, 0]]
+const BRC = makeCrowd(BR_CROWD, 0.62)
+const BR = { p1: null, last: 0, hp: new WeakMap(), balls: [], splashes: [], spray: [], plates: [], gulls: [], cheer: 0, shout: null, shoutT: 0,
+  fireT: 1.5, shots: 0, kingT: 14, king: null, warship: { alive: true, sink: 0 }, broadside: 0, spouts: 0, plateCount: 0, eaten: false, geo: null }
+export const baratieState = () => ({ shots: BR.shots, balls: BR.balls.length, splashes: BR.splashes.length, spouts: BR.spouts, plates: BR.plateCount, cheer: BR.cheer > 0,
+  shout: BR.shoutT > 0 ? BR.shout : null, king: BR.king ? BR.king.stage : null, warship: BR.warship.alive, eaten: BR.eaten, broadside: BR.broadside, crowd: crowdState(BRC) })
+
+function brGeo(def, c, W, dockTop) {                       // where the pier picture sits on screen (same as its back layer)
+  const pc = c.layout.pieces.pier, S = def.S, w = pc.w * S, h = pc.h * S
+  const x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop + 1 * S - h
+  return { pc, S, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, horizon: y0 + 236 * S }
+}
+
+function brShip(ctx, x, y, s, marine, t, sinking = 0) {
+  // a sailing ship seen side-on (s = scale; ~220 px long at s 1). Marine: white hull + blue stripes + white sails with a
+  // blue gull-wave mark; pirate: dark hull, black sails with a white skull.
+  ctx.save(); ctx.translate(x, y + sinking * 90); ctx.rotate(Math.sin(t * 0.9 + x) * 0.02 + sinking * 0.5); ctx.scale(s, s)
+  ctx.fillStyle = marine ? "#eef2f6" : "#4a2e1a"
+  ctx.beginPath(); ctx.moveTo(-110, -20); ctx.lineTo(110, -26); ctx.lineTo(90, 12); ctx.lineTo(-92, 12); ctx.closePath(); ctx.fill()
+  ctx.fillStyle = marine ? "#2a5ab0" : "#2a1a0e"; ctx.fillRect(-100, -12, 196, 5)
+  ctx.fillStyle = "#111"; for (let i = 0; i < 7; i++) ctx.fillRect(-80 + i * 26, -4, 8, 6)                  // gun ports
+  ctx.fillStyle = marine ? "#eef2f6" : "#3a2414"; ctx.fillRect(70, -46, 40, 22)                                // stern castle
+  ctx.fillStyle = "#5a3a20"; for (const mx of [-50, 10, 60]) ctx.fillRect(mx - 2, -150, 4, 130)                  // masts
+  for (const [mx, top, wd] of [[-50, -140, 46], [10, -146, 54], [60, -128, 40]]) {
+    ctx.fillStyle = marine ? "#fbfbf6" : "#1e1e22"
+    ctx.beginPath(); ctx.moveTo(mx - wd / 2, top); ctx.quadraticCurveTo(mx + 6, top + 40, mx - wd / 2 + 2, top + 76); ctx.lineTo(mx + wd / 2 + 2, top + 76); ctx.quadraticCurveTo(mx + 12, top + 40, mx + wd / 2, top); ctx.closePath(); ctx.fill()
+    if (mx === 10) {
+      if (marine) { ctx.strokeStyle = "#2a5ab0"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(mx + 4, top + 38, 12, Math.PI * 0.1, Math.PI * 0.9); ctx.stroke(); ctx.beginPath(); ctx.moveTo(mx - 8, top + 30); ctx.lineTo(mx + 4, top + 22); ctx.lineTo(mx + 16, top + 30); ctx.stroke() }
+      else { ctx.fillStyle = "#f4f0e8"; ctx.beginPath(); ctx.arc(mx + 4, top + 32, 11, 0, 7); ctx.fill(); ctx.fillRect(mx - 2, top + 38, 12, 8)
+        ctx.fillStyle = "#1e1e22"; ctx.fillRect(mx - 3, top + 29, 5, 5); ctx.fillRect(mx + 6, top + 29, 5, 5)
+        ctx.strokeStyle = "#f4f0e8"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(mx - 14, top + 46); ctx.lineTo(mx + 22, top + 64); ctx.moveTo(mx + 22, top + 46); ctx.lineTo(mx - 14, top + 64); ctx.stroke() }
+    }
+  }
+  ctx.fillStyle = marine ? "#2a5ab0" : "#1e1e22"; ctx.beginPath(); ctx.moveTo(10, -150); ctx.lineTo(34, -144 + Math.sin(t * 4) * 3); ctx.lineTo(10, -138); ctx.fill()   // pennant
+  ctx.restore()
+}
+
+function drawBaratieSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = BR.geo = brGeo(def, c, W, dockTop), hz = G.horizon
+  const g = ctx.createLinearGradient(0, coverTop, 0, hz); g.addColorStop(0, "#2f6fe0"); g.addColorStop(1, "#bfe2ff")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, hz - coverTop)
+  // clouds
+  const cs = shift(0.05, W)
+  for (let i = 0; i < 9; i++) { const x = ((i * 260 + t * 8 + cs) % (W + 600)) - 300 + padL, y = hz - 150 - 90 * _h(i + 3)
+    ctx.fillStyle = "rgba(255,255,255,0.9)"; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(x + k * 26, y + Math.sin(k * 2.1) * 8, 22 + 10 * _h(i * 7 + k), 0, 7); ctx.fill() } }
+  // the sea, horizon → deck
+  const sg = ctx.createLinearGradient(0, hz, 0, dockTop); sg.addColorStop(0, "#3f8ad8"); sg.addColorStop(1, "#1a4a8a")
+  ctx.fillStyle = sg; ctx.fillRect(padL, hz, padR - padL, dockTop - hz + 4)
+  const ws = shift(0.3, W)
+  for (let r = 0; r < 26; r++) { const u = r / 26, y = hz + (dockTop - hz) * u * u, a = 0.12 + 0.25 * u
+    ctx.strokeStyle = `rgba(255,255,255,${a})`; ctx.lineWidth = 1 + u * 2; ctx.beginPath()
+    for (let x = padL; x < padR; x += 40) { const xx = x + ((t * 20 * (1 + u) + r * 37 + ws * u) % 40); ctx.moveTo(xx, y + Math.sin(t * 2 + x * 0.05 + r) * 2 * u); ctx.lineTo(xx + 14 + u * 16, y + Math.sin(t * 2 + x * 0.05 + r) * 2 * u) }
+    ctx.stroke() }
+  // the far battle: the Marine warship (left) and a pirate ship (right) on the horizon
+  const fs = shift(0.12, W), mx = W * 0.44 + fs, px = W * 0.9 + fs, sy = hz + 6
+  if (BR.warship.alive || BR.warship.sink < 1) brShip(ctx, mx, sy, 0.42, true, t, BR.warship.sink)
+  brShip(ctx, px, sy + 2, 0.36, false, t)
+  BR.far = { mx, px, sy }
+  // the Sea King
+  const K = BR.king
+  if (K) { const kx = K.x + fs, rise = K.stage === "up" ? Math.min(1, K.t / 1.2) : K.stage === "down" ? Math.max(0, 1 - K.t / 1.4) : 1, big = K.eat ? 1.5 : 1
+    const H = Math.min(120 * big, hz - 90) * rise, base = hz + 30
+    ctx.save(); ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, base - coverTop); ctx.clip()
+    ctx.fillStyle = "#6a3a8a"; ctx.beginPath(); ctx.moveTo(kx - 40 * big, base); ctx.quadraticCurveTo(kx - 70 * big, base - H * 0.6, kx - 10 * big, base - H); ctx.lineTo(kx + 50 * big, base - H + 20 * big); ctx.quadraticCurveTo(kx + 30 * big, base - H * 0.5, kx + 46 * big, base); ctx.closePath(); ctx.fill()
+    ctx.fillStyle = "#e8c070"; ctx.beginPath(); ctx.moveTo(kx - 20 * big, base); ctx.quadraticCurveTo(kx - 40 * big, base - H * 0.6, kx + 4 * big, base - H + 10); ctx.lineTo(kx + 14 * big, base - H + 14); ctx.quadraticCurveTo(kx - 10 * big, base - H * 0.5, kx + 6 * big, base); ctx.fill()   // belly
+    const hx = kx + 10 * big, hy = base - H, open = K.roar ? 0.5 + 0.5 * Math.sin(t * 12) : 0.15
+    ctx.fillStyle = "#7a4a9a"; ctx.beginPath(); ctx.ellipse(hx + 30 * big, hy - 6 * big, 60 * big, 26 * big, -0.2 - open * 0.3, 0, 7); ctx.fill()   // head
+    ctx.fillStyle = "#3a0a1a"; ctx.beginPath(); ctx.ellipse(hx + 64 * big, hy + 10 * big, 30 * big, 10 * big + open * 22 * big, -0.1, 0, 7); ctx.fill()  // mouth
+    ctx.fillStyle = "#fff"; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(hx + (42 + i * 8) * big, hy + 2 * big); ctx.lineTo(hx + (46 + i * 8) * big, hy + (10 + open * 10) * big); ctx.lineTo(hx + (50 + i * 8) * big, hy + 2 * big); ctx.fill() }
+    ctx.fillStyle = "#ffe040"; ctx.beginPath(); ctx.arc(hx + 34 * big, hy - 18 * big, 7 * big, 0, 7); ctx.fill(); ctx.fillStyle = "#200"; ctx.fillRect(hx + 33 * big, hy - 24 * big, 3 * big, 12 * big)
+    ctx.fillStyle = "#c04060"; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(hx - 10 * big - i * 16 * big, hy - 10 * big + i * 30 * big * rise); ctx.lineTo(hx - 34 * big - i * 16 * big, hy - 30 * big + i * 30 * big * rise); ctx.lineTo(hx - 20 * big - i * 16 * big, hy + 4 * big + i * 30 * big * rise); ctx.fill() }   // fins
+    ctx.restore()
+    ctx.fillStyle = "rgba(255,255,255,0.7)"; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(kx + (i - 2.5) * 24 * big, base - 4, 8 + 6 * Math.sin(t * 6 + i), 0, 7); ctx.fill() }   // foam
+  }
+}
+
+function drawBaratieMoored(ctx, def, c, { W, dockTop }) {
+  // the pirate galleon tied up alongside, behind the railing, bobbing; its crew lines the rail
+  const t = now(), G = BR.geo || brGeo(def, c, W, dockTop), x = G.X(640), y = G.Y(282) + Math.sin(t * 1.1) * 4, sc = 1.05 * G.S / 1.5
+  brShip(ctx, x, y, sc, false, t)
+  const ev = BR.cheer > 0
+  for (let i = 0; i < 9; i++) {
+    const px = x + (-95 + i * 20) * sc / 1.05, py = y - 24 * sc, j = ev ? Math.abs(Math.sin(t * 10 + i)) * 8 : Math.max(0, Math.sin(t * 2 + i * 1.7)) * 2
+    ctx.fillStyle = ["#d8483a", "#3a6ad8", "#e8c040", "#4aa060"][i % 4]; ctx.fillRect(px - 5, py - 16 - j, 10, 14)
+    ctx.fillStyle = ["#f1c9a5", "#c58c64", "#8d5b3e"][i % 3]; ctx.beginPath(); ctx.arc(px, py - 21 - j, 5, 0, 7); ctx.fill()
+    ctx.fillStyle = ["#c02020", "#202020", "#2050c0"][i % 3]; ctx.fillRect(px - 5, py - 27 - j, 10, 3)       // bandanas
+    if (ev || i % 3 === 0) { ctx.strokeStyle = "#ccc"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px + 5, py - 14 - j); ctx.lineTo(px + 10, py - 30 - j); ctx.stroke() }   // raised cutlass
+  }
+  BR.moored = { x, y }
+}
+
+function baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = BR.geo || brGeo(def, c, W, dockTop), S = def.S
+  if (F[0] !== BR.p1) { BR.p1 = F[0]; BR.balls = []; BR.splashes = []; BR.spray = []; BR.plates = []; BR.king = null; BR.warship = { alive: true, sink: 0 }; BR.eaten = false; BR.spouts = 0; BR.plateCount = 0; BR.broadside = 0; BR.shots = 0; BR.mShots = 0; BR.hp = new WeakMap(); BR.kingT = 14 }
+  const dt = Math.min(0.05, Math.max(0, t - (BR.last || t))); BR.last = t
+  // the deck carries on toward the viewer
+  const dbot = dockTop + c.layout.pieces.deck.h * S
+  if (coverBottom > dbot) { const gg = ctx.createLinearGradient(0, dbot, 0, coverBottom); gg.addColorStop(0, "#f0c68e"); gg.addColorStop(1, "#b88450"); ctx.fillStyle = gg; ctx.fillRect(padL, dbot, padR - padL, coverBottom - dbot)
+    ctx.strokeStyle = "rgba(90,50,20,0.35)"; ctx.lineWidth = 2; for (let x = padL - 200; x < padR + 200; x += 46) { ctx.beginPath(); ctx.moveTo(x + shift(1, W), dbot); ctx.lineTo(x + (x - W / 2) * 0.4 + shift(1, W), coverBottom); ctx.stroke() } }
+  // the fight → events
+  let bigHit = false, ko = false, hitX = W / 2
+  for (const f of F) { const hp = f.health ?? 0, was = BR.hp.get(f); BR.hp.set(f, hp); if (hp <= 0) ko = true; if (was != null && was - hp >= 60) { bigHit = true; hitX = f.x + (f.w || 50) / 2 } }
+  BR.cheer = Math.max(0, BR.cheer - dt); if (bigHit || ko) BR.cheer = ko ? 4 : 1.4
+  // the BARATIE sign (over the old crab sign), a barrel stack where the post-sign was
+  { const sx = G.X(c.layout.pieces.pier.sign[0]), sy = G.Y(c.layout.pieces.pier.sign[1]), k = S / 1.5, sw = Math.sin(t * 1.2) * 0.02
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(sw); ctx.scale(k, k)
+    ctx.fillStyle = "#7a4a22"; ctx.fillRect(-4, -10, 8, 140)
+    ctx.fillStyle = "#f08a2a"; ctx.beginPath(); ctx.moveTo(-90, 0); ctx.quadraticCurveTo(-60, -66, 40, -48); ctx.lineTo(96, -70); ctx.lineTo(80, 0); ctx.lineTo(96, 70); ctx.lineTo(40, 48); ctx.quadraticCurveTo(-60, 66, -90, 0); ctx.closePath(); ctx.fill()   // fish
+    ctx.strokeStyle = "#6a2a0a"; ctx.lineWidth = 4; ctx.stroke()
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-58, -12, 11, 0, 7); ctx.fill(); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(-55, -12, 5, 0, 7); ctx.fill()
+    ctx.fillStyle = "#c83a1a"; ctx.beginPath(); ctx.moveTo(-90, 6); ctx.lineTo(-70, 14); ctx.lineTo(-88, 18); ctx.fill()
+    ctx.font = "900 26px Georgia, serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff8e0"; ctx.strokeStyle = "#5a1a0a"; ctx.lineWidth = 5
+    ctx.strokeText("BARATIE", 10, 8); ctx.fillText("BARATIE", 10, 8)
+    ctx.restore()
+    const bx = G.X(c.layout.pieces.pier.barrel[0]), by = G.Y(c.layout.pieces.pier.barrel[1])
+    for (const [ox, oy] of [[-34, 0], [0, 0], [34, 0], [-17, -50], [17, -50]]) { const x = bx + ox * k, y = by + oy * k
+      ctx.fillStyle = "#8a5a2a"; ctx.beginPath(); ctx.ellipse(x, y - 24 * k, 17 * k, 25 * k, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#3a3a3a"; ctx.fillRect(x - 17 * k, y - 38 * k, 34 * k, 3 * k); ctx.fillRect(x - 17 * k, y - 12 * k, 34 * k, 3 * k) } }
+  // the cooks in the doorway: shout when the fight comes near the kitchen, throw plates on big hits
+  { const dx = G.X(c.layout.pieces.pier.door[0]), dy = G.Y(c.layout.pieces.pier.door[1]), k = S / 1.5
+    const near = F.some(f => Math.abs(f.x + (f.w || 50) / 2 - dx) < 260)
+    if (near && BR.shoutT <= 0 && Math.sin(t * 1.7) > 0.9) { BR.shout = ["OI! NOT IN MY RESTAURANT!", "TAKE IT OUTSIDE!", "WATCH THE TABLES!"][Math.floor(t) % 3]; BR.shoutT = 1.6 }
+    if (bigHit) { for (let i = 0; i < 3; i++) BR.plates.push({ x: dx + 20, y: dy - 60 * k, vx: 260 + brRnd() * 300, vy: -240 - brRnd() * 200, r: 0, meat: i % 2 === 0, life: 2 }); BR.plateCount += 3; if (BR.shoutT <= 0) { BR.shout = "HEY! THAT'S GOOD FOOD!"; BR.shoutT = 1.4 } }
+    BR.shoutT = Math.max(0, BR.shoutT - dt)
+    for (let i = 0; i < 2; i++) { const x = dx + (i ? 34 : 0) * k, y = dy, wave = (near || bigHit) ? Math.sin(t * 12 + i) : Math.sin(t * 2 + i) * 0.2
+      ctx.fillStyle = "#f8f8f4"; ctx.fillRect(x - 10 * k, y - 50 * k, 20 * k, 40 * k); ctx.fillStyle = "#2a2a3a"; ctx.fillRect(x - 9 * k, y - 12 * k, 18 * k, 12 * k)
+      ctx.fillStyle = "#f1c9a5"; ctx.fillRect(x - 7 * k, y - 63 * k, 14 * k, 13 * k)
+      ctx.fillStyle = "#fff"; ctx.fillRect(x - 9 * k, y - 82 * k, 18 * k, 19 * k); ctx.beginPath(); ctx.arc(x, y - 82 * k, 11 * k, 0, 7); ctx.fill()   // chef hat
+      ctx.save(); ctx.translate(x + 10 * k, y - 46 * k); ctx.rotate(-1.2 + wave * 0.8); ctx.fillStyle = "#f8f8f4"; ctx.fillRect(0, -3 * k, 18 * k, 6 * k); ctx.fillStyle = "#999"; ctx.fillRect(16 * k, -2 * k, 16 * k, 3 * k); ctx.beginPath(); ctx.arc(34 * k, 0, 5 * k, 0, 7); ctx.fill(); ctx.restore() }   // ladle
+    if (BR.shoutT > 0 && BR.shout) { ctx.save(); ctx.font = "900 14px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const tw = ctx.measureText(BR.shout).width + 14, bx = dx + 60, by = dy - 110 * k
+      ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(bx - tw / 2, by - 12, tw, 24); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#b01010"; ctx.fillText(BR.shout, bx, by); ctx.restore() } }
+  // One Piece fighters at the railing watching (real sprites; the two fighting are left out)
+  drawCrowd(ctx, BRC, { W, feet: G.Y(318), sh: shift(0.9, W) })
+  // ── the sea battle: cannon fire both ways across the horizon; the moored galleon joins in on big hits
+  const far = BR.far || { mx: W * 0.22, px: W * 0.8, sy: G.horizon }, hz = G.horizon
+  BR.fireT -= dt
+  const fire = (x0, y0, x1, y1, dur, spout) => { BR.shots++; BR.balls.push({ x0, y0, x1, y1, t: 0, dur, spout }); BR.splashes.push({ x: x0, y: y0, t: 0, flash: true }) }
+  if (BR.fireT <= 0 && !ko) { BR.fireT = 1.2 + brRnd() * 2
+    if (BR.warship.alive && brRnd() < 0.55) { const near = (BR.mShots = (BR.mShots || 0) + 1) % 3 === 0; fire(far.mx + 20, far.sy - 10, near ? W * (0.2 + brRnd() * 0.6) : far.px + (brRnd() - 0.5) * 120, near ? G.Y(250) : far.sy + 4, near ? 1.6 : 1.2, near) }
+    else fire(far.px - 20, far.sy - 10, BR.warship.alive ? far.mx + (brRnd() - 0.5) * 120 : far.mx + 300, far.sy + 4, 1.2, false) }
+  if (bigHit && BR.moored && BR.warship.alive) { BR.broadside++; for (let i = 0; i < 5; i++) fire(BR.moored.x - 150 + i * 60, BR.moored.y - 10, far.mx + (brRnd() - 0.5) * 160, far.sy + 4, 1.3 + i * 0.08, false) }
+  for (const b of BR.balls) { b.t += dt; const u = Math.min(1, b.t / b.dur), x = b.x0 + (b.x1 - b.x0) * u, y = b.y0 + (b.y1 - b.y0) * u - Math.sin(u * Math.PI) * (b.spout ? 160 : 60)
+    ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(x, y, b.spout ? 5 : 2.5, 0, 7); ctx.fill()
+    if (u >= 1) { b.done = true; BR.splashes.push({ x: b.x1, y: b.y1, t: 0, big: b.spout }); if (b.spout) { BR.spouts++; for (let i = 0; i < 40; i++) BR.spray.push({ x: b.x1 + (brRnd() - 0.5) * 60, y: b.y1, vx: (brRnd() - 0.5) * 200, vy: -300 - brRnd() * 400, life: 1.4 }); camera.shake?.(3, 8) } } }
+  BR.balls = BR.balls.filter(b => !b.done)
+  // ── the Sea King: surfaces now and then; on the knockout it rises, roars and swallows the warship whole
+  BR.kingT -= dt
+  if (!BR.king && (BR.kingT <= 0 || (ko && !BR.eaten))) { BR.kingT = 16 + brRnd() * 10; BR.king = { x: ko ? (far.mx - shift(0.12, W)) : W * (0.3 + brRnd() * 0.25), stage: "up", t: 0, roar: false, eat: ko } }
+  if (ko && BR.king && !BR.king.eat && !BR.eaten) { BR.king.eat = true; BR.king.x = far.mx - shift(0.12, W); BR.king.stage = "up"; BR.king.t = 0 }
+  if (BR.king) { const K = BR.king; K.t += dt
+    if (K.stage === "up" && K.t > 1.2) { K.stage = "hold"; K.t = 0; K.roar = true; camera.shake?.(K.eat ? 8 : 4, K.eat ? 30 : 14) }
+    else if (K.stage === "hold" && K.t > (K.eat ? 1.6 : 2.2)) { K.stage = "down"; K.t = 0; K.roar = false; if (K.eat) { BR.eaten = true; BR.warship.alive = false; for (let i = 0; i < 6; i++) BR.splashes.push({ x: far.mx + (i - 3) * 30, y: far.sy, t: 0, big: true }); camera.shake?.(10, 30) } }
+    else if (K.stage === "down" && K.t > 1.4) BR.king = null }
+  if (!BR.warship.alive) BR.warship.sink = Math.min(1, BR.warship.sink + dt * 0.6)
+  // splashes, muzzle flashes, spray over the railing
+  for (const s of BR.splashes) { s.t += dt; const u = s.t / (s.flash ? 0.25 : s.big ? 1 : 0.6)
+    if (s.flash) { ctx.fillStyle = `rgba(255,220,120,${1 - u})`; ctx.beginPath(); ctx.arc(s.x, s.y, 8, 0, 7); ctx.fill(); ctx.fillStyle = `rgba(200,200,200,${0.6 * (1 - u)})`; ctx.beginPath(); ctx.arc(s.x + u * 20, s.y - u * 16, 6 + u * 14, 0, 7); ctx.fill() }
+    else { const h = (s.big ? 140 : 26) * Math.sin(Math.min(1, u) * Math.PI); ctx.fillStyle = `rgba(240,250,255,${0.85 * (1 - u * 0.5)})`
+      ctx.beginPath(); ctx.moveTo(s.x - (s.big ? 30 : 6), s.y); ctx.quadraticCurveTo(s.x, s.y - h * 1.2, s.x + (s.big ? 30 : 6), s.y); ctx.fill() }
+    s.done = u >= 1 }
+  BR.splashes = BR.splashes.filter(s => !s.done)
+  for (const p of BR.spray) { p.life -= dt; p.vy += 700 * dt; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = `rgba(230,245,255,${Math.min(0.9, p.life)})`; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 7); ctx.fill() }
+  BR.spray = BR.spray.filter(p => p.life > 0 && p.y < coverBottom)
+  // flying plates + meat
+  for (const p of BR.plates) { p.life -= dt; p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += dt * 12
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r)
+    if (p.meat) { ctx.fillStyle = "#a0502a"; ctx.beginPath(); ctx.ellipse(0, 0, 12, 8, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#f4f0e0"; ctx.fillRect(10, -2, 10, 4); ctx.beginPath(); ctx.arc(21, -3, 3, 0, 7); ctx.arc(21, 3, 3, 0, 7); ctx.fill() }
+    else { ctx.fillStyle = "#fbfbf8"; ctx.beginPath(); ctx.ellipse(0, 0, 13, 5, 0, 0, 7); ctx.fill(); ctx.strokeStyle = "#5a8ac0"; ctx.lineWidth = 1.5; ctx.stroke() }
+    ctx.restore() }
+  BR.plates = BR.plates.filter(p => p.life > 0 && p.y < coverBottom)
+  // seagulls: circle lazily, scatter on big hits
+  if (BR.gulls.length < 7) BR.gulls.push({ x: padL + brRnd() * (padR - padL), y: hz - 60 - brRnd() * 140, a: brRnd() * 7, r: 40 + brRnd() * 80, flee: 0 })
+  for (const g of BR.gulls) { if (bigHit) g.flee = 1.6; g.flee = Math.max(0, g.flee - dt); g.a += dt * (g.flee ? 3 : 0.8)
+    const x = g.x + Math.cos(g.a) * g.r + (g.flee ? (g.a * 40) : 0), y = g.y + Math.sin(g.a) * g.r * 0.25 - (g.flee ? 60 * (1.6 - g.flee) : 0), w = Math.sin(t * (g.flee ? 20 : 8) + g.r) * 5
+    ctx.strokeStyle = "#f8f8f8"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 9, y - w); ctx.quadraticCurveTo(x - 4, y - 4, x, y); ctx.quadraticCurveTo(x + 4, y - 4, x + 9, y - w); ctx.stroke() }
+  BRC.cheerHold = BR.cheer
 }

@@ -1,0 +1,51 @@
+{
+ "source": "Street Fighter III: 2nd Impact \u2014 Ken's Stage (San Francisco) sheet, ripped by Geometricentric; repainted as the Baratie",
+ "pieces": {
+  "pier": {
+   "file": "pier.png",
+   "w": 961,
+   "h": 341,
+   "sign": [
+    154,
+    148
+   ],
+   "barrel": [
+    657,
+    321
+   ],
+   "door": [
+    119,
+    316
+   ],
+   "benches": [
+    [
+     404,
+     306
+    ],
+    [
+     489,
+     306
+    ],
+    [
+     794,
+     306
+    ],
+    [
+     874,
+     306
+    ]
+   ]
+  },
+  "deck": {
+   "file": "deck.png",
+   "w": 961,
+   "h": 55
+  }
+ },
+ "colors": {
+  "skyTop": "#3a7ae8",
+  "under": "#a8784a",
+  "seaBottom": "#1a4a8a"
+ },
+ "preview": "preview.png"
+}

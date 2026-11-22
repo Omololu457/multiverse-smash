@@ -901,14 +901,16 @@ export function getGameplaySelectRects(canvas) {
 }
 
 // ── AI vs AI SETUP SCREEN ────────────────────────────────────────────────────
-// Eight rows: P1 fighter/difficulty, P2 fighter/difficulty, match count, speed, START, BACK.
-// Each value row is click-to-cycle (and ◀/▶ on the keyboard); START commits the run.
+// Nine rows: P1 fighter/difficulty, P2 fighter/difficulty, map, match count, speed, START, BACK.
+// FIGHTER rows open the real character select (both fighters + skins, then the map); MAP opens stage select (◀▶ toggles
+// the picked map ↔ rotate every match). The other value rows are click-to-cycle (◀/▶ on the keyboard).
 export function getAiVsAiSetupRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "p1char", label: "P1 FIGHTER" },
     { id: "p1diff", label: "P1 AI" },
     { id: "p2char", label: "P2 FIGHTER" },
     { id: "p2diff", label: "P2 AI" },
+    { id: "map", label: "MAP" },
     { id: "matches", label: "MATCHES" },
     { id: "speed",  label: "SPEED" },
     { id: "start",  label: "START",  subLabel: "Begin the AI-vs-AI run" },
@@ -934,6 +936,7 @@ export function drawAiVsAiSetupScreen(ctx, canvas, cfg = {}, roster = [], select
       case "p1diff": return (cfg.p1Diff || "").toUpperCase()
       case "p2char": return _nameForKey(roster, cfg.p2Key)
       case "p2diff": return (cfg.p2Diff || "").toUpperCase()
+      case "map": return cfg.stageName || "ROTATE (every map)"
       case "matches": return String(cfg.matches)
       case "speed":  return `${speeds[cfg.speedIndex] || 1}×`
       default: return null
@@ -947,10 +950,12 @@ export function drawAiVsAiSetupScreen(ctx, canvas, cfg = {}, roster = [], select
   getAiVsAiSetupRects(canvas).forEach((b, i) => {
     const val = valueFor(b.id)
     const label = val != null ? `${b.label}:  ${val}` : b.label
-    const sub = val != null ? "◀ ▶ or click to change" : b.subLabel
+    const sub = (b.id === "p1char" || b.id === "p2char") ? "Click / Enter → character select (both fighters, skins, then map)"
+      : b.id === "map" ? "Click / Enter → map select · ◀ ▶ picked map ↔ rotate"
+      : val != null ? "◀ ▶ or click to change" : b.subLabel
     drawMkButton(ctx, b, { label, subLabel: sub, active: i === selectedIndex, accent: accentFor(b.id), id: `aivsai:${b.id || i}` })
   })
-  drawFooterHint(ctx, canvas, "↑↓ select · ◀▶ change · Enter start · click a row to cycle · Esc back")
+  drawFooterHint(ctx, canvas, "↑↓ select · Enter / click a FIGHTER or MAP row to pick it · ◀▶ change values · Esc back")
 }
 
 // ── AI vs AI RUN-COMPLETE SUMMARY ────────────────────────────────────────────

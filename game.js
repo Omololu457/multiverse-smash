@@ -5022,8 +5022,13 @@ const aiVsAiConfig = {
   p2Diff: "easy",
   matches: 3,
   speedIndex: 2,             // index into SPECTATOR_SPEEDS ([1,2,4,8]) → 4x default
-  sel: 0                     // keyboard cursor row on the setup screen
+  sel: 0,                    // keyboard cursor row on the setup screen
+  // Picked on the REAL select screens (character → skin → stage), not cycled on the setup screen:
+  stageName: null,           // chosen map for EVERY match of the run (null = rotate through all maps, the old behaviour)
+  p1Skin: "default", p2Skin: "default",
+  p1Extra: null, p2Extra: null   // per-side select-flow extras carried into the run: { aliens (Ben 10), edo (Tobirama vessel) }
 }
+let _aiVsAiPick = null       // "chars" | "map" while the AI-vs-AI fighters / map are being picked on the normal select screens
 const settingsButtonRect = { x: window.innerWidth - 220, y: 30, w: 180, h: 50 }
 
 // ------------------------------------------------------------------
@@ -6914,10 +6919,12 @@ function beginUniverseSelect() {
 }
 
 function chooseMode(mode) {
+  if (mode !== "aivsaiPick") _aiVsAiPick = null   // a real mode was chosen → any half-finished AI-vs-AI pick is abandoned
   matchConfig.mode = mode
   matchConfig.online = null   // a standalone mode is never an online match — clear any leftover host/join flag
   resetSelections()
   if (mode === "training") { matchConfig.aiDifficulty = "dummy"; beginUniverseSelect(); return }
+  if (mode === "aivsaiPick") return   // AI vs AI fighter pick: the caller opens universe select (no difficulty screen)
   if (mode === "pvp")      {
     // Local two-player default: P2 on a gamepad. P1 keeps whatever the SETTINGS
     // screen has it set to (defaults to keyboard via inputSettings init) so a player
@@ -7245,8 +7252,8 @@ function _cycleAiVsAiRow(id, dir) {
   const diffs = SPECTATOR_DIFFICULTIES
   const counts = [1, 3, 5, 10, 25]
   switch (id) {
-    case "p1char": _cycleAiVsAiChar("p1", dir); break
-    case "p2char": _cycleAiVsAiChar("p2", dir); break
+    case "p1char": case "p2char": break   // fighters are picked on the real character select (Enter / click)
+    case "map": { if (aiVsAiConfig.stageName) { aiVsAiConfig._lastStage = aiVsAiConfig.stageName; aiVsAiConfig.stageName = null } else if (aiVsAiConfig._lastStage) aiVsAiConfig.stageName = aiVsAiConfig._lastStage; break }   // ◀▶: chosen map ↔ rotate
     case "p1diff": { let i = diffs.indexOf(aiVsAiConfig.p1Diff); i = (i + dir + diffs.length) % diffs.length; aiVsAiConfig.p1Diff = diffs[i]; break }
     case "p2diff": { let i = diffs.indexOf(aiVsAiConfig.p2Diff); i = (i + dir + diffs.length) % diffs.length; aiVsAiConfig.p2Diff = diffs[i]; break }
     case "matches": { let i = counts.indexOf(aiVsAiConfig.matches); if (i < 0) i = 1; i = (i + dir + counts.length) % counts.length; aiVsAiConfig.matches = counts[i]; break }
@@ -7258,7 +7265,55 @@ function _cycleAiVsAiRow(id, dir) {
 function _activateAiVsAiRow(id) {
   if (id === "start")     { startAiVsAiSession(); return }
   if (id === "back")      { gameState = GAME_STATES.GAMEPLAY_SELECT; return }
+  if (id === "p1char" || id === "p2char") { _beginAiVsAiPick("chars"); return }
+  if (id === "map")       { _beginAiVsAiPick("map"); return }
   _cycleAiVsAiRow(id, +1)
+}
+
+// AI vs AI — pick the two fighters (universe → character → skin, P1 then P2) and the map on the SAME select screens a
+// VS match uses, then land back on the setup screen (difficulty / matches / speed / START). "map" opens stage select only.
+// matchConfig.mode "aivsaiPick" routes the normal flow P1 → P2 → stage (the generic branch of _proceedAfterSkin); the
+// stage confirm is intercepted in the SELECT_STAGE click handler (_finishAiVsAiPick) instead of starting a match.
+// Back-nav history for the pick: Esc from any pick screen returns to the setup screen (re-opening universe select would
+// otherwise read as "back to an ancestor" and truncate the history past the setup screen).
+function _aiVsAiNavRoot(fromSetup) {
+  _navStack.length = 0
+  _navStack.push(GAME_STATES.GAMEPLAY_SELECT)
+  if (fromSetup) _navStack.push(GAME_STATES.AI_VS_AI_SETUP)
+}
+function _beginAiVsAiPick(what) {
+  const fromSetup = gameState === GAME_STATES.AI_VS_AI_SETUP
+  _aiVsAiPick = what
+  matchConfig.online = null
+  if (what === "map") {
+    matchConfig.mode = "aivsaiPick"
+    matchConfig.p1CharKey = aiVsAiConfig.p1Key; matchConfig.p1Char = characters[aiVsAiConfig.p1Key] || null
+    matchConfig.p2CharKey = aiVsAiConfig.p2Key; matchConfig.p2Char = characters[aiVsAiConfig.p2Key] || null
+    const i = stages.findIndex(st => st.name === aiVsAiConfig.stageName)
+    hoverStageIndex = Math.max(0, i)
+    gameState = _navPrev = GAME_STATES.SELECT_STAGE
+    _aiVsAiNavRoot(fromSetup)
+    return
+  }
+  chooseMode("aivsaiPick")   // resetSelections + P1 universe select (the non-training/non-pvp path would ask difficulty — skip it)
+  beginUniverseSelect()
+  _navPrev = gameState
+  _aiVsAiNavRoot(fromSetup)
+}
+function _finishAiVsAiPick(stage) {
+  if (_aiVsAiPick === "chars") {
+    for (const side of ["p1", "p2"]) {
+      if (matchConfig[side + "CharKey"]) aiVsAiConfig[side + "Key"] = matchConfig[side + "CharKey"]
+      aiVsAiConfig[side + "Skin"] = matchConfig[side + "Skin"] || "default"
+      aiVsAiConfig[side + "Extra"] = { aliens: matchConfig[side + "Aliens"] ? matchConfig[side + "Aliens"].slice() : null, edo: matchConfig[side + "EdoBackup"] ?? null }
+    }
+  }
+  if (stage) aiVsAiConfig.stageName = stage.name
+  _aiVsAiPick = null
+  matchConfig.mode = "aivsai"
+  hoverAiVsAiIndex = aiVsAiConfig.sel = 0
+  gameState = _navPrev = GAME_STATES.AI_VS_AI_SETUP
+  _aiVsAiNavRoot(false)   // setup's own Esc / BACK → Gameplay Select
 }
 
 // Filename-safe timestamp; performance.now() isn't wall-clock so fall back to Date for the label.
@@ -7270,6 +7325,7 @@ function _fileStamp() {
 // Deterministic stage rotation across the run so a repeated matchup gets varied stages.
 function _aiVsAiStageFor(matchIndex) {
   if (!Array.isArray(stages) || !stages.length) return null
+  if (aiVsAiConfig.stageName) { const st = stages.find(x => x.name === aiVsAiConfig.stageName); if (st) return st }   // picked map: every match
   return stages[matchIndex % stages.length]
 }
 
@@ -7289,6 +7345,7 @@ function _beginAiVsAiMatchLog() {
 function startAiVsAiSession() {
   const p1Key = aiVsAiConfig.p1Key, p2Key = aiVsAiConfig.p2Key
   if (!characters[p1Key] || !characters[p2Key]) return
+  _aiVsAiPick = null   // a real mode: the run starts (any backed-out pick is over)
   resetSelections()
   towerState.active = false
   ffaState.active   = false
@@ -7297,7 +7354,12 @@ function startAiVsAiSession() {
   matchConfig.selectedStage = _aiVsAiStageFor(0) || (Array.isArray(stages) ? stages[0] : null)
   matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
   matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
-  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
+  matchConfig.p1Skin = aiVsAiConfig.p1Skin || "default"; matchConfig.p2Skin = aiVsAiConfig.p2Skin || "default"   // skins picked on skin select
+  for (const side of ["p1", "p2"]) {   // Ben 10 alien loadout / Tobirama Edo vessel picked in the select flow
+    const x = aiVsAiConfig[side + "Extra"]; if (!x) continue
+    if (x.aliens) matchConfig[side + "Aliens"] = x.aliens.slice()
+    if (x.edo != null) matchConfig[side + "EdoBackup"] = x.edo
+  }
 
   aiVsAiState.active       = true
   aiVsAiState.finished     = false
@@ -27007,7 +27069,7 @@ function handleMenuClicks() {
       else if (c.id === "bracket") { hoverBracketIndex = 0; gameState = GAME_STATES.BRACKET_SETUP }   // pick bracket size first
       else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
       else if (c.id === "online") openOnlineMenu()   // LAN 2-device match (Stage 3)
-      else if (c.id === "aivsai") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; gameState = GAME_STATES.AI_VS_AI_SETUP }
+      else if (c.id === "aivsai") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; _beginAiVsAiPick("chars") }   // fighters → map on the real select screens, then the setup screen
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
       break
     }
@@ -27209,6 +27271,7 @@ function handleMenuClicks() {
     }
     case GAME_STATES.SELECT_STAGE: {
       const idx = getStageCardRects(canvas, stages).findIndex(r => pointInRect(mouse.x, mouse.y, r))
+      if (idx >= 0 && stages[idx] && _aiVsAiPick && matchConfig.mode === "aivsaiPick") { _finishAiVsAiPick(stages[idx]); break }   // AI vs AI: map picked → back to its setup screen
       if (idx >= 0 && stages[idx]) { matchConfig.selectedStage = stages[idx]; startRiftTransition(charSelectAccent(matchConfig.p1CharKey) || "#4ad5ff"); (matchConfig.online === "host" ? startOnlineHostMatch() : startMatch()) }   // rift into match-load; ONLINE host syncs seed+roster to the joiner first
       break
     }
@@ -28827,6 +28890,13 @@ gameLoop()
       },
       // Advance the real game logic by n frames (synchronous; bypasses the rAF clock).
       step: (n = 1) => { for (let i = 0; i < n; i++) { globalFrameCount++; updateCurrentState() } },
+      // AI-vs-AI pick flow (harness/aivsai_pick_flow.test.mjs): setup config, setup rows, cursor, the live run, pick mode.
+      config: () => ({ p1Key: aiVsAiConfig.p1Key, p2Key: aiVsAiConfig.p2Key, p1Skin: aiVsAiConfig.p1Skin, p2Skin: aiVsAiConfig.p2Skin, stageName: aiVsAiConfig.stageName, p1Diff: aiVsAiConfig.p1Diff, p2Diff: aiVsAiConfig.p2Diff, matches: aiVsAiConfig.matches, speedIndex: aiVsAiConfig.speedIndex }),
+      setupRects: () => getAiVsAiSetupRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
+      setSel: (i) => { aiVsAiConfig.sel = hoverAiVsAiIndex = i | 0; return aiVsAiConfig.sel },
+      live: () => ({ mode: matchConfig.mode, p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, p1Skin: matchConfig.p1Skin, p2Skin: matchConfig.p2Skin, stage: matchConfig.selectedStage?.name || null, gameState }),
+      pickMode: () => _aiVsAiPick,
+      screenRects: () => (_padMenuRects() || []).map(r => r && ({ id: r.id ?? null, x: r.x, y: r.y, w: r.w, h: r.h })),   // the clickable cards of the current menu/select screen
       // Start a run and tick until it finishes (or a frame cap). Returns the exported log.
       runToCompletion: (opts = {}, frameCap = 400000) => {
         window.__harness.aiVsAi.start(opts)

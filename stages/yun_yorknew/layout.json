@@ -1,0 +1,70 @@
+{
+ "source": "Street Fighter III: New Generation \u2014 Hong Kong (Yun's Stage) sheet (ripped by GeometricEntric); Yorknew City market district",
+ "pieces": {
+  "street": {
+   "file": "street.png",
+   "w": 768,
+   "h": 452,
+   "gap": [
+    455,
+    392
+   ],
+   "roofs": [
+    [
+     40,
+     314
+    ],
+    [
+     135,
+     314
+    ],
+    [
+     232,
+     318
+    ],
+    [
+     455,
+     320
+    ],
+    [
+     668,
+     108
+    ]
+   ],
+   "stalls": [
+    [
+     110,
+     420
+    ],
+    [
+     340,
+     425
+    ],
+    [
+     640,
+     430
+    ]
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 320
+  },
+  "far": {
+   "file": "far.png",
+   "w": 192,
+   "h": 256
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 774,
+   "h": 524
+  }
+ },
+ "colors": {
+  "skyTop": "#4a86e8",
+  "under": "#b8a8a8"
+ },
+ "preview": "preview.png"
+}

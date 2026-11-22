@@ -220,6 +220,7 @@ export const STAGE_WEATHER = Object.freeze({
   "The Batcave":            INDOOR_ONLY,      // underground: cave mist only
   "Krypton":                INDOOR_ONLY,      // the citadel (its own sky does the drama)
   "Angel Grove":            OUTDOOR_WARM,     // California
+  "Yorknew City":           OUTDOOR_WARM,
   "Bellwood":               OUTDOOR_WARM,     // a sunny small-town afternoon
   "Arlong Park":            OUTDOOR_WARM,     // East Blue, warm → no snow
   "The Baratie":            OUTDOOR_WARM,     // out at sea, warm → no snow

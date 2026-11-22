@@ -1,0 +1,48 @@
+// harness/yorknew.test.mjs — Yorknew City behind a real match (Killua vs Hisoka): HxH crowd, shoppers, the Phantom Troupe, Big Bang Impact, the mafia, Chain Jail.
+import { chromium } from "playwright"
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url"
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".webp": "image/webp", ".ogg": "audio/ogg", ".wav": "audio/wav" }
+const server = await new Promise(r => { const s = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]); const f = path.join(ROOT, u === "/" ? "/index.html" : u); fs.readFile(f, (e, d) => { if (e) { res.writeHead(404).end(); return } res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); res.end(d) }) }); s.listen(0, "127.0.0.1", () => r(s)) })
+let pass = 0, fail = 0; const check = (n, c, e = "") => { console.log(`${c ? "✓" : "❌"} ${n}${e ? "  — " + e : ""}`); c ? pass++ : fail++ }
+const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] })
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
+const errors = []; page.on("pageerror", e => errors.push(String(e)))
+const sleep = t => new Promise(r => setTimeout(r, t))
+const STAGE = "Yorknew City", OUT = path.join(ROOT, "harness", "shots", "yorknew"); fs.mkdirSync(OUT, { recursive: true })
+try {
+  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=killua&p2=hisoka`, { waitUntil: "load" })
+  await page.waitForFunction(() => !!window.__harness?.boot, null, { timeout: 30000 })
+  await page.mouse.click(640, 360)
+  await page.evaluate(n => window.__harness.selectStageByName(n), STAGE)
+  await page.evaluate(() => window.__harness.start())
+  const idx0 = await page.evaluate(n => window.__harness.selectStageByName("__none__").have.indexOf(n), STAGE)
+  await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
+  // the stage grid adapts its columns / card size to the number of stages, so ask the game where the card is
+  const { cx, cy } = await page.evaluate(i => { const r = window.__harness.ui.currentHoverRects()[i], cv = document.querySelector("canvas"), b = cv.getBoundingClientRect()
+    return { cx: b.left + (r.x + r.w / 2) * b.width / cv.width, cy: b.top + (r.y + r.h / 2) * b.height / cv.height } }, idx0)
+  await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
+  await page.evaluate(() => window.__harness.skipToBattle()); await sleep(4000)
+  const T = () => page.evaluate(async () => (await import("./stageLayers.js")).yorknewState())
+  const hold = (who, f) => page.evaluate(([who, src]) => { clearInterval(window.__h); const fn = eval(src); const H = window.__harness, q = H[who](); window.__h = setInterval(() => H.brutality.setHp(who, fn(q)), 5) }, [who, String(f)])
+  const stop = () => page.evaluate(() => clearInterval(window.__h))
+  await sleep(4000); const s0 = await T(); await page.screenshot({ path: path.join(OUT, "street.png") })
+  const shown = s0.crowd.filter(c => c.shown).map(c => c.key)
+  check("the HxH cast watch from the street (real sprites), the fighter left out; shoppers; the Troupe on the roofs", shown.length >= 2 && !shown.includes("hisoka") && s0.ppl >= 8 && s0.troupe >= 5, JSON.stringify({ c: s0.crowd.map(c => c.key + ":" + c.shown), p: s0.ppl, t: s0.troupe }))
+  await page.keyboard.down("KeyA"); await sleep(3500); await page.keyboard.up("KeyA"); await page.screenshot({ path: path.join(OUT, "edge_left.png") })
+  await page.keyboard.down("KeyD"); await sleep(6000); await page.keyboard.up("KeyD"); await page.screenshot({ path: path.join(OUT, "edge_right.png") })
+  const s1 = await T()
+  check("a Troupe member leaps from roof to roof", s1.leaps >= 1, `leaps ${s1.leaps}`)
+  { const b = await page.evaluate(() => window.__harness.p2().health); await hold("p2", new Function(`return () => ${b - 150}`)()) } await sleep(300); await stop()
+  await sleep(500); const s2 = await T(); await page.screenshot({ path: path.join(OUT, "impact.png") })
+  check("a big hit: BIG BANG IMPACT — a Troupe member drops into the street, shoppers knocked flat", s2.impacts >= 1 && s2.knocked >= 1, JSON.stringify({ i: s2.impacts, k: s2.knocked, s: s2.shouting }))
+  await hold("p2", q => Math.round((q.maxHealth || q.maxHp || 1000) * 0.18)); await sleep(3000)
+  const s3 = await T(); await page.screenshot({ path: path.join(OUT, "mafia.png") })
+  check("a fighter close to losing: the mafia arrive and open fire on the Troupe", s3.rage && s3.mafia >= 4 && s3.shots >= 3, JSON.stringify({ r: s3.rage, m: s3.mafia, s: s3.shots }))
+  await hold("p2", q => 0); await sleep(500); await page.screenshot({ path: path.join(OUT, "chains.png") }); await sleep(1500); const s4 = await T(); await stop()
+  check("the knockout: CHAIN JAIL — Kurapika's chains sweep the street, the Troupe vanish", s4.chains > 1 && s4.troupe === 0, JSON.stringify({ c: s4.chains, t: s4.troupe }))
+  check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
+} catch (e) { check("run", false, String(e).slice(0, 300)) }
+await browser.close(); server.close()
+console.log(`yorknew: ${pass} passed, ${fail} failed`)
+process.exit(fail ? 1 : 0)

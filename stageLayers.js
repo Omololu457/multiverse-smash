@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// YORKNEW CITY (Hunter x Hunter) — Hong Kong (Yun's Stage, SFIII) sheet, cut by tools/stage_layers/slice_yun_yorknew.py;
+// the street has writing on it → tile:"repeat" (never mirrored).
+SETS.yun_yorknew = {
+  dir: "./stages/yun_yorknew/",
+  S: 1.45,
+  standRow: 24,
+  deckFrontRow: 46,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: false },   // plain repeats like the street (the rails would mirror into Vs)
+  back: [
+    { procedural: "yorknew", p: 0.05 },
+    { piece: "street", p: 0.9, x: 0.5, tile: "repeat", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "yorknew",
+  animRate: {},
+}
+
 // THE VILTRUMITE BATTLEGROUND (Invincible) — Adon's Stage (Street Fighter 1987 sheet) burned into a war zone by
 // tools/stage_layers/slice_adon_viltrum.py (its seated statue cut out); the warrior statue + the war are drawn in code.
 SETS.adon_viltrum = {
@@ -512,6 +530,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "yorknew") { drawYorknewSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "viltrum") { drawViltrumSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "mugen") { drawMugenSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "seireitei") { drawSeireiteiSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -614,6 +633,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "yorknew") yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "viltrum") viltrumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "mugen") mugenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "seireitei") seireiteiFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -4014,4 +4034,153 @@ function viltrumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 14, w, 28); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   VT.shout = VT.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── YORKNEW CITY (Hunter x Hunter; render-only, wall clock, own PRNG) ─────────────────────────────
+// Yun's Hong Kong street (Street Fighter III) as Yorknew City's market district during the auction week: through the open
+// end of the street the skyline and the auction tower (searchlights sweeping), a blimp trailing an auction banner; the
+// tram, the stalls, shoppers walking the street. The PHANTOM TROUPE stand on the balconies and the tram roof (long coats,
+// one leaps across now and then); the Hunter x Hunter cast who aren't fighting watch from the street (shared crowd:
+// Hisoka, Chrollo, Netero). Big hit → a Troupe member drops into the street with a BIG BANG IMPACT: crater, shockwave,
+// shoppers knocked flat, fruit + debris flying; ≤25% → the mafia arrive at both ends of the street in black suits and open
+// fire on the Troupe (muzzle flashes, tracers), the searchlights go red, shoppers run; KO → Kurapika's golden CHAINS whip
+// across the street ("CHAIN JAIL!"), the Troupe vanish from the roofs, gold flash, the street cheers.
+let _ynSeed = 0x243f6a88
+const ynRnd = () => { _ynSeed ^= _ynSeed << 13; _ynSeed ^= _ynSeed >>> 17; _ynSeed ^= _ynSeed << 5; return (_ynSeed >>> 0) / 4294967296 }
+const YN_CROWD = [["hisoka", 0.2, 0], ["chrollo", 0.5, 0], ["netero", 0.8, 0]]
+const YNC = makeCrowd(YN_CROWD, 0.6)
+const YN = { p1: null, last: 0, hp: new WeakMap(), ppl: null, troupe: null, impacts: [], bits: [], mafia: [], tracers: [], rage: false, chains: null, flash: 0, shout: [], geo: null, leapT: 6,
+  st: { impacts: 0, knocked: 0, leaps: 0, rage: 0, shots: 0, chains: 0 } }
+export const yorknewState = () => ({ ...YN.st, ppl: (YN.ppl || []).length, troupe: (YN.troupe || []).filter(m => !m.gone).length, mafia: YN.mafia.length, rage: YN.rage, chains: YN.chains ? +YN.chains.t.toFixed(2) : 0,
+  crowd: crowdState(YNC), shouting: YN.shout.filter(s => s.t > 0).map(s => s.txt) })
+function ynGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.street, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S }
+}
+function ynShout(x, y, txt, col) { if (YN.shout.filter(s => s.t > 0).length < 3) YN.shout.push({ x, y, txt, col: col || "#222", t: 1.9 }) }
+function ynCoat(ctx, x, y, s, m, t) {   // a Phantom Troupe member: a long coat flapping, a spider mark on the back (~70 px at s 1)
+  const flap = Math.sin(t * 5 + m.seed) * 4
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * m.dir, s)
+  ctx.fillStyle = m.coat; ctx.beginPath(); ctx.moveTo(-9, -58); ctx.lineTo(9, -58); ctx.lineTo(13 + flap * 0.3, -6); ctx.lineTo(-15 - flap, -4); ctx.fill()
+  ctx.fillStyle = "#1a1a20"; ctx.fillRect(-6, -8, 5, 8); ctx.fillRect(2, -8, 5, 8)
+  ctx.fillStyle = m.big ? "#c8a070" : "#e8c8a0"; ctx.beginPath(); ctx.arc(0, -64, m.big ? 9 : 7, 0, 7); ctx.fill()
+  ctx.fillStyle = m.hair; ctx.beginPath(); ctx.arc(0, -66, (m.big ? 9 : 7) + 0.5, Math.PI, 0); ctx.fill(); if (m.big) ctx.fillRect(-10, -66, 4, 18)
+  if (m.cross) { ctx.fillStyle = "#e8e8f0"; ctx.fillRect(-1.2, -62, 2.4, 6); ctx.fillRect(-3, -60.5, 6, 2) }
+  ctx.restore()
+}
+function ynSuit(ctx, x, y, s, m, t) {   // a mafia gunman: black suit, sunglasses, pistol forward; muzzle flash when firing
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * m.dir, s)
+  ctx.fillStyle = "#14141a"; ctx.fillRect(-7, -26, 6, 26); ctx.fillRect(1, -26, 6, 26); ctx.fillRect(-9, -56, 18, 32)
+  ctx.fillStyle = "#f2f2ee"; ctx.beginPath(); ctx.moveTo(-3, -56); ctx.lineTo(3, -56); ctx.lineTo(0, -46); ctx.fill()
+  ctx.save(); ctx.translate(6, -50); ctx.rotate(-0.5); ctx.fillStyle = "#14141a"; ctx.fillRect(0, -2.5, 18, 5); ctx.fillStyle = "#333"; ctx.fillRect(18, -2, 7, 4)
+  if (m.fire > 0) { ctx.fillStyle = `rgba(255,220,90,${m.fire})`; ctx.beginPath(); ctx.moveTo(25, 0); ctx.lineTo(38, -5); ctx.lineTo(33, 0); ctx.lineTo(38, 5); ctx.fill() } ctx.restore()
+  ctx.fillStyle = "#e0b890"; ctx.beginPath(); ctx.arc(0, -63, 7, 0, 7); ctx.fill(); ctx.fillStyle = "#14141a"; ctx.fillRect(-1, -65, 8, 2.5); ctx.beginPath(); ctx.arc(0, -66, 7.3, Math.PI, 0); ctx.fill()
+  ctx.restore()
+}
+
+function drawYorknewSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = YN.geo = ynGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S, red = YN.rage && !YN.chains
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.Y(392)); g.addColorStop(0, red ? "#5a3a5a" : "#3a72d8"); g.addColorStop(1, red ? "#e0907a" : "#b8d4f4")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const sk = P.sky, sim = c.img[sk.file], fr = P.far, fim = c.img[fr.file]
+  for (const cp of mirrorCopies(G, G.w, padL, padR, true)) {
+    if (ready(sim)) { ctx.save(); ctx.globalAlpha = red ? 0.45 : 0.9; ctx.drawImage(sim, Math.floor(cp.X(0)), G.Y(-40), Math.ceil(G.w) + 1, sk.h * S * 0.8); ctx.restore() }
+    const gx = cp.X(P.street.gap[0]), gy = G.Y(P.street.gap[1])
+    // the skyline seen down the street + the auction tower
+    for (let i = 0; i < 9; i++) { const x = gx - 150 + i * 34 + 10 * Math.sin(i * 3), h = 120 + 140 * _h(i * 7 + 2), w = 26 + 10 * _h(i * 7 + 3)
+      ctx.fillStyle = `rgb(${120 + 30 * _h(i) | 0},${140 + 30 * _h(i) | 0},${175 + 20 * _h(i) | 0})`; ctx.fillRect(x, gy - h, w, h)
+      ctx.fillStyle = "rgba(255,255,255,0.25)"; for (let r = gy - h + 8; r < gy - 10; r += 9) ctx.fillRect(x + 4, r, w - 8, 2) }
+    { const tx = gx + 18, top = gy - 330
+      for (const k of [-1, 1]) { const a = Math.sin(t * 0.7 + k * 1.3) * 0.5 + k * 0.25   // searchlights
+        ctx.fillStyle = red ? "rgba(255,80,80,0.16)" : "rgba(255,255,220,0.14)"; ctx.beginPath(); ctx.moveTo(tx, top + 10); ctx.lineTo(tx + Math.sin(a) * 700 - 40, top - Math.cos(a) * 700); ctx.lineTo(tx + Math.sin(a) * 700 + 40, top - Math.cos(a) * 700); ctx.fill() }
+      ctx.fillStyle = "#2a2a3a"; ctx.fillRect(tx - 22, top, 44, gy - top); ctx.fillStyle = "#3a3a4e"; ctx.fillRect(tx - 14, top - 30, 28, 30); ctx.fillRect(tx - 3, top - 70, 6, 40)
+      ctx.fillStyle = red ? "#ff5050" : "#ffe070"; for (let r = top + 12; r < gy - 20; r += 16) { ctx.fillRect(tx - 16, r, 8, 4); ctx.fillRect(tx + 8, r, 8, 4) }
+      ctx.fillStyle = `rgba(255,60,60,${0.5 + 0.5 * Math.sin(t * 4)})`; ctx.beginPath(); ctx.arc(tx, top - 72, 3, 0, 7); ctx.fill() }
+    if (ready(fim)) ctx.drawImage(fim, gx - fr.w * S / 2 + 30, gy - fr.h * S, fr.w * S, fr.h * S)
+  }
+  // the blimp with the auction banner
+  { const bx = padL + ((t * 22) % (padR - padL + 600)) - 300, by = G.Y(40)
+    ctx.fillStyle = "#d8d8e0"; ctx.beginPath(); ctx.ellipse(bx, by, 90, 26, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#a8a8b8"; ctx.beginPath(); ctx.ellipse(bx, by + 8, 86, 14, 0, 0, Math.PI); ctx.fill()
+    ctx.fillStyle = "#5a5a6a"; ctx.fillRect(bx - 16, by + 24, 32, 9); ctx.beginPath(); ctx.moveTo(bx - 84, by); ctx.lineTo(bx - 106, by - 20); ctx.lineTo(bx - 100, by); ctx.lineTo(bx - 106, by + 20); ctx.fill()
+    ctx.fillStyle = "#b01a2a"; ctx.fillRect(bx - 64, by - 9, 128, 18); ctx.save(); ctx.font = "900 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff"; ctx.fillText("YORKNEW DREAM AUCTION", bx, by + 1); ctx.restore() }
+}
+
+function yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = YN.geo || ynGeo(def, c, W, dockTop), S = def.S, P = c.layout.pieces
+  if (F[0] !== YN.p1) { Object.assign(YN, { p1: F[0], hp: new WeakMap(), ppl: null, troupe: null, impacts: [], bits: [], mafia: [], tracers: [], rage: false, chains: null, flash: 0, shout: [], leapT: 6 }); for (const k in YN.st) YN.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (YN.last || t))); YN.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + 4 * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = YN.hp.get(f); YN.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  // the Troupe on the balconies + the tram roof (per repeat of the street)
+  if (!YN.troupe) { YN.troupe = []; const looks = [["#2a2a32", "#1a1a1a", 0, 1], ["#f0f0ea", "#3a2a1a", 1, 0], ["#4a3a6a", "#0a0a0a", 0, 0], ["#1a1a20", "#d8d8d8", 0, 0], ["#6a2a2a", "#2a1a0a", 0, 0]]
+    P.street.roofs.forEach(([rx, ry], i) => YN.troupe.push({ rx, ry, seed: i * 1.7, dir: i % 2 ? -1 : 1, coat: looks[i][0], hair: looks[i][1], big: !!looks[i][2], cross: !!looks[i][3], leap: null, gone: false, drop: null })) }
+  YN.leapT -= dt
+  if (YN.leapT <= 0 && !YN.chains) { YN.leapT = 7 + ynRnd() * 5; const a = YN.troupe.filter(m => !m.leap && !m.gone && !m.drop); if (a.length) { const m = a[Math.floor(ynRnd() * a.length)], to = P.street.roofs[Math.floor(ynRnd() * P.street.roofs.length)]
+    if (to[0] !== m.rx) { m.leap = { fx: m.rx, fy: m.ry, tx: to[0], ty: to[1], u: 0 }; YN.st.leaps++ } } }
+  if (big && !YN.chains) { YN.st.impacts++; const a = YN.troupe.filter(m => !m.gone && !m.drop && !m.leap); const m = a.find(x => x.big) || a[0]
+    const x = mid + (ynRnd() < 0.5 ? -1 : 1) * (180 + ynRnd() * 160)
+    if (m) m.drop = { u: 0, x, from: null }
+    YN.impacts.push({ x, y: feet - 6 * S, t: -0.35 }); if (YN.st.impacts % 2 === 1) ynShout(x, feet - 150, "BIG BANG IMPACT!!", "#8a2a10") }
+  if (low && !YN.rage && !YN.chains) { YN.rage = true; YN.st.rage++; ynShout(mid, G.Y(260), "THE MAFIA! THEY'RE AFTER THE TROUPE!", "#1a1a1a")
+    for (let i = 0; i < 6; i++) YN.mafia.push({ x: i < 3 ? padL - 40 - i * 40 : padR + 40 + (i - 3) * 40, dir: i < 3 ? 1 : -1, stop: i < 3 ? padL + 60 + i * 50 : padR - 60 - (i - 3) * 50, fire: 0, cd: 0.5 + ynRnd() }) }
+  if (ko && !YN.chains) { YN.chains = { t: 0 }; YN.st.chains++; YN.flash = 0.9; camera.shake?.(8, 30); ynShout(mid, G.Y(250), "CHAIN JAIL!!", "#a07810") }
+  if (YN.chains) { YN.chains.t += dt; if (YN.chains.t > 0.9) for (const m of YN.troupe) m.gone = true; for (const m of YN.mafia) m.dir = m.x < mid ? -1 : 1 }
+  const cps = mirrorCopies(G, G.w, padL, padR, true)
+  for (const m of YN.troupe) { if (m.gone && !(YN.chains && YN.chains.t < 1.2)) continue
+    if (m.leap) { m.leap.u += dt * 0.9; if (m.leap.u >= 1) { m.rx = m.leap.tx; m.ry = m.leap.ty; m.leap = null } }
+    for (const cp of cps) {
+      if (m.drop && cp === cps.reduce((a, b) => Math.abs(b.X(m.rx) - m.drop.x) < Math.abs(a.X(m.rx) - m.drop.x) ? b : a)) {
+        m.drop.u += dt / cps.length * 2.8; const u = Math.min(1, m.drop.u), sx = cp.X(m.rx), sy = G.Y(m.ry)
+        ynCoat(ctx, sx + (m.drop.x - sx) * u, sy + (feet - sy) * u - Math.sin(u * Math.PI) * 120, S * 0.9, m, t); if (m.drop.u > 1.6) m.drop = null; continue }
+      let x = cp.X(m.rx), y = G.Y(m.ry)
+      if (m.leap) { const u = m.leap.u; x = cp.X(m.leap.fx + (m.leap.tx - m.leap.fx) * u); y = G.Y(m.leap.fy + (m.leap.ty - m.leap.fy) * u) - Math.sin(u * Math.PI) * 110 }
+      if (YN.chains && YN.chains.t > 0.6) { ctx.save(); ctx.globalAlpha = Math.max(0, 1.2 - YN.chains.t); ynCoat(ctx, x, y, S * 0.6, m, t); ctx.restore() } else ynCoat(ctx, x, y, S * 0.6, m, t)
+      if (YN.rage && !YN.chains && Math.sin(t * 7 + m.seed * 3) > 0.92) { ctx.strokeStyle = "rgba(255,240,200,0.8)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y - 40, 16, 0, 7); ctx.stroke() } } }
+  // shoppers on the street
+  if (!YN.ppl) YN.ppl = Array.from({ length: 9 }, (_, i) => ({ kind: ["walk", "old", "walk", "kid", "walk", "walk", "stroller", "walk", "kid"][i], seed: i * 2.3, x: padL + (padR - padL) * ((i * 0.37 + 0.05) % 1), dir: i % 2 ? -1 : 1,
+    speed: 50 + 30 * ((i * 0.41) % 1), mode: "walk", ph: i, cheer: 0, go: true, phone: i === 4, down: 0,
+    shirt: ["#d84a4a", "#3a7ad8", "#f0c040", "#4aa860", "#e8e8e8", "#9a5ad0", "#f08a3a", "#2a3a7a", "#c83a8a"][i], pants: ["#2a3a6a", "#3a3a3a", "#5a4a3a"][i % 3],
+    skin: ["#f1c9a5", "#c58c64", "#8a5a3a", "#e0b090", "#6a4028"][i % 5], hair: ["#3a2a1a", "#1a1a1a", "#8a4a2a", "#d8b060"][i % 4], hat: i === 1 ? "#6a5a4a" : null }))
+  for (const p of YN.ppl) {
+    if (p.down > 0) { p.down -= dt; ctx.save(); ctx.translate(p.x, feet - 6 * S); ctx.rotate(-p.dir * Math.PI / 2 * Math.min(1, (2.2 - p.down) * 4)); bwPerson(ctx, { ...p, cheer: 0, go: false, mode: "watch" }, 0, 0, 0.95, t); ctx.restore(); continue }
+    const scared = YN.rage && !YN.chains, sp = scared ? 170 : p.speed; if (scared) { p.dir = p.x < mid ? -1 : 1; p.phone = false }
+    p.cheer = YN.chains ? 1 : 0; p.go = !YN.chains; if (p.go) { p.x += p.dir * sp * dt; p.ph += dt * (scared ? 14 : 7) }
+    if (p.x < padL - 40) { if (scared) p.x = padL - 39; else { p.x = padR + 30 } } if (p.x > padR + 40) { if (scared) p.x = padR + 39; else p.x = padL - 30 }
+    bwPerson(ctx, p, p.x, feet - 6 * S, 0.95, t) }
+  // the HxH cast watching from the street
+  drawCrowd(ctx, YNC, { W, feet: feet - 4 * S, sh: shift(0.9, W) })
+  // Big Bang Impact
+  for (const I of YN.impacts) { I.t += dt; if (I.t < 0) continue
+    if (!I.hit) { I.hit = true; camera.shake?.(9, 22)
+      for (const p of YN.ppl) if (Math.abs(p.x - I.x) < 260 && p.down <= 0) { p.down = 2.2; p.dir = p.x < I.x ? 1 : -1; p.x += (p.x < I.x ? -30 : 30); YN.st.knocked++ }
+      for (let i = 0; i < 22; i++) YN.bits.push({ x: I.x, y: I.y - 10, vx: (ynRnd() - 0.5) * 520, vy: -200 - ynRnd() * 380, r: 2 + ynRnd() * 4, col: ["#e8a030", "#d83a2a", "#5aa040", "#8a7a6a", "#f0e0c0"][i % 5], life: 1.6 }) }
+    const u = Math.min(1, I.t / 1.1)
+    ctx.fillStyle = `rgba(60,50,50,${0.5 * (1 - u * 0.5)})`; ctx.beginPath(); ctx.ellipse(I.x, I.y + 4, 70, 14, 0, 0, 7); ctx.fill()
+    ctx.strokeStyle = `rgba(255,240,210,${1 - u})`; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(I.x, I.y, 40 + 300 * u, 10 + 50 * u, 0, 0, 7); ctx.stroke()
+    if (I.t < 0.2) { ctx.fillStyle = `rgba(255,250,230,${1 - I.t * 5})`; ctx.beginPath(); ctx.arc(I.x, I.y - 30, 70, 0, 7); ctx.fill() } }
+  YN.impacts = YN.impacts.filter(I => I.t < 1.2)
+  for (const b of YN.bits) { b.life -= dt; b.vy += 900 * dt; b.x += b.vx * dt; b.y += b.vy * dt; if (b.y > feet) { b.y = feet; b.vy *= -0.3; b.vx *= 0.6 } ctx.fillStyle = b.col; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill() }
+  YN.bits = YN.bits.filter(b => b.life > 0)
+  // the mafia firing on the Troupe
+  for (const m of YN.mafia) { if (YN.chains) { m.x += m.dir * 220 * dt } else if (Math.abs(m.x - m.stop) > 4) m.x += Math.sign(m.stop - m.x) * 160 * dt
+    else { m.cd -= dt; m.fire = Math.max(0, m.fire - dt * 8); if (m.cd <= 0) { m.cd = 0.25 + ynRnd() * 0.6; m.fire = 1; YN.st.shots++
+      const tgt = YN.troupe.filter(x => !x.gone)[Math.floor(ynRnd() * YN.troupe.length)], cp = cps[Math.floor(ynRnd() * cps.length)]
+      if (tgt && cp) YN.tracers.push({ x0: m.x + m.dir * 30, y0: feet - 60, x1: cp.X(tgt.rx) + (ynRnd() - 0.5) * 40, y1: G.Y(tgt.ry) - 40 + (ynRnd() - 0.5) * 30, a: 1 }) } }
+    ynSuit(ctx, m.x, feet - 2 * S, S * 0.95, m, t) }
+  YN.mafia = YN.mafia.filter(m => m.x > padL - 300 && m.x < padR + 300)
+  for (const tr of YN.tracers) { tr.a -= dt * 5; ctx.strokeStyle = `rgba(255,230,140,${Math.max(0, tr.a)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tr.x0, tr.y0); ctx.lineTo(tr.x1, tr.y1); ctx.stroke() }
+  YN.tracers = YN.tracers.filter(tr => tr.a > 0)
+  // Kurapika's chains
+  if (YN.chains && YN.chains.t < 2.4) { const k = Math.min(1, YN.chains.t / 0.5), a = Math.min(1, 2.4 - YN.chains.t)
+    for (let j = 0; j < 4; j++) { const y0 = G.Y(150 + 60 * j), amp = 40 + 20 * j
+      for (let i = 0; i < 60 * k; i++) { const u = i / 60, x = padL + (padR - padL) * u, y = y0 + Math.sin(u * 8 + j * 1.7 + YN.chains.t * 6) * amp
+        ctx.save(); ctx.translate(x, y); ctx.rotate(u * 8 + j); ctx.strokeStyle = `rgba(240,200,60,${a})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 0, 7, 4, 0, 0, 7); ctx.stroke(); ctx.restore() } } }
+  for (const s of YN.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 19px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  YN.shout = YN.shout.filter(s => s.t > 0)
+  if (YN.flash > 0) { YN.flash = Math.max(0, YN.flash - dt * 1.2); ctx.fillStyle = `rgba(255,230,140,${YN.flash * 0.7})`; ctx.fillRect(padL, G.y0 - 200, padR - padL, coverBottom - G.y0 + 200) }
 }

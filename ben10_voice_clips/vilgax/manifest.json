@@ -1,0 +1,125 @@
+{
+  "character_key": "vilgax",
+  "display_name": "Vilgax (villain/roster character)",
+  "source_file": "17b31971-Ben_10_Protector_of_Earth_Vilgax_ben10classic_ben10_cartoonnetwork.mp3",
+  "note": "Vilgax VO, classic-series game. Roster already references a Vilgax character slot.",
+  "era_verified_by_ear": true,
+  "clip_count": 23,
+  "clips": [
+    {
+      "file": "vilgax_001.ogg",
+      "length_s": 13.91,
+      "size_kb": 159.5
+    },
+    {
+      "file": "vilgax_002.ogg",
+      "length_s": 8.34,
+      "size_kb": 104.6
+    },
+    {
+      "file": "vilgax_003.ogg",
+      "length_s": 0.17,
+      "size_kb": 6.6
+    },
+    {
+      "file": "vilgax_004.ogg",
+      "length_s": 0.19,
+      "size_kb": 7.0
+    },
+    {
+      "file": "vilgax_005.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.8
+    },
+    {
+      "file": "vilgax_006.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.8
+    },
+    {
+      "file": "vilgax_007.ogg",
+      "length_s": 0.32,
+      "size_kb": 8.5
+    },
+    {
+      "file": "vilgax_008.ogg",
+      "length_s": 7.01,
+      "size_kb": 85.2
+    },
+    {
+      "file": "vilgax_009.ogg",
+      "length_s": 0.7,
+      "size_kb": 12.4
+    },
+    {
+      "file": "vilgax_010.ogg",
+      "length_s": 0.47,
+      "size_kb": 10.7
+    },
+    {
+      "file": "vilgax_011.ogg",
+      "length_s": 0.57,
+      "size_kb": 11.4
+    },
+    {
+      "file": "vilgax_012.ogg",
+      "length_s": 1.17,
+      "size_kb": 18.2
+    },
+    {
+      "file": "vilgax_013.ogg",
+      "length_s": 2.12,
+      "size_kb": 29.3
+    },
+    {
+      "file": "vilgax_014.ogg",
+      "length_s": 1.96,
+      "size_kb": 27.3
+    },
+    {
+      "file": "vilgax_015.ogg",
+      "length_s": 1.44,
+      "size_kb": 20.8
+    },
+    {
+      "file": "vilgax_016.ogg",
+      "length_s": 3.59,
+      "size_kb": 47.5
+    },
+    {
+      "file": "vilgax_017.ogg",
+      "length_s": 2.08,
+      "size_kb": 29.8
+    },
+    {
+      "file": "vilgax_018.ogg",
+      "length_s": 1.03,
+      "size_kb": 16.6
+    },
+    {
+      "file": "vilgax_019.ogg",
+      "length_s": 1.19,
+      "size_kb": 18.7
+    },
+    {
+      "file": "vilgax_020.ogg",
+      "length_s": 1.16,
+      "size_kb": 18.4
+    },
+    {
+      "file": "vilgax_021.ogg",
+      "length_s": 0.67,
+      "size_kb": 12.7
+    },
+    {
+      "file": "vilgax_022.ogg",
+      "length_s": 0.63,
+      "size_kb": 12.0
+    },
+    {
+      "file": "vilgax_023.ogg",
+      "length_s": 2.41,
+      "size_kb": 35.7
+    }
+  ]
+}

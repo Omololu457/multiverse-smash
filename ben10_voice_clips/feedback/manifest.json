@@ -1,0 +1,115 @@
+{
+  "character_key": "feedback",
+  "display_name": "Feedback",
+  "source_file": "688b3eea-The_great_quotes_of_Feedback.mp3",
+  "note": "Feedback debuted in Ultimate Alien (teen Ben's alien). Era not confirmed by ear.",
+  "era_verified_by_ear": false,
+  "clip_count": 21,
+  "clips": [
+    {
+      "file": "feedback_001.ogg",
+      "length_s": 17.6,
+      "size_kb": 269.8
+    },
+    {
+      "file": "feedback_002.ogg",
+      "length_s": 0.27,
+      "size_kb": 9.1
+    },
+    {
+      "file": "feedback_003.ogg",
+      "length_s": 16.6,
+      "size_kb": 249.6
+    },
+    {
+      "file": "feedback_004.ogg",
+      "length_s": 1.82,
+      "size_kb": 32.1
+    },
+    {
+      "file": "feedback_005.ogg",
+      "length_s": 36.55,
+      "size_kb": 625.5
+    },
+    {
+      "file": "feedback_006.ogg",
+      "length_s": 11.71,
+      "size_kb": 192.5
+    },
+    {
+      "file": "feedback_007.ogg",
+      "length_s": 8.42,
+      "size_kb": 127.6
+    },
+    {
+      "file": "feedback_008.ogg",
+      "length_s": 17.35,
+      "size_kb": 270.0
+    },
+    {
+      "file": "feedback_009.ogg",
+      "length_s": 13.59,
+      "size_kb": 216.8
+    },
+    {
+      "file": "feedback_010.ogg",
+      "length_s": 0.76,
+      "size_kb": 14.3
+    },
+    {
+      "file": "feedback_011.ogg",
+      "length_s": 2.94,
+      "size_kb": 44.5
+    },
+    {
+      "file": "feedback_012.ogg",
+      "length_s": 2.27,
+      "size_kb": 37.2
+    },
+    {
+      "file": "feedback_013.ogg",
+      "length_s": 1.59,
+      "size_kb": 26.2
+    },
+    {
+      "file": "feedback_014.ogg",
+      "length_s": 1.93,
+      "size_kb": 32.2
+    },
+    {
+      "file": "feedback_015.ogg",
+      "length_s": 2.0,
+      "size_kb": 28.8
+    },
+    {
+      "file": "feedback_016.ogg",
+      "length_s": 9.62,
+      "size_kb": 152.4
+    },
+    {
+      "file": "feedback_017.ogg",
+      "length_s": 17.67,
+      "size_kb": 266.5
+    },
+    {
+      "file": "feedback_018.ogg",
+      "length_s": 9.67,
+      "size_kb": 156.4
+    },
+    {
+      "file": "feedback_019.ogg",
+      "length_s": 25.26,
+      "size_kb": 402.8
+    },
+    {
+      "file": "feedback_020.ogg",
+      "length_s": 18.74,
+      "size_kb": 259.2
+    },
+    {
+      "file": "feedback_021.ogg",
+      "length_s": 9.54,
+      "size_kb": 162.1
+    }
+  ]
+}

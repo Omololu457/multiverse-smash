@@ -1,0 +1,130 @@
+{
+  "character_key": "diamondhead",
+  "display_name": "Diamondhead",
+  "source_file": "b70c66ee-The_great_quotes_of_Diamondhead.mp3",
+  "note": "Exists in both classic and teen eras; this compilation's era not confirmed by ear.",
+  "era_verified_by_ear": false,
+  "clip_count": 24,
+  "clips": [
+    {
+      "file": "diamondhead_001.ogg",
+      "length_s": 26.81,
+      "size_kb": 355.5
+    },
+    {
+      "file": "diamondhead_002.ogg",
+      "length_s": 46.94,
+      "size_kb": 760.4
+    },
+    {
+      "file": "diamondhead_003.ogg",
+      "length_s": 9.84,
+      "size_kb": 144.0
+    },
+    {
+      "file": "diamondhead_004.ogg",
+      "length_s": 13.25,
+      "size_kb": 183.0
+    },
+    {
+      "file": "diamondhead_005.ogg",
+      "length_s": 1.39,
+      "size_kb": 23.2
+    },
+    {
+      "file": "diamondhead_006.ogg",
+      "length_s": 4.96,
+      "size_kb": 74.3
+    },
+    {
+      "file": "diamondhead_007.ogg",
+      "length_s": 19.31,
+      "size_kb": 299.8
+    },
+    {
+      "file": "diamondhead_008.ogg",
+      "length_s": 8.16,
+      "size_kb": 114.9
+    },
+    {
+      "file": "diamondhead_009.ogg",
+      "length_s": 9.85,
+      "size_kb": 155.4
+    },
+    {
+      "file": "diamondhead_010.ogg",
+      "length_s": 6.02,
+      "size_kb": 91.4
+    },
+    {
+      "file": "diamondhead_011.ogg",
+      "length_s": 2.75,
+      "size_kb": 50.3
+    },
+    {
+      "file": "diamondhead_012.ogg",
+      "length_s": 2.15,
+      "size_kb": 37.4
+    },
+    {
+      "file": "diamondhead_013.ogg",
+      "length_s": 11.53,
+      "size_kb": 181.4
+    },
+    {
+      "file": "diamondhead_014.ogg",
+      "length_s": 15.21,
+      "size_kb": 192.0
+    },
+    {
+      "file": "diamondhead_015.ogg",
+      "length_s": 10.51,
+      "size_kb": 151.8
+    },
+    {
+      "file": "diamondhead_016.ogg",
+      "length_s": 9.3,
+      "size_kb": 141.8
+    },
+    {
+      "file": "diamondhead_017.ogg",
+      "length_s": 14.03,
+      "size_kb": 218.9
+    },
+    {
+      "file": "diamondhead_018.ogg",
+      "length_s": 11.64,
+      "size_kb": 177.3
+    },
+    {
+      "file": "diamondhead_019.ogg",
+      "length_s": 13.04,
+      "size_kb": 170.5
+    },
+    {
+      "file": "diamondhead_020.ogg",
+      "length_s": 9.5,
+      "size_kb": 143.2
+    },
+    {
+      "file": "diamondhead_021.ogg",
+      "length_s": 6.69,
+      "size_kb": 100.6
+    },
+    {
+      "file": "diamondhead_022.ogg",
+      "length_s": 17.0,
+      "size_kb": 257.9
+    },
+    {
+      "file": "diamondhead_023.ogg",
+      "length_s": 29.34,
+      "size_kb": 452.4
+    },
+    {
+      "file": "diamondhead_024.ogg",
+      "length_s": 21.43,
+      "size_kb": 341.8
+    }
+  ]
+}

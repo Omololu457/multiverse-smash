@@ -1,0 +1,170 @@
+{
+  "character_key": "upgrade",
+  "display_name": "Upgrade",
+  "source_file": "326b14f0-The_great_quotes_of_Upgrade.mp3",
+  "note": "Upgrade exists in classic AND teen eras; this compilation's era is NOT confirmed by ear \u2014 flag for owner review.",
+  "era_verified_by_ear": false,
+  "clip_count": 32,
+  "clips": [
+    {
+      "file": "upgrade_001.ogg",
+      "length_s": 16.66,
+      "size_kb": 252.2
+    },
+    {
+      "file": "upgrade_002.ogg",
+      "length_s": 5.13,
+      "size_kb": 74.0
+    },
+    {
+      "file": "upgrade_003.ogg",
+      "length_s": 1.26,
+      "size_kb": 20.4
+    },
+    {
+      "file": "upgrade_004.ogg",
+      "length_s": 46.14,
+      "size_kb": 495.1
+    },
+    {
+      "file": "upgrade_005.ogg",
+      "length_s": 8.78,
+      "size_kb": 112.8
+    },
+    {
+      "file": "upgrade_006.ogg",
+      "length_s": 0.27,
+      "size_kb": 8.3
+    },
+    {
+      "file": "upgrade_007.ogg",
+      "length_s": 8.46,
+      "size_kb": 125.0
+    },
+    {
+      "file": "upgrade_008.ogg",
+      "length_s": 10.54,
+      "size_kb": 158.1
+    },
+    {
+      "file": "upgrade_009.ogg",
+      "length_s": 8.15,
+      "size_kb": 126.5
+    },
+    {
+      "file": "upgrade_010.ogg",
+      "length_s": 2.43,
+      "size_kb": 34.3
+    },
+    {
+      "file": "upgrade_011.ogg",
+      "length_s": 0.9,
+      "size_kb": 16.5
+    },
+    {
+      "file": "upgrade_012.ogg",
+      "length_s": 6.68,
+      "size_kb": 109.6
+    },
+    {
+      "file": "upgrade_013.ogg",
+      "length_s": 0.64,
+      "size_kb": 12.4
+    },
+    {
+      "file": "upgrade_014.ogg",
+      "length_s": 1.91,
+      "size_kb": 30.4
+    },
+    {
+      "file": "upgrade_015.ogg",
+      "length_s": 0.52,
+      "size_kb": 11.5
+    },
+    {
+      "file": "upgrade_016.ogg",
+      "length_s": 0.73,
+      "size_kb": 13.9
+    },
+    {
+      "file": "upgrade_017.ogg",
+      "length_s": 6.3,
+      "size_kb": 90.2
+    },
+    {
+      "file": "upgrade_018.ogg",
+      "length_s": 0.81,
+      "size_kb": 14.3
+    },
+    {
+      "file": "upgrade_019.ogg",
+      "length_s": 2.5,
+      "size_kb": 38.3
+    },
+    {
+      "file": "upgrade_020.ogg",
+      "length_s": 6.59,
+      "size_kb": 91.7
+    },
+    {
+      "file": "upgrade_021.ogg",
+      "length_s": 3.9,
+      "size_kb": 48.9
+    },
+    {
+      "file": "upgrade_022.ogg",
+      "length_s": 11.84,
+      "size_kb": 163.2
+    },
+    {
+      "file": "upgrade_023.ogg",
+      "length_s": 2.23,
+      "size_kb": 37.5
+    },
+    {
+      "file": "upgrade_024.ogg",
+      "length_s": 0.27,
+      "size_kb": 8.1
+    },
+    {
+      "file": "upgrade_025.ogg",
+      "length_s": 27.4,
+      "size_kb": 358.4
+    },
+    {
+      "file": "upgrade_026.ogg",
+      "length_s": 8.42,
+      "size_kb": 124.4
+    },
+    {
+      "file": "upgrade_027.ogg",
+      "length_s": 8.68,
+      "size_kb": 127.2
+    },
+    {
+      "file": "upgrade_028.ogg",
+      "length_s": 5.79,
+      "size_kb": 83.5
+    },
+    {
+      "file": "upgrade_029.ogg",
+      "length_s": 3.77,
+      "size_kb": 55.4
+    },
+    {
+      "file": "upgrade_030.ogg",
+      "length_s": 6.65,
+      "size_kb": 103.3
+    },
+    {
+      "file": "upgrade_031.ogg",
+      "length_s": 14.52,
+      "size_kb": 195.9
+    },
+    {
+      "file": "upgrade_032.ogg",
+      "length_s": 48.24,
+      "size_kb": 718.7
+    }
+  ]
+}

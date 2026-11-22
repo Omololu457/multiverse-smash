@@ -1,0 +1,104 @@
+{
+  "albedo": {
+    "display_name": "Albedo",
+    "clip_count": 86,
+    "era_verified_by_ear": true,
+    "note": "Albedo best-moments compilation; teen-era clone-of-Ben villain/anti-hero."
+  },
+  "ben_teen": {
+    "display_name": "Teen Ben Tennyson (Punch Time Explosion XL)",
+    "clip_count": 6,
+    "era_verified_by_ear": true,
+    "note": "PTEXL uses the Alien Force/Ultimate Alien-era 16-year-old Ben (Yuri Lowenthal)."
+  },
+  "ben_young": {
+    "display_name": "Young Ben (Protector of Earth, Part 2)",
+    "clip_count": 60,
+    "era_verified_by_ear": true,
+    "note": "Kid/classic-series Ben \u2014 Protector of Earth is the original 10-year-old Ben game."
+  },
+  "bigchill": {
+    "display_name": "Big Chill",
+    "clip_count": 28,
+    "era_verified_by_ear": false,
+    "note": "Big Chill debuted in Alien Force (teen Ben's alien). Era not confirmed by ear."
+  },
+  "diamondhead": {
+    "display_name": "Diamondhead",
+    "clip_count": 24,
+    "era_verified_by_ear": false,
+    "note": "Exists in both classic and teen eras; this compilation's era not confirmed by ear."
+  },
+  "feedback": {
+    "display_name": "Feedback",
+    "clip_count": 21,
+    "era_verified_by_ear": false,
+    "note": "Feedback debuted in Ultimate Alien (teen Ben's alien). Era not confirmed by ear."
+  },
+  "ghostfreak_teen": {
+    "display_name": "Ghostfreak (likely teen/Alien Force redesign)",
+    "clip_count": 26,
+    "era_verified_by_ear": false,
+    "note": "Separate compilation from the Protector of Earth clip above; assumed Alien Force-era redesign, NOT confirmed by ear."
+  },
+  "ghostfreak_young": {
+    "display_name": "Ghostfreak (Young Ben / classic)",
+    "clip_count": 34,
+    "era_verified_by_ear": true,
+    "note": "Young Ben's Ghostfreak, from Protector of Earth."
+  },
+  "heatblast_young": {
+    "display_name": "Heatblast (Young Ben / classic), Part 1",
+    "clip_count": 30,
+    "era_verified_by_ear": true,
+    "note": "Young Ben's Heatblast, from Protector of Earth."
+  },
+  "humongousaur": {
+    "display_name": "Humongousaur",
+    "clip_count": 27,
+    "era_verified_by_ear": false,
+    "note": "Debuted in Alien Force (teen Ben's alien). Era not confirmed by ear."
+  },
+  "kevin11": {
+    "display_name": "Kevin 11 (villain)",
+    "clip_count": 41,
+    "era_verified_by_ear": true,
+    "note": "Not an alien form / not Ben. Villain VO only \u2014 hold until Kevin 11 is a roster character."
+  },
+  "rath": {
+    "display_name": "Rath",
+    "clip_count": 54,
+    "era_verified_by_ear": false,
+    "note": "Debuted in Alien Force (teen Ben's alien). Era not confirmed by ear."
+  },
+  "swampfire": {
+    "display_name": "Swampfire",
+    "clip_count": 35,
+    "era_verified_by_ear": false,
+    "note": "Debuted in Alien Force (teen Ben's alien). Era not confirmed by ear."
+  },
+  "upgrade": {
+    "display_name": "Upgrade",
+    "clip_count": 32,
+    "era_verified_by_ear": false,
+    "note": "Upgrade exists in classic AND teen eras; this compilation's era is NOT confirmed by ear \u2014 flag for owner review."
+  },
+  "vilgax": {
+    "display_name": "Vilgax (villain/roster character)",
+    "clip_count": 23,
+    "era_verified_by_ear": true,
+    "note": "Vilgax VO, classic-series game. Roster already references a Vilgax character slot."
+  },
+  "wildvine_young": {
+    "display_name": "Wildvine (Young Ben / classic), Part 1",
+    "clip_count": 41,
+    "era_verified_by_ear": true,
+    "note": "Young Ben's Wildvine, from Protector of Earth."
+  },
+  "xlr8": {
+    "display_name": "XLR8",
+    "clip_count": 27,
+    "era_verified_by_ear": false,
+    "note": "XLR8 exists in classic AND teen eras; this compilation's era is NOT confirmed by ear \u2014 flag for owner review."
+  }
+}

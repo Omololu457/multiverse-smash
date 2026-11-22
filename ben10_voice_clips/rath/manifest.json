@@ -1,0 +1,280 @@
+{
+  "character_key": "rath",
+  "display_name": "Rath",
+  "source_file": "924fb740-The_great_quotes_of_Rath.mp3",
+  "note": "Debuted in Alien Force (teen Ben's alien). Era not confirmed by ear.",
+  "era_verified_by_ear": false,
+  "clip_count": 54,
+  "clips": [
+    {
+      "file": "rath_001.ogg",
+      "length_s": 14.09,
+      "size_kb": 182.3
+    },
+    {
+      "file": "rath_002.ogg",
+      "length_s": 48.57,
+      "size_kb": 710.9
+    },
+    {
+      "file": "rath_003.ogg",
+      "length_s": 6.45,
+      "size_kb": 97.6
+    },
+    {
+      "file": "rath_004.ogg",
+      "length_s": 10.33,
+      "size_kb": 135.9
+    },
+    {
+      "file": "rath_005.ogg",
+      "length_s": 16.57,
+      "size_kb": 210.5
+    },
+    {
+      "file": "rath_006.ogg",
+      "length_s": 9.77,
+      "size_kb": 128.9
+    },
+    {
+      "file": "rath_007.ogg",
+      "length_s": 12.28,
+      "size_kb": 200.0
+    },
+    {
+      "file": "rath_008.ogg",
+      "length_s": 0.23,
+      "size_kb": 7.3
+    },
+    {
+      "file": "rath_009.ogg",
+      "length_s": 14.08,
+      "size_kb": 204.6
+    },
+    {
+      "file": "rath_010.ogg",
+      "length_s": 3.44,
+      "size_kb": 52.2
+    },
+    {
+      "file": "rath_011.ogg",
+      "length_s": 0.92,
+      "size_kb": 17.4
+    },
+    {
+      "file": "rath_012.ogg",
+      "length_s": 3.17,
+      "size_kb": 52.2
+    },
+    {
+      "file": "rath_013.ogg",
+      "length_s": 5.35,
+      "size_kb": 82.4
+    },
+    {
+      "file": "rath_014.ogg",
+      "length_s": 10.96,
+      "size_kb": 135.3
+    },
+    {
+      "file": "rath_015.ogg",
+      "length_s": 0.4,
+      "size_kb": 9.1
+    },
+    {
+      "file": "rath_016.ogg",
+      "length_s": 13.17,
+      "size_kb": 205.1
+    },
+    {
+      "file": "rath_017.ogg",
+      "length_s": 0.28,
+      "size_kb": 9.5
+    },
+    {
+      "file": "rath_018.ogg",
+      "length_s": 14.92,
+      "size_kb": 212.1
+    },
+    {
+      "file": "rath_019.ogg",
+      "length_s": 0.31,
+      "size_kb": 8.4
+    },
+    {
+      "file": "rath_020.ogg",
+      "length_s": 5.76,
+      "size_kb": 79.1
+    },
+    {
+      "file": "rath_021.ogg",
+      "length_s": 0.96,
+      "size_kb": 15.3
+    },
+    {
+      "file": "rath_022.ogg",
+      "length_s": 0.8,
+      "size_kb": 14.4
+    },
+    {
+      "file": "rath_023.ogg",
+      "length_s": 9.28,
+      "size_kb": 134.6
+    },
+    {
+      "file": "rath_024.ogg",
+      "length_s": 0.65,
+      "size_kb": 12.9
+    },
+    {
+      "file": "rath_025.ogg",
+      "length_s": 5.34,
+      "size_kb": 76.2
+    },
+    {
+      "file": "rath_026.ogg",
+      "length_s": 0.49,
+      "size_kb": 10.5
+    },
+    {
+      "file": "rath_027.ogg",
+      "length_s": 3.1,
+      "size_kb": 48.2
+    },
+    {
+      "file": "rath_028.ogg",
+      "length_s": 17.17,
+      "size_kb": 254.4
+    },
+    {
+      "file": "rath_029.ogg",
+      "length_s": 12.63,
+      "size_kb": 186.3
+    },
+    {
+      "file": "rath_030.ogg",
+      "length_s": 9.03,
+      "size_kb": 127.0
+    },
+    {
+      "file": "rath_031.ogg",
+      "length_s": 11.78,
+      "size_kb": 159.7
+    },
+    {
+      "file": "rath_032.ogg",
+      "length_s": 0.15,
+      "size_kb": 6.9
+    },
+    {
+      "file": "rath_033.ogg",
+      "length_s": 13.42,
+      "size_kb": 191.5
+    },
+    {
+      "file": "rath_034.ogg",
+      "length_s": 5.22,
+      "size_kb": 75.3
+    },
+    {
+      "file": "rath_035.ogg",
+      "length_s": 0.52,
+      "size_kb": 12.2
+    },
+    {
+      "file": "rath_036.ogg",
+      "length_s": 21.72,
+      "size_kb": 295.3
+    },
+    {
+      "file": "rath_037.ogg",
+      "length_s": 34.42,
+      "size_kb": 530.1
+    },
+    {
+      "file": "rath_038.ogg",
+      "length_s": 10.05,
+      "size_kb": 171.9
+    },
+    {
+      "file": "rath_039.ogg",
+      "length_s": 11.03,
+      "size_kb": 162.1
+    },
+    {
+      "file": "rath_040.ogg",
+      "length_s": 3.8,
+      "size_kb": 58.1
+    },
+    {
+      "file": "rath_041.ogg",
+      "length_s": 17.1,
+      "size_kb": 239.5
+    },
+    {
+      "file": "rath_042.ogg",
+      "length_s": 1.0,
+      "size_kb": 19.1
+    },
+    {
+      "file": "rath_043.ogg",
+      "length_s": 0.33,
+      "size_kb": 9.5
+    },
+    {
+      "file": "rath_044.ogg",
+      "length_s": 4.95,
+      "size_kb": 72.1
+    },
+    {
+      "file": "rath_045.ogg",
+      "length_s": 39.24,
+      "size_kb": 552.5
+    },
+    {
+      "file": "rath_046.ogg",
+      "length_s": 11.96,
+      "size_kb": 157.4
+    },
+    {
+      "file": "rath_047.ogg",
+      "length_s": 1.85,
+      "size_kb": 31.2
+    },
+    {
+      "file": "rath_048.ogg",
+      "length_s": 15.05,
+      "size_kb": 229.2
+    },
+    {
+      "file": "rath_049.ogg",
+      "length_s": 3.95,
+      "size_kb": 52.7
+    },
+    {
+      "file": "rath_050.ogg",
+      "length_s": 4.8,
+      "size_kb": 70.5
+    },
+    {
+      "file": "rath_051.ogg",
+      "length_s": 2.8,
+      "size_kb": 45.0
+    },
+    {
+      "file": "rath_052.ogg",
+      "length_s": 1.56,
+      "size_kb": 27.6
+    },
+    {
+      "file": "rath_053.ogg",
+      "length_s": 12.03,
+      "size_kb": 185.4
+    },
+    {
+      "file": "rath_054.ogg",
+      "length_s": 9.95,
+      "size_kb": 153.8
+    }
+  ]
+}

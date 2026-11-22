@@ -1,0 +1,215 @@
+{
+  "character_key": "wildvine_young",
+  "display_name": "Wildvine (Young Ben / classic), Part 1",
+  "source_file": "0a51142f-Ben_10_Protector_of_Earth_Wildvine_Part_1_ben10classic_ben10_cartoonnetwork.mp3",
+  "note": "Young Ben's Wildvine, from Protector of Earth.",
+  "era_verified_by_ear": true,
+  "clip_count": 41,
+  "clips": [
+    {
+      "file": "wildvine_young_001.ogg",
+      "length_s": 1.58,
+      "size_kb": 22.6
+    },
+    {
+      "file": "wildvine_young_002.ogg",
+      "length_s": 2.07,
+      "size_kb": 30.1
+    },
+    {
+      "file": "wildvine_young_003.ogg",
+      "length_s": 1.11,
+      "size_kb": 18.5
+    },
+    {
+      "file": "wildvine_young_004.ogg",
+      "length_s": 1.94,
+      "size_kb": 28.7
+    },
+    {
+      "file": "wildvine_young_005.ogg",
+      "length_s": 2.34,
+      "size_kb": 34.0
+    },
+    {
+      "file": "wildvine_young_006.ogg",
+      "length_s": 2.24,
+      "size_kb": 33.3
+    },
+    {
+      "file": "wildvine_young_007.ogg",
+      "length_s": 1.81,
+      "size_kb": 27.1
+    },
+    {
+      "file": "wildvine_young_008.ogg",
+      "length_s": 1.6,
+      "size_kb": 24.7
+    },
+    {
+      "file": "wildvine_young_009.ogg",
+      "length_s": 1.17,
+      "size_kb": 20.2
+    },
+    {
+      "file": "wildvine_young_010.ogg",
+      "length_s": 2.08,
+      "size_kb": 29.9
+    },
+    {
+      "file": "wildvine_young_011.ogg",
+      "length_s": 3.05,
+      "size_kb": 39.5
+    },
+    {
+      "file": "wildvine_young_012.ogg",
+      "length_s": 2.31,
+      "size_kb": 32.2
+    },
+    {
+      "file": "wildvine_young_013.ogg",
+      "length_s": 2.5,
+      "size_kb": 34.7
+    },
+    {
+      "file": "wildvine_young_014.ogg",
+      "length_s": 2.95,
+      "size_kb": 38.9
+    },
+    {
+      "file": "wildvine_young_015.ogg",
+      "length_s": 4.48,
+      "size_kb": 59.1
+    },
+    {
+      "file": "wildvine_young_016.ogg",
+      "length_s": 1.46,
+      "size_kb": 22.9
+    },
+    {
+      "file": "wildvine_young_017.ogg",
+      "length_s": 1.82,
+      "size_kb": 26.3
+    },
+    {
+      "file": "wildvine_young_018.ogg",
+      "length_s": 8.34,
+      "size_kb": 101.1
+    },
+    {
+      "file": "wildvine_young_019.ogg",
+      "length_s": 2.46,
+      "size_kb": 34.1
+    },
+    {
+      "file": "wildvine_young_020.ogg",
+      "length_s": 2.07,
+      "size_kb": 30.0
+    },
+    {
+      "file": "wildvine_young_021.ogg",
+      "length_s": 1.71,
+      "size_kb": 25.3
+    },
+    {
+      "file": "wildvine_young_022.ogg",
+      "length_s": 1.62,
+      "size_kb": 24.1
+    },
+    {
+      "file": "wildvine_young_023.ogg",
+      "length_s": 1.57,
+      "size_kb": 22.4
+    },
+    {
+      "file": "wildvine_young_024.ogg",
+      "length_s": 2.27,
+      "size_kb": 32.8
+    },
+    {
+      "file": "wildvine_young_025.ogg",
+      "length_s": 1.41,
+      "size_kb": 23.2
+    },
+    {
+      "file": "wildvine_young_026.ogg",
+      "length_s": 3.98,
+      "size_kb": 49.9
+    },
+    {
+      "file": "wildvine_young_027.ogg",
+      "length_s": 2.13,
+      "size_kb": 30.3
+    },
+    {
+      "file": "wildvine_young_028.ogg",
+      "length_s": 1.65,
+      "size_kb": 24.9
+    },
+    {
+      "file": "wildvine_young_029.ogg",
+      "length_s": 4.94,
+      "size_kb": 66.8
+    },
+    {
+      "file": "wildvine_young_030.ogg",
+      "length_s": 2.35,
+      "size_kb": 31.4
+    },
+    {
+      "file": "wildvine_young_031.ogg",
+      "length_s": 1.72,
+      "size_kb": 27.3
+    },
+    {
+      "file": "wildvine_young_032.ogg",
+      "length_s": 2.18,
+      "size_kb": 31.5
+    },
+    {
+      "file": "wildvine_young_033.ogg",
+      "length_s": 4.87,
+      "size_kb": 62.4
+    },
+    {
+      "file": "wildvine_young_034.ogg",
+      "length_s": 2.47,
+      "size_kb": 34.4
+    },
+    {
+      "file": "wildvine_young_035.ogg",
+      "length_s": 1.71,
+      "size_kb": 28.3
+    },
+    {
+      "file": "wildvine_young_036.ogg",
+      "length_s": 1.77,
+      "size_kb": 25.9
+    },
+    {
+      "file": "wildvine_young_037.ogg",
+      "length_s": 1.43,
+      "size_kb": 23.9
+    },
+    {
+      "file": "wildvine_young_038.ogg",
+      "length_s": 2.73,
+      "size_kb": 38.8
+    },
+    {
+      "file": "wildvine_young_039.ogg",
+      "length_s": 1.47,
+      "size_kb": 22.5
+    },
+    {
+      "file": "wildvine_young_040.ogg",
+      "length_s": 1.81,
+      "size_kb": 28.0
+    },
+    {
+      "file": "wildvine_young_041.ogg",
+      "length_s": 2.18,
+      "size_kb": 31.5
+    }
+  ]
+}

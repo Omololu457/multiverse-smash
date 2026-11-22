@@ -1,0 +1,150 @@
+{
+  "character_key": "bigchill",
+  "display_name": "Big Chill",
+  "source_file": "b3a7f47e-The_great_quotes_of_Big_Chill.mp3",
+  "note": "Big Chill debuted in Alien Force (teen Ben's alien). Era not confirmed by ear.",
+  "era_verified_by_ear": false,
+  "clip_count": 28,
+  "clips": [
+    {
+      "file": "bigchill_001.ogg",
+      "length_s": 17.92,
+      "size_kb": 255.7
+    },
+    {
+      "file": "bigchill_002.ogg",
+      "length_s": 42.92,
+      "size_kb": 702.7
+    },
+    {
+      "file": "bigchill_003.ogg",
+      "length_s": 18.41,
+      "size_kb": 274.1
+    },
+    {
+      "file": "bigchill_004.ogg",
+      "length_s": 5.65,
+      "size_kb": 82.2
+    },
+    {
+      "file": "bigchill_005.ogg",
+      "length_s": 1.26,
+      "size_kb": 23.0
+    },
+    {
+      "file": "bigchill_006.ogg",
+      "length_s": 5.23,
+      "size_kb": 81.1
+    },
+    {
+      "file": "bigchill_007.ogg",
+      "length_s": 0.45,
+      "size_kb": 10.6
+    },
+    {
+      "file": "bigchill_008.ogg",
+      "length_s": 0.17,
+      "size_kb": 7.2
+    },
+    {
+      "file": "bigchill_009.ogg",
+      "length_s": 12.72,
+      "size_kb": 166.3
+    },
+    {
+      "file": "bigchill_010.ogg",
+      "length_s": 9.93,
+      "size_kb": 144.7
+    },
+    {
+      "file": "bigchill_011.ogg",
+      "length_s": 9.16,
+      "size_kb": 125.2
+    },
+    {
+      "file": "bigchill_012.ogg",
+      "length_s": 14.79,
+      "size_kb": 203.0
+    },
+    {
+      "file": "bigchill_013.ogg",
+      "length_s": 0.8,
+      "size_kb": 16.0
+    },
+    {
+      "file": "bigchill_014.ogg",
+      "length_s": 0.85,
+      "size_kb": 16.7
+    },
+    {
+      "file": "bigchill_015.ogg",
+      "length_s": 1.31,
+      "size_kb": 22.8
+    },
+    {
+      "file": "bigchill_016.ogg",
+      "length_s": 10.97,
+      "size_kb": 164.9
+    },
+    {
+      "file": "bigchill_017.ogg",
+      "length_s": 11.0,
+      "size_kb": 149.1
+    },
+    {
+      "file": "bigchill_018.ogg",
+      "length_s": 13.84,
+      "size_kb": 214.2
+    },
+    {
+      "file": "bigchill_019.ogg",
+      "length_s": 10.34,
+      "size_kb": 153.1
+    },
+    {
+      "file": "bigchill_020.ogg",
+      "length_s": 0.38,
+      "size_kb": 10.2
+    },
+    {
+      "file": "bigchill_021.ogg",
+      "length_s": 9.12,
+      "size_kb": 143.5
+    },
+    {
+      "file": "bigchill_022.ogg",
+      "length_s": 18.03,
+      "size_kb": 281.8
+    },
+    {
+      "file": "bigchill_023.ogg",
+      "length_s": 9.85,
+      "size_kb": 141.2
+    },
+    {
+      "file": "bigchill_024.ogg",
+      "length_s": 25.35,
+      "size_kb": 362.8
+    },
+    {
+      "file": "bigchill_025.ogg",
+      "length_s": 10.8,
+      "size_kb": 151.5
+    },
+    {
+      "file": "bigchill_026.ogg",
+      "length_s": 19.09,
+      "size_kb": 321.6
+    },
+    {
+      "file": "bigchill_027.ogg",
+      "length_s": 32.52,
+      "size_kb": 456.8
+    },
+    {
+      "file": "bigchill_028.ogg",
+      "length_s": 10.82,
+      "size_kb": 185.3
+    }
+  ]
+}

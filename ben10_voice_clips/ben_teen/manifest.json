@@ -1,0 +1,40 @@
+{
+  "character_key": "ben_teen",
+  "display_name": "Teen Ben Tennyson (Punch Time Explosion XL)",
+  "source_file": "b775f5ec-Cartoon_Network_Punch_Time_Explosion_XL_Ben_Tennyson_Voice_Clips.mp3",
+  "note": "PTEXL uses the Alien Force/Ultimate Alien-era 16-year-old Ben (Yuri Lowenthal).",
+  "era_verified_by_ear": true,
+  "clip_count": 6,
+  "clips": [
+    {
+      "file": "ben_teen_001.ogg",
+      "length_s": 5.53,
+      "size_kb": 67.9
+    },
+    {
+      "file": "ben_teen_002.ogg",
+      "length_s": 0.52,
+      "size_kb": 10.3
+    },
+    {
+      "file": "ben_teen_003.ogg",
+      "length_s": 9.88,
+      "size_kb": 102.8
+    },
+    {
+      "file": "ben_teen_004.ogg",
+      "length_s": 8.15,
+      "size_kb": 96.1
+    },
+    {
+      "file": "ben_teen_005.ogg",
+      "length_s": 2.93,
+      "size_kb": 37.2
+    },
+    {
+      "file": "ben_teen_006.ogg",
+      "length_s": 4.94,
+      "size_kb": 57.1
+    }
+  ]
+}

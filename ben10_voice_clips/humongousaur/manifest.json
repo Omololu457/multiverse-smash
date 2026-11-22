@@ -1,0 +1,145 @@
+{
+  "character_key": "humongousaur",
+  "display_name": "Humongousaur",
+  "source_file": "8b66858d-The_great_quotes_of_Humungousaur.mp3",
+  "note": "Debuted in Alien Force (teen Ben's alien). Era not confirmed by ear.",
+  "era_verified_by_ear": false,
+  "clip_count": 27,
+  "clips": [
+    {
+      "file": "humongousaur_001.ogg",
+      "length_s": 23.13,
+      "size_kb": 281.4
+    },
+    {
+      "file": "humongousaur_002.ogg",
+      "length_s": 52.58,
+      "size_kb": 847.3
+    },
+    {
+      "file": "humongousaur_003.ogg",
+      "length_s": 15.59,
+      "size_kb": 228.2
+    },
+    {
+      "file": "humongousaur_004.ogg",
+      "length_s": 10.21,
+      "size_kb": 151.6
+    },
+    {
+      "file": "humongousaur_005.ogg",
+      "length_s": 13.63,
+      "size_kb": 206.9
+    },
+    {
+      "file": "humongousaur_006.ogg",
+      "length_s": 0.31,
+      "size_kb": 8.6
+    },
+    {
+      "file": "humongousaur_007.ogg",
+      "length_s": 9.6,
+      "size_kb": 132.1
+    },
+    {
+      "file": "humongousaur_008.ogg",
+      "length_s": 10.38,
+      "size_kb": 158.0
+    },
+    {
+      "file": "humongousaur_009.ogg",
+      "length_s": 0.68,
+      "size_kb": 14.4
+    },
+    {
+      "file": "humongousaur_010.ogg",
+      "length_s": 7.37,
+      "size_kb": 101.8
+    },
+    {
+      "file": "humongousaur_011.ogg",
+      "length_s": 10.64,
+      "size_kb": 150.4
+    },
+    {
+      "file": "humongousaur_012.ogg",
+      "length_s": 9.63,
+      "size_kb": 127.6
+    },
+    {
+      "file": "humongousaur_013.ogg",
+      "length_s": 16.15,
+      "size_kb": 223.4
+    },
+    {
+      "file": "humongousaur_014.ogg",
+      "length_s": 6.8,
+      "size_kb": 112.7
+    },
+    {
+      "file": "humongousaur_015.ogg",
+      "length_s": 11.32,
+      "size_kb": 150.0
+    },
+    {
+      "file": "humongousaur_016.ogg",
+      "length_s": 3.04,
+      "size_kb": 51.5
+    },
+    {
+      "file": "humongousaur_017.ogg",
+      "length_s": 9.02,
+      "size_kb": 127.5
+    },
+    {
+      "file": "humongousaur_018.ogg",
+      "length_s": 18.04,
+      "size_kb": 251.4
+    },
+    {
+      "file": "humongousaur_019.ogg",
+      "length_s": 8.65,
+      "size_kb": 131.4
+    },
+    {
+      "file": "humongousaur_020.ogg",
+      "length_s": 8.05,
+      "size_kb": 113.1
+    },
+    {
+      "file": "humongousaur_021.ogg",
+      "length_s": 9.53,
+      "size_kb": 139.2
+    },
+    {
+      "file": "humongousaur_022.ogg",
+      "length_s": 0.18,
+      "size_kb": 6.5
+    },
+    {
+      "file": "humongousaur_023.ogg",
+      "length_s": 10.59,
+      "size_kb": 171.1
+    },
+    {
+      "file": "humongousaur_024.ogg",
+      "length_s": 17.26,
+      "size_kb": 251.8
+    },
+    {
+      "file": "humongousaur_025.ogg",
+      "length_s": 9.49,
+      "size_kb": 139.7
+    },
+    {
+      "file": "humongousaur_026.ogg",
+      "length_s": 16.57,
+      "size_kb": 249.2
+    },
+    {
+      "file": "humongousaur_027.ogg",
+      "length_s": 15.73,
+      "size_kb": 253.6
+    }
+  ]
+}

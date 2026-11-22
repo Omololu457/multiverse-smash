@@ -1,13 +1,16 @@
-# AI Scout — step 1 of the smarter CPU
+# AI Scout + MASTER CPU — steps 1–2 of the smarter CPU
 
 `tools/ai_scout/scout.mjs` measures every fighter's **real** moves in the **real** engine and writes
-`aiScoutData.js`: a per-fighter cheat sheet the CPU (`ai.js`) will read in step 2. Nothing in this step changes how
-any fighter plays — the data file is read-only and nothing imports it yet.
+`aiScoutData.js`: a per-fighter cheat sheet. Step 2's **MASTER** difficulty (`aiMaster.js`) plays from it. The data is
+read-only: nothing about any move changes; the CPU can only press buttons.
 
 ```
 node tools/ai_scout/scout.mjs                 # whole roster (~8 min, 4 parallel pages)
 node tools/ai_scout/scout.mjs --only goku,ben10   # refresh a few fighters (merged into the existing file)
+node tools/ai_scout/scout.mjs --combos 10      # max verified combos re-measured per fighter (default 10)
 node harness/ai_scout_data.test.mjs           # shape checks + re-performs sample moves in the game (drawing on)
+node tools/ai_scout/master_eval.mjs --matches 10   # MASTER vs IMPOSSIBLE mirror matches (wins + damage share)
+node harness/ai_master.test.mjs               # MASTER plumbing, it plays real moves, deterministic
 ```
 
 ## How it measures
@@ -29,7 +32,9 @@ node harness/ai_scout_data.test.mjs           # shape checks + re-performs sampl
 · `onHit` / `onBlock` frame advantage (+ = attacker acts first) · `chip` · `unblockable` · `antiAir` (hits a rising foe)
 · `grab` · `cost` (meter) · `travel` · `recover` · `engineMove` · `dupOf` (another input that is the same attack) ·
 `airToAir` (air normals that only connect on an airborne foe) · `fired:false` (needs a form/setup) · `script` (run-length
-encoded input) + `at` (press frames). Each fighter also carries its verified Controls Lab combos.
+encoded input) + `at` (press frames). Each fighter also carries up to 10 of its verified Controls Lab combos, each
+RE-PERFORMED in the engine from its Lab input script (kept only if it deals ≥ 85% of the listed damage) with measured
+`startup`, `reach`, `damage`, `hits`, `onBlock` and its own `script`.
 
 `damage`/`reach` always mean "hits a standing foe". A forward jump-in (Forward held through the jump) was tried and
 dropped: it carries the fighter clean over the foe, so its rare hits were fragile clips.
@@ -38,3 +43,26 @@ dropped: it carries the fighter clean over the foe, so its rare hits were fragil
 116 fighters · 1,586 moves · 1,379 fire from neutral · 1,047 hit a standing foe · 96 air-to-air · 63 anti-airs ·
 351 safe on block (≥ −3) · 327 punishable (< −8) · 112 grabs/unblockables · 201 reach full screen · 1,821 verified
 combos. Per-fighter details and moves that need a setup: `docs/ai_scout/scout_report.json`.
+
+Combos re-scout (2026-11-22): 566 of 1,821 listed combos reproduce from a standing start (Vilgax's none: they need a
+setup). Ben 10 alien-swap combos are skipped (they change the moveset mid-string).
+
+## Step 2 — MASTER difficulty (`aiMaster.js`)
+Offered in the VS difficulty picker and AI vs AI. It is the **Impossible AI plus a layer**: the Impossible AI still
+runs every frame (movement, guarding, parry reads, every per-character CPU system — Gojo's Infinity, Sukuna's
+signatures, clones, transforms …) and everything that reads a difficulty NAME sees "impossible" (`baseAiDifficulty`).
+When the fighter is free the layer may take over and perform one of the fighter's measured moves by playing its REAL
+input script through the same press/release handlers the keyboard uses (`game.js _driveCpu / _applyCpuRaw`):
+* **punish** — foe in an attack's recovery: the best move/combo whose startup lands before it can guard
+* **anti-air** — foe falling toward us: the fastest measured anti-air
+* **neutral** — a verified combo, a safe poke (≥ −4 on block), a grab after the foe blocked twice, a full-screen tool
+* **learns per match**: every choice is judged by (damage dealt − taken) per frame until 40 frames after it ends;
+  "let the Impossible AI play" is judged the same way in the same situation (punish / anti-air / close / mid / far).
+  The layer only acts where a move has out-earned the fighter's own default — so it never replaces a character's
+  better native play with something worse. Untried moves inherit their kind's average once three of that kind are
+  judged; a press the engine refuses in a context (combo-order rules, form gates) is backed off.
+* deterministic: rolls use the seeded game RNG; motion / double-tap buffers are reset at the start of each move.
+
+Result (2026-11-22, `master_eval --matches 10`, 12 fighters, mirror matches, sides swapped): **Master 68 – 47
+Impossible (59%)**, 52% of all damage. A layer that never acts scores ~49% on the same runs. Step 3 (self-play tuning
+of the per-fighter constants in `MASTER`) is next.

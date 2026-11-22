@@ -20,7 +20,7 @@ export const SPECTATOR_SCHEMA = "multiverse-smash.spectator.v1"
 
 // Difficulties the setup screen offers per fighter (ai.js also has "dummy", which
 // we deliberately leave out of the picker — a dummy never fights).
-export const SPECTATOR_DIFFICULTIES = ["easy", "adaptive", "impossible"]
+export const SPECTATOR_DIFFICULTIES = ["easy", "adaptive", "impossible", "master"]   // master = Impossible + the aiMaster.js layer
 // Fast-forward multipliers: logic ticks run per rendered frame (1 = real time).
 export const SPECTATOR_SPEEDS = [1, 2, 4, 8]
 

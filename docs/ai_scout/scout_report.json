@@ -8,17 +8,9 @@
    "fired": 8,
    "land": 6,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Dash [Dash / Double-tap]"
-   ]
-  },
-  "ben10": {
-   "moves": 11,
-   "fired": 10,
-   "land": 8,
-   "combos": 377,
-   "notFired": [
-    "Omnitrix dial [Down, Down + attack combination]"
    ]
   },
   "baki": {
@@ -26,6 +18,7 @@
    "fired": 11,
    "land": 8,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Demon Back (Oni no Se) [Ultimate (full meter)]"
@@ -36,17 +29,19 @@
    "fired": 13,
    "land": 11,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
   },
-  "byakuya": {
-   "moves": 9,
-   "fired": 8,
-   "land": 6,
-   "combos": 40,
+  "ben10": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 7,
+   "combosListed": 377,
    "notFired": [
-    "Dash [Dash / Double-tap]"
+    "Omnitrix dial [Down, Down + attack combination]"
    ]
   },
   "ichigo": {
@@ -54,6 +49,7 @@
    "fired": 12,
    "land": 10,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -63,6 +59,7 @@
    "fired": 17,
    "land": 8,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Mine Now [Neutral R1 / L, empty]",
     "Return to Sender [Neutral R1 / L, loaded]",
@@ -77,11 +74,12 @@
     "Halo Launcher [Up + Special]"
    ]
   },
-  "mayuri": {
+  "byakuya": {
    "moves": 9,
    "fired": 8,
    "land": 6,
-   "combos": 1,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -91,9 +89,20 @@
    "fired": 8,
    "land": 8,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Air Attack [Air (jump + Light)] — not in engine",
     "Down-Air [Air Down + Light] — not in engine",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "mayuri": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "combosListed": 1,
+   "notFired": [
     "Dash [Dash / Double-tap]"
    ]
   },
@@ -101,39 +110,44 @@
    "moves": 11,
    "fired": 8,
    "land": 8,
-   "combos": 22,
+   "combos": 10,
+   "combosListed": 22,
    "notFired": [
     "Air Attack [Air (jump + Light)] — not in engine",
     "Down-Air [Air Down + Light] — not in engine",
     "Dash [Dash / Double-tap]"
    ]
   },
-  "batman": {
-   "moves": 16,
-   "fired": 16,
-   "land": 10,
-   "combos": 13,
-   "notFired": []
-  },
   "beast_boy": {
    "moves": 12,
    "fired": 12,
    "land": 10,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
+   "notFired": []
+  },
+  "batman": {
+   "moves": 16,
+   "fired": 16,
+   "land": 10,
+   "combos": 10,
+   "combosListed": 13,
    "notFired": []
   },
   "cyborg": {
    "moves": 16,
    "fired": 16,
    "land": 13,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": []
   },
   "homelander": {
    "moves": 12,
    "fired": 11,
    "land": 9,
-   "combos": 18,
+   "combos": 10,
+   "combosListed": 18,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -142,14 +156,16 @@
    "moves": 15,
    "fired": 15,
    "land": 15,
-   "combos": 9,
+   "combos": 4,
+   "combosListed": 9,
    "notFired": []
   },
   "raven": {
    "moves": 14,
    "fired": 13,
    "land": 9,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Levitation [Tap Charge (airborne or grounded)]"
    ]
@@ -158,7 +174,8 @@
    "moves": 20,
    "fired": 14,
    "land": 9,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Staff cancels [clean Punch 1 / 2 / Low → fresh Heavy / Forward + Heavy / Up + Heavy]",
     "Smoke Vanish [Double-tap toward the foe]",
@@ -172,30 +189,23 @@
    "moves": 13,
    "fired": 12,
    "land": 11,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Levitation [Tap Charge (L2)]"
    ]
   },
   "superman": {
    "moves": 14,
-   "fired": 11,
-   "land": 9,
+   "fired": 10,
+   "land": 8,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
+    "Heat Vision [Special]",
     "Freeze Breath [Down + Special]",
     "Dash [Dash / Double-tap]",
     "World of Cardboard [Ultimate (full meter)]"
-   ]
-  },
-  "flash": {
-   "moves": 9,
-   "fired": 7,
-   "land": 5,
-   "combos": 13,
-   "notFired": [
-    "Dash [Dash / Double-tap]",
-    "Flash Time [Ultimate (full meter)]"
    ]
   },
   "l_ryuuzaki": {
@@ -203,6 +213,7 @@
    "fired": 8,
    "land": 6,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -212,6 +223,7 @@
    "fired": 5,
    "land": 5,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Up-Attack [Up-Attack]",
     "Air Attack [Air (jump + Light)] — not in engine",
@@ -219,11 +231,23 @@
     "Dash [Dash / Double-tap]"
    ]
   },
+  "flash": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 10,
+   "combosListed": 13,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Flash Time [Ultimate (full meter)]"
+   ]
+  },
   "inosuke": {
    "moves": 11,
    "fired": 7,
    "land": 5,
    "combos": 4,
+   "combosListed": 4,
    "notFired": [
     "Beast Spin [Special]",
     "Beast Lunge [Forward + Special]",
@@ -236,6 +260,7 @@
    "fired": 7,
    "land": 5,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Charged Flame Strike [Special]",
     "Flame Counter [Down + Special]",
@@ -247,31 +272,17 @@
    "fired": 8,
    "land": 6,
    "combos": 3,
+   "combosListed": 3,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
   },
-  "shinobu": {
-   "moves": 10,
-   "fired": 9,
-   "land": 7,
-   "combos": 6,
-   "notFired": [
-    "Dash [Dash / Double-tap]"
-   ]
-  },
-  "zenitsu": {
-   "moves": 11,
-   "fired": 11,
-   "land": 9,
-   "combos": 4,
-   "notFired": []
-  },
-  "jesus": {
-   "moves": 15,
-   "fired": 14,
-   "land": 12,
-   "combos": 2,
+  "vilgax": {
+   "moves": 16,
+   "fired": 15,
+   "land": 13,
+   "combos": 0,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -281,6 +292,7 @@
    "fired": 11,
    "land": 9,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Ki Ball [Ultimate (full meter)]"
@@ -291,6 +303,7 @@
    "fired": 10,
    "land": 8,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -299,15 +312,18 @@
    "moves": 10,
    "fired": 10,
    "land": 8,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": []
   },
   "goku_black": {
    "moves": 14,
-   "fired": 8,
-   "land": 6,
-   "combos": 8,
+   "fired": 7,
+   "land": 5,
+   "combos": 6,
+   "combosListed": 8,
    "notFired": [
+    "Kamehameha [Special]",
     "Spirit Bomb [Down + Special]",
     "Electric Ki Push [Forward + Special]",
     "Electric Slash [Forward + Special]",
@@ -320,7 +336,8 @@
    "moves": 11,
    "fired": 11,
    "land": 9,
-   "combos": 18,
+   "combos": 10,
+   "combosListed": 18,
    "notFired": []
   },
   "ippo": {
@@ -328,6 +345,7 @@
    "fired": 8,
    "land": 6,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -337,28 +355,37 @@
    "fired": 10,
    "land": 8,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
   },
-  "jason": {
+  "shinobu": {
    "moves": 10,
-   "fired": 8,
-   "land": 6,
-   "combos": 1,
+   "fired": 9,
+   "land": 7,
+   "combos": 6,
+   "combosListed": 6,
    "notFired": [
-    "Dash [Dash / Double-tap]",
-    "Ultimate [Ultimate (full meter)]"
+    "Dash [Dash / Double-tap]"
    ]
   },
-  "chrollo": {
-   "moves": 10,
-   "fired": 8,
-   "land": 6,
-   "combos": 0,
+  "zenitsu": {
+   "moves": 11,
+   "fired": 11,
+   "land": 9,
+   "combos": 4,
+   "combosListed": 4,
+   "notFired": []
+  },
+  "jesus": {
+   "moves": 15,
+   "fired": 14,
+   "land": 12,
+   "combos": 2,
+   "combosListed": 2,
    "notFired": [
-    "Dash [Dash / Double-tap]",
-    "Skill Hunter [Ultimate (full meter)]"
+    "Dash [Dash / Double-tap]"
    ]
   },
   "hisoka": {
@@ -366,9 +393,21 @@
    "fired": 7,
    "land": 5,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Bloodlust Overdrive [Ultimate (full meter)]"
+   ]
+  },
+  "chrollo": {
+   "moves": 10,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "combosListed": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Skill Hunter [Ultimate (full meter)]"
    ]
   },
   "netero": {
@@ -376,6 +415,7 @@
    "fired": 8,
    "land": 6,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -385,6 +425,7 @@
    "fired": 7,
    "land": 5,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Godspeed [Ultimate (full meter)]"
@@ -395,6 +436,7 @@
    "fired": 8,
    "land": 6,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -404,6 +446,7 @@
    "fired": 8,
    "land": 6,
    "combos": 6,
+   "combosListed": 6,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -412,7 +455,8 @@
    "moves": 11,
    "fired": 6,
    "land": 4,
-   "combos": 6,
+   "combos": 4,
+   "combosListed": 6,
    "notFired": [
     "Blue (Lapse) [Special]",
     "Red (Reversal) [Down-Forward + Special (QCF)]",
@@ -426,6 +470,7 @@
    "fired": 8,
    "land": 6,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -434,7 +479,8 @@
    "moves": 15,
    "fired": 15,
    "land": 10,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": []
   },
   "maki": {
@@ -442,6 +488,7 @@
    "fired": 9,
    "land": 7,
    "combos": 2,
+   "combosListed": 2,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Cursed Tool Awakening (Shibuya Arc) [Ultimate (full meter)]"
@@ -452,13 +499,15 @@
    "fired": 15,
    "land": 12,
    "combos": 0,
+   "combosListed": 0,
    "notFired": []
   },
   "megumi_fushiguro": {
    "moves": 19,
    "fired": 18,
    "land": 11,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Heavy cancels [clean Jab / Kick / Low → fresh Heavy / Forward + Heavy / Up + Heavy]"
    ]
@@ -468,6 +517,7 @@
    "fired": 15,
    "land": 12,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Teleport [Double-tap toward the foe]",
     "Long Blink [Double-tap away from the foe]",
@@ -482,6 +532,7 @@
    "fired": 10,
    "land": 8,
    "combos": 6,
+   "combosListed": 6,
    "notFired": []
   },
   "toji": {
@@ -489,6 +540,7 @@
    "fired": 11,
    "land": 9,
    "combos": 9,
+   "combosListed": 9,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Reincarnated Form [Ultimate (full meter)]"
@@ -499,6 +551,7 @@
    "fired": 9,
    "land": 7,
    "combos": 8,
+   "combosListed": 8,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -508,6 +561,7 @@
    "fired": 8,
    "land": 6,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -517,6 +571,7 @@
    "fired": 7,
    "land": 6,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Down-Air [Air Down + Light] — not in engine",
     "Dash [Dash / Double-tap]"
@@ -527,6 +582,7 @@
    "fired": 8,
    "land": 6,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -536,6 +592,7 @@
    "fired": 9,
    "land": 7,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Sand Coffin [Special]",
     "Sand Dome [Back + Special]",
@@ -547,6 +604,7 @@
    "fired": 8,
    "land": 6,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -555,7 +613,8 @@
    "moves": 11,
    "fired": 8,
    "land": 6,
-   "combos": 40,
+   "combos": 1,
+   "combosListed": 40,
    "notFired": [
     "Protective 64 Palms [Back + Special]",
     "Byakugan [Down + Special]",
@@ -567,6 +626,7 @@
    "fired": 8,
    "land": 6,
    "combos": 5,
+   "combosListed": 5,
    "notFired": [
     "Mangekyou Sharingan [Hold Charge → release (≥75% chakra)]",
     "Genjutsu [QCB + Special (Mangekyou only, mid-combo)]",
@@ -579,6 +639,7 @@
    "fired": 11,
    "land": 9,
    "combos": 5,
+   "combosListed": 5,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -588,6 +649,7 @@
    "fired": 11,
    "land": 8,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Protective Barrier [Back + Special]",
     "Ranjishigami no Jutsu [Up + Special]",
@@ -599,7 +661,8 @@
    "moves": 11,
    "fired": 10,
    "land": 8,
-   "combos": 40,
+   "combos": 9,
+   "combosListed": 40,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -608,7 +671,8 @@
    "moves": 13,
    "fired": 11,
    "land": 9,
-   "combos": 33,
+   "combos": 10,
+   "combosListed": 33,
    "notFired": [
     "Sharingan [Charge (tap)]",
     "Sharingan Genjutsu [Up + Special (needs Sharingan)]"
@@ -618,7 +682,8 @@
    "moves": 14,
    "fired": 11,
    "land": 9,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Sennen Goroshi [Up + Special]",
     "Sharingan [Charge (tap)]",
@@ -630,26 +695,40 @@
    "fired": 8,
    "land": 6,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
-  },
-  "naruto": {
-   "moves": 10,
-   "fired": 10,
-   "land": 8,
-   "combos": 40,
-   "notFired": []
   },
   "madara": {
    "moves": 21,
    "fired": 18,
    "land": 16,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Gunbai Summon [Up + Special]",
     "Climb Susano'o Ladder [Hold Charge (at FULL Chakra)]",
     "Shunshin Dash [Dash / Double-tap]"
+   ]
+  },
+  "naruto": {
+   "moves": 10,
+   "fired": 10,
+   "land": 8,
+   "combos": 10,
+   "combosListed": 40,
+   "notFired": []
+  },
+  "obito": {
+   "moves": 12,
+   "fired": 10,
+   "land": 7,
+   "combos": 0,
+   "combosListed": 0,
+   "notFired": [
+    "Rod Throw [Down + Special]",
+    "Dash [Dash / Double-tap]"
    ]
   },
   "pain": {
@@ -657,29 +736,10 @@
    "fired": 7,
    "land": 5,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "— [Special]",
     "Dash [Dash / Double-tap]"
-   ]
-  },
-  "obito": {
-   "moves": 12,
-   "fired": 10,
-   "land": 7,
-   "combos": 0,
-   "notFired": [
-    "Rod Throw [Down + Special]",
-    "Dash [Dash / Double-tap]"
-   ]
-  },
-  "sasuke": {
-   "moves": 9,
-   "fired": 7,
-   "land": 5,
-   "combos": 0,
-   "notFired": [
-    "Dash [Dash / Double-tap]",
-    "Susanoo [Ultimate (full meter)]"
    ]
   },
   "naruto_seventh": {
@@ -687,6 +747,7 @@
    "fired": 22,
    "land": 20,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -696,9 +757,21 @@
    "fired": 11,
    "land": 8,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Cherry-Blossom Impact [Up + Special]",
     "Kunai Throw [Air + Special]"
+   ]
+  },
+  "sasuke": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 0,
+   "combosListed": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Susanoo [Ultimate (full meter)]"
    ]
   },
   "sasuke_adult": {
@@ -706,17 +779,32 @@
    "fired": 12,
    "land": 10,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Amaterasu [Up + Special]",
     "War-Susano'o: Stance [Charge + Ultimate (toggle)]",
     "Dash [Dash / double-tap]"
    ]
   },
+  "six_paths_pain": {
+   "moves": 11,
+   "fired": 7,
+   "land": 5,
+   "combos": 1,
+   "combosListed": 1,
+   "notFired": [
+    "Almighty Push [Special]",
+    "Almighty Pull [Down + Special]",
+    "Rinnegan Defense [Forward + Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
   "shisui_fallen": {
    "moves": 18,
    "fired": 13,
    "land": 12,
-   "combos": 20,
+   "combos": 10,
+   "combosListed": 20,
    "notFired": [
     "Flicker Step [Dash / double-tap (F/B/U)]",
     "Afterimage Feint [Back+Special]",
@@ -725,32 +813,12 @@
     "Flicker Time [Forward+Ultimate (near-full meter)]"
    ]
   },
-  "vilgax": {
-   "moves": 16,
-   "fired": 15,
-   "land": 13,
-   "combos": 1,
-   "notFired": [
-    "Dash [Dash / Double-tap]"
-   ]
-  },
-  "six_paths_pain": {
-   "moves": 11,
-   "fired": 7,
-   "land": 5,
-   "combos": 1,
-   "notFired": [
-    "Almighty Push [Special]",
-    "Almighty Pull [Down + Special]",
-    "Rinnegan Defense [Forward + Special]",
-    "Dash [Dash / Double-tap]"
-   ]
-  },
   "sasuke_sensei": {
    "moves": 30,
    "fired": 26,
    "land": 22,
    "combos": 1,
+   "combosListed": 1,
    "notFired": [
     "Eye-Set Cycle [Up + Ultimate]",
     "Genjutsu [Up + Special (Mangekyō)]",
@@ -758,23 +826,47 @@
     "War-Susano'o: Ribcage Guard [Up + Special (Susano'o set)]"
    ]
   },
-  "tobi": {
-   "moves": 12,
-   "fired": 10,
-   "land": 8,
-   "combos": 10,
-   "notFired": [
-    "Kamui Portal [Down + Special]",
-    "Dash [Dash / Double-tap]"
-   ]
-  },
   "tobirama": {
    "moves": 9,
    "fired": 8,
    "land": 6,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
+   ]
+  },
+  "tobi": {
+   "moves": 12,
+   "fired": 10,
+   "land": 8,
+   "combos": 10,
+   "combosListed": 10,
+   "notFired": [
+    "Kamui Portal [Down + Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "jason": {
+   "moves": 10,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "combosListed": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Ultimate [Ultimate (full meter)]"
+   ]
+  },
+  "arlong": {
+   "moves": 24,
+   "fired": 22,
+   "land": 17,
+   "combos": 10,
+   "combosListed": 13,
+   "notFired": [
+    "Swim-dash [Double-tap dash (in water)]",
+    "Fishman stride [Move / double-tap dash]"
    ]
   },
   "buggy": {
@@ -782,26 +874,18 @@
    "fired": 20,
    "land": 14,
    "combos": 3,
+   "combosListed": 3,
    "notFired": [
     "Roll [Double-tap dash]",
     "Detachable body [Move / double-tap dash]"
-   ]
-  },
-  "arlong": {
-   "moves": 24,
-   "fired": 22,
-   "land": 17,
-   "combos": 13,
-   "notFired": [
-    "Swim-dash [Double-tap dash (in water)]",
-    "Fishman stride [Move / double-tap dash]"
    ]
   },
   "luffy": {
    "moves": 23,
    "fired": 22,
    "land": 17,
-   "combos": 30,
+   "combos": 10,
+   "combosListed": 30,
    "notFired": [
     "Close in [Move / double-tap direction / manual Jump]"
    ]
@@ -810,7 +894,8 @@
    "moves": 22,
    "fired": 21,
    "land": 13,
-   "combos": 25,
+   "combos": 10,
+   "combosListed": 25,
    "notFired": [
     "Black Leg footwork [Move / double-tap dash]"
    ]
@@ -819,7 +904,8 @@
    "moves": 12,
    "fired": 10,
    "land": 8,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Dash [Dash / Double-tap]",
     "Overdrive [Ultimate (full meter)]"
@@ -829,7 +915,8 @@
    "moves": 21,
    "fired": 18,
    "land": 11,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "Nitoryu: Nigiri [Up + Special]",
     "Oni Giri \"Demon Cut\" [→→ + Special (or Forward + Special)]",
@@ -840,19 +927,10 @@
    "moves": 17,
    "fired": 16,
    "land": 14,
-   "combos": 9,
+   "combos": 8,
+   "combosListed": 9,
    "notFired": [
     "Dash [Dash / Double-tap]"
-   ]
-  },
-  "dseyl": {
-   "moves": 22,
-   "fired": 20,
-   "land": 11,
-   "combos": 26,
-   "notFired": [
-    "Rocket-Boot Flight [Charge tap]",
-    "Speed-Force Feet [double-tap toward]"
    ]
   },
   "omololu": {
@@ -860,6 +938,7 @@
    "fired": 11,
    "land": 9,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Flash Time [Back + Special]",
     "Kamui Intangibility [Charge (tap)]",
@@ -867,29 +946,43 @@
     "Kamui Blink [Double-tap toward]"
    ]
   },
-  "gold_samurai_ranger": {
-   "moves": 9,
-   "fired": 8,
-   "land": 6,
-   "combos": 5,
-   "notFired": [
-    "Dash [Dash / Double-tap]"
-   ]
-  },
   "mmpr_black": {
    "moves": 13,
    "fired": 12,
    "land": 11,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Double-tap blink [Double-tap Left / Right]"
+   ]
+  },
+  "dseyl": {
+   "moves": 22,
+   "fired": 20,
+   "land": 11,
+   "combos": 10,
+   "combosListed": 26,
+   "notFired": [
+    "Rocket-Boot Flight [Charge tap]",
+    "Speed-Force Feet [double-tap toward]"
+   ]
+  },
+  "gold_samurai_ranger": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 5,
+   "combosListed": 5,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
    ]
   },
   "enoch": {
    "moves": 23,
    "fired": 20,
    "land": 17,
-   "combos": 13,
+   "combos": 10,
+   "combosListed": 13,
    "notFired": [
     "Wake-up reversal [Any attack as he gets up]",
     "AIR SLIDE + AIR CHAIN [Jump, then double-tap toward]",
@@ -901,6 +994,7 @@
    "fired": 8,
    "land": 6,
    "combos": 5,
+   "combosListed": 5,
    "notFired": [
     "Dash [Dash / Double-tap]"
    ]
@@ -909,14 +1003,16 @@
    "moves": 14,
    "fired": 14,
    "land": 11,
-   "combos": 37,
+   "combos": 10,
+   "combosListed": 37,
    "notFired": []
   },
   "krybot": {
    "moves": 13,
    "fired": 12,
    "land": 10,
-   "combos": 26,
+   "combos": 10,
+   "combosListed": 26,
    "notFired": [
     "Infantry movement [Move / Jump / double-tap direction]"
    ]
@@ -926,18 +1022,10 @@
    "fired": 20,
    "land": 11,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Clone: Swap [Forward + Charge]",
     "Clone: Recall [Back + Charge]"
-   ]
-  },
-  "omega_ranger": {
-   "moves": 11,
-   "fired": 10,
-   "land": 8,
-   "combos": 1,
-   "notFired": [
-    "Omega Flash-Step [double-tap toward foe]"
    ]
   },
   "ninja_storm_rangers": {
@@ -945,28 +1033,10 @@
    "fired": 16,
    "land": 9,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Kawarimi [Block + Special (needs a live clone)]",
     "Ninja Vanish [Double-tap ← / →]"
-   ]
-  },
-  "windrangers": {
-   "moves": 26,
-   "fired": 24,
-   "land": 13,
-   "combos": 34,
-   "notFired": [
-    "Swap-in strike [(automatic)]",
-    "Wind Mirage (illusion) [Ninja Mirror]"
-   ]
-  },
-  "red_ranger_mmpr": {
-   "moves": 9,
-   "fired": 8,
-   "land": 6,
-   "combos": 0,
-   "notFired": [
-    "Dash [Dash / Double-tap]"
    ]
   },
   "mmpr_pink": {
@@ -974,15 +1044,38 @@
    "fired": 13,
    "land": 10,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Double-tap blink [Double-tap Left / Right]"
+   ]
+  },
+  "red_ranger_mmpr": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "combosListed": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "windrangers": {
+   "moves": 26,
+   "fired": 24,
+   "land": 13,
+   "combos": 10,
+   "combosListed": 34,
+   "notFired": [
+    "Swap-in strike [(automatic)]",
+    "Wind Mirage (illusion) [Ninja Mirror]"
    ]
   },
   "spd_blue": {
    "moves": 25,
    "fired": 23,
    "land": 16,
-   "combos": 34,
+   "combos": 10,
+   "combosListed": 34,
    "notFired": [
     "Ground phase step [Double-tap Left / Right (release between presses)]",
     "Shared Ranger Zord Assault — pending [Ultimate]"
@@ -992,28 +1085,19 @@
    "moves": 25,
    "fired": 23,
    "land": 15,
-   "combos": 32,
+   "combos": 10,
+   "combosListed": 32,
    "notFired": [
     "Phase step (shared ground teleport) [Double-tap Left / Right (release between presses)]",
     "Shared Ranger Zord Assault — pending [Ultimate]"
-   ]
-  },
-  "spd_yellow": {
-   "moves": 17,
-   "fired": 14,
-   "land": 10,
-   "combos": 24,
-   "notFired": [
-    "Phase blink [Double-tap Left / Right]",
-    "Swap [Forward Special]",
-    "Echo [Back Special]"
    ]
   },
   "spd_pink": {
    "moves": 24,
    "fired": 22,
    "land": 15,
-   "combos": 17,
+   "combos": 10,
+   "combosListed": 17,
    "notFired": [
     "Phase step (shared ground teleport) [Double-tap Left / Right (release between presses)]",
     "Shared Ranger Zord Assault — pending [Ultimate]"
@@ -1024,18 +1108,32 @@
    "fired": 7,
    "land": 5,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Flame Slash [Special]",
     "Dash [Dash / Double-tap]"
    ]
   },
-  "rick": {
-   "moves": 10,
-   "fired": 9,
-   "land": 8,
-   "combos": 8,
+  "spd_yellow": {
+   "moves": 17,
+   "fired": 14,
+   "land": 10,
+   "combos": 10,
+   "combosListed": 24,
    "notFired": [
-    "Dive [Air Down + Light] — not in engine"
+    "Phase blink [Double-tap Left / Right]",
+    "Swap [Forward Special]",
+    "Echo [Back Special]"
+   ]
+  },
+  "spd_red": {
+   "moves": 19,
+   "fired": 18,
+   "land": 14,
+   "combos": 10,
+   "combosListed": 40,
+   "notFired": [
+    "Blink [Double-tap ← / →]"
    ]
   },
   "rickPrime": {
@@ -1043,6 +1141,7 @@
    "fired": 9,
    "land": 7,
    "combos": 9,
+   "combosListed": 9,
    "notFired": [
     "Rick Prime's Supremacy [Ultimate (full meter)]"
    ]
@@ -1051,19 +1150,11 @@
    "moves": 15,
    "fired": 13,
    "land": 11,
-   "combos": 27,
+   "combos": 10,
+   "combosListed": 27,
    "notFired": [
     "Double-tap blink [Double-tap Left / Right]",
     "Leader's Return [Double-tap Left / Right (12 f after a Formation follow-up hits)]"
-   ]
-  },
-  "spd_red": {
-   "moves": 19,
-   "fired": 18,
-   "land": 14,
-   "combos": 40,
-   "notFired": [
-    "Blink [Double-tap ← / →]"
    ]
   },
   "saiki": {
@@ -1071,40 +1162,55 @@
    "fired": 8,
    "land": 6,
    "combos": 0,
+   "combosListed": 0,
    "notFired": [
     "Dash [Dash / Double-tap]"
+   ]
+  },
+  "rick": {
+   "moves": 10,
+   "fired": 9,
+   "land": 8,
+   "combos": 8,
+   "combosListed": 8,
+   "notFired": [
+    "Dive [Air Down + Light] — not in engine"
    ]
   },
   "dash_parr": {
    "moves": 11,
    "fired": 10,
    "land": 8,
-   "combos": 21,
+   "combos": 10,
+   "combosListed": 21,
    "notFired": [
     "Flash Time [← + Special (toggle)]"
-   ]
-  },
-  "elastigirl": {
-   "moves": 12,
-   "fired": 11,
-   "land": 10,
-   "combos": 36,
-   "notFired": [
-    "Slingshot [Air ↑ + Special (hold)]"
    ]
   },
   "frozone": {
    "moves": 14,
    "fired": 14,
    "land": 12,
-   "combos": 22,
+   "combos": 10,
+   "combosListed": 22,
    "notFired": []
+  },
+  "elastigirl": {
+   "moves": 12,
+   "fired": 11,
+   "land": 10,
+   "combos": 10,
+   "combosListed": 36,
+   "notFired": [
+    "Slingshot [Air ↑ + Special (hold)]"
+   ]
   },
   "mr_incredible": {
    "moves": 12,
    "fired": 11,
    "land": 8,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": [
     "BACK IN MY PRIME [Ultimate]"
    ]
@@ -1114,14 +1220,26 @@
    "fired": 12,
    "land": 8,
    "combos": 9,
+   "combosListed": 9,
    "notFired": []
   },
   "syndrome": {
    "moves": 19,
    "fired": 19,
    "land": 11,
-   "combos": 40,
+   "combos": 10,
+   "combosListed": 40,
    "notFired": []
+  },
+  "omega_ranger": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 1,
+   "combosListed": 1,
+   "notFired": [
+    "Omega Flash-Step [double-tap toward foe]"
+   ]
   }
  }
 }

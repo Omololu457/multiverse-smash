@@ -623,7 +623,8 @@ import { PAD_BUTTON, PAD_DPAD, PAD_AXES, padHelpRows } from "./padLayout.js"   /
 import * as academy from "./academy.js"   // CHARACTER ACADEMY — lesson generation, device labels, SHOW-ME scripts, read-only detection, local progress (additive, isolated)
 import { academyTagsFor, scenarioFromTags } from "./academyTags.js"   // CHARACTER ACADEMY — per-move scenario tags → dummy behaviour + state setup (separate data file, no kit edits)
 import { curatedFor, curatedFighters } from "./academyCurated.js"   // CHARACTER ACADEMY — hand-tuned multi-step lessons for complex fighters (separate data file)
-import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate } from "./ai.js"
+import { createAIController, resetAIController, setAIDifficulty, getAIInput, applyAiTemplate, baseAiDifficulty } from "./ai.js"
+import { masterRawInput, masterStats, masterLog } from "./aiMaster.js"   // MASTER CPU: scout-data layer over the Impossible AI (performs real move scripts)
 import { recordMotionInput, detectMotion, getRecentMotions, clearMotionHistory } from "./motionInput.js"   // classic motion-input engine (Naruto-universe only; dedicated motionHistory buffer, no cycle)
 import {
   createSpectatorSession, startMatchLog, logMoveUsed, logHit, logRoundEnd, finalizeMatchLog,
@@ -11152,6 +11153,46 @@ function clearAIControlKeys(fighter) {
     .forEach(k => { if (k) keys[k] = false })
 }
 
+// MASTER CPU driver. Runs the normal AI (it always runs: memory, per-character CPU systems, guarding), then lets the
+// Master layer (aiMaster.js) take over the frame when it is performing one of the fighter's real moves. Its raw frame
+// goes through the SAME press/release handlers the keyboard's keydown/keyup listeners call for a fighter, so motions,
+// double-taps, charge taps/holds and tiered specials register exactly as a player's would. Non-Master controllers
+// take the old path unchanged (applyAIInputToKeys).
+function _driveCpu(fighter, controller, foe, world) {
+  const intent = getAIInput(controller, fighter, foe, world)
+  const raw = controller?.master ? masterRawInput(controller, fighter, foe) : null
+  if (raw) { clearAIControlKeys(fighter); _applyCpuRaw(fighter, raw); return }
+  if (fighter && fighter._cpuRawPrev) _applyCpuRaw(fighter, {}), fighter._cpuRawPrev = null   // a move just ended → release edges
+  applyAIInputToKeys(fighter, intent)
+}
+const _CPU_DIRS = ["left", "right", "up", "down"]
+const _CPU_KEYS = ["left", "right", "up", "down", "jump", "light", "heavy", "upAttack", "special", "ultimate", "grab", "charge", "block"]
+function _applyCpuRaw(f, raw) {
+  if (!f?.controls) return
+  const c = f.controls, prev = f._cpuRawPrev || {}
+  // A new Master move: its motion / double-tap reads must come from ITS OWN presses only. These buffers are wall-clock
+  // stamped and only this driver feeds them for a CPU fighter, so stale presses from an earlier move would make the
+  // parse depend on machine speed (not deterministic). Same reset the signature-motion enabler does (ai.js).
+  if (raw._start) { f.directionHistory = []; clearMotionHistory(f); f.leftTapTime = 0; f.rightTapTime = 0 }
+  for (const fld of _CPU_KEYS) {
+    const key = c[fld]; if (!key || !raw[fld] || prev[fld]) continue
+    // keydown (window listener, per fighter): the same handler list, in the same order
+    if (_CPU_DIRS.includes(fld)) { recordDirectionInput(f, key); recordMotionInput(f, key); detectDoubleTapDashTeleport(f, key) }
+    handleToggleInputs(f, key); handleUltimateDown(f, key); handleSaitamaSpecialDown(f, key); handleGenosSpecialDown(f, key)
+    handleIronMan2SpecialDown(f, key); handleIronMan3SpecialDown(f, key); handleVilgaxSpecialDown(f, key)
+  }
+  writeRawControls(f, raw)   // held state (what keys[] / getFighterInput read this frame)
+  for (const fld of _CPU_KEYS) {
+    const key = c[fld]; if (!key || raw[fld] || !prev[fld]) continue
+    // keyup (window listener, per fighter)
+    handleChargeRelease(f, key)
+    if (key === (c.ultimate || "")) f._ultReleasedSinceStage1 = true
+    handleUltimateRelease(f, key); handleSaitamaSpecialRelease(f, key); handleGenosSpecialRelease(f, key)
+    handleIronMan2SpecialRelease(f, key); handleIronMan3SpecialRelease(f, key); handleVilgaxSpecialRelease(f, key)
+  }
+  f._cpuRawPrev = { ...raw }
+}
+
 function applyAIInputToKeys(fighter, aiInput) {
   if (!fighter || !aiInput) return
   const c = fighter.controls
@@ -11179,16 +11220,16 @@ function updateCPUInput() {
     if (p1) {
       if (isTransformDevice(p1) && !p1.transformed) tryTransform(p1)
       updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
-      applyAIInputToKeys(p1, getAIInput(p1AI, p1, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
-      markGsCpu(p1, matchConfig.aiDifficulty)
-      markSksCpu(p1, matchConfig.aiDifficulty)
+      _driveCpu(p1, p1AI, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
+      markGsCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
+      markSksCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
     }
     if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
-    applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" }))
-    markGsCpu(p2, matchConfig.aiDifficulty)
+    _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
+    markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     return
-    markSksCpu(p2, matchConfig.aiDifficulty)
+    markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
   }
   if (isPvP()) { if (!isKevin(p2)) clearAIControlKeys(p2); return }
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
@@ -11202,9 +11243,9 @@ function updateCPUInput() {
     if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
   }
-  applyAIInputToKeys(p2, getAIInput(p2AI, p2, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode }))
-  if (matchConfig.mode !== "training") markGsCpu(p2, matchConfig.aiDifficulty)   // CPU Gojo (Shinjuku): reacts to a coming super with Infinity (never reads the foe's hidden state)
-  if (matchConfig.mode !== "training") markSksCpu(p2, matchConfig.aiDifficulty)   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity
+  _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })
+  if (matchConfig.mode !== "training") markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Gojo (Shinjuku): reacts to a coming super with Infinity (never reads the foe's hidden state)
+  if (matchConfig.mode !== "training") markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
   // AFTER the AI keys are written, and ONLY in training — this is training-specific state,
@@ -29076,6 +29117,8 @@ gameLoop()
       setSel: (i) => { aiVsAiConfig.sel = hoverAiVsAiIndex = i | 0; return aiVsAiConfig.sel },
       live: () => ({ mode: matchConfig.mode, p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, p1Skin: matchConfig.p1Skin, p2Skin: matchConfig.p2Skin, stage: matchConfig.selectedStage?.name || null, gameState }),
       pickMode: () => _aiVsAiPick,
+      masterStats: () => ({ p1: masterStats(p1AI), p2: masterStats(p2AI) }),
+      masterLog: () => ({ p1: masterLog(p1AI), p2: masterLog(p2AI) }),   // MASTER CPU layer counters (punish / antiAir / combo / landed / blocked …)
       screenRects: () => (_padMenuRects() || []).map(r => r && ({ id: r.id ?? null, x: r.x, y: r.y, w: r.w, h: r.h })),   // the clickable cards of the current menu/select screen
       // Start a run and tick until it finishes (or a frame cap). Returns the exported log.
       runToCompletion: (opts = {}, frameCap = 400000) => {

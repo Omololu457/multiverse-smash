@@ -21,6 +21,11 @@ import { aiPickDroneTarget } from "./drones.js"   // drone-hunting hook (opt-in 
 import { ninjaAiPerceive } from './ninja.js'   // MSV1 CPU vs the Ninja Mirror: guesses by the visible tell (difficulty-rated) else hash — never reads the identity
 import { cgptAiInput } from './nsCgpt.js'   // NS CGPT: the CPU summons / switches its shadow clone through the real Charge input
 import { duoAiInput } from './nsDuo.js'   // MSV1-MERGE CPU form swap through the real ↓↓ + Grab input (visible state only)
+import { resetMaster } from './aiMaster.js'   // MASTER: scout-data layer (game.js _driveCpu) over the Impossible AI
+
+// MASTER difficulty = the Impossible AI + the aiMaster.js layer. Everywhere a difficulty NAME is read (profiles,
+// templates, per-character CPU systems) it is "impossible"; only `controller.master` marks the extra layer.
+export function baseAiDifficulty(difficulty) { return difficulty === "master" ? "impossible" : difficulty }
 
 export const AI_DIFFICULTIES = {
   dummy: {
@@ -499,9 +504,12 @@ function getProfile(difficulty) {
 }
 
 export function createAIController(difficulty = "easy") {
+  const master = difficulty === "master"
+  difficulty = baseAiDifficulty(difficulty)
   return {
     enabled: true,
     difficulty,
+    master,
     profile: getProfile(difficulty),
     templateKey: null,          // PART 2: per-character behavior template (set by applyAiTemplate)
     frameCounter: 0,
@@ -533,6 +541,7 @@ export function resetAIController(controller) {
 
   controller.frameCounter = 0
   controller.decisionCooldown = 0
+  resetMaster(controller)
   controller.currentPlan = "approach"
   controller.toggleCooldown = 0
   controller.infinityDesired = false
@@ -559,6 +568,8 @@ export function resetAIController(controller) {
 export function setAIDifficulty(controller, difficulty) {
   if (!controller) return createAIController(difficulty)
 
+  controller.master = difficulty === "master"
+  difficulty = baseAiDifficulty(difficulty)
   controller.difficulty = difficulty
   // A per-character template (if one was applied) is layered on top of the difficulty profile so a
   // difficulty change keeps the character's fighting personality. "dummy" stays inert either way.
@@ -1346,5 +1357,6 @@ function aiHuntDrones(controller, fighter, input) {
 }
 
 export function getAIDifficultyLabel(difficulty) {
+  if (difficulty === "master") return "Master"
   return getProfile(difficulty).name
 }

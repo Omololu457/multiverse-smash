@@ -27,6 +27,7 @@ const GAPS = [0, 16, 34, 60, 90, 120, 200, 320, 480]
 // ONE standard opponent for everyone (not the mirror): numbers compare across the roster, and mirror-only passives can't
 // hide a move (a mirror Buggy dummy is immune to Buggy's own blades — Bara Bara)
 const FOE = arg("--foe", "naruto")
+const COMBO_MAX = +arg("--combos", 10)
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif", ".json": "application/json", ".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".svg": "image/svg+xml", ".woff2": "font/woff2" }
 const server = await new Promise(r => { const s = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]); const fp = path.join(ROOT, u === "/" ? "/index.html" : u); if (!fp.startsWith(ROOT)) { res.writeHead(403).end(); return } fs.readFile(fp, (e, d) => { if (e) { res.writeHead(404).end(); return } res.writeHead(200, { "content-type": MIME[path.extname(fp)] || "application/octet-stream" }); res.end(d) }) }); s.listen(0, "127.0.0.1", () => r(s)) })
@@ -44,7 +45,7 @@ async function openChar(ctx, key) {
   await page.evaluate(async () => {
     const MODS = ["kits", "characters", "academy"]
     const sc = document.createElement("script"); sc.type = "module"
-    sc.textContent = MODS.map((m, i) => `import * as m${i} from "./${m}.js"`).join("\n") + `\nimport * as mv from "./controls_lab/moves.js"\nimport * as nt from "./controls_lab/notation.js"\nwindow.__scoutMods = { ${MODS.map((m, i) => `${m}: m${i}`).join(", ")}, moves: mv, notation: nt }`
+    sc.textContent = MODS.map((m, i) => `import * as m${i} from "./${m}.js"`).join("\n") + `\nimport * as mv from "./controls_lab/moves.js"\nimport * as nt from "./controls_lab/notation.js"\nimport * as cb from "./controls_lab/combos.js"\nwindow.__scoutMods = { ${MODS.map((m, i) => `${m}: m${i}`).join(", ")}, moves: mv, notation: nt, combos: cb }`
     document.head.appendChild(sc)
     for (let i = 0; i < 400 && !window.__scoutMods; i++) await new Promise(r => setTimeout(r, 25))
     const h = window.__harness
@@ -63,7 +64,7 @@ async function openChar(ctx, key) {
 }
 
 // ── runs INSIDE the game page (synchronous stepping) ─────────────────────────────────────────────────────────────────
-async function scoutInPage({ GAPS, KEY }) {
+async function scoutInPage({ GAPS, KEY, COMBO_MAX }) {
   const h = window.__harness, M = window.__scoutMods
   const characters = M.characters.characters
   const { moves } = M.moves.buildMoves({ academy: M.academy, kits: M.kits, characters }, KEY)
@@ -214,10 +215,26 @@ async function scoutInPage({ GAPS, KEY }) {
   const seen = new Map()
   for (const m of out) { const f = fp(m); if (!f) continue; if (seen.has(f)) m.dupOf = seen.get(f); else seen.set(f, m.name) }
   const C = characters[KEY]
-  let combos = []
-  try { const j = await (await fetch("./controls_lab/combos.json")).json(); combos = (j.combos || []).filter(c => c.char === KEY && c.status === "verified") } catch (_) {}
-  return { key: KEY, name: C?.name || KEY, hp: P1().maxHealth, moves: out,
-    combos: combos.map(c => ({ id: c.id, name: c.name, steps: c.steps, gaps: c.gaps, hits: c.hits, damage: c.damage, kind: c.kind || "combo" })) }
+  // COMBOS: the fighter's verified Controls Lab combos (no Omnitrix-loadout / alien-swap setups), best damage first,
+  // up to COMBO_MAX. Each is played from its Lab script at several distances vs the same standing dummy; kept only
+  // where it still deals ≥ 85% of its listed damage, with the distances it works from.
+  let lib = []
+  try { const j = await (await fetch("./controls_lab/combos.json")).json(); lib = (j.combos || []).filter(c => c.char === KEY && c.status === "verified") } catch (_) {}
+  const usable = lib.filter(c => !(c.benLoadout?.length) && !(c.swaps?.length)).sort((a, b) => (b.damage || 0) - (a.damage || 0)).slice(0, COMBO_MAX)
+  const combos = []
+  for (const c of usable) {
+    try {
+      const { script, at } = M.combos.comboScript(c)
+      const okRuns = []
+      for (const g of [0, 16, 34, 60, 90]) { const r = run({ script, at }, g, "stand"); if (r.damage >= (c.damage || 1) * 0.85) okRuns.push(r); else if (okRuns.length) break }
+      if (!okRuns.length) continue
+      const blk = run({ script, at }, okRuns[0].gap, "block")
+      combos.push({ id: c.id, name: c.name, steps: c.steps, hits: c.hits, kind: c.kind || "combo",
+        damage: Math.max(...okRuns.map(r => r.damage)), startup: okRuns[0].startup, reach: [Math.min(...okRuns.map(r => r.gap)), Math.max(...okRuns.map(r => r.gap))],
+        onBlock: blk.blocked ? blk.adv : null, script, at })
+    } catch (_) {}
+  }
+  return { key: KEY, name: C?.name || KEY, hp: P1().maxHealth, moves: out, combos, combosListed: lib.length }
 }
 
 // ── roster ───────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -241,7 +258,7 @@ async function worker(w) {
       const page = await openChar(ctx, key)
       page.setDefaultTimeout(0)
       if (process.env.SCOUT_VERBOSE) page.on("console", m => { if (m.text().startsWith("[scout]")) console.log(m.text()) })
-      const r = await page.evaluate(scoutInPage, { GAPS, KEY: key })
+      const r = await page.evaluate(scoutInPage, { GAPS, KEY: key, COMBO_MAX })
       results[key] = r
       const land = r.moves.filter(m => m.damage > 0).length
       console.log(`[w${w}] ${key}: ${r.moves.length} moves, ${land} land · ${Math.round((Date.now() - t0) / 1000)}s`)
@@ -265,7 +282,8 @@ function rle(script) {
   for (const raw of script || []) { const c = Object.keys(CODE).filter(f => raw[f]).map(f => CODE[f]).join(""); const last = out[out.length - 1]; if (last && last[0] === c) last[1]++; else out.push([c, 1]) }
   return out
 }
-const slim = r => ({ name: r.name, hp: r.hp, moves: r.moves.map(m => { const o = { ...m }; delete o.data; if (o.script) o.script = rle(o.script); for (const k of Object.keys(o)) if (o[k] == null || (Array.isArray(o[k]) && !o[k].length && k === "tags")) delete o[k]; return o }), combos: r.combos })
+const slim = r => ({ name: r.name, hp: r.hp, moves: r.moves.map(m => { const o = { ...m }; delete o.data; if (o.script) o.script = rle(o.script); for (const k of Object.keys(o)) if (o[k] == null || (Array.isArray(o[k]) && !o[k].length && k === "tags")) delete o[k]; return o }),
+  combos: r.combos.map(c => { const o = { ...c, script: rle(c.script) }; if (o.onBlock == null) delete o.onBlock; return o }), combosListed: r.combosListed })
 const fighters = { ...prev }
 for (const [k, r] of Object.entries(results)) fighters[k] = { ...slim(r), scouted: TODAY }
 const sorted = Object.fromEntries(Object.keys(fighters).sort().map(k => [k, fighters[k]]))
@@ -283,7 +301,7 @@ export const AI_SCOUT = ${JSON.stringify(data)}
 `)
 fs.mkdirSync(path.dirname(REPORT), { recursive: true })
 const report = { date: TODAY, fighters: Object.keys(results).length, errors,
-  perFighter: Object.fromEntries(Object.entries(results).map(([k, r]) => [k, { moves: r.moves.length, fired: r.moves.filter(m => m.fired).length, land: r.moves.filter(m => m.damage > 0).length, combos: r.combos.length,
+  perFighter: Object.fromEntries(Object.entries(results).map(([k, r]) => [k, { moves: r.moves.length, fired: r.moves.filter(m => m.fired).length, land: r.moves.filter(m => m.damage > 0).length, combos: r.combos.length, combosListed: r.combosListed,
     notFired: r.moves.filter(m => !m.fired).map(m => `${m.name} [${m.input}]${m.skip ? " — " + m.skip : ""}${m.error ? " — " + m.error : ""}`) }])) }
 fs.writeFileSync(REPORT, JSON.stringify(report, null, 1))
 console.log(`\nwrote ${path.relative(ROOT, OUT)} (${Object.keys(sorted).length} fighters) + ${path.relative(ROOT, REPORT)} · errors: ${Object.keys(errors).length} · ${Math.round((Date.now() - t0) / 1000)}s`)

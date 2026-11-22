@@ -1090,6 +1090,7 @@ export function getAIDifficultyRects(canvas) {
     { id: "easy",       label: "EASY",       subLabel: "Low pressure, simple AI"    },
     { id: "adaptive",   label: "ADAPTIVE",   subLabel: "Learns and responds"        },
     { id: "impossible", label: "IMPOSSIBLE", subLabel: "Aggressive and relentless"  },
+    { id: "master",     label: "MASTER",     subLabel: "Knows every move: punishes, anti-airs, real combos" },
     { id: "back",       label: "BACK",       subLabel: "Return to mode select"      }
   ])
 }

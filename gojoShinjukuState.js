@@ -6,7 +6,7 @@
 // OWNED ENTITIES (deterministic lifecycle, capped): fields ≤ 3 (Lapse point / Maximum Output orb / Delayed Red),
 // purples ≤ 1 (the imaginary mass), fx ≤ 24 (render hints). Nothing here touches the OLD Gojo (`gojo`).
 import { GS_KEY, GS_MOVES, CE, CE_UNIT, INFINITY, COST, BARS, BAR, LAPSE, MAXBLUE, BLUESTEP, RED, DELAYED, PURPLE, CHANT,
-  CHANT_FIRE, DOMAIN, FBE, RCT, BLACK_FLASH, THROW, RED_RUSH, PERFECT_OUTPUT_REFUND, SCREEN, NORMALS, BURNOUT_LOCKED, MOBILITY, CHARGE, dmg } from './gojoShinjukuData.js'
+  CHANT_FIRE, DOMAIN, FBE, RCT, BLACK_FLASH, THROW, RED_RUSH, PERFECT_OUTPUT_REFUND, SCREEN, NORMALS, BURNOUT_LOCKED, MOBILITY, CHARGE, QUOTES, dmg } from './gojoShinjukuData.js'
 import { registerLimitlessProfile, ceInit, ceValue, ceHas, ceSpend, ceGain, ceTick, fieldAttract, fieldRepel, fieldErase,
   infinityShell, infinityRepel, isSuperProjectile, boxDist } from './limitless.js'
 
@@ -20,10 +20,10 @@ export function registerGsEngine(o) { Object.assign(E, o) }
 export const gsState = f => {
   if (f._gs) return f._gs
   const s = f._gs = { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0, nEnt: 0,
-    inf: { lv: 0, press: -1, startLv: 0 }, cd: { domain: 0, fbe: 0, rct: 0, tp: 0, blink: 0 }, charging: false, dt: null, blink: null, burnout: 0, zone: 0, airSteps: 0, wasGround: true,
+    inf: { lv: 0, press: -1, startLv: 0 }, cd: { domain: 0, fbe: 0, rct: 0, tp: 0, blink: 0 }, charging: false, dt: null, blink: null, say: null, said: { intro: false, win: false }, burnout: 0, zone: 0, airSteps: 0, wasGround: true,
     dom: { mine: false, start: -1, oppSeen: {} }, clash: null, fields: [], purples: [], chant: null, bf: null, po: null,
     pins: {}, mahoraga: {}, pull: null, crumple: null, bounce: null, fbeT: 0, rct: null, grab: null, oppDomain: false,
-    cpu: null, fx: [], cues: [], hud: { ceShown: 0 }, superWin: {}, eprev: {},
+    cpu: null, fx: [], cues: [], hud: { ceShown: 0 }, superWin: {}, eprev: {}, ucprev: {},
     stats: { stopped: 0, stoppedProj: 0, supersHalved: 0, supersWhiffed: 0, supersConnected: 0, crushed: 0, reflected: 0, erased: 0,
       bf: 0, po: 0, pins: 0, fbe: 0, rctHp: 0, brainReset: 0, domains: 0, burnouts: 0, clashes: 0, depleted: 0, chantHits: 0,
       purples: 0, purple200: 0, teleports: 0, blinks: 0, charged: 0, lastPurpleOutput: 0, lastPurpleRaw: 0, techLocked: 0, infOn: 0, forcedOff: {}, mahoragaBypass: 0, mirrorBypass: 0 } }
@@ -92,11 +92,19 @@ const isSuperAttack = a => !!(a && (a.isUltimate || a.super || a.category === 'u
 // a foe is "in a super" while its attack is an ultimate, the generic ultimate flag is up, or for 5 s after it spent
 // ≥ 90 meter in one frame (every super / cinematic in the roster spends at least one bar) — sim state only.
 const SUPER_WINDOW = 300
+// A cinematic ultimate can freeze the sim (his tick included) on the very frame it is cast and land its hit inside the
+// freeze, so the gates also read the cast signals LIVE against the last values his tick recorded: ≥ 90 meter gone, or
+// the recast lockout armed (abilities.triggerUltimate).
+const castNow = (s, o) => (s.eprev[o.side] != null && s.eprev[o.side] - (o.energy || 0) >= 90) || (s.ucprev[o.side] != null && (o.ultimateCooldown || 0) > s.ucprev[o.side] + 1)
 function inSuper(s, o) {
   if (!o) return false
-  return isSuperAttack(o.currentAttack) || !!o.isUltimateActive || (s.superWin[o.side] || 0) > s.clock
+  return isSuperAttack(o.currentAttack) || !!o.isUltimateActive || (s.superWin[o.side] || 0) > s.clock || castNow(s, o)
 }
-function anyFoeInSuper(s) { for (const k in s.superWin) if (s.superWin[k] > s.clock) return true; return false }
+function anyFoeInSuper(s) {
+  for (const k in s.superWin) if (s.superWin[k] > s.clock) return true
+  for (const o of (_W?.fighters?.() || [])) if (o && o.side in s.eprev && castNow(s, o)) return true
+  return false
+}
 
 // ── combat.js hooks (defender side) ───────────────────────────────────────────────────────────────────────────────
 // MELEE: returns true when the strike must whiff (combat consumes it). Order: Falling Blossom counter → Infinity.
@@ -317,6 +325,7 @@ export function tickGs(f, opp, raw, W) {
   const s = gsState(f); _W = W
   s.tick++
   readEdges(f, s, raw || {})
+  presentTick(f, s, opp, W)
   for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 60) s.fx.splice(i, 1)
   if (f.health <= 0) { setInfinity(f, s, 0, 'ko'); s.fields.length = 0; s.chant = null; return }
   const g = grounded(f)
@@ -325,6 +334,10 @@ export function tickGs(f, opp, raw, W) {
     const e = o.energy || 0, p = s.eprev[o.side]
     if (p != null && p - e >= 90) s.superWin[o.side] = s.clock + SUPER_WINDOW
     s.eprev[o.side] = e
+    const uc = o.ultimateCooldown || 0, up = s.ucprev[o.side]                // abilities.triggerUltimate arms the recast lockout on a cast
+    if (up != null && uc > up + 1) s.superWin[o.side] = s.clock + SUPER_WINDOW
+    s.ucprev[o.side] = uc
+    if (o._gsTechBurnout > 0 && !isGs(o) && (W?.fighters?.() || [f]).find(isGs) === f) o._gsTechBurnout--   // a non-Gojo clash loser's 5 s technique lockout (counted by the first Gojo only)
   }
   // ── domain bookkeeping (mine / theirs / clash) — runs even during hitstop ──
   domainTick(f, s, opp, W)
@@ -353,7 +366,7 @@ export function tickGs(f, opp, raw, W) {
   // ── Infinity field: Zeno shell on projectiles, the L2/L3 repel ring, command-grab catch, super no-launch (L2) ──
   if (s.inf.lv > 0) {
     const lvP = INFINITY.levels[s.inf.lv]
-    const reached = infinityShell(f, lvP, W, { hangFrames: INFINITY.hangFrames, bypass: p => bypass(f, s, p.owner, p.name) })
+    const reached = infinityShell(f, lvP, W, { hangFrames: INFINITY.hangFrames, bypass: p => bypass(f, s, p.owner, p.name) || (lvP.supers !== 'stop' && !!p.owner && inSuper(s, p.owner)) })   // a super's own unflagged shots (Arrowstorm waves) are adjudicated as the super
     for (const p of reached) { tax(f, s, (p.damage || 30) * 0.6); s.stats.stoppedProj++; if (p.owner) p.owner._gsSawInfinity = s.clock; wheel(s, p.owner) }
     const pushed = infinityRepel(f, lvP, W)
     for (const o of pushed) if (o.attacking && o.currentAttack) o._gsSawInfinity = s.clock
@@ -362,9 +375,9 @@ export function tickGs(f, opp, raw, W) {
     pinTick(f, s, opp, W)
   }
   // ── cpu ──
-  if (s.cpu && s.clock - s.cpu.seen < 3) cpuInfinity(f, s, opp, W)
+  if (s.cpu && s.clock - s.cpu.seen < 3) { cpuInfinity(f, s, opp, W); cpuTech(f, s, opp, W) }
   // ── interruption: a hit / grab ends his live move (the chant is cancelled; its CE is lost, bars kept) ──
-  const domCast = !!(a && a.gs.key === 'gDomain' && f.domainFrozen && !f.isGrabbed)   // a domain cast already started survives the other domain's freeze → clash
+  const domCast = !!(a && a.gs.key === 'gDomain' && (f.domainFrozen || s.oppDomain) && !f.isGrabbed && f.health > 0)   // a domain cast already started survives the other domain's lock (freeze / sure-hit) → it expands into it: clash
   if (a && !domCast && (f.hitstun > 0 || f.isGrabbed)) { if (a.gs.key === 'gPurple200' && s.chant) { cue(f, 'chantBroken'); s.chant = null } ; if (a.gs.key === 'gRCT') finishRct(f, s); endGsAttack(f) }
   // ── opponent-side effects of his normals (Blue Fist pull, Red Rush crumple, Red wall bounce) ──
   followups(f, s, W, opp)
@@ -412,6 +425,24 @@ function infinityInput(f, s, raw) {
   }
   s.inf.press = -1; s.charging = false
 }
+// ── PRESENTATION: intro line on his first tick of a round (a `vs` line for that opponent), a win line once every
+// foe is down. Plain JSON state; the bubble / voice are drawn / played by gojoShinjukuFx.js from s.say and the cues.
+function presentTick(f, s, opp, W) {
+  if (s.say && --s.say.t <= 0) s.say = null
+  const foes = (W?.fighters?.() || (opp ? [opp] : [])).filter(o => o && o !== f)
+  if (!s.said.intro) {
+    s.said.intro = true
+    const vsKey = foes.map(o => (o.rosterKey || '').toLowerCase()).find(k => QUOTES.vs[k])
+    const pick = QUOTES.intro[(foes.length + (f.side === 'p2' ? 1 : 0)) % QUOTES.intro.length]
+    s.say = { text: vsKey ? QUOTES.vs[vsKey] : pick, t: 170, kind: 'intro' }
+    cue(f, 'introVoice', { vs: vsKey || null })
+  }
+  if (!s.said.win && f.health > 0 && foes.length && foes.every(o => !(o.health > 0))) {
+    s.said.win = true
+    s.say = { text: QUOTES.win[s.stats.purples > 0 ? 2 : (s.stats.domains > 0 ? 1 : 0)], t: 200, kind: 'win' }
+    cue(f, 'winVoice')
+  }
+}
 // ── MOBILITY: double-tap ←← / →→ on the sim clock (keyboard, pad, replay and LAN feed readRawControls) ──
 // toward the foe = the old Gojo's teleport (lands beside them, faces them); away = a long Ranger-style blink.
 function mobilityTick(f, s, raw, opp, W) {
@@ -444,20 +475,27 @@ function mobilityTick(f, s, raw, opp, W) {
   const toward = foe ? Math.sign(ctrX(foe) - ctrX(f)) === dir : false
   if (toward) {
     if (s.cd.tp > 0) return
-    // game.js teleportBehindTarget, the old Gojo's blink: beside the foe on the near side, at their height, facing them
-    f.x = f.x < foe.x ? foe.x - f.w - MOBILITY.tpGap : foe.x + foe.w + MOBILITY.tpGap
-    f.x = Math.max(0, Math.min(sw(W) - f.w, f.x)); f.y = foe.y; f.vx = 0; f.vy = 0
-    f.facing = ctrX(foe) >= ctrX(f) ? 1 : -1
-    f.teleportFlash = 12; f.attackCooldown = Math.max(f.attackCooldown || 0, MOBILITY.tpLock)
-    f._spriteCastMove = 'dash'; f._spriteCastTimer = 14
-    s.cd.tp = MOBILITY.tpCooldown; s.stats.teleports++; cue(f, 'teleport')
+    teleportIn(f, s, foe, W)
     return
   }
   if (s.cd.blink > 0) return
+  startBlink(f, s, dir, W)
+}
+// game.js teleportBehindTarget, the old Gojo's blink: beside the foe on the near side, at their height, facing them
+function teleportIn(f, s, foe, W) {
+  f.x = f.x < foe.x ? foe.x - f.w - MOBILITY.tpGap : foe.x + foe.w + MOBILITY.tpGap
+  f.x = Math.max(0, Math.min(sw(W) - f.w, f.x)); f.y = foe.y; f.vx = 0; f.vy = 0
+  f.facing = ctrX(foe) >= ctrX(f) ? 1 : -1
+  f.teleportFlash = 12; f.attackCooldown = Math.max(f.attackCooldown || 0, MOBILITY.tpLock)
+  f._spriteCastMove = 'dash'; f._spriteCastTimer = 14
+  s.cd.tp = MOBILITY.tpCooldown; s.stats.teleports++; cue(f, 'teleport')
+}
+function startBlink(f, s, dir, W) {
   const x1 = Math.max(0, Math.min(sw(W) - f.w, Math.round(f.x + dir * MOBILITY.blink.dist * SCREEN)))
-  if (Math.abs(x1 - f.x) < 8) return
+  if (Math.abs(x1 - f.x) < 8) return false
   s.blink = { t: 0, dir, x0: Math.round(f.x), x1, inv: false }
   s.cd.blink = MOBILITY.blink.cooldown; s.stats.blinks++; cue(f, 'blink')
+  return true
 }
 // Infinity + Blue: an opponent pulled by Blue into the boundary is pinned there 0.6 s (once per opponent per 3 s)
 function pinTick(f, s, opp, W) {
@@ -790,7 +828,7 @@ function clashTick(f, s, W) {
 
 // ── CPU Gojo (only when the CPU drives him): toggles Infinity on a coming super (reaction by difficulty), off to cast ──
 const REACT = { dummy: Infinity, easy: 30, normal: 16, adaptive: 14, hard: 9, impossible: 5 }
-export function markGsCpu(f, difficulty) { if (!isGs(f)) return; const s = gsState(f); s.cpu = { seen: s.clock, diff: difficulty || 'normal', threatAt: s.cpu?.threatAt ?? -1, calm: s.cpu?.calm ?? 0 } }
+export function markGsCpu(f, difficulty) { if (!isGs(f)) return; const s = gsState(f); s.cpu = { ...(s.cpu || {}), seen: s.clock, diff: difficulty || 'normal', threatAt: s.cpu?.threatAt ?? -1, calm: s.cpu?.calm ?? 0 } }   // keeps the technique rhythm (nextAt / n)
 function cpuInfinity(f, s, opp, W) {
   const c = s.cpu
   if (f.hitstun > 0 || f.blockstun > 0) return
@@ -802,6 +840,29 @@ function cpuInfinity(f, s, opp, W) {
   if (c.threatAt >= 0 && s.clock - c.threatAt >= react && s.inf.lv === 0 && !canInfinity(f, s) && ceValue(s, PROFILE) > 20) setInfinity(f, s, superComing && ceValue(s, PROFILE) > 40 ? 3 : 1)
   const casting = !!(f.attacking && f.currentAttack?.gs && GS_MOVES[f.currentAttack.gs.key]?.cost)
   if (s.inf.lv > 0 && (c.calm > 50 || ceValue(s, PROFILE) < 18 || casting)) setInfinity(f, s, 0)
+}
+
+// CPU techniques (phase 8): a deterministic rhythm (no RNG) gated by difficulty. Far = Lapse pull or teleport in;
+// close = Blue Fist / Red; a foe projectile close = long blink away; meter + CE = Unlimited Void; low HP = RCT.
+const PACE = { dummy: Infinity, easy: 140, normal: 80, adaptive: 70, hard: 50, impossible: 34 }
+function cpuTech(f, s, opp, W) {
+  const c = s.cpu, pace = PACE[c.diff] ?? 80
+  if (!isFinite(pace) || f.attacking || f.hitstun > 0 || f.blockstun > 0 || s.charging || s.blink || s.clash || !grounded(f)) return
+  if (c.nextAt == null) c.nextAt = s.clock + pace
+  if (s.clock < c.nextAt) return
+  const foe = foesOf(f, W, opp)[0]; if (!foe || !(foe.health > 0) || foe.domainFrozen && !s.dom.mine) return
+  const dir = ctrX(foe) >= ctrX(f) ? 1 : -1, dist = Math.abs(ctrX(foe) - ctrX(f)), ce = ceValue(s, PROFILE), roll = (s.clock * 7 + (c.n = (c.n || 0) + 1) * 13) % 10
+  const shot = (W.projectileList?.() || []).some(p => p.owner === foe && boxDist(f, p.x, p.y) < 180)
+  let key = null
+  if (!s.dom.mine && s.cd.domain <= 0 && !(s.burnout > 0) && (f.energy || 0) >= 100 && ce >= 50 && dist < 520) key = 'gDomain'
+  else if (shot && s.inf.lv === 0 && !(s.cd.blink > 0)) { startBlink(f, s, -dir, W); key = 'blink' }
+  else if (f.health < f.maxHealth * 0.35 && s.cd.rct <= 0 && ce >= 30 && dist > 300) key = 'gRCT'
+  else if ((f.energy || 0) >= 100 && ce >= 40 && dist < 420 && roll < 3) key = 'gPurple'
+  else if (dist > 320) key = roll < 4 && !(s.cd.tp > 0) ? 'tp' : (ce >= 15 ? 'gLapse' : null)
+  else if (dist < 110) key = ce >= 20 && roll < 4 ? 'gRedRush' : (ce >= 15 ? (roll < 7 ? 'gBlueFist' : 'gRed') : null)
+  if (key === 'tp') teleportIn(f, s, foe, W)
+  else if (key && key !== 'blink') { f.facing = dir; startGsMove(f, key, W, { dir }) }
+  c.nextAt = s.clock + pace
 }
 
 // ── command-layer helpers used by gojoShinjuku.js ──

@@ -264,6 +264,52 @@ try {
     { await reset(); await page.evaluate(() => { __harness.gojoShinjukuTest.raw()._gs.burnout = 200 }); await tap(['l'], 2); const a = await st()
       ck('burnout locks Blue / Red / Purple / Blue Step', !a.attack && a.s.stats.techLocked >= 1) }
   }
+  if (want('combos')) {
+    // Phase 7: every COMBOS.md route driven by real inputs, each link pressed on the first cancel-legal frame (after
+    // contact + hitstop) or on a stated condition. Records damage (scaled, as dealt), hit list, the engine combo
+    // counter, CE / bars spent and whether the dummy stayed in hitstun throughout (a TRUE combo).
+    const R = report.combos = []
+    async function combo(name, seq, o = {}) {
+      await reset({ gap: o.gap ?? 56 }); if (o.setup) await S(o.setup)
+      const a0 = await st(), b0 = await st('p2'); let last = b0.hp, maxCombo = 0, dropped = false, started = false
+      const hits = []
+      const tick = async () => { await step(1); const b = await st('p2'), a = await st(); if (b.hp < last) { hits.push(last - b.hp); last = b.hp; started = true } else if (started && hits.length && !b.hitstun && !b.knockdown && !b.frozen && b.grounded && last < b0.hp && seqLeft > 0) dropped = true; maxCombo = Math.max(maxCombo, a.combo) }
+      let seqLeft = seq.length
+      for (const k of seq) {
+        for (let i = 0; i < 120; i++) {
+          const a = await st()
+          if (k.when === 'contact' && a.attack?.gs?.contact && !a.hitstop && a.s.tick > a.attack.gs.contactTick) break
+          if (k.when === 'idle' && !a.attack) break
+          if (k.when === 'air' && !a.grounded && (a.vy || 0) >= -2) break
+          if (k.when === 'hit' && (await st('p2')).hitstun > 0 && hits.length) break
+          if (typeof k.when === 'number' && i >= k.when) break
+          if (!k.when) break
+          await tick()
+        }
+        if (k.motion) for (const d of k.motion) { for (const x of d) await page.keyboard.down(x); await tick(); await tick(); for (const x of d) await page.keyboard.up(x) }
+        for (const x of k.keys) await page.keyboard.down(x); await tick(); for (const x of k.keys) await page.keyboard.up(x); await tick()
+        seqLeft--
+      }
+      for (let i = 0; i < 400; i++) { const a = await st(), b = await st('p2'); if (!a.attack && !b.hitstun && b.grounded && !b.knockdown && !(a.s?.fields?.length) && !(a.s?.purples?.length)) break; await tick() }
+      const a = await st()
+      const row = { name, input: o.input, dmg: b0.hp - last, hits, combo: maxCombo, ce: +(a0.ce - a.ce).toFixed(1), bars: Math.round((a0.energy - a.energy) / 10) / 10, true: !dropped, bf: a.s.stats.bf, po: a.s.stats.po }
+      R.push(row); return row
+    }
+    const c = []
+    c.push(await combo('A string', [{ keys: ['j'] }, { keys: ['j'], when: 'contact' }, { keys: ['j'], when: 'contact' }], { input: 'J, J, J' }))
+    c.push(await combo('A string > Reversal Red', [{ keys: ['j'] }, { keys: ['j'], when: 'contact' }, { keys: ['j'], when: 'contact' }, { keys: ['d', 'l'], when: 'contact' }], { input: 'J, J, J, → + L' }))
+    c.push(await combo('B > Blue Fist', [{ keys: ['k'] }, { keys: ['k', 'l'], when: 'contact' }], { input: 'K, K + L' }))
+    c.push(await combo('Blue Fist > Red Rush', [{ keys: ['k', 'l'] }, { keys: ['d', 'l', 'k'], when: 'contact' }], { input: 'K + L, → + L + K' }))
+    c.push(await combo('B > Black Flash', [{ keys: ['k'] }, { keys: ['l'], when: 'hit' }], { input: 'K, L (≤ 2 f after the hit)' }))
+    c.push(await combo('A, A > C launcher > jump > air attack', [{ keys: ['j'] }, { keys: ['j'], when: 'contact' }, { keys: ['i'], when: 'contact' }, { keys: ['w'], when: 'contact' }, { keys: ['j'], when: 'air' }], { input: 'J, J, I, (on hit) W, J' }))
+    c.push(await combo('A string > Hollow Purple', [{ keys: ['j'] }, { keys: ['j'], when: 'contact' }, { keys: ['j'], when: 'contact' }, { keys: ['l'], motion: [['s'], ['a']], when: 'contact' }], { input: 'J, J, J, ↓ ← + L' }))
+    c.push(await combo('Lapse > Red Rush', [{ keys: ['l'] }, { keys: ['d', 'l', 'k'], when: 30 }], { gap: 240, input: 'L, → + L + K (mid-pull)' }))
+    c.push(await combo('Max Blue > Hollow Purple (corner carry)', [{ keys: ['l', 'k'], motion: [['s'], ['s', 'd'], ['d']] }, { keys: ['l'], motion: [['s'], ['a']], when: 'idle' }], { gap: 220, input: '↓↘→ + L + K, ↓ ← + L', setup: 'H.setCe(100)' }))
+    for (const r of c) console.log(`  combo ${r.name.padEnd(40)} ${String(r.dmg).padStart(4)} dmg  ${r.hits.length} hits  combo ${r.combo}  CE ${r.ce}  bars ${r.bars}  ${r.true ? 'TRUE' : 'drops'}`)
+    ck('every COMBOS.md route deals damage', c.every(r => r.dmg > 0), c.filter(r => !(r.dmg > 0)).map(r => r.name).join(','))
+    ck('the bread-and-butter links are true combos (A string > Red, B > Blue Fist, Blue Fist > Red Rush)', ['A string > Reversal Red', 'B > Blue Fist', 'Blue Fist > Red Rush'].every(n => c.find(r => r.name === n)?.true && c.find(r => r.name === n).hits.length >= 2), JSON.stringify(c.slice(1, 4).map(r => [r.name, r.true, r.hits])))
+    ck('combo scaling applies (A string > Purple deals less than the sum of its raw parts 30+30+45+300)', c.find(r => r.name === 'A string > Hollow Purple').dmg < 405, c.find(r => r.name === 'A string > Hollow Purple').dmg)
+  }
 } catch (e) { console.log('ERROR', e.stack); fail++ }
 ck('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))
 fs.mkdirSync('docs/msv1/gojo', { recursive: true }); fs.writeFileSync('docs/msv1/gojo/test_results.json', JSON.stringify(report, null, 1))

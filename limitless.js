@@ -87,6 +87,14 @@ export function fieldAttract(owner, field, W, opt = {}) {
 }
 function crushObjects(owner, field, W) {
   let n = 0
+  // clones / illusions (W.clones(fighter) → body boxes) inside the core are crushed (they are bodies, they do not drift)
+  for (const o of list(W.fighters)) {
+    if (!o || o === owner) continue
+    for (const c of [...(W.clones?.(o) || [])]) {
+      const dx = field.x - ((c.x || 0) + (c.w || 48) / 2), dy = field.y - ((c.y || 0) + (c.h || 94) / 2)
+      if (Math.sqrt(dx * dx + dy * dy) <= field.core + (c.w || 48) / 2) { W.removeClone?.(o, c); n++ }
+    }
+  }
   const sets = [[W.drones, W.removeDrone], [W.summons, W.removeSummon], [W.munitions, W.removeMunition]]
   for (const [L, rm] of sets) {
     const arr = list(L)
@@ -150,7 +158,7 @@ export function fieldErase(owner, circle, W) {
   }
   for (const { owner: po, patch } of (W.patches?.() || [])) {
     if (po === owner) continue
-    const top = (patch.y ?? circle.y) - 20
+    const top = (patch.floor ?? patch.y ?? circle.y) - 20          // Enoch patches carry `floor` (the ground row they sit on)
     if (hit(patch.x, top, patch.width || patch.w || 0, 40)) { W.removePatch?.(po, patch); n.patches++ }
   }
   return n

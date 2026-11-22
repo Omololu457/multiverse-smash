@@ -35047,6 +35047,7 @@ export function updateSoldierBoyDefensiveInput(fighter, inputState, context) {
 }
 
 export function triggerSpecial(fighter, context = {}) {
+  if (fighter?._gsTechBurnout > 0) return false   // Satoru Gojo (Shinjuku): lost a domain clash → 5 s burnout (no techniques); gojo_shinjuku-gated
   if (!fighter) return false
   if (fighter.attackCooldown > 0 || fighter.hitstun > 0 || fighter.blockstun > 0) return false
   if (fighter.attacking) return false
@@ -35308,6 +35309,7 @@ function executeVegetaDarkUltimate(fighter, context) {
 }
 
 export function triggerUltimate(fighter, context = {}, opts = {}) {
+  if (fighter?._gsTechBurnout > 0) return false   // Satoru Gojo (Shinjuku): lost a domain clash → 5 s burnout (no domain / ultimate); gojo_shinjuku-gated
   if (!fighter) return false
   // GOKU (clean rebuild): the Ultimate button fires the per-form ULTIMATE (dispatched in the switch below).
   // Kaioken is NOT here anymore — it moved to Charge+Back (handleChargeRelease). So Goku takes the normal

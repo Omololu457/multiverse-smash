@@ -122,6 +122,30 @@ HOOKS += [
    '  const gojoDomain = activeDomains.find(d => d?.owner?.rosterKey === "gojo" || d?.rosterKey === "gojo")   // + Satoru Gojo (Shinjuku) via domainKey', '|| d?.rosterKey === "gojo")   // + Satoru Gojo (Shinjuku)'),
 ]
 
+# ── phase 6: a NON-Gojo domain-clash loser cannot use specials / ultimates for 5 s (_gsTechBurnout, counted down in
+# gojoShinjukuState.tickGs). Only ever set on an opponent of gojo_shinjuku; 0 / undefined for everyone else.
+HOOKS += [
+  (6, 'abilities.js', "export function triggerSpecial(fighter, context = {}) {", 'after_line',
+   "  if (fighter?._gsTechBurnout > 0) return false   // Satoru Gojo (Shinjuku): lost a domain clash → 5 s burnout (no techniques); gojo_shinjuku-gated", "_gsTechBurnout > 0) return false   // Satoru Gojo (Shinjuku): lost a domain clash → 5 s burnout (no techniques)"),
+  (6, 'abilities.js', "export function triggerUltimate(fighter, context = {}, opts = {}) {", 'after_line',
+   "  if (fighter?._gsTechBurnout > 0) return false   // Satoru Gojo (Shinjuku): lost a domain clash → 5 s burnout (no domain / ultimate); gojo_shinjuku-gated", "_gsTechBurnout > 0) return false   // Satoru Gojo (Shinjuku): lost a domain clash → 5 s burnout (no domain"),
+]
+
+# ── phase 8: move list (kits.js) ──
+HOOKS += [
+  (8, 'kits.js', "import { NINJA_STORM_KIT } from './ninjaStormKit.js'", 'after_line',
+   "import { GOJO_SHINJUKU_KIT } from './gojoShinjukuKit.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc) move list", "GOJO_SHINJUKU_KIT } from"),
+  (8, 'kits.js', "  ninja_storm_rangers: NINJA_STORM_KIT,   // MSv2", 'after_line',
+   "  gojo_shinjuku: GOJO_SHINJUKU_KIT,   // MSV1-GOJO", "gojo_shinjuku: GOJO_SHINJUKU_KIT"),
+]
+
+# ── phase 9: 20 premade skins (skins.js) ──
+HOOKS += [
+  (9, 'skins.js', "import { HIGURUMA_SKINS } from './higurumaSkins.js'", 'after_line',
+   "import { GS_SKINS } from './gojoShinjukuSkins.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc): default + 20 premade skins (cosmetic, tools/gojoskins)", "GS_SKINS } from"),
+  (9, 'skins.js', "  higuruma: HIGURUMA_SKINS,", 'after_line', "  gojo_shinjuku: GS_SKINS,   // MSV1-GOJO", "gojo_shinjuku: GS_SKINS"),
+]
+
 def main():
   a = sys.argv[1:]; check = '--check' in a
   root = a[a.index('--root') + 1] if '--root' in a else ROOT

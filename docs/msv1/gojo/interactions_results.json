@@ -1,0 +1,74 @@
+{
+ "clones": {
+  "off": 63,
+  "l1": {
+   "dmg": 0,
+   "stopped": 2
+  },
+  "blue": {
+   "before": 2,
+   "after": 0,
+   "crushed": 2
+  }
+ },
+ "drones": {
+  "off": 11,
+  "l1": {
+   "dmg": 0,
+   "stoppedProj": 2
+  },
+  "maxBlue": {
+   "liveDrones": 0,
+   "crushed": 1
+  }
+ },
+ "enoch": {
+  "off": 12,
+  "l1": {
+   "dmg": 0,
+   "stopped": 6
+  },
+  "purple": {
+   "before": 1,
+   "after": 0,
+   "erased": 1
+  }
+ },
+ "webs": {
+  "off": {
+   "dmg": 46,
+   "stacks": 1
+  },
+  "l1": {
+   "dmg": 0,
+   "stacks": 0,
+   "stoppedProj": 1
+  }
+ },
+ "domains": {
+  "sukunaL3": {
+   "inf": 0,
+   "forced": {
+    "domain": 1
+   }
+  },
+  "clash": {
+   "clash": {
+    "me": 0,
+    "them": 26,
+    "myScore": 5,
+    "theirScore": 26.4,
+    "result": "lose"
+   },
+   "gojoBurnout": 299,
+   "sukunaTechBurnout": 300
+  },
+  "oldGojo": {
+   "inf": 0,
+   "frozen": true,
+   "forced": {
+    "domain": 1
+   }
+  }
+ }
+}

@@ -70,6 +70,15 @@ const r3 = fieldErase(owner, { x: 700, y: 360, r: 120 }, W)
 ok(r3.projectiles === 1 && projs.length === 1 && projs[0]._gsOwn, 'ERASE deletes every foreign projectile (super included), never his own', JSON.stringify(r3))
 ok(r3.summons === 1 && r3.munitions === 1 && r3.clones === 1 && r3.patches === 1, 'ERASE deletes summons, munitions, clones and ground patches', JSON.stringify(r3))
 projs.length = 0
+// phase 6: a clone inside a Blue core is crushed (bodies do not drift); one outside the core is left alone
+clones.push({ x: 596, y: 300, w: 48, h: 94 }, { x: 900, y: 300, w: 48, h: 94 })
+const r4 = fieldAttract(owner, { x: 620, y: 347, r: 200, core: 44, pull: 3, pullCore: 9 }, W)
+ok(r4.crushed === 1 && clones.length === 1 && clones[0].x === 900, 'ATTRACT crushes a clone inside the core, not one outside it', JSON.stringify({ r4, clones }))
+clones.length = 0
+// phase 6: Enoch patches carry `floor` (no y) — ERASE reads it
+patches.push({ x: 660, floor: 394, width: 80 })
+const r5 = fieldErase(owner, { x: 700, y: 360, r: 60 }, W)
+ok(r5.patches === 1 && patches.length === 0, 'ERASE finds a patch by its floor row (Enoch patches)', JSON.stringify(r5))
 
 console.log('── C) Infinity shell (Zeno)')
 const g = { side: 0, x: 400, y: 300, w: 48, h: 94, health: 1000 }

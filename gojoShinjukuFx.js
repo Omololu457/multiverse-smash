@@ -4,7 +4,8 @@
 // exception is the training-only debug ring (Training mode + the "Infinity debug radius" toggle, off by default).
 import { sound } from './sound.js'
 import { GOJO_SHINJUKU_FX, GOJO_SHINJUKU_CHANT } from './gojoShinjukuSprites.js'
-import { GS_KEY, INFINITY, CHANT, DOMAIN, FBE, RCT, CE_UNIT } from './gojoShinjukuData.js'
+import { GS_KEY, INFINITY, CHANT, DOMAIN, FBE, RCT, CE_UNIT, QUOTES } from './gojoShinjukuData.js'
+import { GOJOYOUNG_VOICE } from './gojoVoice.js'
 import { chantLineAt } from './gojoShinjukuState.js'
 
 const isGs = f => f?.rosterKey === GS_KEY
@@ -73,6 +74,16 @@ export function drawGsFx(c, f, training = false) {
     c.beginPath(); c.ellipse(cx, feet - 2, f.w * (1.1 + 0.15 * pulse), 7, 0, 0, Math.PI * 2); c.stroke()
     c.fillStyle = `rgba(220,245,255,${0.7 + 0.3 * pulse})`; c.fillRect(cx + (f.facing || 1) * 4 - 2, f.y + f.h * 0.11, 4, 2)   // Six Eyes glint
     c.restore()
+  }
+  // speech bubble (intro / vs / win line) above his head
+  if (s.say?.text) {
+    const a = Math.min(1, s.say.t / 20), cx = ctrX(f), top = f.y - 18
+    c.save(); c.globalAlpha = a; c.font = 'bold 13px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'
+    const w = Math.min(320, c.measureText(s.say.text).width + 20), h = 26, x = cx - w / 2, y = top - h
+    c.fillStyle = 'rgba(255,255,255,0.95)'; c.strokeStyle = '#1b2a4a'; c.lineWidth = 2
+    c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, 8) : c.rect(x, y, w, h); c.fill(); c.stroke()
+    c.beginPath(); c.moveTo(cx - 6, y + h); c.lineTo(cx, y + h + 8); c.lineTo(cx + 6, y + h); c.closePath(); c.fill(); c.stroke()
+    c.fillStyle = '#10203c'; c.fillText(s.say.text, cx, y + h / 2, w - 12); c.restore()
   }
   // Blue fields: the sheet's orb, sized to the core; a faint swirl for the pull radius
   for (const F of s.fields) {
@@ -182,7 +193,10 @@ export function drawGsHud(c, cv, p1, p2) {
 }
 
 // ── sounds (Infinity has none). Shared old-Gojo files for Red / Purple; synth names for the rest. ──
+const voiceOf = (pool, n) => { const a = GOJOYOUNG_VOICE[pool] || []; return a.length ? a[Math.abs(n) % a.length] : null }
 const SFX = {
+  introVoice: (f, v) => sound.playSfxFile?.(/sukuna/.test(v?.vs || '') ? QUOTES.voice.vsSukuna : QUOTES.voice.intro, null),
+  winVoice: f => { const c = voiceOf('win', (f._gs?.tick || 0) + (f._gs?.stats?.purples || 0)); if (c) sound.playSfxFile?.(c, null) },
   redCrack: () => sound.playSfxFile?.('gojo_red.mp3', null),
   purpleFire: () => sound.playSfxFile?.('gojo_hollow_purple.mp3', null),
   purple200Fire: () => sound.playSfxFile?.('gojo_hollow_purple.mp3', null),
@@ -193,7 +207,7 @@ export function playGsCues(f) {
   for (const v of q) {
     const k = typeof v === 'string' ? v : v.c
     if (MUTE.has(k)) continue
-    try { if (SFX[k]) SFX[k](); else sound.play?.('gs_' + k) } catch (_) {}
+    try { if (SFX[k]) SFX[k](f, v); else sound.play?.('gs_' + k) } catch (_) {}
   }
   q.length = 0
 }

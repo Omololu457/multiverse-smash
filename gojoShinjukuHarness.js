@@ -2,6 +2,7 @@
 // Read-mostly: the writers (reset / move / setCe / setInfinity / setEnergy / debug) only set up a scenario before real
 // inputs drive the match.
 import { getAttackHitbox, getCancelWindow } from './combat.js'
+import { clearDomains } from './domains.js'
 import { startGsMove, clearGs, clearGsMarks, gsState, markGsCpu } from './gojoShinjukuState.js'
 import { GS_MOVES, INFINITY, CE_UNIT, CHANT, CHANT_FIRE, DOMAIN, COST, TIMELINE } from './gojoShinjukuData.js'
 import { gsHudLabel, setGsInfinityDebug } from './gojoShinjukuFx.js'
@@ -9,7 +10,7 @@ export function gojoShinjukuHarnessApi(g) {
   const raw = (w = 'p1') => w === 'p2' ? g.p2() : g.p1()
   const clone = o => JSON.parse(JSON.stringify(o, (k, v) => (k === '_W' ? undefined : v)))
   return { raw,
-    reset: () => { g.reset(); const P = g.world.projectileList?.(); if (P) P.length = 0; for (const f of [g.p1(), g.p2()]) { clearGs(f); clearGsMarks(f) } },
+    reset: () => { g.reset(); clearDomains(); const P = g.world.projectileList?.(); if (P) P.length = 0; for (const f of [g.p1(), g.p2()]) { clearGs(f); clearGsMarks(f) } },
     move: (k, w = 'p1', o = {}) => startGsMove(raw(w), k, g.world, o),
     setCe: (n, w = 'p1') => { gsState(raw(w)).ce = Math.round(n * CE_UNIT) },
     setInfinity: (lv, w = 'p1') => { gsState(raw(w)).inf.lv = lv },
@@ -18,6 +19,12 @@ export function gojoShinjukuHarnessApi(g) {
     debug: on => setGsInfinityDebug(on),
     shoot: (o = {}, w = 'p2') => { const f = raw(w), p = g.world.spawn(f, o.type || 'test_bolt', { speed: o.speed ?? 10, damage: o.damage ?? 40, w: 16, h: 16, ...o })
       if (p) { if (o.super) p.isUltimate = true; if (o.lifetime != null) p.lifetime = o.lifetime; if (o.y != null) p.y = o.y } return !!p },
+    // test-only: hold another fighter's clones / drones at a point (e.g. inside a Blue core) for one frame
+    park: (kind, x, y) => { let n = 0
+      if (kind === 'clones') { for (const f of [g.p1(), g.p2()]) for (const c of (f?._ninja?.clones || [])) if (!c.dead) { c.x = x; c.feet = y + 47; n++ } }
+      else for (const o of (g.world[kind]?.() || [])) { o.x = x; o.y = y; n++ }
+      return n },
+    fields: (w = 'p1') => (raw(w)._gs?.fields || []).map(F => ({ kind: F.kind, x: F.x, y: F.y, core: F.core, r: F.r })),
     parkShots: (w = 'p1') => { const f = raw(w); for (const p of g.world.projectileList?.() || []) { p.x = f.x + f.w / 2; p.y = f.y + f.h / 2; p.vx = 0; p.vy = 0 } },
     hud: (w = 'p1') => gsHudLabel(raw(w)),
     data: () => clone({ moves: GS_MOVES, infinity: INFINITY, chant: CHANT, chantFire: CHANT_FIRE, domain: DOMAIN, cost: COST, timeline: TIMELINE }),

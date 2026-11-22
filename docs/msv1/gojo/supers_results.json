@@ -1,0 +1,5969 @@
+[
+ {
+  "key": "albedo",
+  "dmg": {
+   "0": 150,
+   "1": 150,
+   "2": 75,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "alt_sukuna",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "aoi_todo",
+  "dmg": {
+   "0": 528,
+   "1": 528,
+   "2": 264,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 13,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 13,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 13,
+    "stopped": 13,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "arlong",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "baki",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "batman",
+  "dmg": {
+   "0": 180,
+   "1": 180,
+   "2": 90,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "beast_boy",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "beerus",
+  "dmg": {
+   "0": 228,
+   "1": 228,
+   "2": 114,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "ben10",
+  "dmg": {
+   "0": 150,
+   "1": 150,
+   "2": 75,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "buggy",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "byakuya",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "chrollo",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "cyborg",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "dash_parr",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "dseyl",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "elastigirl",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "enoch",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "flash",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "frozone",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "gaara",
+  "dmg": {
+   "0": 195,
+   "1": 195,
+   "2": 96,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 7,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 7,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 7,
+    "stopped": 7,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "genos",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "ghostface",
+  "dmg": {
+   "0": 228,
+   "1": 228,
+   "2": 114,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 7,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 7,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 7,
+    "stopped": 7,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "gojo",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "goku",
+  "dmg": {
+   "0": 216,
+   "1": 216,
+   "2": 108,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "goku_black",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "gold_samurai_ranger",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "green_arrow",
+  "dmg": {
+   "0": 404,
+   "1": 0,
+   "2": 149,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 8,
+    "whiffed": 0,
+    "stopped": 6,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "CHECK (L1 x / L2 ok / L3 ok)"
+ },
+ {
+  "key": "green_ranger",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "green_samurai_ranger",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "gwen",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 4,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 4,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 4,
+    "stopped": 4,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "hashirama",
+  "dmg": {
+   "0": 162,
+   "1": 162,
+   "2": 162,
+   "3": 162
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   }
+  },
+  "note": "",
+  "verdict": "forced-off:domain"
+ },
+ {
+  "key": "higuruma",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "hinata",
+  "dmg": {},
+  "rule": {},
+  "note": "page.evaluate: ReferenceError: executeHinataUltimate is not defined\n    at triggerUltimate (http://127.0.0.1:60940/abili",
+  "verdict": "error"
+ },
+ {
+  "key": "hisoka",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "homelander",
+  "dmg": {
+   "0": 202,
+   "1": 202,
+   "2": 96,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 18,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 18,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 18,
+    "stopped": 18,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "ichigo",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "inosuke",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "ippo",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 5,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 5,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 5,
+    "stopped": 5,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "isshiki",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "itachi",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "jason",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "jesus",
+  "dmg": {
+   "0": 174,
+   "1": 174,
+   "2": 87,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "jiraiya",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 2,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 2,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "kakashi",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "kakashi_anbu",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "kakashi_war",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "killua",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "krybot",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "l_ryuuzaki",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "light",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "luffy",
+  "dmg": {
+   "0": 280,
+   "1": 280,
+   "2": 140,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 4,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 4,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "madara",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "maki",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "mayuri",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "megumi_fushiguro",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "minato",
+  "dmg": {
+   "0": 360,
+   "1": 360,
+   "2": 180,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "miwa",
+  "dmg": {
+   "0": 168,
+   "1": 168,
+   "2": 84,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "mmpr_black",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "mmpr_pink",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "mmpr_white",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "mr_incredible",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "naruto",
+  "dmg": {
+   "0": 360,
+   "1": 360,
+   "2": 180,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "naruto_seventh",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "netero",
+  "dmg": {
+   "0": 0,
+   "1": 172,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "nezuko",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "ninja_storm_cgpt",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "ninja_storm_rangers",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "obito",
+  "dmg": {
+   "0": 216,
+   "1": 216,
+   "2": 108,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "omega_ranger",
+  "dmg": {
+   "0": 144,
+   "1": 144,
+   "2": 72,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "omololu",
+  "dmg": {
+   "0": 360,
+   "1": 360,
+   "2": 360,
+   "3": 360
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   }
+  },
+  "note": "",
+  "verdict": "forced-off:domain"
+ },
+ {
+  "key": "pain",
+  "dmg": {
+   "0": 216,
+   "1": 216,
+   "2": 108,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "raven",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "red_ranger_mmpr",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "rengoku",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "rick",
+  "dmg": {
+   "0": 108,
+   "1": 108,
+   "2": 54,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "rickPrime",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "robin",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "saiki",
+  "dmg": {
+   "0": 180,
+   "1": 180,
+   "2": 90,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "saitama",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "sakura",
+  "dmg": {
+   "0": 174,
+   "1": 174,
+   "2": 87,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "samurai_red_ranger",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "sanji",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "sasuke",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "sasuke_adult",
+  "dmg": {
+   "0": 157,
+   "1": 157,
+   "2": 78,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 2,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "sasuke_sensei",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "shinobu",
+  "dmg": {
+   "0": 216,
+   "1": 216,
+   "2": 108,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 7,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 7,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 7,
+    "stopped": 7,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "shisui_fallen",
+  "dmg": {
+   "0": 140,
+   "1": 140,
+   "2": 70,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 6,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 6,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 6,
+    "stopped": 6,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "six_paths_pain",
+  "dmg": {
+   "0": 180,
+   "1": 180,
+   "2": 90,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "soldier_boy",
+  "dmg": {
+   "0": 168,
+   "1": 168,
+   "2": 84,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "spd_blue",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "spd_green",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "spd_pink",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "spd_red",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "spd_yellow",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "spiderman",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "starfire",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "sukuna",
+  "dmg": {
+   "0": 32,
+   "1": 32,
+   "2": 28,
+   "3": 24
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [
+     "domain"
+    ],
+    "bypass": 0,
+    "endLv": 0
+   }
+  },
+  "note": "",
+  "verdict": "forced-off:domain"
+ },
+ {
+  "key": "superman",
+  "dmg": {
+   "0": 380,
+   "1": 380,
+   "2": 190,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 2,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 2,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 2,
+    "stopped": 2,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "syndrome",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "tobi",
+  "dmg": {
+   "0": 216,
+   "1": 216,
+   "2": 108,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "tobirama",
+  "dmg": {
+   "0": 0,
+   "1": 216,
+   "2": 108,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "toji",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "vegeta",
+  "dmg": {
+   "0": 204,
+   "1": 204,
+   "2": 102,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "vegeta_dark",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 3,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 3,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 3,
+    "stopped": 3,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "vilgax",
+  "dmg": {
+   "0": 198,
+   "1": 198,
+   "2": 99,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 4,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 4,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 4,
+    "stopped": 4,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "violet",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "windrangers",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "yuji",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ },
+ {
+  "key": "yuta",
+  "dmg": {
+   "0": 231,
+   "1": 165,
+   "2": 80,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 5,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 2,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 5,
+    "whiffed": 0,
+    "stopped": 2,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 5,
+    "stopped": 7,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "CHECK (L1 x / L2 ok / L3 ok)"
+ },
+ {
+  "key": "zaraki",
+  "dmg": {
+   "0": 180,
+   "1": 180,
+   "2": 90,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "zaraki_shikai",
+  "dmg": {
+   "0": 180,
+   "1": 180,
+   "2": 90,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "zenitsu",
+  "dmg": {
+   "0": 180,
+   "1": 180,
+   "2": 90,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 1,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 1,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 1,
+    "stopped": 1,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "ok"
+ },
+ {
+  "key": "zoro",
+  "dmg": {
+   "0": 0,
+   "1": 0,
+   "2": 0,
+   "3": 0
+  },
+  "rule": {
+   "0": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 0
+   },
+   "1": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 1
+   },
+   "2": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 2
+   },
+   "3": {
+    "cast": true,
+    "connected": 0,
+    "halved": 0,
+    "whiffed": 0,
+    "stopped": 0,
+    "forced": [],
+    "bypass": 0,
+    "endLv": 3
+   }
+  },
+  "note": "",
+  "verdict": "no-damage"
+ }
+]

@@ -26,6 +26,16 @@ export const perFrame = perSec => Math.round(perSec * CE_UNIT / 60)
 // feel: short wind-up, invulnerable travel, recovery) that puts real distance between him and the foe.
 export const MOBILITY = { window: 12, tpGap: 8, tpCooldown: 48, tpLock: 10,
   blink: { dist: 0.40, startup: 2, travel: 5, recovery: 8, cooldown: 30 } }
+// PRESENTATION (phase 8): speech bubbles over the intro / the win (English text; the voice is the old Gojo's Japanese
+// pack, gojoVoice.js GOJOYOUNG_VOICE, picked deterministically). `vs` lines replace the intro for that opponent.
+export const QUOTES = {
+  intro: ["Don't worry. I'm the strongest.", "Throughout heaven and earth, I alone am the honored one.", "Let's make this quick."],
+  win: ["Sorry. I'm the strongest.", "You never stood a chance.", "That's what it means to be the honored one."],
+  vs: { sukuna: "Nah, I'd win.", alt_sukuna: "Nah, I'd win.", gojo: "Two of me? Heaven and earth can't fit us both.",
+    toji: "You again? I've gotten stronger since then.", megumi_fushiguro: "Megumi. Watch closely.", higuruma: "Your verdict doesn't reach me.",
+    yuji: "Yuji, show me what you've learned.", maki: "Maki, no holding back." },
+  voice: { intro: 'gojoyoung_084_im_the_strongest_sorcerer.mp3', vsSukuna: 'gojoyoung_076_but_i_will_win.mp3' },
+}
 // CHARGE (user request): hold P past the tap window = the shared hold-to-charge (meter + the "charge" pose) + CE
 export const CHARGE = { ceRate: 12 }      // CE per second while charging
 export const INFINITY = {

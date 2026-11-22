@@ -289,6 +289,9 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// MULTIVERSE ROULETTE — no art of its own: it draws a RANDOM other map, whole, and keeps rifting into others.
+SETS.code_random = { mode: "random", dir: "./stages/code_random/", S: 1.6, standRow: 30 }
+
 // THE ORIGINALS (homage to the creators) — no sheet: three dimensions drawn in code (Omololu's lab, Dseyl's sky, Enoch's
 // frost & flame) that the multiverse keeps switching between; the floor is painted per dimension in the fx pass.
 SETS.code_originals = {
@@ -692,6 +695,7 @@ let _backArgs = null   // the last draw's frame (The Originals draws OTHER maps 
 export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, groundY, coverTop, coverBottom }) {
   if (!_orNest) _backArgs = { canvasWidth, worldWidth: W, groundY, coverTop, coverBottom }
   const set = stage?.layers, def = SETS[set]
+  if (def?.mode === "random") return drawRandomStage(ctx, def, { canvasWidth, W, groundY, coverTop, coverBottom })
   if (!def || !layeredStageReady(stage)) return false
   if (def.mode === "room3d") return drawRoom3d(ctx, def, cache.get(set), { canvasWidth, W, groundY, coverTop, coverBottom })
   if (def.mode === "ssf2") return drawSsf2Back(ctx, def, cache.get(set), { canvasWidth, W, groundY, coverTop, coverBottom })
@@ -875,6 +879,7 @@ function drawProps(ctx, c, def, list, W, dockTop) {
 export function drawLayeredStageFront(ctx, stage, worldWidth, groundY, world = null) {
   const set = stage?.layers, def = SETS[set]
   _lastWorld = world
+  if (def?.mode === "random") { const s = rmFrontSet(); if (s && SETS[s] && SETS[s].mode !== "random") drawLayeredStageFront(ctx, { layers: s }, worldWidth, groundY, world); return }
   if (def?.fx === "shibuya" && world && layeredStageReady(stage)) shibuyaFront(ctx, def, cache.get(set), worldWidth, groundY, world)
   if (def?.mode === "room3d") { if (layeredStageReady(stage)) drawRoomFront(ctx, def, worldWidth, groundY); return }
   if (def?.mode === "ssf2") { if (layeredStageReady(stage)) drawSsf2Front(ctx, def, cache.get(set), worldWidth, groundY); return }
@@ -6093,4 +6098,93 @@ function originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   OR.shout = OR.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── MULTIVERSE ROULETTE (render-only, wall clock, own PRNG) ─────────────────────────────
+// The map itself is random: every match starts in a random map of the game, and — like The Originals, but across ALL of
+// them — every 12–22 s (6–10 s once someone is close to losing) the screen rumbles, reality cracks and a rift opens from
+// the centre into ANOTHER random map; at random (and on big hits) other maps glitch through for a split second. Each map
+// is drawn live, whole (its own art, life and reactions) through drawLayeredStageBack; its foreground props too.
+// KO → three maps side by side, "MULTIVERSE ROULETTE". The song is random as well (game.js: every map's songs).
+let _rmSeed = 0x2545f491 ^ 0x4f6cdd1d
+const rmRnd = () => { _rmSeed ^= _rmSeed << 13; _rmSeed ^= _rmSeed >>> 17; _rmSeed ^= _rmSeed << 5; return (_rmSeed >>> 0) / 4294967296 }
+const RM_MAPS = OR_MAPS.concat([["code_originals", "The Originals"]]).filter(([s]) => SETS[s] && !SETS[s].mode)
+const RM = { p1: null, last: 0, hp: new WeakMap(), cur: null, phase: null, nextSwap: 0, flick: null, nextGlitch: 0, merged: null, banner: null, unstable: false, forceTo: null, glitchFull: null, pool: [], shout: [],
+  st: { swaps: 0, shakes: 0, glitches: 0, visited: [], glimpsed: [], unstable: 0, merged: 0 } }
+const rmName = s => (RM_MAPS.find(m => m[0] === s) || [s, s])[1]
+export const randomMapState = () => ({ cur: RM.cur ? rmName(RM.cur) : "", ready: !!RM.cur && layeredStageReady({ layers: RM.cur }), swaps: RM.st.swaps, shakes: RM.st.shakes, glitches: RM.st.glitches,
+  visited: RM.st.visited.slice(), glimpsed: RM.st.glimpsed.slice(), unstable: RM.st.unstable, mergedCount: RM.st.merged, merged: RM.merged ? +RM.merged.t.toFixed(2) : 0,
+  phase: RM.phase ? RM.phase.k : "", nextIn: +(RM.nextSwap - now()).toFixed(1), shouting: RM.shout.filter(s => s.t > 0).map(s => s.txt) })
+export const randomMapGo = () => { RM.forceTo = true }                          // tests: open a rift now
+export const randomMapGlitch = full => { RM.nextGlitch = 0; RM.glitchFull = full }  // tests: glitch now
+function rmPoolTick() { let guard = 0; while (RM.pool.length < 4 && guard++ < 30) { const m = RM_MAPS[Math.floor(rmRnd() * RM_MAPS.length)]; if (m && m[0] !== RM.cur && !RM.pool.includes(m)) RM.pool.push(m) } for (const m of RM.pool) layeredStageReady({ layers: m[0] }) }
+function rmTakeReady() { const i = RM.pool.findIndex(m => m[0] !== RM.cur && layeredStageReady({ layers: m[0] })); return i < 0 ? null : RM.pool.splice(i, 1)[0] }
+function rmShout(x, y, txt, col) { if (RM.shout.filter(s => s.t > 0).length < 3) RM.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
+function rmVisit(s) { const n = rmName(s); if (!RM.st.visited.includes(n)) RM.st.visited.push(n) }
+// the map in front of the fighters right now (its foreground props are drawn by drawLayeredStageFront)
+const rmFrontSet = () => RM.merged ? null : RM.phase && RM.phase.k === "wipe" ? RM.phase.from : RM.cur
+function drawRandomStage(ctx, def, { canvasWidth, W, groundY, coverTop, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), v = view(canvasWidth, W), padL = v.left - 8, padR = v.right + 8
+  const cx = (padL + padR) / 2, cy = groundY - 200, D = groundY - 48
+  if (F[0] !== RM.p1 || !RM.cur) { const m = RM_MAPS[Math.floor(rmRnd() * RM_MAPS.length)]
+    Object.assign(RM, { p1: F[0], hp: new WeakMap(), cur: m[0], phase: null, nextSwap: t + 12 + 8 * rmRnd(), flick: null, nextGlitch: t + 4 + 4 * rmRnd(), merged: null, banner: { txt: m[1].toUpperCase(), t: 2.6 }, unstable: false, shout: [] })
+    RM.st = { swaps: 0, shakes: 0, glitches: 0, visited: [], glimpsed: [], unstable: 0, merged: 0 }; rmVisit(m[0]) }
+  const dt = Math.min(0.05, Math.max(0, t - (RM.last || t))); RM.last = t
+  rmPoolTick(); layeredStageReady({ layers: RM.cur })
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2
+  let big = false, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = RM.hp.get(f); RM.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = true }
+  if (low && !RM.unstable && !RM.merged) { RM.st.unstable++; rmShout(mid, D - 190, "THE MULTIVERSE IS SPINNING OUT!", "#8a2ad0"); RM.nextSwap = Math.min(RM.nextSwap, t + 2.5) }
+  RM.unstable = low
+  if (ko && !RM.merged) { const a = rmTakeReady(), b = rmTakeReady(); RM.merged = { t: 0, maps: [RM.phase && RM.phase.k === "wipe" ? RM.phase.to : RM.cur, a ? a[0] : RM.cur, b ? b[0] : RM.cur] }; RM.phase = null; RM.flick = null; RM.st.merged++; camera.shake?.(12, 30); RM.st.shakes++ }
+  if (RM.merged) { RM.merged.t += dt; if (!ko && RM.merged.t > 4) { RM.merged = null; RM.nextSwap = t + 8 } }
+  if (!RM.merged) {
+    const start = () => { const m = rmTakeReady(); if (!m) { RM.nextSwap = t + 1; return } RM.phase = { k: "rumble", t: 0, to: m[0], name: m[1] }; camera.shake?.(4, 60); RM.st.shakes++ }
+    if (RM.forceTo) { if (RM.phase && RM.phase.k === "wipe") RM.cur = RM.phase.to; RM.phase = null; RM.forceTo = null; start() }
+    if (!RM.phase && t > RM.nextSwap) start()
+    const ph = RM.phase
+    if (ph) { ph.t += dt
+      if (ph.k === "rumble" && ph.t > 1) { RM.phase = { k: "wipe", t: 0, to: ph.to, name: ph.name, from: RM.cur }; camera.shake?.(10, 24); RM.st.shakes++ }
+      else if (ph.k === "wipe" && ph.t > 0.9) { RM.cur = ph.to; rmVisit(ph.to); RM.st.swaps++; RM.phase = null; RM.nextSwap = t + (RM.unstable ? 6 + 4 * rmRnd() : 12 + 10 * rmRnd()); RM.banner = { txt: ph.name.toUpperCase(), t: 2.4 } } }
+    if (!RM.flick && !RM.phase && (t > RM.nextGlitch || big)) { const m = rmTakeReady(); RM.nextGlitch = t + (RM.unstable ? 2 : 4) + 4 * rmRnd()
+      if (m) { const full = RM.glitchFull ?? rmRnd() < 0.35; RM.glitchFull = null; RM.flick = { set: m[0], name: m[1].toUpperCase(), full, t: full ? 0.3 : 0.45, bands: [], next: 0 }; RM.st.glitches++; if (!RM.st.glimpsed.includes(m[1])) RM.st.glimpsed.push(m[1]); RM.pool.push(m); camera.shake?.(full ? 5 : 3, 8) } } }
+  const f = RM.flick
+  if (f) { f.t -= dt; if (f.t <= 0) RM.flick = null
+    else if (!f.full && t > f.next) { f.next = t + 0.07; f.bands = Array.from({ length: 2 + Math.floor(rmRnd() * 3) }, () => ({ y: D - 330 + rmRnd() * 420, h: 14 + rmRnd() * 60, dx: (rmRnd() - 0.5) * 40 })) } }
+  // ── draw ──
+  const top = coverTop - 50, bottom = coverBottom + 50
+  const drawMap = s => { if (!s || !orDrawOther(ctx, s)) { orStatic(ctx, padL, top, padR - padL, bottom - top, t); ctx.font = "900 22px monospace"; ctx.textAlign = "center"; ctx.fillStyle = "#c8a8ff"; ctx.fillText("TUNING IN…", cx, cy) } }
+  if (RM.merged) { const w = (padR - padL) / 3; RM.merged.maps.forEach((s, k) => { ctx.save(); ctx.beginPath(); ctx.rect(padL + k * w, top, w + 1, bottom - top); ctx.clip(); drawMap(s); ctx.restore() }) }
+  else if (RM.phase && RM.phase.k === "wipe") { const ph = RM.phase, u = Math.min(1, ph.t / 0.9), R = 4 + u * u * (3 - 2 * u) * Math.hypot(padR - padL, 1500)
+    drawMap(ph.from); ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.clip(); drawMap(ph.to); ctx.restore()
+    ctx.strokeStyle = "rgba(200,140,255,0.8)"; ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke(); ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 3; ctx.stroke() }
+  else { drawMap(RM.cur)
+    if (f) { if (f.full) { ctx.save(); ctx.beginPath(); ctx.rect(padL - 20, top, padR - padL + 40, bottom - top); ctx.clip(); orDrawOther(ctx, f.set); ctx.restore() }
+      else for (const b of f.bands) { ctx.save(); ctx.beginPath(); ctx.rect(padL - 20, b.y, padR - padL + 40, b.h); ctx.clip(); ctx.translate(b.dx, 0); orDrawOther(ctx, f.set); ctx.restore() }
+      const rows = f.full ? [{ y: D - 330, h: coverBottom - D + 330 }] : f.bands
+      for (const b of rows) { ctx.fillStyle = "rgba(255,0,80,0.28)"; ctx.fillRect(padL, b.y, padR - padL, 2); ctx.fillStyle = "rgba(0,255,230,0.28)"; ctx.fillRect(padL, b.y + b.h - 2, padR - padL, 2) }
+      for (let j = 0; j < 8; j++) { const y = D - 330 + 420 * _h(Math.floor(t * 40) * 9 + j); ctx.fillStyle = j % 2 ? "rgba(255,40,120,0.18)" : "rgba(40,255,230,0.18)"; ctx.fillRect(padL, y, padR - padL, 3) }
+      ctx.save(); ctx.font = "900 15px monospace"; ctx.textAlign = "left"; const tx = padL + 30, ty = D - 300, label = "▓ SIGNAL: " + f.name; ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(tx - 8, ty - 14, ctx.measureText(label).width + 16, 22)
+      ctx.fillStyle = "#ff3a7a"; ctx.fillText(label, tx + 2, ty + 2); ctx.fillStyle = "#7affef"; ctx.fillText(label, tx, ty); ctx.restore() } }
+  // cracks before a rift (faint and constant once the multiverse is unstable)
+  const ph = RM.phase, crack = ph && ph.k === "rumble" ? Math.min(1, ph.t) : RM.unstable && !RM.merged ? 0.25 : 0
+  if (crack > 0) { const seed = RM.st.swaps * 17 + 5
+    for (let r = 0; r < 9; r++) { let a = r / 9 * Math.PI * 2 + _h(seed + r), x = cx, y = cy; ctx.beginPath(); ctx.moveTo(x, y)
+      for (let s = 0; s < 8; s++) { a += (_h(seed * 3 + r * 11 + s) - 0.5) * 0.9; const L = (20 + 60 * _h(r + s * 7)) * crack; x += Math.cos(a) * L; y += Math.sin(a) * L; ctx.lineTo(x, y) }
+      ctx.strokeStyle = `rgba(200,140,255,${0.5 * crack})`; ctx.lineWidth = 7; ctx.stroke(); ctx.strokeStyle = `rgba(255,255,255,${0.9 * crack})`; ctx.lineWidth = 2; ctx.stroke() } }
+  ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round"
+  if (RM.merged) { const w = (padR - padL) / 3, a = Math.min(1, RM.merged.t * 2); ctx.globalAlpha = a
+    for (let k = 1; k < 3; k++) { const x = padL + k * w; ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.fillRect(x - 2, top, 4, bottom - top); ctx.fillStyle = "rgba(200,160,255,0.3)"; ctx.fillRect(x - 10, top, 20, bottom - top) }
+    ctx.font = "900 36px Arial"; ctx.lineWidth = 7; ctx.strokeStyle = "#120a1e"; ctx.strokeText("MULTIVERSE ROULETTE", cx, D - 245); ctx.fillStyle = "#fff"; ctx.fillText("MULTIVERSE ROULETTE", cx, D - 245)
+    ctx.font = "900 17px Arial"; RM.merged.maps.forEach((s, k) => { const x = padL + (k + 0.5) * w, n = rmName(s).toUpperCase(); ctx.lineWidth = 5; ctx.strokeText(n, x, D - 205); ctx.fillStyle = "#e2c8ff"; ctx.fillText(n, x, D - 205) }) }
+  else if (RM.banner) { const b = RM.banner; b.t -= dt; if (b.t <= 0) RM.banner = null; else { ctx.globalAlpha = Math.min(1, b.t * 2, (2.6 - b.t) * 4); ctx.font = "900 26px Arial"; ctx.lineWidth = 6; ctx.strokeStyle = "#120a1e"
+    ctx.strokeText("⟢ " + b.txt + " ⟣", cx, D - 240); ctx.fillStyle = "#e2c8ff"; ctx.fillText("⟢ " + b.txt + " ⟣", cx, D - 240) } }
+  ctx.restore()
+  for (const s of RM.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  RM.shout = RM.shout.filter(s => s.t > 0)
+  return true
 }

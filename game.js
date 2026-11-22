@@ -2415,6 +2415,8 @@ const STAGE_DEFS = [
       layers: "code_nexus", backgroundImage: "stages/code_nexus/preview.png" },   // layered (drawn in code); song kept
   { name: "The Originals",          series: "original",     music: "Gbona.mp3", shuffle: true, playlist: ["Gbona.mp3", "Rema_-_Dumebi.mp3", "Wande Coal, DJ Tunez - Iskaba [Official Audio].mp3", "Yemi Alade - Johnny (Official Audio).mp3", "Oxlade - KU LO SA A COLORS SHOW.mp3", "CKay - Love Nwantiti (TikTok Remix) (Lyrics) I am so obsessed I want to chop your nkwobi.mp3", "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", "Rema - dumebi (sped up).mp3"], landmark: "analysis_nexus", sky: "#1a1030", mid: "#2c2636", floor: "#16141c", accent: "#a855f7", worldWidth: 2400,
       layers: "code_originals", backgroundImage: "stages/code_originals/preview.png" },   // homage to the creators: Omololu's lab / Dseyl's sky / Enoch's frost & flame; Nigerian songs only (user)
+  { name: "Multiverse Roulette",    series: "original",     music: "Gbona.mp3", shuffle: true, randomSongs: true, landmark: "analysis_nexus", sky: "#1a1030", mid: "#2c2636", floor: "#16141c", accent: "#c084fc", worldWidth: 2400,
+      layers: "code_random", backgroundImage: "stages/code_random/preview.png" },   // a RANDOM map that keeps rifting into other random maps; a random song from every map's songs (user)
   { name: "Shadow Garden",          series: "other",       music: "Brent Faiyaz - Wish You Well (Full Version).mp3", landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", worldWidth: 2400,
       layers: "eagle_shadow", backgroundImage: "stages/eagle_shadow/preview.png" },   // layered (Eagle sheet, moonlit); song picked by me (user: "not Japanese, not one I've picked")
   // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):
@@ -2444,7 +2446,13 @@ const STAGE_DEFS = [
   // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
   { name: "Battle Royale Colosseum", series: "other",      music: "NLE Choppa - Final Warning (Official Video).mp3", landmark: "citadel",      sky: "#160b22", mid: "#3b1d55", floor: "#0e0716", accent: "#f472b6", worldWidth: 4800, ffa: true,
       layers: "code_colosseum", backgroundImage: "stages/code_colosseum/preview.png" }   // layered (drawn in code); song picked by me (user: "not Japanese, not one I've picked")
-]
+];
+// MULTIVERSE ROULETTE: its playlist is every song any other map uses, in a fresh random order each launch (audio only —
+// a wall-clock-seeded shuffle at load; nothing here touches the match simulation)
+{ const R = STAGE_DEFS.find(s => s.randomSongs)
+  if (R) { const all = [...new Set(STAGE_DEFS.filter(s => s !== R).flatMap(s => [s.music, ...(s.playlist || [])]).filter(f => typeof f === "string" && f))]
+    let x = (Date.now() % 2147483647) || 7; for (let i = all.length - 1; i > 0; i--) { x = (x * 48271) % 2147483647; const j = x % (i + 1); [all[i], all[j]] = [all[j], all[i]] }
+    if (all.length) { R.playlist = all; R.music = all[0] } } }
 
 // Finalize each stage: shared world/ground metrics + resolved music filename
 // (explicit per-stage `music` wins; otherwise fall back to the series track).

@@ -218,6 +218,7 @@ export const STAGE_WEATHER = Object.freeze({
   "PK Academy":             OUTDOOR_FULL,
   "Analysis Nexus":         INDOOR_ONLY,
   "The Originals":          INDOOR_ONLY,      // three dimensions; the multiverse brings its own weather (snow / embers / sunset)
+  "Multiverse Roulette":    INDOOR_ONLY,      // every map is someone else's — no extra weather on top
   "Shadow Garden":          [WEATHER.FOG, WEATHER.RAIN, WEATHER.WIND, WEATHER.THUNDERSTORM],
   "Harbor Dock":            OUTDOOR_FULL,
   "Training Center":        [],               // hologram room: no weather

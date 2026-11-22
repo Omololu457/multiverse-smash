@@ -1,68 +1,20 @@
 ========================================================================
 MULTIVERSE SMASH — ROSTER TRIAGE TRACKER
-Updated: 2026-10-24   (written by triage.html)
+Updated: 2026-11-19   (written by triage.html)
 ========================================================================
 
 >> KEPT, NO BRUTALITY YET  — build brutalities for these next.
 >> DELETED (TEMP)          — NOT permanent. Pulled to redo their spritesheets (art not good enough).
 
 ========================================================================
-KEPT — NO BRUTALITY YET (TO BUILD) (25)
+KEPT — NO BRUTALITY YET (TO BUILD) (1)
 ------------------------------------------------------------------------
 
-[ben_10]
-  Gwen                              gwen
-
-[bleach]
-  Ichigo Kurosaki                   ichigo
-
-[deathnote]
-  L                                 l_ryuuzaki
-  Light Yagami                      light
-
-[divine]
-  Jesus                             jesus
-
-[dragon_ball]
-  Dark Vegeta                       vegeta_dark
-  Goku Black                        goku_black
-
-[hajime_no_ippo]
-  Ippo Makunouchi                   ippo
-
-[hunter_x_hunter]
-  Chrollo Lucilfer                  chrollo
-  Isaac Netero                      netero
-
-[jujutsu_kaisen]
-  Aoi Todo                          aoi_todo
-  Kasumi Miwa                       miwa
-  Maki Zenin                        maki
-  Yuji Itadori                      yuji
-  Yuta Okkotsu                      yuta
-
-[naruto]
-  Six Paths of Pain                 six_paths_pain
-  Tobi                              tobi
-
-[one_punch_man]
-  Genos                             genos
-  Saitama                           saitama
-
-[original]
-  Omololu                           omololu
-
-[power_rangers]
-  Gold Samurai Ranger (Light)       gold_samurai_ranger
-  Green Samurai Ranger (Forest)     green_samurai_ranger
-  Red Ranger (Mighty Morphin)       red_ranger_mmpr
-  Samurai Red Ranger (Fire)         samurai_red_ranger
-
-[saiki_k]
-  Saiki Kusuo                       saiki
+[rick_and_morty]
+  Rick Prime                        rickPrime
 
 ========================================================================
-DELETED — REDO SPRITESHEETS (TEMPORARY) (19)
+DELETED — REDO SPRITESHEETS (TEMPORARY) (20)
 ------------------------------------------------------------------------
 
 [jujutsu_kaisen]
@@ -88,21 +40,32 @@ DELETED — REDO SPRITESHEETS (TEMPORARY) (19)
   Sasuke                            sasuke
   Sasuke (Adult)                    sasuke_adult
 
+[marvel]
+  Spider-Man                        spiderman
+
 ========================================================================
-KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (25)
+KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (49)
 ------------------------------------------------------------------------
 
 [baki]
   Baki Hanma                        baki
 
+[ben_10]
+  Gwen                              gwen
+
 [bleach]
   Byakuya Kuchiki                   byakuya
+  Ichigo Kurosaki                   ichigo
   Mayuri Kurotsuchi                 mayuri
   Zaraki Kenpachi                   zaraki
   Zaraki Kenpachi (Shikai)          zaraki_shikai
 
 [dc]
   The Flash                         flash
+
+[deathnote]
+  L                                 l_ryuuzaki
+  Light Yagami                      light
 
 [demon_slayer]
   Inosuke Hashibira                 inosuke
@@ -111,36 +74,126 @@ KEPT — ALREADY HAS A BRUTALITY (reference, no work needed) (25)
   Shinobu Kocho                     shinobu
   Zenitsu Agatsuma                  zenitsu
 
+[divine]
+  Jesus                             jesus
+
 [dragon_ball]
   Beerus                            beerus
+  Dark Vegeta                       vegeta_dark
+  Goku Black                        goku_black
   Vegeta                            vegeta
+
+[hajime_no_ippo]
+  Ippo Makunouchi                   ippo
 
 [horror]
   Jason Voorhees                    jason
 
 [hunter_x_hunter]
+  Chrollo Lucilfer                  chrollo
   Hisoka Morrow                     hisoka
+  Isaac Netero                      netero
   Killua Zoldyck                    killua
 
 [jujutsu_kaisen]
   Alternate Sukuna                  alt_sukuna
+  Aoi Todo                          aoi_todo
   Gojo Satoru                       gojo
+  Kasumi Miwa                       miwa
+  Maki Zenin                        maki
   Sukuna                            sukuna
+  Yuji Itadori                      yuji
+  Yuta Okkotsu                      yuta
 
 [naruto]
   Sasuke (Sensei)                   sasuke_sensei
   Shisui (Fallen)                   shisui_fallen
+  Six Paths of Pain                 six_paths_pain
+  Tobi                              tobi
   Tobirama Senju                    tobirama
 
+[one_punch_man]
+  Genos                             genos
+  Saitama                           saitama
+
+[original]
+  Omololu                           omololu
+
 [power_rangers]
+  Gold Samurai Ranger (Light)       gold_samurai_ranger
+  Green Samurai Ranger (Forest)     green_samurai_ranger
   Omega Ranger (White Ranger, S.P.D.)omega_ranger
+  Red Ranger (Mighty Morphin)       red_ranger_mmpr
+  Samurai Red Ranger (Fire)         samurai_red_ranger
 
 [rick_and_morty]
-  Rick Prime                        rickPrime
   Rick Sanchez                      rick
 
+[saiki_k]
+  Saiki Kusuo                       saiki
+
 ========================================================================
-NOT YET REVIEWED (0)
+NOT YET REVIEWED (41)
 ------------------------------------------------------------------------
-  (none yet)
+
+[ben_10]
+  Albedo                            albedo
+  Ben Tennyson                      ben10
+  Kevin Ethan Levin                 kevin_levin
+  Vilgax                            vilgax
+
+[dc]
+  Batman                            batman
+  Beast Boy                         beast_boy
+  Cyborg                            cyborg
+  Green Arrow                       green_arrow
+  Homelander                        homelander
+  Raven                             raven
+  Robin                             robin
+  Starfire                          starfire
+  Superman                          superman
+
+[dragon_ball]
+  Goku                              goku
+
+[horror]
+  Ghostface                         ghostface
+
+[jujutsu_kaisen]
+  Higuruma                          higuruma
+  Megumi Fushiguro                  megumi_fushiguro
+
+[marvel]
+  Soldier Boy                       soldier_boy
+
+[one_piece]
+  Arlong                            arlong
+  Buggy the Clown                   buggy
+  Monkey D. Luffy                   luffy
+  Roronoa Zoro                      zoro
+  Sanji                             sanji
+
+[original]
+  Dseyl                             dseyl
+  Enoch                             enoch
+
+[power_rangers]
+  Black Ranger                      mmpr_black
+  Green Ranger                      green_ranger
+  Krybot                            krybot
+  Pink Ranger                       mmpr_pink
+  S.P.D. Blue Ranger                spd_blue
+  S.P.D. Green Ranger               spd_green
+  S.P.D. Pink Ranger                spd_pink
+  S.P.D. Red Ranger                 spd_red
+  S.P.D. Yellow Ranger              spd_yellow
+  White Ranger                      mmpr_white
+
+[the_incredibles]
+  Dash                              dash_parr
+  Elastigirl                        elastigirl
+  Frozone                           frozone
+  Mr. Incredible                    mr_incredible
+  Syndrome                          syndrome
+  Violet                            violet
 

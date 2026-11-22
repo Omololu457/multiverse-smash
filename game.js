@@ -90,6 +90,8 @@ import { updateEnochCommandCombat } from './enoch.js'   // Enoch (The Incredible
 import { tickEnoch, isEnoch, clearEnoch, enochLocked, isEnochUltActive, updateEnochUlt, clearEnochUlt, updateEnochIntro, finalizeEnochIntro } from './enochState.js'
 import { drawEnochUnder, drawEnochOver, drawEnochHud, drawEnochIntroCard, playEnochCues } from './enochFx.js'
 import { enochHarnessApi } from './enochHarness.js'
+import { isKevin, kevinTick, kevinCommand, kevinLocked, clearKevin, kevinCashOwner, updateKevinCash, kevinContacts } from './kevinState.js'
+import { kevinVisual, drawKevinContacts, drawKevinFx, drawKevinHud, drawKevinShot } from './kevinView.js'
 import { isMr, mrTick, mrCommand, clearMr, mrLocked } from './mrIncredibleState.js'
 import { mrVisual } from './mrIncredibleSkins.js'
 import { drawMrHud, drawMrEffects, drawMrUnder } from './mrIncredibleFx.js'
@@ -177,6 +179,10 @@ const MEGUMI_WORLD = MMPR_BLACK_WORLD   // Megumi: the same self-contained world
 const HIGURUMA_WORLD = MMPR_BLACK_WORLD   // Higuruma: the same self-contained world (stage width, fighters, ultimate damage through W.damage)
 const GOJO_SHINJUKU_WORLD = { ...MMPR_BLACK_WORLD, frame: () => _replayFrame, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) }, summons: () => activeSummons, removeSummon: o => { const i = activeSummons.indexOf(o); if (i >= 0) activeSummons.splice(i, 1) }, drones: () => activeDrones, removeDrone: o => { const i = activeDrones.indexOf(o); if (i >= 0) activeDrones.splice(i, 1) }, munitions: () => activeMunitions, removeMunition: o => { const i = activeMunitions.indexOf(o); if (i >= 0) activeMunitions.splice(i, 1) }, clones: o => (o?._ninja?.clones || []).filter(c => !c.dead).map(c => ({ x: c.x - (o.w || 48) / 2, y: c.feet - (o.h || 94), w: o.w || 48, h: o.h || 94, ref: c })), removeClone: (o, c) => { if (c?.ref) c.ref.dead = true }, patches: () => MMPR_BLACK_WORLD.fighters().flatMap(o => (o?._enoch?.field?.patches || []).map(patch => ({ owner: o, patch }))), removePatch: (o, p) => { const L = o?._enoch?.field?.patches; const i = L ? L.indexOf(p) : -1; if (i >= 0) L.splice(i, 1) }, raw: f => readRawControls(f) || {} }   // MSV1-GOJO Satoru Gojo (Shinjuku): Black Ranger's world + lockstep frame + every list Limitless acts on (projectiles, summons, drones, munitions, ninja clones, Enoch patches)
 const SYNDROME_WORLD = MMPR_BLACK_WORLD   // Syndrome: the same self-contained world (stage width, fighters, projectiles = machine hit volumes, attackBox / projectileRects for turret damage, ultimate damage through W.damage)
+const KEVIN_WORLD = {
+  ...MMPR_BLACK_WORLD, stageLeft: () => physics.stageLeft, stageRight: () => physics.stageWidth,
+  floor: () => groundY
+}
 const FROZONE_WORLD = MMPR_BLACK_WORLD   // Frozone: the same self-contained world (stage width, fighters, projectiles = Lance / Black Ice volumes, Shatter + ultimate damage through W.damage)
 const ENOCH_WORLD = MMPR_BLACK_WORLD   // Enoch: the same self-contained world (stage width, frame + seed, fighters, projectiles = blast / orb volumes, attackBox for the disc, W.damage for bursts / beam / patches / supers)
 const BATMAN_WORLD = MMPR_BLACK_WORLD   // Batman: the same self-contained world (stage width, fighters, attack / projectile rects for machine damage, W.damage)
@@ -1471,7 +1477,7 @@ function _rewindUnsafeNow() {
   if (activeDomains.length > 0) return true
   if (domainCine.timer > 0 || domainCine.caster) return true
   if (isChrolloSkillHunterCinematicActive()) return true
-  return isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isZordUltCineActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isSpdYellowUltActive() || isCyborgUltActive() || isBeastBoyUltActive() || isRavenUltActive() || isStarfireUltActive() || isRobinUltActive() || isMegumiUltActive() || isHigurumaUltActive() || isSyndromeUltActive() || isDseylUltActive() || isFrozoneUltActive() || isEnochUltActive() || isBatmanUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
+  return !!kevinCashOwner([p1,p2]) || isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isZordUltCineActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isSpdYellowUltActive() || isCyborgUltActive() || isBeastBoyUltActive() || isRavenUltActive() || isStarfireUltActive() || isRobinUltActive() || isMegumiUltActive() || isHigurumaUltActive() || isSyndromeUltActive() || isDseylUltActive() || isFrozoneUltActive() || isEnochUltActive() || isBatmanUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
 }
 
 function _rewindFighterSnap(f) {
@@ -1575,6 +1581,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearEnoch(_f,ENOCH_WORLD)
   for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
+  for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD); kevinVisual(f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -3714,6 +3721,7 @@ function applySkin(fighter, skinId) {
   fighter.skinId = skinId
   Object.assign(fighter, benThemeFieldsForSkin(fighter.rosterKey, skinId))   // Ben 10 THEME (cosmetic; null for everyone else, incl. Albedo)
   mrVisual(fighter) // cosmetic selection preserves veteran / prime
+  kevinVisual(fighter)
   fighter._voidFX = null   // drop any prior Void Form starfield; it regenerates on next draw if re-applied
   fighter._pzFX = null     // drop any prior Phantom Zone spectral overlay likewise
   fighter._emberFX = null  // drop any prior Void Ember overlay likewise (Rengoku)
@@ -4673,6 +4681,7 @@ function updateFFACombat(fighter, others, opts) {
   if (isFrozone(fighter)) { const mc=updateFrozoneCommandCombat(fighter,inputState,nearest,FROZONE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isEnoch(fighter)) { const mc=updateEnochCommandCombat(fighter,inputState,nearest,ENOCH_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isMr(fighter)) { mrCommand(fighter); ctrlState={} }
+  if (isKevin(fighter)) { kevinCommand(fighter,nearest,KEVIN_WORLD); ctrlState={} }
   if (isBatman(fighter)) { const mc=updateBatmanRebuildCombat(fighter,inputState,nearest,BATMAN_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isViolet(fighter)) { const vc=updateVioletCommandCombat(fighter,inputState,nearest,VIOLET_WORLD);if(vc)ctrlState=vc==='grab'?{grab:!!inputState.grab}:{} }
   if (isElastigirl(fighter)) { const mc=updateElastigirlCommandCombat(fighter,inputState,nearest,ELASTIGIRL_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
@@ -4806,8 +4815,15 @@ function startFFAMatch() {
 }
 
 function updateFFABattle() {
-  const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth() }
+  const opts = { hitEffects: hitSparks, damageNumbers, stageWidth: getStageWorldWidth(), fighters: ffaState.fighters }
   if (ffaState.over) return   // result overlay is showing; wait for a click (handleMenuClicks)
+  const cashKevin=kevinCashOwner(ffaState.fighters)
+  if (cashKevin) {
+    updateKevinCash(cashKevin,KEVIN_WORLD,camera)
+    camera.advance?.(canvas)
+    checkFFAOutcome()
+    return
+  }
 
   if (countdown > 0) {
     if (countdown === 1) sound.play?.(SFX.UI_MATCH_START)
@@ -4856,6 +4872,7 @@ function updateFFABattle() {
 function checkFFAOutcome() {
   for (const f of ffaState.fighters) {
     if (f && !f.eliminated && (f.health || 0) <= 0) {
+      clearKevin(f,KEVIN_WORLD)
       f.eliminated = true
       f.vx = 0; f.vy = 0
       knockoutFlash = Math.max(knockoutFlash, 14)
@@ -4887,6 +4904,7 @@ function checkFFAOutcome() {
 }
 
 function endFFA() {
+  for (const f of ffaState.fighters) clearKevin(f,KEVIN_WORLD)
   ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
   ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []; ffaState.aiSlots = []
   matchConfig.mode = "vs"
@@ -5665,6 +5683,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearEnoch(_f,ENOCH_WORLD)
   for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
+  for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD); kevinVisual(f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -6438,6 +6457,8 @@ function _replaySnap(f) {
   if (isEnoch(f)) snap.push(JSON.stringify([f._enoch ? { ...f._enoch, cues: undefined } : null, f.currentAttack?.en || null, f._frozone ? { ...f._frozone, cues: undefined } : null, f.currentAttack?.fz || null]))   // Enoch GAME_STATE (thermal, patches, glide / ramp / beam / disc, cooldowns, press edges + motion history, move descriptor; render cue queue excluded)
   if (f._elSlick || f._elWet) snap.push(JSON.stringify([f._elSlick || null, f._elWet || null]))   // element-patch flags on ANY fighter standing in Enoch's patches
   if (isMr(f)) snap.push(JSON.stringify([f._mrIncredible || null, f.currentAttack || null, f._grabThrowDmg || 0]))
+  if (isKevin(f)) snap.push(JSON.stringify([f._kevin || null,f.currentAttack || null,f._grabThrowDmg || 0,
+    activeProjectiles.filter(p=>p.owner===f && p.kevinShot).map(p=>[p.kevinShot,p.x,p.y,p.vx,p.vy,p.lifetime,p.damage])]))
   if (isBatman(f)) snap.push(JSON.stringify([f._batman || null, f.currentAttack?.bm || null, f._bmPose || null, f._bmPoseT || 0]))   // Batman GAME_STATE (fleet ops + machines + payloads + ledgers, gadgets, smoke, edges, cooldowns)
   if (isViolet(f)) snap.push(JSON.stringify([f._violet || null, f.currentAttack?.vi || null, f.baseSpeed, f.runWhenAdvancing || false]))   // Violet GAME_STATE (energy ledger, run, Vanish, shield, push, trap, ult, cooldowns, edges)
   if (isElastigirl(f)) snap.push(JSON.stringify(elastigirlSnapshot(f)))   // Elastigirl GAME_STATE (state, pendulum, current attack)
@@ -6638,7 +6659,12 @@ function proceedAfterCharacter(side) {
   skinSelectSide = side
   hoverSkinIndex = 0
   _skinConfirm = null                       // clear any stale confirm hold from a prior skin pick
-  matchConfig[side + "Skin"] = "default"   // reset to default until a skin is picked
+  matchConfig[side + "Skin"] = "default"
+  if (matchConfig[side + "CharKey"] === "kevin_levin") {
+    const id = getCurrentAccount()?.kevinSkins?.[side]
+    const index = getBenAwareSkins("kevin_levin").findIndex(skin=>skin.id===id)
+    if (index>=0) { hoverSkinIndex=index; matchConfig[side+"Skin"]=id }
+  }
   gameState = GAME_STATES.SELECT_SKIN
 }
 
@@ -6872,6 +6898,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearEnoch(_f,ENOCH_WORLD)
   for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
+  for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD); kevinVisual(f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -10933,6 +10960,7 @@ function _doRematch() {
   clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
   clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
   clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2)
+  for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD); kevinVisual(f) }
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
   applyMirrorTint(p1, p2)   // re-assert the mirror tint on rematch (Task 1)
   // The generic reset can't restore the Omnitrix/Ultimatrix (it leaves Ben/Albedo
@@ -11004,6 +11032,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
   for (const _f of [p1, p2]) if (_f) clearEnoch(_f,ENOCH_WORLD)
   for (const _f of [p1,p2]) { clearMr(_f,getOpponent(_f)); mrVisual(_f) }
+  for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD); kevinVisual(f) }
   for (const _f of [p1, p2]) if (_f) clearBatman(_f)
   for (const _f of [p1, p2]) if (_f) clearViolet(_f)
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
@@ -11092,7 +11121,7 @@ function updateCPUInput() {
     markGsCpu(p2, matchConfig.aiDifficulty)
     return
   }
-  if (isPvP()) { clearAIControlKeys(p2); return }
+  if (isPvP()) { if (!isKevin(p2)) clearAIControlKeys(p2); return }
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
   if (!cpu)  { clearAIControlKeys(p2); return }
   // The AI doesn't manage the transform device, so auto re-engage its alien form
@@ -12313,13 +12342,27 @@ function updateTauntState(fighter, downHeld) {
 }
 
 function updateMovementInput(fighter) {
+  const kevinRaw = isKevin(fighter) ? readRawControls(fighter) || {} : null
+  if (kevinRaw) {
+    const target=gameState===GAME_STATES.FFA_BATTLE ? ffaNearest(fighter,ffaAliveFighters()) : getOpponent(fighter)
+    kevinTick(fighter,target,kevinRaw,KEVIN_WORLD)
+    kevinVisual(fighter)
+  }
   if (isMr(fighter)) { mrTick(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD); mrVisual(fighter) }
   if (!fighter) return
   const teleportTick = (groundTeleportProfile(fighter) || fighter._groundTeleport) && tickGroundTeleport(fighter,readRawControls(fighter)||{},SPD_BLUE_WORLD,{canCancel:spdBlueCanStep,onCancel:spdBlueStepSpent})
   const inputState = getFighterInput(fighter)
+  if (kevinRaw) {
+    const jump=!!kevinRaw.jump && !(kevinRaw.up && (kevinRaw.heavy || kevinRaw.special || kevinRaw.upAttack))
+    Object.assign(inputState,{left:!!kevinRaw.left,right:!!kevinRaw.right,down:!!kevinRaw.down,
+      block:!!kevinRaw.block,dash:!!kevinRaw.dash,jump,_noJumpUp:!jump})
+    inputState.special=!!kevinRaw.special
+    inputState.charge=!!kevinRaw.charge && !fighter._kevin?.chord && !fighter._kevin?.formUntil
+    if (!jump) fighter.jumpHeld=false
+  }
   if (isMr(fighter)) { const raw=readRawControls(fighter)||{}; inputState.jump=!!raw.jump; inputState._noJumpUp=!raw.jump; inputState.light=!!raw.light; inputState.heavy=!!raw.heavy } // fresh jump releases, shared physics
   if (isKrybot(fighter) && fighter.attacking) inputState.block = false
-  if (mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || gsLockedForMovement(fighter) || syndromeLocked(fighter, readRawControls(fighter)) || dseylLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || enochLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
+  if (kevinLocked(fighter) || mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || gsLockedForMovement(fighter) || syndromeLocked(fighter, readRawControls(fighter)) || dseylLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || enochLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
     // No steering/jump/guard during committed attacks. Shared physics still
     // integrates velocity and bounds; the character timeline owns that velocity.
@@ -12999,6 +13042,11 @@ function _updatePlayerCombatBody(fighter) {
     updateCombat(fighter,getOpponent(fighter),{},opts); return
   }
   if (isMr(fighter)) { mrCommand(fighter); updateCombat(fighter,getOpponent(fighter),{},opts); return }
+  if (isKevin(fighter)) {
+    kevinCommand(fighter,getOpponent(fighter),KEVIN_WORLD)
+    updateCombat(fighter,getOpponent(fighter),{},opts)
+    return
+  }
   if (isSyndrome(fighter)) {   // Syndrome command layer: 'consumed' | 'grab'
     const mc=updateSyndromeCommandCombat(fighter,inputState,getOpponent(fighter),SYNDROME_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
@@ -21323,6 +21371,7 @@ function resetTraining() {
     clearFrozone(f,FROZONE_WORLD)
     clearEnoch(f,ENOCH_WORLD)
     clearMr(f,getOpponent(f)); mrVisual(f)
+    clearKevin(f,KEVIN_WORLD);kevinVisual(f)
     clearBatman(f)
     clearViolet(f)
     clearElastigirl(f)
@@ -21490,6 +21539,7 @@ function checkRoundEnd() {
   const _roundOver = roundTimer <= 0 || p1.health <= 0 || p2.health <= 0
   if (_roundOver) { clearKrybot(p1, KRYBOT_WORLD); clearKrybot(p2, KRYBOT_WORLD);clearSpdBlue(p1,SPD_BLUE_WORLD);clearSpdBlue(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD) }
+  if (_roundOver) for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD);kevinVisual(f) }
   if (_roundOver) { clearDashParr(p1);clearDashParr(p2) }
   if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
   if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) ;clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2) }
@@ -21881,6 +21931,7 @@ function updateBattle() {
     if (isEnoch(f)) f._enochRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isBatman(f)) f._batmanRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isMr(f)) f._mrRemoteInput = replay.isPlayback() || netMatch.isActive()
+    if (isKevin(f)) f._kevinRemoteInput = replay.isPlayback() || netMatch.isActive() || academySession?.mode === "showme"
     if (isElastigirl(f)) f._elastigirlRemoteInput = replay.isPlayback() || netMatch.isActive()
     if (isNinja(f)) f._msv1RemoteInput = replay.isPlayback() || netMatch.isActive()   // MSV1
     if (isNinjaStorm(f)) f._nsrRemoteInput = replay.isPlayback() || netMatch.isActive()   // MSv2
@@ -22116,6 +22167,12 @@ function updateBattle() {
   if (isFrozoneUltActive()) {
     updateFrozoneUlt()
     if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
+  const cashKevin=kevinCashOwner([p1,p2])
+  if (cashKevin) {
+    updateKevinCash(cashKevin,KEVIN_WORLD,camera)
+    camera.advance?.(canvas)
     return
   }
   // ENOCH SUPER (Absolute Zero / Flash Point / Thermal Shock): the same freeze contract (enochState.js).
@@ -23189,7 +23246,8 @@ function applyMirrorTint(a, b) {
     && !(a.rosterKey === "syndrome" && a.skinId !== b.skinId)   // Syndrome: same rule
     && !(a.rosterKey === "frozone" && a.skinId !== b.skinId)   // Frozone: same rule
     && !(a.rosterKey === "batman" && a.skinId !== b.skinId)
-    && !(a.rosterKey === "mr_incredible") // paired Mr. Incredible skins already distinguish mirrors   // Batman: same rule
+    && !(a.rosterKey === "mr_incredible")
+    && !(a.rosterKey === "kevin_levin" && a.skinId !== b.skinId) // paired Mr. Incredible skins already distinguish mirrors   // Batman: same rule
     && !(a.rosterKey === "elastigirl" && a.skinId !== b.skinId)   // Elastigirl: same rule
     && !(a.rosterKey === "spd_pink" && a.skinId !== b.skinId)   // S.P.D. Pink: same rule as S.P.D. Blue/Green
     && !(a.rosterKey === "spd_green" && a.skinId !== b.skinId)   // S.P.D. Green: same rule as S.P.D. Blue (different skins already distinguish P1/P2)
@@ -24593,6 +24651,7 @@ function drawBattleScene() {
   if (hasTransform) camera.applyTransform(ctx, canvas)
   drawDomains(ctx)
   drawStageHazards(ctx)   // STAGE INTERACTABLES pilot — draw hazards behind the fighters (world space)
+  drawKevinContacts(ctx,[p1,p2],getStageWorldWidth(),groundY)
   drawArlongUnder(ctx, p1, globalFrameCount); drawArlongUnder(ctx, p2, globalFrameCount)   // Arlong — WATER ZONES / Arlong Park flood under the fighters (render-only; arlong only)
   drawHigurumaUnder(ctx, p1, p2)   // Higuruma DEADLY SENTENCING — defendant's box + aisle floor markings under the fighters (render-only; gated)
   drawSyndromeUnder(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
@@ -24606,7 +24665,7 @@ function drawBattleScene() {
   if (!brutalityState.active) drawAnimeJuiceFloor(ctx)   // ANIME JUICE: aftermath floor marks (crater / burn / puddle / frost / scar / crack), under the fighters
   if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): persistent floor decals + falling drips (world space, behind fighters)
   bloodDrawFloor(ctx)   // MSV1-BLOOD: floor splats / pools / smears + falling drips (world space, behind fighters)
-  drawProjectiles(ctx, activeProjectiles, camera)
+  drawProjectiles(ctx, activeProjectiles, camera, drawKevinShot)
   renderHybridFighter(p1)
   renderHybridFighter(p2)
   for (const _bf of [p1, p2]) if (_bf && _bf._benFlood) { drawBenFlood(ctx, _bf, globalFrameCount, getStageWorldWidth()); drawBenFloodFlash(ctx, _bf, globalFrameCount, canvas.width, canvas.height) }   // Ripjaws STORM TIDE water / rain / lightning over both fighters (benFlood.js; render-only; gated on the field)
@@ -24648,6 +24707,7 @@ function drawBattleScene() {
   drawFrozoneOver(ctx, p1, p2, FROZONE_WORLD)   // Frozone — ice strikes, lance, guard plate, Chill pips, freeze shell, shatter fragments (render-only; gated)
   drawEnochOver(ctx, p1, p2, ENOCH_WORLD)   // Enoch — visor beam, reaction bursts, steam clouds (capped), super presentation (render-only; gated)
   drawMrEffects(ctx,p1,p2) // restrained form flash / skin-coordinated impact rings
+  drawKevinFx(ctx,[p1,p2])
   // Hashirama Sealing Jutsu domain overlay — WORLD space so the gates/cameos track the trapped opponent
   // as the live camera moves (drawn over the fighters). No-op when the domain isn't up.
   drawHashiramaSealingJutsuCinematic(ctx)
@@ -24773,6 +24833,7 @@ function drawBattleHud() {
   drawFrozoneHud(ctx, canvas, p1, p2)   // Frozone: Black Ice / Freeze / air-skate readout under his health; Absolute Zero cut-in (gated)
   drawEnochHud(ctx, canvas, p1, p2)   // Enoch: thermal bar under his health (blue → teal → orange, balance zone outlined) + super cut-in (gated)
   drawMrHud(ctx, canvas, p1, p2)
+  drawKevinHud(ctx,canvas,[p1,p2])
   drawBatmanHud(ctx, canvas, p1, p2)   // Batman: support-operation status + cooldown chips under his health; KNIGHTFALL captions / cut-in (gated)
   drawVioletScreen(ctx, canvas, p1, p2)   // Violet FULL FORCE detonation flash (render-only; gated)
   drawDashParrHud(ctx, canvas, p1, p2, globalFrameCount)   // Dash: Momentum gauge under his energy bar (gated)
@@ -25317,10 +25378,12 @@ function drawFFAScene() {
   drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   if (hasTransform) camera.applyTransform(ctx, canvas)
+  drawKevinContacts(ctx,ffaState.fighters,getStageWorldWidth(),groundY)
   if (juiceSettings.battleDamageOn()) { bdDrawFloor(ctx, getStageWorldWidth(), canvas.height); bdDrawDrips(ctx) }   // FEEL PASS (Phase 2): FFA — persistent floor decals + drips behind fighters
   bloodDrawFloor(ctx)   // MSV1-BLOOD: floor splats / pools / smears + falling drips (world space, behind fighters)
-  drawProjectiles(ctx, activeProjectiles, camera)
+  drawProjectiles(ctx, activeProjectiles, camera, drawKevinShot)
   for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
+  drawKevinFx(ctx,ffaState.fighters)
   drawHitSparksEnhanced()
   drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion FX (FFA scene, world space)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
@@ -25338,6 +25401,7 @@ function drawFFAHud() {
   ffaState.fighters.forEach((f, i) => {
     if (!f) return
     const x = x0 + i * (barW + gap)
+    if (isKevin(f) && !f.eliminated) drawKevinHud(ctx,canvas,[f],{x,top:82,width:barW})
     const frac = Math.max(0, (f.health || 0) / (f.maxHealth || 1))
     // TEAM MODE: bar colour = team colour (visual team indicator); FFA: per-slot colour.
     // THEMED (non-team): use the per-character accent so each bar reads as that fighter.
@@ -27272,6 +27336,13 @@ function handleMenuClicks() {
       if (!isSkinUnlocked(charKey, skin.id)) break          // locked → not selectable
       if (_skinConfirm) break                               // already confirming — ignore extra clicks
       matchConfig[skinSelectSide + "Skin"] = skin.id        // remember the choice
+      if (charKey === "kevin_levin") {
+        const account = getCurrentAccount()
+        if (account) {
+          account.kevinSkins = { ...account.kevinSkins, [skinSelectSide]:skin.id }
+          persistence.save(account)
+        }
+      }
       sound.play?.(SFX.UI_SELECT)
       // Play the lock-in flourish (flash + zoom-punch) for a short beat, THEN continue the flow.
       _skinConfirm = { side: skinSelectSide, index: r.index, timer: 15, kicked: false }
@@ -27476,7 +27547,10 @@ function updateMenuGamepad(injected) {
   // predictable and matches what's highlighted. Otherwise prefer the rect the cursor is already over (keeps
   // mouse + pad in sync), falling back to the last pad index, then the first item.
   let cur
-  if (gameState !== _padLastState) { cur = 0; _padLastState = gameState }
+  if (gameState !== _padLastState) {
+    cur = gameState===GAME_STATES.SELECT_SKIN && matchConfig[skinSelectSide+"CharKey"]==="kevin_levin" ? hoverSkinIndex : 0
+    _padLastState = gameState
+  }
   else {
     cur = rects.findIndex(r => r && pointInRect(mouse.x, mouse.y, r))
     if (cur < 0) cur = (_padMenuIdx >= 0 && _padMenuIdx < rects.length) ? _padMenuIdx : 0
@@ -28400,7 +28474,7 @@ gameLoop()
     matchConfig.p1Aliens = opts.p1Aliens || null; matchConfig.p2Aliens = opts.p2Aliens || null
     matchConfig.mode          = opts.mode || "training"
     matchConfig.aiDifficulty  = opts.difficulty || (matchConfig.mode === "training" ? "dummy" : "easy")
-    matchConfig.selectedStage = stages[0]
+    matchConfig.selectedStage = stages.find(stage=>stage.name===opts.stage) || stages[0]
     matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
     matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
     // Skins default to "default"; a test may pass opts.p1Skin/p2Skin (e.g. "gojo2") so the skin
@@ -28673,6 +28747,14 @@ gameLoop()
     dseylTest: dseylHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     frozoneTest: frozoneHarnessApi({p1:()=>p1,p2:()=>p2,world:FROZONE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     enochTest: enochHarnessApi({p1:()=>p1,p2:()=>p2,world:ENOCH_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    kevinTest: {
+      raw: side => side === "p2" ? p2 : p1, world: KEVIN_WORLD,
+      contacts: () => kevinContacts(getStageWorldWidth(),groundY),
+      universeIndex: () => getUniverseList().findIndex(u=>u.id==="ben_10"),
+      stages: () => stages.map(s=>s.name),
+      preferredSkin: () => matchConfig[skinSelectSide+"Skin"],
+      reset: () => { resetTraining();clearInputBuffers([p1,p2]) }
+    },
     mrIncredibleTest: mrHarness({p1:()=>p1,p2:()=>p2,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     batmanTest: batmanHarnessApi({p1:()=>p1,p2:()=>p2,world:BATMAN_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     violetTest: violetHarnessApi({p1:()=>p1,p2:()=>p2,projectiles:()=>activeProjectiles,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),

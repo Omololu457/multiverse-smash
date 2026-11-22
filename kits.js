@@ -104,7 +104,10 @@ export const CONTROL_REFERENCE = {
   ]
 }
 
+import { KEVIN_KIT } from './kevinKit.js'
+
 export const KITS = {
+  kevin_levin: KEVIN_KIT,
   spd_blue: SPD_BLUE_KIT,
   spd_green: SPD_GREEN_KIT,
   dash_parr: DASH_PARR_KIT,

@@ -1,6 +1,6 @@
 // harness/msv1_merge.test.mjs — MSV1-MERGE: Shane & Dustin (windrangers) on the REAL game loop.
 //   node harness/msv1_merge.test.mjs [section]     Keys: a/d/s/w move, j Light, k Heavy, l Special, o Grab, p Charge, ; block
-// Real inputs only for the swap (↓↓ then Grab = the Ben 10 Omnitrix gesture; pad: D-pad ↓↓ then L1/LB).
+// Real inputs only for the swap (owner 2026-11-19: hold Charge + ↓↓ + J; pad: hold L2 + D-pad ↓↓ + Square/X).
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
@@ -37,8 +37,8 @@ async function motion(seq, button) {
   if (button) { for (const b of [].concat(button)) await page.keyboard.down(b); await step(1); for (const b of [].concat(button)) await page.keyboard.up(b) }
   for (const x of held) await page.keyboard.up(x)
 }
-// ↓, release, ↓, then Grab — the Omnitrix gesture with Grab as the pick button
-async function swapInput(gap = 2) { await tap(['s']); await step(gap); await tap(['s']); await step(1); await tap(['o']) }
+// hold Charge (P), ↓, release, ↓, then J — the owner's swap input (Ben's ↓↓ windows)
+async function swapInput(gap = 2, hold = 1) { await page.keyboard.down('p'); await step(1); await tap(['s']); await step(gap); await tap(['s']); await step(1); await tap(['j']); if (hold) await step(hold); await page.keyboard.up('p') }
 async function fresh(dx = 300, o = {}) {
   await call('reset')
   await page.evaluate(([dx, o]) => {
@@ -67,7 +67,7 @@ try {
     check('name "Ninja Storm MS_V1 Ranger Version" (owner), subtitle "Wind Rangers", difficulty 5', meta.name === 'Ninja Storm MS_V1 Ranger Version' && meta.sub === 'Wind Rangers' && meta.diff === 5, meta)
     check('archetype "Ninja Duo / Form Swapper", tagline "Two elements. One storm."', meta.arch === 'Ninja Duo / Form Swapper' && meta.tag === 'Two elements. One storm.')
     check('Shane / Dustin hidden from the roster; only the duo is visible for Ninja Storm', meta.hidR && meta.hidY && !meta.hidD && JSON.stringify(meta.visible) === '["windrangers"]', meta.visible)
-    check('saved-settings aliases: ns_red → windrangers (Red), ns_yellow → windrangers (start_yellow), others untouched', meta.alias[0].key === 'windrangers' && meta.alias[0].skin === 'default' && meta.alias[1].skin === 'start_yellow' && meta.alias[2].key === 'spd_red', meta.alias)
+    check('saved-settings aliases: ns_red AND ns_yellow → windrangers starting as Red (owner 2026-11-19), others untouched', meta.alias[0].key === 'windrangers' && meta.alias[0].skin === 'default' && meta.alias[1].key === 'windrangers' && meta.alias[1].skin === 'default' && meta.alias[2].key === 'spd_red', meta.alias)
     check('shared health 1248 (S.P.D. Red 1200 × 1.04)', meta.hp === 1248 && (await S()).maxHealth === 1248, (await S()).maxHealth)
     const s0 = await S()
     check('starts as Shane (default skin) with Shane\'s jumps', s0.key === 'ns_red' && s0.maxJumps === 3 && s0.duo?.form === 'ns_red', { key: s0.key, j: s0.maxJumps })
@@ -76,7 +76,7 @@ try {
   }
 
   if (want('swap')) {
-    section('THE SWAP (↓↓ then Grab, keyboard)')
+    section('THE SWAP (hold Charge + ↓↓ + J, keyboard)')
     await fresh(400)
     const before = await S()
     await swapInput()
@@ -120,7 +120,7 @@ try {
     await fresh(1400, { energy: 100 }); await call('move', 'sSuper'); await step(4); await swapInput(); await step(2)
     s = await S(); check('refused during a super', !s.duo.swap && s.key === 'ns_red', s.duo.lastRefuse); await settle(200)
     // normals: recovery only
-    const kN = await form(); await fresh(600); await tap(['j']); await swapInput(1); await step(1)
+    const kN = await form(); await fresh(600); await tap(['j']); await swapInput(1, 0)
     s = await S(); const early = !!s.duo.swap
     await settle(); s = await S()
     check('during a normal\'s startup / active the press waits, and the swap comes out in its recovery', !early && s.key !== kN, { early, key: s.key })
@@ -216,7 +216,11 @@ try {
     await fresh(60); await tap(['o']); await step(2)
     check('Grab alone still grabs (no ↓↓)', await page.evaluate(() => !!__harness.ninjaTest.raw('p2').isGrabbed) && !(await S()).duo.swap); await settle(); await step(60)
     await fresh(400); await motion(['s', null, 's'], 'j'); await step(2)
-    check('↓↓ + Light is still a crouch normal (no swap)', !(await S()).duo.swap && (await S()).key === 'ns_red', (await S()).move); await settle()
+    check('↓↓ + Light WITHOUT Charge is still a crouch normal (no swap)', !(await S()).duo.swap && (await S()).key === 'ns_red', (await S()).move); await settle()
+    { await fresh(400); const kH = await form(); await page.keyboard.down('p'); await step(30); await tap(['s']); await step(4); await tap(['s']); await step(2); await tap(['j']); await step(1); await page.keyboard.up('p')
+      const sw = await untilSwap(30); await settle(); check('a human-speed input (Charge held 0.5 s first, ↓ ↓ 4 f apart, then J) swaps', !!sw && (await form()) !== kH, { swap: !!sw, from: kH, now: await form() }); await step(40); await toForm('ns_red') }
+    await fresh(400); await page.keyboard.down('p'); await step(3); await page.keyboard.up('p'); await step(14)
+    check('a Charge tap on its own does nothing (no swap, no Mirror)', !(await S()).duo.swap && !(await S()).s.mirror && (await S()).key === 'ns_red'); await settle()
     await fresh(400); await motion(['s', null, 's'], 'p'); await step(6)
     check('↓↓ + Charge is still the Ninja Mirror', !!(await S()).s.mirror && !(await S()).duo.swap); await settle(); await step(40)
     await fresh(400); await swapInput(); await untilSwap(); await settle(); await step(40)
@@ -226,7 +230,7 @@ try {
   }
 
   if (want('pad')) {
-    section('PAD: D-pad ↓↓ then L1 / LB')
+    section('PAD: hold L2 + D-pad ↓↓ + Square / X')
     await page.evaluate(async () => {
       window.__pad = { index: 0, id: 'Fake pad (standard)', connected: true, mapping: 'standard', timestamp: 0, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })) }
       navigator.getGamepads = () => [window.__pad]; window.dispatchEvent(new Event('gamepadconnected'))
@@ -234,9 +238,9 @@ try {
     })
     const B = (i, v) => page.evaluate(([i, v]) => { __pad.buttons[i].pressed = v; __pad.buttons[i].value = v ? 1 : 0 }, [i, v])
     await fresh(400); const k0 = await form()
-    await B(13, true); await step(1); await B(13, false); await step(2); await B(13, true); await step(1); await B(13, false); await step(1); await B(4, true); await step(1); await B(4, false)
+    await B(6, true); await step(1); await B(13, true); await step(1); await B(13, false); await step(2); await B(13, true); await step(1); await B(13, false); await step(1); await B(2, true); await step(1); await B(2, false); await step(1); await B(6, false)
     await untilSwap(); await settle()
-    check('pad ↓↓ then L1/LB swaps', (await form()) !== k0, [k0, await form()])
+    check('pad hold L2 + ↓↓ + Square/X swaps', (await form()) !== k0, [k0, await form()])
     await page.evaluate(async () => { const { inputSettings } = await import('./input.js'); inputSettings.p1Type = 'keyboard' })
   }
 

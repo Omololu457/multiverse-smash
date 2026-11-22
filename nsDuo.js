@@ -4,7 +4,7 @@
 // Duo GAME_STATE lives on f._duo (in the replay / LAN snapshot via ninjaSnapshot). No Math.random: hash(seed, frame, slot).
 //
 // SWAP = the Ben 10 Omnitrix gesture (game.js handleOmnitrixSwitch): ↓↓ (2nd ↓ edge within OMX_DOUBLE_TAP_WINDOW) then ONE
-// button within OMX_ARM_WINDOW — the duo's button is GRAB (Ben's slot-4 key). Windows / cost / lockout are read from
+// button within OMX_ARM_WINDOW — the owner's input is CHARGE held + ↓↓ + J (Light, Ben's slot-1 key). Windows / cost / lockout are read from
 // game.js + fighters.js TRANSFORM_ENERGY through the world (W.benSwap), so the duo follows Ben's numbers.
 // See docs/msv1/MERGE_DESIGN.md + MERGE_BEN10_SWAP_REFERENCE.md.
 import { ns_red, ns_yellow } from './nsData.js'
@@ -18,7 +18,7 @@ const FORM_CHAR = { ns_red, ns_yellow }
 const other = form => form === 'ns_red' ? 'ns_yellow' : 'ns_red'
 // Old ids → the duo, for SAVED SETTINGS (session restore). Replays / tests / ?p1= URLs keep the old id = the hidden form
 // character itself (bit-identical); see MERGE_DESIGN.md "Aliases".
-export const DUO_ALIASES = { ns_red: { key: DUO_ID, skin: 'default' }, ns_yellow: { key: DUO_ID, skin: 'start_yellow' } }
+export const DUO_ALIASES = { ns_red: { key: DUO_ID, skin: 'default' }, ns_yellow: { key: DUO_ID, skin: 'default' } }   // owner (2026-11-19): always start as Red unless "Start as: Yellow" is picked
 export function duoResolveSaved(key, skin) { const a = DUO_ALIASES[key]; return a ? { key: a.key, skin: a.skin } : { key, skin } }
 export const duoStartForm = skinId => skinId === 'start_yellow' ? 'ns_yellow' : 'ns_red'
 
@@ -67,7 +67,7 @@ function applyForm(f, form) {
 function roundReset(f) {
   if (!f || (f.rosterKey !== DUO_ID && !f._duo)) return
   const start = duoStartForm(f.skinId)
-  f._duo = { id: DUO_ID, form: start, start, cd: 0, swaps: 0, t: 0, prevDown: false, prevGrab: false, downAt: null, armT: 0, want: 0, tag: null, strikes: 0, tagHits: 0, ults: 0, cpu: null }
+  f._duo = { id: DUO_ID, form: start, start, cd: 0, swaps: 0, t: 0, prevDown: false, prevLight: false, downAt: null, armT: 0, want: 0, tag: null, strikes: 0, tagHits: 0, ults: 0, cpu: null }
   f._duoFromKey = DUO_ID
   applyForm(f, start)
 }
@@ -83,15 +83,18 @@ const elapsed = a => a.total - a.timer
 function input(f, raw) {
   const d = f._duo; if (!d) return
   const B = ben(); d.t++
-  const down = !!raw.down, grab = !!raw.grab
+  // owner (2026-11-19): the swap is CHARGE + ↓↓ + J — hold Charge, double-tap ↓ (Ben's window), then Light (Ben's pick window)
+  const down = !!raw.down, light = !!raw.light, charge = !!raw.charge
   if (down && !d.prevDown) {
-    if (d.downAt != null && d.t - d.downAt <= B.dbl) { d.armT = B.arm; d.downAt = null } else d.downAt = d.t
+    if (!charge) d.downAt = null
+    else if (d.downAt != null && d.t - d.downAt <= B.dbl) { d.armT = B.arm; d.downAt = null } else d.downAt = d.t
   }
   d.prevDown = down
-  const grabEdge = grab && !d.prevGrab; d.prevGrab = grab
+  const lightEdge = light && !d.prevLight; d.prevLight = light
   d.ate = false
   if (d.armT > 0) {
-    if (grabEdge) { d.want = B.arm; d.armT = 0; d.ate = true } else d.armT--
+    if (!charge) d.armT = 0
+    else if (lightEdge) { d.want = B.arm; d.armT = 0; d.ate = true } else d.armT--
   }
 }
 
@@ -187,7 +190,8 @@ function onStart(f, a, md) {
 function command(f, s, opp, raw) {
   const d = f._duo; if (!d) return false
   if (d.swap) return 'consumed'
-  if (d.ate || d.want > 0 && fresh(s, 'grab')) { use(s, 'grab'); return 'consumed' }   // the picking Grab never grabs
+  if ((d.armT > 0 || d.want > 0 || d.ate) && fresh(s, 'charge', 30)) use(s, 'charge')   // the held Charge of a swap gesture never becomes a Charge move (the Mirror's ↓↓ check)
+  if (d.ate || d.want > 0 && fresh(s, 'light')) { use(s, 'light'); return 'consumed' }   // the picking J never jabs
   // STORM AND STONE: ↓↘→↓↘→ + Special + Heavy (the full meter, outside the Mirror)
   if (!s.mirror && (f.energy || 0) >= STORM_AND_STONE.bars * BAR && hasMotion(s, '236236', 44)) {
     const sp = fresh(s, 'special'), hv = fresh(s, 'heavy')
@@ -250,17 +254,18 @@ function alpha(f) {
   return null
 }
 
-// ── CPU SWAP (ai.js hook): the CPU presses the real ↓, -, ↓, Grab so the swap rides the same input path as a player
+// ── CPU SWAP (ai.js hook): the CPU presses the real Charge + ↓, -, ↓, J so the swap rides the same input path as a player
 //    (replay / LAN identical). Prefers Shane vs an airborne / zoning foe, Dustin up close. Visible state only. ──
 const CPU_SEQ = 8
 export function duoAiInput(controller, f, opp, input) {
   const d = f?._duo; if (!d || !input || controller?.difficulty === 'dummy') return input
   const c = d.cpu || (d.cpu = { seq: 0, last: -1e9 })
   if (c.seq > 0) {
-    const step = CPU_SEQ - c.seq; c.seq--   // ↓ ↓ · · ↓ ↓ GRAB GRAB: every step held 2 frames (inside Ben's 16 / 18-frame windows)
+    const step = CPU_SEQ - c.seq; c.seq--   // Charge held throughout: ↓ ↓ · · ↓ ↓ J J, every step held 2 frames (inside Ben's 16 / 18-frame windows)
     for (const k of Object.keys(input)) input[k] = false
+    input.charge = true
     if (step < 2 || step === 4 || step === 5) input.down = true
-    if (step >= 6) input.grab = true
+    if (step >= 6) input.light = true
     return input
   }
   if (!opp || d.swap || d.cd > 0 || !grounded(f) || f.attacking || (f.hitstun || 0) > 0 || d.t - c.last < DUO.cpu.dwell) return input

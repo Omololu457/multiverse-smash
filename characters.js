@@ -24,7 +24,8 @@ import { gojo_shinjuku } from './gojoShinjukuData.js'   // MSV1-GOJO Satoru Gojo
 import { syndrome } from './syndromeData.js'   // Syndrome (The Incredibles, GBA sheets) — syndrome*.js
 import { dseyl } from './dseylData.js'   // Dseyl (tribute fighter: edited copy of Syndrome + flight + Flash Time) — dseyl*.js
 import { frozone } from './frozoneData.js'   // Frozone (The Incredibles, GBA sheet) — frozone*.js
-import { enoch } from './enochData.js'   // Enoch (The Incredibles, tribute fighter: Frozone recolour + visor fire + water) — enoch*.js
+import { enoch } from './enochData.js'   // Enoch (Original universe, tribute fighter: Frozone recolour + visor fire + water) — enoch*.js
+import { kevin_levin } from './kevinData.js'
 import { mr_incredible } from './mrIncredibleData.js'
 import { batman as batmanRebuild } from './batmanData.js'   // Batman (DC) REBUILT 2026-11-14 on the supplied SNES sheet + support fleet — batman*.js
 import { violet } from './violetData.js'   // Violet Parr (The Incredibles, GBA sheet) — violet*.js
@@ -11449,12 +11450,12 @@ const soldierBoy = {
 
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
-  gojo, gojo_shinjuku, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, jesus, maki, toji, yuji, baki, naoya,
+  gojo, gojo_shinjuku, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, enoch, jesus, maki, toji, yuji, baki, naoya,
   naruto, sasuke, sasuke_adult: sasukeAdult, itachi, shisui_itachi_kids: shisuiItachiKids, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,
   beerus,
-  ben10, albedo,
+  ben10, albedo, kevin_levin,
   omniman: omniMan,
   omega_ranger: omegaRanger,
   samurai_red_ranger: samuraiRedRanger,
@@ -11564,7 +11565,7 @@ export const characters = {
   higuruma,                          // Hiromi Higuruma (Jujutsu Kaisen) — Technical Midrange / Weapon Scaler (small / extended / giant gavel, Case File → Precedent, Deadly Sentencing); higuruma*.js
   syndrome,                          // Syndrome (The Incredibles) — Arsenal Conductor (commands Drones / Spinner / Turrets / Velocipod / composite Omnidroid; Operation Kronos); syndrome*.js
   frozone,                           // Frozone (The Incredibles) — Ice Skater (Chill → Freeze → Shatter, Black Ice, Absolute Zero); frozone*.js
-  enoch,                             // Enoch (The Incredibles) — Elemental Controller / Trail Glider (thermal, ice / fire / water patches, glide); enoch*.js
+  // (Enoch moved to the Originals, listed after dseyl above)
   mr_incredible,                     // One fighter: veteran + timed prime form
   elastigirl,                        // Elastigirl (Helen Parr, The Incredibles) — Footsies / Grappler (Long Arm, Slingshot, Parachute, Family Raft); elastigirl*.js
   luffy

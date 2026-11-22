@@ -196,7 +196,8 @@ function emit(f, kind, W, P, { x, y, vx, vy = 0, art = 'ball', frames = 1, raw, 
   const pr = W?.spawn?.(f, 'starfire_' + kind, { damage: dmg(raw), speed: Math.hypot(vx, vy) || 1, vx, vy, spawnX: x, spawnY: y,
     w: P.r * 2, h: P.r * 2, radius: P.r, lifetime: P.life, hitstun: P.hitstun, knockbackX: P.kbx, knockbackY: P.kby,
     sheet: fxSheet(f, art), spriteFrames: frames, spriteW: STARFIRE_FX[art].w, spriteH: STARFIRE_FX[art].h, spriteSpeed: 3, spriteScale: scale,
-    color: '#7cff4a', isSpecial: true, isUltimate: kind === 'ult' })
+    color: '#7cff4a', isSpecial: true, isUltimate: kind === 'ult',
+    kevinCapture: kind === 'bolt' ? { family:'star', raw:P.raw } : null })
   if (!pr) return null
   pr.damageType = 'energy'; pr.noTrail = true
   pr._sf = { kind, n: ++s.nProj, ...(extra || {}) }

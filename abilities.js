@@ -533,6 +533,7 @@ export function spawnProjectile(attacker, type, moveData = {}, context = {}) {
     _struck:      false
   }
 
+  if (moveData.kevinCapture) proj.kevinCapture = moveData.kevinCapture
   activeProjectiles.push(proj)
   return proj
 }
@@ -1491,6 +1492,7 @@ function executeVegetaSpecial(fighter, context) {
     fighter.attackCooldown   = getAttackDuration(charged ? VG_KIBLAST_CD + 6 : VG_KIBLAST_CD, fighter)
     schedulePendingSpawn(VG_KIBLAST_FIRE, () => {
       spawnProjectile(fighter, "kiBlast", {
+        kevinCapture: { family: "cyanKi", raw: charged ? 55 : 30 },
         damage: charged ? 55 : 30, speed: charged ? 12 : 15, lifetime: 120,
         hitstun: charged ? 18 : 12, knockbackX: charged ? 8 : 4, knockbackY: -1,
         color: "#22d3ee", w: charged ? 42 : 26, h: charged ? 42 : 26,
@@ -1637,6 +1639,7 @@ function executeBeerusSpecial(fighter, context) {
   fighter.attackCooldown    = getAttackDuration(22, fighter)
   schedulePendingSpawn(12, () => {
     spawnProjectile(fighter, "kiBlast", {
+      kevinCapture: { family: "ki", raw: BEERUS_KIBLAST.dmg },
       damage: BEERUS_KIBLAST.dmg, speed: 15, lifetime: 120, hitstun: 16, knockbackX: 7, knockbackY: -1,
       color: "#ffaa33", w: 30, h: 30,
       sheet: "./beerus_ki_blast_fx_u.png", spriteFrames: 2, spriteW: 47, spriteH: 87, spriteSpeed: 4, spriteScale: 0.55
@@ -9771,6 +9774,7 @@ function fireGwenProjectile(fighter, key, context, opts = {}) {
     }
     if (t.sheet) { p.sheet = t.sheet; p.spriteW = t.spriteW; p.spriteH = t.spriteH; p.spriteScale = t.spriteScale; p.spriteFrames = 1 }
     if (t.rise)   { p.vx = face * 4; p.vy = -12; p.spawnY = fighter.y + (fighter.h || 100) * 0.12 }  // Spike-Crown rises (anti-air)
+    if (key === "gwenBolt" || key === "gwenVortex") p.kevinCapture = { family: "mana", raw: t.damage }
     if (t.ground) { p.vx = face * t.speed; p.vy = 0; p.spawnY = fighter.y + (fighter.h || 100) * 0.66 } // Sphere hugs the ground
     spawnProjectile(fighter, key, p, context)
   })
@@ -36448,6 +36452,7 @@ export function applyOmoluPassiveSystems(fighter) {
 // ENERGY CHARGE (C key)
 // ─────────────────────────────────────────────────────────────────
 export function doEnergyCharge(fighter) {
+  if (fighter?.rosterKey === 'kevin_levin' && (fighter._kevin?.formUntil>0 || fighter.currentAttack?.kevin?.key==='kTransform')) return
   if (fighter?.rosterKey === 'mr_incredible' && fighter._mrIncredible?.remaining > 0) return // no ultimate farming during prime
   if (fighter?.rosterKey === 'luffy') return
   if (fighter?.rosterKey === 'zoro') return   // Spirit only comes from hits, the passive and NAP
@@ -36468,6 +36473,7 @@ export function doEnergyCharge(fighter) {
 // ENERGY REGEN (passive, per frame)
 // ─────────────────────────────────────────────────────────────────
 export function regenEnergy(fighter) {
+  if (fighter?.rosterKey === 'kevin_levin' && (fighter._kevin?.formUntil>0 || fighter.currentAttack?.kevin?.key==='kTransform')) return
   if (fighter?.rosterKey === 'mr_incredible' && fighter._mrIncredible?.remaining > 0) return // prime uses its finite special reserve
   if (luffyRegen(fighter)) return
   if (elastigirlRegen(fighter)) return   // Elastigirl: Elasticity 5/s (no-op for everyone else)

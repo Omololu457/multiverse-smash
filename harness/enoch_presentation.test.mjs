@@ -1,6 +1,6 @@
 // harness/enoch_presentation.test.mjs — Enoch's presentation + metadata (P6):
 //   metadata (the brief's exact displayName / archetype / tagline / bio / difficulty, contributor flag), roster slot next to
-//   Frozone in the_incredibles, default skin only, the credits contributor line, the intro glide-in, idle / win / disc-win /
+//   Dseyl in the Originals, default skin only, the credits contributor line, the intro glide-in, idle / win / disc-win /
 //   lose poses as the sprite resolver plays them, every enoch_* cue renders on the SFX output it is handed (nothing bypasses
 //   it; the voice bus is never touched), the laser loop pitched above Superman / Homelander's, and the HUD label.
 //   node harness/enoch_presentation.test.mjs      (inside the test tree)
@@ -24,13 +24,13 @@ try {
     const lines = C.CREDITS.flatMap(s => (s.entries || []).map(x => x.work + ' — ' + (x.artists || []).join(', ')))
     return { displayName: e.displayName, name: e.name, universe: e.universe, archetype: e.archetype, tagline: e.tagline, bio: e.bio, difficulty: e.difficulty, contributor: e.contributor,
       hp: e.stats?.maxHealth ?? e.maxHealth, weight: e.stats?.weight ?? e.weight, portrait: e.portrait,
-      afterFrozone: keys.indexOf('enoch') === keys.indexOf('frozone') + 1, skins: Object.keys(Array.isArray(sk) ? Object.fromEntries(sk.map((s, i) => [s.id || i, 1])) : (sk || {})),
+      afterDseyl: keys.indexOf('enoch') === keys.indexOf('dseyl') + 1, skins: Object.keys(Array.isArray(sk) ? Object.fromEntries(sk.map((s, i) => [s.id || i, 1])) : (sk || {})),
       contributorLine: lines.find(l => /playable as Enoch/.test(l)) || null, art: C.attributionForCharacter?.('enoch') ? true : false }
   })
   out.meta = M
-  ok('metadata = the brief (displayName, universe, archetype, tagline, bio, difficulty 5, contributor)', M.displayName === 'Enoch' && M.universe === 'the_incredibles' && M.archetype === 'Elemental Controller / Trail Glider' && M.tagline === 'Where ice meets fire.' && M.bio === BIO && M.difficulty === 5 && M.contributor === true, JSON.stringify(M))
+  ok('metadata = the brief (displayName, universe, archetype, tagline, bio, difficulty 5, contributor)', M.displayName === 'Enoch' && M.universe === 'original' && M.archetype === 'Elemental Controller / Trail Glider' && M.tagline === 'Where ice meets fire.' && M.bio === BIO && M.difficulty === 5 && M.contributor === true, JSON.stringify(M))
   ok('980 health, light weight', M.hp === 980 && M.weight < 1, JSON.stringify([M.hp, M.weight]))
-  ok('roster: listed right after Frozone in the_incredibles', M.afterFrozone, '')
+  ok('roster: listed with the Originals, right after Dseyl (owner moved him 2026-11-17)', M.afterDseyl, '')
   ok('skins: the default only', M.skins.length === 1, JSON.stringify(M.skins))
   ok('credits: a contributor line (playable as Enoch) + the art attribution', !!M.contributorLine && M.art, JSON.stringify(M.contributorLine))
   // privacy: no surname / place / organisation strings shipped in his data, docs or credits

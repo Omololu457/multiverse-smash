@@ -18,6 +18,7 @@
 // `files` are filename GLOBS (for the in-game listing + the test's file report). `artists` is
 // the credit line the sheet's terms require; `edit` is a secondary "edited/credited by" note.
 export const SOURCED_ART = {
+  kevin_levin: { work: 'Kevin Ethan Levin JUS sprite sheet', artists: ['regulardor8go'], source: 'User-supplied original. Frame ledger in docs/kevin/frame-map.json.', files: ['assets/kevin/**'] },
   mr_incredible: { work: 'Mr. Incredible (Red Suit / Young) — The Incredibles (GBA)', artists: ['Perseus (sprite ripper)'], source: 'Two user-supplied sheets. Exact independent background keys; originals unchanged. Controlled modern costume edits and ten paired alternatives: tools/mr_incredible/build.py. SHA-256 and exact rectangles: docs/mr_incredible/source_rects.json.', files: ['assets/mr_incredible/**'] },
   spd_blue: {work:'S.P.D. Blue Ranger — Escape of the Five Fugitives (Plug & Play)',artists:['The FRANKETE (ripper)'],source:'Supplied sheet credit: ripped by The FRANKETE, for TSR. Original pixels; credit panel and hash in docs/spd_blue.',files:['assets/spd_blue/*.png','assets/spd_blue/cells/*.png']},
   spd_pink: { work: 'S.P.D. Pink Ranger — Power Rangers S.P.D.: Escape of the Five Fugitives (Plug & Play)', artists: ['the FRANKETE (ripper, for TSR)'],

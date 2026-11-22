@@ -73,6 +73,7 @@ export const SPRITE_MANIFEST = {
   dseyl: { actions: { idle: './assets/dseyl/idle.png' } },
   frozone: { actions: { idle: './assets/frozone/idle.png' } },
   enoch: { actions: { idle: './assets/enoch/idle.png' } },
+  kevin_levin: { actions: { idle: './assets/kevin/default-v1.png' } },
   mr_incredible: { actions: { idle: './assets/mr_incredible/default/veteran/idle.png' } },
   krybot: { actions: { idle: './assets/krybot/idle.png' } },
   luffy: { actions: { idle: './assets/sprites/luffy/idle.png' } },

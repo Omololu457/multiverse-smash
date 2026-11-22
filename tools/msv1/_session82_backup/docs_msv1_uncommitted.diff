@@ -1,0 +1,39 @@
+diff --git a/docs/msv1/ANIM_MAP.json b/docs/msv1/ANIM_MAP.json
+index 6addb715e..e9fe9242b 100644
+--- a/docs/msv1/ANIM_MAP.json
++++ b/docs/msv1/ANIM_MAP.json
+@@ -165,7 +165,7 @@
+   "row": "R11",
+   "a": 9,
+   "b": 10,
+-  "anim": "getUp"
++  "anim": "getUpQuick"
+  },
+  {
+   "row": "R11",
+diff --git a/docs/msv1/LEDGER_RED.md b/docs/msv1/LEDGER_RED.md
+index 6849722e1..c067b0f3b 100644
+--- a/docs/msv1/LEDGER_RED.md
++++ b/docs/msv1/LEDGER_RED.md
+@@ -31,7 +31,7 @@ Frames: assets/incoming/msv1/frames/red/RRR_FF.png. The one shared map is docs/m
+ | R11 | 00–03 | 4 | `tornado` | AIR NINJA TORNADO body (drill) |
+ | R11 | 04–04 | 1 | `dive` | tornado exit dive |
+ | R11 | 05–08 | 4 | `skid` | SKATE SLIDE skid with dust (50 low) |
+-| R11 | 09–10 | 2 | `getUp` | get-up |
++| R11 | 09–10 | 2 | `getUpQuick` | get-up |
+ | R11 | 11–11 | 1 | `hitSpark` | pink hit spark FX |
+ | R11 | 12–12 | 1 | `flipKick` | air-to-ground flip kick |
+ | R12 | 00–10 | 11 | `low` | Low sweep 44 (low) + crouch normals |
+diff --git a/docs/msv1/LEDGER_YELLOW.md b/docs/msv1/LEDGER_YELLOW.md
+index 7a3ba970d..72e174821 100644
+--- a/docs/msv1/LEDGER_YELLOW.md
++++ b/docs/msv1/LEDGER_YELLOW.md
+@@ -31,7 +31,7 @@ Frames: assets/incoming/msv1/frames/yellow/RRR_FF.png. The one shared map is doc
+ | R11 | 00–03 | 4 | `tornado` | Ninja tornado (Storm Ascension finish N/A; Earthquake pop-up vortex) |
+ | R11 | 04–04 | 1 | `dive` | dive |
+ | R11 | 05–08 | 4 | `skid` | streak skid stop |
+-| R11 | 09–10 | 2 | `getUp` | get-up |
++| R11 | 09–10 | 2 | `getUpQuick` | get-up |
+ | R11 | 11–11 | 1 | `hitSpark` | pink hit spark FX |
+ | R11 | 12–12 | 1 | `flipKick` | flip kick |
+ | R12 | 00–10 | 11 | `low` | Low sweep 50 (low) + crouch normals |

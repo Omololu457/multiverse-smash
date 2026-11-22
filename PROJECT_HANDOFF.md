@@ -41,3 +41,9 @@
 - **State:** playable (Lv10 unlock gate kept). Owned modules `batman*.js`, art `assets/batman/**`, pipeline `tools/batman/`. Harnesses: `batman_rebuild.test.mjs` (70/0), `batman_determinism.mjs` (17/0), `batman_skins.test.mjs` (57/0), `batman_visual.mjs` (27/0 real menus → KO → rematch), `batman_framedata_diff.mjs` (zero diff), `batman_damage_audit.mjs [--supplement]`.
 - **Docs:** `docs/batman/` — owned files + all 46 shared hooks in `INTEGRATION.md` (`python3 tools/batman/apply_hooks.py --check`).
 - **Known:** legacy `preloadManifest.js` still preloads the wiped `batman_baterang_proj.png` (harmless 404; shared generated file untouched). Legacy `harness/batman.test.mjs` tests the old kit (superseded). Physical DualSense not tested.
+
+## Kevin Levin (kevin_levin) — 2026-11-17
+
+- Playable in the Ben 10 universe with six material profiles, one captured-shot slot, and the timed Ultimate Kevin form. The supplied sheet is intact. Runtime code and packer are in kevin*.js and tools/kevin. Docs, palette contact sheets, inputs and damage are in docs/kevin.
+- The live browser harness passed 150 checks including all 20 stages. The sync harness passed 14 checks, including simulated DualSense, delayed LAN input and replay. The normal menu harness completed a two-skin mirror, KO, rematch and saved skin reload.
+- Kevin remains working-tree work. The global combo-standard audit has nine existing failures, and no Kevin paths were staged. The checkout moved externally from feat/ben10-alienx to main during this task.

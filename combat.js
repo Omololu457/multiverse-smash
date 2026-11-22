@@ -23,6 +23,7 @@ import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } fro
 import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
 import { frozoneHitbox, frozoneBlock, frozoneHit, frozoneProjectileHit } from './frozoneState.js'   // Frozone hooks (frozone-gated)
 import { enochHitbox, enochBlock, enochHit, enochProjectileHit } from './enochState.js'   // Enoch hooks (enoch-gated)
+import { kevinBox, kevinBlock, kevinHit, kevinCapture, kevinGuardChip, kevinArmor, kevinCounter, kevinDebris } from './kevinState.js'
 import { mrHitbox, mrHit } from './mrIncredibleState.js'
 import { batmanHitbox, batmanBlock, batmanHit, absorbBatman } from './batmanState.js'   // Batman (rebuilt) hooks (batman-gated)
 import { violetHit, violetBlock, violetKnockback, violetComboScale, absorbViolet, violetProjectile, violetNoBox } from './violetState.js'   // Violet Parr hooks (violet-gated)
@@ -857,6 +858,7 @@ export function getAttackHitbox(fighter) {
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.fz && fighter.rosterKey === 'frozone') return frozoneHitbox(fighter)   // Frozone: the ice strike's box at the casting hand (body-less casts have none — Lance / Black Ice are projectiles)
+  if (a?.kevin && fighter.rosterKey === 'kevin_levin') return kevinBox(fighter)
   if (a?.en && fighter.rosterKey === 'enoch') return enochHitbox(fighter)   // Enoch: the strike's box (body-less casts have none — blasts / orbs are projectiles, the beam is hitscan)
   if (a?.fz && fighter.rosterKey === 'enoch') return frozoneHitbox(fighter)   // Enoch: his ICE STANCE moves (Frozone's kit via frozoneState's host table)
   if (a?.mr && fighter.rosterKey === 'mr_incredible') return mrHitbox(fighter)
@@ -3176,6 +3178,7 @@ export function updateGrab(attacker, defender) {
 
   if (defender.grabTimer <= 0) {
     defender.isGrabbed = false
+    delete defender._kevinGrabOwner
     // NON-DAMAGE POSITION-MANIPULATION PAYLOAD (Obito Kamui grab): a themed command-grab can stamp
     // `attacker._grabTeleport = { destX, dropH }` at connect. When present, the release WARPS the
     // defender to that stamped far point instead of the damage-throw — reusing the launcher pop-up/drop
@@ -3536,6 +3539,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     return
   }
 
+  if (kevinCounter(defender, attacker)) return
   const atk = attacker.currentAttack
   const cat = atk.isUltimate ? "ultimate"
     : atk.isSpecial ? "special"
@@ -3663,6 +3667,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) frozoneBlock(attacker, defender, atk)   // Frozone: authored blockstun; no Chill on block; frozone-gated
     if (!flawless) enochBlock(attacker, defender, atk)   // Enoch: authored blockstun; enoch-gated
     if (!flawless) mrHit(attacker, defender, atk, true)
+    if (!flawless) kevinBlock(attacker, defender, atk)
     if (!flawless) batmanBlock(attacker, defender, atk)   // Batman: authored blockstun; batman-gated
     violetBlock(attacker, defender, atk, flawless)   // Violet: a blocked strike still ends Vanish + authored blockstun (not on a flawless block); violet-gated
     if (!flawless) elastigirlBlock(attacker, defender, atk)   // Elastigirl: authored on-block advantage; elastigirl-gated
@@ -3721,40 +3726,41 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.currentAttack && defender.currentAttack.name === "heavy" && (defender._supArmorCd || 0) <= 0 &&
       !atk.launcher && !atk.spike && cat !== "ultimate"
 
-    luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored), stageWidth })
+    const kevinArmored = kevinArmor(defender, atk)
+    luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored || kevinArmored), stageWidth })
     zoroHit(attacker, defender, atk)
     buggyHit(attacker, defender, atk)
     sanjiHit(attacker, defender, atk)
     arlongHit(attacker, defender, atk)
     krybotHit(attacker, defender, atk)
-    spdBlueHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
-    spdGreenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
-    dashParrHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Dash Parr: clean flag + combo step (dash_parr-gated)
-    spdPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})
-    mmprPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Pink Ranger: clean flag (chain / J-string gate)
-    mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
-    greenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Green Ranger: clean flag (chains / cancels); green_ranger-gated
-    mmprWhiteHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // White Ranger: clean flag, discipline credit (no credit when armored), ultimate confirm
-    spdYellowHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // S.P.D. Yellow: clean flag, MELEE coin (no coin when armored)
-    cyborgHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Cyborg: clean flag, Hot Impact, Mega shock FX, ultimate confirm
-    beastBoyHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Beast Boy: clean flag, Wild Chain window, Instinct credit (none when armored), ultimate confirm
-    ravenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Raven: clean flag (chain / special / ult cancels); raven-gated
-    starfireHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Starfire: clean flag (chain / special / ult cancels), laser hit FX; starfire-gated
-    robinHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Robin: clean flag (chain / staff / special / ult cancels), OUTPLAY cue; robin-gated
-    megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
+    spdBlueHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})
+    spdGreenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})
+    dashParrHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Dash Parr: clean flag + combo step (dash_parr-gated)
+    spdPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})
+    mmprPinkHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Pink Ranger: clean flag (chain / J-string gate)
+    mmprBlackHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Black Ranger: clean flag, Pincer tag, ultimate confirm
+    greenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Green Ranger: clean flag (chains / cancels); green_ranger-gated
+    mmprWhiteHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // White Ranger: clean flag, discipline credit (no credit when armored), ultimate confirm
+    spdYellowHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // S.P.D. Yellow: clean flag, MELEE coin (no coin when armored)
+    cyborgHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Cyborg: clean flag, Hot Impact, Mega shock FX, ultimate confirm
+    beastBoyHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Beast Boy: clean flag, Wild Chain window, Instinct credit (none when armored), ultimate confirm
+    ravenHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Raven: clean flag (chain / special / ult cancels); raven-gated
+    starfireHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Starfire: clean flag (chain / special / ult cancels), laser hit FX; starfire-gated
+    robinHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Robin: clean flag (chain / staff / special / ult cancels), OUTPLAY cue; robin-gated
+    megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
     gsHit(attacker, defender, atk)   // Satoru Gojo (Shinjuku): clean flag, +4 CE, Black Flash window, Blue Fist pull, Red Rush crumple; gojo_shinjuku-gated
-    higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
-    syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
-    dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
-    frozoneHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Frozone: clean flag (chain / cancels), Chill / Freeze / Shatter, ultimate confirm; frozone-gated
-    enochHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Enoch: clean flag (chain / cancels), super meter, Deep Freeze (shared _supFrozen); enoch-gated
+    higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
+    syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
+    dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
+    frozoneHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Frozone: clean flag (chain / cancels), Chill / Freeze / Shatter, ultimate confirm; frozone-gated
+    enochHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Enoch: clean flag (chain / cancels), super meter, Deep Freeze (shared _supFrozen); enoch-gated
     mrHit(attacker, defender, atk, false)
-    batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
-    violetHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Violet: +4 Force Field on a landed hit; violet-gated
-    elastigirlHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored)})   // Elastigirl: clean flag (Long Arm pull, Whip bounce, raft carry); elastigirl-gated
+    batmanHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Batman: clean flag (cancels, KNIGHTFALL confirm); batman-gated
+    violetHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Violet: +4 Force Field on a landed hit; violet-gated
+    elastigirlHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Elastigirl: clean flag (Long Arm pull, Whip bounce, raft carry); elastigirl-gated
     spdRedHit(attacker, defender, atk)
     ninjaStormHit(attacker, defender, atk)   // MSv2 Focus, clone echo, string knockdown
-    if (bossArmored || castArmored || supArmored) {
+    if (bossArmored || castArmored || supArmored || kevinArmored) {
       defender.armorFlash = 8
       applyHitstop(attacker, defender, Math.min(4, getHitstopFrames(atk)))   // brief impact tick, no stagger
       if (supArmored) defender._supArmorCd = 480   // consume the armor → 8s cooldown (one absorb per window)
@@ -3782,7 +3788,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       // AMBER identity — "sticky pressure": her hits shove the opponent LESS, so they can't drift to safety
       // and juke/space away from her (the reliable realization of "reduced side-step-ability against her";
       // the parry-window path proved non-functional). Skin modifier; 1.0 (no change) for everyone else.
-      defender.vx = atk.launcher ? 0 : (attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
+      defender.vx = atk.launcher ? 0 : (atk.kevin?.dir || attacker.facing || 1) * (atk.pushX || 4) * (attacker._gfSkinMod?.stickPressure ?? 1)
     }
 
     // BEERUS hit-reaction voice ("...impressive") — only on a SIGNIFICANT hit (heavy-tier category or
@@ -3794,7 +3800,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       try { sound?.playSfxFile?.("beerus_hit_reaction.mp3", null) } catch (_) {}
     }
 
-    if (bossArmored || supArmored) {
+    if (bossArmored || supArmored || kevinArmored) {
       // Armor shrug: no vertical displacement either — Superman stays planted and finishes his Heavy.
     } else if (atk.launcher) {
       // Per-character tuned launch (launchVy/selfVy) → EXACT velocities; otherwise
@@ -3976,7 +3982,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     }
 
     const _hudBig = !!(atk?.isUltimate || atk?.isSpecial) || cat === "heavy" || cat === "launcher" || cat === "spike"
-    applyScaledDamage(defender, dmg, { scale: 1, source: "melee", defenseApplied: true, offenseApplied: true, tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
+    const kevinCash = atk.kevin?.key === "kCash" && !bossArmored && !castArmored && !supArmored && !kevinArmored && defender.health > 0 && !defender.isGrabbed && !defender.eliminated
+    if (!kevinCash) applyScaledDamage(defender, dmg, { scale: 1, source: "melee", defenseApplied: true, offenseApplied: true, tier: _hudBig ? "big" : "light", attacker })   // `dmg` already carries GLOBAL_DAMAGE_SCALE (combo/offense/defense math above); funnel the write through the one choke-point. attacker → Brutality killing-blow-move stamp (currentMove: normals/rekka/command/melee-specials)
     applyNarutoLowHealthVoice(defender)   // "Not yet — I can still fight" (once, on crossing the low-HP line)
     applyOmegaRangerLowHealthVoice(defender)   // "This wasn't supposed to happen…" (once, on crossing the low-HP line)
     applyItachiLowHealthVoice(defender)   // "I haven't fallen yet" (once, on crossing the low-HP line)
@@ -4053,6 +4060,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
         blocked: false
       }))
     }
+
+    kevinHit(attacker, defender, atk, bossArmored || castArmored || supArmored || kevinArmored, kevinCash ? dmg : null)
 
     // NOTE: the floating damage NUMBER for this hit is spawned from the hit-SPARK above by
     // game.js spawnDamageNumber() (the single authoritative producer — tier-styled + combo-offset).
@@ -4298,7 +4307,8 @@ export function updateCombat(fighter, opponent, controls = {}, options = {}) {
   if (fighter.attackCooldown > 0) fighter.attackCooldown--
 
   if (fighter.isGrabbed) {
-    updateGrab(opponent, fighter)
+    const grabOwner = fighter._kevinGrabOwner && options.fighters?.find(f => f?.side === fighter._kevinGrabOwner)
+    updateGrab(grabOwner || opponent, fighter)
     return
   }
 
@@ -4563,6 +4573,8 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
         (proj.w && proj.h ? Math.max(proj.w, proj.h) / 2 : 10)
       const pb = proj.rectHitbox ? { x: proj.x - proj.w / 2, y: proj.y - proj.h / 2, w: proj.w, h: proj.h } : { x: proj.x - r, y: proj.y - r, w: r * 2, h: r * 2 }
 
+      if (kevinCapture(fighter, proj, pb)) { projectiles.splice(i, 1); break }
+
       const _benWeak = benAlienWeakHit(fighter, pb, { proj })   // READY Omnitrix form weak point (Goop projector); false for everyone else
       if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj }) || ninjaEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
@@ -4688,15 +4700,19 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // READY Omnitrix form super armor on a PROJECTILE (optional `armor` hook; Rath's Fury): no hitstun / knockback / move
       // cancel, damage still applies below. Ultimates and unblockables pierce it. benReadyForm-gated → false for everyone else.
       const benArmoredProj = !fighter.isBlocking && !proj.isUltimate && !proj.unblockable && !supArmoredProj && benAlienArmor(fighter, { proj, attacker: proj.owner })
+      const kevinArmoredProj = !fighter.isBlocking && kevinArmor(fighter, proj, true)
       if (fighter.isBlocking) {
         dmg *= 0.15
         dmg = krybotProjectileChip(proj, dmg)
+        dmg = kevinGuardChip(fighter, proj, dmg)
         fighter.blockstun = (isBenDevice(proj.owner) ? proj.blockstun : null) ?? 12   // Ben 10: authored projectile blockstun (ben10/albedo-gated)
         try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
       } else if (supArmoredProj) {
         fighter.armorFlash = 8; fighter._supArmorCd = 480   // shrug the projectile; damage still applies below
       } else if (benArmoredProj) {
         fighter.armorFlash = 8   // READY form super armor: shrug the projectile; damage still applies below
+      } else if (kevinArmoredProj) {
+        fighter.armorFlash = 8
       } else {
         delete fighter._benVineHold
         invalidateBenAction(fighter)
@@ -4761,6 +4777,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       // MAHORAGA ADAPTATION — projectiles adapt per-move too (keyed by proj.name), same ladder + growth.
       if (fighter._mahoragaActive) dmg = tickMahoragaAdapt(fighter, { name: proj.name, unblockable: proj.unblockable }, "projectile", dmg)
       applyScaledDamage(fighter, dmg, { source: "projectile", attacker: proj.owner, move: proj.name })
+      kevinDebris(proj)
       benAlienContact(proj.owner, fighter, { proj, blocked: !!fighter.isBlocking, dealDamage: applyScaledDamage, comboScale: getComboScale })   // READY Omnitrix form contact (Heatblast Heat / Scorch / Flashpoint / ult capture); no-op otherwise   // attacker+move → Brutality killing-blow-move stamp (projectile specials key off proj.name, not the owner's stale currentMove)
       benAlienStruck(fighter, { kind: "projectile", proj, attacker: proj.owner, blocked: !!fighter.isBlocking })   // READY form "struck by" log (Brainstorm Pattern Read); no-op otherwise
       trackSkillHunterUnlock(fighter, proj.owner, proj.name, fighter.isBlocking)   // Skill Hunter: a distinct opponent PROJECTILE landing on Chrollo also counts

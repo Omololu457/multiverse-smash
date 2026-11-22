@@ -27,6 +27,7 @@
   #actionlabel { position:absolute; bottom:18px; left:0; right:0; text-align:center; font-size:15px;
     color:#dfe4ee; letter-spacing:2px; text-transform:uppercase; text-shadow:0 2px 8px #000; }
   #bruttag { display:inline-block; margin-left:10px; font-size:11px; padding:2px 8px; border-radius:4px; vertical-align:middle; }
+  .newtag { display:inline-block; font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; background:#1c2f4a; color:#7fc4ff; border:1px solid #2a4a6e; letter-spacing:.05em; vertical-align:middle; }
   .bt-no { background:#3a1c1c; color:#ff8a8a; border:1px solid #5a2a2a; }
   .bt-yes { background:#1c3a24; color:#8affad; border:1px solid #2a5a38; }
   #side { width:270px; border-left:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; min-height:0; }
@@ -55,10 +56,10 @@
 <body>
 <div id="app">
   <header>
-    <h1>ROSTER TRIAGE — ROUND 2</h1>
+    <h1>ROSTER TRIAGE — ROUND 3 (new characters added)</h1>
     <span id="progress"></span>
     <div class="spacer"></div>
-    <span class="pill" id="filterPill">Showing: all</span>
+    <span class="pill" id="filterPill">Showing: new</span>
     <span class="pill" id="speedPill">Speed: 1×</span>
     <span class="pill on" id="autoPill">Auto-advance: on</span>
   </header>
@@ -95,8 +96,8 @@ const LS_KEY = "ms_triage_verdicts_v2";  // round 2: fresh slate over the post-w
 let DATA = [];
 let order = [];          // indices into DATA, after filter
 let cur = 0;             // position in order
-let filterMode = 0;      // 0 all, 1 no-brutality only, 2 undecided only
-const FILTERS = ["all", "no-brutality", "undecided"];
+let filterMode = 3;      // 0 all, 1 no-brutality only, 2 undecided only, 3 new since the last round (opens here)
+const FILTERS = ["all", "no-brutality", "undecided", "new"];
 let verdicts = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); // key -> "keep"|"cut"
 let speedIdx = 0; const SPEEDS = [1, 2, 0.5];
 let autoAdvance = true;
@@ -139,7 +140,7 @@ function loadChar() {
   const bt = ch.hasBrutality ? '<span id="bruttag" class="bt-yes">has brutality</span>'
                              : '<span id="bruttag" class="bt-no">no brutality</span>';
   document.getElementById("charsub").innerHTML =
-    ch.universe + " · <code>" + ch.key + "</code> · scale " + ch.spriteScale + bt +
+    (ch.isNew ? '<span class="newtag">NEW</span> ' : "") + ch.universe + " · <code>" + ch.key + "</code> · scale " + ch.spriteScale + bt +
     (v ? ' · <b style="color:' + (v==="keep"?"#8affad":"#ff8a8a") + '">'+v.toUpperCase()+'</b>' : "");
   renderProgress();
   renderList();
@@ -212,6 +213,7 @@ function applyFilter() {
   const all = DATA.map((_,i)=>i);
   if (filterMode === 1) order = all.filter(i => !DATA[i].hasBrutality);
   else if (filterMode === 2) order = all.filter(i => !verdicts[DATA[i].key]);
+  else if (filterMode === 3) order = all.filter(i => DATA[i].isNew);
   else order = all;
   if (!order.length) order = all; // never empty
   cur = Math.min(cur, order.length-1);
@@ -235,7 +237,7 @@ function renderList() {
     const v = verdicts[ch.key] || "";
     const row = document.createElement("div");
     row.className = "row " + v + (pos===cur ? " cur" : "");
-    row.innerHTML = '<span class="dot"></span><span class="nm">'+ch.name+
+    row.innerHTML = '<span class="dot"></span><span class="nm">'+(ch.isNew?'<span class="newtag">NEW</span> ':'')+ch.name+
       '</span><span class="uni">'+(ch.hasBrutality?"":"✂")+'</span>';
     row.onclick = () => { cur = pos; frameIdx=0; reelPos=0; loadChar(); };
     el.appendChild(row);

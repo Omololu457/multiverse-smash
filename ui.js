@@ -3595,9 +3595,10 @@ function _drawProjectileTrail(ctx, p, x, y) {
   ctx.restore()
 }
 
-export function drawProjectiles(ctx, projectiles = [], camera = null) {
+export function drawProjectiles(ctx, projectiles = [], camera = null, drawCustom = null) {
   if (!Array.isArray(projectiles)) return
   projectiles.forEach(p => {
+    if (p.kevinShot && drawCustom?.(ctx, p)) return
     const x = p.x ?? 0
     const y = p.y ?? 0
     if (p.alien && p.alien.hidden) return   // Ben 10 ready-form hitbox drawn by its own form module (Wildvine); tag nothing else sets

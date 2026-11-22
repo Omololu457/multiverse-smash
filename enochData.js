@@ -1,4 +1,4 @@
-// ENOCH (enoch, The Incredibles) — DATA ONLY: frame data, the thermal profile, move budgets and the roster entry.
+// ENOCH (enoch, Original) — DATA ONLY: frame data, the thermal profile, move budgets and the roster entry.
 // A tribute fighter for a friend who helped build Multiverse Smash: Frozone's ice, a visor that burns, and
 // what happens where the two meet. Logic: enochState.js (sim) · enoch.js (command layer) · enochFx.js (render).
 // Art: a region recolour of Frozone's supplied GBA sheet (tools/enoch/build_sprites.py; docs/enoch/EDIT_LEDGER.md).
@@ -170,8 +170,8 @@ export function timeline(m, a) {
 export const TIMELINE = Object.fromEntries(Object.entries(ALL_MOVES).map(([k, m]) => [k, timeline(m, ENOCH_ANIM[m.strip])]))
 
 export const enoch = {
-  rosterKey: 'enoch', name: 'Enoch', displayName: 'Enoch', universe: 'the_incredibles',
-  color: '#ff9a3c', series: 'The Incredibles', era: 'Tribute fighter — region recolour of the supplied GBA Frozone sheet',
+  rosterKey: 'enoch', name: 'Enoch', displayName: 'Enoch', universe: 'original',   // grouped with omololu + dseyl (the "Original" universe)
+  color: '#ff9a3c', series: 'Multiverse Smash', era: 'Tribute fighter — region recolour of the supplied GBA Frozone sheet',
   tagline: 'Where ice meets fire.', introTitle: 'ENOCH', archetype: 'Elemental Controller / Trail Glider', difficulty: 5,
   bio: 'One of the people who helped build Multiverse Smash. He took Frozone\'s ice, added a visor that burns, and learned that the real power is what happens where the two meet.',
   contributor: true,

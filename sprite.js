@@ -9,6 +9,7 @@
 //
 // Exports: SpriteHandler, preloadCharacterSprites, preloadSheets, processPendingSpawns
 
+import { kevinAction } from './kevinView.js'
 import { benThemedSheet } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES: the same sheet, recoloured once + cached (render-only, ben10-gated)
 import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
 import { violetSpriteAction, violetAlpha } from './violetView.js'   // Violet Parr: invisible strips + 35 % alpha (render-only, violet-gated)
@@ -170,6 +171,8 @@ function _loadSheet(path) {
   _cache.set(path, img);
   return img;
 }
+
+export const cachedSpriteSheet = path => _loadSheet(path);
 
 function _sheetReady(img) {
   return img && img.complete && img.naturalWidth > 0;
@@ -679,6 +682,8 @@ function _resolveAction(fighter, currentAction = "idle") {
   // driving physics. Inert in normal play (the field is never set). Highest priority.
   if (fighter.rosterKey === 'enoch' && fighter._forceAction === 'win' && fighter._enochWinPose && fighter.animationData?.[fighter._enochWinPose]) return fighter._enochWinPose;   // Enoch: the disc win pose (enochState memo)
   if (fighter._forceAction) return fighter._forceAction;
+  const kevinPose = kevinAction(fighter);
+  if (kevinPose) return kevinPose;
   if (fighter.rosterKey === 'mr_incredible') {
     if (!(fighter.hitstun > 0) && !fighter.knockdownState && !fighter.isGrabbed) {
       if (fighter._mrIncredible?.entry > 0) return 'miTransform';
@@ -965,6 +970,7 @@ export class SpriteHandler {
   draw(ctx, fighter, spritesheets = null, _camera = null) {
     if (!ctx || !fighter) return;
 
+    const drawFacing = fighter.currentAttack?.kevin?.dir ?? fighter.facing ?? 1;
     const action = violetSpriteAction(fighter, this.determineAction(fighter));   // Violet: Vanish strips (identity for everyone else)
     fighter._lastSpriteAction = action;
 
@@ -1344,7 +1350,7 @@ export class SpriteHandler {
     if (_sheetReady(sheet)) {
       if (_sprFilter !== "none") ctx.filter = _sprFilter;
 
-      if ((fighter.facing ?? 1) === -1) {
+      if (drawFacing === -1) {
         ctx.scale(-1, 1);
 
         ctx.drawImage(
@@ -1412,7 +1418,7 @@ export class SpriteHandler {
       this._lastRender = {
         sheet, sx, sy, dw: drawWidth, dh: drawHeight,
         fx: fighter.x, offsetX, drawY, dstW, dstH,
-        facing: (fighter.facing ?? 1), filter: spriteFilter, wasAttacking: !!fighter.attacking
+        facing: drawFacing, filter: spriteFilter, wasAttacking: !!fighter.attacking
       };
     }
 

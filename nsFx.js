@@ -235,7 +235,7 @@ function drawDuoHud(ctx, f, x, y, w, o) {
   const lock = d.swap ? 1 : d.cd > 0 ? d.cd / 30 : 0
   if (lock > 0) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(px, py + S * (1 - Math.min(1, lock)), S, S * Math.min(1, lock)) }
   ctx.font = 'bold 7px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = (f._ninja?.np || 0) >= 15 && !lock ? '#ffffff' : '#8a8f99'
-  ctx.fillText('↓↓+GRAB', px + S / 2, py + S + 9)
+  ctx.fillText('P+↓↓+J', px + S / 2, py + S + 9)
   ctx.restore()
 }
 

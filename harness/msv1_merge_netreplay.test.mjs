@@ -1,5 +1,5 @@
 // harness/msv1_merge_netreplay.test.mjs — MSV1-MERGE Phase 4 #6: REPLAY + LAN with Shane & Dustin (windrangers): ONE match
-// with a FORM SWAP (↓↓ then Grab), the Ninja Mirror, Shadow Clones, an Earth Kunai trap and STORM AND STONE. Plus a replay
+// with a FORM SWAP (hold Charge + ↓↓ + J), the Ninja Mirror, Shadow Clones, an Earth Kunai trap and STORM AND STONE. Plus a replay
 // of the CPU duo swapping on its own. Every duo / ninja GAME_STATE field must replay + lockstep bit-identically.
 // (based on harness/msv1_netreplay.test.mjs)
 //   1. REPLAY: a real-time Shane vs CPU Dustin (normal / adaptive) match driven by keys — Mirror (↓↓+Charge), swap, Shadow
@@ -74,7 +74,7 @@ async function waitPlayback(p, rec) {   // until every recorded frame has been r
   while (Date.now() - t0 < 240000) { const ps = await p.evaluate(() => window.__harness.replay.playbackState()); if (!ps || ps.desyncFrame != null || (ps.cursor >= ps.totalFrames && ps.frameCount >= (rec.frameCount || 0))) break; await sleep(250) }
   await waitFrames(p, 30)
 }
-async function swapKeys(p) { await press(p, ['s'], 2); await waitFrames(p, 3); await press(p, ['s'], 2); await waitFrames(p, 1); await press(p, ['o'], 2) }
+async function swapKeys(p) { await p.keyboard.down('p'); await waitFrames(p, 1); await press(p, ['s'], 2); await waitFrames(p, 3); await press(p, ['s'], 2); await waitFrames(p, 1); await press(p, ['j'], 2); await waitFrames(p, 1); await p.keyboard.up('p') }   // hold Charge + ↓↓ + J
 const formOf = (p, w) => p.evaluate(w => window.__harness.ninjaTest.raw(w)?.rosterKey, w)
 async function toForm(p, w, k) { for (let i = 0; i < 6 && (await formOf(p, w)) !== k; i++) { await actionable(p, w); await p.waitForFunction(w => (window.__harness.ninjaTest.raw(w)?._ninja?.np || 0) >= 15 && !(window.__harness.ninjaTest.raw(w)?._duo?.cd > 0), w, { timeout: 20000, polling: 16 }).catch(() => {}); await swapKeys(p); await waitFrames(p, 30) } return (await formOf(p, w)) === k }
 async function motionKeys(p, steps, btn) { for (const s of steps) { for (const k of s) await p.keyboard.down(k); await waitFrames(p, 2); for (const k of s) await p.keyboard.up(k) } await press(p, [btn], 2) }
@@ -147,7 +147,7 @@ try {
   check(`ZERO desync — every checkpoint matched (${ps.matched}/${ps.checks})`, ps.checks >= 5 && ps.desyncFrame === null && ps.matched === ps.checks, ps)
   await page.close()
 
-  // ── 1b. REPLAY: the CPU duo swaps on its own (ai.js → the real ↓↓ + Grab input) ─────────────────────────────────
+  // ── 1b. REPLAY: the CPU duo swaps on its own (ai.js → the real Charge + ↓↓ + J input) ─────────────────────────────────
   section("REPLAY: CPU Shane & Dustin (adaptive) swapping on its own, record → playback")
   const pc = await browser.newPage({ viewport: { width: 1280, height: 720 } })
   pc.on("pageerror", e => errors.push("cpu: " + e.message))

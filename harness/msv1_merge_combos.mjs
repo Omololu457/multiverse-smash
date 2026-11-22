@@ -62,11 +62,11 @@ async function perform(name, dx, script, marks, o = {}) {
   for (const r of rows) console.log(`     ${r.label.padEnd(44)} dmg ${String(r.dmg).padStart(4)}  NP ${String(r.np).padStart(4)} (now ${String(r.npNow).padStart(3)})  meter ${String(r.meter).padStart(3)}  ${r.form}${r.swap ? ' (swapping)' : ''}${r.tagged ? ' [tag ×1.1]' : ''}`)
 }
 async function settle() { for (let i = 0; i < 200; i++) { await step(1); const s = await S(); if (!s.attacking && !(s.hitstun > 0)) break } await step(40) }
-async function swapNow() { for (const k of ['s', null, 's', 'o']) { if (k) { await page.keyboard.down(k); await step(1); await page.keyboard.up(k) } else await step(2) } await settle() }
+async function swapNow() { await page.keyboard.down('p'); await step(1); for (const k of ['s', null, 's', 'j']) { if (k) { await page.keyboard.down(k); await step(1); await page.keyboard.up(k) } else await step(2) } await step(1); await page.keyboard.up('p'); await settle() }
 const MOT = (t, seq, btn, gap = 2) => { const r = []; seq.forEach((k, i) => r.push([t + i * gap, [].concat(k)])); r.push([t + seq.length * gap, 'release']); r.push([t + seq.length * gap + 1, btn]); return r }
 const QCF = (t, btn) => MOT(t, ['s', ['s', 'd'], 'd'], btn)
 const QCF2 = (t, btn) => MOT(t, ['s', ['s', 'd'], 'd', 's', ['s', 'd'], 'd'], btn, 1)
-const SWAP = t => [[t, 's'], [t + 2, 's'], [t + 3, 'o']]   // ↓, ↓ (2nd edge 2 f later), Grab — the Ben 10 gesture
+const SWAP = t => [[t - 1, () => page.keyboard.down('p')], [t, 's'], [t + 2, 's'], [t + 3, 'j'], [t + 5, () => page.keyboard.up('p')]]   // hold Charge, ↓, ↓, J — the owner's swap input
 const CHORD = (t, a, b) => [[t, [a, b]], [t + 2, 'release']]
 try {
   console.log('\n── MSV1-MERGE SWAP COMBOS (training mode, real keys; damage = HP bar lost; NP = Ninja Power delta per step) ──')
@@ -74,18 +74,18 @@ try {
   // 1. TAG-IN: Shane's string, swap in its recovery → the swap-in strike → Dustin's Rock Slash
   await perform('1. Tag-in (Shane → Dustin)', 80,
     [[0, 'j'], [8, 'k'], [18, 'k'], ...SWAP(26), [44, ['d']], [45, 'k'], [47, 'release']],
-    [[16, 'Shane L, H'], [28, 'Shane H (2nd kick)'], [44, '↓↓ Grab: swap + swap-in strike'], [70, 'Dustin →H Rock Slash']],
-    { notation: 'L, H, H, ↓↓ Grab, →H' })
+    [[16, 'Shane L, H'], [28, 'Shane H (2nd kick)'], [44, 'Charge+↓↓+J: swap + swap-in strike'], [70, 'Dustin →H Rock Slash']],
+    { notation: 'L, H, H, Charge+↓↓+J, →H' })
   // 2. TAG BONUS: Shane L,H → swap (strike lands: Shane tagged) → Dustin L → swap back after the 30-f cooldown → Shane Tornado +10%
   await perform('2. Tag bonus round trip (Shane → Dustin → Shane)', 80,
     [[0, 'j'], [8, 'k'], ...SWAP(16), [34, 'j'], ...SWAP(66), ...QCF(86, 'l')],
-    [[14, 'Shane L, H'], [34, '↓↓ Grab: swap + strike (tags Shane)'], [64, 'Dustin L (cooldown runs)'], [84, '↓↓ Grab: swap back + strike'], [96, 'Shane ↓↘→ S Tornado starts'], [140, 'Shane Tornado (+10% tag bonus) hits']],
-    { notation: 'L, H, ↓↓ Grab, L, ↓↓ Grab, ↓↘→ S' })
+    [[14, 'Shane L, H'], [34, 'Charge+↓↓+J: swap + strike (tags Shane)'], [64, 'Dustin L (cooldown runs)'], [84, 'Charge+↓↓+J: swap back + strike'], [96, 'Shane ↓↘→ S Tornado starts'], [140, 'Shane Tornado (+10% tag bonus) hits']],
+    { notation: 'L, H, Charge+↓↓+J, L, Charge+↓↓+J, ↓↘→ S' })
   // 3. STONE OPENER: Dustin's string, swap → Shane's Ninja Beam
   await perform('3. Stone opener (Dustin → Shane beam)', 80,
     [[0, 'j'], [8, 'k'], [19, 'k'], ...SWAP(28), ...QCF(46, 'j')],
-    [[17, 'Dustin L, H'], [30, 'Dustin H'], [46, '↓↓ Grab: swap + swap-in strike'], [80, 'Shane ↓↘→ L Ninja Beam']],
-    { form: 'ns_yellow', notation: 'L, H, H, ↓↓ Grab, ↓↘→ L' })
+    [[17, 'Dustin L, H'], [30, 'Dustin H'], [46, 'Charge+↓↓+J: swap + swap-in strike'], [80, 'Shane ↓↘→ L Ninja Beam']],
+    { form: 'ns_yellow', notation: 'L, H, H, Charge+↓↓+J, ↓↘→ L' })
   // 4. MAX: string → STORM AND STONE (the full meter). Super → swap → super is refused (see MERGE_COMBOS.md)
   await perform('4. Max: Shane string → Storm and Stone (full meter)', 80,
     [[0, 'j'], [8, 'k'], [18, 'k'], ...MOT(24, ['s', ['s', 'd'], 'd', 's', ['s', 'd'], 'd'], null, 1).slice(0, -1), ...CHORD(31, 'l', 'k')],
@@ -93,8 +93,8 @@ try {
     { energy: 100, notation: 'L, H, H, ↓↘→↓↘→ S+H' })
   await perform('4b. Super → swap → super (refused)', 80,
     [[0, 'j'], [8, 'k'], [18, 'k'], ...QCF2(24, 'l'), ...SWAP(60), ...QCF2(140, 'l')],
-    [[28, 'Shane L, H, H'], [60, 'Storm Ascension (1 bar) running'], [64, '↓↓ Grab during the super (refused)'], [140, 'after the super'], [190, 'Dustin ↓↘→↓↘→ S']],
-    { energy: 100, notation: 'L, H, H, ↓↘→↓↘→ S, ↓↓ Grab, ↓↘→↓↘→ S' })
+    [[28, 'Shane L, H, H'], [60, 'Storm Ascension (1 bar) running'], [64, 'Charge+↓↓+J during the super (refused)'], [140, 'after the super'], [190, 'Dustin ↓↘→↓↘→ S']],
+    { energy: 100, notation: 'L, H, H, ↓↘→↓↘→ S, Charge+↓↓+J, ↓↘→↓↘→ S' })
 } catch (e) { console.log('  ❌', e.stack) }
 await browser.close(); server.close?.()
 const j = process.argv.indexOf('--json'); if (j > 0) fs.writeFileSync(process.argv[j + 1], JSON.stringify(out, null, 1))

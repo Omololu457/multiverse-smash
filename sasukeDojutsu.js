@@ -149,6 +149,9 @@ export function portalChidori(fighter, context, bind) {
   if (!API.spendEnergy(fighter, DOJ.R2_COST)) return false
   fighter.attackCooldown = DOJ.R2_STARTUP + DOJ.R2_RECOVERY
   fighter.attacking = true
+  // There is no currentAttack behind this flag, so the engine (which clears `attacking` when an attack ends) never
+  // would: release it ourselves when the committed window ends, or Sasuke can never attack again (he can still move).
+  fighter._dojAtkLock = DOJ.R2_STARTUP + DOJ.R2_RECOVERY
   fighter._spriteCastMove = bind.thrustPose; fighter._spriteCastTimer = DOJ.R2_STARTUP + 6
   // FX: an entry portal at Sasuke, an exit portal beside the opponent.
   const side = (opp.x >= fighter.x) ? 1 : -1
@@ -242,6 +245,7 @@ export function hasActiveKagutsuchi(fighter) {
 export function tickSasukeDojutsu(fighter) {
   if (!dojutsuBindOf(fighter)) return
   tickRinneganStrain(fighter)
+  if ((fighter._dojAtkLock || 0) > 0 && --fighter._dojAtkLock <= 0 && !fighter.currentAttack) fighter.attacking = false   // Portal Chidori commit ends
   if ((fighter._dojCounterCd || 0) > 0) fighter._dojCounterCd--
   if ((fighter._dojRedirectCd || 0) > 0) fighter._dojRedirectCd--
   if ((fighter._rinLockToast || 0) > 0) fighter._rinLockToast--

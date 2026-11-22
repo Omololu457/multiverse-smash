@@ -1,0 +1,3 @@
+07f58f33c6b606709d92576ea152044a11eb847e
+
+Note: another session re-committed its chain right after the start; origin/main = df6a7cb85 has a tree IDENTICAL to 07f58f33c (git diff 07f58f33c df6a7cb85 is empty). Phase commits sit on df6a7cb85.

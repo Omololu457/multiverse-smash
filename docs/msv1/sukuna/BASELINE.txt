@@ -1,0 +1,30 @@
+MSV1-SUKUNA BASELINE — clean HEAD 07f58f33c6b606709d92576ea152044a11eb847e (worktree had 0 tracked changes), 2026-11-22
+
+determinism.test         DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo_standard_audit     COMBO-STANDARD AUDIT: 235 passed, 9 failed
+up_attack_roster.test    UP-ATTACK ROSTER: 77 passed, 2 failed
+credits.test             RESULT: 11 passed, 3 failed
+roster_integrity.test    ✅ characters.js imported cleanly — load-path guard PASSED (no duplicate in the working tree)
+replay_playback.test     REPLAY PLAYBACK (Stage 11C): 8 passed, 1 failed
+net_online.test          NET ONLINE (Stage 3): 11 passed, 0 failed
+render                   MSV1 RENDER CHECK sukuna vs gojo_shinjuku: 11 passed, 0 failed
+
+FRAME-DATA snapshot: docs/msv1/sukuna/FRAMEDATA_BEFORE.json — 164 characters, 160 skin sets, 70 kits (harness/gojo_shinjuku_framedata.mjs snap)
+
+Green = no worse than this. Expected deliberate change: roster 164 → 165 (sukuna_shinjuku added) — the roster-count lines in combo_standard_audit change by that one key.
+
+Raw failing lines at baseline:
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, gojo_shinjuku, goku_rose, green_arrow, green_ranger, higuruma, homelander
+  ❌  classification covers the full roster exactly  — covered 123 vs roster 164
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (122)  — classified 123, roster 164
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 164 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 162/164
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8

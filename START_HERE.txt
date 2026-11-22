@@ -86,5 +86,34 @@ their moves, combos, how to use them, plus a controls guide, a
     coloured UI on the select screen (Goku Black = pink, Ben 10 = green...).
   • Ask testers the questions at the END of the beta document.
 
+------------------------------------------------------------
+6) PLAY WITH A FRIEND  (desktop app — updated 2026-11-22)
+------------------------------------------------------------
+
+  1. Open the desktop app (section 1) and press PLAY WITH A FRIEND
+     on the title screen.
+  2. Wait a few seconds until the tag next to the link says
+     WORKS ANYWHERE. That link works for a friend on any network
+     (it goes through a free Cloudflare link). Before that, the
+     link says SAME WI-FI ONLY.
+  3. Send the link (Copy link), OR let your friend scan the QR
+     code with their phone camera.
+  4. Anyone who opens that SAME link presses JOIN THE GAME and
+     plays in their browser — no download. You each pick your own
+     fighter; you pick the stage.
+
+  • Keep the game open the whole time — closing it (or pressing
+    Back) closes the room, and the next time you get a NEW link.
+  • Up to 4 players: you + 3 friends, all on the SAME link. With one
+    friend it's 1 vs 1 (you pick the stage); with 2 or 3 friends it
+    starts a FREE-FOR-ALL as soon as everyone has picked.
+  • Friends can join while you're picking — the screen says how many
+    are in the room. If someone leaves mid-match, the match ends and
+    everyone still there picks again.
+  • If it only ever says SAME WI-FI ONLY, the internet link
+    couldn't be made (the small text under it says why) — your
+    friend then has to be on your Wi-Fi.
+
+
 You've got this. Good luck tomorrow! 🎮
 ============================================================

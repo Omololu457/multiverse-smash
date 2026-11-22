@@ -14,7 +14,7 @@ export const ROOM_CODE_RE = new RegExp(`^[${ROOM_ALPHABET}]{${ROOM_CODE_LEN}}$`)
 
 // The game's real limit: LanSession is 1-vs-1 lockstep (exactly one remote side), so a room holds 2 players.
 // Spectating is not supported by the netcode (a third client could not follow the input stream).
-export const MAX_PLAYERS_PER_ROOM = 2
+export const MAX_PLAYERS_PER_ROOM = 4   // the host + up to 3 friends (3–4 players = free-for-all)
 
 export function normalizeRoomCode(s) {
   const c = String(s || "").trim().toUpperCase().replace(/[\s-]/g, "")

@@ -923,9 +923,29 @@ const ctx    = canvas.getContext("2d")
 // hitboxes stay correct at any scale (no-op at 1.0).
 const UI_SCALE_MIN = 0.8, UI_SCALE_MAX = 1.4, UI_SCALE_STEP = 0.1
 let uiScale = (() => { try { const v = parseFloat(localStorage.getItem("ms_ui_scale")); return (v >= UI_SCALE_MIN && v <= UI_SCALE_MAX) ? v : 1 } catch (_) { return 1 } })()
+// ONLINE FIXED ARENA: groundY, the camera, and the "stay on screen" clamp are all derived from the canvas size, so
+// two devices with different screens (a phone and a laptop) would simulate DIFFERENT fights and drift apart. In an
+// online match every device simulates the same 1600×900 arena and scales it to fit its screen (letterboxed).
+const NET_ARENA = { w: 1600, h: 900 }
+let _netArenaOn = false
 function _applyCanvasSize() {
+  if (_netArenaOn) {
+    canvas.width = NET_ARENA.w; canvas.height = NET_ARENA.h
+    const k = Math.min(window.innerWidth / NET_ARENA.w, window.innerHeight / NET_ARENA.h)
+    canvas.style.width = Math.floor(NET_ARENA.w * k) + "px"; canvas.style.height = Math.floor(NET_ARENA.h * k) + "px"
+    physics.viewWidthOverride = NET_ARENA.w
+    return
+  }
+  if (canvas.style.width) { canvas.style.width = ""; canvas.style.height = "" }
+  physics.viewWidthOverride = null
   canvas.width  = Math.max(640, Math.round(window.innerWidth  / uiScale))
   canvas.height = Math.max(360, Math.round(window.innerHeight / uiScale))
+}
+function _setNetArena(on) {
+  on = !!on
+  if (on === _netArenaOn) return
+  _netArenaOn = on
+  applyViewportSize()
 }
 function setUiScale(v) {
   uiScale = Math.max(UI_SCALE_MIN, Math.min(UI_SCALE_MAX, Math.round(v * 100) / 100))
@@ -4786,9 +4806,9 @@ function setupFFAFighters(count, charKeys, teams, aiSlots = []) {
     // AI slot → give it a private synthetic control map (so applyAIInputToKeys/getFighterInput
     // round-trip) and its OWN controller. Human slot → its real device control map.
     const aiDiff   = aiSlots[slot] || null
-    const controls = aiDiff ? makeAIControls(slot) : FFA_CONTROLS[slot]
+    const controls = aiDiff ? makeAIControls(slot) : (ffaState.net ? makeNetControls(slot) : FFA_CONTROLS[slot])   // online: driven only by the agreed lockstep masks
     const f = createFighter(key, char, x, x < ww / 2 ? 1 : -1, controls, FFA_SIDES[slot])
-    applySkin(f, "default")
+    applySkin(f, (ffaState.net && ffaState.net.skins[slot]) || "default")
     f.ffaSlot = slot
     f.eliminated = false
     if (aiDiff) {
@@ -4819,6 +4839,12 @@ function startFFAMatch() {
   const distinctTeams = new Set((ffaState.teams || []).slice(0, ffaState.playerCount))
   ffaState.teamMode = distinctTeams.size >= 2
   syncPhysicsBounds()
+  if (ffaState.net) {   // online: every device seeds the SAME match RNG (host's seed) before anything rolls
+    matchConfig.seed = ffaState.net.seed
+    reseedRng(ffaState.net.seed)
+    bloodMatchStart(ffaState.net.seed, [], globalFrameCount)
+    bdSetSeed(ffaState.net.seed); bdReset()
+  }
   ffaState.fighters = setupFFAFighters(ffaState.playerCount, ffaState.charKeys, ffaState.teams, ffaState.aiSlots)
   clearAbilityState(); clearEffects(); clearDomains(); clearCubeTraps(); clearObitoDimensions()
   hitSparks.length = 0; damageNumbers.length = 0; activeDomains.length = 0
@@ -4829,6 +4855,41 @@ function startFFAMatch() {
   camera.updateMulti(ffaState.fighters, canvas, true)   // SNAP to frame the full spread
   sound.playStageTrack?.(matchConfig.selectedStage)
   gameState = GAME_STATES.FFA_BATTLE
+}
+
+// Characters with their own input layers need to know their input is REMOTE (replay / online lockstep) so they
+// read the injected masks instead of live device state. 1v1 battle loop + the online FFA loop.
+function _markRemoteInput(f) {
+  if (!f) return
+  if (isKrybot(f)) f._krybotRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isSpdBlue(f)) f._spdBlueRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isSpdGreen(f)) f._spdGreenRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isDashParr(f)) f._dashParrRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isSpdPink(f)) f._spdPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isMmprBlack(f)) f._mmprBlackRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isGreenRanger(f)) f._greenRangerRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isMmprWhite(f)) f._mmprWhiteRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isMmprPink(f)) f._mmprPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isSpdYellow(f)) f._spdYellowRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isCyborg(f)) f._cyborgRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isBeastBoy(f)) f._beastBoyRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isRaven(f)) f._ravenRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isStarfire(f)) f._starfireRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isRobin(f)) f._robinRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isMegumi(f)) f._megumiRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isHiguruma(f)) f._higurumaRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isGs(f)) f._gsRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isSks(f)) f._sksRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isSyndrome(f)) f._syndromeRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isDseyl(f)) f._dseylRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isFrozone(f)) f._frozoneRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isEnoch(f)) f._enochRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isBatman(f)) f._batmanRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isMr(f)) f._mrRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isKevin(f)) f._kevinRemoteInput = replay.isPlayback() || netMatch.isActive() || academySession?.mode === "showme"
+  if (isElastigirl(f)) f._elastigirlRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isNinja(f)) f._msv1RemoteInput = replay.isPlayback() || netMatch.isActive()   // MSV1
+  if (isNinjaStorm(f)) f._nsrRemoteInput = replay.isPlayback() || netMatch.isActive()   // MSv2
 }
 
 function updateFFABattle() {
@@ -4849,9 +4910,24 @@ function updateFFABattle() {
     return
   }
 
+  // ONLINE FFA LOCKSTEP: hold the sim on any frame some player's input hasn't arrived for (a visible stall,
+  // never a desync); then sample this device's input and drive EVERY fighter from the agreed masks.
+  const _nf = ffaState.net ? ffaState.net.frame : -1
+  if (ffaState.net && !netMatch.canAdvance(_nf)) { camera.updateMulti(ffaAliveFighters(), canvas); return }
   const live = ffaAliveFighters()
   beginInputFrame()   // ONE logic frame for the input buffers (input.js)
-  for (const f of live) updateGamepadEdges(f)         // controller motion/edges (P3/P4 pads)
+  if (ffaState.net) {
+    netMatch.sample(_nf, readRawControls(NET_LOCAL_INPUT_REF))
+    NET_LOCAL_INPUT_REF._dashTap = false
+    for (const f of ffaState.fighters) {
+      if (!f) continue
+      _markRemoteInput(f)
+      const m = netMatch.maskAt(ffaState.net.sides[f.ffaSlot], _nf)
+      if (m != null) writeRawControls(f, replay.decodeInput(m))
+    }
+    netMatch.prune(_nf - 120)
+    ffaState.net.frame++
+  } else for (const f of live) updateGamepadEdges(f)         // controller motion/edges (P3/P4 pads)
   updateFFAFacing(live)
   updateFFAAIInputs(live)                             // AI-filled slots: pick target + write their keys BEFORE input is read
   for (const f of live) updateMovementInput(f)
@@ -4921,6 +4997,7 @@ function checkFFAOutcome() {
 }
 
 function endFFA() {
+  if (ffaState.net) { _ffaNetCleanup(); leaveOnline(); resetToStart(); return }
   for (const f of ffaState.fighters) clearKevin(f,KEVIN_WORLD)
   ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
   ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []; ffaState.aiSlots = []
@@ -7099,13 +7176,15 @@ const onlineUi = {
   // PLAY WITH A FRIEND (title-screen button): each player picks their OWN fighter on their own screen.
   pickOwn:   false,      // this connection uses pick-your-own select
   peerPick:  null,       // the other player's locked-in fighter { char, skin, aliens } (protocol PICK)
+  peerPicks: {},         // 2–4 player rooms: every other player's locked-in fighter by seat { p2: pick, p3: … }
   locked:    false,      // we've locked our own fighter in
+  matchSides: null,      // seats playing the current online match (a seat missing from the lobby ends it)
 }
 
 function openOnlineMenu() {
   leaveOnline()
   onlineUi.status = "idle"; onlineUi.message = ""; onlineUi.error = ""; onlineUi.hover = 0
-  onlineUi.pickOwn = false; onlineUi.peerPick = null; onlineUi.locked = false
+  onlineUi.pickOwn = false; onlineUi.peerPick = null; onlineUi.peerPicks = {}; onlineUi.locked = false
   gameState = GAME_STATES.ONLINE_MENU
 }
 
@@ -7148,8 +7227,10 @@ function startHostFlow() {
       onWelcome: () => { onlineUi.status = "waiting"; onlineUi.message = "Waiting for an opponent to join…" },
       onLobby:   (m) => {
         const ready = (m.count || 0) >= 2; onlineUi.status = ready ? "ready" : "waiting"; onlineUi.message = ready ? "Opponent connected — choose the matchup!" : "Waiting for an opponent to join…"
+        if (onlineUi.pickOwn) _onlineSeatsChanged()   // someone left: forget their pick / end a match they were in
         if (ready && onlineUi.pickOwn && !onlineUi.locked && gameState === GAME_STATES.ONLINE_HOST) hostChooseMatchup()   // friend is here → both pick
         if (!ready && onlineUi.pickOwn && gameState !== GAME_STATES.ONLINE_HOST) _friendLeftDuringPick()   // friend vanished (no BYE)
+        else if (ready && onlineUi.pickOwn && onlineUi.locked && gameState === GAME_STATES.ONLINE_HOST) _hostTryStage()   // a friend who hadn't picked left
       },
       onBye:     ()  => { onlineUi.status = "waiting"; onlineUi.message = "Opponent left — waiting for another…"; if (onlineUi.pickOwn) _friendLeftDuringPick() },
       onPick:    (m) => { if (_friendOnPick(m)) return; if (gameState === GAME_STATES.ONLINE_HOST) _hostTryStage() },
@@ -7193,7 +7274,7 @@ function joinConnect() {
     onSetup:   (m) => applyOnlineSetup(m),
     onPick:    (m) => { _friendOnPick(m) },
     onBye:     ()  => { onlineUi.status = "error"; onlineUi.error = "Host left the match."; if (onlineUi.pickOwn) { _endFriendMatchLocally(); gameState = GAME_STATES.ONLINE_JOIN } },
-    onLobby:   (m) => { if (onlineUi.pickOwn && (m.count || 0) < 2 && onlineUi.status !== "error") { onlineUi.status = "error"; onlineUi.error = "Host left the match."; _endFriendMatchLocally(); gameState = GAME_STATES.ONLINE_JOIN } },
+    onLobby:   (m) => { if (onlineUi.pickOwn && (m.count || 0) >= 2 && _onlineSeatsChanged()) _joinerBeginPick(); if (onlineUi.pickOwn && (m.count || 0) < 2 && onlineUi.status !== "error") { onlineUi.status = "error"; onlineUi.error = "Host left the match."; _endFriendMatchLocally(); gameState = GAME_STATES.ONLINE_JOIN } },
     onError:   (e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) },
   }).catch((e) => { onlineUi.status = "error"; onlineUi.error = String((e && e.message) || e) })
 }
@@ -7234,11 +7315,16 @@ function _onlinePickLocked(side) {
   else { onlineUi.status = "joined"; onlineUi.message = "Locked in! Waiting for your friend…"; gameState = GAME_STATES.ONLINE_JOIN }
   return true
 }
-// HOST: both fighters locked in → stage select (stage confirm calls startOnlineHostMatch as before).
+// HOST: everyone in the room locked in → one friend: stage select (stage confirm calls startOnlineHostMatch as
+// before); two or three friends: a 3–4 player FREE-FOR-ALL starts right away (its arena is fixed).
 function _hostTryStage() {
   if (!onlineUi.locked) return
+  const friends = online.sides().filter((s) => s !== "p1")
+  const waiting = friends.filter((s) => !(onlineUi.peerPicks[s] && characters[onlineUi.peerPicks[s].char]))
+  if (friends.length >= 2 && !waiting.length) { startOnlineFfaMatch(friends); return }
+  if (friends.length === 1 && !waiting.length) onlineUi.peerPick = onlineUi.peerPicks[friends[0]]
   const pk = onlineUi.peerPick
-  if (!pk || !characters[pk.char]) { onlineUi.status = "ready"; onlineUi.message = "Locked in! Waiting for your friend to pick…"; gameState = GAME_STATES.ONLINE_HOST; return }
+  if (waiting.length || !pk || !characters[pk.char]) { onlineUi.status = "ready"; onlineUi.message = waiting.length > 1 ? `Locked in! Waiting for ${waiting.length} friends to pick…` : "Locked in! Waiting for your friend to pick…"; gameState = GAME_STATES.ONLINE_HOST; return }
   matchConfig.p2CharKey = pk.char; matchConfig.p2Char = characters[pk.char]
   matchConfig.p2Skin = pk.skin || "default"; matchConfig.p2Aliens = Array.isArray(pk.aliens) && pk.aliens.length ? pk.aliens.slice() : null
   _applyHomeStageDefault()
@@ -7248,23 +7334,52 @@ function _hostTryStage() {
 // fighter, on a fresh lockstep session. Either player can press it; the other follows via a PICK token.
 const _PLAY_AGAIN = "__play_again__"
 function _friendPlayAgain(fromPeer = false) {
-  if (!online.isConnected()) { openOnlineMenu(); resetToStart(); return }
+  if (!online.isConnected()) { _ffaNetCleanup(); openOnlineMenu(); resetToStart(); return }
   if (!fromPeer) online.sendPick({ char: _PLAY_AGAIN })
   sound.stopAllSfx?.({ includePersistent: true })
   victoryState.active = false
-  netMatch.end(); online.resetSession()
-  onlineUi.peerPick = null; onlineUi.locked = false
+  _ffaNetCleanup()
+  netMatch.end(); online.resetSession(); _setNetArena(false)
+  onlineUi.peerPick = null; onlineUi.peerPicks = {}; onlineUi.locked = false; onlineUi.matchSides = null
   if (matchConfig.online === "host") { if (online.bothPresent()) hostChooseMatchup(); else gameState = GAME_STATES.ONLINE_HOST }
   else _joinerBeginPick()
 }
 function _friendOnPick(m) {
-  if (m && m.char === _PLAY_AGAIN) { if (gameState === GAME_STATES.VICTORY || gameState === GAME_STATES.MATCH_END) _friendPlayAgain(true); return true }
-  onlineUi.peerPick = m
+  if (m && m.char === _PLAY_AGAIN) {
+    if (gameState === GAME_STATES.VICTORY || gameState === GAME_STATES.MATCH_END || (gameState === GAME_STATES.FFA_BATTLE && ffaState.over)) _friendPlayAgain(true)
+    else if (onlineUi.locked && !netMatch.isActive()) _resendMyPick()   // already locked in (joined mid-match): count me in the next one
+    return true
+  }
+  const side = m && /^p[1-4]$/.test(m.side) ? m.side : (matchConfig.online === "host" ? "p2" : "p1")
+  onlineUi.peerPicks[side] = m
+  // The single "other player" a 1v1 screen shows: for a friend that's the HOST's pick; for the host, a friend's.
+  if (matchConfig.online === "join" ? side === "p1" : (!onlineUi.peerPick || onlineUi.peerPick.side === side || !online.sides().includes(onlineUi.peerPick.side))) onlineUi.peerPick = m
   return false
+}
+function _resendMyPick() {
+  const mine = matchConfig.online === "host" ? "p1" : "p2"
+  if (matchConfig[mine + "CharKey"]) online.sendPick({ char: matchConfig[mine + "CharKey"], skin: matchConfig[mine + "Skin"], aliens: matchConfig[mine + "Aliens"] })
+}
+// The room's seats changed (someone joined or left). Forget picks of anyone gone; if a player IN the running
+// online match left, a lockstep match can't go on without them → end it here. Returns true if a match ended.
+function _onlineSeatsChanged() {
+  const present = online.sides()
+  for (const s of Object.keys(onlineUi.peerPicks)) if (!present.includes(s)) delete onlineUi.peerPicks[s]
+  if (onlineUi.peerPick && onlineUi.peerPick.side && !present.includes(onlineUi.peerPick.side)) onlineUi.peerPick = null
+  const ms = onlineUi.matchSides
+  if (!ms || !ms.some((s) => !present.includes(s))) return false
+  if (!(netMatch.isActive() || gameState === GAME_STATES.VICTORY || gameState === GAME_STATES.MATCH_END)) return false
+  onlineUi.matchSides = null; onlineUi.locked = false
+  _endFriendMatchLocally()
+  if (matchConfig.online === "host") {
+    if (present.length >= 2) hostChooseMatchup()
+    else { gameState = GAME_STATES.ONLINE_HOST; onlineUi.status = "waiting"; onlineUi.message = "Your friends left — send the link again to play." }
+  }
+  return true
 }
 function _friendLeftDuringPick() {
   if (!onlineUi.pickOwn || matchConfig.online !== "host") return
-  onlineUi.peerPick = null; onlineUi.locked = false
+  onlineUi.peerPick = null; onlineUi.peerPicks = {}; onlineUi.locked = false
   _endFriendMatchLocally()
   gameState = GAME_STATES.ONLINE_HOST
   onlineUi.status = "waiting"; onlineUi.message = "Your friend left — send the link again to play."
@@ -7273,15 +7388,25 @@ function _friendLeftDuringPick() {
 // lockstep match can't continue alone, so end it cleanly here (same cleanup as leaving to the title).
 function _endFriendMatchLocally() {
   const inGame = netMatch.isActive() || gameState === GAME_STATES.VICTORY || gameState === GAME_STATES.MATCH_END
+  _ffaNetCleanup()
   if (netMatch.isActive()) { netMatch.end(); online.resetSession() }
+  _setNetArena(false)
   if (inGame) resetToStart()
 }
 
 // HOST: called at stage-confirm in place of startMatch(). Generate the seed, sync it + the roster/stage to the
 // joiner, begin the LAN lockstep session, then start the identical match locally.
+let _netDelayForce = null   // tests only (harness forceDelay): pin the input delay, e.g. the old fixed 2 frames
 function startOnlineHostMatch() {
   const seed = makeSeed()
+  // Input delay from BOTH players' measured round trips (internet link → more frames, so neither screen has to
+  // keep pausing for the other's input = full speed). Sent in MATCH_SETUP so both ends use the same value.
+  const _netDelay = _netDelayForce ?? online.netInputDelay(online.rtt(), onlineUi.peerPick && onlineUi.peerPick.rtt)
+  const _friendSeat = (onlineUi.peerPick && /^p[2-4]$/.test(onlineUi.peerPick.side)) ? onlineUi.peerPick.side : "p2"
   online.sendSetup({
+    inputDelay: _netDelay,
+    players: [{ side: "p1", char: matchConfig.p1CharKey, skin: matchConfig.p1Skin, aliens: matchConfig.p1Aliens },
+              { side: _friendSeat, char: matchConfig.p2CharKey, skin: matchConfig.p2Skin, aliens: matchConfig.p2Aliens }],
     seed, mode: "pvp", rounds: MAX_ROUNDS,
     benExperimental: !!matchConfig.benExperimental, p1Aliens: matchConfig.p1Aliens, p2Aliens: matchConfig.p2Aliens,
     p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
@@ -7296,7 +7421,11 @@ function startOnlineHostMatch() {
   _hitstopStyleNetFlag = juiceSettings.hitstopStyle   // host uses its own Hitstop Style
   _weatherNetType = null   // the HOST is authoritative via its own source; clients set this from MATCH_SETUP
   _weatherFxNet = juiceSettings.weatherOn()   // host uses its own weather-enabled flag
+  online.setInputDelay(_netDelay)
+  online.getSession()?.setPlayers?.(["p1", _friendSeat])
+  onlineUi.matchSides = ["p1", _friendSeat]
   netMatch.begin(online.getSession(), { localSide: "p1" })
+  _setNetArena(true)   // same arena on every device (see NET_ARENA)
   _forcedSeed = seed
   startMatch()
 }
@@ -7304,6 +7433,12 @@ function startOnlineHostMatch() {
 // JOINER: apply the host's MATCH_SETUP and start the identical match (localSide p2, same seed).
 function applyOnlineSetup(m) {
   if (!m || m.seed == null) return
+  const _mySeat = online.side()
+  if (Array.isArray(m.players) && !m.players.some((p) => p.side === _mySeat)) {   // joined while others were already set
+    onlineUi.status = "joined"; onlineUi.message = "A match is already on — you'll play in the next one."
+    return
+  }
+  if (m.mode === "ffa" && Array.isArray(m.players)) { _applyOnlineFfaSetup(m); return }
   matchConfig.mode = "pvp"; matchConfig.online = "join"
   matchConfig.benExperimental = !!m.benExperimental
   matchConfig.p1Aliens = m.p1Aliens || null; matchConfig.p2Aliens = m.p2Aliens || null
@@ -7315,15 +7450,75 @@ function applyOnlineSetup(m) {
   _hitstopStyleNetFlag = (m.hitstopStyle === "classic" || m.hitstopStyle === "scaled") ? m.hitstopStyle : null   // FEEL PASS (Phase 1): adopt the host's Hitstop Style
   _weatherNetType = (typeof m.weather === "string") ? m.weather : null   // FEEL PASS (Phase 4): adopt the host's weather type verbatim (client NEVER fetches)
   _weatherFxNet = (typeof m.weatherFx === "boolean") ? m.weatherFx : (m.weather != null)   // FEEL PASS (Phase 5): adopt the host's weather-enabled flag (fallback: on if a type was sent)
+  online.setInputDelay(Number.isInteger(m.inputDelay) ? m.inputDelay : null)
+  if (Array.isArray(m.players)) { online.getSession()?.setPlayers?.(m.players.map((p) => p.side)); onlineUi.matchSides = m.players.map((p) => p.side) }
   netMatch.begin(online.getSession(), { localSide: "p2" })
+  _setNetArena(true)   // same arena on every device (see NET_ARENA)
   _forcedSeed = (m.seed >>> 0)
   startMatch()
+}
+
+// ── ONLINE FREE-FOR-ALL (3–4 players: the host + 2–3 friends on the same link) ─────────────────────────────
+// Same lockstep as the 1v1 (every device simulates every fighter from the agreed delayed inputs of ALL seats),
+// on the existing FFA battle. The host sends MATCH_SETUP with the player list; each device starts the same match.
+function startOnlineFfaMatch(friends) {
+  const seed = makeSeed()
+  const sides = ["p1", ...friends].sort()
+  const pickOf = (s) => s === "p1" ? { char: matchConfig.p1CharKey, skin: matchConfig.p1Skin, aliens: matchConfig.p1Aliens } : onlineUi.peerPicks[s]
+  const players = sides.map((s) => { const p = pickOf(s) || {}; return { side: s, char: characters[p.char] ? p.char : "gojo", skin: p.skin || "default", aliens: p.aliens || null } })
+  const worstRtt = Math.max(0, ...friends.map((s) => (onlineUi.peerPicks[s] && onlineUi.peerPicks[s].rtt) || 0))
+  const delay = _netDelayForce ?? online.netInputDelay(online.rtt(), worstRtt)
+  online.sendSetup({ seed, mode: "ffa", rounds: 1, p1Char: players[0].char, p2Char: players[1].char, players, inputDelay: delay,
+    slowMo: !!juiceSettings.slowMo, hitstopStyle: juiceSettings.hitstopStyle, weather: null, weatherFx: false })
+  _juiceSlowmoNetFlag = !!juiceSettings.slowMo
+  _hitstopStyleNetFlag = juiceSettings.hitstopStyle
+  _weatherNetType = null; _weatherFxNet = false
+  _beginOnlineFfa(seed, players, delay)
+}
+function _applyOnlineFfaSetup(m) {
+  matchConfig.online = "join"
+  _juiceSlowmoNetFlag = (typeof m.slowMo === "boolean") ? m.slowMo : null
+  _hitstopStyleNetFlag = (m.hitstopStyle === "classic" || m.hitstopStyle === "scaled") ? m.hitstopStyle : null
+  _weatherNetType = null; _weatherFxNet = false
+  _beginOnlineFfa(m.seed >>> 0, m.players, Number.isInteger(m.inputDelay) ? m.inputDelay : null)
+}
+function _beginOnlineFfa(seed, players, delay) {
+  online.setInputDelay(delay)
+  const sess = online.getSession()
+  sess?.setPlayers?.(players.map((p) => p.side))
+  onlineUi.matchSides = players.map((p) => p.side)
+  netMatch.begin(sess, { localSide: "p1" })
+  _setNetArena(true)
+  _pushHitstopStyle()
+  sound.stopAllSfx?.({ includePersistent: true })
+  victoryState.active = false
+  ffaState.playerCount = players.length
+  ffaState.charKeys = players.map((p) => characters[p.char] ? p.char : "gojo")
+  ffaState.teams = []; ffaState.aiSlots = []
+  ffaState.net = { sides: players.map((p) => p.side), skins: players.map((p) => p.skin || "default"), seed: seed >>> 0, frame: 0 }
+  startFFAMatch()
+}
+// Leave an online FFA's state (match over / someone left / back to picking). No-op otherwise.
+function _ffaNetCleanup() {
+  if (!ffaState.net) return
+  for (const f of ffaState.fighters) if (f) clearKevin(f, KEVIN_WORLD)
+  ffaState.active = false; ffaState.over = false; ffaState.winner = null; ffaState.winnerTeam = null
+  ffaState.teamMode = false; ffaState.teams = []; ffaState.fighters = []; ffaState.aiSlots = []
+  ffaState.net = null
+  matchConfig.mode = "pvp"
+}
+// The seat label for "you" on an online FFA (null otherwise) — drawn over your fighter.
+function _ffaNetMySlot() {
+  if (!ffaState.net) return -1
+  return ffaState.net.sides.indexOf(online.side())
 }
 
 // Cleanly leave any online match/connection (menu exit / match end / back button).
 function leaveOnline(reason = null) {
   try { online.disconnect(reason) } catch {}
-  netMatch.end()
+  _ffaNetCleanup()
+  netMatch.end(); _setNetArena(false)
+  onlineUi.matchSides = null
   matchConfig.online = null
   _juiceSlowmoNetFlag = null   // JUICE (Phase 2): back to the local Slow-Mo setting outside a LAN match
   _hitstopStyleNetFlag = null  // FEEL PASS (Phase 1): back to the local Hitstop Style outside a LAN match
@@ -7345,6 +7540,8 @@ try {
     friendInfo: () => ({ pickOwn: onlineUi.pickOwn, locked: onlineUi.locked, peerPick: onlineUi.peerPick ? onlineUi.peerPick.char : null, peerName: onlineUi.peerPick && characters[onlineUi.peerPick.char] ? characters[onlineUi.peerPick.char].name : null, role: matchConfig.online, message: onlineUi.message, present: online.bothPresent() }),
     host:    () => { if (netMatch.isActive()) return false; if (online.isConnected() && online.role() === "host") { if (online.bothPresent()) hostChooseMatchup(); return true } openOnlineMenu(); startHostFlow(); return true },
     status:  () => onlineUi.status,
+    message: () => onlineUi.message,
+    players: () => online.sides().length,       // how many are in the room (host + friends, ≤ 4)
     error:   () => onlineUi.error,
     state:   () => gameState,
     inMatch: () => netMatch.isActive(),
@@ -22070,37 +22267,8 @@ function updateBattle() {
   beginInputFrame()   // ONE logic frame for the input buffers (input.js) — every getFighterInput read this frame shares one snapshot
   updateDebugInputToggles()
   updateTrainingMode()
-  for (const f of [p1, p2]) {
-    if (isKrybot(f)) f._krybotRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isSpdBlue(f)) f._spdBlueRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isSpdGreen(f)) f._spdGreenRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isDashParr(f)) f._dashParrRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isSpdPink(f)) f._spdPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isMmprBlack(f)) f._mmprBlackRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isGreenRanger(f)) f._greenRangerRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isMmprWhite(f)) f._mmprWhiteRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isMmprPink(f)) f._mmprPinkRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isSpdYellow(f)) f._spdYellowRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isCyborg(f)) f._cyborgRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isBeastBoy(f)) f._beastBoyRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isRaven(f)) f._ravenRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isStarfire(f)) f._starfireRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isRobin(f)) f._robinRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isMegumi(f)) f._megumiRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isHiguruma(f)) f._higurumaRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isGs(f)) f._gsRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isSks(f)) f._sksRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isSyndrome(f)) f._syndromeRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isDseyl(f)) f._dseylRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isFrozone(f)) f._frozoneRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isEnoch(f)) f._enochRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isBatman(f)) f._batmanRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isMr(f)) f._mrRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isKevin(f)) f._kevinRemoteInput = replay.isPlayback() || netMatch.isActive() || academySession?.mode === "showme"
-    if (isElastigirl(f)) f._elastigirlRemoteInput = replay.isPlayback() || netMatch.isActive()
-    if (isNinja(f)) f._msv1RemoteInput = replay.isPlayback() || netMatch.isActive()   // MSV1
-    if (isNinjaStorm(f)) f._nsrRemoteInput = replay.isPlayback() || netMatch.isActive()   // MSv2
-  }
+  for (const f of [p1, p2]) _markRemoteInput(f)
+
   academyTick()        // CHARACTER ACADEMY drill timing + READ-ONLY success detection (no-op unless academySession)
   updateCPUInput()
   updateGamepadEdges(p1)   // controller players: feed motion history + double-tap + L2 tap-toggle
@@ -25635,7 +25803,7 @@ function drawFFAResult() {
     ctx.font = "700 24px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(members, cw / 2, ch * 0.34 + 52)
   } else if (w) { ctx.font = "700 26px Arial"; ctx.fillStyle = "#e2e8f0"; ctx.fillText(w.name || w.rosterKey, cw / 2, ch * 0.34 + 52) }
   ctx.font = "600 16px Arial"; ctx.fillStyle = "rgba(200,210,230,0.6)"
-  ctx.fillText("Click to return to the menu", cw / 2, ch * 0.6)
+  ctx.fillText(ffaState.net ? "Click to play again (everyone picks a new fighter)" : "Click to return to the menu", cw / 2, ch * 0.6)
   ctx.restore()
 }
 
@@ -27312,7 +27480,7 @@ function handleMenuClicks() {
       else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
       else if (c.id === "arcade") { hoverArcadeIndex = 0; gameState = GAME_STATES.ARCADE_SETUP }   // pick difficulty first
       else if (c.id === "bracket") { hoverBracketIndex = 0; gameState = GAME_STATES.BRACKET_SETUP }   // pick bracket size first
-      else if (c.id === "ffa")  { hoverFFAIndex = 0; gameState = GAME_STATES.FFA_SETUP }   // free-for-all
+      else if (c.id === "ffa")  { hoverFFAIndex = 0; ffaState.net = null; gameState = GAME_STATES.FFA_SETUP }   // free-for-all (local)
       else if (c.id === "online") openOnlineMenu()   // LAN 2-device match (Stage 3)
       else if (c.id === "aivsai") { hoverAiVsAiIndex = 0; aiVsAiConfig.sel = 0; _beginAiVsAiPick("chars") }   // fighters → map on the real select screens, then the setup screen
       else if (c.id === "back")gameState = GAME_STATES.MAIN_MENU
@@ -27407,7 +27575,7 @@ function handleMenuClicks() {
       break
     }
     case GAME_STATES.FFA_BATTLE: {
-      if (ffaState.over) endFFA()   // click the result overlay → back to menu
+      if (ffaState.over) { if (ffaState.net) _friendPlayAgain(); else endFFA() }   // click the result overlay → back to menu (online: everyone picks again)
       break
     }
     case GAME_STATES.TOWER_SELECT: {
@@ -29096,10 +29264,16 @@ gameLoop()
       bothPresent: () => online.bothPresent(),
       isActive:    () => netMatch.isActive(),
       seed:        () => matchConfig.seed,
+      rtt:         () => online.rtt(),         // this device's measured round trip to the relay (ms)
+      inputDelay:  () => online.getSession()?.inputDelay ?? null,   // the agreed lockstep input delay (frames)
+      netStats:    () => netMatch.stats(),     // { advanced, stalled } battle-loop passes this match
+      forceDelay:  (n) => { _netDelayForce = Number.isInteger(n) ? n : null; return _netDelayForce },
+      arena:       () => ({ w: canvas.width, h: canvas.height, fixed: _netArenaOn }),
       // Programmatic join: set the address + connect (mirrors typing + CONNECT).
       join:        (codeOrUrl) => { startJoinFlow(); onlineUi.joinInput = codeOrUrl; joinConnect(); return true },
       // Host picks a matchup + starts the online match (mirrors going through select + stage-confirm).
-      hostStartMatch: (p1Key, p2Key, stageName) => {
+      hostStartMatch: (p1Key, p2Key, stageName, peerRtt = null) => {
+        if (peerRtt != null) onlineUi.peerPick = { ...(onlineUi.peerPick || {}), rtt: peerRtt }   // the friend's measured round trip (normally carried by their PICK)
         matchConfig.mode = "pvp"; matchConfig.online = "host"
         matchConfig.p1CharKey = p1Key; matchConfig.p1Char = characters[p1Key]
         matchConfig.p2CharKey = p2Key; matchConfig.p2Char = characters[p2Key]
@@ -29110,6 +29284,19 @@ gameLoop()
       },
       // Deterministic sync probe: this side's frame + rounded fighter state, for cross-page comparison.
       syncProbe: () => (p1 && p2) ? { frame: _replayFrame, p1x: Math.round(p1.x), p1y: Math.round(p1.y), p1h: Math.round(p1.health), p2x: Math.round(p2.x), p2y: Math.round(p2.y), p2h: Math.round(p2.health) } : null,
+      // 2–4 player rooms: lock in THIS device's fighter exactly like finishing the pick screens (host: starts the
+      // match once everyone has picked — 1v1 → stage select, 3–4 players → online free-for-all).
+      pick: (charKey) => {
+        const mine = matchConfig.online === "host" ? "p1" : "p2"
+        onlineUi.pickOwn = true
+        matchConfig[mine + "CharKey"] = charKey; matchConfig[mine + "Char"] = characters[charKey]; matchConfig[mine + "Skin"] = "default"
+        return _onlinePickLocked(mine)
+      },
+      seats: () => online.sides(),
+      // Online FFA sync probe: the lockstep frame + every fighter's rounded state (null outside an online FFA).
+      ffaProbe: () => (ffaState.net && gameState === GAME_STATES.FFA_BATTLE) ? { frame: ffaState.net.frame, over: ffaState.over, keys: ffaState.fighters.map((f) => f && f.rosterKey),
+        f: ffaState.fighters.map((f) => f ? [Math.round(f.x), Math.round(f.y), Math.round(f.health), f.eliminated ? 1 : 0] : null) } : null,
+      ffaState: () => ({ net: !!ffaState.net, sides: ffaState.net ? ffaState.net.sides : null, count: ffaState.playerCount, game: gameState, mySlot: _ffaNetMySlot() }),
       // Menu rects (so the test can also verify the real UI wiring, not just the hooks).
       menuRects: () => getOnlineMenuRects(canvas).map(r => ({ id: r.id })),
       state:     () => gameState,

@@ -129,12 +129,28 @@ export function makeMatchSetup(meta = {}) {
     hitstopStyle: ["scaled", "classic"].includes(meta.hitstopStyle) ? meta.hitstopStyle : null,
     weather: typeof meta.weather === "string" ? meta.weather : null,
     weatherFx: typeof meta.weatherFx === "boolean" ? meta.weatherFx : false,
+    // Lockstep input delay in frames, chosen by the host from both players' measured round trips (internet
+    // links need more than the LAN default). Both ends MUST use the same value — it shifts every input.
+    inputDelay: Number.isInteger(meta.inputDelay) && meta.inputDelay >= 1 && meta.inputDelay <= 20 ? meta.inputDelay : null,
+    // 3–4 player online free-for-all: one entry per seat in the match, in slot order. null for a 1v1.
+    players: _players(meta.players),
   }
 }
 
 // Pick-your-own online select: each player chooses their fighter on their OWN screen and tells the other.
 // The host still sends the one authoritative MATCH_SETUP afterwards, so this never touches the sim.
 const _PICK_ID = /^[\w .:'()&+-]{1,64}$/
+const _SEAT = /^p[1-4]$/
+function _players(list) {
+  if (!Array.isArray(list) || list.length < 2 || list.length > 4) return null
+  const id = (v) => (typeof v === "string" && _PICK_ID.test(v)) ? v : null
+  const out = list.map((p) => ({
+    side: p && _SEAT.test(p.side) ? p.side : null, char: id(p && p.char), skin: id(p && p.skin) || "default",
+    aliens: p && Array.isArray(p.aliens) && p.aliens.length <= 16 ? p.aliens.map(id).filter((x) => x !== null) : null,
+  }))
+  if (out.some((p) => !p.side || !p.char) || new Set(out.map((p) => p.side)).size !== out.length) return null
+  return out
+}
 export function makePick(meta = {}) {
   const id = (v) => (typeof v === "string" && _PICK_ID.test(v)) ? v : null
   return {
@@ -142,6 +158,7 @@ export function makePick(meta = {}) {
     char: id(meta.char),
     skin: id(meta.skin) || "default",
     aliens: Array.isArray(meta.aliens) && meta.aliens.length <= 16 ? meta.aliens.map(id).filter((x) => x !== null) : null,
+    rtt: Number.isFinite(meta.rtt) && meta.rtt >= 0 && meta.rtt <= 5000 ? Math.round(meta.rtt) : null,   // sender's round trip to the relay (ms)
   }
 }
 

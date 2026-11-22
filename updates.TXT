@@ -3057,3 +3057,27 @@ Checks actually run:
 - gojo_shinjuku 77/0, interactions 18/0; render 11/0; frame-data ZERO DIFF.
 - Baselines unchanged: determinism 14/0, combo 235/9 (roster count 164 → 165, expected), up-attack 77/2,
   credits 11/3, roster integrity OK, replay 8/1, net 11/0.
+
+=== 2026-11-22 — PLAY WITH A FRIEND: up to 4 players, same place on every screen, full speed online, fast loading, QR code ===
+Desktop app → title screen → PLAY WITH A FRIEND. Send the link (or let friends scan the QR code); anyone who opens it joins.
+- UP TO 4 PLAYERS: you + 3 friends on the SAME link (seats p2/p3/p4; a 5th is told the room is full). One friend → 1 vs 1
+  as before (you pick the stage); 2–3 friends → a FREE-FOR-ALL starts once everyone has locked in a fighter. Friends can
+  join while you pick ("N of 4 players here"). Someone leaving mid-match ends it cleanly for the rest, who pick again.
+- FIX "I'm in one place and he's in another": the arena's floor + edges came from each device's own screen size, so a
+  phone and a laptop simulated two different fights. Online matches now use one fixed 1600×900 arena on every device,
+  scaled to fit (letterboxed). (physics.clampToCamera also read window.innerWidth — now the arena width online.)
+- FIX "too slow": inputs were scheduled only 2 frames (33 ms) ahead; over the internet they arrive later, so both games
+  kept pausing (slow motion). Each device now measures its round trip; the host picks the input delay from it
+  (LAN stays 2 frames; e.g. 120 ms → 8 frames) and sends it so every device uses the same value.
+- FASTER LOADING for friends over the internet link: one compressed download of all game code (a small service
+  worker; the game's ~640 separate files over a Cloudflare quick tunnel are the likely cause of "stuck at 67 %"), brotli/gzip for the
+  rest (26 MB → 13 MB), a loading bar from the first second, and a 5-minute wait instead of 60 s.
+- The internet link (WORKS ANYWHERE) is shown first once ready; Wi-Fi link (SAME WI-FI ONLY) as a fallback. QR code in
+  the app and on the invite page (net/qrcode.js, no outside library).
+Checks actually run: msv1_host 98/0 (new: compression, loading screen, one-file pack, 4 seats / broadcast / 5th refused);
+msv1_host_tunnel 20/0; NEW net_online_lag 7/0 (laptop + phone screens over a 60 ms-each-way link: identical on every
+compared frame, game waits for input 0 % of frames vs 19–75 % with the old 2-frame delay); NEW net_online_4p 12/0 (host +
+3 friends, different screens: free-for-all on all 4, same seed/fighters/arena/delay, 0/114 frames differ, a friend
+leaving ends it cleanly); net_online 11/0; net_inject 7/0; net_lockstep 6/6; net_spike 6/6; determinism 14/0;
+combo 235/9, up-attack 77/2, credits 11/3, replay 10/0 (= baselines); render 11/0.
+Not tested here: a real Cloudflare link across two real networks — try it with friends at home.

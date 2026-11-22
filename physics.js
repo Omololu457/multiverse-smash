@@ -427,7 +427,9 @@ export const physics = {
   clampToCamera(fighter, camera) {
     const padding = 30
     const zoom = camera.zoom || 1
-    const viewW = (typeof window !== "undefined" ? window.innerWidth : 1280) / zoom
+    // Online match: every device uses the SAME fixed arena width (game.js NET_ARENA) — a phone and a laptop
+    // must clamp identically or the lockstep sims drift apart. null (offline) = the old window width.
+    const viewW = (this.viewWidthOverride || (typeof window !== "undefined" ? window.innerWidth : 1280)) / zoom
     const camX = camera.x || 0
 
     const left = camX - viewW / 2 + padding
@@ -577,6 +579,7 @@ export const physics = {
     fighter.attackBox.y = fighter.y + 20
   },
 
+  viewWidthOverride: null,
   setStageBounds(left, right) {
     this.stageLeft = left || 0
     this.stageWidth = right || 3200

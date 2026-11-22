@@ -32,13 +32,15 @@ export class LanSession {
   // side: "p1" | "p2"            — which fighter THIS device drives.
   constructor({ send, side, inputDelay = DEFAULT_INPUT_DELAY } = {}) {
     if (typeof send !== "function") throw new Error("LanSession needs a send(msg) function")
-    if (side !== "p1" && side !== "p2") throw new Error(`LanSession side must be p1|p2, got ${side}`)
+    if (!/^p[1-4]$/.test(side)) throw new Error(`LanSession side must be p1..p4, got ${side}`)
     this.send = send
     this.side = side
     this.remoteSide = side === "p1" ? "p2" : "p1"
     this.inputDelay = Math.max(0, inputDelay | 0)
     this.localMask = new Map()    // applyFrame → mask (our input, sampled inputDelay frames earlier)
     this.remoteMask = new Map()   // applyFrame → mask (received from the peer)
+    this.remotes = [this.remoteSide]          // every OTHER seat in the match (2–4 player online)
+    this.masksBySide = new Map([[this.remoteSide, this.remoteMask]])
     this.lastSampled = -1         // highest sim frame we've sampled local input for (dedupe)
     this.startFrame = null        // sim frame this session first saw — anchors the priming window (a LAN
   }                               // match begins mid-battle, NOT at frame 0, so the window is relative to here)
@@ -51,9 +53,19 @@ export class LanSession {
 
   // Feed EVERY inbound message here (the transport's onmessage). Non-INPUT messages are ignored so the same
   // hook can sit under a broader message router. Only the PEER's inputs are buffered.
+  // 3–4 player match: the seats of everyone else in it (call before the first frame). 2-player = untouched.
+  setPlayers(sides) {
+    const others = [...new Set(sides)].filter((s) => s !== this.side && /^p[1-4]$/.test(s))
+    if (!others.length) return
+    this.remotes = others
+    this.remoteSide = others[0]
+    this.masksBySide = new Map(others.map((s) => [s, s === others[0] ? this.remoteMask : new Map()]))
+  }
+
   onMessage(msg) {
-    if (!msg || msg.t !== MSG.INPUT) return
-    if (msg.side === this.remoteSide && typeof msg.frame === "number") this.remoteMask.set(msg.frame, msg.mask)
+    if (!msg || msg.t !== MSG.INPUT || typeof msg.frame !== "number") return
+    const m = this.masksBySide.get(msg.side)
+    if (m) m.set(msg.frame, msg.mask)
   }
 
   // Called once per sim frame with the frame about to run and the live device input (a raw 14-field object,
@@ -78,22 +90,27 @@ export class LanSession {
   }
 
   // The peer's mask to apply at frame F, or null if it hasn't arrived yet (→ caller stalls).
-  remoteMaskAt(frame) {
+  remoteMaskAt(frame, side = this.remoteSide) {
     this._ensureStart(frame)
     if (this._priming(frame)) return 0
-    const m = this.remoteMask.get(frame)
+    const map = this.masksBySide.get(side)
+    const m = map && map.get(frame)
     return m === undefined ? null : m
   }
+  // Any seat's agreed mask (ours or a remote one).
+  maskAt(side, frame) { return side === this.side ? this.localMaskAt(frame) : this.remoteMaskAt(frame, side) }
 
   // Lockstep gate: is it safe to simulate frame F? Only when BOTH masks for F are known.
   canAdvance(frame) {
-    return this.localMaskAt(frame) !== null && this.remoteMaskAt(frame) !== null
+    if (this.localMaskAt(frame) === null) return false
+    for (const s of this.remotes) if (this.remoteMaskAt(frame, s) === null) return false
+    return true
   }
 
   // Reclaim buffered masks older than `keepBefore` (both maps) so a long match doesn't grow unbounded.
   prune(keepBefore) {
     for (const k of this.localMask.keys())  if (k < keepBefore) this.localMask.delete(k)
-    for (const k of this.remoteMask.keys()) if (k < keepBefore) this.remoteMask.delete(k)
+    for (const map of this.masksBySide.values()) for (const k of map.keys()) if (k < keepBefore) map.delete(k)
   }
 }
 

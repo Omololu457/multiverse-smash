@@ -15,6 +15,7 @@
 // unaffected.
 
 import { PROTOCOL_SCHEME, RELEASES_URL, normalizeRoomCode, parseJoinInput, relayUrlFor } from "./hostConfig.js"
+import { drawQr } from "./qrcode.js"
 
 const hasDom = typeof window !== "undefined" && typeof document !== "undefined"
 let _desk = null          // window.msDesktop when running inside the desktop app
@@ -53,6 +54,10 @@ const CSS = `
 #ms-host a.mh-link{display:block;margin:6px 0 12px;padding:14px;border-radius:10px;border:2px solid #4ad5ff;background:#061225;color:#4ad5ff;font:700 18px ui-monospace,Menlo,monospace;word-break:break-all;text-decoration:none}
 #ms-host a.mh-link:hover{background:#0d2547}
 #ms-host .mh-small{font-size:12px;color:#9fb3d1;word-break:break-all}
+#ms-host .mh-qr{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4px 0 10px}
+#ms-host .mh-qr canvas{width:196px;height:196px;image-rendering:pixelated;border-radius:8px;background:#fff}
+#ms-host .mh-tag{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;font:700 11px system-ui;vertical-align:middle}
+#ms-host .mh-tag.net{background:#1e5c3a;color:#7cf5b0}#ms-host .mh-tag.lan{background:#3a3a1e;color:#f5e07c}
 #ms-host .mh-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 #ms-host button{padding:10px 18px;border-radius:9px;border:0;background:#183156;color:#e8f1ff;font:700 15px system-ui;cursor:pointer}
 #ms-host button.pri{background:#4ad5ff;color:#04203a}
@@ -132,26 +137,48 @@ function backToTitle() {
   hideScreen()
 }
 function waiting(text) { return el("div", { class: "mh-wait" }, el("span", { class: "mh-dot" }), el("span", { text })) }
-function inviteLink() { return (_state && _state.lanLinks && _state.lanLinks[0]) || null }
+function lanLink() { return (_state && _state.lanLinks && _state.lanLinks[0]) || null }
+// The link to send: the INTERNET link (works from anywhere) once the tunnel / port mapping is up, else the
+// same-Wi-Fi link. Everyone who opens the same link joins the same room.
+function inviteLink() { return (_state && _state.publicLink) || lanLink() }
+// Internet route still being set up (status online, route still "lan", and no final "unavailable" message yet)
+function internetPending() { return !!(_state && !_state.publicLink && _state.route === "lan" && !/unavailable/i.test(_state.message || "")) }
+
+function qrBlock(link) {
+  const c = document.createElement("canvas")
+  try { drawQr(c, link, { scale: 6, margin: 4, ecl: "M" }) } catch { return null }
+  c.setAttribute("aria-label", `QR code for ${link}`)
+  return el("div", { class: "mh-qr" }, c, el("div", { class: "mh-small", text: "Scan with a phone camera to open the link" }))
+}
 
 function hostWaitingBox() {
-  const link = inviteLink()
+  const link = inviteLink(), lan = lanLink(), internet = !!(_state && _state.publicLink)
   const box = el("div", { class: "mh-box" }, el("h2", { text: "Play with a friend" }))
   if (!link) {
     box.append(el("p", { class: "mh-bad", text: "This computer doesn't seem to be on a Wi-Fi / local network, so there's no link a friend could open. Connect to Wi-Fi and try again." }))
   } else {
+    const tag = el("span", { class: `mh-tag ${internet ? "net" : "lan"}`, text: internet ? "WORKS ANYWHERE" : "SAME WI-FI ONLY" })
     box.append(
-      el("div", { class: "mh-step", text: "1. Click the link — it opens in your browser, ready to copy:" }),
+      el("div", { class: "mh-step" }, el("span", { text: "Send your friend this link — or let them scan the code:" }), tag),
       el("a", { class: "mh-link", href: `${link}#invite`, target: "_blank", rel: "noopener", text: link }),
-      el("div", { class: "mh-step", text: "2. Send it to your friend. They need to be on the same Wi-Fi as you." }),
-      el("div", { class: "mh-step", text: "3. When they open it and press JOIN THE GAME, you both pick your own fighter." }),
+      qrBlock(link),
       el("div", { class: "mh-row" }, el("button", { class: "pri", text: "Copy link", onclick: async (e) => {
         try { await (_desk ? _desk.copyText(link) : navigator.clipboard.writeText(link)); e.target.textContent = "Copied ✓" } catch { e.target.textContent = "Copy failed — use the link above" }
         setTimeout(() => { e.target.textContent = "Copy link" }, 2000)
       } })),
-      waiting("Waiting for your friend to join…"),
+      el("div", { class: "mh-step", text: "When they open it and press JOIN THE GAME, you both pick your own fighter." }),
     )
-    if (_state && _state.publicLink) box.append(el("p", { class: "mh-small", text: `Not on the same Wi-Fi? This internet link also works: ${_state.publicLink}` }))
+    if (internet) {
+      if (lan) box.append(el("p", { class: "mh-small", text: `Same Wi-Fi? This faster local link also works: ${lan}` }))
+    } else if (internetPending()) {
+      box.append(waiting("Getting a link that works from anywhere (not just your Wi-Fi)…"))
+      if (_state.message) box.append(el("p", { class: "mh-small", text: _state.message }))
+    } else {
+      box.append(el("p", { class: "mh-bad", text: "This link only works for someone on your Wi-Fi — an internet link couldn't be made." }),
+        el("p", { class: "mh-small", text: (_state && _state.message) || "" }))
+    }
+    box.append(el("p", { class: "mh-mut", text: "Up to 3 friends can join with this same link (3–4 players = free-for-all)." }))
+    box.append(waiting("Waiting for your friend to join…"))
   }
   box.append(el("div", { class: "mh-row" }, el("button", { text: "Back", onclick: backToTitle })))
   return box
@@ -178,20 +205,25 @@ function render() {
       return showScreen(`herr:${g.error()}`, () => el("div", { class: "mh-box" }, el("h2", { text: "Play with a friend" }), el("p", { class: "mh-bad", text: g.error() || "Something went wrong." }), el("div", { class: "mh-row" }, el("button", { text: "Back", onclick: backToTitle }))))
     }
     if (info.locked) {
-      return showScreen(`hlock`, () => el("div", { class: "mh-box" }, el("h2", { text: "You're locked in!" }), waiting("Waiting for your friend to pick their fighter…"), el("div", { class: "mh-row" }, el("button", { text: "Leave", onclick: backToTitle }))))
+      const msg = (g.message && g.message()) || "Waiting for your friend to pick their fighter…"
+      const n = g.players ? g.players() : 2
+      return showScreen(`hlock:${msg}:${n}:${inviteLink()}`, () => el("div", { class: "mh-box" }, el("h2", { text: "You're locked in!" }), waiting(msg.replace(/^Locked in! /, "")),
+        el("p", { class: "mh-mut", text: `${n} of 4 players here. ${n < 4 ? "More friends can still join with the same link: " + inviteLink() : "The room is full."}` }), el("div", { class: "mh-row" }, el("button", { text: "Leave", onclick: backToTitle }))))
     }
-    return showScreen(`hwait:${inviteLink()}:${_state && _state.publicLink}`, hostWaitingBox)
+    return showScreen(`hwait:${inviteLink()}:${_state && _state.publicLink}:${internetPending()}:${_state && _state.message}`, hostWaitingBox)
   }
   // joiner
   const s = g.status()
   if (s === "error") {
     const err = g.error() || "Could not join."
     if (/mismatch/i.test(err)) { mismatchModal(err.replace(/^host rejected connection: /, "")); g.toTitle(); return hideScreen() }
-    return showScreen(`jerr:${err}`, () => el("div", { class: "mh-box" }, el("h2", { text: "Couldn't join" }), el("p", { class: "mh-bad", text: /left/.test(err) ? "Your friend left the game." : err }), el("p", { class: "mh-mut", text: "Ask your friend for a new link, and make sure you're both on the same Wi-Fi." }), el("div", { class: "mh-row" }, el("button", { class: "pri", text: "Back to title", onclick: backToTitle }))))
+    return showScreen(`jerr:${err}`, () => el("div", { class: "mh-box" }, el("h2", { text: "Couldn't join" }), el("p", { class: "mh-bad", text: /left/.test(err) ? "Your friend left the game." : err }), el("p", { class: "mh-mut", text: "Ask your friend to keep the game open on PLAY WITH A FRIEND and send you a new link. (A link that says SAME WI-FI ONLY needs you on their Wi-Fi.)" }), el("div", { class: "mh-row" }, el("button", { class: "pri", text: "Back to title", onclick: backToTitle }))))
   }
   if (info.locked) {
     const who = info.peerName ? `Your friend picked ${info.peerName}. ` : ""
-    return showScreen(`jlock:${who}`, () => el("div", { class: "mh-box" }, el("h2", { text: "You're locked in!" }), el("p", { class: "mh-mut", text: who }), waiting("Waiting for your friend to finish picking and choose the stage…")))
+    const m = (g.message && g.message()) || ""
+    const line = /already on/.test(m) ? m : "Waiting for everyone to finish picking…"
+    return showScreen(`jlock:${who}:${line}`, () => el("div", { class: "mh-box" }, el("h2", { text: "You're locked in!" }), el("p", { class: "mh-mut", text: who }), waiting(line)))
   }
   return showScreen("jconn", () => el("div", { class: "mh-box" }, el("h2", { text: "Joining your friend's game…" }), waiting("Connecting…")))
 }
@@ -282,6 +314,8 @@ if (hasDom) {
       _desk.getState().then((s) => { _state = s }).catch(() => {})
       _desk.onState((s) => { _state = s })
     }
+    // the host page's friend loading screen (net/hostServer.mjs JOIN_SPLASH) goes once the game is up, whatever else runs
+    if (document.getElementById("ms-join-splash")) waitForGame(5 * 60 * 1000).then(() => document.getElementById("ms-join-splash")?.remove())
     if (automated) return
     window.__msFriendStart = friendStart
     if (_desk) {
@@ -292,8 +326,10 @@ if (hasDom) {
       const room = normalizeRoomCode(params.get("room"))
       if (room) {
         // Opened from a friend's link: we were served by the host's own server, so location.origin IS the host.
-        waitForGame().then((g) => {
-          if (!g) return toast("The game did not finish loading.")
+        // (Slow connections: keep waiting — the page's own loading screen shows progress meanwhile.)
+        waitForGame(5 * 60 * 1000).then((g) => {
+          document.getElementById("ms-join-splash")?.remove()
+          if (!g) return toast("The game did not finish loading — check your connection and open the link again.", 0)
           g.join(relayUrlFor(location.origin, room))
         })
       } else {

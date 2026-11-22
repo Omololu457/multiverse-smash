@@ -23,6 +23,7 @@ let _localSide = "p1"    // which fighter this device drives ("p1" = host conven
 // Begin a LAN match backed by a real transport session. side = this device's fighter.
 export function begin(session, { localSide = "p1" } = {}) {
   _session = session
+  _stats.advanced = 0; _stats.stalled = 0
   _localSide = localSide === "p2" ? "p2" : "p1"
   return _session
 }
@@ -53,7 +54,19 @@ export function onMessage(msg) { if (_session) _session.onMessage(msg) }
 export function sample(frame, raw)   { if (_session) _session.sample(frame, raw) }
 export function localMaskAt(frame)   { return _session ? _session.localMaskAt(frame) : null }
 export function remoteMaskAt(frame)  { return _session ? _session.remoteMaskAt(frame) : null }
-export function canAdvance(frame)    { return _session ? _session.canAdvance(frame) : true }  // no session → never stalls
+export function canAdvance(frame)    {   // no session → never stalls
+  if (!_session) return true
+  const ok = _session.canAdvance(frame)
+  if (ok) _stats.advanced++; else _stats.stalled++
+  return ok
+}
+// How often the game loop had to WAIT for the other player's input (lockstep stall) — a slow link with too
+// small an input delay shows up here as a high stall share (= slow motion). Diagnostics only.
+const _stats = { advanced: 0, stalled: 0 }
+export function stats() { return { ..._stats } }
 export function prune(keepBefore)    { if (_session) _session.prune(keepBefore) }
+// 3–4 player online free-for-all: the agreed mask for ANY seat (p1..p4) — this device's own or a remote one.
+export function maskAt(side, frame)  { return _session && _session.maskAt ? _session.maskAt(side, frame) : null }
+export function seat()               { return _session ? _session.side : null }   // this device's relay seat
 
 export { LanSession }

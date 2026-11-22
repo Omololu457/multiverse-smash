@@ -99,23 +99,26 @@ try {
   await hw.screenshot({ path: path.join(SHOTS, "01_title_play_with_a_friend.png") })
   await clickTitleButton(hw, "friend")
   await hw.waitForSelector("#ms-host .mh-screen a.mh-link", { timeout: 30000 })
+  // the (stub) internet link arrives a moment later and becomes THE link to send; the Wi-Fi link moves to small print
+  await hw.waitForSelector("#ms-host .mh-screen >> text=This faster local link also works", { timeout: 20000 }).catch(() => {})
   const hs = await hostState(hw)
-  const link = await hw.locator("#ms-host a.mh-link").innerText()
+  const link = hs.lanLinks[0]   // the stub internet URL is unreachable, so the friend below joins over the LAN link
+  const mainLink = await hw.locator("#ms-host a.mh-link").innerText()
   const href = await hw.locator("#ms-host a.mh-link").getAttribute("href")
-  ok("button → hosting starts + friend screen with ONE clickable invite link", hs.status === "online" && link === hs.lanLinks[0] && /^http:\/\/[\d.]+:\d+\/join\?room=[A-Z2-9]{6}$/.test(link), link)
-  ok("link opens in the browser (new tab) as the copy-and-send page", href === `${link}#invite` && (await hw.locator("#ms-host a.mh-link").getAttribute("target")) === "_blank")
-  await hw.waitForSelector("#ms-host .mh-screen >> text=Not on the same Wi-Fi", { timeout: 20000 }).catch(() => {})   // settle: the (stub) internet link arrives a moment later
+  ok("button → hosting starts + friend screen with ONE clickable invite link — the internet one once it's up", hs.status === "online" && /^https:\/\/e2e-stub-.*\/join\?room=[A-Z2-9]{6}$/.test(mainLink) && mainLink === hs.publicLink, mainLink)
+  ok("link opens in the browser (new tab) as the copy-and-send page", href === `${mainLink}#invite` && (await hw.locator("#ms-host a.mh-link").getAttribute("target")) === "_blank")
+  ok("QR code of that link + the same-Wi-Fi link still offered", await hw.locator("#ms-host .mh-qr canvas").count() === 1 && (await hw.locator("#ms-host .mh-screen").innerText()).includes(link) && /^http:\/\/[\d.]+:\d+\/join\?room=[A-Z2-9]{6}$/.test(link))
   ok("friend screen: Copy link + Back, waiting for your friend", await hw.waitForSelector("#ms-host .mh-screen >> text=Waiting for your friend to join", { timeout: 5000 }).then(() => true, () => false) && await hw.locator("#ms-host .mh-screen button", { hasText: "Copy link" }).count() === 1 && await hw.locator("#ms-host .mh-screen button", { hasText: "Back" }).count() === 1)
   await hw.screenshot({ path: path.join(SHOTS, "02_friend_screen_link.png") })
   await hw.locator("#ms-host .mh-screen button", { hasText: "Copy link" }).click()
-  ok("Copy link puts the invite link on the clipboard", (await hostApp.evaluate(({ clipboard }) => clipboard.readText())) === link)
+  ok("Copy link puts the invite link on the clipboard", (await hostApp.evaluate(({ clipboard }) => clipboard.readText())) === mainLink)
   ok("public listener serves the game but no dev API", (await fetch(`http://127.0.0.1:${hs.port}/api/save`)).status === 404 && (await fetch(`http://127.0.0.1:${hs.port}/`)).status === 200)
 
   // ── 2. the invite page (what the host's browser shows after clicking the link) ────────────────────────
   console.log("\n── invite page in the browser ──")
   browser = await chromium.launch({ headless: true, args: ["--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "--autoplay-policy=no-user-gesture-required"] })
   const ip = await browser.newPage({ viewport: { width: 900, height: 700 } })
-  await ip.goto(href)
+  await ip.goto(`${link}#invite`)   // (same page on either origin; the stub internet URL can't be opened)
   await ip.waitForSelector("#invite:not([hidden])", { timeout: 8000 })
   ok("invite page: 'Your invite link is ready' + the link + Copy link", (await ip.locator("#lnk").innerText()) === link && await ip.locator("#copy").count() === 1)
   ok("address bar shows the plain link (ready to copy from the URL bar)", ip.url() === link, ip.url())

@@ -22,7 +22,43 @@ let _session = null     // active LanSession (lockstep), created once our seat i
 let _role = null        // "host" | "join" — what THIS device intends to be
 let _side = null        // "p1" | "p2" — the seat the relay actually assigned
 let _peers = 1          // how many seats are filled (from LOBBY / WELCOME)
+let _sides = []         // which seats are filled (p1 = host, p2..p4 = friends), from LOBBY
 let _cb = {}            // UI callbacks: { onWelcome, onLobby, onSetup, onBye, onError }
+let _rtts = []          // recent round trips to the relay (ms), newest last
+let _rttTimer = null
+let _delay = null       // agreed lockstep input delay for the next match (null = LanSession default)
+
+// Round trip to the relay, measured every 2 s while connected. On the internet link this is what the host uses
+// to pick an input delay that keeps the match at full speed (see netInputDelay).
+export function rtt() {
+  if (!_rtts.length) return null
+  const s = [..._rtts].sort((a, b) => a - b), med = s[s.length >> 1]
+  return Math.round(Math.max(med, 0.75 * s[s.length - 1]))   // lean towards the slow samples (jitter)
+}
+// Frames of input delay so a press reaches the other device before it's needed: one-way trip ≈ half of each
+// player's round trip to the relay, plus margin. LAN (a few ms) → 2, the long-standing default.
+export function netInputDelay(rttA, rttB) {
+  const oneWay = ((rttA || 0) + (rttB || 0)) / 2
+  return Math.max(2, Math.min(12, Math.ceil(oneWay * 1.25 / (1000 / 60)) + 1))
+}
+export function setInputDelay(n) {
+  _delay = Number.isInteger(n) ? n : null
+  if (_session && _delay != null) _session.inputDelay = _delay
+}
+function _startRtt(client) {
+  _rtts = []
+  clearInterval(_rttTimer)
+  let busy = false
+  const probe = async () => {
+    if (busy || _client !== client || !client.welcomed) return
+    busy = true
+    const t = (typeof performance !== "undefined" ? performance : Date).now()
+    try { await client.ping(1, 4000); _rtts.push((typeof performance !== "undefined" ? performance : Date).now() - t); if (_rtts.length > 7) _rtts.shift() } catch {}
+    busy = false
+  }
+  probe(); setTimeout(probe, 300); setTimeout(probe, 700)
+  _rttTimer = setInterval(probe, 2000)
+}
 
 export function isConnecting() { return !!_client && !_client.welcomed }
 export function isConnected()  { return !!_client && _client.welcomed }
@@ -31,6 +67,7 @@ export function side()   { return _side }
 export function peers()  { return _peers }
 export function bothPresent() { return _peers >= 2 }
 export function getSession()   { return _session }
+export function sides()        { return _sides.slice() }
 
 // Connect to a relay as `roleWanted` ("host" | "join"). Resolves once the relay WELCOMEs us (seat assigned);
 // rejects on build-mismatch/refusal/socket error. `cbs` receives lifecycle events for the UI to render.
@@ -42,11 +79,11 @@ export async function connect(url, roleWanted, cbs = {}) {
   _cb = cbs || {}
   _role = roleWanted
   _side = null
-  _peers = 1
+  _peers = 1; _sides = []
 
   const client = new LanClient(url, { name: roleWanted })
   _client = client
-  client.on(MSG.LOBBY, (m) => { _peers = m.count || _peers; _cb.onLobby && _cb.onLobby(m) })
+  client.on(MSG.LOBBY, (m) => { _peers = m.count || _peers; if (Array.isArray(m.sides)) _sides = m.sides.filter((s) => /^p[1-4]$/.test(s)); _cb.onLobby && _cb.onLobby(m) })
   client.on(MSG.MATCH_SETUP, (m) => { _cb.onSetup && _cb.onSetup(m) })
   client.on(MSG.BYE, (m) => { _cb.onBye && _cb.onBye(m) })
   client.on(MSG.PICK, (m) => { _cb.onPick && _cb.onPick(m) })   // pick-your-own select: the other player's fighter
@@ -63,6 +100,7 @@ export async function connect(url, roleWanted, cbs = {}) {
   _side = client.side
   _peers = Math.max(_peers, 1)
   _session = new LanSession({ side: _side, send: (msg) => { try { client.send(msg) } catch {} } })
+  _startRtt(client)
   _cb.onWelcome && _cb.onWelcome({ side: _side })
   return { side: _side }
 }
@@ -81,13 +119,14 @@ export function resetSession() {
   if (!_client || !_side) return null
   const client = _client
   _session = new LanSession({ side: _side, send: (msg) => { try { client.send(msg) } catch {} } })
+  _delay = null
   return _session
 }
 
 // Pick-your-own select: tell the other player which fighter we locked in (UI only; the host's MATCH_SETUP stays
 // the single source of truth for the match).
 export function sendPick(meta) {
-  const msg = makePick(meta)
+  const msg = makePick({ rtt: rtt(), ...meta })
   if (_client && msg.char) _client.send(msg)
   return msg
 }
@@ -98,9 +137,11 @@ export function disconnect(reason = null) {
     try { if (_client.welcomed) _client.send(makeBye(reason)) } catch {}
     try { _client.close() } catch {}
   }
+  clearInterval(_rttTimer); _rttTimer = null; _rtts = []; _delay = null
   _client = null
   _session = null
   _side = null
   _role = null
   _peers = 1
+  _sides = []
 }

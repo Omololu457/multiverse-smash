@@ -250,7 +250,7 @@ handle("host:check-room", async (link) => {
     if (r.status === 429) return { ok: false, reason: "Too many attempts — wait a few minutes and try again." };
     const j = await r.json().catch(() => null);
     if (!j || !j.ok) return { ok: false, reason: "That room does not exist or has closed. Ask your friend for a new link." };
-    if (j.full) return { ok: false, reason: "That room is full (2 players)." };
+    if (j.full) return { ok: false, reason: "That room is full (4 players)." };
     if (j.compatible === false) return { ok: false, mismatch: true, hostVersion: j.hostVersion, myVersion: app.getVersion(), reason: (j.hostVersion && j.hostVersion !== app.getVersion())
       ? `Version mismatch: your friend runs version ${j.hostVersion} and you have ${app.getVersion()}. Download the matching version to join.`
       : `Different game build: you both have version ${app.getVersion()}, but the game files differ (yours ${ensureHostBuilt()}, theirs ${j.hostCode || "?"}). One of you has local changes or a different download — get the same release as your friend.` };

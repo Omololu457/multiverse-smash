@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// BELLWOOD (Ben 10) — Birdie's Stage (Street Fighter 1987 sheet) by tools/stage_layers/slice_birdie_bellwood.py: a quiet
+// main street (Mr. Smoothy), neighbours + pigeons; the fight in the street draws a crowd, a car alarm, the cops.
+SETS.birdie_bellwood = {
+  dir: "./stages/birdie_bellwood/",
+  S: 1.5,
+  standRow: 60,          // in the road: sidewalk 40 rows + curb 8 + 12
+  deckFrontRow: 70,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "bellwood_sky", p: 0.05 },
+    { piece: "street", p: 0.9, x: 0.5, tile: "repeat", bottomRow: 0 },   // the block repeats (not mirrored: the shop signs + house numbers must read right); never a gap
+  ],
+  props: [],
+  front: [],
+  fx: "bellwood",
+  animRate: {},
+}
+
 // ARLONG PARK (One Piece) — Retsu's Stage (Street Fighter 1987 sheet) repainted by tools/stage_layers/slice_retsu_arlong.py:
 // red walls + gate, tangerine trees, Arlong's tower (topples on the KO), fish-men, villagers, the sea cow.
 SETS.retsu_arlong = {
@@ -422,6 +440,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "bellwood_sky") { drawBellwoodSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "arlong_sky") { drawArlongSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "krypton") { drawKryptonSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "baratie_sea") { drawBaratieSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -436,16 +455,16 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
     if (ly.procedural === "valley") { drawValleyBack(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     if (ly.procedural === "heavenHall") { drawHeavenHall(ctx, def, c, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
     const pc = P[ly.piece], im = c.img[pc.file], ls = S * (ly.scale || 1), w = pc.w * ls, h = pc.h * ls
-    if (ly.tile === "mirror" || ly.x != null) {               // repeating cave walls / a single placed object
+    if (ly.tile === "mirror" || ly.tile === "repeat" || ly.x != null) {               // repeating cave walls / a single placed object
       const x0 = (ly.x != null ? ly.x * W : W / 2) - w / 2 + shift(ly.p, W)
       const y = dockTop + ly.bottomRow * S - h
       drawn[ly.piece] = { x: x0, y, S: ls }
-      if (ly.tile !== "mirror") { ctx.drawImage(im, x0, y, w, h); continue }
+      if (ly.tile !== "mirror" && ly.tile !== "repeat") { ctx.drawImage(im, x0, y, w, h); continue }
       if (ly.fx === "citadelWall") citadelWindows(ctx, { x: x0, y, S: ls }, { W, w, padL, padR, p: ly.p })   // the view, behind the frames
       const after = ly.fx === "batcomputer" ? () => batcomputer(ctx, c, drawn[ly.piece], S)
         : ly.fx === "citadelWall" ? () => citadelWall(ctx, def, c, drawn[ly.piece], { W, w, h, padL, padR, dockTop, coverTop, p: ly.p }) : null
       for (let k = Math.floor((padL - x0) / w); x0 + k * w < padR; k++) {
-        const xx = x0 + k * w, odd = Math.abs(k) % 2 === 1
+        const xx = x0 + k * w, odd = ly.tile === "mirror" && Math.abs(k) % 2 === 1
         if (!odd) { ctx.drawImage(im, Math.floor(xx), y, w + 1, h); continue }
         ctx.save(); ctx.translate(Math.floor(xx) + w, y); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, w + 1, h); ctx.restore()
       }
@@ -519,6 +538,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "bellwood") bellwoodFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "arlong") arlongFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "krypton") kryptonFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "baratie") baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -2575,9 +2595,9 @@ export const baratieState = () => ({ shots: BR.shots, balls: BR.balls.length, sp
   shout: BR.shoutT > 0 ? BR.shout : null, king: BR.king ? BR.king.stage : null, warship: BR.warship.alive, eaten: BR.eaten, broadside: BR.broadside, crowd: crowdState(BRC) })
 
 // every visible copy of a piece tiled with tile:"mirror" (same layout as the back-layer loop): px → screen x
-function mirrorCopies(G, w, padL, padR) {
+function mirrorCopies(G, w, padL, padR, repeat = false) {   // repeat: plain repeats (tile:"repeat"), no mirrored copies
   const out = []
-  for (let k = Math.floor((padL - G.x0) / w); G.x0 + k * w < padR; k++) { const xx = G.x0 + k * w, odd = Math.abs(k) % 2 === 1
+  for (let k = Math.floor((padL - G.x0) / w); G.x0 + k * w < padR; k++) { const xx = G.x0 + k * w, odd = !repeat && Math.abs(k) % 2 === 1
     out.push({ k, X: px => odd ? xx + w - px * G.S : xx + px * G.S }) }
   return out
 }
@@ -3104,4 +3124,169 @@ function arlongFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   AL.shout = AL.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── BELLWOOD (Ben 10; render-only, wall clock, own PRNG) ─────────────────────────────
+// Birdie's main street (Street Fighter, 1987) as Bellwood on a quiet sunny afternoon: neighbours walk the sidewalk (a
+// jogger, a dog walker, a mom with a stroller, a kid on a bike, the mailman, an old man with a cane), pigeons peck at
+// the curb, Mr. Smoothy has its giant cup on the roof. Then two people start a fight in the middle of the street. The
+// first hits make people stop and stare; the longer it goes the bigger the crowd gets — phones out, filming, shouting.
+// Big hits: "OOOOH!", the parked car's alarm goes off, the pigeons scatter. Ben going alien: a green flash and "IT'S BEN
+// 10!!". A fighter close to losing: somebody called the cops — a police car rolls up, lights washing the shopfronts.
+// The knockout: the whole street goes off, phones flashing.
+let _bwSeed = 0x3c6ef372
+const bwRnd = () => { _bwSeed ^= _bwSeed << 13; _bwSeed ^= _bwSeed >>> 17; _bwSeed ^= _bwSeed << 5; return (_bwSeed >>> 0) / 4294967296 }
+const BW = { p1: null, last: 0, hp: new WeakMap(), ppl: null, birds: null, heat: 0, hits: 0, bigHits: 0, alarm: 0, alarms: 0, ben: new WeakMap(), benFlash: 0, benCalls: 0,
+  cop: null, ko: false, koT: 0, shout: [], geo: null, phones: 0 }
+export const bellwoodState = () => { const P = BW.ppl || []
+  return { people: P.length, walking: P.filter(p => p.mode === "walk").length, watching: P.filter(p => p.mode === "watch").length, phones: P.filter(p => p.mode === "watch" && p.phone).length,
+    birds: (BW.birds || []).length, flying: (BW.birds || []).filter(b => b.fly).length, alarms: BW.alarms, benCalls: BW.benCalls, cop: BW.cop ? BW.cop.stage : null, ko: BW.ko, heat: BW.heat,
+    shouting: BW.shout.filter(s => s.t > 0).map(s => s.txt) } }
+function bwGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.street, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, walk0: dockTop + 10 * S, walk1: dockTop + 34 * S, curb: dockTop + 41 * S }
+}
+function bwShout(x, y, txt, col) { if (BW.shout.filter(s => s.t > 0).length < 4) BW.shout.push({ x, y, txt, col: col || "#222", t: 1.6 }) }
+
+function drawBellwoodSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = BW.geo = bwGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#4a9aec"); g.addColorStop(1, "#cfe8ff")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  ctx.fillStyle = "rgba(255,246,200,0.9)"; ctx.beginPath(); ctx.arc(W * 0.3 + shift(0.04, W), G.Y(-6), 28, 0, 7); ctx.fill()   // the sun
+  const sk = P.sky, im = c.img[sk.file], sw = sk.w * S, sh = sk.h * S, ss = shift(0.06, W) + (t * 4) % sw
+  if (ready(im)) { ctx.globalAlpha = 0.6; for (let k = Math.floor((padL - ss) / sw) - 1, x; (x = ss + k * sw) < padR; k++) ctx.drawImage(im, Math.floor(x), G.Y(-20) - sh * 0.55, Math.ceil(sw) + 1, sh); ctx.globalAlpha = 1 }
+  // the suburbs beyond main street: rows of houses + trees, and the BELLWOOD water tower
+  const hz = G.Y(150), ps = shift(0.35, W)
+  for (let i = Math.floor((padL - ps) / 70) - 1; i * 70 + ps < padR + 70; i++) {
+    const x = i * 70 + ps, hh = 34 + 14 * _h(i * 3 + 7), col = ["#d8c8a8", "#b8c8d8", "#e0d0c0", "#c8d8b8"][(i % 4 + 4) % 4]
+    ctx.fillStyle = col; ctx.fillRect(x, hz - hh, 54, hh)
+    ctx.fillStyle = ["#8a4a3a", "#5a5a6a", "#6a4a3a"][(i % 3 + 3) % 3]; ctx.beginPath(); ctx.moveTo(x - 6, hz - hh); ctx.lineTo(x + 27, hz - hh - 22); ctx.lineTo(x + 60, hz - hh); ctx.fill()
+    ctx.fillStyle = "#6a8aa8"; ctx.fillRect(x + 8, hz - hh + 10, 10, 10); ctx.fillRect(x + 34, hz - hh + 10, 10, 10)
+    ctx.fillStyle = "#4a8a3a"; ctx.beginPath(); ctx.arc(x + 64, hz - 18 - 10 * _h(i * 5), 16 + 6 * _h(i * 11), 0, 7); ctx.fill()
+  }
+  { const x = W * 0.36 + shift(0.3, W), y = hz - 60                                                                // the water tower
+    ctx.strokeStyle = "#7a7a82"; ctx.lineWidth = 4; ctx.beginPath(); for (const k of [-34, -12, 12, 34]) { ctx.moveTo(x + k * 0.7, y + 20); ctx.lineTo(x + k, hz) } ctx.stroke()
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 30, y + 60); ctx.lineTo(x + 30, y + 60); ctx.moveTo(x - 32, y + 40); ctx.lineTo(x + 32, y + 90); ctx.moveTo(x + 32, y + 40); ctx.lineTo(x - 32, y + 90); ctx.stroke()
+    ctx.fillStyle = "#e8e8ea"; ctx.beginPath(); ctx.ellipse(x, y, 52, 34, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#c8c8cc"; ctx.beginPath(); ctx.ellipse(x, y - 30, 30, 10, 0, Math.PI, 0); ctx.fill()
+    ctx.save(); ctx.font = "900 15px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#2a6a2a"; ctx.fillText("BELLWOOD", x, y + 2); ctx.restore() }
+}
+
+function bwPerson(ctx, p, x, y, s, t) {
+  const walking = p.mode === "walk" || p.go, ph = p.ph, sw = walking ? Math.sin(ph) * (p.kind === "jog" ? 0.8 : 0.45) : 0
+  const hop = p.cheer > 0 ? Math.abs(Math.sin(t * 9 + p.seed)) * 10 : 0, d = p.dir
+  ctx.save(); ctx.translate(x, y - hop); ctx.scale(s * d, s)
+  if (p.kind === "bike") {
+    ctx.strokeStyle = "#222"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-16, -11, 11, 0, 7); ctx.arc(18, -11, 11, 0, 7); ctx.stroke()
+    ctx.strokeStyle = "#d02a2a"; ctx.beginPath(); ctx.moveTo(-16, -11); ctx.lineTo(0, -26); ctx.lineTo(18, -11); ctx.moveTo(0, -26); ctx.lineTo(14, -30); ctx.stroke()
+    ctx.fillStyle = p.pants; ctx.save(); ctx.translate(-2, -36); ctx.rotate(0.5 + Math.sin(ph) * 0.5); ctx.fillRect(-3, 0, 6, 16); ctx.restore()
+    ctx.fillStyle = p.shirt; ctx.fillRect(-6, -54, 12, 20); ctx.fillStyle = p.skin; ctx.save(); ctx.translate(2, -50); ctx.rotate(-1.1); ctx.fillRect(-2, 0, 5, 16); ctx.restore()
+    ctx.beginPath(); ctx.arc(2, -60, 7, 0, 7); ctx.fill(); ctx.fillStyle = p.hat || "#2a6ad0"; ctx.beginPath(); ctx.arc(2, -62, 7.5, Math.PI, 0); ctx.fill(); ctx.restore(); return }
+  const tall = p.kind === "kid" ? 0.72 : 1
+  ctx.scale(tall, tall)
+  ctx.fillStyle = p.pants; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 3, -30); ctx.rotate(k * sw); ctx.fillRect(-3.5, 0, 7, 30); ctx.restore() }
+  ctx.fillStyle = "#222"; ctx.fillRect(-6, -2, 6, 3); ctx.fillRect(2, -2, 6, 3)
+  ctx.fillStyle = p.shirt; ctx.fillRect(-8, -60, 16, 32)
+  if (p.kind === "mail") { ctx.fillStyle = "#6a4a2a"; ctx.fillRect(-12, -46, 9, 14) }
+  // arms: swinging / cheering / holding a phone up toward the fight
+  ctx.fillStyle = p.skin
+  if (p.mode === "watch" && p.phone) { ctx.save(); ctx.translate(4, -56); ctx.rotate(-1.35); ctx.fillRect(-2.5, 0, 5, 20); ctx.restore(); ctx.fillStyle = "#111"; ctx.fillRect(20, -66, 6, 10)
+    ctx.fillStyle = BW.ko && Math.sin(t * 25 + p.seed) > 0.6 ? "#fff" : "#9ad0ff"; ctx.fillRect(21, -65, 4, 8) }
+  else if (p.cheer > 0) { for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 6, -58); ctx.rotate(Math.PI + k * 0.35 + Math.sin(t * 12 + p.seed) * 0.2); ctx.fillRect(-2.5, 0, 5, 20); ctx.restore() } }
+  else { for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 4, -58); ctx.rotate(-k * sw * 0.8 + (p.kind === "stroller" || p.kind === "old" ? -0.9 : 0)); ctx.fillRect(-2.5, 0, 5, 22); ctx.restore() } }
+  ctx.fillStyle = p.skin; ctx.beginPath(); ctx.arc(1, -68, 8, 0, 7); ctx.fill()
+  ctx.fillStyle = p.hair; ctx.beginPath(); ctx.arc(0, -70, 8.3, Math.PI * 0.95, Math.PI * 2.05); ctx.fill()
+  if (p.hat) { ctx.fillStyle = p.hat; ctx.fillRect(-8, -78, 16, 6); ctx.fillRect(0, -74, 12, 3) }
+  if (p.kind === "old") { ctx.fillStyle = "#e8e8e8"; ctx.beginPath(); ctx.arc(0, -70, 8.3, Math.PI * 0.95, Math.PI * 2.05); ctx.fill(); ctx.strokeStyle = "#5a3a1a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(16, -40); ctx.lineTo(19, 0); ctx.stroke() }
+  ctx.fillStyle = "#111"; ctx.fillRect(4, -70, 2, 2)
+  ctx.restore()
+  if (p.kind === "stroller") { const sx = x + d * 26 * s, sy = y
+    ctx.fillStyle = "#3a6ac8"; ctx.fillRect(sx - 13 * s, sy - 34 * s, 26 * s, 16 * s); ctx.beginPath(); ctx.arc(sx + d * 6 * s, sy - 34 * s, 13 * s, Math.PI, 0); ctx.fill()
+    ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(sx - 9 * s, sy - 5 * s, 5 * s, 0, 7); ctx.arc(sx + 9 * s, sy - 5 * s, 5 * s, 0, 7); ctx.fill()
+    ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx - d * 13 * s, sy - 32 * s); ctx.lineTo(x + d * 14 * s, sy - 46 * s); ctx.stroke() }
+  if (p.kind === "dog") { const dx = x + d * 40 * s, dy = y, bark = p.mode === "watch" && Math.sin(t * 6 + p.seed) > 0.7, leg = walking ? Math.sin(ph * 1.6) * 4 : 0
+    ctx.strokeStyle = "#a02a2a"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x + d * 14 * s, y - 40 * s); ctx.lineTo(dx + d * 14 * s, dy - 22 * s); ctx.stroke()
+    ctx.fillStyle = "#b07a3a"; ctx.fillRect(dx - 14 * s, dy - 22 * s, 28 * s, 11 * s); ctx.fillRect(dx + d * 10 * s - 6 * s, dy - 30 * s, 12 * s, 11 * s)
+    ctx.fillRect(dx - 12 * s + leg, dy - 12 * s, 4 * s, 12 * s); ctx.fillRect(dx + 8 * s - leg, dy - 12 * s, 4 * s, 12 * s)
+    ctx.fillStyle = "#6a4a2a"; ctx.fillRect(dx - d * 18 * s, dy - 24 * s, 5 * s, 3 * s)
+    if (bark) { ctx.save(); ctx.font = "900 12px Arial"; ctx.fillStyle = "#222"; ctx.textAlign = "center"; ctx.fillText("WOOF!", dx + d * 22 * s, dy - 36 * s); ctx.restore() } }
+}
+
+function bellwoodFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = BW.geo || bwGeo(def, c, W, dockTop), S = def.S, P = c.layout.pieces
+  if (F[0] !== BW.p1) Object.assign(BW, { p1: F[0], hp: new WeakMap(), ppl: null, birds: null, heat: 0, hits: 0, bigHits: 0, alarm: 0, alarms: 0, ben: new WeakMap(), benFlash: 0, benCalls: 0, cop: null, ko: false, koT: 0, shout: [] })
+  const dt = Math.min(0.05, Math.max(0, t - (BW.last || t))); BW.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2
+  if (!BW.ppl) {
+    const kinds = ["walk", "jog", "dog", "stroller", "bike", "mail", "old", "kid", "walk", "walk", "kid", "walk"]
+    BW.ppl = kinds.map((kind, i) => ({ kind, seed: i * 1.7, x: padL + (padR - padL) * ((i * 0.37 + 0.05) % 1), dir: i % 2 ? -1 : 1, lane: (i * 0.29) % 1, ph: i,
+      speed: kind === "jog" ? 95 : kind === "bike" ? 150 : kind === "old" ? 28 : kind === "kid" ? 60 : 45, mode: "walk", phone: false, cheer: 0, go: false, tx: 0,
+      shirt: ["#d84a4a", "#3a7ad8", "#f0c040", "#4aa860", "#9a5ad0", "#3a5a9a", "#e8e8e8", "#f08a3a", "#2a8a8a", "#c83a8a", "#2aa0d8", "#6a6a6a"][i],
+      pants: ["#2a3a6a", "#3a3a3a", "#5a4a3a", "#2a2a5a"][i % 4], skin: ["#f1c9a5", "#c58c64", "#8a5a3a", "#e0b090", "#6a4028"][i % 5], hair: ["#3a2a1a", "#1a1a1a", "#8a4a2a", "#d8b060"][i % 4],
+      hat: kind === "mail" ? "#2a3a7a" : kind === "jog" ? "#e8e8e8" : kind === "old" ? "#6a5a4a" : null }))
+    BW.birds = [0.04, 0.08, 0.12, 0.88, 0.92, 0.96].map((u, i) => ({ x: padL + (padR - padL) * u, y: 0, fly: false, vx: 0, vy: 0, peck: i, back: 0 }))
+  }
+  // ── the fight → the street reacts
+  let hurt = false, bigHit = false, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = BW.hp.get(f); BW.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was > hp) { hurt = true; if (was - hp >= 60) bigHit = true }
+    if (/^(ben10|albedo)$/i.test(f.rosterKey || "")) { const form = f.transformed ? String(f.activeAlien || "alien") : "", prev = BW.ben.get(f)
+      if (prev != null && form && form !== prev) { BW.benFlash = 1; BW.benCalls++; bwShout(f.x + 25, G.walk0 - 120 * S / 1.5, /albedo/i.test(f.rosterKey) ? "WAIT... THAT'S NOT BEN!?" : "IT'S BEN 10!!", "#1a8a2a"); for (const p of BW.ppl) if (p.mode === "watch") p.cheer = 1.5 }
+      BW.ben.set(f, form) } }
+  if (hurt) { BW.hits++; BW.heat = Math.min(1, BW.heat + 0.08)
+    if (BW.hits === 1) bwShout(mid, G.walk0 - 110, ["AYO, THEY FIGHTING!", "IN THIS NEIGHBORHOOD?!"][Math.floor(bwRnd() * 2)], "#c03020")
+    // more of the street stops to watch the hotter the fight gets
+    for (const p of BW.ppl) if (p.mode === "walk" && p.kind !== "bike" && bwRnd() < 0.2 + BW.heat * 0.5) { p.mode = "watch"; p.phone = p.kind !== "old" && p.kind !== "stroller" && bwRnd() < 0.7; p.go = true
+      p.tx = mid + (p.x < mid ? -1 : 1) * (150 + bwRnd() * 260) } }
+  if (bigHit) { BW.bigHits++; BW.alarm = 3.5; BW.alarms++; for (const p of BW.ppl) if (p.mode === "watch") p.cheer = 0.9
+    bwShout(mid + (bwRnd() - 0.5) * 300, G.walk0 - 100, ["OOOOOH!", "WORLDSTAR!!", "NOT IN FRONT OF MY STORE!", "HE FELT THAT!", "SOMEBODY STOP 'EM!"][BW.bigHits % 5], "#222")
+    for (const b of BW.birds) if (!b.fly) { b.fly = true; b.vx = (b.x < mid ? -1 : 1) * (80 + bwRnd() * 80); b.vy = -160 - bwRnd() * 80 } }
+  if (low && !BW.cop) { BW.cop = { x: padR + 260, stop: Math.min(padR - 90, mid + 520), stage: "drive" }; bwShout(mid, G.walk0 - 120, "SOMEBODY CALLED THE COPS!", "#2a4ad0") }
+  if (ko && !BW.ko) { BW.ko = true; camera.shake?.(5, 20); for (const p of BW.ppl) { if (p.mode === "walk" && p.kind !== "bike") { p.mode = "watch"; p.phone = true; p.go = true; p.tx = mid + (p.x < mid ? -1 : 1) * (160 + bwRnd() * 240) } p.cheer = 5 }
+    bwShout(mid, G.walk0 - 130, "OHHHHHHH!!", "#c03020") }
+  if (BW.ko) BW.koT += dt
+  // ── police: lights wash the shopfronts, the car rolls up to the curb
+  if (BW.cop) { const K = BW.cop; if (K.stage === "drive") { K.x -= 260 * dt; if (K.x <= K.stop) { K.x = K.stop; K.stage = "parked" } }
+    const red = Math.sin(t * 12) > 0; ctx.fillStyle = red ? "rgba(255,30,30,0.10)" : "rgba(30,80,255,0.10)"; ctx.fillRect(padL, G.y0, padR - padL, dockTop - G.y0) }
+  // ── the car alarm (every copy of the street has the parked car)
+  if (BW.alarm > 0) { BW.alarm -= dt; const on = Math.sin(t * 16) > 0
+    for (const cp of mirrorCopies(G, G.w, padL, padR, true)) { const cx = cp.X(P.street.car[0]), cy = G.Y(P.street.car[1] - 14)
+      if (on) { const gl = ctx.createRadialGradient(cx, cy, 2, cx, cy, 40); gl.addColorStop(0, "rgba(255,240,150,0.95)"); gl.addColorStop(1, "rgba(255,240,150,0)"); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(cx, cy, 40, 0, 7); ctx.fill() } }
+    if (Math.floor(t * 2) % 2 === 0 && BW.alarm > 0.5) { const cx = G.X(P.street.car[0]); ctx.save(); ctx.font = "900 14px Arial"; ctx.textAlign = "center"; ctx.fillStyle = "#c02020"; ctx.fillText("WEE-OOO WEE-OOO", cx, G.Y(P.street.car[1] - 50)); ctx.restore() } }
+  // ── Mr. Smoothy: the sign + the giant cup on the roof (every copy)
+  for (const cp of mirrorCopies(G, G.w, padL, padR, true)) {
+    const [sx, sy, sw, sh] = P.street.sign, x = cp.X(sx), y = G.Y(sy), w = sw * S, h = (sh + 2) * S
+    ctx.fillStyle = "#e05aa0"; ctx.fillRect(x - w / 2, y - h / 2, w, h); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(x - w / 2 + 3, y - h / 2 + 3, w - 6, h - 6)
+    ctx.save(); ctx.font = `900 ${Math.round(12 * S)}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff"; ctx.fillText("MR. SMOOTHY", x, y + 1); ctx.restore()
+    const rx = cp.X(P.street.roof[0]), ry = G.Y(P.street.roof[1]), cw = 34 * S, ch = 46 * S
+    ctx.fillStyle = "#f2f2f2"; ctx.beginPath(); ctx.moveTo(rx - cw / 2, ry - ch); ctx.lineTo(rx + cw / 2, ry - ch); ctx.lineTo(rx + cw * 0.36, ry); ctx.lineTo(rx - cw * 0.36, ry); ctx.fill()
+    ctx.fillStyle = "#e05aa0"; ctx.fillRect(rx - cw * 0.42, ry - ch * 0.62, cw * 0.84, ch * 0.3)
+    ctx.fillStyle = "#c83a7a"; ctx.beginPath(); ctx.ellipse(rx, ry - ch, cw / 2 + 2, 7 * S, 0, 0, 7); ctx.fill()
+    ctx.strokeStyle = "#3ad06a"; ctx.lineWidth = 3 * S; ctx.beginPath(); ctx.moveTo(rx + 4 * S, ry - ch); ctx.lineTo(rx + 10 * S, ry - ch - 22 * S); ctx.stroke() }
+  // ── pigeons on the curb: peck, scatter when the fight gets close or a big hit lands, come back later
+  for (const b of BW.birds) { const by = G.walk1 + 4 * S
+    if (!b.fly && F.some(f => Math.abs(f.x + 25 - b.x) < 110)) { b.fly = true; b.vx = (b.x < mid ? -1 : 1) * 90; b.vy = -150 }
+    if (b.fly) { b.x += b.vx * dt; b.y += b.vy * dt; b.vy += 20 * dt; b.back += dt; if (b.back > 9 && !F.some(f => Math.abs(f.x + 25 - b.x) < 260)) { b.fly = false; b.y = 0; b.back = 0 } }
+    const x = b.x, y = by + b.y, flap = b.fly ? Math.sin(t * 30 + b.peck) * 5 : 0, pk = !b.fly && Math.sin(t * 3 + b.peck * 2) > 0.6 ? 3 : 0
+    ctx.fillStyle = "#7a7a8a"; ctx.beginPath(); ctx.ellipse(x, y - 6, 7, 4.5, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(x + 6, y - 10 + pk, 3, 0, 7); ctx.fill()
+    if (b.fly) { ctx.beginPath(); ctx.moveTo(x - 4, y - 7); ctx.lineTo(x, y - 14 - flap); ctx.lineTo(x + 4, y - 7); ctx.fill() } else { ctx.fillStyle = "#d08a3a"; ctx.fillRect(x - 2, y - 2, 1.5, 3); ctx.fillRect(x + 1, y - 2, 1.5, 3) } }
+  // ── the neighbours (drawn back to front)
+  const span = padR - padL + 400
+  for (const p of BW.ppl) { p.cheer = Math.max(0, p.cheer - dt)
+    if (p.mode === "walk") { p.x += p.dir * p.speed * dt; p.ph += dt * p.speed / 7; if (p.x > padR + 200) p.x -= span; if (p.x < padL - 200) p.x += span }
+    else { const dx = p.tx - p.x; if (Math.abs(dx) > 4) { p.go = true; p.dir = Math.sign(dx); p.x += p.dir * Math.min(Math.abs(dx), 70 * dt); p.ph += dt * 10 } else { p.go = false; p.dir = mid > p.x ? 1 : -1 } } }
+  const order = [...BW.ppl].sort((a, b) => a.lane - b.lane)
+  for (const p of order) bwPerson(ctx, p, p.x, G.walk0 + (G.walk1 - G.walk0) * p.lane, 1.15, t)
+  if (BW.cop) { const K = BW.cop, x = K.x, y = G.curb + 6 * S, red = Math.sin(t * 12) > 0
+    ctx.fillStyle = "#1a1a2a"; ctx.fillRect(x - 60, y - 34, 120, 22); ctx.fillStyle = "#f2f2f2"; ctx.fillRect(x - 30, y - 52, 62, 20); ctx.fillRect(x - 60, y - 24, 120, 8)
+    ctx.fillStyle = "#8ac8f0"; ctx.fillRect(x - 24, y - 48, 22, 12); ctx.fillRect(x + 4, y - 48, 22, 12)
+    ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(x - 36, y - 10, 11, 0, 7); ctx.arc(x + 38, y - 10, 11, 0, 7); ctx.fill()
+    ctx.fillStyle = red ? "#ff2020" : "#401010"; ctx.fillRect(x - 14, y - 58, 13, 6); ctx.fillStyle = red ? "#101040" : "#2040ff"; ctx.fillRect(x + 2, y - 58, 13, 6)
+    ctx.save(); ctx.font = "900 9px Arial"; ctx.textAlign = "center"; ctx.fillStyle = "#1a1a2a"; ctx.fillText("POLICE", x, y - 17); ctx.restore() }
+  // the Omnitrix flash
+  if (BW.benFlash > 0) { BW.benFlash = Math.max(0, BW.benFlash - dt * 2.5); ctx.fillStyle = `rgba(80,255,110,${0.3 * BW.benFlash})`; ctx.fillRect(padL, G.y0, padR - padL, coverBottom - G.y0) }
+  for (const s of BW.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  BW.shout = BW.shout.filter(s => s.t > 0)
 }

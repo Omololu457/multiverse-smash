@@ -1,0 +1,50 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Birdie's Stage background sheet (ripped by TonyWanKenobian); repainted as Bellwood's main street",
+ "pieces": {
+  "street": {
+   "file": "street.png",
+   "w": 768,
+   "h": 184,
+   "sign": [
+    387,
+    94,
+    178,
+    16
+   ],
+   "roof": [
+    387,
+    8
+   ],
+   "car": [
+    214,
+    178
+   ],
+   "shutter": [
+    386,
+    112,
+    474,
+    182
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 348,
+   "sidewalk": [
+    0,
+    40
+   ],
+   "curb": 40
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 896,
+   "h": 144
+  }
+ },
+ "colors": {
+  "skyTop": "#6aaef0",
+  "under": "#4e4e52"
+ },
+ "preview": "preview.png"
+}

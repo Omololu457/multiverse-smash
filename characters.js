@@ -21,6 +21,7 @@ import { robin } from './robinData.js'   // Robin (Dick Grayson, DC / Teen Titan
 import { megumi_fushiguro } from './megumiData.js'   // Megumi Fushiguro (Jujutsu Kaisen, Ten Shadows) — megumi*.js
 import { higuruma } from './higurumaData.js'   // Hiromi Higuruma (Jujutsu Kaisen, supplied sheet by Mugen Matias) — higuruma*.js
 import { gojo_shinjuku } from './gojoShinjukuData.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc, FinhJ sheet) — a NEW fighter beside the old `gojo` (untouched); gojoShinjuku*.js + limitless.js
+import { sukuna_shinjuku } from './sukunaShinjukuData.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) — a NEW fighter beside the old `sukuna` (untouched); sukunaShinjuku*.js
 import { syndrome } from './syndromeData.js'   // Syndrome (The Incredibles, GBA sheets) — syndrome*.js
 import { dseyl } from './dseylData.js'   // Dseyl (tribute fighter: edited copy of Syndrome + flight + Flash Time) — dseyl*.js
 import { frozone } from './frozoneData.js'   // Frozone (The Incredibles, GBA sheet) — frozone*.js
@@ -11450,7 +11451,7 @@ const soldierBoy = {
 
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
-  gojo, gojo_shinjuku, sukuna, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, enoch, jesus, maki, toji, yuji, baki, naoya,
+  gojo, gojo_shinjuku, sukuna, sukuna_shinjuku, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, enoch, jesus, maki, toji, yuji, baki, naoya,
   naruto, sasuke, sasuke_adult: sasukeAdult, itachi, shisui_itachi_kids: shisuiItachiKids, tobirama, hashirama, minato, madara, obito, tobi, pain, jiraiya,
   zenitsu, rengoku, shinobu, inosuke, nezuko,
   rick, morty, evilMorty, rickPrime,

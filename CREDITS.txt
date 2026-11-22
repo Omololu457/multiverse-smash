@@ -24,6 +24,11 @@ Satoru Gojo (Shinjuku Arc) sprites by FinhJ, credits ZebrasBlack and R0B4N
   satoru_gojo_shinjuku_arc_jus_sprite_sheet_by_finhj_by_finhj_dhxrc7c.png)
 Source files: assets/gojo_shinjuku/**  (ledger: docs/msv1/gojo/LEDGER.md)
 
+Ryomen Sukuna (Shinjuku Arc) sprites credited on the supplied sheet to
+  Mrfresh, Zeltas Black, Mps, Kenny, Dark night and Dr animation
+  (the new `sukuna_shinjuku` fighter; the old `sukuna` is unchanged)
+Source files: assets/sukuna_shinjuku/**  (ledger: docs/msv1/sukuna/LEDGER.md)
+
 This is a non-commercial personal fan project. All characters and source
 material are the property of their respective creators and rights holders.
 

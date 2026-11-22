@@ -94,6 +94,7 @@ export const EDO_SKIN_KEYS = Object.freeze([
   "spiderman",
   "starfire",
   "sukuna",
+  "sukuna_shinjuku",
   "superman",
   "syndrome",
   "tobi",

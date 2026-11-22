@@ -1,5 +1,5 @@
-// harness/round_walkback.test.mjs — MK1-style round end: the fight stops, the fallen fighter gets up, both fighters walk
-// backwards (facing each other) to their starting marks; the next round starts from exactly there (no snap).
+// harness/round_walkback.test.mjs — MK1-style round end: the fight stops, the fallen fighter gets up, both fighters go back to
+// their marks — speedsters (MS_V1 Wind Ranger) DASH there, walkers (S.P.D. Red) walk at their own pace within 5 s; no snap.
 import { chromium } from "playwright"
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url"
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -11,27 +11,33 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = []; page.on("pageerror", e => errors.push(String(e)))
 const sleep = t => new Promise(r => setTimeout(r, t))
 const OUT = path.join(ROOT, "harness", "shots", "round_walkback"); fs.mkdirSync(OUT, { recursive: true })
-try {
-  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=naruto&p2=sasuke`, { waitUntil: "load" })
+async function run(p1key) {
+  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=${p1key}&p2=sasuke`, { waitUntil: "load" })
   await page.waitForFunction(() => !!window.__harness?.boot, null, { timeout: 30000 })
   await page.mouse.click(640, 360)
   await page.evaluate(() => { window.__harness.start({ mode: "vs", difficulty: "dummy" }); window.__harness.skipToBattle() })
-  await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" && s.countdown === 0 }, null, { timeout: 20000 })
-  await page.keyboard.down("KeyD"); await sleep(1500); await page.keyboard.up("KeyD")   // walk p1 off its mark
-  const x0 = await page.evaluate(() => ({ a: window.__harness.p1().x, b: window.__harness.p2().x }))
-  await page.evaluate(() => { const H = window.__harness, q = H.p1(); H.brutality.setHp("p1", Math.round((q.maxHealth || 1000) * 0.4)) })   // p1 took real damage → limps
+  await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" && s.countdown === 0 }, null, { timeout: 30000 })
+  await page.keyboard.down("KeyD"); await sleep(3000); await page.keyboard.up("KeyD")   // walk p1 well off its mark
+  await page.evaluate(() => { const H = window.__harness, q = H.p1(); H.brutality.setHp("p1", Math.round((q.maxHealth || 1000) * 0.4)) })   // p1 took real damage
   await page.evaluate(() => window.__harness.forceP1Win())
   await page.waitForFunction(() => window.__harness.state().gameState === "roundBreak", null, { timeout: 15000 })
   const log = [], t0 = Date.now()
-  while (Date.now() - t0 < 60000) { const s = await page.evaluate(() => { const H = window.__harness, a = H.p1(), b = H.p2(), st = H.state(); return { fr: st.frame, g: st.gameState, cd: st.countdown, a: { x: a.x, vx: a.vx, f: a.facing, kd: !!a.knockdownState, act: a._lastSpriteAction }, b: { x: b.x, vx: b.vx, f: b.facing, kd: !!b.knockdownState, act: b._lastSpriteAction } } }); log.push(s)
-    if (s.g === "battle") break; if (log.length % 12 === 0) await page.screenshot({ path: path.join(OUT, `f${String(log.length).padStart(3, "0")}.png`) }); await sleep(40) }
-  if (process.env.TRACE) console.log(log.filter((s, i) => i % 5 === 0).map(s => `${s.fr} ${s.g} a${s.a.x.toFixed(0)}/${(s.a.vx||0).toFixed(1)} b${s.b.x.toFixed(0)}/${(s.b.vx||0).toFixed(1)} ${s.b.kd}`).join("\n"))
-  const brk = log.filter(s => s.g === "roundBreak"), last = brk[brk.length - 1], nxt = log[log.length - 1]
-  check("the loser stays down, then gets up", brk.some(s => s.b.kd) && !last.b.kd, JSON.stringify(brk.map(s => s.b.kd ? "D" : ".").join("")))
-  check("the winner walks backwards to its mark, still facing the opponent", brk.some(s => s.a.vx < -0.5 && s.a.f === 1), JSON.stringify([...new Set(brk.map(s => s.a.f + "/" + s.b.f))]))
-  { const vs = brk.map(s => Math.abs(s.a.vx || 0)).filter(v => v > 0.05), mx = Math.max(...vs), mn = Math.min(...vs)
-    check("hurt → a slow limp back (never faster than ~2 px/frame, uneven step)", vs.length > 5 && mx <= 2.1 && mn < mx * 0.5, JSON.stringify({ max: +mx.toFixed(2), min: +mn.toFixed(2), n: vs.length })) }
-  check("they reach their marks: the next round starts where they stopped (no snap)", nxt.g === "battle" && Math.abs(nxt.a.x - last.a.x) < 3 && Math.abs(nxt.b.x - last.b.x) < 3, JSON.stringify({ moved: [x0.a, last.a.x, nxt.a.x], b: [x0.b, last.b.x, nxt.b.x] }))
+  while (Date.now() - t0 < 90000) { const s = await page.evaluate(() => { const H = window.__harness, a = H.p1(), b = H.p2(), st = H.state(); return { fr: st.frame, g: st.gameState, a: { x: a.x, vx: a.vx, f: a.facing }, b: { x: b.x, kd: !!b.knockdownState } } }); log.push(s)
+    if (s.g === "battle") break; if (log.length % 10 === 0) await page.screenshot({ path: path.join(OUT, `${p1key}_${String(log.length).padStart(3, "0")}.png`) }); await sleep(25) }
+  const brk = log.filter(s => s.g === "roundBreak"), mv = brk.filter(s => Math.abs(s.a.vx || 0) > 1), last = brk[brk.length - 1], nxt = log[log.length - 1]
+  if (process.env.TRACE) console.log(p1key, mv.map(s => s.fr + ":" + s.a.x.toFixed(0) + "/" + s.a.vx.toFixed(1)).join(" "))
+  const span = mv.length ? mv[mv.length - 1].fr - mv[0].fr : 0, vmax = Math.max(0, ...mv.map(s => Math.abs(s.a.vx)))
+  return { brk, mv, last, nxt, span, vmax }
+}
+try {
+  { const r = await run("windrangers")   // MS_V1 Wind Ranger: Ninja Streak → dashes back
+    check("the loser stays down, then gets up", r.brk.some(s => s.b.kd) && !r.last.b.kd)
+    check("MS_V1 Wind Ranger DASHES back to the mark (fast, done in well under a second)", r.vmax >= 20 && r.span <= 40, JSON.stringify({ vmax: r.vmax, frames: r.span }))
+    check("…and reaches it: the next round starts where he stopped (no snap)", r.nxt.g === "battle" && Math.abs(r.nxt.a.x - r.last.a.x) < 3, JSON.stringify([r.last.a.x, r.nxt.a.x])) }
+  { const r = await run("spd_red")   // S.P.D. Red: a normal walker → walks back (hurt → limping), within 5 s
+    check("S.P.D. Red WALKS back facing the opponent at a walking pace (not a dash, not a crawl)", r.vmax > 2 && r.vmax < 12 && r.mv.every(s => s.a.f === 1), JSON.stringify({ vmax: +r.vmax.toFixed(2) }))
+    check("…and gets there within 5 seconds", r.span > 10 && r.span <= 300, JSON.stringify({ frames: r.span }))
+    check("…the next round starts where he stopped (no snap)", r.nxt.g === "battle" && Math.abs(r.nxt.a.x - r.last.a.x) < 3, JSON.stringify([r.last.a.x, r.nxt.a.x])) }
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }
 await browser.close(); server.close()

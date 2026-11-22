@@ -5352,13 +5352,21 @@ function regroundOnResize(f) {
 }
 
 // ROUND WALK-BACK (Mortal Kombat 1 style): between rounds the fight stops, the fallen fighter gets back up and BOTH
-// fighters walk backwards (still facing each other) to their starting marks — so the next round starts from where
-// they actually are instead of snapping. SLOW: a fighter who took real damage this round LIMPS back (uneven step,
-// dips on the bad leg); one who barely got touched just walks back calmly. The break is held until both are on
-// their marks. Frame-driven (roundBreakTimer), no RNG; the fighters it moves are replaced by resetRound() at the
+// fighters go back to their starting marks — so the next round starts from where they actually are instead of
+// snapping. CHARACTER-DEPENDENT: speedsters (the speed tier / teleport-dashers, Dash, the MS_V1 Wind Ranger with his
+// Ninja Streak) DASH straight to their mark in a blink; everyone else walks back at their OWN walking speed, facing
+// the opponent — a fighter who took real damage limps (uneven step, dips on the bad leg) but never so slowly that the
+// walk takes more than 5 s. The break is held until both are on their marks. Frame-driven (roundBreakTimer), no RNG; the fighters it moves are replaced by resetRound() at the
 // spawn positions they just walked to, so nothing here reaches the next round's sim.
-//   0-40 f: hold the knockout · 40-80 f: the loser rises · then walk back (as long as it takes, ≤ ~8 s) · stand ready.
+//   0-40 f: hold the knockout · 40-80 f: the loser rises · then dash / walk back (≤ 5 s) · stand ready.
 const RWB_HOLD = 20   // the frames of "stand ready" left on roundBreakTimer once both are on their marks
+const RWB_MAX_WALK = 300   // 5 s: nobody takes longer than this to get back
+const RWB_DASHERS = new Set(["windrangers", "ns_red", "ns_yellow", "dash_parr", "flash", "xlr8"])   // dash-mobility kits below the speed tier
+function _rwbDashes(f) { return isSpeedTierTeleport(f) || RWB_DASHERS.has((f.rosterKey || "").toLowerCase()) || (f.transformed && RWB_DASHERS.has(f.activeAlien)) }
+function _rwbWalkSpeed(f) {   // the fighter's own ground walk speed (physics.js: clamp(4.5 + (speed - 78)/20·5, 4.5, 9.5) × WALK_FEEL 1.15)
+  const raw = f.baseSpeed ?? f.speed ?? 85
+  return Math.max(4.5, Math.min(9.5, 4.5 + (raw - 78) / 20 * 5)) * 1.15
+}
 function _roundWalkBack() {
   if (!p1 || !p2) return true
   const el = ROUND_BREAK_DURATION - roundBreakTimer, { p1X, p2X } = getSpawnPositions()
@@ -5369,7 +5377,7 @@ function _roundWalkBack() {
     const o = f === p1 ? p2 : p1, down = (f.health || 0) <= 0
     if (fr === 1) {   // the fight stops: drop whatever was mid-flight
       f.attacking = false; f.currentAttack = null; f.currentMove = null; f.hitstun = 0; f.stun = 0; f.hitstop = 0; f.isBlocking = false; f.dashTimer = 0; f._spriteCastTimer = 0; f._tauntPlaying = false
-      f.vx = 0; f._rwbDown = down; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
+      f.vx = 0; f._rwbDown = down; f._rwbStart = null; f._rwbDash = null; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
       const side = f === p1 ? "p1" : "p2", start = matchStats.roundStartHealth?.[side] || f.maxHealth || 1000
       f._rwbHurt = down ? 1 : Math.max(0, Math.min(1, (start - (f.health || 0)) / (f.maxHealth || start || 1000)))   // share of the bar lost this round
     }
@@ -5383,18 +5391,28 @@ function _roundWalkBack() {
       if (fr < 80) { f.knockdownState = true; f.knockdownTimer = Math.max(1, Math.round((80 - fr) * (24 / 40))); done = false; continue }
       f.knockdownState = false; f.knockdownTimer = 0; f._rwbDown = false
     } else if (fr < 40) { f.vx = 0; done = false; continue }
-    f.facing = (o.x + (o.w || 0) / 2) >= (f.x + (f.w || 0) / 2) ? 1 : -1
+    const faceOpp = (o.x + (o.w || 0) / 2) >= (f.x + (f.w || 0) / 2) ? 1 : -1
     const d = tx - f.x
-    if (Math.abs(d) < 1) { f.x = tx; f.vx = 0; continue }
+    if (Math.abs(d) < 1) { f.x = tx; f.vx = 0; f.dashTimer = 0; f.facing = faceOpp; continue }
     done = false
-    // pace: hurt → a slow limp (~1.3 px/f average), barely touched → an unhurried walk (~2.6 px/f); only a very long
-    // way back (> ~6 s) slowly picks up so the break can't drag on forever
-    const hurt = f._rwbHurt || 0, limp = hurt >= 0.25, late = Math.max(0, fr - 440) / 60
-    let v = (limp ? 1.6 - 0.5 * hurt : 2.6) * (1 + late)
-    if (limp) { const ph = (fr * 0.11) % (Math.PI * 2), step = Math.abs(Math.sin(ph)); v *= 0.25 + 1.1 * step   // drag the bad leg: surge, stall
+    if (f._rwbStart == null) f._rwbStart = fr
+    const gone = fr - f._rwbStart, left = Math.max(1, RWB_MAX_WALK - gone)
+    if (_rwbDashes(f)) {   // a speedster: one dash, facing where they're going, straight onto the mark
+      if (f._rwbDash == null) f._rwbDash = Math.max(isSpeedTierTeleport(f) ? 38 : 24, Math.abs(d) / 18)   // ≤ ~0.3 s whatever the distance
+      const st = Math.sign(d) * Math.min(Math.abs(d), f._rwbDash)
+      f.facing = Math.sign(d) || faceOpp; f.dashTimer = 2; f.x += st; f.vx = st
+      if (Math.abs(tx - f.x) < 1) { f.x = tx; f.vx = 0; f.dashTimer = 0; f.facing = faceOpp }
+      continue
+    }
+    // a walker: their own walking pace (backpedalling, facing the opponent); hurt → a limp at ~60%; never > 5 s
+    f.facing = faceOpp
+    const hurt = f._rwbHurt || 0, limp = hurt >= 0.25, walk = _rwbWalkSpeed(f)
+    let v = limp ? walk * (0.7 - 0.2 * hurt) : walk
+    if (limp) { const ph = (fr * 0.16) % (Math.PI * 2), step = Math.abs(Math.sin(ph)); v *= 0.35 + 1.0 * step   // drag the bad leg: surge, stall
       if (step < 0.35) { f._rwbBob = 1; f.y = gy + 3 } }                                                       // dip onto the hurt side
+    v = Math.max(v, Math.abs(d) / left)   // the 5-second floor
     const st = Math.sign(d) * Math.min(Math.abs(d), v)
-    f.x += st; f.vx = st   // vx drives the walk / walk_back strip (facing the opponent → backpedal) and slows its cycle
+    f.x += st; f.vx = st   // vx drives the walk / walk_back strip (facing the opponent → backpedal) and its cycle rate
   }
   return done
 }

@@ -19,6 +19,7 @@ try {
   await page.waitForFunction(() => { const s = window.__harness.state(); return s.gameState === "battle" && s.countdown === 0 }, null, { timeout: 20000 })
   await page.keyboard.down("KeyD"); await sleep(1500); await page.keyboard.up("KeyD")   // walk p1 off its mark
   const x0 = await page.evaluate(() => ({ a: window.__harness.p1().x, b: window.__harness.p2().x }))
+  await page.evaluate(() => { const H = window.__harness, q = H.p1(); H.brutality.setHp("p1", Math.round((q.maxHealth || 1000) * 0.4)) })   // p1 took real damage → limps
   await page.evaluate(() => window.__harness.forceP1Win())
   await page.waitForFunction(() => window.__harness.state().gameState === "roundBreak", null, { timeout: 15000 })
   const log = [], t0 = Date.now()
@@ -28,6 +29,8 @@ try {
   const brk = log.filter(s => s.g === "roundBreak"), last = brk[brk.length - 1], nxt = log[log.length - 1]
   check("the loser stays down, then gets up", brk.some(s => s.b.kd) && !last.b.kd, JSON.stringify(brk.map(s => s.b.kd ? "D" : ".").join("")))
   check("the winner walks backwards to its mark, still facing the opponent", brk.some(s => s.a.vx < -0.5 && s.a.f === 1), JSON.stringify([...new Set(brk.map(s => s.a.f + "/" + s.b.f))]))
+  { const vs = brk.map(s => Math.abs(s.a.vx || 0)).filter(v => v > 0.05), mx = Math.max(...vs), mn = Math.min(...vs)
+    check("hurt → a slow limp back (never faster than ~2 px/frame, uneven step)", vs.length > 5 && mx <= 2.1 && mn < mx * 0.5, JSON.stringify({ max: +mx.toFixed(2), min: +mn.toFixed(2), n: vs.length })) }
   check("they reach their marks: the next round starts where they stopped (no snap)", nxt.g === "battle" && Math.abs(nxt.a.x - last.a.x) < 3 && Math.abs(nxt.b.x - last.b.x) < 3, JSON.stringify({ moved: [x0.a, last.a.x, nxt.a.x], b: [x0.b, last.b.x, nxt.b.x] }))
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }

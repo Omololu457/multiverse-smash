@@ -2491,6 +2491,7 @@ let _matchOverride   = null
 let countdown        = ROUND_START_COUNTDOWN
 let winnerText       = ""
 let roundBreakTimer  = 0
+let _rwbFrames       = 0   // frames into the current round break (_roundWalkBack)
 let pauseMenuIndex   = 0
 let stateBeforePause = null
 let p1               = null
@@ -5338,33 +5339,50 @@ function regroundOnResize(f) {
 
 // ROUND WALK-BACK (Mortal Kombat 1 style): between rounds the fight stops, the fallen fighter gets back up and BOTH
 // fighters walk backwards (still facing each other) to their starting marks — so the next round starts from where
-// they actually are instead of snapping. Frame-driven (roundBreakTimer), no RNG; the fighters it moves are replaced
-// by resetRound() at the spawn positions they just walked to, so nothing here reaches the next round's sim.
-//   0-40 f: hold the knockout · 40-75 f: the loser rises · 75-150 f: walk back · then stand ready.
+// they actually are instead of snapping. SLOW: a fighter who took real damage this round LIMPS back (uneven step,
+// dips on the bad leg); one who barely got touched just walks back calmly. The break is held until both are on
+// their marks. Frame-driven (roundBreakTimer), no RNG; the fighters it moves are replaced by resetRound() at the
+// spawn positions they just walked to, so nothing here reaches the next round's sim.
+//   0-40 f: hold the knockout · 40-80 f: the loser rises · then walk back (as long as it takes, ≤ ~8 s) · stand ready.
+const RWB_HOLD = 20   // the frames of "stand ready" left on roundBreakTimer once both are on their marks
 function _roundWalkBack() {
-  if (!p1 || !p2) return
+  if (!p1 || !p2) return true
   const el = ROUND_BREAK_DURATION - roundBreakTimer, { p1X, p2X } = getSpawnPositions()
+  _rwbFrames = el <= 1 ? 1 : _rwbFrames + 1
+  const fr = _rwbFrames
+  let done = true
   for (const [f, tx] of [[p1, p1X], [p2, p2X]]) {
     const o = f === p1 ? p2 : p1, down = (f.health || 0) <= 0
-    if (el === 1) {   // the fight stops: drop whatever was mid-flight
+    if (fr === 1) {   // the fight stops: drop whatever was mid-flight
       f.attacking = false; f.currentAttack = null; f.currentMove = null; f.hitstun = 0; f.stun = 0; f.hitstop = 0; f.isBlocking = false; f.dashTimer = 0; f._spriteCastTimer = 0; f._tauntPlaying = false
       f.vx = 0; f._rwbDown = down; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
+      const side = f === p1 ? "p1" : "p2", start = matchStats.roundStartHealth?.[side] || f.maxHealth || 1000
+      f._rwbHurt = down ? 1 : Math.max(0, Math.min(1, (start - (f.health || 0)) / (f.maxHealth || start || 1000)))   // share of the bar lost this round
     }
     // settle onto the floor if the round ended in the air
     const gy = (f.groundY != null ? f.groundY : 520) - (f.h || 0)
-    if (f.y < gy) { f.vy = Math.min(14, (f.vy || 0) + 0.9); f.y = Math.min(gy, f.y + f.vy); f.grounded = f.onGround = f.y >= gy }
+    if (f.y < gy - 0.5 && !f._rwbBob) { f.vy = Math.min(14, (f.vy || 0) + 0.9); f.y = Math.min(gy, f.y + f.vy); f.grounded = f.onGround = f.y >= gy }
     else { f.y = gy; f.vy = 0; f.grounded = f.onGround = true }
+    f._rwbBob = 0
     if (f._rwbDown) {
-      if (el < 40) { f.knockdownState = true; f.knockdownTimer = 999; continue }
-      if (el < 75) { f.knockdownState = true; f.knockdownTimer = Math.max(1, Math.round((75 - el) * (24 / 35))); continue }
+      if (fr < 40) { f.knockdownState = true; f.knockdownTimer = 999; done = false; continue }
+      if (fr < 80) { f.knockdownState = true; f.knockdownTimer = Math.max(1, Math.round((80 - fr) * (24 / 40))); done = false; continue }
       f.knockdownState = false; f.knockdownTimer = 0; f._rwbDown = false
-    } else if (el < 40) { f.vx = 0; continue }
+    } else if (fr < 40) { f.vx = 0; done = false; continue }
     f.facing = (o.x + (o.w || 0) / 2) >= (f.x + (f.w || 0) / 2) ? 1 : -1
-    const d = tx - f.x, left = Math.max(1, 150 - el)
-    if (Math.abs(d) < 1.5 || el >= 150) { f.vx = 0; if (el >= 150) f.x = tx; continue }
-    const step = Math.sign(d) * Math.min(Math.abs(d), Math.max(2.2, Math.abs(d) / left))
-    f.x += step; f.vx = step   // vx drives the walk / walk_back strip (facing the opponent → backpedal)
+    const d = tx - f.x
+    if (Math.abs(d) < 1) { f.x = tx; f.vx = 0; continue }
+    done = false
+    // pace: hurt → a slow limp (~1.3 px/f average), barely touched → an unhurried walk (~2.6 px/f); only a very long
+    // way back (> ~6 s) slowly picks up so the break can't drag on forever
+    const hurt = f._rwbHurt || 0, limp = hurt >= 0.25, late = Math.max(0, fr - 440) / 60
+    let v = (limp ? 1.6 - 0.5 * hurt : 2.6) * (1 + late)
+    if (limp) { const ph = (fr * 0.11) % (Math.PI * 2), step = Math.abs(Math.sin(ph)); v *= 0.25 + 1.1 * step   // drag the bad leg: surge, stall
+      if (step < 0.35) { f._rwbBob = 1; f.y = gy + 3 } }                                                       // dip onto the hurt side
+    const st = Math.sign(d) * Math.min(Math.abs(d), v)
+    f.x += st; f.vx = st   // vx drives the walk / walk_back strip (facing the opponent → backpedal) and slows its cycle
   }
+  return done
 }
 
 function getSpawnPositions() {
@@ -27832,7 +27850,7 @@ function updateCurrentState() {
     case GAME_STATES.ROUND_BREAK:
       updateDebugInputToggles(); updateTrainingMode()
       roundBreakTimer--
-      _roundWalkBack()
+      if (!_roundWalkBack() && roundBreakTimer < RWB_HOLD) roundBreakTimer = RWB_HOLD   // hold the break until both are on their marks
       if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       if (roundBreakTimer <= 0) { resetRound(); gameState = GAME_STATES.BATTLE }
       break

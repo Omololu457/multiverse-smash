@@ -1,0 +1,5506 @@
+{
+  "source": "kevin_ethan_levin_jus_sprite_sheet_by_regulardor8go_dcdyjul.png",
+  "sha256": "eef821ece1622525f91e809b3de61f773723ea65f7281b42d343b592dda888e2",
+  "size": [
+    2118,
+    4936
+  ],
+  "backgroundRGB": [
+    52,
+    80,
+    116
+  ],
+  "rectFormat": "x, y, width, height; sockets relative to crop",
+  "groups": {
+    "intro": [
+      {
+        "id": "intro.01",
+        "source": [
+          1,
+          47,
+          145,
+          48
+        ],
+        "ticks": 12,
+        "foot": [
+          116,
+          48
+        ],
+        "hand": [
+          130,
+          15
+        ],
+        "projectileOrigin": [
+          130,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "intro.02",
+        "source": [
+          171,
+          47,
+          145,
+          48
+        ],
+        "ticks": 12,
+        "foot": [
+          100,
+          48
+        ],
+        "hand": [
+          114,
+          15
+        ],
+        "projectileOrigin": [
+          114,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "intro.03",
+        "source": [
+          347,
+          47,
+          145,
+          48
+        ],
+        "ticks": 12,
+        "foot": [
+          57,
+          48
+        ],
+        "hand": [
+          71,
+          15
+        ],
+        "projectileOrigin": [
+          71,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "intro.04",
+        "source": [
+          518,
+          47,
+          145,
+          48
+        ],
+        "ticks": 12,
+        "foot": [
+          55,
+          48
+        ],
+        "hand": [
+          69,
+          15
+        ],
+        "projectileOrigin": [
+          69,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "intro.05",
+        "source": [
+          689,
+          46,
+          34,
+          49
+        ],
+        "ticks": 12,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      }
+    ],
+    "idle": [
+      {
+        "id": "idle.01",
+        "source": [
+          5,
+          159,
+          35,
+          49
+        ],
+        "ticks": 8,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "idle.02",
+        "source": [
+          46,
+          160,
+          35,
+          48
+        ],
+        "ticks": 8,
+        "foot": [
+          17,
+          48
+        ],
+        "hand": [
+          31,
+          15
+        ],
+        "projectileOrigin": [
+          31,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          48
+        ]
+      },
+      {
+        "id": "idle.03",
+        "source": [
+          87,
+          159,
+          35,
+          49
+        ],
+        "ticks": 8,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "idle.04",
+        "source": [
+          132,
+          158,
+          35,
+          50
+        ],
+        "ticks": 8,
+        "foot": [
+          17,
+          50
+        ],
+        "hand": [
+          31,
+          17
+        ],
+        "projectileOrigin": [
+          31,
+          17
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          50
+        ]
+      }
+    ],
+    "run": [
+      {
+        "id": "run.01",
+        "source": [
+          7,
+          255,
+          36,
+          48
+        ],
+        "ticks": 4,
+        "foot": [
+          18,
+          48
+        ],
+        "hand": [
+          32,
+          15
+        ],
+        "projectileOrigin": [
+          32,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          36,
+          48
+        ]
+      },
+      {
+        "id": "run.02",
+        "source": [
+          54,
+          255,
+          43,
+          48
+        ],
+        "ticks": 4,
+        "foot": [
+          21,
+          48
+        ],
+        "hand": [
+          35,
+          15
+        ],
+        "projectileOrigin": [
+          35,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          43,
+          48
+        ]
+      },
+      {
+        "id": "run.03",
+        "source": [
+          116,
+          254,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "run.04",
+        "source": [
+          166,
+          254,
+          33,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          30,
+          16
+        ],
+        "projectileOrigin": [
+          30,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          33,
+          49
+        ]
+      },
+      {
+        "id": "run.05",
+        "source": [
+          220,
+          254,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "run.06",
+        "source": [
+          267,
+          254,
+          39,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          19,
+          49
+        ],
+        "hand": [
+          33,
+          16
+        ],
+        "projectileOrigin": [
+          33,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          39,
+          49
+        ]
+      },
+      {
+        "id": "run.07",
+        "source": [
+          327,
+          254,
+          37,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          37,
+          49
+        ]
+      },
+      {
+        "id": "run.08",
+        "source": [
+          382,
+          255,
+          33,
+          48
+        ],
+        "ticks": 4,
+        "foot": [
+          16,
+          48
+        ],
+        "hand": [
+          30,
+          15
+        ],
+        "projectileOrigin": [
+          30,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          33,
+          48
+        ]
+      }
+    ],
+    "jump": [
+      {
+        "id": "jump.01",
+        "source": [
+          5,
+          362,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "jump.02",
+        "source": [
+          50,
+          349,
+          30,
+          51
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          51
+        ],
+        "hand": [
+          29,
+          18
+        ],
+        "projectileOrigin": [
+          29,
+          18
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          51
+        ]
+      },
+      {
+        "id": "jump.03",
+        "source": [
+          101,
+          354,
+          27,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          13,
+          46
+        ],
+        "hand": [
+          27,
+          13
+        ],
+        "projectileOrigin": [
+          27,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          27,
+          46
+        ]
+      },
+      {
+        "id": "jump.04",
+        "source": [
+          149,
+          362,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      }
+    ],
+    "guard": [
+      {
+        "id": "guard.01",
+        "source": [
+          10,
+          442,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "guard.02",
+        "source": [
+          61,
+          442,
+          34,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      },
+      {
+        "id": "guard.03",
+        "source": [
+          112,
+          442,
+          34,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      },
+      {
+        "id": "guard.04",
+        "source": [
+          161,
+          442,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "guard.05",
+        "source": [
+          206,
+          442,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "guard.06",
+        "source": [
+          253,
+          442,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ],
+    "carFlash": [
+      {
+        "id": "carFlash.01",
+        "source": [
+          9,
+          530,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carFlash.02",
+        "source": [
+          71,
+          530,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carFlash.03",
+        "source": [
+          146,
+          530,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carFlash.04",
+        "source": [
+          223,
+          530,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carFlash.05",
+        "source": [
+          293,
+          530,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carFlash.06",
+        "source": [
+          355,
+          530,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carFlash.07",
+        "source": [
+          422,
+          522,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ],
+    "punch": [
+      {
+        "id": "punch.01",
+        "source": [
+          8,
+          614,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "punch.02",
+        "source": [
+          56,
+          614,
+          42,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          22,
+          49
+        ],
+        "hand": [
+          36,
+          16
+        ],
+        "projectileOrigin": [
+          36,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "punch.03",
+        "source": [
+          109,
+          614,
+          63,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          34,
+          49
+        ],
+        "hand": [
+          48,
+          16
+        ],
+        "projectileOrigin": [
+          48,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          49
+        ]
+      },
+      {
+        "id": "punch.04",
+        "source": [
+          188,
+          614,
+          42,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "punch.05",
+        "source": [
+          246,
+          614,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ],
+    "kick": [
+      {
+        "id": "kick.01",
+        "source": [
+          9,
+          721,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "kick.02",
+        "source": [
+          65,
+          721,
+          49,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          21,
+          49
+        ],
+        "hand": [
+          35,
+          16
+        ],
+        "projectileOrigin": [
+          35,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          49
+        ]
+      },
+      {
+        "id": "kick.03",
+        "source": [
+          132,
+          721,
+          44,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          30,
+          16
+        ],
+        "projectileOrigin": [
+          30,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          44,
+          49
+        ]
+      }
+    ],
+    "launch": [
+      {
+        "id": "launch.01",
+        "source": [
+          9,
+          830,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "launch.02",
+        "source": [
+          71,
+          828,
+          46,
+          51
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          51
+        ],
+        "hand": [
+          30,
+          18
+        ],
+        "projectileOrigin": [
+          30,
+          18
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          51
+        ]
+      },
+      {
+        "id": "launch.03",
+        "source": [
+          142,
+          830,
+          34,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      }
+    ],
+    "sweep": [
+      {
+        "id": "sweep.01",
+        "source": [
+          3,
+          940,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "sweep.02",
+        "source": [
+          58,
+          940,
+          46,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          49
+        ]
+      },
+      {
+        "id": "sweep.03",
+        "source": [
+          121,
+          940,
+          41,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          41,
+          49
+        ]
+      }
+    ],
+    "air": [
+      {
+        "id": "air.01",
+        "source": [
+          12,
+          1030,
+          30,
+          51
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          51
+        ],
+        "hand": [
+          29,
+          18
+        ],
+        "projectileOrigin": [
+          29,
+          18
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          51
+        ]
+      },
+      {
+        "id": "air.02",
+        "source": [
+          53,
+          1035,
+          27,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          13,
+          46
+        ],
+        "hand": [
+          27,
+          13
+        ],
+        "projectileOrigin": [
+          27,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          27,
+          46
+        ]
+      },
+      {
+        "id": "air.03",
+        "source": [
+          110,
+          1032,
+          47,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          30,
+          16
+        ],
+        "projectileOrigin": [
+          30,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          47,
+          49
+        ]
+      },
+      {
+        "id": "air.04",
+        "source": [
+          168,
+          1032,
+          42,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          12,
+          49
+        ],
+        "hand": [
+          26,
+          16
+        ],
+        "projectileOrigin": [
+          26,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "air.05",
+        "source": [
+          242,
+          1027,
+          29,
+          54
+        ],
+        "ticks": 5,
+        "foot": [
+          14,
+          54
+        ],
+        "hand": [
+          28,
+          21
+        ],
+        "projectileOrigin": [
+          28,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          29,
+          54
+        ]
+      },
+      {
+        "id": "air.06",
+        "source": [
+          291,
+          1027,
+          34,
+          54
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          54
+        ],
+        "hand": [
+          31,
+          21
+        ],
+        "projectileOrigin": [
+          31,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          54
+        ]
+      },
+      {
+        "id": "air.07",
+        "source": [
+          349,
+          1035,
+          35,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          46
+        ],
+        "hand": [
+          31,
+          13
+        ],
+        "projectileOrigin": [
+          31,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          46
+        ]
+      },
+      {
+        "id": "air.08",
+        "source": [
+          399,
+          1035,
+          28,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          14,
+          46
+        ],
+        "hand": [
+          28,
+          13
+        ],
+        "projectileOrigin": [
+          28,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          28,
+          46
+        ]
+      },
+      {
+        "id": "air.09",
+        "source": [
+          439,
+          1035,
+          27,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          13,
+          46
+        ],
+        "hand": [
+          27,
+          13
+        ],
+        "projectileOrigin": [
+          27,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          27,
+          46
+        ]
+      }
+    ],
+    "apply": [
+      {
+        "id": "apply.01",
+        "source": [
+          7,
+          1123,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "apply.02",
+        "source": [
+          69,
+          1123,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "apply.03",
+        "source": [
+          144,
+          1123,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "apply.04",
+        "source": [
+          221,
+          1123,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "apply.05",
+        "source": [
+          291,
+          1123,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "apply.06",
+        "source": [
+          353,
+          1123,
+          40,
+          41
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "apply.07",
+        "source": [
+          420,
+          1115,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "apply.08",
+        "source": [
+          504,
+          1115,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ],
+    "coatRun": [
+      {
+        "id": "coatRun.01",
+        "source": [
+          8,
+          1207,
+          36,
+          48
+        ],
+        "ticks": 4,
+        "foot": [
+          18,
+          48
+        ],
+        "hand": [
+          32,
+          15
+        ],
+        "projectileOrigin": [
+          32,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          36,
+          48
+        ]
+      },
+      {
+        "id": "coatRun.02",
+        "source": [
+          55,
+          1207,
+          43,
+          48
+        ],
+        "ticks": 4,
+        "foot": [
+          21,
+          48
+        ],
+        "hand": [
+          35,
+          15
+        ],
+        "projectileOrigin": [
+          35,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          43,
+          48
+        ]
+      },
+      {
+        "id": "coatRun.03",
+        "source": [
+          117,
+          1206,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "coatRun.04",
+        "source": [
+          167,
+          1206,
+          33,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          30,
+          16
+        ],
+        "projectileOrigin": [
+          30,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          33,
+          49
+        ]
+      },
+      {
+        "id": "coatRun.05",
+        "source": [
+          221,
+          1206,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "coatRun.06",
+        "source": [
+          268,
+          1206,
+          39,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          19,
+          49
+        ],
+        "hand": [
+          33,
+          16
+        ],
+        "projectileOrigin": [
+          33,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          39,
+          49
+        ]
+      },
+      {
+        "id": "coatRun.07",
+        "source": [
+          328,
+          1206,
+          37,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          37,
+          49
+        ]
+      },
+      {
+        "id": "coatRun.08",
+        "source": [
+          383,
+          1207,
+          33,
+          48
+        ],
+        "ticks": 4,
+        "foot": [
+          16,
+          48
+        ],
+        "hand": [
+          30,
+          15
+        ],
+        "projectileOrigin": [
+          30,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          33,
+          48
+        ]
+      }
+    ],
+    "coatJump": [
+      {
+        "id": "coatJump.01",
+        "source": [
+          9,
+          1306,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "coatJump.02",
+        "source": [
+          55,
+          1293,
+          30,
+          51
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          51
+        ],
+        "hand": [
+          29,
+          18
+        ],
+        "projectileOrigin": [
+          29,
+          18
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          51
+        ]
+      },
+      {
+        "id": "coatJump.03",
+        "source": [
+          106,
+          1298,
+          27,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          13,
+          46
+        ],
+        "hand": [
+          27,
+          13
+        ],
+        "projectileOrigin": [
+          27,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          27,
+          46
+        ]
+      },
+      {
+        "id": "coatJump.04",
+        "source": [
+          169,
+          1306,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      }
+    ],
+    "coatKick": [
+      {
+        "id": "coatKick.01",
+        "source": [
+          11,
+          1390,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "coatKick.02",
+        "source": [
+          67,
+          1390,
+          49,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          21,
+          49
+        ],
+        "hand": [
+          35,
+          16
+        ],
+        "projectileOrigin": [
+          35,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          49
+        ]
+      },
+      {
+        "id": "coatKick.03",
+        "source": [
+          134,
+          1390,
+          44,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          30,
+          16
+        ],
+        "projectileOrigin": [
+          30,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          44,
+          49
+        ]
+      }
+    ],
+    "coatLaunch": [
+      {
+        "id": "coatLaunch.01",
+        "source": [
+          6,
+          1480,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "coatLaunch.02",
+        "source": [
+          68,
+          1478,
+          46,
+          51
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          51
+        ],
+        "hand": [
+          30,
+          18
+        ],
+        "projectileOrigin": [
+          30,
+          18
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          51
+        ]
+      },
+      {
+        "id": "coatLaunch.03",
+        "source": [
+          139,
+          1480,
+          34,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      }
+    ],
+    "coatSweep": [
+      {
+        "id": "coatSweep.01",
+        "source": [
+          8,
+          1585,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "coatSweep.02",
+        "source": [
+          80,
+          1585,
+          46,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          49
+        ]
+      },
+      {
+        "id": "coatSweep.03",
+        "source": [
+          143,
+          1585,
+          41,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          41,
+          49
+        ]
+      }
+    ],
+    "coatAir": [
+      {
+        "id": "coatAir.01",
+        "source": [
+          7,
+          1703,
+          30,
+          51
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          51
+        ],
+        "hand": [
+          29,
+          18
+        ],
+        "projectileOrigin": [
+          29,
+          18
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          51
+        ]
+      },
+      {
+        "id": "coatAir.02",
+        "source": [
+          48,
+          1708,
+          27,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          13,
+          46
+        ],
+        "hand": [
+          27,
+          13
+        ],
+        "projectileOrigin": [
+          27,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          27,
+          46
+        ]
+      },
+      {
+        "id": "coatAir.03",
+        "source": [
+          105,
+          1705,
+          47,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          30,
+          16
+        ],
+        "projectileOrigin": [
+          30,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          47,
+          49
+        ]
+      },
+      {
+        "id": "coatAir.04",
+        "source": [
+          163,
+          1705,
+          42,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          12,
+          49
+        ],
+        "hand": [
+          26,
+          16
+        ],
+        "projectileOrigin": [
+          26,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "coatAir.05",
+        "source": [
+          237,
+          1700,
+          29,
+          54
+        ],
+        "ticks": 5,
+        "foot": [
+          14,
+          54
+        ],
+        "hand": [
+          28,
+          21
+        ],
+        "projectileOrigin": [
+          28,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          29,
+          54
+        ]
+      },
+      {
+        "id": "coatAir.06",
+        "source": [
+          286,
+          1700,
+          34,
+          54
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          54
+        ],
+        "hand": [
+          31,
+          21
+        ],
+        "projectileOrigin": [
+          31,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          54
+        ]
+      },
+      {
+        "id": "coatAir.07",
+        "source": [
+          344,
+          1708,
+          35,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          46
+        ],
+        "hand": [
+          31,
+          13
+        ],
+        "projectileOrigin": [
+          31,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          46
+        ]
+      },
+      {
+        "id": "coatAir.08",
+        "source": [
+          394,
+          1708,
+          28,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          14,
+          46
+        ],
+        "hand": [
+          28,
+          13
+        ],
+        "projectileOrigin": [
+          28,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          28,
+          46
+        ]
+      },
+      {
+        "id": "coatAir.09",
+        "source": [
+          434,
+          1708,
+          27,
+          46
+        ],
+        "ticks": 5,
+        "foot": [
+          13,
+          46
+        ],
+        "hand": [
+          27,
+          13
+        ],
+        "projectileOrigin": [
+          27,
+          13
+        ],
+        "visualBounds": [
+          0,
+          0,
+          27,
+          46
+        ]
+      }
+    ],
+    "coatPunch": [
+      {
+        "id": "coatPunch.01",
+        "source": [
+          6,
+          1816,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "coatPunch.02",
+        "source": [
+          54,
+          1816,
+          42,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          22,
+          49
+        ],
+        "hand": [
+          36,
+          16
+        ],
+        "projectileOrigin": [
+          36,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "coatPunch.03",
+        "source": [
+          107,
+          1816,
+          63,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          34,
+          49
+        ],
+        "hand": [
+          48,
+          16
+        ],
+        "projectileOrigin": [
+          48,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          49
+        ]
+      },
+      {
+        "id": "coatPunch.04",
+        "source": [
+          186,
+          1816,
+          42,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          49
+        ],
+        "hand": [
+          32,
+          16
+        ],
+        "projectileOrigin": [
+          32,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "coatPunch.05",
+        "source": [
+          244,
+          1816,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ],
+    "quarry": [
+      {
+        "id": "quarry.01",
+        "source": [
+          4,
+          2026,
+          49,
+          38
+        ],
+        "ticks": 6,
+        "foot": [
+          13,
+          38
+        ],
+        "hand": [
+          27,
+          5
+        ],
+        "projectileOrigin": [
+          27,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          38
+        ]
+      },
+      {
+        "id": "quarry.02",
+        "source": [
+          68,
+          2004,
+          71,
+          60
+        ],
+        "ticks": 6,
+        "foot": [
+          15,
+          60
+        ],
+        "hand": [
+          29,
+          27
+        ],
+        "projectileOrigin": [
+          29,
+          27
+        ],
+        "visualBounds": [
+          0,
+          0,
+          71,
+          60
+        ]
+      },
+      {
+        "id": "quarry.03",
+        "source": [
+          147,
+          1977,
+          67,
+          87
+        ],
+        "ticks": 6,
+        "foot": [
+          18,
+          87
+        ],
+        "hand": [
+          32,
+          54
+        ],
+        "projectileOrigin": [
+          32,
+          54
+        ],
+        "visualBounds": [
+          0,
+          0,
+          67,
+          87
+        ]
+      },
+      {
+        "id": "quarry.04",
+        "source": [
+          231,
+          2015,
+          34,
+          49
+        ],
+        "ticks": 6,
+        "foot": [
+          13,
+          49
+        ],
+        "hand": [
+          27,
+          16
+        ],
+        "projectileOrigin": [
+          27,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      }
+    ],
+    "boulder": [
+      {
+        "id": "boulder.01",
+        "source": [
+          277,
+          1953,
+          45,
+          52
+        ],
+        "ticks": 5,
+        "foot": [
+          22,
+          52
+        ],
+        "hand": [
+          36,
+          19
+        ],
+        "projectileOrigin": [
+          36,
+          19
+        ],
+        "visualBounds": [
+          0,
+          0,
+          45,
+          52
+        ]
+      }
+    ],
+    "debris": [
+      {
+        "id": "debris.01",
+        "source": [
+          368,
+          1959,
+          34,
+          36
+        ],
+        "ticks": 3,
+        "foot": [
+          17,
+          36
+        ],
+        "hand": [
+          31,
+          3
+        ],
+        "projectileOrigin": [
+          31,
+          3
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          36
+        ]
+      },
+      {
+        "id": "debris.02",
+        "source": [
+          420,
+          1952,
+          59,
+          53
+        ],
+        "ticks": 3,
+        "foot": [
+          29,
+          53
+        ],
+        "hand": [
+          43,
+          20
+        ],
+        "projectileOrigin": [
+          43,
+          20
+        ],
+        "visualBounds": [
+          0,
+          0,
+          59,
+          53
+        ]
+      },
+      {
+        "id": "debris.03",
+        "source": [
+          495,
+          1944,
+          76,
+          68
+        ],
+        "ticks": 3,
+        "foot": [
+          38,
+          68
+        ],
+        "hand": [
+          52,
+          35
+        ],
+        "projectileOrigin": [
+          52,
+          35
+        ],
+        "visualBounds": [
+          0,
+          0,
+          76,
+          68
+        ]
+      },
+      {
+        "id": "debris.04",
+        "source": [
+          606,
+          1937,
+          94,
+          87
+        ],
+        "ticks": 3,
+        "foot": [
+          47,
+          87
+        ],
+        "hand": [
+          61,
+          54
+        ],
+        "projectileOrigin": [
+          61,
+          54
+        ],
+        "visualBounds": [
+          0,
+          0,
+          94,
+          87
+        ]
+      },
+      {
+        "id": "debris.05",
+        "source": [
+          723,
+          1932,
+          94,
+          99
+        ],
+        "ticks": 3,
+        "foot": [
+          47,
+          99
+        ],
+        "hand": [
+          61,
+          66
+        ],
+        "projectileOrigin": [
+          61,
+          66
+        ],
+        "visualBounds": [
+          0,
+          0,
+          94,
+          99
+        ]
+      }
+    ],
+    "shed": [
+      {
+        "id": "shed.01",
+        "source": [
+          20,
+          2123,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "shed.02",
+        "source": [
+          88,
+          2123,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "shed.03",
+        "source": [
+          156,
+          2123,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "shed.04",
+        "source": [
+          216,
+          2123,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      }
+    ],
+    "sampleCar": [
+      {
+        "id": "sampleCar.01",
+        "source": [
+          522,
+          2453,
+          145,
+          48
+        ],
+        "ticks": 5,
+        "foot": [
+          72,
+          48
+        ],
+        "hand": [
+          86,
+          15
+        ],
+        "projectileOrigin": [
+          86,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      }
+    ],
+    "carSample": [
+      {
+        "id": "carSample.01",
+        "source": [
+          686,
+          2459,
+          40,
+          41
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carSample.02",
+        "source": [
+          748,
+          2459,
+          40,
+          41
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carSample.03",
+        "source": [
+          823,
+          2459,
+          40,
+          41
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carSample.04",
+        "source": [
+          900,
+          2459,
+          40,
+          41
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carSample.05",
+        "source": [
+          970,
+          2459,
+          40,
+          41
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carSample.06",
+        "source": [
+          1032,
+          2459,
+          40,
+          41
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          41
+        ],
+        "hand": [
+          34,
+          8
+        ],
+        "projectileOrigin": [
+          34,
+          8
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          41
+        ]
+      },
+      {
+        "id": "carSample.07",
+        "source": [
+          1099,
+          2451,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "carSample.08",
+        "source": [
+          1149,
+          2450,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "carSample.09",
+        "source": [
+          1197,
+          2450,
+          42,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          21,
+          49
+        ],
+        "hand": [
+          35,
+          16
+        ],
+        "projectileOrigin": [
+          35,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "carSample.10",
+        "source": [
+          1250,
+          2450,
+          63,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          34,
+          49
+        ],
+        "hand": [
+          48,
+          16
+        ],
+        "projectileOrigin": [
+          48,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          49
+        ]
+      },
+      {
+        "id": "carSample.11",
+        "source": [
+          1329,
+          2450,
+          42,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          21,
+          49
+        ],
+        "hand": [
+          35,
+          16
+        ],
+        "projectileOrigin": [
+          35,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          49
+        ]
+      },
+      {
+        "id": "carSample.12",
+        "source": [
+          1387,
+          2450,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          31,
+          16
+        ],
+        "projectileOrigin": [
+          31,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ],
+    "hurtSet": [
+      {
+        "id": "hurtSet.01",
+        "source": [
+          8,
+          2619,
+          40,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          20,
+          49
+        ],
+        "hand": [
+          34,
+          16
+        ],
+        "projectileOrigin": [
+          34,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          49
+        ]
+      },
+      {
+        "id": "hurtSet.02",
+        "source": [
+          60,
+          2629,
+          36,
+          39
+        ],
+        "ticks": 5,
+        "foot": [
+          18,
+          39
+        ],
+        "hand": [
+          32,
+          6
+        ],
+        "projectileOrigin": [
+          32,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          36,
+          39
+        ]
+      },
+      {
+        "id": "hurtSet.03",
+        "source": [
+          116,
+          2654,
+          56,
+          14
+        ],
+        "ticks": 5,
+        "foot": [
+          29,
+          14
+        ],
+        "hand": [
+          43,
+          0
+        ],
+        "projectileOrigin": [
+          43,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          56,
+          14
+        ]
+      },
+      {
+        "id": "hurtSet.04",
+        "source": [
+          190,
+          2630,
+          30,
+          38
+        ],
+        "ticks": 5,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      }
+    ],
+    "win": [
+      {
+        "id": "win.01",
+        "source": [
+          5,
+          2745,
+          145,
+          49
+        ],
+        "ticks": 14,
+        "foot": [
+          57,
+          49
+        ],
+        "hand": [
+          71,
+          16
+        ],
+        "projectileOrigin": [
+          71,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          49
+        ]
+      },
+      {
+        "id": "win.02",
+        "source": [
+          179,
+          2746,
+          145,
+          48
+        ],
+        "ticks": 14,
+        "foot": [
+          56,
+          48
+        ],
+        "hand": [
+          70,
+          15
+        ],
+        "projectileOrigin": [
+          70,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "win.03",
+        "source": [
+          348,
+          2746,
+          145,
+          48
+        ],
+        "ticks": 14,
+        "foot": [
+          58,
+          48
+        ],
+        "hand": [
+          72,
+          15
+        ],
+        "projectileOrigin": [
+          72,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "win.04",
+        "source": [
+          542,
+          2746,
+          145,
+          48
+        ],
+        "ticks": 14,
+        "foot": [
+          10,
+          48
+        ],
+        "hand": [
+          24,
+          15
+        ],
+        "projectileOrigin": [
+          24,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      },
+      {
+        "id": "win.05",
+        "source": [
+          715,
+          2746,
+          145,
+          48
+        ],
+        "ticks": 14,
+        "foot": [
+          -50,
+          48
+        ],
+        "hand": [
+          -36,
+          15
+        ],
+        "projectileOrigin": [
+          -36,
+          15
+        ],
+        "visualBounds": [
+          0,
+          0,
+          145,
+          48
+        ]
+      }
+    ],
+    "lose": [
+      {
+        "id": "lose.01",
+        "source": [
+          12,
+          2876,
+          35,
+          50
+        ],
+        "ticks": 12,
+        "foot": [
+          17,
+          50
+        ],
+        "hand": [
+          31,
+          17
+        ],
+        "projectileOrigin": [
+          31,
+          17
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          50
+        ]
+      },
+      {
+        "id": "lose.02",
+        "source": [
+          66,
+          2886,
+          30,
+          38
+        ],
+        "ticks": 12,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "lose.03",
+        "source": [
+          114,
+          2886,
+          30,
+          38
+        ],
+        "ticks": 12,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          29,
+          5
+        ],
+        "projectileOrigin": [
+          29,
+          5
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      }
+    ],
+    "transform": [
+      {
+        "id": "transform.01",
+        "source": [
+          353,
+          3116,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          39,
+          6
+        ],
+        "projectileOrigin": [
+          39,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "transform.02",
+        "source": [
+          411,
+          3114,
+          35,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          39,
+          6
+        ],
+        "projectileOrigin": [
+          39,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      },
+      {
+        "id": "transform.03",
+        "source": [
+          458,
+          3114,
+          34,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          39,
+          6
+        ],
+        "projectileOrigin": [
+          39,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          34,
+          49
+        ]
+      },
+      {
+        "id": "transform.04",
+        "source": [
+          510,
+          3113,
+          33,
+          49
+        ],
+        "ticks": 5,
+        "foot": [
+          16,
+          49
+        ],
+        "hand": [
+          38,
+          6
+        ],
+        "projectileOrigin": [
+          38,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          33,
+          49
+        ]
+      },
+      {
+        "id": "transform.05",
+        "source": [
+          610,
+          3099,
+          49,
+          63
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          63
+        ],
+        "hand": [
+          46,
+          20
+        ],
+        "projectileOrigin": [
+          46,
+          20
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          63
+        ]
+      },
+      {
+        "id": "transform.06",
+        "source": [
+          683,
+          3099,
+          49,
+          63
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          63
+        ],
+        "hand": [
+          46,
+          20
+        ],
+        "projectileOrigin": [
+          46,
+          20
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          63
+        ]
+      }
+    ],
+    "mutantIdle": [
+      {
+        "id": "mutantIdle.01",
+        "source": [
+          10,
+          3232,
+          49,
+          64
+        ],
+        "ticks": 7,
+        "foot": [
+          24,
+          64
+        ],
+        "hand": [
+          46,
+          21
+        ],
+        "projectileOrigin": [
+          46,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          64
+        ]
+      },
+      {
+        "id": "mutantIdle.02",
+        "source": [
+          87,
+          3232,
+          50,
+          64
+        ],
+        "ticks": 7,
+        "foot": [
+          25,
+          64
+        ],
+        "hand": [
+          47,
+          21
+        ],
+        "projectileOrigin": [
+          47,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          50,
+          64
+        ]
+      },
+      {
+        "id": "mutantIdle.03",
+        "source": [
+          162,
+          3232,
+          59,
+          64
+        ],
+        "ticks": 7,
+        "foot": [
+          29,
+          64
+        ],
+        "hand": [
+          51,
+          21
+        ],
+        "projectileOrigin": [
+          51,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          59,
+          64
+        ]
+      },
+      {
+        "id": "mutantIdle.04",
+        "source": [
+          248,
+          3232,
+          55,
+          64
+        ],
+        "ticks": 7,
+        "foot": [
+          27,
+          64
+        ],
+        "hand": [
+          49,
+          21
+        ],
+        "projectileOrigin": [
+          49,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          55,
+          64
+        ]
+      }
+    ],
+    "mutantMove": [
+      {
+        "id": "mutantMove.01",
+        "source": [
+          9,
+          3350,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      },
+      {
+        "id": "mutantMove.02",
+        "source": [
+          99,
+          3350,
+          66,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          33,
+          77
+        ],
+        "hand": [
+          55,
+          34
+        ],
+        "projectileOrigin": [
+          55,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          66,
+          77
+        ]
+      },
+      {
+        "id": "mutantMove.03",
+        "source": [
+          186,
+          3350,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      },
+      {
+        "id": "mutantMove.04",
+        "source": [
+          282,
+          3350,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      }
+    ],
+    "mutantClaw": [
+      {
+        "id": "mutantClaw.01",
+        "source": [
+          9,
+          3468,
+          46,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          23,
+          64
+        ],
+        "hand": [
+          45,
+          21
+        ],
+        "projectileOrigin": [
+          45,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          64
+        ]
+      },
+      {
+        "id": "mutantClaw.02",
+        "source": [
+          89,
+          3468,
+          61,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          25,
+          64
+        ],
+        "hand": [
+          47,
+          21
+        ],
+        "projectileOrigin": [
+          47,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          61,
+          64
+        ]
+      },
+      {
+        "id": "mutantClaw.03",
+        "source": [
+          179,
+          3468,
+          61,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          25,
+          64
+        ],
+        "hand": [
+          47,
+          21
+        ],
+        "projectileOrigin": [
+          47,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          61,
+          64
+        ]
+      }
+    ],
+    "mutantShard": [
+      {
+        "id": "mutantShard.01",
+        "source": [
+          4,
+          3599,
+          49,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          64
+        ],
+        "hand": [
+          46,
+          21
+        ],
+        "projectileOrigin": [
+          46,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          64
+        ]
+      },
+      {
+        "id": "mutantShard.02",
+        "source": [
+          83,
+          3599,
+          49,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          64
+        ],
+        "hand": [
+          46,
+          21
+        ],
+        "projectileOrigin": [
+          46,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          64
+        ]
+      },
+      {
+        "id": "mutantShard.03",
+        "source": [
+          164,
+          3599,
+          53,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          26,
+          64
+        ],
+        "hand": [
+          48,
+          21
+        ],
+        "projectileOrigin": [
+          48,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          53,
+          64
+        ]
+      },
+      {
+        "id": "mutantShard.04",
+        "source": [
+          242,
+          3599,
+          49,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          64
+        ],
+        "hand": [
+          46,
+          21
+        ],
+        "projectileOrigin": [
+          46,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          64
+        ]
+      }
+    ],
+    "shard": [
+      {
+        "id": "shard.01",
+        "source": [
+          311,
+          3610,
+          19,
+          17
+        ],
+        "ticks": 5,
+        "foot": [
+          9,
+          17
+        ],
+        "hand": [
+          23,
+          0
+        ],
+        "projectileOrigin": [
+          23,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          19,
+          17
+        ]
+      }
+    ],
+    "mutantHalo": [
+      {
+        "id": "mutantHalo.01",
+        "source": [
+          13,
+          3741,
+          49,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          64
+        ],
+        "hand": [
+          46,
+          21
+        ],
+        "projectileOrigin": [
+          46,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          64
+        ]
+      },
+      {
+        "id": "mutantHalo.02",
+        "source": [
+          89,
+          3741,
+          46,
+          64
+        ],
+        "ticks": 5,
+        "foot": [
+          23,
+          64
+        ],
+        "hand": [
+          45,
+          21
+        ],
+        "projectileOrigin": [
+          45,
+          21
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          64
+        ]
+      },
+      {
+        "id": "mutantHalo.03",
+        "source": [
+          160,
+          3743,
+          46,
+          62
+        ],
+        "ticks": 5,
+        "foot": [
+          23,
+          62
+        ],
+        "hand": [
+          45,
+          19
+        ],
+        "projectileOrigin": [
+          45,
+          19
+        ],
+        "visualBounds": [
+          0,
+          0,
+          46,
+          62
+        ]
+      },
+      {
+        "id": "mutantHalo.04",
+        "source": [
+          242,
+          3740,
+          49,
+          65
+        ],
+        "ticks": 5,
+        "foot": [
+          24,
+          65
+        ],
+        "hand": [
+          46,
+          22
+        ],
+        "projectileOrigin": [
+          46,
+          22
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          65
+        ]
+      },
+      {
+        "id": "mutantHalo.05",
+        "source": [
+          326,
+          3734,
+          56,
+          71
+        ],
+        "ticks": 5,
+        "foot": [
+          28,
+          71
+        ],
+        "hand": [
+          50,
+          28
+        ],
+        "projectileOrigin": [
+          50,
+          28
+        ],
+        "visualBounds": [
+          0,
+          0,
+          56,
+          71
+        ]
+      },
+      {
+        "id": "mutantHalo.06",
+        "source": [
+          397,
+          3727,
+          65,
+          78
+        ],
+        "ticks": 5,
+        "foot": [
+          21,
+          78
+        ],
+        "hand": [
+          43,
+          35
+        ],
+        "projectileOrigin": [
+          43,
+          35
+        ],
+        "visualBounds": [
+          0,
+          0,
+          65,
+          78
+        ]
+      },
+      {
+        "id": "mutantHalo.07",
+        "source": [
+          471,
+          3711,
+          63,
+          94
+        ],
+        "ticks": 5,
+        "foot": [
+          23,
+          94
+        ],
+        "hand": [
+          45,
+          51
+        ],
+        "projectileOrigin": [
+          45,
+          51
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          94
+        ]
+      }
+    ],
+    "mutantArc": [
+      {
+        "id": "mutantArc.01",
+        "source": [
+          12,
+          3883,
+          50,
+          61
+        ],
+        "ticks": 5,
+        "foot": [
+          19,
+          60
+        ],
+        "hand": [
+          41,
+          17
+        ],
+        "projectileOrigin": [
+          41,
+          17
+        ],
+        "visualBounds": [
+          0,
+          0,
+          50,
+          61
+        ]
+      },
+      {
+        "id": "mutantArc.02",
+        "source": [
+          112,
+          3867,
+          118,
+          91
+        ],
+        "ticks": 5,
+        "foot": [
+          21,
+          76
+        ],
+        "hand": [
+          43,
+          33
+        ],
+        "projectileOrigin": [
+          43,
+          33
+        ],
+        "visualBounds": [
+          0,
+          0,
+          118,
+          91
+        ]
+      },
+      {
+        "id": "mutantArc.03",
+        "source": [
+          287,
+          3884,
+          152,
+          61
+        ],
+        "ticks": 5,
+        "foot": [
+          25,
+          59
+        ],
+        "hand": [
+          47,
+          16
+        ],
+        "projectileOrigin": [
+          47,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          152,
+          61
+        ]
+      },
+      {
+        "id": "mutantArc.04",
+        "source": [
+          492,
+          3884,
+          147,
+          60
+        ],
+        "ticks": 5,
+        "foot": [
+          26,
+          59
+        ],
+        "hand": [
+          48,
+          16
+        ],
+        "projectileOrigin": [
+          48,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          147,
+          60
+        ]
+      },
+      {
+        "id": "mutantArc.05",
+        "source": [
+          685,
+          3884,
+          141,
+          60
+        ],
+        "ticks": 5,
+        "foot": [
+          25,
+          59
+        ],
+        "hand": [
+          47,
+          16
+        ],
+        "projectileOrigin": [
+          47,
+          16
+        ],
+        "visualBounds": [
+          0,
+          0,
+          141,
+          60
+        ]
+      }
+    ],
+    "mutantAir": [
+      {
+        "id": "mutantAir.01",
+        "source": [
+          11,
+          4019,
+          66,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          33,
+          77
+        ],
+        "hand": [
+          55,
+          34
+        ],
+        "projectileOrigin": [
+          55,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          66,
+          77
+        ]
+      },
+      {
+        "id": "mutantAir.02",
+        "source": [
+          104,
+          4020,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      },
+      {
+        "id": "mutantAir.03",
+        "source": [
+          195,
+          4020,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      },
+      {
+        "id": "mutantAir.04",
+        "source": [
+          308,
+          4018,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      },
+      {
+        "id": "mutantAir.05",
+        "source": [
+          415,
+          4017,
+          63,
+          77
+        ],
+        "ticks": 5,
+        "foot": [
+          31,
+          77
+        ],
+        "hand": [
+          53,
+          34
+        ],
+        "projectileOrigin": [
+          53,
+          34
+        ],
+        "visualBounds": [
+          0,
+          0,
+          63,
+          77
+        ]
+      }
+    ],
+    "flame": [
+      {
+        "id": "flame.01",
+        "source": [
+          512,
+          4041,
+          31,
+          32
+        ],
+        "ticks": 3,
+        "foot": [
+          15,
+          32
+        ],
+        "hand": [
+          29,
+          0
+        ],
+        "projectileOrigin": [
+          29,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          31,
+          32
+        ]
+      },
+      {
+        "id": "flame.02",
+        "source": [
+          551,
+          4038,
+          42,
+          44
+        ],
+        "ticks": 3,
+        "foot": [
+          21,
+          44
+        ],
+        "hand": [
+          35,
+          11
+        ],
+        "projectileOrigin": [
+          35,
+          11
+        ],
+        "visualBounds": [
+          0,
+          0,
+          42,
+          44
+        ]
+      },
+      {
+        "id": "flame.03",
+        "source": [
+          603,
+          4037,
+          54,
+          62
+        ],
+        "ticks": 3,
+        "foot": [
+          27,
+          62
+        ],
+        "hand": [
+          41,
+          29
+        ],
+        "projectileOrigin": [
+          41,
+          29
+        ],
+        "visualBounds": [
+          0,
+          0,
+          54,
+          62
+        ]
+      },
+      {
+        "id": "flame.04",
+        "source": [
+          668,
+          4034,
+          58,
+          62
+        ],
+        "ticks": 3,
+        "foot": [
+          29,
+          62
+        ],
+        "hand": [
+          43,
+          29
+        ],
+        "projectileOrigin": [
+          43,
+          29
+        ],
+        "visualBounds": [
+          0,
+          0,
+          58,
+          62
+        ]
+      },
+      {
+        "id": "flame.05",
+        "source": [
+          738,
+          4042,
+          58,
+          59
+        ],
+        "ticks": 3,
+        "foot": [
+          29,
+          59
+        ],
+        "hand": [
+          43,
+          26
+        ],
+        "projectileOrigin": [
+          43,
+          26
+        ],
+        "visualBounds": [
+          0,
+          0,
+          58,
+          59
+        ]
+      },
+      {
+        "id": "flame.06",
+        "source": [
+          808,
+          4040,
+          56,
+          58
+        ],
+        "ticks": 3,
+        "foot": [
+          28,
+          58
+        ],
+        "hand": [
+          42,
+          25
+        ],
+        "projectileOrigin": [
+          42,
+          25
+        ],
+        "visualBounds": [
+          0,
+          0,
+          56,
+          58
+        ]
+      },
+      {
+        "id": "flame.07",
+        "source": [
+          871,
+          4038,
+          57,
+          53
+        ],
+        "ticks": 3,
+        "foot": [
+          28,
+          53
+        ],
+        "hand": [
+          42,
+          20
+        ],
+        "projectileOrigin": [
+          42,
+          20
+        ],
+        "visualBounds": [
+          0,
+          0,
+          57,
+          53
+        ]
+      }
+    ],
+    "revert": [
+      {
+        "id": "revert.01",
+        "source": [
+          21,
+          4186,
+          49,
+          63
+        ],
+        "ticks": 4,
+        "foot": [
+          24,
+          63
+        ],
+        "hand": [
+          46,
+          20
+        ],
+        "projectileOrigin": [
+          46,
+          20
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          63
+        ]
+      },
+      {
+        "id": "revert.02",
+        "source": [
+          95,
+          4186,
+          49,
+          63
+        ],
+        "ticks": 4,
+        "foot": [
+          24,
+          63
+        ],
+        "hand": [
+          46,
+          20
+        ],
+        "projectileOrigin": [
+          46,
+          20
+        ],
+        "visualBounds": [
+          0,
+          0,
+          49,
+          63
+        ]
+      },
+      {
+        "id": "revert.03",
+        "source": [
+          166,
+          4200,
+          40,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          20,
+          49
+        ],
+        "hand": [
+          42,
+          6
+        ],
+        "projectileOrigin": [
+          42,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          40,
+          49
+        ]
+      },
+      {
+        "id": "revert.04",
+        "source": [
+          218,
+          4210,
+          36,
+          39
+        ],
+        "ticks": 4,
+        "foot": [
+          18,
+          39
+        ],
+        "hand": [
+          40,
+          0
+        ],
+        "projectileOrigin": [
+          40,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          36,
+          39
+        ]
+      },
+      {
+        "id": "revert.05",
+        "source": [
+          269,
+          4235,
+          56,
+          14
+        ],
+        "ticks": 4,
+        "foot": [
+          28,
+          14
+        ],
+        "hand": [
+          50,
+          0
+        ],
+        "projectileOrigin": [
+          50,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          56,
+          14
+        ]
+      },
+      {
+        "id": "revert.06",
+        "source": [
+          348,
+          4235,
+          56,
+          14
+        ],
+        "ticks": 4,
+        "foot": [
+          28,
+          14
+        ],
+        "hand": [
+          50,
+          0
+        ],
+        "projectileOrigin": [
+          50,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          56,
+          14
+        ]
+      },
+      {
+        "id": "revert.07",
+        "source": [
+          415,
+          4211,
+          30,
+          38
+        ],
+        "ticks": 4,
+        "foot": [
+          15,
+          38
+        ],
+        "hand": [
+          37,
+          0
+        ],
+        "projectileOrigin": [
+          37,
+          0
+        ],
+        "visualBounds": [
+          0,
+          0,
+          30,
+          38
+        ]
+      },
+      {
+        "id": "revert.08",
+        "source": [
+          467,
+          4200,
+          35,
+          49
+        ],
+        "ticks": 4,
+        "foot": [
+          17,
+          49
+        ],
+        "hand": [
+          39,
+          6
+        ],
+        "projectileOrigin": [
+          39,
+          6
+        ],
+        "visualBounds": [
+          0,
+          0,
+          35,
+          49
+        ]
+      }
+    ]
+  },
+  "excluded": [
+    "red instruction labels",
+    "text and color swatches",
+    "large human and mutant portraits",
+    "large car-reference still",
+    "four palette demonstration stances (color references)",
+    "sheet divider rules and isolated guide pixels"
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "skins": {
+    "fz_cosmic_frost": {
+      "tag": "cosmic_frost",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_cryo_circuit": {
+      "tag": "cryo_circuit",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_crystal_current": {
+      "tag": "crystal_current",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_deep_freeze": {
+      "tag": "deep_freeze",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_arctic_hero": {
+      "tag": "arctic_hero",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_infinity_ice": {
+      "tag": "infinity_ice",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_rose_winter": {
+      "tag": "rose_winter",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_victory_glide": {
+      "tag": "victory_glide",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_polar_stealth": {
+      "tag": "polar_stealth",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    },
+    "fz_opal_aurora": {
+      "tag": "opal_aurora",
+      "traceIdentical": true,
+      "actions": 53,
+      "fxParts": 2,
+      "kept": {
+        "strips": 37,
+        "keep": 4767,
+        "changed": 0,
+        "recol": 74335,
+        "alpha": 0
+      },
+      "cache": [
+        4,
+        4
+      ]
+    }
+  },
+  "passes": 111,
+  "failures": 1
+}

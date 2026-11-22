@@ -5466,7 +5466,7 @@ const WB_CROWD = [["ghostface", 0.18, 0], ["jason", 0.84, 0]]
 const WBC = makeCrowd(WB_CROWD, 0.6)
 const WB = { p1: null, last: 0, skyLast: 0, hp: new WeakMap(), rings: [], power: 1, flash: 0, nextBolt: 0, cops: 0, ko: null, peek: null, nextPeek: 4, shout: [],
   st: { rings: 0, blackout: 0, ko: 0, peeks: 0, bolts: 0 } }
-export const woodsboroState = () => ({ ...WB.st, power: +WB.power.toFixed(2), cops: +WB.cops.toFixed(2), ko: WB.ko ? +WB.ko.t.toFixed(2) : 0,
+export const woodsboroState = () => ({ ...WB.st, kills: WBK.kills, bodies: WBK.bodies.length, hunting: WBK.list.map(e => e.type), power: +WB.power.toFixed(2), cops: +WB.cops.toFixed(2), ko: WB.ko ? +WB.ko.t.toFixed(2) : 0,
   crowd: crowdState(WBC), shouting: WB.shout.filter(s => s.t > 0).map(s => s.txt) })
 function wbShout(x, y, txt, col) { if (WB.shout.filter(s => s.t > 0).length < 3) WB.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
 function wbMask(ctx, x, y, s) {   // the Ghostface mask: a long white face, black eyes + mouth, under a black hood
@@ -5488,6 +5488,12 @@ function wbHouse(ctx, x, base, w, k, t, lit, masked) {   // a two-storey suburba
   const wins = [[0.12, -128], [0.62, -128], [0.12, -58], [0.62, -58]]
   wins.forEach(([fx, fy], i) => { const wx = x + w * fx, wy = base + fy, ww = w * 0.24, wh = 34, on = lit && _h(k * 7 + i) < 0.6
     ctx.fillStyle = on ? "#f2d890" : "#14182a"; ctx.fillRect(wx, wy, ww, wh); if (on) { ctx.fillStyle = "rgba(242,216,144,0.12)"; ctx.fillRect(wx - 8, wy - 8, ww + 16, wh + 16) }
+    if (on && _h(k * 11 + i) < 0.3) { const sx = wx + ww * 0.5, a = Math.sin(t * 7 + k + i) > 0 ? -1.9 : 0.4   // shadow play: a killer stabbing, a victim recoiling
+      ctx.fillStyle = "#1a0a08"; ctx.beginPath(); ctx.arc(sx - 9, wy + 11, 4, 0, 7); ctx.fill(); ctx.fillRect(sx - 13, wy + 15, 8, wh - 15)
+      ctx.save(); ctx.translate(sx - 6, wy + 17); ctx.rotate(a); ctx.fillRect(0, -1.5, 12, 3); ctx.fillRect(12, -1, 8, 2); ctx.restore()
+      ctx.save(); ctx.translate(sx + 9, wy + wh); ctx.rotate(0.35 + 0.1 * Math.sin(t * 7)); ctx.beginPath(); ctx.arc(0, -20, 3.6, 0, 7); ctx.fill(); ctx.fillRect(-3, -16, 6, 16); ctx.restore()
+      ctx.fillStyle = "rgba(140,0,0,0.55)"; ctx.fillRect(wx + 3, wy + 3, ww * 0.4, 3) }
+    if (_h(k * 17 + i * 3) < 0.25) { ctx.fillStyle = "rgba(130,0,0,0.85)"; const hx = wx + ww * (0.3 + 0.4 * _h(k + i)), hy = wy + wh * 0.45; ctx.beginPath(); ctx.arc(hx, hy, 3.4, 0, 7); ctx.fill(); for (let f = 0; f < 5; f++) ctx.fillRect(hx - 4 + f * 2, hy - 8 + Math.abs(f - 2), 1.4, 5); ctx.fillRect(hx - 1, hy + 3, 2, 10) }
     if (masked && (masked === true || masked === i)) { ctx.fillStyle = "#3a3e58"; ctx.fillRect(wx, wy, ww, wh); ctx.fillStyle = "#08080a"; ctx.fillRect(wx + ww * 0.22, wy + 14, ww * 0.56, wh - 14); wbMask(ctx, wx + ww / 2, wy + 13, 0.95) }
     ctx.strokeStyle = "#1a1a22"; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, ww, wh); ctx.beginPath(); ctx.moveTo(wx + ww / 2, wy); ctx.lineTo(wx + ww / 2, wy + wh); ctx.stroke() })
   if (lit && _h(k * 3) < 0.5) { ctx.fillStyle = "rgba(255,220,140,0.25)"; ctx.beginPath(); ctx.arc(x + w * 0.5, base - 62, 22, 0, 7); ctx.fill() }
@@ -5499,9 +5505,11 @@ function wbTree(ctx, x, base, h, k) { ctx.strokeStyle = "#2a2a36"; ctx.lineCap =
 function drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   const t = now(), S = def.S, pw = WB.power
   const dt = Math.min(0.05, Math.max(0, t - (WB.skyLast || t))); WB.skyLast = t
-  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#04060e"); g.addColorStop(1, "#1a2238"); ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
-  { const mx = W / 2 + shift(0.03, W) + 260, my = dockTop - 330 * S; ctx.fillStyle = "rgba(220,220,240,0.12)"; ctx.beginPath(); ctx.arc(mx, my, 70, 0, 7); ctx.fill(); ctx.fillStyle = "#e8e8f2"; ctx.beginPath(); ctx.arc(mx, my, 30, 0, 7); ctx.fill()
-    ctx.fillStyle = "rgba(20,24,40,0.85)"; ctx.beginPath(); ctx.ellipse(mx + 20, my + 6, 60, 10, 0, 0, 7); ctx.fill() }
+  const g = ctx.createLinearGradient(0, dockTop - 330, 0, dockTop); g.addColorStop(0, "#06020a"); g.addColorStop(0.6, "#1e0a14"); g.addColorStop(1, "#3a1218"); ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  { const mx = W / 2 + shift(0.03, W) + 260, my = dockTop - 235; const mg = ctx.createRadialGradient(mx, my, 20, mx, my, 150); mg.addColorStop(0, "rgba(220,40,40,0.4)"); mg.addColorStop(1, "rgba(220,40,40,0)"); ctx.fillStyle = mg; ctx.fillRect(mx - 150, my - 150, 300, 300)
+    ctx.fillStyle = "#c8323a"; ctx.beginPath(); ctx.arc(mx, my, 38, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(90,10,14,0.5)"; for (const [a, b, r] of [[-12, -8, 9], [10, 6, 7], [4, -16, 5]]) { ctx.beginPath(); ctx.arc(mx + a, my + b, r, 0, 7); ctx.fill() }
+    ctx.fillStyle = "rgba(14,6,10,0.85)"; ctx.beginPath(); ctx.ellipse(mx + 20, my + 14, 70, 9, 0, 0, 7); ctx.fill()
+    ctx.strokeStyle = "#0a0408"; ctx.lineWidth = 2; for (let b = 0; b < 5; b++) { const bx = mx - 220 + ((t * 30 + b * 90) % 480), by = my - 30 + 20 * Math.sin(t * 0.7 + b * 2), fl = 5 * Math.sin(t * 9 + b); ctx.beginPath(); ctx.moveTo(bx - 8, by - fl); ctx.quadraticCurveTo(bx - 3, by - 2, bx, by); ctx.quadraticCurveTo(bx + 3, by - 2, bx + 8, by - fl); ctx.stroke() } }
   if (WB.flash > 0) { WB.flash = Math.max(0, WB.flash - dt * 4); ctx.fillStyle = `rgba(200,210,255,${0.5 * WB.flash})`; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop) }
   // far tree line
   { const ps = shift(0.25, W); ctx.fillStyle = "#0a0c16"; ctx.beginPath(); ctx.moveTo(padL, dockTop - 120 * S); for (let x = padL; x <= padR + 20; x += 20) ctx.lineTo(x, dockTop - (120 + 20 * Math.sin((x - ps) / 50) + 12 * Math.sin((x - ps) / 17)) * S); ctx.lineTo(padR, dockTop); ctx.lineTo(padL, dockTop); ctx.fill() }
@@ -5511,20 +5519,31 @@ function drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
     wbHouse(ctx, x + 30, base, 200, i, t, pw > 0.5, masked === true ? (Math.abs(i) % 2 ? 2 : 0) : masked === 1 && i === 0 ? 1 : false)
     wbTree(ctx, x + 260, base, 260, i * 3.1)
     ctx.fillStyle = "#c8c8cc"; for (let j = 0; j < 12; j++) { const fx = x + 6 + j * 12; ctx.fillRect(fx, base - 26, 6, 26); ctx.beginPath(); ctx.moveTo(fx, base - 26); ctx.lineTo(fx + 3, base - 31); ctx.lineTo(fx + 6, base - 26); ctx.fill() } ctx.fillRect(x + 4, base - 20, 142, 3)
-    ctx.fillStyle = "rgba(10,14,40,0.45)"; ctx.fillRect(x + 4, base - 31, 142, 31) }
+    ctx.fillStyle = "rgba(10,14,40,0.45)"; ctx.fillRect(x + 4, base - 31, 142, 31)
+    const kind = ((i % 4) + 4) % 4
+    if (kind === 2) wbFire(ctx, x + 30, base, 200, t, i)
+    if (kind === 3) { ctx.save(); ctx.font = "900 22px Arial"; ctx.fillStyle = "#8a0a0a"; ctx.fillText("HELP", x + 40, base - 6); ctx.fillStyle = "rgba(138,10,10,0.8)"; for (let d = 0; d < 4; d++) ctx.fillRect(x + 44 + d * 15, base - 4, 2, 6 + 6 * _h(i * 7 + d)); ctx.restore() }
+    if (kind === 0) { ctx.save(); ctx.translate(x + 4, base - 22); ctx.rotate(-0.04); ctx.fillStyle = "#e8c820"; ctx.fillRect(0, 0, 150, 9); ctx.font = "900 8px Arial"; ctx.fillStyle = "#111"; ctx.fillText("CRIME SCENE · DO NOT CROSS", 8, 7.5); ctx.restore() }
+    if (kind === 1) { const cx = x + 210, cy = base + 2   // a crashed car, door open, hazards blinking, a blood smear
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.08); ctx.fillStyle = "#3a3e48"; ctx.fillRect(-46, -26, 92, 18); ctx.beginPath(); ctx.moveTo(-28, -26); ctx.lineTo(-18, -40); ctx.lineTo(20, -40); ctx.lineTo(30, -26); ctx.fill()
+      ctx.fillStyle = "#9ab0c8"; ctx.fillRect(-16, -37, 16, 10); ctx.fillRect(4, -37, 14, 10); ctx.fillStyle = "#111"; for (const wx of [-30, 30]) { ctx.beginPath(); ctx.arc(wx, -8, 8, 0, 7); ctx.fill() }
+      ctx.fillStyle = "#2a2e36"; ctx.save(); ctx.translate(-2, -26); ctx.rotate(-0.9); ctx.fillRect(0, 0, 20, 16); ctx.restore(); ctx.fillStyle = "rgba(140,0,0,0.85)"; ctx.fillRect(-4, -24, 14, 3)
+      const on = Math.floor(t * 2.5) % 2; ctx.fillStyle = on ? "#ffb020" : "#5a3a10"; ctx.fillRect(40, -24, 6, 5); ctx.fillRect(-46, -24, 6, 5); ctx.fillStyle = "rgba(255,250,210,0.25)"; ctx.beginPath(); ctx.moveTo(46, -20); ctx.lineTo(140, -40); ctx.lineTo(140, 6); ctx.fill(); ctx.restore() } }
+  wbSlashers(ctx, { W, dockTop, padL, padR, S, t, dt, rate: WB.st.blackout && !WB.ko ? 1.8 : 1 })
   // the mask peeking from behind a tree
   if (!WB.peek && t > WB.nextPeek && !WB.ko) { WB.peek = { t: 0, x: Math.floor((W / 2 - ps) / step) * step + ps + 260 + (wbRnd() < 0.5 ? -step : step) }; WB.st.peeks++ }
   if (WB.peek) { const p = WB.peek; p.t += dt; const out = Math.min(1, p.t / 0.6, Math.max(0, (2.4 - p.t) / 0.6)); wbMask(ctx, p.x + 6 + out * 8, base - 150 * 0.85, 1.1 * S * 0.6); if (p.t > 2.4) { WB.peek = null; WB.nextPeek = t + 6 + 6 * wbRnd() } }
 }
 function woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
-  if (F[0] !== WB.p1) { Object.assign(WB, { p1: F[0], hp: new WeakMap(), rings: [], power: 1, flash: 0, nextBolt: 0, cops: 0, ko: null, shout: [] }); for (const k in WB.st) WB.st[k] = 0 }
+  if (F[0] !== WB.p1) { Object.assign(WB, { p1: F[0], hp: new WeakMap(), rings: [], power: 1, flash: 0, nextBolt: 0, cops: 0, ko: null, shout: [] }); for (const k in WB.st) WB.st[k] = 0; Object.assign(WBK, { list: [], bodies: [], drops: [], next: t + 0.6, kills: 0 }) }
   const dt = Math.min(0.05, Math.max(0, t - (WB.last || t))); WB.last = t
   const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
   let big = null, low = false, ko = false
   for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = WB.hp.get(f); WB.hp.set(f, hp)
     if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
     if (was != null && was - hp >= 60) big = f }
+  if (big) WBK.next = Math.min(WBK.next, t + 0.2)   // a big hit: another hunt starts right away
   if (big && !WB.ko) { WB.st.rings++; const x = mid + (wbRnd() < 0.5 ? -1 : 1) * (180 + wbRnd() * 200); WB.rings.push({ x, t: 0 })
     wbShout(x, dockTop - 105 * S, ["*RING RING*  \"WHAT'S YOUR FAVORITE SCARY MOVIE?\"", "WOOF! WOOF! WOOF!", "*RING RING*  \"DO YOU LIKE SCARY MOVIES?\""][(WB.st.rings - 1) % 3], "#8a1a1a") }
   if (low && !WB.st.blackout && !WB.ko) { WB.st.blackout++; wbShout(mid, feet - 230, "…THE POWER'S OUT.", "#8a1a1a") }
@@ -5537,6 +5556,13 @@ function woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.fillStyle = "#1a1a20"; ctx.fillRect(x - 3, top, 6, dockTop - top + 6); ctx.fillRect(x - 3, top, 34, 5); ctx.fillStyle = on ? "#fff4c8" : "#3a3a40"; ctx.fillRect(x + 22, top + 4, 14, 6)
     if (on) { const gr = ctx.createLinearGradient(0, top, 0, feet + 20); gr.addColorStop(0, "rgba(255,240,190,0.28)"); gr.addColorStop(1, "rgba(255,240,190,0)"); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x + 22, top + 10); ctx.lineTo(x + 36, top + 10); ctx.lineTo(x + 100, feet + 20); ctx.lineTo(x - 40, feet + 20); ctx.fill()
       for (let m = 0; m < 3; m++) { ctx.fillStyle = "rgba(240,230,200,0.8)"; ctx.fillRect(x + 29 + Math.sin(t * 7 + m * 2) * 12, top + 14 + Math.cos(t * 5 + m) * 8, 2, 2) } } } }
+  // the street is a crime scene: blood pools, smears and drag trails, a dropped knife (world-locked)
+  for (let x = Math.floor((padL - 300) / 230) * 230; x < padR + 300; x += 230) { if (_h(x * 0.37) > 0.55) continue
+    const y = dockTop + 40 + 90 * _h(x * 1.3), r = 14 + 22 * _h(x * 2.1)
+    ctx.fillStyle = "rgba(90,0,0,0.85)"; ctx.beginPath(); ctx.ellipse(x, y, r * 1.6, r * 0.35, 0, 0, 7); ctx.fill()
+    for (let d = 0; d < 6; d++) { ctx.beginPath(); ctx.ellipse(x + (_h(x + d) - 0.5) * r * 5, y + (_h(x * 3 + d) - 0.5) * r * 0.8, 2 + 3 * _h(d + x), 1.2 + _h(d * x), 0, 0, 7); ctx.fill() }
+    if (_h(x * 5) < 0.4) { ctx.fillStyle = "rgba(90,0,0,0.6)"; ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x + 160 * (_h(x * 7) < 0.5 ? -1 : 1), y - 30); ctx.lineTo(x + 160 * (_h(x * 7) < 0.5 ? -1 : 1), y - 24); ctx.lineTo(x, y + 3); ctx.fill() }
+    if (_h(x * 9) < 0.3) { ctx.save(); ctx.translate(x + r * 2, y + 4); ctx.rotate(_h(x) * 6); wbKnife(ctx, 18, true); ctx.restore() } }
   drawCrowd(ctx, WBC, { W, feet, sh: shift(0.9, W) })
   // ringing phones: a little glow + rings in a window
   for (const r of WB.rings) { r.t += dt; const a = Math.max(0, 1 - r.t / 2.2); for (let j = 0; j < 3; j++) { const rr = ((r.t * 60 + j * 14) % 42); ctx.strokeStyle = `rgba(255,230,160,${a * (1 - rr / 42)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.x, dockTop - 120 * S * 0.7, rr, -0.8, 0.8); ctx.stroke() } }
@@ -5544,6 +5570,7 @@ function woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   // fog bank
   for (let i = 0; i < 3; i++) { const y = feet - 10 - i * 34, sx = ((t * (14 + i * 6)) % 600), gr = ctx.createLinearGradient(0, y - 40, 0, y + 40); gr.addColorStop(0, "rgba(170,180,200,0)"); gr.addColorStop(0.5, `rgba(170,180,200,${0.13 + 0.06 * (1 - WB.power)})`); gr.addColorStop(1, "rgba(170,180,200,0)")
     ctx.fillStyle = gr; ctx.fillRect(padL - 600 + sx, y - 40, padR - padL + 1200, 80) }
+  { const cx = (padL + padR) / 2, vg = ctx.createRadialGradient(cx, dockTop - 60, 200, cx, dockTop - 60, (padR - padL) * 0.75); vg.addColorStop(0, "rgba(40,0,6,0)"); vg.addColorStop(1, `rgba(40,0,6,${0.55 + 0.1 * Math.sin(t * 1.3)})`); ctx.fillStyle = vg; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
   if (WB.power < 1) { ctx.fillStyle = `rgba(2,4,12,${0.45 * (1 - WB.power)})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
   if (WB.cops > 0) { const ph = Math.floor(t * 6) % 2; ctx.fillStyle = ph ? `rgba(230,40,40,${0.16 * WB.cops})` : `rgba(40,80,240,${0.16 * WB.cops})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
   for (const s of WB.shout) { s.t -= dt; if (s.t <= 0) continue
@@ -6187,4 +6214,129 @@ function drawRandomStage(ctx, def, { canvasWidth, W, groundY, coverTop, coverBot
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   RM.shout = RM.shout.filter(s => s.t > 0)
   return true
+}
+
+// ── WOODSBORO: THE NIGHT OF THE SLASHERS (render-only; the background is a massacre in progress) ──
+// Killers hunt people down the street behind the fight: GHOSTFACE chases and stabs, CHUCKY sprints after them, leaps on
+// their back and stabs away cackling, JASON stalks, cuts them down with his machete and crouches over the body feeding.
+// Bodies and blood stay where they fall (until the next match); victims scream as they run.
+const WBK = { list: [], bodies: [], drops: [], next: 0.6, id: 0, kills: 0, last: 0 }
+const WB_LOOKS = [["#c83a3a", "#2a3a6a", "#f0c8a0", "#3a2418"], ["#e8e0d0", "#3a3a3a", "#8a5a3a", "#111"], ["#3a8ad0", "#5a4a3a", "#f2d2b2", "#d8b060"], ["#d070b0", "#2a2a3a", "#c89070", "#5a2a1a"], ["#6aa84a", "#2a2a2a", "#5a3a26", "#111"], ["#f0d040", "#3a4a8a", "#f0c8a0", "#8a3a1a"]]
+const WB_SCREAMS = ["AAAAH!", "HELP!!", "NO NO NO!", "SOMEBODY HELP!", "RUN!!", "PLEASE!", "AAAAAAAH!"]
+function wbVictim(ctx, v, x, y, s, t, pose, fall, ph) {   // pose: run | back | stagger | dead
+  const L = WB_LOOKS[v.look]
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * v.dir, s)
+  if (pose === "dead") {
+    ctx.fillStyle = L[1]; ctx.fillRect(-36, -7, 30, 7); ctx.fillStyle = L[0]; ctx.fillRect(-8, -9, 28, 9); ctx.fillStyle = "rgba(120,0,0,0.9)"; ctx.fillRect(0, -9, 12, 9)
+    ctx.fillStyle = L[2]; ctx.save(); ctx.translate(8, -6); ctx.rotate(-2.4); ctx.fillRect(0, -2, 18, 4); ctx.restore(); ctx.beginPath(); ctx.arc(27, -6, 6.5, 0, 7); ctx.fill()
+    ctx.fillStyle = L[3]; ctx.beginPath(); ctx.arc(29, -7, 6.8, -0.6, 2.2); ctx.fill(); ctx.restore(); return }
+  ctx.rotate(-fall * 1.45)
+  const sw = pose === "run" ? Math.sin(ph) * 0.9 : pose === "back" ? Math.sin(ph) * 0.4 : Math.sin(t * 6) * 0.15
+  ctx.fillStyle = L[1]; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 3, -30); ctx.rotate(k * sw); ctx.fillRect(-3.5, 0, 7, 30); ctx.restore() }
+  ctx.fillStyle = L[0]; ctx.fillRect(-8, -60, 16, 32)
+  if (v.hurt) { ctx.fillStyle = "rgba(140,0,0,0.9)"; ctx.fillRect(-8, -52, 12, 14); ctx.fillRect(-4, -38, 6, 10) }
+  ctx.fillStyle = L[2]
+  for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 6, -58); ctx.rotate(pose === "stagger" ? Math.PI * 0.9 + k * 0.6 : Math.PI + k * 0.5 + Math.sin(t * 15 + k + v.look) * 0.45); ctx.fillRect(-2.5, 0, 5, 21); ctx.restore() }
+  ctx.beginPath(); ctx.arc(1, -68, 8, 0, 7); ctx.fill(); ctx.fillStyle = L[3]; ctx.beginPath(); ctx.arc(0, -71, 8.4, Math.PI * 0.9, Math.PI * 2.1); ctx.fill()
+  ctx.fillStyle = "#1a0606"; ctx.beginPath(); ctx.ellipse(5, -65, 2.4, 3.6, 0, 0, 7); ctx.fill()   // screaming
+  ctx.restore()
+}
+function wbKnife(ctx, len, bloody) { ctx.fillStyle = "#3a2a20"; ctx.fillRect(-2, -2, 8, 4); ctx.fillStyle = "#d8dce4"; ctx.beginPath(); ctx.moveTo(6, -2.5); ctx.lineTo(6 + len, 0); ctx.lineTo(6, 2.5); ctx.fill(); if (bloody) { ctx.fillStyle = "#a00"; ctx.fillRect(6 + len * 0.4, -2, len * 0.55, 3) } }
+function wbGhostKiller(ctx, x, y, s, dir, t, run, stab) {   // Ghostface: flowing black robe, the mask, a raised knife
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * dir, s)
+  const fl = run ? Math.sin(t * 16) * 5 : Math.sin(t * 2) * 1.5
+  ctx.fillStyle = "#08080c"; ctx.beginPath(); ctx.moveTo(-9, -62); ctx.lineTo(9, -62); ctx.lineTo(15 + fl, 0); for (let k = 0; k < 6; k++) ctx.lineTo(15 - k * 6 + (k % 2 ? 3 : -3), k % 2 ? -5 : 0); ctx.lineTo(-17 - fl, 0); ctx.fill()
+  ctx.fillStyle = "#08080c"; ctx.save(); ctx.translate(-5, -56); ctx.rotate(run ? 0.6 + Math.sin(t * 16) * 0.5 : 0.3); ctx.fillRect(-3, 0, 6, 24); ctx.restore()
+  const a = stab != null ? (stab < 0.35 ? 0.4 - 2.8 * (stab / 0.35) : -2.4 + 3.2 * ((stab - 0.35) / 0.65)) : run ? -0.4 + Math.sin(t * 16 + 1) * 0.5 : -1.2
+  ctx.save(); ctx.translate(6, -56); ctx.rotate(a); ctx.fillRect(-3, 0, 6, 24); ctx.translate(0, 24); ctx.rotate(Math.PI / 2); ctx.fillStyle = "#e8e8e8"; ctx.fillRect(-3, -3, 6, 6); wbKnife(ctx, 16, stab != null); ctx.restore()
+  wbMask(ctx, 1, -72, 0.85); ctx.restore()
+}
+function wbChucky(ctx, x, y, s, dir, t, run, stab) {   // the killer doll: red hair, scarred face, striped shirt, overalls, big knife
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * dir * 0.62, s * 0.62)
+  const sw = run ? Math.sin(t * 22) * 0.9 : 0
+  ctx.fillStyle = "#2a4a8a"; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 4, -26); ctx.rotate(k * sw); ctx.fillRect(-4, 0, 8, 24); ctx.fillStyle = "#e8e8e8"; ctx.fillRect(-5, 20, 11, 6); ctx.fillStyle = "#2a4a8a"; ctx.restore() }
+  const stripes = ["#d02a2a", "#f0c020", "#2aa04a", "#2a6ad0", "#f07a20"]
+  for (let i = 0; i < 6; i++) { ctx.fillStyle = stripes[i % 5]; ctx.fillRect(-11, -54 + i * 5, 22, 5) }
+  ctx.fillStyle = "#3a5aa8"; ctx.fillRect(-9, -42, 18, 18); ctx.fillRect(-9, -52, 4, 12); ctx.fillRect(5, -52, 4, 12)
+  ctx.save(); ctx.translate(-8, -50); ctx.rotate(run ? 0.8 + Math.sin(t * 22) * 0.6 : 0.4); for (let i = 0; i < 4; i++) { ctx.fillStyle = stripes[i % 5]; ctx.fillRect(-3, i * 5, 6, 5) } ctx.restore()
+  const a = stab != null ? (stab < 0.4 ? -2.6 : 0.6) : run ? -0.6 + Math.sin(t * 22 + 1) * 0.6 : -1.6
+  ctx.save(); ctx.translate(8, -50); ctx.rotate(a); for (let i = 0; i < 4; i++) { ctx.fillStyle = stripes[(i + 2) % 5]; ctx.fillRect(-3, i * 5, 6, 5) } ctx.translate(0, 20); ctx.rotate(Math.PI / 2); ctx.fillStyle = "#f2d2b2"; ctx.fillRect(-3, -3, 6, 6); wbKnife(ctx, 26, true); ctx.restore()
+  ctx.fillStyle = "#f2d2b2"; ctx.beginPath(); ctx.ellipse(0, -68, 13, 14, 0, 0, 7); ctx.fill()
+  ctx.strokeStyle = "#6a2a2a"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-9, -76); ctx.lineTo(-3, -62); for (let k = 0; k < 4; k++) { ctx.moveTo(-9 + k * 1.6, -73 + k * 3.4); ctx.lineTo(-4 + k * 1.6, -74 + k * 3.4) } ctx.moveTo(5, -60); ctx.lineTo(10, -70); ctx.stroke()
+  ctx.fillStyle = "#111"; ctx.beginPath(); ctx.moveTo(-8, -73); ctx.lineTo(-1, -71); ctx.moveTo(3, -71); ctx.lineTo(10, -73); ctx.lineWidth = 2; ctx.strokeStyle = "#111"; ctx.stroke()
+  ctx.fillStyle = "#2a6ad0"; ctx.fillRect(-6, -69, 3, 3); ctx.fillRect(4, -69, 3, 3)
+  ctx.fillStyle = "#6a0a0a"; ctx.beginPath(); ctx.moveTo(-6, -61); ctx.quadraticCurveTo(1, -55, 9, -62); ctx.quadraticCurveTo(1, -59, -6, -61); ctx.fill()
+  ctx.fillStyle = "#d8461a"; for (let k = 0; k < 7; k++) { const hx = -13 + k * 4.4; ctx.beginPath(); ctx.moveTo(hx, -72); ctx.lineTo(hx + 2 + Math.sin(t * 9 + k), -88 - 3 * (k % 2)); ctx.lineTo(hx + 5, -74); ctx.fill() }
+  ctx.restore()
+}
+function wbJason(ctx, x, y, s, dir, t, mode, swing) {   // the hockey mask, a big frame, a machete; mode: walk | swing | feed | stand
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * dir * 1.15, s * 1.15)
+  if (mode === "feed") { ctx.translate(0, 26); ctx.rotate(0.9 + Math.sin(t * 9) * 0.12) }
+  const sw = mode === "walk" ? Math.sin(t * 4) * 0.35 : 0
+  ctx.fillStyle = "#2a241e"; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 4, -30); ctx.rotate(k * sw); ctx.fillRect(-4.5, 0, 9, 30); ctx.restore() }
+  ctx.fillStyle = "#3a4030"; ctx.fillRect(-12, -64, 24, 36); ctx.fillStyle = "#2a2e22"; ctx.fillRect(-12, -64, 24, 5)
+  ctx.fillStyle = "#3a4030"; ctx.save(); ctx.translate(-9, -60); ctx.rotate(mode === "feed" ? -1.2 : 0.2 + sw); ctx.fillRect(-4, 0, 8, 26); ctx.restore()
+  const a = mode === "swing" ? -2.6 + 3.6 * Math.min(1, swing) : mode === "feed" ? -1.6 + Math.sin(t * 9) * 0.3 : 0.15
+  ctx.save(); ctx.translate(9, -60); ctx.rotate(a); ctx.fillStyle = "#3a4030"; ctx.fillRect(-4, 0, 8, 26); ctx.translate(0, 26); ctx.rotate(Math.PI / 2)
+  ctx.fillStyle = "#2a1a10"; ctx.fillRect(-2, -3, 10, 6); ctx.fillStyle = "#b8bcc4"; ctx.beginPath(); ctx.moveTo(8, -4); ctx.lineTo(40, -6); ctx.lineTo(46, 0); ctx.lineTo(8, 4); ctx.fill(); ctx.fillStyle = "#8a0000"; ctx.fillRect(18, -4, 22, 4); ctx.restore()
+  ctx.fillStyle = "#4a3a2e"; ctx.beginPath(); ctx.arc(0, -73, 10, 0, 7); ctx.fill()
+  ctx.fillStyle = "#e8e4d8"; ctx.beginPath(); ctx.ellipse(2, -73, 8.5, 10.5, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#111"
+  for (const [hx, hy] of [[-1, -76], [5, -76], [2, -68], [-2, -71], [6, -71], [2, -80]]) { ctx.beginPath(); ctx.arc(hx, hy, hx === 2 && hy === -80 ? 0.8 : 1.3, 0, 7); ctx.fill() }
+  ctx.fillStyle = "#b81a1a"; for (const [hx, hy] of [[2, -82], [-4, -73], [8, -73]]) { ctx.beginPath(); ctx.moveTo(hx - 2, hy); ctx.lineTo(hx, hy - 3); ctx.lineTo(hx + 2, hy); ctx.fill() }
+  if (mode === "feed") { ctx.fillStyle = "rgba(150,0,0,0.9)"; ctx.fillRect(-2, -64, 9, 4) }
+  ctx.restore()
+}
+function wbSpurt(lx, y, n, power) { for (let i = 0; i < n; i++) WBK.drops.push({ x: lx, y, vx: (wbRnd() - 0.5) * 160 * power, vy: -60 - 200 * wbRnd() * power, life: 1.1, gy: y + 4 + 10 * wbRnd() }) }
+function wbSlashers(ctx, { W, dockTop, padL, padR, S, t, dt, rate }) {
+  const sh = shift(0.9, W), base = dockTop - 6 * S + 3, sc = 1.12
+  // spawn: a new hunt every few seconds, at most four at once
+  if (t > WBK.next && WBK.list.length < 4) { WBK.next = t + (2.2 + 2.5 * wbRnd()) / rate
+    const type = ["ghost", "chucky", "jason"][Math.floor(wbRnd() * 3)], dir = wbRnd() < 0.5 ? 1 : -1, lx = (padL - sh) + (0.12 + 0.76 * wbRnd()) * (padR - padL)
+    WBK.list.push({ type, dir, vx: lx, kx: lx - dir * (type === "jason" ? 95 : 165), t: 0, look: (++WBK.id) % WB_LOOKS.length, scream: WB_SCREAMS[WBK.id % WB_SCREAMS.length], ph: 0, hurt: false, body: false }) }
+  // bodies + blood already on the street
+  for (const b of WBK.bodies) { const x = b.x + sh, g = Math.min(1, (t - b.t0) / 2.5)
+    ctx.fillStyle = "rgba(95,0,0,0.9)"; ctx.beginPath(); ctx.ellipse(x + b.dir * 6, base + 1, 18 + 22 * g, 3 + 4 * g, 0, 0, 7); ctx.fill()
+    wbVictim(ctx, { look: b.look, dir: b.dir }, x, base, sc, t, "dead", 0, 0) }
+  for (const e of WBK.list) { e.t += dt; const T = e.t, d = e.dir
+    let vPose = "run", vFall = 0, kRun = true, kStab = null, jMode = "walk", jSwing = 0, kx, vx, ky = 0, kDir = d
+    if (e.type === "ghost") {
+      if (T < 2.2) { e.vx += d * 75 * dt; e.kx += d * (75 + 165 / 2.2) * dt; e.ph += dt * 14 }
+      else if (T < 3.4) { vPose = "stagger"; kRun = false; kStab = ((T - 2.2) * 2.5) % 1; e.kx = e.vx - d * 20; if (!e.hurt) { e.hurt = true } if (Math.floor((T - 2.2) * 2.5) !== Math.floor((T - dt - 2.2) * 2.5)) wbSpurt(e.vx, base - 46 * sc, 10, 1) }
+      else if (T < 3.8) { vPose = "stagger"; vFall = (T - 3.4) / 0.4; kRun = false; kStab = null }
+      else { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: -d, look: e.look, t0: t }); WBK.kills++ } kRun = T > 4.8; if (kRun) e.kx += d * 60 * dt }
+    } else if (e.type === "chucky") {
+      if (T < 1.8) { e.vx += d * 80 * dt; e.kx += d * (80 + 165 / 1.8) * dt; e.ph += dt * 15 }
+      else if (T < 2.15) { const u = (T - 1.8) / 0.35; e.vx += d * 40 * dt; e.kx = e.kx + (e.vx - d * 4 - e.kx) * Math.min(1, u * 1.4); ky = -Math.sin(u * Math.PI) * 30 - u * 34; e.ph += dt * 10 }
+      else if (T < 3.4) { vPose = "stagger"; e.vx += d * 18 * dt; e.kx = e.vx - d * 4; ky = -34; kRun = false; kStab = ((T - 2.15) * 3.2) % 1; e.hurt = true
+        if (Math.floor((T - 2.15) * 3.2) !== Math.floor((T - dt - 2.15) * 3.2)) wbSpurt(e.vx, base - 50 * sc, 8, 0.9); if (!e.laughed) { e.laughed = true; e.say = "HA HA HA HA!"; e.sayT = 1.6 } }
+      else if (T < 3.8) { vPose = "stagger"; vFall = (T - 3.4) / 0.4; ky = -34 * (1 - vFall); kRun = false }
+      else { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: d, look: e.look, t0: t }); WBK.kills++; e.say = "WANNA PLAY?"; e.sayT = 1.6 } e.kx += d * 150 * dt; kDir = d }
+    } else {
+      if (T < 2.6) { vPose = "back"; e.vx += d * 22 * dt; e.kx += d * (22 + 95 / 2.6 - 4) * dt; e.ph += dt * 6; jMode = "walk" }
+      else if (T < 2.95) { vPose = "back"; jMode = "swing"; jSwing = (T - 2.6) / 0.35; if (!e.hurt && jSwing > 0.6) { e.hurt = true; wbSpurt(e.vx, base - 50 * sc, 16, 1.3) } }
+      else if (T < 3.3) { vPose = "stagger"; vFall = (T - 2.95) / 0.35; jMode = "stand" }
+      else if (T < 6.6) { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: -d, look: e.look, t0: t }); WBK.kills++ } jMode = "feed"; e.kx = e.vx - d * 24; if (Math.floor(T * 2.2) !== Math.floor((T - dt) * 2.2)) wbSpurt(e.vx - d * 4, base - 6, 5, 0.6) }
+      else { jMode = "walk"; e.kx += d * 45 * dt }
+      kRun = false }
+    kx = e.kx + sh; vx = e.vx + sh
+    if (!e.body) wbVictim(ctx, e, vx, base, sc, t, vPose, vFall, e.ph)
+    if (e.type === "ghost") wbGhostKiller(ctx, kx, base, sc, kDir, t, kRun, kStab)
+    else if (e.type === "chucky") wbChucky(ctx, kx, base + ky, sc, kDir, t, kRun, kStab)
+    else wbJason(ctx, kx, base, sc, kDir, t, jMode, jSwing)
+    ctx.save(); ctx.font = "900 16px Arial"; ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = "#fff"
+    if (!e.body && vFall < 0.5 && Math.sin(t * 9 + e.look) > -0.4) { ctx.strokeText(e.scream, vx, base - 90 * sc); ctx.fillStyle = "#b80000"; ctx.fillText(e.scream, vx, base - 90 * sc) }
+    if (e.sayT > 0) { e.sayT -= dt; ctx.strokeText(e.say, kx, base - 70 * sc); ctx.fillStyle = "#d8461a"; ctx.fillText(e.say, kx, base - 70 * sc) }
+    ctx.restore() }
+  WBK.list = WBK.list.filter(e => e.t < (e.type === "jason" ? 11 : 8))
+  if (WBK.bodies.length > 18) WBK.bodies.splice(0, WBK.bodies.length - 18)
+  for (const p of WBK.drops) { p.life -= dt; p.vy += 520 * dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.y > p.gy) { p.y = p.gy; p.vx = 0; p.vy = 0 }
+    ctx.fillStyle = `rgba(150,0,0,${Math.min(1, p.life * 2)})`; ctx.fillRect(p.x + sh - 1.5, p.y - 1.5, 3, 3) }
+  WBK.drops = WBK.drops.filter(p => p.life > 0).slice(-400)
+}
+function wbFire(ctx, x, base, w, t, k) {   // a house on fire: flames out of the windows and roof, glow, smoke
+  const g = ctx.createRadialGradient(x + w / 2, base - 100, 10, x + w / 2, base - 100, 220); g.addColorStop(0, "rgba(255,120,30,0.35)"); g.addColorStop(1, "rgba(255,80,20,0)"); ctx.fillStyle = g; ctx.fillRect(x - 120, base - 330, w + 240, 330)
+  for (let s = 0; s < 7; s++) { const u = (t * 0.18 + s / 7) % 1; ctx.fillStyle = `rgba(30,24,26,${0.6 * (1 - u)})`; ctx.beginPath(); ctx.arc(x + w * 0.5 + Math.sin(u * 6 + s) * 30, base - 210 - u * 220, 26 + 50 * u, 0, 7); ctx.fill() }
+  const flame = (fx, fy, fw, fh, ph) => { for (let f = 0; f < 3; f++) { const hh = fh * (0.7 + 0.3 * Math.sin(t * 11 + ph + f * 2)); ctx.fillStyle = f === 1 ? "rgba(255,230,120,0.95)" : "rgba(255,110,30,0.9)"; ctx.beginPath(); ctx.moveTo(fx + f * fw / 3, fy); ctx.quadraticCurveTo(fx + f * fw / 3 - 4, fy - hh * 0.6, fx + f * fw / 3 + fw / 6, fy - hh); ctx.quadraticCurveTo(fx + f * fw / 3 + fw / 3 + 4, fy - hh * 0.5, fx + (f + 1) * fw / 3, fy); ctx.fill() } }
+  for (const [fx, fy] of [[0.12, -94], [0.62, -94], [0.12, -24], [0.62, -24]]) { ctx.fillStyle = "#ff8a2a"; ctx.fillRect(x + w * fx, base + fy - 34, w * 0.24, 34); flame(x + w * fx, base + fy - 30, w * 0.24, 40, fx * 10 + fy) }
+  flame(x + 10, base - 150, w * 0.4, 60, k); flame(x + w * 0.5, base - 175, w * 0.4, 80, k + 3)
 }

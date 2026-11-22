@@ -211,7 +211,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Woodsboro":              [WEATHER.RAIN, WEATHER.THUNDERSTORM, WEATHER.FOG, WEATHER.WIND, WEATHER.RAINBOW],
   "Heaven's Arena":         INDOOR_ONLY,
   "Viltrumite Warzone":     OUTDOOR_WARM,   // wasteland → heat/wind/dust, no snow
-  "Command Center":         INDOOR_ONLY,
+  "Command Center":         OUTDOOR_WARM,   // the desert outside Angel Grove (the stage shows the Command Center from outside)
   "PK Academy":             OUTDOOR_FULL,
   "Analysis Nexus":         INDOOR_ONLY,
   "Shadow Garden":          [WEATHER.FOG, WEATHER.RAIN, WEATHER.WIND, WEATHER.THUNDERSTORM],

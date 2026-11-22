@@ -1,0 +1,39 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Mike's Stage background sheet (ripped by TonyWanKenobian); the faces chiselled off \u2192 the Command Center's rock in the desert",
+ "pieces": {
+  "rock": {
+   "file": "rock.png",
+   "w": 768,
+   "h": 196,
+   "cc": [
+    382,
+    201
+   ],
+   "domes": [
+    [
+     142,
+     20
+    ],
+    [
+     592,
+     34
+    ]
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 320
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 772,
+   "h": 184
+  }
+ },
+ "colors": {
+  "skyTop": "#3a7ae0",
+  "under": "#c87a2a"
+ },
+ "preview": "preview.png"
+}

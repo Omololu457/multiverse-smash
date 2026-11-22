@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE COMMAND CENTER (Mighty Morphin Power Rangers) — Mike's Stage (SF 1987 sheet) with its carved rock removed by
+// tools/stage_layers/slice_mike_command.py: the open desert outside Angel Grove; the Command Center + its hill drawn in code.
+SETS.mike_command = {
+  dir: "./stages/mike_command/",
+  S: 1.6,
+  standRow: 20,
+  deckFrontRow: 40,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "command", p: 0.05 },
+    { piece: "rock", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "command",
+  animRate: {},
+}
+
 // YORKNEW CITY (Hunter x Hunter) — Hong Kong (Yun's Stage, SFIII) sheet, cut by tools/stage_layers/slice_yun_yorknew.py;
 // the street has writing on it → tile:"repeat" (never mirrored).
 SETS.yun_yorknew = {
@@ -530,6 +548,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "command") { drawCommandSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "yorknew") { drawYorknewSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "viltrum") { drawViltrumSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "mugen") { drawMugenSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -633,6 +652,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "command") commandFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "yorknew") yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "viltrum") viltrumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "mugen") mugenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -4213,3 +4233,172 @@ function yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   YN.shout = YN.shout.filter(s => s.t > 0)
   if (YN.flash > 0) { YN.flash = Math.max(0, YN.flash - dt * 1.2); ctx.fillStyle = `rgba(255,230,140,${YN.flash * 0.7})`; ctx.fillRect(padL, G.y0 - 200, padR - padL, coverBottom - G.y0 + 200) }
 }
+
+// ───────────────────────────── THE COMMAND CENTER (Mighty Morphin Power Rangers; render-only, wall clock, own PRNG) ─────────────────────────────
+// The desert outside Angel Grove (Mike's Stage sheet, its carved rock removed — only the open desert kept). On its rocky
+// hill stands the COMMAND CENTER: the central tower with its crown and spire, the angled wings, the beacon. Canon touches:
+// the Rangers TELEPORT in as streaks of coloured light; PUTTY PATROLLERS (grey clay foot soldiers) rise out of the sand and
+// fight the Mighty Morphin Rangers (the game's own Ranger sprites — MMPR only, the two fighters left out) and crumble when
+// beaten; Rita Repulsa's palace sits on the moon in the daytime sky (her telescope glints); ALPHA 5 calls out from the
+// Command Center. Tumbleweeds, dust devils, heat shimmer. Big hit → a Putty is blasted apart, "AY-YI-YI-YI-YI!"; ≤25% →
+// the beacon flashes red, GOLDAR flies over, Rita sends more Putties ("PUTTIES! ATTACK!"); KO → the POWER BLASTER: a
+// rainbow beam across the desert, every Putty blown apart, Goldar retreats, "I'M GETTING A HEADACHE!" from the moon.
+let _ccSeed = 0x9e3779b9
+const ccRnd = () => { _ccSeed ^= _ccSeed << 13; _ccSeed ^= _ccSeed >>> 17; _ccSeed ^= _ccSeed << 5; return (_ccSeed >>> 0) / 4294967296 }
+const CC_MMPR = ["mmpr_pink", "mmpr_black", "mmpr_white", "green_ranger"]
+const CC_STREAKS = ["#e8202a", "#2a6ae8", "#222", "#f2c81e", "#f06ab0", "#2aa84a", "#f2f2f2"]
+const CC = { p1: null, last: 0, hp: new WeakMap(), pairs: null, streaks: [], streakT: 1, weeds: null, devils: null, goldar: null, rage: false, blast: null, bits: [], shout: [], geo: null,
+  st: { teleports: 0, puttiesDown: 0, rangerHits: 0, alpha: 0, rage: 0, goldar: 0, blaster: 0 } }
+export const commandCenterState = () => ({ ...CC.st, pairs: (CC.pairs || []).length, rangers: (CC.pairs || []).map(p => p.key), weeds: (CC.weeds || []).length, rage: CC.rage,
+  goldarFlying: !!CC.goldar, blasting: !!CC.blast, shouting: CC.shout.filter(s => s.t > 0).map(s => s.txt) })
+function ccGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.rock, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S }
+}
+function ccShout(x, y, txt, col) { if (CC.shout.filter(s => s.t > 0).length < 3) CC.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function ccMesa(ctx, x, base, w, h, col, dark, seed) {   // a flat-topped desert mesa with strata
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - w / 2, base); ctx.lineTo(x - w * 0.36, base - h * 0.9); ctx.lineTo(x - w * 0.3, base - h); ctx.lineTo(x + w * 0.28, base - h); ctx.lineTo(x + w * 0.34, base - h * 0.88); ctx.lineTo(x + w / 2, base); ctx.fill()
+  ctx.fillStyle = dark; ctx.beginPath(); ctx.moveTo(x + w * 0.08, base - h); ctx.lineTo(x + w * 0.28, base - h); ctx.lineTo(x + w * 0.34, base - h * 0.88); ctx.lineTo(x + w / 2, base); ctx.lineTo(x + w * 0.16, base); ctx.fill()
+  ctx.strokeStyle = "rgba(90,40,20,0.35)"; ctx.lineWidth = 2; for (let i = 1; i < 4; i++) { const y = base - h * i / 4; ctx.beginPath(); ctx.moveTo(x - w * (0.5 - 0.14 * i / 4), y + 2 * Math.sin(seed + i)); ctx.lineTo(x + w * (0.5 - 0.16 * i / 4), y); ctx.stroke() }
+}
+function ccBuilding(ctx, x, y, s, t, alarm) {   // the Command Center on its hilltop (~260 px tall at s 1, base at y)
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s)
+  const hull = "#c8ccd4", shade = "#8a909c", deep = "#5a606c", glass = "#3a7ad8"
+  // wings
+  for (const d of [-1, 1]) { ctx.fillStyle = shade; ctx.beginPath(); ctx.moveTo(d * 30, 0); ctx.lineTo(d * 130, 0); ctx.lineTo(d * 118, -38); ctx.lineTo(d * 60, -62); ctx.lineTo(d * 30, -62); ctx.fill()
+    ctx.fillStyle = hull; ctx.beginPath(); ctx.moveTo(d * 30, -6); ctx.lineTo(d * 112, -6); ctx.lineTo(d * 104, -34); ctx.lineTo(d * 58, -56); ctx.lineTo(d * 30, -56); ctx.fill()
+    ctx.fillStyle = glass; for (let i = 0; i < 4; i++) ctx.fillRect(d > 0 ? 40 + i * 16 : -52 - i * 16, -28, 10, 8)
+    ctx.fillStyle = deep; ctx.beginPath(); ctx.moveTo(d * 96, -38); ctx.lineTo(d * 140, -70); ctx.lineTo(d * 132, -36); ctx.fill() }   // angled fins
+  // the central tower
+  ctx.fillStyle = shade; ctx.fillRect(-32, -150, 64, 150); ctx.fillStyle = hull; ctx.fillRect(-28, -150, 40, 150)
+  for (let i = 0; i < 6; i++) { ctx.fillStyle = deep; ctx.fillRect(-34, -20 - i * 22, 68, 4) }
+  ctx.fillStyle = glass; for (let i = 0; i < 5; i++) ctx.fillRect(-8, -40 - i * 22, 16, 8)
+  // the crown: a wide faceted ring
+  ctx.fillStyle = deep; ctx.beginPath(); ctx.moveTo(-70, -170); ctx.lineTo(70, -170); ctx.lineTo(54, -150); ctx.lineTo(-54, -150); ctx.fill()
+  ctx.fillStyle = hull; ctx.beginPath(); ctx.moveTo(-58, -200); ctx.lineTo(58, -200); ctx.lineTo(74, -172); ctx.lineTo(-74, -172); ctx.fill()
+  ctx.fillStyle = shade; for (let i = -3; i <= 3; i++) ctx.fillRect(i * 18 - 3, -198, 6, 26)
+  ctx.fillStyle = glass; ctx.fillRect(-50, -186, 100, 6)
+  ctx.fillStyle = hull; ctx.beginPath(); ctx.moveTo(-26, -200); ctx.lineTo(26, -200); ctx.lineTo(14, -222); ctx.lineTo(-14, -222); ctx.fill()
+  // the spire + beacon
+  ctx.strokeStyle = deep; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, -222); ctx.lineTo(0, -262); ctx.stroke()
+  const on = alarm ? Math.sin(t * 12) > 0 : Math.sin(t * 2) > 0.2
+  ctx.fillStyle = alarm ? (on ? "#ff2a2a" : "#7a1010") : on ? "#7ad8ff" : "#2a6a8a"; ctx.beginPath(); ctx.arc(0, -264, 6, 0, 7); ctx.fill()
+  if (on) { ctx.fillStyle = alarm ? "rgba(255,40,40,0.3)" : "rgba(120,220,255,0.25)"; ctx.beginPath(); ctx.arc(0, -264, 22, 0, 7); ctx.fill() }
+  ctx.restore()
+}
+function ccPutty(ctx, x, y, s, p, t) {   // a Putty Patroller: grey textured clay, bulky, flat face (~66 px tall at s 1)
+  const sw = Math.sin(t * 9 + p.seed) * (p.atk > 0 ? 0.9 : 0.25)
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * p.dir, s); if (p.hurt > 0) ctx.filter = "brightness(1.6)"
+  ctx.fillStyle = "#6e6a70"; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 5, -26); ctx.rotate(k * sw * 0.4); ctx.fillRect(-4.5, 0, 9, 26); ctx.restore() }
+  ctx.fillStyle = "#7c7880"; ctx.beginPath(); ctx.moveTo(-14, -58); ctx.lineTo(14, -58); ctx.lineTo(11, -24); ctx.lineTo(-11, -24); ctx.fill()
+  ctx.strokeStyle = "#5a565e"; ctx.lineWidth = 1.5; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(-11, -52 + i * 6); ctx.quadraticCurveTo(0, -49 + i * 6, 11, -52 + i * 6); ctx.stroke() }
+  ctx.save(); ctx.translate(12, -52); ctx.rotate(p.atk > 0 ? -1.4 + sw : 0.4 + sw * 0.3); ctx.fillStyle = "#6e6a70"; ctx.fillRect(-4, 0, 8, 22); ctx.restore()
+  ctx.save(); ctx.translate(-12, -52); ctx.rotate(-0.4 - sw * 0.3); ctx.fillStyle = "#6e6a70"; ctx.fillRect(-4, 0, 8, 22); ctx.restore()
+  ctx.fillStyle = "#8a868e"; ctx.beginPath(); ctx.ellipse(0, -66, 9, 10, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#5a565e"; ctx.fillRect(-6, -68, 12, 2); ctx.fillRect(-4, -63, 8, 1.5)
+  ctx.restore()
+}
+function ccGoldar(ctx, x, y, s, t, dir) {   // Goldar in flight: gold armour, dark wings, a sword
+  const flap = Math.sin(t * 8) * 0.5
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * dir, s)
+  ctx.fillStyle = "#3a2a3a"; for (const k of [-1, 1]) { ctx.save(); ctx.rotate(k * (0.4 + flap * 0.6)); ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(-70 * 1, -40 + k * 20); ctx.lineTo(-56, -8); ctx.lineTo(-64, 6); ctx.lineTo(-10, 4); ctx.fill(); ctx.restore() }
+  ctx.fillStyle = "#d4a020"; ctx.beginPath(); ctx.ellipse(0, 0, 26, 12, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#a07810"; ctx.fillRect(-30, -4, 14, 8)
+  ctx.fillStyle = "#e8b830"; ctx.beginPath(); ctx.arc(28, -6, 9, 0, 7); ctx.fill(); ctx.fillStyle = "#b08010"; ctx.beginPath(); ctx.moveTo(24, -14); ctx.lineTo(30, -26); ctx.lineTo(34, -12); ctx.fill()
+  ctx.fillStyle = "#e02020"; ctx.fillRect(31, -8, 3, 2)
+  ctx.strokeStyle = "#d8dce4"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(20, 6); ctx.lineTo(60, 18); ctx.stroke(); ctx.fillStyle = "#d4a020"; ctx.fillRect(16, 3, 6, 6)
+  ctx.restore()
+}
+
+function drawCommandSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = CC.geo = ccGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S, alarm = CC.rage && !CC.blast
+  const dt = Math.min(0.05, Math.max(0, t - (CC.skyLast || t))); CC.skyLast = t
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, alarm ? "#4a5aa0" : "#2a6ae0"); g.addColorStop(0.7, alarm ? "#c89a8a" : "#9ac8f4"); g.addColorStop(1, alarm ? "#f0c0a0" : "#f2e2c8")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const sk = P.sky, im = c.img[sk.file]
+  if (ready(im)) { const ps = shift(0.08, W), w = sk.w * S * 1.2, y = G.Y(-60) - sk.h * S * 0.5; ctx.save(); ctx.globalAlpha = 0.75
+    for (let x = ((ps - padL) % w + w) % w - w + padL; x < padR; x += w) ctx.drawImage(im, x, y, w + 1, sk.h * S * 0.9); ctx.restore() }
+  // the moon in the daytime sky, Rita's palace on it, her telescope glinting
+  { const mx = W * 0.2 + shift(0.04, W), my = G.Y(-120), r = 38
+    ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.beginPath(); ctx.arc(mx, my, r, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(190,200,220,0.7)"; ctx.beginPath(); ctx.arc(mx - 10, my + 8, 8, 0, 7); ctx.arc(mx + 14, my - 10, 6, 0, 7); ctx.fill()
+    ctx.fillStyle = "rgba(70,60,90,0.85)"; ctx.fillRect(mx - 14, my - r - 10, 28, 12); ctx.fillRect(mx - 4, my - r - 22, 8, 14); ctx.fillRect(mx - 14, my - r - 16, 5, 8); ctx.fillRect(mx + 9, my - r - 16, 5, 8)
+    if (Math.sin(t * 1.3) > 0.85 || alarm) { ctx.fillStyle = "rgba(255,255,220,0.95)"; ctx.beginPath(); ctx.arc(mx + 16, my - r - 12, 3 + Math.sin(t * 20), 0, 7); ctx.fill() } }
+  // far mesas, near mesas
+  for (const [p, n, hh, col, dk, gap] of [[0.15, 10, 60, "#d8a070", "#c08860", 260], [0.32, 7, 100, "#c0703a", "#9a5428", 380]]) {
+    const ps = shift(p, W)
+    for (let i = Math.floor((padL - ps) / gap) - 1; i * gap + ps < padR + gap; i++) { const x = i * gap + ps + 60 * _h(i * 3 + p * 10), w = 140 + 120 * _h(i * 7 + p), h = hh * (0.6 + 0.6 * _h(i * 11 + p))
+      if (p > 0.3 && Math.abs(x - (W / 2 + shift(0.35, W))) < 300) continue
+      ccMesa(ctx, x, dockTop + 2, w, h, col, dk, i) } }
+  // the Command Center on its hill
+  { const hx = W / 2 + shift(0.35, W), base = dockTop + 2, top = base - 115
+    ctx.fillStyle = "#b8662e"; ctx.beginPath(); ctx.moveTo(hx - 330, base); ctx.quadraticCurveTo(hx - 250, top + 40, hx - 150, top + 6); ctx.lineTo(hx + 150, top + 4); ctx.quadraticCurveTo(hx + 250, top + 40, hx + 340, base); ctx.fill()
+    ctx.fillStyle = "#8e4a20"; ctx.beginPath(); ctx.moveTo(hx + 40, top + 4); ctx.lineTo(hx + 150, top + 4); ctx.quadraticCurveTo(hx + 250, top + 40, hx + 340, base); ctx.lineTo(hx + 80, base); ctx.fill()
+    ctx.strokeStyle = "rgba(90,40,20,0.4)"; ctx.lineWidth = 2; for (let i = 1; i < 5; i++) { ctx.beginPath(); ctx.moveTo(hx - 300 + i * 20, top + i * 30); ctx.lineTo(hx + 300 - i * 18, top + i * 30 + 3); ctx.stroke() }
+    for (const [rx, rr] of [[-210, 26], [-120, 18], [170, 22], [240, 30]]) { ctx.fillStyle = "#a05a28"; ctx.beginPath(); ctx.ellipse(hx + rx, top + 40 + Math.abs(rx) * 0.25, rr, rr * 0.7, 0, 0, 7); ctx.fill() }
+    ccBuilding(ctx, hx, top + 8, S * 0.5, t, alarm); CC.ccx = hx; CC.ccy = top - 150 * S * 0.5 }
+  // Rangers teleporting in: streaks of coloured light
+  CC.streakT -= dt; if (CC.streakT <= 0 && !CC.blast) { CC.streakT = 3 + ccRnd() * 4; CC.st.teleports++; const from = ccRnd() < 0.5 ? padL - 80 : padR + 80
+    CC.streaks.push({ x0: from, y0: G.Y(-150) + ccRnd() * 80, x1: (CC.ccx || W / 2) + (ccRnd() - 0.5) * 500, y1: dockTop - 10, col: CC_STREAKS[Math.floor(ccRnd() * CC_STREAKS.length)], u: 0 }) }
+  for (const s of CC.streaks) { s.u += dt * 1.6; const u = Math.min(1, s.u), x = s.x0 + (s.x1 - s.x0) * u, y = s.y0 + (s.y1 - s.y0) * u - Math.sin(u * Math.PI) * 80
+    const tx = s.x0 + (s.x1 - s.x0) * Math.max(0, u - 0.25), ty = s.y0 + (s.y1 - s.y0) * Math.max(0, u - 0.25) - Math.sin(Math.max(0, u - 0.25) * Math.PI) * 80
+    ctx.strokeStyle = s.col; ctx.lineWidth = 7; ctx.lineCap = "round"; ctx.globalAlpha = s.u < 1 ? 0.9 : Math.max(0, 1.4 - s.u); ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(x, y); ctx.stroke()
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.stroke(); ctx.globalAlpha = 1 }
+  CC.streaks = CC.streaks.filter(s => s.u < 1.4)
+  // Goldar
+  if (CC.goldar) { const gd = CC.goldar; gd.x += gd.dir * (CC.blast ? 420 : 140) * dt; gd.y += (CC.blast ? -160 : Math.sin(t * 1.5) * 20) * dt
+    ccGoldar(ctx, gd.x, gd.y, S * 0.8, t, gd.dir); if (!CC.blast && (gd.x < padL + 80 || gd.x > padR - 80)) gd.dir *= -1; if (gd.y < coverTop - 200) CC.goldar = null }
+}
+
+function commandFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = CC.geo || ccGeo(def, c, W, dockTop), S = def.S
+  if (F[0] !== CC.p1) { Object.assign(CC, { p1: F[0], hp: new WeakMap(), pairs: null, streaks: [], streakT: 1, weeds: null, devils: null, goldar: null, rage: false, blast: null, bits: [], shout: [] }); for (const k in CC.st) CC.st[k] = 0 }
+  if (!AG.spr) agLoad()
+  const dt = Math.min(0.05, Math.max(0, t - (CC.last || t))); CC.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + 5 * S, fighting = new Set(F.map(f => f.rosterKey))
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = CC.hp.get(f); CC.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  const alpha = (txt) => { CC.st.alpha++; ccShout(CC.ccx || W / 2, (CC.ccy || G.Y(0)) - 20, txt, "#c01818") }
+  // tumbleweeds + dust devils
+  if (!CC.weeds) CC.weeds = [0, 1, 2].map(i => ({ x: padL + (padR - padL) * (0.2 + 0.3 * i), v: 60 + 40 * i, r: 9 + 4 * i, rot: 0, hop: i }))
+  if (!CC.devils) CC.devils = [{ x: padL + (padR - padL) * 0.3, v: 30 }, { x: padL + (padR - padL) * 0.75, v: -24 }]
+  // the Rangers vs the Putties
+  const R = (AG.spr?.rangers || []).filter(r => CC_MMPR.includes(r.key) && !fighting.has(r.key))
+  if (!CC.pairs && AG.spr && R.length) CC.pairs = R.slice(0, 3).map((r, i) => ({ key: r.key, x: padL + (padR - padL) * [0.22, 0.5, 0.78][i], dir: i % 2 ? -1 : 1, t: i * 0.5, rAtk: 0, rHurt: 0, rName: "idle",
+    p: { hp: 3, hurt: 0, atk: 0, rise: 1, gone: 0, seed: i * 3.1, dir: i % 2 ? 1 : -1 } }))
+  if (big && !CC.blast) { alpha(["AY-YI-YI-YI-YI!", "AY-YI-YI! RANGERS, BE CAREFUL!", "OH NO! AY-YI-YI!"][CC.st.alpha % 3]); camera.shake?.(4, 12)
+    const pr = (CC.pairs || []).find(q => q.p.gone <= 0 && q.p.rise <= 0); if (pr) { pr.p.hp = 0; pr.p.gone = 2.5; CC.st.puttiesDown++; ccCrumble(pr.x + pr.dir * 46 * S * 0.5, feet) } }
+  if (low && !CC.rage && !CC.blast) { CC.rage = true; CC.st.rage++; CC.st.goldar++; CC.goldar = { x: padR + 100, y: G.Y(-60), dir: -1 }
+    ccShout(W * 0.2 + shift(0.04, W), G.Y(-60), "GOLDAR! PUTTIES! ATTACK!", "#7a1a8a"); setTimeout(() => alpha("ZORDON! THE ALARM!"), 900) }
+  if (ko && !CC.blast) { CC.blast = { t: 0 }; CC.st.blaster++; camera.shake?.(10, 40); ccShout(mid, G.Y(-20), "POWER BLASTER!", "#c01818") }
+  if (CC.blast) { CC.blast.t += dt; if (CC.blast.t > 0.5 && !CC.blast.hit) { CC.blast.hit = true; for (const pr of CC.pairs || []) if (pr.p.gone <= 0) { pr.p.gone = 99; CC.st.puttiesDown++; ccCrumble(pr.x + pr.dir * 46 * S * 0.5, feet) } if (CC.goldar) CC.goldar.dir = CC.goldar.dir || 1 }
+    if (CC.blast.t > 1.4 && !CC.blast.rita) { CC.blast.rita = true; ccShout(W * 0.2 + shift(0.04, W), G.Y(-60), "I'M GETTING A HEADACHE!", "#7a1a8a") } }
+  for (const pr of CC.pairs || []) { const ranger = R.find(r => r.key === pr.key) || (AG.spr?.rangers || []).find(r => r.key === pr.key), pt = pr.p, d = pr.dir
+    pr.t -= dt; pr.rAtk = Math.max(0, pr.rAtk - dt); pr.rHurt = Math.max(0, pr.rHurt - dt); pt.hurt = Math.max(0, pt.hurt - dt); pt.atk = Math.max(0, pt.atk - dt)
+    if (pt.gone > 0) { pt.gone -= dt; if (pt.gone <= 0 && !CC.blast) Object.assign(pt, { hp: CC.rage ? 4 : 3, rise: 1 }) }
+    else if (pt.rise > 0) pt.rise = Math.max(0, pt.rise - dt * 0.8)
+    else if (pr.t <= 0 && !CC.blast) { pr.t = 0.55 + ccRnd() * 0.7
+      if (ccRnd() < (CC.rage ? 0.6 : 0.7)) { pr.rAtk = 0.35; pr.rName = ccRnd() < 0.5 ? "light" : "heavy"; pt.hurt = 0.3; pt.hp--; if (pt.hp <= 0) { pt.gone = 2.4; CC.st.puttiesDown++; ccCrumble(pr.x + d * 46 * S * 0.5, feet) } }
+      else { pt.atk = 0.35; pr.rHurt = 0.4; CC.st.rangerHits++ } }
+    if (ranger) agAnim(ctx, ranger, CC.blast ? (Math.floor(t * 2) % 2 ? "jump" : "idle") : pr.rHurt > 0 ? "hurt" : pr.rAtk > 0 ? pr.rName : "idle", t * 8 + pr.x, pr.x - d * (pr.rHurt > 0 ? 8 : 0), feet, ranger.sc * 0.5, d)
+    if (pt.gone <= 0) { const px = pr.x + d * 46 * S * 0.5; ctx.save(); if (pt.rise > 0) { ctx.beginPath(); ctx.rect(px - 60, feet - 200, 120, 200); ctx.clip() }
+      ccPutty(ctx, px, feet + pt.rise * 70, S * 0.7, { ...pt, dir: -d }, t); ctx.restore()
+      if (pt.rise > 0) { ctx.fillStyle = `rgba(200,140,80,${0.6 * pt.rise})`; ctx.beginPath(); ctx.ellipse(px, feet, 40, 10, 0, 0, 7); ctx.fill() } } }
+  // crumbling clay, tumbleweeds, dust devils
+  for (const b of CC.bits) { b.life -= dt; b.vy += 800 * dt; b.x += b.vx * dt; b.y = Math.min(feet, b.y + b.vy * dt); ctx.fillStyle = b.col; ctx.fillRect(b.x, b.y, b.r, b.r) }
+  CC.bits = CC.bits.filter(b => b.life > 0)
+  for (const w of CC.weeds) { w.x += w.v * dt; w.rot += w.v * dt / w.r; if (w.x > padR + 40) w.x = padL - 40; const y = feet + 4 - Math.abs(Math.sin(t * 3 + w.hop)) * 12
+    ctx.save(); ctx.translate(w.x, y - w.r); ctx.rotate(w.rot); ctx.strokeStyle = "#8a6a3a"; ctx.lineWidth = 1.5; for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.ellipse(0, 0, w.r, w.r * 0.6, i * 0.45, 0, 7); ctx.stroke() } ctx.restore() }
+  for (const d2 of CC.devils) { d2.x += d2.v * dt; if (d2.x < padL - 60) d2.x = padR + 40; if (d2.x > padR + 60) d2.x = padL - 40
+    for (let i = 0; i < 10; i++) { const y = feet - i * 12, r = 6 + i * 3, a = Math.sin(t * 9 + i * 0.8) * r * 0.6
+      ctx.fillStyle = `rgba(210,150,90,${0.22 - i * 0.015})`; ctx.beginPath(); ctx.ellipse(d2.x + a, y, r, 4, 0, 0, 7); ctx.fill() } }
+  // the Power Blaster
+  if (CC.blast && CC.blast.t < 1.6) { const k = Math.min(1, CC.blast.t / 0.35), a = Math.min(1, (1.6 - CC.blast.t) * 2), y = feet - 70, x0 = padL, x1 = padL + (padR - padL) * k;
+    ["#e8202a", "#2a6ae8", "#f2c81e", "#f06ab0", "#222"].forEach((col, i) => { ctx.strokeStyle = col; ctx.globalAlpha = a; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(x0, y - 16 + i * 8 + Math.sin(t * 30 + i) * 2); ctx.lineTo(x1, y - 16 + i * 8); ctx.stroke() })
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.globalAlpha = 1
+    if (CC.blast.t < 0.5) { ctx.fillStyle = `rgba(255,255,240,${0.5 - CC.blast.t})`; ctx.fillRect(padL, G.y0 - 600, padR - padL, coverBottom - G.y0 + 600) } }
+  for (const s of CC.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  CC.shout = CC.shout.filter(s => s.t > 0)
+}
+function ccCrumble(x, y) { for (let i = 0; i < 16; i++) CC.bits.push({ x: x + (ccRnd() - 0.5) * 20, y: y - 20 - ccRnd() * 40, vx: (ccRnd() - 0.5) * 260, vy: -120 - ccRnd() * 220, r: 3 + ccRnd() * 4, col: ccRnd() < 0.5 ? "#7c7880" : "#5a565e", life: 1.4 }) }

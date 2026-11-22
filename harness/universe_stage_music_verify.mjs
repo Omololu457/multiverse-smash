@@ -40,7 +40,7 @@ const EXPECT = [
   ["Woodsboro",          "Noble_f3mii_Instrumental.mp3"],
   ["Heaven's Arena",     "Jhené Aiko - stranger (Audio).mp3"],
   ["Viltrumite Warzone", "Katy Perry - Harleys In Hawaii (Lyrics) You and I, Ridin' Harleys in Hawaii-i-i.mp3"],   // user, 2026-11-21
-  ["Command Center",     "neddy sped up.mp3"],
+  ["Command Center",     "Wande Coal, DJ Tunez - Iskaba [Official Audio].mp3"],   // user, 2026-11-21
   ["PK Academy",         "Rema_-_Dumebi.mp3"],
   ["Analysis Nexus",     "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3"],
 ];

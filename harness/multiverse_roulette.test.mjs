@@ -30,6 +30,8 @@ try {
   check("the match starts in a random map of the game (drawn whole)", !!s0.cur && s0.ready, JSON.stringify({ cur: s0.cur, ready: s0.ready }))
   { const m = await page.evaluate(() => window.__harness.musicState()); check("a song from the whole library of map songs is playing", !!m.fileSrc, String(m.fileSrc)) }
   await page.evaluate(async () => (await import("./stageLayers.js")).randomMapGo()); await sleep(1300); await page.screenshot({ path: path.join(OUT, "rift.png") }); await sleep(1500)
+  // the maps are truly random now, so the next one's art may still be loading: wait for the rift to finish (≤ 8 s more)
+  for (let k = 0; k < 40 && !((await T()).swaps >= 1); k++) await sleep(200)
   const s1 = await T(); await page.screenshot({ path: path.join(OUT, "next.png") })
   check("the screen shakes, reality cracks, a rift opens into another random map", s1.swaps >= 1 && s1.visited.length >= 2 && s1.cur !== s0.cur && s1.shakes >= 2, JSON.stringify({ v: s1.visited, sh: s1.shakes }))
   await page.evaluate(async () => (await import("./stageLayers.js")).randomMapGlitch(true)); await sleep(120); await page.screenshot({ path: path.join(OUT, "glitch_full.png") })

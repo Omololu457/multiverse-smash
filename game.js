@@ -25724,10 +25724,25 @@ function drawFFAScene() {
   bloodDrawFloor(ctx)   // MSV1-BLOOD: floor splats / pools / smears + falling drips (world space, behind fighters)
   drawProjectiles(ctx, activeProjectiles, camera, drawKevinShot)
   for (const f of ffaState.fighters) if (f && !f.eliminated) renderHybridFighter(f)
+  _drawFfaYouTag()   // online FFA: "▼ YOU" over this device's fighter (render-only)
   drawKevinFx(ctx,ffaState.fighters)
   drawHitSparksEnhanced()
   drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion FX (FFA scene, world space)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
+  ctx.restore()
+}
+
+// Online free-for-all: with up to 4 people each on their own screen, mark which fighter is THIS player's.
+// World space (inside the camera transform); render-only, never touches the sim.
+function _drawFfaYouTag() {
+  const i = _ffaNetMySlot()
+  const f = i >= 0 ? ffaState.fighters[i] : null
+  if (!f || f.eliminated) return
+  const cx = (f.x || 0) + (f.w || 0) / 2, top = (f.y || 0) - 14
+  ctx.save()
+  ctx.font = "900 22px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "bottom"
+  ctx.lineWidth = 5; ctx.strokeStyle = "rgba(6,10,24,0.9)"; ctx.fillStyle = FFA_BAR_COLORS[i] || "#fde047"
+  ctx.strokeText("▼ YOU", cx, top); ctx.fillText("▼ YOU", cx, top)
   ctx.restore()
 }
 
@@ -25758,7 +25773,7 @@ function drawFFAHud() {
     ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
     const tag = ffaState.teamMode ? `[${f.team}] ` : ""
     const labelX = themed ? x + PS + 6 : x + 2
-    ctx.fillText(`${tag}P${i + 1} ${f.name || f.rosterKey}${f.eliminated ? " ✖" : ""}`, labelX, y + h + 10)
+    ctx.fillText(`${tag}P${i + 1} ${f.name || f.rosterKey}${i === _ffaNetMySlot() ? " (YOU)" : ""}${f.eliminated ? " ✖" : ""}`, labelX, y + h + 10)
     // THEMED: a small portrait at the slot's outer (left) edge, accent-bordered.
     if (themed) {
       ctx.save(); if (f.eliminated) ctx.globalAlpha = 0.5

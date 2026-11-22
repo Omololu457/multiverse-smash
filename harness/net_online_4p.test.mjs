@@ -96,6 +96,9 @@ try {
     if (ps.some((s) => s && s.over)) break;
     await sleep(10);
   }
+  if (process.env.SHOT_DIR) for (let k = 0; k < 4; k++) await all[k].screenshot({ path: path.join(process.env.SHOT_DIR, `ffa4_screen${k + 1}.png`), timeout: 60000 }).catch((e) => console.log("    (screenshot skipped:", e.message.slice(0, 60) + ")"));   // optional: what each player sees
+  const youTag = await Promise.all(all.map((p) => H(p, () => window.__harness.online.ffaState().mySlot)));
+  check("each screen marks a different fighter as YOU", new Set(youTag).size === 4 && youTag.every((s) => s >= 0), JSON.stringify(youTag));
   let shared = 0, mismatched = 0, maxF = 0; const pos = new Set();
   for (const [fr, a] of samples[0]) {
     const others = [1, 2, 3].map((k) => samples[k].get(fr));

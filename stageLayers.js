@@ -291,7 +291,7 @@ SETS.necro_krypton = {
 // the street has writing on it → tile:"repeat" (never mirrored).
 SETS.yun_yorknew = {
   dir: "./stages/yun_yorknew/",
-  S: 1.45,
+  S: 1.85,                                                               // wider than the view: a join between repeats is rarely on screen
   standRow: 24,
   deckFrontRow: 46,
   floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: false },   // plain repeats like the street (the rails would mirror into Vs)
@@ -4078,6 +4078,32 @@ function ynSuit(ctx, x, y, s, m, t) {   // a mafia gunman: black suit, sunglasse
   ctx.restore()
 }
 
+function ynTenement(ctx, x, G, dockTop, t, k) {   // a tall apartment block standing over a join (~300 px wide), drawn from the street up off the top of the screen
+  const w = 300, x0 = x - w / 2, base = dockTop + 6, top = G.y0 - 40
+  const g = ctx.createLinearGradient(x0, 0, x0 + w, 0); g.addColorStop(0, "#6a5a5e"); g.addColorStop(0.12, "#a8989a"); g.addColorStop(0.55, "#c4b4b0"); g.addColorStop(0.88, "#968688"); g.addColorStop(1, "#5a4a50")
+  ctx.fillStyle = g; ctx.fillRect(x0, top, w, base - top)
+  // soft shadows where it meets its neighbours
+  for (const [ex, d] of [[x0, -1], [x0 + w, 1]]) { const sg = ctx.createLinearGradient(ex, 0, ex + d * 40, 0); sg.addColorStop(0, "rgba(20,10,20,0.45)"); sg.addColorStop(1, "rgba(20,10,20,0)"); ctx.fillStyle = sg; ctx.fillRect(Math.min(ex, ex + d * 40), top, 40, base - top) }
+  // floors: windows, balconies, AC units, laundry poles
+  for (let y = base - 150, f = 0; y > top + 20; y -= 62, f++) {
+    ctx.fillStyle = "#7a6a6e"; ctx.fillRect(x0 + 8, y, w - 16, 6)
+    for (let i = 0; i < 4; i++) { const wx = x0 + 22 + i * 68, lit = _h(f * 13 + i * 7 + k * 31) < 0.35
+      ctx.fillStyle = lit ? "#f0d890" : "#3a4a5e"; ctx.fillRect(wx, y - 44, 40, 32); ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.fillRect(wx + 2, y - 42, 14, 28)
+      ctx.strokeStyle = "#5a4a4e"; ctx.lineWidth = 2; ctx.strokeRect(wx, y - 44, 40, 32); ctx.beginPath(); ctx.moveTo(wx + 20, y - 44); ctx.lineTo(wx + 20, y - 12); ctx.stroke()
+      if (_h(f * 5 + i + k) < 0.45) { ctx.fillStyle = "#d8d4cc"; ctx.fillRect(wx + 6, y - 10, 28, 12); ctx.fillStyle = "#8a8680"; for (let j = 0; j < 4; j++) ctx.fillRect(wx + 9 + j * 6, y - 8, 2, 8) }   // AC unit
+      if (_h(f * 9 + i * 3 + k) < 0.3) { ctx.strokeStyle = "#4a4a4a"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(wx - 4, y - 46); ctx.lineTo(wx + 50, y - 50); ctx.stroke()   // laundry
+        for (let j = 0; j < 3; j++) { ctx.fillStyle = ["#d84a4a", "#f2f2f2", "#3a7ad8", "#f0c040"][(f + i + j) % 4]; ctx.fillRect(wx + 4 + j * 15, y - 46 - j * 1.3, 10, 14 + 4 * Math.sin(t * 2 + j + i)) } } } }
+  // a vertical sign board (no lettering) glowing at the corner
+  { const sx = x0 + w - 46, sy = base - 420, glow = 0.7 + 0.3 * Math.sin(t * 3 + k)
+    ctx.fillStyle = "#b01a2a"; ctx.fillRect(sx, sy, 30, 190); ctx.strokeStyle = `rgba(255,220,120,${glow})`; ctx.lineWidth = 3; ctx.strokeRect(sx + 3, sy + 3, 24, 184)
+    for (let j = 0; j < 5; j++) { ctx.fillStyle = `rgba(255,236,170,${glow})`; ctx.fillRect(sx + 9, sy + 14 + j * 35, 12, 18) } }
+  // the ground floor: a shop with a half-raised shutter and an awning
+  ctx.fillStyle = "#3a2e2e"; ctx.fillRect(x0 + 20, base - 110, w - 40, 110)
+  ctx.fillStyle = "#8a8a90"; ctx.fillRect(x0 + 30, base - 104, w - 60, 52); ctx.fillStyle = "#6a6a70"; for (let j = 0; j < 8; j++) ctx.fillRect(x0 + 30, base - 100 + j * 6, w - 60, 2)
+  ctx.fillStyle = "#f0d8a0"; ctx.fillRect(x0 + 30, base - 52, w - 60, 52); ctx.fillStyle = "#c89048"; for (let j = 0; j < 6; j++) ctx.fillRect(x0 + 42 + j * 38, base - 38, 22, 18)
+  for (let j = 0; j < 9; j++) { ctx.fillStyle = j % 2 ? "#2a8a5a" : "#f2f2ea"; ctx.beginPath(); ctx.moveTo(x0 + 10 + j * 31, base - 122); ctx.lineTo(x0 + 41 + j * 31, base - 122); ctx.lineTo(x0 + 46 + j * 31, base - 104); ctx.lineTo(x0 + 5 + j * 31, base - 104); ctx.fill() }
+}
+
 function drawYorknewSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
   const t = now(), G = YN.geo = ynGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S, red = YN.rage && !YN.chains
   const g = ctx.createLinearGradient(0, coverTop, 0, G.Y(392)); g.addColorStop(0, red ? "#5a3a5a" : "#3a72d8"); g.addColorStop(1, red ? "#e0907a" : "#b8d4f4")
@@ -4129,6 +4155,9 @@ function yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   if (ko && !YN.chains) { YN.chains = { t: 0 }; YN.st.chains++; YN.flash = 0.9; camera.shake?.(8, 30); ynShout(mid, G.Y(250), "CHAIN JAIL!!", "#a07810") }
   if (YN.chains) { YN.chains.t += dt; if (YN.chains.t > 0.9) for (const m of YN.troupe) m.gone = true; for (const m of YN.mafia) m.dir = m.x < mid ? -1 : 1 }
   const cps = mirrorCopies(G, G.w, padL, padR, true)
+  // where one repeat of the street meets the next (the temple's red wall against the shops) a tall Yorknew tenement
+  // stands over the join, so the street reads as one long block
+  for (const cp of cps) ynTenement(ctx, cp.X(0), G, dockTop, t, cp.k)
   for (const m of YN.troupe) { if (m.gone && !(YN.chains && YN.chains.t < 1.2)) continue
     if (m.leap) { m.leap.u += dt * 0.9; if (m.leap.u >= 1) { m.rx = m.leap.tx; m.ry = m.leap.ty; m.leap = null } }
     for (const cp of cps) {

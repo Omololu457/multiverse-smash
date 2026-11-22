@@ -23,6 +23,7 @@ const SETS = {
     // `bottomRow` = dock row the layer's bottom sits on.
     back: [
       { piece: "sky",  p: 0.30, anchor: "right", edge: 660, bottomRow: 2, mirrorFill: { from: 0, to: 512 } },   // sea + yacht; open sea mirrored leftwards
+      { procedural: "harbor", p: 0.3 },   // storm sky, horizon ships, the crane, glints, gulls (drawHarborSea)
       { piece: "ship", p: 0.62, anchor: "left", edge: -900, bottomRow: 6, bob: { amp: 1.5, period: 3.2 } },
     ],
     under: { piece: "sky", fromRow: 104, cols: [0, 512], p: 1.18, darken: 0.42 },   // the sea seen under the pier, below the dock beam
@@ -37,6 +38,7 @@ const SETS = {
       { piece: "bollard",       x: 0.96, bottomRow: 58 },
     ],
     animRate: { ship: [15, 19, 13, 17, 21, 14, 18], sky: [7] },   // ticks (1/60 s) per frame, per animated piece
+    fx: "harbor",                 // gulls, dock workers, splashes, the storm, the KO wave (harborFx)
   },
 }
 
@@ -584,6 +586,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "harbor") { drawHarborSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "forest") { drawForestSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "suna") { drawSunaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "command") { drawCommandSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -690,6 +693,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "harbor") harborFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "forest") forestFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "suna") sunaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "command") commandFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -4722,4 +4726,153 @@ function forestFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   FD.shout = FD.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── HARBOR DOCK — the port comes alive (render-only, wall clock, own PRNG) ─────────────────────────────
+// Ken's Stage (SFII) art as before; drawn in code on top of it: gulls wheeling over the sea, a container ship and a
+// sailboat crossing the horizon, glints on the water, gulls perched on the bollards, dock workers (hard hats, hi-vis)
+// at the barrels, a gantry crane swinging a container behind the moored ship. Big hit → a crate/barrel goes over the
+// edge and SPLASHES, perched gulls scatter, a worker yells; ≤25% → a STORM: the sky goes dark, rain, wind, lightning,
+// waves slap over the dock's edge; KO → a ship's horn ("BWOOOOMMM") and a huge wave bursts over the dock front, then the
+// storm breaks — sun and a rainbow.
+let _hbSeed = 0x3c6ef372 ^ 0xa54ff53a
+const hbRnd = () => { _hbSeed ^= _hbSeed << 13; _hbSeed ^= _hbSeed >>> 17; _hbSeed ^= _hbSeed << 5; return (_hbSeed >>> 0) / 4294967296 }
+const HB = { p1: null, last: 0, skyLast: 0, hp: new WeakMap(), gulls: null, perch: null, splashes: [], storm: 0, flash: 0, nextBolt: 0, wave: null, rainbow: 0, rain: null, spray: [], shout: [], workers: null,
+  st: { splashes: 0, storm: 0, wave: 0, bolts: 0 } }
+export const harborState = () => ({ ...HB.st, gulls: (HB.gulls || []).length, perched: (HB.perch || []).filter(g => !g.fly).length, storm: +HB.storm.toFixed(2), rainbow: +HB.rainbow.toFixed(2),
+  wave: HB.wave ? +HB.wave.t.toFixed(2) : 0, shouting: HB.shout.filter(s => s.t > 0).map(s => s.txt) })
+function hbShout(x, y, txt, col) { if (HB.shout.filter(s => s.t > 0).length < 3) HB.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function hbGull(ctx, x, y, s, ph) {   // a gull in flight: a white body + flapping wings
+  const f = Math.sin(ph) * 0.7; ctx.save(); ctx.translate(x, y); ctx.scale(s, s)
+  ctx.strokeStyle = "#f4f4f0"; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(-11, -5 * f); ctx.quadraticCurveTo(-5, -6 - 4 * f, 0, 0); ctx.quadraticCurveTo(5, -6 - 4 * f, 11, -5 * f); ctx.stroke()
+  ctx.strokeStyle = "#555"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-11, -5 * f); ctx.lineTo(-8, -4 * f - 1); ctx.moveTo(11, -5 * f); ctx.lineTo(8, -4 * f - 1); ctx.stroke(); ctx.restore()
+}
+function hbPerched(ctx, x, y, s, dir, t, seed) {   // a gull standing (bobbing its head)
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * dir, s)
+  ctx.fillStyle = "#e8a020"; ctx.fillRect(-2, -4, 1.5, 4); ctx.fillRect(1, -4, 1.5, 4)
+  ctx.fillStyle = "#f4f4f0"; ctx.beginPath(); ctx.ellipse(0, -9, 7, 5, -0.15, 0, 7); ctx.fill()
+  ctx.fillStyle = "#9aa0a8"; ctx.beginPath(); ctx.ellipse(-2, -10, 6, 3.5, -0.2, 0, 7); ctx.fill()
+  const nb = Math.sin(t * 3 + seed) > 0.6 ? 1.5 : 0; ctx.fillStyle = "#f4f4f0"; ctx.beginPath(); ctx.arc(6, -15 + nb, 3.6, 0, 7); ctx.fill()
+  ctx.fillStyle = "#e8b020"; ctx.beginPath(); ctx.moveTo(9, -15 + nb); ctx.lineTo(13, -14 + nb); ctx.lineTo(9, -13.5 + nb); ctx.fill(); ctx.fillStyle = "#111"; ctx.fillRect(6.5, -16 + nb, 1.3, 1.3); ctx.restore()
+}
+function hbWorker(ctx, w, x, y, s, t) {   // a dock worker: hard hat, hi-vis vest; idle / pointing / waving his arms
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * w.dir, s)
+  const wave = w.yell > 0 ? Math.sin(t * 14) * 0.9 : 0
+  ctx.fillStyle = "#2a3448"; ctx.fillRect(-6, -24, 5, 24); ctx.fillRect(1, -24, 5, 24); ctx.fillStyle = "#222"; ctx.fillRect(-7, -3, 7, 3); ctx.fillRect(1, -3, 7, 3)
+  ctx.fillStyle = w.shirt; ctx.fillRect(-8, -48, 16, 25); ctx.fillStyle = "#f07a1a"; ctx.fillRect(-8, -48, 5, 25); ctx.fillRect(3, -48, 5, 25); ctx.fillStyle = "#e8f0a0"; ctx.fillRect(-8, -36, 16, 2.5)
+  ctx.strokeStyle = w.skin; ctx.lineWidth = 4; ctx.lineCap = "round"
+  ctx.beginPath(); ctx.moveTo(7, -45); ctx.lineTo(w.yell > 0 ? 14 : 9, w.yell > 0 ? -62 - 6 * wave : -26); ctx.moveTo(-7, -45); ctx.lineTo(w.yell > 0 ? -13 : -9, w.yell > 0 ? -60 + 6 * wave : -26); ctx.stroke()
+  ctx.fillStyle = w.skin; ctx.beginPath(); ctx.arc(0, -55, 7, 0, 7); ctx.fill()
+  ctx.fillStyle = "#f2c40a"; ctx.beginPath(); ctx.ellipse(0, -60, 9, 5, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(-10, -60, 20, 2)
+  ctx.restore()
+}
+function hbShip(ctx, x, y, s) {   // a container ship on the horizon (silhouette with coloured boxes)
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s)
+  ctx.fillStyle = "#2a3446"; ctx.beginPath(); ctx.moveTo(-120, -14); ctx.lineTo(118, -14); ctx.lineTo(104, 0); ctx.lineTo(-110, 0); ctx.fill()
+  const C = ["#b8442e", "#2e6ab8", "#d8a030", "#3a8a4a", "#8a3a8a"]; for (let i = 0; i < 9; i++) for (let j = 0; j < 2; j++) { ctx.fillStyle = C[(i * 3 + j) % 5]; ctx.fillRect(-100 + i * 20, -24 - j * 9, 18, 8) }
+  ctx.fillStyle = "#e8e8e0"; ctx.fillRect(86, -40, 20, 26); ctx.fillStyle = "#2a3446"; ctx.fillRect(88, -36, 16, 3); ctx.fillStyle = "#c83a2a"; ctx.fillRect(94, -50, 6, 10)
+  ctx.restore()
+}
+function hbSail(ctx, x, y, s, t) { ctx.save(); ctx.translate(x, y + Math.sin(t * 1.4) * 1.5); ctx.scale(s, s)
+  ctx.fillStyle = "#f4f4ee"; ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(0, -46); ctx.lineTo(22, -6); ctx.fill(); ctx.beginPath(); ctx.moveTo(-2, -8); ctx.lineTo(-2, -38); ctx.lineTo(-16, -8); ctx.fill()
+  ctx.fillStyle = "#8a2a2a"; ctx.beginPath(); ctx.moveTo(-20, -4); ctx.lineTo(24, -4); ctx.lineTo(18, 2); ctx.lineTo(-16, 2); ctx.fill(); ctx.restore() }
+function hbCrane(ctx, x, base, s, t) {   // a gantry crane, the trolley + a container on cables swinging
+  ctx.save(); ctx.translate(x, base); ctx.scale(s, s)
+  ctx.strokeStyle = "#c84a2a"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.lineTo(-40, -210); ctx.moveTo(40, 0); ctx.lineTo(40, -210); ctx.moveTo(-90, -210); ctx.lineTo(160, -210); ctx.stroke()
+  ctx.lineWidth = 2.5; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(-40, -i * 35); ctx.lineTo(40, -(i + 1) * 35); ctx.moveTo(40, -i * 35); ctx.lineTo(-40, -(i + 1) * 35); ctx.stroke() }
+  const tr = 40 + 60 * (0.5 + 0.5 * Math.sin(t * 0.25)), sw = Math.sin(t * 1.1) * 0.06, L = 90
+  ctx.fillStyle = "#333"; ctx.fillRect(tr - 10, -216, 20, 10); ctx.strokeStyle = "#222"; ctx.lineWidth = 1.5
+  const cx = tr + Math.sin(sw) * L, cy = -206 + Math.cos(sw) * L; ctx.beginPath(); ctx.moveTo(tr - 6, -206); ctx.lineTo(cx - 14, cy); ctx.moveTo(tr + 6, -206); ctx.lineTo(cx + 14, cy); ctx.stroke()
+  ctx.fillStyle = "#2e6ab8"; ctx.fillRect(cx - 26, cy, 52, 22); ctx.strokeStyle = "rgba(0,0,0,0.3)"; for (let i = 1; i < 6; i++) { ctx.beginPath(); ctx.moveTo(cx - 26 + i * 8.6, cy); ctx.lineTo(cx - 26 + i * 8.6, cy + 22); ctx.stroke() }
+  ctx.restore()
+}
+
+// behind the moored ship, in front of the sky art
+function drawHarborSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S, hz = dockTop + 2 * S - 62 * S, st = HB.storm
+  const dt = Math.min(0.05, Math.max(0, t - (HB.skyLast || t))); HB.skyLast = t
+  // the storm darkens the sky + the far sea
+  if (st > 0) { const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, `rgba(30,34,46,${0.85 * st})`); g.addColorStop(0.6, `rgba(50,58,72,${0.65 * st})`); g.addColorStop(1, `rgba(20,30,44,${0.5 * st})`)
+    ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+    for (let i = 0; i < 9; i++) { const x = padL + ((i * 190 + t * 30 + shift(0.2, W)) % (padR - padL + 300)) - 150, y = coverTop + 40 + 50 * _h(i * 3.3)
+      ctx.fillStyle = `rgba(52,56,68,${0.9 * st})`; ctx.beginPath(); ctx.ellipse(x, y, 160, 46, 0, 0, 7); ctx.ellipse(x + 90, y + 20, 120, 40, 0, 0, 7); ctx.fill() } }
+  if (HB.flash > 0) { HB.flash = Math.max(0, HB.flash - dt * 4); ctx.fillStyle = `rgba(230,236,255,${0.55 * HB.flash})`; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+    if (HB.bolt) { ctx.strokeStyle = `rgba(250,250,255,${HB.flash})`; ctx.lineWidth = 3; ctx.beginPath(); HB.bolt.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke() } }
+  // a rainbow after the storm
+  if (HB.rainbow > 0) { ctx.save(); ctx.globalAlpha = 0.35 * HB.rainbow; const cx = W / 2 + shift(0.1, W) + 300, R = 520
+    ;["#e84a4a", "#f0a030", "#f0e040", "#50c050", "#4a80e0", "#8a50c8"].forEach((col, i) => { ctx.strokeStyle = col; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(cx, hz + 20, R - i * 12, Math.PI, 0); ctx.stroke() }); ctx.restore() }
+  // ships on the horizon
+  { const ps = shift(0.3, W), span = padR - padL + 800, x = padL - 400 + ((t * 9 + ps) % span + span) % span; hbShip(ctx, x, hz + 2, S * 0.55) }
+  { const ps = shift(0.34, W), span = padR - padL + 400, x = padR + 200 - ((t * 16 - ps) % span + span) % span; hbSail(ctx, x, hz + 10, S * 0.6, t) }
+  // the gantry crane behind the moored ship
+  hbCrane(ctx, W / 2 + shift(0.5, W) - 760, dockTop + 4 * S, S * 0.9, t)
+  // glints on the water
+  if (st < 0.5) for (let i = 0; i < 26; i++) { const x = padL + (padR - padL) * ((i * 0.377 + shift(0.5, W) / 2000) % 1 + 1) % 1, y = hz + 8 + (dockTop - hz - 10) * ((i * 0.53) % 1), a = Math.max(0, Math.sin(t * 2.2 + i * 1.7)) * (1 - st * 2)
+    ctx.fillStyle = `rgba(255,255,255,${0.7 * a})`; ctx.fillRect(x, y, 8, 1.6) }
+  // gulls wheeling
+  if (!HB.gulls) HB.gulls = Array.from({ length: 7 }, (_, i) => ({ cx: padL + (padR - padL) * (0.1 + 0.13 * i), cy: coverTop + 90 + 50 * _h(i * 4.1), r: 40 + 50 * _h(i * 2.2), w: 0.3 + 0.3 * _h(i * 7.3), ph: i }))
+  for (const g of HB.gulls) { const a = t * g.w + g.ph, x = g.cx + Math.cos(a) * g.r * 1.6 + Math.sin(t * 0.1 + g.ph) * 60, y = g.cy + Math.sin(a) * g.r * 0.4 + st * 40; hbGull(ctx, x, y, S * 0.6, t * 7 + g.ph) }
+}
+
+function harborFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
+  if (F[0] !== HB.p1) { Object.assign(HB, { p1: F[0], hp: new WeakMap(), perch: null, splashes: [], storm: 0, flash: 0, nextBolt: 0, wave: null, rainbow: 0, spray: [], shout: [], workers: null }); for (const k in HB.st) HB.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (HB.last || t))); HB.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2
+  const feet = dockTop + def.standRow * S, edge = dockTop + def.deckFrontRow * S, back = dockTop + 4 * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = HB.hp.get(f); HB.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  // perched gulls on the bollards (front lip) + on the barrels
+  if (!HB.perch) HB.perch = [0.04, 0.36, 0.64, 0.96, 0.12, 0.9].map((fx, i) => ({ x: W * fx + (i > 3 ? (i === 4 ? 30 : -30) : 0), y: i > 3 ? back + 20 * S - 96 * S + 10 : edge + 4 * S - (i % 3 === 0 ? 24 : 16) * S, dir: i % 2 ? -1 : 1, fly: 0, vx: 0, vy: 0, seed: i }))
+  // dock workers by the barrels
+  if (!HB.workers) HB.workers = [{ x: W * 0.12 + 150, dir: -1, shirt: "#3a5a8a", skin: "#c89870", yell: 0 }, { x: W * 0.9 - 160, dir: 1, shirt: "#5a5a5a", skin: "#7a5038", yell: 0 }]
+  if (big && !HB.wave) { HB.st.splashes++; const x = Math.max(padL + 60, Math.min(padR - 60, mid + (hbRnd() < 0.5 ? -1 : 1) * (120 + hbRnd() * 200)))
+    HB.splashes.push({ x, t: 0, kind: HB.st.splashes % 2 ? "crate" : "barrel" }); camera.shake?.(4, 12)
+    for (const g of HB.perch) if (!g.fly && Math.abs(g.x - mid) < 900) { g.fly = 1; g.vx = (g.x < mid ? -1 : 1) * (120 + 80 * hbRnd()); g.vy = -160 - 60 * hbRnd() }
+    const w = HB.workers.reduce((a, b) => Math.abs(a.x - x) < Math.abs(b.x - x) ? a : b); w.yell = 1.6
+    hbShout(w.x, feet - 150, ["HEY! THAT'S MY CARGO!", "MAN OVERBOARD— er, CRATE OVERBOARD!", "TAKE IT OFF THE DOCK!"][Math.floor(HB.st.splashes / 1) % 3], "#1a3a6a") }
+  if (low && !HB.st.storm && !HB.wave) { HB.st.storm++; hbShout(mid, feet - 220, "STORM'S COMING IN — TIE EVERYTHING DOWN!", "#1a3a6a"); for (const w of HB.workers) w.yell = 2 }
+  if (HB.st.storm && !HB.wave) HB.storm = Math.min(1, HB.storm + dt * 0.7)
+  if (HB.storm > 0.6 && !HB.wave && t > HB.nextBolt) { HB.nextBolt = t + 1.2 + hbRnd() * 2; HB.flash = 1; HB.st.bolts++
+    let x = padL + (padR - padL) * hbRnd(), y = dockTop - 600; HB.bolt = [[x, y]]; while (y < dockTop - 150) { x += (hbRnd() - 0.5) * 60; y += 30 + hbRnd() * 30; HB.bolt.push([x, y]) } }
+  if (ko && !HB.wave) { HB.wave = { t: 0, x: mid }; HB.st.wave++; hbShout(mid, feet - 260, "BWOOOOOOMMM!!", "#8a2a1a"); camera.shake?.(8, 40) }
+  if (HB.wave) { HB.wave.t += dt; if (HB.wave.t > 0.9 && !HB.wave.hit) { HB.wave.hit = true; camera.shake?.(14, 30)
+      for (let i = 0; i < 120; i++) HB.spray.push({ x: padL + (padR - padL) * hbRnd(), y: edge, vx: (hbRnd() - 0.5) * 300, vy: -300 - hbRnd() * 500, life: 1.6 })
+      for (const g of HB.perch) if (!g.fly) { g.fly = 1; g.vx = (hbRnd() - 0.5) * 300; g.vy = -200 } }
+    if (HB.wave.t > 2) { HB.storm = Math.max(0, HB.storm - dt * 0.6); if (HB.st.storm || HB.storm < 0.5) HB.rainbow = Math.min(1, HB.rainbow + dt * 0.5) } }
+  // the workers + gulls
+  for (const w of HB.workers) { w.yell = Math.max(0, w.yell - dt); hbWorker(ctx, w, w.x, feet - 8 * S, S * 0.95, t) }
+  for (const g of HB.perch) {
+    if (g.fly) { g.fly += dt; g.x += g.vx * dt; g.y += g.vy * dt; g.vy += 20 * dt; if (g.fly < 8) hbGull(ctx, g.x, g.y, S * 0.6, t * 14 + g.seed)
+      if (g.fly > 6 && !HB.wave && HB.storm < 0.2) { g.fly = 0; g.x = W * [0.04, 0.36, 0.64, 0.96, 0.12, 0.9][g.seed] + (g.seed > 3 ? (g.seed === 4 ? 30 : -30) : 0); g.y = g.seed > 3 ? back + 20 * S - 96 * S + 10 : edge + 4 * S - (g.seed % 3 === 0 ? 24 : 16) * S } }
+    else hbPerched(ctx, g.x, g.y, S * 0.75, g.dir, t, g.seed) }
+  // crates / barrels going over the edge and splashing
+  for (const s of HB.splashes) { s.t += dt; const u = Math.min(1, s.t / 0.5)
+    if (s.t < 0.5) { const y = feet - 30 + (edge + 60 - feet + 30) * u * u, x = s.x + 40 * u; ctx.save(); ctx.translate(x, y); ctx.rotate(u * 2.4)
+      if (s.kind === "crate") { ctx.fillStyle = "#b8864a"; ctx.fillRect(-18, -18, 36, 36); ctx.strokeStyle = "#7a5228"; ctx.lineWidth = 3; ctx.strokeRect(-18, -18, 36, 36); ctx.beginPath(); ctx.moveTo(-18, -18); ctx.lineTo(18, 18); ctx.stroke() }
+      else { ctx.fillStyle = "#8a4a22"; ctx.fillRect(-15, -22, 30, 44); ctx.fillStyle = "#4a3020"; ctx.fillRect(-15, -12, 30, 4); ctx.fillRect(-15, 8, 30, 4) } ctx.restore() }
+    else { if (!s.boom) { s.boom = true; for (let i = 0; i < 30; i++) HB.spray.push({ x: s.x + 40 + (hbRnd() - 0.5) * 50, y: edge + 30, vx: (hbRnd() - 0.5) * 220, vy: -220 - hbRnd() * 260, life: 1 }) }
+      const k = (s.t - 0.5) / 1.2; ctx.strokeStyle = `rgba(230,240,255,${Math.max(0, 0.8 - k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(s.x + 40, edge + 34, 20 + 80 * k, 6 + 14 * k, 0, 0, 7); ctx.stroke() } }
+  HB.splashes = HB.splashes.filter(s => s.t < 1.7)
+  // waves slapping over the dock edge in the storm; THE wave on the KO
+  if (HB.storm > 0.3) for (let i = 0; i < 4; i++) { const ph = (t * 0.6 + i * 0.25) % 1, x = padL + (padR - padL) * ((i * 0.31 + 0.12) % 1), h = Math.max(0, Math.sin(ph * Math.PI)) * 50 * HB.storm
+    if (h > 2) { ctx.fillStyle = "rgba(220,236,250,0.8)"; ctx.beginPath(); ctx.moveTo(x - 60, edge + 10); ctx.quadraticCurveTo(x, edge + 10 - h * 2, x + 60, edge + 10); ctx.fill() } }
+  if (HB.wave && HB.wave.t < 2.2) { const k = HB.wave.t, h = k < 0.9 ? (k / 0.9) * 420 : Math.max(0, 420 - (k - 0.9) * 340), sx = shift(1.1, W)
+    const g = ctx.createLinearGradient(0, edge - h, 0, edge + 20); g.addColorStop(0, "rgba(240,248,255,0.95)"); g.addColorStop(0.25, "rgba(60,110,170,0.9)"); g.addColorStop(1, "rgba(20,50,90,0.9)")
+    const crest = x => edge - h * (0.9 + 0.06 * Math.sin((x - sx) / 140 + k * 3) + 0.04 * Math.sin((x - sx) / 37 + k * 7))
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(padL, edge + 20); for (let x = padL; x <= padR + 20; x += 20) ctx.lineTo(x, crest(x)); ctx.lineTo(padR, edge + 20); ctx.fill()
+    ctx.fillStyle = "rgba(250,252,255,0.95)"; ctx.beginPath(); for (let x = padL; x <= padR + 20; x += 20) ctx.lineTo(x, crest(x) + 4); for (let x = padR + 20; x >= padL; x -= 20) ctx.lineTo(x, crest(x) - 10 - 8 * Math.abs(Math.sin(x / 23 + k * 9))); ctx.fill()   // the foam lip
+    ctx.strokeStyle = "rgba(200,225,245,0.5)"; ctx.lineWidth = 3; for (let j = 1; j < 4; j++) { ctx.beginPath(); for (let x = padL; x <= padR + 20; x += 20) ctx.lineTo(x, crest(x) + h * j * 0.2 + 6 * Math.sin(x / 60 + j + k * 5)); ctx.stroke() } }
+  for (const p of HB.spray) { p.life -= dt; p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = `rgba(225,240,255,${Math.min(1, p.life)})`; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill() }
+  HB.spray = HB.spray.filter(p => p.life > 0).slice(-500)
+  // rain
+  if (HB.storm > 0.05) { if (!HB.rain) HB.rain = Array.from({ length: 160 }, (_, i) => ({ x: (i * 0.137) % 1, y: (i * 0.611) % 1, v: 0.8 + 0.4 * ((i * 0.37) % 1) }))
+    ctx.strokeStyle = `rgba(200,215,235,${0.5 * HB.storm})`; ctx.lineWidth = 1.2; ctx.beginPath()
+    for (const r of HB.rain) { r.y = (r.y + r.v * dt * 1.6) % 1; r.x = (r.x + dt * 0.12) % 1; const x = padL + (padR - padL) * r.x, y = dockTop - 600 + (coverBottom - dockTop + 600) * r.y; ctx.moveTo(x, y); ctx.lineTo(x - 7, y + 18) } ctx.stroke() }
+  for (const s of HB.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  HB.shout = HB.shout.filter(s => s.t > 0)
 }

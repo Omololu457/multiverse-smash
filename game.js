@@ -2411,7 +2411,7 @@ const STAGE_DEFS = [
   { name: "Shadow Garden",          series: "other",       landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed" },
   // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):
   // parallax sea + yacht, bobbing ship with an animated cheering crowd, line-scroll perspective dock, barrels + bollards.
-  { name: "Harbor Dock",            series: "other",       landmark: "ken_harbor",   sky: "#b1e0ff", mid: "#173961", floor: "#7a4422", accent: "#fde68a", worldWidth: 2400,
+  { name: "Harbor Dock",            series: "other",       music: "stereo love but its slowed to perfection.mp3", landmark: "ken_harbor",   sky: "#b1e0ff", mid: "#173961", floor: "#7a4422", accent: "#fde68a", worldWidth: 2400,
     layers: "ken_harbor", backgroundImage: "stages/ken_harbor/preview.png" },
   // HOLOGRAM TRAINING CENTER (stageLayers.js room3d): E. Honda's bathhouse layout (SFII sheet → tools/stage_layers/
   // slice_honda_training.py) rebuilt as a white 3D hologram room — mural → projection screen, tub → platform, ring glows.

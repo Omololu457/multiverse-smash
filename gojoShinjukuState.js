@@ -83,6 +83,7 @@ function bypass(defender, s, attacker, techniqueName) {
   if (attacker._mahoragaActive && (s.mahoraga[attacker.side] || 0) >= INFINITY.mahoragaTurns) { s.stats.mahoragaBypass++; return true }
   const k = attacker.rosterKey
   if ((k === GS_KEY || k === 'gojo') && techniqueName && LIMITLESS_TECH.test(techniqueName)) { s.stats.mirrorBypass++; return true }
+  if (k === 'sukuna_shinjuku' && ((attacker._sksAmp || 0) > 0 || techniqueName === 'sks_world_slash')) { s.stats.sukunaBypass = (s.stats.sukunaBypass || 0) + 1; return true }   // MSV1-SUKUNA: Domain Amplification / World-Cutting Slash (canon)
   return false
 }
 function wheel(s, attacker) {
@@ -368,7 +369,7 @@ export function tickGs(f, opp, raw, W) {
     const lvP = INFINITY.levels[s.inf.lv]
     const reached = infinityShell(f, lvP, W, { hangFrames: INFINITY.hangFrames, bypass: p => bypass(f, s, p.owner, p.name) || (lvP.supers !== 'stop' && !!p.owner && inSuper(s, p.owner)) })   // a super's own unflagged shots (Arrowstorm waves) are adjudicated as the super
     for (const p of reached) { tax(f, s, (p.damage || 30) * 0.6); s.stats.stoppedProj++; if (p.owner) p.owner._gsSawInfinity = s.clock; wheel(s, p.owner) }
-    const pushed = infinityRepel(f, lvP, W)
+    const pushed = infinityRepel(f, lvP, W, o => o.rosterKey === 'sukuna_shinjuku' && (o._sksAmp || 0) > 0)   // MSV1-SUKUNA: Domain Amplification is not repelled
     for (const o of pushed) if (o.attacking && o.currentAttack) o._gsSawInfinity = s.clock
     if (f.isGrabbed && !s.grabbedBy) { f.isGrabbed = false; f.grabTimer = 0; f.hitstun = 0; tax(f, s, 30); cue(f, 'stop') }   // any command grab: released at once
     noLaunch(f, s)
@@ -820,7 +821,7 @@ function clashTick(f, s, W) {
   if (os) { os.clash = null; os.lastClash = { me: c.them, them: c.me, myScore: s.lastClash.theirScore, theirScore: s.lastClash.myScore, result: c.result === 'win' ? 'lose' : c.result === 'lose' ? 'win' : 'tie' }; cue(o, 'clashEnd', { result: os.lastClash.result }); os.cd.domain = DOMAIN.cooldown }
   if (c.result === 'tie' || !o) { burnout(f, s); if (os) burnout(o, os); else if (o) o._gsTechBurnout = DOMAIN.burnout; s.cd.domain = DOMAIN.cooldown; return }
   const winner = c.result === 'win' ? f : o
-  E.activateDomain?.(winner, isGs(winner) ? { cost: 0, duration: DOMAIN.clashWin / 60, range: 1e5, domainKey: 'gojo' } : { cost: 0, duration: DOMAIN.clashWin / 60, range: 1e5 })
+  E.activateDomain?.(winner, isGs(winner) ? { cost: 0, duration: DOMAIN.clashWin / 60, range: 1e5, domainKey: 'gojo' } : { cost: 0, duration: DOMAIN.clashWin / 60, range: 1e5, ...(winner.rosterKey === 'sukuna_shinjuku' ? { domainKey: 'sukuna' } : {}) })   // MSV1-SUKUNA: his Shrine is the old Sukuna's
   s.clashWin = { owner: winner.side, opp: o.side }
   if (winner === f) s.dom.mine = false
   s.cd.domain = DOMAIN.cooldown

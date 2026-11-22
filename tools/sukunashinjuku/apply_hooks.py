@@ -78,6 +78,15 @@ HOOKS += [
   (2, 'gojoShinjukuState.js', ": { cost: 0, duration: DOMAIN.clashWin / 60, range: 1e5 })", 'replace',
    ": { cost: 0, duration: DOMAIN.clashWin / 60, range: 1e5, ...(winner.rosterKey === 'sukuna_shinjuku' ? { domainKey: 'sukuna' } : {}) })   // MSV1-SUKUNA: his Shrine is the old Sukuna's", "winner.rosterKey === 'sukuna_shinjuku' ? { domainKey: 'sukuna' }"),
 ]
+# Domain Amplification walks through Infinity's L2/L3 repel ring too (optional skip predicate; nobody else passes one)
+HOOKS += [
+  (2, 'limitless.js', "export function infinityRepel(owner, lvP, W) {", 'replace',
+   "export function infinityRepel(owner, lvP, W, skip = null) {   // skip: MSV1-SUKUNA (an amplified Ryomen Sukuna is not repelled)", "infinityRepel(owner, lvP, W, skip = null)"),
+  (2, 'limitless.js', "    if (!o || o === owner || !(o.health > 0) || o.isGrabbed) continue\n    const gap = o.x > owner.x", 'replace',
+   "    if (!o || o === owner || !(o.health > 0) || o.isGrabbed) continue\n    if (skip && skip(o)) continue\n    const gap = o.x > owner.x", "    if (skip && skip(o)) continue"),
+  (2, 'gojoShinjukuState.js', "    const pushed = infinityRepel(f, lvP, W)", 'replace',
+   "    const pushed = infinityRepel(f, lvP, W, o => o.rosterKey === 'sukuna_shinjuku' && (o._sksAmp || 0) > 0)   // MSV1-SUKUNA: Domain Amplification is not repelled", "o.rosterKey === 'sukuna_shinjuku' && (o._sksAmp || 0) > 0)   // MSV1-SUKUNA"),
+]
 HOOKS += [
   (3, 'kits.js', "import { GOJO_SHINJUKU_KIT } from './gojoShinjukuKit.js'", 'after_line',
    "import { SUKUNA_SHINJUKU_KIT } from './sukunaShinjukuKit.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) move list", "SUKUNA_SHINJUKU_KIT } from"),

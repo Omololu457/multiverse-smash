@@ -1,0 +1,87 @@
+{
+ "pass": 12,
+ "fail": 0,
+ "report": {
+  "gojo_shinjuku": {
+   "hash": "84b086b54a07a91e",
+   "used": {
+    "cuts": 1,
+    "cleaves": 0,
+    "webs": 0,
+    "fuga": 2,
+    "amps": 0,
+    "shrines": 0,
+    "worlds": 0,
+    "stopped": 0
+   },
+   "p1": [
+    880.2427895674604,
+    400,
+    0,
+    119.88000000000261,
+    "sukuna_shinjuku"
+   ],
+   "p2": [
+    966.4427895674605,
+    400,
+    1052,
+    193.7999999999964,
+    "gojo_shinjuku"
+   ]
+  },
+  "sukuna": {
+   "hash": "a461ca6e98cf5e94",
+   "used": {
+    "cuts": 1,
+    "cleaves": 7,
+    "webs": 0,
+    "fuga": 3,
+    "amps": 0,
+    "shrines": 0,
+    "worlds": 0,
+    "stopped": 0
+   },
+   "p1": [
+    534.5945336314192,
+    400,
+    742,
+    32.64000000000241,
+    "sukuna_shinjuku"
+   ],
+   "p2": [
+    594.5945336314192,
+    398.55,
+    285,
+    112.07999999999151,
+    "sukuna"
+   ]
+  },
+  "enoch": {
+   "hash": "fcf463c965060883",
+   "used": {
+    "cuts": 1,
+    "cleaves": 3,
+    "webs": 1,
+    "fuga": 0,
+    "amps": 0,
+    "shrines": 0,
+    "worlds": 0,
+    "stopped": 0
+   },
+   "p1": [
+    1337.807253604368,
+    339.8,
+    231,
+    111.04000000000246,
+    "sukuna_shinjuku"
+   ],
+   "p2": [
+    1243.3072536043676,
+    400,
+    741,
+    100,
+    "enoch"
+   ]
+  }
+ }
+}

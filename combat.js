@@ -18,6 +18,7 @@ import { starfireHitbox, starfireBlock, starfireHit, starfireProjectileHit } fro
 import { robinHitbox, robinBlock, robinHit, robinProjectileHit } from './robinState.js'   // Robin hooks (robin-gated)
 import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './megumiState.js'   // Megumi hooks (megumi-gated)
 import { gsHitbox, gsBlock, gsHit, gsMeleeGate, gsGrabGate, gsProjectileGate, gsDamageMods } from './gojoShinjukuState.js'   // Satoru Gojo (Shinjuku) hooks: Infinity / Falling Blossom gates + his move boxes (gojo_shinjuku-gated)
+import { sksHitbox, sksBlock, sksHit } from './sukunaShinjukuState.js'   // Ryomen Sukuna (Shinjuku) hooks: his move boxes + contact flags (sukuna_shinjuku-gated)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
 import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
@@ -854,6 +855,7 @@ export function getAttackHitbox(fighter) {
   if (a?.rb && fighter.rosterKey === 'robin') return robinHitbox(fighter)   // Robin: per-move fist / staff box; gadgets (bombs / smoke / hack / step) have no body box
   if (a?.mg && fighter.rosterKey === 'megumi_fushiguro') return megumiHitbox(fighter)   // Megumi: per-move body box; summon gestures have none (the shikigami's projectile volume hits)
   if (a?.gs && fighter.rosterKey === 'gojo_shinjuku') return gsHitbox(fighter)   // Satoru Gojo (Shinjuku): per-move body box; technique casts have none (their fields strike through gojoShinjukuState)
+  if (a?.sks && fighter.rosterKey === 'sukuna_shinjuku') return sksHitbox(fighter)   // Ryomen Sukuna (Shinjuku): per-move body box; technique casts have none (they strike through sukunaShinjukuState)
   if (a?.hg && fighter.rosterKey === 'higuruma') return higurumaHitbox(fighter)   // Higuruma: per-move gavel / extension / giant-gavel box from the drawn weapon (body hurtbox unchanged)
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
@@ -3661,6 +3663,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) robinBlock(attacker, defender, atk)   // Robin: authored blockstun; robin-gated
     if (!flawless) megumiBlock(attacker, defender, atk)   // Megumi: authored blockstun; megumi-gated
     if (!flawless) gsBlock(attacker, defender, atk)   // Satoru Gojo (Shinjuku): authored blockstun, contact flag; gojo_shinjuku-gated
+    if (!flawless) sksBlock(attacker, defender, atk)   // Ryomen Sukuna (Shinjuku): authored blockstun, contact flag; gated
     if (!flawless) higurumaBlock(attacker, defender, atk)   // Higuruma: authored blockstun; no evidence on block; higuruma-gated
     if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
     if (!flawless) dseylBlock(attacker, defender, atk)   // Dseyl: authored blockstun; syndrome-gated
@@ -3749,6 +3752,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     robinHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Robin: clean flag (chain / staff / special / ult cancels), OUTPLAY cue; robin-gated
     megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
     gsHit(attacker, defender, atk)   // Satoru Gojo (Shinjuku): clean flag, +4 CE, Black Flash window, Blue Fist pull, Red Rush crumple; gojo_shinjuku-gated
+    sksHit(attacker, defender, atk)   // Ryomen Sukuna (Shinjuku): clean / contact flags (chains, cancels); gated
     higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
     syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
     dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated

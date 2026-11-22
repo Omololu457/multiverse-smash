@@ -199,11 +199,12 @@ export function infinityShell(owner, lvP, W, opt = {}) {
   return reached
 }
 // Repel ring (L2/L3): attackers inside `repel` px of the box are pushed out about one body width (over a few frames).
-export function infinityRepel(owner, lvP, W) {
+export function infinityRepel(owner, lvP, W, skip = null) {   // skip: MSV1-SUKUNA (an amplified Ryomen Sukuna is not repelled)
   if (!(lvP.repel > 0)) return []
   const out = []
   for (const o of list(W.fighters)) {
     if (!o || o === owner || !(o.health > 0) || o.isGrabbed) continue
+    if (skip && skip(o)) continue
     const gap = o.x > owner.x ? o.x - (owner.x + owner.w) : owner.x - (o.x + o.w)
     if (gap > lvP.repel) continue
     if (Math.abs(cy(o) - cy(owner)) > (owner.h + o.h) / 2 + 10) continue

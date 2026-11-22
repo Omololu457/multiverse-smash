@@ -2107,7 +2107,7 @@ const ROUND_START_COUNTDOWN = 180
 const DOUBLE_TAP_TIME       = 240
 const GOJO_INFINITY_RADIUS  = 260
 const COMMAND_INPUT_MAX_AGE = 700
-const ROUND_BREAK_DURATION  = 90
+const ROUND_BREAK_DURATION  = 170   // MK1-style: hold the KO, the loser gets up, both walk back to their marks (_roundWalkBack)
 const DEFAULT_MAX_ENERGY    = 100
 const DEFAULT_SPEED         = 9
 const DEFAULT_JUMP          = 9
@@ -5334,6 +5334,37 @@ function regroundOnResize(f) {
   f.groundY = groundY
   const gy = getGroundedYForFighter(f)
   f.y = (f.onGround || f.grounded) ? gy : Math.min(f.y, gy)
+}
+
+// ROUND WALK-BACK (Mortal Kombat 1 style): between rounds the fight stops, the fallen fighter gets back up and BOTH
+// fighters walk backwards (still facing each other) to their starting marks — so the next round starts from where
+// they actually are instead of snapping. Frame-driven (roundBreakTimer), no RNG; the fighters it moves are replaced
+// by resetRound() at the spawn positions they just walked to, so nothing here reaches the next round's sim.
+//   0-40 f: hold the knockout · 40-75 f: the loser rises · 75-150 f: walk back · then stand ready.
+function _roundWalkBack() {
+  if (!p1 || !p2) return
+  const el = ROUND_BREAK_DURATION - roundBreakTimer, { p1X, p2X } = getSpawnPositions()
+  for (const [f, tx] of [[p1, p1X], [p2, p2X]]) {
+    const o = f === p1 ? p2 : p1, down = (f.health || 0) <= 0
+    if (el === 1) {   // the fight stops: drop whatever was mid-flight
+      f.attacking = false; f.currentAttack = null; f.currentMove = null; f.hitstun = 0; f.stun = 0; f.hitstop = 0; f.isBlocking = false; f.dashTimer = 0; f._spriteCastTimer = 0; f._tauntPlaying = false
+      f.vx = 0; f._rwbDown = down; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
+    }
+    // settle onto the floor if the round ended in the air
+    const gy = (f.groundY != null ? f.groundY : 520) - (f.h || 0)
+    if (f.y < gy) { f.vy = Math.min(14, (f.vy || 0) + 0.9); f.y = Math.min(gy, f.y + f.vy); f.grounded = f.onGround = f.y >= gy }
+    else { f.y = gy; f.vy = 0; f.grounded = f.onGround = true }
+    if (f._rwbDown) {
+      if (el < 40) { f.knockdownState = true; f.knockdownTimer = 999; continue }
+      if (el < 75) { f.knockdownState = true; f.knockdownTimer = Math.max(1, Math.round((75 - el) * (24 / 35))); continue }
+      f.knockdownState = false; f.knockdownTimer = 0; f._rwbDown = false
+    } else if (el < 40) { f.vx = 0; continue }
+    f.facing = (o.x + (o.w || 0) / 2) >= (f.x + (f.w || 0) / 2) ? 1 : -1
+    const d = tx - f.x, left = Math.max(1, 150 - el)
+    if (Math.abs(d) < 1.5 || el >= 150) { f.vx = 0; if (el >= 150) f.x = tx; continue }
+    const step = Math.sign(d) * Math.min(Math.abs(d), Math.max(2.2, Math.abs(d) / left))
+    f.x += step; f.vx = step   // vx drives the walk / walk_back strip (facing the opponent → backpedal)
+  }
 }
 
 function getSpawnPositions() {
@@ -26679,7 +26710,7 @@ function renderCurrentState() {
     case GAME_STATES.BATTLE:      drawBattle(); break
     case GAME_STATES.ROUND_BREAK:
       drawBattleScene(); drawBattleHud()
-      drawRoundBreak(ctx, canvas, winnerText || "ROUND BREAK")
+      drawRoundBreak(ctx, canvas, winnerText || "ROUND BREAK", 1 - roundBreakTimer / ROUND_BREAK_DURATION)
       _drawKOFlash(); break
     case GAME_STATES.MATCH_END:
       drawBattleScene(); drawBattleHud()
@@ -27801,6 +27832,7 @@ function updateCurrentState() {
     case GAME_STATES.ROUND_BREAK:
       updateDebugInputToggles(); updateTrainingMode()
       roundBreakTimer--
+      _roundWalkBack()
       if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       if (roundBreakTimer <= 0) { resetRound(); gameState = GAME_STATES.BATTLE }
       break

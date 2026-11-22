@@ -8,6 +8,7 @@
 // Art + positions come from tools/stage_layers/slice_*.py → stages/<set>/layout.json. Everything here is presentation:
 // wall-clock animation, no sim state, no Math.random — gameplay / netplay / replays are untouched.
 import { camera } from "./camera.js"
+import { woodsboroAudioTick, wbScream, wbStab, wbLaugh, wbWhisper, wbThunder, wbPhone, wbSiren } from "./woodsboroAudio.js"
 
 // Per-set composition (native sheet pixels; S = screen pixels per native pixel).
 const SETS = {
@@ -5538,17 +5539,18 @@ function woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
   if (F[0] !== WB.p1) { Object.assign(WB, { p1: F[0], hp: new WeakMap(), rings: [], power: 1, flash: 0, nextBolt: 0, cops: 0, ko: null, shout: [] }); for (const k in WB.st) WB.st[k] = 0; Object.assign(WBK, { list: [], bodies: [], drops: [], next: t + 0.6, kills: 0 }) }
   const dt = Math.min(0.05, Math.max(0, t - (WB.last || t))); WB.last = t
+  woodsboroAudioTick(t, WB.st.blackout && !WB.ko ? 1 - WB.power * 0.5 : 0)   // wind, drone, far-off screams, heartbeat in the blackout
   const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
   let big = null, low = false, ko = false
   for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = WB.hp.get(f); WB.hp.set(f, hp)
     if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
     if (was != null && was - hp >= 60) big = f }
   if (big) WBK.next = Math.min(WBK.next, t + 0.2)   // a big hit: another hunt starts right away
-  if (big && !WB.ko) { WB.st.rings++; const x = mid + (wbRnd() < 0.5 ? -1 : 1) * (180 + wbRnd() * 200); WB.rings.push({ x, t: 0 })
+  if (big && !WB.ko) { wbPhone(0, 0.2); WB.st.rings++; const x = mid + (wbRnd() < 0.5 ? -1 : 1) * (180 + wbRnd() * 200); WB.rings.push({ x, t: 0 })
     wbShout(x, dockTop - 105 * S, ["*RING RING*  \"WHAT'S YOUR FAVORITE SCARY MOVIE?\"", "WOOF! WOOF! WOOF!", "*RING RING*  \"DO YOU LIKE SCARY MOVIES?\""][(WB.st.rings - 1) % 3], "#8a1a1a") }
   if (low && !WB.st.blackout && !WB.ko) { WB.st.blackout++; wbShout(mid, feet - 230, "…THE POWER'S OUT.", "#8a1a1a") }
-  if (WB.st.blackout && !WB.ko) { WB.power = Math.max(0, WB.power - dt * 0.9); if (t > WB.nextBolt) { WB.nextBolt = t + 1.5 + 2 * wbRnd(); WB.flash = 1; WB.st.bolts++ } }
-  if (ko && !WB.ko) { WB.ko = { t: 0 }; WB.st.ko++; wbShout(mid, feet - 240, "WOODSBORO PD! NOBODY MOVE!", "#1a3aa8") }
+  if (WB.st.blackout && !WB.ko) { WB.power = Math.max(0, WB.power - dt * 0.9); if (t > WB.nextBolt) { WB.nextBolt = t + 1.5 + 2 * wbRnd(); WB.flash = 1; WB.st.bolts++; wbThunder(0.55) } }
+  if (ko && !WB.ko) { WB.ko = { t: 0 }; WB.st.ko++; wbSiren(0.22); wbShout(mid, feet - 240, "WOODSBORO PD! NOBODY MOVE!", "#1a3aa8") }
   if (WB.ko) { WB.ko.t += dt; WB.cops = Math.min(1, WB.cops + dt); if (WB.ko.t > 1) WB.power = Math.min(1, WB.power + dt * 0.8); if (WB.ko.t > 2.2 && !WB.ko.said) { WB.ko.said = true; wbShout(mid, feet - 280, "IT'S OVER… OR IS IT?", "#8a1a1a") } }
   // street lamps (they flicker and die in the blackout)
   { const ps = shift(0.95, W), step = 420; for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) { const x = i * step + ps + 140, top = dockTop - 210 * S * 0.75
@@ -6288,10 +6290,11 @@ function wbJason(ctx, x, y, s, dir, t, mode, swing) {   // the hockey mask, a bi
 }
 function wbSpurt(lx, y, n, power) { for (let i = 0; i < n; i++) WBK.drops.push({ x: lx, y, vx: (wbRnd() - 0.5) * 160 * power, vy: -60 - 200 * wbRnd() * power, life: 1.1, gy: y + 4 + 10 * wbRnd() }) }
 function wbSlashers(ctx, { W, dockTop, padL, padR, S, t, dt, rate }) {
-  const sh = shift(0.9, W), base = dockTop - 6 * S + 3, sc = 1.12
+  const sh = shift(0.9, W), base = dockTop - 6 * S + 3, sc = 1.12, pan = lx => ((lx + sh) - (padL + padR) / 2) / ((padR - padL) / 2) * 0.8
   // spawn: a new hunt every few seconds, at most four at once
   if (t > WBK.next && WBK.list.length < 4) { WBK.next = t + (2.2 + 2.5 * wbRnd()) / rate
     const type = ["ghost", "chucky", "jason"][Math.floor(wbRnd() * 3)], dir = wbRnd() < 0.5 ? 1 : -1, lx = (padL - sh) + (0.12 + 0.76 * wbRnd()) * (padR - padL)
+    wbScream(pan(lx), 0.42); if (type === "jason") wbWhisper(pan(lx), 0.5)
     WBK.list.push({ type, dir, vx: lx, kx: lx - dir * (type === "jason" ? 95 : 165), t: 0, look: (++WBK.id) % WB_LOOKS.length, scream: WB_SCREAMS[WBK.id % WB_SCREAMS.length], ph: 0, hurt: false, body: false }) }
   // bodies + blood already on the street
   for (const b of WBK.bodies) { const x = b.x + sh, g = Math.min(1, (t - b.t0) / 2.5)
@@ -6301,19 +6304,19 @@ function wbSlashers(ctx, { W, dockTop, padL, padR, S, t, dt, rate }) {
     let vPose = "run", vFall = 0, kRun = true, kStab = null, jMode = "walk", jSwing = 0, kx, vx, ky = 0, kDir = d
     if (e.type === "ghost") {
       if (T < 2.2) { e.vx += d * 75 * dt; e.kx += d * (75 + 165 / 2.2) * dt; e.ph += dt * 14 }
-      else if (T < 3.4) { vPose = "stagger"; kRun = false; kStab = ((T - 2.2) * 2.5) % 1; e.kx = e.vx - d * 20; if (!e.hurt) { e.hurt = true } if (Math.floor((T - 2.2) * 2.5) !== Math.floor((T - dt - 2.2) * 2.5)) wbSpurt(e.vx, base - 46 * sc, 10, 1) }
+      else if (T < 3.4) { vPose = "stagger"; kRun = false; kStab = ((T - 2.2) * 2.5) % 1; e.kx = e.vx - d * 20; if (!e.hurt) { e.hurt = true } if (Math.floor((T - 2.2) * 2.5) !== Math.floor((T - dt - 2.2) * 2.5)) { wbSpurt(e.vx, base - 46 * sc, 10, 1); wbStab(pan(e.vx)); if (T < 2.6) wbScream(pan(e.vx), 0.5) } }
       else if (T < 3.8) { vPose = "stagger"; vFall = (T - 3.4) / 0.4; kRun = false; kStab = null }
       else { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: -d, look: e.look, t0: t }); WBK.kills++ } kRun = T > 4.8; if (kRun) e.kx += d * 60 * dt }
     } else if (e.type === "chucky") {
       if (T < 1.8) { e.vx += d * 80 * dt; e.kx += d * (80 + 165 / 1.8) * dt; e.ph += dt * 15 }
       else if (T < 2.15) { const u = (T - 1.8) / 0.35; e.vx += d * 40 * dt; e.kx = e.kx + (e.vx - d * 4 - e.kx) * Math.min(1, u * 1.4); ky = -Math.sin(u * Math.PI) * 30 - u * 34; e.ph += dt * 10 }
       else if (T < 3.4) { vPose = "stagger"; e.vx += d * 18 * dt; e.kx = e.vx - d * 4; ky = -34; kRun = false; kStab = ((T - 2.15) * 3.2) % 1; e.hurt = true
-        if (Math.floor((T - 2.15) * 3.2) !== Math.floor((T - dt - 2.15) * 3.2)) wbSpurt(e.vx, base - 50 * sc, 8, 0.9); if (!e.laughed) { e.laughed = true; e.say = "HA HA HA HA!"; e.sayT = 1.6 } }
+        if (Math.floor((T - 2.15) * 3.2) !== Math.floor((T - dt - 2.15) * 3.2)) { wbSpurt(e.vx, base - 50 * sc, 8, 0.9); wbStab(pan(e.vx), 0.35) } if (!e.laughed) { e.laughed = true; e.say = "HA HA HA HA!"; e.sayT = 1.6; wbScream(pan(e.vx), 0.5); wbLaugh(pan(e.kx), 0.5) } }
       else if (T < 3.8) { vPose = "stagger"; vFall = (T - 3.4) / 0.4; ky = -34 * (1 - vFall); kRun = false }
-      else { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: d, look: e.look, t0: t }); WBK.kills++; e.say = "WANNA PLAY?"; e.sayT = 1.6 } e.kx += d * 150 * dt; kDir = d }
+      else { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: d, look: e.look, t0: t }); WBK.kills++; e.say = "WANNA PLAY?"; e.sayT = 1.6; wbLaugh(pan(e.kx), 0.4) } e.kx += d * 150 * dt; kDir = d }
     } else {
       if (T < 2.6) { vPose = "back"; e.vx += d * 22 * dt; e.kx += d * (22 + 95 / 2.6 - 4) * dt; e.ph += dt * 6; jMode = "walk" }
-      else if (T < 2.95) { vPose = "back"; jMode = "swing"; jSwing = (T - 2.6) / 0.35; if (!e.hurt && jSwing > 0.6) { e.hurt = true; wbSpurt(e.vx, base - 50 * sc, 16, 1.3) } }
+      else if (T < 2.95) { vPose = "back"; jMode = "swing"; jSwing = (T - 2.6) / 0.35; if (!e.hurt && jSwing > 0.6) { e.hurt = true; wbSpurt(e.vx, base - 50 * sc, 16, 1.3); wbStab(pan(e.vx), 0.6); wbScream(pan(e.vx), 0.55) } }
       else if (T < 3.3) { vPose = "stagger"; vFall = (T - 2.95) / 0.35; jMode = "stand" }
       else if (T < 6.6) { if (!e.body) { e.body = true; WBK.bodies.push({ x: e.vx, dir: -d, look: e.look, t0: t }); WBK.kills++ } jMode = "feed"; e.kx = e.vx - d * 24; if (Math.floor(T * 2.2) !== Math.floor((T - dt) * 2.2)) wbSpurt(e.vx - d * 4, base - 6, 5, 0.6) }
       else { jMode = "walk"; e.kx += d * 45 * dt }

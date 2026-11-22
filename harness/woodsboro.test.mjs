@@ -40,6 +40,8 @@ try {
   check("a fighter close to losing: the power cuts, lightning, masks in the windows", s3.power < 0.2 && s3.bolts >= 1, JSON.stringify({ p: s3.power, b: s3.bolts }))
   await hold("p2", q => 0); await sleep(3500); await page.screenshot({ path: path.join(OUT, "police.png") }); const s4 = await T(); await stop()
   check("the knockout: police lights, the lights come back — …or is it?", s4.ko > 2 && s4.cops > 0.8 && s4.power > s3.power, JSON.stringify({ k: s4.ko, c: s4.cops, p: s4.power }))
+  { const au = await page.evaluate(async () => (await import("./woodsboroAudio.js")).woodsboroAudioState())
+    check("the soundscape: wind/drone bed, screams, stabs, Chucky's laugh, Jason's whisper, thunder, phone, siren", au.bed && au.scream >= 3 && au.stab >= 2 && (au.laugh + au.whisper) >= 1 && au.thunder >= 1 && au.phone >= 1 && au.siren >= 1, JSON.stringify(au)) }
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }
 await browser.close(); server.close()

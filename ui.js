@@ -5202,16 +5202,20 @@ export function drawTrainingOverlay(ctx, canvas, info = {}) {
 // ─────────────────────────────────────────────
 // ROUND BREAK / MATCH END
 // ─────────────────────────────────────────────
-export function drawRoundBreak(ctx, canvas, winnerText = "ROUND BREAK") {
+export function drawRoundBreak(ctx, canvas, winnerText = "ROUND BREAK", prog = null) {
   const { width: w, height: h } = getCanvasSize(canvas)
   ctx.save()
-  ctx.fillStyle = "rgba(0,0,0,0.42)"
-  ctx.fillRect(0, 0, w, h)
-  drawPanel(ctx, w / 2 - 240, h / 2 - 90, 480, 180, {
-    radius: 22, fill: "rgba(8,12,28,0.78)", stroke: "rgba(255,255,255,0.16)", lineWidth: 2
-  })
-  drawCenteredText(ctx, winnerText,              w / 2, h / 2 - 10, { font: "800 42px Arial", fill: "#ffffff" })
-  drawSubText(ctx, "Prepare for the next round", w / 2, h / 2 + 42, { font: "18px Arial" })
+  // ROUND WALK-BACK (game.js _roundWalkBack): the fighters get up and walk back to their marks during the break, so
+  // the result is a banner across the TOP (no full-screen dim) that fades out before the next round's countdown.
+  // prog (0..1 through the break) is optional; without it the banner just stays up.
+  const a = prog == null ? 1 : Math.min(1, prog / 0.08, Math.max(0, (0.95 - prog) / 0.15))
+  ctx.globalAlpha = a
+  const y = h * 0.2, bh = 92, g = ctx.createLinearGradient(0, 0, w, 0)
+  g.addColorStop(0, "rgba(8,12,28,0)"); g.addColorStop(0.25, "rgba(8,12,28,0.78)"); g.addColorStop(0.75, "rgba(8,12,28,0.78)"); g.addColorStop(1, "rgba(8,12,28,0)")
+  ctx.fillStyle = g; ctx.fillRect(0, y - bh / 2, w, bh)
+  ctx.fillStyle = "rgba(255,255,255,0.16)"; ctx.fillRect(w * 0.2, y - bh / 2, w * 0.6, 2); ctx.fillRect(w * 0.2, y + bh / 2 - 2, w * 0.6, 2)
+  drawCenteredText(ctx, winnerText,              w / 2, y - 6, { font: "800 42px Arial", fill: "#ffffff" })
+  drawSubText(ctx, "Prepare for the next round", w / 2, y + 30, { font: "18px Arial" })
   ctx.restore()
 }
 

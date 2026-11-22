@@ -975,3 +975,44 @@ Checks actually run (harness/wr_skins.test.mjs: 61 passed, 0 failed):
   Regression: ns_cgpt 74/0, determinism 14/0, replay_playback 10/0, roster integrity OK, msv1_merge_framediff both forms
   0 fields differ. Known/pre-existing (not from this pack): msv1_merge.test 48/1 and msv2.test 85/2 (roster-count checks),
   msv1_merge_netreplay 11/1 (CPU swap — fails identically with the skin hook removed; another session is editing the swap input).
+
+=== 2026-11-21 — NEW FIGHTER: Satoru Gojo (Shinjuku Arc) (gojo_shinjuku) — MSV1-GOJO ===
+A second Gojo beside the old one (gojo is untouched: frame-data diff ZERO). Sheet: FinhJ (credits ZebrasBlack, R0B4N).
+- CURSED ENERGY (0–100) pays for every technique; Hollow Purple and Unlimited Void also cost super bars.
+- INFINITY (tap P: L1 → L2 → L3 → off) is invisible; the only tell is the CE bar draining 5 / 9 / 22 per second.
+  - L1 stops everything that isn't a super. L2 adds repel, and supers deal half. L3 stops supers too.
+  - Forced off by any domain, burnout, hitstun or 0 CE.
+- Kit:
+  - Blue (Lapse / Maximum Output / Blue Step / Blue Fist): crushes projectiles, drones and clones in its core.
+  - Red (Reversal / Delayed / Red Rush): reflects projectiles.
+  - Hollow Purple: erases everything in its path.
+  - 200 % Purple: three timed chant lines.
+  - Black Flash (2-frame window), Falling Blossom Emotion, RCT and Brain Reset.
+  - DOMAIN EXPANSION: UNLIMITED VOID on U, using the old Gojo's background. 15 s freeze, then 5 s burnout and a
+    30 s cooldown. Domain clash: mash Special.
+- User requests: double-tap toward = the old Gojo's teleport; double-tap away = long Ranger-style blink
+  (invulnerable travel); hold P = charge (aura + super bars + CE).
+- Presentation: intro / vs / win speech bubbles with Japanese voice ("Nah, I'd win." vs Sukuna). The CPU uses his
+  techniques on a deterministic rhythm. Move list in kits.js. Docs: docs/msv1/gojo/ (COMBOS, BALANCE_NOTES,
+  SUPERS, LIMITLESS, REUSE, LEDGER, CANON, CREDITS, screenshots/).
+- 20 premade skins (tools/gojoskins/build.py; protected pixels byte-identical; glitter phase from the sim clock):
+  - Alien X: Constellation Leak, Binary Star, Event Horizon, Daylight Galaxy.
+  - Glitter: Black Opal Headliner, Pink Diamond Flashbulb, Midnight Sequin, Meteor Hem.
+  - Crossover: Winning Valkyrie — Victory Lap, Ben 10 Upgrade — Living Sleeve, Ben 10 Chromastone — Cathedral Glass,
+    JJK Nanami — Clocked Out, JJK Sukuna — Borrowed Reflection, JJK Prison Realm — Inside Looking Out.
+  - Original: Porcelain Kiln, Darkroom Negative, Velvet Rope, Arcade Cabinet 2 A.M., First Snow at Dawn,
+    The Strongest in Ink.
+Checks actually run:
+- gojo_shinjuku.test 77/0 (Infinity levels / CE / mobility / domain + clash + burnout / moves / combos)
+- gojo_shinjuku_interactions 18/0 (clones, drones, Enoch patches, Spider-Man webs, Shrine, old Gojo's Void, clash
+  lockout)
+- limitless 36/0
+- gojo_shinjuku_present 18/0 (lines, CPU determinism, move list, 630 skin urls, 4 skins in a match with an
+  identical sim, glitter phase)
+- supers sweep: 113 ultimates × off / L1 / L2 / L3
+- frame-data diff ZERO for every character
+- baseline suites: determinism 14/0, combo-standard 233/9, up-attack 77/2, credits 11/3, roster OK, replay 10/0,
+  net_online 11/0 (all equal to the baseline or better)
+- MSV1 render check 11/0 before every commit
+Known, not from this fighter: Hinata's ultimate throws "executeHinataUltimate is not defined" (nested declaration in
+abilities.js, from 1482d5e9f).

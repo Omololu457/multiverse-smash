@@ -7,6 +7,7 @@
 // Ids are prefixed "gs_", never END in "AlienX" (game.js's generic starfield matches that suffix) and never contain
 // "cyborg" (Superman's eye overlay matches it).
 import { gojo_shinjuku } from './gojoShinjukuData.js'
+import { preloadSheets } from './sprite.js'
 
 export const GS_SKIN_TABLE = [
   { tag: 'alienx_leak', name: 'Alien X — Constellation Leak', classification: 'Alien X Collection' },
@@ -56,10 +57,18 @@ export const GS_SKINS = [
 
 // GLITTER (render-only): the glint phase follows the sim clock (8 sim frames per phase). Called from drawGsFx; swaps
 // only which pre-baked sheet the NEXT body draw uses (same frame map, so nothing about timing changes).
+const _ready = new Set(), _warm = new Set()   // render-side: which phase sheets have decoded (never read by the sim)
 export function gsSkinPhaseTick(f, simClock) {
   const tag = gsSkinTag(f?.skinId)
   if (!tag || !BY_TAG[tag].glitter) return
+  if (!_warm.has(tag)) {   // first draw: decode every phase's sheets so a swap never shows an unloaded sheet
+    _warm.add(tag)
+    const paths = []; for (let q = 0; q < 3; q++) for (const d of Object.values(gsSkinAnim(tag, q))) if (d?.sheet) paths.push(d.sheet)
+    preloadSheets(paths, r => { if (r?.ok) _ready.add(r.path) })
+  }
   const p = Math.floor((simClock || 0) / 8) % 3
   if (f._gsGlintPhase === p) return
-  f._gsGlintPhase = p; f._skinAnim = gsSkinAnim(tag, p)
+  const A = gsSkinAnim(tag, p), cur = A[f._lastSpriteAction || 'idle'] || A.idle
+  if (p && cur?.sheet && !_ready.has(cur.sheet)) return   // keep the current phase until the next phase's sheet is decoded
+  f._gsGlintPhase = p; f._skinAnim = A
 }

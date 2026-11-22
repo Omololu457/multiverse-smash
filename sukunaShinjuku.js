@@ -10,9 +10,17 @@
 // New techniques:
 //   ↓↓ + Special            → SPIDERWEB        ·  ↑ + Special → upward Dismantle
 //   ↓↓ + Charge             → DOMAIN AMPLIFICATION  ·  ↓↓ + Ultimate → WORLD-CUTTING SLASH (2 bars)
+// TEN SHADOWS (tap Charge = the stance on / off; holding Charge still charges, ↓↓ + Charge is still Amplification).
+// Every button of his is taken, so the summons live on a stance — while it's ON:
+//   ↓ + Light → Gama (ground tongue grab)       ·  Light in the air → Gama (air)        ·  neutral Light → his punches
+//   Heavy → Nue (electric STUN)   · → + Heavy → Divine Dogs (two-hit rush)   · ↑ + Heavy / Up-attack → Orochi (anti-air launcher)
+//   ↓ + Heavy → Datto ×6 rabbits  · Heavy in the air → Nue (air blast)
+//   Special → Divine Dog: Totality (1 bar)   · → + Special → Max Elephant (1 bar)   (↓← / ↓↓ / ↑ + Special stay his)
+//   Ultimate → MAHORAGA (full meter)   · ↓↓ + Ultimate → CHIMERA SHADOW GARDEN (full meter, once per round)
 import { startMove, getComboScale } from './combat.js'
 import { activateDomain, activeDomains } from './domains.js'
 import { isSks, sksState, startSksMove, registerSksEngine, fresh, use, MOTIONS } from './sukunaShinjukuState.js'
+import { tsState } from './sukunaShinjukuShadows.js'
 import { A_CHAIN, NORMALS } from './sukunaShinjukuData.js'
 
 registerSksEngine({ startMove, comboScale: getComboScale, activateDomain, activeDomains })   // Malevolent Shrine = the engine's domain (domainKey 'sukuna')
@@ -30,11 +38,35 @@ function specialChoice(f, s, raw, e, g) {
   return 'kCleave'
 }
 
+// TEN SHADOWS stance input → the summon key (the button is consumed either way; a summon on cooldown is rejected)
+function shadowInput(f, s, raw, g) {
+  if (fresh(s, 'ultimate') && g) { use(s, 'ultimate'); return MOTIONS.downDown(s) ? 'kChimera' : 'kMahoraga' }
+  if (fresh(s, 'special') && g) {
+    const e = s.edges.special
+    if (!MOTIONS.downDown(s) && !MOTIONS.downBack(s) && !(e.up || raw.up)) { use(s, 'special'); return e.fwd || fwdHeld(f, raw) ? 'kElephant' : 'kTotality' }
+  }
+  if (fresh(s, 'upAttack') && g) { use(s, 'upAttack'); use(s, 'heavy'); return 'kOrochi' }
+  if (fresh(s, 'heavy')) {
+    const e = s.edges.heavy; use(s, 'heavy')
+    if (!g) return 'kNueAir'
+    if (e.up || raw.up) return 'kOrochi'
+    if (e.down || raw.down) return 'kDatto'
+    if (e.fwd || fwdHeld(f, raw)) return 'kDogs'
+    return 'kNue'
+  }
+  if (fresh(s, 'light') && (!g || raw.down || s.edges.light.down)) { use(s, 'light'); return g ? 'kGama' : 'kGamaAir' }
+  return null
+}
+
 export function updateSksCommandCombat(f, inp, opp, W) {
   if (!isSks(f)) return false
   const s = sksState(f), raw = W.raw?.(f) || inp || {}, g = grounded(f)
   const a = f.attacking && f.currentAttack?.sks ? f.currentAttack : null
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0) return 'consumed'
+  const T = tsState(s)
+  if (fresh(s, 'chargeUp', 2) && s.edges.charge && s.used.charge !== s.edges.charge.tick && s.edges.chargeUp.tick - s.edges.charge.tick <= 12 && !s.edges.charge.down) {
+    use(s, 'chargeUp'); use(s, 'charge'); T.on = !T.on; s.cues.push(T.on ? 'tsOn' : 'tsOff')   // a TAP of Charge: the Ten Shadows stance
+  }
   const fire = (k, o = {}) => startSksMove(f, k, W, { dir: f.facing || 1, ...o })
   if (a && !TECH_CANCEL_FROM.has(a.sks.key)) return 'consumed'
   const contact = !!a && !!a.sks.contact && s.tick > (a.sks.contactTick ?? s.tick)
@@ -48,6 +80,7 @@ export function updateSksCommandCombat(f, inp, opp, W) {
   }
   if (a) return 'consumed'
   if (f.attackCooldown > 0) return 'consumed'
+  if (T.on) { const k = shadowInput(f, s, raw, g); if (k) { fire(k); return 'consumed' } }
   if (fresh(s, 'ultimate')) { use(s, 'ultimate'); fire(MOTIONS.downDown(s) && g ? 'kWorld' : 'kShrine'); return 'consumed' }
   if (fresh(s, 'charge') && g && MOTIONS.downDown(s)) { use(s, 'charge'); fire('kAmp'); return 'consumed' }
   if (g && fresh(s, 'grab')) { use(s, 'grab'); return 'grab' }

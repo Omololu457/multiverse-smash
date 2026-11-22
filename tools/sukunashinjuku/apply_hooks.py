@@ -45,9 +45,9 @@ G2 = [
   ("    if (isGs(f)) f._gsRemoteInput = replay.isPlayback() || netMatch.isActive()", 'after_line',
    "    if (isSks(f)) f._sksRemoteInput = replay.isPlayback() || netMatch.isActive()", "f._sksRemoteInput = replay"),
   ("  if (matchConfig.mode !== \"training\") markGsCpu(p2, matchConfig.aiDifficulty)", 'after_line',
-   "  if (matchConfig.mode !== \"training\") markSksCpu(p2, matchConfig.aiDifficulty)   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity", "markSksCpu(p2, matchConfig.aiDifficulty)   // CPU"),
-  ("      markGsCpu(p1, matchConfig.aiDifficulty)", 'after_line', "      markSksCpu(p1, matchConfig.aiDifficulty)", "markSksCpu(p1, matchConfig.aiDifficulty)"),
-  ("    markGsCpu(p2, matchConfig.aiDifficulty)\n", 'after_line', "    markSksCpu(p2, matchConfig.aiDifficulty)", "    markSksCpu(p2, matchConfig.aiDifficulty)\n"),
+   "  if (matchConfig.mode !== \"training\") markSksCpu(p2, matchConfig.aiDifficulty)   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity", "markSksCpu(p2, baseAiDifficulty"),   # markers survive the later baseAiDifficulty(...) wrap (another session)
+  ("      markGsCpu(p1, matchConfig.aiDifficulty)", 'after_line', "      markSksCpu(p1, matchConfig.aiDifficulty)", "      markSksCpu(p1, "),
+  ("    markGsCpu(p2, matchConfig.aiDifficulty)\n", 'after_line', "    markSksCpu(p2, matchConfig.aiDifficulty)", "    markSksCpu(p2, "),
   ("    markGsCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)", 'after_line',
    "    markSksCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)", "markSksCpu(f, f._aiController"),
   ("    drawGsFx(c, fighter, matchConfig.mode === \"training\")", 'after_line',
@@ -107,6 +107,26 @@ HOOKS += [
    "import { SKS_SKINS } from './sukunaShinjukuSkins.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc): default + 20 premade skins (cosmetic, tools/sukunaskins)", "SKS_SKINS } from"),
   (4, 'skins.js', "  gojo_shinjuku: GS_SKINS,", 'after_line', "  sukuna_shinjuku: SKS_SKINS,   // MSV1-SUKUNA", "sukuna_shinjuku: SKS_SKINS"),
 ]
+
+# phase 5 (2026-11-22 user: "1.5 times faster than he is now"): walk / run / air drift and the engine dash read
+# fighter._sksSpeed (set to SPEED in tickSks for sukuna_shinjuku only; undefined → 1 for everyone else)
+HOOKS += [
+  (5, 'physics.js', "* ((fighter._timeSlowTimer > 0) ? 0.5 : 1) * _benSlowK   // Mr. Incredible", 'replace',
+   "* ((fighter._timeSlowTimer > 0) ? 0.5 : 1) * _benSlowK * (fighter._sksSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA Ryomen Sukuna (Shinjuku) ×1.5 (1 for everyone else) · Mr. Incredible",
+   "_benSlowK * (fighter._sksSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA Ryomen"),
+  (5, 'physics.js', "* elDashMul(fighter) * _benSlowK   // Arlong swim-dash", 'replace',
+   "* elDashMul(fighter) * _benSlowK * (fighter._sksSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA ×1.5 · Arlong swim-dash",
+   "_benSlowK * (fighter._sksSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA ×1.5 · Arlong"),
+]
+
+# phase 6 (2026-11-22 Ten Shadows add-on): Datto turns him see-through — the body alpha reads fighter._sksAlpha
+# (set in sukunaShinjukuShadows.js while his rabbits are out; 0 / undefined → 1 for everyone else). Render-only.
+HOOKS += [
+  (6, 'game.js', "* (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red", 'replace',
+   "* (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1) * (fighter._sksAlpha || 1)   // × MSV1-SUKUNA Datto see-through (render-only) × S.P.D. Red",
+   "* (fighter._sksAlpha || 1)   // × MSV1-SUKUNA Datto"),
+]
+
 
 def main():
   a = sys.argv[1:]; check = '--check' in a

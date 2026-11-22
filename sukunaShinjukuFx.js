@@ -4,6 +4,7 @@
 // recolouring; the procedural bits (web crack, fire patch, explosion ring, World-Slash line) take the skin's palette.
 import { sound } from './sound.js'
 import { SUKUNA_SHINJUKU_FX } from './sukunaShinjukuSprites.js'
+import { SKS_FX_ANIM } from './sukunaShinjukuFxSheets.js'   // animated slash / fire strips (tools/sukunashinjuku/fx_import.py)
 import { SKS_KEY, FUGA, WORLD, DISMANTLE, AMP, SKS_MOVES } from './sukunaShinjukuData.js'
 import { SUKUNA_VOICE, getSukunaVoiceLang } from './sukunaVoice.js'
 // the old Sukuna's voice pools (same files, same language switch, same pool fallbacks as pickSukunaVoice), but the clip
@@ -17,6 +18,7 @@ function pickSukunaVoice(pool) {
   return arr[((_vf?._sks?.clock || 0) * 7 + (_vf?._sks?.serial || 0)) % arr.length]
 }
 import { sksSkinFx, sksSkinPal, sksSkinPhaseTick } from './sukunaShinjukuSkins.js'
+import { drawSksShadows, drawSksShadowsBack, tsHudTags } from './sukunaShinjukuShadowsFx.js'   // TEN SHADOWS (Megumi's shikigami strips)
 
 const isSks = f => f?.rosterKey === SKS_KEY
 const IMG = {}
@@ -39,6 +41,17 @@ function sprite(c, f, key, x, y, { scale = 2, alpha = 1, dir = 1, ang = 0 } = {}
   c.drawImage(i, 0, 0, d.w, d.h, -Math.round(w / 2), -Math.round(h / 2), Math.round(w), Math.round(h))
   c.restore(); return true
 }
+// an ANIMATED effect cell (the skin's premade recolour of fx/<key>.png strip): frame i of n, anchored centre or bottom,
+// rotated / mirrored with the travel direction. Frame index comes from the sim clock or the hint's age (render-only).
+function anim(c, f, key, i, x, y, { scale = 1, alpha = 1, dir = 1, ang = 0, add = false } = {}) {
+  const d = SKS_FX_ANIM?.[key]; if (!d) return false
+  const im = img(sksSkinFx(f, key) || d.sheet); if (!ready(im)) return false
+  const k = Math.max(0, Math.min(d.n - 1, i | 0)), w = d.w * scale, h = d.h * scale
+  c.save(); c.globalAlpha *= alpha; c.imageSmoothingEnabled = true; if (add) c.globalCompositeOperation = 'lighter'
+  c.translate(Math.round(x), Math.round(y)); c.rotate(ang); c.scale(dir, 1)
+  c.drawImage(im, k * d.w, 0, d.w, d.h, -w / 2, d.anchor === 'bottom' ? -h : -h / 2, w, h)
+  c.restore(); return true
+}
 function ring(c, x, y, r, col, a = 1, lw = 2) { c.save(); c.globalAlpha *= a; c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.arc(x, y, Math.max(1, r), 0, Math.PI * 2); c.stroke(); c.restore() }
 function disc(c, x, y, r, col, a = 1) { c.save(); c.globalAlpha *= a; c.fillStyle = col; c.beginPath(); c.arc(x, y, Math.max(1, r), 0, Math.PI * 2); c.fill(); c.restore() }
 function bubble(c, text, cx, top, a = 1, ink = '#3a0a10') {
@@ -55,6 +68,7 @@ export function drawSksFx(c, f) {
   if (!isSks(f) || !f._sks) return
   const s = f._sks, t = s.clock, P = sksSkinPal(f)
   sksSkinPhaseTick(f, t)
+  drawSksShadowsBack(c, f)
   // DOMAIN AMPLIFICATION: a subtle, thin outline that breathes (render-only)
   if (s.amp > 0) {
     const a = 0.35 + 0.2 * Math.sin(t * 0.25), fade = Math.min(1, s.amp / 20)
@@ -69,6 +83,7 @@ export function drawSksFx(c, f) {
     c.save(); c.globalCompositeOperation = 'lighter'
     disc(c, hx, hy, 6 + lv * 6 * pulse, P.fugaRim, 0.35); disc(c, hx, hy, 3 + lv * 3, P.fugaCore, 0.6)
     c.restore()
+    anim(c, f, 'fugaEmbers', (t >> 2) % 3, hx, hy, { scale: 0.55 + lv * 0.3, alpha: 0.85, add: true })
     for (let k = 0; k < lv; k++) disc(c, ctrX(f) - 12 + k * 12, f.y - 10, 3, P.fugaCore, 0.9)   // level pips
   }
   // speech bubble (intro / win)
@@ -83,17 +98,22 @@ export function drawSksFx(c, f) {
     const ang = Math.atan2(k.vy, Math.abs(k.vx)) * (k.dir || 1)
     c.save(); c.globalAlpha = 0.5; c.strokeStyle = P.cutTrail; c.lineWidth = 2
     c.beginPath(); c.moveTo(k.x - k.vx * 3, k.y - k.vy * 3); c.lineTo(k.x, k.y); c.stroke(); c.restore()
-    if (!sprite(c, f, 'dismantleCut', k.x, k.y, { scale: k.fan ? 1.6 : 2, dir: k.dir, ang })) { c.save(); c.strokeStyle = P.cutTrail; c.lineWidth = 2; c.beginPath(); c.moveTo(k.x, k.y - 20); c.lineTo(k.x + 6 * k.dir, k.y + 20); c.stroke(); c.restore() }
+    if (!anim(c, f, 'slashH', (t >> 2) % 4, k.x, k.y, { scale: k.fan ? 0.55 : 0.75, dir: k.dir, ang }) &&
+        !sprite(c, f, 'dismantleCut', k.x, k.y, { scale: k.fan ? 1.6 : 2, dir: k.dir, ang })) { c.save(); c.strokeStyle = P.cutTrail; c.lineWidth = 2; c.beginPath(); c.moveTo(k.x, k.y - 20); c.lineTo(k.x + 6 * k.dir, k.y + 20); c.stroke(); c.restore() }
   }
   // Fuga arrows
   for (const a of s.arrows) {
     for (let k = 1; k <= 4; k++) disc(c, a.x - a.dir * k * 9, a.y, 6 - k, P.fugaRim, 0.25)
-    if (!sprite(c, f, 'fugaArrow', a.x, a.y, { scale: a.emp ? 3 : 2 + (a.lv - 1) * 0.35, dir: a.dir })) disc(c, a.x, a.y, 8, P.fugaCore, 1)
+    if (!anim(c, f, 'fugaFlame', (t >> 1) % 4, a.x, a.y, { scale: a.emp ? 1.25 : 0.65 + (a.lv - 1) * 0.15, dir: a.dir }) &&
+        !sprite(c, f, 'fugaArrow', a.x, a.y, { scale: a.emp ? 3 : 2 + (a.lv - 1) * 0.35, dir: a.dir })) disc(c, a.x, a.y, 8, P.fugaCore, 1)
   }
   // FIRE patches (his elements.js field) — procedural flame tongues; water / steam from a reaction
   for (const p of s.field.patches) {
     const life = Math.min(1, (p.life - (t - p.bornFrame)) / 30)
-    if (p.type === 'fire') {
+    if (p.type === 'fire' && SKS_FX_ANIM.fireBlaze && ready(img(sksSkinFx(f, 'fireBlaze') || SKS_FX_ANIM.fireBlaze.sheet))) {   // the ground blaze, looping
+      const n = Math.max(1, Math.round(p.width / 46))
+      for (let k = 0; k < n; k++) anim(c, f, 'fireBlaze', ((t >> 2) + k * 2) % 6, p.x + (k + 0.5) * p.width / n, p.floor + 2, { scale: 0.62, alpha: life })
+    } else if (p.type === 'fire') {
       for (let k = 0; k < Math.max(3, Math.round(p.width / 22)); k++) {
         const ph = ((t * 2 + k * 11) % 30) / 30, x = p.x + (k + 0.5) * p.width / Math.max(3, Math.round(p.width / 22)), h = 10 + (1 - ph) * 14
         c.save(); c.globalAlpha = life * (1 - ph) * 0.85; c.fillStyle = P.fugaRim; c.beginPath(); c.ellipse(x, p.floor - h / 2 - ph * 10, 5, h / 2, 0, 0, Math.PI * 2); c.fill()
@@ -107,16 +127,18 @@ export function drawSksFx(c, f) {
     c.save(); c.globalAlpha = a; c.strokeStyle = P.cleaveEdge; c.lineWidth = 3
     c.beginPath(); c.moveTo(w.x, f.y + f.h - 900 * grow); c.lineTo(w.x, f.y + f.h + 40); c.stroke()
     c.strokeStyle = P.cutTrail; c.lineWidth = 1; c.beginPath(); c.moveTo(w.x + 3, f.y + f.h - 900 * grow); c.lineTo(w.x + 3, f.y + f.h + 40); c.stroke(); c.restore()
+    anim(c, f, 'slashCres', Math.floor(w.t / 4), w.x, f.y + f.h - 150, { scale: 2.6, dir: f.facing || 1 })   // the crescent through the target
   }
+  drawSksShadows(c, f)   // TEN SHADOWS: shikigami, Mahoraga's waves, Datto, sink / break, the win-pose Nue
   // hints
   for (const h of s.fx) {
     const a = Math.max(0, 1 - h.t / 24)
     switch (h.kind) {
       case 'cleaveHit':   // Cleave: the strongest accent AT CONTACT (premade contact streak + the skin's edge)
-        sprite(c, f, 'cleaveStreak', h.x, h.y, { scale: 4, alpha: a, dir: h.dir || 1, ang: -0.6 })
+        if (!anim(c, f, 'slashArc', Math.floor(h.t / 3), h.x, h.y, { scale: 1.35, dir: h.dir || 1 })) sprite(c, f, 'cleaveStreak', h.x, h.y, { scale: 4, alpha: a, dir: h.dir || 1, ang: -0.6 })
         c.save(); c.globalAlpha = a; c.strokeStyle = P.cleaveEdge; c.lineWidth = 4; c.beginPath(); c.moveTo(h.x - 26, h.y - 30); c.lineTo(h.x + 26, h.y + 30); c.stroke()
         c.strokeStyle = P.cleaveAccent; c.lineWidth = 1.5; c.beginPath(); c.moveTo(h.x - 22, h.y - 26); c.lineTo(h.x + 22, h.y + 26); c.stroke(); c.restore(); break
-      case 'cutHit': c.save(); c.globalAlpha = a; c.strokeStyle = P.cutTrail; c.lineWidth = 2; c.beginPath(); c.moveTo(h.x - 18 * (h.dir || 1), h.y - 14); c.lineTo(h.x + 18 * (h.dir || 1), h.y + 14); c.stroke(); c.restore(); break
+      case 'cutHit': anim(c, f, 'slashArc', Math.floor(h.t / 3), h.x, h.y, { scale: 0.8, dir: h.dir || 1 }); c.save(); c.globalAlpha = a; c.strokeStyle = P.cutTrail; c.lineWidth = 2; c.beginPath(); c.moveTo(h.x - 18 * (h.dir || 1), h.y - 14); c.lineTo(h.x + 18 * (h.dir || 1), h.y + 14); c.stroke(); c.restore(); break
       case 'cutProj': ring(c, h.x, h.y, 4 + h.t, P.cutTrail, a, 1); break
       case 'webHit': case 'spark': disc(c, h.x, h.y, 5 * a, '#fff', a); break
       case 'block': ring(c, h.x, h.y, 10 + h.t, '#ffffff', a * 0.7); break
@@ -130,11 +152,22 @@ export function drawSksFx(c, f) {
       case 'fugaHit': ring(c, h.x, h.y, 10 + h.t * 2, P.fugaRim, a, 3); break
       case 'fugaBoom': {   // explosion: the skin's core and rim; empowered = bigger
         const A2 = Math.max(0, 1 - h.t / 30), r = h.r * Math.min(1, 0.4 + h.t / 8)
+        anim(c, f, 'fugaPillar', Math.floor(h.t / 7), h.x, h.y + h.r * 0.55, { scale: (h.emp ? 1.5 : 1) * Math.max(0.6, h.r / 60) })   // the eruption
         c.save(); c.globalCompositeOperation = 'lighter'; disc(c, h.x, h.y, r, P.fugaRim, A2 * 0.6); disc(c, h.x, h.y, r * 0.55, P.fugaCore, A2 * 0.9); c.restore()
         ring(c, h.x, h.y, r * 1.2, P.fugaRim, A2, h.emp ? 5 : 3); break
       }
       case 'burst': ring(c, h.x, h.y - 20, 20 + h.t * 3, '#cfe8ff', a, 3); break
+      case 'ghost': {      // blur dash / back-step afterimage: a crimson smear where he just was (render-only)
+        const A3 = Math.max(0, 1 - h.t / 10); if (A3 <= 0) break
+        c.save(); c.globalAlpha = A3 * 0.45; c.fillStyle = P.cleaveAccent
+        c.beginPath(); c.ellipse(h.x + (f.w || 48) / 2, h.y + (f.h || 94) / 2, (f.w || 48) * 0.55, (f.h || 94) * 0.5, 0, 0, Math.PI * 2); c.fill()
+        c.globalAlpha = A3 * 0.6; c.strokeStyle = P.cutTrail; c.lineWidth = 1.5; c.beginPath(); c.moveTo(h.x - (h.dir || 1) * 30, h.y + (f.h || 94) * 0.45); c.lineTo(h.x + (f.w || 48) / 2, h.y + (f.h || 94) * 0.45); c.stroke(); c.restore(); break
+      }
       case 'worldHit': disc(c, h.x, h.y, 12 * a, P.cleaveEdge, a); break
+      case 'tsHit': case 'tsClaw': ring(c, h.x, h.y, 6 + h.t * 2, '#d9e4ff', a, 2); disc(c, h.x, h.y, 4 * a, '#fff', a); break
+      case 'tsShock': c.save(); c.globalCompositeOperation = 'lighter'; ring(c, h.x, h.y, 8 + h.t * 3, '#7fd8ff', a, 3); disc(c, h.x, h.y, 10 * a, '#e8fbff', a); c.restore(); break
+      case 'tsSplash': ring(c, h.x, h.y, 6 + h.t * 2, '#5ab4ff', a, 3); break
+      case 'tsWheel': ring(c, h.x, h.y, 14, '#f3d36b', a, 3); for (let k = 0; k < 8; k++) { const q = k * Math.PI / 4 + h.t * 0.2; disc(c, h.x + Math.cos(q) * 14, h.y + Math.sin(q) * 14, 2.5, '#f3d36b', a) } break   // Mahoraga adapts
     }
   }
 }
@@ -148,7 +181,8 @@ export function drawSksBurn(c, f, t) {
 // ── HUD: Domain Amplification / cooldown / Empowered Fuga window under the health bar ──
 export function sksHudLabel(f) {
   const s = f?._sks; if (!s) return null
-  return { amp: s.amp, ampCd: s.cd.amp, emp: Math.max(0, s.empUntil - s.clock), burnout: f._gsTechBurnout || 0 }
+  return { amp: s.amp, ampCd: s.cd.amp, emp: Math.max(0, s.empUntil - s.clock), burnout: f._gsTechBurnout || 0,
+    tenShadows: !!s.ts?.on, garden: s.ts?.dom ? s.ts.dom.t : -1, gardenUsed: !!s.ts?.domUsed, summons: (s.ts?.sum || []).map(z => z.k), tsCd: { ...(s.ts?.cd || {}) } }
 }
 export function drawSksHud(c, cv, p1, p2) {
   const cw = cv?.width || 1280, pad = 14
@@ -159,6 +193,7 @@ export function drawSksHud(c, cv, p1, p2) {
     else tags.push(L.ampCd > 0 ? ['AMP ' + Math.ceil(L.ampCd / 60) + 's', 'rgba(255,255,255,0.45)'] : ['AMP READY', '#d0c8ff'])
     if (L.emp > 0) tags.push(['FUGA EMPOWERED', '#ffb347'])
     if (L.burnout > 0) tags.push(['BURNOUT ' + (L.burnout / 60).toFixed(1) + 's', '#ff6a6a'])
+    tags.push(...tsHudTags(f))
     c.save(); c.font = 'bold 9px Arial'; c.textBaseline = 'top'; c.textAlign = flip ? 'right' : 'left'
     let tx = flip ? x0 + 98 : x0
     for (const [txt, col] of tags) { c.fillStyle = col; c.fillText(txt, tx, y0); const tw = c.measureText ? c.measureText(txt).width : txt.length * 6; tx += (flip ? -1 : 1) * (tw + 10) }
@@ -192,6 +227,9 @@ function synth(kind) {
     case 'crack': noise(0.35, 0.3, -900); tone('triangle', 90, 40, 0.3, 0.2); noise(0.12, 0.15, 3000, 0.05); break   // ground crack
     case 'roar': noise(0.6, 0.12, -1200); tone('sawtooth', 70, 140, 0.6, 0.08); break                           // flame building
     case 'boom': noise(0.7, 0.35, -600); tone('sine', 80, 30, 0.7, 0.35); break                                 // deep explosion
+    case 'shadow': noise(0.3, 0.18, -500); tone('sine', 140, 50, 0.3, 0.12); break                             // a shikigami out of the shadow
+    case 'zap': tone('square', 1800, 300, 0.18, 0.08); noise(0.2, 0.2, 4000); break                            // Nue's lightning
+    case 'water': noise(0.9, 0.22, -1400); tone('sine', 200, 120, 0.8, 0.06); break                            // Max Elephant's beam
   }
 }
 const SFX = {
@@ -203,9 +241,13 @@ const SFX = {
   kWeb: () => sound.playSfxFile?.(pickSukunaVoice('cast'), null), webCrack: () => { synth('crack'); sound.playSfxFile?.('sukuna_slash.mp3', null) },
   kFugaG: () => { synth('roar'); sound.playSfxFile?.(pickSukunaVoice('castFlame'), null) }, fugaLevel: () => synth('roar'),
   kFugaE: () => { synth('roar'); sound.playSfxFile?.(pickSukunaVoice('castFlame'), null) },
+  rush: () => synth('cut'), step: () => synth('cut'),
   fugaBoom: () => synth('boom'), fugaEmpBoom: () => { synth('boom'); synth('boom') },
   worldCut: () => { synth('cut'); synth('chop'); sound.playSfxFile?.('sukuna_slash.mp3', null) },
   kWorld: () => sound.playSfxFile?.(pickSukunaVoice('cast'), null),
+  tsOn: () => synth('shadow'), tsOff: () => synth('shadow'), tsSummon: () => synth('shadow'), tsShock: () => synth('zap'),
+  tsBeam: () => synth('water'), tsWave: () => synth('cut'), tsLand: () => synth('boom'), tsKonHit: () => synth('chop'), tsPull: () => synth('chop'),
+  chimera: () => { synth('shadow'); synth('boom'); sound.playSfxFile?.(pickSukunaVoice('cast'), null) },
 }
 export function playSksCues(f) {
   const q = f?._sks?.cues; if (!q?.length) return

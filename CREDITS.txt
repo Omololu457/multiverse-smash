@@ -27,6 +27,8 @@ Source files: assets/gojo_shinjuku/**  (ledger: docs/msv1/gojo/LEDGER.md)
 Ryomen Sukuna (Shinjuku Arc) sprites credited on the supplied sheet to
   Mrfresh, Zeltas Black, Mps, Kenny, Dark night and Dr animation
   (the new `sukuna_shinjuku` fighter; the old `sukuna` is unchanged)
+  Technique effects: slashes from the "Attack Effects Pack" by Game Developer Studio
+  (gamedeveloperstudio.com); Fuga fire from boltanim's fire eruption / explosion / charge MUGEN effect sheets
 Source files: assets/sukuna_shinjuku/**  (ledger: docs/msv1/sukuna/LEDGER.md)
 
 This is a non-commercial personal fan project. All characters and source

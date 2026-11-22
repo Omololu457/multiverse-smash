@@ -25,7 +25,7 @@ try {
   // ── selector ──
   const sk = await E(async () => { const m = await import('./skins.js'); const L = m.SKINS.sukuna_shinjuku || []; const bad = []; let n = 0
     for (const s of L.slice(1)) { if (!s.id.startsWith('sks_')) continue
-      const tag = s.id.slice(4), urls = new Set([s.portrait, ...Object.values(s.animationData).map(d => d?.sheet).filter(Boolean), ...['dismantleCut', 'fugaArrow', 'cleaveStreak', 'worldBlades'].map(k => `./assets/sukuna_shinjuku/skins/${tag}/fx/${k}.png`)])
+      const tag = s.id.slice(4), urls = new Set([s.portrait, ...Object.values(s.animationData).map(d => d?.sheet).filter(Boolean), ...['dismantleCut', 'fugaArrow', 'cleaveStreak', 'worldBlades', 'slashArc', 'slashCres', 'slashH', 'fugaPillar', 'fugaFlame', 'fugaEmbers', 'fireBlaze'].map(k => `./assets/sukuna_shinjuku/skins/${tag}/fx/${k}.png`)])
       if (s.glitter) for (const p of [1, 2]) for (const d of Object.values(s.animationData)) if (d?.sheet?.includes('/skins/')) urls.add(d.sheet.replace(`/skins/${tag}/`, `/skins/${tag}/p${p}/`))
       for (const u of urls) { n++; const r = await fetch(u); if (!r.ok) bad.push(u) } }
     return { ids: L.map(s => s.id), names: L.map(s => s.name), glitter: L.filter(s => s.glitter).map(s => s.id), urls: n, bad } })

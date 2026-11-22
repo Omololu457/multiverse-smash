@@ -1,53 +1,463 @@
 {
- "pass": 61,
+ "pass": 89,
  "fail": 0,
  "report": {
+  "mobility": {
+   "rush": {
+    "from": 1300,
+    "to": 1793,
+    "foe": 1861
+   },
+   "step": {
+    "from": 1258,
+    "plannedTo": 746,
+    "to": 755,
+    "moved": 503
+   }
+  },
+  "shadows": {
+   "gama": {
+    "f0": {
+     "hp": 1240,
+     "x": 1450,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 0,
+     "slow": 0
+    },
+    "f1": {
+     "hp": 1204,
+     "x": 1382,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 20,
+     "slow": 0
+    },
+    "m0": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "m1": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "t": {
+     "on": true,
+     "sum": [
+      {
+       "k": "gama",
+       "t": 28,
+       "x": 1386,
+       "br": null
+      }
+     ],
+     "rab": 0,
+     "cd": {},
+     "dom": null,
+     "domUsed": false,
+     "stats": {
+      "summons": 1,
+      "hits": 1,
+      "blocked": 0,
+      "broken": 0,
+      "projBlocked": 0,
+      "adapted": 0,
+      "cancelled": 0,
+      "pulls": 1,
+      "konHits": 0,
+      "domains": 0
+     },
+     "rej": null
+    },
+    "key": "kGama",
+    "hs": 36
+   },
+   "nue": {
+    "f0": {
+     "hp": 1240,
+     "x": 1410,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 0,
+     "slow": 0
+    },
+    "f1": {
+     "hp": 1197,
+     "x": 1410,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 32,
+     "slow": 0
+    },
+    "m0": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "m1": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "t": {
+     "on": true,
+     "sum": [
+      {
+       "k": "nue",
+       "t": 36,
+       "x": 1440,
+       "br": null
+      }
+     ],
+     "rab": 0,
+     "cd": {},
+     "dom": null,
+     "domUsed": false,
+     "stats": {
+      "summons": 1,
+      "hits": 1,
+      "blocked": 0,
+      "broken": 0,
+      "projBlocked": 0,
+      "adapted": 0,
+      "cancelled": 0,
+      "pulls": 0,
+      "konHits": 0,
+      "domains": 0
+     },
+     "rej": null
+    },
+    "key": "kNue",
+    "hs": 48
+   },
+   "dogs": {
+    "f0": {
+     "hp": 1240,
+     "x": 1500,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 0,
+     "slow": 0
+    },
+    "f1": {
+     "hp": 1168,
+     "x": 1500,
+     "y": 398,
+     "vy": 1.25,
+     "hitstun": 17,
+     "slow": 0
+    },
+    "m0": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "m1": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1310,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "t": {
+     "on": true,
+     "sum": [
+      {
+       "k": "dogs",
+       "t": 26,
+       "x": 1623,
+       "br": null
+      },
+      {
+       "k": "dogs",
+       "t": 16,
+       "x": 1513,
+       "br": null
+      }
+     ],
+     "rab": 0,
+     "cd": {},
+     "dom": null,
+     "domUsed": false,
+     "stats": {
+      "summons": 1,
+      "hits": 2,
+      "blocked": 0,
+      "broken": 0,
+      "projBlocked": 0,
+      "adapted": 0,
+      "cancelled": 0,
+      "pulls": 0,
+      "konHits": 0,
+      "domains": 0
+     },
+     "rej": null
+    },
+    "key": "kDogs",
+    "hs": 22
+   },
+   "orochi": {
+    "key": "kOrochi",
+    "f0": {
+     "hp": 1240,
+     "x": 1460,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 0,
+     "slow": 0
+    },
+    "f1": {
+     "hp": 1190,
+     "x": 1460,
+     "y": 304,
+     "vy": -13.899999999999997,
+     "hitstun": 28,
+     "slow": 0
+    },
+    "up": true
+   },
+   "datto": {
+    "d0": 6,
+    "d1": 5,
+    "alpha": 0.5,
+    "st": {
+     "summons": 1,
+     "hits": 0,
+     "blocked": 0,
+     "broken": 0,
+     "projBlocked": 1,
+     "adapted": 0,
+     "cancelled": 0,
+     "pulls": 0,
+     "konHits": 0,
+     "domains": 0
+    },
+    "hp": [
+     1240,
+     1240
+    ]
+   },
+   "totality": {
+    "f0": {
+     "hp": 1240,
+     "x": 1460,
+     "y": 400,
+     "vy": 0,
+     "hitstun": 0,
+     "slow": 0
+    },
+    "f1": {
+     "hp": 1118,
+     "x": 1423,
+     "y": 392,
+     "vy": -8.15,
+     "hitstun": 39,
+     "slow": 0
+    },
+    "m0": {
+     "hp": 1240,
+     "energy": 210,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "m1": {
+     "hp": 1240,
+     "energy": 123.26000000000016,
+     "x": 1300,
+     "alpha": 0,
+     "anim": null,
+     "key": null
+    },
+    "t": {
+     "on": true,
+     "sum": [
+      {
+       "k": "kon",
+       "t": 33,
+       "x": 1418,
+       "br": "hit"
+      }
+     ],
+     "rab": 0,
+     "cd": {},
+     "dom": null,
+     "domUsed": false,
+     "stats": {
+      "summons": 1,
+      "hits": 4,
+      "blocked": 0,
+      "broken": 0,
+      "projBlocked": 0,
+      "adapted": 0,
+      "cancelled": 0,
+      "pulls": 0,
+      "konHits": 1,
+      "domains": 0
+     },
+     "rej": null
+    },
+    "key": "kTotality",
+    "hs": 40
+   },
+   "totalityMiss": {
+    "st": {
+     "summons": 1,
+     "hits": 0,
+     "blocked": 0,
+     "broken": 0,
+     "projBlocked": 0,
+     "adapted": 0,
+     "cancelled": 0,
+     "pulls": 0,
+     "konHits": 0,
+     "domains": 0
+    },
+    "sum": []
+   },
+   "elephant": {
+    "key": "kElephant",
+    "st": {
+     "summons": 1,
+     "hits": 5,
+     "blocked": 0,
+     "broken": 0,
+     "projBlocked": 0,
+     "adapted": 0,
+     "cancelled": 0,
+     "pulls": 0,
+     "konHits": 0,
+     "domains": 0
+    },
+    "hp": [
+     1240,
+     1167
+    ]
+   },
+   "mahoraga": {
+    "key": "kMahoraga",
+    "e": [
+     210,
+     32.2599999999999
+    ],
+    "st": {
+     "summons": 1,
+     "hits": 4,
+     "blocked": 0,
+     "broken": 0,
+     "projBlocked": 0,
+     "adapted": 0,
+     "cancelled": 0,
+     "pulls": 0,
+     "konHits": 0,
+     "domains": 0
+    },
+    "hp": [
+     1240,
+     982
+    ],
+    "sum": []
+   },
+   "break": {
+    "summons": 1,
+    "hits": 0,
+    "blocked": 0,
+    "broken": 1,
+    "projBlocked": 0,
+    "adapted": 0,
+    "cancelled": 0,
+    "pulls": 0,
+    "konHits": 0,
+    "domains": 0
+   },
+   "adapt": {
+    "a1": {
+     "hp": 3,
+     "adapt": 1
+    },
+    "a2": {
+     "hp": 3,
+     "adapt": 1
+    },
+    "st": {
+     "summons": 1,
+     "hits": 2,
+     "blocked": 0,
+     "broken": 0,
+     "projBlocked": 0,
+     "adapted": 1,
+     "cancelled": 0,
+     "pulls": 0,
+     "konHits": 0,
+     "domains": 0
+    }
+   }
+  },
   "moves": {
-   "A1": 31,
+   "A1": 38,
    "A": [
-    31,
-    31,
-    44
+    38,
+    38,
+    52
    ],
-   "B": 73,
-   "C": 82,
-   "knee": 76,
-   "dashAtk": 58,
-   "air": 61
+   "B": 88,
+   "C": 98,
+   "knee": 91,
+   "dashAtk": 69,
+   "air": 74
   },
   "techniques": {
    "disKey": "kDismantle",
-   "dis": 55,
+   "dis": 66,
    "cutProj": 1,
    "fanKey": "kFan",
    "fanCost": 18.219999999999857,
    "fanCuts": 3,
-   "fanDmg": 30,
-   "cleave": 133,
-   "cleaveWant": 134,
+   "fanDmg": 36,
+   "cleave": 160,
+   "cleaveWant": 161,
    "whiff": 10,
    "webKey": "kWeb",
-   "web": 70,
-   "webVsStand": 70,
+   "web": 84,
+   "webVsStand": 84,
    "fuga1": {
-    "d": 93,
+    "d": 111,
     "lv": 1,
     "cost": 22.41999999999979
    },
    "fuga2": {
-    "d": 142,
+    "d": 171,
     "lv": 2,
     "cost": 16.61999999999972
    },
    "fuga3": {
-    "d": 202,
+    "d": 243,
     "lv": 3,
     "cost": 9.459999999999638
    },
    "patches": [],
    "amp": 175,
    "worldKey": "kWorld",
-   "world": 379
+   "world": 456
   },
   "shrine": {
    "dom": [
@@ -63,24 +473,24 @@
    "slash": 8,
    "emp": 142,
    "empKey": "kFugaE",
-   "empDmg": 300
+   "empDmg": 360
   },
   "combos": {
    "Know your place (J J J K I)": {
     "hits": 5,
-    "damage": 229
+    "damage": 276
    },
    "Cut (J J → Cleave)": {
     "hits": 3,
-    "damage": 185
+    "damage": 223
    },
    "Web finish (J J J → ↓↓ + Special)": {
     "hits": 4,
-    "damage": 164
+    "damage": 198
    },
    "Heavy → Dismantle (K → ↓← + Special)": {
     "hits": 2,
-    "damage": 123
+    "damage": 148
    }
   },
   "present": {

@@ -6,7 +6,8 @@
 // OWNED ENTITIES (deterministic lifecycle, capped): cuts ≤ 6 (Dismantle), arrows ≤ 2 (Fuga), fire field ≤ 4 patches
 // (elements.js), world ≤ 1 (World-Cutting Slash), fx ≤ 24 (render hints). Nothing here touches the OLD Sukuna (`sukuna`):
 // his Malevolent Shrine is opened through activateDomain(..., { domainKey: 'sukuna' }) — the shared domain code path.
-import { SKS_KEY, SKS_MOVES, COST, DISMANTLE, CLEAVE, WEB, FUGA, AMP, WORLD, SHRINE, TECHNIQUES, NORMALS, QUOTES, SCREEN, BAR, dmg } from './sukunaShinjukuData.js'
+import { SKS_KEY, SKS_MOVES, COST, DISMANTLE, CLEAVE, WEB, FUGA, AMP, WORLD, SHRINE, TECHNIQUES, NORMALS, QUOTES, SCREEN, BAR, MOBILITY, SPEED, SHADOW_KEYS, TS, dmg } from './sukunaShinjukuData.js'
+import { tsState, shadowGate, onShadowStart, releaseShadow, shadowsTick } from './sukunaShinjukuShadows.js'   // TEN SHADOWS (summons)
 import { createField, addPatch, removePatch, tickField, applyPatchEffects, reactionFor } from './elements.js'
 import { isSuperProjectile } from './limitless.js'
 
@@ -18,12 +19,12 @@ export function registerSksEngine(o) { Object.assign(E, o) }
 export const sksState = f => {
   if (f._sks) return f._sks
   return (f._sks = { tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: [], serial: 0,
-    cd: { amp: 0 }, amp: 0, cuts: [], arrows: [], world: null, burns: {}, field: createField(4), floor: null,
+    cd: { amp: 0, rush: 0, step: 0 }, amp: 0, mv: null, dt: null, cuts: [], arrows: [], world: null, burns: {}, field: createField(4), floor: null,
     dom: { mine: false }, empUntil: -1, say: null, said: { intro: false, win: false }, sawInf: -1,
     cpu: null, fx: [], cues: [],
     stats: { cuts: 0, cutHits: 0, cutProj: 0, cleaves: 0, cleaveHits: 0, cleaveLast: 0, armorCut: 0, webs: 0, webHits: 0, trapsCleared: 0,
       patchesCleared: 0, fuga: 0, fugaLv: 0, fugaHits: 0, empowered: 0, burnTicks: 0, firePatches: 0, reactions: 0, amps: 0, ampBypass: 0,
-      worlds: 0, worldHits: 0, worldCancelled: 0, shrines: 0, stopped: 0, techLocked: 0, fugaCancelled: 0, spent: 0, refunded: 0 } })
+      rushes: 0, steps: 0, worlds: 0, worldHits: 0, worldCancelled: 0, shrines: 0, stopped: 0, techLocked: 0, fugaCancelled: 0, spent: 0, refunded: 0 } })
 }
 const cue = (f, c, extra) => { const s = sksState(f); s.cues.push(extra ? { c, ...extra } : c); if (s.cues.length > 32) s.cues.shift() }
 const ctrX = f => (f.x || 0) + (f.w || 48) / 2
@@ -41,7 +42,7 @@ export function endSksAttack(f, cd = 0) { f.attacking = false; f.currentAttack =
 export function clearSks(f) {
   if (!f) return
   if (live(f)) endSksAttack(f)
-  delete f._sks; delete f._sksRemoteInput; delete f._sksAmp
+  delete f._sks; delete f._sksRemoteInput; delete f._sksAmp; delete f._sksSpeed; delete f._sksAlpha
 }
 export function clearSksMarks(f) { if (!f) return; delete f._sksBurn }
 
@@ -106,6 +107,8 @@ function strike(f, t, P, W) {
   pushFx(s, P.fx || 'spark', ctrX(t), ctrY(t), { dir })
   return 'hit'
 }
+// the Ten Shadows module (sukunaShinjukuShadows.js) hits, cues and hints through these — the same choke-points
+export const _sksKit = { strike: (...a) => strike(...a), pushFx: (...a) => pushFx(...a), cue: (...a) => cue(...a), foesOf: (...a) => foesOf(...a) }
 
 // ── input edges + facing-relative motion buffer (numpad digits; 5 = neutral) — Gojo Shinjuku's reader, copied ──
 const numpad = (raw, facing) => {
@@ -152,6 +155,7 @@ export function startSksMove(f, key, W, o = {}) {
   if (!md.air && !md.airOk && !g) return false
   if (key === 'kAmp' && (s.amp > 0 || s.cd.amp > 0)) { cue(f, 'reject'); return false }
   if (key === 'kShrine' && ((f.ultimateCooldown || 0) > 0 || (!f.infiniteEnergy && (f.energy || 0) < (f.maxEnergy || 0)))) { cue(f, 'reject'); return false }
+  if (SHADOW_KEYS.has(key)) { const why = shadowGate(f, s, key); if (why) { tsState(s).lastReject = why; cue(f, 'reject'); return false } }   // cooldown / already out / meter / once per round
   const cost = md.cost || 0, bars = (md.bars || 0) * BAR
   if (!f.infiniteEnergy && (f.energy || 0) < cost + bars) { cue(f, 'reject'); return false }
   if (o.cancel) endSksAttack(f)
@@ -169,6 +173,7 @@ export function startSksMove(f, key, W, o = {}) {
   if (key === 'kShrine') shrine(f, s)
   if (key === 'kWorld') { s.world = { phase: 'chant', x: null, t: 0, side: null, cutT: -1 }; s.stats.worlds++ }
   if (key === 'kFugaG') s.stats.fuga++
+  if (SHADOW_KEYS.has(key)) onShadowStart(f, s, key)
   cue(f, key)
   return true
 }
@@ -189,12 +194,13 @@ function shrine(f, s) {
 export function tickSks(f, opp, raw, W) {
   if (!isSks(f)) { if (f?._sks) clearSks(f); return }
   const s = sksState(f); _W = W
+  f._sksSpeed = SPEED * (s.ts?.dom ? TS.dom.speed : 1)   // physics.js: walk / run / air / dash ×1.5 (MSV1-SUKUNA phase 5 hook); ×1.25 more in his Chimera Shadow Garden
   s.tick++
   readEdges(f, s, raw || {})
   presentTick(f, s, opp, W)
   for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 60) s.fx.splice(i, 1)
   domainTick(f, s)
-  if (f.health <= 0) { s.cuts.length = 0; s.arrows.length = 0; s.world = null; s.amp = 0; f._sksAmp = 0; return }
+  if (f.health <= 0) { s.cuts.length = 0; s.arrows.length = 0; s.world = null; s.amp = 0; f._sksAmp = 0; shadowsTick(f, s, W, opp); return }
   if (f.hitstop > 0) return
   s.clock++
   if (grounded(f)) s.floor = Math.round(feet(f))
@@ -206,14 +212,17 @@ export function tickSks(f, opp, raw, W) {
   if (a && (f.hitstun > 0 || f.isGrabbed)) {
     const k = a.sks.key
     if (k === 'kFugaG') { s.stats.fugaCancelled++; cue(f, 'fugaBroken') }
+    if (SHADOW_KEYS.has(k) && !a.sks.released) { tsState(s).stats.cancelled++; cue(f, 'tsCancelled') }   // hit during the hand sign: no shikigami
     if (k === 'kWorld' && elapsed(a) < WORLD.signAt) { if (!f.infiniteEnergy) { f.energy = Math.min(f.maxEnergy || 210, (f.energy || 0) + COST.world / 2); s.stats.refunded += COST.world / 2 } s.stats.worldCancelled++; s.world = null; cue(f, 'worldBroken') }
     endSksAttack(f)
   }
+  mobilityTick(f, s, raw || {}, opp, W)
   cutsTick(f, s, W)
   arrowsTick(f, s, W)
   burnTick(f, s, W)
   fieldTick(f, s, W)
   worldTick(f, s, W, opp)
+  shadowsTick(f, s, W, opp)
   const A = live(f)
   if (!A || f.hitstun > 0 || f.isGrabbed) return
   moveTick(f, s, A, W, opp, raw || {})
@@ -367,6 +376,11 @@ function moveTick(f, s, A, W, opp, raw) {
   else if (g && !md.air && !md.launcher) f.vx = 0
   const front = ctrX(f) + m.dir * (f.w / 2)
   const foes = foesOf(f, W, opp)
+  if (SHADOW_KEYS.has(m.key)) {   // TEN SHADOWS: the shikigami appears on the hand sign's release frame
+    if (t >= md.startup && !m.released) { m.released = true; releaseShadow(f, s, m.key, m.dir, W, opp) }
+    if (md.airOnly && g && t > 2) endSksAttack(f, 3)
+    return
+  }
   switch (m.key) {
     case 'kAir': if (g && t > 2) endSksAttack(f, 3); break
     case 'kDismantle': case 'kDisUp': case 'kDisAir': {
@@ -457,7 +471,7 @@ const PACE = { dummy: Infinity, easy: 140, normal: 80, adaptive: 70, hard: 50, i
 export function markSksCpu(f, difficulty) { if (!isSks(f)) return; const s = sksState(f); s.cpu = { ...(s.cpu || {}), seen: s.clock, diff: difficulty || 'normal' } }
 function cpuTech(f, s, opp, W) {
   const c = s.cpu, pace = PACE[c.diff] ?? 80
-  if (!isFinite(pace) || f.attacking || f.hitstun > 0 || f.blockstun > 0 || !grounded(f)) return
+  if (!isFinite(pace) || f.attacking || f.hitstun > 0 || f.blockstun > 0 || s.mv || !grounded(f)) return
   if (c.nextAt == null) c.nextAt = s.clock + pace
   if (s.clock < c.nextAt) return
   const foe = foesOf(f, W, opp)[0]; if (!foe || foe.domainUntouchable) return
@@ -465,20 +479,79 @@ function cpuTech(f, s, opp, W) {
   const sawInf = (s.sawInf >= 0 && s.clock - s.sawInf < 240) || (f._gsSawInfinity != null && (foe._gs?.clock ?? 0) - f._gsSawInfinity < 240)
   const hazard = foesOf(f, W, opp).some(o => (o._ninja?.traps || []).some(t => Math.abs(t.x - (ctrX(f) + dir * 110)) < 110)) ||
     (W.patches?.() || []).some(({ owner, patch }) => owner !== f && Math.abs(patch.x + patch.width / 2 - (ctrX(f) + dir * 110)) < 130)
+  const roll = (s.clock * 7 + (c.n = (c.n || 0) + 1) * 13) % 10   // Gojo Shinjuku's deterministic CPU roll
+  const shot = (W.projectileList?.() || []).some(p => p.owner === foe && Math.abs(p.x - ctrX(f)) < 180 && Math.abs(p.y - ctrY(f)) < 120)
   let key = null
+  if (shot && !(s.cd.step > 0) && startStep(f, s, -dir, W)) { c.nextAt = s.clock + pace; return }      // = Gojo's CPU blink away from a shot
+  if (dist > 320 && roll < 4 && !(s.cd.rush > 0) && startRush(f, s, foe, W)) { c.nextAt = s.clock + pace; return }   // = Gojo's CPU teleport in
   if (!s.dom.mine && !(f.ultimateCooldown > 0) && e >= (f.maxEnergy || 210) && dist < 600) key = 'kShrine'
   else if (s.empUntil > s.clock && e >= COST.fuga) key = 'kFugaE'
   else if (sawInf && foe.rosterKey === 'gojo_shinjuku' && s.amp === 0 && s.cd.amp === 0 && e >= COST.amp) key = 'kAmp'
   else if (s.amp > 0) key = null
   else if (hazard && e >= COST.web) key = 'kWeb'
+  else if (roll === 7 && dist > 160 && dist < 420 && !shadowGate(f, s, 'kDogs')) key = 'kDogs'                // Ten Shadows: the dogs at mid range
+  else if (roll === 3 && dist < 300 && !shadowGate(f, s, 'kNue')) key = 'kNue'                                 // … Nue's stun up close
   else if (dist > 300 && e >= COST.dismantle) key = 'kDismantle'
   else if (dist < 95 && e >= COST.cleave) key = 'kCleave'
   if (key) { f.facing = dir; startSksMove(f, key, W, { dir }) }
   c.nextAt = s.clock + pace
 }
 
+// ── MOBILITY: double-tap ←← / →→ on the sim clock (keyboard, pad, replay and LAN all feed raw controls) ──
+// toward the nearest foe = a blur dash that lands beside them (Gojo's teleport reach + cooldown); away = Gojo's long blink
+// (0.40 screen, invulnerable travel). Same window, same guards as gojoShinjukuState.js mobilityTick.
+function mobilityTick(f, s, raw, opp, W) {
+  if (s.cd.rush > 0) s.cd.rush--
+  if (s.cd.step > 0) s.cd.step--
+  const m = s.mv
+  if (m) {
+    m.t++
+    const P = MOBILITY[m.kind]
+    if (f.hitstun > 0 || f.isGrabbed) { s.mv = null; return }
+    if (m.t > P.startup && m.t <= P.startup + P.travel) {
+      const k = (m.t - P.startup) / P.travel
+      f.x = Math.round(m.x0 + (m.x1 - m.x0) * k); f.vx = 0; f.vy = 0; f.dashTimer = 0
+      if (m.kind === 'step') f.invulnTimer = Math.max(f.invulnTimer || 0, 2)   // the engine ticks it down before hits resolve
+      f._spriteCastMove = 'dash'; f._spriteCastTimer = Math.max(f._spriteCastTimer || 0, 4)
+      pushFx(s, 'ghost', f.x, f.y, { dir: m.dir })
+      if (m.t === P.startup + P.travel && m.face) f.facing = m.face
+    }
+    if (m.t >= P.startup + P.travel + P.recovery) s.mv = null
+    return
+  }
+  const L = !!raw.left, R = !!raw.right, dir = L === R ? 0 : (L ? -1 : 1)
+  if (raw.down || raw.up) { s.dt = null; return }                       // ↓← (Dismantle) / ↑ motions are not double-taps
+  const edge = dir !== 0 && (dir === -1 ? s.edges.left : s.edges.right)?.tick === s.tick
+  if (dir === 0 && s.dt) s.dt.released = true
+  if (!edge) return
+  if (!(s.dt && s.dt.dir === dir && s.dt.released && s.tick - s.dt.at <= MOBILITY.window)) { s.dt = { dir, at: s.tick, released: false }; return }
+  s.dt = null
+  if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.isBlocking || raw.block) return
+  if (live(f) || (f.attackCooldown || 0) > 0) return
+  const foe = foesOf(f, W, opp).sort((a, c) => Math.abs(ctrX(a) - ctrX(f)) - Math.abs(ctrX(c) - ctrX(f)))[0]
+  const toward = foe ? Math.sign(ctrX(foe) - ctrX(f)) === dir : false
+  if (toward) { if (!(s.cd.rush > 0)) startRush(f, s, foe, W); return }
+  if (!(s.cd.step > 0)) startStep(f, s, dir, W)
+}
+function startRush(f, s, foe, W) {
+  const x0 = Math.round(f.x)
+  let x1 = f.x < foe.x ? foe.x - f.w - MOBILITY.gap : foe.x + foe.w + MOBILITY.gap
+  x1 = Math.max(0, Math.min(sw(W) - f.w, Math.round(x1)))
+  if (Math.abs(x1 - x0) < 8) return false
+  s.mv = { kind: 'rush', t: 0, dir: Math.sign(x1 - x0), x0, x1, face: ctrX(foe) >= x1 + (f.w || 48) / 2 ? 1 : -1 }   // plain numbers (snapshot / replay / LAN)
+  s.cd.rush = MOBILITY.rush.cooldown; f.attackCooldown = Math.max(f.attackCooldown || 0, MOBILITY.rush.lock)
+  s.stats.rushes++; cue(f, 'rush'); return true
+}
+function startStep(f, s, dir, W) {
+  const x0 = Math.round(f.x), x1 = Math.max(0, Math.min(sw(W) - f.w, Math.round(f.x + dir * MOBILITY.step.dist * SCREEN)))
+  if (Math.abs(x1 - x0) < 8) return false
+  s.mv = { kind: 'step', t: 0, dir, x0, x1, face: 0 }
+  s.cd.step = MOBILITY.step.cooldown; s.stats.steps++; cue(f, 'step'); return true
+}
+
 export function sksLockedForMovement(f) {
   if (!isSks(f)) return false
+  if (f._sks?.mv) { f._dashTap = false; return true }   // his own blur dash / back-step owns the movement
   const a = f.attacking ? f.currentAttack : null
   if (a?.sks && !(SKS_MOVES[a.sks.key]?.launcher && a.hasHit)) { f._dashTap = false; return true }
   return false

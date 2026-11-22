@@ -6,7 +6,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { serve } from './ben10_test_utils.mjs'
 const OUT = (process.argv[2] && !process.argv[2].startsWith('--')) ? process.argv[2] : 'docs/msv1/sukuna/screenshots'; fs.mkdirSync(OUT, { recursive: true })
-const SKINS = process.argv.includes('--skins')
+const SKINS = process.argv.includes('--skins'), SHADOWS = process.argv.includes('--shadows')   // --shadows: the Ten Shadows add-on only
 const server = await serve(), browser = await chromium.launch({ headless: true })
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errs = []; page.on('pageerror', e => errs.push(e.message))
@@ -14,7 +14,9 @@ await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const E = (fn, a) => page.evaluate(fn, a)
 const step = n => E(n => __harness.luffyTest.step(n), n)
 const shots = []
-async function shot(name) { await new Promise(r => setTimeout(r, 350)); await step(0); await page.screenshot({ path: path.join(OUT, `SUKUNA_${name}.png`) }); shots.push(name) }
+async function shot(name) { await new Promise(r => setTimeout(r, 350)); await step(0)
+  await E(() => { for (const w of ['p1', 'p2']) { const f = __harness.sukunaShinjukuTest.raw(w); delete f._impactFlash; f.colorFlash = 0 } })   // the 2-3 f hit flash ticks on rendered frames; rAF is off here, so it would freeze into the shot
+  await page.screenshot({ path: path.join(OUT, `SUKUNA_${name}.png`) }); shots.push(name) }
 async function boot(p1 = 'sukuna_shinjuku', p2 = 'sukuna', s1 = 'default', s2 = 'default') {
   await page.goto(server.base + `/index.html?harness=1&p1=${p1}&p2=${p2}&seed=50223`)
   await page.waitForFunction(() => window.__harness?.sukunaShinjukuTest, null, { timeout: 30000 })
@@ -33,7 +35,19 @@ const move = (k, o = {}) => E(([k, o]) => __harness.sukunaShinjukuTest.move(k, '
 const until = async (fn, max = 200) => { for (let i = 0; i < max; i++) { if (await E(fn)) return i; await step(1) } return -1 }
 const st = () => '__harness.sukunaShinjukuTest.state()'
 try {
-  if (!SKINS) {
+  if (SHADOWS) {   // TEN SHADOWS: each shikigami (Megumi's summon strips) beside Sukuna's own body
+    await boot()
+    const ts = (k, gap, wait, name) => [k, gap, wait, name]
+    for (const [k, gap, wait, name] of [ts('kGama', 150, 24, 'ts_gama_tongue'), ts('kNue', 110, 32, 'ts_nue_stun'), ts('kDogs', 220, 22, 'ts_divine_dogs'),
+      ts('kOrochi', 160, 36, 'ts_orochi'), ts('kDatto', 300, 26, 'ts_datto_rabbits'), ts('kTotality', 160, 34, 'ts_totality_hit'), ts('kTotality', 900, 30, 'ts_totality_miss'),
+      ts('kElephant', 220, 62, 'ts_max_elephant'), ts('kMahoraga', 420, 36, 'ts_mahoraga_pillar'), ts('kMahoraga', 420, 56, 'ts_mahoraga_leap'), ts('kMahoraga', 420, 98, 'ts_mahoraga_slash'),
+      ts('kChimera', 300, 140, 'ts_chimera_shadow_garden')]) {
+      await place(gap); await move(k); await step(wait); await shot(name)
+    }
+    await place(160); await E(() => { __harness.sukunaShinjukuTest.raw('p1')._sks.ts = { on: true, sum: [], rab: null, waves: [], cd: {}, dom: null, domUsed: false, n: 0, stats: {} }; __harness.sukunaShinjukuTest.raw('p2').health = 0 })
+    await step(50); await shot('ts_win_nue')
+    await place(300, { airborne: true }); await E(() => { const a = __harness.sukunaShinjukuTest.raw('p1'); a.y -= 150; a.vy = -2; a.onGround = a.grounded = false }); await move('kNueAir'); await step(26); await shot('ts_nue_air')
+  } else if (!SKINS) {
     await boot('sukuna_shinjuku', 'sukuna'); await shot('intro_know_your_place')
     await place(520); await move('kDismantle'); await until(() => __harness.sukunaShinjukuTest.state().s.cuts.length > 0, 30); await step(8); await shot('dismantle')
     await place(300); await E(() => __harness.sukunaShinjukuTest.move('kFan')); await step(12); await shot('dismantle_fan')

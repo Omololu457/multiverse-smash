@@ -9,22 +9,38 @@ export const SUKUNA_SHINJUKU_KIT = { type: 'King of Curses / Slasher', energy: '
   passive: { name: 'Malevolent Shrine, then Fuga', effect: 'For 3 s after his Malevolent Shrine ends, Fuga fires instantly at maximum ' +
     'charge, +50% damage, with a bigger explosion.' },
   basics: [
-    { name: 'Punch string', input: 'Light → Light → Light', desc: '32 / 32 / 48 blunt. 5f.' },
-    { name: 'Heavy punch', input: 'Heavy', desc: '74 blunt. 10f.' },
-    { name: 'High kick (launcher)', input: 'Up-Attack (or Up + Heavy)', desc: '82 blunt. 12f. Launches.' },
-    { name: 'Rising knee (anti-air)', input: 'Down + Heavy', desc: '76. 7f. Tall upward box.' },
-    { name: 'Jump attack', input: 'Air Light / Heavy', desc: '62.' },
-    { name: 'Dash attack', input: 'Light / Heavy while dashing (or Down + Light)', desc: '58, hits low; ends in a low dive.' },
+    { name: 'Punch string', input: 'Light → Light → Light', desc: '38 / 38 / 58 blunt. 5f.' },
+    { name: 'Heavy punch', input: 'Heavy', desc: '89 blunt. 10f.' },
+    { name: 'High kick (launcher)', input: 'Up-Attack (or Up + Heavy)', desc: '98 blunt. 12f. Launches.' },
+    { name: 'Rising knee (anti-air)', input: 'Down + Heavy', desc: '91. 7f. Tall upward box.' },
+    { name: 'Jump attack', input: 'Air Light / Heavy', desc: '74.' },
+    { name: 'Dash attack', input: 'Light / Heavy while dashing (or Down + Light)', desc: '70, hits low; ends in a low dive.' },
     { name: 'Grab', input: 'Grab', desc: 'Standard throw.' },
+    { name: 'Blur dash', input: 'Double-tap toward the foe', desc: 'Crosses the gap and lands right beside the foe in 5 frames (Satoru Gojo\'s teleport reach). 0.8 s cooldown.' },
+    { name: 'Back-step', input: 'Double-tap away', desc: '0.40 screen away, untouchable while it travels (Gojo\'s blink). 0.5 s cooldown.' },
   ],
   specials: [
-    { name: 'Cleave', input: 'Special', cost: 15, desc: '60 + 6% of the foe\'s MAX health, slash. 9f, very short range. Ignores armor and super armor. −10 on whiff.' },
-    { name: 'Dismantle', input: '↓← + Special', cost: 12, desc: '55 slash, a fast thin cut across 65% of the screen. 11f. Destroys non-super projectiles it meets. Air: angled down. ↑ + Special: upward.' },
-    { name: 'Dismantle fan', input: 'Hold Special during Dismantle', cost: 24, desc: '3 × 30 in a fan.' },
-    { name: 'Spiderweb', input: '↓↓ + Special', cost: 18, desc: '70, low, hits OTG. Destroys ground traps, kunai traps, ice discs and ground patches in range.' },
-    { name: 'Fuga (Divine Flame: Open)', input: '→ + Special, hold to gather', cost: 35, desc: '3 levels at 0.5 / 1.0 / 1.5 s: 90 / 140 / 200 energy. Explodes, burns (3 / 20f, 2 s), leaves a FIRE patch (reacts with ice). Hit during the gather = cancelled, energy lost.' },
+    { name: 'Cleave', input: 'Special', cost: 15, desc: '72 + 7.2% of the foe\'s MAX health, slash. 9f, very short range. Ignores armor and super armor. −10 on whiff.' },
+    { name: 'Dismantle', input: '↓← + Special', cost: 12, desc: '66 slash, a fast thin cut across 65% of the screen. 11f. Destroys non-super projectiles it meets. Air: angled down. ↑ + Special: upward.' },
+    { name: 'Dismantle fan', input: 'Hold Special during Dismantle', cost: 24, desc: '3 × 36 in a fan.' },
+    { name: 'Spiderweb', input: '↓↓ + Special', cost: 18, desc: '84, low, hits OTG. Destroys ground traps, kunai traps, ice discs and ground patches in range.' },
+    { name: 'Fuga (Divine Flame: Open)', input: '→ + Special, hold to gather', cost: 35, desc: '3 levels at 0.5 / 1.0 / 1.5 s: 108 / 168 / 240 energy. Explodes, burns (3 / 20f, 2 s), leaves a FIRE patch (reacts with ice). Hit during the gather = cancelled, energy lost.' },
     { name: 'Domain Amplification', input: '↓↓ + Charge', cost: 20, desc: '3 s, 10 s cooldown. His hits ignore Infinity (every level) and techniques that nullify contact. No Cleave / Dismantle / Spiderweb / Fuga / World Slash while active.' },
-    { name: 'World-Cutting Slash', input: '↓↓ + Ultimate', cost: '2 bars (200)', desc: '"Dragon Scale." → "Recoil." → "Twin Meteors." → one screen-height cut at the foe. 380, unblockable; ignores Infinity, armor, barriers; invulnerable frames dodge. Hit during the chant = cancelled, 1 bar refunded.' },
+    { name: 'World-Cutting Slash', input: '↓↓ + Ultimate', cost: '2 bars (200)', desc: '"Dragon Scale." → "Recoil." → "Twin Meteors." → one screen-height cut at the foe. 456, unblockable; ignores Infinity, armor, barriers; invulnerable frames dodge. Hit during the chant = cancelled, 1 bar refunded.' },
+  ],
+  // TEN SHADOWS (add-on): Megumi's shikigami as separate summons — Sukuna keeps his own body. Tap Charge = stance on / off.
+  tenShadows: [
+    { name: 'Ten Shadows stance', input: 'Tap Charge', desc: 'On / off (HUD: TEN SHADOWS). Holding Charge still charges; ↓↓ + Charge is still Amplification. Neutral Light keeps his punches.' },
+    { name: 'Toad (Gama)', input: 'Stance: ↓ + Light', desc: 'Tongue lash along the floor, 36, drags the foe in to him. Air: Light → winged toad, 31.' },
+    { name: 'Nue', input: 'Stance: Heavy', desc: 'Lightning burst on the foe, 43, a long STUN. Air: Heavy → Nue air blast, 38.' },
+    { name: 'Divine Dogs', input: 'Stance: → + Heavy', desc: 'White then black dog rush: 2 × 36.' },
+    { name: 'Orochi', input: 'Stance: ↑ + Heavy (or Up-Attack)', desc: 'Rises out of the floor under the foe after a shadow warning, 50, LAUNCHES; then goes back down.' },
+    { name: 'Datto (rabbits)', input: 'Stance: ↓ + Heavy', desc: 'Six rabbits for 2 s, he turns see-through. Each nibbles (7) or eats one projectile.' },
+    { name: 'Divine Dog: Totality', input: 'Stance: Special', cost: '1 bar (100)', desc: 'A lunge. HIT: pins the foe and claws 29 / 29 / 48 (unblockable once pinned). MISS: runs through and sinks.' },
+    { name: 'Max Elephant', input: 'Stance: → + Special', cost: '1 bar (100)', desc: 'Rises behind him, water beam across the lane in front: up to 7 × 17.' },
+    { name: 'Mahoraga', input: 'Stance: Ultimate', cost: 'full meter', desc: 'Shadow pillar → rises → leaps at the foe (60 on landing) → 3 crescent waves (72 each) → walks back → sinks. Takes 4 hits and ADAPTS: a move that already hit him does nothing.' },
+    { name: 'Chimera Shadow Garden', input: 'Stance: ↓↓ + Ultimate', cost: 'full meter, once per round', desc: '9 s: the shadow floor spreads, his summons recharge twice as fast, he moves ×1.25, the foe is slowed ×0.6.' },
+    { name: 'Rules', input: '—', desc: 'Each shikigami rises from a shadow pool and sinks back into one. Any hit breaks it. A hit during the hand sign cancels the summon. One of each at a time; short cooldowns.' },
   ],
   ultimate: { name: 'Malevolent Shrine', input: 'Ultimate (full meter)', cost: 'full meter', desc: 'Domain Expansion: the shrine, the sure-hit auto-slashes, the untouchable foe, 15 s. Clashes with Satoru Gojo (Shinjuku)\'s Unlimited Void.' },
   combos: [
@@ -33,3 +49,5 @@ export const SUKUNA_SHINJUKU_KIT = { type: 'King of Curses / Slasher', energy: '
     { name: 'Through the Infinity', sequence: '↓↓ + Charge → Heavy → Up-Attack → (wait out the 3 s) → ↓← + hold Special', desc: 'amplified hits through Infinity, then the fan' },
     { name: 'Shrine, then Fuga', sequence: 'Ultimate → (as it ends) → + Special', desc: 'Empowered Fuga, instant max charge' },
   ] }
+// the Move List screen (ui.js) lists `specials`: the Ten Shadows entries follow his own techniques there
+SUKUNA_SHINJUKU_KIT.specials.push(...SUKUNA_SHINJUKU_KIT.tenShadows)

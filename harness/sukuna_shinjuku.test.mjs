@@ -5,6 +5,8 @@
 import fs from 'node:fs'
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
+import { POWER } from '../sukunaShinjukuData.js'   // ×1.15 damage buff (parity with Gojo Shinjuku, user request): brief numbers × POWER
+const pw = n => Math.round(n * POWER)
 const ONLY = (process.argv.find(a => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean)
 const want = k => !ONLY.length || ONLY.includes(k)
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
@@ -36,27 +38,133 @@ try {
   let s = await st()
   ck('P1 is sukuna_shinjuku with the old Sukuna\'s HP 1240 / meter 210', s.key === 'sukuna_shinjuku' && s.maxHp === 1240 && s.maxEnergy === 210, JSON.stringify([s.key, s.maxHp, s.maxEnergy]))
 
+  if (want('mobility')) {   // as fast as Satoru Gojo (Shinjuku): his teleport reach toward, his blink away (user request)
+    const R = report.mobility = {}
+    const raw = w => S('(() => { const f = H.raw(a); return { x: Math.round(f.x), w: f.w, facing: f.facing, inv: f.invulnTimer || 0, rush: f._sks?.stats.rushes, step: f._sks?.stats.steps, cd: { ...(f._sks?.cd || {}) } } })()', w)
+    await reset({ gap: 1100 }); await step(10)
+    const foe = await raw('p2'); let a0 = await raw()
+    await tap(['d'], 1); await step(2); await tap(['d'], 1); await step(12)
+    let a1 = await raw(); R.rush = { from: a0.x, to: a1.x, foe: foe.x }
+    ck('→→ toward the foe (1100 px away): blur dash lands beside them (Gojo teleport reach)', a1.rush === 1 && Math.abs(a1.x - (foe.x - a1.w - 8)) <= 2, JSON.stringify(R.rush))
+    ck('… cooldown = Gojo\'s teleport (48 f)', a1.cd.rush > 25 && a1.cd.rush <= 48, JSON.stringify(a1.cd))
+    await reset({ gap: 100 }); await step(10)   // close start: the whole 512 px fits inside the camera's max-separation clamp
+    a0 = await raw(); await tap(['a'], 1); await step(2); await tap(['a'], 1)
+    let invSeen = false, mv = null; for (let i = 0; i < 16; i++) { await step(1); const r = await raw(); if (r.inv > 0) invSeen = true; mv = mv || await S('(() => { const m = H.raw()._sks.mv; return m ? { x0: m.x0, x1: m.x1 } : null })()') }
+    a1 = await raw(); R.step = { from: mv?.x0, plannedTo: mv?.x1, to: a1.x, moved: mv ? mv.x0 - a1.x : null }
+    ck('←← away: back-step 0.40 screen (Gojo blink reach 512 px; lands within 12 px of it)', a1.step === 1 && mv && mv.x0 - mv.x1 === 512 && R.step.moved >= 500, JSON.stringify(R.step))
+    ck('… invulnerable while it travels', invSeen)
+    await reset({ gap: 300 }); await step(10)
+    await page.keyboard.down('s'); await step(1); await tap(['a'], 1); await step(2); await tap(['a'], 1); await step(10); await page.keyboard.up('s')
+    ck('↓ in the motion → not a double-tap (Dismantle / ↓↓ motions stay clean)', (await raw()).step === 0)
+  }
+
+  if (want('shadows')) {   // TEN SHADOWS add-on: Megumi's shikigami as separate helpers, Sukuna's own body
+    const R = report.shadows = {}
+    const T = (w = 'p1') => S('(() => { const f = H.raw(a), t = f._sks?.ts; return t ? JSON.parse(JSON.stringify({ on: t.on, sum: t.sum.map(z => ({ k: z.k, t: z.t, x: z.x, br: z.br || null })), rab: t.rab ? t.rab.alive.filter(Boolean).length : 0, cd: t.cd, dom: t.dom, domUsed: t.domUsed, stats: t.stats, rej: t.lastReject || null })) : null })()', w)
+    const foe = () => S('(() => { const o = H.raw("p2"); return { hp: o.health, x: Math.round(o.x), y: Math.round(o.y), vy: o.vy, hitstun: o.hitstun || 0, slow: o._benSlow ? o._benSlow.k : 0 } })()')
+    const me = () => S('(() => { const f = H.raw(); return { hp: f.health, energy: f.energy, x: Math.round(f.x), alpha: f._sksAlpha || 0, anim: f.currentAttack?.name || null, key: f.currentAttack?.sks?.key || null } })()')
+    const stance = async () => { await tap(['p'], 2); await step(2) }
+    const cleanSet = async (o = {}) => { await reset(o); await step(4); if (!(await T())?.on) await stance() }
+    // the stance toggle
+    await reset({ gap: 200 }); await step(4)
+    await stance(); let t = await T(); const hudOn = (await S('H.hud()')).tenShadows
+    await stance(); const t2 = await T()
+    ck('tap Charge → TEN SHADOWS stance on (HUD tag), tap again → off', t?.on === true && hudOn === true && t2?.on === false, JSON.stringify([t?.on, hudOn, t2?.on]))
+    await seq(['s', 's']); await tap(['p'], 2); await step(10)
+    ck('… ↓↓ + Charge is still Domain Amplification (no toggle)', (await st()).amp > 0 && !(await T()).on)
+    const summon = async (keys, wait, o = {}) => { await cleanSet(o); const f0 = await foe(), m0 = await me(); await hold(keys, 2); let k = null
+      let hs = 0; for (let i = 0; i < wait; i++) { await step(1); k = k || (await me()).key; hs = Math.max(hs, (await foe()).hitstun) }
+      return { f0, f1: await foe(), m0, m1: await me(), t: await T(), key: k, hs } }
+    // Weak + Down: Gama (ground tongue grab) — the foe is pulled in
+    let r = await summon(['s', 'j'], 40, { gap: 150 }); R.gama = r
+    ck('↓ + Light → Gama: tongue hits and DRAGS the foe in', r.key === 'kGama' && r.f1.hp < r.f0.hp && r.t.stats.pulls === 1 && r.f1.x < r.f0.x - 40, JSON.stringify({ key: r.key, hp: [r.f0.hp, r.f1.hp], x: [r.f0.x, r.f1.x], st: r.t.stats }))
+    ck('… Sukuna uses his OWN hand-sign body (handSign sheet), the toad is a separate object', r.m1.anim !== null || r.key === 'kGama')
+    // Strong: Nue — electric stun
+    r = await summon(['k'], 50, { gap: 110 }); R.nue = r
+    ck('Heavy → Nue: lightning burst, a long STUN (hitstun ≥ 40)', r.key === 'kNue' && r.f1.hp < r.f0.hp && r.t.stats.hits >= 1 && r.hs >= 40, JSON.stringify({ key: r.key, hp: [r.f0.hp, r.f1.hp], hs: r.hs, st: r.t.stats }))
+    // Strong + Fwd: dogs — two hits
+    r = await summon(['d', 'k'], 40, { gap: 200 }); R.dogs = r
+    ck('→ + Heavy → Divine Dogs: white then black, TWO hits', r.key === 'kDogs' && r.t.stats.hits + r.t.stats.blocked === 2 && r.f1.hp < r.f0.hp, JSON.stringify({ key: r.key, st: r.t.stats, sum: r.t.sum }))
+    // Strong + Up: Orochi — anti-air launcher
+    await cleanSet({ gap: 160 }); let f0 = await foe(); await hold(['w', 'k'], 2); let up = false, key = null
+    for (let i = 0; i < 40; i++) { await step(1); key = key || (await me()).key; const q = await foe(); if (q.vy < -5) up = true }
+    let f1 = await foe(); R.orochi = { key, f0, f1, up }
+    ck('↑ + Heavy → Orochi: grows out of the floor under them and LAUNCHES', key === 'kOrochi' && f1.hp < f0.hp && up, JSON.stringify(R.orochi))
+    // Strong + Down: Datto — rabbits, see-through user, each eats one projectile
+    await cleanSet({ gap: 400 }); await hold(['s', 'k'], 2); await step(12)
+    const d0 = await T(), m0 = await me()
+    await S('H.shoot({ speed: 10, damage: 40, lifetime: 200 })'); for (let i = 0; i < 50; i++) await step(1)
+    const d1 = await T(), m1 = await me(); R.datto = { d0: d0.rab, d1: d1.rab, alpha: m0.alpha, st: d1.stats, hp: [m0.hp, m1.hp] }
+    ck('↓ + Heavy → Datto: six rabbits, Sukuna semi-transparent', d0.rab === 6 && m0.alpha > 0 && m0.alpha < 1, JSON.stringify(R.datto))
+    ck('… a rabbit eats a projectile (he takes nothing)', d1.stats.projBlocked === 1 && m1.hp === m0.hp && d1.rab === 5, JSON.stringify(R.datto))
+    // Special: Divine Dog Totality (1 bar) — HIT branch
+    r = await summon(['l'], 70, { gap: 160 }); R.totality = r
+    ck('Special → Divine Dog: TOTALITY (1 bar): the HIT branch pins + claws', r.key === 'kTotality' && r.t.stats.konHits === 1 && r.m0.energy - r.m1.energy >= 100 - 30 && r.f0.hp - r.f1.hp > 100, JSON.stringify({ e: [r.m0.energy, r.m1.energy], hp: [r.f0.hp, r.f1.hp], st: r.t.stats }))
+    r = await summon(['l'], 60, { gap: 900 }); R.totalityMiss = { st: r.t.stats, sum: r.t.sum }
+    ck('… MISS branch: out of reach → it runs through and sinks (no hit)', r.key === 'kTotality' && r.t.stats.konHits === 0 && r.f1.hp === r.f0.hp, JSON.stringify(R.totalityMiss))
+    // Special 2: Max Elephant — multi-hit water beam
+    r = await summon(['d', 'l'], 90, { gap: 220 }); R.elephant = { key: r.key, st: r.t.stats, hp: [r.f0.hp, r.f1.hp] }
+    ck('→ + Special → Max Elephant (1 bar): multi-hit water beam (≥ 3 hits)', r.key === 'kElephant' && r.t.stats.hits + r.t.stats.blocked >= 3 && r.f1.hp < r.f0.hp, JSON.stringify(R.elephant))
+    // Super 1: Mahoraga
+    r = await summon(['u'], 220, { gap: 400 }); R.mahoraga = { key: r.key, e: [r.m0.energy, r.m1.energy], st: r.t.stats, hp: [r.f0.hp, r.f1.hp], sum: r.t.sum }
+    ck('Ultimate → MAHORAGA (full meter): rise, leap, land, crescent waves, sink', r.key === 'kMahoraga' && r.m1.energy < 60 && r.f1.hp < r.f0.hp && !r.t.sum.some(z => z.k === 'maho'), JSON.stringify(R.mahoraga))
+    // Super 2: Chimera Shadow Garden — once per round, foe slowed
+    await cleanSet({ gap: 400 }); await seq(['s', 's']); await tap(['u'], 2); await step(40)
+    let g1 = await T(), fs1 = await foe(), hud = await S('H.hud()')
+    ck('↓↓ + Ultimate → CHIMERA SHADOW GARDEN: active, the foe slowed', !!g1.dom && fs1.slow > 0 && fs1.slow < 1 && hud.garden > 0, JSON.stringify({ dom: g1.dom, slow: fs1.slow }))
+    await S('H.setEnergy(210)'); await step(30); await seq(['s', 's']); await tap(['u'], 2); await step(4)
+    ck('… once per round (a second cast is refused)', (await T()).stats.domains === 1, JSON.stringify((await T()).stats))
+    for (let i = 0; i < 560; i += 40) await step(40)
+    ck('… ends after 9 s', !(await T()).dom)
+    // air: Gama air / Nue air
+    await cleanSet({ gap: 120 }); await tap(['w'], 2); await step(6); await tap(['j'], 2); let ka = null; for (let i = 0; i < 10; i++) { await step(1); ka = ka || (await me()).key }
+    await runUntilIdle(80); await step(20)
+    await tap(['w'], 2); await step(6); await tap(['k'], 2); let kb = null; for (let i = 0; i < 10; i++) { await step(1); kb = kb || (await me()).key }
+    ck('in the air: Light → Gama (air), Heavy → Nue (air blast)', ka === 'kGamaAir' && kb === 'kNueAir', JSON.stringify([ka, kb]))
+    // rules: startup cancel, breakable, cooldown
+    await cleanSet({ gap: 300 }); await S('H.move("kNue")'); await step(4); await S('(() => { const f = H.raw(); f.hitstun = 20 })()'); await step(30)
+    let c = await T(); ck('a hit during the hand sign CANCELS the summon (no shikigami)', c.stats.cancelled === 1 && c.stats.summons === 0, JSON.stringify(c.stats))
+    await cleanSet({ gap: 600 }); await hold(['w', 'k'], 2); await step(26)
+    await S('H.shoot({ speed: 12, damage: 40, lifetime: 200 })'); for (let i = 0; i < 40; i++) await step(1)
+    c = await T(); R.break = c.stats
+    ck('a shikigami can be HIT: a projectile breaks Orochi', c.stats.broken >= 1, JSON.stringify(c.stats))
+    await cleanSet({ gap: 600 }); await tap(['k'], 2); await step(28); await tap(['k'], 2); await step(2)
+    c = await T(); ck('one Nue at a time; then a short cooldown', c.rej === 'out' || c.rej === 'cooldown', JSON.stringify({ rej: c.rej, cd: c.cd }))
+    await step(110); c = await T(); ck('… cooldown ticks down to 0', !(c.cd.nue > 0), JSON.stringify(c.cd))
+    // Mahoraga ADAPTS: the same projectile twice → the second does nothing (hp 4 → 3, adapted 1)
+    await cleanSet({ gap: 700 }); await S('H.move("kMahoraga")'); await step(34)
+    const mh = () => S('(() => { const z = H.raw()._sks.ts.sum.find(z => z.k === "maho"); return z ? { hp: z.hp, adapt: z.adapt.length } : null })()')
+    await S('H.shoot({ speed: 14, damage: 10, lifetime: 200 })'); for (let i = 0; i < 24; i++) await step(1)
+    const a1 = await mh(); await step(20)
+    await S('H.shoot({ speed: 14, damage: 10, lifetime: 200 })'); for (let i = 0; i < 24; i++) await step(1)
+    const a2 = await mh(), ts2 = await T(); R.adapt = { a1, a2, st: ts2.stats }
+    ck('Mahoraga takes hits (4) and ADAPTS: the same projectile twice → the second does nothing', a1?.hp === 3 && a2?.hp === 3 && ts2.stats.adapted === 1, JSON.stringify(R.adapt))
+    // HARD RULE: Megumi's body is never used — only his shikigami strips (summons/*) and the Megumi-free domain floor
+    const src = fs.readFileSync('sukunaShinjukuShadowsFx.js', 'utf8')
+    ck('HARD RULE: no Megumi body sprite is referenced (only MEGUMI_SUMMON_ANIM + the cut floor)', !/MEGUMI_ANIM\b/.test(src.replace(/MEGUMI_SUMMON_ANIM/g, '')) && !/megumi_fushiguro\/(?!summons)/.test(src) && /ten_shadows\/domainFloor\.png/.test(src))
+  }
+
   if (want('moves')) {
     const R = report.moves = {}
     // A string 32 / 32 / 48
     await reset(); const hp0 = (await st('p2')).hp
     await tap(['j']); await step(9); s = await st(); const d1 = hp0 - (await st('p2')).hp
-    R.A1 = d1; ck('Light → A1 hits (32 ±scaling)', d1 >= 25 && d1 <= 34, d1)
+    R.A1 = d1; ck(`Light → A1 hits (32 ×${POWER} ±scaling)`, d1 >= pw(25) && d1 <= pw(34), d1)
     await tap(['j']); await step(10); const d2 = hp0 - (await st('p2')).hp - d1
     await tap(['j']); await step(14); const d3 = hp0 - (await st('p2')).hp - d1 - d2
     R.A = [d1, d2, d3]; ck('A string chains 3 hits on contact (32 / 32 / 48 before combo scaling)', d2 > 0 && d3 > 0 && d3 > d2, JSON.stringify(R.A))
     // startups via the timeline
     for (const [k, su] of [['kA1', 5], ['kB', 10], ['kC', 12]]) ck(`${k} startup ${su}f (authored)`, D.moves[k].startup === su, D.moves[k].startup)
     await reset(); await runUntilIdle(); const h1 = (await st('p2')).hp; await tap(['k']); await step(24); R.B = h1 - (await st('p2')).hp
-    ck('Heavy (B) 74 blunt', R.B >= 70 && R.B <= 76, R.B)
+    ck(`Heavy (B) 74 ×${POWER} blunt`, R.B >= pw(70) && R.B <= pw(76), R.B)
     await reset(); const h2 = (await st('p2')).hp; await tap(['i']); await step(20); s = await st('p2'); R.C = h2 - s.hp
-    ck('Up-Attack (C) 82 launcher: damage + foe airborne', R.C >= 78 && R.C <= 84 && (!s.grounded || s.vy < 0), JSON.stringify([R.C, s.grounded, s.vy]))
+    ck(`Up-Attack (C) 82 ×${POWER} launcher: damage + foe airborne`, R.C >= pw(78) && R.C <= pw(84) && (!s.grounded || s.vy < 0), JSON.stringify([R.C, s.grounded, s.vy]))
     await reset(); const h3 = (await st('p2')).hp; await hold(['s', 'k'], 2); await step(20); R.knee = h3 - (await st('p2')).hp
-    ck('Down + Heavy → Rising knee 76', R.knee >= 72 && R.knee <= 78, R.knee)
+    ck(`Down + Heavy → Rising knee 76 ×${POWER}`, R.knee >= pw(72) && R.knee <= pw(78), R.knee)
     await reset(); const h4 = (await st('p2')).hp; await hold(['s', 'j'], 2); await step(24); s = await st(); R.dashAtk = h4 - (await st('p2')).hp
-    ck('Down + Light → dash attack 58 (low)', R.dashAtk >= 55 && R.dashAtk <= 60 && D.moves.kDashAtk.hitLevel === 'low', R.dashAtk)
+    ck(`Down + Light → dash attack 58 ×${POWER} (low)`, R.dashAtk >= pw(55) && R.dashAtk <= pw(60) && D.moves.kDashAtk.hitLevel === 'low', R.dashAtk)
     await reset({ gap: 70 }); await tap(['w'], 2); for (let i = 0; i < 120; i++) { await step(1); const q = await st(); if (q.vy > 0 && q.y > 250) break } const h5 = (await st('p2')).hp; await tap(['j']); await step(20); R.air = h5 - (await st('p2')).hp
-    ck('Jump attack 62', R.air >= 58 && R.air <= 64, R.air)
+    ck(`Jump attack 62 ×${POWER}`, R.air >= pw(58) && R.air <= pw(64), R.air)
     ck('every move tagged with a damageType', Object.values(D.moves).every(m => !!m.damageType), Object.entries(D.moves).filter(([, m]) => !m.damageType).map(([k]) => k).join(','))
   }
 
@@ -68,7 +176,7 @@ try {
     s = await st(); R.disKey = s.attack?.sks?.key; ck('↓← + Special → Dismantle (the old Sukuna\'s input)', s.attack?.sks?.key === 'kDismantle', JSON.stringify(s.attack?.sks))
     ck('Dismantle costs 12', s.s.stats.spent === 12, s.s.stats.spent)
     for (let i = 0; i < 60; i++) await step(1)
-    R.dis = hp0 - (await st('p2')).hp; ck('Dismantle hits at 600px (65 % screen) for 55', R.dis >= 52 && R.dis <= 56, R.dis)
+    R.dis = hp0 - (await st('p2')).hp; ck(`Dismantle hits at 600px (65 % screen) for 55 ×${POWER}`, R.dis >= pw(52) && R.dis <= pw(56), R.dis)
     // out of range
     await reset({ gap: 900 }); hp0 = (await st('p2')).hp; await S("H.move('kDismantle')"); for (let i = 0; i < 70; i++) await step(1)
     ck('Dismantle does not reach 900px (65 % of 1280 = 832)', (await st('p2')).hp === hp0)
@@ -93,8 +201,8 @@ try {
     await reset({ gap: 70 }); e0 = (await st()).energy; hp0 = (await st('p2')).hp; const mh = (await st('p2')).maxHp
     await tap(['l'], 2); s = await st(); ck('neutral Special → Cleave (the old Sukuna\'s input)', s.attack?.sks?.key === 'kCleave', s.attack?.sks?.key)
     for (let i = 0; i < 20; i++) await step(1)
-    R.cleave = hp0 - (await st('p2')).hp; R.cleaveWant = Math.round(60 + 0.06 * mh)
-    ck(`Cleave = 60 + 6 % max HP (${R.cleaveWant} vs ${mh} HP)`, Math.abs(R.cleave - R.cleaveWant) <= 2, R.cleave)
+    R.cleave = hp0 - (await st('p2')).hp; R.cleaveWant = Math.round((60 + 0.06 * mh) * POWER)
+    ck(`Cleave = (60 + 6 % max HP) ×${POWER} (${R.cleaveWant} vs ${mh} HP)`, Math.abs(R.cleave - R.cleaveWant) <= 2, R.cleave)
     ck('Cleave costs 15', (await st()).s.stats.spent === 15, (await st()).s.stats.spent)
     // Cleave through armor
     await reset({ gap: 70 }); await page.evaluate(() => { const b = __harness.sukunaShinjukuTest.raw('p2'); b._bossArmor = true }); hp0 = (await st('p2')).hp
@@ -109,7 +217,7 @@ try {
     await seq(['s', 's']); await tap(['s', 'l'], 2); s = await st(); R.webKey = s.attack?.sks?.key
     for (let i = 0; i < 30; i++) await step(1)
     R.web = hp0 - (await st('p2')).hp
-    ck('↓↓ + Special → Spiderweb, 70', R.webKey === 'kWeb' && R.web >= 66 && R.web <= 72, JSON.stringify([R.webKey, R.web]))
+    ck(`↓↓ + Special → Spiderweb, 70 ×${POWER}`, R.webKey === 'kWeb' && R.web >= pw(66) && R.web <= pw(72), JSON.stringify([R.webKey, R.web]))
     ck('Spiderweb costs 18', (await st()).s.stats.spent === 18, (await st()).s.stats.spent)
     // low: a standing guard does not block it, a crouching one does
     await reset({ gap: 140, dummy: 'block' }); hp0 = (await st('p2')).hp; await S("H.move('kWeb')"); for (let i = 0; i < 30; i++) await step(1)
@@ -124,7 +232,7 @@ try {
       for (let i = 0; i < 60; i++) await step(1)
       s = await st(); const d = hp0 - (await st('p2')).hp
       R['fuga' + lv] = { d, lv: s.s.stats.fugaLv, cost: e0 - s.energy }
-      ck(`→ + Special held ${hold_}f → Fuga level ${lv} (${raw} + burn)`, s.s.stats.fugaLv === lv && d >= raw && d <= raw + 12, JSON.stringify(R['fuga' + lv]))
+      ck(`→ + Special held ${hold_}f → Fuga level ${lv} (${raw} ×${POWER} + burn)`, s.s.stats.fugaLv === lv && d >= pw(raw) && d <= pw(raw) + 12, JSON.stringify(R['fuga' + lv]))
     }
     await reset({ gap: 260 }); await S("H.move('kFugaF', 'p1', { lv: 1 })"); for (let i = 0; i < 30; i++) await step(1)
     s = await st('p2'); ck('Fuga burns (status mark on the foe)', s.burn > 0, s.burn)
@@ -145,7 +253,7 @@ try {
     await seq(['s', 's']); await tap(['s', 'u'], 2); s = await st(); R.worldKey = s.attack?.sks?.key
     ck('↓↓ + Ultimate → World-Cutting Slash (2 bars = 200)', R.worldKey === 'kWorld' && s.s.stats.spent === 200, JSON.stringify([R.worldKey, s.s.stats.spent]))
     const caps = []; for (let i = 0; i < 100; i++) { await step(1); const c = (await st()).cues; for (const x of c) if (x === 'chantLine') caps.push(i) }
-    R.world = hp0 - (await st('p2')).hp; ck('World Slash lands for 380', R.world >= 375 && R.world <= 385, R.world)
+    R.world = hp0 - (await st('p2')).hp; ck(`World Slash lands for 380 ×${POWER}`, R.world >= pw(375) && R.world <= pw(385), R.world)
     await reset({ gap: 300, dummy: 'block' }); hp0 = (await st('p2')).hp; await S("H.move('kWorld')"); for (let i = 0; i < 100; i++) await step(1)
     ck('World Slash is unblockable', hp0 - (await st('p2')).hp >= 375, hp0 - (await st('p2')).hp)
     await reset({ gap: 300 }); hp0 = (await st('p2')).hp; await S("H.move('kWorld')"); for (let i = 0; i < 86; i++) await step(1); await page.evaluate(() => { __harness.sukunaShinjukuTest.raw('p2').invulnTimer = 20 }); for (let i = 0; i < 14; i++) await step(1)

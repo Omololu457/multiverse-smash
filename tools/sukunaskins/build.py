@@ -24,6 +24,7 @@ GLITTER skins get 3 pre-baked glint phases: <tag>/, <tag>/p1/, <tag>/p2/ (the ph
     python3 tools/sukunaskins/build.py                    all skins in the table
     python3 tools/sukunaskins/build.py tag1 tag2 ...      just those
     python3 tools/sukunaskins/build.py --batch N          skins 5N-4 … 5N (1-based batches of 5)
+    python3 tools/sukunaskins/build.py --fx               technique FX only, every built skin
     python3 tools/sukunaskins/build.py --verify           re-check dims / alpha / protected pixels of what is on disk
     python3 tools/sukunaskins/build.py --sheets           contact sheets → docs/msv1/sukuna/skins/
 """
@@ -37,7 +38,11 @@ OUT = os.path.join(SRC, 'skins')
 DOCS = os.path.join(ROOT, 'docs/msv1/sukuna/skins')
 TABLE_JS = os.path.join(ROOT, 'sukunaShinjukuSkinTable.js')
 SCALE = 2
-FX_KEYS = ['dismantleCut', 'fugaArrow', 'cleaveStreak', 'worldBlades']
+FX_KEYS = ['dismantleCut', 'fugaArrow', 'cleaveStreak', 'worldBlades',
+           # animated strips (tools/sukunashinjuku/fx_import.py): slashes + fire
+           'slashArc', 'slashCres', 'slashH', 'fugaPillar', 'fugaFlame', 'fugaEmbers', 'fireBlaze']
+SLASH_FX = {'slashArc', 'slashCres', 'slashH'}
+FIRE_FX = {'fugaPillar', 'fugaFlame', 'fugaEmbers', 'fireBlaze'}
 
 
 def load_anim():
@@ -120,7 +125,7 @@ def classify(rgb, alpha, fw, head_only=False):
 SKINS = [
   dict(tag='alienx_half', name='Alien X — Half a Heaven', classification='Alien X Collection', crossover='Ben 10',
        robe=['#000000', '#05060c', '#0b0d1a'], trousers=['#7d7f86', '#d9dbe0', '#ffffff'], sash=['#0b0d1a', '#1d2140'], hair=['#e9ecf2', '#ffffff'],
-       shoes=['#0b0d1a', '#1d2140'], pattern='stars',
+       shoes=['#0b0d1a', '#1d2140'], pattern='stars', side_split=True, skin=['#000000', '#05060c', '#0b0d1a'],
        pal=dict(cutTrail='#ffffff', cleaveEdge='#ffffff', cleaveAccent='#6ee7ff', fugaCore='#ffffff', fugaRim='#3fd0ff', web='#0b0d1a', amp='#ffffff')),
   dict(tag='alienx_deadsun', name='Alien X — The Dead Sun', classification='Alien X Collection', crossover='Ben 10',
        robe=['#000000', '#07040a', '#140812'], trousers=['#000000', '#07040a', '#140812'], sash=['#2a0b06', '#5a1a0c'], hair=['#1a0a08', '#3a1008'],
@@ -208,7 +213,6 @@ def pattern(sk, name, base, reg_id, x, y, fi, phase, t):
     """deterministic texture on cloth (robe/trousers, sometimes sash). base: float rgb. returns rgb"""
     if name is None or reg_id not in (4, 5): return base
     if name in ('stars', 'deadstars'):
-        if sk.get('split') and reg_id == 5: return base        # Half a Heaven: the void is the robe; the trousers stay white
         v = h3(x, y, fi // 4, 11)
         if v > 0.965: return hx('#ffffff') if name == 'stars' else hx('#ff7a2a') * (0.6 + 0.4 * h3(x, y, 3, 5))
         if v > 0.94 and name == 'stars': return hx('#6ee7ff') * 0.7
@@ -267,35 +271,97 @@ def pattern(sk, name, base, reg_id, x, y, fi, phase, t):
     return base
 
 
+def seam_cols(alpha, fw):
+    """per frame: the seam x = the middle of his BODY — for each row from the head to the waist (top 10-60 % of the
+    figure) take the midpoint of that row's leftmost / rightmost pixel, then the median over rows, so one outstretched
+    arm or kick never drags the line off his centre"""
+    out = []
+    for i in range(max(1, alpha.shape[1] // fw)):
+        a = alpha[:, i * fw:(i + 1) * fw] > 0
+        rows = np.nonzero(a.any(1))[0]
+        if not rows.size: out.append(fw / 2); continue
+        h = rows[-1] - rows[0]
+        mids = []
+        for y in range(rows[0] + int(h * 0.10), rows[0] + max(5, int(h * 0.60))):
+            xs = np.nonzero(a[y])[0]
+            if xs.size: mids.append((xs[0] + xs[-1]) / 2)
+        out.append(float(np.median(mids)) if mids else fw / 2)
+    return out
+
+
+def alien_side(alpha, fw):
+    """bool map: True on the Alien X side (left of each frame's seam), False on Sukuna's side"""
+    side = np.zeros(alpha.shape, bool); seams = seam_cols(alpha, fw)
+    for i, sx in enumerate(seams):
+        side[:, i * fw:i * fw + int(round(sx))] = True
+    return side & (alpha > 0), seams
+
+
+def alien_half(arr, fw, reg, L):
+    """Alien X — Half a Heaven: split straight down his middle. The Alien X side: every pixel (skin, face, clothes,
+    markings) becomes the void with its starfield, shaded by the original light so the form still reads; hair → the
+    white crown; a thin glowing seam. Only his black outline is kept. The other side is Sukuna, byte-identical."""
+    out = arr.copy(); a = arr[..., 3]
+    side, seams = alien_side(a, fw)
+    pad = np.pad(a > 0, 1)
+    edge = ~(pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:])   # touches transparency
+    outline = edge & (L < 70)
+    ys, xs = np.nonzero(side & ~outline)
+    for y, x in zip(ys, xs):
+        fi, lx = x // fw, x % fw
+        t = float(L[y, x]) / 255.0
+        if reg[y, x] == 1: c = ramp(['#9aa0b4', '#e9ecf2', '#ffffff'], min(1.0, t * 1.6))              # the white crown
+        else:
+            c = ramp(['#000000', '#04050c', '#0c1028', '#1a2150'], t ** 1.2)                              # void, shaded by the old light
+            v = h3(lx, y, fi // 4, 11)
+            if v > 0.955: c = hx('#ffffff')
+            elif v > 0.925: c = hx('#6ee7ff') * (0.65 + 0.35 * h3(lx, y, 2, 7))
+            elif v > 0.905: c = hx('#b28cff') * 0.55
+        if seams[fi] - 1 <= lx < seams[fi]: c = c * 0.65 + hx('#7fdfff') * 0.35                             # a thin, soft seam
+        out[y, x, :3] = np.clip(np.round(c), 0, 255).astype(np.uint8)
+    return out
+
+
+
 def recolor(arr, fw, sk, phase=0, head_only=False):
     rgb, alpha = arr[..., :3], arr[..., 3]
     reg, L = classify(rgb, alpha, fw, head_only)
     out = arr.copy()
     ys, xs = np.nonzero(reg)
+    mid = None
+    if sk.get('side_split'):   # Half a Heaven: one whole side of him is Alien X — see alien_half()
+        return alien_half(arr, fw, reg, L), reg
     for y, x in zip(ys, xs):
         rid = int(reg[y, x]); key = REG_KEYS[rid]
         stops = sk.get(key)
         if stops is None: continue
         lo, hi = REG_LUM[rid]
         t = (int(L[y, x]) - lo) / (hi - lo)
-        if sk.get('split') and rid == 4 and (x % fw) >= fw // 2: c = ramp(['#8a8c94', '#e4e6ea', '#ffffff'], t)   # Half a Heaven: the other half of the robe is heaven-white
-        else: c = ramp(stops, t)
+        c = ramp(stops, t)
         c = pattern(sk, sk.get('pattern'), c, rid, x % fw, y, x // fw, phase, t)
         out[y, x, :3] = np.clip(np.round(c), 0, 255).astype(np.uint8)
     return out, reg
 
 
+def _dark(h, k):
+    c = hx(h) * k
+    return '#%02x%02x%02x' % tuple(int(round(v)) for v in np.clip(c, 0, 255))
+
+
 def recolor_fx(arr, pal, key):
-    """technique FX: map the sprite's luminance onto the skin's technique colours (alpha untouched)"""
+    """technique FX: map the sprite's luminance onto the skin's technique colours (alpha untouched; vectorised)"""
     rgb, a = arr[..., :3].astype(np.float32), arr[..., 3]
     L = (rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114) / 255.0
-    if key == 'fugaArrow': stops = [pal['fugaRim'], pal['fugaCore']]
+    if key in ('fugaArrow',): stops = [pal['fugaRim'], pal['fugaCore']]
+    elif key in FIRE_FX: stops = [_dark(pal['fugaRim'], 0.18), pal['fugaRim'], pal['fugaCore'], '#ffffff']   # keeps the sheet's dark rims
     elif key == 'cleaveStreak': stops = [pal['cleaveAccent'], pal['cleaveEdge']]
+    elif key in SLASH_FX: stops = [_dark(pal['cleaveAccent'], 0.45), pal['cleaveAccent'], pal['cutTrail'], pal['cleaveEdge']]
     else: stops = [pal['cleaveAccent'], pal['cutTrail']]
-    out = arr.copy()
-    ys, xs = np.nonzero(a > 0)
-    for y, x in zip(ys, xs):
-        out[y, x, :3] = np.clip(np.round(ramp(stops, L[y, x])), 0, 255).astype(np.uint8)
+    S = np.stack([hx(c) for c in stops]); t = np.clip(L, 0, 1) * (len(S) - 1)
+    idx = np.minimum(t.astype(int), len(S) - 2); f = (t - idx)[..., None]
+    col = S[idx] * (1 - f) + S[idx + 1] * f
+    out = arr.copy(); on = a > 0
+    out[on, :3] = np.clip(np.round(col[on]), 0, 255).astype(np.uint8)
     return out
 
 
@@ -335,6 +401,7 @@ def verify(sk, strips):
             reg, _ = classify(a[..., :3], a[..., 3], fw)
             prot = (reg == 0)
             if sk.get('skin') is None: prot |= (reg == 6)
+            if sk.get('side_split'): prot = ~alien_side(a[..., 3], fw)[0] & (a[..., 3] > 0)   # Sukuna's side: untouched
             if not np.array_equal(a[prot], b[prot]): bad.append(f'{name} p{ph}: protected pixels changed ({int((a[prot] != b[prot]).any(-1).sum())})')
     for k in FX_KEYS:
         a = np.array(Image.open(os.path.join(SRC, 'fx', k + '.png')).convert('RGBA')); p = os.path.join(OUT, tag, 'fx', k + '.png')
@@ -417,6 +484,14 @@ def main():
             b = verify(BY_TAG[t], strips); bad += len(b)
             print(f'  {"OK " if not b else "BAD"} {t}' + ('' if not b else ': ' + '; '.join(b[:4])))
         print(f'VERIFY: {len(built_tags())} skins, {bad} problems'); sys.exit(1 if bad else 0)
+    if '--fx' in a:   # technique FX only (every built skin) — the body sheets are left exactly as they are
+        for t in built_tags():
+            sk = BY_TAG[t]; os.makedirs(os.path.join(OUT, t, 'fx'), exist_ok=True)
+            for k in FX_KEYS:
+                src = np.array(Image.open(os.path.join(SRC, 'fx', k + '.png')).convert('RGBA'))
+                Image.fromarray(recolor_fx(src, sk['pal'], k)).save(os.path.join(OUT, t, 'fx', k + '.png'), optimize=True)
+            print(f'  fx {t}')
+        return
     if '--sheets' in a:
         tags = [x for x in a if x in BY_TAG] or built_tags()
         sheets(tags, strips); return

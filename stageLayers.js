@@ -289,6 +289,21 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// QUEENS ALLEY (Marvel) — Alex's stage (SF3 NY sheet) pieces by tools/stage_layers/slice_alex_queens.py, set in a row
+// with walk-ups drawn in code on both sides (drawQueensBack draws all of it); the life + reactions in queensFx.
+SETS.alex_queens = {
+  dir: "./stages/alex_queens/",
+  S: 1.6,
+  standRow: 26,
+  deckFrontRow: 56,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [{ procedural: "queens", p: 0.9 }],
+  props: [],
+  front: [],
+  fx: "queens",
+  animRate: {},
+}
+
 // THE FOREST OF DEATH (Naruto) — Oro's stage (SF3 sheet): the cave repainted as the hollow under a giant tree's roots,
 // by tools/stage_layers/slice_oro_forest.py; the forest, the tower, the canopy and the snakes are drawn in code.
 SETS.oro_forest = {
@@ -586,6 +601,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "queens") { drawQueensBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "harbor") { drawHarborSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "forest") { drawForestSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "suna") { drawSunaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -693,6 +709,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "queens") queensFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "harbor") harborFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "forest") forestFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "suna") sunaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -4875,4 +4892,129 @@ function harborFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   HB.shout = HB.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── QUEENS ALLEY, NEW YORK (Marvel / Spider-Man; render-only, wall clock, own PRNG) ─────────────────────────────
+// Alex's stage (SFIII) pieces — the graffiti walk-up with the fire escape, the tan corner building, the far street — set
+// in a row with more walk-ups drawn in code on both sides (brick + brownstone, fire escapes, lit windows, water towers),
+// so no art edge ever shows. Twilight sky, the Manhattan skyline, a yellow cab crossing the far street, steam from a
+// manhole, snow falling; Spider-Man swings across the sky now and then; he (or Soldier Boy) watches if not fighting.
+// Big hit → a window flies open and a New Yorker yells, a trash-can lid rolls; ≤25% → NYPD: red/blue lights wash the
+// walls, "BREAK IT UP!", Daily Bugle pages blow through; KO → THWIP! webs shoot in from the rooftops and a web net is
+// strung across the alley, a camera flash — SNAP!
+let _qnSeed = 0x9b05688c ^ 0x510e527f
+const qnRnd = () => { _qnSeed ^= _qnSeed << 13; _qnSeed ^= _qnSeed >>> 17; _qnSeed ^= _qnSeed << 5; return (_qnSeed >>> 0) / 4294967296 }
+const QN_CROWD = [["spiderman", 0.2, 0], ["soldier_boy", 0.82, 0]]
+const QNC = makeCrowd(QN_CROWD, 0.6)
+const QN = { p1: null, last: 0, skyLast: 0, hp: new WeakMap(), snow: null, steam: [], yells: [], lids: [], cops: 0, pages: [], webs: null, flash: 0, swing: null, nextSwing: 3, shout: [], geo: null,
+  st: { yells: 0, cops: 0, webs: 0, swings: 0 } }
+export const queensState = () => ({ ...QN.st, snow: (QN.snow || []).length, cops: +QN.cops.toFixed(2), webs: QN.webs ? +QN.webs.t.toFixed(2) : 0, pages: QN.pages.length,
+  crowd: crowdState(QNC), shouting: QN.shout.filter(s => s.t > 0).map(s => s.txt) })
+function qnGeo(def, c, W, dockTop) {
+  const P = c.layout.pieces, S = def.S, x0 = W / 2 - 428 * S + shift(0.9, W)
+  return { S, x0, al: [x0, x0 + P.alley.w * S], rt: [x0 + 704 * S, x0 + 704 * S + P.right.w * S], h: P.alley.h * S, top: dockTop - P.alley.h * S }
+}
+function qnShout(x, y, txt, col) { if (QN.shout.filter(s => s.t > 0).length < 3) QN.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function qnWalkup(ctx, x, w, base, h, k, t, open) {   // an NYC walk-up: brick or brownstone, cornice, windows (some lit), fire escape, water tower
+  const pal = [["#8a4a36", "#6a3426"], ["#6a4a3a", "#523628"], ["#9a7a5a", "#7a5a40"], ["#7a3a2e", "#5a2a22"]][Math.floor(_h(k * 3.1) * 4)]
+  const top = base - h
+  ctx.fillStyle = pal[0]; ctx.fillRect(x, top, w, h); ctx.fillStyle = pal[1]; ctx.fillRect(x + w - 10, top, 10, h)
+  ctx.strokeStyle = "rgba(0,0,0,0.12)"; ctx.lineWidth = 1; for (let y = top + 6; y < base; y += 7) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke() }
+  ctx.fillStyle = "#3a2a24"; ctx.fillRect(x - 4, top - 8, w + 8, 10); ctx.fillStyle = "#5a4a40"; for (let i = 0; i < w; i += 12) ctx.fillRect(x + i, top + 2, 6, 5)
+  const cols = Math.max(2, Math.floor(w / 46)), rows = Math.max(2, Math.floor((h - 60) / 62))
+  for (let r = 0; r < rows; r++) for (let i = 0; i < cols; i++) { const wx = x + 14 + i * (w - 28) / cols, wy = top + 26 + r * 62, ww = (w - 28) / cols - 14, sd = k * 31 + r * 7 + i
+    const lit = _h(sd) < 0.45, op = open && open.r === r && open.i === i && open.k === k
+    ctx.fillStyle = "#c8b8a0"; ctx.fillRect(wx - 3, wy - 5, ww + 6, 5); ctx.fillRect(wx - 3, wy + 38, ww + 6, 4)
+    ctx.fillStyle = op ? "#1a1418" : lit ? `rgba(250,${200 + 30 * _h(sd * 2) | 0},120,${0.85 + 0.1 * Math.sin(t + sd)})` : "#2a2a3a"; ctx.fillRect(wx, wy, ww, 38)
+    if (!op) { ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(wx + ww / 2 - 1, wy, 2, 38); ctx.fillRect(wx, wy + 18, ww, 2) } }
+  if (_h(k * 5.7) < 0.6 && cols >= 2) { ctx.strokeStyle = "#1e1a1c"; ctx.lineWidth = 2; const fx = x + 8, fw = (w - 28) / cols * Math.min(2, cols) + 8
+    for (let r = 0; r < rows; r++) { const fy = top + 26 + r * 62 + 42; ctx.strokeRect(fx, fy, fw, 2); for (let j = 0; j < fw; j += 6) { ctx.beginPath(); ctx.moveTo(fx + j, fy); ctx.lineTo(fx + j, fy - 14); ctx.stroke() }
+      ctx.beginPath(); ctx.moveTo(fx + fw * 0.2, fy); ctx.lineTo(fx + fw * 0.7, fy + 60); ctx.stroke() } }
+  if (_h(k * 8.3) < 0.55) { const tx = x + w * (0.3 + 0.4 * _h(k)), ty = top - 8; ctx.strokeStyle = "#2a2220"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(tx - 14, ty); ctx.lineTo(tx - 10, ty - 22); ctx.moveTo(tx + 14, ty); ctx.lineTo(tx + 10, ty - 22); ctx.stroke()
+    ctx.fillStyle = "#6a4a32"; ctx.fillRect(tx - 16, ty - 52, 32, 30); ctx.fillStyle = "#3a2a20"; ctx.beginPath(); ctx.moveTo(tx - 18, ty - 52); ctx.lineTo(tx, ty - 68); ctx.lineTo(tx + 18, ty - 52); ctx.fill() }
+}
+function qnSpidey(ctx, x, y, s, a) {   // a small Spider-Man silhouette (red + blue), swinging
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s)
+  ctx.fillStyle = "#2a4ab8"; ctx.fillRect(-4, 4, 3, 12); ctx.fillRect(1, 4, 3, 10); ctx.fillStyle = "#d02a2a"; ctx.fillRect(-5, -10, 10, 15); ctx.beginPath(); ctx.arc(0, -14, 5, 0, 7); ctx.fill()
+  ctx.strokeStyle = "#d02a2a"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-4, -8); ctx.lineTo(-2, -26); ctx.moveTo(4, -8); ctx.lineTo(9, 0); ctx.stroke()
+  ctx.fillStyle = "#fff"; ctx.fillRect(-3.5, -16, 2.5, 2); ctx.fillRect(1, -16, 2.5, 2); ctx.restore()
+}
+function drawQueensBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S, G = QN.geo = qnGeo(def, c, W, dockTop), P = c.layout.pieces, cop = QN.cops
+  const dt = Math.min(0.05, Math.max(0, t - (QN.skyLast || t))); QN.skyLast = t
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#2a2460"); g.addColorStop(0.5, "#6a5ab8"); g.addColorStop(1, "#c89ab8")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  // the Manhattan skyline across the river
+  { const ps = shift(0.12, W), hz = dockTop - 260 * S, gap = 70; ctx.fillStyle = "#3a3460"
+    for (let i = Math.floor((padL - ps) / gap) - 1; i * gap + ps < padR + gap; i++) { const x = i * gap + ps, h = 80 + 220 * _h(i * 1.31) ** 2, w = 40 + 26 * _h(i * 2.7)
+      ctx.fillRect(x, hz - h, w, h + 400); if (_h(i * 9.1) < 0.2) { ctx.beginPath(); ctx.moveTo(x + w / 2 - 6, hz - h); ctx.lineTo(x + w / 2, hz - h - 60); ctx.lineTo(x + w / 2 + 6, hz - h); ctx.fill() }
+      ctx.fillStyle = "rgba(250,220,140,0.5)"; for (let j = 0; j < 14; j++) if (_h(i * 13 + j) < 0.4) ctx.fillRect(x + 4 + (j % 3) * (w / 3), hz - h + 10 + Math.floor(j / 3) * 18, 4, 6); ctx.fillStyle = "#3a3460" } }
+  // Spider-Man swinging across the sky every so often
+  if (!QN.swing && t > QN.nextSwing) { QN.swing = { t: 0, dir: qnRnd() < 0.5 ? 1 : -1, y: dockTop - (330 + 80 * qnRnd()) * S }; QN.st.swings++ }
+  if (QN.swing) { const s = QN.swing; s.t += dt; const u = s.t / 3.2, span = padR - padL + 300, ax = s.dir > 0 ? padL - 150 + span * u : padR + 150 - span * u
+    const k = (u * 3) % 1, px = ax, py = s.y + Math.sin(k * Math.PI) * 70, anchorX = ax + s.dir * (60 - 120 * k), anchorY = s.y - 200
+    ctx.strokeStyle = "rgba(240,240,250,0.8)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(anchorX, anchorY); ctx.lineTo(px, py - 10); ctx.stroke(); qnSpidey(ctx, px, py, S * 0.55, s.dir * (0.6 - 1.2 * k))
+    if (u >= 1) { QN.swing = null; QN.nextSwing = t + 6 + 6 * qnRnd() } }
+  // the far street through the gap (with a cab going by)
+  const fi = c.img[P.far.file]; if (ready(fi)) ctx.drawImage(fi, G.x0 + 690 * S - shift(0.9, W) + shift(0.7, W), dockTop - P.far.h * S + 40 * S, P.far.w * S, P.far.h * S)
+  { const cx = G.al[1] + ((t * 90) % (G.rt[0] - G.al[1] + 120)) - 60, cy = dockTop - 26 * S; ctx.fillStyle = "#f2c020"; ctx.fillRect(cx, cy, 34 * S * 0.5, 9 * S * 0.5); ctx.fillRect(cx + 6, cy - 5 * S * 0.5, 18 * S * 0.5, 5 * S * 0.5); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(cx + 6, cy + 9 * S * 0.5, 3, 0, 7); ctx.arc(cx + 28 * S * 0.5, cy + 9 * S * 0.5, 3, 0, 7); ctx.fill() }
+  // walk-ups on both sides, out past the view
+  const op = QN.open
+  for (let i = 0; ; i++) { const w = 230 + 60 * _h(i * 4.3), x = G.al[0] - (i + 1) * 250 - (i ? 0 : 0); if (x + w < padL) break; qnWalkup(ctx, G.al[0] - (i + 1) * 250, 250, dockTop, (330 + 110 * _h(i * 2.9)) * S * 0.8, -i - 1, t, op) }
+  for (let i = 0; ; i++) { const x = G.rt[1] + i * 250; if (x > padR) break; qnWalkup(ctx, x, 250, dockTop, (330 + 110 * _h(i * 6.1)) * S * 0.8, i + 1, t, op) }
+  // the sheet's buildings
+  const ai = c.img[P.alley.file], ri = c.img[P.right.file]
+  if (ready(ai)) ctx.drawImage(ai, G.al[0], G.top, P.alley.w * S, P.alley.h * S)
+  if (ready(ri)) ctx.drawImage(ri, G.rt[0], G.top, P.right.w * S, P.right.h * S)
+  // NYPD lights washing the walls
+  if (cop > 0) { const ph = Math.floor(t * 6) % 2; ctx.fillStyle = ph ? `rgba(230,40,40,${0.22 * cop})` : `rgba(40,80,240,${0.22 * cop})`; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop) }
+}
+function queensFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S, G = QN.geo || qnGeo(def, c, W, dockTop)
+  if (F[0] !== QN.p1) { Object.assign(QN, { p1: F[0], hp: new WeakMap(), steam: [], yells: [], lids: [], cops: 0, pages: [], webs: null, flash: 0, shout: [], open: null }); for (const k in QN.st) QN.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (QN.last || t))); QN.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = QN.hp.get(f); QN.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big && !QN.webs) { QN.st.yells++; const side = mid < W / 2 ? 1 : -1, k = side > 0 ? 1 : -1, x = side > 0 ? G.rt[1] + 60 : G.al[0] - 190
+    QN.open = { k, r: 1, i: 1 }; QN.openT = 2.2; qnShout(x + 70, dockTop - 330 * S * 0.8 + 100, ["HEY! I'M WALKIN' HERE!", "SOME OF US WORK IN THE MORNIN'!", "TAKE IT TO JERSEY!"][(QN.st.yells - 1) % 3], "#8a2a1a")
+    QN.lids.push({ x: mid + (qnRnd() - 0.5) * 300, t: 0, dir: qnRnd() < 0.5 ? -1 : 1 }); camera.shake?.(3, 10) }
+  if (QN.openT > 0) { QN.openT -= dt; if (QN.openT <= 0) QN.open = null }
+  if (low && !QN.st.cops && !QN.webs) { QN.st.cops++; qnShout(mid, feet - 230, "NYPD! BREAK IT UP!", "#1a3aa8"); for (let i = 0; i < 6; i++) QN.pages.push({ x: padL - 40 - i * 90, y: feet - 60 - qnRnd() * 200, ph: i * 1.3 }) }
+  if (QN.st.cops && !QN.webs) QN.cops = Math.min(1, QN.cops + dt * 0.8)
+  if (ko && !QN.webs) { QN.webs = { t: 0, x: mid }; QN.st.webs++; qnShout(mid, feet - 260, "THWIP!", "#c82a2a") }
+  // Spider-Man / Soldier Boy watching (fighters left out)
+  drawCrowd(ctx, QNC, { W, feet, sh: shift(0.9, W) })
+  // steam from a manhole
+  { const mx = W / 2 + shift(1, W) - 220, my = feet + 22 * S; ctx.fillStyle = "#3a3438"; ctx.beginPath(); ctx.ellipse(mx, my, 26, 7, 0, 0, 7); ctx.fill()
+    if (QN.steam.length < 26 && qnRnd() < 0.4) QN.steam.push({ x: mx + (qnRnd() - 0.5) * 20, y: my, r: 8, a: 0.4 })
+    for (const s of QN.steam) { s.y -= 40 * dt; s.x += Math.sin(t + s.r) * 10 * dt; s.r += 14 * dt; s.a -= 0.13 * dt; ctx.fillStyle = `rgba(230,230,240,${Math.max(0, s.a)})`; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill() }
+    QN.steam = QN.steam.filter(s => s.a > 0) }
+  // trash-can lids rolling
+  for (const l of QN.lids) { l.t += dt; const x = l.x + l.dir * 200 * l.t, y = feet - 10 - Math.abs(Math.sin(l.t * 8)) * 30 * Math.max(0, 1 - l.t)
+    ctx.save(); ctx.translate(x, y); ctx.scale(Math.cos(l.t * 9), 1); ctx.fillStyle = "#8a8e96"; ctx.beginPath(); ctx.arc(0, 0, 14, 0, 7); ctx.fill(); ctx.strokeStyle = "#5a5e66"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore() }
+  QN.lids = QN.lids.filter(l => l.t < 2.5)
+  // Daily Bugle pages blowing through
+  for (const p of QN.pages) { p.x += 160 * dt; p.y += Math.sin(t * 3 + p.ph) * 40 * dt; if (p.x > padR + 60) p.x = padL - 60
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.sin(t * 4 + p.ph) * 0.6); ctx.fillStyle = "#eae6da"; ctx.fillRect(-16, -11, 32, 22); ctx.fillStyle = "#222"; ctx.font = "900 5px Arial"; ctx.textAlign = "center"; ctx.fillText("DAILY BUGLE", 0, -5)
+    ctx.fillStyle = "#888"; for (let j = 0; j < 3; j++) ctx.fillRect(-13, -1 + j * 4, 26, 1.5); ctx.restore() }
+  // KO: webs from the rooftops + a web net across the alley + a camera flash
+  if (QN.webs) { const w = QN.webs; w.t += dt; const u = Math.min(1, w.t / 0.5), cx = w.x, cy = feet - 140
+    if (w.t > 0.25 && !w.snap) { w.snap = true; QN.flash = 1; qnShout(cx + 160, cy - 160, "*SNAP*", "#222") }
+    ctx.strokeStyle = "rgba(245,245,250,0.95)"; ctx.lineWidth = 2
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, ex = cx + Math.cos(a) * 520, ey = cy + Math.sin(a) * 300; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + (ex - cx) * u, cy + (ey - cy) * u); ctx.stroke() }
+    if (u >= 1) for (let r = 1; r <= 5; r++) { ctx.beginPath(); for (let i = 0; i <= 8; i++) { const a = i / 8 * Math.PI * 2, rr = r / 5; ctx.lineTo(cx + Math.cos(a) * 520 * rr, cy + Math.sin(a) * 300 * rr) } ctx.stroke() }
+    for (const [sx, sy] of [[padL, dockTop - 600], [padR, dockTop - 600]]) if (w.t < 0.6) { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + (cx - sx) * u, sy + (cy - sy) * u); ctx.stroke() }
+    if (w.t > 1.5) QN.cops = Math.max(0, QN.cops - dt * 0.5) }
+  if (QN.flash > 0) { QN.flash = Math.max(0, QN.flash - dt * 2.5); ctx.fillStyle = `rgba(255,255,255,${0.7 * QN.flash})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  // snow
+  if (!QN.snow) QN.snow = Array.from({ length: 110 }, (_, i) => ({ x: (i * 0.137) % 1, y: (i * 0.611) % 1, v: 0.5 + 0.5 * ((i * 0.37) % 1), r: 1 + 1.5 * ((i * 0.53) % 1) }))
+  ctx.fillStyle = "rgba(245,245,255,0.85)"
+  for (const f of QN.snow) { f.y = (f.y + f.v * dt * 0.12) % 1; const x = padL + (padR - padL) * ((f.x + Math.sin(t * 0.7 + f.r * 4) * 0.01 + 1) % 1), y = dockTop - 700 + (coverBottom - dockTop + 700) * f.y; ctx.beginPath(); ctx.arc(x, y, f.r, 0, 7); ctx.fill() }
+  for (const s of QN.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  QN.shout = QN.shout.filter(s => s.t > 0)
 }

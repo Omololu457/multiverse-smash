@@ -1,0 +1,30 @@
+{
+ "source": "Street Fighter III: New Generation \u2014 New York (Alex stage) sheet (ripped by GeometricEntric)",
+ "pieces": {
+  "alley": {
+   "file": "alley.png",
+   "w": 696,
+   "h": 448
+  },
+  "right": {
+   "file": "right.png",
+   "w": 160,
+   "h": 448
+  },
+  "far": {
+   "file": "far.png",
+   "w": 256,
+   "h": 356
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 1024,
+   "h": 364
+  }
+ },
+ "colors": {
+  "skyTop": "#6a5ab8",
+  "under": "#3a3040"
+ },
+ "preview": "preview.png"
+}

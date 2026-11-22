@@ -2427,6 +2427,8 @@ const STAGE_DEFS = [
       layers: "retsu_arlong", backgroundImage: "stages/retsu_arlong/preview.png" },
   { name: "The Baratie",            series: "onepiece",    music: "Drake & Playboi Carti - Pain 1993 V1 (AI REMASTER).mp3", landmark: "baratie", sky: "#3a7ae8", mid: "#1a4a8a", floor: "#c89058", accent: "#f08a2a", worldWidth: 2400,
       layers: "ken3_baratie", backgroundImage: "stages/ken3_baratie/preview.png" },
+  { name: "Queens Alley",           series: "marvel",      music: "Metro Boomin, Don Toliver, Future - Too Many Nights (Official Video).mp3", landmark: "queens_alley", sky: "#6a5ab8", mid: "#8a4a36", floor: "#d8d4e0", accent: "#d02a2a", worldWidth: 2400,
+      layers: "alex_queens", backgroundImage: "stages/alex_queens/preview.png" },   // song picked by me (user: "not Japanese, not one I've picked")
   { name: "Stark Lab",              series: "marvel",      music: "Chérie  23  (Sloweddd).mp3", shuffle: true, playlist: ["Chérie  23  (Sloweddd).mp3", "At The Club.mp3", "Chris Brown - Under The Influence (Audio).mp3"], landmark: "starklab", sky: "#05070c", mid: "#121826", floor: "#1a1f2a", accent: "#5ee6ff", worldWidth: 2400,
     layers: "guile_starklab", backgroundImage: "stages/guile_starklab/preview.png" },
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame

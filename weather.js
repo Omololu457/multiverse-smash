@@ -226,6 +226,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Bellwood":               OUTDOOR_WARM,     // a sunny small-town afternoon
   "Arlong Park":            OUTDOOR_WARM,     // East Blue, warm → no snow
   "The Baratie":            OUTDOOR_WARM,     // out at sea, warm → no snow
+  "Queens Alley":           OUTDOOR_COLD,     // New York in winter
   "Stark Lab":              INDOOR_ONLY,      // the workshop: indoors
   "Battle Royale Colosseum": OUTDOOR_FULL,
 })

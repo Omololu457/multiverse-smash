@@ -1,0 +1,1127 @@
+{
+ "date": "2026-11-22",
+ "fighters": 116,
+ "errors": {},
+ "perFighter": {
+  "albedo": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "ben10": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 377,
+   "notFired": [
+    "Omnitrix dial [Down, Down + attack combination]"
+   ]
+  },
+  "baki": {
+   "moves": 13,
+   "fired": 11,
+   "land": 8,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Demon Back (Oni no Se) [Ultimate (full meter)]"
+   ]
+  },
+  "gwen": {
+   "moves": 14,
+   "fired": 13,
+   "land": 11,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "byakuya": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 40,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "ichigo": {
+   "moves": 13,
+   "fired": 12,
+   "land": 10,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "kevin_levin": {
+   "moves": 28,
+   "fired": 17,
+   "land": 8,
+   "combos": 0,
+   "notFired": [
+    "Mine Now [Neutral R1 / L, empty]",
+    "Return to Sender [Neutral R1 / L, loaded]",
+    "Shoulder Drive [Forward + R1 / L, uncoated]",
+    "Wrecking Ram [Forward + R1 / L, Steel]",
+    "Green Machine [Forward + R1 / L, Car alloy]",
+    "Crystal Guillotine [Forward + R1 / L, Taydenite]",
+    "Ricochet Riot [Forward + R1 / L, Rubber]",
+    "Bounty Breaker [Forward + R1 / L, Alien armor]",
+    "Quarry Breaker [Forward + R1 / L, Stone]",
+    "Scrap Quarry [Up + Special]",
+    "Halo Launcher [Up + Special]"
+   ]
+  },
+  "mayuri": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "zaraki": {
+   "moves": 11,
+   "fired": 8,
+   "land": 8,
+   "combos": 0,
+   "notFired": [
+    "Air Attack [Air (jump + Light)] — not in engine",
+    "Down-Air [Air Down + Light] — not in engine",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "zaraki_shikai": {
+   "moves": 11,
+   "fired": 8,
+   "land": 8,
+   "combos": 22,
+   "notFired": [
+    "Air Attack [Air (jump + Light)] — not in engine",
+    "Down-Air [Air Down + Light] — not in engine",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "batman": {
+   "moves": 16,
+   "fired": 16,
+   "land": 10,
+   "combos": 13,
+   "notFired": []
+  },
+  "beast_boy": {
+   "moves": 12,
+   "fired": 12,
+   "land": 10,
+   "combos": 40,
+   "notFired": []
+  },
+  "cyborg": {
+   "moves": 16,
+   "fired": 16,
+   "land": 13,
+   "combos": 40,
+   "notFired": []
+  },
+  "homelander": {
+   "moves": 12,
+   "fired": 11,
+   "land": 9,
+   "combos": 18,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "green_arrow": {
+   "moves": 15,
+   "fired": 15,
+   "land": 15,
+   "combos": 9,
+   "notFired": []
+  },
+  "raven": {
+   "moves": 14,
+   "fired": 13,
+   "land": 9,
+   "combos": 40,
+   "notFired": [
+    "Levitation [Tap Charge (airborne or grounded)]"
+   ]
+  },
+  "robin": {
+   "moves": 20,
+   "fired": 14,
+   "land": 9,
+   "combos": 40,
+   "notFired": [
+    "Staff cancels [clean Punch 1 / 2 / Low → fresh Heavy / Forward + Heavy / Up + Heavy]",
+    "Smoke Vanish [Double-tap toward the foe]",
+    "Smoke Step [Double-tap back inside own smoke]",
+    "Remote Override — Detonate [Tap Charge with an armed Dead Drop]",
+    "Remote Override — Convert [Hold Charge ≥ 18 f with an armed Dead Drop]",
+    "Bomb Bat [Any staff strike that touches his own ARMED planted bomb]"
+   ]
+  },
+  "starfire": {
+   "moves": 13,
+   "fired": 12,
+   "land": 11,
+   "combos": 40,
+   "notFired": [
+    "Levitation [Tap Charge (L2)]"
+   ]
+  },
+  "superman": {
+   "moves": 14,
+   "fired": 11,
+   "land": 9,
+   "combos": 0,
+   "notFired": [
+    "Freeze Breath [Down + Special]",
+    "Dash [Dash / Double-tap]",
+    "World of Cardboard [Ultimate (full meter)]"
+   ]
+  },
+  "flash": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 13,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Flash Time [Ultimate (full meter)]"
+   ]
+  },
+  "l_ryuuzaki": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "light": {
+   "moves": 9,
+   "fired": 5,
+   "land": 5,
+   "combos": 1,
+   "notFired": [
+    "Up-Attack [Up-Attack]",
+    "Air Attack [Air (jump + Light)] — not in engine",
+    "Down-Air [Air Down + Light] — not in engine",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "inosuke": {
+   "moves": 11,
+   "fired": 7,
+   "land": 5,
+   "combos": 4,
+   "notFired": [
+    "Beast Spin [Special]",
+    "Beast Lunge [Forward + Special]",
+    "Dash [Dash / Double-tap]",
+    "Beast Breathing: Assist [Ultimate (full meter)]"
+   ]
+  },
+  "rengoku": {
+   "moves": 10,
+   "fired": 7,
+   "land": 5,
+   "combos": 2,
+   "notFired": [
+    "Charged Flame Strike [Special]",
+    "Flame Counter [Down + Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "nezuko": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 3,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "shinobu": {
+   "moves": 10,
+   "fired": 9,
+   "land": 7,
+   "combos": 6,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "zenitsu": {
+   "moves": 11,
+   "fired": 11,
+   "land": 9,
+   "combos": 4,
+   "notFired": []
+  },
+  "jesus": {
+   "moves": 15,
+   "fired": 14,
+   "land": 12,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "beerus": {
+   "moves": 13,
+   "fired": 11,
+   "land": 9,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Ki Ball [Ultimate (full meter)]"
+   ]
+  },
+  "vegeta_dark": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "goku": {
+   "moves": 10,
+   "fired": 10,
+   "land": 8,
+   "combos": 40,
+   "notFired": []
+  },
+  "goku_black": {
+   "moves": 14,
+   "fired": 8,
+   "land": 6,
+   "combos": 8,
+   "notFired": [
+    "Spirit Bomb [Down + Special]",
+    "Electric Ki Push [Forward + Special]",
+    "Electric Slash [Forward + Special]",
+    "Super Ki Slash [Forward + Special]",
+    "Dash [Dash / Double-tap]",
+    "Sword Slash [Ultimate (full meter)]"
+   ]
+  },
+  "vegeta": {
+   "moves": 11,
+   "fired": 11,
+   "land": 9,
+   "combos": 18,
+   "notFired": []
+  },
+  "ippo": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "ghostface": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "jason": {
+   "moves": 10,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Ultimate [Ultimate (full meter)]"
+   ]
+  },
+  "chrollo": {
+   "moves": 10,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Skill Hunter [Ultimate (full meter)]"
+   ]
+  },
+  "hisoka": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Bloodlust Overdrive [Ultimate (full meter)]"
+   ]
+  },
+  "netero": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "killua": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Godspeed [Ultimate (full meter)]"
+   ]
+  },
+  "alt_sukuna": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "aoi_todo": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 6,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "gojo": {
+   "moves": 11,
+   "fired": 6,
+   "land": 4,
+   "combos": 6,
+   "notFired": [
+    "Blue (Lapse) [Special]",
+    "Red (Reversal) [Down-Forward + Special (QCF)]",
+    "Hollow Purple [Down-Back + Special (QCB)]",
+    "Teleport [Forward + Special / double-tap Dash]",
+    "Unlimited Void [Ultimate (full meter)]"
+   ]
+  },
+  "miwa": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "higuruma": {
+   "moves": 15,
+   "fired": 15,
+   "land": 10,
+   "combos": 40,
+   "notFired": []
+  },
+  "maki": {
+   "moves": 11,
+   "fired": 9,
+   "land": 7,
+   "combos": 2,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Cursed Tool Awakening (Shibuya Arc) [Ultimate (full meter)]"
+   ]
+  },
+  "sukuna_shinjuku": {
+   "moves": 15,
+   "fired": 15,
+   "land": 12,
+   "combos": 0,
+   "notFired": []
+  },
+  "megumi_fushiguro": {
+   "moves": 19,
+   "fired": 18,
+   "land": 11,
+   "combos": 40,
+   "notFired": [
+    "Heavy cancels [clean Jab / Kick / Low → fresh Heavy / Forward + Heavy / Up + Heavy]"
+   ]
+  },
+  "gojo_shinjuku": {
+   "moves": 21,
+   "fired": 15,
+   "land": 12,
+   "combos": 0,
+   "notFired": [
+    "Teleport [Double-tap toward the foe]",
+    "Long Blink [Double-tap away from the foe]",
+    "Charge [Hold P]",
+    "Falling Blossom Emotion [↓↙← + P]",
+    "Reverse Cursed Technique [↓↓ + hold P]",
+    "Teleport / Long Blink [Double-tap toward / away]"
+   ]
+  },
+  "sukuna": {
+   "moves": 10,
+   "fired": 10,
+   "land": 8,
+   "combos": 6,
+   "notFired": []
+  },
+  "toji": {
+   "moves": 13,
+   "fired": 11,
+   "land": 9,
+   "combos": 9,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Reincarnated Form [Ultimate (full meter)]"
+   ]
+  },
+  "yuji": {
+   "moves": 10,
+   "fired": 9,
+   "land": 7,
+   "combos": 8,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "yuta": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "soldier_boy": {
+   "moves": 9,
+   "fired": 7,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Down-Air [Air Down + Light] — not in engine",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "spiderman": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "gaara": {
+   "moves": 12,
+   "fired": 9,
+   "land": 7,
+   "combos": 0,
+   "notFired": [
+    "Sand Coffin [Special]",
+    "Sand Dome [Back + Special]",
+    "Sand Shunshin [Up + Special]"
+   ]
+  },
+  "hashirama": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "hinata": {
+   "moves": 11,
+   "fired": 8,
+   "land": 6,
+   "combos": 40,
+   "notFired": [
+    "Protective 64 Palms [Back + Special]",
+    "Byakugan [Down + Special]",
+    "Juuhou Soshiken [Ultimate (full meter)] — executeHinataUltimate is not defined"
+   ]
+  },
+  "itachi": {
+   "moves": 12,
+   "fired": 8,
+   "land": 6,
+   "combos": 5,
+   "notFired": [
+    "Mangekyou Sharingan [Hold Charge → release (≥75% chakra)]",
+    "Genjutsu [QCB + Special (Mangekyou only, mid-combo)]",
+    "Shunshin Blink [Double-tap toward opponent]",
+    "Susanoo [Ultimate (full meter)]"
+   ]
+  },
+  "isshiki": {
+   "moves": 12,
+   "fired": 11,
+   "land": 9,
+   "combos": 5,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "jiraiya": {
+   "moves": 15,
+   "fired": 11,
+   "land": 8,
+   "combos": 1,
+   "notFired": [
+    "Protective Barrier [Back + Special]",
+    "Ranjishigami no Jutsu [Up + Special]",
+    "Body Flicker [Dodge / dash]",
+    "Sage Mode / Gamabunta [Ultimate (full meter) — Neutral / Down]"
+   ]
+  },
+  "kakashi": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 40,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "kakashi_anbu": {
+   "moves": 13,
+   "fired": 11,
+   "land": 9,
+   "combos": 33,
+   "notFired": [
+    "Sharingan [Charge (tap)]",
+    "Sharingan Genjutsu [Up + Special (needs Sharingan)]"
+   ]
+  },
+  "kakashi_war": {
+   "moves": 14,
+   "fired": 11,
+   "land": 9,
+   "combos": 40,
+   "notFired": [
+    "Sennen Goroshi [Up + Special]",
+    "Sharingan [Charge (tap)]",
+    "Frog Henge [Crouch + Charge (tap)]"
+   ]
+  },
+  "minato": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "naruto": {
+   "moves": 10,
+   "fired": 10,
+   "land": 8,
+   "combos": 40,
+   "notFired": []
+  },
+  "madara": {
+   "moves": 21,
+   "fired": 18,
+   "land": 16,
+   "combos": 0,
+   "notFired": [
+    "Gunbai Summon [Up + Special]",
+    "Climb Susano'o Ladder [Hold Charge (at FULL Chakra)]",
+    "Shunshin Dash [Dash / Double-tap]"
+   ]
+  },
+  "pain": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 0,
+   "notFired": [
+    "— [Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "obito": {
+   "moves": 12,
+   "fired": 10,
+   "land": 7,
+   "combos": 0,
+   "notFired": [
+    "Rod Throw [Down + Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "sasuke": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Susanoo [Ultimate (full meter)]"
+   ]
+  },
+  "naruto_seventh": {
+   "moves": 23,
+   "fired": 22,
+   "land": 20,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "sakura": {
+   "moves": 13,
+   "fired": 11,
+   "land": 8,
+   "combos": 1,
+   "notFired": [
+    "Cherry-Blossom Impact [Up + Special]",
+    "Kunai Throw [Air + Special]"
+   ]
+  },
+  "sasuke_adult": {
+   "moves": 15,
+   "fired": 12,
+   "land": 10,
+   "combos": 0,
+   "notFired": [
+    "Amaterasu [Up + Special]",
+    "War-Susano'o: Stance [Charge + Ultimate (toggle)]",
+    "Dash [Dash / double-tap]"
+   ]
+  },
+  "shisui_fallen": {
+   "moves": 18,
+   "fired": 13,
+   "land": 12,
+   "combos": 20,
+   "notFired": [
+    "Flicker Step [Dash / double-tap (F/B/U)]",
+    "Afterimage Feint [Back+Special]",
+    "Sharingan Glare [Up+Special]",
+    "Flicker Step [Dash / double-tap]",
+    "Flicker Time [Forward+Ultimate (near-full meter)]"
+   ]
+  },
+  "vilgax": {
+   "moves": 16,
+   "fired": 15,
+   "land": 13,
+   "combos": 1,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "six_paths_pain": {
+   "moves": 11,
+   "fired": 7,
+   "land": 5,
+   "combos": 1,
+   "notFired": [
+    "Almighty Push [Special]",
+    "Almighty Pull [Down + Special]",
+    "Rinnegan Defense [Forward + Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "sasuke_sensei": {
+   "moves": 30,
+   "fired": 26,
+   "land": 22,
+   "combos": 1,
+   "notFired": [
+    "Eye-Set Cycle [Up + Ultimate]",
+    "Genjutsu [Up + Special (Mangekyō)]",
+    "Raiko Kenka [Up + Special (Rinnegan)]",
+    "War-Susano'o: Ribcage Guard [Up + Special (Susano'o set)]"
+   ]
+  },
+  "tobi": {
+   "moves": 12,
+   "fired": 10,
+   "land": 8,
+   "combos": 10,
+   "notFired": [
+    "Kamui Portal [Down + Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "tobirama": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "buggy": {
+   "moves": 22,
+   "fired": 20,
+   "land": 14,
+   "combos": 3,
+   "notFired": [
+    "Roll [Double-tap dash]",
+    "Detachable body [Move / double-tap dash]"
+   ]
+  },
+  "arlong": {
+   "moves": 24,
+   "fired": 22,
+   "land": 17,
+   "combos": 13,
+   "notFired": [
+    "Swim-dash [Double-tap dash (in water)]",
+    "Fishman stride [Move / double-tap dash]"
+   ]
+  },
+  "luffy": {
+   "moves": 23,
+   "fired": 22,
+   "land": 17,
+   "combos": 30,
+   "notFired": [
+    "Close in [Move / double-tap direction / manual Jump]"
+   ]
+  },
+  "sanji": {
+   "moves": 22,
+   "fired": 21,
+   "land": 13,
+   "combos": 25,
+   "notFired": [
+    "Black Leg footwork [Move / double-tap dash]"
+   ]
+  },
+  "genos": {
+   "moves": 12,
+   "fired": 10,
+   "land": 8,
+   "combos": 40,
+   "notFired": [
+    "Dash [Dash / Double-tap]",
+    "Overdrive [Ultimate (full meter)]"
+   ]
+  },
+  "zoro": {
+   "moves": 21,
+   "fired": 18,
+   "land": 11,
+   "combos": 40,
+   "notFired": [
+    "Nitoryu: Nigiri [Up + Special]",
+    "Oni Giri \"Demon Cut\" [→→ + Special (or Forward + Special)]",
+    "Swordsman footwork [Move / double-tap dash]"
+   ]
+  },
+  "saitama": {
+   "moves": 17,
+   "fired": 16,
+   "land": 14,
+   "combos": 9,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "dseyl": {
+   "moves": 22,
+   "fired": 20,
+   "land": 11,
+   "combos": 26,
+   "notFired": [
+    "Rocket-Boot Flight [Charge tap]",
+    "Speed-Force Feet [double-tap toward]"
+   ]
+  },
+  "omololu": {
+   "moves": 15,
+   "fired": 11,
+   "land": 9,
+   "combos": 0,
+   "notFired": [
+    "Flash Time [Back + Special]",
+    "Kamui Intangibility [Charge (tap)]",
+    "Kamui Dimension [Charge (hold→release)]",
+    "Kamui Blink [Double-tap toward]"
+   ]
+  },
+  "gold_samurai_ranger": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 5,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "mmpr_black": {
+   "moves": 13,
+   "fired": 12,
+   "land": 11,
+   "combos": 0,
+   "notFired": [
+    "Double-tap blink [Double-tap Left / Right]"
+   ]
+  },
+  "enoch": {
+   "moves": 23,
+   "fired": 20,
+   "land": 17,
+   "combos": 13,
+   "notFired": [
+    "Wake-up reversal [Any attack as he gets up]",
+    "AIR SLIDE + AIR CHAIN [Jump, then double-tap toward]",
+    "ICE MODE / FIRE MODE [Down + Charge / Up + Charge]"
+   ]
+  },
+  "green_samurai_ranger": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 5,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "green_ranger": {
+   "moves": 14,
+   "fired": 14,
+   "land": 11,
+   "combos": 37,
+   "notFired": []
+  },
+  "krybot": {
+   "moves": 13,
+   "fired": 12,
+   "land": 10,
+   "combos": 26,
+   "notFired": [
+    "Infantry movement [Move / Jump / double-tap direction]"
+   ]
+  },
+  "ninja_storm_cgpt": {
+   "moves": 22,
+   "fired": 20,
+   "land": 11,
+   "combos": 0,
+   "notFired": [
+    "Clone: Swap [Forward + Charge]",
+    "Clone: Recall [Back + Charge]"
+   ]
+  },
+  "omega_ranger": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 1,
+   "notFired": [
+    "Omega Flash-Step [double-tap toward foe]"
+   ]
+  },
+  "ninja_storm_rangers": {
+   "moves": 18,
+   "fired": 16,
+   "land": 9,
+   "combos": 0,
+   "notFired": [
+    "Kawarimi [Block + Special (needs a live clone)]",
+    "Ninja Vanish [Double-tap ← / →]"
+   ]
+  },
+  "windrangers": {
+   "moves": 26,
+   "fired": 24,
+   "land": 13,
+   "combos": 34,
+   "notFired": [
+    "Swap-in strike [(automatic)]",
+    "Wind Mirage (illusion) [Ninja Mirror]"
+   ]
+  },
+  "red_ranger_mmpr": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "mmpr_pink": {
+   "moves": 14,
+   "fired": 13,
+   "land": 10,
+   "combos": 0,
+   "notFired": [
+    "Double-tap blink [Double-tap Left / Right]"
+   ]
+  },
+  "spd_blue": {
+   "moves": 25,
+   "fired": 23,
+   "land": 16,
+   "combos": 34,
+   "notFired": [
+    "Ground phase step [Double-tap Left / Right (release between presses)]",
+    "Shared Ranger Zord Assault — pending [Ultimate]"
+   ]
+  },
+  "spd_green": {
+   "moves": 25,
+   "fired": 23,
+   "land": 15,
+   "combos": 32,
+   "notFired": [
+    "Phase step (shared ground teleport) [Double-tap Left / Right (release between presses)]",
+    "Shared Ranger Zord Assault — pending [Ultimate]"
+   ]
+  },
+  "spd_yellow": {
+   "moves": 17,
+   "fired": 14,
+   "land": 10,
+   "combos": 24,
+   "notFired": [
+    "Phase blink [Double-tap Left / Right]",
+    "Swap [Forward Special]",
+    "Echo [Back Special]"
+   ]
+  },
+  "spd_pink": {
+   "moves": 24,
+   "fired": 22,
+   "land": 15,
+   "combos": 17,
+   "notFired": [
+    "Phase step (shared ground teleport) [Double-tap Left / Right (release between presses)]",
+    "Shared Ranger Zord Assault — pending [Ultimate]"
+   ]
+  },
+  "samurai_red_ranger": {
+   "moves": 9,
+   "fired": 7,
+   "land": 5,
+   "combos": 0,
+   "notFired": [
+    "Flame Slash [Special]",
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "rick": {
+   "moves": 10,
+   "fired": 9,
+   "land": 8,
+   "combos": 8,
+   "notFired": [
+    "Dive [Air Down + Light] — not in engine"
+   ]
+  },
+  "rickPrime": {
+   "moves": 10,
+   "fired": 9,
+   "land": 7,
+   "combos": 9,
+   "notFired": [
+    "Rick Prime's Supremacy [Ultimate (full meter)]"
+   ]
+  },
+  "mmpr_white": {
+   "moves": 15,
+   "fired": 13,
+   "land": 11,
+   "combos": 27,
+   "notFired": [
+    "Double-tap blink [Double-tap Left / Right]",
+    "Leader's Return [Double-tap Left / Right (12 f after a Formation follow-up hits)]"
+   ]
+  },
+  "spd_red": {
+   "moves": 19,
+   "fired": 18,
+   "land": 14,
+   "combos": 40,
+   "notFired": [
+    "Blink [Double-tap ← / →]"
+   ]
+  },
+  "saiki": {
+   "moves": 9,
+   "fired": 8,
+   "land": 6,
+   "combos": 0,
+   "notFired": [
+    "Dash [Dash / Double-tap]"
+   ]
+  },
+  "dash_parr": {
+   "moves": 11,
+   "fired": 10,
+   "land": 8,
+   "combos": 21,
+   "notFired": [
+    "Flash Time [← + Special (toggle)]"
+   ]
+  },
+  "elastigirl": {
+   "moves": 12,
+   "fired": 11,
+   "land": 10,
+   "combos": 36,
+   "notFired": [
+    "Slingshot [Air ↑ + Special (hold)]"
+   ]
+  },
+  "frozone": {
+   "moves": 14,
+   "fired": 14,
+   "land": 12,
+   "combos": 22,
+   "notFired": []
+  },
+  "mr_incredible": {
+   "moves": 12,
+   "fired": 11,
+   "land": 8,
+   "combos": 40,
+   "notFired": [
+    "BACK IN MY PRIME [Ultimate]"
+   ]
+  },
+  "violet": {
+   "moves": 12,
+   "fired": 12,
+   "land": 8,
+   "combos": 9,
+   "notFired": []
+  },
+  "syndrome": {
+   "moves": 19,
+   "fired": 19,
+   "land": 11,
+   "combos": 40,
+   "notFired": []
+  }
+ }
+}

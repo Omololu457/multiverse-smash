@@ -1,0 +1,26 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Lee's Stage background sheet (ripped by TonyWanKenobian); repainted as Sunagakure",
+ "pieces": {
+  "wall": {
+   "file": "wall.png",
+   "w": 768,
+   "h": 175,
+   "top": 124
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 327
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 772,
+   "h": 151
+  }
+ },
+ "colors": {
+  "skyTop": "#e8c888",
+  "under": "#c8a070"
+ },
+ "preview": "preview.png"
+}

@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// SUNAGAKURE (Naruto) — Lee's Stage (SF 1987 sheet): only the parapet + tiled floor kept, repainted sandstone, by
+// tools/stage_layers/slice_lee_suna.py; the cliffs, the village and the Kazekage building are drawn in code.
+SETS.lee_suna = {
+  dir: "./stages/lee_suna/",
+  S: 1.9,
+  standRow: 14,
+  deckFrontRow: 34,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "suna", p: 0.05 },
+    { piece: "wall", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "suna",
+  animRate: {},
+}
+
 // THE COMMAND CENTER (Mighty Morphin Power Rangers) — Mike's Stage (SF 1987 sheet) with its carved rock removed by
 // tools/stage_layers/slice_mike_command.py: the open desert outside Angel Grove; the Command Center + its hill drawn in code.
 SETS.mike_command = {
@@ -548,6 +566,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "suna") { drawSunaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "command") { drawCommandSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "yorknew") { drawYorknewSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "viltrum") { drawViltrumSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -652,6 +671,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "suna") sunaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "command") commandFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "yorknew") yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "viltrum") viltrumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -4402,3 +4422,148 @@ function commandFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   CC.shout = CC.shout.filter(s => s.t > 0)
 }
 function ccCrumble(x, y) { for (let i = 0; i < 16; i++) CC.bits.push({ x: x + (ccRnd() - 0.5) * 20, y: y - 20 - ccRnd() * 40, vx: (ccRnd() - 0.5) * 260, vy: -120 - ccRnd() * 220, r: 3 + ccRnd() * 4, col: ccRnd() < 0.5 ? "#7c7880" : "#5a565e", life: 1.4 }) }
+
+// ───────────────────────────── SUNAGAKURE, THE VILLAGE HIDDEN IN THE SAND (Naruto; render-only, wall clock, own PRNG) ─────────────────────────────
+// Lee's Stage (Street Fighter, 1987): only its brick parapet + tiled floor kept (repainted sandstone); the Great Wall hills
+// are gone. Behind the parapet: the village — rounded sandstone houses with domed roofs and round windows, water tanks,
+// laundry, the great domed KAZEKAGE BUILDING with 風 on it and its flag — all inside the ring of sheer rock cliffs, under
+// a hot sky. Sand ninja (flak vests, head wraps) leap across the rooftops; sand blows across the plaza in streaks; the
+// Naruto cast who aren't fighting watch from the plaza (shared crowd: Gaara, Naruto, Sakura, Kakashi, Hinata). Big hit →
+// GAARA'S SAND surges up behind the fight (a wave + spikes, a burst of grit); ≤25% → a SANDSTORM rolls in, the sky goes
+// brown, and SHUKAKU rises behind the cliffs; KO → SAND BURIAL: a giant hand of sand rises and crushes shut over Shukaku,
+// sand bursts over the whole village, the storm clears.
+let _snSeed = 0x510e527f ^ 0x5be0cd19
+const snRnd = () => { _snSeed ^= _snSeed << 13; _snSeed ^= _snSeed >>> 17; _snSeed ^= _snSeed << 5; return (_snSeed >>> 0) / 4294967296 }
+const SN_CROWD = [["gaara", 0.16, 0], ["naruto", 0.34, 0], ["sakura", 0.5, 0], ["kakashi", 0.68, 0], ["hinata", 0.86, 0]]
+const SNC = makeCrowd(SN_CROWD, 0.6)
+const SN = { p1: null, last: 0, hp: new WeakMap(), ninja: null, grains: null, surges: [], storm: 0, shukaku: 0, burial: null, burst: [], shout: [], geo: null,
+  st: { leaps: 0, surges: 0, storm: 0, burial: 0 } }
+export const sunaState = () => ({ ...SN.st, ninja: (SN.ninja || []).length, grains: (SN.grains || []).length, storm: +SN.storm.toFixed(2), shukaku: +SN.shukaku.toFixed(2), burial: SN.burial ? +SN.burial.t.toFixed(2) : 0,
+  crowd: crowdState(SNC), shouting: SN.shout.filter(s => s.t > 0).map(s => s.txt) })
+function snGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.wall, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, top: y0 + pc.top * S }
+}
+function snShout(x, y, txt, col) { if (SN.shout.filter(s => s.t > 0).length < 3) SN.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function snHouse(ctx, x, base, w, h, seed, t) {   // a rounded sandstone house: soft corners, a dome or flat roof, round windows
+  const sh = 0.86 + 0.14 * _h(seed), col = `rgb(${226 * sh | 0},${190 * sh | 0},${132 * sh | 0})`, dark = `rgb(${176 * sh | 0},${136 * sh | 0},${88 * sh | 0})`
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, base); ctx.lineTo(x, base - h + 10); ctx.quadraticCurveTo(x, base - h, x + 10, base - h); ctx.lineTo(x + w - 10, base - h); ctx.quadraticCurveTo(x + w, base - h, x + w, base - h + 10); ctx.lineTo(x + w, base); ctx.fill()
+  ctx.fillStyle = dark; ctx.fillRect(x + w * 0.72, base - h + 8, w * 0.28, h - 8)
+  if (_h(seed * 3) < 0.55) { ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, base - h, w * 0.42, w * 0.3, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = dark; ctx.beginPath(); ctx.ellipse(x + w / 2 + w * 0.12, base - h, w * 0.3, w * 0.22, 0, Math.PI * 1.5, 0); ctx.fill() }
+  else if (_h(seed * 5) < 0.5) { ctx.fillStyle = "#8a6a4a"; ctx.fillRect(x + w * 0.6, base - h - 22, 18, 22); ctx.fillStyle = "#6a5038"; ctx.fillRect(x + w * 0.6 + 2, base - h - 26, 14, 5) }   // water tank
+  ctx.fillStyle = "#3a2a1e"; const rows = Math.max(1, Math.floor(h / 34))
+  for (let r = 0; r < rows; r++) for (let i = 0; i < Math.max(1, Math.floor(w / 30)); i++) { if (_h(seed + r * 7 + i * 3) < 0.25) continue; ctx.beginPath(); ctx.arc(x + 15 + i * 30, base - h + 22 + r * 34, 6, 0, 7); ctx.fill() }
+  if (_h(seed * 11) < 0.35) { ctx.strokeStyle = "#5a4a3a"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 6, base - h * 0.55); ctx.lineTo(x + w - 6, base - h * 0.58); ctx.stroke()
+    for (let j = 0; j < 3; j++) { ctx.fillStyle = ["#c84a3a", "#f2f2ea", "#3a6ab8"][j]; ctx.fillRect(x + 12 + j * (w - 30) / 3, base - h * 0.56, 9, 12 + 3 * Math.sin(t * 2 + j + seed)) } }
+}
+function snKazekage(ctx, x, base, s, t) {   // the Kazekage building: a great round drum with a dome, 風 on the front, a flag on top
+  ctx.save(); ctx.translate(x, base); ctx.scale(s, s)
+  const g = ctx.createLinearGradient(-120, 0, 120, 0); g.addColorStop(0, "#b88a52"); g.addColorStop(0.4, "#ecc890"); g.addColorStop(1, "#9a7040")
+  ctx.fillStyle = g; ctx.fillRect(-120, -150, 240, 150)
+  ctx.beginPath(); ctx.ellipse(0, -150, 120, 30, 0, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.ellipse(0, -150, 110, 96, 0, Math.PI, 0); ctx.fill()
+  ctx.strokeStyle = "rgba(90,60,30,0.4)"; ctx.lineWidth = 2; for (const y of [-40, -90]) { ctx.beginPath(); ctx.moveTo(-120, y); ctx.lineTo(120, y); ctx.stroke() }
+  ctx.fillStyle = "#2a1e14"; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.arc(i * 30, -64, 7, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(i * 30, -116, 6, 0, 7); ctx.fill() }
+  ctx.fillStyle = "#3a2a1e"; ctx.fillRect(-18, -36, 36, 36)
+  ctx.fillStyle = "#f4ecd8"; ctx.beginPath(); ctx.arc(0, -196, 26, 0, 7); ctx.fill(); ctx.strokeStyle = "#7a5a3a"; ctx.lineWidth = 3; ctx.stroke()
+  ctx.font = `900 30px "Hiragino Mincho ProN", "Yu Mincho", serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#1a3a8a"; ctx.fillText("風", 0, -195)
+  ctx.strokeStyle = "#5a4a3a"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, -246); ctx.lineTo(0, -300); ctx.stroke()
+  ctx.fillStyle = "#2a6ac8"; ctx.beginPath(); ctx.moveTo(0, -300); for (let i = 0; i <= 6; i++) ctx.lineTo(i * 8, -296 + Math.sin(t * 5 + i) * 3); ctx.lineTo(48, -282); for (let i = 6; i >= 0; i--) ctx.lineTo(i * 8, -282 + Math.sin(t * 5 + i) * 3); ctx.fill()
+  ctx.restore()
+}
+function snNinja(ctx, x, y, s, n, t) {   // a Sand ninja: flak vest over beige, a head wrap, mid-leap or crouched
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * n.dir, s); if (n.air) ctx.rotate(-0.3)
+  ctx.fillStyle = "#6a5a4a"; ctx.fillRect(-5, -20, 4, 20); ctx.fillRect(2, -20, 4, n.air ? 14 : 20)
+  ctx.fillStyle = "#b8a070"; ctx.fillRect(-8, -42, 16, 24); ctx.fillStyle = "#8a7a58"; ctx.fillRect(-8, -40, 16, 8)
+  ctx.fillStyle = "#e8d8b0"; ctx.beginPath(); ctx.arc(0, -49, 6.5, 0, 7); ctx.fill(); ctx.fillStyle = "#d8c8a0"; ctx.fillRect(-7, -56, 14, 5)
+  ctx.fillStyle = "#a8a8b0"; ctx.fillRect(-5, -55, 10, 3); ctx.restore()
+}
+function snShukaku(ctx, x, base, s, rise, t, k) {   // Shukaku: a towering sand tanuki with blue markings and a huge tail
+  if (rise <= 0) return
+  ctx.save(); ctx.translate(x, base + (1 - rise) * 380 * s); ctx.scale(s, s)
+  const sand = "#cfa86a", dark = "#a8824a"
+  ctx.fillStyle = dark; ctx.beginPath(); ctx.moveTo(90, -60); ctx.quadraticCurveTo(220 + Math.sin(t) * 20, -140, 170, -300); ctx.quadraticCurveTo(140, -200, 70, -110); ctx.fill()
+  ctx.fillStyle = sand; ctx.beginPath(); ctx.ellipse(0, -130, 110, 140, 0, 0, 7); ctx.fill()
+  ctx.beginPath(); ctx.ellipse(0, -300, 70, 60, 0, 0, 7); ctx.fill()
+  for (const d of [-1, 1]) { ctx.beginPath(); ctx.moveTo(d * 40, -340); ctx.lineTo(d * 62, -398); ctx.lineTo(d * 70, -330); ctx.fill() }
+  ctx.strokeStyle = "#3a5ab8"; ctx.lineWidth = 6; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(0, -130, 30 + i * 18, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke() }
+  ctx.beginPath(); ctx.moveTo(-50, -320); ctx.quadraticCurveTo(0, -280, 50, -320); ctx.stroke()
+  for (const d of [-1, 1]) { ctx.fillStyle = "#e8d040"; ctx.beginPath(); ctx.arc(d * 26, -306, 14, 0, 7); ctx.fill(); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.moveTo(d * 26 - 3, -320); ctx.lineTo(d * 26 + 3, -306); ctx.lineTo(d * 26 - 3, -292); ctx.lineTo(d * 26 - 6, -306); ctx.fill() }
+  ctx.fillStyle = "#6a3a2a"; ctx.beginPath(); ctx.ellipse(0, -270, 30, 10 + 6 * Math.abs(Math.sin(t * 3)), 0, 0, 7); ctx.fill()
+  if (k > 0) { ctx.fillStyle = "#c8a060"; ctx.beginPath(); ctx.moveTo(-160, 0); ctx.quadraticCurveTo(-200, -260 * k, -40, -420 * k); ctx.quadraticCurveTo(80, -480 * k, 170, -380 * k); ctx.quadraticCurveTo(220, -200 * k, 160, 0); ctx.fill()   // the sand hand closing
+    ctx.strokeStyle = "#9a7a42"; ctx.lineWidth = 5; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-100 + i * 70, -380 * k); ctx.lineTo(-90 + i * 60, -60); ctx.stroke() } }
+  ctx.restore()
+}
+
+function drawSunaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = SN.geo = snGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S, st = SN.storm
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.top); g.addColorStop(0, st ? `rgb(${120 + 40 * (1 - st) | 0},${90 + 60 * (1 - st) | 0},${60 + 120 * (1 - st) | 0})` : "#6aa0d8"); g.addColorStop(1, st ? `rgb(${200 - 30 * st | 0},${160 - 40 * st | 0},${110 - 30 * st | 0})` : "#f2dcb0")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  { const sx = W * 0.75 + shift(0.03, W), sy = G.Y(-200), a = 1 - st * 0.8; ctx.fillStyle = `rgba(255,250,220,${0.25 * a})`; ctx.beginPath(); ctx.arc(sx, sy, 80, 0, 7); ctx.fill(); ctx.fillStyle = `rgba(255,248,214,${a})`; ctx.beginPath(); ctx.arc(sx, sy, 34, 0, 7); ctx.fill() }
+  const sk = P.sky, im = c.img[sk.file]
+  if (ready(im)) { const ps = shift(0.06, W), w = sk.w * S, y = G.Y(-260); ctx.save(); ctx.globalAlpha = 0.5 * (1 - st * 0.6); for (let x = ((ps - padL) % w + w) % w - w + padL; x < padR; x += w) ctx.drawImage(im, x, y, w + 1, sk.h * S * 0.8); ctx.restore() }
+  const hz = G.top + 10
+  // far dunes
+  { const ps = shift(0.12, W); ctx.fillStyle = "#e0b878"; ctx.beginPath(); ctx.moveTo(padL, hz); for (let x = padL; x <= padR + 20; x += 20) ctx.lineTo(x, hz - 70 - 30 * Math.sin((x - ps) / 140) - 14 * Math.sin((x - ps) / 47)); ctx.lineTo(padR, hz); ctx.fill() }
+  // the ring of sheer rock cliffs
+  { const ps = shift(0.25, W), gap = 1100
+    for (let i = Math.floor((padL - ps) / gap) - 1; i * gap + ps < padR + gap; i++) { const cx = i * gap + ps
+      for (const [dx, w, h] of [[-300, 420, 210], [300, 380, 190]]) { const x = cx + dx, top = hz - h
+        const cg = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0); cg.addColorStop(0, "#a06a3a"); cg.addColorStop(0.45, "#c88e52"); cg.addColorStop(1, "#7a4e2a")
+        ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(x - w / 2, hz); ctx.lineTo(x - w / 2 + 20, top + 30); ctx.lineTo(x - w / 2 + 60, top); ctx.lineTo(x + w / 2 - 50, top + 8); ctx.lineTo(x + w / 2 - 14, top + 40); ctx.lineTo(x + w / 2, hz); ctx.fill()
+        ctx.strokeStyle = "rgba(90,50,20,0.35)"; ctx.lineWidth = 2; for (let j = 1; j < 6; j++) { ctx.beginPath(); ctx.moveTo(x - w / 2 + 10, top + j * h / 6); ctx.lineTo(x + w / 2 - 10, top + j * h / 6 + 4 * Math.sin(j + i)); ctx.stroke() }
+        for (let j = 0; j < 5; j++) { ctx.strokeStyle = "rgba(70,40,15,0.3)"; ctx.beginPath(); ctx.moveTo(x - w / 2 + 40 + j * w / 5, top + 10); ctx.lineTo(x - w / 2 + 30 + j * w / 5, hz); ctx.stroke() } } } }
+  // Shukaku rising in front of the cliffs, behind the village rooftops
+  snShukaku(ctx, W * 0.5 + shift(0.3, W) + 260, hz + 60, S * 0.42, SN.shukaku, t, SN.burial ? Math.min(1, SN.burial.t / 0.9) : 0)
+  // the village
+  { const ps = shift(0.45, W), base = hz + 4, step = 96
+    for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) { const x = i * step + ps + 20 * _h(i * 3.7), w = 60 + 30 * _h(i * 5.1), h = 40 + 60 * _h(i * 9.3)
+      if (Math.abs(x + w / 2 - (W / 2 + ps)) < 120) continue
+      snHouse(ctx, x, base, w, h, i, t) }
+    snKazekage(ctx, W / 2 + ps, base, S * 0.36, t) }
+  // sand ninja leaping across the rooftops
+  const dt = Math.min(0.05, Math.max(0, t - (SN.skyLast || t))); SN.skyLast = t
+  if (!SN.ninja) SN.ninja = [0, 1, 2, 3].map(i => ({ x: padL + (padR - padL) * (0.15 + 0.23 * i), dir: i % 2 ? -1 : 1, t: i * 0.7, air: 0, from: 0, to: 0 }))
+  for (const n of SN.ninja) { n.t -= dt
+    if (n.air > 0) { n.air = Math.max(0, n.air - dt * 1.4); const u = 1 - n.air; n.x = n.from + (n.to - n.from) * u; if (n.air === 0) n.t = 0.8 + snRnd() * 1.6 }
+    else if (n.t <= 0) { n.air = 1; n.from = n.x; n.to = n.x + n.dir * (120 + snRnd() * 160); SN.st.leaps++; if (n.to < padL + 30 || n.to > padR - 30) { n.dir *= -1; n.to = n.x + n.dir * 140 } }
+    const y = hz - 60 - (n.air > 0 ? Math.sin((1 - n.air) * Math.PI) * 70 : 0); snNinja(ctx, n.x, y, S * 0.55, { ...n, air: n.air > 0 }, t) }
+}
+
+function sunaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = SN.geo || snGeo(def, c, W, dockTop), S = def.S
+  if (F[0] !== SN.p1) { Object.assign(SN, { p1: F[0], hp: new WeakMap(), ninja: null, grains: null, surges: [], storm: 0, shukaku: 0, burial: null, burst: [], shout: [] }); for (const k in SN.st) SN.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (SN.last || t))); SN.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + 8 * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = SN.hp.get(f); SN.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big && !SN.burial) { SN.st.surges++; const x = mid + (snRnd() < 0.5 ? -1 : 1) * (220 + snRnd() * 160); SN.surges.push({ x, t: 0, dir: x < mid ? 1 : -1 }); camera.shake?.(4, 14)
+    if (SN.st.surges % 2 === 1) snShout(x, G.top - 60, ["THE SAND IS MOVING ON ITS OWN!", "LORD GAARA'S SAND!", "SAND SHIELD!"][Math.floor(SN.st.surges / 2) % 3], "#7a5a20") }
+  if (low && !SN.st.storm && !SN.burial) { SN.st.storm++; snShout(mid, G.top - 120, "A SANDSTORM… AND THE ONE-TAIL?!", "#8a3a1a") }
+  if (SN.st.storm && !SN.burial) { SN.storm = Math.min(1, SN.storm + dt * 0.8); SN.shukaku = Math.min(1, SN.shukaku + dt * 0.6) }
+  if (ko && !SN.burial) { SN.burial = { t: 0 }; SN.st.burial++; if (SN.shukaku < 0.6) SN.shukaku = 0.6; snShout(mid, G.top - 120, "SAND BURIAL!!", "#7a5a20") }
+  if (SN.burial) { SN.burial.t += dt; if (SN.burial.t > 0.9 && !SN.burial.boom) { SN.burial.boom = true; camera.shake?.(14, 50)
+      for (let i = 0; i < 60; i++) SN.burst.push({ x: padL + (padR - padL) * snRnd(), y: G.top - snRnd() * 200, vx: (snRnd() - 0.5) * 500, vy: -100 - snRnd() * 300, life: 1.8 }) }
+    if (SN.burial.t > 1.6) { SN.shukaku = Math.max(0, SN.shukaku - dt * 0.5); SN.storm = Math.max(0, SN.storm - dt * 0.4) } }
+  // the cast on the plaza
+  drawCrowd(ctx, SNC, { W, feet, sh: shift(0.9, W) })
+  // Gaara's sand surging up behind the fight
+  for (const s of SN.surges) { s.t += dt; const u = Math.min(1, s.t / 0.5), back = Math.max(0, s.t - 1) * 1.6, h = Math.max(0, u - back) * 160
+    ctx.fillStyle = "rgba(214,176,110,0.95)"; ctx.beginPath(); ctx.moveTo(s.x - 140, feet - 6); ctx.quadraticCurveTo(s.x - 60, feet - h * 1.1, s.x + s.dir * 40, feet - h); ctx.quadraticCurveTo(s.x + s.dir * 100, feet - h * 0.7, s.x + 150, feet - 6); ctx.fill()
+    for (let i = 0; i < 5; i++) { const sx = s.x - 90 + i * 45, sh = h * (0.5 + 0.5 * _h(i + s.x)); ctx.fillStyle = "#c89a5a"; ctx.beginPath(); ctx.moveTo(sx - 9, feet - 6); ctx.lineTo(sx, feet - 6 - sh); ctx.lineTo(sx + 9, feet - 6); ctx.fill() }
+    if (s.t < 0.6) for (let i = 0; i < 3; i++) SN.burst.push({ x: s.x + (snRnd() - 0.5) * 200, y: feet - 20, vx: (snRnd() - 0.5) * 300, vy: -200 - snRnd() * 200, life: 1 }) }
+  SN.surges = SN.surges.filter(s => s.t < 1.7)
+  // grit, blowing sand, the storm haze
+  for (const b of SN.burst) { b.life -= dt; b.vy += 500 * dt; b.x += b.vx * dt; b.y += b.vy * dt; ctx.fillStyle = `rgba(200,160,100,${Math.min(1, b.life)})`; ctx.fillRect(b.x, b.y, 3, 3) }
+  SN.burst = SN.burst.filter(b => b.life > 0).slice(-400)
+  if (!SN.grains) SN.grains = Array.from({ length: 90 }, (_, i) => ({ x: padL + (padR - padL) * ((i * 0.137) % 1), y: G.top - 150 + (coverBottom - G.top + 150) * ((i * 0.611) % 1), v: 140 + 120 * ((i * 0.37) % 1), l: 8 + 14 * ((i * 0.53) % 1) }))
+  for (const gr of SN.grains) { gr.x += gr.v * (1 + SN.storm * 2.5) * dt; gr.y += Math.sin(t * 2 + gr.l) * 10 * dt; if (gr.x > padR + 30) gr.x = padL - 30
+    ctx.strokeStyle = `rgba(230,200,150,${0.35 + 0.3 * SN.storm})`; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(gr.x, gr.y); ctx.lineTo(gr.x - gr.l * (1 + SN.storm), gr.y); ctx.stroke() }
+  if (SN.storm > 0) { for (let i = 0; i < 3; i++) { const y = G.top - 220 + i * 140 + Math.sin(t * 0.8 + i) * 20, gr = ctx.createLinearGradient(0, y - 60, 0, y + 60); gr.addColorStop(0, "rgba(190,140,80,0)"); gr.addColorStop(0.5, `rgba(190,140,80,${0.28 * SN.storm})`); gr.addColorStop(1, "rgba(190,140,80,0)")
+    ctx.fillStyle = gr; ctx.fillRect(padL, y - 60, padR - padL, 120) } }
+  for (const s of SN.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  SN.shout = SN.shout.filter(s => s.t > 0)
+}

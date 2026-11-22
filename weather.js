@@ -200,6 +200,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Jujutsu High Courtyard": OUTDOOR_FULL,
   "Shibuya Incident":       OUTDOOR_COLD,
   "Hidden Leaf Village":    OUTDOOR_FULL,
+  "Sunagakure":             OUTDOOR_WARM,     // the desert village — heat, wind, dust; no snow
   "Valley of the End":      OUTDOOR_FULL,
   "Planet Namek":           OUTDOOR_WARM,   // alien + warm → no snow/hail
   "World Tournament Arena": INDOOR_ONLY,    // roofed arena

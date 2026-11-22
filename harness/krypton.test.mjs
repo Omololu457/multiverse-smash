@@ -1,0 +1,48 @@
+// harness/krypton.test.mjs — Krypton's last day behind a real match: Kryptonian soldiers (real sprites) vs Brainiac's drones, beams on big hits, the quake, the end + the rocket.
+import { chromium } from "playwright"
+import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url"
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".webp": "image/webp", ".ogg": "audio/ogg", ".wav": "audio/wav" }
+const server = await new Promise(r => { const s = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]); const f = path.join(ROOT, u === "/" ? "/index.html" : u); fs.readFile(f, (e, d) => { if (e) { res.writeHead(404).end(); return } res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); res.end(d) }) }); s.listen(0, "127.0.0.1", () => r(s)) })
+let pass = 0, fail = 0; const check = (n, c, e = "") => { console.log(`${c ? "✓" : "❌"} ${n}${e ? "  — " + e : ""}`); c ? pass++ : fail++ }
+const browser = await chromium.launch({ headless: true, args: ["--autoplay-policy=no-user-gesture-required"] })
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
+const errors = []; page.on("pageerror", e => errors.push(String(e)))
+const sleep = t => new Promise(r => setTimeout(r, t))
+const STAGE = "Krypton", OUT = path.join(ROOT, "harness", "shots", "krypton"); fs.mkdirSync(OUT, { recursive: true })
+try {
+  await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=superman&p2=homelander`, { waitUntil: "load" })
+  await page.waitForFunction(() => !!window.__harness?.boot, null, { timeout: 30000 })
+  await page.mouse.click(640, 360)
+  await page.evaluate(n => window.__harness.selectStageByName(n), STAGE)
+  await page.evaluate(() => window.__harness.start())
+  const idx0 = await page.evaluate(n => window.__harness.selectStageByName("__none__").have.indexOf(n), STAGE)
+  await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
+  // the stage grid adapts its columns / card size to the number of stages, so ask the game where the card is
+  const { cx, cy } = await page.evaluate(i => { const r = window.__harness.ui.currentHoverRects()[i], cv = document.querySelector("canvas"), b = cv.getBoundingClientRect()
+    return { cx: b.left + (r.x + r.w / 2) * b.width / cv.width, cy: b.top + (r.y + r.h / 2) * b.height / cv.height } }, idx0)
+  await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
+  await page.evaluate(() => window.__harness.skipToBattle()); await sleep(4000)
+  const T = () => page.evaluate(async () => (await import("./stageLayers.js")).kryptonState())
+  const holdHp = f => page.evaluate(src => { clearInterval(window.__h); const fn = eval(src); const H = window.__harness, q = H.p2(); window.__h = setInterval(() => H.brutality.setHp("p2", fn(q)), 5) }, String(f))
+  await sleep(9000)
+  const t0 = await T(); await page.screenshot({ path: path.join(OUT, "battle.png") })
+  check("soldier sprites load (Superman + Homelander flight art, darkened as armored troops)", t0.sprites.length === 2 && t0.sprites.every(Boolean), JSON.stringify(t0.sprites))
+  check("Brainiac's drones and Kryptonian soldiers in the sky", t0.drones >= 1 && t0.troops + t0.troopsDown >= 1, JSON.stringify(t0))
+  check("soldiers smash / heat-vision drones out of the sky", t0.dronesDown >= 1, `dronesDown ${t0.dronesDown}`)
+  await sleep(8000); const t1 = await T()
+  check("some soldiers get shot down by the drones", t1.troopsDown >= 1, `troopsDown ${t1.troopsDown}`)
+  { const base = await page.evaluate(() => window.__harness.p2().health); await holdHp(new Function(`return () => ${base - 150}`)()) } await sleep(250)
+  const t2 = await T()
+  check("a big hit: the skull ship fires on the city, Brainiac speaks", t2.strikes >= 1 && !!t2.say, `${t2.strikes} · ${t2.say}`)
+  await holdHp(q => Math.round((q.maxHealth || q.maxHp || 1000) * 0.18)); await sleep(1200)
+  const t3 = await T(); await page.screenshot({ path: path.join(OUT, "quake.png") })
+  check("a fighter close to losing: the planet quakes (screen shakes)", t3.quaking && t3.quakeShakes >= 1, JSON.stringify({ q: t3.quaking, s: t3.quakeShakes }))
+  await holdHp(q => 0); await sleep(1000); await page.screenshot({ path: path.join(OUT, "end.png") }); await sleep(1200)
+  const t4 = await T(); await page.screenshot({ path: path.join(OUT, "rocket.png") }); await page.evaluate(() => clearInterval(window.__h))
+  check("the knockout: Krypton blows apart and the little rocket escapes", t4.end === "blast" && t4.pod === true, JSON.stringify({ end: t4.end, pod: t4.pod }))
+  check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
+} catch (e) { check("run", false, String(e).slice(0, 300)) }
+await browser.close(); server.close()
+console.log(`krypton: ${pass} passed, ${fail} failed`)
+process.exit(fail ? 1 : 0)

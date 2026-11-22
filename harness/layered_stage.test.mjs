@@ -29,7 +29,9 @@ try {
   const idx0 = await page.evaluate(n => window.__harness.selectStageByName("__none__").have.indexOf(n), STAGE)
   await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
   // click the card (stage cards start the match on click); its rect comes from the same layout the screen draws
-  const cx = 115 + (idx0 % 6) * 210, cy = 215 + Math.floor(idx0 / 6) * 130     // stage-select card grid (6 per row)
+  // the grid adapts its columns / card size to the number of stages, so ask the game where the card is
+  const { cx, cy } = await page.evaluate(i => { const r = window.__harness.ui.currentHoverRects()[i], cv = document.querySelector("canvas"), b = cv.getBoundingClientRect()
+    return { cx: b.left + (r.x + r.w / 2) * b.width / cv.width, cy: b.top + (r.y + r.h / 2) * b.height / cv.height } }, idx0)
   await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
   await page.evaluate(() => window.__harness.skipToBattle())
   const WANT_W = +((fs.readFileSync(path.join(ROOT, "game.js"), "utf8").split("\n").find(l => l.includes(`name: ${JSON.stringify(STAGE)}`)) || "").match(/worldWidth:\s*(\d+)/) || [0, 2400])[1]

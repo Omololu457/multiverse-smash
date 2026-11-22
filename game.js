@@ -2407,6 +2407,8 @@ const STAGE_DEFS = [
   // F-16 → Batwing, tarmac → steel deck with a Bat-symbol, horizon → cave depths + Batcomputer, airmen → Alfred-style butlers.
   { name: "The Batcave",            series: "dc",          music: "PISSY PAMPER - Playboi Cardi (with Young Nudy).mp3", landmark: "guile_batcave", sky: "#05070b", mid: "#0d1220", floor: "#1a1e27", accent: "#facc15", worldWidth: 2400,
     layers: "guile_batcave", backgroundImage: "stages/guile_batcave/preview.png" },
+  { name: "Krypton",                series: "dc",          music: "LUCKI - 2021 Vibes (Official Video).mp3", shuffle: true, playlist: ["LUCKI - 2021 Vibes (Official Video).mp3", "NBA Youngboy - 4 Sons of a King (Official Audio).mp3"], landmark: "krypton", sky: "#2a0606", mid: "#8a1e0c", floor: "#6ac8d8", accent: "#7dff9a", worldWidth: 2400,
+      layers: "necro_krypton", backgroundImage: "stages/necro_krypton/preview.png" },
   { name: "The Baratie",            series: "onepiece",    music: "Drake & Playboi Carti - Pain 1993 V1 (AI REMASTER).mp3", landmark: "baratie", sky: "#3a7ae8", mid: "#1a4a8a", floor: "#c89058", accent: "#f08a2a", worldWidth: 2400,
       layers: "ken3_baratie", backgroundImage: "stages/ken3_baratie/preview.png" },
   { name: "Stark Lab",              series: "marvel",      music: "Chérie  23  (Sloweddd).mp3", shuffle: true, playlist: ["Chérie  23  (Sloweddd).mp3", "At The Club.mp3", "Chris Brown - Under The Influence (Audio).mp3"], landmark: "starklab", sky: "#05070c", mid: "#121826", floor: "#1a1f2a", accent: "#5ee6ff", worldWidth: 2400,

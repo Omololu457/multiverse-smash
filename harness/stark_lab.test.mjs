@@ -18,7 +18,9 @@ try {
   await page.evaluate(() => window.__harness.start())
   const idx0 = await page.evaluate(n => window.__harness.selectStageByName("__none__").have.indexOf(n), STAGE)
   await page.evaluate(i => window.__harness.showMenu("SELECT_STAGE", i), idx0); await sleep(300)
-  const cx = 115 + (idx0 % 6) * 210, cy = 215 + Math.floor(idx0 / 6) * 130
+  // the stage grid adapts its columns / card size to the number of stages, so ask the game where the card is
+  const { cx, cy } = await page.evaluate(i => { const r = window.__harness.ui.currentHoverRects()[i], cv = document.querySelector("canvas"), b = cv.getBoundingClientRect()
+    return { cx: b.left + (r.x + r.w / 2) * b.width / cv.width, cy: b.top + (r.y + r.h / 2) * b.height / cv.height } }, idx0)
   await page.mouse.move(cx, cy); await sleep(150); await page.mouse.click(cx, cy); await sleep(2500)
   await page.evaluate(() => window.__harness.skipToBattle()); await sleep(4000)
   const L = () => page.evaluate(async () => (await import("./stageLayers.js")).labState())

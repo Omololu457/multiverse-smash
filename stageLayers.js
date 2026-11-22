@@ -261,11 +261,29 @@ SETS.ken3_baratie = {
   back: [
     { procedural: "baratie_sea", p: 0.08 },
     { procedural: "baratie_ship", p: 0.82 },
-    { piece: "pier", p: 0.9, x: 0.5, bottomRow: 1 },
+    { piece: "pier", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 1 },     // mirrored on past its ends: never a gap
   ],
   props: [],
   front: [],
   fx: "baratie",
+  animRate: {},
+}
+
+// KRYPTON — Necro's Stage, Moscow (Street Fighter III: New Generation sheet) repainted by
+// tools/stage_layers/slice_necro_krypton.py: the citadel with its dome torn open on Krypton's last day under Brainiac.
+SETS.necro_krypton = {
+  dir: "./stages/necro_krypton/",
+  S: 0.95,
+  standRow: 26,
+  deckFrontRow: 56,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "krypton", p: 0.05 },
+    { piece: "hall", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 1 },     // mirrored on past its ends: never a gap
+  ],
+  props: [],
+  front: [],
+  fx: "krypton",
   animRate: {},
 }
 
@@ -386,6 +404,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "krypton") { drawKryptonSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "baratie_sea") { drawBaratieSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "baratie_ship") { drawBaratieMoored(ctx, def, c, { W, dockTop }); continue }
     if (ly.procedural === "namek") { drawNamekBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -481,6 +500,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "krypton") kryptonFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "baratie") baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "namek") namekFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "tournament") tournamentFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -2534,6 +2554,13 @@ const BR = { p1: null, last: 0, hp: new WeakMap(), balls: [], splashes: [], spra
 export const baratieState = () => ({ shots: BR.shots, balls: BR.balls.length, splashes: BR.splashes.length, spouts: BR.spouts, plates: BR.plateCount, cheer: BR.cheer > 0,
   shout: BR.shoutT > 0 ? BR.shout : null, king: BR.king ? BR.king.stage : null, warship: BR.warship.alive, eaten: BR.eaten, broadside: BR.broadside, crowd: crowdState(BRC) })
 
+// every visible copy of a piece tiled with tile:"mirror" (same layout as the back-layer loop): px → screen x
+function mirrorCopies(G, w, padL, padR) {
+  const out = []
+  for (let k = Math.floor((padL - G.x0) / w); G.x0 + k * w < padR; k++) { const xx = G.x0 + k * w, odd = Math.abs(k) % 2 === 1
+    out.push({ k, X: px => odd ? xx + w - px * G.S : xx + px * G.S }) }
+  return out
+}
 function brGeo(def, c, W, dockTop) {                       // where the pier picture sits on screen (same as its back layer)
   const pc = c.layout.pieces.pier, S = def.S, w = pc.w * S, h = pc.h * S
   const x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop + 1 * S - h
@@ -2631,9 +2658,11 @@ function baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   for (const f of F) { const hp = f.health ?? 0, was = BR.hp.get(f); BR.hp.set(f, hp); if (hp <= 0) ko = true; if (was != null && was - hp >= 60) { bigHit = true; hitX = f.x + (f.w || 50) / 2 } }
   BR.cheer = Math.max(0, BR.cheer - dt); if (bigHit || ko) BR.cheer = ko ? 4 : 1.4
   // the BARATIE sign (over the old crab sign), a barrel stack where the post-sign was
-  { const sx = G.X(c.layout.pieces.pier.sign[0]), sy = G.Y(c.layout.pieces.pier.sign[1]), k = S / 1.5, sw = Math.sin(t * 1.2) * 0.02
-    ctx.save(); ctx.translate(sx, sy); ctx.rotate(sw); ctx.scale(k, k)
-    ctx.fillStyle = "#7a4a22"; ctx.fillRect(-4, -10, 8, 140)
+  for (const cp of mirrorCopies(G, c.layout.pieces.pier.w * S, padL, padR)) { const sx = cp.X(c.layout.pieces.pier.sign[0]), sy = G.Y(c.layout.pieces.pier.sign[1]), k = S / 1.5, sw = Math.sin(t * 1.2) * 0.02
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(sw * 0.3)
+    { const bw = 168 * S, bh = 162 * S; ctx.fillStyle = "#6a3e1c"; ctx.fillRect(-bw / 2, -bh / 2, bw, bh); ctx.fillStyle = "#8a5428"; for (let i = 0; i < 6; i++) ctx.fillRect(-bw / 2 + 4, -bh / 2 + 4 + i * (bh - 8) / 6, bw - 8, (bh - 8) / 6 - 4)
+      ctx.strokeStyle = "#3a200c"; ctx.lineWidth = 5; ctx.strokeRect(-bw / 2, -bh / 2, bw, bh); ctx.fillStyle = "#c8c8c8"; for (const [qx, qy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { ctx.beginPath(); ctx.arc(qx * (bw / 2 - 10), qy * (bh / 2 - 10), 4, 0, 7); ctx.fill() } }
+    ctx.rotate(sw); ctx.scale(k * 1.15, k * 1.15)
     ctx.fillStyle = "#f08a2a"; ctx.beginPath(); ctx.moveTo(-90, 0); ctx.quadraticCurveTo(-60, -66, 40, -48); ctx.lineTo(96, -70); ctx.lineTo(80, 0); ctx.lineTo(96, 70); ctx.lineTo(40, 48); ctx.quadraticCurveTo(-60, 66, -90, 0); ctx.closePath(); ctx.fill()   // fish
     ctx.strokeStyle = "#6a2a0a"; ctx.lineWidth = 4; ctx.stroke()
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(-58, -12, 11, 0, 7); ctx.fill(); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(-55, -12, 5, 0, 7); ctx.fill()
@@ -2641,7 +2670,7 @@ function baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.font = "900 26px Georgia, serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff8e0"; ctx.strokeStyle = "#5a1a0a"; ctx.lineWidth = 5
     ctx.strokeText("BARATIE", 10, 8); ctx.fillText("BARATIE", 10, 8)
     ctx.restore()
-    const bx = G.X(c.layout.pieces.pier.barrel[0]), by = G.Y(c.layout.pieces.pier.barrel[1])
+    const bx = cp.X(c.layout.pieces.pier.barrel[0]), by = G.Y(c.layout.pieces.pier.barrel[1])
     for (const [ox, oy] of [[-34, 0], [0, 0], [34, 0], [-17, -50], [17, -50]]) { const x = bx + ox * k, y = by + oy * k
       ctx.fillStyle = "#8a5a2a"; ctx.beginPath(); ctx.ellipse(x, y - 24 * k, 17 * k, 25 * k, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#3a3a3a"; ctx.fillRect(x - 17 * k, y - 38 * k, 34 * k, 3 * k); ctx.fillRect(x - 17 * k, y - 12 * k, 34 * k, 3 * k) } }
   // the cooks in the doorway: shout when the fight comes near the kitchen, throw plates on big hits
@@ -2702,4 +2731,191 @@ function baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     const x = g.x + Math.cos(g.a) * g.r + (g.flee ? (g.a * 40) : 0), y = g.y + Math.sin(g.a) * g.r * 0.25 - (g.flee ? 60 * (1.6 - g.flee) : 0), w = Math.sin(t * (g.flee ? 20 : 8) + g.r) * 5
     ctx.strokeStyle = "#f8f8f8"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - 9, y - w); ctx.quadraticCurveTo(x - 4, y - 4, x, y); ctx.quadraticCurveTo(x + 4, y - 4, x + 9, y - w); ctx.stroke() }
   BRC.cheerHold = BR.cheer
+}
+
+// ───────────────────────────── KRYPTON — THE LAST DAY (render-only, wall clock, own PRNG) ─────────────────────────────
+// Necro's hall (Street Fighter III) as Krypton's citadel, its dome torn open. Through the hole and the windows: the
+// swollen red sun, the crystal city cracking apart, Brainiac's skull ship hauling a domed city up in its tractor beam,
+// Brainiac himself as a giant hologram, his skull drones strafing the city — and Kryptonian soldiers (the game's real
+// flying sprites, darkened as armored troops, tiny with distance) launching up to smash and heat-vision the drones down.
+// Big hits draw a beam from the skull ship; a fighter close to losing sets the planet quaking; the knockout is the end
+// of Krypton — the horizon erupts in a white-green blast, a long heavy shake, and a small rocket streaks away to space.
+let _krSeed = 0x6d2b79f5
+const krRnd = () => { _krSeed ^= _krSeed << 13; _krSeed ^= _krSeed >>> 17; _krSeed ^= _krSeed << 5; return (_krSeed >>> 0) / 4294967296 }
+const KR = { p1: null, last: 0, hp: new WeakMap(), drones: [], troops: [], beams: [], booms: [], debris: [], embers: [], spawnD: 0, spawnT: 0, launchT: 0,
+  dronesDown: 0, troopsDown: 0, strikes: 0, quake: 0, quakeShakes: 0, end: null, pod: null, say: null, sayT: 0, cityLost: 0, imgs: null, geo: null }
+export const kryptonState = () => ({ drones: KR.drones.length, troops: KR.troops.length, dronesDown: KR.dronesDown, troopsDown: KR.troopsDown, strikes: KR.strikes,
+  quaking: KR.quake > 0, quakeShakes: KR.quakeShakes, end: KR.end ? KR.end.stage : null, pod: !!KR.pod, say: KR.sayT > 0 ? KR.say : null,
+  sprites: KR.imgs ? KR.imgs.map(i => ready(i.im)) : [] })
+function krImgs() {
+  if (!KR.imgs) KR.imgs = [{ src: "./superman_flycruise_uniform.png", f: 1, w: 59, h: 57, diag: true }, { src: "./homelander_flyCruise_uniform.png", f: 4, w: 84, h: 77 }]
+    .map(d => { const im = new Image(); im.src = d.src; return { ...d, im } })
+  return KR.imgs
+}
+function krGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.hall, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop + 1 * S - h
+  return { pc, S, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, horizon: y0 + 372 * S }   // below the windows: they look out on the sky
+}
+function krSay(s, d = 2.2) { KR.say = s; KR.sayT = d }
+function krBoom(x, y, r, col = "255,170,60") { KR.booms.push({ x, y, r, t: 0, life: 0.9, col }) }
+
+function drawKryptonSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = KR.geo = krGeo(def, c, W, dockTop), hz = G.horizon, ss = shift(0.05, W), end = KR.end
+  const g = ctx.createLinearGradient(0, coverTop, 0, hz); g.addColorStop(0, "#2a0606"); g.addColorStop(0.55, "#8a1e0c"); g.addColorStop(1, "#f0702a")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  // Rao — the swollen red sun
+  { const x = W * 0.7 + ss, y = G.Y(120), r = 90 + Math.sin(t * 0.8) * 3, gl = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 2.4)
+    gl.addColorStop(0, "rgba(255,120,40,0.7)"); gl.addColorStop(1, "rgba(255,60,20,0)"); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, r * 2.4, 0, 7); ctx.fill()
+    const sg = ctx.createRadialGradient(x - 20, y - 20, 10, x, y, r); sg.addColorStop(0, "#ffd080"); sg.addColorStop(0.5, "#ff5a1a"); sg.addColorStop(1, "#b0200a")
+    ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill() }
+  // the crystal city on the horizon, cracking (spires lean and fall as the end nears)
+  const cs = shift(0.15, W)
+  for (let i = 0; i < 26; i++) {
+    const fx = i / 25, x = padL - 100 + fx * (padR - padL + 200) + cs, h = 80 + 160 * _h(i * 5 + 1), w = 14 + 22 * _h(i * 5 + 2)
+    const fall = KR.cityLost > _h(i * 5 + 3) ? Math.min(1.2, (KR.cityLost - _h(i * 5 + 3)) * 3) : 0
+    ctx.save(); ctx.translate(x, hz); ctx.rotate(fall * (_h(i) < 0.5 ? -1 : 1))
+    const cg = ctx.createLinearGradient(0, -h, 0, 0); cg.addColorStop(0, "rgba(230,250,255,0.95)"); cg.addColorStop(1, "rgba(120,180,220,0.85)")
+    ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.lineTo(-w * 0.3, -h * 0.7); ctx.lineTo(0, -h); ctx.lineTo(w * 0.3, -h * 0.75); ctx.lineTo(w / 2, 0); ctx.closePath(); ctx.fill()
+    ctx.restore()
+  }
+  // the land splitting: glowing fissures along the horizon (wider while the planet quakes / at the end)
+  const crack = 0.4 + (KR.quake > 0 ? 0.6 : 0) + (end ? 2 : 0)
+  ctx.strokeStyle = `rgba(255,${end ? 230 : 140},60,${Math.min(1, 0.5 + crack * 0.25)})`; ctx.lineWidth = 2 + crack * 2
+  for (let i = 0; i < 6; i++) { ctx.beginPath(); let x = padL + i * (padR - padL) / 6 + cs * 0.5, y = hz + 4; ctx.moveTo(x, y); for (let k = 0; k < 8; k++) { x += 18 + 14 * _h(i * 9 + k); y += (_h(i * 13 + k) - 0.5) * 10; ctx.lineTo(x, y) } ctx.stroke() }
+  ctx.fillStyle = "#1a0a08"; ctx.fillRect(padL, hz + 2, padR - padL, dockTop - hz)
+  // Brainiac's skull ship, hauling a domed city up in its tractor beam
+  const bx = W * 0.4 + shift(0.1, W), by = G.Y(150) + Math.sin(t * 0.5) * 8 - (end && end.t > 1 ? (end.t - 1) * 90 : 0)
+  KR.ship = { x: bx, y: by }
+  { const beam = ctx.createLinearGradient(0, by + 60, 0, hz); beam.addColorStop(0, "rgba(120,255,140,0.35)"); beam.addColorStop(1, "rgba(120,255,140,0.05)")
+    ctx.fillStyle = beam; ctx.beginPath(); ctx.moveTo(bx - 30, by + 60); ctx.lineTo(bx + 30, by + 60); ctx.lineTo(bx + 110, hz); ctx.lineTo(bx - 110, hz); ctx.closePath(); ctx.fill()
+    const ky = hz - 40 - ((t * 6) % 140) * 0.3 - (end ? Math.min(200, end.t * 80) : 0)                 // the city in the bottle, rising
+    ctx.fillStyle = "rgba(210,240,255,0.5)"; ctx.beginPath(); ctx.arc(bx, ky, 34, Math.PI, 0); ctx.fill(); ctx.fillStyle = "rgba(240,250,255,0.9)"
+    for (let i = 0; i < 7; i++) ctx.fillRect(bx - 26 + i * 8, ky - 8 - 18 * _h(i + 40), 5, 8 + 18 * _h(i + 40))
+    ctx.fillStyle = "#3a3a30"; ctx.fillRect(bx - 36, ky, 72, 6)
+    for (let i = 0; i < 6; i++) { const tx = bx - 90 + i * 36, sw = Math.sin(t * 1.5 + i) * 10; ctx.strokeStyle = "#1e3a22"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(tx * 0.5 + bx * 0.5, by + 40); ctx.quadraticCurveTo(tx + sw, by + 100, tx + sw * 2, by + 150 + 20 * _h(i)); ctx.stroke() }   // tentacle cables
+    ctx.fillStyle = "#1a2a1c"; ctx.beginPath(); ctx.ellipse(bx, by, 120, 80, 0, Math.PI * 0.95, Math.PI * 2.05); ctx.lineTo(bx + 70, by + 60); ctx.lineTo(bx - 70, by + 60); ctx.closePath(); ctx.fill()   // the skull
+    ctx.fillStyle = "#2a4a2c"; ctx.beginPath(); ctx.ellipse(bx, by - 30, 100, 40, 0, Math.PI, 0); ctx.fill()
+    for (const k of [-1, 1]) { const eg = ctx.createRadialGradient(bx + k * 42, by + 4, 2, bx + k * 42, by + 4, 26); eg.addColorStop(0, "rgba(200,255,200,1)"); eg.addColorStop(1, "rgba(60,255,90,0)"); ctx.fillStyle = eg; ctx.beginPath(); ctx.arc(bx + k * 42, by + 4, 26, 0, 7); ctx.fill() }
+    ctx.fillStyle = "#0a140a"; for (let i = 0; i < 6; i++) ctx.fillRect(bx - 36 + i * 13, by + 44, 9, 16) }
+  // Brainiac — a giant flickering hologram over the battle
+  { const hx = W * 0.6 + shift(0.08, W), hy = G.Y(150), fl = 0.55 + 0.15 * Math.sin(t * 13) + (Math.sin(t * 2.3) > 0.97 ? -0.3 : 0)
+    ctx.save(); ctx.globalAlpha = Math.max(0.15, fl); ctx.translate(hx, hy); ctx.scale(0.62, 0.62); ctx.translate(-hx, -hy)
+    ctx.fillStyle = "rgba(90,200,110,0.5)"; ctx.beginPath(); ctx.ellipse(hx, hy, 70, 88, 0, 0, 7); ctx.fill()                       // head
+    ctx.fillStyle = "rgba(130,60,160,0.55)"; ctx.beginPath(); ctx.moveTo(hx - 120, hy + 160); ctx.lineTo(hx - 60, hy + 70); ctx.lineTo(hx + 60, hy + 70); ctx.lineTo(hx + 120, hy + 160); ctx.closePath(); ctx.fill()   // collar
+    ctx.fillStyle = "rgba(240,250,255,0.9)"; for (const [dx, dy] of [[-30, -60], [0, -78], [30, -60], [-46, -30], [46, -30]]) { ctx.beginPath(); ctx.arc(hx + dx, hy + dy, 5, 0, 7); ctx.fill() }   // head nodes
+    ctx.fillStyle = "rgba(255,60,60,0.95)"; ctx.fillRect(hx - 32, hy - 6, 20, 6); ctx.fillRect(hx + 12, hy - 6, 20, 6)                   // eyes
+    ctx.strokeStyle = "rgba(160,255,180,0.35)"; ctx.lineWidth = 1; for (let y = hy - 90; y < hy + 160; y += 5) { ctx.beginPath(); ctx.moveTo(hx - 120, y); ctx.lineTo(hx + 120, y); ctx.stroke() }   // scanlines
+    ctx.restore()
+    KR.holo = { x: hx, y: hy }
+    if (KR.sayT > 0 && KR.say) { ctx.save(); ctx.font = "900 17px 'Courier New', monospace"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(170,255,190,0.95)"; ctx.shadowColor = "#2f8"; ctx.shadowBlur = 10; ctx.fillText(KR.say, hx, hy + 120); ctx.restore() }
+  }
+  krBattle(ctx, { W, padL, padR, G, hz, t })
+}
+
+// the sky battle — drawn BEHIND the hall piece, so it only shows through the torn roof and the windows
+function krBattle(ctx, { W, padL, padR, G, hz, t }) {
+  const dt = Math.min(0.05, Math.max(0, t - (KR.lastB || t))); KR.lastB = t
+  const imgs = krImgs(), ended = KR.end && KR.end.stage !== "charge"
+  // ── spawns: Brainiac's skull drones swarm in, Kryptonian soldiers launch up from the city
+  KR.spawnD -= dt; KR.spawnT -= dt
+  if (!ended && KR.spawnD <= 0 && KR.drones.filter(d => !d.down).length < 8) { KR.spawnD = 0.5 + krRnd() * 0.9; const fromL = krRnd() < 0.5, sc = 0.5 + krRnd() * 0.7
+    KR.drones.push({ x: fromL ? padL - 40 : padR + 40, y: G.Y(115) + krRnd() * (hz - G.Y(115) - 20), dir: fromL ? 1 : -1, vx: (fromL ? 1 : -1) * (120 + krRnd() * 140) * sc, sc, fireT: 0.6 + krRnd() * 1.5, down: false, vy: 0, seed: krRnd() * 99 }) }
+  if (!ended && KR.spawnT <= 0 && KR.troops.filter(s => !s.down).length < 7) { KR.spawnT = 0.6 + krRnd() * 0.9; const sc = 0.32 + krRnd() * 0.3, k = krRnd() < 0.4 ? 0 : 1
+    KR.troops.push({ x: padL + 80 + krRnd() * (padR - padL - 160), y: hz - 4, vx: 0, vy: -(260 + krRnd() * 200), sc, k, target: null, heatT: 0.8 + krRnd(), down: false, seed: krRnd() * 99, rise: true }) }
+  // ── drones: skull drones with green beams at the city and at the soldiers
+  for (const d of KR.drones) {
+    if (d.down) { d.vy += 360 * dt; d.y += d.vy * dt; d.x += d.vx * dt * 0.3; if (d.y > hz) { d.gone = true; krBoom(d.x, hz - 6, 26 * d.sc + 10) } }
+    else { d.x += d.vx * dt; d.y += Math.sin(t * 2 + d.seed) * 14 * dt; d.fireT -= dt
+      if (d.fireT <= 0) { d.fireT = 1 + krRnd() * 1.6; const prey = krRnd() < 0.5 ? KR.troops.filter(s => !s.down).sort((a, b) => Math.abs(a.x - d.x) - Math.abs(b.x - d.x))[0] : null
+        if (prey) { KR.beams.push({ x0: d.x, y0: d.y, x1: prey.x, y1: prey.y, t: 0, life: 0.25, col: "120,255,140", w: 2 }); prey.down = true; prey.vy = -40; KR.troopsDown++ }
+        else { const tx = d.x + d.dir * 80 + (krRnd() - 0.5) * 120; KR.beams.push({ x0: d.x, y0: d.y, x1: tx, y1: hz, t: 0, life: 0.3, col: "120,255,140", w: 2 }); krBoom(tx, hz - 4, 22) } }
+      if (d.x < padL - 120 || d.x > padR + 120) d.gone = true }
+    const x = d.x, y = d.y, s = d.sc
+    ctx.save(); ctx.translate(x, y); if (d.down) ctx.rotate(t * 6); ctx.scale(s, s)
+    ctx.fillStyle = "#24402a"; ctx.beginPath(); ctx.ellipse(0, 0, 22, 15, 0, Math.PI, 0); ctx.lineTo(14, 10); ctx.lineTo(-14, 10); ctx.closePath(); ctx.fill()
+    ctx.fillStyle = d.down ? "#ff8040" : "#8aff9a"; ctx.beginPath(); ctx.arc(-8, 0, 4, 0, 7); ctx.arc(8, 0, 4, 0, 7); ctx.fill()
+    ctx.strokeStyle = "#24402a"; ctx.lineWidth = 2; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * 8, 10); ctx.quadraticCurveTo(i * 12, 20, i * 8 + Math.sin(t * 6 + i) * 4, 28); ctx.stroke() }
+    ctx.restore()
+    if (d.down) { ctx.fillStyle = "rgba(40,30,30,0.5)"; for (let k = 1; k < 6; k++) { ctx.beginPath(); ctx.arc(x - d.vx * k * 0.02, y - d.vy * k * 0.02, 3 + k * 2, 0, 7); ctx.fill() } }
+  }
+  KR.drones = KR.drones.filter(d => !d.gone)
+  // ── Kryptonian soldiers (real sprites): streak up from the city, lock onto a drone, ram it or burn it with heat vision
+  for (const s of KR.troops) {
+    if (s.down) { s.vy += 300 * dt; s.y += s.vy * dt; s.x += s.vx * dt * 0.5; if (s.y > hz) { s.gone = true; krBoom(s.x, hz - 4, 14) } }
+    else {
+      if (!s.target || s.target.down || s.target.gone) s.target = KR.drones.filter(d => !d.down).sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y))[0] || null
+      const T = s.target
+      if (T) { const dx = T.x - s.x, dy = T.y - s.y, d = Math.hypot(dx, dy) || 1, sp = 420
+        s.vx += (dx / d * sp - s.vx) * Math.min(1, dt * 3); s.vy += (dy / d * sp - s.vy) * Math.min(1, dt * 3); s.heatT -= dt
+        if (d < 24) { T.down = true; T.vy = -120; KR.dronesDown++; krBoom(T.x, T.y, 30 * T.sc + 12); s.target = null }
+        else if (s.heatT <= 0 && d < 260) { s.heatT = 1.2 + krRnd(); KR.beams.push({ x0: s.x, y0: s.y, x1: T.x, y1: T.y, t: 0, life: 0.3, col: "255,50,40", w: 3 }); T.down = true; T.vy = -60; KR.dronesDown++; krBoom(T.x, T.y, 24 * T.sc + 10) } }
+      else { s.vy += (-300 - s.vy) * dt }
+      s.x += s.vx * dt; s.y += s.vy * dt
+      if (s.y < G.Y(40) - 300 || s.x < padL - 200 || s.x > padR + 200) s.gone = true }
+    const I = imgs[s.k]
+    if (ready(I.im)) { const fr = I.f > 1 ? Math.floor(t * 10 + s.seed) % I.f : 0, ang = Math.atan2(s.vy, s.vx), face = s.vx < 0 ? -1 : 1
+      ctx.save(); ctx.translate(s.x, s.y); ctx.filter = "grayscale(0.55) brightness(0.8) contrast(1.15)"
+      if (I.diag) { ctx.rotate(ang + Math.PI / 4); ctx.scale(s.sc * 0.9, s.sc * 0.9) } else { ctx.rotate(face > 0 ? ang : ang + Math.PI); ctx.scale(face * s.sc, s.sc) }
+      if (s.down) ctx.rotate(t * 5)
+      ctx.drawImage(I.im, fr * I.w, 0, I.w, I.h, -I.w / 2, -I.h / 2, I.w, I.h); ctx.restore()
+      if (s.rise && !s.down) { ctx.strokeStyle = "rgba(200,230,255,0.35)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - s.vx * 0.12, s.y - s.vy * 0.12); ctx.stroke() } }   // speed streak
+  }
+  KR.troops = KR.troops.filter(s => !s.gone)
+  // beams + explosions
+  for (const b of KR.beams) { b.t += dt; const a = 1 - b.t / b.life
+    ctx.strokeStyle = `rgba(${b.col},${0.35 * a})`; ctx.lineWidth = b.w * 3; ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke()
+    ctx.strokeStyle = `rgba(255,255,255,${0.9 * a})`; ctx.lineWidth = b.w; ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke() }
+  KR.beams = KR.beams.filter(b => b.t < b.life)
+  for (const e of KR.booms) { e.t += dt; const u = e.t / e.life, gl = ctx.createRadialGradient(e.x, e.y, 0, e.x, e.y, e.r * (0.5 + u))
+    gl.addColorStop(0, `rgba(255,250,220,${1 - u})`); gl.addColorStop(0.4, `rgba(${e.col},${0.85 * (1 - u)})`); gl.addColorStop(1, "rgba(120,30,10,0)"); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * (0.5 + u), 0, 7); ctx.fill() }
+  KR.booms = KR.booms.filter(e => e.t < e.life)
+}
+
+function kryptonFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = KR.geo || krGeo(def, c, W, dockTop), hz = G.horizon, S = def.S
+  if (F[0] !== KR.p1) { Object.assign(KR, { p1: F[0], drones: [], troops: [], beams: [], booms: [], debris: [], embers: [], dronesDown: 0, troopsDown: 0, strikes: 0, quake: 0, quakeShakes: 0, end: null, pod: null, cityLost: 0, hp: new WeakMap() }); krSay("KRYPTON'S KNOWLEDGE WILL BE MINE.", 3) }
+  const dt = Math.min(0.05, Math.max(0, t - (KR.last || t))); KR.last = t
+  const ended = KR.end && KR.end.stage !== "charge"
+  // the floor carries on toward the viewer (cold crystal tiles); glowing cracks open in it while the planet quakes
+  const fb = dockTop + c.layout.pieces.floor.h * S
+  if (coverBottom > fb) { const gg = ctx.createLinearGradient(0, fb, 0, coverBottom); gg.addColorStop(0, "#6ac8d8"); gg.addColorStop(1, "#2a5a6a"); ctx.fillStyle = gg; ctx.fillRect(padL, fb, padR - padL, coverBottom - fb)
+    ctx.strokeStyle = "rgba(20,60,80,0.35)"; ctx.lineWidth = 2; for (let y = fb + 40; y < coverBottom; y += 40 + (y - fb) * 0.25) { ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padR, y); ctx.stroke() }
+    for (let x = padL - 400; x < padR + 400; x += 120) { ctx.beginPath(); ctx.moveTo(x + shift(1, W), fb); ctx.lineTo(x + (x - W / 2) * 0.6 + shift(1, W), coverBottom); ctx.stroke() } }
+  if (KR.quake > 0 || KR.end) { ctx.strokeStyle = `rgba(255,${KR.end ? 240 : 150},70,${0.5 + 0.3 * Math.sin(t * 9)})`; ctx.lineWidth = 3
+    for (let i = 0; i < 5; i++) { ctx.beginPath(); let x = padL + (i + 0.5) * (padR - padL) / 5, y = dockTop + 20 * S; ctx.moveTo(x, y); for (let k = 0; k < 6; k++) { x += (_h(i * 7 + k) - 0.5) * 60; y += 14 + 10 * _h(i * 3 + k); ctx.lineTo(x, y) } ctx.stroke() } }
+  // the fight → the war
+  let bigHit = false, danger = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = KR.hp.get(f); KR.hp.set(f, hp); if (hp <= 0) ko = true; else if (hp / max <= 0.25) danger = true; if (was != null && was - hp >= 60) bigHit = true }
+  if (bigHit && !ended) { KR.strikes++; const tx = padL + krRnd() * (padR - padL); KR.beams.push({ x0: KR.ship?.x ?? W * 0.3, y0: (KR.ship?.y ?? hz - 300) + 10, x1: tx, y1: hz, t: 0, life: 0.6, col: "120,255,140", w: 10 }); krBoom(tx, hz - 10, 70); KR.cityLost = Math.min(1, KR.cityLost + 0.06); camera.shake?.(5, 12); if (KR.sayT <= 0) krSay(["RESISTANCE IS IRRELEVANT.", "YOUR WORLD IS ALREADY DEAD.", "CATALOGUED. DELETED."][KR.strikes % 3]) }
+  if (danger && !KR.end) { KR.quake = 1; if (Math.sin(t * 1.3) > 0.985 || (KR.quakeShakes === 0)) { KR.quakeShakes++; camera.shake?.(4, 30) } KR.cityLost = Math.min(1, KR.cityLost + dt * 0.03) }
+  if (ko && !KR.end) { KR.end = { stage: "blast", t: 0 }; camera.shake?.(18, 80); krSay("THIS WORLD'S DATA IS ARCHIVED.", 3); KR.cityLost = 1
+    for (const d of KR.drones) if (!d.down) { d.down = true; d.vy = -100 } for (const s of KR.troops) if (!s.down) { s.down = true; s.vy = -50 } }
+  KR.sayT = Math.max(0, KR.sayT - dt)
+  // the hall in front of all that (the piece) is already drawn; the torn roof edge glows and drips embers into the hall
+  const tear = c.layout.pieces.hall.tear
+  for (const cp of mirrorCopies(G, c.layout.pieces.hall.w * S, padL, padR)) {
+    ctx.strokeStyle = `rgba(255,140,50,${0.55 + 0.2 * Math.sin(t * 5)})`; ctx.lineWidth = 3; ctx.beginPath(); tear.forEach(([x, y], i) => i ? ctx.lineTo(cp.X(x), G.Y(y)) : ctx.moveTo(cp.X(x), G.Y(y))); ctx.stroke()
+    if (krRnd() < dt * 7) { const p = tear[Math.floor(krRnd() * tear.length)]; if (p[1] > 4) KR.embers.push({ x: cp.X(p[0]), y: G.Y(p[1]), vx: (krRnd() - 0.5) * 30, vy: 0, life: 2 }) } }
+  // falling debris through the hole (more while the planet quakes); it smashes on the floor behind the fighters
+  if (krRnd() < dt * (KR.quake > 0 || KR.end ? 2.5 : 0.5)) KR.debris.push({ x: padL + krRnd() * (padR - padL), y: G.Y(40), vy: 0, r: 6 + krRnd() * 14, spin: krRnd() * 6 })
+  for (const d of KR.debris) { d.vy += 700 * dt; d.y += d.vy * dt; d.spin += dt * 4
+    if (d.y >= dockTop - 2) { d.gone = true; krBoom(d.x, dockTop - 6, d.r * 2.2, "200,200,210"); if (d.r > 14) camera.shake?.(2, 6) }
+    ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.spin); ctx.fillStyle = "#5a6a78"; ctx.fillRect(-d.r, -d.r * 0.6, d.r * 2, d.r * 1.2); ctx.fillStyle = "#ff8a40"; ctx.fillRect(-d.r, -d.r * 0.6, d.r * 0.5, d.r * 0.4); ctx.restore() }
+  KR.debris = KR.debris.filter(d => !d.gone)
+  for (const e of KR.embers) { e.life -= dt; e.vy += 120 * dt; e.x += e.vx * dt; e.y += e.vy * dt; ctx.fillStyle = `rgba(255,${150 + 80 * e.life / 2 | 0},60,${Math.min(1, e.life)})`; ctx.fillRect(e.x, e.y, 3, 3) }
+  KR.embers = KR.embers.filter(e => e.life > 0).slice(-120)
+  // ── the end of Krypton: the horizon blows apart (white-green), the shockwave, and the little rocket escaping
+  if (KR.end) { const E = KR.end; E.t += dt
+    const u = Math.min(1, E.t / 2.2), cx = W * 0.5 + shift(0.15, W)
+    const bg = ctx.createRadialGradient(cx, hz, 0, cx, hz, 200 + 1400 * u); bg.addColorStop(0, `rgba(255,255,240,${1 - u * 0.5})`); bg.addColorStop(0.3, `rgba(180,255,190,${0.8 - u * 0.4})`); bg.addColorStop(0.7, `rgba(255,120,40,${0.5 - u * 0.3})`); bg.addColorStop(1, "rgba(255,60,20,0)")
+    ctx.fillStyle = bg; ctx.fillRect(padL, 0, padR - padL, coverBottom)
+    ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - u)})`; ctx.lineWidth = 8; ctx.beginPath(); ctx.ellipse(cx, hz, 100 + 2000 * u, 20 + 260 * u, 0, 0, 7); ctx.stroke()
+    if (E.t > 0.9 && E.t < 1.0 && !E.after) { E.after = true; camera.shake?.(12, 50) }
+    if (E.t > 1.2 && !KR.pod) KR.pod = { x: W * 0.62 + shift(0.9, W), y: G.Y(300), vx: 60, vy: -40 }
+    if (KR.pod) { const p = KR.pod; p.vy -= 260 * dt; p.vx += 20 * dt; p.x += p.vx * dt; p.y += p.vy * dt
+      ctx.strokeStyle = "rgba(200,230,255,0.6)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.25, p.y - p.vy * 0.25); ctx.stroke()
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.atan2(p.vy, p.vx) + Math.PI / 2)
+      ctx.fillStyle = "#e8f4ff"; ctx.beginPath(); ctx.moveTo(0, -18); ctx.lineTo(8, 4); ctx.lineTo(-8, 4); ctx.closePath(); ctx.fill()
+      ctx.fillStyle = "#8ad0ff"; ctx.beginPath(); ctx.arc(0, -2, 4, 0, 7); ctx.fill()
+      ctx.fillStyle = "rgba(255,200,120,0.9)"; ctx.beginPath(); ctx.arc(0, 9, 5 + Math.sin(t * 40) * 2, 0, 7); ctx.fill(); ctx.restore() } }
 }

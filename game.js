@@ -809,7 +809,10 @@ import { WEATHER, WEATHER_TYPES, weatherSetSeed, weatherSet, weatherTick, weathe
 import { mapOpenMeteo, resolveLive, getLocation, setLocation, geocodeCity, cacheGet as _wxCacheGet } from "./weatherLive.js"   // FEEL PASS (Phase 4): real-world weather (Open-Meteo), host-authoritative in LAN
 import { weatherForAbility, WEATHER_ABILITY_HOLD_FRAMES, WEATHER_ABILITY_COOLDOWN_FRAMES, WEATHER_ABILITY_GAMEPLAY_EFFECTS } from "./weather_abilities.js"   // FEEL PASS (Phase 5): themed moves conjure weather (VISUAL ONLY)
 import { isShisuiFallenFatalityActive, updateShisuiFallenFatalityCinematic, drawShisuiFallenFatalityCinematic } from "./shisuiFallenFatalityCinematic.js"   // Shisui (Fallen) ULT FATALITY — self-contained cutaway
+import { fatalityStatus as _fatalityStatus } from "./fatalityCinematic.js"
+const fatalityStatusPhase = () => _fatalityStatus().phase
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
+import { screenBreakerInput, startScreenBreaker, screenBreakerActive, screenBreakerDone, updateScreenBreaker, screenBreakerWorld, drawScreenBreaker, clearScreenBreaker } from "./screenBreaker.js"   // SCREEN BREAKER — in-game FINISH-window finisher (GRAB → SPECIAL/DOWN): throw the loser into the screen, the glass cracks
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
 import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"   // canon BRUTALITY concept table (per-winner finisher themes)
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
@@ -21892,7 +21895,13 @@ function _drawParryClashFlash() {
 
 function updateBattle() {
   if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
+  if (screenBreakerActive()) {   // SCREEN BREAKER plays out in the arena (cosmetic, match already decided) → victory
+    updateScreenBreaker(canvas.width, canvas.height)
+    if (screenBreakerDone()) { clearScreenBreaker(); _enterVictoryScreen() }
+    return
+  }
   if (isFatalityActive()) {   // FINISH-window fatality — read the winner's Ultimate press; on done → fatality?victory : brutality
+    { const _sbw = fatalityWinner(); if (_sbw && fatalityStatusPhase() === "window" && screenBreakerInput(readRawControls(_sbw)) && startScreenBreaker(_sbw, _sbw === p1 ? p2 : p1)) { clearFatalityCinematic(); return } }
     const _fwf = fatalityWinner(); updateFatalityCinematic({ ultPressed: _fwf ? !!(readRawControls(_fwf) || {}).ultimate : false, sound })
     if (fatalityDone()) {
       const _perf = fatalityWasPerformed(), _fw = fatalityWinner()
@@ -22956,6 +22965,7 @@ function renderHybridFighter(fighter) {
     drawRavenFx(c, fighter)   // Raven — piles, spell FX, Verdict warning, levitation shadow, double-jump ring, skin material (render-only; raven only)
     drawStarfireFx(c, fighter)   // Starfire — eye beams (supplied Laser pieces), bolts / orb glow, explosions, levitation shadow, skin material, opt-in eye debug (render-only; starfire only)
     drawRobinFx(c, fighter, getOpponent(fighter))   // Robin — smoke, planted bomb, blasts, Smoke Step echoes, OUTPLAY, skin material (render-only; robin only)
+    screenBreakerWorld(c, fighter)   // SCREEN BREAKER: capture the world→screen transform while the thrown body is drawn
     drawMegumiFx(c, fighter)   // Megumi — shikigami, rabbits, Shadow Step echoes, Mahoraga intro showcase, ultimate shikigami (render-only; megumi only)
     drawHigurumaFx(c, fighter)   // Higuruma — Case File marks, PRECEDENT, OBJECTION, Order-in-the-Court dust ring, sword stroke, skin material (render-only; higuruma only)
     drawGsFx(c, fighter, matchConfig.mode === "training")   // Satoru Gojo (Shinjuku) — Blue / Red / Purple, chant captions, nosebleed; Infinity draws NOTHING (training debug ring only) (render-only; gated)
@@ -25358,8 +25368,9 @@ function drawBattle() {
   _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
+  drawScreenBreaker(ctx, canvas)       // SCREEN BREAKER: the cracked glass + smear + banner (screen space)
   drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
-  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
+  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
   if (!_cineHidesHud) drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()

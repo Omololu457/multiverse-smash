@@ -1120,6 +1120,9 @@ export class SpriteHandler {
     // sets TOGETHER with its matching hurtbox override (never a free hitbox-only buff); the originY anchor keeps the feet
     // planted. Gated on Ben's form state (> 1 only) → a strict no-op for every other fighter.
     { const _brs = fighter.transformed && fighter.omnitrix?.formState?.renderScale; if (_brs > 1) scale *= _brs; }
+    // FINISHER PRESENTATION SCALE (screenBreaker.js): a post-match cosmetic multiplier (the thrown body flying at the
+    // camera). Only ever set after the match is decided; 0/unset → strict no-op for every fighter.
+    if (fighter._fxRenderScale > 0) scale *= fighter._fxRenderScale;
 
     const dstW = drawWidth * scale;
     const dstH = drawHeight * scale;
@@ -1235,6 +1238,9 @@ export class SpriteHandler {
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;   // crisp upscaled pixel art
+    // FINISHER PRESENTATION ROTATION (screenBreaker.js): spin the drawn sprite about its centre (lifted overhead /
+    // tumbling through the air). Post-match cosmetic; 0/unset → no-op.
+    if (fighter._fxRot) { const _rcx = fighter._lastDrawX + dstW / 2, _rcy = drawY + dstH / 2; ctx.translate(_rcx, _rcy); ctx.rotate(fighter._fxRot); ctx.translate(-_rcx, -_rcy); }
 
     // TRANSITION AFTER-IMAGE — draw the fading outgoing-attack pose UNDER the new sprite (main pose stays
     // crisp + responsive; the ghost only shows where it isn't occluded → a trail). Self-contained save.

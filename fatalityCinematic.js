@@ -71,9 +71,11 @@ export function drawFatalityCinematic(c, canvas) {
     c.font = `800 ${Math.floor(H * 0.11)}px Arial`; c.fillText("FINISH THEM!", W / 2, H * 0.42)
     c.fillStyle = `rgba(255,220,120,${(0.6 + 0.4 * pulse).toFixed(3)})`
     c.font = `700 ${Math.floor(H * 0.045)}px Arial`; c.fillText("press  ULTIMATE", W / 2, H * 0.52)
+    c.font = `700 ${Math.floor(H * 0.03)}px Arial`; c.fillStyle = `rgba(255,255,255,${(0.55 + 0.35 * pulse).toFixed(3)})`
+    c.fillText("or  GRAB → SPECIAL  (or GRAB → DOWN)  —  SCREEN BREAKER", W / 2, H * 0.565)
     const frac = 1 - s.t / WINDOW_FRAMES, bw = W * 0.4
-    c.fillStyle = "rgba(255,255,255,0.15)"; c.fillRect(W / 2 - bw / 2, H * 0.58, bw, 8)
-    c.fillStyle = "rgba(230,30,34,0.9)"; c.fillRect(W / 2 - bw / 2, H * 0.58, bw * Math.max(0, frac), 8)
+    c.fillStyle = "rgba(255,255,255,0.15)"; c.fillRect(W / 2 - bw / 2, H * 0.6, bw, 8)
+    c.fillStyle = "rgba(230,30,34,0.9)"; c.fillRect(W / 2 - bw / 2, H * 0.6, bw * Math.max(0, frac), 8)
     c.restore(); return
   }
   // fatality cutaway (style-tinted)

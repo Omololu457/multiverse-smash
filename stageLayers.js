@@ -289,6 +289,20 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// WOODSBORO (Scream) — no sheet: the suburb drawn in code over a generated street floor (gen_code_floors.py).
+SETS.code_woodsboro = {
+  dir: "./stages/code_woodsboro/",
+  S: 1.6,
+  standRow: 60,
+  deckFrontRow: 90,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [{ procedural: "woodsboro", p: 0.9 }],
+  props: [],
+  front: [],
+  fx: "woodsboro",
+  animRate: {},
+}
+
 // THE BATTLE ROYALE COLOSSEUM — no sheet: everything drawn in code over a generated sand floor
 // (tools/stage_layers/gen_code_floors.py).
 SETS.code_colosseum = {
@@ -652,6 +666,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "woodsboro") { drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "colosseum") { drawColosseumBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "shadow") { drawShadowSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "asakusa") { drawAsakusaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -763,6 +778,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "woodsboro") woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "colosseum") colosseumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "shadow") shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "asakusa") asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5379,4 +5395,103 @@ function colosseumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   CO.shout = CO.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── WOODSBORO (Scream / horror; render-only, wall clock, own PRNG) ─────────────────────────────
+// No sheet — drawn in code over a generated street floor: a quiet suburb at night — two-storey houses with porches and
+// lit windows, picket fences, bare trees, street lamps with moths, a fog bank, the moon; Ghostface / Jason stand on the
+// sidewalk if they aren't fighting (shared crowd); a mask peeks out from behind a tree now and then. Big hit → a phone
+// rings in a house, a porch light snaps on, a dog barks ("WHAT'S YOUR FAVORITE SCARY MOVIE?"); ≤25% → the power cuts:
+// lamps flicker and die, lightning, a Ghostface silhouette stands in every window; KO → police lights wash the street,
+// the houses light up again — but one window keeps its masked figure… "…OR IS IT?"
+let _wbSeed = 0xbb67ae85 ^ 0x3c6ef372
+const wbRnd = () => { _wbSeed ^= _wbSeed << 13; _wbSeed ^= _wbSeed >>> 17; _wbSeed ^= _wbSeed << 5; return (_wbSeed >>> 0) / 4294967296 }
+const WB_CROWD = [["ghostface", 0.18, 0], ["jason", 0.84, 0]]
+const WBC = makeCrowd(WB_CROWD, 0.6)
+const WB = { p1: null, last: 0, skyLast: 0, hp: new WeakMap(), rings: [], power: 1, flash: 0, nextBolt: 0, cops: 0, ko: null, peek: null, nextPeek: 4, shout: [],
+  st: { rings: 0, blackout: 0, ko: 0, peeks: 0, bolts: 0 } }
+export const woodsboroState = () => ({ ...WB.st, power: +WB.power.toFixed(2), cops: +WB.cops.toFixed(2), ko: WB.ko ? +WB.ko.t.toFixed(2) : 0,
+  crowd: crowdState(WBC), shouting: WB.shout.filter(s => s.t > 0).map(s => s.txt) })
+function wbShout(x, y, txt, col) { if (WB.shout.filter(s => s.t > 0).length < 3) WB.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
+function wbMask(ctx, x, y, s) {   // the Ghostface mask: a long white face, black eyes + mouth, under a black hood
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.fillStyle = "#08080a"; ctx.beginPath(); ctx.ellipse(0, 2, 13, 17, 0, 0, 7); ctx.fill()
+  ctx.fillStyle = "#ecece6"; ctx.beginPath(); ctx.ellipse(0, 3, 8.5, 12.5, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#08080a"
+  for (const d of [-1, 1]) { ctx.beginPath(); ctx.ellipse(d * 3.6, -1, 2.4, 4, d * 0.25, 0, 7); ctx.fill() } ctx.beginPath(); ctx.ellipse(0, 9, 2.4, 4.4, 0, 0, 7); ctx.fill(); ctx.restore()
+}
+function wbHouse(ctx, x, base, w, k, t, lit, masked) {   // a two-storey suburban house: siding, gable roof, porch, windows
+  const pal = [["#c8c0b0", "#8a5a4a"], ["#9ab0c0", "#4a4a5a"], ["#d8c890", "#6a4a3a"], ["#b0a8c8", "#3a3a4a"], ["#c0a890", "#5a3a2a"]][Math.floor(_h(k * 2.3) * 5)]
+  const h = 150, night = 0.42
+  ctx.fillStyle = pal[0]; ctx.globalAlpha = 1; ctx.fillRect(x, base - h, w, h)
+  ctx.fillStyle = `rgba(10,14,40,${1 - night})`; ctx.fillRect(x, base - h, w, h)
+  ctx.strokeStyle = "rgba(0,0,0,0.15)"; ctx.lineWidth = 1; for (let y = base - h + 6; y < base; y += 6) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke() }
+  ctx.fillStyle = pal[1]; ctx.beginPath(); ctx.moveTo(x - 12, base - h); ctx.lineTo(x + w / 2, base - h - 70); ctx.lineTo(x + w + 12, base - h); ctx.fill(); ctx.fillStyle = "rgba(10,14,40,0.55)"; ctx.fill()
+  ctx.fillStyle = "#2a2a30"; ctx.fillRect(x + w * 0.72, base - h - 60, 16, 34)
+  // porch
+  ctx.fillStyle = "#3a3438"; ctx.fillRect(x + w * 0.25, base - 70, w * 0.5, 6); ctx.fillStyle = "#6a6066"; for (const px of [0.27, 0.72]) ctx.fillRect(x + w * px, base - 64, 4, 64)
+  ctx.fillStyle = "#2a1e1a"; ctx.fillRect(x + w * 0.44, base - 52, w * 0.12, 52)
+  const wins = [[0.12, -128], [0.62, -128], [0.12, -58], [0.62, -58]]
+  wins.forEach(([fx, fy], i) => { const wx = x + w * fx, wy = base + fy, ww = w * 0.24, wh = 34, on = lit && _h(k * 7 + i) < 0.6
+    ctx.fillStyle = on ? "#f2d890" : "#14182a"; ctx.fillRect(wx, wy, ww, wh); if (on) { ctx.fillStyle = "rgba(242,216,144,0.12)"; ctx.fillRect(wx - 8, wy - 8, ww + 16, wh + 16) }
+    if (masked && (masked === true || masked === i)) { ctx.fillStyle = "#3a3e58"; ctx.fillRect(wx, wy, ww, wh); ctx.fillStyle = "#08080a"; ctx.fillRect(wx + ww * 0.22, wy + 14, ww * 0.56, wh - 14); wbMask(ctx, wx + ww / 2, wy + 13, 0.95) }
+    ctx.strokeStyle = "#1a1a22"; ctx.lineWidth = 2; ctx.strokeRect(wx, wy, ww, wh); ctx.beginPath(); ctx.moveTo(wx + ww / 2, wy); ctx.lineTo(wx + ww / 2, wy + wh); ctx.stroke() })
+  if (lit && _h(k * 3) < 0.5) { ctx.fillStyle = "rgba(255,220,140,0.25)"; ctx.beginPath(); ctx.arc(x + w * 0.5, base - 62, 22, 0, 7); ctx.fill() }
+}
+function wbTree(ctx, x, base, h, k) { ctx.strokeStyle = "#2a2a36"; ctx.lineCap = "round"
+  const br = (x0, y0, a, len, d) => { if (d > 5 || len < 4) return; const x1 = x0 + Math.cos(a) * len, y1 = y0 + Math.sin(a) * len; ctx.lineWidth = Math.max(1, 9 - d * 1.7); ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke()
+    br(x1, y1, a - 0.45 - 0.2 * _h(k + d), len * 0.72, d + 1); br(x1, y1, a + 0.4 + 0.2 * _h(k * 3 + d), len * 0.7, d + 1) }
+  br(x, base, -Math.PI / 2, h * 0.35, 0) }
+function drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S, pw = WB.power
+  const dt = Math.min(0.05, Math.max(0, t - (WB.skyLast || t))); WB.skyLast = t
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#04060e"); g.addColorStop(1, "#1a2238"); ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  { const mx = W / 2 + shift(0.03, W) + 260, my = dockTop - 330 * S; ctx.fillStyle = "rgba(220,220,240,0.12)"; ctx.beginPath(); ctx.arc(mx, my, 70, 0, 7); ctx.fill(); ctx.fillStyle = "#e8e8f2"; ctx.beginPath(); ctx.arc(mx, my, 30, 0, 7); ctx.fill()
+    ctx.fillStyle = "rgba(20,24,40,0.85)"; ctx.beginPath(); ctx.ellipse(mx + 20, my + 6, 60, 10, 0, 0, 7); ctx.fill() }
+  if (WB.flash > 0) { WB.flash = Math.max(0, WB.flash - dt * 4); ctx.fillStyle = `rgba(200,210,255,${0.5 * WB.flash})`; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop) }
+  // far tree line
+  { const ps = shift(0.25, W); ctx.fillStyle = "#0a0c16"; ctx.beginPath(); ctx.moveTo(padL, dockTop - 120 * S); for (let x = padL; x <= padR + 20; x += 20) ctx.lineTo(x, dockTop - (120 + 20 * Math.sin((x - ps) / 50) + 12 * Math.sin((x - ps) / 17)) * S); ctx.lineTo(padR, dockTop); ctx.lineTo(padL, dockTop); ctx.fill() }
+  // the houses, trees, fences, lamps (one street, repeating)
+  const ps = shift(0.9, W), step = 300, base = dockTop - 6 * S, masked = WB.st.blackout && !WB.ko ? true : WB.ko && WB.ko.t > 2 ? 1 : false
+  for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) { const x = i * step + ps
+    wbHouse(ctx, x + 30, base, 200, i, t, pw > 0.5, masked === true ? (Math.abs(i) % 2 ? 2 : 0) : masked === 1 && i === 0 ? 1 : false)
+    wbTree(ctx, x + 260, base, 260, i * 3.1)
+    ctx.fillStyle = "#c8c8cc"; for (let j = 0; j < 12; j++) { const fx = x + 6 + j * 12; ctx.fillRect(fx, base - 26, 6, 26); ctx.beginPath(); ctx.moveTo(fx, base - 26); ctx.lineTo(fx + 3, base - 31); ctx.lineTo(fx + 6, base - 26); ctx.fill() } ctx.fillRect(x + 4, base - 20, 142, 3)
+    ctx.fillStyle = "rgba(10,14,40,0.45)"; ctx.fillRect(x + 4, base - 31, 142, 31) }
+  // the mask peeking from behind a tree
+  if (!WB.peek && t > WB.nextPeek && !WB.ko) { WB.peek = { t: 0, x: Math.floor((W / 2 - ps) / step) * step + ps + 260 + (wbRnd() < 0.5 ? -step : step) }; WB.st.peeks++ }
+  if (WB.peek) { const p = WB.peek; p.t += dt; const out = Math.min(1, p.t / 0.6, Math.max(0, (2.4 - p.t) / 0.6)); wbMask(ctx, p.x + 6 + out * 8, base - 150 * 0.85, 1.1 * S * 0.6); if (p.t > 2.4) { WB.peek = null; WB.nextPeek = t + 6 + 6 * wbRnd() } }
+}
+function woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
+  if (F[0] !== WB.p1) { Object.assign(WB, { p1: F[0], hp: new WeakMap(), rings: [], power: 1, flash: 0, nextBolt: 0, cops: 0, ko: null, shout: [] }); for (const k in WB.st) WB.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (WB.last || t))); WB.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = WB.hp.get(f); WB.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big && !WB.ko) { WB.st.rings++; const x = mid + (wbRnd() < 0.5 ? -1 : 1) * (180 + wbRnd() * 200); WB.rings.push({ x, t: 0 })
+    wbShout(x, dockTop - 105 * S, ["*RING RING*  \"WHAT'S YOUR FAVORITE SCARY MOVIE?\"", "WOOF! WOOF! WOOF!", "*RING RING*  \"DO YOU LIKE SCARY MOVIES?\""][(WB.st.rings - 1) % 3], "#8a1a1a") }
+  if (low && !WB.st.blackout && !WB.ko) { WB.st.blackout++; wbShout(mid, feet - 230, "…THE POWER'S OUT.", "#8a1a1a") }
+  if (WB.st.blackout && !WB.ko) { WB.power = Math.max(0, WB.power - dt * 0.9); if (t > WB.nextBolt) { WB.nextBolt = t + 1.5 + 2 * wbRnd(); WB.flash = 1; WB.st.bolts++ } }
+  if (ko && !WB.ko) { WB.ko = { t: 0 }; WB.st.ko++; wbShout(mid, feet - 240, "WOODSBORO PD! NOBODY MOVE!", "#1a3aa8") }
+  if (WB.ko) { WB.ko.t += dt; WB.cops = Math.min(1, WB.cops + dt); if (WB.ko.t > 1) WB.power = Math.min(1, WB.power + dt * 0.8); if (WB.ko.t > 2.2 && !WB.ko.said) { WB.ko.said = true; wbShout(mid, feet - 280, "IT'S OVER… OR IS IT?", "#8a1a1a") } }
+  // street lamps (they flicker and die in the blackout)
+  { const ps = shift(0.95, W), step = 420; for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) { const x = i * step + ps + 140, top = dockTop - 210 * S * 0.75
+    const on = WB.power > 0.5 ? (Math.sin(t * 23 + i * 7) > -0.97) : WB.power > 0.05 && Math.sin(t * 31 + i) > 0.6
+    ctx.fillStyle = "#1a1a20"; ctx.fillRect(x - 3, top, 6, dockTop - top + 6); ctx.fillRect(x - 3, top, 34, 5); ctx.fillStyle = on ? "#fff4c8" : "#3a3a40"; ctx.fillRect(x + 22, top + 4, 14, 6)
+    if (on) { const gr = ctx.createLinearGradient(0, top, 0, feet + 20); gr.addColorStop(0, "rgba(255,240,190,0.28)"); gr.addColorStop(1, "rgba(255,240,190,0)"); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x + 22, top + 10); ctx.lineTo(x + 36, top + 10); ctx.lineTo(x + 100, feet + 20); ctx.lineTo(x - 40, feet + 20); ctx.fill()
+      for (let m = 0; m < 3; m++) { ctx.fillStyle = "rgba(240,230,200,0.8)"; ctx.fillRect(x + 29 + Math.sin(t * 7 + m * 2) * 12, top + 14 + Math.cos(t * 5 + m) * 8, 2, 2) } } } }
+  drawCrowd(ctx, WBC, { W, feet, sh: shift(0.9, W) })
+  // ringing phones: a little glow + rings in a window
+  for (const r of WB.rings) { r.t += dt; const a = Math.max(0, 1 - r.t / 2.2); for (let j = 0; j < 3; j++) { const rr = ((r.t * 60 + j * 14) % 42); ctx.strokeStyle = `rgba(255,230,160,${a * (1 - rr / 42)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(r.x, dockTop - 120 * S * 0.7, rr, -0.8, 0.8); ctx.stroke() } }
+  WB.rings = WB.rings.filter(r => r.t < 2.2)
+  // fog bank
+  for (let i = 0; i < 3; i++) { const y = feet - 10 - i * 34, sx = ((t * (14 + i * 6)) % 600), gr = ctx.createLinearGradient(0, y - 40, 0, y + 40); gr.addColorStop(0, "rgba(170,180,200,0)"); gr.addColorStop(0.5, `rgba(170,180,200,${0.13 + 0.06 * (1 - WB.power)})`); gr.addColorStop(1, "rgba(170,180,200,0)")
+    ctx.fillStyle = gr; ctx.fillRect(padL - 600 + sx, y - 40, padR - padL + 1200, 80) }
+  if (WB.power < 1) { ctx.fillStyle = `rgba(2,4,12,${0.45 * (1 - WB.power)})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  if (WB.cops > 0) { const ph = Math.floor(t * 6) % 2; ctx.fillStyle = ph ? `rgba(230,40,40,${0.16 * WB.cops})` : `rgba(40,80,240,${0.16 * WB.cops})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  for (const s of WB.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  WB.shout = WB.shout.filter(s => s.t > 0)
 }

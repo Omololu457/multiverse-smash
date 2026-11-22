@@ -289,6 +289,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// ASAKUSA (Demon Slayer) — Gen's stage (SF 1987 sheet) re-lit for night, signs repainted, by
+// tools/stage_layers/slice_gen_asakusa.py; the sky, the Ryōunkaku, lanterns, lettering and townsfolk are drawn in code.
+SETS.gen_asakusa = {
+  dir: "./stages/gen_asakusa/",
+  S: 1.7,
+  standRow: 12,
+  deckFrontRow: 30,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "asakusa", p: 0.05 },
+    { piece: "street", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "asakusa",
+  animRate: {},
+}
+
 // QUEENS ALLEY (Marvel) — Alex's stage (SF3 NY sheet) pieces by tools/stage_layers/slice_alex_queens.py, set in a row
 // with walk-ups drawn in code on both sides (drawQueensBack draws all of it); the life + reactions in queensFx.
 SETS.alex_queens = {
@@ -601,6 +619,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "asakusa") { drawAsakusaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "queens") { drawQueensBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "harbor") { drawHarborSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "forest") { drawForestSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -709,6 +728,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "asakusa") asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "queens") queensFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "harbor") harborFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "forest") forestFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5017,4 +5037,132 @@ function queensFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   QN.shout = QN.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── ASAKUSA AT NIGHT, TAISHŌ-ERA TOKYO (Demon Slayer; render-only, wall clock, own PRNG) ─────────────────────────────
+// Gen's stage (SF 1987): the shop street re-lit for night, every sign board repainted and lettered here in Japanese
+// (the right way round on every mirrored copy). Starry sky, a full moon, the RYŌUNKAKU (the 12-storey tower of Taishō
+// Asakusa) on the skyline, strings of red paper lanterns across the street, gas-lamp glow, townsfolk in kimono and
+// bowler hats strolling; the Demon Slayer cast who aren't fighting watch (shared crowd). Big hit → the lanterns swing,
+// one drops and flares; ≤25% → the moon turns blood red, the lamps gutter, demon eyes glow in the side streets ("THAT
+// SCENT… MUZAN!"); KO → Tamayo's Blood Demon Art: a bloom of flowers and a sweet pink haze sweeps the street, Yushiro's
+// eye talismans flutter, the moon pales again.
+let _asSeed = 0x1f83d9ab ^ 0x9b05688c
+const asRnd = () => { _asSeed ^= _asSeed << 13; _asSeed ^= _asSeed >>> 17; _asSeed ^= _asSeed << 5; return (_asSeed >>> 0) / 4294967296 }
+const AS_CROWD = [["zenitsu", 0.12, 0], ["nezuko", 0.3, 0], ["rengoku", 0.5, 0], ["shinobu", 0.7, 0], ["inosuke", 0.88, 0]]
+const ASC = makeCrowd(AS_CROWD, 0.6)
+const AS = { p1: null, last: 0, hp: new WeakMap(), folk: null, swing: 0, drops: [], blood: 0, bloom: null, petals: [], tags: [], shout: [], geo: null,
+  st: { swings: 0, blood: 0, bloom: 0 } }
+export const asakusaState = () => ({ ...AS.st, folk: (AS.folk || []).length, blood: +AS.blood.toFixed(2), bloom: AS.bloom ? +AS.bloom.t.toFixed(2) : 0, petals: AS.petals.length,
+  crowd: crowdState(ASC), shouting: AS.shout.filter(s => s.t > 0).map(s => s.txt) })
+function asGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.street, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, Y: py => y0 + py * S }
+}
+function asShout(x, y, txt, col) { if (AS.shout.filter(s => s.t > 0).length < 3) AS.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function asRyounkaku(ctx, x, base, s, red) {   // the Ryōunkaku: an octagonal red-brick tower, 12 storeys, a pointed cap
+  ctx.save(); ctx.translate(x, base); ctx.scale(s, s)
+  ctx.fillStyle = red ? "#3a1418" : "#2a2034"; ctx.fillRect(-22, -300, 44, 300); ctx.fillStyle = red ? "#2a0c10" : "#1e1828"; ctx.fillRect(8, -300, 14, 300)
+  for (let i = 0; i < 12; i++) { ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(-24, -300 + i * 24, 48, 3); ctx.fillStyle = `rgba(250,${red ? 120 : 210},${red ? 90 : 130},${_h(i * 3.3) < 0.5 ? 0.75 : 0.2})`; for (let j = -1; j <= 1; j++) ctx.fillRect(j * 12 - 3, -292 + i * 24, 6, 9) }
+  ctx.fillStyle = red ? "#2a0c10" : "#1e1828"; ctx.fillRect(-30, -308, 60, 8); ctx.beginPath(); ctx.moveTo(-18, -308); ctx.lineTo(0, -350); ctx.lineTo(18, -308); ctx.fill()
+  ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -350); ctx.lineTo(0, -372); ctx.stroke(); ctx.restore()
+}
+function asFolk(ctx, p, x, y, s, t) {   // a Taishō townsperson: kimono or a suit + bowler hat, a parasol sometimes
+  const sw = p.go ? Math.sin(t * 6 + p.ph) * 0.35 : 0
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * p.dir, s)
+  ctx.fillStyle = "#1a1418"; ctx.fillRect(-4 + sw * 6, -6, 4, 6); ctx.fillRect(1 - sw * 6, -6, 4, 6)
+  ctx.fillStyle = p.col; ctx.beginPath(); ctx.moveTo(-8, -44); ctx.lineTo(8, -44); ctx.lineTo(p.kimono ? 9 : 7, -5); ctx.lineTo(p.kimono ? -9 : -7, -5); ctx.fill()
+  if (p.kimono) { ctx.fillStyle = p.obi; ctx.fillRect(-8, -30, 16, 5) } else { ctx.fillStyle = "#e8e0d0"; ctx.beginPath(); ctx.moveTo(-2, -44); ctx.lineTo(0, -36); ctx.lineTo(2, -44); ctx.fill() }
+  ctx.fillStyle = "#e0c0a0"; ctx.beginPath(); ctx.arc(0, -50, 6, 0, 7); ctx.fill()
+  ctx.fillStyle = "#151218"; if (p.kimono) { ctx.beginPath(); ctx.arc(0, -53, 6.5, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.arc(0, -59, 4, 0, 7); ctx.fill() } else { ctx.beginPath(); ctx.arc(0, -55, 6, Math.PI, 0); ctx.fill(); ctx.fillRect(-9, -55, 18, 2) }
+  if (p.scared > 0) { ctx.strokeStyle = "#e0c0a0"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-6, -42); ctx.lineTo(-10, -60); ctx.moveTo(6, -42); ctx.lineTo(10, -60); ctx.stroke() }
+  ctx.restore()
+}
+function asLantern(ctx, x, y, s, a, lit) {   // a red paper chōchin on a cord
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s)
+  ctx.strokeStyle = "#2a1a14"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 6); ctx.stroke()
+  if (lit) { ctx.fillStyle = "rgba(255,120,60,0.18)"; ctx.beginPath(); ctx.arc(0, 18, 24, 0, 7); ctx.fill() }
+  ctx.fillStyle = "#1a1210"; ctx.fillRect(-6, 5, 12, 3); ctx.fillRect(-6, 29, 12, 3)
+  ctx.fillStyle = lit ? "#e83a24" : "#7a1e14"; ctx.beginPath(); ctx.ellipse(0, 18, 10, 12, 0, 0, 7); ctx.fill()
+  ctx.strokeStyle = "rgba(0,0,0,0.25)"; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.ellipse(0, 18, 10, 12 - Math.abs(i) * 0 , 0, 0, 7); ctx.moveTo(-10, 18 + i * 5); ctx.lineTo(10, 18 + i * 5); ctx.stroke() }
+  ctx.restore()
+}
+function drawAsakusaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = AS.geo = asGeo(def, c, W, dockTop), S = def.S, b = AS.blood
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, b ? `rgb(${10 + 40 * b | 0},6,${24 - 10 * b | 0})` : "#0a0c24"); g.addColorStop(1, b ? `rgb(${40 + 60 * b | 0},20,40)` : "#2a2c5a")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const sk = c.layout.pieces.sky, im = c.img[sk.file]
+  if (ready(im)) { const ps = shift(0.05, W), w = sk.w * S; ctx.save(); ctx.globalAlpha = 0.9 - 0.5 * b; ctx.globalCompositeOperation = "lighter"; for (let x = ((ps - padL) % w + w) % w - w + padL; x < padR; x += w) ctx.drawImage(im, x, coverTop, w + 1, Math.max(sk.h * S, G.y0 - coverTop + 40)); ctx.restore() }
+  const vx = G.x0 + (G.pc.vanish?.[0] ?? 322) * S
+  { const mx = vx - 70 * S + shift(0.04, W) * 0.1, my = G.Y(28); const mc = b ? `rgba(220,${60 - 30 * b | 0},50,1)` : "#f4f0dc"
+    ctx.fillStyle = b ? `rgba(200,40,40,${0.25 * b})` : "rgba(240,236,210,0.18)"; ctx.beginPath(); ctx.arc(mx, my, 60, 0, 7); ctx.fill(); ctx.fillStyle = mc; ctx.beginPath(); ctx.arc(mx, my, 28, 0, 7); ctx.fill()
+    ctx.fillStyle = "rgba(0,0,0,0.08)"; ctx.beginPath(); ctx.arc(mx - 12, my - 8, 9, 0, 7); ctx.arc(mx + 14, my + 10, 6, 0, 7); ctx.fill() }
+  // far rooftops + the Ryōunkaku over the vanishing point
+  { const ps = shift(0.3, W), base = G.Y(150); ctx.fillStyle = b ? "#1a0a10" : "#141428"
+    for (let x = padL - 60; x < padR + 60; x += 46) { const xx = x + (ps % 46), h = 30 + 30 * _h(Math.floor((x - padL) / 46) * 2.1); ctx.beginPath(); ctx.moveTo(xx - 26, base - h); ctx.lineTo(xx, base - h - 14); ctx.lineTo(xx + 26, base - h); ctx.lineTo(xx + 22, base); ctx.lineTo(xx - 22, base); ctx.fill() }
+    asRyounkaku(ctx, vx + 40 * S, base, S * 0.42, b > 0.3) }
+}
+function asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S, G = AS.geo || asGeo(def, c, W, dockTop)
+  if (F[0] !== AS.p1) { Object.assign(AS, { p1: F[0], hp: new WeakMap(), folk: null, swing: 0, drops: [], blood: 0, bloom: null, petals: [], tags: [], shout: [] }); for (const k in AS.st) AS.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (AS.last || t))); AS.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = AS.hp.get(f); AS.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  // the sign boards, lettered in Japanese on every mirrored copy
+  { const signs = G.pc.signs || []; ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"
+    for (const cp of mirrorCopies(G, G.w, padL, padR)) for (const sg of signs) { const xa = cp.X(sg.x), xb = cp.X(sg.x + sg.w), x = Math.min(xa, xb), w = Math.abs(xb - xa), y = G.Y(sg.y), h = sg.h * S
+      if (x > padR || x + w < padL) continue; const fs = Math.min(h * 0.62, w / (sg.txt.length + 0.6)); ctx.font = `900 ${fs}px "Hiragino Mincho ProN", "Yu Mincho", serif`
+      ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillText(sg.txt, x + w / 2 + 2, y + h / 2 + 2); ctx.fillStyle = AS.blood > 0.5 ? "#e0a090" : "#f0e2c0"; ctx.fillText(sg.txt, x + w / 2, y + h / 2) }
+    ctx.restore() }
+  if (big && !AS.bloom) { AS.st.swings++; AS.swing = 1; camera.shake?.(4, 12)
+    if (AS.st.swings % 2) AS.drops.push({ x: mid + (asRnd() - 0.5) * 400, y: G.Y(110), vy: 0, t: 0 })
+    for (const p of AS.folk || []) if (Math.abs(p.x - mid) < 500) p.scared = 1.5
+    asShout(mid + (asRnd() - 0.5) * 300, G.Y(120), ["A FIGHT IN ASAKUSA?!", "SOMEBODY CALL THE POLICE!", "MIND THE LANTERNS!"][(AS.st.swings - 1) % 3], "#8a2a1a") }
+  if (low && !AS.st.blood && !AS.bloom) { AS.st.blood++; asShout(mid, feet - 230, "THAT SCENT… MUZAN!", "#8a0a1a"); for (const p of AS.folk || []) p.scared = 4 }
+  if (AS.st.blood && !AS.bloom) AS.blood = Math.min(1, AS.blood + dt * 0.7)
+  if (ko && !AS.bloom) { AS.bloom = { t: 0, x: mid }; AS.st.bloom++; asShout(mid, feet - 260, "BLOOD DEMON ART!", "#a02a6a")
+    for (let i = 0; i < 14; i++) AS.tags.push({ x: padL + (padR - padL) * asRnd(), y: dockTop - 400 * asRnd(), ph: i, vx: 30 + 40 * asRnd() }) }
+  if (AS.bloom) { AS.bloom.t += dt; if (AS.petals.length < 260 && AS.bloom.t < 2) for (let i = 0; i < 6; i++) AS.petals.push({ x: AS.bloom.x + (asRnd() - 0.5) * 120, y: feet - 80, vx: (asRnd() - 0.5) * 500, vy: -100 - asRnd() * 260, r: asRnd() * 6, life: 3 })
+    if (AS.bloom.t > 1.2) AS.blood = Math.max(0, AS.blood - dt * 0.6) }
+  // the cast watching
+  drawCrowd(ctx, ASC, { W, feet, sh: shift(0.9, W) })
+  // townsfolk strolling
+  if (!AS.folk) AS.folk = Array.from({ length: 7 }, (_, i) => ({ x: padL + (padR - padL) * ((i * 0.29 + 0.07) % 1), dir: i % 2 ? -1 : 1, v: 22 + 14 * _h(i), go: true, ph: i, kimono: i % 3 !== 1,
+    col: ["#5a3a6a", "#2a3a5a", "#6a2a2a", "#3a4a3a", "#5a4a2a", "#2a2a2a", "#7a3a5a"][i], obi: ["#c8a040", "#c84a4a", "#4a8ac8"][i % 3], scared: 0, lane: 0.3 + 0.5 * _h(i * 7) }))
+  for (const p of AS.folk) { p.scared = Math.max(0, p.scared - dt); const run = p.scared > 0 ? 3.5 : 1
+    if (p.scared > 0) p.dir = p.x < mid ? -1 : 1
+    p.x += p.dir * p.v * run * dt; if (p.x < padL - 40) { p.x = padL - 40; p.dir = 1 } if (p.x > padR + 40) { p.x = padR + 40; p.dir = -1 }
+    asFolk(ctx, p, p.x, feet - (6 + 18 * p.lane) * S, S * 0.6, t * run) }
+  // strings of lanterns across the street
+  AS.swing = Math.max(0, AS.swing - dt * 0.5)
+  { const cy = G.Y(62), ps = shift(1, W), sp = 96 * S * 0.7
+    for (let row = 0; row < 1; row++) { const yb = cy
+      ctx.strokeStyle = "#2a1a14"; ctx.lineWidth = 1.5; ctx.beginPath()
+      for (let x = padL - 40; x <= padR + 40; x += 20) { const u = ((x - ps) % 420 + 420) % 420 / 420; ctx.lineTo(x, yb + Math.sin(u * Math.PI) * 26) } ctx.stroke()
+      for (let x = Math.floor((padL - ps) / sp) * sp + ps + row * sp / 2; x < padR + sp; x += sp) { const u = ((x - ps) % 420 + 420) % 420 / 420, a = Math.sin(t * 1.5 + x * 0.01) * (0.06 + 0.5 * AS.swing * Math.sin(t * 9 + x))
+        asLantern(ctx, x, yb + Math.sin(u * Math.PI) * 26, S * 0.75, a, Math.sin(t * 13 + x * 3) > -0.95 - (AS.blood > 0.5 ? -0.6 : 0)) } } }
+  // a dropped lantern flaring on the street
+  for (const d of AS.drops) { d.t += dt; if (d.y < feet - 10) { d.vy += 900 * dt; d.y += d.vy * dt; asLantern(ctx, d.x, d.y, S * 0.75, d.t * 6, true) }
+    else { const k = Math.min(1, (d.t - 0.4) / 1.2); ctx.fillStyle = `rgba(255,${140 - 80 * k | 0},40,${1 - k})`; ctx.beginPath(); ctx.moveTo(d.x - 20, feet - 6); ctx.quadraticCurveTo(d.x, feet - 70 * (1 - k) - 10 + Math.sin(t * 20) * 5, d.x + 20, feet - 6); ctx.fill() } }
+  AS.drops = AS.drops.filter(d => d.t < 2)
+  // demon eyes in the side streets under the blood moon
+  if (AS.blood > 0.4 && !AS.bloom) for (let i = 0; i < 6; i++) { const x = padL + (padR - padL) * ((i * 0.41 + 0.08) % 1), y = feet - 160 - 60 * _h(i * 5), op = Math.sin(t * 1.7 + i * 2) > -0.7 ? (AS.blood - 0.4) * 1.6 : 0
+    ctx.fillStyle = `rgba(255,40,40,${op})`; for (const d of [-6, 6]) { ctx.beginPath(); ctx.ellipse(x + d, y, 4, 2, 0, 0, 7); ctx.fill() } }
+  if (AS.blood > 0) { ctx.fillStyle = `rgba(90,0,10,${0.25 * AS.blood})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  // Tamayo's flowers + pink haze + Yushiro's eye talismans
+  if (AS.bloom) { const k = Math.min(1, AS.bloom.t / 1), fade = Math.max(0, 1 - Math.max(0, AS.bloom.t - 2.2) / 1.5); ctx.fillStyle = `rgba(240,150,200,${0.22 * k * fade})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900)
+    for (let i = 0; i < 16; i++) { const x = AS.bloom.x + Math.cos(i * 2.4) * 380 * k, y = feet - 120 + Math.sin(i * 1.7) * 160 * k, r = 12 + 10 * _h(i)
+      ctx.save(); ctx.globalAlpha = fade; ctx.translate(x, y); ctx.rotate(t + i); ctx.fillStyle = "#e86aa0"; for (let j = 0; j < 5; j++) { ctx.rotate(Math.PI * 2 / 5); ctx.beginPath(); ctx.ellipse(r * 0.6, 0, r * 0.6, r * 0.35, 0, 0, 7); ctx.fill() } ctx.fillStyle = "#f8e080"; ctx.beginPath(); ctx.arc(0, 0, r * 0.25, 0, 7); ctx.fill(); ctx.restore() } }
+  for (const p of AS.petals) { p.life -= dt; p.vy += 150 * dt; p.vx *= 0.99; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = `rgba(240,140,190,${Math.min(1, p.life)})`; ctx.beginPath(); ctx.ellipse(p.x, p.y, 4, 2.4, p.r + t * 3, 0, 7); ctx.fill() }
+  AS.petals = AS.petals.filter(p => p.life > 0)
+  for (const tg of AS.tags) { tg.x += tg.vx * dt; tg.y += Math.sin(t * 2 + tg.ph) * 30 * dt; ctx.save(); ctx.translate(tg.x, tg.y); ctx.rotate(Math.sin(t * 3 + tg.ph) * 0.4)
+    ctx.fillStyle = "#f2ecd8"; ctx.fillRect(-9, -16, 18, 32); ctx.fillStyle = "#c82a3a"; ctx.beginPath(); ctx.ellipse(0, -2, 6, 3.5, 0, 0, 7); ctx.fill(); ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(0, -2, 2, 0, 7); ctx.fill(); ctx.restore() }
+  if (AS.bloom && AS.bloom.t > 4) AS.tags = []
+  for (const s of AS.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  AS.shout = AS.shout.filter(s => s.t > 0)
 }

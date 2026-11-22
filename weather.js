@@ -206,6 +206,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Planet Namek":           OUTDOOR_WARM,   // alien + warm → no snow/hail
   "World Tournament Arena": INDOOR_ONLY,    // roofed arena
   "Infinity Castle":        INDOOR_ONLY,
+  "Asakusa":                OUTDOOR_FULL,     // a Tokyo street at night
   "Mugen Train":            [WEATHER.RAIN, WEATHER.THUNDERSTORM, WEATHER.FOG, WEATHER.WIND],   // speeding train — rain/wind/fog, no accumulation
   "Citadel of Ricks":       INDOOR_ONLY,
   "Null Void":              VOID_ONLY,

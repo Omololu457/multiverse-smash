@@ -1,0 +1,80 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Gen's Stage sheet (ripped by TonyWanKenobian); signs repainted, re-lit for night as Asakusa",
+ "pieces": {
+  "street": {
+   "file": "street.png",
+   "w": 768,
+   "h": 191,
+   "signs": [
+    {
+     "x": 2,
+     "y": 2,
+     "w": 168,
+     "h": 37,
+     "txt": "\u6d45\u8349\u5449\u670d\u5e97"
+    },
+    {
+     "x": 2,
+     "y": 42,
+     "w": 175,
+     "h": 20,
+     "txt": "\u53cd\u7269\u30fb\u5e2f"
+    },
+    {
+     "x": 182,
+     "y": 56,
+     "w": 126,
+     "h": 40,
+     "txt": "\u7518\u5473\u51e6"
+    },
+    {
+     "x": 335,
+     "y": 80,
+     "w": 72,
+     "h": 25,
+     "txt": "\u854e\u9ea6"
+    },
+    {
+     "x": 462,
+     "y": 9,
+     "w": 135,
+     "h": 43,
+     "txt": "\u725b\u934b\u5c4b"
+    },
+    {
+     "x": 637,
+     "y": 14,
+     "w": 131,
+     "h": 58,
+     "txt": "\u897f\u6d0b\u83d3\u5b50"
+    },
+    {
+     "x": 620,
+     "y": 72,
+     "w": 148,
+     "h": 37,
+     "txt": "\u96d1\u8ca8\u30fb\u5c0f\u9593\u7269"
+    }
+   ],
+   "vanish": [
+    322,
+    144
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 333
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 896,
+   "h": 176
+  }
+ },
+ "colors": {
+  "skyTop": "#0a0c24",
+  "under": "#2a2a3a"
+ },
+ "preview": "preview.png"
+}

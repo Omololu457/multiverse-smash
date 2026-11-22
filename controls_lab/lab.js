@@ -10,7 +10,7 @@ const $ = s => document.querySelector(s)
 const LS = { state: "ms_controls_lab", mastered: "ms_controls_lab_mastered", big: "ms_controls_lab_big", zoom2: "ms_controls_lab_zoom2" }
 const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v ?? d } catch (_) { return d } }
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch (_) {} }
-const MODES = ["moves", "combos", "trial", "free"]
+const MODES = ["moves", "combos", "trial", "free", "fatal"]
 
 const eng = new LabEngine($("#game"))
 const S = {
@@ -55,7 +55,7 @@ async function selectChar(key, { initial = false } = {}) {
   const img = $("#charPortrait"); if (C?.portrait) { img.src = C.portrait; img.style.visibility = "" } else img.style.visibility = "hidden"
   setAccent(eng.accent(key))
   const r = buildMoves(eng.mods, key)
-  S.moves = r.moves; S.notes = r.notes; S.selMove = null
+  S.moves = [...r.moves, ...finisherMoves(key)]; S.notes = r.notes; S.selMove = null
   await loadCombos()
   S.combos = (S.allCombos || []).filter(c => c.char === key && c.status === "verified")
   S.selCombo = S.combos[0] || null
@@ -66,6 +66,84 @@ async function selectChar(key, { initial = false } = {}) {
   renderMode()
   setVeil(false)
   eng.listeners.add(onFrame)
+}
+
+// ── FINISHERS (match-end, in the FINISH window): the fighter's SIGNATURE FATALITY (Special = L) and SCREEN BREAKER
+// (Grab → Special). The demo starts the game's own finisher on the dummy (signatureFatality.js / screenBreaker.js — the
+// exact code a real match runs once the input is read); when it ends the game goes to its victory screen and the Lab
+// reloads the fighter.
+const KIND_TEXT = { void: "an unstoppable void — the whole arena goes black and the victim is erased", beam: "a full-power beam that vaporises the victim",
+  slash: "one cut — the victim falls apart", dismantle: "a storm of invisible slashes that dices the victim", fire: "flames that burn the victim to ash",
+  ice: "the victim freezes solid and shatters", lightning: "a lightning-charged strike straight through the victim", crush: "a colossal weight that flattens the victim",
+  punch: "one punch that sends the victim off the screen", vortex: "a spiral that twists the victim out of existence", blitz: "a hundred hits in a blink",
+  barrage: "a barrage that riddles the victim", bind: "the victim is bound and crushed", explode: "a blast that blows the victim apart",
+  erase: "the victim is erased, atom by atom", poison: "a poison strike — the victim withers and collapses", psychic: "the victim is lifted and torn apart by the mind",
+  note: "the victim's name is written in the notebook — 40 seconds later, a heart attack", holy: "a judgement of holy light" }
+function sigFor(key) { const C = eng.mods.characters[key]; try { return eng.mods.sig.signatureFor({ ...C, rosterKey: key }) } catch (_) { return null } }
+function finisherMoves(key) {
+  const g = sigFor(key); if (!g) return []
+  const base = { section: "Finishers", cat: "finisher", script: [], at: [], damage: null, startup: null, cost: null, tags: ["fatality", "match end"] }
+  return [
+    { ...base, id: `fin:sig:${key}`, fin: "sig", name: `${g.name} — FATALITY`, input: "Special", parsed: { steps: [{ kind: "press", dirs: [], buttons: ["special"] }], air: false },
+      desc: `Signature fatality: ${KIND_TEXT[g.kind] || "their defining technique"}. Win the match, then press SPECIAL (L) while FINISH is on screen.` },
+    { ...base, id: `fin:sb:${key}`, fin: "sb", name: "SCREEN BREAKER", input: "Grab › Special", parsed: { steps: [{ kind: "press", dirs: [], buttons: ["grab"] }, { kind: "press", dirs: [], buttons: ["special"] }], air: false },
+      desc: "Lift the loser and throw them into the screen — the glass cracks. Win the match, then GRAB → SPECIAL (or GRAB → DOWN) while FINISH is on screen." },
+  ]
+}
+async function finisherDemo(m) {
+  stopTask(); takeControl(false)
+  S.selMove = m; if (S.mode === "moves") renderMode()
+  const task = S.task = { kind: "demo" }
+  await eng.reset({ gap: m.fin === "sb" ? 10 : 60 })
+  if (S.task !== task) return null
+  S.finisher = task
+  $("#arenaBadge").textContent = m.fin === "sb" ? "SCREEN BREAKER" : "FATALITY"
+  const steps = m.parsed.steps
+  for (let i = 0; i < steps.length; i++) { if (ctl) ctl.setGuide(steps[i], { text: "" }); await eng.frames(14); if (S.task !== task) { S.finisher = null; return null } }
+  if (ctl) ctl.setGuide(null)
+  const a = eng.p1(), b = eng.p2(), ok = m.fin === "sb" ? eng.mods.sb.startScreenBreaker(a, b) : eng.mods.sig.startSignatureFatality(a, b)
+  // the finisher plays out in the arena; it is over when the game clears it (a match then goes to its victory screen;
+  // the Lab's training match stays in battle)
+  const live = () => { try { return m.fin === "sb" ? eng.mods.sb.screenBreakerActive() || eng.mods.sb.screenBreakerDone() : !!eng.mods.sig.signatureFatalityState().phase } catch (_) { return false } }
+  const t0 = performance.now(); let ran = false
+  while (ok && S.task === task && performance.now() - t0 < 60000) { const l = live(); ran ||= l; if (ran && !l) break; if (eng.gameState() !== "battle") break; await new Promise(r => setTimeout(r, 100)) }
+  const played = ok && ran && !live()
+  if (S.task !== task) { S.finisher = null; return null }
+  S.task = null
+  await new Promise(r => setTimeout(r, 900))   // a beat on the result
+  await selectChar(S.key)                      // back to a fresh training match
+  S.finisher = null
+  S.selMove = S.moves.find(x => x.id === m.id) || null; renderMode()
+  const st = $("#moveStatus"); if (st) st.innerHTML = `<b>${esc(m.name)}</b> — ${played ? `<span class="verified">performed in the engine</span>` : `<span style="color:var(--warn)">did not finish</span>`}`
+  return { fired: played, hits: 0, damage: 0 }
+}
+function fatalHTML() {
+  const list = S.roster.map(r => ({ ...r, g: sigFor(r.key) })).filter(r => r.g)
+  const pa = S.playAllFatal
+  return `<div class="mode-head"><h2>FATALITIES</h2><span class="sp"></span>
+      <button class="nav sm primary" data-act="fatalall" data-nav="actions" title="Watch every fighter's fatality, one after another">${pa ? `■ Stop (${pa.i + 1} / ${pa.n})` : "▶ Play all"}</button></div>
+    <div class="note">Every fighter's signature finisher. Win the match, then press <b>SPECIAL (L)</b> while FINISH is on screen (GRAB → SPECIAL is SCREEN BREAKER). Pick one to watch it in the real engine.</div>
+    <div class="scroll" id="listScroll">${list.map(r => `<div class="card nav${r.key === S.key && S.selMove?.fin === "sig" ? " sel" : ""}" data-nav="list" data-fatal="${esc(r.key)}">
+      <div class="row">${r.portrait ? `<img src="${esc(r.portrait)}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:8px;margin-right:10px">` : ""}<div><div class="nm" style="color:${esc(r.g.color)}">${esc(r.g.name)}</div>
+      <div class="stat">${esc(r.name)} · ${esc(r.universeLabel)}</div></div></div>
+      <div class="desc">${esc(KIND_TEXT[r.g.kind] || "")}</div></div>`).join("")}</div>`
+}
+async function fatalFor(key) {
+  if (key !== S.key) await selectChar(key)
+  const m = S.moves.find(x => x.fin === "sig"); if (!m) return null
+  if (S.mode === "fatal") { renderMode(); document.querySelector(`[data-fatal="${key}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }) }
+  return finisherDemo(m)
+}
+async function playAllFatal() {
+  if (S.playAllFatal) { S.playAllFatal = null; stopTask(); renderMode(); return }
+  const keys = S.roster.map(r => r.key).filter(k => sigFor(k))
+  const run = S.playAllFatal = { i: Math.max(0, keys.indexOf(S.key)), n: keys.length }
+  for (; run.i < keys.length; run.i++) {
+    if (S.mode === "fatal") renderMode()
+    const r = await fatalFor(keys[run.i])
+    if (S.playAllFatal !== run || !r) { if (S.playAllFatal === run) { S.playAllFatal = null; renderMode() } return }
+  }
+  S.playAllFatal = null; renderMode(); toast("Played every fatality")
 }
 
 async function loadCombos() {
@@ -225,6 +303,7 @@ function renderMode() {
   if (S.mode === "moves") P.innerHTML = movesHTML()
   else if (S.mode === "combos") P.innerHTML = combosHTML()
   else if (S.mode === "trial") P.innerHTML = trialHTML()
+  else if (S.mode === "fatal") P.innerHTML = fatalHTML()
   else P.innerHTML = freeHTML()
   $("#hitboxBtn").style.display = S.mode === "free" ? "" : "none"
   updateHelp()
@@ -341,6 +420,7 @@ function alsoHit(also, now) {
 }
 function runMoveDemo(m, slow = false) { return runDemo({ script: m.script, at: m.at, steps: m.parsed.steps, lesson: m.lesson, also: m.also, gap: m.gap, slow }) }
 async function demoMove(m, slow = false) {
+  if (m.fin) return finisherDemo(m)
   S.selMove = m; renderMode()
   const r = await runMoveDemo(m, slow)
   if (!r) return r
@@ -573,7 +653,7 @@ function uiLoop() {
 // fighter instead of freezing on a results screen.
 let _offBattleSince = 0, _recovering = false
 function watchMatch() {
-  if (!eng.ready || _recovering) return
+  if (!eng.ready || _recovering || S.finisher) return
   const gs = eng.gameState()
   if (gs === "battle" || gs === "paused" || gs == null) { _offBattleSince = 0; return }
   const now = performance.now()
@@ -670,6 +750,8 @@ function wireUI() {
     if (a) return onAction(a.dataset.act)
     const mc = e.target.closest("[data-move]")
     if (mc) { const m = S.moves[+mc.dataset.move]; if (S.mode === "free") return; return demoMove(m) }
+    const fc = e.target.closest("[data-fatal]")
+    if (fc) { if (S.playAllFatal) { S.playAllFatal = null } return fatalFor(fc.dataset.fatal) }
     const cc = e.target.closest("[data-combo]")
     if (cc) { S.selCombo = S.combos[+cc.dataset.combo]; renderMode(); const c = S.selCombo; applyComboSetup(eng, c); const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c) }) }
   }
@@ -684,7 +766,7 @@ function markDummy() { for (const b of document.querySelectorAll("[data-dummy]")
 // demo / mode change / fighter change interrupts it (runDemo resolves null when its task is replaced).
 async function playAll() {
   if (S.playAll) { S.playAll = null; stopTask(); renderMode(); return }
-  const list = S.moves.filter(m => !m.unavailable); if (!list.length) return
+  const list = S.moves.filter(m => !m.unavailable && !m.fin); if (!list.length) return   // finishers end the match: they have their own Play all (FATALITIES)
   const start = Math.max(0, list.indexOf(S.selMove))
   const run = S.playAll = { i: start, n: list.length }
   for (; run.i < list.length; run.i++) {
@@ -708,7 +790,8 @@ function onAction(act) {
   const m = S.selMove, c = S.selCombo
   if (act === "replay" && m) return demoMove(m)
   if (act === "slow" && m) return demoMove(m, true)
-  if (act === "yourturn" && m) return yourTurnMove(m)
+  if (act === "yourturn" && m) return m.fin ? finisherDemo(m) : yourTurnMove(m)
+  if (act === "fatalall") return playAllFatal()
   if ((act === "cdemo" || act === "cslow") && c) { applyComboSetup(eng, c); const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c), slow: act === "cslow" }) }
   if (act === "ctrial" && c) { setMode("trial"); return startTrial(c) }
   if (act === "tstart" && c) return startTrial(c)

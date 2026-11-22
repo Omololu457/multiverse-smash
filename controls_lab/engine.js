@@ -54,7 +54,7 @@ export class LabEngine {
     await waitFor(() => w.__harness && w.__harness.boot)
     // Import the game's modules FROM INSIDE the game page: an inline module script in the iframe document resolves
     // through that page's import map + module map, so these are the very instances the running game uses.
-    const MODS = ["input", "kits", "characters", "academy", "padLayout", "theme", "sound", "padStick", "camera"]
+    const MODS = ["input", "kits", "characters", "academy", "padLayout", "theme", "sound", "padStick", "camera", "signatureFatality", "screenBreaker"]
     const doc = w.document, sc = doc.createElement("script")
     sc.type = "module"
     sc.textContent = MODS.map((m, i) => `import * as m${i} from "./${m}.js"`).join("\n") +
@@ -62,7 +62,8 @@ export class LabEngine {
     doc.head.appendChild(sc)
     const M = await waitFor(() => w.__labMods, 20000)
     this.mods = { input: M.input, kits: M.kits, characters: M.characters.characters, academy: M.academy, padLayout: M.padLayout,
-      theme: M.theme, sound: M.sound.sound || M.sound.default, SFX: M.sound.SFX, padStick: M.padStick, camera: M.camera.camera }
+      theme: M.theme, sound: M.sound.sound || M.sound.default, SFX: M.sound.SFX, padStick: M.padStick, camera: M.camera.camera,
+      sig: M.signatureFatality, sb: M.screenBreaker }   // the match-end FINISHERS (played for real by the Lab's finisher demo)
     this.h = w.__harness
     this.h.boot()
     this.controls = this.h.controls ? this.h.controls() : null

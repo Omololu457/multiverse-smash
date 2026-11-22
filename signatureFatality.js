@@ -57,7 +57,7 @@ const SIG = {
 const BY_UNIVERSE = { dragon_ball: "beam", naruto: "lightning", jujutsu_kaisen: "punch", bleach: "slash", demon_slayer: "slash", power_rangers: "barrage", dc: "beam", marvel: "punch",
   ben_10: "explode", one_piece: "punch", hunter_x_hunter: "slash", horror: "slash", the_incredibles: "punch", one_punch_man: "punch" }
 export function signatureFor(f) {
-  const k = (f?.rosterKey || f?.id || "").toLowerCase(), r = SIG[k] || SIG[f?.rosterKey]
+  const k = (f?.rosterKey || f?.key || f?.id || "").toLowerCase(), r = SIG[k] || SIG[f?.rosterKey] || SIG[f?.key]
   if (r) return { kind: r[0], name: r[1], color: r[2], v: r[3] }
   return { kind: BY_UNIVERSE[f?.universe] || "punch", name: ((f?.name || "SIGNATURE") + " FINISH").toUpperCase(), color: "#ffd060", v: null }
 }

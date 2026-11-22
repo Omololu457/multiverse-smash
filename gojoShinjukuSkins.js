@@ -14,6 +14,11 @@ export const GS_SKIN_TABLE = [
   { tag: 'alienx_horizon', name: 'Alien X — Event Horizon', classification: 'Alien X Collection' },
   { tag: 'alienx_daylight', name: 'Alien X — Daylight Galaxy', classification: 'Alien X Collection' },
   { tag: 'opal', name: 'Black Opal Headliner', classification: 'Glitter Collection', glitter: true },
+  { tag: 'pinkdiamond', name: 'Pink Diamond Flashbulb', classification: 'Glitter Collection', glitter: true },
+  { tag: 'sequin', name: 'Midnight Sequin', classification: 'Glitter Collection', glitter: true },
+  { tag: 'meteor', name: 'Meteor Hem', classification: 'Glitter Collection', glitter: true },
+  { tag: 'valkyrie', name: 'Winning Valkyrie — Victory Lap', classification: 'Crossover', crossover: 'Winning Valkyrie' },
+  { tag: 'upgrade', name: 'Ben 10 Upgrade — Living Sleeve', classification: 'Crossover', crossover: 'Ben 10' },
 ]
 const PREFIX = 'gs_'
 const BY_TAG = Object.fromEntries(GS_SKIN_TABLE.map(r => [r.tag, r]))

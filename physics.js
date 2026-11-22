@@ -18,6 +18,13 @@ import { zoroPhasing, zoroNoJump } from './zoroState.js'   // Roronoa Zoro dash-
 import { sanjiPhasing, sanjiNoJump } from './sanjiState.js'   // Sanji: handstand / super pass-through + special jump lock (sanji-gated)
 import { rangerWalkMul } from './rangers.js'   // Ranger framework: run after a ground blink (1 for everyone else)
 import { arlongWalkMul, arlongDashMul } from './arlongState.js'   // Arlong: 4.4 px/f walk, ×1.25 in his water; foes slide 10% further back in it (arlong-gated, 1 for everyone else)
+// ROSTER FEEL (2026-11-21, owner: "buff speed for everyone, not too much" + "give every character a back-dash"):
+//  WALK_FEEL scales every fighter's ground walk (6 → 6.9 px/f for the common speed 84).
+//  BACKDASH: double-tap AWAY retreats — a real, visible dash (not a blink) that covers ~2× the forward dash. The away
+//  direction is read from the held input on the dash frame (replay / LAN-safe). Before this, double-tap away dashed
+//  TOWARD the foe for everyone.
+export const WALK_FEEL = 1.15
+export const BACKDASH = Object.freeze({ frames: 18, speedMul: 1.4, cooldown: 40 })
 import { elWalkVx, elFriction, elDashMul } from './elements.js'   // element patches (Enoch's ICE): slippery walk / friction / 20 % longer backdash — identity for anyone not on an ICE patch
 import { dashParrWalkMul, dashParrPhasing } from './dashParrState.js'   // Dash Parr: Momentum speed tiers + pass-through (dash_parr-gated; 1 / false for everyone else)
 import { ninjaPhasing } from './ninja.js'   // MSV1 streak / burrow / vanish pass-through (false for everyone else)
@@ -265,7 +272,8 @@ export const physics = {
             (hy < 0 && hx === fwd) ? 3 :
             (hx === -fwd) ? 5 : 4
         } else {
-          fighter.vx = (fighter.facing || 1) * adSpd
+          const _awayAir = (fighter.facing || 1) === 1 ? (L && !R) : (R && !L)   // BACKDASH: holding away → air dash backward
+          fighter.vx = (fighter.facing || 1) * adSpd * (_awayAir ? -1 : 1)
           fighter.vy = 0
         }
         fighter.airDashCount++
@@ -276,6 +284,8 @@ export const physics = {
       else if (!air && dash && fighter.dashCooldown <= 0) {
         fighter.dashTimer = fighter.dashDuration || 8
         fighter.dashCooldown = fighter.dashCooldownMax || 28
+        fighter._backDash = (fighter.facing || 1) === 1 ? (L && !R) : (R && !L)   // BACKDASH: away still held on the dash frame
+        if (fighter._backDash) { fighter.dashTimer = BACKDASH.frames; fighter.dashCooldown = Math.max(fighter.dashCooldown, BACKDASH.cooldown) }
         // Optional binding-vow effect: i-frames at dash start (set via fighter.dashInvuln).
         if (fighter.dashInvuln) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, fighter.dashDuration || 8)
       }
@@ -283,8 +293,9 @@ export const physics = {
       if (!air && fighter.dashTimer > 0) {
         fighter.dashTimer--
         const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter) * _benSlowK   // Arlong swim-dash ×1.25 (1 for everyone else) × Ben-form slow (1 unless stamped)
-        fighter.vx = (fighter.facing || 1) * dashSpeed
+        fighter.vx = fighter._backDash ? -(fighter.facing || 1) * dashSpeed * BACKDASH.speedMul : (fighter.facing || 1) * dashSpeed
         fighter.vy = 0
+        if (fighter.dashTimer <= 0) fighter._backDash = false
       } else if (!fighter.airDashing) {
         // FLASH TIME (Flash's ultimate): he moves too fast to stop on a dime. While active he ZIPS at a
         // raised top speed (past the normal clamp) and, on release, KEEPS his momentum and skids to a stop
@@ -296,7 +307,7 @@ export const physics = {
         // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
         // SOLDIER BOY — Armed Mode slows ground movement by 10% (loadout weight). No-op for everyone else.
         const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * ((fighter._benPinT || 0) > 0 ? 0.5 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * dashParrWalkMul(fighter) * (_benTerror ? 0.6 : 1)
-        const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul
+        const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul * WALK_FEEL   // ROSTER FEEL: everyone walks 15% faster
         if (L && !R) {
           fighter.vx = flashTime ? -FT_ZIP : elWalkVx(fighter, -walkSpeed)
           fighter.facing = -1

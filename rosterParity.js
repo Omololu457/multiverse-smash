@@ -25,6 +25,13 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
   violet: 1.31, dash_parr: 1.36, elastigirl: 2.1, syndrome: 1.11, frozone: 1.11, mr_incredible: 1.25,
   // Original roster — Dseyl is Syndrome's kit, so he carries Syndrome's boost
   dseyl: 1.11,
+  // 2026-11-21 third pass (owner: "buff the weak up"): live probe harness/roster_balance_measure.mjs — power =
+  // avg(Light/26-27, Heavy/54) × HP/1150 for all 114 fighters; everyone under 0.85 lifted toward ~0.95 (cap 1.5).
+  // Not lifted: ben10/albedo human form (they transform), dash_parr (speed is his trade), kakashi_anbu (Special 254),
+  // goku (on the line + his ladder).
+  flash: 1.5, ghostface: 1.5, shisui_fallen: 1.5, megumi_fushiguro: 1.31, six_paths_pain: 1.28, killua: 1.27,
+  soldier_boy: 1.26, l_ryuuzaki: 1.25, enoch: 1.2, spiderman: 1.2, robin: 1.19, rick: 1.18, byakuya: 1.17,
+  tobi: 1.15, light: 1.15, hinata: 1.12,
 })
 export function rosterDamageBoost(attacker) {
   if (!attacker) return 1

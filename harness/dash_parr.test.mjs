@@ -6,6 +6,7 @@ import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
 import {dash_parr as DASH_DEF,DASH_STATS,INCREDI_RUSH} from '../dashParrData.js'
 import {ROSTER_DAMAGE_BOOST} from '../rosterParity.js'
+const WALK_FEEL=+(fs.readFileSync(new URL('../physics.js',import.meta.url),'utf8').match(/export const WALK_FEEL = ([0-9.]+)/)||[0,1])[1]   // physics.js roster-wide walk multiplier
 // ROSTER PARITY boost (rosterParity.js), applied at combat.applyScaledDamage on top of the floored per-hit damage:
 // dealt = floor(brief hit × boost). Design-tolerance targets (±20 %) are scaled by the same boost.
 const BOOST=ROSTER_DAMAGE_BOOST.dash_parr||1,mel=x=>Math.floor(x*BOOST)
@@ -57,7 +58,7 @@ try{
  ck(`stats: dashParrData.js (HP ${DASH_DEF.stats.maxHealth}, energy 180 "Super Speed", speed ${DASH_STATS.speed}, jump 33, 2 jumps, dash ${DASH_STATS.dashSpeed})`,s.a.maxHp===DASH_DEF.stats.maxHealth&&meta.e===180&&meta.en==='Super Speed'&&meta.has&&Object.keys({...meta.st,...DASH_DEF.stats}).every(k=>meta.st[k]===DASH_DEF.stats[k])&&meta.st.speed===DASH_STATS.speed&&meta.st.dashSpeed===DASH_STATS.dashSpeed,JSON.stringify({st:meta.st,data:DASH_DEF.stats}))
  // walk / run speed
  await reset(600);await page.keyboard.down('d');await step(12);s=await state();await page.keyboard.up('d');const walk=Math.abs(s.a.vx)
- const WALK=Math.min(9.5,Math.max(4.5,4.5+(DASH_STATS.speed-78)/20*5))   // physics.js walk map on Dash's speed stat
+ const WALK=Math.min(9.5,Math.max(4.5,4.5+(DASH_STATS.speed-78)/20*5))*WALK_FEEL   // physics.js walk map on Dash's speed stat × the roster-wide WALK_FEEL
  ck(`walk speed ${WALK} px/f at Jog (speed ${DASH_STATS.speed})`,near(walk,WALK,0.05),String(walk))
  await reset(900);await tap(['d']);await step(2);await tap(['d']);await step(3);s=await state();const run=Math.abs(s.a.vx)
  ck(`run (double-tap dash) speed ${DASH_STATS.dashSpeed*0.55} px/f (dash ${DASH_STATS.dashSpeed} × 0.55)`,near(run,DASH_STATS.dashSpeed*0.55,0.05),String(run));report.stats={walk,run}

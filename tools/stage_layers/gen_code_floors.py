@@ -39,7 +39,7 @@ def woodsboro():   # a suburban street at night: sidewalk, kerb, asphalt with a 
     for k in range(40): y, x = r.integers(40, H - 10), r.integers(0, W - 60); F[y, x:x + r.integers(10, 60), :3] *= 0.75        # cracks
     out("code_woodsboro", F, {"skyTop": "#0a0e1c", "under": "#1a1c24"}, "Drawn in code / generated (no source sheet)")
 def pk():   # a Japanese schoolyard: packed earth, a white track line, cherry petals
-    r = np.random.default_rng(3); F = base((196, 166, 120), r, 5, 0.1)
+    r = np.random.default_rng(3); F = base((196, 166, 120), r, 4, 0.045, 14)
     F[90:96, :, :3] = (240, 236, 226)
     for k in range(260): y, x = r.integers(0, H - 3), r.integers(0, W - 4); F[y:y + 2, x:x + 3, :3] = (250, 190, 210)
     out("code_pk", F, {"skyTop": "#8ac8f0", "under": "#9a8060"}, "Drawn in code / generated (no source sheet)")

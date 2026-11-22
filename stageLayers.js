@@ -289,6 +289,20 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// PK ACADEMY (Saiki K.) — no sheet: the school drawn in code over a generated schoolyard floor (gen_code_floors.py).
+SETS.code_pk = {
+  dir: "./stages/code_pk/",
+  S: 1.6,
+  standRow: 40,
+  deckFrontRow: 80,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [{ procedural: "pk", p: 0.9 }],
+  props: [],
+  front: [],
+  fx: "pk",
+  animRate: {},
+}
+
 // WOODSBORO (Scream) — no sheet: the suburb drawn in code over a generated street floor (gen_code_floors.py).
 SETS.code_woodsboro = {
   dir: "./stages/code_woodsboro/",
@@ -666,6 +680,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "pk") { drawPkBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "woodsboro") { drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "colosseum") { drawColosseumBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "shadow") { drawShadowSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -778,6 +793,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "pk") pkFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "woodsboro") woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "colosseum") colosseumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "shadow") shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5494,4 +5510,102 @@ function woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   WB.shout = WB.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── PK ACADEMY (The Disastrous Life of Saiki K.; render-only, wall clock, own PRNG) ─────────────────────────────
+// No sheet — drawn in code over a generated schoolyard floor: a bright spring sky, the white school building with its
+// clock, rows of classroom windows, cherry trees in bloom shedding petals, the school fence + gate, students in uniform
+// chatting and walking; Saiki watches if he isn't fighting (shared crowd). Big hit → the students gasp and crowd the
+// windows ("WHOA!"); ≤25% → a METEOR appears in the sky, heading straight for the school; KO → it stops dead and
+// shatters into sparkles — Saiki saved the world again, and nobody noticed ("…Good grief.").
+let _pkSeed = 0xa54ff53a ^ 0x510e527f
+const pkRnd = () => { _pkSeed ^= _pkSeed << 13; _pkSeed ^= _pkSeed >>> 17; _pkSeed ^= _pkSeed << 5; return (_pkSeed >>> 0) / 4294967296 }
+const PK_CROWD = [["saiki", 0.8, 0]]
+const PKC = makeCrowd(PK_CROWD, 0.6)
+const PK = { p1: null, last: 0, skyLast: 0, hp: new WeakMap(), petals: null, kids: null, gasp: 0, meteor: 0, shatter: null, bits: [], shout: [],
+  st: { gasps: 0, meteor: 0, saved: 0 } }
+export const pkState = () => ({ ...PK.st, petals: (PK.petals || []).length, kids: (PK.kids || []).length, gasp: +PK.gasp.toFixed(2), meteor: +PK.meteor.toFixed(2), shatter: PK.shatter ? +PK.shatter.t.toFixed(2) : 0,
+  crowd: crowdState(PKC), shouting: PK.shout.filter(s => s.t > 0).map(s => s.txt) })
+function pkShout(x, y, txt, col) { if (PK.shout.filter(s => s.t > 0).length < 3) PK.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
+function pkTree(ctx, x, base, s, t, k) {   // a cherry tree in bloom
+  ctx.save(); ctx.translate(x, base); ctx.scale(s, s)
+  ctx.strokeStyle = "#5a3a2e"; ctx.lineCap = "round"; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-6, -50, 4, -90); ctx.stroke()
+  ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(2, -70); ctx.lineTo(-40, -110); ctx.moveTo(4, -80); ctx.lineTo(44, -116); ctx.stroke()
+  for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2, r = 34 + 16 * _h(k * 9 + i), bx = Math.cos(a) * r * 1.4, by = -118 + Math.sin(a) * r * 0.7 + Math.sin(t * 1.2 + i) * 1.5
+    ctx.fillStyle = ["#f8c8d8", "#f4b0c8", "#fbd8e4"][i % 3]; ctx.beginPath(); ctx.arc(bx, by, 22 + 6 * _h(i + k), 0, 7); ctx.fill() }
+  ctx.restore()
+}
+function pkKid(ctx, k, x, y, s, t) {   // a student: gakuran (boys) or sailor uniform (girls)
+  const sw = k.go ? Math.sin(t * 6 + k.ph) * 0.35 : 0, hop = PK.gasp > 0 ? Math.abs(Math.sin(t * 8 + k.ph)) * 5 * PK.gasp : 0
+  ctx.save(); ctx.translate(x, y - hop); ctx.scale(s * k.dir, s)
+  ctx.fillStyle = "#1a1a22"; ctx.fillRect(-4 + sw * 6, -16, 3.5, 16); ctx.fillRect(1 - sw * 6, -16, 3.5, 16)
+  if (k.girl) { ctx.fillStyle = "#24305a"; ctx.beginPath(); ctx.moveTo(-8, -26); ctx.lineTo(8, -26); ctx.lineTo(10, -14); ctx.lineTo(-10, -14); ctx.fill(); ctx.fillStyle = "#f4f4f0"; ctx.fillRect(-7, -44, 14, 18); ctx.fillStyle = "#24305a"; ctx.fillRect(-7, -44, 14, 4); ctx.fillStyle = "#d02a3a"; ctx.beginPath(); ctx.moveTo(-3, -40); ctx.lineTo(3, -40); ctx.lineTo(0, -34); ctx.fill() }
+  else { ctx.fillStyle = "#1e2230"; ctx.fillRect(-7, -44, 14, 30); ctx.fillStyle = "#c8a840"; ctx.fillRect(-1, -40, 2, 2); ctx.fillRect(-1, -33, 2, 2) }
+  ctx.fillStyle = "#f2d2b2"; ctx.beginPath(); ctx.arc(0, -50, 6.5, 0, 7); ctx.fill()
+  ctx.fillStyle = k.hair; ctx.beginPath(); ctx.arc(0, -52, 7, Math.PI, 0); ctx.fill(); if (k.girl) ctx.fillRect(-7, -52, 3, 12), ctx.fillRect(4, -52, 3, 12)
+  if (PK.gasp > 0.3) { ctx.fillStyle = "#3a2a2a"; ctx.beginPath(); ctx.ellipse(2.5, -47, 1.6, 2.4, 0, 0, 7); ctx.fill() }
+  ctx.restore()
+}
+function drawPkBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S, m = PK.meteor
+  const dt = Math.min(0.05, Math.max(0, t - (PK.skyLast || t))); PK.skyLast = t
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, m ? `rgb(${120 + 100 * m | 0},${170 - 60 * m | 0},${230 - 120 * m | 0})` : "#7ac0f0"); g.addColorStop(1, "#ffd6e8")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  for (let i = 0; i < 6; i++) { const x = padL + ((i * 300 + t * 8 + shift(0.1, W)) % (padR - padL + 400)) - 200, y = dockTop - (300 + 60 * _h(i * 3)) * S
+    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.beginPath(); ctx.ellipse(x, y, 70, 20, 0, 0, 7); ctx.ellipse(x + 40, y - 12, 44, 18, 0, 0, 7); ctx.fill() }
+  // the school building with its clock
+  { const ps = shift(0.6, W), bw = 900, base = dockTop - 34 * S, h = 210 * S * 0.7
+    for (let i = Math.floor((padL - ps) / (bw + 300)) - 1; i * (bw + 300) + ps < padR + bw; i++) { const x = i * (bw + 300) + ps - bw / 2 + W / 2 - (W / 2) % (bw + 300)
+      ctx.fillStyle = "#f2f0ea"; ctx.fillRect(x, base - h, bw, h); ctx.fillStyle = "#d8d4ca"; ctx.fillRect(x + bw - 30, base - h, 30, h); ctx.fillStyle = "#c8c4ba"; for (let f = 1; f < 4; f++) ctx.fillRect(x, base - h * f / 4 - 3, bw, 5)
+      for (let f = 0; f < 4; f++) for (let j = 0; j < 14; j++) { const wx = x + 20 + j * (bw - 40) / 14, wy = base - h * (f + 1) / 4 + 10, ww = (bw - 40) / 14 - 10, wh = h / 4 - 22
+        ctx.fillStyle = "#9ac8e8"; ctx.fillRect(wx, wy, ww, wh); ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.fillRect(wx + 3, wy + 3, ww * 0.3, wh - 6)
+        if (PK.gasp > 0.2 && _h(f * 31 + j * 7 + i) < 0.5) { ctx.fillStyle = "#f2d2b2"; ctx.beginPath(); ctx.arc(wx + ww / 2, wy + wh - 8, 5, 0, 7); ctx.fill(); ctx.fillStyle = "#2a2020"; ctx.beginPath(); ctx.arc(wx + ww / 2, wy + wh - 10, 5.4, Math.PI, 0); ctx.fill() } }
+      const cx = x + bw / 2, cy = base - h - 30; ctx.fillStyle = "#f2f0ea"; ctx.fillRect(cx - 50, base - h - 60, 100, 60); ctx.beginPath(); ctx.moveTo(cx - 60, base - h - 60); ctx.lineTo(cx, base - h - 92); ctx.lineTo(cx + 60, base - h - 60); ctx.fillStyle = "#c86a5a"; ctx.fill()
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx, cy, 22, 0, 7); ctx.fill(); ctx.strokeStyle = "#3a3a3a"; ctx.lineWidth = 2.5; ctx.stroke()
+      const hr = t / 60 % 12 / 12 * Math.PI * 2, mn = t % 60 / 60 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.sin(hr) * 11, cy - Math.cos(hr) * 11); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.sin(mn) * 17, cy - Math.cos(mn) * 17); ctx.stroke() } }
+  // cherry trees + the fence and gate
+  { const ps = shift(0.85, W); for (let i = Math.floor((padL - ps) / 420) - 1; i * 420 + ps < padR + 420; i++) pkTree(ctx, i * 420 + ps + 60 * _h(i * 2.2), dockTop - 4 * S, S * 0.58, t, i)
+    ctx.strokeStyle = "#6a7a6a"; ctx.lineWidth = 2; for (let x = padL - ((padL - ps) % 14 + 14) % 14; x < padR; x += 14) { ctx.beginPath(); ctx.moveTo(x, dockTop - 2); ctx.lineTo(x, dockTop - 40); ctx.stroke() }
+    ctx.fillStyle = "#6a7a6a"; ctx.fillRect(padL, dockTop - 42, padR - padL, 4); ctx.fillRect(padL, dockTop - 20, padR - padL, 3) }
+  // the meteor (≤25%), or its shattering (KO)
+  if (m > 0 && !PK.shatter) { const k = m, mx = W / 2 + shift(0.05, W) + 260 - 200 * k, my = dockTop - (330 - 170 * k) * S, R = 20 + 50 * k
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; for (let i = 0; i < 8; i++) { ctx.fillStyle = `rgba(255,${160 - i * 12},60,${0.12})`; ctx.beginPath(); ctx.ellipse(mx + 40 + i * 22, my - 30 - i * 16, R * (1 + i * 0.2), R * 0.6, -0.6, 0, 7); ctx.fill() } ctx.restore()
+    ctx.fillStyle = "#5a4a40"; ctx.beginPath(); ctx.arc(mx, my, R, 0, 7); ctx.fill(); ctx.fillStyle = "#3a2e28"; for (const [dx, dy, r] of [[-0.3, -0.2, 0.25], [0.3, 0.2, 0.2], [0.1, -0.4, 0.15]]) { ctx.beginPath(); ctx.arc(mx + dx * R, my + dy * R, r * R, 0, 7); ctx.fill() }
+    ctx.strokeStyle = "rgba(255,170,80,0.8)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(mx, my, R + 2, 0, 7); ctx.stroke() }
+}
+function pkFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
+  if (F[0] !== PK.p1) { Object.assign(PK, { p1: F[0], hp: new WeakMap(), kids: null, gasp: 0, meteor: 0, shatter: null, bits: [], shout: [] }); for (const k in PK.st) PK.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (PK.last || t))); PK.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = PK.hp.get(f); PK.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big && !PK.shatter) { PK.st.gasps++; PK.gasp = 1; if (PK.st.gasps % 2 === 1) pkShout(mid + (pkRnd() - 0.5) * 300, dockTop - 130 * S, ["WHOA!!", "IS THAT EVEN LEGAL?!", "SOMEONE GET A TEACHER!"][Math.floor(PK.st.gasps / 2) % 3], "#a02a5a") }
+  PK.gasp = Math.max(0, PK.gasp - dt * 0.4)
+  if (low && !PK.st.meteor && !PK.shatter) { PK.st.meteor++; pkShout(mid, feet - 230, "IS THAT… A METEOR?!", "#a02a2a") }
+  if (PK.st.meteor && !PK.shatter) PK.meteor = Math.min(1, PK.meteor + dt * 0.35)
+  if (ko && !PK.shatter) { PK.shatter = { t: 0 }; PK.st.saved++; const k = Math.max(0.3, PK.meteor), mx = W / 2 + shift(0.05, W) + 260 - 200 * k, my = dockTop - (330 - 170 * k) * S
+    if (PK.meteor > 0) for (let i = 0; i < 80; i++) { const a = pkRnd() * Math.PI * 2, v = 60 + 220 * pkRnd(); PK.bits.push({ x: mx, y: my, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 2 }) }
+    PK.meteor = 0; pkShout(mid, feet - 250, "…Good grief.", "#d02a8a") }
+  if (PK.shatter) PK.shatter.t += dt
+  drawCrowd(ctx, PKC, { W, feet, sh: shift(0.9, W) })
+  // students
+  if (!PK.kids) PK.kids = Array.from({ length: 9 }, (_, i) => ({ x: padL + (padR - padL) * ((i * 0.31 + 0.05) % 1), dir: i % 2 ? -1 : 1, v: 20 + 16 * _h(i), go: i % 3 !== 0, ph: i, girl: i % 2 === 0, hair: ["#2a1e1a", "#5a3a2a", "#1a1a2a", "#8a5a2a"][i % 4], lane: 0.2 + 0.6 * _h(i * 7) }))
+  for (const k of PK.kids) { if (k.go) { k.x += k.dir * k.v * dt; if (k.x < padL - 30) k.dir = 1; if (k.x > padR + 30) k.dir = -1 }
+    pkKid(ctx, k, k.x, feet - (8 + 14 * k.lane) * S, S * 0.62, t) }
+  // petals
+  if (!PK.petals) PK.petals = Array.from({ length: 70 }, (_, i) => ({ x: (i * 0.137) % 1, y: (i * 0.611) % 1, v: 0.4 + 0.4 * ((i * 0.37) % 1), ph: i }))
+  for (const p of PK.petals) { p.y = (p.y + p.v * dt * 0.1) % 1; const x = padL + (padR - padL) * ((p.x + Math.sin(t * 0.6 + p.ph) * 0.02 + 1) % 1), y = dockTop - 500 + (coverBottom - dockTop + 500) * p.y
+    ctx.fillStyle = "rgba(250,180,205,0.9)"; ctx.beginPath(); ctx.ellipse(x, y, 4, 2.4, t * 2 + p.ph, 0, 7); ctx.fill() }
+  // the shattered meteor's sparkles
+  for (const b of PK.bits) { b.life -= dt; b.vx *= 0.98; b.vy = b.vy * 0.98 + 20 * dt; b.x += b.vx * dt; b.y += b.vy * dt; const a = Math.max(0, Math.min(1, b.life))
+    ctx.fillStyle = `rgba(255,${200 + 55 * Math.sin(b.life * 9) | 0},230,${a})`; ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.life * 4); ctx.fillRect(-3, -0.8, 6, 1.6); ctx.fillRect(-0.8, -3, 1.6, 6); ctx.restore() }
+  PK.bits = PK.bits.filter(b => b.life > 0)
+  if (PK.meteor > 0.5) { ctx.fillStyle = `rgba(255,140,60,${0.12 * (PK.meteor - 0.5)})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  for (const s of PK.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  PK.shout = PK.shout.filter(s => s.t > 0)
 }

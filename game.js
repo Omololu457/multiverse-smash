@@ -2409,7 +2409,8 @@ const STAGE_DEFS = [
       layers: "sean_angelgrove", backgroundImage: "stages/sean_angelgrove/preview.png" },
   { name: "Command Center",         series: "powerrangers", music: "Wande Coal, DJ Tunez - Iskaba [Official Audio].mp3", landmark: "command_center",  sky: "#f6c68a", mid: "#cf9560", floor: "#8f6038", accent: "#f43f5e", worldWidth: 2400,
       layers: "mike_command", backgroundImage: "stages/mike_command/preview.png" },
-  { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3" },
+  { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3", worldWidth: 2400,
+      layers: "code_pk", backgroundImage: "stages/code_pk/preview.png" },   // layered (drawn in code); song kept
   { name: "Analysis Nexus",         series: "original",     music: "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", landmark: "analysis_nexus",  sky: "#051a1f", mid: "#0a2e33", floor: "#04141a", accent: "#2dd4bf" },
   { name: "Shadow Garden",          series: "other",       music: "Brent Faiyaz - Wish You Well (Full Version).mp3", landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", worldWidth: 2400,
       layers: "eagle_shadow", backgroundImage: "stages/eagle_shadow/preview.png" },   // layered (Eagle sheet, moonlit); song picked by me (user: "not Japanese, not one I've picked")

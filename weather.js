@@ -201,6 +201,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Shibuya Incident":       OUTDOOR_COLD,
   "Hidden Leaf Village":    OUTDOOR_FULL,
   "Sunagakure":             OUTDOOR_WARM,     // the desert village — heat, wind, dust; no snow
+  "Forest of Death":        OUTDOOR_FULL,     // Training Ground 44 — rain and mist through the canopy
   "Valley of the End":      OUTDOOR_FULL,
   "Planet Namek":           OUTDOOR_WARM,   // alien + warm → no snow/hail
   "World Tournament Arena": INDOOR_ONLY,    // roofed arena

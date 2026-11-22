@@ -1,0 +1,20 @@
+{
+ "source": "Street Fighter III \u2014 Oro's (Amazon) stage background sheet (ripped by GeometricEntric); repainted as the Forest of Death",
+ "pieces": {
+  "hollow": {
+   "file": "hollow.png",
+   "w": 768,
+   "h": 448
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 1024,
+   "h": 364
+  }
+ },
+ "colors": {
+  "skyTop": "#0e1a0c",
+  "under": "#2a2416"
+ },
+ "preview": "preview.png"
+}

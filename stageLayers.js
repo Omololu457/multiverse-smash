@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE FOREST OF DEATH (Naruto) — Oro's stage (SF3 sheet): the cave repainted as the hollow under a giant tree's roots,
+// by tools/stage_layers/slice_oro_forest.py; the forest, the tower, the canopy and the snakes are drawn in code.
+SETS.oro_forest = {
+  dir: "./stages/oro_forest/",
+  S: 1.6,
+  standRow: 22,
+  deckFrontRow: 50,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "forest", p: 0.05 },
+    { piece: "hollow", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "forest",
+  animRate: {},
+}
+
 // SUNAGAKURE (Naruto) — Lee's Stage (SF 1987 sheet): only the parapet + tiled floor kept, repainted sandstone, by
 // tools/stage_layers/slice_lee_suna.py; the cliffs, the village and the Kazekage building are drawn in code.
 SETS.lee_suna = {
@@ -566,6 +584,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "forest") { drawForestSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "suna") { drawSunaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "command") { drawCommandSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "yorknew") { drawYorknewSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -671,6 +690,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "forest") forestFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "suna") sunaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "command") commandFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "yorknew") yorknewFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -4566,4 +4586,140 @@ function sunaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   SN.shout = SN.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── THE FOREST OF DEATH, TRAINING GROUND 44 (Naruto; render-only, wall clock, own PRNG) ─────────────────────────────
+// Oro's stage (Street Fighter III): the cave repainted as the hollow under a giant tree's roots (bark + moss), its black
+// void cut away. Through its openings and above it: the forest — huge trunks in green mist, the exam TOWER in the middle
+// distance, roots, hanging vines, the canopy, shafts of light, a no-entry fence sign (立入禁止). A GIANT SNAKE slithers
+// between the trunks; falling leaves; the Genin who aren't fighting watch from the roots (shared crowd). Big hit → the
+// giant snake lunges in through an opening (jaws open) and pulls back; ≤25% → Orochimaru's chakra: purple mist creeps
+// in, snake eyes glow in every opening, the light turns sickly; KO → the giant snake strikes down from the canopy, then
+// vanishes in a summoning puff, leaves burst everywhere, the mist clears.
+let _fdSeed = 0x6a09e667 ^ 0x1f83d9ab
+const fdRnd = () => { _fdSeed ^= _fdSeed << 13; _fdSeed ^= _fdSeed >>> 17; _fdSeed ^= _fdSeed << 5; return (_fdSeed >>> 0) / 4294967296 }
+const FD_CROWD = [["sasuke", 0.14, 0], ["sakura", 0.32, 0], ["naruto", 0.5, 0], ["hinata", 0.68, 0], ["gaara", 0.86, 0]]
+const FDC = makeCrowd(FD_CROWD, 0.6)
+const FD = { p1: null, last: 0, hp: new WeakMap(), leaves: null, lunges: [], mist: 0, strike: null, puffs: [], burst: [], shout: [], geo: null, snakeX: 0,
+  st: { lunges: 0, mist: 0, strike: 0 } }
+export const forestState = () => ({ ...FD.st, leaves: (FD.leaves || []).length, mist: +FD.mist.toFixed(2), strike: FD.strike ? +FD.strike.t.toFixed(2) : 0,
+  crowd: crowdState(FDC), shouting: FD.shout.filter(s => s.t > 0).map(s => s.txt) })
+function fdGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.hollow, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, h, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, winTop: y0 + 300 * S, winBot: y0 + 418 * S }
+}
+function fdShout(x, y, txt, col) { if (FD.shout.filter(s => s.t > 0).length < 3) FD.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function fdTrunk(ctx, x, top, base, w, col, dark, seed) {   // a giant trunk with roots flaring at the base and bark grooves
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - w / 2, top); ctx.lineTo(x + w / 2, top)
+  ctx.lineTo(x + w / 2 + 4, base - w * 0.5); ctx.quadraticCurveTo(x + w * 0.6, base - 10, x + w * 1.3, base); ctx.lineTo(x - w * 1.3, base); ctx.quadraticCurveTo(x - w * 0.6, base - 10, x - w / 2 - 4, base - w * 0.5); ctx.fill()
+  ctx.strokeStyle = dark; ctx.lineWidth = Math.max(1, w / 30)
+  for (let i = 0; i < 6; i++) { const gx = x - w / 2 + w * (0.1 + 0.16 * i) + 4 * Math.sin(seed + i); ctx.beginPath(); ctx.moveTo(gx, top); ctx.bezierCurveTo(gx + 6, top + (base - top) * 0.3, gx - 6, top + (base - top) * 0.6, gx + 3 * Math.sin(i), base - w * 0.4); ctx.stroke() }
+  ctx.fillStyle = dark; ctx.fillRect(x + w * 0.2, top, w * 0.3, base - top - w * 0.5)
+}
+function fdTower(ctx, x, base, s) {   // the exam tower in the middle of the forest: a round red-brown tower, tiered roof
+  ctx.save(); ctx.translate(x, base); ctx.scale(s, s)
+  ctx.fillStyle = "#6a4a3e"; ctx.fillRect(-40, -220, 80, 220); ctx.fillStyle = "#56382e"; ctx.fillRect(14, -220, 26, 220)
+  ctx.fillStyle = "#2a1e18"; for (let r = 0; r < 5; r++) for (let i = -1; i <= 1; i++) ctx.fillRect(i * 22 - 5, -200 + r * 38, 10, 14)
+  ctx.fillStyle = "#3a5a4a"; ctx.beginPath(); ctx.moveTo(-60, -220); ctx.lineTo(0, -270); ctx.lineTo(60, -220); ctx.fill()
+  ctx.fillStyle = "#6a4a3e"; ctx.fillRect(-28, -300, 56, 50); ctx.fillStyle = "#3a5a4a"; ctx.beginPath(); ctx.moveTo(-42, -300); ctx.lineTo(0, -336); ctx.lineTo(42, -300); ctx.fill()
+  ctx.restore()
+}
+function fdSnake(ctx, pts, r, t, eyes) {   // a giant snake body along points (purple-grey scales, pale belly)
+  ctx.lineCap = "round"; ctx.lineJoin = "round"
+  ctx.strokeStyle = "#3e3448"; ctx.lineWidth = r * 2; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke()
+  ctx.strokeStyle = "#5e5270"; ctx.lineWidth = r * 1.3; ctx.stroke()
+  ctx.strokeStyle = "rgba(30,24,36,0.6)"; ctx.lineWidth = 2; ctx.setLineDash([r * 0.6, r * 0.5]); ctx.lineWidth = r * 1.6; ctx.globalAlpha = 0.25; ctx.stroke(); ctx.globalAlpha = 1; ctx.setLineDash([])
+  if (eyes) { const [hx, hy] = pts[pts.length - 1], [px, py] = pts[pts.length - 2], a = Math.atan2(hy - py, hx - px)
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(a)
+    ctx.fillStyle = "#4a3e56"; ctx.beginPath(); ctx.ellipse(r * 0.6, 0, r * 1.6, r * 1.05, 0, 0, 7); ctx.fill()
+    if (eyes > 1) { ctx.fillStyle = "#2a0a14"; ctx.beginPath(); ctx.moveTo(r * 0.4, 0); ctx.lineTo(r * 2.4, -r * 0.9); ctx.lineTo(r * 2.4, r * 0.9); ctx.fill()
+      ctx.fillStyle = "#f2f0e0"; for (const d of [-1, 1]) { ctx.beginPath(); ctx.moveTo(r * 1.9, d * r * 0.8); ctx.lineTo(r * 2.2, d * r * 0.2); ctx.lineTo(r * 2.35, d * r * 0.8); ctx.fill() }
+      ctx.strokeStyle = "#c83040"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(r * 2.2, 0); ctx.lineTo(r * 3.4, Math.sin(t * 20) * 6); ctx.stroke() }
+    ctx.fillStyle = "#e8d030"; for (const d of [-1, 1]) { ctx.beginPath(); ctx.ellipse(r * 1.1, d * r * 0.55, r * 0.26, r * 0.18, 0, 0, 7); ctx.fill() }
+    ctx.fillStyle = "#111"; for (const d of [-1, 1]) ctx.fillRect(r * 1.08, d * r * 0.55 - r * 0.15, 3, r * 0.3)
+    ctx.restore() }
+}
+
+function drawForestSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = FD.geo = fdGeo(def, c, W, dockTop), S = def.S, m = FD.mist
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#0c1a0c"); g.addColorStop(0.55, m ? "#2a3a26" : "#2e4a26"); g.addColorStop(1, "#1a2a14")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const base = G.winBot
+  // far misty trunks
+  { const ps = shift(0.08, W), gap = 160; for (let i = Math.floor((padL - ps) / gap) - 1; i * gap + ps < padR + gap; i++) { const x = i * gap + ps + 50 * _h(i * 1.7); fdTrunk(ctx, x, coverTop, base, 34 + 20 * _h(i * 2.3), "#4a5e48", "#3e5040", i) } }
+  ctx.fillStyle = "rgba(150,180,140,0.18)"; ctx.fillRect(padL, coverTop, padR - padL, base - coverTop)
+  // the exam tower in the middle of the forest
+  fdTower(ctx, W / 2 + shift(0.12, W) + 140, base - 10, S * 0.5)
+  // the giant snake slithering between the trunks
+  { const ps = shift(0.2, W), sp = 60, L = padR - padL + 1200; FD.snakeX = ((t * sp) % L)
+    const hx = padL - 600 + FD.snakeX, pts = []; for (let i = 0; i < 26; i++) { const x = hx - i * 26 * S * 0.5 + ps * 0.2; pts.unshift([x, base - 30 * S - Math.sin((x - t * 40) / 70) * 16 * S]) }
+    fdSnake(ctx, pts, 11 * S, t, 1) }
+  // mid trunks
+  { const ps = shift(0.22, W), gap = 300; for (let i = Math.floor((padL - ps) / gap) - 1; i * gap + ps < padR + gap; i++) { const x = i * gap + ps + 90 * _h(i * 3.1); fdTrunk(ctx, x, coverTop, base + 10, 60 + 40 * _h(i * 4.7), "#3a3224", "#2a2418", i * 2) } }
+  // light shafts
+  ctx.save(); ctx.globalCompositeOperation = "lighter"
+  for (let i = 0; i < 5; i++) { const x = padL + (padR - padL) * ((i * 0.23 + 0.1) % 1) + shift(0.3, W) * 0.3, a = (m ? 0.03 : 0.07) * (0.7 + 0.3 * Math.sin(t * 0.5 + i))
+    ctx.fillStyle = m ? `rgba(170,120,200,${a})` : `rgba(230,230,150,${a})`; ctx.beginPath(); ctx.moveTo(x, coverTop); ctx.lineTo(x + 60, coverTop); ctx.lineTo(x + 260, base); ctx.lineTo(x + 140, base); ctx.fill() }
+  ctx.restore()
+  // the snake eyes in the dark when Orochimaru's chakra fills the forest
+  if (m > 0.3) for (let i = 0; i < 9; i++) { const x = padL + (padR - padL) * ((i * 0.377 + 0.05) % 1), y = G.winTop + (base - G.winTop) * (0.2 + 0.6 * ((i * 0.61) % 1)), bl = Math.sin(t * 1.3 + i * 2) > -0.85
+    if (bl) { ctx.fillStyle = `rgba(240,220,60,${(m - 0.3) * 1.2})`; for (const d of [-7, 7]) { ctx.beginPath(); ctx.ellipse(x + d, y, 4, 2.5, 0, 0, 7); ctx.fill() } } }
+}
+// the canopy, vines and sign hang IN FRONT of the hollow → drawn by the fx pass (before the fighters)
+function forestFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = FD.geo || fdGeo(def, c, W, dockTop), S = def.S
+  if (F[0] !== FD.p1) { Object.assign(FD, { p1: F[0], hp: new WeakMap(), leaves: null, lunges: [], mist: 0, strike: null, puffs: [], burst: [], shout: [] }); for (const k in FD.st) FD.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (FD.last || t))); FD.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + 8 * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = FD.hp.get(f); FD.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big && !FD.strike) { FD.st.lunges++; const side = fdRnd() < 0.5 ? -1 : 1; FD.lunges.push({ side, x: mid + side * (260 + fdRnd() * 120), t: 0 }); camera.shake?.(4, 14)
+    if (FD.st.lunges % 2 === 1) fdShout(mid + side * 200, G.winTop - 20, ["A GIANT SNAKE?!", "WATCH OUT — IT'S HUGE!", "THIS FOREST IS CRAWLING WITH THEM!"][Math.floor(FD.st.lunges / 2) % 3], "#4a2a6a") }
+  if (low && !FD.st.mist && !FD.strike) { FD.st.mist++; fdShout(mid, G.winTop - 60, "THIS CHAKRA… OROCHIMARU?!", "#5a1a6a") }
+  if (FD.st.mist && !FD.strike) FD.mist = Math.min(1, FD.mist + dt * 0.8)
+  if (ko && !FD.strike) { FD.strike = { t: 0, x: mid }; FD.st.strike++; fdShout(mid, G.winTop - 60, "SUMMONING JUTSU!!", "#4a2a6a") }
+  // the Genin watching from the roots
+  drawCrowd(ctx, FDC, { W, feet, sh: shift(0.9, W) })
+  // the canopy + hanging vines above, in front of the hollow
+  { const ps = shift(0.95, W), top = Math.min(G.y0 + 40 * S, dockTop - 420)
+    for (let i = 0; i < 26; i++) { const x = padL + ((i * 97 + ps) % (padR - padL + 200) + (padR - padL + 200)) % (padR - padL + 200) - 100, y = top - 120 + 40 * _h(i * 2.9)
+      ctx.fillStyle = ["#1a3014", "#24401a", "#142812"][i % 3]; ctx.beginPath(); ctx.ellipse(x, y, 90 + 40 * _h(i), 46 + 20 * _h(i * 5), 0, 0, 7); ctx.fill() }
+    ctx.strokeStyle = "#2e4a1e"; ctx.lineWidth = 3
+    for (let i = 0; i < 10; i++) { const x = padL + ((i * 173 + ps * 1.0) % (padR - padL + 100) + (padR - padL + 100)) % (padR - padL + 100) - 50, len = 140 + 160 * _h(i * 7.7), sw = Math.sin(t * 0.9 + i) * 8
+      ctx.beginPath(); ctx.moveTo(x, top - 80); ctx.quadraticCurveTo(x + sw, top - 80 + len * 0.6, x + sw * 1.5, top - 80 + len); ctx.stroke()
+      ctx.fillStyle = "#3e6a24"; for (let j = 1; j < 5; j++) { ctx.beginPath(); ctx.ellipse(x + sw * j / 3.5, top - 80 + len * j / 5, 6, 3, 0.6, 0, 7); ctx.fill() } } }
+  // the no-entry fence sign by the roots (立入禁止 — the Forest of Death's gate)
+  { const sx = G.X(40) , sy = feet - 70 * S * 0.6; ctx.save(); ctx.translate(sx, sy); ctx.scale(S * 0.6, S * 0.6)
+    ctx.fillStyle = "#5a4a3a"; ctx.fillRect(-4, 0, 8, 70); ctx.fillStyle = "#e8e0c8"; ctx.fillRect(-40, -34, 80, 34); ctx.strokeStyle = "#8a2020"; ctx.lineWidth = 3; ctx.strokeRect(-40, -34, 80, 34)
+    ctx.font = `900 16px "Hiragino Mincho ProN", "Yu Mincho", serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#8a2020"; ctx.fillText("立入禁止", 0, -16); ctx.restore() }
+  // giant snakes lunging in through the openings
+  for (const l of FD.lunges) { l.t += dt; const u = l.t < 0.45 ? l.t / 0.45 : Math.max(0, 1 - (l.t - 0.9) / 0.6), r = 26 * S * 0.6
+    const ox = l.x + l.side * 260, oy = G.winTop + 50 * S, hx = ox - l.side * 260 * u, hy = oy + (feet - 90 - oy) * u, pts = []
+    for (let i = 0; i <= 14; i++) { const k = i / 14; pts.push([ox + l.side * 300 * (1 - k) + (hx - ox) * k, oy - 40 + (hy - oy + 40) * k + Math.sin(k * 6 + t * 6) * 14 * (1 - k)]) }
+    if (u > 0) fdSnake(ctx, pts, r, t, 2) }
+  FD.lunges = FD.lunges.filter(l => l.t < 1.6)
+  // KO: the giant snake strikes down from the canopy, then poofs away (a summoning)
+  if (FD.strike) { const s = FD.strike; s.t += dt; const u = Math.min(1, s.t / 0.6), r = 44 * S * 0.6
+    if (s.t < 1.4) { const pts = []; for (let i = 0; i <= 16; i++) { const k = i / 16; pts.push([s.x - 300 + 300 * k + Math.sin(k * 5 + t * 4) * 30 * (1 - k), -60 + (feet - 140 + 60) * k * u]) } fdSnake(ctx, pts, r, t, 2) }
+    if (s.t > 0.55 && !s.hit) { s.hit = true; camera.shake?.(14, 40) }
+    if (s.t > 1.4 && !s.poof) { s.poof = true; for (let i = 0; i < 14; i++) FD.puffs.push({ x: s.x - 300 + 300 * (i / 13) + (fdRnd() - 0.5) * 60, y: (feet - 140) * (i / 13) + (fdRnd() - 0.5) * 40, r: 30 + fdRnd() * 40, t: 0 })
+      for (let i = 0; i < 70; i++) FD.burst.push({ x: padL + (padR - padL) * fdRnd(), y: dockTop - 500 * fdRnd(), vx: (fdRnd() - 0.5) * 300, vy: -60 - fdRnd() * 160, life: 2.2, c: ["#3e6a24", "#6a8a2a", "#8a6a2a"][i % 3] }) }
+    if (s.t > 1.6) FD.mist = Math.max(0, FD.mist - dt * 0.5) }
+  for (const p of FD.puffs) { p.t += dt; const a = Math.max(0, 1 - p.t / 1.4); ctx.fillStyle = `rgba(235,235,235,${0.85 * a})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + p.t), 0, 7); ctx.fill() }
+  FD.puffs = FD.puffs.filter(p => p.t < 1.4)
+  // falling leaves
+  if (!FD.leaves) FD.leaves = Array.from({ length: 60 }, (_, i) => ({ x: padL + (padR - padL) * ((i * 0.137) % 1), y: dockTop - 600 + 800 * ((i * 0.611) % 1), v: 30 + 40 * ((i * 0.37) % 1), ph: i }))
+  for (const lf of FD.leaves) { lf.y += lf.v * dt; lf.x += Math.sin(t + lf.ph) * 20 * dt; if (lf.y > coverBottom + 20) { lf.y = dockTop - 650; lf.x = padL + (padR - padL) * fdRnd() }
+    ctx.save(); ctx.translate(lf.x, lf.y); ctx.rotate(Math.sin(t * 2 + lf.ph)); ctx.fillStyle = lf.ph % 3 ? "#4a7a2a" : "#8a7a2a"; ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, 7); ctx.fill(); ctx.restore() }
+  for (const b of FD.burst) { b.life -= dt; b.vy += 120 * dt; b.x += b.vx * dt; b.y += b.vy * dt; ctx.fillStyle = b.c; ctx.globalAlpha = Math.min(1, b.life); ctx.beginPath(); ctx.ellipse(b.x, b.y, 6, 3, b.life * 3, 0, 7); ctx.fill(); ctx.globalAlpha = 1 }
+  FD.burst = FD.burst.filter(b => b.life > 0).slice(-300)
+  // Orochimaru's mist
+  if (FD.mist > 0) { for (let i = 0; i < 3; i++) { const y = feet - 40 - i * 90 + Math.sin(t * 0.7 + i) * 15, gr = ctx.createLinearGradient(0, y - 70, 0, y + 70); gr.addColorStop(0, "rgba(110,60,140,0)"); gr.addColorStop(0.5, `rgba(110,60,140,${0.3 * FD.mist})`); gr.addColorStop(1, "rgba(110,60,140,0)")
+    ctx.fillStyle = gr; ctx.fillRect(padL, y - 70, padR - padL, 140) } }
+  for (const s of FD.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  FD.shout = FD.shout.filter(s => s.t > 0)
 }

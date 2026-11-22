@@ -1,0 +1,83 @@
+{
+ "pass": 15,
+ "fail": 0,
+ "report": {
+  "skins": [
+   "Default (Shinjuku)",
+   "Alien X — Half a Heaven",
+   "Alien X — The Dead Sun",
+   "Black Diamond Wake",
+   "Champagne Menace",
+   "Sugar Glass",
+   "Edo Tensei"
+  ],
+  "glitter": [
+   [
+    3,
+    0,
+    "blackdiamond/idle.png"
+   ],
+   [
+    4,
+    0,
+    "blackdiamond/idle.png"
+   ],
+   [
+    5,
+    0,
+    "blackdiamond/idle.png"
+   ],
+   [
+    6,
+    0,
+    "blackdiamond/idle.png"
+   ],
+   [
+    7,
+    0,
+    "blackdiamond/idle.png"
+   ],
+   [
+    8,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    9,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    10,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    11,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    12,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    13,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    14,
+    1,
+    "blackdiamond/p1/idle.png"
+   ]
+  ],
+  "replayMeta": {
+   "p1Char": "sukuna_shinjuku",
+   "p1Skin": "sks_sugarglass"
+  },
+  "trackedSkinFiles": 0,
+  "diskSkinFiles": 388
+ }
+}

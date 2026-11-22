@@ -24,6 +24,11 @@ export const GS_SKIN_TABLE = [
   { tag: 'sukuna', name: 'JJK Sukuna — Borrowed Reflection', classification: 'Crossover', crossover: 'Jujutsu Kaisen' },
   { tag: 'prison', name: 'JJK Prison Realm — Inside Looking Out', classification: 'Crossover', crossover: 'Jujutsu Kaisen' },
   { tag: 'porcelain', name: 'Porcelain Kiln', classification: 'Original' },
+  { tag: 'darkroom', name: 'Darkroom Negative', classification: 'Original' },
+  { tag: 'velvet', name: 'Velvet Rope', classification: 'Original' },
+  { tag: 'arcade', name: 'Arcade Cabinet, 2 A.M.', classification: 'Original' },
+  { tag: 'snow', name: 'First Snow at Dawn', classification: 'Original' },
+  { tag: 'ink', name: 'The Strongest, in Ink', classification: 'Original' },
 ]
 const PREFIX = 'gs_'
 const BY_TAG = Object.fromEntries(GS_SKIN_TABLE.map(r => [r.tag, r]))

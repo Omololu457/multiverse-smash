@@ -1,0 +1,39 @@
+{
+ "intro": "Throughout heaven and earth, I alone am the honored one.",
+ "win": "Sorry. I'm the strongest.",
+ "cpu": {
+  "moves": [
+   "gBlueFist",
+   "gDomain",
+   "gLapse",
+   "gRed"
+  ],
+  "tp": 1,
+  "blinks": 0,
+  "hp1": 476
+ },
+ "skins": [
+  "Default (Shinjuku)",
+  "Alien X — Constellation Leak",
+  "Alien X — Binary Star",
+  "Alien X — Event Horizon",
+  "Alien X — Daylight Galaxy",
+  "Black Opal Headliner",
+  "Pink Diamond Flashbulb",
+  "Midnight Sequin",
+  "Meteor Hem",
+  "Winning Valkyrie — Victory Lap",
+  "Ben 10 Upgrade — Living Sleeve",
+  "Ben 10 Chromastone — Cathedral Glass",
+  "JJK Nanami — Clocked Out",
+  "JJK Sukuna — Borrowed Reflection",
+  "JJK Prison Realm — Inside Looking Out",
+  "Porcelain Kiln",
+  "Darkroom Negative",
+  "Velvet Rope",
+  "Arcade Cabinet, 2 A.M.",
+  "First Snow at Dawn",
+  "The Strongest, in Ink",
+  "Edo Tensei"
+ ]
+}

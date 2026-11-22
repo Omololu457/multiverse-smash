@@ -1,0 +1,1509 @@
+{
+  "character_key": "frozone",
+  "display_name": "Frozone",
+  "source_file": "02a4bca0-All_Frozone_Voice_Clips___Disney_Speedstorm___All_Voice_Lines___2023_John_Eric_Bentley.mp3",
+  "source_credit": "Disney Speedstorm (2023), John Eric Bentley",
+  "clip_count": 300,
+  "clips": [
+    {
+      "file": "frozone_001.ogg",
+      "length_s": 3.6,
+      "size_kb": 72.6
+    },
+    {
+      "file": "frozone_002.ogg",
+      "length_s": 2.81,
+      "size_kb": 38.1
+    },
+    {
+      "file": "frozone_003.ogg",
+      "length_s": 0.85,
+      "size_kb": 15.7
+    },
+    {
+      "file": "frozone_004.ogg",
+      "length_s": 3.59,
+      "size_kb": 52.2
+    },
+    {
+      "file": "frozone_005.ogg",
+      "length_s": 0.97,
+      "size_kb": 16.6
+    },
+    {
+      "file": "frozone_006.ogg",
+      "length_s": 1.18,
+      "size_kb": 19.8
+    },
+    {
+      "file": "frozone_007.ogg",
+      "length_s": 1.1,
+      "size_kb": 18.6
+    },
+    {
+      "file": "frozone_008.ogg",
+      "length_s": 0.57,
+      "size_kb": 12.0
+    },
+    {
+      "file": "frozone_009.ogg",
+      "length_s": 0.86,
+      "size_kb": 14.5
+    },
+    {
+      "file": "frozone_010.ogg",
+      "length_s": 0.92,
+      "size_kb": 16.5
+    },
+    {
+      "file": "frozone_011.ogg",
+      "length_s": 0.66,
+      "size_kb": 12.9
+    },
+    {
+      "file": "frozone_012.ogg",
+      "length_s": 2.36,
+      "size_kb": 34.1
+    },
+    {
+      "file": "frozone_013.ogg",
+      "length_s": 1.34,
+      "size_kb": 22.0
+    },
+    {
+      "file": "frozone_014.ogg",
+      "length_s": 0.41,
+      "size_kb": 9.6
+    },
+    {
+      "file": "frozone_015.ogg",
+      "length_s": 0.92,
+      "size_kb": 15.7
+    },
+    {
+      "file": "frozone_016.ogg",
+      "length_s": 1.74,
+      "size_kb": 27.3
+    },
+    {
+      "file": "frozone_017.ogg",
+      "length_s": 0.79,
+      "size_kb": 14.3
+    },
+    {
+      "file": "frozone_018.ogg",
+      "length_s": 0.28,
+      "size_kb": 8.0
+    },
+    {
+      "file": "frozone_019.ogg",
+      "length_s": 0.86,
+      "size_kb": 16.0
+    },
+    {
+      "file": "frozone_020.ogg",
+      "length_s": 0.74,
+      "size_kb": 14.0
+    },
+    {
+      "file": "frozone_021.ogg",
+      "length_s": 1.33,
+      "size_kb": 22.3
+    },
+    {
+      "file": "frozone_022.ogg",
+      "length_s": 0.35,
+      "size_kb": 8.8
+    },
+    {
+      "file": "frozone_023.ogg",
+      "length_s": 0.5,
+      "size_kb": 11.1
+    },
+    {
+      "file": "frozone_024.ogg",
+      "length_s": 1.61,
+      "size_kb": 23.4
+    },
+    {
+      "file": "frozone_025.ogg",
+      "length_s": 0.17,
+      "size_kb": 6.7
+    },
+    {
+      "file": "frozone_026.ogg",
+      "length_s": 0.9,
+      "size_kb": 14.7
+    },
+    {
+      "file": "frozone_027.ogg",
+      "length_s": 1.57,
+      "size_kb": 25.0
+    },
+    {
+      "file": "frozone_028.ogg",
+      "length_s": 1.27,
+      "size_kb": 20.6
+    },
+    {
+      "file": "frozone_029.ogg",
+      "length_s": 0.75,
+      "size_kb": 13.2
+    },
+    {
+      "file": "frozone_030.ogg",
+      "length_s": 0.4,
+      "size_kb": 9.5
+    },
+    {
+      "file": "frozone_031.ogg",
+      "length_s": 0.77,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_032.ogg",
+      "length_s": 0.58,
+      "size_kb": 12.2
+    },
+    {
+      "file": "frozone_033.ogg",
+      "length_s": 1.98,
+      "size_kb": 29.4
+    },
+    {
+      "file": "frozone_034.ogg",
+      "length_s": 0.64,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_035.ogg",
+      "length_s": 1.44,
+      "size_kb": 21.4
+    },
+    {
+      "file": "frozone_036.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.1
+    },
+    {
+      "file": "frozone_037.ogg",
+      "length_s": 2.45,
+      "size_kb": 36.7
+    },
+    {
+      "file": "frozone_038.ogg",
+      "length_s": 1.05,
+      "size_kb": 19.1
+    },
+    {
+      "file": "frozone_039.ogg",
+      "length_s": 0.59,
+      "size_kb": 12.2
+    },
+    {
+      "file": "frozone_040.ogg",
+      "length_s": 0.58,
+      "size_kb": 11.5
+    },
+    {
+      "file": "frozone_041.ogg",
+      "length_s": 0.73,
+      "size_kb": 13.3
+    },
+    {
+      "file": "frozone_042.ogg",
+      "length_s": 0.54,
+      "size_kb": 11.0
+    },
+    {
+      "file": "frozone_043.ogg",
+      "length_s": 0.25,
+      "size_kb": 7.6
+    },
+    {
+      "file": "frozone_044.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.6
+    },
+    {
+      "file": "frozone_045.ogg",
+      "length_s": 1.28,
+      "size_kb": 20.9
+    },
+    {
+      "file": "frozone_046.ogg",
+      "length_s": 1.21,
+      "size_kb": 21.1
+    },
+    {
+      "file": "frozone_047.ogg",
+      "length_s": 0.42,
+      "size_kb": 10.6
+    },
+    {
+      "file": "frozone_048.ogg",
+      "length_s": 0.54,
+      "size_kb": 11.6
+    },
+    {
+      "file": "frozone_049.ogg",
+      "length_s": 1.18,
+      "size_kb": 19.7
+    },
+    {
+      "file": "frozone_050.ogg",
+      "length_s": 0.72,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_051.ogg",
+      "length_s": 0.46,
+      "size_kb": 9.7
+    },
+    {
+      "file": "frozone_052.ogg",
+      "length_s": 1.03,
+      "size_kb": 18.8
+    },
+    {
+      "file": "frozone_053.ogg",
+      "length_s": 0.73,
+      "size_kb": 14.5
+    },
+    {
+      "file": "frozone_054.ogg",
+      "length_s": 0.77,
+      "size_kb": 13.3
+    },
+    {
+      "file": "frozone_055.ogg",
+      "length_s": 0.69,
+      "size_kb": 13.4
+    },
+    {
+      "file": "frozone_056.ogg",
+      "length_s": 0.8,
+      "size_kb": 13.8
+    },
+    {
+      "file": "frozone_057.ogg",
+      "length_s": 1.06,
+      "size_kb": 17.8
+    },
+    {
+      "file": "frozone_058.ogg",
+      "length_s": 0.72,
+      "size_kb": 13.7
+    },
+    {
+      "file": "frozone_059.ogg",
+      "length_s": 0.42,
+      "size_kb": 9.3
+    },
+    {
+      "file": "frozone_060.ogg",
+      "length_s": 0.85,
+      "size_kb": 15.3
+    },
+    {
+      "file": "frozone_061.ogg",
+      "length_s": 1.09,
+      "size_kb": 18.3
+    },
+    {
+      "file": "frozone_062.ogg",
+      "length_s": 0.75,
+      "size_kb": 14.7
+    },
+    {
+      "file": "frozone_063.ogg",
+      "length_s": 1.06,
+      "size_kb": 17.3
+    },
+    {
+      "file": "frozone_064.ogg",
+      "length_s": 0.7,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_065.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.9
+    },
+    {
+      "file": "frozone_066.ogg",
+      "length_s": 0.49,
+      "size_kb": 10.2
+    },
+    {
+      "file": "frozone_067.ogg",
+      "length_s": 1.24,
+      "size_kb": 20.4
+    },
+    {
+      "file": "frozone_068.ogg",
+      "length_s": 0.75,
+      "size_kb": 14.6
+    },
+    {
+      "file": "frozone_069.ogg",
+      "length_s": 2.76,
+      "size_kb": 40.8
+    },
+    {
+      "file": "frozone_070.ogg",
+      "length_s": 3.42,
+      "size_kb": 48.6
+    },
+    {
+      "file": "frozone_071.ogg",
+      "length_s": 0.32,
+      "size_kb": 8.6
+    },
+    {
+      "file": "frozone_072.ogg",
+      "length_s": 0.85,
+      "size_kb": 14.8
+    },
+    {
+      "file": "frozone_073.ogg",
+      "length_s": 1.27,
+      "size_kb": 19.1
+    },
+    {
+      "file": "frozone_074.ogg",
+      "length_s": 0.5,
+      "size_kb": 10.4
+    },
+    {
+      "file": "frozone_075.ogg",
+      "length_s": 0.45,
+      "size_kb": 9.9
+    },
+    {
+      "file": "frozone_076.ogg",
+      "length_s": 0.64,
+      "size_kb": 12.6
+    },
+    {
+      "file": "frozone_077.ogg",
+      "length_s": 1.19,
+      "size_kb": 20.5
+    },
+    {
+      "file": "frozone_078.ogg",
+      "length_s": 0.79,
+      "size_kb": 15.1
+    },
+    {
+      "file": "frozone_079.ogg",
+      "length_s": 0.84,
+      "size_kb": 15.5
+    },
+    {
+      "file": "frozone_080.ogg",
+      "length_s": 1.16,
+      "size_kb": 19.8
+    },
+    {
+      "file": "frozone_081.ogg",
+      "length_s": 0.96,
+      "size_kb": 18.9
+    },
+    {
+      "file": "frozone_082.ogg",
+      "length_s": 0.78,
+      "size_kb": 14.9
+    },
+    {
+      "file": "frozone_083.ogg",
+      "length_s": 0.85,
+      "size_kb": 15.5
+    },
+    {
+      "file": "frozone_084.ogg",
+      "length_s": 0.8,
+      "size_kb": 14.4
+    },
+    {
+      "file": "frozone_085.ogg",
+      "length_s": 0.85,
+      "size_kb": 15.7
+    },
+    {
+      "file": "frozone_086.ogg",
+      "length_s": 0.94,
+      "size_kb": 15.4
+    },
+    {
+      "file": "frozone_087.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.6
+    },
+    {
+      "file": "frozone_088.ogg",
+      "length_s": 1.1,
+      "size_kb": 20.0
+    },
+    {
+      "file": "frozone_089.ogg",
+      "length_s": 0.79,
+      "size_kb": 15.0
+    },
+    {
+      "file": "frozone_090.ogg",
+      "length_s": 0.7,
+      "size_kb": 13.7
+    },
+    {
+      "file": "frozone_091.ogg",
+      "length_s": 0.53,
+      "size_kb": 11.8
+    },
+    {
+      "file": "frozone_092.ogg",
+      "length_s": 0.6,
+      "size_kb": 12.7
+    },
+    {
+      "file": "frozone_093.ogg",
+      "length_s": 0.78,
+      "size_kb": 14.5
+    },
+    {
+      "file": "frozone_094.ogg",
+      "length_s": 0.83,
+      "size_kb": 15.5
+    },
+    {
+      "file": "frozone_095.ogg",
+      "length_s": 0.69,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_096.ogg",
+      "length_s": 0.52,
+      "size_kb": 11.1
+    },
+    {
+      "file": "frozone_097.ogg",
+      "length_s": 0.46,
+      "size_kb": 10.6
+    },
+    {
+      "file": "frozone_098.ogg",
+      "length_s": 0.77,
+      "size_kb": 15.5
+    },
+    {
+      "file": "frozone_099.ogg",
+      "length_s": 1.28,
+      "size_kb": 20.2
+    },
+    {
+      "file": "frozone_100.ogg",
+      "length_s": 1.14,
+      "size_kb": 19.0
+    },
+    {
+      "file": "frozone_101.ogg",
+      "length_s": 0.47,
+      "size_kb": 10.6
+    },
+    {
+      "file": "frozone_102.ogg",
+      "length_s": 1.14,
+      "size_kb": 19.8
+    },
+    {
+      "file": "frozone_103.ogg",
+      "length_s": 0.69,
+      "size_kb": 12.7
+    },
+    {
+      "file": "frozone_104.ogg",
+      "length_s": 0.51,
+      "size_kb": 11.0
+    },
+    {
+      "file": "frozone_105.ogg",
+      "length_s": 0.72,
+      "size_kb": 13.7
+    },
+    {
+      "file": "frozone_106.ogg",
+      "length_s": 0.59,
+      "size_kb": 12.1
+    },
+    {
+      "file": "frozone_107.ogg",
+      "length_s": 0.54,
+      "size_kb": 11.8
+    },
+    {
+      "file": "frozone_108.ogg",
+      "length_s": 0.68,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_109.ogg",
+      "length_s": 0.81,
+      "size_kb": 14.7
+    },
+    {
+      "file": "frozone_110.ogg",
+      "length_s": 0.45,
+      "size_kb": 9.8
+    },
+    {
+      "file": "frozone_111.ogg",
+      "length_s": 0.83,
+      "size_kb": 15.6
+    },
+    {
+      "file": "frozone_112.ogg",
+      "length_s": 1.2,
+      "size_kb": 19.8
+    },
+    {
+      "file": "frozone_113.ogg",
+      "length_s": 0.55,
+      "size_kb": 11.7
+    },
+    {
+      "file": "frozone_114.ogg",
+      "length_s": 0.63,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_115.ogg",
+      "length_s": 0.54,
+      "size_kb": 11.3
+    },
+    {
+      "file": "frozone_116.ogg",
+      "length_s": 0.75,
+      "size_kb": 13.2
+    },
+    {
+      "file": "frozone_117.ogg",
+      "length_s": 0.77,
+      "size_kb": 15.0
+    },
+    {
+      "file": "frozone_118.ogg",
+      "length_s": 1.18,
+      "size_kb": 21.6
+    },
+    {
+      "file": "frozone_119.ogg",
+      "length_s": 0.58,
+      "size_kb": 11.9
+    },
+    {
+      "file": "frozone_120.ogg",
+      "length_s": 0.52,
+      "size_kb": 11.8
+    },
+    {
+      "file": "frozone_121.ogg",
+      "length_s": 0.46,
+      "size_kb": 10.7
+    },
+    {
+      "file": "frozone_122.ogg",
+      "length_s": 1.0,
+      "size_kb": 18.7
+    },
+    {
+      "file": "frozone_123.ogg",
+      "length_s": 0.66,
+      "size_kb": 15.1
+    },
+    {
+      "file": "frozone_124.ogg",
+      "length_s": 0.71,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_125.ogg",
+      "length_s": 0.47,
+      "size_kb": 11.0
+    },
+    {
+      "file": "frozone_126.ogg",
+      "length_s": 0.69,
+      "size_kb": 13.8
+    },
+    {
+      "file": "frozone_127.ogg",
+      "length_s": 1.4,
+      "size_kb": 23.9
+    },
+    {
+      "file": "frozone_128.ogg",
+      "length_s": 1.1,
+      "size_kb": 19.2
+    },
+    {
+      "file": "frozone_129.ogg",
+      "length_s": 1.31,
+      "size_kb": 21.4
+    },
+    {
+      "file": "frozone_130.ogg",
+      "length_s": 1.24,
+      "size_kb": 20.7
+    },
+    {
+      "file": "frozone_131.ogg",
+      "length_s": 0.61,
+      "size_kb": 11.8
+    },
+    {
+      "file": "frozone_132.ogg",
+      "length_s": 0.93,
+      "size_kb": 15.8
+    },
+    {
+      "file": "frozone_133.ogg",
+      "length_s": 0.98,
+      "size_kb": 16.9
+    },
+    {
+      "file": "frozone_134.ogg",
+      "length_s": 0.22,
+      "size_kb": 7.3
+    },
+    {
+      "file": "frozone_135.ogg",
+      "length_s": 0.27,
+      "size_kb": 8.4
+    },
+    {
+      "file": "frozone_136.ogg",
+      "length_s": 0.41,
+      "size_kb": 9.5
+    },
+    {
+      "file": "frozone_137.ogg",
+      "length_s": 0.89,
+      "size_kb": 16.5
+    },
+    {
+      "file": "frozone_138.ogg",
+      "length_s": 0.65,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_139.ogg",
+      "length_s": 1.08,
+      "size_kb": 19.3
+    },
+    {
+      "file": "frozone_140.ogg",
+      "length_s": 0.51,
+      "size_kb": 11.3
+    },
+    {
+      "file": "frozone_141.ogg",
+      "length_s": 0.39,
+      "size_kb": 9.8
+    },
+    {
+      "file": "frozone_142.ogg",
+      "length_s": 0.28,
+      "size_kb": 8.6
+    },
+    {
+      "file": "frozone_143.ogg",
+      "length_s": 1.37,
+      "size_kb": 22.8
+    },
+    {
+      "file": "frozone_144.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.0
+    },
+    {
+      "file": "frozone_145.ogg",
+      "length_s": 0.72,
+      "size_kb": 13.3
+    },
+    {
+      "file": "frozone_146.ogg",
+      "length_s": 0.97,
+      "size_kb": 17.2
+    },
+    {
+      "file": "frozone_147.ogg",
+      "length_s": 1.81,
+      "size_kb": 30.2
+    },
+    {
+      "file": "frozone_148.ogg",
+      "length_s": 1.34,
+      "size_kb": 21.2
+    },
+    {
+      "file": "frozone_149.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.4
+    },
+    {
+      "file": "frozone_150.ogg",
+      "length_s": 0.81,
+      "size_kb": 14.8
+    },
+    {
+      "file": "frozone_151.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.2
+    },
+    {
+      "file": "frozone_152.ogg",
+      "length_s": 0.86,
+      "size_kb": 16.0
+    },
+    {
+      "file": "frozone_153.ogg",
+      "length_s": 1.33,
+      "size_kb": 21.6
+    },
+    {
+      "file": "frozone_154.ogg",
+      "length_s": 0.79,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_155.ogg",
+      "length_s": 0.51,
+      "size_kb": 10.8
+    },
+    {
+      "file": "frozone_156.ogg",
+      "length_s": 0.22,
+      "size_kb": 7.2
+    },
+    {
+      "file": "frozone_157.ogg",
+      "length_s": 0.38,
+      "size_kb": 9.3
+    },
+    {
+      "file": "frozone_158.ogg",
+      "length_s": 0.63,
+      "size_kb": 12.5
+    },
+    {
+      "file": "frozone_159.ogg",
+      "length_s": 0.7,
+      "size_kb": 13.6
+    },
+    {
+      "file": "frozone_160.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.1
+    },
+    {
+      "file": "frozone_161.ogg",
+      "length_s": 0.98,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_162.ogg",
+      "length_s": 1.02,
+      "size_kb": 16.9
+    },
+    {
+      "file": "frozone_163.ogg",
+      "length_s": 0.75,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_164.ogg",
+      "length_s": 0.56,
+      "size_kb": 12.4
+    },
+    {
+      "file": "frozone_165.ogg",
+      "length_s": 0.72,
+      "size_kb": 14.1
+    },
+    {
+      "file": "frozone_166.ogg",
+      "length_s": 0.92,
+      "size_kb": 16.0
+    },
+    {
+      "file": "frozone_167.ogg",
+      "length_s": 0.88,
+      "size_kb": 15.1
+    },
+    {
+      "file": "frozone_168.ogg",
+      "length_s": 0.75,
+      "size_kb": 13.7
+    },
+    {
+      "file": "frozone_169.ogg",
+      "length_s": 2.48,
+      "size_kb": 36.8
+    },
+    {
+      "file": "frozone_170.ogg",
+      "length_s": 0.21,
+      "size_kb": 7.2
+    },
+    {
+      "file": "frozone_171.ogg",
+      "length_s": 0.6,
+      "size_kb": 12.1
+    },
+    {
+      "file": "frozone_172.ogg",
+      "length_s": 0.42,
+      "size_kb": 9.7
+    },
+    {
+      "file": "frozone_173.ogg",
+      "length_s": 0.62,
+      "size_kb": 12.3
+    },
+    {
+      "file": "frozone_174.ogg",
+      "length_s": 0.56,
+      "size_kb": 11.7
+    },
+    {
+      "file": "frozone_175.ogg",
+      "length_s": 1.14,
+      "size_kb": 18.9
+    },
+    {
+      "file": "frozone_176.ogg",
+      "length_s": 0.88,
+      "size_kb": 15.4
+    },
+    {
+      "file": "frozone_177.ogg",
+      "length_s": 0.16,
+      "size_kb": 6.7
+    },
+    {
+      "file": "frozone_178.ogg",
+      "length_s": 0.79,
+      "size_kb": 14.0
+    },
+    {
+      "file": "frozone_179.ogg",
+      "length_s": 1.5,
+      "size_kb": 24.4
+    },
+    {
+      "file": "frozone_180.ogg",
+      "length_s": 0.38,
+      "size_kb": 9.6
+    },
+    {
+      "file": "frozone_181.ogg",
+      "length_s": 1.46,
+      "size_kb": 22.4
+    },
+    {
+      "file": "frozone_182.ogg",
+      "length_s": 0.69,
+      "size_kb": 13.9
+    },
+    {
+      "file": "frozone_183.ogg",
+      "length_s": 1.5,
+      "size_kb": 24.9
+    },
+    {
+      "file": "frozone_184.ogg",
+      "length_s": 1.48,
+      "size_kb": 23.4
+    },
+    {
+      "file": "frozone_185.ogg",
+      "length_s": 0.65,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_186.ogg",
+      "length_s": 2.98,
+      "size_kb": 45.1
+    },
+    {
+      "file": "frozone_187.ogg",
+      "length_s": 0.7,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_188.ogg",
+      "length_s": 0.42,
+      "size_kb": 9.8
+    },
+    {
+      "file": "frozone_189.ogg",
+      "length_s": 0.97,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_190.ogg",
+      "length_s": 0.61,
+      "size_kb": 12.5
+    },
+    {
+      "file": "frozone_191.ogg",
+      "length_s": 0.51,
+      "size_kb": 11.4
+    },
+    {
+      "file": "frozone_192.ogg",
+      "length_s": 0.56,
+      "size_kb": 12.3
+    },
+    {
+      "file": "frozone_193.ogg",
+      "length_s": 0.62,
+      "size_kb": 12.2
+    },
+    {
+      "file": "frozone_194.ogg",
+      "length_s": 0.61,
+      "size_kb": 13.4
+    },
+    {
+      "file": "frozone_195.ogg",
+      "length_s": 0.22,
+      "size_kb": 7.2
+    },
+    {
+      "file": "frozone_196.ogg",
+      "length_s": 1.47,
+      "size_kb": 23.3
+    },
+    {
+      "file": "frozone_197.ogg",
+      "length_s": 0.84,
+      "size_kb": 14.4
+    },
+    {
+      "file": "frozone_198.ogg",
+      "length_s": 1.05,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_199.ogg",
+      "length_s": 0.6,
+      "size_kb": 12.8
+    },
+    {
+      "file": "frozone_200.ogg",
+      "length_s": 0.92,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_201.ogg",
+      "length_s": 0.51,
+      "size_kb": 10.7
+    },
+    {
+      "file": "frozone_202.ogg",
+      "length_s": 0.78,
+      "size_kb": 15.0
+    },
+    {
+      "file": "frozone_203.ogg",
+      "length_s": 0.99,
+      "size_kb": 17.8
+    },
+    {
+      "file": "frozone_204.ogg",
+      "length_s": 0.6,
+      "size_kb": 12.5
+    },
+    {
+      "file": "frozone_205.ogg",
+      "length_s": 0.37,
+      "size_kb": 9.1
+    },
+    {
+      "file": "frozone_206.ogg",
+      "length_s": 0.27,
+      "size_kb": 8.4
+    },
+    {
+      "file": "frozone_207.ogg",
+      "length_s": 0.64,
+      "size_kb": 12.4
+    },
+    {
+      "file": "frozone_208.ogg",
+      "length_s": 0.9,
+      "size_kb": 17.0
+    },
+    {
+      "file": "frozone_209.ogg",
+      "length_s": 0.72,
+      "size_kb": 14.3
+    },
+    {
+      "file": "frozone_210.ogg",
+      "length_s": 0.64,
+      "size_kb": 13.4
+    },
+    {
+      "file": "frozone_211.ogg",
+      "length_s": 1.15,
+      "size_kb": 17.6
+    },
+    {
+      "file": "frozone_212.ogg",
+      "length_s": 1.21,
+      "size_kb": 21.4
+    },
+    {
+      "file": "frozone_213.ogg",
+      "length_s": 0.78,
+      "size_kb": 14.2
+    },
+    {
+      "file": "frozone_214.ogg",
+      "length_s": 0.16,
+      "size_kb": 6.7
+    },
+    {
+      "file": "frozone_215.ogg",
+      "length_s": 1.3,
+      "size_kb": 23.1
+    },
+    {
+      "file": "frozone_216.ogg",
+      "length_s": 0.92,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_217.ogg",
+      "length_s": 0.75,
+      "size_kb": 13.9
+    },
+    {
+      "file": "frozone_218.ogg",
+      "length_s": 0.96,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_219.ogg",
+      "length_s": 0.4,
+      "size_kb": 10.4
+    },
+    {
+      "file": "frozone_220.ogg",
+      "length_s": 0.56,
+      "size_kb": 11.4
+    },
+    {
+      "file": "frozone_221.ogg",
+      "length_s": 0.59,
+      "size_kb": 12.9
+    },
+    {
+      "file": "frozone_222.ogg",
+      "length_s": 1.05,
+      "size_kb": 17.8
+    },
+    {
+      "file": "frozone_223.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.3
+    },
+    {
+      "file": "frozone_224.ogg",
+      "length_s": 0.72,
+      "size_kb": 13.4
+    },
+    {
+      "file": "frozone_225.ogg",
+      "length_s": 0.65,
+      "size_kb": 12.7
+    },
+    {
+      "file": "frozone_226.ogg",
+      "length_s": 0.75,
+      "size_kb": 14.6
+    },
+    {
+      "file": "frozone_227.ogg",
+      "length_s": 1.13,
+      "size_kb": 19.5
+    },
+    {
+      "file": "frozone_228.ogg",
+      "length_s": 0.29,
+      "size_kb": 8.5
+    },
+    {
+      "file": "frozone_229.ogg",
+      "length_s": 1.05,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_230.ogg",
+      "length_s": 0.88,
+      "size_kb": 16.9
+    },
+    {
+      "file": "frozone_231.ogg",
+      "length_s": 0.57,
+      "size_kb": 11.9
+    },
+    {
+      "file": "frozone_232.ogg",
+      "length_s": 1.23,
+      "size_kb": 19.8
+    },
+    {
+      "file": "frozone_233.ogg",
+      "length_s": 0.83,
+      "size_kb": 13.6
+    },
+    {
+      "file": "frozone_234.ogg",
+      "length_s": 0.83,
+      "size_kb": 15.0
+    },
+    {
+      "file": "frozone_235.ogg",
+      "length_s": 0.53,
+      "size_kb": 11.5
+    },
+    {
+      "file": "frozone_236.ogg",
+      "length_s": 0.61,
+      "size_kb": 12.2
+    },
+    {
+      "file": "frozone_237.ogg",
+      "length_s": 1.48,
+      "size_kb": 25.1
+    },
+    {
+      "file": "frozone_238.ogg",
+      "length_s": 0.71,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_239.ogg",
+      "length_s": 1.05,
+      "size_kb": 18.5
+    },
+    {
+      "file": "frozone_240.ogg",
+      "length_s": 0.62,
+      "size_kb": 12.1
+    },
+    {
+      "file": "frozone_241.ogg",
+      "length_s": 0.61,
+      "size_kb": 12.9
+    },
+    {
+      "file": "frozone_242.ogg",
+      "length_s": 1.79,
+      "size_kb": 27.3
+    },
+    {
+      "file": "frozone_243.ogg",
+      "length_s": 0.86,
+      "size_kb": 15.4
+    },
+    {
+      "file": "frozone_244.ogg",
+      "length_s": 0.25,
+      "size_kb": 8.2
+    },
+    {
+      "file": "frozone_245.ogg",
+      "length_s": 1.63,
+      "size_kb": 25.6
+    },
+    {
+      "file": "frozone_246.ogg",
+      "length_s": 0.47,
+      "size_kb": 10.4
+    },
+    {
+      "file": "frozone_247.ogg",
+      "length_s": 0.9,
+      "size_kb": 16.8
+    },
+    {
+      "file": "frozone_248.ogg",
+      "length_s": 1.12,
+      "size_kb": 18.5
+    },
+    {
+      "file": "frozone_249.ogg",
+      "length_s": 0.24,
+      "size_kb": 7.9
+    },
+    {
+      "file": "frozone_250.ogg",
+      "length_s": 0.99,
+      "size_kb": 16.7
+    },
+    {
+      "file": "frozone_251.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.4
+    },
+    {
+      "file": "frozone_252.ogg",
+      "length_s": 0.61,
+      "size_kb": 12.3
+    },
+    {
+      "file": "frozone_253.ogg",
+      "length_s": 0.82,
+      "size_kb": 15.5
+    },
+    {
+      "file": "frozone_254.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.1
+    },
+    {
+      "file": "frozone_255.ogg",
+      "length_s": 1.33,
+      "size_kb": 22.0
+    },
+    {
+      "file": "frozone_256.ogg",
+      "length_s": 0.74,
+      "size_kb": 12.7
+    },
+    {
+      "file": "frozone_257.ogg",
+      "length_s": 0.48,
+      "size_kb": 11.2
+    },
+    {
+      "file": "frozone_258.ogg",
+      "length_s": 1.11,
+      "size_kb": 19.2
+    },
+    {
+      "file": "frozone_259.ogg",
+      "length_s": 2.1,
+      "size_kb": 32.0
+    },
+    {
+      "file": "frozone_260.ogg",
+      "length_s": 1.2,
+      "size_kb": 20.1
+    },
+    {
+      "file": "frozone_261.ogg",
+      "length_s": 0.56,
+      "size_kb": 11.2
+    },
+    {
+      "file": "frozone_262.ogg",
+      "length_s": 3.37,
+      "size_kb": 45.9
+    },
+    {
+      "file": "frozone_263.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.5
+    },
+    {
+      "file": "frozone_264.ogg",
+      "length_s": 0.64,
+      "size_kb": 13.2
+    },
+    {
+      "file": "frozone_265.ogg",
+      "length_s": 0.83,
+      "size_kb": 14.6
+    },
+    {
+      "file": "frozone_266.ogg",
+      "length_s": 0.89,
+      "size_kb": 15.6
+    },
+    {
+      "file": "frozone_267.ogg",
+      "length_s": 0.74,
+      "size_kb": 14.6
+    },
+    {
+      "file": "frozone_268.ogg",
+      "length_s": 0.76,
+      "size_kb": 13.5
+    },
+    {
+      "file": "frozone_269.ogg",
+      "length_s": 0.88,
+      "size_kb": 16.3
+    },
+    {
+      "file": "frozone_270.ogg",
+      "length_s": 0.86,
+      "size_kb": 14.6
+    },
+    {
+      "file": "frozone_271.ogg",
+      "length_s": 0.49,
+      "size_kb": 10.6
+    },
+    {
+      "file": "frozone_272.ogg",
+      "length_s": 2.18,
+      "size_kb": 31.3
+    },
+    {
+      "file": "frozone_273.ogg",
+      "length_s": 0.73,
+      "size_kb": 12.9
+    },
+    {
+      "file": "frozone_274.ogg",
+      "length_s": 0.57,
+      "size_kb": 12.0
+    },
+    {
+      "file": "frozone_275.ogg",
+      "length_s": 0.38,
+      "size_kb": 10.0
+    },
+    {
+      "file": "frozone_276.ogg",
+      "length_s": 0.44,
+      "size_kb": 10.1
+    },
+    {
+      "file": "frozone_277.ogg",
+      "length_s": 0.67,
+      "size_kb": 13.3
+    },
+    {
+      "file": "frozone_278.ogg",
+      "length_s": 0.62,
+      "size_kb": 13.0
+    },
+    {
+      "file": "frozone_279.ogg",
+      "length_s": 1.12,
+      "size_kb": 17.8
+    },
+    {
+      "file": "frozone_280.ogg",
+      "length_s": 2.96,
+      "size_kb": 45.1
+    },
+    {
+      "file": "frozone_281.ogg",
+      "length_s": 0.79,
+      "size_kb": 14.5
+    },
+    {
+      "file": "frozone_282.ogg",
+      "length_s": 0.83,
+      "size_kb": 16.2
+    },
+    {
+      "file": "frozone_283.ogg",
+      "length_s": 0.19,
+      "size_kb": 7.0
+    },
+    {
+      "file": "frozone_284.ogg",
+      "length_s": 0.48,
+      "size_kb": 11.0
+    },
+    {
+      "file": "frozone_285.ogg",
+      "length_s": 2.6,
+      "size_kb": 37.2
+    },
+    {
+      "file": "frozone_286.ogg",
+      "length_s": 0.32,
+      "size_kb": 8.4
+    },
+    {
+      "file": "frozone_287.ogg",
+      "length_s": 1.11,
+      "size_kb": 19.0
+    },
+    {
+      "file": "frozone_288.ogg",
+      "length_s": 0.81,
+      "size_kb": 15.0
+    },
+    {
+      "file": "frozone_289.ogg",
+      "length_s": 0.87,
+      "size_kb": 16.1
+    },
+    {
+      "file": "frozone_290.ogg",
+      "length_s": 1.27,
+      "size_kb": 20.7
+    },
+    {
+      "file": "frozone_291.ogg",
+      "length_s": 0.82,
+      "size_kb": 14.4
+    },
+    {
+      "file": "frozone_292.ogg",
+      "length_s": 0.54,
+      "size_kb": 11.5
+    },
+    {
+      "file": "frozone_293.ogg",
+      "length_s": 0.88,
+      "size_kb": 17.4
+    },
+    {
+      "file": "frozone_294.ogg",
+      "length_s": 0.7,
+      "size_kb": 13.6
+    },
+    {
+      "file": "frozone_295.ogg",
+      "length_s": 1.96,
+      "size_kb": 29.9
+    },
+    {
+      "file": "frozone_296.ogg",
+      "length_s": 0.5,
+      "size_kb": 10.9
+    },
+    {
+      "file": "frozone_297.ogg",
+      "length_s": 0.63,
+      "size_kb": 12.4
+    },
+    {
+      "file": "frozone_298.ogg",
+      "length_s": 1.2,
+      "size_kb": 20.2
+    },
+    {
+      "file": "frozone_299.ogg",
+      "length_s": 0.49,
+      "size_kb": 10.8
+    },
+    {
+      "file": "frozone_300.ogg",
+      "length_s": 1.47,
+      "size_kb": 23.3
+    }
+  ]
+}

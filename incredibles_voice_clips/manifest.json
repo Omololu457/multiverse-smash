@@ -1,0 +1,32 @@
+{
+  "dash": {
+    "display_name": "Dash Parr",
+    "clip_count": 170,
+    "source_credit": "Lego The Incredibles, Huck Milner"
+  },
+  "elastigirl": {
+    "display_name": "Elastigirl / Helen Parr",
+    "clip_count": 439,
+    "source_credit": "Disney Infinity 1.0, Holly Hunter"
+  },
+  "frozone": {
+    "display_name": "Frozone",
+    "clip_count": 300,
+    "source_credit": "Disney Speedstorm (2023), John Eric Bentley"
+  },
+  "mr_incredible": {
+    "display_name": "Mr. Incredible / Bob Parr",
+    "clip_count": 169,
+    "source_credit": "Lego The Incredibles, Jeff Bergman"
+  },
+  "syndrome": {
+    "display_name": "Syndrome (villain)",
+    "clip_count": 415,
+    "source_credit": "Disney Infinity 1.0, Jason Lee"
+  },
+  "violet": {
+    "display_name": "Violet Parr",
+    "clip_count": 269,
+    "source_credit": "Disney Speedstorm (2025), Sarah Vowell"
+  }
+}

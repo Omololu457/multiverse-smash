@@ -1,0 +1,854 @@
+{
+  "character_key": "mr_incredible",
+  "display_name": "Mr. Incredible / Bob Parr",
+  "source_file": "ec50ad6d-All_Mr_Incredible_Bob_Parr_Voice_Clips___Lego_The_Incredibles___Voice_Lines_Jeff_Bergman.mp3",
+  "source_credit": "Lego The Incredibles, Jeff Bergman",
+  "clip_count": 169,
+  "clips": [
+    {
+      "file": "mr_incredible_001.ogg",
+      "length_s": 5.04,
+      "size_kb": 78.6
+    },
+    {
+      "file": "mr_incredible_002.ogg",
+      "length_s": 0.49,
+      "size_kb": 12.6
+    },
+    {
+      "file": "mr_incredible_003.ogg",
+      "length_s": 0.44,
+      "size_kb": 9.6
+    },
+    {
+      "file": "mr_incredible_004.ogg",
+      "length_s": 0.33,
+      "size_kb": 8.2
+    },
+    {
+      "file": "mr_incredible_005.ogg",
+      "length_s": 0.29,
+      "size_kb": 7.5
+    },
+    {
+      "file": "mr_incredible_006.ogg",
+      "length_s": 0.29,
+      "size_kb": 7.7
+    },
+    {
+      "file": "mr_incredible_007.ogg",
+      "length_s": 0.95,
+      "size_kb": 15.2
+    },
+    {
+      "file": "mr_incredible_008.ogg",
+      "length_s": 1.07,
+      "size_kb": 17.7
+    },
+    {
+      "file": "mr_incredible_009.ogg",
+      "length_s": 0.88,
+      "size_kb": 14.4
+    },
+    {
+      "file": "mr_incredible_010.ogg",
+      "length_s": 1.11,
+      "size_kb": 17.2
+    },
+    {
+      "file": "mr_incredible_011.ogg",
+      "length_s": 0.99,
+      "size_kb": 15.6
+    },
+    {
+      "file": "mr_incredible_012.ogg",
+      "length_s": 0.47,
+      "size_kb": 10.7
+    },
+    {
+      "file": "mr_incredible_013.ogg",
+      "length_s": 1.21,
+      "size_kb": 18.1
+    },
+    {
+      "file": "mr_incredible_014.ogg",
+      "length_s": 1.27,
+      "size_kb": 18.7
+    },
+    {
+      "file": "mr_incredible_015.ogg",
+      "length_s": 1.12,
+      "size_kb": 16.9
+    },
+    {
+      "file": "mr_incredible_016.ogg",
+      "length_s": 1.52,
+      "size_kb": 21.5
+    },
+    {
+      "file": "mr_incredible_017.ogg",
+      "length_s": 1.02,
+      "size_kb": 16.7
+    },
+    {
+      "file": "mr_incredible_018.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.0
+    },
+    {
+      "file": "mr_incredible_019.ogg",
+      "length_s": 1.17,
+      "size_kb": 19.1
+    },
+    {
+      "file": "mr_incredible_020.ogg",
+      "length_s": 0.94,
+      "size_kb": 15.8
+    },
+    {
+      "file": "mr_incredible_021.ogg",
+      "length_s": 0.92,
+      "size_kb": 15.8
+    },
+    {
+      "file": "mr_incredible_022.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.4
+    },
+    {
+      "file": "mr_incredible_023.ogg",
+      "length_s": 0.19,
+      "size_kb": 7.0
+    },
+    {
+      "file": "mr_incredible_024.ogg",
+      "length_s": 0.34,
+      "size_kb": 8.5
+    },
+    {
+      "file": "mr_incredible_025.ogg",
+      "length_s": 0.32,
+      "size_kb": 9.0
+    },
+    {
+      "file": "mr_incredible_026.ogg",
+      "length_s": 0.34,
+      "size_kb": 8.4
+    },
+    {
+      "file": "mr_incredible_027.ogg",
+      "length_s": 0.44,
+      "size_kb": 10.2
+    },
+    {
+      "file": "mr_incredible_028.ogg",
+      "length_s": 0.2,
+      "size_kb": 6.7
+    },
+    {
+      "file": "mr_incredible_029.ogg",
+      "length_s": 0.4,
+      "size_kb": 9.5
+    },
+    {
+      "file": "mr_incredible_030.ogg",
+      "length_s": 0.29,
+      "size_kb": 8.1
+    },
+    {
+      "file": "mr_incredible_031.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.9
+    },
+    {
+      "file": "mr_incredible_032.ogg",
+      "length_s": 0.34,
+      "size_kb": 8.6
+    },
+    {
+      "file": "mr_incredible_033.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.8
+    },
+    {
+      "file": "mr_incredible_034.ogg",
+      "length_s": 0.31,
+      "size_kb": 7.8
+    },
+    {
+      "file": "mr_incredible_035.ogg",
+      "length_s": 1.08,
+      "size_kb": 16.5
+    },
+    {
+      "file": "mr_incredible_036.ogg",
+      "length_s": 0.48,
+      "size_kb": 10.2
+    },
+    {
+      "file": "mr_incredible_037.ogg",
+      "length_s": 0.42,
+      "size_kb": 9.2
+    },
+    {
+      "file": "mr_incredible_038.ogg",
+      "length_s": 0.49,
+      "size_kb": 10.7
+    },
+    {
+      "file": "mr_incredible_039.ogg",
+      "length_s": 0.7,
+      "size_kb": 12.0
+    },
+    {
+      "file": "mr_incredible_040.ogg",
+      "length_s": 1.53,
+      "size_kb": 20.9
+    },
+    {
+      "file": "mr_incredible_041.ogg",
+      "length_s": 1.91,
+      "size_kb": 24.9
+    },
+    {
+      "file": "mr_incredible_042.ogg",
+      "length_s": 1.54,
+      "size_kb": 21.6
+    },
+    {
+      "file": "mr_incredible_043.ogg",
+      "length_s": 1.73,
+      "size_kb": 24.4
+    },
+    {
+      "file": "mr_incredible_044.ogg",
+      "length_s": 1.26,
+      "size_kb": 18.5
+    },
+    {
+      "file": "mr_incredible_045.ogg",
+      "length_s": 1.39,
+      "size_kb": 20.0
+    },
+    {
+      "file": "mr_incredible_046.ogg",
+      "length_s": 0.99,
+      "size_kb": 15.6
+    },
+    {
+      "file": "mr_incredible_047.ogg",
+      "length_s": 0.53,
+      "size_kb": 10.7
+    },
+    {
+      "file": "mr_incredible_048.ogg",
+      "length_s": 0.56,
+      "size_kb": 10.8
+    },
+    {
+      "file": "mr_incredible_049.ogg",
+      "length_s": 0.44,
+      "size_kb": 9.3
+    },
+    {
+      "file": "mr_incredible_050.ogg",
+      "length_s": 0.34,
+      "size_kb": 8.3
+    },
+    {
+      "file": "mr_incredible_051.ogg",
+      "length_s": 0.37,
+      "size_kb": 9.0
+    },
+    {
+      "file": "mr_incredible_052.ogg",
+      "length_s": 0.29,
+      "size_kb": 8.0
+    },
+    {
+      "file": "mr_incredible_053.ogg",
+      "length_s": 1.22,
+      "size_kb": 18.4
+    },
+    {
+      "file": "mr_incredible_054.ogg",
+      "length_s": 1.19,
+      "size_kb": 19.2
+    },
+    {
+      "file": "mr_incredible_055.ogg",
+      "length_s": 1.13,
+      "size_kb": 19.2
+    },
+    {
+      "file": "mr_incredible_056.ogg",
+      "length_s": 0.85,
+      "size_kb": 16.1
+    },
+    {
+      "file": "mr_incredible_057.ogg",
+      "length_s": 1.52,
+      "size_kb": 23.0
+    },
+    {
+      "file": "mr_incredible_058.ogg",
+      "length_s": 1.1,
+      "size_kb": 22.9
+    },
+    {
+      "file": "mr_incredible_059.ogg",
+      "length_s": 0.94,
+      "size_kb": 14.7
+    },
+    {
+      "file": "mr_incredible_060.ogg",
+      "length_s": 0.89,
+      "size_kb": 14.6
+    },
+    {
+      "file": "mr_incredible_061.ogg",
+      "length_s": 0.89,
+      "size_kb": 15.5
+    },
+    {
+      "file": "mr_incredible_062.ogg",
+      "length_s": 1.16,
+      "size_kb": 19.2
+    },
+    {
+      "file": "mr_incredible_063.ogg",
+      "length_s": 0.48,
+      "size_kb": 10.0
+    },
+    {
+      "file": "mr_incredible_064.ogg",
+      "length_s": 0.66,
+      "size_kb": 12.8
+    },
+    {
+      "file": "mr_incredible_065.ogg",
+      "length_s": 0.77,
+      "size_kb": 14.2
+    },
+    {
+      "file": "mr_incredible_066.ogg",
+      "length_s": 0.76,
+      "size_kb": 13.5
+    },
+    {
+      "file": "mr_incredible_067.ogg",
+      "length_s": 0.67,
+      "size_kb": 12.9
+    },
+    {
+      "file": "mr_incredible_068.ogg",
+      "length_s": 1.04,
+      "size_kb": 16.2
+    },
+    {
+      "file": "mr_incredible_069.ogg",
+      "length_s": 0.72,
+      "size_kb": 11.7
+    },
+    {
+      "file": "mr_incredible_070.ogg",
+      "length_s": 1.11,
+      "size_kb": 20.0
+    },
+    {
+      "file": "mr_incredible_071.ogg",
+      "length_s": 0.83,
+      "size_kb": 13.1
+    },
+    {
+      "file": "mr_incredible_072.ogg",
+      "length_s": 0.62,
+      "size_kb": 10.7
+    },
+    {
+      "file": "mr_incredible_073.ogg",
+      "length_s": 1.21,
+      "size_kb": 17.7
+    },
+    {
+      "file": "mr_incredible_074.ogg",
+      "length_s": 1.04,
+      "size_kb": 15.3
+    },
+    {
+      "file": "mr_incredible_075.ogg",
+      "length_s": 1.17,
+      "size_kb": 17.1
+    },
+    {
+      "file": "mr_incredible_076.ogg",
+      "length_s": 0.77,
+      "size_kb": 12.9
+    },
+    {
+      "file": "mr_incredible_077.ogg",
+      "length_s": 0.69,
+      "size_kb": 12.2
+    },
+    {
+      "file": "mr_incredible_078.ogg",
+      "length_s": 0.81,
+      "size_kb": 13.9
+    },
+    {
+      "file": "mr_incredible_079.ogg",
+      "length_s": 0.7,
+      "size_kb": 12.5
+    },
+    {
+      "file": "mr_incredible_080.ogg",
+      "length_s": 0.73,
+      "size_kb": 13.3
+    },
+    {
+      "file": "mr_incredible_081.ogg",
+      "length_s": 0.68,
+      "size_kb": 12.0
+    },
+    {
+      "file": "mr_incredible_082.ogg",
+      "length_s": 1.58,
+      "size_kb": 23.5
+    },
+    {
+      "file": "mr_incredible_083.ogg",
+      "length_s": 0.72,
+      "size_kb": 13.1
+    },
+    {
+      "file": "mr_incredible_084.ogg",
+      "length_s": 0.59,
+      "size_kb": 11.6
+    },
+    {
+      "file": "mr_incredible_085.ogg",
+      "length_s": 0.64,
+      "size_kb": 12.4
+    },
+    {
+      "file": "mr_incredible_086.ogg",
+      "length_s": 0.73,
+      "size_kb": 14.3
+    },
+    {
+      "file": "mr_incredible_087.ogg",
+      "length_s": 0.64,
+      "size_kb": 12.4
+    },
+    {
+      "file": "mr_incredible_088.ogg",
+      "length_s": 0.3,
+      "size_kb": 7.7
+    },
+    {
+      "file": "mr_incredible_089.ogg",
+      "length_s": 0.22,
+      "size_kb": 8.7
+    },
+    {
+      "file": "mr_incredible_090.ogg",
+      "length_s": 0.31,
+      "size_kb": 8.4
+    },
+    {
+      "file": "mr_incredible_091.ogg",
+      "length_s": 0.27,
+      "size_kb": 7.1
+    },
+    {
+      "file": "mr_incredible_092.ogg",
+      "length_s": 0.29,
+      "size_kb": 9.0
+    },
+    {
+      "file": "mr_incredible_093.ogg",
+      "length_s": 1.01,
+      "size_kb": 17.2
+    },
+    {
+      "file": "mr_incredible_094.ogg",
+      "length_s": 0.61,
+      "size_kb": 10.8
+    },
+    {
+      "file": "mr_incredible_095.ogg",
+      "length_s": 0.64,
+      "size_kb": 11.7
+    },
+    {
+      "file": "mr_incredible_096.ogg",
+      "length_s": 0.92,
+      "size_kb": 14.8
+    },
+    {
+      "file": "mr_incredible_097.ogg",
+      "length_s": 0.74,
+      "size_kb": 12.9
+    },
+    {
+      "file": "mr_incredible_098.ogg",
+      "length_s": 0.15,
+      "size_kb": 6.3
+    },
+    {
+      "file": "mr_incredible_099.ogg",
+      "length_s": 0.49,
+      "size_kb": 10.1
+    },
+    {
+      "file": "mr_incredible_100.ogg",
+      "length_s": 0.38,
+      "size_kb": 8.9
+    },
+    {
+      "file": "mr_incredible_101.ogg",
+      "length_s": 0.29,
+      "size_kb": 7.8
+    },
+    {
+      "file": "mr_incredible_102.ogg",
+      "length_s": 0.23,
+      "size_kb": 7.1
+    },
+    {
+      "file": "mr_incredible_103.ogg",
+      "length_s": 0.35,
+      "size_kb": 8.6
+    },
+    {
+      "file": "mr_incredible_104.ogg",
+      "length_s": 0.31,
+      "size_kb": 8.3
+    },
+    {
+      "file": "mr_incredible_105.ogg",
+      "length_s": 0.37,
+      "size_kb": 8.8
+    },
+    {
+      "file": "mr_incredible_106.ogg",
+      "length_s": 0.22,
+      "size_kb": 7.2
+    },
+    {
+      "file": "mr_incredible_107.ogg",
+      "length_s": 0.2,
+      "size_kb": 6.6
+    },
+    {
+      "file": "mr_incredible_108.ogg",
+      "length_s": 0.46,
+      "size_kb": 9.6
+    },
+    {
+      "file": "mr_incredible_109.ogg",
+      "length_s": 0.19,
+      "size_kb": 6.7
+    },
+    {
+      "file": "mr_incredible_110.ogg",
+      "length_s": 1.07,
+      "size_kb": 19.3
+    },
+    {
+      "file": "mr_incredible_111.ogg",
+      "length_s": 1.29,
+      "size_kb": 21.5
+    },
+    {
+      "file": "mr_incredible_112.ogg",
+      "length_s": 1.25,
+      "size_kb": 19.9
+    },
+    {
+      "file": "mr_incredible_113.ogg",
+      "length_s": 1.56,
+      "size_kb": 23.1
+    },
+    {
+      "file": "mr_incredible_114.ogg",
+      "length_s": 1.55,
+      "size_kb": 25.0
+    },
+    {
+      "file": "mr_incredible_115.ogg",
+      "length_s": 0.42,
+      "size_kb": 10.6
+    },
+    {
+      "file": "mr_incredible_116.ogg",
+      "length_s": 0.72,
+      "size_kb": 14.9
+    },
+    {
+      "file": "mr_incredible_117.ogg",
+      "length_s": 1.02,
+      "size_kb": 17.0
+    },
+    {
+      "file": "mr_incredible_118.ogg",
+      "length_s": 1.03,
+      "size_kb": 18.1
+    },
+    {
+      "file": "mr_incredible_119.ogg",
+      "length_s": 0.53,
+      "size_kb": 11.0
+    },
+    {
+      "file": "mr_incredible_120.ogg",
+      "length_s": 0.41,
+      "size_kb": 9.2
+    },
+    {
+      "file": "mr_incredible_121.ogg",
+      "length_s": 0.56,
+      "size_kb": 13.2
+    },
+    {
+      "file": "mr_incredible_122.ogg",
+      "length_s": 0.6,
+      "size_kb": 11.5
+    },
+    {
+      "file": "mr_incredible_123.ogg",
+      "length_s": 0.32,
+      "size_kb": 8.3
+    },
+    {
+      "file": "mr_incredible_124.ogg",
+      "length_s": 0.38,
+      "size_kb": 8.9
+    },
+    {
+      "file": "mr_incredible_125.ogg",
+      "length_s": 0.36,
+      "size_kb": 8.8
+    },
+    {
+      "file": "mr_incredible_126.ogg",
+      "length_s": 0.31,
+      "size_kb": 8.3
+    },
+    {
+      "file": "mr_incredible_127.ogg",
+      "length_s": 0.29,
+      "size_kb": 8.0
+    },
+    {
+      "file": "mr_incredible_128.ogg",
+      "length_s": 0.42,
+      "size_kb": 9.2
+    },
+    {
+      "file": "mr_incredible_129.ogg",
+      "length_s": 0.33,
+      "size_kb": 8.5
+    },
+    {
+      "file": "mr_incredible_130.ogg",
+      "length_s": 1.31,
+      "size_kb": 21.2
+    },
+    {
+      "file": "mr_incredible_131.ogg",
+      "length_s": 1.4,
+      "size_kb": 29.0
+    },
+    {
+      "file": "mr_incredible_132.ogg",
+      "length_s": 1.57,
+      "size_kb": 21.7
+    },
+    {
+      "file": "mr_incredible_133.ogg",
+      "length_s": 1.31,
+      "size_kb": 25.9
+    },
+    {
+      "file": "mr_incredible_134.ogg",
+      "length_s": 2.12,
+      "size_kb": 27.2
+    },
+    {
+      "file": "mr_incredible_135.ogg",
+      "length_s": 1.0,
+      "size_kb": 15.8
+    },
+    {
+      "file": "mr_incredible_136.ogg",
+      "length_s": 0.55,
+      "size_kb": 10.1
+    },
+    {
+      "file": "mr_incredible_137.ogg",
+      "length_s": 0.9,
+      "size_kb": 14.8
+    },
+    {
+      "file": "mr_incredible_138.ogg",
+      "length_s": 0.52,
+      "size_kb": 10.0
+    },
+    {
+      "file": "mr_incredible_139.ogg",
+      "length_s": 0.85,
+      "size_kb": 12.9
+    },
+    {
+      "file": "mr_incredible_140.ogg",
+      "length_s": 0.56,
+      "size_kb": 10.8
+    },
+    {
+      "file": "mr_incredible_141.ogg",
+      "length_s": 0.34,
+      "size_kb": 8.4
+    },
+    {
+      "file": "mr_incredible_142.ogg",
+      "length_s": 0.27,
+      "size_kb": 7.5
+    },
+    {
+      "file": "mr_incredible_143.ogg",
+      "length_s": 0.3,
+      "size_kb": 8.0
+    },
+    {
+      "file": "mr_incredible_144.ogg",
+      "length_s": 0.38,
+      "size_kb": 8.7
+    },
+    {
+      "file": "mr_incredible_145.ogg",
+      "length_s": 0.99,
+      "size_kb": 17.2
+    },
+    {
+      "file": "mr_incredible_146.ogg",
+      "length_s": 0.9,
+      "size_kb": 15.0
+    },
+    {
+      "file": "mr_incredible_147.ogg",
+      "length_s": 0.83,
+      "size_kb": 14.8
+    },
+    {
+      "file": "mr_incredible_148.ogg",
+      "length_s": 0.72,
+      "size_kb": 12.5
+    },
+    {
+      "file": "mr_incredible_149.ogg",
+      "length_s": 0.7,
+      "size_kb": 12.6
+    },
+    {
+      "file": "mr_incredible_150.ogg",
+      "length_s": 2.1,
+      "size_kb": 29.9
+    },
+    {
+      "file": "mr_incredible_151.ogg",
+      "length_s": 1.0,
+      "size_kb": 16.3
+    },
+    {
+      "file": "mr_incredible_152.ogg",
+      "length_s": 1.26,
+      "size_kb": 19.2
+    },
+    {
+      "file": "mr_incredible_153.ogg",
+      "length_s": 0.57,
+      "size_kb": 11.4
+    },
+    {
+      "file": "mr_incredible_154.ogg",
+      "length_s": 1.16,
+      "size_kb": 18.0
+    },
+    {
+      "file": "mr_incredible_155.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.8
+    },
+    {
+      "file": "mr_incredible_156.ogg",
+      "length_s": 0.29,
+      "size_kb": 7.9
+    },
+    {
+      "file": "mr_incredible_157.ogg",
+      "length_s": 0.32,
+      "size_kb": 8.4
+    },
+    {
+      "file": "mr_incredible_158.ogg",
+      "length_s": 0.27,
+      "size_kb": 7.7
+    },
+    {
+      "file": "mr_incredible_159.ogg",
+      "length_s": 0.26,
+      "size_kb": 7.9
+    },
+    {
+      "file": "mr_incredible_160.ogg",
+      "length_s": 0.93,
+      "size_kb": 15.7
+    },
+    {
+      "file": "mr_incredible_161.ogg",
+      "length_s": 0.98,
+      "size_kb": 15.8
+    },
+    {
+      "file": "mr_incredible_162.ogg",
+      "length_s": 1.1,
+      "size_kb": 17.1
+    },
+    {
+      "file": "mr_incredible_163.ogg",
+      "length_s": 1.68,
+      "size_kb": 24.6
+    },
+    {
+      "file": "mr_incredible_164.ogg",
+      "length_s": 2.64,
+      "size_kb": 36.1
+    },
+    {
+      "file": "mr_incredible_165.ogg",
+      "length_s": 0.28,
+      "size_kb": 7.7
+    },
+    {
+      "file": "mr_incredible_166.ogg",
+      "length_s": 0.15,
+      "size_kb": 6.3
+    },
+    {
+      "file": "mr_incredible_167.ogg",
+      "length_s": 0.31,
+      "size_kb": 8.1
+    },
+    {
+      "file": "mr_incredible_168.ogg",
+      "length_s": 0.36,
+      "size_kb": 8.7
+    },
+    {
+      "file": "mr_incredible_169.ogg",
+      "length_s": 0.51,
+      "size_kb": 10.3
+    }
+  ]
+}

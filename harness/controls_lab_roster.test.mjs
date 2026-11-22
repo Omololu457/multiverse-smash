@@ -46,6 +46,9 @@ async function worker(keys, wi) {
       // every move
       const n = await page.evaluate(() => window.__lab.S.moves.length)
       for (let i = 0; i < n; i++) {
+        // the FINISHERS cards (signature fatality / Screen Breaker) end the match and reload the fighter — they have their own
+        // harness (controls_lab_fatalities.test.mjs), not this move-by-move sweep
+        if (await page.evaluate(i => !!window.__lab.S.moves[i].fin, i)) continue
         // per-move watchdog: a demo that never returns (e.g. the match leaves battle) is recorded, then the fighter reloads
         let timer
         const watchdog = new Promise(res => { timer = setTimeout(() => res({ timeout: true }), 45000) })

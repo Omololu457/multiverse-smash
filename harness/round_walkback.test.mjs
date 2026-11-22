@@ -21,13 +21,15 @@ async function run(p1key) {
   await page.evaluate(() => { const H = window.__harness, q = H.p1(); H.brutality.setHp("p1", Math.round((q.maxHealth || 1000) * 0.4)) })   // p1 took real damage
   await page.evaluate(() => window.__harness.forceP1Win())
   await page.waitForFunction(() => window.__harness.state().gameState === "roundBreak", null, { timeout: 15000 })
-  const log = [], t0 = Date.now()
-  while (Date.now() - t0 < 90000) { const s = await page.evaluate(() => { const H = window.__harness, a = H.p1(), b = H.p2(), st = H.state(); return { fr: st.frame, g: st.gameState, a: { x: a.x, vx: a.vx, f: a.facing }, b: { x: b.x, kd: !!b.knockdownState } } }); log.push(s)
-    if (s.g === "battle") break; if (log.length % 10 === 0) await page.screenshot({ path: path.join(OUT, `${p1key}_${String(log.length).padStart(3, "0")}.png`) }); await sleep(25) }
+  const log = [], t0 = Date.now(); let maxDrops = 0
+  while (Date.now() - t0 < 90000) { const s = await page.evaluate(() => { const H = window.__harness, a = H.p1(), b = H.p2(), st = H.state(); return { fr: st.frame, g: st.gameState, a: { x: a.x, vx: a.vx, f: a.facing }, b: { x: b.x, kd: !!b.knockdownState, hs: b.hitstun || 0 }, tp: !!a._tauntPlaying || (a.attacking ? a.currentMove : null) } }); log.push(s)
+    if (s.g === "battle") break; if (log.length % 10 === 0) { const r = await page.evaluate(async () => (await import("./roundBreakFx.js")).rbfxState()); maxDrops = Math.max(maxDrops, r.drops + r.pools) }
+    if (log.length % 10 === 0) await page.screenshot({ path: path.join(OUT, `${p1key}_${String(log.length).padStart(3, "0")}.png`) }); await sleep(25) }
   const brk = log.filter(s => s.g === "roundBreak"), mv = brk.filter(s => Math.abs(s.a.vx || 0) > 1), last = brk[brk.length - 1], nxt = log[log.length - 1]
   if (process.env.TRACE) console.log(p1key, mv.map(s => s.fr + ":" + s.a.x.toFixed(0) + "/" + s.a.vx.toFixed(1)).join(" "))
   const span = mv.length ? mv[mv.length - 1].fr - mv[0].fr : 0, vmax = Math.max(0, ...mv.map(s => Math.abs(s.a.vx)))
-  return { brk, mv, last, nxt, span, vmax }
+  const after = brk.filter(s => s.tp && s.b.hs > 0)
+  return { brk, mv, last, nxt, span, vmax, after, maxDrops }
 }
 try {
   { const r = await run("windrangers")   // MS_V1 Wind Ranger: Ninja Streak → dashes back
@@ -38,6 +40,10 @@ try {
     check("S.P.D. Red WALKS back facing the opponent at a walking pace (not a dash, not a crawl)", r.vmax > 2 && r.vmax < 12 && r.mv.every(s => s.a.f === 1), JSON.stringify({ vmax: +r.vmax.toFixed(2) }))
     check("…and gets there within 5 seconds", r.span > 10 && r.span <= 300, JSON.stringify({ frames: r.span }))
     check("…the next round starts where he stopped (no snap)", r.nxt.g === "battle" && Math.abs(r.nxt.a.x - r.last.a.x) < 3, JSON.stringify([r.last.a.x, r.nxt.a.x])) }
+  { const r = await run("goku")   // the aftermath: once both are on their marks the winner taunts and the loser stands hurt, bleeding a little
+    check("on their marks, the round's WINNER taunts while the LOSER stands hurt (≈1.7 s)", r.after.length >= 5 && r.after.every(s => s.a.x === r.last.a.x || Math.abs(s.a.vx || 0) < 0.01), JSON.stringify({ n: r.after.length, pose: r.after[0]?.tp }))
+    check("…and the loser drips blood once they're up (drops falling + pooling)", r.maxDrops >= 3, JSON.stringify({ maxDrops: r.maxDrops }))
+    check("…then the next round starts normally", r.nxt.g === "battle", JSON.stringify({ brk: r.brk.length, nxt: r.nxt?.g, last: r.last })) }
   check("no page errors", errors.length === 0, errors.slice(0, 2).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }
 await browser.close(); server.close()

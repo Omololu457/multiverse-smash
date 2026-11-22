@@ -815,6 +815,7 @@ const fatalityStatusPhase = () => _fatalityStatus().phase
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { screenBreakerInput, startScreenBreaker, screenBreakerActive, screenBreakerDone, updateScreenBreaker, screenBreakerWorld, drawScreenBreaker, clearScreenBreaker } from "./screenBreaker.js"   // SCREEN BREAKER — in-game FINISH-window finisher (GRAB → SPECIAL/DOWN): throw the loser into the screen, the glass cracks
 import { signatureFatalityInput, startSignatureFatality, signatureFatalityActive, signatureFatalityDone, updateSignatureFatality, drawSignatureFatalityUnder, drawSignatureFatalityOver, drawSignatureFatalityScreen, clearSignatureFatality } from "./signatureFatality.js"   // SIGNATURE FATALITIES — FINISH window, SPECIAL: each fighter's defining technique, in the arena
+import { rbfxReset, rbfxPose, rbfxClear, rbfxBleed, rbfxTick, rbfxDraw } from "./roundBreakFx.js"   // round walk-back aftermath: the winner taunts, the loser stands hurt and bleeds a little
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
 import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"   // canon BRUTALITY concept table (per-winner finisher themes)
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
@@ -5362,6 +5363,8 @@ function regroundOnResize(f) {
 //   0-40 f: hold the knockout · 40-80 f: the loser rises · then dash / walk back (≤ 5 s) · stand ready.
 const RWB_HOLD = 20   // the frames of "stand ready" left on roundBreakTimer once both are on their marks
 const RWB_MAX_WALK = 300   // 5 s: nobody takes longer than this to get back
+const RWB_TAUNT = 100      // once both are on their marks: the round's winner taunts, the loser stands hurt (≈1.7 s)
+let _rwbTauntAt = null
 const RWB_DASHERS = new Set(["windrangers", "ns_red", "ns_yellow", "dash_parr", "flash", "xlr8"])   // dash-mobility kits below the speed tier
 function _rwbDashes(f) { return isSpeedTierTeleport(f) || RWB_DASHERS.has((f.rosterKey || "").toLowerCase()) || (f.transformed && RWB_DASHERS.has(f.activeAlien)) }
 function _rwbWalkSpeed(f) {   // the fighter's own ground walk speed (physics.js: clamp(4.5 + (speed - 78)/20·5, 4.5, 9.5) × WALK_FEEL 1.15)
@@ -5381,6 +5384,8 @@ function _roundWalkBack() {
       f.vx = 0; f._rwbDown = down; f._rwbStart = null; f._rwbDash = null; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
       const side = f === p1 ? "p1" : "p2", start = matchStats.roundStartHealth?.[side] || f.maxHealth || 1000
       f._rwbHurt = down ? 1 : Math.max(0, Math.min(1, (start - (f.health || 0)) / (f.maxHealth || start || 1000)))   // share of the bar lost this round
+      f._rwbLost = down || ((o.health || 0) > 0 && (f.health || 0) < (o.health || 0))   // the round's loser (KO'd, or behind on time); a draw has none
+      _rwbTauntAt = null; rbfxReset()
     }
     // settle onto the floor if the round ended in the air
     const gy = (f.groundY != null ? f.groundY : 520) - (f.h || 0)
@@ -5414,6 +5419,15 @@ function _roundWalkBack() {
     v = Math.max(v, Math.abs(d) / left)   // the 5-second floor
     const st = Math.sign(d) * Math.min(Math.abs(d), v)
     f.x += st; f.vx = st   // vx drives the walk / walk_back strip (facing the opponent → backpedal) and its cycle rate
+  }
+  // AFTERMATH: the loser bleeds a little from the moment they're up; once both are on their marks the winner taunts and
+  // the loser stands hurt — then the next round (resetRound replaces both fighters)
+  const L = p1._rwbLost ? p1 : p2._rwbLost ? p2 : null, W = L ? (L === p1 ? p2 : p1) : null
+  if (L && !L._rwbDown && fr >= 40) rbfxBleed(L, fr, bloodFluidOf(L), juiceSettings.blood, L.groundY != null ? L.groundY : groundY)
+  rbfxTick()
+  if (done && L) {
+    if (_rwbTauntAt == null) _rwbTauntAt = fr
+    if (fr - _rwbTauntAt < RWB_TAUNT) { rbfxPose(W, L); done = false } else rbfxClear(p1, p2)
   }
   return done
 }
@@ -24860,6 +24874,7 @@ function drawBattleScene() {
   drawDseylOver(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — commanded machines in front (claws, Spinner, Drones, Velocipod, shots, Zero-Point field; render-only; gated)
   drawFrozoneOver(ctx, p1, p2, FROZONE_WORLD)   // Frozone — ice strikes, lance, guard plate, Chill pips, freeze shell, shatter fragments (render-only; gated)
   drawEnochOver(ctx, p1, p2, ENOCH_WORLD)
+  rbfxDraw(ctx)   // round walk-back aftermath: the loser's blood drips + pools (world space)
   drawSignatureFatalityOver(ctx)   // SIGNATURE FATALITY: the technique + the victim's redrawn sprite (world space, over the fighters)   // Enoch — visor beam, reaction bursts, steam clouds (capped), super presentation (render-only; gated)
   drawMrEffects(ctx,p1,p2) // restrained form flash / skin-coordinated impact rings
   drawKevinFx(ctx,[p1,p2])
@@ -27961,7 +27976,7 @@ function updateCurrentState() {
       roundBreakTimer--
       if (!_roundWalkBack() && roundBreakTimer < RWB_HOLD) roundBreakTimer = RWB_HOLD   // hold the break until both are on their marks
       if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
-      if (roundBreakTimer <= 0) { resetRound(); gameState = GAME_STATES.BATTLE }
+      if (roundBreakTimer <= 0) { rbfxClear(p1, p2); rbfxReset(); resetRound(); gameState = GAME_STATES.BATTLE }
       break
     case GAME_STATES.VICTORY:
       updateVictoryState?.(victoryState, mouse, canvas)

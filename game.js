@@ -2437,7 +2437,8 @@ const STAGE_DEFS = [
   // FREE-FOR-ALL arena — WIDER world (4800 vs the standard 3200) so the camera can frame
   // 3-4 spread-out combatants without zooming past readability. `worldWidth` overrides the
   // STAGE_DEF default in the map() below. Used only by the FFA mode's stage selection.
-  { name: "Battle Royale Colosseum", series: "other",      landmark: "citadel",      sky: "#160b22", mid: "#3b1d55", floor: "#0e0716", accent: "#f472b6", worldWidth: 4800, ffa: true }
+  { name: "Battle Royale Colosseum", series: "other",      music: "NLE Choppa - Final Warning (Official Video).mp3", landmark: "citadel",      sky: "#160b22", mid: "#3b1d55", floor: "#0e0716", accent: "#f472b6", worldWidth: 4800, ffa: true,
+      layers: "code_colosseum", backgroundImage: "stages/code_colosseum/preview.png" }   // layered (drawn in code); song picked by me (user: "not Japanese, not one I've picked")
 ]
 
 // Finalize each stage: shared world/ground metrics + resolved music filename

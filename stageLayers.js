@@ -289,6 +289,21 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE BATTLE ROYALE COLOSSEUM — no sheet: everything drawn in code over a generated sand floor
+// (tools/stage_layers/gen_code_floors.py).
+SETS.code_colosseum = {
+  dir: "./stages/code_colosseum/",
+  S: 1.6,
+  standRow: 30,
+  deckFrontRow: 70,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [{ procedural: "colosseum", p: 0.9 }],
+  props: [],
+  front: [],
+  fx: "colosseum",
+  animRate: {},
+}
+
 // SHADOW GARDEN (The Eminence in Shadow) — Eagle's stage (SF 1987 sheet) repainted as a moonlit night by
 // tools/stage_layers/slice_eagle_shadow.py; the sky, moon, agents, the Seven Shadows and ATOMIC are drawn in code.
 SETS.eagle_shadow = {
@@ -637,6 +652,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "colosseum") { drawColosseumBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "shadow") { drawShadowSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "asakusa") { drawAsakusaSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "queens") { drawQueensBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -747,6 +763,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "colosseum") colosseumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "shadow") shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "asakusa") asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "queens") queensFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5268,4 +5285,98 @@ function shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   SG.shout = SG.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── THE BATTLE ROYALE COLOSSEUM (free-for-all; render-only, wall clock, own PRNG) ─────────────────────────────
+// No sheet — drawn in code over a generated sand floor: a dusk sky, the colosseum's three tiers of arches curving round the
+// arena packed with a cheering crowd, banners, braziers along the arena wall, an iron gate; champions from every universe
+// wait at the wall (shared crowd). Big hit → the crowd roars to its feet, flowers are thrown into the arena; ≤25% →
+// spotlights sweep the sand, the crowd chants, the gate rattles; KO → fireworks over the colosseum, rose petals rain,
+// the crowd goes wild.
+let _coSeed = 0x243f6a88 ^ 0x85a308d3
+const coRnd = () => { _coSeed ^= _coSeed << 13; _coSeed ^= _coSeed >>> 17; _coSeed ^= _coSeed << 5; return (_coSeed >>> 0) / 4294967296 }
+const CO_CROWD = [["goku", 0.08, 0], ["luffy", 0.2, 0], ["gojo", 0.32, 0], ["ichigo", 0.44, 0], ["saitama", 0.56, 0], ["batman", 0.68, 0], ["killua", 0.8, 0], ["naruto", 0.92, 0]]
+const COC = makeCrowd(CO_CROWD, 0.6)
+const CO = { p1: null, last: 0, hp: new WeakMap(), roar: 0, flowers: [], spot: 0, fw: [], sparks: [], petals: [], ko: null, shout: [],
+  st: { roars: 0, spot: 0, ko: 0, fireworks: 0 } }
+export const colosseumState = () => ({ ...CO.st, roar: +CO.roar.toFixed(2), spot: +CO.spot.toFixed(2), ko: CO.ko ? +CO.ko.t.toFixed(2) : 0, petals: CO.petals.length,
+  crowd: crowdState(COC), shouting: CO.shout.filter(s => s.t > 0).map(s => s.txt) })
+function coShout(x, y, txt, col) { if (CO.shout.filter(s => s.t > 0).length < 3) CO.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function coTier(ctx, padL, padR, ps, yTop, yBot, archW, col, dark, t, seed, crowdOn) {   // one tier: piers + arches, the crowd in each arch
+  ctx.fillStyle = col; ctx.fillRect(padL, yTop, padR - padL, yBot - yTop)
+  ctx.fillStyle = dark; ctx.fillRect(padL, yBot - 6, padR - padL, 6); ctx.fillRect(padL, yTop, padR - padL, 5)
+  const h = yBot - yTop
+  for (let i = Math.floor((padL - ps) / archW) - 1; i * archW + ps < padR + archW; i++) { const x = i * archW + ps, aw = archW * 0.62, ax = x + (archW - aw) / 2, at = yTop + h * 0.2
+    ctx.fillStyle = "#1a1018"; ctx.beginPath(); ctx.moveTo(ax, yBot - 6); ctx.lineTo(ax, at + aw / 2); ctx.arc(ax + aw / 2, at + aw / 2, aw / 2, Math.PI, 0); ctx.lineTo(ax + aw, yBot - 6); ctx.fill()
+    if (crowdOn) for (let j = 0; j < 4; j++) { const hx = ax + aw * (0.15 + 0.23 * j), seedj = seed * 100 + i * 7 + j, jump = CO.roar > 0 ? Math.abs(Math.sin(t * 9 + seedj)) * 6 * CO.roar : Math.abs(Math.sin(t * 2 + seedj)) * 1.2
+      const hy = yBot - 14 - (j % 2) * 8 - jump; ctx.fillStyle = ["#c84a4a", "#4a7ac8", "#e8c04a", "#5aa86a", "#a85ac8", "#e88a4a"][Math.floor(_h(seedj) * 6)]; ctx.fillRect(hx - 4, hy, 8, 12)
+      ctx.fillStyle = ["#f0c8a0", "#c8946a", "#8a5a3a", "#5a3a28"][Math.floor(_h(seedj * 3) * 4)]; ctx.beginPath(); ctx.arc(hx, hy - 4, 4, 0, 7); ctx.fill()
+      if (CO.roar > 0.3 || CO.spot > 0.3) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(hx - 3, hy + 2); ctx.lineTo(hx - 6, hy - 10 - jump); ctx.moveTo(hx + 3, hy + 2); ctx.lineTo(hx + 6, hy - 10 - jump); ctx.stroke() } }
+    ctx.fillStyle = dark; ctx.fillRect(x - 3, yTop + 5, 6, h - 11); ctx.fillRect(x - 6, yTop + h * 0.2 - 4, 12, 5) }
+}
+function drawColosseumBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#160b22"); g.addColorStop(0.5, "#5a2a6a"); g.addColorStop(1, "#e88a6a")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  for (let i = 0; i < 60; i++) { ctx.fillStyle = `rgba(255,240,255,${0.4 + 0.4 * Math.sin(t + i)})`; ctx.fillRect(padL + (padR - padL) * ((i * 0.618) % 1), coverTop + 200 * ((i * 0.754) % 1), 1.5, 1.5) }
+  // the far side of the bowl (small, hazy) and the three near tiers
+  const wallTop = dockTop - 46 * S, T1 = dockTop - 205 * S
+  coTier(ctx, padL, padR, shift(0.35, W), T1, dockTop - 160 * S, 46, "#7a5a6a", "#5a3a4a", t, 1, true)
+  coTier(ctx, padL, padR, shift(0.5, W), dockTop - 160 * S, dockTop - 106 * S, 70, "#a87a6a", "#7a5248", t, 2, true)
+  coTier(ctx, padL, padR, shift(0.7, W), dockTop - 106 * S, wallTop, 96, "#c8987a", "#8a6252", t, 3, true)
+  // banners on the top tier
+  { const ps = shift(0.35, W); for (let i = Math.floor((padL - ps) / 230) - 1; i * 230 + ps < padR + 230; i++) { const x = i * 230 + ps, col = ["#c82a4a", "#2a5ac8", "#e8b82a", "#2a9a5a", "#8a2ac8"][((i % 5) + 5) % 5]
+    ctx.strokeStyle = "#3a2a2a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, T1 - 50); ctx.lineTo(x, T1); ctx.stroke()
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, T1 - 50); for (let j = 0; j <= 6; j++) ctx.lineTo(x + j * 6, T1 - 50 + Math.sin(t * 4 + j + i) * 2); ctx.lineTo(x + 36, T1 - 30); for (let j = 6; j >= 0; j--) ctx.lineTo(x + j * 6, T1 - 30 + Math.sin(t * 4 + j + i) * 2); ctx.fill() } }
+  // the arena wall (podium), its gates and braziers
+  { const ps = shift(0.9, W); ctx.fillStyle = "#8a6a58"; ctx.fillRect(padL, wallTop, padR - padL, dockTop - wallTop); ctx.fillStyle = "#6a4e40"; ctx.fillRect(padL, wallTop, padR - padL, 8)
+    ctx.strokeStyle = "rgba(0,0,0,0.18)"; ctx.lineWidth = 1; for (let y = wallTop + 18; y < dockTop; y += 16) { ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padR, y); ctx.stroke() }
+    for (let i = Math.floor((padL - ps) / 600) - 1; i * 600 + ps < padR + 600; i++) { const x = i * 600 + ps + 300, gw = 70 * S * 0.6, gh = (dockTop - wallTop) * 0.92, rat = CO.spot > 0.3 ? Math.sin(t * 30 + i) * 2 : 0
+      ctx.fillStyle = "#140c10"; ctx.beginPath(); ctx.moveTo(x - gw / 2, dockTop); ctx.lineTo(x - gw / 2, dockTop - gh + gw / 2); ctx.arc(x, dockTop - gh + gw / 2, gw / 2, Math.PI, 0); ctx.lineTo(x + gw / 2, dockTop); ctx.fill()
+      ctx.strokeStyle = "#4a4a52"; ctx.lineWidth = 3; for (let j = -2; j <= 2; j++) { ctx.beginPath(); ctx.moveTo(x + j * gw / 5 + rat, dockTop); ctx.lineTo(x + j * gw / 5 + rat, dockTop - gh + 10); ctx.stroke() }
+      for (let j = 1; j < 4; j++) { ctx.beginPath(); ctx.moveTo(x - gw / 2 + rat, dockTop - j * gh / 4); ctx.lineTo(x + gw / 2 + rat, dockTop - j * gh / 4); ctx.stroke() }
+      for (const d of [-1, 1]) { const bx = x + d * 150, by = wallTop; ctx.fillStyle = "#3a2a22"; ctx.fillRect(bx - 3, by - 30, 6, 30); ctx.fillStyle = "#2a1a14"; ctx.beginPath(); ctx.moveTo(bx - 14, by - 30); ctx.lineTo(bx + 14, by - 30); ctx.lineTo(bx + 8, by - 22); ctx.lineTo(bx - 8, by - 22); ctx.fill()
+        for (let k = 0; k < 3; k++) { const fh = 18 + 8 * Math.sin(t * 9 + k * 2 + i), fx = bx + (k - 1) * 6; ctx.fillStyle = k === 1 ? "#ffd060" : "#ff7a2a"; ctx.beginPath(); ctx.moveTo(fx - 5, by - 30); ctx.quadraticCurveTo(fx, by - 30 - fh * 1.3, fx + 5, by - 30); ctx.fill() }
+        ctx.fillStyle = "rgba(255,160,60,0.12)"; ctx.beginPath(); ctx.arc(bx, by - 40, 40, 0, 7); ctx.fill() } } }
+}
+function colosseumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
+  if (F[0] !== CO.p1) { Object.assign(CO, { p1: F[0], hp: new WeakMap(), roar: 0, flowers: [], spot: 0, fw: [], sparks: [], petals: [], ko: null, shout: [] }); for (const k in CO.st) CO.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (CO.last || t))); CO.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = CO.hp.get(f); CO.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big && !CO.ko) { CO.st.roars++; CO.roar = 1; for (let i = 0; i < 8; i++) CO.flowers.push({ x: mid + (coRnd() - 0.5) * 700, y: dockTop - 200 - coRnd() * 200, vx: (coRnd() - 0.5) * 120, vy: -60 - coRnd() * 100, t: 0, col: ["#e83a5a", "#f0e040", "#f8f8f8"][i % 3] })
+    if (CO.st.roars % 2 === 1) coShout(mid + (coRnd() - 0.5) * 300, dockTop - 150 * S, ["OHHHHH!!", "WHAT A HIT!", "AGAIN! AGAIN!"][Math.floor(CO.st.roars / 2) % 3], "#8a1a3a") }
+  CO.roar = Math.max(0, CO.roar - dt * 0.5)
+  if (low && !CO.st.spot && !CO.ko) { CO.st.spot++; coShout(mid, feet - 230, "FIN-ISH! FIN-ISH! FIN-ISH!", "#8a1a3a") }
+  if (CO.st.spot && !CO.ko) CO.spot = Math.min(1, CO.spot + dt * 1.1)
+  if (ko && !CO.ko) { CO.ko = { t: 0, next: 0 }; CO.st.ko++; CO.roar = 1; coShout(mid, feet - 260, "WE HAVE A VICTOR!!", "#8a1a3a"); camera.shake?.(6, 30) }
+  if (CO.ko) { const k = CO.ko; k.t += dt; CO.roar = Math.max(CO.roar, 0.8)
+    if (k.t < 4 && k.t > k.next) { k.next = k.t + 0.35 + coRnd() * 0.3; CO.st.fireworks++; const x = padL + (padR - padL) * (0.15 + 0.7 * coRnd()), y = dockTop - (175 + 70 * coRnd()) * S, col = ["#ff5a7a", "#5ad0ff", "#ffe060", "#a0ff7a", "#d07aff"][Math.floor(coRnd() * 5)]
+      for (let i = 0; i < 36; i++) { const a = i / 36 * Math.PI * 2, v = 160 + 60 * coRnd(); CO.sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1.4, col }) } }
+    if (CO.petals.length < 200 && k.t < 3) for (let i = 0; i < 3; i++) CO.petals.push({ x: padL + (padR - padL) * coRnd(), y: dockTop - 500 * S * coRnd() - 100, ph: coRnd() * 6, life: 4 })
+    if (k.t > 1.5) CO.spot = Math.max(0, CO.spot - dt * 0.5) }
+  // the champions waiting at the wall
+  drawCrowd(ctx, COC, { W, feet, sh: shift(0.9, W) })
+  // spotlights sweeping
+  if (CO.spot > 0) { ctx.save(); ctx.globalCompositeOperation = "lighter"; for (let i = 0; i < 3; i++) { const sx = padL + (padR - padL) * (0.2 + 0.3 * i), tx = mid + Math.sin(t * (0.9 + i * 0.3) + i * 2) * 260
+      const gr = ctx.createLinearGradient(sx, dockTop - 600, tx, feet); gr.addColorStop(0, `rgba(255,250,220,${0.02 * CO.spot})`); gr.addColorStop(1, `rgba(255,250,220,${0.16 * CO.spot})`)
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(sx - 10, dockTop - 600); ctx.lineTo(sx + 10, dockTop - 600); ctx.lineTo(tx + 90, feet + 10); ctx.lineTo(tx - 90, feet + 10); ctx.fill()
+      ctx.fillStyle = `rgba(255,250,220,${0.12 * CO.spot})`; ctx.beginPath(); ctx.ellipse(tx, feet + 4, 90, 18, 0, 0, 7); ctx.fill() } ctx.restore() }
+  // flowers thrown into the arena
+  for (const f of CO.flowers) { f.t += dt; if (f.y < feet - 4) { f.vy += 300 * dt; f.x += f.vx * dt; f.y += f.vy * dt }
+    ctx.fillStyle = f.col; ctx.beginPath(); ctx.arc(f.x, f.y, 4, 0, 7); ctx.fill(); ctx.strokeStyle = "#3a8a3a"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x + 6, f.y + 6); ctx.stroke() }
+  CO.flowers = CO.flowers.filter(f => f.t < 6).slice(-60)
+  // fireworks + petals
+  for (const s of CO.sparks) { s.life -= dt; s.vy += 60 * dt; s.x += s.vx * dt; s.y += s.vy * dt; ctx.fillStyle = s.col; ctx.globalAlpha = Math.max(0, Math.min(1, s.life)); ctx.fillRect(s.x - 2, s.y - 2, 5, 5); ctx.globalAlpha = 1 }
+  CO.sparks = CO.sparks.filter(s => s.life > 0).slice(-600)
+  for (const p of CO.petals) { p.life -= dt; p.y += 60 * dt; p.x += Math.sin(t * 2 + p.ph) * 30 * dt; ctx.fillStyle = `rgba(220,40,70,${Math.min(1, p.life)})`; ctx.beginPath(); ctx.ellipse(p.x, p.y, 4, 2.5, t * 2 + p.ph, 0, 7); ctx.fill() }
+  CO.petals = CO.petals.filter(p => p.life > 0)
+  for (const s of CO.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  CO.shout = CO.shout.filter(s => s.t > 0)
 }

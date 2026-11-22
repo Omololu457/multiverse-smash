@@ -427,7 +427,7 @@ export function arlongBlockstun(attacker, defender, atk) {
   if (isArlong(attacker) && atk?.al?.blockstun != null) defender.blockstun = atk.al.blockstun
 }
 // Combo scaling: 85% per hit (the counter resets after 1.5 s idle — the engine's comboTimer 90).
-export const arlongComboScale = f => Math.pow(0.85, Math.max(0, (f?.comboCounter || 0)))
+export const arlongComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, (f?.comboCounter || 0))))   // floor: deep-combo hits still damage
 // Melee hit bookkeeping (combat.resolveAttackHit, clean connects only): Tide +5 per karate (blunt) hit, +3 per
 // blade (slash) hit.
 export function arlongHit(attacker, defender, atk) {

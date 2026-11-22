@@ -167,7 +167,7 @@ export function spdRedHit(attacker, defender, atk) {
 export function spdRedKnockback(attacker, defender) {
   if (isSpdRed(defender) && defender.vx) defender.vx /= (SPD_RED_CHAR.stats.weight || 0.9)
 }
-export const spdRedComboScale = f => Math.pow(0.85, Math.max(0, (f?.comboCounter || 0)))
+export const spdRedComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, (f?.comboCounter || 0))))   // floor: deep-combo hits still damage
 // Passive Delta: +1.5/s (+1 every 40 frames). Replaces the shared passive regen.
 export function spdRedRegen(f) {
   if (!isSpdRed(f)) return false

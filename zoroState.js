@@ -354,7 +354,7 @@ export const zoroNoJump = f => !!(f?._zoro && (f._zoro.noJump > 0 || (f.attackin
 // Combo scaling (combat._comboScale): Zoro's strings decay 85% per hit. At damage time comboCounter = hits
 // already landed in this combo (1st hit 1.0, 2nd 0.85, 3rd 0.7225 …). The counter and its 90-frame (1.5 s)
 // idle reset are the shared engine ones.
-export const zoroComboScale = f => Math.pow(0.85, Math.max(0, f.comboCounter || 0))
+export const zoroComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, f.comboCounter || 0)))   // floor: deep-combo hits still damage (unfloored → 0 by ~20 hits)
 
 // Recent condensed motion string (numpad tokens) within `win` input ticks, current token last.
 export function recentMotion(s, win) {

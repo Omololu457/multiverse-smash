@@ -281,7 +281,7 @@ export function phaseInvuln(f) {
   return fr >= DEFENSE.phaseIframes[0] && fr <= DEFENSE.phaseIframes[1]
 }
 // 85 % per hit (combat._comboScale hook, the Zoro / Buggy precedent): hit n of a combo deals 0.85^(n−1).
-export const violetComboScale = f => Math.pow(0.85, Math.max(0, f.comboCounter || 0))
+export const violetComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, f.comboCounter || 0)))   // floor: deep-combo hits still damage
 // Movement lock (game.js updateMovementInput): committed moves own her velocity; a clean Launcher may be jump-cancelled.
 export function violetLocked(f, raw = null) {
   if (!isViolet(f)) return false

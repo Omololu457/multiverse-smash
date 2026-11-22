@@ -315,7 +315,7 @@ export function buggyBlockstun(attacker, defender, atk) {
   if (isBuggy(attacker) && atk?.bg?.blockstun != null) defender.blockstun = atk.bg.blockstun
 }
 // Combo scaling: 85% per hit (the counter resets after 1.5 s idle — the engine's comboTimer 90).
-export const buggyComboScale = f => Math.pow(0.85, Math.max(0, (f?.comboCounter || 0)))
+export const buggyComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, (f?.comboCounter || 0))))   // floor: deep-combo hits still damage
 // FESTIVAL: cannot be grabbed while the pieces orbit.
 export const buggyNoGrab = f => isBuggy(f) && (f._buggy?.festival || 0) > 0
 // Festival: walk at 60% (physics.js multiplies the walk speed).

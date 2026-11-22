@@ -64,7 +64,7 @@ export function dashParrComboScale(f){
  const s=f?._dashParr,a=f?.currentAttack
  if(!s||!(f.comboCounter>0))return 1
  const k=a?.dp&&s.combo.last===a.dp.serial?s.combo.steps-1:s.combo.steps
- return Math.pow(DASH_COMBO_SCALE,Math.max(0,k))
+ return Math.max(0.30,Math.pow(DASH_COMBO_SCALE,Math.max(0,k)))   // floor: deep-combo hits still damage
 }
 export function dashParrHitbox(f){
  const a=f.currentAttack,m=a?.dp

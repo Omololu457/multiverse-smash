@@ -180,7 +180,7 @@ export function ninjaHitbox(f) {
   if (g.centered) return { x: f.x + fw / 2 - reach / 2, y: f.y + (g.boxY ?? 20), w: reach, h }
   return { x: f.facing === 1 ? f.x + fw : f.x - reach, y: f.y + (g.boxY ?? 20), w: reach, h }
 }
-export const ninjaComboScale = f => Math.pow(getNinjaProfile(f)?.combo ?? 0.85, Math.max(0, f?.comboCounter || 0))
+export const ninjaComboScale = f => Math.max(0.30, Math.pow(getNinjaProfile(f)?.combo ?? 0.85, Math.max(0, f?.comboCounter || 0)))   // floor: deep-combo hits still damage
 
 // ── SCRIPTED STRIKE (streak strike, clones, illusion, counters, supers, traps). Respects invulnerability + guard and goes
 //    through the engine's damage choke-point (W.damage). o.pct (clone 0.6 / illusion 0.5), o.noKO, o.noChip. ─────────

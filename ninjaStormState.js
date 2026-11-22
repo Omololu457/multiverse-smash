@@ -205,7 +205,7 @@ export function ninjaStormHit(attacker, defender, atk) {
 }
 // weight 0.8 (Red) / 0.85 (Yellow) → knockback taken ÷ weight (the stance in force when the hit lands)
 export function ninjaStormKnockback(attacker, defender) { if (isNinjaStorm(defender) && defender.vx) defender.vx /= (STANCE_STATS[stance(defender)].weight || 0.8) }
-export const nsComboScale = f => Math.pow(0.85, Math.max(0, (f?.comboCounter || 0)))   // 85% per hit
+export const nsComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, (f?.comboCounter || 0))))   // 85% per hit, floored at 30% so deep-combo hits still damage
 // applyScaledDamage: Mode damage ×, Quake damage-taken ×, post-Vanish-dodge +15%. Raw untouched unless he is involved.
 export function ninjaStormDamageMods(target, rawDamage, opts = {}) {
   const a = opts.attacker

@@ -1,0 +1,32 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Retsu's Stage background sheet (ripped by TonyWanKenobian); repainted as the Seireitei",
+ "pieces": {
+  "wall": {
+   "file": "wall.png",
+   "w": 768,
+   "h": 188,
+   "gate": [
+    384,
+    150
+   ],
+   "sign": [
+    384,
+    104
+   ],
+   "tower": [
+    576,
+    112
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 336
+  }
+ },
+ "colors": {
+  "skyTop": "#8ab8e8",
+  "under": "#b8b4ac"
+ },
+ "preview": "preview.png"
+}

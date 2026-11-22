@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE SEIREITEI (Bleach) — Retsu's Stage (Street Fighter 1987 sheet; also Arlong Park) repainted the other way by
+// tools/stage_layers/slice_retsu_seireitei.py: white walls, slate roofs, sakura, the Bleach cast in the courtyard.
+SETS.retsu_seireitei = {
+  dir: "./stages/retsu_seireitei/",
+  S: 2,
+  standRow: 18,
+  deckFrontRow: 34,
+  floor: { piece: "floor", farFactor: 0.78, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "seireitei", p: 0.05 },
+    { piece: "wall", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },     // no writing on the wall: mirrored on past its ends, never a gap
+  ],
+  props: [],
+  front: [],
+  fx: "seireitei",
+  animRate: {},
+}
+
 // ANGEL GROVE (Power Rangers) — Sao Paulo (Sean's Stage, SFIII 2nd Impact sheet) by tools/stage_layers/slice_sean_angelgrove.py:
 // the wrecked street; downtown the Megazords fight giant monsters, the Falconzord strafes, Rangers fight Krybots, civilians run.
 SETS.sean_angelgrove = {
@@ -458,6 +476,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "seireitei") { drawSeireiteiSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "angelgrove") { drawAngelGroveSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "bellwood_sky") { drawBellwoodSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "arlong_sky") { drawArlongSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -557,6 +576,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "seireitei") seireiteiFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "angelgrove") angelGroveFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "bellwood") bellwoodFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "arlong") arlongFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -3511,4 +3531,158 @@ function angelGroveFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   AG.shout = AG.shout.filter(s => s.t > 0)
   if (AG.white > 0) { AG.white = Math.max(0, AG.white - dt * 0.7); ctx.fillStyle = `rgba(255,255,240,${AG.white * 0.85})`; ctx.fillRect(padL, G.y0 - 400, padR - padL, coverBottom - G.y0 + 400) }
+}
+
+// ───────────────────────────── THE SEIREITEI, SOUL SOCIETY (Bleach; render-only, wall clock, own PRNG) ─────────────────────────────
+// Retsu's temple courtyard (Street Fighter, 1987) repainted as a Seireitei division gate (the same sheet as Arlong Park,
+// the other way): white walls, slate roofs, sakura. Beyond the wall the Seireitei's rooftops run on to Sōkyoku Hill (the
+// giant halberd on its scaffold) and the white Senzaikyū tower. Hell butterflies drift, sakura petals fall, Soul Reapers
+// flash-step (shunpo) across the far rooftops and along the wall; the Senkaimon gate lights up and lets out butterflies.
+// The Bleach cast who aren't fighting stand in the courtyard and react (the shared crowd: Ichigo, Byakuya, Yamamoto,
+// Zaraki, Mayuri — real idle sprites) beside a squad of Soul Reaper officers who brace on big hits and raise their swords at the end. Big hits → a wave of spiritual pressure (a ring, petals blown away, the Soul
+// Reapers brace); a fighter at ≤25% → a Garganta tears the sky open and a Menos Grande leans out; the knockout → the
+// Sōkyoku fires: a phoenix of fire rises off the hill and screams across the sky, white-gold flash, long shake.
+let _srSeed = 0x510e527f
+const srRnd = () => { _srSeed ^= _srSeed << 13; _srSeed ^= _srSeed >>> 17; _srSeed ^= _srSeed << 5; return (_srSeed >>> 0) / 4294967296 }
+const SR_CROWD = [["ichigo", 0.33, 0], ["byakuya", 0.44, 0], ["zaraki", 0.56, 0], ["mayuri", 0.67, 0]]   // (Yamamoto's art isn't on disk)
+const SRC = makeCrowd(SR_CROWD, 0.6)
+const SR = { p1: null, last: 0, hp: new WeakMap(), bfly: null, petals: null, reapers: null, rings: [], gateT: 6, gate: 0, garg: 0, menos: false, phoenix: null, flash: 0, shout: [], geo: null,
+  st: { flashSteps: 0, gateOpens: 0, waves: 0, gargantas: 0, phoenix: 0, blown: 0 } }
+export const seireiteiState = () => ({ ...SR.st, butterflies: (SR.bfly || []).length, petals: (SR.petals || []).length, reapers: (SR.reapers || []).length, garg: +SR.garg.toFixed(2), menos: SR.menos,
+  phoenixFlying: !!SR.phoenix, crowd: crowdState(SRC), shouting: SR.shout.filter(s => s.t > 0).map(s => s.txt) })
+function srGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.wall, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, roof: y0 + 112 * S, wallTop: y0 + 118 * S }
+}
+function srShout(x, y, txt, col) { if (SR.shout.filter(s => s.t > 0).length < 3) SR.shout.push({ x, y, txt, col: col || "#222", t: 1.8 }) }
+function srReaper(ctx, x, y, s, f, t) {   // a Soul Reaper: black shihakushō, white undershirt, a sword at the hip (~60px at s 1)
+  const run = f.run ? Math.sin(t * 18 + f.seed) * 0.6 : 0
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * f.dir, s)
+  ctx.fillStyle = "#111"; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 3, -24); ctx.rotate(k * run); ctx.fillRect(-4, 0, 8, 24); ctx.restore() }
+  ctx.beginPath(); ctx.moveTo(-10, -50); ctx.lineTo(10, -50); ctx.lineTo(12, -20); ctx.lineTo(-12, -20); ctx.fill()
+  ctx.fillStyle = "#f2f2f2"; ctx.beginPath(); ctx.moveTo(-3, -50); ctx.lineTo(3, -50); ctx.lineTo(0, -40); ctx.fill()
+  if (f.captain) { ctx.fillStyle = "#f4f4f0"; ctx.fillRect(-12, -50, 24, 26) }                                     // a captain's haori
+  ctx.strokeStyle = "#5a4a3a"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-8, -28); ctx.lineTo(-22, -10); ctx.stroke()
+  ctx.fillStyle = "#e8c8a0"; ctx.beginPath(); ctx.arc(1, -57, 7, 0, 7); ctx.fill(); ctx.fillStyle = f.hair; ctx.beginPath(); ctx.arc(0, -59, 7.3, Math.PI, 0); ctx.fill()
+  ctx.restore()
+}
+function srButterfly(ctx, b, t) {
+  const flap = Math.abs(Math.sin(t * 9 + b.seed)), w = 7 * b.s
+  ctx.save(); ctx.translate(b.x, b.y); ctx.fillStyle = "#121014"
+  for (const k of [-1, 1]) { ctx.beginPath(); ctx.ellipse(k * w * 0.55 * (0.4 + flap * 0.6), -2, w * 0.55 * (0.4 + flap * 0.6), w * 0.5, k * 0.5, 0, 7); ctx.fill()
+    ctx.beginPath(); ctx.ellipse(k * w * 0.4 * (0.4 + flap * 0.6), 3, w * 0.35 * (0.4 + flap * 0.6), w * 0.35, -k * 0.4, 0, 7); ctx.fill() }
+  ctx.fillStyle = "rgba(120,60,140,0.8)"; ctx.fillRect(-0.8, -4, 1.6, 8); ctx.restore()
+}
+
+function drawSeireiteiSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = SR.geo = srGeo(def, c, W, dockTop), S = def.S
+  const red = SR.garg > 0 ? SR.garg : 0
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.roof); g.addColorStop(0, red ? `rgb(${60 + 60 * red | 0},${110 - 50 * red | 0},${200 - 110 * red | 0})` : "#5a9ae0"); g.addColorStop(1, "#f2dcc8")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const hz = G.Y(104)
+  // Sōkyoku Hill + the halberd on its scaffold
+  { const hx = W * 0.33 + shift(0.12, W), top = G.Y(18)
+    ctx.fillStyle = "#8a8078"; ctx.beginPath(); ctx.moveTo(hx - 260, hz); ctx.lineTo(hx - 150, top + 40); ctx.lineTo(hx - 60, top + 20); ctx.lineTo(hx + 80, top + 26); ctx.lineTo(hx + 170, top + 60); ctx.lineTo(hx + 280, hz); ctx.fill()
+    ctx.fillStyle = "#a0968c"; ctx.beginPath(); ctx.moveTo(hx - 150, top + 40); ctx.lineTo(hx - 60, top + 20); ctx.lineTo(hx + 80, top + 26); ctx.lineTo(hx + 60, top + 50); ctx.lineTo(hx - 120, top + 56); ctx.fill()
+    ctx.strokeStyle = "#5a4a3a"; ctx.lineWidth = 2; ctx.beginPath(); for (const k of [-16, 16]) { ctx.moveTo(hx + k, top + 22); ctx.lineTo(hx + k * 0.4, top - 70) } ctx.moveTo(hx - 14, top - 10); ctx.lineTo(hx + 14, top - 10); ctx.moveTo(hx - 10, top - 40); ctx.lineTo(hx + 10, top - 40); ctx.stroke()
+    const glow = SR.phoenix ? 1 : 0.4 + 0.2 * Math.sin(t * 2)
+    ctx.strokeStyle = `rgba(255,${200 + 40 * glow | 0},120,${glow})`; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(hx, top - 72); ctx.lineTo(hx, top - 150); ctx.stroke()
+    ctx.fillStyle = `rgba(255,230,160,${glow})`; ctx.beginPath(); ctx.moveTo(hx, top - 150); ctx.lineTo(hx + 12, top - 132); ctx.lineTo(hx, top - 122); ctx.fill() }
+  // the Senzaikyū: the white tower with its long bridge
+  { const tx = W * 0.7 + shift(0.12, W), top = G.Y(-70)
+    ctx.fillStyle = "#f4f2ee"; ctx.fillRect(tx - 16, top, 32, hz - top); ctx.fillStyle = "#d8d4cc"; ctx.fillRect(tx + 8, top, 8, hz - top)
+    ctx.fillStyle = "#3a3e48"; ctx.beginPath(); ctx.moveTo(tx - 22, top); ctx.lineTo(tx, top - 26); ctx.lineTo(tx + 22, top); ctx.fill()
+    ctx.fillStyle = "#e8e4dc"; ctx.fillRect(tx - 160, top + 70, 144, 5); ctx.fillStyle = "#222"; ctx.fillRect(tx - 6, top + 14, 12, 18) }
+  // the Seireitei's rooftops running on to the horizon
+  for (const [p, y0, hgt, col, wcol] of [[0.25, hz - 16, 22, "#5a6070", "#e8e4dc"], [0.45, hz + 8, 30, "#3e4450", "#f2eee6"]]) {
+    const ps = shift(p, W), step = 86
+    for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) { const x = i * step + ps, h = hgt + 10 * _h(i * 7 + p * 100)
+      ctx.fillStyle = wcol; ctx.fillRect(x + 6, y0 - h * 0.45, step - 10, h * 0.45 + 30)
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - 4, y0 - h * 0.4); ctx.lineTo(x + 10, y0 - h); ctx.lineTo(x + step - 14, y0 - h); ctx.lineTo(x + step, y0 - h * 0.4); ctx.fill() } }
+  // Soul Reapers flash-stepping across the far roofs
+  if (!SR.reapers) SR.reapers = Array.from({ length: 6 }, (_, i) => ({ seed: i * 3.3, x: padL + (padR - padL) * ((i * 0.31 + 0.1) % 1), dir: i % 2 ? -1 : 1, t: i * 0.4, hair: ["#1a1a1a", "#d84a2a", "#3a2a1a", "#e8e0c0"][i % 4], captain: i === 2, run: true, trail: null, wall: i >= 4 }))
+  for (const r of SR.reapers) { if (r.wall) continue
+    r.t -= 1 / 60; if (r.t <= 0) { const nx = r.x + r.dir * (90 + srRnd() * 140); r.trail = { x0: r.x, x1: nx, a: 1 }; r.x = nx; r.t = 0.8 + srRnd() * 1.4; SR.st.flashSteps++; if (r.x < padL - 40 || r.x > padR + 40) { r.dir *= -1 } }
+    if (r.trail && r.trail.a > 0) { r.trail.a -= 0.06; ctx.strokeStyle = `rgba(20,20,30,${0.4 * r.trail.a})`; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(r.trail.x0, hz - 26); ctx.lineTo(r.trail.x1, hz - 26); ctx.stroke() }
+    srReaper(ctx, r.x, hz - 6, 0.5, r, t) }
+  // the Garganta + the Menos Grande
+  if (SR.garg > 0) { const gx = W * 0.52 + shift(0.1, W), gy = G.Y(-20), o = SR.garg
+    ctx.fillStyle = "#050208"; ctx.beginPath(); ctx.moveTo(gx - 170 * o, gy); for (let i = 0; i <= 12; i++) { const x = gx - 170 * o + i * 340 * o / 12; ctx.lineTo(x, gy - (i % 2 ? 60 : 20) * o) } for (let i = 12; i >= 0; i--) { const x = gx - 170 * o + i * 340 * o / 12; ctx.lineTo(x, gy + (i % 2 ? 70 : 24) * o) } ctx.fill()
+    if (SR.menos) { const mx = gx, my = gy + 10, rise = Math.min(1, (SR.garg - 0.6) * 2.5)
+      ctx.save(); ctx.beginPath(); ctx.rect(gx - 170, gy - 70, 340, 150); ctx.clip()
+      ctx.fillStyle = "#0c0a0e"; ctx.beginPath(); ctx.ellipse(mx, my + 80 - 40 * rise, 60, 90, 0, 0, 7); ctx.fill()
+      ctx.fillStyle = "#f2f0ec"; ctx.beginPath(); ctx.ellipse(mx, my + 10 - 40 * rise, 26, 30, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(mx - 6, my + 20 - 40 * rise); ctx.lineTo(mx, my + 64 - 40 * rise); ctx.lineTo(mx + 6, my + 20 - 40 * rise); ctx.fill()
+      ctx.fillStyle = "#c01010"; ctx.beginPath(); ctx.arc(mx - 10, my + 4 - 40 * rise, 4, 0, 7); ctx.arc(mx + 10, my + 4 - 40 * rise, 4, 0, 7); ctx.fill(); ctx.restore() } }
+  // the Sōkyoku's phoenix
+  if (SR.phoenix) { const P = SR.phoenix, k = P.t
+    const x = W * 0.33 + shift(0.12, W) + k * 420, y = G.Y(-60) - Math.sin(Math.min(1, k) * Math.PI) * 120 + (1 - Math.min(1, k * 2)) * 160, wing = Math.sin(t * 8) * 0.6
+    for (let i = 0; i < 26; i++) { const a = i / 26, side = i % 2 ? 1 : -1, len = 220 * (0.4 + a)
+      ctx.fillStyle = `rgba(255,${120 + 120 * a | 0},${30 + 60 * a | 0},${0.55 * (1 - a * 0.6)})`; ctx.beginPath(); ctx.ellipse(x + side * len * 0.5, y - wing * len * 0.4 * side * side + a * 20, len * 0.5, 18 * (1 - a) + 6, side * (0.3 + wing * 0.5), 0, 7); ctx.fill() }
+    ctx.fillStyle = "rgba(255,250,210,0.95)"; ctx.beginPath(); ctx.ellipse(x, y, 40, 26, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(x + 34, y - 6); ctx.lineTo(x + 78, y - 22); ctx.lineTo(x + 36, y + 8); ctx.fill()
+    for (let i = 0; i < 10; i++) { ctx.fillStyle = `rgba(255,${150 + 10 * i},40,${0.5 - i * 0.04})`; ctx.beginPath(); ctx.arc(x - 40 - i * 26, y + Math.sin(t * 6 + i) * 8, 22 - i * 1.6, 0, 7); ctx.fill() } }
+}
+
+function seireiteiFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = SR.geo || srGeo(def, c, W, dockTop), S = def.S, P = c.layout.pieces
+  if (F[0] !== SR.p1) { Object.assign(SR, { p1: F[0], hp: new WeakMap(), squad: null, bfly: null, petals: null, reapers: null, rings: [], gateT: 6, gate: 0, garg: 0, menos: false, phoenix: null, flash: 0, shout: [] }); for (const k in SR.st) SR.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (SR.last || t))); SR.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2
+  if (!SR.bfly) SR.bfly = Array.from({ length: 9 }, (_, i) => ({ x: padL + (padR - padL) * ((i * 0.29 + 0.05) % 1), y: G.Y(40 + 90 * ((i * 0.43) % 1)), vx: 0, vy: 0, seed: i * 1.9, s: 1 + 0.3 * ((i * 0.7) % 1), life: 1e9 }))
+  if (!SR.petals) SR.petals = Array.from({ length: 60 }, (_, i) => ({ x: padL + (padR - padL) * ((i * 0.137) % 1), y: G.y0 + (coverBottom - G.y0) * ((i * 0.291) % 1), vx: 20 + 20 * ((i * 0.53) % 1), vy: 30 + 25 * ((i * 0.71) % 1), r: (i * 0.9) % 6 }))
+  // the fight
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = SR.hp.get(f); SR.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big) { SR.st.waves++; const bx = big.x + (big.w || 50) / 2, by = dockTop + 18 * S - 70
+    SR.rings.push({ x: bx, y: by, r: 10, a: 1 }); camera.shake?.(3, 10)
+    for (const p of SR.petals) { const dx = p.x - bx, d = Math.max(30, Math.abs(dx)); if (d < 600) { p.vx += Math.sign(dx || 1) * 420 * (1 - d / 600); p.vy -= 160 * (1 - d / 600); SR.st.blown++ } }
+    for (const b of SR.bfly) { const dx = b.x - bx; if (Math.abs(dx) < 500) { b.vx += Math.sign(dx || 1) * 200; b.vy -= 80 } }
+    if (SR.st.waves % 2 === 1) srShout(bx, by - 120, ["SUCH SPIRITUAL PRESSURE…!", "THIS REIATSU…!", "BANKAI-LEVEL…?!"][Math.floor(SR.st.waves / 2) % 3], "#2a4a9a") }
+  if (low && SR.garg === 0 && !SR.phoenix) { SR.garg = 0.01; SR.st.gargantas++; srShout(mid, G.Y(20), "A GARGANTA?! HOLLOWS IN THE SEIREITEI!", "#8a1a1a") }
+  if (SR.garg > 0 && SR.garg < 1 && !ko) { SR.garg = Math.min(1, SR.garg + dt * 0.5); if (SR.garg > 0.6) SR.menos = true }
+  if (ko && !SR.phoenix && !SR.st.phoenix) { SR.phoenix = { t: 0 }; SR.st.phoenix++; SR.flash = 1; camera.shake?.(10, 45); srShout(mid, G.Y(10), "THE SŌKYOKU…!", "#c06010") }
+  if (SR.phoenix) { SR.phoenix.t += dt * 0.45; if (SR.garg > 0) { SR.garg = Math.max(0, SR.garg - dt * 0.6); if (SR.garg < 0.5) SR.menos = false } if (SR.phoenix.t > 2.4) SR.phoenix = null }
+  // the Senkaimon: the gate's seam lights up, hell butterflies stream out
+  SR.gateT -= dt; if (SR.gateT <= 0) { SR.gateT = 16 + srRnd() * 8; SR.gate = 2.6; SR.st.gateOpens++
+    for (let i = 0; i < 6; i++) SR.bfly.push({ x: G.X(384) + (srRnd() - 0.5) * 20, y: G.Y(150), vx: (srRnd() - 0.5) * 120, vy: -60 - srRnd() * 60, seed: srRnd() * 9, s: 1, life: 9 }) }
+  // division sign over the gate
+  { const x = G.X(P.wall.sign[0]), y = G.Y(P.wall.sign[1]) - 4 * S, w = 26 * S, h = 16 * S
+    ctx.fillStyle = "#f6f4ee"; ctx.fillRect(x - w / 2, y - h / 2, w, h); ctx.strokeStyle = "#2a2a30"; ctx.lineWidth = 2; ctx.strokeRect(x - w / 2, y - h / 2, w, h)
+    ctx.save(); ctx.font = `900 ${Math.round(9 * S)}px "Hiragino Mincho ProN", "Yu Mincho", serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#111"; ctx.fillText("一番隊", x, y + 1); ctx.restore() }
+  if (SR.gate > 0) { SR.gate -= dt; const a = Math.min(1, SR.gate) * (0.6 + 0.4 * Math.sin(t * 20)), gx = G.X(384), gy0 = G.Y(120), gy1 = G.Y(186)
+    const gl = ctx.createLinearGradient(gx - 40, 0, gx + 40, 0); gl.addColorStop(0, "rgba(255,255,255,0)"); gl.addColorStop(0.5, `rgba(255,255,250,${a})`); gl.addColorStop(1, "rgba(255,255,255,0)")
+    ctx.fillStyle = gl; ctx.fillRect(gx - 40, gy0, 80, gy1 - gy0) }
+  // Soul Reapers flash-stepping along the top of the wall
+  for (const r of SR.reapers || []) { if (!r.wall) continue
+    r.t -= dt; if (r.t <= 0) { const nx = r.x + r.dir * (140 + srRnd() * 200); r.trail = { x0: r.x, x1: nx, a: 1 }; r.x = nx; r.t = big ? 1.2 : 0.7 + srRnd() * 1.2; SR.st.flashSteps++; if (r.x < padL + 20 || r.x > padR - 20) r.dir *= -1 }
+    if (r.trail && r.trail.a > 0) { r.trail.a -= dt * 3; ctx.strokeStyle = `rgba(20,20,30,${0.4 * r.trail.a})`; ctx.lineWidth = 16; ctx.beginPath(); ctx.moveTo(r.trail.x0, G.wallTop - 30); ctx.lineTo(r.trail.x1, G.wallTop - 30); ctx.stroke() }
+    srReaper(ctx, r.x, G.wallTop + 4, 1.0, r, t) }
+  // a squad of Soul Reaper officers lined up by the lanterns
+  if (!SR.squad) SR.squad = [0.08, 0.2, 0.26, 0.74, 0.8, 0.92].map((u, i) => ({ u, seed: i * 2.7, dir: u < 0.5 ? 1 : -1, hair: ["#1a1a1a", "#3a2a1a", "#d8c8a0", "#1a1a1a", "#8a3a2a", "#2a2a3a"][i], captain: i === 2 || i === 3, run: false, brace: 0 }))
+  for (const q of SR.squad) { q.brace = Math.max(0, q.brace - dt); if (big) q.brace = 0.8
+    const x = G.X(q.u * P.wall.w) - (q.brace > 0 ? q.dir * 10 : 0), y = G.Y(186)
+    ctx.save(); if (q.brace > 0) { ctx.translate(x, y); ctx.rotate(-q.dir * 0.12); ctx.translate(-x, -y) }
+    srReaper(ctx, x, y, 1.35, { ...q, dir: mid > x ? 1 : -1 }, t)
+    if (SR.phoenix || q.brace > 0) { ctx.strokeStyle = "#d8dce4"; ctx.lineWidth = 3; ctx.beginPath(); const d = mid > x ? 1 : -1; ctx.moveTo(x + d * 10, y - 60); ctx.lineTo(x + d * (SR.phoenix ? 18 : 40), y - (SR.phoenix ? 120 : 90)); ctx.stroke() }   // zanpakutō drawn
+    ctx.restore() }
+  SR.st.squad = SR.squad.length
+  // the Bleach cast in the courtyard (shared crowd: reacts by itself, steps away from the fight)
+  drawCrowd(ctx, SRC, { W, feet: G.Y(186), sh: shift(0.9, W) })
+  // reiatsu rings, butterflies, petals, shouts, the phoenix's flash
+  for (const r of SR.rings) { r.r += dt * 900; r.a -= dt * 1.3; if (r.a <= 0) continue
+    ctx.strokeStyle = `rgba(170,210,255,${r.a})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r, r.r * 0.45, 0, 0, 7); ctx.stroke()
+    ctx.strokeStyle = `rgba(255,255,255,${r.a * 0.6})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r * 0.8, r.r * 0.36, 0, 0, 7); ctx.stroke() }
+  SR.rings = SR.rings.filter(r => r.a > 0)
+  for (const b of SR.bfly) { b.life -= dt; b.vx *= 0.97; b.vy *= 0.97; b.x += (b.vx + Math.sin(t * 0.7 + b.seed) * 30) * dt; b.y += (b.vy + Math.cos(t * 1.1 + b.seed) * 18) * dt
+    if (b.x < padL - 30) b.x = padR + 20; if (b.x > padR + 30) b.x = padL - 20; b.y = Math.max(G.y0 - 100, Math.min(dockTop, b.y)); srButterfly(ctx, b, t) }
+  SR.bfly = SR.bfly.filter(b => b.life > 0).slice(-30)
+  for (const p of SR.petals) { p.vx += (40 - p.vx) * dt * 0.8; p.vy += (40 - p.vy) * dt * 0.8; p.x += (p.vx + Math.sin(t * 2 + p.r) * 20) * dt; p.y += p.vy * dt
+    if (p.y > coverBottom) { p.y = G.y0 - 40; p.x = padL + srRnd() * (padR - padL) } if (p.x > padR + 20) p.x = padL - 10; if (p.x < padL - 20) p.x = padR + 10
+    ctx.fillStyle = "rgba(255,190,210,0.9)"; ctx.beginPath(); ctx.ellipse(p.x, p.y, 4, 2.4, t * 2 + p.r, 0, 7); ctx.fill() }
+  for (const s of SR.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  SR.shout = SR.shout.filter(s => s.t > 0)
+  if (SR.flash > 0) { SR.flash = Math.max(0, SR.flash - dt * 0.8); ctx.fillStyle = `rgba(255,236,190,${SR.flash * 0.8})`; ctx.fillRect(padL, G.y0 - 300, padR - padL, coverBottom - G.y0 + 300) }
 }

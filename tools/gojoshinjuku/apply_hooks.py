@@ -102,6 +102,26 @@ HOOKS += [
    "        charge:b(PAD_BUTTON.charge) || (fighter.rosterKey === 'gojo_shinjuku' && b(11)), block:", "fighter.rosterKey === 'gojo_shinjuku' && b(11)"),
 ]
 
+# ── phase 4 (user request): double-tap teleport / long blink on the sim clock; the blink's travel is invulnerable ──
+HOOKS += [
+  (4, 'game.js', "  if (groundTeleportProfile(fighter)) return // opt-in sim press/release edges own this input", 'after_line',
+   "  if (isGs(fighter)) return   // Satoru Gojo (Shinjuku): double-tap toward = teleport, away = long blink, read on the sim clock in gojoShinjukuState.js; gojo_shinjuku-gated", "if (isGs(fighter)) return   // Satoru Gojo (Shinjuku): double-tap"),
+  (4, 'combat.js', "      if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }", 'after_line',
+   "      if (fighter._gs?.blink?.inv) continue   // Satoru Gojo (Shinjuku): the long blink's travel frames are invulnerable (the projectile passes); gojo_shinjuku-gated", "fighter._gs?.blink?.inv) continue"),
+]
+
+# ── phase 5: Unlimited Void reuses the old Gojo's domain (freeze, background video, theme) via domainKey 'gojo' ──
+# Behaviour-identical for every other domain: rosterKey only differs from the owner's key when domainKey is passed
+# (only gojoShinjukuState.js passes it).
+HOOKS += [
+  (5, 'domains.js', '    rosterKey: (fighter.rosterKey || fighter.id || "").toLowerCase()', 'replace',
+   '    rosterKey: options.domainKey || (fighter.rosterKey || fighter.id || "").toLowerCase()   // domainKey: Satoru Gojo (Shinjuku) borrows the old Gojo\'s Unlimited Void ("gojo")', "rosterKey: options.domainKey ||"),
+  (5, 'domains.js', '  if ((domain.owner?.rosterKey || domain.rosterKey) === "gojo") {', 'replace',
+   '  if ((domain.owner?.rosterKey || domain.rosterKey) === "gojo" || domain.rosterKey === "gojo") {   // + Satoru Gojo (Shinjuku) via domainKey', '|| domain.rosterKey === "gojo") {   // + Satoru Gojo (Shinjuku)'),
+  (5, 'domains.js', '  const gojoDomain = activeDomains.find(d => d?.owner?.rosterKey === "gojo")', 'replace',
+   '  const gojoDomain = activeDomains.find(d => d?.owner?.rosterKey === "gojo" || d?.rosterKey === "gojo")   // + Satoru Gojo (Shinjuku) via domainKey', '|| d?.rosterKey === "gojo")   // + Satoru Gojo (Shinjuku)'),
+]
+
 def main():
   a = sys.argv[1:]; check = '--check' in a
   root = a[a.index('--root') + 1] if '--root' in a else ROOT

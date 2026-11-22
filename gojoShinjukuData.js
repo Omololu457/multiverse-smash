@@ -21,6 +21,13 @@ export const perFrame = perSec => Math.round(perSec * CE_UNIT / 60)
 
 // ── INFINITY (invisible; 3 levels). drain CE/s, stopped-hit tax (fraction of the stopped hit's damage), radii in px
 //    measured from his hurtbox edge. L2 adds a repel ring; L3 scales both radii ×1.6 and stops supers. ──
+// MOBILITY (user request, after phase 3): the old Gojo's double-tap TOWARD = teleport beside the foe (same formula as
+// game.js teleportBehindTarget, same 48-frame cooldown, dash pose); double-tap AWAY = a Ranger-style long blink (rangers.js
+// feel: short wind-up, invulnerable travel, recovery) that puts real distance between him and the foe.
+export const MOBILITY = { window: 12, tpGap: 8, tpCooldown: 48, tpLock: 10,
+  blink: { dist: 0.40, startup: 2, travel: 5, recovery: 8, cooldown: 30 } }
+// CHARGE (user request): hold P past the tap window = the shared hold-to-charge (meter + the "charge" pose) + CE
+export const CHARGE = { ceRate: 12 }      // CE per second while charging
 export const INFINITY = {
   tapFrames: 12, level2At: 30, level3At: 60,
   levels: {
@@ -40,7 +47,7 @@ export const BARS = { purple: 1, purple200: 2, domain: 1 }
 export const PERFECT_OUTPUT_REFUND = 0.30
 
 // ── FIELDS (limitless.js profiles). r = radius px, pull = px/frame at the edge (grows toward the core). ──
-export const LAPSE = { release: 12, holdMax: 18, life: 48, near: 0.25, far: 0.60, r: 200, core: 44, pull: 3, pullCore: 9,
+export const LAPSE = { release: 12, holdMax: 18, life: 48, near: 0.25, far: 0.60, r: 200, core: 58, pull: 3.5, pullCore: 11,
   ticks: [12, 24, 36, 48], raw: 12, hitstun: 14, airAngle: 0.7 }
 export const MAXBLUE = { release: 18, life: 150, drift: 2.5, r: SCREEN / 2, core: 58, pull: 2.2, pullCore: 7,
   every: 12, hits: 8, raw: 10, hitstun: 16 }
@@ -117,6 +124,7 @@ export const GS_ANIMATION = {
   jump: lock(A.jumpRise), doubleJump: lock(A.jumpRise), fall: lock(A.fall), land: lock(A.crouchDown),
   crouch: lock(A.crouchDown), guard: lock(A.guard), hurt: lock(A.hurt), hurt_air: lock(A.hurt),
   knockdown: lock(A.knockdown), getup: lock(A.getup), intro: lock(A.intro), win: lock(A.win), lose: lock(A.lose),
+  charge: { ...A.charge, loop: true },   // hold P (the power-up stance, looped)
   taunt: lock(A.win), transform: lock(A.ultAction), ultimate: lock(A.ultAction), domain: lock(A.domain),
   light: A.a, heavy: A.b, up: A.c, air: A.jump, down_air: A.jump, grab: A.throw,
   ...Object.fromEntries(Object.entries(GS_MOVES).map(([k, m]) => [k, { ...lock(A[m.anim]), frameTimeline: TIMELINE[k] }])),

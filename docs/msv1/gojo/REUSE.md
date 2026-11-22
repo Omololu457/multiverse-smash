@@ -62,7 +62,7 @@ Charge press, the press belongs to that technique and does NOT touch Infinity.
 
 | System | Found | Use |
 |---|---|---|
-| Super meter / bars | No separate "super bar" system: ultimates spend `fighter.energy` (100 per bar). | His super meter = `energy`, maxEnergy 200 → **2 bars**. CE is a separate 0–100 gauge in his GAME_STATE. |
+| Super meter / bars | No separate "super bar" system: ultimates spend `fighter.energy` (100 per bar). | His super meter = `energy`, maxEnergy 300 → **3 bars** (corrected in phase 4: 200 % Purple needs 2 bars + Hollow Purple 1, so 3 bars fit a full meter). CE is a separate 0–100 gauge in his GAME_STATE. |
 | Text bubbles | Spider-Man quip bubbles (`abilities.js` quip system, `ms_quip_bubbles`) | Intro / win bubbles ("Don't worry. I'm the strongest." / "Nah, I'd win.") drawn by `gojoShinjukuFx.js` in the same bubble style (render-only). |
 | Hitstop / camera shake | engine `hitstop`, `shakeCamera` | Shared. |
 | Projectile pooling | engine `activeProjectiles` (per-owner caps in modules) | Shared; fields cap affected objects. |
@@ -78,3 +78,31 @@ Charge press, the press belongs to that technique and does NOT touch Infinity.
 | Sukuna Domain Amplification | **Does not exist** | Bypass skipped. |
 | Mahoraga | The Handler (`handler`, display "Megumi") ultimate FORM `_mahoragaActive` with an adaptation wheel + World-Slash counter; `megumi_fushiguro` has Mahoraga only as a non-combat intro | Wheel bypass implemented for the Handler's Mahoraga form. |
 | InputFrame | `readRawControls` / `writeRawControls` + `REPLAY_INPUT_FIELDS` (replay + LAN masks) | Every Gojo input (incl. Infinity) is read from this snapshot. |
+
+## Input changes vs the brief (phase 4)
+
+- **Red Rush is → + Special + Heavy** (the brief's ↓↙← + S + H collides with Falling Blossom Emotion's ↓↙← + P
+  motion buffer and with Purple's ↓ ←). The qcb alias for Reversal Red was dropped for the same reason: ↓ ← is Purple.
+- **Blue Step is Up (+ a direction) + Special.** Up alone = straight up (45 % of the screen distance × 0.45); Up + → / ←
+  = the diagonal step (45 % of the screen, 576 px, along the diagonal).
+- **Black Flash is judged in the sim tick**, not the command layer: the 2-frame window opens on the hit and hitstop
+  freezes the command layer, so a press during hitstop still counts.
+
+## User requests after phase 3 (2026-11-21): "more like the other Gojo"
+
+- **P = tap / hold.** A tap (released inside 12 f) steps Infinity off → L1 → L2 → L3 → off (the brief's "hold 30 / 60 f
+  for L2 / L3" is replaced, because holding P is now the charge). Holding P past 12 f is the shared hold-to-charge, the
+  same as every other fighter: `isCharging`, the meter fills (doEnergyCharge), the new `charge` pose (sheet's Ultimate
+  Action stance, looped) and a render-only blue cursed-energy aura. Charging also refills CE (+12 CE/s). The Infinity
+  level he had is kept while he charges. ↓↓ + P (RCT) and ↓↙← + P (Falling Blossom) still own their presses.
+- **Double-tap TOWARD the foe = the old Gojo's teleport.** Same formula as game.js `teleportBehindTarget` (lands right
+  beside the foe at their height, faces them), same 48-frame cooldown, dash pose on the blink. Read on the sim clock
+  (gojoShinjukuState.js `mobilityTick`), so replay / LAN reproduce it; the engine's wall-clock double-tap is skipped for
+  him (one game.js line).
+- **Double-tap AWAY = a long Ranger-style blink** (rangers.js feel): 2 f wind-up, 5 f travel covering 40 % of the screen
+  (512 px), 8 f recovery, 30-frame cooldown. The travel frames are invulnerable (melee / grabs whiff, projectiles pass —
+  one combat.js line). Motions (↓↘→, ↓↘→↓↘→) and Up + direction (Blue Step) never read as double-taps.
+- **U = Unlimited Void (phase 5)** reuses the old Gojo's domain through `activateDomain(..., { domainKey: 'gojo' })`:
+  his freeze, the Unlimited Void background video and theme. Three domains.js lines accept the key; behaviour is
+  identical for every other domain (a domain's rosterKey only differs from its owner's key when domainKey is passed).
+  A domain cast already under way survives the other domain's freeze, so two Gojos opening together clash.

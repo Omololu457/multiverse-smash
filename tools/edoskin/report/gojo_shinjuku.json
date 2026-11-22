@@ -3,7 +3,7 @@
  "bodyColours": 74,
  "class": "HUMAN",
  "crackPlan": 9,
- "crackPx": 680,
+ "crackPx": 695,
  "eyes": "handled",
  "faceArea": 52,
  "faceCracks": 5,
@@ -12,6 +12,6 @@
  "notes": [],
  "overrides": [],
  "sclera": 98,
- "sheets": 37,
+ "sheets": 38,
  "skinColours": 12
 }

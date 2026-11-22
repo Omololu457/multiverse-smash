@@ -49,6 +49,31 @@ export function drawGsFx(c, f, training = false) {
     c.setLineDash([]); c.fillStyle = 'rgba(200,235,255,0.9)'; c.font = 'bold 10px monospace'; c.textAlign = 'center'
     c.fillText(`INFINITY L${s.inf.lv} (debug)`, ctrX(f), f.y - L.boundary - 6); c.restore()
   }
+  // CHARGING (hold P): a cursed-energy aura — pale-blue flame tongues rising around him + Six Eyes glint (render-only;
+  // phases come from the sim clock so a replay draws it identically). Infinity itself stays invisible.
+  if (s.charging && f.isCharging) {
+    const cx = ctrX(f), feet = f.y + f.h, pulse = 0.5 + 0.5 * Math.sin(t * 0.35)
+    c.save()
+    // body glow (screen-blend so it reads on light and dark stages)
+    c.globalCompositeOperation = 'screen'
+    const g = c.createRadialGradient(cx, feet - f.h * 0.5, 6, cx, feet - f.h * 0.5, f.h * 0.85)
+    g.addColorStop(0, `rgba(120,200,255,${0.55 + 0.2 * pulse})`); g.addColorStop(0.6, 'rgba(70,140,255,0.25)'); g.addColorStop(1, 'rgba(40,90,255,0)')
+    c.fillStyle = g; c.beginPath(); c.ellipse(cx, feet - f.h * 0.5, f.w * 1.3, f.h * 0.8, 0, 0, Math.PI * 2); c.fill()
+    // flame tongues: deep-blue core + white-blue edge, each rising and fading on its own phase
+    c.globalCompositeOperation = 'source-over'
+    for (let i = 0; i < 10; i++) {
+      const ph = ((t * 2 + i * 13) % 36) / 36
+      const x = cx + ((i / 9) * 2 - 1) * f.w * 0.8 + Math.sin(i * 1.7 + t * 0.12) * 4, y = feet - 6 - ph * f.h * 1.1
+      const w = 4 + (1 - ph) * 6, h = 10 + (1 - ph) * 16, a = (1 - ph) * 0.85
+      c.fillStyle = `rgba(40,110,255,${a * 0.8})`; c.beginPath(); c.ellipse(x, y, w, h, 0, 0, Math.PI * 2); c.fill()
+      c.fillStyle = `rgba(200,240,255,${a})`; c.beginPath(); c.ellipse(x, y + h * 0.15, w * 0.45, h * 0.6, 0, 0, Math.PI * 2); c.fill()
+    }
+    // ground ring
+    c.strokeStyle = `rgba(150,215,255,${0.5 + 0.3 * pulse})`; c.lineWidth = 2
+    c.beginPath(); c.ellipse(cx, feet - 2, f.w * (1.1 + 0.15 * pulse), 7, 0, 0, Math.PI * 2); c.stroke()
+    c.fillStyle = `rgba(220,245,255,${0.7 + 0.3 * pulse})`; c.fillRect(cx + (f.facing || 1) * 4 - 2, f.y + f.h * 0.11, 4, 2)   // Six Eyes glint
+    c.restore()
+  }
   // Blue fields: the sheet's orb, sized to the core; a faint swirl for the pull radius
   for (const F of s.fields) {
     if (F.kind === 'lapse' || F.kind === 'max') {

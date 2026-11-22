@@ -18,6 +18,7 @@ export function gojoShinjukuHarnessApi(g) {
     debug: on => setGsInfinityDebug(on),
     shoot: (o = {}, w = 'p2') => { const f = raw(w), p = g.world.spawn(f, o.type || 'test_bolt', { speed: o.speed ?? 10, damage: o.damage ?? 40, w: 16, h: 16, ...o })
       if (p) { if (o.super) p.isUltimate = true; if (o.lifetime != null) p.lifetime = o.lifetime; if (o.y != null) p.y = o.y } return !!p },
+    parkShots: (w = 'p1') => { const f = raw(w); for (const p of g.world.projectileList?.() || []) { p.x = f.x + f.w / 2; p.y = f.y + f.h / 2; p.vx = 0; p.vy = 0 } },
     hud: (w = 'p1') => gsHudLabel(raw(w)),
     data: () => clone({ moves: GS_MOVES, infinity: INFINITY, chant: CHANT, chantFire: CHANT_FIRE, domain: DOMAIN, cost: COST, timeline: TIMELINE }),
     projectiles: () => (g.world.projectileList?.() || []).map(p => ({ name: p.name || null, owner: p.owner?.side ?? null, x: p.x, y: p.y, vx: p.vx, vy: p.vy,
@@ -28,6 +29,6 @@ export function gojoShinjukuHarnessApi(g) {
         attack: a ? { name: a.name, total: a.total, timer: a.timer, activeStart: a.activeStart, activeEnd: a.activeEnd, hasHit: a.hasHit, damage: a.damage, gs: a.gs ? clone(a.gs) : null } : null,
         cancel: getCancelWindow(f), box: getAttackHitbox(f), s: s ? clone({ ...s, cues: undefined }) : null, ce: s ? s.ce / CE_UNIT : null,
         inf: s ? s.inf.lv : 0, cues: s ? s.cues.map(c => typeof c === 'string' ? c : c.c) : [], action: f._lastSpriteAction || null, frame: f._lastSpriteFrame ?? null,
-        hitstun: f.hitstun || 0, blockstun: f.blockstun || 0, attackCooldown: f.attackCooldown || 0, combo: f.comboCounter || 0, knockdown: !!f.knockdownState,
+        hitstun: f.hitstun || 0, hitstop: f.hitstop || 0, blockstun: f.blockstun || 0, attackCooldown: f.attackCooldown || 0, combo: f.comboCounter || 0, knockdown: !!f.knockdownState,
         grabbed: !!f.isGrabbed, frozen: !!f.domainFrozen, techBurnout: f._gsTechBurnout || 0, sawInfinity: f._gsSawInfinity ?? null, remoteInput: !!f._gsRemoteInput } } }
 }

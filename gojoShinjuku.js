@@ -1,7 +1,8 @@
 // Satoru Gojo — Shinjuku Arc (gojo_shinjuku) — COMMAND LAYER. Press edges come from tickGs (readRawControls), so
 // keyboard, pad, replay and LAN feed one reader. Returns 'consumed' always: every move of his (normals, throw included)
 // starts here, so the engine's generic normals / grab never fire for him. P (Charge) is Infinity / RCT / Falling Blossom
-// and is read in tickGs (gojoShinjukuState.js). Inputs: docs/msv1/gojo/COMBOS.md (move list) and REUSE.md (P / U).
+// and is read in tickGs (gojoShinjukuState.js): tap = Infinity level step, hold = charge. Double-tap ←← / →→ (teleport toward,
+// long blink away) is read there too. Inputs: docs/msv1/gojo/COMBOS.md (move list) and REUSE.md (P / U).
 //
 // SPECIAL resolution on a fresh Special press (top first; facing-relative numpad motions, 20-tick buffer):
 //   Black Flash window (B / C / Blue Fist hit ≤ 2 f ago, 3 in THE ZONE)          → Black Flash
@@ -14,10 +15,11 @@
 // the first: Light+Heavy = throw, Heavy+Special = Blue Fist, Lapse+Heavy = Max Blue, Red+Heavy = Red Rush,
 // Purple+Heavy = 200 %.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
+import { activateDomain, activeDomains, clearDomains } from './domains.js'
 import { isGs, gsState, startGsMove, registerGsEngine, endGsAttack, fresh, use, MOTIONS, gsBlackFlash } from './gojoShinjukuState.js'
-import { GS_MOVES, A_CHAIN, NORMALS, CE_UNIT } from './gojoShinjukuData.js'
+import { GS_MOVES, A_CHAIN, NORMALS, CE_UNIT, MOBILITY } from './gojoShinjukuData.js'
 
-registerGsEngine({ startMove, comboScale: getComboScale })
+registerGsEngine({ startMove, comboScale: getComboScale, activateDomain, activeDomains, clearDomains })   // Unlimited Void = the engine's domain (domainKey 'gojo')
 
 const UPGRADE_WIN = 3
 const TECH_CANCEL_FROM = new Set(['gA1', 'gA2', 'gA3', 'gB', 'gC', 'gSweep', 'gAir', 'gBlueFist'])
@@ -56,9 +58,10 @@ export function updateGsCommandCombat(f, inp, opp, W) {
   const s = gsState(f), raw = W.raw?.(f) || inp || {}, g = grounded(f)
   const a = f.attacking && f.currentAttack?.gs ? f.currentAttack : null
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0 || s.clash) return 'consumed'
+  if (s.blink && s.blink.t <= MOBILITY.blink.startup + MOBILITY.blink.travel) return 'consumed'   // the long blink (double-tap away) owns its wind-up + travel
   const fire = (k, o = {}) => startGsMove(f, k, W, o)
   // ── Black Flash owns a Special press inside its window ──
-  if (s.bf && fresh(s, 'special', 3) && gsBlackFlash(f, W, opp)) return 'consumed'
+  // (Black Flash is judged in tickGs, even during hitstop)
   // ── two-button upgrades (the first button already started a move ≤ 3 ticks ago) ──
   if (a && (a.total - a.timer) <= UPGRADE_WIN && UPGRADE[a.gs.key]) {
     for (const [btn, to] of Object.entries(UPGRADE[a.gs.key])) {

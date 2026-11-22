@@ -14,5 +14,582 @@
    "L2": 30,
    "L3": 0
   }
+ },
+ "mobility": {
+  "charge": {
+   "energy": 27.09999999999998,
+   "ce": 45.4,
+   "charging": true,
+   "action": "charge",
+   "inf": 0,
+   "after": false
+  },
+  "teleport": {
+   "x": 1841.9375999999997,
+   "foeX": 1901.9375999999997,
+   "facing": 1,
+   "n": 1,
+   "cd": 45
+  },
+  "blink": {
+   "dx": 486.8040360194541,
+   "inv": true,
+   "n": 1
+  }
+ },
+ "domain": {
+  "cast": {
+   "mine": true,
+   "frozen": true,
+   "energy": 200,
+   "ce": 49.9,
+   "domains": 1
+  },
+  "end": {
+   "mine": false,
+   "burnout": 232,
+   "cd": 1732,
+   "frozen": false
+  },
+  "clash": {
+   "a": {
+    "me": 19,
+    "them": 0,
+    "myScore": 20,
+    "theirScore": 1.1,
+    "result": "win"
+   },
+   "clashes": 1,
+   "burnA": 300,
+   "burnB": 299,
+   "winnerDomainFroze": true
+  }
+ },
+ "moves": {
+  "aString": {
+   "dmg": 101,
+   "hits": [
+    30,
+    30,
+    41
+   ],
+   "ce": -15.8,
+   "bars": 0,
+   "a": {
+    "key": "gojo_shinjuku",
+    "hp": 1160,
+    "maxHp": 1160,
+    "energy": 300,
+    "x": 1290,
+    "y": 400,
+    "w": 60,
+    "h": 100,
+    "vx": 0,
+    "vy": 0,
+    "facing": 1,
+    "grounded": true,
+    "blocking": false,
+    "charging": false,
+    "attack": null,
+    "cancel": {
+     "move": null,
+     "phase": "idle",
+     "startup": 0,
+     "active": 0,
+     "recovery": 0,
+     "elapsed": 0,
+     "open": false,
+     "windowFrames": 0,
+     "cancelInto": null,
+     "connected": true
+    },
+    "box": null,
+    "s": {
+     "tick": 52,
+     "clock": 40,
+     "prev": {
+      "light": false,
+      "heavy": false,
+      "special": false,
+      "ultimate": false,
+      "upAttack": false,
+      "block": false,
+      "jump": false,
+      "up": false,
+      "charge": false,
+      "grab": false,
+      "left": false,
+      "right": false,
+      "down": false
+     },
+     "edges": {
+      "light": {
+       "tick": 21,
+       "down": false,
+       "up": false,
+       "fwd": false,
+       "back": false
+      },
+      "lightUp": {
+       "tick": 22
+      }
+     },
+     "used": {
+      "light": 21
+     },
+     "dirs": [
+      {
+       "d": 5,
+       "t": 1
+      }
+     ],
+     "serial": 3,
+     "nEnt": 0,
+     "inf": {
+      "lv": 0,
+      "press": -1,
+      "startLv": 0
+     },
+     "cd": {
+      "domain": 0,
+      "fbe": 0,
+      "rct": 0,
+      "tp": 0,
+      "blink": 0
+     },
+     "charging": false,
+     "dt": null,
+     "blink": null,
+     "burnout": 0,
+     "zone": 0,
+     "airSteps": 0,
+     "wasGround": true,
+     "dom": {
+      "mine": false,
+      "start": -1,
+      "oppSeen": {}
+     },
+     "clash": null,
+     "fields": [],
+     "purples": [],
+     "chant": null,
+     "bf": null,
+     "po": null,
+     "pins": {},
+     "mahoraga": {},
+     "pull": null,
+     "crumple": null,
+     "bounce": null,
+     "fbeT": 0,
+     "rct": null,
+     "grab": null,
+     "oppDomain": false,
+     "cpu": null,
+     "fx": [],
+     "hud": {
+      "ceShown": 0,
+      "wasBurn": false
+     },
+     "superWin": {},
+     "eprev": {
+      "p2": 300
+     },
+     "stats": {
+      "stopped": 0,
+      "stoppedProj": 0,
+      "supersHalved": 0,
+      "supersWhiffed": 0,
+      "supersConnected": 0,
+      "crushed": 0,
+      "reflected": 0,
+      "erased": 0,
+      "bf": 0,
+      "po": 0,
+      "pins": 0,
+      "fbe": 0,
+      "rctHp": 0,
+      "brainReset": 0,
+      "domains": 0,
+      "burnouts": 0,
+      "clashes": 0,
+      "depleted": 0,
+      "chantHits": 0,
+      "purples": 0,
+      "purple200": 0,
+      "teleports": 0,
+      "blinks": 0,
+      "charged": 0,
+      "lastPurpleOutput": 0,
+      "lastPurpleRaw": 0,
+      "techLocked": 0,
+      "infOn": 0,
+      "forcedOff": {},
+      "mahoragaBypass": 0,
+      "mirrorBypass": 0
+     },
+     "ce": 45600,
+     "ceLock": 0,
+     "depleted": 0
+    },
+    "ce": 76,
+    "inf": 0,
+    "cues": [],
+    "action": "idle",
+    "frame": null,
+    "hitstun": 0,
+    "hitstop": 0,
+    "blockstun": 0,
+    "attackCooldown": 0,
+    "combo": 3,
+    "knockdown": false,
+    "grabbed": false,
+    "frozen": false,
+    "techBurnout": 0,
+    "sawInfinity": null,
+    "remoteInput": false
+   },
+   "b": {
+    "key": "gojo_shinjuku",
+    "hp": 1059,
+    "maxHp": 1160,
+    "energy": 300,
+    "x": 1350,
+    "y": 400,
+    "w": 60,
+    "h": 100,
+    "vx": 6,
+    "vy": 0,
+    "facing": -1,
+    "grounded": true,
+    "blocking": false,
+    "charging": false,
+    "attack": null,
+    "cancel": {
+     "move": null,
+     "phase": "idle",
+     "startup": 0,
+     "active": 0,
+     "recovery": 0,
+     "elapsed": 0,
+     "open": false,
+     "windowFrames": 0,
+     "cancelInto": null,
+     "connected": false
+    },
+    "box": null,
+    "s": {
+     "tick": 52,
+     "clock": 40,
+     "prev": {
+      "light": false,
+      "heavy": false,
+      "special": false,
+      "ultimate": false,
+      "upAttack": false,
+      "block": false,
+      "jump": false,
+      "up": false,
+      "charge": false,
+      "grab": false,
+      "left": false,
+      "right": false,
+      "down": false
+     },
+     "edges": {},
+     "used": {},
+     "dirs": [
+      {
+       "d": 5,
+       "t": 1
+      }
+     ],
+     "serial": 0,
+     "nEnt": 0,
+     "inf": {
+      "lv": 0,
+      "press": -1,
+      "startLv": 0
+     },
+     "cd": {
+      "domain": 0,
+      "fbe": 0,
+      "rct": 0,
+      "tp": 0,
+      "blink": 0
+     },
+     "charging": false,
+     "dt": null,
+     "blink": null,
+     "burnout": 0,
+     "zone": 0,
+     "airSteps": 0,
+     "wasGround": true,
+     "dom": {
+      "mine": false,
+      "start": -1,
+      "oppSeen": {}
+     },
+     "clash": null,
+     "fields": [],
+     "purples": [],
+     "chant": null,
+     "bf": null,
+     "po": null,
+     "pins": {},
+     "mahoraga": {},
+     "pull": null,
+     "crumple": null,
+     "bounce": null,
+     "fbeT": 0,
+     "rct": null,
+     "grab": null,
+     "oppDomain": false,
+     "cpu": null,
+     "fx": [],
+     "hud": {
+      "ceShown": 0,
+      "wasBurn": false
+     },
+     "superWin": {},
+     "eprev": {
+      "p1": 300
+     },
+     "stats": {
+      "stopped": 0,
+      "stoppedProj": 0,
+      "supersHalved": 0,
+      "supersWhiffed": 0,
+      "supersConnected": 0,
+      "crushed": 0,
+      "reflected": 0,
+      "erased": 0,
+      "bf": 0,
+      "po": 0,
+      "pins": 0,
+      "fbe": 0,
+      "rctHp": 0,
+      "brainReset": 0,
+      "domains": 0,
+      "burnouts": 0,
+      "clashes": 0,
+      "depleted": 0,
+      "chantHits": 0,
+      "purples": 0,
+      "purple200": 0,
+      "teleports": 0,
+      "blinks": 0,
+      "charged": 0,
+      "lastPurpleOutput": 0,
+      "lastPurpleRaw": 0,
+      "techLocked": 0,
+      "infOn": 0,
+      "forcedOff": {},
+      "mahoragaBypass": 0,
+      "mirrorBypass": 0
+     },
+     "ce": 38400,
+     "ceLock": 0,
+     "depleted": 0
+    },
+    "ce": 64,
+    "inf": 0,
+    "cues": [],
+    "action": "walk_back",
+    "frame": null,
+    "hitstun": 0,
+    "hitstop": 0,
+    "blockstun": 0,
+    "attackCooldown": 0,
+    "combo": 0,
+    "knockdown": false,
+    "grabbed": false,
+    "frozen": false,
+    "techBurnout": 0,
+    "sawInfinity": null,
+    "remoteInput": false
+   },
+   "selfDmg": 0
+  },
+  "B": [
+   67
+  ],
+  "C": {
+   "hits": [
+    84
+   ],
+   "vy": 0
+  },
+  "throw": [
+   90
+  ],
+  "lapse": {
+   "hits": [
+    12,
+    12,
+    11,
+    10
+   ],
+   "ce": -5.6,
+   "cost": {
+    "ce": 14.9,
+    "bars": 0,
+    "move": "gLapse"
+   }
+  },
+  "maxBlue": {
+   "hits": [
+    10,
+    10,
+    9,
+    8,
+    7,
+    7,
+    6,
+    6
+   ],
+   "ce": -10.8,
+   "bx": 1773,
+   "cost": {
+    "ce": 34.3,
+    "bars": 0,
+    "move": "gMaxBlue"
+   }
+  },
+  "blueStep": {
+   "dx": 428,
+   "dist": 591,
+   "ce": 9.900000000000006,
+   "used": 0
+  },
+  "blueFist": {
+   "hits": [
+    136
+   ],
+   "ce": 3.1,
+   "cost": {
+    "ce": 7.9,
+    "bars": 0,
+    "move": "gBlueFist"
+   }
+  },
+  "red": {
+   "hits": [
+    70
+   ],
+   "ce": 10.2,
+   "bounce": {
+    "stopped": 0,
+    "stoppedProj": 0,
+    "supersHalved": 0,
+    "supersWhiffed": 0,
+    "supersConnected": 0,
+    "crushed": 0,
+    "reflected": 0,
+    "erased": 0,
+    "bf": 0,
+    "po": 0,
+    "pins": 0,
+    "fbe": 0,
+    "rctHp": 0,
+    "brainReset": 0,
+    "domains": 0,
+    "burnouts": 0,
+    "clashes": 0,
+    "depleted": 0,
+    "chantHits": 0,
+    "purples": 0,
+    "purple200": 0,
+    "teleports": 0,
+    "blinks": 0,
+    "charged": 0,
+    "lastPurpleOutput": 0,
+    "lastPurpleRaw": 0,
+    "techLocked": 0,
+    "infOn": 0,
+    "forcedOff": {},
+    "mahoragaBypass": 0,
+    "mirrorBypass": 0
+   },
+   "cost": {
+    "ce": 14.9,
+    "bars": 0,
+    "move": "gRed"
+   }
+  },
+  "delayed": {
+   "hits": [
+    60
+   ],
+   "ce": 10.2,
+   "cost": {
+    "ce": 17.9,
+    "bars": 0,
+    "move": "gRed"
+   }
+  },
+  "redRush": {
+   "hits": [
+    90
+   ],
+   "ce": 13.5,
+   "vy": 0,
+   "cost": {
+    "ce": 19.9,
+    "bars": 0,
+    "move": "gRedRush"
+   }
+  },
+  "purple": {
+   "hits": [
+    300
+   ],
+   "ce": 32.4,
+   "bars": 0.6093999999999966,
+   "cost": {
+    "ce": 39.5,
+    "bars": 1,
+    "move": "gPurple"
+   }
+  },
+  "purple200": {
+   "full": {
+    "dmg": 460,
+    "out": 200,
+    "chantHits": 3,
+    "bars": 1.4973999999999983
+   },
+   "none": {
+    "dmg": 229,
+    "out": 100
+   },
+   "cost": {
+    "ce": 70,
+    "bars": 0,
+    "move": "gPurple200"
+   }
+  },
+  "fbe": {
+   "selfDmg": 0,
+   "foeDmg": 49,
+   "fbe": 1,
+   "cd": 457
+  },
+  "rct": {
+   "healed": 90,
+   "ceUsed": 58.800000000000004,
+   "cd": 897
+  },
+  "blackFlash": {
+   "hits": [
+    67,
+    93
+   ],
+   "bf": 1,
+   "zone": 335
+  },
+  "perfect": {
+   "po": 1,
+   "ce": 1.2
+  }
  }
 }

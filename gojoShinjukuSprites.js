@@ -421,6 +421,18 @@ export const GOJO_SHINJUKU_ANIM = {
   "frameWidth": 72,
   "frameHeight": 62
  },
+ "charge": {
+  "sheet": "./assets/gojo_shinjuku/charge.png",
+  "frames": 2,
+  "width": 38,
+  "height": 62,
+  "originX": 19,
+  "originY": 61,
+  "anchorY": 0,
+  "speed": 7,
+  "frameWidth": 38,
+  "frameHeight": 62
+ },
  "purpleFull": {
   "sheet": "./assets/gojo_shinjuku/purpleFull.png",
   "frames": 14,

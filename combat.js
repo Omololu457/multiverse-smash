@@ -4567,6 +4567,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj }) || ninjaEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
       if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Satoru Gojo (Shinjuku): Infinity stops it at contact (L1/L2 supers pass) / Falling Blossom; gojo_shinjuku-gated
+      if (fighter._gs?.blink?.inv) continue   // Satoru Gojo (Shinjuku): the long blink's travel frames are invulnerable (the projectile passes); gojo_shinjuku-gated
       if (fighter.isBlocking && isBenDevice(proj.owner) && benAlienGuardBreak(proj.owner, fighter, { proj })) fighter.isBlocking = false   // READY form guard-break (Eyeguy Unblinking); false for everyone else
 
       if (consumeBenGuard(fighter)) {

@@ -76,7 +76,7 @@ export function activateDomain(fighter, options = {}, context = {}) {
     speedPenalty: options.speedPenalty ?? fighter.domain?.speedPenalty ?? DOMAIN_DEFAULTS.speedPenalty,
     effect: options.effect || fighter.domain?.effect || null,
     active: true,
-    rosterKey: (fighter.rosterKey || fighter.id || "").toLowerCase()
+    rosterKey: options.domainKey || (fighter.rosterKey || fighter.id || "").toLowerCase()   // domainKey: Satoru Gojo (Shinjuku) borrows the old Gojo's Unlimited Void ("gojo")
   }
 
   activeDomains.push(domain)
@@ -155,7 +155,7 @@ function collapseDomain(domain) {
   // unreliable); the existing _domainFadeOut alpha handles the fade. Owner-keyed
   // because abilities.js domains carry no rosterKey. Reset so the next activation
   // replays from the start.
-  if ((domain.owner?.rosterKey || domain.rosterKey) === "gojo") {
+  if ((domain.owner?.rosterKey || domain.rosterKey) === "gojo" || domain.rosterKey === "gojo") {   // + Satoru Gojo (Shinjuku) via domainKey
     _gojoActiveOwner = null
     if (_gojoVideo && !_gojoVideoFailed) { try { _gojoVideo.pause() } catch (_) {} }
     // Gojo's domain replaced the stage track with its theme — restore the map's
@@ -413,7 +413,7 @@ function _drawGojoDomain(ctx, cw, ch) {
   // (so a rematch starts clean). In this build domains are created in
   // abilities.js, so this render-path detection is what actually fires;
   // activateDomain() also calls _restartGojoVideo() to honor that contract.
-  const gojoDomain = activeDomains.find(d => d?.owner?.rosterKey === "gojo")
+  const gojoDomain = activeDomains.find(d => d?.owner?.rosterKey === "gojo" || d?.rosterKey === "gojo")   // + Satoru Gojo (Shinjuku) via domainKey
   if (gojoDomain && gojoDomain.owner !== _gojoActiveOwner) {
     _gojoActiveOwner = gojoDomain.owner
     _restartGojoVideo()

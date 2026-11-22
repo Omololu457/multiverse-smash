@@ -252,12 +252,13 @@ COMPOSE = {
     'throw': [('b', 0), ('b', 1), ('redRushBox', 0)],
     'redRushFull': [('redRush', 0), ('redRush', 1), ('redRush', 2), ('redRush', 3), ('redRushBox', 0)],
     'blueStep': [('maxBlue', 2), ('dash', 0)],
+    'charge': [('ultAction', 1), ('ultAction', 2)],   # power-up stance looped while holding P (user request: a charging animation)
     'purpleFull': [('ultAction', 0), ('ultAction', 1), ('ultAction', 2)] + [('purple', i) for i in range(6)] + [('purpleRaise', 0)] + [('purpleFire', i) for i in range(3)] + [('purpleEnd', 0)],
     'purple200Full': [('ultAction', 0), ('ultAction', 1), ('ultAction', 2)] + [('purple200', i) for i in range(6)] + [('purple200Fire', 0)],
 }
 LYING |= {('knockdown', 0), ('knockdown', 1), ('knockdown', 2), ('lose', 0), ('lose', 1), ('blueStep', 1)}
 SPEC.update({'hurt': 6, 'knockdown': 7, 'getup': 8, 'lose': 10, 'jumpRise': 6, 'fall': 6, 'crouchDown': 3, 'throw': 5, 'redRushFull': 4,
-             'blueStep': 4, 'purpleFull': 6, 'purple200Full': 8})
+             'blueStep': 4, 'charge': 7, 'purpleFull': 6, 'purple200Full': 8})
 for name, parts in COMPOSE.items(): frames[name] = [frames[a][i] for a, i in parts]
 
 os.makedirs(os.path.join(OUT, 'fx'), exist_ok=True)

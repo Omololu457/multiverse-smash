@@ -51,6 +51,7 @@ Regenerate: `python3 tools/gojoshinjuku/slice.py && python3 tools/gojoshinjuku/c
 | `throw.png` | 3 | B 0, 1, 4 |
 | `redRushFull.png` | 5 | Red Rush lunge 0–3 + boxed impact |
 | `blueStep.png` | 2 | Max Output Blue gesture + Dash |
+| `charge.png` | 2 | Ultimate Action 1–2 (the power-up stance, looped while holding P; added after phase 3 on user request) |
 | `purpleFull.png` | 14 | Ultimate Action 0–2 + Purple 0–5 + boxed raise + fire 0–2 + end |
 | `purple200Full.png` | 10 | Ultimate Action 0–2 + 200% poses 0–5 + boxed fire |
 

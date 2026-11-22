@@ -1,10 +1,91 @@
 {
- "pass": 4,
+ "pass": 61,
  "fail": 0,
  "report": {
+  "moves": {
+   "A1": 31,
+   "A": [
+    31,
+    31,
+    44
+   ],
+   "B": 73,
+   "C": 82,
+   "knee": 76,
+   "dashAtk": 58,
+   "air": 61
+  },
+  "techniques": {
+   "disKey": "kDismantle",
+   "dis": 55,
+   "cutProj": 1,
+   "fanKey": "kFan",
+   "fanCost": 18.219999999999857,
+   "fanCuts": 3,
+   "fanDmg": 30,
+   "cleave": 133,
+   "cleaveWant": 134,
+   "whiff": 10,
+   "webKey": "kWeb",
+   "web": 70,
+   "webVsStand": 70,
+   "fuga1": {
+    "d": 93,
+    "lv": 1,
+    "cost": 22.41999999999979
+   },
+   "fuga2": {
+    "d": 142,
+    "lv": 2,
+    "cost": 16.61999999999972
+   },
+   "fuga3": {
+    "d": 202,
+    "lv": 3,
+    "cost": 9.459999999999638
+   },
+   "patches": [],
+   "amp": 175,
+   "worldKey": "kWorld",
+   "world": 379
+  },
+  "shrine": {
+   "dom": [
+    {
+     "owner": "p1",
+     "rosterKey": "sukuna",
+     "timer": 897,
+     "background": "shrine",
+     "priority": 4,
+     "range": 100000
+    }
+   ],
+   "slash": 8,
+   "emp": 142,
+   "empKey": "kFugaE",
+   "empDmg": 300
+  },
+  "combos": {
+   "Know your place (J J J K I)": {
+    "hits": 5,
+    "damage": 229
+   },
+   "Cut (J J → Cleave)": {
+    "hits": 3,
+    "damage": 185
+   },
+   "Web finish (J J J → ↓↓ + Special)": {
+    "hits": 4,
+    "damage": 164
+   },
+   "Heavy → Dismantle (K → ↓← + Special)": {
+    "hits": 2,
+    "damage": 123
+   }
+  },
   "present": {
-   "win": "Stand proud. You were strong.",
-   "p2": "gojo_shinjuku"
+   "win": "Know your place, fool.",
+   "p2": "sukuna"
   }
  }
 }

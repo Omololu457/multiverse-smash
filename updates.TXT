@@ -3021,3 +3021,39 @@ Checks actually run:
 - MSV1 render check 11/0 before every commit
 Known, not from this fighter: Hinata's ultimate throws "executeHinataUltimate is not defined" (nested declaration in
 abilities.js, from 1482d5e9f).
+
+=== 2026-11-22 — NEW FIGHTER: Ryomen Sukuna (Shinjuku Arc) (sukuna_shinjuku) — MSV1-SUKUNA ===
+A second Sukuna beside the old one (sukuna is untouched: frame-data diff ZERO). JJK grid, right after the old Sukuna;
+the select card reads "Shinjuku Arc". King of Curses / Slasher, difficulty 5. Sheet credits: Mrfresh, Zeltas Black, Mps,
+Kenny, Dark night, Dr animation (115 frames, all used).
+- Shared techniques keep the old Sukuna's inputs:
+  - Cleave = Special. 60 + 6 % of the foe's max HP; ignores armor; −10 on whiff.
+  - Dismantle = ↓← + Special. 55 dmg, 65 % screen; cuts non-super projectiles. Hold for a 3-cut fan; air and ↑ variants.
+  - Fuga = → + Special, hold to gather 0.5 / 1.0 / 1.5 s → 90 / 140 / 200. Burns and leaves a fire patch; a hit during
+    the gather cancels it; +50 % for 3 s after the Shrine.
+  - Malevolent Shrine = Ultimate. The old Sukuna's Domain Expansion, copied (same background, sure-hit, clash).
+- New:
+  - Spiderweb = ↓↓ + Special. 70 low, hits downed foes, destroys traps / discs / patches.
+  - Domain Amplification = ↓↓ + Charge. 3 s, 10 s cooldown: passes Satoru Gojo's Infinity at every level and locks
+    his own techniques while active.
+  - World-Cutting Slash = ↓↓ + Ultimate (2 bars). Chant "Dragon Scale." → "Recoil." → "Twin Meteors.", then 380,
+    unblockable, ignores Infinity / armor / barriers; invulnerable frames dodge it; a hit during the chant cancels it
+    (half refunded).
+- Normals: Light ×3 32/32/48, Heavy 74, Up-Attack launcher 82, ↓ + Heavy knee 76, air 62, dash attack 58 (low).
+- Presentation: "Know your place." intro, "Know your place, fool." win, vs Satoru Gojo "Stand proud. You were strong."
+  The old Sukuna's voice and slash sounds. CPU: Dismantle at range, Cleave close, Spiderweb on traps, Amplification
+  only after Infinity stops him.
+- 20 premade skins (tools/sukunaskins/build.py; per-frame masks; protected pixels byte-identical; technique FX
+  recoloured too; glitter phase from the sim clock):
+  - Alien X: Half a Heaven, The Dead Sun.
+  - Glitter: Black Diamond Wake, Champagne Menace, Sugar Glass, Mother-of-Pearl Butcher.
+  - Crossover: Winning Valkyrie — Right Spin, Ben 10 — Heatblast Kiln, Ben 10 — Big Chill After Dark.
+  - Original: Four-Colour Misprint, Cinnabar Seal, Temple Bell, Velvet Pomegranate, Moon Through Bamboo,
+    Hanafuda, Last Hand, Furnace Window, Pink Noise, Blueprint for a Shrine, Last Train at Midnight,
+    The King in Mourning.
+- Docs: docs/msv1/sukuna/ (REUSE, LEDGER, COMBOS, BALANCE_NOTES, CREDITS, skins/, screenshots/).
+Checks actually run:
+- sukuna_shinjuku.test 61/0 (+ vs gojo_shinjuku 16/0, vs ns_yellow 3/0, vs enoch 5/0); determinism 12/0; skins 17/0.
+- gojo_shinjuku 77/0, interactions 18/0; render 11/0; frame-data ZERO DIFF.
+- Baselines unchanged: determinism 14/0, combo 235/9 (roster count 164 → 165, expected), up-attack 77/2,
+  credits 11/3, roster integrity OK, replay 8/1, net 11/0.

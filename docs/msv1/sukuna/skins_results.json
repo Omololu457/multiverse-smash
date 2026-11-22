@@ -19,6 +19,11 @@
    "Velvet Pomegranate",
    "Moon Through Bamboo",
    "Hanafuda, Last Hand",
+   "Furnace Window",
+   "Pink Noise",
+   "Blueprint for a Shrine",
+   "Last Train at Midnight",
+   "The King in Mourning",
    "Edo Tensei"
   ],
   "glitter": [
@@ -85,9 +90,9 @@
   ],
   "replayMeta": {
    "p1Char": "sukuna_shinjuku",
-   "p1Skin": "sks_hanafuda"
+   "p1Skin": "sks_mourning"
   },
-  "trackedSkinFiles": 578,
-  "diskSkinFiles": 834
+  "trackedSkinFiles": 834,
+  "diskSkinFiles": 1024
  }
 }

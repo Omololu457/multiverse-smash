@@ -2723,7 +2723,7 @@ export function drawCharacterSelectScreen(ctx, canvas, options = {}) {
     }
 
     const fighterName = fighter?.name || fighter?.id || fighter?.displayName || fighter?.label || `Fighter ${i + 1}`
-    const universe    = fighter?.universe || fighter?.series || fighter?.origin || ""
+    const universe    = fighter?.selectTag || fighter?.universe || fighter?.series || fighter?.origin || ""   // selectTag: MSV1-SUKUNA ("Shinjuku Arc" on both Shinjuku fighters)
 
     // LOCKED (Stage 21): heavy dark overlay → the portrait reads as a silhouette; show a lock glyph
     // and the unlock requirement instead of the universe/art credit. Still visible, just not pickable.

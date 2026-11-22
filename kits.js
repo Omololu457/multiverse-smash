@@ -13,6 +13,7 @@ import { NS_CGPT_KIT } from './nsCgptKit.js'   // NS CGPT move list
 import { NS_DUO_KIT } from './nsKit.js'   // MSV1-MERGE Shane & Dustin move list (active form + TAB toggle)
 import { NINJA_STORM_KIT } from './ninjaStormKit.js'   // MSv2 Ninja Storm Rangers move list
 import { GOJO_SHINJUKU_KIT } from './gojoShinjukuKit.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc) move list
+import { SUKUNA_SHINJUKU_KIT } from './sukunaShinjukuKit.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) move list
 import { CYBORG_KIT } from './cyborgKit.js'   // Cyborg (cyborg) Move List
 import { BEAST_BOY_KIT } from './beastBoyKit.js'   // Beast Boy (beast_boy) Move List
 import { RAVEN_KIT } from './ravenKit.js'   // Raven (raven) Move List
@@ -121,6 +122,7 @@ export const KITS = {
   windrangers: NS_DUO_KIT,   // MSV1-MERGE
   ninja_storm_rangers: NINJA_STORM_KIT,   // MSv2
   gojo_shinjuku: GOJO_SHINJUKU_KIT,   // MSV1-GOJO
+  sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,   // MSV1-SUKUNA
   cyborg: CYBORG_KIT,
   beast_boy: BEAST_BOY_KIT,
   raven: RAVEN_KIT,

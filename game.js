@@ -26889,7 +26889,7 @@ function clearCharSearch() { charSearchQuery = ""; charSearchFocused = false }
 function getCharacterRosterForSelectedUniverse() {
   const full = getUniverseCharacters().map(k => {
     const c = characters[k]
-    return { id: k, name: c?.name || k, universe: c?.universe ? formatUniverseName(c.universe) : "" }
+    return { id: k, name: c?.name || k, universe: c?.universe ? formatUniverseName(c.universe) : "", selectTag: c?.selectTag || null }   // selectTag: MSV1-SUKUNA (card sub-line)
   })
   const q = charSearchQuery.trim().toLowerCase()
   if (!q) return full

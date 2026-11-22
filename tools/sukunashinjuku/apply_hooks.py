@@ -92,6 +92,16 @@ HOOKS += [
    "import { SUKUNA_SHINJUKU_KIT } from './sukunaShinjukuKit.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) move list", "SUKUNA_SHINJUKU_KIT } from"),
   (3, 'kits.js', "  gojo_shinjuku: GOJO_SHINJUKU_KIT,", 'after_line', "  sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,   // MSV1-SUKUNA", "sukuna_shinjuku: SUKUNA_SHINJUKU_KIT"),
 ]
+# select card: a fighter's selectTag ("Shinjuku Arc") replaces the universe line when set (only gojo_shinjuku and
+# sukuna_shinjuku define one, so every other card is unchanged)
+HOOKS += [
+  (3, 'ui.js', "    const universe    = fighter?.universe || fighter?.series || fighter?.origin || \"\"", 'replace',
+   "    const universe    = fighter?.selectTag || fighter?.universe || fighter?.series || fighter?.origin || \"\"   // selectTag: MSV1-SUKUNA (\"Shinjuku Arc\" on both Shinjuku fighters)", "fighter?.selectTag || fighter?.universe"),
+]
+HOOKS += [
+  (3, 'game.js', "  const full = getUniverseCharacters().map(k => {\n    const c = characters[k]\n    return { id: k, name: c?.name || k, universe: c?.universe ? formatUniverseName(c.universe) : \"\" }", 'replace',
+   "  const full = getUniverseCharacters().map(k => {\n    const c = characters[k]\n    return { id: k, name: c?.name || k, universe: c?.universe ? formatUniverseName(c.universe) : \"\", selectTag: c?.selectTag || null }   // selectTag: MSV1-SUKUNA (card sub-line)", "selectTag: c?.selectTag || null }   // selectTag: MSV1-SUKUNA"),
+]
 HOOKS += [
   (4, 'skins.js', "import { GS_SKINS } from './gojoShinjukuSkins.js'", 'after_line',
    "import { SKS_SKINS } from './sukunaShinjukuSkins.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc): default + 20 premade skins (cosmetic, tools/sukunaskins)", "SKS_SKINS } from"),

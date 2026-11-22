@@ -2409,6 +2409,8 @@ const STAGE_DEFS = [
     layers: "guile_batcave", backgroundImage: "stages/guile_batcave/preview.png" },
   { name: "Krypton",                series: "dc",          music: "LUCKI - 2021 Vibes (Official Video).mp3", shuffle: true, playlist: ["LUCKI - 2021 Vibes (Official Video).mp3", "NBA Youngboy - 4 Sons of a King (Official Audio).mp3"], landmark: "krypton", sky: "#2a0606", mid: "#8a1e0c", floor: "#6ac8d8", accent: "#7dff9a", worldWidth: 2400,
       layers: "necro_krypton", backgroundImage: "stages/necro_krypton/preview.png" },
+  { name: "Arlong Park",            series: "onepiece",    music: "Summer Walker - Girls Need Love (Audio).mp3", shuffle: true, playlist: ["Summer Walker - Girls Need Love (Audio).mp3", "Wine & Dine.mp3"], landmark: "arlong_park", sky: "#3a86e0", mid: "#c8a070", floor: "#d0a060", accent: "#c03020", worldWidth: 2400,
+      layers: "retsu_arlong", backgroundImage: "stages/retsu_arlong/preview.png" },
   { name: "The Baratie",            series: "onepiece",    music: "Drake & Playboi Carti - Pain 1993 V1 (AI REMASTER).mp3", landmark: "baratie", sky: "#3a7ae8", mid: "#1a4a8a", floor: "#c89058", accent: "#f08a2a", worldWidth: 2400,
       layers: "ken3_baratie", backgroundImage: "stages/ken3_baratie/preview.png" },
   { name: "Stark Lab",              series: "marvel",      music: "Chérie  23  (Sloweddd).mp3", shuffle: true, playlist: ["Chérie  23  (Sloweddd).mp3", "At The Club.mp3", "Chris Brown - Under The Influence (Audio).mp3"], landmark: "starklab", sky: "#05070c", mid: "#121826", floor: "#1a1f2a", accent: "#5ee6ff", worldWidth: 2400,
@@ -21578,8 +21580,10 @@ function updateMusicIntensity() {
   _musicIntensityOn = want
   if (want && lowHP) announce("lowHealth")   // ANNOUNCER — "He's on the ropes." on the SAME low-HP trigger as the music crossfade (not on the final-round-only case)
   try {
-    if (want) sound.setMusicIntensity?.(true, resolveIntenseTrack(getStageTheme()))
-    else      sound.setMusicIntensity?.(false)
+    // USER REQUEST (2026-11-21): never swap the song mid-match — the stage's own song keeps playing through the
+    // tense moments (the old crossfade to a hype track, usually "Who Want Smoke", felt like a random song change).
+    // The announcer line + low-HP vignette still fire on this latch; only the track swap is gone.
+    sound.setMusicIntensity?.(false)
   } catch (_) {}
 }
 // Snap music back to calm and clear the latch (called at each round reset / match teardown).

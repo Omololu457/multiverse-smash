@@ -1,8 +1,8 @@
 // harness/low_hp_music_intensity.mjs — live verification for DYNAMIC MUSIC INTENSITY.
 //
-// Feature: when either fighter drops below 25% HP, OR it's the final (decider) round,
-// the stage's calm track CROSSFADES (no hard cut) to a higher-energy library track that
-// is franchise-paired (JJK stage → "Sukuna_Theme.mp3"). It reverts on heal / new round.
+// CHANGED 2026-11-21 (user request): the low-HP / final-round crossfade to a hype track is GONE — the stage's
+// song must never change mid-match (it kept switching to "Who Want Smoke"). This now checks the song stays put
+// while the tension latch (announcer / vignette) still fires.
 //
 // This boots a REAL match (Jujutsu High stage → base "JJk_3.mp3"), drives P2 to low HP,
 // and watches the crossfade mix move smoothly base→intense, then reverts on heal, then
@@ -38,43 +38,22 @@ try {
   check("no intense layer element yet", s.intenseSrc === null, `intenseSrc=${base1(s.intenseSrc)}`);
   check("base layer at full mix", Math.abs((s.baseMix ?? 0) - 1) < 0.02 && Math.abs(s.intenseMix ?? 1) < 0.02, JSON.stringify({ baseMix: s.baseMix, intenseMix: s.intenseMix }));
 
-  // ── TRIGGER: drive P2 below 25% HP ─────────────────────────────────────────
+  // ── USER REQUEST (2026-11-21): the stage's song must NEVER change mid-match. Low HP and the final round still set
+  //    the tension latch (announcer line, low-HP vignette), but no second song starts and the stage song stays audible.
+  const steady = (st, label) => {
+    check(`${label}: no second song starts`, st.intense === false && !st.intenseSrc, JSON.stringify({ intense: st.intense, intenseSrc: base1(st.intenseSrc) }))
+    check(`${label}: the stage song keeps playing (full mix; only the announcer ducks it)`, base1(st.fileSrc) === "JJk_3.mp3" && st.paused === false && st.baseMix > 0.98 && st.baseVol > 0.1, JSON.stringify({ fileSrc: base1(st.fileSrc), paused: st.paused, baseMix: st.baseMix, baseVol: st.baseVol }))
+  }
   await P(() => window.__harness.setP2Health(40));   // ~3% of ~1150 → well under 25%
-  await sleep(120);                                   // a few frames for updateBattle → updateMusicIntensity
-  s = await ms();
-  check("intensity ENGAGES on low HP", s.intense === true && s.latch === true, JSON.stringify({ intense: s.intense, latch: s.latch }));
-  check("intense layer is the paired Sukuna theme, and playing", base1(s.intenseSrc) === "Sukuna_Theme.mp3" && s.intensePaused === false, JSON.stringify({ intenseSrc: base1(s.intenseSrc), paused: s.intensePaused }));
-
-  // ── SMOOTH CROSSFADE: sample the mix mid-blend (not a hard cut) ─────────────
-  const mid = await ms();
-  await sleep(1500);                                  // > crossfade window (1200ms)
-  const done = await ms();
-  const midBlending = mid.intenseMix > 0 && mid.intenseMix < 1;   // caught mid-transition → not an instant jump
-  check("crossfade is mid-blend shortly after engage (no hard cut)", midBlending || (mid.intenseMix < done.intenseMix), JSON.stringify({ midIntenseMix: mid.intenseMix, doneIntenseMix: done.intenseMix }));
-  check("crossfade completes to intense (base→0, intense→1)", done.intenseMix > 0.98 && done.baseMix < 0.02, JSON.stringify({ baseMix: done.baseMix, intenseMix: done.intenseMix }));
-  check("intense layer audible, base layer silent after blend", done.intenseVol > 0.2 && done.baseVol < 0.05, JSON.stringify({ intenseVol: done.intenseVol, baseVol: done.baseVol }));
-  check("base track still exists underneath (looping at vol 0, not stopped)", base1(done.fileSrc) === "JJk_3.mp3" && done.paused === false, JSON.stringify({ fileSrc: base1(done.fileSrc), paused: done.paused }));
-
-  // ── REVERT ON HEAL ─────────────────────────────────────────────────────────
-  await P(() => window.__harness.healP2());          // back to full HP, round still 1
-  await sleep(120);
-  const healLatch = await ms();
-  check("intensity RELEASES when HP recovers", healLatch.intense === false && healLatch.latch === false, JSON.stringify({ intense: healLatch.intense, latch: healLatch.latch }));
-  await sleep(1500);                                  // let the crossfade back finish
-  const calm = await ms();
-  check("crossfaded back to calm (base→1, intense→0)", calm.baseMix > 0.98 && calm.intenseMix < 0.02, JSON.stringify({ baseMix: calm.baseMix, intenseMix: calm.intenseMix }));
-  check("intense layer torn down after revert", calm.intenseSrc === null, `intenseSrc=${base1(calm.intenseSrc)}`);
-  check("base track restored to audible volume", calm.baseVol > 0.2, `baseVol=${calm.baseVol}`);
-
-  // ── FINAL-ROUND TRIGGER (independent of HP) ─────────────────────────────────
-  await P(() => window.__harness.setRoundNumber(3)); // decider round
-  await sleep(120);
-  const fr = await ms();
-  check("intensity ENGAGES on the final round at full HP", fr.intense === true && base1(fr.intenseSrc) === "Sukuna_Theme.mp3", JSON.stringify({ intense: fr.intense, intenseSrc: base1(fr.intenseSrc) }));
-  await P(() => window.__harness.setRoundNumber(1)); // back to a non-final round
-  await sleep(1600);
-  const fr2 = await ms();
-  check("intensity releases again once it's no longer the final round", fr2.intense === false && fr2.intenseMix < 0.02, JSON.stringify({ intense: fr2.intense, intenseMix: fr2.intenseMix }));
+  await sleep(120)
+  s = await ms()
+  check("low HP still sets the tension latch (announcer / vignette)", s.latch === true, JSON.stringify({ latch: s.latch }))
+  await sleep(1500); steady(await ms(), "low HP")
+  await P(() => window.__harness.healP2()); await sleep(300)
+  check("latch releases when HP recovers", (await ms()).latch === false)
+  await P(() => window.__harness.setRoundNumber(3)); await sleep(1500)
+  steady(await ms(), "final round")
+  await P(() => window.__harness.setRoundNumber(1)); await sleep(300)
 
   check("no page/JS errors during the run", jsErrors.length === 0, jsErrors.join(" | "));
 } catch (e) {

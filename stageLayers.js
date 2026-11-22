@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// ARLONG PARK (One Piece) — Retsu's Stage (Street Fighter 1987 sheet) repainted by tools/stage_layers/slice_retsu_arlong.py:
+// red walls + gate, tangerine trees, Arlong's tower (topples on the KO), fish-men, villagers, the sea cow.
+SETS.retsu_arlong = {
+  dir: "./stages/retsu_arlong/",
+  S: 2,
+  standRow: 18,
+  deckFrontRow: 34,
+  floor: { piece: "floor", farFactor: 0.78, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "arlong_sky", p: 0.05 },
+    { piece: "wall", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },     // mirrored on past its ends: never a gap
+  ],
+  props: [],
+  front: [],
+  fx: "arlong",
+  animRate: {},
+}
+
 // ROOM3D sets are drawn as a real 3D room (one perspective projection for floor, ceiling, back + side walls, props).
 // Units: lateral X = world x at the fighters' depth (z = 1); H = height above the floor in the same pixels; z = depth
 // relative to the fighters (1 = their plane, > 1 = further back). Screen: x = camX + (X - camX) / z,
@@ -404,6 +422,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "arlong_sky") { drawArlongSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "krypton") { drawKryptonSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "baratie_sea") { drawBaratieSea(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "baratie_ship") { drawBaratieMoored(ctx, def, c, { W, dockTop }); continue }
@@ -500,6 +519,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "arlong") arlongFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "krypton") kryptonFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "baratie") baratieFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "namek") namekFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -2822,12 +2842,13 @@ function krBattle(ctx, { W, padL, padR, G, hz, t }) {
     KR.drones.push({ x: fromL ? padL - 40 : padR + 40, y: G.Y(115) + krRnd() * (hz - G.Y(115) - 20), dir: fromL ? 1 : -1, vx: (fromL ? 1 : -1) * (120 + krRnd() * 140) * sc, sc, fireT: 0.6 + krRnd() * 1.5, down: false, vy: 0, seed: krRnd() * 99 }) }
   if (!ended && KR.spawnT <= 0 && KR.troops.filter(s => !s.down).length < 7) { KR.spawnT = 0.6 + krRnd() * 0.9; const sc = 0.32 + krRnd() * 0.3, k = krRnd() < 0.4 ? 0 : 1
     KR.troops.push({ x: padL + 80 + krRnd() * (padR - padL - 160), y: hz - 4, vx: 0, vy: -(260 + krRnd() * 200), sc, k, target: null, heatT: 0.8 + krRnd(), down: false, seed: krRnd() * 99, rise: true }) }
-  // ── drones: skull drones with green beams at the city and at the soldiers
+  // ── drones: skull drones with green beams at the city and at the soldiers (no soldier lost for 5 s → the next shot goes at one)
+  KR.noKill = (KR.noKill || 0) + dt
   for (const d of KR.drones) {
     if (d.down) { d.vy += 360 * dt; d.y += d.vy * dt; d.x += d.vx * dt * 0.3; if (d.y > hz) { d.gone = true; krBoom(d.x, hz - 6, 26 * d.sc + 10) } }
     else { d.x += d.vx * dt; d.y += Math.sin(t * 2 + d.seed) * 14 * dt; d.fireT -= dt
-      if (d.fireT <= 0) { d.fireT = 1 + krRnd() * 1.6; const prey = krRnd() < 0.5 ? KR.troops.filter(s => !s.down).sort((a, b) => Math.abs(a.x - d.x) - Math.abs(b.x - d.x))[0] : null
-        if (prey) { KR.beams.push({ x0: d.x, y0: d.y, x1: prey.x, y1: prey.y, t: 0, life: 0.25, col: "120,255,140", w: 2 }); prey.down = true; prey.vy = -40; KR.troopsDown++ }
+      if (d.fireT <= 0) { d.fireT = 1 + krRnd() * 1.6; const prey = krRnd() < 0.5 || KR.noKill > 5 ? KR.troops.filter(s => !s.down).sort((a, b) => Math.abs(a.x - d.x) - Math.abs(b.x - d.x))[0] : null
+        if (prey) { KR.beams.push({ x0: d.x, y0: d.y, x1: prey.x, y1: prey.y, t: 0, life: 0.25, col: "120,255,140", w: 2 }); prey.down = true; prey.vy = -40; KR.troopsDown++; KR.noKill = 0 }
         else { const tx = d.x + d.dir * 80 + (krRnd() - 0.5) * 120; KR.beams.push({ x0: d.x, y0: d.y, x1: tx, y1: hz, t: 0, life: 0.3, col: "120,255,140", w: 2 }); krBoom(tx, hz - 4, 22) } }
       if (d.x < padL - 120 || d.x > padR + 120) d.gone = true }
     const x = d.x, y = d.y, s = d.sc
@@ -2918,4 +2939,169 @@ function kryptonFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
       ctx.fillStyle = "#e8f4ff"; ctx.beginPath(); ctx.moveTo(0, -18); ctx.lineTo(8, 4); ctx.lineTo(-8, 4); ctx.closePath(); ctx.fill()
       ctx.fillStyle = "#8ad0ff"; ctx.beginPath(); ctx.arc(0, -2, 4, 0, 7); ctx.fill()
       ctx.fillStyle = "rgba(255,200,120,0.9)"; ctx.beginPath(); ctx.arc(0, 9, 5 + Math.sin(t * 40) * 2, 0, 7); ctx.fill(); ctx.restore() } }
+}
+
+// ───────────────────────────── ARLONG PARK (One Piece; render-only, wall clock, own PRNG) ─────────────────────────────
+// Retsu's temple courtyard (Street Fighter, 1987) as Arlong Park: red-roofed walls, the ARLONG PARK sign over the gate,
+// Arlong's tower with the shark flag, tangerine trees. Fish-men loaf in the courtyard and cheer whenever a villain
+// lands a big hit (jeer when a hero does); villagers from the town peek over the wall and do the opposite (cheer
+// heroes, duck from villains). The giant sea cow surfaces in the lagoon behind the wall and moos; big hits throw sea
+// spray over the wall and shake tangerines down. A fighter close to losing cracks the tower; the knockout brings it
+// down — it splits, tilts and sinks into the lagoon in a cloud of dust and spray, with a long shake.
+let _alSeed = 0x1b873593
+const alRnd = () => { _alSeed ^= _alSeed << 13; _alSeed ^= _alSeed >>> 17; _alSeed ^= _alSeed << 5; return (_alSeed >>> 0) / 4294967296 }
+const AL = { p1: null, last: 0, hp: new WeakMap(), fish: null, town: null, cow: null, cowT: 8, spray: [], fruit: [], dust: [], mood: 0, side: null, shout: [], crack: 0, fall: null,
+  cheersVillain: 0, cheersHero: 0, cowRises: 0, fruitDropped: 0, geo: null }
+export const arlongState = () => ({ cow: AL.cow ? AL.cow.stage : null, cowRises: AL.cowRises, crack: AL.crack, fall: AL.fall ? AL.fall.stage : null, fallen: !!AL.fall && AL.fall.t > 2.5,
+  cheersVillain: AL.cheersVillain, cheersHero: AL.cheersHero, fruit: AL.fruitDropped, spray: AL.spray.length, fish: (AL.fish || []).length, town: (AL.town || []).length,
+  shouting: AL.shout.filter(s => s.t > 0).map(s => s.txt) })
+function alGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.wall, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S, roof: y0 + 108 * S }
+}
+function alShout(x, y, txt, col) { AL.shout.push({ x, y, txt, col, t: 1.4 }) }
+
+function drawArlongSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = AL.geo = alGeo(def, c, W, dockTop), P = c.layout.pieces
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.roof); g.addColorStop(0, "#3a86e0"); g.addColorStop(1, "#b8e0ff")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const sk = P.sky, im = c.img[sk.file], S = def.S, sw = sk.w * S, sh = sk.h * S, ss = shift(0.05, W) + (t * 5) % sw
+  if (ready(im)) { ctx.globalAlpha = 0.85; for (let k = Math.floor((padL - ss) / sw) - 1, x; (x = ss + k * sw) < padR; k++) ctx.drawImage(im, Math.floor(x), G.Y(-30) - sh * 0.4, Math.ceil(sw) + 1, sh); ctx.globalAlpha = 1 }
+  // the lagoon / open sea beyond the wall
+  const sea = G.Y(92), sg = ctx.createLinearGradient(0, sea, 0, G.roof + 30); sg.addColorStop(0, "#2a78c8"); sg.addColorStop(1, "#1a4a8a")
+  ctx.fillStyle = sg; ctx.fillRect(padL, sea, padR - padL, G.roof + 30 - sea)
+  ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 1.5; for (let r = 0; r < 5; r++) { const y = sea + 3 + r * 4; ctx.beginPath(); for (let x = padL; x < padR; x += 34) { const xx = x + ((t * 14 + r * 11) % 34); ctx.moveTo(xx, y); ctx.lineTo(xx + 10, y) } ctx.stroke() }
+  // Arlong's tower (its own piece) — cracks while a fighter is close to losing; on the knockout it splits and sinks
+  const tw = P.tower, tim = c.img[tw.file]
+  if (ready(tim)) {
+    const bx = G.X(P.wall.tower[0]), by = G.Y(P.wall.tower[1]) + 2, w = tw.w * S, h = tw.h * S, F = AL.fall
+    const tilt = F ? Math.min(0.55, Math.max(0, F.t - 0.6) * 0.35) : 0, sink = F ? Math.max(0, F.t - 0.9) * 140 : 0, shake = F && F.t < 0.9 ? Math.sin(t * 60) * 3 : 0
+    ctx.save(); ctx.beginPath(); ctx.rect(padL, coverTop, padR - padL, G.roof + 40 - coverTop); ctx.clip()
+    ctx.translate(bx + w * 0.5 + shake, by + sink); ctx.rotate(tilt)
+    ctx.drawImage(tim, -w * 0.5, -h, w, h)
+    if (AL.crack > 0 || F) { ctx.strokeStyle = "rgba(30,10,8,0.85)"; ctx.lineWidth = 2.5; ctx.beginPath()
+      const n = F ? 9 : Math.ceil(AL.crack * 6)
+      for (let i = 0; i < n; i++) { let x = (_h(i * 7 + 1) - 0.5) * w * 0.6, y = -h * (0.15 + 0.7 * _h(i * 7 + 2)); ctx.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (_h(i * 9 + k) - 0.5) * 22; y += 10 + 10 * _h(i * 5 + k); ctx.lineTo(x, y) } }
+      ctx.stroke() }
+    // the shark flag on top
+    const fx = 0, fy = -h - 6
+    ctx.fillStyle = "#3a2a1a"; ctx.fillRect(fx - 1.5, fy - 40, 3, 44)
+    const wv = Math.sin(t * 5) * 4
+    ctx.fillStyle = "#121216"; ctx.beginPath(); ctx.moveTo(fx + 1, fy - 40); ctx.quadraticCurveTo(fx + 22, fy - 44 + wv, fx + 44, fy - 40 + wv); ctx.lineTo(fx + 44, fy - 14 + wv); ctx.quadraticCurveTo(fx + 22, fy - 18 + wv, fx + 1, fy - 14); ctx.fill()
+    ctx.fillStyle = "#f2f2f2"; ctx.beginPath(); ctx.moveTo(fx + 12, fy - 22 + wv * 0.5); ctx.quadraticCurveTo(fx + 22, fy - 40 + wv * 0.5, fx + 36, fy - 24 + wv); ctx.lineTo(fx + 30, fy - 22 + wv); ctx.lineTo(fx + 26, fy - 26 + wv); ctx.lineTo(fx + 22, fy - 21 + wv * 0.5); ctx.lineTo(fx + 18, fy - 25 + wv * 0.5); ctx.closePath(); ctx.fill()   // shark head + teeth
+    ctx.restore()
+  }
+  alCow(ctx, G, t, padL, padR)
+  alTown(ctx, G, t, padL, padR)
+}
+
+function alFishman(ctx, x, y, s, f, t) {
+  // a fish-man: blue-green skin, a dorsal fin on the head, open vest, shorts (~70px tall at s 1)
+  const jump = f.hop || 0, arm = f.cheer > 0 ? -2.2 + Math.sin(t * 14 + f.seed) * 0.4 : f.angry > 0 ? -0.8 + Math.sin(t * 20) * 0.6 : Math.sin(t * 1.5 + f.seed) * 0.1
+  ctx.save(); ctx.translate(x, y - jump); ctx.scale(s * f.dir, s)
+  ctx.fillStyle = "#2a2a3a"; ctx.fillRect(-9, -22, 8, 22); ctx.fillRect(2, -22, 8, 22)                       // legs
+  ctx.fillStyle = f.short; ctx.fillRect(-11, -30, 22, 11)
+  ctx.fillStyle = f.skin; ctx.fillRect(-12, -56, 24, 27)                                                      // torso
+  ctx.fillStyle = f.vest; ctx.fillRect(-12, -56, 7, 27); ctx.fillRect(5, -56, 7, 27)
+  for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 13, -52); ctx.rotate(k * arm); ctx.fillStyle = f.skin; ctx.fillRect(-3, 0, 7, 22); ctx.restore() }
+  ctx.fillStyle = f.skin; ctx.beginPath(); ctx.ellipse(0, -66, 12, 12, 0, 0, 7); ctx.fill()                  // head
+  ctx.fillStyle = f.fin; ctx.beginPath(); ctx.moveTo(-4, -76); ctx.lineTo(4, -94); ctx.lineTo(9, -74); ctx.fill()          // dorsal fin
+  if (f.nose) { ctx.fillStyle = "#d8d8c8"; ctx.beginPath(); ctx.moveTo(10, -66); ctx.lineTo(28, -64); ctx.lineTo(10, -61); ctx.fill() }   // saw nose
+  ctx.fillStyle = "#111"; ctx.fillRect(3, -70, 3, 3)
+  ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-9, -64 + i * 3); ctx.lineTo(-5, -64 + i * 3); ctx.stroke() }   // gills
+  if (f.cheer > 0 || f.angry > 0) { ctx.fillStyle = "#300"; ctx.beginPath(); ctx.ellipse(4, -60, 5, 3 + Math.abs(Math.sin(t * 16)) * 2, 0, 0, 7); ctx.fill() }
+  ctx.restore()
+}
+
+function alTown(ctx, G, t, padL, padR) {   // villagers peeking over the wall from outside, drawn BEHIND the wall + trees
+  for (const p of AL.town || []) {
+    const x = padL + p.u * (padR - padL), up = p.duck > 0 ? 0 : p.cheer > 0 ? 24 + Math.abs(Math.sin(t * 10 + p.seed)) * 10 : 16 + Math.sin(t * 1.3 + p.seed) * 3, y = G.roof + 6 - up
+    ctx.save(); ctx.beginPath(); ctx.rect(padL, 0, padR - padL, G.roof + 6); ctx.clip()
+    ctx.fillStyle = p.skin; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill(); ctx.fillStyle = p.hair; ctx.fillRect(x - 9, y - 10, 18, 5)
+    if (p.hat) { ctx.fillStyle = p.hat; ctx.fillRect(x - 13, y - 10, 26, 3); ctx.fillRect(x - 8, y - 16, 16, 7) }
+    ctx.fillStyle = "#111"; ctx.fillRect(x - 4, y - 2, 2, 2); ctx.fillRect(x + 3, y - 2, 2, 2)
+    if (p.cheer > 0) { ctx.fillStyle = p.skin; ctx.fillRect(x - 16, y - 2 - 14 * Math.abs(Math.sin(t * 12 + p.seed)), 5, 14); ctx.fillRect(x + 12, y - 2 - 14 * Math.abs(Math.sin(t * 12 + p.seed + 1)), 5, 14) }
+    else { ctx.fillStyle = p.skin; ctx.fillRect(x - 12, G.roof + 2 - Math.min(up, 6), 6, 4); ctx.fillRect(x + 7, G.roof + 2 - Math.min(up, 6), 6, 4) }   // hands on the wall
+    ctx.restore() }
+}
+
+function alCow(ctx, G, t, padL, padR) {   // the sea cow, drawn BEHIND the wall + trees (rises out of the lagoon)
+  const K = AL.cow
+  if (AL.cow) { const rise = K.stage === "up" ? K.t : K.stage === "down" ? 1 - K.t / 1.2 : 1, x = K.x, y = G.roof + 10 - 130 * rise
+      ctx.save(); ctx.beginPath(); ctx.rect(padL, 0, padR - padL, G.roof + 2); ctx.clip()
+      ctx.fillStyle = "#8a5ab0"; ctx.beginPath(); ctx.ellipse(x, y + 40, 90, 70, 0, 0, 7); ctx.fill()                         // head
+      ctx.fillStyle = "#f0e8f0"; ctx.beginPath(); ctx.ellipse(x + 20, y + 70, 55, 30, 0, 0, 7); ctx.fill()                      // muzzle
+      ctx.fillStyle = "#3a1a3a"; ctx.beginPath(); ctx.arc(x + 6, y + 66, 6, 0, 7); ctx.arc(x + 36, y + 66, 6, 0, 7); ctx.fill()
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x - 30, y + 18, 14, 0, 7); ctx.arc(x + 34, y + 18, 14, 0, 7); ctx.fill()
+      ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(x - 27, y + 20, 6, 0, 7); ctx.arc(x + 31, y + 20, 6, 0, 7); ctx.fill()
+      ctx.fillStyle = "#e8d8b0"; for (const k of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + k * 60, y - 6); ctx.quadraticCurveTo(x + k * 96, y - 30, x + k * 88, y - 60); ctx.lineTo(x + k * 76, y - 12); ctx.fill() }   // horns
+      ctx.restore()
+      if (K.stage === "moo") { ctx.fillStyle = "rgba(255,255,255,0.7)"; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(x + (i - 2) * 40, G.roof + 2, 10 + 6 * Math.sin(t * 7 + i), 0, 7); ctx.fill() } } }
+}
+
+function arlongFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = AL.geo || alGeo(def, c, W, dockTop), S = def.S, P = c.layout.pieces
+  if (F[0] !== AL.p1) { Object.assign(AL, { p1: F[0], hp: new WeakMap(), fish: null, town: null, cow: null, cowT: 8, spray: [], fruit: [], dust: [], shout: [], crack: 0, fall: null, cheersVillain: 0, cheersHero: 0, cowRises: 0, fruitDropped: 0 }) }
+  const dt = Math.min(0.05, Math.max(0, t - (AL.last || t))); AL.last = t
+  if (!AL.fish) {
+    AL.fish = [0.07, 0.15, 0.24, 0.68, 0.77, 0.87, 0.94].map((u, i) => ({ u, dir: u < 0.5 ? 1 : -1, seed: i * 3.1, cheer: 0, angry: 0, hop: 0, vy: 0,
+      skin: ["#3a8ab0", "#4aa088", "#5a7ac8", "#3a9aa0"][i % 4], fin: ["#2a5a80", "#2a7060", "#3a4a90"][i % 3], vest: ["#e8e0d0", "#c84a3a", "#e8c040", "#3a3a3a"][i % 4], short: ["#3a5a9a", "#6a3a2a", "#2a6a4a"][i % 3], nose: i % 3 === 1 }))
+    AL.town = [0.03, 0.09, 0.2, 0.27, 0.71, 0.8, 0.9, 0.97].map((u, i) => ({ u, seed: i * 2.3, duck: 0, cheer: 0, hat: ["#c8a040", null, "#3a6ac8", null, "#a03a2a", "#3a3a3a", null, "#5a8a3a"][i], hair: ["#3a2a1a", "#f0a040", "#1a1a1a", "#8a4a2a"][i % 4], skin: ["#f1c9a5", "#e0b090", "#c58c64"][i % 3] }))
+  }
+  // the fight → who's cheering
+  let bigHit = false, attacker = null, danger = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = AL.hp.get(f); AL.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) danger = true
+    if (was != null && was - hp >= 60) { bigHit = true; attacker = F.find(o => o !== f) || null } }
+  const villainHit = attacker ? shibuyaKills(attacker.rosterKey) : false
+  if (bigHit) {
+    if (villainHit) { AL.cheersVillain++; for (const f of AL.fish) { f.cheer = 1.4; f.vy = 220 } for (const p of AL.town) p.duck = 1.2; alShout(G.X(140), G.Y(150), "SHAHAHAHA!", "#2a6aa0") }
+    else { AL.cheersHero++; for (const p of AL.town) p.cheer = 1.4; for (const f of AL.fish) f.angry = 1.2; alShout(G.X(60), G.roof - 30, "GET HIM!!", "#c03020") }
+    for (let i = 0; i < 40; i++) AL.spray.push({ x: padL + alRnd() * (padR - padL), y: G.roof, vx: (alRnd() - 0.5) * 80, vy: -200 - alRnd() * 250, life: 1.2 })
+    const FRs = P.wall.fruit || []
+    for (let i = 0; i < 6 && FRs.length; i++) { const cp = mirrorCopies(G, G.w, padL, padR); const C = cp[Math.floor(alRnd() * cp.length)]; const [tx, ty] = FRs[Math.floor(alRnd() * FRs.length)]
+      AL.fruit.push({ x: C.X(tx), y: G.Y(ty), vy: 0, vx: (alRnd() - 0.5) * 60, bounce: 0 }); AL.fruitDropped++ }
+    if (alRnd() < 0.35 && !AL.cow) AL.cowT = 0
+  }
+  if (danger && !AL.fall) AL.crack = Math.min(1, AL.crack + dt * 0.4)
+  if (ko && !AL.fall) { AL.fall = { stage: "crack", t: 0 }; camera.shake?.(10, 30)
+    if (villainHit || F.some(f => (f.health ?? 1) > 0 && shibuyaKills(f.rosterKey))) { for (const f of AL.fish) f.cheer = 4 } else { for (const p of AL.town) p.cheer = 5; for (const f of AL.fish) f.angry = 4 }
+    alShout(G.X(400), G.roof - 60, "ARLONG PARK IS FALLING!!", "#c03020") }
+  if (AL.fall) { const Fl = AL.fall; Fl.t += dt
+    if (Fl.stage === "crack" && Fl.t > 0.6) { Fl.stage = "topple"; camera.shake?.(16, 60) }
+    if (Fl.stage === "topple" && Fl.t > 1.6) { Fl.stage = "sunk"; camera.shake?.(12, 40); const bx = G.X(P.wall.tower[0] + 58)
+      for (let i = 0; i < 70; i++) AL.spray.push({ x: bx + (alRnd() - 0.5) * 220, y: G.roof, vx: (alRnd() - 0.5) * 240, vy: -300 - alRnd() * 500, life: 1.8 }) }
+    if (Fl.t < 2.6 && alRnd() < dt * 30) { const bx = G.X(P.wall.tower[0] + 58); AL.dust.push({ x: bx + (alRnd() - 0.5) * 200, y: G.roof - alRnd() * 60, r: 20 + alRnd() * 30, life: 2.2 }) } }
+  // ── the sea cow: surfaces behind the wall now and then (head over the roof line), moos, sinks
+  AL.cowT -= dt
+  if (!AL.cow && AL.cowT <= 0) { AL.cowT = 14 + alRnd() * 10; AL.cowRises++; AL.cow = { x: G.X(alRnd() < 0.5 ? 200 : 560), t: 0, stage: "up" } }
+  if (AL.cow) { const K = AL.cow; K.t += dt; if (K.stage === "up" && K.t > 1) { K.stage = "moo"; K.t = 0; alShout(K.x, G.roof - 150, "MOOOOO!", "#6a3a8a") } else if (K.stage === "moo" && K.t > 2.2) { K.stage = "down"; K.t = 0 } else if (K.stage === "down" && K.t > 1.2) AL.cow = null
+  }
+  // ── tangerines on every tree (every copy of the picture) — only on the leaf spots the slicer found
+  const FR = P.wall.fruit || []
+  for (const cp of mirrorCopies(G, G.w, padL, padR)) for (const [tx, ty] of FR) {
+    ctx.fillStyle = "#ff9a1a"; ctx.beginPath(); ctx.arc(cp.X(tx), G.Y(ty), 3.2, 0, 7); ctx.fill(); ctx.fillStyle = "#2a6a1a"; ctx.fillRect(cp.X(tx) - 1, G.Y(ty) - 4, 2, 2) }
+  // ── the ARLONG PARK sign over the gate
+  { const x = G.X(P.wall.sign[0]), y = G.Y(P.wall.sign[1]), w = 150 * S, h = 22 * S
+    ctx.fillStyle = "#1a1a22"; ctx.fillRect(x - w / 2, y - h / 2, w, h); ctx.strokeStyle = "#c8a040"; ctx.lineWidth = 3; ctx.strokeRect(x - w / 2 + 3, y - h / 2 + 3, w - 6, h - 6)
+    ctx.save(); ctx.font = `900 ${Math.round(15 * S)}px Georgia, serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#f2f2f2"; ctx.fillText("ARLONG PARK", x, y + 1); ctx.restore() }
+  for (const p of AL.town) { p.duck = Math.max(0, p.duck - dt); p.cheer = Math.max(0, p.cheer - dt) }
+  // ── fish-men in the courtyard by the lanterns
+  for (const f of AL.fish) { f.cheer = Math.max(0, f.cheer - dt); f.angry = Math.max(0, f.angry - dt)
+    if (f.vy || f.hop > 0) { f.vy -= 900 * dt; f.hop = Math.max(0, f.hop + f.vy * dt); if (f.hop === 0 && f.vy < 0) f.vy = f.cheer > 0 ? 220 : 0 }
+    const x = G.X(f.u * P.wall.w), close = F.some(o => Math.abs(o.x + (o.w || 50) / 2 - x) < 90)
+    if (close) f.dir = F[0] && F[0].x > x ? -1 : 1
+    alFishman(ctx, close ? x + (F[0] && F[0].x > x ? -20 : 20) : x, G.Y(184), 0.95, f, t) }
+  // spray, falling fruit, dust, shouts
+  for (const p of AL.spray) { p.life -= dt; p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = `rgba(225,242,255,${Math.min(0.85, p.life)})`; ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, 7); ctx.fill() }
+  AL.spray = AL.spray.filter(p => p.life > 0 && p.y < coverBottom)
+  for (const f of AL.fruit) { f.vy += 700 * dt; f.x += f.vx * dt; f.y += f.vy * dt; if (f.y > dockTop + 8 && f.bounce < 2) { f.y = dockTop + 8; f.vy *= -0.4; f.bounce++ }
+    ctx.fillStyle = "#ff9a1a"; ctx.beginPath(); ctx.arc(f.x, f.y, 4, 0, 7); ctx.fill() }
+  AL.fruit = AL.fruit.filter(f => f.bounce < 2 || f.vy < 0).slice(-60)
+  for (const d of AL.dust) { d.life -= dt; d.r += dt * 30; d.y -= dt * 20; ctx.fillStyle = `rgba(150,130,110,${0.4 * Math.min(1, d.life)})`; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 7); ctx.fill() }
+  AL.dust = AL.dust.filter(d => d.life > 0)
+  for (const s of AL.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  AL.shout = AL.shout.filter(s => s.t > 0)
 }

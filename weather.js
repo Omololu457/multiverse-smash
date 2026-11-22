@@ -219,6 +219,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Training Center":        [],               // hologram room: no weather
   "The Batcave":            INDOOR_ONLY,      // underground: cave mist only
   "Krypton":                INDOOR_ONLY,      // the citadel (its own sky does the drama)
+  "Arlong Park":            OUTDOOR_WARM,     // East Blue, warm → no snow
   "The Baratie":            OUTDOOR_WARM,     // out at sea, warm → no snow
   "Stark Lab":              INDOOR_ONLY,      // the workshop: indoors
   "Battle Royale Colosseum": OUTDOOR_FULL,

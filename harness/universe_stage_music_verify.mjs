@@ -35,11 +35,11 @@ let fails = 0;
 const check = (label, ok, detail) => { console.log(`  ${ok ? "✅" : "❌"} ${label}${detail ? ` — ${detail}` : ""}`); if (!ok) fails++; };
 
 const EXPECT = [
-  ["Soul Society",       "jhene__aiko_-_stay_ready__instrumental_.mp3"],
+  // Soul Society now SHUFFLES all 9 Jhené Aiko songs (user, 2026-11-21) — every file is checked by layered_stage.test.mjs "Soul Society"
   ["The Batcave",        "PISSY PAMPER - Playboi Cardi (with Young Nudy).mp3"],
   ["Woodsboro",          "Noble_f3mii_Instrumental.mp3"],
   ["Heaven's Arena",     "Jhené Aiko - stranger (Audio).mp3"],
-  ["Viltrumite Warzone", "needybounce.mp3"],
+  ["Viltrumite Warzone", "Katy Perry - Harleys In Hawaii (Lyrics) You and I, Ridin' Harleys in Hawaii-i-i.mp3"],   // user, 2026-11-21
   ["Command Center",     "neddy sped up.mp3"],
   ["PK Academy",         "Rema_-_Dumebi.mp3"],
   ["Analysis Nexus",     "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3"],

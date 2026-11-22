@@ -1,0 +1,68 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Adon's Stage background sheet (ripped by TonyWanKenobian); repainted as the Viltrumite battleground",
+ "pieces": {
+  "ruins": {
+   "file": "ruins.png",
+   "w": 768,
+   "h": 150,
+   "statue": [
+    384,
+    100
+   ],
+   "stupa": [
+    682,
+    4
+   ],
+   "pillars": [
+    [
+     38,
+     74
+    ],
+    [
+     62,
+     86
+    ],
+    [
+     78,
+     94
+    ],
+    [
+     90,
+     102
+    ],
+    [
+     218,
+     102
+    ],
+    [
+     228,
+     94
+    ],
+    [
+     250,
+     86
+    ],
+    [
+     268,
+     74
+    ]
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 330
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 772,
+   "h": 184,
+   "horizon": 184
+  }
+ },
+ "colors": {
+  "skyTop": "#3a0a08",
+  "under": "#3a2a26"
+ },
+ "preview": "preview.png"
+}

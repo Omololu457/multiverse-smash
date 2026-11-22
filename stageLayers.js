@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE VILTRUMITE BATTLEGROUND (Invincible) — Adon's Stage (Street Fighter 1987 sheet) burned into a war zone by
+// tools/stage_layers/slice_adon_viltrum.py (its seated statue cut out); the warrior statue + the war are drawn in code.
+SETS.adon_viltrum = {
+  dir: "./stages/adon_viltrum/",
+  S: 1.9,
+  standRow: 20,
+  deckFrontRow: 36,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "viltrum", p: 0.05 },
+    { piece: "ruins", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
+  ],
+  props: [],
+  front: [],
+  fx: "viltrum",
+  animRate: {},
+}
+
 // THE MUGEN TRAIN (Demon Slayer) — Joe's Stage (Street Fighter 1987 sheet) repainted at night by
 // tools/stage_layers/slice_joe_mugen.py: the train yard, the Mugen Train's maroon carriages with every window lit.
 SETS.joe_mugen = {
@@ -494,6 +512,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "viltrum") { drawViltrumSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "mugen") { drawMugenSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "seireitei") { drawSeireiteiSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "angelgrove") { drawAngelGroveSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -595,6 +614,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "viltrum") viltrumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "mugen") mugenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "seireitei") seireiteiFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "angelgrove") angelGroveFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -3867,4 +3887,131 @@ function mugenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   MG.shout = MG.shout.filter(s => s.t > 0)
   if (MG.cut && MG.cut.t < 0.5) { ctx.fillStyle = `rgba(255,240,200,${0.6 * (1 - MG.cut.t * 2)})`; ctx.fillRect(padL, G.y0 - 400, padR - padL, coverBottom - G.y0 + 400) }
+}
+
+// ───────────────────────────── THE VILTRUMITE BATTLEGROUND (Invincible; render-only, wall clock, own PRNG) ─────────────────────────────
+// Adon's ruins (Street Fighter, 1987) burned into a war zone under a blood-red sky: scorched ash, dead palms, a lake of
+// embers, cracks glowing in the ground. A GIANT VILTRUMITE WARRIOR STATUE (arms crossed, cape) stands on the ruin's base
+// (the sheet's own statue was cut out — it was a real religious figure). Overhead Viltrumites (drawn in code: white/red,
+// black/white, blue/yellow suits) dogfight across the sky — they circle, collide with a flash + sonic ring, and one is
+// knocked down into the mountains in a burst of dust. Smoke rises off the plain. Big hit → a Viltrumite is smashed into
+// the ground behind the fight (crater, shockwave, shake); ≤25% → "VILTRUM WILL NOT FALL!": the empire's fleet fills the
+// sky, the cracks blaze, the sky darkens; KO → a body is punched straight through the statue: it cracks and topples.
+let _vtSeed = 0x3c6ef372
+const vtRnd = () => { _vtSeed ^= _vtSeed << 13; _vtSeed ^= _vtSeed >>> 17; _vtSeed ^= _vtSeed << 5; return (_vtSeed >>> 0) / 4294967296 }
+const VT_SUITS = [["#f2f2ee", "#c81e1e", "#1a1a1a"], ["#16161c", "#f2f2ee", "#e8e8e8"], ["#2a6ae0", "#f2c81e", "#1a1a1a"], ["#16161c", "#a01818", "#f2f2ee"]]
+const VT = { p1: null, last: 0, hp: new WeakMap(), duels: null, falls: [], craters: [], rings: [], smoke: null, fleet: 0, rage: false, end: null, shout: [], geo: null,
+  st: { clashes: 0, falls: 0, slams: 0, rage: 0, toppled: 0 } }
+export const viltrumState = () => ({ ...VT.st, duels: (VT.duels || []).length, smoke: (VT.smoke || []).length, fleet: +VT.fleet.toFixed(2), rage: VT.rage, statue: VT.end ? +VT.end.t.toFixed(2) : 0,
+  shouting: VT.shout.filter(s => s.t > 0).map(s => s.txt) })
+function vtGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.ruins, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S }
+}
+function vtShout(x, y, txt, col) { if (VT.shout.filter(s => s.t > 0).length < 3) VT.shout.push({ x, y, txt, col: col || "#222", t: 2 }) }
+function vtFlyer(ctx, x, y, s, dir, suit, t, pose = 0, rot = 0) {   // a Viltrumite in flight, side-on (~70 px long at s 1); pose 1 = punching
+  const [body, cape, hair] = suit
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s * dir, s)
+  ctx.fillStyle = cape; ctx.beginPath(); ctx.moveTo(8, -6); for (let i = 0; i <= 6; i++) ctx.lineTo(-10 - i * 6, -8 + Math.sin(t * 14 + i) * 3 + i * 0.8); ctx.lineTo(-44, 4); ctx.lineTo(6, 2); ctx.fill()
+  ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, 0, 16, 7, 0, 0, 7); ctx.fill(); ctx.fillRect(-30, -3.5, 18, 7)
+  ctx.fillStyle = suit[0] === "#16161c" ? "#f2f2ee" : "#16161c"; ctx.fillRect(-4, -7, 3, 14)
+  ctx.fillStyle = body; if (pose) { ctx.fillRect(10, -3, 22, 5); ctx.fillStyle = "#e8c8a0"; ctx.beginPath(); ctx.arc(33, -0.5, 3.6, 0, 7); ctx.fill() } else { ctx.fillRect(10, -2, 14, 4) }
+  ctx.fillStyle = "#e8c8a0"; ctx.beginPath(); ctx.arc(20, -6, 6, 0, 7); ctx.fill(); ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(18, -8, 6, Math.PI * 0.9, Math.PI * 2.1); ctx.fill()
+  if (hair === "#1a1a1a" && suit[1] === "#c81e1e") { ctx.fillStyle = "#2a2a2a"; ctx.fillRect(21, -4, 5, 1.6) }   // the moustache
+  ctx.restore()
+}
+function vtStatue(ctx, x, y, s, t, end, rage) {   // the giant warrior statue (~125 px tall at s 1), shaded stone: cracks + topples on the KO
+  const k = end ? Math.min(1, Math.max(0, end.t - 0.5) / 1.6) : 0, fall = k * k * 1.45
+  ctx.save(); ctx.translate(x + 30 * s * k, y); ctx.rotate(fall * (end?.dir || 1)); ctx.scale(s, s)
+  const sh = (a, b) => { const g = ctx.createLinearGradient(a, 0, b, 0); g.addColorStop(0, "#9a8a80"); g.addColorStop(0.45, "#6e625c"); g.addColorStop(1, "#3a322e"); return g }
+  ctx.fillStyle = "#3a322e"; ctx.fillRect(-34, -12, 68, 12); ctx.fillStyle = "#5a4e48"; ctx.fillRect(-30, -16, 60, 5)                  // plinth
+  ctx.fillStyle = sh(-36, 36); ctx.beginPath(); ctx.moveTo(-22, -100); ctx.quadraticCurveTo(-40, -50, -36, -16); ctx.lineTo(36, -16); ctx.quadraticCurveTo(40, -50, 22, -100); ctx.fill()   // cape
+  ctx.strokeStyle = "rgba(30,24,20,0.5)"; ctx.lineWidth = 1.5; ctx.beginPath(); for (const fx of [-24, -12, 12, 24]) { ctx.moveTo(fx * 0.6, -96); ctx.quadraticCurveTo(fx * 1.1, -60, fx * 1.3, -18) } ctx.stroke()
+  ctx.fillStyle = sh(-14, 14); ctx.beginPath(); ctx.moveTo(-13, -54); ctx.lineTo(-3, -54); ctx.lineTo(-5, -16); ctx.lineTo(-16, -16); ctx.fill(); ctx.beginPath(); ctx.moveTo(3, -54); ctx.lineTo(13, -54); ctx.lineTo(16, -16); ctx.lineTo(5, -16); ctx.fill()   // legs apart
+  ctx.fillStyle = "#2e2622"; ctx.fillRect(-18, -20, 14, 5); ctx.fillRect(4, -20, 14, 5)                                                  // boots
+  ctx.fillStyle = sh(-22, 22); ctx.beginPath(); ctx.moveTo(-24, -98); ctx.lineTo(24, -98); ctx.lineTo(15, -54); ctx.lineTo(-15, -54); ctx.fill()  // torso, broad shoulders
+  ctx.fillStyle = "#4a403a"; ctx.fillRect(-15, -58, 30, 4)                                                                               // belt
+  ctx.fillStyle = "#8a7c74"; ctx.beginPath(); ctx.ellipse(0, -80, 23, 7, 0, 0, 7); ctx.fill(); ctx.strokeStyle = "#3a322e"; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-20, -80); ctx.lineTo(20, -80); ctx.stroke()   // crossed arms
+  ctx.fillStyle = sh(-9, 9); ctx.fillRect(-4, -106, 8, 9); ctx.beginPath(); ctx.ellipse(0, -114, 9, 11, 0, 0, 7); ctx.fill()             // neck, head
+  ctx.fillStyle = "#2e2622"; ctx.beginPath(); ctx.arc(0, -118, 9.5, Math.PI * 1.05, Math.PI * 1.95); ctx.fill(); ctx.fillRect(-5, -110, 10, 2.2)   // hair, moustache
+  ctx.fillStyle = "#2e2622"; ctx.fillRect(-4, -116, 3, 1.4); ctx.fillRect(1, -116, 3, 1.4)
+  if (rage || end) { ctx.strokeStyle = end ? "#140c0a" : "rgba(255,120,40,0.85)"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-8, -98); ctx.lineTo(2, -82); ctx.lineTo(-5, -66); ctx.lineTo(6, -50); ctx.lineTo(0, -30); ctx.moveTo(12, -94); ctx.lineTo(5, -78); ctx.moveTo(-20, -60); ctx.lineTo(-10, -44); ctx.stroke() }
+  ctx.restore()
+}
+
+function drawViltrumSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = VT.geo = vtGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S, dk = VT.rage ? Math.min(1, VT.fleet) : 0
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.Y(110)); g.addColorStop(0, dk ? "#1a0404" : "#3a0a08"); g.addColorStop(1, dk ? "#7a1a0a" : "#c8381a")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  // a huge ringed planet hanging in the sky
+  { const px = W * 0.22 + shift(0.03, W), py = G.Y(-60), r = 120
+    ctx.fillStyle = "rgba(255,200,170,0.12)"; ctx.beginPath(); ctx.arc(px, py, r * 1.25, 0, 7); ctx.fill()
+    const pg = ctx.createRadialGradient(px - 40, py - 40, 10, px, py, r); pg.addColorStop(0, "#f0b090"); pg.addColorStop(1, "#7a3a3a"); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fill()
+    ctx.strokeStyle = "rgba(240,200,170,0.55)"; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(px, py, r * 1.7, r * 0.3, -0.25, 0, 7); ctx.stroke() }
+  const sk = P.sky, im = c.img[sk.file], skyY = G.Y(108) - sk.h * S
+  for (const cp of mirrorCopies(G, G.w, padL, padR)) { const x0 = Math.min(cp.X(0), cp.X(G.pc.w)); if (ready(im)) { ctx.save(); ctx.globalAlpha = dk ? 0.55 : 0.85; ctx.drawImage(im, Math.floor(x0), skyY, Math.ceil(G.w) + 1, sk.h * S); ctx.restore() } }
+  // the empire's fleet
+  if (VT.fleet > 0) for (let i = 0; i < 9; i++) { const u = _h(i * 9.1), x = padL + (padR - padL) * ((u + t * 0.01 * (1 + i % 3)) % 1), y = G.Y(-40) + 90 * _h(i * 3.3), s = (0.6 + 0.6 * _h(i * 4.7)) * VT.fleet
+    ctx.fillStyle = "#1a1418"; ctx.beginPath(); ctx.moveTo(x - 60 * s, y); ctx.lineTo(x + 40 * s, y - 10 * s); ctx.lineTo(x + 70 * s, y); ctx.lineTo(x + 40 * s, y + 10 * s); ctx.fill()
+    ctx.fillStyle = `rgba(255,80,40,${0.6 + 0.4 * Math.sin(t * 6 + i)})`; ctx.fillRect(x - 62 * s, y - 2 * s, 5 * s, 4 * s); ctx.fillStyle = "#f2f2ee"; ctx.fillRect(x + 10 * s, y - 3 * s, 14 * s, 2 * s) }
+  // dogfights in the sky
+  const dt = Math.min(0.05, Math.max(0, t - (VT.skyLast || t))); VT.skyLast = t
+  if (!VT.duels) VT.duels = [0, 1, 2].map(i => ({ cx: padL + (padR - padL) * (0.2 + 0.3 * i), cy: G.Y(-25 - 25 * i), ph: i * 2.1, r: 90 + 30 * i, sp: 1.6 + 0.3 * i, a: VT_SUITS[i % 4], b: VT_SUITS[(i + 1) % 4], clash: 3 + i * 1.7, flash: 0, s: (0.75 - 0.12 * i) * S }))
+  for (const d of VT.duels) { d.ph += dt * d.sp; d.clash -= dt; d.flash = Math.max(0, d.flash - dt * 3); d.cx += Math.sin(t * 0.2 + d.r) * 20 * dt
+    if (d.cx < padL - 100) d.cx = padR + 60; if (d.cx > padR + 100) d.cx = padL - 60
+    const ax = d.cx + Math.cos(d.ph) * d.r, ay = d.cy + Math.sin(d.ph * 2) * d.r * 0.3, bx = d.cx - Math.cos(d.ph) * d.r, by = d.cy - Math.sin(d.ph * 2) * d.r * 0.3
+    if (d.clash <= 0) { d.clash = 3.5 + vtRnd() * 3; d.flash = 1; VT.st.clashes++; VT.rings.push({ x: d.cx, y: d.cy, r: 8, a: 1 })
+      if (vtRnd() < 0.5) { VT.st.falls++; const loser = vtRnd() < 0.5 ? d.a : d.b; VT.falls.push({ x: d.cx, y: d.cy, vx: (vtRnd() - 0.5) * 300, vy: 220, suit: loser, ty: G.Y(70 + 20 * vtRnd()), s: d.s, t: 0, hit: false }) } }
+    const k = d.flash > 0 ? 1 - d.flash : 1, hx = d.flash > 0 ? d.cx : null
+    vtFlyer(ctx, hx != null ? d.cx - 18 * d.s : ax, hx != null ? d.cy : ay, d.s, hx != null ? 1 : -Math.sign(Math.sin(d.ph)) || 1, d.a, t, d.flash > 0 ? 1 : 0)
+    vtFlyer(ctx, hx != null ? d.cx + 18 * d.s : bx, hx != null ? d.cy : by, d.s, hx != null ? -1 : Math.sign(Math.sin(d.ph)) || 1, d.b, t, d.flash > 0 ? 1 : 0)
+    if (d.flash > 0) { ctx.fillStyle = `rgba(255,250,220,${d.flash})`; ctx.beginPath(); ctx.arc(d.cx, d.cy, 26 * d.flash + 6, 0, 7); ctx.fill() } }
+  for (const f of VT.falls) { f.t += dt; if (!f.hit) { f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 300 * dt
+      if (f.y >= f.ty) { f.hit = true; f.y = f.ty; VT.craters.push({ x: f.x, y: f.y, t: 0, big: false }) } }
+    if (!f.hit) vtFlyer(ctx, f.x, f.y, f.s, Math.sign(f.vx) || 1, f.suit, t, 0, f.t * 6) }
+  VT.falls = VT.falls.filter(f => !f.hit)
+  for (const r of VT.rings) { r.r += dt * 380; r.a -= dt * 1.6; if (r.a <= 0) continue; ctx.strokeStyle = `rgba(255,240,220,${r.a})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, 7); ctx.stroke() }
+  VT.rings = VT.rings.filter(r => r.a > 0)
+  for (const c2 of VT.craters) { if (c2.big) continue; c2.t += dt; const u = Math.min(1, c2.t / 1.6)
+    for (let j = 0; j < 6; j++) { ctx.fillStyle = `rgba(${120 + 40 * j % 80},${80 + 10 * j},${60},${0.6 * (1 - u)})`; ctx.beginPath(); ctx.arc(c2.x + (j - 2.5) * 12 * (0.5 + u), c2.y - 40 * u * (1 + j % 2), 14 + 30 * u, 0, 7); ctx.fill() } }
+  VT.craters = VT.craters.filter(c2 => c2.big || c2.t < 1.6)
+}
+
+function viltrumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = VT.geo || vtGeo(def, c, W, dockTop), S = def.S, P = c.layout.pieces
+  if (F[0] !== VT.p1) { Object.assign(VT, { p1: F[0], hp: new WeakMap(), duels: null, falls: [], craters: [], rings: [], smoke: null, fleet: 0, rage: false, end: null, shout: [] }); for (const k in VT.st) VT.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (VT.last || t))); VT.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = VT.hp.get(f); VT.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  if (big) { VT.st.slams++; const x = mid + (vtRnd() < 0.5 ? -1 : 1) * (200 + vtRnd() * 200); VT.craters.push({ x, y: G.Y(G.pc.h) + 4, t: 0, big: true, slam: 0 }); camera.shake?.(6, 16)
+    if (VT.st.slams % 2 === 1) vtShout(mid, G.Y(20), ["YOU'RE WEAK!", "IS THAT ALL YOU HAVE?!", "BLEED FOR THE EMPIRE!"][Math.floor(VT.st.slams / 2) % 3], "#8a1010") }
+  if (low && !VT.rage && !VT.end) { VT.rage = true; VT.st.rage++; camera.shake?.(8, 30); vtShout(mid, G.Y(0), "VILTRUM WILL NOT FALL!", "#8a1010") }
+  if (VT.rage) VT.fleet = Math.min(1, VT.fleet + dt * 0.5)
+  if (ko && !VT.end) { VT.end = { t: 0, dir: mid > G.X(P.ruins.statue[0]) ? -1 : 1 }; VT.st.toppled++; vtShout(mid, G.Y(-10), "THINK!", "#1a1a1a") }
+  if (VT.end) { VT.end.t += dt; if (VT.end.t > 2.1 && !VT.end.dust) { VT.end.dust = 1; camera.shake?.(14, 50) } }
+  // the statue on every copy of the ruin
+  for (const cp of mirrorCopies(G, G.w, padL, padR)) { const sx = cp.X(P.ruins.statue[0]), sy = G.Y(P.ruins.statue[1])
+    vtStatue(ctx, sx, sy, S * 0.95, t, VT.end, VT.rage)
+    if (VT.end && VT.end.t < 0.8) { const k = VT.end.t / 0.5; if (k < 1) { vtFlyer(ctx, sx - 300 + 300 * k, sy - 70 * S, S * 0.7, 1, VT_SUITS[0], t, 1) } else { ctx.fillStyle = `rgba(255,250,220,${1.6 - VT.end.t * 2})`; ctx.beginPath(); ctx.arc(sx, sy - 70 * S, 40, 0, 7); ctx.fill() } }
+    if (VT.end?.dust) { const u = Math.min(1, (VT.end.t - 2.1) / 3)
+      for (let j = 0; j < 12; j++) { ctx.fillStyle = `rgba(150,120,100,${0.65 * (1 - u)})`; ctx.beginPath(); ctx.arc(sx + VT.end.dir * 90 * S * 0.95 + (j - 6) * 18 * (1 + u), sy - 20 - 60 * u * (j % 3), 26 + 60 * u, 0, 7); ctx.fill() } } }
+  // smoke columns over the plain; cracks blaze in the rage
+  if (!VT.smoke) VT.smoke = Array.from({ length: 5 }, (_, i) => ({ u: (i * 0.23 + 0.05) % 1, s: 0.7 + 0.5 * ((i * 0.37) % 1) }))
+  for (const sm of VT.smoke) for (const cp of mirrorCopies(G, G.w, padL, padR)) { const x = cp.X(sm.u * G.pc.w), y = G.Y(128)
+    for (let j = 0; j < 6; j++) { const u = (t * 0.12 + j / 6 + sm.u) % 1; ctx.fillStyle = `rgba(40,30,30,${0.45 * (1 - u)})`; ctx.beginPath(); ctx.arc(x + u * 50 + Math.sin(t + j) * 6, y - u * 170 * sm.s, (8 + 26 * u) * sm.s, 0, 7); ctx.fill() }
+    ctx.fillStyle = `rgba(255,${120 + 50 * Math.sin(t * 8 + sm.u * 20) | 0},40,0.8)`; ctx.beginPath(); ctx.arc(x, y, 4 + 2 * Math.sin(t * 9 + sm.u), 0, 7); ctx.fill() }
+  if (VT.rage) { ctx.fillStyle = `rgba(255,90,30,${0.08 + 0.05 * Math.sin(t * 4)})`; ctx.fillRect(padL, dockTop, padR - padL, coverBottom - dockTop) }
+  // a body slammed into the ground behind the fight
+  for (const c2 of VT.craters) { if (!c2.big) continue; c2.t += dt; const u = Math.min(1, c2.t / 1.4)
+    if (c2.t < 0.25) vtFlyer(ctx, c2.x, c2.y - 300 * (1 - c2.t / 0.25), S * 0.6, 1, VT_SUITS[3], t, 0, Math.PI / 2)
+    else { ctx.strokeStyle = `rgba(255,220,180,${1 - u})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(c2.x, c2.y, 30 + 180 * u, 8 + 40 * u, 0, 0, 7); ctx.stroke()
+      for (let j = 0; j < 8; j++) { ctx.fillStyle = `rgba(140,110,90,${0.7 * (1 - u)})`; ctx.beginPath(); ctx.arc(c2.x + (j - 3.5) * 16 * (1 + u), c2.y - 10 - 70 * u * ((j * 7) % 3) / 2, 14 + 30 * u, 0, 7); ctx.fill() } } }
+  VT.craters = VT.craters.filter(c2 => !c2.big || c2.t < 1.4)
+  for (const s of VT.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 14, w, 28); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  VT.shout = VT.shout.filter(s => s.t > 0)
 }

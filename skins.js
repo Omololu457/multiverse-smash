@@ -31,6 +31,7 @@ import { STARFIRE_SKINS } from './starfireSkins.js'   // Starfire default + 10 s
 import { ROBIN_SKINS } from './robinSkins.js'   // Robin default + 10 skins (cosmetic, precomputed; cached materials)
 import { MEGUMI_SKINS } from './megumiSkins.js'   // Megumi default + 10 skins (cosmetic, precomputed region recolours)
 import { HIGURUMA_SKINS } from './higurumaSkins.js'   // Higuruma default + 10 skins (cosmetic, precomputed; cached materials)
+import { GS_SKINS } from './gojoShinjukuSkins.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc): default + 20 premade skins (cosmetic, tools/gojoskins)
 import { SYNDROME_SKINS } from './syndromeSkins.js'   // Syndrome default + 12 whole-arsenal skins (cosmetic, precomputed)
 import { DSEYL_SKINS } from './dseylSkins.js'   // Dseyl default only
 import { FROZONE_SKINS } from './frozoneSkins.js'   // Frozone default + 10 skins (body, portrait, disc, ice; cosmetic, precomputed)
@@ -206,6 +207,7 @@ export const SKINS = {
   robin: ROBIN_SKINS,
   megumi_fushiguro: MEGUMI_SKINS,
   higuruma: HIGURUMA_SKINS,
+  gojo_shinjuku: GS_SKINS,   // MSV1-GOJO
   syndrome: SYNDROME_SKINS,
   dseyl: DSEYL_SKINS,
   frozone: FROZONE_SKINS,

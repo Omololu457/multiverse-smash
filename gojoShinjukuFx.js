@@ -6,6 +6,7 @@ import { sound } from './sound.js'
 import { GOJO_SHINJUKU_FX, GOJO_SHINJUKU_CHANT } from './gojoShinjukuSprites.js'
 import { GS_KEY, INFINITY, CHANT, DOMAIN, FBE, RCT, CE_UNIT, QUOTES } from './gojoShinjukuData.js'
 import { GOJOYOUNG_VOICE } from './gojoVoice.js'
+import { gsSkinPhaseTick } from './gojoShinjukuSkins.js'
 import { chantLineAt } from './gojoShinjukuState.js'
 
 const isGs = f => f?.rosterKey === GS_KEY
@@ -40,6 +41,7 @@ function disc(c, x, y, r, col, a = 1) { c.save(); c.globalAlpha *= a; c.fillStyl
 export function drawGsFx(c, f, training = false) {
   if (!isGs(f) || !f._gs) return
   const s = f._gs, t = s.clock
+  gsSkinPhaseTick(f, t)   // glitter skins: glint phase from the SIM clock (render-only sheet pick)
   // Infinity: NOTHING, except the training debug radius
   if (training && _debugRadius && s.inf.lv > 0) {
     const L = INFINITY.levels[s.inf.lv]

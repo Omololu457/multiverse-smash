@@ -1,0 +1,31 @@
+{
+ "source": "Street Fighter (1987 arcade) \u2014 Joe's Stage background sheet (ripped by TonyWanKenobian); repainted as the Mugen Train at night",
+ "pieces": {
+  "yard": {
+   "file": "yard.png",
+   "w": 768,
+   "h": 132,
+   "car": [
+    612,
+    20
+   ],
+   "carL": 456,
+   "carR": 768,
+   "roof": 22,
+   "depot": [
+    92,
+    12
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 353
+  }
+ },
+ "colors": {
+  "skyTop": "#060a1e",
+  "under": "#2a2430"
+ },
+ "preview": "preview.png"
+}

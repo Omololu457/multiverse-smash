@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE MUGEN TRAIN (Demon Slayer) — Joe's Stage (Street Fighter 1987 sheet) repainted at night by
+// tools/stage_layers/slice_joe_mugen.py: the train yard, the Mugen Train's maroon carriages with every window lit.
+SETS.joe_mugen = {
+  dir: "./stages/joe_mugen/",
+  S: 1.75,
+  standRow: 22,
+  deckFrontRow: 40,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "mugen", p: 0.05 },
+    { piece: "yard", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },     // mirrored on past its ends: the carriages run on, never a gap
+  ],
+  props: [],
+  front: [],
+  fx: "mugen",
+  animRate: {},
+}
+
 // THE SEIREITEI (Bleach) — Retsu's Stage (Street Fighter 1987 sheet; also Arlong Park) repainted the other way by
 // tools/stage_layers/slice_retsu_seireitei.py: white walls, slate roofs, sakura, the Bleach cast in the courtyard.
 SETS.retsu_seireitei = {
@@ -476,6 +494,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "mugen") { drawMugenSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "seireitei") { drawSeireiteiSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "angelgrove") { drawAngelGroveSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "bellwood_sky") { drawBellwoodSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -576,6 +595,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "mugen") mugenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "seireitei") seireiteiFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "angelgrove") angelGroveFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "bellwood") bellwoodFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -3685,4 +3705,166 @@ function seireiteiFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   SR.shout = SR.shout.filter(s => s.t > 0)
   if (SR.flash > 0) { SR.flash = Math.max(0, SR.flash - dt * 0.8); ctx.fillStyle = `rgba(255,236,190,${SR.flash * 0.8})`; ctx.fillRect(padL, G.y0 - 300, padR - padL, coverBottom - G.y0 + 300) }
+}
+
+// ───────────────────────────── THE MUGEN TRAIN (Demon Slayer; render-only, wall clock, own PRNG) ─────────────────────────────
+// Joe's train yard (Street Fighter, 1987) repainted at night: the Mugen Train's maroon carriages with every window lit and
+// the passengers slumped asleep inside. A full moon over dark mountains, steam drifting off the engine. ENMU has fused with
+// the train: as the match goes on his flesh creeps over the carriages (tendrils, pulsing veins, eyes that open and blink),
+// and he stands on the roof. Lesser demons crawl the roofs and Demon Slayer Corps swordsmen cut them down; the Demon Slayer
+// cast who aren't fighting stand on the track bed and react (shared crowd, real sprites). Big hit → the flesh flinches, a
+// tentacle lashes, the eyes open wide; ≤25% → "THE TRAIN AND I ARE ONE!": the flesh covers everything, hands reach out of
+// the windows, the moon turns red; KO → a Thunder Breathing streak + a Flame Breathing arc cut Enmu's neck: the flesh
+// shrivels screaming, the train shudders, and dawn breaks over the mountains.
+let _mgSeed = 0x6a09e667
+const mgRnd = () => { _mgSeed ^= _mgSeed << 13; _mgSeed ^= _mgSeed >>> 17; _mgSeed ^= _mgSeed << 5; return (_mgSeed >>> 0) / 4294967296 }
+const MG_CROWD = [["zenitsu", 0.16, 0], ["inosuke", 0.28, 0], ["nezuko", 0.4, 0], ["shinobu", 0.62, 0], ["rengoku", 0.82, 0]]
+const MGC = makeCrowd(MG_CROWD, 0.6)
+const MG = { p1: null, last: 0, hp: new WeakMap(), start: 0, grow: 0, flinch: 0, rage: false, cut: null, dawn: 0, shake: 0, lash: [], demons: [], slayers: null, puffs: [], shout: [], geo: null, whistle: 9,
+  st: { kills: 0, lashes: 0, rage: 0, cut: 0, eyes: 0, whistles: 0 } }
+export const mugenState = () => ({ ...MG.st, grow: +MG.grow.toFixed(2), rage: MG.rage, dawn: +MG.dawn.toFixed(2), demons: MG.demons.length, slayers: (MG.slayers || []).length, puffs: MG.puffs.length,
+  crowd: crowdState(MGC), shouting: MG.shout.filter(s => s.t > 0).map(s => s.txt) })
+function mgGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.yard, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S }
+}
+function mgShout(x, y, txt, col) { if (MG.shout.filter(s => s.t > 0).length < 3) MG.shout.push({ x, y, txt, col: col || "#222", t: 1.9 }) }
+function mgSlayer(ctx, x, y, s, f, t) {   // a Demon Slayer Corps swordsman: black uniform, white leggings, a katana (~60px at s 1)
+  const run = f.run ? Math.sin(t * 16 + f.seed) * 0.7 : 0
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * f.dir, s)
+  ctx.fillStyle = "#f0f0ea"; for (const k of [-1, 1]) { ctx.save(); ctx.translate(k * 3, -22); ctx.rotate(k * run); ctx.fillRect(-3.5, 0, 7, 22); ctx.restore() }
+  ctx.fillStyle = "#14141c"; ctx.fillRect(-9, -48, 18, 28); ctx.fillStyle = "#e8e8e0"; ctx.fillRect(-9, -24, 18, 3)
+  if (f.haori) { ctx.fillStyle = f.haori; ctx.fillRect(-11, -48, 6, 30); ctx.fillRect(5, -48, 6, 30) }
+  ctx.save(); ctx.translate(6, -36); ctx.rotate(f.slash > 0 ? -1.9 + (1 - f.slash) * 3 : 0.9)
+  ctx.strokeStyle = "#cfd6e0"; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(30, 0); ctx.stroke(); ctx.fillStyle = "#c8a040"; ctx.fillRect(-2, -2.5, 4, 5); ctx.restore()
+  ctx.fillStyle = "#e8c8a0"; ctx.beginPath(); ctx.arc(0, -55, 7, 0, 7); ctx.fill(); ctx.fillStyle = f.hair; ctx.beginPath(); ctx.arc(0, -57, 7.4, Math.PI, 0); ctx.fill()
+  ctx.restore()
+}
+function mgDemon(ctx, x, y, s, d, t) {     // a lesser demon on all fours: grey-green skin, horn, red eyes, claws
+  const crawl = Math.sin(t * 12 + d.seed) * 0.5
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * d.dir, s); if (d.dead > 0) { ctx.globalAlpha = Math.max(0, d.dead); ctx.rotate(-(1 - d.dead) * 0.8) }
+  ctx.fillStyle = d.col; ctx.beginPath(); ctx.ellipse(0, -14, 20, 10, -0.1, 0, 7); ctx.fill()
+  for (const [lx, a] of [[-14, crawl], [-6, -crawl], [8, crawl], [15, -crawl]]) { ctx.save(); ctx.translate(lx, -10); ctx.rotate(a * 0.6); ctx.fillRect(-2.5, 0, 5, 12); ctx.restore() }
+  ctx.beginPath(); ctx.arc(20, -20, 8, 0, 7); ctx.fill(); ctx.fillStyle = "#e8e0c8"; ctx.beginPath(); ctx.moveTo(19, -27); ctx.lineTo(23, -38); ctx.lineTo(25, -26); ctx.fill()
+  ctx.fillStyle = "#ff2a2a"; ctx.fillRect(22, -23, 3, 2.4); ctx.fillStyle = "#fff"; ctx.fillRect(24, -16, 4, 1.5)
+  if (d.dead > 0) { ctx.strokeStyle = `rgba(255,255,255,${d.dead})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(12, -34); ctx.lineTo(30, -8); ctx.stroke() }
+  ctx.restore()
+}
+function mgEye(ctx, x, y, r, open, look, rage) {
+  if (open <= 0.05) { ctx.strokeStyle = "#5a2038"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - r, y); ctx.quadraticCurveTo(x, y + r * 0.3, x + r, y); ctx.stroke(); return }
+  ctx.fillStyle = "#f4e8ee"; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.62 * open, 0, 0, 7); ctx.fill()
+  ctx.save(); ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.62 * open, 0, 0, 7); ctx.clip()
+  ctx.fillStyle = rage ? "#e0204a" : "#b02a7a"; ctx.beginPath(); ctx.arc(x + look * r * 0.35, y, r * 0.48, 0, 7); ctx.fill()
+  ctx.fillStyle = "#111"; ctx.fillRect(x + look * r * 0.35 - 1.2, y - r * 0.36, 2.4, r * 0.72); ctx.restore()
+  ctx.strokeStyle = "#5a2038"; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.62 * open, 0, 0, 7); ctx.stroke()
+}
+function mgEnmu(ctx, x, y, s, t, rage, cut) {   // Enmu on the train roof: long dark hair, pale, a long dark coat; his head falls on the cut
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s)
+  const sway = Math.sin(t * 1.3) * 0.05; ctx.rotate(sway)
+  ctx.fillStyle = "#1e1a2a"; ctx.beginPath(); ctx.moveTo(-14, -70); ctx.lineTo(14, -70); ctx.lineTo(20, 0); ctx.lineTo(-20, 0); ctx.fill()
+  ctx.fillStyle = "#e4e0f0"; ctx.fillRect(-4, -70, 8, 30)
+  ctx.strokeStyle = "#d8c8d8"; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-12, -64); ctx.lineTo(rage ? -34 : -22, rage ? -92 : -40); ctx.moveTo(12, -64); ctx.lineTo(rage ? 34 : 18, rage ? -92 : -46); ctx.stroke()
+  if (!cut || cut < 0.15) { ctx.fillStyle = "#ece6f2"; ctx.beginPath(); ctx.arc(0, -80, 10, 0, 7); ctx.fill()
+    ctx.fillStyle = "#14101c"; ctx.beginPath(); ctx.moveTo(-11, -84); ctx.quadraticCurveTo(-16, -50, -10, -40); ctx.lineTo(-8, -84); ctx.moveTo(11, -84); ctx.quadraticCurveTo(16, -50, 10, -40); ctx.lineTo(8, -84); ctx.fill(); ctx.beginPath(); ctx.arc(0, -84, 10.5, Math.PI, 0); ctx.fill()
+    ctx.fillStyle = rage ? "#e0204a" : "#a03a8a"; ctx.fillRect(-5, -80, 3, 2); ctx.fillRect(2, -80, 3, 2) }
+  else { const k = Math.min(1, (cut - 0.15) * 1.5); ctx.fillStyle = "#ece6f2"; ctx.beginPath(); ctx.arc(30 * k, -80 + 90 * k * k, 10, 0, 7); ctx.fill(); ctx.fillStyle = "#8a1030"; ctx.fillRect(-6, -72, 12, 4) }
+  ctx.restore()
+}
+
+function drawMugenSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = MG.geo = mgGeo(def, c, W, dockTop), S = def.S, d = MG.dawn, red = MG.rage && !MG.cut ? 1 : 0
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.Y(110))
+  g.addColorStop(0, d ? `rgb(${30 + 60 * d | 0},${30 + 70 * d | 0},${70 + 90 * d | 0})` : red ? "#1a0610" : "#060a1e")
+  g.addColorStop(1, d ? `rgb(${120 + 135 * d | 0},${70 + 110 * d | 0},${60 + 40 * d | 0})` : red ? "#4a1020" : "#1a2244")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  for (let i = 0; i < 90; i++) { const x = padL + (padR - padL) * _h(i * 3.1), y = coverTop + (G.Y(80) - coverTop) * _h(i * 7.7), a = (0.4 + 0.6 * Math.abs(Math.sin(t * 1.5 + i))) * (1 - d)
+    ctx.fillStyle = `rgba(255,255,240,${a})`; ctx.fillRect(x, y, 1.6, 1.6) }
+  { const mx = W * 0.3 + shift(0.04, W), my = G.Y(-30) + d * 300, r = 46
+    ctx.fillStyle = red ? "rgba(255,60,60,0.18)" : "rgba(255,250,220,0.12)"; ctx.beginPath(); ctx.arc(mx, my, r * 2.2, 0, 7); ctx.fill()
+    ctx.fillStyle = red ? "#e8504a" : `rgba(250,246,226,${1 - d})`; ctx.beginPath(); ctx.arc(mx, my, r, 0, 7); ctx.fill()
+    ctx.fillStyle = red ? "rgba(140,20,30,0.5)" : `rgba(200,200,190,${0.4 * (1 - d)})`; ctx.beginPath(); ctx.arc(mx - 12, my - 8, 9, 0, 7); ctx.arc(mx + 14, my + 10, 6, 0, 7); ctx.fill() }
+  if (d > 0) { const sx = W * 0.75 + shift(0.04, W), sy = G.Y(120) - d * 90
+    const sg = ctx.createRadialGradient(sx, sy, 10, sx, sy, 260); sg.addColorStop(0, `rgba(255,230,160,${d})`); sg.addColorStop(1, "rgba(255,160,80,0)"); ctx.fillStyle = sg; ctx.fillRect(sx - 260, sy - 260, 520, 520)
+    ctx.fillStyle = `rgba(255,240,190,${d})`; ctx.beginPath(); ctx.arc(sx, sy, 34, 0, 7); ctx.fill() }
+  for (const [p, base, amp, col] of [[0.15, G.Y(60), 70, d ? "#4a4058" : "#141a30"], [0.35, G.Y(95), 50, d ? "#3a3044" : "#0c1024"]]) {
+    const ps = shift(p, W); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(padL, dockTop)
+    for (let x = padL; x <= padR + 20; x += 20) { const u = (x - ps) / 260; ctx.lineTo(x, base - amp * (0.55 + 0.45 * Math.sin(u * 2.3) * Math.cos(u * 0.9 + p * 9))) }
+    ctx.lineTo(padR, dockTop); ctx.fill() }
+  // the engine's smoke rolling over the yard
+  if (mgRnd() < 0.25) MG.puffs.push({ x: padR + 40, y: G.Y(10) + mgRnd() * 30, r: 20 + mgRnd() * 20, a: 0.5 })
+  for (const p of MG.puffs) { p.x -= 0.9 + p.r * 0.01; p.y -= 0.12; p.r += 0.12; p.a -= 0.0009
+    ctx.fillStyle = `rgba(${150 + 80 * d | 0},${150 + 70 * d | 0},${170 + 40 * d | 0},${p.a * 0.5})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill() }
+  MG.puffs = MG.puffs.filter(p => p.a > 0 && p.x > padL - 120).slice(-70)
+}
+
+function mugenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), G = MG.geo || mgGeo(def, c, W, dockTop), S = def.S, Y = G.Y
+  if (F[0] !== MG.p1) { Object.assign(MG, { p1: F[0], hp: new WeakMap(), start: t, grow: 0, flinch: 0, rage: false, cut: null, dawn: 0, lash: [], demons: [], slayers: null, shout: [], whistle: 9 }); for (const k in MG.st) MG.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (MG.last || t))); MG.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2
+  let big = null, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = MG.hp.get(f); MG.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = f }
+  // the flesh grows through the match (faster on big hits), all at once in the rage, shrivels after the cut
+  if (!MG.cut) MG.grow = Math.min(MG.rage ? 1 : 0.75, MG.grow + dt * (MG.rage ? 0.6 : 0.012) + (big ? 0.06 : 0))
+  else MG.grow = Math.max(0, MG.grow - dt * 0.35)
+  if (big && !MG.cut) { MG.flinch = 1; MG.st.lashes++; const cps = mirrorCopies(G, G.w, padL, padR); const cp = cps[Math.floor(mgRnd() * cps.length)]
+    MG.lash.push({ x: cp.X(470 + mgRnd() * 290), y: Y(30 + mgRnd() * 60), dir: mgRnd() < 0.5 ? -1 : 1, t: 0 }); MG.shake = 4
+    if (MG.st.lashes % 2 === 1) mgShout(mid, Y(-10), ["Sweet dreams…", "Fall asleep… fall into a happy dream…", "How lovely… such despair…"][Math.floor(MG.st.lashes / 2) % 3], "#7a2a7a") }
+  if (low && !MG.rage && !MG.cut) { MG.rage = true; MG.st.rage++; MG.shake = 8; mgShout(mid, Y(-30), "THE TRAIN AND I ARE ONE!", "#8a1030") }
+  if (ko && !MG.cut && !MG.st.cut) { MG.cut = { t: 0 }; MG.st.cut++; MG.shake = 14; mgShout(mid, Y(-30), "THUNDER BREATHING… FLAME BREATHING!", "#c06010") }
+  if (MG.cut) { MG.cut.t += dt; if (MG.cut.t > 1.4) MG.dawn = Math.min(1, MG.dawn + dt * 0.35); if (MG.cut.t > 0.6 && MG.cut.t < 0.7) mgShout(mid, Y(10), "AAAARGH… MY NECK…!", "#7a2a7a") }
+  if (MG.shake > 0) { camera.shake?.(MG.shake, 18); MG.shake = 0 }
+  MG.flinch = Math.max(0, MG.flinch - dt * 1.5)
+  MG.whistle -= dt; if (MG.whistle <= 0) { MG.whistle = 18 + mgRnd() * 10; MG.st.whistles++; mgShout(padR - 160, Y(-40), "POOOOOOO!", "#444") }
+  const cps = mirrorCopies(G, G.w, padL, padR), g = MG.grow, rage = MG.rage && !MG.cut
+  // passengers asleep in every lit window
+  for (const cp of cps) for (let i = 0; i < 12; i++) { const px = 464 - 8 + 4 + 26 * i + 8.5; if (px > G.pc.w - 4) break
+    const x = cp.X(px), y = Y(66), bob = Math.sin(t * 0.8 + i * 1.7) * 1.2
+    ctx.fillStyle = "rgba(60,30,30,0.85)"; ctx.beginPath(); ctx.arc(x + (i % 2 ? 3 : -3), y - 6 * S + bob, 3.4 * S, 0, 7); ctx.fill(); ctx.fillRect(x - 5 * S, y - 3 * S, 10 * S, 4 * S)
+    if (rage && i % 3 === 0) { const r = Math.sin(t * 5 + i) * 0.5 + 0.5   // hands reaching out of the windows
+      ctx.fillStyle = "#d4a0b8"; ctx.save(); ctx.translate(x, Y(55)); ctx.rotate(Math.PI + Math.sin(t * 3 + i) * 0.4); ctx.fillRect(-3 * S, 0, 6 * S, (12 + 10 * r) * S); ctx.beginPath(); ctx.arc(0, (12 + 10 * r) * S, 4 * S, 0, 7); ctx.fill(); ctx.restore() } }
+  // Enmu's flesh over the carriages: tendrils from the roof, veins, eyes
+  if (g > 0.01) for (const cp of cps) for (let i = 0; i < 9; i++) {
+    const px = 470 + 33 * i; if (px > G.pc.w) break
+    const x = cp.X(px), y = Y(20), len = (20 + 70 * _h(i * 5.3 + cp.k)) * g * S, sw = Math.sin(t * 1.6 + i) * 6 * (1 + MG.flinch * 3)
+    ctx.strokeStyle = `rgba(${rage ? 210 : 190},${rage ? 80 : 110},${rage ? 110 : 150},0.95)`; ctx.lineWidth = (5 + 5 * g) * S * 0.5; ctx.lineCap = "round"
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + sw * 2, y + len * 0.5, x + sw, y + len); ctx.stroke()
+    ctx.strokeStyle = "rgba(110,30,70,0.6)"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 2, y); ctx.quadraticCurveTo(x + sw * 2 - 2, y + len * 0.5, x + sw - 1, y + len * 0.9); ctx.stroke()
+    ctx.fillStyle = `rgba(${rage ? 200 : 180},${rage ? 70 : 100},${rage ? 100 : 140},0.95)`; ctx.beginPath(); ctx.ellipse(x, y + 2, 14 * S * g + 4, 6 * S * g + 2, 0, 0, 7); ctx.fill()
+    if (g > 0.3 + 0.08 * (i % 4)) { const open = Math.max(0, Math.min(1, (g - 0.3) * 3)) * (Math.sin(t * 0.7 + i * 2.1) > -0.85 ? 1 : 0.05) * (MG.cut ? 0.2 : 1), look = Math.max(-1, Math.min(1, (mid - x) / 300))
+      mgEye(ctx, x + 12 * S, Y(84 + 18 * (i % 2)), (5 + 2 * MG.flinch + (rage ? 2 : 0)) * S, MG.flinch > 0.3 ? 1 : open, look, rage); MG.st.eyes = Math.max(MG.st.eyes, i + 1) } }
+  // a lashing tentacle on a big hit
+  for (const L of MG.lash) { L.t += dt; const k = Math.min(1, L.t * 3), back = Math.max(0, L.t - 0.6) * 2, e = Math.max(0, k - back)
+    ctx.strokeStyle = "rgba(200,100,140,0.95)"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(L.x, L.y); ctx.quadraticCurveTo(L.x + L.dir * 120 * e, L.y - 90 * e, L.x + L.dir * 220 * e, L.y + 40 * e); ctx.stroke() }
+  MG.lash = MG.lash.filter(L => L.t < 1.2)
+  // Enmu on the roof of the nearest carriage
+  { const cp = cps.reduce((a, b) => Math.abs(b.X(615) - W / 2) < Math.abs(a.X(615) - W / 2) ? b : a); mgEnmu(ctx, cp.X(615), Y(20), S * 0.7, t, rage, MG.cut ? MG.cut.t : 0)
+    if (MG.cut && MG.cut.t < 0.9) { const x = cp.X(615), y = Y(20) - 56 * S * 0.7, k = MG.cut.t / 0.4
+      ctx.strokeStyle = `rgba(255,230,80,${Math.max(0, 1 - MG.cut.t)})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(padL, y + 30); for (let i = 0; i < 10; i++) ctx.lineTo(padL + (x - padL + 200) * Math.min(1, k) * (i + 1) / 10, y + (i % 2 ? -18 : 14)); ctx.stroke()
+      if (MG.cut.t > 0.25) { const a = Math.max(0, 1 - (MG.cut.t - 0.25) * 1.6); ctx.strokeStyle = `rgba(255,120,30,${a})`; ctx.lineWidth = 16; ctx.beginPath(); ctx.arc(x, y, 90, -2.6, -2.6 + Math.min(1, (MG.cut.t - 0.25) * 4) * 4.2); ctx.stroke()
+        ctx.strokeStyle = `rgba(255,230,120,${a})`; ctx.lineWidth = 5; ctx.stroke() } } }
+  // demons crawl the roofs; Slayers flash in and cut them down
+  if (!MG.slayers) MG.slayers = [0, 1, 2].map(i => ({ seed: i * 2.1, x: padL + (padR - padL) * (0.2 + 0.3 * i), dir: 1, hair: ["#1a1a1a", "#3a2a1a", "#2a1a3a"][i], haori: ["#2a6a4a", null, "#6a3a8a"][i], run: true, slash: 0, target: null }))
+  if (!MG.cut && MG.demons.length < (rage ? 6 : 3) && mgRnd() < dt * (rage ? 1.4 : 0.5)) { const left = mgRnd() < 0.5
+    MG.demons.push({ x: left ? padL - 30 : padR + 30, dir: left ? 1 : -1, v: 50 + mgRnd() * 40, seed: mgRnd() * 9, col: ["#6a7a6a", "#7a6a5a", "#5a6a7a"][Math.floor(mgRnd() * 3)], dead: 0 }) }
+  const roof = Y(20)
+  for (const d of MG.demons) { if (d.dead > 0) { d.dead -= dt * 1.4; continue } d.x += d.dir * d.v * dt; if (MG.cut) { d.dead = 1; MG.st.kills++ } }
+  for (const s of MG.slayers) { s.slash = Math.max(0, s.slash - dt * 3)
+    if (!s.target || s.target.dead) s.target = MG.demons.filter(d => d.dead === 0).sort((a, b) => Math.abs(a.x - s.x) - Math.abs(b.x - s.x))[0] || null
+    if (s.target) { const dx = s.target.x - s.x; s.dir = dx > 0 ? 1 : -1
+      if (Math.abs(dx) < 40) { s.slash = 1; s.target.dead = 1; MG.st.kills++; s.target = null }
+      else s.x += s.dir * Math.min(Math.abs(dx), (Math.abs(dx) > 200 ? 520 : 140) * dt) }
+    else { s.x += Math.sin(t * 0.5 + s.seed) * 20 * dt; s.run = false } s.run = !!s.target }
+  MG.demons = MG.demons.filter(d => d.dead === 0 ? d.x > padL - 80 && d.x < padR + 80 : d.dead > 0)
+  for (const d of MG.demons) mgDemon(ctx, d.x, roof, S * 0.55, d, t)
+  for (const s of MG.slayers) { mgSlayer(ctx, s.x, roof, S * 0.55, s, t); if (s.slash > 0.4) { ctx.strokeStyle = `rgba(160,220,255,${s.slash})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(s.x + s.dir * 14, roof - 20, 26, -1.2, 1.2); ctx.stroke() } }
+  // the Demon Slayer cast on the track bed
+  drawCrowd(ctx, MGC, { W, feet: dockTop + 6 * S, sh: shift(0.9, W) })
+  for (const s of MG.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  MG.shout = MG.shout.filter(s => s.t > 0)
+  if (MG.cut && MG.cut.t < 0.5) { ctx.fillStyle = `rgba(255,240,200,${0.6 * (1 - MG.cut.t * 2)})`; ctx.fillRect(padL, G.y0 - 400, padR - padL, coverBottom - G.y0 + 400) }
 }

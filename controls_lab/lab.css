@@ -186,3 +186,4 @@ svg.pad { width: 100%; height: auto; max-height: 30vh; display: block; }
 #app.big .ctl-panel { display: none; }
 button.primary { border-color: rgba(var(--accent-rgb), .8); background: rgba(var(--accent-rgb), .2); font-weight: 800; }
 .tag.fatality { color: #ef4444; border-color: rgba(239,68,68,.45); } .tag.match { color: #fca5a5; }
+.tag.special { color: #fbbf24; } .tag.signature { color: #f472b6; } .tag.gore { color: #dc2626; border-color: rgba(220,38,38,.45); } .fat-chip { font-size: 11px; padding: 3px 8px; }

@@ -21,6 +21,12 @@ try {
   check("every roster fighter has a signature fatality", cov.length === 0, JSON.stringify(cov))
   const noAct = await page.evaluate(async () => { const [m, s] = await Promise.all([import("./characters.js"), import("./signatureFatality.js")]); const C = m.characters || m.default
     return Object.keys(C).filter(k => !C[k].hidden).filter(k => { const A = C[k].animationData || {}, p = s.signatureFatalityPlan({ ...C[k], rosterKey: k, animationData: undefined }); return !(p.windup in A && p.release in A && p.strikes.length && p.strikes.every(a => a in A)) }) })
+  const fl = await page.evaluate(async () => { const [m, s] = await Promise.all([import("./characters.js"), import("./signatureFatality.js")]); const C = m.characters || m.default
+    const ks = Object.keys(C).filter(k => !C[k].hidden), all = ks.map(k => ({ k, L: s.fatalityList({ rosterKey: k }) })), dup = all.filter(({ L }) => new Set(L.map(e => e.slot)).size !== L.length).map(({ k }) => k)
+    const noAct = all.flatMap(({ k, L }) => L.map(e => ({ k, e, p: s.signatureFatalityPlan({ ...C[k], rosterKey: k, animationData: undefined }, e) }))).filter(({ k, p }) => { const A = C[k].animationData || {}; return !(p.windup in A && p.release in A) }).map(({ k, e }) => k + ":" + e.name)
+    return { total: all.reduce((n, a) => n + a.L.length, 0), specials: all.reduce((n, a) => n + a.L.length - 1, 0), dup, noAct: noAct.slice(0, 5), nNoAct: noAct.length } })
+  check(`every special in every move list has its own fatality (${fl.specials} special + ${fl.total - fl.specials} signature) on a unique input`, fl.specials > 400 && fl.dup.length === 0, JSON.stringify(fl.dup))
+  check("…and every one of them is acted with the fighter's own strips", fl.nNoAct === 0, JSON.stringify(fl.noAct))
   check("every roster fighter ACTS their fatality with their own strips (wind-up, release, strikes all exist)", noAct.length === 0, JSON.stringify(noAct))
   for (const cs of CASES) { const [key, kind] = cs.split(":")
     await page.goto(`http://127.0.0.1:${server.address().port}/index.html?harness=1&p1=${key}&p2=naruto`, { waitUntil: "load" })
@@ -31,12 +37,16 @@ try {
     let w = null; for (let i = 0; i < 150 && w?.phase !== "window"; i++) { w = await page.evaluate(async () => (await import("./fatalityCinematic.js")).fatalityStatus()); await sleep(100) }
     if (key === "jesus") { check("jesus: no FINISH window — the existing rule (a match with Jesus ends in the heavenly ascension, never a fatality)", w?.phase !== "window", JSON.stringify(w)); continue }
     if (w?.phase !== "window") { check(`${key}: FINISH window`, false, JSON.stringify(w)); continue }
-    await sleep(200); await page.keyboard.down("KeyL"); await sleep(120); await page.keyboard.up("KeyL")
+    const fwd = key === "gojo" && process.env.FWD !== "0"   // Gojo: forward + Special → BLUE (LAPSE), a SPECIAL fatality
+    await sleep(200); if (fwd) { await page.keyboard.down("KeyD"); await sleep(80) } await page.keyboard.down("KeyL"); await sleep(120); await page.keyboard.up("KeyL"); if (fwd) await page.keyboard.up("KeyD")
     const S = () => page.evaluate(async () => (await import("./signatureFatality.js")).signatureFatalityState())
     let st = null, seen = null, gone = false, shot = 0
-    for (let i = 0; i < 600; i++) { st = await S(); if (st.phase) { seen = st; gone ||= st.gone; if (st.t >= [20, 64, 110, 170][shot]) await page.screenshot({ path: path.join(OUT, `${key}_${shot++}.png`) }) } else if (seen) break; await sleep(30) }
+    let gore = null
+    for (let i = 0; i < 600; i++) { st = await S(); if (st.phase) { seen = st; gone ||= st.gone; if (st.gore && (!gore || st.gore.parts + st.gore.decals > gore.parts + gore.decals)) gore = st.gore; if (st.t >= [20, 64, 110, 170][shot]) await page.screenshot({ path: path.join(OUT, `${key}_${shot++}.png`) }) } else if (seen) break; await sleep(30) }
     const g = await page.waitForFunction(() => window.__harness.state().gameState === "victory", null, { timeout: 30000 }).then(() => true, () => false)
-    check(`${key}: SPECIAL → ${seen?.name} (${kind}) plays in the arena, the victim dies, then victory`, seen?.kind === kind && (gone || kind === "note" || kind === "poison" || kind === "barrage" || kind === "lightning") && g, JSON.stringify({ k: seen?.kind, t: seen?.t, gone, victory: g }))
+    if (key === "gojo") check("gojo: FORWARD + SPECIAL → his special fatality BLUE (LAPSE)", /BLUE/.test(seen?.name || ""), seen?.name)
+    check(`${key}: GORE — blood pools${["note"].includes(kind) ? "" : " + spray"} (limbs / organs when torn apart)`, gore && gore.decals > 0 && (gore.limbs > 0 || gore.organs > 0 || ["note", "poison", "barrage", "lightning", "punch", "holy"].includes(kind) || /BLUE/.test(seen?.name || "")), JSON.stringify(gore))
+    check(`${key}: ${seen?.name} (${kind}) plays in the arena, the victim dies, then victory`, (seen?.kind === kind || key === "gojo") && (gone || kind === "note" || kind === "poison" || kind === "barrage" || kind === "lightning") && g, JSON.stringify({ k: seen?.kind, t: seen?.t, gone, victory: g }))
   }
   check("no page errors", errors.length === 0, errors.slice(0, 3).join(" | "))
 } catch (e) { check("run", false, String(e).slice(0, 300)) }

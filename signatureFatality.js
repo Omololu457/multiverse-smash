@@ -10,6 +10,8 @@
 import { sound } from "./sound.js"
 import { camera } from "./camera.js"
 import { characters } from "./characters.js"
+import { getKit } from "./kits.js"
+import { goreReset, goreSetup, goreUpdate, goreDraw, goreDrawScreen, goreDismember, goreWound, goreSpray, goreSpurt, goreLens, goreMist, goreState } from "./goreFx.js"
 
 // kind, technique, colour, variant
 const SIG = {
@@ -63,28 +65,95 @@ export function signatureFor(f) {
   return { kind: BY_UNIVERSE[f?.universe] || "punch", name: ((f?.name || "SIGNATURE") + " FINISH").toUpperCase(), color: "#ffd060", v: null }
 }
 export const SIGNATURE_TABLE = SIG
+
+// ── SPECIAL FATALITIES: one per special in the fighter's move list, each staged as the effect kind its name / text
+// describes (Rasengan → vortex, Chidori → lightning, Kamehameha → beam, Gum-Gum Pistol → punch, Sand Coffin → bind…),
+// acted with that special's own strip. FINISH-window input = a button (Special / Heavy / Light / Charge) + a direction
+// (neutral / forward / back / up / down): the special keeps its own input when it maps to a free slot, else it takes the
+// next free one. Special with no direction stays the SIGNATURE fatality. Up to 19 per fighter.
+const CLASSIFY = [
+  ["dismantle", /dismantle|world.?cutting|shrine/], ["vortex", /lapse|attraction/], ["explode", /reversal|repulsion/],
+  ["note", /death note|notebook/], ["erase", /hakai|erase|destruction|disintegrat|annihilat/],
+  ["void", /hollow|purple|unlimited void|black hole|singularity|gravity/], ["vortex", /rasengan|kamui|vortex|spiral|portal|warp|whirl|tornado|cyclone|\bwind|gale|typhoon|sharingan|izanagi|dimension|twister/],
+  ["lightning", /chidori|raikiri|lightning|thunder|electric|\bvolt|shock|spark|kirin|static|plasma/], ["ice", /\bice\b|\bicy|freez|frost|\bcold|cryo|snow|glacier|blizzard|chill/],
+  ["fire", /(?<!rapid )\bfire\b|flame|\bburn|blaze|inferno|\bheat|magma|lava|amaterasu|fuga|ember|phoenix|scorch|incinerat|napalm|fireball/],
+  ["beam", /beam|judg|verdict|kamehameha|cannon|laser|\bray\b|flash|galick|final|vision|\beyes?\b|energy wave|spirit gun|\bwave\b/],
+  ["poison", /poison|venom|toxic|acid|\bsting|butterfly|parasit|disease|plague/], ["psychic", /psychic|telekin|\bmind|genjutsu|illusion|\bpsi|levitat|hypno|tsukuyomi|possess|\bsoul/],
+  ["holy", /holy|\bheal|\bpray|bless|miracle|divine|heaven|angel|smite|sacred/], ["bind", /\bsand|coffin|burial|\bweb|vine|\bwood|chain|\bbind|lasso|tentacle|\brope|\bnet\b|\bwrap|shadow possession|\bseal|restrain|\broot/],
+  ["explode", /bomb|explo|nuclear|detonat|grenade|burst|missile|rocket|self-destruct|\bblast/], ["crush", /meteor|stomp|\bslam|crush|quake|\bdrop|\bdive|ground|pound|planet|cube|\bpress|hammer|giant|titan|boulder|\brock|table|flip/],
+  ["barrage", /\bshot|\bgun|blaster|rifle|arrow|shuriken|kunai|throw|needle|rapid|volley|bullet|\bcards?\b|dart|projectile|\bfire\b/], ["slash", /slash|sword|blade|\bcut\b|katana|slice|cleave|claw|scythe|\biai|giri|saber|\baxe\b|dagger|knife|spear|lance|whip|\btora|\bnigiri/],
+  ["blitz", /\brush|\bdash|blitz|teleport|speed|flash ?step|phase|barrage|flurry|combo|consecutive|machine gun|hundred|clone|instant|charge/],
+  ["punch", /punch|fist|kick|strike|uppercut|headbutt|knee|elbow|\bhit\b|smash|\bjab\b|hook|blow|pistol|gatling|bazooka|haki|\bhop/],
+]
+const KIND_COLOR = { void: "#a64dff", beam: "#6ec8ff", slash: "#e8f0ff", dismantle: "#ff3a3a", fire: "#ff6a1a", ice: "#9fe8ff", lightning: "#a8d8ff", crush: "#c8b090", punch: "#ffd060",
+  vortex: "#6ad0ff", blitz: "#ffe95a", barrage: "#ffd090", bind: "#d8b878", explode: "#ffb040", erase: "#c07aff", poison: "#b070ff", psychic: "#ff70d0", note: "#e8e8e8", holy: "#fff0b0" }
+const DIR_CH = { f: "→", b: "←", u: "↑", d: "↓", n: "" }, BTN_NAME = { special: "Special", heavy: "Heavy", light: "Light", charge: "Charge" }
+const SLOT_ORDER = ["special", "heavy", "light", "charge"].flatMap(b => ["n", "f", "b", "u", "d"].map(d => b + ":" + d))
+function wantSlot(input) {
+  const s = String(input || "").replace(/\(.*?\)/g, "").toLowerCase()
+  const btn = /heavy/.test(s) ? "heavy" : /light/.test(s) && !/special/.test(s) ? "light" : /charge/.test(s) && !/special/.test(s) ? "charge" : "special"
+  const arrows = s.match(/[→←↑↓↘↙↗↖]/g), last = arrows ? arrows[arrows.length - 1] : null
+  const dir = last ? ({ "→": "f", "↘": "f", "↗": "f", "←": "b", "↙": "b", "↖": "b", "↑": "u", "↓": "d" })[last]
+    : /forward|fwd|qcf/.test(s) ? "f" : /back|qcb/.test(s) ? "b" : /\bup\b/.test(s) ? "u" : /down/.test(s) ? "d" : "n"
+  return btn + ":" + dir
+}
+const _fatCache = new Map()
+const normName = s => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+// [{ slot: "special:n", btn, dir, name, kind, color, v, input (display), sig? }] — index 0 is the signature
+export function fatalityList(f) {
+  const key = String(f?.rosterKey || f?.key || f?.id || ""), C = characters[key] || characters[key.toLowerCase()] || f
+  if (_fatCache.has(key)) return _fatCache.get(key)
+  const sig = signatureFor({ ...C, rosterKey: key }), out = [{ slot: "special:n", ...sig, sig: true }], used = new Set(["special:n"]), seen = new Set([normName(sig.name)])
+  let kit = null; try { kit = getKit(key, C) } catch (_) {}
+  for (const sp of kit?.specials || []) {
+    if (out.length >= 20) break
+    const nm = String(sp.name || "").trim(); if (!/[a-z0-9]/i.test(nm) || seen.has(normName(nm))) continue   // (placeholder names like "—" skipped)
+    seen.add(normName(nm))
+    const text = (nm + " " + (sp.desc || sp.description || "")).toLowerCase()
+    let kind = (CLASSIFY.find(([, re]) => re.test(nm.toLowerCase())) || CLASSIFY.find(([, re]) => re.test(text)) || [sig.kind])[0]
+    if (kind === "void" && !/hollow|purple|void|black hole|singularity|lapse|reversal|gravity/.test(text)) kind = "vortex"
+    const v = kind === "crush" ? (/meteor|planet|rock|boulder/.test(text) ? "meteor" : /stomp|foot/.test(text) ? "foot" : /cube/.test(text) ? "cube" : null)
+      : kind === "bind" ? (/web/.test(text) ? "web" : /wood|vine|root/.test(text) ? "wood" : null) : kind === "barrage" ? (/arrow/.test(text) ? "arrows" : null) : null
+    let slot = wantSlot(sp.input); if (used.has(slot)) slot = SLOT_ORDER.find(x => !used.has(x)); if (!slot) break
+    used.add(slot); const [btn, dir] = slot.split(":")
+    out.push({ slot, btn, dir, name: nm.toUpperCase(), kind, color: kind === sig.kind ? sig.color : KIND_COLOR[kind] || "#ffd060", v, input: (DIR_CH[dir] ? DIR_CH[dir] + " + " : "") + BTN_NAME[btn], key: sp.key || null })
+  }
+  out[0].btn = "special"; out[0].dir = "n"; out[0].input = "Special"
+  _fatCache.set(key, out); return out
+}
 const MELEE = new Set(["slash", "dismantle", "lightning", "punch", "blitz", "poison"])
 const DARK = { void: 0.94, erase: 0.8, vortex: 0.8, note: 0.7, holy: 0.35 }
 const HIT = 60, END = 240
 
 let S = null
-let _in = { special: false, grab: false, grabAt: -99, t: 0 }
+let _in = { special: false, grab: false, grabAt: -99, t: 0, prev: {}, pick: null }
 export const signatureFatalityActive = () => !!S && S.phase !== "done"
 export const signatureFatalityDone = () => !!S && S.phase === "done"
-export const signatureFatalityState = () => S ? { phase: S.phase, t: S.t, kind: S.sig.kind, name: S.sig.name, gone: !!S.gone, plan: S.plan, acting: S.w.attacking ? S.w.currentMove : null } : { phase: null }
+export const signatureFatalityState = () => S ? { phase: S.phase, t: S.t, kind: S.sig.kind, name: S.sig.name, slot: S.sig.slot, gone: !!S.gone, plan: S.plan, acting: S.w.attacking ? S.w.currentMove : null, gore: goreState() } : { phase: null }
 export function clearSignatureFatality() {
   if (S) for (const f of [S.w, S.v]) { f._fxAlpha = null; f._fxFilter = null; f._fxRecord = false; f._fxRot = 0; f._fxRenderScale = 0 }
   if (S) { S.w.attacking = false; S.w.currentMove = null; S.w.dashTimer = 0 }
-  S = null; _in = { special: false, grab: false, grabAt: -99, t: 0 }
+  S = null; _in = { special: false, grab: false, grabAt: -99, t: 0, prev: {}, pick: null }; goreReset()
 }
-// FINISH-window input: SPECIAL (any direction) — but not right after GRAB (that's GRAB → SPECIAL = Screen Breaker)
+// FINISH-window input: SPECIAL / HEAVY / LIGHT / CHARGE + a held direction — but not SPECIAL right after GRAB (that's
+// GRAB → SPECIAL = Screen Breaker). The direction is resolved to forward / back against the winner's facing at start.
 export function signatureFatalityInput(raw) {
   raw = raw || {}; _in.t++
-  const g = !!raw.grab, sp = !!raw.special
+  const g = !!raw.grab
   if (g) _in.grabAt = _in.t
-  const hit = sp && !_in.special && !g && _in.t - _in.grabAt > 36
-  _in.special = sp; _in.grab = g
-  return hit
+  let hit = null
+  for (const b of ["special", "heavy", "light", "charge"]) { const on = !!raw[b]; if (on && !_in.prev[b] && !g && !(b === "special" && _in.t - _in.grabAt <= 36)) hit = hit || b; _in.prev[b] = on }
+  _in.special = !!raw.special; _in.grab = g
+  if (!hit) return false
+  _in.pick = { btn: hit, h: raw.right ? 1 : raw.left ? -1 : 0, up: !!(raw.up || raw.upAttack), down: !!raw.down }
+  return true
+}
+function pickFatality(winner, choice) {
+  const L = fatalityList(winner)
+  if (choice && Number.isInteger(choice.index)) return L[Math.max(0, Math.min(L.length - 1, choice.index))]
+  const p = choice || _in.pick; if (!p) return L[0]
+  const fac = (winner.facing || 1) >= 0 ? 1 : -1, dir = p.up ? "u" : p.down ? "d" : p.h === fac ? "f" : p.h === -fac ? "b" : "n"
+  return L.find(e => e.slot === p.btn + ":" + dir) || L.find(e => e.slot === p.btn + ":n") || L[0]
 }
 // ── CHOREOGRAPHY: the winner ACTS the technique with their own strips. The fighter's animation set (skin, else the
 // character's animationData — Sukuna & co. keep theirs only in characters.js) is searched for strips named after the
@@ -115,14 +184,15 @@ function planFor(f, sig) {
 }
 export const signatureFatalityPlan = (f, sig = signatureFor(f)) => planFor(f, sig)
 function act(f, a) { if (!a) { f.attacking = false; f.currentMove = null; return } f.attacking = true; f.currentMove = a; f.currentAttack = null }
-export function startSignatureFatality(winner, victim) {
+export function startSignatureFatality(winner, victim, choice = null) {
   if (!winner || !victim) return false
-  const sig = signatureFor(winner)
+  const sig = pickFatality(winner, choice); _in.pick = null
   S = { phase: "run", t: 0, w: winner, v: victim, sig, M: null, parts: [], holes: [], seed: 0x2545f491, gone: false, plan: planFor(winner, sig) }
   winner.vx = victim.vx = 0
   victim.knockdownState = false; victim.knockdownTimer = 0; victim.hitstun = 999; victim.attacking = false   // dazed on their feet: "FINISH THEM"
   victim._fxRecord = true; victim._fxAlpha = 0                                                               // drawn here from now on
   const gy = victim.groundY ?? 520; victim.y = gy - (victim.h || 100); victim.grounded = victim.onGround = true
+  goreSetup(victim, gy)
   sfx("charge", sig)
   return true
 }
@@ -160,7 +230,27 @@ export function updateSignatureFatality() {
   if (k === "lightning" && t === HIT + 6) sfx("zap", S.sig)
   if (k === "barrage" && t > 30 && t < 96 && t % 3 === 0) sfx("shot", S.sig)
   if (k === "psychic" && t === HIT + 44) { sfx("boom", S.sig); camera.shake?.(10, 18) }
+  // GORE: the kill beat of every kind — torn apart (or, where the body stays, opened up and bleeding out)
+  goreUpdate()
+  if (!S.gored && (S.gone || (t === HIT + (k === "punch" ? 0 : 40) && ALIVE_GORE.has(k)) || (k === "punch" && t === HIT))) { S.gored = true; goreKill(k, !S.gone) }
   if (t >= END) S.phase = "done"
+}
+const ALIVE_GORE = new Set(["lightning", "barrage", "poison", "note", "holy", "punch"])
+const GORE_POWER = { explode: 16, punch: 15, crush: 10, beam: 13, void: 7, erase: 6, vortex: 8, psychic: 12, slash: 8, dismantle: 9, blitz: 10, bind: 9, ice: 8, fire: 7 }
+function goreKill(k, alive) {
+  const L = S.v._lastFrameDraw, B0 = vBox(), d = B0.cx >= ctr(S.w).x ? 1 : -1, B = k === "psychic" ? { ...B0, y: B0.y - 120, cy: B0.cy - 120 } : B0
+  sfx("splat", S.sig)
+  if (alive) {   // the body stays where it is: it's opened up
+    if (k === "punch") { goreSpray(B.cx, B.cy, 180, 15, d > 0 ? -0.35 : Math.PI + 0.35, 0.9); goreSpray(B.cx, B.y + B.h * 0.2, 40, 6); goreLens(4); camera.shake?.(14, 18) }   // the fist goes clean through
+    else if (k === "barrage") for (let i = 0; i < 6; i++) goreWound(B.cx + (i - 2.5) * B.w * 0.12, B.y + B.h * (0.25 + 0.09 * i), d > 0 ? -0.3 - i * 0.15 : Math.PI + 0.3 + i * 0.15, B, 7)   // riddled
+    else if (k === "lightning") { goreWound(B.cx, B.y + B.h * 0.4, d > 0 ? -0.2 : Math.PI + 0.2, B, 11); goreSpray(B.cx + d * B.w * 0.4, B.y + B.h * 0.4, 90, 12, d > 0 ? 0 : Math.PI, 0.7); goreLens(3) }   // through and through
+    else { goreSpurt(B.cx + d * B.w * 0.12, B.y + B.h * 0.2, -Math.PI / 2 + d * 0.6, 110, 5); goreSpurt(B.cx, B.y + B.h * 0.14, -Math.PI / 2 - d * 0.3, 80, 3); goreWound(B.cx, B.y + B.h * 0.5, Math.PI / 2, B, 3) }   // from the mouth / eyes
+    return
+  }
+  const style = k === "fire" || k === "beam" || k === "explode" ? "burnt" : k === "ice" ? "frozen" : k === "crush" || k === "bind" ? "flat" : k === "dismantle" || k === "blitz" || k === "vortex" ? "shred" : k === "void" || k === "erase" ? "feet" : ""
+  goreDismember(L, B, { power: GORE_POWER[k] || 10, dir: k === "beam" ? d : 0, style, up: k === "crush" ? 0.3 : 1 })
+  if (["explode", "dismantle", "crush", "bind", "psychic", "blitz", "slash", "vortex"].includes(k)) goreLens(k === "explode" || k === "crush" ? 7 : 4)
+  camera.shake?.(10, 14)
 }
 
 // ── drawing ──
@@ -394,6 +484,7 @@ export function drawSignatureFatalityOver(c) {
       break }
   }
   drawParts(c)
+  goreDraw(c)   // body parts, organs, bones, blood (over the technique)
   c.restore()
 }
 // screen layer: the Death Note page, flashes, the technique name + FATALITY
@@ -417,6 +508,7 @@ export function drawSignatureFatalityScreen(c, canvas) {
     let n = Math.max(0, Math.floor((t - 30) * 0.7))
     lines.forEach((ln, i) => { const show = ln.slice(0, Math.max(0, n)); n -= ln.length + 4; c.fillText(show, x + 22, y + 60 + i * 52) })
     c.globalAlpha = 1 }
+  goreDrawScreen(c, W, H)   // blood on the lens
   if (t > HIT + 50) { const al = Math.min(1, (t - HIT - 50) / 10) * Math.min(1, (END - t) / 12), pop = 1 + 0.5 * Math.max(0, 1 - (t - HIT - 50) / 9)   // punches in
     c.globalAlpha = al; c.textAlign = "center"; c.lineWidth = 6; c.strokeStyle = "#000"; c.translate(W / 2, H * 0.19); c.scale(pop, pop); c.translate(-W / 2, -H * 0.19)
     c.shadowColor = S.sig.color === "#140814" ? "#b070e0" : S.sig.color; c.shadowBlur = 24

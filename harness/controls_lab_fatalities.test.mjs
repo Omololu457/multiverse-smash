@@ -12,9 +12,9 @@ fs.mkdirSync("docs/controls_lab", { recursive: true })
 await page.evaluate(() => window.__lab.api.setMode("moves"))
 const fin = await page.evaluate(() => window.__lab.S.moves.filter(m => m.fin).map(m => ({ name: m.name, sec: m.section, fin: m.fin })))
 const secs = await page.evaluate(() => [...document.querySelectorAll("#listScroll .sec")].map(e => e.textContent))
-check("F1 Gojo's move list has a FINISHERS section: HOLLOW PURPLE fatality + SCREEN BREAKER", fin.length === 2 && /HOLLOW PURPLE/.test(fin[0].name) && fin[1].fin === "sb" && secs.includes("FINISHERS"), JSON.stringify({ fin, secs }))
+check("F1 Gojo's move list has a FINISHERS section: HOLLOW PURPLE + a fatality per special (BLUE, RED) + SCREEN BREAKER", fin.length >= 4 && /HOLLOW PURPLE/.test(fin[0].name) && fin.some(f => /BLUE/.test(f.name)) && fin.some(f => /RED/.test(f.name)) && fin[fin.length - 1].fin === "sb" && secs.includes("FINISHERS"), JSON.stringify({ fin, secs }))
 // F2: click the fatality card, watch it run
-const idx = await page.evaluate(() => window.__lab.S.moves.findIndex(m => m.fin === "sig"))
+const idx = await page.evaluate(() => window.__lab.S.moves.findIndex(m => m.fin === "sig" && !m.idx))
 await page.click(`[data-move="${idx}"]`)
 let seen = null
 const acted = new Set()
@@ -24,16 +24,16 @@ check("F2b Gojo ACTS it out with his own strips (hollow_purple_charge → hollow
 check("F2 clicking it plays HOLLOW PURPLE in the arena, then the Lab is back in a fresh training match", seen?.kind === "void" && back, JSON.stringify({ seen, back }))
 // F3/F4: FATALITIES tab
 await page.click('[data-mode="fatal"]'); await page.waitForTimeout(300)
-const list = await page.evaluate(() => ({ n: document.querySelectorAll("[data-fatal]").length, roster: window.__lab.S.roster.length, names: [...document.querySelectorAll("[data-fatal] .nm")].slice(0, 400).map(e => e.textContent) }))
-check("F3 the FATALITIES tab lists every roster fighter's fatality", list.n === list.roster && list.n >= 100 && list.names.includes("AMATERASU") && list.names.includes("SERIOUS PUNCH"), JSON.stringify({ n: list.n, roster: list.roster }))
+const list = await page.evaluate(() => ({ n: document.querySelectorAll(".card[data-fatal]").length, chips: document.querySelectorAll(".fat-chip").length, roster: window.__lab.S.roster.length, names: [...document.querySelectorAll("[data-fatal] .nm")].slice(0, 400).map(e => e.textContent) }))
+check("F3 the FATALITIES tab lists every roster fighter with ALL their fatalities (signature + one chip per special)", list.chips > 400 && list.n === list.roster && list.n >= 100 && list.names.includes("AMATERASU") && list.names.includes("SERIOUS PUNCH"), JSON.stringify({ n: list.n, roster: list.roster }))
 await page.screenshot({ path: "docs/controls_lab/fatalities_tab.png" })
-await page.click('[data-fatal="itachi"]')
+await page.click('.card[data-fatal="itachi"]', { position: { x: 30, y: 20 } })
 let s2 = null
 for (let i = 0; i < 500; i++) { const s = await page.evaluate(() => window.__lab.S.key === "itachi" && window.__lab.eng.ready ? window.__lab.eng.mods.sig.signatureFatalityState() : { phase: null }); if (s.phase) { s2 = s; if (s.t > 90) { await page.screenshot({ path: "docs/controls_lab/fatality_itachi.png" }); break } } await page.waitForTimeout(100) }
 const back2 = await page.waitForFunction(() => !window.__lab.S.finisher && window.__lab.eng.ready && window.__lab.eng.gameState() === "battle", null, { timeout: 90000 }).then(() => true, () => false)
 check("F4 picking Itachi there switches fighter and plays AMATERASU", s2?.name === "AMATERASU" && back2, JSON.stringify({ s2, back2 }))
 // F4b Sukuna: domain → dash → a cleave / dismantle flurry
-await page.click('[data-mode="fatal"]'); await page.waitForTimeout(300); await page.click('[data-fatal="sukuna"]')
+await page.click('[data-mode="fatal"]'); await page.waitForTimeout(300); await page.click('.card[data-fatal="sukuna"]', { position: { x: 30, y: 20 } })
 const sk = new Set()
 for (let i = 0; i < 600; i++) { const s = await page.evaluate(() => window.__lab.S.key === "sukuna" && window.__lab.eng.ready ? window.__lab.eng.mods.sig.signatureFatalityState() : { phase: null }); if (s.phase && s.acting) sk.add(s.acting); if (sk.size && !s.phase) break; await page.waitForTimeout(100) }
 await page.waitForFunction(() => !window.__lab.S.finisher && window.__lab.eng.ready && window.__lab.eng.gameState() === "battle", null, { timeout: 90000 }).catch(() => {})
@@ -47,7 +47,7 @@ for (let i = 0; i < 80 && !sb; i++) { sb = await page.evaluate(() => window.__la
 const back3 = await page.waitForFunction(() => !window.__lab.S.finisher && window.__lab.eng.ready && window.__lab.eng.gameState() === "battle", null, { timeout: 90000 }).then(() => true, () => false)
 check("F5 the SCREEN BREAKER card plays it too", sb && back3, JSON.stringify({ sb, back3 }))
 // F6 Play all skips finishers
-const pa = await page.evaluate(() => window.__lab.S.moves.filter(m => !m.unavailable && !m.fin).length === window.__lab.S.moves.filter(m => !m.unavailable).length - 2)
+const pa = await page.evaluate(() => window.__lab.S.moves.some(m => m.fin) && window.__lab.S.moves.filter(m => !m.unavailable && !m.fin).length === window.__lab.S.moves.filter(m => !m.unavailable).length - window.__lab.S.moves.filter(m => m.fin && !m.unavailable).length)
 check("F6 the move list's Play all leaves the finishers out (they end the match)", pa)
 const ne = newErrors(errs, baseline)
 check("no new errors", ne.length === 0, ne.slice(0, 3).join(" | "))

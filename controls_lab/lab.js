@@ -80,13 +80,17 @@ const KIND_TEXT = { void: "an unstoppable void — the whole arena goes black an
   erase: "the victim is erased, atom by atom", poison: "a poison strike — the victim withers and collapses", psychic: "the victim is lifted and torn apart by the mind",
   note: "the victim's name is written in the notebook — 40 seconds later, a heart attack", holy: "a judgement of holy light" }
 function sigFor(key) { const C = eng.mods.characters[key]; try { return eng.mods.sig.signatureFor({ ...C, rosterKey: key }) } catch (_) { return null } }
+function fatList(key) { try { return eng.mods.sig.fatalityList({ rosterKey: key }) } catch (_) { return [] } }
+const NUM_DIR = { f: 6, b: 4, u: 8, d: 2, n: null }
 function finisherMoves(key) {
-  const g = sigFor(key); if (!g) return []
-  const base = { section: "Finishers", cat: "finisher", script: [], at: [], damage: null, startup: null, cost: null, tags: ["fatality", "match end"] }
+  const list = fatList(key); if (!list.length) return []
+  const base = { section: "Finishers", cat: "finisher", script: [], at: [], damage: null, startup: null, cost: null }
   return [
-    { ...base, id: `fin:sig:${key}`, fin: "sig", name: `${g.name} — FATALITY`, input: "Special", parsed: { steps: [{ kind: "press", dirs: [], buttons: ["special"] }], air: false },
-      desc: `Signature fatality: ${KIND_TEXT[g.kind] || "their defining technique"}. Win the match, then press SPECIAL (L) while FINISH is on screen.` },
-    { ...base, id: `fin:sb:${key}`, fin: "sb", name: "SCREEN BREAKER", input: "Grab › Special", parsed: { steps: [{ kind: "press", dirs: [], buttons: ["grab"] }, { kind: "press", dirs: [], buttons: ["special"] }], air: false },
+    ...list.map((g, i) => ({ ...base, id: `fin:sig:${key}:${i}`, fin: "sig", idx: i, name: `${g.name} — FATALITY`, input: g.input,
+      tags: i ? ["fatality", "special", "gore"] : ["fatality", "signature", "gore"],
+      parsed: { steps: [{ kind: "press", dirs: NUM_DIR[g.dir] ? [NUM_DIR[g.dir]] : [], buttons: [g.btn] }], air: false },
+      desc: `${i ? "Special fatality" : "Signature fatality"}: ${KIND_TEXT[g.kind] || "their defining technique"}. Win the match, then ${g.input.toUpperCase()} while FINISH is on screen (forward = toward the loser).` })),
+    { ...base, id: `fin:sb:${key}`, fin: "sb", tags: ["fatality", "match end"], name: "SCREEN BREAKER", input: "Grab › Special", parsed: { steps: [{ kind: "press", dirs: [], buttons: ["grab"] }, { kind: "press", dirs: [], buttons: ["special"] }], air: false },
       desc: "Lift the loser and throw them into the screen — the glass cracks. Win the match, then GRAB → SPECIAL (or GRAB → DOWN) while FINISH is on screen." },
   ]
 }
@@ -101,7 +105,7 @@ async function finisherDemo(m) {
   const steps = m.parsed.steps
   for (let i = 0; i < steps.length; i++) { if (ctl) ctl.setGuide(steps[i], { text: "" }); await eng.frames(14); if (S.task !== task) { S.finisher = null; return null } }
   if (ctl) ctl.setGuide(null)
-  const ok = eng.h.finisherDemo(m.fin)   // on the LIVE fighters (eng.p1() is a snapshot)
+  const ok = eng.h.finisherDemo(m.fin === "sb" ? "sb" : (m.idx || 0))   // on the LIVE fighters (eng.p1() is a snapshot)
   // the finisher plays out in the arena; it is over when the game clears it (a match then goes to its victory screen;
   // the Lab's training match stays in battle)
   const live = () => { try { return m.fin === "sb" ? eng.mods.sb.screenBreakerActive() || eng.mods.sb.screenBreakerDone() : !!eng.mods.sig.signatureFatalityState().phase } catch (_) { return false } }
@@ -122,25 +126,26 @@ function fatalHTML() {
   const pa = S.playAllFatal
   return `<div class="mode-head"><h2>FATALITIES</h2><span class="sp"></span>
       <button class="nav sm primary" data-act="fatalall" data-nav="actions" title="Watch every fighter's fatality, one after another">${pa ? `■ Stop (${pa.i + 1} / ${pa.n})` : "▶ Play all"}</button></div>
-    <div class="note">Every fighter's signature finisher. Win the match, then press <b>SPECIAL (L)</b> while FINISH is on screen (GRAB → SPECIAL is SCREEN BREAKER). Pick one to watch it in the real engine.</div>
-    <div class="scroll" id="listScroll">${list.map(r => `<div class="card nav${r.key === S.key && S.selMove?.fin === "sig" ? " sel" : ""}" data-nav="list" data-fatal="${esc(r.key)}">
+    <div class="note">Every fighter's fatalities — the signature (<b>SPECIAL / L</b>) and one for each of their specials (a <b>direction + Special / Heavy / Light / Charge</b>, shown on each chip; forward = toward the loser). Win the match, then input it while FINISH is on screen (GRAB → SPECIAL is SCREEN BREAKER). Pick one to watch it in the real engine.</div>
+    <div class="scroll" id="listScroll">${list.map(r => { const all = fatList(r.key); return `<div class="card nav${r.key === S.key && S.selMove?.fin === "sig" ? " sel" : ""}" data-nav="list" data-fatal="${esc(r.key)}" data-idx="0">
       <div class="row">${r.portrait ? `<img src="${esc(r.portrait)}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:8px;margin-right:10px">` : ""}<div><div class="nm" style="color:${esc(r.g.color)}">${esc(r.g.name)}</div>
-      <div class="stat">${esc(r.name)} · ${esc(r.universeLabel)}</div></div></div>
-      <div class="desc">${esc(KIND_TEXT[r.g.kind] || "")}</div></div>`).join("")}</div>`
+      <div class="stat">${esc(r.name)} · ${esc(r.universeLabel)} · ${all.length} fatalit${all.length === 1 ? "y" : "ies"}</div></div></div>
+      <div class="desc">${esc(KIND_TEXT[r.g.kind] || "")}</div>
+      ${all.length > 1 ? `<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px">${all.slice(1).map((g, i) => `<button class="nav sm fat-chip" data-nav="list" data-fatal="${esc(r.key)}" data-idx="${i + 1}" title="${esc(g.input)}" style="border-color:${esc(g.color)}55"><b style="color:${esc(g.color)}">${esc(g.name)}</b> <span class="stat">${esc(g.input)}</span></button>`).join("")}</div>` : ""}</div>` }).join("")}</div>`
 }
-async function fatalFor(key) {
+async function fatalFor(key, idx = 0) {
   if (key !== S.key) await selectChar(key)
-  const m = S.moves.find(x => x.fin === "sig"); if (!m) return null
+  const m = S.moves.find(x => x.fin === "sig" && (x.idx || 0) === idx) || S.moves.find(x => x.fin === "sig"); if (!m) return null
   if (S.mode === "fatal") { renderMode(); document.querySelector(`[data-fatal="${key}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" }) }
   return finisherDemo(m)
 }
 async function playAllFatal() {
   if (S.playAllFatal) { S.playAllFatal = null; stopTask(); renderMode(); return }
-  const keys = S.roster.map(r => r.key).filter(k => sigFor(k))
-  const run = S.playAllFatal = { i: Math.max(0, keys.indexOf(S.key)), n: keys.length }
+  const keys = S.roster.flatMap(r => fatList(r.key).map((_, i) => [r.key, i]))
+  const run = S.playAllFatal = { i: Math.max(0, keys.findIndex(([k]) => k === S.key)), n: keys.length }
   for (; run.i < keys.length; run.i++) {
     if (S.mode === "fatal") renderMode()
-    const r = await fatalFor(keys[run.i])
+    const r = await fatalFor(keys[run.i][0], keys[run.i][1])
     if (S.playAllFatal !== run || !r) { if (S.playAllFatal === run) { S.playAllFatal = null; renderMode() } return }
   }
   S.playAllFatal = null; renderMode(); toast("Played every fatality")
@@ -751,7 +756,7 @@ function wireUI() {
     const mc = e.target.closest("[data-move]")
     if (mc) { const m = S.moves[+mc.dataset.move]; if (S.mode === "free") return; return demoMove(m) }
     const fc = e.target.closest("[data-fatal]")
-    if (fc) { if (S.playAllFatal) { S.playAllFatal = null } return fatalFor(fc.dataset.fatal) }
+    if (fc) { if (S.playAllFatal) { S.playAllFatal = null } return fatalFor(fc.dataset.fatal, +(fc.dataset.idx || 0)) }
     const cc = e.target.closest("[data-combo]")
     if (cc) { S.selCombo = S.combos[+cc.dataset.combo]; renderMode(); const c = S.selCombo; applyComboSetup(eng, c); const sc = comboScript(c); return runDemo({ script: sc.script, at: sc.at, steps: comboSteps(c) }) }
   }

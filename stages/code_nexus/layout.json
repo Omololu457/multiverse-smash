@@ -1,0 +1,15 @@
+{
+ "source": "Drawn in code / generated (no source sheet)",
+ "pieces": {
+  "floor": {
+   "file": "floor.png",
+   "w": 1024,
+   "h": 370
+  }
+ },
+ "colors": {
+  "skyTop": "#051a1f",
+  "under": "#04141a"
+ },
+ "preview": "preview.png"
+}

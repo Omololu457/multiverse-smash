@@ -289,6 +289,20 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE ANALYSIS NEXUS (original universe) — no sheet: drawn in code over a generated data-grid floor (gen_code_floors.py).
+SETS.code_nexus = {
+  dir: "./stages/code_nexus/",
+  S: 1.6,
+  standRow: 30,
+  deckFrontRow: 70,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [{ procedural: "nexus", p: 0.9 }],
+  props: [],
+  front: [],
+  fx: "nexus",
+  animRate: {},
+}
+
 // PK ACADEMY (Saiki K.) — no sheet: the school drawn in code over a generated schoolyard floor (gen_code_floors.py).
 SETS.code_pk = {
   dir: "./stages/code_pk/",
@@ -680,6 +694,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "nexus") { drawNexusBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "pk") { drawPkBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "woodsboro") { drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "colosseum") { drawColosseumBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -793,6 +808,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "nexus") nexusFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "pk") pkFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "woodsboro") woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "colosseum") colosseumFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5608,4 +5624,88 @@ function pkFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   PK.shout = PK.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── THE ANALYSIS NEXUS (original universe; render-only, wall clock, own PRNG) ─────────────────────────────
+// No sheet — drawn in code over a generated data-grid floor: a dark teal void, the central DATA CORE (a pillar of light
+// with rings orbiting it), holographic panels with scrolling readouts and graphs, circuit traces pulsing down to the
+// floor, floating data cubes; Omololu / Dseyl / Enoch watch if not fighting (shared crowd). Big hit → a holo readout pops
+// up over the fight: "ANALYZING… IMPACT +N"; ≤25% → SYSTEM ALERT: everything goes red, glitch bands tear across the
+// screen; KO → the core overloads — a cascade of 0s and 1s rains down, a white flash, "ANALYSIS COMPLETE."
+let _nxSeed = 0x6a09e667 ^ 0xbb67ae85
+const nxRnd = () => { _nxSeed ^= _nxSeed << 13; _nxSeed ^= _nxSeed >>> 17; _nxSeed ^= _nxSeed << 5; return (_nxSeed >>> 0) / 4294967296 }
+const NX_CROWD = [["omololu", 0.14, 0], ["dseyl", 0.5, 0], ["enoch", 0.86, 0]]
+const NXC = makeCrowd(NX_CROWD, 0.6)
+const NX = { p1: null, last: 0, hp: new WeakMap(), reads: [], alert: 0, done: null, rain: [], cubes: null, flash: 0, shout: [],
+  st: { reads: 0, alert: 0, done: 0 } }
+export const nexusState = () => ({ ...NX.st, alert: +NX.alert.toFixed(2), done: NX.done ? +NX.done.t.toFixed(2) : 0, rain: NX.rain.length, cubes: (NX.cubes || []).length,
+  crowd: crowdState(NXC), shouting: NX.shout.filter(s => s.t > 0).map(s => s.txt) })
+function nxShout(x, y, txt, col) { if (NX.shout.filter(s => s.t > 0).length < 3) NX.shout.push({ x, y, txt, col: col || "#0a5a5a", t: 2.2 }) }
+const nxCol = (a, al) => a > 0.5 ? `rgba(255,70,80,${al})` : `rgba(45,212,191,${al})`
+function nxPanel(ctx, x, y, w, h, t, k, a) {   // a holographic panel: frame, scrolling text rows, a live graph
+  ctx.fillStyle = a > 0.5 ? "rgba(60,8,14,0.55)" : "rgba(4,40,44,0.55)"; ctx.fillRect(x, y, w, h); ctx.strokeStyle = nxCol(a, 0.8); ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h)
+  ctx.fillStyle = nxCol(a, 0.9); ctx.fillRect(x, y, w, 8)
+  for (let r = 0; r < 5; r++) { const ww = (0.3 + 0.6 * _h(k * 13 + r + Math.floor(t * 2))) * (w - 16); ctx.fillStyle = nxCol(a, 0.45); ctx.fillRect(x + 8, y + 16 + r * 10, ww, 4) }
+  ctx.strokeStyle = nxCol(a, 0.9); ctx.beginPath(); for (let i = 0; i <= 20; i++) { const gx = x + 8 + i * (w - 16) / 20, gy = y + h - 12 - (0.5 + 0.45 * Math.sin(t * 2 + i * 0.7 + k)) * (h * 0.35); i ? ctx.lineTo(gx, gy) : ctx.moveTo(gx, gy) } ctx.stroke()
+}
+function drawNexusBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), S = def.S, a = NX.alert
+  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, a > 0.5 ? "#1a0408" : "#020c10"); g.addColorStop(1, a > 0.5 ? "#3a0a10" : "#0a2e33")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  // far grid wall
+  { const ps = shift(0.2, W); ctx.strokeStyle = nxCol(a, 0.08); ctx.lineWidth = 1
+    for (let x = padL - ((padL - ps) % 40 + 40) % 40; x < padR; x += 40) { ctx.beginPath(); ctx.moveTo(x, coverTop); ctx.lineTo(x, dockTop); ctx.stroke() }
+    for (let y = dockTop; y > coverTop; y -= 40) { ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padR, y); ctx.stroke() } }
+  // the data core
+  { const cx = W / 2 + shift(0.4, W), top = coverTop, bw = 70 * S * 0.6
+    const cg = ctx.createLinearGradient(cx - bw * 2, 0, cx + bw * 2, 0); cg.addColorStop(0, "rgba(45,212,191,0)"); cg.addColorStop(0.5, a > 0.5 ? "rgba(255,90,90,0.35)" : "rgba(120,255,230,0.35)"); cg.addColorStop(1, "rgba(45,212,191,0)")
+    ctx.fillStyle = cg; ctx.fillRect(cx - bw * 2, top, bw * 4, dockTop - top); ctx.fillStyle = a > 0.5 ? "rgba(255,200,200,0.8)" : "rgba(220,255,250,0.8)"; ctx.fillRect(cx - bw * 0.15, top, bw * 0.3, dockTop - top)
+    for (let r = 0; r < 4; r++) { const y = dockTop - (80 + r * 70) * S * 0.7, rr = (90 + r * 26) * S * 0.6, ph = t * (0.8 + r * 0.3) + r
+      ctx.strokeStyle = nxCol(a, 0.7); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, y, rr, rr * 0.22, 0, 0, 7); ctx.stroke()
+      ctx.fillStyle = nxCol(a, 1); ctx.beginPath(); ctx.arc(cx + Math.cos(ph) * rr, y + Math.sin(ph) * rr * 0.22, 4, 0, 7); ctx.fill() } }
+  // holo panels
+  { const ps = shift(0.6, W); for (let i = Math.floor((padL - ps) / 340) - 1; i * 340 + ps < padR + 340; i++) { const x = i * 340 + ps + 40 * _h(i), y = dockTop - (230 + 50 * _h(i * 3)) * S * 0.7 + Math.sin(t + i) * 4
+    if (Math.abs(x + 80 - (W / 2 + shift(0.4, W))) < 140) continue; nxPanel(ctx, x, y, 160, 90, t, i, a) } }
+  // circuit traces down to the floor
+  { const ps = shift(0.85, W); for (let i = Math.floor((padL - ps) / 90) - 1; i * 90 + ps < padR + 90; i++) { const x = i * 90 + ps, h = (60 + 80 * _h(i * 5)) * S * 0.6
+    ctx.strokeStyle = nxCol(a, 0.35); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, dockTop); ctx.lineTo(x, dockTop - h); ctx.lineTo(x + 30, dockTop - h - 30); ctx.stroke()
+    const u = ((t * 0.8 + _h(i)) % 1); ctx.fillStyle = nxCol(a, 0.9); ctx.fillRect(x - 2, dockTop - h * u - 2, 4, 4) } }
+}
+function nexusFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
+  if (F[0] !== NX.p1) { Object.assign(NX, { p1: F[0], hp: new WeakMap(), reads: [], alert: 0, done: null, rain: [], cubes: null, flash: 0, shout: [] }); for (const k in NX.st) NX.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (NX.last || t))); NX.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  let big = null, dmg = 0, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = NX.hp.get(f); NX.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) { big = f; dmg = was - hp } }
+  if (big && !NX.done) { NX.st.reads++; NX.reads.push({ x: big.x + (big.w || 50) / 2, y: feet - 200, t: 0, n: Math.round(dmg) }) }
+  if (low && !NX.st.alert && !NX.done) { NX.st.alert++; nxShout(mid, feet - 240, "⚠ SYSTEM ALERT — VITALS CRITICAL", "#b81a2a") }
+  if (NX.st.alert && !NX.done) NX.alert = Math.min(1, NX.alert + dt * 0.9)
+  if (ko && !NX.done) { NX.done = { t: 0 }; NX.st.done++; NX.flash = 1; camera.shake?.(8, 30) }
+  if (NX.done) { NX.done.t += dt; if (NX.done.t < 2.5) for (let i = 0; i < 6; i++) NX.rain.push({ x: padL + (padR - padL) * nxRnd(), y: dockTop - 600, v: 300 + 300 * nxRnd(), ch: nxRnd() < 0.5 ? "0" : "1", life: 2.4 })
+    if (NX.done.t > 0.8 && !NX.done.said) { NX.done.said = true; nxShout(mid, feet - 250, "ANALYSIS COMPLETE.", "#0a6a5a") } if (NX.done.t > 1) NX.alert = Math.max(0, NX.alert - dt * 0.8) }
+  drawCrowd(ctx, NXC, { W, feet, sh: shift(0.9, W) })
+  // floating data cubes
+  if (!NX.cubes) NX.cubes = Array.from({ length: 14 }, (_, i) => ({ x: (i * 0.618) % 1, y: (i * 0.754) % 1, s: 6 + 8 * ((i * 0.37) % 1), ph: i }))
+  for (const q of NX.cubes) { const x = padL + (padR - padL) * q.x, y = dockTop - 80 - 360 * q.y + Math.sin(t * 0.8 + q.ph) * 10; ctx.save(); ctx.translate(x, y); ctx.rotate(t * 0.6 + q.ph); ctx.strokeStyle = nxCol(NX.alert, 0.7); ctx.lineWidth = 1.5; ctx.strokeRect(-q.s / 2, -q.s / 2, q.s, q.s); ctx.restore() }
+  // impact readouts
+  for (const r of NX.reads) { r.t += dt; const al = Math.min(1, r.t * 5, (2 - r.t) * 2); if (al <= 0) continue
+    ctx.save(); ctx.globalAlpha = al; const y = r.y - r.t * 20; ctx.fillStyle = "rgba(4,40,44,0.8)"; ctx.fillRect(r.x - 90, y - 22, 180, 44); ctx.strokeStyle = "#2dd4bf"; ctx.lineWidth = 1.5; ctx.strokeRect(r.x - 90, y - 22, 180, 44)
+    ctx.font = "700 12px monospace"; ctx.textAlign = "center"; ctx.fillStyle = "#9afff0"; ctx.fillText("ANALYZING…", r.x, y - 6); ctx.font = "900 15px monospace"; ctx.fillStyle = "#ffffff"; ctx.fillText(`IMPACT +${r.n}`, r.x, y + 12); ctx.restore() }
+  NX.reads = NX.reads.filter(r => r.t < 2)
+  // glitch bands in the alert
+  if (NX.alert > 0.3 && !NX.done) for (let i = 0; i < 3; i++) { if (Math.sin(t * 7 + i * 3) < 0.3) continue; const y = dockTop - 400 + ((t * 300 + i * 220) % 700), h = 6 + 10 * _h(i + Math.floor(t * 9))
+    ctx.fillStyle = `rgba(255,60,80,${0.25 * NX.alert})`; ctx.fillRect(padL, y, padR - padL, h); ctx.fillStyle = `rgba(80,255,240,${0.15 * NX.alert})`; ctx.fillRect(padL + 8, y + h, padR - padL, 2) }
+  // the 0/1 cascade
+  ctx.font = "700 14px monospace"; ctx.textAlign = "center"
+  for (const d of NX.rain) { d.life -= dt; d.y += d.v * dt; ctx.fillStyle = `rgba(120,255,230,${Math.max(0, Math.min(1, d.life))})`; ctx.fillText(d.ch, d.x, d.y) }
+  NX.rain = NX.rain.filter(d => d.life > 0 && d.y < coverBottom + 20).slice(-500)
+  if (NX.flash > 0) { NX.flash = Math.max(0, NX.flash - dt * 2); ctx.fillStyle = `rgba(230,255,250,${0.7 * NX.flash})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  if (NX.alert > 0) { ctx.fillStyle = `rgba(120,0,10,${0.12 * NX.alert})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) }
+  for (const s of NX.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  NX.shout = NX.shout.filter(s => s.t > 0)
 }

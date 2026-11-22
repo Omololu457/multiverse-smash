@@ -2411,7 +2411,8 @@ const STAGE_DEFS = [
       layers: "mike_command", backgroundImage: "stages/mike_command/preview.png" },
   { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3", worldWidth: 2400,
       layers: "code_pk", backgroundImage: "stages/code_pk/preview.png" },   // layered (drawn in code); song kept
-  { name: "Analysis Nexus",         series: "original",     music: "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", landmark: "analysis_nexus",  sky: "#051a1f", mid: "#0a2e33", floor: "#04141a", accent: "#2dd4bf" },
+  { name: "Analysis Nexus",         series: "original",     music: "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", landmark: "analysis_nexus",  sky: "#051a1f", mid: "#0a2e33", floor: "#04141a", accent: "#2dd4bf", worldWidth: 2400,
+      layers: "code_nexus", backgroundImage: "stages/code_nexus/preview.png" },   // layered (drawn in code); song kept
   { name: "Shadow Garden",          series: "other",       music: "Brent Faiyaz - Wish You Well (Full Version).mp3", landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", worldWidth: 2400,
       layers: "eagle_shadow", backgroundImage: "stages/eagle_shadow/preview.png" },   // layered (Eagle sheet, moonlit); song picked by me (user: "not Japanese, not one I've picked")
   // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):

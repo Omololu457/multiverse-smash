@@ -38,7 +38,8 @@ try {
   const b2 = await T(); await page.screenshot({ path: path.join(OUT, "big_hit.png") })
   check("a big hit: the car alarm goes off, the pigeons scatter", b2.alarms >= 1 && b2.flying >= 1, JSON.stringify({ a: b2.alarms, fly: b2.flying, s: b2.shouting }))
   // Ben goes alien: Omnitrix dial ↓↓ then Light
-  for (const k of ["KeyS", "KeyS", "KeyJ"]) { await page.keyboard.press(k); await sleep(90) }
+  // each key HELD ~60 ms like a player's tap (an instant press() can fall between two game frames and be missed)
+  for (const k of ["KeyS", "KeyS", "KeyJ"]) { await page.keyboard.down(k); await sleep(60); await page.keyboard.up(k); await sleep(70) }
   await sleep(2500); const b3 = await T(); await page.screenshot({ path: path.join(OUT, "ben.png") })
   check("Ben transforms in the street: green flash + \"IT'S BEN 10!!\"", b3.benCalls >= 1, JSON.stringify({ calls: b3.benCalls, form: await page.evaluate(() => { const p = window.__harness.p1(); return [p.transformed, p.activeAlien] }) }))
   await hold("p2", q => Math.round((q.maxHealth || q.maxHp || 1000) * 0.18)); await sleep(2500)

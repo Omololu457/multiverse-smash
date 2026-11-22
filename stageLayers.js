@@ -287,6 +287,24 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// ANGEL GROVE (Power Rangers) — Sao Paulo (Sean's Stage, SFIII 2nd Impact sheet) by tools/stage_layers/slice_sean_angelgrove.py:
+// the wrecked street; downtown the Megazords fight giant monsters, the Falconzord strafes, Rangers fight Krybots, civilians run.
+SETS.sean_angelgrove = {
+  dir: "./stages/sean_angelgrove/",
+  S: 1.15,
+  standRow: 26,
+  deckFrontRow: 60,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [
+    { procedural: "angelgrove", p: 0.9 },
+    { piece: "street", p: 0.9, x: 0.5, tile: "repeat", bottomRow: 0 },   // repeats (the signs must read right); never a gap
+  ],
+  props: [],
+  front: [],
+  fx: "angelgrove",
+  animRate: {},
+}
+
 // BELLWOOD (Ben 10) — Birdie's Stage (Street Fighter 1987 sheet) by tools/stage_layers/slice_birdie_bellwood.py: a quiet
 // main street (Mr. Smoothy), neighbours + pigeons; the fight in the street draws a crowd, a car alarm, the cops.
 SETS.birdie_bellwood = {
@@ -440,6 +458,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "angelgrove") { drawAngelGroveSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "bellwood_sky") { drawBellwoodSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "arlong_sky") { drawArlongSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "krypton") { drawKryptonSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -538,6 +557,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "angelgrove") angelGroveFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "bellwood") bellwoodFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "arlong") arlongFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "krypton") kryptonFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -3289,4 +3309,206 @@ function bellwoodFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   BW.shout = BW.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── ANGEL GROVE (Power Rangers; render-only, wall clock, own PRNG) ─────────────────────────────
+// Sean's Sao Paulo street (Street Fighter III) as Angel Grove under monster attack — the Namek idea with Zords:
+// downtown, at the end of the street, the THUNDER MEGAZORD and the NINJA MEGAZORD (the game's own Zord art) fight giant
+// monsters (giant Krybots, recoloured) between the towers — slashes and punches land with explosions, the monsters hit
+// back, go down in a huge blast, and Rita's lightning makes the next one grow. The FALCONZORD streaks over the
+// rooftops and fires on them. Smoke rises from the city. In the street behind the fighters, Rangers (the game's real
+// Ranger sprites) fight Krybots, and civilians run for their lives. The match drives it: a big hit → a stray blast hits
+// the street (civilians knocked flat, the camera shakes); a fighter at ≤25% → the monsters go berserk on the city; the
+// knockout → both Megazords' finishers, the monsters explode in a white-out, the Krybots blow apart, the street cheers.
+let _agSeed = 0x6a09e667
+const agRnd = () => { _agSeed ^= _agSeed << 13; _agSeed ^= _agSeed >>> 17; _agSeed ^= _agSeed << 5; return (_agSeed >>> 0) / 4294967296 }
+const AG_RANGERS = ["mmpr_pink", "spd_red", "mmpr_black", "green_ranger", "spd_blue", "mmpr_white", "spd_yellow", "spd_green", "spd_pink"]
+const AG = { p1: null, last: 0, hp: new WeakMap(), spr: null, loading: false, duels: null, falcon: null, pairs: null, ppl: null, far: [], near: [], debris: [], shout: [], monPos: [],
+  rage: false, final: false, finT: 0, white: 0, geo: null,
+  st: { zordHits: 0, zordHurt: 0, monstersDown: 0, grows: 0, krybotsDown: 0, rangerHits: 0, falconRuns: 0, falconShots: 0, knocked: 0, strays: 0, finishers: 0 } }
+export const angelGroveState = () => ({ ...AG.st, sprites: AG.spr ? { rangers: AG.spr.rangers.length, krybot: !!AG.spr.krybot, thunder: !!AG.spr.cells.thunder.ready0, ninja: !!AG.spr.cells.ninja.ready0, falcon: !!AG.spr.cells.falcon.fly0,
+    ready: AG.spr.rangers.filter(r => ready(r.A.idle?.im)).length } : null, civilians: (AG.ppl || []).length, fighting: (AG.pairs || []).length, rage: AG.rage, final: AG.final,
+  monsters: (AG.duels || []).map(d => ({ hp: d.mon.hp, phase: d.phase, grow: +d.mon.grow.toFixed(2) })), shouting: AG.shout.filter(s => s.t > 0).map(s => s.txt) })
+function agLoad() {
+  if (AG.loading) return; AG.loading = true
+  Promise.all([import("./characters.js"), import("./thunderMegazordSprites.js"), import("./ninjaMegazordSprites.js"), import("./falconzordSprites.js")]).then(([C, T, N, Fz]) => {
+    const cellsOf = M => { const o = {}; for (const [k, c] of Object.entries(M)) { const im = new Image(); im.src = c.src; o[k] = { ...c, im } } return o }
+    const anims = key => { const ch = C.characters?.[key]; if (!ch) return null; const A = {}
+      for (const a of ["idle", "run", "light", "heavy", "hurt", "jump"]) { const d = ch.animationData?.[a]; if (!d?.sheet || !d.width || !d.height) continue; const im = new Image(); im.src = d.sheet; A[a] = { d, im } }
+      return A.idle && A.run ? { key, A, sc: (ch.spriteScale || 1.8) } : null }
+    AG.spr = { cells: { thunder: cellsOf(T.THUNDER_CELLS), ninja: cellsOf(N.NINJA_CELLS), falcon: cellsOf(Fz.FALCON_CELLS) }, rangers: AG_RANGERS.map(anims).filter(Boolean), krybot: anims("krybot") }
+  }).catch(() => { AG.spr = { cells: { thunder: {}, ninja: {}, falcon: {} }, rangers: [], krybot: null } })
+}
+function agGeo(def, c, W, dockTop) {
+  const pc = c.layout.pieces.street, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
+  return { pc, S, w, x0, y0, X: px => x0 + px * S, Y: py => y0 + py * S }
+}
+function agShout(x, y, txt, col) { if (AG.shout.filter(s => s.t > 0).length < 4) AG.shout.push({ x, y, txt, col: col || "#222", t: 1.6 }) }
+function agBoom(list, x, y, r) { list.push({ x, y, r, t: 0, life: 0.6 + r / 160 }); if (list.length > 60) list.shift() }
+function agCell(ctx, set, name, x, y, sc, dir) {
+  const c = AG.spr?.cells[set]?.[name]; if (!c || !ready(c.im)) return
+  ctx.save(); ctx.translate(x, y); if (dir !== (c.face || 1)) ctx.scale(-1, 1); ctx.drawImage(c.im, -c.ax * sc, -c.ay * sc, c.w * sc, c.h * sc); ctx.restore()
+}
+function agAnim(ctx, U, name, t, x, y, sc, dir, filter) {
+  const a = U?.A[name] || U?.A.idle; if (!a || !ready(a.im)) return
+  const d = a.d, n = Math.max(1, Math.min(d.frames, Math.floor(a.im.naturalWidth / d.width))), f = Math.floor(t) % n
+  const ox = (d.originX ?? d.width / 2) * sc, oy = (d.originY ?? d.height) * sc
+  ctx.save(); ctx.translate(x, y); if (dir < 0) ctx.scale(-1, 1); if (filter) ctx.filter = filter
+  ctx.drawImage(a.im, f * d.width, 0, d.width, d.height, -ox, -oy, d.width * sc, d.height * sc); ctx.restore()
+}
+function agBooms(ctx, list, dt) {
+  for (const b of list) { b.t += dt; const k = b.t / b.life; if (k >= 1) continue
+    const r = b.r * (0.4 + k), a = 1 - k
+    ctx.fillStyle = `rgba(80,70,70,${0.5 * a})`; ctx.beginPath(); ctx.arc(b.x + r * 0.2, b.y - r * 0.5 - k * 30, r * 0.9, 0, 7); ctx.fill()
+    ctx.fillStyle = `rgba(255,${140 + 80 * a | 0},40,${0.9 * a})`; ctx.beginPath(); ctx.arc(b.x, b.y, r * 0.75, 0, 7); ctx.fill()
+    ctx.fillStyle = `rgba(255,255,220,${a})`; ctx.beginPath(); ctx.arc(b.x, b.y, r * 0.35 * (1 - k), 0, 7); ctx.fill() }
+  return list.filter(b => b.t < b.life)
+}
+function agSpark(ctx, x, y, r, col) { ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.moveTo(x + Math.cos(a) * r * 0.3, y + Math.sin(a) * r * 0.3); ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r) } ctx.stroke() }
+
+const AG_ATTACKS = { thunder: [["draw0", "hslash0"], ["raise0", "over0", "over1"], ["low0", "rslash0", "rslash1"], ["thrust0", "lunge0"]],
+  ninja: [["jab0", "punch0"], ["punch0", "punch1"], ["chamber0", "rearKick0"], ["crane0", "knee0"]] }
+const AG_FINISH = { thunder: ["raise0", "over0", "dslash0"], ninja: ["draw0", "cut0", "finish0"] }
+function agDuel(kind, i) { return { kind, i, phase: "idle", t: 1 + i, seq: null, ci: 0, ct: 0, zHurt: 0, mon: { hp: 6, hurtT: 0, atk: null, atkT: 0, fall: 0, grow: 1, fx: i ? "hue-rotate(110deg) saturate(1.5) brightness(0.9)" : "hue-rotate(250deg) saturate(1.6) brightness(0.85)" } } }
+function agDuelStep(D, dt) {
+  const M = D.mon; M.hurtT = Math.max(0, M.hurtT - dt); D.zHurt = Math.max(0, D.zHurt - dt)
+  if (M.grow < 1) { M.grow = Math.min(1, M.grow + dt * 0.45); return null }
+  D.t -= dt
+  if (D.phase === "down") { M.fall = Math.min(1, M.fall + dt * 0.8); if (D.t <= 0) { if (AG.final) { D.phase = "gone"; return null } D.phase = "idle"; M.hp = 6; M.fall = 0; M.grow = 0.05; D.t = 2; AG.st.grows++; return "grow" } return null }
+  if (D.phase === "gone") return null
+  if (D.phase === "idle" && D.t <= 0) {
+    if (agRnd() < (AG.rage ? 0.55 : 0.4)) { D.phase = "mon"; M.atk = agRnd() < 0.5 ? "light" : "heavy"; M.atkT = 0.7; D.t = 0.7 }
+    else { D.phase = "zord"; D.seq = AG_ATTACKS[D.kind][Math.floor(agRnd() * 4)]; D.ci = 0; D.ct = 0.2 } }
+  if (D.phase === "zord" || D.phase === "finish") { D.ct -= dt
+    if (D.ct <= 0) { D.ci++; D.ct = D.phase === "finish" ? 0.35 : 0.2
+      if (D.ci >= D.seq.length) { M.hurtT = 0.45; M.hp -= D.phase === "finish" ? 99 : 1; AG.st.zordHits++
+        const out = M.hp <= 0 ? "down" : "hit"
+        if (M.hp <= 0) { D.phase = "down"; D.t = AG.final ? 2.5 : 3.2; AG.st.monstersDown++ } else { D.phase = "idle"; D.t = 0.9 + agRnd() * 1.1 }
+        return out } } }
+  if (D.phase === "mon") { M.atkT -= dt; if (M.atkT <= 0) { M.atk = null; D.zHurt = 0.5; AG.st.zordHurt++; D.phase = "idle"; D.t = 1 + agRnd(); return "zhurt" } }
+  return null
+}
+
+function drawAngelGroveSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const t = now(), G = AG.geo = agGeo(def, c, W, dockTop), P = c.layout.pieces, S = def.S
+  if (!AG.spr) agLoad()
+  const dt = Math.min(0.05, Math.max(0, t - (AG.skyLast || t))); AG.skyLast = t
+  const g = ctx.createLinearGradient(0, coverTop, 0, G.Y(222)); g.addColorStop(0, AG.rage ? "#a04a3a" : "#3a7ae0"); g.addColorStop(1, AG.rage ? "#e8a070" : "#9ad0f0")
+  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
+  const sk = P.sky, im = c.img[sk.file], skyY = G.Y(205) - sk.horizon * S
+  for (const cp of mirrorCopies(G, G.w, padL, padR, true)) {
+    const x0 = cp.X(0); if (ready(im)) ctx.drawImage(im, Math.floor(x0), skyY, Math.ceil(sk.w * S) + 1, sk.h * S)
+    const cx = cp.X(P.street.gap[0]), gy = G.Y(P.street.gap[1]) + 75   // the giants' feet are hidden behind the wreck: they tower over the rooftops
+    // smoke + fire in the towers
+    for (let i = 0; i < 4; i++) { const sx = cx + (i - 1.5) * 52 * S / 1.3, base = gy - 40 - 30 * _h(i * 5 + cp.k)
+      for (let j = 0; j < 7; j++) { const u = ((t * 0.18 + j / 7 + i * 0.13) % 1), r = 10 + u * 34 * (AG.rage ? 1.5 : 1)
+        ctx.fillStyle = `rgba(${60 + 30 * u | 0},${55 + 30 * u | 0},${60 + 30 * u | 0},${0.55 * (1 - u)})`; ctx.beginPath(); ctx.arc(sx + Math.sin(t + j + i) * 10 + u * 40, base - u * 180, r, 0, 7); ctx.fill() }
+      ctx.fillStyle = `rgba(255,${120 + 60 * Math.sin(t * 9 + i) | 0},30,0.7)`; ctx.beginPath(); ctx.arc(sx, base, 6 + 3 * Math.sin(t * 7 + i), 0, 7); ctx.fill() }
+  }
+  agGiants(ctx, def, c, G, { padL, padR, coverTop }, t, dt)
+}
+
+function agGiants(ctx, def, c, G, { padL, padR, coverTop }, t, dt) {   // drawn BEHIND the street: they stand in the open end of the street, legs hidden by the wreck
+  const P = c.layout.pieces, S = def.S
+  if (!AG.duels) AG.duels = [agDuel("thunder", 0), agDuel("ninja", 1)]
+  AG.monPos = []
+  for (const cp of mirrorCopies(G, G.w, padL, padR, true)) {
+    const cx = cp.X(P.street.gap[0]), gy = G.Y(P.street.gap[1]) + 8
+    ctx.save()
+    // the duel in this copy's stretch of downtown
+    const D = AG.duels[((cp.k % 2) + 2) % 2], dir = D.i ? -1 : 1, zx = cx - dir * 92, mx = cx + dir * 92, zs = 3.3, ms = 5.2
+    const zcell = D.phase === "zord" || D.phase === "finish" ? D.seq[Math.min(D.ci, D.seq.length - 1)] : D.zHurt > 0 ? (D.kind === "thunder" ? "brace0" : "stagger0") : (D.kind === "thunder" ? ["ready0", "ready1"] : ["ready0", "ready1"])[Math.floor(t * 2 + D.i) % 2]
+    agCell(ctx, D.kind, zcell, zx, gy, zs, dir)
+    if (D.phase === "finish" && D.kind === "thunder") { ctx.strokeStyle = `rgba(255,255,160,${0.6 + 0.4 * Math.sin(t * 30)})`; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(zx + dir * 40, gy - 300); ctx.lineTo(mx, gy - 60); ctx.stroke() }
+    const M = D.mon, K = AG.spr?.krybot
+    if (D.phase !== "gone" && K) { const gsc = ms * (M.grow < 1 ? M.grow : 1)
+      ctx.save(); ctx.translate(mx, gy); ctx.rotate(dir * M.fall * 1.3); ctx.translate(-mx, -gy)
+      agAnim(ctx, K, M.atk || (M.hurtT > 0 || D.phase === "down" ? "hurt" : "idle"), t * 6, mx, gy, gsc, -dir, M.fx + (M.hurtT > 0 ? " brightness(1.8)" : ""))
+      ctx.restore()
+      if (M.grow < 1) { ctx.strokeStyle = `rgba(220,160,255,${0.5 + 0.5 * Math.sin(t * 40)})`; ctx.lineWidth = 4; ctx.beginPath(); let lx = mx, ly = coverTop; ctx.moveTo(lx, ly); while (ly < gy) { lx += (agRnd() - 0.5) * 40; ly += 30; ctx.lineTo(lx, ly) } ctx.stroke()
+        ctx.save(); ctx.font = "900 20px Georgia, serif"; ctx.textAlign = "center"; ctx.fillStyle = "#c070ff"; ctx.strokeStyle = "#200830"; ctx.lineWidth = 4; ctx.strokeText("MAKE MY MONSTER GROW!", mx, Math.max(coverTop + 40, gy - 330)); ctx.fillText("MAKE MY MONSTER GROW!", mx, Math.max(coverTop + 40, gy - 330)); ctx.restore() } }
+    if (M.hurtT > 0.3) agSpark(ctx, mx - dir * 30, gy - 190, 60, "rgba(255,240,120,0.9)")
+    if (D.zHurt > 0.35) agSpark(ctx, zx + dir * 20, gy - 180, 50, "rgba(160,255,255,0.9)")
+    AG.monPos.push({ x: mx, y: gy - 190, D })
+    ctx.restore()
+  }
+  // the Falconzord: streaks over the rooftops every so often and fires on a monster
+  const F = AG.falcon
+  if (!F && !AG.final) { AG.fT = (AG.fT ?? 4) - dt; if (AG.fT <= 0) { const l = agRnd() < 0.5; AG.falcon = { x: l ? padL - 150 : padR + 150, vx: l ? 520 : -520, y: G.Y(25) + agRnd() * 30, fired: false }; AG.fT = 11 + agRnd() * 6; AG.st.falconRuns++ } }
+  if (F) { F.x += F.vx * dt; const dir = Math.sign(F.vx)
+    agCell(ctx, "falcon", ["fly0", "fly1"][Math.floor(t * 10) % 2], F.x, F.y, 1.6, dir)
+    const tgt = AG.monPos.find(m => m.D.phase !== "down" && m.D.phase !== "gone" && m.D.mon.grow >= 1 && Math.abs(m.x - F.x) < 220 && Math.sign(m.x - F.x) === dir)
+    if (tgt && !F.fired) { F.fired = true; F.beam = { x: tgt.x, y: tgt.y, t: 0.3 }; AG.st.falconShots++; agBoom(AG.far, tgt.x, tgt.y, 40); tgt.D.mon.hurtT = 0.4; tgt.D.mon.hp = Math.max(1, tgt.D.mon.hp - 1) }
+    if (F.beam && F.beam.t > 0) { F.beam.t -= dt; ctx.strokeStyle = "rgba(255,230,90,0.95)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(F.x, F.y + 10); ctx.lineTo(F.beam.x, F.beam.y); ctx.stroke() }
+    if (F.x < padL - 300 || F.x > padR + 300) AG.falcon = null }
+  AG.far = agBooms(ctx, AG.far, dt)
+}
+
+function angelGroveFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), FF = (_lastWorld?.fighters || []).filter(Boolean), G = AG.geo || agGeo(def, c, W, dockTop), S = def.S
+  if (FF[0] !== AG.p1) { Object.assign(AG, { p1: FF[0], hp: new WeakMap(), duels: null, falcon: null, pairs: null, ppl: null, far: [], near: [], debris: [], shout: [], rage: false, final: false, finT: 0, white: 0, fT: 4 })
+    for (const k in AG.st) AG.st[k] = 0 }
+  const dt = Math.min(0.05, Math.max(0, t - (AG.last || t))); AG.last = t
+  const feet = dockTop + 3 * S, mid = FF.length ? FF.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / FF.length : W / 2
+  // the giant duels (state; drawn in the sky layer)
+  for (const D of AG.duels || []) { const ev = agDuelStep(D, dt), m = AG.monPos.find(p => p.D === D)
+    if (ev === "hit" && m) agBoom(AG.far, m.x, m.y + (agRnd() - 0.5) * 40, 34)
+    if (ev === "down" && m) { agBoom(AG.far, m.x, m.y, 130); agBoom(AG.far, m.x + 40, m.y + 50, 90); camera.shake?.(7, 26) }
+    if (ev === "down" && !m) camera.shake?.(4, 14)
+    if (ev === "grow" && m) agShout(m.x, m.y - 150, "MAKE MY MONSTER GROW!", "#8a2ad0") }
+  // the fight → the city
+  let big = false, low = false, ko = false
+  for (const f of FF) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = AG.hp.get(f); AG.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = true }
+  if (!AG.ppl) {
+    AG.ppl = Array.from({ length: 9 }, (_, i) => ({ kind: ["walk", "kid", "walk", "stroller", "old", "walk", "kid", "mail", "walk"][i], seed: i * 2.1, x: padL + (padR - padL) * ((i * 0.41 + 0.07) % 1), dir: i % 2 ? -1 : 1,
+      speed: 120 + 60 * ((i * 0.37) % 1), mode: "walk", ph: i, cheer: 1, go: true, phone: false, down: 0,
+      shirt: ["#d84a4a", "#3a7ad8", "#f0c040", "#4aa860", "#9a5ad0", "#e8e8e8", "#f08a3a", "#2a3a7a", "#c83a8a"][i], pants: ["#2a3a6a", "#3a3a3a", "#5a4a3a"][i % 3],
+      skin: ["#f1c9a5", "#c58c64", "#8a5a3a", "#e0b090", "#6a4028"][i % 5], hair: ["#3a2a1a", "#1a1a1a", "#8a4a2a", "#d8b060"][i % 4], hat: i === 7 ? "#2a3a7a" : null }))
+  }
+  if (!AG.pairs && AG.spr?.krybot && AG.spr.rangers.length) AG.pairs = [0.3, 0.44, 0.58, 0.72].map((u, i) => ({ x: padL + (padR - padL) * u, r: i, k: { hp: 3, x: 0, ent: 0, hurt: 0, atk: 0, gone: 0 }, rHurt: 0, rAtk: 0, rName: "idle", t: i * 0.4, dir: i % 2 ? -1 : 1 }))
+  if (big) { AG.st.strays++; const tx = AG.ppl.length ? AG.ppl[Math.floor(agRnd() * AG.ppl.length)].x : mid
+    agBoom(AG.near, tx, feet - 30, 70); camera.shake?.(5, 14)
+    for (let i = 0; i < 14; i++) AG.debris.push({ x: tx + (agRnd() - 0.5) * 60, y: feet - 40, vx: (agRnd() - 0.5) * 300, vy: -250 - agRnd() * 250, life: 1.4 })
+    for (const p of AG.ppl) if (Math.abs(p.x - tx) < 140 && !p.down) { p.down = 2.2; AG.st.knocked++ }
+    agShout(tx, feet - 150, ["RUN!!", "MY CAR!!", "LOOK OUT!", "WHERE ARE THE POWER RANGERS?!"][AG.st.strays % 4], "#c03020") }
+  if (low && !AG.rage) { AG.rage = true; agShout(mid, feet - 190, "THE MONSTERS ARE DESTROYING THE CITY!", "#c03020") }
+  if (AG.rage && !AG.final && agRnd() < dt * 1.2 && AG.monPos.length) { const m = AG.monPos[Math.floor(agRnd() * AG.monPos.length)]; agBoom(AG.far, m.x + (agRnd() - 0.5) * 220, m.y + 40 + agRnd() * 60, 50) }
+  if (ko && !AG.final) { AG.final = true; AG.st.finishers++
+    for (const D of AG.duels || []) if (D.phase !== "down" && D.phase !== "gone") { D.phase = "finish"; D.seq = AG_FINISH[D.kind]; D.ci = 0; D.ct = 0.35; D.mon.grow = 1 }
+    AG.finT = 1.1; agShout(mid, feet - 200, "POWER RANGERS — FINISH IT!", "#d02a2a") }
+  if (AG.finT > 0) { AG.finT -= dt; if (AG.finT <= 0) { AG.white = 1; camera.shake?.(12, 50); for (const m of AG.monPos) { agBoom(AG.far, m.x, m.y, 170); agBoom(AG.far, m.x - 50, m.y + 60, 120) } } }
+  // ── civilians running for their lives (arms up)
+  for (const p of AG.ppl) {
+    if (p.down > 0) { p.down -= dt; ctx.save(); ctx.translate(p.x, feet - 2 * S); ctx.rotate(-p.dir * Math.PI / 2 * Math.min(1, (2.2 - p.down) * 4)); bwPerson(ctx, { ...p, cheer: 0, go: false, mode: "watch" }, 0, 0, 0.95, t); ctx.restore(); continue }
+    if (AG.final) { p.go = false; p.cheer = 1; p.mode = "watch"; p.phone = false } else { p.x += p.dir * p.speed * dt; p.ph += dt * p.speed / 6; p.cheer = 1 }
+    if (p.x > padR + 120) { p.x = padL - 100; } if (p.x < padL - 120) p.x = padR + 100
+    bwPerson(ctx, p, p.x, feet - 2 * S, 0.95, t) }
+  // ── Rangers vs Krybots in the street
+  const R = AG.spr?.rangers || [], K = AG.spr?.krybot
+  for (const pr of AG.pairs || []) { const ranger = R[pr.r % R.length], kb = pr.k, d = pr.dir
+    pr.t -= dt; pr.rHurt = Math.max(0, pr.rHurt - dt); pr.rAtk = Math.max(0, pr.rAtk - dt); kb.hurt = Math.max(0, kb.hurt - dt); kb.atk = Math.max(0, kb.atk - dt)
+    if (kb.gone > 0) { kb.gone -= dt; if (kb.gone <= 0) Object.assign(kb, { hp: 3, ent: 1, hurt: 0, atk: 0 }) }
+    else if (kb.ent > 0) kb.ent = Math.max(0, kb.ent - dt * 0.9)
+    else if (pr.t <= 0 && !AG.final) { pr.t = 0.6 + agRnd() * 0.7
+      if (agRnd() < 0.72) { pr.rAtk = 0.35; pr.rName = agRnd() < 0.5 ? "light" : "heavy"; kb.hurt = 0.3; kb.hp--
+        if (kb.hp <= 0) { kb.gone = 2.2; AG.st.krybotsDown++; agBoom(AG.near, pr.x + d * 46, feet - 40, 34); if (AG.st.krybotsDown % 3 === 1) agShout(pr.x, feet - 130, ["KRYBOTS DOWN!", "PROTECT THE CIVILIANS!", "WE NEED MEGAZORD POWER, NOW!"][Math.floor(AG.st.krybotsDown / 3) % 3], "#2a4ad0") } }
+      else { kb.atk = 0.35; pr.rHurt = 0.4; AG.st.rangerHits++ } }
+    if (AG.final && kb.gone <= 0 && kb.hp > 0) { kb.hp = 0; kb.gone = 99; AG.st.krybotsDown++; agBoom(AG.near, pr.x + d * 46, feet - 40, 40) }
+    if (!ranger) continue
+    const rn = AG.final ? (Math.floor(t * 2 + pr.r) % 2 ? "jump" : "idle") : pr.rHurt > 0 ? "hurt" : pr.rAtk > 0 ? pr.rName : "idle"
+    agAnim(ctx, ranger, rn, t * 8 + pr.r, pr.x - d * (pr.rHurt > 0 ? 10 : 0), feet, ranger.sc * 0.5, d)
+    if (K && kb.gone <= 0 && kb.hp > 0) { const kx = pr.x + d * (54 + kb.ent * 400)
+      agAnim(ctx, K, kb.ent > 0 ? "run" : kb.atk > 0 ? "light" : kb.hurt > 0 ? "hurt" : "idle", t * 8 + pr.r * 3, kx, feet, K.sc * 0.5, -d, kb.hurt > 0 ? "brightness(1.8)" : null)
+      if (kb.hurt > 0.15) agSpark(ctx, kx - d * 14, feet - 50, 16, "rgba(255,240,140,0.95)") } }
+  // ── debris, near blasts, shouts, the white-out
+  for (const p of AG.debris) { p.life -= dt; p.vy += 700 * dt; p.x += p.vx * dt; p.y += p.vy * dt; ctx.fillStyle = "#6a625a"; ctx.fillRect(p.x, p.y, 6, 5) }
+  AG.debris = AG.debris.filter(p => p.life > 0 && p.y < coverBottom)
+  AG.near = agBooms(ctx, AG.near, dt)
+  for (const s of AG.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  AG.shout = AG.shout.filter(s => s.t > 0)
+  if (AG.white > 0) { AG.white = Math.max(0, AG.white - dt * 0.7); ctx.fillStyle = `rgba(255,255,240,${AG.white * 0.85})`; ctx.fillRect(padL, G.y0 - 400, padR - padL, coverBottom - G.y0 + 400) }
 }

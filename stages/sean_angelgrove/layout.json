@@ -1,0 +1,34 @@
+{
+ "source": "Street Fighter III: 2nd Impact \u2014 Sao Paulo (Sean's Stage) sheet (ripped by GeometricEntric); Angel Grove under monster attack",
+ "pieces": {
+  "street": {
+   "file": "street.png",
+   "w": 768,
+   "h": 330,
+   "gap": [
+    385,
+    222
+   ],
+   "lamp": [
+    540,
+    80
+   ]
+  },
+  "floor": {
+   "file": "floor.png",
+   "w": 768,
+   "h": 318
+  },
+  "sky": {
+   "file": "sky.png",
+   "w": 768,
+   "h": 368,
+   "horizon": 340
+  }
+ },
+ "colors": {
+  "skyTop": "#3a8af0",
+  "under": "#5a5660"
+ },
+ "preview": "preview.png"
+}

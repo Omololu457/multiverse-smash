@@ -2393,6 +2393,8 @@ const STAGE_DEFS = [
   { name: "Woodsboro",              series: "horror",       music: "Noble_f3mii_Instrumental.mp3", landmark: "woodsboro",       sky: "#20293e", mid: "#2b3446", floor: "#181c26", accent: "#b91c1c" },
   { name: "Heaven's Arena",         series: "hxh",          music: "Jhené Aiko - stranger (Audio).mp3", landmark: "heavens_arena",   sky: "#c4b5fd", mid: "#7c6bb8", floor: "#3b2f63", accent: "#e879f9", worldWidth: 2400, layers: "ryu_heaven", backgroundImage: "stages/ryu_heaven/preview.png" },
   { name: "Viltrumite Warzone",     series: "invincible",   music: "needybounce.mp3", landmark: "viltrum_warzone", sky: "#3d2020", mid: "#2a1a1e", floor: "#160e10", accent: "#60a5fa" },
+  { name: "Angel Grove",            series: "powerrangers", music: "neddy sped up.mp3", landmark: "angel_grove", sky: "#3a7ae0", mid: "#c8b8a8", floor: "#6a6670", accent: "#f43f5e", worldWidth: 2400,
+      layers: "sean_angelgrove", backgroundImage: "stages/sean_angelgrove/preview.png" },
   { name: "Command Center",         series: "powerrangers", music: "neddy sped up.mp3", landmark: "command_center",  sky: "#f6c68a", mid: "#cf9560", floor: "#8f6038", accent: "#f43f5e" },
   { name: "PK Academy",             series: "saiki",        music: "Rema_-_Dumebi.mp3", landmark: "pk_academy",      sky: "#ffd6e8", mid: "#a7e8c4", floor: "#c9a878", accent: "#ff6ba3" },
   { name: "Analysis Nexus",         series: "original",     music: "love_nwantiti__feat__Dj_Yo____AX_EL___Remix_.mp3", landmark: "analysis_nexus",  sky: "#051a1f", mid: "#0a2e33", floor: "#04141a", accent: "#2dd4bf" },

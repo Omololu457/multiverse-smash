@@ -59,5 +59,15 @@ def originals():   # The Originals: a plain dark base (each dimension paints its
     pv[200:, :W // 3] = (52, 48, 62); pv[200:, W // 3:2 * W // 3] = (200, 154, 104); pv[200:, 2 * W // 3:] = (180, 210, 230); pv[200:, 2 * W // 3 + W // 6:] = (50, 36, 32)
     for x in (W // 3, 2 * W // 3): pv[:, x - 2:x + 2] = 255
     Image.fromarray(pv.astype(np.uint8)).save(os.path.join(root, "stages", "code_originals", "preview.png"))
-for n, f in [("code_originals", originals), ("code_colosseum", colosseum), ("code_woodsboro", woodsboro), ("code_pk", pk), ("code_nexus", nexus)]:
+def chimera():   # Chimera Shadow Garden: Megumi's shadow, a glossy black liquid with ripple rings
+    r = np.random.default_rng(6); F = base((12, 11, 24), r, 2, 0.25, 12)
+    for y in range(0, H, 7): F[y, :, :3] += 10 * np.clip(np.sin(np.arange(W) / (14 + y * 0.05) + y), 0, 1)[:, None] * (1 - y / H)
+    yy, xx = np.mgrid[0:H, 0:W]
+    for k in range(9):
+        cx, cy, rr = r.integers(40, W - 40), r.integers(30, H - 30), r.integers(20, 90)
+        d = np.sqrt(((xx - cx) / 1.0) ** 2 + ((yy - cy) * 4.0) ** 2)
+        for ring in (rr, rr * 0.6): F[:, :, :3] += (np.abs(d - ring) < 1.6)[:, :, None] * np.array((50, 46, 90)) * (1 - cy / H)
+    F[:2, :, :3] = (40, 36, 80)
+    out("code_chimera", F, {"skyTop": "#05050c", "under": "#06060c"}, "Drawn in code / generated (no source sheet)")
+for n, f in [("code_chimera", chimera), ("code_originals", originals), ("code_colosseum", colosseum), ("code_woodsboro", woodsboro), ("code_pk", pk), ("code_nexus", nexus)]:
     if not only or n in only: f()

@@ -2430,7 +2430,7 @@ const STAGE_DEFS = [
       layers: "code_originals", backgroundImage: "stages/code_originals/preview.png" },   // homage to the creators: Omololu's lab / Dseyl's sky / Enoch's frost & flame; Nigerian songs only (user)
   { name: "Multiverse Roulette",    series: "original",     music: "Gbona.mp3", shuffle: true, randomSongs: true, landmark: "analysis_nexus", sky: "#1a1030", mid: "#2c2636", floor: "#16141c", accent: "#c084fc", worldWidth: 2400,
       layers: "code_random", backgroundImage: "stages/code_random/preview.png" },   // a RANDOM map that keeps rifting into other random maps; a random song from every map's songs (user)
-  { name: "Shadow Garden",          series: "other",       music: "Brent Faiyaz - Wish You Well (Full Version).mp3", landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", worldWidth: 2400,
+  { name: "Shadow Garden",          series: "jjk",         music: "Brent Faiyaz - Wish You Well (Full Version).mp3", landmark: "shadow_garden",sky: "#111827", mid: "#1f2937", floor: "#0f172a", accent: "#7c3aed", worldWidth: 2400,
       layers: "eagle_shadow", backgroundImage: "stages/eagle_shadow/preview.png" },   // layered (Eagle sheet, moonlit); song picked by me (user: "not Japanese, not one I've picked")
   // LAYERED harbor dock (stageLayers.js, art cut by tools/stage_layers/slice_ken_harbor.py from the SFII Ken's Stage sheet):
   // parallax sea + yacht, bobbing ship with an animated cheering crowd, line-scroll perspective dock, barrels + bollards.

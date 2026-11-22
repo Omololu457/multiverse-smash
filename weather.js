@@ -219,7 +219,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Analysis Nexus":         INDOOR_ONLY,
   "The Originals":          INDOOR_ONLY,      // three dimensions; the multiverse brings its own weather (snow / embers / sunset)
   "Multiverse Roulette":    INDOOR_ONLY,      // every map is someone else's — no extra weather on top
-  "Shadow Garden":          [WEATHER.FOG, WEATHER.RAIN, WEATHER.WIND, WEATHER.THUNDERSTORM],
+  "Shadow Garden":          INDOOR_ONLY,      // Megumi's domain (Chimera Shadow Garden): no sky weather inside it
   "Harbor Dock":            OUTDOOR_FULL,
   "Training Center":        [],               // hologram room: no weather
   "The Batcave":            INDOOR_ONLY,      // underground: cave mist only

@@ -365,18 +365,15 @@ SETS.code_colosseum = {
   animRate: {},
 }
 
-// SHADOW GARDEN (The Eminence in Shadow) — Eagle's stage (SF 1987 sheet) repainted as a moonlit night by
-// tools/stage_layers/slice_eagle_shadow.py; the sky, moon, agents, the Seven Shadows and ATOMIC are drawn in code.
+// SHADOW GARDEN = Megumi's Domain Expansion, CHIMERA SHADOW GARDEN (Jujutsu Kaisen) — no sheet: a generated
+// shadow-liquid floor (tools/stage_layers/gen_code_floors.py) and everything else drawn in code + Megumi's own summon sprites.
 SETS.eagle_shadow = {
-  dir: "./stages/eagle_shadow/",
-  S: 1.9,
-  standRow: 14,
-  deckFrontRow: 40,
+  dir: "./stages/code_chimera/",
+  S: 1.6,
+  standRow: 60,
+  deckFrontRow: 90,
   floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
-  back: [
-    { procedural: "shadow", p: 0.05 },
-    { piece: "land", p: 0.9, x: 0.5, tile: "mirror", bottomRow: 0 },
-  ],
+  back: [{ procedural: "shadow", p: 0.9 }],
   props: [],
   front: [],
   fx: "shadow",
@@ -5277,83 +5274,156 @@ function asakusaFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
   AS.shout = AS.shout.filter(s => s.t > 0)
 }
 
-// ───────────────────────────── SHADOW GARDEN (The Eminence in Shadow; render-only, wall clock, own PRNG) ─────────────────────────────
-// Eagle's stage (SF 1987) repainted as a moonlit night: the castle on its hill is Shadow Garden's hideout (violet light in
-// its windows), the lakes shimmer under a huge moon, fireflies drift, and black-suited Shadow Garden agents keep watch
-// from the ridges. Big hit → agents blink in on the near ridges, slime swords glinting violet ("…the Shadow is
-// watching."); ≤25% → the SEVEN SHADOWS stand in a row on the far hill, eyes glowing, violet mist rolls in; KO →
-// "I AM… ATOMIC.": a violet-white blast swells behind the castle with rings of light, the screen whites out, night returns.
+// ───────────────────────────── SHADOW GARDEN = MEGUMI'S DOMAIN: CHIMERA SHADOW GARDEN (render-only, wall clock, own PRNG) ─────────────────────────────
+// Megumi Fushiguro's Domain Expansion (Jujutsu Kaisen). Everything is flooded with his shadow: a black liquid sea
+// stretches to the horizon, Shibuya's towers sinking into it, ink tendrils rising and dripping from the dark, and his
+// Ten Shadows shikigami (the game's own Megumi summon sprites) surge up out of the shadow and dive back in — the Divine
+// Dogs racing across, Nue sweeping the sky throwing lightning, Toad, the Great Serpent rearing up, Max Elephant
+// flooding the water, Rabbit Escape pouring past. The fighters stand on the shadow itself (it ripples under them).
+// Match start: the shadow floods in — "DOMAIN EXPANSION · CHIMERA SHADOW GARDEN". Big hit → a shikigami bursts out
+// with its name called. ≤25% → the shadows deepen: tendrils tower, eyes open in the dark. KO → "With this treasure I
+// summon…" — the eight-handled wheel turns and MAHORAGA rises from the shadow.
 let _sgSeed = 0x5be0cd19 ^ 0x6a09e667
 const sgRnd = () => { _sgSeed ^= _sgSeed << 13; _sgSeed ^= _sgSeed >>> 17; _sgSeed ^= _sgSeed << 5; return (_sgSeed >>> 0) / 4294967296 }
-const SG = { p1: null, last: 0, hp: new WeakMap(), flies: null, agents: [], seven: 0, atomic: null, shout: [], geo: null,
-  st: { agents: 0, seven: 0, atomic: 0 } }
-export const shadowState = () => ({ ...SG.st, flies: (SG.flies || []).length, agentsUp: SG.agents.filter(a => a.t < a.life).length, seven: +SG.seven.toFixed(2), atomic: SG.atomic ? +SG.atomic.t.toFixed(2) : 0,
-  shouting: SG.shout.filter(s => s.t > 0).map(s => s.txt) })
-function sgGeo(def, c, W, dockTop) {
-  const pc = c.layout.pieces.land, S = def.S, w = pc.w * S, h = pc.h * S, x0 = W / 2 - w / 2 + shift(0.9, W), y0 = dockTop - h
-  return { pc, S, w, x0, y0, Y: py => y0 + py * S }
+// the Megumi summon strips: [cell w, cell h, originX, originY (feet), frames]
+const SGS = { dogWhite: [66, 35, 33, 33, 5], dogBlack: [66, 35, 33, 33, 5], nue: [91, 86, 40, 84, 9], toad: [54, 74, 27, 72, 14], serpent: [42, 179, 21, 177, 7],
+  rabbit: [30, 24, 15, 22, 8], elephant: [287, 80, 52, 78, 16], mahoraga: [188, 228, 104, 226, 29] }
+const _sgImg = {}
+function sgCell(ctx, k, fr, x, yb, sc, flip = 1, al = 1) {
+  const im = _sgImg[k] || (_sgImg[k] = Object.assign(new Image(), { src: `./assets/megumi_fushiguro/summons/${k}.png` })), [w, h, ox, oy, n] = SGS[k]
+  if (!im.complete || !im.naturalWidth || al <= 0.01) return
+  ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha *= al; ctx.translate(Math.round(x), Math.round(yb)); ctx.scale(flip, 1)
+  ctx.drawImage(im, (Math.max(0, Math.min(n - 1, fr)) | 0) * w, 0, w, h, -ox * sc, -oy * sc, w * sc, h * sc); ctx.restore()
 }
-function sgShout(x, y, txt, col) { if (SG.shout.filter(s => s.t > 0).length < 3) SG.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
-function sgAgent(ctx, x, y, s, t, k, eyes) {   // a Shadow Garden agent: black bodysuit, hood, a violet slime sword
-  ctx.save(); ctx.translate(x, y); ctx.scale(s * (k % 2 ? -1 : 1), s)
-  ctx.fillStyle = "#06060c"; ctx.fillRect(-4, -18, 3, 18); ctx.fillRect(1, -18, 3, 18); ctx.beginPath(); ctx.moveTo(-6, -40); ctx.lineTo(6, -40); ctx.lineTo(9, -16); ctx.lineTo(-9, -16); ctx.fill()
-  ctx.beginPath(); ctx.arc(0, -45, 6, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(-8, -44); ctx.quadraticCurveTo(-14, -20, -12, -8); ctx.lineTo(-6, -30); ctx.fill()   // cloak tail
-  if (eyes) { ctx.fillStyle = "#c870ff"; ctx.fillRect(1, -47, 3, 1.6) }
-  const gl = 0.5 + 0.5 * Math.sin(t * 3 + k); ctx.strokeStyle = `rgba(190,110,255,${0.6 + 0.4 * gl})`; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(6, -28); ctx.lineTo(22, -46); ctx.stroke()
-  ctx.strokeStyle = `rgba(220,170,255,${0.25 * gl})`; ctx.lineWidth = 6; ctx.stroke(); ctx.restore()
+const SG = { p1: null, last: 0, skyLast: 0, hp: new WeakMap(), sum: [], ripples: [], next: 1.5, deep: 0, eyes: [], maho: null, intro: 0, shout: [], motes: null, fx: new WeakMap(),
+  st: { summons: 0, called: 0, deep: 0, mahoraga: 0, floods: 0 }, kinds: {} }
+export const shadowState = () => ({ ...SG.st, summonsUp: SG.sum.length, kinds: { ...SG.kinds }, deep: +SG.deep.toFixed(2), maho: SG.maho ? +SG.maho.t.toFixed(2) : 0,
+  intro: +SG.intro.toFixed(2), shouting: SG.shout.filter(s => s.t > 0).map(s => s.txt) })
+function sgShout(x, y, txt, col) { if (SG.shout.filter(s => s.t > 0).length < 3) SG.shout.push({ x, y, txt, col: col || "#1a1a2e", t: 2.2 }) }
+const SG_NAMES = { dogs: "DIVINE DOGS!", nue: "NUE!", toad: "TOAD!", serpent: "GREAT SERPENT!", elephant: "MAX ELEPHANT!", rabbits: "RABBIT ESCAPE!" }
+function sgSummon(kind, lx, z, d, near) {   // lx: back-layer x (unshifted); z: 0 far … 1 near the deck
+  kind = kind || ["dogs", "nue", "toad", "serpent", "elephant", "rabbits"][Math.floor(sgRnd() * 6)]
+  SG.sum.push({ kind, lx, z: z ?? 0.25 + 0.6 * sgRnd(), d: d || (sgRnd() < 0.5 ? 1 : -1), t: 0, near: !!near, life: { dogs: 4.2, nue: 5, toad: 2.6, serpent: 4.2, elephant: 3.6, rabbits: 4.6 }[kind], ph: sgRnd() * 9 })
+  SG.st.summons++; SG.kinds[kind] = (SG.kinds[kind] || 0) + 1; return kind
+}
+function sgRipple(lx, y, r, sp, near) { SG.ripples.push({ lx, y, r: r || 6, sp: sp || 40, a: 1, ...(near ? { deck: y } : {}) }); if (SG.ripples.length > 60) SG.ripples.shift() }
+function sgTendril(ctx, x, yb, h, t, k, w) {   // a ribbon of ink rising from the shadow, swaying
+  ctx.beginPath(); ctx.moveTo(x - w, yb)
+  const pts = []; for (let i = 0; i <= 10; i++) { const u = i / 10; pts.push([x + Math.sin(t * 1.3 + k + u * 4) * 18 * u + Math.sin(t * 0.7 + k * 2) * 10 * u, yb - h * u, w * (1 - u) + 0.6]) }
+  for (const [px, py, pw] of pts) ctx.lineTo(px - pw, py); for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(pts[i][0] + pts[i][2], pts[i][1]); ctx.closePath(); ctx.fill()
+}
+function sgDrawSummons(ctx, list, { surf, zs, sh, padL, padR, coverTop, hz, dt, dockTop }) {
+  // the shikigami: surging up out of the shadow, doing their thing, diving back in (clipped at the surface → they really come out of it)
+  list.sort((a, b) => a.z - b.z)
+  for (const m of list) { m.t += dt; const T = m.t, ys = surf(m.z), sc = zs(m.z) * (m.kind === "elephant" ? 0.9 : m.kind === "serpent" ? 1.2 : 1.5), up = Math.min(1, T / 0.5, Math.max(0, (m.life - T) / 0.5))
+    const clip = (fn, h) => { ctx.save(); ctx.beginPath(); ctx.rect(padL - 400, coverTop - 400, padR - padL + 800, ys - coverTop + 401); ctx.clip(); ctx.translate(0, (1 - up) * h * sc); fn(); ctx.restore()
+      ctx.fillStyle = "rgba(3,3,8,0.9)"; ctx.beginPath(); ctx.ellipse(X, ys, 40 * sc, 6 * sc, 0, 0, 7); ctx.fill() }
+    let X = m.lx + sh
+    if (m.kind === "dogs") { m.lx += m.d * 170 * dt * (T > 0.4 ? 1 : 0); X = m.lx + sh; const fr = 1 + Math.floor(T * 11) % 3
+      clip(() => { sgCell(ctx, "dogWhite", fr, X, ys, sc, m.d); sgCell(ctx, "dogBlack", (fr + 1) % 3 + 1, X - m.d * 60 * sc, ys + 4, sc, m.d) }, 40)
+      if (Math.floor(T * 5) !== Math.floor((T - dt) * 5)) sgRipple(m.lx - m.d * 20, ys, 8, 50, m.near) }
+    else if (m.kind === "nue") { m.lx += m.d * 240 * dt; X = m.lx + sh; const y = (m.near ? hz - 200 : hz - 150) - 30 * Math.sin(T * 1.4 + m.ph), zap = T > 2 && T < 2.6, fr = zap ? 4 + Math.floor((T - 2) * 10) % 3 : Math.floor(T * 9) % 4
+      sgCell(ctx, "nue", fr, X, y, 1.7, m.d, Math.min(1, T * 2, (m.life - T) * 2))
+      if (zap) { ctx.strokeStyle = `rgba(160,230,255,${0.6 + 0.4 * Math.sin(T * 60)})`; ctx.lineWidth = 3; ctx.beginPath(); let px = X, py = y; ctx.moveTo(px, py); while (py < ys) { px += (sgRnd() - 0.5) * 40; py += 30; ctx.lineTo(px, Math.min(py, surf(0.5))) } ctx.stroke()
+        ctx.fillStyle = "rgba(160,220,255,0.07)"; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop); if (!m.rip) { m.rip = 1; sgRipple(px - sh, surf(0.5), 10, 120, m.near) } } }
+    else if (m.kind === "toad") clip(() => sgCell(ctx, "toad", Math.floor(T * 7), X, ys, sc * 1.2, m.d), 74)
+    else if (m.kind === "serpent") { const fr = T < 1 ? Math.floor(T * 5) : T > m.life - 0.8 ? 5 + Math.floor((T - m.life + 0.8) * 2.5) : 4
+      ctx.save(); ctx.translate(X, ys); ctx.rotate(Math.sin(T * 1.6 + m.ph) * 0.06); ctx.translate(-X, -ys); clip(() => sgCell(ctx, "serpent", fr, X, ys, sc, m.d), 30); ctx.restore() }
+    else if (m.kind === "elephant") { const fr = T < 0.5 ? 0 : T > m.life - 0.5 ? 15 : 1 + Math.min(13, Math.floor((T - 0.5) * 6)); clip(() => sgCell(ctx, "elephant", fr, X, ys, sc, m.d), 80)
+      if (fr >= 6 && fr <= 13 && Math.floor(T * 4) !== Math.floor((T - dt) * 4)) sgRipple(m.lx + m.d * 230 * sc, ys, 14, 90, m.near) }
+    else if (m.kind === "rabbits") { m.lx += m.d * 200 * dt
+      for (let r = 0; r < 22; r++) { const rz = Math.min(1, m.z + (r % 5) * 0.05), rx = m.lx + sh - m.d * (r * 26 + 30 * _h(r)), hop = Math.abs(Math.sin(T * 9 + r)) * 14, al = Math.min(1, T * 3 - r * 0.05, (m.life - T) * 2)
+        if (al > 0) sgCell(ctx, "rabbit", Math.floor(T * 14 + r) % 8, rx, surf(rz) - hop, zs(rz) * 1.4, m.d, al) } }
+    if (T < 0.08 && !m.rip0) { m.rip0 = 1; sgRipple(m.lx, ys, 10, 70, m.near); sgRipple(m.lx, ys, 4, 40, m.near) } }
 }
 function drawShadowSky(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
-  const t = now(), G = SG.geo = sgGeo(def, c, W, dockTop), S = def.S, a = SG.atomic ? Math.max(0, 1 - Math.abs(SG.atomic.t - 1.2) / 1.2) : 0
-  const g = ctx.createLinearGradient(0, coverTop, 0, dockTop); g.addColorStop(0, "#03040c"); g.addColorStop(0.6, "#0e1230"); g.addColorStop(1, "#1e2448")
-  ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, dockTop - coverTop)
-  for (let i = 0; i < 140; i++) { const x = padL + (padR - padL) * ((i * 0.6180339) % 1), y = coverTop + (G.Y(60) - coverTop) * ((i * 0.7548776) % 1), tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.3 + i))
-    ctx.fillStyle = `rgba(220,226,255,${0.7 * tw})`; ctx.fillRect(x + shift(0.02, W) * 0.2, y, 1.6, 1.6) }
-  // the huge moon
-  { const mx = W / 2 + shift(0.03, W) - 380, my = G.Y(-10), R = 90 * S * 0.6
-    const halo = ctx.createRadialGradient(mx, my, R * 0.8, mx, my, R * 3); halo.addColorStop(0, "rgba(200,210,255,0.28)"); halo.addColorStop(1, "rgba(200,210,255,0)"); ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(mx, my, R * 3, 0, 7); ctx.fill()
-    ctx.fillStyle = "#eef0ff"; ctx.beginPath(); ctx.arc(mx, my, R, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(150,160,200,0.25)"; for (const [dx, dy, r] of [[-20, -14, 16], [24, 10, 12], [-6, 26, 9], [30, -22, 7]]) { ctx.beginPath(); ctx.arc(mx + dx * S * 0.6, my + dy * S * 0.6, r * S * 0.6, 0, 7); ctx.fill() } }
-  // the Seven Shadows on the far ridge
-  if (SG.seven > 0) { const base = G.Y(40), cx = W / 2 + shift(0.2, W) + 80; for (let i = 0; i < 7; i++) { ctx.save(); ctx.globalAlpha = Math.min(1, SG.seven * 1.5 - i * 0.1); sgAgent(ctx, cx + (i - 3) * 34 * S * 0.6, base, S * 0.8, t, i, true); ctx.restore() } }
-  // ATOMIC behind the castle
-  if (SG.atomic) { const k = SG.atomic.t, cx = W / 2 + shift(0.2, W) + 200, cy = G.Y(40), R = Math.min(1, k / 1.1) * 520, fade = Math.max(0, 1 - Math.max(0, k - 2) / 1.6)
-    const bl = ctx.createRadialGradient(cx, cy, 0, cx, cy, R + 1); bl.addColorStop(0, `rgba(255,255,255,${fade})`); bl.addColorStop(0.35, `rgba(200,150,255,${0.9 * fade})`); bl.addColorStop(0.7, `rgba(110,60,220,${0.6 * fade})`); bl.addColorStop(1, "rgba(60,20,140,0)")
-    ctx.fillStyle = bl; ctx.beginPath(); ctx.arc(cx, cy, R + 1, 0, 7); ctx.fill()
-    for (let r = 0; r < 4; r++) { const rr = ((k * 300 + r * 140) % 700); ctx.strokeStyle = `rgba(220,190,255,${Math.max(0, 0.6 - rr / 1000) * fade})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(cx, cy, rr, rr * 0.35, 0, 0, 7); ctx.stroke() } }
+  const t = now(), S = def.S, dt = Math.min(0.05, Math.max(0, t - (SG.skyLast || t))); SG.skyLast = t
+  const hz = dockTop - 120, sh = shift(0.9, W), deep = SG.deep
+  // the void: black above, a cold indigo glow low over the shadow sea
+  const g = ctx.createLinearGradient(0, coverTop, 0, hz); g.addColorStop(0, "#010103"); g.addColorStop(0.65, "#07061a"); g.addColorStop(1, "#1a1640"); ctx.fillStyle = g; ctx.fillRect(padL, coverTop, padR - padL, hz - coverTop + 2)
+  // slow ink clouds churning in the dark
+  { const ps = shift(0.08, W); for (let i = 0; i < 9; i++) { const x = padL + ((i * 331 + ps + t * 8 * (i % 2 ? 1 : -1)) % (padR - padL + 600) + (padR - padL + 600)) % (padR - padL + 600) - 300, y = hz - 120 - 190 * _h(i * 3.7)
+    ctx.fillStyle = `rgba(${i % 3 ? "4,4,12" : "26,22,60"},${0.55})`; ctx.beginPath(); ctx.ellipse(x, y, 160 + 80 * _h(i), 34 + 14 * Math.sin(t * 0.4 + i), 0, 0, 7); ctx.fill() } }
+  // ink dripping down out of the dark above
+  ctx.fillStyle = "#020205"; { const ps = shift(0.2, W); for (let x = Math.floor((padL - ps) / 70) * 70; x + ps < padR + 70; x += 70) { const len = 40 + 140 * _h(x * 0.13) + 30 * Math.sin(t * 0.8 + x), X = x + ps
+    ctx.beginPath(); ctx.moveTo(X - 14, coverTop); ctx.quadraticCurveTo(X - 6, coverTop + len * 0.7, X, coverTop + len); ctx.quadraticCurveTo(X + 6, coverTop + len * 0.7, X + 14, coverTop); ctx.fill()
+    const dr = ((t * 0.5 + _h(x)) % 1); ctx.beginPath(); ctx.arc(X, coverTop + len + dr * 260, 3 * (1 - dr), 0, 7); ctx.fill() } }
+  // Shibuya sinking into the shadow: tower silhouettes on the horizon, a few dead windows still lit
+  { const ps = shift(0.3, W), step = 520
+    for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) { const x0 = i * step + ps
+      for (let b = 0; b < 6; b++) { const bw = 40 + 50 * _h(i * 7 + b), bh = 60 + 150 * _h(i * 11 + b * 3), bx = x0 + b * 86, tilt = (_h(i + b * 5) - 0.5) * 0.12
+        ctx.save(); ctx.translate(bx + bw / 2, hz + 10); ctx.rotate(tilt); ctx.fillStyle = "#0d0c22"; ctx.fillRect(-bw / 2, -bh, bw, bh); ctx.strokeStyle = "rgba(110,100,200,0.25)"; ctx.lineWidth = 1; ctx.strokeRect(-bw / 2, -bh, bw, bh)
+        for (let wy = -bh + 10; wy < -6; wy += 14) for (let wx = -bw / 2 + 6; wx < bw / 2 - 6; wx += 12) if (_h(i * 31 + b * 13 + wx * 0.7 + wy) < 0.07) { ctx.fillStyle = "rgba(200,190,255,0.5)"; ctx.fillRect(wx, wy, 5, 6) }
+        ctx.restore() } } }
+  // the shadow sea, flat black to the horizon, glossy under the indigo glow
+  { const sg = ctx.createLinearGradient(0, hz, 0, dockTop); sg.addColorStop(0, "#14123a"); sg.addColorStop(0.08, "#06060f"); sg.addColorStop(1, "#04040a"); ctx.fillStyle = sg; ctx.fillRect(padL, hz, padR - padL, dockTop - hz + 4)
+    for (let j = 0; j < 16; j++) { const y = hz + 4 + (j / 16) ** 1.4 * (dockTop - hz - 6), ps = shift(0.3 + 0.6 * j / 16, W), len = 60 + 160 * (j / 16)
+      ctx.fillStyle = `rgba(150,140,255,${0.08 + 0.1 * (1 - j / 16)})`; for (let x = Math.floor((padL - ps) / 300) * 300; x + ps < padR + 300; x += 300) { const xx = x + ps + 150 * _h(j * 3 + x * 0.01) + Math.sin(t * 0.8 + j + x) * 20; ctx.fillRect(xx, y, len * (0.6 + 0.4 * Math.sin(t * 0.5 + j * 2 + x)), 1.4) } } }
+  const surf = z => hz + 10 + z * (dockTop - hz - 18), zs = z => 0.75 + 0.75 * z
+  // ripples spreading over the shadow
+  for (const r of SG.ripples) { if (r.deck) continue; r.r += r.sp * dt; r.a -= dt * 0.5; if (r.a <= 0) continue; ctx.strokeStyle = `rgba(190,180,255,${0.45 * r.a})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(r.lx + sh, r.y, r.r, r.r * 0.16, 0, 0, 7); ctx.stroke() }
+  SG.ripples = SG.ripples.filter(r => r.a > 0)
+  // ink tendrils rising from the sea (they tower when the shadows deepen)
+  ctx.fillStyle = "#020206"; { const ps = shift(0.55, W); for (let x = Math.floor((padL - ps) / 190) * 190 - 190; x + ps < padR + 190; x += 190) { const k = x * 0.01, h = (60 + 90 * _h(k)) * (1 + 1.6 * deep), X = x + ps + 80 * _h(k * 3)
+    sgTendril(ctx, X, surf(0.15 + 0.3 * _h(k * 5)), h, t, k, 9 + 4 * _h(k)) } }
+  // eyes opening in the dark (deep)
+  if (deep > 0.05) for (let i = 0; i < 14; i++) { const lx = (i * 397) % 2400 - 1200 + W / 2, y = surf(0.1 + 0.5 * _h(i * 7)) - 30 - 40 * _h(i), bl = Math.max(0, Math.sin(t * 0.9 + i * 2.3)) > 0.12 ? 1 : 0.1
+    ctx.fillStyle = `rgba(235,235,255,${deep * bl * 0.9})`; for (const d of [-1, 1]) { ctx.beginPath(); ctx.ellipse(lx + shift(0.5, W) + d * 7, y, 3.4, 1.6 * bl + 0.2, 0, 0, 7); ctx.fill() } }
+  sgDrawSummons(ctx, SG.sum.filter(m => !m.near), { surf, zs, sh, padL, padR, coverTop, hz, dt, dockTop })
+  SG.sum = SG.sum.filter(m => m.t < m.life)
+
 }
 function shadowFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
-  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S, G = SG.geo || sgGeo(def, c, W, dockTop)
-  if (F[0] !== SG.p1) { Object.assign(SG, { p1: F[0], hp: new WeakMap(), flies: null, agents: [], seven: 0, atomic: null, shout: [] }); for (const k in SG.st) SG.st[k] = 0 }
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S
+  if (F[0] !== SG.p1) { Object.assign(SG, { p1: F[0], hp: new WeakMap(), sum: [], ripples: [], next: t + 3.5, deep: 0, maho: null, intro: 0.001, shout: [], fx: new WeakMap(), kinds: {} }); for (const k in SG.st) SG.st[k] = 0; SG.st.floods = 1 }
   const dt = Math.min(0.05, Math.max(0, t - (SG.last || t))); SG.last = t
-  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
+  const sh = shift(0.9, W), mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = dockTop + def.standRow * S
   let big = null, low = false, ko = false
   for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = SG.hp.get(f); SG.hp.set(f, hp)
     if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
     if (was != null && was - hp >= 60) big = f }
-  // castle windows (violet) + moonlight on the lakes, on every mirrored copy
-  for (const cp of mirrorCopies(G, G.w, padL, padR)) { const [x0, y0, x1, y1] = G.pc.castle
-    for (let i = 0; i < 9; i++) { const px = x0 + 22 + (i % 5) * 18, py = y0 + 30 + Math.floor(i / 5) * 20, x = cp.X(px), y = G.Y(py), on = Math.sin(t * 0.7 + i * 1.9) > -0.6
-      if (on) { ctx.fillStyle = "rgba(180,110,255,0.22)"; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill(); ctx.fillStyle = "#d8a8ff"; ctx.fillRect(x - 2, y - 3, 4, 6) } }
-    for (const [la, ly, lb] of G.pc.lakes) { const xa = Math.min(cp.X(la), cp.X(lb)), xb = Math.max(cp.X(la), cp.X(lb)), y = G.Y(ly)
-      for (let j = 0; j < 7; j++) { const yy = y + 4 + j * 6, w = (xb - xa) * (0.15 + 0.1 * Math.sin(t * 2 + j)), x = (xa + xb) / 2 + Math.sin(t * 1.5 + j * 2) * 8; ctx.fillStyle = `rgba(220,226,255,${0.35 - j * 0.04})`; ctx.fillRect(x - w / 2, yy, w, 1.6) } } }
-  if (big && !SG.atomic) { SG.st.agents++; for (let i = 0; i < 3; i++) SG.agents.push({ x: mid + (sgRnd() - 0.5) * 900, y: G.Y(150 - 30 * sgRnd()), t: 0, life: 2.6, k: SG.agents.length })
-    if (SG.st.agents % 2 === 1) sgShout(mid, G.Y(110), ["…the Shadow is watching.", "Shadow Garden is here.", "We lurk in the shadows…"][Math.floor(SG.st.agents / 2) % 3], "#5a2a9a") }
-  if (low && !SG.st.seven && !SG.atomic) { SG.st.seven++; sgShout(mid, feet - 230, "THE SEVEN SHADOWS!", "#5a2a9a") }
-  if (SG.st.seven && !SG.atomic) SG.seven = Math.min(1, SG.seven + dt * 0.8)
-  if (ko && !SG.atomic) { SG.atomic = { t: 0 }; SG.st.atomic++; sgShout(mid, feet - 260, "I AM… ATOMIC.", "#5a2a9a"); camera.shake?.(6, 60) }
-  if (SG.atomic) { SG.atomic.t += dt; if (SG.atomic.t > 1 && !SG.atomic.boom) { SG.atomic.boom = true; camera.shake?.(16, 50) } if (SG.atomic.t > 2) SG.seven = Math.max(0, SG.seven - dt * 0.6) }
-  // agents blinking in on the ridges
-  for (const a of SG.agents) { a.t += dt; const al = a.t < 0.2 ? a.t / 0.2 : a.t > a.life - 0.3 ? Math.max(0, (a.life - a.t) / 0.3) : 1
-    if (al > 0) { ctx.save(); ctx.globalAlpha = al; sgAgent(ctx, a.x, a.y, S * 0.7, t, a.k, true); ctx.restore() }
-    if (a.t < 0.25) { ctx.strokeStyle = `rgba(200,140,255,${1 - a.t * 4})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(a.x, a.y - 20, 30 * a.t * 4, 0, 7); ctx.stroke() } }
-  SG.agents = SG.agents.filter(a => a.t < a.life)
-  // fireflies
-  if (!SG.flies) SG.flies = Array.from({ length: 40 }, (_, i) => ({ x: (i * 0.6180339) % 1, y: (i * 0.7548776) % 1, ph: i }))
-  for (const f of SG.flies) { const x = padL + (padR - padL) * ((f.x + Math.sin(t * 0.2 + f.ph) * 0.03 + 1) % 1), y = feet - 40 - 260 * f.y + Math.sin(t * 0.9 + f.ph * 2) * 12, a = Math.max(0, Math.sin(t * 1.7 + f.ph * 3))
-    ctx.fillStyle = `rgba(200,255,170,${0.15 * a})`; ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.fill(); ctx.fillStyle = `rgba(230,255,200,${0.9 * a})`; ctx.fillRect(x - 1, y - 1, 2.2, 2.2) }
-  // violet mist when the Seven appear
-  if (SG.seven > 0) for (let i = 0; i < 3; i++) { const y = feet - 30 - i * 80 + Math.sin(t * 0.6 + i) * 12, gr = ctx.createLinearGradient(0, y - 60, 0, y + 60); gr.addColorStop(0, "rgba(120,60,200,0)"); gr.addColorStop(0.5, `rgba(120,60,200,${0.22 * SG.seven})`); gr.addColorStop(1, "rgba(120,60,200,0)")
-    ctx.fillStyle = gr; ctx.fillRect(padL, y - 60, padR - padL, 120) }
-  if (SG.atomic) { const k = SG.atomic.t, wo = k > 0.9 && k < 2.4 ? Math.max(0, 1 - Math.abs(k - 1.2) / 1.2) : 0; if (wo > 0) { ctx.fillStyle = `rgba(240,225,255,${0.75 * wo})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900) } }
+  const lxOf = x => x - sh, rate = 1 + SG.deep
+  if (!SG.maho && t > SG.next && SG.sum.length < 4) { SG.next = t + (2.6 + 2.4 * sgRnd()) / rate; const near = sgRnd() < 0.55; sgSummon(null, (padL - sh) + (0.1 + 0.8 * sgRnd()) * (padR - padL), near ? 0.15 + 0.7 * sgRnd() : undefined, 0, near) }
+  if (big && !SG.maho) { const k = sgSummon(null, lxOf(big.x + (big.w || 50) / 2) + (sgRnd() < 0.5 ? -1 : 1) * (160 + 200 * sgRnd()), 0.2 + 0.5 * sgRnd(), 0, true); SG.st.called++; sgShout(big.x + (big.w || 50) / 2, feet - 250, SG_NAMES[k], "#1a1a3a") }
+  if (low && !SG.st.deep && !SG.maho) { SG.st.deep = 1; sgShout(mid, feet - 280, "The shadows are swallowing everything…", "#1a1a3a") }
+  if (SG.st.deep && !SG.maho) SG.deep = Math.min(1, SG.deep + dt * 0.6)
+  if (ko && !SG.maho) { SG.maho = { t: 0 }; SG.st.mahoraga++; SG.sum = []; sgShout(mid, feet - 300, "With this treasure I summon…", "#1a1a3a"); camera.shake?.(6, 40) }
+  if (SG.maho) { SG.maho.t += dt; if (SG.maho.t > 2.2 && !SG.maho.named) { SG.maho.named = 1; sgShout(mid, feet - 260, "EIGHT-HANDLED SWORD DIVERGENT SILA DIVINE GENERAL MAHORAGA", "#7a5a10"); camera.shake?.(12, 30) } }
+  // the fighters stand ON the shadow: it ripples where they step and land, and holds a dark reflection under them
+  for (const f of F) { const x = f.x + (f.w || 50) / 2, y = f.y + (f.h || 100), p = SG.fx.get(f) || { x, gr: true, t: 0 }, gr = y >= feet - 6
+    ctx.fillStyle = "rgba(120,110,230,0.12)"; ctx.beginPath(); ctx.ellipse(x, feet + 2, 46, 7, 0, 0, 7); ctx.fill()
+    if (gr && (!p.gr || Math.abs(x - p.x) > 26)) { sgRipple(x - sh, feet + 2, 6, p.gr ? 50 : 120, true); p.x = x } p.gr = gr; SG.fx.set(f, p) }
+  for (const r of SG.ripples) if (r.deck) { r.r += r.sp * dt; r.a -= dt * 0.7; if (r.a > 0) { ctx.strokeStyle = `rgba(200,190,255,${0.5 * r.a})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(r.lx + sh, r.deck, r.r, r.r * 0.2, 0, 0, 7); ctx.stroke() } }
+  // the near shikigami burst out of the floor itself, in front of the far sea but behind the fighters
+  { const nearY = z => feet + 40 + z * 170, nz = z => 1.5 + 1.1 * z
+    sgDrawSummons(ctx, SG.sum.filter(m => m.near), { surf: nearY, zs: nz, sh, padL, padR, coverTop: dockTop - 900, hz: dockTop - 60, dt, dockTop }) }
+  SG.sum = SG.sum.filter(m => m.t < m.life)
+  // KO: MAHORAGA — the eight-handled wheel, the shadow pillar, the General landing on the sea
+  if (SG.maho) { const k = SG.maho.t, X = (padL + padR) / 2 + 300, ys = feet - 4, sc = 2.2, fr = k < 0.8 ? 0 : k < 2.6 ? Math.min(15, Math.floor((k - 0.8) * 8.5)) : 13 + Math.floor(k * 2) % 3
+    ctx.fillStyle = `rgba(0,0,0,${Math.min(0.45, k * 0.3)})`; ctx.fillRect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900)
+    sgCell(ctx, "mahoraga", fr, X, ys, sc, -1)
+    if (k > 2.2) { const wy = ys - (fr >= 12 ? 95 : 140) * sc, turn = Math.floor((k - 2.2) / 1.3) * (Math.PI / 4), ease = Math.min(1, ((k - 2.2) % 1.3) / 0.25), a = turn + ease * Math.PI / 4
+      ctx.save(); ctx.translate(X + 2 * sc, wy); ctx.rotate(a); ctx.strokeStyle = "#e8c860"; ctx.lineWidth = 5; ctx.shadowColor = "#ffd870"; ctx.shadowBlur = 18
+      ctx.beginPath(); ctx.arc(0, 0, 34, 0, 7); ctx.stroke(); for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(an) * 10, Math.sin(an) * 10); ctx.lineTo(Math.cos(an) * 50, Math.sin(an) * 50); ctx.stroke()
+        ctx.fillStyle = "#e8c860"; ctx.beginPath(); ctx.arc(Math.cos(an) * 52, Math.sin(an) * 52, 5, 0, 7); ctx.fill() } ctx.beginPath(); ctx.arc(0, 0, 9, 0, 7); ctx.fill(); ctx.restore()
+      if (ease < 1 && !SG.maho["turn" + Math.floor((k - 2.2) / 1.3)]) { SG.maho["turn" + Math.floor((k - 2.2) / 1.3)] = 1; camera.shake?.(5, 14) } } }
+  // shadow motes rising off the floor
+  if (!SG.motes) SG.motes = Array.from({ length: 50 }, (_, i) => ({ x: (i * 0.6180339) % 1, ph: i * 1.7 }))
+  for (const m of SG.motes) { const u = (t * 0.07 + m.ph * 0.13) % 1, x = padL + (padR - padL) * ((m.x + Math.sin(t * 0.3 + m.ph) * 0.02 + 1) % 1), y = feet + 20 - u * 420
+    ctx.fillStyle = `rgba(${m.ph % 3 < 1 ? "210,205,255" : "8,8,18"},${0.7 * Math.sin(u * Math.PI)})`; ctx.fillRect(x, y, 3, 3) }
+  // shadow hands clawing up at the edges of the floor
+  for (const [k, ex] of [[0, padL + 40], [1, padR - 40]]) { const u = (t * 0.25 + k * 0.5) % 1, rise = Math.sin(Math.min(1, u * 1.4) * Math.PI) * (40 + 60 * SG.deep), x = ex + (k ? -1 : 1) * 30 * Math.sin(t * 0.3 + k)
+    if (rise < 2) continue; ctx.save(); ctx.fillStyle = "#020206"; ctx.translate(x, feet + 34); ctx.rotate((k ? 0.25 : -0.25) + Math.sin(t * 2 + k) * 0.1)
+    ctx.fillRect(-9, -rise, 18, rise); ctx.beginPath(); ctx.ellipse(0, -rise - 8, 13, 12, 0, 0, 7); ctx.fill()
+    for (let f = 0; f < 5; f++) { const a = -1.1 + f * 0.55 + Math.sin(t * 3 + f + k) * 0.15; ctx.save(); ctx.translate(Math.sin(a) * 9, -rise - 12); ctx.rotate(a); ctx.fillRect(-2.2, -20, 4.4, 20); ctx.restore() } ctx.restore() }
+  // match start: the domain floods in
+  if (SG.intro > 0) { SG.intro += dt; const k = SG.intro
+    if (k < 1.4) { const r = (padR - padL) * k / 1.1; ctx.save(); ctx.fillStyle = "rgba(2,2,6,0.92)"; ctx.beginPath(); ctx.rect(padL, dockTop - 900, padR - padL, coverBottom - dockTop + 900); ctx.ellipse(mid, feet, r, r * 0.8, 0, 0, 7); ctx.fill("evenodd"); ctx.restore()
+      ctx.strokeStyle = "rgba(170,160,255,0.7)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(mid, feet, r, r * 0.8, 0, 0, 7); ctx.stroke() }
+    const al = Math.min(1, k / 0.4, Math.max(0, (4 - k) / 0.6)); if (al > 0) { const cx = (padL + padR) / 2, y = feet + 150
+      ctx.save(); ctx.globalAlpha = al; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(2,2,8,0.7)"; ctx.fillRect(cx - 420, y - 48, 840, 106)
+      ctx.font = "700 18px Arial"; ctx.fillStyle = "#b8b0ff"; ctx.fillText("DOMAIN EXPANSION", cx, y - 26); ctx.font = "900 44px Arial"; ctx.fillStyle = "#fff"; ctx.fillText("CHIMERA SHADOW GARDEN", cx, y + 10)
+      ctx.font = "700 16px Arial"; ctx.fillStyle = "#8a84c8"; ctx.fillText("嵌合暗翳庭", cx, y + 42); ctx.restore() } else if (k > 4) SG.intro = 0 }
   for (const s of SG.shout) { s.t -= dt; if (s.t <= 0) continue
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
@@ -6135,10 +6205,14 @@ function originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
 // the centre into ANOTHER random map; at random (and on big hits) other maps glitch through for a split second. Each map
 // is drawn live, whole (its own art, life and reactions) through drawLayeredStageBack; its foreground props too.
 // KO → three maps side by side, "MULTIVERSE ROULETTE". The song is random as well (game.js: every map's songs).
-let _rmSeed = 0x2545f491 ^ 0x4f6cdd1d
+// Truly random: a FRESH seed from the browser's crypto source every match (was a fixed constant, so every match opened
+// on the same map and rifted through the same sequence). Maps are dealt from a shuffled deck: every map comes up before
+// any repeats, and never the one you are standing in. Render-only — no sim state, no Math.random.
+const rmFreshSeed = () => { try { const a = new Uint32Array(1); globalThis.crypto.getRandomValues(a); return (a[0] >>> 0) || 0x2545f491 } catch { return ((Date.now() * 2654435761) ^ Math.floor(now() * 1e6)) >>> 0 || 0x2545f491 } }
+let _rmSeed = rmFreshSeed()
 const rmRnd = () => { _rmSeed ^= _rmSeed << 13; _rmSeed ^= _rmSeed >>> 17; _rmSeed ^= _rmSeed << 5; return (_rmSeed >>> 0) / 4294967296 }
 const RM_MAPS = OR_MAPS.concat([["code_originals", "The Originals"]]).filter(([s]) => SETS[s] && !SETS[s].mode)
-const RM = { p1: null, last: 0, hp: new WeakMap(), cur: null, phase: null, nextSwap: 0, flick: null, nextGlitch: 0, merged: null, banner: null, unstable: false, forceTo: null, glitchFull: null, pool: [], shout: [],
+const RM = { p1: null, last: 0, hp: new WeakMap(), cur: null, phase: null, nextSwap: 0, flick: null, nextGlitch: 0, merged: null, banner: null, unstable: false, forceTo: null, glitchFull: null, pool: [], deck: [], shout: [],
   st: { swaps: 0, shakes: 0, glitches: 0, visited: [], glimpsed: [], unstable: 0, merged: 0 } }
 const rmName = s => (RM_MAPS.find(m => m[0] === s) || [s, s])[1]
 export const randomMapState = () => ({ cur: RM.cur ? rmName(RM.cur) : "", ready: !!RM.cur && layeredStageReady({ layers: RM.cur }), swaps: RM.st.swaps, shakes: RM.st.shakes, glitches: RM.st.glitches,
@@ -6146,7 +6220,16 @@ export const randomMapState = () => ({ cur: RM.cur ? rmName(RM.cur) : "", ready:
   phase: RM.phase ? RM.phase.k : "", nextIn: +(RM.nextSwap - now()).toFixed(1), shouting: RM.shout.filter(s => s.t > 0).map(s => s.txt) })
 export const randomMapGo = () => { RM.forceTo = true }                          // tests: open a rift now
 export const randomMapGlitch = full => { RM.nextGlitch = 0; RM.glitchFull = full }  // tests: glitch now
-function rmPoolTick() { let guard = 0; while (RM.pool.length < 4 && guard++ < 30) { const m = RM_MAPS[Math.floor(rmRnd() * RM_MAPS.length)]; if (m && m[0] !== RM.cur && !RM.pool.includes(m)) RM.pool.push(m) } for (const m of RM.pool) layeredStageReady({ layers: m[0] }) }
+// the next map off a shuffled deck (Fisher–Yates on the fresh seed); reshuffled when it runs out
+function rmDeal() {
+  for (let guard = 0; guard < RM_MAPS.length * 2 + 2; guard++) {
+    if (!RM.deck.length) { RM.deck = RM_MAPS.slice(); for (let i = RM.deck.length - 1; i > 0; i--) { const j = Math.floor(rmRnd() * (i + 1)); [RM.deck[i], RM.deck[j]] = [RM.deck[j], RM.deck[i]] } }
+    const m = RM.deck.pop()
+    if (m && m[0] !== RM.cur && !RM.pool.includes(m)) return m
+  }
+  return null
+}
+function rmPoolTick() { let guard = 0; while (RM.pool.length < 4 && guard++ < 8) { const m = rmDeal(); if (m) RM.pool.push(m) } for (const m of RM.pool) layeredStageReady({ layers: m[0] }) }
 function rmTakeReady() { const i = RM.pool.findIndex(m => m[0] !== RM.cur && layeredStageReady({ layers: m[0] })); return i < 0 ? null : RM.pool.splice(i, 1)[0] }
 function rmShout(x, y, txt, col) { if (RM.shout.filter(s => s.t > 0).length < 3) RM.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
 function rmVisit(s) { const n = rmName(s); if (!RM.st.visited.includes(n)) RM.st.visited.push(n) }
@@ -6155,7 +6238,7 @@ const rmFrontSet = () => RM.merged ? null : RM.phase && RM.phase.k === "wipe" ? 
 function drawRandomStage(ctx, def, { canvasWidth, W, groundY, coverTop, coverBottom }) {
   const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), v = view(canvasWidth, W), padL = v.left - 8, padR = v.right + 8
   const cx = (padL + padR) / 2, cy = groundY - 200, D = groundY - 48
-  if (F[0] !== RM.p1 || !RM.cur) { const m = RM_MAPS[Math.floor(rmRnd() * RM_MAPS.length)]
+  if (F[0] !== RM.p1 || !RM.cur) { _rmSeed = rmFreshSeed(); Object.assign(RM, { cur: null, deck: [], pool: [] }); const m = rmDeal() || RM_MAPS[0]
     Object.assign(RM, { p1: F[0], hp: new WeakMap(), cur: m[0], phase: null, nextSwap: t + 12 + 8 * rmRnd(), flick: null, nextGlitch: t + 4 + 4 * rmRnd(), merged: null, banner: { txt: m[1].toUpperCase(), t: 2.6 }, unstable: false, shout: [] })
     RM.st = { swaps: 0, shakes: 0, glitches: 0, visited: [], glimpsed: [], unstable: 0, merged: 0 }; rmVisit(m[0]) }
   const dt = Math.min(0.05, Math.max(0, t - (RM.last || t))); RM.last = t
@@ -6170,7 +6253,7 @@ function drawRandomStage(ctx, def, { canvasWidth, W, groundY, coverTop, coverBot
   if (ko && !RM.merged) { const a = rmTakeReady(), b = rmTakeReady(); RM.merged = { t: 0, maps: [RM.phase && RM.phase.k === "wipe" ? RM.phase.to : RM.cur, a ? a[0] : RM.cur, b ? b[0] : RM.cur] }; RM.phase = null; RM.flick = null; RM.st.merged++; camera.shake?.(12, 30); RM.st.shakes++ }
   if (RM.merged) { RM.merged.t += dt; if (!ko && RM.merged.t > 4) { RM.merged = null; RM.nextSwap = t + 8 } }
   if (!RM.merged) {
-    const start = () => { const m = rmTakeReady(); if (!m) { RM.nextSwap = t + 1; return } RM.phase = { k: "rumble", t: 0, to: m[0], name: m[1] }; camera.shake?.(4, 60); RM.st.shakes++ }
+    const start = () => { const m = rmTakeReady(); if (!m) { RM.nextSwap = t + 0.15; return }   /* next map still loading → try again in a moment */ RM.phase = { k: "rumble", t: 0, to: m[0], name: m[1] }; camera.shake?.(4, 60); RM.st.shakes++ }
     if (RM.forceTo) { if (RM.phase && RM.phase.k === "wipe") RM.cur = RM.phase.to; RM.phase = null; RM.forceTo = null; start() }
     if (!RM.phase && t > RM.nextSwap) start()
     const ph = RM.phase

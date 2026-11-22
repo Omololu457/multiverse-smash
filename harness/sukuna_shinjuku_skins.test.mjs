@@ -51,6 +51,7 @@ try {
   const gl = sk.glitter.find(i => i.startsWith('sks_'))
   if (gl) {
     await boot(gl, 'naruto', 5)
+    await step(2); await new Promise(r => setTimeout(r, 2000))   // first draw queues every phase's sheets; a swap waits until the next phase has decoded (never blanks)
     const ph = []; for (let i = 0; i < 40; i++) { await step(1); await E(() => { __harness.renderFrame?.(); return 1 }); ph.push(await E(() => { const f = __harness.sukunaShinjukuTest.raw('p1'); return [f._sks.clock, f._sksGlintPhase ?? null, (f._skinAnim?.idle?.sheet || '').replace(/.*skins\//, '')] })) }
     const okPhase = ph.filter(r => r[1] != null).every(r => r[1] === Math.floor(r[0] / 8) % 3) && new Set(ph.map(r => r[2])).size >= 2
     report.glitter = ph.slice(0, 12)

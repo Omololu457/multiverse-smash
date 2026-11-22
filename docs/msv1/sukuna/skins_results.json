@@ -1,5 +1,5 @@
 {
- "pass": 15,
+ "pass": 17,
  "fail": 0,
  "report": {
   "skins": [
@@ -9,19 +9,14 @@
    "Black Diamond Wake",
    "Champagne Menace",
    "Sugar Glass",
+   "Winning Valkyrie — Right Spin",
+   "Ben 10 — Heatblast Kiln",
+   "Ben 10 — Big Chill After Dark",
+   "Four-Colour Misprint",
+   "Cinnabar Seal",
    "Edo Tensei"
   ],
   "glitter": [
-   [
-    3,
-    0,
-    "blackdiamond/idle.png"
-   ],
-   [
-    4,
-    0,
-    "blackdiamond/idle.png"
-   ],
    [
     5,
     0,
@@ -71,13 +66,23 @@
     14,
     1,
     "blackdiamond/p1/idle.png"
+   ],
+   [
+    15,
+    1,
+    "blackdiamond/p1/idle.png"
+   ],
+   [
+    16,
+    2,
+    "blackdiamond/p2/idle.png"
    ]
   ],
   "replayMeta": {
    "p1Char": "sukuna_shinjuku",
-   "p1Skin": "sks_sugarglass"
+   "p1Skin": "sks_cinnabar"
   },
-  "trackedSkinFiles": 0,
-  "diskSkinFiles": 388
+  "trackedSkinFiles": 388,
+  "diskSkinFiles": 578
  }
 }

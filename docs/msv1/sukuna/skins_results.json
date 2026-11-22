@@ -14,6 +14,11 @@
    "Ben 10 — Big Chill After Dark",
    "Four-Colour Misprint",
    "Cinnabar Seal",
+   "Mother-of-Pearl Butcher",
+   "Temple Bell",
+   "Velvet Pomegranate",
+   "Moon Through Bamboo",
+   "Hanafuda, Last Hand",
    "Edo Tensei"
   ],
   "glitter": [
@@ -80,9 +85,9 @@
   ],
   "replayMeta": {
    "p1Char": "sukuna_shinjuku",
-   "p1Skin": "sks_cinnabar"
+   "p1Skin": "sks_hanafuda"
   },
-  "trackedSkinFiles": 388,
-  "diskSkinFiles": 578
+  "trackedSkinFiles": 578,
+  "diskSkinFiles": 834
  }
 }

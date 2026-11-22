@@ -49,5 +49,15 @@ def nexus():   # a dark data floor: a glowing teal grid
     for y in range(0, H, 20): F[y:y + 2, :, :3] = (30, 140, 130)
     F = F * 1.0; F[:, :, :3] = nd.gaussian_filter(F[:, :, :3], (0.6, 0.6, 0)) + F[:, :, :3] * 0.4
     out("code_nexus", F, {"skyTop": "#051a1f", "under": "#04141a"}, "Drawn in code / generated (no source sheet)")
-for n, f in [("code_colosseum", colosseum), ("code_woodsboro", woodsboro), ("code_pk", pk), ("code_nexus", nexus)]:
+def originals():   # The Originals: a plain dark base (each dimension paints its own floor over it in code); the preview
+    r = np.random.default_rng(5); F = base((40, 36, 50), r, 3, 0.08)   # shows the three dimensions side by side
+    out("code_originals", F, {"skyTop": "#1a1030", "under": "#16141c"}, "Drawn in code / generated (no source sheet)")
+    pv = np.zeros((280, W, 3)); y = np.linspace(0, 1, 200)[:, None]
+    for k, (a, b) in enumerate([((14, 12, 20), (60, 40, 90)), ((34, 36, 92), (255, 190, 110)), ((8, 22, 50), (190, 80, 30))]):
+        x0, x1 = k * W // 3, (k + 1) * W // 3
+        pv[:200, x0:x1] = (np.array(a) * (1 - y) + np.array(b) * y)[:, None, :]
+    pv[200:, :W // 3] = (52, 48, 62); pv[200:, W // 3:2 * W // 3] = (200, 154, 104); pv[200:, 2 * W // 3:] = (180, 210, 230); pv[200:, 2 * W // 3 + W // 6:] = (50, 36, 32)
+    for x in (W // 3, 2 * W // 3): pv[:, x - 2:x + 2] = 255
+    Image.fromarray(pv.astype(np.uint8)).save(os.path.join(root, "stages", "code_originals", "preview.png"))
+for n, f in [("code_originals", originals), ("code_colosseum", colosseum), ("code_woodsboro", woodsboro), ("code_pk", pk), ("code_nexus", nexus)]:
     if not only or n in only: f()

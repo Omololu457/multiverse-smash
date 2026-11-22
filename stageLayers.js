@@ -289,6 +289,21 @@ SETS.necro_krypton = {
   animRate: {},
 }
 
+// THE ORIGINALS (homage to the creators) — no sheet: three dimensions drawn in code (Omololu's lab, Dseyl's sky, Enoch's
+// frost & flame) that the multiverse keeps switching between; the floor is painted per dimension in the fx pass.
+SETS.code_originals = {
+  dir: "./stages/code_originals/",
+  S: 1.6,
+  standRow: 30,
+  deckFrontRow: 70,
+  floor: { piece: "floor", farFactor: 0.8, rimFactor: 1.1, center: true, mirror: true },
+  back: [{ procedural: "originals", p: 0.9 }],
+  props: [],
+  front: [],
+  fx: "originals",
+  animRate: {},
+}
+
 // THE ANALYSIS NEXUS (original universe) — no sheet: drawn in code over a generated data-grid floor (gen_code_floors.py).
 SETS.code_nexus = {
   dir: "./stages/code_nexus/",
@@ -694,6 +709,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   const drawn = {}
   for (const ly of def.back) {
     if (ly.procedural === "space") { drawSpace(ctx, def, { W, dockTop, padL, padR, coverTop, p: ly.p }); continue }
+    if (ly.procedural === "originals") { drawOriginalsBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "nexus") { drawNexusBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "pk") { drawPkBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
     if (ly.procedural === "woodsboro") { drawWoodsboroBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }); continue }
@@ -808,6 +824,7 @@ export function drawLayeredStageBack(ctx, stage, { canvasWidth, worldWidth: W, g
   if (def.fx === "heaven") heavenFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "valley") valleyRiver(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "infinity") infinityFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
+  if (def.fx === "originals") originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "nexus") nexusFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "pk") pkFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
   if (def.fx === "woodsboro") woodsboroFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom })
@@ -5708,4 +5725,219 @@ function nexusFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
     ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
     ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
   NX.shout = NX.shout.filter(s => s.t > 0)
+}
+
+// ───────────────────────────── THE ORIGINALS (homage to the game's creators; render-only, wall clock, own PRNG) ─────────────────────────────
+// One map, three dimensions — one per original fighter — and the multiverse keeps splitting between them:
+//   0 OMOLOLU'S LAB   a multiverse research lab: Kamui-swirl portal gates, WASD cadence monitors (his Recursive Cadence),
+//                     bubbling tubes — and through the windows you can see the other two dimensions, live;
+//   1 DSEYL'S SKY     floating islands at sunset over a sea of clouds, the giant FLASH TIME clock, a hooded speedster
+//                     streaking across the sky in yellow lightning;
+//   2 ENOCH'S FROST & FLAME   a world split between glacier and volcano: aurora + ice spires, basalt + lava, waterfalls
+//                     steaming where the two meet, snow on one side and embers on the other.
+// Every 14–26 s (6–11 s once someone is close to losing) the screen rumbles, the sky cracks and a rift opens from the
+// centre into the next dimension. Big hit → reality flickers (a band of another dimension) + a dimension-flavoured
+// shout; ≤25% → "THE MULTIVERSE IS SPLITTING!"; KO → all three dimensions at once, side by side — "THE ORIGINALS".
+// Omololu / Dseyl / Enoch watch from the sidelines when they aren't fighting (shared crowd).
+let _orSeed = 0x9e3779b9 ^ 0x7f4a7c15
+const orRnd = () => { _orSeed ^= _orSeed << 13; _orSeed ^= _orSeed >>> 17; _orSeed ^= _orSeed << 5; return (_orSeed >>> 0) / 4294967296 }
+const OR_CROWD = [["omololu", 0.16, 0], ["dseyl", 0.5, 0], ["enoch", 0.84, 0]]
+const ORC = makeCrowd(OR_CROWD, 0.6)
+const OR_NAMES = ["OMOLOLU'S LAB", "DSEYL'S SKY", "ENOCH'S FROST & FLAME"], OR_WHO = ["OMOLOLU", "DSEYL", "ENOCH"]
+const OR_TINT = ["170,80,255", "255,200,70", "120,220,255"]
+const OR = { p1: null, last: 0, hp: new WeakMap(), dim: 0, phase: null, nextSwap: 0, flick: null, merged: null, banner: null, unstable: false, forceTo: null, shout: [],
+  st: { swaps: 0, shakes: 0, flickers: 0, unstable: 0, merged: 0, seen: [1, 0, 0] } }
+export const originalsState = () => ({ swaps: OR.st.swaps, shakes: OR.st.shakes, flickers: OR.st.flickers, unstable: OR.st.unstable, mergedCount: OR.st.merged,
+  merged: OR.merged ? +OR.merged.t.toFixed(2) : 0, dim: OR.dim, name: OR_NAMES[OR.dim], phase: OR.phase ? OR.phase.k : "", seen: OR.st.seen.slice(),
+  nextIn: +(OR.nextSwap - now()).toFixed(1), crowd: crowdState(ORC), shouting: OR.shout.filter(s => s.t > 0).map(s => s.txt) })
+export const originalsGo = k => { OR.forceTo = k }   // tests / screenshots: open a rift to dimension k now
+function orShout(x, y, txt, col) { if (OR.shout.filter(s => s.t > 0).length < 3) OR.shout.push({ x, y, txt, col: col || "#222", t: 2.2 }) }
+const orPar = (p, W, padL, padR, step, fn) => { const ps = shift(p, W); for (let i = Math.floor((padL - ps) / step) - 1; i * step + ps < padR + step; i++) fn(i * step + ps, i) }
+const orOdd = i => ((i % 2) + 2) % 2
+
+// ── 0: OMOLOLU'S LAB ──
+function orPortal(ctx, x, y, R, t, tint) {   // a portal gate: machine ring with running lights around a Kamui-style swirl
+  ctx.fillStyle = "#1c1a22"; ctx.beginPath(); ctx.arc(x, y, R + 22, 0, 7); ctx.fill()
+  ctx.strokeStyle = "#3e3848"; ctx.lineWidth = 10; ctx.beginPath(); ctx.arc(x, y, R + 12, 0, 7); ctx.stroke()
+  for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2 + t * 0.5; ctx.fillStyle = (i + Math.floor(t * 6)) % 4 === 0 ? "#ff3a4a" : "#5a4a6a"; ctx.beginPath(); ctx.arc(x + Math.cos(a) * (R + 12), y + Math.sin(a) * (R + 12), 3, 0, 7); ctx.fill() }
+  const g = ctx.createRadialGradient(x, y, 2, x, y, R); g.addColorStop(0, "#000"); g.addColorStop(0.55, `rgba(${tint},0.35)`); g.addColorStop(1, `rgba(${tint},0.95)`)
+  ctx.fillStyle = "#06040a"; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.fill(); ctx.fillStyle = g; ctx.fill()
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.clip(); ctx.lineCap = "round"
+  for (let arm = 0; arm < 3; arm++) { ctx.beginPath(); for (let s = 0; s <= 1.001; s += 0.04) { const r = R * (1.05 - s), a = arm * Math.PI * 2 / 3 + s * 5.5 + t * 1.6, px = x + Math.cos(a) * r, py = y + Math.sin(a) * r; s ? ctx.lineTo(px, py) : ctx.moveTo(px, py) }
+    ctx.strokeStyle = `rgba(${tint},0.75)`; ctx.lineWidth = 9; ctx.stroke(); ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2; ctx.stroke() }
+  ctx.restore()
+  ctx.fillStyle = `rgba(${tint},0.12)`; ctx.beginPath(); ctx.arc(x, y, R + 40 + 4 * Math.sin(t * 3), 0, 7); ctx.fill()
+}
+function orLab(ctx, g) {
+  const { W, dockTop: D, padL, padR, coverTop, t } = g
+  const gr = ctx.createLinearGradient(0, D - 320, 0, D); gr.addColorStop(0, "#0e0c14"); gr.addColorStop(1, "#2c2636"); ctx.fillStyle = gr; ctx.fillRect(padL, coverTop, padR - padL, D - coverTop)
+  orPar(0.7, W, padL, padR, 110, x => { ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(x, coverTop, 2, D - coverTop); ctx.fillStyle = "rgba(255,255,255,0.04)"; ctx.fillRect(x + 2, coverTop, 1, D - coverTop) })
+  ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(padL, D - 96, padR - padL, 3); ctx.fillStyle = "#0a0910"; ctx.fillRect(padL, coverTop, padR - padL, D - 292 - coverTop)
+  orPar(0.75, W, padL, padR, 220, x => { ctx.fillStyle = "#e8e2ff"; ctx.fillRect(x, D - 296, 90, 5); const lg = ctx.createLinearGradient(0, D - 291, 0, D - 200); lg.addColorStop(0, "rgba(220,210,255,0.14)"); lg.addColorStop(1, "rgba(220,210,255,0)"); ctx.fillStyle = lg; ctx.beginPath(); ctx.moveTo(x, D - 291); ctx.lineTo(x + 90, D - 291); ctx.lineTo(x + 130, D - 200); ctx.lineTo(x - 40, D - 200); ctx.fill() })
+  // windows: live views into the other two dimensions
+  orPar(0.6, W, padL, padR, 880, (x0, i) => { const x = x0 + 440 - 115, y = D - 268, w = 230, h = 136, k = 1 + orOdd(i)
+    ctx.fillStyle = "#07060b"; ctx.fillRect(x - 9, y - 9, w + 18, h + 18)
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); (k === 1 ? orSky : orFrost)(ctx, g); ctx.fillStyle = "rgba(150,170,255,0.08)"; ctx.fillRect(x, y, w, h)
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.beginPath(); ctx.moveTo(x + 20, y); ctx.lineTo(x + 70, y); ctx.lineTo(x + 10, y + h); ctx.lineTo(x - 40, y + h); ctx.fill(); ctx.restore()
+    ctx.fillStyle = "#1a1820"; ctx.fillRect(x + w / 2 - 3, y, 6, h); ctx.fillRect(x, y + h * 0.42 - 3, w, 6)
+    ctx.font = "700 11px monospace"; ctx.textAlign = "center"; ctx.fillStyle = `rgb(${OR_TINT[k]})`; ctx.fillText(k === 1 ? "DIMENSION 02 · DSEYL" : "DIMENSION 03 · ENOCH", x + w / 2, y + h + 22) })
+  // portal gates
+  orPar(0.75, W, padL, padR, 880, (x, i) => { const y = D - 150, k = 1 + orOdd(i + 1)
+    ctx.fillStyle = "#2a2632"; ctx.fillRect(x - 128, y - 30, 16, D - y); ctx.fillRect(x + 112, y - 30, 16, D - y)
+    orPortal(ctx, x, y, 90, t + i * 1.7, OR_TINT[k])
+    ctx.fillStyle = "#1c1a22"; ctx.fillRect(x - 150, D - 36, 300, 36); ctx.fillStyle = "#ff3a4a"; ctx.fillRect(x - 150, D - 36, 300, 3)
+    ctx.font = "900 13px monospace"; ctx.textAlign = "center"; ctx.fillStyle = "#d8ccff"; ctx.fillText("OMOLOLU LABS · MULTIVERSE GATE", x, D - 14) })
+  // benches: cadence monitors + bubbling tubes
+  orPar(0.9, W, padL, padR, 520, (x0, i) => { const x = x0 + 260 - 90, top = D - 50
+    ctx.fillStyle = "#3a3644"; ctx.fillRect(x, top, 180, 9); ctx.fillStyle = "#211e28"; ctx.fillRect(x + 6, top + 9, 168, 41)
+    ctx.fillStyle = "#08080c"; ctx.fillRect(x + 10, top - 54, 80, 48); ctx.fillStyle = "#140f22"; ctx.fillRect(x + 13, top - 51, 74, 42); ctx.fillStyle = "#08080c"; ctx.fillRect(x + 46, top - 6, 8, 6)
+    const on = Math.floor(t * 3 + i) % 4; ctx.font = "900 13px monospace"; ctx.textAlign = "center"
+    for (let j = 0; j < 4; j++) { ctx.fillStyle = j === on ? "#ff3a4a" : "rgba(200,180,255,0.4)"; ctx.fillText("WASD"[j], x + 26 + j * 16, top - 30) }
+    ctx.strokeStyle = "#ff3a4a"; ctx.lineWidth = 1.5; ctx.beginPath(); for (let j = 0; j <= 20; j++) { const px = x + 16 + j * 3.4, ph = (j + Math.floor(t * 10)) % 20, py = top - 16 - (ph === 8 ? 7 : ph === 9 ? -4 : 0); j ? ctx.lineTo(px, py) : ctx.moveTo(px, py) } ctx.stroke()
+    for (let j = 0; j < 2; j++) { const tx = x + 112 + j * 30, lvl = 0.55 + 0.15 * Math.sin(t + i + j), col = j ? "190,70,255" : "255,60,80"
+      ctx.fillStyle = `rgba(${col},0.75)`; ctx.fillRect(tx, top - 4 - 44 * lvl, 16, 44 * lvl); ctx.strokeStyle = "rgba(220,220,255,0.5)"; ctx.lineWidth = 1.5; ctx.strokeRect(tx, top - 48, 16, 44)
+      for (let b = 0; b < 3; b++) { const u = (t * 0.7 + b / 3 + j * 0.2) % 1; ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.beginPath(); ctx.arc(tx + 4 + 8 * _h(b + j * 5), top - 6 - u * 40 * lvl, 1.6, 0, 7); ctx.fill() } } })
+}
+// ── 1: DSEYL'S SKY ──
+function orSky(ctx, g) {
+  const { W, dockTop: D, padL, padR, coverTop, t } = g
+  const gr = ctx.createLinearGradient(0, D - 330, 0, D); gr.addColorStop(0, "#22245c"); gr.addColorStop(0.5, "#b0587a"); gr.addColorStop(0.85, "#ffaa66"); gr.addColorStop(1, "#ffd89a")
+  ctx.fillStyle = gr; ctx.fillRect(padL, coverTop, padR - padL, D - coverTop)
+  { const sx = W / 2 + shift(0.03, W) - 320, sy = D - 70, sg = ctx.createRadialGradient(sx, sy, 10, sx, sy, 170); sg.addColorStop(0, "rgba(255,230,170,0.7)"); sg.addColorStop(1, "rgba(255,230,170,0)")
+    ctx.fillStyle = sg; ctx.fillRect(sx - 170, sy - 170, 340, 340); ctx.fillStyle = "#fff2c8"; ctx.beginPath(); ctx.arc(sx, sy, 44, 0, 7); ctx.fill() }
+  { const cx = W / 2 + shift(0.05, W) + 280, cy = D - 205, R = 72, sp = OR.unstable ? 3 : 1   // the FLASH TIME clock
+    ctx.strokeStyle = "rgba(255,232,150,0.6)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.stroke(); ctx.fillStyle = "rgba(255,232,150,0.08)"; ctx.fill()
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * 0.84, cy + Math.sin(a) * R * 0.84); ctx.lineTo(cx + Math.cos(a) * R * 0.96, cy + Math.sin(a) * R * 0.96); ctx.stroke() }
+    for (const [len, sp2] of [[0.5, 0.25], [0.8, 2.5]]) { const a = t * sp2 * sp - Math.PI / 2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * R * len, cy + Math.sin(a) * R * len); ctx.stroke() }
+    ctx.fillStyle = "rgba(255,225,90,0.85)"; ctx.beginPath(); ctx.moveTo(cx + 4, cy - 18); ctx.lineTo(cx - 8, cy + 2); ctx.lineTo(cx, cy + 2); ctx.lineTo(cx - 4, cy + 18); ctx.lineTo(cx + 8, cy - 2); ctx.lineTo(cx, cy - 2); ctx.fill()
+    ctx.font = "900 11px monospace"; ctx.textAlign = "center"; ctx.fillText("FLASH TIME", cx, cy + R + 16) }
+  orPar(0.2, W, padL, padR, 640, (x, i) => { const y = D - 150 - 60 * _h(i * 3) + Math.sin(t * 0.5 + i) * 6, w = 70 + 60 * _h(i)
+    ctx.fillStyle = "#4a2e44"; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w * 0.2, y + w * 1.1); ctx.lineTo(x - w * 0.3, y + w * 0.8); ctx.fill()
+    ctx.fillStyle = "#6a7a4a"; ctx.beginPath(); ctx.ellipse(x, y, w, 9, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(230,240,255,0.55)"; ctx.fillRect(x + w * 0.5, y + 2, 3, w * 0.7) })
+  orPar(0.35, W, padL, padR, 900, (x, i) => { const y = D - 95 + Math.sin(t * 0.7 + i) * 5; ctx.fillStyle = "#5a3448"; ctx.beginPath(); ctx.moveTo(x - 50, y); ctx.lineTo(x + 50, y); ctx.lineTo(x + 6, y + 50); ctx.fill(); ctx.fillStyle = "#7a8a52"; ctx.fillRect(x - 50, y - 4, 100, 6) })
+  orPar(0.45, W, padL, padR, 130, (x, i) => { const y = D - 26 + 6 * Math.sin(i + t * 0.4); ctx.fillStyle = "rgba(255,214,196,0.95)"; ctx.beginPath(); ctx.ellipse(x, y, 90, 26, 0, 0, 7); ctx.fill(); ctx.fillStyle = "rgba(200,120,140,0.35)"; ctx.beginPath(); ctx.ellipse(x, y + 12, 86, 12, 0, 0, 7); ctx.fill() })
+  ctx.fillStyle = "rgba(255,214,196,0.95)"; ctx.fillRect(padL, D - 12, padR - padL, 12)
+  const P = 1.7, K = Math.floor(t / P)   // the speedster: yellow lightning across the sky
+  for (const k of [K, K - 1]) { const u = (t - k * P) / 0.75; if (u < 0 || u > 1.4) continue
+    const dir = _h(k * 3) < 0.5 ? 1 : -1, y = D - 90 - 190 * _h(k * 7), hx = dir > 0 ? padL + (padR - padL) * u : padR - (padR - padL) * u, a = Math.max(0, Math.min(1, 1.4 - u))
+    ctx.beginPath(); for (let j = 0; j <= 14; j++) { const px = hx - dir * j * 28, py = y + (j ? (_h(k * 31 + j) - 0.5) * 22 : 0); j ? ctx.lineTo(px, py) : ctx.moveTo(px, py) }
+    ctx.strokeStyle = `rgba(255,220,60,${0.8 * a})`; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = `rgba(255,255,230,${a})`; ctx.lineWidth = 1.6; ctx.stroke()
+    ctx.save(); ctx.translate(hx, y); ctx.scale(dir, 1); ctx.rotate(0.5); ctx.fillStyle = "#c8c8cc"; ctx.fillRect(-6, -8, 12, 14); ctx.fillStyle = "#7a1a24"; ctx.fillRect(-6, 6, 12, 6); ctx.fillStyle = "#5a3a26"; ctx.beginPath(); ctx.arc(2, -12, 4.5, 0, 7); ctx.fill(); ctx.restore() }
+}
+// ── 2: ENOCH'S FROST & FLAME ──
+const orIce = i => orOdd(i) === 0
+function orFrost(ctx, g) {
+  const { W, dockTop: D, padL, padR, coverTop, t } = g
+  orPar(0.15, W, padL, padR, 800, (x, i) => { const ice = orIce(i), gr = ctx.createLinearGradient(0, D - 320, 0, D)
+    gr.addColorStop(0, ice ? "#06142e" : "#160404"); gr.addColorStop(1, ice ? "#4a8ac0" : "#b8461a"); ctx.fillStyle = gr; ctx.fillRect(x, coverTop, 801, D - coverTop)
+    if (ice) for (let r = 0; r < 2; r++) { ctx.beginPath(); for (let xx = 0; xx <= 800; xx += 20) { const py = D - 270 + r * 34 + 22 * Math.sin(xx / 90 + t * 0.6 + r * 2); xx ? ctx.lineTo(x + xx, py) : ctx.moveTo(x + xx, py) } ctx.strokeStyle = r ? "rgba(90,220,255,0.22)" : "rgba(80,255,170,0.25)"; ctx.lineWidth = 18; ctx.stroke() }
+    else for (let s = 0; s < 6; s++) { const u = (t * 0.05 + s / 6) % 1; ctx.fillStyle = "rgba(50,20,20,0.35)"; ctx.beginPath(); ctx.ellipse(x + 100 + 110 * s, D - 80 - u * 260, 70, 30, 0, 0, 7); ctx.fill() }
+    const sg = ctx.createLinearGradient(x - 110, 0, x + 110, 0); sg.addColorStop(0, "rgba(220,230,240,0)"); sg.addColorStop(0.5, "rgba(220,230,240,0.45)"); sg.addColorStop(1, "rgba(220,230,240,0)"); ctx.fillStyle = sg; ctx.fillRect(x - 110, coverTop, 220, D - coverTop) })
+  orPar(0.4, W, padL, padR, 800, (x, i) => { const ice = orIce(i)
+    for (let j = 0; j < 5; j++) { const px = x + 80 + j * 150 + 30 * _h(i * 9 + j), h = 120 + 110 * _h(i * 5 + j), w = 70 + 30 * _h(j + i)
+      if (ice) { ctx.fillStyle = "#d8ecf8"; ctx.beginPath(); ctx.moveTo(px - w, D); ctx.lineTo(px, D - h); ctx.lineTo(px + w, D); ctx.fill(); ctx.fillStyle = "#8ab8d8"; ctx.beginPath(); ctx.moveTo(px, D - h); ctx.lineTo(px + w, D); ctx.lineTo(px + w * 0.2, D); ctx.fill() }
+      else { ctx.fillStyle = "#1e1414"; ctx.beginPath(); ctx.moveTo(px - w, D); ctx.lineTo(px - 12, D - h); ctx.lineTo(px + 12, D - h); ctx.lineTo(px + w, D); ctx.fill()
+        ctx.strokeStyle = `rgba(255,${100 + 40 * Math.sin(t * 3 + j) | 0},30,0.9)`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(px, D - h); ctx.quadraticCurveTo(px + 14, D - h * 0.5, px + 4, D); ctx.stroke()
+        ctx.fillStyle = "rgba(255,120,40,0.35)"; ctx.beginPath(); ctx.arc(px, D - h, 16, 0, 7); ctx.fill() } } })
+  orPar(0.55, W, padL, padR, 800, x => {   // a waterfall where frost meets flame, steaming at the foot
+    ctx.fillStyle = "#2a2a34"; ctx.fillRect(x - 40, D - 250, 80, 250)
+    const wg = ctx.createLinearGradient(x - 26, 0, x + 26, 0); wg.addColorStop(0, "rgba(170,210,240,0.6)"); wg.addColorStop(0.5, "rgba(240,250,255,0.95)"); wg.addColorStop(1, "rgba(170,210,240,0.6)"); ctx.fillStyle = wg; ctx.fillRect(x - 26, D - 250, 52, 250)
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2; for (let j = 0; j < 6; j++) { const y = D - 250 + ((t * 220 + j * 41) % 250); ctx.beginPath(); ctx.moveTo(x - 20 + j * 8, y); ctx.lineTo(x - 20 + j * 8, y + 18); ctx.stroke() }
+    for (let j = 0; j < 6; j++) { const u = (t * 0.4 + j / 6) % 1; ctx.fillStyle = `rgba(235,240,245,${0.45 * (1 - u)})`; ctx.beginPath(); ctx.arc(x + (j - 2.5) * 16, D - 10 - u * 90, 18 + 26 * u, 0, 7); ctx.fill() } })
+  orPar(0.8, W, padL, padR, 800, (x, i) => { const ice = orIce(i)
+    for (let j = 0; j < 4; j++) { const px = x + 160 + j * 160 + 30 * _h(i + j * 3)
+      if (ice) { ctx.fillStyle = "rgba(170,230,255,0.75)"; for (const [dx, h, w] of [[-10, 46, 9], [6, 64, 11], [20, 34, 8]]) { ctx.beginPath(); ctx.moveTo(px + dx - w, D); ctx.lineTo(px + dx, D - h); ctx.lineTo(px + dx + w, D); ctx.fill() } }
+      else for (let f = 0; f < 3; f++) { const fh = 26 + 16 * Math.sin(t * 9 + j * 2 + f); ctx.fillStyle = f === 1 ? "rgba(255,220,90,0.9)" : "rgba(255,110,30,0.8)"; ctx.beginPath(); ctx.moveTo(px + f * 10 - 12, D); ctx.quadraticCurveTo(px + f * 10 - 6, D - fh, px + f * 10, D - fh * 1.1); ctx.quadraticCurveTo(px + f * 10 + 4, D - fh * 0.5, px + f * 10 + 8, D); ctx.fill() } } })
+}
+const orBackDim = (k, ctx, g) => (k === 0 ? orLab : k === 1 ? orSky : orFrost)(ctx, g)
+
+// ── floors (painted in the fx pass, over the generated base floor; world-locked, simple perspective) ──
+function orFloorDim(k, ctx, g) {
+  const { dockTop: D, padL, padR, B, t } = g, vx = (padL + padR) / 2, bot = x0 => x0 + (x0 - vx) * 1.6
+  const slab = (x0, x1, top, botc) => { const gr = ctx.createLinearGradient(0, D, 0, B); gr.addColorStop(0, top); gr.addColorStop(1, botc); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x0, D); ctx.lineTo(x1, D); ctx.lineTo(bot(x1), B); ctx.lineTo(bot(x0), B); ctx.fill() }
+  const grid = (step, col) => { ctx.strokeStyle = col; ctx.lineWidth = 2; for (let x0 = Math.floor((padL - 1600) / step) * step; x0 < padR + 1600; x0 += step) { ctx.beginPath(); ctx.moveTo(x0, D); ctx.lineTo(bot(x0), B); ctx.stroke() }
+    for (let n = 1; D + 6 * n ** 1.7 < B; n++) { const y = D + 6 * n ** 1.7; ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padR, y); ctx.stroke() } }
+  if (k === 0) { slab(padL - 3000, padR + 3000, "#34303e", "#14121a"); grid(120, "rgba(0,0,0,0.45)")
+    for (let x = Math.floor(padL / 24) * 24; x < padR; x += 24) { ctx.fillStyle = (x / 24) % 2 ? "#e8c020" : "#14121a"; ctx.beginPath(); ctx.moveTo(x, D); ctx.lineTo(x + 24, D); ctx.lineTo(x + 18, D + 8); ctx.lineTo(x - 6, D + 8); ctx.fill() }
+    ctx.fillStyle = `rgba(170,80,255,${0.35 + 0.2 * Math.sin(t * 3)})`; ctx.fillRect(padL, D + 30, padR - padL, 3) }
+  else if (k === 1) { slab(padL - 3000, padR + 3000, "#c89a68", "#5a3e30"); grid(150, "rgba(60,30,20,0.3)")
+    ctx.fillStyle = "#8ab05a"; ctx.fillRect(padL, D, padR - padL, 9); ctx.fillStyle = "#a8c868"; for (let x = Math.floor(padL / 14) * 14; x < padR; x += 14) { ctx.beginPath(); ctx.moveTo(x, D + 4); ctx.lineTo(x + 4, D - 6 - 4 * _h(x)); ctx.lineTo(x + 8, D + 4); ctx.fill() } }
+  else { for (let i = Math.floor(padL / 800) - 3; i * 800 < padR + 2400; i++) { const ice = orIce(i), x0 = i * 800
+      slab(x0, x0 + 801, ice ? "#d4ecf6" : "#3a2a26", ice ? "#7aa8c8" : "#120c0c")
+      ctx.strokeStyle = ice ? "rgba(255,255,255,0.7)" : `rgba(255,120,40,${0.6 + 0.3 * Math.sin(t * 2 + i)})`; ctx.lineWidth = ice ? 1.5 : 2.5
+      for (let c = 0; c < 7; c++) { const cx = x0 + 60 + 100 * c + 40 * _h(i * 13 + c), cy = D + 20 + (B - D - 40) * _h(i * 7 + c * 3); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 30, cy + 8); ctx.lineTo(cx + 46, cy - 4); ctx.lineTo(cx + 80, cy + 6); ctx.stroke() }
+      const sg = ctx.createLinearGradient(x0 - 40, 0, x0 + 40, 0); sg.addColorStop(0, "rgba(200,220,235,0)"); sg.addColorStop(0.5, "rgba(200,220,235,0.3)"); sg.addColorStop(1, "rgba(200,220,235,0)"); ctx.fillStyle = sg; ctx.fillRect(x0 - 40, D, 80, 26) }
+    for (let n = 0; n < 70; n++) { const x = padL + (padR - padL) * ((n * 0.6180339 + 0.37 * Math.floor(n / 35)) % 1), ice = orIce(Math.floor(x / 800)), u = (t * (ice ? 0.12 : 0.18) + n * 0.137) % 1
+      const y = ice ? D - 320 + (B - D + 320) * u : B - (B - D + 320) * u
+      ctx.fillStyle = ice ? "rgba(255,255,255,0.85)" : `rgba(255,${140 + 80 * _h(n) | 0},40,${0.9 * (1 - u)})`; ctx.beginPath(); ctx.arc(x + Math.sin(t + n) * 8, y, ice ? 2.2 : 1.8, 0, 7); ctx.fill() } }
+}
+
+// paint one layer for every dimension that is on screen: the current one; a rift opening into the next; a flicker band;
+// or all three side by side after the knockout
+function orPaint(ctx, g, fn, withFlick) {
+  const { padL, padR, dockTop: D, coverTop } = g, top = coverTop - 50, bottom = (g.B || D) + 50
+  if (OR.merged) { const w = (padR - padL) / 3; for (let k = 0; k < 3; k++) { ctx.save(); ctx.beginPath(); ctx.rect(padL + k * w, top, w + 1, bottom - top); ctx.clip(); fn(k); ctx.restore() } return }
+  const ph = OR.phase
+  if (ph && ph.k === "wipe") { fn(ph.from); ctx.save(); ctx.beginPath(); ctx.arc((padL + padR) / 2, D - 150, orR(ph, g), 0, 7); ctx.clip(); fn(ph.to); ctx.restore(); return }
+  fn(OR.dim)
+  if (withFlick && OR.flick) { ctx.save(); ctx.beginPath(); ctx.rect(padL, OR.flick.y, padR - padL, OR.flick.h); ctx.clip(); fn(OR.flick.k); ctx.restore() }
+}
+const orR = (ph, g) => { const u = Math.min(1, ph.t / 0.9), e = u * u * (3 - 2 * u); return 4 + e * Math.hypot(g.padR - g.padL, 1500) }
+
+function drawOriginalsBack(ctx, def, c, { W, dockTop, padL, padR, coverTop }) {
+  const g = { W, dockTop, padL, padR, coverTop, t: now() }
+  orPaint(ctx, g, k => orBackDim(k, ctx, g), true)
+}
+function originalsFx(ctx, def, c, { W, dockTop, padL, padR, coverBottom }) {
+  const t = now(), F = (_lastWorld?.fighters || []).filter(Boolean), S = def.S, D = dockTop
+  if (F[0] !== OR.p1) { Object.assign(OR, { p1: F[0], hp: new WeakMap(), dim: 0, phase: null, nextSwap: t + 9 + 4 * orRnd(), flick: null, merged: null, banner: { txt: OR_NAMES[0], t: 2.4 }, unstable: false, shout: [] })
+    OR.st = { swaps: 0, shakes: 0, flickers: 0, unstable: 0, merged: 0, seen: [1, 0, 0] } }
+  const dt = Math.min(0.05, Math.max(0, t - (OR.last || t))); OR.last = t
+  const mid = F.length ? F.reduce((a, f) => a + f.x + (f.w || 50) / 2, 0) / F.length : W / 2, feet = D + def.standRow * S, cx = (padL + padR) / 2
+  let big = false, low = false, ko = false
+  for (const f of F) { const hp = f.health ?? 0, max = f.maxHealth || f.maxHp || 1000, was = OR.hp.get(f); OR.hp.set(f, hp)
+    if (hp <= 0) ko = true; else if (hp / max <= 0.25) low = true
+    if (was != null && was - hp >= 60) big = true }
+  // the multiverse timeline
+  if (low && !OR.unstable && !OR.merged) { OR.st.unstable++; orShout(mid, feet - 240, "THE MULTIVERSE IS SPLITTING!", "#8a2ad0"); OR.nextSwap = Math.min(OR.nextSwap, t + 2.5) }
+  OR.unstable = low
+  if (ko && !OR.merged) { OR.merged = { t: 0 }; OR.phase = null; OR.st.merged++; OR.st.seen = [1, 1, 1]; camera.shake?.(12, 30); OR.st.shakes++ }
+  if (OR.merged) { OR.merged.t += dt; if (!ko && OR.merged.t > 4) { OR.merged = null; OR.nextSwap = t + 8; OR.banner = { txt: OR_NAMES[OR.dim], t: 2.4 } } }
+  if (!OR.merged) {
+    const start = to => { OR.phase = { k: "rumble", t: 0, to }; camera.shake?.(4, 60); OR.st.shakes++ }
+    if (OR.forceTo != null) { if (OR.phase && OR.phase.k === "wipe") OR.dim = OR.phase.to; OR.phase = null; if (OR.forceTo !== OR.dim) start(OR.forceTo); OR.forceTo = null }
+    if (!OR.phase && t > OR.nextSwap) start((OR.dim + 1 + (orRnd() < 0.5 ? 0 : 1)) % 3)
+    const ph = OR.phase
+    if (ph) { ph.t += dt
+      if (ph.k === "rumble" && ph.t > 1) { OR.phase = { k: "wipe", t: 0, to: ph.to, from: OR.dim }; camera.shake?.(10, 24); OR.st.shakes++ }
+      else if (ph.k === "wipe" && ph.t > 0.9) { OR.dim = ph.to; OR.st.seen[ph.to] = 1; OR.st.swaps++; OR.phase = null; OR.nextSwap = t + (OR.unstable ? 6 + 5 * orRnd() : 14 + 12 * orRnd()); OR.banner = { txt: OR_NAMES[ph.to], t: 2.4 } } } }
+  if (big && !OR.merged) { OR.st.flickers++; OR.flick = { k: (OR.dim + 1 + (orRnd() < 0.5 ? 0 : 1)) % 3, y: D - 300 + orRnd() * 220, h: 30 + orRnd() * 50, t: 0.22 }; camera.shake?.(3, 8)
+    if (OR.st.flickers % 2 === 1) orShout(mid + (orRnd() - 0.5) * 260, D - 120, [["ANOMALY DETECTED.", "KAMUI!", "DATA LOGGED."], ["TOO SLOW!", "FLASH TIME!", "BLINK AND YOU MISS IT!"], ["CHILL OUT!", "TURN UP THE HEAT!", "STAY FROSTY!"]][OR.dim][(OR.st.flickers >> 1) % 3], `rgb(${OR_TINT[OR.dim]})`) }
+  if (OR.flick) { OR.flick.t -= dt; if (OR.flick.t <= 0) OR.flick = null }
+  // floors for whatever is on screen, then the watchers
+  const g = { W, dockTop: D, padL, padR, coverTop: D - 900, B: coverBottom, t }
+  orPaint(ctx, g, k => orFloorDim(k, ctx, g), false)
+  drawCrowd(ctx, ORC, { W, feet, sh: shift(0.9, W) })
+  // cracks in reality (the rumble before a rift; faint and constant once the multiverse is unstable)
+  const ph = OR.phase, crack = ph && ph.k === "rumble" ? Math.min(1, ph.t) : OR.unstable && !OR.merged ? 0.25 : 0
+  if (crack > 0) { const seed = OR.st.swaps * 17 + (ph ? ph.to : 9), col = OR_TINT[ph ? ph.to : (OR.dim + 1) % 3]
+    for (let r = 0; r < 9; r++) { let a = r / 9 * Math.PI * 2 + _h(seed + r), x = cx, y = D - 150; ctx.beginPath(); ctx.moveTo(x, y)
+      for (let s = 0; s < 8; s++) { a += (_h(seed * 3 + r * 11 + s) - 0.5) * 0.9; const L = (20 + 60 * _h(r + s * 7)) * crack; x += Math.cos(a) * L; y += Math.sin(a) * L; ctx.lineTo(x, y) }
+      ctx.strokeStyle = `rgba(${col},${0.5 * crack})`; ctx.lineWidth = 7; ctx.stroke(); ctx.strokeStyle = `rgba(255,255,255,${0.9 * crack})`; ctx.lineWidth = 2; ctx.stroke() } }
+  if (ph && ph.k === "wipe") { const R = orR(ph, g); ctx.strokeStyle = `rgba(${OR_TINT[ph.to]},0.8)`; ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cx, D - 150, R, 0, 7); ctx.stroke(); ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 3; ctx.stroke() }
+  // after the knockout: all three side by side
+  if (OR.merged) { const w = (padR - padL) / 3, a = Math.min(1, OR.merged.t * 2)
+    for (let k = 1; k < 3; k++) { const x = padL + k * w; ctx.fillStyle = `rgba(255,255,255,${0.9 * a})`; ctx.fillRect(x - 2, D - 900, 4, coverBottom - D + 900); ctx.fillStyle = `rgba(200,160,255,${0.3 * a})`; ctx.fillRect(x - 10, D - 900, 20, coverBottom - D + 900) }
+    ctx.save(); ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineJoin = "round"
+    ctx.font = "900 38px Arial"; ctx.lineWidth = 7; ctx.strokeStyle = "#120a1e"; ctx.strokeText("THE ORIGINALS", cx, D - 245); ctx.fillStyle = "#fff"; ctx.fillText("THE ORIGINALS", cx, D - 245)
+    ctx.font = "900 20px Arial"; for (let k = 0; k < 3; k++) { const x = padL + (k + 0.5) * w; ctx.lineWidth = 5; ctx.strokeText(OR_WHO[k], x, D - 200); ctx.fillStyle = `rgb(${OR_TINT[k]})`; ctx.fillText(OR_WHO[k], x, D - 200) }
+    ctx.restore() }
+  // the dimension's name as it arrives
+  if (OR.banner && !OR.merged) { const b = OR.banner; b.t -= dt; if (b.t <= 0) OR.banner = null; else {
+    ctx.save(); ctx.globalAlpha = Math.min(1, b.t * 2, (2.4 - b.t) * 4); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "900 26px Arial"; ctx.lineJoin = "round"; ctx.lineWidth = 6; ctx.strokeStyle = "#120a1e"
+    ctx.strokeText(b.txt, cx, D - 240); ctx.fillStyle = `rgb(${OR_TINT[OR.dim]})`; ctx.fillText(b.txt, cx, D - 240); ctx.restore() } }
+  for (const s of OR.shout) { s.t -= dt; if (s.t <= 0) continue
+    ctx.save(); ctx.globalAlpha = Math.min(1, s.t * 3); ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; const w = ctx.measureText(s.txt).width + 16
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#222"; ctx.lineWidth = 2; ctx.beginPath(); ctx.rect(s.x - w / 2, s.y - 13, w, 26); ctx.fill(); ctx.stroke(); ctx.fillStyle = s.col; ctx.fillText(s.txt, s.x, s.y + 1); ctx.restore() }
+  OR.shout = OR.shout.filter(s => s.t > 0)
 }

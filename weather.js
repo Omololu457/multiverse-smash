@@ -217,6 +217,7 @@ export const STAGE_WEATHER = Object.freeze({
   "Command Center":         OUTDOOR_WARM,   // the desert outside Angel Grove (the stage shows the Command Center from outside)
   "PK Academy":             OUTDOOR_FULL,
   "Analysis Nexus":         INDOOR_ONLY,
+  "The Originals":          INDOOR_ONLY,      // three dimensions; the multiverse brings its own weather (snow / embers / sunset)
   "Shadow Garden":          [WEATHER.FOG, WEATHER.RAIN, WEATHER.WIND, WEATHER.THUNDERSTORM],
   "Harbor Dock":            OUTDOOR_FULL,
   "Training Center":        [],               // hologram room: no weather

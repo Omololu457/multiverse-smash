@@ -29331,6 +29331,8 @@ gameLoop()
       joyEnd:    () => touch._test.end("joy"),
       joyTap:    (dir) => { const p = touch._test.joyPoint(dir); touch._test.start("joy", p.cx, p.cy); touch._test.end("joy") }, // single flick
       activeTouches: () => touch._test.activeCount(),
+      touchAt:   (id, x, y) => touch._test.start(id, x, y),   // raw touch at canvas point (e.g. a D-pad corner)
+      touchEnd:  (id) => touch._test.end(id),
       // Live P1 state so a test can confirm touch input produced the same in-game effect as the keyboard.
       p1state: () => p1 ? { x: Math.round(p1.x), y: Math.round(p1.y), vx: Math.round((p1.vx || 0) * 100) / 100, vy: Math.round((p1.vy || 0) * 100) / 100, facing: p1.facing, attacking: !!p1.attacking, move: p1.currentMove || null, blocking: !!p1.isBlocking, dashTimer: p1.dashTimer || 0, grabbing: !!p1._grabbing || !!p1.isGrabbing, ultHeld: !!p1._ultHeld, dashTapArmed: (p1.rightTapTime || 0) > 0 || (p1.leftTapTime || 0) > 0 } : null,
       // Raw held keys P1 sees (proves touch set the same `keys[]` the keyboard would).
@@ -31293,7 +31295,7 @@ gameLoop()
     setModifiers: (mods = []) => { matchConfig.modifiers = Array.isArray(mods) ? mods : []; if (p1 && p2) _applyMatchModifiers(); return matchConfig.modifiers },
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },
-    finisherDemo: (which) => !!(p1 && p2 && (which === "sb" ? startScreenBreaker(p1, p2) : startSignatureFatality(p1, p2))),   // Controls Lab: play a finisher on the LIVE fighters (p1()/p2() are snapshots)   // test hook: the match-ending KO right now (→ the FINISH window)
+    finisherDemo: (which) => !!(p1 && p2 && (which === "sb" ? startScreenBreaker(p1, p2) : startSignatureFatality(p1, p2, Number.isInteger(which) ? { index: which } : null))),   // Controls Lab: play a finisher on the LIVE fighters (p1()/p2() are snapshots)   // test hook: the match-ending KO right now (→ the FINISH window)
     forceP1Lose: () => { if (p1) p1.health = 0 },
     // ── ARCADE diagnostics + drivers (Stage 19) ──────────────────────────────
     arcadeInfo: () => ({

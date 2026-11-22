@@ -48,8 +48,32 @@ try {
   check("overlay should render (active + in battle)", await page.evaluate(() => window.__harness.touch.shouldShow()));
   const layout = await page.evaluate(() => window.__harness.touch.layout());
   const btnIds = layout.buttons.map(b => b.id).sort();
-  check("overlay has joystick + 8 buttons (L/H/SP/ULT/BLK/GRB/CHG/UP)",
-    !!layout.joystick && JSON.stringify(btnIds) === JSON.stringify(["block", "charge", "grab", "heavy", "light", "special", "ultimate", "upAttack"]), btnIds.join(","));
+  check("fighting-game pad: D-pad (no joystick) + 8 buttons (L/H/SP/ULT/BLK/GRB/CHG/UP)",
+    !!layout.dpad && layout.dpad.arm > 0 && JSON.stringify(btnIds) === JSON.stringify(["block", "charge", "grab", "heavy", "light", "special", "ultimate", "upAttack"]), btnIds.join(","));
+  // no two controls overlap (each button's hit circle is clear of the others and of the D-pad)
+  const rad = (b) => b.shape === "pill" ? Math.hypot(b.w, b.h) / 2 : b.r
+  let overlap = []
+  for (let i = 0; i < layout.buttons.length; i++) for (let k = i + 1; k < layout.buttons.length; k++) {
+    const a = layout.buttons[i], c = layout.buttons[k]
+    const sep = a.shape === "pill" || c.shape === "pill" ? (Math.abs(a.cx - c.cx) > ((a.w || a.r * 2) + (c.w || c.r * 2)) / 2 || Math.abs(a.cy - c.cy) > ((a.h || a.r * 2) + (c.h || c.r * 2)) / 2) : Math.hypot(a.cx - c.cx, a.cy - c.cy) > a.r + c.r
+    if (!sep) overlap.push(a.id + "/" + c.id)
+  }
+  const d = layout.dpad
+  for (const b of layout.buttons) if (Math.abs(b.cx - d.cx) < d.r * 1.3 + rad(b) && Math.abs(b.cy - d.cy) < d.r * 1.3 + rad(b)) overlap.push("dpad/" + b.id)
+  check("pad controls don't overlap each other", overlap.length === 0, overlap.join(", "))
+
+  // D-pad corner = diagonal (both keys), like a real pad: down-forward
+  await T(([x, y]) => window.__harness.touch.touchAt("corner", x, y), [d.cx + d.r * 0.7, d.cy + d.r * 0.7])
+  await waitFrames(2)
+  const diag = await page.evaluate(() => window.__harness.touch.p1keys())
+  await T(() => window.__harness.touch.touchEnd("corner"))
+  check("D-pad corner presses the DIAGONAL (down + right)", (diag & 0b10) !== 0 && (diag & 0b100) !== 0 && (diag & 0b1) === 0 && (diag & 0b1000) === 0, `keys=${diag.toString(2)}`)
+  // the centre hub is neutral
+  await T(([x, y]) => window.__harness.touch.touchAt("hub", x, y), [d.cx, d.cy])
+  await waitFrames(2)
+  const hub = await page.evaluate(() => window.__harness.touch.p1keys())
+  await T(() => window.__harness.touch.touchEnd("hub"))
+  check("D-pad centre is neutral (no direction)", (hub & 0b1111) === 0, `keys=${hub.toString(2)}`)
 
   // ── MOVEMENT (joystick right → walk right) ──────────────────────────────────
   const x0 = (await st()).x;
@@ -105,6 +129,14 @@ try {
   fs.mkdirSync(OUT, { recursive: true });
   await page.screenshot({ path: path.join(OUT, "TOUCH_controls_overlay.png") });
   check("overlay screenshot captured → harness/shots/TOUCH_controls_overlay.png", fs.existsSync(path.join(OUT, "TOUCH_controls_overlay.png")));
+  // phone (landscape) size too
+  await page.setViewportSize({ width: 844, height: 390 }); await waitFrames(4)
+  await page.screenshot({ path: path.join(OUT, "TOUCH_controls_overlay_phone.png") })
+  const pl = await page.evaluate(() => window.__harness.touch.layout())
+  const cw = await page.evaluate(() => document.querySelector("canvas").width), chh = await page.evaluate(() => document.querySelector("canvas").height)
+  const inside = [pl.dpad, ...pl.buttons].every((b) => b.cx - (b.w ? b.w / 2 : b.r) >= 0 && b.cx + (b.w ? b.w / 2 : b.r) <= cw && b.cy - (b.h ? b.h / 2 : b.r) >= 0 && b.cy + (b.h ? b.h / 2 : b.r) <= chh)
+  check("phone-size screen: every control fits on screen", inside, `${cw}x${chh}`)
+  await page.setViewportSize({ width: 1280, height: 720 }); await waitFrames(4)
   await T(() => { window.__harness.touch.joyEnd(); window.__harness.touch.releaseBtn("special"); });
 
   // ── OFF = inert (parity with keyboard-only) ─────────────────────────────────

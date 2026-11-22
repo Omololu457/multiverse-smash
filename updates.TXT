@@ -3081,3 +3081,14 @@ compared frame, game waits for input 0 % of frames vs 19–75 % with the old 2-f
 leaving ends it cleanly); net_online 11/0; net_inject 7/0; net_lockstep 6/6; net_spike 6/6; determinism 14/0;
 combo 235/9, up-attack 77/2, credits 11/3, replay 10/0 (= baselines); render 11/0.
 Not tested here: a real Cloudflare link across two real networks — try it with friends at home.
+
+=== 2026-11-22 — Phone / tablet controls are now a FIGHTING-GAME PAD ===
+- LEFT: a plus-shaped 8-way D-PAD instead of the joystick. Arms = directions, corners = diagonals (e.g. down-forward),
+  roll your thumb across it for motion inputs, the centre is neutral, quick re-press = dash (as before).
+- RIGHT: raised arcade buttons (coloured caps, bevel, gloss, shadow; they sink when pressed) in two staggered rows:
+  LIGHT · HEAVY · SPECIAL (thumb row) and UP ATK · GRAB · ULT, plus BLOCK and CHARGE shoulder buttons above.
+- Each button still sends the same key as the keyboard, so every character's moves are unchanged (mobile-specific
+  per-character controls are a later step).
+Checks actually run: touch_controls 15/1 (new: D-pad not joystick, no overlapping controls, corner = diagonal, centre
+neutral, fits a phone screen 844×390; the 1 failure "hold-direction + SPECIAL" also fails before this change),
+render 11/0, determinism 14/0.

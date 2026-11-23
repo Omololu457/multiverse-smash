@@ -387,22 +387,46 @@ def recolor_strip(name, fw, n, sk, phase=0, head_only=False):
 # highlight, three ivory stars temple → collarbone, a cosmic cape panel. Split along each frame's BODY AXIS (head → hips),
 # never a straight screen cut; limbs (gloves / arms / legs / boots pieces) go whole to the side their centre is on.
 def alien_side_map(reg, geos, fw, n):
+    """Alien X half: which pixels of each frame are the alien side, so that EVERY frame reads as half man, half alien:
+    • direction: the body axis from the centre of his BODY to the centre of his HEAD (both measured from the pixels, so
+      it is steady from frame to frame; continuous, no snapping); the cut runs along it, screen-right = alien when upright
+    • his HEAD is cut through its own middle (the face is always half and half: one jade eye, one human eye)
+    • his BODY (cape excluded from the count) is cut where the alien side is exactly 50 %, counted after gloves / arms /
+      boots are assigned whole by their centre; the cape follows the body's cut
+    Before: one line through the face → ~25 % alien on average, 7 % in one idle frame (it flickered in and out)."""
     H, W = reg.shape
     side = np.zeros((H, W), bool)
     yy, xx = np.mgrid[0:H, 0:fw]
+    HEADR = [R[k] for k in ('hair', 'temples', 'face', 'moustache', 'eyes')]
+    CAPE = [R['cape'], R['lining'], R['streaks']]
     for fi in range(n):
-        g = geos[fi]; sl = slice(fi * fw, (fi + 1) * fw); r = reg[:, sl]
-        hx_, hy = g.get('head') or (fw / 2, 10); px, py = g.get('hip') or (hx_, hy + 30)
-        if g.get('face'): hx_ = (g['face'][0] + g['face'][2]) / 2
-        ux, uy = hx_ - px, hy - py; L = np.hypot(ux, uy) or 1; ux, uy = ux / L, uy / L
-        if abs(ux) < 0.5: ux, uy = 0.0, -1.0; px = hx_                                        # upright: a vertical body line through the face
-        rx, ry = -uy, ux                                                                         # (0,-1) → (1,0): screen-right when upright
-        s = ((xx - px) * rx + (yy - py) * ry) > 0
+        sl = slice(fi * fw, (fi + 1) * fw); r = reg[:, sl]
+        if not (r > 0).any(): continue
+        head = np.isin(r, HEADR); body = (r > 0) & ~head & ~np.isin(r, CAPE)
+        if not body.any(): body = (r > 0) & ~head
+        cen = lambda m: (xx[m].mean(), yy[m].mean())
+        bx, by = cen(body) if body.any() else (fw / 2, H / 2)
+        hx_, hy = cen(head) if head.any() else (bx, by - 30)
+        ux, uy = hx_ - bx, hy - by; L = np.hypot(ux, uy)
+        ux, uy = (ux / L, uy / L) if L > 4 else (0.0, -1.0)
+        rx, ry = -uy, ux                                                                         # perpendicular: screen-right when upright
+        proj = (xx - bx) * rx + (yy - by) * ry
+        limbs = []
         for limb in ('gloves', 'arms', 'boots'):   # legs split per pixel (both legs are often one piece): one red boot, one star-dark boot
             lab, k = ndimage.label(r == R[limb])
             for i in range(1, k + 1):
-                m = lab == i; cy, cx = np.nonzero(m)
-                s[m] = ((cx.mean() - px) * rx + (cy.mean() - py) * ry) > 0
+                m = lab == i; limbs.append((m, proj[m].mean()))
+        def split(c):
+            s = proj > c
+            for m, cp in limbs: s[m] = cp > c
+            return s
+        tot = body.sum(); vals = np.sort(proj[body]); best = (0, 0.0)
+        if tot: best = None
+        for q in (np.linspace(0.15, 0.85, 71) if tot else []):                                                    # slide the cut: body share closest to 50 %
+            c = vals[min(len(vals) - 1, int(q * len(vals)))]; sh = (split(c) & body).sum() / tot
+            if best is None or abs(sh - 0.5) < best[0]: best = (abs(sh - 0.5), c)
+        s = split(best[1])
+        if head.any(): s[head] = proj[head] > np.median(proj[head])                              # the head: through its own middle
         side[:, sl] = s
     return side
 

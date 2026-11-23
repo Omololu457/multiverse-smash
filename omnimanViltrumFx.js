@@ -8,6 +8,7 @@ import { OMV_KEY, TOP, FLIGHT, ESCAPE } from './omnimanViltrumData.js'
 import { hashRandom, isFlying } from './flight.js'
 import { HOMELANDER_SFX } from './homelander_sfx_map.js'
 import { omvSkinFx, omvSkinPal, omvSkinIcon, omvSkinPhaseTick } from './omnimanViltrumSkins.js'
+import { OMV_VOICE } from './omnimanViltrumVoice.js'
 
 const isOmv = f => f?.rosterKey === OMV_KEY
 const IMG = {}
@@ -243,6 +244,44 @@ function synth(kind, k = 0) {
     case 'glint': tone('sine', 2400, 3200, 0.09, 0.05); break                                                                     // the eye glint (barely there)
   }
 }
+// ── VOICE (audio-only): his own clips (omnimanViltrumVoice.js, from "Invincible VS Omni-Man Voice Lines + Efforts").
+// One voice channel per fighter (sound.playSfxFile owner): a line only cuts a playing one of LOWER priority, so a jab
+// grunt never cuts THINK! or the win quote. Clip choice and the "sometimes" rolls come from the sim clock (no RNG).
+const VO = new WeakMap()
+const PRIO = { effort: 1, effortHeavy: 1, hurt: 2, hurtBig: 3, bark: 3, shout: 3, taunt: 3, counter: 4, think: 5, escape: 5, orbit: 5, intro: 5, win: 6, ko: 6 }
+const voOf = f => { let m = VO.get(f); if (!m) { m = { at: {}, until: -1, prio: 0, n: 0, hp: null, ko: false }; VO.set(f, m) } return m }
+function vo(f, pool, o = {}) {
+  const L = OMV_VOICE[pool]; if (!L || !L.length || !f) return
+  const s = f._omv, t = s?.clock || 0, m = voOf(f), pr = PRIO[pool] || 1
+  if (o.cd && t - (m.at[pool] ?? -1e9) < o.cd) return
+  if (o.chance != null && hashRandom(t + m.n, s?.serial || 0, pool.length) > o.chance) return
+  if (t < m.until && pr < m.prio) return                                   // something more important is still talking
+  m.at[pool] = t; m.n++
+  const [file, , dur] = o.pick != null ? L[o.pick % L.length] : L[Math.abs((t * 7 + (s?.serial || 0) * 13 + m.n * 5) | 0) % L.length]
+  m.until = t + Math.ceil((dur || 1) * 60); m.prio = pr
+  try { sound.playSfxFile?.(file, null, { owner: 'omv_' + (f.side || 'p1'), fadeMs: 40 }) } catch (_) {}
+}
+// hurt / KO from his health (audio-only read of the sim)
+function voHealth(f) {
+  const m = voOf(f), hp = f.health, t = f._omv?.clock || 0
+  if (t < (m.seen ?? -1)) { m.until = -1; m.prio = 0; m.at = {} }          // his clock restarts every round: the voice timers restart with it
+  m.seen = t
+  if (m.hp == null || hp > m.hp) { m.hp = hp; if (hp > 0) m.ko = false; return }
+  const lost = m.hp - hp; m.hp = hp
+  if (hp <= 0) { if (!m.ko) { m.ko = true; vo(f, 'ko') } return }
+  if (lost <= 0) return
+  if (lost >= 90 || f.knockdownState) vo(f, 'hurtBig', { cd: 40 })
+  else vo(f, 'hurt', { cd: 22 })
+}
+const VOICE = {
+  intro: f => vo(f, 'intro'), win: f => vo(f, 'win', { pick: 0 }),                  // win: "What will you have after 500 years?" (= the bubble)
+  kJab: f => vo(f, 'effort', { cd: 12, chance: 0.6 }), kStraight: f => vo(f, 'effort', { cd: 12, chance: 0.7 }), kLow: f => vo(f, 'effort', { cd: 12, chance: 0.6 }),
+  kAir: f => vo(f, 'effort', { cd: 12, chance: 0.7 }), kHay: f => vo(f, 'effortHeavy', { cd: 18 }), kKick: f => vo(f, 'effortHeavy', { cd: 18 }), kBack: f => vo(f, 'effortHeavy', { cd: 18 }),
+  kBlitz: f => vo(f, 'effortHeavy'), kSkyHook: f => vo(f, 'effortHeavy'), kMeteor: f => vo(f, 'effortHeavy'), kDirt: f => vo(f, 'bark'),
+  kDecree: f => vo(f, 'taunt'), unimpressed: f => vo(f, 'counter'), think: f => vo(f, 'think'), throw: f => vo(f, 'effortHeavy'),
+  evGrab: f => vo(f, 'escape'), ev_orbit: f => vo(f, 'orbit'), crash: f => vo(f, 'hurtBig'),
+  hit: (f, v) => { if ((v?.frac || 0) > 0.6) vo(f, 'shout', { cd: 300, chance: 0.5 }) },
+}
 let _whooshAt = -99
 const SFX = {
   takeoff: f => { clip('FLIGHT_TAKEOFF', f); synth('whoosh', 0.3) },
@@ -267,10 +306,12 @@ export function playOmvCues(f, camera) {
   const s = f?._omv
   orbitDuck(f, !!(s?.ev && s.ev.ph === 'orbit'))
   if (!s) return
+  try { voHealth(f) } catch (_) {}
   const q = s.cues
   for (const v of q) {
     const k = typeof v === 'string' ? v : v.c
     try { if (SFX[k]) SFX[k](f, v) } catch (_) {}
+    try { if (VOICE[k]) VOICE[k](f, v) } catch (_) {}
     if (camera?.shake) {
       if (k === 'boom') camera.shake(3, 5)
       if (k === 'hardLand') camera.shake(6, 8)

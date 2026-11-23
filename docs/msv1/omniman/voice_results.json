@@ -1,0 +1,86 @@
+{
+ "pass": 16,
+ "fail": 0,
+ "R": {
+  "pools": {
+   "intro": 27,
+   "win": 18,
+   "taunt": 11,
+   "shout": 16,
+   "bark": 8,
+   "think": 2,
+   "escape": 3,
+   "orbit": 2,
+   "counter": 5,
+   "hurt": 11,
+   "hurtBig": 5,
+   "ko": 1,
+   "effort": 54,
+   "effortHeavy": 20
+  },
+  "intro": [
+   [
+    "intro",
+    "win"
+   ]
+  ],
+  "hay": [
+   [
+    "effortHeavy"
+   ]
+  ],
+  "jabGrunts": 1,
+  "hurt": [
+   [
+    "hurt"
+   ],
+   [
+    "hurt"
+   ],
+   [
+    "hurt"
+   ]
+  ],
+  "decree": [
+   [
+    "taunt"
+   ]
+  ],
+  "counter": [
+   [
+    "counter"
+   ]
+  ],
+  "think": [
+   [
+    "think"
+   ]
+  ],
+  "escape": [
+   [
+    "intro",
+    "escape"
+   ],
+   [
+    "intro",
+    "orbit"
+   ]
+  ],
+  "priority": [
+   [
+    "think"
+   ]
+  ],
+  "ko": [
+   [
+    "hurtBig"
+   ],
+   [
+    "ko"
+   ]
+  ],
+  "win": [
+   "./assets/audio/omniman_viltrum/omv_078.mp3"
+  ]
+ }
+}

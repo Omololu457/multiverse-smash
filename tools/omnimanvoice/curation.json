@@ -1,0 +1,1132 @@
+{
+ "source": "Invincible VS Omni-Man Voice Lines + Efforts.mp3 (~/Downloads)",
+ "note": "segments = silencedetect -38 dB / 0.35 s; start/dur in seconds (padded 40 ms before, 60 ms after); text = faster-whisper small.en",
+ "pools": {
+  "intro": [
+   {
+    "i": 11,
+    "start": 22.446,
+    "dur": 1.961,
+    "text": "You won't last long against me."
+   },
+   {
+    "i": 26,
+    "start": 61.795,
+    "dur": 1.586,
+    "text": "You're way in over your head."
+   },
+   {
+    "i": 42,
+    "start": 99.193,
+    "dur": 2.149,
+    "text": "You're going to remember this fight."
+   },
+   {
+    "i": 57,
+    "start": 139.158,
+    "dur": 2.399,
+    "text": "Don't you understand how meaningless this is?"
+   },
+   {
+    "i": 60,
+    "start": 146.208,
+    "dur": 2.95,
+    "text": "You really think you can hold your own against me?"
+   },
+   {
+    "i": 111,
+    "start": 283.217,
+    "dur": 2.751,
+    "text": "I hope you'll put up a battle worthy of a Viltromite."
+   },
+   {
+    "i": 127,
+    "start": 325.723,
+    "dur": 2.289,
+    "text": "What makes you think you can stand up to me?"
+   },
+   {
+    "i": 186,
+    "start": 473.958,
+    "dur": 2.587,
+    "text": "You're about to realize what a mistake this is."
+   },
+   {
+    "i": 213,
+    "start": 540.282,
+    "dur": 2.619,
+    "text": "This universe is mine and mine alone!"
+   },
+   {
+    "i": 216,
+    "start": 551.177,
+    "dur": 2.081,
+    "text": "You don't have the power for that."
+   },
+   {
+    "i": 236,
+    "start": 600.634,
+    "dur": 2.612,
+    "text": "You're about to find out why so many fear me."
+   },
+   {
+    "i": 237,
+    "start": 603.877,
+    "dur": 3.505,
+    "text": "Spare me the theatrics. I don't even plan to break a sweat."
+   },
+   {
+    "i": 257,
+    "start": 650.85,
+    "dur": 2.189,
+    "text": "Your powers are nothing compared to mine."
+   },
+   {
+    "i": 296,
+    "start": 743.629,
+    "dur": 1.169,
+    "text": "This won't take long."
+   },
+   {
+    "i": 299,
+    "start": 750.154,
+    "dur": 1.948,
+    "text": "Like you're any match for a Viltromite!"
+   },
+   {
+    "i": 314,
+    "start": 785.263,
+    "dur": 1.133,
+    "text": "You won't last a minute."
+   },
+   {
+    "i": 331,
+    "start": 823.865,
+    "dur": 2.03,
+    "text": "Go ahead, give this your best shot."
+   },
+   {
+    "i": 336,
+    "start": 834.755,
+    "dur": 0.903,
+    "text": "I'll make this quick."
+   },
+   {
+    "i": 337,
+    "start": 836.244,
+    "dur": 1.51,
+    "text": "I'm looking forward to this."
+   },
+   {
+    "i": 338,
+    "start": 838.346,
+    "dur": 1.978,
+    "text": "I'm so much stronger than you!"
+   },
+   {
+    "i": 342,
+    "start": 846.065,
+    "dur": 1.299,
+    "text": "I'll show you power."
+   },
+   {
+    "i": 360,
+    "start": 875.068,
+    "dur": 0.93,
+    "text": "I'm ready when you are."
+   },
+   {
+    "i": 362,
+    "start": 878.023,
+    "dur": 0.834,
+    "text": "Let's do this!"
+   },
+   {
+    "i": 365,
+    "start": 881.44,
+    "dur": 1.196,
+    "text": "Let's get going."
+   },
+   {
+    "i": 366,
+    "start": 884.033,
+    "dur": 2.749,
+    "text": "This battle isn't yours to win."
+   },
+   {
+    "i": 195,
+    "start": 493.319,
+    "dur": 3.096,
+    "text": "Your life is the blink of an eye to a Viltromite."
+   },
+   {
+    "i": 315,
+    "start": 787.007,
+    "dur": 1.791,
+    "text": "You're already dead, all of you."
+   }
+  ],
+  "win": [
+   {
+    "i": 78,
+    "start": 190.32,
+    "dur": 3.029,
+    "text": "What will you have after 500 years?"
+   },
+   {
+    "i": 79,
+    "start": 193.954,
+    "dur": 1.142,
+    "text": "What a waste of time."
+   },
+   {
+    "i": 80,
+    "start": 195.857,
+    "dur": 2.532,
+    "text": "There's so much more I could be doing right now."
+   },
+   {
+    "i": 242,
+    "start": 619.432,
+    "dur": 2.548,
+    "text": "Things would end this way in any universe."
+   },
+   {
+    "i": 243,
+    "start": 622.558,
+    "dur": 1.968,
+    "text": "You should never have challenged me."
+   },
+   {
+    "i": 245,
+    "start": 625.944,
+    "dur": 1.1,
+    "text": "This is what you wanted."
+   },
+   {
+    "i": 255,
+    "start": 647.05,
+    "dur": 1.05,
+    "text": "Not so tough."
+   },
+   {
+    "i": 257,
+    "start": 650.85,
+    "dur": 2.189,
+    "text": "Your powers are nothing compared to mine."
+   },
+   {
+    "i": 260,
+    "start": 658.324,
+    "dur": 2.498,
+    "text": "Face it, this is the way things are."
+   },
+   {
+    "i": 261,
+    "start": 661.624,
+    "dur": 0.84,
+    "text": "I win."
+   },
+   {
+    "i": 262,
+    "start": 663.264,
+    "dur": 1.197,
+    "text": "Same time next week."
+   },
+   {
+    "i": 265,
+    "start": 669.163,
+    "dur": 2.704,
+    "text": "You knew the consequences when you confronted me."
+   },
+   {
+    "i": 275,
+    "start": 697.484,
+    "dur": 1.72,
+    "text": "At least you finally shut up."
+   },
+   {
+    "i": 277,
+    "start": 703.193,
+    "dur": 3.204,
+    "text": "Now I've proven I'm the strongest among us."
+   },
+   {
+    "i": 278,
+    "start": 706.962,
+    "dur": 2.211,
+    "text": "You were foolish to confront me."
+   },
+   {
+    "i": 309,
+    "start": 772.709,
+    "dur": 2.081,
+    "text": "Nothing I hate more than an optimist."
+   },
+   {
+    "i": 196,
+    "start": 497.346,
+    "dur": 1.78,
+    "text": "You barely know me."
+   },
+   {
+    "i": 57,
+    "start": 139.158,
+    "dur": 2.399,
+    "text": "Don't you understand how meaningless this is?"
+   }
+  ],
+  "taunt": [
+   {
+    "i": 90,
+    "start": 219.032,
+    "dur": 0.804,
+    "text": "Pathetic."
+   },
+   {
+    "i": 45,
+    "start": 107.566,
+    "dur": 1.248,
+    "text": "You're weak."
+   },
+   {
+    "i": 152,
+    "start": 391.789,
+    "dur": 1.649,
+    "text": "Keep deluding yourself."
+   },
+   {
+    "i": 161,
+    "start": 414.999,
+    "dur": 1.414,
+    "text": "You can't win this!"
+   },
+   {
+    "i": 162,
+    "start": 416.896,
+    "dur": 1.69,
+    "text": "Why do you bother to try?"
+   },
+   {
+    "i": 223,
+    "start": 567.754,
+    "dur": 1.124,
+    "text": "Keep fooling yourself!"
+   },
+   {
+    "i": 225,
+    "start": 572.25,
+    "dur": 1.123,
+    "text": "Keep running your mouth!"
+   },
+   {
+    "i": 301,
+    "start": 755.035,
+    "dur": 1.45,
+    "text": "Surrendering won't stop me."
+   },
+   {
+    "i": 320,
+    "start": 797.943,
+    "dur": 1.731,
+    "text": "You're a waste of my time!"
+   },
+   {
+    "i": 368,
+    "start": 890.182,
+    "dur": 2.382,
+    "text": "You don't seem to understand."
+   },
+   {
+    "i": 218,
+    "start": 555.467,
+    "dur": 1.988,
+    "text": "But go ahead, keep running your mouth."
+   }
+  ],
+  "shout": [
+   {
+    "i": 287,
+    "start": 727.539,
+    "dur": 0.926,
+    "text": "HATHETIC!"
+   },
+   {
+    "i": 288,
+    "start": 729.057,
+    "dur": 0.664,
+    "text": "WEAK!"
+   },
+   {
+    "i": 289,
+    "start": 730.317,
+    "dur": 0.62,
+    "text": "THAT'S IT!"
+   },
+   {
+    "i": 330,
+    "start": 822.382,
+    "dur": 0.871,
+    "text": "DIE!"
+   },
+   {
+    "i": 339,
+    "start": 840.925,
+    "dur": 0.743,
+    "text": "Back off!"
+   },
+   {
+    "i": 353,
+    "start": 861.879,
+    "dur": 0.609,
+    "text": "YOU'RE DONE!"
+   },
+   {
+    "i": 354,
+    "start": 862.97,
+    "dur": 1.365,
+    "text": "Time for a lesson."
+   },
+   {
+    "i": 355,
+    "start": 864.936,
+    "dur": 1.038,
+    "text": "Learn something!"
+   },
+   {
+    "i": 359,
+    "start": 873.372,
+    "dur": 1.141,
+    "text": "Pay attention!"
+   },
+   {
+    "i": 361,
+    "start": 876.592,
+    "dur": 0.829,
+    "text": "My turn now."
+   },
+   {
+    "i": 367,
+    "start": 887.833,
+    "dur": 1.311,
+    "text": "Listen to me!"
+   },
+   {
+    "i": 335,
+    "start": 832.959,
+    "dur": 1.207,
+    "text": "I'm about to crush you!"
+   },
+   {
+    "i": 317,
+    "start": 791.672,
+    "dur": 1.057,
+    "text": "This is gonna hurt."
+   },
+   {
+    "i": 319,
+    "start": 795.725,
+    "dur": 1.565,
+    "text": "No holding back anymore."
+   },
+   {
+    "i": 163,
+    "start": 419.18,
+    "dur": 1.145,
+    "text": "You got my attention."
+   },
+   {
+    "i": 164,
+    "start": 421.165,
+    "dur": 1.492,
+    "text": "And now you're gonna regret it."
+   }
+  ],
+  "bark": [
+   {
+    "i": 0,
+    "start": 0,
+    "dur": 0.366,
+    "text": "Watch it!"
+   },
+   {
+    "i": 2,
+    "start": 2.34,
+    "dur": 0.406,
+    "text": "There!"
+   },
+   {
+    "i": 3,
+    "start": 3.323,
+    "dur": 0.764,
+    "text": "Come on!"
+   },
+   {
+    "i": 5,
+    "start": 5.708,
+    "dur": 0.698,
+    "text": "Come here!"
+   },
+   {
+    "i": 6,
+    "start": 7.06,
+    "dur": 0.833,
+    "text": "HOLD STILL!"
+   },
+   {
+    "i": 348,
+    "start": 857.254,
+    "dur": 0.444,
+    "text": "Come on!"
+   },
+   {
+    "i": 351,
+    "start": 859.86,
+    "dur": 0.362,
+    "text": "HERE!"
+   },
+   {
+    "i": 352,
+    "start": 860.769,
+    "dur": 0.527,
+    "text": "BOOF!"
+   }
+  ],
+  "think": [
+   {
+    "i": 363,
+    "start": 879.423,
+    "dur": 0.462,
+    "text": "Think!"
+   },
+   {
+    "i": 364,
+    "start": 880.395,
+    "dur": 0.483,
+    "text": "BINK!"
+   }
+  ],
+  "escape": [
+   {
+    "i": 342,
+    "start": 846.065,
+    "dur": 1.299,
+    "text": "I'll show you power."
+   },
+   {
+    "i": 319,
+    "start": 795.725,
+    "dur": 1.565,
+    "text": "No holding back anymore."
+   },
+   {
+    "i": 317,
+    "start": 791.672,
+    "dur": 1.057,
+    "text": "This is gonna hurt."
+   }
+  ],
+  "orbit": [
+   {
+    "i": 195,
+    "start": 493.319,
+    "dur": 3.096,
+    "text": "Your life is the blink of an eye to a Viltromite."
+   },
+   {
+    "i": 228,
+    "start": 579.452,
+    "dur": 2.099,
+    "text": "My concern is the universe."
+   }
+  ],
+  "counter": [
+   {
+    "i": 456,
+    "start": 973.732,
+    "dur": 1.08,
+    "text": "Not a scratch"
+   },
+   {
+    "i": 470,
+    "start": 989.198,
+    "dur": 1.128,
+    "text": "Oh, that a punch?"
+   },
+   {
+    "i": 458,
+    "start": 976.153,
+    "dur": 0.748,
+    "text": "please try"
+   },
+   {
+    "i": 468,
+    "start": 986.505,
+    "dur": 1.305,
+    "text": "Stop holding back"
+   },
+   {
+    "i": 459,
+    "start": 977.415,
+    "dur": 0.664,
+    "text": "Hmph!"
+   }
+  ],
+  "hurt": [
+   {
+    "i": 396,
+    "start": 919.448,
+    "dur": 0.32,
+    "text": "Oof!"
+   },
+   {
+    "i": 425,
+    "start": 943.733,
+    "dur": 0.341,
+    "text": "OOF"
+   },
+   {
+    "i": 429,
+    "start": 947.18,
+    "dur": 0.432,
+    "text": "Ugh!"
+   },
+   {
+    "i": 432,
+    "start": 950.067,
+    "dur": 0.357,
+    "text": "OOF"
+   },
+   {
+    "i": 436,
+    "start": 953.516,
+    "dur": 0.334,
+    "text": "OOF"
+   },
+   {
+    "i": 447,
+    "start": 964.43,
+    "dur": 0.364,
+    "text": "OOF"
+   },
+   {
+    "i": 461,
+    "start": 979.574,
+    "dur": 0.419,
+    "text": "Oof"
+   },
+   {
+    "i": 462,
+    "start": 980.521,
+    "dur": 0.354,
+    "text": "Oof!"
+   },
+   {
+    "i": 464,
+    "start": 982.429,
+    "dur": 0.536,
+    "text": "Ugh!"
+   },
+   {
+    "i": 467,
+    "start": 985.626,
+    "dur": 0.401,
+    "text": "Oof!"
+   },
+   {
+    "i": 475,
+    "start": 995.03,
+    "dur": 0.502,
+    "text": "Oof!"
+   }
+  ],
+  "hurtBig": [
+   {
+    "i": 286,
+    "start": 726.483,
+    "dur": 0.497,
+    "text": "DAMMIT!"
+   },
+   {
+    "i": 451,
+    "start": 968.539,
+    "dur": 0.809,
+    "text": "Shit!"
+   },
+   {
+    "i": 372,
+    "start": 896.134,
+    "dur": 0.481,
+    "text": "UGH!"
+   },
+   {
+    "i": 460,
+    "start": 978.594,
+    "dur": 0.366,
+    "text": "UGH"
+   },
+   {
+    "i": 474,
+    "start": 993.766,
+    "dur": 0.72,
+    "text": "Ugh!"
+   }
+  ],
+  "ko": [
+   {
+    "i": 448,
+    "start": 965.23,
+    "dur": 0.693,
+    "text": "NOOOOOOOOOOO"
+   }
+  ],
+  "effort": [
+   {
+    "i": 369,
+    "start": 893.189,
+    "dur": 0.302,
+    "text": "HUR!"
+   },
+   {
+    "i": 370,
+    "start": 894.064,
+    "dur": 0.304,
+    "text": "KEEP!"
+   },
+   {
+    "i": 373,
+    "start": 897.18,
+    "dur": 0.417,
+    "text": "AHH!"
+   },
+   {
+    "i": 374,
+    "start": 898.149,
+    "dur": 0.302,
+    "text": "MMM!"
+   },
+   {
+    "i": 375,
+    "start": 898.969,
+    "dur": 0.42,
+    "text": "AH!"
+   },
+   {
+    "i": 378,
+    "start": 902.266,
+    "dur": 0.264,
+    "text": "HA!"
+   },
+   {
+    "i": 379,
+    "start": 903.048,
+    "dur": 0.35,
+    "text": "HA!"
+   },
+   {
+    "i": 381,
+    "start": 905.076,
+    "dur": 0.387,
+    "text": "Hah!"
+   },
+   {
+    "i": 382,
+    "start": 905.96,
+    "dur": 0.317,
+    "text": "BOO!"
+   },
+   {
+    "i": 383,
+    "start": 906.808,
+    "dur": 0.408,
+    "text": "Boo!"
+   },
+   {
+    "i": 384,
+    "start": 907.821,
+    "dur": 0.312,
+    "text": "WHOO!"
+   },
+   {
+    "i": 389,
+    "start": 913.05,
+    "dur": 0.368,
+    "text": "HUH N"
+   },
+   {
+    "i": 390,
+    "start": 914.055,
+    "dur": 0.298,
+    "text": "BUH!"
+   },
+   {
+    "i": 391,
+    "start": 914.968,
+    "dur": 0.278,
+    "text": "HMM"
+   },
+   {
+    "i": 392,
+    "start": 915.765,
+    "dur": 0.329,
+    "text": "BOO!"
+   },
+   {
+    "i": 393,
+    "start": 916.62,
+    "dur": 0.402,
+    "text": "Heh"
+   },
+   {
+    "i": 394,
+    "start": 917.621,
+    "dur": 0.295,
+    "text": "HUH"
+   },
+   {
+    "i": 397,
+    "start": 920.281,
+    "dur": 0.317,
+    "text": "HUH"
+   },
+   {
+    "i": 398,
+    "start": 921.094,
+    "dur": 0.319,
+    "text": "HUH"
+   },
+   {
+    "i": 399,
+    "start": 921.949,
+    "dur": 0.376,
+    "text": "HUH"
+   },
+   {
+    "i": 400,
+    "start": 922.822,
+    "dur": 0.26,
+    "text": "HUH"
+   },
+   {
+    "i": 401,
+    "start": 923.591,
+    "dur": 0.311,
+    "text": "Pfft"
+   },
+   {
+    "i": 402,
+    "start": 924.4,
+    "dur": 0.297,
+    "text": "Ha!"
+   },
+   {
+    "i": 403,
+    "start": 925.276,
+    "dur": 0.291,
+    "text": "HUH"
+   },
+   {
+    "i": 404,
+    "start": 926.083,
+    "dur": 0.36,
+    "text": "Pfft!"
+   },
+   {
+    "i": 405,
+    "start": 927.005,
+    "dur": 0.269,
+    "text": "Pfft"
+   },
+   {
+    "i": 406,
+    "start": 927.826,
+    "dur": 0.257,
+    "text": "Pfft"
+   },
+   {
+    "i": 407,
+    "start": 928.563,
+    "dur": 0.263,
+    "text": "HUH"
+   },
+   {
+    "i": 408,
+    "start": 929.358,
+    "dur": 0.363,
+    "text": "Mm!"
+   },
+   {
+    "i": 409,
+    "start": 930.276,
+    "dur": 0.328,
+    "text": "Mm!"
+   },
+   {
+    "i": 410,
+    "start": 931.178,
+    "dur": 0.25,
+    "text": "Mm!"
+   },
+   {
+    "i": 411,
+    "start": 931.944,
+    "dur": 0.327,
+    "text": "PFFT"
+   },
+   {
+    "i": 412,
+    "start": 932.863,
+    "dur": 0.295,
+    "text": "BOO!"
+   },
+   {
+    "i": 413,
+    "start": 933.672,
+    "dur": 0.31,
+    "text": "Mm!"
+   },
+   {
+    "i": 414,
+    "start": 934.445,
+    "dur": 0.332,
+    "text": "Boom!"
+   },
+   {
+    "i": 415,
+    "start": 935.369,
+    "dur": 0.333,
+    "text": "Pop!"
+   },
+   {
+    "i": 416,
+    "start": 936.232,
+    "dur": 0.422,
+    "text": "Whoo!"
+   },
+   {
+    "i": 418,
+    "start": 938.087,
+    "dur": 0.275,
+    "text": "HUH!"
+   },
+   {
+    "i": 420,
+    "start": 939.599,
+    "dur": 0.262,
+    "text": "HUH!"
+   },
+   {
+    "i": 421,
+    "start": 940.401,
+    "dur": 0.293,
+    "text": "Ha!"
+   },
+   {
+    "i": 422,
+    "start": 941.293,
+    "dur": 0.256,
+    "text": "HUH!"
+   },
+   {
+    "i": 423,
+    "start": 942.045,
+    "dur": 0.298,
+    "text": "HUH!"
+   },
+   {
+    "i": 426,
+    "start": 944.58,
+    "dur": 0.343,
+    "text": "Heh."
+   },
+   {
+    "i": 427,
+    "start": 945.48,
+    "dur": 0.276,
+    "text": "Boo!"
+   },
+   {
+    "i": 428,
+    "start": 946.27,
+    "dur": 0.339,
+    "text": "HUH"
+   },
+   {
+    "i": 430,
+    "start": 948.152,
+    "dur": 0.348,
+    "text": "HUH!"
+   },
+   {
+    "i": 433,
+    "start": 950.922,
+    "dur": 0.352,
+    "text": "HUH"
+   },
+   {
+    "i": 434,
+    "start": 951.912,
+    "dur": 0.294,
+    "text": "Mm!"
+   },
+   {
+    "i": 435,
+    "start": 952.672,
+    "dur": 0.347,
+    "text": "Ha!"
+   },
+   {
+    "i": 453,
+    "start": 970.897,
+    "dur": 0.37,
+    "text": "Pfft"
+   },
+   {
+    "i": 457,
+    "start": 975.357,
+    "dur": 0.257,
+    "text": "PFFT"
+   },
+   {
+    "i": 466,
+    "start": 984.715,
+    "dur": 0.44,
+    "text": "AH!"
+   },
+   {
+    "i": 471,
+    "start": 990.793,
+    "dur": 0.338,
+    "text": "AH!"
+   },
+   {
+    "i": 476,
+    "start": 996.03,
+    "dur": 0.43,
+    "text": "MMM!"
+   }
+  ],
+  "effortHeavy": [
+   {
+    "i": 371,
+    "start": 894.967,
+    "dur": 0.549,
+    "text": "AHH!"
+   },
+   {
+    "i": 376,
+    "start": 900.059,
+    "dur": 0.587,
+    "text": "AHHH!"
+   },
+   {
+    "i": 377,
+    "start": 901.323,
+    "dur": 0.471,
+    "text": "AH!"
+   },
+   {
+    "i": 380,
+    "start": 903.925,
+    "dur": 0.607,
+    "text": "AHHH!"
+   },
+   {
+    "i": 385,
+    "start": 908.884,
+    "dur": 0.614,
+    "text": "AHHH!"
+   },
+   {
+    "i": 386,
+    "start": 910.119,
+    "dur": 0.485,
+    "text": "BAH!"
+   },
+   {
+    "i": 387,
+    "start": 911.188,
+    "dur": 0.458,
+    "text": "HUH!"
+   },
+   {
+    "i": 388,
+    "start": 912.123,
+    "dur": 0.459,
+    "text": "Boom!"
+   },
+   {
+    "i": 437,
+    "start": 954.306,
+    "dur": 0.499,
+    "text": "AH!"
+   },
+   {
+    "i": 438,
+    "start": 955.241,
+    "dur": 0.671,
+    "text": "Boom!"
+   },
+   {
+    "i": 439,
+    "start": 956.403,
+    "dur": 0.586,
+    "text": "AHHH!"
+   },
+   {
+    "i": 440,
+    "start": 957.446,
+    "dur": 0.696,
+    "text": "AHHH!"
+   },
+   {
+    "i": 442,
+    "start": 959.495,
+    "dur": 0.592,
+    "text": "AHHH!"
+   },
+   {
+    "i": 443,
+    "start": 960.55,
+    "dur": 0.564,
+    "text": "HA!"
+   },
+   {
+    "i": 444,
+    "start": 961.598,
+    "dur": 0.698,
+    "text": "Yeah!"
+   },
+   {
+    "i": 449,
+    "start": 966.407,
+    "dur": 0.48,
+    "text": "Boom!"
+   },
+   {
+    "i": 455,
+    "start": 972.59,
+    "dur": 0.551,
+    "text": "Pfft"
+   },
+   {
+    "i": 469,
+    "start": 988.26,
+    "dur": 0.463,
+    "text": "Ha!"
+   },
+   {
+    "i": 472,
+    "start": 991.572,
+    "dur": 0.664,
+    "text": "AHHH!"
+   },
+   {
+    "i": 473,
+    "start": 992.691,
+    "dur": 0.591,
+    "text": "HMMM"
+   }
+  ]
+ }
+}

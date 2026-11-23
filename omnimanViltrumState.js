@@ -10,9 +10,10 @@ import { OMV_KEY, OMV_MOVES, FLIGHT, SPEED_DMG, speedMult, BLITZ, SKYHOOK, METEO
   TECHNIQUES, NORMALS, QUOTES, SCREEN, BAR, TOP, dmg } from './omnimanViltrumData.js'
 import { flightToggleInput, flightTakeoff, isFlying, ensureFlightState, FLIGHT_PHASE } from './flight.js'
 import { gsGrabGate } from './gojoShinjukuState.js'
+import { onStartMove, tickMoves, unimpressedCatch } from './omnimanViltrumMoves.js'
 
 export const isOmv = f => f?.rosterKey === OMV_KEY
-const E = { startMove: null, comboScale: null }
+const E = { startMove: null, comboScale: null, W: null }
 export function registerOmvEngine(o) { Object.assign(E, o) }
 
 export const omvState = f => {
@@ -101,11 +102,14 @@ function wallTick(t, W, s) {
   const w = t._omvWall; if (!w) return
   if (--w.ttl <= 0 || !(t.health > 0)) { delete t._omvWall; return }
   const atL = t.x <= 1 && w.dir < 0, atR = t.x >= sw(W) - (t.w || 48) - 1 && w.dir > 0
-  if (!atL && !atR) return
+  // the engine's playfield edge is the CAMERA's (it clamps fighters to the view): moving into it and not moving = a wall
+  const blocked = w.px != null && Math.abs(t.x - w.px) < 0.5 && Math.sign(t.vx || 0) === w.dir && Math.abs(t.vx || 0) > 2
+  w.px = t.x
+  if (!atL && !atR && !blocked) return
   t.wallBounce = true; t._wallSplat = 24; t.hitstun = Math.max(t.hitstun || 0, 34); t._wallBounceShake = true
   t.vx = -(w.dir * Math.max(6, Math.abs(t.vx || 0))) * 0.35
   delete t._omvWall
-  if (s) { s.stats.wallSplats++; pushFx(s, 'wallSplat', atL ? 0 : sw(W), ctrY(t)) }
+  if (s) { s.stats.wallSplats++; pushFx(s, 'wallSplat', w.dir < 0 ? t.x : t.x + (t.w || 48), ctrY(t)) }
 }
 
 // ── STRIKE: the one hit path for his sim-driven hits (boom, landing, specials, super, ultimate). Damage leaves through
@@ -144,7 +148,6 @@ function strike(f, t, P, W) {
   pushFx(s, P.fx || 'impact', ctrX(t), ctrY(t), { dir })
   return 'hit'
 }
-export const _omvKit = { strike: (...a) => strike(...a), pushFx: (...a) => pushFx(...a), cue: (...a) => cue(...a), foesOf: (...a) => foesOf(...a) }
 
 // grab gate: Gojo's Infinity (gojo_shinjuku at ANY level, or the old Gojo's Infinity toggle) can't be grabbed → whiff
 export function grabStopped(t, f) {
@@ -163,30 +166,30 @@ function readEdges(f, s, raw) {
   const fw = !!(f.facing === -1 ? raw.left : raw.right), bk = !!(f.facing === -1 ? raw.right : raw.left)
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'block', 'jump', 'up', 'charge', 'grab', 'left', 'right', 'down']) {
     const v = !!raw[k]
-    if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, down: !!raw.down, up: !!raw.up, fwd: fw, back: bk }
-    if (!v && s.prev[k]) s.edges[k + 'Up'] = { tick: s.tick }
+    if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, at: s.clock, down: !!raw.down, up: !!raw.up, fwd: fw, back: bk }   // tick = identity, at = age on the SIM clock (hitstop holds the buffer)
+    if (!v && s.prev[k]) s.edges[k + 'Up'] = { tick: s.tick, at: s.clock }
     s.prev[k] = v
   }
   const d = numpad(raw, f.facing || 1)
-  if (!s.dirs.length || s.dirs[s.dirs.length - 1].d !== d) { s.dirs.push({ d, t: s.tick }); if (s.dirs.length > 16) s.dirs.shift() }
+  if (!s.dirs.length || s.dirs[s.dirs.length - 1].d !== d) { s.dirs.push({ d, t: s.clock }); if (s.dirs.length > 16) s.dirs.shift() }   // motion timing on the sim clock too
 }
 function motion(s, seq, win = 20, tail = 8) {
   let i = seq.length - 1
   for (let j = s.dirs.length - 1; j >= 0 && i >= 0; j--) {
     const e = s.dirs[j]
-    if (s.tick - e.t > win) break
-    if (e.d === seq[i]) { if (i === seq.length - 1) { const next = s.dirs[j + 1]; if (next && s.tick - next.t > tail) return false } i-- }
+    if (s.clock - e.t > win) break
+    if (e.d === seq[i]) { if (i === seq.length - 1) { const next = s.dirs[j + 1]; if (next && s.clock - next.t > tail) return false } i-- }
   }
   return i < 0
 }
-export const fresh = (s, k, win = 8) => !!(s.edges[k] && s.used[k] !== s.edges[k].tick && s.tick - s.edges[k].tick <= win)
+export const fresh = (s, k, win = 8) => !!(s.edges[k] && s.used[k] !== s.edges[k].tick && s.clock - s.edges[k].at <= win)
 export const use = (s, k) => { if (s.edges[k]) s.used[k] = s.edges[k].tick }
 export const MOTIONS = {
   qcf: s => motion(s, [2, 3, 6], 18) || motion(s, [2, 6], 14),                  // ↓↘→
   dp: s => motion(s, [6, 2, 3], 20) || motion(s, [6, 3], 14),                   // →↓↘
   qcb: s => motion(s, [2, 1, 4], 18) || motion(s, [2, 4], 14),                  // ↓↙←
   doubleQcf: s => motion(s, [2, 3, 6, 2, 3, 6], 40),                            // ↓↘→↓↘→
-  downDown: s => { let n = 0, seen5 = false; for (let j = s.dirs.length - 1; j >= 0; j--) { const e = s.dirs[j]; if (s.tick - e.t > 24) break; if (e.d === 2 || e.d === 1 || e.d === 3) { if (seen5 || n === 0) n++; seen5 = false } else if (e.d === 5) seen5 = true } return n >= 2 },
+  downDown: s => { let n = 0, seen5 = false; for (let j = s.dirs.length - 1; j >= 0; j--) { const e = s.dirs[j]; if (s.clock - e.t > 24) break; if (e.d === 2 || e.d === 1 || e.d === 3) { if (seen5 || n === 0) n++; seen5 = false } else if (e.d === 5) seen5 = true } return n >= 2 },
 }
 
 // ── START A MOVE (combat.startMove frameExact path + the `omv` descriptor). Every check happens before anything is spent.
@@ -207,24 +210,25 @@ export function startOmvMove(f, key, W, o = {}) {
   if (!f.infiniteEnergy && cost) { f.energy = Math.max(0, (f.energy || 0) - cost); s.stats.spent += cost }
   f.currentMove = key
   const a = f.currentAttack
-  a.omv = { key, dir: o.dir ?? (f.facing || 1), serial: ++s.serial, released: false, contact: false, clean: false, frac: 0, fired: 0 }
+  a.omv = { key, dir: o.dir ?? (f.facing || 1), serial: ++s.serial, released: false, contact: false, clean: false, frac: 0, fired: 0, chain: !!o.cancel }
   a.hasHit = !!md.noBody
   if (md.isUltimate) a.isUltimate = true
   if (md.super) a.super = true
   f.isBlocking = false; f.isCharging = false
-  if (!fly && g && !md.noBody) f.vx = 0          // grounded normals plant him; in flight his momentum carries the punch
+  if (!fly && g) f.vx = 0                         // grounded moves plant him (walk speed never carries into a move); in flight his momentum carries the punch
+  f.dashTimer = 0; f._backDash = false            // a dash from the motion (↓↘→ / ↓↙← can read as a double-tap) never carries into the move
   if (key === 'kEscape') { f.ultimateCooldown = ESCAPE.ultCooldown; s.stats.escape++ }
   onStart(f, s, key, a, W, o)
   cue(f, key)
   return true
 }
-// Phase 3 fills these in (specials / super / ultimate); normals need nothing extra at start
-function onStart(f, s, key, a, W, o) { }
+function onStart(f, s, key, a, W, o) { onStartMove(f, s, key, a, W, o, KIT) }
 
 // ── PER-FRAME TICK (1v1 + FFA combat steps, before the command layer) ──
 export function tickOmv(f, opp, raw, W) {
   if (!isOmv(f)) { if (f?._omv) clearOmv(f); return }
   const s = omvState(f)
+  E.W = W
   s.tick++
   readEdges(f, s, raw || {})
   presentTick(f, s, opp, W)
@@ -244,7 +248,7 @@ export function tickOmv(f, opp, raw, W) {
   if (s.cpu && s.clock - s.cpu.seen < 3) cpuTick(f, s, opp, W, raw || {})
   // interruption: a hit / grab ends his live move and lets go of anything he holds
   const a = live(f)
-  if (a && (f.hitstun > 0 || f.isGrabbed)) { endOmvAttack(f); releaseHeld(f) }
+  if (a && (f.hitstun > 0 || f.isGrabbed)) { endOmvAttack(f); releaseHeld(f); s.rush = null; s.ev = null; s.counter = null }
   if (s.crash > 0) { crashTick(f, s, W); s.pv = { vx: f.vx || 0, vy: f.vy || 0, x: f.x, y: f.y, sp: 0 }; return }
   if (s.land > 0) { if (--s.land === 0) cue(f, 'landDone'); f.vx = 0 }
   if (fly || s.rush) flightEvents(f, s, W, frac)
@@ -271,6 +275,8 @@ function chargeTap(f, s, raw) {
 // numbers on the frame it connects) — +0 % standing, +60 % at top speed
 function speedScaleTick(f, s, frac) {
   const a = live(f); if (!a || !NORMALS.includes(a.omv.key)) return
+  // a CHAINED Haymaker steps in (4 px / frame through frames 3–11 = 36 px): the chain's knockback never pushes the foe out of it
+  if (a.omv.key === 'kHay' && a.omv.chain && grounded(f) && !omvFlying(f)) { const t = elapsed(a); if (t >= 3 && t < 12) f.x += a.omv.dir * 4 }
   const md = OMV_MOVES[a.omv.key], k = speedMult(frac)
   if (a.omv.contact) return                     // frozen at the impact frame
   a.omv.frac = Math.max(a.omv.frac || 0, +frac.toFixed(3))   // the PEAK speed carried into the punch (a body push the frame before contact doesn't rob it)
@@ -337,8 +343,30 @@ function hardLanding(f, s, W, fl) {
   }
 }
 
-// Phase 3 fills this in (Blitz / Sky Hook / Meteor / Face in the Dirt / Unimpressed / Decree / THINK! / Escape Velocity)
-function specialsTick(f, s, W, opp, raw) { }
+// Blitz / Sky Hook / Meteor / Face in the Dirt / Unimpressed / Decree / THINK! / Escape Velocity: omnimanViltrumMoves.js
+function specialsTick(f, s, W, opp, raw) {
+  tickMoves(f, s, W, opp, raw, KIT)
+  if (s.crater && ++s.crater.t > ESCAPE.craterLife) s.crater = null   // crater decal age (drawn from it; fades over 10 s)
+}
+// the kit the moves module strikes / cues / crashes through (no import cycle: it never imports this file)
+const KIT = { strike: (...a) => strike(...a), pushFx: (...a) => pushFx(...a), cue: (...a) => cue(...a), foesOf: (...a) => foesOf(...a),
+  grabStopped: (...a) => grabStopped(...a), startCrash: (...a) => startCrash(...a) }
+
+// ── UNIMPRESSED defender gates (combat.js melee + projectile paths): inside his counter window the hit is not felt ──
+const evLive = f => !!(f._omv?.ev && f._omv.ev.ph !== 'grab' && f._omv.ev.ph !== 'whiff')   // the cinematic (ascent → settle): nobody else touches him
+export function omvMeleeGate(defender, attacker) {
+  if (!isOmv(defender)) return false
+  if (evLive(defender)) return true
+  if (!defender._omv?.counter || !E.W) return false
+  return unimpressedCatch(defender, defender._omv, attacker, E.W, KIT)
+}
+export function omvProjectileGate(defender, proj) {
+  if (!isOmv(defender)) return null
+  if (evLive(defender) && proj?.owner !== defender) return 'remove'
+  if (!defender._omv?.counter || !E.W) return null
+  if (proj?.owner === defender) return null
+  return unimpressedCatch(defender, defender._omv, proj?.owner && proj.owner.health > 0 ? proj.owner : null, E.W, KIT) ? 'remove' : null
+}
 
 // ── PRESENTATION: intro (arrival burst on his first tick), win line once every foe is down ──
 function presentTick(f, s, opp, W) {
@@ -357,11 +385,10 @@ function cpuTick(f, s, opp, W, raw) { }
 // movement is his while a rush / hold / crash / hard landing / committed move owns it
 export function omvLockedForMovement(f) {
   if (!isOmv(f)) return false
-  const s = f._omv
-  if (s && (s.rush || s.hold || s.ev || s.crash > 0 || s.land > 0)) { f._dashTap = false; return true }
-  const a = f.attacking ? f.currentAttack : null
-  if (a?.omv && OMV_MOVES[a.omv.key]?.noBody) { f._dashTap = false; return true }
-  if (a?.omv && !omvFlying(f)) { f._dashTap = false; return true }   // grounded normals plant him; flying normals keep his momentum (the flight step still runs)
-  return false
+  const s = f._omv, a = f.attacking ? f.currentAttack : null
+  const lock = (s && (s.rush || s.hold || s.ev || s.crash > 0 || s.land > 0)) || (a?.omv && OMV_MOVES[a.omv.key]?.noBody) || (a?.omv && !omvFlying(f))   // grounded normals plant him; flying normals keep his momentum (the flight step still runs)
+  if (!lock) return false
+  f._dashTap = false; f.dashTimer = 0; f._backDash = false   // the engine's dash sets vx inside the physics step even when locked
+  return true
 }
 export { NORMALS, TECHNIQUES }

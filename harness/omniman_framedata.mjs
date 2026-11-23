@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url'
 const strip = v => { if (Array.isArray(v)) return v.map(strip); if (v && typeof v === 'object') { const o = {}; for (const k of Object.keys(v).sort()) if (typeof v[k] !== 'function') o[k] = strip(v[k]); return o } return v }
 const H = v => crypto.createHash('sha1').update(JSON.stringify(strip(v)) || 'undefined').digest('hex')
 const [mode, a, b] = process.argv.slice(2)
+const OTHER_SESSIONS = ['invincible']
 if (mode === 'snap') {
   const dir = path.resolve(a), imp = f => import(pathToFileURL(path.join(dir, f)).href)
   const chars = (await imp('characters.js')).characters
@@ -28,7 +29,9 @@ if (mode === 'snap') {
     if (!A[sec]) continue
     const changed = Object.keys(A[sec]).filter(k => A[sec][k] !== B[sec][k])
     const added = Object.keys(B[sec]).filter(k => !(k in A[sec]))
-    const okAdd = added.every(k => k === 'omniman_viltrum')
+    // additions allowed: his own key + fighters other sessions COMMITTED after the before-snapshot (msv1-invincible, 56086d270);
+    // every EXISTING entry must still be byte-identical (changed = 0)
+    const okAdd = added.every(k => k === 'omniman_viltrum' || OTHER_SESSIONS.includes(k))
     console.log(`  ${changed.length ? '❌' : '✅'} ${sec}: ${Object.keys(A[sec]).length} existing, changed=${changed.length}${changed.length ? ' [' + changed.join(',') + ']' : ''}; added=[${added.join(',')}]${okAdd ? '' : ' ❌ unexpected'}`)
     if (changed.length || !okAdd) bad++
   }

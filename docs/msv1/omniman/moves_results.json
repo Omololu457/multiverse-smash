@@ -1,0 +1,198 @@
+{
+ "pass": 47,
+ "fail": 0,
+ "R": {
+  "frames": {
+   "kJab": {
+    "raw": 38,
+    "startup": 5,
+    "active": 2,
+    "recovery": 8,
+    "damageType": "blunt"
+   },
+   "kStraight": {
+    "raw": 60,
+    "startup": 8,
+    "active": 3,
+    "recovery": 13,
+    "damageType": "blunt"
+   },
+   "kHay": {
+    "raw": 96,
+    "startup": 14,
+    "active": 4,
+    "recovery": 20,
+    "damageType": "blunt"
+   },
+   "kLow": {
+    "raw": 46,
+    "startup": 7,
+    "active": 3,
+    "recovery": 11,
+    "damageType": "blunt"
+   },
+   "kKick": {
+    "raw": 70,
+    "startup": 9,
+    "active": 3,
+    "recovery": 15,
+    "damageType": "blunt"
+   },
+   "kAir": {
+    "raw": 64,
+    "startup": 6,
+    "active": 4,
+    "recovery": 10,
+    "damageType": "blunt"
+   }
+  },
+  "normals": {
+   "jab": {
+    "lost": 38,
+    "hitFrame": 5
+   },
+   "haymaker": {
+    "lost": 96,
+    "hitFrame": 14
+   },
+   "low": {
+    "lost": 46,
+    "hitFrame": 7
+   },
+   "kick": {
+    "lost": 70,
+    "hitFrame": 9
+   },
+   "jabStraight": 98,
+   "hayWall": true
+  },
+  "specials": {
+   "blitzTap": {
+    "lost": 90,
+    "moved": 314
+   },
+   "whiffTap": {
+    "moved": 1010,
+    "planned": 640,
+    "hits": 0
+   },
+   "whiffHold": {
+    "planned": 1024
+   },
+   "skyHook": {
+    "lost": 80,
+    "launched": true,
+    "flying": true
+   },
+   "meteor": {
+    "lost": 105,
+    "grounded": true,
+    "flying": false
+   },
+   "meteorWhiff": {
+    "recovery": 29
+   },
+   "dirt": {
+    "lost": 110,
+    "held": true,
+    "dragged": 490
+   }
+  },
+  "unimpressed": {
+   "melee": {
+    "caught": true,
+    "glint": true,
+    "hpLost": 0,
+    "foeLost": 80,
+    "cd": 690
+   },
+   "projectile": {
+    "counters": 1,
+    "hpLost": 0
+   },
+   "whiffFrames": 41
+  },
+  "decree": {
+   "energy": 54.68000000000003,
+   "control": 4.679999999999999,
+   "gain": 50,
+   "max": 200,
+   "done": 1
+  },
+  "think": {
+   "lost": 300,
+   "bubble": "THINK!",
+   "spent": 100,
+   "foeX": 2310,
+   "wall": 2340,
+   "splats": 1
+  },
+  "escape": {
+   "seen": [
+    "grab",
+    "ascent",
+    "orbit",
+    "ret",
+    "impact",
+    "settle"
+   ],
+   "dmgAt": {
+    "grab": 0,
+    "ascent": 0,
+    "orbit": 80,
+    "ret": 80,
+    "impact": 420,
+    "settle": 420
+   },
+   "total": 420,
+   "line": "orbit",
+   "crater": true,
+   "kd": true,
+   "cd": 871,
+   "energy": 119.74000000000075,
+   "rise": 300
+  },
+  "escapeWhiff": {
+   "recovery": 39,
+   "whiffs": 1
+  },
+  "combos": {
+   "c1_jab_straight_haymaker": {
+    "dmg": 186,
+    "hits": 3,
+    "wall": 1
+   },
+   "c2_jab_straight_blitz": {
+    "dmg": 180,
+    "hits": 2,
+    "wall": 1
+   },
+   "c3_low_straight_think": {
+    "dmg": 406,
+    "hits": 2,
+    "wall": 1
+   },
+   "c4_hay_wall_escape": {
+    "dmg": 516,
+    "hits": 1,
+    "wall": 1
+   },
+   "c5_skyhook_flight_meteor": {
+    "dmg": 234,
+    "hits": 1,
+    "wall": 0
+   }
+  },
+  "mark": {
+   "p2": "invincible",
+   "bubble": "Think, Mark! THINK!"
+  },
+  "gojo": {
+   "lost": 0,
+   "stopped": 1,
+   "whiff": 1,
+   "hits": 0
+  }
+ },
+ "errors": []
+}

@@ -16,6 +16,8 @@ export function omnimanViltrumHarnessApi(g) {
     place: (x, y, w = 'p1') => { const f = raw(w); f.x = x; if (y != null) f.y = y; f.vx = 0; f.vy = 0 },
     fly: (w = 'p1') => { const f = raw(w); const ok = flightTakeoff(f); const c = ensureFlightState(f); return { ok, phase: c.phase } },
     hud: (w = 'p1') => omvHudLabel(raw(w)),
+    stage: () => g.world.stageWidth?.() ?? null,
+    shoot: (o = {}, w = 'p2') => { const f = raw(w), p = g.world.spawn(f, o.type || 'test_bolt', { speed: o.speed ?? 10, damage: o.damage ?? 40, w: 16, h: 16, ...o }); if (p && o.y != null) p.y = o.y; return !!p },
     profiles: () => clone(Object.fromEntries(Object.entries(FLIGHT_PROFILES).map(([k, p]) => [k, { maxH: p.maxH, maxV: p.maxV, accel: p.accel, drag: p.drag, momentum: p.momentum || null }]))),
     data: () => clone({ moves: OMV_MOVES, flight: FLIGHT, speedDmg: SPEED_DMG, top: TOP, accel: ACCEL, fastest: FASTEST_FLIER, blitz: BLITZ, skyhook: SKYHOOK, meteor: METEOR, dirt: DIRT, unimp: UNIMPRESSED, decree: DECREE, think: THINK, escape: ESCAPE, timeline: TIMELINE }),
     state: (w = 'p1') => { const f = raw(w), a = f.currentAttack, s = f._omv, c = f._flightCtl

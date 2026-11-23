@@ -21,6 +21,7 @@ import { gsHitbox, gsBlock, gsHit, gsMeleeGate, gsGrabGate, gsProjectileGate, gs
 import { sksHitbox, sksBlock, sksHit } from './sukunaShinjukuState.js'   // Ryomen Sukuna (Shinjuku) hooks: his move boxes + contact flags (sukuna_shinjuku-gated)
 import { invHitbox, invBlock, invHit, invKnockback, invDamageMods, invKoFloor } from './invincibleState.js'   // Invincible hooks: move boxes, contact flags, light weight, Resolve / Can't Stay Down (invincible-gated)
 import { omvHitbox, omvBlock, omvHit, omvKnockback } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) hooks: his move boxes + speed-scaled contact + heavy weight (omniman_viltrum-gated)
+import { omvMeleeGate, omvProjectileGate } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) UNIMPRESSED counter window: the hit is not felt (omniman_viltrum-gated)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
 import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
@@ -3461,6 +3462,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
   if (attacker.currentAttack?.superArmor) attacker.armorFlash = 8
 
   if (gsMeleeGate(defender, attacker)) { attacker.currentAttack.hasHit = true; return }   // Satoru Gojo (Shinjuku): Falling Blossom auto-counter / INFINITY stops the strike (silent, no flash: it is invisible); L1/L2 supers pass; gojo_shinjuku-gated
+  if (omvMeleeGate(defender, attacker)) { attacker.currentAttack.hasHit = true; return }   // Omni-Man (Viltrumite): UNIMPRESSED — inside the 24-frame window the strike is not felt; he backhands; gated
   if (shouldGojoAutoDodge(defender) || shouldSasukeAbsoluteDefenseNegate(defender)) {
     attacker.currentAttack.hasHit = true
     try { sound?.play?.(SFX?.BLOCK) } catch (_) {}
@@ -4594,6 +4596,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (((!rectsOverlap(pb, hurtbox) && !rectsOverlap(pb, luffyLimbHurtbox(fighter))) || benAlienEvades(fighter, { proj }) || ninjaEvades(fighter, { proj })) && !_benWeak) continue   // + READY form low profile (Goop Puddle): false for everyone else
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
       if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Satoru Gojo (Shinjuku): Infinity stops it at contact (L1/L2 supers pass) / Falling Blossom; gojo_shinjuku-gated
+      if (omvProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Omni-Man (Viltrumite): UNIMPRESSED swats it away; gated
       if (fighter._gs?.blink?.inv) continue   // Satoru Gojo (Shinjuku): the long blink's travel frames are invulnerable (the projectile passes); gojo_shinjuku-gated
       if ((fighter._invPhase || 0) > 0 && fighter.rosterKey === 'invincible') continue   // Invincible: ZIP frames 1-4 are projectile-intangible (the projectile passes)
       if (fighter.isBlocking && isBenDevice(proj.owner) && benAlienGuardBreak(proj.owner, fighter, { proj })) fighter.isBlocking = false   // READY form guard-break (Eyeguy Unblinking); false for everyone else

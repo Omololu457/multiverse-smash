@@ -8,7 +8,7 @@ import { OMNIMAN_VILTRUM_ANIM } from './omnimanViltrumSprites.js'
 
 export const OMV_KEY = 'omniman_viltrum'
 // stored damage = round(raw / 0.6): the engine's global ×0.6 write scale lands the brief's number (Gojo / Sukuna Shinjuku lever)
-export const dmg = raw => Math.round(raw / 0.6)
+export const dmg = raw => Math.ceil(raw / 0.6 - 1e-9)   // the engine FLOORS after × GLOBAL_DAMAGE_SCALE 0.6 → ceil lands the brief's number exactly (38, 8, 50, 340 …)
 export const OMV_SCALE = 2           // integer nearest-neighbour presentation scale (≈61 px sheet body → ≈122 px)
 export const SCREEN = 1280           // reference screen width for "% of screen" distances
 export const BAR = 100               // one super bar = 100 energy
@@ -40,7 +40,7 @@ export const BLITZ = { startup: 6, tapDist: 0.50, holdDist: 0.80, raw: 90, w: 64
 export const SKYHOOK = { startup: 7, rise: 16, vy: -15, raw: 80, w: 56, h: 110, boxY: -40, hitstun: 30, carry: 16, launchVy: -17, recovery: 12, chip: 0.15 }
 export const METEOR = { startup: 4, angleDown: Math.PI / 2, angle45: Math.PI / 4, raw: 70, r: 130, hitstun: 30, kby: -9, kbx: 7,
   recoveryHit: 14, recoveryWhiff: 30, maxFrames: 40, chip: 0.15 }
-export const DIRT = { startup: 6, active: 3, reach: 62, h: 80, dragDist: 0.40, dragSpeed: 26, raw: 110, throwVx: 24, throwVy: -4, hitstun: 40,
+export const DIRT = { startup: 6, active: 3, reach: 96, h: 80, dragDist: 0.40, dragSpeed: 26, raw: 110, throwVx: 24, throwVy: -4, hitstun: 40,
   whiff: 22, chip: 0 }
 export const UNIMPRESSED = { startup: 2, window: 24, whiff: 16, cooldown: 720, raw: 80, kbx: 15, kby: -4, hitstun: 30, backhand: 14 }
 export const DECREE = { frames: 60, gain: 0.25 }

@@ -22,7 +22,8 @@ const run = (p2, seed, frames) => page.evaluate(([p2, s, n]) => {
   const trail = [], used = {}   // stats reset with f._omv between rounds → keep the running max of each counter
   for (let i = 0; i < n; i += 30) { __harness.aiVsAi.step(30); const f = T.raw(), ss = f._omv
     if (ss) { trail.push(JSON.stringify([{ ...ss, cues: undefined, fx: undefined }, f.vx, f.vy, f.x, f.y, f._flightCtl?.phase || null]))
-      for (const k of ['hits', 'takeoffs', 'booms', 'crashes', 'hardLands', 'topSpeed']) used[k] = Math.max(used[k] || 0, ss.stats[k] || 0) } }
+      for (const k of ['hits', 'takeoffs', 'booms', 'crashes', 'hardLands', 'topSpeed']) used[k] = Math.max(used[k] || 0, ss.stats[k] || 0)
+      used.moves = Math.max(used.moves || 0, ss.serial || 0) } }
   const f = T.raw(), o = T.raw('p2')
   return { omv: trail.length ? trail.join('|') : null, p1: [f.x, f.y, f.health, f.energy, f.rosterKey], p2: [o.x, o.y, o.health, o.energy, o.rosterKey], used }
 }, [p2, seed, frames])
@@ -33,7 +34,7 @@ for (const p2 of ['homelander', 'gojo_shinjuku', 'dseyl']) {
   report[p2] = { hash: H(r1.omv), used: r1.used, p1: r1.p1, p2: r1.p2 }
   ck(`vs ${p2}: P1 is omniman_viltrum with sim state (sampled every 30 f)`, r1.p1[4] === 'omniman_viltrum' && !!r1.omv, JSON.stringify(r1.p1))
   ck(`vs ${p2}: same seed → identical f._omv + velocity + flight phase at every 30-f sample, fighters after 1800 f`, r1.omv === r2.omv && JSON.stringify([r1.p1, r1.p2]) === JSON.stringify([r2.p1, r2.p2]), `${H(r1.omv)} vs ${H(r2.omv)}`)
-  ck(`vs ${p2}: he fought (landed hits)`, r1.used.hits > 0, JSON.stringify(r1.used))
+  ck(`vs ${p2}: he fought (moves thrown; vs Gojo Shinjuku Infinity may stop every hit)`, r1.used.moves > 0 && (r1.used.hits > 0 || p2 === 'gojo_shinjuku'), JSON.stringify(r1.used))
 }
 const rnd = await page.evaluate(() => __omvRandom.length); if (rnd) console.log(await page.evaluate(() => __omvRandom[0].split('\n').slice(0, 8).join('\n')))
 ck('runtime: Math.random never called from omnimanViltrum*.js', rnd === 0, String(rnd))

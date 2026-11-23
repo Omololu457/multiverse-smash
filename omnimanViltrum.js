@@ -31,7 +31,8 @@ export function updateOmvCommandCombat(f, inp, opp, W) {
   const a = f.attacking && f.currentAttack?.omv ? f.currentAttack : null
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0) return 'consumed'
   if (s.crash > 0 || s.land > 0 || s.rush || s.hold || s.ev) return 'consumed'
-  const fire = (k, o = {}) => startOmvMove(f, k, W, { dir: f.facing || 1, flyOk: fly, ...o })
+  const fwd = !!(f.facing === -1 ? raw.left : raw.right)
+  const fire = (k, o = {}) => startOmvMove(f, k, W, { dir: f.facing || 1, flyOk: fly, ...(k === 'kMeteor' ? { diag: fwd } : {}), ...o })
   if (a && !CANCEL_FROM.has(a.omv.key)) return 'consumed'
   const contact = !!a && !!a.omv.contact && s.tick > (a.omv.contactTick ?? s.tick)
   if (contact) {

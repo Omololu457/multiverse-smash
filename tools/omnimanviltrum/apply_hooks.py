@@ -104,6 +104,15 @@ HOOKS += [
   (2, 'input.js', "!fighter._sksRemoteInput && inputSettings[", 'replace', "!fighter._sksRemoteInput && !fighter._omvRemoteInput && inputSettings[", "!fighter._omvRemoteInput && inputSettings["),
 ]
 
+HOOKS += [
+  (3, 'combat.js', "import { omvHitbox, omvBlock, omvHit, omvKnockback } from './omnimanViltrumState.js'", 'after_line',
+   "import { omvMeleeGate, omvProjectileGate } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) UNIMPRESSED counter window: the hit is not felt (omniman_viltrum-gated)", "import { omvMeleeGate, omvProjectileGate }"),
+  (3, 'combat.js', "  if (gsMeleeGate(defender, attacker)) { attacker.currentAttack.hasHit = true; return }", 'after_line',
+   "  if (omvMeleeGate(defender, attacker)) { attacker.currentAttack.hasHit = true; return }   // Omni-Man (Viltrumite): UNIMPRESSED — inside the 24-frame window the strike is not felt; he backhands; gated", "if (omvMeleeGate(defender, attacker))"),
+  (3, 'combat.js', "      if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }", 'after_line',
+   "      if (omvProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Omni-Man (Viltrumite): UNIMPRESSED swats it away; gated", "omvProjectileGate(fighter, proj) === 'remove'"),
+]
+
 def main():
   a = sys.argv[1:]; check = '--check' in a
   root = a[a.index('--root') + 1] if '--root' in a else ROOT

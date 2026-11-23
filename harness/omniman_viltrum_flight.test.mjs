@@ -32,12 +32,18 @@ try {
   let s = await st()
   ck('P1 is omniman_viltrum (HP = Homelander 1050, heavy)', s.key === 'omniman_viltrum' && s.maxHp === 1050, JSON.stringify([s.key, s.maxHp]))
   // ── numbers vs the roster's fliers ──
-  const others = Object.entries(PR).filter(([k]) => k !== 'omniman_viltrum' && k !== 'jetray_mach')
+  // fliers whose top speed is DEFINED from his (Invincible = 0.9 × Omni-Man, invincibleData.js) can't set his number
+  // (circular) — they and the temporary Jetray Mach overdrive are excluded; he must still out-fly every profile
+  const DERIVED = ['invincible']
+  const others = Object.entries(PR).filter(([k]) => k !== 'omniman_viltrum' && k !== 'jetray_mach' && !DERIVED.includes(k))
+  const fastestAll = Object.entries(PR).filter(([k]) => k !== 'omniman_viltrum' && k !== 'jetray_mach').reduce((m, [k, p]) => Math.max(m, p.maxH), 0)
   const fastest = others.reduce((m, [k, p]) => (p.maxH > m.maxH ? { k, ...p } : m), { maxH: 0 })
   const me = PR.omniman_viltrum
   R.numbers = { fastest: fastest.k, fastestMaxH: fastest.maxH, fastestAccel: fastest.accel, top: me.maxH, accel: me.accel, drag: me.drag, homelanderDrag: PR.homelander?.drag }
   ck('top speed = 1.3 × the fastest flier', Math.abs(me.maxH - fastest.maxH * 1.3) < 0.01, JSON.stringify(R.numbers))
   ck('acceleration = 1.25 × the fastest flier', Math.abs(me.accel - fastest.accel * 1.25) < 0.01)
+  R.numbers.fastestIncludingDerived = fastestAll
+  ck('… and he is still the fastest flier in the game (incl. Invincible 0.9 × him)', me.maxH > fastestAll, JSON.stringify([me.maxH, fastestAll]))
   const coast = d => d / (1 - d), ratio = coast(me.drag) / coast(PR.homelander.drag)
   R.numbers.coastRatio = +ratio.toFixed(3)
   ck('coast distance ≈ 2.5 × Homelander (same speed, drag)', Math.abs(ratio - 2.5) < 0.05, String(ratio))

@@ -89,7 +89,8 @@ export function drawOmvFx(c, f) {
       case 'block': ring(c, h.x, h.y, 8 + h.t, '#9fd0ff', a, 2); break
     }
   }
-  // speech bubble (win)
+  drawEvWorld(c, f, s)
+  // speech bubble (THINK! / orbit line / win)
   if (s.say?.text) bubble(c, s.say.text, ctrX(f), f.y - 18, Math.min(1, s.say.t / 20), !!s.say.big)
 }
 
@@ -121,8 +122,89 @@ export function drawOmvHud(c, cv, p1, p2) {
   one(p1, false); one(p2, true)
 }
 
-// ── SKY (screen space, under the fighters): Escape Velocity's ascent / orbit / return — Phase 3 ──
-export function drawOmvSky(c, cv, p1, p2, seed) { }
+// ── SKY (screen space, under the fighters): ESCAPE VELOCITY's ascent / orbit / return. Altitude 0 → 1 → 0 drives a
+// stage → deep blue → black blend, seeded stars (hashRandom(seed, i): identical on every machine), a planet horizon
+// that rises into view in orbit, and vertical speed streaks while climbing / falling. Render-only.
+const EV_ALT = ev => {
+  if (!ev) return 0
+  const k = (n, d) => Math.max(0, Math.min(1, n / d))
+  switch (ev.ph) {
+    case 'ascent': { const x = k(ev.t, ESCAPE.ascent); return x * x * (3 - 2 * x) }
+    case 'orbit': return 1
+    case 'ret': return 1 - Math.pow(k(ev.t, ESCAPE.ret), 1.6)
+    default: return 0
+  }
+}
+export function drawOmvSky(c, cv, p1, p2, seed) {
+  const f = [p1, p2].find(o => isOmv(o) && o._omv?.ev && ['ascent', 'orbit', 'ret'].includes(o._omv.ev.ph))
+  if (!f) return
+  const ev = f._omv.ev, alt = EV_ALT(ev), W = cv?.width || 1280, H = cv?.height || 720, P = omvSkinPal(f)
+  c.save(); c.setTransform?.(1, 0, 0, 1, 0, 0)
+  // sky: the stage fades under a deep blue, then black
+  const g = c.createLinearGradient(0, 0, 0, H)
+  g.addColorStop(0, `rgba(${Math.round(10 * (1 - alt))},${Math.round(30 * (1 - alt))},${Math.round(90 * (1 - alt) + 8)},1)`)
+  g.addColorStop(1, `rgba(${Math.round(40 * (1 - alt))},${Math.round(90 * (1 - alt))},${Math.round(180 * (1 - alt) + 10)},1)`)
+  c.globalAlpha = Math.min(1, alt * 1.6); c.fillStyle = g; c.fillRect(0, 0, W, H)
+  // stars (seeded): appear above half altitude; streak vertically while moving
+  const moving = ev.ph !== 'orbit', sa = Math.max(0, (alt - 0.45) / 0.55)
+  if (sa > 0) {
+    const drift = ev.ph === 'ascent' ? ev.t * 9 : ev.ph === 'ret' ? -ev.t * 12 : 0
+    for (let i = 0; i < 140; i++) {
+      const rx = hashRandom(seed, i, 7), ry = hashRandom(seed, i, 11), rs = hashRandom(seed, i, 13)
+      const x = rx * W, y = ((ry * H + drift) % H + H) % H, sz = 0.6 + rs * 1.6
+      c.globalAlpha = sa * (0.45 + 0.55 * rs)
+      c.fillStyle = '#ffffff'
+      if (moving) c.fillRect(x, y, sz * 0.7, sz * (4 + 10 * (1 - Math.abs(0.5 - alt) * 2)))
+      else { c.beginPath(); c.arc(x, y, sz, 0, Math.PI * 2); c.fill() }
+    }
+  }
+  // the planet: a huge curved horizon rising into view at the bottom of the screen, with an atmosphere rim
+  const pa = Math.max(0, (alt - 0.7) / 0.3)
+  if (pa > 0) {
+    const R = W * 1.6, cx = W / 2, cy = H + R - H * 0.28 * pa
+    c.globalAlpha = pa
+    const pg = c.createRadialGradient(cx, cy - R * 0.2, R * 0.2, cx, cy, R)
+    pg.addColorStop(0, P.planet || '#2f6fb8'); pg.addColorStop(0.85, P.planetEdge || '#1b4a86'); pg.addColorStop(1, '#0b1f3c')
+    c.fillStyle = pg; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill()
+    c.strokeStyle = 'rgba(140,200,255,0.75)'; c.lineWidth = 6; c.beginPath(); c.arc(cx, cy, R + 3, Math.PI * 1.1, Math.PI * 1.9); c.stroke()
+    c.strokeStyle = 'rgba(140,200,255,0.25)'; c.lineWidth = 18; c.beginPath(); c.arc(cx, cy, R + 12, Math.PI * 1.1, Math.PI * 1.9); c.stroke()
+    // cloud bands (seeded)
+    c.globalAlpha = pa * 0.35; c.fillStyle = '#ffffff'
+    for (let i = 0; i < 9; i++) { const a = Math.PI * (1.25 + 0.5 * hashRandom(seed, i, 17)), rr = R - 20 - 60 * hashRandom(seed, i, 19)
+      c.beginPath(); c.ellipse(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 60 + 80 * hashRandom(seed, i, 23), 8, a + Math.PI / 2, 0, Math.PI * 2); c.fill() }
+  }
+  c.restore()
+}
+// re-entry glow on the way down + the crater decal (world space, drawn with him; render-only, from sim state)
+function drawEvWorld(c, f, s) {
+  const ev = s.ev
+  if (ev?.ph === 'ret') {
+    const k = Math.min(1, ev.t / ESCAPE.ret), a = 0.25 + 0.75 * k
+    const x = ctrX(f), y = f.y + f.h * 0.6
+    const g = c.createRadialGradient(x, y + 20, 4, x, y, 70 + 30 * k)
+    g.addColorStop(0, `rgba(255,240,200,${a})`); g.addColorStop(0.45, `rgba(255,140,40,${a * 0.8})`); g.addColorStop(1, 'rgba(255,60,0,0)')
+    c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = g
+    c.beginPath(); c.ellipse(x, y, 42 + 20 * k, 70 + 40 * k, 0, 0, Math.PI * 2); c.fill()
+    // flame tail streaming upward
+    for (let i = 0; i < 5; i++) { const r = hashRandom(i, ev.t >> 1, 3); c.globalAlpha = a * (0.4 + 0.4 * r); c.fillStyle = i % 2 ? '#ffb347' : '#ff6a2a'
+      c.beginPath(); c.ellipse(x + (r - 0.5) * 40, f.y - 30 - 60 * r, 6 + 6 * r, 34 + 40 * k, 0, 0, Math.PI * 2); c.fill() }
+    c.restore()
+  }
+  const cr = s.crater
+  if (cr) {
+    const a = 1 - cr.t / ESCAPE.craterLife
+    if (a > 0) {
+      c.save(); c.globalAlpha = Math.min(1, a * 1.4)
+      c.fillStyle = 'rgba(30,22,18,0.85)'; c.beginPath(); c.ellipse(cr.x, cr.y + 2, 120, 16, 0, 0, Math.PI * 2); c.fill()
+      c.fillStyle = 'rgba(90,70,55,0.9)'; c.beginPath(); c.ellipse(cr.x, cr.y + 1, 120, 9, 0, Math.PI, 0); c.fill()
+      c.strokeStyle = 'rgba(20,14,10,0.9)'; c.lineWidth = 2
+      for (let i = 0; i < 7; i++) { const an = Math.PI + (i + 0.5) * Math.PI / 7, len = 70 + 70 * hashRandom(cr.x, i, 5)
+        c.beginPath(); c.moveTo(cr.x + Math.cos(an) * 60, cr.y); c.lineTo(cr.x + Math.cos(an) * (60 + len), cr.y + 3 + 4 * hashRandom(cr.x, i, 9)); c.stroke() }
+      if (cr.t < 40) { c.globalAlpha = (1 - cr.t / 40) * 0.8; c.fillStyle = '#fff3d0'; c.beginPath(); c.ellipse(cr.x, cr.y - 10, 160 + cr.t * 6, 30 + cr.t, 0, 0, Math.PI * 2); c.fill() }
+      c.restore()
+    }
+  }
+}
 
 // ── sounds: Homelander's flight clips pitched DOWN (rate 0.78 → lower, heavier) + a WebAudio synth for his own character
 // (a whoosh whose pitch rises with speed, the boom crack, impacts that get heavier with speed, the crash crunch,
@@ -157,6 +239,7 @@ function synth(kind, k = 0) {
     case 'grab': tone('square', 160, 70, 0.1, 0.14); noise(0.06, 0.15, -1500); break
     case 'hum': tone('sine', 52, 48, 1.4, 0.12); tone('sine', 104, 96, 1.4, 0.03); break                                          // orbit: a low hum
     case 'crater': noise(1.1, 0.6, -500); tone('sine', 60, 22, 1.1, 0.55); noise(0.12, 0.5, 2000); tone('square', 90, 30, 0.5, 0.3); break   // the loudest hit
+    case 'glint': tone('sine', 2400, 3200, 0.09, 0.05); break                                                                     // the eye glint (barely there)
   }
 }
 let _whooshAt = -99
@@ -166,9 +249,23 @@ const SFX = {
   crash: () => synth('crash'), hardLand: () => synth('land'), brake: () => synth('brake'),
   hit: (f, v) => synth('hit', v?.frac || 0), blocked: () => synth('hit', 0),
   intro: f => { synth('land'); clip('SUPERSONIC', f, 0.7) },
+  kBlitz: f => synth('whoosh', 0.8), blitz: f => { clip('SUPERSONIC', f, 0.8); synth('boom') }, kSkyHook: () => synth('whoosh', 0.5), skyHook: () => synth('hit', 0.7),
+  meteor: f => { clip('FLIGHT_TAKEOFF', f, 0.7); synth('whoosh', 1) }, grab: () => synth('grab'), throw: () => synth('crash'), glint: () => synth('glint'),
+  unimpressed: () => { synth('hit', 1); synth('crash') }, decree: () => synth('hum'), think: () => { synth('grab'); synth('boom') }, slam: () => { synth('crater') },
+  evGrab: () => synth('grab'), ev_ascent: f => { clip('FLIGHT_TAKEOFF', f, 0.66); synth('whoosh', 1) }, ev_orbit: () => synth('hum'),
+  ev_ret: f => { clip('SUPERSONIC', f, 0.62); synth('whoosh', 1) }, crater: () => synth('crater'), overshoot: () => synth('brake'),
+}
+// ORBIT: the music drops under the hum — the sound layer's ref-counted duck, held exactly while the sim is in orbit
+// (follows the phase every frame, so an interrupted ultimate can never leave the music ducked). Audio-only.
+const DUCKED = new WeakSet()
+function orbitDuck(f, on) {
+  if (on && !DUCKED.has(f)) { DUCKED.add(f); try { sound._duckBegin?.() } catch (_) {} }
+  else if (!on && DUCKED.has(f)) { DUCKED.delete(f); try { sound._duckEnd?.() } catch (_) {} }
 }
 export function playOmvCues(f, camera) {
-  const s = f?._omv; if (!s) return
+  const s = f?._omv
+  orbitDuck(f, !!(s?.ev && s.ev.ph === 'orbit'))
+  if (!s) return
   const q = s.cues
   for (const v of q) {
     const k = typeof v === 'string' ? v : v.c
@@ -176,11 +273,13 @@ export function playOmvCues(f, camera) {
     if (camera?.shake) {
       if (k === 'boom') camera.shake(3, 5)
       if (k === 'hardLand') camera.shake(6, 8)
+      if (k === 'slam' || k === 'throw') camera.shake(8, 8)
+      if (k === 'crater') camera.shake(16, 22)
     }
   }
   q.length = 0
   // continuous flight whoosh: a short burst every ~0.3 s while fast, pitch from his speed
-  if (f._flightCtl && isFlying(f)) {
+  if (f._flightCtl && isFlying(f) && !s.ev) {
     const k = Math.min(1, spd(f) / TOP)
     if (k > 0.3 && s.clock - _whooshAt >= 18) { _whooshAt = s.clock; try { synth('whoosh', k) } catch (_) {} }
   }

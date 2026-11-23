@@ -71,3 +71,10 @@ integrator for this profile only (every other profile has no `momentum` key and 
 
 Determinism: harness/omniman_viltrum_determinism.mjs 12/0 (AI vs Homelander / Gojo Shinjuku / Dseyl, same seed → identical
 f._omv + velocity + flight phase every 30 f for 1800 f; no Math.random statically or at runtime).
+
+### Invincible (Mark) — added by another session after Phase 2
+
+`msv1-invincible` phase 2 (56086d270) added `FLIGHT_PROFILES.invincible` with top speed **51.48 = 0.9 × Omni-Man's 57.2**
+(invincibleData.js). Because Mark's number is defined FROM Omni-Man's, it cannot set Omni-Man's "1.3 × the fastest flier"
+(57.2 → 66.9 → Mark 60.2 → …, circular). Omni-Man stays **1.3 × Dseyl 44 = 57.2** — the fastest independently-tuned flier
+— and he is still the fastest flier in the game (57.2 > 51.48). The flight test asserts both.

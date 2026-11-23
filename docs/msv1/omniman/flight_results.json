@@ -1,5 +1,5 @@
 {
- "pass": 23,
+ "pass": 24,
  "fail": 0,
  "R": {
   "numbers": {
@@ -10,6 +10,7 @@
    "accel": 5.5,
    "drag": 0.9292,
    "homelanderDrag": 0.84,
+   "fastestIncludingDerived": 51.48,
    "coastRatio": 2.5
   },
   "accel": [
@@ -230,11 +231,11 @@
   },
   "land": {
    "recovery": 14,
-   "foeLost": 49,
+   "foeLost": 50,
    "stats": 1
   },
   "speedDmg": {
-   "jab": 37,
+   "jab": 38,
    "flightHit": {
     "mult": 1.6,
     "frac": 1

@@ -11,6 +11,7 @@ import { SPD_YELLOW_KIT } from './spdYellowKit.js'   // S.P.D. Yellow (spd_yello
 import { NS_RED_KIT, NS_YELLOW_KIT } from './nsKit.js'   // MSV1 Ninja Storm move lists
 import { NS_CGPT_KIT } from './nsCgptKit.js'   // NS CGPT move list
 import { NS_DUO_KIT } from './nsKit.js'   // MSV1-MERGE Shane & Dustin move list (active form + TAB toggle)
+import { TRIO_KIT } from './nsTrioKit.js'   // NS TRIO Tori / Blake / Cam move list
 import { NINJA_STORM_KIT } from './ninjaStormKit.js'   // MSv2 Ninja Storm Rangers move list
 import { GOJO_SHINJUKU_KIT } from './gojoShinjukuKit.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc) move list
 import { SUKUNA_SHINJUKU_KIT } from './sukunaShinjukuKit.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) move list
@@ -122,6 +123,7 @@ export const KITS = {
   ns_red: NS_RED_KIT, ns_yellow: NS_YELLOW_KIT,   // MSV1
   ninja_storm_cgpt: NS_CGPT_KIT,   // NS CGPT
   windrangers: NS_DUO_KIT,   // MSV1-MERGE
+  ns_trio: TRIO_KIT,   // NS TRIO
   ninja_storm_rangers: NINJA_STORM_KIT,   // MSv2
   gojo_shinjuku: GOJO_SHINJUKU_KIT,   // MSV1-GOJO
   sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,   // MSV1-SUKUNA

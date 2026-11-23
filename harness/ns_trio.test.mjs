@@ -159,6 +159,38 @@ try {
     check('Cyber Cam (Charge + Back): exactly ONE double', cl === 1, cl)
   }
 
+  if (want('ults')) {
+    section('THEIR OWN ULTIMATES')
+    const QQ = ['s', ['s', 'd'], 'd', 's', ['s', 'd'], 'd']
+    for (const [form, skin, name, dx, minDmg] of [['ns_blue', 'default', 'Tsunami', 260, 220], ['ns_navy', 'start_navy', 'Thunder Storm', 300, 220], ['ns_green', 'start_green', 'Super Samurai', 200, 220]]) {
+      await boot('ns_trio', 'spd_red', { p1Skin: skin })
+      await fresh(dx, { energy: 100 }); const z0 = (await S('p2')).health; await motion(QQ, 'l')
+      let zMin = z0, seen = false, en = 100; for (let i = 0; i < 110; i++) { const st = await S(); en = Math.min(en, st.energy); if (st.move === 'sSuper' || st.s?.sup?.kind === 'sSuper') seen = true; if (i === 40) await shot(`ult_${form}`); zMin = Math.min(zMin, (await S('p2')).health); await step(1) }
+      check(`${form}: ${name} (↓↘→↓↘→ + Special, 1 bar) — their own super lands in full, 1 bar spent`, seen && z0 - zMin >= minDmg && en <= 51, { seen, dmg: z0 - zMin, energy: en })
+      await fresh(1300, { energy: 100, ax: 300 }); const geo = await page.evaluate(async () => { const r = await import('./rangers.js'); const a = __harness.ninjaTest.raw('p1'), z = __harness.ninjaTest.raw('p2'); return { dist: Math.round(z.x - a.x), screen: r.RANGER_SCREEN } })
+      const reach = { ns_blue: 0.6 * geo.screen + 60, ns_navy: 0.6 * geo.screen + 48, ns_green: 0.45 * geo.screen + 48 }[form]
+      const z1 = (await S('p2')).health; await motion(QQ, 'l'); let z1m = z1; for (let i = 0; i < 100; i++) { z1m = Math.min(z1m, (await S('p2')).health); await step(1) }
+      check(`${form}: ${name} has a set reach (${Math.round(reach)} px): a foe ${geo.dist} px away is ${geo.dist > reach + 100 ? 'missed' : 'reached'} (the motion input walks her in ~50-100 px)`, geo.dist > reach + 100 ? z1m === z1 : z1m < z1, { dmg: z1 - z1m, ...geo })
+    }
+    const meta = await page.evaluate(async () => { const t = await import('./nsTrio.js'); return Object.fromEntries(t.TRIO_FORMS.map(k => { const p = t.TRIO_PROFILES[k]; return [k, { ult: !!p.moves.sUlt && p.moves.sUlt.bars === 2, same: p.supers.sUlt === p.supers.sSuper, name: t.FORM_CHAR[k].ultimate.name }] })) })
+    check('in the Ninja Mirror each form\'s 2-bar Ultimate is its own super (×1.25)', Object.values(meta).every(m => m.ult && m.same), meta)
+    // THUNDERSTORM TRINITY
+    await boot('ns_trio', 'spd_red')
+    await fresh(260, { energy: 100 }); const z0 = (await S('p2')).health
+    await motion(QQ); await page.keyboard.down('l'); await page.keyboard.down('k'); await step(1); await page.keyboard.up('l'); await page.keyboard.up('k')
+    let zMin = z0, partners = 0, hidden = false, seen = false, en = 100
+    for (let i = 0; i < 120; i++) {
+      en = Math.min(en, (await S()).energy)
+      const r = await page.evaluate(() => { const f = __harness.ninjaTest.raw('p1'); return { mv: f.currentMove, n: (f._ninja?.sup?.trio || []).length, a: f._duo ? (f._ninja?.sup?.kind === 'sTrio') : false } })
+      if (r.mv === 'sTrio') seen = true; partners = Math.max(partners, r.n); if (r.a && i > 20 && i < 60) hidden = true
+      if ([14, 38, 62, 80].includes(i)) await shot(`trinity_${i}`)
+      zMin = Math.min(zMin, (await S('p2')).health); await step(1)
+    }
+    check('THUNDERSTORM TRINITY (↓↘→↓↘→ + Special + Heavy, full meter): all three Rangers strike, 300+ damage, meter spent', seen && partners === 3 && z0 - zMin >= 300 && en < 5, { seen, partners, dmg: z0 - zMin, energy: en })
+    await fresh(260, { energy: 60 }); await motion(QQ); await page.keyboard.down('l'); await page.keyboard.down('k'); await step(1); await page.keyboard.up('l'); await page.keyboard.up('k'); await step(4)
+    check('Thunderstorm Trinity needs the FULL meter (60 → no trinity)', (await S()).move !== 'sTrio', (await S()).move)
+  }
+
   if (want('skins')) {
     section('SKINS (10, all three forms)')
     const { execFileSync } = await import('node:child_process')

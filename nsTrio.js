@@ -8,8 +8,8 @@
 // SWITCH (owner): P S S J / P S S K = hold CHARGE, ↓ ↓ (Ben's double-tap window), then LIGHT = next form, HEAVY = previous
 // (Tori → Blake → Cam → Tori). State on f._duo (in the replay / LAN snapshot via ninjaSnapshot). No Math.random.
 import { nsRoster, nsN as n, nsSp as sp, nsNormal, NS_GATLING, SHANE_MOVES, DUSTIN_MOVES, NS_BLINK } from './nsData.js'
-import { shaneSuper, shaneUlt, dustinSuper, dustinUlt } from './nsSupers.js'
-import { registerDuo, registerNinjaProfile, getNinjaProfile, nsStartMove, endMove, endMirror, burst, cue, spendNP, nsStrike, fresh, use, ctrX, overlaps,
+import { toriSuper, blakeSuper, camSuper, trioUlt, TORI_SUPER, BLAKE_SUPER, CAM_SUPER, TRIO_ULT } from './nsTrioSupers.js'   // phase 5: their own supers + the trio ultimate
+import { registerDuo, registerNinjaProfile, getNinjaProfile, nsStartMove, endMove, endMirror, burst, cue, spendNP, nsStrike, fresh, use, ctrX, overlaps, hasMotion,
   NINJA_API } from './ninja.js'
 import { registerDuoForms } from './nsDuo.js'
 
@@ -34,6 +34,7 @@ export const TRIO = {
 // The normals, framework poses and supers are the MS_V1 set (Tori + Blake from Shane's air-ninja body, Cam from Dustin's
 // heavier one); the SPECIALS are their own. Every special is ninja.js data (proj / travel / hits), costs Ninja Power and
 // goes through the shared damage choke-point. Strips: their own recoloured MS_V1 strips (STRIPS below).
+const SUPER = (total, type, bars) => n(0, 1, 1, total, { category: 'ultimate', isUltimate: true, bars, invuln: total + 2, damageType: type, nj: { kind: 'super', noHit: true } })
 const BASE = m => { const o = { ...m }; for (const k of ['sTornado', 'sGale', 'sRock', 'sBeam', 'sBeamAir', 'sKunai', 'sKunaiAir', 'sTrap', 'sErupt']) delete o[k]; return o }
 const proj = (o) => ({ frames: 1, sw: 26, sh: 43, w: 30, h: 60, radius: 26, oy: 60, scale: 2.4, ...o })
 // TORI — water. SONIC FIN (her Ninja Storm weapon) + water ninja waves.
@@ -48,6 +49,7 @@ const TORI_MOVES = {
   sGeyser: sp(0, 22, 4, 20, 18, { damageType: 'energy', nj: { kind: 'hits', noHit: true, hits: [{ at: 6, atFoe: true, reach: 0.5, fxOnly: true, fx: 'bubbles', fxT: 18, w: 90, h: 40, dy: -40 },
             { at: 22, atFoe: true, w: 96, h: 230, dy: -230, dmg: 82, type: 'energy', launch: -20, kb: 1, hitstun: 38, fx: 'geyser', fxT: 26, cue: 'eruption' }] } }),
   // WAVE SLASH →+Heavy: a rolling water crescent, 58 slash, 35% screen
+  sSuper: SUPER(TORI_SUPER.total, 'energy', 1), sUlt: SUPER(TORI_SUPER.total, 'energy', 2),   // TSUNAMI (phase 5)
   sWave:   sp(0, 10, 1, 18, 12, { damageType: 'slash', nj: { kind: 'proj', noHit: true, proj: proj({ at: 10, speed: 12, dmg: 58, type: 'slash', sprite: 'proj_crescent', life: 38, name: 'nsWave', cue: 'gale' }) } }),
 }
 // BLAKE — thunder. NAVY ANTLER (his twin-blade weapon), the THUNDER STAFF and Thunder Ninja speed.
@@ -66,6 +68,7 @@ const BLAKE_MOVES = {
   sStaff:     sp(0, 11, 1, 16, 14, { damageType: 'energy', nj: { kind: 'proj', noHit: true, proj: { at: 11, speed: 30, dmg: 46, type: 'energy', sprite: 'proj_beam', frames: 3, sw: 47, sh: 16, w: 60, h: 20, radius: 22, oy: 62, name: 'nsStaff', cue: 'beam' } } }),
   sStaffAir:  sp(0, 10, 1, 14, 14, { damageType: 'energy', nj: { kind: 'proj', noHit: true, proj: { at: 10, speed: 26, angle: 40, dmg: 46, type: 'energy', sprite: 'proj_beamDiag', frames: 3, sw: 64, sh: 47, w: 40, h: 40, radius: 24, oy: 50, name: 'nsStaff', cue: 'beam' } } }),
   // ANTLER CROSS →+Heavy: both blades, an X-slash, 2 × 36
+  sSuper: SUPER(BLAKE_SUPER.total, 'energy', 1), sUlt: SUPER(BLAKE_SUPER.total, 'energy', 2),   // THUNDER STORM (phase 5)
   sCross:     sp(0, 9, 8, 16, 10, { damageType: 'slash', nj: { kind: 'hits', noHit: true, hits: [{ at: 9, dx: -10, w: 96, dmg: 36, type: 'slash', hitstun: 22, kb: 1, cue: 'streakHit' }, { at: 15, dx: -10, w: 104, dmg: 36, type: 'slash', hitstun: 28, kb: 6, cue: 'impact' }] } }),
 }
 // CAM — samurai. SAMURAI SABER, the SAMURAI STAR spin, SUPER SAMURAI MODE and CYBER CAM (his digital double).
@@ -80,6 +83,7 @@ const CAM_MOVES = {
   // SUPER SAMURAI MODE ↓↓+Special (ground, 30 NP): 6 s of +15% special damage and +10% speed; ends on a switch (nsTrio)
   sSamurai: sp(0, 12, 1, 14, 30, { nj: { kind: 'samurai', noHit: true }, invuln: 12 }),
   // SABER CUT →+Heavy: two saber cuts, 34 + 44
+  sSuper: SUPER(CAM_SUPER.total, 'slash', 1), sUlt: SUPER(CAM_SUPER.total, 'slash', 2),   // SUPER SAMURAI (phase 5)
   sSaber:  sp(0, 10, 8, 17, 10, { damageType: 'slash', nj: { kind: 'hits', noHit: true, hits: [{ at: 10, dx: -6, w: 100, dmg: 34, type: 'slash', hitstun: 22, kb: 1, cue: 'streakHit' }, { at: 16, dx: -6, w: 110, dmg: 44, type: 'slash', hitstun: 28, kb: 7, cue: 'impact' }] } }),
 }
 const STRIPS = {
@@ -109,17 +113,17 @@ const PROFILE = {
     streak: { air: { perAirtime: 2, eightWay: true } }, float: { frames: 90, fall: 1.8 },   // WATER GLIDE: a longer, softer float than Shane's
     mirror: { mode: 'echo', echoDelay: 8, counter: { kind: 'tornado', hits: 3, dmg: 18, every: 6, launch: -15 } }, barrier: { kind: 'reflect', reflectMul: 1.2 },   // WATER WALL (reflect)
     quotes: { intro: 'Ninja Storm, Ranger Form! Ha!', win: 'Water flows. You fall.', vs: QUOTE_VS },
-    moves: TORI_MOVES, commands: COMMANDS.ns_blue, supers: { sSuper: shaneSuper, sUlt: shaneUlt } },
+    moves: TORI_MOVES, commands: COMMANDS.ns_blue, supers: { sSuper: toriSuper, sUlt: toriSuper } },
   ns_navy: { team: 'Thunder Ninja Academy', color: '#26347a', smoke: '#2a2e6a', blink: NS_BLINK, weight: 0.9, airMul: 1.05,
     streak: { air: { perAirtime: 2, eightWay: true }, cost: 8 }, float: null,   // THUNDER SPEED: cheaper streaks (8 NP), no float
     mirror: { mode: 'echo', echoDelay: 6, counter: { kind: 'tornado', hits: 3, dmg: 20, every: 5, launch: -15 } }, barrier: { kind: 'reflect', reflectMul: 1.3 },
     quotes: { intro: 'Thunder Storm, Ranger Form! Ha!', win: 'Thunder strikes twice.', vs: QUOTE_VS },
-    moves: BLAKE_MOVES, commands: COMMANDS.ns_navy, supers: { sSuper: shaneSuper, sUlt: shaneUlt } },
+    moves: BLAKE_MOVES, commands: COMMANDS.ns_navy, supers: { sSuper: blakeSuper, sUlt: blakeSuper } },
   ns_green: { team: 'Wind Ninja Academy', color: '#22a84a', smoke: '#178a3a', blink: NS_BLINK, weight: 1.0, airMul: 0.95,
     streak: { air: { perAirtime: 1, eightWay: false } }, clones: { max: 1, cost: 25, strike: 75 },   // CYBER CAM: one digital double (Charge + Back)
     mirror: { mode: 'decoy', counter: { kind: 'eruption', dmg: 80, wall: true } }, barrier: { kind: 'armor', absorb: 2, armorFrames: 60, counter: { dmg: 70, radius: 130 } },   // SAMURAI GUARD
     quotes: { intro: 'Samurai Storm, Ranger Form! Ha!', win: 'Discipline wins. Every time.', vs: QUOTE_VS },
-    moves: CAM_MOVES, commands: COMMANDS.ns_green, supers: { sSuper: dustinSuper, sUlt: dustinUlt } },
+    moves: CAM_MOVES, commands: COMMANDS.ns_green, supers: { sSuper: camSuper, sUlt: camSuper } },
 }
 const STATS = {
   ns_blue:  { maxHealth: 1200, maxEnergy: 100, attack: 82, defense: 74, speed: 88, jumpPower: 31, maxJumps: 3, weight: 0.85, dashSpeed: 15.3, dashDuration: 10, dashCooldownMax: 28 },
@@ -129,13 +133,13 @@ const STATS = {
 const INFO = {
   ns_blue: { name: 'Tori', displayName: 'Tori Hanson — Blue Wind Ranger', hudName: 'Blue Wind', archetype: 'Water Ninja / Flow Rushdown', tagline: 'Go with the flow.',
     bio: 'Tori Hanson, Blue Wind Ranger and the Wind Ninja Academy\'s Water student. A surfer who keeps her head when the boys lose theirs, she bends water into waves, walls and the Sonic Fin\'s slicing arcs.',
-    primary: 'rushdown', secondary: ['zoner'], archetypes: ['rushdown', 'zoner'], ultimate: { name: 'Hawk Mirage', cost: 100 } },
+    primary: 'rushdown', secondary: ['zoner'], archetypes: ['rushdown', 'zoner'], ultimate: { name: 'Tsunami', cost: 100 } },
   ns_navy: { name: 'Blake', displayName: 'Blake Bradley — Navy Thunder Ranger', hudName: 'Navy Thunder', archetype: 'Thunder Ninja / Hit & Run', tagline: 'Strike like lightning.',
     bio: 'Blake Bradley, Navy Thunder Ranger of the Thunder Ninja Academy. Once Lothor\'s pawn alongside his brother Hunter, he turned his speed, the Navy Antler and the Thunder Staff against the space ninja.',
-    primary: 'rushdown', secondary: ['aerial'], archetypes: ['rushdown', 'aerial'], ultimate: { name: 'Hawk Mirage', cost: 100 } },
+    primary: 'rushdown', secondary: ['aerial'], archetypes: ['rushdown', 'aerial'], ultimate: { name: 'Thunder Storm', cost: 100 } },
   ns_green: { name: 'Cam', displayName: 'Cam Watanabe — Green Samurai Ranger', hudName: 'Green Samurai', archetype: 'Samurai / Technician', tagline: 'Honour. Discipline. Samurai.',
     bio: 'Cam Watanabe, son of Sensei and the Wind Ninja Academy\'s tech genius. With his mother\'s Samurai Amulet he became the Green Samurai Ranger: Samurai Saber, Super Samurai Mode and a cyber double.',
-    primary: 'setplay', secondary: ['grappler'], archetypes: ['setplay', 'trap'], ultimate: { name: 'Fault Line', cost: 100 } },
+    primary: 'setplay', secondary: ['grappler'], archetypes: ['setplay', 'trap'], ultimate: { name: 'Super Samurai', cost: 100 } },
 }
 export const TRIO_PROFILES = {}
 export const FORM_CHAR = {}
@@ -157,7 +161,7 @@ export const ns_trio = {
   bio: 'Tori Hanson (Blue Wind), Blake Bradley (Navy Thunder) and Cam Watanabe (Green Samurai) fight as one: hold Charge and tap ↓ ↓, then Light for the next Ranger or Heavy for the one before.',
   primary: 'rushdown', secondary: ['setplay', 'zoner'], archetypes: ['rushdown', 'setplay'],
   stats: { ...ns_blue.stats, maxHealth: TRIO.health },
-  ultimate: { name: 'Hawk Mirage', cost: 100 },
+  ultimate: { name: 'Thunderstorm Trinity', cost: 100 },
   isDuo: true, duoForms: TRIO_FORMS,
 }
 
@@ -300,13 +304,30 @@ function command(f, s, opp, raw) {
   if (d.swap) return 'consumed'
   if ((d.armT > 0 || d.want > 0 || d.ate) && fresh(s, 'charge', 30)) use(s, 'charge')   // the held Charge never becomes a Charge move
   if (d.ate || d.want > 0 && (fresh(s, 'light') || fresh(s, 'heavy'))) { use(s, 'light', 'heavy'); return 'consumed' }   // the picking J / K never attacks
+  // THUNDERSTORM TRINITY: ↓↘→↓↘→ + Special + Heavy on the FULL meter (outside the Mirror) — the Storm and Stone chord
+  if (!s.mirror && (f.energy || 0) >= TRIO_ULT.bars * BAR && hasMotion(s, '236236', 44)) {
+    const sp = fresh(s, 'special'), hv = fresh(s, 'heavy')
+    if (sp && hv && Math.abs(s.edgeAt.special - s.edgeAt.heavy) <= 4) {
+      const a = f.attacking ? f.currentAttack : null
+      if (!a || !a.isUltimate) {
+        use(s, 'special', 'heavy')
+        if (nsStartMove(f, 'sTrio')) { f.energy = Math.max(0, (f.energy || 0) - TRIO_ULT.bars * BAR); cue(f, 'ultStart'); d.ults++ }
+        return 'consumed'
+      }
+    }
+    if ((sp || hv) && s.tick - Math.max(sp ? s.edgeAt.special : -1e9, hv ? s.edgeAt.heavy : -1e9) < 3) return f.attacking ? 'consumed' : 'grab'   // chord window
+  }
   return false
 }
+const BAR = 50
 const fw = (recovery, kind, extra = {}) => ({ damage: 0, startup: 0, active: 1, recovery, hitstun: 0, blockstun: 0, knockbackX: 0, knockbackY: 0, rangeX: 1, rangeY: 1, frameExact: true, damageType: 'blunt', nj: { kind, noHit: true }, ...extra })
-export const TRIO_MOVES = { nsSwap: fw(TRIO.swapFrames - 1, 'duoSwap') }
+export const TRIO_MOVES = { nsSwap: fw(TRIO.swapFrames - 1, 'duoSwap'),
+  sTrio: fw(TRIO_ULT.total - 1, 'super', { category: 'ultimate', isUltimate: true, bars: TRIO_ULT.bars, invuln: TRIO_ULT.total + 2 }) }   // THUNDERSTORM TRINITY
 function alpha(f) {
-  const d = f._duo; if (!d?.swap) return null
-  const t = d.swap.t; return t >= TRIO.outEnd && t < TRIO.inStart ? 0 : null
+  const d = f._duo; if (!d) return null
+  if (d.swap) { const t = d.swap.t; return t >= TRIO.outEnd && t < TRIO.inStart ? 0 : null }
+  const s = f._ninja; if (s?.sup?.kind === 'sTrio') { const a = f.currentAttack, t = a ? elapsed(a) : 0; return t >= 6 && t < TRIO_ULT.all - 2 ? 0 : null }   // the partners are drawn instead
+  return null
 }
 
 // ── CPU SWAP (ai.js): presses the real Charge + ↓, -, ↓, J/K. Blake vs an airborne / zoning foe, Cam up close, Tori between.
@@ -334,6 +355,6 @@ export function trioAiInput(controller, f, opp, input) {
 registerDuoForms(TRIO_ID, FORM_CHAR, form => next(form))   // render helpers: smoke strips, the NEXT Ranger on the HUD / intro
 registerDuo({
   id: TRIO_ID, roundReset, ensure, input, tick, command, onStart, alpha,
-  moves: TRIO_MOVES, supers: {},
+  moves: TRIO_MOVES, supers: { sTrio: trioUlt },
   run: (f, opp, s, a, t) => { if (a.nj.kind === 'duoSwap') runSwap(f, opp, s, a, t); else if (a.nj.kind === 'samurai') runSamurai(f, s, a, t) },
 })

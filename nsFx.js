@@ -12,7 +12,8 @@ import { duoFormAnim, duoFormProfile, duoOther, duoFormsOf, DUO } from './nsDuo.
 import { drawCgptUnder, drawCgptFx } from './nsCgptFx.js'
 import { drawWrSkinFx, wrAfterimageFx, wrWindFx } from './windrangersSkinFx.js'   // windrangers skin pack (render-only)
 import { wrCloneAnim } from './windrangersSkins.js'
-import { drawTrioBurst, drawTrioAura } from './nsTrioFx.js'   // NS TRIO (render-only; only its own burst kinds / f._duo.samurai)   // NS CGPT (ninja_storm_cgpt only; render-only)
+import { drawTrioBurst, drawTrioAura, drawTrioSuper } from './nsTrioFx.js'
+import { trioFormAnim } from './nsTrioSkins.js'   // NS TRIO (render-only; only its own burst kinds / f._duo.samurai)   // NS CGPT (ninja_storm_cgpt only; render-only)
 
 const cache = new Map()
 const image = src => { let im = cache.get(src); if (!im) { im = new Image(); im.src = src; cache.set(src, im) } return im }
@@ -151,6 +152,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
       default: drawTrioBurst(c, f, e, u, calm())   // NS TRIO burst kinds (no other move emits them)
     }
   }
+  drawTrioSuper(c, f, drawPose, duoFormAnim, (f, form) => (f._trSkin ? trioFormAnim(f._trSkin, form) : null))   // NS TRIO Tsunami wall + Trinity partners (ns_trio only)
   // MSV1-MERGE STORM AND STONE: Shane as the R11 tornado streaking down through the foe (Dustin = the R8 rings / bursts)
   if (s.sup?.kind === 'sTag' && s.sup.tx != null) { const A = duoFormAnim('ns_red', 'superTornado'); drawPose(c, f, 'superTornado', Math.floor((s.clock || 0) / 3) % (A?.frames || 1), s.sup.tx, s.sup.ty + (f.h || 94), f.facing || 1, 1, 0, A) }
   // FAULT LINE shockwave between the two bodies

@@ -78,3 +78,22 @@ export function drawTrioAura(c, f, calm) {
   if (!calm) { c.fillStyle = '#b8ffc4'; for (let i = 0; i < 6; i++) { const yy = feet - ((t * 2 + i * 23) % 130), xx = cx + Math.sin(t / 7 + i * 2) * 26; c.globalAlpha = 0.6 * k * (1 - (feet - yy) / 130); c.fillRect(xx - 1.5, yy - 1.5, 3, 3) } }
   c.restore()
 }
+
+// SUPERS (s.sup): Tori's TSUNAMI wall (sup.tide) and the THUNDERSTORM TRINITY partners (sup.trio: {form, x, feet, pose, dir}),
+// each partner drawn from its own form strips (the active trio skin's when one is worn). drawPose / formAnim come from nsFx.
+export function drawTrioSuper(c, f, drawPose, formAnim, skinAnim) {
+  const u = f?._ninja?.sup; if (!u || !isTrio(f)) return
+  if (u.tide) {
+    const { x, dir, h } = u.tide, floor = f._rangerFloorY ?? ((f.y || 0) + (f.h || 94)), back = x - dir * 220
+    c.save(); const g = c.createLinearGradient(0, floor - h, 0, floor); g.addColorStop(0, 'rgba(235,252,255,0.9)'); g.addColorStop(0.35, 'rgba(90,190,255,0.8)'); g.addColorStop(1, 'rgba(20,90,200,0.75)')
+    c.fillStyle = g; c.beginPath(); c.moveTo(back, floor); c.lineTo(back, floor - h * 0.55)
+    c.quadraticCurveTo(x - dir * 60, floor - h * 1.05, x + dir * 10, floor - h * 0.8); c.quadraticCurveTo(x + dir * 40, floor - h * 0.55, x + dir * 18, floor); c.closePath(); c.fill()
+    c.strokeStyle = 'rgba(255,255,255,0.9)'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - dir * 80, floor - h * 0.98); c.quadraticCurveTo(x - dir * 20, floor - h * 1.02, x + dir * 10, floor - h * 0.8); c.stroke()
+    c.restore()
+  }
+  for (const p of u.trio || []) {
+    const A = skinAnim?.(f, p.form)?.[p.pose] || formAnim(p.form, p.pose) || formAnim(p.form, 'idle')
+    c.save(); c.globalAlpha = 0.35; c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(p.x, p.feet, 26, 6, 0, 0, Math.PI * 2); c.fill(); c.restore()
+    drawPose(c, f, p.pose, 0, p.x, p.feet, p.dir, p.alpha ?? 1, 0, A)
+  }
+}

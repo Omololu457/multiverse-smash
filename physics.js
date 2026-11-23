@@ -11,6 +11,7 @@
  * carry their own maxJumps. Air ceiling raised for triple jumps / air combos.
  */
 
+import { ogSpeedMult } from "./rosterParity.js"   // OG roster speed buff (2026-11-23)
 import { setupBen10, updateOmnitrix } from "./fighters.js"
 import { benReadyForm, benAlienPhasing } from "./ben10State.js"   // READY Omnitrix forms (lunge / glide / power commit); null for everyone else
 import { effectiveFloorFor, getPlatforms } from "./platforms.js"   // Wood Release climbable terrain: highest standable surface under a fighter
@@ -294,7 +295,7 @@ export const physics = {
 
       if (!air && fighter.dashTimer > 0) {
         fighter.dashTimer--
-        const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter) * _benSlowK * (fighter._sksSpeed || 1) * (fighter._invSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA ×1.5 · Arlong swim-dash ×1.25 (1 for everyone else) × Ben-form slow (1 unless stamped)
+        const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * ogSpeedMult(fighter) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter) * _benSlowK * (fighter._sksSpeed || 1) * (fighter._invSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA ×1.5 · Arlong swim-dash ×1.25 (1 for everyone else) × Ben-form slow (1 unless stamped)
         fighter.vx = fighter._backDash ? -(fighter.facing || 1) * dashSpeed * BACKDASH.speedMul : (fighter.facing || 1) * dashSpeed
         fighter.vy = 0
         if (fighter.dashTimer <= 0) fighter._backDash = false
@@ -309,7 +310,7 @@ export const physics = {
         // (This engine ties facing to the walk direction, so the bonus applies to ground walk speed.)
         // SOLDIER BOY — Armed Mode slows ground movement by 10% (loadout weight). No-op for everyone else.
         const _sbArmedMul = (fighter._sbArmed ? 0.9 : 1) * ((fighter._benPinT || 0) > 0 ? 0.5 : 1) * buggyWalkMul(fighter) * arlongWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * rangerWalkMul(fighter, (L && !R) ? -1 : (R && !L) ? 1 : 0) * dashParrWalkMul(fighter) * (_benTerror ? 0.6 : 1)
-        const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul * WALK_FEEL   // ROSTER FEEL: everyone walks 15% faster
+        const walkSpeed = (fighter._gfSkinMod?.fwdSpeedScale ? speed * fighter._gfSkinMod.fwdSpeedScale : speed) * _sbArmedMul * WALK_FEEL * ogSpeedMult(fighter)   // ROSTER FEEL (× OG roster speed buff, rosterParity.js): everyone walks 15% faster
         if (L && !R) {
           fighter.vx = flashTime ? -FT_ZIP : elWalkVx(fighter, -walkSpeed)
           fighter.facing = -1

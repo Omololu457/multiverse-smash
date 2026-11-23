@@ -1,4 +1,5 @@
 import { updateLuffyCommandCombat } from './luffy.js'
+import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
 import { benCpuDrive } from "./benCpu.js"   // CPU Ben 10 / Albedo: transforms by range + mid-combo alien swaps
 import { benThemeFieldsForSkin, benThemeLast, benThemeCardImage } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES (skin fields + select-screen cards)
@@ -5641,7 +5642,7 @@ function createFighter(charKey, char, x, facing, controls, side) {
 
   const width   = toFiniteNumber(char?.w ?? char?.width,   60)
   const height  = toFiniteNumber(char?.h ?? char?.height, 100)
-  const maxHealth  = Math.max(1, toFiniteNumber(stats.maxHealth  ?? char?.maxHealth  ?? char?.health,  1000))
+  const maxHealth  = Math.max(1, Math.round(toFiniteNumber(stats.maxHealth  ?? char?.maxHealth  ?? char?.health,  1000) * ogHpMult(charKey)))   // × OG roster HP buff (rosterParity.js; 1 for non-OG)
   const maxEnergy  = Math.max(1, toFiniteNumber(stats.maxEnergy  ?? char?.maxEnergy  ?? char?.energy  ?? char?.meter, DEFAULT_MAX_ENERGY))
   // Balance: EVERY fighter starts each round at 50% of max energy, so no domain
   // (which costs a FULL bar — see spendFullBarForDomain) can open at round start.

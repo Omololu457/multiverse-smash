@@ -46,6 +46,7 @@ import { VIOLET_SKINS } from './violetSkins.js'   // Violet Parr: Supersuit defa
 import { ELASTIGIRL_SKINS } from './elastigirlSkins.js'   // Elastigirl default + palette skins (cosmetic, precomputed)
 import { SPD_GREEN_SKINS } from './spdGreenSkins.js'   // S.P.D. Green default + 6 appearance skins (cosmetic, precomputed)
 import { DASH_PARR_SKINS } from './dashParrSkins.js'   // Dash: Supersuit + Incredibles 2 + Track Star palette swaps (cosmetic, precomputed)
+import { TRIO_SKINS } from './nsTrioSkins.js'   // Ninja Storm Trio: the 10-skin pack (cosmetic, precomputed; all three forms)
 import { WR_SKINS } from './windrangersSkins.js'   // Ninja Storm MS_V1 Ranger Version: the 10-skin pack (cosmetic, precomputed; both forms)
 import { NS_CGPT_SKINS } from './nsCgptSkins.js'   // NS CGPT: Red / Yellow base appearances + 20 palette skins (cosmetic, precomputed)
 import { SPD_BLUE_SKINS } from './spdBlueSkins.js'   // S.P.D. Blue default + 6 appearance skins (cosmetic)
@@ -258,7 +259,7 @@ export const SKINS = {
   ],
   ninja_storm_cgpt: NS_CGPT_SKINS,   // NS CGPT: 22 appearances (2 supplied bases + 20 skins)
   ninja_storm_rangers: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ninja_storm_rangers.portrait, spriteScale: characters.ninja_storm_rangers.spriteScale, animationData: null }],   // MSv2
-  ns_trio: [{ id: 'default', name: 'Start as: Blue (Tori)', unlockLevel: 0, portrait: characters.ns_blue.portrait, spriteScale: characters.ns_blue.spriteScale, animationData: null }, { id: 'start_navy', name: 'Start as: Navy (Blake)', unlockLevel: 0, portrait: characters.ns_navy.portrait, spriteScale: characters.ns_navy.spriteScale, animationData: null }, { id: 'start_green', name: 'Start as: Green (Cam)', unlockLevel: 0, portrait: characters.ns_green.portrait, spriteScale: characters.ns_green.spriteScale, animationData: null }],   // NS TRIO start forms
+  ns_trio: [{ id: 'default', name: 'Start as: Blue (Tori)', unlockLevel: 0, portrait: characters.ns_blue.portrait, spriteScale: characters.ns_blue.spriteScale, animationData: null }, { id: 'start_navy', name: 'Start as: Navy (Blake)', unlockLevel: 0, portrait: characters.ns_navy.portrait, spriteScale: characters.ns_navy.spriteScale, animationData: null }, { id: 'start_green', name: 'Start as: Green (Cam)', unlockLevel: 0, portrait: characters.ns_green.portrait, spriteScale: characters.ns_green.spriteScale, animationData: null }, ...TRIO_SKINS],   // NS TRIO start forms + skins
   windrangers: [{ id: 'default', name: 'Start as: Red (Shane)', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }, { id: 'start_yellow', name: 'Start as: Yellow (Dustin)', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }, ...WR_SKINS],   // MSV1-MERGE start form = skin
   ns_red: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_red.portrait, spriteScale: characters.ns_red.spriteScale, animationData: null }],   // MSV1
   ns_yellow: [{ id: 'default', name: 'Default', unlockLevel: 0, portrait: characters.ns_yellow.portrait, spriteScale: characters.ns_yellow.spriteScale, animationData: null }],

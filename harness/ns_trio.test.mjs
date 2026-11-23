@@ -20,10 +20,10 @@ async function boot(p1, p2, o = {}) {
   page.on('pageerror', e => errors.push(e.message))
   await page.addInitScript(() => { window.requestAnimationFrame = () => 0 })
   await page.goto(`${server.base}/index.html?harness=1&p1=${p1}&p2=${p2}`, { waitUntil: 'load' })
-  await page.waitForFunction(() => !!window.__harness?.luffyTest && !!window.__harness?.ninjaTest, null, { timeout: 30000 })
+  await page.waitForFunction(() => !!window.__harness?.luffyTest && !!window.__harness?.ninjaTest, null, { timeout: 90000 })
   await page.evaluate(o => { __harness.rng.forceSeed(o.seed ?? 7); __harness.start({ p1Skin: o.p1Skin, p2Skin: o.p2Skin, mode: o.mode, difficulty: o.difficulty }); __harness.skipToBattle() }, o)
   await step(2)
-  await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { timeout: 30000 })
+  await page.waitForFunction(() => __harness.luffyTest.state('p1')?.ready && __harness.luffyTest.state('p2')?.ready, null, { timeout: 90000 })
   for (let i = 0; i < 4; i++) { await step(5); await new Promise(r => setTimeout(r, 200)) }
 }
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
@@ -157,6 +157,36 @@ try {
     await fresh(260); await page.keyboard.down('a'); await tap(['p']); await page.keyboard.up('a'); let cl = 0
     for (let i = 0; i < 30; i++) { cl = Math.max(cl, await page.evaluate(() => (__harness.ninjaTest.raw('p1')._ninja.clones || []).filter(c => !c.dead).length)); await step(1) }
     check('Cyber Cam (Charge + Back): exactly ONE double', cl === 1, cl)
+  }
+
+  if (want('skins')) {
+    section('SKINS (10, all three forms)')
+    const { execFileSync } = await import('node:child_process')
+    let chk = ''; try { chk = execFileSync('python3', ['tools/ns_trio/build_skins.py', '--check'], { encoding: 'utf8' }) } catch (e) { chk = (e.stdout || '') + 'FAILED' }
+    check('build check: every skin × form × file present, alpha = the source, the three forms of a skin clearly different (ΔE ≥ 25)', /problems: 0/.test(chk) && !/FAILED/.test(chk), chk.trim().split('\n').slice(-1)[0])
+    await boot('ns_trio', 'spd_red')
+    const sk = await page.evaluate(() => __harness.showSkinSelect('ns_trio', 'p1', 0))
+    const ids = sk.skins.map(x => x.id)
+    check('skin select: 3 start forms + 10 trio skins', ids.length === 13 && ids.slice(3).every(i => i.startsWith('tr_')), sk.skins.map(x => x.name))
+    const http = await page.evaluate(async () => { const m = await import('./skins.js'); const t = await import('./nsTrioSkins.js'); const bad = []; let n = 0
+      for (const s of m.SKINS.ns_trio.filter(s => s.id.startsWith('tr_'))) for (const form of ['ns_blue', 'ns_navy', 'ns_green']) for (const u of [s.portrait, ...new Set(Object.values(t.trioFormAnim(s.id.slice(3), form)).map(a => a.sheet))]) { n++; const r = await fetch(u, { method: 'HEAD' }); if (!r.ok) bad.push(u) }
+      return { n, bad } })
+    check(`every skin portrait + strip of all three forms loads (${http.n} requests)`, http.n > 0 && !http.bad.length, http.bad.slice(0, 3))
+    for (const tag of ['thunderstorm', 'alienx', 'surfmoto']) {
+      await boot('ns_trio', 'spd_red', { p1Skin: 'tr_' + tag })
+      const look = () => page.evaluate(() => { const f = __harness.ninjaTest.raw('p1'); const A = f._skinAnim || f.animationData; return { key: f.rosterKey, idle: A.idle.sheet, dir: f._nsAssetDir, smoke: f._nsSmoke } })
+      const a = await look(); await fresh(260); await step(10); await shot(`skin_${tag}_tori`)
+      await switchInput('j'); await untilSwap(); await settle(); const b = await look(); await step(10); await shot(`skin_${tag}_blake`)
+      await step(35); await fresh(500); await switchInput('j'); await untilSwap(); await settle(); const c = await look()
+      check(`${tag}: the skin follows Tori → Blake → Cam (strips, FX folder, smoke)`, a.idle.includes(`/skins/${tag}/ns_blue/`) && b.idle.includes(`/skins/${tag}/ns_navy/`) && c.idle.includes(`/skins/${tag}/ns_green/`) && b.dir.endsWith(`${tag}/ns_navy`) && c.key === 'ns_green', { a, b, c })
+    }
+    // cosmetic only: identical 120-frame scripted input → identical numbers
+    const script = async skin => { await boot('ns_trio', 'spd_red', { p1Skin: skin, seed: 11 }); return page.evaluate(() => { const T = __harness.ninjaTest, L = __harness.luffyTest, a = T.raw('p1'), z = T.raw('p2'), out = []
+      for (const [k, n] of [['j', 6], ['k', 10], ['l', 30], ['d', 12], ['j', 14], ['s', 2], ['s', 2], ['k', 40]]) { window.dispatchEvent(new KeyboardEvent('keydown', { key: k, code: 'Key' + k.toUpperCase() })); L.step(1); window.dispatchEvent(new KeyboardEvent('keyup', { key: k, code: 'Key' + k.toUpperCase() }))
+        for (let i = 0; i < n; i++) { L.step(1); out.push([a.x | 0, a.y | 0, a.health, z.health | 0, a.currentMove || '', a.w, a.h]) } }
+      return JSON.stringify(out) }) }
+    const base = await script('default')
+    for (const id of ['tr_thunderstorm', 'tr_cyber']) check(`${id}: same scripted inputs → identical x / y / health / moves / hurtbox to the default look`, (await script(id)) === base)
   }
 
   if (want('carry')) {

@@ -1,0 +1,313 @@
+{
+ "_doc": "Ninja Storm Trio (ns_trio) skins. Each skin recolours ALL THREE forms (Tori ns_blue, Blake ns_navy, Cam ns_green) from the MS_V1 Shane sheets with the ChatGPT-version recipe (tools/ns_cgpt/build_skins.py) + the form's own chest emblem (glyph colour per form). Keys per form: suit / dark / metal / accent / fx / material / glyph. The three forms of a skin stay clearly different (build_skins.py --check: max(suit, trim) ΔE >= 25 for every pair).",
+ "skins": [
+  {
+   "tag": "thunderstorm",
+   "name": "Thunderstorm Battlized",
+   "look": "deeper suits, gold armour, shining",
+   "ns_blue": {
+    "suit": "#123c9a",
+    "dark": "#000000",
+    "metal": "#ffd25a",
+    "accent": "#fff0b4",
+    "fx": "#5ad2ff",
+    "material": "shine",
+    "glyph": "#c88a10"
+   },
+   "ns_navy": {
+    "suit": "#141844",
+    "dark": "#000000",
+    "metal": "#ffd25a",
+    "accent": "#fff0b4",
+    "fx": "#c8a0ff",
+    "material": "shine",
+    "glyph": "#ffcc33"
+   },
+   "ns_green": {
+    "suit": "#0c5a26",
+    "dark": "#000000",
+    "metal": "#ffd25a",
+    "accent": "#fff0b4",
+    "fx": "#8cff9c",
+    "material": "shine",
+    "glyph": "#c88a10"
+   }
+  },
+  {
+   "tag": "kelzak",
+   "name": "Kelzak Infiltrators",
+   "look": "black ninja suits, trimmed in each Ranger's colour",
+   "ns_blue": {
+    "suit": "#1e3050",
+    "dark": "#000000",
+    "metal": "#5aa0ff",
+    "accent": "#3c8cff",
+    "fx": "#3c8cff",
+    "glyph": "#3c8cff"
+   },
+   "ns_navy": {
+    "suit": "#36244e",
+    "dark": "#000000",
+    "metal": "#a08cff",
+    "accent": "#7a5cff",
+    "fx": "#9a7aff",
+    "glyph": "#9a7aff"
+   },
+   "ns_green": {
+    "suit": "#1c3c26",
+    "dark": "#000000",
+    "metal": "#5adc78",
+    "accent": "#28c850",
+    "fx": "#5adc78",
+    "glyph": "#28c850"
+   }
+  },
+  {
+   "tag": "amulet",
+   "name": "Samurai Amulet Gold",
+   "look": "gold, bronze and bright gold, glittering",
+   "ns_blue": {
+    "suit": "#f0c83c",
+    "dark": "#1a1408",
+    "metal": "#ffffff",
+    "accent": "#2a78f0",
+    "fx": "#ffe08a",
+    "material": "glitter",
+    "glyph": "#2a78f0"
+   },
+   "ns_navy": {
+    "suit": "#b4783c",
+    "dark": "#1a1008",
+    "metal": "#ffe8c8",
+    "accent": "#26347a",
+    "fx": "#ffc080",
+    "material": "glitter",
+    "glyph": "#26347a"
+   },
+   "ns_green": {
+    "suit": "#d2e646",
+    "dark": "#141808",
+    "metal": "#ffffff",
+    "accent": "#1e8a3c",
+    "fx": "#e6ff8a",
+    "material": "glitter",
+    "glyph": "#1e8a3c"
+   }
+  },
+  {
+   "tag": "alienx",
+   "name": "Alien X — Three Constellations",
+   "look": "void suits with stars, white trim, a colour glow each",
+   "ns_blue": {
+    "suit": "#123a86",
+    "dark": "#000000",
+    "metal": "#f2f4ff",
+    "accent": "#7dc8ff",
+    "fx": "#bfe4ff",
+    "material": "stars",
+    "glyph": "#7dc8ff"
+   },
+   "ns_navy": {
+    "suit": "#661a5e",
+    "dark": "#000000",
+    "metal": "#f2f4ff",
+    "accent": "#c89aff",
+    "fx": "#e0ccff",
+    "material": "stars",
+    "glyph": "#c89aff"
+   },
+   "ns_green": {
+    "suit": "#164030",
+    "dark": "#000000",
+    "metal": "#f2f4ff",
+    "accent": "#7dffb0",
+    "fx": "#c8ffe0",
+    "material": "stars",
+    "glyph": "#7dffb0"
+   }
+  },
+  {
+   "tag": "ben10",
+   "name": "Ben 10 — Omnitrix Squad",
+   "look": "Omnitrix green / black / white, one each",
+   "ns_blue": {
+    "suit": "#e8ece8",
+    "dark": "#101410",
+    "metal": "#3a3e3a",
+    "accent": "#3cdc3c",
+    "fx": "#5aff5a",
+    "glyph": "#20a020"
+   },
+   "ns_navy": {
+    "suit": "#2a2e2a",
+    "dark": "#000000",
+    "metal": "#e8ece8",
+    "accent": "#3cdc3c",
+    "fx": "#5aff5a",
+    "glyph": "#3cdc3c"
+   },
+   "ns_green": {
+    "suit": "#28b428",
+    "dark": "#000000",
+    "metal": "#f0f0f0",
+    "accent": "#1a1a1a",
+    "fx": "#8aff8a",
+    "glyph": "#101010"
+   }
+  },
+  {
+   "tag": "albedo",
+   "name": "Albedo — Negative Squad",
+   "look": "the Omnitrix inverted: red / white / black",
+   "ns_blue": {
+    "suit": "#3a3a3e",
+    "dark": "#000000",
+    "metal": "#f0f0f0",
+    "accent": "#e02828",
+    "fx": "#ff5050",
+    "glyph": "#e02828"
+   },
+   "ns_navy": {
+    "suit": "#ececf0",
+    "dark": "#141414",
+    "metal": "#3a3a3e",
+    "accent": "#e02828",
+    "fx": "#ff5050",
+    "glyph": "#c01818"
+   },
+   "ns_green": {
+    "suit": "#c41e1e",
+    "dark": "#000000",
+    "metal": "#f0f0f0",
+    "accent": "#202020",
+    "fx": "#ff7a7a",
+    "glyph": "#101010"
+   }
+  },
+  {
+   "tag": "surfmoto",
+   "name": "Surf, Moto & Saber",
+   "look": "Tori's surf teal, Blake's motocross orange, Cam's olive field gear",
+   "ns_blue": {
+    "suit": "#1eb4b4",
+    "dark": "#06201e",
+    "metal": "#ffffff",
+    "accent": "#ffd23c",
+    "fx": "#8af0ff",
+    "glyph": "#0a7a7a"
+   },
+   "ns_navy": {
+    "suit": "#e0641e",
+    "dark": "#200800",
+    "metal": "#ffffff",
+    "accent": "#1e2a5a",
+    "fx": "#ffb46e",
+    "glyph": "#1e2a5a"
+   },
+   "ns_green": {
+    "suit": "#7a8a2a",
+    "dark": "#101404",
+    "metal": "#f0ecd8",
+    "accent": "#c8a046",
+    "fx": "#d2e68a",
+    "glyph": "#3a4410"
+   }
+  },
+  {
+   "tag": "cyber",
+   "name": "Cyber Cam Neon",
+   "look": "dark suits with neon circuits",
+   "ns_blue": {
+    "suit": "#0e3264",
+    "dark": "#000000",
+    "metal": "#b4ecff",
+    "accent": "#28dcff",
+    "fx": "#28dcff",
+    "material": "circuit",
+    "glyph": "#28dcff"
+   },
+   "ns_navy": {
+    "suit": "#36145e",
+    "dark": "#000000",
+    "metal": "#e0c8ff",
+    "accent": "#c850ff",
+    "fx": "#c850ff",
+    "material": "circuit",
+    "glyph": "#c850ff"
+   },
+   "ns_green": {
+    "suit": "#0c4420",
+    "dark": "#000000",
+    "metal": "#c8ffd2",
+    "accent": "#3cff6e",
+    "fx": "#3cff6e",
+    "material": "circuit",
+    "glyph": "#3cff6e"
+   }
+  },
+  {
+   "tag": "abyss",
+   "name": "Abyss of Evil",
+   "look": "Lothor's colours: violet, crimson and toxic green, with embers",
+   "ns_blue": {
+    "suit": "#5a2896",
+    "dark": "#000000",
+    "metal": "#e6d2ff",
+    "accent": "#ff6edc",
+    "fx": "#c88cff",
+    "material": "embers",
+    "glyph": "#ff6edc"
+   },
+   "ns_navy": {
+    "suit": "#8c1428",
+    "dark": "#000000",
+    "metal": "#ffd2d8",
+    "accent": "#ffb43c",
+    "fx": "#ff6e6e",
+    "material": "embers",
+    "glyph": "#ffb43c"
+   },
+   "ns_green": {
+    "suit": "#4a7a10",
+    "dark": "#000000",
+    "metal": "#eaffc8",
+    "accent": "#b4ff28",
+    "fx": "#b4ff28",
+    "material": "embers",
+    "glyph": "#b4ff28"
+   }
+  },
+  {
+   "tag": "crystal",
+   "name": "Ninja Crystal",
+   "look": "pale crystal: ice blue, lavender, mint",
+   "ns_blue": {
+    "suit": "#a0d8ff",
+    "dark": "#0a1a2a",
+    "metal": "#ffffff",
+    "accent": "#3c78d2",
+    "fx": "#d2f0ff",
+    "material": "crystal",
+    "glyph": "#2a64c0"
+   },
+   "ns_navy": {
+    "suit": "#b4a0f0",
+    "dark": "#140a2a",
+    "metal": "#ffffff",
+    "accent": "#5a3cb4",
+    "fx": "#e0d2ff",
+    "material": "crystal",
+    "glyph": "#4a2ca0"
+   },
+   "ns_green": {
+    "suit": "#96f0be",
+    "dark": "#0a2a14",
+    "metal": "#ffffff",
+    "accent": "#1e9650",
+    "fx": "#d2ffe6",
+    "material": "crystal",
+    "glyph": "#14783c"
+   }
+  }
+ ]
+}

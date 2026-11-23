@@ -131,5 +131,49 @@ export const DINO_SKIN_ROWS = [
    "dt_yellow": "#988a4b",
    "dt_white": "#b4bec7"
   }
+ },
+ {
+  "tag": "pearl",
+  "name": "Pearl Divers",
+  "note": "Undersea: coral, deep teal, sand gold and mother-of-pearl; the white panels shimmer pink-to-cyan like nacre.",
+  "gem": {
+   "dt_red": "#e6705b",
+   "dt_blue": "#158e93",
+   "dt_yellow": "#e0bd82",
+   "dt_white": "#f0f3f9"
+  }
+ },
+ {
+  "tag": "dragonfly",
+  "name": "Glitter — Dragonfly Foil",
+  "note": "Iridescent dragonfly foil: every suit shifts hue across the body (red→violet, blue→green, gold→lime, silver→opal) with baked glitter.",
+  "gem": {
+   "dt_red": "#cd257e",
+   "dt_blue": "#18b390",
+   "dt_yellow": "#b0d91c",
+   "dt_white": "#e0eef3"
+  }
+ },
+ {
+  "tag": "sushi",
+  "name": "Midnight Sushi",
+  "note": "Late-night counter: salmon Conner, nori-and-rice Ethan, tamago Kira, rice-white Trent with nori panels; wasabi-green trim.",
+  "gem": {
+   "dt_red": "#f3804e",
+   "dt_blue": "#244434",
+   "dt_yellow": "#f3ca46",
+   "dt_white": "#efedde"
+  }
+ },
+ {
+  "tag": "sketch",
+  "name": "Saturday Morning Sketchbook",
+  "note": "Cartoon pencils on cream paper: crayon fills, graphite outlines and baked cross-hatching in the shadows.",
+  "gem": {
+   "dt_red": "#eb8e78",
+   "dt_blue": "#7a9ddd",
+   "dt_yellow": "#f2ce70",
+   "dt_white": "#eee6d1"
+  }
  }
 ]

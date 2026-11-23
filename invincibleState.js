@@ -622,7 +622,7 @@ function tvTick(f, s, A, m, t, W, foes, raw) {
   const floorY = tv.floor ?? (tv.floor = Math.round(feet(f)))
   if (t < T1) {
     if (t === 0) { pushFx(s, 'takeoff', ctrX(f), feet(f)); cue(f, 'tvTakeoff') }
-    f.y = Math.round(tv.y0 - (t * t) * 1.1); f.onGround = false; f.grounded = false
+    f.y = Math.round(tv.y0 - Math.min(TV.rise, (t * t) * 1.1)); f.onGround = false; f.grounded = false   // rises out of frame; the camera does not chase him past TV.rise
     pushFx(s, 'vstreak', ctrX(f), feet(f), { dir: m.dir })
     f._invAlpha = t > T1 - 8 ? 0 : 1
     return
@@ -632,7 +632,9 @@ function tvTick(f, s, A, m, t, W, foes, raw) {
     if (tv.x == null) { const o = foes[0]; tv.x = Math.round(o ? ctrX(o) : ctrX(f)) ; cue(f, 'tvAim') }
     const L = !!raw.left, R = !!raw.right
     if (L !== R) tv.x = Math.max(40, Math.min(sw(W) - 40, tv.x + (R ? 1 : -1) * TV.steer))
-    f._invAlpha = 0; f.y = Math.round(floorY - (f.h || 94) - 1400); f.x = Math.round(tv.x - f.w / 2)
+    // he is GONE (alpha 0, invulnerable, phasing): his sim body waits on the floor under the marker so the camera frames the
+    // foe and the marker, not an empty sky 1400 px up (render reads _invAlpha; invPhasing = no body push)
+    f._invAlpha = 0; f.y = Math.round(floorY - (f.h || 94)); f.x = Math.round(tv.x - f.w / 2)
     f.onGround = false; f.grounded = false
     return
   }
@@ -708,7 +710,7 @@ function cpuTick(f, s, opp, W) {
 
 // physics.js body collision: Mark passes THROUGH the foe while zipping, and while flying at ≥ 70 % of top speed (he blows past)
 export function invPhasing(a, b) {
-  const ph = f => isInv(f) && (!!f._inv?.mv || (isFlying(f) && speedFrac(f) >= FLIGHT.passAt))
+  const ph = f => isInv(f) && (!!f._inv?.mv || (isFlying(f) && speedFrac(f) >= FLIGHT.passAt) || (!!f._inv?.tv && f._invAlpha === 0))   // + Terminal Velocity while he is gone
   return ph(a) || ph(b)
 }
 export function invLockedForMovement(f) {

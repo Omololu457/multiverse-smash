@@ -1,0 +1,133 @@
+{
+ "pass": 14,
+ "fail": 0,
+ "report": {
+  "events": {
+   "seen": [
+    "takeoff",
+    "aim",
+    "fall",
+    "impact"
+   ],
+   "top": 51.471000000000004,
+   "booms": 1,
+   "barrageHits": 6,
+   "ipunch": 1,
+   "ipunchHits": 1,
+   "ipunchWhiff": 0,
+   "wallBounces": 1,
+   "zips": 1,
+   "tv": 1,
+   "tvDirect": 1,
+   "tvShock": 0,
+   "tvWhiff": 0,
+   "marker": 1512,
+   "loops": 1,
+   "energyLog": [
+    142
+   ],
+   "ipGap": 60,
+   "ipState": "[\"kIPunch\",null,0,true,true,false,0,60]",
+   "energyBeforeTv": 142
+  },
+  "frames": 631,
+  "trailHash": "5cbec6c4599a2a94",
+  "replay": {
+   "frames": 631,
+   "deltas": 42,
+   "checkpoints": 11,
+   "p1Char": "invincible",
+   "seed": 60617
+  },
+  "playback": {
+   "ok": true,
+   "st": {
+    "cursor": 42,
+    "totalFrames": 42,
+    "checks": 11,
+    "matched": 11,
+    "desyncFrame": null,
+    "frameCount": 631
+   },
+   "maxS": {
+    "booms": 1,
+    "barrageHits": 6,
+    "ipunchHits": 1,
+    "zips": 1,
+    "tvDirect": 1
+   }
+  },
+  "lan": {
+   "events": {
+    "seen": [
+     "takeoff",
+     "aim",
+     "fall",
+     "impact"
+    ],
+    "top": 51.48,
+    "booms": 1,
+    "barrageHits": 6,
+    "ipunch": 1,
+    "ipunchHits": 1,
+    "ipunchWhiff": 0,
+    "wallBounces": 1,
+    "zips": 1,
+    "tv": 1,
+    "tvDirect": 1,
+    "tvShock": 0,
+    "tvWhiff": 0,
+    "marker": 1563,
+    "loops": 1,
+    "energyLog": [
+     152
+    ],
+    "ipGap": 60,
+    "ipState": "[null,null,0,true,true,false,0,60]",
+    "energyBeforeTv": 152
+   },
+   "shared": 790,
+   "mismatched": 0,
+   "markerShared": 106,
+   "joinerStats": {
+    "jabs": 1,
+    "barrageHits": 6,
+    "barrageLaunch": 1,
+    "ipunch": 1,
+    "ipunchHits": 1,
+    "ipunchWhiff": 0,
+    "wallBounces": 1,
+    "skyward": 0,
+    "skywardHits": 0,
+    "skywardFlight": 0,
+    "zips": 1,
+    "zipCancels": 0,
+    "zipPhased": 4,
+    "crash": 0,
+    "crashHits": 0,
+    "nhb": 0,
+    "nhbHits": 0,
+    "nhbDmg": 0,
+    "tv": 1,
+    "tvDirect": 1,
+    "tvShock": 0,
+    "tvWhiff": 0,
+    "tvStopped": 0,
+    "booms": 1,
+    "boomHits": 0,
+    "fpunchHits": 0,
+    "takeoffPush": 0,
+    "csd": 0,
+    "resolveHits": 0,
+    "stopped": 0,
+    "spent": 100,
+    "noBlockFrames": 15,
+    "guardCpu": 0
+   },
+   "samples": [
+    790,
+    790
+   ]
+  }
+ }
+}

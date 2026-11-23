@@ -1,0 +1,75 @@
+{
+ "pass": 10,
+ "fail": 0,
+ "R": {
+  "keycheck": {
+   "cells": 97,
+   "srcPx": 58401,
+   "kept": 58401,
+   "lost": 0,
+   "changed": 0,
+   "darkSrc": 26980,
+   "darkKept": 26980,
+   "sheetFrames": 76,
+   "derived": [
+    "bigBurst"
+   ]
+  },
+  "strips": {
+   "idle": 4,
+   "taunt": 8,
+   "intro": 3,
+   "walk": 4,
+   "run": 4,
+   "dash": 1,
+   "jump": 1,
+   "fall": 1,
+   "crouch": 1,
+   "guard": 1,
+   "takeoff": 1,
+   "fly": 2,
+   "flyFast": 1,
+   "fpunch": 3,
+   "jab": 2,
+   "barrage": 3,
+   "straight": 3,
+   "upper": 3,
+   "sweep": 3,
+   "spin": 3,
+   "rise": 3,
+   "ipunch": 6,
+   "zip": 4,
+   "hurt": 2,
+   "knockdown": 3,
+   "getup": 2,
+   "win": 5,
+   "lose": 2,
+   "dive": 1,
+   "takeoffRing": 1,
+   "vStreak": 2,
+   "hStreak": 2,
+   "sonicRing": 3,
+   "impact": 3,
+   "zipStreak": 2,
+   "zipRing": 3,
+   "ghost": 1,
+   "bigBurst": 4
+  },
+  "hp": {
+   "median": 1150,
+   "n": 166,
+   "invincible": 748,
+   "ratio": 0.65
+  },
+  "flight": {
+   "top": 51.48,
+   "run": 16.129,
+   "profile": {
+    "maxH": 51.48,
+    "accel": 2.451,
+    "drag": 0.44,
+    "reverseBrake": 0.6
+   }
+  }
+ }
+}

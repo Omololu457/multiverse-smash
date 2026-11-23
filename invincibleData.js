@@ -69,7 +69,7 @@ export const NHB = { cost: BAR, startup: 8, reach: 300, w: 80, h: 90, every: 9, 
   offsets: [[-1, 0], [1, 0], [0, -1], [-1, -0.7], [1, -0.7], [0, 0.4]], kbxEnd: 14, kbyEnd: -14, recovery: 18, whiffRecovery: 30, chip: 0.2 }
 // TERMINAL VELOCITY — the standard ultimate (Ultimate button, 100 energy, then the universal 20 s cooldown)
 export const TV = { cost: 100, ultCooldown: 1200, takeoff: 30, aim: 60, fall: 8, steer: 14, direct: 0.10, shock: 0.40,
-  rawDirect: 380, rawShock: 120, hitstunDirect: 70, hitstunShock: 36, crater: 50, recovery: 24, crackLife: 600, shake: [16, 30] }
+  rawDirect: 380, rawShock: 120, hitstunDirect: 70, hitstunShock: 36, crater: 50, recovery: 24, rise: 300, crackLife: 600, shake: [16, 30] }
 // CAN'T STAY DOWN (passive, once per round) → RESOLVE 6 s
 export const CSD = { down: 60, invuln: 70, resolve: 360, dmgOut: 1.20, speed: 1.10, dmgIn: 1.25 }
 export const TECHNIQUES = new Set(['kIPunch', 'kIPunchW', 'kSkyward', 'kCrash', 'kNHB', 'kTV'])

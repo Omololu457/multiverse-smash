@@ -3142,3 +3142,39 @@ slower (17/0); moves 47/0, flight 24/0, determinism 13/0, skins 19/0 (selector, 
 replay, LAN, companion), final checks 9/0 (every frame used, afterimage intact, damage table); frame data of every
 other character unchanged; determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3, replay 8/1, net_online 11/0
 (= the numbers before this work); render 11/0. Screenshots in docs/msv1/omniman/screenshots/.
+
+=== 2026-11-22 — NEW FIGHTER: Invincible (Mark Grayson) + 20 skins ===
+A new fighter (key invincible, Invincible universe, beside both Omni-Mans). There was no Invincible before — nothing replaced.
+- A GLASS CANNON: 748 health (65 % of the roster's middle value, 1150), meter 200 (two bars). Fast on the ground
+  (runs 16.1 px a frame) and in the air: Charge taps take off / come down; top flight speed 51.5 (0.9 × Omni-Man),
+  reached in about 0.35 s; he stops in ≤ 8 frames when you let go and SNAP-TURNS (moving the other way in ≤ 6 frames).
+  He can guard while flying slowly, not above 60 % speed. Sonic boom at 90 %.
+- Moves: Jab → mash Light = BARRAGE (6 hits, the last launches); Straight, Uppercut, Sweep, Spin kick, Rising kick;
+  flight punch (stronger the faster he flies, up to +40 %). Specials: INVINCIBLE PUNCH (↓↘→+Special: crosses 600 px,
+  110, wall-bounces), SKYWARD (→↓↘+Special: launcher, then he is flying), ZIP (double-tap →: 45 % of the screen in
+  5 frames, bolts pass through him, cancels a normal on hit), CRASH DOWN (air ↓+Special: hits a downed foe).
+  Super: NO HOLDING BACK (↓↓+Special, 1 bar, 6 hits, 300). ULTIMATE: TERMINAL VELOCITY (Ultimate, 100 meter, 20 s
+  cooldown): he takes off out of the screen, a marker BOTH players can see shows where he will land (hold ←/→ to
+  steer it), he falls, 380 on a direct hit, 120 shockwave nearby, a crack in the floor; a miss leaves him stuck in the
+  crater. Gojo's Infinity stops it.
+- CAN'T STAY DOWN (once a round): the hit that would KO him leaves him at 1 HP, he goes down — "Not yet." ("I'd still
+  have you, Dad." against Omni-Man) — and gets up with RESOLVE for 6 s (faster, hits harder, takes more).
+  Intro against Omni-Man: "Dad. Stop."  Win: "Still standing."
+- 20 skins (premade, nothing recoloured during the game): Viltrumite Mark, Mustache Mark, Mohawk Mark, Prison Mark,
+  Sinister Mark, Maskless Mark, Full-Mask Mark, Pink Viltrumite — Rose Standard, Coronation, Defector — Debbie's
+  Repair, Alien X — Two Earths, Alien X — Observatory Glass, Glitter — Black Ice, Glitter — Roller Rink 1999, Winning
+  Valkyrie — Launch Angle, JJK — Divergent Flight, Grayson Delivery Service, Art School — Registration Error, Deep-Sea —
+  Bathysphere, Earth Kept the Light On. The fighter, his streaks / rings / bursts, the select picture and the head
+  icons all change.
+- Fixed on the way: during Terminal Velocity the camera followed him up into the empty sky, so the foe and the
+  landing marker were squeezed at the bottom of the screen — it now stays on the stage while he is gone.
+Checks actually run: one test match driven by real key presses — full-speed flight + sonic boom, Barrage, Invincible
+Punch, Zip, then Terminal Velocity on meter earned in the match (takeoff → marker → fall → direct hit) — same result
+twice, its replay plays back with zero desync and re-lives every move, the same match over LAN stays identical on
+both screens incl. the marker (795 frames compared, 0 different, 106 of them with the marker up), every file reaches a friend's browser (1032 files; one-match 14/0); moves 53/0 (health,
+speeds, snap turn, guard in flight, stop distance, every move's damage, Can't Stay Down once a round + Resolve + the
+Omni-Man line, Terminal Velocity vs Gojo, CPU, sound, HUD, roster entry); skins 19/0 (selector, preview, icons,
+match, rematch, replay, LAN, companion); final checks 10/0 (every one of the 76 sheet frames used, keying lost none
+of the 58,401 source pixels incl. 26,980 dark suit pixels, one roster slot, credits, health = 65 % of the median);
+frame data of every other character unchanged; determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0 (= the numbers before this work); render 11/0 vs
+Homelander and vs Superman. Screenshots in docs/msv1/invincible/screenshots/.

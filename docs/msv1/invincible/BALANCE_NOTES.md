@@ -86,3 +86,12 @@ Mark's route is the one Gojo's kit already invites:
 - **Barrage → Skyward → flight punch → Crash Down: 289 off one Jab.** Already the cheapest route to big damage. If it proves too strong, the knob is the Barrage's last-hit launch height (`kby −14`).
 - **Top-speed flight punch, 92.** If flight-punch rushdown dominates, raise `FLIGHT.blockMax` pressure (lower 0.60), or lower `speedDmg` (0.40).
 - **Zip cross-up on hit.** It is the main mix-up. If it is too hard to see, add frames before the stop-behind (`ZIP.travel`).
+
+## Phase 6 change — Terminal Velocity camera (no frame-data change)
+
+Phase 6 screenshots showed the camera chasing Mark 1400 px up into an empty sky during the aim, which squeezed the foe and
+the marker into the bottom of the screen. While he is gone (alpha 0), his sim body now waits on the floor under the marker.
+He is invulnerable, and invPhasing means there is no body push. The take-off rise is capped at `TV.rise` = 300 px. So the
+camera frames the foe and the marker. Damage, timings, hit areas and the steering are unchanged: the direct and shock
+areas are measured from `tv.x`, not from his body. Re-checked: invincible.test 53/0, one-match 14/0 (LAN identical with
+the marker up), frame-data diff zero for every character.

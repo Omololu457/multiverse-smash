@@ -36,6 +36,7 @@ export const EDO_SKIN_KEYS = Object.freeze([
   "homelander",
   "ichigo",
   "inosuke",
+  "invincible",
   "ippo",
   "isshiki",
   "itachi",

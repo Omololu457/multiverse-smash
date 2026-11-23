@@ -1,5 +1,5 @@
 {
- "pass": 47,
+ "pass": 53,
  "fail": 0,
  "report": {
   "numbers": {
@@ -186,6 +186,36 @@
     "stopped": 0,
     "direct": 1
    }
+  },
+  "omni": {
+   "intro": "Dad. Stop.",
+   "csd": "I'd still have you, Dad.",
+   "win": "Still standing.",
+   "sfx": [
+    "kJab",
+    "barrageHit",
+    "barrageLast",
+    "kIPunch",
+    "ipunchHit",
+    "wallBounce",
+    "kSkyward",
+    "skywardRise",
+    "flyOn",
+    "zip",
+    "takeoff",
+    "boom",
+    "crashLand",
+    "nhbHit",
+    "nhbLast",
+    "tvTakeoff",
+    "tvAim",
+    "tvFall",
+    "tvWhiff",
+    "stopped",
+    "tvImpact",
+    "csd",
+    "resolve"
+   ]
   }
  }
 }

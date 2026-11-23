@@ -303,6 +303,37 @@ try {
     ck('… Infinity off: it lands (380)', R.lv0.direct === 1 && R.lv0.dealt === 380, JSON.stringify(R.lv0))
   }
 
+  if (want('omni')) {   // PRESENTATION vs Omni-Man (Viltrumite) + win line + CPU (Phase 4)
+    const R = report.omni = {}
+    await page.goto(server.base + '/index.html?harness=1&p1=invincible&p2=omniman_viltrum&seed=50223'); await page.waitForFunction(() => window.__harness?.invincibleTest)
+    await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(4) }); await page.evaluate(() => __harness.preloadDone?.()); await step(3)
+    await reset({ gap: 300 }); await step(2)
+    R.intro = await S('H.raw()._inv?.say?.text || null')
+    ck('INTRO vs Omni-Man: bubble "Dad. Stop."', R.intro === 'Dad. Stop.', JSON.stringify(R.intro))
+    await S('H.setHp(10)'); await S('H.hurt(200)'); await step(3)
+    R.csd = await S('H.raw()._inv?.say?.text || null')
+    ck('Can\'t Stay Down vs Omni-Man: "I\'d still have you, Dad."', R.csd === "I'd still have you, Dad.", JSON.stringify(R.csd))
+    await runUntilIdle(); await reset({ gap: 300 }); await step(2)
+    await page.evaluate(() => { const b = window.__harness.invincibleTest.raw('p2'); b.health = 0 }); await step(3)
+    R.win = await S('H.raw()._inv?.say?.text || null')
+    ck('WIN bubble "Still standing."', R.win === 'Still standing.', JSON.stringify(R.win))
+    // CPU: Terminal Velocity on a knocked-down foe
+    await reset({ gap: 300, energy: 200 }); await step(2)
+    await page.evaluate(() => { const b = window.__harness.invincibleTest.raw('p2'); b.knockdownState = true; b.knockdownTimer = 120 })
+    let tvCpu = false
+    for (let i = 0; i < 120 && !tvCpu; i++) { await S('H.cpu("hard")'); await step(1); tvCpu = (await stats()).tv > 0 }
+    ck('CPU: Terminal Velocity on a knocked-down foe', tvCpu)
+    // CPU: below 30 % health he guards against an attacking foe in range
+    await runUntilIdle(); await reset({ gap: 60 }); await step(2); await S('H.setHp(150)')
+    let guarded = false
+    for (let i = 0; i < 60 && !guarded; i++) { await page.evaluate(() => { const b = window.__harness.invincibleTest.raw('p2'); b.attacking = true; b.currentAttack = b.currentAttack || { damage: 1, total: 20, timer: 20 } }); await S('H.cpu("hard")'); await step(1); guarded = (await stats()).guardCpu > 0 }
+    ck('CPU: below 30 % health he blocks an attacking foe', guarded)
+    // SOUND: every cue his sim raises that should make a sound has one (the rising Terminal Velocity whistle included)
+    const sfx = await page.evaluate(async () => { const m = await import('/invincibleFx.js'); return m.invSfxKeys?.() || null })
+    R.sfx = sfx
+    ck('SOUND: barrage taps, Invincible Punch crack, sonic boom, rising TV whistle + impact are wired', !!sfx && ['barrageHit', 'ipunchHit', 'boom', 'tvAim', 'tvFall', 'tvImpact', 'zip', 'takeoff'].every(k => sfx.includes(k)), JSON.stringify(sfx))
+  }
+
   if (want('present')) {
     const hud = await S('H.hud()')
     ck('HUD tags: Can\'t Stay Down + zip charges', hud && hud.zipMax >= 1, JSON.stringify(hud))

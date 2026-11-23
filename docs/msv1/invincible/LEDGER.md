@@ -35,7 +35,8 @@ Differences from the brief's read (all frames are used either way):
 
 ## Blood map + Edo Tensei
 
-Both tools enumerate REGISTERED characters, so they run in Phase 4 once `invincible` is in characters.js (data/bloodmaps/invincible.json, Edo sheets beside every strip).
+* Blood map `data/bloodmaps/invincible.json` (tools/bloodmap/build.py): 80 indexed frames, 65 unique maps; harness/blood_coverage: 29 sheets drawn, 100% mapped.
+* Edo Tensei skin (tools/edoskin/gen.py, class **MASKED** — the suit mask covers his upper face, only the jaw is bare, the Batman case): `<strip>__edo.png` beside all 29 strips + `portrait__edo.png`; 1 crack, placed by a hash of the id. edo_skin.test 19/0.
 ## Every frame → where it is used
 
 | frame | sheet box (y0, x0, y1, x1) | used in |
@@ -149,7 +150,7 @@ Both tools enumerate REGISTERED characters, so they run in Phase 4 once `invinci
 | sweep | 3 | 58×34 |
 | spin | 3 | 48×37 |
 | rise | 3 | 46×43 |
-| ipunch | 6 | 70×91 |
+| ipunch | 6 | 72×91 |
 | zip | 4 | 22×44 |
 | hurt | 2 | 40×38 |
 | knockdown | 3 | 44×46 |

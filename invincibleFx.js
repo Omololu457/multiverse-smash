@@ -162,7 +162,8 @@ function synth(kind) {
     case 'whoosh': noise(0.25, 0.16, 1800); break                                                              // takeoff / zip
     case 'zip': noise(0.08, 0.15, 4000); tone('sine', 1400, 2600, 0.08, 0.05); break
     case 'boom': noise(0.5, 0.32, -700); tone('sine', 95, 35, 0.5, 0.3); break                                 // sonic boom
-    case 'whistle': tone('sine', 2400, 600, 0.13, 0.08); break                                                 // Terminal Velocity fall
+    case 'rise': tone('sine', 420, 2200, 1.05, 0.05); tone('sine', 630, 3300, 1.05, 0.025); break               // Terminal Velocity aim: the whistle RISES while the star glints
+    case 'whistle': tone('sine', 2200, 3600, 0.14, 0.09); break                                               // … and peaks on the way down
     case 'quake': noise(1.0, 0.42, -500); tone('sine', 60, 25, 1.0, 0.4); break                                // Terminal Velocity impact
     case 'resolve': tone('triangle', 330, 660, 0.35, 0.12); tone('triangle', 495, 990, 0.35, 0.08, 0.05); break
   }
@@ -173,9 +174,10 @@ const SFX = {
   kSkyward: () => synth('whoosh'), skywardRise: () => synth('thud'), flyOn: () => synth('whoosh'),
   zip: () => synth('zip'), takeoff: () => synth('whoosh'), boom: () => { synth('boom'); camera.shake(3, 5) },
   crashLand: () => { synth('thud'); camera.shake(5, 8) }, nhbHit: () => synth('thud'), nhbLast: () => { synth('crack'); camera.shake(6, 10) },
-  tvTakeoff: () => synth('whoosh'), tvFall: () => synth('whistle'), tvImpact: () => { synth('quake'); camera.shake(TV.shake[0], TV.shake[1]) },
+  tvTakeoff: () => synth('whoosh'), tvAim: () => synth('rise'), tvFall: () => synth('whistle'), tvWhiff: () => synth('thud'), stopped: () => synth('tap'), tvImpact: () => { synth('quake'); camera.shake(TV.shake[0], TV.shake[1]) },
   csd: () => synth('resolve'), resolve: () => synth('resolve'),
 }
+export const invSfxKeys = () => Object.keys(SFX)   // test-only listing (harness/invincible.test.mjs)
 export function playInvCues(f) {
   const q = f?._inv?.cues; if (!q?.length) return
   for (const v of q) { const k = typeof v === 'string' ? v : v.c; try { if (SFX[k]) SFX[k](f, v) } catch (_) {} }

@@ -33,7 +33,7 @@ L += [f'| total | **{total}** | | |', '',
       '* R2 — the middle group is **3** frames: a leap pose + the **2** horizontal flying-punch frames (stacked vertically on the sheet). The "standing/idle 8" are a **turnaround** (side → 3/4 → front → 3/4 → side → back-3/4 → back → back-3/4), not an idle loop: they are the taunt / intro; the fighting idle is the fists-up stance of the walk frames played slowly.',
       '* R3 — **3** white impact bursts (small ring, big crescent, scatter), not 2.',
       '* R5 — **3** zip rings (small, big, scatter), not 2.',
-      '* WIN — Mark pulls his mask off and swings it (5 frames); LOSE — unmasked and bruised (2).', '', '## Blood map + Edo Tensei', '', 'Both tools enumerate REGISTERED characters, so they run in Phase 4 once `invincible` is in characters.js (data/bloodmaps/invincible.json, Edo sheets beside every strip).',
+      '* WIN — Mark pulls his mask off and swings it (5 frames); LOSE — unmasked and bruised (2).', '', '## Blood map + Edo Tensei', '', '* Blood map `data/bloodmaps/invincible.json` (tools/bloodmap/build.py): 80 indexed frames, 65 unique maps; harness/blood_coverage: 29 sheets drawn, 100% mapped.', '* Edo Tensei skin (tools/edoskin/gen.py, class **MASKED** — the suit mask covers his upper face, only the jaw is bare, the Batman case): `<strip>__edo.png` beside all 29 strips + `portrait__edo.png`; 1 crack, placed by a hash of the id. edo_skin.test 19/0.',
       '## Every frame → where it is used', '', '| frame | sheet box (y0, x0, y1, x1) | used in |', '|---|---|---|']
 for row, keys in ROWS:
     for kk in keys:

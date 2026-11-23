@@ -111,9 +111,9 @@ HOOKS += [
   (3, 'kits.js', "  sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,", 'after_line', "  invincible: INVINCIBLE_KIT,   // MSV1-INVINCIBLE", "invincible: INVINCIBLE_KIT"),
 ]
 HOOKS += [
-  (4, 'tools/edoskin/eligibility.json', '  "omniman_viltrum": "HUMAN",', 'after_line', '  "invincible": "HUMAN",', '"invincible": "HUMAN"'),
+  (4, 'tools/edoskin/eligibility.json', '  "omniman_viltrum": "HUMAN",', 'after_line', '  "invincible": "MASKED",', '"invincible": "MASKED"'),   # the suit mask covers his upper face: only the jaw is bare (the Batman case)
   (4, 'tools/edoskin/portraits.json', ' "omniman_viltrum": "assets/omniman_viltrum/portrait.png",', 'after_line', ' "invincible": "assets/invincible/portrait.png",', '"invincible": "assets/invincible/portrait.png"'),
-  (4, 'edoSkinKeys.js', '  "omniman_viltrum",', 'after_line', '  "invincible",', '  "invincible",'),
+  (4, 'edoSkinKeys.js', '  "inosuke",', 'after_line', '  "invincible",', '  "invincible",'),   # emit_keys.py order (alphabetical)
 ]
 HOOKS += [
   (5, 'skins.js', "import { SKS_SKINS } from './sukunaShinjukuSkins.js'", 'after_line',

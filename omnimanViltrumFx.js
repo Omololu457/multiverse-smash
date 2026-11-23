@@ -7,7 +7,7 @@ import { OMNIMAN_VILTRUM_FX, OMNIMAN_VILTRUM_ICONS } from './omnimanViltrumSprit
 import { OMV_KEY, TOP, FLIGHT, ESCAPE } from './omnimanViltrumData.js'
 import { hashRandom, isFlying } from './flight.js'
 import { HOMELANDER_SFX } from './homelander_sfx_map.js'
-import { omvSkinFx, omvSkinPal } from './omnimanViltrumSkins.js'
+import { omvSkinFx, omvSkinPal, omvSkinIcon, omvSkinPhaseTick } from './omnimanViltrumSkins.js'
 
 const isOmv = f => f?.rosterKey === OMV_KEY
 const IMG = {}
@@ -45,6 +45,7 @@ function bubble(c, text, cx, top, a = 1, big = false) {
 export function drawOmvFx(c, f) {
   if (!isOmv(f) || !f._omv) return
   const s = f._omv, t = s.clock, P = omvSkinPal(f), v = spd(f), frac = Math.min(1, v / TOP)
+  omvSkinPhaseTick(f, t)   // glitter skins: pre-baked glint phase from the SIM clock
   const fly = !!(f._flightCtl && isFlying(f)) || !!s.rush
   // SPEED LINES + the R13 pink AFTERIMAGE trail behind him (render-only; position history comes from velocity)
   if (fly && frac > 0.35) {
@@ -107,7 +108,7 @@ export function drawOmvHud(c, cv, p1, p2) {
     if (!isOmv(f) || !f._omv) return
     const L = omvHudLabel(f), w = 120, x0 = flip ? cw - pad - 78 - w : pad + 78, y0 = 64
     c.save()
-    const ic = img(OMNIMAN_VILTRUM_ICONS[1]); if (ready(ic)) { c.imageSmoothingEnabled = false; c.drawImage(ic, flip ? x0 + w + 4 : x0 - 20, y0 - 4, 15, 19) }
+    const ic = img(omvSkinIcon(f, 1)); if (ready(ic)) { c.imageSmoothingEnabled = false; c.drawImage(ic, flip ? x0 + w + 4 : x0 - 20, y0 - 4, 15, 19) }
     c.fillStyle = 'rgba(0,0,0,0.45)'; c.fillRect(x0, y0, w, 6)
     c.fillStyle = L.speed >= 90 ? '#ffffff' : L.speed >= 70 ? '#ffb0b0' : '#d4141c'; c.fillRect(flip ? x0 + w - w * L.speed / 100 : x0, y0, w * L.speed / 100, 6)
     c.fillStyle = 'rgba(255,255,255,0.6)'; c.fillRect(x0 + w * (flip ? 1 - FLIGHT.blockMax : FLIGHT.blockMax), y0 - 1, 1, 8); c.fillRect(x0 + w * (flip ? 1 - FLIGHT.crashAt : FLIGHT.crashAt), y0 - 1, 1, 8)

@@ -1,0 +1,21 @@
+{
+ "pass": 16,
+ "fail": 0,
+ "report": {
+  "skins": [
+   "Default (Omni-Man)",
+   "Viltrumite Imperial Uniform",
+   "Viltrumite Field Veteran",
+   "Imperial Mourning Dress",
+   "Alien X — The Other Half of Nolan",
+   "Alien X — Redshift",
+   "Edo Tensei"
+  ],
+  "replayMeta": {
+   "p1Char": "omniman_viltrum",
+   "p1Skin": "omv_alienx_redshift"
+  },
+  "trackedSkinFiles": 0,
+  "diskSkinFiles": 1064
+ }
+}

@@ -119,6 +119,14 @@ HOOKS += [
   (4, 'kits.js', "  sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,", 'after_line', "  omniman_viltrum: OMNIMAN_VILTRUM_KIT,   // MSV1-OMNIMAN", "omniman_viltrum: OMNIMAN_VILTRUM_KIT"),
 ]
 
+# phase 5: skins (default + 20 premade, tools/omnimanskins). Also gives the default his OMV_SCALE: applySkin copies the
+# skin's spriteScale onto the fighter, and getSkins' generic fallback (no entry) carried spriteScale 1
+HOOKS += [
+  (5, 'skins.js', "import { SKS_SKINS } from './sukunaShinjukuSkins.js'", 'after_line',
+   "import { OMV_SKINS } from './omnimanViltrumSkins.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite): default + 20 premade skins (cosmetic, tools/omnimanskins)", "OMV_SKINS } from"),
+  (5, 'skins.js', "  sukuna_shinjuku: SKS_SKINS,   // MSV1-SUKUNA", 'after_line', "  omniman_viltrum: OMV_SKINS,   // MSV1-OMNIMAN", "omniman_viltrum: OMV_SKINS"),
+]
+
 
 def main():
   a = sys.argv[1:]; check = '--check' in a

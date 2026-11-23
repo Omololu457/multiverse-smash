@@ -52,10 +52,10 @@ try {
   check('Power Rangers character select lists "Ninja Storm MS_V1 Ranger Version" (windrangers)', sel.includes('windrangers'), sel.filter(k => /ns_|ninja|wind/.test(k)))
   const sk = await page.evaluate(() => __harness.showSkinSelect('windrangers', 'p1', 0))
   const ids = sk.skins.map(s => s.id)
-  check('skin-select screen: 12 entries = Start as Red + Start as Yellow + the 10 new skins', ids.length === 12 && ids[0] === 'default' && ids[1] === 'start_yellow', ids)
+  check('skin-select screen: Start as Red + Start as Yellow + the 10 pack skins first (then the 20 ChatGPT-version skins, harness/wr_cgpt_skins.test.mjs) + the Edo Tensei skin = 33', ids.length === 33 && ids[0] === 'default' && ids[1] === 'start_yellow' && ids.slice(12, 32).every(i => i.startsWith('wr_cg_')) && ids[32] === 'windrangers_edoTensei', ids)
   const want = { wr_alienx: 'Alien X — Constellation Leak', wr_disco: 'Disco Ball in a Blackout', wr_valkyrie: 'Winning Valkyrie — Final Rotation', wr_ghostfreak: 'Ghostfreak — Split Seam', wr_feedback: 'Feedback — Live Wire', wr_divergent: 'JJK — Divergent Impact', wr_salaryman: 'JJK — Salaryman Overtime', wr_kintsugi: 'Kintsugi Aftershock', wr_pitcrew: 'Midnight Pit Crew', wr_woodblock: 'Woodblock Storm' }
-  check('the 10 skin names, in brief order', JSON.stringify(sk.skins.slice(2).map(s => [s.id, s.name])) === JSON.stringify(Object.entries(want)), sk.skins.slice(2).map(s => s.name))
-  const http = await page.evaluate(async () => { const m = await import('./skins.js'); const bad = []; let n = 0; for (const s of m.SKINS.windrangers.slice(2)) for (const u of [s.portrait, s.hudIcon, ...new Set(Object.values(s.animationData).map(a => a.sheet))]) { n++; const r = await fetch(u, { method: 'HEAD' }); if (!r.ok) bad.push(u) } return { n, bad } })
+  check('the 10 skin names, in brief order', JSON.stringify(sk.skins.slice(2, 12).map(s => [s.id, s.name])) === JSON.stringify(Object.entries(want)), sk.skins.slice(2).map(s => s.name))
+  const http = await page.evaluate(async () => { const m = await import('./skins.js'); const bad = []; let n = 0; for (const s of m.SKINS.windrangers.slice(2, 12)) for (const u of [s.portrait, s.hudIcon, ...new Set(Object.values(s.animationData).map(a => a.sheet))]) { n++; const r = await fetch(u, { method: 'HEAD' }); if (!r.ok) bad.push(u) } return { n, bad } })
   check(`every preview portrait + strip the skins reference loads (HTTP 200, ${http.n} files)`, http.bad.length === 0, http.bad.slice(0, 4))
   for (let i = 2; i < 12; i++) {
     await page.evaluate(i => { __harness.showSkinSelect('windrangers', 'p1', i); __harness.setSkinHover(i) }, i)

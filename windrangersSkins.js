@@ -4,6 +4,7 @@
 // collision. The skin follows the duo through every form swap (nsDuo.js applyForm → wrApplyForm). Move-linked touches
 // (Alien X's stars lighting on a sword draw, the Disco boot glint, …) are render-only in windrangersSkinFx.js.
 import { ns_red, ns_yellow } from './nsData.js'
+import { WR_CGPT_SKIN_ROWS } from './windrangersCgptSkins.js'   // + the 20 ChatGPT-version skins (Shane = copied, Dustin = opposite colourway)
 
 export const WR_SKIN_TABLE = [
   { tag: 'alienx', name: 'Alien X — Constellation Leak', showcase: true, clone: true, fx: '#9b6bff', star: '#fff6dc', cloneStar: '#3ff5e0', nebula: '#7a3cff' },
@@ -16,6 +17,7 @@ export const WR_SKIN_TABLE = [
   { tag: 'kintsugi', name: 'Kintsugi Aftershock', fx: '#e6b84a', gold: '#e6b84a' },
   { tag: 'pitcrew', name: 'Midnight Pit Crew', fx: '#ffb02e', amber: '#ffb000', green: '#38e05a' },
   { tag: 'woodblock', name: 'Woodblock Storm', clone: true, fx: '#22305c', ink: '#22305c', paper: '#f3e6c8', print: '#d8262a' },
+  ...WR_CGPT_SKIN_ROWS,
 ]
 const BY_TAG = Object.fromEntries(WR_SKIN_TABLE.map(r => [r.tag, r]))
 export const WR_SKIN_PREFIX = 'wr_'
@@ -40,7 +42,7 @@ export function wrFormAnim(tag, form, clone = false) {
 
 // the skins.js entries (the select-screen preview = the skin's own Red | Yellow split portrait)
 export const WR_SKINS = WR_SKIN_TABLE.map(r => ({
-  id: WR_SKIN_PREFIX + r.tag, name: r.name, unlockLevel: 0, cosmeticOnly: true, classification: r.showcase ? 'Showcase Skin' : (r.glitter ? 'Glitter Skin' : 'Skin'),
+  id: WR_SKIN_PREFIX + r.tag, name: r.name, unlockLevel: 0, cosmeticOnly: true, classification: r.classification || (r.showcase ? 'Showcase Skin' : (r.glitter ? 'Glitter Skin' : 'Skin')),
   portrait: `./assets/windrangers/skins/${r.tag}/portrait_large.png`, hudIcon: `./assets/windrangers/skins/${r.tag}/portrait_small.png`,
   spriteScale: ns_red.spriteScale, animationData: wrFormAnim(r.tag, 'ns_red'),
   source: { version: 'Recolour of the supplied Ninja Storm Red / Yellow Ranger sheets — Power Rangers Super Legends (DS), ripped by Grim (spritedatabase.net)' },
@@ -50,11 +52,13 @@ export const WR_SKINS = WR_SKIN_TABLE.map(r => ({
 // FX / projectile folder and streak colour. Default skins (default / start_yellow) are untouched.
 export function wrApplyForm(f, form) {
   const tag = wrSkinTag(f?.skinId)
-  if (!tag) { if (f && f._wrSkin) { f._wrSkin = null; f._nsAssetDir = null } return }
+  if (!tag) { if (f && f._wrSkin) { f._wrSkin = null; f._nsAssetDir = null; if (f._wrSmoke) { f._wrSmoke = false; f._nsSmoke = null } } return }
   const A = wrFormAnim(tag, form)
   f._skinAnim = A; f._baseSkinAnim = A
   f._nsAssetDir = wrSkinDir(tag, form)
-  f._nsColor = BY_TAG[tag].fx
+  const R = BY_TAG[tag]
+  f._nsColor = R.formFx?.[form] || R.fx
+  if (R.smoke) { f._nsSmoke = R.smoke[form] || null; f._wrSmoke = true } else if (f._wrSmoke) { f._nsSmoke = null; f._wrSmoke = false }
   f._wrSkin = tag
 }
 // the clone / illusion strip for a skin with its own clone look (else null = the body's strips)

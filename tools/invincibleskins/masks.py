@@ -49,10 +49,18 @@ FAM = {
 }
 FAMILY_OF = {c: f for f, cs in FAM.items() for c in cs}
 TONE = {}
+def _okL(c):
+    lin = [(v / 255) / 12.92 if v / 255 <= 0.04045 else ((v / 255 + 0.055) / 1.055) ** 2.4 for v in c]
+    l = (0.4122214708 * lin[0] + 0.5363325363 * lin[1] + 0.0514459929 * lin[2]) ** (1 / 3)
+    m = (0.2119034982 * lin[0] + 0.6806995451 * lin[1] + 0.1073969566 * lin[2]) ** (1 / 3)
+    s = (0.0883024619 * lin[0] + 0.2817188376 * lin[1] + 0.6299787005 * lin[2]) ** (1 / 3)
+    return 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s
+# tone = the source colour's real (OKLab) lightness inside its family, NOT its rank: near-identical source shades get
+# near-identical tones, so a skin's ramp follows the sprite's actual light and shadow (rank spacing made it splotchy)
 for f, cs in FAM.items():
-    lum = sorted(cs, key=lambda c: 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2])
-    for i, c in enumerate(lum):
-        TONE[c] = i / max(1, len(lum) - 1)
+    Ls = {c: _okL(c) for c in cs}; lo, hi = min(Ls.values()), max(Ls.values())
+    for c in cs:
+        TONE[c] = (Ls[c] - lo) / max(1e-6, hi - lo)
 
 
 def load_anim():

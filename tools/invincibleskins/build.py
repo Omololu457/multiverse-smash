@@ -49,12 +49,21 @@ def h3(x, y, z=0, salt=0):
     return ((v ^ (v >> 16)) & 0xFFFF) / 65535.0
 
 
+def _lin(c): c = c / 255.0; return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+def _srgb(c): c = np.clip(c, 0, 1); return np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(c, 1 / 2.4) - 0.055) * 255.0
+_M1 = np.array([[0.4122214708, 0.5363325363, 0.0514459929], [0.2119034982, 0.6806995451, 0.1073969566], [0.0883024619, 0.2817188376, 0.6299787005]])
+_M2 = np.array([[0.2104542553, 0.7936177850, -0.0040720468], [1.9779984951, -2.4285922050, 0.4505937099], [0.0259040371, 0.7827717662, -0.8086757660]])
+def to_oklab(rgb): return np.cbrt(_lin(np.asarray(rgb, np.float64)) @ _M1.T) @ _M2.T
+def from_oklab(lab): return _srgb((np.asarray(lab, np.float64) @ np.linalg.inv(_M2).T) ** 3 @ np.linalg.inv(_M1).T)
+
+
 def ramp(stops, t):
-    """vectorised: t (N,) in 0..1 → (N, 3)"""
-    S = np.array([hx(s) for s in stops], np.float32)
-    t = np.clip(np.asarray(t, np.float32), 0, 1) * (len(S) - 1)
+    """vectorised: t (N,) in 0..1 → (N, 3). Interpolated in OKLab (perceptually even steps: smooth shading, no muddy
+    mid-tones between two hues)."""
+    S = to_oklab(np.array([hx(s) for s in stops], np.float64))
+    t = np.clip(np.asarray(t, np.float64), 0, 1) * (len(S) - 1)
     i = np.minimum(t.astype(int), len(S) - 2); f = (t - i)[..., None]
-    return S[i] * (1 - f) + S[i + 1] * f
+    return from_oklab(S[i] * (1 - f) + S[i + 1] * f).astype(np.float32)
 
 
 SKIN = ['#7a3a2c', '#a4503f', '#d3825f', '#fcd4a6', '#fde4c8']      # Mark's own skin ramp (sheet colours)
@@ -201,10 +210,10 @@ SKINS = [
        fx=dict(ring=['#5ab8b0', '#a8ece4', '#ffffff'], streak=[['#c87a5a', '#f4b08a', '#ffd8bc'], ['#5ab8b0', '#a8ece4', '#e0fffa']]),
        pal=pal('#10204a', '#a8ece4', '#f4b08a', '#a8ece4')),
   dict(tag='blackice', name='Glitter — Black Ice', classification='Glitter Collection', glitter=True, face='mask', hair=HAIR,
-       mask=['#101114', '#1e2026', '#30333a'], goggles=['#4a5058', '#8e96a0', '#d0d6de'], collar=['#0a2a3a', '#14485e', '#246a86'],
-       shoulders=['#0a2a3a', '#14485e', '#246a86'], chest=['#14161a', '#24272d', '#383c44'], torso=['#101114', '#1e2026', '#30333a'],
-       arms=['#101114', '#1e2026', '#30333a'], gloves=['#0c0d10', '#1a1c20', '#2a2c32'], waist=['#0c0d10', '#1a1c20', '#2a2c32'],
-       legs=['#101114', '#1e2026', '#30333a'], boots=['#0c0d10', '#1a1c20', '#2a2c32'], cloth=['#101114', '#1e2026', '#30333a'],
+       mask=['#1a1d23', '#353a44', '#4c525e'], goggles=['#4a5058', '#8e96a0', '#d0d6de'], collar=['#14485e', '#2a7aa0', '#5ab4dc'],
+       shoulders=['#14485e', '#2a7aa0', '#5ab4dc'], chest=['#1a1d23', '#353a44', '#4c525e'], torso=['#1a1d23', '#353a44', '#4c525e'],
+       arms=['#1a1d23', '#353a44', '#4c525e'], gloves=['#14485e', '#2a7aa0', '#5ab4dc'], waist=['#0c0d10', '#1a1c20', '#2a2c32'],
+       legs=['#1a1d23', '#353a44', '#4c525e'], boots=['#14485e', '#2a7aa0', '#5ab4dc'], cloth=['#1a1d23', '#353a44', '#4c525e'],
        pat=['facets'],
        fx=dict(ring=['#5a6a7a', '#b8c8d8', '#ffffff'], streak=[['#14485e', '#3a8ab0', '#a8dcf0'], ['#1e2026', '#4a5058', '#8e96a0']]),
        pal=pal('#24272d', '#8ec8e0', '#d0d6de', '#a8dcf0')),
@@ -333,12 +342,39 @@ def reoutline(out, alpha_after, region_mask):
 
 
 # ── the recolour ─────────────────────────────────────────────────────────────────────────────────────────────────────
+# ── SHADING ENGINE: a region gets ONE base colour (its ramp at 0.75, i.e. the colour in light), and every pixel is darkened
+# by exactly the shadow depth the original artist drew there (OKLab lightness below the brightest shade of its colour
+# family), compressed for dark bases so folds never crush into the outline; shadows ease chroma and drift slightly cool.
+# The source's lightness is continuous, so the result is smooth: no rank-stepped blotches, no ramp end-stops.
+_FAMS = {f: [tuple(c) for c in cs] for f, cs in M.FAM.items()}
+_FAM_RANGE = {}
+for _f, _cs in _FAMS.items():
+    _L = [to_oklab(np.array(c, np.float64))[0] for c in _cs]; _FAM_RANGE[_f] = (max(_L), max(_L) - min(_L))
+_SH = {}
+def shade_one(base_lab, src):
+    key = (tuple(np.round(base_lab, 4)), src)
+    if key in _SH: return _SH[key]
+    fam = M.FAMILY_OF.get(src, 'white'); Lref, span = _FAM_RANGE[fam]
+    d = max(0.0, Lref - to_oklab(np.array(src, np.float64))[0])
+    B = base_lab; k = min(1.0, max(0.0, (B[0] - 0.10) / max(span, 1e-6)))
+    L = max(0.03, B[0] - d * max(k, 0.35 if B[0] > 0.2 else k))
+    q = (L / max(B[0], 1e-6)) ** 0.5
+    v = from_oklab(np.array([L, B[1] * q, B[2] * q - 0.012 * min(1, d / max(span, 1e-6))]))
+    _SH[key] = np.clip(v, 0, 255); return _SH[key]
+_CUR = {}
 def paint(out, m, stops, tone):
-    if m.any() and stops is not None: out[m, :3] = ramp(stops, tone[m])
+    if not m.any() or stops is None: return
+    A = _CUR.get('A')
+    if A is not None and tone is A.tone:                      # shaded by the sprite itself
+        B = to_oklab(ramp(stops, np.array([0.75]))[0].astype(np.float64))
+        ys, xs = np.nonzero(m); src = A.a[ys, xs, :3]
+        out[ys, xs, :3] = np.array([shade_one(B, tuple(int(v) for v in c)) for c in src], np.float32)
+    else:
+        out[m, :3] = ramp(stops, tone[m])                     # deliberate effects (a fixed tone / a lifted ramp) keep the ramp
 
 
 def recolor_strip(name, fw, n, sk, phase=0, head_only=False):
-    A = analysis(name, fw, n, head_only)
+    A = analysis(name, fw, n, head_only); _CUR['A'] = A
     a, reg, tone = A.a, A.reg, A.tone
     if head_only: return portrait(A, sk), np.zeros_like(reg, bool)
     out = a.astype(np.float32).copy()

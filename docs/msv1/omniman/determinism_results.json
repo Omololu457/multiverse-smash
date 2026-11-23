@@ -1,0 +1,81 @@
+{
+ "pass": 12,
+ "fail": 0,
+ "report": {
+  "homelander": {
+   "hash": "7bfecf29d8307fa8",
+   "used": {
+    "hits": 15,
+    "takeoffs": 0,
+    "booms": 0,
+    "crashes": 0,
+    "hardLands": 0,
+    "topSpeed": 31.9
+   },
+   "p1": [
+    988.3619023850475,
+    403,
+    661,
+    78.02000000000156,
+    "omniman_viltrum"
+   ],
+   "p2": [
+    1420,
+    400,
+    0,
+    82.68000000000029,
+    "homelander"
+   ]
+  },
+  "gojo_shinjuku": {
+   "hash": "591f33432d09eee7",
+   "used": {
+    "hits": 9,
+    "takeoffs": 0,
+    "booms": 0,
+    "crashes": 0,
+    "hardLands": 0,
+    "topSpeed": 31.9
+   },
+   "p1": [
+    1007.0000048082819,
+    400,
+    94,
+    94.64000000000219,
+    "omniman_viltrum"
+   ],
+   "p2": [
+    947.0000048082819,
+    400,
+    469,
+    276.64000000000283,
+    "gojo_shinjuku"
+   ]
+  },
+  "dseyl": {
+   "hash": "8ecb2885c1a153ab",
+   "used": {
+    "hits": 6,
+    "takeoffs": 0,
+    "booms": 0,
+    "crashes": 0,
+    "hardLands": 0,
+    "topSpeed": 31.9
+   },
+   "p1": [
+    1297.2183840754974,
+    400,
+    0,
+    91.10000000000204,
+    "omniman_viltrum"
+   ],
+   "p2": [
+    1219.9770161259419,
+    400,
+    705,
+    6.100000000000691,
+    "dseyl"
+   ]
+  }
+ }
+}

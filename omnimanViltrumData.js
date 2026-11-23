@@ -23,7 +23,7 @@ export const FLIGHT = {
   top: TOP, accel: ACCEL, drag: 0.9292,
   turnSlow: 15 * Math.PI / 180, turnFast: 2.5 * Math.PI / 180,     // rad / frame at a standstill → at top speed
   reverseCos: -0.5, reverseDecel: +(TOP / 34).toFixed(4), flipBelow: 1.0,
-  brake: 0.851,                                                    // 0.851^10 = 0.20 → 80 % of his speed gone in 10 frames
+  brake: 0.836,                                                    // 0.836^9 = 0.20 → 80 % gone within 10 frames of the press (Guard is read one frame after the flight step)
   blockMax: 0.40,                                                  // can't block above 40 % of top speed
   crashAt: 0.70, crashFrames: 28, crashSelf: 25, crashShake: 6,    // wall crash
   boomAt: 0.90, boomRearm: 0.60, boomRaw: 20, boomR: 70, boomKb: 9, // sonic boom push box

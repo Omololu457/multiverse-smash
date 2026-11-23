@@ -44,7 +44,7 @@ integrator for this profile only (every other profile has no `momentum` key and 
 | coast drag | **0.9292** per frame | coast = v·d/(1−d). Homelander from 22 coasts 115.5 px; Omni-Man from the same 22 coasts **288.8 px = 2.5×** (d/(1−d) = 2.5 × 5.25). From his own top speed he slides ≈ 750 px. |
 | steering at top speed | **2.5° per frame = ±25° per 10 frames** | turn rate eases from 15°/f at a standstill to 2.5°/f at top speed (linear in speed fraction) |
 | reversing (input > 120° from his heading, no brake) | decelerates 1.68 px/f² (top speed / 34), heading flips only below 1 px/f | from top speed the velocity points the other way after **≈ 35 f ≈ 0.58 s** (test-asserted 0.5–0.7 s) |
-| BRAKE = Guard while flying | speed × 0.851 per frame | 0.851¹⁰ = 0.20 → **80 % gone in 10 frames**; R13 cape-flipped-up frames |
+| BRAKE = Guard while flying | speed × 0.836 per frame | Guard is read one frame after the flight step, so 9 braking frames land inside the 10: 0.836⁹ = 0.20 → **80 % gone in 10 frames** (measured 80.x %); R13 cape-flipped-up frames |
 | duration | **unlimited** (drain 0) | Viltrumite |
 | block while flying | only at ≤ **40 %** of top speed (≤ 22.9 px/f) | above it Guard only brakes |
 | wall crash | hitting a stage wall / the camera edge at ≥ **70 %** (40.0 px/f) → 28-frame crumple (R9 knockdown frames), 25 self-damage, small camera shake | below 70 % he just stops |
@@ -52,3 +52,22 @@ integrator for this profile only (every other profile has no `momentum` key and 
 | hard landing | touching the floor at ≥ 70 % with a downward component → crouched landing frames + burst, 50-damage shockwave, 14 f recovery | |
 | air dash | none (his acceleration is the dash) | |
 | grounded lock after a hard hit | 90 f (Homelander's) | |
+
+## Measured in the live engine (Phase 2 — harness/omniman_viltrum_flight.test.mjs, real keyboard input, 23/0)
+
+| Brief | Target | Measured |
+|---|---|---|
+| Top speed | 1.3 × fastest flier (Dseyl 44) = 57.2 | 57.2 px/f, never above (frames 10+) |
+| Acceleration | 1.25 × Dseyl 4.4 = 5.5 | +5.50 px/f per frame (11.29 → 16.79 → 22.29 …) |
+| Coast | ≈ 2.5 × Homelander | drag 0.9292 / frame (measured 57.2 → 53.15); coast distance ratio 2.4999 |
+| Reverse | ≈ 0.6 s | 34 frames = 0.57 s from top speed (−1.6824 px/f per frame, flips heading below 1 px/f) |
+| Steering at top speed | ±25° per 10 frames | 25.0° in 10 frames, speed held at 57.2 |
+| BRAKE = Guard | 80 % in 10 frames | 57.2 → 10.6 = 81.5 % gone; R13 cape-flip `brake` strip while fast |
+| No block above 40 % | — | guard never sets isBlocking above 40 %; below 40 % in flight guard both brakes and blocks |
+| Speed is damage | +0 … +60 % | standing Jab 37 HP (38); flight punch at top speed ×1.60 (peak speed carried into the move) |
+| Sonic boom | crossing 90 %, once per acceleration | 1 boom per run-up (re-arms below 60 %); 20-raw push box r 70 |
+| Wall crash | ≥ 70 %, 28 f, 25 self-damage, small shake | 28-frame crumple, 25 HP self-damage, camera shake 8/6; recovers grounded |
+| Hard landing | ≥ 70 %, 50 shockwave, 14 f recovery | 14-frame recovery, foe beside him −49 HP (50) |
+
+Determinism: harness/omniman_viltrum_determinism.mjs 12/0 (AI vs Homelander / Gojo Shinjuku / Dseyl, same seed → identical
+f._omv + velocity + flight phase every 30 f for 1800 f; no Math.random statically or at runtime).

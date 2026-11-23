@@ -152,6 +152,23 @@ FLIGHT_PROFILES.bigchill = {
   landThreshold: 16, minPoseFrames: 4, cruiseFastFrac: 0.70,
 }
 
+// OMNI-MAN — VILTRUMITE (MSV1-OMNIMAN, omniman_viltrum) — WIRED (traits.flightProfile:"omniman_viltrum"). The FASTEST and
+// HARDEST-TO-CONTROL flier: top speed 57.2 = 1.3 × Dseyl (44, the fastest roster flier), accel 5.5 = 1.25 × Dseyl's 4.4,
+// coast drag 0.9292 (from the same speed he slides 2.5 × as far as Homelander), unlimited duration (drain 0), no air dash.
+// The `momentum` block switches stepFlight to a heading + speed integrator FOR THIS PROFILE ONLY (no other profile has the
+// key → their per-axis code is unchanged): steering eases from 15°/f at a standstill to 2.5°/f (±25° per 10 f) at top
+// speed, an input > 120° from his heading only decelerates (≈0.6 s to turn around from top speed), and Guard
+// (fighter._flightBrake, set by omnimanViltrumState.js) brakes ×0.851 per frame (80 % gone in 10 frames).
+// docs/msv1/omniman/FLIGHT_REFERENCE.md
+FLIGHT_PROFILES.omniman_viltrum = {
+  accel: 5.5, maxH: 57.2, maxV: 57.2, drag: 0.9292, reverseBrake: 1, overspeedDrag: 0.90, ceilEaseZone: 72,
+  dashSpeed: 0, dashFrames: 0, maxAirDash: 0, dashCost: 9999, energyMax: 1, drainPerFrame: 0, groundRefillPerFrame: 1,
+  liftoff: -9, takeoffFrames: 6, landRecovery: 4, landRecoveryAfterAir: 8, groundedLock: 90, landThreshold: 70,
+  minPoseFrames: 3, cruiseFastFrac: 0.25,
+  momentum: { top: 57.2, accel: 5.5, drag: 0.9292, turnSlow: 0.2618, turnFast: 0.04363, reverseCos: -0.5, reverseDecel: 1.6824,
+    flipBelow: 1.0, brake: 0.836, softLandMax: 0.70 },
+}
+
 export const FLIGHT_PHASE = Object.freeze({
   GROUNDED: "grounded", TAKEOFF: "takeoff", FLYING: "flying", AIRDASH: "airdash", LANDING: "landing",
 })
@@ -300,6 +317,8 @@ export function stepFlight(fighter, input, env) {
     // velocity is LOCKED to the dash this window; momentum is carried out (not zeroed) at the end
     c.dashTimer--
     if (c.dashTimer <= 0) { c.phase = FLIGHT_PHASE.FLYING; c.dashDir = null }
+  } else if (p.momentum) {
+    momentumStep(fighter, c, p.momentum, hx, hy)   // MSV1-OMNIMAN: heading + speed (only a profile with `momentum`)
   } else {
     // ── NORMAL 8-WAY VELOCITY (accel / drag / reverse-brake) ──────────────────
     fighter.vx = axisStep(fighter.vx, hx, p)
@@ -350,11 +369,42 @@ export function stepFlight(fighter, input, env) {
   if (U && !D) c.wantDescend = false                 // held Up cancels a pending descend request
   if (c.phase !== FLIGHT_PHASE.TAKEOFF) {
     const descend = c.energy <= 0 || c.wantDescend    // out of energy OR charge-tapped to come down
-    if ((input.holdDown || (D && !U)) && nearFloor) { beginLanding(fighter, p, c); landed = true }
+    if ((input.holdDown || (D && !U)) && nearFloor && !(p.momentum && !c.mSoftLandOk)) { beginLanding(fighter, p, c); landed = true }   // p.momentum: MSV1-OMNIMAN (no soft landing at ≥ 70 % speed)
     else if (descend && nearFloor) { beginLanding(fighter, p, c); landed = true }
     else if (descend && fighter.vy < (p.descendVy || 2)) { fighter.vy = p.descendVy || 2 }   // up high → sink until near the floor, then land (optional per-profile descendVy, default 2)
   }
   return { landed }
+}
+
+// MSV1-OMNIMAN — momentum integrator (only a profile with a `momentum` block; Omni-Man Viltrumite). Velocity = heading × speed.
+// Plain numbers rounded to 1e-4 each frame (replay / LAN). c.mBraking / c.mReversing feed his pose; nothing else reads them.
+const _r4 = v => Math.round(v * 1e4) / 1e4
+function momentumStep(fighter, c, m, hx, hy) {
+  let sp = Math.hypot(fighter.vx || 0, fighter.vy || 0), hd = sp > 0.001 ? Math.atan2(fighter.vy || 0, fighter.vx || 0) : null
+  c.mBraking = !!fighter._flightBrake; c.mReversing = false
+  if (c.mBraking) { sp *= m.brake; if (sp < 0.08) sp = 0 }
+  else if (hx || hy) {
+    const want = Math.atan2(hy, hx)
+    if (hd == null || sp < m.flipBelow) { hd = want; sp += m.accel }
+    else {
+      let d = want - hd
+      while (d > Math.PI) d -= 2 * Math.PI
+      while (d < -Math.PI) d += 2 * Math.PI
+      if (Math.cos(d) <= m.reverseCos) { sp = Math.max(0, sp - m.reverseDecel); c.mReversing = true }   // can't reverse instantly
+      else { const k = Math.min(1, sp / m.top), rate = m.turnSlow + (m.turnFast - m.turnSlow) * k; hd += Math.max(-rate, Math.min(rate, d)); sp += m.accel }
+    }
+  } else { sp *= m.drag; if (sp < 0.08) sp = 0 }
+  sp = Math.min(sp, m.top)
+  fighter.vx = hd == null ? 0 : _r4(sp * Math.cos(hd)); fighter.vy = hd == null ? 0 : _r4(sp * Math.sin(hd))
+  c.mSoftLandOk = sp < m.top * m.softLandMax            // at ≥ 70 % he can't soft-land: the floor is a HARD landing (his sim)
+}
+function momentumPose(fighter, c, p) {
+  const sp = Math.hypot(fighter.vx || 0, fighter.vy || 0)
+  if (c.mBraking && sp > 1) return "brake"
+  if (c.mReversing) return "turn"
+  if (sp > p.momentum.top * p.cruiseFastFrac) return "cruiseB"
+  if ((fighter.vy || 0) < -1.4) return "rise"
+  return "hoverIdle"
 }
 
 function axisStep(v, h, p) {
@@ -426,6 +476,7 @@ function desiredPose(fighter, c, p) {
   if (c.phase === FLIGHT_PHASE.TAKEOFF) return "takeoff"
   if (c.phase === FLIGHT_PHASE.LANDING) return "land"
   if (c.phase === FLIGHT_PHASE.AIRDASH) return "capeTwirl"
+  if (p.momentum) return momentumPose(fighter, c, p)   // MSV1-OMNIMAN
   const vx = fighter.vx || 0, vy = fighter.vy || 0
   // facing flip → cape-flip turn
   if (c.facingLatch !== fighter.facing) { c.facingLatch = fighter.facing; return "turn" }

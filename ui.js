@@ -4664,7 +4664,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       if (punchS !== 1) { const cyf = trackY + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, trackY, fillW, barH, 4)
       if (_colorblindHud) { ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill() }   // colorblind HUD keeps the CVD-safe fill
-      else fillThemedBar(ctx, fighter, 'hp', fillX, trackY, fillW, barH, dispRatio, globalFrameCount)   // the character's own life bar (hudBars.js)
+      else fillThemedBar(ctx, fighter, 'hp', fillX, trackY, fillW, barH, dispRatio, globalFrameCount, { full: tBarW, flip })   // the character's own life bar (hudBars.js)
       ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(fillX + 2, trackY + 1, Math.max(0, fillW - 4), 2)
       ctx.restore()
     }
@@ -4938,7 +4938,7 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const fillX = flip ? x + 8 + pbw - fillW : x + 8
     if (_hudThemed && !_colorblindHud && !charging && fillW > 0.5) {   // THEMED: the character's own energy bar (hudBars.js); the crit pulse fades it
       ctx.save(); if (isCrit) ctx.globalAlpha = 0.55 + 0.45 * (Math.sin(globalFrameCount * 0.2) * 0.5 + 0.5)
-      rrect(ctx, fillX, enY, fillW, enH, 4); fillThemedBar(ctx, fighter, 'en', fillX, enY, fillW, enH, ratio, globalFrameCount, { colour: isDevice ? mainCol : null }); ctx.restore()
+      rrect(ctx, fillX, enY, fillW, enH, 4); fillThemedBar(ctx, fighter, 'en', fillX, enY, fillW, enH, ratio, globalFrameCount, { colour: isDevice ? mainCol : null, full: pbw, flip, segs: Math.max(1, Math.round((fighter.maxEnergy || 100) / 25)) }); ctx.restore()
     } else {
     ctx.fillStyle = fillColor
     rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()

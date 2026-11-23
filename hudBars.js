@@ -19,7 +19,7 @@ export const BAR_THEMES = {
   beerus: ['#c79cf0', '#5a2a9a', '#e8b8ff', '#7a2ad0', 'holy'], vegito: ['#7ab8ff', '#1e4ab0', '#9af0ff', '#2ab0d8', 'ki'],
   // Jujutsu Kaisen
   gojo: ['#9ad8ff', '#3a6ad8', '#d8b8ff', '#7a3ad8', 'void'], gojo_shinjuku: ['#bfeaff', '#4a8ae0', '#e0c8ff', '#8a50e0', 'void'],
-  sukuna: ['#ff8a8a', '#8a1420', '#3a1420', '#e03040', 'cursed'], sukuna_shinjuku: ['#f0f0f0', '#7a7a84', '#ff5a5a', '#7a1018', 'cursed'],
+  sukuna: ['#ff8a8a', '#8a1420', '#3a1420', '#e03040', 'cursed'], sukuna_shinjuku: ['#ff4a55', '#3a0610', '#ff5a5a', '#7a1018', 'cursed'],
   alt_sukuna: ['#ff6a6a', '#6a1018', '#ff9a4a', '#a83010', 'cursed'], aoi_todo: ['#e8c890', '#8a5a2a', '#5ad8ff', '#2a7ab8', 'beat'],
   maki: ['#a8d88a', '#3a6a2a', '#5a6a5a', '#2a302a', 'slash'], toji: ['#9aa8a0', '#3a4a42', '#5c6b63', '#2a322e', 'slash'],
   yuji: ['#ff9aa0', '#b8283a', '#4a6aff', '#1e2a8a', 'cursed'], naoya: ['#e8e08a', '#8a8020', '#ffe680', '#a88a10', 'speed'],
@@ -87,7 +87,7 @@ export const BAR_THEMES = {
   superman: ['#6a9aff', '#1a3ab8', '#ff6a5a', '#c01414', 'sun'], superman_dcuc: ['#6a9aff', '#1a40b8', '#ffd84a', '#d89a10', 'sun'],
   superman_new52: ['#7aa8ff', '#1e48c0', '#ff5a5a', '#a81414', 'sun'], superman_classic: ['#7aa0ff', '#2048b0', '#ffe06a', '#e0a020', 'sun'],
   superman_fighter: ['#7aa0ff', '#1e44b8', '#ff7a5a', '#c02a14', 'sun'], green_arrow: ['#8ae07a', '#1e7a2a', '#7aff8a', '#1ab040', 'tech'],
-  ghostface: ['#e8eef4', '#8a96a4', '#3a4050', '#c8d0dc', 'smoke'], ghostface_billy: ['#e86a7a', '#5a0a14', '#e8eef4', '#8a96a4', 'blood'],
+  ghostface: ['#f4f7fa', '#2e3440', '#3a4050', '#c8d0dc', 'smoke'], ghostface_billy: ['#e86a7a', '#5a0a14', '#e8eef4', '#8a96a4', 'blood'],
   jason: ['#c8d0a8', '#4a5232', '#ff5a5a', '#7a0a0a', 'blood'], ghostface_exe: ['#7af0ff', '#1a6a8a', '#ff4aa8', '#7a1a5a', 'glitch'],
   ichigo: ['#ff9a5a', '#a84010', '#5a5a7a', '#e0e0f0', 'slash'], zaraki: ['#ffe07a', '#c08a10', '#ff6a5a', '#8a1414', 'slash'],
   zaraki_shikai: ['#ff8a5a', '#8a1a0a', '#ffd07a', '#a85a10', 'slash'], mayuri: ['#e0e0f0', '#5a3a6a', '#9af07a', '#3a8a2a', 'scale'],
@@ -223,21 +223,143 @@ function motif(c, m, x, y, w, h, t, c0) {
   c.restore()
 }
 
+// ── EMBLEMS: a small icon per motif family, riding the bar's leading edge ───────────────────────────────────────────
+const EMBLEM = { ki: 'star', holy: 'star', nen: 'swirl', flame: 'flame', sun: 'sun', nuke: 'sun', bolt: 'bolt', cursed: 'swirl', shadow: 'swirl',
+  smoke: 'skull', void: 'swirl', crow: 'feather', stars: 'star', omni: 'hourglass', tech: 'gear', grid: 'gear', hex: 'hex', chakra: 'swirl',
+  water: 'drop', wave: 'drop', wind: 'swirl', ripple: 'ring', portal: 'ring', ice: 'flake', blood: 'drop', web: 'web', glitch: 'glitch',
+  slash: 'blade', chevron: 'chevron', leaf: 'leaf', sand: 'ring', scale: 'hex', rune: 'hex', kanji: 'blade', paw: 'paw', bat: 'bat',
+  beat: 'fist', chop: 'blade', chain: 'ring', petal: 'leaf', ink: 'drop', wing: 'feather', speed: 'bolt' }
+function emblem(c, kind, cx, cy, r, col) {
+  c.save(); c.translate(cx, cy); c.fillStyle = col; c.strokeStyle = col; c.lineWidth = Math.max(1, r * 0.28); c.lineJoin = 'round'; c.lineCap = 'round'
+  const P = pts => { c.beginPath(); pts.forEach(([px, py], k) => k ? c.lineTo(px * r, py * r) : c.moveTo(px * r, py * r)); c.closePath(); c.fill() }
+  switch (kind) {
+    case 'star': { const q = []; for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? 0.42 : 1; q.push([Math.cos(a) * rr, Math.sin(a) * rr]) } P(q); break }
+    case 'flame': P([[0, -1], [0.55, -0.1], [0.6, 0.45], [0, 1], [-0.6, 0.45], [-0.45, -0.15], [-0.15, 0.15]]); break
+    case 'sun': c.beginPath(); c.arc(0, 0, r * 0.45, 0, 7); c.fill(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; c.beginPath(); c.moveTo(Math.cos(a) * r * 0.65, Math.sin(a) * r * 0.65); c.lineTo(Math.cos(a) * r, Math.sin(a) * r); c.stroke() } break
+    case 'bolt': P([[0.2, -1], [-0.55, 0.12], [-0.02, 0.12], [-0.25, 1], [0.6, -0.2], [0.08, -0.2]]); break
+    case 'swirl': c.beginPath(); for (let k = 0; k < 40; k++) { const a = k * 0.32, rr = r * (0.1 + k / 44); k ? c.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : c.moveTo(0, 0) } c.stroke(); break
+    case 'skull': c.beginPath(); c.arc(0, -0.15 * r, r * 0.7, 0, 7); c.fill(); c.fillRect(-0.4 * r, 0.3 * r, 0.8 * r, 0.6 * r); c.globalCompositeOperation = 'destination-out'
+      c.beginPath(); c.arc(-0.28 * r, -0.15 * r, r * 0.2, 0, 7); c.arc(0.28 * r, -0.15 * r, r * 0.2, 0, 7); c.fill(); break
+    case 'feather': P([[0.15, -1], [0.55, -0.2], [0.1, 0.7], [-0.15, 1], [-0.25, 0.4], [-0.35, -0.3]]); break
+    case 'hourglass': P([[-0.7, -1], [0.7, -1], [0.1, 0], [0.7, 1], [-0.7, 1], [-0.1, 0]]); break
+    case 'gear': c.beginPath(); c.arc(0, 0, r * 0.6, 0, 7); c.fill(); for (let k = 0; k < 6; k++) { c.save(); c.rotate(k * Math.PI / 3); c.fillRect(-0.18 * r, -r, 0.36 * r, 0.4 * r); c.restore() }
+      c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(0, 0, r * 0.25, 0, 7); c.fill(); break
+    case 'hex': { const q = []; for (let k = 0; k < 6; k++) q.push([Math.cos(k * Math.PI / 3), Math.sin(k * Math.PI / 3)]); P(q); break }
+    case 'drop': P([[0, -1], [0.55, 0.15], [0.45, 0.65], [0, 0.95], [-0.45, 0.65], [-0.55, 0.15]]); break
+    case 'ring': c.beginPath(); c.arc(0, 0, r * 0.75, 0, 7); c.stroke(); c.beginPath(); c.arc(0, 0, r * 0.3, 0, 7); c.fill(); break
+    case 'flake': for (let k = 0; k < 3; k++) { c.save(); c.rotate(k * Math.PI / 3); c.beginPath(); c.moveTo(0, -r); c.lineTo(0, r); c.moveTo(-0.3 * r, -0.7 * r); c.lineTo(0, -0.45 * r); c.lineTo(0.3 * r, -0.7 * r); c.stroke(); c.restore() } break
+    case 'web': c.lineWidth = Math.max(0.8, r * 0.14); for (let k = 0; k < 4; k++) { c.save(); c.rotate(k * Math.PI / 4); c.beginPath(); c.moveTo(-r, 0); c.lineTo(r, 0); c.stroke(); c.restore() }
+      for (const rr of [0.45, 0.85]) { c.beginPath(); for (let k = 0; k <= 8; k++) { const a = k * Math.PI / 4; k ? c.lineTo(Math.cos(a) * rr * r, Math.sin(a) * rr * r) : c.moveTo(rr * r, 0) } c.stroke() } break
+    case 'glitch': for (let k = 0; k < 4; k++) c.fillRect((-0.9 + (k % 2) * 0.3) * r, (-0.9 + k * 0.48) * r, (1.2 + (k % 3) * 0.3) * r, 0.3 * r); break
+    case 'blade': P([[-1, 0.9], [0.75, -0.95], [1, -1], [0.95, -0.75], [-0.85, 1]]); break
+    case 'leaf': P([[0, -1], [0.6, -0.3], [0.45, 0.45], [0, 1], [-0.45, 0.45], [-0.6, -0.3]]); break
+    case 'paw': c.beginPath(); c.ellipse(0, 0.35 * r, r * 0.5, r * 0.4, 0, 0, 7); c.fill(); for (const [px, py] of [[-0.6, -0.25], [-0.22, -0.7], [0.22, -0.7], [0.6, -0.25]]) { c.beginPath(); c.arc(px * r, py * r, r * 0.2, 0, 7); c.fill() } break
+    case 'bat': P([[0, -0.3], [0.25, -0.6], [0.3, -0.2], [1, -0.5], [0.85, 0.1], [0.55, 0.05], [0.3, 0.5], [0, 0.25], [-0.3, 0.5], [-0.55, 0.05], [-0.85, 0.1], [-1, -0.5], [-0.3, -0.2], [-0.25, -0.6]]); break
+    case 'fist': c.fillRect(-0.7 * r, -0.5 * r, 1.4 * r, 1.2 * r); c.globalCompositeOperation = 'destination-out'; for (let k = 1; k < 4; k++) c.fillRect((-0.7 + k * 0.35) * r - 0.5, -0.5 * r, 1, 0.5 * r); break
+    default: P([[-0.6, -0.9], [0.4, 0], [-0.6, 0.9], [-0.2, 0]])   // chevron
+  }
+  c.restore()
+}
+
 // Fill the CURRENT PATH (the caller's bevelled / rounded bar rect) with this fighter's bar. kind 'hp' | 'en'.
-// ratio = fill fraction (for the low-health warning); o.colour overrides the energy colour (Omnitrix states etc.).
+// ratio = fill fraction; o = { full: the whole track width, flip: P2 (fill anchored right), colour: energy override,
+// segs: energy bar count }. Layers, back → front: base gradient · motif · segment notches · DAMAGE (life only: cracks
+// with lit edges, scuffs and chipped top-edge notches that pile up as life drops, anchored to the track so they don't
+// slide) · red veins under 25 % · inner shadow + glass gloss · a glowing leading edge with sparks · the motif emblem.
 export function fillThemedBar(c, f, kind, x, y, w, h, ratio, t, o = {}) {
   if (w <= 0.5) return
-  const th = barTheme(f)
-  let [a, b] = kind === 'hp' ? th.hp : th.en
+  const th = barTheme(f), hp = kind === 'hp'
+  let [a, b] = hp ? th.hp : th.en
   if (o.colour && HEX.test(o.colour)) { a = shade(o.colour, 0.25); b = shade(o.colour, -0.3) }
-  if (kind === 'hp' && ratio <= 0.25) {                       // danger: blend to a pulsing red so low life always reads
+  const danger = hp && ratio <= 0.25
+  if (danger) {                                               // blend to a pulsing red so low life always reads
     const p = 0.55 + 0.35 * (0.5 + 0.5 * Math.sin(t * 0.22))
     a = mix(a, '#ff5a5a', p); b = mix(b, '#8f1a1a', p)
   }
+  const full = Math.max(w, o.full || w / Math.max(0.01, ratio)), flip = !!o.flip
+  const anchor = flip ? x + w : x, at = u => flip ? anchor - u * full : anchor + u * full   // track position u (0..1) → x
+  const lead = flip ? x : x + w
   c.save(); c.clip()
+  // 1 base: lit top, deep bottom band
   const g = c.createLinearGradient(0, y, 0, y + h)
-  g.addColorStop(0, a); g.addColorStop(0.55, mix(a, b, 0.35)); g.addColorStop(1, b)
+  g.addColorStop(0, shade(a, 0.08)); g.addColorStop(0.42, a); g.addColorStop(0.7, mix(a, b, 0.6)); g.addColorStop(1, shade(b, -0.35))
   c.fillStyle = g; c.fillRect(x - 1, y - 1, w + 2, h + 2)
+  // 2 motif
   motif(c, th.motif, x, y, w, h, t, a)
+  // 3 notches: life every 10 %, energy split into its bars with a dark gap + a lit lip
+  const segs = hp ? 10 : (o.segs || 4)
+  for (let k = 1; k < segs; k++) {
+    const px = Math.round(at(k / segs)); if (px <= x + 1 || px >= x + w - 1) continue
+    const gw = hp ? 1 : 2
+    c.fillStyle = 'rgba(0,0,0,0.45)'; c.fillRect(px - gw / 2, y, gw, h)
+    c.fillStyle = 'rgba(255,255,255,0.22)'; c.fillRect(px + gw / 2, y + 1, 1, h - 2)
+  }
+  if (!hp) {                                                  // full energy bars shine; a sheen sweeps the newest full one
+    const done = Math.floor(ratio * segs + 1e-6)
+    for (let k = 0; k < done; k++) {
+      const x0 = Math.min(at(k / segs), at((k + 1) / segs)), sw = full / segs, sh = ((t * 1.4 + k * 23) % (sw + 30)) - 15
+      const gg = c.createLinearGradient(x0 + sh - 10, 0, x0 + sh + 10, 0)
+      gg.addColorStop(0, 'rgba(255,255,255,0)'); gg.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gg.addColorStop(1, 'rgba(255,255,255,0)')
+      c.fillStyle = gg; c.fillRect(x0, y, sw, h)
+    }
+  }
+  // 4 DAMAGE (life): cracks · scuffs · chips, more of each the lower the bar; fixed to the track
+  if (hp) {
+    const lost = 1 - ratio, seed = (f?.rosterKey || '').length * 7 + (flip ? 3 : 0)
+    const nCrack = Math.floor(lost * 14), nScuff = Math.floor(lost * 26), nChip = Math.floor(lost * 10)
+    c.lineJoin = 'round'
+    for (let k = 0; k < nCrack; k++) {
+      const u = 0.04 + 0.92 * h1(k, seed + 41), px = at(u); if ((px - x) * (px - x - w) > 0) continue
+      const pts = [[px, y - 1]]; let cx = px
+      for (let j = 1; j <= 4; j++) { cx += (h1(k * 7 + j, seed + 3) - 0.5) * 7; pts.push([cx, y + h * j / 4 * (0.55 + 0.45 * h1(k, seed + 9)) + 0.5]) }
+      for (const [dx, dy, col, lw] of [[1, 1, 'rgba(255,255,255,0.28)', 1], [0, 0, 'rgba(0,0,0,0.7)', 1.3]]) {      // lit edge under the dark split → depth
+        c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); pts.forEach(([px2, py2], j) => j ? c.lineTo(px2 + dx, py2 + dy) : c.moveTo(px2 + dx, py2 + dy)); c.stroke()
+      }
+      if (h1(k, seed + 5) > 0.45) {                           // a branch
+        const [bx, by] = pts[2]; const dir = h1(k, seed + 6) > 0.5 ? 1 : -1
+        c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + dir * (4 + 5 * h1(k, seed + 8)), by + h * 0.25); c.stroke()
+      }
+    }
+    for (let k = 0; k < nScuff; k++) {                        // short scuffs / scratches
+      const u = h1(k, seed + 77), px = at(u); if ((px - x) * (px - x - w) > 0) continue
+      const py = y + 2 + h1(k, seed + 78) * (h - 4), L = 3 + 5 * h1(k, seed + 79)
+      c.strokeStyle = k % 3 ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.3)'; c.lineWidth = 0.8
+      c.beginPath(); c.moveTo(px, py); c.lineTo(px + L, py - L * 0.45); c.stroke()
+    }
+    for (let k = 0; k < nChip; k++) {                         // chipped bites out of the top edge
+      const u = h1(k, seed + 91), px = at(u); if ((px - x) * (px - x - w) > 0) continue
+      const cw = 3 + 4 * h1(k, seed + 92), ch = 2 + 3 * h1(k, seed + 93)
+      c.fillStyle = 'rgba(6,8,14,0.85)'; c.beginPath(); c.moveTo(px - cw / 2, y - 1); c.lineTo(px + cw / 2, y - 1); c.lineTo(px + cw * 0.1, y + ch); c.closePath(); c.fill()
+    }
+    if (danger) {                                             // red veins throbbing under the glass
+      c.strokeStyle = `rgba(255,40,40,${0.35 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.22))})`; c.lineWidth = 1
+      for (let k = 0; k < 3; k++) { c.beginPath(); for (let px = 0; px <= w; px += 3) c.lineTo(x + px, y + h * (0.3 + k * 0.2) + Math.sin(px * 0.3 + k * 2 + t * 0.05) * 2.2); c.stroke() }
+    }
+  }
+  // 5 inner shadow (bottom + far end) and glass gloss (top)
+  const sh = c.createLinearGradient(0, y + h * 0.55, 0, y + h)
+  sh.addColorStop(0, 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,0.5)'); c.fillStyle = sh; c.fillRect(x, y + h * 0.55, w, h * 0.45 + 1)
+  const gl = c.createLinearGradient(0, y, 0, y + h * 0.5)
+  gl.addColorStop(0, 'rgba(255,255,255,0.34)'); gl.addColorStop(0.35, 'rgba(255,255,255,0.08)'); gl.addColorStop(1, 'rgba(255,255,255,0)')
+  c.fillStyle = gl; c.fillRect(x, y, w, h * 0.5)
+  c.fillStyle = 'rgba(255,255,255,0.4)'; c.fillRect(x + 2, y + 1, Math.max(0, w - 4), 1)
+  // 6 leading edge: a glowing cap + sparks thrown off it
+  const eg = c.createLinearGradient(lead - (flip ? -8 : 8), 0, lead, 0)
+  eg.addColorStop(0, 'rgba(255,255,255,0)'); eg.addColorStop(1, shade(a, 0.7))
+  c.fillStyle = eg; c.fillRect(Math.min(lead, lead - (flip ? -8 : 8)), y, 8, h)
+  c.fillStyle = '#ffffff'; c.globalAlpha = 0.85; c.fillRect(lead - (flip ? 0 : 2), y, 2, h); c.globalAlpha = 1
   c.restore()
+  c.save()
+  for (let k = 0; k < 4; k++) {                               // sparks outside the clip, off the edge
+    const ph = ((t * 0.9 + k * 9) % 18) / 18, sx = lead + (flip ? -1 : 1) * ph * 10, sy = y + h * h1(k, Math.floor((t + k * 9) / 18)) 
+    c.globalAlpha = (1 - ph) * 0.9; c.fillStyle = shade(a, 0.6); c.fillRect(sx, sy, 1.5, 1.5)
+  }
+  c.restore()
+  // 7 emblem riding just inside the edge (life bar only — it's the taller bar)
+  if (hp && w > h * 1.6) {
+    const r = h * 0.32, ex = lead + (flip ? 1 : -1) * (r + 5), ey = y + h / 2
+    c.save(); c.shadowColor = 'rgba(0,0,0,0.6)'; c.shadowBlur = 3
+    emblem(c, EMBLEM[th.motif] || 'chevron', ex, ey, r, 'rgba(255,255,255,0.9)')
+    c.restore()
+  }
 }

@@ -54,6 +54,26 @@ try {
   ck('Killer form lasts 18 s and costs 15 Dread', await page.evaluate(async () => { const src = await (await fetch('./abilities.js')).text(); return /GF_SWAP_DURATION = 18 \* 60/.test(src) && /GF_SWAP_COST {5}= 15/.test(src) }))
   fs.mkdirSync('docs/ghostface', { recursive: true })
   await fresh(); await dial('j'); await step(6); await page.screenshot({ path: 'docs/ghostface/killer_dial_smoke.png' })
+  // CPU: a real CPU Ghostface (P2, hard) swaps through the SAME dial (P ↓↓ J/K), both killers, and switches across
+  const cpu = await browser.newPage({ viewport: { width: 1280, height: 720 } }); cpu.on('pageerror', e => errs.push('cpu: ' + e.message))
+  await cpu.addInitScript(() => { window.requestAnimationFrame = () => 0 })
+  await cpu.goto(server.base + '/index.html?harness=1&p1=homelander&p2=ghostface&seed=12')
+  await cpu.waitForFunction(() => window.__harness?.omnimanViltrumTest)
+  R.cpu = await cpu.evaluate(() => {
+    __harness.start({ mode: 'vs', difficulty: 'hard' }); __harness.skipToBattle?.()
+    const H = __harness.omnimanViltrumTest, seen = new Set(), acts = []
+    for (let i = 0; i < 3600; i++) {
+      const a = H.raw(), g = H.raw('p2'); a.health = a.maxHealth; g.health = Math.max(g.health, g.maxHealth * 0.6)   // keep the round alive
+      __harness.luffyTest.step(1)
+      if (g._gfSwapActive) seen.add(g._gfSwapTarget)
+      const last = g._gfDial?.last; if (last && acts[acts.length - 1] !== last + '@' + g._gfDial.t) { acts.push(last + '@' + g._gfDial.t); g._gfDial.last = null }
+    }
+    const g = H.raw('p2'); return { ai: !!g._gfDial?.cpu, gestures: g._gfDial?.cpu?.swaps || 0, picks: g._gfDial?.cpu?.picks || [], seen: [...seen], acts: acts.map(x => x.split('@')[0]) }
+  })
+  await cpu.close()
+  ck('CPU Ghostface plays the P ↓↓ J/K gesture through the dial (≥ 3 times in a minute)', R.cpu.ai && R.cpu.gestures >= 3, JSON.stringify(R.cpu))
+  ck('… and the dial actually fires (Backstage Pass swap / killer switch / revert)', R.cpu.acts.some(x => /^pass:/.test(x)), JSON.stringify(R.cpu.acts))
+  ck('… using BOTH killers (Chrollo at range, Zaraki up close)', R.cpu.seen.includes('chrollo') && R.cpu.seen.includes('zaraki'), JSON.stringify(R.cpu.seen))
 } catch (e) { console.log('ERROR', e.stack); fail++ }
 ck('no page errors', !errs.length, errs.slice(0, 3).join(' | '))
 fs.mkdirSync('docs/ghostface', { recursive: true }); fs.writeFileSync('docs/ghostface/killer_results.json', JSON.stringify({ pass, fail, R }, null, 1))

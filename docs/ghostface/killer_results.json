@@ -1,5 +1,5 @@
 {
- "pass": 11,
+ "pass": 14,
  "fail": 0,
  "R": {
   "stats": {
@@ -9,7 +9,7 @@
    "bp": false,
    "atk": null,
    "energy": 50.30000000000001,
-   "hp": 1250,
+   "hp": 2475,
    "x": 920,
    "dial": null
   },
@@ -22,7 +22,7 @@
     "bp": false,
     "atk": null,
     "energy": 130,
-    "hp": 1250,
+    "hp": 2475,
     "x": 924.48,
     "dial": "pass:chrollo"
    }
@@ -34,7 +34,7 @@
    "bp": false,
    "atk": "heavy",
    "energy": 120,
-   "hp": 1250,
+   "hp": 2475,
    "x": 924.48,
    "dial": "switch:zaraki"
   },
@@ -45,11 +45,29 @@
    "bp": false,
    "atk": "heavy",
    "energy": 70.12,
-   "hp": 1250,
+   "hp": 2475,
    "x": 924.48,
    "dial": "revert"
   },
   "bpFired": true,
-  "bpFrames": 8
+  "bpFrames": 8,
+  "cpu": {
+   "ai": true,
+   "gestures": 3,
+   "picks": [
+    "chrollo",
+    "zaraki",
+    "chrollo"
+   ],
+   "seen": [
+    "chrollo",
+    "zaraki"
+   ],
+   "acts": [
+    "pass:chrollo",
+    "switch:zaraki",
+    "switch:chrollo"
+   ]
+  }
  }
 }

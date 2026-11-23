@@ -27,6 +27,7 @@ export function updateGhostfaceKillerDial(f, inputState, ctx) {
   const d = f._gfDial || (f._gfDial = { t: 0, downAt: null, arm: 0, want: -1, wantT: 0, prevDown: false, prevL: false, prevH: false, last: null })
   d.t++
   f._omxConsume = null                                            // only this selector writes it for Ghostface — reset each frame
+  if (f._aiControlled || (f._gfCpu || 0) > 0) { if (f._gfCpu > 0) f._gfCpu--; cpuDial(f, d, inputState, ctx) }   // the CPU plays the SAME gesture through this dial
   const down = !!inputState.down, light = !!inputState.light, heavy = !!inputState.heavy, charge = !!inputState.charge
   if (down && !d.prevDown) {
     if (!charge) d.downAt = null
@@ -40,7 +41,7 @@ export function updateGhostfaceKillerDial(f, inputState, ctx) {
     if (!charge) d.arm = 0
     else {
       f._suppressChargeUntilRelease = true                       // the held P of the gesture never becomes a Charge
-      if (eL || eH) { d.want = eL ? GF_DIAL_SLOT.light : GF_DIAL_SLOT.heavy; d.wantT = GF_DIAL.arm; d.arm = 0; swallow(f, inputState) }
+      if (eL || eH) { d.want = eL ? GF_DIAL_SLOT.light : GF_DIAL_SLOT.heavy; d.wantT = GF_DIAL.arm; d.arm = 0; swallow(f, inputState); if (d.cpu) d.cpu.wait = 60 }
       else d.arm--
     }
   }
@@ -48,9 +49,51 @@ export function updateGhostfaceKillerDial(f, inputState, ctx) {
     if (d.wantT === GF_DIAL.arm) swallow(f, inputState)           // the picking press itself
     act = fire(f, d.want, ctx)
     if (act) { d.want = -1; d.last = act }
+    else if (d.cpu?.wait > 0) d.cpu.wait--                          // CPU: keep trying until the current move ends
     else if (--d.wantT <= 0) d.want = -1
   }
   return act
+}
+// ── CPU: when to swap, and the gesture itself (P held · ↓ · · ↓ · · J|K), 2 frames a step inside Ben's windows ──
+// Deterministic: decided from the fighter's own dial clock + spacing + a hash roll (no Math.random). Zaraki (Enforcer,
+// the brute) when the foe is close, Chrollo (Assassin, the technical zoner) at range; as a killer it switches across
+// when the spacing flips (or after ~8 s in one killer), and late in a form (or low on life) it turns back into Ghostface to bank Dread.
+// game.js's CPU router marks a CPU-driven Ghostface every frame (like markOmvCpu); not in training (the dummy never swaps)
+export function markGfCpu(f) { if (isGhostfaceKiller(f)) f._gfCpu = 2 }
+export const GF_CPU = { think: 30, gap: 200, near: 230, minHold: 300, stale: 480, chance: 0.45, cost: 15 }
+const CPU_QUIET = ['charge', 'down', 'light', 'heavy', 'special', 'grab', 'upAttack', 'ultimate', 'block', 'jump', 'up']
+const GESTURE = [['charge'], ['charge'], ['charge', 'down'], ['charge', 'down'], ['charge'], ['charge'], ['charge', 'down'], ['charge', 'down'], ['charge'], ['charge', 'BTN'], ['charge', 'BTN'], ['charge']]
+const roll = (a, b) => { let v = Math.imul(a + 1, 2654435761) ^ Math.imul(b + 17, 40503); v = Math.imul(v ^ (v >>> 15), 2246822519); return ((v ^ (v >>> 13)) >>> 0) / 4294967296 }
+function cpuDial(f, d, inputState, ctx) {
+  const c = d.cpu || (d.cpu = { seq: -1, btn: 'light', last: -1e9, swaps: 0, picks: [] })
+  if (c.seq < 0 && d.want < 0 && d.t >= (c.next || 0) && d.t - c.last >= GF_CPU.gap && !busy(f) && !f.attacking && !((f.attackCooldown || 0) > 0)) {
+    c.next = d.t + GF_CPU.think                                    // think at the first free frame of each 0.5 s
+    const o = ctx?.getOpponent?.(f)
+    if (o && o.health > 0) {
+      const dist = Math.abs(((o.x || 0) + (o.w || 60) / 2) - ((f.x || 0) + (f.w || 60) / 2))
+      let want = dist < GF_CPU.near ? 'zaraki' : 'chrollo'
+      const other = k => k === 'zaraki' ? 'chrollo' : 'zaraki'
+      let pick = null
+      if (!f._gfSwapActive) {
+        if (c.picks[c.picks.length - 1] === want && roll(d.t, 4) < 0.5) want = other(want)               // mix the killers up
+        if ((f.energy || 0) >= GF_CPU.cost + 5 && roll(d.t, 1) < GF_CPU.chance) pick = want
+      } else if (d.t - c.last >= GF_CPU.minHold) {
+        const lowLife = f.health < (f.maxHealth || 1) * 0.3, late = (f._gfSwapTimer || 0) < 150
+        if (d.t - c.last >= GF_CPU.stale && want === f._gfSwapTarget) want = other(want)                   // been this killer a while → the other one
+        if (want !== f._gfSwapTarget && roll(d.t, 2) < GF_CPU.chance) pick = want                       // switch across
+        else if ((late || lowLife) && roll(d.t, 3) < 0.5) pick = f._gfSwapTarget                         // same button = back to Ghostface
+      }
+      if (pick) { c.btn = pick === 'chrollo' ? 'light' : 'heavy'; c.seq = 0; c.last = d.t; c.picks.push(pick) }
+    }
+  }
+  if (c.seq >= 0 || d.want >= 0) {                               // gesture + buffered pick: no other move may start
+    for (const k of CPU_QUIET) inputState[k] = false
+    if (c.seq < 0) return                                         // the buffered pick fires (or expires after the CPU wait)
+  }
+  if (c.seq >= 0) {
+    for (const k of GESTURE[c.seq]) inputState[k === 'BTN' ? c.btn : k] = true
+    if (++c.seq >= GESTURE.length) { c.seq = -1; c.swaps++ }
+  }
 }
 function swallow(f, inputState) {
   f._omxConsume = { ...(f._omxConsume || {}), light: true, heavy: true }

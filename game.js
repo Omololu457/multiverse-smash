@@ -63,7 +63,7 @@ import { starfireHarnessApi } from './starfireHarness.js'
 import { updateRobinCommandCombat } from './robin.js'   // Robin (Dick Grayson, DC) — robin-gated command layer
 import { tickRobin, isRobin, clearRobin, robinLocked, robinOwnsCharge, isRobinUltActive, updateRobinUlt, clearRobinUlt } from './robinState.js'
 import { drawRobinFx, drawRobinHud, drawRobinIntroCard, playRobinCues } from './robinFx.js'
-import { updateGhostfaceKillerDial, drawGhostfaceSmoke } from './ghostfaceKiller.js'   // Ghostface: P+↓↓+J/K killer dial + borrowed smoke
+import { updateGhostfaceKillerDial, drawGhostfaceSmoke, markGfCpu } from './ghostfaceKiller.js'   // Ghostface: P+↓↓+J/K killer dial + borrowed smoke
 import { robinHarnessApi } from './robinHarness.js'
 import { updateMegumiCommandCombat } from './megumi.js'   // Megumi Fushiguro (JJK) — megumi-gated command layer
 import { tickMegumi, isMegumi, clearMegumi, megumiLocked, megumiOwnsCharge, isMegumiUltActive, updateMegumiUlt, clearMegumiUlt } from './megumiState.js'
@@ -11544,6 +11544,7 @@ function updateCPUInput() {
       updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
       _driveCpu(p1, p1AI, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
       markGsCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
+      markGfCpu(p1)   // CPU Ghostface: the P ↓↓ J/K Killer Dial
       markSksCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
       markInvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
       markOmvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
@@ -11552,10 +11553,11 @@ function updateCPUInput() {
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
     _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
     markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
-    return
     markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     markOmvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
+    markGfCpu(p2)   // CPU Ghostface: the P ↓↓ J/K Killer Dial (ghostfaceKiller.js)
+    return   // (was ABOVE the P2 marks — those CPU layers never ran for P2 in AI vs AI)
   }
   if (isPvP()) { if (!isKevin(p2)) clearAIControlKeys(p2); return }
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
@@ -11574,6 +11576,7 @@ function updateCPUInput() {
   if (matchConfig.mode !== "training") markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity
   if (matchConfig.mode !== "training") markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Invincible: rushdown, Zip on hit, guards below 30 %, Terminal Velocity on knockdowns
   if (matchConfig.mode !== "training") markOmvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Omni-Man (Viltrumite)
+  if (matchConfig.mode !== "training") markGfCpu(p2)   // CPU Ghostface: swaps killers with the same P ↓↓ J/K gesture a player uses (ghostfaceKiller.js)
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
   // AFTER the AI keys are written, and ONLY in training — this is training-specific state,

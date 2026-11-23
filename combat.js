@@ -19,6 +19,7 @@ import { robinHitbox, robinBlock, robinHit, robinProjectileHit } from './robinSt
 import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './megumiState.js'   // Megumi hooks (megumi-gated)
 import { gsHitbox, gsBlock, gsHit, gsMeleeGate, gsGrabGate, gsProjectileGate, gsDamageMods } from './gojoShinjukuState.js'   // Satoru Gojo (Shinjuku) hooks: Infinity / Falling Blossom gates + his move boxes (gojo_shinjuku-gated)
 import { sksHitbox, sksBlock, sksHit } from './sukunaShinjukuState.js'   // Ryomen Sukuna (Shinjuku) hooks: his move boxes + contact flags (sukuna_shinjuku-gated)
+import { invHitbox, invBlock, invHit, invKnockback, invDamageMods, invKoFloor } from './invincibleState.js'   // Invincible hooks: move boxes, contact flags, light weight, Resolve / Can't Stay Down (invincible-gated)
 import { omvHitbox, omvBlock, omvHit, omvKnockback } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) hooks: his move boxes + speed-scaled contact + heavy weight (omniman_viltrum-gated)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
@@ -316,6 +317,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   rawDamage = (rawDamage || 0) * rosterDamageBoost(opts.attacker || opts.boostFrom)   // ROSTER PARITY: listed recent fighters hit harder (1 for everyone else)
   rawDamage = arlongDamageMods(target, rawDamage, opts)   // ARLONG — in-water +15% / Fishman durability (arlong-gated; returns rawDamage untouched for everyone else)
   rawDamage = elastigirlDamageMods(target, rawDamage, opts)   // ELASTIGIRL — Rubber Body (−15% melee normals) + Elasticity +4 landed / +3 taken (returns rawDamage untouched unless she is involved)
+  rawDamage = invDamageMods(target, rawDamage, opts)   // INVINCIBLE — RESOLVE: +25 % taken (invincible-gated)
   rawDamage = gsDamageMods(target, rawDamage, opts)   // SATORU GOJO (Shinjuku) — Infinity on every other damage path (beams, cinematics, patches, scripted strikes): stopped / L2 supers ×0.5 (raw untouched for everyone else)
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
@@ -344,7 +346,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   const raw   = Math.max(0, rawDamage || 0)
   const dealt = Math.floor(raw * scale)
   const before = target.health || 0
-  target.health = Math.max(floor, before - dealt)
+  target.health = Math.max(invKoFloor(target, floor, before, dealt), before - dealt)   // invKoFloor: INVINCIBLE Can't Stay Down (once per round a KO leaves 1 HP; floor unchanged for everyone else)
   if (target.health <= 0) clearLuffy(target)
   recordRegrowthDamage(target, Math.max(0, before - target.health), opts)
   if (target.health <= 0) handleBenKO(target)
@@ -857,6 +859,7 @@ export function getAttackHitbox(fighter) {
   if (a?.mg && fighter.rosterKey === 'megumi_fushiguro') return megumiHitbox(fighter)   // Megumi: per-move body box; summon gestures have none (the shikigami's projectile volume hits)
   if (a?.gs && fighter.rosterKey === 'gojo_shinjuku') return gsHitbox(fighter)   // Satoru Gojo (Shinjuku): per-move body box; technique casts have none (their fields strike through gojoShinjukuState)
   if (a?.sks && fighter.rosterKey === 'sukuna_shinjuku') return sksHitbox(fighter)   // Ryomen Sukuna (Shinjuku): per-move body box; technique casts have none (they strike through sukunaShinjukuState)
+  if (a?.inv && fighter.rosterKey === 'invincible') return invHitbox(fighter)   // Invincible: per-move body box; techniques have none (they strike through invincibleState)
   if (a?.omv && fighter.rosterKey === 'omniman_viltrum') return omvHitbox(fighter)   // Omni-Man (Viltrumite): per-move body box; techniques have none (they strike through omnimanViltrumState)
   if (a?.hg && fighter.rosterKey === 'higuruma') return higurumaHitbox(fighter)   // Higuruma: per-move gavel / extension / giant-gavel box from the drawn weapon (body hurtbox unchanged)
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
@@ -3666,6 +3669,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) megumiBlock(attacker, defender, atk)   // Megumi: authored blockstun; megumi-gated
     if (!flawless) gsBlock(attacker, defender, atk)   // Satoru Gojo (Shinjuku): authored blockstun, contact flag; gojo_shinjuku-gated
     if (!flawless) sksBlock(attacker, defender, atk)   // Ryomen Sukuna (Shinjuku): authored blockstun, contact flag; gated
+    if (!flawless) invBlock(attacker, defender, atk)   // Invincible: authored blockstun, contact flag; gated
     if (!flawless) omvBlock(attacker, defender, atk)   // Omni-Man (Viltrumite): authored blockstun + more negative on block at speed; gated
     if (!flawless) higurumaBlock(attacker, defender, atk)   // Higuruma: authored blockstun; no evidence on block; higuruma-gated
     if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
@@ -3756,6 +3760,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
     gsHit(attacker, defender, atk)   // Satoru Gojo (Shinjuku): clean flag, +4 CE, Black Flash window, Blue Fist pull, Red Rush crumple; gojo_shinjuku-gated
     sksHit(attacker, defender, atk)   // Ryomen Sukuna (Shinjuku): clean / contact flags (chains, cancels); gated
+    invHit(attacker, defender, atk)   // Invincible: clean / contact flags (chains, Zip cancel); gated
     omvHit(attacker, defender, atk)   // Omni-Man (Viltrumite): contact flags, Haymaker wall bounce, impact fx; gated
     higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
     syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
@@ -3841,6 +3846,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     ninjaKnockback(attacker, defender)   // MSV1 weight
     ninjaStormKnockback(attacker, defender)   // MSv2 stance weight (0.8 Red / 0.85 Yellow)
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
+    invKnockback(attacker, defender, atk)   // Invincible as DEFENDER: light weight (×1.3 knockback); his Sweep knocks down; gated
     omvKnockback(attacker, defender)   // Omni-Man (Viltrumite) as DEFENDER: heavy (received knockback × 0.85); gated
     if (benReadyForm(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }   // READY forms' weight (Swampfire unchanged)
     benWaterKnockback(defender)   // STORM TIDE (benFlood.js): submerged non-waterborne → knockback ×0.8, launch ×0.75; no-op without a flood
@@ -4589,6 +4595,7 @@ export function resolveProjectileHitsMulti(projectiles = [], fighters = [], hitE
       if (proj.radial && !_benWeak && Math.hypot(hurtbox.x + hurtbox.w / 2 - proj.x, hurtbox.y + hurtbox.h / 2 - proj.y) > r) continue
       if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Satoru Gojo (Shinjuku): Infinity stops it at contact (L1/L2 supers pass) / Falling Blossom; gojo_shinjuku-gated
       if (fighter._gs?.blink?.inv) continue   // Satoru Gojo (Shinjuku): the long blink's travel frames are invulnerable (the projectile passes); gojo_shinjuku-gated
+      if ((fighter._invPhase || 0) > 0 && fighter.rosterKey === 'invincible') continue   // Invincible: ZIP frames 1-4 are projectile-intangible (the projectile passes)
       if (fighter.isBlocking && isBenDevice(proj.owner) && benAlienGuardBreak(proj.owner, fighter, { proj })) fighter.isBlocking = false   // READY form guard-break (Eyeguy Unblinking); false for everyone else
 
       if (consumeBenGuard(fighter)) {

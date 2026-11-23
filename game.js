@@ -77,6 +77,10 @@ import { updateSksCommandCombat } from './sukunaShinjuku.js'   // MSV1-SUKUNA Ry
 import { tickSks, isSks, clearSks, clearSksMarks, sksLockedForMovement, markSksCpu } from './sukunaShinjukuState.js'
 import { drawSksFx, drawSksBurn, drawSksHud, playSksCues } from './sukunaShinjukuFx.js'
 import { sukunaShinjukuHarnessApi } from './sukunaShinjukuHarness.js'
+import { updateInvCommandCombat } from './invincible.js'   // MSV1-INVINCIBLE Invincible (Mark Grayson) — invincible-gated command layer
+import { tickInv, isInv, clearInv, clearInvMarks, invLockedForMovement, markInvCpu } from './invincibleState.js'
+import { drawInvFx, drawInvHud, playInvCues } from './invincibleFx.js'
+import { invincibleHarnessApi } from './invincibleHarness.js'
 import { updateOmvCommandCombat } from './omnimanViltrum.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) — omniman_viltrum-gated command layer (the old `omniman` is untouched)
 import { tickOmv, isOmv, clearOmv, clearOmvMarks, omvLockedForMovement, markOmvCpu, omvNoBlock, omvOwnsCharge } from './omnimanViltrumState.js'
 import { drawOmvFx, drawOmvHud, drawOmvSky, playOmvCues } from './omnimanViltrumFx.js'
@@ -187,6 +191,7 @@ const MEGUMI_WORLD = MMPR_BLACK_WORLD   // Megumi: the same self-contained world
 const HIGURUMA_WORLD = MMPR_BLACK_WORLD   // Higuruma: the same self-contained world (stage width, fighters, ultimate damage through W.damage)
 const GOJO_SHINJUKU_WORLD = { ...MMPR_BLACK_WORLD, frame: () => _replayFrame, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) }, summons: () => activeSummons, removeSummon: o => { const i = activeSummons.indexOf(o); if (i >= 0) activeSummons.splice(i, 1) }, drones: () => activeDrones, removeDrone: o => { const i = activeDrones.indexOf(o); if (i >= 0) activeDrones.splice(i, 1) }, munitions: () => activeMunitions, removeMunition: o => { const i = activeMunitions.indexOf(o); if (i >= 0) activeMunitions.splice(i, 1) }, clones: o => (o?._ninja?.clones || []).filter(c => !c.dead).map(c => ({ x: c.x - (o.w || 48) / 2, y: c.feet - (o.h || 94), w: o.w || 48, h: o.h || 94, ref: c })), removeClone: (o, c) => { if (c?.ref) c.ref.dead = true }, patches: () => MMPR_BLACK_WORLD.fighters().flatMap(o => (o?._enoch?.field?.patches || []).map(patch => ({ owner: o, patch }))), removePatch: (o, p) => { const L = o?._enoch?.field?.patches; const i = L ? L.indexOf(p) : -1; if (i >= 0) L.splice(i, 1) }, raw: f => readRawControls(f) || {} }   // MSV1-GOJO Satoru Gojo (Shinjuku): Black Ranger's world + lockstep frame + every list Limitless acts on (projectiles, summons, drones, munitions, ninja clones, Enoch patches)
 const SUKUNA_SHINJUKU_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku): the same world (lockstep frame, projectiles to cut, ground patches to clear)
+const INVINCIBLE_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-INVINCIBLE Invincible (Mark Grayson): the same world (lockstep frame, fighters, projectiles, W.damage)
 const OMNIMAN_VILTRUM_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-OMNIMAN Omni-Man (Viltrumite): the same world (lockstep frame, fighters, W.damage, raw controls)
 const SYNDROME_WORLD = MMPR_BLACK_WORLD   // Syndrome: the same self-contained world (stage width, fighters, projectiles = machine hit volumes, attackBox / projectileRects for turret damage, ultimate damage through W.damage)
 const KEVIN_WORLD = {
@@ -1628,6 +1633,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
@@ -4636,6 +4642,7 @@ function updateFFAAIInputs(live) {
     applyAIInputToKeys(f, getAIInput(f._aiController, f, target, { stage: getStageTheme(), roundNumber, mode: "ffa" }))
     markGsCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
     markSksCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
+    markInvCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
     markOmvCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
   }
 }
@@ -4681,6 +4688,8 @@ function updateFFACombat(fighter, others, opts) {
   playGsCues(fighter)
   tickSks(fighter,nearest,readRawControls(fighter)||{},SUKUNA_SHINJUKU_WORLD)
   playSksCues(fighter)
+  tickInv(fighter,nearest,readRawControls(fighter)||{},INVINCIBLE_WORLD)
+  playInvCues(fighter)
   tickOmv(fighter,nearest,readRawControls(fighter)||{},OMNIMAN_VILTRUM_WORLD)
   playOmvCues(fighter, camera)
   tickSyndrome(fighter,nearest,readRawControls(fighter)||{},SYNDROME_WORLD)
@@ -4737,6 +4746,7 @@ function updateFFACombat(fighter, others, opts) {
   if (isHiguruma(fighter)) { const mc=updateHigurumaCommandCombat(fighter,inputState,nearest,HIGURUMA_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isGs(fighter)) { updateGsCommandCombat(fighter,inputState,nearest,GOJO_SHINJUKU_WORLD);ctrlState={} }   // Satoru Gojo (Shinjuku): every move starts in his command layer
   if (isSks(fighter)) { const mc=updateSksCommandCombat(fighter,inputState,nearest,SUKUNA_SHINJUKU_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Ryomen Sukuna (Shinjuku): every move starts in his command layer
+  if (isInv(fighter)) { const mc=updateInvCommandCombat(fighter,inputState,nearest,INVINCIBLE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Invincible (Mark Grayson): every move starts in his command layer
   if (isOmv(fighter)) { const mc=updateOmvCommandCombat(fighter,inputState,nearest,OMNIMAN_VILTRUM_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Omni-Man (Viltrumite): every move starts in his command layer
   if (isSyndrome(fighter)) { const mc=updateSyndromeCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isDseyl(fighter)) { const mc=updateDseylCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
@@ -4905,6 +4915,7 @@ function _markRemoteInput(f) {
   if (isHiguruma(f)) f._higurumaRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isGs(f)) f._gsRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isSks(f)) f._sksRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isInv(f)) f._invRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isOmv(f)) f._omvRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isSyndrome(f)) f._syndromeRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isDseyl(f)) f._dseylRemoteInput = replay.isPlayback() || netMatch.isActive()
@@ -5878,6 +5889,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
@@ -6653,6 +6665,8 @@ function _replaySnap(f) {
   if (isGs(f)) snap.push(JSON.stringify([f._gs ? { ...f._gs, cues: undefined, fx: undefined } : null, f.currentAttack?.gs || null, f._gsHalf || 0]))   // Satoru Gojo (Shinjuku) GAME_STATE: CE, Infinity level / press, fields, imaginary mass, chant, cooldowns, burnout, domain / clash, CPU reaction
   if (isSks(f)) snap.push(JSON.stringify([f._sks ? { ...f._sks, cues: undefined, fx: undefined } : null, f.currentAttack?.sks || null, f._sksAmp || 0]))   // Ryomen Sukuna (Shinjuku) GAME_STATE: cuts, arrows, fire field, burns, Amplification, World Slash, Empowered window, CPU
   if (f && f._sksBurn) snap.push(JSON.stringify([f._sksBurn]))   // mark Ryomen Sukuna (Shinjuku) writes on a foe (Fuga burn)
+  if (isInv(f)) snap.push(JSON.stringify([f._inv ? { ...f._inv, cues: undefined, fx: undefined, decal: undefined } : null, f.currentAttack?.inv || null, f._invPhase || 0, f._invNoBlock || false]))   // Invincible GAME_STATE: zip, flight tap / boom, Can't Stay Down / Resolve, Terminal Velocity, CPU
+  if (f && f._invWall) snap.push(JSON.stringify([f._invWall]))   // mark Invincible writes on a foe (Invincible Punch wall-bounce watch)
   if (isOmv(f)) snap.push(JSON.stringify([f._omv ? { ...f._omv, cues: undefined, fx: undefined } : null, f.currentAttack?.omv || null, f._flightBrake || false]))   // Omni-Man (Viltrumite) GAME_STATE: speed history, boom arm, crash / landing timers, rushes, holds, Escape Velocity phases, CPU
   if (f && (f._omvWall || f._omvHeldBy != null)) snap.push(JSON.stringify([f._omvWall || null, f._omvHeldBy ?? null]))   // marks Omni-Man (Viltrumite) writes on a foe (wall bounce, held)
   if (f && (f._gsTechBurnout || f._gsSawInfinity != null)) snap.push(JSON.stringify([f._gsTechBurnout || 0, f._gsSawInfinity ?? null]))   // marks Gojo (Shinjuku) writes on an opponent (clash burnout, what the CPU has seen)
@@ -7099,6 +7113,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
@@ -11285,7 +11300,7 @@ function _doRematch() {
   clearSpdGreen(p1,SPD_BLUE_WORLD);clearSpdGreen(p2,SPD_BLUE_WORLD)
   clearDashParr(p1);clearDashParr(p2)
   clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD)
-  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearSks(p1);clearSks(p2);clearOmv(p1);clearOmv(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
+  clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearInv(p1);clearInv(p2);clearSks(p1);clearSks(p2);clearOmv(p1);clearOmv(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2)
   clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2)
   for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD); kevinVisual(f) }
   clearLuffy(p1); clearLuffy(p2); clearZoro(p1); clearZoro(p2); clearBuggy(p1); clearBuggy(p2); clearArlong(p1); clearArlong(p2); clearSanji(p1); clearSanji(p2); clearSpdRed(p1); clearSpdRed(p2)
@@ -11355,6 +11370,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
@@ -11484,6 +11500,7 @@ function updateCPUInput() {
       _driveCpu(p1, p1AI, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
       markGsCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
       markSksCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
+      markInvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
       markOmvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
     }
     if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
@@ -11492,6 +11509,7 @@ function updateCPUInput() {
     markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     return
     markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
+    markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     markOmvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
   }
   if (isPvP()) { if (!isKevin(p2)) clearAIControlKeys(p2); return }
@@ -11509,6 +11527,7 @@ function updateCPUInput() {
   _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })
   if (matchConfig.mode !== "training") markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Gojo (Shinjuku): reacts to a coming super with Infinity (never reads the foe's hidden state)
   if (matchConfig.mode !== "training") markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity
+  if (matchConfig.mode !== "training") markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Invincible: rushdown, Zip on hit, guards below 30 %, Terminal Velocity on knockdowns
   if (matchConfig.mode !== "training") markOmvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Omni-Man (Viltrumite)
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
@@ -12058,6 +12077,7 @@ function handleChargeRelease(fighter, key) {
   // Gated on traits.flightProfile → separate from the simple canFly path below (no collision).
   if (isDseyl(fighter)) return   // DSEYL: his Charge-tap flight toggle is measured on the SIM clock in dseylPowers.js (deterministic), not here
   if (isGs(fighter)) return   // SATORU GOJO (Shinjuku): Charge = Infinity / RCT / Falling Blossom, measured on the SIM clock in gojoShinjukuState.js
+  if (isInv(fighter)) return   // INVINCIBLE: his Charge-tap takeoff / come-down is measured on the SIM clock in invincibleState.js (deterministic)
   if (isOmv(fighter)) return   // OMNI-MAN (Viltrumite): his Charge-tap takeoff / come-down is measured on the SIM clock in omnimanViltrumState.js (deterministic)
   if (fighter.traits?.flightProfile) { flightToggleInput(fighter); return }
   if (fighter.traits?.canFly) { toggleOmniManFlight(fighter); return }
@@ -12266,6 +12286,7 @@ function drawOmoluDrones(fighter) {
 function detectDoubleTapDashTeleport(fighter, key) {
   if (groundTeleportProfile(fighter)) return // opt-in sim press/release edges own this input
   if (isGs(fighter)) return   // Satoru Gojo (Shinjuku): double-tap toward = teleport, away = long blink, read on the sim clock in gojoShinjukuState.js; gojo_shinjuku-gated
+  if (isInv(fighter)) return   // Invincible: double-tap ← / → = ZIP, read on the sim clock in invincibleState.js; invincible-gated
   if (!fighter || fighter.hitstun > 0 || fighter.blockstun > 0) return
   const now = performance.now()
   const c   = fighter.controls
@@ -12738,7 +12759,7 @@ function updateMovementInput(fighter) {
   }
   if (isMr(fighter)) { const raw=readRawControls(fighter)||{}; inputState.jump=!!raw.jump; inputState._noJumpUp=!raw.jump; inputState.light=!!raw.light; inputState.heavy=!!raw.heavy } // fresh jump releases, shared physics
   if (isKrybot(fighter) && fighter.attacking) inputState.block = false
-  if (kevinLocked(fighter) || mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || gsLockedForMovement(fighter) || sksLockedForMovement(fighter) || omvLockedForMovement(fighter) || syndromeLocked(fighter, readRawControls(fighter)) || dseylLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || enochLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
+  if (kevinLocked(fighter) || mrLocked(fighter,readRawControls(fighter)) || krybotLocked(fighter) || spdBlueLocked(fighter) || spdGreenLocked(fighter) || dashParrLocked(fighter) || spdPinkLocked(fighter) || mmprBlackLocked(fighter, readRawControls(fighter)) || greenLocked(fighter) || mmprWhiteLocked(fighter, readRawControls(fighter)) || mmprPinkLocked(fighter, readRawControls(fighter)) || spdYellowLocked(fighter, readRawControls(fighter)) || cyborgLocked(fighter, readRawControls(fighter)) || beastBoyLocked(fighter, readRawControls(fighter)) || ravenLocked(fighter, readRawControls(fighter)) || starfireLocked(fighter, readRawControls(fighter)) || robinLocked(fighter, readRawControls(fighter)) || megumiLocked(fighter, readRawControls(fighter)) || higurumaLocked(fighter, readRawControls(fighter)) || gsLockedForMovement(fighter) || invLockedForMovement(fighter) || sksLockedForMovement(fighter) || omvLockedForMovement(fighter) || syndromeLocked(fighter, readRawControls(fighter)) || dseylLocked(fighter, readRawControls(fighter)) || frozoneLocked(fighter, readRawControls(fighter)) || enochLocked(fighter, readRawControls(fighter)) || batmanLocked(fighter, readRawControls(fighter)) || elastigirlLocked(fighter, readRawControls(fighter)) || violetLocked(fighter, readRawControls(fighter)) || teleportTick) {
     fighter.isBlocking = false; fighter.isCharging = false
     // No steering/jump/guard during committed attacks. Shared physics still
     // integrates velocity and bounds; the character timeline owns that velocity.
@@ -12848,7 +12869,7 @@ function updateMovementInput(fighter) {
   if ((inputState.block || fighter._forceGuard) && !(fighter._benPowerCommit > 0) && !fighter.isCharging && !fighter._flashTimeActive &&
       !fighter._noBlock &&   // Stage 24A "No Blocking" modifier — guard input is ignored
       !(fighter.omnitrix?.formState?.noBlock && benReadyForm(fighter)) &&   // READY Omnitrix form that can't guard right now (Ghostfreak while phased); null for everyone else
-      !fighter._n7KCMNoBlock &&   // Naruto (Seventh) KCM: pure offense — no guard while golden
+      !fighter._n7KCMNoBlock && !fighter._invNoBlock &&   // Naruto (Seventh) KCM: pure offense — no guard while golden
       !fighter._flightActive && !isOmniManForcedDescent(fighter) && !omvNoBlock(fighter)) fighter.isBlocking = true   // omvNoBlock: Omni-Man (Viltrumite) can't guard above 40 % flight speed
   // FLAWLESS BLOCK support: count how many CONSECUTIVE frames this guard has been held (0 when not
   // guarding). A fresh guard reads 1 on its first frame → combat.isFlawlessBlock() treats a hit within
@@ -13145,6 +13166,8 @@ function _updatePlayerCombatBody(fighter) {
   playGsCues(fighter)
   tickSks(fighter,getOpponent(fighter),readRawControls(fighter)||{},SUKUNA_SHINJUKU_WORLD)
   playSksCues(fighter)
+  tickInv(fighter,getOpponent(fighter),readRawControls(fighter)||{},INVINCIBLE_WORLD)
+  playInvCues(fighter)
   tickOmv(fighter,getOpponent(fighter),readRawControls(fighter)||{},OMNIMAN_VILTRUM_WORLD)
   playOmvCues(fighter, camera)
   tickSyndrome(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD)
@@ -13423,6 +13446,10 @@ function _updatePlayerCombatBody(fighter) {
   }
   if (isSks(fighter)) {   // Ryomen Sukuna (Shinjuku) command layer: 'consumed' | 'grab'
     const mc=updateSksCommandCombat(fighter,inputState,getOpponent(fighter),SUKUNA_SHINJUKU_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isInv(fighter)) {   // Invincible (Mark Grayson) command layer: 'consumed' | 'grab'
+    const mc=updateInvCommandCombat(fighter,inputState,getOpponent(fighter),INVINCIBLE_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
   if (isOmv(fighter)) {   // Omni-Man (Viltrumite) command layer: 'consumed' | 'grab'
@@ -21755,6 +21782,7 @@ function resetTraining() {
     clearHiguruma(f)
     clearGs(f); clearGsMarks(f)
     clearSks(f); clearSksMarks(f)
+    clearInv(f); clearInvMarks(f)
     clearOmv(f); clearOmvMarks(f)
     clearSyndrome(f,SYNDROME_WORLD)
     clearDseyl(f,SYNDROME_WORLD)
@@ -21932,7 +21960,7 @@ function checkRoundEnd() {
   if (_roundOver) for (const f of [p1,p2]) { clearKevin(f,KEVIN_WORLD);kevinVisual(f) }
   if (_roundOver) { clearDashParr(p1);clearDashParr(p2) }
   if (_roundOver) { clearSpdPink(p1,SPD_BLUE_WORLD);clearSpdPink(p2,SPD_BLUE_WORLD) }
-  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearSks(p1);clearSks(p2);clearOmv(p1);clearOmv(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) ;clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2) }
+  if (_roundOver) { clearMmprBlack(p1,MMPR_BLACK_WORLD);clearMmprBlack(p2,MMPR_BLACK_WORLD);clearGreen(p1,GREEN_RANGER_WORLD);clearGreen(p2,GREEN_RANGER_WORLD);clearMmprWhite(p1,MMPR_WHITE_WORLD);clearMmprWhite(p2,MMPR_WHITE_WORLD);clearMmprPink(p1,MMPR_PINK_WORLD);clearMmprPink(p2,MMPR_PINK_WORLD);clearSpdYellow(p1,SPD_YELLOW_WORLD);clearSpdYellow(p2,SPD_YELLOW_WORLD);clearCyborg(p1,CYBORG_WORLD);clearCyborg(p2,CYBORG_WORLD);clearBeastBoy(p1);clearBeastBoy(p2);clearRaven(p1,RAVEN_WORLD);clearRaven(p2,RAVEN_WORLD);clearStarfire(p1,STARFIRE_WORLD);clearStarfire(p2,STARFIRE_WORLD);clearRobin(p1,ROBIN_WORLD);clearRobin(p2,ROBIN_WORLD);clearMegumi(p1,MEGUMI_WORLD);clearMegumi(p2,MEGUMI_WORLD);clearHiguruma(p1);clearHiguruma(p2);clearGs(p1);clearGs(p2);clearInv(p1);clearInv(p2);clearSks(p1);clearSks(p2);clearOmv(p1);clearOmv(p2);clearSyndrome(p1,SYNDROME_WORLD);clearSyndrome(p2,SYNDROME_WORLD);clearDseyl(p1,SYNDROME_WORLD);clearDseyl(p2,SYNDROME_WORLD);clearFrozone(p1,FROZONE_WORLD);clearFrozone(p2,FROZONE_WORLD);clearEnoch(p1,ENOCH_WORLD);clearEnoch(p2,ENOCH_WORLD);clearBatman(p1);clearBatman(p2);clearViolet(p1);clearViolet(p2);clearElastigirl(p1);clearElastigirl(p2) ;clearMr(p1,p2);clearMr(p2,p1);mrVisual(p1);mrVisual(p2) }
   if (_roundOver && !_roundEndAudioStopped) { sound.stopAllSfx?.(); _roundEndAudioStopped = true }
   if (roundTimer <= 0) {
     const p1h = p1?.health || 0, p2h = p2?.health || 0
@@ -23188,7 +23216,7 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (fighter._invAlpha ?? 1) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (_ssA === 0 && (dashParrBodyAlpha(fighter) === 0 || ninjaBodyAlpha(fighter) === 0)) { c.beginPath(); c.rect(0, 0, 0, 0); c.clip() }   // Dash: body fully hidden while Laps / Incredi-Rush draw him at render offsets (the sprite's tint + transition-ghost passes reset globalAlpha)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
@@ -23261,6 +23289,7 @@ function renderHybridFighter(fighter) {
     drawHigurumaFx(c, fighter)   // Higuruma — Case File marks, PRECEDENT, OBJECTION, Order-in-the-Court dust ring, sword stroke, skin material (render-only; higuruma only)
     drawGsFx(c, fighter, matchConfig.mode === "training")   // Satoru Gojo (Shinjuku) — Blue / Red / Purple, chant captions, nosebleed; Infinity draws NOTHING (training debug ring only) (render-only; gated)
     drawSksFx(c, fighter); drawSksBurn(c, fighter, _replayFrame)   // Ryomen Sukuna (Shinjuku) — cuts, Fuga, web crack, fire patches, World Slash, Amplification outline, chant captions, bubbles; Fuga burn embers on any fighter (render-only; gated)
+    drawInvFx(c, fighter)   // Invincible — sheet effect strips, Terminal Velocity glint / marker / cracks, Resolve aura, bubbles (render-only; gated)
     drawOmvFx(c, fighter)   // Omni-Man (Viltrumite) — speed lines, afterimage trail, sonic boom, crash / landing bursts, bubbles (render-only; gated)
     drawBatmanFx(c, fighter)   // Batman — support fleet, payloads, batarang / grapnel lines, smoke, bracket, explosions, KNIGHTFALL aircraft (render-only; batman only)
     drawVioletFx(c, fighter)   // Violet Parr — push ring, dome, shell, trap bubble + telegraph, FULL FORCE (render-only; violet only)
@@ -25211,6 +25240,7 @@ function drawBattleHud() {
   drawHigurumaHud(ctx, canvas, p1, p2)   // Higuruma: Case File marks + PRECEDENT under his health; Deadly Sentencing captions / CASE REVIEW / portrait cut-in (gated)
   drawGsHud(ctx, canvas, p1, p2)   // Satoru Gojo (Shinjuku): CE bar (Infinity's only tell), Void cooldown, burnout, FBE / RCT cooldowns (gated)
   drawSksHud(ctx, canvas, p1, p2)   // Ryomen Sukuna (Shinjuku): Amplification / cooldown, Empowered Fuga window, burnout (gated)
+  drawInvHud(ctx, canvas, p1, p2)   // Invincible: Resolve / Can't Stay Down / zip charges (gated)
   drawOmvHud(ctx, canvas, p1, p2)   // Omni-Man (Viltrumite): speed meter, BRAKE / COMMITTED, Unimpressed cooldown (gated)
   drawSyndromeHud(ctx, canvas, p1, p2)   // Syndrome: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
   drawDseylHud(ctx, canvas, p1, p2)   // Dseyl: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
@@ -29169,6 +29199,7 @@ gameLoop()
     higurumaTest: higurumaHarnessApi({p1:()=>p1,p2:()=>p2,world:HIGURUMA_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     gojoShinjukuTest: gojoShinjukuHarnessApi({p1:()=>p1,p2:()=>p2,world:GOJO_SHINJUKU_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     sukunaShinjukuTest: sukunaShinjukuHarnessApi({p1:()=>p1,p2:()=>p2,world:SUKUNA_SHINJUKU_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    invincibleTest: invincibleHarnessApi({p1:()=>p1,p2:()=>p2,world:INVINCIBLE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     omnimanViltrumTest: omnimanViltrumHarnessApi({p1:()=>p1,p2:()=>p2,world:OMNIMAN_VILTRUM_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     syndromeTest: syndromeHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     dseylTest: dseylHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),

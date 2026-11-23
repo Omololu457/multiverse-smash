@@ -1,0 +1,90 @@
+{
+ "pass": 12,
+ "fail": 0,
+ "report": {
+  "homelander": {
+   "hash": "fbd26cfc9c32196c",
+   "used": {
+    "jabs": 4,
+    "ipunch": 10,
+    "zips": 6,
+    "nhb": 2,
+    "tv": 2,
+    "crash": 1,
+    "skyward": 0,
+    "booms": 0,
+    "takeoffPush": 0
+   },
+   "p1": [
+    1317,
+    -157.35000000000005,
+    716,
+    13.480000000000354,
+    "invincible"
+   ],
+   "p2": [
+    1225,
+    -165,
+    180,
+    45.480000000000466,
+    "homelander"
+   ]
+  },
+  "gojo_shinjuku": {
+   "hash": "55d5d5311c8e2473",
+   "used": {
+    "jabs": 0,
+    "ipunch": 12,
+    "zips": 6,
+    "nhb": 1,
+    "tv": 2,
+    "crash": 1,
+    "skyward": 0,
+    "booms": 0,
+    "takeoffPush": 0
+   },
+   "p1": [
+    1297.2115000046283,
+    400,
+    748,
+    75.78000000000014,
+    "invincible"
+   ],
+   "p2": [
+    1233.2115000046283,
+    384.25,
+    529,
+    183.78000000000128,
+    "gojo_shinjuku"
+   ]
+  },
+  "sukuna_shinjuku": {
+   "hash": "6c9e88f110bf092a",
+   "used": {
+    "jabs": 0,
+    "ipunch": 10,
+    "zips": 0,
+    "nhb": 1,
+    "tv": 2,
+    "crash": 2,
+    "skyward": 0,
+    "booms": 0,
+    "takeoffPush": 0
+   },
+   "p1": [
+    1332.524258483623,
+    400,
+    546,
+    108.96000000000083,
+    "invincible"
+   ],
+   "p2": [
+    1253.2180362500012,
+    400,
+    366,
+    62.96000000000106,
+    "sukuna_shinjuku"
+   ]
+  }
+ }
+}

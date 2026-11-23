@@ -134,7 +134,7 @@ export const physics = {
     //     to raw-scale values (Godspeed 120→cap 9.5, Gon-adult 40→floor 4.5 "lumber"), plus the low
     //     placeholders (Ben10 human 5, Morty 72) which would otherwise go negative / below-floor.
     const kevinSpeed = fighter.rosterKey === "kevin_levin" && fighter._kevin?.formUntil > 0 ? 1.12 : 1
-    const speed = kevinSpeed * (fighter.rosterKey === "mr_incredible" && fighter._mrIncredible?.remaining > 0 ? (fighter.onGround ? 1.15 : 1.10) : 1) * ((["ben10", "albedo"].includes(fighter.rosterKey) && Number.isFinite(fighter._benWalkSpeed)) ? fighter._benWalkSpeed : clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5)) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1) * _benSlowK * (fighter._sksSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA Ryomen Sukuna (Shinjuku) ×1.5 (1 for everyone else) · Mr. Incredible boost × (Ben 10 human walk | the speed-tier band) × Clockwork Time Ray × Ben-form slow (1 unless stamped)
+    const speed = kevinSpeed * (fighter.rosterKey === "mr_incredible" && fighter._mrIncredible?.remaining > 0 ? (fighter.onGround ? 1.15 : 1.10) : 1) * ((["ben10", "albedo"].includes(fighter.rosterKey) && Number.isFinite(fighter._benWalkSpeed)) ? fighter._benWalkSpeed : clamp(4.5 + (rawSpeed - 78) / 20 * 5, 4.5, 9.5)) * ((fighter._timeSlowTimer > 0) ? 0.5 : 1) * _benSlowK * (fighter._sksSpeed || 1) * (fighter._invSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA Ryomen Sukuna (Shinjuku) ×1.5 (1 for everyone else) · Mr. Incredible boost × (Ben 10 human walk | the speed-tier band) × Clockwork Time Ray × Ben-form slow (1 unless stamped)
 
     const defaults = {
       vx: 0, vy: 0,
@@ -293,7 +293,7 @@ export const physics = {
 
       if (!air && fighter.dashTimer > 0) {
         fighter.dashTimer--
-        const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter) * _benSlowK * (fighter._sksSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA ×1.5 · Arlong swim-dash ×1.25 (1 for everyone else) × Ben-form slow (1 unless stamped)
+        const dashSpeed = clamp((fighter.dashSpeed || 14) * 0.55, 8, 16) * arlongDashMul(fighter) * dashParrWalkMul(fighter) * elDashMul(fighter) * _benSlowK * (fighter._sksSpeed || 1) * (fighter._invSpeed || 1)   // ×_sksSpeed: MSV1-SUKUNA ×1.5 · Arlong swim-dash ×1.25 (1 for everyone else) × Ben-form slow (1 unless stamped)
         fighter.vx = fighter._backDash ? -(fighter.facing || 1) * dashSpeed * BACKDASH.speedMul : (fighter.facing || 1) * dashSpeed
         fighter.vy = 0
         if (fighter.dashTimer <= 0) fighter._backDash = false

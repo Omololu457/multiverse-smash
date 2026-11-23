@@ -1,0 +1,121 @@
+{
+ "pass": 40,
+ "fail": 0,
+ "report": {
+  "numbers": {
+   "maxHp": 748,
+   "maxEnergy": 200,
+   "runPxf": 16.129,
+   "speedMul": 1.4763,
+   "top": 51.48,
+   "run": {
+    "pxf": 16.129
+   }
+  },
+  "flight": {
+   "top": {
+    "top": 51.48,
+    "framesToTop": 21,
+    "boomAt": 19
+   },
+   "stop": 3,
+   "turn": 1,
+   "takeoff": {
+    "dealt": 15
+   }
+  },
+  "normals": {
+   "Jab (Light)": {
+    "dealt": 42,
+    "firstHitFrame": 3
+   },
+   "Straight (Heavy)": {
+    "dealt": 72,
+    "firstHitFrame": 6
+   },
+   "Uppercut (Up-Attack)": {
+    "dealt": 88,
+    "firstHitFrame": 7
+   },
+   "Sweep (↓ + Light)": {
+    "dealt": 52,
+    "firstHitFrame": 5
+   },
+   "Spin kick (→ + Heavy)": {
+    "dealt": 78,
+    "firstHitFrame": 8
+   },
+   "Rising kick (↓ + Heavy)": {
+    "dealt": 70,
+    "firstHitFrame": 6
+   },
+   "barrage": {
+    "hits": 6,
+    "launch": 1,
+    "dealt": 96
+   },
+   "flightPunch": {
+    "dealt": 92
+   }
+  },
+  "specials": {
+   "ipunch": {
+    "dealt": 110,
+    "travelled": 596,
+    "hits": 1
+   },
+   "wallBounce": {
+    "wb": true,
+    "foeX": 1560
+   },
+   "whiff": {
+    "total": 22
+   },
+   "skyward": {
+    "dealt": 95,
+    "hits": 1,
+    "flight": true
+   },
+   "zip": {
+    "from": 799,
+    "to": 1375,
+    "planned": 576
+   },
+   "zipProj": {
+    "hp0": 748,
+    "hp1": 748,
+    "phased": 4
+   },
+   "crash": {
+    "dealt": 70,
+    "hits": 1
+   }
+  },
+  "passive": {
+   "sayAtCsd": "Not yet.",
+   "csd": {
+    "hpAfterHit": 1,
+    "hp": 1,
+    "kd": true,
+    "resolve": 360,
+    "used": true,
+    "say": "Not yet."
+   }
+  },
+  "super": {
+   "nhb": {
+    "dealt": 300,
+    "hits": 6,
+    "energy": 132.66000000000025
+   }
+  },
+  "ult": {
+   "tv": {
+    "dealt": 380,
+    "direct": 1,
+    "marker": 1590,
+    "alpha0": true
+   }
+  }
+ }
+}

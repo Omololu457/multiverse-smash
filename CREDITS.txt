@@ -36,6 +36,11 @@ Omni-Man (Nolan Grayson, Invincible) sprites by imhomiejaydev
   omni_man_sprites_reupload_from_my_lost_acc__by_imhomiejaydev_deqbeyy.png)
 Source files: assets/omniman_viltrum/**  (ledger: docs/msv1/omniman/LEDGER.md)
 
+Invincible sprites by JustOruma (SWL+)
+  (the new `invincible` fighter, Mark Grayson; supplied sheet
+  invencible_swl_2v_sprite_sheet__by_sayangoku2_dholu2v.png)
+Source files: assets/invincible/**  (ledger: docs/msv1/invincible/LEDGER.md)
+
 This is a non-commercial personal fan project. All characters and source
 material are the property of their respective creators and rights holders.
 

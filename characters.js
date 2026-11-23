@@ -22,6 +22,7 @@ import { megumi_fushiguro } from './megumiData.js'   // Megumi Fushiguro (Jujuts
 import { higuruma } from './higurumaData.js'   // Hiromi Higuruma (Jujutsu Kaisen, supplied sheet by Mugen Matias) — higuruma*.js
 import { gojo_shinjuku } from './gojoShinjukuData.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc, FinhJ sheet) — a NEW fighter beside the old `gojo` (untouched); gojoShinjuku*.js + limitless.js
 import { sukuna_shinjuku } from './sukunaShinjukuData.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) — a NEW fighter beside the old `sukuna` (untouched); sukunaShinjuku*.js
+import { invincible } from './invincibleData.js'   // MSV1-INVINCIBLE Invincible (Mark Grayson) — a NEW fighter, universe invincible beside Omni-Man; invincible*.js
 import { omniman_viltrum } from './omnimanViltrumData.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) — a NEW fighter beside the old `omniman` (untouched); omnimanViltrum*.js
 import { syndrome } from './syndromeData.js'   // Syndrome (The Incredibles, GBA sheets) — syndrome*.js
 import { dseyl } from './dseylData.js'   // Dseyl (tribute fighter: edited copy of Syndrome + flight + Flash Time) — dseyl*.js
@@ -11458,7 +11459,7 @@ export const characters = {
   rick, morty, evilMorty, rickPrime,
   beerus,
   ben10, albedo, kevin_levin,
-  omniman: omniMan, omniman_viltrum,   // omniman_viltrum: MSV1-OMNIMAN
+  omniman: omniMan, invincible, omniman_viltrum,   // omniman_viltrum: MSV1-OMNIMAN
   omega_ranger: omegaRanger,
   samurai_red_ranger: samuraiRedRanger,
   gold_samurai_ranger: goldSamuraiRanger,

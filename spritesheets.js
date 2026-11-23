@@ -71,6 +71,7 @@ export const SPRITE_MANIFEST = {
   gojo_shinjuku: { actions: { idle: './assets/gojo_shinjuku/idle.png' } },
   sukuna_shinjuku: { actions: { idle: './assets/sukuna_shinjuku/idle.png' } },
   omniman_viltrum: { actions: { idle: './assets/omniman_viltrum/idle.png' } },
+  invincible: { actions: { idle: './assets/invincible/idle.png' } },
   syndrome: { actions: { idle: './assets/syndrome/idle.png' } },
   dseyl: { actions: { idle: './assets/dseyl/idle.png' } },
   frozone: { actions: { idle: './assets/frozone/idle.png' } },

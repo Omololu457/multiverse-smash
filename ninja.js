@@ -63,9 +63,12 @@ export function registerNinjaProfile(id, p = {}) {
 export const getNinjaProfile = f => NINJA_PROFILES[typeof f === 'string' ? f : f?.rosterKey] || null
 export const isNinja = f => !!getNinjaProfile(f)
 // MSV1-MERGE: multi-form characters (nsDuo.js registers; null = no duo hooks → every path below is unchanged)
-let _duo = null
-export function registerDuo(h) { _duo = h }
-export const duoCommand = (f, s, opp, raw) => (f?._duo && _duo ? _duo.command(f, s, opp, raw) : false)
+// one registry entry per multi-form character, keyed by its id (windrangers = nsDuo.js, ns_trio = nsTrio.js); a fighter's
+// hooks are the entry of ITS OWN f._duo.id — so each character runs exactly its own code
+const _duos = {}
+export function registerDuo(h) { _duos[h.id] = h }
+const duoOf = f => (f?._duo ? _duos[f._duo.id] : null) || null
+export const duoCommand = (f, s, opp, raw) => { const h = duoOf(f); return h ? h.command(f, s, opp, raw) : false }
 
 // ── helpers ───────────────────────────────────────────────────────────────────────────────────────────────────────
 export const ctrX = f => (f.x || 0) + (f.w || 48) / 2
@@ -110,7 +113,7 @@ export function clearNinja(f) {
 // Round reset: the engine's generic stat pass leaves custom fighters at speed 84 / dash 16 — every bespoke kit restores its
 // own stats here (S.P.D. Red: spdRedRoundReset). profile.stats = the roster stats (nsData attaches them).
 export function ninjaRoundReset(f) {
-  _duo?.roundReset(f)   // MSV1-MERGE: a duo becomes its start form first
+  ;(f?._duo ? _duos[f._duo.id] : _duos[f?.rosterKey])?.roundReset(f)   // MSV1-MERGE: a duo becomes its start form first
   if (!isNinja(f)) return
   clearNinja(f); const p = getNinjaProfile(f); f._nsBaseSpeed = null
   const st = p?.stats
@@ -153,7 +156,7 @@ export function registerNinjaStartMove(fn) { _startMove = fn }
 let _proj = null
 export function registerNinjaProjectiles(p) { _proj = p }
 export function nsStartMove(f, key, extra = {}) {
-  const p = getNinjaProfile(f), md = p?.moves[key] || (f._duo && _duo?.moves[key]); if (!md || !_startMove) return false
+  const p = getNinjaProfile(f), md = p?.moves[key] || duoOf(f)?.moves[key]; if (!md || !_startMove) return false
   if (f.attacking) { f.attacking = false; f.currentAttack = null; f.currentMove = null }
   f.attackCooldown = 0
   if (!_startMove(f, key, md)) return false
@@ -166,7 +169,7 @@ export function nsStartMove(f, key, extra = {}) {
   if (md.isSpecial || md.isUltimate) { f.isBlocking = false; if (grounded(f)) f.vx = 0 }
   const s = f._ninja
   if (s && md.isSpecial && s.rev.pips && p.rev) { a.nj.rev = s.rev.pips; s.rev.pips = 0; s.rev.t = 0 }   // REV: the next special spends every pip
-  if (f._duo) _duo?.onStart(f, a, md)   // MSV1-MERGE: tag bonus
+  duoOf(f)?.onStart(f, a, md)   // MSV1-MERGE: tag bonus
   return true
 }
 export const endMove = f => { f.attacking = false; f.currentAttack = null; f.currentMove = null; f._rooted = false }
@@ -593,7 +596,7 @@ export function placeTrap(f, x) {
   cue(f, 'trapSet')
 }
 function stepTraps(f, opp, s, p) {
-  const T = p.traps || (f._duo && _duo?.traps(f)); if (!T || !s.traps.length) return   // a duo's traps outlive the swap
+  const T = p.traps || duoOf(f)?.traps(f); if (!T || !s.traps.length) return   // a duo's traps outlive the swap
   for (const t of s.traps) {
     t.life--; t.armed++
     if (opp && opp.health > 0 && grounded(opp) && t.armed > 10 && Math.abs(ctrX(opp) - t.x) < (T.radius || 26) && !(opp.invulnTimer > 0)) {
@@ -639,7 +642,7 @@ function stepAirSpeed(f, s, p) {
 
 // ── MAIN TICK (once per sim frame, before the command layer and updateCombat) ───────────────────────────────────
 export function tickNinja(f, opp, raw = {}, W = null) {
-  if (f?.rosterKey === 'windrangers' && _duo) { setNinjaWorld(W); _duo.ensure(f) }   // MSV1-MERGE: a path that skipped the round reset
+  if (_duos[f?.rosterKey]) { setNinjaWorld(W); _duos[f.rosterKey].ensure(f) }   // MSV1-MERGE: a path that skipped the round reset
   if (!isNinja(f)) { if (f?._ninja) clearNinja(f); return }
   setNinjaWorld(W)
   { const st = getNinjaProfile(f)?.stats   // the engine's generic stat pass leaves bespoke fighters at 84 / 16 → restore (Robin / Batman / Elastigirl pattern)
@@ -649,7 +652,7 @@ export function tickNinja(f, opp, raw = {}, W = null) {
   const tok = dirToken(raw, f.facing || 1), last = s.dirs[s.dirs.length - 1]
   for (const k of BUTTONS) { const v = !!raw[k]; if (v && !s.prev[k]) { s.edgeAt[k] = s.tick; s.edgeClk[k] = s.clock; s.edgeDir[k] = tok } s.prev[k] = v }
   if (!last || last[0] !== tok) { s.dirs.push([tok, s.tick]); if (s.dirs.length > 24) s.dirs.shift() }
-  if (f._duo) _duo?.input(f, raw)   // MSV1-MERGE: the Ben 10 ↓↓ + button detector (sim frames)
+  duoOf(f)?.input(f, raw)   // MSV1-MERGE: the Ben 10 ↓↓ + button detector (sim frames)
   // the Ranger framework: SAME double-tap detector as S.P.D. Red (12-tick window, diagonal rule), blink vetoed
   const r = ensureRangerState(f); if (r) r.blinkVeto = true
   if (f.health > 0) tickRanger(f, opp, raw, W)
@@ -676,7 +679,7 @@ export function tickNinja(f, opp, raw = {}, W = null) {
   stepShots(f, opp, s)
   stepBounce(f, opp, s)
   stepQuotes(f, opp, s, p)
-  if (f._duo) _duo?.tick(f, opp, s)   // MSV1-MERGE: swap request / cooldown / tag bonus timer
+  duoOf(f)?.tick(f, opp, s)   // MSV1-MERGE: swap request / cooldown / tag bonus timer
   p.ext?.tick?.(f, opp, s, raw, NINJA_API)   // NS CGPT: profile ext (clone / step charges / fault markers); no-op without ext
   if (opp?._nsWallBounce > 0) { opp._nsWallBounce--; const sw = stageW(); if ((opp.x <= 2 || opp.x >= sw - (opp.w || 48) - 2) && opp.vx) { opp.vx = -opp.vx * 0.6; opp.vy = Math.min(opp.vy || 0, -8); opp._nsWallBounce = 0; burst(s, 'hit', ctrX(opp), ctrY(opp)); cue(f, 'impact') } }
   const a = f.attacking ? f.currentAttack : null
@@ -735,7 +738,7 @@ export function ninjaKnockback(attacker, defender) { const p = getNinjaProfile(d
 // game.js body alpha (render): hidden while underground / gone in the smoke
 export function ninjaBodyAlpha(f) {
   const s = f?._ninja; if (!s) return 1
-  if (f._duo) { const da = _duo?.alpha(f); if (da != null) return da }   // MSV1-MERGE: inside the swap smoke
+  if (f._duo) { const da = duoOf(f)?.alpha(f); if (da != null) return da }   // MSV1-MERGE: inside the swap smoke
   { const ea = getNinjaProfile(f)?.ext?.alpha?.(f); if (ea != null) return ea }   // NS CGPT: inside the clone-swap smoke
   if (isBurrowed(f)) return 0
   if (s.vanish && s.vanish.t > (getNinjaProfile(f)?.vanish?.pop || 6) && s.vanish.t <= (getNinjaProfile(f).vanish.pop + getNinjaProfile(f).vanish.gone)) return 0
@@ -785,7 +788,7 @@ function fireProj(f, s, a, P, i) {
   if (m && M.mode === 'echo') (m.shotQ ||= []).push({ at: s.clock + M.echoDelay, vx, vy, dmg: P.dmg, oy: P.oy ?? 58, ox: P.ox || 40, w, h, sprite: spr, dir })
 }
 function runMoveKind(f, opp, s, p, a, raw) {
-  const g = a.nj, t = elapsed(a), md = p.moves[a.name] || (f._duo && _duo?.moves[a.name]) || {}
+  const g = a.nj, t = elapsed(a), md = p.moves[a.name] || duoOf(f)?.moves[a.name] || {}
   if (g.hits) scriptedHits(f, opp, s, a, g.hits, t, g.fixedScale)
   if (g.selfVy != null && t === (g.riseAt ?? md.startup)) { f.vy = g.selfVy; f.onGround = false; f.grounded = false; f.y -= 2 }
   switch (g.kind) {
@@ -846,8 +849,8 @@ function runMoveKind(f, opp, s, p, a, raw) {
       }
       break
     }
-    case 'super': { const fn = p.supers[a.name] || (f._duo && _duo?.supers[a.name]); if (fn) fn(f, opp, s, a, t, NINJA_API); break }
-    default: if (f._duo) _duo?.run(f, opp, s, a, t)   // MSV1-MERGE: duo move kinds (the swap)
+    case 'super': { const fn = p.supers[a.name] || duoOf(f)?.supers[a.name]; if (fn) fn(f, opp, s, a, t, NINJA_API); break }
+    default: if (f._duo) duoOf(f)?.run(f, opp, s, a, t)   // MSV1-MERGE: duo move kinds (the swap)
       else p.ext?.run?.(f, opp, s, a, t, NINJA_API)   // NS CGPT: profile ext move kinds
   }
 }

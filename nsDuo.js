@@ -16,6 +16,10 @@ export const DUO_ID = 'windrangers'
 export const DUO_FORMS = ['ns_red', 'ns_yellow']
 const FORM_CHAR = { ns_red, ns_yellow }
 const other = form => form === 'ns_red' ? 'ns_yellow' : 'ns_red'
+// other multi-form characters (nsTrio.js) add their forms here so the shared render helpers below (smoke, partner
+// silhouette, HUD, preload) draw them too: forms → their character, partner(form) → the form shown behind / on the HUD
+const EXT_FORMS = {}, EXT_PARTNER = {}, EXT_PRELOAD = {}
+export function registerDuoForms(id, chars, partner) { Object.assign(EXT_FORMS, chars); for (const k of Object.keys(chars)) EXT_PARTNER[k] = partner; EXT_PRELOAD[id] = Object.keys(chars) }
 // Old ids → the duo, for SAVED SETTINGS (session restore). Replays / tests / ?p1= URLs keep the old id = the hidden form
 // character itself (bit-identical); see MERGE_DESIGN.md "Aliases".
 export const DUO_ALIASES = { ns_red: { key: DUO_ID, skin: 'default' }, ns_yellow: { key: DUO_ID, skin: 'default' } }   // owner (2026-11-19): always start as Red unless "Start as: Yellow" is picked
@@ -258,14 +262,14 @@ function alpha(f) {
 //    (replay / LAN identical). Prefers Shane vs an airborne / zoning foe, Dustin up close. Visible state only. ──
 const CPU_SEQ = 8
 export function duoAiInput(controller, f, opp, input) {
-  const d = f?._duo; if (!d || !input || controller?.difficulty === 'dummy') return input
+  const d = f?._duo; if (!d || d.id !== DUO_ID || !input || controller?.difficulty === 'dummy') return input
   const c = d.cpu || (d.cpu = { seq: 0, last: -1e9 })
   if (c.seq > 0) {
     const step = CPU_SEQ - c.seq; c.seq--   // Charge held throughout: ↓ ↓ · · ↓ ↓ J J, every step held 2 frames (inside Ben's 16 / 18-frame windows)
     for (const k of Object.keys(input)) input[k] = false
-    input.charge = true
+    input.toggle = true   // the AI's Charge key (game.js applyAIInput: toggle → controls.charge; it has no 'charge' / 'light' keys)
     if (step < 2 || step === 4 || step === 5) input.down = true
-    if (step >= 6) input.light = true
+    if (step >= 6) input.lightAttack = true
     return input
   }
   if (!opp || d.swap || d.cd > 0 || !grounded(f) || f.attacking || (f.hitstun || 0) > 0 || d.t - c.last < DUO.cpu.dwell) return input
@@ -278,13 +282,14 @@ export function duoAiInput(controller, f, opp, input) {
 }
 
 // render helpers (nsFx): a form's own strip for smoke that outlives the flip
-export const duoFormAnim = (form, key) => FORM_CHAR[form]?.animationData?.[key] || null
+export const duoFormAnim = (form, key) => (FORM_CHAR[form] || EXT_FORMS[form])?.animationData?.[key] || null
 export const duoFormProfile = form => getNinjaProfile(form)
-export const duoOther = other
-export function duoPreloadKeys(cfg) { const out = []; for (const k of [cfg?.p1CharKey, cfg?.p2CharKey]) if (k === DUO_ID) out.push(...DUO_FORMS); return out }
+export const duoOther = form => EXT_PARTNER[form] ? EXT_PARTNER[form](form) : other(form)
+export function duoPreloadKeys(cfg) { const out = []; for (const k of [cfg?.p1CharKey, cfg?.p2CharKey]) { if (k === DUO_ID) out.push(...DUO_FORMS); else if (EXT_PRELOAD[k]) out.push(...EXT_PRELOAD[k]) } return out }
+export const duoFormsOf = f => (f?._duo?.forms || DUO_FORMS)
 
 registerDuo({
-  roundReset, ensure, input, tick, command, onStart, alpha,
+  id: DUO_ID, roundReset, ensure, input, tick, command, onStart, alpha,
   moves: DUO_MOVES, supers: { sTag: stormAndStone },
   run: (f, opp, s, a, t) => { if (a.nj.kind === 'duoSwap') runSwap(f, opp, s, a, t) },
   traps: f => (f?._duo ? getNinjaProfile('ns_yellow')?.traps : null),   // Dustin's traps keep ticking after a swap (cross-form bait)

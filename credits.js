@@ -120,6 +120,9 @@ export const SOURCED_ART = {
   windrangers: { work: 'Ninja Storm Red + Yellow Rangers — Power Rangers Super Legends (DS)', artists: ['Grim (ripper, spritedatabase.net)'],
     source: 'Shane & Dustin plays the two MSV1 sheets (assets/ns_red, assets/ns_yellow); the select portrait is a composite of the two supplied portraits, no art invented.',
     files: ['assets/windrangers/*.png', 'assets/ns_red/*.png', 'assets/ns_yellow/*.png'] },   // MSV1-MERGE
+  ns_trio: { work: 'Ninja Storm Red Ranger — Power Rangers Super Legends (DS), recoloured as Tori (Blue Wind), Blake (Navy Thunder) and Cam (Green Samurai)', artists: ['Grim (ripper, spritedatabase.net)'],
+    source: 'The MSV1 Shane sheets (assets/ns_red) palette-recoloured per Ranger with the chest emblem redrawn inside the same pixels (tools/ns_trio/build_forms.py); geometry and alpha unchanged, no new art.',
+    files: ['assets/ns_trio/*.png', 'assets/ns_blue/*.png', 'assets/ns_navy/*.png', 'assets/ns_green/*.png'] },   // NS TRIO
   ns_red: { work: 'Ninja Storm Red Ranger — Power Rangers Super Legends (DS)', artists: ['Grim (ripper, spritedatabase.net)'],
     source: 'Supplied sheet (MSV1). Credit text block excluded from the game (docs/msv1/CREDITS.md); flat sea-green background keyed; original pixels, nearest-neighbour, no art invented.',
     files: ['assets/ns_red/*.png'] },

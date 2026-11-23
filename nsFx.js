@@ -8,7 +8,7 @@ import { sound } from './sound.js'
 import { triggerShake } from './effects.js'
 import { MSV1_CELL, MSV1_FX } from './msv1Sprites.js'
 import { getNinjaProfile, isNinja } from './ninja.js'
-import { duoFormAnim, duoFormProfile, duoOther, DUO } from './nsDuo.js'   // MSV1-MERGE: the duo's per-form smoke / HUD / intro (render-only)
+import { duoFormAnim, duoFormProfile, duoOther, duoFormsOf, DUO } from './nsDuo.js'   // MSV1-MERGE: the duo's per-form smoke / HUD / intro (render-only)
 import { drawCgptUnder, drawCgptFx } from './nsCgptFx.js'
 import { drawWrSkinFx, wrAfterimageFx, wrWindFx } from './windrangersSkinFx.js'   // windrangers skin pack (render-only)
 import { wrCloneAnim } from './windrangersSkins.js'   // NS CGPT (ninja_storm_cgpt only; render-only)
@@ -235,18 +235,18 @@ function drawDuoHud(ctx, f, x, y, w, o) {
   const lock = d.swap ? 1 : d.cd > 0 ? d.cd / 30 : 0
   if (lock > 0) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(px, py + S * (1 - Math.min(1, lock)), S, S * Math.min(1, lock)) }
   ctx.font = 'bold 7px Arial'; ctx.textAlign = 'center'; ctx.fillStyle = (f._ninja?.np || 0) >= 15 && !lock ? '#ffffff' : '#8a8f99'
-  ctx.fillText('P+↓↓+J', px + S / 2, py + S + 9)
+  ctx.fillText(d.hudLabel || 'P+↓↓+J', px + S / 2, py + S + 9)
   ctx.restore()
 }
 
 // ── presentation cues (sound + camera punch). Played and cleared by game.js right after tickNinja. ──
 export function playNinjaCues(f) {
   const q = f?._nsCues; if (!q) return
-  const key = f.rosterKey === 'ns_yellow' ? 'nsy_' : 'nsr_'
+  const key = f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'   // NS TRIO: Cam = the Earth-weight set
   for (const c of q) {
     if (c === 'shake') { if (!juiceSettings.reduceMotion) triggerShake(6, 18); continue }
     sound.play(key + c)
   }
   f._nsCues = null
 }
-export function preloadNinjaFx(f) { if (f?._duo) for (const k of ['ns_red', 'ns_yellow']) { image(`./assets/${k}/portrait_small.png`); for (const n of ['smoke', 'smokeFade', 'idle', 'superTornado']) { const A = duoFormAnim(k, n); if (A?.sheet) image(A.sheet) } } for (const A of Object.values(f?.animationData || {})) if (A?.sheet) image(A.sheet); for (const n of Object.keys(MSV1_FX)) image(`${f._nsAssetDir || './assets/' + f.rosterKey}/${n}.png`) }
+export function preloadNinjaFx(f) { if (f?._duo) for (const k of duoFormsOf(f)) { image(`./assets/${k}/portrait_small.png`); for (const n of ['smoke', 'smokeFade', 'idle', 'superTornado']) { const A = duoFormAnim(k, n); if (A?.sheet) image(A.sheet) } } for (const A of Object.values(f?.animationData || {})) if (A?.sheet) image(A.sheet); for (const n of Object.keys(MSV1_FX)) image(`${f._nsAssetDir || './assets/' + f.rosterKey}/${n}.png`) }

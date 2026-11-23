@@ -71,7 +71,7 @@ export const BLOOD_FLUID = {
   omega_ranger: 'ranger', samurai_red_ranger: 'ranger', gold_samurai_ranger: 'ranger', green_samurai_ranger: 'ranger',
   red_ranger_mmpr: 'ranger', spd_red: 'ranger', spd_blue: 'ranger', spd_green: 'ranger', spd_pink: 'ranger', spd_yellow: 'ranger',
   mmpr_pink: 'ranger', mmpr_black: 'ranger', mmpr_white: 'ranger', green_ranger: 'ranger',
-  ninja_storm_cgpt: 'ranger', ns_red: 'ranger', ns_yellow: 'ranger', windrangers: 'ranger', ninja_storm_rangers: 'ranger',
+  ninja_storm_cgpt: 'ranger', ns_red: 'ranger', ns_yellow: 'ranger', windrangers: 'ranger', ns_trio: 'ranger', ns_blue: 'ranger', ns_navy: 'ranger', ns_green: 'ranger', ninja_storm_rangers: 'ranger',
   // reanimated (Edo Tensei) body: cracks and flakes like dry paper / ash
   madara: 'crack:edo',
   // sand armour: crumbles
@@ -90,7 +90,7 @@ const FORM_FLUID = {
 // Young characters (the existing brutality CHILDREN rule): blood capped at Tier 2, no spray, no pooling.
 export const BLOOD_YOUNG = new Set(['ben10', 'albedo', 'saiki', 'nezuko', 'dash_parr', 'violet'])
 // Characters whose form art lives in another character's map (loaded alongside).
-const ALSO_MAPS = { albedo: ['ben10'], ns_red: ['windrangers'], ns_yellow: ['windrangers'] }   // Wind Rangers draw as their ns_red / ns_yellow form profiles
+const ALSO_MAPS = { albedo: ['ben10'], ns_red: ['windrangers'], ns_yellow: ['windrangers'], ns_blue: ['ns_trio'], ns_navy: ['ns_trio'], ns_green: ['ns_trio'] }   // Wind Rangers draw as their ns_red / ns_yellow form profiles
 
 export function bloodFluidOf(f) {
   if (!f) return 'none'

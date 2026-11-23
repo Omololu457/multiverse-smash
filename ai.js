@@ -20,6 +20,7 @@ import { templateForCharacter, applyTemplateToProfile } from "./aiTemplates.js" 
 import { aiPickDroneTarget } from "./drones.js"   // drone-hunting hook (opt-in per drone profile via aiPriority — Buggy's body parts)
 import { ninjaAiPerceive } from './ninja.js'   // MSV1 CPU vs the Ninja Mirror: guesses by the visible tell (difficulty-rated) else hash — never reads the identity
 import { cgptAiInput } from './nsCgpt.js'   // NS CGPT: the CPU summons / switches its shadow clone through the real Charge input
+import { trioAiInput } from './nsTrio.js'   // NS TRIO CPU form switch (real Charge + ↓↓ + J/K input)
 import { duoAiInput } from './nsDuo.js'   // MSV1-MERGE CPU form swap through the real ↓↓ + Grab input (visible state only)
 import { resetMaster } from './aiMaster.js'   // MASTER: scout-data layer (game.js _driveCpu) over the Impossible AI
 
@@ -1336,7 +1337,7 @@ export function updateAIController(controller, fighter, opponent, world = {}) {
 
 export function getAIInput(controller, fighter, opponent, world = {}) {
   opponent = ninjaAiPerceive(fighter, opponent, controller?.difficulty)   // MSV1 (the opponent itself unless it is a ninja with the Mirror up)
-  return cgptAiInput(controller, fighter, opponent, duoAiInput(controller, fighter, opponent, aiHuntDrones(controller, fighter, updateAIController(controller, fighter, opponent, world))))
+  return cgptAiInput(controller, fighter, opponent, trioAiInput(controller, fighter, opponent, duoAiInput(controller, fighter, opponent, aiHuntDrones(controller, fighter, updateAIController(controller, fighter, opponent, world)))))
 }
 
 // DRONE HUNT: ~25% of 8-frame windows (hash-decided in drones.aiPickDroneTarget — no RNG) the CPU goes after an

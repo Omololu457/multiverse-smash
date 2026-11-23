@@ -237,3 +237,5 @@ export const ns_yellow = roster('ns_yellow', {
 }, DUSTIN_MOVES, { dive: 'throwAir' })   // Ground Pound = the R20 air throw-down (Dustin has no air kunai, so the strip lives here)
 export const NS_MOVE_STRIP = MOVE_STRIP
 SHANE_PROFILE.stats = ns_red.stats; DUSTIN_PROFILE.stats = ns_yellow.stats   // ninjaRoundReset restores these (S.P.D. Red's tier)
+// NS TRIO (nsTrio.js): the Tori / Blake / Cam forms are built from the same helpers + MS_V1 data (read-only re-exports)
+export { n as nsN, sp as nsSp, FRAMEWORK as NS_FRAMEWORK, roster as nsRoster, SHANE_MOVES, DUSTIN_MOVES, GATLING as NS_GATLING, shaneNormal as nsNormal, SPD_RED_BLINK as NS_BLINK }

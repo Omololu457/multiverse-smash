@@ -19,6 +19,11 @@
    "Sunday at the Graysons'",
    "The First Issue",
    "Art Deco Express",
+   "Rescue Service Orange",
+   "Heavyweight Cornerman",
+   "Midnight Western",
+   "Porcelain Strongman",
+   "Earthrise",
    "Edo Tensei"
   ],
   "glitter": [
@@ -85,7 +90,7 @@
   ],
   "replayMeta": {
    "p1Char": "omniman_viltrum",
-   "p1Skin": "omv_artdeco"
+   "p1Skin": "omv_earthrise"
   },
   "trackedSkinFiles": 0,
   "diskSkinFiles": 1064

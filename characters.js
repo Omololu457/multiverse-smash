@@ -3556,7 +3556,7 @@ const albedo = {
 // Full movement/normals/flight/specials/ultimate land in Stages 1-5; stats are refined in Stage 1.
 // ─────────────────────────────────────────────────────────────────
 const omniMan = {
-  rosterKey: "omniman", name: "Omni-Man", universe: "invincible",
+  rosterKey: "omniman", name: "Omni-Man", universe: "dc", homeStage: "Viltrumite Warzone",   // Invincible universe folded into DC (user request); keeps his home stage
   portrait: "./omniman_portrait.png",   // character-select mugshot — cropped head+torso from the idle (no dedicated mugshot in the batch, Killua precedent); skins.js + ui.js read characters.omniman.portrait
   archetypes: ["melee", "flight"],
   primary: "melee", secondary: ["flight"],

@@ -137,7 +137,7 @@ export const INV_ANIMATION = {
 }
 
 export const invincible = {
-  rosterKey: INV_KEY, name: 'Invincible', displayName: 'Invincible', selectTag: 'Mark Grayson', universe: 'invincible',
+  rosterKey: INV_KEY, name: 'Invincible', displayName: 'Invincible', selectTag: 'Mark Grayson', universe: 'dc',   // the Invincible universe was folded into DC (user request)
   color: '#f4c430', series: 'Invincible', era: 'Mark Grayson, half-Viltrumite (sheet: JustOruma, SWL+)',
   tagline: 'Still standing.', introTitle: 'INVINCIBLE — MARK GRAYSON', archetype: 'Glass Cannon / Rushdown Flier', difficulty: 5,
   homeStage: 'Viltrumite Warzone',

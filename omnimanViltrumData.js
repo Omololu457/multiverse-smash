@@ -112,7 +112,7 @@ export const OMV_ANIMATION = {
 }
 
 export const omniman_viltrum = {
-  rosterKey: OMV_KEY, name: 'Omni-Man', displayName: 'Omni-Man', selectTag: 'Viltrumite', universe: 'invincible',
+  rosterKey: OMV_KEY, name: 'Omni-Man', displayName: 'Omni-Man', selectTag: 'Viltrumite', universe: 'dc',   // the Invincible universe was folded into DC (user request)
   color: '#d4141c', series: 'Invincible', era: 'Nolan Grayson (sheet: imhomiejaydev)',
   tagline: 'Think.', introTitle: 'OMNI-MAN — VILTRUMITE', archetype: 'Viltrumite / Momentum Brawler', difficulty: 5,
   homeStage: 'Viltrumite Warzone',

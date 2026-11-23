@@ -174,8 +174,16 @@ def frame_regions(rgb, alpha, strip='', fi=0, head_only=False):
         chest = None
     mask_m = np.zeros_like(on)
     for p in maskp: mask_m |= p['m']
-    reg[mask_m] = R['mask']
     chest_m = chest['m'] if chest else np.zeros_like(on)
+    if not head_only:
+        # the cowl and the chest panel drawn as ONE yellow piece (take-off / intro: the burst cuts the outline): whatever
+        # of it hangs well below the jaw is the chest
+        low = mask_m & (yy > hc[1] + hr * 1.25)
+        if low.sum() >= 6:
+            mask_m &= ~low; chest_m = chest_m | low
+            if chest is None:
+                ly, lx_ = np.nonzero(low); chest = dict(m=low, c=(lx_.mean(), ly.mean()), n=int(low.sum()))
+    reg[mask_m] = R['mask']
     reg[chest_m] = R['chest']
     tc = chest['c'] if chest else (hc[0], hc[1] + 12)
     gloves = np.zeros_like(on)

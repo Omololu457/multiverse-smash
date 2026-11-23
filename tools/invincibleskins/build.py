@@ -1004,8 +1004,7 @@ def portrait(A, sk):
 
 # ── effect sheets ────────────────────────────────────────────────────────────────────────────────────────────────────
 def build_fx(sk, d):
-    spec = sk.get('fx')
-    if not spec: return False
+    spec = sk.get('fx') or {}          # no spec: the effect colours stay, but the takeoff ring's body copy still wears the skin
     os.makedirs(d, exist_ok=True)
     for key in FX_KEYS:
         a = np.array(Image.open(os.path.join(SRC, 'fx', key + '.png')).convert('RGBA'))
@@ -1030,13 +1029,13 @@ def build_fx(sk, d):
                 out[(ye | bl) & (k == 0), :3] = ramp(OMV_VALKYRIE['cobalt'], tone[(ye | bl) & (k == 0)])
                 out[(ye | bl) & (k == 1), :3] = ramp(OMV_VALKYRIE['red'], tone[(ye | bl) & (k == 1)])
                 out[(ye | bl) & (k == 2), :3] = ramp(OMV_VALKYRIE['gold'], tone[(ye | bl) & (k == 2)])
-            else:
+            elif spec.get('streak'):
                 out[ye, :3] = ramp(spec['streak'][0], tone[ye]); out[bl, :3] = ramp(spec['streak'][1], tone[bl])
         elif key == 'vStreak':
             if spec.get('cmy'):
                 for j, c in enumerate(['#00a8d8', '#f0d020', '#e8308a']):
                     m = wh & (((lx + yy // 8) // 2) % 3 == j); out[m, :3] = hx(c)
-            else: out[wh, :3] = ramp(spec['streak'][0], tone[wh])
+            elif spec.get('streak'): out[wh, :3] = ramp(spec['streak'][0], tone[wh])
         else:
             cx, cy = fw / 2, H / 2
             if key == 'takeoffRing': cy = H - 6
@@ -1052,8 +1051,14 @@ def build_fx(sk, d):
             elif spec.get('cmy') and key in ('impact', 'bigBurst', 'sonicRing', 'zipRing'):
                 out[wh, :3] = hx('#f4ecd8'); edge = wh & ~np.roll(wh, 1, 1); out[edge, :3] = hx('#00a8d8')
                 edge2 = wh & ~np.roll(wh, -1, 0); out[edge2, :3] = hx('#e8308a')
-            else:
+            elif spec.get('ring'):
                 out[wh, :3] = ramp(spec['ring'], tone[wh])
+        if key == 'takeoffRing':
+            # this sheet carries a copy of his take-off body (pixel-identical to takeoff.png): it wears the skin's take-off frame
+            src_t = np.array(Image.open(os.path.join(SRC, 'takeoff.png')).convert('RGBA'))
+            sk_t = np.array(Image.open(os.path.join(OUT, sk['tag'], 'takeoff.png')).convert('RGBA'))
+            same = (a == src_t).all(-1) & (src_t[..., 3] > 0)
+            out[same] = sk_t[same]
         Image.fromarray(np.clip(np.round(out), 0, 255).astype(np.uint8)).save(os.path.join(d, key + '.png'), optimize=True)
     return True
 
@@ -1077,7 +1082,7 @@ def build(sk):
     out, _ = recolor_strip('portrait', im.width, 1, sk, 0, head_only=True)
     Image.fromarray(out).save(os.path.join(OUT, tag, 'portrait.png'), optimize=True)
     fxd = build_fx(sk, os.path.join(OUT, tag, 'fx'))
-    sk['_fx'] = fxd
+    sk['_fx'] = True
     REMOVALS[tag] = removed
     print(f'  built {tag:18s} {sk["name"]}  ({phases} phase{"s" if phases > 1 else ""}{", fx" if fxd else ""}'
           + (f', hair removed {sum(removed.values())} px' if removed else '') + ')')
@@ -1107,12 +1112,16 @@ def verify(sk):
     else:
         b = np.array(Image.open(p).convert('RGBA'))
         if a.shape != b.shape or not np.array_equal(a[..., 3], b[..., 3]): bad.append('portrait: size / alpha differs')
-    if sk.get('fx'):
-        for key in FX_KEYS:
-            a = np.array(Image.open(os.path.join(SRC, 'fx', key + '.png')).convert('RGBA')); p = os.path.join(OUT, tag, 'fx', key + '.png')
-            if not os.path.exists(p): bad.append(f'fx/{key} missing'); continue
-            b = np.array(Image.open(p).convert('RGBA'))
-            if a.shape != b.shape or not np.array_equal(a[..., 3], b[..., 3]): bad.append(f'fx/{key}: size / alpha differs')
+    for key in FX_KEYS:
+        a = np.array(Image.open(os.path.join(SRC, 'fx', key + '.png')).convert('RGBA')); p = os.path.join(OUT, tag, 'fx', key + '.png')
+        if not os.path.exists(p): bad.append(f'fx/{key} missing'); continue
+        b = np.array(Image.open(p).convert('RGBA'))
+        ok_a = a[..., 3] == b[..., 3]
+        if key == 'takeoffRing':   # only the body copy may lose alpha, exactly where the skin's take-off frame logged a hair removal
+            src_t = np.array(Image.open(os.path.join(SRC, 'takeoff.png')).convert('RGBA'))
+            sk_t = np.array(Image.open(os.path.join(OUT, tag, 'takeoff.png')).convert('RGBA'))
+            ok_a |= (a == src_t).all(-1) & (src_t[..., 3] > 0) & (sk_t[..., 3] == b[..., 3])
+        if a.shape != b.shape or not ok_a.all(): bad.append(f'fx/{key}: size / alpha differs')
     return bad
 
 
@@ -1166,7 +1175,6 @@ def write_table(tags):
         r = dict(tag=s['tag'], name=s['name'], classification=s['classification'])
         if s.get('glitter'): r['glitter'] = True
         if s.get('crossover'): r['crossover'] = s['crossover']
-        if not s.get('fx'): r['fx'] = False
         r['pal'] = s['pal']
         rows.append(r)
     body = ',\n'.join('  ' + json.dumps(r, ensure_ascii=False) for r in rows)

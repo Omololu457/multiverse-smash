@@ -14,6 +14,11 @@
    "Pink Viltrumite — Rose Standard",
    "Coronation",
    "Defector — Debbie's Repair",
+   "Alien X — Two Earths",
+   "Alien X — Observatory Glass",
+   "Glitter — Black Ice",
+   "Glitter — Roller Rink 1999",
+   "Winning Valkyrie — Launch Angle",
    "Edo Tensei"
   ],
   "glitter": [
@@ -80,9 +85,9 @@
   ],
   "replayMeta": {
    "p1Char": "invincible",
-   "p1Skin": "inv_defector"
+   "p1Skin": "inv_valkyrie"
   },
   "trackedSkinFiles": 0,
-  "diskSkinFiles": 430
+  "diskSkinFiles": 759
  }
 }

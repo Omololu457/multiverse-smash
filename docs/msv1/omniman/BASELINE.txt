@@ -1,4 +1,5 @@
-MSV1-OMNIMAN BASELINE — clean HEAD 3a3634e623a171cec47482b87aa353fca0022a9a (git archive of HEAD into a scratch tree; the main folder has other
+MSV1-OMNIMAN BASELINE — start commit 3a3634e62 (START_COMMIT.txt); the tests ran on a git-archive of 29d7cabb9 = start + one Sukuna commit
+from another session that landed seconds later (Mahoraga size; nothing Omni-Man touches). The main folder has other
 sessions' uncommitted edits to aiMaster.js / game.js / sukunaShinjuku*.js / tools/ai_scout + screenshots — not touched), 2026-11-22
 
 determinism.test         DETERMINISM (Stage 11A): 14 passed, 0 failed

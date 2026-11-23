@@ -31,6 +31,11 @@ Ryomen Sukuna (Shinjuku Arc) sprites credited on the supplied sheet to
   (gamedeveloperstudio.com); Fuga fire from boltanim's fire eruption / explosion / charge MUGEN effect sheets
 Source files: assets/sukuna_shinjuku/**  (ledger: docs/msv1/sukuna/LEDGER.md)
 
+Omni-Man (Nolan Grayson, Invincible) sprites by imhomiejaydev
+  (the new `omniman_viltrum` fighter; the old `omniman` is unchanged; supplied sheet
+  omni_man_sprites_reupload_from_my_lost_acc__by_imhomiejaydev_deqbeyy.png)
+Source files: assets/omniman_viltrum/**  (ledger: docs/msv1/omniman/LEDGER.md)
+
 This is a non-commercial personal fan project. All characters and source
 material are the property of their respective creators and rights holders.
 

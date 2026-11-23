@@ -66,6 +66,7 @@ export const EDO_SKIN_KEYS = Object.freeze([
   "ninja_storm_rangers",
   "obito",
   "omega_ranger",
+  "omniman_viltrum",
   "omololu",
   "pain",
   "raven",

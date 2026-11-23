@@ -327,8 +327,10 @@ function evTick(f, s, W, a, K) {
   const top = ev.floor - f.h - ESCAPE.rise   // he is untouchable through the gates (omvMeleeGate / omvProjectileGate / omvDamageGate), not invulnTimer (which flickers him white)
   const hit = (raw, extra = {}) => K.strike(f, tg, { raw, hitstun: 40, unblockable: true, noScale: true, noMeter: true, cine: true, domainOk: true, otg: true, dir: ev.dir, move: 'omv_escape_velocity', type: 'blunt', hitstop: 0, fx: 'hit', ...extra }, W)
   if (ev.ph === 'ascent') {
-    const k = ease(Math.min(1, ev.t / ESCAPE.ascent))
-    f.y = ev.y0 + (top - ev.y0) * k; f.vx = 0; f.vy = 0; f.onGround = false; f.grounded = false
+    // LAUNCH: straight up and off the top of the screen (stage still on) → CLIMB: the sky shot, up into frame from below
+    if (ev.t < ESCAPE.launch) { const k = Math.pow(ev.t / ESCAPE.launch, 2); f.y = ev.y0 + (ev.floor - f.h - ESCAPE.offTop - ev.y0) * k }
+    else { const k = 1 - Math.pow(1 - Math.min(1, (ev.t - ESCAPE.launch) / (ESCAPE.ascent - ESCAPE.launch)), 2); f.y = ev.floor + ESCAPE.offBottom + (top - ev.floor - ESCAPE.offBottom) * k }
+    f.vx = 0; f.vy = 0; f.onGround = false; f.grounded = false
     pinHeld(f, s, W, -20)
     const at = Math.floor(ev.t * ESCAPE.ticks / ESCAPE.ascent)
     while (ev.ticks < Math.min(ESCAPE.ticks, at)) { ev.ticks++; hit(ESCAPE.tickRaw); pinHeld(f, s, W, -20) }
@@ -343,8 +345,10 @@ function evTick(f, s, W, a, K) {
     return
   }
   if (ev.ph === 'ret') {
-    const k = Math.pow(Math.min(1, ev.t / ESCAPE.ret), 2.2)   // accelerating fall
-    f.y = top + (ev.floor - f.h - top) * k; f.vx = 0; f.vy = 0; pinHeld(f, s, W, 20)
+    // FALL: out the bottom of the sky shot → SLAM: the stage is back, he drops in from above the screen into the floor
+    if (ev.t < ESCAPE.fall) { const k = Math.pow(ev.t / ESCAPE.fall, 1.8); f.y = top + (ev.floor + ESCAPE.offBottom - top) * k }
+    else { const k = Math.pow(Math.min(1, (ev.t - ESCAPE.fall) / (ESCAPE.ret - ESCAPE.fall)), 2.2); f.y = ev.floor - f.h - ESCAPE.offTop + ESCAPE.offTop * k }
+    f.vx = 0; f.vy = 0; pinHeld(f, s, W, 20)
     f._spriteCastMove = 'omvReturn'; f._spriteCastTimer = 3
     if (ev.t >= ESCAPE.ret) {
       f.y = ev.floor - f.h; f.onGround = true; f.grounded = true

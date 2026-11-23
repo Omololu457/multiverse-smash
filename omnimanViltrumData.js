@@ -51,8 +51,12 @@ export const THINK = { cost: BAR, startup: 6, rushMax: 0.60, w: 70, h: 80, dragT
 export const ESCAPE = { cost: 100, ultCooldown: 1200,
   grab: 15, ascent: 96, orbit: 84, ret: 72, impact: 36, settle: 27,   // 0.25 / 1.6 / 1.4 / 1.2 / 0.6 / 0.45 s
   rush: 57.2, w: 72, h: 110, whiffRecovery: 40,
-  ticks: 10, tickRaw: 8, impactRaw: 340, rise: 300,                    // 10 × 8 on the way up, 340 on impact = 420
-  line: 'Look what they need to mimic a fraction of our power.', craterLife: 600 }
+  ticks: 10, tickRaw: 8, impactRaw: 340, rise: 40,                    // 10 × 8 on the way up, 340 on impact = 420
+  line: 'Look what they need to mimic a fraction of our power.', craterLife: 600,
+  // the CUTS: he first rockets straight up OFF THE TOP of the (held) camera with the stage still there (launch); only then
+  // does the shot cut to the sky — he climbs up into frame from below, into space. Coming home: he falls out the bottom
+  // of the sky shot (fall), then the stage is back and he drops in from above the screen into the floor (slam).
+  launch: 34, fall: 40, offTop: 1300, offBottom: 320 }
 export const TECHNIQUES = new Set(['kBlitz', 'kSkyHook', 'kMeteor', 'kDirt', 'kUnimp', 'kThink', 'kEscape'])
 
 export const QUOTES = { win: 'What will you have after five hundred years?', think: 'THINK!' }

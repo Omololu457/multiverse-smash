@@ -83,7 +83,7 @@ import { drawInvFx, drawInvHud, playInvCues } from './invincibleFx.js'
 import { invincibleHarnessApi } from './invincibleHarness.js'
 import { updateOmvCommandCombat } from './omnimanViltrum.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) — omniman_viltrum-gated command layer (the old `omniman` is untouched)
 import { tickOmv, isOmv, clearOmv, clearOmvMarks, omvLockedForMovement, markOmvCpu, omvNoBlock, omvOwnsCharge } from './omnimanViltrumState.js'
-import { drawOmvFx, drawOmvHud, drawOmvSky, playOmvCues } from './omnimanViltrumFx.js'
+import { drawOmvFx, drawOmvHud, drawOmvSky, playOmvCues, omvCameraHold } from './omnimanViltrumFx.js'
 import { omnimanViltrumHarnessApi } from './omnimanViltrumHarness.js'
 import { updateSyndromeCommandCombat } from './syndrome.js'   // Syndrome (The Incredibles) — syndrome-gated command layer
 import { tickSyndrome, isSyndrome, clearSyndrome, syndromeLocked, syndromeOwnsCharge, isSyndromeUltActive, updateSyndromeUlt, clearSyndromeUlt } from './syndromeState.js'
@@ -225,6 +225,7 @@ import {
 } from "./fighters.js"
 import { BEN10_ALIEN_REGISTRY, buildLoadout, makePlaceholder } from "./aliens.js"   // Phase 4: alien catalog of record
 import { camera } from "./camera.js"
+import { flyerIntroStart, flyerIntroFrames, updateFlyerIntro, finalizeFlyerIntro, flyerIntroReset, flyerIntroState, flyerIntroFxState, drawFlyerIntroUnder, drawFlyerIntroOver, drawFlyerIntroScreen } from "./flyerIntro.js"   // FLIGHT ENTRANCES (Omni-Man meteor, Invincible fly-by, Homelander heat vision, Superman sky, Starfire / Raven descend)
 import { drawLayeredStageFront } from "./stageLayers.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount, GLOBAL_SPRITE_SCALE } from "./sprite.js"
 import { loadSpriteSheets, getSpriteSheets, spritesReady } from "./spritesheets.js"
@@ -6012,6 +6013,7 @@ function initIntroVariant(fighter) {
     fighter.x = fighter.x - (fighter.facing || 1) * SHINOBU_GLIDEIN_DIST
   } else if (zoroIntroStart(fighter)) {   // RORONOA ZORO walk-in: stash home, start 220px behind (false → no-op for everyone else)
   } else if (sanjiIntroStart(fighter)) {   // SANJI pocket-stroll walk-in (false → no-op for everyone else)
+  } else if (flyerIntroStart(fighter)) {   // FLYERS: a flight entrance (flyerIntro.js; false → no-op for everyone else)
   } else {
     fighter._introHomeX = null
   }
@@ -6481,6 +6483,7 @@ let introStage = "done"
 let introStageTimer = 0
 function introTotalFrames(fighter) {
   if (!fighter) return 0
+  const _fly = flyerIntroFrames(fighter); if (_fly) return _fly   // flight entrance: its own fixed length
   const seq = fighter._introSeq
   const total = (Array.isArray(seq) && seq.length)
     ? seq.reduce((s, a) => s + introStepFrames(fighter, a), 0)   // fixed-order sequence: sum all steps
@@ -6779,6 +6782,7 @@ function startMatch() {
   // random cycle is preserved unchanged while Toji's two-part sequence is set up.
   // SEQUENTIAL: start ONLY P1's intro now; P2's begins after P1's completes (see the INTRO
   // stage machine in updateCurrentState). P2 stands idle until its turn.
+  flyerIntroReset()
   if (p1) { p1._introPlaying = true; initIntroVariant(p1) }
   if (p2) { p2._introPlaying = false }
   introStage      = p1 ? "p1" : (p2 ? "p2" : "done")
@@ -22306,7 +22310,8 @@ function updateBattle() {
     _juiceSlowmoTimer--
     if (_juiceSlowmoTimer === 0) sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6 })
     if (_juiceSlowmoTimer % 2 !== 0) {
-      if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
+      if (omvCameraHold(p1, p2) && typeof camera.advance === "function") camera.advance(canvas)
+      else if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       return
     }
   }
@@ -23046,6 +23051,7 @@ function updateBattle() {
     // snapping back to the two-shot framing (game-feel Stage 2). Otherwise the normal two-fighter
     // reframe would immediately undo the punch-in every frame.
     if (slowdownTarget && slowdownTimer > 0 && typeof camera.advance === "function") camera.advance(canvas)
+    else if (omvCameraHold(p1, p2) && typeof camera.advance === "function") camera.advance(canvas)   // Omni-Man ESCAPE VELOCITY: hold the ground shot while he's up there
     else camera.update(p1, p2, canvas)
     _tickUltimateCrop()   // STAGE 3: hard panel zoom-crop on an ultimate connect — overrides the eased reframe while held
   }
@@ -25064,6 +25070,7 @@ function drawBattleScene() {
   drawHigurumaUnder(ctx, p1, p2)   // Higuruma DEADLY SENTENCING — defendant's box + aisle floor markings under the fighters (render-only; gated)
   drawSyndromeUnder(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
   drawDseylUnder(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
+  drawFlyerIntroUnder(ctx, [p1, p2])   // flight entrances: Omni-Man's crater, Homelander's scorch line, Superman's light (world, under the fighters)
   drawFrozoneUnder(ctx, p1, p2, FROZONE_WORLD)   // Frozone — Black Ice patch, skate ribbon, ultimate floor ice + ramp (world-space, under the fighters; render-only; gated)
   for (const _bf of [p1, p2]) { const _rd = benReadyForm(_bf); if (_rd && _rd.drawUnder) _rd.drawUnder(ctx, _bf) }   // READY Omnitrix form under-layer (Megawhatt Blackout stage dim; render-only)
   drawSignatureFatalityUnder(ctx, canvas)   // SIGNATURE FATALITY: the arena darkens (Hollow Purple: the map goes black), under the fighters
@@ -25115,6 +25122,7 @@ function drawBattleScene() {
   drawDseylOver(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — commanded machines in front (claws, Spinner, Drones, Velocipod, shots, Zero-Point field; render-only; gated)
   drawFrozoneOver(ctx, p1, p2, FROZONE_WORLD)   // Frozone — ice strikes, lance, guard plate, Chill pips, freeze shell, shatter fragments (render-only; gated)
   drawEnochOver(ctx, p1, p2, ENOCH_WORLD)
+  drawFlyerIntroOver(ctx, [p1, p2])   // flight entrances: trails, sonic booms, debris, heat-vision beams (world, over the fighters)
   rbfxDraw(ctx)   // round walk-back aftermath: the loser's blood drips + pools (world space)
   drawSignatureFatalityOver(ctx)   // SIGNATURE FATALITY: the technique + the victim's redrawn sprite (world space, over the fighters)   // Enoch — visor beam, reaction bursts, steam clouds (capped), super presentation (render-only; gated)
   drawMrEffects(ctx,p1,p2) // restrained form flash / skin-coordinated impact rings
@@ -27086,6 +27094,7 @@ function renderCurrentState() {
     case GAME_STATES.SELECT_STAGE: drawStageSelectScreen(ctx, canvas, stages, hoverStageIndex); break
     case GAME_STATES.INTRO:
       drawBattleScene()
+      drawFlyerIntroScreen(ctx, canvas.width, canvas.height)   // Omni-Man's impact flash
       if (namecallActive) {
         drawNamecallBanner()   // announcing a fighter (camera zoomed on them)
       } else {
@@ -28146,15 +28155,15 @@ function updateCurrentState() {
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
       // side advances; the other holds idle. Runs every intro frame (during namecall AND after).
       if (introStage === "p1") {
-        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1); updateZoroIntro(p1); updateSanjiIntro(p1); updateFrozoneIntro(p1); updateEnochIntro(p1) }
+        if (p1 && p1._introPlaying) { p1._introRevealFrame = (p1._introRevealFrame || 0) + 1; maybeFireIntroVoice(p1); advanceIntroSequence(p1); updateKilluaIntroRollIn(p1); updateSupermanIntro(p1); updateShinobuIntro(p1); updateZoroIntro(p1); updateSanjiIntro(p1); updateFrozoneIntro(p1); updateEnochIntro(p1); updateFlyerIntro(p1, p2) }
         if (--introStageTimer <= 0) {
-          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1); finalizeZoroIntroPos(p1); finalizeSanjiIntroPos(p1); finalizeFrozoneIntro(p1); finalizeEnochIntro(p1) }
+          if (p1) { p1._introPlaying = false; finalizeKilluaIntroPos(p1); finalizeSupermanIntroPos(p1); finalizeShinobuIntroPos(p1); finalizeZoroIntroPos(p1); finalizeSanjiIntroPos(p1); finalizeFrozoneIntro(p1); finalizeEnochIntro(p1); finalizeFlyerIntro(p1) }
           if (p2) { p2._introPlaying = true; initIntroVariant(p2); introStage = "p2"; introStageTimer = introTotalFrames(p2) }
           else introStage = "done"
         }
       } else if (introStage === "p2") {
-        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2); updateZoroIntro(p2); updateSanjiIntro(p2); updateFrozoneIntro(p2); updateEnochIntro(p2) }
-        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2); finalizeZoroIntroPos(p2); finalizeSanjiIntroPos(p2); finalizeFrozoneIntro(p2); finalizeEnochIntro(p2) } introStage = "done" }
+        if (p2 && p2._introPlaying) { p2._introRevealFrame = (p2._introRevealFrame || 0) + 1; maybeFireIntroVoice(p2); advanceIntroSequence(p2); updateKilluaIntroRollIn(p2); updateSupermanIntro(p2); updateShinobuIntro(p2); updateZoroIntro(p2); updateSanjiIntro(p2); updateFrozoneIntro(p2); updateEnochIntro(p2); updateFlyerIntro(p2, p1) }
+        if (--introStageTimer <= 0) { if (p2) { p2._introPlaying = false; finalizeKilluaIntroPos(p2); finalizeSupermanIntroPos(p2); finalizeShinobuIntroPos(p2); finalizeZoroIntroPos(p2); finalizeSanjiIntroPos(p2); finalizeFrozoneIntro(p2); finalizeEnochIntro(p2); finalizeFlyerIntro(p2) } introStage = "done" }
       }
       if (namecallActive) {
         // Announcement phase: hold each side's zoom, then advance to the next mapped
@@ -28945,7 +28954,7 @@ gameLoop()
     if (p1) p1._introPlaying = false
     if (p2) p2._introPlaying = false
     finalizeKilluaIntroPos(p1); finalizeKilluaIntroPos(p2)   // undo the roll-in offset if we skip mid-roll
-    finalizeFrozoneIntro(p1); finalizeFrozoneIntro(p2)   // Frozone: undo the skate-in offset if skipped mid-skate
+    finalizeFrozoneIntro(p1); finalizeFrozoneIntro(p2); finalizeFlyerIntro(p1); finalizeFlyerIntro(p2)   // Frozone: undo the skate-in offset if skipped mid-skate
     finalizeEnochIntro(p1); finalizeEnochIntro(p2)   // Enoch: undo the glide-in offset if skipped mid-glide
     finalizeZoroIntroPos(p1); finalizeSanjiIntroPos(p1); finalizeZoroIntroPos(p2); finalizeSanjiIntroPos(p2)   // undo Zoro's walk-in offset if skipped mid-walk
     finalizeSupermanIntroPos(p1); finalizeSupermanIntroPos(p2)   // undo Superman's off-screen offset if skipped mid-run
@@ -31398,6 +31407,7 @@ gameLoop()
     setModifiers: (mods = []) => { matchConfig.modifiers = Array.isArray(mods) ? mods : []; if (p1 && p2) _applyMatchModifiers(); return matchConfig.modifiers },
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },
+    flyerIntro: (w = "p1") => { const f = w === "p2" ? p2 : p1; return { state: flyerIntroState(f), fx: flyerIntroFxState(), introPlaying: !!f?._introPlaying, frame: f?._introRevealFrame || 0, x: f?.x, y: f?.y, variant: f?._introVariant || null, stage: introStage, gs: gameState } },
     finisherDemo: (which) => !!(p1 && p2 && (which === "sb" ? startScreenBreaker(p1, p2) : startSignatureFatality(p1, p2, Number.isInteger(which) ? { index: which } : null))),   // Controls Lab: play a finisher on the LIVE fighters (p1()/p2() are snapshots)   // test hook: the match-ending KO right now (→ the FINISH window)
     forceP1Lose: () => { if (p1) p1.health = 0 },
     // ── ARCADE diagnostics + drivers (Stage 19) ──────────────────────────────

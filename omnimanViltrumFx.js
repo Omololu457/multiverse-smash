@@ -130,22 +130,37 @@ const EV_ALT = ev => {
   if (!ev) return 0
   const k = (n, d) => Math.max(0, Math.min(1, n / d))
   switch (ev.ph) {
-    case 'ascent': { const x = k(ev.t, ESCAPE.ascent); return x * x * (3 - 2 * x) }
+    case 'ascent': { if (ev.t < ESCAPE.launch) return 0; const x = k(ev.t - ESCAPE.launch, ESCAPE.ascent - ESCAPE.launch); return 0.3 + 0.7 * x * x * (3 - 2 * x) }   // launch: the stage stays
     case 'orbit': return 1
-    case 'ret': return 1 - Math.pow(k(ev.t, ESCAPE.ret), 1.6)
+    case 'ret': return ev.t >= ESCAPE.fall ? 0 : 1 - 0.7 * Math.pow(k(ev.t, ESCAPE.fall), 1.4)   // slam: the stage is back
     default: return 0
   }
 }
+// while he's up there (ascent / orbit / return) the battle camera HOLDS its ground framing — so the launch really leaves
+// the top of the screen and the slam really drops in from above it (sim-side read of sim state; the camera feeds walls)
+export function omvCameraHold(p1, p2) { return [p1, p2].some(o => isOmv(o) && o._omv?.ev && ['ascent', 'orbit', 'ret'].includes(o._omv.ev.ph)) }
 export function drawOmvSky(c, cv, p1, p2, seed) {
   const f = [p1, p2].find(o => isOmv(o) && o._omv?.ev && ['ascent', 'orbit', 'ret'].includes(o._omv.ev.ph))
   if (!f) return
   const ev = f._omv.ev, alt = EV_ALT(ev), W = cv?.width || 1280, H = cv?.height || 720, P = omvSkinPal(f)
+  if (alt <= 0) return   // launch / slam: the real stage — he flies out of it first, and comes back into it
   c.save(); c.setTransform?.(1, 0, 0, 1, 0, 0)
   // sky: the stage fades under a deep blue, then black
   const g = c.createLinearGradient(0, 0, 0, H)
   g.addColorStop(0, `rgba(${Math.round(10 * (1 - alt))},${Math.round(30 * (1 - alt))},${Math.round(90 * (1 - alt) + 8)},1)`)
   g.addColorStop(1, `rgba(${Math.round(40 * (1 - alt))},${Math.round(90 * (1 - alt))},${Math.round(180 * (1 - alt) + 10)},1)`)
-  c.globalAlpha = Math.min(1, alt * 1.6); c.fillStyle = g; c.fillRect(0, 0, W, H)
+  c.globalAlpha = 1; c.fillStyle = g; c.fillRect(0, 0, W, H)   // a CUT (opaque): this is the sky, not the stage tinted
+  // low altitude: clouds rushing past (down while climbing, up while falling)
+  const ca = Math.max(0, 1 - (alt - 0.3) / 0.45)
+  if (ca > 0 && ev.ph !== 'orbit') {
+    const v = ev.ph === 'ascent' ? ev.t * 26 : -ev.t * 30
+    for (let i = 0; i < 16; i++) { const rx = hashRandom(seed, i, 29), ry = hashRandom(seed, i, 31), rw = hashRandom(seed, i, 37)
+      const y = ((ry * H * 1.6 + v) % (H * 1.6) + H * 1.6) % (H * 1.6) - H * 0.3
+      c.globalAlpha = ca * (0.35 + 0.35 * rw); c.fillStyle = '#eef4ff'
+      c.beginPath(); c.ellipse(rx * W, y, 110 + 160 * rw, 26 + 30 * rw, 0, 0, Math.PI * 2); c.fill() } }
+  // the cut itself: a white flash on the first frames of the sky shot
+  const cut = ev.ph === 'ascent' ? ev.t - ESCAPE.launch : -1
+  if (cut >= 0 && cut < 8) { c.globalAlpha = 1 - cut / 8; c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H) }
   // stars (seeded): appear above half altitude; streak vertically while moving
   const moving = ev.ph !== 'orbit', sa = Math.max(0, (alt - 0.45) / 0.55)
   if (sa > 0) {

@@ -622,6 +622,16 @@ const THEMES = {
   },
 }
 
+// The folder a voice clip lives in ("assets/audio/titans/raven/tt_012.mp3" → "assets/audio/titans/raven"), or null
+// for shared, non-character folders (announcer, sfx, music, ui, stage, menu) that must never join a fighter's channel.
+const _SHARED_DIR = /(^|\/)(announcer[^/]*|[^/]*sfx[^/]*|source|music[^/]*|ui|menu|stages?|common|shared|generic)(\/|$)/i
+function _voiceDirOf(filename) {
+  const f = String(filename || "").replace(/^\.\//, "").split("?")[0]
+  const i = f.lastIndexOf("/"); if (i <= 0) return null
+  const d = f.slice(0, i)
+  return _SHARED_DIR.test(d) ? null : d
+}
+
 class MusicPlayer {
   constructor(ctx, masterGain) {
     this._ctx        = ctx
@@ -777,6 +787,7 @@ class SoundManager {
     // combat/ability update so its voice auto-tags without touching every call site. null = untagged
     // (intro / win / menu cues) → never cut by the per-animation stop.
     this._voiceOwner     = null
+    this._dirOwner       = new Map()   // voice folder → the fighter last heard from it (see playSfxFile)
     // When true, cues started right now are PERSISTENT (survive stopAllSfx unless includePersistent) —
     // used to preserve win-lines that intentionally play into the victory screen.
     this._forcePersistent = false
@@ -1265,7 +1276,14 @@ class SoundManager {
     const src = this._resolveSrc(filename)
     if (!src) { if (fallbackId) this.play(fallbackId); return false }
     try {
-      const owner = opts.owner !== undefined ? opts.owner : this._voiceOwner
+      let owner = opts.owner !== undefined ? opts.owner : this._voiceOwner
+      // ONE CHANNEL PER CHARACTER, also for untagged lines: a clip from a character's own voice folder that arrives
+      // untagged (intro / win lines, cues fired outside the fighter's update) joins the channel of the fighter who
+      // last spoke from that folder, so it can't talk over (or be talked over by) that same character. Shared
+      // folders (announcer / sfx / music / ui / stage) are never attributed — cross-character overlap is unchanged.
+      const _dir = _voiceDirOf(filename)
+      if (owner && typeof owner === "object" && _dir) this._dirOwner.set(_dir, owner)
+      else if (!owner && _dir && !opts.untaggedOk) owner = this._dirOwner.get(_dir) || null
       // SINGLE VOICE CHANNEL per character: a new OWNED cue first stops whatever cue that same owner is
       // already playing, so one character never overlaps / talks over itself. Untagged cues (owner=null:
       // intro / win / menu) are exempt — stopOwnedSfx no-ops on null — so cross-CHARACTER overlap (owner A
@@ -1327,6 +1345,7 @@ class SoundManager {
   // Stop EVERY in-flight voice/SFX cue — the match-end / menu-return hammer. Preserves `persistent`
   // cues (win-lines that intentionally play into the victory screen) unless includePersistent is set.
   stopAllSfx({ includePersistent = false } = {}) {
+    this._dirOwner.clear()   // match over: forget which fighter each voice folder belonged to
     for (const entry of [...this._activeSfx]) {
       if (entry.persistent && !includePersistent) continue
       this._killSfxEntry(entry)

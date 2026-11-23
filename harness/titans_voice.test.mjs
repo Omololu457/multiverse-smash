@@ -18,7 +18,7 @@ async function open(p1, p2) {
   await page.goto(server.base + `/index.html?harness=1&p1=${p1}&p2=${p2}&seed=77`)
   await page.waitForFunction(() => window.__harness?.omnimanViltrumTest)
   await page.evaluate(async () => { const { sound } = await import('./sound.js'); const o = sound.playSfxFile.bind(sound)
-    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/titans/')) __vo.push({ f, owner: opts.owner || null }); return o(f, fb, opts) } })
+    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/titans/')) __vo.push({ f, owner: (o => { const H = __harness.omnimanViltrumTest; return o === H.raw() ? 'p1' : o === H.raw('p2') ? 'p2' : o == null ? null : typeof o === 'string' ? o : 'other' })(opts.owner) }); return o(f, fb, opts) } })
   return page
 }
 const V = JSON.parse('{}')
@@ -53,7 +53,7 @@ try {
     const at = await toBattle(page, shot)
     let L = await page.evaluate(() => __vo.splice(0)); R[k] = { intro: pools(L) }
     ck(`${k}: an intro line plays during the intro (vs Homelander → the round intro pool)`, has(L, `${k}.intro`), JSON.stringify(R[k].intro))
-    ck(`${k}: … on the Titan's own voice channel`, L.length > 0 && L.every(x => x.owner === 'titan_p1'), JSON.stringify(L.map(x => x.owner)))
+    ck(`${k}: … on the Titan's own voice channel`, L.length > 0 && L.every(x => x.owner === 'p1'), JSON.stringify(L.map(x => x.owner)))
     // the card + signature effect actually drew (pixels differ from the same frame with the hooks off is costly; instead the
     // intro beat ran long enough for the card: reveal frame reached 40 while intro played)
     ck(`${k}: the special-intro card / effect frame was reached and captured (${shot})`, at != null)

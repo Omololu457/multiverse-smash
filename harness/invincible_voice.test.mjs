@@ -16,12 +16,12 @@ async function open(p2) {
   await page.goto(server.base + `/index.html?harness=1&p1=invincible&p2=${p2}&seed=515`)
   await page.waitForFunction(() => window.__harness?.invincibleTest)
   await page.evaluate(async () => { const { sound } = await import('./sound.js'); const o = sound.playSfxFile.bind(sound)
-    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/invincible/')) __vo.push({ f, owner: opts.owner || null }); return o(f, fb, opts) } })
+    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/invincible/')) __vo.push({ f, owner: (o => { const H = __harness.omnimanViltrumTest; return o === H.raw() ? 'p1' : o === H.raw('p2') ? 'p2' : o == null ? null : typeof o === 'string' ? o : 'other' })(opts.owner) }); return o(f, fb, opts) } })
   return page
 }
 const toBattle = async page => {
   await page.evaluate(() => { __harness.start(); __harness.luffyTest.step(1) })
-  for (let i = 0; i < 400; i++) { await page.evaluate(() => __harness.luffyTest.step(1)); const g = await page.evaluate(() => __harness.online.syncProbe2()); if (g?.g === 'battle' && g.cd <= 0) break }
+  for (let i = 0; i < 1500; i++) { await page.evaluate(() => __harness.luffyTest.step(1)); const g = await page.evaluate(() => __harness.online.syncProbe2()); if (g?.g === 'battle' && g.cd <= 0) break }
   await page.evaluate(() => __harness.luffyTest.step(10))
 }
 try {
@@ -38,7 +38,7 @@ try {
   // intro vs a non-Omni foe
   await toBattle(page); let L = await take(); R.intro = pools(L)
   ck('intro (vs Homelander): a general intro line plays', has(L, 'intro') && !has(L, 'introOmni'), JSON.stringify(R.intro))
-  ck('… on his own voice channel (owner = inv_p1)', L.length > 0 && L.every(x => x.owner === 'inv_p1'), JSON.stringify(L.map(x => x.owner)))
+  ck('… on his own voice channel (owner = Invincible himself — shared with every other cue of his)', L.length > 0 && L.every(x => x.owner === 'p1'), JSON.stringify(L.map(x => x.owner)))
   const quiet = () => step(400).then(take)
   const reset = (o = {}) => E(async o => { const H = __harness.invincibleTest; H.reset(); (await import('./invincibleState.js')).invState(H.raw()).said.intro = true   // the round intro is tested above
     __harness.setDummyBehavior(o.dummy || 'stand'); const a = H.raw(), b = H.raw('p2'); a.x = 1100; b.x = a.x + (o.gap ?? 80); a.facing = 1; b.facing = -1

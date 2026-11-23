@@ -24,6 +24,7 @@ import * as theme from "./theme.js"           // live-swappable UI theme (accent
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
 import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
+import { fillThemedBar } from "./hudBars.js"             // every character's own life + energy bar (themed HUD; presentation-only)
 import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
 import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
 import { isBenDevice, benReadyForm } from "./ben10State.js"   // Controls box: Omnitrix transform hint for Ben (render-only)
@@ -4662,7 +4663,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       ctx.save()
       if (punchS !== 1) { const cyf = trackY + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
       _bevelPath(ctx, fillX, trackY, fillW, barH, 4)
-      ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill()
+      if (_colorblindHud) { ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill() }   // colorblind HUD keeps the CVD-safe fill
+      else fillThemedBar(ctx, fighter, 'hp', fillX, trackY, fillW, barH, dispRatio, globalFrameCount)   // the character's own life bar (hudBars.js)
       ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(fillX + 2, trackY + 1, Math.max(0, fillW - 4), 2)
       ctx.restore()
     }
@@ -4934,8 +4936,13 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
 
     const fillW = pbw * ratio
     const fillX = flip ? x + 8 + pbw - fillW : x + 8
+    if (_hudThemed && !_colorblindHud && !charging && fillW > 0.5) {   // THEMED: the character's own energy bar (hudBars.js); the crit pulse fades it
+      ctx.save(); if (isCrit) ctx.globalAlpha = 0.55 + 0.45 * (Math.sin(globalFrameCount * 0.2) * 0.5 + 0.5)
+      rrect(ctx, fillX, enY, fillW, enH, 4); fillThemedBar(ctx, fighter, 'en', fillX, enY, fillW, enH, ratio, globalFrameCount, { colour: isDevice ? mainCol : null }); ctx.restore()
+    } else {
     ctx.fillStyle = fillColor
     rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()
+    }
     ctx.shadowBlur = 0
     drawSanjiHeatFill(ctx, fighter, { fillX, enY, fillW, enH, x, pbw, flip })   // Sanji: the Heat bar warms blue→orange→white (render-only; sanji only)
 

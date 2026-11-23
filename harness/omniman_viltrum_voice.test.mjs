@@ -27,7 +27,7 @@ try {
   ck('win pool starts with the bubble\'s line ("What will you have after 500 years?")', /500 years/.test(V.win[0][1]), V.win[0][1])
   // spy
   await E(async () => { const { sound } = await import('./sound.js'); const o = sound.playSfxFile.bind(sound)
-    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/homelander/') && opts.owner !== __harness.omnimanViltrumTest.raw('p2')) (window.__hl ||= []).push(f); if (String(f).includes('/omniman_viltrum/')) __vo.push({ f, owner: opts.owner || null, t: __harness.omnimanViltrumTest.raw()._omv?.clock ?? null }); return o(f, fb, opts) } })
+    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/homelander/') && opts.owner !== __harness.omnimanViltrumTest.raw('p2')) (window.__hl ||= []).push(f); if (String(f).includes('/omniman_viltrum/')) __vo.push({ f, owner: (o => { const H = __harness.omnimanViltrumTest; return o === H.raw() ? 'p1' : o === H.raw('p2') ? 'p2' : o == null ? null : typeof o === 'string' ? o : 'other' })(opts.owner), t: __harness.omnimanViltrumTest.raw()._omv?.clock ?? null }); return o(f, fb, opts) } })
   const take = () => E(() => __vo.splice(0))
   const reset = (o = {}) => E(async o => { const H = __harness.omnimanViltrumTest; H.reset(); (await import('./omnimanViltrumState.js')).omvState(H.raw()).said.intro = true   // the round-intro line is tested once, below
    ; __harness.setDummyBehavior(o.dummy || 'stand'); const a = H.raw(), b = H.raw('p2')
@@ -39,11 +39,11 @@ try {
   const pools = L => L.map(x => poolOf[x.f] || ['?'])
   // intro (round 1)
   await E(() => { __harness.start(); __harness.luffyTest.step(1) })
-  for (let i = 0; i < 400; i++) { await step(1); const g = await E(() => __harness.online.syncProbe2()); if (g?.g === 'battle' && g.cd <= 0) break }
+  for (let i = 0; i < 1500; i++) { await step(1); const g = await E(() => __harness.online.syncProbe2()); if (g?.g === 'battle' && g.cd <= 0) break }
   await step(10)
   let L = await take(); R.intro = pools(L)
   ck('intro: an intro line plays', L.some(x => poolOf[x.f]?.includes('intro')), JSON.stringify(R.intro))
-  ck('… on his own voice channel (owner = omv_p1)', L.every(x => x.owner === 'omv_p1'), JSON.stringify(L.map(x => x.owner)))
+  ck('… on his own voice channel (owner = Omni-Man himself — shared with every other cue of his)', L.every(x => x.owner === 'p1'), JSON.stringify(L.map(x => x.owner)))
   // grunts
   await quiet(); await reset(); await move('kHay'); await step(30); L = await take(); R.hay = pools(L)
   ck('Haymaker: a heavy effort yell', L.some(x => poolOf[x.f]?.includes('effortHeavy')), JSON.stringify(R.hay))

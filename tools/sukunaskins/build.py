@@ -289,38 +289,79 @@ def seam_cols(alpha, fw):
     return out
 
 
-def alien_side(alpha, fw):
+def seam_rows(alpha, rgb, fw):
+    """per frame, per row: the seam x. Body rows use the body seam (seam_cols); the HEAD rows use the middle of his
+    FACE (skin pixels in the top 24 % of the figure), so the line really runs down between his eyes; the neck rows
+    blend the two so the seam never steps"""
+    H = alpha.shape[0]; body = seam_cols(alpha, fw); out = []
+    r, g, b = [rgb[..., k].astype(np.int32) for k in range(3)]
+    skin = (alpha > 0) & (r >= 150) & (r - b >= 30) & (g >= 90) & (r > g)
+    for i, sx in enumerate(body):
+        a = alpha[:, i * fw:(i + 1) * fw] > 0; rows = np.nonzero(a.any(1))[0]
+        col = np.full(H, sx, np.float32)
+        if rows.size:
+            top, h = rows[0], rows[-1] - rows[0]
+            hb = top + int(h * 0.24)
+            sk = skin[top:hb, i * fw:(i + 1) * fw]; ys, xs = np.nonzero(sk)
+            if xs.size >= 6:
+                hx_ = (xs.min() + xs.max() + 1) / 2
+                blend = max(1, int(h * 0.08))
+                for y in range(H):
+                    if y < hb: col[y] = hx_
+                    elif y < hb + blend: col[y] = hx_ + (sx - hx_) * (y - hb) / blend
+        out.append(col)
+    return out
+
+
+def alien_side(alpha, fw, rgb=None):
     """bool map: True on the Alien X side (left of each frame's seam), False on Sukuna's side"""
-    side = np.zeros(alpha.shape, bool); seams = seam_cols(alpha, fw)
-    for i, sx in enumerate(seams):
-        side[:, i * fw:i * fw + int(round(sx))] = True
+    side = np.zeros(alpha.shape, bool)
+    if rgb is None: rgb = np.zeros(alpha.shape + (3,), np.uint8)
+    seams = seam_rows(alpha, rgb, fw)
+    xx = np.arange(fw)[None, :]
+    for i, col in enumerate(seams):
+        side[:, i * fw:(i + 1) * fw] = xx < np.round(col)[:, None]
     return side & (alpha > 0), seams
 
 
 def alien_half(arr, fw, reg, L):
-    """Alien X — Half a Heaven: split straight down his middle. The Alien X side: every pixel (skin, face, clothes,
-    markings) becomes the void with its starfield, shaded by the original light so the form still reads; hair → the
-    white crown; a thin glowing seam. Only his black outline is kept. The other side is Sukuna, byte-identical."""
-    out = arr.copy(); a = arr[..., 3]
-    side, seams = alien_side(a, fw)
+    """Alien X — Half a Heaven: split straight down his middle — through his FACE on the head rows. The Alien X side,
+    as in the show: a pure black body holding a starfield (sparse crisp stars — a few bright 4-point ones, faint
+    blue / violet dust — over a deep indigo nebula, shaded by the original light with a cool rim on the lit edges);
+    his hair → the white crown (hard 3-tone white); his eye on that side → Alien X's green. Only his black outline is
+    kept; a thin white seam. The other side is Sukuna, byte-identical."""
+    out = arr.copy(); a = arr[..., 3]; H = a.shape[0]
+    side, seams = alien_side(a, fw, arr[..., :3])
     pad = np.pad(a > 0, 1)
     edge = ~(pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:])   # touches transparency
     outline = edge & (L < 70)
+    r, g, b = [arr[..., k].astype(np.int32) for k in range(3)]
+    skin = (a > 0) & (r >= 150) & (r - b >= 30) & (g >= 90) & (r > g)
+    sk_pad = np.pad(skin, 2)
     ys, xs = np.nonzero(side & ~outline)
     for y, x in zip(ys, xs):
         fi, lx = x // fw, x % fw
         t = float(L[y, x]) / 255.0
-        if reg[y, x] == 1: c = ramp(['#9aa0b4', '#e9ecf2', '#ffffff'], min(1.0, t * 1.6))              # the white crown
+        fr = a[:, fi * fw:(fi + 1) * fw] > 0; rows = np.nonzero(fr.any(1))[0]
+        rel = (y - rows[0]) / max(1, rows[-1] - rows[0])
+        sx = seams[fi][y]
+        if reg[y, x] == 1: c = ramp(['#7d8296', '#cfd3de', '#f4f6fa', '#ffffff'], min(1.0, t * 1.9))       # the white crown
+        elif rel < 0.24 and not skin[y, x] and L[y, x] < 110 and ((sk_pad[y + 2, x + 1] and sk_pad[y + 2, x + 3]) or
+                                                                  (sk_pad[y + 1, x + 2] and sk_pad[y + 3, x + 2])):
+            c = hx('#4dff6a') if L[y, x] < 60 else hx('#b6ffbf')                                            # Alien X's green eye
         else:
-            c = ramp(['#000000', '#04050c', '#0c1028', '#1a2150'], t ** 1.2)                              # void, shaded by the old light
+            neb = 0.5 + 0.5 * np.sin(lx * 0.21 + y * 0.13) * np.cos(lx * 0.09 - y * 0.17)                    # slow nebula swirl
+            base = ramp(['#000000', '#020309', '#060814', '#0d1128'], t ** 1.5)
+            c = base + hx('#1a1240') * 0.18 * neb * (0.3 + t)
             v = h3(lx, y, fi // 4, 11)
-            if v > 0.955: c = hx('#ffffff')
-            elif v > 0.925: c = hx('#6ee7ff') * (0.65 + 0.35 * h3(lx, y, 2, 7))
-            elif v > 0.905: c = hx('#b28cff') * 0.55
-        if seams[fi] - 1 <= lx < seams[fi]: c = c * 0.65 + hx('#7fdfff') * 0.35                             # a thin, soft seam
+            if v > 0.985: c = hx('#ffffff')                                                                  # bright star
+            elif v > 0.972: c = hx('#dfe8ff') * 0.85
+            elif v > 0.962: c = hx('#7fc8ff') * 0.7
+            elif v > 0.955: c = hx('#a98cff') * 0.5
+            if t > 0.8: k = (t - 0.8) / 0.2; c = c * (1 - 0.18 * k) + hx('#9fb4ff') * 0.18 * k              # cool rim on the lit pixels
+        if sx - 1 <= lx < sx: c = c * 0.45 + hx('#ffffff') * 0.55                                            # a thin white seam
         out[y, x, :3] = np.clip(np.round(c), 0, 255).astype(np.uint8)
     return out
-
 
 
 def recolor(arr, fw, sk, phase=0, head_only=False):
@@ -401,7 +442,7 @@ def verify(sk, strips):
             reg, _ = classify(a[..., :3], a[..., 3], fw)
             prot = (reg == 0)
             if sk.get('skin') is None: prot |= (reg == 6)
-            if sk.get('side_split'): prot = ~alien_side(a[..., 3], fw)[0] & (a[..., 3] > 0)   # Sukuna's side: untouched
+            if sk.get('side_split'): prot = ~alien_side(a[..., 3], fw, a[..., :3])[0] & (a[..., 3] > 0)   # Sukuna's side: untouched
             if not np.array_equal(a[prot], b[prot]): bad.append(f'{name} p{ph}: protected pixels changed ({int((a[prot] != b[prot]).any(-1).sum())})')
     for k in FX_KEYS:
         a = np.array(Image.open(os.path.join(SRC, 'fx', k + '.png')).convert('RGBA')); p = os.path.join(OUT, tag, 'fx', k + '.png')

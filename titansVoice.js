@@ -26,7 +26,7 @@ export function titanVo(f, pool, o = {}) {
   m.at[pool] = t; m.n++
   const [file, , dur] = o.pick != null ? L[o.pick % L.length] : L[Math.floor(hash(m.n * 7 + t, 3) * L.length) % L.length]
   m.until = t + Math.ceil((dur || 1) * 60); m.prio = pr
-  try { sound.playSfxFile?.(file, null, { owner: 'titan_' + (f.side || f.rosterKey), fadeMs: 40 }) } catch (_) {}
+  try { sound.playSfxFile?.(file, null, { owner: f, fadeMs: 40 }) } catch (_) {}
   return true
 }
 

@@ -270,7 +270,7 @@ function vo(f, pool, o = {}) {
   m.at[pool] = t; m.n++
   const [file, , dur] = o.pick != null ? L[o.pick % L.length] : L[Math.abs((t * 7 + (s?.serial || 0) * 13 + m.n * 5) | 0) % L.length]
   m.until = t + Math.ceil((dur || 1) * 60); m.prio = pr
-  try { sound.playSfxFile?.(file, null, { owner: 'omv_' + (f.side || 'p1'), fadeMs: 40 }) } catch (_) {}
+  try { sound.playSfxFile?.(file, null, { owner: f, fadeMs: 40 }) } catch (_) {}
 }
 // hurt / KO from his health (audio-only read of the sim)
 function voHealth(f) {

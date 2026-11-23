@@ -3178,3 +3178,20 @@ match, rematch, replay, LAN, companion); final checks 10/0 (every one of the 76 
 of the 58,401 source pixels incl. 26,980 dark suit pixels, one roster slot, credits, health = 65 % of the median);
 frame data of every other character unchanged; determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0 (= the numbers before this work); render 11/0 vs
 Homelander and vs Superman. Screenshots in docs/msv1/invincible/screenshots/.
+
+=== 2026-11-23 — MSV1-DINO: Dino Thunder Rangers (dinothunder) — one fighter, four Rangers ===
+NEW roster character "Dino Thunder Rangers" (Power Rangers / Dino Thunder): Conner (Red), Ethan (Blue), Kira (Yellow)
+and Trent (White / Drago) in ONE fighter with ONE 1248-HP health bar, built on the S.P.D. Red / Ninja Storm form
+framework (ninja.js). SWAP: hold P + J / K / L / O (Red / Blue / Yellow / White), or double-tap P for the next Ranger;
+P2 hold 7 + 1 / 2 / 4 / 6; pad hold L2 + □ / △ / R1 / L1. 15 gem energy, 90-frame cooldown, 6 invulnerable frames,
+a tag strike on arrival and a 1.10× tag bonus. Gem powers: Super Speed (Red), Tricera Skin (Blue), Ptera Scream
+(Yellow), Camouflage + Drago Clone (White, which builds Corruption → Evil mode). Super Dino Mode (↓↓ + Special + Heavy,
+Red/Blue/Yellow). One super per Ranger + team ultimate Z-REX BLASTER (U, full meter). MISSION ACCOMPLISHED win art,
+BOSS KILLED on the result screen, HUD swap strip + Corruption bar, CPU that swaps with real inputs.
+16 PREMADE team skins (tools/dinoskins/build.py — nothing recoloured at runtime): Alien X Missing Constellation,
+Glitter Cut for the Spotlight, Winning Valkyrie, Pink Viltrumite, Fossil Hall, Storm Broadcast, Arcade After Closing,
+Alien X Four Strange Moons, JJK Curtain Falls, Dino Grand Prix, Stained Glass, Rainy-Day Tokusatsu, Pearl Divers,
+Glitter Dragonfly Foil, Midnight Sushi, Saturday Morning Sketchbook (line-up: docs/msv1/dino/skins/LINEUP.png).
+Docs: docs/msv1/dino/ (AUDIT, SPRITE_MAP, DINO_FRAMEWORK, COMBOS, BALANCE_NOTES, FINAL.txt, screenshots).
+Tests: dino 46/0, skins 17/0, frame-data diff 11/0 (every other character unchanged); determinism 14/0, combo 235/9,
+up-attack 77/2, credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0 — all equal to the baseline.

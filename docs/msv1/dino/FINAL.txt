@@ -1,0 +1,13 @@
+MSV1-DINO FINAL — clean export of 93bdbebf7 (git archive, node_modules symlinked), 2026-11-23
+suite               baseline (ab43fdb97)   final
+determinism         14/0                   14/0
+combo-standard      235/9                  235/9
+up-attack-roster    77/2                   77/2
+credits             11/3                   11/3   (same 3 pre-existing: unattributed keys of other sessions)
+roster-integrity    verified               verified
+replay_playback     8/1                    8/1
+net_online          11/0                   11/0
+dino.test.mjs       —                      46/0
+dino skins line-up  —                      17/0   (16 team skins worn by all four Rangers through real swaps)
+dino_framedata_diff —                      11/0   (171 existing characters byte-identical; roster +dinothunder +4 hidden forms; 35 hooks Dino-gated)
+No test edited to hide a failure. Roster count: +1 visible (dinothunder) + 4 hidden forms, expected and asserted by the diff.

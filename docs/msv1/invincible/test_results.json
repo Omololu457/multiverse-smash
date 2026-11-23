@@ -1,5 +1,5 @@
 {
- "pass": 40,
+ "pass": 47,
  "fail": 0,
  "report": {
   "numbers": {
@@ -18,7 +18,7 @@
     "framesToTop": 21,
     "boomAt": 19
    },
-   "stop": 3,
+   "stop": 1,
    "turn": 1,
    "takeoff": {
     "dealt": 15
@@ -52,7 +52,7 @@
    "barrage": {
     "hits": 6,
     "launch": 1,
-    "dealt": 96
+    "dealt": 138
    },
    "flightPunch": {
     "dealt": 92
@@ -77,8 +77,8 @@
     "flight": true
    },
    "zip": {
-    "from": 799,
-    "to": 1375,
+    "from": 797,
+    "to": 1373,
     "planned": 576
    },
    "zipProj": {
@@ -115,6 +115,76 @@
     "direct": 1,
     "marker": 1590,
     "alpha0": true
+   }
+  },
+  "combos": {
+   "1 Jab → Barrage → Skyward → flight punch → Crash Down": {
+    "hits": 10,
+    "dealt": 289,
+    "framesFree": 0,
+    "parts": {
+     "barrage": 1,
+     "skyward": true,
+     "flight": true,
+     "fpunch": true,
+     "crash": true
+    }
+   },
+   "2 Straight → Zip → Uppercut → Invincible Punch → No Holding Back": {
+    "hits": 9,
+    "dealt": 545,
+    "framesFree": 0,
+    "parts": {
+     "straight": true,
+     "zip": true,
+     "crossUp": true,
+     "upper": true,
+     "ipunch": true,
+     "wall": true,
+     "nhb": true
+    }
+   },
+   "snapFrom": 51.48,
+   "3 flight punch → snap turn → flight punch → Zip → Invincible Punch": {
+    "hits": 5,
+    "dealt": 276,
+    "framesFree": 0,
+    "parts": {
+     "fp1": true,
+     "flewPast": true,
+     "turn": true,
+     "fp2": true,
+     "zip": true,
+     "ipunch": true
+    }
+   },
+   "4 Can't Stay Down → Resolve → Barrage → Terminal Velocity": {
+    "hits": 8,
+    "dealt": 626,
+    "framesFree": 30,
+    "parts": {
+     "resolve": true,
+     "barrage": true,
+     "knockdown": true,
+     "tv": true
+    }
+   }
+  },
+  "gojo": {
+   "lv1": {
+    "dealt": 0,
+    "stopped": 1,
+    "direct": 0
+   },
+   "lv3": {
+    "dealt": 0,
+    "stopped": 1,
+    "direct": 0
+   },
+   "lv0": {
+    "dealt": 380,
+    "stopped": 0,
+    "direct": 1
    }
   }
  }

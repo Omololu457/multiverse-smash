@@ -37,7 +37,9 @@ export const FLIGHT = { top: TOP, maxV: +(TOP * 36 / 44).toFixed(2), accel: +(TO
   blockMax: 0.60,                                                    // can block in flight only below 60 % of top speed
   boomAt: 0.90, boomRearm: 0.60, boomRaw: 20, boomR: 76, boomKb: 9,   // SONIC BOOM: crossing 90 % → white rings, 20-damage push
   takeoffRaw: 15, takeoffR: 70, takeoffKb: 7,                        // takeoff from the ground: the R1 shockwave, 15-damage push
-  speedDmg: 0.40 }                                                   // flight attacks × (1 + 0.40 × speed / top)
+  speedDmg: 0.40,                                                    // flight attacks × (1 + 0.40 × speed / top)
+  passAt: 0.70,
+  punchGap: 14 }                                                     // a flight punch at speed stops his body this far short of the foe                                                     // at ≥ 70 % top speed he flies through the foe (no body collision)
 FLIGHT_PROFILES[INV_KEY] = {
   accel: FLIGHT.accel, maxH: TOP, maxV: FLIGHT.maxV, drag: FLIGHT.drag, reverseBrake: FLIGHT.reverseBrake,
   overspeedDrag: 0.90, ceilEaseZone: 72, dashSpeed: 0, dashFrames: 0, maxAirDash: 0, dashCost: 9999,
@@ -54,12 +56,12 @@ export const FLIGHT_TAP = { maxHold: 12 }
 // INVINCIBLE PUNCH ↓↘→ + Special: rushes 60 % of the screen in 10 frames into the R5 burst; 110 (× flight speed when launched
 // from flight); WALL BOUNCE (the engine's WALL_SPLAT fields and numbers); a whiff overshoots and is −16.
 export const IPUNCH = { windup: 6, rush: 10, dist: 0.60, raw: 110, w: 70, h: 70, hitstun: 40, blockstun: 16, kbx: 18, kby: -6, chip: 0.15,
-  recoveryHit: 14, whiff: 16, overshoot: 90, hitstop: 10, wall: { frames: 24, hitstun: 34, bounce: 0.35, watch: 40 } }
+  recoveryHit: 14, whiff: 16, overshoot: 90, hitstop: 10, aimUp: 260, wall: { frames: 24, hitstun: 34, bounce: 0.35, watch: 40 } }
 // SKYWARD →↓↘ + Special: the uppercut carries both up with the R1 takeoff streaks: 95, launch, then he is in flight
-export const SKYWARD = { startup: 7, active: 4, raw: 95, w: 58, h: 120, boxY: -40, hitstun: 44, launchVy: -26, riseVy: -24, carry: 14, recovery: 12, chip: 0.15 }
+export const SKYWARD = { startup: 7, active: 6, raw: 95, w: 64, h: 190, boxY: -110, hitstun: 44, launchVy: -26, riseVy: -24, carry: 14, ride: 12, popVy: -7, recovery: 12, chip: 0.15 }
 // ZIP (double-tap ← / →, SPD Red's teleport convention): 45 % of the screen in 5 frames, projectile-intangible frames 1-4,
 // cancellable from any normal on HIT. Charges: 2 per airtime; 1 on the ground (refills on landing / after `groundReset`).
-export const ZIP = { dist: 0.45, travel: 5, recovery: 6, intangible: [1, 4], window: 12, buffer: 10, airCharges: 2, groundCharges: 1, groundReset: 40 }
+export const ZIP = { dist: 0.45, travel: 5, recovery: 6, intangible: [1, 4], window: 12, buffer: 10, behind: 10, airCharges: 2, groundCharges: 1, groundReset: 40 }
 // CRASH DOWN (in the air) ↓ + Special: dives, lands with the R1 shockwave: 70, hits OTG
 export const CRASH = { startup: 5, vy: 34, vx: 6, raw: 70, r: 110, hitstun: 34, kby: -9, kbx: 6, recovery: 16, maxFrames: 60, chip: 0.15 }
 // NO HOLDING BACK — Super, 1 bar (↓↓ + Special): zips around the foe striking from 6 directions, 300 total
@@ -85,13 +87,13 @@ const tech = (startup, recovery, extra = {}) => n(0, startup, 1, recovery, { cat
 // every move carries a damageType (blunt — fists and feet; impact — the shockwaves / crash / ultimate)
 export const INV_MOVES = {
   kJab: n(42, 4, 2, 8, { anim: 'jab', rangeX: 44 }),
-  kBarrage: tech(4, 10, { anim: 'barrage', category: 'light', damageType: 'blunt', hits: 6, every: 4, raw: 16, w: 56, h: 50 }),
+  kBarrage: tech(4, 5 * 4 + 12, { anim: 'barrage', category: 'light', damageType: 'blunt', hits: 6, every: 4, raw: 16, w: 70, h: 56, landKd: 70 }),   // long enough for 6 hits 4 f apart; ends 10 f after the last
   kStraight: n(72, 7, 3, 14, { anim: 'straight', category: 'heavy', hitstun: 22, blockstun: 12, rangeX: 58, knockbackX: 7 }),
   kUpper: n(88, 8, 4, 16, { anim: 'upper', category: 'launcher', launcher: true, antiAir: true, hitstun: 26, blockstun: 12, rangeX: 50, rangeY: 96, boxY: -30, launchVy: -30 }),
   kSweep: n(52, 6, 3, 14, { anim: 'sweep', hitLevel: 'low', knockdown: 40, hitstun: 22, blockstun: 10, rangeX: 64, rangeY: 26, boxY: 70, knockbackX: 4, knockbackY: -4 }),
   kSpin: n(78, 9, 4, 16, { anim: 'spin', category: 'heavy', hitstun: 24, blockstun: 12, rangeX: 56, rangeY: 50, boxY: 30, knockbackX: 8, knockbackY: -4 }),
   kRise: n(70, 7, 4, 15, { anim: 'rise', category: 'heavy', antiAir: true, hitstun: 26, blockstun: 12, rangeX: 40, rangeY: 104, boxY: -44, knockbackX: 3, knockbackY: -12 }),
-  kFpunch: n(66, 5, 4, 10, { anim: 'fpunch', air: true, flight: true, hitstun: 22, blockstun: 11, rangeX: 58, rangeY: 50, boxY: 24, knockbackX: 7, knockbackY: -3 }),
+  kFpunch: n(66, 5, 4, 10, { anim: 'fpunch', air: true, flight: true, hitstun: 22, blockstun: 11, rangeX: 62, rangeY: 80, boxY: 0, knockbackX: 7, knockbackY: -3 }),
   kIPunch: tech(IPUNCH.windup + IPUNCH.rush, IPUNCH.recoveryHit, { anim: 'ipunch', airOk: true }),
   kIPunchW: tech(1, IPUNCH.whiff + 4, { anim: 'flyFast', airOk: true }),
   kSkyward: tech(SKYWARD.startup, 22, { anim: 'upper' }),
@@ -153,7 +155,7 @@ export const invincible = {
     grab: { damage: dmg(40), startup: 5, active: 3, recovery: 13, hitstun: 22, throwForceX: 8, throwForceY: -5, damageType: 'blunt' },
   },
   specials: {
-    neutral: { name: 'Barrage', cost: 0 }, forward: { name: 'Invincible Punch', cost: 0 }, up: { name: 'Skyward', cost: 0 },
+    neutral: { name: 'Invincible Punch', cost: 0 }, forward: { name: 'Invincible Punch', cost: 0 }, up: { name: 'Skyward', cost: 0 },
     down: { name: 'Crash Down', cost: 0 },
   },
   ultimate: { name: 'Terminal Velocity', cost: 100, duration: 2, effect: 'Sky strike',

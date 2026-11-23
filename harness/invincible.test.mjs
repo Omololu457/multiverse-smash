@@ -25,7 +25,7 @@ async function reset(o = {}) {
       f.ultimateCooldown = 0 } }, o)
   await step(2)
 }
-const foe = () => S('(() => { const o = H.raw("p2"); return { hp: o.health, max: o.maxHealth, x: Math.round(o.x), y: Math.round(o.y), vx: o.vx, vy: o.vy, hitstun: o.hitstun || 0, kd: !!o.knockdownState, splat: o._wallSplat || 0, wb: !!o.wallBounce } })()')
+const foe = () => S('(() => { const o = H.raw("p2"); return { air: !(o.onGround || o.grounded), hp: o.health, max: o.maxHealth, x: Math.round(o.x), y: Math.round(o.y), vx: o.vx, vy: o.vy, hitstun: o.hitstun || 0, kd: !!o.knockdownState, splat: o._wallSplat || 0, wb: !!o.wallBounce } })()')
 const stats = () => S('H.raw()._inv?.stats || {}')
 const runUntilIdle = async (max = 160) => { for (let i = 0; i < max; i++) { const s = await st(); if (!s.attack && !s.hitstop && !s.s?.mv) return i; await step(1) } return max }
 const near = (a, b, tol) => Math.abs(a - b) <= tol
@@ -100,7 +100,8 @@ try {
     await tap(['j'], 1); await step(2); for (let i = 0; i < 14; i++) { await tap(['j'], 1); await step(1) }
     await step(20); let st1 = await stats(); const f1 = await foe(); await runUntilIdle()
     R.barrage = { hits: st1.barrageHits, launch: st1.barrageLaunch, dealt: h0 - f1.hp }
-    ck('Barrage (Light, mash Light): 6 × 16 = 96, last hit launches', st1.barrageHits === 6 && st1.barrageLaunch === 1 && h0 - f1.hp === 96, JSON.stringify(R.barrage))
+    // the mash starts from the Jab's hit (Jab 42), then the Barrage itself is exactly 6 × 16 = 96 (unscaled)
+    ck('Barrage (Jab, mash Light): Jab 42 + 6 × 16 = 96 → 138, last hit launches', st1.barrageHits === 6 && st1.barrageLaunch === 1 && h0 - f1.hp === 42 + 96, JSON.stringify(R.barrage))
     // flight punch scales with speed
     await reset({ gap: 1200, x: 200 }); await step(4); await tap(['p'], 2); await step(10)
     await page.keyboard.down('d'); let hit = null; h0 = (await foe()).hp
@@ -212,6 +213,94 @@ try {
     await page.keyboard.down('a'); for (let i = 0; i < 140; i++) { await step(1); if ((await st()).attack?.inv?.key === 'kTVCrater') crater = true } await page.keyboard.up('a')
     ck('… a whiff leaves him stuck in the crater (50 f)', crater && (await stats()).tvWhiff === 1)
     ck('… crack decal left on the floor', (await S('H.raw()._inv.decal.length')) >= 1)
+  }
+
+  if (want('combos')) {   // COMBOS.md — the brief's four combos through real inputs; "true" = the foe is never free in between
+    const R = report.combos = {}
+    let free = 0, hits = [], h0 = 0, started = false
+    const watch = async n => { for (let i = 0; i < n; i++) { await step(1); const f = await foe()
+      if (f.hp < (hits.length ? hits[hits.length - 1] : h0)) { hits.push(f.hp); started = true }
+      else if (started && !(f.hitstun > 0) && !f.kd && f.air === false) free++ } }
+    const foeX = () => S('(() => { const o = H.raw("p2"), f = H.raw(); return { dx: (o.x + o.w / 2) - (f.x + f.w / 2), dy: (o.y + o.h / 2) - (f.y + f.h / 2), oair: !(o.onGround || o.grounded) } })()')
+    const until = async (cond, max = 60) => { for (let i = 0; i < max; i++) { if (await cond()) return i; await watch(1) } return -1 }
+    const press = async keys => { for (const k of keys) await page.keyboard.down(k); await watch(1); for (const k of keys) await page.keyboard.up(k) }
+    const begin = async o => { await reset(o); await step(4); free = 0; hits = []; started = false; h0 = (await foe()).hp }
+    const done = (name, parts) => { R[name] = { hits: hits.length, dealt: h0 - (hits[hits.length - 1] ?? h0), framesFree: free, parts }; return R[name] }
+    // 1. Jab → Barrage (launch) → Skyward → flight punch → Crash Down OTG
+    await begin({ gap: 20 })
+    await press(['j']); await watch(2); for (let i = 0; i < 30 && (await stats()).barrageLaunch === 0; i++) { await press(['j']); await watch(1) }
+    const p1 = { barrage: (await stats()).barrageLaunch }
+    await press(['d']); await press(['s']); await press(['s', 'd']); await press(['s', 'd', 'l'])
+    p1.skyward = await until(async () => (await stats()).skywardHits > 0, 30) >= 0
+    p1.flight = await until(async () => (await st()).flying, 40) >= 0
+    p1.fpunch = false
+    for (let i = 0; i < 40 && !p1.fpunch; i++) { const q = await foeX(); const n0 = hits.length; if (Math.abs(q.dx) < 110 && !(await st()).attack) await press(['j']); else await watch(1); if (hits.length > n0 && (await st()).attack?.inv?.key === 'kFpunch') p1.fpunch = true }
+    await press(['s', 'l']); p1.crash = await until(async () => (await stats()).crashHits > 0, 80) >= 0
+    let r = done('1 Jab → Barrage → Skyward → flight punch → Crash Down', p1)
+    ck('COMBO 1: Jab → Barrage (launch) → Skyward → flight punch → Crash Down OTG', p1.barrage && p1.skyward && p1.flight && p1.fpunch && p1.crash, JSON.stringify(r))
+    await runUntilIdle()
+    // 2. Straight → Zip cross-up → Uppercut → Invincible Punch (wall bounce) → No Holding Back
+    await begin({ gap: 20, energy: 200 })
+    await press(['k']); const p2 = { straight: await until(async () => hits.length > 0, 14) >= 0 }
+    await press(['d']); await watch(1); await press(['d']); p2.zip = await until(async () => (await stats()).zipCancels > 0, 16) >= 0
+    p2.crossUp = await until(async () => !(await st()).s?.mv, 14) >= 0 && (await foeX()).dx < 0
+    await press(['i']); p2.upper = await until(async () => hits.length >= 2, 14) >= 0
+    await press(['s']); await press(['s', 'a']); await press(['a']); await press(['a', 'l'])   // ↓↘→ toward the foe (he faces left after the cross-up)
+    p2.ipunch = await until(async () => (await stats()).ipunchHits > 0, 24) >= 0
+    p2.wall = await until(async () => (await stats()).wallBounces > 0, 50) >= 0
+    await until(async () => !(await st()).attack, 30)
+    await press(['s']); await watch(1); await press(['s']); await press(['l']); p2.nhb = await until(async () => (await stats()).nhbHits >= 6, 90) >= 0
+    r = done('2 Straight → Zip → Uppercut → Invincible Punch → No Holding Back', p2)
+    ck('COMBO 2: Straight → Zip cross-up → Uppercut → Invincible Punch (wall bounce) → No Holding Back', Object.values(p2).every(Boolean), JSON.stringify(r))
+    await runUntilIdle()
+    // 3. Top-speed flight punch → snap turn → flight punch → Zip → Invincible Punch
+    await begin({ gap: 560, x: 700 })   // ~19 f of 2.45 px/f² to top speed ≈ 440 px of run-up (the camera holds them ≤ ~580 apart)
+    await press(['p']); await until(async () => (await st()).flying, 20)
+    const p3 = { fp1: false, flewPast: false, turn: false, fp2: false, zip: false, ipunch: false }
+    await page.keyboard.down('d'); await until(async () => (await st()).vx > 46, 40)
+    for (let i = 0; i < 30 && !p3.fp1; i++) { const q = await foeX(); if (q.dx < 170 && !(await st()).attack) await press(['j']); else await watch(1); if ((await stats()).fpunchHits >= 1) p3.fp1 = true }   // the sonic boom's chip is not a punch
+    p3.flewPast = await until(async () => (await foeX()).dx < -60, 20) >= 0   // ≥ 70 % top speed: he blows past the foe
+    await page.keyboard.up('d')
+    await page.keyboard.down('a'); const t0 = (await st()).vx; p3.turn = await until(async () => (await st()).vx < 0, 8) >= 0; R.snapFrom = t0
+    for (let i = 0; i < 30 && !p3.fp2; i++) { const q = await foeX(); if (q.dx > -170 && q.dx < 40 && !(await st()).attack) await press(['j']); else await watch(1); if ((await stats()).fpunchHits >= 2) p3.fp2 = true }
+    await page.keyboard.up('a'); await watch(1)   // a frame with ← released, so the next ← is a fresh tap
+    await press(['a']); await watch(1); await press(['a']); p3.zip = await until(async () => (await stats()).zips > 0, 14) >= 0
+    await until(async () => !(await st()).s?.mv, 14)
+    const face = (await st()).facing, fw = face === 1 ? 'd' : 'a'
+    await press(['s']); await press(['s', fw]); await press([fw]); await press([fw, 'l'])
+    p3.ipunch = await until(async () => (await stats()).ipunchHits > 0, 30) >= 0
+    r = done('3 flight punch → snap turn → flight punch → Zip → Invincible Punch', p3)
+    ck('COMBO 3: top-speed flight punch → snap turn → flight punch → Zip → Invincible Punch', Object.values(p3).every(Boolean), JSON.stringify(r))
+    await runUntilIdle()
+    // 4. Can't Stay Down → Resolve → Barrage → Terminal Velocity on a knocked-down opponent
+    await begin({ gap: 20, energy: 200 })
+    await S('H.setHp(10)'); await S('H.hurt(200)')
+    const p4 = { resolve: await until(async () => ((await st()).s?.resolve || 0) > 0, 120) >= 0 }
+    await page.evaluate(() => { const H = window.__harness.invincibleTest, a = H.raw(), b = H.raw('p2'); b.x = a.x + a.w + 20; b.facing = -1; a.facing = 1 })
+    h0 = (await foe()).hp; hits = []; started = false; free = 0
+    await press(['j']); await watch(2); for (let i = 0; i < 30 && (await stats()).barrageLaunch === 0; i++) { await press(['j']); await watch(1) }
+    p4.barrage = (await stats()).barrageLaunch === 1
+    p4.knockdown = await until(async () => (await foe()).kd, 80) >= 0
+    await press(['u']); p4.tv = await until(async () => ((await stats()).tvDirect || 0) + ((await stats()).tvShock || 0) > 0, 140) >= 0
+    r = done('4 Can\'t Stay Down → Resolve → Barrage → Terminal Velocity', p4)
+    ck('COMBO 4: Can\'t Stay Down → Resolve → Barrage → Terminal Velocity on the knocked-down foe', Object.values(p4).every(Boolean), JSON.stringify(r))
+  }
+
+  if (want('gojo')) {   // Terminal Velocity vs Satoru Gojo (Shinjuku): Infinity stops it (any level); with Infinity down it lands
+    const R = report.gojo = {}
+    await page.goto(server.base + '/index.html?harness=1&p1=invincible&p2=gojo_shinjuku&seed=50223'); await page.waitForFunction(() => window.__harness?.invincibleTest && window.__harness?.gojoShinjukuTest)
+    await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(4) }); await page.evaluate(() => __harness.preloadDone?.()); await step(3)
+    for (const lv of [1, 3, 0]) {
+      await reset({ gap: 200, energy: 200 }); await step(4)
+      await page.evaluate(lv => { const G = window.__harness.gojoShinjukuTest; G.setInfinity(lv, 'p2'); G.setEnergy?.(9999, 'p2') }, lv)
+      const f0 = await foe(); await tap(['u'], 2)
+      for (let i = 0; i < 140; i++) { await step(1); if (lv) await page.evaluate(lv => window.__harness.gojoShinjukuTest.setInfinity(lv, 'p2'), lv); if ((await stats()).tvStopped || (await stats()).tvDirect || (await stats()).tvShock) break }
+      const st1 = await stats(), f1 = await foe(); R['lv' + lv] = { dealt: f0.hp - f1.hp, stopped: st1.tvStopped, direct: st1.tvDirect }
+      await runUntilIdle()
+    }
+    ck('TERMINAL VELOCITY vs Gojo: Infinity L1 stops it (0 damage)', R.lv1.stopped === 1 && R.lv1.dealt === 0, JSON.stringify(R.lv1))
+    ck('… Infinity L3 stops it (0 damage)', R.lv3.stopped === 1 && R.lv3.dealt === 0, JSON.stringify(R.lv3))
+    ck('… Infinity off: it lands (380)', R.lv0.direct === 1 && R.lv0.dealt === 380, JSON.stringify(R.lv0))
   }
 
   if (want('present')) {

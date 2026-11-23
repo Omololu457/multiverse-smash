@@ -47,8 +47,8 @@ export function updateInvCommandCombat(f, inp, opp, W) {
   if (a) {
     const k = a.inv.key
     if (!NORMALS.includes(k) && k !== 'kBarrage') return 'consumed'
-    // BARRAGE: Light pressed again during the Jab (no contact needed — it is a mash)
-    if (k === 'kJab' && fresh(s, 'light') && !raw.down && elapsedOf(a) >= 2) { use(s, 'light'); fire('kBarrage', { cancel: true }); return 'consumed' }
+    // BARRAGE: Light pressed again during the Jab (once the Jab has had its hit, or its active frames are over) — a mash
+    if (k === 'kJab' && fresh(s, 'light', 10) && !raw.down && (a.inv.contact || elapsedOf(a) >= 6)) { use(s, 'light'); fire('kBarrage', { cancel: true }); return 'consumed' }
     const contact = !!a.inv.contact && s.tick > (a.inv.contactTick ?? s.tick)
     if (!contact) return 'consumed'
     if (fresh(s, 'ultimate')) { use(s, 'ultimate'); fire('kTV', { cancel: true }); return 'consumed' }

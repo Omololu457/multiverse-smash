@@ -14,6 +14,7 @@ import { NS_DUO_KIT } from './nsKit.js'   // MSV1-MERGE Shane & Dustin move list
 import { NINJA_STORM_KIT } from './ninjaStormKit.js'   // MSv2 Ninja Storm Rangers move list
 import { GOJO_SHINJUKU_KIT } from './gojoShinjukuKit.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc) move list
 import { SUKUNA_SHINJUKU_KIT } from './sukunaShinjukuKit.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc) move list
+import { INVINCIBLE_KIT } from './invincibleKit.js'   // MSV1-INVINCIBLE Invincible (Mark Grayson) move list
 import { OMNIMAN_VILTRUM_KIT } from './omnimanViltrumKit.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) move list
 import { CYBORG_KIT } from './cyborgKit.js'   // Cyborg (cyborg) Move List
 import { BEAST_BOY_KIT } from './beastBoyKit.js'   // Beast Boy (beast_boy) Move List
@@ -124,6 +125,7 @@ export const KITS = {
   ninja_storm_rangers: NINJA_STORM_KIT,   // MSv2
   gojo_shinjuku: GOJO_SHINJUKU_KIT,   // MSV1-GOJO
   sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,   // MSV1-SUKUNA
+  invincible: INVINCIBLE_KIT,   // MSV1-INVINCIBLE
   omniman_viltrum: OMNIMAN_VILTRUM_KIT,   // MSV1-OMNIMAN
   cyborg: CYBORG_KIT,
   beast_boy: BEAST_BOY_KIT,

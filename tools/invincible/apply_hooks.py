@@ -96,6 +96,11 @@ HOOKS += [
    "!fighter._gsRemoteInput && !fighter._invRemoteInput && !fighter._sksRemoteInput", "!fighter._invRemoteInput", 2),
   (2, 'input.js', "fighter.rosterKey === 'gojo_shinjuku' || fighter.rosterKey === 'sukuna_shinjuku'", 'replace',
    "fighter.rosterKey === 'gojo_shinjuku' || fighter.rosterKey === 'invincible' || fighter.rosterKey === 'sukuna_shinjuku'", "fighter.rosterKey === 'invincible' ||"),
+  # ZIP / top-speed flight pass THROUGH the foe (no body collision) — the other phasing fighters' hook, gated on him
+  (3, 'physics.js', "import { enochPhasing } from './enochState.js'", 'after_line',
+   "import { invPhasing } from './invincibleState.js'   // Invincible: Zip / ≥ 70 % flight speed pass through the foe (invincible-gated; false for everyone else)", "import { invPhasing }"),
+  (3, 'physics.js', "    if (enochPhasing(p1, p2)) return", 'after_line',
+   "    if (invPhasing(p1, p2)) return   // Invincible ZIPPING through / flying past at ≥ 70 % top speed", "if (invPhasing(p1, p2)) return"),
   # GROUND SPEED: walk / run / air drift / the engine dash × f._invSpeed (set in tickInv; undefined → 1 for everyone else)
   (2, 'physics.js', "_benSlowK * (fighter._sksSpeed || 1)", 'replace',
    "_benSlowK * (fighter._sksSpeed || 1) * (fighter._invSpeed || 1)", "(fighter._invSpeed || 1)", 2),

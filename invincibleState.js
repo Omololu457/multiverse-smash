@@ -24,7 +24,7 @@ export const invState = f => {
     say: null, said: { intro: false, win: false }, cpu: null, fx: [], decal: [], cues: [],
     stats: { jabs: 0, barrageHits: 0, barrageLaunch: 0, ipunch: 0, ipunchHits: 0, ipunchWhiff: 0, wallBounces: 0, skyward: 0, skywardHits: 0,
       skywardFlight: 0, zips: 0, zipCancels: 0, zipPhased: 0, crash: 0, crashHits: 0, nhb: 0, nhbHits: 0, nhbDmg: 0, tv: 0, tvDirect: 0, tvShock: 0,
-      tvWhiff: 0, tvStopped: 0, booms: 0, boomHits: 0, takeoffPush: 0, csd: 0, resolveHits: 0, stopped: 0, spent: 0, noBlockFrames: 0, guardCpu: 0 } })
+      tvWhiff: 0, tvStopped: 0, booms: 0, boomHits: 0, fpunchHits: 0, takeoffPush: 0, csd: 0, resolveHits: 0, stopped: 0, spent: 0, noBlockFrames: 0, guardCpu: 0 } })
 }
 const cue = (f, c, extra) => { const s = invState(f); s.cues.push(extra ? { c, ...extra } : c); if (s.cues.length > 32) s.cues.shift() }
 const ctrX = f => (f.x || 0) + (f.w || 48) / 2
@@ -66,8 +66,9 @@ export function invHit(f, d, a) {
   const s = invState(f), m = a.inv
   m.contact = true; m.contactTick = s.tick
   if (d.isBlocking) return
-  m.clean = true; f._cmdHitLanded = true
+  m.clean = true; m.victim = d.side; f._cmdHitLanded = true
   if (s.resolve > 0) s.stats.resolveHits++
+  if (m.key === 'kFpunch') s.stats.fpunchHits++
   if (m.key === 'kUpper' || m.key === 'kRise') pushFx(s, 'impact', ctrX(d), ctrY(d) - 10, { dir: m.dir, big: m.key === 'kUpper' })
   else pushFx(s, 'spark', ctrX(d), ctrY(d), { dir: m.dir })
 }
@@ -101,6 +102,9 @@ function strike(f, t, P, W) {
   if (t.domainUntouchable) return 'miss'
   if (t.knockdownState && !P.otg) return 'miss'
   if (t._gs?.blink?.inv) return 'miss'
+  // TERMINAL VELOCITY vs Satoru Gojo (Shinjuku): ANY level of Infinity stops it dead — he never touches him (the brief's rule;
+  // stricter than Gojo's own L1 "supers connect", because the whole move is one physical body arriving)
+  if (P.infinityStops && t.rosterKey === 'gojo_shinjuku' && (t._gs?.inf?.lv || 0) > 0) { const s0 = invState(f); s0.stats.stopped++; cue(f, 'stopped'); pushFx(s0, 'stopped', ctrX(t), ctrY(t), { dir: ctrX(t) >= ctrX(f) ? 1 : -1 }); return 'stopped' }
   const s = invState(f), dir = P.dir ?? (ctrX(t) >= ctrX(f) ? 1 : -1)
   const facingSrc = (t.facing || 1) === -dir
   const guards = t.isBlocking && facingSrc && !P.unblockable && (!P.low || !!t._crouching)
@@ -141,10 +145,13 @@ function readEdges(f, s, raw) {
   const fw = !!(f.facing === -1 ? raw.left : raw.right), bk = !!(f.facing === -1 ? raw.right : raw.left)
   for (const k of ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'block', 'jump', 'up', 'charge', 'grab', 'left', 'right', 'down']) {
     const v = !!raw[k]
-    if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, down: !!raw.down, up: !!raw.up, fwd: fw, back: bk }
+    if (v && !s.prev[k]) s.edges[k] = { tick: s.tick, clock: s.clock, down: !!raw.down, up: !!raw.up, fwd: fw, back: bk }
     if (!v && s.prev[k]) s.edges[k + 'Up'] = { tick: s.tick }
     s.prev[k] = v
   }
+  // the buffer is facing-relative: when he turns round (a cross-up Zip, a snap turn) the old directions mean the opposite
+  // thing now, so they are dropped (a ← that was "forward" before the Zip must not turn ↓↘→ into →↓↘)
+  if (s.face !== (f.facing || 1)) { s.face = f.facing || 1; s.dirs.length = 0 }
   const d = numpad(raw, f.facing || 1)
   if (!s.dirs.length || s.dirs[s.dirs.length - 1].d !== d) { s.dirs.push({ d, t: s.tick }); if (s.dirs.length > 16) s.dirs.shift() }
 }
@@ -157,7 +164,8 @@ function motion(s, seq, win = 20, tail = 8) {
   }
   return i < 0
 }
-export const fresh = (s, k, win = 8) => !!(s.edges[k] && s.used[k] !== s.edges[k].tick && s.tick - s.edges[k].tick <= win)
+// a press's age counts only frames he is NOT frozen in hitstop (a cancel input mashed during the hit freeze stays buffered)
+export const fresh = (s, k, win = 8) => !!(s.edges[k] && s.used[k] !== s.edges[k].tick && (s.clock - (s.edges[k].clock ?? s.clock)) <= win && s.tick - s.edges[k].tick <= win + 30)
 export const use = (s, k) => { if (s.edges[k]) s.used[k] = s.edges[k].tick }
 export const MOTIONS = {
   qcf: s => motion(s, [2, 3, 6], 18) || motion(s, [2, 6], 14),                 // ↓↘→
@@ -198,6 +206,7 @@ export function startInvMove(f, key, W, o = {}) {
   if (key === 'kCrash') { s.stats.crash++; leaveFlight(f) }
   if (key === 'kNHB') s.stats.nhb++
   if (key === 'kJab') s.stats.jabs++
+  if (key === 'kFpunch' && fl) fpunchLock(f, a.inv, md, 0, foesOf(f, W, null))
   cue(f, key)
   return true
 }
@@ -273,7 +282,15 @@ function wallTick(f, s, W) {
   for (const o of (W?.fighters?.() || [])) {
     const m = o && o !== f ? o._invWall : null
     if (!m) continue
-    if (--m.t <= 0 || !(o.health > 0)) { delete o._invWall; continue }
+    if (m.kd) {   // Barrage launch: knocked down on landing
+      if (--m.kdT <= 0 || !(o.health > 0)) { delete m.kd; delete m.kdT }
+      else if ((o.onGround || o.grounded) && !(o.vy < 0) && m.kdT < 88) {
+        o.knockdownState = true; o.knockdownTimer = Math.max(o.knockdownTimer || 0, m.kd); o.hitstun = 0; o.vx = 0
+        delete m.kd; delete m.kdT; cue(f, 'kdLand')
+      }
+    }
+    if (m.t == null) { if (!m.kd) delete o._invWall; continue }
+    if (--m.t <= 0 || !(o.health > 0)) { delete m.t; delete m.dir; if (!m.kd) delete o._invWall; continue }
     // a wall = the stage edge, or the screen edge (the camera clamp stops a knocked-back fighter there just the same):
     // flying at the wall with real knockback speed and not moving any more
     const blocked = !(o.hitstop > 0) && m.px != null && Math.abs(o.x - m.px) < 0.5 && Math.sign(o.vx || 0) === m.dir && Math.abs(o.vx || 0) >= 6
@@ -282,7 +299,7 @@ function wallTick(f, s, W) {
     if (!atWall) continue
     o.wallBounce = true; o._wallSplat = IPUNCH.wall.frames; o.hitstun = Math.max(o.hitstun || 0, IPUNCH.wall.hitstun)
     o._wallBounceShake = true; o.vx = -m.dir * IPUNCH.kbx * IPUNCH.wall.bounce
-    delete o._invWall
+    delete m.t; delete m.dir; delete m.px; if (!m.kd) delete o._invWall
     s.stats.wallBounces++; cue(f, 'wallBounce'); pushFx(s, 'impact', o.x <= 1 ? o.x : o.x + o.w, ctrY(o), { dir: -m.dir, big: true })
   }
 }
@@ -341,7 +358,14 @@ export function canZip(f) {
 export function startZip(f, dir, W, o = {}) {
   const s = invState(f), g = grounded(f) && !isFlying(f)
   if (s.mv || !canZip(f)) return false
-  const x0 = Math.round(f.x), x1 = Math.max(0, Math.min(sw(W) - f.w, Math.round(f.x + dir * ZIP.dist * SCREEN)))
+  const x0 = Math.round(f.x)
+  let x1 = Math.max(0, Math.min(sw(W) - f.w, Math.round(f.x + dir * ZIP.dist * SCREEN)))
+  // a zip cancelled from a HIT goes through that foe and stops right behind them (the cross-up); a plain zip runs the full 45 %
+  const hitFoe = o.cancel && o.foe
+  if (hitFoe && Math.sign(ctrX(hitFoe) - ctrX(f)) === dir) {
+    const behind = Math.round(dir === 1 ? hitFoe.x + hitFoe.w + ZIP.behind : hitFoe.x - f.w - ZIP.behind)
+    if (Math.abs(behind - x0) < Math.abs(x1 - x0)) x1 = Math.max(0, Math.min(sw(W) - f.w, behind))
+  }
   if (Math.abs(x1 - x0) < 8) return false
   if (o.cancel && live(f)) { endInvAttack(f); s.stats.zipCancels++ }
   if (g) { s.zip.ground--; s.zip.groundAt = s.clock } else s.zip.air--
@@ -373,11 +397,11 @@ function mobilityTick(f, s, raw, opp, W) {
   f._invPhase = 0
   const q = s.zq
   if (!q) return
-  if (s.tick - q.at > ZIP.buffer) { s.zq = null; return }
+  if (s.clock - (q.clock ?? s.clock) > ZIP.buffer || s.tick - q.at > ZIP.buffer + 30) { s.zq = null; return }   // buffer ages outside hitstop only
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState) return
   const a = live(f)
   if (a) {   // ZIP-CANCEL: any normal, on HIT only
-    if (NORMALS.includes(a.inv.key) && a.inv.clean) { s.zq = null; startZip(f, q.dir, W, { cancel: true }) }
+    if (NORMALS.includes(a.inv.key) && a.inv.clean) { s.zq = null; startZip(f, q.dir, W, { cancel: true, foe: a.inv.victim ? (W?.fighters?.() || [opp]).find(o => o && o.side === a.inv.victim) : opp }) }
     return
   }
   if ((f.attackCooldown || 0) > 0) return
@@ -393,7 +417,25 @@ function doubleTapTick(f, s, raw) {
   if (!(s.dt && s.dt.dir === dir && s.dt.released && s.tick - s.dt.at <= ZIP.window)) { s.dt = { dir, at: s.tick, released: false }; return }
   s.dt = null
   if (raw.block) return
-  s.zq = { dir, at: s.tick }
+  s.zq = { dir, at: s.tick, clock: s.clock }
+}
+
+// FLIGHT PUNCH at speed: he would blow THROUGH the foe (no body collision ≥ 70 %) before the fist comes out. Until the
+// punch has connected, a foe ahead in his flight line stops his body just short of them (physics integrates his velocity
+// after this tick, so the check uses where he WOULD end up); on contact his momentum carries on through. Runs from the
+// frame the punch starts (startInvMove) — at 51 px/f one frame is the whole gap.
+function fpunchLock(f, m, md, t, foes) {
+  if (!m.contact && t <= md.startup + md.active) {
+    for (const o of foes) {
+      if (Math.abs(ctrY(o) - ctrY(f)) > (o.h + f.h) / 2) continue
+      const near = m.dir === 1 ? o.x - f.w - FLIGHT.punchGap : o.x + o.w + FLIGHT.punchGap
+      const next = f.x + (f.vx || 0)
+      if (m.dir === 1 ? (ctrX(o) > ctrX(f) - 4 && next > near) : (ctrX(o) < ctrX(f) + 4 && next < near)) {
+        if (m.lockVx == null) m.lockVx = f.vx
+        f.x = m.dir === 1 ? Math.min(f.x, near) : Math.max(f.x, near); f.vx = 0
+      }
+    }
+  } else if (m.lockVx != null) { f.vx = m.lockVx; m.lockVx = null }
 }
 
 // ── live move driver ──
@@ -405,13 +447,27 @@ function moveTick(f, s, A, W, opp, raw) {
   const foes = foesOf(f, W, opp)
   const fl = isFlying(f)
   switch (m.key) {
-    case 'kFpunch': if (g && !fl && t > 2) endInvAttack(f, 3); break
+    case 'kFpunch': {
+      if (g && !fl && t > 2) { endInvAttack(f, 3); break }
+      fpunchLock(f, m, md, t, foes)
+      break
+    }
     case 'kBarrage': barrageTick(f, s, A, m, t, W, foes, front, raw); break
     case 'kIPunch': {
       if (t < IPUNCH.windup) { f.vx = 0; if (!g) f.vy = 0; break }
       if (!m.hit && t < IPUNCH.windup + IPUNCH.rush) {
+        if (m.dy == null) {   // aim: the rush climbs / dives toward the nearest foe in front (a launched foe is caught in the air)
+          const tgt = foes.filter(o => Math.sign(ctrX(o) - ctrX(f)) === m.dir).sort((a, b) => Math.abs(ctrX(a) - ctrX(f)) - Math.abs(ctrX(b) - ctrX(f)))[0]
+          // reach the foe in n frames (they may be right next to him), aiming where a launched foe WILL be, capped at aimUp total
+          const stepX = IPUNCH.dist * SCREEN / IPUNCH.rush
+          m.dyN = tgt ? Math.max(1, Math.min(IPUNCH.rush, Math.ceil(Math.max(0, Math.abs(ctrX(tgt) - ctrX(f)) - (f.w + tgt.w) / 2) / stepX) || 1)) : 0
+          const want = tgt ? ctrY(tgt) + (tgt.onGround || tgt.grounded ? 0 : (tgt.vy || 0) * m.dyN) - ctrY(f) : 0
+          m.dy = tgt ? Math.round(Math.max(-IPUNCH.aimUp, Math.min(fl || !g ? IPUNCH.aimUp : 0, want)) / m.dyN) : 0
+        }
+        if (m.dyN > 0) m.dyN--; else m.dy = 0
         const step = IPUNCH.dist * SCREEN / IPUNCH.rush, xPrev = f.x
-        f.x = clampX(f.x + m.dir * step); f.vx = 0; if (!g) f.vy = 0
+        f.x = clampX(f.x + m.dir * step); f.vx = 0; f.vy = 0
+        if (m.dy) { f.y += m.dy; if (m.dy < 0) { f.onGround = false; f.grounded = false } }   // physics clamps a dive at the floor
         pushFx(s, 'trail', ctrX(f), ctrY(f), { dir: m.dir })
         const x0 = Math.min(xPrev, f.x), x1 = Math.max(xPrev, f.x) + f.w
         const o = foes.find(o => boxHit(o, x0, f.y + 10, x1 - x0, IPUNCH.h) && !((o.invulnTimer || 0) > 0) && !o._gs?.blink?.inv)
@@ -420,8 +476,8 @@ function moveTick(f, s, A, W, opp, raw) {
           f.x = clampX(m.dir === 1 ? o.x - f.w - 4 : o.x + o.w + 4)
           const r = strike(f, o, { raw: IPUNCH.raw, mult: m.fly ? speedMult(m.frac) : 1, hitstun: IPUNCH.hitstun, kbx: IPUNCH.kbx, kby: IPUNCH.kby, chip: IPUNCH.chip,
             blockstun: IPUNCH.blockstun, dir: m.dir, move: 'inv_invincible_punch', type: 'blunt', hitstop: IPUNCH.hitstop, fx: 'burst', tier: 'big', push: 10 }, W)
-          if (r === 'hit') { s.stats.ipunchHits++; o._invWall = { t: IPUNCH.wall.watch, dir: m.dir, by: f.side }; cue(f, 'ipunchHit') }
-          m.contact = r === 'hit' || r === 'block'; m.clean = r === 'hit'
+          if (r === 'hit') { s.stats.ipunchHits++; o._invWall = { ...(o._invWall || {}), t: IPUNCH.wall.watch, dir: m.dir, by: f.side }; cue(f, 'ipunchHit') }
+          m.contact = r === 'hit' || r === 'block'; m.clean = r === 'hit'; m.contactTick = s.tick
           const jump = IPUNCH.windup + IPUNCH.rush - 2   // the burst frames play from contact
           if (t < jump) { A.timer = A.total - jump }
         }
@@ -446,11 +502,14 @@ function moveTick(f, s, A, W, opp, raw) {
           m.released = true
           const r = strike(f, o, { raw: SKYWARD.raw, hitstun: SKYWARD.hitstun, kbx: 2, kby: SKYWARD.launchVy, chip: SKYWARD.chip, dir: m.dir, move: 'inv_skyward', type: 'blunt', hitstop: 6, fx: 'impactBig', tier: 'big' }, W)
           m.contact = r === 'hit' || r === 'block'; m.clean = r === 'hit'
-          if (r === 'hit') { s.stats.skywardHits++; m.carry = SKYWARD.carry; f.vy = SKYWARD.riseVy; f.onGround = false; f.grounded = false; cue(f, 'skywardRise') }
+          if (r === 'hit') { s.stats.skywardHits++; m.carry = SKYWARD.carry; m.vic = o.side; f.vy = SKYWARD.riseVy; f.onGround = false; f.grounded = false; cue(f, 'skywardRise') }
         }
       }
       if (m.carry > 0) {
         m.carry--; f.vx = 0
+        const v = foes.find(o => o.side === m.vic)   // the uppercut carries BOTH of them up: the foe rides just above his fist
+        if (v) { v.x = Math.max(0, Math.min(sw(W) - v.w, Math.round(m.dir === 1 ? f.x + f.w + 2 : f.x - v.w - 2))); v.y = Math.round(f.y - SKYWARD.ride); v.vx = 0; v.vy = f.vy
+          v.onGround = false; v.grounded = false; v.hitstun = Math.max(v.hitstun || 0, SKYWARD.hitstun - 10); if (m.carry === 0) v.vy = SKYWARD.popVy }
         pushFx(s, 'vstreak', ctrX(f), feet(f), { dir: m.dir })
         if (m.carry === 0) {   // then he is automatically in flight
           endInvAttack(f)
@@ -465,6 +524,11 @@ function moveTick(f, s, A, W, opp, raw) {
       if (t < CRASH.startup) { f.vx = 0; f.vy = 0; break }
       f.vy = CRASH.vy; f.vx = m.dir * CRASH.vx
       pushFx(s, 'vstreak', ctrX(f), f.y, { dir: m.dir, down: true })
+      // the dive drives an airborne foe it passes through down with him (the landing shockwave then hits them on the floor)
+      for (const o of foes) if (!(o.onGround || o.grounded) && !(o.invulnTimer > 0) && boxHit(o, f.x - 20, f.y, f.w + 40, f.h + CRASH.vy)) {
+        if (o.isBlocking && (o.facing || 1) === -m.dir) continue
+        o.vy = CRASH.vy; o.vx = 0; o.hitstun = Math.max(o.hitstun || 0, CRASH.hitstun); m.spike = o.side
+      }
       if (g && t > CRASH.startup) {
         const dir = m.dir; endInvAttack(f); startInvMove(f, 'kCrashLand', W, { dir, internal: true }); return
       }
@@ -502,10 +566,12 @@ function barrageTick(f, s, A, m, t, W, foes, front, raw) {
   const o = foes.find(o => boxHit(o, bx, f.y + 14, md.w, md.h))
   m.hits++
   if (!o) { m.done = true; m.endAt = t + 10; return }
-  const r = strike(f, o, { raw: md.raw, hitstun: last ? 30 : 14, kbx: last ? 3 : 0.6, kby: last ? -22 : 0, chip: 0.15, dir: m.dir, blockstun: 8,
+  f.x = Math.max(0, Math.min(sw(W) - f.w, f.x + m.dir * 3))   // the flurry walks in with the hits (keeps the foe inside it)
+  const r = strike(f, o, { raw: md.raw, hitstun: last ? 34 : 14, kbx: last ? 3 : 0, kby: last ? -14 : 0, chip: 0.15, dir: m.dir, blockstun: 8,
     move: last ? 'inv_barrage_launch' : 'inv_barrage', type: 'blunt', hitstop: last ? 7 : 2, fx: last ? 'impact' : 'spark', interrupt: true, noScale: true }, W)
-  if (r === 'hit') { s.stats.barrageHits++; m.clean = true; m.contact = true; if (last) s.stats.barrageLaunch++; cue(f, last ? 'barrageLast' : 'barrageHit') }
-  if (r === 'block') m.contact = true
+  if (r === 'hit' && last) o._invWall = { ...(o._invWall || {}), kd: INV_MOVES.kBarrage.landKd, kdT: 90, by: f.side }   // knocked down when they land
+  if (r === 'hit') { s.stats.barrageHits++; m.clean = true; m.contact = true; m.contactTick = s.tick; if (last) s.stats.barrageLaunch++; cue(f, last ? 'barrageLast' : 'barrageHit') }
+  if (r === 'block') { m.contact = true; m.contactTick = s.tick }
   if (last || r !== 'hit') { m.done = true; m.endAt = t + 10 }
 }
 
@@ -584,13 +650,13 @@ function tvTick(f, s, A, m, t, W, foes, raw) {
       const dx = Math.abs(ctrX(o) - tv.x)
       if (dx <= TV.direct * SCREEN) {
         const r = strike(f, o, { raw: TV.rawDirect, hitstun: TV.hitstunDirect, kbx: 10, kby: -16, dir: ctrX(o) >= tv.x ? 1 : -1, unblockable: false, otg: true, chip: 0.2,
-          move: 'inv_terminal_velocity', type: 'impact', hitstop: 14, fx: 'burst', noScale: true, tier: 'big', push: 12 }, W)
+          move: 'inv_terminal_velocity', type: 'impact', infinityStops: true, hitstop: 14, fx: 'burst', noScale: true, tier: 'big', push: 12 }, W)
         if (r === 'stopped') s.stats.tvStopped++
         if (r === 'hit') s.stats.tvDirect++
         tv.hit = tv.hit || r; any = true
       } else if (dx <= TV.shock * sw(W) / 2 && floorY - feet(o) < 60) {
         const r = strike(f, o, { raw: TV.rawShock, hitstun: TV.hitstunShock, kbx: 9, kby: -8, dir: ctrX(o) >= tv.x ? 1 : -1, otg: true, chip: 0.2,
-          move: 'inv_terminal_velocity_shock', type: 'impact', hitstop: 8, fx: 'impact', noScale: true, push: 10 }, W)
+          move: 'inv_terminal_velocity_shock', type: 'impact', infinityStops: true, hitstop: 8, fx: 'impact', noScale: true, push: 10 }, W)
         if (r === 'stopped') s.stats.tvStopped++
         if (r === 'hit') s.stats.tvShock++
         tv.hit = tv.hit || (r === 'hit' ? 'shock' : r); any = true
@@ -624,7 +690,7 @@ function cpuTick(f, s, opp, W) {
   const a = live(f)
   // zip on hit: a clean normal → zip through (cross-up) when charges allow
   if (a && NORMALS.includes(a.inv.key) && a.inv.clean && !a.inv.cpuZip && canZip(f) && (s.clock + s.serial) % 3 === 0) {
-    a.inv.cpuZip = true; startZip(f, dir, W, { cancel: true }); return
+    a.inv.cpuZip = true; startZip(f, dir, W, { cancel: true, foe }); return
   }
   if (a || f.hitstun > 0 || f.blockstun > 0 || s.mv || f.knockdownState) return
   if (c.nextAt == null) c.nextAt = s.clock + pace
@@ -640,6 +706,11 @@ function cpuTick(f, s, opp, W) {
   c.nextAt = s.clock + pace
 }
 
+// physics.js body collision: Mark passes THROUGH the foe while zipping, and while flying at ≥ 70 % of top speed (he blows past)
+export function invPhasing(a, b) {
+  const ph = f => isInv(f) && (!!f._inv?.mv || (isFlying(f) && speedFrac(f) >= FLIGHT.passAt))
+  return ph(a) || ph(b)
+}
 export function invLockedForMovement(f) {
   if (!isInv(f)) return false
   if (f._inv?.mv) { f._dashTap = false; return true }   // his own zip owns the movement

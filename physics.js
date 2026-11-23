@@ -29,6 +29,7 @@ import { elWalkVx, elFriction, elDashMul } from './elements.js'   // element pat
 import { dashParrWalkMul, dashParrPhasing } from './dashParrState.js'   // Dash Parr: Momentum speed tiers + pass-through (dash_parr-gated; 1 / false for everyone else)
 import { ninjaPhasing } from './ninja.js'   // MSV1 streak / burrow / vanish pass-through (false for everyone else)
 import { enochPhasing } from './enochState.js'   // Enoch: an ICE glide skates past the opponent (enoch-gated; false for everyone else)
+import { invPhasing } from './invincibleState.js'   // Invincible: Zip / ≥ 70 % flight speed pass through the foe (invincible-gated; false for everyone else)
 import { buggyWalkMul } from './buggyState.js'   // Buggy the Clown: Festival walks at 60% (buggy-gated, 1 for everyone else)
 import { stepFlight, isFlying } from "./flight.js"   // FLIGHT MODULE (Homelander + future flyers): richer data-driven flyer, gated on fighter._flightCtl (no-op for everyone else, incl. the separate _flightActive Omni-Man/Superman system)
 
@@ -544,6 +545,7 @@ export const physics = {
     if (ninjaPhasing(p1, p2)) return   // MSV1
     if (benAlienPhasing(p1, p2)) return   // READY Omnitrix form passing THROUGH (Megawhatt Live Wire cross-up); false for everyone else
     if (enochPhasing(p1, p2)) return   // Enoch skating PAST on an ICE glide (fire glides and everything else still collide)
+    if (invPhasing(p1, p2)) return   // Invincible ZIPPING through / flying past at ≥ 70 % top speed
 
     const dx = (p1.x + p1.w / 2) - (p2.x + p2.w / 2)
     const minX = p1.w / 2 + p2.w / 2

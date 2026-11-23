@@ -27,7 +27,7 @@ try {
   ck('win pool starts with the bubble\'s line ("What will you have after 500 years?")', /500 years/.test(V.win[0][1]), V.win[0][1])
   // spy
   await E(async () => { const { sound } = await import('./sound.js'); const o = sound.playSfxFile.bind(sound)
-    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/omniman_viltrum/')) __vo.push({ f, owner: opts.owner || null, t: __harness.omnimanViltrumTest.raw()._omv?.clock ?? null }); return o(f, fb, opts) } })
+    sound.playSfxFile = (f, fb, opts = {}) => { if (String(f).includes('/audio/homelander/') && opts.owner !== __harness.omnimanViltrumTest.raw('p2')) (window.__hl ||= []).push(f); if (String(f).includes('/omniman_viltrum/')) __vo.push({ f, owner: opts.owner || null, t: __harness.omnimanViltrumTest.raw()._omv?.clock ?? null }); return o(f, fb, opts) } })
   const take = () => E(() => __vo.splice(0))
   const reset = (o = {}) => E(async o => { const H = __harness.omnimanViltrumTest; H.reset(); (await import('./omnimanViltrumState.js')).omvState(H.raw()).said.intro = true   // the round-intro line is tested once, below
    ; __harness.setDummyBehavior(o.dummy || 'stand'); const a = H.raw(), b = H.raw('p2')
@@ -72,6 +72,11 @@ try {
     return __vo.slice(before).map(x => x.f) })
   R.priority = pr.map(f => poolOf[f])
   ck('priority: grunts queued right after THINK! do not cut it (only the THINK! line plays)', pr.length === 1 && poolOf[pr[0]].includes('think'), JSON.stringify(R.priority))
+  // NO Homelander audio from Omni-Man (his flight clips carry Homelander's voice): fly, boom, Blitz, Meteor, Escape Velocity
+  await reset({ gap: 300 }); await E(() => { __harness.omnimanViltrumTest.place(900, 300); __harness.omnimanViltrumTest.fly() }); await step(60)
+  for (const k of ['kBlitz', 'kMeteor', 'kSkyHook']) { await reset({ gap: 200 }); await move(k); await step(90) }
+  const hl = await E(() => window.__hl || []); R.homelanderClips = hl
+  ck('no Homelander clip ever plays from Omni-Man (intro, takeoff, boom, Blitz, Meteor, Escape Velocity …)', !hl.length, JSON.stringify(hl.slice(0, 3)))
   // KO + win quote
   await reset({ gap: 80 }); await take(); await E(() => { __harness.omnimanViltrumTest.raw().health = 1 }); await step(1); await E(() => { const a = __harness.omnimanViltrumTest.raw(); a.health = 0 }); await step(2); L = await take(); R.ko = pools(L)
   ck('KO: "NOOOO"', L.some(x => poolOf[x.f]?.includes('ko')), JSON.stringify(R.ko))

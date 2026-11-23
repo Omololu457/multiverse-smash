@@ -6,7 +6,6 @@ import { sound } from './sound.js'
 import { OMNIMAN_VILTRUM_FX, OMNIMAN_VILTRUM_ICONS } from './omnimanViltrumSprites.js'
 import { OMV_KEY, TOP, FLIGHT, ESCAPE } from './omnimanViltrumData.js'
 import { hashRandom, isFlying } from './flight.js'
-import { HOMELANDER_SFX } from './homelander_sfx_map.js'
 import { omvSkinFx, omvSkinPal, omvSkinIcon, omvSkinPhaseTick } from './omnimanViltrumSkins.js'
 import { OMV_VOICE } from './omnimanViltrumVoice.js'
 
@@ -208,12 +207,9 @@ function drawEvWorld(c, f, s) {
   }
 }
 
-// ── sounds: Homelander's flight clips pitched DOWN (rate 0.78 → lower, heavier) + a WebAudio synth for his own character
-// (a whoosh whose pitch rises with speed, the boom crack, impacts that get heavier with speed, the crash crunch,
-// the orbit hum, the crater: the loudest hit in his kit). Audio-only; clip choice from the sim clock (no RNG).
-const HL = HOMELANDER_SFX || {}
-const pick = (pool, n) => (pool && pool.length) ? pool[Math.abs(n | 0) % pool.length] : null
-function clip(pool, f, rate = 0.78) { const k = pick(HL[pool], (f?._omv?.clock || 0) * 7 + (f?._omv?.serial || 0)); if (k) try { sound.playSfxFile?.(k, null, { rate }) } catch (_) {} }
+// ── sounds: a WebAudio synth for his own character, NO borrowed clips (Homelander's flight pools carry his voice):
+// a whoosh whose pitch rises with speed, the boom crack, impacts that get heavier with speed, the crash crunch, the
+// orbit hum, the crater: the loudest hit in his kit. Audio-only.
 function synth(kind, k = 0) {
   const ctx = sound._ctx, out = sound._master
   if (!ctx || !out || sound._sfxMuted || !sound._ready) return
@@ -284,16 +280,16 @@ const VOICE = {
 }
 let _whooshAt = -99
 const SFX = {
-  takeoff: f => { clip('FLIGHT_TAKEOFF', f); synth('whoosh', 0.3) },
-  boom: f => { clip('SUPERSONIC', f, 0.72); synth('boom') },
+  takeoff: () => { synth('land'); synth('whoosh', 0.5) },
+  boom: () => synth('boom'),
   crash: () => synth('crash'), hardLand: () => synth('land'), brake: () => synth('brake'),
   hit: (f, v) => synth('hit', v?.frac || 0), blocked: () => synth('hit', 0),
-  intro: f => { synth('land'); clip('SUPERSONIC', f, 0.7) },
-  kBlitz: f => synth('whoosh', 0.8), blitz: f => { clip('SUPERSONIC', f, 0.8); synth('boom') }, kSkyHook: () => synth('whoosh', 0.5), skyHook: () => synth('hit', 0.7),
-  meteor: f => { clip('FLIGHT_TAKEOFF', f, 0.7); synth('whoosh', 1) }, grab: () => synth('grab'), throw: () => synth('crash'), glint: () => synth('glint'),
+  intro: () => { synth('land'); synth('boom') },
+  kBlitz: f => synth('whoosh', 0.8), blitz: () => synth('boom'), kSkyHook: () => synth('whoosh', 0.5), skyHook: () => synth('hit', 0.7),
+  meteor: () => synth('whoosh', 1), grab: () => synth('grab'), throw: () => synth('crash'), glint: () => synth('glint'),
   unimpressed: () => { synth('hit', 1); synth('crash') }, decree: () => synth('hum'), think: () => { synth('grab'); synth('boom') }, slam: () => { synth('crater') },
-  evGrab: () => synth('grab'), ev_ascent: f => { clip('FLIGHT_TAKEOFF', f, 0.66); synth('whoosh', 1) }, ev_orbit: () => synth('hum'),
-  ev_ret: f => { clip('SUPERSONIC', f, 0.62); synth('whoosh', 1) }, crater: () => synth('crater'), overshoot: () => synth('brake'),
+  evGrab: () => synth('grab'), ev_ascent: () => { synth('whoosh', 1); synth('boom') }, ev_orbit: () => synth('hum'),
+  ev_ret: () => { synth('whoosh', 1); synth('boom') }, crater: () => synth('crater'), overshoot: () => synth('brake'),
 }
 // ORBIT: the music drops under the hum — the sound layer's ref-counted duck, held exactly while the sim is in orbit
 // (follows the phase every frame, so an interrupted ultimate can never leave the music ducked). Audio-only.

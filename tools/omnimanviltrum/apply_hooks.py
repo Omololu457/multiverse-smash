@@ -112,6 +112,13 @@ HOOKS += [
   (3, 'combat.js', "      if (gsProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }", 'after_line',
    "      if (omvProjectileGate(fighter, proj) === 'remove') { projectiles.splice(i, 1); break }   // Omni-Man (Viltrumite): UNIMPRESSED swats it away; gated", "omvProjectileGate(fighter, proj) === 'remove'"),
 ]
+# phase 4: Move List (kits.js) — the in-game move list / help table reads KITS[rosterKey]
+HOOKS += [
+  (4, 'kits.js', "import { SUKUNA_SHINJUKU_KIT } from './sukunaShinjukuKit.js'", 'after_line',
+   "import { OMNIMAN_VILTRUM_KIT } from './omnimanViltrumKit.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) move list", "OMNIMAN_VILTRUM_KIT } from"),
+  (4, 'kits.js', "  sukuna_shinjuku: SUKUNA_SHINJUKU_KIT,", 'after_line', "  omniman_viltrum: OMNIMAN_VILTRUM_KIT,   // MSV1-OMNIMAN", "omniman_viltrum: OMNIMAN_VILTRUM_KIT"),
+]
+
 
 def main():
   a = sys.argv[1:]; check = '--check' in a

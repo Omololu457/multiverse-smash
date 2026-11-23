@@ -378,9 +378,52 @@ function presentTick(f, s, opp, W) {
   }
 }
 
-// ── CPU (only when the CPU drives him) — Phase 4 ──
+// ── CPU (only when the CPU drives him; the stock AI keeps walking / normals through his command layer). Deterministic:
+// the "roll" is the sim clock (Gojo / Sukuna Shinjuku's CPU roll), no RNG. The brief's four habits: Blitz with spacing,
+// BRAKE before walls, Unimpressed on reads, Escape Velocity only on a clean opening. Plus: flight, Sky Hook as anti-air,
+// Meteor from above, Face in the Dirt vs a guard, THINK! on a stunned foe. ──
+const PACE = { dummy: Infinity, easy: 48, normal: 26, adaptive: 22, hard: 16, impossible: 11, master: 10 }   // in FREE frames (not attacking / stunned)
+const READ = { easy: 2, normal: 4, adaptive: 5, hard: 7, impossible: 9, master: 9 }   // out of 10: how often he reads a close attack
 export function markOmvCpu(f, difficulty) { if (!isOmv(f)) return; const s = omvState(f); s.cpu = { ...(s.cpu || {}), seen: s.clock, diff: difficulty || 'normal' } }
-function cpuTick(f, s, opp, W, raw) { }
+const opening = t => (t.hitstun > 0 && !t.isGrabbed) || (t.attacking && t.currentAttack && (t.currentAttack.total - t.currentAttack.timer) > (t.currentAttack.activeStart ?? t.currentAttack.startup ?? 6) + 2 && !t.currentAttack.hasHit)
+function cpuTick(f, s, opp, W, raw) {
+  const c = s.cpu, pace = PACE[c.diff] ?? 70
+  if (!isFinite(pace)) return
+  const foe = foesOf(f, W, opp)[0]; if (!foe) return
+  const dir = ctrX(foe) >= ctrX(f) ? 1 : -1, dist = Math.abs(ctrX(foe) - ctrX(f)), e = f.energy || 0, fly = omvFlying(f)
+  const roll = (s.clock * 7 + (c.n = (c.n || 0) + 1) * 13) % 10
+  // BRAKE BEFORE WALLS (every frame while flying fast): the stage edge, or the camera edge (≈ 1 screen from the foe), within
+  // ~12 frames of travel → hold the brake instead of crashing
+  if (fly) {
+    const ahead = ctrX(f) + (f.vx || 0) * 12, far = Math.abs(ahead - ctrX(foe)) > 1150
+    const wall = ahead < 40 || ahead > sw(W) - 40 || (far && Math.sign(f.vx || 0) === Math.sign(ctrX(f) - ctrX(foe)))
+    const floor = (f.vy || 0) > 6 && feet(f) + (f.vy || 0) * 10 > floorOf(f, W) && omvSpeedFrac(f) > 0.6
+    if ((wall || floor) && omvSpeedFrac(f) > 0.45) { f._flightBrake = true; c.brakes = (c.brakes || 0) + 1 }
+  }
+  if (f.attacking || f.hitstun > 0 || f.blockstun > 0 || f.isGrabbed || s.crash > 0 || s.land > 0 || s.rush || s.hold || s.ev) return
+  const fire = (k, o = {}) => { f.facing = dir; const ok = startOmvMove(f, k, W, { dir, flyOk: fly, ...o }); if (ok) c.used = { ...(c.used || {}), [k]: ((c.used || {})[k] || 0) + 1 }; return ok }
+  // UNIMPRESSED ON READS (any frame, not paced): the foe started a move right in front of him
+  const fa = foe.attacking && foe.currentAttack ? foe.currentAttack : null
+  if (fa && !fa.isUltimate && dist < 150 && !fly && grounded(f) && s.cd.unimp === 0 && (fa.total - fa.timer) <= 3 && roll < (READ[c.diff] ?? 4)) { fire('kUnimp'); return }
+  if (c.wait == null) c.wait = pace
+  if (--c.wait > 0) return
+  c.wait = pace
+  const gojoInf = (foe.rosterKey === 'gojo_shinjuku' && (foe._gs?.inf?.lv || 0) > 0) || ((foe.rosterKey || '') === 'gojo' && foe.infinityActive)
+  // ESCAPE VELOCITY: only a clean opening (stunned / whiffed, close, not behind Infinity)
+  if (!fly && e >= ESCAPE.cost && !(f.ultimateCooldown > 0) && dist < 420 && opening(foe) && !gojoInf && !foe.knockdownState && grounded(foe) && !(foe._flightCtl && isFlying(foe))) { fire('kEscape'); return }
+  if (e >= THINK.cost && dist < 600 && foe.hitstun > 0 && !gojoInf && roll < 5) { fire('kThink'); return }
+  if (fly) {
+    if (!grounded(foe) && dist < 120 && roll < 6) return                        // the stock AI's flight punch handles it
+    if (ctrY(foe) - ctrY(f) > 140 && dist < 160) { fire('kMeteor', { diag: dist > 60 }); return }
+    if (dist < 220 || roll === 0) { if (flightToggleInput(f)) c.lands = (c.lands || 0) + 1; return }   // come down to fight
+    return
+  }
+  if (!grounded(foe) && dist < 130 && foe.vy < 2) { fire('kSkyHook'); return }  // anti-air
+  if (foe.isBlocking && dist < 110 && roll < 6) { fire('kDirt'); return }        // grab beats the guard
+  if (dist > 240 && dist < 620 && roll < 6) { fire('kBlitz'); return }           // BLITZ WITH SPACING: inside the tap range
+  if ((dist > 620 || (!grounded(foe) && dist > 200) || (dist > 380 && roll === 4)) && roll < 5) { if (flightToggleInput(f)) { s.stats.takeoffs++; cue(f, 'takeoff'); c.flights = (c.flights || 0) + 1 }; return }
+  if (dist > 500 && roll === 9 && !fa) { fire('kDecree'); return }               // the arrogance: taunts from far away
+}
 
 // movement is his while a rush / hold / crash / hard landing / committed move owns it
 export function omvLockedForMovement(f) {

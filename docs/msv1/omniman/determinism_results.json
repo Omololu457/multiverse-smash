@@ -1,84 +1,110 @@
 {
- "pass": 12,
+ "pass": 13,
  "fail": 0,
  "report": {
   "homelander": {
-   "hash": "c9b7008f7851af66",
+   "hash": "7bb29752eb4d7c6a",
    "used": {
-    "hits": 1,
+    "hits": 0,
     "takeoffs": 0,
     "booms": 0,
     "crashes": 1,
     "hardLands": 0,
     "topSpeed": 31.9,
-    "moves": 11
+    "moves": 9,
+    "dealt": 946,
+    "cpu": {
+     "brakes": 0,
+     "flights": 0
+    }
    },
    "p1": [
-    968.2999999999998,
-    368.85,
+    1131.3175168,
+    16.965332031250142,
     1050,
-    100.42000000000002,
+    4.4400000000000475,
     "omniman_viltrum"
    ],
    "p2": [
-    1371.6999999999994,
-    400,
-    1050,
-    50.420000000000016,
+    1191.3175168,
+    -3.034667968749858,
+    1010,
+    54.44000000000017,
     "homelander"
    ]
   },
   "gojo_shinjuku": {
-   "hash": "bdf0c80ccf640bb2",
+   "hash": "9fc78a21c9eef982",
    "used": {
-    "hits": 0,
-    "takeoffs": 0,
-    "booms": 0,
+    "hits": 1,
+    "takeoffs": 1,
+    "booms": 3,
     "crashes": 0,
     "hardLands": 0,
-    "topSpeed": 31.9,
-    "moves": 13
+    "topSpeed": 57.2,
+    "moves": 18,
+    "dealt": 524,
+    "cpu": {
+     "brakes": 4,
+     "flights": 1,
+     "kBlitz": 1,
+     "kUnimp": 1
+    }
    },
    "p1": [
-    1020.1722431394481,
-    400,
-    281,
-    136.64000000000217,
+    585.0000061476519,
+    275.35,
+    676,
+    135.64000000000217,
     "omniman_viltrum"
    ],
    "p2": [
-    700.1999999998939,
-    353.35000000000093,
-    692,
-    275.64000000000283,
+    554.1000061476519,
+    400,
+    636,
+    242.64000000000283,
     "gojo_shinjuku"
    ]
   },
   "dseyl": {
-   "hash": "324a9955e71e8d48",
+   "hash": "73fc64ead8fc6c07",
    "used": {
     "hits": 2,
-    "takeoffs": 0,
+    "takeoffs": 1,
     "booms": 0,
-    "crashes": 0,
+    "crashes": 1,
     "hardLands": 0,
-    "topSpeed": 31.9,
-    "moves": 12
+    "topSpeed": 47.4,
+    "moves": 19,
+    "dealt": 1101,
+    "cpu": {
+     "brakes": 2,
+     "flights": 1,
+     "kUnimp": 1,
+     "kThink": 1
+    }
    },
    "p1": [
-    916.5409116975527,
+    939.98239801255,
     400,
-    171,
-    140.16000000000204,
+    744,
+    44.800000000001106,
     "omniman_viltrum"
    ],
    "p2": [
-    856.5409116975527,
+    1420,
     400,
-    472,
-    24.160000000000927,
+    0,
+    62.800000000002115,
     "dseyl"
    ]
+  },
+  "cpu": {
+   "brakes": 6,
+   "flights": 2,
+   "kBlitz": 1,
+   "kUnimp": 2,
+   "kThink": 1
   }
  }
 }

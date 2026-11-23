@@ -1,0 +1,948 @@
+{
+ "source": "Invincible VS Invincible Voice Lines + Efforts.mp3",
+ "note": "Silence-detected (-38 dB, 0.35 s), transcribed offline (faster-whisper small.en). Lines that name a specific opponent (Conquest, Cecil, Oliver, Eve, Lucan, Thula, Rex, Damien, Angstrom …) and halves of two-part lines are left out; generic lines only. Pool order: the first win line is the one shown with the win bubble.",
+ "pools": {
+  "intro": [
+   {
+    "i": 0,
+    "start": 0,
+    "dur": 0.534,
+    "text": "I'm here!"
+   },
+   {
+    "i": 22,
+    "start": 61.788,
+    "dur": 2.566,
+    "text": "Dude, I seriously do not have time for this today."
+   },
+   {
+    "i": 34,
+    "start": 102.492,
+    "dur": 2.273,
+    "text": "I face way stronger enemies."
+   },
+   {
+    "i": 64,
+    "start": 215.745,
+    "dur": 2.62,
+    "text": "This is my home, and I won't let you destroy it!"
+   },
+   {
+    "i": 104,
+    "start": 356.283,
+    "dur": 3.283,
+    "text": "If we were the last two people in the universe, I'd always win."
+   },
+   {
+    "i": 116,
+    "start": 400.226,
+    "dur": 1.971,
+    "text": "I'm the most powerful hero on Earth."
+   },
+   {
+    "i": 117,
+    "start": 402.518,
+    "dur": 1.796,
+    "text": "You really wanna pick a fight with me?"
+   },
+   {
+    "i": 125,
+    "start": 437.02,
+    "dur": 2.661,
+    "text": "I won't need help to punch you into the next century."
+   },
+   {
+    "i": 131,
+    "start": 456.891,
+    "dur": 5.213,
+    "text": "A grudge match, okay? I've been looking for an excuse to hit someone really hard."
+   },
+   {
+    "i": 204,
+    "start": 665.175,
+    "dur": 1.698,
+    "text": "Time to knock some sense into you!"
+   },
+   {
+    "i": 225,
+    "start": 716.508,
+    "dur": 1.457,
+    "text": "Don't underestimate me!"
+   },
+   {
+    "i": 236,
+    "start": 741.436,
+    "dur": 3.144,
+    "text": "You have no idea how much I've been holding back."
+   },
+   {
+    "i": 246,
+    "start": 764.523,
+    "dur": 1.362,
+    "text": "You'll never take this planet!"
+   },
+   {
+    "i": 12,
+    "start": 34.028,
+    "dur": 3.752,
+    "text": "No matter what dimension you send me to, I'll always come back."
+   },
+   {
+    "i": 15,
+    "start": 43.642,
+    "dur": 3.402,
+    "text": "I've gotten stronger since we last fought, trust me."
+   },
+   {
+    "i": 171,
+    "start": 583.833,
+    "dur": 3.093,
+    "text": "It might be tough, but I'm invincible."
+   }
+  ],
+  "introOmni": [
+   {
+    "i": 6,
+    "start": 8.435,
+    "dur": 1.093,
+    "text": "Just stop!"
+   },
+   {
+    "i": 221,
+    "start": 706.971,
+    "dur": 1.205,
+    "text": "I'M NOT MY DAD!"
+   },
+   {
+    "i": 24,
+    "start": 69.992,
+    "dur": 1.7,
+    "text": "You think I'm so much like my dad?"
+   },
+   {
+    "i": 17,
+    "start": 49.472,
+    "dur": 1.734,
+    "text": "You know what it is I'm fighting for."
+   },
+   {
+    "i": 162,
+    "start": 556.554,
+    "dur": 2.601,
+    "text": "I used to be afraid of you, guess I got stronger."
+   },
+   {
+    "i": 65,
+    "start": 218.901,
+    "dur": 1.748,
+    "text": "I looked up to you my whole life."
+   },
+   {
+    "i": 64,
+    "start": 215.745,
+    "dur": 2.62,
+    "text": "This is my home, and I won't let you destroy it!"
+   }
+  ],
+  "win": [
+   {
+    "i": 171,
+    "start": 583.833,
+    "dur": 3.093,
+    "text": "It might be tough, but I'm invincible."
+   },
+   {
+    "i": 164,
+    "start": 562.6,
+    "dur": 2.112,
+    "text": "Yeah, that's pretty much how I thought this would play out."
+   },
+   {
+    "i": 174,
+    "start": 590.515,
+    "dur": 1.26,
+    "text": "You kind of had that coming."
+   },
+   {
+    "i": 210,
+    "start": 681.843,
+    "dur": 1.272,
+    "text": "That was just a warm up."
+   },
+   {
+    "i": 209,
+    "start": 679.348,
+    "dur": 1.918,
+    "text": "You were right to be afraid of me."
+   },
+   {
+    "i": 140,
+    "start": 486.579,
+    "dur": 2.588,
+    "text": "You said that last time. Look where it got you."
+   },
+   {
+    "i": 172,
+    "start": 587.525,
+    "dur": 1.334,
+    "text": "You left me no choice."
+   },
+   {
+    "i": 185,
+    "start": 620.178,
+    "dur": 1.756,
+    "text": "Comin' after me sure was dumb!"
+   },
+   {
+    "i": 157,
+    "start": 537.104,
+    "dur": 4.268,
+    "text": "Delaying you taking over the Earth? That actually counts as a victory in my book."
+   },
+   {
+    "i": 261,
+    "start": 791.265,
+    "dur": 0.505,
+    "text": "Nailed it!"
+   },
+   {
+    "i": 167,
+    "start": 572.094,
+    "dur": 2.029,
+    "text": "That's for always showing up uninvited."
+   }
+  ],
+  "notYet": [
+   {
+    "i": 264,
+    "start": 796.499,
+    "dur": 1.362,
+    "text": "Not done yet!"
+   },
+   {
+    "i": 268,
+    "start": 804.549,
+    "dur": 0.581,
+    "text": "I'm up!"
+   },
+   {
+    "i": 271,
+    "start": 808.846,
+    "dur": 1.16,
+    "text": "I'm ready!"
+   },
+   {
+    "i": 225,
+    "start": 716.508,
+    "dur": 1.457,
+    "text": "Don't underestimate me!"
+   }
+  ],
+  "super": [
+   {
+    "i": 266,
+    "start": 801.232,
+    "dur": 1.339,
+    "text": "I'M ENDING THIS!"
+   },
+   {
+    "i": 265,
+    "start": 798.968,
+    "dur": 1.21,
+    "text": "INCOMING!"
+   },
+   {
+    "i": 262,
+    "start": 792.327,
+    "dur": 1.398,
+    "text": "THIS IS GONNA HURT!"
+   },
+   {
+    "i": 267,
+    "start": 803.165,
+    "dur": 0.788,
+    "text": "Comin' in hot!"
+   }
+  ],
+  "ipunch": [
+   {
+    "i": 178,
+    "start": 601.381,
+    "dur": 1.376,
+    "text": "Invincible!"
+   },
+   {
+    "i": 257,
+    "start": 786.053,
+    "dur": 0.861,
+    "text": "STAY DOWN!"
+   },
+   {
+    "i": 269,
+    "start": 805.735,
+    "dur": 0.881,
+    "text": "You're done for!"
+   }
+  ],
+  "nhb": [
+   {
+    "i": 201,
+    "start": 657.275,
+    "dur": 2.317,
+    "text": "I'LL NEVER LET YOU HURT ANYONE AGAIN!"
+   },
+   {
+    "i": 191,
+    "start": 636.793,
+    "dur": 0.835,
+    "text": "That's enough!"
+   },
+   {
+    "i": 254,
+    "start": 781.12,
+    "dur": 0.834,
+    "text": "THAT'S ENOUGH!"
+   }
+  ],
+  "nhbLast": [
+   {
+    "i": 263,
+    "start": 794.244,
+    "dur": 1.285,
+    "text": "Last one!"
+   },
+   {
+    "i": 257,
+    "start": 786.053,
+    "dur": 0.861,
+    "text": "STAY DOWN!"
+   }
+  ],
+  "shout": [
+   {
+    "i": 258,
+    "start": 787.42,
+    "dur": 0.473,
+    "text": "Gotcha!"
+   },
+   {
+    "i": 259,
+    "start": 788.499,
+    "dur": 0.691,
+    "text": "HELL YEAH!"
+   },
+   {
+    "i": 260,
+    "start": 789.832,
+    "dur": 0.849,
+    "text": "Here ya go!"
+   },
+   {
+    "i": 261,
+    "start": 791.265,
+    "dur": 0.505,
+    "text": "Nailed it!"
+   },
+   {
+    "i": 257,
+    "start": 786.053,
+    "dur": 0.861,
+    "text": "STAY DOWN!"
+   },
+   {
+    "i": 280,
+    "start": 824.931,
+    "dur": 0.528,
+    "text": "Hey!"
+   },
+   {
+    "i": 289,
+    "start": 834.703,
+    "dur": 0.613,
+    "text": "HEY!"
+   }
+  ],
+  "bark": [
+   {
+    "i": 3,
+    "start": 4.065,
+    "dur": 0.688,
+    "text": "Watch your head!"
+   },
+   {
+    "i": 2,
+    "start": 2.639,
+    "dur": 0.749,
+    "text": "Just in time!"
+   },
+   {
+    "i": 56,
+    "start": 190.211,
+    "dur": 0.613,
+    "text": "Give up!"
+   },
+   {
+    "i": 233,
+    "start": 734.944,
+    "dur": 1.912,
+    "text": "I'm serious! Stand down!"
+   }
+  ],
+  "effort": [
+   {
+    "i": 288,
+    "start": 833.537,
+    "dur": 0.606,
+    "text": "HA!"
+   },
+   {
+    "i": 292,
+    "start": 838.126,
+    "dur": 0.538,
+    "text": "HA!"
+   },
+   {
+    "i": 295,
+    "start": 841.913,
+    "dur": 0.316,
+    "text": "HUH"
+   },
+   {
+    "i": 296,
+    "start": 842.72,
+    "dur": 0.42,
+    "text": "HUH!"
+   },
+   {
+    "i": 298,
+    "start": 844.588,
+    "dur": 0.366,
+    "text": "HUH"
+   },
+   {
+    "i": 300,
+    "start": 846.353,
+    "dur": 0.382,
+    "text": "Tch!"
+   },
+   {
+    "i": 301,
+    "start": 847.186,
+    "dur": 0.351,
+    "text": "HWAH!"
+   },
+   {
+    "i": 302,
+    "start": 848.002,
+    "dur": 0.313,
+    "text": "HUH"
+   },
+   {
+    "i": 303,
+    "start": 848.783,
+    "dur": 0.382,
+    "text": "Yeah!"
+   },
+   {
+    "i": 307,
+    "start": 852.134,
+    "dur": 0.417,
+    "text": "HUH"
+   },
+   {
+    "i": 308,
+    "start": 853.021,
+    "dur": 0.365,
+    "text": "HUH!"
+   },
+   {
+    "i": 309,
+    "start": 853.897,
+    "dur": 0.277,
+    "text": "HEY!"
+   },
+   {
+    "i": 310,
+    "start": 854.635,
+    "dur": 0.277,
+    "text": "HUH!"
+   },
+   {
+    "i": 311,
+    "start": 855.378,
+    "dur": 0.325,
+    "text": "HUH"
+   },
+   {
+    "i": 312,
+    "start": 856.269,
+    "dur": 0.293,
+    "text": "HUH"
+   },
+   {
+    "i": 313,
+    "start": 857.075,
+    "dur": 0.339,
+    "text": "HUH"
+   },
+   {
+    "i": 314,
+    "start": 857.919,
+    "dur": 0.298,
+    "text": "Hyah!"
+   },
+   {
+    "i": 316,
+    "start": 859.558,
+    "dur": 0.425,
+    "text": "HA!"
+   },
+   {
+    "i": 317,
+    "start": 860.528,
+    "dur": 0.378,
+    "text": "HUH"
+   },
+   {
+    "i": 318,
+    "start": 861.418,
+    "dur": 0.495,
+    "text": "HA!"
+   },
+   {
+    "i": 319,
+    "start": 862.379,
+    "dur": 0.455,
+    "text": "Yeah!"
+   },
+   {
+    "i": 320,
+    "start": 863.338,
+    "dur": 0.438,
+    "text": "KAH!"
+   },
+   {
+    "i": 324,
+    "start": 867.46,
+    "dur": 0.53,
+    "text": "HA!"
+   },
+   {
+    "i": 329,
+    "start": 872.412,
+    "dur": 0.485,
+    "text": "HUH"
+   },
+   {
+    "i": 332,
+    "start": 875.528,
+    "dur": 0.397,
+    "text": "HUH"
+   },
+   {
+    "i": 334,
+    "start": 877.434,
+    "dur": 0.321,
+    "text": "BAH!"
+   },
+   {
+    "i": 338,
+    "start": 881.202,
+    "dur": 0.421,
+    "text": "ZUH!"
+   },
+   {
+    "i": 340,
+    "start": 883.109,
+    "dur": 0.406,
+    "text": "HA!"
+   }
+  ],
+  "effortHeavy": [
+   {
+    "i": 277,
+    "start": 821.624,
+    "dur": 0.637,
+    "text": "AHHH!"
+   },
+   {
+    "i": 279,
+    "start": 823.811,
+    "dur": 0.58,
+    "text": "AHHH!"
+   },
+   {
+    "i": 284,
+    "start": 829.2,
+    "dur": 0.535,
+    "text": "AHHH!"
+   },
+   {
+    "i": 285,
+    "start": 830.234,
+    "dur": 0.625,
+    "text": "AHHH!"
+   },
+   {
+    "i": 287,
+    "start": 832.343,
+    "dur": 0.683,
+    "text": "AHHH!"
+   },
+   {
+    "i": 293,
+    "start": 839.275,
+    "dur": 0.741,
+    "text": "AHHH!"
+   },
+   {
+    "i": 294,
+    "start": 840.591,
+    "dur": 0.638,
+    "text": "AHHH!"
+   },
+   {
+    "i": 297,
+    "start": 843.648,
+    "dur": 0.452,
+    "text": "WAH!"
+   },
+   {
+    "i": 321,
+    "start": 864.268,
+    "dur": 0.574,
+    "text": "Gah!"
+   },
+   {
+    "i": 322,
+    "start": 865.4,
+    "dur": 0.599,
+    "text": "AHHH!"
+   },
+   {
+    "i": 326,
+    "start": 869.513,
+    "dur": 0.472,
+    "text": "AHHH!"
+   },
+   {
+    "i": 330,
+    "start": 873.413,
+    "dur": 0.537,
+    "text": "AHH!"
+   },
+   {
+    "i": 336,
+    "start": 879.265,
+    "dur": 0.503,
+    "text": "AHH!"
+   },
+   {
+    "i": 342,
+    "start": 884.994,
+    "dur": 0.472,
+    "text": "AHH!"
+   },
+   {
+    "i": 343,
+    "start": 885.943,
+    "dur": 0.544,
+    "text": "SHAH!"
+   }
+  ],
+  "hurt": [
+   {
+    "i": 345,
+    "start": 887.916,
+    "dur": 0.531,
+    "text": "UGH!"
+   },
+   {
+    "i": 346,
+    "start": 888.892,
+    "dur": 0.585,
+    "text": "Ahh!"
+   },
+   {
+    "i": 347,
+    "start": 889.943,
+    "dur": 0.423,
+    "text": "AH!"
+   },
+   {
+    "i": 351,
+    "start": 894.169,
+    "dur": 0.5,
+    "text": "AHH!"
+   },
+   {
+    "i": 354,
+    "start": 897.591,
+    "dur": 0.653,
+    "text": "UGH!"
+   },
+   {
+    "i": 355,
+    "start": 898.701,
+    "dur": 0.523,
+    "text": "AH!"
+   },
+   {
+    "i": 359,
+    "start": 902.879,
+    "dur": 0.459,
+    "text": "UGH!"
+   },
+   {
+    "i": 365,
+    "start": 909.462,
+    "dur": 0.361,
+    "text": "UGH!"
+   },
+   {
+    "i": 366,
+    "start": 910.279,
+    "dur": 0.375,
+    "text": "AH!"
+   },
+   {
+    "i": 368,
+    "start": 912.388,
+    "dur": 0.619,
+    "text": "UGH!"
+   },
+   {
+    "i": 371,
+    "start": 915.477,
+    "dur": 0.499,
+    "text": "UGH!"
+   },
+   {
+    "i": 374,
+    "start": 918.07,
+    "dur": 0.268,
+    "text": "OOF"
+   },
+   {
+    "i": 375,
+    "start": 918.86,
+    "dur": 0.375,
+    "text": "AHH!"
+   },
+   {
+    "i": 389,
+    "start": 931.972,
+    "dur": 0.499,
+    "text": "AH!"
+   },
+   {
+    "i": 393,
+    "start": 936.108,
+    "dur": 0.356,
+    "text": "UGH!"
+   },
+   {
+    "i": 395,
+    "start": 937.769,
+    "dur": 0.373,
+    "text": "AH!"
+   },
+   {
+    "i": 400,
+    "start": 942.35,
+    "dur": 0.52,
+    "text": "AHH!"
+   },
+   {
+    "i": 409,
+    "start": 952.111,
+    "dur": 0.505,
+    "text": "AHH!"
+   },
+   {
+    "i": 410,
+    "start": 953.069,
+    "dur": 0.48,
+    "text": "AHH!"
+   },
+   {
+    "i": 412,
+    "start": 955.032,
+    "dur": 0.473,
+    "text": "AHH!"
+   },
+   {
+    "i": 414,
+    "start": 956.958,
+    "dur": 0.53,
+    "text": "UGH!"
+   },
+   {
+    "i": 418,
+    "start": 961.991,
+    "dur": 0.51,
+    "text": "UGH!"
+   },
+   {
+    "i": 419,
+    "start": 962.987,
+    "dur": 0.466,
+    "text": "AH!"
+   },
+   {
+    "i": 420,
+    "start": 963.929,
+    "dur": 0.453,
+    "text": "AH!"
+   },
+   {
+    "i": 423,
+    "start": 966.907,
+    "dur": 0.485,
+    "text": "UGH!"
+   },
+   {
+    "i": 424,
+    "start": 967.891,
+    "dur": 0.464,
+    "text": "Gah!"
+   },
+   {
+    "i": 426,
+    "start": 969.772,
+    "dur": 0.498,
+    "text": "AHH!"
+   },
+   {
+    "i": 429,
+    "start": 972.887,
+    "dur": 0.523,
+    "text": "Ow!"
+   }
+  ],
+  "hurtBig": [
+   {
+    "i": 348,
+    "start": 890.844,
+    "dur": 0.652,
+    "text": "AHHH!"
+   },
+   {
+    "i": 349,
+    "start": 891.962,
+    "dur": 0.705,
+    "text": "AHHH!"
+   },
+   {
+    "i": 353,
+    "start": 896.423,
+    "dur": 0.684,
+    "text": "AHHH!"
+   },
+   {
+    "i": 356,
+    "start": 899.674,
+    "dur": 0.519,
+    "text": "AHHH!"
+   },
+   {
+    "i": 357,
+    "start": 900.655,
+    "dur": 0.646,
+    "text": "AHHH!"
+   },
+   {
+    "i": 358,
+    "start": 901.782,
+    "dur": 0.629,
+    "text": "AHHH!"
+   },
+   {
+    "i": 360,
+    "start": 903.805,
+    "dur": 0.745,
+    "text": "AHHH!"
+   },
+   {
+    "i": 362,
+    "start": 906.273,
+    "dur": 0.559,
+    "text": "AHHH!"
+   },
+   {
+    "i": 363,
+    "start": 907.324,
+    "dur": 0.536,
+    "text": "AHHH!"
+   },
+   {
+    "i": 364,
+    "start": 908.32,
+    "dur": 0.647,
+    "text": "AHHH!"
+   },
+   {
+    "i": 367,
+    "start": 911.12,
+    "dur": 0.799,
+    "text": "AHHH!"
+   },
+   {
+    "i": 369,
+    "start": 913.455,
+    "dur": 0.645,
+    "text": "AHHH!"
+   },
+   {
+    "i": 411,
+    "start": 953.998,
+    "dur": 0.567,
+    "text": "AHHH!"
+   },
+   {
+    "i": 421,
+    "start": 964.861,
+    "dur": 0.484,
+    "text": "AHHH!"
+   },
+   {
+    "i": 427,
+    "start": 970.748,
+    "dur": 0.472,
+    "text": "AHHH!"
+   },
+   {
+    "i": 417,
+    "start": 960.164,
+    "dur": 1.102,
+    "text": "That actually hurt!"
+   },
+   {
+    "i": 425,
+    "start": 968.86,
+    "dur": 0.445,
+    "text": "FUCK!"
+   },
+   {
+    "i": 377,
+    "start": 920.756,
+    "dur": 0.313,
+    "text": "Fuck!"
+   }
+  ],
+  "ko": [
+   {
+    "i": 361,
+    "start": 905.007,
+    "dur": 0.8,
+    "text": "AHHHHHHH!"
+   },
+   {
+    "i": 428,
+    "start": 971.716,
+    "dur": 0.622,
+    "text": "AHHH!"
+   }
+  ]
+ }
+}

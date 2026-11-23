@@ -1,0 +1,75 @@
+{
+ "pass": 16,
+ "fail": 0,
+ "R": {
+  "pools": {
+   "intro": 16,
+   "introOmni": 7,
+   "win": 11,
+   "notYet": 4,
+   "super": 4,
+   "ipunch": 3,
+   "nhb": 3,
+   "nhbLast": 2,
+   "shout": 7,
+   "bark": 4,
+   "hurt": 28,
+   "hurtBig": 18,
+   "ko": 2,
+   "effort": 28,
+   "effortHeavy": 15
+  },
+  "intro": [
+   [
+    "intro"
+   ]
+  ],
+  "upper": [
+   [
+    "effortHeavy"
+   ]
+  ],
+  "jabGrunts": 1,
+  "ipunch": [
+   [
+    "ipunch"
+   ]
+  ],
+  "tv": [
+   [
+    "super"
+   ]
+  ],
+  "hurt": [
+   [
+    "hurt"
+   ]
+  ],
+  "priority": [
+   [
+    "super"
+   ]
+  ],
+  "csd": [
+   [
+    "hurtBig"
+   ],
+   [
+    "notYet"
+   ]
+  ],
+  "win": [
+   "./assets/audio/invincible/inv_171.mp3"
+  ],
+  "ko": [
+   [
+    "ko"
+   ]
+  ],
+  "introOmni": [
+   [
+    "introOmni"
+   ]
+  ]
+ }
+}

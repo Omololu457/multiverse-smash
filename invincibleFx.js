@@ -6,7 +6,8 @@ import { sound } from './sound.js'
 import { camera } from './camera.js'
 import { INVINCIBLE_FX } from './invincibleSprites.js'
 import { INV_KEY, TV, CSD, ZIP, TOP } from './invincibleData.js'
-import { isFlying } from './flight.js'
+import { isFlying, hashRandom } from './flight.js'
+import { INV_VOICE } from './invincibleVoice.js'
 import { invSkinFx, invSkinPal, invSkinPhaseTick } from './invincibleSkins.js'
 
 const isInv = f => f?.rosterKey === INV_KEY
@@ -177,10 +178,52 @@ const SFX = {
   tvTakeoff: () => synth('whoosh'), tvAim: () => synth('rise'), tvFall: () => synth('whistle'), tvWhiff: () => synth('thud'), stopped: () => synth('tap'), tvImpact: () => { synth('quake'); camera.shake(TV.shake[0], TV.shake[1]) },
   csd: () => synth('resolve'), resolve: () => synth('resolve'),
 }
+// ── VOICE (audio-only): Mark's own clips (invincibleVoice.js, from "Invincible VS Invincible Voice Lines + Efforts").
+// One voice channel per fighter (sound.playSfxFile owner): a line only cuts a playing one of LOWER priority, so a jab
+// grunt never cuts Terminal Velocity's call or the win quote. Clip choice and "sometimes" rolls come from his sim clock
+// (hashRandom, no RNG); nothing here is read by the sim.
+const VO = new WeakMap()
+const PRIO = { effort: 1, effortHeavy: 1, hurt: 2, bark: 2, hurtBig: 3, shout: 3, nhbLast: 3, ipunch: 4, nhb: 4, notYet: 5, super: 5, intro: 5, introOmni: 5, win: 6, ko: 6 }
+const voOf = f => { let m = VO.get(f); if (!m) { m = { at: {}, until: -1, prio: 0, n: 0, hp: null, ko: false, intro: false, seen: -1 }; VO.set(f, m) } return m }
+function vo(f, pool, o = {}) {
+  const L = INV_VOICE[pool]; if (!L || !L.length || !f) return
+  const s = f._inv, t = s?.clock || 0, m = voOf(f), pr = PRIO[pool] || 1
+  if (o.cd && t - (m.at[pool] ?? -1e9) < o.cd) return
+  if (o.chance != null && hashRandom(t + m.n, s?.serial || 0, pool.length) > o.chance) return
+  if (t < m.until && pr < m.prio) return                                   // something more important is still talking
+  m.at[pool] = t; m.n++
+  const [file, , dur] = o.pick != null ? L[o.pick % L.length] : L[Math.abs((t * 7 + (s?.serial || 0) * 13 + m.n * 5) | 0) % L.length]
+  m.until = t + Math.ceil((dur || 1) * 60); m.prio = pr
+  try { sound.playSfxFile?.(file, null, { owner: 'inv_' + (f.side || 'p1'), fadeMs: 40 }) } catch (_) {}
+}
+// every frame: the round intro (vs anyone but Omni-Man; vs Omni-Man the introVoice cue plays "Dad"), hurt / KO from health
+function voTick(f) {
+  const s = f._inv; if (!s) return
+  const m = voOf(f), t = s.clock || 0, hp = f.health
+  if (t < m.seen) { m.until = -1; m.prio = 0; m.at = {}; m.hp = null }   // his clock restarts every round (the intro line stays once per match)
+  m.seen = t
+  if (!m.intro && s.said?.intro) { m.intro = true; if (!(s.cues || []).some(c => c === 'introVoice')) vo(f, 'intro') }
+  if (m.hp == null || hp > m.hp) { m.hp = hp; if (hp > 0) m.ko = false; return }
+  const lost = m.hp - hp; m.hp = hp
+  if (hp <= 0) { if (!m.ko) { m.ko = true; vo(f, 'ko') } return }
+  if (lost <= 0) return
+  if (lost >= 90 || f.knockdownState) vo(f, 'hurtBig', { cd: 40 })
+  else vo(f, 'hurt', { cd: 22 })
+}
+const VOICE = {
+  introVoice: f => vo(f, 'introOmni', { pick: 0 }), winVoice: f => vo(f, 'win', { pick: 0 }), csd: f => vo(f, 'notYet', { pick: 0 }),
+  kJab: f => vo(f, 'effort', { cd: 12, chance: 0.6 }), kSweep: f => vo(f, 'effort', { cd: 12, chance: 0.7 }), kFpunch: f => vo(f, 'effort', { cd: 12, chance: 0.7 }),
+  kBarrage: f => vo(f, 'effort', { cd: 12 }), kStraight: f => vo(f, 'effortHeavy', { cd: 18, chance: 0.8 }), kUpper: f => vo(f, 'effortHeavy', { cd: 18 }),
+  kSpin: f => vo(f, 'effortHeavy', { cd: 18 }), kRise: f => vo(f, 'effortHeavy', { cd: 18 }), kSkyward: f => vo(f, 'effortHeavy'), kCrash: f => vo(f, 'effortHeavy'),
+  kIPunch: f => vo(f, 'ipunch'), kNHB: f => vo(f, 'nhb'), nhbLast: f => vo(f, 'nhbLast'), kTV: f => vo(f, 'super'),
+  ipunchHit: f => vo(f, 'shout', { cd: 240, chance: 0.5 }), wallBounce: f => vo(f, 'shout', { cd: 240, chance: 0.5 }),
+  zip: f => vo(f, 'bark', { cd: 600, chance: 0.25 }), takeoff: f => vo(f, 'bark', { cd: 600, chance: 0.25 }),
+}
 export const invSfxKeys = () => Object.keys(SFX)   // test-only listing (harness/invincible.test.mjs)
 export function playInvCues(f) {
+  try { voTick(f) } catch (_) {}
   const q = f?._inv?.cues; if (!q?.length) return
-  for (const v of q) { const k = typeof v === 'string' ? v : v.c; try { if (SFX[k]) SFX[k](f, v) } catch (_) {} }
+  for (const v of q) { const k = typeof v === 'string' ? v : v.c; try { if (SFX[k]) SFX[k](f, v) } catch (_) {}; try { if (VOICE[k]) VOICE[k](f, v) } catch (_) {} }
   q.length = 0
 }
 export { CSD }

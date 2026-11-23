@@ -3092,3 +3092,27 @@ Not tested here: a real Cloudflare link across two real networks — try it with
 Checks actually run: touch_controls 15/1 (new: D-pad not joystick, no overlapping controls, corner = diagonal, centre
 neutral, fits a phone screen 844×390; the 1 failure "hold-direction + SPECIAL" also fails before this change),
 render 11/0, determinism 14/0.
+
+=== 2026-11-22 — Online: screens no longer drift apart · Phone: pick screens fit the screen ===
+ONLINE ("I would finish and the other person would still be fighting"):
+- Each device ran the game at its own drawing speed. A phone that draws 30-40 fps ran the intro, countdown, KO
+  slow-mo, finishers and round break slower than a laptop, so one screen finished while the other was still going.
+- Online, a device that falls behind now runs extra game updates (no extra drawing, up to 4 per drawn frame) through
+  those non-fight beats, so both screens reach them at the same moment. Actual fight frames stay one per drawn
+  frame like before (some characters read the real clock inside their moves; bunching fight frames made the 4-player
+  test drift, so that was ruled out). Waiting on the network never burns the catch-up.
+- Measured with a slowed-down "phone" page vs a laptop page: the phone reached the fight ~5 s after the laptop
+  instead of ~70 s; on a busy machine the frame count reached 130 where the old code reached 77 in the same time.
+PHONE PICK SCREENS ("on the part where you pick characters it's really bad"):
+- Universe / character / skin / aliens / stage / free-for-all / difficulty / tower pick screens now draw at a
+  bigger virtual size on small screens (at least 960x600 sideways, 640 wide upright), scaled to fit WITHOUT
+  stretching. Before: sideways, the info panel covered every character card; upright, everything was squashed
+  sideways and cards ran off both edges.
+- Card grids drop to fewer columns when they don't fit; the info panel sits at the bottom on an upright phone;
+  the title shrinks so it clears the BACK button; BACK clears the fullscreen icon at any scale.
+- The fight screen keeps exactly its old sizing (checked: 844x390 in the fight, 1298x600 on the pick screen, back
+  to 844x390 when the fight starts).
+Checks actually run: net_online_lag 7/0, net_online 11/0, net_online_4p 13/0, msv1_host 98/0, determinism 14/0,
+render 11/0, back_nav 20/0, aivsai_pick_flow 14/0, touch 15/1 (pre-existing). net_inject's timing check fails
+under heavy machine load on the old code too; char_search 11/1, controller_menu 24/1, beta_toggle 22/6 fail the
+same on the old code.

@@ -938,9 +938,24 @@ function _applyCanvasSize() {
   }
   if (canvas.style.width) { canvas.style.width = ""; canvas.style.height = "" }
   physics.viewWidthOverride = null
-  canvas.width  = Math.max(640, Math.round(window.innerWidth  / uiScale))
-  canvas.height = Math.max(360, Math.round(window.innerHeight / uiScale))
+  // PICK SCREENS ON A PHONE (2026-11-22, "on the part where you pick characters it's really bad"): those
+  // screens are laid out for ≥ ~960×600, so on a small screen they draw at a bigger virtual size, scaled down
+  // to fit WITHOUT stretching (same shape as the screen). The fight keeps its original sizing below.
+  const bw = window.innerWidth / uiScale, bh = window.innerHeight / uiScale
+  let _gs = null; try { _gs = gameState } catch (_) {}   // first call runs before gameState is declared (start screen)
+  _menuFitOn = _MENU_FIT_STATES.has(_gs)
+  if (_menuFitOn) {
+    const k = Math.max(1, (bh > bw ? 640 : 960) / bw, (bh > bw ? 0 : 600) / bh)
+    canvas.width = Math.round(bw * k); canvas.height = Math.round(bh * k)
+    return
+  }
+  canvas.width  = Math.max(640, Math.round(bw))
+  canvas.height = Math.max(360, Math.round(bh))
 }
+// Screens that use the phone-fit sizing above (pick/setup screens only — never the fight).
+const _MENU_FIT_STATES = new Set(["selectUniverse", "selectCharacter", "selectSkin", "selectAliens", "selectEdoBackup", "selectStage",
+  "ffaSetup", "ffaCharSelect", "ffaSlotSelect", "ffaTeamSelect", "aiDifficulty", "towerSelect"])
+let _menuFitOn = false
 function _setNetArena(on) {
   on = !!on
   if (on === _netArenaOn) return
@@ -27986,7 +28001,8 @@ function goBack() {
 const NAV_BACK_OVERLAY_SCREENS = new Set([
   GAME_STATES.SELECT_UNIVERSE, GAME_STATES.SELECT_CHARACTER, GAME_STATES.SELECT_SKIN, GAME_STATES.SELECT_STAGE,
 ])
-function getNavBackRect() { return { id: "navback", x: 64, y: 14, w: 104, h: 40 } }
+// x clears the fullscreen icon (a page element ~64 CSS px wide) at any canvas scale (phone pick screens draw scaled down).
+function getNavBackRect() { const k = canvas && canvas.clientWidth ? canvas.width / canvas.clientWidth : 1; return { id: "navback", x: Math.round(64 * k), y: 14, w: 104, h: 40 } }
 function _drawNavBackButton() {
   if (!NAV_BACK_OVERLAY_SCREENS.has(gameState)) return
   const r = getNavBackRect()
@@ -28329,6 +28345,7 @@ function _drawLowGfxChip() {
   ctx.restore()
 }
 
+const NET_CATCHUP_MAX = 4   // online: at most 4 logic ticks per drawn frame (keeps 60/s down to a 15 fps display)
 function gameLoop(now) {
   requestAnimationFrame(gameLoop)
   const _t0 = _debugOverlay ? (typeof performance !== "undefined" ? performance.now() : 0) : 0
@@ -28339,18 +28356,39 @@ function gameLoop(now) {
   if (elapsed < 0) elapsed = 0
   // A long stall (backgrounded tab, breakpoint) must not burst-advance many frames — clamp
   // to a single frame so the game resumes at real speed instead of fast-forwarding.
-  if (elapsed > 100) elapsed = FIXED_DT
+  if (elapsed > 100) elapsed = (netMatch.isActive() || !!(ffaState && ffaState.net)) && elapsed < 1000 ? FIXED_DT * NET_CATCHUP_MAX : FIXED_DT   // online: a slow frame still catches up (≤4 ticks); a real stall (tab hidden) doesn't burst
   _loopAccum += elapsed
   if (_loopAccum < FIXED_DT) return   // too soon for the next 60Hz frame → skip (no update/render)
   _loopAccum -= FIXED_DT
+  // ONLINE REAL-TIME PACING (2026-11-22, "I finish and he's still fighting"): in an online match every device
+  // must advance at the SAME real-time rate (60 logic frames/s), or a phone that only draws 30-40 fps falls
+  // behind — the whole fight slows to its pace and the ungated beats (intro, countdown, KO slow-mo, finishers,
+  // round break) end at different moments on each screen. So online, a device that is behind runs extra LOGIC
+  // ticks (no extra render) to catch up. Offline keeps the original one-update-per-render behaviour below.
+  const _netPaced = netMatch.isActive() || !!(ffaState && ffaState.net)
   // Backlog cap: on a display SLOWER than 60Hz, run at the display rate rather than
   // spiralling. No multi-tick catch-up on purpose — sprite advancement is in draw(), so one
   // update+render pass per frame keeps logic and animation in lockstep.
-  if (_loopAccum > FIXED_DT) _loopAccum = FIXED_DT
+  if (_loopAccum > (_netPaced ? FIXED_DT * NET_CATCHUP_MAX : FIXED_DT)) _loopAccum = _netPaced ? FIXED_DT * NET_CATCHUP_MAX : FIXED_DT
 
+  // entering/leaving a pick screen switches between the phone-fit menu size and the fight size
+  if (!_netArenaOn && _MENU_FIT_STATES.has(gameState) !== _menuFitOn) applyViewportSize()
   globalFrameCount++
   ctx.clearRect(0, 0, canvas.width, canvas.height)
+  const _lockF = () => (ffaState && ffaState.net) ? ffaState.net.frame : _replayFrame
+  let _lf0 = _lockF()
   updateCurrentState()
+  // Catch-up ticks run ONLY through the beats that don't advance the lockstep frame (intro, countdown, KO
+  // freeze/slow-mo, finishers, round break) — those are what drifted apart. As soon as a tick advances a real
+  // FIGHT frame we stop, so fight frames stay one per drawn frame (several characters read the wall clock
+  // inside the sim; bunching fight frames would let screens drift). A tick that STALLS on missing remote input
+  // is refunded: waiting for the network must not burn the backlog.
+  if (_netPaced && _lockF() === _lf0) for (let k = 1; k < NET_CATCHUP_MAX && _loopAccum >= FIXED_DT; k++) {
+    const _st0 = netMatch.stats().stalled
+    _loopAccum -= FIXED_DT; globalFrameCount++; updateCurrentState()
+    if (netMatch.stats().stalled !== _st0) { _loopAccum += FIXED_DT; break }
+    if (_lockF() !== _lf0) break
+  }
   updateRiftTransition()   // advance the dimensional-rift screen transition (Stage 11), if playing
   persistSessionIfChanged()   // cross-reload session save (selections / training toggles / unlocks) — writes only on change
   // FAST-FORWARD (AI-vs-AI spectator mode only): run extra LOGIC ticks per rendered frame so a
@@ -29308,6 +29346,9 @@ gameLoop()
         return _onlinePickLocked(mine)
       },
       seats: () => online.sides(),
+      // Deeper lockstep probe (desync hunting): frame + round + both fighters' full-ish state.
+      syncProbe2: () => (p1 && p2) ? { frame: _replayFrame, g: gameState, round: roundNumber, wins: [roundWins.p1, roundWins.p2], cd: countdown,
+        f: [p1, p2].map((f) => [Math.round(f.x * 10) / 10, Math.round(f.y * 10) / 10, Math.round(f.health * 10) / 10, Math.round((f.energy || 0) * 10) / 10, f.currentAttack?.name || null, f.facing]) } : null,
       // Online FFA sync probe: the lockstep frame + every fighter's rounded state (null outside an online FFA).
       ffaProbe: () => (ffaState.net && gameState === GAME_STATES.FFA_BATTLE) ? { frame: ffaState.net.frame, over: ffaState.over, keys: ffaState.fighters.map((f) => f && f.rosterKey),
         f: ffaState.fighters.map((f) => f ? [Math.round(f.x), Math.round(f.y), Math.round(f.health), f.eliminated ? 1 : 0] : null) } : null,

@@ -660,7 +660,8 @@ export const UNIVERSE_GRID_OPTS = { cols: 3, cardW: 300, cardH: 110, gap: 24, st
 const SELECT_DETAIL_H = 216, SELECT_DETAIL_GAP = 14
 export function getSelectDetailRect(canvas) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  return { x: 40, y: Math.min(410, h - 250), w: w - 80, h: SELECT_DETAIL_H }
+  // Tall (portrait phone) screens: sit at the bottom so the card grid gets the space above it.
+  return { x: 40, y: h > w ? h - SELECT_DETAIL_H - 90 : Math.min(410, h - 250), w: w - 80, h: SELECT_DETAIL_H }
 }
 // Grid opts for the MAIN character-select. When the detail panel is showing it overlays the lower half
 // of the screen, so the grid must reserve that band: without this the scroll math counts the panel's
@@ -678,9 +679,14 @@ export function charSelectGridOpts(canvas, withDetail) {
 const _gridScroll = new Map()   // scrollKey -> offset px (>= 0; scrolls content UP)
 
 // Geometry of a grid: how tall the content is, the visible band, and the max scrollable offset.
+// Columns that actually FIT the screen width (phones: a 4-wide grid of 220px cards would run off both edges).
+function _fitCols(opts, w) {
+  const cols = opts.cols || 3, cardW = opts.cardW || 300, gap = opts.gap || 24
+  return Math.max(1, Math.min(cols, Math.floor((w - 24 + gap) / (cardW + gap))))
+}
 function _gridMetrics(count, canvas, opts = {}) {
-  const { height: h } = getCanvasSize(canvas)
-  const cols   = opts.cols   || 3
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const cols   = _fitCols(opts, w)
   const cardH  = opts.cardH  || 120
   const gap    = opts.gap    || 24
   const startY = opts.startY || 150
@@ -749,7 +755,7 @@ export function pickGridCard(canvas, roster, mx, my, opts = CHAR_GRID_OPTS) {
 
 function getGridLayout(count, canvas, options = {}) {
   const { width: w } = getCanvasSize(canvas)
-  const cols   = options.cols  || 3
+  const cols   = _fitCols(options, w)
   const cardW  = options.cardW || 300
   const cardH  = options.cardH || 120
   const gap    = options.gap   || 24
@@ -844,6 +850,10 @@ function drawHeader(ctx, canvas, title, subtitle = "") {
   // Animated accent shimmer sweeping across the title — a moving highlight band on a themed gradient.
   ctx.save()
   ctx.font = "800 40px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"
+  // Narrow screens (phone held upright): shrink the title so it clears the ‹ BACK button in the corner.
+  { const k = canvas && canvas.clientWidth ? canvas.width / canvas.clientWidth : 1, reserve = 64 * k + 104 + 12
+    const avail = w - 2 * reserve, w40 = ctx.measureText(title).width
+    if (w40 > avail) ctx.font = `800 ${Math.max(20, Math.floor(40 * avail / w40))}px Arial` }
   const tw = Math.max(220, ctx.measureText(title).width)
   const sweep = (Math.sin(_mkFrame * 0.03) * 0.5 + 0.5)            // 0..1 shimmer position
   const grad = ctx.createLinearGradient(w / 2 - tw / 2, 0, w / 2 + tw / 2, 0)

@@ -6,4 +6,9 @@ export const INV_SKIN_TABLE = [
   {"tag": "mohawk", "name": "Mohawk Mark", "classification": "Mark Collection", "pal": {"suit": "#1452a8", "trail": "#7aa4e8", "marker": "#4a8af0", "resolve": "#7aa4e8"}},
   {"tag": "prison", "name": "Prison Mark", "classification": "Mark Collection", "pal": {"suit": "#c6c0b2", "trail": "#c4c0b4", "marker": "#e2ddd0", "resolve": "#ffcf8a"}},
   {"tag": "sinister", "name": "Sinister Mark", "classification": "Mark Collection", "pal": {"suit": "#d0a42a", "trail": "#d8ac30", "marker": "#ffe07a", "resolve": "#ffe07a"}},
+  {"tag": "maskless", "name": "Maskless Mark", "classification": "Mark Collection", "fx": false, "pal": {"suit": "#f4c430", "trail": "#7fb6ff", "marker": "#ffd84a", "resolve": "#ffd84a"}},
+  {"tag": "fullmask", "name": "Full-Mask Mark", "classification": "Mark Collection", "fx": false, "pal": {"suit": "#f4c430", "trail": "#7fb6ff", "marker": "#ffd84a", "resolve": "#ffd84a"}},
+  {"tag": "rose", "name": "Pink Viltrumite — Rose Standard", "classification": "Viltrum Collection", "pal": {"suit": "#f9cdd8", "trail": "#e0588c", "marker": "#f9cdd8", "resolve": "#f9cdd8"}},
+  {"tag": "coronation", "name": "Coronation", "classification": "Viltrum Collection", "glitter": true, "pal": {"suit": "#ece4d0", "trail": "#e04a80", "marker": "#fbe0ea", "resolve": "#ffd0e0"}},
+  {"tag": "defector", "name": "Defector — Debbie's Repair", "classification": "Viltrum Collection", "pal": {"suit": "#eeebe4", "trail": "#7fb6ff", "marker": "#ffd84a", "resolve": "#ffd84a"}},
 ]

@@ -1,5 +1,5 @@
 {
- "pass": 16,
+ "pass": 19,
  "fail": 0,
  "report": {
   "skins": [
@@ -9,13 +9,80 @@
    "Mohawk Mark",
    "Prison Mark",
    "Sinister Mark",
+   "Maskless Mark",
+   "Full-Mask Mark",
+   "Pink Viltrumite — Rose Standard",
+   "Coronation",
+   "Defector — Debbie's Repair",
    "Edo Tensei"
+  ],
+  "glitter": [
+   [
+    5,
+    0,
+    "coronation/idle.png"
+   ],
+   [
+    6,
+    0,
+    "coronation/idle.png"
+   ],
+   [
+    7,
+    0,
+    "coronation/idle.png"
+   ],
+   [
+    8,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    9,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    10,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    11,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    12,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    13,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    14,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    15,
+    1,
+    "coronation/p1/idle.png"
+   ],
+   [
+    16,
+    2,
+    "coronation/p2/idle.png"
+   ]
   ],
   "replayMeta": {
    "p1Char": "invincible",
-   "p1Skin": "inv_sinister"
+   "p1Skin": "inv_defector"
   },
   "trackedSkinFiles": 0,
-  "diskSkinFiles": 195
+  "diskSkinFiles": 430
  }
 }

@@ -16,4 +16,9 @@ export const INV_SKIN_TABLE = [
   {"tag": "blackice", "name": "Glitter — Black Ice", "classification": "Glitter Collection", "glitter": true, "pal": {"suit": "#24272d", "trail": "#8ec8e0", "marker": "#d0d6de", "resolve": "#a8dcf0"}},
   {"tag": "rollerrink", "name": "Glitter — Roller Rink 1999", "classification": "Glitter Collection", "glitter": true, "pal": {"suit": "#f07a1a", "trail": "#ec5aa0", "marker": "#c89aea", "resolve": "#ffa8d0"}},
   {"tag": "valkyrie", "name": "Winning Valkyrie — Launch Angle", "classification": "Champion Collection", "pal": {"suit": "#1e48b8", "trail": "#3c6ae0", "marker": "#f6d46a", "resolve": "#f6d46a"}},
+  {"tag": "divergent", "name": "JJK — Divergent Flight", "classification": "JJK Collection", "crossover": "Jujutsu Kaisen", "pal": {"suit": "#16203e", "trail": "#bfe8ff", "marker": "#d8401a", "resolve": "#bfe8ff"}},
+  {"tag": "delivery", "name": "Grayson Delivery Service", "classification": "Civilian Collection", "pal": {"suit": "#5e1e58", "trail": "#f08020", "marker": "#f08020", "resolve": "#ffb060"}},
+  {"tag": "registration", "name": "Art School — Registration Error", "classification": "Comic Collection", "pal": {"suit": "#f4ecd8", "trail": "#00a8d8", "marker": "#e8308a", "resolve": "#f0d020"}},
+  {"tag": "bathysphere", "name": "Deep-Sea — Bathysphere", "classification": "Deep Sea Collection", "pal": {"suit": "#0a3036", "trail": "#7ae8d0", "marker": "#e08a10", "resolve": "#a8ffe8"}},
+  {"tag": "lighton", "name": "Earth Kept the Light On", "classification": "Civilian Collection", "pal": {"suit": "#0e1636", "trail": "#6a7aaa", "marker": "#ffb84a", "resolve": "#ffb84a"}},
 ]

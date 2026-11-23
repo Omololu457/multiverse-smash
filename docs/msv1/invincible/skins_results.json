@@ -19,6 +19,11 @@
    "Glitter — Black Ice",
    "Glitter — Roller Rink 1999",
    "Winning Valkyrie — Launch Angle",
+   "JJK — Divergent Flight",
+   "Grayson Delivery Service",
+   "Art School — Registration Error",
+   "Deep-Sea — Bathysphere",
+   "Earth Kept the Light On",
    "Edo Tensei"
   ],
   "glitter": [
@@ -85,9 +90,9 @@
   ],
   "replayMeta": {
    "p1Char": "invincible",
-   "p1Skin": "inv_valkyrie"
+   "p1Skin": "inv_lighton"
   },
   "trackedSkinFiles": 0,
-  "diskSkinFiles": 759
+  "diskSkinFiles": 954
  }
 }

@@ -557,10 +557,22 @@ function tickUlt(f, s, opp, api, ctx, stage) {
   }
   if (!opp || opp.eliminated) { endUlt(f, s, null, stage); return }
   u.t++
-  // the held target: talons-locked under him inside the warp bubble; both sim positions frozen at home (restored after)
-  opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.x = u.thome.x; opp.y = u.thome.y
-  opp.attacking = false; opp.currentAttack = null
-  f.vx = 0; f.vy = 0; f.x = u.home.x; f.y = u.home.y
+  // REAL travel: he carries them in his talons along THIS stage to its edge and off it (the stage is still there), THEN the
+  // shot cuts to hyperspace; the slingshot flings them back into the arena from the OTHER edge (round the universe) to skid.
+  const fw = f.w || 96, ow = opp.w || 60, oh = opp.h || 110, floorY = u.thome.y + oh, L = Number.isFinite(stage.L) ? stage.L : u.home.x - 900, R = Number.isFinite(stage.R) ? stage.R : u.home.x + 900
+  const air = floorY - (f.h || 96) - 110
+  opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.vx = 0; opp.vy = 0; opp.attacking = false; opp.currentAttack = null; opp.onGround = false
+  f.vx = 0; f.vy = 0
+  const talons = () => { opp.x = cx(f) - ow / 2 + u.face * 10; opp.y = f.y + (f.h || 96) * 0.55 }
+  if (u.t < JR_ULT.WARP) {   // out to the edge of the map, accelerating
+    const edgeX = u.face > 0 ? R - fw - 2 : L + 2
+    const k = (u.t / JR_ULT.WARP) ** 2; f.x = u.home.x + (edgeX - u.home.x) * k; f.y = u.home.y + (air - u.home.y) * Math.min(1, u.t / 8); talons()
+  } else if (u.t < JR_ULT.CRASH_AT) { f.x = (L + R) / 2 - fw / 2; f.y = air; talons() }   // in hyperspace (the shot is the universe)
+  else {   // back in the arena: flung in from the far side, skidding; he swoops in after them
+    const k = Math.min(1, (u.t - JR_ULT.CRASH_AT) / (JR_ULT.END - JR_ULT.CRASH_AT)), from = u.face > 0 ? L + 2 : R - ow - 2
+    opp.x = from + u.face * 620 * (1 - (1 - k) ** 2); opp.y = floorY - oh - 240 * Math.max(0, 1 - k * 2.2)
+    f.x = opp.x + ow / 2 - fw / 2 - u.face * (150 + 200 * (1 - k)); f.y = air + (u.home.y - air) * k
+  }
   if (u.t < JR_ULT.WARP) { u.phase = "warp"; f._spriteCastMove = "jrDash" }
   else if (u.t < JR_ULT.SLING_AT) {
     u.phase = "universe"; f._spriteCastMove = "jrDash"
@@ -582,9 +594,9 @@ function tickUlt(f, s, opp, api, ctx, stage) {
 }
 function endUlt(f, s, opp, stage) {
   const u = s.ult
-  if (u?.home) { f.x = u.home.x; f.y = u.home.y; f.vx = 0; f.vy = 0; f.facing = u.face }     // positions restore
+  if (u?.home) { f.x = Math.max(stage.L, Math.min(stage.R - (f.w || 96), f.x)); f.y = u.home.y; f.vx = 0; f.vy = 0; f.facing = u.face }     // where the swoop left him (grounded)
   if (opp && u?.thome) {
-    opp.x = Math.max(stage.L, Math.min(stage.R - (opp.w || 60), u.thome.x)); opp.y = u.thome.y      // a legal stage position
+    opp.x = Math.max(stage.L, Math.min(stage.R - (opp.w || 60), opp.x)); opp.y = u.thome.y      // where they skidded to (a legal stage position)
     opp.vx = u.face * JR_ULT.SKID; opp.vy = -8                                          // ground bounce + skid
     opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, JR_ULT.KD); opp.invulnTimer = Math.max(opp.invulnTimer || 0, JR_ULT.KD)
   }
@@ -718,8 +730,9 @@ export function drawJetrayUnder(c, f, frame = 0) {
   c.save(); c.imageSmoothingEnabled = false
   if (!u) { c.globalAlpha = 0.12; c.fillStyle = "#f59e0b"; c.fillRect(-4000, -4000, 16000, 12000); c.restore(); return }
   const X = cx(f), Y = f.y + (f.h || 96) / 2, face = u.face
-  const k = Math.min(1, u.t / JR_ULT.WARP), fadeOut = u.t > JR_ULT.END - 10 ? (JR_ULT.END - u.t) / 10 : 1
-  c.globalAlpha = Math.min(k, fadeOut)
+  if (u.t < JR_ULT.WARP || u.t >= JR_ULT.CRASH_AT) { c.restore(); return }   // the edge run / the crash: the real stage
+  const k = 1, fadeOut = 1
+  c.globalAlpha = 1
   c.fillStyle = "#05030f"; c.fillRect(X - 2400, Y - 1600, 4800, 3200)
   const speed = 6 + u.t * 0.6
   for (let layer = 0; layer < 3; layer++) for (let i = 0; i < 70; i++) {    // parallax star streaks, escalating speed

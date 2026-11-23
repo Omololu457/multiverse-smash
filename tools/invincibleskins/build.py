@@ -139,17 +139,23 @@ PEARL = ['#a8a49c', '#e2ded6', '#faf8f2']
 ASH = ['#7e8084', '#aeb0b4', '#cfd1d4']
 CHAR = ['#16171a', '#2a2c31', '#3e4047']
 HAIR = ['#07070c', '#141420', '#262838']
-IMPERIAL = dict(face='bare', hair=HAIR, collar=OMV_IMPERIAL['collar'], shoulders=ASH, chest=PEARL, torso=PEARL, arms=CHAR,
-                gloves=['#121316', '#24262b', '#383a40'], waist=['#121316', '#202226', '#30323a'], legs=['#8e8a82', '#cfcbc3', '#eeebe4'],
-                boots=['#0c0d10', '#1a1b1f', '#2c2e33'], cloth=PEARL, insignia=OMV_IMPERIAL['insignia'], streaks=OMV_IMPERIAL['streaks'])
+# 2026-11-23 rework to the SHOW's Viltrumite uniform (owner: "look at actual skins of Viltrumites … it looks terrible"):
+# a WHITE bodysuit (arms + legs white too) with a high white collar; a GRAY U-shaped yoke across the chest that joins a
+# narrow GRAY centre stripe; GRAY wrist cuffs on BARE hands; an angular GRAY waist panel + apron front; GRAY knee boots.
+VGRAY = ['#33363c', '#5a5e66', '#80848c']
+SUITW = ['#8e8c88', '#d4d2cc', '#fbfaf6']
+IMPERIAL = dict(face='bare', hair=HAIR, collar=PEARL, shoulders=VGRAY, chest=PEARL, torso=PEARL, arms=PEARL,
+                gloves=SKIN[1:], waist=VGRAY, legs=PEARL, boots=VGRAY, cloth=PEARL, trim=VGRAY,
+                insignia=OMV_IMPERIAL['insignia'], streaks=OMV_IMPERIAL['streaks'])
+VILT_PAT = ['evensuit', 'vstripe', 'cuffs', 'apron', 'kneeboots']
 
 SKINS = [
   dict(tag='viltrumite', name='Viltrumite Mark', classification='Viltrum Collection', **IMPERIAL,
-       pat=['insignia', 'arm_line', 'jaw'], line=['#d8dade', '#f4f5f7', '#ffffff'],
+       pat=['jaw'] + VILT_PAT,
        fx=dict(ring=['#9fb6d6', '#d4e0f0', '#ffffff'], streak=[['#6a7078', '#a8aeb6', '#e8ecf2'], ['#2a2c31', '#4a4e56', '#6e737c']]),
        pal=pal('#eeebe4', '#c6d6ec', '#e8f0fb', '#e8f0fb')),
   dict(tag='mustache', name='Mustache Mark', classification='Viltrum Collection', **IMPERIAL,
-       pat=['insignia', 'arm_line', 'jaw', 'moustache'], line=['#d8dade', '#f4f5f7', '#ffffff'],
+       pat=['jaw', 'moustache'] + VILT_PAT,
        fx=dict(ring=['#9fb6d6', '#d4e0f0', '#ffffff'], streak=[['#6a7078', '#a8aeb6', '#e8ecf2'], ['#2a2c31', '#4a4e56', '#6e737c']]),
        pal=pal('#eeebe4', '#c6d6ec', '#e8f0fb', '#e8f0fb')),
   dict(tag='mohawk', name='Mohawk Mark', classification='Mark Collection', face='mask', shave='mohawk',
@@ -196,7 +202,7 @@ SKINS = [
        fx=dict(ring=['#e0a0b8', '#fbe0ea', '#ffffff'], streak=[['#6a0e30', '#b0205a', '#e04a80'], ['#b8ae98', '#ece4d0', '#fffaee']]),
        pal=pal('#ece4d0', '#e04a80', '#fbe0ea', '#ffd0e0')),
   dict(tag='defector', name="Defector — Debbie's Repair", classification='Viltrum Collection', **{**IMPERIAL, 'insignia': ['#b4b0a8', '#cfcbc3', '#dcd8d0']},
-       pat=['insignia', 'jaw', 'repair'],
+       pat=['jaw', 'repair'] + VILT_PAT,
        fx=dict(ring=['#9fb6d6', '#d4e0f0', '#ffffff'], streak=[['#7e5613', '#f4d857', '#faec84'], ['#094464', '#0f77af', '#1bb2e1']]),
        pal=pal('#eeebe4', '#7fb6ff', '#ffd84a', '#ffd84a')),
   dict(tag='alienx_twoearths', name='Alien X — Two Earths', classification='Alien X Collection', crossover='Ben 10', half=True,
@@ -887,7 +893,63 @@ def p_house(A, out, sk, phase):
         o[wy, wx, :3] = hx('#ffa21a')
 
 
-PATTERNS = dict(insignia=p_insignia, arm_line=p_arm_line, jaw=p_jaw, moustache=p_moustache, flat=p_flat, seams=p_seams,
+# ── the Viltrumite uniform's details (show reference) ──
+def p_evensuit(A, out, sk, phase):
+    """one even white suit: each region's shading is re-normalised against ITS OWN brightest pixels (the sheet drew the
+    legs / arms black and the torso yellow, so the raw source shade would leave the limbs muddy gray)"""
+    reg = A.reg
+    src = A.a[..., :3].astype(np.float32) / 255.0
+    mx, mn = src.max(-1), src.min(-1); lum = src @ np.array([0.299, 0.587, 0.114], np.float32)
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    hue = np.zeros_like(mx)
+    r_, g_, b_ = src[..., 0], src[..., 1], src[..., 2]; d = np.maximum(mx - mn, 1e-6)
+    hue = np.where(mx == r_, ((g_ - b_) / d) % 6, np.where(mx == g_, (b_ - r_) / d + 2, (r_ - g_) / d + 4))
+    fam = np.where((sat < 0.25) | (mx < 0.18), 6, np.floor(hue).astype(int) % 6)   # 6 hue families + neutrals / near-blacks
+    for rn in ('collar', 'chest', 'torso', 'arms', 'legs'):
+        m = reg == R[rn]
+        if not m.any() or sk.get(rn) is not PEARL: continue
+        rel = np.zeros(m.shape, np.float32)
+        for f_ in range(7):
+            mm = m & (fam == f_)
+            if not mm.any(): continue
+            L = lum[mm]; hi = float(np.percentile(L, 90)); lo = float(L.min())
+            rel[mm] = np.clip((L - lo) / max(0.04, hi - lo), 0, 1) if hi - lo > 0.04 else 1.0
+        out[m, :3] = ramp(SUITW, 0.42 + 0.58 * rel[m])
+    # the unmasked strips keep his yellow suit collar inside the 'face' region: saturated gold there → the white collar
+    deg = hue * 60.0
+    gold = ((reg == R['face']) | ((reg == R['streaks']) & (A.name in UNMASKED))) & (deg >= 38) & (deg <= 72) & (sat > 0.5) & (lum > 0.28) & (A.a[..., 3] > 0)
+    if gold.any(): out[gold, :3] = ramp(SUITW, 0.45 + 0.55 * np.clip(lum[gold] / max(1e-3, float(lum[gold].max())), 0, 1))
+    for rn in ('shoulders', 'waist', 'boots'):
+        m = reg == R[rn]
+        if not m.any() or sk.get(rn) is not VGRAY: continue
+        t = A.tone[m]; lo, hi = float(np.percentile(t, 5)), float(np.percentile(t, 92))
+        out[m, :3] = ramp(VGRAY, 0.15 + 0.85 * np.clip((t - lo) / max(1e-3, hi - lo), 0, 1))
+def p_vstripe(A, out, sk, phase):
+    """the narrow gray centre stripe: from the yoke straight down the chest / torso to the waist panel"""
+    reg = A.reg; m = np.isin(reg, [R['chest'], R['torso']]) & (np.abs(A.U) <= 0.16) & ~edge_in(np.isin(reg, [R['chest'], R['torso']]))
+    out[m, :3] = ramp(sk['trim'], np.full(m.sum(), 0.5))
+def p_cuffs(A, out, sk, phase):
+    """gray wrist cuffs on bare hands: the sleeve pixels touching the hand"""
+    reg = A.reg; hand = ndimage.binary_dilation(reg == R['gloves'], iterations=2)
+    m = hand & (reg == R['arms']); out[m, :3] = ramp(sk['trim'], np.full(m.sum(), 0.55))
+def p_apron(A, out, sk, phase):
+    """the angular apron front hanging from the waist panel over the upper thighs (narrows to a point)"""
+    reg = A.reg
+    for fi, sl in frames(A):
+        r = reg[:, sl]; w = r == R['waist']
+        if w.sum() < 4: continue
+        pr = A.proj[:, sl]; U = A.U[:, sl]
+        p1 = float(pr[w].max()); depth = 7
+        k = (pr - p1) / depth
+        m = (r == R['legs']) & (k > 0) & (k <= 1) & (np.abs(U) <= 0.55 * (1 - k) + 0.12)
+        o = out[:, sl]; o[m, :3] = ramp(sk['trim'], np.full(m.sum(), 0.5))
+def p_kneeboots(A, out, sk, phase):
+    """knee-high boots: the leg pixels just above each boot take the boot colour"""
+    reg = A.reg; m = ndimage.binary_dilation(reg == R['boots'], structure=np.array([[0, 0, 0], [0, 1, 0], [0, 1, 0]], bool), iterations=6) & (reg == R['legs'])
+    out[m, :3] = ramp(sk['boots'], np.full(m.sum(), 0.55))
+
+
+PATTERNS = dict(evensuit=p_evensuit, vstripe=p_vstripe, cuffs=p_cuffs, apron=p_apron, kneeboots=p_kneeboots, insignia=p_insignia, arm_line=p_arm_line, jaw=p_jaw, moustache=p_moustache, flat=p_flat, seams=p_seams,
                 hems=p_hems, scar=p_scar, cape=p_cape, cover=p_cover, sash=p_sash, clasp=p_clasp, repair=p_repair,
                 planet=p_planet, glass=p_glass, facets=p_facets, skate=p_skate, wings=p_wings, knuckles=p_knuckles,
                 bands=p_bands, patch=p_patch, jacket_stripe=p_jacket_stripe, print=p_print, offsets=p_offsets,

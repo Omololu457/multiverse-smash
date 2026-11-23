@@ -16207,7 +16207,15 @@ export function resetHomelanderKit(fighter) {
 // Uses normal physics for the victim's arc (launch vy → driven down) so no two-actor carry gating is
 // needed. Deterministic (no Math.random).
 // ─────────────────────────────────────────────────────────────────────────
-const F37 = { cost: 100, startup: 20, laser: 32, flyup: 22, run: 74, grabRange: 190 }   // "FLIGHT 37": laser-stun → fast fly-up grab → run across the maps → throw to the back
+const F37 = { cost: 100, startup: 20, laser: 32, grab: 26, grabRange: 150, dragMax: 150, run: 176, slots: 30, gripDx: 70, pitch: 1.2, low: 44 }
+// "FLIGHT 37": laser-stun → low supersonic grab → DRAG them along the floor to the EDGE of the map → keep going: the world
+// continues into the next map, and the next, faster and faster through every other map (each one's real art and
+// floor, laid end to end), until they arrive back home and he hurls them. The run is REAL travel in a continuous
+// "extended" x: fighters' sim x stays put mid-run and s.shift (sim state) is how far the world has slid under them;
+// the renderer lays the maps at slot k * slotW and draws them offset by -shift, so a blood smear left on the floor
+// stays on that map's floor and slides away. Deterministic (no RNG).
+const F37_T0 = 0.88, F37_A = 1 / (F37_T0 ** 3 + 1.5 * F37_T0 ** 2 * (1 - F37_T0)), F37_B = 3 * F37_A * F37_T0 ** 2 / (2 * (1 - F37_T0))
+const f37Progress = t => t < F37_T0 ? F37_A * t ** 3 : 1 - F37_B * (1 - t) ** 2   // keeps speeding up… then a hard stop at home
 
 export function executeHomelanderUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "homelander") return false
@@ -16215,7 +16223,7 @@ export function executeHomelanderUltimate(fighter, context) {
   if (!spendEnergy(fighter, F37.cost)) return false
   fighter.vx = 0
   fighter._hvActive = false; fighter._hv = null
-  fighter._f37 = { phase: "startup", t: F37.startup, slammed: false }
+  fighter._f37 = { phase: "startup", t: F37.startup, slammed: false, shift: 0 }
   fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, F37.startup)   // invuln ONLY during the dark silhouette
   fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = F37.startup
   fighter.attacking = false; fighter.attackCooldown = 0
@@ -16223,15 +16231,31 @@ export function executeHomelanderUltimate(fighter, context) {
   playHomelanderSfx("ULTIMATE", fighter, { seed: context.seed, frame: context.frame })    // "You're gonna love this."
   return true
 }
+// render / camera read-outs (game.js): the map run is on; how far the world has slid; which way
+// render-only body pose while he drags: pitched flat (head first) and lowered onto the victim — { dx, dy, rot } or null
+export function homelanderDragPose(f) {
+  const s = f?._f37; if (!s || !(s.phase === "drag" || s.phase === "run")) return null
+  const d = s.dir || f.facing || 1, k = s.phase === "drag" ? Math.min(1, (F37.dragMax - s.t) / 6) : 1
+  return { dx: -d * 10 * k, dy: F37.low * k, rot: d * F37.pitch * k }
+}
+export function homelanderMapRun(f) { const s = f?._f37; return s && (s.phase === "drag" || s.phase === "run" || s.phase === "throw") ? { phase: s.phase, shift: s.shift || 0, dir: s.dir || 1, slotW: s.slotW || 2400, slots: F37.slots, t: s.t, victim: s.victim || null } : null }
+export function homelanderCameraHold(f) { return f?._f37?.phase === "run" }
 
 // Per-frame driver (game.js updateFighterState). Keeps normal attacks locked while it runs.
 export function applyHomelanderFlight37(fighter, context = {}) {
   const s = fighter._f37; if (!s) return
   const opp = context.getOpponent ? context.getOpponent(fighter) : null
   const face = fighter.facing || 1
-  const floor = (opp && opp.groundY != null) ? opp.groundY : (fighter.groundY != null ? fighter.groundY : 520)
+  const floor = (opp && opp.groundY != null) ? opp.groundY : (fighter.groundY != null ? fighter.groundY : (context.groundY || 520))
+  const fw = fighter.w || 50, ow = opp?.w || 50, oh = opp?.h || 100
   fighter.attacking = true; fighter.currentAttack = null   // lock the player out for the whole cinematic
   s.t--
+  const pin = () => {   // the victim: face-down on the floor UNDER his hands — he flies flat over them, grinding them along the ground
+    if (!opp) return
+    opp.x = fighter.x + fw / 2 + s.dir * F37.gripDx - ow / 2; opp.y = floor - oh
+    opp.vx = 0; opp.vy = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
+    opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 40); opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.noTech = true
+  }
   if (s.phase === "startup") {
     fighter.vx = 0; fighter._spriteCastMove = "ultSilhouette"; fighter._spriteCastTimer = 3
     if (s.t <= 0) { s.phase = "laser"; s.t = F37.laser }
@@ -16239,51 +16263,71 @@ export function applyHomelanderFlight37(fighter, context = {}) {
   }
   if (s.phase === "laser") {   // LASER the enemy → STUN
     fighter.vx = 0; fighter._spriteCastMove = "heatCharge"; fighter._spriteCastTimer = 4
-    if (opp) fighter.facing = (opp.x + (opp.w || 50) / 2) >= (fighter.x + (fighter.w || 50) / 2) ? 1 : -1
+    if (opp) fighter.facing = (opp.x + ow / 2) >= (fighter.x + fw / 2) ? 1 : -1
     const eye = getHomelanderEyeWorld(fighter)
     if (opp && !(opp.invulnTimer > 0)) {
-      fighter._hv = { ox: eye.x, oy: eye.y, impX: opp.x + (opp.w || 50) / 2, impY: opp.y + (opp.h || 100) * 0.4, hit: true, tick: s.t }
+      fighter._hv = { ox: eye.x, oy: eye.y, impX: opp.x + ow / 2, impY: opp.y + oh * 0.4, hit: true, tick: s.t }
       opp.hitstun = Math.max(opp.hitstun || 0, 40); opp.vx = 0; opp.colorFlash = 6
       if (s.t % 5 === 0) applyScaledDamage(opp, 10, { source: "ability", attacker: fighter, move: "ultimate" })
     }
-    if (s.t <= 0) { fighter._hv = null; s.phase = "flyup"; s.t = F37.flyup }
+    if (s.t <= 0) { fighter._hv = null; s.phase = "grab"; s.t = F37.grab }
     return
   }
-  if (s.phase === "flyup") {   // fly super fast to grab the stunned enemy, carry upward
-    fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 4
-    fighter.onGround = false; fighter.grounded = false; fighter._hlBoomFx = 6
-    const toOpp = opp ? (Math.sign((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2)) || face) : face
-    fighter.vx = toOpp * 24; fighter.vy = -12
-    if (opp) {
-      const dx = Math.abs((opp.x + (opp.w || 50) / 2) - (fighter.x + (fighter.w || 50) / 2))
-      if (dx < F37.grabRange) {
-        opp.vx = 0; opp.vy = -12; opp.hitstun = Math.max(opp.hitstun || 0, 30); opp.onGround = false; opp.isLaunched = false; opp.knockdownState = false
-        opp.x = fighter.x + fighter.facing * ((fighter.w || 50) * 0.4); opp.y = fighter.y
-        if (s.t <= 0 || fighter.y <= floor - 170) { s.phase = "run"; s.t = F37.run; s.hits = 0; fighter.vx = 0; fighter.vy = 0 }
-      }
+  const left = context.stageLeft || 0, right = context.stageWidth || context.worldWidth || 2400
+  if (s.phase === "grab") {   // supersonic LOW lunge — he grabs them, slams them onto their back
+    fighter._spriteCastMove = "flyDash"; fighter._spriteCastTimer = 4; fighter._hlBoomFx = 6
+    fighter.onGround = false; fighter.grounded = false; fighter.y = floor - (fighter.h || 100) - 26; fighter.vy = 0
+    const toOpp = opp ? (Math.sign((opp.x + ow / 2) - (fighter.x + fw / 2)) || face) : face
+    fighter.facing = toOpp; fighter.vx = 0; fighter.x += toOpp * 30
+    if (opp && !(opp.invulnTimer > 0) && Math.abs((opp.x + ow / 2) - (fighter.x + fw / 2)) < F37.grabRange) {
+      // drag toward the FAR edge (the one further from where they were caught)
+      s.dir = (opp.x + ow / 2) < (left + right) / 2 ? 1 : -1; fighter.facing = s.dir
+      s.phase = "drag"; s.t = F37.dragMax; s.v = 6; s.hits = 0; s.victim = opp.side || null; s.slotW = context.worldWidth || 2400
+      applyScaledDamage(opp, 20, { source: "ability", attacker: fighter, move: "ultimate" }); opp.colorFlash = 10; shakeCamera(context, 10, 10)
+      try { sound?.play?.(SFX?.HIT_HEAVY) } catch (_) {}
+      pin(); return
     }
-    if (s.t <= 0 && s.phase === "flyup") { s.phase = "run"; s.t = F37.run; s.hits = 0; fighter.vx = 0; fighter.vy = 0 }
+    if (s.t <= 0) { fighter.vx = 0; fighter.attacking = false; fighter._f37 = null; fighter.attackCooldown = getAttackDuration(40, fighter) }   // whiff
     return
   }
-  if (s.phase === "run") {   // RUN ACROSS THE MAPS — the world blurs past (drawHomelanderSpeedRun), rapid hits
-    fighter._spriteCastMove = "flyDash"; fighter._spriteCastTimer = 3
-    fighter._hlRunFx = 16   // drives the maps-blur backdrop
-    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, floor - 150)
-    if (opp) {
-      opp.x = fighter.x + fighter.facing * ((fighter.w || 50) * 0.5); opp.y = fighter.y; opp.vx = 0; opp.vy = 0; opp.onGround = false; opp.hitstun = Math.max(opp.hitstun || 0, 10)
-      if (s.t % 6 === 0 && (s.hits || 0) < 10) { applyScaledDamage(opp, 12, { source: "ability", attacker: fighter, move: "ultimate" }); opp.colorFlash = 6; shakeCamera(context, 3, 3); fighter._hlBoomFx = 5; s.hits = (s.hits || 0) + 1 }
+  if (s.phase === "drag") {   // along the floor of THIS map to its edge — the camera follows them there
+    fighter._spriteCastMove = "flyDash"; fighter._spriteCastTimer = 4; fighter._hlBoomFx = 4
+    s.v = Math.min(30, s.v + 1.1); fighter.facing = s.dir; fighter.vx = 0; fighter.vy = 0
+    fighter.x += s.dir * s.v; fighter.y = floor - (fighter.h || 100) - 26; fighter.onGround = false; fighter.grounded = false
+    pin()
+    if (opp && s.t % 8 === 0 && (s.hits || 0) < 6) { s.hits = (s.hits || 0) + 1; applyScaledDamage(opp, 8, { source: "ability", attacker: fighter, move: "ultimate" }); opp.colorFlash = 4 }
+    const atEdge = s.dir > 0 ? fighter.x + fw >= right - 4 : fighter.x <= left + 4
+    if (atEdge || s.t <= 0) {
+      fighter.x = s.dir > 0 ? Math.min(fighter.x, right - 4 - fw) : Math.max(fighter.x, left + 4)
+      // off the edge of the map and on into the next: put the pair mid-screen and let the WORLD slide instead
+      const cx = (left + right) / 2 - fw / 2
+      s.x0 = fighter.x; s.cx = cx; s.shift = fighter.x - cx; s.shift0 = s.shift
+      // the run ends with them standing at the same mid-screen spot, back home: home is the LAST slot
+      s.shiftEnd = s.dir * (F37.slots - 1) * s.slotW
+      fighter.x = cx; s.phase = "run"; s.t = F37.run; s.hits = 0; pin()
+      if (context.camera) { const c = context.camera; c.x = c.targetX = cx + fw / 2 - s.dir * 60 }
     }
-    if (s.t <= 0) { s.phase = "throw"; s.t = 32; s.thrown = false }
+    return
+  }
+  if (s.phase === "run") {   // through every other map, faster and faster
+    fighter._spriteCastMove = "flyDash"; fighter._spriteCastTimer = 4; fighter._hlBoomFx = 4; fighter._hlRunFx = 0
+    const k = 1 - s.t / F37.run
+    s.shift = s.shift0 + (s.shiftEnd - s.shift0) * f37Progress(k)
+    fighter.x = s.cx; fighter.y = floor - (fighter.h || 100) - 26; fighter.vx = 0; fighter.vy = 0; fighter.facing = s.dir
+    pin()
+    if (opp && s.t % 12 === 0 && (s.hits || 0) < 12) { applyScaledDamage(opp, 9, { source: "ability", attacker: fighter, move: "ultimate" }); opp.colorFlash = 4; s.hits = (s.hits || 0) + 1 }
+    if (s.t % 20 === 0) shakeCamera(context, 3, 4)
+    if (s.t <= 0) { s.shift = 0; s.phase = "throw"; s.t = 32; s.thrown = false }   // home (last slot ≡ the real map at shift 0)
     return
   }
   if (s.phase === "throw") {   // hurl them to the BACK of the map
     fighter._spriteCastMove = "heavy"; fighter._spriteCastTimer = 4
-    fighter._hlRunFx = Math.max(0, (fighter._hlRunFx || 0) - 3)
+    fighter._hlRunFx = 0
     if (!s.thrown && opp) {
-      const dir = -fighter.facing   // away from Homelander → toward the far wall
+      const dir = -fighter.facing   // away from Homelander → back the way they came
       opp.vx = dir * 36; opp.vy = -8; opp.isLaunched = true; opp.onGround = false
       opp.hitstun = Math.max(opp.hitstun || 0, 60); opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 70); opp.noTech = true; opp.colorFlash = 18; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 12)
-      applyScaledDamage(opp, 150, { source: "ability", attacker: fighter, move: "ultimate" })
+      applyScaledDamage(opp, 110, { source: "ability", attacker: fighter, move: "ultimate" })
       shakeCamera(context, 14, 18)
       try { sound?.play?.(SFX?.HIT_ULTIMATE || SFX?.HIT_HEAVY) } catch (_) {}
       s.thrown = true
@@ -16427,6 +16471,7 @@ const SUPERMAN_ULT = { cost: 100, dmg: 380, blockRatio: 0.25 }
 // stands tall → dash FIRST STRIKE (must connect, else it fizzles) → super-speed barrage → uppercut
 // launch → fly up & catch → point-blank Heat Vision → final slam from orbit. ~380 guaranteed (bypasses
 // combo scaling), then a 4s Solar Energy lock. Deterministic (frame-counted; no RNG).
+export function supermanCameraHold(f) { const p = f?._supWoC?.phase; return p === "rise" || p === "moon" || p === "throwdown" || p === "outro" }
 export function applySupermanWoC(fighter, context = {}) {
   const s = fighter && fighter._supWoC; if (!s) return
   if ((fighter.rosterKey || "").toLowerCase() !== "superman") return
@@ -16439,7 +16484,11 @@ export function applySupermanWoC(fighter, context = {}) {
 
   // grip the opponent in front of + slightly above Superman (carried together).
   const grip = () => { if (opp) { opp.x = fighter.x + face * ((fighter.w || 60) * 0.35); opp.y = fighter.y - (opp.h || 100) * 0.12; opp.vx = 0; opp.vy = 0; opp.hitstun = Math.max(opp.hitstun || 0, 12); opp.onGround = false; opp.grounded = false; opp.isLaunched = false; opp.knockdownState = false } }
-  const riseTarget = floor - 440   // cap the ascent so the camera stays framed; the Moon backdrop sells "space"
+  // REAL travel (like Omni-Man's Escape Velocity): the battle camera HOLDS its ground shot through the flight
+  // (supermanCameraHold), so he really leaves the top of the screen before the shot cuts to space, and the victim
+  // really drops back in from above it. `riseTarget` = where the pair hangs, mid-frame, in the space shot.
+  const fh = fighter.h || 100, oh = opp?.h || 100, OFF_TOP = 1300, OFF_BOTTOM = 320
+  const riseTarget = floor - fh - 40
 
   if (s.phase === "startup") {
     fighter.vx = 0; fighter._spriteCastMove = "ultimate"; fighter._spriteCastTimer = 4
@@ -16455,7 +16504,7 @@ export function applySupermanWoC(fighter, context = {}) {
       const dx = Math.abs((opp.x + (opp.w || 60) / 2) - (fighter.x + (fighter.w || 60) / 2))
       if (dx < 120 && Math.abs((opp.y || 0) - (fighter.y || 0)) < 160) {
         hurt(30); shakeCamera(context, 6, 8); opp.colorFlash = 12
-        fighter._supHvBeam = null; grip(); s.phase = "rise"; s.t = 46; fighter.vx = 0
+        fighter._supHvBeam = null; grip(); s.phase = "rise"; s.t = 46; s.y0 = fighter.y; s.x0 = fighter.x; fighter.vx = 0
         return
       }
     }
@@ -16464,19 +16513,21 @@ export function applySupermanWoC(fighter, context = {}) {
   }
   if (s.phase === "rise") {   // ROCKET STRAIGHT UP — stars STREAK past (fast scroll) to sell the altitude
     fighter._spriteCastMove = "flyRise"; fighter._spriteCastTimer = 6
-    fighter.vx = 0; fighter.vy = -22; fighter.onGround = false; fighter.grounded = false
-    if (fighter.y <= riseTarget) { fighter.y = riseTarget; fighter.vy = 0 }   // cap position (camera) — the MOVING stars convey the real height
+    fighter.vx = 0; fighter.vy = 0; fighter.onGround = false; fighter.grounded = false
+    const e = 46 - s.t, y0 = s.y0 ?? fighter.y; if (s.x0 != null) fighter.x = s.x0
+    if (e < 20) { fighter.y = y0 + (floor - fh - OFF_TOP - y0) * (e / 20) ** 2; fighter._supMoonBg = 0; fighter._supMoonScrollSpd = 0 }   // LAUNCH: straight up out of the stage
+    else {   // CUT to space: he rises up into frame from below, stars streaming down
+      const u = Math.min(1, (e - 20) / 24); fighter.y = floor + OFF_BOTTOM + (riseTarget - floor - OFF_BOTTOM) * (1 - (1 - u) ** 2)
+      fighter._supMoonBg = 1; fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 48; fighter._supMoonScrollSpd = 48
+    }
     grip()
-    fighter._supMoonBg = Math.min(1, (fighter._supMoonBg || 0) + 0.06)        // fully replace the map with space, fast
-    fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 48               // STARS STREAM DOWN fast = he's taking them WAY up
-    fighter._supMoonScrollSpd = 48
     shakeCamera(context, 3, 3)
     if (--s.t <= 0) { s.phase = "moon"; s.t = 120; fighter.vy = 0; fighter._supMoonBg = 1; fighter._supMoonScrollSpd = 6; shakeCamera(context, 12, 13); if (opp) opp.colorFlash = 14 }   // arrived — BOOM
     return
   }
   if (s.phase === "moon") {   // the MOON — full black starry sky, Superman grips the enemy at the apex (a long, held beat)
     fighter._spriteCastMove = "flyHover"; fighter._spriteCastTimer = 6
-    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, riseTarget)
+    fighter.vx = 0; fighter.vy = 0; fighter.y = Math.min(fighter.y, riseTarget); if (s.x0 != null) fighter.x = s.x0
     fighter._supMoonBg = 1; fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 5; fighter._supMoonScrollSpd = 5   // gentle drift at the apex
     grip()
     if (s.t % 26 === 0) shakeCamera(context, 2, 3)   // gentle rumble while they hang in space
@@ -16486,29 +16537,35 @@ export function applySupermanWoC(fighter, context = {}) {
   }
   if (s.phase === "throwdown") {   // hurl them STRAIGHT DOWN — they fall, SWIRLING, to the ground
     fighter._spriteCastMove = "dive"; fighter._spriteCastTimer = 6; fighter.vx = 0; fighter.vy = 0
-    fighter.y = Math.min(fighter.y, riseTarget); fighter._supMoonBg = 1
-    fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 6; fighter._supMoonScrollSpd = 6
-    if (!s.thrown && opp) { opp.vx = 0; opp.vy = 34; opp.hitstun = Math.max(opp.hitstun || 0, 140); opp._supSwirl = 90; s.thrown = true; shakeCamera(context, 4, 4) }
+    const e = 90 - s.t; if (s.x0 != null) fighter.x = s.x0
+    if (!s.thrown && opp) { opp.vx = 0; opp.vy = 0; opp.hitstun = Math.max(opp.hitstun || 0, 140); opp._supSwirl = 90; s.thrown = true; s.oy0 = opp.y; shakeCamera(context, 4, 4) }
+    if (e < 18) {   // in space: they fall away, out of the bottom of the shot
+      fighter.y = riseTarget; fighter._supMoonBg = 1; fighter._supMoonScroll = (fighter._supMoonScroll || 0) + 6; fighter._supMoonScrollSpd = 6
+      if (opp) opp.y = s.oy0 + (floor + OFF_BOTTOM - s.oy0) * (e / 18) ** 1.6
+    } else {   // CUT home: the stage is back and they come down out of the sky into it — he stays up there (off-screen)
+      fighter._supMoonBg = 0; fighter._supMoonScrollSpd = 0; fighter.y = floor - fh - OFF_TOP - 100
+      if (opp && !s.slammed) opp.y = floor - oh - OFF_TOP + OFF_TOP * Math.min(1, ((e - 18) / 16) ** 2)
+    }
     if (opp && !s.slammed) {
-      opp.vy = Math.max(opp.vy || 0, 30); opp.vx = 0; opp._supSwirl = Math.max(opp._supSwirl || 0, 8); opp.hitstun = Math.max(opp.hitstun || 0, 8)
-      if (opp.y + (opp.h || 100) >= floor - 2) {
+      opp.vy = 0; opp.vx = 0; opp._supSwirl = Math.max(opp._supSwirl || 0, 8); opp.hitstun = Math.max(opp.hitstun || 0, 8); opp.onGround = false; opp.grounded = false
+      if (e >= 18 && opp.y + oh >= floor - 2) {
         s.slammed = true
         opp.y = floor - (opp.h || 100); opp.vy = 0; opp.vx = 0; opp.onGround = true; opp.grounded = true; opp.isLaunched = false
         opp.knockdownState = true; opp.knockdownTimer = Math.max(opp.knockdownTimer || 0, 72); opp.noTech = true
         opp.colorFlash = 20; opp.teleportFlash = Math.max(opp.teleportFlash || 0, 14); opp._supSwirl = 0
         hurt(350); shakeCamera(context, 18, 22)   // BIG impact
         try { sound?.play?.(SFX?.HIT_ULTIMATE || SFX?.HIT_HEAVY) } catch (_) {}
-        s.phase = "outro"; s.t = 28
+        s.phase = "outro"; s.t = 40
       }
     }
-    if (--s.t <= 0 && !s.slammed) { if (opp) { opp.knockdownState = true; opp.knockdownTimer = 60 } s.phase = "outro"; s.t = 24 }
+    if (--s.t <= 0 && !s.slammed) { if (opp) { opp.knockdownState = true; opp.knockdownTimer = 60 } s.phase = "outro"; s.t = 40 }
     return
   }
   if (s.phase === "outro") {   // Superman descends; the sky returns
-    fighter._spriteCastMove = "flyCruise"; fighter._spriteCastTimer = 6
-    fighter.vy = 18; fighter.vx = 0
-    fighter._supMoonBg = Math.max(0, (fighter._supMoonBg || 0) - 0.06)
-    if (fighter.y + (fighter.h || 100) >= floor - 2) { fighter.y = floor - (fighter.h || 100); fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
+    fighter._spriteCastMove = "flyHover"; fighter._spriteCastTimer = 6
+    fighter.vy = 0; fighter.vx = 0; fighter._supMoonBg = 0; if (s.x0 != null) fighter.x = s.x0
+    { const u = Math.min(1, (40 - s.t) / 36); fighter.y = floor - fh - 720 * (1 - u) ** 2 }   // he comes down out of the sky after them
+    if (fighter.y + fh >= floor - 2) { fighter.y = floor - fh; fighter.vy = 0; fighter.onGround = true; fighter.grounded = true }
     if (--s.t <= 0) {
       fighter._supWoC = null; fighter.attacking = false; fighter._supMoonBg = 0; fighter._supMoonScroll = 0; fighter._supMoonScrollSpd = 0
       fighter.attackCooldown = getAttackDuration(16, fighter); fighter._spriteCastMove = "land"; fighter._spriteCastTimer = 16

@@ -17,6 +17,7 @@ import { ALIENX, AX_VOICE, AX_VOID, AX_FLIGHT, AX_COST, AX_NULLIFY, AX_GRAVITY, 
 import { benAlienNegatesSpecial } from '../ben10State.js'
 import { getAvailableAlienKeys, getAlienDefinition, buildLoadout, BEN10_SLOT_COUNT, BEN10_ALIEN_REGISTRY } from '../aliens.js'
 import fs from 'node:fs'
+import * as X from '../alienx.js'
 
 let passed = 0, failed = 0
 const test = (name, fn) => { try { fn(); passed++; console.log('PASS', name) } catch (e) { failed++; console.error('FAIL', name, '\n  ', e.message) } }
@@ -312,14 +313,14 @@ function ult(f, t, { block = false, far = false } = {}) {
   t.isBlocking = false
   return { ok, dealt: hp - t.health, home, thome, float, lockAtEnd, drawn, keys }
 }
-test('12. Absolute Decree: 60 Power; whiff / block = no cinematic (60f); clean = 40 + 3×25 + 135 = 250; positions + lighting restore; Stance → Ben', () => {
+test('12. Absolute Decree: 60 Power; whiff / block = no cinematic (60f); clean = 40 + 3×35 + 170 = 315 (2026-11-23 buff); positions + lighting restore; Stance → Ben', () => {
   let f = ben(), t = foe(); f.energy = 50; A.clearAbilityState(); assert.equal(A.triggerUltimate(f, ctxOf(f, t)), false, 'rejected below 60 Power')
   f = ben(); t = foe(); let r = ult(f, t, { far: true }); assert(r.ok); assert.equal(r.dealt, 0); assert.equal(S(f).lastUltRaw, 0, 'whiff: no cinematic')
   f = ben(); t = foe(); r = ult(f, t, { block: true }); assert.equal(S(f).lastUltRaw, 0, 'blocked: no cinematic')
   f = ben(); t = foe(); A.clearAbilityState(); f.energy = 100; A.triggerUltimate(f, ctxOf(f, t)); assert.equal(f.energy, 40)
   assert.equal(f.attackCooldown, AX_ULT.OPENER_AT + AX_ULT.WHIFF, '60f whiff recovery'); clearProj()
   f = ben(); t = foe(); reset(f, t); S(f).voice = 'serena'; S(f).void.immune = 100; r = ult(f, t)
-  assert.equal(S(f).lastUltRaw, AX_ULT.OPENER + 3 * AX_ULT.RING + AX_ULT.BANG); assert.equal(S(f).lastUltRaw, 250)
+  assert.equal(S(f).lastUltRaw, AX_ULT.OPENER + 3 * AX_ULT.RING + AX_ULT.BANG); assert.equal(S(f).lastUltRaw, 315)
   assert.equal(S(f).ult, null); assert.equal(r.lockAtEnd.x, r.home.x, 'Alien X position restores'); assert.equal(r.lockAtEnd.y, r.home.y)
   assert.equal(r.lockAtEnd.tx, r.thome.x, 'opponent position restores'); assert.equal(r.float, AX_ULT.FLOAT, 'floats up during the cast')
   assert.equal(r.lockAtEnd.cd, AX_ULT.LOCKOUT, '140f lockout'); assert.equal(S(f).voice, 'ben', 'Stance resets to Ben')
@@ -379,6 +380,16 @@ test('GAME_STATE stays plain data (serializable) mid-cast: Nullify, Gravity, Gra
   const u = ben(), v = foe(); reset(u, v); A.clearAbilityState(); u.energy = 100; A.triggerUltimate(u, ctxOf(u, v))
   for (let i = 0; i < 60; i++) { tick(u, v); for (const p of A.activeProjectiles.filter(p => !p.visualOnly)) { C.resolveProjectileHitsMulti(A.activeProjectiles, [v]); const k = A.activeProjectiles.indexOf(p); if (k >= 0) A.activeProjectiles.splice(k, 1) } }
   assert(S(u).ult && S(u).ult.phase !== 'opener', 'mid-cinematic'); assert.doesNotThrow(() => JSON.stringify(S(u))); clearProj()
+})
+test('15. (2026-11-23) Celestial Judgment (↑+P, tracking pillar, launcher, +1 pip) + Supernova (air ↑/←+P, radial burst, cooldown)', () => {
+  const f = ben(), t = foe(); reset(f, t); f.energy = 100
+  const j = special(f, t, 'U', { frames: 60 })
+  assert(j.ok, 'Judgment fires'); assert.equal(j.spent, X.AX_COST.judgment); assert.equal(j.hits, 1, 'one pillar'); const nl = special(ben(), foe(), null, { frames: 60 }); console.log('   judgment dealt', j.dealt, 'nullify', nl.dealt); assert(j.dealt > nl.dealt * 1.5, 'the pillar out-hits Nullify (85 vs 40 raw)'); assert.equal(S(f).void.pips, 1)
+  const g = ben(), u = foe(); reset(g, u); g.energy = 100; g.onGround = g.grounded = false; g.y = 200
+  const n = special(g, u, 'U', { frames: 40 })
+  assert(n.ok, 'Supernova fires in the air'); assert.equal(n.spent, X.AX_COST.supernova); assert.equal(n.hits, 1); assert(n.dealt > 0)
+  assert(S(g).novaCd > 0, 'cooldown running'); assert.equal(special(g, u, 'B', { frames: 2 }).ok, false, 'not again until the cooldown ends')
+  assert.doesNotThrow(() => JSON.stringify(S(g)))
 })
 test('no Math.random / gameRng in alienx.js / alienxAssets.js', () => {
   for (const file of ['../alienx.js', '../alienxAssets.js']) assert(!/Math\.random|gameRng/.test(fs.readFileSync(new URL(file, import.meta.url), 'utf8')), file)

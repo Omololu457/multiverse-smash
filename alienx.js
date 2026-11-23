@@ -44,14 +44,19 @@ export const AX_FLIGHT = { MAX: 120, CAP: 140, HOLD: 8 }
 // DECREES (the five specials; pre-mod; startup / damage / on-block). Slow, committed, non-cancellable on whiff. Bellicus
 // adds +2f to every Decree startup (decreeStartup); Serena takes 3 off every Decree Power cost, min 6 (decreeCost). The
 // ultimate is not a Decree for these voice rules (its cost / timing are fixed).
-export const AX_COST = { nullify: 12, gravity: 16, rewind: 20, grasp: 14, starfall: 12, ultimate: 60 }
+export const AX_COST = { nullify: 12, gravity: 16, rewind: 20, grasp: 14, starfall: 12, ultimate: 60, judgment: 18, supernova: 18 }
+// CELESTIAL JUDGMENT (2026-11-23, grounded ↑ + P): a pillar of starlight TRACKS the opponent for TRACK f, locks, then crashes
+// down at LAND — a launcher, +1 Void pip. SUPERNOVA (air ↑ / ← + P): he goes nova — a radial star burst (R) around him after
+// STARTUP, knocks away, +1 pip; cooldown CD.
+export const AX_JUDGMENT = { TRACK: 18, LAND: 26, ACTIVE: 4, RECOVERY: 18, W: 110, H: 320, DMG: 85, ON_BLOCK: -8 }
+export const AX_SUPERNOVA = { STARTUP: 12, ACTIVE: 5, RECOVERY: 16, R: 150, DMG: 75, CD: 240 }
 export const AX_NULLIFY = { STARTUP: 24, ACTIVE: 6, RECOVERY: 20, DIST: 220, R: 70, DMG: 40, ON_BLOCK: -12 }
 export const AX_GRAVITY = { STARTUP: 28, GAP: 6, RECOVERY: 22, R: 70, DMG1: 20, DMG2: 25, AIR: 55, PIN: 30, ON_BLOCK: -14, SLAM_VY: 16, BOUNCE_VY: -10, BOUNCE_WAIT: 45 }
 export const AX_REWIND = { BACK: 60, HEAL: 40, RECOVERY: 30, COOLDOWN: 900 }
 export const AX_GRASP = { STARTUP: 16, RANGE: 120, WHIFF: 28, TICKS: [8, 16, 24], TICK: 15, HOLD: 30, THROW: 200, CARRY: 12, RECOVERY: 12, DASH_WINDOW: 14 }
 export const AX_STARFALL = { STARTUP: 4, DIST: 300, FRAMES: 20, DMG: 50, LAND: 10 }
 // ABSOLUTE DECREE: grab-style opener 40 → starfield + float casting Circle f1–12 → 3 rings × 25 → Big Bang 135 (250 raw)
-export const AX_ULT = { OPENER_AT: 16, OPENER: 40, WHIFF: 60, RISE: 18, FLOAT: 70, RINGS_AT: [40, 56, 72], RING: 25, BANG_AT: 96, BANG: 135, END: 116, LOCKOUT: 140 }
+export const AX_ULT = { OPENER_AT: 16, OPENER: 40, WHIFF: 60, RISE: 18, FLOAT: 70, RINGS_AT: [40, 56, 72], RING: 35, BANG_AT: 96, BANG: 170, END: 116, LOCKOUT: 140 }   // 2026-11-23 buff: rings 25→35, Big Bang 135→170
 
 export const ALIENX = {
   id: "alienx", poolKey: "alienx", displayName: "Alien X", slot: 8,
@@ -62,7 +67,7 @@ export const ALIENX = {
   flightProfile: "alienx",                      // flight.js FLIGHT_PROFILES.alienx (per-alien flight profile hook)
   drainMult: AX_DRAIN_MULT,                     // per-alien Power drain multiplier hook (fighters.updateTransformDevice)
   moves: { jab: "Jab", heavy: "Heavy", low: "Low", launcher: "Launcher", air: "Air",
-    special1: "Nullify", special2: "Gravity", special3: "Rewind", special4: "Void Grasp", special5: "Starfall Dash",
+    special1: "Nullify", special2: "Gravity", special3: "Rewind", special4: "Void Grasp", special5: "Starfall Dash", special6: "Celestial Judgment", special7: "Supernova",
     ultimate: "Absolute Decree" },
   basic_attacks: {
     light:  normal(22, 6, 3, 12, 0),                                                      // Attacks f1
@@ -82,7 +87,7 @@ export function freshAlienXState() {
     voice: "ben", switchT: 0, voiceCd: 0, prevBL: false, swallowL: 0, switches: 0, ult: null,
     airborne: false, apexY: null, capY: null, jumpHeld: 0, flightUsed: 0, flights: 0,
     hist: [], histI: 0, rewindCd: 0, fwdPrev: false, fwdTapT: -999, dashTapT: -999, starUsed: false,
-    nullify: null, gravity: null, bounce: null, grasp: null, star: null, lastUltRaw: 0,
+    nullify: null, gravity: null, bounce: null, grasp: null, star: null, judge: null, nova: null, novaCd: 0, lastUltRaw: 0,
     stats: { nullified: 0, rewinds: 0, healed: 0, grasps: 0, techs: 0, starfalls: 0 },
     void: { pips: 0, pipT: 0, lastPipCast: -1, unmadeT: 0, immune: 0, unmades: 0, negated: 0, negatedAt: -999 } }
 }
@@ -111,6 +116,8 @@ function tick(f, input, ctx, api) {
   tickGravity(f, s, api, opp)
   tickGrasp(f, s, api, opp)
   tickStarfall(f, s, api)
+  tickJudgment(f, s, api, opp)
+  tickSupernova(f, s, api)
   tickUlt(f, s, opp, api)
   recordHistory(f, s)
 }
@@ -230,7 +237,8 @@ const cx = o => o.x + (o.w || 60) / 2
 function fireSpecial(f, ctx, api) {
   const s = axState(f); if (!s) return false
   const dir = f._specialHeldDir || null
-  if (!(f.onGround || f.grounded)) return (dir === null || dir === "F" || dir === "D") ? castStarfall(f, s, api) : false
+  if (!(f.onGround || f.grounded)) return (dir === null || dir === "F" || dir === "D") ? castStarfall(f, s, api) : (dir === "U" || dir === "B") ? castSupernova(f, s, api) : false
+  if (dir === "U") return castJudgment(f, s, api)
   if (dir === "B") return castGravity(f, s, api)
   if (dir === "D") return castRewind(f, s, api, ctx)
   if (dir === "F" && s.t - s.dashTapT <= AX_GRASP.DASH_WINDOW) return castGrasp(f, s, api)
@@ -420,6 +428,46 @@ function tickStarfall(f, s, api) {
   f._benGlide = { vx: d.face * v, vy: v }
 }
 
+// CELESTIAL JUDGMENT — the pillar follows the opponent's x while it gathers, locks at TRACK, crashes at LAND
+function castJudgment(f, s, api) {
+  const opp = api.getOpponent(f); if (!opp) return false
+  const st = decreeStartup(s, AX_JUDGMENT.LAND), total = st + AX_JUDGMENT.ACTIVE + AX_JUDGMENT.RECOVERY
+  if (!beginCast(f, s, api, "axCast", decreeCost(s, AX_COST.judgment), total)) return false
+  s.judge = { t: 0, st, total, x: cx(opp), floor: opp.y + (opp.h || 110), face: f.facing || 1, cast: s.castId }
+  return true
+}
+function tickJudgment(f, s, api, opp) {
+  const j = s.judge; if (!j) return
+  j.t++
+  if (opp && j.t <= Math.min(AX_JUDGMENT.TRACK, j.st - 4)) { j.x += Math.max(-9, Math.min(9, cx(opp) - j.x)); if (opp.onGround || opp.grounded) j.floor = opp.y + (opp.h || 110) }
+  if (j.t === j.st) hitbox(f, api, "ax_judgment", j.face, { damage: AX_JUDGMENT.DMG, spawnX: j.x, spawnY: j.floor - AX_JUDGMENT.H / 2, w: AX_JUDGMENT.W, h: AX_JUDGMENT.H,
+    lifetime: AX_JUDGMENT.ACTIVE, hitstun: 30, blockstun: Math.max(1, (j.total - j.st + 1) + AX_JUDGMENT.ON_BLOCK), knockbackX: 2, knockbackY: -14, launcher: true,
+    alien: { ax: "judgment", pip: true, cast: j.cast } })
+  if (j.t === j.st) api.shake?.(7, 8)
+  if (j.t >= j.total + 6) s.judge = null
+}
+// SUPERNOVA (air) — he hangs, flares, then bursts: a radial hit around him
+function castSupernova(f, s, api) {
+  if (s.novaCd > 0) return false
+  const st = decreeStartup(s, AX_SUPERNOVA.STARTUP)
+  if (!beginCast(f, s, api, "axCastHold", decreeCost(s, AX_COST.supernova), st + AX_SUPERNOVA.ACTIVE + AX_SUPERNOVA.RECOVERY, { commit: false })) return false
+  s.nova = { t: 0, st, face: f.facing || 1, cast: s.castId }; s.novaCd = AX_SUPERNOVA.CD
+  return true
+}
+function tickSupernova(f, s, api) {
+  if (s.novaCd > 0) s.novaCd--
+  const n = s.nova; if (!n) return
+  n.t++
+  if ((f.hitstun || 0) > 0) { delete f._benGlide; s.nova = null; return }
+  if (n.t <= n.st + AX_SUPERNOVA.ACTIVE) { f.vx = 0; f.vy = 0; f._benGlide = { vx: 0, vy: 0 } } else delete f._benGlide
+  if (n.t === n.st) {
+    hitbox(f, api, "ax_supernova", n.face, { damage: AX_SUPERNOVA.DMG, spawnX: cx(f), spawnY: f.y + f.h * 0.5, w: AX_SUPERNOVA.R * 2, h: AX_SUPERNOVA.R * 2,
+      lifetime: AX_SUPERNOVA.ACTIVE, hitstun: 28, blockstun: 12, knockbackX: 10, knockbackY: -6, alien: { ax: "supernova", pip: true, cast: n.cast } })
+    api.shake?.(9, 10)
+  }
+  if (n.t >= n.st + AX_SUPERNOVA.ACTIVE + AX_SUPERNOVA.RECOVERY) { delete f._benGlide; s.nova = null }
+}
+
 // contact hook (combat → ben10State.benAlienContact): clean hits from Nullify / Gravity add ONE pip per cast (Void Grasp
 // adds its own on connect); Gravity's 2nd grounded hit pins, the air slam bounces; the ultimate's opener captures.
 function onContact(f, target, { proj = null, blocked = false } = {}) {
@@ -501,6 +549,21 @@ export function drawAlienXFx(c, f, frame = 0, opp = null) {
   if (n) drawPixelRing(c, n.x, n.y, AX_NULLIFY.R * Math.min(1, n.t / n.st), n.t >= n.st ? "#f8fafc" : "#94a3b8", n.t >= n.st ? 4 : 3, frame)
   const g = s.gravity                                                      // Gravity ring (closes on the cast-time spot)
   if (g) drawPixelRing(c, g.x, g.y, AX_GRAVITY.R * (1.6 - 0.6 * Math.min(1, g.t / g.st)), g.t >= g.st ? "#c084fc" : "#a78bfa", g.t >= g.st ? 4 : 3, frame)
+  const j = s.judge                                                        // Celestial Judgment: gathering glyph → pillar of starlight
+  if (j) { const gy = j.floor, live = j.t - j.st
+    if (live < 0) { drawPixelRing(c, j.x, gy - 4, 20 + 30 * (j.t / j.st), "#fde68a", 3, frame); c.globalAlpha = 0.25 + 0.35 * (j.t / j.st); c.fillStyle = "#fef9c3"; c.fillRect(Math.round(j.x - 3), gy - 900, 6, 900); c.globalAlpha = 1 }
+    else if (live < 16) { const a = 1 - live / 16, w = AX_JUDGMENT.W * (0.6 + 0.4 * a)
+      c.globalAlpha = a; c.fillStyle = "#fef3c7"; c.fillRect(Math.round(j.x - w / 2), gy - 1400, Math.round(w), 1400)
+      c.fillStyle = "#ffffff"; c.fillRect(Math.round(j.x - w / 5), gy - 1400, Math.round(w * 0.4), 1400)
+      for (let i = 0; i < 14; i++) { c.fillStyle = i % 2 ? "#fde68a" : "#ffffff"; c.fillRect(Math.round(j.x + (axHash(j.cast, i, 7) - 0.5) * w * 2.4), Math.round(gy - axHash(j.cast, i, 8) * 70 * (1 + live * 0.3)), 5, 5) }
+      drawPixelRing(c, j.x, gy - 4, 40 + live * 9, "#ffffff", 4, frame); c.globalAlpha = 1 } }
+  const nv = s.nova                                                        // Supernova: the flare, then the burst
+  if (nv) { const ox = cx(f), oy = f.y + f.h * 0.5, live = nv.t - nv.st
+    if (live < 0) drawPixelRing(c, ox, oy, 14 + 40 * (nv.t / nv.st), "#fde68a", 4, frame)
+    else if (live < 18) { const r = 30 + live * (AX_SUPERNOVA.R / 9); c.globalAlpha = 1 - live / 18
+      for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; c.fillStyle = i % 2 ? "#ffffff" : "#fb923c"
+        for (let q = 2; q < 7; q++) c.fillRect(Math.round(ox + Math.cos(a) * r * q / 6), Math.round(oy + Math.sin(a) * r * q / 6), 5, 5) }
+      drawPixelRing(c, ox, oy, r, "#ffffff", 5, frame); c.globalAlpha = 1 } }
   const u = s.ult
   if (u && u.thome && opp) {                                               // ult: 3 rings closing on the opponent, then the Big Bang
     const ox = u.thome.x + (opp.w || 60) / 2, oy = u.thome.y + (opp.h || 110) / 2

@@ -9,6 +9,6 @@
 // stance, Brainstorm's dome). So every alien keeps its identity (Rath still hits hardest, Ghostfreak is still the frailest).
 // Speed, weight, frame data and the human form are untouched. Albedo uses the same forms, so the mirror stays even.
 // Leaf module (imports nothing). Tune here, nowhere else.
-export const BEN_ALIEN_BUFF = Object.freeze({ damage: 1.15, defense: 1.20 })
+export const BEN_ALIEN_BUFF = Object.freeze({ damage: 1.35, defense: 1.20 })   // 2026-11-23 owner: "buff all of Ben 10's aliens cause they don't do enough damage" — damage 1.15 → 1.35
 export const benAlienDamageMult = mods => (mods?.damage ?? 1) * BEN_ALIEN_BUFF.damage
 export const benAlienDefenseMult = mods => (mods?.defense ?? 1) * BEN_ALIEN_BUFF.defense

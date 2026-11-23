@@ -128,15 +128,33 @@ def shade(base, src):
 
 SKIN = '#f2b48c'   # bare hands (Overtime, Sunday): his own skin colour as the base
 SKINS = [
+  # the Viltrumite uniform (show reference): WHITE bodysuit + high white collar; a GRAY U-shaped yoke across the chest
+  # joining a narrow GRAY centre stripe; GRAY wrist cuffs on BARE hands; an angular GRAY waist panel + apron front; GRAY
+  # knee-high boots. The cape (rank) in the uniform gray.
   dict(tag='imperial', name='Viltrumite Imperial Uniform', classification='Viltrum Collection',
-       # the Viltrumite uniform: a white bodysuit, black collar / shoulder panels / gloves / belt / boots, black cape
-       torso='#f4f2ee', arms='#f4f2ee', legs='#f4f2ee', collar='#1e1f24', gloves='#1e1f24', waist='#1e1f24', boots='#1e1f24',
-       insignia='#1e1f24', cape='#24252b', lining='#3a3c44', streaks='#dfe8f6', pat=['shoulders'],
-       pal=pal('rgba(226,234,246,0.9)', '#ffffff', '#ffb070', '#24252b')),
+       torso='#f4f2ee', arms='#f4f2ee', legs='#f4f2ee', collar='#f4f2ee', gloves=SKIN, waist='#6a6e76', boots='#6a6e76',
+       insignia='#f4f2ee', cape='#5e626a', lining='#44474e', streaks='#dfe8f6', trim='#6a6e76',
+       pat=['vyoke', 'vstripe', 'cuffs', 'apron', 'kneeboots'],
+       pal=pal('rgba(226,234,246,0.9)', '#ffffff', '#ffb070', '#5e626a')),
+  # 2026-11-23 owner: "look at actual skins of Viltrumites … make it look like them". Omni-Man as the SHOW draws him:
+  # a WHITE bodysuit (gloves + boots white too), the RED cape and the red emblem (the sheet's own suit is red-bodied).
+  dict(tag='canon', name='Omni-Man — Show Accurate', classification='Viltrum Collection',
+       torso='#f4f2ee', arms='#f4f2ee', legs='#f4f2ee', collar='#f4f2ee', gloves='#f4f2ee', waist='#f4f2ee', boots='#f4f2ee',
+       insignia='#c8141c', cape='#c8141c', lining='#8e0e14', pat=[],
+       pal=pal('rgba(236,240,248,0.9)', '#ffffff', '#ffb070', '#c8141c')),
+  # the same uniform after years of campaigns: dust-ivory, the gray gone charcoal, one repaired shoulder seam, gray temples
   dict(tag='veteran', name='Viltrumite Field Veteran', classification='Viltrum Collection',
-       torso='#d9cfb6', arms='#d9cfb6', collar='#d9cfb6', gloves='#5a4330', waist='#3e3830', legs='#555c66', boots='#6a4a30',
-       insignia='#6a5c48', cape='#a8997c', lining='#7a2424', temples='#c8c8c8', pat=['seam', 'temples_grey'],
-       pal=pal('rgba(220,206,180,0.85)', '#efe4cc', '#ff9a50', '#a8997c', dust='rgba(170,150,120,0.6)')),
+       torso='#e2dccb', arms='#e2dccb', legs='#e2dccb', collar='#e2dccb', gloves=SKIN, waist='#4a4c52', boots='#4a4c52',
+       insignia='#e2dccb', cape='#3e4046', lining='#2e3034', temples='#c8c8c8', trim='#4a4c52',
+       pat=['vyoke', 'vstripe', 'cuffs', 'apron', 'kneeboots', 'seam', 'temples_grey'],
+       pal=pal('rgba(220,214,198,0.85)', '#efe8d8', '#ff9a50', '#3e4046', dust='rgba(170,150,120,0.6)')),
+  # the Grand Regent's uniform (Thragg): a RED suit, GRAY chest yoke, cuffs, belt, long front panel and tall boots; a RED cape
+  # with a broad WHITE collar
+  dict(tag='regent', name='Grand Regent Uniform', classification='Viltrum Collection',
+       torso='#a8161c', arms='#a8161c', legs='#a8161c', collar='#f4f2ee', gloves=SKIN, waist='#6a6e76', boots='#6a6e76',
+       insignia='#a8161c', cape='#b0181e', lining='#7a1014', trim='#6a6e76',
+       pat=['vyoke', 'cuffs', 'apron_long', 'kneeboots'],
+       pal=pal('rgba(240,200,196,0.85)', '#ffffff', '#ff8a50', '#b0181e')),
   dict(tag='mourning', name='Imperial Mourning Dress', classification='Viltrum Collection',
        torso='#2e2e35', arms='#2e2e35', collar='#26262c', legs='#2e2e35', waist='#222228', boots='#222228', gloves='#f0e9da',
        insignia='#4a4a54', cape='#26262c', lining='#6e1a34', pat=['sash'],
@@ -241,6 +259,22 @@ def apply_pattern(name, sk, ctx, col):
     lit = ctx.t >= 0.95                                                                       # a pixel in the source's full light
     if name == 'shoulders' and rn == 'torso' and y <= tb[1] + 3:
         return P('#1e1f24')                                                                   # black shoulder panels
+    # ── the SHOW's Viltrumite uniform details (2026-11-23): gray U-yoke → narrow centre stripe, cuffs on bare hands,
+    #    an angular apron front under the waist panel, knee-high boots ──
+    if name == 'vyoke' and rn in ('torso', 'insignia') and g.get('neck'):
+        w = max(1, tb[2] - tb[0]); u = (x - tb[0]) / w; d = y - tb[1]
+        if d <= 2 + 4 * max(0.0, 1 - abs(2 * u - 1) * 1.4): return P(sk['trim'])            # deepest at the sternum
+    if name == 'vstripe' and rn in ('torso', 'insignia') and g.get('neck') and abs(x - g['neck'][0]) <= 1 and y > tb[1] + 3:
+        return P(sk['trim'])
+    if name == 'cuffs' and rn == 'gloves' and ctx.near_arm:
+        return P(sk['trim'])
+    if name == 'cuffs' and rn == 'arms' and ctx.cuff:
+        return P(sk['trim'])
+    if name in ('apron', 'apron_long') and rn == 'legs' and g.get('hip'):
+        L = 11 if name == 'apron_long' else 7; k = (y - g['hip'][1]) / L
+        if 0 <= k <= 1 and abs(x - g['hip'][0]) <= 4.5 * (1 - k) + 1: return P(sk['trim'])
+    if name == 'kneeboots' and rn == 'legs' and ctx.knee:
+        return P(sk['boots'])
     if name == 'temples_grey' and rn == 'temples':
         return P(sk['temples'])
     if name == 'seam' and rn in ('torso', 'arms') and y == tb[1] + 3 and tb[0] + 2 <= x <= tb[0] + 7:
@@ -349,6 +383,9 @@ def recolor_strip(name, fw, n, sk, phase=0, head_only=False):
     glove = reg == R['gloves']; armish = ndimage.binary_dilation((reg == R['arms']) | (reg == R['torso']), iterations=1)
     ys, xs = np.nonzero(reg)
     pats = sk.get('pat', [])
+    cuffm = ndimage.binary_dilation(glove, iterations=2) & (reg == R['arms']) if 'cuffs' in pats else np.zeros_like(glove)
+    kneem = (ndimage.binary_dilation(reg == R['boots'], structure=np.array([[0, 0, 0], [0, 1, 0], [0, 1, 0]], bool), iterations=6)
+             & (reg == R['legs'])) if 'kneeboots' in pats else np.zeros_like(glove)
     bootx = {}
     if 'gold_toe' in pats:
         for fi in range(n):
@@ -371,7 +408,7 @@ def recolor_strip(name, fw, n, sk, phase=0, head_only=False):
         if pats:
             ctx = Ctx(); ctx.rn = rn; ctx.t = t; ctx.src = src; ctx.x = lx; ctx.y = y; ctx.g = geos[fi]; ctx.fi = fi; ctx.n = n; ctx.fw = fw
             ctx.strip = name; ctx.phase = phase; ctx.dn = float(dn[y, x]); ctx.ed = float(ed[y, x]); ctx.ed_body = float(ed_body[y, x])
-            ctx.near_arm = bool(glove[y, x] and armish[y, x]); ctx.bootx = bootx.get(fi, 999); ctx.n_box = nbox.get(fi)
+            ctx.near_arm = bool(glove[y, x] and armish[y, x]); ctx.cuff = bool(cuffm[y, x]); ctx.knee = bool(kneem[y, x]); ctx.bootx = bootx.get(fi, 999); ctx.n_box = nbox.get(fi)
             for p in pats: col = apply_pattern(p, sk, ctx, col)
         out[y, x, :3] = np.clip(np.round(col), 0, 255).astype(np.uint8)
     return out, reg

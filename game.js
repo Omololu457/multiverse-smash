@@ -225,6 +225,7 @@ import {
 } from "./fighters.js"
 import { BEN10_ALIEN_REGISTRY, buildLoadout, makePlaceholder } from "./aliens.js"   // Phase 4: alien catalog of record
 import { camera } from "./camera.js"
+import { drawMapRunBackground, drawMapRunTrail, drawMapRunSpeed, mapRunState } from "./mapRun.js"   // Homelander FLIGHT 37: the real maps laid end to end + the blood smear
 import { flyerIntroStart, flyerIntroFrames, updateFlyerIntro, finalizeFlyerIntro, flyerIntroReset, flyerIntroState, flyerIntroFxState, drawFlyerIntroUnder, drawFlyerIntroOver, drawFlyerIntroScreen } from "./flyerIntro.js"   // FLIGHT ENTRANCES (Omni-Man meteor, Invincible fly-by, Homelander heat vision, Superman sky, Starfire / Raven descend)
 import { drawLayeredStageFront } from "./stageLayers.js"
 import { SpriteHandler, processPendingSpawns, preloadCharacterSprites, preloadSheets, loadedSheetCount, GLOBAL_SPRITE_SCALE } from "./sprite.js"
@@ -314,7 +315,7 @@ import {
   revertTransformJutsu,   // harness/force-revert
   applySupermanModeSystem, forceRevertSupermanModes,   // Superman Stage 4: Solar Flare (gold) + Kryptonian Overload (blue) sustained mode-toggles (drain tick + auto-revert)
   applySupermanAirMoves,   // Superman Phase 4b: Ground Pound (air Down+Special dive-slam) + Kryptonian Grab (Fwd+Grab fly-up-slam) scripted per-frame drivers
-  applySupermanWoC,   // Superman ULTIMATE: "World of Cardboard" scripted multi-hit (dash → barrage → uppercut → fly-up → heat vision → orbital slam)
+  applySupermanWoC, supermanCameraHold,   // Superman ULTIMATE: "World of Cardboard" scripted multi-hit (dash → barrage → uppercut → fly-up → heat vision → orbital slam)
   applySupermanHeatVision,   // Superman HEAT VISION: sustained auto-aim hitscan beam while Special is HELD (tap = single shot)
   applyGreenArrowArrowstorm, tickGreenArrowTimers,   // GREEN ARROW: ARROWSTORM super per-frame driver + Tech-lock/tag timers
   enterVegetaSSJ, revertVegetaSSJ, applyVegetaFormSystem, ensureVegetaSSJWaypoint,   // Vegeta Super Saiyan (Stage 1)
@@ -413,7 +414,7 @@ import {
   applyHomelanderHeatVision, resetHomelanderKit, HV_HEAT_MAX, HV_COOLDOWN, supermanLaserState, resetSupermanLaser,   // (+ laser cooldown / Superman laser bar, 2026-11-15)
   // Homelander HEAT VISION: per-frame code-drawn hitscan beam driver + round reset + laser-heat gauge max (HUD)
   applyHomelanderKit,   // Homelander secondary: Take A Ride (Fwd+Grab air-throw) + Flex Parry (tap Block) + Super Hearing (passive ping)
-  applyHomelanderFlight37, homelanderUltStartup,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
+  applyHomelanderFlight37, homelanderUltStartup, homelanderMapRun, homelanderDragPose, homelanderCameraHold,   // Homelander ULTIMATE FLIGHT 37: scripted state-machine driver + dark-startup flag (screen overlay)
   updateNeteroGuanyinCombat,   // Netero Guanyin giant: base attack buttons re-routed to the 4 avatar attacks
   updateSaikiCommandCombat,   // Saiki Fwd+Heavy 4-hit projectile rekka + Fwd+Light Basic Burst poke
   updateKilluaCommandCombat,   // Killua Down+Heavy 4-hit Barrage command-normal cancel chain (barrage1→…→barrage4, cancel-on-hit)
@@ -14633,8 +14634,13 @@ function drawSupermanMoonBackdrop(ctx, canvas) {
 // HOMELANDER — ULTIMATE "run across the maps". While he carries the enemy at hyper-speed (_hlRunFx > 0,
 // stamped by applyHomelanderFlight37) the WORLD blurs past: real stage backgrounds scroll + motion streaks,
 // screen-space UNDER the fighters (reuses the Flash speed-run panel helpers). Render-only.
+// supers that REALLY carry the fight somewhere (Omni-Man / Superman to space, Homelander's map run): the battle camera
+// holds its shot so the pair visibly leaves the screen / the world slides under them (sim-side: the camera feeds walls)
+function _ultCamHold() { return omvCameraHold(p1, p2) || homelanderCameraHold(p1) || homelanderCameraHold(p2) || supermanCameraHold(p1) || supermanCameraHold(p2) }
+function _hlMapRun() { for (const f of [p1, p2]) { const r = f && homelanderMapRun(f); if (r) return { ...r, owner: f } } return null }
 function drawHomelanderSpeedRun(ctx, canvas) {
   if (!ctx || !canvas) return
+  drawMapRunSpeed(ctx, canvas, _hlMapRun(), globalFrameCount)   // FLIGHT 37: speed streaks while the maps race past
   const hl = [p1, p2].find(f => f && (f._hlRunFx || 0) > 0 && (f.rosterKey || "").toLowerCase() === "homelander")
   if (!hl) return
   const cw = canvas.width, ch = canvas.height, elapsed = globalFrameCount, dir = hl.facing || 1
@@ -22310,7 +22316,7 @@ function updateBattle() {
     _juiceSlowmoTimer--
     if (_juiceSlowmoTimer === 0) sound.playJuiceSfx?.("sting_pitch_rise_hold", { gain: 0.6 })
     if (_juiceSlowmoTimer % 2 !== 0) {
-      if (omvCameraHold(p1, p2) && typeof camera.advance === "function") camera.advance(canvas)
+      if (_ultCamHold() && typeof camera.advance === "function") camera.advance(canvas)
       else if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
       return
     }
@@ -23051,7 +23057,7 @@ function updateBattle() {
     // snapping back to the two-shot framing (game-feel Stage 2). Otherwise the normal two-fighter
     // reframe would immediately undo the punch-in every frame.
     if (slowdownTarget && slowdownTimer > 0 && typeof camera.advance === "function") camera.advance(canvas)
-    else if (omvCameraHold(p1, p2) && typeof camera.advance === "function") camera.advance(canvas)   // Omni-Man ESCAPE VELOCITY: hold the ground shot while he's up there
+    else if (_ultCamHold() && typeof camera.advance === "function") camera.advance(canvas)   // Omni-Man / Homelander ESCAPE VELOCITY: hold the ground shot while he's up there
     else camera.update(p1, p2, canvas)
     _tickUltimateCrop()   // STAGE 3: hard panel zoom-crop on an ultimate connect — overrides the eased reframe while held
   }
@@ -23417,7 +23423,7 @@ function renderHybridFighter(fighter) {
   // OBITO_DIMENSION: a banished foe fades into the Kamui void (the rift overlay is drawn on top) — render-only.
   const bodyAlpha = revealAlpha * (fighter._banished ? 0.22 : 1) * _tojiFlyFadeAlpha(fighter) * (_gfP ? _gfP.alpha : 1) * _byakuyaFadeAlpha(fighter)
   // READY Omnitrix form render-only body offset (Brainstorm lunge / lift, its ult's held-opponent lift); null for everyone else.
-  const _benBO = benAlienBodyOffset(fighter, getOpponent(fighter))
+  const _benBO = homelanderDragPose(fighter) || benAlienBodyOffset(fighter, getOpponent(fighter))   // + Homelander FLIGHT 37 drag pose (flat, head first)
   const gfDX = (_gfP ? _gfP.dx : 0) + (_benBO ? _benBO.dx : 0), gfDY = _benBO ? _benBO.dy : 0
   const gfROT = (_benBO && _benBO.rot) || 0   // optional render-only rotation about the body centre (Jetray Barrel Roll)
 
@@ -25043,7 +25049,7 @@ function drawBattleScene() {
   if (hasTransform) camera.applyTransform(ctx, canvas)   // applyTransform does its own ctx.save()
   // The visible world-y span under the live camera (+margin for shake/smoothing) so the backdrop covers
   // the whole view — no undrawn band above the sky or below the floor at any viewport height/ratio.
-  if (activeDomains.length === 0 && !_kamuiDimActive()) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
+  if (activeDomains.length === 0 && !_kamuiDimActive() && !drawMapRunBackground(ctx, canvas, _hlMapRun(), stage, stages, groundY, cameraCoverY(), drawBattleBackground, camera)) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   // Obito "Kamui Dimension" — the stage swaps to a dark Kamui void (render-only; reverts the instant the
   // window ends). Screen-space fullscreen, on top of where the stage would be, under the fighters.
@@ -25070,6 +25076,7 @@ function drawBattleScene() {
   drawHigurumaUnder(ctx, p1, p2)   // Higuruma DEADLY SENTENCING — defendant's box + aisle floor markings under the fighters (render-only; gated)
   drawSyndromeUnder(ctx, p1, p2, SYNDROME_WORLD)   // Syndrome — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
   drawDseylUnder(ctx, p1, p2, SYNDROME_WORLD)   // Dseyl — Omnidroid shell / legs / warnings, turrets, ultimate stage (world-space, under the fighters; render-only; gated)
+  { const _r = _hlMapRun(); drawMapRunTrail(ctx, _r, _r ? (_r.owner === p1 ? p2 : p1) : null, groundY) }   // Homelander FLIGHT 37: the blood smear on the floor (world, under the fighters)
   drawFlyerIntroUnder(ctx, [p1, p2])   // flight entrances: Omni-Man's crater, Homelander's scorch line, Superman's light (world, under the fighters)
   drawFrozoneUnder(ctx, p1, p2, FROZONE_WORLD)   // Frozone — Black Ice patch, skate ribbon, ultimate floor ice + ramp (world-space, under the fighters; render-only; gated)
   for (const _bf of [p1, p2]) { const _rd = benReadyForm(_bf); if (_rd && _rd.drawUnder) _rd.drawUnder(ctx, _bf) }   // READY Omnitrix form under-layer (Megawhatt Blackout stage dim; render-only)
@@ -25154,7 +25161,7 @@ function drawBattleScene() {
   if (trainingState.enabled && !signatureFatalityActive() && !screenBreakerActive()) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)   // (hidden while a finisher plays — Controls Lab demos)
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
-  drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
+  if (_hlMapRun()?.phase !== "run") drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
 
   ctx.restore()
@@ -31407,6 +31414,7 @@ gameLoop()
     setModifiers: (mods = []) => { matchConfig.modifiers = Array.isArray(mods) ? mods : []; if (p1 && p2) _applyMatchModifiers(); return matchConfig.modifiers },
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },
+    mapRun: () => ({ run: _hlMapRun() ? (({ owner, ...r }) => r)(_hlMapRun()) : null, fx: mapRunState(), cam: { x: camera.x, zoom: camera.zoom } }),
     flyerIntro: (w = "p1") => { const f = w === "p2" ? p2 : p1; return { state: flyerIntroState(f), fx: flyerIntroFxState(), introPlaying: !!f?._introPlaying, frame: f?._introRevealFrame || 0, x: f?.x, y: f?.y, variant: f?._introVariant || null, stage: introStage, gs: gameState } },
     finisherDemo: (which) => !!(p1 && p2 && (which === "sb" ? startScreenBreaker(p1, p2) : startSignatureFatality(p1, p2, Number.isInteger(which) ? { index: which } : null))),   // Controls Lab: play a finisher on the LIVE fighters (p1()/p2() are snapshots)   // test hook: the match-ending KO right now (→ the FINISH window)
     forceP1Lose: () => { if (p1) p1.health = 0 },

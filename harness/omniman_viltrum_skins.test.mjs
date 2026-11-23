@@ -32,7 +32,7 @@ try {
     return { ids: L.map(s => s.id), names: L.map(s => s.name), glitter: L.filter(s => s.glitter).map(s => s.id), scales: [...new Set(L.map(s => s.spriteScale))], urls: n, bad } })
   report.skins = sk.names
   const mine = sk.ids.filter(i => i.startsWith('omv_'))
-  const WANT = Number(process.env.OMV_SKINS || 20)
+  const WANT = Number(process.env.OMV_SKINS || 22)   // 2026-11-23: + Show Accurate + Grand Regent (owner: real Viltrumite looks)
   ck(`selector: default + ${WANT} omv_* skins, Viltrumite Imperial Uniform first after the default, (none end in "AlienX" or contain "cyborg")`, sk.ids[0] === 'default' && (WANT === 0 || sk.ids[1] === 'omv_imperial') && mine.length === WANT && mine.every(i => !/AlienX$/.test(i) && !/cyborg/i.test(i)), JSON.stringify(sk.ids))
   ck(`every skin sheet, glint phase, portrait and head icon loads (${sk.urls} urls)`, !sk.bad.length, sk.bad.slice(0, 4).join(','))
   // ── match + sim unchanged ──

@@ -231,6 +231,38 @@ try {
     await shot('07_result_boss_killed')
     check('result screen reached (BOSS KILLED provider registered)', await page.evaluate(async () => (await import('./matchflow.js')).VICTORY_ART.length >= 1))
   }
+  if (want('combos')) {
+    section('COMBOS (measured vs S.P.D. Red; roster parity ×1.6 + combo scaling + his defense included)')
+    // press each step when the previous move connected (or after its active frames), like a player confirming
+    const FK = { dt_red: 'j', dt_blue: 'k', dt_yellow: 'l', dt_white: 'o' }
+    async function chain(form, steps, dx = 90, pre = null) {
+      if ((await S()).key !== form) { await step(100); await toForm(FK[form]) }
+      await fresh(dx, { energy: 100 }); if (pre) await raw('p1', pre)
+      const z0 = (await S('p2')).health; let hits = 0
+      for (const st of steps) {
+        if (st === 'swapK' || st === 'swapL' || st === 'swapJ' || st === 'swapO') { await page.keyboard.down('p'); await step(1); await tap([st.slice(4).toLowerCase()]); await page.keyboard.up('p'); for (let i = 0; i < 16; i++) await step(1); continue }
+        if (Array.isArray(st)) await motion(st[0], st[1]); else await tap([].concat(st))
+        for (let i = 0; i < 40; i++) { await step(1); const a = await S(); if (a.attacking && a.atk && await page.evaluate(() => !!__harness.ninjaTest.raw('p1').currentAttack?.hasHit || !!__harness.ninjaTest.raw('p1').currentAttack?._contact)) { hits++; for (let k = 0; k < 3; k++) await step(1); break } if (!a.attacking && i > 6) break }
+      }
+      for (let i = 0; i < 120; i++) await step(1)
+      return { dmg: z0 - (await S('p2')).health, hits, combo: (await S()).duo.hs }
+    }
+    const out = {}
+    out.red = await chain('dt_red', ['j', 'j', 'k', [['d'], 'l']])
+    out.redSlam = await chain('dt_red', ['j', 'j', [QCF, 'k']])
+    out.redSpeed = await chain('dt_red', ['j', 'j', 'k', [['d'], 'l']], 90, 'f._duo.speed = 180')
+    out.blue = await chain('dt_blue', ['j', 'j', 'j', 'j', [['d'], 'k']])
+    out.yellow = await chain('dt_yellow', ['j', 'j', 'j', 'j', [QCF, 'l']])
+    out.white = await chain('dt_white', ['j', 'j', 'j', 'j'])
+    out.whiteCamo = await chain('dt_white', ['j', 'j', 'j', 'j'], 90, 'f._duo.camo = 100')
+    out.tag = await chain('dt_red', ['j', 'k', 'swapK', [['d'], 'k']])
+    out.sdmBlue = await chain('dt_blue', ['j', 'j', 'j', 'j', [['d'], 'k']], 90, 'f._duo.sdm = 400')
+    out.zrex = await chain('dt_red', ['j', 'k', 'u'])
+    console.log('  COMBO-DATA ' + JSON.stringify(out))
+    check('every form has a confirmed 3+ hit string', ['red', 'blue', 'yellow', 'white'].every(k => out[k].hits >= 3), out)
+    check('Super Dino Mode / Camouflage buff the same string', out.sdmBlue.dmg > out.blue.dmg && out.whiteCamo.dmg > out.white.dmg, [out.sdmBlue.dmg, out.blue.dmg, out.whiteCamo.dmg, out.white.dmg])
+    check('combos stay below 45% of S.P.D. Red\'s 1200 (no touch-of-death), Z-Rex string included', Object.values(out).every(r => r.dmg < 540), Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.dmg])))
+  }
   if (want('shots')) {
     section('SCREENSHOTS')
     await boot('dinothunder', 'spd_red')

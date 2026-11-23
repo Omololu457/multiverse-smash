@@ -20,6 +20,7 @@ import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './meg
 import { gsHitbox, gsBlock, gsHit, gsMeleeGate, gsGrabGate, gsProjectileGate, gsDamageMods } from './gojoShinjukuState.js'   // Satoru Gojo (Shinjuku) hooks: Infinity / Falling Blossom gates + his move boxes (gojo_shinjuku-gated)
 import { sksHitbox, sksBlock, sksHit } from './sukunaShinjukuState.js'   // Ryomen Sukuna (Shinjuku) hooks: his move boxes + contact flags (sukuna_shinjuku-gated)
 import { invHitbox, invBlock, invHit, invKnockback, invDamageMods, invKoFloor } from './invincibleState.js'   // Invincible hooks: move boxes, contact flags, light weight, Resolve / Can't Stay Down (invincible-gated)
+import { dinoDamageMods } from './dinoState.js'   // MSV1-DINO (leaf module; no-op unless a Dino Thunder fighter is involved)
 import { omvHitbox, omvBlock, omvHit, omvKnockback } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) hooks: his move boxes + speed-scaled contact + heavy weight (omniman_viltrum-gated)
 import { omvMeleeGate, omvProjectileGate } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) UNIMPRESSED counter window: the hit is not felt (omniman_viltrum-gated)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
@@ -320,6 +321,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
   rawDamage = elastigirlDamageMods(target, rawDamage, opts)   // ELASTIGIRL — Rubber Body (−15% melee normals) + Elasticity +4 landed / +3 taken (returns rawDamage untouched unless she is involved)
   rawDamage = invDamageMods(target, rawDamage, opts)   // INVINCIBLE — RESOLVE: +25 % taken (invincible-gated)
   rawDamage = gsDamageMods(target, rawDamage, opts)   // SATORU GOJO (Shinjuku) — Infinity on every other damage path (beams, cinematics, patches, scripted strikes): stopped / L2 supers ×0.5 (raw untouched for everyone else)
+  rawDamage = dinoDamageMods(target, rawDamage, opts)   // MSV1-DINO: Super Dino Mode / Evil / Camouflage / High Score / Tricera Skin
   // SUPE DURABILITY (Homelander passive): chip damage taken (damage while blocking) reduced by 40%.
   // Gated on rosterKey → a strict no-op for every other character (their damage is byte-identical).
   if (target.isBlocking && (target.rosterKey || "").toLowerCase() === "homelander") rawDamage = (rawDamage || 0) * 0.6

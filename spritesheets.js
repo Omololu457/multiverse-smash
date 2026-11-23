@@ -90,6 +90,7 @@ export const SPRITE_MANIFEST = {
   ninja_storm_rangers: { actions: { idle: './assets/ninja_storm/red/idle.png' } },   // MSv2 (strips: ninjaStormSprites.js)
   ns_red: { actions: { idle: './assets/ns_red/idle.png' } },
   ns_trio: { actions: { idle: './assets/ns_blue/idle.png' } },   // NS TRIO (starts on the form's own sheets)
+  dinothunder: { actions: { idle: './assets/dt_red/idle.png' } }, dt_red: { actions: { idle: './assets/dt_red/idle.png' } }, dt_blue: { actions: { idle: './assets/dt_blue/idle.png' } }, dt_yellow: { actions: { idle: './assets/dt_yellow/idle.png' } }, dt_white: { actions: { idle: './assets/dt_white/idle.png' } },   // MSV1-DINO (starts on the form's own sheets)
   ns_blue: { actions: { idle: './assets/ns_blue/idle.png' } }, ns_navy: { actions: { idle: './assets/ns_navy/idle.png' } }, ns_green: { actions: { idle: './assets/ns_green/idle.png' } },   // NS TRIO forms   // MSV1 Shane (msv1Sprites.js strips)
   ns_yellow: { actions: { idle: './assets/ns_yellow/idle.png' } },   // MSV1 Dustin
   // Gojo's existing ./gojo_<action>_sheet.png strips. Replacement art must keep

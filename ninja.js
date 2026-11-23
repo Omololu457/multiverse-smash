@@ -250,6 +250,7 @@ export function startStreak(f, opp, dir, vdir = 0, o = {}) {
   if (p.ext?.stepGate && !p.ext.stepGate(f, s)) return false   // NS CGPT: Ninja Step charges (profile ext; no-op for everyone else)
   const n = s.chainOpen > 0 ? s.chain + 1 : 1
   if (n > p.streak.chain) return false
+  if (f._duo && duoOf(f)?.streakGate && !duoOf(f).streakGate(f, s, n)) return false   // MSV1-DINO: Red chains only in Super Speed
   const cost = n >= 3 ? p.streak.thirdCost : p.streak.cost
   if (!spendNP(f, cost)) return false
   if (f.attacking) endMove(f)
@@ -401,7 +402,7 @@ export function startMirror(f, opp) {
   if (clampX(f, other) !== other || far) other = x0 + (f.facing || 1) * gap
   other = Math.round(clampX(f, other))
   // which spot is REAL is a seeded hash (GAME_STATE) — never derivable from the picture
-  const realMoves = hash(f, 31) < 0.5
+  const realMoves = M.fixedReal ? false : hash(f, 31) < 0.5
   const ix = realMoves ? x0 : other
   if (realMoves) f.x = other
   s.mirror = { t: 0, ix, ifeet: Math.round(feetY(f)), dir: f.facing || 1, swaps: 0, swap: null, idle: 0, n: ++s.mirrors, echo: [], ihit: {}, counter: null }
@@ -706,6 +707,7 @@ function stepShots(f, opp, s) {
 export function ninjaEvades(def, ctx = {}) {
   const s = def?._ninja; if (!s || !isNinja(def)) return false
   const p = getNinjaProfile(def)
+  if (def._duo) { const r = duoOf(def)?.evades?.(def, ctx, p, s); if (r != null) return r }   // MSV1-DINO: shield absorb / dash + Super Dino armor
   if (ctx.proj) {
     if (s.streak) { const t1 = s.streak.t + 1; if (t1 >= p.streak.intangible[0] && t1 <= p.streak.intangible[1]) return true }
     if (isBurrowed(def)) return !ctx.proj.groundHit
@@ -886,6 +888,7 @@ export const NINJA_AI_TELL = { dummy: 0, easy: 0.20, normal: 0.45, adaptive: 0.4
 export function ninjaAiPerceive(ai, opp, difficulty = 'easy') {
   const s = opp?._ninja, m = s?.mirror
   if (!m || !isNinja(opp) || !ai) return opp
+  if (getNinjaProfile(opp).mirror?.fixedReal) return opp   // MSV1-DINO: the Drago Clone never trades places (no hidden identity)
   const key = m.n * 16 + m.swaps
   let g = ai._nsGuess
   if (!g || g.key !== key || g.who !== pidx(opp)) {

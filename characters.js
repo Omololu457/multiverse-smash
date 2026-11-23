@@ -39,6 +39,7 @@ import { spdRed } from './spdRedData.js'   // S.P.D. Red Ranger (Power Rangers) 
 import { ns_red, ns_yellow } from './nsData.js'   // MSV1 Ninja Storm: Shane (Red Wind) + Dustin (Yellow Wind) — ninja.js / ns*.js on rangers.js
 import { ninja_storm_cgpt } from './nsCgptData.js'   // NS CGPT: ONE Ninja Storm Ranger, Red / Yellow appearances + shadow clone (nsCgpt*.js)
 import { ns_trio, ns_blue, ns_navy, ns_green } from './nsTrio.js'   // NS TRIO Tori / Blake / Cam: ONE character, three Ninja Storm forms (hidden form profiles)
+import { dinothunder, dt_red, dt_blue, dt_yellow, dt_white } from './dinothunder.js'   // MSV1-DINO Dino Thunder Rangers: ONE character, four forms (hidden form profiles)
 import { windrangers } from './nsDuo.js'   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
 import { ninjaStormRangers } from './ninjaStormData.js'   // MSv2 NINJA STORM RANGERS: ONE fighter, Red (Shane) / Yellow (Dustin) stance
 import { arlong } from './arlongData.js'   // Arlong (One Piece) — arlongData.js
@@ -11470,6 +11471,7 @@ export const characters = {
   ns_red, ns_yellow,                 // MSV1 Ninja Storm — Shane Clarke (Air Ninja / Aerial Rushdown) + Dustin Brooks (Earth Ninja / Trap & Burrow); ninja.js
   ninja_storm_cgpt,                  // NS CGPT — "Ninja Storm CGPT" (Storm Ninja / Clone Rushdown): Red / Yellow looks of one Ranger; nsCgpt*.js
   ns_trio, ns_blue, ns_navy, ns_green,   // NS TRIO — Ninja Storm Trio (Tori Blue Wind / Blake Navy Thunder / Cam Green Samurai); P S S J / P S S K switches
+  dinothunder, dt_red, dt_blue, dt_yellow, dt_white,   // MSV1-DINO — Conner / Ethan / Kira / Trent; hold P + J/K/L/O swaps
   windrangers,                       // MSV1-MERGE Shane & Dustin — Wind Rangers (Ninja Duo / Form Swapper); swaps ns_red ⇄ ns_yellow
   ninja_storm_rangers: ninjaStormRangers,   // MSv2 Ninja Storm Rangers — Teleport Rushdown / Mixup Ninja, dual-stance (ninjaAcademy.js)
   // ── RANGERS block: keep future Rangers here, in team order (S.P.D. Blue / Green / Yellow / Pink, …) — `follow the ranger framework` ──

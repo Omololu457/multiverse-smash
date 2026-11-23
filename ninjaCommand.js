@@ -14,6 +14,7 @@ import { registerNinjaStartMove, registerNinjaProjectiles } from './ninja.js'
 import './nsData.js'   // registers the ns_red / ns_yellow profiles
 import './nsDuo.js'
 import './nsTrio.js'   // NS TRIO: registers the Tori / Blake / Cam trio (ns_trio) hooks    // MSV1-MERGE: registers the Shane & Dustin duo (windrangers) hooks
+import './dinothunder.js'   // MSV1-DINO: registers the Dino Thunder Rangers (dinothunder) hooks
 import './nsCgptData.js'   // NS CGPT: registers the ninja_storm_cgpt profile (+ its ext hooks)
 import { duoCommand } from './ninja.js'
 

@@ -15,6 +15,7 @@
 //   • STRINGS    — in range the AI chains light→heavy→special instead of single pokes.
 // Difficulty scales every layer (see the extra profile fields below).
 
+import { isOgFighter } from "./rosterParity.js"   // OG roster CPU aggression overlay (2026-11-23)
 import { gameRng } from "./rng.js"   // Stage 11A: seeded gameplay RNG — all AI rolls route through rand()
 import { templateForCharacter, applyTemplateToProfile } from "./aiTemplates.js"   // Part 2: per-character behavior templates
 import { aiPickDroneTarget } from "./drones.js"   // drone-hunting hook (opt-in per drone profile via aiPriority — Buggy's body parts)
@@ -504,6 +505,27 @@ function getProfile(difficulty) {
   return AI_DIFFICULTIES[difficulty] || AI_DIFFICULTIES.easy
 }
 
+// ── OG AGGRESSION (2026-11-23, owner: "make the OG AIs more aggressive too") ─────────────────────────────────
+// The newer kits ship their own CPU drivers that land 90–150 hits a match; the OG roster runs on this generic
+// AI and fought far less (Piccolo ~700 damage a match). For OG fighters (rosterParity OG_TABLE) the profile is
+// pushed toward offense that WINS: specials / ultimates / combo + string conversion / whiff punish / anti-air
+// move most of the way to 1, raw attack + aggression get a smaller nudge, reactions sharpen, strings run one
+// longer. (A blanket "attack more, never retreat" version measured WORSE — 62 % → 55 % — they got punished.) Lighter on Easy; the
+// "dummy" training target never changes. Returns a CLONE (the shared AI_DIFFICULTIES objects stay untouched).
+const OG_AGGRO_PULL = { easy: 0.25, adaptive: 0.55, impossible: 0.6 }
+const OG_AGGRO_SOFT = new Set(["attackChance", "aggression", "heavyChance"])   // raw pressure only nudged: measured, mashing in just gets them punished
+const OG_AGGRO_KEYS = ["attackChance", "heavyChance", "specialChance", "ultimateChance", "comboChance", "aggression", "stringChance", "whiffPunish", "situationalIQ", "antiAirChance"]
+export function ogAggroProfile(profile, difficulty, rosterKey) {
+  const k = OG_AGGRO_PULL[difficulty]
+  if (!profile || !k || !isOgFighter(rosterKey)) return profile
+  const p = { ...profile }
+  for (const key of OG_AGGRO_KEYS) if (typeof p[key] === "number") p[key] = Math.min(0.97, p[key] + (1 - p[key]) * k * (OG_AGGRO_SOFT.has(key) ? 0.4 : 1))
+  p.reactionFrames = Math.max(3, Math.round((p.reactionFrames || 10) * (1 - 0.5 * k)))
+  p.maxStringLen = (p.maxStringLen || 2) + 1
+  p.ogAggro = k
+  return p
+}
+
 export function createAIController(difficulty = "easy") {
   const master = difficulty === "master"
   difficulty = baseAiDifficulty(difficulty)
@@ -579,6 +601,7 @@ export function setAIDifficulty(controller, difficulty) {
   } else {
     controller.profile = getProfile(difficulty)
   }
+  controller.profile = ogAggroProfile(controller.profile, difficulty, controller.rosterKey)   // OG roster: more aggressive CPU
   return controller
 }
 
@@ -591,7 +614,8 @@ export function applyAiTemplate(controller, rosterKey, charData) {
   if (controller.difficulty === "dummy") { controller.templateKey = null; return controller }
   const key = templateForCharacter(rosterKey, charData)
   controller.templateKey = key
-  controller.profile = applyTemplateToProfile(getProfile(controller.difficulty), key)
+  controller.rosterKey = rosterKey
+  controller.profile = ogAggroProfile(applyTemplateToProfile(getProfile(controller.difficulty), key), controller.difficulty, rosterKey)   // OG roster: more aggressive CPU
   return controller
 }
 

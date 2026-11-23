@@ -1,5 +1,5 @@
 {
- "pass": 16,
+ "pass": 17,
  "fail": 0,
  "report": {
   "skins": [
@@ -9,11 +9,78 @@
    "Imperial Mourning Dress",
    "Alien X — The Other Half of Nolan",
    "Alien X — Redshift",
+   "Black-Tie Meteor",
+   "Pink Champagne Heavyweight",
+   "Winning Valkyrie — Victory Lap",
+   "Ben 10 — Diamondhead Mantle",
+   "Ben 10 — Heatblast Re-entry",
    "Edo Tensei"
+  ],
+  "glitter": [
+   [
+    5,
+    0,
+    "blacktie/idle.png"
+   ],
+   [
+    6,
+    0,
+    "blacktie/idle.png"
+   ],
+   [
+    7,
+    0,
+    "blacktie/idle.png"
+   ],
+   [
+    8,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    9,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    10,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    11,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    12,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    13,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    14,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    15,
+    1,
+    "blacktie/p1/idle.png"
+   ],
+   [
+    16,
+    2,
+    "blacktie/p2/idle.png"
+   ]
   ],
   "replayMeta": {
    "p1Char": "omniman_viltrum",
-   "p1Skin": "omv_alienx_redshift"
+   "p1Skin": "omv_heatblast"
   },
   "trackedSkinFiles": 0,
   "diskSkinFiles": 1064

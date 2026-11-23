@@ -1,0 +1,209 @@
+{
+ "pass": 39,
+ "fail": 0,
+ "R": {
+  "pools": {
+   "beast_boy": {
+    "intro": 5,
+    "titans": 2,
+    "vs:cyborg": 1,
+    "win": 4,
+    "ult": 2,
+    "morph": 15,
+    "hurt": 2,
+    "hurtBig": 1,
+    "ko": 2
+   },
+   "robin": {
+    "intro": 5,
+    "titans": 2,
+    "vs:raven": 1,
+    "vs:starfire": 1,
+    "win": 4,
+    "ult": 2,
+    "taunt": 1,
+    "hurt": 3,
+    "ko": 2
+   },
+   "raven": {
+    "intro": 5,
+    "titans": 3,
+    "vs:beast_boy": 1,
+    "vs:robin": 1,
+    "win": 5,
+    "ult": 3,
+    "shout": 3,
+    "hurt": 1,
+    "hurtBig": 1
+   },
+   "starfire": {
+    "intro": 6,
+    "titans": 2,
+    "vs:cyborg": 1,
+    "win": 4,
+    "ult": 2,
+    "hurt": 2,
+    "ko": 3
+   },
+   "cyborg": {
+    "intro": 4,
+    "titans": 2,
+    "vs:beast_boy": 1,
+    "win": 4,
+    "ult": 3,
+    "hurt": 1,
+    "ko": 2
+   }
+  },
+  "beast_boy": {
+   "intro": [
+    [
+     "beast_boy.intro"
+    ]
+   ],
+   "hurtBig": [
+    [
+     "beast_boy.hurtBig"
+    ]
+   ],
+   "ult": [
+    [
+     "beast_boy.titans",
+     "beast_boy.ult"
+    ]
+   ],
+   "morph": [
+    [
+     "beast_boy.morph"
+    ]
+   ],
+   "win": [
+    [
+     "beast_boy.win"
+    ]
+   ]
+  },
+  "robin": {
+   "intro": [
+    [
+     "robin.intro"
+    ]
+   ],
+   "hurtBig": [
+    [
+     "robin.hurt"
+    ]
+   ],
+   "ult": [
+    [
+     "robin.intro",
+     "robin.ult"
+    ]
+   ],
+   "win": [
+    [
+     "robin.win"
+    ]
+   ]
+  },
+  "raven": {
+   "intro": [
+    [
+     "raven.intro"
+    ]
+   ],
+   "hurtBig": [
+    [
+     "raven.hurtBig"
+    ]
+   ],
+   "ult": [
+    [
+     "raven.ult"
+    ]
+   ],
+   "win": [
+    [
+     "raven.win"
+    ]
+   ]
+  },
+  "starfire": {
+   "intro": [
+    [
+     "starfire.intro"
+    ]
+   ],
+   "hurtBig": [
+    [
+     "starfire.hurt"
+    ]
+   ],
+   "ult": [
+    [
+     "starfire.intro",
+     "starfire.ult"
+    ]
+   ],
+   "win": [
+    [
+     "starfire.win"
+    ]
+   ]
+  },
+  "cyborg": {
+   "intro": [
+    [
+     "cyborg.intro"
+    ]
+   ],
+   "hurtBig": [
+    [
+     "cyborg.hurt"
+    ]
+   ],
+   "ult": [
+    [
+     "cyborg.ult"
+    ]
+   ],
+   "win": [
+    [
+     "cyborg.win"
+    ]
+   ]
+  },
+  "beast_boy_vs_cyborg": [
+   [
+    "beast_boy.vs:cyborg"
+   ],
+   [
+    "cyborg.vs:beast_boy"
+   ]
+  ],
+  "cyborg_vs_beast_boy": [
+   [
+    "cyborg.vs:beast_boy"
+   ],
+   [
+    "beast_boy.vs:cyborg"
+   ]
+  ],
+  "robin_vs_raven": [
+   [
+    "robin.vs:raven"
+   ],
+   [
+    "raven.vs:robin"
+   ]
+  ],
+  "starfire_vs_robin": [
+   [
+    "starfire.titans"
+   ],
+   [
+    "robin.vs:starfire"
+   ]
+  ]
+ }
+}

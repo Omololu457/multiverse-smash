@@ -11,6 +11,8 @@ import { robin, SMOKE, PLANT, BLAST } from './robinData.js'
 import { ROBIN_ICONS, ROBIN_CUTSCENE, ROBIN_FX, ROBIN_CELL } from './robinSprites.js'
 import { robinUltView, inOwnSmoke } from './robinState.js'
 import { ROBIN_FX_COLORS } from './robinSkins.js'
+import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
+import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
 
 const FW = ROBIN_CELL.w, FH = ROBIN_CELL.h, SC = 2.2
 const cache = new Map()
@@ -137,6 +139,7 @@ function drawGhosts(c, f, s) {
 // World layer (after the fighters). `opp` lets the smoke lighten for Robin mirrors.
 export function drawRobinFx(c, f, opp = null) {
   if (f?.rosterKey !== 'robin') return
+  titanVoDraw(f, opp); drawTitanIntroFx(c, f)   // Titans: the win line a beat after the foe drops · the special-intro effect
   drawMaterial(c, f)
   const s = f._robin; if (!s) return
   drawGhosts(c, f, s)
@@ -210,23 +213,14 @@ export function drawRobinHud(c, cv, p1, p2) {
 // INTRO CARD — "ROBIN — THE BOY WONDER", drawn in the existing intro phase (namecall-banner styling, lower third,
 // supplied portrait) while a Robin's own intro plays. Presentation only; skip / rematch clear _introPlaying.
 export function drawRobinIntroCard(c, cv, p1, p2) {
-  const f = [p1, p2].find(q => q?.rosterKey === 'robin' && q._introPlaying); if (!f) return
-  const cw = cv?.width || 1280, ch = cv?.height || 720, k = f._introRevealFrame || 0
-  const al = Math.min(1, Math.max(0, (k - 24) / 10)); if (al <= 0) return
-  const name = robin.introTitle, [hud0, hud1] = colsOf(f).hud, por = art(f, 'portrait.png')
-  c.save(); c.globalAlpha = al; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '900 36px Arial'
-  const bw = c.measureText(name).width + 140, bx = cw / 2 - bw / 2, by = ch * 0.72, bh = 64
-  c.fillStyle = 'rgba(8,12,24,0.82)'; c.fillRect(bx, by, bw, bh)
-  c.strokeStyle = hud0; c.lineWidth = 3; c.strokeRect(bx, by, bw, bh)
-  if (ready(por)) { c.imageSmoothingEnabled = false; c.save(); c.beginPath(); c.rect(bx + 4, by + 4, 56, bh - 8); c.clip(); c.drawImage(por, bx + 4, by - 14, 56, 70); c.restore() }
-  c.fillStyle = '#f1f5f9'; c.shadowBlur = 18; c.shadowColor = hud1
-  c.fillText(name, cw / 2 + 28, by + bh / 2)
-  c.restore()
+  drawTitanIntroCards(c, cv, p1, p2)   // every Teen Titan's special intro card (+ intro line) — titansIntro.js; Robin's card was the template
 }
 
 const AFTER_DEFEAT_MUTE = /^(throw|smoke|step|plant|armed|hack|express|roof|staff|swing|reject|ult|convert|detonate)/
 export function playRobinCues(f) {
-  const q = f?._robin?.cues; if (!q?.length) return
+  const q = f?._robin?.cues
+  try { titanVoTick(f, q) } catch (_) {}   // Titans voice: hurt / KO / Ultimate / morph lines (audio-only)
+  if (!q?.length) return
   for (const v of q) { if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue; try { sound.play('robin_' + v) } catch (_) {} }
   q.length = 0
 }

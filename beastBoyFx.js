@@ -9,6 +9,8 @@ import { beast_boy, ANIMAL_DIR } from './beastBoyData.js'
 import { BEAST_BOY_ICONS, BEAST_BOY_CUTSCENE } from './beastBoySprites.js'
 import { beastBoyUltView, formOf, instinctOpen } from './beastBoyState.js'
 import { BEAST_BOY_FX_COLORS } from './beastBoySkins.js'
+import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
+import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
 
 const FW = 272, FH = 136
 const cache = new Map()
@@ -57,6 +59,7 @@ function drawMaterial(c, f) {
 // World layer (after the fighters).
 export function drawBeastBoyFx(c, f) {
   if (f?.rosterKey !== 'beast_boy') return
+  titanVoDraw(f, null); drawTitanIntroFx(c, f)   // Titans: the win line a beat after the foe drops · the special-intro effect
   drawMaterial(c, f)
   const s = f._beastBoy; if (!s || !(f.health > 0)) return
   const [hud0, hud1] = colsOf(f).hud, top = (f._lastDrawY ?? f.y) - 8, x = ctrX(f)
@@ -146,7 +149,9 @@ export function drawBeastBoyHud(c, cv, p1, p2) {
 // Cue playback (presentation only). Morph / chain cues are muted after defeat.
 const AFTER_DEFEAT_MUTE = /^(morph|chain|instinct|wing|hooves|.*Wind|feint|ult|reject)/
 export function playBeastBoyCues(f) {
-  const q = f?._beastBoy?.cues; if (!q?.length) return
+  const q = f?._beastBoy?.cues
+  try { titanVoTick(f, q) } catch (_) {}   // Titans voice: hurt / KO / Ultimate / morph lines (audio-only)
+  if (!q?.length) return
   for (const v of q) { if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue; try { sound.play('beastboy_' + v) } catch (_) {} }
   q.length = 0
 }

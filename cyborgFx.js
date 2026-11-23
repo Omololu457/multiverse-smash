@@ -10,6 +10,8 @@ import { cyborg, HEAT } from './cyborgData.js'
 import { CYBORG_FX, CYBORG_ICONS, CYBORG_CUTSCENE } from './cyborgSprites.js'
 import { cyborgUltView } from './cyborgState.js'
 import { CYBORG_FX_COLORS } from './cyborgSkins.js'
+import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
+import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
 
 const FW = 184, FH = 168
 const cache = new Map()
@@ -99,6 +101,7 @@ function drawBeam(c, f, b) {
 // World layer (after the fighters). `opp` is optional (resonance ring over the marked opponent).
 export function drawCyborgFx(c, f, opp = null) {
   if (f?.rosterKey !== 'cyborg') return
+  titanVoDraw(f, opp); drawTitanIntroFx(c, f)   // Titans: the win line a beat after the foe drops · the special-intro effect
   const s = f._cyborg
   drawMaterial(c, f)
   if (!s) return
@@ -191,7 +194,9 @@ export function drawCyborgHud(c, cv, p1, p2) {
 // Cue playback (presentation only). Weapon / heat cues are muted after defeat.
 const AFTER_DEFEAT_MUTE = /^(shot|pulse|missile|rack|vent|ventOpen|ventClose|overheat|weaponsOnline|reject|locked|thruster|cannonBranch|transform|retract|ult)/
 export function playCyborgCues(f) {
-  const q = f?._cyborg?.cues; if (!q?.length) return
+  const q = f?._cyborg?.cues
+  try { titanVoTick(f, q) } catch (_) {}   // Titans voice: hurt / KO / Ultimate / morph lines (audio-only)
+  if (!q?.length) return
   for (const v of q) { if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue; try { sound.play('cyborg_' + v) } catch (_) {} }
   q.length = 0
 }

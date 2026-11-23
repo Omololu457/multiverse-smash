@@ -1,0 +1,802 @@
+{
+ "note": "Teen Titans voice lines. Segmented by silence (-38 dB, 0.35 s); Raven (MultiVersus, lines packed back to back) re-split at faster-whisper sentence word-timestamps. Transcribed offline (faster-whisper small.en). Left out: LEGO-Dimensions puzzle / level banter, lines naming characters from other franchises, and the YouTube channel tag every file opens with. A [a, b] entry = one clip spanning lines a..b (a two-part line).",
+ "chars": {
+  "beast_boy": {
+   "source": "All Beast Boy Voice Clips • Lego Dimensions • (Greg Cipes) All Voice Lines.mp3",
+   "pools": {
+    "intro": [
+     {
+      "i": 24,
+      "start": 70.797,
+      "dur": 3.559,
+      "text": "Look out, Jump City! Beast Boy's back in town!"
+     },
+     {
+      "i": 68,
+      "start": 183.477,
+      "dur": 4.602,
+      "text": "When there's trouble, you know who to call. Call Beast Boy!"
+     },
+     {
+      "i": 67,
+      "start": 180.369,
+      "dur": 2.648,
+      "text": "Well hello little punchables!"
+     },
+     {
+      "i": 18,
+      "start": 51.484,
+      "dur": 3.721,
+      "text": "I'm not scared! I've seen cat boxes scarier than you!"
+     },
+     {
+      "i": 57,
+      "start": 159.028,
+      "dur": 2.504,
+      "text": "Time to get in the old Beast Boy Boost!"
+     }
+    ],
+    "titans": [
+     {
+      "i": 55,
+      "start": 152.035,
+      "dur": 3.286,
+      "text": "TEEN TITANS GO! By which I mean me!"
+     },
+     {
+      "i": 13,
+      "start": 29.972,
+      "dur": 2.459,
+      "text": "Hey look! We're the Beastie Boys!"
+     }
+    ],
+    "vs:cyborg": [
+     {
+      "i": 11,
+      "start": 24.072,
+      "dur": 5.41,
+      "text": "Is my buddy Cyborg big and buff? He's half made of robot stuff."
+     }
+    ],
+    "win": [
+     {
+      "i": 65,
+      "start": 173.509,
+      "dur": 3.613,
+      "text": "Uh, that smell you're smellin'? That's pretty much victory!"
+     },
+     {
+      "i": 15,
+      "start": 37.228,
+      "dur": 5.337,
+      "text": "Hey! This is something I can actually do! In yo face, everyone who's ever met me!"
+     },
+     {
+      "i": 73,
+      "start": 199.128,
+      "dur": 1.544,
+      "text": "Yeah, that's why I do it!"
+     },
+     {
+      "i": 31,
+      "start": 100.884,
+      "dur": 2.026,
+      "text": "Mine totally called it"
+     }
+    ],
+    "ult": [
+     {
+      "i": 55,
+      "start": 152.035,
+      "dur": 3.286,
+      "text": "TEEN TITANS GO! By which I mean me!"
+     },
+     {
+      "i": 77,
+      "start": 208.272,
+      "dur": 2.748,
+      "text": "Bongo Bongo Beast Boy Bingo!"
+     }
+    ],
+    "morph": [
+     {
+      "i": 41,
+      "start": 132.053,
+      "dur": 0.339,
+      "text": "Woof!"
+     },
+     {
+      "i": 42,
+      "start": 132.924,
+      "dur": 0.293,
+      "text": "Woof!"
+     },
+     {
+      "i": 45,
+      "start": 135.865,
+      "dur": 0.587,
+      "text": "Woof woof!"
+     },
+     {
+      "i": 48,
+      "start": 143.667,
+      "dur": 0.426,
+      "text": "Squeak!"
+     },
+     {
+      "i": 50,
+      "start": 145.365,
+      "dur": 0.598,
+      "text": "Squeak!"
+     },
+     {
+      "i": 51,
+      "start": 146.437,
+      "dur": 0.899,
+      "text": "Squeak, squeak, squeak!"
+     },
+     {
+      "i": 52,
+      "start": 147.764,
+      "dur": 0.651,
+      "text": "Squeak, Squeak, Squeak!"
+     },
+     {
+      "i": 53,
+      "start": 148.843,
+      "dur": 0.638,
+      "text": "Squeak! Squeak!"
+     },
+     {
+      "i": 58,
+      "start": 161.998,
+      "dur": 0.422,
+      "text": "Tweets!"
+     },
+     {
+      "i": 59,
+      "start": 162.833,
+      "dur": 0.402,
+      "text": "Tweet!"
+     },
+     {
+      "i": 60,
+      "start": 163.703,
+      "dur": 0.387,
+      "text": "Tweet!"
+     },
+     {
+      "i": 61,
+      "start": 164.533,
+      "dur": 0.617,
+      "text": "Tweet, Tweet!"
+     },
+     {
+      "i": 62,
+      "start": 165.675,
+      "dur": 0.667,
+      "text": "TWEET TWEET!"
+     },
+     {
+      "i": 5,
+      "start": 9.927,
+      "dur": 0.917,
+      "text": "Wiggly, wiggly, wiggly!"
+     },
+     {
+      "i": 6,
+      "start": 11.345,
+      "dur": 0.91,
+      "text": "Look at me, look at me!"
+     }
+    ],
+    "hurt": [
+     {
+      "i": 40,
+      "start": 131.237,
+      "dur": 0.285,
+      "text": "AH!"
+     },
+     {
+      "i": 43,
+      "start": 133.675,
+      "dur": 0.478,
+      "text": "HUH-HUH"
+     }
+    ],
+    "hurtBig": [
+     {
+      "i": 28,
+      "start": 91.629,
+      "dur": 3.568,
+      "text": "Man, this is the worst swirly since gym class!"
+     }
+    ],
+    "ko": [
+     {
+      "i": 20,
+      "start": 58.685,
+      "dur": 2.136,
+      "text": "Just when I thought I could do anything!"
+     },
+     {
+      "i": 33,
+      "start": 111.322,
+      "dur": 4.04,
+      "text": "Ugh, I wish I hadn't drank all that spoiled milk!"
+     }
+    ]
+   }
+  },
+  "robin": {
+   "source": "All Robin (Teen Titans GO!) Voice Clips • Lego Dimensions • (Scott Menville) All Voice Lines.mp3",
+   "pools": {
+    "intro": [
+     {
+      "i": 5,
+      "start": 35.967,
+      "dur": 2.959,
+      "text": "Anyone call for some sweet ninja skills?"
+     },
+     {
+      "i": 35,
+      "start": 169.988,
+      "dur": 5.352,
+      "text": "Out of the way, this looks like a job for the impossibly handsome leader of the Teen Titans!"
+     },
+     {
+      "i": 52,
+      "start": 238.589,
+      "dur": 1.387,
+      "text": "ONLY ROBIN! GO!"
+     },
+     {
+      "i": 50,
+      "start": 234.525,
+      "dur": 2.367,
+      "text": "Titans, go! Er, just me."
+     },
+     {
+      "i": 25,
+      "start": 133.149,
+      "dur": 2.944,
+      "text": "Titans! Or whatever crazy team I'm with today! Go!"
+     }
+    ],
+    "titans": [
+     {
+      "i": 49,
+      "start": 233.067,
+      "dur": 0.995,
+      "text": "Titans, go!"
+     },
+     {
+      "i": 54,
+      "start": 242.36,
+      "dur": 2.709,
+      "text": "I mean, arrive! Yes! Titans arrive!"
+     }
+    ],
+    "vs:raven": [
+     {
+      "i": 38,
+      "start": 183.021,
+      "dur": 5.673,
+      "text": "Raven! How could you say such a thing? A good deed is a reward in itself!"
+     }
+    ],
+    "vs:starfire": [
+     {
+      "i": 26,
+      "start": 136.562,
+      "dur": 3.133,
+      "text": "Nice! Wait till I show Star this sweet upgrade!"
+     }
+    ],
+    "win": [
+     {
+      "i": 61,
+      "start": 273.59,
+      "dur": 5.57,
+      "text": "Yes! I did it! I worked it out! You guys saw me being awesome, right? Tell me you saw!"
+     },
+     {
+      "i": 36,
+      "start": 175.803,
+      "dur": 5.746,
+      "text": "Phew! Commanding the respect and admiration of every hero in every dimension is hard work!"
+     },
+     {
+      "i": 11,
+      "start": 61.976,
+      "dur": 4.499,
+      "text": "Hah! Too easy! Far too easy! Maybe..."
+     },
+     {
+      "i": 10,
+      "start": 56.699,
+      "dur": 4.777,
+      "text": "I laugh in the face of this easy-to-use object. HA HA HA!"
+     }
+    ],
+    "ult": [
+     {
+      "i": 47,
+      "start": 223.548,
+      "dur": 5.754,
+      "text": "This calls for another one of my amazing plans! I'll need several hours and an insane amount of hair gel!"
+     },
+     {
+      "i": 52,
+      "start": 238.589,
+      "dur": 1.387,
+      "text": "ONLY ROBIN! GO!"
+     }
+    ],
+    "taunt": [
+     {
+      "i": 45,
+      "start": 214.638,
+      "dur": 1.779,
+      "text": "YOU GUYS ARE LISTENING TO ME, RIGHT?!"
+     }
+    ],
+    "hurt": [
+     {
+      "i": 13,
+      "start": 73.082,
+      "dur": 0.29,
+      "text": "Uh!"
+     },
+     {
+      "i": 37,
+      "start": 181.997,
+      "dur": 0.766,
+      "text": "GASP!"
+     },
+     {
+      "i": 56,
+      "start": 253.683,
+      "dur": 0.624,
+      "text": "Ugh."
+     }
+    ],
+    "ko": [
+     {
+      "i": 60,
+      "start": 267.653,
+      "dur": 5.463,
+      "text": "AAAAAAAHHHHH! WHO'S CRAZY IDEA WAS THIS AGAIN?! OH WAIT! WAS IT MINE?!"
+     },
+     {
+      "i": 44,
+      "start": 210.623,
+      "dur": 3.727,
+      "text": "Stay together, team! We don't wanna get- AHHH! Hello?"
+     }
+    ]
+   }
+  },
+  "raven": {
+   "source": "All Raven Voice Clips • MULTIVERSUS • All Voice Lines • Warner Bros • 2022 Teen Titans.mp3",
+   "pools": {
+    "intro": [
+     {
+      "i": 15,
+      "start": 42.516,
+      "dur": 3.08,
+      "text": "Okay, universe, get ready for the darkness."
+     },
+     {
+      "i": 66,
+      "start": 167.247,
+      "dur": 1.26,
+      "text": "You don't scare me."
+     },
+     {
+      "i": 73,
+      "start": 179.867,
+      "dur": 1.53,
+      "text": "You should be scared of the dark."
+     },
+     {
+      "i": 130,
+      "start": 363.948,
+      "dur": 0.9,
+      "text": "Let's do this."
+     },
+     {
+      "i": 75,
+      "start": 183.607,
+      "dur": 1.42,
+      "text": "Say goodbye to the sunshine."
+     }
+    ],
+    "titans": [
+     {
+      "i": 134,
+      "start": 374.868,
+      "dur": 3.02,
+      "text": "You don't try to be my friend, I won't try to be yours."
+     },
+     {
+      "i": 84,
+      "start": 224.527,
+      "dur": 0.96,
+      "text": "You're a lot."
+     },
+     {
+      "i": 128,
+      "start": 354.892,
+      "dur": 3.4,
+      "text": "Wow, man, your whole vibe is, like, a lot."
+     }
+    ],
+    "vs:beast_boy": [
+     {
+      "i": 108,
+      "start": 281.006,
+      "dur": 2.08,
+      "text": "I wonder if Beast Boy could turn into you."
+     }
+    ],
+    "vs:robin": [
+     {
+      "i": 91,
+      "start": 237.392,
+      "dur": 3.22,
+      "text": "So, uh, has Robin ever said anything about me?"
+     }
+    ],
+    "win": [
+     {
+      "i": 34,
+      "start": 89.403,
+      "dur": 1.46,
+      "text": "Of course we won!"
+     },
+     {
+      "i": 55,
+      "start": 136.504,
+      "dur": 1.06,
+      "text": "Show's over, kid."
+     },
+     {
+      "i": 78,
+      "start": 195.627,
+      "dur": 2.8,
+      "text": "You should have stayed in your hole. You're exhausting."
+     },
+     {
+      "i": 106,
+      "start": 275.966,
+      "dur": 1.06,
+      "text": "No more jokes."
+     },
+     {
+      "i": 47,
+      "start": 119.104,
+      "dur": 0.56,
+      "text": "Whatever."
+     }
+    ],
+    "ult": [
+     {
+      "i": 67,
+      "start": 168.627,
+      "dur": 2.28,
+      "text": "Your darkness will be your undoing."
+     },
+     {
+      "i": 68,
+      "start": 170.907,
+      "dur": 1.82,
+      "text": "I'll break your mind even further."
+     },
+     {
+      "i": 83,
+      "start": 222.407,
+      "dur": 2.06,
+      "text": "I'll show you a magic trick."
+     }
+    ],
+    "shout": [
+     {
+      "i": 72,
+      "start": 178.027,
+      "dur": 1.78,
+      "text": "You need a big dose of chill."
+     },
+     {
+      "i": 76,
+      "start": 185.287,
+      "dur": 1.56,
+      "text": "I'm gonna pop your bubble."
+     },
+     {
+      "i": 6,
+      "start": 18.676,
+      "dur": 2.56,
+      "text": "Your lame circus tricks won't work on me."
+     }
+    ],
+    "hurt": [
+     {
+      "i": 71,
+      "start": 176.567,
+      "dur": 1.34,
+      "text": "You give me a headache."
+     }
+    ],
+    "hurtBig": [
+     {
+      "i": 19,
+      "start": 54.856,
+      "dur": 3.46,
+      "text": "Okay, memo to me, those fists hurt."
+     }
+    ]
+   }
+  },
+  "starfire": {
+   "source": "All Starfire Voice Clips • Lego Dimensions • (Hynden Walch) All Voice Lines.mp3",
+   "pools": {
+    "intro": [
+     {
+      "i": 7,
+      "start": 27.833,
+      "dur": 3.168,
+      "text": "Did someone call for a Princess of the Stars?"
+     },
+     {
+      "i": 10,
+      "start": 40.073,
+      "dur": 2.007,
+      "text": "Finally, a worthy foe!"
+     },
+     {
+      "i": 34,
+      "start": 158.337,
+      "dur": 4.393,
+      "text": "Prepare for a blast of cosmic energy right to the face, fiends!"
+     },
+     {
+      "i": 24,
+      "start": 106.903,
+      "dur": 2.209,
+      "text": "Let the hero wing commence!"
+     },
+     {
+      "i": 25,
+      "start": 109.577,
+      "dur": 2.685,
+      "text": "Let us get the starting of the party!"
+     },
+     {
+      "i": 15,
+      "start": 59.85,
+      "dur": 6.05,
+      "text": "I am prepared for the battle, now if only I had some hideous loreboths to hit."
+     }
+    ],
+    "titans": [
+     {
+      "i": 36,
+      "start": 168.838,
+      "dur": 2.163,
+      "text": "Teen Titans triumph!"
+     },
+     {
+      "i": 4,
+      "start": 17.77,
+      "dur": 2.233,
+      "text": "CONTINUE THE BATTLE, MY FRIENDS!"
+     }
+    ],
+    "vs:cyborg": [
+     {
+      "i": 21,
+      "start": 85.921,
+      "dur": 4.488,
+      "text": "It is as the friend Cyborg says, the Boo and the Yah!"
+     }
+    ],
+    "win": [
+     {
+      "i": 18,
+      "start": 74.883,
+      "dur": 1.724,
+      "text": "I have the joy!"
+     },
+     {
+      "i": 37,
+      "start": 171.535,
+      "dur": 3.273,
+      "text": "THIS IS THE MOST EXCELLENT APPROVEMENT"
+     },
+     {
+      "i": 41,
+      "start": 193.157,
+      "dur": 4.653,
+      "text": "When I accomplish this task, I shall try not to perform the gloating."
+     },
+     {
+      "i": 13,
+      "start": 53.119,
+      "dur": 2.811,
+      "text": "Joy! Starfire Sleepover!"
+     }
+    ],
+    "ult": [
+     {
+      "i": 34,
+      "start": 158.337,
+      "dur": 4.393,
+      "text": "Prepare for a blast of cosmic energy right to the face, fiends!"
+     },
+     {
+      "i": 43,
+      "start": 201.314,
+      "dur": 1.199,
+      "text": "ZOAL!"
+     }
+    ],
+    "hurt": [
+     {
+      "i": 39,
+      "start": 179.274,
+      "dur": 5.812,
+      "text": "This is indeed a bad day of the hair!"
+     },
+     {
+      "i": 30,
+      "start": 135.128,
+      "dur": 4.82,
+      "text": "Oh no! I am to be attacked by sordid gristle nubs!"
+     }
+    ],
+    "ko": [
+     {
+      "i": 6,
+      "start": 25.014,
+      "dur": 2.376,
+      "text": "Do not defeat me in battle, please!"
+     },
+     {
+      "i": 8,
+      "start": 31.439,
+      "dur": 3.636,
+      "text": "Do not worry, I shall return faster than a blurb-butt!"
+     },
+     {
+      "i": 42,
+      "start": 198.101,
+      "dur": 2.676,
+      "text": "I shall fail, but I shall try."
+     }
+    ]
+   }
+  },
+  "cyborg": {
+   "source": "All Cyborg (Teen Titans GO!) Voice Clips • Lego Dimensions • (Khary Payton) All Voice Lines.mp3",
+   "pools": {
+    "intro": [
+     {
+      "i": 21,
+      "start": 84.117,
+      "dur": 6.313,
+      "text": "Hey, this looks like a job for the half-man, half-machine, all-hero Cyborg!"
+     },
+     {
+      "i": 38,
+      "start": 146.436,
+      "dur": 5.588,
+      "text": "Ooh, someone's in need of a major beatdown, huh? You know I'm always happy to oblige!"
+     },
+     {
+      "i": 33,
+      "start": 126.988,
+      "dur": 1.812,
+      "text": "Oh, it is so on right now!"
+     },
+     {
+      "i": 4,
+      "start": 18.248,
+      "dur": 0.766,
+      "text": "BOO YEAH!"
+     }
+    ],
+    "titans": [
+     {
+      "i": 4,
+      "start": 18.248,
+      "dur": 0.766,
+      "text": "BOO YEAH!"
+     },
+     {
+      "i": 64,
+      "start": 231.904,
+      "dur": 2.185,
+      "text": "Woo-hoo!"
+     }
+    ],
+    "vs:beast_boy": [
+     {
+      "i": 12,
+      "start": 53.448,
+      "dur": 2.164,
+      "text": "Hey, Beast Boy! Look what I can do!"
+     }
+    ],
+    "win": [
+     {
+      "i": 8,
+      "start": 30.031,
+      "dur": 2.225,
+      "text": "Booyah! There you go."
+     },
+     {
+      "i": 9,
+      "start": 32.732,
+      "dur": 2.561,
+      "text": "Booyacity! That was way too easy!"
+     },
+     {
+      "i": 39,
+      "start": 152.497,
+      "dur": 1.78,
+      "text": "Seems like my work here is done."
+     },
+     {
+      "i": 43,
+      "start": 167.51,
+      "dur": 1.195,
+      "text": "That's the power!"
+     }
+    ],
+    "ult": [
+     {
+      "i": 4,
+      "start": 18.248,
+      "dur": 0.766,
+      "text": "BOO YEAH!"
+     },
+     {
+      "i": 68,
+      "start": 248.998,
+      "dur": 3.204,
+      "text": "Yeah! It's Super Technology Meet Super!"
+     },
+     {
+      "i": 43,
+      "start": 167.51,
+      "dur": 1.195,
+      "text": "That's the power!"
+     }
+    ],
+    "hurt": [
+     {
+      "i": 53,
+      "start": 204.664,
+      "dur": 0.662,
+      "text": "What?!"
+     }
+    ],
+    "ko": [
+     {
+      "i": 61,
+      "start": 225.379,
+      "dur": 1.73,
+      "text": "When will it end?"
+     },
+     {
+      "i": 59,
+      "start": 222.079,
+      "dur": 1.376,
+      "text": "What am I even doing here?"
+     }
+    ]
+   }
+  }
+ }
+}

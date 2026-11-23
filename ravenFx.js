@@ -20,6 +20,8 @@ import { raven, LEV, PILE, SHELL } from './ravenData.js'
 import { RAVEN_FX, RAVEN_ICONS, RAVEN_CUTSCENE } from './ravenSprites.js'
 import { ravenUltView } from './ravenState.js'
 import { RAVEN_FX_COLORS } from './ravenSkins.js'
+import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
+import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
 
 const FW = 112, FH = 104
 const cache = new Map()
@@ -89,6 +91,7 @@ function drawVerdictWarning(c, f, v, t) {
 // World layer (after the fighters).
 export function drawRavenFx(c, f) {
   if (f?.rosterKey !== 'raven') return
+  titanVoDraw(f, null); drawTitanIntroFx(c, f)   // Titans: the win line a beat after the foe drops · the special-intro effect
   const s = f._raven
   drawMaterial(c, f)
   if (!s) return
@@ -204,7 +207,9 @@ export function drawRavenHud(c, cv, p1, p2) {
 // Cue playback (presentation only). Spell cues are muted after defeat.
 const AFTER_DEFEAT_MUTE = /^(pulse|cast|lift|send|infuse|verdict|shell|lev|reject|doubleJump|ult)/
 export function playRavenCues(f) {
-  const q = f?._raven?.cues; if (!q?.length) return
+  const q = f?._raven?.cues
+  try { titanVoTick(f, q) } catch (_) {}   // Titans voice: hurt / KO / Ultimate / morph lines (audio-only)
+  if (!q?.length) return
   for (const v of q) { if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue; try { sound.play('raven_' + v) } catch (_) {} }
   q.length = 0
 }

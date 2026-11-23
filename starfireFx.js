@@ -15,6 +15,8 @@ import { STARFIRE_FX, STARFIRE_ICONS, STARFIRE_CUTSCENE } from './starfireSprite
 import { STARFIRE_EYES } from './starfireEyes.js'
 import { starfireUltView, starfireLiveLaser, eyeWorld } from './starfireState.js'
 import { STARFIRE_FX_COLORS } from './starfireSkins.js'
+import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
+import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }
@@ -131,6 +133,7 @@ function drawEyeDebug(c, f) {
 // World layer (after the fighters).
 export function drawStarfireFx(c, f) {
   if (f?.rosterKey !== 'starfire') return
+  titanVoDraw(f, null); drawTitanIntroFx(c, f)   // Titans: the win line a beat after the foe drops · the special-intro effect
   const s = f._starfire
   drawMaterial(c, f)
   if (s) {
@@ -231,7 +234,9 @@ export function drawStarfireHud(c, cv, p1, p2) {
 // Cue playback (presentation only). Attack cues are muted after defeat.
 const AFTER_DEFEAT_MUTE = /^(bolt|charge|orb|rush|sky|laser|prism|lev|reject|doubleJump|ult)/
 export function playStarfireCues(f) {
-  const q = f?._starfire?.cues; if (!q?.length) return
+  const q = f?._starfire?.cues
+  try { titanVoTick(f, q) } catch (_) {}   // Titans voice: hurt / KO / Ultimate / morph lines (audio-only)
+  if (!q?.length) return
   for (const v of q) { if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue; try { sound.play('starfire_' + v) } catch (_) {} }
   q.length = 0
 }

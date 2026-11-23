@@ -87,5 +87,49 @@ export const DINO_SKIN_ROWS = [
    "dt_yellow": "#0e1129",
    "dt_white": "#5d628a"
   }
+ },
+ {
+  "tag": "curtain",
+  "name": "JJK — Curtain Falls",
+  "note": "A Curtain drops over the stage: ink-dark suits shading to black from the top, cursed-violet energy where the gold was.",
+  "gem": {
+   "dt_red": "#7b1424",
+   "dt_blue": "#1f276b",
+   "dt_yellow": "#7d5b1a",
+   "dt_white": "#b5b1c0"
+  }
+ },
+ {
+  "tag": "grandprix",
+  "name": "Dino Grand Prix",
+  "note": "Racing livery: gloss race red / blue / yellow and pearl white, chequered white panels, chrome trim.",
+  "gem": {
+   "dt_red": "#e61c25",
+   "dt_blue": "#1a63e6",
+   "dt_yellow": "#ffd120",
+   "dt_white": "#f1f3f8"
+  }
+ },
+ {
+  "tag": "glass",
+  "name": "Stained Glass",
+  "note": "Cathedral glass: ruby, cobalt, amber and opal panes with baked lead lines and a backlit glow.",
+  "gem": {
+   "dt_red": "#d3283a",
+   "dt_blue": "#2d56d3",
+   "dt_yellow": "#eda818",
+   "dt_white": "#deeef3"
+  }
+ },
+ {
+  "tag": "rain",
+  "name": "Rainy-Day Tokusatsu",
+  "note": "A location shoot in the rain: wet, desaturated suits with a blue-grey cast and baked rain streaks.",
+  "gem": {
+   "dt_red": "#963a42",
+   "dt_blue": "#3a5a88",
+   "dt_yellow": "#988a4b",
+   "dt_white": "#b4bec7"
+  }
  }
 ]

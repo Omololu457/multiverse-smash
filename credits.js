@@ -123,6 +123,9 @@ export const SOURCED_ART = {
   ns_trio: { work: 'Ninja Storm Red Ranger — Power Rangers Super Legends (DS), recoloured as Tori (Blue Wind), Blake (Navy Thunder) and Cam (Green Samurai)', artists: ['Grim (ripper, spritedatabase.net)'],
     source: 'The MSV1 Shane sheets (assets/ns_red) palette-recoloured per Ranger with the chest emblem redrawn inside the same pixels (tools/ns_trio/build_forms.py); geometry and alpha unchanged, no new art.',
     files: ['assets/ns_trio/*.png', 'assets/ns_blue/*.png', 'assets/ns_navy/*.png', 'assets/ns_green/*.png'] },   // NS TRIO
+  dinothunder: { work: 'Dino Thunder Rangers — Conner (Red), Ethan (Blue), Kira (Yellow), Trent (White / Drago)', artists: ['falmeatwad (Red Ranger sheet)', 'YONDY-HOKAGE / DK-YONDY (Blue, Yellow, White Ranger sheets)', 'Raikage (Drago Ranger sheet)'],
+    source: 'Five supplied sheets (assets/incoming/dinothunder): cut frame-by-frame by exact background key (tools/dino/extract.py, ledgers in docs/msv1/dino/ledgers), packed into MSV1 cells (tools/dino/pack.py); Trent\'s White + Drago sheets unified to one 15-colour palette; the Drago Clone strips are a fixed per-colour darkening (tools/dino/portraits.py). No art invented.',
+    files: ['assets/dinothunder/*.png', 'assets/dt_red/*.png', 'assets/dt_blue/*.png', 'assets/dt_yellow/*.png', 'assets/dt_white/*.png', 'assets/dt_white/clone/*.png', 'assets/incoming/dinothunder/*'] },   // MSV1-DINO
   ns_red: { work: 'Ninja Storm Red Ranger — Power Rangers Super Legends (DS)', artists: ['Grim (ripper, spritedatabase.net)'],
     source: 'Supplied sheet (MSV1). Credit text block excluded from the game (docs/msv1/CREDITS.md); flat sea-green background keyed; original pixels, nearest-neighbour, no art invented.',
     files: ['assets/ns_red/*.png'] },

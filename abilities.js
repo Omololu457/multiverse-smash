@@ -19787,8 +19787,8 @@ function executeBillyGhostfaceUltimate(fighter, context) {
 //   (c) RESOURCE = UNLIMITED during the window via the existing fighter.infiniteEnergy flag
 //                  (spendEnergy/canSpendEnergy short-circuit on it) — prior value stashed + restored.
 //   (d) TARGET   = a COMPANION from the equipped skin's pool, NOT the opponent.
-const GF_SWAP_DURATION = 12 * 60   // 12s window (spec: 10-15s), fixed → auto-revert
-const GF_SWAP_COST     = 25        // 1 Dread bar per Killer Swap activation (energy-gated, freely repeatable)
+const GF_SWAP_DURATION = 18 * 60   // BUFF 2026-11-23 (owner: "massive buff"): 12s → 18s window, fixed → auto-revert
+const GF_SWAP_COST     = 15        // BUFF: 25 → 15 Dread per Killer Swap (energy-gated, freely repeatable)
 // KILLER SWAP (Scream×MK1 rebuild): the two timed killer FORMS Ghostface swaps into. slot0 = ENFORCER
 // (Zaraki sprites, blue steel — raw brute), slot1 = ASSASSIN (Chrollo sprites, violet — technical zoner).
 // Per-form flat silhouette tint (sprite.js reads fighter._killerTint) + swap-flash glow (_gfSwapCine.color).
@@ -19963,11 +19963,11 @@ export function triggerGhostfaceSwap(fighter, slot, context) {
 //   • swap    (hold Grab/Charge) → runs the existing Companion Swap into pool[slot] (motion picks slot)
 // Cosmetic/mobility branches get evasive i-frames; the SWAP branch gets NONE (preserves the swap's
 // deliberate no-free-entry balance — a clean hit during the dash CANCELS the swap-in).
-const BP_COST          = 20             // Dread for a reposition Backstage Pass (the swap branch pays the SWAP cost at emerge, not this)
-const BP_DASH_FRAMES   = 16             // "off-screen" travel before emerging
-const BP_IFRAMES       = 18             // evasive i-frames on the reposition branches (Getaway == old Stalk Vanish); swap branch = 0
-const BP_PHANTOM_DELAY = 8              // frames after cast the trailing hitbox connects
-const BP_PHANTOM = { dmg: 40, hitstun: 20, knockbackX: 7, knockbackY: -4, rangeX: 150, rangeY: 130 }
+const BP_COST          = 10             // Dread for a reposition Backstage Pass (the swap branch pays the SWAP cost at emerge, not this)
+const BP_DASH_FRAMES   = 8              // "off-screen" travel before emerging — BUFF: 16 → 8 (owner: "faster Backstage Passes"); cost 20 → 10
+const BP_IFRAMES       = 20             // evasive i-frames on the reposition branches (Getaway == old Stalk Vanish); swap branch = 0
+const BP_PHANTOM_DELAY = 4              // frames after cast the trailing hitbox connects
+const BP_PHANTOM = { dmg: 70, hitstun: 24, knockbackX: 7, knockbackY: -4, rangeX: 150, rangeY: 130 }
 
 // Arm a Backstage Pass. `branch` ∈ {switch, getaway, fakeout, swap}; `slot` is the companion index for swap.
 export function triggerGhostfaceBackstagePass(fighter, branch, slot = 0, context = null) {
@@ -19999,7 +19999,7 @@ export function triggerGhostfaceBackstagePass(fighter, branch, slot = 0, context
   // Evasive i-frames on the reposition branches; the swap branch stays hittable (balance). Getaway == Stalk Vanish.
   if (!isSwap) fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, BP_IFRAMES)
   // Dash "off-screen": switch/fakeout/swap surge toward the opponent (emerge behind), getaway slips away.
-  fighter.vx = (branch === "getaway" ? -1 : 1) * (fighter.facing || 1) * (branch === "getaway" ? 15 : 17)
+  fighter.vx = (branch === "getaway" ? -1 : 1) * (fighter.facing || 1) * (branch === "getaway" ? 30 : 34)   // BUFF: twice as fast (same distance in half the frames)
   fighter.vy = 0
   fighter.teleportFlash = 16
   // PRESENTATION (visual only): the reposition branches now truly slip OFF-SCREEN (fade out along the dash)
@@ -20108,12 +20108,12 @@ const GF_IDENTITY_COLOR = {
 }
 export function ghostfaceIdentityColor(fighter) { return GF_IDENTITY_COLOR[fighter?.skinId] || "#8a1c2b" }
 
-const GF_VANISH_EXIT_FADE = 7    // frames to fade fully OUT as he slips off-screen (fast — reads as "gone")
-const GF_ENTER_FRAMES     = 13   // re-entry: render-only slide-in + fade-in from the OPPOSITE edge
+const GF_VANISH_EXIT_FADE = 4    // frames to fade fully OUT as he slips off-screen (fast — reads as "gone")
+const GF_ENTER_FRAMES     = 7    // re-entry: render-only slide-in + fade-in from the OPPOSITE edge
 const GF_ENTER_DIST       = 180  // world px the sprite visually slides in from (render offset only)
-const GF_SWAP_EXIT_F      = 7    // 3-beat swap: EXIT (new identity held hidden — the "gone" beat)
-const GF_SWAP_FLASH_F     = 8    //              FLASH (identity-tinted screen flash peak)
-const GF_SWAP_EMERGE_F    = 14   //              EMERGE (companion materialises in)
+const GF_SWAP_EXIT_F      = 3    // 3-beat swap: EXIT (new identity held hidden — the "gone" beat)
+const GF_SWAP_FLASH_F     = 4    //              FLASH (identity-tinted screen flash peak)
+const GF_SWAP_EMERGE_F    = 7    //              EMERGE (companion materialises in)
 const GF_SWAP_TOTAL_F     = GF_SWAP_EXIT_F + GF_SWAP_FLASH_F + GF_SWAP_EMERGE_F
 
 // Arm the reposition vanish (called from the Backstage Pass trigger on the non-swap branches).

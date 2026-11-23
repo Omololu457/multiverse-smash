@@ -1,0 +1,55 @@
+{
+ "pass": 11,
+ "fail": 0,
+ "R": {
+  "stats": {
+   "key": "ghostface",
+   "form": null,
+   "swap": false,
+   "bp": false,
+   "atk": null,
+   "energy": 50.30000000000001,
+   "hp": 1250,
+   "x": 920,
+   "dial": null
+  },
+  "pssj": {
+   "frames": 6,
+   "s": {
+    "key": "chrollo",
+    "form": "assassin",
+    "swap": true,
+    "bp": false,
+    "atk": null,
+    "energy": 130,
+    "hp": 1250,
+    "x": 924.48,
+    "dial": "pass:chrollo"
+   }
+  },
+  "switch": {
+   "key": "zaraki",
+   "form": "enforcer",
+   "swap": true,
+   "bp": false,
+   "atk": "heavy",
+   "energy": 120,
+   "hp": 1250,
+   "x": 924.48,
+   "dial": "switch:zaraki"
+  },
+  "revert": {
+   "key": "ghostface",
+   "form": null,
+   "swap": false,
+   "bp": false,
+   "atk": "heavy",
+   "energy": 70.12,
+   "hp": 1250,
+   "x": 924.48,
+   "dial": "revert"
+  },
+  "bpFired": true,
+  "bpFrames": 8
+ }
+}

@@ -5549,20 +5549,20 @@ const ghostface = {
   // GLASS-CANNON STALKER — low HP, low defense (a masked human), FAST, LONG dash. Fragile but relentless.
   // vs roster: Killua HP1030/def78/spd95, Flash HP1020/spd99. Ghostface HP950 (roster-low glass cannon),
   // def76 (fragile — launches easily), spd97 (fast), maxEnergy 100 = Dread (1 bar = 25; specials + Ult).
-  stats: { maxHealth: 950, maxEnergy: 100, attack: 85, defense: 76, speed: 97, maxJumps: 2, jumpPower: 32, dashSpeed: 22, dashDuration: 10, dashCooldownMax: 28 },
+  stats: { maxHealth: 1250, maxEnergy: 100, attack: 100, defense: 88, speed: 105, maxJumps: 2, jumpPower: 33, dashSpeed: 27, dashDuration: 10, dashCooldownMax: 16 },   // BUFF 2026-11-23 (owner: "massive buff"): was HP 950 / atk 85 / def 76 / spd 97 / dash 22 cd 28
   // data keys map to sprite keys: upAttack→up, airAttack→air, downAir→down_air. combat.js _getMD reads THIS.
   basic_attacks: {
-    light:    { damage: 35, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },                                   // quick knife stab (Surprise Sydney jab)
-    heavy:    { damage: 62, startup: 8, active: 3, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 110, rangeY: 48 },           // lunging knife thrust (long reach)
-    upAttack: { type: "launcher", damage: 60, startup: 5, active: 3, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // overhead leap launcher (Collar Bone)
-    airAttack:{ damage: 40, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },                                   // Leaping Slash (air)
-    downAir:  { damage: 48, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }                                    // Stake Driver (aerial down-stab)
+    light:    { damage: 47, startup: 4, active: 2, recovery: 9,  hitstun: 12, knockbackX: 2, knockbackY: 0 },                                   // quick knife stab (Surprise Sydney jab)
+    heavy:    { damage: 84, startup: 8, active: 3, recovery: 16, hitstun: 18, knockbackX: 7, knockbackY: 1, rangeX: 110, rangeY: 48 },           // lunging knife thrust (long reach)
+    upAttack: { type: "launcher", damage: 81, startup: 5, active: 3, recovery: 8, hitstun: 20, knockbackX: 2, knockbackY: -9, launch: 12, launchVy: -30, selfVy: -8, airOK: false },   // overhead leap launcher (Collar Bone)
+    airAttack:{ damage: 54, startup: 4, active: 2, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: -2 },                                   // Leaping Slash (air)
+    downAir:  { damage: 65, startup: 6, active: 3, recovery: 12, hitstun: 16, knockbackX: 1, knockbackY: 10 }                                    // Stake Driver (aerial down-stab)
   },
   // Real logic in abilities.js (executeGhostfaceSpecial) — direction-branched Special, Dread cost.
   specials: {
-    guttingLunge: { cost: 25, damage: 50, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: -4, effect: "Fwd — dashing knife lunge (gap-closer); leaves a BLEED DoT on a clean hit" },
-    lowGut:       { cost: 20, damage: 42, startup: 6, active: 3, recovery: 18, hitstun: 22, knockbackX: 4, knockbackY: -1, effect: "Down — low sweeping gut-slash; trips (knockdown) on a clean hit" },
-    backstagePass:{ cost: 25, damage: 45, startup: 14, active: 3, recovery: 16, hitstun: 18, effect: "Back/neutral — Backstage Pass teleport: vanish and strike from behind (branches: switch / getaway / fakeout)" }
+    guttingLunge: { cost: 25, damage: 68, startup: 6, active: 4, recovery: 16, hitstun: 20, knockbackX: 6, knockbackY: -4, effect: "Fwd — dashing knife lunge (gap-closer); leaves a BLEED DoT on a clean hit" },
+    lowGut:       { cost: 20, damage: 57, startup: 6, active: 3, recovery: 18, hitstun: 22, knockbackX: 4, knockbackY: -1, effect: "Down — low sweeping gut-slash; trips (knockdown) on a clean hit" },
+    backstagePass:{ cost: 25, damage: 61, startup: 14, active: 3, recovery: 16, hitstun: 18, effect: "Back/neutral — Backstage Pass teleport: vanish and strike from behind (branches: switch / getaway / fakeout)" }
   },
   ultimate: { name: "The Final Act", cost: 100, description: "Freeze-cinematic — Ghostface stalks in and unleashes a guaranteed flurry of stabs (range-independent; blocked → 25%; clean hit leaves a lethal bleed)." },
   hasSprites: true,

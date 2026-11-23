@@ -1,6 +1,6 @@
 // harness/omniman_viltrum_shots.mjs — MSV1-OMNIMAN screenshots (deterministic: rAF off, sim stepped, each shot is a real
 // rendered frame of the real game). → docs/msv1/omniman/screenshots/ (or argv[2]).
-//   node harness/omniman_viltrum_shots.mjs [outDir] [--set=moves|present]
+//   node harness/omniman_viltrum_shots.mjs [outDir] [--set=moves|present|skins]
 import { chromium } from 'playwright'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -39,17 +39,32 @@ try {
     await place(900, { x: 500 }); await E(() => __harness.omnimanViltrumTest.fly()); await step(8)
     await page.keyboard.down('d'); await step(8); await shot('flight_boom'); await step(4); await shot('flight_top_speed'); await page.keyboard.up('d')
     await page.keyboard.down(';'); await step(3); await shot('flight_brake'); await page.keyboard.up(';'); await step(30)
+    // wall crash: full speed into the left wall
+    await place(1200, { x: 900 }); await E(() => __harness.omnimanViltrumTest.fly()); await step(8)
+    await page.keyboard.down('a'); await until(() => (__harness.omnimanViltrumTest.raw()._omv?.crash || 0) > 0, 80); await page.keyboard.up('a'); await step(3); await shot('wall_crash'); await step(40)
+    // Unimpressed: the eye glint (the only tell), then the backhand counter
+    await place(110, { dummy: 'combo' }); await move('kUnimp'); await step(2); await shot('unimpressed_glint')
+    await until(() => (__harness.omnimanViltrumTest.raw()._omv?.stats.counters || 0) > 0, 60); await step(4); await shot('unimpressed_backhand'); await step(40)
     // Blitz, Face in the Dirt, THINK!
     await place(300); await move('kBlitz'); await step(9); await shot('blitz')
     await place(60); await move('kDirt'); await step(14); await shot('face_in_the_dirt')
     await place(240); await move('kThink'); await until(() => !!__harness.omnimanViltrumTest.raw()._omv?.hold); await step(6); await shot('think')
     // ESCAPE VELOCITY: ascent, orbit, return (re-entry), crater
-    await place(150); await move('kEscape')
+    await place(150); await move('kEscape'); await step(6); await shot('escape_grab')
     await until(() => __harness.omnimanViltrumTest.raw()._omv?.ev?.ph === 'ascent'); await step(60); await shot('escape_ascent')
     await until(() => __harness.omnimanViltrumTest.raw()._omv?.ev?.ph === 'orbit'); await step(40); await shot('escape_orbit')
     await until(() => __harness.omnimanViltrumTest.raw()._omv?.ev?.ph === 'ret'); await step(55); await shot('escape_reentry')
     await until(() => __harness.omnimanViltrumTest.raw()._omv?.ev?.ph === 'impact'); await step(4); await shot('escape_impact')
     await step(120); await shot('escape_crater')
+  }
+  if (SET === 'skins') {
+    // 4 skins at match size: idle (arms folded), a pointing / punch pose and top-speed flight; Alien X half in both facings
+    for (const sk of ['omv_imperial', 'omv_alienx_half', 'omv_heatblast', 'omv_earthrise']) {
+      await boot('homelander', sk)
+      await place(260, { x: 900 }); await step(20); await shot(`skin_${sk.slice(4)}_idle`)
+      if (sk === 'omv_alienx_half') { await E(() => { const a = __harness.omnimanViltrumTest.raw(), b = __harness.omnimanViltrumTest.raw('p2'); a.x = b.x + 260 }); await step(20); await shot(`skin_${sk.slice(4)}_facing_left`) }
+      await place(900, { x: 500 }); await E(() => __harness.omnimanViltrumTest.fly()); await step(8); await page.keyboard.down('d'); await step(12); await shot(`skin_${sk.slice(4)}_flight`); await page.keyboard.up('d'); await step(40)
+    }
   }
 } catch (e) { console.log('ERROR', e.stack) }
 console.log('shots', shots.length, shots.join(' '), 'errors', errs.length, errs.slice(0, 2).join(' | '))

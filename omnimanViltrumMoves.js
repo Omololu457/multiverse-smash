@@ -24,7 +24,10 @@ const flying = f => !!f._flightCtl && isFlying(f)
 // a foe he can lay hands on (grab / drag): alive, not already held, not invulnerable / banished / domain-untouchable
 const grabbable = t => t && t.health > 0 && !t.isGrabbed && !((t.invulnTimer || 0) > 0) && !t._banished && !t.domainUntouchable && !t._gs?.blink?.inv
 export function hold(f, s, t, gap, kind) {
-  s.hold = { ref: t, side: t.side, gap, kind, t: 0 }
+  // the held foe is kept as a NON-enumerable ref: the sim reads s.hold.ref, but anything that serializes GAME_STATE
+  // (replay checkpoints, LAN probes) sees only its side — never the whole fighter with its render fields
+  s.hold = { side: t.side, gap, kind, t: 0 }
+  Object.defineProperty(s.hold, 'ref', { value: t, enumerable: false, writable: true, configurable: true })
   t.isGrabbed = true; t.grabTimer = 99; t._omvHeldBy = f.side; t.vx = 0; t.vy = 0; t.hitstun = Math.max(t.hitstun || 0, 30)
   if (t.attacking && !t.currentAttack?.isUltimate) { t.attacking = false; t.currentAttack = null; t.currentMove = null }
   t.isBlocking = false

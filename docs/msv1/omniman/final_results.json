@@ -1,0 +1,202 @@
+{
+ "pass": 9,
+ "fail": 0,
+ "R": {
+  "rows": [
+   {
+    "row": 1,
+    "pieces": 10,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 2,
+    "pieces": 3,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 3,
+    "pieces": 6,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 4,
+    "pieces": 2,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 5,
+    "pieces": 3,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 6,
+    "pieces": 8,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 7,
+    "pieces": 2,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 8,
+    "pieces": 2,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 9,
+    "pieces": 7,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 10,
+    "pieces": 2,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 11,
+    "pieces": 3,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 12,
+    "pieces": 5,
+    "kinds": [
+     "body"
+    ]
+   },
+   {
+    "row": 13,
+    "pieces": 12,
+    "kinds": [
+     "fx",
+     "body"
+    ]
+   },
+   {
+    "row": 14,
+    "pieces": 2,
+    "kinds": [
+     "body"
+    ]
+   }
+  ],
+  "strips": {
+   "idle": 8,
+   "walk": 6,
+   "walk_back": 6,
+   "run": 6,
+   "dash": 2,
+   "jump": 2,
+   "doubleJump": 2,
+   "fall": 1,
+   "land": 2,
+   "crouch": 1,
+   "guard": 1,
+   "crouchGuard": 1,
+   "hurt": 2,
+   "hurt_air": 2,
+   "knockdown": 2,
+   "getup": 1,
+   "intro": 4,
+   "win": 3,
+   "lose": 1,
+   "taunt": 5,
+   "turn": 2,
+   "ultimate": 4,
+   "flyHover": 1,
+   "flyCruise": 2,
+   "flyRise": 2,
+   "flyDive": 3,
+   "flyTurn": 3,
+   "flyDash": 2,
+   "takeoff": 2,
+   "light": 2,
+   "heavy": 4,
+   "up": 3,
+   "air": 2,
+   "down_air": 2,
+   "grab": 2,
+   "omvCrash": 2,
+   "omvLandHard": 2,
+   "omvBrake": 3,
+   "omvAscent": 1,
+   "omvOrbit": 1,
+   "omvReturn": 3,
+   "omvThrow": 2,
+   "omvMeteorLand": 2,
+   "omvGlint": 2,
+   "kJab": 2,
+   "kStraight": 3,
+   "kHay": 4,
+   "kLow": 2,
+   "kKick": 3,
+   "kAir": 2,
+   "kBack": 2,
+   "kBlitz": 4,
+   "kSkyHook": 4,
+   "kMeteor": 2,
+   "kDirt": 4,
+   "kUnimp": 4,
+   "kDecree": 5,
+   "kThink": 4,
+   "kEscape": 4
+  },
+  "totalFrames": 161,
+  "afterimage": {
+   "n": 569,
+   "pink": 0,
+   "minBg": 59,
+   "w": 39,
+   "h": 57
+  },
+  "damageTable": [
+   {
+    "target": 0,
+    "frac": 0,
+    "mult": 1,
+    "lost": 64,
+    "design": 64,
+    "atFrac": 64
+   },
+   {
+    "target": 0.5,
+    "frac": 0.538,
+    "mult": 1.323,
+    "lost": 85,
+    "design": 83,
+    "atFrac": 85
+   },
+   {
+    "target": 1,
+    "frac": 1,
+    "mult": 1.6,
+    "lost": 102,
+    "design": 102,
+    "atFrac": 102
+   }
+  ]
+ }
+}

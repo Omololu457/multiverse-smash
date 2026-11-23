@@ -1,0 +1,153 @@
+{
+ "pass": 17,
+ "fail": 0,
+ "report": {
+  "events": {
+   "seen": [
+    "grab",
+    "ascent",
+    "orbit",
+    "ret",
+    "impact",
+    "settle"
+   ],
+   "top": 57.2000488706085,
+   "booms": 1,
+   "crash": 1,
+   "think": 1,
+   "thinkHits": 1,
+   "escape": 0,
+   "escapeHits": 1,
+   "decree": 2,
+   "startX": 920,
+   "crashAt": 373,
+   "energyBeforeEv": 112.72000000000043,
+   "gapAtEv": 101,
+   "energyBeforeThink": 147.16000000000068
+  },
+  "frames": 1228,
+  "look": {
+   "pre": {
+    "sky": 200,
+    "zoom": 0.9999713193346228,
+    "duck": 1
+   },
+   "orbit": {
+    "sky": 123,
+    "zoom": 0.9999999918941921,
+    "duck": 3
+   },
+   "post": {
+    "sky": 188,
+    "zoom": 0.9999999999999993,
+    "duck": 2,
+    "ev": null
+   },
+   "evStarted": true,
+   "orbitMin": 117
+  },
+  "frameTime": {
+   "orbitMed": 1.5,
+   "orbitP95": 3.4,
+   "restMed": 0.6,
+   "restP95": 1.7,
+   "orbitN": 84
+  },
+  "trailHash": "d92166b69135948f",
+  "replay": {
+   "frames": 1228,
+   "deltas": 24,
+   "checkpoints": 21,
+   "p1Char": "omniman_viltrum",
+   "seed": 60617
+  },
+  "playback": {
+   "ok": true,
+   "st": {
+    "cursor": 24,
+    "totalFrames": 24,
+    "checks": 21,
+    "matched": 21,
+    "desyncFrame": null,
+    "frameCount": 1228
+   },
+   "maxS": {
+    "booms": 1,
+    "crashes": 1,
+    "think": 1,
+    "thinkHits": 1,
+    "escapeHits": 1
+   },
+   "bad": []
+  },
+  "lan": {
+   "events": {
+    "seen": [
+     "grab",
+     "ascent",
+     "orbit",
+     "ret",
+     "impact",
+     "settle"
+    ],
+    "top": 57.2,
+    "booms": 1,
+    "crash": 1,
+    "think": 1,
+    "thinkHits": 1,
+    "escape": 0,
+    "escapeHits": 1,
+    "decree": 1,
+    "startX": 920,
+    "crashAt": 103,
+    "energyBeforeEv": 117.24000000000058,
+    "gapAtEv": 69,
+    "energyBeforeThink": 107.08000000000123
+   },
+   "shared": 1724,
+   "mismatched": 0,
+   "joinerStats": {
+    "takeoffs": 1,
+    "booms": 1,
+    "boomHits": 0,
+    "crashes": 1,
+    "hardLands": 0,
+    "landHits": 0,
+    "brakes": 0,
+    "topSpeed": 57.2,
+    "hits": 0,
+    "lastMult": 1,
+    "lastFrac": 0,
+    "blitz": 0,
+    "blitzHits": 0,
+    "blitzCrash": 0,
+    "skyHooks": 0,
+    "skyHookHits": 0,
+    "meteors": 0,
+    "meteorHits": 0,
+    "dirt": 0,
+    "dirtHits": 0,
+    "dirtStopped": 0,
+    "unimp": 0,
+    "counters": 0,
+    "decrees": 1,
+    "decreeDone": 1,
+    "think": 1,
+    "thinkHits": 1,
+    "thinkStopped": 0,
+    "escape": 1,
+    "escapeHits": 1,
+    "escapeWhiff": 0,
+    "escapeStopped": 0,
+    "escapeDone": 1,
+    "stopped": 0,
+    "wallSplats": 1,
+    "spent": 200
+   },
+   "samples": [
+    1727,
+    1727
+   ]
+  }
+ }
+}

@@ -277,9 +277,10 @@ function speedScaleTick(f, s, frac) {
   const a = live(f); if (!a || !NORMALS.includes(a.omv.key)) return
   // a CHAINED Haymaker steps in (4 px / frame through frames 3–11 = 36 px): the chain's knockback never pushes the foe out of it
   if (a.omv.key === 'kHay' && a.omv.chain && grounded(f) && !omvFlying(f)) { const t = elapsed(a); if (t >= 3 && t < 12) f.x += a.omv.dir * 4 }
-  const md = OMV_MOVES[a.omv.key], k = speedMult(frac)
+  const md = OMV_MOVES[a.omv.key]
   if (a.omv.contact) return                     // frozen at the impact frame
   a.omv.frac = Math.max(a.omv.frac || 0, +frac.toFixed(3))   // the PEAK speed carried into the punch (a body push the frame before contact doesn't rob it)
+  const k = speedMult(a.omv.frac)               // damage + knockback use that same peak (the multiplier the hit reports)
   a.damage = Math.round(md.damage * k); a.knockbackX = +(md.knockbackX * k).toFixed(2); a.knockbackY = +(md.knockbackY * k).toFixed(2)
   if (omvFlying(f) && grounded(f)) endOmvAttack(f, 3)
   if (md.air && grounded(f) && elapsed(a) > 2 && !omvFlying(f)) endOmvAttack(f, 3)

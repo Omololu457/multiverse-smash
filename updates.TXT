@@ -3116,3 +3116,29 @@ Checks actually run: net_online_lag 7/0, net_online 11/0, net_online_4p 13/0, ms
 render 11/0, back_nav 20/0, aivsai_pick_flow 14/0, touch 15/1 (pre-existing). net_inject's timing check fails
 under heavy machine load on the old code too; char_search 11/1, controller_menu 24/1, beta_toggle 22/6 fail the
 same on the old code.
+
+=== 2026-11-22 — NEW FIGHTER: Omni-Man (Viltrumite) + 20 skins ===
+A new, separate Omni-Man (key omniman_viltrum, Invincible universe). The old Omni-Man is unchanged and still selectable.
+- The fastest flier in the game and the hardest to control: Charge taps take off / come down; top speed 57.2 (1.3 × the
+  fastest flier), a long coast, 0.6 s to turn around, Guard while flying = BRAKE (no blocking above 40 % speed).
+- SPEED IS DAMAGE: up to +60 % at top speed (flight punch 64 / 83 / 102 at 0 / 50 / 100 % speed). Sonic boom when he
+  passes 90 %, a WALL CRASH (he hurts himself) if he hits a wall at 70 %+, a hard landing that shakes the floor.
+- Specials: Viltrumite Blitz (↓↘→+Special), Sky Hook (→↓↘+Special), Meteor Drop (air ↓+Special), Face in the Dirt
+  (↓↙←+Special), Unimpressed counter (↓↓+Heavy), Viltrum Decree taunt (↓↓+Light, +25 % meter), THINK! (↓↓+Special,
+  1 bar). ULTIMATE: ESCAPE VELOCITY (Ultimate, 100 meter, 20 s cooldown): grab → up through the sky → orbit above the
+  planet → re-entry → crater, 420 damage. A miss overshoots; Gojo's Infinity makes it miss.
+- 20 skins (premade, nothing recoloured during the game): Viltrumite Imperial Uniform, Field Veteran, Imperial
+  Mourning Dress, Alien X — The Other Half of Nolan, Alien X — Redshift, Black-Tie Meteor (glitter), Pink Champagne
+  Heavyweight (glitter), Winning Valkyrie — Victory Lap, Ben 10 — Diamondhead Mantle, Ben 10 — Heatblast Re-entry,
+  JJK — Overtime, JJK — Cursed Patriarch, Sunday at the Graysons', The First Issue, Art Deco Express, Rescue Service
+  Orange, Heavyweight Cornerman, Midnight Western, Porcelain Strongman, Earthrise. The fighter, the select picture
+  and the small head icons all change.
+- Fixed on the way: he was drawn at half size in real matches (no skins entry), and a coasting punch did less damage
+  than its speed multiplier said.
+Checks actually run: one test match with a full-speed flight, a wall crash, Escape Velocity and THINK! in it —
+same result twice, its replay plays back with zero desync, and the same match over LAN stays identical on both
+screens (1700+ frames compared), music duck / sky / camera return to normal after the orbit, orbit frames are not
+slower (17/0); moves 47/0, flight 24/0, determinism 13/0, skins 19/0 (selector, preview, icons, match, rematch,
+replay, LAN, companion), final checks 9/0 (every frame used, afterimage intact, damage table); frame data of every
+other character unchanged; determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3, replay 8/1, net_online 11/0
+(= the numbers before this work); render 11/0. Screenshots in docs/msv1/omniman/screenshots/.

@@ -1,4 +1,5 @@
 import { updateLuffyCommandCombat } from './luffy.js'
+import { benCpuDrive } from "./benCpu.js"   // CPU Ben 10 / Albedo: transforms by range + mid-combo alien swaps
 import { benThemeFieldsForSkin, benThemeLast, benThemeCardImage } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES (skin fields + select-screen cards)
 import { benThemeCardLabel, BEN_THEME_BY_ID } from "./benThemes.js"
 import { updateKrybotCommandCombat } from './krybot.js'
@@ -11500,7 +11501,7 @@ function updateCPUInput() {
   // 1v1 CPU below — just runs it a second time for P1 with its own controller (p1AI).
   if (matchConfig.mode === "aivsai") {
     if (p1) {
-      if (isTransformDevice(p1) && !p1.transformed) tryTransform(p1)
+      if (isTransformDevice(p1)) benCpuDrive(p1, p2, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 0)   // CPU Ben / Albedo: the whole Omnitrix (benCpu.js)
       updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
       _driveCpu(p1, p1AI, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
       markGsCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
@@ -11508,7 +11509,7 @@ function updateCPUInput() {
       markInvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
       markOmvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
     }
-    if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
+    if (isTransformDevice(p2)) benCpuDrive(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 1)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
     _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
     markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
@@ -11526,7 +11527,7 @@ function updateCPUInput() {
   // A training dummy must not autonomously transform or emit a Goku burst before its
   // stand/block/jump override. Real versus and AI-vs-AI behavior is unchanged.
   if (matchConfig.mode !== "training") {
-    if (isTransformDevice(p2) && !p2.transformed) tryTransform(p2)
+    if (isTransformDevice(p2)) benCpuDrive(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 1)   // CPU Ben / Albedo: the whole Omnitrix (benCpu.js)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
   }
   _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })

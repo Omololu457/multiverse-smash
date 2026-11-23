@@ -5,7 +5,7 @@
 // assert the mechanics: every hit connects, the counter grows, later hits scale down.
 // Test 14 (the brief's "slot 8") is PICK FIVE: the owner kept 5 slots; Alien X is a pick, not a new slot.
 import assert from 'node:assert/strict'
-import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
+import { BEN_ALIEN_BUFF, BEN_ALIEN_DAMAGE_BONUS, BEN_ALIEN_DEFENSE_BONUS } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -119,7 +119,7 @@ test('route 3 live: Gravity (16 Power, 2 hits), Heavy, Void Grasp (→→, 14 Po
 // ── 4 Three Voices ─────────────────────────────────────────────────────────────────────────────────────────
 test('4. Voices: Ben → Bellicus → Serena → Ben, 20f switch, 120f cooldown, per-stance modifiers', () => {
   const f = ben(), t = foe(), base = f.damageMultiplier
-  assert.equal(S(f).voice, 'ben'); assert(Math.abs(base / BEN_ALIEN_BUFF.damage - 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * BEN_ALIEN_BUFF.defense) < 1e-9)
+  assert.equal(S(f).voice, 'ben'); assert(Math.abs(base / (BEN_ALIEN_BUFF.damage * BEN_ALIEN_DAMAGE_BONUS.alienx) - 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * BEN_ALIEN_BUFF.defense * BEN_ALIEN_DEFENSE_BONUS.alienx) < 1e-9)   // + the 2026-11-23 Alien X bonus
   tap(f, t); assert.equal(S(f).voice, 'bellicus')
   assert(Math.abs(f.damageMultiplier - base * 1.20) < 1e-9 && Math.abs(f.defenseMultiplier - 1.25 * BEN_ALIEN_BUFF.defense * 0.85) < 1e-9, 'Bellicus +20% dmg / −15% def')
   assert.equal(S(f).switchT, AX_VOICE.SWITCH - 1, '20f switch'); assert.equal(f._spriteCastMove, 'axVoice', 'Stance frame during the switch')
@@ -204,7 +204,7 @@ test('7. Rewind: position from 60f ago (stage-clamped), heals ≤ 40 and never a
   for (let i = 0; i < 70; i++) { tick(f, t); if (i >= 10) f.x += 5; if (i === 30) f.health -= 100 }
   const snap = rewindSnapshot(S(f)); assert.equal(S(f).hist.length, AX_REWIND.BACK, 'bounded 60-entry buffer')
   const r = special(f, t, 'D', { frames: 0 }); assert(r.ok); assert.equal(r.spent, AX_COST.rewind)
-  assert.equal(f.x, snap[0], 'back to the 60f-ago position'); assert.equal(f.health, 850 + AX_REWIND.HEAL, 'heals at most 40')
+  assert.equal(f.x, snap[0], 'back to the 60f-ago position'); assert.equal(f.health, f.maxHealth - 100 + AX_REWIND.HEAL, 'heals at most 40')   // took 100 from full (full = 950 × the 2026-11-23 Ben HP buff)
   assert(!(f.invulnTimer > 0), 'no invulnerability'); assert.equal(t.x, 1200, 'opponent untouched'); assert.equal(f.attackCooldown, AX_REWIND.RECOVERY)
   tick(f, t, 40); assert.equal(special(f, t, 'D', { frames: 0 }).ok, false, '900f cooldown')
   tick(f, t, AX_REWIND.COOLDOWN); assert.equal(special(f, t, 'D', { frames: 0 }).ok, true, 'available again')
@@ -349,7 +349,7 @@ test('14. pick five: slot count from the registry (5), Alien X READY + pickable,
   assert(BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready').length > BEN10_SLOT_COUNT, 'more ready aliens than slots → players pick')
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT); assert(getAvailableAlienKeys(false).includes('alienx'))
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Alien X'); assert.equal(f.health, 950, 'shared health')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Alien X'); assert.equal(f.health, 1188, 'shared health (950 × the 2026-11-23 Ben HP buff 1.25)')
 })
 test('14. picked loadout: Alien X in the last dial slot and the transform reaches it', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'alienx']

@@ -1,5 +1,5 @@
 import { albedoBaseSkinId } from "./albedoThemes.js"   // Albedo skin themes → variant id (identity for every non-theme id)
-import { benAlienDamageMult, benAlienDefenseMult } from "./benAlienBalance.js"   // global READY-alien damage / toughness buff (2026-11-19)
+import { benAlienDamageMult, benAlienDefenseMult, benAlienSpeedMult, BEN_HUMAN_BUFF } from "./benAlienBalance.js"   // global READY-alien damage / toughness buff (2026-11-19)
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition, BEN10_SLOT_COUNT } from "./aliens.js"
 import { benThemeBaseSkin } from "./benThemes.js"   // a themed skin wears its original appearance's variant
@@ -1621,13 +1621,13 @@ export function applyAlien(fighter, alienKey) {
   const RD = _readyDef(alienKey)
   if (RD) {
     const V = fighter._benHumanStats || BEN10_VARIANT_STATS.default
-    fighter._benWalkSpeed = V.speed * RD.mods.speed
+    fighter._benWalkSpeed = V.speed * benAlienSpeedMult(alienKey, RD.mods)   // design speed × the alien speed layer (benAlienBalance.js)
     fighter.baseSpeed = fighter.speed = fighter._benWalkSpeed
     fighter.jumpForce = -V.jumpPower; fighter.maxJumps = RD.maxJumps ?? 1
-    fighter.dashSpeed = V.dashSpeed * RD.mods.speed
-    fighter._benFormDamage = benAlienDamageMult(RD.mods)   // design mods × the global alien balance layer (benAlienBalance.js)
+    fighter.dashSpeed = V.dashSpeed * benAlienSpeedMult(alienKey, RD.mods)
+    fighter._benFormDamage = benAlienDamageMult(RD.mods, alienKey)   // design mods × the global alien balance layer (benAlienBalance.js)
     fighter.damageMultiplier = fighter._benFormDamage * (fighter.omnitrix?.vowActive ? TRANSFORM_ENERGY.VOW_DMG_MULT : 1)
-    fighter.defenseMultiplier = benAlienDefenseMult(RD.mods)
+    fighter.defenseMultiplier = benAlienDefenseMult(RD.mods, alienKey)
     fighter._benWeight = V.weight * RD.mods.weight
     if (alienKey === "swampfire") beginRegrowth(fighter)
     if (typeof RD.onApply === "function") RD.onApply(fighter)
@@ -1809,11 +1809,11 @@ export function ben10Revert(fighter) {
 // All rates are per-SECOND and tuned here.
 // ═══════════════════════════════════════════════════════════════════
 export const TRANSFORM_ENERGY = {
-  DRAIN_PER_SEC:          5,    // base meter lost/sec while transformed (Phase 3 spec: ~20s from full; was 6)
+  DRAIN_PER_SEC:          3.5,  // 2026-11-23 Ben/Albedo buff: 5 → 3.5 (aliens stay out ~40 % longer)    // base meter lost/sec while transformed (Phase 3 spec: ~20s from full; was 6)
   ATTACK_DRAIN_BONUS:     10,   // extra drain/sec while an attack is active
   STRONG_FORM_SCALE:      1.0,  // how much (alienHP/1000) amplifies drain (titans drain more)
   CHARGE_RESTORE_PER_SEC: 45,   // refill/sec while holding Charge alone
-  HUMAN_REGEN_PER_SEC:    4,    // passive Omnitrix-Power regen/sec while human (Phase 2 spec; was 10)
+  HUMAN_REGEN_PER_SEC:    6,    // 2026-11-23 buff: 4 → 6    // passive Omnitrix-Power regen/sec while human (Phase 2 spec; was 10)
   MIN_TRANSFORM_ENERGY:   15,   // energy needed to (re)transform (legacy gate, kept for tryTransform)
   RECHARGE_FRAMES:        150,  // legacy forced-revert lockout (deviceRecharge; superseded by TIMEOUT_FRAMES)
   // ── Phase 3 Omnitrix framework economy ──
@@ -1821,11 +1821,11 @@ export const TRANSFORM_ENERGY = {
   TRANSFORM_STARTUP:      40,   // vulnerable startup frames (transform_flash) before the alien is applied
   TIMEOUT_FRAMES:         360,  // forced-revert (0 Power) timeout cooldown, 6s @60fps — no transform allowed
   MANUAL_REVERT_LOCKOUT:  20,   // lockout after a DELIBERATE revert (no timeout penalty)
-  SWAP_COST:              15,   // Power spent to swap ALIEN→alien (mid-combo/mid-air)
+  SWAP_COST:              10,   // 2026-11-23 buff: 15 → 10 (alien-to-alien combos)   // Power spent to swap ALIEN→alien (mid-combo/mid-air)
   SWAP_LOCKOUT:           30,   // frames between swaps
   VOW_DMG_MULT:           1.25, // Binding Vow: alien damage ×1.25
   VOW_DRAIN_MULT:         1.6,  // Binding Vow: drain ×1.6
-  VOW_SWAP_COST:          22    // Binding Vow: swap costs 22 (vs 15)
+  VOW_SWAP_COST:          15    // Binding Vow: swap costs 15 (vs 10) — 2026-11-23 buff (was 22 vs 15)
 }
 
 // ── BEN 10 DEFENSIVE TOOLS (Phase 6) ─────────────────────────────────────────────────────────────
@@ -1907,7 +1907,7 @@ export function revertToHuman(fighter, { forced = false } = {}) {
   fighter.baseSpeed = fighter.speed = V.speed
   fighter._benWalkSpeed = V.speed
   fighter.dashSpeed = V.dashSpeed
-  fighter._benFormDamage = 1; fighter.damageMultiplier = 1; fighter.defenseMultiplier = 1
+  fighter._benFormDamage = BEN_HUMAN_BUFF.damage; fighter.damageMultiplier = BEN_HUMAN_BUFF.damage; fighter.defenseMultiplier = BEN_HUMAN_BUFF.defense   // human-form buff (benAlienBalance.js)
   fighter._benWeight = V.weight
   fighter.stats = { ...(fighter._benHumanStatBlock || {}), speed: V.speed, dashSpeed: V.dashSpeed, jumpPower: V.jumpPower, maxJumps: 1, maxHealth: fighter.maxHealth }
   const nw = HUMAN_FORM.baseW, nh = HUMAN_FORM.baseH
@@ -1942,7 +1942,7 @@ export function updateTransformDevice(fighter, deltaMs = 1000 / 60) {
   const omx = fighter.omnitrix
   if ((fighter.health ?? 1) <= 0) { handleBenKO(fighter); return }
   fighter.currentForm = fighter.transformed ? "ben10_" + fighter.activeAlien : "base"
-  fighter.defenseMultiplier = fighter.transformed ? (_readyDef(fighter.activeAlien) ? benAlienDefenseMult(_readyDef(fighter.activeAlien).mods) : 1) : 1   // ready forms (Swampfire 1.10 unchanged)
+  fighter.defenseMultiplier = fighter.transformed ? (_readyDef(fighter.activeAlien) ? benAlienDefenseMult(_readyDef(fighter.activeAlien).mods, fighter.activeAlien) : 1) : 1   // ready forms (Swampfire 1.10 unchanged)
   omx.simFrame = (omx.simFrame || 0) + 1
   if ((fighter.hitstun > 0 || fighter.blockstun > 0) && (omx.startup > 0 || fighter._benPowerCommit > 0 || fighter._axUltWindup)) invalidateBenAction(fighter)
   // Phase 3: tick lockouts/cooldowns every frame (even during Alien X windup / transform startup).
@@ -2078,9 +2078,11 @@ export function applyBen10VariantStats(fighter, skinId = "default") {
   if (k === "albedo") skinId = albedoBaseSkinId(skinId)   // Albedo theme skins (cosmetic) → their appearance's variant numbers
   skinId = benThemeBaseSkin(skinId)          // "classic-<theme>" → ben10Classic, "jacket-<theme>" → default: cosmetic only, same stats
   if (skinId === "ben10Prime" && !fighter.benExperimental) skinId = "default"
-  const V = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
-  fighter.maxHealth = V.maxHealth
-  fighter.health    = V.maxHealth           // full at round start (this is the SHARED pool)
+  const V0 = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
+  const V = { ...V0, speed: V0.speed * BEN_HUMAN_BUFF.speed, dashSpeed: V0.dashSpeed * BEN_HUMAN_BUFF.speed }   // human-form speed buff (aliens build on it)
+  fighter._benFormDamage = BEN_HUMAN_BUFF.damage; fighter.damageMultiplier = BEN_HUMAN_BUFF.damage; fighter.defenseMultiplier = BEN_HUMAN_BUFF.defense
+  fighter.maxHealth = Math.round(V.maxHealth * BEN_HUMAN_BUFF.hp)   // 2026-11-23 Ben/Albedo HP buff
+  fighter.health    = fighter.maxHealth           // full at round start (this is the SHARED pool)
   fighter.speed     = V.speed
   fighter.baseSpeed = V.speed
   fighter.dashSpeed = V.dashSpeed

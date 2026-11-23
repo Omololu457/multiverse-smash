@@ -78,7 +78,7 @@ test('stats: speed ×1.10 / damage ×1.00 / defense ×1.00 / weight ×1.00, doub
   const f = ben()
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.00) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.00) < 1e-9 && Math.abs(f._benWeight - 1.00) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.10 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.10')
-  assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Wildmutt')
+  assert.equal(f.maxJumps, 2); assert.equal(f.health, 1188, 'shared health (950 × the 2026-11-23 Ben HP buff 1.25)'); assert.equal(f.activeAlienName, 'Wildmutt')
 })
 test('hurtbox: low and wide quadruped (shorter than human Ben, wider)', () => {
   const f = ben(), h = ben(null)

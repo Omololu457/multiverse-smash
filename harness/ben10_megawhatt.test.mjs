@@ -241,7 +241,7 @@ test('10. swap / revert / rematch clear all Voltage / Static / flight state', ()
   const f = ben(), t = fresh('goku', 70); S(f).volt = 90; S(f).stat.pips = 2; S(f).stat.shockT = 10; f._flightCtl = { phase: 'flying' }
   assert(F.applyAlien(f, 'heatblast')); assert.notEqual(f.omnitrix.formState?.kind, 'megawhatt', 'swap clears'); assert.equal(f._alienFlightProfile, undefined); assert.equal(f._flightCtl, null)
   assert(F.applyAlien(f, 'megawhatt')); assert.equal(S(f).volt, 60, 'fresh Voltage 60'); assert.equal(S(f).stat.pips, 0); assert.equal(S(f).stat.shockT, 0)
-  F.revertToHuman(f); assert.equal(f.omnitrix.formState, null, 'revert clears'); assert.equal(f._alienFlightProfile, undefined); assert.equal(f.damageMultiplier, 1)
+  F.revertToHuman(f); assert.equal(f.omnitrix.formState, null, 'revert clears'); assert.equal(f._alienFlightProfile, undefined); assert.equal(f.damageMultiplier, 1.3)   // human damage after revert = the 2026-11-23 Ben human buff ×1.3
   const g = ben(); assert.equal(S(g).volt, 60); assert.equal(S(g).stat.immune, 0, 'rematch: fresh state')
 })
 
@@ -253,7 +253,7 @@ test('11. registry: Megawhatt READY in the first placeholder slot (3); hurtbox m
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Megawhatt')
   assert(f.h < 110 && f.w < 60, `small hurtbox (${f.w}x${f.h})`); assert.equal(f.h, 72)
-  assert.equal(f.health, 950, 'shared health pool (human HP carries over)')
+  assert.equal(f.health, 1188, 'shared health pool (human HP carries over) (950 × the 2026-11-23 Ben HP buff 1.25)')
 })
 test('11. Vow pick includes Megawhatt; same seed → same pick', () => {
   const mk = () => { const f = ben(null); F.setupBen10(f, LOADOUT); return f }

@@ -345,6 +345,7 @@ import { BATMAN_SOUNDS } from './batmanSound.js'   // Batman (rebuilt) synth SFX
 import { ELASTIGIRL_SOUNDS } from './elastigirlSound.js'   // Elastigirl synth SFX placeholders (SFX bus; voice bus untouched)
 import { SPD_RED_SOUNDS } from './spdRedSound.js'   // S.P.D. Red synth SFX (SFX bus; voice bus untouched)
 import { NS_SOUNDS } from './nsSound.js'   // MSV1 Ninja Storm synth SFX (SFX bus)
+import { DINO_SOUNDS } from './dinoSound.js'   // MSV1-DINO Dino Thunder synth SFX (SFX bus)
 import { NINJA_STORM_SOUNDS } from './ninjaStormSound.js'   // MSv2 Ninja Storm Rangers synth SFX (SFX bus)
 const SOUNDS = {
   ...ZORO_SOUNDS,   // zoro_swing / _hit / _sheathe / _tatsu / _oni / _haki / _snore …
@@ -366,6 +367,7 @@ const SOUNDS = {
   ...BATMAN_SOUNDS, // batman_* : strikes, gadgets, grapnel, smoke, fleet orders / payloads / machines, KNIGHTFALL
   ...ELASTIGIRL_SOUNDS, // elastigirl_* : stretch boing, snap-back, whirl, parachute flutter, whip crack, family raft wave
   ...NS_SOUNDS,   // MSV1 nsr_* (Shane) / nsy_* (Dustin)
+  ...DINO_SOUNDS,   // MSV1-DINO dt_*
   ...NINJA_STORM_SOUNDS,   // MSv2 msv2r_* (Red stance) / msv2y_* (Yellow stance)
   ...SPD_RED_SOUNDS, // spdred_blink (600→3000 Hz sweep) / _blinkPop / _dodge (2.2 kHz) / _impact / _blaster / _rapid0-4 / _deltamaxCharge / _deltamax / _judge / _guilty / _innocent / _contain …
   ...ARLONG_SOUNDS, // arlong_swing / _bladeHit (comb scrape) / _punch / _bite / _splash / _lap / _darts / _seiken / _shot / _flood …

@@ -67,7 +67,7 @@ export const BAR_THEMES = {
   gold_samurai_ranger: ['#ffe07a', '#b8901a', '#ffffff', '#e0c040', 'kanji'], green_samurai_ranger: ['#8af07a', '#1e8a2a', '#c8ffb0', '#4ac04a', 'kanji'],
   red_ranger_mmpr: ['#ff6a5a', '#a81414', '#ffffff', '#c8c8d8', 'grid'], spd_red: ['#ff5a5a', '#a01414', '#7af0ff', '#1aa8c0', 'grid'],
   ns_red: ['#ff6a5a', '#a01414', '#ffb08a', '#c84a1a', 'flame'], ns_yellow: ['#ffe066', '#c89a10', '#e8c890', '#8a6a2a', 'sand'],
-  ninja_storm_cgpt: ['#ff7a6a', '#a81a1a', '#ffd070', '#c88010', 'wind'], ns_trio: ['#7ab0ff', '#1e48b0', '#9ae8ff', '#2a8ad8', 'wind'],
+  ninja_storm_cgpt: ['#ff7a6a', '#a81a1a', '#ffd070', '#c88010', 'wind'], ns_trio: ['#7ab0ff', '#1e48b0', '#9ae8ff', '#2a8ad8', 'wind'], dinothunder: ['#ff6a5a', '#a01414', '#ffe066', '#c89a10', 'grid'], dt_red: ['#ff6a5a', '#a01414', '#ffe066', '#c89a10', 'grid'], dt_blue: ['#7ab0ff', '#1e48b0', '#ffe066', '#c89a10', 'grid'], dt_yellow: ['#ffe066', '#c89a10', '#ffffff', '#c8c8d8', 'grid'], dt_white: ['#ffffff', '#a8a8b8', '#ffe07a', '#c8a020', 'grid'],
   ns_blue: ['#7ab0ff', '#1e48b0', '#bff0ff', '#4ab8e8', 'water'], ns_navy: ['#7a8ad8', '#1e2a6a', '#fff27a', '#d8c010', 'bolt'],
   ns_green: ['#8af07a', '#1e8a2a', '#c0d8a0', '#5a7a3a', 'slash'], windrangers: ['#ff6a5a', '#a01414', '#9ae8ff', '#2a8ad8', 'wind'],
   ninja_storm_rangers: ['#ff6a5a', '#a01818', '#7af0d8', '#1aa88a', 'wind'], krybot: ['#c8c8d0', '#4a4a5a', '#ffc46a', '#c07a1a', 'tech'],

@@ -179,6 +179,7 @@ export function drawRoundBreak(ctx, canvas, winnerText = "ROUND OVER") {
 // VICTORY SCREEN
 // Full screen — drawn over the frozen battle scene.
 // ─────────────────────────────────────────────────────────────────
+export const VICTORY_ART = []   // MSV1-DINO: per-character result-screen art providers (render-only; empty = unchanged)
 export function drawVictoryScreen(ctx, canvas, state) {
   const {
     winnerName    = "Player 1",
@@ -215,6 +216,7 @@ export function drawVictoryScreen(ctx, canvas, state) {
   ctx.fillStyle = topLine
   ctx.fillRect(0, 2, cw, 3)
 
+  for (const fn of VICTORY_ART) { try { fn(ctx, canvas, state) } catch (_) {} }   // MSV1-DINO
   // ── WINNER DECLARATION ─────────────────────────────────────────
   ctx.textAlign    = "center"
   ctx.textBaseline = "middle"

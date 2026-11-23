@@ -24,7 +24,8 @@ HOOKS = [
    "  dinothunder: [{ id: 'default', name: 'Start as: Red (Conner)', unlockLevel: 0, portrait: characters.dt_red.portrait, spriteScale: characters.dt_red.spriteScale, animationData: null }, "
    "{ id: 'start_blue', name: 'Start as: Blue (Ethan)', unlockLevel: 0, portrait: characters.dt_blue.portrait, spriteScale: characters.dt_blue.spriteScale, animationData: null }, "
    "{ id: 'start_yellow', name: 'Start as: Yellow (Kira)', unlockLevel: 0, portrait: characters.dt_yellow.portrait, spriteScale: characters.dt_yellow.spriteScale, animationData: null }, "
-   "{ id: 'start_white', name: 'Start as: White (Trent)', unlockLevel: 0, portrait: characters.dt_white.portrait, spriteScale: characters.dt_white.spriteScale, animationData: null }]," + M + " start forms", 'after'),
+   "{ id: 'start_white', name: 'Start as: White (Trent)', unlockLevel: 0, portrait: characters.dt_white.portrait, spriteScale: characters.dt_white.spriteScale, animationData: null }, ...DINO_SKINS]," + M + " start forms + the 16 team skins", 'after'),
+  ('skins.js', "import { TRIO_SKINS } from './nsTrioSkins.js'", "import { DINO_SKINS } from './dinoSkins.js'" + M + " Dino Thunder: the 16 team skins (premade, all four forms)", 'after'),
   ('credits.js', "    files: ['assets/ns_trio/*.png', 'assets/ns_blue/*.png', 'assets/ns_navy/*.png', 'assets/ns_green/*.png'] },   // NS TRIO",
    "  dinothunder: { work: 'Dino Thunder Rangers — Conner (Red), Ethan (Blue), Kira (Yellow), Trent (White / Drago)', artists: ['falmeatwad (Red Ranger sheet)', 'YONDY-HOKAGE / DK-YONDY (Blue, Yellow, White Ranger sheets)', 'Raikage (Drago Ranger sheet)'],\n"
    "    source: 'Five supplied sheets (assets/incoming/dinothunder): cut frame-by-frame by exact background key (tools/dino/extract.py, ledgers in docs/msv1/dino/ledgers), packed into MSV1 cells (tools/dino/pack.py); Trent\\'s White + Drago sheets unified to one 15-colour palette; the Drago Clone strips are a fixed per-colour darkening (tools/dino/portraits.py). No art invented.',\n"
@@ -69,8 +70,12 @@ HOOKS = [
   ('nsFx.js', "  const key = f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'", "  const key = isDino(f) ? 'dt_' : f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'", 'inline'),
 ]
 
+SUPERSEDED = [('skins.js', "  dinothunder: [{ id: 'default', name: 'Start as: Red (Conner)'")]   # older versions of a hook line, dropped first
+
 def apply(path, text):
     out, notes = text, []
+    for f, prefix in SUPERSEDED:
+        if f == path: out = ''.join(l for l in out.splitlines(True) if not l.startswith(prefix))
     for h in HOOKS:
         f, anchor, ins, mode = h[0], h[1], h[2], h[3]
         allocc = len(h) > 4 and h[4] == 'all'

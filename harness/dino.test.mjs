@@ -233,6 +233,7 @@ try {
   }
   if (want('combos')) {
     section('COMBOS (measured vs S.P.D. Red; roster parity ×1.6 + combo scaling + his defense included)')
+    await boot('dinothunder', 'spd_red')   // its own match (the win section above ends one)
     // press each step when the previous move connected (or after its active frames), like a player confirming
     const FK = { dt_red: 'j', dt_blue: 'k', dt_yellow: 'l', dt_white: 'o' }
     async function chain(form, steps, dx = 90, pre = null) {
@@ -263,11 +264,40 @@ try {
     check('Super Dino Mode / Camouflage buff the same string', out.sdmBlue.dmg > out.blue.dmg && out.whiteCamo.dmg > out.white.dmg, [out.sdmBlue.dmg, out.blue.dmg, out.whiteCamo.dmg, out.white.dmg])
     check('combos stay below 45% of S.P.D. Red\'s 1200 (no touch-of-death), Z-Rex string included', Object.values(out).every(r => r.dmg < 540), Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.dmg])))
   }
+  for (const grp of ['skins1', 'skins2', 'skins3', 'skins4']) if (ONLY.split(',').includes(grp) || ONLY.split(',').includes('skins')) {   // opt-in (needs the skin pack)
+    // LINE-UP TEST: every team skin in the real engine — start as Conner, swap through all four with the real input; every form
+    // draws from the skin's own premade folder; a line-up image (the four Rangers side by side) per skin
+    const rows = (await (async () => { await boot('dinothunder', 'spd_red'); return page.evaluate(async () => (await import('./dinoSkinRows.js')).DINO_SKIN_ROWS.map(r => r.tag)) })())
+    const g = Number(grp.slice(5)) - 1, tags = rows.slice(g * 4, g * 4 + 4)
+    section(`TEAM SKINS ${g * 4 + 1}–${g * 4 + 4} (${tags.join(', ')})`)
+    for (const tag of tags) {
+      await boot('dinothunder', 'spd_red', { p1Skin: 'dtk_' + tag })
+      const seen = {}
+      for (const [btn, form] of [[null, 'dt_red'], ['k', 'dt_blue'], ['l', 'dt_yellow'], ['o', 'dt_white']]) {
+        if (btn) { await fresh(600); await pick(btn); await untilSwap(); await settle(); await step(100) }
+        await fresh(600); for (let i = 0; i < 3; i++) { await step(1); await new Promise(r => setTimeout(r, 20)) }
+        const st = await page.evaluate(() => { const f = __harness.ninjaTest.raw('p1'); return { key: f.rosterKey, sheet: (f._skinAnim || f.animationData)?.idle?.sheet, x: f.x, y: f.y, skin: f._dtSkin } })
+        seen[form] = st
+        if (form === 'dt_white') await shot(`skin_${tag}`)
+      }
+      const ok = Object.entries(seen).every(([form, st]) => st.key === form && st.skin === tag && st.sheet?.includes(`/skins/${tag}/${form}/`))
+      check(`${tag}: all four Rangers wear it through real swaps (premade strips)`, ok, Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, v.sheet])))
+    }
+  }
   if (want('shots')) {
-    section('SCREENSHOTS')
+    section('SCREENSHOTS (render check)')
+    const real = async n => { for (let i = 0; i < n; i++) { await step(1); await new Promise(r => setTimeout(r, 16)) } }
     await boot('dinothunder', 'spd_red')
-    await fresh(300); await shot('01_red'); await page.keyboard.down('p'); await step(3); await shot('02_swap_strip'); await page.keyboard.up('p')
-    for (const [b, n] of [['k', '03_blue'], ['l', '04_yellow'], ['o', '05_white']]) { await toForm(b); await fresh(300); await shot(n) }
+    await fresh(300); await real(3); await shot('01_red'); await page.keyboard.down('p'); await real(3); await shot('02_swap_strip'); await page.keyboard.up('p')
+    for (const [b, n] of [['k', '03_blue'], ['l', '04_yellow'], ['o', '05_white']]) { await toForm(b); await fresh(300); await real(3); await shot(n) }
+    await fresh(400, { np: 100 }); await motion(DD, 'p'); await real(24); await shot('08_drago_clone')
+    await fresh(400); await motion(DD, 'l'); await real(14); await shot('09_camouflage')
+    await toForm('l'); await fresh(260); await motion(QCF, 'l'); await real(20); await shot('10_ptera_scream')
+    await toForm('j'); await fresh(600, { energy: 100 }); await raw('p1', 'f._duo.sdm = 300'); await real(6); await shot('11_super_dino_mode')
+    await fresh(300, { energy: 100 }); await tap(['u']); await real(4); await shot('12_zrex_go'); await real(18); await shot('13_zrex_bosskilled'); await real(22); await shot('14_zrex_beam'); await real(32); await shot('15_zrex_slash')
+    await fresh(300, { energy: 60 }); await motion([...QCF, ...QCF], 'l'); await real(30); await shot('16_raptor_rider')
+    await boot('dinothunder', 'spd_red', { p1Skin: 'start_blue' }); await page.evaluate(() => { const a = __harness.ninjaTest.raw('p1'); a._introPlaying = true; a._dtIntroFx = 18 }); await real(1); await shot('17_intro_ride_in')
+    check('screenshots written', fs.readdirSync(SHOTS).length >= 14)
   }
 } catch (e) { console.error(e); FAIL++ }
 check('no page errors', errors.length === 0, errors.slice(0, 5))

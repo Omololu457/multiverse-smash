@@ -14,6 +14,7 @@ import { drawWrSkinFx, wrAfterimageFx, wrWindFx } from './windrangersSkinFx.js' 
 import { wrCloneAnim } from './windrangersSkins.js'
 import { drawTrioBurst, drawTrioAura, drawTrioSuper } from './nsTrioFx.js'
 import { trioFormAnim } from './nsTrioSkins.js'   // NS TRIO (render-only; only its own burst kinds / f._duo.samurai)   // NS CGPT (ninja_storm_cgpt only; render-only)
+import { isDino, drawDinoBurst, drawDinoUnder, drawDinoFx, drawDinoIntro, drawDinoHud, dinoHudTag, dinoCloneAnim } from './dinoFx.js'   // MSV1-DINO (render-only; dinothunder only)
 
 const cache = new Map()
 const image = src => { let im = cache.get(src); if (!im) { im = new Image(); im.src = src; cache.set(src, im) } return im }
@@ -70,8 +71,9 @@ function illusionPose(f, s, m) {
 // ── BEHIND the body ──
 export function drawNinjaUnder(c, f) {
   if (!isNinja(f)) return
-  drawIntroStreak(c, f)
+  if (!drawDinoIntro(c, f, drawPose)) drawIntroStreak(c, f)
   drawCgptUnder(c, f)
+  drawDinoUnder(c, f, drawPose, calm())   // MSV1-DINO
   const s = f._ninja; if (!s) return
   const p = getNinjaProfile(f), w = f.w || 48, feet = (f.y || 0) + (f.h || 94)
   // R3 streak tail (the smear left behind) + speed lines while streaking
@@ -109,7 +111,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
   const m = s.mirror
   if (m) {
     const ip = illusionPose(f, s, m), ix = m.ix + w / 2
-    drawPose(c, f, ip.key, ip.frame, ix, m.ifeet, m.dir || f.facing || 1, 1)
+    drawPose(c, f, ip.key, ip.frame, ix, m.ifeet, m.dir || f.facing || 1, 1, 0, dinoCloneAnim(f, ip.key))
     const P = p.mirror
     if (m.t % P.glintEvery < 6 && !calm()) {   // the visor glint (fixed beat)
       const hx = ix + (m.dir || 1) * 6, hy = m.ifeet - (f.h || 94) * 0.92, k = 1 - (m.t % P.glintEvery) / 6
@@ -149,9 +151,10 @@ export function drawNinjaFx(c, f, frameNo = 0) {
       case 'parry': drawFx(c, f, 'proj_burst', Math.floor(u * 4), e.x, e.y, 1, 1 - u); break
       case 'block': drawFx(c, f, 'proj_spark', 0, e.x, e.y, 1, 1 - u); break
       case 'kunai': drawFx(c, f, 'proj_spark', 0, e.x, e.y - 8, 1, 1 - u); break
-      default: drawTrioBurst(c, f, e, u, calm())   // NS TRIO burst kinds (no other move emits them)
+      default: if (!drawDinoBurst(c, f, e, u, calm())) drawTrioBurst(c, f, e, u, calm())   // NS TRIO burst kinds (no other move emits them)
     }
   }
+  drawDinoFx(c, f, drawPose, duoFormAnim, calm())   // MSV1-DINO
   drawTrioSuper(c, f, drawPose, duoFormAnim, (f, form) => (f._trSkin ? trioFormAnim(f._trSkin, form) : null))   // NS TRIO Tsunami wall + Trinity partners (ns_trio only)
   // MSV1-MERGE STORM AND STONE: Shane as the R11 tornado streaking down through the foe (Dustin = the R8 rings / bursts)
   if (s.sup?.kind === 'sTag' && s.sup.tx != null) { const A = duoFormAnim('ns_red', 'superTornado'); drawPose(c, f, 'superTornado', Math.floor((s.clock || 0) / 3) % (A?.frames || 1), s.sup.tx, s.sup.ty + (f.h || 94), f.facing || 1, 1, 0, A) }
@@ -217,9 +220,9 @@ export function drawNinjaHud(ctx, f, o = {}) {
   ctx.fillStyle = 'rgba(255,255,255,0.85)'; for (let i = 1; i <= 3; i++) ctx.fillRect(Math.round(x + w * i / 4), y - 1, 1, h + 2)   // three notches
   ctx.font = 'bold 8px Arial'; ctx.textAlign = o.flip ? 'left' : 'right'; ctx.fillStyle = '#ffffff'   // label at the bar's INNER end (the engine's BREAK badge owns the outer corner)
   const tag = s.mirror ? `MIRROR ${Math.ceil((p.mirror.frames - s.mirror.t) / 60)}s · SWAPS ${p.mirror.maxSwaps - s.mirror.swaps}` : 'NINJA'
-  ctx.fillText(tag, o.flip ? x : x + w, y + h + 9)
+  ctx.fillText(dinoHudTag(f) || tag, o.flip ? x : x + w, y + h + 9)
   ctx.restore()
-  if (f._duo) drawDuoHud(ctx, f, x, y, w, o)
+  if (f._duo) { if (isDino(f)) drawDinoHud(ctx, f, x, y, w, o); else drawDuoHud(ctx, f, x, y, w, o) }   // MSV1-DINO
 }
 // MSV1-MERGE duo HUD: the partner's portrait SMALL + greyed beside the bar (the engine portrait = the active form, large),
 // the swap cooldown sweeping over it, and the NP bar colour blending red ⇄ yellow through the swap. Reads f._duo only.
@@ -247,7 +250,7 @@ function drawDuoHud(ctx, f, x, y, w, o) {
 // ── presentation cues (sound + camera punch). Played and cleared by game.js right after tickNinja. ──
 export function playNinjaCues(f) {
   const q = f?._nsCues; if (!q) return
-  const key = f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'   // NS TRIO: Cam = the Earth-weight set
+  const key = isDino(f) ? 'dt_' : f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'   // NS TRIO: Cam = the Earth-weight set
   for (const c of q) {
     if (c === 'shake') { if (!juiceSettings.reduceMotion) triggerShake(6, 18); continue }
     sound.play(key + c)

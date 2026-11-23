@@ -33,7 +33,7 @@ const FLASH = ["omega_ranger", "samurai_red_ranger", "gold_samurai_ranger", "gre
 const ZIP = ["flash", "dash_parr", "killua", "gon", "xlr8", "minato_zip"]
 const DROP = ["saitama", "genos", "baki", "aoi_todo", "zaraki", "zaraki_shikai", "onoki", "mayuri", "cyborg", "mr_incredible", "soldier_boy", "luffy",
   "sanji", "ippo", "yuji", "spiderman", "spiderman_raimi", "spiderman_ssf2", "spiderman_mci", "miles"]
-const BESPOKE = new Set(["frozone", "enoch", "killua", "shinobu", "zoro", "sanji", "superman"])   // their own tracked entrances
+const BESPOKE = new Set(["frozone", "enoch", "killua", "shinobu", "zoro", "sanji", "superman", "dinothunder", "dt_red", "dt_blue", "dt_yellow", "dt_white"])   // their own tracked entrances
 const TABLE = {}
 for (const k of SMOKE) TABLE[k.toLowerCase()] = "smoke"
 for (const k of FLASH) TABLE[k.toLowerCase()] = "flash"

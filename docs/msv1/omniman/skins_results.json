@@ -1,5 +1,5 @@
 {
- "pass": 17,
+ "pass": 19,
  "fail": 0,
  "report": {
   "skins": [
@@ -14,6 +14,11 @@
    "Winning Valkyrie — Victory Lap",
    "Ben 10 — Diamondhead Mantle",
    "Ben 10 — Heatblast Re-entry",
+   "JJK — Overtime",
+   "JJK — Cursed Patriarch",
+   "Sunday at the Graysons'",
+   "The First Issue",
+   "Art Deco Express",
    "Edo Tensei"
   ],
   "glitter": [
@@ -80,7 +85,7 @@
   ],
   "replayMeta": {
    "p1Char": "omniman_viltrum",
-   "p1Skin": "omv_heatblast"
+   "p1Skin": "omv_artdeco"
   },
   "trackedSkinFiles": 0,
   "diskSkinFiles": 1064

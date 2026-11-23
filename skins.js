@@ -33,6 +33,7 @@ import { MEGUMI_SKINS } from './megumiSkins.js'   // Megumi default + 10 skins (
 import { HIGURUMA_SKINS } from './higurumaSkins.js'   // Higuruma default + 10 skins (cosmetic, precomputed; cached materials)
 import { GS_SKINS } from './gojoShinjukuSkins.js'   // MSV1-GOJO Satoru Gojo (Shinjuku Arc): default + 20 premade skins (cosmetic, tools/gojoskins)
 import { SKS_SKINS } from './sukunaShinjukuSkins.js'   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku Arc): default + 20 premade skins (cosmetic, tools/sukunaskins)
+import { INV_SKINS } from './invincibleSkins.js'   // MSV1-INVINCIBLE Invincible (Mark Grayson): default + 20 premade skins (cosmetic, tools/invincibleskins)
 import { OMV_SKINS } from './omnimanViltrumSkins.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite): default + 20 premade skins (cosmetic, tools/omnimanskins)
 import { SYNDROME_SKINS } from './syndromeSkins.js'   // Syndrome default + 12 whole-arsenal skins (cosmetic, precomputed)
 import { DSEYL_SKINS } from './dseylSkins.js'   // Dseyl default only
@@ -212,6 +213,7 @@ export const SKINS = {
   higuruma: HIGURUMA_SKINS,
   gojo_shinjuku: GS_SKINS,   // MSV1-GOJO
   sukuna_shinjuku: SKS_SKINS,   // MSV1-SUKUNA
+  invincible: INV_SKINS,   // MSV1-INVINCIBLE
   omniman_viltrum: OMV_SKINS,   // MSV1-OMNIMAN
   syndrome: SYNDROME_SKINS,
   dseyl: DSEYL_SKINS,

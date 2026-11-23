@@ -1,0 +1,21 @@
+{
+ "pass": 16,
+ "fail": 0,
+ "report": {
+  "skins": [
+   "Default (Invincible)",
+   "Viltrumite Mark",
+   "Mustache Mark",
+   "Mohawk Mark",
+   "Prison Mark",
+   "Sinister Mark",
+   "Edo Tensei"
+  ],
+  "replayMeta": {
+   "p1Char": "invincible",
+   "p1Skin": "inv_sinister"
+  },
+  "trackedSkinFiles": 0,
+  "diskSkinFiles": 195
+ }
+}

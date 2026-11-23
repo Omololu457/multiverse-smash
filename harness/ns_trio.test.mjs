@@ -46,6 +46,22 @@ async function fresh(dx = 400, o = {}) {
 }
 const settle = async (n = 120) => { for (let i = 0; i < n; i++) { await step(1); const s = await S(); if (!s.attacking && !(s.hitstun > 0) && !s.duo?.swap) break } }
 async function untilSwap(max = 30) { for (let i = 0; i < max; i++) { const s = await S(); if (s.duo?.swap) return s; await step(1) } return null }
+async function motion(seq, button) {
+  let held = []
+  for (const k of seq) { const w = k == null ? [] : [].concat(k); for (const x of held) if (!w.includes(x)) await page.keyboard.up(x); for (const x of w) if (!held.includes(x)) await page.keyboard.down(x); held = w; await step(2) }
+  if (button) { for (const b of [].concat(button)) await page.keyboard.down(b); await step(1); for (const b of [].concat(button)) await page.keyboard.up(b) }
+  for (const x of held) await page.keyboard.up(x)
+}
+const QCF = ['s', ['s', 'd'], 'd'], QCB = ['s', ['s', 'a'], 'a']
+// do one special from neutral at distance dx; returns the moves seen, damage dealt, NP spent
+async function special(dx, seq, button, frames = 70) {
+  await fresh(dx)
+  const b = await S(), z0 = (await S('p2')).health, moves = new Set()
+  await motion(seq, button)
+  let zMin = z0, npMin = b.s.np
+  for (let i = 0; i < frames; i++) { const s = await S(); if (s.move) moves.add(s.move); npMin = Math.min(npMin, s.s.np); zMin = Math.min(zMin, (await S('p2')).health); await step(1) }
+  return { moves: [...moves], dmg: z0 - zMin, np: Math.round(b.s.np - npMin) }
+}
 async function doSwitch(btn) { await fresh(500); await switchInput(btn); const sw = await untilSwap(); await settle(); await step(35); return { sw, s: await S() } }
 
 try {
@@ -74,7 +90,8 @@ try {
     const keys = []; for (let i = 0; i < 16; i++) { keys.push((await S()).key); if (i === 9) await shot('switch_smoke'); await step(1) }
     const a = await S()
     check('J: Tori → Blake (Navy Thunder) mid-smoke (frame ≈ 7)', b.key === 'ns_blue' && a.key === 'ns_navy' && keys.indexOf('ns_navy') >= 4 && keys.indexOf('ns_navy') <= 9 && a.sheet.includes('/ns_navy/'), keys.join(','))
-    check('cost 15 NP + 30-frame lockout', Math.round(b.s.np - a.s.np) >= 13 && Math.round(b.s.np - a.s.np) <= 15 && a.duo.cd > 20 && a.duo.cd <= 30, [b.s.np, a.s.np, a.duo.cd])
+    const TE = await page.evaluate(async () => { const m = await import('./fighters.js'); return { cost: m.TRANSFORM_ENERGY.SWAP_COST, lock: m.TRANSFORM_ENERGY.SWAP_LOCKOUT } })   // Ben 10's LIVE swap numbers
+    check(`cost = Ben's swap cost (${TE.cost} NP) + his ${TE.lock}-frame lockout`, Math.round(b.s.np - a.s.np) >= TE.cost - 2 && Math.round(b.s.np - a.s.np) <= TE.cost && a.duo.cd > TE.lock - 10 && a.duo.cd <= TE.lock, [b.s.np, a.s.np, a.duo.cd, TE])
     check('the J of the gesture never jabs (no Light move started)', !keys.length || !(await page.evaluate(() => __harness.ninjaTest.raw('p1')._ninja?.stats?.strikes > 1)), '')
     await step(35); await fresh(260); await step(20); await shot('form_blake')
     let r = await doSwitch('j')
@@ -96,6 +113,50 @@ try {
     // without Charge: ↓↓ + J is NOT a switch
     await fresh(400); const n0 = (await S()).duo.swaps; await tap(['s']); await step(2); await tap(['s']); await step(1); await tap(['j']); await step(20); s = await S()
     check('↓↓ + J without Charge does not switch', s.key === k0 && s.duo.swaps === n0, [n0, s.duo.swaps])
+  }
+
+  if (want('powers')) {
+    section('THEIR OWN POWERS (real motion inputs, vs the training dummy)')
+    const KIT = {
+      ns_blue: [['Sonic Fin ↓↘→+J (two water crescents)', 320, QCF, 'j', 'sFin', 50], ['Tidal Surf ↓↘→+Special (rides a wave, multi-hit)', 240, QCF, 'l', 'sSurf', 40],
+        ['Water Geyser ↓↙←+J (erupts under the foe)', 420, QCB, 'j', 'sGeyser', 60], ['Sonic Fin neutral Special', 320, [], 'l', 'sFin', 30], ['Wave Slash →+Heavy', 240, [], ['d', 'k'], 'sWave', 40]],
+      ns_navy: [['Navy Antler ↓↘→+J (both blades thrown)', 300, QCF, 'j', 'sAntler', 30], ['Thunder Strike ↓↘→+Special (lightning on the foe)', 480, QCF, 'l', 'sThunder', 60],
+        ['Thunder Dash ↓↙←+J (lightning rush)', 220, QCB, 'j', 'sDash', 30], ['Thunder Staff neutral Special (bolt)', 520, [], 'l', 'sStaff', 30], ['Antler Cross →+Heavy (X-slash)', 70, [], ['d', 'k'], 'sCross', 40]],
+      ns_green: [['Samurai Saber ↓↘→+J (iaido dash)', 200, QCF, 'j', 'sIaido', 60], ['Samurai Star ↓↘→+Special (saber spin)', 90, QCF, 'l', 'sStar', 40],
+        ['Cyber Lasers ↓↙←+J (three bolts)', 340, QCB, 'j', 'sLaser', 20], ['Saber Cut →+Heavy (two cuts)', 70, [], ['d', 'k'], 'sSaber', 40]],
+    }
+    for (const [form, skin] of [['ns_blue', 'default'], ['ns_navy', 'start_navy'], ['ns_green', 'start_green']]) {
+      await boot('ns_trio', 'spd_red', { p1Skin: skin })
+      for (const [name, dx, seq, btn, key, minDmg] of KIT[form]) {
+        const r = await special(dx, seq, btn)
+        check(`${form}: ${name}`, r.moves.includes(key) && r.dmg >= minDmg && r.np >= 8, r)
+        if (key === 'sThunder' || key === 'sGeyser' || key === 'sSurf' || key === 'sStar') { await fresh(dx); await motion(seq, btn); await step(key === 'sStar' ? 12 : key === 'sSurf' ? 18 : key === 'sGeyser' ? 26 : 21); await shot(`power_${key}`) }
+      }
+    }
+    // Thunder Strike can be dodged: the spot locks on the tell
+    await boot('ns_trio', 'spd_red', { p1Skin: 'start_navy' })
+    await fresh(480); const z0 = (await S('p2')).health; await motion(QCF, 'l'); await step(10)
+    await page.evaluate(() => { const z = __harness.ninjaTest.raw('p2'); z.x += 260 }); let zMin = z0; for (let i = 0; i < 40; i++) { zMin = Math.min(zMin, (await S('p2')).health); await step(1) }
+    check('Thunder Strike lands where the crackle marked (a foe who moves after the tell is missed)', zMin === z0, z0 - zMin)
+    // Super Samurai Mode
+    await boot('ns_trio', 'spd_red', { p1Skin: 'start_green' })
+    await fresh(600); const sp0 = (await S()).speed ?? null
+    await tap(['s']); await step(2); await tap(['s']); await step(1); await tap(['l']); for (let i = 0; i < 20; i++) await step(1)
+    const sm = await page.evaluate(() => { const f = __harness.ninjaTest.raw('p1'); return { sam: f._duo.samurai, speed: f.speed, base: f.baseSpeed, np: f._ninja.np } })
+    check('Super Samurai Mode ↓↓+Special: 6 s buff, +10% speed', sm.sam > 300 && Math.abs(sm.speed - sm.base * 1.1) < 0.01, sm)
+    await shot('power_samurai')
+    const buffed = await special(90, QCF, 'l')   // fresh() keeps _duo.samurai (only cd / want / tag reset)
+    await page.evaluate(() => { __harness.ninjaTest.raw('p1')._duo.samurai = 0 })
+    const plain = await special(90, QCF, 'l')
+    check('Super Samurai Mode: Samurai Star hits ~15% harder', buffed.dmg > plain.dmg * 1.08 && buffed.dmg < plain.dmg * 1.25, [buffed.dmg, plain.dmg])
+    await page.evaluate(() => { __harness.ninjaTest.raw('p1')._duo.samurai = 200 }); await fresh(500); await switchInput('j'); await untilSwap(); await settle()
+    const after = await page.evaluate(() => { const f = __harness.ninjaTest.raw('p1'); return { key: f.rosterKey, sam: f._duo.samurai } })
+    check('a switch ends Super Samurai Mode', after.key === 'ns_blue' && after.sam === 0, after)
+    // Cyber Cam: Charge + Back = one digital double
+    await boot('ns_trio', 'spd_red', { p1Skin: 'start_green' })
+    await fresh(260); await page.keyboard.down('a'); await tap(['p']); await page.keyboard.up('a'); let cl = 0
+    for (let i = 0; i < 30; i++) { cl = Math.max(cl, await page.evaluate(() => (__harness.ninjaTest.raw('p1')._ninja.clones || []).filter(c => !c.dead).length)); await step(1) }
+    check('Cyber Cam (Charge + Back): exactly ONE double', cl === 1, cl)
   }
 
   if (want('carry')) {

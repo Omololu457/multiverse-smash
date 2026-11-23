@@ -11,7 +11,8 @@ import { getNinjaProfile, isNinja } from './ninja.js'
 import { duoFormAnim, duoFormProfile, duoOther, duoFormsOf, DUO } from './nsDuo.js'   // MSV1-MERGE: the duo's per-form smoke / HUD / intro (render-only)
 import { drawCgptUnder, drawCgptFx } from './nsCgptFx.js'
 import { drawWrSkinFx, wrAfterimageFx, wrWindFx } from './windrangersSkinFx.js'   // windrangers skin pack (render-only)
-import { wrCloneAnim } from './windrangersSkins.js'   // NS CGPT (ninja_storm_cgpt only; render-only)
+import { wrCloneAnim } from './windrangersSkins.js'
+import { drawTrioBurst, drawTrioAura } from './nsTrioFx.js'   // NS TRIO (render-only; only its own burst kinds / f._duo.samurai)   // NS CGPT (ninja_storm_cgpt only; render-only)
 
 const cache = new Map()
 const image = src => { let im = cache.get(src); if (!im) { im = new Image(); im.src = src; cache.set(src, im) } return im }
@@ -147,6 +148,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
       case 'parry': drawFx(c, f, 'proj_burst', Math.floor(u * 4), e.x, e.y, 1, 1 - u); break
       case 'block': drawFx(c, f, 'proj_spark', 0, e.x, e.y, 1, 1 - u); break
       case 'kunai': drawFx(c, f, 'proj_spark', 0, e.x, e.y - 8, 1, 1 - u); break
+      default: drawTrioBurst(c, f, e, u, calm())   // NS TRIO burst kinds (no other move emits them)
     }
   }
   // MSV1-MERGE STORM AND STONE: Shane as the R11 tornado streaking down through the foe (Dustin = the R8 rings / bursts)
@@ -157,6 +159,7 @@ export function drawNinjaFx(c, f, frameNo = 0) {
   if (s.barrier && s.barrier.phase === 'parry') { c.save(); c.strokeStyle = '#ffffff'; c.globalAlpha = 0.7; c.lineWidth = 2; c.beginPath(); c.arc(f.x + w / 2, f.y + (f.h || 94) * 0.5, 60, 0, Math.PI * 2); c.stroke(); c.restore() }
   // REV pips (motocross): three small dots behind him
   if (p.rev && s.rev.pips) { c.save(); for (let i = 0; i < s.rev.pips; i++) { c.fillStyle = p.color; c.globalAlpha = 0.9; c.beginPath(); c.arc(f.x + w / 2 - (f.facing || 1) * (34 + i * 10), f.y + (f.h || 94) - 8, 4, 0, Math.PI * 2); c.fill() } c.restore() }
+  drawTrioAura(c, f, calm())   // NS TRIO Super Samurai Mode (ns_trio only)
   drawCgptFx(c, f)   // NS CGPT clone / tell / fault / eruption / ultimate (ninja_storm_cgpt only)
   drawBubble(c, f)
 }

@@ -277,7 +277,7 @@ export function duoAiInput(controller, f, opp, input) {
   const dist = Math.abs(ctrX(opp) - ctrX(f)), oppAir = !grounded(opp)
   const zoning = dist > 1280 * DUO.cpu.far || !!(opp.attacking && opp.currentAttack?.isProjectile)
   const want = (oppAir || zoning) ? 'ns_red' : dist < DUO.cpu.near ? 'ns_yellow' : null
-  if (want && want !== d.form) { c.seq = CPU_SEQ; c.last = d.t; d.cpuSwaps = (d.cpuSwaps || 0) + 1 }
+  if (want && want !== d.form) { c.seq = CPU_SEQ; c.last = d.t; d.cpuSwaps = (d.cpuSwaps || 0) + 1; for (const k of Object.keys(input)) input[k] = false; if (f._ninja) use(f._ninja, 'light', 'heavy', 'special', 'ultimate', 'upAttack') }   // the swap frame starts nothing else, and the buffered presses are spent (a special would lock the swap out)
   return input
 }
 

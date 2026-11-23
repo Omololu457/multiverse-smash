@@ -596,7 +596,7 @@ export function placeTrap(f, x) {
   cue(f, 'trapSet')
 }
 function stepTraps(f, opp, s, p) {
-  const T = p.traps || duoOf(f)?.traps(f); if (!T || !s.traps.length) return   // a duo's traps outlive the swap
+  const T = p.traps || duoOf(f)?.traps?.(f); if (!T || !s.traps.length) return   // a duo's traps outlive the swap
   for (const t of s.traps) {
     t.life--; t.armed++
     if (opp && opp.health > 0 && grounded(opp) && t.armed > 10 && Math.abs(ctrX(opp) - t.x) < (T.radius || 26) && !(opp.invulnTimer > 0)) {
@@ -762,7 +762,12 @@ function scriptedHits(f, opp, s, a, list, t, fixedScale) {
     if (!opp) continue
     const fw = f.w || 48, dir = f.facing || 1
     const lead = dir > 0 ? f.x + fw + (h.dx || 0) : f.x - (h.dx || 0) - (h.w || 70)
-    const box = h.centered ? { x: ctrX(f) - (h.w || 120) / 2, y: feetY(f) + (h.dy ?? -(f.h || 94)), w: h.w || 120, h: h.h || (f.h || 94) } : { x: lead, y: feetY(f) + (h.dy ?? -(f.h || 94)), w: h.w || 70, h: h.h || (f.h || 94) }
+    // NS TRIO (gated on h.atFoe / h.fx / h.fxOnly — no other move carries them): a strike ON the foe's spot, locked at the
+    // move's first atFoe entry (the tell) so it can be dodged, capped at `reach` of the screen; plus an optional burst
+    if (h.atFoe && a._foeX == null) { const fx0 = ctrX(f), d0 = ctrX(opp) - fx0, R = RANGER_SCREEN * (h.reach || 0.5); a._foeX = Math.round(Math.abs(d0) > R ? fx0 + Math.sign(d0) * R : fx0 + d0) }
+    const box = h.atFoe ? { x: a._foeX - (h.w || 90) / 2, y: (f._rangerFloorY ?? feetY(f)) + (h.dy ?? -(h.h || 300)), w: h.w || 90, h: h.h || 300 } : h.centered ? { x: ctrX(f) - (h.w || 120) / 2, y: feetY(f) + (h.dy ?? -(f.h || 94)), w: h.w || 120, h: h.h || (f.h || 94) } : { x: lead, y: feetY(f) + (h.dy ?? -(f.h || 94)), w: h.w || 70, h: h.h || (f.h || 94) }
+    if (h.fx) burst(s, h.fx, box.x + box.w / 2, box.y + box.h, h.fxT || 18, { h: box.h, w: box.w, dir })
+    if (h.fxOnly) continue
     s.lastBox = box
     if (!overlaps(box, { x: opp.x, y: opp.y, w: opp.w || 48, h: opp.h || 94 })) continue
     const r = nsStrike(f, opp, h.dmg, { damageType: h.type || 'blunt', move: a.name, launch: h.launch, kb: h.kb, knockdown: h.knockdown, hitstun: h.hitstun || 26, otg: h.otg, revMul: revMul(f, a), fixedScale, locked: a._locked, cue: h.cue })
@@ -815,9 +820,10 @@ function runMoveKind(f, opp, s, p, a, raw) {
         if (!grounded(f) || a._vy) { const floor = (f._rangerFloorY ?? feetY(f)) - (f.h || 94); f.y = Math.min(floor, f.y + (a._vy || 0) * per); f.vy = 0 }
         const k = t - md.startup
         if (g.multi && k % g.multi.every === 0 && (a._mh || 0) < g.multi.n && opp) {
-          a._mh = (a._mh || 0) + 1
           const box = { x: f.x - 20, y: f.y - 10, w: (f.w || 48) + 40, h: (f.h || 94) + 20 }
-          if (overlaps(box, { x: opp.x, y: opp.y, w: opp.w || 48, h: opp.h || 94 })) {
+          const touch = overlaps(box, { x: opp.x, y: opp.y, w: opp.w || 48, h: opp.h || 94 })
+          if (!g.multi.onContact || touch) a._mh = (a._mh || 0) + 1   // NS TRIO onContact: a hit slot is spent only when it touches
+          if (touch) {
             const last = a._mh === g.multi.n
             nsStrike(f, opp, g.multi.dmg, { damageType: g.multi.type || 'energy', move: a.name, hitstun: 26, kb: last ? 6 : 1, launch: last ? g.multi.launch : -2, revMul: revMul(f, a), locked: !!a._mlock, cue: g.multi.cue })
             if (!opp.isBlocking) a._mlock = true

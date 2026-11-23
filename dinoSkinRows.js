@@ -43,5 +43,49 @@ export const DINO_SKIN_ROWS = [
    "dt_yellow": "#f39888",
    "dt_white": "#f6e1ea"
   }
+ },
+ {
+  "tag": "fossil",
+  "name": "Fossil Hall",
+  "note": "Museum fossils: terracotta, slate, amber resin and bleached bone over sandstone, brass display-plaque gold.",
+  "gem": {
+   "dt_red": "#bb6647",
+   "dt_blue": "#667f88",
+   "dt_yellow": "#d99823",
+   "dt_white": "#e5dbc6"
+  }
+ },
+ {
+  "tag": "storm",
+  "name": "Storm Broadcast",
+  "note": "A TV weather map on a CRT: radar red, ocean blue, warning yellow, cloud grey; baked scanlines.",
+  "gem": {
+   "dt_red": "#e63553",
+   "dt_blue": "#2583d9",
+   "dt_yellow": "#f3d820",
+   "dt_white": "#d0d7e2"
+  }
+ },
+ {
+  "tag": "arcade",
+  "name": "Arcade After Closing",
+  "note": "The lights are off: midnight-navy suits lit by neon edges (hot pink, cyan, lime, UV violet).",
+  "gem": {
+   "dt_red": "#55104a",
+   "dt_blue": "#105261",
+   "dt_yellow": "#435510",
+   "dt_white": "#5b4a7b"
+  }
+ },
+ {
+  "tag": "axmoons",
+  "name": "Alien X — Four Strange Moons",
+  "note": "Void suits under four strange moons: each Ranger's white panels glow in their own moon colour; big moon dots in the starfield.",
+  "gem": {
+   "dt_red": "#0e1129",
+   "dt_blue": "#0e1129",
+   "dt_yellow": "#0e1129",
+   "dt_white": "#5d628a"
+  }
  }
 ]

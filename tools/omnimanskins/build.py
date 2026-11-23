@@ -90,132 +90,132 @@ SKIN_TONE = ['#7b4731', '#c87858', '#d0835e', '#e0a272', '#fbbc97', '#faddc5']  
 def pal(streak, boom, glow, cape, planet='#2f6fb8', planetEdge='#1b4a86', dust='rgba(150,130,110,0.55)'):
     return dict(streak=streak, boom=boom, dust=dust, glow=glow, cape=cape, planet=planet, planetEdge=planetEdge)
 
+# ── SHADING ENGINE (v2): one base colour per region; every pixel keeps the ORIGINAL sprite's light and shadow ───────────
+# The source sheet's shade of a pixel, measured in OKLab lightness against the brightest member of its colour family
+# (red / white / dark / skin / eye), is re-applied to the region's base colour: folds, rim shadows and the deep shadow
+# land exactly where the artist drew them. A dark base has less room before the black outline, so its shading is
+# compressed (never flattened). Shadows lose a little chroma and drift slightly cool. No per-pixel noise anywhere.
+def _lin(c): c = c / 255.0; return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+def _srgb(c): c = np.clip(c, 0, 1); return np.where(c <= 0.0031308, c * 12.92, 1.055 * c ** (1 / 2.4) - 0.055) * 255.0
+def oklab(rgb):
+    r, g, b = _lin(np.asarray(rgb, np.float64))
+    l = np.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b); m = np.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+    s = np.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+    return np.array([0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+                     0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s])
+def from_oklab(L, a, b):
+    l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3; m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3; s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3
+    return _srgb(np.array([4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+                           -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s]))
+FAMS = [M.REDS, M.WHITES, M.DARKS, M.SKINS_, M.EYES]
+_FAM_L = []
+for fam in FAMS:
+    Ls = [oklab(np.array(c, np.float64))[0] for c in fam]; _FAM_L.append((max(Ls), max(Ls) - min(Ls)))
+_SH = {}
+def shade(base, src):
+    """the region's base colour, shaded like the source pixel was"""
+    key = (base, tuple(int(v) for v in src))
+    if key in _SH: return _SH[key]
+    s = key[1]; fi = next((i for i, f in enumerate(FAMS) if s in f), 1)
+    Lref, span = _FAM_L[fi]; Ls = oklab(np.array(s, np.float64))[0]
+    B = oklab(hx(base)); d = max(0.0, Lref - Ls)                                                  # how far into shadow the artist went
+    k = min(1.0, max(0.0, (B[0] - 0.10) / max(span, 1e-6)))                                       # room above the outline black
+    L = B[0] - d * max(k, 0.35 if B[0] > 0.2 else k)
+    q = (L / max(B[0], 1e-6)) ** 0.5 if B[0] > 0 else 1                                           # shadows: a little less chroma …
+    out = from_oklab(max(0.03, L), B[1] * q, B[2] * q - 0.012 * min(1, d / max(span, 1e-6)))     # … and slightly cool
+    _SH[key] = np.clip(out, 0, 255); return _SH[key]
+
+
+SKIN = '#f2b48c'   # bare hands (Overtime, Sunday): his own skin colour as the base
 SKINS = [
   dict(tag='imperial', name='Viltrumite Imperial Uniform', classification='Viltrum Collection',
-       torso=['#9e9a92', '#dedad2', '#faf8f2'], collar=['#a8a49c', '#e6e2da', '#ffffff'], arms=['#1e1f23', '#34363c', '#4a4d55'],
-       gloves=['#16171a', '#2a2b30', '#3c3e44'], waist=['#1c1d21', '#2f3036', '#45474f'], legs=['#8e8a82', '#d2cec6', '#f2efe8'],
-       boots=['#121316', '#24262b', '#3a3c42'], insignia=['#121316', '#1e1f23', '#2c2e33'], cape=['#6e7075', '#9a9ca1', '#bdbfc3'],
-       lining=['#3c3e43', '#55575c', '#6c6e73'], streaks=['#9fb6d6', '#c6d6ec', '#e8f0fb'], pat=['shoulders'],
-       pal=pal('rgba(214,226,244,0.9)', '#e8f0fb', '#ffb070', '#9a9ca1')),
+       # the Viltrumite uniform: a white bodysuit, black collar / shoulder panels / gloves / belt / boots, black cape
+       torso='#f4f2ee', arms='#f4f2ee', legs='#f4f2ee', collar='#1e1f24', gloves='#1e1f24', waist='#1e1f24', boots='#1e1f24',
+       insignia='#1e1f24', cape='#24252b', lining='#3a3c44', streaks='#dfe8f6', pat=['shoulders'],
+       pal=pal('rgba(226,234,246,0.9)', '#ffffff', '#ffb070', '#24252b')),
   dict(tag='veteran', name='Viltrumite Field Veteran', classification='Viltrum Collection',
-       torso=['#8a8070', '#c9c0aa', '#e9e2cf'], collar=['#8a8070', '#c9c0aa', '#e9e2cf'], arms=['#8a8070', '#c9c0aa', '#e9e2cf'],
-       gloves=['#3a2a1c', '#5a4430', '#76604a'], waist=['#2a241e', '#3e362e', '#544a40'], legs=['#262a30', '#454c55', '#69727d'],
-       boots=['#3a2618', '#5e4028', '#7e5a3c'], insignia=['#3a3228', '#5a4e40', '#7a6c5a'], cape=['#6a5f50', '#998c75', '#bcad92'],
-       lining=['#3a1414', '#5a2222', '#783232'], temples=['#8c8c8c', '#c4c4c4', '#e6e6e6'], pat=['seam', 'temples_grey'],
-       pal=pal('rgba(220,206,180,0.85)', '#efe4cc', '#ff9a50', '#998c75', dust='rgba(170,150,120,0.6)')),
+       torso='#d9cfb6', arms='#d9cfb6', collar='#d9cfb6', gloves='#5a4330', waist='#3e3830', legs='#555c66', boots='#6a4a30',
+       insignia='#6a5c48', cape='#a8997c', lining='#7a2424', temples='#c8c8c8', pat=['seam', 'temples_grey'],
+       pal=pal('rgba(220,206,180,0.85)', '#efe4cc', '#ff9a50', '#a8997c', dust='rgba(170,150,120,0.6)')),
   dict(tag='mourning', name='Imperial Mourning Dress', classification='Viltrum Collection',
-       torso=['#08080a', '#16161a', '#25252b'], collar=['#060608', '#131317', '#202026'], arms=['#08080a', '#16161a', '#25252b'],
-       gloves=['#b8b0a0', '#e0d8c8', '#f6f0e2'], waist=['#060608', '#101014', '#1c1c22'], legs=['#08080a', '#141418', '#222228'],
-       boots=['#050507', '#101014', '#1c1c22'], insignia=['#2a2a30', '#3a3a42', '#4a4a54'], cape=['#060608', '#111115', '#1d1d23'],
-       lining=['#3a0c18', '#5a1426', '#741c34'], pat=['sash'],
-       pal=pal('rgba(230,226,220,0.8)', '#f2eee6', '#ff7a5a', '#111115')),
+       torso='#2e2e35', arms='#2e2e35', collar='#26262c', legs='#2e2e35', waist='#222228', boots='#222228', gloves='#f0e9da',
+       insignia='#4a4a54', cape='#26262c', lining='#6e1a34', pat=['sash'],
+       pal=pal('rgba(230,226,220,0.8)', '#f2eee6', '#ff7a5a', '#26262c')),
   dict(tag='alienx_half', name='Alien X — The Other Half of Nolan', classification='Alien X Collection', crossover='Ben 10', half=True,
        pal=pal('rgba(190,200,255,0.85)', '#ffffff', '#b28cff', '#1a1450', planet='#3a2a8a', planetEdge='#1a1450')),
   dict(tag='alienx_redshift', name='Alien X — Redshift', classification='Alien X Collection', crossover='Ben 10',
-       torso=['#1c1d21', '#2c2e33', '#3e4047'], collar=['#18191c', '#26282c', '#36383e'], arms=['#1c1d21', '#2c2e33', '#3e4047'],
-       gloves=['#121316', '#1e1f23', '#2c2e33'], waist=['#101114', '#1a1b1f', '#26282c'], legs=['#1a1b1f', '#2a2c31', '#3c3e45'],
-       boots=['#0e0f12', '#191a1e', '#26282d'], insignia=['#ff7a5a', '#ff9a78', '#ffc2a8'], pat=['nebula'],
-       streaks=['#5a7aff', '#ff8a6a', '#ffd8c8'],
+       torso='#3c3f47', arms='#3c3f47', collar='#33363d', legs='#3c3f47', waist='#2c2e35', gloves='#2c2e35', boots='#2c2e35',
+       insignia='#ff8a64', cape='#1a1840', lining='#1a1840', streaks='#ff9a7a', pat=['nebula'],
        pal=pal('rgba(255,160,130,0.85)', '#ffd8c8', '#ff7a5a', '#2a1848', planet='#ff7a5a', planetEdge='#3a2a8a')),
   dict(tag='blacktie', name='Black-Tie Meteor', classification='Glitter Collection', glitter=True,
-       torso=['#060607', '#121214', '#1e1e22'], collar=['#d8d8d8', '#f0f0f0', '#ffffff'], arms=['#060607', '#121214', '#1e1e22'],
-       gloves=['#0a0a0c', '#16161a', '#222228'], waist=['#050506', '#0e0e10', '#18181c'], legs=['#060607', '#111113', '#1c1c20'],
-       boots=['#050506', '#0f0f12', '#1b1b20'], insignia=['#c8c8c8', '#e8e8e8', '#ffffff'], cape=['#06081a', '#0c1028', '#141a3a'],
-       lining=['#6a6e78', '#a6abb6', '#d6dae2'], pat=['inset', 'sequins', 'brake_sweep', 'cuff_glint'],
-       pal=pal('rgba(220,226,240,0.9)', '#ffffff', '#c8d0ff', '#0c1028')),
+       torso='#2c2c33', arms='#2c2c33', legs='#2c2c33', waist='#232329', collar='#f6f6f6', gloves='#2c2c33', boots='#1e1e24',
+       insignia='#f6f6f6', cape='#1e2546', lining='#bcc2ce', pat=['inset', 'sparkle_lining', 'brake_sweep', 'cuff_glint'],
+       pal=pal('rgba(220,226,240,0.9)', '#ffffff', '#c8d0ff', '#1e2546')),
   dict(tag='champagne', name='Pink Champagne Heavyweight', classification='Glitter Collection', glitter=True,
-       torso=['#8a5a62', '#c48c94', '#e6b8be'], collar=['#8a5a62', '#c48c94', '#e6b8be'], arms=['#8a5a62', '#c48c94', '#e6b8be'],
-       gloves=['#7a4a54', '#b07a84', '#d8a4ac'], waist=['#5a2a36', '#7a3c4a', '#9a5262'], legs=['#844f58', '#bd848c', '#e0b0b6'],
-       boots=['#b8a690', '#e2d4c0', '#f8f0e2'], insignia=['#5a1a2a', '#7a2a3c', '#9a3c50'], moustache=['#3a0a16', '#5a1424', '#7a2034'],
-       cape=['#7a4650', '#b07c86', '#d8a8b0'], lining=['#4a1c2c', '#6a2c40', '#8a3e56'], pat=['facets'],
-       pal=pal('rgba(255,214,222,0.9)', '#fff0f4', '#ff9ab0', '#b07c86')),
+       torso='#e0a2ae', arms='#e0a2ae', collar='#e0a2ae', gloves='#d0909c', waist='#8a3c50', legs='#dc9ca8', boots='#f4ead8',
+       insignia='#8a2c44', moustache='#5a1628', cape='#c88090', lining='#7a3450', pat=['facets', 'sparkle_shoulders'],
+       pal=pal('rgba(255,214,222,0.9)', '#fff0f4', '#ff9ab0', '#c88090')),
   dict(tag='valkyrie', name='Winning Valkyrie — Victory Lap', classification='Champion Collection',
-       torso=['#0e2a7a', '#1e48b8', '#3c6ae0'], collar=['#0e2a7a', '#1e48b8', '#3c6ae0'], arms=['#0e2a7a', '#1e48b8', '#3c6ae0'],
-       gloves=['#b8bcc8', '#e6e8f0', '#ffffff'], waist=['#8a6a14', '#d0a42a', '#f6d46a'], legs=['#0c2470', '#1a40a8', '#3460d4'],
-       boots=['#0a1a50', '#142c7a', '#2240a0'], insignia=['#d0a42a', '#f6d46a', '#fff0b0'], cape=['#0a1a50', '#122a72', '#1c3a94'],
-       lining=['#0a1a50', '#122a72', '#1c3a94'], pat=['red_panels', 'gold_toe'],
-       pal=pal('rgba(210,226,255,0.9)', '#ffffff', '#ffd46a', '#122a72')),
+       torso='#2c5ad0', arms='#2c5ad0', collar='#2c5ad0', gloves='#f4f6fa', waist='#e8b432', legs='#2854c4', boots='#1c3a8c',
+       insignia='#f2c444', cape='#1c3a8c', lining='#1c3a8c', pat=['red_panels', 'gold_toe'],
+       pal=pal('rgba(210,226,255,0.9)', '#ffffff', '#ffd46a', '#1c3a8c')),
   dict(tag='diamondhead', name='Ben 10 — Diamondhead Mantle', classification='Ben 10 Collection', crossover='Ben 10',
-       torso=['#0e5a3a', '#2a9a6a', '#7ee0b0'], collar=['#0e5a3a', '#2a9a6a', '#7ee0b0'], arms=['#0e5a3a', '#2a9a6a', '#7ee0b0'],
-       gloves=['#0c4a30', '#22845a', '#64cc98'], waist=['#08301e', '#0e4a30', '#186a46'], legs=['#0c4a30', '#1e7a52', '#4ab884'],
-       boots=['#08301e', '#0e4a30', '#186a46'], insignia=['#bff8dc', '#e6fff2', '#ffffff'], cape=['#06261a', '#0c3a26', '#145034'],
-       lining=['#0c3a26', '#2a8a62', '#8ef0c4'], hair=['#020202', '#0a0a0a', '#151515'], pat=['crystal'],
-       pal=pal('rgba(170,250,210,0.9)', '#e6fff2', '#7ee0b0', '#0c3a26')),
+       torso='#5cd6a6', arms='#5cd6a6', collar='#5cd6a6', gloves='#4cc496', waist='#1c4a34', legs='#1f5a40', boots='#163e2c',
+       insignia='#e6fff4', hair='#141414', cape='#174a34', lining='#3aa87a', pat=['crystal'],
+       pal=pal('rgba(170,250,210,0.9)', '#e6fff2', '#7ee0b0', '#174a34')),
   dict(tag='heatblast', name='Ben 10 — Heatblast Re-entry', classification='Ben 10 Collection', crossover='Ben 10',
-       torso=['#26221e', '#3c3630', '#56504a'], collar=['#26221e', '#3c3630', '#56504a'], arms=['#26221e', '#3c3630', '#56504a'],
-       gloves=['#1a1714', '#2a2622', '#3c3630'], waist=['#1a1714', '#2a2622', '#3c3630'], legs=['#24201c', '#38322c', '#504840'],
-       boots=['#1a1714', '#2a2622', '#3c3630'], insignia=['#ff7a1a', '#ffa040', '#ffd070'], cape=['#6a1004', '#b82a08', '#ff5a14'],
-       lining=['#3a0802', '#6a1404', '#9a2208'], streaks=['#ff5a14', '#ffa040', '#ffe08a'], pat=['ember_seams', 'reentry_fist'],
-       pal=pal('rgba(255,150,60,0.9)', '#ffe08a', '#ff6a1a', '#b82a08', dust='rgba(120,90,70,0.6)')),
+       torso='#6a2a1c', arms='#6a2a1c', collar='#5a2216', legs='#5e2418', waist='#3e1a12', gloves='#4a1e14', boots='#4a1e14',
+       insignia='#ffb02a', cape='#ff5a14', lining='#c8280a', streaks='#ffa040', pat=['flame_cape', 'ember_seams', 'reentry_fist'],
+       pal=pal('rgba(255,150,60,0.9)', '#ffe08a', '#ff6a1a', '#ff5a14', dust='rgba(120,90,70,0.6)')),
   dict(tag='overtime', name='JJK — Overtime', classification='JJK Collection', crossover='Jujutsu Kaisen',
-       torso=['#7c98b4', '#a8c4de', '#d4e6f6'], collar=['#e6eef6', '#f4f8fc', '#ffffff'], arms=['#7c98b4', '#a8c4de', '#d4e6f6'],
-       gloves=SKIN_TONE[1:4], waist=['#3a2a1c', '#52402e', '#6c5642'], legs=['#8a7456', '#b49c7a', '#d6c2a0'],
-       boots=['#2e1e12', '#4a3020', '#64442e'], insignia=['#7c98b4', '#a8c4de', '#d4e6f6'], cape=['#8a6a44', '#b89466', '#d8b888'],
-       lining=['#14203a', '#1e2e52', '#2a3e6a'], pat=['tie'],
-       pal=pal('rgba(230,240,250,0.85)', '#ffffff', '#ffc070', '#b89466')),
+       # Nanami: a tan suit over a light-blue shirt, a leopard-print tie
+       torso='#a9c8e8', collar='#a9c8e8', arms='#c9a978', legs='#c9a978', waist='#6a5038', gloves=SKIN, boots='#5a3a24',
+       insignia='#a9c8e8', cape='#bc9a6a', lining='#22345a', pat=['tie'],
+       pal=pal('rgba(230,240,250,0.85)', '#ffffff', '#ffc070', '#bc9a6a')),
   dict(tag='patriarch', name='JJK — Cursed Patriarch', classification='JJK Collection', crossover='Jujutsu Kaisen',
-       hair=['#8a5a6a', '#b07a8a', '#d0a0ae'], moustache=['#050505', '#0c0c0c', '#161616'], torso=['#b8b4b0', '#e4e0dc', '#faf8f6'],
-       collar=['#b8b4b0', '#e4e0dc', '#faf8f6'], arms=['#b8b4b0', '#e4e0dc', '#faf8f6'], gloves=['#0a0a0c', '#16161a', '#24242a'],
-       waist=['#3a1a3a', '#56285a', '#723a76'], legs=['#0a0a0c', '#141418', '#222228'], boots=['#060608', '#101014', '#1c1c22'],
-       insignia=['#56285a', '#723a76', '#9050a0'], cape=['#060608', '#101014', '#1a1a20'], lining=['#060608', '#101014', '#1a1a20'],
-       pat=['cheek_marks', 'pink_edge', 'wrist_band'],
-       pal=pal('rgba(230,200,214,0.85)', '#f4e6ec', '#ff8ab0', '#101014')),
+       # Sukuna: pink hair, black markings, a white kimono over black
+       hair='#e48aa4', moustache='#141414', torso='#f2efea', arms='#f2efea', collar='#f2efea', gloves='#1e1e24', waist='#1e1e24',
+       legs='#26262c', boots='#1a1a20', insignia='#26262c', cape='#1e1e24', lining='#1e1e24', pat=['cheek_marks', 'pink_edge', 'wrist_band'],
+       pal=pal('rgba(230,200,214,0.85)', '#f4e6ec', '#ff8ab0', '#1e1e24')),
   dict(tag='sunday', name="Sunday at the Graysons'", classification='Civilian Collection',
-       torso=['#9a8c74', '#c8b898', '#e6d8bc'], collar=['#9a8c74', '#c8b898', '#e6d8bc'], arms=['#9a8c74', '#c8b898', '#e6d8bc'],
-       gloves=SKIN_TONE[1:4], waist=['#4a3220', '#6a4a30', '#8a6444'], legs=['#1e3456', '#2e4c7a', '#4a6a9e'],
-       boots=['#a8a6a0', '#d8d6d0', '#f6f4ee'], insignia=['#9a8c74', '#c8b898', '#e6d8bc'], cape=['#6a2c14', '#9a4220', '#bc5a30'],
-       lining=['#4a1e0c', '#6a2c14', '#8a3c1e'], temples=['#9a9a9a', '#cfcfcf', '#f0f0f0'], pat=['knit', 'denim', 'blanket_stripe', 'temples_grey'],
-       pal=pal('rgba(240,230,210,0.85)', '#fff6e6', '#ff9a50', '#9a4220')),
+       torso='#dccaa6', arms='#dccaa6', collar='#dccaa6', gloves=SKIN, waist='#7a5638', legs='#4a6c9e', boots='#f2f0ea',
+       insignia='#dccaa6', cape='#b04e26', lining='#8a3a1a', temples='#d0d0d0', pat=['blanket_stripe', 'temples_grey'],
+       pal=pal('rgba(240,230,210,0.85)', '#fff6e6', '#ff9a50', '#b04e26')),
   dict(tag='firstissue', name='The First Issue', classification='Comic Collection',
-       torso=['#1c2a4a', '#d8ccb0', '#f2e8d2'], collar=['#1c2a4a', '#d8ccb0', '#f2e8d2'], arms=['#1c2a4a', '#d8ccb0', '#f2e8d2'],
-       gloves=['#1c2a4a', '#b8483a', '#d86a56'], waist=['#1c2a4a', '#a8402e', '#c85a46'], legs=['#1c2a4a', '#b8483a', '#d86a56'],
-       boots=['#1c2a4a', '#d8ccb0', '#f2e8d2'], insignia=['#1c2a4a', '#b8483a', '#d86a56'], cape=['#1c2a4a', '#b8483a', '#d86a56'],
-       lining=['#1c2a4a', '#8a3428', '#a84a3a'], hair=['#0e1830', '#16223e', '#1e2c4c'], moustache=['#0e1830', '#16223e', '#1e2c4c'],
-       pat=['halftone', 'misprint'],
-       pal=pal('rgba(0,170,220,0.8)', '#f2e8d2', '#d86a56', '#b8483a')),
+       # the first printing: newsprint white + faded tomato red, flat colour with navy ink for every shadow (cel shading)
+       torso='#f2e6cc', arms='#f2e6cc', collar='#f2e6cc', boots='#f2e6cc', gloves='#d65040', waist='#c44434', legs='#d65040',
+       insignia='#d65040', cape='#d65040', lining='#b03c30', hair='#1c2a4a', moustache='#1c2a4a', pat=['ink', 'misprint'],
+       pal=pal('rgba(0,170,220,0.8)', '#f2e8d2', '#d86a56', '#d65040')),
   dict(tag='artdeco', name='Art Deco Express', classification='Champion Collection',
-       torso=['#08343a', '#0e5a62', '#1a8088'], collar=['#08343a', '#0e5a62', '#1a8088'], arms=['#08343a', '#0e5a62', '#1a8088'],
-       gloves=['#6a4c14', '#b08a34', '#e2c26a'], waist=['#6a4c14', '#b08a34', '#e2c26a'], legs=['#062c32', '#0c4e56', '#18747c'],
-       boots=['#b8ac90', '#e2d8c0', '#f8f2e2'], insignia=['#6a4c14', '#b08a34', '#e2c26a'], cape=['#04242a', '#083a42', '#0e5058'],
-       lining=['#04242a', '#083a42', '#0e5058'], pat=['brass_lines', 'cream_arm'],
-       pal=pal('rgba(226,194,106,0.85)', '#f8f2e2', '#e2c26a', '#083a42')),
+       torso='#127a80', arms='#127a80', collar='#127a80', gloves='#d0a844', waist='#d0a844', legs='#106e74', boots='#f0e6cc',
+       insignia='#d0a844', cape='#0c4e56', lining='#0c4e56', pat=['brass_lines', 'cream_arm'],
+       pal=pal('rgba(226,194,106,0.85)', '#f8f2e2', '#e2c26a', '#0c4e56')),
   dict(tag='rescue', name='Rescue Service Orange', classification='Civilian Collection',
-       torso=['#a83a00', '#ff5a00', '#ff8a3a'], collar=['#a83a00', '#ff5a00', '#ff8a3a'], arms=['#c8c8c8', '#ececec', '#ffffff'],
-       gloves=['#a83a00', '#ff5a00', '#ff8a3a'], waist=['#0e1a3a', '#182a56', '#243c72'], legs=['#a03800', '#f25400', '#ff8434'],
-       boots=['#0c1630', '#16264e', '#22386a'], insignia=['#d8d8d8', '#f2f2f2', '#ffffff'], cape=['#962e00', '#e84c00', '#ff7a2a'],
-       lining=['#6a2000', '#9a3200', '#c84400'], pat=['reflective'],
-       pal=pal('rgba(255,236,220,0.9)', '#ffffff', '#ff8a3a', '#e84c00')),
+       torso='#ff6a14', collar='#ff6a14', arms='#f6f6f6', gloves='#ff6a14', waist='#1e2e5a', legs='#f6640f', boots='#1e2e5a',
+       insignia='#f6f6f6', cape='#f05a0c', lining='#b8400a', pat=['reflective'],
+       pal=pal('rgba(255,236,220,0.9)', '#ffffff', '#ff8a3a', '#f05a0c')),
   dict(tag='cornerman', name='Heavyweight Cornerman', classification='Champion Collection',
-       torso=['#0c3a20', '#145a32', '#227a46'], collar=['#c8bc98', '#e6dcbc', '#f8f0d8'], arms=['#0c3a20', '#145a32', '#227a46'],
-       gloves=['#c8c4bc', '#ebe8e2', '#ffffff'], waist=['#3a0c10', '#5a141a', '#7a2028'], legs=['#0e0e12', '#1a1a20', '#28282f'],
-       boots=['#0a0a0d', '#16161b', '#222228'], insignia=['#c8bc98', '#e6dcbc', '#f8f0d8'], cape=['#0a3a1e', '#125630', '#1c7442'],
-       lining=['#06261a', '#0a3a26', '#145034'], pat=['piping', 'trunks', 'gold_n'],
-       pal=pal('rgba(240,232,200,0.85)', '#f8f0d8', '#ffd060', '#125630')),
+       torso='#1f7a48', arms='#1f7a48', collar='#efe4c4', gloves='#f6f4f0', waist='#7e2430', legs='#2a2a30', boots='#1e1e24',
+       insignia='#efe4c4', cape='#1c7044', lining='#14503a', pat=['piping', 'trunks', 'gold_n'],
+       pal=pal('rgba(240,232,200,0.85)', '#f8f0d8', '#ffd060', '#1c7044')),
   dict(tag='western', name='Midnight Western', classification='Civilian Collection',
-       torso=['#3a2414', '#5c3a22', '#7e5434'], collar=['#3a2414', '#5c3a22', '#7e5434'], arms=['#3a2414', '#5c3a22', '#7e5434'],
-       gloves=['#2a1a0e', '#422c18', '#5e4026'], waist=['#1a120c', '#2a1e14', '#3c2c1e'], legs=['#141416', '#222226', '#323238'],
-       boots=['#1e140c', '#322216', '#4a3420'], insignia=['#3a2414', '#5c3a22', '#7e5434'], cape=['#5a1a14', '#8a2c20', '#b04030'],
-       lining=['#3a1410', '#5a1e18', '#782a22'], moustache=['#0a0806', '#16120e', '#221c16'], temples=['#a8acb4', '#d2d6de', '#f2f4f8'],
-       pat=['buckle', 'saddle', 'temples_grey'],
-       pal=pal('rgba(230,214,190,0.85)', '#f6eee0', '#ffa050', '#8a2c20', dust='rgba(170,130,90,0.6)')),
+       torso='#8a5c36', arms='#8a5c36', collar='#8a5c36', gloves='#5e4026', waist='#2e241c', legs='#2e2e34', boots='#4e3622',
+       insignia='#8a5c36', moustache='#1c1612', cape='#a83a28', lining='#7a2a1e', temples='#d6dae2', pat=['buckle', 'saddle', 'temples_grey'],
+       pal=pal('rgba(230,214,190,0.85)', '#f6eee0', '#ffa050', '#a83a28', dust='rgba(170,130,90,0.6)')),
   dict(tag='porcelain', name='Porcelain Strongman', classification='Champion Collection',
-       torso=['#c8c0b4', '#ece6dc', '#fbf8f2'], collar=['#c8c0b4', '#ece6dc', '#fbf8f2'], arms=['#c8c0b4', '#ece6dc', '#fbf8f2'],
-       gloves=['#0e2a7a', '#1a40a8', '#2a58c8'], waist=['#0e2a7a', '#1a40a8', '#2a58c8'], legs=['#c4bcb0', '#e8e2d8', '#f8f4ee'],
-       boots=['#0e2a7a', '#1a40a8', '#2a58c8'], insignia=['#0e2a7a', '#1a40a8', '#2a58c8'], cape=['#0a2266', '#14369a', '#204cc0'],
-       lining=['#081a50', '#102c7c', '#1a3ea0'], pat=['brush', 'wave'],
-       pal=pal('rgba(220,230,255,0.9)', '#fbf8f2', '#6a8aff', '#14369a')),
+       torso='#f4efe6', arms='#f4efe6', collar='#f4efe6', gloves='#2350c0', waist='#2350c0', legs='#f2ede4', boots='#2350c0',
+       insignia='#2350c0', cape='#1e46ae', lining='#16388e', pat=['wave', 'chest_band'],
+       pal=pal('rgba(220,230,255,0.9)', '#fbf8f2', '#6a8aff', '#1e46ae')),
   dict(tag='earthrise', name='Earthrise', classification='Viltrum Collection',
-       torso=['#6c6e72', '#a2a4a8', '#cfd1d4'], collar=['#6c6e72', '#a2a4a8', '#cfd1d4'], arms=['#6c6e72', '#a2a4a8', '#cfd1d4'],
-       gloves=['#c8cacc', '#ececee', '#ffffff'], waist=['#3c3e42', '#56585c', '#707276'], legs=['#646668', '#9a9c9e', '#c6c8ca'],
-       boots=['#08080a', '#141418', '#202026'], insignia=['#2f6fb8', '#4a8ad0', '#8ab8ec'], cape=['#060c22', '#0c1838', '#14244e'],
-       lining=['#060c22', '#0c1838', '#14244e'], pat=['planet_hem'],
-       pal=pal('rgba(220,232,250,0.9)', '#ffffff', '#ffb070', '#0c1838', planet='#2f6fb8', planetEdge='#1b4a86')),
+       torso='#b4b6ba', arms='#b4b6ba', collar='#b4b6ba', gloves='#f6f6f8', waist='#5a5c62', legs='#acaeb2', boots='#222228',
+       insignia='#3a7ac4', cape='#18284e', lining='#18284e', pat=['planet_hem'],
+       pal=pal('rgba(220,232,250,0.9)', '#ffffff', '#ffb070', '#18284e', planet='#2f6fb8', planetEdge='#1b4a86')),
 ]
 BY_TAG = {s['tag']: s for s in SKINS}
 PLANET = ['#0e2a5a', '#1b4a86', '#2f6fb8', '#6aa8e6', '#e8f2fc']   # = the Escape Velocity orbit planet (omnimanViltrumSkins OMV_DEFAULT_PAL)
 
 
-# ── patterns (body-local) ────────────────────────────────────────────────────────────────────────────────────────────
+# ── patterns (body-local, clean solid shapes only; every colour goes through shade() so it keeps the sprite's shading) ─
 class Ctx: pass
 
 
@@ -235,111 +235,106 @@ def cape_fields(reg, fw, geos, n):
 
 
 def apply_pattern(name, sk, ctx, col):
-    rn, t, x, y, g = ctx.rn, ctx.t, ctx.x, ctx.y, ctx.g
+    rn, x, y, g, src = ctx.rn, ctx.x, ctx.y, ctx.g, ctx.src
+    P = lambda base: shade(base, src)
     tb = g.get('torso') or (0, 0, 1, 1)
-    if name == 'shoulders' and rn == 'torso' and y <= tb[1] + 4:
-        return ramp(['#8a8c90', '#b8babe', '#d4d6da'], t)                                   # pale grey shoulder panels
+    lit = ctx.t >= 0.95                                                                       # a pixel in the source's full light
+    if name == 'shoulders' and rn == 'torso' and y <= tb[1] + 3:
+        return P('#1e1f24')                                                                   # black shoulder panels
     if name == 'temples_grey' and rn == 'temples':
-        return ramp(sk['temples'], t)
-    if name == 'seam' and rn in ('torso', 'arms') and y == tb[1] + 3 and tb[0] + 2 <= x <= tb[0] + 7 and x % 2 == 0:
-        return hx('#4a3e30')                                                                  # one repaired shoulder seam
+        return P(sk['temples'])
+    if name == 'seam' and rn in ('torso', 'arms') and y == tb[1] + 3 and tb[0] + 2 <= x <= tb[0] + 7:
+        return P('#6a5a44')                                                                   # one repaired shoulder seam
     if name == 'sash' and rn in ('torso', 'arms', 'waist', 'legs', 'collar'):
         w = max(1, tb[2] - tb[0]); h = max(1, (g['hip'][1] if g.get('hip') else tb[3]) - tb[1])
         u, v = (x - tb[0]) / w, (y - tb[1]) / h
-        if abs(u - v * 0.95) < 0.09 and 0 <= v <= 1.15: return ramp(['#c8c4bc', '#ececea', '#ffffff'], t)   # shoulder → opposite hip
+        if abs(u - v * 0.95) < 0.11 and 0 <= v <= 1.15: return P('#f6f4f0')                   # shoulder → opposite hip
     if name == 'nebula' and rn in ('cape', 'lining'):
-        d = ctx.dn
-        base = mix(mix(hx('#ff7a5a'), hx('#7a2a6a'), min(1, d * 1.6)), hx('#0a1a4a'), max(0, d - 0.45) * 1.8)
-        base = base * (0.55 + 0.45 * t) + mix(hx('#ffb090'), hx('#4a6aff'), d) * 0.25 * (h3(x // 3, y // 3, 0, 7) > 0.6)
-        if d > 0.6 and h3(x, y, 0, 13) > 0.975: return hx('#cfe0ff')                        # cold blue stars near the hem
-        return np.clip(base, 0, 255)
+        d = ctx.dn                                                                            # coral at the collar → violet → deep-space blue at the hem
+        base = '#ff7a5a' if d < 0.3 else '#b0407a' if d < 0.55 else '#4a2a8a' if d < 0.78 else '#1a2a6a'
+        if d > 0.6 and (x * 7 + y * 13) % 97 == 0 and ctx.ed >= 2: return hx('#d8e6ff')          # three-ish cold stars near the hem
+        return P(base)
     if name == 'inset' and rn == 'torso':
         cx = (g['neck'][0] if g.get('neck') else (tb[0] + tb[2]) / 2)
-        if abs(x - cx) <= 2 and y >= tb[1] + 2: return ramp(['#c8c8c8', '#ececec', '#ffffff'], t)   # white chest inset
-    if name == 'sequins' and rn == 'lining':
-        v = h3(x, y, ctx.phase, 21)
-        if v > 0.82: return hx('#ffffff') if v > 0.94 else hx('#e4e8f0')
+        if abs(x - cx) <= 2 and y >= tb[1] + 2: return P('#f6f6f6')                            # the white shirt front
+    if name == 'sparkle_lining' and rn == 'lining' and lit and ctx.ed >= 1:
+        if (x * 3 + y * 5 + ctx.phase * 7) % 23 == 0: return hx('#ffffff')                   # sparse sequin glints (3 phases)
     if name == 'brake_sweep' and rn == 'lining' and ctx.strip == 'brake':
         if abs((x - ctx.fw * 0.2) - (y * 0.9 - 6)) < 2: return hx('#f4f6fa')                 # one sweep of silver crosses the lining
-    if name == 'cuff_glint' and rn == 'gloves' and ctx.strip in ('idle', 'win', 'unimpressed', 'glint', 'intro'):
-        if ctx.phase == (ctx.fi % 3) and h3(x, y, ctx.fi, 31) > 0.86: return hx('#ffffff')  # one sharp cuff glint
+    if name == 'cuff_glint' and rn == 'gloves' and ctx.near_arm and ctx.strip in ('idle', 'win', 'unimpressed', 'glint', 'intro'):
+        if ctx.phase == (ctx.fi % 3) and (x + y) % 5 == 0: return hx('#ffffff')                 # one sharp cuff glint
     if name == 'facets' and rn in ('torso', 'collar', 'arms') and y <= tb[1] + 8:
         k = int((x - tb[0]) // max(1, (tb[2] - tb[0]) / 3))                                  # three broad facets across the shoulders
         lead = ctx.strip in ('straight', 'jab', 'stepPunch', 'flightPunch', 'returnPunch') and ctx.fi >= 1
-        if lead and k >= 2: return hx('#fff4f6')                                              # the leading shoulder flashes white
-        if lead and k == 0: return ramp(['#4a1a34', '#6a2a4a', '#8a3c62'], t)                # the rear settles into plum
-        sp = h3(x, y, ctx.phase, 41 + k)
-        if sp > 0.9: return hx('#ffffff')
-        return ramp([['#9a5a6a', '#d89aa8', '#f4c8d2'], ['#a8687a', '#e6aab8', '#ffd8e2'], ['#8a4a5a', '#c88a98', '#ecbcc6']][k % 3], t)
+        if lead and k >= 2: return P('#fff2f4')                                               # the leading shoulder flashes white
+        if lead and k == 0: return P('#8a3c62')                                               # the rear settles into plum
+        return P(['#f0bcc6', '#e6a6b4', '#f8d0d8'][k % 3])
+    if name == 'sparkle_shoulders' and rn in ('torso', 'collar') and y <= tb[1] + 8 and lit:
+        if (x * 5 + y * 3 + ctx.phase * 11) % 19 == 0: return hx('#ffffff')
     if name == 'red_panels' and rn in ('cape', 'lining'):
-        d = ctx.dn                                                                            # three swept red panels: one shows at idle
-        for c0 in (0.18, 0.5, 0.8):
-            if c0 - 0.07 <= d <= c0 + 0.07 and (ctx.ed >= 1.5): return ramp(['#8a0c12', '#c81a22', '#f0343c'], t)
+        for c0 in (0.18, 0.5, 0.8):                                                           # three swept red panels: one shows at idle
+            if c0 - 0.08 <= ctx.dn <= c0 + 0.08 and ctx.ed >= 1.5: return P('#e0262e')
     if name == 'gold_toe' and rn == 'boots' and x >= ctx.bootx - 2:
-        return ramp(['#8a6a14', '#d0a42a', '#f6d46a'], t)
-    if name == 'crystal' and rn in ('torso', 'arms', 'legs', 'collar', 'gloves', 'waist'):
-        cell = h3((x + y) // 5, (x - y) // 5, 0, 51)                                           # angular planes
-        k = 0.65 + 0.55 * cell
-        base = ramp(sk[rn], t) * k
-        if cell > 0.88: base = mix(base, hx('#d8fff0'), 0.5)
-        return np.clip(base, 0, 255)
+        return P('#e8b432')
+    if name == 'crystal' and rn in ('torso', 'arms', 'collar', 'gloves'):
+        band = int((x + y) // 6) % 3                                                          # big diagonal crystal planes
+        return P(['#5cd6a6', '#8ef0c8', '#3cb488'][band])
+    if name == 'flame_cape' and rn in ('cape', 'lining'):
+        d = ctx.dn                                                                            # fire: deep red at the collar → orange → yellow at the tips
+        return P('#c8280a' if d < 0.35 else '#ff6a14' if d < 0.7 else '#ffb42a')
     if name == 'ember_seams' and rn in ('gloves', 'boots') and ctx.ed_body <= 1:
-        return hx('#ff7a1a')                                                                  # orange seams on gloves + boots only
+        return P('#ff8a1a')                                                                   # orange seams on gloves + boots only
     if name == 'reentry_fist' and ctx.strip in ('fly', 'flightPunch', 'meteor', 'grabRush') and ctx.fi == ctx.n - 1:
-        if rn == 'gloves': return ramp(['#d8b040', '#fff07a', '#ffffd0'], t)                  # fastest frame: leading fist pale yellow
-        if rn == 'boots': return ramp(['#8a1404', '#e83a0a', '#ff7a2a'], t)                   # trailing boots ember-red
+        if rn == 'gloves': return P('#fff07a')                                                # fastest frame: leading fist pale yellow
+        if rn == 'boots': return P('#ff5a1a')                                                 # trailing boots ember-red
     if name == 'tie' and rn in ('torso', 'collar'):
         cx = g['neck'][0] if g.get('neck') else (tb[0] + tb[2]) / 2
         if abs(x - cx) <= 1 and y >= (g['neck'][1] if g.get('neck') else tb[1]) - 1:
-            return hx('#4a3a0a') if (x + y) % 3 == 0 else ramp(['#a88014', '#d8aa2a', '#f2c84a'], t)   # mustard tie, dark spots
+            return P('#3a2a0c') if (x + 2 * y) % 4 == 0 else P('#e0b030')                     # leopard-print tie
     if name == 'cheek_marks' and rn == 'face' and g.get('face'):
         f = g['face']; ey = f[1] + (f[3] - f[1]) * 0.55
         if abs(y - ey) < 0.6 and (abs(x - (f[0] + 2)) < 1.5 or abs(x - (f[2] - 2)) < 1.5): return hx('#1a0a12')
     if name == 'pink_edge' and rn in ('cape', 'lining') and ctx.ed <= 1.2:
-        return ramp(['#9a6a7a', '#c890a0', '#e8b4c2'], t)
+        return P('#e48aa4')
     if name == 'wrist_band' and rn == 'gloves' and ctx.near_arm:
-        return hx('#3a1030')
-    if name == 'knit' and rn in ('torso', 'arms', 'collar'):
-        return ramp(sk[rn], t) * (0.9 + 0.14 * ((x + (y // 2)) % 2))
-    if name == 'denim' and rn == 'legs':
-        return ramp(sk['legs'], t) * (0.92 + 0.12 * h3(x, y // 2, 0, 61))
+        return P('#e48aa4')
     if name == 'blanket_stripe' and rn in ('cape', 'lining') and 1.5 <= ctx.ed <= 3:
-        return ramp(['#c8b48a', '#ecdcb6', '#fff6dc'], t)
-    if name == 'halftone' and rn in ('cape', 'lining') and t < 0.75:
-        if (x % 3 == 1 and y % 3 == 1) or (ctx.dn > 0.5 and (x + y) % 4 == 0): return hx('#1c2a4a')
+        return P('#f2e2bc')
+    if name == 'ink' and rn not in ('face', 'eyes', 'hair', 'moustache', 'temples') and ctx.t < 0.6:
+        return hx('#1c2a4a')                                                                  # every shadow = flat navy ink (cel)
+    if name == 'ink' and rn not in ('face', 'eyes', 'hair', 'moustache', 'temples'):
+        return hx(sk[rn]) if isinstance(sk.get(rn), str) else col                             # … and flat print colour in the light
     if name == 'misprint' and rn == 'streaks':
         return hx('#00aadc') if y % 2 == 0 else hx('#e0402a')                                  # misaligned cyan + red
     if name == 'brass_lines' and rn in ('cape', 'lining') and ctx.ed >= 1.5:
         for c0 in (0.42, 0.55, 0.68):
-            if abs(ctx.dn - c0) < 0.028: return ramp(['#8a6a1c', '#d0a840', '#f4d47a'], t)
+            if abs(ctx.dn - c0) < 0.03: return P('#e0b84c')
     if name == 'cream_arm' and rn == 'arms' and ctx.ed_body <= 1:
-        return hx('#f2e8cc')
+        return P('#f2e8cc')
     if name == 'reflective' and rn in ('cape', 'lining'):
         for c0 in (0.45, 0.72):
-            if abs(ctx.dn - c0) < 0.05: return ramp(['#b8bcc0', '#e8ecf0', '#ffffff'], t)
+            if abs(ctx.dn - c0) < 0.055: return P('#eef2f6')
     if name == 'piping' and rn in ('torso', 'arms', 'collar') and ctx.ed_body <= 1:
-        return hx('#efe4c2')
+        return P('#efe4c2')
     if name == 'trunks' and rn == 'legs' and g.get('hip') and np.hypot(x - g['hip'][0], y - g['hip'][1]) < 7:
-        return ramp(['#3a0c10', '#5a141a', '#7a2028'], t)
+        return P('#7e2430')
     if name == 'gold_n' and rn in ('cape', 'lining') and ctx.strip in ('fly', 'meteor', 'grabRush', 'orbitHold', 'flightPunch') and ctx.n_box:
         bx0, by0, bw, bh = ctx.n_box
         u, v = (x - bx0) / bw, (y - by0) / bh
-        if 0 <= u <= 1 and 0 <= v <= 1 and (u < 0.25 or u > 0.75 or abs(u - v) < 0.22): return ramp(['#a8801c', '#e2b440', '#ffe08a'], 0.6)
+        if 0 <= u <= 1 and 0 <= v <= 1 and (u < 0.25 or u > 0.75 or abs(u - v) < 0.22): return hx('#f0c040')
     if name == 'buckle' and rn == 'waist' and g.get('neck') and abs(x - g['neck'][0]) <= 1:
         return hx('#2ab8b0')
     if name == 'saddle' and rn in ('cape', 'lining'):
-        if 1 <= ctx.ed <= (2.5 if int(ctx.dn * 10) % 2 == 0 else 1.6): return ramp(['#b8a888', '#e2d4b2', '#f4ead0'], t)   # one stepped ivory border
-        if int(ctx.dn * 12) % 3 == 1: return ramp(['#1a3a4a', '#2a5a6a', '#3a7a8a'], t)
-    if name == 'brush' and rn in ('torso', 'legs', 'collar') and h3(x // 2 + y // 3, y // 2, 0, 71) > 0.84:
-        return ramp(['#0e2a7a', '#1a40a8', '#2a58c8'], 0.5 + t * 0.5)
+        if 1 <= ctx.ed <= 2.5: return P('#f0e4c4')                                            # one ivory border
+        if 0.45 <= ctx.dn <= 0.55: return P('#2a6a7a')                                        # one teal band across the blanket
     if name == 'wave' and rn == 'arms':
-        if (x + int(2 * np.sin(y * 0.9))) % 4 == 0: return hx('#1a40a8')
+        if (x + int(2 * np.sin(y * 0.9))) % 5 == 0: return P('#2350c0')                       # the blue wave on the forearms
+    if name == 'chest_band' and rn == 'torso' and tb[1] + 6 <= y <= tb[1] + 7:
+        return P('#2350c0')
     if name == 'planet_hem' and rn in ('cape', 'lining') and ctx.dn > 0.8:
         k = (ctx.dn - 0.8) / 0.2
-        c = ramp(PLANET, 0.15 + 0.85 * k)
-        if h3(x // 2, y, 0, 81) > 0.8 and k > 0.3: c = mix(c, hx('#ffffff'), 0.6)              # clouds
-        if k < 0.12: c = hx('#bfe0ff')                                                         # the bright limb (a sliver at idle)
-        return c
+        if k < 0.12: return hx('#bfe0ff')                                                     # the bright limb (a sliver at idle)
+        return P(PLANET[min(4, 1 + int(k * 3))])                                              # Earth from orbit: bands of ocean blue
     return col
 
 
@@ -371,10 +366,10 @@ def recolor_strip(name, fw, n, sk, phase=0, head_only=False):
         rid = int(reg[y, x]); rn = M.REGIONS[rid]
         fi, lx = x // fw, x % fw
         stops = sk.get(rn)
-        t = float(tone[y, x])
-        col = ramp(stops, t) if stops else a[y, x, :3].astype(np.float32)
+        t = float(tone[y, x]); src = a[y, x, :3]
+        col = shade(stops, src) if isinstance(stops, str) else (ramp(stops, t) if stops else src.astype(np.float32))
         if pats:
-            ctx = Ctx(); ctx.rn = rn; ctx.t = t; ctx.x = lx; ctx.y = y; ctx.g = geos[fi]; ctx.fi = fi; ctx.n = n; ctx.fw = fw
+            ctx = Ctx(); ctx.rn = rn; ctx.t = t; ctx.src = src; ctx.x = lx; ctx.y = y; ctx.g = geos[fi]; ctx.fi = fi; ctx.n = n; ctx.fw = fw
             ctx.strip = name; ctx.phase = phase; ctx.dn = float(dn[y, x]); ctx.ed = float(ed[y, x]); ctx.ed_body = float(ed_body[y, x])
             ctx.near_arm = bool(glove[y, x] and armish[y, x]); ctx.bootx = bootx.get(fi, 999); ctx.n_box = nbox.get(fi)
             for p in pats: col = apply_pattern(p, sk, ctx, col)

@@ -6,7 +6,7 @@
 import { MEGUMI_SUMMON_ANIM as SA } from './megumiSprites.js'
 import { TS } from './sukunaShinjukuData.js'
 
-const SCALE = { dogWhite: 2, dogBlack: 2, toad: 3, airToad: 3, nue: 2, airNue: 2, rabbit: 3, serpent: 2, elephant: 2, konMiss: 2, konHit: 2, mahoraga: 3 }   // = Megumi's SUMMON_SCALE
+const SCALE = { dogWhite: 2, dogBlack: 2, toad: 3, airToad: 3, nue: 2, airNue: 2, rabbit: 3, serpent: 2, elephant: 2, konMiss: 2, konHit: 2, mahoraga: 3.75 }   // = Megumi's SUMMON_SCALE; Mahoraga ×1.25 bigger (user: "make the Mahoraga a little big")
 const FLOOR = { sheet: './assets/sukuna_shinjuku/ten_shadows/domainFloor.png', frames: 15, width: 328, height: 53, line: 46 }
 // strip timelines: elapsed frame → cell, in the sheet's own order (matched to the sim frames in sukunaShinjukuData.js TS)
 const TL = {
@@ -70,7 +70,7 @@ function drawOne(c, z) {
     case 'kon': pool(c, z.x, z.y, 50); cell(c, z.br === 'hit' ? 'konHit' : 'konMiss', at(z.br === 'hit' ? TL.konHit : TL.konMiss, t), z.x, z.y, d); break
     case 'ele': pool(c, z.x + d * 40, z.y, 90); cell(c, 'elephant', at(TL.elephant, t), z.x, z.y, d); break
     case 'maho': {
-      if (t < 24 || t >= 104) pool(c, z.x, z.y, 70, 0.6)   // the leap height is in the sheet's own cells (5-11)
+      if (t < 24 || t >= 104) pool(c, z.x, z.y, 88, 0.6)   // the leap height is in the sheet's own cells (5-11)
       else pool(c, z.x, z.y, 40, 0.35)
       if (z.inv > 0 && z.inv % 4 < 2) { c.save(); c.globalAlpha = 0.7 }
       cell(c, 'mahoraga', at(TL.mahoraga, t), z.x, z.y, d)
@@ -82,9 +82,9 @@ function drawOne(c, z) {
 function drawWave(c, w) {   // Mahoraga's crescent wave (blue-white, like the waves in his own cells)
   const a = Math.max(0, 1 - w.t / TS.maho.wave.life)
   c.save(); c.globalAlpha = 0.85 * a; c.globalCompositeOperation = 'lighter'
-  for (const [r, col, lw] of [[64, '#3d8bff', 10], [60, '#bfe6ff', 5], [57, '#ffffff', 2]]) {
+  for (const [r, col, lw] of [[80, '#3d8bff', 12], [75, '#bfe6ff', 6], [71, '#ffffff', 2]]) {
     c.strokeStyle = col; c.lineWidth = lw; c.beginPath()
-    c.ellipse(w.x - w.dir * 30, w.y - 64, r * 0.55, r, 0, w.dir === 1 ? -1.2 : Math.PI - 1.2 + 0.0, w.dir === 1 ? 1.2 : Math.PI + 1.2)
+    c.ellipse(w.x - w.dir * 38, w.y - 80, r * 0.55, r, 0, w.dir === 1 ? -1.2 : Math.PI - 1.2 + 0.0, w.dir === 1 ? 1.2 : Math.PI + 1.2)
     c.stroke()
   }
   c.restore()

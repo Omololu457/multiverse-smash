@@ -32,7 +32,7 @@ All strips are one row of cells.
 | 7 | Nue air blast | `airNue.png` | 10 | 126×94 | no |
 | 8 | Totality MISS / HIT | `konMiss.png` / `konHit.png` | 7 / 10 | 124×65 / 122×74 | no |
 | 9 | Max Elephant | `elephant.png` | 16 | 287×80 | no (cells 6–12 = beam) |
-| 10 | Mahoraga | `mahoraga.png` | 29 | 188×228 | no |
+| 10 | Mahoraga | `mahoraga.png` | 29 | 188×228 | no (drawn ×3.75: 1.25× Megumi's scale, user request) |
 | 11 | Chimera Shadow Garden | `assets/megumi_fushiguro/ultDomain.png` → **`assets/sukuna_shinjuku/ten_shadows/domainFloor.png`** | 15 | 328×53 | **yes in the source**: Megumi crouches in the centre of every cell. Removed (see below). |
 | 12 | Win-pose Nue | `nue.png` cells 1–3 (flying) | — | — | The sheet's Nue landing exists only fused with Megumi in `win.png`, so it is **not used**. |
 

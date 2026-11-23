@@ -73,8 +73,8 @@ export const TS = {
   datto: { count: 6, life: 120, spread: [-64, -36, -12, 14, 40, 66], w: 26, h: 22, reach: 40, raw: 6, hitstun: 10, alpha: 0.5 },
   kon: { vx: 12, run: 22, active: [4, 18], w: 140, h: 80, missLife: 46, hitLife: 52, claws: [12, 22, 32], raw: [24, 24, 40], hitstun: 40, kbx: 10, kby: -9, hold: 30 },
   ele: { behind: 24, release: 26, beam: [36, 76], every: 6, lane: [120, 450], laneY: 40, laneH: 44, raw: 14, hitstun: 16, kbx: 3, life: 120, w: 160, h: 90 },
-  maho: { ahead: 40, leapAt: 24, landAt: 52, slashAt: [70, 80, 90], backAt: 100, sinkAt: 112, end: 136, gap: 80, landR: 90, landRaw: 50,
-    wave: { vx: 15, life: 40, w: 60, h: 130, raw: 60, hitstun: 30, kbx: 9, kby: -7 }, hp: 4, w: 100, h: 200, back: 30 },
+  maho: { ahead: 50, leapAt: 24, landAt: 52, slashAt: [70, 80, 90], backAt: 100, sinkAt: 112, end: 136, gap: 100, landR: 112, landRaw: 50,   // body ×1.25 (drawn 3.75×)
+    wave: { vx: 15, life: 40, w: 75, h: 162, raw: 60, hitstun: 30, kbx: 9, kby: -7 }, hp: 4, w: 125, h: 250, back: 38 },
   dom: { frames: 540, cdRate: 2, speed: 1.25, slow: 0.6 },                                            // Chimera Shadow Garden: 9 s
 }
 

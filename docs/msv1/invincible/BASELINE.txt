@@ -1,0 +1,36 @@
+MSV1-INVINCIBLE BASELINE — clean HEAD 0beadf134814bfa3434f44cac671b21b177b6473 (git archive of HEAD into a scratch tree;
+the main folder has other sessions' uncommitted edits to aiMaster.js / game.js / tools/ai_scout + docs screenshots — not
+touched, never staged), 2026-11-22
+
+determinism.test         DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo_standard_audit     COMBO-STANDARD AUDIT: 235 passed, 9 failed
+up_attack_roster.test    UP-ATTACK ROSTER: 77 passed, 2 failed
+credits.test             RESULT: 11 passed, 3 failed
+roster_integrity.test    ✅ characters.js imported cleanly — load-path guard PASSED
+replay_playback.test     REPLAY PLAYBACK (Stage 11C): 8 passed, 1 failed
+net_online.test          NET ONLINE (Stage 3): 11 passed, 0 failed
+render                   MSV1 RENDER CHECK homelander vs superman: 11 passed, 0 failed
+                         (omniman vs superman times out waiting for the luffyTest "ready" state at baseline too — harness
+                          limitation with the old canFly Omni-Man, not a game error; homelander vs superman is the reference)
+
+FRAME-DATA snapshot: docs/msv1/invincible/FRAMEDATA_BEFORE.json — 165 characters, skin sets, kits, flight profiles
+(harness/omniman_framedata.mjs snap; flight.js FLIGHT_PROFILES hashed too). After = harness/invincible_framedata.mjs diff.
+
+Green = no worse than this. Expected deliberate change: roster 165 → 166 (invincible added) — the roster-count lines in
+combo_standard_audit move by that one key.
+
+Raw failing lines at baseline (all pre-existing, none Invincible):
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dseyl, elastigirl, enoch, frozone, gogeta, gojo_shinjuku, goku_rose, green_arrow, green_ranger, higuruma, homelander, krybot, megumi_fushiguro, meruem, mmpr
+  ❌  classification covers the full roster exactly  — covered 123 vs roster 165
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (122)  — classified 123, roster 165
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 165 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 163/165
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (5): green_arrow, homelander, kakashi_anbu, ghostface_exe, soldier_boy
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster

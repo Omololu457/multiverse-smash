@@ -278,8 +278,8 @@ export function drawIppoUltScreen(ctx, canvas, S) {
   // 7) letterbox + subtitles
   const lbIn = clamp(S.real / 10, 0, 1), lbOut = k >= T.out ? clamp(1 - (k - T.out) / 14, 0, 1) : 1
   letterbox(ctx, W, H, Math.min(lbIn, lbOut))
-  if (k >= 2 && k < T.weave + 20) subtitle(ctx, W, H, 'IPPO', '“Slug it out! Fighting spirit!”  打ち合うんだ！気合いだ！', Math.min((k - 2) / 6, (T.weave + 20 - k) / 10), { who: '#ff5a4a' })
-  if (k >= T.finish - 4 && k < T.upper + 4) subtitle(ctx, W, H, 'IPPO', '“This is the finish!”  これでフィニッシュです！', Math.min((k - T.finish + 4) / 6, (T.upper + 4 - k) / 4), { who: '#ff5a4a' })
+  if (k >= 2 && k < T.weave + 20) subtitle(ctx, W, H, 'IPPO', '“I\'m the challenger — all out, start to finish!”  挑戦者なんだから！ガンガン行くぞ！', Math.min((k - 2) / 6, (T.weave + 20 - k) / 10), { who: '#ff5a4a' })
+  if (k >= T.finish - 4 && k < T.upper + 4) subtitle(ctx, W, H, 'IPPO', '“Let this be the finish!”  これで終わりにしてください！', Math.min((k - T.finish + 4) / 6, (T.upper + 4 - k) / 4), { who: '#ff5a4a' })
   return true
 }
 

@@ -6,7 +6,7 @@
 //                               when it fires, starts the freeze.
 //   registerFreezeCine('baki_oni') → game.js freezes combat / physics / input and calls update(ctx).
 // BEATS (script frames k, 60 fps):
-//   BREATH    0-34    letterbox in, a slow push on Baki; the knuckles crack; "My body… is telling me to take you down."
+//   BREATH    0-34    letterbox in, a slow push on Baki; the knuckles crack; "I'll get even stronger."
 //   TURN     34-70    he turns his back to the foe — the camera rides up his spine; the muscles knot and swell, red veins pulse
 //   THE FACE 70-120   a full-screen close-up of the back: the muscles form a DEMON'S FACE, its eyes ignite; ONI NO SE title;
 //                     heartbeat thumps shake the frame
@@ -18,7 +18,7 @@ import { executeBakiUltimate } from './abilities.js'
 import { clearInputBuffer } from './input.js'
 import { drawBakiUltScreen, preloadBakiUlt, BAKI_T as T } from './bakiUltFx.js'
 
-const VOICE = { a: 'baki_003.mp3', b: 'baki_004.mp3' }
+const VOICE = { a: 'baki_009.mp3', b: 'baki_004.mp3' }
 const c = { active: false }
 export const isBakiUltActive = () => !!c.active
 export const bakiUltScene = () => (c.active ? c : null)

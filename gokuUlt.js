@@ -43,9 +43,9 @@ export const GOKU_ULT_VOICE = {
   base: ['goku_029.mp3', "I've still got more left in me!"],
   ssj: ['goku_017.mp3', "My name is Goku, and I'm a Saiyan!"],
   ssj2: ['goku_001.mp3', "I'm your worst nightmare."],
-  ssj3: ['goku_002.mp3', 'A Saiyan from Earth!'],
+  ssj3: ['goku_011.mp3', "I want to see what you can do. My name's not Kakarot!"],
   god: ['goku_007.mp3', "This guy's a cut above the rest!"],
-  blue: ['goku_010.mp3', "All out! You're a lot stronger now, right?"],
+  blue: ['goku_030.mp3', 'Let\'s go again! The more you fight, the stronger you get!'],
   ui: ['goku_032.mp3', 'Have you even been training?'],
 }
 

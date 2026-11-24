@@ -5,7 +5,7 @@
 //                                 sure-hit, range-independent barrage as the legacy ult (it never had an opener).
 //   registerFreezeCine('ippo_dempsey') → while active game.js freezes combat / physics / input and calls update(ctx).
 // BEATS (script frames k, 60 fps; hit-stop holds k for a few real frames on every hook, 26 on the Gazelle):
-//   PEEK-A-BOO  0-40    the arena dims to a ring spotlight, ropes behind; camera pushes in on his guard; "Slug it out!"
+//   PEEK-A-BOO  0-40    the arena dims to a ring spotlight, ropes behind; camera pushes in on his guard; "I'm the challenger!"
 //   DASH       40-52    he drops low and closes the gap in a blur
 //   WEAVE      52-104   the ∞ figure-eight weave: a glowing infinity trail, after-images; DEMPSEY ROLL title slam
 //   THE ROLL  104-190   12 alternating hooks on the weave's apexes, ACCELERATING; head snapping side to side, sweat spray,
@@ -24,7 +24,7 @@ import { drawIppoUltScreen, preloadIppoUlt, IPPO_T as T, IPPO_HOOKS as HOOKS, we
 import { playIppoUltSound } from './ippoUltSound.js'
 
 export const B = { cost: 100, upperRaw: 140, blockMult: 0.25, gap: 64, amp: 16, launchH: 190, slide: 250 }
-const VOICE = { start: 'ippo_098.mp3', finish: 'ippo_140.mp3' }
+const VOICE = { start: 'ippo_165.mp3', finish: 'ippo_125.mp3' }
 
 const c = { active: false }
 export const isIppoUltActive = () => !!c.active

@@ -69,7 +69,7 @@ export function drawBakiUltScreen(ctx, canvas, S) {
   ctx.restore()
   const lbIn = clamp(S.real / 10, 0, 1), lbOut = k >= T.out ? clamp(1 - (k - T.out) / 14, 0, 1) : 1
   letterbox(ctx, W, H, Math.min(lbIn, lbOut))
-  if (k >= 2 && k < T.face) subtitle(ctx, W, H, 'BAKI', '“My body… is telling me to take you down.”  体がね… あんたをやっちゃえって', Math.min((k - 2) / 6, (T.face - k) / 8), { who: '#ff5a4a' })
+  if (k >= 2 && k < T.face) subtitle(ctx, W, H, 'BAKI', '“I\'ll get even stronger.”  もっと強くなります', Math.min((k - 2) / 6, (T.face - k) / 8), { who: '#ff5a4a' })
   return true
 }
 

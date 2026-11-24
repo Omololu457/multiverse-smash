@@ -368,10 +368,10 @@ try {
     const a0 = await p1(); await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); }, a0.x + (a0.facing === 1 ? 150 : -150));
     await actionable();
     const e0 = (await p1()).energy, hp0 = (await p2()).health;
-    const cine = () => page.evaluate(() => window.__harness.vegetaUltCine());
+    const cine = () => page.evaluate(() => (window.__vegetaUltStatus?.().active ? window.__vegetaUltStatus() : window.__harness.vegetaUltCine()));   // 2026-11-24: vegetaUlt.js (registry cinematic) reports the legacy shape
     await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
     let active = false, struck = false, shot = false; const phases = new Set();
-    for (let i = 0; i < 240; i++) {
+    for (let i = 0; i < 420; i++) {
       const c = await cine();
       if (c.active) active = true;
       if (c.phase) phases.add(c.phase);

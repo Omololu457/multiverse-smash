@@ -1,0 +1,29 @@
+MSV1-MEGAZORD BASELINE — clean HEAD 26568a4fe89bda6c5f9decf7e2c9626b06156284 (git archive export, 2026-11-24)
+determinism        14 passed / 0 failed
+combo-standard     235 passed / 9 failed
+up-attack-roster   77 passed / 2 failed
+credits            11 passed / 3 failed
+roster-integrity   PASS (guard verified)
+replay_playback    8 passed / 1 failed
+net_online         11 passed / 0 failed
+
+Pre-existing failures (names):
+-- combo_standard_audit
+  ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dinothunder, dseyl, dt_blue, dt_red, dt_white, dt_yellow, elastigirl, enoch, frozone, gogeta, go
+  ❌  classification covers the full roster exactly  — covered 123 vs roster 179
+  ❌  true zoners = 34  — got 35
+  ❌  grand total = roster (122)  — classified 123, roster 179
+  ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  ❌  ALL 179 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 177/179
+  ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+-- up_attack_roster.test
+  ❌  superman: frames = 5/4/10  — 5/4/12
+  ❌  ghostface: frames = 4/3/6  — 5/3/8
+-- credits.test
+  ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (15): mmpr_rangers, spd_rangers, ns_blue, ns_navy, ns_green, dt_red, dt_blue, dt_yellow, dt_white, ns_squad, green_arrow, 
+  ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  ❌ FAIL  in-game attributed-key set covers the full roster
+-- replay_playback.test
+  FATAL waitFrames timeout (20 s) in 'playback reproduces recorded state' — harness timing under machine load, not a logic assert

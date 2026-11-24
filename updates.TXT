@@ -3195,3 +3195,24 @@ Glitter Dragonfly Foil, Midnight Sushi, Saturday Morning Sketchbook (line-up: do
 Docs: docs/msv1/dino/ (AUDIT, SPRITE_MAP, DINO_FRAMEWORK, COMBOS, BALANCE_NOTES, FINAL.txt, screenshots).
 Tests: dino 46/0, skins 17/0, frame-data diff 11/0 (every other character unchanged); determinism 14/0, combo 235/9,
 up-attack 77/2, credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0 — all equal to the baseline.
+
+=== 2026-11-24 — MSV1-MEGAZORD: THUNDER MEGAZORD, a new ULTIMATE for the Mighty Morphin Rangers (U + L) ===
+The Mighty Morphin Rangers (mmpr_rangers) can now call the THUNDER MEGAZORD: press U + L together (P2: 5 + 4, pad R2 + R1)
+with a full meter, once per round. It is an add-on ultimate, not a character (no roster entry, no select tile, no CPU slot).
+CINEMATIC (~3 s): the active Ranger strikes their call pose ("We need Thunder Megazord power, now!"), the five Thunderzord
+captions in Ranger colours, lightning, the Ranger vanishes upward, the Megazord drops in on one knee, rises with the saber
+("Thunder Megazord, power up!") and its portrait cuts in.
+MEGAZORD MODE (12 s): 600 ARMOR takes every hit while the Ranger's health is frozen; super armor (only supers / ultimates
+stagger it); cannot be grabbed; can block; slow walk, short jump, no dash, no Ranger swaps. Light / Heavy punches and kicks
+(crouch Heavy = low flame sweep), air attacks, THUNDER SABER SLASH (Special), AIR SABER, RISING SABER (↑ + Special),
+THUNDER FIREBALL (↓↘→ + Special, full screen), SABER LUNGE (→→ + Special, half the screen), SABER CHARGE (↓↓ + Special:
+shocks attackers, then +50 % on the next saber). U + L again = THUNDER SABER FINAL STRIKE (250, screen flash).
+It separates after the finisher, when time runs out, or when the armor breaks (collapse, then 30 vulnerable frames): the
+calling Ranger drops back in with the health they had. The Megazord keeps its own colours under every team skin. The CPU
+calls it on an opening, guards against supers and finishes before time runs out. Servo footsteps, metal impacts, flame
+roars, Saber Charge hum, fireball whoosh-boom and thunder cracks are synthesised (no voice clips).
+Sprites: Thunder Megazord from MMPR: The Fighting Edition (SNES), ripped by Grim (credit in game + docs/msv1/megazord/CREDITS.md).
+Docs: docs/msv1/megazord/ (AUDIT, BASELINE, SPRITE_LEDGER, CREDITS, FINAL.md, screenshots 01–09).
+Tests: megazord 55/0, frame-data diff 0 / 12,028 entries (every character and every MMPR Ranger form unchanged);
+determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0,
+MMPR Pink 14 / Black 15 / White 23 passed, Green 15/2 — all equal to the baseline.

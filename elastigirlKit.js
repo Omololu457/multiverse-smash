@@ -47,7 +47,7 @@ export const ELASTIGIRL_KIT = { type: 'Footsies / Grappler', energy: 'Elasticity
     { name: 'Bounce Back', input: '← ← + Light', desc: 'A rubber hop backwards, invulnerable on frames 4–12. 5 s cooldown.' },
     { name: 'Rubber Body', input: 'Passive', desc: '−15 % damage from melee normals only.' },
   ],
-  ultimate: { name: 'Family Raft', input: '↓↘→↓↘→ + Special (or Ultimate)', cost: 100, desc: 'R14 windup (24 f), then Helen becomes a raft carrying Dash and Violet and surges across the stage: 4 hits 40 / 40 / 50 / 90 (220). Ends in a 100 f lockout.' },
+  ultimate: { name: 'Family Raft', input: '↓↘→↓↘→ + Special (or Ultimate)', cost: 100, desc: 'R14 windup (24 f), then Helen becomes a raft carrying Dash and Violet and surges across the stage. A clean raft hit becomes a cinematic: her arms snatch the foe, whip them into the floor behind her and in front, slingshot her into a flying kick, then a GIANT FIST slams them into the ground (5 hits, 250 dealt — the same as the old 4-hit surge). A whiff or block still surges and ends in a 100 f lockout.' },
   controls: ELASTIGIRL_CONTROLS,
   combos: [
     { name: 'Footsies confirm', sequence: 'Jab → Jab → Heavy → Long Arm (↓↘→ + Special)', desc: 'Clean-hit chain into the Long Arm pull. ≈106 (harness: 73 dealt = 122 stored-scale on the engine curve). 12 Elasticity.' },

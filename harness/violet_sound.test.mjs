@@ -60,7 +60,8 @@ try {
   // FULL FORCE: sine 80 Hz swell 0.8 s → noise burst 0.6 s (burst on the detonation)
   await reset(240, false, { energy: 100 }); await clear(); await press(['u']); await step(2)   // cues queued by the command layer play on the next sim tick
   { const os = await oscs(); ck('FULL FORCE: sine 80 Hz swell 0.8 s timed to peak on the detonation', os.some(o => o.type === 'sine' && near(o.f[0], 80, 80 * PITCH) && near(o.stop - o.start, 0.82, 0.011)), os) }
-  await clear(); for (let i = 0; i < 90; i++) await step(1)
+  // the detonation lands ~217 frames after the cast now (FULL FORCE cinematic: trap → slams → crush → detonation)
+  for (let i = 0; i < 200; i++) await step(1); await clear(); for (let i = 0; i < 40; i++) await step(1)
   { const nz = await noises()
     ck('FULL FORCE: noise burst 0.6 s on the detonation (hash-seeded buffer)', nz.length >= 1 && nz[0] !== 0, { nz }) }
   // seeded noise: same hash → same buffer; the sim cues are only read

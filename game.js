@@ -3,7 +3,8 @@ import { isSquadKey } from "./squadCore.js"   // every Ranger squad (S.P.D. Rang
 import "./mmprSquad.js"   // Mighty Morphin Rangers squad registers itself
 import { tickSpdSquad, spdSquadRoundReset, spdSquadCpu, squadSwap, squadState, squadPreloadKeys } from "./spdSquad.js"   // S.P.D. Rangers: the B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P Ranger dial
 import { drawSpdSquadFx, drawSquadUltScreen } from "./spdSquadFx.js"   // + the squads' TEAM ULTIMATE screen pass (squadUltFx.js)
-import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
+import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"
+import { anyFreezeCineActive, updateFreezeCines, clearFreezeCines, drawCineScreens } from "./cineRegistry.js"   // shared FROZEN-CINEMATIC + screen-overlay slot (the Incredibles' ultimates)   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
@@ -1547,6 +1548,7 @@ function _rewindUnsafeNow() {
   if (domainCine.timer > 0 || domainCine.caster) return true
   if (isChrolloSkillHunterCinematicActive()) return true
   if (isSquadUltActive()) return true   // Ranger squads' TEAM ULTIMATE
+  if (anyFreezeCineActive()) return true   // cineRegistry.js cinematics
   return !!kevinCashOwner([p1,p2]) || isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isZordUltCineActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isSpdYellowUltActive() || isCyborgUltActive() || isBeastBoyUltActive() || isRavenUltActive() || isStarfireUltActive() || isRobinUltActive() || isMegumiUltActive() || isHigurumaUltActive() || isSyndromeUltActive() || isDseylUltActive() || isFrozoneUltActive() || isEnochUltActive() || isBatmanUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
 }
 
@@ -1614,6 +1616,7 @@ function _rewindTeardown() {
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
+  clearFreezeCines()   // every cineRegistry.js cinematic (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -5900,6 +5903,7 @@ function resetRound() {
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
+  clearFreezeCines()   // every cineRegistry.js cinematic (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -7132,6 +7136,7 @@ function resetToStart() {
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
+  clearFreezeCines()   // every cineRegistry.js cinematic (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -11390,6 +11395,7 @@ function _doRematch() {
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
   clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
+  clearFreezeCines()   // every cineRegistry.js cinematic (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -22602,6 +22608,12 @@ function updateBattle() {
     return
   }
   // RANGER SQUADS' TEAM ULTIMATE (W + U — S.P.D. Judgment Volley / Mighty Morphin Five-Point Star): the same freeze contract.
+  // cineRegistry.js cinematics (the Incredibles' ultimates …): the same freeze contract, with camera / sound access.
+  if (anyFreezeCineActive()) {
+    updateFreezeCines({ camera, sound, hitEffects: hitSparks, damageNumbers })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   if (isSquadUltActive()) {
     updateSquadUlt({ camera, sound, hitEffects: hitSparks, damageNumbers })
     if (typeof camera.advance === "function") camera.advance(canvas)
@@ -22670,13 +22682,13 @@ function updateBattle() {
   }
   // SYNDROME "OPERATION KRONOS: FINAL DEMONSTRATION": the same freeze contract (syndromeState.js).
   if (isSyndromeUltActive()) {
-    updateSyndromeUlt()
+    updateSyndromeUlt({ camera, sound, hitEffects: hitSparks, damageNumbers })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
   // FROZONE "ABSOLUTE ZERO: CITY ON ICE": the same freeze contract (frozoneState.js).
   if (isFrozoneUltActive()) {
-    updateFrozoneUlt()
+    updateFrozoneUlt({ camera, sound, hitEffects: hitSparks, damageNumbers })
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
@@ -25815,7 +25827,8 @@ function drawBattle() {
   drawScreenBreaker(ctx, canvas)       // SCREEN BREAKER: the cracked glass + smear + banner (screen space)
   drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
   const _cineHidesHud = drawDinoZrexCinematic(ctx, canvas) || isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || signatureFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
-  const _squadUltHud = drawSquadUltScreen(ctx, canvas)   // Ranger squads' TEAM ULTIMATE: letterbox / cards / flashes (screen space)
+  const _regCineHud = drawCineScreens(ctx, canvas)   // cineRegistry.js screen overlays (letterbox / cards / flashes)
+  const _squadUltHud = drawSquadUltScreen(ctx, canvas) || _regCineHud   // Ranger squads' TEAM ULTIMATE: letterbox / cards / flashes (screen space)
   if (!_cineHidesHud && !_squadUltHud) drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()

@@ -4,7 +4,7 @@
 import fs from 'node:fs'
 import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
-import {dash_parr as DASH_DEF,DASH_STATS,INCREDI_RUSH} from '../dashParrData.js'
+import {dash_parr as DASH_DEF,DASH_STATS,INCREDI_RUSH,RUSH_SCENE} from '../dashParrData.js'
 import {ROSTER_DAMAGE_BOOST} from '../rosterParity.js'
 const WALK_FEEL=+(fs.readFileSync(new URL('../physics.js',import.meta.url),'utf8').match(/export const WALK_FEEL = ([0-9.]+)/)||[0,1])[1]   // physics.js roster-wide walk multiplier
 // ROSTER PARITY boost (rosterParity.js), applied at combat.applyScaledDamage on top of the floored per-hit damage:
@@ -114,14 +114,19 @@ try{
  // ── PHASE 4: ULTIMATE
  const ult=await ev(()=>{const H=__harness.dashParrTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1460;a.facing=1;a.energy=100;const hp0=b.health,mx=[]
   const ok=H.move('rush');let lockedAt=-1,freeAt=-1,lastHit=-1,hits=0,last=b.health,bx=b.x
-  for(let i=1;i<=320;i++){__harness.luffyTest.step(1);if(a._dashParr?.ult&&lockedAt<0)lockedAt=i;if(b.health<last){hits++;lastHit=i;last=b.health;mx.push(Math.round(b.x-bx))}if(freeAt<0&&!a.attacking&&i>5)freeAt=i}
-  return {ok,energy:a.energy,dmg:hp0-b.health,hits,lockedAt,lastHit,freeAt,bMoved:mx}})
+  let lockAtFree=-1,kdAtFree=false
+  for(let i=1;i<=360;i++){__harness.luffyTest.step(1);if(a._dashParr?.ult&&lockedAt<0)lockedAt=i;if(b.health<last){hits++;lastHit=i;last=b.health;mx.push(Math.round(b.x-bx))}if(freeAt<0&&!a.attacking&&i>5){freeAt=i;lockAtFree=a._dashParr?.lock??-1;kdAtFree=!!b.knockdownState}}
+  return {ok,energy:a.energy,dmg:hp0-b.health,hits,lockedAt,lastHit,freeAt,lockAtFree,bMoved:mx,knockdown:kdAtFree}})
  report.ultimate=ult
  const RUSH_DMG=INCREDI_RUSH.damage.reduce((t,d)=>t+mel(d),0)
  ck(`INCREDI-RUSH: 12 hits = ${RUSH_DMG} (200 unscaled, each hit ×${BOOST})`,ult.hits===12&&ult.dmg===RUSH_DMG,JSON.stringify(ult))
- ck('INCREDI-RUSH lasts 3 s (180f storm) then 90f recovery lockout',near(ult.lastHit-ult.lockedAt,180,16)&&near(ult.freeAt-ult.lastHit,90,4),JSON.stringify(ult))
+ // 2026-11-23 cinematic rebuild: the scene runs frozen (dashParrRush.js); the finisher lands at RUSH_SCENE.impact + every hit-stop,
+ // the scene ends RUSH_SCENE.end − impact (+ the impact's own hit-stop) later, then INCREDI_RUSH.recovery frames of lockout.
+ const RS=RUSH_SCENE,fin=RS.impact+RS.stop.reduce((t,v)=>t+v,0)
+ ck(`INCREDI-RUSH cinematic: finisher ≈ ${fin}f after the lock, scene ends ≈ ${RS.end-RS.impact+RS.impactStop}f later, then ${INCREDI_RUSH.recovery}f recovery lockout`,near(ult.lastHit-ult.lockedAt,fin,4)&&near(ult.freeAt-ult.lastHit,RS.end-RS.impact+RS.impactStop,4)&&near(ult.lockAtFree,INCREDI_RUSH.recovery,2),JSON.stringify(ult))
+ ck('INCREDI-RUSH finisher knocks the foe down',ult.knockdown,JSON.stringify(ult))
  ck('opponent is held in place during the storm',ult.bMoved.slice(0,11).every(v=>v===0),JSON.stringify(ult.bMoved))
- const rushDet=await ev(()=>{const run=()=>{const H=__harness.dashParrTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1460;a.energy=100;H.move('rush');const p=[];for(let i=0;i<200;i++){__harness.luffyTest.step(1);const u=a._dashParr?.ult;if(u?.pos)p.push(JSON.stringify(u.pos))}return [...new Set(p)]};return [run(),run()]})
+ const rushDet=await ev(()=>{const run=()=>{const H=__harness.dashParrTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1460;a.energy=100;H.move('rush');const p=[];for(let i=0;i<320;i++){__harness.luffyTest.step(1);const u=a._dashParr?.ult;if(u?.pos)p.push(JSON.stringify(u.pos))}return [...new Set(p)]};return [run(),run()]})
  ck('Rush hit positions are hashed + reproducible',rushDet[0].length===12&&JSON.stringify(rushDet[0])===JSON.stringify(rushDet[1]),String(rushDet[0].length))
  await reset(160,{energy:99});await tap(['u']);s=await state();ck('Rush needs 100 energy',!s.a.attack)
  // ── input parser (real keys)

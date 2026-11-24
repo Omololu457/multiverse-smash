@@ -3,7 +3,7 @@
 // value is hashRandom(match seed, sim frame, player index). Every export is a no-op for any other rosterKey.
 import {DASH_STATS,DASH_PARR_KEY,DASH_PARR_MOVES,MOMENTUM,DASH_ENERGY,DASH_COMBO_SCALE,SIDESTEP,PANIC_RUN,CANT_CATCH_ME,INCREDI_RUSH,SPECIAL_KEYS,FLASH_TIME} from './dashParrData.js'
 import {hashRandom} from './flight.js'
-import {applyScaledDamage} from './combat.js'   // runtime-only use (rush hits); combat.js imports this module's hooks
+import {startDashRush,dropDashRushFor} from './dashParrRush.js'   // INCREDI-RUSH cinematic (registers itself in cineRegistry.js)
 
 export const isDashParr=f=>f?.rosterKey===DASH_PARR_KEY
 export const dashParrState=f=>f._dashParr ||= {tick:0,clock:0,prev:{},edges:{},used:{},hist:[],taps:{fwd:[],back:[],down:[]},
@@ -12,6 +12,7 @@ export const dashParrState=f=>f._dashParr ||= {tick:0,clock:0,prev:{},edges:{},u
 
 export function clearDashParr(f){
  if(!f)return
+ dropDashRushFor(f)
  delete f._dashParr;delete f._dashParrRemoteInput
 }
 const slot=o=>o?.playerNumber||(o?.side==='p2'?2:1)
@@ -230,41 +231,18 @@ export function tickDashParr(f,opp,raw,W,startMove,seed=0){
 }
 
 // ── INCREDI-RUSH (ultimate) ───────────────────────────────────────────────────────────────────────────────
+// The 10f opener; on its lock frame a foe within range starts the FROZEN CINEMATIC (dashParrRush.js), otherwise the
+// move whiffs into a short recovery. The scene owns everything until it ends (s.ult is its JSON mirror for the hash).
 function tickRush(f,opp,s,a,t,W,seed){
  const R=INCREDI_RUSH
- if(t===R.startup){
-  const d=opp?Math.abs((opp.x+opp.w/2)-(f.x+f.w/2)):Infinity
-  if(opp&&opp.health>0&&d<=R.range&&!(opp.invulnTimer>0)){s.ult={hits:0,lx:opp.x,ly:opp.y,pos:null,dealt:0};opp.attacking=false;opp.currentAttack=null;opp.isBlocking=false;s.cues.push('lock')}
-  else{a.timer=Math.min(a.timer,30)}   // whiff: storm skipped, short recovery
- }
- const u=s.ult
- if(!u)return
- const st=t-R.startup
- if(st>=0&&st<R.storm){
-  s.phase=true;f.vx=0;f.vy=0
-  opp.x=u.lx;opp.y=u.ly;opp.vx=0;opp.vy=0;opp.hitstun=Math.max(opp.hitstun||0,4);opp.isBlocking=false;opp.attacking=false;opp.currentAttack=null
-  const every=R.storm/R.hits
-  if(st%every===every-1&&u.hits<R.hits){
-   const pi=slot(f),r1=hashRandom(seed,s.clock,pi),r2=hashRandom(seed,s.clock+7919,pi)
-   const side=r1<0.5?-1:1,ang=r2*Math.PI   // hashed position around the target: side + height arc
-   u.pos={dx:side*(30+Math.round(r2*50)),dy:-Math.round(Math.sin(ang)*60),side,hit:u.hits}
-   const dealt=opp.health
-   applyRushHit(f,opp,R.damage[u.hits])
-   u.dealt+=dealt-opp.health;u.hits++;s.cues.push('rushHit')
-   if(opp.health<=0){endRush(f,opp,s,W,false);return}
-  }
- }
- if(st===R.storm)endRush(f,opp,s,W,false)
+ if(t!==R.startup||s.ult)return
+ const d=opp?Math.abs((opp.x+opp.w/2)-(f.x+f.w/2)):Infinity
+ if(opp&&opp.health>0&&d<=R.range&&!(opp.invulnTimer>0)&&!opp.isGrabbed&&startDashRush(f,opp,W,seed)){opp.attacking=false;opp.currentAttack=null;opp.isBlocking=false}
+ else a.timer=Math.min(a.timer,30)   // whiff: no scene, short recovery
 }
-function applyRushHit(f,opp,v){applyScaledDamage(opp,v,{scale:1,attacker:f,move:'rush',source:'dash_parr_rush',tier:'big'});opp.colorFlash=6}
 function endRush(f,opp,s,W,interrupted){
- const u=s.ult;s.ult=null;s.phase=false
- if(!u||!opp)return
- if(!interrupted){
-  const side=u.pos?.side||1
-  f.x=clampX(f,side>0?u.lx+(opp.w||48)+10:u.lx-f.w-10,W)
-  if(opp.health>0){opp.hitstun=Math.max(opp.hitstun||0,30);opp.vx=-side*6;opp.vy=-7}
-  s.cues.push('rushEnd')
- }
+ // the scene ends itself (finish) or via clear(); this only drops a stale mirror (e.g. a KO outside the scene)
+ s.ult=null;s.phase=false
+ if(interrupted)dropDashRushFor(f)
 }
 export const dashParrLocked=f=>isDashParr(f)&&((f._dashParr?.lock>0)||(f.attacking&&!(f.currentAttack?.launcher&&f.currentAttack?.hasHit)))

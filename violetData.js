@@ -46,7 +46,7 @@ export const MOVES = {
   vBall: sp(8, 20, 14, { cost: 15 }),                        // FORCE BALL →→+P: 320 px rolling lunge, 30 + 30, projectile armour
   vTrap: sp(6, 2, 14, { cost: 22 }),                         // FIELD TRAP ↓↙←+P: bubble at the foe's cast position after 18f, traps 45f, 0 dmg
   vPhase: sp(1, 11, 6, { isSpecial: false, category: 'movement' }),   // PHASE STEP ←←+Light: back-step, i-frames 3–12, no cost
-  vUlt: sp(12, 70, 90, { cost: 100, category: 'ultimate', isUltimate: true }),   // FULL FORCE ↓↘→↓↘→+P: 30 + 40 + 150 = 220 unscaled, 90f lockout
+  vUlt: sp(12, 70, 90, { cost: 100, category: 'ultimate', isUltimate: true }),   // FULL FORCE ↓↘→↓↘→+P: confirm → frozen cinematic (CINE below) 220 unscaled; whiff = 90f lockout
 }
 // ── PHASE 6: DEFENSE ──
 // Bubble Shield: 6 s cooldown (from the cast) on top of its 20 cost. Phase Step ←←+Light: R7 strip, back-step with
@@ -60,6 +60,18 @@ export const SHIELD = { reflect: 1.2, r: 64 }
 export const BALL = { speed: 16, raw: 50, gap: 8, hits: 2, hitstun: 18, blockstun: 12, kb1: [15, 0], kb2: [9, -6], padUp: 34, padX: 10 }
 export const TRAP = { delay: 18, hold: 45, r: 52, fizzle: 14 }
 export const ULT = { range: 760, trap: 30, squeeze: 40, blast: 150, squeezeAt: 30, blastAt: 70, lockout: 90, r: 58, blastR: 150, launch: [12, -15] }
+// FULL FORCE — the FROZEN CINEMATIC (violetUlt.js, cineRegistry.js slot). Starts when the cast connects (vUlt startup 12, foe
+// within ULT.range and hittable). Frames are SCRIPT frames: each contact also freezes the script for `stop` real frames (hit-stop).
+//   0-25    she vanishes (letterbox + FULL FORCE cut-in) — rings converge on the foe → SPHERE snaps shut      trap   15
+//   26-57   the sphere lifts the foe into the air and squeezes                                                squeeze 15
+//   58-127  SLAM ×3 — floor, a horizontal ram, then the biggest floor slam                                    20 × 3
+//   128-169 she REAPPEARS beside it, palms out; the sphere is crushed small                                    crush  20
+//   170     DETONATION — one enormous expanding bubble, the foe launched across the stage                     blast 110
+//   171-232 launch arc → landing → knockdown, letterbox out
+// 15 + 15 + 60 + 20 + 110 = 220 unscaled (= the old trap 30 + squeeze 40 + blast 150). A KO on any contact skips to the detonation.
+export const CINE = { R: 64, total: 232, vanishEnd: 22, trapAt: 26, squeezeAt: 48, slams: [70, 92, 112], reappear: 128, crushAt: 150,
+  suck: 160, blastAt: 170, landAt: 206, outAt: 220, blastMaxR: 560,
+  raw: { trap: 15, squeeze: 15, slam: 20, crush: 20, blast: 110 }, stop: { trap: 4, squeeze: 3, slam: [6, 7, 10], crush: 5, blast: 14 } }
 // Motion inputs (numpad, facing-relative; P = Special). Each step is a direction token; the LAST token must be the most
 // recent direction (a release to neutral is allowed after it); earlier steps may have diagonals between them.
 export const MOTION = { window: 22, ultWindow: 34, press: 10, ballTap: 14,

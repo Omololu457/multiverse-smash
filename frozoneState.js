@@ -559,23 +559,34 @@ export function finalizeFrozoneIntro(f) { if (isFrozone(f) && f._fzHomeX != null
 
 // ══ ULTIMATE — ABSOLUTE ZERO: CITY ON ICE ═════════════════════════════════════════════════════════════════════════
 // The existing FROZEN-CINEMATIC contract (Rangers / Robin / Megumi / Syndrome): game.js freezes combat, physics and input
-// while active and calls updateFrozoneUlt() each frame. Frozone's pose = a non-hitting currentAttack; his skate route is
-// a deterministic function of the cinematic frame; damage = the scheduled contacts through W.damage. The ramp, shell,
-// fragments and ring are presentation (frozoneFx reads the view). Any live freeze / patch / projectile of his is resolved
-// at the capture so nothing outside the contract adds damage.
-const cine = { active: false, frame: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, tx0: 0, cx0: 0, dir: 1, done: 0, scale: 1 }
+// while active and calls updateFrozoneUlt(ctx) each frame (ctx = { camera, sound, hitEffects, damageNumbers }). Frozone's
+// pose = a non-hitting currentAttack; his route is a deterministic function of the cinematic TIMELINE frame; damage = the
+// scheduled contacts through W.damage. HIT-STOP = the timeline frame is held for N ticks after a contact; SLOW MOTION =
+// inside ULT.slow ranges the timeline advances once every n ticks (both pure functions of the tick counter — lockstep
+// safe). Camera / audio are side effects fired once per timeline frame. The ramp, frost, monolith, fragments and rings
+// are presentation (frozoneFx reads the view). Any live freeze / patch / projectile of his is resolved at the capture.
+const cine = { active: false, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, fxAt: -1, caster: null, target: null, W: null,
+  floorC: 0, floorT: 0, tx0: 0, cx0: 0, dir: 1, done: 0, scale: 1, shown: null }
+const IDLE = { active: false, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, fxAt: -1, caster: null, target: null, W: null, done: 0, shown: null }
 export const isFrozoneUltActive = () => cine.active
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
   f.currentAttack = { name: move, total: 999, timer: 999 - at, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, fz: null, _ultPose: true }
 }
-// skate route around the ramp (dir space): θ from π to 4π over frames 60–140 → three crossings of the target
+const ease = u => 1 - (1 - u) * (1 - u)
+// route in dir space (dx from the captive's centre, lift above the floor, face ±1 relative to the cinematic direction):
+//   before the skate: posed one ramp-radius behind the captive (cast + beam)
+//   skate: θ from π to 4π around the ramp → three crossings of the captive (= the three pass contacts)
+//   rise: up the far ramp and into a high leap that hangs over the monolith (slow motion), then the dive
+//   after the dive: planted beside the monolith (the shatter strike), back to the camera for the pose
 export function ultRoute(fr) {
-  const R = ULT.ramp.r
-  if (fr < 60) return { dx: -R, lift: 0, face: 1 }
-  if (fr < 140) { const th = Math.PI + (fr - 60) / 80 * 3 * Math.PI; return { dx: R * Math.cos(th), lift: Math.round(28 * (1 - Math.cos(2 * (th - Math.PI)))), face: Math.sin(th) <= 0 ? 1 : -1 } }
-  if (fr < 170) { const u = (fr - 140) / 30; return { dx: R + 40 * u, lift: 0, face: 1 } }
-  return { dx: R + 40, lift: 0, face: -1 }
+  const U = ULT, R = U.ramp.r, S = U.skate, L = U.skateLen, D = U.drop
+  if (fr < S) return { dx: -R, lift: 0, face: 1 }
+  if (fr < S + L) { const th = Math.PI + (fr - S) / L * 3 * Math.PI; return { dx: R * Math.cos(th), lift: Math.round(28 * (1 - Math.cos(2 * (th - Math.PI)))), face: Math.sin(th) <= 0 ? 1 : -1 } }
+  if (fr < U.apex) { const u = (fr - S - L) / (U.apex - S - L); return { dx: Math.round(R + 40 * Math.sin(Math.PI * u) - (R - D) * u * u), lift: Math.round(U.leap * ease(u)), face: -1 } }
+  if (fr < U.dive) { const u = (fr - U.apex) / (U.dive - U.apex); return { dx: D, lift: Math.round(U.leap + 10 * Math.sin(Math.PI * u)), face: -1 } }
+  if (fr < U.shatter - 2) { const u = (fr - U.dive) / (U.shatter - 2 - U.dive); return { dx: D, lift: Math.round(U.leap * (1 - u * u)), face: -1 } }
+  return { dx: D, lift: 0, face: -1 }
 }
 export const ULT_CONTACT_FRAMES = ULT.contacts.map(c => c.at)
 export function activateFrozoneUlt(f, target, W) {
@@ -586,41 +597,101 @@ export function activateFrozoneUlt(f, target, W) {
   const d = f.facing || 1, R = ULT.ramp.r, tw = target.w || 48
   // the captive stands a fixed distance ahead, clamped so the whole skate route stays inside the stage
   const tc = Math.max(R + 80, Math.min(sw(W) - R - 80, ctrX(f) + d * R))
-  Object.assign(cine, { active: true, frame: 0, caster: f, target, W, floorC: f.y, floorT: f.y + (f.h || 94) - (target.h || 94),
-    tx0: tc - tw / 2, cx0: tc, dir: d, done: 0, scale: E.comboScale?.(f) ?? 1 })
+  Object.assign(cine, { active: true, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, fxAt: -1, caster: f, target, W, floorC: f.y, floorT: f.y + (f.h || 94) - (target.h || 94),
+    tx0: tc - tw / 2, cx0: tc, dir: d, done: 0, scale: E.comboScale?.(f) ?? 1, shown: null })
   s.ult = { frame: 0, done: 0 }
   target.hitstun = Math.max(target.hitstun || 0, 9999); target.isBlocking = false; target.vx = 0; target.vy = 0
   f.vx = 0; f.vy = 0
   cue(f, 'ultConfirm')
   return true
 }
-function ultHit(i) {
+// presentation side effects (never read back by the sim)
+const sfx = (ctx, id, gain = 0.8) => { try { ctx?.sound?.playJuiceSfx?.(id, { gain }) } catch (_) {} }
+const own = (ctx, id) => { try { ctx?.sound?.play?.('frozone_' + id) } catch (_) {} }
+const shake = (ctx, s, n) => { try { ctx?.camera?.shake?.(s, n) } catch (_) {} }
+function ultHit(i, ctx) {
   const c = ULT.contacts[i], t = cine.target, f = cine.caster
   cine.done = i + 1; if (f._frozone?.ult) f._frozone.ult.done = cine.done
+  cine.hold = c.hold; cine.holdN = c.hold; cine.hit = i
+  shake(ctx, c.shake, c.hold + (c.kind === 'shatter' ? 34 : 10))
+  if (c.kind === 'shatter') { sfx(ctx, 'impact_frame_boom_long', 1); sfx(ctx, 'boom_huge_02_roar', 1); sfx(ctx, 'crack_sizzle_bright', 0.9); own(ctx, 'ultShatter') }
+  else { sfx(ctx, ['swish_fast_01', 'swish_fast_02', 'swish_fast_03'][i % 3], 0.8); sfx(ctx, i < 2 ? 'impact_hit_01' : 'hit_heavy_boom_01', 0.7 + 0.12 * i); sfx(ctx, 'impact_crack_01', 0.5 + 0.15 * i); own(ctx, 'ultPass') }
   if (!(t.health > 0)) return
+  const dn = Array.isArray(ctx?.damageNumbers) ? ctx.damageNumbers : null, n0 = dn ? dn.length : 0, hp0 = t.health
   cine.W?.damage?.(t, dmg(c.raw) * cine.scale, { source: 'ultimate', attacker: f, move: 'ultimate' })
+  // the cinematic draws its own (zoom-aware) damage numbers: drop the engine's floating number for this contact
+  if (dn && dn.length > n0) dn.splice(n0)
+  const amt = Math.max(0, Math.round(hp0 - t.health)); cine.shown = { at: cine.frame, amt, total: (cine.shown?.total || 0) + amt }
   f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90
-  t.colorFlash = 8
-  cue(f, c.kind === 'shatter' ? 'ultShatter' : 'ultPass')
+  t.colorFlash = 8 + c.hold
   const s = f._frozone; if (s) pushFx(s, c.kind === 'shatter' ? 'ultBurst' : 'crack', cine.cx0, cine.floorT + (t.h || 94) / 2, cine.dir)
 }
-export function updateFrozoneUlt() {
+// once per timeline frame: the audio score + non-damaging beats (the freeze lock)
+function beat(ctx, k) {
+  const U = ULT
+  if (k === 0) { sfx(ctx, 'charge_swell_riser', 0.85); sfx(ctx, 'energy_hum_low', 0.55); shake(ctx, 3, 30) }
+  if (k === 6) { sfx(ctx, 'whoosh_medium_01', 0.8); sfx(ctx, 'impact_crack_01', 0.55) }
+  if (k === 22) { own(ctx, 'freeze'); sfx(ctx, 'energy_tone_hold', 0.4) }
+  if (k === U.beam - 6) sfx(ctx, 'boom_anticipation_suck', 0.85)
+  if (k === U.beam) { own(ctx, 'frost'); sfx(ctx, 'crack_sizzle_bright', 0.85); shake(ctx, 5, U.lock - U.beam) }
+  if (k === U.lock) { cine.hold = U.lockHold; cine.holdN = U.lockHold; cine.hit = -2; sfx(ctx, 'boom_medium_01', 0.9); sfx(ctx, 'impact_crack_01', 0.8); own(ctx, 'freeze'); shake(ctx, 10, 14) }
+  if (k === U.lock + 6) { own(ctx, 'patch'); sfx(ctx, 'rumble_tail_01', 0.6) }
+  if (k === U.skate) { own(ctx, 'skate'); sfx(ctx, 'whoosh_medium_02', 0.7) }
+  if (k === U.skate + 40) own(ctx, 'skate')
+  if (k === U.skate + U.skateLen) { own(ctx, 'rise'); sfx(ctx, 'charge_hum_rise', 0.8); sfx(ctx, 'whoosh_medium_01', 0.8) }
+  if (k === U.mono) { own(ctx, 'freeze'); sfx(ctx, 'crack_sizzle_bright', 0.7); sfx(ctx, 'boom_medium_02', 0.7); shake(ctx, 8, 24) }
+  if (k === U.slow[0][0]) { sfx(ctx, 'pitch_drop_slowmo', 0.8); sfx(ctx, 'sting_pitch_rise_hold', 0.6) }
+  if (k === U.dive) { sfx(ctx, 'warp_wobble_01', 0.6); sfx(ctx, 'whoosh_medium_02', 0.9) }
+  if (k === U.shatter + 8) { sfx(ctx, 'boom_huge_01', 0.7); sfx(ctx, 'rumble_tail_01', 0.9) }
+  if (k === U.shatter + 22) own(ctx, 'land')
+  if (k === U.pose) { own(ctx, 'brake'); sfx(ctx, 'energy_tone_hold', 0.3) }
+}
+// camera per tick: push in on the cast → frame the beam → tight on the passes (punch-in during hit-stop) → pull wide for
+// the leap + monolith → snap back in for the dive → wide on the shatter → push in on Frozone's pose
+function cam(ctx, f, t) {
+  const c = ctx?.camera; if (!c?.focusOnFighter) return
+  const U = ULT, k = cine.frame, hit = cine.hold > 0
+  try {
+    if (k < U.beam - 4) c.focusOnFighter(f, 1.15)
+    else if (k < U.skate) c.focusBetween?.(f, t, k >= U.lock ? 1.1 : 0.9)
+    else if (k < U.skate + U.skateLen) c.focusOnFighter(t, hit ? 1.15 : 0.98)
+    else if (k < U.dive) c.focusOnFighter({ x: cine.cx0 - 24, y: cine.floorT - 120, w: 48, h: 200 }, 0.7)
+    else if (k < U.shatter + 6) c.focusOnFighter(t, 1.15)
+    else if (k < U.pose) c.focusOnFighter({ x: cine.cx0 - 24, y: cine.floorT - 70, w: 48, h: 120 }, 0.72)
+    else c.focusOnFighter(f, 1.12)
+  } catch (_) {}
+}
+function place(f, t, fr) {
+  const r = ultRoute(fr), d = cine.dir, fw = f.w || 48
+  f.x = Math.max(0, Math.min(sw(cine.W) - fw, cine.cx0 + d * r.dx - fw / 2)); f.y = cine.floorC - r.lift; f.facing = d * r.face
+  f.vx = 0; f.vy = 0
+  t.x = cine.tx0; t.vx = 0; t.vy = 0; t.isBlocking = false; t.y = cine.floorT
+}
+export function updateFrozoneUlt(ctx) {
   if (!cine.active) return
   const f = cine.caster, t = cine.target, s = f?._frozone
   if (!f || !t || !s) return clearFrozoneUlt()
+  cine.tick++
+  if (cine.tick === 1 && Array.isArray(ctx?.damageNumbers)) { cine.shown = { at: -99, amt: 0, total: 0 }; ctx.damageNumbers.length = 0 }   // frozen numbers would hang un-zoomed over the cinematic
+  cam(ctx, f, t)
+  if (cine.hold > 0) { cine.hold--; place(f, t, cine.frame); return }   // HIT-STOP: the same timeline frame, same pose
   const k = cine.frame
-  for (let i = 0; i < ULT.contacts.length; i++) if (k === ULT_CONTACT_FRAMES[i] && cine.done === i) ultHit(i)
+  if (cine.fxAt !== k) {
+    cine.fxAt = k; beat(ctx, k)
+    for (let i = 0; i < ULT.contacts.length; i++) if (k === ULT_CONTACT_FRAMES[i] && cine.done === i) ultHit(i, ctx)
+  }
   if (!(t.health > 0) && k < ULT.settle && k > ULT_CONTACT_FRAMES[3]) cine.frame = ULT.settle
   const fr = cine.frame
-  let beat = ULT.beats[0]; for (const b of ULT.beats) if (fr >= b.from) beat = b
-  pose(f, beat.pose, fr - beat.from)
-  const r = ultRoute(fr), d = cine.dir, fw = f.w || 48
-  f.x = Math.max(0, Math.min(sw(cine.W) - fw, cine.cx0 + d * r.dx - fw / 2)); f.y = cine.floorC - r.lift; f.facing = d * r.face
-  t.x = cine.tx0; t.vx = 0; t.vy = 0; t.isBlocking = false; t.y = cine.floorT
+  let b = ULT.beats[0]; for (const q of ULT.beats) if (fr >= q.from) b = q
+  pose(f, b.pose, fr - b.from)
+  place(f, t, fr)
+  if (s.ult) s.ult.frame = fr
+  if (cine.hold > 0) return   // a contact on this frame: hold it
+  const sl = ULT.slow.find(q => fr >= q[0] && fr < q[1])
+  if (sl && cine.tick % sl[2] !== 0) return   // SLOW MOTION: this timeline frame lasts sl[2] ticks
   for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 40) s.fx.splice(i, 1)
   for (let i = s.trail.length - 1; i >= 0; i--) if (++s.trail[i].t > SKATE.trail * 3) s.trail.splice(i, 1)
-  if (fr >= 60 && fr < 170) { s.trail.push({ x: Math.round(ctrX(f)), y: Math.round(f.y + f.h), t: 0, b: 1, d: f.facing }); if (s.trail.length > 30) s.trail.shift() }
-  if (s.ult) s.ult.frame = fr
+  if (fr >= ULT.skate && fr < ULT.apex) { s.trail.push({ x: Math.round(ctrX(f)), y: Math.round(f.y + f.h), t: 0, b: 1, d: f.facing }); if (s.trail.length > 30) s.trail.shift() }
   if (++cine.frame >= ULT.total) finishUlt()
 }
 function finishUlt() {
@@ -628,19 +699,22 @@ function finishUlt() {
   if (t) { t.y = cine.floorT; t.vx = 0; t.vy = 0; t.hitstun = 0
     if (t.health > 0) { t.knockdownState = true; t.knockdownTimer = Math.max(t.knockdownTimer || 0, 50) } }
   if (f) { endAttack(f, 12); f.y = cine.floorC; f.vx = 0; f.vy = 0; f.facing = -cine.dir; const s = f._frozone; if (s) { s.stats.ultDone++; delete s.ult; s.trail.length = 0 } }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, done: 0 })
+  Object.assign(cine, IDLE)
 }
 export function clearFrozoneUlt() {
   if (!cine.active) return
   const f = cine.caster, t = cine.target
   if (t) { t.y = cine.floorT; t.hitstun = 0; t.vx = 0; t.vy = 0 }
   if (f) { endAttack(f); f.y = cine.floorC; f.vx = 0; f.vy = 0; if (f._frozone) { delete f._frozone.ult; f._frozone.trail.length = 0 } }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, done: 0 })
+  Object.assign(cine, IDLE)
 }
 export const getFrozoneUltStatus = () => ({ active: cine.active, frame: cine.frame, done: cine.done, caster: cine.caster?.side || null })
 export function frozoneUltView(f) {
   if (!cine.active || cine.caster !== f) return null
   const t = cine.target
-  return { frame: cine.frame, cutIn: cine.frame < ULT.cutIn ? cine.frame / ULT.cutIn : null, done: cine.done, dir: cine.dir,
+  return { frame: cine.frame, tick: cine.tick, hold: cine.hold, holdN: cine.holdN, hit: cine.hit,
+    cutIn: cine.frame < ULT.cutIn ? cine.frame / ULT.cutIn : null, done: cine.done, dir: cine.dir, shown: cine.shown ? { ...cine.shown } : null,
     tx: cine.cx0, feet: cine.floorT + (t?.h || 94), tTop: t ? t.y : 0, tH: t?.h || 94, tW: t?.w || 48 }
 }
+// the screen-space overlay's read (render-only)
+export const frozoneUltScene = () => cine.active ? { caster: cine.caster, target: cine.target, view: frozoneUltView(cine.caster) } : null

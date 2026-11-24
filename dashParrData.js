@@ -27,8 +27,21 @@ export const PANIC_RUN={cost:40,minHitsTaken:3,invuln:24,distance:190}
 // (no passive regen while on), ends at 0 energy or on a second Back + Special. Dash cannot block while it's on.
 export const FLASH_TIME={threshold:90,drain:0.22,oppSlow:0.34}
 export const CANT_CATCH_ME=0.7
-// Ultimate: 3 s storm, 12 hits = 200 HP unscaled (8×17 + 4×16), 90f recovery lockout.
-export const INCREDI_RUSH={cost:100,startup:10,storm:180,hits:12,damage:[17,17,16,17,17,16,17,17,16,17,17,16],recovery:90,range:340}
+// Ultimate: a FROZEN CINEMATIC (dashParrRush.js / dashParrRushFx.js, cineRegistry.js slot) once the 10f opener finds a foe
+// within 340px: the world slows to a crawl while Dash runs at full speed — 11 hits from every side (the last one launches),
+// then a running start from the far side of the stage into one SONIC-BOOM punch. 12 hits = 200 HP unscaled
+// (11×12 flurry + 68 finisher; dealt with the roster boost = the old storm's 268 exactly). `storm` only sizes the move's timer (the scene itself runs frozen); `recovery` = frames of
+// recovery after the scene (the foe is blasted away + knocked down meanwhile).
+export const INCREDI_RUSH={cost:100,startup:10,storm:180,hits:12,damage:[12,12,12,12,12,12,12,12,12,12,12,68],recovery:40,range:340}
+// Cinematic timeline (scene frames; hit-stop frames are added on top and freeze the scene, not the camera / FX).
+//   open  0-29   letterbox + title cut-in, the world drains to blue-grey, Dash glints and vanishes (f20)
+//   flurry       hits at RUSH_SCENE.hitAt (accelerating), each with its own hit-stop; hit 11 launches the foe
+//   runup 120    Dash streaks to the far side of the stage, crouches in a starting stance ("ON YOUR MARK")
+//   run   150    the sprint across the stage (accelerating), leap at `leap`
+//   impact 172   the SONIC-BOOM punch (hit 12): impact frame, rings, colour snaps back; the foe is blasted away
+//   end   214    letterbox out; the foe lands knocked down; Dash takes `recovery` frames
+export const RUSH_SCENE={hitAt:[34,46,57,67,76,84,91,97,103,108,113],stop:[6,5,5,5,4,4,4,3,3,3,9],vanish:20,runup:120,run:150,leap:164,impact:172,
+ impactStop:16,blast:20,end:214,maxRun:1100,blastPx:460,launchH:150}
 
 // onBlock = frame advantage when the FIRST active frame is blocked (dashParrBlock sets blockstun = attacker's
 // remaining frames + onBlock, so it holds for any hit frame). hitTicks = elapsed ticks that (re)arm a hit.
@@ -77,5 +90,5 @@ export const dash_parr={rosterKey:DASH_PARR_KEY,name:'Dash',displayName:'Dash',c
   grab:{damage:dmg(18),startup:6,active:3,recovery:22,hitstun:20,throwForceX:6,throwForceY:-3,damageType:'grab'}},
  specials:{motion:{name:'Flurry (↓↘→ + Special)',cost:15},forward:{name:'Blur Dash (→→ + Special)',cost:10},down:{name:'Laps (↓↓ + Special)',cost:20},back:{name:'Hydroplane (←↙↓ + Special)',cost:12},
   flashTime:{name:'Flash Time (← + Special)',cost:0,description:'Toggle (needs 90 Super Speed): the opponent runs at ~1/3 speed while Dash moves normally. Drains 0.22/frame, no regen, no blocking; press again or run dry to end.'}},
- ultimate:{name:'INCREDI-RUSH',cost:100,description:'↓↘→↓↘→ + Special (or Ultimate): a 3-second blur storm of 12 hits from every side, 200 damage unscaled, then a 90-frame recovery.'},
+ ultimate:{name:'INCREDI-RUSH',cost:100,description:'↓↘→↓↘→ + Special (or Ultimate): the world slows to a crawl while Dash hits from every side (11 hits), then sprints across the whole stage into one sonic-boom punch: 12 hits, 200 damage unscaled.'},
  animationData:Object.fromEntries(Object.entries(anim).map(([k,a])=>[k,timeline[k]?{...a,frameTimeline:timeline[k]}:a]))}

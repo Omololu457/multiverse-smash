@@ -37,7 +37,7 @@ export const VIOLET_KIT = { type: 'Zoner / Trickster', energy: 'Force Field', di
     { name: 'Force Ball', input: '→→ + Special', cost: 15, desc: 'Rolling lunge 320 px, two hits (30 + 30), armoured against projectiles.' },
     { name: 'Field Trap', input: '↓↙← + Special', cost: 22, desc: 'Telegraphed bubble on the foe’s spot: forms after 18 f and holds 45 f. No damage; your next hit releases it — a combo starter.' },
   ],
-  ultimate: { name: 'FULL FORCE', input: '↓↘→↓↘→ + Special, or Ultimate (grounded, 100 Force Field)', cost: 100, desc: 'Traps the foe (30), squeezes (40) and detonates a max dome (150) — 220 unscaled. 90-frame recovery lockout; a whiff still costs the bar.' },
+  ultimate: { name: 'FULL FORCE', input: '↓↘→↓↘→ + Special, or Ultimate (grounded, 100 Force Field)', cost: 100, desc: 'Cinematic: she vanishes, a force-field sphere snaps shut on the foe (15), squeezes (15), slams them into the floor, across the stage and down again (20 × 3), crushes small as she reappears (20), then detonates into one enormous bubble (110) — 220 unscaled, unblockable once the cast connects. A whiff still costs the bar (90-frame lockout).' },
   controls: VIOLET_CONTROLS,
   combos: [
     { name: 'Bread and butter', input: 'Jab, Jab, Launcher, (hold Up) Air', damage: '≈ 84' },

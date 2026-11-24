@@ -155,12 +155,16 @@ try {
   await reset(240, false, { energy: 100 })
   { const h0 = (await p2()).hp; await motion([[DN], [DN, FW], [FW], [DN], [DN, FW], [FW]], 'l'); let a = await st()
     ck('FULL FORCE: ↓↘→↓↘→+P starts vUlt, costs 100', a.attack?.name === 'vUlt' && a.energy < 1, { at: a.attack?.name, e: a.energy })
-    const dm = []; let last = h0, tEnd = null, tBlast = null
-    for (let i = 1; i < 260; i++) { await step(1); a = await st(); const b = await p2(); if (b.hp < last) { dm.push(last - b.hp); last = b.hp; if (dm.length === 3) tBlast = i } if (tBlast && !a.attack && tEnd == null) tEnd = i }
-    ck(`FULL FORCE: trap 30 + squeeze 40 + detonate 150 (unscaled, x${BOOST} roster boost) = ${kit(30)}+${kit(40)}+${kit(150)}`, dm.join('+') === [kit(30), kit(40), kit(150)].join('+'), dm)
-    ck('FULL FORCE: 90f recovery lockout after the detonation', tEnd != null && tEnd - tBlast >= 89 && tEnd - tBlast <= 91, { tEnd, tBlast }) }
+    // FULL FORCE is a frozen cinematic now (violetUlt.js): 7 contacts, 220 unscaled in total (the old trap/squeeze/detonate split)
+    const C = await S('H.data().cine'), want = [C.raw.trap, C.raw.squeeze, C.raw.slam, C.raw.slam, C.raw.slam, C.raw.crush, C.raw.blast]
+    const dm = []; let last = h0, seen = false, tEnd = null, kd = false
+    for (let i = 1; i < 420; i++) { await step(1); a = await st(); const b = await p2(), cs = await S('H.cine()'); if (cs.active) seen = true
+      if (b.hp < last) { dm.push(last - b.hp); last = b.hp } if (seen && !cs.active && tEnd == null) { tEnd = i; kd = b.knockdown } if (tEnd != null && i > tEnd + 2) break }
+    ck('FULL FORCE: the cast confirm starts the frozen cinematic and it ends', seen && tEnd != null, { seen, tEnd })
+    ck(`FULL FORCE: ${want.join('+')} = 220 unscaled (x${BOOST} roster boost) = ${want.map(r => kit(r)).join('+')}`, dm.join('+') === want.map(r => kit(r)).join('+') && want.reduce((x, y) => x + y) === 220, dm)
+    ck('FULL FORCE: the foe ends knocked down, Violet is free again (no 90f lockout after the cinematic)', kd && !a.attack && !a.s?.ult, { kd, at: a.attack?.name, ult: a.s?.ult }) }
   await reset(240, false, { energy: 100 })
-  { const h0 = (await p2()).hp; await tap(['u'], 1); const a = await st(); ck('FULL FORCE: Ultimate button also fires it', a.attack?.name === 'vUlt') ; await wait(s => !s.attack, 260) }
+  { const h0 = (await p2()).hp; await tap(['u'], 1); const a = await st(); ck('FULL FORCE: Ultimate button also fires it', a.attack?.name === 'vUlt') ; await wait(s => !s.attack, 420) }
   await reset(240, false, { energy: 60 })
   { await tap(['u'], 1); const a = await st(); ck('FULL FORCE: refused under 100 Force Field (nothing spent)', !a.attack && a.energy >= 59.9, { at: a.attack, e: a.energy }) }
 

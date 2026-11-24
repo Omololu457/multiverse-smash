@@ -6,7 +6,7 @@ import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { ck, summary } from './violet_lib.mjs'
 const server = await serve(), browser = await chromium.launch({ headless: true }), errors = []
-const OWN = '\\/violet(State|Fx|Data|Kit|Skins|SkinTable|Sound|Sprites|Harness|View)?\\.js'
+const OWN = '\\/violet(State|Fx|Data|Kit|Skins|SkinTable|Sound|Sprites|Harness|View|Ult|UltFx)?\\.js'
 // [frame, key, down?] — P1 keyboard; P2 is the same-seed CPU (AI rolls ride the seeded match stream)
 const S = []
 const press = (f, keys, hold = 2) => { for (const k of keys) { S.push([f, k, true]); S.push([f + hold, k, false]) } }

@@ -68,5 +68,10 @@ const S = {
   parry: (c, o) => { S.snap(c, o); tone(c, o, { type: 'triangle', freq: 1320, dur: 0.08, gain: 0.05, at: 0.05 }) },
   land: (c, o) => noise(c, o, { dur: 0.06, type: 'lowpass', freq: 600, freqEnd: 150, gain: 0.07, k: 23 }),
   reject: (c, o) => tone(c, o, { type: 'square', freq: 180, dur: 0.08, gain: 0.03 }),
+  // FAMILY RAFT cinematic (elastigirlUlt.js plays these directly — the cue queue is frozen with the sim)
+  ultStretch: (c, o) => { tone(c, o, { type: 'sawtooth', freq: 140, freqEnd: 620, dur: 0.55, gain: 0.07, vib: 16, vibDepth: 26 }); tone(c, o, { type: 'sine', freq: 70, freqEnd: 150, dur: 0.55, gain: 0.08 }) },
+  ultSnap: (c, o) => { tone(c, o, { type: 'triangle', freq: 1200, freqEnd: 180, dur: 0.22, gain: 0.16 }); tone(c, o, { type: 'sine', freq: 95, freqEnd: 45, dur: 0.3, gain: 0.16, vib: 30, vibDepth: 20 }); noise(c, o, { dur: 0.12, type: 'highpass', freq: 2200, gain: 0.12, k: 29 }) },
+  ultInflate: (c, o) => { tone(c, o, { type: 'sine', freq: 60, freqEnd: 180, dur: 0.6, gain: 0.14, trem: 9 }); noise(c, o, { dur: 0.6, type: 'lowpass', freq: 300, freqEnd: 900, q: 0.7, gain: 0.12, k: 31, swell: true }) },
+  ultSlam: (c, o) => { tone(c, o, { type: 'sine', freq: 90, freqEnd: 28, dur: 0.9, gain: 0.3 }); tone(c, o, { type: 'triangle', freq: 180, freqEnd: 50, dur: 0.35, gain: 0.18 }); noise(c, o, { dur: 0.7, type: 'lowpass', freq: 1600, freqEnd: 90, q: 0.6, gain: 0.25, k: 37 }) },
 }
 export const ELASTIGIRL_SOUNDS = Object.fromEntries(Object.entries(S).map(([k, v]) => ['elastigirl_' + k, v]))

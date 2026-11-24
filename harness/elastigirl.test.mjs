@@ -199,19 +199,23 @@ try {
     const ow = await measure('eWhip', 260, false); R.eWhip = ow
     ok('P4 Overhead Whip: 300 px reach, overhead, 60 stored, costs 15', ow.reach === 300 && ow.level === 'overhead' && ow.hits[0]?.[2] === 60 && ow.cost === 15, JSON.stringify({ reach: ow.reach, level: ow.level, hit: ow.hits[0] }))
     ok('P4 Overhead Whip: a hit ground-bounces the foe', ow.bounceVy != null && ow.bounceVy <= -10, String(ow.bounceVy))
-    // FAMILY RAFT — R14 windup → raft: 4 hits 40/40/50/90 = 220 stored, then the 100 f lockout
-    const ul = await page.evaluate(() => { const H = __harness.elastigirlTest, L = __harness.luffyTest; H.reset(); __harness.setDummyBehavior('stand'); const a = H.raw(), b = H.raw('p2'); a.x = 1000; b.x = 1000 + a.w + 30; a.facing = 1; b.facing = -1; a.energy = 100
+    // FAMILY RAFT (2026-11-23 cinematic rework): R14 windup → raft; a CLEAN raft contact snatches the foe into the frozen
+    // cinematic (elastigirlUlt.js: whip, whip, slingshot kick, GIANT FIST) — 1 + 4 hits, the same 250 HP the old 4-hit surge
+    // dealt (40 stored opener + raw 24/24/34/78 through applyScaledDamage). A WHIFFED raft keeps the old surge + 100 f lockout.
+    const ultRun = gap => page.evaluate(async gap => { const U = await import('./elastigirlUlt.js'); const H = __harness.elastigirlTest, L = __harness.luffyTest; H.reset(); __harness.setDummyBehavior('stand'); const a = H.raw(), b = H.raw('p2'); a.x = 1000; b.x = 1000 + a.w + gap; a.facing = 1; b.facing = -1; a.energy = 100; a.attackCooldown = 0; b.knockdownState = false; b.knockdownTimer = 0
       const hp0 = b.health, ok = H.move('eUlt'), eAfter = a.energy, seq = [], hits = []; let last = hp0, x0 = a.x, lock = null, prev = null
-      for (let i = 0; i < 420; i++) { const k = a.currentAttack?.eg?.key || null; if (k !== prev) seq.push([k, i]); prev = k
-        L.step(1); if (b.health < last) { hits.push(a.currentAttack?.damage); last = b.health }
+      for (let i = 0; i < 700; i++) { const k = a.currentAttack?.eg?.key || (U.isElastigirlUltActive() ? 'cine' : null); if (k !== prev) seq.push([k, i]); prev = k
+        L.step(1); if (b.health < last) { hits.push(last - b.health); last = b.health }
         if (k === 'eUltRecover' && lock == null) lock = a.currentAttack.total
-        if (!a.attacking && i > 30) break }
-      return { ok, seq, hits, travel: Math.round(a.x - x0), energy: eAfter, fighters: (__harness.luffyTest && 2), lock, anims: ['eUltWindup', 'eRaft'].map(k => !!a.animationData[k]), raftFrames: a.animationData.eRaft?.frames } })
-    R.ult = ul
-    ok('P4 Family Raft: windup (R14) → raft (R21–24) → lockout', ul.ok && ul.seq.map(s => s[0]).join() === 'eUlt,eRaft,eUltRecover' && ul.anims.every(Boolean), JSON.stringify(ul.seq))
-    ok('P4 Family Raft: 4 hits 40 / 40 / 50 / 90 = 220 stored', ul.hits.join() === '40,40,50,90', JSON.stringify(ul.hits))
-    ok('P4 Family Raft: surges forward, costs the full 100', ul.travel > 300 && ul.energy === 0, JSON.stringify({ travel: ul.travel, energy: ul.energy }))
-    ok('P4 Family Raft: 100 f lockout after the surge', ul.lock === 102 || ul.lock === 100 || ul.lock === 101, String(ul.lock))
+        if (!a.attacking && !U.isElastigirlUltActive() && i > 30) break }
+      return { ok, seq, hits, dealt: hp0 - b.health, travel: Math.round(a.x - x0), energy: eAfter, lock, last: U.elastigirlUltLast, restored: { rot: b._fxRot || 0, kd: !!b.knockdownState, atk: !!a.attacking },
+        anims: ['eUltWindup', 'eRaft'].map(k => !!a.animationData[k]), raftFrames: a.animationData.eRaft?.frames } }, gap)
+    const ul = await ultRun(30), uw = await ultRun(1800); R.ult = ul; R.ultWhiff = uw
+    ok('P4 Family Raft: windup (R14) → raft (R21–24) → cinematic on a clean raft hit', ul.ok && ul.seq.map(s => s[0]).join() === 'eUlt,eRaft,cine' && ul.anims.every(Boolean), JSON.stringify(ul.seq))
+    ok('P4 Family Raft: opener + 4 cinematic hits, 250 dealt (same total as the old 40/40/50/90 surge)', ul.hits.length === 5 && ul.last?.hits === 4 && Math.abs(ul.dealt - 250) <= 3, JSON.stringify({ hits: ul.hits, dealt: ul.dealt }))
+    ok('P4 Family Raft: cinematic restores both fighters (foe knocked down, no rotation; Helen free)', ul.restored.rot === 0 && ul.restored.kd && !ul.restored.atk && ul.last?.cleared === false, JSON.stringify(ul.restored))
+    ok('P4 Family Raft (whiff): surges forward, costs the full 100', uw.travel > 300 && uw.energy === 0 && ul.energy === 0 && uw.seq.map(s => s[0]).join() === 'eUlt,eRaft,eUltRecover', JSON.stringify({ travel: uw.travel, energy: uw.energy, seq: uw.seq }))
+    ok('P4 Family Raft (whiff): 100 f lockout after the surge', uw.lock === 102 || uw.lock === 100 || uw.lock === 101, String(uw.lock))
     // REAL INPUTS: motions read from the per-frame direction history (P1 faces right: 6 = D, 4 = A, 2 = S)
     const DIR = { 1: ['s', 'a'], 2: ['s'], 3: ['s', 'd'], 4: ['a'], 5: [], 6: ['d'], 7: ['w', 'a'], 8: ['w'], 9: ['w', 'd'] }
     async function motion(seq, btn = 'l') { const all = ['w', 'a', 's', 'd']

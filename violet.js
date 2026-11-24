@@ -12,7 +12,8 @@ import { startMove, cancelWindowOpen, getComboScale, getComboHitstunScale } from
 import { isViolet, vState, freshEdge, useEdge, doubleDownSpecial, enterVanish, endVanish, registerVioletEngine, startVMove, rejectV } from './violetState.js'
 import { CHAIN, SPECIAL_FROM, DEFENSE, MOTION } from './violetData.js'
 
-registerVioletEngine({ startMove, comboScale: getComboScale, hitstunScale: typeof getComboHitstunScale === 'function' ? getComboHitstunScale : null })
+import { startVioletCine } from './violetUlt.js'   // FULL FORCE frozen cinematic (registers itself with cineRegistry.js)
+registerVioletEngine({ startMove, comboScale: getComboScale, hitstunScale: typeof getComboHitstunScale === 'function' ? getComboHitstunScale : null, ultStart: startVioletCine })
 
 const phaseStepInput = s => { const [a, b] = s.backTaps || [], e = s.edges.light
   return (s.backTaps || []).length === 2 && b - a <= DEFENSE.phaseTap && e.tick >= b && e.tick - b <= MOTION.press }

@@ -40,7 +40,10 @@ export const VIOLET_SFX = {
   vanishIn: (c, o, p) => tone(c, o, { freq: 1200 * p, freqEnd: 400 * p, dur: 0.2, gain: 0.08 }),
   vanishOut: (c, o, p) => tone(c, o, { freq: 400 * p, freqEnd: 1200 * p, dur: 0.2, gain: 0.08 }),
   // the swell starts with the cast and peaks on the detonation frame (startup 12 + 70 = 82f ≈ 1.37 s): 0.57 s delay + 0.8 s
-  vUlt: (c, o, p) => tone(c, o, { freq: 80 * p, dur: 0.8, gain: 0.22, swell: true, at: 82 / 60 - 0.8 }),
+  // FULL FORCE cinematic: cast 12f + script 170f + hit-stop 35f = the detonation 217f (≈ 3.62 s) after the cast
+  vUlt: (c, o, p) => tone(c, o, { freq: 80 * p, dur: 0.8, gain: 0.22, swell: true, at: 217 / 60 - 0.8 }),
+  ultSlam: (c, o, p, h) => { tone(c, o, { freq: 95 * p, freqEnd: 38 * p, dur: 0.32, gain: 0.26 }); noise(c, o, { dur: 0.28, seed: h, freq: 1400 * p, freqEnd: 160, gain: 0.22 }); tone(c, o, { type: 'triangle', freq: 880 * p, freqEnd: 440 * p, dur: 0.12, gain: 0.06 }) },
+  ultCharge: (c, o, p) => { tone(c, o, { freq: 160 * p, freqEnd: 1300 * p, dur: 0.17, gain: 0.12, swell: true }); tone(c, o, { type: 'triangle', freq: 60 * p, dur: 0.17, gain: 0.15, lfo: 30, lfoDepth: 12 }) },
   ultBlast: (c, o, p, h) => { noise(c, o, { dur: 0.6, seed: h, freq: 1800 * p, freqEnd: 120, gain: 0.32 }); tone(c, o, { freq: 70 * p, freqEnd: 35 * p, dur: 0.5, gain: 0.2 }) },
   // secondary placeholders (short, quiet)
   swing: (c, o, p, h) => noise(c, o, { dur: 0.07, seed: h, type: 'bandpass', freq: 1100 * p, freqEnd: 2600 * p, gain: 0.07 }),
@@ -55,7 +58,7 @@ export const VIOLET_SFX = {
   vPhase: (c, o, p) => tone(c, o, { freq: 900 * p, freqEnd: 500 * p, dur: 0.12, gain: 0.05 }),
   reject: (c, o) => tone(c, o, { type: 'square', freq: 180, dur: 0.05, gain: 0.03 }),
 }
-const ALIAS = { ultTrap: null, ultSqueeze: 'trapCatch', ultWhiff: 'reject', trapFizzle: 'trapPop', jumpCancel: null, vPush: null }
+const ALIAS = { ultCine: null, ultCineTrap: 'trapCatch', ultTrap: null, ultSqueeze: 'trapCatch', ultWhiff: 'reject', trapFizzle: 'trapPop', jumpCancel: null, vPush: null }
 // last serial played, keyed by the sim-state OBJECT (a round reset replaces f._violet, so a new round starts from 0)
 const last = new WeakMap()
 export function playVioletCues(f) {

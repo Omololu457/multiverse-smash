@@ -107,6 +107,11 @@ export function activateDomain(fighter, options = {}, context = {}) {
     // gesture-gates and falls back to the procedural DOMAIN_LOOP if the file 404s.
     // No voice line for Gojo (null). EXACT case-sensitive filename below.
     sound?.playDomainAudio?.(null, "Gojo_domain_theme.mp3")
+  } else if (domain.rosterKey === "omololu") {
+    // Omololu's ultimate domain (The Genesis Threshold / Recursive Cadence) plays "Subliminals" (2026-11-23, owner:
+    // "with Omololu don't change his ultimate, just change the song for the ultimate and make it Subliminals").
+    // The "Welcome to my dimension" voice line is already played by executeOmoluUltimate, so no voice here.
+    sound?.playDomainAudio?.(null, "Subliminals - pz'.mp3")
   } else {
     sound?.play?.(SFX.DOMAIN_ACTIVATE)
     sound?.playMusic?.(MUSIC.DOMAIN_LOOP, true)

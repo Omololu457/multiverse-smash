@@ -6,6 +6,9 @@ import { juiceSettings } from './juiceSettings.js'
 import { VIOLET_FX } from './violetSprites.js'
 import { MOVES, SCALE, TRAP, ULT } from './violetData.js'
 import { VIOLET_SKIN_FX } from './violetSkins.js'
+import { registerCineScreen } from './cineRegistry.js'
+import { drawVioletCineWorld, drawVioletCineScreen } from './violetUltFx.js'   // FULL FORCE cinematic (render-only)
+registerCineScreen('violet', drawVioletCineScreen)
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }
@@ -33,6 +36,7 @@ function ring(c, x, y, r, col, a, dash = null, lw = 3) {
 const ringCol = f => tintOf(f)?.ring || '#b77cff'
 
 export function drawVioletFx(c, f) {
+  if (c && drawVioletCineWorld(c, f) && !isV(f)) return   // the cinematic draws on the FOE's pass too (right after their sprite)
   if (!isV(f) || !c) return
   const s = f._violet, a = f.attacking && f.currentAttack?.vi ? f.currentAttack : null, tick = s.tick
   const inv = s.inv ? 0.35 : 1

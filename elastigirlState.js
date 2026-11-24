@@ -10,6 +10,7 @@
 // Fighter references (Long Arm pull target, raft passenger) live in a WeakMap outside the JSON state.
 import * as D from './elastigirlData.js'
 import { releaseSpidermanWebSwing } from './abilities.js'
+import { startElastigirlUlt, clearElastigirlUlt, elastigirlUltScene } from './elastigirlUlt.js'   // FAMILY RAFT cinematic (frozen, cineRegistry.js)
 
 const { EG_KEY, EG_ENERGY, EG_MOVES: MOVES } = D
 export const isElastigirl = f => f?.rosterKey === EG_KEY
@@ -19,7 +20,7 @@ const fresh0 = () => ({ tick: 0, clock: 0, prev: {}, edges: {}, used: {}, dirs: 
   cues: [] })
 export const egState = f => f._elastigirl ||= fresh0()
 
-const E = { startMove: null }
+const E = { startMove: null, W: null }
 export function registerElastigirlEngine(o) { Object.assign(E, o) }
 const TGT = new WeakMap()                               // attacker → defender of her current clean hit (pull / carry / bounce)
 const Z = { x: 0, y: 0, w: 0, h: 0 }
@@ -41,6 +42,7 @@ export function clearElastigirl(f) {
   if (!f) return
   if (f._elastigirl?.sling && f._swinging) { f._swinging = false; f._spriteCastMove = null; f._spriteCastTimer = 0 }
   if (f._elastigirl?.para) { f._spriteCastMove = null; f._spriteCastTimer = 0 }
+  const sc = elastigirlUltScene(); if (sc && (sc.caster === f || sc.target === f)) clearElastigirlUlt()
   if (live(f)) endAttack(f)
   TGT.delete(f)
   delete f._elastigirl; delete f._elastigirlRemoteInput
@@ -161,7 +163,14 @@ export function elastigirlHit(f, d, a, { armored = false } = {}) {
   a.eg.clean = true; a.eg.tid = tidOf(d); f._cmdHitLanded = true; TGT.set(f, d)
   const s = egState(f)
   if (a.eg.key === 'eWhip') a.eg.bounce = 1                       // applied next tick (after the engine's knockback)
-  if (a.eg.key === 'eRaft') { s.stats.raftHits++; cue(f, 'splash') }
+  if (a.eg.key === 'eRaft') {
+    s.stats.raftHits++
+    // FAMILY RAFT: the raft's first clean contact snatches the foe into the cinematic (elastigirlUlt.js); the cinematic
+    // owns the rest of the ultimate (its own splash, sound and damage). Otherwise the surge carries on as before (a raft that
+    // only catches the foe with its final 90 launcher keeps that launcher — the cinematic would overshoot the damage budget).
+    if (!a.eg.cine && a.eg.contact <= 2 && d && d.health > 0 && !d.isGrabbed) { a.eg.cine = true; if (startElastigirlUlt(f, d, E.W, a.eg.dir)) return }
+    cue(f, 'splash')
+  }
   if (a.eg.key === 'eDomeSlam' || a.eg.key === 'eDome') cue(f, 'thud')
 }
 // STRETCH GUARD (Phase 6): one frontal non-grab, non-ultimate strike inside the 6-frame window is absorbed.
@@ -272,6 +281,7 @@ export function tickElastigirl(f, opp, raw, W) {
   // round / match reset: the shared revert stamps speed 84 / dash 16 on every fighter after our clear → re-apply ours
   if (f.baseSpeed === 84 && f.dashSpeed === 16) { const st = D.EG_STATS; f.baseSpeed = f.speed = st.speed; f.dashSpeed = st.dashSpeed; f.dashDuration = st.dashDuration }
   const s = egState(f); s.tick++
+  E.W = W
   if (!s.seed) s.seed = (W?.seed?.() >>> 0) || 1                // match seed (audio variation hash only)
   const face = f.facing || 1, fw = !!(face === -1 ? raw.left : raw.right), bk = !!(face === -1 ? raw.right : raw.left)
   for (const k of EDGE_KEYS) {

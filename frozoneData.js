@@ -118,20 +118,29 @@ export const WALL = { ahead: 96, w: 30, h: 128, rise: 8, life: 170, hp: 3, raw: 
 export const SKATE = { duration: 16, profile: [8.5, 11, 13.5, 15, 15, 15, 15, 15, 15, 14.5, 13.5, 12, 11, 10, 9, 8.5],
   boostSpeed: 16, boostFrames: 10, brakeFrom: 3, brakeVx: 3.5, air: 13.5, trail: 10 }
 
-// ── ULTIMATE: ABSOLUTE ZERO — CITY ON ICE (frames after the opener's clean hit; freeze contract) ──
-//   0–29   command / casting pose; ice spreads outward along the floor
-//  30–59   a procedural ice ramp rises around the captured opponent
-//  60–139  Frozone skates the ramp (disc frames), passing the opponent: strikes @73, @100, @127 (40 each) — the frames
-//          where his route crosses the target (frozoneState.ultRoute)
-// 140–169  large readable crystal shell on the opponent
-// 170–189  sharp brake (turn frame + spray)
-//   190    final hand-directed SHATTER (250) — capped fragments + broad ring
-// 191–229  settle; camera / positions restore
+// ── ULTIMATE: ABSOLUTE ZERO — CITY ON ICE (TIMELINE frames after the opener's clean hit; freeze contract) ──
+// Wall-clock length = total + every hit-stop `hold` + the slow-motion stretch (ULT.slow: [from, to, n] = each timeline
+// frame lasts n ticks) = 256 + 44 + 58 = 358 ticks (≈ 6 s).
+//    0–39  COLD OPEN: title cut-in, camera pushes in on Frozone; moisture is pulled out of the air into his hands, breath
+//  40–65  ICE BEAM from his hand; @52 it LOCKS the foe's feet (hit-stop 5, no damage), the street freezes, the ramp erupts
+//  66–145 SKATE PASSES around the ramp: strikes @79, @106, @133 (40 each) — the crossings of frozoneState.ultRoute —
+//          escalating hit-stop 5 / 7 / 9, shake and impact frames; each pass adds a layer of ice to the foe
+// 146–185 he launches off the far ramp into a high leap; @150 the foe is sealed in a giant ICE MONOLITH; slow motion
+//          162–189 while he hangs over it (camera pulls wide)
+// 186–193 the dive; cracks race through the monolith
+//   194   SHATTER (250): 18-frame hit-stop, impact frames, monolith fragments, shockwaves, spike field, diamond dust
+//          (slow motion 196–225)
+// 214–255 the pose: CITY ON ICE; letterbox out
 // Opener 40 + 3 × 40 + 250 = 410 raw (stored), scaled once by the combo scale captured at the capture.
 // The passive Freeze / Shatter rules never add a bonus inside this contract.
-export const ULT = { total: 230, cutIn: 36, settle: 200,
-  contacts: [{ at: 73, raw: 40, kind: 'pass' }, { at: 100, raw: 40, kind: 'pass' }, { at: 127, raw: 40, kind: 'pass' }, { at: 190, raw: 250, kind: 'shatter' }],
-  beats: [{ from: 0, pose: 'ultCast' }, { from: 60, pose: 'ultSkate' }, { from: 170, pose: 'ultBrake' }, { from: 184, pose: 'ultShatter' }, { from: 206, pose: 'introSettle' }],
+export const ULT = { total: 256, cutIn: 40, settle: 214,
+  beam: 40, lock: 52, lockHold: 5, skate: 66, skateLen: 80, mono: 150, monoGrow: 24, apex: 170, dive: 186, shatter: 194, pose: 214,
+  leap: 210, drop: 96,
+  contacts: [{ at: 79, raw: 40, kind: 'pass', hold: 5, shake: 7 }, { at: 106, raw: 40, kind: 'pass', hold: 7, shake: 10 },
+    { at: 133, raw: 40, kind: 'pass', hold: 9, shake: 13 }, { at: 194, raw: 250, kind: 'shatter', hold: 18, shake: 18 }],
+  slow: [[162, 190, 2], [196, 226, 2]],
+  beats: [{ from: 0, pose: 'ultCast' }, { from: 40, pose: 'ultBeam' }, { from: 66, pose: 'ultSkate' }, { from: 146, pose: 'fRise' },
+    { from: 180, pose: 'fDownAir' }, { from: 192, pose: 'ultShatter' }, { from: 214, pose: 'introSettle' }],
   ramp: { r: 150, h: 120 } }
 
 // ── body frame timelines (elapsed tick → strip frame) ──
@@ -179,11 +188,12 @@ export const frozone = {
   mobility: { glide: 'Hold Jump while falling: Ice Glider', flash: 'Double-tap (ground): Ice Flash — teleport through + slice',
     rail: 'Double-tap (air, hold Up / Down to angle): Ice Rail — grind; land on a live rail to re-ride', wall: 'Down + Heavy: Ice Wall (15 Frost)' },
   ultimate: { name: 'ABSOLUTE ZERO: CITY ON ICE', cost: COST.ult,
-    description: 'Opening ice strike (raw 40). Clean hit: ice spreads, a ramp rises, three skating passes (3 × 40), a large crystal shell, a sharp brake and the final Shatter (250) — 410 raw. Block / whiff: no capture, real recovery.' },
+    description: 'Opening ice strike (raw 40). Clean hit: title cut-in, an ice beam locks the foe, the street freezes and a ramp erupts, three skating passes (3 × 40, escalating hit-stop), a leap while the foe is sealed in a giant ice monolith, the dive and the final Shatter (250) — 410 raw. Block / whiff: no capture, real recovery.' },
   animationData: {
     ...FROZONE_ANIM,
     ...Object.fromEntries(Object.entries(MOVE_STRIP).map(([k, s]) => [k, { ...FROZONE_ANIM[s], frameTimeline: TIMELINE[k] }])),
-    ultCast: { ...FROZONE_ANIM.atkUlt, frameTimeline: [[0, 0], [10, 1]] },
+    ultCast: { ...FROZONE_ANIM.atkUlt, frameTimeline: [[0, 0]] },
+    ultBeam: { ...FROZONE_ANIM.atkUlt, frameTimeline: [[0, 1]] },
     ultShatter: { ...FROZONE_ANIM.atkUlt, frameTimeline: [[0, 1], [16, 2]] },
   },
 }

@@ -3,7 +3,8 @@
 // Attacks / jumps / hurt keep their own strips (at 35 % while invisible).
 import { VANISH } from './violetData.js'
 // Vanish 35 %; Phase Step i-frames 55 % (she half-phases out of sight); render-only reads of sim flags
-export const violetAlpha = f => f?.rosterKey !== 'violet' || !f._violet ? 1 : f._violet.inv ? VANISH.alpha : f._violet.phaseInv ? 0.55 : 1
+// FULL FORCE cinematic: cineA (violetUlt.js) fades her out / shimmers / flickers her back in
+export const violetAlpha = f => f?.rosterKey !== 'violet' || !f._violet ? 1 : f._violet.cineA != null ? f._violet.cineA : f._violet.inv ? VANISH.alpha : f._violet.phaseInv ? 0.55 : 1
 export function violetSpriteAction(f, act) {
   if (f?.rosterKey !== 'violet' || !f._violet) return act
   const s = f._violet

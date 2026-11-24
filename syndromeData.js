@@ -86,17 +86,23 @@ export const ZERO = { hold: 44, lift: 10 }
 // never delayed into a free combo breaker. Committed Omnidroid strikes past their warning still land.
 
 // ── ULTIMATE: OPERATION KRONOS — FINAL DEMONSTRATION (frames after the opener's clean capture; freeze contract) ──
-//   0–39    A presentation: arms raise (supplied gesture), shell rises, the eye opens and tracks
-//  40–109   B machine orchestra: Drones cross @50/@62, Spinner circles @76, Velocipod streak @88, turret volley @100
-// 110–169   C giant claws: limb sweeps / lifts @124 (40), second limb pins / redirects @146 (30)
-// 170–219   D slam: the body leans, the claw drives the target into the stage @196 (230) — explosion, ring, fragments
-// 220–259   E exit: machines retract, smug ready pose, control returns
-// Opener 30 + 90 + 70 + 230 = 420 raw (stored), scaled once by the combo scale captured at the capture.
-export const ULT = { total: 260, settle: 220, cutIn: 40,
-  contacts: [{ at: 50, raw: 15, kind: 'drone' }, { at: 62, raw: 15, kind: 'drone' }, { at: 76, raw: 20, kind: 'spinner' },
-    { at: 88, raw: 25, kind: 'velo' }, { at: 100, raw: 15, kind: 'turret' }, { at: 124, raw: 40, kind: 'lift' },
-    { at: 146, raw: 30, kind: 'pin' }, { at: 196, raw: 230, kind: 'slam' }],
-  beats: [{ from: 0, pose: 'ultPose' }, { from: 40, pose: 'ultFront' }, { from: 110, pose: 'ultPose' }, { from: 220, pose: 'introSettle' }] }
+// Cinematic rebuild 2026-11-23. Timeline frames below; HIT-STOP (`stop`, held frames on a contact) and SLOW-MOTION
+// (`slow`: the timeline advances every 2nd tick) are added on top, so the cinematic lasts ~350 ticks.
+//   0–55    A  THE MONOLOGUE: letterbox + title card, camera pushes in on Syndrome, Zero-Point field holds the
+//              captive; a shadow grows, the Omnidroid DROPS from the sky and lands behind the captive @46
+//  56–127   B  THE MACHINE ORCHESTRA (90): Drone strafes @62/@72, Spinner @86, Velocipod streak @100, turret volley @114
+// 128–195   C  THE CLAWS (70): ground cracks glow, a claw ERUPTS and lifts @142 (40); the Omnidroid's limb pins @166 (30)
+// 196–257   D  FINAL DEMONSTRATION (230): pull-out, the Omnidroid leaps, eye charges, slow-motion — its leg drives the
+//              captive out of the claw and into the stage: the SLAM @236
+// 258–299   E  aftermath: dust, the Omnidroid lifts away, smug Syndrome, control returns
+// Opener 30 + 90 + 70 + 230 = 420 raw (stored, unchanged), scaled once by the combo scale captured at the capture.
+export const ULT = { total: 300, settle: 258, cutIn: 34, land: 46, cracks: 128, finisher: 196, leap: 204, slamAt: 236,
+  slow: { from: 208, to: 234 },
+  contacts: [{ at: 62, raw: 15, kind: 'drone', stop: 2, shake: 4 }, { at: 72, raw: 15, kind: 'drone', stop: 2, shake: 4 },
+    { at: 86, raw: 20, kind: 'spinner', stop: 3, shake: 6 }, { at: 100, raw: 25, kind: 'velo', stop: 4, shake: 8 },
+    { at: 114, raw: 15, kind: 'turret', stop: 3, shake: 6 }, { at: 142, raw: 40, kind: 'lift', stop: 7, shake: 12 },
+    { at: 166, raw: 30, kind: 'pin', stop: 6, shake: 11 }, { at: 236, raw: 230, kind: 'slam', stop: 16, shake: 18 }],
+  beats: [{ from: 0, pose: 'ultPose' }, { from: 56, pose: 'ultFront' }, { from: 128, pose: 'ultPose' }, { from: 258, pose: 'introSettle' }] }
 
 // ── body frame timelines (elapsed tick → strip frame) ──
 const even = (n, total) => Array.from({ length: n }, (_, i) => [Math.round(i * total / n), i])

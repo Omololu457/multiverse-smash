@@ -7,6 +7,7 @@ import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
 import { ELASTIGIRL_FX_CELLS as XC } from './elastigirlSprites.js'
 import { setElastigirlSfxSeed, elastigirlSfxHash } from './elastigirlSound.js'
+import { drawElastigirlUltWorld } from './elastigirlUltFx.js'   // FAMILY RAFT cinematic (limbs, giant fist, rings) + its screen overlay
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }
@@ -29,6 +30,8 @@ const splashList = f => { let l = splashes.get(f); if (!l) { l = []; splashes.se
 export function drawElastigirlFx(c, f) {
   if (!isEg(f) || !c) return
   const s = f._elastigirl
+  // FAMILY RAFT cinematic: the stretched limbs / giant fist / impacts (elastigirlUltFx.js) — nothing else draws meanwhile
+  if (drawElastigirlUltWorld(c, f, ...armOf(f))) return
   // SLINGSHOT: the stretched arm from her grip up to the anchor point (+ a small hand at the anchor)
   if (s?.sling && f._swinging) {
     const [suit, glove] = armOf(f), gx = ctrX(f), gy = f.y + (f.h || 94) * 0.30

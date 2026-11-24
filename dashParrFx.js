@@ -5,6 +5,8 @@ import {DASH_PARR_ANIM} from './dashParrSprites.js'
 import {DASH_PARR_MOVES,INCREDI_RUSH,MOMENTUM} from './dashParrData.js'
 import {isDashParr,momentumTier} from './dashParrState.js'
 import {playDashParrCue} from './dashParrSound.js'
+import {rushScene} from './dashParrRush.js'
+import {setRushWorldXf,preloadDashRush} from './dashParrRushFx.js'   // INCREDI-RUSH cinematic overlay (registers itself in cineRegistry.js)
 const S=2.5   // sprite scale (characters entry spriteScale)
 const cache=new Map()
 function image(url){if(!cache.has(url)){const im=new Image();im.src=url;cache.set(url,im)}return cache.get(url)}
@@ -28,12 +30,16 @@ export function dashParrBodyAlpha(f){
  const a=f.attacking?f.currentAttack:null,t=a?a.total-a.timer:-1
  if(a?.name==='laps'&&t>=a.activeStart&&t<=a.activeEnd)return 0
  if(a?.name==='rush'&&f._dashParr?.ult)return 0
+ if(rushScene()?.caster===f)return 0   // INCREDI-RUSH: dashParrRushFx draws him (in colour, over the frozen world)
  return 1
 }
 
 // BEHIND the body: Blur-tier afterimage trail, Blur Dash streak ghosts, Laps loop, Rush storm.
 export function drawDashParrUnder(c,f,opp){
- if(!isDashParr(f)||f.health<=0)return
+ if(!isDashParr(f))return
+ if(rushScene()?.caster===f){try{setRushWorldXf(c.getTransform())}catch(_){}trail(f).length=0;return}   // the cinematic's world → screen matrix
+ if(f.health<=0)return
+ if((f.energy||0)>=90&&f._recolorTag)preloadDashRush(f)   // the worn skin's cinematic sheets (cached after the first call)
  const s=f._dashParr,a=f.attacking?f.currentAttack:null,t=a?a.total-a.timer:-1,cx=f.x+f.w/2,foot=f.y+f.h,dir=f.facing||1
  const tr=trail(f),tier=momentumTier(f),fast=tier==='blur'||!!s?.ft||(a&&['blurDash','sidestep','panic','hydro'].includes(a.name))
  if(fast)tr.unshift({x:cx,y:foot,dir,act:a?.name==='hydro'?'hydro':'run',i:Math.floor((s?.clock||0)/4)});else tr.length=Math.max(0,tr.length-2)
@@ -45,13 +51,6 @@ export function drawDashParrUnder(c,f,opp){
   for(let g=3;g>=0;g--){const q=ph-g*0.45,x=ox+Math.cos(q)*r,back=Math.sin(q)<0,mv=-Math.sin(q)>=0?1:-1
    blitFrame(c,f,'laps',Math.floor((t+g)/2),x,oy-(back?6:0),mv,(g===0?1:0.3)*(back?0.55:1),back?S*0.92:S)}
   speedRing(c,ox,oy-40,r+8,ph)
- }
- const u=s?.ult
- if(a?.name==='rush'&&u&&opp){
-  const st=t-INCREDI_RUSH.startup,ox=u.lx+(opp.w||48)/2,oy=u.ly+(opp.h||94)
-  for(let g=0;g<5;g++){const q=st*0.55+g*1.26;blitFrame(c,f,g%2?'run':'flurry',st+g,ox+Math.cos(q)*(70+g*6),oy-8-Math.abs(Math.sin(q*1.3))*30,Math.cos(q)>0?-1:1,0.28)}
-  if(u.pos)blitFrame(c,f,'ultimate',u.hits,ox+u.pos.dx,oy+u.pos.dy,-u.pos.side,1)
-  speedRing(c,ox,oy-46,92,st*0.4)
  }
  // FLASH TIME: slow cyan ripples around the slowed foe (render-only; phase from Dash's sim clock).
  if(s?.ft&&opp&&opp.health>0){const ox=opp.x+(opp.w||48)/2,oy=opp.y+(opp.h||94)/2,k=(s.clock||0)

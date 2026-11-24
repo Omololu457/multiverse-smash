@@ -81,6 +81,17 @@ export const EG_MOVES = {
   grab: { damage: 30, startup: 8, active: 3, recovery: 24, hitstun: 20, throwForceX: 5, throwForceY: -3, damageType: 'grab' },
 }
 // SPECIAL INPUTS (facing-relative numpad motion; P = Special). Held-direction fallbacks keep pad / CPU play reachable.
+// FAMILY RAFT — CINEMATIC (elastigirlUlt.js, 2026-11-23). The raft's first CLEAN contact (40 stored = the opener) snatches
+// the foe into a frozen cinematic (cineRegistry.js): both arms SNATCH the foe → WHIP them over her head into the floor
+// behind her → WHIP them back into the floor in front (they bounce up) → SLINGSHOT: hands anchored ahead, body drawn back,
+// released into a flying kick → GIANT FIST from above smashes them into the ground → she PARACHUTES down. Cinematic
+// frames (hit-stop freezes the frame counter, effects keep playing). `raw` goes straight through W.damage (applyScaledDamage:
+// × 0.6 global × the roster boost) — opener 50 + 30 + 30 + 42 + 98 = 250 HP dealt, the same 250 the 4-hit surge dealt.
+// A whiffed or blocked raft is unchanged (surge, then the 100 f lockout).
+export const ULT_CINE = { grip: 14, swing: 24, slam1: 50, slam2: 80, anchor: 94, release: 116, kick: 124, inflate: 136, smash: 160, land: 166,
+  caption: 172, out: 206, total: 220, recover: 24, R: [170, 214, 236], apex: 150, rise: 236,
+  hits: [{ at: 50, raw: 24, stop: 7, shake: [12, 10] }, { at: 80, raw: 24, stop: 8, shake: [14, 12] }, { at: 124, raw: 34, stop: 9, shake: [16, 12] }, { at: 166, raw: 78, stop: 18, shake: [18, 30] }] }
+
 export const EG_INPUTS = {
   ult: { motion: '236236', win: 40, button: 'special', alt: 'ultimate' },
   eWhirl: { motion: '623', win: 18 }, eWhip: { motion: '412', win: 18 }, eLongArm: { motion: '236', win: 16 },
@@ -131,6 +142,6 @@ export const elastigirl = {
     up: { name: 'Slingshot', input: 'Air ↑ + Special (hold, release to fling)', cost: 12 } },
   passive: { name: 'Rubber Body', desc: '−15 % damage from melee normals only.' },
   ultimate: { name: 'Family Raft', input: '↓↘→↓↘→ + Special', cost: 100,
-    description: 'R14 windup, then Helen becomes a raft carrying Dash and Violet and surges across the screen: 4 hits 40/40/50/90 (220 stored), then a 100 f recovery lockout.' },
+    description: 'R14 windup, then Helen becomes a raft carrying Dash and Violet and surges across the screen. If the raft connects she stretches into a cinematic: snatch, a double floor-whip, a slingshot kick and a GIANT FIST finisher (5 hits, 250 dealt). A whiffed or blocked raft ends in a 100 f recovery lockout.' },
   animationData,
 }

@@ -421,12 +421,16 @@ export function tickSyndrome(f, opp, raw, W) {
 
 // ══ ULTIMATE — OPERATION KRONOS: FINAL DEMONSTRATION ══════════════════════════════════════════════════════════
 // The existing FROZEN-CINEMATIC contract (Rangers / Robin / Megumi): game.js freezes combat, physics and input while
-// active and calls updateSyndromeUlt() each frame. Syndrome's pose = a non-hitting currentAttack on the gesture
-// strips; damage = the scheduled contacts through W.damage. Every machine here is presentation (syndromeFx reads the
-// view); the owner's live Drones / Spinner / Velocipod / Omnidroid action are RESOLVED (dismissed) at the capture so
-// no live entity can add damage; a deployed turret is frozen with the world and its volley in the cinematic is the
-// scheduled contact only.
-const cine = { active: false, frame: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, cx0: 0, tx0: 0, dir: 1, done: 0, scale: 1 }
+// active and calls updateSyndromeUlt(ctx) each frame (ctx = { camera, sound, hitEffects, damageNumbers }). Syndrome's
+// pose = a non-hitting currentAttack on the gesture strips; damage = the scheduled contacts through W.damage. Every
+// machine here is presentation (syndromeFx reads the view); the owner's live Drones / Spinner / Velocipod / Omnidroid
+// action are RESOLVED (dismissed) at the capture so no live entity can add damage; a deployed turret is frozen with the
+// world and its volley in the cinematic is the scheduled contact only.
+// Cinematic clock: `tick` counts every update; `frame` is the timeline position. A contact HOLDS the frame for its `stop`
+// ticks (hit-stop) and the finisher wind-up advances the frame on every 2nd tick only (slow-motion). Camera direction and
+// layered sound are driven from here through the ctx (presentation side effects only — never read back into the sim).
+const cine = { active: false, frame: 0, tick: 0, hold: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, cx0: 0, tx0: 0, dir: 1, done: 0, scale: 1,
+  hitT: [], hitF: [], lastFrame: -1 }
 export const isSyndromeUltActive = () => cine.active
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
@@ -439,47 +443,98 @@ export function activateSyndromeUlt(f, target, W) {
   const d = f.facing || 1
   // the captive is placed a fixed distance ahead (stage-clamped) so the giant claws have a readable lane
   const tx = Math.max(40, Math.min(sw(W) - 40 - (target.w || 48), f.x + d * 170))
-  Object.assign(cine, { active: true, frame: 0, caster: f, target, W, floorC: f.y, floorT: f.y + (f.h || 94) - (target.h || 94),
-    cx0: f.x, tx0: tx, dir: d, done: 0, scale: E.comboScale?.(f) ?? 1 })
-  s.ult = { frame: 0, done: 0 }
+  Object.assign(cine, { active: true, frame: 0, tick: 0, hold: 0, caster: f, target, W, floorC: f.y, floorT: f.y + (f.h || 94) - (target.h || 94),
+    cx0: f.x, tx0: tx, dir: d, done: 0, scale: E.comboScale?.(f) ?? 1, hitT: [], hitF: [], lastFrame: -1, downed: false })
+  s.ult = { frame: 0, tick: 0, done: 0 }
   target.hitstun = Math.max(target.hitstun || 0, 9999); target.isBlocking = false; target.vx = 0; target.vy = 0
   f.vx = 0; f.vy = 0
   cue(f, 'ultConfirm')
   return true
 }
-function ultHit(i) {
+function ultHit(i, ctx) {
   const c = ULT.contacts[i], t = cine.target, f = cine.caster
   cine.done = i + 1; if (f._syndrome?.ult) f._syndrome.ult.done = cine.done
+  cine.hitT[i] = cine.tick; cine.hitF[i] = cine.frame
+  cine.hold = c.stop || 0   // HIT-STOP: the timeline holds while the shake / flash play out (also on a KO'd captive)
+  ctx?.camera?.shake?.(c.shake || 4, c.kind === 'slam' ? 48 : c.kind === 'lift' || c.kind === 'pin' ? 22 : 12)
+  const L = ULT_SFX_HIT[c.kind]; if (L) for (const [id, g] of L) sfx(ctx, id, g)
+  if (c.kind === 'slam') { const s = f._syndrome; if (s) { pushFx(s, 'ultBoom', cine.tx0 + (t.w || 48) / 2, cine.floorT + (t.h || 94), cine.dir) } }
   if (!(t.health > 0)) return
   cine.W?.damage?.(t, dmg(c.raw) * cine.scale, { source: 'ultimate', attacker: f, move: 'ultimate' })
   f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90
-  t.colorFlash = 8
+  t.colorFlash = c.kind === 'slam' ? 14 : 8
   cue(f, c.kind === 'slam' ? 'ultSlam' : c.kind === 'lift' || c.kind === 'pin' ? 'claw' : c.kind === 'turret' ? 'gunShot' : c.kind === 'velo' ? 'veloPass' : c.kind === 'spinner' ? 'spinnerReturn' : 'droneShot')
-  if (c.kind === 'slam') { const s = f._syndrome; if (s) { pushFx(s, 'ultBoom', cine.tx0 + (t.w || 48) / 2, cine.floorT + (t.h || 94), cine.dir) } }
 }
-// target height offset during the claw sequence (lift → pinned high → slammed down)
+// layered sound: wind-ups on timeline frames, impacts per contact kind, tails a few ticks after the big contacts
+const sfx = (ctx, id, gain = 0.8) => { try { ctx?.sound?.playJuiceSfx?.(id, { gain }) } catch (_) {} }
+const ULT_SFX_AT = { 0: [['charge_swell_riser', 0.55], ['energy_hum_low', 0.5]], 6: [['whoosh_medium_01', 0.6]], 12: [['impact_hit_01', 0.55]],
+  26: [['warp_wobble_01', 0.5]], 34: [['boom_anticipation_suck', 0.7]], 46: [['boom_medium_01', 0.95], ['rumble_tail_01', 0.6]],
+  58: [['swish_fast_01', 0.6]], 80: [['swish_fast_02', 0.6]], 94: [['whoosh_medium_02', 0.7]], 108: [['charge_hum_rise', 0.45]],
+  128: [['energy_tone_hold', 0.55]], 136: [['charge_swell_riser', 0.5]], 160: [['swish_fast_03', 0.7]],
+  196: [['charge_hum_rise', 0.7], ['warp_wobble_02', 0.5]], 208: [['pitch_drop_slowmo', 0.75]], 216: [['sting_pitch_rise_hold', 0.6]],
+  226: [['boom_anticipation_suck', 0.95]], 262: [['whoosh_medium_01', 0.5]] }
+const ULT_SFX_HIT = { drone: [['hit_flurry_01', 0.6], ['impact_hit_01', 0.5]], spinner: [['impact_hit_01', 0.75], ['swish_fast_03', 0.5]],
+  velo: [['impact_crack_01', 0.85], ['boom_medium_02', 0.55]], turret: [['hit_flurry_01', 0.75], ['boom_medium_02', 0.65]],
+  lift: [['impact_crack_01', 0.95], ['boom_medium_01', 0.85], ['crack_sizzle_bright', 0.6]], pin: [['hit_heavy_boom_01', 1], ['impact_crack_01', 0.7]],
+  slam: [['impact_frame_boom_long', 1], ['boom_huge_01', 1], ['boom_huge_02_roar', 0.9]] }
+// target height offset (lift → held high → hoisted for the finisher → driven into the stage)
 export function ultTargetLift(fr) {
-  if (fr < 118) return 0
-  if (fr < 140) return Math.round(120 * Math.min(1, (fr - 118) / 16))
-  if (fr < 186) return 120 + Math.round(Math.sin((fr - 140) / 46 * Math.PI) * 24)
-  if (fr < 196) return Math.round(120 * (1 - (fr - 186) / 10))
+  if (fr < 8) return 0
+  if (fr < 140) return Math.round(14 * Math.min(1, (fr - 8) / 12) + Math.sin(fr / 9) * 3)          // Zero-Point float
+  if (fr < 150) return Math.round(14 + 136 * Math.min(1, (fr - 140) / 6))                             // the claw erupts
+  if (fr < 166) return 150 + Math.round(Math.sin((fr - 150) / 16 * Math.PI) * 10)
+  if (fr < 176) return Math.round(150 - 40 * Math.min(1, (fr - 166) / 4) + 40 * Math.max(0, (fr - 170) / 6))   // pinned, recoils
+  if (fr < 204) return 150
+  if (fr < 230) return Math.round(150 + 20 * Math.min(1, (fr - 204) / 14))                            // hoisted for the finisher
+  if (fr < 236) return Math.round(170 * (1 - ((fr - 230) / 6) ** 2))                                  // DRIVEN down
   return 0
 }
-export function updateSyndromeUlt() {
+// camera direction per beat (presentation; game.js advances the camera after this)
+function ultCamera(ctx, fr, f, t) {
+  const cam = ctx?.camera; if (!cam) return
+  // (the engine camera covers the wide shots; syndromeFx adds a screen-space lens for the tight push-ins)
+  const d = cine.dir, feet = cine.floorC + (f.h || 94), mid = (cine.cx0 + cine.tx0) / 2 + d * 60
+  const box = (x, top, h) => ({ x: x - 20, y: top, w: 40, h })
+  try {
+    if (fr < 20) cam.focusOnFighter?.(f, 1.15)                                          // on the showman
+    else if (fr < 56) cam.focusOnFighter?.(box(mid + d * 90, feet - 760, 760), 0.6)     // pull out: the Omnidroid drops in
+    else if (fr < 128) cam.focusOnFighter?.(box(mid + d * 60, feet - 560, 560), 0.8)    // the orchestra under the giant
+    else if (fr < 196) cam.focusOnFighter?.(t, 1.1)                                     // tight on the claws
+    else if (fr < 236) cam.focusOnFighter?.(box(cine.tx0 - d * 40, feet - 940, 940), 0.5)   // the leap: widest shot
+    else if (fr < 258) cam.focusOnFighter?.(box(cine.tx0, feet - 300, 300), 0.85)       // the crater
+    else cam.focusOnFighter?.(f, 1.0)                                                   // back to Syndrome
+  } catch (_) {}
+}
+export function updateSyndromeUlt(ctx = null) {
   if (!cine.active) return
   const f = cine.caster, t = cine.target, s = f?._syndrome
   if (!f || !t || !s) return clearSyndromeUlt()
-  const k = cine.frame
-  for (let i = 0; i < ULT.contacts.length; i++) if (k === ULT.contacts[i].at && cine.done === i) ultHit(i)
-  if (!(t.health > 0) && k < ULT.settle && k > 196) cine.frame = ULT.settle
+  const k = cine.frame, fresh = k !== cine.lastFrame
+  cine.lastFrame = k
+  if (fresh) {
+    const L = ULT_SFX_AT[k]; if (L) for (const [id, g] of L) sfx(ctx, id, g)
+    if (k === ULT.land) { ctx?.camera?.shake?.(13, 24); cine.hold = 4; cue(f, 'omniRise') }
+    if (k === 128) cue(f, 'clawRise')
+    if (k === ULT.leap) cue(f, 'omniLoom')
+    for (let i = 0; i < ULT.contacts.length; i++) if (k === ULT.contacts[i].at && cine.done === i) ultHit(i, ctx)
+    // KO before the finisher → straight to the finisher (it plays as the KO, no further damage); KO by then → aftermath
+    if (!(t.health > 0) && k < ULT.finisher && cine.done < ULT.contacts.length - 1) { cine.done = ULT.contacts.length - 1; cine.frame = ULT.finisher - 1; cine.lastFrame = -1 }
+    if (!(t.health > 0) && k > ULT.slamAt + 18 && k < ULT.settle) { cine.frame = ULT.settle - 1; cine.lastFrame = -1 }
+  }
+  if (cine.hitT.length && cine.done === ULT.contacts.length && cine.tick - cine.hitT[ULT.contacts.length - 1] === 22) sfx(ctx, 'rumble_tail_01', 0.9)
   const fr = cine.frame
   let beat = ULT.beats[0]; for (const b of ULT.beats) if (fr >= b.from) beat = b
   pose(f, beat.pose, fr - beat.from)
   f.x = cine.cx0; f.y = cine.floorC; f.facing = cine.dir
   t.x = cine.tx0; t.vx = 0; t.vy = 0; t.isBlocking = false
   t.y = cine.floorT - ultTargetLift(fr)
-  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 40) s.fx.splice(i, 1)
-  if (s.ult) s.ult.frame = fr
+  if (fr >= ULT.slamAt && t.health > 0 && !t.knockdownState) { t.knockdownState = true; t.knockdownTimer = Math.max(t.knockdownTimer || 0, 50); cine.downed = true }   // crumpled in the crater
+  ultCamera(ctx, fr, f, t)
+  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 60) s.fx.splice(i, 1)
+  if (s.ult) { s.ult.frame = fr; s.ult.tick = cine.tick }
+  cine.tick++
+  if (cine.hold > 0) { cine.hold--; return }                                        // hit-stop: the frame holds
+  if (fr >= ULT.slow.from && fr < ULT.slow.to && (cine.tick & 1)) return            // slow-motion: every 2nd tick
   if (++cine.frame >= ULT.total) finishUlt()
 }
 function finishUlt() {
@@ -487,19 +542,20 @@ function finishUlt() {
   if (t) { t.y = cine.floorT; t.vx = 0; t.vy = 0; t.hitstun = 0
     if (t.health > 0) { t.knockdownState = true; t.knockdownTimer = Math.max(t.knockdownTimer || 0, 50) } }
   if (f) { endAttack(f, 12); f.y = cine.floorC; f.vx = 0; f.vy = 0; const s = f._syndrome; if (s) { s.stats.ultDone++; delete s.ult } }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, done: 0 })
+  Object.assign(cine, { active: false, frame: 0, tick: 0, hold: 0, caster: null, target: null, W: null, done: 0, hitT: [], hitF: [], lastFrame: -1, downed: false })
 }
 export function clearSyndromeUlt() {
   if (!cine.active) return
   const f = cine.caster, t = cine.target
-  if (t) { t.y = cine.floorT; t.hitstun = 0; t.vx = 0; t.vy = 0 }
+  if (t) { t.y = cine.floorT; t.hitstun = 0; t.vx = 0; t.vy = 0; if (cine.downed) { t.knockdownState = false; t.knockdownTimer = 0 } }
   if (f) { endAttack(f); f.y = cine.floorC; f.vx = 0; f.vy = 0; if (f._syndrome) delete f._syndrome.ult }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, done: 0 })
+  Object.assign(cine, { active: false, frame: 0, tick: 0, hold: 0, caster: null, target: null, W: null, done: 0, hitT: [], hitF: [], lastFrame: -1, downed: false })
 }
 export const getSyndromeUltStatus = () => ({ active: cine.active, frame: cine.frame, done: cine.done, caster: cine.caster?.side || null })
 export function syndromeUltView(f) {
   if (!cine.active || cine.caster !== f) return null
-  return { frame: cine.frame, cutIn: cine.frame < ULT.cutIn ? cine.frame / ULT.cutIn : null, done: cine.done,
+  return { frame: cine.frame, tick: cine.tick, hold: cine.hold, cutIn: cine.frame < ULT.cutIn ? cine.frame / ULT.cutIn : null, done: cine.done,
     cx: cine.cx0 + (f.w || 48) / 2, tx: cine.tx0 + (cine.target?.w || 48) / 2, feet: cine.floorC + (f.h || 94), dir: cine.dir,
-    tTop: cine.target ? cine.target.y : 0, lift: ultTargetLift(cine.frame), turret: !!f._syndrome?.turret }
+    tTop: cine.target ? cine.target.y : 0, tH: cine.target?.h || 94, lift: ultTargetLift(cine.frame), turret: !!f._syndrome?.turret,
+    hitT: [...cine.hitT], ko: !(cine.target?.health > 0) }
 }

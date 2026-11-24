@@ -27,10 +27,17 @@ export function playDashParrCue(cue,f){
   case 'flurry':for(let k=0;k<8;k++)tone('square',600*pitch(k,pi),600*pitch(k,pi),0.025,0.07,k*0.045);break   // 8 × 25 ms pops
   case 'laps':tone('sine',300*p,1200*p,0.6,0.12);break                                     // Doppler loop
   case 'blur':tone('triangle',1760*p,1760*p,0.12,0.12);break                              // Blur tier reached
-  case 'rush':noise(2.5,0.2,pi,300,6000);tone('sine',80*p,80*p,0.35,0.3,2.5);break        // rising sweep + thump
+  case 'rush':tone('sine',1400*p,180*p,0.9,0.16);tone('triangle',2400*p,2400*p,0.18,0.08,0.02);noise(0.9,0.1,pi,400,120);break   // INCREDI-RUSH: time bends down to a crawl
+  case 'rushZip':noise(0.09,0.22,pi,2600*p);tone('sine',900*p,2200*p,0.07,0.05);break      // a blink between hits
+  case 'rushLaunch':tone('sine',110*p,45*p,0.4,0.32);noise(0.25,0.25,pi,700);break         // hit 11 launches the foe
+  case 'rushRun':noise(1.0,0.2,pi,200,5000);tone('sawtooth',90*p,420*p,0.9,0.05);break       // the sprint: rising rush of air
+  case 'sonicBoom':tone('sine',70*p,28*p,1.2,0.42);tone('square',160*p,40*p,0.35,0.12);noise(0.6,0.35,pi,120);noise(1.4,0.12,pi,3000,300,0.08);break   // the SONIC BOOM punch
+  case 'rushEnd':tone('sine',240*p,1200*p,0.35,0.1);break                                  // time snaps back
+  case 'lock':tone('triangle',1760*p,1760*p,0.1,0.1);break
   case 'flashOn':tone('sine',1200*p,240*p,0.5,0.14);tone('triangle',1760*p,1760*p,0.12,0.1,0.05);break   // Flash Time: time bends down + ping
   case 'flashOff':tone('sine',240*p,1200*p,0.35,0.12);break                               // time snaps back
-  case 'pop':case 'hit':case 'rushHit':tone('square',(cue==='hit'?420:600)*p,(cue==='hit'?260:600)*p,0.03,0.06);break
+  case 'pop':case 'hit':tone('square',(cue==='hit'?420:600)*p,(cue==='hit'?260:600)*p,0.03,0.06);break
+  case 'rushHit':tone('square',520*p,180*p,0.06,0.1);tone('sine',140*p,60*p,0.12,0.18);noise(0.05,0.18,pi,1500);break   // a Rush contact: crack + body thump
   default:break
  }}catch(_){}
 }

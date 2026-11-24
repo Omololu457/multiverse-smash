@@ -14,6 +14,7 @@ import { syndrome as SY, SYNDROME_MOVES as MV, MACHINE_SCALE as K, DUET, SPIN, V
 import { SYNDROME_PARTS as PA } from './syndromeSprites.js'
 import { syndromeUltView } from './syndromeState.js'
 import { SYNDROME_FX_COLORS } from './syndromeSkins.js'
+import { registerCineScreen } from './cineRegistry.js'
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }
@@ -257,46 +258,203 @@ function drawHold(c, f, s, W) {
   for (let i = 0; i < 3; i++) part(c, f, 'crystal', (s.clock >> 2) + i * 3, ctrX(t) + (i - 1) * 30, t.y + 20 + (i % 2) * 40, { scale: 1, alpha: 0.85 })
 }
 
-// ── ULTIMATE presentation (world). The body is a layered giant with intentional cropping (no new art). ──
-function drawUlt(c, f, v, layer) {
-  const k = v.frame, d = v.dir, floor = v.feet, tx = v.tx, ty = floor - 60 - v.lift
-  // shell centre behind the captive; rises (A), leans (D), retracts (E)
-  const rise = k < 40 ? (1 - k / 40) * 420 : 0, lean = k >= 170 && k < 200 ? Math.sin((k - 170) / 30 * Math.PI) * 40 : 0, exit = k >= 220 ? (k - 220) * 14 : 0
-  const sx = tx + d * 210 - 128 * K - d * lean, sy = floor - 560 + rise + exit + lean * 0.8
-  if (layer === 'under') {
-    for (const [lx] of OMNI.legs) part(c, f, 'leg', 2, sx + (128 + lx) * K, sy + 240 * K - 10 + exit * 0.2, { flip: d })   // planted legs behind
-    drawShell(c, f, sx, sy, -d, k < 40 ? 'eyeOpen' : k < 110 ? 'eyeTrack' : 'eyeFire', k < 40 ? Math.min(4, k >> 3) : k >> 3)
-    if (k >= 96 && k < 108) part(c, f, 'gunFire', k - 96 >> 1, tx - d * 230, floor, { flip: d })
-    if (k >= 88 && k < 108 && !v.turret) part(c, f, 'gunOpen', 7, tx - d * 230, floor, { flip: d })
-    return
+// ── ULTIMATE presentation — OPERATION KRONOS: FINAL DEMONSTRATION (cinematic rebuild 2026-11-23) ──────────────────
+// World pass (drawUltWorld, under + over the fighters): the Omnidroid drops in, stands on its planted legs, leaps and
+// slams; the machine orchestra; the Zero-Point field; every impact's sparks / rings / debris / dust. Screen pass
+// (drawSyndromeUltScreen, registered with cineRegistry): letterbox, title card, monologue subtitles, call-outs, white /
+// inverted impact frames, punch-zoom, speed lines, the finisher stamp. Poses follow the timeline `frame` (held during
+// hit-stop); flashes / particles follow `tick` ages from the contact (so they keep moving through the hold).
+// Render-only noise = hash(); no Math.random.
+const hash = (a, b = 0) => ((Math.imul((a | 0) * 374761393 + (b | 0) * 668265263, 1274126177) >>> 0) % 10007) / 10007
+const ease = u => { u = cl(u, 0, 1); return u * u * (3 - 2 * u) }
+const CK = Object.fromEntries(ULT.contacts.map((c, i) => [c.kind + (c.kind === 'drone' ? i : ''), i]))   // kind → contact index
+const ageOf = (v, i) => v.hitT[i] == null ? -1 : v.tick - v.hitT[i]
+let XF = null, SCENE = null   // world → screen transform + the live caster (recorded by the world pass for the screen pass)
+
+// one Omnidroid leg: foot planted at feetY (frame 2) with the shaft tiled up to topY (pixels reused, never stretched)
+function plantedLeg(c, f, x, topY, feetY, dir) {
+  const L = PA.leg, im = image(partUrl(f, 'leg')), top = feetY - 300
+  if (ready(im) && topY < top + 40) {
+    c.save(); c.imageSmoothingEnabled = false; c.beginPath(); c.rect(x - 40, topY, 80, top + 40 - topY); c.clip()
+    const sx = 2 * L.width + L.originX - 11
+    for (let y = top; y > topY - 80; y -= 40 * K) c.drawImage(im, sx, 12, 22, 40, Math.round(x - 11 * K), Math.round(y - 40 * K + 24), 22 * K, 40 * K)
+    c.restore()
   }
-  // B: machine orchestra (presentation only — damage is the scheduled contacts)
-  if (k >= 44 && k < 70) { const p = (k - 44) / 26; part(c, f, 'droneBank', k >> 1, tx - d * 260 + d * 520 * p, ty - 80 + 80 * p, { flip: d }); part(c, f, 'droneBank', k >> 1, tx + d * 260 - d * 520 * p, ty + 40 - 60 * p, { flip: -d }) }
-  if (k >= 70 && k < 84) { const a = (k - 70) / 14 * Math.PI * 2; part(c, f, 'spBlur', k, tx + Math.cos(a) * 70, ty + 30 + Math.sin(a) * 26, { flip: d }) }
-  if (k >= 82 && k < 96) { const p = (k - 82) / 14; part(c, f, 'vpSide', k >> 1, tx - d * 380 + d * 760 * p, ty - 30, { flip: d }) }
-  // C: two connected limb assemblies — one lifts from below (claw under the feet), one pins from above
-  if (k >= 110 && k < 200) {
-    const liftI = k < 124 ? 0 : k < 140 ? 1 + ((k - 124) >> 2) : 5
-    part(c, f, 'claw', liftI, tx, floor - v.lift + 4)
-    const [ldx, ldy] = tipOf('limbDiag', 1)
-    part(c, f, 'limbDiag', 1, tx + 10 * d - ldx * -d, floor - v.lift + 20 - ldy, { flip: -d })
-    if (k >= 136) { const pinI = k < 186 ? 0 : 2 + Math.min(3, (k - 186) >> 2), [pdx, pdy] = tipOf('legSlam', pinI); part(c, f, 'legSlam', pinI, tx - pdx * d, (k < 186 ? floor - v.lift - 90 : floor - 10) - pdy, { flip: d }) }
-  }
-  if (k >= 200 && k < 222) { const [pdx, pdy] = tipOf('legSlam', 5); part(c, f, 'legSlam', 5, tx - pdx * d, floor - pdy - (k - 200) * 14, { flip: d }) }
+  part(c, f, 'leg', 2, x, top, { flip: dir })
 }
-function drawCutIn(c, cw, ch, f, v) {
-  const u = v.cutIn, al = u < 0.15 ? u / 0.15 : u > 0.85 ? (1 - u) / 0.15 : 1, [hud0, hud1] = colsOf(f).hud
-  const por = image(tagOf(f) ? `./assets/syndrome/skins/${tagOf(f)}/portrait.png` : SY.portrait)
-  const y0 = Math.round(ch * 0.24), bandH = 96, left = (f.facing ?? 1) >= 0
-  c.save(); c.globalAlpha = 0.85 * al; c.fillStyle = '#06060e'; c.fillRect(0, y0, cw, bandH)
-  c.globalAlpha = al; c.fillStyle = hud0; c.fillRect(0, y0, cw, 3); c.fillRect(0, y0 + bandH - 3, cw, 3)
-  if (ready(por)) { c.imageSmoothingEnabled = false; const pw = por.naturalWidth * 2, ph = por.naturalHeight * 2; c.drawImage(por, left ? 40 : cw - 40 - pw, y0 + 8, pw, ph) }
-  c.textAlign = left ? 'left' : 'right'; c.textBaseline = 'middle'
-  c.font = 'bold 18px Arial'; c.fillStyle = hud0; c.fillText('OPERATION KRONOS', left ? 140 : cw - 140, y0 + 30)
-  c.font = '900 30px Arial'; c.fillStyle = hud1; c.fillText('FINAL DEMONSTRATION', left ? 140 : cw - 140, y0 + 64)
+// Omnidroid placement per frame: shell top-left, leg mode, the striking limb
+function omniPose(v) {
+  const k = v.frame, d = v.dir, od = -d, floor = v.feet, tx = v.tx
+  const ax = tx + 162 * d, ay = floor - 467                     // front socket while standing (limb frame 2 tip → the lifted captive)
+  const sx0 = ax - (128 + OMNI.front[0] * od) * K, sy0 = ay - OMNI.front[1] * K
+  let sx = sx0, sy = sy0, legs = 'planted', vis = true
+  if (k < 20) vis = false
+  else if (k < 46) sy = sy0 - 1500 * (1 - ((k - 20) / 26) ** 2)                     // the drop
+  else if (k < 54) sy = sy0 + Math.sin((k - 46) / 8 * Math.PI) * 22                 // landing squash
+  else if (k >= 196 && k < 204) sy = sy0 + Math.sin((k - 196) / 8 * Math.PI) * 30    // crouch before the leap
+  if (k >= 204 && k < 258) {
+    legs = 'tucked'
+    const airX = tx - 128 * K, airY = floor - 1050
+    if (k < 230) { const u = ease((k - 204) / 16); sx = sx0 + (airX - sx0) * u; sy = sy0 + (airY - sy0) * u - Math.sin(u * Math.PI) * 140 + (k >= 220 ? Math.sin(k) * 2 : 0) }
+    else { const tipY = floor - v.lift - v.tH + 8; sx = airX; sy = Math.max(airY, tipY - 792) }   // full weight: the leg drives the captive down
+  }
+  if (k >= 258) { legs = 'tucked'; sx = tx - 128 * K; sy = floor - v.tH + 8 - 792 - (k - 258) ** 2 * 1.6 }   // lifts away
+  return { sx, sy, legs, vis, od, cx: sx + 128 * K }
+}
+function zeroField(c, f, v, cols) {
+  const k = v.frame, t = v.tick, cy = v.tTop + v.tH / 2, x = v.tx
+  const al = k < 14 ? k / 14 : k > 136 ? cl((146 - k) / 10, 0, 1) : 1; if (al <= 0) return
+  const pulse = 0.75 + 0.25 * Math.sin(t / 4)
+  c.save(); c.globalAlpha = al * 0.45 * pulse
+  const g = c.createRadialGradient(x, cy, 6, x, cy, 90); g.addColorStop(0, 'rgba(220,250,255,0.9)'); g.addColorStop(0.5, cols[0]); g.addColorStop(1, 'rgba(0,0,0,0)')
+  c.fillStyle = g; c.beginPath(); c.ellipse(x, cy, 78, 96, 0, 0, Math.PI * 2); c.fill(); c.restore()
+  // the tether from the glove: a jittering zero-point arc
+  const gx = v.cx + v.dir * 34, gy = v.feet - 92
+  for (const [w, a, col] of [[7, 0.25, cols[0]], [2, 0.95, '#ffffff']]) {
+    c.save(); c.globalAlpha = al * a; c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(gx, gy)
+    for (let i = 1; i < 8; i++) { const u = i / 8; c.lineTo(gx + (x - gx) * u + (hash(t >> 1, i) - 0.5) * 14, gy + (cy - gy) * u + (hash(i, t >> 1) - 0.5) * 18) }
+    c.lineTo(x, cy); c.stroke(); c.restore()
+  }
+  for (let i = 0; i < 4; i++) { const a = t / 14 + i * Math.PI / 2; part(c, f, 'crystal', (t >> 2) + i * 2, x + Math.cos(a) * 52, cy + Math.sin(a) * 60, { scale: 1.5, alpha: al * 0.9 }) }
+  if (k < 18) part(c, f, 'cyanPuff', k >> 1, x, cy, { scale: 2, alpha: 0.9 })
+}
+function sparks(c, x, y, age, n, len, col, seed) {
+  if (age < 0 || age > 14) return
+  const u = age / 14
+  c.save(); c.globalAlpha = 1 - u; c.strokeStyle = col; c.lineCap = 'round'
+  for (let i = 0; i < n; i++) {
+    const a = hash(seed, i) * Math.PI * 2, r0 = len * (0.15 + u * 0.9), r1 = r0 + len * (0.5 + hash(i, seed) * 0.6) * (1 - u * 0.7)
+    c.lineWidth = Math.max(1, 4 * (1 - u)); c.beginPath(); c.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0); c.lineTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); c.stroke()
+  }
   c.restore()
 }
-
+function ring(c, x, y, age, life, r0, r1, col, flat = 0.28, w = 6) {
+  if (age < 0 || age > life) return
+  const u = age / life, r = r0 + (r1 - r0) * (1 - (1 - u) ** 2)
+  c.save(); c.globalAlpha = (1 - u) * 0.9; c.strokeStyle = col; c.lineWidth = Math.max(1, w * (1 - u)); c.beginPath(); c.ellipse(x, y, r, r * flat, 0, 0, Math.PI * 2); c.stroke(); c.restore()
+}
+function flashBall(c, x, y, age, life, r, col = '#ffffff') {
+  if (age < 0 || age > life) return
+  const u = age / life
+  c.save(); c.globalAlpha = 1 - u; const g = c.createRadialGradient(x, y, 0, x, y, r * (0.6 + u * 0.6)); g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, col); g.addColorStop(1, 'rgba(0,0,0,0)')
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r * (0.6 + u * 0.6), 0, Math.PI * 2); c.fill(); c.restore()
+}
+function debris(c, f, x, floor, age, n, power, seed) {
+  if (age < 0 || age > 50) return
+  for (let i = 0; i < n; i++) {
+    const vx = (hash(seed, i) - 0.5) * 22 * power, vy = -(8 + hash(i, seed) * 14) * power, t = age
+    const px = x + vx * t, py = floor - 6 + vy * t + 0.55 * t * t
+    if (py > floor + 4) continue
+    if (i % 3) part(c, f, 'fragment', i + (t >> 2), px, py, { scale: 2 + (i % 2) })
+    else { c.save(); c.fillStyle = i % 2 ? '#3b3440' : '#6d6470'; c.translate(px, py); c.rotate(t * 0.3 + i); const z = 5 + hash(i, 3) * 8 * power; c.fillRect(-z / 2, -z / 2, z, z * 0.7); c.restore() }
+  }
+}
+function dust(c, f, x, floor, age, spread, seed) {
+  if (age < 0 || age > 44) return
+  for (let i = 0; i < 6; i++) { const s = i < 3 ? -1 : 1, off = (0.3 + (i % 3) * 0.35) * spread * (0.5 + Math.min(1, age / 16) * 0.5)
+    part(c, f, 'omniPuff', Math.min(10, age >> 2), x + s * off, floor - 18 - (i % 3) * 10 - age * 0.6, { scale: 2 + (i % 3) * 0.5, alpha: 0.85 * (1 - age / 44) }) }
+}
+function fissures(c, x, floor, al, reach, col, seed) {
+  if (al <= 0) return
+  c.save(); c.globalAlpha = al; c.strokeStyle = col; c.lineCap = 'round'
+  for (let i = 0; i < 7; i++) {
+    const s = i % 2 ? 1 : -1, len = reach * (0.45 + hash(seed, i) * 0.55)
+    c.lineWidth = 3 + hash(i, seed) * 3; c.beginPath(); c.moveTo(x, floor)
+    for (let j = 1; j <= 4; j++) c.lineTo(x + s * len * j / 4, floor + (hash(i, j + seed) - 0.5) * 10 + (i % 3) * 2)
+    c.stroke()
+  }
+  c.restore()
+}
+function drawUltWorld(c, f, v, layer) {
+  const k = v.frame, t = v.tick, d = v.dir, floor = v.feet, tx = v.tx, cols = colsOf(f).hud, P = omniPose(v), cy = v.tTop + v.tH / 2
+  const calmFx = calm()
+  if (layer === 'under') {
+    try { XF = c.getTransform() } catch (_) { XF = null }
+    SCENE = { f }
+    // the finisher's darkness (behind the fighters, so they stay lit)
+    const dk = k >= 200 && k < 236 ? 0.55 * ease((k - 200) / 24) : k >= 236 && k < 262 ? 0.55 * (1 - (k - 236) / 26) * (ageOf(v, 7) > 4 ? 1 : 0) : 0
+    if (dk > 0) { c.save(); c.globalAlpha = dk; c.fillStyle = '#05040c'; c.fillRect(-6000, -6000, 16000, 12000); c.restore() }
+    // the incoming shadow, then the planted footprint
+    if (k >= 8 && k < 204) { const u = k < 46 ? cl((k - 8) / 38, 0, 1) : 1; c.save(); c.globalAlpha = 0.45 * u; c.fillStyle = '#000'; c.beginPath(); c.ellipse(P.cx, floor + 2, 60 + 170 * u, 10 + 16 * u, 0, 0, Math.PI * 2); c.fill(); c.restore() }
+    if (P.vis) {
+      for (const [lx] of OMNI.legs) {
+        const lxw = P.sx + (128 + lx) * K, top = P.sy + 236 * K
+        if (P.legs === 'planted' && k >= 46) plantedLeg(c, f, lxw, top, floor + 6, P.od)
+        else part(c, f, 'leg', 0, lxw, top + Math.sin((t + lx) / 6) * 4, { flip: P.od })
+      }
+      const eye = k < 54 ? 'eyeOpen' : k >= 208 && k < 258 ? 'eyeFire' : 'eyeTrack', eyeI = k < 54 ? Math.min(4, Math.max(0, (k - 40) >> 2)) : eye === 'eyeFire' ? t >> 1 : k >> 3
+      drawShell(c, f, P.sx, P.sy, P.od, eye, eyeI)
+      // the eye charge: a red glow that swells through the slow-motion
+      if (k >= 204 && k < 240) {
+        const ex = P.cx + OMNI.eye[0] * K * P.od, ey = P.sy + OMNI.eye[1] * K, u = cl((k - 204) / 30, 0, 1)
+        flashBall(c, ex, ey, 0, 1, 30 + 110 * u * (0.85 + 0.15 * Math.sin(t / 2)), 'rgba(255,40,40,0.8)')
+        if (k >= 212 && k < 234 && (t >> 1) % 3) { c.save(); c.globalAlpha = 0.7; c.strokeStyle = '#ff3030'; c.lineWidth = 2; c.setLineDash([10, 6]); c.beginPath(); c.moveTo(ex, ey); c.lineTo(tx, cy); c.stroke(); c.restore()
+          reticle(c, tx, cy, 34 - 10 * u, '#ff3030', t) }
+      }
+      // B: the landing turret beside Syndrome
+      const tu = k - 104, gx = v.cx - d * 70
+      if (tu >= 0 && tu < 24) part(c, f, tu < 6 ? 'gunEmerge' : tu < 10 || tu > 16 ? 'gunOpen' : 'gunFire', tu < 6 ? Math.min(9, tu * 2) : tu < 10 ? 7 : tu > 16 ? 7 : (t >> 1), gx, floor, { flip: d })
+    }
+    // C: the ground cracks open under the captive
+    if (k >= 128 && k < 150) fissures(c, tx, floor, (k < 142 ? (k - 128) / 14 : 1) * (0.6 + 0.4 * ((t >> 1) % 2)), 40 + (k - 128) * 7, cols[0], 11)
+    // D/E: the crater glow
+    const sa = ageOf(v, CK.slam)
+    if (sa >= 0) fissures(c, tx, floor, cl(1 - (sa - 30) / 50, 0, 1), 380, sa < 10 ? '#ffffff' : cols[0], 29)
+    return
+  }
+  // ── over the fighters ──
+  zeroField(c, f, v, cols)
+  // A: landing shock
+  if (k >= 46) { dust(c, f, P.cx, floor, k - 46, 300, 5); ring(c, P.cx, floor, k - 46, 22, 40, 520, '#ffffff', 0.18, 10); debris(c, f, P.cx, floor, k - 46, 10, 0.9, 7) }
+  // B: the machine orchestra — every machine aims AT the captive; the contact ticks drive the impact effects
+  if (k >= 54 && k < 66) { const u = (k - 54) / 10; part(c, f, k < 60 ? 'droneBank' : 'droneFire', k >> 1, tx - d * (320 - 230 * u), cy - 150 + 80 * u, { flip: d }) }
+  if (k >= 64 && k < 76) { const u = (k - 64) / 10; part(c, f, k < 70 ? 'droneBank' : 'droneFireLevel', k >> 1, tx + d * (300 - 220 * u), cy - 40 - 60 * u, { flip: -d }) }
+  for (const [i, sx, sy] of [[0, tx - d * 90, cy - 70], [1, tx + d * 80, cy - 100]]) { const a = ageOf(v, i)
+    if (a >= 0 && a < 5) for (let j = 0; j < 3; j++) { c.save(); c.globalAlpha = 1 - a / 5; c.strokeStyle = j ? cols[1] : '#fff36a'; c.lineWidth = 3; c.beginPath(); c.moveTo(sx, sy + j * 8); c.lineTo(tx + (hash(i, j) - 0.5) * 30, cy + (hash(j, i) - 0.5) * 40); c.stroke(); c.restore() } }
+  if (k >= 76 && k < 94) { const u = (k - 76) / 10, sp = k < 86 ? [v.cx + d * 40 + (tx - v.cx - d * 40) * u, floor - 70 - Math.sin(u * Math.PI) * 60] : [tx + d * (k - 86) * 18, cy - (k - 86) * 10]
+    for (let g = 2; g >= 0; g--) part(c, f, 'spBlur', k - g, sp[0] - d * g * 16, sp[1], { flip: d, alpha: g ? 0.3 : 1 }) }
+  if (k >= 94 && k < 108) { const u = (k - 94) / 12, x = tx - d * 420 + d * 840 * u
+    for (let g = 4; g >= 0; g--) part(c, f, 'vpSide', k >> 1, x - d * g * 34, cy - 20, { flip: d, alpha: g ? 0.12 + 0.1 * (4 - g) : 1 }) }
+  { const a = ageOf(v, CK.turret); if (k >= 108 && k < 120) for (let j = 0; j < 4; j++) { const q = ((t + j * 3) % 8) / 8; part(c, f, 'vpShot', t, v.cx - d * 40 + (tx - v.cx + d * 40) * q, floor - 60 + (cy - floor + 60) * q, { flip: d, scale: 3 }) }
+    if (a >= 0) flashBall(c, tx, cy, a, 8, 60, '#ffd040') }
+  for (const [kind, col, n, len, r] of [['drone0', '#fff36a', 8, 40, 40], ['drone1', '#fff36a', 8, 40, 40], ['spinner', cols[1], 10, 55, 50], ['velo', '#ffffff', 14, 80, 70], ['turret', '#ffb030', 12, 60, 55]]) {
+    const a = ageOf(v, CK[kind]); if (a < 0) continue
+    flashBall(c, tx, cy, a, 6, r, col); sparks(c, tx, cy, a, n, len, col, CK[kind] * 7 + 3); ring(c, tx, cy, a, 12, 10, r * 1.6, col, 1, 4)
+  }
+  // C: the claw ERUPTS from the stage and holds; the Omnidroid's limb pins from above
+  if (k >= 140 && k < 236) {
+    const charge = k >= 200, h = k < 142 ? 20 : k >= 230 ? 204 - (k - 230) * 40 : v.lift + 34
+    if (h > 0) risingClaw(c, f, tx, floor, h, charge ? t >> 1 : k < 148 ? (k - 140) >> 1 : 3 + ((k >> 2) % 2), charge)
+  }
+  if (P.vis && k >= 158 && k < 204) {
+    const i = k < 162 ? 0 : k < 166 ? 1 : k < 196 ? Math.min(6, 2 + Math.max(0, ageOf(v, CK.pin)) / 3 | 0) : 7 + ((k - 196) >> 2)
+    const ax = P.sx + (128 + OMNI.front[0] * P.od) * K, ay = P.sy + OMNI.front[1] * K
+    part(c, f, 'limbDiag', Math.min(8, i), ax, ay, { flip: P.od })
+  }
+  { const a = ageOf(v, CK.lift); flashBall(c, tx, floor - 20, a, 10, 130, cols[0]); sparks(c, tx, floor - 30, a, 16, 110, '#ffffff', 41); ring(c, tx, floor, a, 22, 20, 300, '#ffffff', 0.2, 8)
+    debris(c, f, tx, floor, a, 14, 1, 17); dust(c, f, tx, floor, a - 2, 240, 19) }
+  { const a = ageOf(v, CK.pin); flashBall(c, tx, cy, a, 9, 110, '#ff6040'); sparks(c, tx, cy, a, 16, 100, '#ffe080', 43); ring(c, tx, cy, a, 14, 20, 160, '#ffffff', 1, 6) }
+  // D: the leg shoots out of the hovering Omnidroid and drives the captive into the stage
+  if (P.vis && k >= 224 && k < 300) {
+    const sa = ageOf(v, CK.slam), i = k < 232 ? 0 : sa < 0 ? 1 : sa < 3 ? 2 : sa < 6 ? 3 : sa < 10 ? 4 : sa < 15 ? 5 : k < 258 ? 6 : 7
+    const ret = k < 230 ? 300 * (1 - ease((k - 224) / 6)) : 0, top = P.sy + 480, y = top - ret
+    c.save(); c.beginPath(); c.rect(P.cx - 400, top - 10, 800, 4000); c.clip()
+    if (k >= 226 && k < 236) for (let g = 3; g >= 1; g--) part(c, f, 'legSlam', 0, P.cx, y - g * 46, { flip: P.od, alpha: 0.16 })   // motion smear
+    part(c, f, 'legSlam', i, P.cx, y, { flip: P.od })
+    c.restore()
+  }
+  { const a = ageOf(v, CK.slam)
+    if (a >= 0) {
+      if (a < 8 && !calmFx) { c.save(); c.globalAlpha = 1 - a / 8; c.fillStyle = '#ffffff'; c.fillRect(tx - 70 + a * 6, floor - 1400, 140 - a * 12, 1400); c.restore() }   // the light pillar
+      flashBall(c, tx, floor - 30, a, 16, 260, cols[0])
+      for (const [o, life, r1, col, w] of [[0, 26, 620, '#ffffff', 12], [4, 30, 820, cols[0], 9], [9, 34, 1000, cols[1], 6]]) ring(c, tx, floor, a - o, life, 30, r1, col, 0.16, w)
+      ring(c, tx, floor - 60, a - 2, 18, 30, 300, '#ffffff', 1, 8)
+      sparks(c, tx, floor - 40, a, 26, 220, '#ffffff', 77); sparks(c, tx, floor - 40, a - 3, 18, 160, cols[0], 79)
+      debris(c, f, tx, floor, a, 26, 1.6, 23); debris(c, f, tx, floor, a - 5, 14, 1.2, 31)
+      dust(c, f, tx, floor, a - 4, 320, 37); dust(c, f, tx, floor, a - 14, 460, 39)
+    }
+  }
+}
 // ── intro (render-only; nothing here touches the sim, so nothing can outlive the intro) and victory staging ──
 function drawIntro(c, f, layer) {
   const k = f._introRevealFrame || 0, d = f.facing || 1, feet = f.y + f.h, x = ctrX(f)
@@ -318,12 +476,17 @@ function drawVictory(c, f) {
 // ── public draw passes (game.js) ──
 const W0 = { fighters: null, projectiles: null }
 export function setSyndromeRenderWorld(W) { W0.fighters = W.fighters; W0.projectiles = W.projectiles }
+const ULT_PARTS = ['shellUpper', 'shellLower', 'eyeOpen', 'eyeTrack', 'eyeFire', 'leg', 'legSlam', 'limbDiag', 'claw', 'clawCharge', 'crystal', 'cyanPuff',
+  'droneBank', 'droneFire', 'droneFireLevel', 'spBlur', 'vpSide', 'vpShot', 'gunEmerge', 'gunOpen', 'gunFire', 'omniPuff', 'fragment', 'boomBall', 'boomRing']
+const preloaded = new Set()
+function preloadUlt(f) { const key = tagOf(f) || 'default'; if (preloaded.has(key)) return; preloaded.add(key); for (const n of ULT_PARTS) if (PA[n]) image(partUrl(f, n)) }
 export function drawSyndromeUnder(c, p1, p2, W = W0) {
   for (const f of [p1, p2]) {
     if (!isSy(f)) continue
+    if ((f.energy || 0) >= 90 || f.currentAttack?.sy?.key === 'ultOpen') preloadUlt(f)
     if (f._introPlaying) { drawIntro(c, f, 'under'); continue }
     const s = f._syndrome; if (!s) continue
-    const v = syndromeUltView(f); if (v) { drawUlt(c, f, v, 'under'); continue }
+    const v = syndromeUltView(f); if (v) { drawUltWorld(c, f, v, 'under'); continue }
     drawTurret(c, f, s, 'under'); drawOmni(c, f, s, 'under'); drawNormal(c, f, 'under')
   }
 }
@@ -333,7 +496,7 @@ export function drawSyndromeOver(c, p1, p2, W = W0) {
     if (f._introPlaying) { drawIntro(c, f, 'over'); continue }
     const s = f._syndrome; if (!s) continue
     const v = syndromeUltView(f)
-    if (v) drawUlt(c, f, v, 'over')
+    if (v) drawUltWorld(c, f, v, 'over')
     else {
       drawTurret(c, f, s, 'over'); drawOmni(c, f, s, 'over'); drawNormal(c, f, 'over'); drawMobile(c, f, s, 'over'); drawSpin(c, f, s, 'over')
       drawShots(c, f, W); drawHold(c, f, s, W); drawGrab(c, f, f === p1 ? p2 : p1); drawVictory(c, f)
@@ -361,7 +524,6 @@ export function drawSyndromeHud(c, cv, p1, p2) {
     c.restore()
   }
   one(p1, false); one(p2, true)
-  for (const f of [p1, p2]) { const v = isSy(f) ? syndromeUltView(f) : null; if (v && v.cutIn != null) drawCutIn(c, cw, ch, f, v) }
 }
 export function drawSyndromeIntroCard(c, cv, p1, p2) {
   const f = [p1, p2].find(q => isSy(q) && q._introPlaying); if (!f) return
@@ -381,8 +543,122 @@ export function playSyndromeCues(f) {
   const q = f?._syndrome?.cues; if (!q?.length) return
   for (const v of q) {
     if (f.health <= 0 && AFTER_DEFEAT_MUTE.test(v)) continue
-    if (v === 'ultSlam') { try { camera.shake(16, 22) } catch (_) {} } else if (v === 'slam') { try { camera.shake(8, 10) } catch (_) {} }
+    if (v === 'slam') { try { camera.shake(8, 10) } catch (_) {} }
     try { sound.play('syndrome_' + v) } catch (_) {}
   }
   q.length = 0
 }
+
+// ── ULTIMATE: SCREEN pass (cineRegistry overlay — after the world, before the HUD; identity transform, device px) ──
+const toScreen = (x, y) => XF ? { x: XF.a * x + XF.c * y + XF.e, y: XF.b * x + XF.d * y + XF.f } : null
+let _scr = null
+function scratch(w, h) { if (!_scr) { const cv = document.createElement('canvas'); _scr = { cv, g: cv.getContext('2d') } }
+  if (_scr.cv.width !== w || _scr.cv.height !== h) { _scr.cv.width = w; _scr.cv.height = h } return _scr }
+// LENS: re-draw the finished world frame scaled about a focus point (screen-space push-in / punch-zoom on top of the
+// engine camera). The focus drifts toward the centre by `m`; the shift is clamped so the scaled frame always covers.
+function lens(ctx, canvas, fx, fy, z, m = 0.5) {
+  if (!(z > 1.004)) return
+  try {
+    const W = canvas.width, H = canvas.height, S = scratch(W, H)
+    S.g.setTransform(1, 0, 0, 1, 0, 0); S.g.clearRect(0, 0, W, H); S.g.drawImage(canvas, 0, 0)
+    const sx = cl((W / 2 - fx) * m, -(W - fx) * (z - 1), fx * (z - 1)), sy = cl((H / 2 - fy) * m, -(H - fy) * (z - 1), fy * (z - 1))
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.setTransform(z, 0, 0, z, fx * (1 - z) + sx, fy * (1 - z) + sy); ctx.drawImage(S.cv, 0, 0); ctx.restore()
+  } catch (_) {}
+}
+// the cinematic's lens per frame: [zoom, world focus x, world focus y, recentre]
+function lensShot(v) {
+  const k = v.frame, cyT = v.tTop + v.tH / 2
+  if (k < 30) return [1 + 0.32 * ease(k / 16) * (k < 22 ? 1 : 1 - ease((k - 22) / 8)), v.cx + v.dir * 20, v.feet - 96, 0.7]   // push in on Syndrome, whip out as the shadow falls
+  if (k >= 128 && k < 204) return [1 + 0.22 * ease((k - 128) / 12) * (k < 196 ? 1 : 1 - (k - 196) / 8), v.tx, k < 142 ? v.feet - 50 : cyT + 30, 0.55]   // on the claws
+  if (k >= 238 && k < 258) return [1 + 0.1 * ease((k - 238) / 8), v.tx, v.feet - 70, 0.4]   // the crater
+  if (k >= 262) return [1 + 0.24 * ease((k - 262) / 14) * (k < 290 ? 1 : 1 - (k - 290) / 10), v.cx + v.dir * 20, v.feet - 90, 0.6]   // the smug finish
+  return [1, v.tx, cyT, 0]
+}
+function card(ctx, txt, x, y, size, fill, a = 1, rot = 0, stroke = '#06060e', font = 'bold italic') {
+  if (!(a > 0)) return
+  ctx.save(); ctx.globalAlpha = cl(a, 0, 1); ctx.translate(x, y); if (rot) ctx.rotate(rot)
+  ctx.font = `${font} ${Math.round(size)}px Impact, Arial Black, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(4, size / 6); ctx.strokeStyle = stroke; ctx.strokeText(txt, 0, 0); ctx.fillStyle = fill; ctx.fillText(txt, 0, 0); ctx.restore()
+}
+function subtitle(ctx, W, H, bar, txt, k0, k, k1, u, col) {   // the monologue, typed out in the lower letterbox
+  if (k < k0 || k >= k1) return
+  const n = Math.min(txt.length, Math.floor((k - k0) * 1.6) + 1), a = cl((k1 - k) / 6, 0, 1)
+  ctx.save(); ctx.globalAlpha = a; ctx.font = `italic bold ${Math.round(24 * u)}px Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillStyle = col; ctx.fillText('SYNDROME', W / 2, H - bar * 0.72); ctx.fillStyle = '#f2f4ff'; ctx.font = `italic ${Math.round(26 * u)}px Georgia, serif`
+  ctx.fillText('“' + txt.slice(0, n) + (n < txt.length ? '' : '”'), W / 2, H - bar * 0.34); ctx.restore()
+}
+function speedLines(ctx, W, H, px, py, a, seed, col = '#ffffff') {
+  if (a <= 0) return
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = col
+  for (let i = 0; i < 64; i++) { const an = (i / 64) * Math.PI * 2 + hash(seed, i) * 0.08, r0 = Math.max(W, H) * (0.22 + hash(i, seed) * 0.2), r1 = Math.max(W, H) * 1.2, w = 0.006 + hash(i, seed + 1) * 0.012
+    ctx.beginPath(); ctx.moveTo(px + Math.cos(an - w) * r1, py + Math.sin(an - w) * r1); ctx.lineTo(px + Math.cos(an) * r0, py + Math.sin(an) * r0); ctx.lineTo(px + Math.cos(an + w) * r1, py + Math.sin(an + w) * r1); ctx.fill() }
+  ctx.restore()
+}
+const CALLOUT = { drone0: 'DRONES!', drone1: 'CROSSFIRE!', spinner: 'SPINNER!', velo: 'VELOCIPOD!', turret: 'TURRET VOLLEY!', lift: 'GROUND CLAW!', pin: 'PINNED!' }
+export function drawSyndromeUltScreen(ctx, canvas) {
+  const f = SCENE?.f, v = f ? syndromeUltView(f) : null
+  if (!v) { SCENE = null; XF = null; return false }
+  const W = canvas.width, H = canvas.height, u = H / 720, k = v.frame, t = v.tick, [hud0, hud1] = colsOf(f).hud, calmFx = calm()
+  const tp = toScreen(v.tx, v.tTop + v.tH / 2) || { x: W / 2, y: H / 2 }, gp = toScreen(v.tx, v.feet) || { x: W / 2, y: H * 0.7 }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; try { ctx.filter = 'none' } catch (_) {}
+  // punch-zoom on the big contacts (the world frame itself kicks toward the impact)
+  const la = ageOf(v, CK.lift), pa = ageOf(v, CK.pin), sa = ageOf(v, CK.slam)
+  const z = 1 + (sa >= 0 && sa < 12 ? 0.14 * (1 - sa / 12) : 0) + (la >= 0 && la < 8 ? 0.07 * (1 - la / 8) : 0) + (pa >= 0 && pa < 8 ? 0.06 * (1 - pa / 8) : 0) + (k === ULT.land ? 0.04 : 0)
+  const [lz, lx, ly, lm] = lensShot(v), lp = toScreen(lx, ly) || { x: W / 2, y: H / 2 }
+  if (!calmFx && z > 1.004) { const ip = sa >= 0 ? gp : tp; lens(ctx, canvas, (lp.x * (lz - 1) + ip.x * (z - 1)) / Math.max(1e-6, lz - 1 + z - 1), (lp.y * (lz - 1) + ip.y * (z - 1)) / Math.max(1e-6, lz - 1 + z - 1), lz * z, lm) }
+  else lens(ctx, canvas, lp.x, lp.y, calmFx ? 1 + (lz - 1) * 0.5 : lz, lm)
+  // vignette + letterbox
+  const inU = ease(k / 10), outU = ease((ULT.total - k) / 12), lb = Math.min(inU, outU), bar = H * 0.115 * lb
+  const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,10,0.6)')
+  ctx.globalAlpha = lb; ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1
+  // finisher: speed lines into the target during the slow-motion, then out of the crater
+  if (k >= 214 && k < 236) speedLines(ctx, W, H, tp.x, tp.y, 0.22 * cl((k - 214) / 8, 0, 1), t >> 1, '#ffd8d8')
+  if (sa >= 0 && sa < 30) speedLines(ctx, W, H, gp.x, gp.y, 0.55 * (1 - sa / 30), 900 + (t >> 1))
+  // impact frames: white flash on the claws, white → inverted → white on the slam
+  if (!calmFx) {
+    if (la >= 0 && la < 3) { ctx.globalAlpha = 0.75 - la * 0.22; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H) }
+    if (pa >= 0 && pa < 3) { ctx.globalAlpha = 0.6 - pa * 0.18; ctx.fillStyle = '#fff3e0'; ctx.fillRect(0, 0, W, H) }
+    if (sa >= 0 && sa < 3) { ctx.globalAlpha = 1; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H) }
+    else if (sa >= 3 && sa < 6) { ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = 'source-over' }
+    else if (sa >= 6 && sa < 16) { ctx.globalAlpha = 0.5 * (1 - (sa - 6) / 10); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H) }
+    ctx.globalAlpha = 1
+  } else if (sa >= 0 && sa < 10) { ctx.globalAlpha = 0.25 * (1 - sa / 10); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1 }
+  ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, W, bar); ctx.fillRect(0, H - bar, W, bar)
+  ctx.fillStyle = hud0; ctx.globalAlpha = 0.9 * lb; ctx.fillRect(0, bar - 3 * u, W, 3 * u); ctx.fillRect(0, H - bar, W, 3 * u); ctx.globalAlpha = 1
+  // A: the title card — a diagonal band slams across with the portrait
+  if (k < ULT.cutIn) {
+    const inK = ease(k / 6), outK = k > ULT.cutIn - 8 ? ease((ULT.cutIn - k) / 8) : 1, sl = (1 - inK) * W * 1.1 + (1 - outK) * -W * 1.1
+    const by = H * 0.30, bh = 132 * u, left = (f.facing ?? 1) >= 0
+    ctx.save(); ctx.translate(sl * (left ? -1 : 1), 0)
+    ctx.beginPath(); ctx.moveTo(0, by + 18 * u); ctx.lineTo(W, by - 18 * u); ctx.lineTo(W, by + bh - 18 * u); ctx.lineTo(0, by + bh + 18 * u); ctx.closePath()
+    ctx.fillStyle = 'rgba(6,6,16,0.92)'; ctx.fill(); ctx.lineWidth = 4 * u; ctx.strokeStyle = hud0; ctx.stroke()
+    for (let i = 0; i < 6; i++) { ctx.globalAlpha = 0.12; ctx.fillStyle = hud0; ctx.fillRect(((t * 26 + i * 260) % (W + 300)) - 150, by + 10 * u, 90 * u, bh - 20 * u) } ctx.globalAlpha = 1
+    const por = image(tagOf(f) ? `./assets/syndrome/skins/${tagOf(f)}/portrait.png` : SY.portrait)
+    if (ready(por)) { ctx.imageSmoothingEnabled = false; const ph = bh * 1.25, pw = por.naturalWidth * ph / por.naturalHeight; ctx.drawImage(por, left ? 60 * u : W - 60 * u - pw, by + bh / 2 - ph / 2, pw, ph) }
+    const tx0 = left ? W * 0.58 : W * 0.42, pop = k >= 12 && k < 18 ? 1 + (18 - k) * 0.06 : 1
+    card(ctx, 'OPERATION KRONOS', tx0, by + 38 * u, 30 * u, hud0, 1, -0.03)
+    card(ctx, 'FINAL DEMONSTRATION', tx0, by + 88 * u, 60 * u * pop, '#ffffff', k >= 10 ? 1 : 0, -0.03, '#000000')
+    ctx.restore()
+    if (k >= 12 && k < 15 && !calmFx) { ctx.globalAlpha = 0.35; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1 }
+  }
+  // call-outs on every orchestra / claw contact
+  for (const [kind, txt] of Object.entries(CALLOUT)) {
+    const a = ageOf(v, CK[kind]); if (a < 0 || a > 22) continue
+    const s = a < 4 ? 1.7 - a * 0.175 : 1, al = a > 14 ? (22 - a) / 8 : 1, side = CK[kind] % 2 ? 1 : -1
+    card(ctx, txt, cl(tp.x + side * 150 * u, W * 0.18, W * 0.82), cl(tp.y - 120 * u - a * 1.5 * u, bar + 40 * u, H * 0.6), (kind === 'lift' || kind === 'pin' ? 50 : 40) * u * s, kind === 'lift' || kind === 'pin' ? '#ffffff' : '#ffe14a', al, side * -0.08, '#0a0a20')
+  }
+  // monologue
+  subtitle(ctx, W, H, bar, 'Behold… my FINAL DEMONSTRATION.', 6, k, 54, u, hud0)
+  subtitle(ctx, W, H, bar, 'No powers. Just GENIUS. Drones — Spinner — Velocipod!', 58, k, 124, u, hud0)
+  subtitle(ctx, W, H, bar, 'Zero-point energy. Isn’t it MARVELOUS?', 130, k, 194, u, hud0)
+  subtitle(ctx, W, H, bar, 'And when everyone’s super…', 200, k, 236, u, hud0)
+  // the finisher stamp
+  if (sa >= 4 && k < ULT.total) {
+    const age = sa - 4, s = age < 6 ? 2.6 - 1.6 * ease(age / 6) : 1, a = cl((ULT.total - 12 - k) / 14, 0, 1), jit = age < 18 && !calmFx ? (hash(t, 1) - 0.5) * 10 * u * (1 - age / 18) : 0
+    card(ctx, '…NO ONE WILL BE.', W / 2 + jit, H * 0.27 + jit, 78 * u * s, '#ffffff', a, -0.04, '#b01010')
+    if (age > 30) card(ctx, 'DEMONSTRATION COMPLETE', W / 2, H - bar - 34 * u, 28 * u, hud0, cl((age - 30) / 8, 0, 1) * a, 0, '#06060e', 'bold')
+  }
+  ctx.restore()
+  return true
+}
+registerCineScreen('syndrome_kronos', drawSyndromeUltScreen)

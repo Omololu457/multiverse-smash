@@ -141,7 +141,7 @@ export function doubleDownSpecial(s) {
 
 // ══ PHASE 4: MOVESET SIM ═════════════════════════════════════════════════════════════════════════════════════════
 // Engine functions are injected by violet.js (combat.js imports this module — no import cycle).
-const E = { startMove: null, comboScale: null, hitstunScale: null }
+const E = { startMove: null, comboScale: null, hitstunScale: null, ultStart: null }
 export function registerVioletEngine(o) { Object.assign(E, o) }
 const ctrX = f => (f.x || 0) + (f.w || 48) / 2
 const ctrY = f => (f.y || 0) + (f.h || 94) / 2
@@ -286,6 +286,7 @@ export const violetComboScale = f => Math.max(0.30, Math.pow(0.85, Math.max(0, f
 export function violetLocked(f, raw = null) {
   if (!isViolet(f)) return false
   const s = vState(f)
+  if (s.ult?.st === 'cine') return true
   if (s.ult && s.ult.st !== 'done') return !!vLive(f)
   const a = vLive(f); if (!a) return false
   if (a.vi.key === 'up' && a.vi.clean && elapsed(a) > a.activeEnd && raw && (raw.up || raw.jump) && grounded(f)) {
@@ -327,7 +328,8 @@ function tickMove(f, s, W, opp) {
   if (k === 'vUlt' && e === md.startup && !s.ult) {
     const t = nearestFoe(f, W, opp)
     if (t && hittable(t) && Math.abs(ctrX(t) - ctrX(f)) <= ULT.range) {
-      s.ult = { tid: tidOf(t), t: 0, st: 'trap', hx: t.x, hy: t.y, x: Math.round(ctrX(t)), y: Math.round(ctrY(t)), dir }
+      if (E.ultStart?.(f, t, W)) return   // FULL FORCE cinematic (violetUlt.js, cineRegistry freeze slot) owns the rest
+      s.ult = { tid: tidOf(t), t: 0, st: 'trap', hx: t.x, hy: t.y, x: Math.round(ctrX(t)), y: Math.round(ctrY(t)), dir }   // fallback (no world damage path)
       vStrike(f, t, { raw: ULT.trap, unscaled: true, unblockable: true, hitstun: 4, move: 'vUlt', cue: 'ultTrap', fx: 'trap', hitstop: 0 }, W)
       s.stats.ultHits++
     } else { a.timer = Math.min(a.timer, md.recovery); cue(f, 'ultWhiff', W) }   // whiff: the 90f lockout still applies

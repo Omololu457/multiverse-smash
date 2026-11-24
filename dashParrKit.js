@@ -16,5 +16,5 @@ export const DASH_PARR_KIT={type:'Speedster / Rushdown',energy:'Super Speed',dif
  defense:[{name:'Sidestep',input:'←← + Light',desc:'Instant blur behind a close foe (or 110px away). Invulnerable f2–10. 4 s cooldown.'},
   {name:"Can't Catch Me",input:'Passive',desc:'The first hit taken at Sprint or Blur deals −30% (Momentum still drops to 0).'},
   {name:'Panic Run',input:'Block + Heavy while being comboed (3+ hits)',cost:40,desc:'Breaks the combo and runs 190px away with 24f invulnerability. Once per round.'}],
- ultimate:{name:'INCREDI-RUSH',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'Locks a foe within 340px in a 3-second blur storm: 12 hits from hashed positions around them = 200 damage, unscaled. 90-frame recovery lockout afterwards.'},
+ ultimate:{name:'INCREDI-RUSH',input:'↓↘→↓↘→ + Special (or Ultimate)',cost:100,desc:'Cinematic. Catches a foe within 340px: the world slows to a crawl while Dash hits from every side (11 hits, the last launches), then he sprints in from the far side of the stage for one SONIC-BOOM punch. 12 hits = 200 damage, unscaled. The foe is blasted away and knocked down; 40-frame recovery.'},
  combos:[{name:'Jab, Jab, Heavy, Blur Dash',target:97},{name:'Low, Launcher, (jump) Air, Flurry',target:112},{name:'Laps, Jab, Heavy, Flurry',target:147},{name:'At Blur: any special is free and resets Momentum'}]}

@@ -1,5 +1,6 @@
 // squadCore.js — the shared "Ranger squad" engine: several fighters as ONE fighter, swapped with Ben 10's Omnitrix dial.
-// Used by spdSquad.js (S.P.D. Rangers, 2026-11-23) and mmprSquad.js (Mighty Morphin Rangers, 2026-11-23).
+// Used by spdSquad.js (S.P.D. Rangers, 2026-11-23), mmprSquad.js (Mighty Morphin Rangers, 2026-11-23) and nsSquad.js (Ninja
+// Storm Rangers, 2026-11-23 — five ninja.js forms; uses the optional kit hooks below: clear / busy / onSwap / onTick / onSelf / extra).
 //
 // Each FORM is an existing roster fighter, unchanged. Like the Wind Rangers (nsDuo.js) the fighter's live rosterKey is the
 // ACTIVE form's id, so every form-specific path — kit, sprites, sounds, FX, HUD portrait, CPU perception — runs as-is.
@@ -23,9 +24,13 @@ const PACE = { easy: 140, adaptive: 70, normal: 70, hard: 45, impossible: 30, ma
 const ctr = o => (o.x || 0) + (o.w || 60) / 2
 
 // cfg: { id, forms[], buttons[], chars{form: char}, colors{}, short{}, roles{form: any|close|mid|far},
-//        tuning{health, cooldown, invuln, flash, dbl, arm}, startPrefix, startNames{suffix: form}, statsFor?(form, char) }
+//        tuning{health, cooldown, invuln, flash, dbl, arm}, startPrefix, startNames{suffix: form}, statsFor?(form, char),
+//        optional kit hooks: clear?(f, from) busy?(f) onSwap?(f, form, from) onTick?(f, raw, W) — the forms' own engine;
+//        onSelf?(f, W) — ↓↓ + the ACTIVE form's own button; extra?{button: fn(f, W)} — ↓↓ + a non-dial button;
+//        teamUlt: false — this squad has no W + U team ultimate (the CPU never saves meter for one) }
 export function makeSquad(cfg) {
   const ID = cfg.id, FORMS = cfg.forms, BUTTONS = cfg.buttons, CHAR = cfg.chars, T = cfg.tuning, ROLE = cfg.roles
+  const EXTRA = cfg.extra || {}, EXTRA_KEYS = Object.keys(EXTRA), ULT = () => (cfg.teamUlt === false ? null : TEAM_ULT)
   let SKIN_HOOK = null
   const SKIN_CACHE = new Map()
   const startForm = skinId => {
@@ -73,7 +78,7 @@ export function makeSquad(cfg) {
       const elapsed = (a.total ?? 0) - (a.timer ?? 0), activeEnd = a.activeEnd ?? ((a.startup || 0) + (a.active || 0))
       if (!(elapsed > activeEnd)) return 'attacking'   // normals: recovery frames only (Ben's mid-combo swap)
     }
-    try { if (W?.busy?.(f)) return 'busy' } catch (_) {}
+    try { if (W?.busy?.(f) || cfg.busy?.(f)) return 'busy' } catch (_) {}
     return null
   }
   function swap(f, form, W) {
@@ -81,11 +86,13 @@ export function makeSquad(cfg) {
     if (refuse(f, form, W)) return false
     const q = f._squad, from = q.form
     try { W?.clear?.(f, from) } catch (_) {}
+    try { cfg.clear?.(f, from) } catch (_) {}
     f.attacking = false; f.currentAttack = null; f.currentMove = null; f.attackCooldown = 0; f._rekkaNext = null
     applyForm(f, form)
     q.form = form; q.from = from; q.cd = T.cooldown; q.flash = T.flash; q.swaps++; f._squadTotal = (f._squadTotal || 0) + 1   // whole-match count
     f.invulnTimer = Math.max(f.invulnTimer || 0, T.invuln)
     try { W?.cue?.(f, form) } catch (_) {}
+    try { cfg.onSwap?.(f, form, from) } catch (_) {}
     return true
   }
   function tick(f, raw, W) {
@@ -98,14 +105,16 @@ export function makeSquad(cfg) {
     }
     q.prevDown = down
     const edge = {}
-    for (const b of BUTTONS) { const v = !!raw[b]; edge[b] = v && !q.prev[b]; q.prev[b] = v }
+    for (const b of [...BUTTONS, ...EXTRA_KEYS]) { const v = !!raw[b]; edge[b] = v && !q.prev[b]; q.prev[b] = v }
+    try { cfg.onTick?.(f, raw, W) } catch (_) {}
     // TEAM ULTIMATE: W (Jump) + U (Ultimate) together — never while the dial is armed (↓↓ then U is still Omega)
     const uv = !!raw.ultimate, jv = !!(raw.jump || raw.up)
     if (uv && !q.pu) q.uAt = q.t
     if (jv && !q.pj) q.jAt = q.t
     q.pu = uv; q.pj = jv
-    if (TEAM_ULT && q.armT <= 0 && uv && jv && Math.abs(q.uAt - q.jAt) <= TEAM_ULT_INPUT.window && (q.uAt === q.t || q.jAt === q.t)) {
-      if (TEAM_ULT.start(f, W)) { f._squadEat = { ...(f._squadEat || {}), ultimate: true, jump: true, up: true }; q.uAt = q.jAt = -99; return }
+    const TU = ULT()
+    if (TU && q.armT <= 0 && uv && jv && Math.abs(q.uAt - q.jAt) <= TEAM_ULT_INPUT.window && (q.uAt === q.t || q.jAt === q.t)) {
+      if (TU.start(f, W)) { f._squadEat = { ...(f._squadEat || {}), ultimate: true, jump: true, up: true }; q.uAt = q.jAt = -99; return }
     }
     if (q.armT > 0) {
       q.armT--
@@ -114,7 +123,13 @@ export function makeSquad(cfg) {
         q.armT = 0
         const form = FORMS[i]
         if (form !== q.form && swap(f, form, W)) f._squadEat = { ...(f._squadEat || {}), [BUTTONS[i]]: true }
-        else if (form === q.form) f._squadEat = { ...(f._squadEat || {}), [BUTTONS[i]]: true }   // re-calling the active form: still eat the press
+        else if (form === q.form) {   // re-calling the active form: still eat the press (+ the squad's own ↓↓ technique, if any)
+          f._squadEat = { ...(f._squadEat || {}), [BUTTONS[i]]: true }
+          try { cfg.onSelf?.(f, W) } catch (_) {}
+        }
+      } else {
+        const x = EXTRA_KEYS.find(b => edge[b])
+        if (x) { q.armT = 0; f._squadEat = { ...(f._squadEat || {}), [x]: true }; try { EXTRA[x](f, W) } catch (_) {} }
       }
     }
   }
@@ -125,6 +140,7 @@ export function makeSquad(cfg) {
     const pace = PACE[difficulty] ?? 70, t = q.t
     // the TEAM ULTIMATE takes priority on a full meter — this runs before the CPU's own AI each frame, so the squad calls
     // everyone in instead of spending the meter on the active Ranger's ultimate (squadUlt.js refuses while it can't start)
+    const TEAM_ULT = ULT()
     if (TEAM_ULT && (f.energy || 0) >= (TEAM_ULT.cost || 100) && t - (c.ult ?? -999) > 240 && TEAM_ULT.start(f, W, opp)) { c.ult = t; c.next = t + 30; return }
     // saving up: from 50 % the CPU stops spending meter on specials (S.P.D.'s blasters would otherwise never let it fill)
     if (TEAM_ULT && (f.energy || 0) >= (TEAM_ULT.cost || 100) * 0.5 && (f.energy || 0) < (TEAM_ULT.cost || 100)) f._squadEat = { ...(f._squadEat || {}), special: true }

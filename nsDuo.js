@@ -42,7 +42,7 @@ const BAR = 50
 // ── roster entry ─────────────────────────────────────────────────────────────────────────────────────────────────
 export const windrangers = {
   ...ns_red,
-  rosterKey: DUO_ID, hidden: false,
+  rosterKey: DUO_ID, hidden: true,   // 2026-11-23: folded into the Ninja Storm Squad (nsSquad.js); still a valid id for replays / tests / ?p1=
   // name: the owner's (2026-11-19); the brief's working title was "Shane & Dustin"
   name: 'Ninja Storm MS_V1 Ranger Version', displayName: 'Ninja Storm MS_V1 Ranger Version', subtitle: 'Wind Rangers', hudName: 'Wind Rangers', color: '#e0201c', accent2: '#f2c40c',
   universe: 'power_rangers', subUniverse: 'Ninja Storm',

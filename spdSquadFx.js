@@ -7,6 +7,7 @@
 import { squadOf } from './squadCore.js'
 import './spdSquadSkins.js'   // registers SKINS.spd_rangers (start-as + squad themes)
 import './mmprSquadSkins.js'  // registers SKINS.mmpr_rangers
+import './nsSquadSkins.js'    // registers SKINS.ns_squad (Ninja Storm Squad)
 import { drawSquadUltWorld } from './squadUltFx.js'   // the squads' TEAM ULTIMATES (W + U), world pass
 export { drawSquadUltScreen } from './squadUltFx.js'
 const KEYS = ['J', 'K', 'L', 'O', 'P', 'U']

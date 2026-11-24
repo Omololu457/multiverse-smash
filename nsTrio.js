@@ -153,7 +153,7 @@ export const { ns_blue, ns_navy, ns_green } = FORM_CHAR
 // ── roster entry ─────────────────────────────────────────────────────────────────────────────────────────────────
 export const ns_trio = {
   ...ns_blue,
-  rosterKey: TRIO_ID, hidden: false,
+  rosterKey: TRIO_ID, hidden: true,   // 2026-11-23: folded into the Ninja Storm Squad (nsSquad.js); still a valid id for replays / tests / ?p1=
   name: 'Ninja Storm Trio', displayName: 'Ninja Storm Trio', subtitle: 'Tori · Blake · Cam', hudName: 'Ninja Storm Trio', color: '#2a78f0', accent2: '#22a84a',
   universe: 'power_rangers', subUniverse: 'Ninja Storm',
   portrait: './assets/ns_trio/portrait_large.png', hudIcon: './assets/ns_trio/portrait_small.png',

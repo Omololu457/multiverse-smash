@@ -71,8 +71,9 @@ export function drawTrioBurst(c, f, e, u, calm) {
 
 // SUPER SAMURAI MODE: a green flame outline + rising embers for the whole buff (fades out over its last second)
 export function drawTrioAura(c, f, calm) {
-  if (!isTrio(f) || !(f._duo.samurai > 0)) return
-  const k = Math.min(1, f._duo.samurai / 60), cx = f.x + (f.w || 48) / 2, feet = (f.y || 0) + (f.h || 94), t = f._duo.t || 0
+  const sam = isTrio(f) ? f._duo.samurai : f?._squad?.id === 'ns_squad' ? f._squad.samurai : 0   // + the Ninja Storm Squad's Cam (nsSquad.js)
+  if (!(sam > 0)) return
+  const k = Math.min(1, sam / 60), cx = f.x + (f.w || 48) / 2, feet = (f.y || 0) + (f.h || 94), t = (isTrio(f) ? f._duo.t : f._squad.t) || 0
   c.save(); c.globalAlpha = 0.45 * k; c.strokeStyle = '#7dff8c'; c.lineWidth = 2
   c.beginPath(); c.ellipse(cx, feet - 58, 34 + (calm ? 0 : Math.sin(t / 5) * 3), 70, 0, 0, Math.PI * 2); c.stroke()
   if (!calm) { c.fillStyle = '#b8ffc4'; for (let i = 0; i < 6; i++) { const yy = feet - ((t * 2 + i * 23) % 130), xx = cx + Math.sin(t / 7 + i * 2) * 26; c.globalAlpha = 0.6 * k * (1 - (feet - yy) / 130); c.fillRect(xx - 1.5, yy - 1.5, 3, 3) } }

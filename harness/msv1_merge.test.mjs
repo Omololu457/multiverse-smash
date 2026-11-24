@@ -66,7 +66,7 @@ try {
     check('windrangers is a roster character (Power Rangers / Ninja Storm)', meta.uni === 'power_rangers')
     check('name "Ninja Storm MS_V1 Ranger Version" (owner), subtitle "Wind Rangers", difficulty 5', meta.name === 'Ninja Storm MS_V1 Ranger Version' && meta.sub === 'Wind Rangers' && meta.diff === 5, meta)
     check('archetype "Ninja Duo / Form Swapper", tagline "Two elements. One storm."', meta.arch === 'Ninja Duo / Form Swapper' && meta.tag === 'Two elements. One storm.')
-    check('Shane / Dustin hidden from the roster; only the duo is visible for Ninja Storm', meta.hidR && meta.hidY && !meta.hidD && JSON.stringify(meta.visible) === '["windrangers"]', meta.visible)
+    check('Shane / Dustin hidden; the duo folded into the Ninja Storm Squad (2026-11-23, still a valid id)', meta.hidR && meta.hidY && meta.hidD && meta.visible.includes('ns_squad') && !meta.visible.includes('windrangers') && !meta.visible.includes('ns_trio'), meta.visible)
     check('saved-settings aliases: ns_red AND ns_yellow → windrangers starting as Red (owner 2026-11-19), others untouched', meta.alias[0].key === 'windrangers' && meta.alias[0].skin === 'default' && meta.alias[1].key === 'windrangers' && meta.alias[1].skin === 'default' && meta.alias[2].key === 'spd_red', meta.alias)
     check('shared health 1248 (S.P.D. Red 1200 × 1.04)', meta.hp === 1248 && (await S()).maxHealth === 1248, (await S()).maxHealth)
     const s0 = await S()

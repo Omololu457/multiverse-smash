@@ -71,8 +71,8 @@ try {
     const meta = await page.evaluate(async () => { const c = (await import('./characters.js')).characters
       return { uni: c.ns_trio.universe, sub: c.ns_trio.subUniverse, name: c.ns_trio.name, hid: ['ns_blue', 'ns_navy', 'ns_green'].map(k => !!c[k].hidden), vis: !c.ns_trio.hidden,
         hp: c.ns_trio.stats.maxHealth, forms: c.ns_trio.duoForms, wr: !c.windrangers.hidden } })
-    check('ns_trio is ONE visible Power Rangers / Ninja Storm character; the three forms are hidden', meta.uni === 'power_rangers' && meta.sub === 'Ninja Storm' && meta.vis && meta.hid.every(Boolean), meta)
-    check('forms Tori → Blake → Cam; shared health 1248; windrangers still listed', JSON.stringify(meta.forms) === '["ns_blue","ns_navy","ns_green"]' && meta.hp === 1248 && meta.wr, meta)
+    check('ns_trio is ONE Power Rangers / Ninja Storm character (folded into the Ninja Storm Squad 2026-11-23: hidden pick, valid id); the three forms are hidden', meta.uni === 'power_rangers' && meta.sub === 'Ninja Storm' && !meta.vis && meta.hid.every(Boolean), meta)
+    check('forms Tori → Blake → Cam; shared health 1248; windrangers folded into the squad too', JSON.stringify(meta.forms) === '["ns_blue","ns_navy","ns_green"]' && meta.hp === 1248 && !meta.wr, meta)
     const s0 = await S()
     check('starts as Tori (Blue Wind) on her own sheets', s0.key === 'ns_blue' && s0.duo?.form === 'ns_blue' && s0.sheet?.includes('/ns_blue/') && s0.maxHealth === 1248, { key: s0.key, sheet: s0.sheet })
     const sk = await page.evaluate(() => __harness.showSkinSelect('ns_trio', 'p1', 0))

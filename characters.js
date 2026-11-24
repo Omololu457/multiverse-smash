@@ -42,7 +42,8 @@ import { ns_trio, ns_blue, ns_navy, ns_green } from './nsTrio.js'   // NS TRIO T
 import { dinothunder, dt_red, dt_blue, dt_yellow, dt_white } from './dinothunder.js'   // MSV1-DINO Dino Thunder Rangers: ONE character, four forms (hidden form profiles)
 import { mmprRangersEntry } from './mmprSquad.js'   // Mighty Morphin Rangers: Red / Black / Pink / Green / White as ONE fighter, Ben-style ↓↓ + J/K/L/O/P dial
 import { spd_rangers, registerSquadForm } from './spdSquad.js'   // S.P.D. Rangers: the whole B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P/U Ranger dial (the six stay as hidden forms)
-import { windrangers } from './nsDuo.js'   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
+import { windrangers } from './nsDuo.js'
+import { ns_squad } from './nsSquad.js'   // Ninja Storm Squad: Shane / Dustin / Tori / Blake / Cam as ONE fighter (squadCore.js dial); windrangers + ns_trio fold into it   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
 import { ninjaStormRangers } from './ninjaStormData.js'   // MSv2 NINJA STORM RANGERS: ONE fighter, Red (Shane) / Yellow (Dustin) stance
 import { arlong } from './arlongData.js'   // Arlong (One Piece) — arlongData.js
 import { buggy } from './buggyData.js'   // Buggy the Clown (One Piece) — buggyData.js   // Roronoa Zoro (One Piece) — zoroData.js
@@ -2589,7 +2590,7 @@ const inosuke = {
     beastDash:  { cost: 0, damage: 100, effect: "Forward — dashing thrust that closes the gap (cinematic)" },
     beastLunge: { cost: 0, damage: 122, effect: "Down — slashing lunge fan (cinematic)" },
   },
-  ultimate: { name: "Beast Breathing: Assist", cost: 0, description: "Signature is the mid-combo Beast Breathing Assist (Stage 4). No separate ultimate." },
+  ultimate: { name: "Beast Breathing: Explosive Rush", cost: 0, description: "Eighth Form — a reckless criss-cross charge through the foe: five fang strikes and a final piercing lunge (300). 9s cooldown, no meter. The Beast Breathing Assist stays his mid-combo signature." },   // INOSUKE-ULT
   hasSprites: true,
   spriteScale: 2.0,
   animationData: {
@@ -11479,6 +11480,7 @@ export const characters = {
   ninja_storm_cgpt,                  // NS CGPT — "Ninja Storm CGPT" (Storm Ninja / Clone Rushdown): Red / Yellow looks of one Ranger; nsCgpt*.js
   ns_trio, ns_blue, ns_navy, ns_green,   // NS TRIO — Ninja Storm Trio (Tori Blue Wind / Blake Navy Thunder / Cam Green Samurai); P S S J / P S S K switches
   dinothunder, dt_red, dt_blue, dt_yellow, dt_white,   // MSV1-DINO — Conner / Ethan / Kira / Trent; hold P + J/K/L/O swaps
+  ns_squad,                          // Ninja Storm Squad — Shane / Dustin / Tori / Blake / Cam in one fighter, ↓↓ + J/K/L/O/P (nsSquad.js)
   windrangers,                       // MSV1-MERGE Shane & Dustin — Wind Rangers (Ninja Duo / Form Swapper); swaps ns_red ⇄ ns_yellow
   ninja_storm_rangers: ninjaStormRangers,   // MSv2 Ninja Storm Rangers — Teleport Rushdown / Mixup Ninja, dual-stance (ninjaAcademy.js)
   // ── RANGERS block: keep future Rangers here, in team order (S.P.D. Blue / Green / Yellow / Pink, …) — `follow the ranger framework` ──

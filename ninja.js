@@ -581,7 +581,7 @@ function stepBurrow(f, opp, s, p, raw) {
     if (b.t % 8 === 0) burst(s, 'ripple', ctrX(f), feetY(f), 10)
   }
   f.currentAttack.timer = Math.max(f.currentAttack.timer, 5)   // the engine move stays alive while he is under
-  const release = b.t > b.sink + 4 && !raw.special
+  const release = b.t > b.sink + 4 && !raw.special && !(b.viaU && f._nsHoldU)   // Ninja Storm Squad: ↓↓ + U burrows, held U keeps him under (nsSquad.js)
   if (release || b.t >= B.frames) {
     s.burrow = null; f._rooted = false
     nsStartMove(f, 'sErupt', { rev: b.rev }); burst(s, 'erupt', ctrX(f), feetY(f), 18); cue(f, 'eruption')

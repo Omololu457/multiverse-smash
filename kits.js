@@ -110,7 +110,7 @@ export const CONTROL_REFERENCE = {
 }
 
 import { KEVIN_KIT } from './kevinKit.js'
-import { squadKit, mmprSquadKit } from './spdSquadKit.js'   // S.P.D. Rangers squad Move List (built from the six Rangers' kits)
+import { squadKit, mmprSquadKit, nsSquadKit } from './spdSquadKit.js'   // S.P.D. Rangers squad Move List (built from the six Rangers' kits)
 
 export const KITS = {
   kevin_levin: KEVIN_KIT,
@@ -1276,6 +1276,7 @@ export const KITS = {
 // "Light, Light, Heavy" (only standard-string chars chain light normals), and a zoner has no auto-combo.
 KITS.spd_rangers = squadKit(KITS)   // S.P.D. Rangers: dial + every Ranger's specials
 KITS.mmpr_rangers = mmprSquadKit(KITS)   // Mighty Morphin Rangers: dial + every Ranger's specials
+KITS.ns_squad = nsSquadKit(NS_RED_KIT, NS_YELLOW_KIT, TRIO_KIT)   // Ninja Storm Squad: dial + all five ninjas' specials
 
 export function comboStringFor(rosterKey) {
   const air = { name: "Air Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "launcher into aerial pressure" }

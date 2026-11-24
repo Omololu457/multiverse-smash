@@ -48,3 +48,32 @@ export function mmprSquadKit(KITS) {
     ],
   }
 }
+
+// ── Ninja Storm Squad (ns_squad) — Shane / Dustin (nsKit.js) + Tori / Blake / Cam (nsTrioKit.js) on the same dial. The ninja
+// kits' ↓↓ techniques move off the dial: Mirror = ↓↓ + the active ninja's own button, Burrow / Super Samurai = ↓↓ + U.
+const NS_WHO = [['ns_red', 'Shane', 'J', 'Red'], ['ns_yellow', 'Dustin', 'K', 'Yellow'], ['ns_blue', 'Tori', 'L', 'Blue'], ['ns_navy', 'Blake', 'O', 'Navy'], ['ns_green', 'Cam', 'P', 'Green']]
+const NS_REMAP = s => s.input === '↓↓ + Charge' ? { ...s, input: '↓↓ then the active ninja\'s own button (J/K/L/O/P)' }
+  : /↓↓ \+ Special/.test(s.input) ? { ...s, input: s.input.replace('↓↓ + Special', '↓↓ then U') } : s
+export function nsSquadKit(red, yellow, trio) {
+  const dial = NS_WHO.map(([k, n, b, c]) => ({ name: `CALL ${n.toUpperCase()} (${c})`, input: `↓ ↓ then ${b}`, cost: 0,
+    desc: `${n} arrives in a flash of smoke. Health, meter and Ninja Power carry over; ${b} does not fire. Works mid-combo after a normal's hit frames; not in hitstun / blockstun / knockdown / a vanish, streak or super; 40-frame cooldown.` }))
+  const own = (K, n) => (K?.specials || []).filter(s => !/\(illusion\)$/.test(s.name)).map(s => NS_REMAP({ ...s, name: `${n} — ${s.name}` }))
+  const trioRows = (trio?.specials || []).filter(s => /^(Tori|Blake|Cam) — /.test(s.name)).map(NS_REMAP)
+  return {
+    type: 'Ninja Squad / Form Switcher', energy: 'Ninja Power (shared)', difficulty: '7', name: 'Ninja Storm Squad',
+    summary: 'Shane (Red Wind, air), Dustin (Yellow Wind, earth), Tori (Blue Wind, water), Blake (Navy Thunder) and Cam (Green Samurai) as ONE fighter: one 1320 health pool; meter and Ninja Power shared. Each ninja keeps their own stats, moves, specials and supers; call any of them with Ben 10\'s dial — ↓ ↓ then J / K / L / O / P.',
+    passive: { name: 'Ninja Storm Tag', effect: 'The called ninja arrives in smoke with 6 frames of invulnerability. A swap ends the Mirror, clones, the burrow, the barrier and Super Samurai Mode. Each round starts as the "Start as" ninja (skin).' },
+    basics: red?.basics, mobility: red?.mobility,
+    specials: [...dial,
+      { name: 'NINJA MIRROR', input: '↓ ↓ then the active ninja\'s own button', cost: 0, desc: 'Re-calling the ninja who is already out splits them into the Ninja Mirror (their ↓↓ + Charge). Each ninja\'s Ultimate is done inside the Mirror.' },
+      { name: '↓↓ TECHNIQUE', input: '↓ ↓ then U', cost: 0, desc: 'Dustin: Earth Burrow (hold U to stay under). Cam: Super Samurai Mode. Shane / Tori / Blake: Ninja Mirror.' },
+      ...own(red, 'Shane'), ...own(yellow, 'Dustin'), ...trioRows],
+    ultimate: { name: 'Each ninja\'s own', input: '↓↘→↓↘→ + Special (or Ultimate)', cost: 50,
+      desc: `Shane: ${red?.ultimate?.name || 'Storm Ascension'} · Dustin: ${yellow?.ultimate?.name || 'Earthquake Ninja Art'} · Tori: Tsunami · Blake: Thunder Storm · Cam: Super Samurai` },
+    combos: [
+      { name: 'Wind to water', sequence: 'Shane: Light (hit) → ↓↓ L → Tori: Light → Heavy → ↓↙← + J (Geyser)', desc: 'Swap in the jab\'s recovery and keep the combo counter going.' },
+      { name: 'Range hand-off', sequence: 'far: ↓↓ O (Blake) → Thunder Staff · close: ↓↓ K (Dustin) → Rock Hold', desc: 'Pick the ninja for the distance.' },
+      { name: 'Samurai cash-out', sequence: '↓↓ P (Cam) → ↓↓ U (Super Samurai) → Light → Heavy → ↓↘→ + Special', desc: 'Samurai Star at +15%.' },
+    ],
+  }
+}

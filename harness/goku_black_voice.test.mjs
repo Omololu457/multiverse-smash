@@ -45,7 +45,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const stateF = () => page.evaluate(() => window.__harness.state());
 const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());
-const swordCine = () => page.evaluate(() => window.__harness.swordCine());
+const swordCine = () => page.evaluate(() => window.__gbUlt());
 const roseCine = () => page.evaluate(() => window.__harness.ssjRoseCine());
 async function waitFrames(n) { const s = (await stateF()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }); }
 async function installSpy() {
@@ -76,16 +76,16 @@ async function pressUltUntilActive() {
   await page.evaluate(() => window.__harness.resetUlt());   // clear ult cooldown + refill energy (stays in Rose)
   await grounded(); await waitFrames(2);
   for (let i = 0; i < 6; i++) {
-    if (await page.evaluate(() => window.__harness.swordCine().active)) return true;
+    if (await page.evaluate(() => window.__gbUlt().active)) return true;
     await page.keyboard.down("u"); await waitFrames(3); await page.keyboard.up("u"); await waitFrames(2);
-    if (await page.evaluate(() => window.__harness.swordCine().active)) return true;
+    if (await page.evaluate(() => window.__gbUlt().active)) return true;
   }
   return false;
 }
 // Cast the Sword Slash ultimate (U) and wait until the STRIKE connect beat has fired.
 async function castSwordUlt() {
   await pressUltUntilActive();
-  await page.waitForFunction(() => { const c = window.__harness.swordCine(); return c.active && c.struck; }, null, { timeout: 8000, polling: 16 });
+  await page.waitForFunction(() => { const c = window.__gbUlt(); return c.active && c.struck; }, null, { timeout: 60000, polling: 16 });
 }
 
 try {
@@ -94,6 +94,8 @@ try {
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());
+  // 2026-11-24 spec change: Sword Slash is now gokuBlackUlt.js (DIVINE LACERATION, cineRegistry) — status adapted to the old shape
+  await page.evaluate(async () => { const m = await import("./gokuBlackUlt.js"); window.__gbUlt = () => { const s = m.gokuBlackUltStatus(), G = m.GOKU_BLACK_CINE; return { ...s, frame: s.k, total: G.total, impactFrame: G.reap, struck: s.active ? s.k >= G.reap : !!m.gokuBlackUltLast, phase: !s.active ? null : s.k < G.cuts[0] ? "windup" : s.k < G.land ? "strike" : "settle" }; }; });
   await waitFrames(6);
   await installSpy();
 
@@ -121,13 +123,13 @@ try {
   const activated = await pressUltUntilActive();
   check("Sword Slash cinematic activated", activated, "");
   // catch the cinematic mid-WINDUP (before the struck beat)
-  await page.waitForFunction(() => { const c = window.__harness.swordCine(); return c.active; }, null, { timeout: 6000, polling: 16 });
+  await page.waitForFunction(() => { const c = window.__gbUlt(); return c.active; }, null, { timeout: 60000, polling: 16 });
   await waitFrames(3);
   const cWind = await swordCine();
   check("ultimate_line fired during WINDUP (not yet struck)", await logHas("goku_black_ultimate_line.mp3") && cWind.struck === false, `phase=${cWind.phase} struck=${cWind.struck}`);
   check("impact lines have NOT fired yet at windup", !(await logHas("taste")), `log=${JSON.stringify(await sfxLog())}`);
   // let it reach + pass the impact beat
-  await page.waitForFunction(() => { const c = window.__harness.swordCine(); return c.struck; }, null, { timeout: 8000, polling: 16 });
+  await page.waitForFunction(() => { const c = window.__gbUlt(); return c.struck; }, null, { timeout: 60000, polling: 16 });
   await waitFrames(2);
 
   // 4) SWORD SLASH IMPACT — taste-my-blade / taste-divine-fury ALTERNATE across casts
@@ -138,7 +140,7 @@ try {
   const firstFury   = firstImpactLog.some(f => f.includes("taste_divine_fury"));
   check("cast #1 impact played EXACTLY ONE of the two lines (no double-fire)", firstBlade !== firstFury, `blade=${firstBlade} fury=${firstFury}`);
   // wait for the cinematic to fully end, then cast a SECOND ultimate
-  await page.waitForFunction(() => !window.__harness.swordCine().active, null, { timeout: 8000, polling: 16 });
+  await page.waitForFunction(() => !window.__gbUlt().active, null, { timeout: 60000, polling: 16 });
   await clearSfx();
   await castSwordUlt();
   await waitFrames(2);
@@ -147,7 +149,7 @@ try {
   const secondFury  = secondImpactLog.some(f => f.includes("taste_divine_fury"));
   check("cast #2 impact played EXACTLY ONE of the two lines", secondBlade !== secondFury, `blade=${secondBlade} fury=${secondFury}`);
   check("cast #2 line is the OTHER line vs cast #1 (strict alternation)", (firstBlade === secondFury) && (firstFury === secondBlade), `#1 blade=${firstBlade}/fury=${firstFury}  #2 blade=${secondBlade}/fury=${secondFury}`);
-  await page.waitForFunction(() => !window.__harness.swordCine().active, null, { timeout: 8000, polling: 16 });
+  await page.waitForFunction(() => !window.__gbUlt().active, null, { timeout: 60000, polling: 16 });
 
   // 1) TAUNT — universal hold-Down taunt committing (fast-forwarded via setTauntCharge). Runs on a FRESH
   // reload so the earlier ult casts can't interfere (and the taunt likewise can't affect the win below).
@@ -156,6 +158,8 @@ try {
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());
+  // 2026-11-24 spec change: Sword Slash is now gokuBlackUlt.js (DIVINE LACERATION, cineRegistry) — status adapted to the old shape
+  await page.evaluate(async () => { const m = await import("./gokuBlackUlt.js"); window.__gbUlt = () => { const s = m.gokuBlackUltStatus(), G = m.GOKU_BLACK_CINE; return { ...s, frame: s.k, total: G.total, impactFrame: G.reap, struck: s.active ? s.k >= G.reap : !!m.gokuBlackUltLast, phase: !s.active ? null : s.k < G.cuts[0] ? "windup" : s.k < G.land ? "strike" : "settle" }; }; });
   await waitFrames(6);
   await installSpy();
   await prep(200); await clearSfx();
@@ -172,10 +176,10 @@ try {
   section("7+8. goku_black_win.mp3 / goku_black_win_alt.mp3 — on win, randomly alternating");
   async function forceGokuBlackWin() {
     await page.evaluate(() => window.__harness.bootVs());
-    await page.waitForFunction(() => window.__harness.state().gameState === "battle", null, { timeout: 8000, polling: 16 }).catch(() => {});
+    await page.waitForFunction(() => window.__harness.state().gameState === "battle", null, { timeout: 14000, polling: 16 }).catch(() => {});
     await waitFrames(4);
     for (let round = 0; round < 3; round++) {
-      await page.waitForFunction(() => { const s = window.__harness.state(); const b = window.__harness.p2(); return s.gameState === "battle" && s.countdown === 0 && b && b.health > 0; }, null, { timeout: 8000, polling: 16 }).catch(() => {});
+      await page.waitForFunction(() => { const s = window.__harness.state(); const b = window.__harness.p2(); return s.gameState === "battle" && s.countdown === 0 && b && b.health > 0; }, null, { timeout: 14000, polling: 16 }).catch(() => {});
       await page.evaluate(() => window.__harness.damageP2(5000));
       await waitFrames(6);
       if ((await stateF()).gameState === "victory") return;
@@ -188,7 +192,7 @@ try {
     await page.evaluate(v => { window.__origRandom = window.__origRandom || Math.random; Math.random = () => v; }, rv);
     await clearSfx();
     await forceGokuBlackWin();
-    await page.waitForFunction(() => window.__harness.state().gameState === "victory", null, { timeout: 8000, polling: 16 }).catch(() => {});
+    await page.waitForFunction(() => window.__harness.state().gameState === "victory", null, { timeout: 14000, polling: 16 }).catch(() => {});
     await waitFrames(2);
     const log = await sfxLog();
     check(`win → ${label} plays the right line`, log.some(f => f.endsWith(expect)) && !log.some(f => f.endsWith(other)), `log=${JSON.stringify(log)}`);
@@ -201,6 +205,8 @@ try {
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());
+  // 2026-11-24 spec change: Sword Slash is now gokuBlackUlt.js (DIVINE LACERATION, cineRegistry) — status adapted to the old shape
+  await page.evaluate(async () => { const m = await import("./gokuBlackUlt.js"); window.__gbUlt = () => { const s = m.gokuBlackUltStatus(), G = m.GOKU_BLACK_CINE; return { ...s, frame: s.k, total: G.total, impactFrame: G.reap, struck: s.active ? s.k >= G.reap : !!m.gokuBlackUltLast, phase: !s.active ? null : s.k < G.cuts[0] ? "windup" : s.k < G.land ? "strike" : "settle" }; }; });
   await waitFrames(6);
   await installSpy();
 

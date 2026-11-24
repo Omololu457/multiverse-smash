@@ -29,7 +29,7 @@ const jsErrors = []; page.on("pageerror", e => jsErrors.push(String(e)));
 const wf = async n => { const s = await page.evaluate(() => window.__harness.state().frame); await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { polling: 8, timeout: 20000 }); };
 const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());
-const cine = () => page.evaluate(() => window.__harness.swordCine());
+const cine = () => page.evaluate(() => window.__gbUlt());
 const bothScreen = () => page.evaluate(() => window.__harness.bothScreenX());
 const frame = () => page.evaluate(() => window.__harness.state().frame);
 const sfxLog = () => page.evaluate(() => (window.__harness.__sound._sfxSpy || []).slice());
@@ -51,6 +51,8 @@ try {
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());
+  // 2026-11-24 spec change: Sword Slash is now gokuBlackUlt.js (DIVINE LACERATION, cineRegistry) — status adapted to the old shape
+  await page.evaluate(async () => { const m = await import("./gokuBlackUlt.js"); window.__gbUlt = () => { const s = m.gokuBlackUltStatus(), G = m.GOKU_BLACK_CINE; return { ...s, frame: s.k, total: G.total, impactFrame: G.reap, struck: s.active ? s.k >= G.reap : !!m.gokuBlackUltLast, phase: !s.active ? null : s.k < G.cuts[0] ? "windup" : s.k < G.land ? "strike" : "settle" }; }; });
   await wf(6); await actionable();
 
   // Install the SFX spy (record every playSfxFile cue) — dragon_ball_transform_sfx pattern.
@@ -68,12 +70,13 @@ try {
   const x1_0 = (await p1()).x, x2_0 = (await p2()).x;
   await page.evaluate(() => { window.__harness.__sound._sfxSpy = []; });
 
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
   // CAST
   await page.keyboard.down("u"); await wf(2); await page.keyboard.up("u");
-  await wf(2);
+  await wf(2); await waitSB(); await wf(2);
   const c0 = await cine();
   check("Sword Slash starts the freeze cinematic", c0.active === true, `active=${c0.active} phase=${c0.phase}`);
-  check("cinematic total duration is the ~220f version (not ~42f)", c0.total >= 200 && c0.total <= 240, `total=${c0.total}`);
+  check("cinematic total duration is the 300f DIVINE LACERATION (not ~42f)", c0.total >= 280 && c0.total <= 320, `total=${c0.total}`);
 
   // ── FREEZE: try to move/attack BOTH fighters mid-cinematic → nothing responds ──
   section("FREEZE — neither fighter can move or attack during the cinematic");
@@ -101,7 +104,7 @@ try {
 
   // ── AUDIO + IMPACT beat ──
   section("AUDIO — voice line fires at the STRIKE connect");
-  await page.waitForFunction(() => window.__harness.swordCine().struck === true, null, { timeout: 6000, polling: 8 });
+  await page.waitForFunction(() => window.__gbUlt().struck === true, null, { timeout: 60000, polling: 8 });
   const atStrike = await cine();
   await wf(1);
   const log = await sfxLog();
@@ -113,12 +116,12 @@ try {
 
   // ── RESOLVE — payoff lands, combat resumes ──
   section("PAYOFF — 110 dmg + 30f paralysis, then combat resumes");
-  await page.waitForFunction(() => window.__harness.swordCine().active === false, null, { timeout: 9000, polling: 16 });
+  await page.waitForFunction(() => window.__gbUlt().active === false, null, { timeout: 60000, polling: 16 });
   const endF = await frame();
   const d2 = await p2();
   check("exactly 66 damage on a clean hit (SWORD.dmg 110 × 0.60)", (hp2_0 - d2.health) === 66, `−${hp2_0 - d2.health}`);
   check("30f paralysis applied (hitstun + stun on opponent)", (d2.hitstun || 0) > 0 && (d2.stun || 0) > 0, `hitstun=${d2.hitstun} stun=${d2.stun}`);
-  check("cinematic ran the full ~220f (freeze duration)", (endF - startFrame) >= 210 && (endF - startFrame) <= 245, `frames=${endF - startFrame}`);
+  check("cinematic ran the full ~350f (300f script + hit-stop)", (endF - startFrame) >= 320 && (endF - startFrame) <= 380, `frames=${endF - startFrame}`);
   await page.evaluate(() => window.__harness.setVx("p1", 0));   // clear the injected vx before resuming
   await actionable();
   check("caster can act again once the cinematic resolves", true, "combat resumed");

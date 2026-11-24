@@ -57,6 +57,8 @@ try {
   await page.waitForFunction(() => !!window.__harness, null, { timeout: 15000 });
   await page.mouse.click(640, 360);
   await page.evaluate(() => window.__harness.boot());
+  // 2026-11-24 spec change: Sword Slash is now gokuBlackUlt.js (DIVINE LACERATION, cineRegistry) — status adapted to the old shape
+  await page.evaluate(async () => { const m = await import("./gokuBlackUlt.js"); window.__gbUlt = () => { const s = m.gokuBlackUltStatus(), G = m.GOKU_BLACK_CINE; return { ...s, frame: s.k, total: G.total, impactFrame: G.reap, struck: s.active ? s.k >= G.reap : !!m.gokuBlackUltLast, phase: !s.active ? null : s.k < G.cuts[0] ? "windup" : s.k < G.land ? "strike" : "settle" }; }; });
   await wf(6); await actionable();
 
   // ── EXPLOSION (base form) ───────────────────────────────────────────────────
@@ -121,13 +123,14 @@ try {
     const eCast = (await p1()).energy;
     check("Sword Slash costs ~40 energy (at cast)", Math.abs((e0 - eCast) - 40) < 4, `energy ${e0.toFixed(0)} → ${eCast.toFixed(1)}`);
     await wf(3);
-    const cine = await page.evaluate(() => window.__harness.swordCine());
+    const cine = await page.evaluate(() => window.__gbUlt());
     check("Sword Slash triggers the freeze cinematic", cine.active === true, `active=${cine.active} phase=${cine.phase} total=${cine.total}`);
     const wind = await p1();
-    check("caster plays the Rose sword-slash pose", (wind.spriteSheet || "").includes("goku_black_ssj_rose_sword_slahs"), `sheet=${wind.spriteSheet}`);
+    const fxA = await page.evaluate(() => window.__harness.gojoShinjukuTest.raw("p1")._fxAlpha);
+    check("caster drawn by the cinematic (engine sprite hidden, Rose sheets drawn by gokuBlackUltFx)", fxA === 0, `_fxAlpha=${fxA} sheet=${wind.spriteSheet}`);
     await page.screenshot({ path: path.join(OUT, "GB3B_swordslash.png"), clip: CLIP });
     // let the whole cinematic resolve
-    await page.waitForFunction(() => { const c = window.__harness.swordCine(); return c && !c.active; }, null, { timeout: 9000, polling: 16 });
+    await page.waitForFunction(() => { const c = window.__gbUlt(); return c && !c.active; }, null, { timeout: 120000, polling: 16 });
     const d2 = await p2();
     check("GUARANTEED hit lands on the FAR opponent (sure-hit, range-independent)", d2.health < hp0, `p2 hp ${hp0} → ${d2.health} (−${(hp0 - d2.health).toFixed(0)})`);
     check("paralysis applied (stun/hitstun on opponent once combat resumes)", (d2.hitstun || 0) > 0 || (d2.stun || 0) > 0, `hitstun=${d2.hitstun} stun=${d2.stun}`);

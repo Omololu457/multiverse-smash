@@ -5,6 +5,8 @@ import { tickSpdSquad, spdSquadRoundReset, spdSquadCpu, squadSwap, squadState, s
 import { drawSpdSquadFx, drawSquadUltScreen } from "./spdSquadFx.js"   // + the squads' TEAM ULTIMATE screen pass (squadUltFx.js)
 import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"
 import { anyFreezeCineActive, updateFreezeCines, clearFreezeCines, drawCineScreens } from "./cineRegistry.js"   // shared FROZEN-CINEMATIC + screen-overlay slot (the Incredibles' ultimates)   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
+import "./cineUlts.js"   // registers every cineRegistry-based cinematic ultimate module (Death Note / OPM / Jesus / Rick and Morty)
+import { startRickPrimeRewindCine, isRickPrimeRewindCineActive } from "./rickPrimeUlt.js"   // Temporal Rewind cinematic overlay
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
@@ -13853,7 +13855,8 @@ function _updatePlayerCombatBody(fighter) {
   // RICK PRIME — Ultimate = TEMPORAL REWIND (intercepted here like Chrollo's Skill Hunter early-end so it never
   // falls through to the generic buff-ultimate dispatch). tryStart self-gates (cost/cooldown/history/cinematic-safe).
   if (canStart && !charging && inputState.ultimate && (fighter.rosterKey || "").toLowerCase() === "rickprime") {
-    tryStartRickPrimeRewind(fighter); return
+    if (tryStartRickPrimeRewind(fighter)) startRickPrimeRewindCine(fighter, getOpponent(fighter), () => rewindState)   // rickPrimeUlt.js cinematic overlay (draw-only)
+    return
   }
   // SASUKE (SENSEI) — UP + Ultimate CYCLES the active eye-set (Raiton ↔ Mangekyou; Rinnegan joins in Phase 3).
   // Intercepted BEFORE the generic ult dispatch (like Chrollo/RickPrime) so it does NOT fire an ultimate or
@@ -25820,7 +25823,7 @@ function drawBattle() {
   _drawImpactBurst()          // STAGE 2: radiating crack/shatter burst at the impact point (higher tiers), over the scene, under HUD
   _drawJuiceImpactFlash()     // JUICE (Phase 2): explosion impact-frame white flash / soft dim (Reduce Flashing), over the scene, under HUD
   _drawAnimFinisher()         // HIT FEEL (Phase C): anime-finisher silhouette/invert/burst-lines overlay, over the scene, under HUD
-  _drawRewind()               // RICK PRIME Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
+  if (!isRickPrimeRewindCineActive()) _drawRewind()               // RICK PRIME (the rickPrimeUlt.js overlay replaces the old ghosts while it runs) Temporal Rewind — opponent recent-path trace + cyan time wash, over the scene, under HUD
   _drawImpactHit()            // IMPACT HIT (obito prototype): black→red→white cascade bg + pose skeleton, over the scene, under HUD
   drawFatalityCinematic(ctx, canvas)   // roster-wide FINISH-window + fatality cutaway overlay
   drawSignatureFatalityScreen(ctx, canvas)   // SIGNATURE FATALITY: Death Note page, flash, technique name + FATALITY (screen space)

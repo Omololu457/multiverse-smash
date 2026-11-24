@@ -7504,7 +7504,8 @@ const lRyuuzaki = {
   // HUD PLACEHOLDER ONLY — L has NO ultimate (confirmed art gap; row_19 ships as a special at Stage 4,
   // NOT promoted to a cinematic ult). No real ult logic exists in abilities.js. This field only labels
   // the HUD meter; it is NOT wired to a triggerUltimate path.
-  ultimate: { name: "—", cost: 100, description: "(Stage 1 placeholder — L has no ultimate; his marquee golden-nova ships as a special.)", placeholder: true },
+  // 2026-11-24: L now has a real cinematic ultimate (lRyuuzakiUlt.js, cineRegistry registerUltCast) — owner: "make more cinematic ultimates for the Death Note characters".
+  ultimate: { name: "The Final Deduction", cost: 100, description: "L deduces the truth — case files, red string, 99% — then closes in with capoeira and ends it: Checkmate." },
   hasSprites: true,
   // L's idle content ≈50px tall (slim chibi). scale 2.0 → ~100px on-screen, reading at roster median.
   // anchorY:0 everywhere → feet on the shared foot baseline, no anchor rescale.

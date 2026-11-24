@@ -1,4 +1,5 @@
 import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
+import { castRegisteredUlt } from "./cineRegistry.js"   // character-owned cinematic ultimates (registerUltCast)
 import { luffyRegen } from './luffyState.js'
 import { elastigirlRegen } from './elastigirlState.js'   // Elastigirl: Elasticity recharge 5/s (elastigirl-gated)
 import { zoroRegen } from './zoroState.js'
@@ -35412,7 +35413,9 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
   if (key === "light" && opts.variant) fighter._ultVariant = opts.variant
 
   let cast
-  switch (key) {
+  const _regUlt = castRegisteredUlt(key, fighter, context, opts)   // cineRegistry.js registerUltCast (character-owned cinematic ults)
+  if (_regUlt !== undefined) cast = _regUlt
+  else switch (key) {
       case 'luffy': cast = executeLuffyUltimate(fighter); break
       // GOKU has NO separate ultimate — his transformation LADDER moved to the CHARGE button (enterGokuNextForm),
       // same as Vegeta/Frieza. The old ultimate-button "next SSJ" trigger (executeGokuUltimate) was REMOVED;

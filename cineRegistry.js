@@ -21,3 +21,10 @@ export function drawCineScreens(ctx, canvas) {
   for (const d of SCREEN.values()) { try { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); if (d(ctx, canvas)) hide = true } catch (_) {} finally { ctx.restore() } }
   return hide
 }
+//   registerUltCast(rosterKey, cast(fighter, context, opts) → true | false | undefined)
+//     Lets a character module take over its own ULTIMATE dispatch (abilities.js triggerUltimate asks here before its big
+//     switch). Return true = cast (cooldown starts), false = refused (no meter etc.), undefined = fall back to the legacy
+//     switch case (e.g. a variant input this module doesn't handle). Modules register on import via cineUlts.js.
+const ULT_CAST = new Map()
+export const registerUltCast = (key, fn) => { ULT_CAST.set(key, fn) }
+export function castRegisteredUlt(key, fighter, context, opts) { const fn = ULT_CAST.get(key); return fn ? fn(fighter, context, opts) : undefined }

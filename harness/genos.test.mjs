@@ -87,7 +87,17 @@ try {
 
   console.log("\n── S5: Overdrive ultimate ──");
   await prep(120); await page.evaluate(() => window.__harness.fillEnergy?.());
+  const hp2 = (await p2()).health;
   const cast = await page.evaluate(() => window.__harness.p1Ultimate());
+  // 2026-11-24: the ult is now a FROZEN cinematic (genosUlt.js: activation → target lock → Incineration Cannon) that opens
+  // the Overdrive window when it ends — wait for it, then check the mode + the cannon's sure-hit damage.
+  const cine = () => page.evaluate(async () => (await import("./genosUlt.js")).getGenosUltStatus());
+  const c0 = await cine();
+  check("Ultimate starts the OVERDRIVE — INCINERATION CANNON cinematic", c0.active === true, JSON.stringify(c0));
+  await page.evaluate(async () => { window.__genosUltMod = await import("./genosUlt.js") });
+  await page.waitForFunction(() => !window.__genosUltMod.getGenosUltStatus().active, null, { timeout: 90000, polling: 100 });
+  const cannon = hp2 - (await p2()).health;
+  check("Incineration Cannon lands its sure-hit surges (≈132)", cannon >= 120, `dmg=${cannon.toFixed(0)}`);
   const od = await p1();
   check("Ultimate enters Overdrive (buffs on)", od.genosOverdrive === true && Math.abs(od.damageMult - 1.35) < 0.01, `active=${od.genosOverdrive} dmg=${od.damageMult}`);
   const preHp = od.health;

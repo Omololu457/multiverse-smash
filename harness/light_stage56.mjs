@@ -25,6 +25,10 @@ async function shot(tag) { await page.screenshot({ path: path.join(OUT, `light_s
 const setEnergy = (v) => page.evaluate((e) => window.__harness.setEnergy(e), v);
 const healP2 = () => page.evaluate(() => window.__harness.healP2?.());
 const fireUlt = (opts) => page.evaluate((o) => window.__harness.p1Ultimate(o), opts || {});
+// 2026-11-24: both ultimates are now FROZEN CINEMATICS (lightUlt.js) — the scene owns the screen (the legacy _lightKiraTimer
+// panel stays off) and the payoff lands at the end of the scene, so tests read the cinematic status and wait it out.
+const cine = () => page.evaluate(async () => (await import("./lightUlt.js")).lightUltStatus());
+async function waitCineEnd() { for (let i = 0; i < 120; i++) { if (!(await cine()).active) return; await waitFrames(5); } }
 
 try {
   await boot();
@@ -43,11 +47,11 @@ try {
   const enMid1 = (await p1()).energy ?? 0;   // read immediately — before passive regen refills the pool
   check("neutral U casts (triggerUltimate returns a cast)", !!r1?.cast, `cast=${JSON.stringify(r1)}`);
   let write = false, wKira = false;
-  for (let i = 0; i < 10; i++) { const s = await fx(); if (s?.castMove === "lightUltWrite") write = true; if ((s?.kiraTimer || 0) > 0) wKira = true; await waitFrames(1); }
+  for (let i = 0; i < 10; i++) { const s = await fx(), cs = await cine(); if (s?.castMove === "lightUltWrite") write = true; if (cs.active && cs.kind === "plan") wKira = true; await waitFrames(1); }
   check("writing cast pose = lightUltWrite", write, "");
   await waitFrames(20); await shot("write_cast");   // land the capture during the "JUST AS PLANNED" panel window
-  check("'JUST AS PLANNED' panel cinematic runs (_lightKiraTimer > 0)", wKira, "");
-  await waitFrames(40);
+  check("'AS PLANNED' cinematic runs (lightUltStatus kind=plan)", wKira, "");
+  await waitCineEnd(); await waitFrames(2);
   const hpA1 = (await p2()).health ?? 0;
   check("spent 100 Kira (pool drained to ~0)", enB1 - enMid1 >= 99, `spent=${(enB1 - enMid1).toFixed(1)}`);
   check("As Planned lands GUARANTEED damage on the frozen foe", hpB1 - hpA1 > 100, `dmg=${hpB1 - hpA1}`);
@@ -61,10 +65,10 @@ try {
   const enMid2 = (await p1()).energy ?? 0;   // read immediately — before passive regen refills the pool
   check("Down+U casts (variant=scythe)", !!r2?.cast, `cast=${JSON.stringify(r2)}`);
   let scythe = false, kira = false;
-  for (let i = 0; i < 12; i++) { const s = await fx(); if (s?.castMove === "lightScythe") scythe = true; if ((s?.kiraTimer || 0) > 0) kira = true; if (i === 5) await shot("scythe_panel"); await waitFrames(1); }
+  for (let i = 0; i < 12; i++) { const s = await fx(), cs = await cine(); if (s?.castMove === "lightScythe") scythe = true; if (cs.active && cs.kind === "kira") kira = true; if (i === 5) await shot("scythe_panel"); await waitFrames(1); }
   check("scythe cast pose = lightScythe", scythe, "");
-  check("'I Am Kira' panel cinematic runs (_lightKiraTimer > 0)", kira, "");
-  await waitFrames(60);
+  check("'I Am Kira' cinematic runs (lightUltStatus kind=kira)", kira, "");
+  await waitCineEnd(); await waitFrames(2);
   const hpA2 = (await p2()).health ?? 0;
   check("spent 100 Kira (pool drained to ~0)", enB2 - enMid2 >= 99, `spent=${(enB2 - enMid2).toFixed(1)}`);
   check("I Am Kira lands GUARANTEED damage", hpB2 - hpA2 > 100, `dmg=${hpB2 - hpA2}`);

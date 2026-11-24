@@ -168,16 +168,20 @@ try {
   for (let i = 0; i < 10; i++) { const a = await p1(); if ((a.invulnTimer || 0) > 0) ifr = true; if ((a.spriteSheet || "").includes("saitama_sidehop_uniform")) hopSheet = true; await wf(1); }
   check("AIR Back → Side Hop (i-frames + saitama_sidehop_uniform)", shp.cast === "saitamaSidehop" && ifr && hopSheet, `cast=${shp.cast} iframes=${ifr}`); await grounded();
 
-  section("Death Punch ULTIMATE (inline cinematic + hi-res backdrop, live fighter)");
+  section("SERIOUS PUNCH ULTIMATE (saitamaUlt.js frozen cinematic — real sheets drawn by saitamaUltFx, hi-res backdrop panels)");
+  // 2026-11-24: the legacy inline Death Punch (game.js _saitamaDeathTimer overlay) was replaced by the registry cinematic
+  // (cineRegistry.registerUltCast) — same cost / sure-hit / 340 raw; these checks read the module's own status.
   await page.evaluate(async () => { const i = new Image(); i.src = "./saitama_death_punch_backround_effect.png"; try { await i.decode() } catch (_) {} });
   await prep(150); const uH0 = (await p2()).health, uE0 = (await p1()).energy;
+  const ult = () => page.evaluate(async () => { const m = await import("./saitamaUlt.js"); const p = window.__harness.p1(); return { ...m.getSaitamaUltStatus(), energy: p.energy } });
   await page.keyboard.down("u"); await wf(3); await page.keyboard.up("u");
-  let sawCharge = false, sawImpact = false, sawRender = false, peakEnv = 0, minE = uE0, live = false;
-  for (let i = 0; i < 82; i++) { const a = await p1(), c = await cine(); minE = Math.min(minE, a.energy); const sh = a.spriteSheet || ""; if (/saitama_death1_uniform/.test(sh)) sawCharge = true; if (/saitama_death2_uniform/.test(sh)) sawImpact = true; if (c.timer > 0 && /saitama_death[12]_uniform/.test(sh)) live = true; if (c.renders > 0) sawRender = true; peakEnv = Math.max(peakEnv, c.maxEnv || 0); await wf(1); }
-  const uDmg = uH0 - (await p2()).health, cEnd = await cine();
+  let sawActive = false, maxK = 0, minE = uE0, hidden = false;
+  for (let i = 0; i < 400; i++) { const c = await ult(); minE = Math.min(minE, c.energy); if (c.active) { sawActive = true; maxK = Math.max(maxK, c.frame) } else if (sawActive) break
+    if (c.active && !hidden) hidden = await page.evaluate(() => window.__harness.gojoShinjukuTest?.raw?.("p1")?._fxAlpha === 0); await wf(1) }
+  const uDmg = uH0 - (await p2()).health
   check("ult spent ~100 Serious", uE0 - minE >= 95, `spent=${(uE0 - minE).toFixed(0)}`);
-  check("LIVE fighter performs charge→impact poses (no dup instance)", sawCharge && sawImpact && live, `charge=${sawCharge} impact=${sawImpact}`);
-  check("fullscreen backdrop overlay ran + peaked (hi-res, not sliced)", sawRender && cEnd.bgLoaded && peakEnv > 0.6, `renders=${cEnd.renders} bg=${cEnd.bgLoaded} peak=${peakEnv.toFixed(2)}`);
+  check("cinematic ran start → finish (script frames ≥ 300) with the engine sprite handed to the cinematic", sawActive && maxK >= 300 && hidden, `active=${sawActive} k=${maxK} hidden=${hidden}`);
+  check("fighter sprite restored after the cinematic", await page.evaluate(() => window.__harness.gojoShinjukuTest?.raw?.("p1")?._fxAlpha !== 0), "");
   check(`ultimate dealt heavy GUARANTEED damage (${uDmg.toFixed(0)} ≥ 120)`, uDmg >= 120, `dmg=${uDmg.toFixed(1)}`);
 
   section("fallback-box sweep — every animationData action renders a real saitama_ sheet (no 128² box)");

@@ -137,6 +137,8 @@ try {
   {
     await page.keyboard.down("u"); await waitFrames(3); await page.keyboard.up("u");
     await waitFrames(8);
+    // 2026-11-24: the connecting Self-Destruct is a frozen cinematic (rickUlt.js) — the payoff bark lands on its detonation beat
+    for (let i = 0; i < 120; i++) { const on = await page.evaluate(async () => { try { return (await import("/rickUlt.js")).getRickUltStatus().active } catch (_) { return false } }); if (!on) break; await waitFrames(10); }
     const log = await rickOnly(await sfxLog());
     const actIdx = log.findIndex(c => inPool(c, "ultActivate"));
     const payIdx = log.findIndex(c => inPool(c, "ultPayoff"));

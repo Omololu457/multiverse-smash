@@ -85,7 +85,8 @@ try {
     await P(() => window.__harness.fillEnergy?.());
     const hp0 = (await p2()).health;
     await ult();
-    await page.waitForFunction(h => window.__harness.p2().health < h - 80, hp0, { timeout: 8000, polling: 16 }).catch(() => {});
+    // 2026-11-24: Blessed Energy is now a ~6 s FROZEN CINEMATIC (jesusUlt.js) — wait for it to play out (not the old 34-frame AOE)
+    for (let t0 = Date.now(); Date.now() - t0 < 60000; await new Promise(r => setTimeout(r, 100))) if (!(await P(() => import("/jesusUlt.js").then(m => m.isJesusUltActive())))) break;
     await waitFrames(40);
     const drop = hp0 - (await p2()).health;
     check("Blessed Energy deals ultimate-tier damage (>120)", drop > 120, `−${drop.toFixed(0)}`); }

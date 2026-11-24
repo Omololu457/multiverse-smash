@@ -62,7 +62,8 @@ try {
   const hpB = (await p2()).health ?? 0;
   const ur = await fireUlt({});
   check("ultimate casts (As Planned)", !!ur?.cast, "");
-  await waitFrames(64);
+  // 2026-11-24: As Planned is a frozen cinematic now (lightUlt.js) — the heart attack lands at its end; wait the scene out
+  for (let i = 0; i < 120; i++) { if (!(await page.evaluate(async () => (await import("./lightUlt.js")).lightUltStatus().active))) break; await waitFrames(5); }
   const hpA = (await p2()).health ?? 0;
   check("ultimate lands guaranteed damage (~204)", hpB - hpA > 100, `dmg=${hpB - hpA}`);
   await waitFrames(30);

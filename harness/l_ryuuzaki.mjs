@@ -116,7 +116,8 @@ try {
   const portrait = await page.evaluate(() => window.__harness.charPortrait("l_ryuuzaki"));
   check("portrait wired to ./l_ryuuzaki_portrait.png", (portrait || "").includes("l_ryuuzaki_portrait"), `portrait=${portrait}`);
   // NO ultimate: the `ultimate` field is a HUD placeholder only (row_19 ships as the Nova special, NOT promoted).
-  check("NO ultimate (honest art-gap — ultimate is a placeholder, not a real cinematic)", L.ultimate?.placeholder === true, `ultimate=${JSON.stringify(L.ultimate)}`);
+  // PIN UPDATED 2026-11-24 (intentional): L gained a real cinematic ultimate, "The Final Deduction" (lRyuuzakiUlt.js).
+  check("ultimate = The Final Deduction (cinematic, lRyuuzakiUlt.js)", L.ultimate?.name === "The Final Deduction" && !L.ultimate?.placeholder, `ultimate=${JSON.stringify(L.ultimate)}`);
   await waitFrames(3); await shot("idle");
 
   // ══ 3) BOX-SWEEP — every animationData action renders a real l_ryuuzaki_ sheet (no 128² box) ══

@@ -58,6 +58,9 @@ async function waitGrounded() {
 const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());
 const summons = () => page.evaluate(() => window.__harness.summons());
+// 2026-11-24: the connecting Self-Destruct is a ~6s frozen cinematic (rickUlt.js) — wait for it to finish
+const rickUltCine = () => page.evaluate(async () => { try { return (await import("/rickUlt.js")).getRickUltStatus() } catch (_) { return { active: false } } });
+async function waitRickUltCine() { for (let i = 0; i < 120; i++) { if (!(await rickUltCine()).active) return; await waitFrames(10); } }
 const projectiles = () => page.evaluate(() => window.__harness.projectiles());
 
 // Place the dummy just in front of Rick and heal it, so each move starts from a clean adjacent state.
@@ -214,14 +217,16 @@ try {
     await page.keyboard.down("u"); await waitFrames(3); await page.keyboard.up("u");
     await waitFrames(4);
     const a = await p1();
+    const cine = await rickUltCine();
+    await waitRickUltCine();   // the connecting blast now plays as the SELF-DESTRUCT cinematic (rickUlt.js); its damage lands over the beats
     const hp1 = (await p2()).health;
     check("ultimate connects (AOE damages a nearby opponent)", hp1 < hp0, `hp ${hp0} → ${hp1} (−${(hp0 - hp1).toFixed(0)})`);
     // MK-feel Stage 3d: detonating now costs Rick 15% of max HP (non-lethal) — the risk lever.
     const selfCost = Math.round(b.maxHealth * 0.15);
     check("Rick PAYS ~15% max HP to self-destruct (Stage 3d risk lever)", Math.abs((b.health - a.health) - selfCost) <= 1, `rick hp ${b.health} → ${a.health} (cost ${(b.health - a.health).toFixed(0)}, expected ~${selfCost})`);
     check("ultimate costs near-max meter (~140)", (b.energy - a.energy) >= 130, `spent ${(b.energy - a.energy).toFixed(0)}`);
-    const proj = await projectiles();
-    check("blast FX spawns (visualOnly, no double-damage)", proj.some(p => p.name === "selfDestructBlast" && p.visualOnly), `projectiles=${JSON.stringify(proj.map(p => p.name))}`);
+    check("connecting cast plays the SELF-DESTRUCT cinematic (replaces the instant selfDestructBlast FX)", cine.active === true, JSON.stringify(cine));
+    check("cinematic total = the legacy blast (180 RAW → ~108 EFF)", Math.abs((hp0 - hp1) - 108) <= 3, `dealt ${(hp0 - hp1).toFixed(0)}`);
     await page.screenshot({ path: path.join(OUT, "RK_selfdestruct.png") });
   }
   await waitFrames(30);

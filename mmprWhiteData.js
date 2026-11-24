@@ -2,6 +2,7 @@
 // rangers.js profile, the Ninja Megazord order profiles (shared falconzord.js scheduler) and the roster entry.
 // Logic: mmprWhiteState.js (sim), mmprWhite.js (command layer), falconzord.js (shared assist scheduler), mmprWhiteFx.js
 // (render-only). Frame-by-frame rationale: docs/mmpr_white/MOVE_FRAME_MAP.md.
+import { mmprRedStats, mmprRedTempo } from './mmprParity.js'   // 2026-11-23 MMPR Red parity (pace + shared-normal tempo)
 import { MMPR_WHITE_ANIM } from './mmprWhiteSprites.js'
 import { registerRangerProfile } from './rangers.js'
 import { registerFalconSortie } from './falconzord.js'
@@ -134,3 +135,7 @@ export const mmpr_white = {
     description: '30 f Saba strike (raw 35). A clean hit starts a Tommy + Ninja Megazord sequence (raw 35+40+35+40+130 = 280 before shared scaling); a miss or block has 60 f recovery.' },
   animationData: Object.fromEntries(Object.entries({ ...MMPR_WHITE_ANIM, wUltOpen: MMPR_WHITE_ANIM.ultOpen }).map(([k, a]) => [k, timeline[k] ? { ...a, frameTimeline: timeline[k] } : a])),
 }
+
+// 2026-11-23 MMPR RED PARITY (mmprParity.js): Red's real pace + his frame data on the shared normals; own specials untouched
+mmprRedTempo(MMPR_WHITE_MOVES)
+mmpr_white.stats = mmprRedStats(mmpr_white.stats)

@@ -2,6 +2,7 @@
 // the rangers.js profile, the Thunder Megazord assist profiles (shared falconzord.js scheduler) and the roster entry.
 // Logic: mmprPinkState.js (sim), mmprPink.js (command layer), mmprPinkFx.js (render-only).
 // Frame-by-frame rationale: docs/mmpr_pink/MOVE_FRAME_MAP.md.
+import { mmprRedStats, mmprRedTempo } from './mmprParity.js'   // 2026-11-23 MMPR Red parity (pace + shared-normal tempo)
 import { MMPR_PINK_ANIM } from './mmprPinkSprites.js'
 import { registerRangerProfile } from './rangers.js'
 import { registerFalconSortie } from './falconzord.js'
@@ -126,3 +127,7 @@ export const mmpr_pink = {
   animationData: Object.fromEntries(Object.entries({ ...MMPR_PINK_ANIM, pBow: MMPR_PINK_ANIM.bow, pUltOpen: MMPR_PINK_ANIM.ultOpen })
     .map(([k, a]) => [k, timeline[k] ? { ...a, frameTimeline: timeline[k] } : k === 'pBow' ? { ...a, frameTimeline: timeline.bow } : a])),
 }
+
+// 2026-11-23 MMPR RED PARITY (mmprParity.js): Red's real pace + his frame data on the shared normals; own specials untouched
+mmprRedTempo(MMPR_PINK_MOVES)
+mmpr_pink.stats = mmprRedStats(mmpr_pink.stats)

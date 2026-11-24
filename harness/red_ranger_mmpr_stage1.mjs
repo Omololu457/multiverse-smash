@@ -51,7 +51,7 @@ try {
   check("P1 is Red Ranger MMPR", g.key === "red_ranger_mmpr", `key=${g.key}`);
   check("renders as sprites (hasSpriteHandler)", g.hasSpriteHandler, "");
   check("idle sheet = red_ranger_mmpr_idle_uniform", (g.spriteSheet || "").includes("red_ranger_mmpr_idle_uniform"), `sheet=${g.spriteSheet}`);
-  check("spriteScale = 1.54", Math.abs((g.spriteScale || 0) - 1.54) < 0.01, `spriteScale=${g.spriteScale}`);
+  check("spriteScale = 1.85 (2026-11-23 size fix, was 1.54)", Math.abs((g.spriteScale || 0) - 1.85) < 0.01, `spriteScale=${g.spriteScale}`);
   check("maxHealth = 1200", g.maxHealth === 1200, `HP=${g.maxHealth}`);
   check("maxEnergy = 180", g.maxEnergy === 180, `EN=${g.maxEnergy}`);
   await waitFrames(4); await record(); await shot("idle");

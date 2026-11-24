@@ -1,6 +1,9 @@
 import { updateLuffyCommandCombat } from './luffy.js'
+import { isSquadKey } from "./squadCore.js"   // every Ranger squad (S.P.D. Rangers, Mighty Morphin Rangers)
+import "./mmprSquad.js"   // Mighty Morphin Rangers squad registers itself
 import { tickSpdSquad, spdSquadRoundReset, spdSquadCpu, squadSwap, squadState, squadPreloadKeys } from "./spdSquad.js"   // S.P.D. Rangers: the B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P Ranger dial
-import { drawSpdSquadFx } from "./spdSquadFx.js"   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
+import { drawSpdSquadFx, drawSquadUltScreen } from "./spdSquadFx.js"   // + the squads' TEAM ULTIMATE screen pass (squadUltFx.js)
+import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
@@ -1543,6 +1546,7 @@ function _rewindUnsafeNow() {
   if (activeDomains.length > 0) return true
   if (domainCine.timer > 0 || domainCine.caster) return true
   if (isChrolloSkillHunterCinematicActive()) return true
+  if (isSquadUltActive()) return true   // Ranger squads' TEAM ULTIMATE
   return !!kevinCashOwner([p1,p2]) || isFlashTimeCinematicActive() || isBeerusKiBallCinematicActive() || isBen10OmnitrixCinematicActive() || isBatmanDarkKnightCinematicActive() || isOmniManBodySlamCinematicActive() || isSupermanUltimateCinematicActive() || isRengokuFlameExplosionCinematicActive() || isMadaraTengaiShinseiCinematicActive() || isPainChibakuTenseiCinematicActive() || isYujiUltimateCinematicActive() || isShinobuButterflyCinematicActive() || isMakiShibuyaCinematicActive() || isGhostfaceFinalActCinematicActive() || isMiwaUltimateCinematicActive() || isIchigoGetsugaCinematicActive() || isVegetaFinalFlashCinematicActive() || isKilluaGodspeedCinematicActive() || isHisokaOverdriveCinematicActive() || isTojiReincarnationCinematicActive() || isSSJRoseCinematicActive() || isFormActivationCinematicActive() || isGokuBlackSwordCinematicActive() || isRedRangerPowerSwordCinematicActive() || isMmprBlackUltActive() || isZordUltCineActive() || isMmprWhiteUltActive() || isMmprPinkUltActive() || isSpdYellowUltActive() || isCyborgUltActive() || isBeastBoyUltActive() || isRavenUltActive() || isStarfireUltActive() || isRobinUltActive() || isMegumiUltActive() || isHigurumaUltActive() || isSyndromeUltActive() || isDseylUltActive() || isFrozoneUltActive() || isEnochUltActive() || isBatmanUltActive() || isSamuraiFlameSmasherCinematicActive() || isMangekyouCinematicActive() || isSasukeCinematicActive() || isKuramaCinematicActive() || isMinatoKuramaActive() || isObitoJuubiCinematicActive() || isTobiNineTailsCinematicActive() || isHashiramaSealingJutsuCinematicActive()
 }
 
@@ -1609,6 +1613,7 @@ function _rewindTeardown() {
   clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -5894,6 +5899,7 @@ function resetRound() {
   clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -7125,6 +7131,7 @@ function resetToStart() {
   clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -11382,6 +11389,7 @@ function _doRematch() {
   clearZordUltCine()   // shared Ranger Zord ultimate (Green Ranger; freeze contract)
   clearMmprWhiteUlt()   // White Ranger Ninja Grand Formation (freeze contract)
   clearMmprPinkUlt()   // Pink Ranger Thunderstring (freeze contract)
+  clearSquadUlt()      // Ranger squads' TEAM ULTIMATE (freeze contract)
   clearSpdYellowUlt()   // S.P.D. Yellow Duplicate Raid (freeze contract)
   clearCyborgUlt()   // Cyborg BOOYAH PROTOCOL (freeze contract)
   clearBeastBoyUlt()   // Beast Boy ANIMAL INSTINCT (freeze contract)
@@ -12807,7 +12815,7 @@ function updateMovementInput(fighter) {
   const inputState = getFighterInput(fighter)
   // S.P.D. RANGERS dial (spdSquad.js) — runs every frame, before the kit locks / attack early-returns: ↓↓ + J/K/L/O/P/U
   // swaps Ranger and the pick press is swallowed (input.js masks it for every later reader this frame)
-  if (fighter._squad || fighter.rosterKey === "spd_rangers") {
+  if (fighter._squad || isSquadKey(fighter.rosterKey)) {
     tickSpdSquad(fighter, readRawControlsUnmasked(fighter) || {}, SPD_SQUAD_WORLD)
     if (fighter._squadEat) for (const b of Object.keys(fighter._squadEat)) inputState[b] = false
   }
@@ -13004,7 +13012,7 @@ function ben10Sfx(fighter, id) {
   try { ben10VoForSfxEvent(fighter, id, { seed, frame: globalFrameCount }) } catch (_) {}   // VO: transform / special callout (same hash inputs)
 }
 
-// S.P.D. RANGERS (spdSquad.js): Ben's dial windows + "clear the outgoing Ranger's kit" (each Ranger's own clear + world)
+// RANGER SQUADS (squadCore.js — S.P.D. Rangers, Mighty Morphin Rangers): Ben's dial windows + "clear the outgoing Ranger's kit"
 const SPD_SQUAD_WORLD = {
   benSwap: () => ({ dbl: OMX_DOUBLE_TAP_WINDOW, arm: OMX_ARM_WINDOW }),
   clear: (f, form) => {
@@ -13013,8 +13021,20 @@ const SPD_SQUAD_WORLD = {
     else if (form === "spd_green") clearSpdGreen(f, SPD_BLUE_WORLD)
     else if (form === "spd_pink") clearSpdPink(f, SPD_BLUE_WORLD)
     else if (form === "spd_yellow") clearSpdYellow(f, SPD_YELLOW_WORLD)
+    else if (form === "mmpr_black") clearMmprBlack(f, MMPR_BLACK_WORLD)      // Mighty Morphin Rangers (mmprSquad.js)
+    else if (form === "mmpr_pink") clearMmprPink(f, MMPR_PINK_WORLD)
+    else if (form === "mmpr_white") clearMmprWhite(f, MMPR_WHITE_WORLD)
+    else if (form === "green_ranger") clearGreen(f, GREEN_RANGER_WORLD)
   },
+  // a kit mid-commitment that isn't an attack (Pink's crane step, Green's landing, a blink …) or any Zord / Megazord cinematic
+  busy: f => (!f.attacking && (mmprPinkLocked(f) || mmprBlackLocked(f) || mmprWhiteLocked(f) || greenLocked(f))) ||
+    isZordUltCineActive() || isMmprBlackUltActive() || isMmprWhiteUltActive() || isMmprPinkUltActive(),
   cue: () => { try { sound.playJuiceSfx?.("whoosh_short", { gain: 0.7 }) } catch (_) {} },
+  // TEAM ULTIMATE (squadUlt.js): the damage choke-point, the foe, the stage, and "another cinematic is already running"
+  damage: (t, n, o) => applyScaledDamage(t, n, o),
+  opponent: f => getOpponent(f),
+  stageWidth: () => getStageWorldWidth(),
+  cinematic: () => _rewindUnsafeNow(),
 }
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return
@@ -22581,6 +22601,12 @@ function updateBattle() {
     if (typeof camera.advance === "function") camera.advance(canvas)
     return
   }
+  // RANGER SQUADS' TEAM ULTIMATE (W + U — S.P.D. Judgment Volley / Mighty Morphin Five-Point Star): the same freeze contract.
+  if (isSquadUltActive()) {
+    updateSquadUlt({ camera, sound, hitEffects: hitSparks, damageNumbers })
+    if (typeof camera.advance === "function") camera.advance(canvas)
+    return
+  }
   // PINK RANGER "THUNDERSTRING: HEAVEN'S FINAL ARROW": the same freeze contract (mmprPinkState.js).
   if (isMmprPinkUltActive()) {
     updateMmprPinkUlt()
@@ -25789,7 +25815,8 @@ function drawBattle() {
   drawScreenBreaker(ctx, canvas)       // SCREEN BREAKER: the cracked glass + smear + banner (screen space)
   drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
   const _cineHidesHud = drawDinoZrexCinematic(ctx, canvas) || isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || signatureFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
-  if (!_cineHidesHud) drawBattleHud()
+  const _squadUltHud = drawSquadUltScreen(ctx, canvas)   // Ranger squads' TEAM ULTIMATE: letterbox / cards / flashes (screen space)
+  if (!_cineHidesHud && !_squadUltHud) drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()
   _drawComboCounters()

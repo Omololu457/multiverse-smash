@@ -40,7 +40,8 @@ export function squadThemeAnim(form, t) {
     if (e) r = { anim: e.animationData, tag: e.recolorTag || null }
     else if (c && form === 'omega_ranger') r = { anim: remap(c.animationData, p => p.replace(/\.png$/, `__${t}.png`)), tag: null }
   }
-  return (cache[key] = r)
+  if (r) cache[key] = r   // only hits: a pack that registers later (its Fx module) is still found
+  return r
 }
 setSquadSkinHook((f, form) => {
   const t = THEME_OF[f?.skinId]; if (!t) return

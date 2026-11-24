@@ -69,12 +69,14 @@ try {
   await reset(900); await tap(['w']); await step(8); await tap(['w']); await step(10); s = await state(); ck('no double jump (maxJumps 1)', s.a.s && (await ev(() => __harness.mmprPinkTest.raw().jumpCount)) <= 1)
 
   // ── AUTHORED FRAME DATA (startup = activeStart, total = s+a+r) via the real command inputs ──
-  const want = { light: [5, 2, 10], heavy: [14, 3, 26], pLow: [8, 2, 16], up: [12, 3, 22], pPalm: [10, 3, 19], pBow: [12, 1, 16], pCall: [14, 1, 12], pCrane: [14, 1, 17], pUltOpen: [30, 1, 60] }
+  // 2026-11-23 Red parity (mmprParity.js, owner: "as fast as the Red Ranger … movesets like Red's"): the shared normals run on
+  // MMPR Red's frame data — Jab 4/3/10, Heavy 8/4/18, Up 7/4/16, Air 5 f (was 5/2/10, 14/3/26, 12/3/22, 8 f)
+  const want = { light: [4, 3, 10], heavy: [8, 4, 18], pLow: [8, 2, 16], up: [7, 4, 16], pPalm: [10, 3, 19], pBow: [12, 1, 16], pCall: [14, 1, 12], pCrane: [14, 1, 17], pUltOpen: [30, 1, 60] }
   for (const [k, inp] of [['light', ['j']], ['heavy', ['k']], ['pLow', ['s', 'j']], ['up', ['i']], ['pPalm', ['d', 'k']], ['pBow', ['l']], ['pCall', ['d', 'l']], ['pCrane', ['s', 'l']], ['pUltOpen', ['u']]]) {
     await reset(400); await tap(inp); const m = await moveInfo(); const [st, ac, rc] = want[k]
     report.moves[k] = m; ck(`${k}: startup ${st}, active ${ac}, total ${st + ac + rc}`, m?.name === k && m.activeStart === st && m.total === st + ac + rc, JSON.stringify(m))
   }
-  await reset(900); await tap(['w']); await step(4); await tap(['j']); let m = await moveInfo(); ck('Air Flying Heel 8 f startup', m?.name === 'air' && m.activeStart === 8, JSON.stringify(m))
+  await reset(900); await tap(['w']); await step(4); await tap(['j']); let m = await moveInfo(); ck('Air Flying Heel 5 f startup (Red parity, was 8)', m?.name === 'air' && m.activeStart === 5, JSON.stringify(m))
   // damage = raw x1.7 roster lever, each move
   const raws = { light: 17, heavy: 54, pLow: 25, up: 42 }
   for (const [k, inp] of [['light', ['j']], ['heavy', ['k']], ['pLow', ['s', 'j']], ['up', ['i']]]) {

@@ -2,6 +2,7 @@
 // ultimate opt-in and the roster entry. Logic: greenRangerState.js (sim), greenRanger.js (command layer),
 // rangerZordUltimate.js (shared Zord ultimate), greenRangerFx.js (render-only).
 // Frame-by-frame rationale and real source frame IDs: docs/green_ranger/MOVE_FRAME_MAP.md.
+import { mmprRedStats, mmprRedTempo } from './mmprParity.js'   // 2026-11-23 MMPR Red parity (pace + shared-normal tempo)
 import { GREEN_RANGER_ANIM, GREEN_RANGER_PORTRAIT } from './greenRangerSprites.js'
 import { registerZordUltimate } from './rangerZordUltimate.js'
 
@@ -92,3 +93,7 @@ export const green_ranger = {
     description: 'Flute call; the Falconzord dives on frames 30-35 (raw 40). A clean dive starts talon (50) → electrical strike (50) → energy dive (100): 240 raw before shared scaling. Whiff or block: the Zord leaves, 60 f recovery.' },
   animationData: Object.fromEntries(Object.entries(GREEN_RANGER_ANIM).map(([k, a]) => [k, timeline[k] ? { ...a, frameTimeline: timeline[k] } : a])),
 }
+
+// 2026-11-23 MMPR RED PARITY (mmprParity.js): Red's real pace + his frame data on the shared normals; own specials untouched
+mmprRedTempo(GREEN_MOVES)
+green_ranger.stats = mmprRedStats(green_ranger.stats)

@@ -2,6 +2,7 @@
 // the Falconzord sortie profiles and the roster entry.
 // Logic lives in mmprBlackState.js (sim), mmprBlack.js (command layer), falconzord.js (shared sortie system) and
 // mmprBlackFx.js (render-only). Frame-by-frame rationale: docs/mmpr_black/MOVE_FRAME_MAP.md.
+import { mmprRedStats, mmprRedTempo } from './mmprParity.js'   // 2026-11-23 MMPR Red parity (pace + shared-normal tempo)
 import { MMPR_BLACK_ANIM } from './mmprBlackSprites.js'
 import { registerRangerProfile } from './rangers.js'
 import { registerFalconSortie } from './falconzord.js'
@@ -116,3 +117,7 @@ export const mmpr_black = {
     description: '30 f advancing strike (raw 35). A clean hit starts a five-contact Black + Falconzord sequence (raw 35+40+45+40+100 = 260 before shared scaling); a miss or block has 60 f recovery.' },
   animationData: Object.fromEntries(Object.entries({ ...MMPR_BLACK_ANIM, bUltOpen: MMPR_BLACK_ANIM.ultOpen }).map(([k, a]) => [k, timeline[k] ? { ...a, frameTimeline: timeline[k] } : a])),
 }
+
+// 2026-11-23 MMPR RED PARITY (mmprParity.js): Red's real pace + his frame data on the shared normals; own specials untouched
+mmprRedTempo(MMPR_BLACK_MOVES)
+mmpr_black.stats = mmprRedStats(mmpr_black.stats)

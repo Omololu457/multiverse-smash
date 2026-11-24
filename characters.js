@@ -40,6 +40,7 @@ import { ns_red, ns_yellow } from './nsData.js'   // MSV1 Ninja Storm: Shane (Re
 import { ninja_storm_cgpt } from './nsCgptData.js'   // NS CGPT: ONE Ninja Storm Ranger, Red / Yellow appearances + shadow clone (nsCgpt*.js)
 import { ns_trio, ns_blue, ns_navy, ns_green } from './nsTrio.js'   // NS TRIO Tori / Blake / Cam: ONE character, three Ninja Storm forms (hidden form profiles)
 import { dinothunder, dt_red, dt_blue, dt_yellow, dt_white } from './dinothunder.js'   // MSV1-DINO Dino Thunder Rangers: ONE character, four forms (hidden form profiles)
+import { mmprRangersEntry } from './mmprSquad.js'   // Mighty Morphin Rangers: Red / Black / Pink / Green / White as ONE fighter, Ben-style ↓↓ + J/K/L/O/P dial
 import { spd_rangers, registerSquadForm } from './spdSquad.js'   // S.P.D. Rangers: the whole B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P/U Ranger dial (the six stay as hidden forms)
 import { windrangers } from './nsDuo.js'   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
 import { ninjaStormRangers } from './ninjaStormData.js'   // MSv2 NINJA STORM RANGERS: ONE fighter, Red (Shane) / Yellow (Dustin) stance
@@ -3452,7 +3453,7 @@ const redRangerMmpr = {
   hasSprites: true,
   // SIZE-NORMALIZED: idle content measured 72px tall → 72 × 1.54 ≈ 111px on-screen (roster median).
   // anchorY=0 everywhere so feet stay planted on the cell bottom (bottom-aligned reslice → no bob).
-  spriteScale: 1.54,
+  spriteScale: 1.85,   // 2026-11-23 owner: "fix red ranger size" — was 1.54 → 71 px idle × 1.54 = 109 px, the smallest MMPR Ranger; ×1.85 = 131 px = Black / Pink / Green / White (squad + standalone)
   // STAGE-1 sprites. All RE-SLICED to clean uniform, bottom-aligned strips (tools/reslice_strip.mjs)
   // from COPIES of the untracked originals. width = uniform cell pitch, height = full cell height.
   // No guard art exists in this batch (falls back to idle). Normals / specials / ultimate = later stages.
@@ -11454,6 +11455,7 @@ const soldierBoy = {
   }
 }
 
+const mmpr_rangers = mmprRangersEntry(redRangerMmpr)   // registers Red as the J form (the five MMPR Rangers fold into the squad)
 registerSquadForm('omega_ranger', omegaRanger)   // S.P.D. Rangers' 6th Ranger (↓↓ + U); the standalone Omega pick folds into the squad
 
 export const characters = {
@@ -11469,6 +11471,7 @@ export const characters = {
   samurai_red_ranger: samuraiRedRanger,
   gold_samurai_ranger: goldSamuraiRanger,
   green_samurai_ranger: greenSamuraiRanger,
+  mmpr_rangers,                      // Mighty Morphin Rangers — Red / Black / Pink / Green / White in one fighter (mmprSquad.js)
   red_ranger_mmpr: redRangerMmpr,
   spd_rangers,                       // S.P.D. Rangers — Red / Blue / Green / Yellow / Pink / Omega in one fighter (spdSquad.js)
   spd_red: spdRed,                   // S.P.D. Red Ranger (Jack Landors, B-Squad) — Teleport Rushdown / Judge; first Ranger on rangers.js

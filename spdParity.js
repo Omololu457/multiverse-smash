@@ -33,9 +33,10 @@ export function redTempo(moves, { shot, airShot } = {}) {
 // ROUND RESET: the shared revertGoku stamps speed 84 / dash 16 on every fighter at round start (see arlongState.js);
 // Red re-applies his own stats right after (spdRedRoundReset) — the rest of the squad now does the same, so they
 // actually move at Red's pace. Runs next to spdRedRoundReset in game.js; no-op for anyone else.
-const SQUAD = new Set(['spd_blue', 'spd_green', 'spd_pink', 'spd_yellow'])
+const SQUAD = new Set(['spd_blue', 'spd_green', 'spd_pink', 'spd_yellow', 'mmpr_pink', 'mmpr_black', 'green_ranger', 'mmpr_white', 'red_ranger_mmpr'])   // + MMPR (mmprParity.js); red_ranger_mmpr only matters as a squad form
 export function spdParityRoundReset(f) {
   if (!f || !SQUAD.has(f.rosterKey) || !f.stats) return
+  if (f.rosterKey === 'red_ranger_mmpr' && !f._squad) return   // standalone Red keeps his OG-lifted pace (rosterParity)
   f.baseSpeed = f.speed = f.stats.speed
   f.dashSpeed = f.stats.dashSpeed
 }

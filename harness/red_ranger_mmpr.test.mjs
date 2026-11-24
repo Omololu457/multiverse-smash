@@ -38,7 +38,7 @@ try {
   await page.mouse.click(640, 360);
   const def = await page.evaluate(() => window.__harness.charDef("red_ranger_mmpr"));
   const ad = def?.animationData || {};
-  check("registered, hasSprites, spriteScale 1.54", def && def.hasSprites && Math.abs(def.spriteScale - 1.54) < 0.01, `scale=${def?.spriteScale}`);
+  check("registered, hasSprites, spriteScale 1.85 (2026-11-23 size fix: matches the MMPR squad, was 1.54)", def && def.hasSprites && Math.abs(def.spriteScale - 1.85) < 0.01, `scale=${def?.spriteScale}`);
   // DETERMINISTIC wiring sweep: EVERY animationData action points at a real red_ranger_mmpr sheet, so a
   // 128² fallback box is IMPOSSIBLE for any wired action (complements the live-render sweep below).
   const unwired = Object.entries(ad).filter(([k, v]) => !(typeof v?.sheet === "string" && v.sheet.includes("red_ranger_mmpr")));

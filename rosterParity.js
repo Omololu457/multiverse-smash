@@ -20,7 +20,7 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
   ninja_storm_cgpt: 1.6,   // NS CGPT: S.P.D. Red's tier (MSV1 authoring scale)
   spd_red: 1.6, spd_blue: 1.6, spd_green: 1.6, spd_pink: 1.6, spd_yellow: 1.6, krybot: 1.6,   // 2026-11-23: the whole squad on Red's tier (was 1.45/1.5/1.43/1.38)
   // Mighty Morphin (Dinozord) Rangers
-  mmpr_pink: 1.36, mmpr_black: 1.48, mmpr_white: 1.46, green_ranger: 1.49,
+  mmpr_pink: 1.6, mmpr_black: 1.6, mmpr_white: 1.6, green_ranger: 1.6,   // 2026-11-23 MMPR squad parity: Red-pace tier (was 1.36/1.48/1.46/1.49)
   // One Piece
   luffy: 1.42, zoro: 1.3, sanji: 1.48, buggy: 1.35, arlong: 1.42,
   // The Incredibles

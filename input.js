@@ -609,6 +609,7 @@ function _recentCloneSummonMotion(fighter) {
 // S.P.D. Rangers dial: the called Ranger's button stays swallowed until released (spdSquadMask.js; no-op for everyone else)
 export function getFighterInput(fighter) {
   const out = _getFighterInput(fighter)
+  if (fighter?._squadInject && out) Object.assign(out, fighter._squadInject)   // a press the squad held back (the Thunder Megazord's U + L window) lands now
   if (!fighter?._squadEat || !out) return out
   const raw = _readRawControls(fighter) || out, eaten = Object.keys(fighter._squadEat)
   const buf = PLAYER_BUFFERS[fighter.playerNumber || 1]

@@ -1,4 +1,5 @@
 import { isLuffy, luffyHit, absorbLuffyStrike, prepareLuffyAttack, clearLuffy, luffyInterrupted, luffyLimbHurtbox } from './luffyState.js'
+import { MZ_HOOK } from './megazordHook.js'   // MSV1-MEGAZORD (leaf, no imports)
 import { benAlienDefenseMult } from "./benAlienBalance.js"   // global READY-alien toughness buff (the registry-mods divide below)
 import { zoroHit, zoroKnockback } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated no-ops for everyone else)
 import { zoroBlockstun, zoroCounter, zoroProjectileHit, zoroComboScale } from './zoroState.js'   // Roronoa Zoro hooks (zoro-gated)
@@ -347,7 +348,8 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
               : GLOBAL_DAMAGE_SCALE
   const floor = opts.floor != null ? opts.floor : 0
   const raw   = Math.max(0, rawDamage || 0)
-  const dealt = Math.floor(raw * scale)
+  let dealt = Math.floor(raw * scale)
+  if (target._mzOn && MZ_HOOK.absorb) { const _mz = MZ_HOOK.absorb(target, dealt, opts); if (_mz != null) dealt = _mz }   // MSV1-MEGAZORD: the Thunder Megazord's ARMOR takes the hit (gated: _mzOn)
   const before = target.health || 0
   target.health = Math.max(invKoFloor(target, floor, before, dealt), before - dealt)   // invKoFloor: INVINCIBLE Can't Stay Down (once per round a KO leaves 1 HP; floor unchanged for everyone else)
   if (target.health <= 0) clearLuffy(target)
@@ -3121,6 +3123,7 @@ export function resolveGrab(attacker, defender, context = {}, range = 75) {
   // grab state, and the updateGrab() pop-up-and-drop throw — is shared unchanged.
   if (Math.abs(aCX - dCX) > range) return false
   if (gsGrabGate(defender, attacker)) { attacker.attackCooldown = 18; return false }   // Satoru Gojo (Shinjuku): Infinity cannot be grabbed; gojo_shinjuku-gated
+  if (defender._mzOn) { attacker.attackCooldown = 18; return false }   // MSV1-MEGAZORD: the Thunder Megazord cannot be grabbed (gated: _mzOn)
 
   const canTech = !(defender.hitstun > 0 || defender.blockstun > 0)
   if (canTech && (defender.grabInputBuffer || 0) > 0) {
@@ -3740,7 +3743,7 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
       defender.currentAttack && defender.currentAttack.name === "heavy" && (defender._supArmorCd || 0) <= 0 &&
       !atk.launcher && !atk.spike && cat !== "ultimate"
 
-    const kevinArmored = kevinArmor(defender, atk)
+    const kevinArmored = kevinArmor(defender, atk) || !!(defender._mzOn && MZ_HOOK.armored?.(defender, atk, cat))   // + MSV1-MEGAZORD super armor (gated: _mzOn)
     luffyHit(attacker, defender, atk, { armored: !!(bossArmored || castArmored || supArmored || kevinArmored), stageWidth })
     zoroHit(attacker, defender, atk)
     buggyHit(attacker, defender, atk)

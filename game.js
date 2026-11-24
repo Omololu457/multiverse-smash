@@ -13043,6 +13043,7 @@ const SPD_SQUAD_WORLD = {
   opponent: f => getOpponent(f),
   stageWidth: () => getStageWorldWidth(),
   cinematic: () => _rewindUnsafeNow(),
+  startMove: (f, key, md) => startMove(f, key, md),   // the Thunder Megazord's moves (megazord.js) run through the engine's own startMove
 }
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return

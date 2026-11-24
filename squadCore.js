@@ -55,6 +55,7 @@ export function makeSquad(cfg) {
   }
   function roundReset(f) {
     if (!mine(f)) return
+    try { cfg.roundReset?.(f) } catch (_) {}
     const start = startForm(f.skinId)
     try { TEAM_ULT?.clear?.() } catch (_) {}
     f._squad = { id: ID, form: start, start, t: 0, cd: 0, swaps: 0, flash: 0, from: null, prevDown: false, downAt: null, armT: 0, prev: {}, cpu: null, pu: false, pj: false, uAt: -99, jAt: -99, teamUlts: 0 }
@@ -71,6 +72,7 @@ export function makeSquad(cfg) {
     if ((f.blockstun || 0) > 0) return 'blockstun'
     if (f.knockdownState || f.isGrabbed) return 'down'
     if (q.cd > 0) return 'cooldown'
+    try { if (cfg.lock?.(f)) return 'locked' } catch (_) {}
     if (f._ranger?.blink || f._groundTeleport?.action) return 'teleporting'
     const a = f.attacking ? f.currentAttack : null
     if (a) {
@@ -106,7 +108,11 @@ export function makeSquad(cfg) {
     q.prevDown = down
     const edge = {}
     for (const b of [...BUTTONS, ...EXTRA_KEYS]) { const v = !!raw[b]; edge[b] = v && !q.prev[b]; q.prev[b] = v }
-    try { cfg.onTick?.(f, raw, W) } catch (_) {}
+    let stop = false
+    try { stop = cfg.onTick?.(f, raw, W) === true } catch (_) {}
+    let locked = false
+    try { locked = !!cfg.lock?.(f) } catch (_) {}
+    if (stop || locked) { q.armT = 0; q.downAt = null; q.pu = !!raw.ultimate; q.pj = !!(raw.jump || raw.up); return }   // an add-on (the Thunder Megazord) owns this frame / the dial is off
     // TEAM ULTIMATE: W (Jump) + U (Ultimate) together — never while the dial is armed (↓↓ then U is still Omega)
     const uv = !!raw.ultimate, jv = !!(raw.jump || raw.up)
     if (uv && !q.pu) q.uAt = q.t
@@ -136,6 +142,7 @@ export function makeSquad(cfg) {
   // CPU: the form for the range, mid-combo tag-ins, out of the wrong tool, and a rotation through the squad
   function cpu(f, opp, difficulty, W) {
     const q = f?._squad; if (!q || q.id !== ID || !opp || !(f.health > 0)) return
+    try { if (cfg.cpu?.(f, opp, difficulty, W) === true) return } catch (_) {}
     const c = q.cpu || (q.cpu = { next: 0, mismatch: 0, last: -999 })
     const pace = PACE[difficulty] ?? 70, t = q.t
     // the TEAM ULTIMATE takes priority on a full meter — this runs before the CPU's own AI each frame, so the squad calls

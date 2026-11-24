@@ -4,6 +4,8 @@
 //     a fading ghost streak in the outgoing Ranger's colour.
 //   • DIAL: six pips over the fighter's head — the active Ranger lit, the rest dim, a sweep while the swap cools down,
 //     and the J/K/L/O/P letters while the ↓↓ menu is armed.
+import { drawMegazordWorld } from './megazordFx.js'   // MSV1-MEGAZORD: the Mighty Morphin Rangers' Thunder Megazord (U + L)
+import { mzActive } from './megazord.js'
 import { squadOf } from './squadCore.js'
 import './spdSquadSkins.js'   // registers SKINS.spd_rangers (start-as + squad themes)
 import './mmprSquadSkins.js'  // registers SKINS.mmpr_rangers
@@ -14,6 +16,8 @@ const KEYS = ['J', 'K', 'L', 'O', 'P', 'U']
 export function drawSpdSquadFx(c, f) {
   const q = f?._squad, S = squadOf(f); if (!q || !S) return
   drawSquadUltWorld(c, f)
+  drawMegazordWorld(c, f)
+  if (mzActive(f)) return   // the Megazord is out: no dial pips / tag flash
   if (f._fxAlpha === 0) return   // hidden for the team ultimate (the scene draws every Ranger)
   const SQUAD_FORMS = S.forms, SQUAD_COLORS = S.colors, SQUAD = S.tuning, SQUAD_SHORT = S.short
   const cx = f.x + (f.w || 60) / 2, top = f.y - 18, feet = f.y + (f.h || 100)

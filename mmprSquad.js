@@ -11,6 +11,7 @@ import { green_ranger } from './greenRangerData.js'
 import { mmpr_white } from './mmprWhiteData.js'
 import { makeSquad } from './squadCore.js'
 import { mmprRedFormStats } from './mmprParity.js'
+import { bindMegazord, megazordTick, megazordLock, megazordCpu, megazordReset } from './megazord.js'   // MSV1-MEGAZORD: the THUNDER MEGAZORD (U + L)
 
 export const MMPR_SQUAD_ID = 'mmpr_rangers'
 export const MMPR_SQUAD_FORMS = ['red_ranger_mmpr', 'mmpr_black', 'mmpr_pink', 'green_ranger', 'mmpr_white']   // J K L O P
@@ -27,7 +28,14 @@ export const MMPR_SQUAD = makeSquad({
   startPrefix: 'mmpr_rangers_start_', startNames: { red: 'red_ranger_mmpr', black: 'mmpr_black', pink: 'mmpr_pink', green: 'green_ranger', white: 'mmpr_white' },
   // Red's form: his OG speed lift is skipped for squad fighters, so the form carries his real pace explicitly
   statsFor: (form, c) => form === 'red_ranger_mmpr' ? mmprRedFormStats(c.stats) : c.stats,
+  // THUNDER MEGAZORD (megazord.js): U + L transforms (once per round, a full meter); while it's out the dial and the team
+  // ultimate are off, and the CPU calls it on an opening
+  onTick: (f, raw, W) => megazordTick(f, raw, W),
+  lock: f => megazordLock(f),
+  cpu: (f, opp, d, W) => megazordCpu(f, opp, d, W),
+  roundReset: f => megazordReset(f),
 })
+bindMegazord(MMPR_SQUAD)
 
 export function mmprRangersEntry(red) {
   MMPR_SQUAD.registerForm('red_ranger_mmpr', red)

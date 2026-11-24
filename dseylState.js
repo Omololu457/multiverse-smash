@@ -17,8 +17,10 @@
 // scheduled contact with the combo scale captured at the capture. Nothing grants invulnerability or refunds jumps.
 import { tickDseylFlight } from './dseylFlight.js'   // DSEYL: Charge-tap flight (sim clock)
 import { tickDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Flash Time window / cooldown
-import { DSEYL_FLASH_FEET } from './dseylData.js'   // DSEYL: the Flash's feet
-import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, ULT, NORMAL_KEYS, SPINNER_NORMALS, dmg } from './dseylData.js'
+import { DSEYL_FLASH_FEET, DSEYL_FLASH, DSEYL_ULT } from './dseylData.js'   // DSEYL: the Flash's feet / Flash Time / ZERO HOUR
+import { registerFreezeCine } from './cineRegistry.js'   // DSEYL: ZERO HOUR rides the shared frozen-cinematic slot
+import { zhSound } from './dseylUltSound.js'   // DSEYL: ZERO HOUR synth (presentation only)
+import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, NORMAL_KEYS, SPINNER_NORMALS, dmg } from './dseylData.js'
 
 export const DSEYL_STATE_KEY = 'dseyl'
 export const isDseyl = f => f?.rosterKey === DSEYL_STATE_KEY
@@ -69,7 +71,7 @@ export const UP_GRACE = 3
 const upGraceHold = (f, raw) => !!(raw?.up && !f.attacking && grounded(f) && (f._dseyl?.upAge || 0) < UP_GRACE && !(f.hitstun > 0))
 export function dseylLocked(f, raw = null) {
   if (!isDseyl(f)) return false
-  if (isDseylUltActive()) return true
+  if (dseylCineActive()) return true
   const s = dsState(f), a = f.attacking ? f.currentAttack : null
   if (a && a.sy && !(a.launcher && a.hasHit) && !SYNDROME_MOVES[a.sy.key]?.air) { f._dashTap = false; return true }
   if (raw ? (raw.special && raw.up && grounded(f)) : s.ownsUp) return true   // Up + R1 = Velocipod, never a jump
@@ -429,87 +431,183 @@ export function tickDseyl(f, opp, raw, W) {
   }
 }
 
-// ══ ULTIMATE — OPERATION KRONOS: FINAL DEMONSTRATION ══════════════════════════════════════════════════════════
-// The existing FROZEN-CINEMATIC contract (Rangers / Robin / Megumi): game.js freezes combat, physics and input while
-// active and calls updateDseylUlt() each frame. Syndrome's pose = a non-hitting currentAttack on the gesture
-// strips; damage = the scheduled contacts through W.damage. Every machine here is presentation (syndromeFx reads the
-// view); the owner's live Drones / Spinner / Velocipod / Omnidroid action are RESOLVED (dismissed) at the capture so
-// no live entity can add damage; a deployed turret is frozen with the world and its volley in the cinematic is the
-// scheduled contact only.
-const cine = { active: false, frame: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, cx0: 0, tx0: 0, dir: 1, done: 0, scale: 1 }
-export const isDseylUltActive = () => cine.active
+// ══ ULTIMATE — ZERO HOUR (Dseyl's own cinematic; Syndrome's Operation Kronos is no longer used here) ═══════════════
+// Rides the shared cineRegistry.js FROZEN-CINEMATIC slot: while active, game.js freezes combat / physics / input and calls
+// update(ctx) each frame (ctx = { camera, sound, hitEffects, damageNumbers }). The legacy game.js hooks (isDseylUltActive /
+// updateDseylUlt) are left INERT. SIM: every position is a pure function of the TIMELINE frame + the layout taken at the
+// capture; HIT-STOP holds the timeline frame for `stop` ticks on a contact; SLOW-MOTION advances it every n-th tick inside
+// DSEYL_ULT.slow. Damage = the scheduled contacts through W.damage with the combo scale captured at the capture (390 raw
+// here + the opener's 30 = the same 420 raw as before). No RNG, no wall clock. Camera / audio are presentation side effects
+// fired once per timeline frame. Render (dseylUltFx.js) reads dseylUltScene() — it never writes here.
+const U = DSEYL_ULT
+const cine = { active: false, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, fxAt: -1, caster: null, target: null, W: null,
+  floorC: 0, floorT: 0, tc: 0, home: 0, dir: 1, done: 0, scale: 1, shown: null, ko: false, alpha0: null }
+const IDLE = { active: false, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, fxAt: -1, caster: null, target: null, W: null, done: 0, shown: null, ko: false, alpha0: null }
+export const dseylCineActive = () => cine.active
+// LEGACY game.js hooks (the old Operation Kronos path) — inert; the registry drives Zero Hour.
+export const isDseylUltActive = () => false
+export function updateDseylUlt() {}
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
-  f.currentAttack = { name: move, total: 999, timer: 999 - at, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, sy: null, _ultPose: true }
+  f.currentAttack = { name: move, total: 999, timer: 999 - (at | 0), activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, sy: null, _ultPose: true }
+}
+const easeIn = u => u * u, easeOut = u => 1 - (1 - u) * (1 - u), clamp01 = u => Math.max(0, Math.min(1, u))
+const DEG = Math.PI / 180
+// node i (dir space, relative to the captive's centre / feet): dx along the cinematic direction, lift above the floor
+export function zhNode(i) { const a = U.nodeDeg[i] * DEG; return { dx: Math.round(U.R * Math.cos(a)), lift: Math.max(0, Math.round(U.RV * Math.sin(a))) } }
+export function zhDrone(j) { const [deg, r] = U.drones[j], a = deg * DEG; return { dx: Math.round(r * Math.cos(a)), lift: Math.round(70 + r * 0.9 * Math.sin(a)) } }
+// the captive's height above the floor: the drone chain lifts it into the sphere, the dive drives it into the stage
+export function zhFoeLift(fr) {
+  const C = U.contacts, d0 = C[6].at, d1 = C[7].at, d2 = C[8].at
+  if (fr < d0) return 0
+  if (fr < d1) return Math.round(70 * easeOut(clamp01((fr - d0) / 6)))
+  if (fr < d2) return Math.round(70 + 50 * easeOut(clamp01((fr - d1) / 6)))
+  if (fr < U.hit) return Math.round(120 + (U.sphereLift - 120) * easeOut(clamp01((fr - d2) / 8)) + (fr > d2 + 8 ? Math.sin((fr - d2) / 9) * 6 : 0))
+  if (fr < U.crash) return Math.round(U.sphereLift * (1 - easeIn((fr - U.hit) / (U.crash - U.hit))))
+  return 0
+}
+// Dseyl's route: { dx, lift, face (±1 relative to the cinematic direction), pose, at (pose age), node (-1 home / 0-5 / 9 sky) }
+export function zhRoute(fr) {
+  const B = U.blinks
+  if (fr < B[0]) return { dx: -U.homeDx, lift: 0, face: 1, pose: fr < U.snap1 - 4 ? 'ultPose' : 'zhSnap', at: fr < U.snap1 - 4 ? fr : fr - (U.snap1 - 4), node: -1 }
+  for (let i = 0; i < B.length; i++) {
+    const nx = i + 1 < B.length ? B[i + 1] : U.home
+    if (fr < nx) { const n = zhNode(i); return { dx: n.dx, lift: n.lift, face: n.dx <= 0 ? 1 : -1, pose: 'zhPlant', at: fr - B[i], node: i } }
+  }
+  if (fr < U.resume) return { dx: -U.homeDx, lift: 0, face: -1, pose: fr >= U.snap2 - 2 ? 'zhSnap' : 'introSettle', at: fr >= U.snap2 - 2 ? fr - U.snap2 + 2 : fr - U.home, node: -1 }
+  if (fr < U.apex) return { dx: -U.homeDx, lift: 0, face: 1, pose: 'ultFront', at: fr - U.resume, node: -1 }
+  if (fr < U.dive) return { dx: 0, lift: U.apexLift, face: 1, pose: 'doubleJump', at: fr - U.apex, node: 9 }
+  const ride = U.sphereLift + 88
+  if (fr < U.hit) return { dx: 0, lift: Math.round(U.apexLift - (U.apexLift - ride) * easeIn((fr - U.dive) / (U.hit - U.dive))), face: 1, pose: 'zhDive', at: fr - U.dive, node: 9 }
+  if (fr < U.crash) return { dx: 0, lift: zhFoeLift(fr) + 88, face: 1, pose: 'zhDive', at: 10, node: 9 }
+  if (fr < U.land) { const u = (fr - U.crash) / (U.land - U.crash); return { dx: Math.round(-130 * easeOut(u)), lift: Math.round(88 * (1 - u) + 70 * Math.sin(Math.PI * u)), face: 1, pose: 'jump', at: fr - U.crash, node: 9 } }
+  return { dx: -130, lift: 0, face: -1, pose: 'ultFront', at: 40 + fr - U.land, node: -1 }
 }
 export function activateDseylUlt(f, target, W) {
   if (cine.active || !f || !target) return false
   const s = dsState(f)
   killProj(f, W, k => k.kind !== 'gun' && k.kind !== 'mortar' && k.kind !== 'missile'); s.mobile = null; s.spin = null; s.omni = null; s.hold = null
-  const d = f.facing || 1
-  // the captive is placed a fixed distance ahead (stage-clamped) so the giant claws have a readable lane
-  const tx = Math.max(40, Math.min(sw(W) - 40 - (target.w || 48), f.x + d * 170))
-  Object.assign(cine, { active: true, frame: 0, caster: f, target, W, floorC: f.y, floorT: f.y + (f.h || 94) - (target.h || 94),
-    cx0: f.x, tx0: tx, dir: d, done: 0, scale: E.comboScale?.(f) ?? 1 })
-  s.ult = { frame: 0, done: 0 }
+  if (s.ft && s.ft.left > 0) { s.ft.left = 0; s.ft.cd = DSEYL_FLASH.cooldown }   // a running Flash Time is spent by the stop
+  const d = f.facing || 1, tw = target.w || 48, edge = U.R + 70
+  // the captive's centre sits homeDx ahead; the whole lattice (± R) and Dseyl's home must fit inside the stage
+  const lo = Math.max(edge, d === 1 ? U.homeDx + 40 : edge), hi = sw(W) - Math.max(edge, d === -1 ? U.homeDx + 40 : edge)
+  const tc = Math.max(lo, Math.min(hi, ctrX(f) + d * U.homeDx))
+  Object.assign(cine, { active: true, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, fxAt: -1, caster: f, target, W,
+    floorC: f.y, floorT: f.y + (f.h || 94) - (target.h || 94), tc, home: tc - d * U.homeDx, dir: d, done: 0,
+    scale: E.comboScale?.(f) ?? 1, shown: null, ko: false, alpha0: f._fxAlpha ?? null })
+  s.ult = { frame: 0, done: 0 }; s.stats.ultHits = (s.stats.ultHits || 0) + 1
   target.hitstun = Math.max(target.hitstun || 0, 9999); target.isBlocking = false; target.vx = 0; target.vy = 0
-  f.vx = 0; f.vy = 0
+  target.attacking = false; target.currentAttack = null; target.currentMove = null
+  f.vx = 0; f.vy = 0; f._fxAlpha = 0   // the cinematic draws Dseyl itself (in colour, over the frozen grey world)
   cue(f, 'ultConfirm')
+  place(f, target, 0)
   return true
 }
-function ultHit(i) {
-  const c = ULT.contacts[i], t = cine.target, f = cine.caster
+// presentation side effects (never read back by the sim)
+const sfx = (ctx, id, gain = 0.8) => { try { ctx?.sound?.playJuiceSfx?.(id, { gain }) } catch (_) {} }
+const shake = (ctx, st, n) => { try { ctx?.camera?.shake?.(st, n) } catch (_) {} }
+function ultHit(i, ctx) {
+  const c = U.contacts[i], t = cine.target, f = cine.caster
   cine.done = i + 1; if (f._dseyl?.ult) f._dseyl.ult.done = cine.done
+  cine.hold = c.stop; cine.holdN = c.stop; cine.hit = i
+  shake(ctx, c.shake, c.stop + (c.kind === 'zero' ? 30 : 8))
+  if (c.kind === 'beam') { sfx(ctx, ['swish_fast_01', 'swish_fast_02', 'swish_fast_03'][c.i % 3], 0.6); sfx(ctx, c.i < 3 ? 'impact_hit_01' : 'hit_heavy_boom_01', 0.55 + 0.07 * c.i); zhSound(ctx, 'beam', c.i) }
+  else if (c.kind === 'drone') { sfx(ctx, c.i < 2 ? 'boom_medium_01' : 'boom_medium_02', 0.8 + 0.1 * c.i); sfx(ctx, 'impact_crack_01', 0.6); zhSound(ctx, 'drone', c.i) }
+  else { sfx(ctx, 'impact_frame_boom_long', 1); sfx(ctx, 'boom_huge_02_roar', 1); sfx(ctx, 'crack_sizzle_bright', 0.9); zhSound(ctx, 'zero', 0) }
   if (!(t.health > 0)) return
+  const dn = Array.isArray(ctx?.damageNumbers) ? ctx.damageNumbers : null, n0 = dn ? dn.length : 0, hp0 = t.health
   cine.W?.damage?.(t, dmg(c.raw) * cine.scale, { source: 'ultimate', attacker: f, move: 'ultimate' })
+  if (dn && dn.length > n0) dn.splice(n0)   // the cinematic draws its own (zoom-aware) numbers
+  const amt = Math.max(0, Math.round(hp0 - t.health)); cine.shown = { at: cine.frame, amt, total: (cine.shown?.total || 0) + amt }
   f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90
-  t.colorFlash = 8
-  cue(f, c.kind === 'slam' ? 'ultSlam' : c.kind === 'lift' || c.kind === 'pin' ? 'claw' : c.kind === 'turret' ? 'gunShot' : c.kind === 'velo' ? 'veloPass' : c.kind === 'spinner' ? 'spinnerReturn' : 'droneShot')
-  if (c.kind === 'slam') { const s = f._dseyl; if (s) { pushFx(s, 'ultBoom', cine.tx0 + (t.w || 48) / 2, cine.floorT + (t.h || 94), cine.dir) } }
+  t.colorFlash = 6 + c.stop
+  if (!(t.health > 0)) cine.ko = true
 }
-// target height offset during the claw sequence (lift → pinned high → slammed down)
-export function ultTargetLift(fr) {
-  if (fr < 118) return 0
-  if (fr < 140) return Math.round(120 * Math.min(1, (fr - 118) / 16))
-  if (fr < 186) return 120 + Math.round(Math.sin((fr - 140) / 46 * Math.PI) * 24)
-  if (fr < 196) return Math.round(120 * (1 - (fr - 186) / 10))
-  return 0
+// the audio score + the non-damaging beats (time stop, blinks, resume, the crash)
+function beat(ctx, k) {
+  if (k === 0) { sfx(ctx, 'charge_swell_riser', 0.8); sfx(ctx, 'energy_hum_low', 0.5); zhSound(ctx, 'tick', 0) }
+  if (k === 10 || k === 18 || k === 26) zhSound(ctx, 'tick', k)
+  if (k === U.snap1) { zhSound(ctx, 'snap', 0); sfx(ctx, 'boom_anticipation_suck', 0.8) }
+  if (k === U.stop) { zhSound(ctx, 'stop', 0); sfx(ctx, 'pitch_drop_slowmo', 0.9); sfx(ctx, 'warp_wobble_01', 0.6); shake(ctx, 6, 12); cine.hold = 6; cine.holdN = 6; cine.hit = -2 }
+  for (let i = 0; i < U.blinks.length; i++) if (k === U.blinks[i]) { zhSound(ctx, 'blink', i); sfx(ctx, i % 2 ? 'whoosh_medium_02' : 'whoosh_medium_01', 0.55) }
+  for (let i = 0; i < U.blinks.length; i++) if (k === U.blinks[i] + 5) zhSound(ctx, 'plant', i)
+  if (k === U.home) { zhSound(ctx, 'blink', 6); sfx(ctx, 'energy_tone_hold', 0.35) }
+  if (k === U.snap2) { zhSound(ctx, 'snap', 1); sfx(ctx, 'boom_anticipation_suck', 0.9) }
+  if (k === U.resume) { zhSound(ctx, 'resume', 0); sfx(ctx, 'impact_frame_boom_long', 0.7); sfx(ctx, 'warp_wobble_02', 0.7); shake(ctx, 10, 14); cine.hold = 5; cine.holdN = 5; cine.hit = -3 }
+  if (k === U.contacts[8].at + 6) { sfx(ctx, 'charge_hum_rise', 0.7); zhSound(ctx, 'sphere', 0) }
+  if (k === U.apex) { zhSound(ctx, 'blink', 7); sfx(ctx, 'whoosh_medium_01', 0.8) }
+  if (k === U.slow[0][0]) { sfx(ctx, 'sting_pitch_rise_hold', 0.7); zhSound(ctx, 'clock', 0) }
+  if (k === U.dive) { sfx(ctx, 'whoosh_medium_02', 1); sfx(ctx, 'warp_wobble_02', 0.6) }
+  if (k === U.crash) { cine.hold = U.crashHold; cine.holdN = U.crashHold; cine.hit = -4; shake(ctx, 18, 34); sfx(ctx, 'boom_huge_01', 1); sfx(ctx, 'rumble_tail_01', 0.9); zhSound(ctx, 'crash', 0) }
+  if (k === U.land) { zhSound(ctx, 'shatter', 0); sfx(ctx, 'crack_sizzle_bright', 0.5) }
+  if (k === U.land + 18) zhSound(ctx, 'tick', 99)
 }
-export function updateDseylUlt() {
+// engine camera (≤ 1.15; the screen overlay's re-blit does the real close-ups): keep the subject of the beat centred
+function cam(ctx, f, t) {
+  const c = ctx?.camera; if (!c?.focusOnFighter) return
+  const k = cine.frame, d = cine.dir, F = (x, top, h) => ({ x: x - 24, y: top, w: 48, h })
+  try {
+    if (k < U.stop + 6) c.focusOnFighter(f, 1.15)
+    else if (k < U.home) c.focusOnFighter(F(cine.tc - d * 40, cine.floorT - 140, 200), 1.0)
+    else if (k < U.resume) c.focusOnFighter(F(cine.tc - d * 90, cine.floorT - 150, 220), 0.9)
+    else if (k < U.apex) c.focusOnFighter(F(cine.tc - d * 50, cine.floorT - 120, 200), 1.0)
+    else if (k < U.crash) c.focusOnFighter(F(cine.tc, cine.floorT - 330, 420), 0.8)
+    else c.focusOnFighter(F(cine.tc - d * 60, cine.floorT - 60, 150), 1.05)
+  } catch (_) {}
+}
+function place(f, t, fr) {
+  const r = zhRoute(fr), d = cine.dir, fw = f.w || 48
+  f.x = Math.max(0, Math.min(sw(cine.W) - fw, cine.tc + d * r.dx - fw / 2)); f.y = cine.floorC - r.lift; f.facing = d * r.face
+  f.vx = 0; f.vy = 0; f._fxAlpha = 0; f._juiceAttackTrail = false; f._juiceTrailBuf = null   // hidden body: no engine motion-trail ghosts of it either
+  pose(f, r.pose, r.at)
+  t.x = cine.tc - (t.w || 48) / 2; t.vx = 0; t.vy = 0; t.isBlocking = false; t.y = cine.floorT - zhFoeLift(fr); t.facing = -d
+}
+function updateZeroHour(ctx) {
   if (!cine.active) return
   const f = cine.caster, t = cine.target, s = f?._dseyl
   if (!f || !t || !s) return clearDseylUlt()
+  cine.tick++
+  if (cine.tick === 1 && Array.isArray(ctx?.damageNumbers)) { cine.shown = { at: -99, amt: 0, total: 0 }; ctx.damageNumbers.length = 0 }
+  cam(ctx, f, t)
+  if (cine.hold > 0) { cine.hold--; place(f, t, cine.frame); return }   // HIT-STOP: same timeline frame, same pose
   const k = cine.frame
-  for (let i = 0; i < ULT.contacts.length; i++) if (k === ULT.contacts[i].at && cine.done === i) ultHit(i)
-  if (!(t.health > 0) && k < ULT.settle && k > 196) cine.frame = ULT.settle
+  if (cine.fxAt !== k) {
+    cine.fxAt = k; beat(ctx, k)
+    for (let i = 0; i < U.contacts.length; i++) if (k === U.contacts[i].at && cine.done === i) ultHit(i, ctx)
+  }
+  // KO mid-cinematic: skip what is left of the barrage straight to the aftermath (the crash is skipped too)
+  if (cine.ko && k < U.land && k >= U.resume && cine.hold <= 0) { cine.frame = U.land; cine.fxAt = -1; place(f, t, U.land); return }
   const fr = cine.frame
-  let beat = ULT.beats[0]; for (const b of ULT.beats) if (fr >= b.from) beat = b
-  pose(f, beat.pose, fr - beat.from)
-  f.x = cine.cx0; f.y = cine.floorC; f.facing = cine.dir
-  t.x = cine.tx0; t.vx = 0; t.vy = 0; t.isBlocking = false
-  t.y = cine.floorT - ultTargetLift(fr)
-  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 40) s.fx.splice(i, 1)
+  place(f, t, fr)
   if (s.ult) s.ult.frame = fr
-  if (++cine.frame >= ULT.total) finishUlt()
+  if (cine.hold > 0) return
+  const sl = U.slow.find(q => fr >= q[0] && fr < q[1])
+  if (sl && cine.tick % sl[2] !== 0) return   // SLOW MOTION
+  if (++cine.frame >= U.total) finishUlt()
 }
+function restoreAlpha(f) { if (cine.alpha0 == null) delete f._fxAlpha; else f._fxAlpha = cine.alpha0 }
 function finishUlt() {
   const f = cine.caster, t = cine.target
   if (t) { t.y = cine.floorT; t.vx = 0; t.vy = 0; t.hitstun = 0
     if (t.health > 0) { t.knockdownState = true; t.knockdownTimer = Math.max(t.knockdownTimer || 0, 50) } }
-  if (f) { endAttack(f, 12); f.y = cine.floorC; f.vx = 0; f.vy = 0; const s = f._dseyl; if (s) { s.stats.ultDone++; delete s.ult } }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, done: 0 })
+  if (f) { endAttack(f, 12); f.y = cine.floorC; f.vx = 0; f.vy = 0; f.facing = cine.dir; restoreAlpha(f); const s = f._dseyl; if (s) { s.stats.ultDone++; delete s.ult } }
+  Object.assign(cine, IDLE)
 }
 export function clearDseylUlt() {
   if (!cine.active) return
   const f = cine.caster, t = cine.target
   if (t) { t.y = cine.floorT; t.hitstun = 0; t.vx = 0; t.vy = 0 }
-  if (f) { endAttack(f); f.y = cine.floorC; f.vx = 0; f.vy = 0; if (f._dseyl) delete f._dseyl.ult }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, done: 0 })
+  if (f) { endAttack(f); f.y = cine.floorC; f.vx = 0; f.vy = 0; restoreAlpha(f); if (f._dseyl) delete f._dseyl.ult }
+  Object.assign(cine, IDLE)
 }
-export const getDseylUltStatus = () => ({ active: cine.active, frame: cine.frame, done: cine.done, caster: cine.caster?.side || null })
+registerFreezeCine('dseyl', { active: dseylCineActive, update: updateZeroHour, clear: clearDseylUlt })
+export const getDseylUltStatus = () => ({ active: cine.active, frame: cine.frame, done: cine.done, caster: cine.caster?.side || null, ko: cine.ko, dealt: cine.shown?.total || 0 })
 export function dseylUltView(f) {
   if (!cine.active || cine.caster !== f) return null
-  return { frame: cine.frame, cutIn: cine.frame < ULT.cutIn ? cine.frame / ULT.cutIn : null, done: cine.done,
-    cx: cine.cx0 + (f.w || 48) / 2, tx: cine.tx0 + (cine.target?.w || 48) / 2, feet: cine.floorC + (f.h || 94), dir: cine.dir,
-    tTop: cine.target ? cine.target.y : 0, lift: ultTargetLift(cine.frame), turret: !!f._dseyl?.turret }
+  const t = cine.target
+  return { frame: cine.frame, tick: cine.tick, hold: cine.hold, holdN: cine.holdN, hit: cine.hit, done: cine.done, dir: cine.dir, ko: cine.ko,
+    cutIn: cine.frame < U.cutIn ? cine.frame / U.cutIn : null, shown: cine.shown ? { ...cine.shown } : null,
+    tc: cine.tc, floor: cine.floorT + (t?.h || 94), tH: t?.h || 94, tW: t?.w || 48, lift: zhFoeLift(cine.frame), route: zhRoute(cine.frame) }
 }
+// the screen overlay's read (render-only)
+export const dseylUltScene = () => cine.active ? { caster: cine.caster, target: cine.target, view: dseylUltView(cine.caster) } : null

@@ -26,6 +26,7 @@ import { marchBeam, beamFloorHit, createLaser, laserReady, laserStart, laserStep
 import { registerFrozoneHost } from './frozoneState.js'
 import { spawnPlatform, recedePlatform, getPlatforms } from './platforms.js'
 import { INPUT_BUFFER_FRAMES } from './input.js'
+import { registerFreezeCine } from './cineRegistry.js'
 import { dirDigit, motionMatch } from './elastigirlState.js'
 
 export const ENOCH_KEY = 'enoch'
@@ -307,7 +308,7 @@ export function enochProjectileHit(proj, target, { armored = false } = {}) {
 // ── MOVES ──
 function reject(f, why) { const s = enState(f); s.stats.rejects++; s.lastReject = why || 'reject'; cue(f, 'reject') }
 // Start a move through combat.startMove (frameExact) and attach the descriptor `en`. All checks happen BEFORE anything is spent.
-export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
+export function startEnMove(f, key, W, { cancel = false, bonus = 1, variant: forceVariant = null } = {}) {
   if (!isEnoch(f)) return false
   const s = enState(f), md = ALL_MOVES[key], g = grounded(f)
   if (!md || f.health <= 0 || f.hitstun > 0 || f.isGrabbed || f.knockdownState) return false
@@ -323,7 +324,7 @@ export function startEnMove(f, key, W, { cancel = false, bonus = 1 } = {}) {
   if (key === 'heatLens' && !laserReady(s.laser)) { reject(f, s.laser.over > 0 ? 'overheat' : 'laser'); return false }
   if (key === 'iceBlast' && ownProj(f, W, 'blast').length >= ICE_BLAST.pool) { reject(f, 'pool'); return false }
   if ((md.cost || 0) > (f.energy || 0)) { reject(f, 'meter'); return false }
-  const variant = key === 'super' ? superVariant(f) : null
+  const variant = key === 'super' ? (forceVariant && SUPERS[forceVariant] ? forceVariant : superVariant(f)) : null
   if (cancel) endAttack(f)
   if (!E.startMove || !E.startMove(f, key, md)) return false
   if (md.cost) f.energy = Math.max(0, (f.energy || 0) - md.cost)
@@ -671,7 +672,7 @@ export function startRamp(f, s) {
 // ── Movement hook (game.js, once per movement frame right BEFORE physics.moveFighter) ──
 export function enochLocked(f, raw = null) {
   if (!isEnoch(f)) return false
-  if (isEnochUltActive()) return true
+  if (cine.active) return true
   const s = enState(f), g = grounded(f), r = raw || {}
   const free = !f.attacking && !(f.hitstun > 0) && !(f.blockstun > 0) && !f.isGrabbed && !f.knockdownState && f.health > 0
   if (s.noJump > 0) { s.noJump--; if (g) f.jumpHeld = true }   // the Up of Up + Charge stays buffered ~10 f by the engine: it must not jump
@@ -971,14 +972,25 @@ export function updateEnochIntro(f) {
 }
 export function finalizeEnochIntro(f) { if (isEnoch(f) && f._enHomeX != null) { f.x = f._enHomeX; delete f._enHomeX } }
 
-// ══ SUPER — the shared FROZEN-CINEMATIC contract (Frozone / Rangers / Syndrome): game.js freezes combat, physics and input
-// while active and calls updateEnochUlt() each frame. Damage = scheduled contacts through W.damage with the combo scale
-// captured at the confirm; poses are non-hitting currentAttacks; everything visual is enochFx reading enochUltView. ══
-const cine = { active: false, frame: 0, caster: null, target: null, W: null, variant: null, done: 0, scale: 1, cx: 0, tx: 0, ty: 0, dir: 1, ticks: 0 }
-export const isEnochUltActive = () => cine.active
+// ══ SUPERS — three cinematics of his own (2026-11-23 rebuild): ABSOLUTE ZERO (ice mode), FLASH POINT (fire mode), THERMAL
+// SHOCK (no mode: ice + fire fused). They run in the shared cineRegistry.js FROZEN-CINEMATIC slot: game.js freezes combat,
+// physics and input while active and calls the registered update(ctx) each tick (ctx = { camera, sound, hitEffects,
+// damageNumbers }); clear() runs on every reset path. The old direct game.js hook (isEnochUltActive / updateEnochUlt) is
+// left INERT. Timeline (SUPERS in enochData): frames k; a contact HOLDS its frame for `hold` ticks (hit-stop); inside
+// `slow` ranges a timeline frame lasts n ticks (slow motion) — both pure functions of the tick counter (lockstep-safe).
+// Damage = the scheduled contacts through W.damage with the combo scale captured at the confirm. Poses are non-hitting
+// currentAttacks; camera / audio are side effects fired once per timeline frame; everything else is enochUltFx reading
+// enochUltView. A KO mid-cinematic jumps to the finale beat (presentation only) and ends normally. ══
+const cine = { active: false, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, hitKind: null, fxAt: -1, caster: null, target: null, W: null, variant: null, done: 0, scale: 1,
+  c0: 0, cx: 0, floorC: 0, tx0: 0, ty0: 0, tcx: 0, floorT: 0, dir: 1, shown: null, ko: false }
+const IDLE = { active: false, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, hitKind: null, fxAt: -1, caster: null, target: null, W: null, variant: null, done: 0, shown: null, ko: false }
+export const enochUltRunning = () => cine.active
+export const isEnochUltActive = () => false   // legacy game.js hook: inert — the cineRegistry slot owns his cinematic now
+const LOOP_POSE = { enUltChannel: 20, enUltWin: 32 }
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
-  f.currentAttack = { name: move, total: 999, timer: 999 - at, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, en: null, _ultPose: true }
+  const e = LOOP_POSE[move] ? at % LOOP_POSE[move] : at
+  f.currentAttack = { name: move, total: 999, timer: 999 - e, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, en: null, _ultPose: true }
 }
 function superRelease(f, s, W, a, m) {
   const d = m.dir, R = ALL_MOVES.super.range
@@ -989,69 +1001,171 @@ function superRelease(f, s, W, a, m) {
   activateEnochUlt(f, tgt, W, m.variant)
 }
 export function activateEnochUlt(f, target, W, variant) {
-  if (cine.active || !f || !target) return false
-  const s = enState(f)
-  s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.wall = null; s.snow = null; s.meteors.length = 0
-  Object.assign(cine, { active: true, frame: 0, caster: f, target, W, variant, done: 0, ticks: 0, scale: E.comboScale?.(f) ?? 1, dir: f.facing || 1,
-    cx: f.x, tx: target.x, ty: target.y })
+  if (cine.active || !f || !target || !SUPERS[variant]) return false
+  const s = enState(f), V = SUPERS[variant]
+  s.glide = null; if (s.beam) endBeam(f, s); s.ramp = null; s.wall = null; s.snow = null; s.meteors.length = 0; s.aslide = null
+  const d = f.facing || 1, fw = f.w || 48, tw = target.w || 48, edge = 110, stage = sw(W)
+  // the captive is set a fixed distance ahead (clamped inside the stage; Enoch steps back if the wall is too close)
+  let c0 = ctrX(f), tcx = c0 + d * V.dist
+  if (tcx > stage - edge) { tcx = stage - edge; c0 = tcx - d * V.dist } else if (tcx < edge) { tcx = edge; c0 = tcx - d * V.dist }
+  c0 = Math.max(fw / 2 + 4, Math.min(stage - fw / 2 - 4, c0))
+  Object.assign(cine, { active: true, frame: 0, tick: 0, hold: 0, holdN: 0, hit: -1, hitKind: null, fxAt: -1, caster: f, target, W, variant, done: 0,
+    scale: E.comboScale?.(f) ?? 1, c0: ctrX(f), cx: Math.round(c0), floorC: f.y, tx0: target.x, ty0: target.y, tcx: Math.round(tcx),
+    floorT: f.y + (f.h || 94) - (target.h || 94), dir: d, shown: null, ko: false })
   s.ult = { variant, frame: 0, done: 0 }
   target.hitstun = Math.max(target.hitstun || 0, 9999); target.isBlocking = false; target.vx = 0; target.vy = 0
   f.vx = 0; f.vy = 0
-  cue(f, 'superConfirm_' + variant)
   return true
 }
-function ultDamage(raw, kind) {
-  const f = cine.caster, t = cine.target, V = SUPERS[cine.variant]
-  if (!(t.health > 0)) return
-  cine.W?.damage?.(t, dmg(raw) * cine.scale, { source: 'ultimate', attacker: f, move: 'ultimate', damageType: V.damageType })
-  f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90; t.colorFlash = 6
-  cue(f, kind)
+// keyframed route value: [[k, v, ease]] — ease of the segment ENDING at that key: 'o' out, 'i' in, 'h' hold (step), else smooth
+export function keyAt(keys, k) {
+  if (!keys?.length) return 0
+  if (k <= keys[0][0]) return keys[0][1]
+  for (let i = 1; i < keys.length; i++) {
+    const [k1, v1, e] = keys[i], [k0, v0] = keys[i - 1]
+    if (k > k1) continue
+    if (e === 'h') return k < k1 ? v0 : v1
+    const u = (k - k0) / Math.max(1, k1 - k0), w = e === 'o' ? 1 - (1 - u) * (1 - u) : e === 'i' ? u * u : u * u * (3 - 2 * u)
+    return Math.round(v0 + (v1 - v0) * w)
+  }
+  return keys[keys.length - 1][1]
 }
-export function updateEnochUlt() {
+// presentation side effects (never read back by the sim)
+const sfx = (ctx, id, gain = 0.8) => { try { ctx?.sound?.playJuiceSfx?.(id, { gain }) } catch (_) {} }
+const own = (ctx, id) => { try { ctx?.sound?.play?.('enoch_' + id) } catch (_) {} }
+const shakeC = (ctx, st, n) => { try { if (st > 0) ctx?.camera?.shake?.(st, n) } catch (_) {} }
+function ultHit(i, ctx) {
+  const V = SUPERS[cine.variant], c = V.contacts[i], t = cine.target, f = cine.caster
+  cine.done = i + 1; cine.hold = c.hold; cine.holdN = c.hold; cine.hit = i; cine.hitKind = c.kind
+  shakeC(ctx, c.shake, c.hold + (c.kind === 'finale' ? 36 : 8))
+  hitSound(ctx, c.kind, i)
+  if (!(t.health > 0) || cine.ko) return
+  const dn = Array.isArray(ctx?.damageNumbers) ? ctx.damageNumbers : null, n0 = dn ? dn.length : 0, hp0 = t.health
+  cine.W?.damage?.(t, dmg(c.raw) * cine.scale, { source: 'ultimate', attacker: f, move: 'ultimate', damageType: V.damageType })
+  if (dn && dn.length > n0) dn.splice(n0)   // the cinematic draws its own (zoom-aware) numbers
+  const amt = Math.max(0, Math.round((hp0 - t.health) * 10) / 10); cine.shown = { at: cine.frame, amt, total: Math.round(((cine.shown?.total || 0) + amt) * 10) / 10 }
+  f.comboCounter = (f.comboCounter || 0) + 1; f.comboTimer = 90; t.colorFlash = 6 + c.hold
+}
+function hitSound(ctx, kind, i) {
+  if (kind === 'spike') { own(ctx, 'ultSpike'); sfx(ctx, 'impact_crack_01', 0.6 + 0.1 * i); sfx(ctx, i < 3 ? 'impact_hit_01' : 'hit_heavy_boom_01', 0.6 + 0.1 * i) }
+  else if (kind === 'ignite') { own(ctx, 'ultIgnite'); sfx(ctx, 'boom_medium_01', 0.8) }
+  else if (kind === 'pulse') { own(ctx, 'superTick'); sfx(ctx, 'hit_flurry_01', 0.35) }
+  else if (kind === 'slash') { own(ctx, 'ultSlash'); sfx(ctx, ['swish_fast_02', 'swish_fast_03'][i & 1], 0.9); sfx(ctx, 'hit_heavy_boom_01', 0.7) }
+  else if (kind === 'freeze') { own(ctx, 'freeze'); own(ctx, 'ultSpike'); sfx(ctx, 'crack_sizzle_bright', 0.8); sfx(ctx, 'impact_hit_01', 0.8) }
+  else if (kind === 'heat') { own(ctx, 'ultIgnite'); own(ctx, 'hiss'); sfx(ctx, 'boom_medium_02', 0.85) }
+  else if (kind === 'finale') {
+    sfx(ctx, 'impact_frame_boom_long', 1); sfx(ctx, 'boom_huge_02_roar', 1)
+    own(ctx, cine.variant === 'thermalShock' ? 'ultSteamBlast' : cine.variant === 'flashPoint' ? 'ultNova' : 'ultShatter')
+    if (cine.variant === 'absoluteZero') sfx(ctx, 'crack_sizzle_bright', 0.9)
+  }
+}
+// once per timeline frame: the score + the non-damaging beats
+function beat(ctx, k) {
+  const v = cine.variant, V = SUPERS[v]
+  if (k === 0) { sfx(ctx, 'charge_swell_riser', 0.85); sfx(ctx, 'energy_hum_low', 0.5); own(ctx, 'superConfirm_' + v); shakeC(ctx, 2, 24) }
+  if (k === 8) sfx(ctx, 'sting_pitch_rise_hold', 0.45)
+  if (v === 'absoluteZero') {
+    if (k === 14) { own(ctx, 'ultTimeStop'); sfx(ctx, 'pitch_drop_slowmo', 0.85); sfx(ctx, 'boom_medium_01', 0.6); shakeC(ctx, 6, 10) }
+    if (k === 28) sfx(ctx, 'boom_anticipation_suck', 0.7)
+    if (k === 74) { own(ctx, 'ultIcicle'); sfx(ctx, 'energy_tone_hold', 0.45) }
+    if (k === 90) sfx(ctx, 'charge_hum_rise', 0.7)
+    if (k === 110) { sfx(ctx, 'boom_anticipation_suck', 0.9); sfx(ctx, 'whoosh_medium_02', 0.9) }
+    if (k === V.finale + 10) { sfx(ctx, 'rumble_tail_01', 0.9); sfx(ctx, 'boom_huge_01', 0.6) }
+  } else if (v === 'flashPoint') {
+    if (k === 18) { own(ctx, 'laser'); sfx(ctx, 'charge_hum_rise', 0.8) }
+    if (k === 30) sfx(ctx, 'boom_anticipation_suck', 0.7)
+    if (k === 34) { own(ctx, 'ultBeam'); sfx(ctx, 'energy_tone_hold', 0.5) }
+    if (k === 96) { own(ctx, 'ramp'); sfx(ctx, 'whoosh_medium_01', 0.9) }
+    if (k === 100) sfx(ctx, 'pitch_drop_slowmo', 0.8)
+    if (k === 120) { own(ctx, 'ultSun'); sfx(ctx, 'charge_swell_riser', 0.9) }
+    if (k === 132) sfx(ctx, 'boom_anticipation_suck', 0.95)
+    if (k === V.finale + 8) { sfx(ctx, 'rumble_tail_01', 0.9); sfx(ctx, 'boom_huge_01', 0.7) }
+  } else {
+    if (k === 14) { own(ctx, 'ultSplit'); sfx(ctx, 'warp_wobble_01', 0.6) }
+    if (k === 28) { own(ctx, 'ultSerpent'); sfx(ctx, 'whoosh_medium_01', 0.9); sfx(ctx, 'whoosh_medium_02', 0.7) }
+    if (k === 56) { own(ctx, 'ultSerpent'); sfx(ctx, 'warp_wobble_02', 0.6) }
+    if (k === 66) sfx(ctx, 'pitch_drop_slowmo', 0.8)
+    if (k === 92) { own(ctx, 'steam'); sfx(ctx, 'charge_hum_rise', 0.8) }
+    if (k === 104) sfx(ctx, 'boom_anticipation_suck', 0.95)
+    if (k === V.finale + 6) { own(ctx, 'hiss'); sfx(ctx, 'rumble_tail_01', 0.9); sfx(ctx, 'boom_huge_01', 0.7) }
+  }
+}
+// the engine camera (zoom caps at 1.15): the screen overlay re-blits for the real close-ups (enochUltFx VCAM)
+function cam(ctx, f, t) {
+  const c = ctx?.camera; if (!c?.focusOnFighter) return
+  const k = cine.frame, v = cine.variant, hit = cine.hold > 0, mid = { x: (cine.cx + cine.tcx) / 2 - 24, y: cine.floorT - 60, w: 48, h: 150 }
+  try {
+    if (k < 14) c.focusOnFighter(f, 1.15)
+    else if (v === 'absoluteZero') { if (k < 72) c.focusBetween?.(f, t, hit ? 1.0 : 0.92); else if (k < 116) c.focusOnFighter({ ...mid, y: cine.floorT - 200, h: 260 }, 0.78); else c.focusBetween?.(f, t, 0.9) }
+    else if (v === 'flashPoint') { if (k < 34) c.focusOnFighter(f, 1.15); else if (k < 96) c.focusBetween?.(f, t, hit ? 1.0 : 0.9); else if (k < 146) c.focusOnFighter({ ...mid, y: cine.floorT - 160, h: 240 }, 0.8); else c.focusBetween?.(f, t, 0.88) }
+    else { if (k < 40) c.focusBetween?.(f, t, 1.0); else if (k < 116) c.focusOnFighter({ ...mid, y: cine.floorT - 120, h: 220 }, 0.86); else c.focusBetween?.(f, t, 0.9) }
+  } catch (_) {}
+}
+function place(f, t, k) {
+  const V = SUPERS[cine.variant], d = cine.dir, fw = f.w || 48, tw = t.w || 48, u = Math.min(1, k / 10), e = 1 - (1 - u) * (1 - u)
+  const cxNow = cine.c0 + (cine.cx - cine.c0) * e + d * keyAt(V.cDx, k)
+  f.x = Math.round((Math.max(fw / 2, Math.min(sw(cine.W) - fw / 2, cxNow)) - fw / 2) * 100) / 100; f.y = cine.floorC - keyAt(V.cLift, k); f.facing = d; f.vx = 0; f.vy = 0
+  const txNow = cine.tx0 + (cine.tcx - tw / 2 - cine.tx0) * e, tyNow = cine.ty0 + (cine.floorT - cine.ty0) * e
+  t.x = Math.round(txNow * 100) / 100; t.y = Math.round((tyNow - keyAt(V.tLift, k)) * 100) / 100; t.vx = 0; t.vy = 0; t.isBlocking = false; t.facing = -d
+}
+export function updateEnochUlt(ctx) {
   if (!cine.active) return
   const f = cine.caster, t = cine.target, s = f?._enoch
   if (!f || !t || !s) return clearEnochUlt()
-  const V = SUPERS[cine.variant], k = cine.frame
-  if (V.contacts) { for (let i = 0; i < V.contacts.length; i++) if (k === V.contacts[i].at && cine.done === i) { cine.done = i + 1; ultDamage(V.contacts[i].raw, i === V.contacts.length - 1 ? 'superFinal' : 'superHit') } }
-  else {
-    if (k >= V.beamFrom && k < V.beamTo && (k - V.beamFrom) % V.tickEvery === 0) { cine.ticks++; cine.done = cine.ticks; ultDamage(V.tickRaw, 'superTick') }
-    if (k === V.flareAt) { cine.done = cine.ticks + 1; ultDamage(V.flareRaw, 'superFinal') }
+  const V = SUPERS[cine.variant]
+  cine.tick++
+  if (cine.tick === 1 && Array.isArray(ctx?.damageNumbers)) { cine.shown = { at: -99, amt: 0, total: 0 }; ctx.damageNumbers.length = 0 }
+  cam(ctx, f, t)
+  if (cine.hold > 0) { cine.hold--; place(f, t, cine.frame); return }   // HIT-STOP: the same timeline frame, the same pose
+  // KO mid-cinematic: skip straight to the finale beat (presentation only — no more damage)
+  if (!(t.health > 0) && !cine.ko && cine.frame > 0 && cine.frame < V.finale) { cine.ko = true; cine.frame = V.finale; cine.done = V.contacts.length - 1 }
+  const k = cine.frame
+  if (cine.fxAt !== k) {
+    cine.fxAt = k; beat(ctx, k)
+    for (let i = 0; i < V.contacts.length; i++) if (V.contacts[i].at === k && cine.done === i) ultHit(i, ctx)
   }
-  const last = V.contacts ? V.contacts[V.contacts.length - 1].at : V.flareAt
-  if (!(t.health > 0) && k > 0 && k < last) cine.frame = last + 1
-  pose(f, cine.frame < 12 ? 'super' : (cine.variant === 'flashPoint' ? 'heatLens' : cine.variant === 'absoluteZero' ? 'deepFreeze' : 'tideBreak'), cine.frame)
-  f.x = cine.cx; f.vx = 0; f.vy = 0; f.facing = cine.dir
-  t.x = cine.tx; t.y = cine.ty; t.vx = 0; t.vy = 0; t.isBlocking = false
-  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > 40) s.fx.splice(i, 1)
-  if (s.ult) { s.ult.frame = cine.frame; s.ult.done = cine.done }
+  let p = V.poses[0]; for (const q of V.poses) if (k >= q[0]) p = q
+  pose(f, p[1], k - p[0])
+  place(f, t, k)
+  if (s.ult) { s.ult.frame = k; s.ult.done = cine.done }
+  if (cine.hold > 0) return
+  const sl = V.slow.find(q => k >= q[0] && k < q[1])
+  if (sl && cine.tick % sl[2] !== 0) return   // SLOW MOTION
+  for (let i = s.fx.length - 1; i >= 0; i--) if (++s.fx[i].t > (s.fx[i].life || 40)) s.fx.splice(i, 1)
   if (++cine.frame >= V.total) finishUlt()
 }
 function finishUlt() {
   const f = cine.caster, t = cine.target, V = SUPERS[cine.variant], W = cine.W
-  if (t) { t.vx = 0; t.vy = 0; t.hitstun = 0
+  if (t) { t.y = cine.floorT; t.vx = 0; t.vy = 0; t.hitstun = 0
     if (t.health > 0) {
       if (V.freeze) { t._supFrozen = V.freeze; t._supFrozenMax = V.freeze; t.hitstun = V.freeze }
       else { t.knockdownState = true; t.knockdownTimer = Math.max(t.knockdownTimer || 0, 50) }
     } }
   if (f) {
-    endAttack(f, 12); f.vx = 0; f.vy = 0
+    endAttack(f, 12); f.y = cine.floorC; f.vx = 0; f.vy = 0
     const s = f._enoch
     if (s) { s.stats.superDone = (s.stats.superDone || 0) + 1; delete s.ult
       if (cine.variant === 'thermalShock' && t) {   // leaves WATER + STEAM where it landed
         lay(f, s, W, { type: 'water', cx: ctrX(t), calm: CALM_FRAMES }); lay(f, s, W, { type: 'steam', cx: ctrX(t), calm: CALM_FRAMES }) } }
   }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, variant: null, done: 0, ticks: 0 })
+  Object.assign(cine, IDLE)
 }
 export function clearEnochUlt() {
   if (!cine.active) return
   const f = cine.caster, t = cine.target
-  if (t) { t.hitstun = 0; t.vx = 0; t.vy = 0 }
-  if (f) { endAttack(f); f.vx = 0; f.vy = 0; if (f._enoch) delete f._enoch.ult }
-  Object.assign(cine, { active: false, frame: 0, caster: null, target: null, W: null, variant: null, done: 0, ticks: 0 })
+  if (t) { t.y = cine.floorT; t.hitstun = 0; t.vx = 0; t.vy = 0; t._fxAlpha = null }
+  if (f) { endAttack(f); f.y = cine.floorC; f.vx = 0; f.vy = 0; f._fxAlpha = null; if (f._enoch) delete f._enoch.ult }
+  Object.assign(cine, IDLE)
 }
-export const getEnochUltStatus = () => ({ active: cine.active, frame: cine.frame, done: cine.done, variant: cine.variant, caster: cine.caster ? sideOf(cine.caster) : null })
+registerFreezeCine('enoch', { active: () => cine.active, update: ctx => updateEnochUlt(ctx), clear: () => clearEnochUlt() })
+export const getEnochUltStatus = () => ({ active: cine.active, frame: cine.frame, done: cine.done, variant: cine.variant, caster: cine.caster ? sideOf(cine.caster) : null, tick: cine.tick })
 export function enochUltView(f) {
   if (!cine.active || cine.caster !== f) return null
-  const t = cine.target
-  return { variant: cine.variant, frame: cine.frame, done: cine.done, dir: cine.dir, tx: ctrX(t), ty: ctrY(t), feet: feetY(t), tW: t.w || 48, tH: t.h || 94 }
+  const t = cine.target, V = SUPERS[cine.variant], k = cine.frame
+  return { variant: cine.variant, frame: k, tick: cine.tick, hold: cine.hold, holdN: cine.holdN, hit: cine.hit, hitKind: cine.hitKind, done: cine.done, dir: cine.dir,
+    total: V.total, finale: V.finale, slow: V.slow.some(q => k >= q[0] && k < q[1]), shown: cine.shown ? { ...cine.shown } : null, ko: cine.ko,
+    tx: ctrX(t), ty: ctrY(t), feet: feetY(t), floorT: cine.floorT + (t.h || 94), tW: t.w || 48, tH: t.h || 94, lift: keyAt(V.tLift, k),
+    cx: ctrX(f), cFeet: feetY(f), cTop: f.y, cH: f.h || 94 }
 }
+// the screen-space overlay's read (render-only)
+export const enochUltScene = () => cine.active ? { caster: cine.caster, target: cine.target, view: enochUltView(cine.caster) } : null

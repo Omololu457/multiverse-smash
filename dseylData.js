@@ -18,6 +18,32 @@ export const DSEYL_FLASH = { cost: 40, oppSlow: 0.5, frames: 180, cooldown: 600 
 export const DSEYL_FLASH_FEET = { speed: 99, dashSpeed: 26, dashDuration: 12, dashCooldownMax: 24 }
 // Balance guard: Syndrome + two powers → 6 % less health (docs/dseyl/BALANCE_NOTES.md). Drones + Flash Time share Power.
 export const DSEYL_HP_FACTOR = 0.94
+// ── ULTIMATE: ZERO HOUR (Dseyl's own — NOT Syndrome's Operation Kronos). Frames after the opener's clean capture; the
+// shared cineRegistry.js freeze contract. Same input / cost / opener (raw 30) as before; the cinematic's contacts total
+// the same 390 raw (84 + 66 + 240), so the whole ultimate is still 420 raw, scaled once by the combo scale at capture.
+//   0– 43  A  THE SNAP: letterbox + title, push-in on Dseyl; he snaps @30 → TIME STOPS @34 (a grey wave rolls out of him)
+//  44–149  B  THE BUILD (frozen time): he blinks to six nodes around the frozen captive (@50…@120), leaving an afterimage
+//              clone at each and three Zero-Point drones between them; blueprint lines wire the lattice together
+// 150–175  C  "BUILT IN ZERO SECONDS": blink home, back turned, wide reveal of the lattice; the second snap @168
+// 176–231  D  TIME RESUMES: colour slams back, the six clones fire Zero-Point beams in sequence (6 × 14), then the drones
+//              detonate in a chain (3 × 22) that lifts the captive into a Zero-Point sphere
+// 232–283  E  ZERO HOUR: blink above the sphere, a clock face forms behind it, slow-motion dive — @262 (240) — and the
+//              crash into the stage @268 (shockwave, no extra damage)
+// 284–329  F  "TIME'S UP.": the clock face shatters, Dseyl stands with his back to the wreck, control returns
+// HIT-STOP (`stop`, held real frames on a contact) and SLOW-MOTION (`slow` ranges advance every n-th tick) ride on top.
+export const DSEYL_ULT = { name: 'ZERO HOUR', sub: 'FLASH TIME · FULL BUILD',
+  total: 330, cutIn: 32, snap1: 30, stop: 34, blinks: [50, 64, 78, 92, 106, 120], home: 150, snap2: 168, resume: 176,
+  apex: 232, dive: 250, hit: 262, crash: 268, crashHold: 9, land: 284, settle: 284,
+  homeDx: 230, R: 200, RV: 205, nodeDeg: [-6, 145, 34, 188, 68, 104], drones: [[158, 105], [90, 118], [22, 105]],
+  apexLift: 330, sphereLift: 140,
+  contacts: [
+    { at: 180, raw: 14, kind: 'beam', i: 0, stop: 2, shake: 4 }, { at: 184, raw: 14, kind: 'beam', i: 1, stop: 2, shake: 5 },
+    { at: 188, raw: 14, kind: 'beam', i: 2, stop: 3, shake: 6 }, { at: 192, raw: 14, kind: 'beam', i: 3, stop: 3, shake: 7 },
+    { at: 196, raw: 14, kind: 'beam', i: 4, stop: 4, shake: 8 }, { at: 200, raw: 14, kind: 'beam', i: 5, stop: 5, shake: 9 },
+    { at: 208, raw: 22, kind: 'drone', i: 0, stop: 4, shake: 9 }, { at: 216, raw: 22, kind: 'drone', i: 1, stop: 5, shake: 11 },
+    { at: 224, raw: 22, kind: 'drone', i: 2, stop: 7, shake: 13 },
+    { at: 262, raw: 240, kind: 'zero', i: 0, stop: 18, shake: 18 }],
+  slow: [[238, 262, 2], [270, 292, 2]] }
 const even = (n, total) => Array.from({ length: n }, (_, i) => [Math.round(i * total / n), i])
 export const dseyl = {
   ...SY,
@@ -30,11 +56,16 @@ export const dseyl = {
   stats: { ...SY.stats, maxHealth: Math.round(SY.stats.maxHealth * DSEYL_HP_FACTOR), ...DSEYL_FLASH_FEET },
   spriteSheet: DSEYL_ANIM.idle.sheet, portrait: './assets/dseyl/portrait.png',
   specials: { ...SY.specials, flashTime: { name: 'Flash Time', cost: DSEYL_FLASH.cost } },
+  ultimate: { ...SY.ultimate, name: 'ZERO HOUR',
+    description: 'Zero-Point opener (raw 30). Clean capture: he snaps and STOPS TIME, blinks around the frozen foe building a lattice of six afterimage clones and three drones, then time resumes — six Zero-Point beams (84), a drone chain (66), and a slow-motion dive from above (240) — 420 raw. Block / whiff: no capture, real recovery.' },
   animationData: {
     ...DSEYL_ANIM,
     ...Object.fromEntries(Object.entries(MOVE_STRIP).map(([k, s]) => [k, { ...DSEYL_ANIM[s], frameTimeline: TIMELINE[k] }])),
     ultPose: { ...DSEYL_ANIM.cmdUlt, frameTimeline: [[0, 1], [6, 2], [14, 3], [30, 4]] },
     ultFront: { ...DSEYL_ANIM.ultFront, frameTimeline: even(11, 66) },
+    zhSnap: { ...DSEYL_ANIM.cmdGrab, frameTimeline: [[0, 0], [3, 1], [6, 2]] },     // ZERO HOUR poses (engine record; the cinematic draws him itself)
+    zhPlant: { ...DSEYL_ANIM.cmdDeploy, frameTimeline: even(6, 12) },
+    zhDive: { ...DSEYL_ANIM.cmdDown, frameTimeline: [[0, 0], [4, 1], [8, 2]] },
     ...DSEYL_FLIGHT_ANIM,   // flight.js poses on existing airborne strips
   },
 }

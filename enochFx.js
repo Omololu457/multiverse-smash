@@ -12,6 +12,7 @@ import { ENOCH_VFX, ENOCH_VFX_PATH } from './enochVfx.js'
 import { enochUltView, ehash, INTRO, lensOrigin, TP, wallRect, snowRect, slowOf, sideOf } from './enochState.js'
 import { STATUS, AIR_SLIDE, CAGE, METEOR, SNOWMAN, MELT, MODE, ALL_MOVES, ICE_BLAST } from './enochData.js'
 import { drawBeam3, drawLaserGauge, laserView } from './beam.js'
+import { drawEnochUltUnder, drawEnochUltOver } from './enochUltFx.js'   // his three SUPER cinematics (world layers + the registered screen overlay)
 import { frozoneUltView } from './frozoneState.js'
 import { startHomelanderLaser, stopHomelanderLaser } from './homelander_sfx_map.js'
 
@@ -446,18 +447,10 @@ function drawLens(c, f, s) {   // the lens brightens to #fff1c0 while the laser 
   if (!s.beamFx && !(s.ult?.variant === 'flashPoint')) return
   const o = lensOrigin(f); c.save(); c.fillStyle = s.beamFx?.el === 'ice' ? COL.ice[0] : COL.lensHot; c.fillRect(R(o.x - 3), R(o.y - 2), 6, 4); c.restore()
 }
-function drawUlt(c, f, v) {
-  if (!v) return
-  const fr = v.frame
-  if (v.variant === 'flashPoint' && fr >= 20 && fr < 160) {
-    const o = lensOrigin(f); drawBeam3(c, { ox: R(o.x), oy: R(o.y), tx: R(v.tx), ty: R(v.ty), hit: true, tick: fr }, { glow: 'rgba(255,154,60,0.6)', mid: 'rgba(255,210,122,0.95)', core: 'rgba(255,241,192,1)', dot: COL.lensHot, width: fr >= 150 ? 2.2 : 1.3 })
-  }
-  if (v.variant === 'absoluteZero') { c.save(); c.globalAlpha = Math.min(1, fr / 20) * 0.85; c.fillStyle = COL.ice[2]; const h = Math.min(v.tH + 16, fr * 3); c.fillRect(R(v.tx - v.tW / 2 - 10), R(v.feet - h), R(v.tW + 20), R(h)); c.fillStyle = COL.ice[0]; c.fillRect(R(v.tx - v.tW / 2 - 10), R(v.feet - h), R(v.tW + 20), 3); c.restore() }
-  if (v.variant === 'thermalShock') { const sp = fr % 40 < 20; c.save(); c.globalAlpha = 0.8; c.fillStyle = sp ? COL.ice[1] : COL.fire[2]; c.fillRect(R(v.tx - 60), R(v.feet - 4), 120, 4); c.fillStyle = sp ? COL.fire[2] : COL.ice[1]; c.fillRect(R(v.tx - 4), R(v.feet - v.tH - 20), 8, v.tH + 16); c.restore() }
-}
+function drawUlt(c, f, v) { drawEnochUltOver(c, f, v) }   // 2026-11-23: the supers are enochUltFx.js cinematics
 export function drawEnochUnder(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0; SEED = (W?.seed?.() | 0) || 1337
-  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick); drawChannel(c, f, s, fr); drawRails(c, f, s, fr); drawCageBack(c, f, s, W, fr) }   // patch ages run on his own tick (the sim's patch clock)
+  for (const f of [p1, p2]) { const s = isEn(f) ? f._enoch : null; if (!s) continue; for (const p of s.field.patches) drawPatch(c, f, p, fr, s.tick); drawChannel(c, f, s, fr); drawRails(c, f, s, fr); drawCageBack(c, f, s, W, fr); drawEnochUltUnder(c, f, enochUltView(f)) }   // patch ages run on his own tick (the sim's patch clock)
 }
 export function drawEnochOver(c, p1, p2, W) {
   const fr = W?.frame?.() ?? 0
@@ -525,7 +518,6 @@ export function drawEnochHud(c, cv, p1, p2) {
     const tag = A.box > 0 ? 'ICE BOX' : A.cage > 0 ? 'FIRE CAGE' : [A.burn > 0 ? `BURN ×${Math.ceil(A.burn)}` : '', A.chill > 0 ? `CHILL ×${Math.ceil(A.chill)}${A.chill >= 2 ? ' · SLOW ' + Math.round(slowOf(A.chill) * 100) + '%' : ''}` : ''].filter(Boolean).join(' · ')
     c.shadowColor = '#000'; c.shadowBlur = 3; c.fillText(tag, flip ? tx + 6 : tx + barW - 6, ty + hh / 2); c.restore()
   }
-  for (const f of [p1, p2]) { const v = isEn(f) ? enochUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, v) }
   for (const f of [p1, p2]) { const v = isEn(f) ? frozoneUltView(f) : null; if (v && v.frame < 40) drawCutIn(c, cw, ch, f, { frame: v.frame, variant: 'whiteout' }) }   // the Ice Stance ultimate
 }
 const SUPER_TITLE = { whiteout: ['WHITEOUT', 'ICE STANCE'],  absoluteZero: ['ABSOLUTE ZERO', 'ICE'], flashPoint: ['FLASH POINT', 'FIRE'], thermalShock: ['THERMAL SHOCK', 'WHERE ICE MEETS FIRE'] }

@@ -14,7 +14,7 @@
 // HEAT LENS: the Homelander / Superman laser gauge (beam.js): tap = a 12-frame burst, hold Special = sustained, locks on;
 //           hold Up / Down to sweep by hand. Release → 1 s cooldown; running the gauge dry → 2.5 s overheat.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
-import { twinOf, isEnoch, enState, startEnMove, registerEnochEngine, isEnochUltActive, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance, setMode } from './enochState.js'
+import { twinOf, isEnoch, enState, startEnMove, registerEnochEngine, enochUltRunning, switchGlide, startRamp, waterUnlocked, zoneOf, check, toggleStance, setMode } from './enochState.js'
 import { updateFrozoneCommandCombat } from './frozone.js'
 import { CHAIN, HEAVY_FROM, GLIDE, GUARD_CANCEL, FLOW } from './enochData.js'
 
@@ -60,7 +60,7 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   if (!isEnoch(f)) return false
   const s = enState(f), g = !!(f.onGround || f.grounded), a = f.attacking ? f.currentAttack : null
   const fire = (k, o = {}) => startEnMove(f, k, W, o)
-  if (f.hitstop > 0 || f.isGrabbed || f.health <= 0 || isEnochUltActive()) return 'consumed'
+  if (f.hitstop > 0 || f.isGrabbed || f.health <= 0 || enochUltRunning()) return 'consumed'
   if (f.blockstun > 0) return 'consumed'   // the guard cancel runs in tickEnoch (game.js skips this layer in blockstun)
   if (f.hitstun > 0 || f.knockdownState) return 'consumed'
   if (a && a._ultPose) return 'consumed'
@@ -92,6 +92,12 @@ export function updateEnochCommandCombat(f, inp, opp, W) {
   }
   // ICE STANCE: every press goes to Frozone's own command layer (his inputs, his precedence); Charge: Down = Ice Disc, else back
   if (s.stance === 'ice') {
+    // the Ultimate in ICE STANCE is HIS OWN ABSOLUTE ZERO (not Frozone's): both press edges are consumed so Frozone's layer
+    // never opens its own ultimate from the same press
+    if (fresh(s, 'ultimate')) {
+      use(s, 'ultimate'); const fz = f._frozone; if (fz?.edges?.ultimate) fz.used.ultimate = fz.edges.ultimate.tick
+      if (!a && g && (f.energy || 0) >= 100) fire('super', { variant: 'absoluteZero' }); return 'consumed'
+    }
     if (fresh(s, 'charge') && !a && g) { use(s, 'charge'); const e = s.edges.charge; if (e.fwd) fire('iceDisc'); else if (e.back) fire('snowman'); else if (!e.down && !e.up) toggleStance(f); return 'consumed' }   // Down / Up + Charge = the channel (tickEnoch)
     return updateFrozoneCommandCombat(f, inp, opp, W) || 'consumed'
   }

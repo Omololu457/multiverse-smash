@@ -10,7 +10,7 @@
 // L2 MODIFIER: R1 pressed while L2 is held (or L2 pressed in the same 4-frame window) selects the modified table and
 // OVERRIDES the unmodified command. One command per fresh R1 press.
 import { startMove, cancelWindowOpen, getComboScale } from './combat.js'
-import { isDseyl, dsState, startDsMove, registerDseylEngine, isDseylUltActive } from './dseylState.js'
+import { isDseyl, dsState, startDsMove, registerDseylEngine, dseylCineActive } from './dseylState.js'   // ZERO HOUR (cineRegistry) state
 import { tryDseylFlashTime } from './dseylFlashTime.js'   // DSEYL: Guard + Special = Flash Time
 import { CHAIN, HEAVY_FROM, SPECIAL_FROM, ULT_FROM } from './dseylData.js'
 
@@ -29,7 +29,7 @@ const modHeld = (s, e) => e.mod || s.prev.charge || (s.edges.charge && Math.abs(
 export function updateDseylCommandCombat(f, inp, opp, W) {
   if (!isDseyl(f)) return false
   const s = dsState(f), g = !!(f.onGround || f.grounded), a = f.attacking ? f.currentAttack : null
-  if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0 || isDseylUltActive()) return 'consumed'
+  if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || f.knockdownState || f.health <= 0 || dseylCineActive()) return 'consumed'
   if (a && a._ultPose) return 'consumed'
   const fire = (k, o = {}) => startDsMove(f, k, W, o)
   if (a && COMMITTED.has(a.sy?.key)) return 'consumed'
@@ -50,7 +50,7 @@ export function updateDseylCommandCombat(f, inp, opp, W) {
     return 'consumed'
   }
   if (a && !contact) return 'consumed'
-  if (!a && inp.block && fresh(s, 'special')) { use(s, 'special'); tryDseylFlashTime(f, opp, { ultActive: isDseylUltActive() }); return 'consumed' }   // DSEYL: Guard + Special = Flash Time (Syndrome's kit ignores Special while guarding)
+  if (!a && inp.block && fresh(s, 'special')) { use(s, 'special'); tryDseylFlashTime(f, opp, { ultActive: dseylCineActive() }); return 'consumed' }   // DSEYL: Guard + Special = Flash Time (Syndrome's kit ignores Special while guarding)
   if (!a && (f.attackCooldown > 0 || inp.block)) return 'grab'
   if (fresh(s, 'ultimate')) {   // the Ultimate owns its press (consumed even when illegal)
     use(s, 'ultimate')

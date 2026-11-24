@@ -14,9 +14,10 @@ import { DSEYL_FLASH } from './dseylData.js'   // DSEYL: Flash Time HUD row
 import { getFlightProfile } from './flight.js'   // DSEYL: flight HUD row
 import { camera } from './camera.js'
 import { juiceSettings } from './juiceSettings.js'
-import { dseyl as SY, SYNDROME_MOVES as MV, MACHINE_SCALE as K, DUET, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ULT } from './dseylData.js'
+import { dseyl as SY, SYNDROME_MOVES as MV, MACHINE_SCALE as K, DUET, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP } from './dseylData.js'
 import { SYNDROME_PARTS as PA } from './syndromeSprites.js'
 import { dseylUltView } from './dseylState.js'
+import { recordDseylUltWorld } from './dseylUltFx.js'   // DSEYL: ZERO HOUR (screen overlay registers itself; the world pass hands it the transform)
 import { SYNDROME_FX_COLORS } from './syndromeSkins.js'
 
 const cache = new Map()
@@ -261,45 +262,7 @@ function drawHold(c, f, s, W) {
   for (let i = 0; i < 3; i++) part(c, f, 'crystal', (s.clock >> 2) + i * 3, ctrX(t) + (i - 1) * 30, t.y + 20 + (i % 2) * 40, { scale: 1, alpha: 0.85 })
 }
 
-// ── ULTIMATE presentation (world). The body is a layered giant with intentional cropping (no new art). ──
-function drawUlt(c, f, v, layer) {
-  const k = v.frame, d = v.dir, floor = v.feet, tx = v.tx, ty = floor - 60 - v.lift
-  // shell centre behind the captive; rises (A), leans (D), retracts (E)
-  const rise = k < 40 ? (1 - k / 40) * 420 : 0, lean = k >= 170 && k < 200 ? Math.sin((k - 170) / 30 * Math.PI) * 40 : 0, exit = k >= 220 ? (k - 220) * 14 : 0
-  const sx = tx + d * 210 - 128 * K - d * lean, sy = floor - 560 + rise + exit + lean * 0.8
-  if (layer === 'under') {
-    for (const [lx] of OMNI.legs) part(c, f, 'leg', 2, sx + (128 + lx) * K, sy + 240 * K - 10 + exit * 0.2, { flip: d })   // planted legs behind
-    drawShell(c, f, sx, sy, -d, k < 40 ? 'eyeOpen' : k < 110 ? 'eyeTrack' : 'eyeFire', k < 40 ? Math.min(4, k >> 3) : k >> 3)
-    if (k >= 96 && k < 108) part(c, f, 'gunFire', k - 96 >> 1, tx - d * 230, floor, { flip: d })
-    if (k >= 88 && k < 108 && !v.turret) part(c, f, 'gunOpen', 7, tx - d * 230, floor, { flip: d })
-    return
-  }
-  // B: machine orchestra (presentation only — damage is the scheduled contacts)
-  if (k >= 44 && k < 70) { const p = (k - 44) / 26; part(c, f, 'droneBank', k >> 1, tx - d * 260 + d * 520 * p, ty - 80 + 80 * p, { flip: d }); part(c, f, 'droneBank', k >> 1, tx + d * 260 - d * 520 * p, ty + 40 - 60 * p, { flip: -d }) }
-  if (k >= 70 && k < 84) { const a = (k - 70) / 14 * Math.PI * 2; part(c, f, 'spBlur', k, tx + Math.cos(a) * 70, ty + 30 + Math.sin(a) * 26, { flip: d }) }
-  if (k >= 82 && k < 96) { const p = (k - 82) / 14; part(c, f, 'vpSide', k >> 1, tx - d * 380 + d * 760 * p, ty - 30, { flip: d }) }
-  // C: two connected limb assemblies — one lifts from below (claw under the feet), one pins from above
-  if (k >= 110 && k < 200) {
-    const liftI = k < 124 ? 0 : k < 140 ? 1 + ((k - 124) >> 2) : 5
-    part(c, f, 'claw', liftI, tx, floor - v.lift + 4)
-    const [ldx, ldy] = tipOf('limbDiag', 1)
-    part(c, f, 'limbDiag', 1, tx + 10 * d - ldx * -d, floor - v.lift + 20 - ldy, { flip: -d })
-    if (k >= 136) { const pinI = k < 186 ? 0 : 2 + Math.min(3, (k - 186) >> 2), [pdx, pdy] = tipOf('legSlam', pinI); part(c, f, 'legSlam', pinI, tx - pdx * d, (k < 186 ? floor - v.lift - 90 : floor - 10) - pdy, { flip: d }) }
-  }
-  if (k >= 200 && k < 222) { const [pdx, pdy] = tipOf('legSlam', 5); part(c, f, 'legSlam', 5, tx - pdx * d, floor - pdy - (k - 200) * 14, { flip: d }) }
-}
-function drawCutIn(c, cw, ch, f, v) {
-  const u = v.cutIn, al = u < 0.15 ? u / 0.15 : u > 0.85 ? (1 - u) / 0.15 : 1, [hud0, hud1] = colsOf(f).hud
-  const por = image(tagOf(f) ? `./assets/syndrome/skins/${tagOf(f)}/portrait.png` : SY.portrait)
-  const y0 = Math.round(ch * 0.24), bandH = 96, left = (f.facing ?? 1) >= 0
-  c.save(); c.globalAlpha = 0.85 * al; c.fillStyle = '#06060e'; c.fillRect(0, y0, cw, bandH)
-  c.globalAlpha = al; c.fillStyle = hud0; c.fillRect(0, y0, cw, 3); c.fillRect(0, y0 + bandH - 3, cw, 3)
-  if (ready(por)) { c.imageSmoothingEnabled = false; const pw = por.naturalWidth * 2, ph = por.naturalHeight * 2; c.drawImage(por, left ? 40 : cw - 40 - pw, y0 + 8, pw, ph) }
-  c.textAlign = left ? 'left' : 'right'; c.textBaseline = 'middle'
-  c.font = 'bold 18px Arial'; c.fillStyle = hud0; c.fillText('OPERATION KRONOS', left ? 140 : cw - 140, y0 + 30)
-  c.font = '900 30px Arial'; c.fillStyle = hud1; c.fillText('FINAL DEMONSTRATION', left ? 140 : cw - 140, y0 + 64)
-  c.restore()
-}
+// ── ULTIMATE: ZERO HOUR is drawn entirely by dseylUltFx.js (screen overlay over the re-blitted world). ──
 
 // ── intro (render-only; nothing here touches the sim, so nothing can outlive the intro) and victory staging ──
 function drawIntro(c, f, layer) {
@@ -327,7 +290,7 @@ export function drawDseylUnder(c, p1, p2, W = W0) {
     if (!isDs(f)) continue
     if (f._introPlaying) { drawIntro(c, f, 'under'); continue }
     const s = f._dseyl; if (!s) continue
-    const v = dseylUltView(f); if (v) { drawUlt(c, f, v, 'under'); continue }
+    const v = dseylUltView(f); if (v) { recordDseylUltWorld(c); continue }   // ZERO HOUR draws in its screen overlay (dseylUltFx.js)
     drawTurret(c, f, s, 'under'); drawOmni(c, f, s, 'under'); drawNormal(c, f, 'under')
   }
 }
@@ -337,8 +300,8 @@ export function drawDseylOver(c, p1, p2, W = W0) {
     if (f._introPlaying) { drawIntro(c, f, 'over'); continue }
     const s = f._dseyl; if (!s) continue
     const v = dseylUltView(f)
-    if (v) drawUlt(c, f, v, 'over')
-    else {
+    if (v) continue   // ZERO HOUR: everything is drawn by dseylUltFx.js's screen overlay
+    {
       drawTurret(c, f, s, 'over'); drawOmni(c, f, s, 'over'); drawNormal(c, f, 'over'); drawMobile(c, f, s, 'over'); drawSpin(c, f, s, 'over')
       drawShots(c, f, W); drawHold(c, f, s, W); drawGrab(c, f, f === p1 ? p2 : p1); drawVictory(c, f)
     }
@@ -369,7 +332,6 @@ export function drawDseylHud(c, cv, p1, p2) {
     c.restore()
   }
   one(p1, false); one(p2, true)
-  for (const f of [p1, p2]) { const v = isDs(f) ? dseylUltView(f) : null; if (v && v.cutIn != null) drawCutIn(c, cw, ch, f, v) }
 }
 export function drawDseylIntroCard(c, cv, p1, p2) {
   const f = [p1, p2].find(q => isDs(q) && q._introPlaying); if (!f) return

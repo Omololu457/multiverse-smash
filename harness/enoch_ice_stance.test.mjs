@@ -4,7 +4,7 @@
 //   K. the kit on Enoch: strike chain, low, heavy, launcher, air / down-air, Ice Lance (cold thermal, not energy), Glacier
 //      Rush, Rising Glacier, Black Ice, Icebreaker, Ice Wall, Chill → Freeze → Shatter, Super meter from his Ice Stance hits
 //   M. mobility: Ice Flash (double-tap), Ice Stream (air double-tap), Ice Glider; elemental stance keeps his own dash
-//   U. WHITEOUT (Ultimate in Ice Stance): the freeze-contract cinematic, damage, his own poses
+//   U. ABSOLUTE ZERO (Ultimate in Ice Stance, 2026-11-23: his OWN super, no longer Frozone's): the cinematic, damage, his poses
 //   R. determinism + no Math.random; render (his fz_ strips play, no page errors) + screenshots
 //   node harness/enoch_ice_stance.test.mjs      (inside the test tree)
 import fs from 'node:fs'
@@ -141,14 +141,15 @@ try {
   ok('M3 Ice Glider: holding Jump while falling caps the fall', M.glider.glides >= 1 && M.glider.maxVy <= 1.7, J(M.glider))
   ok('M4 elemental stance keeps his own double-tap (now his ICE SLIDE — no Ice Flash), dash speed untouched', M.elemental.dashing && M.elemental.flashes === 0 && M.elemental.dashSpeed === 26, J(M.elemental))
 
-  // ═══ U. WHITEOUT ═══
+  // ═══ U. ABSOLUTE ZERO (the Ice Stance Ultimate = his own super since 2026-11-23, never Frozone's) ═══
   const U = await page.evaluate(() => { const { H, step, tap, setup, ice } = __E
     const { a, b } = setup(1000, 1080); ice(a); a.energy = 100; const hp0 = b.health
     tap(a, { ultimate: true }); let active = false, poses = new Set(), cut = false
-    for (let i = 0; i < 280; i++) { step(1); const u = window.__harness.frozoneTest?.ult?.() ; if (a.currentAttack?._ultPose) { active = true; poses.add(H.state().action) } }
-    return { active, poses: [...poses], dmg: Math.round(hp0 - b.health), energy: a.energy } })
-  ok('U1 WHITEOUT (Ultimate in Ice Stance): the cinematic runs on Enoch and lands', U.active && U.dmg > 150 && U.energy < 100, J(U))
-  ok('U2 his own poses play (ultCast → ultSkate → ultBrake / ultShatter)', ['ultCast', 'ultSkate'].every(p => U.poses.includes(p)), J(U.poses))
+    let variant = null, frozone = false
+    for (let i = 0; i < 280; i++) { step(1); const u = H.ult(); if (u.active) variant = u.variant; if (window.__harness.frozoneTest?.ult?.()?.active) frozone = true; if (a.currentAttack?._ultPose) { active = true; poses.add(H.state().action) } }
+    return { active, poses: [...poses], dmg: Math.round(hp0 - b.health), energy: a.energy, variant, frozone } })
+  ok('U1 ABSOLUTE ZERO (Ultimate in Ice Stance): HIS cinematic runs (not Frozone\'s) and lands', U.active && U.variant === 'absoluteZero' && !U.frozone && U.dmg > 150 && U.energy < 100, J(U))
+  ok('U2 his own poses play (wind-up → palm slam → raised fist)', ['enUltWind', 'enUltPalm', 'meteor'].every(p => U.poses.includes(p)), J(U.poses))
 
   // ═══ R. DETERMINISM / RENDER ═══
   const run = () => page.evaluate(() => { const { H, step, hold, tap, dtap, rel, setup, ice } = __E

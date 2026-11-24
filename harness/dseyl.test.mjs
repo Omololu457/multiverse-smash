@@ -6,6 +6,7 @@
 //   D. FLASH TIME: Guard + Special costs 40 Power, the foe is slowed for EXACTLY 180 frames at 50 %, 600-frame cooldown,
 //      rejected during cooldown / low Power / ultimate / foe already slowed.
 //   E. DETERMINISM: replay frame identity + render-batching identity with drones + flight + Flash Time active.
+//   Z. ZERO HOUR (his own ultimate): full run / damage budget / hidden body restored / KO skip / reset mid-cinematic.
 //   F. No Math.random in dseyl*.js.
 //   node harness/dseyl.test.mjs
 import assert from 'node:assert/strict'
@@ -176,6 +177,28 @@ try {
     return { perFrame: run(() => { for (let k = 0; k < 4; k++) __harness.luffyTest.step(1) }), batched: run(() => __harness.luffyTest.step(4)), again: run(() => { for (let k = 0; k < 4; k++) __harness.luffyTest.step(1) }) } }, SCRIPT)
   const d1 = r1.perFrame.findIndex((s, i) => s !== r1.batched[i]); ok('render batching gives identical sim', d1 === -1, d1 === -1 ? '' : `${r1.perFrame[d1]} vs ${r1.batched[d1]}`)
   ok('second identical run reproduces exactly', JSON.stringify(r1.perFrame) === JSON.stringify(r1.again))
+  // ── Z. ZERO HOUR (Dseyl's own ultimate, cineRegistry freeze slot): full run, damage budget, hidden-body restore, KO ──
+  const Z = await page.evaluate(async () => { const { camera } = await import('./camera.js'); const H = __harness.dseylTest, U = H.data().ult
+    const run = foeHp => { H.reset(); camera.reset(); const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1410; a.facing = 1; b.facing = -1; a.energy = 100; b.invulnTimer = 0
+      for (const f of [a, b]) { f.health = f.maxHealth; f.knockdownState = false; f.knockdownTimer = 0; f.invulnTimer = 0; f.hitstun = 0; f.attackCooldown = 0; f.attacking = false; f.currentAttack = null }   // the previous run left the foe knocked down
+      if (foeHp) b.health = foeHp
+      __harness.luffyTest.step(2); H.move('ultOpen'); let n = 0; while (!H.ult().active && n++ < 80) __harness.luffyTest.step(1)
+      const hp0 = b.health, frames = [], alphaIn = a._fxAlpha; let ticks = 0, maxDone = 0
+      while (H.ult().active && ticks++ < 900) { frames.push(H.ult().frame); maxDone = Math.max(maxDone, H.ult().done); __harness.luffyTest.step(1) }
+      return { started: n <= 80, hp0, hp1: b.health, ticks, maxDone, alphaIn, alphaOut: a._fxAlpha ?? null, attacking: a.attacking, foeStun: b.hitstun, foeKd: !!b.knockdownState, ya: a.y, yb: b.y, last: frames[frames.length - 1] } }
+    const full = run(0), ko = run(40)
+    // clear() mid-cinematic (a reset path) restores both fighters
+    H.reset(); camera.reset(); const a = H.raw(), b = H.raw('p2'); a.x = 1300; b.x = 1410; a.facing = 1; a.energy = 100
+    for (const f of [a, b]) { f.health = f.maxHealth; f.knockdownState = false; f.knockdownTimer = 0; f.invulnTimer = 0; f.hitstun = 0; f.attackCooldown = 0; f.attacking = false; f.currentAttack = null }   // the KO run left the foe at 0 HP
+    __harness.luffyTest.step(2); H.move('ultOpen')
+    let n = 0; while (!H.ult().active && n++ < 80) __harness.luffyTest.step(1); __harness.luffyTest.step(120); const mid = H.ult().active; H.reset()
+    const cleared = { mid, active: H.ult().active, alpha: a._fxAlpha ?? null, stun: b.hitstun, attacking: a.attacking }
+    return { full, ko, cleared, raw: U.contacts.reduce((s, c) => s + c.raw, 0), n: U.contacts.length, name: U.name } })
+  ok('Zero Hour: Dseyl\'s own ultimate (not Operation Kronos), 10 contacts = 390 raw (+ opener 30 = 420, unchanged)', Z.name === 'ZERO HOUR' && Z.n === 10 && Z.raw === 390, JSON.stringify({ name: Z.name, n: Z.n, raw: Z.raw }))
+  ok('Zero Hour: opener capture starts the frozen cinematic and it runs every contact to the end', Z.full.started && Z.full.maxDone === 10 && Z.full.ticks > 330 && Z.full.ticks < 500, JSON.stringify(Z.full))
+  ok('Zero Hour: lands real damage and ends cleanly (body visible again, foe knocked down, both on the floor)', Z.full.hp1 < Z.full.hp0 && Z.full.alphaIn === 0 && Z.full.alphaOut === null && !Z.full.attacking && Z.full.foeKd && Z.full.foeStun === 0 && Z.full.ya === Z.full.yb, JSON.stringify(Z.full))
+  ok('Zero Hour: KO mid-barrage skips to the aftermath and ends cleanly', Z.ko.hp1 <= 0 && Z.ko.maxDone < 10 && Z.ko.alphaOut === null && Z.ko.ticks < Z.full.ticks, JSON.stringify(Z.ko))
+  ok('Zero Hour: a reset mid-cinematic clears it and restores both fighters', Z.cleared.mid && !Z.cleared.active && Z.cleared.alpha === null && Z.cleared.stun === 0 && !Z.cleared.attacking, JSON.stringify(Z.cleared))
   const rnd = await page.evaluate(() => __dsRandom); ok('no Math.random in dseyl*.js', rnd.length === 0, JSON.stringify(rnd))
   ok('no dseyl asset 404s', ![...r404].some(u => /dseyl/i.test(u)), JSON.stringify([...r404].filter(u => /dseyl/i.test(u))))
   ok('no browser runtime errors', errors.length === 0, JSON.stringify(errors.slice(0, 5)))

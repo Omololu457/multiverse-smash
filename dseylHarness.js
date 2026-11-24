@@ -3,8 +3,8 @@
 // Test-only accessor for harness/syndrome*.mjs (exposed as __harness.syndromeTest; harness URLs only). Read-mostly: the only
 // writers are reset / move / setEnergy, used to set up a scenario before driving real inputs.
 import { getAttackHitbox, getCancelWindow } from './combat.js'
-import { startDsMove, clearDseyl, getDseylUltStatus, isDseylUltActive, dseylUltView, clearDseylUlt } from './dseylState.js'
-import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, ULT, TIMELINE, COST } from './dseylData.js'
+import { startDsMove, clearDseyl, getDseylUltStatus, dseylCineActive, dseylUltView, clearDseylUlt, zhRoute, zhFoeLift } from './dseylState.js'
+import { SYNDROME_MOVES, DUET, CONVERGE, SPIN, VELO, TURRET, HAMMER, RISE, SWEEP, ZERO, DSEYL_ULT as ULT, TIMELINE, COST } from './dseylData.js'
 import { SYNDROME_PARTS } from './syndromeSprites.js'
 import { dseylFxCacheSize, dseylFxCacheKeys, dseylHudLabel, dseylPartUrl } from './dseylFx.js'
 export function dseylHarnessApi(g) {
@@ -17,7 +17,8 @@ export function dseylHarnessApi(g) {
     reset: () => { clearDseylUlt(); g.reset(); for (const f of [g.p1(), g.p2()]) clearDseyl(f, g.world) },
     move: (k, w = 'p1', o = {}) => startDsMove(raw(w), k, g.world, o),
     setEnergy: (e, w = 'p1') => { raw(w).energy = e },
-    ult: () => ({ ...getDseylUltStatus(), active: isDseylUltActive() }),
+    ult: () => ({ ...getDseylUltStatus(), active: dseylCineActive() }),
+    zh: fr => ({ route: zhRoute(fr), foeLift: zhFoeLift(fr) }),   // ZERO HOUR: pure route / lift at a timeline frame
     ultView: (w = 'p1') => { const v = dseylUltView(raw(w)); return v ? clone(v) : null },
     hud: (w = 'p1') => dseylHudLabel(raw(w)),
     fxCache: () => dseylFxCacheSize(),

@@ -147,10 +147,41 @@ export const GLIDE = { iceMul: 1.8, fireMul: 2.3, run: 8, maxFrames: 240, therma
   rampVy: -15, rampVx: 0.8, turnFrames: 8 }
 export const GUARD_CANCEL = { thermal: 25, invuln: 8, cooldown: 600 }
 export const METER = { onHit: 0.10, onTaken: 0.06 }       // super meter (f.energy) from damage dealt / taken (stored raw)
+// SUPERS (2026-11-23 rebuild — three cinematics of his own, none of them Frozone's skate-and-seal): one per MODE, the
+// fusion one with NO mode. Each runs on a TIMELINE (frames k); a contact holds its frame for `hold` ticks (hit-stop) and
+// `slow` ranges play every timeline frame `n` ticks (slow motion). `lift` = the captive's height above the floor once that
+// contact lands (eased by enochState's route). Raw totals unchanged: 330 / 340 / 390.
+const FP_PULSES = [48, 56, 64, 72, 80, 88].map(at => ({ at, raw: 15, hold: 2, shake: 3, kind: 'pulse' }))
 export const SUPERS = {
-  absoluteZero: { name: 'ABSOLUTE ZERO', damageType: 'blunt', total: 150, contacts: [{ at: 30, raw: 55 }, { at: 46, raw: 55 }, { at: 62, raw: 55 }, { at: 78, raw: 55 }, { at: 110, raw: 110 }], freeze: 42 },
-  flashPoint:   { name: 'FLASH POINT', damageType: 'energy', total: 170, beamFrom: 20, beamTo: 140, tickEvery: 6, tickRaw: 10, flareAt: 150, flareRaw: 140 },
-  thermalShock: { name: 'THERMAL SHOCK', damageType: 'blunt', total: 160, contacts: [{ at: 40, raw: 90 }, { at: 80, raw: 120 }, { at: 125, raw: 180 }], freeze: 30 },
+  //   ICE — ABSOLUTE ZERO: palm to the floor, TIME STOPS (the world drains of colour), four glacier spikes erupt under the
+  //   foe and stair-step them into the sky, a colossal icicle forms over the frozen moment and spears them back into the
+  //   ground — colour floods back from the impact. Leaves them frozen.
+  absoluteZero: { name: 'ABSOLUTE ZERO', sub: 'THE COLD THAT STOPS TIME', damageType: 'blunt', total: 160, finale: 118, freeze: 42, dist: 250,
+    contacts: [{ at: 34, raw: 55, hold: 4, shake: 6, kind: 'spike' }, { at: 48, raw: 55, hold: 4, shake: 7, kind: 'spike' }, { at: 60, raw: 55, hold: 5, shake: 8, kind: 'spike' },
+      { at: 70, raw: 55, hold: 6, shake: 10, kind: 'spike' }, { at: 118, raw: 110, hold: 14, shake: 18, kind: 'finale' }],
+    slow: [[78, 108, 2]],
+    tLift: [[0, 0], [34, 0, 'h'], [38, 60, 'o'], [48, 60, 'h'], [52, 118, 'o'], [60, 118, 'h'], [64, 172, 'o'], [70, 172, 'h'], [76, 228, 'o'], [112, 240, 's'], [118, 0, 'i']],
+    poses: [[0, 'enUltWind'], [14, 'enUltPalm'], [72, 'meteor'], [114, 'enUltPalm'], [134, 'enUltWin']] },
+  //   FIRE — FLASH POINT: the visor ignites (a push-in on the lens), one beam draws a line of fire that rings the foe in
+  //   pillars, six locked-on pulses, a leap and two crossing beam slashes (an X burned into them, slow motion), then he
+  //   focuses the sun: a white-hot star condenses over them and collapses — the detonation.
+  flashPoint: { name: 'FLASH POINT', sub: 'THE VISOR BURNS', damageType: 'energy', total: 172, finale: 138, dist: 300,
+    contacts: [{ at: 40, raw: 40, hold: 3, shake: 6, kind: 'ignite' }, ...FP_PULSES, { at: 108, raw: 35, hold: 5, shake: 9, kind: 'slash' }, { at: 116, raw: 35, hold: 5, shake: 10, kind: 'slash' },
+      { at: 138, raw: 140, hold: 14, shake: 20, kind: 'finale' }],
+    slow: [[100, 118, 2]],
+    tLift: [[0, 0], [44, 0, 'h'], [92, 34, 's'], [118, 60, 's'], [134, 70, 's'], [140, 0, 'i']],
+    cLift: [[0, 0], [96, 0, 'h'], [104, 150, 'o'], [136, 168, 's'], [148, 0, 'i']],
+    cDx: [[0, 0], [96, 0, 'h'], [104, 70, 'o'], [148, 70, 'h']],
+    poses: [[0, 'enUltVisor'], [34, 'enUltBeam'], [96, 'enUltLeap'], [104, 'enUltBeam'], [120, 'fireMeteor'], [136, 'enUltFall'], [148, 'enUltLand'], [154, 'enUltWin']] },
+  //   NO MODE — THERMAL SHOCK (the fusion): ice in one hand, fire in the other, the screen split blue / orange. Twin
+  //   serpents — frost and flame — braid toward the foe: the frost one freezes them solid, the pair coil into a rising
+  //   yin-yang vortex, the flame one superheats the ice red, and his clap snaps the two together — the ice explodes into
+  //   steam. Leaves water + steam.
+  thermalShock: { name: 'THERMAL SHOCK', sub: 'WHERE ICE MEETS FIRE', damageType: 'blunt', total: 160, finale: 112, freeze: 30, dist: 230,
+    contacts: [{ at: 46, raw: 90, hold: 8, shake: 8, kind: 'freeze' }, { at: 84, raw: 120, hold: 10, shake: 12, kind: 'heat' }, { at: 112, raw: 180, hold: 16, shake: 22, kind: 'finale' }],
+    slow: [[66, 84, 2]],
+    tLift: [[0, 0], [50, 0, 'h'], [84, 110, 's'], [112, 120, 's'], [130, 0, 'i']],
+    poses: [[0, 'enUltChannel'], [28, 'enUltThrow'], [40, 'enUltChannel'], [96, 'enUltWind'], [110, 'enUltThrow'], [130, 'enUltWin']] },
 }
 export const SUPER_LOCK = 180                              // the thermal meter is locked for 3 s after a super
 export const ALL_MOVES = { ...ENOCH_MOVES, ...ENOCH_SPECIALS }
@@ -188,7 +219,7 @@ export const enoch = {
     airAttack: ENOCH_MOVES.air, downAir: ENOCH_MOVES.air,
     grab: { damage: dmg(45), startup: 8, active: 3, recovery: 26, hitstun: 20, throwForceX: 10, throwForceY: -5, damageType: 'grab' } },
   specials: {},
-  ultimate: { name: 'ABSOLUTE ZERO / FLASH POINT', cost: 100, description: 'The super changes with the thermal meter.' },
+  ultimate: { name: 'ABSOLUTE ZERO / FLASH POINT / THERMAL SHOCK', cost: 100, description: 'One cinematic per mode: ICE = Absolute Zero, FIRE = Flash Point, no mode = Thermal Shock (ice + fire fused).' },
   animationData: {
     ...ENOCH_ANIM,
     ...Object.fromEntries(Object.entries(ALL_MOVES).map(([k, m]) => [k, { ...ENOCH_ANIM[m.strip], frameTimeline: TIMELINE[k] || [[0, 0]] }])),
@@ -196,6 +227,12 @@ export const enoch = {
     ...Object.fromEntries(Object.entries(FZ_STRIP).map(([k, st]) => ['fz_' + k, { ...ENOCH_ANIM['fz' + st.slice(3)], frameTimeline: FZ_TIMELINE[k] || [[0, 0]] }])),
     ultCast: { ...ENOCH_ANIM.fzUlt, frameTimeline: [[0, 0], [10, 1]] }, ultShatter: { ...ENOCH_ANIM.fzUlt, frameTimeline: [[0, 1], [16, 2]] },
     ultSkate: ENOCH_ANIM.ultSkate, ultBrake: ENOCH_ANIM.ultBrake,
+    // HIS OWN SUPERS' poses (enochState drives the elapsed value; loops are cycled there)
+    enUltWind: { ...ENOCH_ANIM.atkSuper, frameTimeline: [[0, 0], [6, 1]] }, enUltThrow: { ...ENOCH_ANIM.atkSuper, frameTimeline: [[0, 1], [3, 2]] },
+    enUltPalm: { ...ENOCH_ANIM.atkFloor, frameTimeline: [[0, 1], [4, 2]] }, enUltVisor: { ...ENOCH_ANIM.atkLens, frameTimeline: [[0, 0], [10, 1]] },
+    enUltBeam: { ...ENOCH_ANIM.atkLens, frameTimeline: [[0, 1], [2, 2]] }, enUltChannel: { ...ENOCH_ANIM.channel_water, frameTimeline: [[0, 0], [5, 1], [10, 2], [15, 3]] },
+    enUltLeap: { ...ENOCH_ANIM.jump, frameTimeline: [[0, 0], [4, 1]] }, enUltFall: { ...ENOCH_ANIM.fall, frameTimeline: [[0, 0]] }, enUltLand: { ...ENOCH_ANIM.land, frameTimeline: [[0, 0]] },
+    enUltWin: { ...ENOCH_ANIM.win, frameTimeline: [[0, 0], [8, 1], [16, 2], [24, 3]] },
     // the METEOR casts: fist thrown up and HELD (the rising palm's raised-fist frame) while the sky answers
     meteor: { ...ENOCH_ANIM.atkRise, frameTimeline: [[0, 1], [8, 2], [34, 3]] }, fireMeteor: { ...ENOCH_ANIM.atkRise, frameTimeline: [[0, 1], [8, 2], [44, 3]] },
   },

@@ -110,7 +110,9 @@ try {
   console.log("\n── S6: Raikiri ULT — guaranteed ~198 EFF from out of range ──");
   await prep(220); const hu0 = (await p2()).health;
   const ult = await page.evaluate(() => window.__harness.p1Ultimate());
-  check("ULT casts Raikiri (kakashiRaikiriCharge)", ult?.cast === true && ult?.castMove === "kakashiRaikiriCharge", `cast=${ult?.cast} castMove=${ult?.castMove}`);
+  // 2026-11-24 ult pass: once cineUlts.js imports kakashiUlt.js the Raikiri is a frozen cinematic (no castMove) — accept either
+  const ultCine = await page.evaluate(async () => { try { return (await import("./kakashiUlt.js")).getKakashiUltStatus().active } catch (_) { return false } });
+  check("ULT casts Raikiri (kakashiRaikiriCharge or the Raikiri cinematic)", ult?.cast === true && (ult?.castMove === "kakashiRaikiriCharge" || ultCine), `cast=${ult?.cast} castMove=${ult?.castMove} cine=${ultCine}`);
   let dealt = 0; for (let i = 0; i < 60; i++) { dealt = Math.max(dealt, hu0 - (await p2()).health); await waitFrames(1); }
   check(`Raikiri payoff in top-ult band (~198 EFF; 150–240): ${dealt.toFixed(0)}`, dealt >= 150 && dealt <= 240, `dealt=${dealt}`);
   await waitGrounded();

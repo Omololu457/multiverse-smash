@@ -46,7 +46,8 @@ try {
   await prep(200);
   const e0 = (await p1()).energy;
   const u = await fireUlt();
-  check("ultimate button → Raikiri charge pose", (u?.castMove || "") === "kakashiRaikiriCharge", `castMove=${u?.castMove}`);
+  const uCine = await page.evaluate(async () => { try { return (await import("./kakashiUlt.js")).getKakashiUltStatus().active } catch (_) { return false } });   // 2026-11-24: Raikiri cinematic
+  check("ultimate button → Raikiri charge pose (or the Raikiri cinematic)", (u?.castMove || "") === "kakashiRaikiriCharge" || uCine, `castMove=${u?.castMove} cine=${uCine}`);
   check("ultimate button does NOT summon the Nin-Dogs pack", !(await summons()).some(s => s.id === "kakashiNinDogs"), "");
   await waitFrames(2);
   check("ultimate spends 100 chakra (full-meter finisher)", e0 - (await p1()).energy >= 95, `Δ=${(e0 - (await p1()).energy).toFixed(0)}`);

@@ -37,6 +37,13 @@ HOOKS = [
    "    _hhDrain(fighter, opp, 20)\n  })\n  try { shakeCamera(context, 6, 16) } catch (_) {}\n  return true\n}\n// (Guuten loop tail moved above — DS-ULT-CINE fix)\n", 'inline'),
   ('abilities.js', "    p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6\n// ULTIMATE (Phase 3)",
    "    p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6\n    if (p.radius != null) p.radius *= 0.85\n    activeProjectiles.splice(i, 1)   // spun away\n  }\n}\n// ULTIMATE (Phase 3)", 'inline'),
+  # BEN 10 / ALBEDO human-form ultimate → the all-aliens sequence (ben10AlienSequence.js); same cost / 250 total / recovery
+  ('abilities.js', 'import "./narutoUltCinematics.js"', 'import "./ben10AlienSequence.js"' + M + ' (registers the Ben 10 / Albedo all-aliens ultimate)', 'after'),
+  ('abilities.js', "    hitAt(18, 70); hitAt(40, 70); hitAt(66, 110)\n",
+   "    if (!startDemonSlayerPreroll(\"benAlienSequence\", fighter, getTargetResolver(context)(fighter), { hit: (dmg, last) => {" +
+   " const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated) return; applyScaledDamage(opp, dmg, { source: \"ben-overload\", attacker: fighter });" +
+   " opp.hitstun = Math.max(opp.hitstun || 0, last ? 40 : 16); if (last) { opp.vx = (opp.x >= fighter.x ? 1 : -1) * 12; opp.vy = -8 } } }))" +
+   " { hitAt(18, 70); hitAt(40, 70); hitAt(66, 110) }   // DS-ULT-CINE: the all-aliens sequence (the 3 radial hits stay as the fallback)\n", 'inline'),
 ]
 SUPERSEDED = []
 

@@ -64,10 +64,13 @@ try {
   await page.keyboard.down("u"); await frames(3); await page.keyboard.up("u"); await frames(5)
   const powAfter = (await p1()).benOmx.power
   ok(powAfter <= 4, `Overload should spend ALL Power (got ${powAfter} right after cast)`)
-  await frames(70)   // let all 3 radial hits (frames 18/40/66) resolve
+  await frames(70)   // the first alien hits land from frame 63 (the old 3 radial hits stay as the fallback)
   const d = await p2()
   ok(d.health < hpBefore, `Overload should damage the dummy within 320px (hp ${hpBefore}→${d.health})`)
-  await frames(20); s = await p1()   // past the 90f recovery → forced timeout scheduled at +90
+  // the human ultimate is now the all-aliens sequence (frozen, ~410f): let it finish, then the 90f recovery → forced timeout
+  await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 16 }).catch(() => {})
+  { const f0 = (await state()).frame; await page.waitForFunction(t => window.__harness.state().frame >= t, f0 + 110, { timeout: 120000, polling: 16 }).catch(() => {}) }   // 110f (long timeout: the machine may be slow)
+  s = await p1()
   ok(s.benOmx && s.benOmx.timeoutCooldown > 0, `Overload should force a timeout cooldown afterwards (got ${s.benOmx && s.benOmx.timeoutCooldown})`)
 
   // ── Classic / Prime normals differ ──

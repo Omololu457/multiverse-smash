@@ -65,6 +65,7 @@ import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } 
 import { activateInosukeBeastCinematic, isInosukeBeastCinematicActive } from "./inosukeBeastCinematic.js"   // Inosuke "Beast Breathing" cinematic specials (no cycle)
 import { startDemonSlayerPreroll } from "./demonSlayerCinematics.js"   // DS-ULT-CINE (Zenitsu / Nezuko ultimate pre-rolls; no cycle)
 import "./narutoUltCinematics.js"   // DS-ULT-CINE (registers the Naruto ult pre-roll scripts)
+import "./ben10AlienSequence.js"   // DS-ULT-CINE (registers the Ben 10 / Albedo all-aliens ultimate)
 import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
@@ -30309,7 +30310,7 @@ function executeBen10Ultimate(fighter, context) {
         if (Math.hypot(ox - cx, oy - cy) <= RAD) { applyScaledDamage(opp, dmg, { source: "ben-overload", attacker: fighter }); opp.hitstun = Math.max(opp.hitstun || 0, 16) }
       }
     })
-    hitAt(18, 70); hitAt(40, 70); hitAt(66, 110)
+    if (!startDemonSlayerPreroll("benAlienSequence", fighter, getTargetResolver(context)(fighter), { hit: (dmg, last) => { const opp = getTargetResolver(context)(fighter); if (!opp || opp.eliminated) return; applyScaledDamage(opp, dmg, { source: "ben-overload", attacker: fighter }); opp.hitstun = Math.max(opp.hitstun || 0, last ? 40 : 16); if (last) { opp.vx = (opp.x >= fighter.x ? 1 : -1) * 12; opp.vy = -8 } } })) { hitAt(18, 70); hitAt(40, 70); hitAt(66, 110) }   // DS-ULT-CINE: the all-aliens sequence (the 3 radial hits stay as the fallback)
     scheduleBenSpawn(fighter, 90, () => { if (fighter.omnitrix) fighter.omnitrix.timeoutCooldown = Math.max(fighter.omnitrix.timeoutCooldown || 0, 180) })   // forced 3s timeout after recovery
     focusCameraOnAction(context, fighter, getTargetResolver(context)(fighter), 0.9, 20)
     shakeCamera(context, 8, 14)

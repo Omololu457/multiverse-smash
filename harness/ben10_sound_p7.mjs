@@ -56,7 +56,9 @@ try {
   await call("ben10SetPower", "p1", 100)
   await fired(async () => { await page.keyboard.down("l"); await frames(3); await page.keyboard.up("l") }, "ben_energyshot", "Energy Shot")
   await frames(24); await call("ben10SetPower", "p1", 100)
-  await fired(async () => { await page.keyboard.down("u"); await frames(3); await page.keyboard.up("u") }, "ben_overload", "Omnitrix Overload")
+  await fired(async () => { await page.keyboard.down("u"); await frames(3); await page.keyboard.up("u")
+    // the human ultimate opens with the frozen all-aliens sequence; its cue drains when the fight resumes
+    await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 16 }).catch(() => {}) }, "ben_overload", "Omnitrix Overload")
 
   ok(jsErrors.length === 0, `page errors: ${jsErrors.slice(0, 2).join(" | ")}`)
 } catch (e) { failed++; fails.push("EXCEPTION: " + String(e && e.stack || e)) }

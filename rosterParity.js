@@ -39,7 +39,7 @@ export function rosterDamageBoost(attacker) {
   if (!attacker) return 1
   const k = (attacker.rosterKey || '').toLowerCase()
   if (attacker._squad) return ROSTER_DAMAGE_BOOST[k] || ROSTER_DAMAGE_BOOST.spd_red   // S.P.D. Rangers: every form (Omega too) on Red's tier, never the OG lift
-  return (ROSTER_DAMAGE_BOOST[k] || 1) * (OG_LC[k]?.dmg || 1)
+  return (ROSTER_DAMAGE_BOOST[k] || 1) * (OG_LC[k]?.dmg || 1) * (WEAK_LC[k]?.dmg || 1)
 }
 
 // ── OG ROSTER BUFF (2026-11-23, owner: "all the OG characters are too weak … buff their speed and HP too, not just
@@ -178,6 +178,33 @@ export const OG_TABLE = Object.freeze({
 })
 const OG_LC = Object.fromEntries(Object.entries(OG_TABLE).map(([k, v]) => [k.toLowerCase(), v]))   // lookups are lower-case (evilMorty / rickPrime keys)
 const ogRow = f => f?._squad ? null : OG_LC[String(f?.rosterKey || f || '').toLowerCase()]   // the S.P.D. Rangers squad (Omega form) is not OG-lifted
-export const ogHpMult = f => ogRow(f)?.hp || 1
-export const ogSpeedMult = f => ogRow(f)?.spd || 1
-export const isOgFighter = f => !!ogRow(f)   // OG roster member (OG_TABLE) — ai.js gives these CPUs an aggression overlay
+// ── WEAK-TIER BUFF (2026-11-24, owner: "all of the other characters … are super weak, buff a lot of them"). Measured LIVE:
+// every visible fighter played AI-vs-AI (adaptive, 1 match per side) vs luffy / zoro / mr_incredible / gojo_shinjuku /
+// spd_red (tools/balance/aivsai_batch.mjs + aivsai_batch_retry.mjs, ranking tools/balance/weak_tier_rank.mjs). Fighters
+// under ~40 % get a lift that STACKS on top of OG_TABLE / ROSTER_DAMAGE_BOOST (multiplies them); bigger for the weakest:
+//   0–10 % → dmg ×1.5 hp ×1.4 spd ×1.12 · 11–25 % → ×1.35 / ×1.3 / ×1.08 · 26–39 % → ×1.2 / ×1.15 / ×1.05
+// aggro: 1 → also gets ai.js's OG CPU aggression overlay (non-OG fighters only; OG rows already have it).
+// ben10 / albedo (0 %) are NOT here: fighters.js re-stamps their maxHealth after spawn and a ×1.5/1.4/1.12 row measured 0 % → 0 %;
+// their lever is benAlienBalance.js BEN_HUMAN_BUFF / benCpu.js, not this table.
+// The reference fighters themselves (luffy, zoro, mr_incredible, gojo_shinjuku) are left alone so the yardstick stays fixed.
+export const WEAK_TIER_BUFF = Object.freeze({
+  baki: { dmg: 1.5, hp: 1.4, spd: 1.12 },              // before 0 % (OG)
+  nezuko: { dmg: 1.5, hp: 1.4, spd: 1.12 },            // before 0 % (OG)
+  goku: { dmg: 1.5, hp: 1.4, spd: 1.12 },              // before 10 % (OG)
+  soldier_boy: { dmg: 2.0, hp: 1.7, spd: 1.15, aggro: 1 },   // before 0 %; round 1 (×1.5/1.4/1.12) only reached 10 % → round 2
+  homelander: { dmg: 1.75, hp: 1.55, spd: 1.15, aggro: 1 },  // before 0 %; round 1 reached 30 % → round 2
+  megumi_fushiguro: { dmg: 1.75, hp: 1.55, spd: 1.15, aggro: 1 },   // before 0 %; round 1 reached 30 % → round 2
+  kevin_levin: { dmg: 1.5, hp: 1.4, spd: 1.12, aggro: 1 },   // before 10 %
+  maki: { dmg: 1.35, hp: 1.3, spd: 1.08 },             // before 20 % (OG)
+  beast_boy: { dmg: 1.35, hp: 1.3, spd: 1.08, aggro: 1 },    // before 11 %
+  higuruma: { dmg: 1.35, hp: 1.3, spd: 1.08, aggro: 1 },     // before 20 %
+  krybot: { dmg: 1.35, hp: 1.3, spd: 1.08 },           // before 20 % (kit CPU)
+  robin: { dmg: 1.35, hp: 1.3, spd: 1.08, aggro: 1 },        // before 25 %
+  raven: { dmg: 1.2, hp: 1.15, spd: 1.05, aggro: 1 },        // before 30 %
+  green_arrow: { dmg: 1.2, hp: 1.15, spd: 1.05 },      // before 30 % (drone kit)
+})
+const WEAK_LC = Object.fromEntries(Object.entries(WEAK_TIER_BUFF).map(([k, v]) => [k.toLowerCase(), v]))
+const weakRow = f => f?._squad ? null : WEAK_LC[String(f?.rosterKey || f || '').toLowerCase()]
+export const ogHpMult = f => (ogRow(f)?.hp || 1) * (weakRow(f)?.hp || 1)
+export const ogSpeedMult = f => (ogRow(f)?.spd || 1) * (weakRow(f)?.spd || 1)
+export const isOgFighter = f => !!ogRow(f) || !!weakRow(f)?.aggro   // OG roster member (OG_TABLE) or an aggro weak-tier row — ai.js gives these CPUs an aggression overlay

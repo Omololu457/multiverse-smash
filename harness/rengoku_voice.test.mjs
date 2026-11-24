@@ -149,8 +149,8 @@ try {
   check("…at the windup: detonation damage has NOT landed yet", inPool(logEarly, ultPool) && dmgEarly === 0, `dmgEarly=${dmgEarly}`);
   check("…and the freeze-cinematic is active (line rode the activation, not the impact)", cineActiveEarly, `cineActive=${cineActiveEarly}`);
   // let the cinematic run to the detonation beat — confirm damage lands LATER and NO second ult line fires there
-  await page.waitForFunction(() => { const p2 = window.__harness.p2(); return (p2.maxHealth - p2.health) > 0; }, null, { timeout: 12000, polling: 16 }).catch(() => {});
-  await page.waitForFunction(() => !(window.__harness.rengokuUltCine && window.__harness.rengokuUltCine().active), null, { timeout: 12000, polling: 32 }).catch(() => {});
+  await page.waitForFunction(() => { const p2 = window.__harness.p2(); return (p2.maxHealth - p2.health) > 0; }, null, { timeout: 40000, polling: 16 }).catch(() => {});
+  await page.waitForFunction(() => !(window.__harness.rengokuUltCine && window.__harness.rengokuUltCine().active), null, { timeout: 40000, polling: 32 }).catch(() => {});
   const logFull = await sfxLog();
   const dmgFull = (await p2()).maxHealth - (await p2()).health;
   const ultCount = logFull.filter(f => ultPool.includes(f)).length;

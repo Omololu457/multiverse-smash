@@ -178,7 +178,7 @@ try {
   check("counter NEGATES the incoming hit (0 damage taken)", cp1b === cp1, `p1 ${cp1}→${cp1b}`);
   check("counter RIPOSTES (attacker damaged)", p2n.health < cp2, `p2 ${cp2}→${p2n.health}`);
 
-  // ── ULTIMATE (Flame Explosion freeze-cinematic) ──
+  // ── ULTIMATE (freeze-cinematic: breath → "Flame Breathing · Ultimate Technique · Ninth Form: Rengoku" → dash-through cut; 390 f ≈ 6.5 s — waits sized for it) ──
   section("Ultimate: Flame Explosion (freeze-cinematic, cooldown-gated, range-independent)");
   await reset(600);
   const uhp = (await p2()).health;
@@ -187,8 +187,8 @@ try {
   check("U fires Flame Explosion cinematic (caster=rengoku)", st.active && st.casterKey === "rengoku", `active=${st.active}`);
   check("explosion sprite plays through freeze", has(await p1(), "rengoku_ultimate_explosion_uniform"), "");
   check("ultimate is COOLDOWN-gated (not energy)", ((await p1()).ultCooldown || 0) > 0, `ultCd=${(await p1()).ultCooldown}`);
-  await page.waitForFunction(() => window.__harness.rengokuUltCine().struck === true || window.__harness.rengokuUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
-  await page.waitForFunction(() => window.__harness.rengokuUltCine().active === false, null, { timeout: 8000, polling: 16 }).catch(() => {});
+  await page.waitForFunction(() => window.__harness.rengokuUltCine().struck === true || window.__harness.rengokuUltCine().active === false, null, { timeout: 40000, polling: 16 }).catch(() => {});
+  await page.waitForFunction(() => window.__harness.rengokuUltCine().active === false, null, { timeout: 40000, polling: 16 }).catch(() => {});
   await waitFrames(6);
   check("guaranteed detonation damage lands (range-independent ~204 = 340×0.60)", (uhp - (await p2()).health) >= 190, `−${uhp - (await p2()).health} @600px`);
   check("cinematic ends, combat resumes", (await cine()).active === false && !has(await p1(), "rengoku_ultimate_explosion_uniform"), "");

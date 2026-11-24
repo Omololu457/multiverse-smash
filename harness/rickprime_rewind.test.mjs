@@ -37,14 +37,15 @@ try {
   check("timer bonus yields MORE time than the pre-rewind clock", post.timer > r.before.timer, `${post.timer} > ${r.before.timer}`)
 
   // ── CASE 2: heavy damage → health genuinely restores ───────────────────────────────────────
-  console.log("\n── CASE 2: rewind after heavy damage (opponent health restores) ──")
+  console.log("\n── CASE 2: rewind after heavy damage (opponent health is CUT 25%, not restored) ──")
   await boot("gohan")
   await fillBuffer(105)
   const r2 = await page.evaluate(()=>{ const hpBefore=window.__harness.rickRewindPreview().b.health; window.__harness.damageP2(750); const hpDamaged=window.__harness.p2().health; const p=window.__harness.rickRewindPreview(); const fired=window.__harness.rickRewindFire(); return {snapHp:p.b.health,hpDamaged,fired} })
   check("opponent was genuinely damaged before the rewind", r2.hpDamaged < r2.snapHp - 400, `damaged ${Math.round(r2.hpDamaged)} vs snap ${Math.round(r2.snapHp)}`)
   await page.waitForFunction(()=>window.__harness.rickRewind().restored===true, null, {timeout:42000,polling:16}).catch(()=>{})
   const hpPost = (await H("p2")).health
-  check("opponent health RESTORED to the snapshot value", Math.abs(hpPost - r2.snapHp) <= 2, `restored ${Math.round(hpPost)} vs snap ${Math.round(r2.snapHp)}`)
+  // 2026-11-24 owner rule change (INTENTIONAL pin change): the foe is NOT restored — they LOSE 25 % of their current health
+  check("opponent health NOT restored — cut 25% from its pre-rewind value", Math.abs(hpPost - Math.round(r2.hpDamaged * 0.75)) <= 2, `now ${Math.round(hpPost)} vs 0.75×${Math.round(r2.hpDamaged)} (snap was ${Math.round(r2.snapHp)})`)
 
   // ── CASE 2b: EDGE — cast with a round timer SHORTER than the (~3s) cinematic → clock freezes, no round-end ──
   console.log("\n── CASE 2b: EDGE — low round timer (< cinematic length) must not end the round mid-rewind ──")

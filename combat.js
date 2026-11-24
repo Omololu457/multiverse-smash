@@ -126,6 +126,7 @@ import { pickChrolloVoice } from "./chrolloVoice.js"   // Chrollo hit-react / gr
 import { pickGhostfaceVoice } from "./ghostfaceVoice.js"   // Ghostface hit-react / offense-bark / taunt / low-health voice pools (audio-only)
 import { playGhostfaceSfx } from "./ghostface_sfx_map.js"   // NEW Scream×MK1 SFX pack (exact "ghostface" only; Billy/.exe keep the old pools)
 import { playHomelanderSfx } from "./homelander_sfx_map.js"   // Homelander MK1 voice/SFX pools (audio-only; gated on rosterKey)
+import { rickPowerOnHit } from "./rickPower.js"   // Rick / Rick Prime: every landed hit steals the foe's energy (rick-gated; 0 for everyone else)
 import { rosterDamageBoost } from "./rosterParity.js"   // roster-parity outgoing-damage boost (listed recent fighters only; 1 for everyone else)
 import { pickSpidermanVoice } from "./spidermanVoice.js"   // Spider-Man effort / hit-react (light/heavy) / knockdown / offense-quip voice pools (audio-only, EN Marvel-Rivals pack)
 
@@ -387,6 +388,7 @@ export function applyScaledDamage(target, rawDamage, opts = {}) {
       console.log(`[DMG] ${opts.source || "?"} raw=${raw} scale=${scale} dealt=${dealt} ${before}->${target.health}`)
     } catch (_) {}
   }
+  if (opts.attacker || opts.boostFrom) rickPowerOnHit(opts.attacker || opts.boostFrom, target, before - target.health, opts)   // RICK / RICK PRIME energy steal (rickPower.js; no-op for everyone else)
   return before - target.health
 }
 

@@ -209,7 +209,12 @@ function drawScreen(ctx, canvas) {
     const st = t - R.watchEnd; if (st < 22) card(c, '◀◀  REWIND', W * 0.5, H * 0.5, 96 * S * (st < 5 ? 1.8 - 0.16 * st : 1), '#ffffff', 1 - seg(st, 14, 22), 0, '#062033')
   }
   if (snap >= 4 && snap < 70) { const pop = snap < 10 ? 1.8 - 0.8 * easeO((snap - 4) / 6) : 1, a = 1 - seg(snap, 56, 70)
-    card(c, 'TIME RESTORED', W * 0.5, H * 0.4, 84 * S * pop, '#ffffff', a, -0.03, '#062033'); card(c, `+${R.bonusSec} SECONDS`, W * 0.5, H * 0.4 + 70 * S, 36 * S, CYAN, a * seg(snap, 10, 16), -0.03) }
+    card(c, 'TIME RESTORED', W * 0.5, H * 0.4, 84 * S * pop, '#ffffff', a, -0.03, '#062033'); card(c, `+${R.bonusSec} SECONDS`, W * 0.5, H * 0.4 + 70 * S, 36 * S, CYAN, a * seg(snap, 10, 16), -0.03)
+    // owner 2026-11-24: only Rick Prime rolls back — the foe is CUT 25 % (health + energy), and under 1 % time just runs out on them
+    const cut = o._primeRewindCut
+    if (cut) { const fp = toScreen((o.x || 0) + (o.w || 60) / 2, (o.y || 0) - 20), cpop = snap < 14 ? 1.9 - 0.9 * easeO(cl((snap - 6) / 8, 0, 1)) : 1, ca = a * seg(snap, 6, 10)
+      card(c, cut.killed ? 'TIME\'S UP' : '−25%', cl(fp.x, 160 * S, W - 160 * S), cl(fp.y, H * 0.22, H * 0.7), (cut.killed ? 76 : 64) * S * cpop, RED, ca, 0.05, '#2a0006')
+      if (!cut.killed) card(c, 'HEALTH + ENERGY', cl(fp.x, 160 * S, W - 160 * S), cl(fp.y, H * 0.22, H * 0.7) + 50 * S, 22 * S, '#ffd0d0', ca, 0.05, '#2a0006') } }
   // 11. subtitles
   for (const [a0, a1, txt] of SUBS()) if (t >= a0 && t < a1) subtitle(c, txt, seg(t, a0, a0 + 6) * (1 - seg(t, a1 - 6, a1)), bar)
   return t < R.panEnd + 10

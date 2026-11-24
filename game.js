@@ -9,6 +9,7 @@ import "./cineUlts.js"   // registers every cineRegistry-based cinematic ultimat
 import { startRickPrimeRewindCine, isRickPrimeRewindCineActive } from "./rickPrimeUlt.js"   // Temporal Rewind cinematic overlay
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
+import { applyPrimeRewindRules, rickPowerRoundReset } from "./rickPower.js"   // Rick / Rick Prime power pass: rewind rules + round-reset re-stamp (rickPower.js)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
 import { benCpuDrive } from "./benCpu.js"   // CPU Ben 10 / Albedo: transforms by range + mid-combo alien swaps
 import { benThemeFieldsForSkin, benThemeLast, benThemeCardImage } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES (skin fields + select-screen cards)
@@ -1666,7 +1667,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
   clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
@@ -1707,9 +1708,12 @@ function _restoreRewoundFighter(f, s, keepPosition = false) {
 function _applyRewindSnapshot(snap) {
   if (!snap) return
   const casterIsP1 = rewindState.casterSide === "p1"
+  const _rpC = casterIsP1 ? p1 : p2, _rpF = casterIsP1 ? p2 : p1   // owner 2026-11-24: the foe keeps NOTHING from the snapshot
+  const _rpBefore = { casterHp: _rpC?.health || 0, casterEn: _rpC?.energy || 0, foeHp: _rpF?.health || 0, foeEn: _rpF?.energy || 0, casterSnap: casterIsP1 ? snap.a : snap.b }
   _rewindTeardown()
   _restoreRewoundFighter(p1, snap.a, casterIsP1)    // caster (Rick) stays put; opponent's position rewinds
   _restoreRewoundFighter(p2, snap.b, !casterIsP1)
+  rewindState.result = applyPrimeRewindRules(_rpC, _rpF, _rpBefore, (t, n, o) => applyScaledDamage(t, n, o))   // caster ↑ to his snapshot · foe −25 % hp/energy · <1 % → KO (rickPower.js)
   roundTimer = snap.roundTimer + REWIND_BONUS_FRAMES                  // rewound clock + bonus → MORE time than the round would have had
   // (per-fighter combo state is already reset in _restoreRewoundFighter; no module-level combo counter exists.
   //  Do NOT call camera.update(p1,p2) here — it re-centers/repositions the fighters.)
@@ -5957,7 +5961,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -7190,7 +7194,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -11449,7 +11453,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()

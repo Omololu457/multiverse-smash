@@ -23,9 +23,10 @@ let W = 1280, H = 720, S = 1
 let VX = { sx: 0, sy: 0, z: 1 }                 // the virtual camera's re-blit (screen → zoomed screen)
 const vmap = p => ({ x: (p.x - VX.sx) * VX.z, y: (p.y - VX.sy) * VX.z })
 // VIRTUAL CAMERA keys [script frame, zoom, subject]: f = Rick, t = the foe, mid = between them
-const VCAM = () => [[0, 1, 'f'], [5, 1.5, 'f'], [15, 1.5, 'f'], [21, 1.05, 'mid'], [36, 1, 'mid'], [166, 1, 't'], [180, 1.05, 't'], [188, 1.3, 't'],
-  [210, 1.3, 't'], [214, 1.1, 'f'], [219, 1.55, 'f'], [226, 1.5, 'f'], [231, 1.12, 'mid'], [256, 1.4, 'f'], [263, 1.6, 'f'], [264, 1, 'mid'],
-  [312, 1, 'mid'], [322, 1.4, 'f'], [340, 1.3, 'f'], [352, 1, 'f']]
+// (relative to RICK_ULT's beats, so a retime never desyncs the camera)
+const VCAM = () => [[0, 1, 'f'], [3, 1.65, 'f'], [15, 1.5, 'f'], [21, 1.05, 'mid'], [36, 1, 'mid'], [U.drop, 1, 't'], [U.land + 2, 1.05, 't'], [U.seeks[0], 1.3, 't'],
+  [U.device - 4, 1.3, 't'], [U.device, 1.1, 'f'], [U.device + 5, 1.55, 'f'], [U.count[0], 1.5, 'f'], [U.count[0] + 5, 1.12, 'mid'], [U.suck, 1.4, 'f'], [U.boom - 1, 1.7, 'f'], [U.boom, 1, 'mid'],
+  [U.portal, 1, 'mid'], [U.stepOut + 2, 1.4, 'f'], [U.dance, 1.45, 'f'], [U.dance + 12, 1.6, 'f'], [U.out, 1.5, 'f'], [U.total, 1, 'f']]
 function vcam(sc, k, tp) {
   const f = sc.caster, fp = toScreen((f.x || 0) + (f.w || 60) / 2, (f.y || 0) + (f.h || 100) * 0.5)
   const pt = w => w === 'f' ? fp : w === 't' ? tp : { x: (fp.x + tp.x) / 2, y: (fp.y + tp.y) / 2 }
@@ -197,12 +198,15 @@ const BACKDROP = { grid: bgGrid, cubes: bgCubes, goop: bgGoop, invert: bgInvert,
 // ── one DIMENSION CUT ─────────────────────────────────────────────────────────────────────────────────────────────────
 function dimensionCut(c, sc, D) {
   const f = sc.caster, t = sc.target, L = D.local, hit = U.dimHit, side = D.i & 1 ? -1 : 1, quiet = calm()
-  const inX = W * (0.5 - side * 0.36), outX = W * (0.5 + side * 0.36), cx = W * 0.5, cy = H * 0.6, hPx = H * 0.34
+  const inX = W * (0.5 - side * 0.36), outX = W * (0.5 + side * 0.36), cx = W * 0.5, cy = H * 0.64, hPx = H * 0.42
   // portal-wipe in from the entry portal (the new dimension opens up through it)
   const wipe = easeO(seg(L, 0, 5)), R = Math.hypot(W, H) * wipe
   c.save()
   if (wipe < 1) { c.beginPath(); c.arc(inX, cy - hPx * 0.4, Math.max(1, R), 0, Math.PI * 2); c.clip() }
   BACKDROP[D.d.id](c, sc.real + D.i * 97)
+  // PUNCH-ZOOM on contact: the whole cut slams in on the foe for a beat (held through the hit-stop), then eases back
+  const hU0 = L - hit, pz = quiet || hU0 < 0 ? 0 : hU0 === 0 ? 0.22 : 0.22 * (1 - seg(hU0, 0, 7))
+  if (pz > 0) { const fx0 = cx, fy0 = cy - hPx * 0.5; c.translate(fx0, fy0); c.scale(1 + pz, 1 + pz); c.rotate(side * pz * 0.12); c.translate(-fx0, -fy0) }
   // the foe's path: out of the entry portal → contact at the centre → tumbling into the exit portal
   let px, py, rot, sz = 1, alpha = 1
   if (L <= hit) { const u = sm(L / hit); px = inX + (cx - inX) * u; py = cy - Math.sin(Math.PI * u) * 40 * S; rot = side * (0.4 - 0.4 * u) }
@@ -244,7 +248,10 @@ function dimensionCut(c, sc, D) {
       g.addColorStop(0, 'rgba(255,255,220,1)'); g.addColorStop(0.4, 'rgba(255,170,40,0.9)'); g.addColorStop(1, 'rgba(255,60,0,0)'); c.globalAlpha = 1 - hitU / 16; c.fillStyle = g; c.beginPath(); c.arc(px, cy - hPx * 0.5, r, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1 }
   }
   // the foe (its real sprite, hurt pose), tumbling
-  drawFighter(c, t, px, py, hPx * sz, { flip: -side, rot, alpha })
+  const struck = hitU >= 0 && hitU < 3
+  if (struck) { c.save(); c.translate(px, py); c.scale(1.18, 0.86); c.translate(-px, -py) }   // squash on the hit
+  drawFighter(c, t, px, py, hPx * sz, { flip: -side, rot, alpha, filter: struck && !quiet ? (sc.hold > 0 && (sc.real & 1) ? 'brightness(0) invert(1)' : 'brightness(2.2)') : undefined })
+  if (struck) c.restore()
   if (D.d.id === 'invert') { c.globalCompositeOperation = 'difference'; c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H); c.globalCompositeOperation = 'source-over' }
   // contact: speed lines + flash + shock
   if (hitU >= 0 && hitU < 10 && !quiet) speedLines(c, px, py - hPx * 0.5, 0.45 * (1 - hitU / 10), D.i * 13 + (sc.real >> 1))
@@ -331,10 +338,13 @@ function worldFx(c, sc) {
     if (ca > 0) { c.save(); c.globalAlpha = ca; const g = c.createRadialGradient(cr.x, cr.y, 0, cr.x, cr.y, 220 * z); g.addColorStop(0, 'rgba(160,255,90,0.8)'); g.addColorStop(1, 'rgba(40,120,20,0)')
       c.fillStyle = g; c.beginPath(); c.ellipse(cr.x, cr.y, 220 * z, 40 * z, 0, 0, Math.PI * 2); c.fill(); c.restore() }
   }
+  if (b >= 4 && k < U.landAt) { const L = launchAt(k), p = toScreen(L.x, L.feet), Lr = t._lastFrameDraw
+    if (Lr) drawFighter(c, t, p.x, p.y, Lr.h * z, { rot: -sc.dir * L.u * 5.5, filter: b < 30 ? 'brightness(1.6) sepia(1) hue-rotate(50deg) saturate(3)' : undefined }) }   // the foe, flung + spinning out of the blast
   if (k >= U.landAt && k < U.landAt + 18) { const L = launchAt(k), p = toScreen(L.x, sc.floor); dust(c, p.x, p.y, k - U.landAt, 18, z) }
   // the homecoming portal: Rick strolls out of it
   if (k >= U.portal - 2 && k < U.total) {
-    const p = toScreen(sc.homeX - sc.dir * 6, floorY - 62); portal(c, p.x, p.y, 44 * z, 74 * z, easeO(seg(k, U.portal - 2, U.portal + 6)) * (1 - seg(k, U.out - 4, U.total)), spin)
+    const p = toScreen(sc.homeX - sc.dir * 6, floorY - 62); portal(c, p.x, p.y, 44 * z, 74 * z, easeO(seg(k, U.portal - 2, U.portal + 6)) * (1 - easeO(seg(k, U.stepOut + 6, U.stepOut + 12))), spin)
+    if (k >= U.stepOut + 12 && k < U.stepOut + 26) shock(c, p.x, p.y, k - U.stepOut - 12, 14, 120 * z, GLOW, 6 * z)
     // Rick strolls out IN FRONT of the portal (his real sprite, redrawn over it)
     const L = f._lastFrameDraw
     if (k >= U.stepOut && L) { const fp = toScreen((f.x || 0) + (f.w || 60) / 2, (f.y || 0) + (f.h || 100)); drawFighter(c, f, fp.x, fp.y, L.h * z, { alpha: f._fxAlpha == null ? 1 : f._fxAlpha }) }
@@ -347,8 +357,9 @@ function dust(c, x, y, a, life, z) {
 
 // ── title cut-in ──────────────────────────────────────────────────────────────────────────────────────────────────────
 function titleCard(c, sc, k) {
-  if (k > 34) return
-  const a = k < 3 ? k / 3 : k > 28 ? (34 - k) / 6 : 1, slide = easeO(cl(k / 7, 0, 1)), y0 = H * 0.14, bh = 150 * S
+  k -= 8                                                           // the burp owns the first beat; the title slides in after it
+  if (k < 0 || k > 27) return
+  const a = k < 3 ? k / 3 : k > 21 ? (27 - k) / 6 : 1, slide = easeO(cl(k / 7, 0, 1)), y0 = H * 0.14, bh = 150 * S
   c.save(); c.globalAlpha = a; c.translate((1 - slide) * W, 0)
   c.beginPath(); c.moveTo(0, y0 + 28 * S); c.lineTo(W, y0 - 28 * S); c.lineTo(W, y0 - 28 * S + bh); c.lineTo(0, y0 + 28 * S + bh); c.closePath()
   const g = c.createLinearGradient(0, y0, 0, y0 + bh); g.addColorStop(0, 'rgba(10,40,8,0.94)'); g.addColorStop(1, 'rgba(2,14,4,0.94)'); c.fillStyle = g; c.fill()
@@ -366,7 +377,7 @@ function titleCard(c, sc, k) {
   c.restore()
 }
 const SUBS = () => [[0, 40, 'Wubba lubba dub dub!'], [U.dim0 - 6, U.dim0 + 40, "Let's take the scenic route."], [U.land + 2, U.device - 2, 'Meeseeks — make his day worse.'],
-  [U.device, U.count[1], "It's called a deterrent."], [U.cool, U.total, '…Well, that\'s cool.']]
+  [U.device, U.count[1], "It's called a deterrent."], [U.cool, U.dance + 20, '…Well, that\'s cool.']]
 
 function drawScreen(ctx, canvas) {
   const sc = rickUltScene(); if (!sc) return false
@@ -419,9 +430,18 @@ function drawScreen(ctx, canvas) {
   c.globalAlpha = Math.min(inU, outU); c.fillStyle = GREEN; c.fillRect(0, bar - 2 * S, W, 2 * S); c.fillRect(0, H - bar, W, 2 * S); c.globalAlpha = 1
   // 7. title, the burp, the countdown, BOOM
   titleCard(c, sc, k)
-  if (k >= 3 && k < 26) { const fp = vmap(toScreen(sc.fx0, sc.floor - 70)); card(c, '*BURRRP*', cl(fp.x - 120 * S, 120 * S, W - 120 * S), cl(fp.y, H * 0.36, H * 0.7), 36 * S * (k < 7 ? 1.4 - 0.1 * (k - 3) : 1), '#e8ffd0', 1 - seg(k, 20, 26), 0.12) }
+  if (k >= 2 && k < 24) {   // *BURRRP*: a green gas burst + shock ring off Rick's mouth, and a big wobbling card
+    const mp = vmap(toScreen(sc.fx0 + sc.dir * 10, sc.floor - (sc.caster.h || 100) * 0.82)), a = k - 2, zz = VX.z * camera.zoom
+    if (!quiet) shock(c, mp.x, mp.y, a, 16, 220 * zz, '#c6ff6e', 7 * zz)
+    for (let i = 0; i < 12; i++) { const an = -Math.PI * 0.5 + sc.dir * (0.2 + 1.1 * hash(i, 201)) - 0.4 * sc.dir, v = (2 + 4 * hash(i, 202)) * zz
+      c.fillStyle = `rgba(170,240,110,${0.55 * (1 - seg(a, 6, 22))})`; c.beginPath(); c.arc(mp.x + Math.cos(an) * v * a * 1.6, mp.y + Math.sin(an) * v * a, (6 + 10 * hash(i, 203)) * zz * (0.6 + a / 14), 0, Math.PI * 2); c.fill() }
+    const pop = a < 5 ? 2.0 - 0.2 * a : 1 + 0.04 * Math.sin(a * 1.3)
+    card(c, '*BURRRP*', cl(mp.x - sc.dir * 160 * S, 220 * S, W - 220 * S), cl(mp.y - 50 * S, H * 0.3, H * 0.62), 58 * S * pop, '#e8ffd0', 1 - seg(k, 18, 24), 0.12 * (1 + 0.3 * Math.sin(a * 0.9)), '#1f5a10')
+  }
   U.count.forEach((at, i) => { const a = k - at; if (a >= 0 && a < 12) { const pop = a < 4 ? 1.8 - 0.2 * a : 1; card(c, String(3 - i), W / 2, H * 0.46, 190 * S * pop, i === 2 ? '#ff4a3a' : '#ffffff', 1 - seg(a, 8, 12), 0, '#300') } })
   if (k >= U.device && k < U.boom) card(c, 'SELF-DESTRUCT ARMED', W / 2, bar + 34 * S, 30 * S, (sc.real >> 3) & 1 ? '#ff4a3a' : '#ffffff', seg(k, U.device, U.device + 5), 0, '#300')
+  if (k >= U.dance && k < U.total) { const a = k - U.dance, pop = a < 5 ? 1.8 - 0.16 * a : 1
+    card(c, 'WUBBA LUBBA DUB DUB', W / 2, H * 0.27, 62 * S * pop, '#c6ff6e', seg(a, 0, 3) * (1 - seg(k, U.total - 6, U.total)), -0.05, '#0b3a08') }
   if (b >= 2 && b < 50) { const pop = b < 8 ? 2.2 - 1.2 * easeO((b - 2) / 6) : 1; card(c, 'BOOM.', W / 2, H * 0.34, 150 * S * pop, '#c6ff6e', 1 - seg(b, 38, 50), -0.05, '#0b3a08') }
   // 8. subtitles in Rick's voice
   for (const [a0, a1, txt] of SUBS()) if (k >= a0 && k < a1) subtitle(c, txt, seg(k, a0, a0 + 4) * (1 - seg(k, a1 - 4, a1)), bar)

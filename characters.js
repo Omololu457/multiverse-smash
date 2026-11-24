@@ -2743,17 +2743,22 @@ const rick = {
   // and 1a scaling knocked his compensating gimmicks (summons/portal/ult) down further — so his under-tuned
   // NEUTRAL is lifted off the floor. speed 80→84 (still below the ~90 mid, keeps the zoner-not-rushdown feel);
   // his weak-backup-melee identity is kept, just no longer rock-bottom (see basic_attacks light/heavy below).
-  stats: { maxHealth: 1050, maxEnergy: 160, attack: 82, defense: 78, speed: 84, maxJumps: 2, jumpPower: 28, dashSpeed: 14, dashDuration: 10, dashCooldownMax: 45 },
+  // 2026-11-24 OWNER POWER PASS ("make him really really fast … buff them a lot, give them power to steal energy"): speed 84→99
+  // (note: the shared round reset re-stamps speed 84 on everyone) + _rickSpd ×1.6 on walk AND dash (physics.js) → faster than any speedster;
+  // HP 1050→1400, ×1.35 outgoing / ÷1.2 incoming normals, ~35 % faster recoveries; every landed hit steals 8 % of the foe's
+  // meter (≥4) — rickPower.js. The OG_TABLE lift (rosterParity.js) still multiplies on top of these.
+  stats: { maxHealth: 1400, maxEnergy: 160, attack: 100, defense: 92, speed: 99, maxJumps: 2, jumpPower: 32, dashSpeed: 30, dashDuration: 12, dashCooldownMax: 20 },
+  damageMultiplier: 1.35, defenseMultiplier: 1.2, _rickSpd: 1.6,
   movement: { dashTeleport: true },   // Portal-Behind: double-tap toward opponent (shared teleport system, like Gojo/Sasuke)
   // ZONER identity: keep opponents out with Meeseeks / Rocket / Self-Destruct. Melee (light/heavy)
   // is deliberately BACKUP — lower damage and range than a brawler.
   basic_attacks: {
-    light:     { damage: 40, startup: 5, active: 3, recovery: 10, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 62, rangeY: 46 },   // jab — Stage 3d: 34→40 (off the normals floor; still backup melee, EFF 24)
-    heavy:     { damage: 72, startup: 9, active: 4, recovery: 20, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 74, rangeY: 50 },   // side kick — Stage 3d: 60→72 (off the normals floor; EFF 43, still below brawlers)
-    upAttack:  { type: "launcher", damage: 56, startup: 8, active: 4, recovery: 17, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },
-    airAttack: { damage: 44, startup: 6, active: 3, recovery: 11, hitstun: 13, knockbackX: 3, knockbackY: -2 },
+    light:     { damage: 40, startup: 4, active: 3, recovery: 6, hitstun: 12, knockbackX: 3, knockbackY: 0, rangeX: 62, rangeY: 46 },   // jab — Stage 3d: 34→40 (off the normals floor; still backup melee, EFF 24)
+    heavy:     { damage: 72, startup: 7, active: 4, recovery: 13, hitstun: 18, knockbackX: 6, knockbackY: 1, rangeX: 74, rangeY: 50 },   // side kick — Stage 3d: 60→72 (off the normals floor; EFF 43, still below brawlers)
+    upAttack:  { type: "launcher", damage: 56, startup: 7, active: 4, recovery: 11, hitstun: 20, knockbackX: 2, knockbackY: -8, launch: 10 },
+    airAttack: { damage: 44, startup: 5, active: 3, recovery: 7, hitstun: 13, knockbackX: 3, knockbackY: -2 },
     // downAir: intentionally ABSENT — no art exists (genuinely missing, not substituted). downTilt (poop) DEFERRED. See RICK_ASSET_MAP.md.
-    grab:      { damage: 30, startup: 6, active: 3, recovery: 14, hitstun: 18, throwForceX: 5, throwForceY: -3 }
+    grab:      { damage: 30, startup: 5, active: 3, recovery: 9, hitstun: 18, throwForceX: 5, throwForceY: -3 }
   },
   // Actual behaviour lives in executeRickSpecial / executeRickUltimate (abilities.js).
   // This data block is for the kit/HUD panels. Special button: neutral = Meeseeks Box,
@@ -2762,9 +2767,9 @@ const rick = {
     meeseeksBox: { cost: 30, subtype: "summon", summonId: "meeseeks", effect: "throws a Meeseeks that rushes the opponent (no cap — multiple can be active at once)" },
     rocket:      { cost: 40, effect: "Up + Special: rockets Rick upward AND damages anyone caught in the launch path" }
   },
-  ultimate: { name: "Self-Destruct", cost: 140, description: "Instant proximity AOE blast — only connects if the opponent is close enough. Costs Rick 15% of his max HP to detonate (non-lethal) on top of the near-max meter cost." },
+  ultimate: { name: "Self-Destruct", cost: 140, description: "Point-blank it detonates at once; from ANY range Rick fires a portal shot — if it reaches the foe he portals in and the whole multiverse Self-Destruct plays out (300 raw). Costs Rick 15% of his max HP (non-lethal) on top of the near-max meter cost; a blocked / dodged shot still spends both." },
   transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  transformations: { base: { damageMultiplier: 1.35, speedMultiplier: 1, defenseMultiplier: 1.2 } },   // owner power pass 2026-11-24 (the base form is what the engine applies at spawn / round start)
   // Rick has NO dedicated intro sprite (never cataloged). Without this, the intro state
   // falls back to the shared "transform" slot — which Rick lacks — and sprite.js draws its
   // 128px NULL/fallback box (the "floating + garbled frames" intro bug). introPool:["idle"]
@@ -2857,13 +2862,16 @@ const rickPrime = {
   archetypes: ["ranged", "gadgets"],
   primary: "ranged", secondary: ["gadgets"],
   traits: { hasEnergy: true, energyType: "portal_tech", mobility: "high", scaling: "burst", animeMovement: false },
-  stats: { maxHealth: 1120, maxEnergy: 180, attack: 92, defense: 82, speed: 88, maxJumps: 2, jumpPower: 30, dashSpeed: 18, dashDuration: 10, dashCooldownMax: 38 },
+  // 2026-11-24 OWNER POWER PASS (same as Rick): speed 88→99 + _rickSpd ×1.6 walk/dash, HP 1120→1500, ×1.35 out / ÷1.2 in,
+  // ~35 % faster recoveries, every landed hit steals 10 % of the foe's meter (≥5, rickPower.js) on top of his Energy Siphon.
+  stats: { maxHealth: 1500, maxEnergy: 180, attack: 104, defense: 94, speed: 99, maxJumps: 2, jumpPower: 33, dashSpeed: 30, dashDuration: 12, dashCooldownMax: 20 },
+  damageMultiplier: 1.35, defenseMultiplier: 1.2, _rickSpd: 1.6,
   basic_attacks: {
-    light:     { damage: 55, startup: 4, active: 3, recovery: 10, hitstun: 13, knockbackX: 3, knockbackY: 0 },
-    heavy:     { damage: 95, startup: 8, active: 4, recovery: 18, hitstun: 19, knockbackX: 7, knockbackY: 1 },
-    upAttack:  { damage: 75, startup: 7, active: 4, recovery: 16, hitstun: 21, knockbackX: 2, knockbackY: -8 },
-    airAttack: { damage: 65, startup: 5, active: 3, recovery: 10, hitstun: 14, knockbackX: 3, knockbackY: -2 },
-    downAir:   { damage: 90, startup: 9, active: 4, recovery: 15, hitstun: 19, knockbackX: 1, knockbackY: 10 }
+    light:     { damage: 55, startup: 3, active: 3, recovery: 6, hitstun: 13, knockbackX: 3, knockbackY: 0 },
+    heavy:     { damage: 95, startup: 6, active: 4, recovery: 12, hitstun: 19, knockbackX: 7, knockbackY: 1 },
+    upAttack:  { damage: 75, startup: 6, active: 4, recovery: 10, hitstun: 21, knockbackX: 2, knockbackY: -8 },
+    airAttack: { damage: 65, startup: 4, active: 3, recovery: 7, hitstun: 14, knockbackX: 3, knockbackY: -2 },
+    downAir:   { damage: 90, startup: 8, active: 4, recovery: 10, hitstun: 19, knockbackX: 1, knockbackY: 10 }
   },
   specials: {
     primePortalBlast: { cost: 35, damage: 160, startup: 12, active: 5, recovery: 22, hitstun: 26, knockbackX: 11, knockbackY: -2, effect: "extremely powerful multiverse energy attack" },
@@ -2875,12 +2883,12 @@ const rickPrime = {
     // if the foe has a projectile special AND enough energy, THEY pay its cost and Rick fires a copy of THEIR exact
     // projectile back at them; else a green fizzle (no damage). Rick's cost is only the modest read — the projectile's
     // real cost is paid by the target. Damage/art come from whichever projectile is captured (reads their kit, never mutates it).
-    energySiphon:     { cost: 15, subtype: "steal", effect: "Energy Siphon (Back+Special — hold AWAY from the opponent) — steal + fire back the foe's own projectile (they pay its cost); fizzles vs a foe with no projectile or too little energy" },
+    energySiphon:     { cost: 10, subtype: "steal", effect: "Energy Siphon (Back+Special — hold AWAY from the opponent) — steal + fire back the foe's own projectile (they pay its cost); fizzles vs a foe with no projectile or too little energy" },
     pauseTime:        { cost: 55, subtype: "timestop", effect: "Pause Time (Down+Special) — freeze the opponent in place for ~2.2s while Rick keeps moving/attacking freely; cooldown-gated (a SPECIAL, not the ultimate)" }
   },
-  ultimate: { name: "Temporal Rewind", cost: 150, effect: "Rewinds the whole match ~10s (both fighters' health/position/energy + the round timer roll back to a buffered snapshot) then ADDS 10s bonus time on top. Blocked while either side is mid-cinematic; restores to a clean neutral stance. (game.js-owned rewind buffer)" },
+  ultimate: { name: "Temporal Rewind", cost: 150, effect: "Rewinds the match ~10s — ONLY Rick Prime's health/energy roll back (never down); the foe LOSES 25% of their current health + energy each time, and dies outright under 1%. The foe's position + the round timer roll back to a buffered snapshot, then 10s bonus time is ADDED on top. Blocked while either side is mid-cinematic; restores to a clean neutral stance. (game.js-owned rewind buffer)" },
   transformationOrder: ["base"],
-  transformations: { base: { damageMultiplier: 1, speedMultiplier: 1, defenseMultiplier: 1 } },
+  transformations: { base: { damageMultiplier: 1.35, speedMultiplier: 1, defenseMultiplier: 1.2 } },   // owner power pass 2026-11-24 (the base form is what the engine applies at spawn / round start)
   portrait: "./rick_portrait__rickprime.png",   // base Rick's stand-crop recolored (dark jacket / red accent) — see tools/gen_rickprime_recolor.py
   hasSprites: true, spriteScale: 1.85,          // real art now: base Rick's sheets recolored to __rickprime (matches rick.spriteScale)
   introPool: ["idle"],                          // same intro fix as base Rick (no dedicated intro sprite → play the grounded idle)

@@ -10,6 +10,9 @@
 //   zip   — streaks in from off-screen in a blink with afterimages and a skid (speedsters)
 //   drop  — falls out of the sky into a superhero landing: cracked floor, debris, camera shake (heavies)
 //   leap  — a big jump in from off-screen behind them, lands in a dust ring (everyone else)
+//   portal — a portal opens FLAT on the floor at the mark, they spring up out of it (the real sprite, clipped by the rim
+//            while still inside), land, the portal shrinks shut, then they do the Rick dance (their taunt strip) to
+//            rick_068 (Rick green / Rick Prime cyan)
 // Presentation only: positions are restored to the mark when it ends / is skipped. Deterministic (hash, no RNG).
 import { camera } from "./camera.js"
 import sound from "./sound.js"
@@ -39,18 +42,23 @@ for (const k of SMOKE) TABLE[k.toLowerCase()] = "smoke"
 for (const k of FLASH) TABLE[k.toLowerCase()] = "flash"
 for (const k of ZIP) TABLE[k.toLowerCase()] = "zip"
 for (const k of DROP) TABLE[k.toLowerCase()] = "drop"
-const LEN = { smoke: 46, flash: 36, zip: 30, drop: 44, leap: 44 }
+// PORTAL entrance (Rick Sanchez green, Rick Prime cyan) — overrides their old FLASH entry
+const PORTAL = { rick: ["#8be04e", "#d9ff9a", "#1f7a1f"], rickprime: ["#3fd8ff", "#c9f6ff", "#0b4a8a"] }
+for (const k of Object.keys(PORTAL)) TABLE[k] = "portal"
+const PT = { open: 12, apex: 24, land: 34, close0: 38, close1: 52, dance: 46, danceLen: 27 * 4 }   // taunt strip = the Rick dance, 27 frames × speed 4
+const LEN = { smoke: 46, flash: 36, zip: 30, drop: 44, leap: 44, portal: PT.dance + PT.danceLen + 4 }
 
 export function entranceKind(f) { return TABLE[key(f)] || "leap" }
 
-let FX = { parts: [], rings: [], cracks: [], pillars: [], flash: 0 }
-export function entranceReset() { FX = { parts: [], rings: [], cracks: [], pillars: [], flash: 0 } }
+let FX = { parts: [], rings: [], cracks: [], pillars: [], portals: [], flash: 0 }
+export function entranceReset() { FX = { parts: [], rings: [], cracks: [], pillars: [], portals: [], flash: 0 } }
 
 // initIntroVariant hook (last in the chain): stash the mark, start the entrance. The fighter's own intro waits.
 export function entranceBegin(f) {
   if (!f || BESPOKE.has(key(f))) return false
   const kind = entranceKind(f)
   f._entr = { kind, t: 0, total: LEN[kind], home: { x: f.x, y: f.y }, facing: f.facing || 1, alpha: 0, col: f.color || "#ffffff" }
+  if (kind === "portal") { f._entr.pal = PORTAL[key(f)]; f._entr.rec = f._fxRecord; f._fxRecord = true }   // sprite.js records the drawn frame → the clipped emerge
   f._introPlaying = false; f._introWaiting = false
   place(f)
   return true
@@ -67,6 +75,8 @@ export function finalizeEntrance(f) {
   f._introWaiting = false
   const E = f._entr; if (!E) return
   f.x = E.home.x; f.y = E.home.y; f.facing = E.facing; f.vx = 0; f.vy = 0; f.onGround = f.grounded = true; f.dashTimer = 0
+  if (E.kind === "portal") { if (f._spriteCastMove === "taunt") { f._spriteCastMove = null; f._spriteCastTimer = 0 }
+    f._fxRecord = E.rec; if (E.rec == null) delete f._fxRecord; FX.portals = FX.portals.filter(p => p.f !== f) }
   f._entr = null
 }
 export const entranceState = f => f?._entr ? { kind: f._entr.kind, t: f._entr.t, total: f._entr.total, alpha: f._entr.alpha, x: f.x, y: f.y } : null
@@ -117,6 +127,29 @@ function place(f) {
       E.alpha = 1
       break
     }
+    case "portal": {
+      const P = PT, feetY = t < P.open ? feet + h + 20
+        : t < P.apex ? feet + h + 20 - (h + 105) * easeOut((t - P.open) / (P.apex - P.open))
+        : t < P.land ? feet - 85 * (1 - ((t - P.apex) / (P.land - P.apex)) ** 2) : feet
+      if (t === 1) { FX.portals.push({ f, x: cx, y: feet, pal: E.pal, seed: hx | 0 }); sfx("warp_wobble_01", 0.85); sfx("charge_hum_rise", 0.4) }
+      if (t === P.open) { sfx("whoosh_medium_01", 0.7); for (let i = 0; i < 18; i++) { const a = -Math.PI * (0.1 + 0.8 * H(i, 61)), s = 3 + 6 * H(i, 63)
+        FX.parts.push({ x: cx + (H(i, 65) - 0.5) * 60, y: feet - 2, vx: Math.cos(a) * s * 0.6, vy: Math.sin(a) * s, g: 0.2, life: 30, max: 30, r: 2 + 3 * H(i, 67), col: i % 2 ? E.pal[0] : E.pal[1], kind: "spark" }) } }
+      if (t === P.land) { camera.shake?.(4, 6); sfx("impact_hit_01", 0.6); FX.rings.push({ x: cx, y: feet, r: 10, vr: 11, life: 18, max: 18, col: E.pal[1], lw: 5, flat: 0.25 })
+        for (let i = 0; i < 10; i++) { const s2 = i % 2 ? 1 : -1; FX.parts.push({ x: cx + s2 * 12, y: feet - 6, vx: s2 * (1.5 + 3.5 * H(i, 71)), vy: -0.5 - H(i, 73), g: -0.01, life: 40, max: 40, r: 10 + 12 * H(i, 77), col: "rgba(170,150,120,0.45)", kind: "dust" }) } }
+      if (t === P.close1 - 4) sfx("warp_wobble_02", 0.6)
+      if (t === P.close1) { for (let i = 0; i < 16; i++) { const a = H(i, 81) * Math.PI * 2, s = 2 + 4 * H(i, 83)
+        FX.parts.push({ x: cx, y: feet - 2, vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.4 - 1.5, g: 0.06, life: 26, max: 26, r: 2 + 2 * H(i, 85), col: i % 2 ? E.pal[0] : "#ffffff", kind: "spark" }) } }
+      if (t === P.dance) { try { sound.playSfxFile?.("rick_068_rick_dance.mp3", null, { owner: f }) } catch (_) {} }
+      f.x = hx; f.y = Math.min(feetY, feet) - h
+      f.onGround = f.grounded = t >= P.land || t < P.open; f.vy = t < P.apex ? -12 : t < P.land ? 12 : 0
+      // inside the portal (feet below the floor) the engine sprite is hidden (0.001 still records the frame) and
+      // drawEntranceOver redraws it clipped by the rim; once clear of the floor the engine draws it normally
+      E.emerge = t >= P.open && t < P.land && feetY > feet - 2 ? { feetY } : null
+      E.alpha = t < P.open ? 0 : E.emerge ? 0.001 : 1
+      if (E.emerge) f.y = feetY - h
+      if (t >= P.dance) { f._spriteCastMove = "taunt"; f._spriteCastTimer = 999 }
+      break
+    }
     default: {   // leap
       const L = 30
       if (t <= L) { const k = t / L, nx = hx - d * 560 * (1 - ease(k)), ny = hy - 300 * Math.sin(Math.PI * Math.min(1, k * 0.98 + 0.02)) * (1 - k * 0.15)
@@ -131,7 +164,30 @@ function place(f) {
 function sfx(id, gain) { try { sound.playJuiceSfx?.(id, { gain }) } catch (_) {} }
 
 // ── DRAW (world space) — under the fighters: floor cracks; over: smoke, pillars, rings, sparks, dust ──
+function floorPortal(c, x, y, rx, pal, spin, a) {
+  if (rx < 1 || a <= 0.01) return
+  const ry = rx * 0.26
+  c.save(); c.globalAlpha = a
+  const g = c.createRadialGradient(x, y, 0, x, y, rx * 1.7); g.addColorStop(0, pal[1]); g.addColorStop(0.45, pal[0]); g.addColorStop(1, "rgba(0,0,0,0)")
+  c.save(); c.translate(x, y); c.scale(1, ry / rx); c.globalAlpha = a * 0.55; c.fillStyle = g; c.beginPath(); c.arc(0, 0, rx * 1.7, 0, Math.PI * 2); c.fill(); c.restore()
+  c.fillStyle = pal[2]; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = pal[0]; c.beginPath(); c.ellipse(x, y, rx * 0.9, ry * 0.86, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = pal[1]; c.beginPath(); c.ellipse(x, y, rx * 0.5, ry * 0.5, 0, 0, Math.PI * 2); c.fill()
+  c.lineCap = "round"
+  for (let i = 0; i < 6; i++) { const r0 = 0.25 + 0.12 * i, a0 = spin * (1 + 0.15 * i) + i * 1.9; c.strokeStyle = i % 2 ? pal[2] : "#ffffff"; c.lineWidth = 2.5
+    c.beginPath(); c.ellipse(x, y, rx * r0, ry * r0, 0, a0, a0 + 2.3); c.stroke() }
+  c.strokeStyle = pal[2]; c.lineWidth = 3; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.stroke()
+  for (let i = 0; i < 12; i++) { const an = spin * 0.7 + i * 0.52; c.fillStyle = i % 3 ? pal[1] : "#ffffff"; c.fillRect(x + Math.cos(an) * rx * 1.05 - 2, y + Math.sin(an) * ry * 1.05 - 2, 4, 4) }
+  c.restore()
+}
+// the portal's radius at entrance frame t (opens, holds, shrinks shut)
+const portalR = t => t < PT.open ? 70 * easeOut(t / PT.open) : t < PT.close0 ? 70 + 4 * Math.sin(t * 0.6) : 70 * (1 - ease(cl((t - PT.close0) / (PT.close1 - PT.close0))))
 export function drawEntranceUnder(c) {
+  for (const p of FX.portals) { const E = p.f?._entr; if (!E) continue; const t = E.t; floorPortal(c, p.x, p.y, portalR(t), p.pal, t * 0.25, 1)
+    if (t < PT.close1) { c.save(); c.globalAlpha = 0.5 * (1 - cl((t - PT.close0) / 14)); const g = c.createLinearGradient(0, p.y - 160, 0, p.y); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, p.pal[0])
+      c.fillStyle = g; const w = portalR(t) * 1.4; c.fillRect(p.x - w / 2, p.y - 160, w, 160); c.restore() }   // a column of portal light
+  }
+  FX.portals = FX.portals.filter(p => p.f?._entr && p.f._entr.t < PT.close1 + 2)
   if (!FX.cracks.length) return
   c.save()
   for (const q of FX.cracks) { q.r = Math.min(q.rMax, q.r + 22); q.life--; const a = Math.min(1, q.life / 60)
@@ -143,6 +199,16 @@ export function drawEntranceUnder(c) {
   c.restore()
 }
 export function drawEntranceOver(c) {
+  for (const p of FX.portals) {   // the emerge: the real sprite rising out of the hole, clipped by the rim (above the floor + inside the ellipse)
+    const f = p.f, E = f?._entr, L = f?._lastFrameDraw; if (!E || !E.emerge || !L || !L.img) continue
+    const rx = portalR(E.t), ry = rx * 0.26
+    c.save(); c.beginPath(); c.rect(p.x - 400, p.y - 1200, 800, 1200); c.ellipse(p.x, p.y, rx * 0.92, ry * 0.9, 0, 0, Math.PI * 2); c.clip()
+    c.imageSmoothingEnabled = false
+    const dy = (E.emerge.feetY - (f.h || 100)) - f.y   // (f.y already sits at the emerge height; the recorded rect is from the last draw)
+    if (L.flip) { c.translate(L.x + L.w, L.y + dy); c.scale(-1, 1); c.drawImage(L.img, L.sx, L.sy, L.sw, L.sh, 0, 0, L.w, L.h) }
+    else c.drawImage(L.img, L.sx, L.sy, L.sw, L.sh, L.x, L.y + dy, L.w, L.h)
+    c.restore()
+  }
   if (!FX.parts.length && !FX.rings.length && !FX.pillars.length) return
   c.save()
   for (const p of FX.pillars) { p.life--; const a = p.life / p.max, k = 1 - a, w = p.w * (1 - k * 0.8)

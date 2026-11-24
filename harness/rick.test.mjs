@@ -226,7 +226,7 @@ try {
     check("Rick PAYS ~15% max HP to self-destruct (Stage 3d risk lever)", Math.abs((b.health - a.health) - selfCost) <= 1, `rick hp ${b.health} → ${a.health} (cost ${(b.health - a.health).toFixed(0)}, expected ~${selfCost})`);
     check("ultimate costs near-max meter (~140)", (b.energy - a.energy) >= 130, `spent ${(b.energy - a.energy).toFixed(0)}`);
     check("connecting cast plays the SELF-DESTRUCT cinematic (replaces the instant selfDestructBlast FX)", cine.active === true, JSON.stringify(cine));
-    check("cinematic total = the legacy blast (180 RAW → ~108 EFF)", Math.abs((hp0 - hp1) - 108) <= 3, `dealt ${(hp0 - hp1).toFixed(0)}`);
+    check("cinematic total = the buffed blast (300 RAW → ~176 EFF; legacy 180 → 108)", Math.abs((hp0 - hp1) - 176) <= 5, `dealt ${(hp0 - hp1).toFixed(0)}`);
     await page.screenshot({ path: path.join(OUT, "RK_selfdestruct.png") });
   }
   await waitFrames(30);

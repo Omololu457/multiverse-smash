@@ -37,6 +37,7 @@ export function startRickPrimeRewindCine(caster, opp, getRewind) {
   Object.assign(c, { active: true, caster, opp, rw: getRewind, fired: new Set(), ghosts: [], lastT: -1,
     save: { cR: caster._fxRecord, oR: opp._fxRecord } })
   caster._fxRecord = true; opp._fxRecord = true             // sprite.js records the exact frame drawn → real-sprite afterimages / colour redraw
+  delete opp._primeRewindCut; delete caster._primeRewindResult  // rickPower.js applyPrimeRewindRules stamps this rewind's result at the restore
   return true
 }
 export function endRickPrimeRewindCine() {

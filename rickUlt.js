@@ -1,6 +1,6 @@
 // rickUlt.js — Rick Sanchez (rick) "SELF-DESTRUCT" as a FROZEN CINEMATIC (2026-11-24, owner: "make more cinematic ultimates …
 // do it the same way you did with the other ones"). Keeps the essence of the legacy ult (executeRickUltimate in abilities.js:
-// 140 meter + Rick pays 15% of his max HP, a point-blank green blast that only works up close, 180 RAW total → 108 EFF) but
+// 140 meter + Rick pays 15% of his max HP, a point-blank green blast that only works up close) but
 // plays it as Rick's genius chaos:
 //   WUBBA LUBBA DUB DUB → portal-gun point-blank shot knocks the foe through a portal → the foe is bounced through FIVE
 //   wildly different dimensions (procedural backdrops, one hit in each) → dropped back home into a MEESEEKS SWARM → Rick pulls
@@ -12,21 +12,28 @@
 // runs exactly as before (chip on block, self-cost on whiff, …).
 // SIM: everything is a pure function of the SCRIPT frame (c.k) + the layout captured at the cast; hit-stop holds the script
 // frame. No Math.random / clock. Damage: applyScaledDamage(target, raw, { source: 'ability' }) — the SAME call + scale the
-// legacy blast used, split over the beats (10 + 5×12 + 3×10 + 80 = 180 RAW). Render: rickUltFx.js reads rickUltScene().
+// legacy blast used, split over the beats. 2026-11-24 owner buffs: 180 → 235 → 300 RAW (16 + 5×21 + 3×17 + 128), ≈108 →
+// ≈180 effective; meter cost + self-cost unchanged. AND it no longer needs close range: out of the 220px blast, Rick fires
+// a PORTAL SHOT (a real projectile, hitFlag _rickUltShot) — if it reaches the foe anywhere on screen he portals in next to
+// them and the cinematic plays; a miss (blocked / dodged / off-screen) has still cost the meter + the self-cost.
+// Render: rickUltFx.js reads rickUltScene().
 import { registerUltCast, registerFreezeCine } from './cineRegistry.js'
 import { applyScaledDamage } from './combat.js'
+import { spawnProjectile, activeProjectiles } from './abilities.js'
+import { sound } from './sound.js'
 import './rickUltFx.js'
 
 export const RICK_ULT = {
   cost: 140, selfFrac: 0.15, radius: 220,                    // legacy numbers (executeRickUltimate)
-  raw: { shot: 10, dim: 12, seek: 10, boom: 80 },             // 10 + 5×12 + 3×10 + 80 = 180 RAW (legacy DAMAGE = 180)
+  raw: { shot: 16, dim: 21, seek: 17, boom: 128 },            // 16 + 5×21 + 3×17 + 128 = 300 RAW (legacy 180; owner buffs → 235 → 300)
+  shotSpeed: 30, shotLife: 52,                                // the long-range PORTAL SHOT: 30 px/f × 52 f ≈ 1560 px (any on-screen foe)
   shot: 22, intoPortal: 34,                                   // portal-gun shot → knocked into the wall portal
-  dim0: 36, dimLen: 26, dims: 5, dimHit: 11,                  // dimension cuts [36, 166): contact at local frame 11
-  drop: 166, land: 178,                                       // home again: out of a sky portal, slam
-  seeks: [188, 196, 204],                                     // Meeseeks swarm contacts
-  device: 214, count: [226, 238, 250], suck: 256, boom: 264,  // the device, the countdown, the detonation
-  landAt: 302, portal: 312, stepOut: 320, cool: 326, out: 340, total: 352,
-  stop: { shot: 5, dim: 6, seek: 3, land: 4, boom: 18 },
+  dim0: 36, dimLen: 21, dims: 5, dimHit: 9,                   // dimension cuts [36, 141): contact at local frame 9 (snappier)
+  drop: 141, land: 153,                                       // home again: out of a sky portal, slam
+  seeks: [163, 171, 179],                                     // Meeseeks swarm contacts
+  device: 189, count: [201, 213, 225], suck: 231, boom: 239,  // the device, the countdown, the detonation
+  landAt: 289, portal: 299, stepOut: 307, cool: 313, dance: 323, out: 356, total: 368,
+  stop: { shot: 7, dim: 9, seek: 4, land: 5, boom: 30 },
 }
 const U = RICK_ULT
 export const RICK_DIMENSIONS = [
@@ -55,21 +62,60 @@ export function dimAt(k) {
 }
 
 // ── CAST (abilities.js triggerUltimate → castRegisteredUlt) ──────────────────────────────────────────────────────────
+// the long-range PORTAL SHOT in flight (sim state; the projectile itself lives in the engine's projectile list)
+const shot = { caster: null, target: null, proj: null, context: null }
+const shotLive = () => !!(shot.caster && shot.proj && activeProjectiles.includes(shot.proj))   // still in flight (a hit / block / expiry removes it)
+export const getRickUltShot = () => ({ live: shotLive(), hit: !!shot.caster?._rickUltShot, x: shot.proj ? Math.round(shot.proj.x) : null })
 function cast(f, context) {
   if (!f || c.active) return undefined
   const getOpp = typeof context?.getOpponent === 'function' ? context.getOpponent : (x => x?.side === 'p1' ? context?.p2 : context?.p1)
   const t = getOpp(f)
-  // only the CONNECTING detonation becomes the cinematic; everything else is the legacy ult, unchanged
-  if (!t || t.eliminated || !(t.health > 0) || (t.invulnTimer || 0) > 0 || t.isBlocking) return undefined
+  if (!t || t.eliminated || !(t.health > 0)) return undefined
   if (!f.infiniteEnergy && (f.energy || 0) < U.cost) return undefined
-  if (Math.hypot(ctrX(t) - ctrX(f), ctrY(t) - ctrY(f)) > U.radius) return undefined
+  const near = Math.hypot(ctrX(t) - ctrX(f), ctrY(t) - ctrY(f)) <= U.radius
+  // point-blank + hittable → the cinematic right away; blocked / invulnerable up close → the legacy blast (chip etc.)
+  if (near && ((t.invulnTimer || 0) > 0 || t.isBlocking)) return undefined
   if (!f.infiniteEnergy) f.energy = Math.max(0, (f.energy || 0) - U.cost)
   f.health = Math.max(1, (f.health || 0) - Math.round((f.maxHealth || 1050) * U.selfFrac))   // the self-destruct cost (non-lethal), on cast as before
+  if (near) { begin(f, t, context); return true }
+  // OUT OF RANGE → fire the PORTAL SHOT. It is a normal projectile (blockable, dodgeable, can whiff); its hitFlag tells us it
+  // connected and the cinematic starts on the next sim frame (pollShot, run from the freeze-cine active() query).
+  const d = ctrX(t) >= ctrX(f) ? 1 : -1
+  f.facing = d; f._rickUltShot = false
+  let proj = null
+  try {
+    proj = spawnProjectile(f, 'rickUltPortalShot', {
+      damage: 1, speed: U.shotSpeed, lifetime: U.shotLife, vx: d * U.shotSpeed, vy: 0, hitstun: 30, knockbackX: 0, knockbackY: 0,
+      w: 44, h: 26, color: '#8be04e', hitFlag: '_rickUltShot', isSpecial: true,
+      spawnX: d === 1 ? f.x + (f.w || 60) : f.x - 44, spawnY: f.y + (f.h || 100) * 0.34,
+    }, context)
+  } catch (_) {}
+  Object.assign(shot, { caster: f, target: t, proj, context })
+  f._spriteCastMove = 'gunShot'; f._spriteCastTimer = 18
+  f.attackCooldown = Math.max(f.attackCooldown || 0, 14)
+  try { sound.playJuiceSfx?.('warp_wobble_01', { gain: 0.8 }) } catch (_) {}
+  try { sound.playSfxFile?.('rick_029_wubba_lubba_dub_dub.mp3', null, { owner: f }) } catch (_) {}   // the activation bark (ultActivate pool), hit or miss
+  return true
+}
+// called every sim frame (from active()): the shot connected → Rick portals in beside the foe and the cinematic begins
+function pollShot() {
+  const f = shot.caster; if (!f || c.active) return
+  if (f._rickUltShot) {
+    const t = shot.target, ctx = shot.context
+    f._rickUltShot = false; shot.caster = null; shot.proj = null
+    if (!t || t.eliminated || !(t.health > 0)) return
+    const d = ctrX(t) >= ctrX(f) ? 1 : -1, stage = ctx?.worldWidth || 3200
+    const nx = Math.max(40, Math.min(stage - 40, ctrX(t) - d * 110))   // PORTAL IN next to them (the cine plays at point-blank as before)
+    f.x = Math.round(nx - (f.w || 60) / 2)
+    begin(f, t, ctx, true)
+  } else if (!shotLive()) { shot.caster = null; shot.proj = null }   // whiffed / blocked / expired — the meter is already spent
+}
+function begin(f, t, context, fromRange = false) {
   const stage = context?.worldWidth || 3200, d = ctrX(t) >= ctrX(f) ? 1 : -1
   const floor = Math.max(feet(f), feet(t))
   Object.assign(c, {
     active: true, k: 0, real: 0, hold: 0, caster: f, target: t, stage, dir: d, floor,
-    fx0: ctrX(f), tx0: ctrX(t), hp0: t.health, hits: 0, dmg: 0, ko: false, done: {}, impacts: [], cam: null, camSaved: null,
+    fx0: ctrX(f), tx0: ctrX(t), hp0: t.health, hits: 0, dmg: 0, ko: false, done: {}, impacts: [], cam: null, camSaved: null, fromRange,
     save: { fA: f._fxAlpha, tA: t._fxAlpha, fR: f._fxRecord, tR: t._fxRecord },
   })
   const X = v => clamp(v, 60, stage - 60)
@@ -81,7 +127,6 @@ function cast(f, context) {
   t.hitstun = Math.max(t.hitstun || 0, 9999)
   f._fxRecord = true; t._fxRecord = true                      // sprite.js records the exact frame drawn → the dimension cuts redraw the real sprites
   place()
-  return true
 }
 
 function strike(raw, kind, power = 0.6) {
@@ -122,6 +167,7 @@ function update(ctx = {}) {
 function beats(ctx, k) {
   const cam = ctx.camera
   if (k === 0) { sfx(ctx, 'sting_pitch_rise_hold', 0.9); voice(ctx, 'rick_029_wubba_lubba_dub_dub.mp3') }   // the activation bark (legacy pool ultActivate)
+  if (k === 3) { cam?.shake?.(9, 12); sfx(ctx, 'pitch_drop_slowmo', 0.55); sfx(ctx, 'boom_medium_02', 0.45) }   // *BURRRP*
   if (k === 12) sfx(ctx, 'charge_hum_rise', 0.6)
   if (k === U.shot - 4) sfx(ctx, 'warp_wobble_01', 0.75)
   if (k === U.shot) { strike(U.raw.shot, 'shot', 0.5); c.hold = U.stop.shot; cam?.shake?.(8, 8); sfx(ctx, 'crack_sizzle_bright', 0.8); sfx(ctx, 'impact_hit_01', 0.8); dmgNumber(ctx) }
@@ -161,6 +207,8 @@ function beats(ctx, k) {
   if (k === U.landAt) { cam?.shake?.(12, 12); c.impacts.push({ kind: 'land', k, r: c.real, power: 0.6, dealt: 0 }); sfx(ctx, 'boom_medium_01', 0.75); sfx(ctx, 'impact_hit_01', 0.7) }
   if (k === U.portal) sfx(ctx, 'warp_wobble_01', 0.8)
   if (k === U.cool) voice(ctx, 'rick_031_oh_shit_well_that_s_cool.mp3')
+  if (k === U.stepOut + 10) sfx(ctx, 'warp_wobble_02', 0.7)                 // the portal snaps shut behind him
+  if (k === U.dance) { sfx(ctx, 'sting_pitch_rise_hold', 0.5); cam?.shake?.(4, 6) }
 }
 
 // the foe's launch after the detonation (centre x, feet y) — pure
@@ -195,12 +243,12 @@ function place() {
   const D = dimAt(k)
   if (k < U.shot - 8) cast_(f, 'taunt')
   else if (k < U.intoPortal) cast_(f, 'gunShot')
-  else if (D) cast_(f, ['gunShot', 'portalTravel', 'meeseeksThrow', 'rocket', 'gunShot'][D.i])
+  else if (D) cast_(f, ['gunShot', 'up', 'meeseeksThrow', 'heavy', 'rocket'][D.i])
   else if (k < U.device) cast_(f, 'meeseeksThrow')
   else if (k < U.boom) cast_(f, 'selfDestruct')
   else if (k < U.stepOut) cast_(f, 'portalTravel')
-  else if (k < U.cool + 8) cast_(f, 'walk')
-  else cast_(f, 'taunt')
+  else if (k < U.dance) cast_(f, 'walk')
+  else cast_(f, 'taunt', 200)                                    // the Rick dance (his taunt strip) to close it out
 }
 
 function camera(cam, k) {
@@ -209,7 +257,7 @@ function camera(cam, k) {
   const last = c.impacts[c.impacts.length - 1], since = last ? c.k - last.k : 99
   const punch = since < 6 ? 0.25 * (1 - since / 6) * (last.power || 1) : 0
   const box = (x, feetY, h = 100) => ({ x: x - 30, y: feetY - h, w: 60, h })
-  if (k < U.shot - 6) cam.focusOnFighter(f, 1.75)                                               // push in on Rick: the burp
+  if (k < U.shot - 6) cam.focusOnFighter(f, k >= 3 && k < 9 ? 1.9 : 1.75)                                               // push in on Rick: the burp
   else if (k < U.dim0) cam.focusBetween?.(f, box(c.portalX, c.floor), 1.3 + punch)              // the shot + the wall portal
   else if (k < U.drop) cam.focusOnFighter(box(c.portalX, c.floor), 1.2)                         // (the multiverse cuts own the screen)
   else if (k < U.device) cam.focusOnFighter(t, 1.45 + punch)                                    // the drop + the Meeseeks pile
@@ -233,7 +281,11 @@ function restoreFighters(final) {
 function finish() { restoreFighters(true); restoreCam(); reset() }
 const reset = () => { for (const k of Object.keys(c)) delete c[k]; c.active = false }
 // Every reset path (round reset, rematch, KO teardown, menu): restore both fighters and the camera, drop the scene.
-export function clear() { if (!c.active) return; restoreFighters(false); restoreCam(); reset() }
+export function clear() { if (shot.caster) { shot.caster._rickUltShot = false; shot.caster = null; shot.proj = null }
+  if (!c.active) return; restoreFighters(false); restoreCam(); reset() }
 
-registerFreezeCine('rick_self_destruct', { active: isRickUltActive, update, clear })
+// active() is queried by game.js once per sim frame (anyFreezeCineActive) — it also promotes a connected portal shot into
+// the cinematic. Starting it is a pure function of sim state (the projectile's hitFlag), so it is deterministic whichever
+// query of the frame sees it first.
+registerFreezeCine('rick_self_destruct', { active: () => { pollShot(); return isRickUltActive() }, update, clear })
 registerUltCast('rick', cast)

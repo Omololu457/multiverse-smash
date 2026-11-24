@@ -29,8 +29,9 @@ const EXPECT_SELF = Math.round(RICK.stats.maxHealth * 0.15)   // 15% of max, non
 section("A. neutral buff — light/heavy/speed lifted off the floor")
 check("light 34 → 40 (off the normals floor)", RICK.basic_attacks.light.damage === 40, `light=${RICK.basic_attacks.light.damage}`)
 check("heavy 60 → 72 (off the normals floor)", RICK.basic_attacks.heavy.damage === 72, `heavy=${RICK.basic_attacks.heavy.damage}`)
-check("speed 80 → 84 (off the absolute speed floor, still < ~90 mid)", RICK.stats.speed === 84, `speed=${RICK.stats.speed}`)
-check("HP floor kept (1050 — frail-zoner identity unchanged)", RICK.stats.maxHealth === 1050)
+// 2026-11-24 owner power pass (INTENTIONAL pin change): "make him really really fast … buff them a lot" — speed 84→99 (+ _rickSpd ×1.4), HP 1050→1400
+check("speed 84 → 99 (owner power pass: really fast)", RICK.stats.speed === 99 && RICK._rickSpd >= 1.3, `speed=${RICK.stats.speed} rickSpd=${RICK._rickSpd}`)
+check("HP 1050 → 1400 (owner power pass)", RICK.stats.maxHealth === 1400)
 
 // ── B. Self-Destruct now costs Rick HP (the risk lever) ──
 section("B. Self-Destruct — detonating costs Rick 15% max HP (non-lethal)")

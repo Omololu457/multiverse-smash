@@ -64,6 +64,7 @@ import { activateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicAct
 import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
 import { activateInosukeBeastCinematic, isInosukeBeastCinematicActive } from "./inosukeBeastCinematic.js"   // Inosuke "Beast Breathing" cinematic specials (no cycle)
 import { startDemonSlayerPreroll } from "./demonSlayerCinematics.js"   // DS-ULT-CINE (Zenitsu / Nezuko ultimate pre-rolls; no cycle)
+import "./narutoUltCinematics.js"   // DS-ULT-CINE (registers the Naruto ult pre-roll scripts)
 import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
@@ -6587,6 +6588,10 @@ export function applyHinataGuutenToProjectiles(hinata) {
     if (!p || p.owner === hinata) continue
     if (Math.hypot((p.x ?? 0) - cx, (p.y ?? 0) - cy) > R) continue
     p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6
+    if (p.radius != null) p.radius *= 0.85
+    activeProjectiles.splice(i, 1)   // spun away
+  }
+}
 // ULTIMATE (Phase 3) — JUUHOU SOSHIKEN (Gentle Step Twin Lion Fists) [CANON]. Hinata shapes her chakra
 // into twin lion-head fists and delivers a guaranteed Gentle-Fist barrage. Inline freeze-cinematic economy
 // (live fighter, i-frame cast → range-independent guaranteed beats, respects opponent i-frames), mirroring
@@ -6624,10 +6629,7 @@ function executeHinataUltimate(fighter, context) {
   try { shakeCamera(context, 6, 16) } catch (_) {}
   return true
 }
-    if (p.radius != null) p.radius *= 0.85
-    activeProjectiles.splice(i, 1)   // spun away
-  }
-}
+// (Guuten loop tail moved above — DS-ULT-CINE fix)
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════
 // GAARA — defensive SAND zoner (rosterKey "gaara"). PHASE 1: a basic SAND BULLET projectile on
@@ -35419,12 +35421,12 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "gogeta":  cast = executeGogetaUltimate(fighter, context); break   // Big Bang Kamehameha — auto-hit screen-clearing nuke
 
       case "naruto":  cast = executeNarutoUltimate(fighter, context);  break
-      case "sakura":  cast = executeSakuraUltimate(fighter, context);  break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
-      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
+      case "sakura":  cast = executeSakuraUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("sakura", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Daichi no Sakebi — gather → screen-wide cherry-petal AOE (3 escalating pulses)
+      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); if (cast) startDemonSlayerPreroll("sasuke_sensei", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Kirin (Raiton set) — Katon Gouryuuka buildup → undodgeable lightning call-down; guaranteed ~198 EFF (Mangekyou/Rinnegan ults = Phases 2-3)
       case "shizuku": cast = executeShizukuUltimate(fighter, context); break   // NEUTRAL = Bloodletting (combo → blood-draw → lifesteal 40% cap 12% maxHP) / DOWN = Spring Cleaning (hose barrage → clear opp projectiles [first 3→belly] + cube traps). _ultVariant stamped in game.js.
       case "shisui_itachi_kids": cast = executeShisuiItachiKidsUltimate(fighter, context); break   // NEUTRAL = Twin Flicker (needs FULL Training Bond): cut-in → 4-point after-image strikes → Itachi blind-spot kunai rain → final pair. Gated on _sikBond===5, not energy.
       case "zoldyck": cast = executeZoldyckUltimate(fighter, context); break   // NEUTRAL = Thunderbolt Barrage (long charge → guaranteed lightning blast beats). DOWN = Godspeed (Phase 3; refunds here). _ultVariant stamped in game.js.
-      case "hinata":  cast = executeHinataUltimate(fighter, context);  break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
+      case "hinata":  cast = executeHinataUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("hinata", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "meruem":  cast = executeMeruemUltimate(fighter, context);  break   // ANT KING'S ONSLAUGHT — menace cut-in → 6-Koma lunge → aura-flash barrage → tail finisher (~guaranteed beats). Down+Ult Royal Feast = Phase 4 (no-op here)
       case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
       case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
@@ -35435,12 +35437,12 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
       case "alt_sukuna": cast = executeAltSukunaUltimate(fighter, context); break   // Domain Expansion: Malevolent Shrine — inline freeze cinematic (live fighter holds domain hand-sign, no dup): shrine erupts (row_07 backdrop overlay) → guaranteed ~198 EFF. No unique ult body art (flagged)
       case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
-      case "sasuke_adult": cast = executeSasukeAdultUltimate(fighter, context); break   // Rinnegan directional: N=Chibaku Tensei / F=Shinra Tensei / B=Banshou Tenin
+      case "sasuke_adult": cast = executeSasukeAdultUltimate(fighter, context); if (cast) startDemonSlayerPreroll("sasuke_adult", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Rinnegan directional: N=Chibaku Tensei / F=Shinra Tensei / B=Banshou Tenin
       case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
       case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
       case "hashirama": cast = executeHashiramaUltimate(fighter, context); break   // Sealing Jutsu — combo→Gracious Deity Gates pin→Naruto/Minato/Tobirama cameos→red barrier (freeze cinematic)
       case "pain":    cast = executePainUltimate(fighter, context); break   // Chibaku Tensei — cast → sphere growth → slam → flat/dome/flame-pillar ground effect (freeze cinematic)
-      case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); break   // Six Paths of Pain — the bodies swarm-rush; guaranteed range-independent payoff (Chibaku reserved for solo pain)
+      case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); if (cast) startDemonSlayerPreroll("six_paths_pain", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Six Paths of Pain — the bodies swarm-rush; guaranteed range-independent payoff (Chibaku reserved for solo pain)
       case "isshiki": cast = executeIsshikiUltimate(fighter, context); break   // Daikokuten Barrage (Finisher 3) — inline camera-focus cinematic: rod-rain guaranteed nuke (live fighter, no dup-instance)
       case "saitama": cast = executeSaitamaUltimate(fighter, context); break   // Death Punch — inline freeze cinematic (live fighter charge→impact, no dup) + hi-res fullscreen backdrop; guaranteed payoff
       case "genos":   cast = executeGenosUltimate(fighter, context); break   // Overdrive — timed power-up MODE (Emperor-Time/Baki architecture): ~7s ×1.35 dmg/×1.15 spd → auto-revert; overheat DRAWBACK on expiry (8% self-dmg + ~2s bonus-damage-taken vuln)
@@ -35486,8 +35488,8 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "jesus":   cast = executeJesusUltimate(fighter, context);    break   // Blessed Energy — escalating radiant AOE (screen-wide, ~290 raw)
       case "jiraiya": cast = executeJiraiyaUltimate(fighter, context);   break   // neutral = enter Hermit/Sage Mode (base) / Chou Odama Rasengan (hermit) · Down (_ultVariant "gamabunta") = Summoning: Gamabunta
-      case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
-      case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
+      case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); if (cast) startDemonSlayerPreroll("naruto_hokage", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
+      case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); if (cast) startDemonSlayerPreroll("naruto_seventh", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
       case "shisui_trinity": cast = executeShisuiTrinityUltimate(fighter, context); break   // SHISUI — THE LOYALIST: Susanoo Tsukumo (ribcage + magatama + needle volley). Blade/Puppeteer ults (P2/P3) add their own cases.
       case "shisui_blade": cast = executeShisuiBladeUltimate(fighter, context); break   // SHISUI — THE BLADE: Shunshin: Thousand Cuts (committed multi-hit blade flurry).
       case "shisui_puppeteer": cast = executeShisuiPuppeteerUltimate(fighter, context); break   // SHISUI — THE PUPPETEER: Kotoamatsukami (genjutsu-world backdrop + 3 eyes → mirror opp L/R + lock specials ~2.5s).

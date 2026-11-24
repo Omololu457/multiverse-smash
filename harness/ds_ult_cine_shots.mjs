@@ -1,4 +1,5 @@
-// harness/ds_ult_cine_shots.mjs — render check of the Demon Slayer ultimate cinematics (Shinobu / Zenitsu / Nezuko tap + hold):
+// harness/ds_ult_cine_shots.mjs — render check of the ultimate cinematics (Demon Slayer: Shinobu / Zenitsu / Nezuko tap + hold;
+// Naruto pre-rolls: Sakura / Hinata / Sasuke Sensei / Six Paths / Adult Sasuke / Seventh Hokage):
 // one screenshot per beat → docs/demon_slayer/ult_cinematics/<char>/, plus the damage each ult dealt.
 // Usage: node harness/ds_ult_cine_shots.mjs [shinobu|zenitsu|nezuko|nezukoDemon ...]
 import { chromium } from "playwright";
@@ -15,12 +16,23 @@ const PLAN = {
   zenitsu: { key: "zenitsu", gap: 300, hold: 0, probe: "ds", shots: [[40, "01_asleep"], [80, "02_eyes_open_thunder_breathing"], [120, "03_first_form"], [150, "04_thunderclap_and_flash"], [175, "05_godspeed"], [196, "06_blackout"], [-14, "07_the_flash"], [-30, "08_afterglow"]] },
   nezuko: { key: "nezuko", gap: 90, hold: -1, probe: "ds", shots: [[30, "01_heartbeat"], [70, "02_blood_demon_art"], [104, "03_exploding_blood"], [140, "04_engulfed"], [-12, "05_barrage_fire"], [-40, "06_finisher"]] },
   nezukoDemon: { key: "nezuko", gap: 200, hold: 320, probe: "ds", shots: [[30, "01_markings"], [56, "02_demon_form"], [100, "03_transformed"], [-20, "04_resumed"]] },
+  // Ben 10 / Albedo human-form ultimate — the all-aliens sequence (ben10AlienSequence.js)
+  ben10: { key: "ben10", gap: 160, hold: 0, probe: "ds", ben: true, shots: [[34, "01_omnitrix_dial"], [66, "02_first_alien"], [114, "03_alien_5"], [174, "04_alien_10"], [246, "05_alien_16"], [318, "06_alien_22"], [372, "07_omnitrix_overload"], [-20, "08_live"]] },
+  albedo: { key: "albedo", gap: 160, hold: 0, probe: "ds", ben: true, shots: [[34, "01_omnitrix_dial"], [66, "02_first_alien"], [114, "03_alien_5"], [174, "04_alien_10"], [246, "05_alien_16"], [318, "06_alien_22"], [372, "07_omnitrix_overload"], [-20, "08_live"]] },
+  // Naruto pre-rolls (narutoUltCinematics.js) — naruto_hokage needs KCM III, not scripted here
+  sakura: { key: "sakura", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
+  hinata: { key: "hinata", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
+  sasuke_sensei: { key: "sasuke_sensei", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
+  six_paths_pain: { key: "six_paths_pain", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
+  sasuke_adult: { key: "sasuke_adult", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
+  naruto_seventh: { key: "naruto_seventh", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
 };
 const want = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(PLAN);
+const dirOf = n => PLAN[n].ben ? "docs/ben10/ult_alien_sequence" : PLAN[n].naruto ? "docs/naruto/ult_cinematics" : "docs/demon_slayer/ult_cinematics"
 const browser = await chromium.launch({ headless: true, args: ["--disable-background-timer-throttling"] });
 let FAIL = 0;
 for (const name of want) {
-  const P = PLAN[name]; const OUT = path.join(ROOT, "docs/demon_slayer/ult_cinematics", name); fs.mkdirSync(OUT, { recursive: true });
+  const P = PLAN[name]; const OUT = path.join(ROOT, dirOf(name), name); fs.mkdirSync(OUT, { recursive: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errs = []; page.on("pageerror", e => errs.push(String(e)));
   await page.goto(`${base}/index.html?harness=1&p1=${P.key}&p2=spd_red`, { waitUntil: "load" });
@@ -29,6 +41,7 @@ for (const name of want) {
   await page.waitForFunction(() => window.__harness.state?.().frame > 60, null, { timeout: 60000, polling: 50 });
   const a = await page.evaluate(() => window.__harness.p1()); await page.evaluate(x => window.__harness.setP2X(x), a.x + P.gap);
   await page.waitForTimeout(500);
+  await page.evaluate(() => window.__harness.fillEnergy?.())
   const hp0 = await page.evaluate(() => window.__harness.p2().health);
   const st = () => page.evaluate(pr => pr === "shinobu" ? window.__harness.shinobuUltCine() : window.__dsPrerollStatus(), P.probe);
   await page.keyboard.down("u"); if (P.hold >= 0) await page.waitForTimeout(P.hold || 40); await page.keyboard.up("u");   // nezuko TAP = instant (a slow frame can read 40ms as a HOLD)

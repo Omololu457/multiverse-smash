@@ -100,6 +100,8 @@ let maxDx = 0; for (let t = 0; t < 30; t++) { await sleep(16); const x = await p
 ok(maxDx > 8, `Deva — Almighty Push shoves the foe (Δx=${Math.round(maxDx)})`);
 await prep(0);
 let h0 = await p2hp(); await page.evaluate(() => window.__harness.p1Ultimate()); await sleep(500);
+// the ultimate opens with a frozen cinematic pre-roll — let it finish before reading the damage / moving on
+await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 50 }).catch(() => {}); await sleep(500);
 ok((h0 ?? 0) - (await p2hp() ?? 0) > 0, `Deva — Six Paths Ultimate lands guaranteed damage`);
 // Animal — a creature summons (assert via the persistent _lastChikuSummon + live list; oneHit summons
 // despawn fast, so the persisted field is the race-free signal).

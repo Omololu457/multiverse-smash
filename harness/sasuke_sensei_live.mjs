@@ -103,6 +103,7 @@ await specialDirect("11_raiton_sword3_D", "D", "ssRaitonSword3");   // Down = Ra
 await waitFrames(40); await refill();
 const ub = await p1(); const hb = await p2hp();
 await page.keyboard.down("u"); await waitFrames(14); await shot("12_kirin_ult"); await page.keyboard.up("u"); await waitFrames(2);
+await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 50 }).catch(() => {});   // the Kirin cinematic pre-roll freezes the fight first
 await waitFrames(60);   // let the guaranteed beats land
 const ua = await p1(); const ha = await p2hp();
 console.log(`12_kirin_ult: p1 energy ${ub.energy}→${ua.energy} (Δ${ua.energy - ub.energy}) · p2 hp ${hb}→${ha} (Δ${ha - hb})`);

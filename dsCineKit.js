@@ -38,7 +38,8 @@ export function drawCalligraphy(ctx, cw, ch, f, words, anchorX, { fade = 1, acce
   const lastI = last < 0 ? words.length - 1 : last
   words.forEach(([at, jp], i) => {
     if (f < at) return
-    const k = Math.min(1, (f - at) / 6), sc = 1.8 - 0.8 * ease(k), size = Math.round(ch * (i === lastI ? 0.18 : 0.1) * sc)
+    const k = Math.min(1, (f - at) / 6), sc = 1.8 - 0.8 * ease(k), n = [...jp].length
+    const size = Math.round(Math.min(ch * (i === lastI ? 0.18 : 0.1), ch * 0.56 / n) * sc)   // a long name still fits its column
     const x = cw * side + (i - (words.length - 1) / 2) * cw * 0.08 * (side > 0.5 ? -1 : 1), y = ch * (0.22 + i * 0.02)
     ctx.globalAlpha = fade * Math.min(1, k * 2)
     ctx.save(); ctx.translate(x, y); ctx.textAlign = "center"; ctx.textBaseline = "top"

@@ -49,7 +49,7 @@ log.push(["bijuudama-damages", (oh0-(await n7()).oppHealth)>100 || true]);  // f
 
 // ── 2. DOWN+ult = SUMMON GIANT KURAMA + TBB (fox head uses naruto_hokage kurama art) — far foe ──
 await enterKCM(900);
-await page.keyboard.down(DOWN); await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await page.keyboard.up(DOWN); await wf(16);
+await page.keyboard.down(DOWN); await page.keyboard.down(K.ult); await wf(3); await page.keyboard.up(K.ult); await page.keyboard.up(DOWN); await page.waitForFunction(()=>!(window.__dsPrerollStatus?.().active),null,{timeout:120000,polling:50}).catch(()=>{}); await wf(16);   // the ult cinematic pre-roll freezes the fight first
 let fox=byName(await projs(),"n7KuramaGiant")[0];
 console.log("  Giant Kurama summon fox:",fox?`sheet=${fox.sheet} scale=${fox.spriteScale}`:"MISSING");
 log.push(["kurama-summon-fox", !!fox && /kurama_head/.test(fox.sheet||"")]);

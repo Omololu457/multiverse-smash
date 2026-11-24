@@ -16,6 +16,27 @@ HOOKS = [
    '  startDemonSlayerPreroll("nezuko", fighter, context?.getOpponent?.(fighter))' + M, 'after'),
   ('abilities.js', '  fighter._spriteCastMove  = "nezukoTransform"   // transform-in flourish',
    '  startDemonSlayerPreroll("nezukoDemon", fighter, context?.getOpponent?.(fighter))' + M, 'after'),
+  ('abilities.js', '      case "sakura":  cast = executeSakuraUltimate(fighter, context);  break',
+   '      case "sakura":  cast = executeSakuraUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("sakura", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', '      case "hinata":  cast = executeHinataUltimate(fighter, context);  break',
+   '      case "hinata":  cast = executeHinataUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("hinata", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', '      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); break',
+   '      case "sasuke_sensei": cast = executeSasukeSenseiUltimate(fighter, context); if (cast) startDemonSlayerPreroll("sasuke_sensei", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', '      case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); break',
+   '      case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); if (cast) startDemonSlayerPreroll("six_paths_pain", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', '      case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); break',
+   '      case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); if (cast) startDemonSlayerPreroll("naruto_hokage", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', '      case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); break',
+   '      case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); if (cast) startDemonSlayerPreroll("naruto_seventh", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', '      case "sasuke_adult": cast = executeSasukeAdultUltimate(fighter, context); break',
+   '      case "sasuke_adult": cast = executeSasukeAdultUltimate(fighter, context); if (cast) startDemonSlayerPreroll("sasuke_adult", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break', 'inline'),
+  ('abilities.js', 'import { startDemonSlayerPreroll } from "./demonSlayerCinematics.js"', 'import "./narutoUltCinematics.js"' + M + ' (registers the Naruto ult pre-roll scripts)', 'after'),
+  # FIX (pre-existing since 1482d5e9f): Hinata's ultimate was pasted INSIDE applyHinataGuutenToProjectiles' loop, so it was
+  # block-scoped and triggerUltimate threw "executeHinataUltimate is not defined". Move the loop's tail back above it.
+  ('abilities.js', "    _hhDrain(fighter, opp, 20)\n  })\n  try { shakeCamera(context, 6, 16) } catch (_) {}\n  return true\n}\n    if (p.radius != null) p.radius *= 0.85\n    activeProjectiles.splice(i, 1)   // spun away\n  }\n}\n",
+   "    _hhDrain(fighter, opp, 20)\n  })\n  try { shakeCamera(context, 6, 16) } catch (_) {}\n  return true\n}\n// (Guuten loop tail moved above — DS-ULT-CINE fix)\n", 'inline'),
+  ('abilities.js', "    p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6\n// ULTIMATE (Phase 3)",
+   "    p.vx = (p.vx || 0) * 0.6; p.vy = (p.vy || 0) * 0.6\n    if (p.radius != null) p.radius *= 0.85\n    activeProjectiles.splice(i, 1)   // spun away\n  }\n}\n// ULTIMATE (Phase 3)", 'inline'),
 ]
 SUPERSEDED = []
 

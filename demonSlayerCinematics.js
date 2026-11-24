@@ -23,15 +23,24 @@ const SCRIPTS = {
   nezukoDemon: { total: 120, words: [[50, "鬼化", "DEMON FORM"]], accent: "#ff3a8a", ink: "#ffe4ef", tint: "36,0,14" },
 }
 
-const cine = { active: false, kind: null, S: null, frame: 0, caster: null, opponent: null, _cam: null, saved: null, x0: 0 }
+// other modules (narutoUltCinematics.js) register their own scripts: { total, words, accent, ink, tint, pick(c)→{words}|null,
+//   camera(cam,c,opp,f), draw(ctx,cw,ch,f,c,cam), restoreCast }
+const EXT = {}
+export function registerUltPreroll(kind, script) { EXT[kind] = script }
+
+const cine = { active: false, kind: null, S: null, words: null, frame: 0, caster: null, opponent: null, _cam: null, saved: null, x0: 0 }
 let camRef = null
 const glow = { kind: null, caster: null, opponent: null, t: 0, x0: 0, lastX: 0, blinkAt: -1, burns: [] }   // render-only afterglow
 
-export function startDemonSlayerPreroll(kind, caster, opponent) {
-  const S = SCRIPTS[kind]
+export function startDemonSlayerPreroll(kind, caster, opponent, payload = null) {
+  const S = SCRIPTS[kind] || EXT[kind]
   if (!S || !caster || cine.active) return false
-  Object.assign(cine, { active: true, kind, S, frame: 0, caster, opponent: opponent || null, _cam: null, saved: null, x0: caster.x || 0 })
+  const v = S.pick ? S.pick(caster) : null
+  if (S.pick && !v) return false
+  Object.assign(cine, { active: true, kind, S, words: v?.words || S.words, frame: 0, caster, opponent: opponent || null, _cam: null, saved: null, x0: caster.x || 0 })
   cine.saved0 = { cast: caster._spriteCastMove || null, castT: caster._spriteCastTimer || 0 }
+  cine.payload = payload; cine.mem = {}
+  try { S.onStart?.(caster, cine) } catch (_) {}
   return true
 }
 export function isDemonSlayerPrerollActive() { return cine.active }
@@ -41,6 +50,8 @@ export function getDemonSlayerPrerollStatus() {
 
 function poseFor(f) {
   const c = cine.caster
+  if (cine.S.pose) { cine.S.pose(c, f, cine); return }
+  if (cine.S.camera) { pose(c, cine.saved0.cast || "idle", 0); return }   // registered scripts hold the ult's own cast pose
   if (cine.kind === "zenitsu") pose(c, "zenUltimate", 0)
   else if (cine.kind === "nezuko") pose(c, "nezukoTransform", f < 100 ? Math.min(2, Math.floor(f / 30)) : f < 140 ? 3 + Math.floor((f - 100) / 8) : 8)
   else pose(c, "nezukoTransform", f < 50 ? Math.min(2, Math.floor(f / 18)) : f < 90 ? 3 + Math.floor((f - 50) / 8) : 8 + ((f >> 3) & 1))
@@ -54,7 +65,8 @@ export function updateDemonSlayerPreroll(ctx = {}) {
   poseFor(f)
   if (cam && c) {
     const head = () => { cam.targetY = (c.y || 0) + (c.h || 100) * 0.3 }
-    if (cine.kind === "zenitsu") {
+    if (cine.S.camera) cine.S.camera(cam, c, opp, f)
+    else if (cine.kind === "zenitsu") {
       if (f < 134) { cam.focusOnFighter(c, 2.0 + 0.9 * ease(f / 90)); head() }
       else if (opp) cam.focusBetween(c, opp, 1.25)
       if (cam.shake && f >= 70 && f % 10 === 0) cam.shake(2 + f / 40, 5)
@@ -65,6 +77,7 @@ export function updateDemonSlayerPreroll(ctx = {}) {
       if (cam.shake && f === (cine.kind === "nezuko" ? 100 : 50)) cam.shake(18, 16)  // the ignition
     }
   }
+  if (cine.S.update) { try { cine.S.update(f, { cam, snd, opp, c }, cine) } catch (_) {} }
   if (cine.kind === "zenitsu" && f === 70) { try { snd?.play?.(SFX.HIT_SPECIAL) } catch (_) {} }
   if (cine.kind !== "zenitsu" && f === (cine.kind === "nezuko" ? 100 : 50)) { try { snd?.play?.(SFX.TRANSFORMATION) } catch (_) {} }
   cine.frame++
@@ -76,10 +89,12 @@ function endPreroll(toGlow) {
   camRestore(cine._cam, cine.saved)
   if (c) {
     pose(c, null)
+    try { cine.S?.onEnd?.(c, cine) } catch (_) {}
+    if (cine.S?.restoreCast && cine.saved0?.cast) { c._spriteCastMove = cine.saved0.cast; c._spriteCastTimer = cine.saved0.castT }   // the live ult resumes in its own pose
     if (cine.kind === "nezukoDemon") { c._spriteCastMove = "nezukoTransform"; c._spriteCastTimer = 6 }
   }
-  if (toGlow && c) Object.assign(glow, { kind: cine.kind, caster: c, opponent: cine.opponent, t: 0, x0: cine.x0, lastX: c.x || 0, blinkAt: -1, burns: [] })
-  Object.assign(cine, { active: false, kind: null, S: null, frame: 0, caster: null, opponent: null, _cam: null, saved: null })
+  if (toGlow && c && !cine.S?.camera) Object.assign(glow, { kind: cine.kind, caster: c, opponent: cine.opponent, t: 0, x0: cine.x0, lastX: c.x || 0, blinkAt: -1, burns: [] })
+  Object.assign(cine, { active: false, kind: null, S: null, words: null, frame: 0, caster: null, opponent: null, _cam: null, saved: null })
 }
 export function clearDemonSlayerPreroll() {
   if (cine.active) endPreroll(false)
@@ -104,7 +119,10 @@ function drawPreroll(ctx, cw, ch, cam) {
   const f = cine.frame, c = cine.caster, S = cine.S, T = S.total
   const head = toScreen(cam, cw, ch, cx(c) + (c.facing || 1) * 6, (c.y || 0) + (c.h || 100) * 0.18), z = head.z
   const feet = toScreen(cam, cw, ch, cx(c), (c.y || 0) + (c.h || 100))
-  if (cine.kind === "zenitsu") {
+  if (S.draw) {
+    drawVignette(ctx, cw, ch, head.x, head.y, Math.min(0.75, 0.35 + f / 160), S.tint)
+    S.draw(ctx, cw, ch, f, c, cam, cine)
+  } else if (cine.kind === "zenitsu") {
     drawVignette(ctx, cw, ch, head.x, head.y, Math.min(0.85, 0.5 + f / 200), S.tint)
     if (f < 70) {   // asleep: z's drift up
       ctx.textAlign = "center"; ctx.font = `900 ${Math.round(26 * z * 0.6 + 8)}px Georgia, serif`; ctx.lineWidth = 4; ctx.strokeStyle = "#0c0410"
@@ -163,7 +181,7 @@ function drawPreroll(ctx, cw, ch, cam) {
       }
     }
   }
-  drawCalligraphy(ctx, cw, ch, f, S.words, head.x, { fade: f > T - 12 ? Math.max(0, (T - f) / 12) : 1, accent: S.accent, ink: S.ink })
+  drawCalligraphy(ctx, cw, ch, f, cine.words || S.words, head.x, { fade: f > T - 12 ? Math.max(0, (T - f) / 12) : 1, accent: S.accent, ink: S.ink })
   drawLetterbox(ctx, cw, ch, f, T)
 }
 

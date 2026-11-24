@@ -175,7 +175,7 @@ function drawIntroStreak(c, f) {
   if (!f._introPlaying) { f._nsIntroFx = 0; return }
   const t = (f._nsIntroFx = (f._nsIntroFx || 0) + 1), T = 26
   if (f._duo) {   // MSV1-MERGE: the partner's SMOKE SILHOUETTE behind the morphing ranger
-    const o = duoOther(f._duo.form), A = duoFormAnim(o, 'idle'), P = duoFormProfile(o), dir = f.facing || 1, bx = f.x + (f.w || 48) / 2 - dir * 46, feet = (f.y || 0) + (f.h || 94)
+    const o = duoOther(f._duo.form), A = /* MSV1-DINO team skin */ f._dtSkinForms?.[o]?.idle || duoFormAnim(o, 'idle'), P = duoFormProfile(o), dir = f.facing || 1, bx = f.x + (f.w || 48) / 2 - dir * 46, feet = (f.y || 0) + (f.h || 94)
     puffs(c, bx, feet - 30, P?.smoke || '#888', 0.25 + 0.1 * Math.sin(t / 9), 7, 34, 0.5)
     c.save(); try { c.filter = 'brightness(0.25)' } catch (_) {}; c.globalAlpha = 0.55; c.translate(0, 0)
     const im = A && image(A.sheet)

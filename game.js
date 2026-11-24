@@ -91,6 +91,7 @@ import { invincibleHarnessApi } from './invincibleHarness.js'
 import { updateOmvCommandCombat } from './omnimanViltrum.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) — omniman_viltrum-gated command layer (the old `omniman` is untouched)
 import { tickOmv, isOmv, clearOmv, clearOmvMarks, omvLockedForMovement, markOmvCpu, omvNoBlock, omvOwnsCharge } from './omnimanViltrumState.js'
 import { drawOmvFx, drawOmvHud, drawOmvSky, playOmvCues, omvCameraHold } from './omnimanViltrumFx.js'
+import { drawDinoZrexCinematic } from './dinoFx.js'   // MSV1-DINO Dino Thunder Z-Rex Blaster cinematic (render-only screen pass)
 import { omnimanViltrumHarnessApi } from './omnimanViltrumHarness.js'
 import { updateSyndromeCommandCombat } from './syndrome.js'   // Syndrome (The Incredibles) — syndrome-gated command layer
 import { tickSyndrome, isSyndrome, clearSyndrome, syndromeLocked, syndromeOwnsCharge, isSyndromeUltActive, updateSyndromeUlt, clearSyndromeUlt } from './syndromeState.js'
@@ -25787,7 +25788,7 @@ function drawBattle() {
   drawSignatureFatalityScreen(ctx, canvas)   // SIGNATURE FATALITY: Death Note page, flash, technique name + FATALITY (screen space)
   drawScreenBreaker(ctx, canvas)       // SCREEN BREAKER: the cracked glass + smear + banner (screen space)
   drawBrutalityCinematic(ctx, canvas)  // canon-themed BRUTALITY cutaway overlay (plays on window-timeout)
-  const _cineHidesHud = isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || signatureFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
+  const _cineHidesHud = drawDinoZrexCinematic(ctx, canvas) || isBrutalityCinematicActive() || isFatalityActive() || screenBreakerActive() || signatureFatalityActive() || isShisuiFallenFatalityActive()   // hide HUD/training overlay during a finisher cutaway (MK-style)
   if (!_cineHidesHud) drawBattleHud()
   if (countdown > 0) drawRoundCountdown?.(ctx, canvas, countdown, roundNumber, ROUND_START_COUNTDOWN)
   _drawDamageNumbers()

@@ -66,6 +66,11 @@ HOOKS = [
   ('nsFx.js', "  drawTrioSuper(c, f, drawPose, duoFormAnim,", "  drawDinoFx(c, f, drawPose, duoFormAnim, calm())" + M, 'before'),
   ('nsFx.js', "  drawIntroStreak(c, f)\n  drawCgptUnder(c, f)", "  if (!drawDinoIntro(c, f, drawPose)) drawIntroStreak(c, f)\n  drawCgptUnder(c, f)\n  drawDinoUnder(c, f, drawPose, calm())" + M, 'inline'),
   ('nsFx.js', "  ctx.fillText(tag, o.flip ? x : x + w, y + h + 9)", "  ctx.fillText(dinoHudTag(f) || tag, o.flip ? x : x + w, y + h + 9)", 'inline'),
+  ('nsFx.js', "    const o = duoOther(f._duo.form), A = duoFormAnim(o, 'idle'), P", "    const o = duoOther(f._duo.form), A = /* MSV1-DINO team skin */ f._dtSkinForms?.[o]?.idle || duoFormAnim(o, 'idle'), P", 'inline'),   # MSV1-DINO team skin: the intro partner silhouette
+  ('game.js', "import { drawOmvFx, drawOmvHud, drawOmvSky, playOmvCues, omvCameraHold } from './omnimanViltrumFx.js'", "import { drawDinoZrexCinematic } from './dinoFx.js'" + M + " Dino Thunder Z-Rex Blaster cinematic (render-only screen pass)", 'after'),
+  ('game.js', '  const _cineHidesHud = isBrutalityCinematicActive() ||', '  const _cineHidesHud = drawDinoZrexCinematic(ctx, canvas) || isBrutalityCinematicActive() ||', 'inline'),   # MSV1-DINO Z-Rex cinematic camera (null-op unless a Z-Rex is on screen)
+  ('ui.js', 'import { drawLayeredStageBack } from "./stageLayers.js"', "import { dinoHudPortrait } from './dinoHud.js'" + M + " Dino Thunder team-skin HUD portrait (render-only)", 'after'),
+  ('ui.js', 'function _resolveHudPortrait(fighter, accent) {', "  { const _dt = dinoHudPortrait(fighter); if (_dt) return _dt }" + M + " (Dino Thunder team skin only; null for everyone else)", 'after'),
   ('nsFx.js', "  if (f._duo) drawDuoHud(ctx, f, x, y, w, o)", "  if (f._duo) { if (isDino(f)) drawDinoHud(ctx, f, x, y, w, o); else drawDuoHud(ctx, f, x, y, w, o) }" + M, 'inline'),
   ('nsFx.js', "  const key = f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'", "  const key = isDino(f) ? 'dt_' : f.rosterKey === 'ns_yellow' || f.rosterKey === 'ns_green' ? 'nsy_' : 'nsr_'", 'inline'),
 ]

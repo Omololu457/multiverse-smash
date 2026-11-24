@@ -205,7 +205,12 @@ try {
     check('… Trent cannot enter Super Dino Mode', (await S()).duo.sdm === 0 && (await S()).energy >= 99)
     await step(100); await toForm('j')
     await step(100); await fresh(250, { energy: 100 }); const z0 = (await S('p2')).health
-    await tap(['u']); for (let i = 0; i < 110; i++) await step(1)
+    const o0 = await page.evaluate(() => { const o = __harness.ninjaTest.raw('p2'); return { x: o.x, y: o.y } })
+    await tap(['u']); await step(130)   // the cinematic: call → three arrivals → 3 · 2 · 1 (BOOM at 136)
+    const mid = await page.evaluate(() => { const f = __harness.ninjaTest.raw('p1'), o = __harness.ninjaTest.raw('p2'), u = f._ninja?.sup; return { x: o.x, y: o.y, hp: o.health, phase: u?.phase, tx: u?.tx, cx: o.x + (o.w || 48) / 2 } })
+    check('Z-Rex cinematic: the foe is frozen in place, untouched, through the build-up', mid.x === o0.x && mid.y === o0.y && mid.hp === z0 && mid.phase === 'count', mid)
+    check('Z-Rex beam ends at the CENTRE of the foe', Math.abs(mid.tx - mid.cx) <= 1, mid)
+    await step(150)   // BOOM → beam 6 × 40 → final blast 160 (move total 264)
     const zr = await S()
     check('Z-REX BLASTER (Ultimate, full meter): 400 raw', z0 - (await S('p2')).health >= 360 && zr.duo.ults === 1, { dmg: z0 - (await S('p2')).health })
   }
@@ -245,7 +250,7 @@ try {
         if (Array.isArray(st)) await motion(st[0], st[1]); else await tap([].concat(st))
         for (let i = 0; i < 40; i++) { await step(1); const a = await S(); if (a.attacking && a.atk && await page.evaluate(() => !!__harness.ninjaTest.raw('p1').currentAttack?.hasHit || !!__harness.ninjaTest.raw('p1').currentAttack?._contact)) { hits++; for (let k = 0; k < 3; k++) await step(1); break } if (!a.attacking && i > 6) break }
       }
-      for (let i = 0; i < 120; i++) await step(1)
+      await step(steps.includes('u') ? 300 : 120)   // the Z-Rex cinematic runs 264 frames
       return { dmg: z0 - (await S('p2')).health, hits, combo: (await S()).duo.hs }
     }
     const out = {}
@@ -263,6 +268,44 @@ try {
     check('every form has a confirmed 3+ hit string', ['red', 'blue', 'yellow', 'white'].every(k => out[k].hits >= 3), out)
     check('Super Dino Mode / Camouflage buff the same string', out.sdmBlue.dmg > out.blue.dmg && out.whiteCamo.dmg > out.white.dmg, [out.sdmBlue.dmg, out.blue.dmg, out.whiteCamo.dmg, out.white.dmg])
     check('combos stay below 45% of S.P.D. Red\'s 1200 (no touch-of-death), Z-Rex string included', Object.values(out).every(r => r.dmg < 540), Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.dmg])))
+  }
+  if (ONLY.split(',').includes('skinleak') || ONLY.split(',').includes('skins')) {
+    // SKIN LEAK TEST: a skinned team plays EVERY input of EVERY Ranger (normals, specials, supers, swaps, Super Dino Mode,
+    // Drago Clone, Z-Rex) and every image the canvas draws is recorded; any Dino art drawn from the BASE folders is a leak
+    section('TEAM SKINS — nothing drawn from the base art while a team skin is on')
+    const FK = { dt_red: 'j', dt_blue: 'k', dt_yellow: 'l', dt_white: 'o' }
+    const DDP = async b => { await motion(DD, null); await page.keyboard.down('p'); await step(1); await tap([b]); await page.keyboard.up('p') }
+    const playAll = async form => {
+      const seqs = [['j'], ['k'], ['l'], ['i'], [['d'], 'l'], [['d'], 'k'], [QCF, 'k'], [QCF, 'l'], [DD, 'l'], [DD, ['l', 'k']], [[...QCF, ...QCF], 'l'], ['u'],
+        ['jumpL'], ['jumpK'], ['airDive'], ['dash'], ['clone'], ['swap']]
+      for (const sq of seqs) {
+        await fresh(110, { energy: 100 }); await raw('p1', 'f._duo.np = 100; f.ultimateMeter = 100; if (f.meter != null) f.meter = 100')
+        const [a, b] = sq
+        if (a === 'jumpL' || a === 'jumpK') { await tap(['w']); await step(6); await tap([a === 'jumpL' ? 'j' : 'k']) }
+        else if (a === 'airDive') { await tap(['w']); await step(8); await motion([['s']], 'l') }
+        else if (a === 'dash') { await tap(['d']); await step(2); await tap(['d']) }
+        else if (a === 'clone') { await motion(DD, 'p') }
+        else if (a === 'swap') { await pick(Object.values(FK).find(k => k !== FK[form])) }
+        else if (b === undefined) await tap([a]); else await motion(a, b)
+        await step(150)
+        if ((await S()).key !== form) { await step(60); await toForm(FK[form]) }
+      }
+    }
+    for (const tag of (process.env.DINO_LEAK_TAGS || 'valkyrie,sketch').split(',')) {
+      await boot('dinothunder', 'spd_red', { p1Skin: 'dtk_' + tag })
+      await page.evaluate(() => { window.__drawn = new Set(); const d = CanvasRenderingContext2D.prototype.drawImage
+        window.__where = {}
+        CanvasRenderingContext2D.prototype.drawImage = function (im, ...r) { if (im && im.src) { const u = decodeURIComponent(new URL(im.src).pathname); window.__drawn.add(u); if (/\/assets\/(dt_|dinothunder\/)/.test(u) && !u.includes('/skins/') && !window.__where[u]) window.__where[u] = (new Error().stack || '').split('\n').slice(2, 5).map(l => l.trim().replace(/\(?https?:\/\/[^/]+\//, '').replace(/\?v=[^:]*/, '')).join(' < ') } return d.call(this, im, ...r) } })
+      for (const form of ['dt_red', 'dt_blue', 'dt_yellow', 'dt_white']) { if ((await S()).key !== form) await toForm(FK[form]); await playAll(form) }
+      const drawn = await page.evaluate(() => [...window.__drawn]), where = await page.evaluate(() => window.__where)
+      const dino = drawn.filter(u => /\/assets\/(dt_(red|blue|yellow|white)|dinothunder)\//.test(u))
+      // allowed base art: the art with no Ranger in it (zord heads, GO!, gems, rings, emblems), the swap smoke (gem-colour FX,
+      // byte-identical in every skin) and Trent's Drago Clone (the evil copy keeps its own charcoal / blood-red strips)
+      const leaks = dino.filter(u => !u.includes(`/skins/${tag}/`) && !/\/assets\/dinothunder\/(emblem|yellow_emblem|blue_emblem|go\d|gem\d|ring\d|sparkle|[a-z]+Head)[_a-z]*\.png$/.test(u) && !/\/(smoke|smokeFade)\.png$/.test(u) && !u.includes('/dt_white/clone/'))
+      const skinned = dino.filter(u => u.includes(`/skins/${tag}/`))
+      console.log('  SKIN-DRAWN ' + tag + ' ' + JSON.stringify({ skinned: skinned.length, leaks }))
+      check(`${tag}: every Ranger's moves, supers, swaps and Z-Rex draw from the skin (no base art)`, leaks.length === 0 && skinned.length > 20, { skinned: skinned.length, leaks: leaks.map(u => u + ' @ ' + (where[u] || '?')) })
+    }
   }
   for (const grp of ['skins1', 'skins2', 'skins3', 'skins4']) if (ONLY.split(',').includes(grp) || ONLY.split(',').includes('skins')) {   // opt-in (needs the skin pack)
     // LINE-UP TEST: every team skin in the real engine — start as Conner, swap through all four with the real input; every form
@@ -294,7 +337,7 @@ try {
     await fresh(400); await motion(DD, 'l'); await real(14); await shot('09_camouflage')
     await toForm('l'); await fresh(260); await motion(QCF, 'l'); await real(20); await shot('10_ptera_scream')
     await toForm('j'); await fresh(600, { energy: 100 }); await raw('p1', 'f._duo.sdm = 300'); await real(6); await shot('11_super_dino_mode')
-    await fresh(300, { energy: 100 }); await tap(['u']); await real(4); await shot('12_zrex_go'); await real(18); await shot('13_zrex_bosskilled'); await real(22); await shot('14_zrex_beam'); await real(32); await shot('15_zrex_slash')
+    await fresh(300, { energy: 100 }); await tap(['u']); await real(10); await shot('12_zrex_call'); await real(30); await shot('13_zrex_arrive'); await real(46); await shot('14_zrex_count'); await real(52); await shot('14b_zrex_whip'); await real(20); await shot('14c_zrex_slowmo_colours'); await real(16); await shot('14d_zrex_accelerate'); await real(10); await shot('15_zrex_impact'); await real(56); await shot('15b_zrex_blast_pullback')
     await fresh(300, { energy: 60 }); await motion([...QCF, ...QCF], 'l'); await real(30); await shot('16_raptor_rider')
     await boot('dinothunder', 'spd_red', { p1Skin: 'start_blue' }); await page.evaluate(() => { const a = __harness.ninjaTest.raw('p1'); a._introPlaying = true; a._dtIntroFx = 18 }); await real(1); await shot('17_intro_ride_in')
     check('screenshots written', fs.readdirSync(SHOTS).length >= 14)

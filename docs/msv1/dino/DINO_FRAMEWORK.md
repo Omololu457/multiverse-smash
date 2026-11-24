@@ -11,6 +11,7 @@ carries the team state and rides in `ninjaSnapshot` → replay / LAN. No Math.ra
 | `dinoData.js` | the four ninja.js profiles + hidden roster entries: anims, frame data, commands, streak / mirror / float blocks |
 | `dinothunder.js` | the visible entry, form swap, gem powers, Super Dino Mode, Corruption, evades / streak gate, CPU swap |
 | `dinoSupers.js` | the four 1-bar supers + the Z-Rex Blaster team ultimate (scripts on the sim clock) |
+| `dinoHud.js` | the HUD portrait follows the team skin (hooked into ui.js `_resolveHudPortrait`) |
 | `dinoState.js` | leaf damage modifiers called from `combat.js applyScaledDamage` (no-op unless a Dino fighter is involved) |
 | `dinoFx.js` / `dinoSound.js` / `dinoKit.js` | render, SFX (dt_* cues), Move List |
 | `tools/dino/hooks.py` | every line added to a shared file, anchor-based and idempotent; `pcommit.py` commits through a private index |
@@ -34,3 +35,13 @@ carries the team state and rides in `ninjaSnapshot` → replay / LAN. No Math.ra
 2. Add a `PROFILE` / `STATS` / `INFO` / `STRIPS` / `COMMANDS` entry in `dinoData.js` and push `'dt_black'` onto `DINO_FORMS`.
 3. Give it a key in `DINO_KEYS` (dinothunder.js) and a super in `dinoSupers.js` `DINO_SUPERS`.
 4. Add `dt_black` to the four roster-key hooks in `tools/dino/hooks.py` (characters, spritesheets, rosterParity, battleBlood, input).
+
+## Z-Rex Blaster cinematic (2026-11-23)
+No banner. Shot list on the sim clock (`ZREX` in dinoSupers.js, 264 f): CALL tight on the caster → each Ranger leaps in
+(close-up per arrival) → 3·2·1 count while the gems spiral into the cannon → BOOM whip to the muzzle → four coloured
+lasers (red/blue/yellow/white) braid around each other, SLOW then accelerating, uniting into one white beam that ends
+at the foe's CENTRE → explosion → pull back. The foe is frozen through the build-up.
+The camera is VIRTUAL: `drawDinoZrexCinematic` crops/upscales the rendered frame (game.js hook), because moving the real
+camera mid-combat would move physics' clampToCamera. Damage is unchanged (string 369).
+Team skins reach every piece of Ranger art: partners, rider/mission/BOSS KILLED extras (`skins/<tag>/extra/`),
+HUD portraits, the swap strip — verified by `node harness/dino.test.mjs skinleak` (drawImage stack trace, 0 leaks).

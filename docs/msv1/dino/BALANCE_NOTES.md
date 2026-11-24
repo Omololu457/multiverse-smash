@@ -19,3 +19,5 @@ Numbers are the brief's; this file records what they produce in the engine and w
   up) through the same keys a player presses; a 160-frame dwell stops ping-ponging. Same seed → identical CPU match (tested).
 * **Untouched.** The frame-data diff (`harness/dino_framedata_diff.mjs`) proves every existing character, skin, alien and Ranger
   profile is byte-identical.
+
+- 2026-11-23 Z-Rex Blaster became a 264-frame cinematic (foe frozen during build-up); damage unchanged — string still 369.

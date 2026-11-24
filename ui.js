@@ -1,5 +1,6 @@
 // ui.js
 import { drawLayeredStageBack } from "./stageLayers.js"
+import { dinoHudPortrait } from './dinoHud.js'   // MSV1-DINO Dino Thunder team-skin HUD portrait (render-only)
 import { drawZoroHud } from './zoroFx.js'
 import { drawSanjiHud, drawSanjiHeatFill } from './sanjiFx.js'   // Sanji — glass badge, warming Heat bar, Course pips (render-only)
 import { noteSupermanEnergyPanel } from './supermanLaser.js'   // Superman Heat Vision laser bar (render-only)
@@ -4139,6 +4140,7 @@ function _makeFallbackPortrait(letter, accent) {
 
 // Resolve the drawable portrait for a fighter → { src: canvas|img, isFallback }.
 function _resolveHudPortrait(fighter, accent) {
+  { const _dt = dinoHudPortrait(fighter); if (_dt) return _dt }   // MSV1-DINO (Dino Thunder team skin only; null for everyone else)
   const key = String(fighter?.rosterKey || "").toLowerCase()
   // Ben transformed → that alien's profile picture (alienPortraits.js). Albedo keeps his own red / themed crop below.
   if (key === "ben10" && fighter?.transformed && fighter?.activeAlien) {

@@ -202,6 +202,39 @@ def recolor(form, th, im, cell, mask_out=None):
 # regions a theme leaves unset keep the source colours
 THEMES_BASE = {f: {} for f in FORMS}
 
+# EXTRA ART with Rangers in it (the supers' raptor riders, MISSION ACCOMPLISHED, BOSS KILLED): recoloured with the same
+# theme so a skinned team never shows its default colours. One-Ranger art uses that Ranger's table; the BOSS KILLED group
+# shot (Red + Blue + Yellow) gives every colour to the Ranger whose palette has the nearest listed colour. Zord heads / GO! /
+# emblems carry no Ranger and stay as drawn.
+EXTRAS = {'red_rider': ['dt_red'], 'blue_rider': ['dt_blue'], 'yellow_rider': ['dt_yellow'], 'blue_mission': ['dt_blue'],
+          'yellow_mission': ['dt_yellow'], 'bossKilled': ['dt_red', 'dt_blue', 'dt_yellow'], 'bossKilled_blue': ['dt_red', 'dt_blue', 'dt_yellow']}
+import colorsys
+def extra_class(forms, c):
+    """painted art (smooth gradients, hundreds of colours): neutral → outline / light by brightness; saturated → the
+    Ranger whose hue band it sits in, region suit (gold trim on Red / Blue = gold), rank = brightness"""
+    r, g, b = c; hh, ss, vv = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255); L = lum(c) / 255; deg = hh * 360
+    if ss < 0.22 or vv < 0.16:
+        return forms[0], (REG.index('outline'), min(1, L / 0.25)) if L < 0.25 else (REG.index('light'), (L - 0.25) / 0.75)
+    band = 'dt_red' if (deg < 16 or deg > 320) else 'dt_yellow' if deg < 75 else 'dt_blue' if 180 <= deg <= 320 else None
+    if band in forms: return band, (REG.index('suit'), min(1, L / 0.85))
+    if 16 <= deg < 75: return forms[0], (REG.index('gold'), L)   # yellow trim on a Red / Blue Ranger
+    return forms[0], (REG.index('suit'), min(1, L / 0.85))
+def recolor_multi(forms, th, im):
+    a = np.array(im.convert('RGBA')); out = a.copy(); h = a.shape[0]; memo = {}
+    for y, x in zip(*np.nonzero(a[:, :, 3])):
+        c = tuple(int(v) for v in a[y, x, :3])
+        if c not in memo:
+            best, (reg, t) = extra_class(forms, c); stops = th['forms'][best].get(REG[reg])
+            memo[c] = (best, reg, t, ramp(stops, t) if stops else c)
+        best, reg, t, col = memo[c]
+        out[y, x, :3] = material(th['fx'], col, reg, t, x, y, 0, h, best, th)
+    return Image.fromarray(out, 'RGBA')
+def build_extras(th):
+    d = os.path.join(OUT, th['tag'], 'extra'); os.makedirs(d, exist_ok=True)
+    for name, forms in EXTRAS.items():
+        recolor_multi(forms, th, Image.open(os.path.join(ROOT, 'assets', 'dinothunder', name + '.png'))).save(os.path.join(d, name + '.png'), optimize=True)
+    return len(EXTRAS)
+
 def strips(form): return sorted(p for p in glob.glob(os.path.join(ROOT, 'assets', form, '*.png')))
 
 def build(th):
@@ -222,6 +255,7 @@ def build(th):
         team_img.paste(s, (i * 88 + (88 - s.width) // 2, 112 - s.height))
     team_img.save(os.path.join(OUT, tag, 'portrait_large.png'))
     k = min(62 / team_img.width, 34 / team_img.height); team_img.resize((round(team_img.width * k), round(team_img.height * k)), Image.NEAREST).save(os.path.join(OUT, tag, 'portrait_small.png'))
+    n += build_extras(th)
     contact(th)
     return n
 
@@ -272,6 +306,11 @@ def check(tags=None):
                 if not os.path.exists(q): print('MISSING', q); bad += 1; continue
                 a, b = np.array(Image.open(p).convert('RGBA')), np.array(Image.open(q).convert('RGBA'))
                 if a.shape != b.shape or not np.array_equal(a[:, :, 3] > 0, b[:, :, 3] > 0): print('GEOMETRY', q); bad += 1
+        for name in EXTRAS:   # the Ranger art outside the strips (riders, win art, BOSS KILLED): same size + alpha as the original
+            a, q = os.path.join(ROOT, 'assets', 'dinothunder', name + '.png'), os.path.join(OUT, th['tag'], 'extra', name + '.png')
+            if not os.path.exists(q): print('MISSING', q); bad += 1; continue
+            A, B = np.array(Image.open(a).convert('RGBA')), np.array(Image.open(q).convert('RGBA'))
+            if A.shape != B.shape or not np.array_equal(A[:, :, 3] > 0, B[:, :, 3] > 0): print('GEOMETRY', q); bad += 1
     print('check:', 'OK' if not bad else f'{bad} problems'); return bad
 
 if __name__ == '__main__':

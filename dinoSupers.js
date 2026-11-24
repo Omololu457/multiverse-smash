@@ -7,8 +7,8 @@
 //   BLUE   TRICERA ZORD RAM       DINO ZORD poses → sparkle → rings → the Tricera head charges: catch + splat  280
 //   YELLOW PTERA ZORD STRIKE      rings → the Ptera head swoops the top half (anti-air) then dives            270
 //   WHITE  DRAGO SWORD STORM      afterimage blitz: 6 slashes from 6 directions                               280
-//   TEAM   Z-REX BLASTER          "GO!" → BOSS KILLED cut-in → braided red/blue/yellow beam 6 × 40 → Trent's
-//                                 afterimage slash 160 = 400. 30-frame startup; on block 30 % chip.
+//   TEAM   Z-REX BLASTER          cinematic: caster close-up → the team arrives → 3·2·1 → BOOM → braided beam
+//                                 6 × 40 → final blast 160 = 400. The foe is frozen until the beam; on block 30 % chip.
 const W = f => f.w || 48
 function begin(f, opp, s, a, X, o = {}) {
   if (a._supInit) return s.sup
@@ -109,24 +109,39 @@ export function whiteSuper(f, opp, s, a, t, X) {
   if (t === 64) { const side = Math.sign(X.ctrX(f) - X.ctrX(opp)) || -1; f.x = X.clampX(f, X.ctrX(opp) - side * 90 - W(f) / 2); f.facing = side > 0 ? -1 : 1; X.setPose(f, 'nsStreakStrike') }
 }
 // TEAM — Z-REX BLASTER (Ultimate, full meter)
-export const ZREX = { bars: 2, go: 8, cut: 30, beamAt: [30, 36, 42, 48, 54, 60], beamDmg: 40, slashAt: 74, slashDmg: 160, chip: 0.30, total: 100 }
+// TEAM — Z-REX BLASTER, a CINEMATIC (dinoFx draws the shots; the sim only keeps the clock, the freeze and the hits):
+//   0  CALL      the Ranger who called it, close up                         (the foe is frozen until the beam arrives)
+//   16 / 36 / 56 ARRIVE the other three Rangers leap in one at a time, each in close up
+//   76 COUNT     3 · 2 · 1 over the assembled team (20 frames each)
+//   136 BOOM     white flash, whip to the laser: four coloured lasers burst out, slow right down as they wrap
+//                together and merge white, then accelerate into the foe
+//   180… BEAM    impact explosion + 6 × 40 as it pours in; 236 FINAL BLAST 160 (= 400); the camera pulls back
+// Blockable (the foe is frozen in whatever they were doing: guarding → 30 % chip); a foe frozen out of the beam's row
+// (high in the air, behind) is missed. The caster is invulnerable for the whole move (sZrex invuln).
+export const ZREX = { bars: 2, call: 16, arrive: [16, 36, 56], count: 76, boom: 136, beamAt: [180, 186, 192, 198, 204, 210], beamDmg: 40, blastAt: 236, blastDmg: 160, chip: 0.30, total: 264 }
 export function zrexBlaster(f, opp, s, a, t, X) {
-  const Z = ZREX, u = begin(f, opp, s, a, X, { cue: 'ultStart', freeze: 30 })
-  u.phase = t < Z.go ? 'go' : t < Z.cut ? 'cut' : t < Z.slashAt ? 'beam' : 'slash'
+  const Z = ZREX, u = begin(f, opp, s, a, X, { cue: 'ultStart', freeze: Z.beamAt[0] })
+  u.phase = t < Z.call ? 'call' : t < Z.count ? 'arrive' : t < Z.boom ? 'count' : t < Z.blastAt ? 'beam' : 'blast'
+  u.t = t
+  if (Z.arrive.some(at => t === at + 10)) X.cue(f, 'swapChime')                     // a Ranger lands
+  if (t === Z.count || t === Z.count + 20 || t === Z.count + 40) X.cue(f, 'tick')     // 3 · 2 · 1
+  if (t === Z.boom) X.cue(f, 'boom')
+  if (t < Z.boom) X.setPose(f, 'win'); else X.setPose(f, 'idle')
   if (!opp) return
   const dir = u.dir, cy = X.feetY(f) - (f.h || 94) * 0.55
-  if (t >= Z.cut && t < Z.slashAt) u.beam = { y: Math.round(cy), dir, t: t - Z.cut }
+  if (u.tx == null) { u.tx = Math.round(X.ctrX(opp)); u.ty = Math.round(X.ctrY ? X.ctrY(opp) : opp.y + 40) }   // where the foe was frozen
+  if (t >= Z.boom) u.beam = { y: Math.round(cy), dir, t: t - Z.boom }
   else u.beam = null
   Z.beamAt.forEach((at, i) => {
     if (t !== at) return
     const inRow = Math.abs((X.ctrY ? X.ctrY(opp) : opp.y + 40) - cy) < 90 && Math.sign(X.ctrX(opp) - X.ctrX(f)) === dir
     if (!inRow) { if (i === 0) u.res = 'whiff'; return }
-    hit(f, opp, s, X, Z.beamDmg, { first: i === 0, type: 'energy', cue: 'zap', hitstun: 50, kb: 1, chip: Z.chip })
+    hit(f, opp, s, X, Z.beamDmg, { first: i === 0, type: 'energy', cue: 'zap', hitstun: 50, kb: 0, chip: Z.chip })
   })
-  if (u.res === 'hit' && t < Z.slashAt) hold(opp, u)
-  if (t === Z.slashAt && u.res !== 'whiff') {   // Trent's afterimage slash finishes THROUGH the target
-    u.trent = { x0: Math.round(X.ctrX(f)), x1: Math.round(X.ctrX(opp) + dir * 110), t }
-    hit(f, opp, s, X, Z.slashDmg, { type: 'slash', cue: 'slashHit', hitstun: 50, kb: 8, launch: -12, knockdown: true, chip: Z.chip }); X.cue(f, 'shake')
+  if (u.res === 'hit' && t < Z.blastAt) hold(opp, u)
+  if (t === Z.blastAt && u.res !== 'whiff') {   // the beam detonates on the target
+    u.blast = { x: Math.round(X.ctrX(opp)), y: Math.round(X.ctrY ? X.ctrY(opp) : opp.y + 40), t }
+    hit(f, opp, s, X, Z.blastDmg, { type: 'energy', cue: 'slashHit', hitstun: 50, kb: 8, launch: -12, knockdown: true, chip: Z.chip }); X.cue(f, 'shake')
   }
 }
 export const DINO_SUPERS = { dt_red: redSuper, dt_blue: blueSuper, dt_yellow: yellowSuper, dt_white: whiteSuper }

@@ -31,11 +31,23 @@ export const DINO_SKINS = DINO_SKIN_ROWS.map(r => ({
   source: { version: 'Premade recolour of the supplied Dino Thunder sheets (falmeatwad · YONDY-HOKAGE / DK-YONDY · Raikage)' },
 }))
 
-// FORM APPLICATION (every round start / swap): the active form's skin strips; the start-form skins are untouched
+// FORM APPLICATION (every round start / swap): EVERY piece of Ranger art follows the skin —
+//   f._skinAnim / _baseSkinAnim   the active Ranger's own strips (moves, poses, supers)
+//   f._nsAssetDir                 the ninja.js projectile / FX sprites of the active Ranger
+//   f._dtSkinForms                all four Rangers' skinned strips (the Z-Rex line-up, partner art, the swap smoke)
+//   f._dtSkinArt                  the skin folder: HUD swap-strip portraits, raptor riders, MISSION ACCOMPLISHED, BOSS KILLED
+// (render-only fields; the start-form skins clear them and draw the default art)
 export function dinoApplySkin(f, form) {
   const tag = dinoSkinTag(f?.skinId)
-  if (!tag) { if (f && f._dtSkin) { f._dtSkin = null; f._skinAnim = null; f._baseSkinAnim = null } return }
+  if (!tag) { if (f && f._dtSkin) { f._dtSkin = null; f._skinAnim = null; f._baseSkinAnim = null; f._nsAssetDir = null; f._dtSkinForms = null; f._dtSkinArt = null } return }   // applyForm has already restored animationData / portrait
   const A = dinoFormAnim(tag, form)
   f._skinAnim = A; f._baseSkinAnim = A; f._dtSkin = tag
+  f._nsAssetDir = dinoSkinDir(tag, form)
+  f._dtSkinForms = Object.fromEntries(['dt_red', 'dt_blue', 'dt_yellow', 'dt_white'].map(k => [k, dinoFormAnim(tag, k)]))
+  f._dtSkinArt = `./assets/dinothunder/skins/${tag}`
+  // the engine's own fallbacks (an action missing from _skinAnim → animationData.idle; portrait / HUD icon readers) use the
+  // skin too: the same table with the skin's sheet paths (identical keys, frame counts and timing — cosmetic only)
+  f.animationData = A
+  f.portrait = `${f._dtSkinArt}/${form}/portrait_large.png`; f.hudIcon = `${f._dtSkinArt}/${form}/portrait_small.png`
 }
 registerDinoSkinHook(dinoApplySkin)

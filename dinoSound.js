@@ -22,6 +22,9 @@ function tone(ctx, out, { type = 'sine', freq, freqEnd = null, dur, gain = 0.2, 
 const base = Object.fromEntries(Object.entries(NS_SOUNDS).filter(([k]) => k.startsWith('nsr_')).map(([k, fn]) => ['dt_' + k.slice(4), fn]))
 export const DINO_SOUNDS = {
   ...base,
+  // Z-REX countdown tick (3 · 2 · 1): a hard square blip with a click; the BOOM: a sub drop + noise crack as the beam fires
+  dt_tick: (c, o) => { tone(c, o, { type: 'square', freq: 880, dur: 0.09, gain: 0.08 }); tone(c, o, { type: 'sine', freq: 440, dur: 0.14, gain: 0.07 }); noise(c, o, { dur: 0.04, freq: 6000, q: 3, gain: 0.06, seed: 907 }) },
+  dt_boom: (c, o) => { tone(c, o, { type: 'sine', freq: 120, freqEnd: 38, dur: 0.6, gain: 0.22 }); tone(c, o, { type: 'sawtooth', freq: 340, freqEnd: 90, dur: 0.35, gain: 0.08 }); noise(c, o, { dur: 0.5, freq: 2400, freqEnd: 300, q: 0.8, gain: 0.16, seed: 911 }) },
   // the morph chime: a rising three-note gem arpeggio
   dt_swapChime: (c, o) => { [660, 880, 1320].forEach((f, i) => tone(c, o, { type: 'triangle', freq: f, dur: 0.16, gain: 0.09, at: i * 0.045 })); noise(c, o, { dur: 0.12, freq: 5200, q: 2, gain: 0.08, seed: 811 }) },
   // PTERA SCREAM: a wavering high squeal over a sonic rush

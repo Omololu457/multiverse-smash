@@ -26,7 +26,7 @@ export const DINO_KIT = {
   ],
   mobility: NS_RED_KIT.mobility,
   ultimate: { name: 'RAPTOR RIDER STAMPEDE · TRICERA ZORD RAM · PTERA ZORD STRIKE · DRAGO SWORD STORM (1 bar) · Z-REX BLASTER (full meter)', input: '↓↘→↓↘→ + Special (or Ultimate with 1 bar) · Ultimate on a full meter', cost: 50,
-    desc: 'Red: the Raptor Rider charges through, 4 hits, 260. Blue: the Tricera Zord head rams the foe into the wall, 280. Yellow: the Ptera Zord head swoops the top half then dives, 270. White: six afterimage slashes, 280. TEAM — Z-REX BLASTER: "GO!", the BOSS KILLED cut-in, a braided red / blue / yellow beam 6 × 40, then Trent\'s slash: 400. 30-frame startup; 30% chip on block.' },
+    desc: 'Red: the Raptor Rider charges through, 4 hits, 260. Blue: the Tricera Zord head rams the foe into the wall, 280. Yellow: the Ptera Zord head swoops the top half then dives, 270. White: six afterimage slashes, 280. TEAM — Z-REX BLASTER (cinematic): the camera closes in on the Ranger who called it, the other three leap in one by one, 3 · 2 · 1, BOOM — the braided red / blue / yellow beam crosses the stage, 6 × 40, and detonates on the foe for 160: 400. The foe is frozen until the beam (guarding → 30% chip; out of the beam\'s row → it misses).' },
   combos: [
     { name: 'Speed cash-out', sequence: 'Red: ↓↓ + Special (Super Speed) → Light → Light → Heavy → → + Special', desc: 'Penalty Strike crosses up at the end.' },
     { name: 'Tag to the wall', sequence: 'Red: Light → Heavy → hold P + K → Blue: → + Heavy', desc: 'Swap-in strike buffs the Shield Ram (+10%), wall bounce.' },

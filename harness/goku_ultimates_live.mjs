@@ -27,7 +27,7 @@ try{
   for(let f=0; f<=6; f++){
     await toForm(f); const fm=await form();
     await pos(70); const h0=(await p2()).health;
-    const r=await ult(); await wf(82);
+    const r=await ult(); await wf(340);   // 2026-11-24: per-form ults are now ~250-frame frozen cinematics (gokuUlt.js) — wait for the whole scene
     const dmg=h0-(await p2()).health;
     ck(`${NAMES[f]} (form ${fm.form}) casts`, !!r.cast, `cast=${r.cast} castMove=${r.castMove}`);
     ck(`  ${NAMES[f]} connects (dmg ${dmg.toFixed(0)})`, dmg>0, "");

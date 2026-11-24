@@ -1,5 +1,6 @@
 // spdSquadKit.js — Move List (kits.js) for the S.P.D. Rangers squad (spd_rangers). Built from each Ranger's OWN kit, so
 // it stays in step with them: the dial first, then every Ranger's specials (prefixed with who does it), the six ultimates.
+import { MEGAZORD_KIT_ROWS } from './megazordKit.js'   // MSV1-MEGAZORD: the THUNDER MEGAZORD (U + L) section
 const WHO = [['spd_red', 'Red', 'J'], ['spd_blue', 'Blue', 'K'], ['spd_green', 'Green', 'L'], ['spd_yellow', 'Yellow', 'O'], ['spd_pink', 'Pink', 'P'], ['omega_ranger', 'Omega', 'U']]
 export function squadKit(KITS) {
   const red = KITS.spd_red || {}
@@ -39,7 +40,7 @@ export function mmprSquadKit(KITS) {
     passive: { name: "It's Morphin Time", effect: 'The called Ranger teleports in with a flash and 6 frames of invulnerability. Each round starts as the "Start as" Ranger (skin).' },
     basics: base.basics, mobility: base.mobility,
     specials: [{ name: 'TEAM ULTIMATE — MORPHIN GRID: FIVE-POINT STAR', input: 'W + U together (full meter)', cost: 100,
-      desc: "It's Morphin Time! Five Power Coins pin the foe in the air, the Rangers drop onto the points of a star and cut it through them in a five-dash relay, then the Morphin Grid's lightning slams them down — team pose, explosions. 400 raw; 30 % if they were blocking." }, ...dial, ...MMPR_WHO.flatMap(([k, n]) => (K(k).specials || []).map(s => ({ ...s, name: `${n} — ${s.name}` })))],
+      desc: "It's Morphin Time! Five Power Coins pin the foe in the air, the Rangers drop onto the points of a star and cut it through them in a five-dash relay, then the Morphin Grid's lightning slams them down — team pose, explosions. 400 raw; 30 % if they were blocking." }, ...MEGAZORD_KIT_ROWS, ...dial, ...MMPR_WHO.flatMap(([k, n]) => (K(k).specials || []).map(s => ({ ...s, name: `${n} — ${s.name}` })))],
     ultimate: { name: 'Each Ranger\'s own', input: base.ultimate?.input || 'Ultimate (full meter)', cost: 100, desc: MMPR_WHO.map(([k, n]) => `${n}: ${K(k).ultimate?.name || 'Ultimate'}`).join(' · ') },
     combos: [
       { name: 'Tag string', sequence: 'Red: Light (hit) → ↓↓ K → Black: Light → Heavy', desc: 'Swap in the jab\'s recovery and keep the combo counter going.' },

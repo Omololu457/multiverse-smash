@@ -327,6 +327,7 @@ import { ZORO_SOUNDS } from './zoroSound.js'   // Roronoa Zoro synth SFX (SFX bu
 import { BUGGY_SOUNDS } from './buggySound.js'   // Buggy the Clown synth SFX (SFX bus; voice bus untouched)
 import { SANJI_SOUNDS } from './sanjiSound.js'   // Sanji synth SFX (SFX bus; voice bus untouched)
 import { ARLONG_SOUNDS } from './arlongSound.js'   // Arlong synth SFX (SFX bus; voice bus untouched)
+import { MEGAZORD_SOUNDS } from './megazordSound.js'   // MSV1-MEGAZORD: the Thunder Megazord (U + L) synth SFX (mz_*)
 import { MMPR_PINK_SOUNDS } from './mmprPinkSound.js'   // Pink Ranger + Thunder Megazord synth SFX (SFX bus; voice bus untouched; no dialogue)
 import { MMPR_BLACK_SOUNDS } from './mmprBlackSound.js'   // Black Ranger + Falconzord synth SFX placeholders (SFX bus; voice bus untouched)
 import { MMPR_WHITE_SOUNDS } from './mmprWhiteSound.js'   // White Ranger + Ninja Megazord synth SFX (SFX bus; voice bus untouched; no dialogue)
@@ -350,6 +351,7 @@ import { NINJA_STORM_SOUNDS } from './ninjaStormSound.js'   // MSv2 Ninja Storm 
 const SOUNDS = {
   ...ZORO_SOUNDS,   // zoro_swing / _hit / _sheathe / _tatsu / _oni / _haki / _snore …
   ...SANJI_SOUNDS,  // sanji_whoosh1-3 / _impact / _burnImpact / _spin (ignite hiss) / _skywalk1-2 / _plate / _course1-6 / _courseDone / _hachis …
+  ...MEGAZORD_SOUNDS, // mz_* : servo step, metal impact, flame roar, Saber Charge hum, fireball whoosh-boom, thunder crack
   ...MMPR_PINK_SOUNDS, // mmprpink_* : bow snap, draw-threshold rise, Spotter chirp, radio ack, metallic wind-up / slash, Thread chime, ultimate tension/impact
   ...MMPR_BLACK_SOUNDS, // mmprblack_* : martial thud/crack, radio ack, wing pass, talon chirp, volley pulses, Pincer chime, ultimate rhythm
   ...MMPR_WHITE_SOUNDS, // mmprwhite_* : discipline notes, Formation three-note resolution, Saba metal, Megazord impact, sword tension/strike, Leader confirm, ultimate rhythm

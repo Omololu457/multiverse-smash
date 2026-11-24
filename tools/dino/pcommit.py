@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """MSV1-DINO private-index commit (never touches the shared index's foreign entries or anyone's worktree WIP).
 
-  python3 tools/dino/pcommit.py --msg MSGFILE [--hooks a.js,b.js] PATH...
+  python3 tools/dino/pcommit.py --msg MSGFILE [--hooks a.js,b.js] [--hookset tools/ds/hooks.py] PATH...
 
 1. a private index from the CURRENT HEAD; 2. add the listed Dino-owned PATHs (files or dirs; __pycache__ / out skipped);
 3. the listed shared files get HEAD's blob + this tool's hook lines (tools/dino/hooks.py blobs); 4. index.html stamped by
@@ -11,7 +11,7 @@ update-ref main (compare-and-swap on the old HEAD); 6. the shared index takes th
 """
 import os, sys, subprocess, tempfile, shutil, argparse
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-ap = argparse.ArgumentParser(); ap.add_argument('--msg', default=''); ap.add_argument('--hooks', default=''); ap.add_argument('--export', default=''); ap.add_argument('paths', nargs='*')
+ap = argparse.ArgumentParser(); ap.add_argument('--msg', default=''); ap.add_argument('--hooks', default=''); ap.add_argument('--hookset', default='tools/dino/hooks.py'); ap.add_argument('--export', default=''); ap.add_argument('paths', nargs='*')
 a = ap.parse_args()
 def git(*args, env=None, inp=None):
     r = subprocess.run(['git', *args], cwd=ROOT, env=env, input=inp, capture_output=True)
@@ -33,7 +33,7 @@ for p in a.paths:
 for i in range(0, len(files), 200): git('add', '-f', '--', *files[i:i + 200], env=env)
 hooked = [h for h in a.hooks.split(',') if h]
 if hooked:
-    r = subprocess.run([sys.executable, 'tools/dino/hooks.py', 'blobs', old], cwd=ROOT, env={**os.environ, 'DINO_FILES': ','.join(hooked)}, capture_output=True)
+    r = subprocess.run([sys.executable, a.hookset, 'blobs', old], cwd=ROOT, env={**os.environ, 'DINO_FILES': ','.join(hooked)}, capture_output=True)
     if r.returncode: sys.exit('hooks failed: ' + r.stderr.decode())
     for line in r.stdout.decode().split('\n'):
         if not line.strip(): continue

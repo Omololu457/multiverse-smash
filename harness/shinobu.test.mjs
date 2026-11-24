@@ -182,9 +182,10 @@ try {
   const c0 = await cine();
   check("ultimate activates the Butterfly Dance cinematic", c0.active === true, `phase=${c0.phase}`);
   const startX = c0.startX; let maxToward = 0;
-  for (let i = 0; i < 120; i++) { const c = await cine(); if (!c.active) break; if (c.casterX != null) maxToward = Math.max(maxToward, c.casterX - startX); await waitFrames(1); }
+  for (let i = 0; i < 320; i++) { const c = await cine(); if (!c.active) break;   // 290f cinematic (flits from f150)
+  if (c.casterX != null) maxToward = Math.max(maxToward, c.casterX - startX); await waitFrames(1); }
   check("she DASHES toward the opponent (range-independent)", maxToward > 100, `dash Δx=${Math.round(maxToward)}px`);
-  await page.waitForFunction(() => !window.__harness.shinobuUltCine().active, null, { timeout: 4000, polling: 16 }).catch(() => {});
+  await page.waitForFunction(() => !window.__harness.shinobuUltCine().active, null, { timeout: 30000, polling: 16 }).catch(() => {});
   await waitFrames(4); const uhpHit = (await p2()).health;
   check("STRIKE deals guaranteed direct (~180 = 300×0.60)", (uhp0 - uhpHit) >= 170, `direct=${uhp0 - uhpHit}`);
   await waitFrames(130); const uhpPoison = (await p2()).health;
@@ -209,7 +210,7 @@ try {
   const ultTally = await measureDrawsPerFrame("shinobu_ultimate_uniform", 20);
   check("ultimate cinematic sprite renders", ultTally.draws > 0, `draws=${ultTally.draws}/${ultTally.frames}f`);
   check("ultimate cinematic NOT double-rendered (ratio ≤ 1.6)", ultTally.ratio <= 1.6, `draws-per-frame=${ultTally.ratio.toFixed(2)}`);
-  await page.waitForFunction(() => !window.__harness.shinobuUltCine().active, null, { timeout: 5000, polling: 16 }).catch(() => {});
+  await page.waitForFunction(() => !window.__harness.shinobuUltCine().active, null, { timeout: 30000, polling: 16 }).catch(() => {});
 
   // ── FALLBACK-BOX SWEEP ──
   section("fallback-box sweep (every wired action → real shinobu_* sheet; missing states absent)");

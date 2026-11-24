@@ -63,6 +63,7 @@ import { activateSamuraiFlameSmasherCinematic, isSamuraiFlameSmasherCinematicAct
 import { activateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicActive } from "./redRangerPowerSwordCinematic.js"   // Red Ranger (MMPR) "Power Sword: Overhead Strike" freeze-cinematic ultimate (no cycle)
 import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
 import { activateInosukeBeastCinematic, isInosukeBeastCinematicActive } from "./inosukeBeastCinematic.js"   // Inosuke "Beast Breathing" cinematic specials (no cycle)
+import { startDemonSlayerPreroll } from "./demonSlayerCinematics.js"   // DS-ULT-CINE (Zenitsu / Nezuko ultimate pre-rolls; no cycle)
 import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
@@ -19193,6 +19194,7 @@ function executeNezukoKekijutsu(fighter, context) {
   fighter.vx = 0
   fireNezukoUltPhase(fighter, "nezukoUlt1a", NEZUKO_ULT1A)   // phase 1 — barrage
   fighter._nzUltP2Pending = true                             // phase 2 auto-chains when phase 1 ends (updateNezukoUltChain)
+  startDemonSlayerPreroll("nezuko", fighter, context?.getOpponent?.(fighter))   // DS-ULT-CINE
   try { shakeCamera(context, 5, 8) } catch (_) {}
   return true
 }
@@ -19222,6 +19224,7 @@ function enterNezukoDemon(fighter, context) {
   const base = fighter.animationData || {}
   if (base.nezukoTransformIdle) fighter._skinAnim = { ...base, idle: base.nezukoTransformIdle }
   fighter._spriteCastMove  = "nezukoTransform"   // transform-in flourish
+  startDemonSlayerPreroll("nezukoDemon", fighter, context?.getOpponent?.(fighter))   // DS-ULT-CINE
   fighter._spriteCastTimer = 30
   fighter.vx = 0
   try { shakeCamera(context, 6, 10) } catch (_) {}
@@ -23438,6 +23441,7 @@ function executeZenitsuUltimate(fighter, context) {
   fighter.ultimateCooldown = ZENITSU_ULT_CD
   shakeCamera(context, 9, 16)
   focusCameraOnAction(context, fighter, target, 1.0, 10)
+  startDemonSlayerPreroll("zenitsu", fighter, target)   // DS-ULT-CINE
   return true
 }
 // FIRST FORM: THUNDERCLAP AND FLASH — near-instant lunging strike. Fast startup, one heavy hit, he

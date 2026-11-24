@@ -148,8 +148,8 @@ try {
   check("ultimate line fired within ~3f of activation", inPool(logEarly, ultPool), logEarly.filter(f => /^shinobu/.test(f)).join(","));
   check("…at the windup: strike damage has NOT landed yet", inPool(logEarly, ultPool) && dmgEarly === 0, `dmgEarly=${dmgEarly}`);
   check("…and the freeze-cinematic is active (line rode the activation, not the impact)", cineActiveEarly, `cineActive=${cineActiveEarly}`);
-  await page.waitForFunction(() => { const q = window.__harness.p2(); return (q.maxHealth - q.health) > 0; }, null, { timeout: 12000, polling: 16 }).catch(() => {});
-  await page.waitForFunction(() => !(window.__harness.shinobuUltCine && window.__harness.shinobuUltCine().active), null, { timeout: 12000, polling: 32 }).catch(() => {});
+  await page.waitForFunction(() => { const q = window.__harness.p2(); return (q.maxHealth - q.health) > 0; }, null, { timeout: 40000, polling: 16 })   // 290f Butterfly Dance cinematic.catch(() => {});
+  await page.waitForFunction(() => !(window.__harness.shinobuUltCine && window.__harness.shinobuUltCine().active), null, { timeout: 40000, polling: 32 }).catch(() => {});
   const logFull = await sfxLog();
   const dmgFull = (await p2()).maxHealth - (await p2()).health;
   const ultCount = logFull.filter(f => ultPool.includes(f)).length;

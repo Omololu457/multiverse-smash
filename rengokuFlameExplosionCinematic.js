@@ -21,6 +21,8 @@
 // Self-contained: imports only sound.js (no cycle — game.js/abilities.js import THIS).
 
 import { sound as globalSound, SFX } from "./sound.js"
+// the Zenitsu / Nezuko ultimate pre-rolls ride on this cinematic's freeze gate + draw/clear calls (no new game.js wiring)
+import { isDemonSlayerPrerollActive, updateDemonSlayerPreroll, drawDemonSlayerCinematics, clearDemonSlayerPreroll } from "./demonSlayerCinematics.js"
 
 export const RENGOKU_ULT_CINE_TIMELINE = { BREATH: 168, CALL: 132, SLASH: 12, STILL: 18, CUT: 60 }
 const T_CALL   = 168                     // "Ōgi"
@@ -49,7 +51,7 @@ export function activateRengokuFlameExplosionCinematic(caster, opponent, onImpac
   return true
 }
 
-export function isRengokuFlameExplosionCinematicActive() { return cine.active }
+export function isRengokuFlameExplosionCinematicActive() { return cine.active || isDemonSlayerPrerollActive() }
 
 export function getRengokuFlameExplosionCinematicPhase() {
   if (!cine.active) return null
@@ -86,7 +88,7 @@ function poseCaster(f) {
 }
 
 export function updateRengokuFlameExplosionCinematic(ctx = {}) {
-  if (!cine.active) return null
+  if (!cine.active) { updateDemonSlayerPreroll(ctx); return null }
   const cam = ctx.camera || null
   const snd = ctx.sound || globalSound
   const f = cine.frame, c = cine.caster, opp = cine.opponent
@@ -150,6 +152,7 @@ function endRengokuFlameExplosionCinematic() {
 }
 
 export function clearRengokuFlameExplosionCinematic() {
+  clearDemonSlayerPreroll()
   if (cine.active || cine._cam) endRengokuFlameExplosionCinematic()
 }
 
@@ -169,6 +172,7 @@ function flameTongue(ctx, x, y, h, w, lean, t, col) {
 }
 
 export function drawRengokuFlameExplosionCinematic(ctx, canvas) {
+  drawDemonSlayerCinematics(ctx, canvas)
   if (!cine.active || !ctx) return
   const cw = canvas?.width || 1280, ch = canvas?.height || 720
   const f = cine.frame, c = cine.caster, opp = cine.opponent, cam = cine._cam, dir = cine.dir

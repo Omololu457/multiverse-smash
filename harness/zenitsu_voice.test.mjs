@@ -121,6 +121,8 @@ try {
   check("ultimate line fired within ~3f of activation", inPool(logEarly, ultPool), logEarly.filter(f => /^zenitsu/.test(f)).join(","));
   check("…before the dash blink (p1 hasn't teleported yet)", Math.abs(xEarly - xBefore) < 30, `Δx=${(xEarly - xBefore).toFixed(0)}`);
   await waitFrames(30);
+  // the Godspeed cinematic pre-roll (200f, frozen) runs before the dash — let it play out so the dash really whiffs
+  await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 16 }).catch(() => {}); await waitFrames(30);
   const dmgDealt = (await p2()).maxHealth - (await p2()).health;
   check("ultimate line fired despite ZERO connect (activation, not on-hit)", inPool(logEarly, ultPool) && dmgDealt === 0, `dmg=${dmgDealt}`);
   await page.evaluate(() => window.__harness.setP2Invuln?.(0));

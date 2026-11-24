@@ -50,7 +50,8 @@ try {
   { const hp0 = (await p2()).health;
     await page.keyboard.down("u"); await page.keyboard.up("u");   // TAP (<250ms)
     const moves = new Set(); let demon = false;
-    for (let i = 0; i < 90; i++) { const c = await p1(); if (c.currentMove) moves.add(c.currentMove); if (c.nzDemonActive) demon = true; if (i === 4) await shot("ult1_barrage"); if (i === 40) await shot("ult1_finisher"); await waitFrames(1); }
+    // the Exploding Blood cinematic pre-roll (160f, combat frozen) plays first — the barrage starts after it
+    for (let i = 0; i < 250; i++) { const c = await p1(); if (c.currentMove) moves.add(c.currentMove); if (c.nzDemonActive) demon = true; if (i === 164) await shot("ult1_barrage"); if (i === 200) await shot("ult1_finisher"); await waitFrames(1); }
     const dmg = hp0 - (await p2()).health;
     check("TAP → phase 1 barrage (nezukoUlt1a)", moves.has("nezukoUlt1a"), `moves=${[...moves].join(",")}`);
     check("auto-chains → phase 2 finisher (nezukoUlt1b)", moves.has("nezukoUlt1b"), `moves=${[...moves].join(",")}`);

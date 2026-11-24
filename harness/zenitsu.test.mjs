@@ -37,7 +37,12 @@ async function adjacent(gap = 60, block = false) {
   await page.evaluate(b => { window.__harness.resetFighterInput?.("p1"); window.__harness.clearProjectiles?.(); window.__harness.clearSummons?.(); window.__harness.healP1?.(); window.__harness.healP2?.(); window.__harness.resetUlt?.(); window.__harness.setP2Invuln?.(0); window.__harness.setP2ForceBlock?.(b); }, block);
   const a = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a.x + gap); await waitFrames(2);
 }
-async function pressUlt() { await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); }
+async function pressUlt() { await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  // the Godspeed cinematic pre-roll (200f, combat frozen) plays before the live dash — wait it out so the frame counts below
+  // measure the same live move as before
+  // (the ult fires on RELEASE, so first wait for the pre-roll to START — a blocked recast never starts one)
+  await page.waitForFunction(() => !!(window.__dsPrerollStatus?.().active), null, { timeout: 1500, polling: 8 }).catch(() => {})
+  await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 16 }).catch(() => {}); }
 
 try {
   // ── REGISTRATION + PORTRAIT ──

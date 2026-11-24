@@ -110,6 +110,7 @@ export const CONTROL_REFERENCE = {
 }
 
 import { KEVIN_KIT } from './kevinKit.js'
+import { squadKit } from './spdSquadKit.js'   // S.P.D. Rangers squad Move List (built from the six Rangers' kits)
 
 export const KITS = {
   kevin_levin: KEVIN_KIT,
@@ -1273,6 +1274,8 @@ export const KITS = {
 // Grammar-accurate bread-and-butter combos for a character, from comboStandard.js `classify()`.
 // The Move List should teach what the fighter can ACTUALLY do — a Fwd+Heavy rekka char must NOT be told
 // "Light, Light, Heavy" (only standard-string chars chain light normals), and a zoner has no auto-combo.
+KITS.spd_rangers = squadKit(KITS)   // S.P.D. Rangers: dial + every Ranger's specials
+
 export function comboStringFor(rosterKey) {
   const air = { name: "Air Juggle", sequence: "Up-Attack, Jump, Air, Air", desc: "launcher into aerial pressure" }
   const c = classify(rosterKey)

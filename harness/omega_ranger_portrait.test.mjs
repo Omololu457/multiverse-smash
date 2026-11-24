@@ -40,7 +40,9 @@ try {
 
   // 1) roster on the real power_rangers select screen includes omega_ranger
   const sel = await page.evaluate(() => window.__harness.showCharSelect("power_rangers", "training"));
-  check("power_rangers roster includes omega_ranger", sel.roster.includes("omega_ranger"), `roster=${sel.roster.join(",")}`);
+  // 2026-11-23 owner: "add the Omega Ranger since he is S.P.D. too" → Omega is the S.P.D. Rangers' 6th Ranger (↓↓ + U),
+  // so the select shows the squad (spd_rangers) instead of a standalone Omega card
+  check("power_rangers roster reaches Omega via the S.P.D. Rangers squad", sel.roster.includes("spd_rangers") && !sel.roster.includes("omega_ranger"), `roster=${sel.roster.join(",")}`);
   check("gameState is the real SELECT_CHARACTER screen", String(sel.gameState).toUpperCase().includes("CHAR") || sel.gameState === 12 || true, `gameState=${sel.gameState}`);
 
   // 2) the mugshot <img> actually decodes (file loads)

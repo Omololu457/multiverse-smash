@@ -9,6 +9,7 @@
  * - endInputFrame() is the single end-of-frame safety net for mouse clicks.
  */
 
+import { squadMaskInput } from './spdSquadMask.js'   // S.P.D. Rangers dial swallow (2026-11-23)
 import { PAD_BUTTON, PAD_DPAD, PAD_AXES, PAD_MENU, PAD_GLYPHS } from "./padLayout.js"
 import { stickToNumpad, combineStickDpad, numpadToDirs } from "./padStick.js"
 import { isFlying } from "./flight.js"
@@ -605,7 +606,16 @@ function _recentCloneSummonMotion(fighter) {
   return last3[0].dir === "D" && last3[1].dir === "D" && last3[2].dir === "U"
 }
 
+// S.P.D. Rangers dial: the called Ranger's button stays swallowed until released (spdSquadMask.js; no-op for everyone else)
 export function getFighterInput(fighter) {
+  const out = _getFighterInput(fighter)
+  if (!fighter?._squadEat || !out) return out
+  const raw = _readRawControls(fighter) || out, eaten = Object.keys(fighter._squadEat)
+  const buf = PLAYER_BUFFERS[fighter.playerNumber || 1]
+  if (buf) for (const b of eaten) if (b in buf) buf[b] = 0   // a buffered copy of the pick press must not fire after release
+  return squadMaskInput(fighter, out, raw)
+}
+function _getFighterInput(fighter) {
   if (!fighter) return null
   const pn = fighter.playerNumber || 1
   if (pn === 1 || pn === 2) inputCallCount[pn]++
@@ -693,6 +703,13 @@ function _resolveFighterInput(fighter, pn) {
 export const REPLAY_INPUT_FIELDS = ["left", "right", "down", "up", "jump", "light", "heavy", "upAttack", "special", "ultimate", "dash", "grab", "charge", "block"]
 
 export function readRawControls(fighter) {
+  const raw = _readRawControls(fighter)
+  if (!fighter?._squadEat || !raw) return raw
+  return squadMaskInput(fighter, { ...raw }, raw)
+}
+// unmasked snapshot (the S.P.D. dial reads this one so it can see the swallowed button being released)
+export const readRawControlsUnmasked = fighter => _readRawControls(fighter)
+function _readRawControls(fighter) {
   if (fighter?.rosterKey === 'kevin_levin' && fighter._kevinRemoteInput && fighter._kevinInjectedRaw) return { ...fighter._kevinInjectedRaw }
   if (fighter?.rosterKey === 'mr_incredible' && fighter._mrRemoteInput && fighter._mrInjectedRaw) return { ...fighter._mrInjectedRaw } // preserve pad Up vs Cross in replay/LAN
   if (!fighter || !fighter.controls) return null

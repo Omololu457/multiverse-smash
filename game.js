@@ -1,4 +1,7 @@
 import { updateLuffyCommandCombat } from './luffy.js'
+import { tickSpdSquad, spdSquadRoundReset, spdSquadCpu, squadSwap, squadState, squadPreloadKeys } from "./spdSquad.js"   // S.P.D. Rangers: the B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P Ranger dial
+import { drawSpdSquadFx } from "./spdSquadFx.js"   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
+import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
 import { benCpuDrive } from "./benCpu.js"   // CPU Ben 10 / Albedo: transforms by range + mid-combo alien swaps
@@ -241,7 +244,7 @@ import {
   inputSettings, getFighterInput, peekFighterInput, beginInputFrame, updateDebugInputToggles, getDebugInputState,
   recordInputFrame, recordInputSequence, getInputHistory, endInputFrame,
   clearInputBuffers, PS5_MAP, STICK_DEADZONE, padDirections, getPadNumpad, jumpOnUp, setJumpOnUp, toggleJumpOnUp, inputCallCount, getConnectedPadCount, getPlayerGamepad,
-  readRawControls, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
+  readRawControls, readRawControlsUnmasked, writeRawControls, pollMenuGamepad, padGlyphs, getPadType
 } from "./input.js"
 import * as replay from "./replay.js"   // Stage 11B: input recording (replay foundation)
 import * as netMatch from "./net/netMatch.js"   // LAN multiplayer (Stage 2): OPT-IN remote input. Inert (isActive()=false) unless a LAN match is explicitly begun → standalone is byte-identical.
@@ -1652,7 +1655,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
   clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
@@ -5941,7 +5944,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -6785,7 +6788,8 @@ function startMatch() {
   // ADDS the decode-and-gate layer on top (body + skin + FX) without altering this.
   if (matchConfig.p1CharKey) { preloadCharacterSprites?.(matchConfig.p1CharKey); loadSpriteSheets(matchConfig.p1CharKey) }
   if (matchConfig.p2CharKey) { preloadCharacterSprites?.(matchConfig.p2CharKey); loadSpriteSheets(matchConfig.p2CharKey) }
-  for (const _k of duoPreloadKeys(matchConfig)) { preloadCharacterSprites?.(_k); loadSpriteSheets(_k) }   // MSV1-MERGE: both forms' sheets
+  for (const _k of duoPreloadKeys(matchConfig)) { preloadCharacterSprites?.(_k); loadSpriteSheets(_k) }
+  for (const _k of squadPreloadKeys(matchConfig)) { preloadCharacterSprites?.(_k); loadSpriteSheets(_k) }   // S.P.D. Rangers: all five Rangers' sheets   // MSV1-MERGE: both forms' sheets
   // Full decode-and-gate preload: body sheets (both fighters + skins) AND spawned FX. This Promise is
   // what gates the INTRO→BATTLE hop so no move first-use-faults to the _FALLBACK box mid-fight.
   preloadMatch(matchConfig)
@@ -7171,7 +7175,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -11428,7 +11432,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdRedRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -11540,7 +11544,8 @@ function updateCPUInput() {
   // 1v1 CPU below — just runs it a second time for P1 with its own controller (p1AI).
   if (matchConfig.mode === "aivsai") {
     if (p1) {
-      if (isTransformDevice(p1)) benCpuDrive(p1, p2, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 0)   // CPU Ben / Albedo: the whole Omnitrix (benCpu.js)
+      if (isTransformDevice(p1)) benCpuDrive(p1, p2, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 0)
+      if (p1?._squad) spdSquadCpu(p1, p2, baseAiDifficulty(matchConfig.aiDifficulty), SPD_SQUAD_WORLD)   // CPU S.P.D. Rangers: Ranger dial (spdSquad.js)   // CPU Ben / Albedo: the whole Omnitrix (benCpu.js)
       updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
       _driveCpu(p1, p1AI, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
       markGsCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
@@ -11550,6 +11555,7 @@ function updateCPUInput() {
       markOmvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
     }
     if (isTransformDevice(p2)) benCpuDrive(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 1)
+    if (p2?._squad) spdSquadCpu(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), SPD_SQUAD_WORLD)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
     _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
     markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
@@ -11569,6 +11575,7 @@ function updateCPUInput() {
   // stand/block/jump override. Real versus and AI-vs-AI behavior is unchanged.
   if (matchConfig.mode !== "training") {
     if (isTransformDevice(p2)) benCpuDrive(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 1)   // CPU Ben / Albedo: the whole Omnitrix (benCpu.js)
+    if (p2?._squad) spdSquadCpu(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), SPD_SQUAD_WORLD)   // CPU S.P.D. Rangers: Ranger dial (spdSquad.js)
     updateGokuCpuAI(p2, p1, getAbilityContext(), roundTimer / ROUND_TIME)
   }
   _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })
@@ -12797,6 +12804,12 @@ function updateMovementInput(fighter) {
   if (!fighter) return
   const teleportTick = (groundTeleportProfile(fighter) || fighter._groundTeleport) && tickGroundTeleport(fighter,readRawControls(fighter)||{},SPD_BLUE_WORLD,{canCancel:spdBlueCanStep,onCancel:spdBlueStepSpent})
   const inputState = getFighterInput(fighter)
+  // S.P.D. RANGERS dial (spdSquad.js) — runs every frame, before the kit locks / attack early-returns: ↓↓ + J/K/L/O/P/U
+  // swaps Ranger and the pick press is swallowed (input.js masks it for every later reader this frame)
+  if (fighter._squad || fighter.rosterKey === "spd_rangers") {
+    tickSpdSquad(fighter, readRawControlsUnmasked(fighter) || {}, SPD_SQUAD_WORLD)
+    if (fighter._squadEat) for (const b of Object.keys(fighter._squadEat)) inputState[b] = false
+  }
   if (kevinRaw) {
     const jump=!!kevinRaw.jump && !(kevinRaw.up && (kevinRaw.heavy || kevinRaw.special || kevinRaw.upAttack))
     Object.assign(inputState,{left:!!kevinRaw.left,right:!!kevinRaw.right,down:!!kevinRaw.down,
@@ -12990,6 +13003,18 @@ function ben10Sfx(fighter, id) {
   try { ben10VoForSfxEvent(fighter, id, { seed, frame: globalFrameCount }) } catch (_) {}   // VO: transform / special callout (same hash inputs)
 }
 
+// S.P.D. RANGERS (spdSquad.js): Ben's dial windows + "clear the outgoing Ranger's kit" (each Ranger's own clear + world)
+const SPD_SQUAD_WORLD = {
+  benSwap: () => ({ dbl: OMX_DOUBLE_TAP_WINDOW, arm: OMX_ARM_WINDOW }),
+  clear: (f, form) => {
+    if (form === "spd_red") clearSpdRed(f)
+    else if (form === "spd_blue") clearSpdBlue(f, SPD_BLUE_WORLD)
+    else if (form === "spd_green") clearSpdGreen(f, SPD_BLUE_WORLD)
+    else if (form === "spd_pink") clearSpdPink(f, SPD_BLUE_WORLD)
+    else if (form === "spd_yellow") clearSpdYellow(f, SPD_YELLOW_WORLD)
+  },
+  cue: () => { try { sound.playJuiceSfx?.("whoosh_short", { gain: 0.7 }) } catch (_) {} },
+}
 function handleOmnitrixSwitch(fighter, inputState) {
   if (!fighter?.omnitrix) return
   const held = (fighter._omx = fighter._omx || {})
@@ -23335,6 +23360,7 @@ function renderHybridFighter(fighter) {
     drawMmprPinkFx(c, fighter, getOpponent(fighter))   // Pink Ranger — Thunder Megazord strike / ultimate scene, Spotter reticle, call location, warnings, Command pips, Thread flash, blink ghost (render-only)
     drawMmprBlackFx(c, fighter, getOpponent(fighter))   // Black Ranger — Falconzord sortie / ultimate bird, lane + reticle markers, Sortie pips, Pincer ring, blink ghost (render-only)
     drawGreenRangerFx(c, fighter, getOpponent(fighter))   // Green Ranger — note glyphs, call circles, empower telegraph, tinted Falconzord, cut-in, CALL MISSED (render-only)
+    drawSpdSquadFx(c, fighter)              // S.P.D. Rangers — tag-in teleport flash + the five-Ranger dial (render-only; squad only)
     drawSpdYellowFx(c, fighter)             // S.P.D. Yellow — clone + tell, blink streaks, muzzle star, shots, coin HUD + command panel, Ninja Megazord, ultimate scene, skin materials (render-only; spd_yellow only)
     drawMmprWhiteFx(c, fighter)             // White Ranger — Ninja Megazord order / ultimate Megazord, strike-zone warning, order pips, discipline symbols + Formation token, Leader cue, blink ghost (render-only)
     drawCyborgFx(c, fighter, getOpponent(fighter))   // Cyborg — skin material overlay, explosions, sonic bursts, Mega shock ring, vent steam, Resonance ring, ultimate beam / missiles (render-only; cyborg only)
@@ -31463,6 +31489,7 @@ gameLoop()
     forceP1Win: () => { if (p2) p2.health = 0 },
     forceP1MatchWin: () => { if (p2) { p2.health = 0; forceMatchEnd("p1") } },
     mapRun: () => ({ run: _hlMapRun() ? (({ owner, ...r }) => r)(_hlMapRun()) : null, fx: mapRunState(), cam: { x: camera.x, zoom: camera.zoom } }),
+    spdSquad: { state: (w = "p1") => squadState(w === "p2" ? p2 : p1), swap: (w, form) => squadSwap(w === "p2" ? p2 : p1, form, SPD_SQUAD_WORLD) },   // S.P.D. Rangers probe
     entrance: (w = "p1") => { const f = w === "p2" ? p2 : p1; return { state: entranceState(f), fx: entranceFxState(), waiting: !!f?._introWaiting, introPlaying: !!f?._introPlaying, stage: introStage, gs: gameState, x: f?.x, y: f?.y } },
     flyerIntro: (w = "p1") => { const f = w === "p2" ? p2 : p1; return { state: flyerIntroState(f), fx: flyerIntroFxState(), introPlaying: !!f?._introPlaying, frame: f?._introRevealFrame || 0, x: f?.x, y: f?.y, variant: f?._introVariant || null, stage: introStage, gs: gameState } },
     finisherDemo: (which) => !!(p1 && p2 && (which === "sb" ? startScreenBreaker(p1, p2) : startSignatureFatality(p1, p2, Number.isInteger(which) ? { index: which } : null))),   // Controls Lab: play a finisher on the LIVE fighters (p1()/p2() are snapshots)   // test hook: the match-ending KO right now (→ the FINISH window)

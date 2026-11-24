@@ -18,7 +18,7 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
   windrangers: 1.6,   // MSV1-MERGE (its live rosterKey is always a form id)
   ninja_storm_rangers: 1.6,   // MSv2 Ninja Storm Rangers: S.P.D. Red's tier (same authoring scale as his frame data)
   ninja_storm_cgpt: 1.6,   // NS CGPT: S.P.D. Red's tier (MSV1 authoring scale)
-  spd_red: 1.6, spd_blue: 1.45, spd_green: 1.5, spd_pink: 1.43, spd_yellow: 1.38, krybot: 1.6,
+  spd_red: 1.6, spd_blue: 1.6, spd_green: 1.6, spd_pink: 1.6, spd_yellow: 1.6, krybot: 1.6,   // 2026-11-23: the whole squad on Red's tier (was 1.45/1.5/1.43/1.38)
   // Mighty Morphin (Dinozord) Rangers
   mmpr_pink: 1.36, mmpr_black: 1.48, mmpr_white: 1.46, green_ranger: 1.49,
   // One Piece
@@ -38,6 +38,7 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
 export function rosterDamageBoost(attacker) {
   if (!attacker) return 1
   const k = (attacker.rosterKey || '').toLowerCase()
+  if (attacker._squad) return ROSTER_DAMAGE_BOOST[k] || ROSTER_DAMAGE_BOOST.spd_red   // S.P.D. Rangers: every form (Omega too) on Red's tier, never the OG lift
   return (ROSTER_DAMAGE_BOOST[k] || 1) * (OG_LC[k]?.dmg || 1)
 }
 
@@ -176,7 +177,7 @@ export const OG_TABLE = Object.freeze({
   zoldyck: { dmg: 2.4, hp: 1.78, spd: 1.28 },   // before: 0.083 win, margin -288
 })
 const OG_LC = Object.fromEntries(Object.entries(OG_TABLE).map(([k, v]) => [k.toLowerCase(), v]))   // lookups are lower-case (evilMorty / rickPrime keys)
-const ogRow = f => OG_LC[String(f?.rosterKey || f || '').toLowerCase()]
+const ogRow = f => f?._squad ? null : OG_LC[String(f?.rosterKey || f || '').toLowerCase()]   // the S.P.D. Rangers squad (Omega form) is not OG-lifted
 export const ogHpMult = f => ogRow(f)?.hp || 1
 export const ogSpeedMult = f => ogRow(f)?.spd || 1
 export const isOgFighter = f => !!ogRow(f)   // OG roster member (OG_TABLE) — ai.js gives these CPUs an aggression overlay

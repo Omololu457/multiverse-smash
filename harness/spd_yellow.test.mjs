@@ -81,7 +81,7 @@ try {
   await reset(1100); await tap(['l']); await wait(q => q.shots.length, 20); await wait(q => !q.a.attack, 30); await tap(['l']); await step(14); s = await state(); const twoShots = s.shots.length
   ck('one ordinary pistol shot on screen per owner (second press rejected while the first flies)', twoShots === 1 && (s.a.s.stats.rejects >= 1 || !s.a.attack), JSON.stringify({ twoShots, st: s.a.s.stats.rejects }))
   r = await measure('Pistol (close)', async M => { await M.press(['l']) }, { gap: 160 }); report.gun.pistolDamage = r.hits[0]
-  ck(`pistol hit = raw 28 (the Ranger x1.7 parity lever cancels the engine scale) × boost ${BOOST}`, near(r.hits[0], xB(28), 1), JSON.stringify(r.hits))
+  ck(`pistol hit = raw 28 (the Ranger x1.7 parity lever cancels the engine scale) × boost ${BOOST}`, near(r.hits[0], xB(28), 1.5), JSON.stringify(r.hits))   // tolerance 1→1.5: the raw is rounded BEFORE the boost, and the 2026-11-23 Red-parity boost 1.6 (was 1.38) scales that rounding
 
   // ── LONG GUN ──
   await reset(1100); await hold(['l'], 23); s = await state(); ck('held 23 f: still the compact pistol, nothing extra spent', near(s.a.energy, 90) && s.a.move === 'yPistol' && !s.shots.length, JSON.stringify({ e: s.a.energy, m: s.a.move }))
@@ -122,7 +122,8 @@ try {
   ck('Down Special: one duplicate behind Z (20 Energy)', !!s.a.s.clone && s.a.s.clone.x < s.a.x + s.a.w / 2 && near(s.a.energy, 80), JSON.stringify(s.a.s.clone))
   await idle(); await tap(['s', 'l']); await step(2); s = await state(); ck('a second duplicate is refused (one per owner)', s.a.s.stats.clones === 1)
   const zx = s.a.x + s.a.w / 2, cx = s.a.s.clone.x; await tap(['d', 'l']); await step(12); s = await state()
-  ck('Forward Special swaps Z and the duplicate', Math.abs((s.a.x + s.a.w / 2) - cx) <= 2 && Math.abs(s.a.s.clone.x - zx) <= 10 && s.a.s.stats.swaps === 1, JSON.stringify({ zx, cx, now: s.a.x + s.a.w / 2, c: s.a.s.clone.x }))
+  // clone drift ±10→±16: the duplicate keeps moving at Red-parity pace (2026-11-23) in the frames before this sample
+  ck('Forward Special swaps Z and the duplicate', Math.abs((s.a.x + s.a.w / 2) - cx) <= 2 && Math.abs(s.a.s.clone.x - zx) <= 16 && s.a.s.stats.swaps === 1, JSON.stringify({ zx, cx, now: s.a.x + s.a.w / 2, c: s.a.s.clone.x }))
   await idle(); await S('(()=>{const b=H.raw("p2"), s=H.raw()._spdYellow; b.x=s.clone.x-24-b.w-20; b.facing=1; b.energy=100})()')
   await S('H.move("light","p2")'); for (let i = 0; i < 30 && (await state()).a.s.clone; i++) await step(1); s = await state()
   ck('one opponent hit disperses the duplicate (popped, cooldown 120)', !s.a.s.clone && s.a.s.stats.clonePopped === 1 && s.a.s.cloneCd > 0, JSON.stringify(s.a.s.stats))
@@ -174,7 +175,7 @@ try {
       { gap: 72, pre: async () => { await tap(['s', 'l']); await idle(); await putClone() } }],
     ['BREACH: long gun -> Sword Finish (Up+Special)', async M => { await M.press(['p', 'l']); await M.watch(2); await M.press(['d']); await M.watch(1); await M.press(['d']); await M.watch(1); await M.press(['l']); await M.until(q => !q.a.attack, 30); await M.watch(2)
       await M.press(['l'], 30); await M.until(q => q.a.s.breachConfirm && (!q.a.attack || q.a.attack.timer <= 20), 60); await M.press(['w', 'l']) }, { gap: 230, coins: 2 }],
-    ['RISING KICK order -> jump -> Air Flying Kick', async M => { await M.press(['p', 'l']); await M.watch(2); for (let i = 0; i < 3; i++) { await M.press(['d']); await M.watch(1) } await M.press(['l']); await M.until(q => q.b.vy < 0 && q.b.y < q.a.y - 10, 60); await M.press(['w', 'd'], 2); await page.keyboard.down('d'); await M.watch(6); await M.press(['j']); await page.keyboard.up('d') }, { gap: 110 }],
+    ['RISING KICK order -> jump -> Air Flying Kick', async M => { await M.press(['p', 'l']); await M.watch(2); for (let i = 0; i < 3; i++) { await M.press(['d']); await M.watch(1) } await M.press(['l']); await M.until(q => q.b.vy < 0 && q.b.y < q.a.y - 10, 60); await M.press(['w', 'd'], 2); await page.keyboard.down('d'); await M.watch(4); await M.press(['j'])   /* 2026-11-23 Red-parity jump rises faster → kick 2 f earlier (4 f: true combo 127; 6 f now passes over) */; await page.keyboard.up('d') }, { gap: 110 }],
   ]
   for (const [label, fn, o] of routes) { r = await measure(label, fn, o); ck(`route measured: ${label} (${r.verdict}, ${r.damage} dmg)`, r.hits.length >= 2, JSON.stringify(r)) }
 

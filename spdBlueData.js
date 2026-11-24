@@ -1,6 +1,7 @@
+import { RED_TELEPORT, redStats, redTempo } from './spdParity.js'   // 2026-11-23: S.P.D. squad runs at Red's pace
 import {SPD_BLUE_ANIM} from './spdBlueSprites.js'
 import {registerGroundTeleport} from './groundTeleport.js'
-export const SPD_BLUE_TELEPORT=registerGroundTeleport('spd_blue',{})
+export const SPD_BLUE_TELEPORT=registerGroundTeleport('spd_blue',{...RED_TELEPORT})   // 2026-11-23 Red parity: his blink distance + timing (spdParity.js)
 // Configuration only: activate through the shared implementation once it exists.
 export const SPD_BLUE_ZORD={enabled:false,dependency:'shared Ranger Zord Assault',cost:100,startup:30,rawTotal:240,requiresCleanOpening:true,callAction:'ultimate',crossoverAssist:'Falconzord (MMPR crossover, not Delta Runner 2)'}
 // ROSTER-PARITY PASS (2026-11-13, owner request): this kit was authored on a much lower damage scale than the roster
@@ -52,3 +53,7 @@ export const spd_blue={rosterKey:'spd_blue',name:'S.P.D. Blue Ranger',civilianId
  basic_attacks:{light:SPD_BLUE_MOVES.light,heavy:SPD_BLUE_MOVES.heavy,crouchLight:SPD_BLUE_MOVES.bLow,upAttack:SPD_BLUE_MOVES.up,airAttack:SPD_BLUE_MOVES.air,downAir:SPD_BLUE_MOVES.down_air,grab:{damage:dmg(26),startup:8,active:3,recovery:24,hitstun:20,throwForceX:5,throwForceY:-3,damageType:'grab'}},
  specials:{neutral:{name:'Deltamax Shot',cost:12},forward:{name:'Baton Pursuit',cost:18},down:{name:'Rising Intercept',cost:18},back:{name:'Blue Barrier',cost:20},airNeutral:{name:'Delta Dive',cost:12},motion:{name:'Intercept Drive (↓↘→)',cost:22},motionBack:{name:'Barrier Bash (↓↙←)',cost:18},up:{name:'Sky Barrier',cost:15}},ultimate:{name:'Zord Assault — awaiting shared integration',cost:100,description:'Unavailable until the shared opt-in Ranger Zord system is integrated. No meter is spent.'},
  animationData:Object.fromEntries(Object.entries(anim).map(([k,a])=>[k,timeline[k]?{...a,frameTimeline:timeline[k]}:a]))}
+
+// 2026-11-23 RED PARITY (spdParity.js): Red's movement + tempo on this kit's own moves; specials / identity unchanged
+redTempo(SPD_BLUE_MOVES, { shot: 'bShot', airShot: 'bAirShot' })
+spd_blue.stats = redStats(spd_blue.stats)

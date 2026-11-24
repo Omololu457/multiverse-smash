@@ -1,3 +1,4 @@
+import { RED_TELEPORT, redStats, redTempo } from './spdParity.js'   // 2026-11-23: S.P.D. squad runs at Red's pace
 // S.P.D. Green Ranger — Bridge Carson. Data only (frame data, registration, opt-in configs).
 // Logic: spdGreenState.js (sim) · spdGreen.js (command layer) · spdGreenFx.js (render-only).
 import {SPD_GREEN_ANIM} from './spdGreenSprites.js'
@@ -5,7 +6,7 @@ import {registerGroundTeleport} from './groundTeleport.js'
 
 // Double-tap teleport: SPD Blue's shared opt-in contract (groundTeleport.js). Defaults already match the
 // brief: 12f window, release between taps, cost 8, cooldown 36, 3/2/8, 120px swept, legal-dash fallback.
-export const SPD_GREEN_TELEPORT=registerGroundTeleport('spd_green',{})
+export const SPD_GREEN_TELEPORT=registerGroundTeleport('spd_green',{...RED_TELEPORT})   // 2026-11-23 Red parity: his blink distance + timing (spdParity.js)
 
 // AURA READ — scan timings (sim frames). Data, read by spdGreenState.js.
 export const AURA_READ={startup:12,scan:24,recovery:12,cooldown:240,range:350,markFrames:180,followWindow:10,followCost:5}
@@ -93,3 +94,9 @@ export const spd_green={rosterKey:'spd_green',name:'S.P.D. Green Ranger',civilia
  specials:{neutral:{name:'Deltamax Check',cost:12},forward:{name:'Acrobat Step',cost:18},down:{name:'Rising Arc',cost:18},back:{name:'Read and Retreat',cost:12},up:{name:'Somersault Read',cost:15},airNeutral:{name:'Air Deltamax',cost:10},airDown:{name:'Heel Return',cost:15},motion:{name:'Read Rush (↓↘→, marked foe)',cost:25},motionBack:{name:'Arc Kick (↓↙←)',cost:20},charge:{name:'Aura Read',cost:0}},
  ultimate:{name:'Zord Assault — awaiting shared integration',cost:100,description:'Unavailable until the shared opt-in Ranger Zord system exists. No meter is spent and there is no fallback ultimate.'},
  animationData:Object.fromEntries(Object.entries(anim).map(([k,a])=>[k,timeline[k]?{...a,frameTimeline:timeline[k]}:a]))}
+
+// 2026-11-23 RED PARITY (spdParity.js): Red's movement + tempo on this kit's own moves; specials / identity unchanged
+redTempo(SPD_GREEN_MOVES, { shot: 'gShot', airShot: 'gAirShot' })
+// Red-parity walk is faster → a back-step before Back+Light carries her ~7 px further; the snap kick keeps its close-range reach
+SPD_GREEN_MOVES.gSnap.rangeX += 8
+spd_green.stats = redStats(spd_green.stats)

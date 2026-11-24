@@ -69,7 +69,7 @@ try{
  report.moves.acroUnmarked={contacts:seen,applied:HP-s.b.hp,cost:+(e0-e1).toFixed(2)};ck('Acrobat Step: two clean contacts raw 20 + 28, cost 18',seen.join()===`gAcro:${sc(20)},gAcro2:${sc(28)}`&&Math.abs(e0-e1-18)<0.5,JSON.stringify(report.moves.acroUnmarked))
  await reset();await tap(['d','l']);await wait(s=>s.a.attack?.name==='gAcro2',60);await wait(s=>s.a.cancel?.phase==='recovery',60);await tap(['k']);await step(30);s=await state();ck('unmarked: no follow-up',s.a.s.follows===0)
  const ax=(await state()).a.x;await reset(72);await tap(['d','l']);await step(40);s=await state();ck('advance is bounded and never crosses the opponent',s.a.x+s.a.w<=s.b.x+1,JSON.stringify({ax:s.a.x,bx:s.b.x}))
- await reset(700);await tap(['d','l']);await step(45);s=await state();ck('advance capped ~100px',s.a.x-1300<=102&&s.a.x-1300>=60,String(s.a.x-1300))
+ await reset(700);await tap(['d','l']);await step(45);s=await state();ck('advance capped ~100px (Red-parity walk: ≤110)',s.a.x-1300<=110&&s.a.x-1300>=60,String(s.a.x-1300))
  // Marked follow-up route: scan at range, close in, Acrobat Step, fresh Heavy in window
  async function markedAcro(gap,guard=false,late=false){await reset(260);await tap(['p']);await wait(s=>s.a.s.mark,60);await step(14)
   await page.evaluate(gap=>{const H=__harness.spdGreenTest,a=H.raw(),b=H.raw('p2');b.x=a.x+gap;a.energy=100},gap);if(guard){await page.evaluate(()=>__harness.setDummyBehavior('block'));await step(4)}
@@ -101,9 +101,9 @@ try{
  // ── DOUBLE-TAP TELEPORT (shared groundTeleport.js contract)
  for(const flip of [false,true]){await reset(700,flip);await tap([FWD(flip)]);await step(2);e0=(await state()).a.energy;await tap([FWD(flip)]);s=await state();const x0=s.a.teleport.action?.x0;e1=s.a.energy
   ck('fresh double tap -> phase step (no dash)'+(flip?' (mirrored)':''),s.a.teleport.count===1&&!!s.a.teleport.action&&s.a.dash===0)
-  await step(14);s=await state();ck('phase step: 120px, cost 8, no invulnerability'+(flip?' (mirrored)':''),Math.abs(s.a.x-x0)===120&&Math.abs(e0-e1-8)<0.5&&!s.a.invuln,JSON.stringify({d:s.a.x-x0,spent:e0-e1}))}
+  await step(14);s=await state();ck('phase step: Red\'s blink 282px, free, no invulnerability'+(flip?' (mirrored)':''),Math.abs(s.a.x-x0)===282&&Math.abs(e0-e1)<0.5&&!s.a.invuln,JSON.stringify({d:s.a.x-x0,spent:e0-e1}))}
  await reset(700);await page.keyboard.down('d');await step(60);await page.keyboard.up('d');ck('holding a direction never teleports',((await state()).a.teleport?.count||0)===0)
- await reset(700);await page.evaluate(()=>{__harness.spdGreenTest.raw().energy=0});await tap(['d']);await step(1);await tap(['d']);s=await state();ck('low Energy -> legal dash fallback, never both',!s.a.teleport?.count&&s.a.dash>0)
+ await reset(700);await page.evaluate(()=>{__harness.spdGreenTest.raw().energy=0});await tap(['d']);await step(1);await tap(['d']);s=await state();ck('0 Energy -> the free blink still fires, never also a dash (Red parity: cost 0)',s.a.teleport?.count===1&&s.a.dash===0)
  await reset(140);await tap(['d']);await step(2);await tap(['d']);await step(16);s=await state();ck('teleport stops at the opponent body (no behind placement)',s.a.x+s.a.w<=s.b.x+1&&s.a.facing===1,JSON.stringify({a:s.a.x,b:s.b.x}))
  await reset(700);await tap(['d']);await step(2);await tap(['d']);await step(16);await tap(['d']);await step(2);await tap(['d']);s=await state();ck('36f cooldown blocks an immediate second step',s.a.teleport.count===1)
  await reset(72);await page.evaluate(()=>{__harness.spdGreenTest.raw().hitstun=20});await tap(['d']);await step(1);await tap(['d']);s=await state();ck('no teleport while stunned',!s.a.teleport?.count)

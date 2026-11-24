@@ -1,3 +1,4 @@
+import { RED_TELEPORT, redStats, redTempo } from './spdParity.js'   // 2026-11-23: S.P.D. squad runs at Red's pace
 // S.P.D. Pink Ranger — Sydney "Syd" Drew. Data only (frame data, registration, opt-in configs).
 // Logic: spdPinkState.js (sim) · spdPink.js (command layer) · spdPinkFx.js (render-only).
 import {SPD_PINK_ANIM} from './spdPinkSprites.js'
@@ -5,7 +6,7 @@ import {registerGroundTeleport} from './groundTeleport.js'
 
 // Double-tap teleport: SPD Blue's shared opt-in contract (groundTeleport.js), unchanged defaults:
 // 12f window with release between taps, cost 8, cooldown 36, 3/2/8, 120px swept, legal-dash fallback.
-export const SPD_PINK_TELEPORT=registerGroundTeleport('spd_pink',{})
+export const SPD_PINK_TELEPORT=registerGroundTeleport('spd_pink',{...RED_TELEPORT})   // 2026-11-23 Red parity: his blink distance + timing (spdParity.js)
 
 // IRON RESERVE — material preparation (Charge). One stored charge, consumed by the NEXT Heavy / Iron Breaker start.
 // The charged versions cost +3 startup and +6 recovery; no armor, no invulnerability, no guard break.
@@ -103,3 +104,7 @@ export const spd_pink={rosterKey:'spd_pink',name:'S.P.D. Pink Ranger',civilianId
  specials:{neutral:{name:'Deltamax Shot',cost:12},forward:{name:'Iron Breaker',cost:20},down:{name:'Rising Check',cost:18},back:{name:'Baton Reprisal',cost:18},up:{name:'Vault Kick',cost:15},airNeutral:{name:'Air Deltamax',cost:10},airDown:{name:'Falling Rose',cost:15},motion:{name:'Iron Barrage (↓↘→, with Iron Reserve)',cost:20},motionBack:{name:'Flip Shot (↓↙←)',cost:16},charge:{name:'Iron Reserve',cost:0}},
  ultimate:{name:'Zord Assault — awaiting shared integration',cost:100,description:'Unavailable until the shared opt-in Ranger Zord system exists. No meter is spent and there is no fallback ultimate.'},
  animationData:Object.fromEntries(Object.entries(anim).map(([k,a])=>[k,timeline[k]?{...a,frameTimeline:timeline[k]}:a]))}
+
+// 2026-11-23 RED PARITY (spdParity.js): Red's movement + tempo on this kit's own moves; specials / identity unchanged
+redTempo(SPD_PINK_MOVES, { shot: 'pShot', airShot: 'pAirShot' })
+spd_pink.stats = redStats(spd_pink.stats)

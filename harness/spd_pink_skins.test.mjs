@@ -56,7 +56,7 @@ try{
   await page.evaluate(()=>{__harness.spdPinkTest.reset();const a=__harness.spdPinkTest.raw(),b=__harness.spdPinkTest.raw('p2');a.x=1300;b.x=1900;a.energy=100;__draws.length=0;__harness.luffyTest.step(1)})
   await page.keyboard.down('d');await page.evaluate(()=>__harness.luffyTest.step(1));await page.keyboard.up('d');await page.evaluate(()=>__harness.luffyTest.step(2));await page.keyboard.down('d');await page.evaluate(()=>__harness.luffyTest.step(1));await page.keyboard.up('d')
   await page.evaluate(()=>__harness.luffyTest.step(3));await page.screenshot({path:`${OUT}/${id}_phase.png`})
-  await page.evaluate(()=>__harness.luffyTest.step(20));await page.keyboard.down('l');await page.evaluate(()=>__harness.luffyTest.step(1));await page.keyboard.up('l');await page.evaluate(()=>__harness.luffyTest.step(15))
+  await page.evaluate(()=>__harness.luffyTest.step(20));await page.keyboard.down('l');await page.evaluate(()=>__harness.luffyTest.step(1));await page.keyboard.up('l');await page.evaluate(()=>__harness.luffyTest.step(11))   // 2026-11-23 Red parity: pShot fires on Red's 10 f Delta Blaster startup (was 16) → the 6 f muzzle star is sampled earlier
   const dr=await page.evaluate(()=>[...new Set(__draws)]);await page.screenshot({path:`${OUT}/${id}_shot.png`})
   ok(dr.some(x=>x.includes(`spd_pink/skins/${tag}/fx_streak`))&&dr.some(x=>x.includes(`spd_pink/skins/${tag}/fx_beam0`)),`B. ${id}: phase ghost + muzzle drawn in the skin`,dr.join(','))
   const sh=await page.evaluate(()=>{const H=__harness.spdPinkTest;H.reset();const a=H.raw(),b=H.raw('p2');a.x=1300;b.x=1900;a.energy=100;a.attacking=false;a.currentAttack=null;a.attackCooldown=0;__harness.luffyTest.step(1);H.move('pShot');__harness.luffyTest.step(16);return H.state().shots})

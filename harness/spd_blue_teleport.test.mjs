@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import '../spdBlueData.js'
-import {tickGroundTeleport as tick,groundTeleportState,groundTeleportDestination,clearGroundTeleport} from '../groundTeleport.js'
+import {tickGroundTeleport as tick,groundTeleportState,groundTeleportDestination,clearGroundTeleport,registerGroundTeleport,groundTeleportProfile} from '../groundTeleport.js'
+// 2026-11-23 Red parity: spd_blue now blinks on Red's profile (282 px, free, 3/5/3 — spdParity.js RED_TELEPORT).
+// The generic groundTeleport contract below keeps its coverage on a probe key registered with the module defaults.
+registerGroundTeleport('teleport_contract_probe',{})
 let count=0;const check=(n,fn)=>{fn();count++;console.log('PASS',n)}
-const fighter=(x=200)=>({rosterKey:'spd_blue',x,y:0,w:60,h:110,health:1000,energy:100,onGround:true,vx:0}),W={stageWidth:()=>800,fighters:()=>[],solids:()=>[]}
+const fighter=(x=200)=>({rosterKey:'teleport_contract_probe',x,y:0,w:60,h:110,health:1000,energy:100,onGround:true,vx:0}),W={stageWidth:()=>800,fighters:()=>[],solids:()=>[]}
 const step=(f,n,raw={})=>{for(let i=0;i<n;i++)tick(f,raw,W)}
 const pair=(f,dir='right',opts={})=>{tick(f,{[dir]:true},W,opts);tick(f,{},W,opts);tick(f,{[dir]:true},W,opts)}
 check('single / held direction never teleports',()=>{const f=fighter();step(f,50,{right:true});assert.equal(f._groundTeleport.count,0)})
@@ -22,4 +25,5 @@ check('strike interrupts vulnerable wind-up',()=>{const f=fighter();pair(f);f.hi
 check('plain JSON roundtrip gives identical subsequent frames',()=>{const a=fighter();pair(a);const b=JSON.parse(JSON.stringify(a));for(let i=0;i<50;i++){tick(a,{},W);tick(b,{},W);assert.deepEqual(a,b)}})
 check('no wall-clock timer / no update means state frozen',()=>{const f=fighter();pair(f);const before=JSON.stringify(f);assert.equal(JSON.stringify(f),before);assert(!/performance\.now|Date\.now|Math\.random/.test(fs.readFileSync('groundTeleport.js','utf8')))})
 check('identity/reset cleanup and non-opt-in roster unchanged',()=>{const f=fighter();pair(f);f.rosterKey='krybot';tick(f,{},W);assert.equal(f._groundTeleport,undefined);assert(!f._dashTap);clearGroundTeleport(f);const b=fighter();b.rosterKey='green_samurai_ranger';assert.equal(tick(b,{right:true},W),false);assert(!b._groundTeleport)})
+check('spd_blue blinks on Red\'s profile (Red parity)',()=>{const p=groundTeleportProfile({rosterKey:'spd_blue'});assert.equal(p.distance,282);assert.equal(p.cost,0);assert.equal(p.cooldown,45);assert.deepEqual([p.startup,p.transit,p.recovery],[3,5,3])})
 console.log(count,'teleport contract checks passed')

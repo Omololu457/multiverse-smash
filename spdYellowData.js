@@ -1,3 +1,4 @@
+import { redStats, redTempo } from './spdParity.js'   // 2026-11-23: S.P.D. squad runs at Red's pace
 // S.P.D. Yellow Ranger (Elizabeth "Z" Delgado — S.P.D., supplied Plug & Play "Escape of the Five Fugitives" art). DATA ONLY:
 // frame data, firearm numbers, the duplicate (clone) rules, Tactical Coins, the rangers.js profile, the Ninja Megazord
 // assist profiles (shared falconzord.js scheduler) and the roster entry.
@@ -16,6 +17,8 @@ export const SPD_YELLOW_PROFILE = registerRangerProfile('spd_yellow', {
   team: 'S.P.D. B-Squad',
   badge: { color: '#f2d81c', accent: '#2a2a2a', emblem: 'gem' },
   morph: { alwaysMorphed: true },      // the supplied sheet has no unmorphed Z
+  // 2026-11-23 Red parity: Red's blink extras on the shared contract — crossups, the dodge reward and the run after a blink
+  blink: { crossup: true, faceLockOnCross: 8, dodge: { energy: 5, window: 20, dmgMul: 1.15 }, run: { speed: 8.4, walk: 5.6 } },
   sprites: { streak: 'streak1', vanish: 'streak0', emblem: null },
 })
 
@@ -171,3 +174,7 @@ export const spd_yellow = {
     description: 'Compact-pistol opener (raw 20). A clean hit starts the raid: two duplicates, Z\'s acrobatic kick, the Ninja Megazord punch → kick, then the braced long-gun beam and the Megazord sword finish (270 raw total before shared scaling).' },
   animationData: Object.fromEntries(Object.entries(SPD_YELLOW_ANIM).map(([k, a]) => [k, timeline[k] ? { ...a, frameTimeline: timeline[k] } : a])),
 }
+
+// 2026-11-23 RED PARITY (spdParity.js): Red's movement + tempo on her own moves; Tactical Coins / clone / gun unchanged
+redTempo(SPD_YELLOW_MOVES, { shot: 'yGun', airShot: 'yAirShot' })
+spd_yellow.stats = redStats(spd_yellow.stats)

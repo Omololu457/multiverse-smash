@@ -40,6 +40,7 @@ import { ns_red, ns_yellow } from './nsData.js'   // MSV1 Ninja Storm: Shane (Re
 import { ninja_storm_cgpt } from './nsCgptData.js'   // NS CGPT: ONE Ninja Storm Ranger, Red / Yellow appearances + shadow clone (nsCgpt*.js)
 import { ns_trio, ns_blue, ns_navy, ns_green } from './nsTrio.js'   // NS TRIO Tori / Blake / Cam: ONE character, three Ninja Storm forms (hidden form profiles)
 import { dinothunder, dt_red, dt_blue, dt_yellow, dt_white } from './dinothunder.js'   // MSV1-DINO Dino Thunder Rangers: ONE character, four forms (hidden form profiles)
+import { spd_rangers, registerSquadForm } from './spdSquad.js'   // S.P.D. Rangers: the whole B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P/U Ranger dial (the six stay as hidden forms)
 import { windrangers } from './nsDuo.js'   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
 import { ninjaStormRangers } from './ninjaStormData.js'   // MSv2 NINJA STORM RANGERS: ONE fighter, Red (Shane) / Yellow (Dustin) stance
 import { arlong } from './arlongData.js'   // Arlong (One Piece) — arlongData.js
@@ -11453,6 +11454,8 @@ const soldierBoy = {
   }
 }
 
+registerSquadForm('omega_ranger', omegaRanger)   // S.P.D. Rangers' 6th Ranger (↓↓ + U); the standalone Omega pick folds into the squad
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, gojo_shinjuku, sukuna, sukuna_shinjuku, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, enoch, jesus, maki, toji, yuji, baki, naoya,
@@ -11467,6 +11470,7 @@ export const characters = {
   gold_samurai_ranger: goldSamuraiRanger,
   green_samurai_ranger: greenSamuraiRanger,
   red_ranger_mmpr: redRangerMmpr,
+  spd_rangers,                       // S.P.D. Rangers — Red / Blue / Green / Yellow / Pink / Omega in one fighter (spdSquad.js)
   spd_red: spdRed,                   // S.P.D. Red Ranger (Jack Landors, B-Squad) — Teleport Rushdown / Judge; first Ranger on rangers.js
   ns_red, ns_yellow,                 // MSV1 Ninja Storm — Shane Clarke (Air Ninja / Aerial Rushdown) + Dustin Brooks (Earth Ninja / Trap & Burrow); ninja.js
   ninja_storm_cgpt,                  // NS CGPT — "Ninja Storm CGPT" (Storm Ninja / Clone Rushdown): Red / Yellow looks of one Ranger; nsCgpt*.js

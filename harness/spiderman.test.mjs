@@ -139,10 +139,14 @@ try {
   check("ultimate declared: Maximum Web / cost 100", spidey.ultimate?.name === "Maximum Web" && spidey.ultimate?.cost === 100, `name=${spidey.ultimate?.name} cost=${spidey.ultimate?.cost}`);
   await prep(70); await grounded(); const hpU = (await p2()).health;
   const ult = await page.evaluate(() => window.__harness.p1Ultimate());
-  check("ultimate fires (Maximum Web)", !!ult?.cast && ult?.castMove === "spiderWebBridge", `cast=${ult?.cast} castMove=${ult?.castMove}`);
+  // legacy inline web-net (spiderWebBridge pose + drawSpidermanMaxWebCinematic overlay) OR the frozen MAXIMUM WEB cinematic
+  // (spidermanUlt.js, registered through cineUlts.js / cineRegistry.js) — both must cast and land the ~204 EFF payoff
+  const cineOn = await page.evaluate(async () => (await import("./cineRegistry.js")).anyFreezeCineActive());
+  check("ultimate fires (Maximum Web)", !!ult?.cast && (cineOn || ult?.castMove === "spiderWebBridge"), `cast=${ult?.cast} castMove=${ult?.castMove} cine=${cineOn}`);
   await wf(20); const probe = await page.evaluate(() => window.__harness.spidermanMaxWeb());
-  check("cinematic overlay renders (drawSpidermanMaxWebCinematic)", probe.renders > 0 && probe.bgLoaded, `renders=${probe.renders} bgLoaded=${probe.bgLoaded}`);
-  await wf(50); const dmgU = hpU - (await p2()).health;
+  check("cinematic overlay renders (legacy overlay or the frozen cinematic)", cineOn || (probe.renders > 0 && probe.bgLoaded), `renders=${probe.renders} bgLoaded=${probe.bgLoaded} cine=${cineOn}`);
+  if (cineOn) { await page.evaluate(async () => { window.__cineReg = await import("./cineRegistry.js") }); await page.waitForFunction(() => !window.__cineReg.anyFreezeCineActive(), null, { timeout: 240000, polling: 100 }); await wf(2) } else await wf(50)
+  const dmgU = hpU - (await p2()).health;
   check("guaranteed scaled payoff lands (~204 EFF)", dmgU >= 150, `dmg=${dmgU.toFixed(0)}`);
   check("P1 still the LIVE Spider-Man (no duplicate instance)", (await p1()).key === "spiderman", "");
 

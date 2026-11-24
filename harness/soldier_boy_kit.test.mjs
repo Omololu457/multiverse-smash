@@ -5,6 +5,7 @@
  * basic_attacks (not retested here).
  */
 import { triggerSpecial, triggerUltimate, activeProjectiles, schedulePendingSpawn } from "../abilities.js"
+import { anyFreezeCineActive, clearFreezeCines } from "../cineRegistry.js"   // the NUCLEAR BURST cinematic (soldierBoyUlt.js) when cineUlts.js has registered it
 
 let passed = 0, failed = 0; const fails = []
 const ok = (c, m) => { if (c) passed++; else { failed++; fails.push(m) } }
@@ -72,8 +73,11 @@ const clearProj = () => { activeProjectiles.length = 0 }
   const r = triggerUltimate(f, ctx(opp()))
   ok(r === true, "Nuclear Burst fires at full meter")
   ok(Math.round(f.energy) === 0, `Ult spends full 100 (got ${f.energy})`)
-  ok(f._spriteCastMove === "sbUltPose", `Ult pose (got ${f._spriteCastMove})`)
-  ok((f.attackCooldown || 0) >= 80, `Ult 90f recovery lockout (got ${f.attackCooldown})`)
+  // legacy inline blast (sbUltPose + 90f lockout) OR the frozen cinematic (soldierBoyUlt.js, registered via cineUlts.js)
+  const cine = anyFreezeCineActive()
+  ok(cine || f._spriteCastMove === "sbUltPose", `Ult pose / cinematic (got ${f._spriteCastMove}, cine ${cine})`)
+  ok(cine || (f.attackCooldown || 0) >= 80, `Ult 90f recovery lockout / cinematic (got ${f.attackCooldown})`)
+  clearFreezeCines()
 }
 // ── Ultimate denied without full meter ──
 { clearProj(); const f = mk({ energy: 99 })

@@ -4,7 +4,8 @@
 // input and calls update(ctx) every frame while the scene plays.
 //
 // Same input, meter and damage as the legacy executeLightUltimate (abilities.js, untouched — simply no longer reached):
-// 100 Kira, a GUARANTEED range-independent payoff of 340 raw (applyScaledDamage, source 'ability' → ~204 effective),
+// 100 Kira, a GUARANTEED range-independent payoff of 440 raw (2026-11-24 owner buff +30 % over the legacy 340; applyScaledDamage,
+// source 'ability' → ~264 effective),
 // a foe that was guarding at the press takes 25 % (the old chip rule). Neutral U = AS PLANNED, Down+U = I AM KIRA.
 //
 // AS PLANNED (writing)                                   I AM KIRA (scythe)
@@ -22,11 +23,11 @@ import { LIGHT_VOICE } from './lightVoice.js'
 import { sound } from './sound.js'
 
 export const LIGHT_CINE = {
-  cost: 100, raw: 340, blockScale: 0.25,
+  cost: 100, raw: 440, blockScale: 0.25,
   plan: { total: 250, title: 34, write0: 36, written: 100, clock0: 106, clock1: 160, beats: [114, 126, 138, 150], chip0: 116, chipEat: 134, chip1: 152,
-          attack: 160, close: 204, raw: { seal: 40, beat: 15, attack: 240 }, stop: { seal: 8, beat: 4, attack: 18 } },
+          attack: 160, close: 204, raw: { seal: 52, beat: 19, attack: 312 }, stop: { seal: 8, beat: 4, attack: 18 } },
   kira: { total: 250, title: 34, reveal: 38, panel: 44, speech: 60, glow: 84, morph: 96, step: 100, slashes: [106, 122], suck: 138, reap: 150,
-          raw: { slash1: 60, slash2: 80, reap: 200 }, stop: { slash: [7, 9], reap: 20 } },
+          raw: { slash1: 78, slash2: 104, reap: 258 }, stop: { slash: [7, 9], reap: 20 } },
 }
 
 const c = { active: false }

@@ -15,7 +15,8 @@ const BG = './saitama_death_punch_backround_effect.png'
 const PORTRAIT = './saitama_portrait.png'
 // cells of the hi-res backdrop (663×196): the shadowed SERIOUS face · the fist · face + fist
 const CELL = { face: [0, 30, 84, 130], fist: [113, 26, 216, 140], both: [447, 0, 214, 194] }
-const T = { seriousAt: 44, windAt: 96, titleAt: 128, lungeAt: 166, punchAt: 172, skyEnd: 250, okAt: 262, fallAt: 296, landAt: 314, outAt: 306 }
+const REACH = 50, FIST_Y = 58   // saitama_death2 f4: knuckles 25 src px ahead of his centre, 29 src px above his feet (× spriteScale 2)
+const T = { seriousAt: 44, windAt: 96, titleAt: 128, lungeAt: 160, punchAt: 172, launchAt: 186, skyEnd: 250, okAt: 262, fallAt: 296, landAt: 314, outAt: 306 }
 
 const imgs = new Map(), boxes = new Map()
 const image = src => { let im = imgs.get(src); if (!im) { im = new Image(); im.src = src; imgs.set(src, im) } return im }
@@ -65,7 +66,7 @@ function sprite(c, f, keys, frame, x, feetY, z, dir, o = {}) {
     c.translate(Math.round(x), Math.round(feetY - (bx.b - ccy) * s)); c.rotate(o.rot); if (dir < 0) c.scale(-1, 1)
     c.drawImage(src, ssx, ssy, w, h, -ccx * s, -ccy * s, w * s, h * s)
   } else {
-    c.translate(Math.round(x), Math.round(feetY)); if (dir < 0) c.scale(-1, 1)
+    c.translate(Math.round(x), Math.round(feetY)); if (o.sx || o.sy) c.scale(o.sx || 1, o.sy || 1); if (o.skew) c.transform(1, 0, o.skew, 1, 0, 0); if (dir < 0) c.scale(-1, 1)
     c.drawImage(src, ssx, ssy, w, h, -ccx * s, -bx.b * s, w * s, h * s)
   }
   c.restore()
@@ -159,7 +160,7 @@ function star(ctx, x, y, r, a, rot = 0) {
 
 // ── the sky: an overcast cloud deck that the punch tears open along its line ───────────────────────────────────────────
 function sky(ctx, W, H, horizon, fist, dir, k, S) {
-  const kp = k - T.punchAt
+  const kp = k - T.launchAt
   const a = kp < 0 ? 0 : kp < 3 ? kp / 3 : k < T.fallAt ? 1 : clamp(1 - (k - T.fallAt) / 26, 0, 1)
   if (a <= 0 || horizon <= 0) return
   const split = outE(kp / 34), rays = clamp(kp / 10, 0, 1)
@@ -263,13 +264,13 @@ export function drawSaitamaUltScreen(ctx, canvas, S) {
   if (k < T.seriousAt) { ctx.save(); ctx.globalAlpha = 0.18 * smooth(S.real / 12); ctx.fillStyle = '#fff3c4'; ctx.globalCompositeOperation = 'soft-light'; ctx.fillRect(-20, -20, W + 40, H + 40); ctx.restore() }
 
   // fist point (screen) from his real punch frame geometry, estimated before the sprite is drawn
-  const fistW = { x: f.x + (f.w || 48) / 2 + dir * 52, y: S.floor - (f.h || 94) * 0.62 }, fist = V.p(fistW.x, fistW.y)
+  const fistW = { x: f.x + (f.w || 48) / 2 + dir * REACH, y: S.floor - FIST_Y }, fist = V.p(fistW.x, fistW.y)
 
   // 2) the split sky (behind the fighters)
   if (!S.blocked || true) sky(ctx, W, H, horizon, fist, dir, k, S)
 
-  // 3) floor FX under the fighters
-  const kp = k - T.punchAt
+  // 3) floor FX under the fighters (the blast erupts at the launch, after the fist has landed)
+  const kp = k - T.launchAt
   if (k >= T.windAt) cracks(ctx, fp.x, horizon, z, k < T.punchAt ? smooth((k - T.windAt) / 70) * 0.7 : 1, 17)
   dustRing(ctx, fp.x, horizon, z, kp, W)
 
@@ -325,17 +326,19 @@ export function drawSaitamaUltScreen(ctx, canvas, S) {
   // 6) a real punch-in (camera.js caps zoom ≈1.15): the deadpan face, the cocked fist, the impact
   const head = V.p(f.x + (f.w || 48) / 2, S.floor - (f.h || 94) * 0.9)
   if (k < T.seriousAt) punchIn(ctx, canvas, W, H, head.x, head.y, 1 + 0.35 * smooth((k - 6) / 34))
-  else if (k >= 140 && k < T.punchAt) punchIn(ctx, canvas, W, H, fist.x, fist.y, 1 + 0.5 * smooth((k - 140) / 26))
+  else if (k >= 140 && k < T.lungeAt) punchIn(ctx, canvas, W, H, fist.x, fist.y, 1 + 0.45 * smooth((k - 140) / 20))
+  else if (k >= T.punchAt && k < T.launchAt && !(pr >= 5 && pr < 34)) punchIn(ctx, canvas, W, H, fist.x, fist.y, 1.25 + 0.35 * (1 - smooth((k - T.punchAt) / (T.launchAt - T.punchAt))))   // the knuckles IN the body
 
   // 7) MANGA PANELS + TITLES
   if (k >= 4 && k < T.seriousAt + 4) deadpanPanel(ctx, W, H, S, k)
   if (k >= T.seriousAt && k < T.windAt) seriousPanel(ctx, W, H, S, k)
   if (k >= T.titleAt && k < T.lungeAt) title(ctx, W, H, 'SERIOUS PUNCH', 'SERIOUS SERIES  ·  MAJI NAGURI', (k - T.titleAt) / (T.lungeAt - T.titleAt), { y: 0.24, fs: 0.13 })
   // the punch: white frame → inverted frame → the giant fist panel through the hit-stop
-  if (pr >= 0 && pr < 30) impactFrames(ctx, canvas, W, H, S, pr, tp, V, fp)
+  if (pr >= 0 && pr < 34) impactFrames(ctx, canvas, W, H, S, pr, tp, V, fp, fist)
+  if (!calmFlash() && k >= T.launchAt && k < T.launchAt + 3) { ctx.fillStyle = '#ffffff'; ctx.fillRect(-20, -20, W + 40, H + 40) }   // the blast-off
   // the damage number
-  if (pr >= 30 && pr < 110 && S.dmg > 0) {
-    const u = (pr - 30) / 80, fs = Math.round(H * 0.09 * (1 + Math.max(0, 1 - (pr - 30) / 6) * 0.6))
+  if (pr >= 34 && pr < 120 && S.dmg > 0) {
+    const u = (pr - 34) / 86, fs = Math.round(H * 0.09 * (1 + Math.max(0, 1 - (pr - 34) / 6) * 0.6))
     const nx = clamp(tp.x, W * 0.1, W * 0.9), ny = clamp(tp.y - H * 0.18, H * 0.2, H * 0.8) - u * H * 0.08
     ctx.save(); ctx.globalAlpha = clamp(1.4 - u * 1.4, 0, 1); ctx.font = `900 ${fs}px Impact, "Arial Black", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
     ctx.lineWidth = fs * 0.14; ctx.strokeStyle = '#2a0000'; ctx.strokeText(String(S.dmg), nx, ny); ctx.fillStyle = S.blocked ? '#ffd27a' : '#ff3b2f'; ctx.fillText(String(S.dmg), nx, ny); ctx.restore()
@@ -365,8 +368,8 @@ function drawSaitama(ctx, S, V, k, fp) {
   if (k < T.windAt) { fr = ((S.real >> 3) % 5) }
   else if (k < 130) { keys = ['saitamaDeathImpact']; fr = 1 }
   else if (k < T.lungeAt) { keys = ['saitamaDeathImpact']; fr = 2 }
-  else if (k < T.lungeAt + 3) { keys = ['saitamaDeathImpact']; fr = 3 }
-  else if (k < T.skyEnd) { keys = ['saitamaDeathImpact']; fr = k < T.punchAt ? 4 : ((k >> 3) & 1) ? 5 : 4 }
+  else if (k < T.punchAt - 2) { keys = ['saitamaDeathImpact']; fr = 3 }
+  else if (k < T.skyEnd) { keys = ['saitamaDeathImpact']; fr = k < T.launchAt + 8 ? 4 : ((k >> 3) & 1) ? 5 : 4 }
   else if (k < T.skyEnd + 8) { keys = ['saitamaDeathImpact']; fr = 6 }
   else { keys = ['saitamaDeathImpact']; fr = 7 }
   // a heat-haze of SERIOUS intent around him through the wind-up
@@ -376,9 +379,18 @@ function drawSaitama(ctx, S, V, k, fp) {
     const g = ctx.createRadialGradient(x, fp.y - 60 * z, 4, x, fp.y - 60 * z, 120 * z); g.addColorStop(0, `rgba(255,80,40,${(0.25 * u).toFixed(3)})`); g.addColorStop(1, 'rgba(255,40,20,0)')
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, fp.y - 60 * z, 120 * z, 0, Math.PI * 2); ctx.fill(); ctx.restore()
   }
-  // after-images on the lunge
-  if (k >= T.lungeAt && k < T.punchAt + 8) for (let g = 3; g >= 1; g--) sprite(ctx, f, keys, 3, x - dir * g * 22 * z, fp.y, z, dir, { alpha: 0.18 * (4 - g), tint: '#ffffff', tintA: 0.6 })
-  sprite(ctx, f, keys, fr, x, fp.y, z, dir)
+  // the death2 strip is authored facing LEFT (the punch is thrown to the left) → mirror it so the fist goes AT the foe
+  const sd = keys[0] === 'saitamaDeathImpact' ? -dir : dir
+  // the lunge: after-images strung back along the dash + ground streaks (the whole gap is crossed in 12 frames)
+  if (k >= T.lungeAt && k < T.punchAt + 6) {
+    const back = Math.min(Math.abs(S.fx1 - S.fx0), 420) * z
+    if (!calmMotion()) { ctx.save(); ctx.globalCompositeOperation = 'lighter'
+      for (let i = 0; i < 10; i++) { const yy = fp.y - (8 + hash(i, 71) * 90) * z, len = back * (0.4 + hash(i, 72) * 0.6)
+        ctx.globalAlpha = 0.45; ctx.fillStyle = i % 3 ? '#fff4c0' : '#ffffff'; ctx.fillRect(dir > 0 ? x - len : x, yy, len, 2 + hash(i, 73) * 3) }
+      ctx.restore() }
+    for (let g = 4; g >= 1; g--) sprite(ctx, f, keys, 3, x - dir * g * Math.max(18 * z, back / 5), fp.y, z, sd, { alpha: 0.16 * (5 - g), tint: '#fff2c0', tintA: 0.65 })
+  }
+  sprite(ctx, f, keys, fr, x, fp.y, z, sd)
 }
 function foeScreen(S, V, k) {
   const t = S.target
@@ -388,11 +400,25 @@ function foeScreen(S, V, k) {
 function drawFoe(ctx, S, V, k, tp) {
   const t = S.target, z = V.z, kp = k - T.punchAt, fdir = -S.dir
   if (kp < 0) { sprite(ctx, t, k > 150 ? ['hurt', 'idle'] : ['idle'], 0, tp.x, tp.y, z, fdir); return }
+  if (k < T.launchAt) {   // TAKES THE FIST: folds around the knuckles (squashed, bent back), a shock dent at the contact point
+    const u = clamp(kp / (T.launchAt - T.punchAt), 0, 1), q = S.blocked ? 0.5 : 1
+    const fist = V.p(S.caster.x + (S.caster.w || 48) / 2 + S.dir * REACH, S.floor - FIST_Y)
+    sprite(ctx, t, S.blocked ? ['guard', 'idle'] : ['hurt', 'idle'], 9, tp.x + S.dir * 6 * z * u, tp.y, z, fdir,
+      { sx: 1 - 0.24 * q * (1 - u * 0.5), sy: 1 + 0.07 * q * (1 - u * 0.5), skew: -S.dir * 0.28 * q, tint: '#ffffff', tintA: (S.real - (S.punchReal ?? S.real)) < 2 ? 0.7 : 0 })
+    // contact: a star burst + compression rings riding the fist
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'
+    for (let j = 0; j < 3; j++) { const uj = clamp(u * 1.4 - j * 0.18, 0, 1); if (uj <= 0) continue
+      ctx.globalAlpha = (1 - uj) * 0.95; ctx.strokeStyle = j ? '#ffe9a8' : '#ffffff'; ctx.lineWidth = (6 - j * 1.5) * Math.max(1, z)
+      ctx.beginPath(); ctx.ellipse(fist.x, fist.y, (10 + uj * 70) * z * 0.45, (10 + uj * 70) * z, 0, 0, Math.PI * 2); ctx.stroke() }
+    star(ctx, fist.x, fist.y, (46 - 26 * u) * z, 1 - u * 0.6, u)
+    ctx.restore()
+    return
+  }
   if (S.blocked) { sprite(ctx, t, ['guard', 'idle'], 9, tp.x, tp.y, z, fdir)
     if (kp < 40 && !calmMotion()) { ctx.save(); ctx.fillStyle = '#b9a27c'; for (let i = 0; i < 8; i++) { ctx.globalAlpha = (1 - kp / 40) * 0.6; ctx.beginPath(); ctx.arc(tp.x - S.dir * (10 + i * 14) * z, tp.y - hash(i, kp) * 12 * z, (5 + i) * z, 0, Math.PI * 2); ctx.fill() } ctx.restore() }
     return }
   if (k < T.fallAt) {   // blasted up and away, spinning, a smoke trail behind
-    const spin = kp * 0.35 * S.dir
+    const spin = (k - T.launchAt) * 0.35 * S.dir
     if (!calmMotion()) { ctx.save(); for (let i = 1; i <= 8; i++) { ctx.globalAlpha = 0.35 * (1 - i / 9); ctx.fillStyle = '#e8dccb'; ctx.beginPath(); ctx.arc(tp.x - S.dir * i * 10 * z, tp.y - 40 * z + i * 26 * z, (10 + i * 4) * z, 0, Math.PI * 2); ctx.fill() } ctx.restore() }
     sprite(ctx, t, ['hurt', 'idle'], 9, tp.x, tp.y, z, fdir, { rot: spin }); return
   }
@@ -445,20 +471,21 @@ function seriousPanel(ctx, W, H, S, k) {   // the world drops to black-red: the 
   }
   ctx.restore()
 }
-function impactFrames(ctx, canvas, W, H, S, pr, tp, V, fp) {
+function impactFrames(ctx, canvas, W, H, S, pr, tp, V, fp, fist) {
   const flash = !calmFlash(), z = V.z, f = S.caster, t = S.target, d = S.dir
   const sil = (bg, fg) => {   // the classic anime impact frame: flat background, both fighters as hard silhouettes, burst lines
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H)
     speedLines(ctx, W, H, tp.x, tp.y - 50 * z, 70, 41 + pr, fg, 0.9, false, pr)
     ctx.save(); ctx.globalCompositeOperation = 'source-over'
-    sprite(ctx, f, ['saitamaDeathImpact'], 4, V.p(f.x + (f.w || 48) / 2, 0).x, fp.y, z, d, { tint: fg, tintA: 1 })
-    sprite(ctx, t, ['hurt', 'idle'], 9, tp.x, tp.y, z, -d, { tint: fg, tintA: 1 })
+    sprite(ctx, f, ['saitamaDeathImpact'], 4, V.p(f.x + (f.w || 48) / 2, 0).x, fp.y, z, -d, { tint: fg, tintA: 1 })
+    sprite(ctx, t, ['hurt', 'idle'], 9, tp.x, tp.y, z, -d, { tint: fg, tintA: 1, sx: 0.78, sy: 1.07, skew: -d * 0.28 })
     ctx.restore()
   }
-  if (pr < 3) { if (flash) sil('#ffffff', '#000000'); return }
-  if (pr < 7) { if (flash) sil('#000000', '#ffffff'); else sil('#1a0000', '#ffe14d'); return }
+  if (pr < 5) return   // the world shot first: the knuckles sunk into the body (drawn by drawFoe + the punch-in)
+  if (pr < 8) { if (flash) sil('#ffffff', '#000000'); return }
+  if (pr < 12) { if (flash) sil('#000000', '#ffffff'); else sil('#1a0000', '#ffe14d'); return }
   // the giant fist panel (face + fist) slammed over the whole screen through the hold, red burst lines behind it
-  const u = (pr - 7) / 23, a = pr < 24 ? 1 : clamp(1 - (pr - 24) / 6, 0, 1)
+  const u = (pr - 12) / 22, a = pr < 28 ? 1 : clamp(1 - (pr - 28) / 6, 0, 1)
   ctx.save(); ctx.globalAlpha = a
   const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.05, W / 2, H / 2, H * 0.9); g.addColorStop(0, '#fff6e0'); g.addColorStop(0.5, '#ffb08a'); g.addColorStop(1, '#b3120f')
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)

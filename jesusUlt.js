@@ -14,8 +14,8 @@
 //   GATHER        196–222 all the light is drawn into his raised hand (slow motion, silence before the burst)
 //   RADIANCE      222     a blinding sunburst fills the screen (hit 4, the finisher) — the foe is cast away
 //   AFTERMATH     236–300 peace: the clouds close softly, light motes drift, he descends; letterbox out
-// Damage: the legacy 70 + 70 + 150 = 290 raw (applyScaledDamage, same opts) is redistributed 35 + 45 + 60 + 150 = 290 raw;
-// a guarding foe takes the same 30 % chip per pulse (legacy 87 → 86); a foe out of the legacy 900 px reach takes nothing;
+// Damage: 46 + 59 + 79 + 196 = 380 raw (owner buff, was the legacy 290 = 35 + 45 + 60 + 150) through applyScaledDamage (same opts);
+// a guarding foe takes the same 30 % chip per pulse (13 + 17 + 23 + 58 = 111 raw; was 86); a foe out of the legacy 900 px reach takes nothing;
 // a foe with i-frames at the press is spared the pulses the legacy timing would have spared (thresholds 10/16/22/34).
 // Every position is a pure function of k (+ the layout captured at the press). Hit-stop holds k; slow motion advances k
 // every other real frame. No Math.random / wall clock. A KO jumps straight to the radiance (no further damage) and ends
@@ -32,7 +32,7 @@ export const JU = {
   gather: 196, slow0: 206, final: 222, slow1: 234, land: 258,
   descend0: 262, descend1: 290, out: 282,
   riseH: 118,
-  raw: [35, 45, 60, 150],                // = 290 raw, the legacy Blessed Energy total
+  raw: [46, 59, 79, 196],                // = 380 raw (2026-11-24 owner buff: legacy 290 ×≈1.31)
   inv: [10, 16, 22, 34],                 // legacy pulse delays: a foe's i-frames at the press spare the pulses they would have
   hold: [8, 9, 11, 16],                  // hit-stop (real frames) per contact — escalating
   shake: [10, 13, 17, 34],

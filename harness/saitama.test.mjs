@@ -182,7 +182,7 @@ try {
   check("ult spent ~100 Serious", uE0 - minE >= 95, `spent=${(uE0 - minE).toFixed(0)}`);
   check("cinematic ran start → finish (script frames ≥ 300) with the engine sprite handed to the cinematic", sawActive && maxK >= 300 && hidden, `active=${sawActive} k=${maxK} hidden=${hidden}`);
   check("fighter sprite restored after the cinematic", await page.evaluate(() => window.__harness.gojoShinjukuTest?.raw?.("p1")?._fxAlpha !== 0), "");
-  check(`ultimate dealt heavy GUARANTEED damage (${uDmg.toFixed(0)} ≥ 120)`, uDmg >= 120, `dmg=${uDmg.toFixed(1)}`);
+  check(`ultimate dealt heavy GUARANTEED damage (${uDmg.toFixed(0)} ≥ 250; 440 raw × 0.6 = 264)`, uDmg >= 250, `dmg=${uDmg.toFixed(1)}`);
 
   section("fallback-box sweep — every animationData action renders a real saitama_ sheet (no 128² box)");
   await prep(80); const boxes = [];

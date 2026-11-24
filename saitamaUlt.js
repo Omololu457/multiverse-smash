@@ -22,9 +22,11 @@ import { clearInputBuffer } from './input.js'
 import { drawSaitamaUltScreen, preloadSaitamaUlt } from './saitamaUltFx.js'
 
 export const B = {
-  cost: 100, raw: 340, blockMult: 0.25,
-  seriousAt: 44, windAt: 96, titleAt: 128, lungeAt: 166, punchAt: 172, skyEnd: 250, okAt: 262, fallAt: 296, landAt: 314, outAt: 306, total: 324,
-  stop: 26,            // real frames the punch holds (hit-stop)
+  cost: 100, raw: 440, blockMult: 0.25,   // 2026-11-24 owner buff: 340 → 440 raw (264 dealt; guard chip 25 % = 110 raw → 66)
+  seriousAt: 44, windAt: 96, titleAt: 128, lungeAt: 160, punchAt: 172, launchAt: 186, skyEnd: 250, okAt: 262, fallAt: 296, landAt: 314, outAt: 306, total: 324,
+  stop: 32,            // real frames the punch holds (hit-stop): the fist IN the body, white / inverted frames, the fist panel
+  reach: 50,           // world px from his centre to the knuckles on the punch frame (saitama_death2 f4: 25 src px × spriteScale 2)
+  sink: 8,             // how far the knuckles drive INTO the foe's body (past their centre-line front) on contact
   launchH: 1400,       // how high the foe goes (world px) before it is "in the stratosphere"
   slide: 360,          // how far away the foe comes back down
 }
@@ -54,8 +56,9 @@ function cast(f, context) {
   const floor = feet(f)
   const blocked = !!t.isBlocking
   const land = clamp(ctrX(t) + dir * (blocked ? 150 : B.slide), 80, stage - 80)
+  const fx1 = ctrX(t) - dir * (B.reach + 18 - B.sink)                       // where he plants so the fist lands ON the body (foe half-width ≈ 18)
   Object.assign(c, { active: true, frame: 0, real: 0, hold: 0, caster: f, target: t, stage, dir, floor, tFloor: feet(t), blocked,
-    fx0: ctrX(f), tx0: ctrX(t), land, dmg: 0, ko: false, done: {}, cam: null, camSaved: null,
+    fx0: ctrX(f), fx1, tx0: ctrX(t), land, dmg: 0, ko: false, done: {}, cam: null, camSaved: null,
     fAlpha0: f._fxAlpha, tAlpha0: t._fxAlpha })
   f.vx = 0; f.vy = 0; f.facing = dir; f.isBlocking = false; f.isCharging = false
   f.attacking = false; f.currentAttack = null; f.currentMove = null; f._spriteCastMove = null; f._spriteCastTimer = 0
@@ -95,7 +98,8 @@ function beats(ctx, k) {
   if (k === B.titleAt) { sfx(ctx, 'boom_medium_02', 0.85); cam?.shake?.(8, 10) }
   if (k === 140) sfx(ctx, 'charge_hum_rise', 0.8)
   if (k === 156) sfx(ctx, 'boom_anticipation_suck', 1)
-  if (k === B.lungeAt) sfx(ctx, 'swish_fast_03', 0.9)
+  if (k === B.lungeAt) { sfx(ctx, 'swish_fast_03', 0.9); sfx(ctx, 'whoosh_medium_01', 0.7) }
+  if (k === B.launchAt) { sfx(ctx, 'boom_huge_02_roar', 0.9); sfx(ctx, 'whoosh_medium_02', 0.9); cam?.shake?.(18, 24) }   // the blast-off
   if (k === B.punchAt && !c.done.punch) {
     c.done.punch = true; c.punchReal = c.real
     strike()
@@ -105,7 +109,6 @@ function beats(ctx, k) {
   }
   if (k === B.punchAt + 4) { sfx(ctx, 'boom_huge_01', 0.9); cam?.shake?.(18, 30) }
   if (k === B.punchAt + 12) sfx(ctx, 'rumble_tail_01', 1)
-  if (k === B.punchAt + 22) sfx(ctx, 'whoosh_medium_02', 0.8)
   if (k === B.punchAt + 40) sfx(ctx, 'rumble_tail_01', 0.7)
   if (k === 222 && !c.blocked) sfx(ctx, 'crack_sizzle_bright', 0.6)            // the twinkle up in the stratosphere
   if (k === B.okAt) voice(ctx, VOICE.ok)
@@ -130,13 +133,15 @@ function strike() {
 export function foeAt(k) {
   const t = c.target, P = B.punchAt
   if (k < P) return { x: c.tx0, y: c.tFloor, air: false, u: 0 }
+  const L = B.launchAt
+  if (k < L) { const u = smooth((k - P) / (L - P)); return { x: c.tx0 + c.dir * 14 * u, y: c.tFloor, air: false, u: 0, contact: 1 - u * 0.5 } }   // takes the fist: folds around it, driven back a hair
   if (c.blocked) {   // guard-crushed: skids back along the ground, never leaves it
-    const u = smooth((k - P) / 40)
+    const u = smooth((k - L) / 40)
     return { x: c.tx0 + (c.land - c.tx0) * u, y: c.tFloor, air: false, u }
   }
   if (k < B.fallAt) {   // up and away — accelerating, then gone into the stratosphere
-    const u = clamp((k - P) / 56, 0, 1), e = u * u * (2.2 - 1.2 * u)
-    return { x: c.tx0 + c.dir * 260 * e, y: c.tFloor - B.launchH * e, air: true, u }
+    const u = clamp((k - L) / 50, 0, 1), e = u * u * (2.2 - 1.2 * u), x0 = c.tx0 + c.dir * 14
+    return { x: x0 + c.dir * 260 * e, y: c.tFloor - B.launchH * e, air: true, u }
   }
   const u = clamp((k - B.fallAt) / (B.landAt - B.fallAt), 0, 1)   // falls straight back down far away
   return { x: c.land, y: c.tFloor - 900 * (1 - u * u), air: u < 1, u, falling: true }
@@ -147,9 +152,11 @@ function place() {
   const k = c.frame, f = c.caster, t = c.target
   c.pf = k
   for (const o of [f, t]) { o._juiceAttackTrail = false; o._juiceDashTrail = false; o._juiceTrailBuf = null }
-  // Saitama: plants, half-step forward into the lunge, holds the extended punch, settles back
-  const step = k < B.lungeAt ? 0 : k < B.punchAt ? smooth((k - B.lungeAt) / 6) * 18 : 18
-  f.x = Math.round(c.fx0 + c.dir * step - (f.w || 48) / 2); f.y = c.floor - (f.h || 94)
+  // Saitama: plants, then LUNGES (accelerating) the whole gap so the knuckles land in the foe's body at the impact frame;
+  // follows through a step as they fold, then holds the extended punch where he stands
+  const lu = k < B.lungeAt ? 0 : k < B.punchAt ? ((k - B.lungeAt) / (B.punchAt - B.lungeAt)) ** 2 : 1
+  const follow = k < B.punchAt ? 0 : smooth((k - B.punchAt) / (B.launchAt - B.punchAt)) * 10
+  f.x = Math.round(c.fx0 + (c.fx1 - c.fx0) * lu + c.dir * follow - (f.w || 48) / 2); f.y = c.floor - (f.h || 94)
   f.vx = 0; f.vy = 0; f.onGround = true; f.grounded = true; f.facing = c.dir; f._fxAlpha = 0
   const p = foeAt(k)
   t.x = Math.round(p.x - (t.w || 48) / 2); t.y = Math.round(Math.min(p.y, c.tFloor) - (t.h || 94))
@@ -164,8 +171,8 @@ function camera(cam, k) {
   if (k < B.seriousAt) cam.focusOnFighter(f, 1.75)                                               // push in on the bored face
   else if (k < B.windAt) cam.focusOnFighter(f, 1.9)
   else if (k < B.lungeAt) cam.focusBetween?.(f, box(c.tx0, c.tFloor - 47), 1.05 + 0.25 * smooth((k - B.windAt) / 70))   // the wind-up: both, creeping in
-  else if (k < B.punchAt + 6) cam.focusBetween?.(f, box(c.tx0, c.tFloor - 47), 1.4)
-  else if (k < B.skyEnd) cam.focusOnFighter(box(c.fx0 + c.dir * 300, c.floor - 260), 0.55)      // PULL OUT: the sky splits
+  else if (k < B.launchAt) cam.focusBetween?.(f, box(c.tx0, c.tFloor - 47), 1.45)                                  // the lunge + the contact: fist and body in one tight shot
+  else if (k < B.skyEnd) cam.focusOnFighter(box(c.fx1 + c.dir * 300, c.floor - 260), 0.55)      // PULL OUT: the sky splits
   else if (k < B.fallAt) cam.focusOnFighter(f, 1.25)                                             // "…OK."
   else cam.focusBetween?.(f, box(c.land, c.tFloor - 47), 0.85)                                   // the foe comes back down
   void t

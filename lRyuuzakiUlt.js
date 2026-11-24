@@ -3,8 +3,8 @@
 // in lRyuuzakiUltFx.js. Before this L had no ultimate (characters.js placeholder → abilities.executeFallbackUltimate's
 // generic 180-raw melee). Rides cineRegistry.js: registerUltCast('l_ryuuzaki') + registerFreezeCine.
 //
-// Same economy as Light Yagami's ultimates (his rival): 100 Deduction, a range-independent payoff of 340 raw through
-// applyScaledDamage (source 'ability' → ~204 effective), a foe guarding at the press takes 25 %.
+// Same economy as Light Yagami's ultimates (his rival): 100 Deduction, a range-independent payoff of 440 raw through
+// applyScaledDamage (source 'ability' → ~264 effective), a foe guarding at the press takes 25 %.
 //   0–34     letterbox, title cut-in; L perched in his crouch, thumb to his lip
 //   34–104   THE DEDUCTION: case files slam onto the screen one by one, red string ties every clue to the suspect, the
 //            counter climbs — "PROBABILITY YOU ARE KIRA: 5 % … 50 % … 96 %"
@@ -21,7 +21,7 @@ export const L_CINE = {
   cost: 100, blockScale: 0.25, total: 270, title: 34,
   files: [34, 44, 54, 64, 74, 84, 94], prob: [5, 12, 27, 50, 74, 87, 96], guilty: 104,
   stand: 104, dash: 120, arrive: 128, sweep: 133, crescent: 145, flurry: [156, 159, 162, 165, 168], plunge: 185, fin0: 192, finisher: 206, land: 228,
-  raw: { sweep: 40, crescent: 50, flurry: 14, plunge: 60, finisher: 120 },     // 40 + 50 + 5×14 + 60 + 120 = 340 (= Light's)
+  raw: { sweep: 52, crescent: 65, flurry: 18, plunge: 78, finisher: 155 },    // 52 + 65 + 5×18 + 78 + 155 = 440 (= Light's; owner buff +30 %)
   stop: { sweep: 5, crescent: 7, flurry: 2, plunge: 9, finisher: 22 },
 }
 

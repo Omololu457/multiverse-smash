@@ -111,6 +111,7 @@ export const CONTROL_REFERENCE = {
 
 import { KEVIN_KIT } from './kevinKit.js'
 import { squadKit, mmprSquadKit, nsSquadKit } from './spdSquadKit.js'   // S.P.D. Rangers squad Move List (built from the six Rangers' kits)
+import { cloneFighterKitRows } from "./cloneFighterSets.js"   // CLONE FIGHTERS kit rows (data-only module, no cycle)
 
 export const KITS = {
   kevin_levin: KEVIN_KIT,
@@ -1307,7 +1308,8 @@ export function comboStringFor(rosterKey) {
 // data if no hand-authored kit exists (keeps the Move List robust for any
 // future fighter added to characters.js).
 export function getKit(rosterKey, character = null) {
-  if (KITS[rosterKey]) return KITS[rosterKey]
+  const _cf = cloneFighterKitRows(rosterKey)   // CLONE FIGHTERS: the summon → pick clone moves (cloneFighterSets.js) join the specials list
+  if (KITS[rosterKey]) return _cf.length ? { ...KITS[rosterKey], specials: [...(KITS[rosterKey].specials || []), ..._cf] } : KITS[rosterKey]
   if (!character) return null
   const specials = Object.entries(character.specials || {}).map(([k, v], i) => ({
     name: k.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase()).trim(),
@@ -1329,7 +1331,7 @@ export function getKit(rosterKey, character = null) {
       { name: "Down-Air",     input: "Down-Air (jump + Heavy)", desc: "spike" },
       { name: "Grab",         input: "Grab", desc: "throw" }
     ],
-    specials: specials.length ? specials : [{ name: "—", input: "Special", cost: 0, desc: "no specials" }],
+    specials: (specials.length || _cf.length) ? [...specials, ..._cf] : [{ name: "—", input: "Special", cost: 0, desc: "no specials" }],
     mobility: { name: "Dash", input: "Dash / Double-tap", cost: 0, desc: "quick reposition" },
     ultimate: { name: character.ultimate?.name || "Ultimate", input: "Ultimate (full meter)", cost: character.ultimate?.cost || 100, desc: character.ultimate?.effect || "powerful finisher" },
     combos: comboStringFor(rosterKey)

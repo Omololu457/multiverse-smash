@@ -65,6 +65,7 @@ import { activateRedRangerPowerSwordCinematic, isRedRangerPowerSwordCinematicAct
 import { activateShinobuButterflyCinematic, isShinobuButterflyCinematicActive } from "./shinobuButterflyCinematic.js"   // Shinobu "Butterfly Dance" ultimate cinematic (no cycle)
 import { activateInosukeBeastCinematic, isInosukeBeastCinematicActive } from "./inosukeBeastCinematic.js"   // Inosuke "Beast Breathing" cinematic specials (no cycle)
 import { startDemonSlayerPreroll } from "./demonSlayerCinematics.js"   // DS-ULT-CINE (Zenitsu / Nezuko ultimate pre-rolls; no cycle)
+import { rangerUltPreroll } from "./rangerUltCinematics.js"   // RANGER-ULT-CINE: Demon Slayer-style pre-roll before the Rangers' ultimates (no cycle)
 import "./narutoUltCinematics.js"   // DS-ULT-CINE (registers the Naruto ult pre-roll scripts)
 import "./ben10AlienSequence.js"   // DS-ULT-CINE (registers the Ben 10 / Albedo all-aliens ultimate)
 import { deferNarutoUlt } from "./narutoStoryboard.js"   // DS-ULT-CINE (Naruto-universe storyboard ult openers)
@@ -8059,7 +8060,7 @@ export function executeRedRangerMmprUltimate(fighter, context) {
   if (!spendEnergy(fighter, RR_ULT_COST)) return false
   const opp = context?.getOpponent?.(fighter) || null
   fighter.vx = 0
-  activateRedRangerPowerSwordCinematic(fighter, opp, (cineCtx) => applyRedRangerPowerSwordDamage(fighter, opp, cineCtx))
+  rangerUltPreroll("red_ranger_mmpr", fighter, opp, () => activateRedRangerPowerSwordCinematic(fighter, opp, (cineCtx) => applyRedRangerPowerSwordDamage(fighter, opp, cineCtx)))   // RANGER-ULT-CINE
   return true
 }
 // Per-frame Red Ranger MMPR command/poke driver (mirrors updateOmegaRangerCommandCombat). Returns
@@ -15125,7 +15126,7 @@ export function executeSamuraiRangerUltimate(fighter, context) {
   // ULTIMATE ("Fire Smasher: Blazing Strike") cast voice — fires at ACTIVATION/windup, BEFORE the
   // freeze-cinematic's guaranteed-damage STRIKE beat. _atkVoiceCd so no connect double. Random pick.
   try { sound.playSfxFile?.(pickSamuraiVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}
-  activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applySamuraiUltimateDamage(fighter, opp, cineCtx))
+  rangerUltPreroll("samurai_red_ranger", fighter, opp, () => activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applySamuraiUltimateDamage(fighter, opp, cineCtx)))   // RANGER-ULT-CINE
   return true
 }
 
@@ -15170,7 +15171,7 @@ export function executeGoldSamuraiUltimate(fighter, context) {
   if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
   const opp = context?.getOpponent?.(fighter) || null
   fighter.vx = 0
-  activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applyGoldSamuraiUltimateDamage(fighter, opp, cineCtx))
+  rangerUltPreroll("gold_samurai_ranger", fighter, opp, () => activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applyGoldSamuraiUltimateDamage(fighter, opp, cineCtx)))   // RANGER-ULT-CINE
   return true
 }
 
@@ -15215,7 +15216,7 @@ export function executeGreenSamuraiUltimate(fighter, context) {
   if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
   const opp = context?.getOpponent?.(fighter) || null
   fighter.vx = 0
-  activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applyGreenSamuraiUltimateDamage(fighter, opp, cineCtx))
+  rangerUltPreroll("green_samurai_ranger", fighter, opp, () => activateSamuraiFlameSmasherCinematic(fighter, opp, (cineCtx) => applyGreenSamuraiUltimateDamage(fighter, opp, cineCtx)))   // RANGER-ULT-CINE
   return true
 }
 

@@ -1,6 +1,7 @@
 // White Ranger (mmpr_white) — SIMULATION state. Plain JSON on f._mmprWhite (+ f._falcon via the shared falconzord.js
 // assist scheduler and f._ranger via rangers.js). Sim ticks only, no RNG, no wall clock. Every export is a no-op for any
 // other rosterKey.
+import { rangerUltPreroll } from './rangerUltCinematics.js'   // Demon Slayer-style pre-roll before the ultimate cinematic
 import { MMPR_WHITE_MOVES, MMPR_WHITE_LANDING, DESCENT, FORMATION, LEADER, NINJA_RESOURCE, MMPR_WHITE_DAMAGE_SCALE, dmg } from './mmprWhiteData.js'
 import { tickRanger, clearRanger, startBlink } from './rangers.js'
 import { falconState, clearFalcon, retireSortie, falconCanCall, falconPay, falconCancelCall, falconCommit, tickFalcon } from './falconzord.js'
@@ -218,7 +219,7 @@ export function tickMmprWhite(f, opp, raw, W) {
   // ORDER COMMIT: the first frame after the 12 f startup. From here the order is detached and completes on its own.
   if (m.key === 'wCall' && t >= a.activeStart && f._falcon.pendingKind) falconCommit(f, opp, zordWorld(W))
   // ULTIMATE: a clean opener captures the target → the frozen sequence. Miss/block → the authored 60 f recovery.
-  if (m.key === 'wUltOpen' && m.clean && m.ultHit && !m.ultStarted) { const tg = ultTargets.get(f); ultTargets.delete(f); m.ultStarted = true; if (tg && tg.health > 0) activateMmprWhiteUlt(f, tg, W) }
+  if (m.key === 'wUltOpen' && m.clean && m.ultHit && !m.ultStarted) { const tg = ultTargets.get(f); ultTargets.delete(f); m.ultStarted = true; if (tg && tg.health > 0) rangerUltPreroll('mmpr_white', f, tg, () => activateMmprWhiteUlt(f, tg, W)) }
   if (m.key === 'wUltOpen' && t === a.activeEnd + 1 && !m.clean) { s.stats.ultWhiffs++; cue(f, 'ultMiss') }
 }
 function land(f, s, n) {

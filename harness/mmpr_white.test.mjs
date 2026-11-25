@@ -11,7 +11,7 @@ page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() =
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
 // HP from the live data file (balance passes retune it; 'hp unchanged' checks compare against it)
 const HP = CHAR_DEF.stats.maxHealth, SC = 1.7, sc = v => Math.round(v * SC)
-const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
+const step = n => page.evaluate(n => { for (let k = 0; k < n; k++) { __harness.luffyTest.step(1); for (let i = 0; i < 400 && window.__dsPrerollStatus?.().active; i++) __harness.luffyTest.step(1) } }, n)   // frozen Ranger ult pre-roll frames don't count (wait only)
 const state = () => page.evaluate(() => { const H = __harness.mmprWhiteTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, combo: H.raw().comboCounter, ult: H.ult() } })
 async function tap(ks, n = 1) { for (const k of ks) await page.keyboard.down(k); await step(n); for (const k of ks) await page.keyboard.up(k) }
 async function reset(gap = 72, flip = false, opts = {}) {

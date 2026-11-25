@@ -76,6 +76,9 @@
   "wake": -12,
   "iceWall": 0,
   "fireWall": 0,
+  "meteor": -4,
+  "fireMeteor": 0,
+  "snowman": 0,
   "super": 0
  }
 }

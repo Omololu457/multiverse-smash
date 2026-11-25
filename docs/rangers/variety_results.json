@@ -1,59 +1,59 @@
 {
   "spd_blue": {
-    "sweep": 56,
+    "sweep": 62,
     "evade": {
       "moved": 90,
       "invuln": 5
     },
-    "up": 65,
+    "up": 72,
     "motion": {
       "hits": [
         "bDrive1",
         "bDrive2",
         "bDrive3"
       ],
-      "applied": 97,
+      "applied": 106,
       "spent": 17.8
     },
     "blockedString": {
-      "chip": 2,
+      "chip": 3,
       "stopFrames": 17
     },
     "qcb": {
-      "applied": 65,
+      "applied": 72,
       "knockdown": false
     },
     "fwdLight": {
       "applied": 0
     },
-    "airHeavy": 58,
+    "airHeavy": 64,
     "backLight": {
-      "applied": 40,
+      "applied": 44,
       "moved": 36
     },
     "armoredCharge": {
-      "applied": 88,
+      "applied": 97,
       "advanced": 59
     },
     "counter": {
-      "applied": 81
+      "applied": 89
     },
-    "commandThrow": 105
+    "commandThrow": 116
   },
   "spd_green": {
-    "sweep": 58,
+    "sweep": 62,
     "evade": {
       "moved": 100,
       "invuln": 6
     },
-    "up": 67,
+    "up": 72,
     "motion": {
       "hits": [
         "gRush1",
         "gRush2",
         "gRush3"
       ],
-      "applied": 90,
+      "applied": 94,
       "spent": 20.8
     },
     "blockedString": {
@@ -61,63 +61,63 @@
       "stopFrames": 17
     },
     "qcb": {
-      "applied": 69,
+      "applied": 73,
       "knockdown": true
     },
     "fwdLight": {
       "applied": 0
     },
-    "airHeavy": 60,
+    "airHeavy": 64,
     "backLight": {
-      "applied": 39,
+      "applied": 41,
       "moved": 35
     },
     "armoredCharge": {
-      "applied": 85,
+      "applied": 91,
       "advanced": 52.5
     },
     "counter": {
-      "applied": 76
+      "applied": 81
     },
-    "commandThrow": 100
+    "commandThrow": 107
   },
   "spd_pink": {
-    "sweep": 57,
+    "sweep": 64,
     "evade": {
       "moved": 100,
       "invuln": 6
     },
-    "up": 57,
+    "up": 64,
     "motion": {
       "hits": [
         "pBar1",
         "pBar2",
         "pBar3"
       ],
-      "applied": 106,
+      "applied": 120,
       "spent": 15.8
     },
     "blockedString": {
-      "chip": 2,
+      "chip": 3,
       "stopFrames": 17
     },
     "qcb": {
-      "applied": 43,
+      "applied": 48,
       "knockdown": false
     },
     "fwdLight": {
       "applied": 0
     },
-    "airHeavy": 60,
+    "airHeavy": 67,
     "backLight": {
-      "applied": 37,
+      "applied": 41,
       "moved": 35
     },
     "armoredCharge": {
-      "applied": 87,
+      "applied": 97,
       "advanced": 56
     },
-    "commandThrow": 101
+    "commandThrow": 113
   },
   "passes": 97,
   "failures": 0

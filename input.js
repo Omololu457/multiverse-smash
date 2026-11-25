@@ -705,8 +705,9 @@ export const REPLAY_INPUT_FIELDS = ["left", "right", "down", "up", "jump", "ligh
 
 export function readRawControls(fighter) {
   const raw = _readRawControls(fighter)
-  if (!fighter?._squadEat || !raw) return raw
-  return squadMaskInput(fighter, { ...raw }, raw)
+  if (!raw || !(fighter?._squadEat || fighter?._squadInject)) return raw
+  const out = fighter._squadEat ? squadMaskInput(fighter, { ...raw }, raw) : { ...raw }
+  return fighter._squadInject ? Object.assign(out, fighter._squadInject) : out   // the squad's re-injected press (the Megazord's held-back U) reaches the Rangers' own command layers too
 }
 // unmasked snapshot (the S.P.D. dial reads this one so it can see the swallowed button being released)
 export const readRawControlsUnmasked = fighter => _readRawControls(fighter)

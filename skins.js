@@ -14,6 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
+import { OMNI_SUFFIX } from "./omniTheme.js"   // the roster-wide Ben 10 OMNITRIX theme skin
 import { EDO_SKIN_KEYS } from "./edoSkinKeys.js"   // MSV1-EDO: characters with premade Edo Tensei art (generated)
 import { ALBEDO_THEMES, ALBEDO_APPEARANCES, albedoThemeSkinId } from "./albedoThemes.js"   // Albedo skin themes (Albedo list only)
 import { BEN_THEMES, BEN_APPEARANCES, benThemeSkinId } from "./benThemes.js"   // Ben 10: 20 cosmetic themes × Classic / Jacket
@@ -701,10 +702,17 @@ export const SKINS = {
   // (1.3) from the character. No alt skins yet.
   tobirama: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.tobirama?.portrait, spriteScale: characters.tobirama?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py).
-    { id: "tobiramaAlbedo", name: "Albedo", unlockLevel: 0, portrait: recolorPortrait("tobirama", "albedo"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "albedo") },
-    { id: "tobiramaValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("tobirama", "valkyrie"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "valkyrie") },
-    { id: "tobiramaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("tobirama", "alienx"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "alienx") },
+    // BEN 10 ALIEN SKINS (tools/alienskins/build.py) — cosmetic only; every sheet re-coloured into <sheet>__<tag>.png.
+    { id: "tobiramaUpgrade", name: "Upgrade", unlockLevel: 0, portrait: recolorPortrait("tobirama", "upgrade"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "upgrade"), recolorTag: "upgrade" },
+    { id: "tobiramaBen10", name: "Ben 10 — Alien Force", unlockLevel: 0, portrait: recolorPortrait("tobirama", "ben10"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "ben10"), recolorTag: "ben10" },
+    { id: "tobiramaAlbedo", name: "Albedo — Negative Ten", unlockLevel: 0, portrait: recolorPortrait("tobirama", "albedo"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "albedo"), recolorTag: "albedo" },
+    { id: "tobiramaHeatblast", name: "Heatblast", unlockLevel: 0, portrait: recolorPortrait("tobirama", "heatblast"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "heatblast"), recolorTag: "heatblast" },
+    { id: "tobiramaDiamondhead", name: "Diamondhead", unlockLevel: 0, portrait: recolorPortrait("tobirama", "diamondhead"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "diamondhead"), recolorTag: "diamondhead" },
+    { id: "tobiramaAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("tobirama", "alienx"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "alienx"), recolorTag: "alienx" },
+    { id: "tobiramaAlienxHalf", name: "Alien X — Half", unlockLevel: 0, portrait: recolorPortrait("tobirama", "alienx_half"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "alienx_half"), recolorTag: "alienx_half" },
+    { id: "tobiramaBigchill", name: "Big Chill", unlockLevel: 0, portrait: recolorPortrait("tobirama", "bigchill"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "bigchill"), recolorTag: "bigchill" },
+    { id: "tobiramaGhostfreak", name: "Ghostfreak", unlockLevel: 0, portrait: recolorPortrait("tobirama", "ghostfreak"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "ghostfreak"), recolorTag: "ghostfreak" },
+    { id: "tobiramaXlr8", name: "XLR8", unlockLevel: 0, portrait: recolorPortrait("tobirama", "xlr8"), spriteScale: characters.tobirama?.spriteScale, animationData: recolorSkinAnim("tobirama", "xlr8"), recolorTag: "xlr8" },
   ],
 
   // Hashirama (universe: naruto) — STAGE 1 default + 12 creative recolors + 1 Alien-X-style Void skin
@@ -1634,30 +1642,17 @@ export const SKINS = {
   // ~67px (half size). Sources his real spriteScale (1.7) from the character. No alt skins yet.
   rick: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rick?.portrait, spriteScale: characters.rick?.spriteScale, animationData: null },
-    // ADD-ONLY batch skins (tools/gen_underskin_recolor.py). (Albedo dropped — base already dark)
-    { id: "rickValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("rick", "valkyrie"), spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "valkyrie") },
-    { id: "rickAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("rick", "alienx"), spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "alienx") },
-    // 8 creative colour skins (tools/gen_rick_creative.py) — per-region recolor: hair(blue hue)/coat
-    // (neutral+torso band)/shirt(teal hue)/pants(brown hue); face/skin excluded, multi-tone shading kept.
-    // Portrait = cropped recoloured stand frame (the pfp headshot's light bg is inseparable from the
-    // white coat). Cosmetic only.
-    { id: "rickMortyNightmare", name: "Morty's Nightmare", unlockLevel: 0, portrait: "./rick_portrait__mortynightmare.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "mortynightmare") },
-    { id: "rickPortalFluid", name: "Portal Fluid", unlockLevel: 0, portrait: "./rick_portrait__portalfluid.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "portalfluid") },
-    { id: "rickRedAlert", name: "Dimension C-137 Red Alert", unlockLevel: 0, portrait: "./rick_portrait__redalert.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "redalert") },
-    { id: "rickCosmicBlue", name: "Cosmic Blue", unlockLevel: 0, portrait: "./rick_portrait__cosmicblue.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "cosmicblue") },
-    { id: "rickLavenderMatter", name: "Lavender Matter", unlockLevel: 0, portrait: "./rick_portrait__lavendermatter.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "lavendermatter") },
-    { id: "rickGoldenRick", name: "Golden Rick", unlockLevel: 0, portrait: "./rick_portrait__goldenrick.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "goldenrick") },
-    { id: "rickVoidWalker", name: "Void Walker", unlockLevel: 0, portrait: "./rick_portrait__voidwalker.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "voidwalker") },
-    { id: "rickPinkMatter", name: "Pink Matter Rick", unlockLevel: 0, portrait: "./rick_portrait__pinkmatter.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "pinkmatter") },
-    // VOID FORM — solid near-black base (whole body incl. face, tools/gen_rick_creative.py voidform) +
-    // a PROCEDURAL cosmic starfield overlay drawn on top at match time (game.js drawVoidStarfield, gated
-    // to this skin id). The overlay is generated once per skin-load and tracks the sprite. Cosmetic only.
-    { id: "rickVoidForm", name: "Void Form", unlockLevel: 0, portrait: "./rick_portrait__voidform.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "voidform") },
-    // PORTAL VOID — same full-form near-black base (voidform's sibling, tools/gen_rick_creative.py
-    // portalvoid #0F0F12) + a DIFFERENT procedural overlay: vivid portal-green curling SWIRL wisps drawn
-    // on top at match time (game.js drawPortalVoidOverlay, gated to this skin id). Seeded once/skin-load,
-    // tracks the sprite across all poses (incl. Portal-Behind teleport). Cosmetic only.
-    { id: "rickPortalVoid", name: "Portal Void", unlockLevel: 0, portrait: "./rick_portrait__portalvoid.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "portalvoid") }
+    // BEN 10 ALIEN SKINS (tools/alienskins/build.py) — cosmetic only; every sheet re-coloured into <sheet>__<tag>.png.
+    { id: "rickUpgrade", name: "Upgrade", unlockLevel: 0, portrait: "./rick_portrait__upgrade.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "upgrade"), recolorTag: "upgrade" },
+    { id: "rickBen10", name: "Ben 10 — Alien Force", unlockLevel: 0, portrait: "./rick_portrait__ben10.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "ben10"), recolorTag: "ben10" },
+    { id: "rickAlbedo", name: "Albedo — Negative Ten", unlockLevel: 0, portrait: "./rick_portrait__albedo.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "albedo"), recolorTag: "albedo" },
+    { id: "rickHeatblast", name: "Heatblast", unlockLevel: 0, portrait: "./rick_portrait__heatblast.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "heatblast"), recolorTag: "heatblast" },
+    { id: "rickDiamondhead", name: "Diamondhead", unlockLevel: 0, portrait: "./rick_portrait__diamondhead.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "diamondhead"), recolorTag: "diamondhead" },
+    { id: "rickAlienX", name: "Alien X", unlockLevel: 0, portrait: "./rick_portrait__alienx.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "alienx"), recolorTag: "alienx" },
+    { id: "rickAlienxHalf", name: "Alien X — Half", unlockLevel: 0, portrait: "./rick_portrait__alienx_half.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "alienx_half"), recolorTag: "alienx_half" },
+    { id: "rickBigchill", name: "Big Chill", unlockLevel: 0, portrait: "./rick_portrait__bigchill.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "bigchill"), recolorTag: "bigchill" },
+    { id: "rickGhostfreak", name: "Ghostfreak", unlockLevel: 0, portrait: "./rick_portrait__ghostfreak.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "ghostfreak"), recolorTag: "ghostfreak" },
+    { id: "rickXlr8", name: "XLR8", unlockLevel: 0, portrait: "./rick_portrait__xlr8.png", spriteScale: characters.rick?.spriteScale, animationData: recolorSkinAnim("rick", "xlr8"), recolorTag: "xlr8" },
   ],
 
   // Rick Prime — his identity IS the recolor (base Rick's sheets → __rickprime: dark jacket / red accent /
@@ -1666,12 +1661,17 @@ export const SKINS = {
   // the recolored portrait; animationData:null so the character's own __rickprime sheets are used.
   rickPrime: [
     { id: "default", name: "Default", unlockLevel: 0, portrait: characters.rickPrime?.portrait, spriteScale: characters.rickPrime?.spriteScale, animationData: null },
-    // ADD-ONLY cosmetic skins (tools/gen_underskin_recolor.py) — reuse Yuta's EXACT albedo/valkyrie palette.
-    // rickPrime's base sheets are the Rick recolour rick_*__rickprime.png; recolorSkinAnim retags to
-    // rick_*__rickprime__<tag>.png. Pale-cyan hair is protected (kept) on Albedo/Valkyrie.
-    { id: "rickPrimeAlbedo",   name: "Albedo",   unlockLevel: 0, portrait: recolorPortrait("rickPrime", "albedo"),   spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "albedo") },    // black coat / red accent, cyan hair kept
-    { id: "rickPrimeValkyrie", name: "Valkyrie", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "valkyrie"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "valkyrie") },  // light-blue coat / gold accent, cyan hair kept
-    { id: "rickPrimeAlienX",   name: "Alien X",  unlockLevel: 0, portrait: recolorPortrait("rickPrime", "alienx"),   spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "alienx") },    // matte-black Celestialsapien + starfield overlay
+    // BEN 10 ALIEN SKINS (tools/alienskins/build.py) — cosmetic only; every sheet re-coloured into <sheet>__<tag>.png.
+    { id: "rickPrimeUpgrade", name: "Negative Upgrade", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "upgrade"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "upgrade"), recolorTag: "upgrade" },
+    { id: "rickPrimeBen10", name: "Ben 10 — Omniverse", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "ben10"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "ben10"), recolorTag: "ben10" },
+    { id: "rickPrimeAlbedo", name: "Albedo — Negative Ten", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "albedo"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "albedo"), recolorTag: "albedo" },
+    { id: "rickPrimeHeatblast", name: "Negative Heatblast", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "heatblast"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "heatblast"), recolorTag: "heatblast" },
+    { id: "rickPrimeDiamondhead", name: "Negative Diamondhead", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "diamondhead"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "diamondhead"), recolorTag: "diamondhead" },
+    { id: "rickPrimeAlienX", name: "Alien X", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "alienx"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "alienx"), recolorTag: "alienx" },
+    { id: "rickPrimeAlienxHalf", name: "Alien X — Half", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "alienx_half"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "alienx_half"), recolorTag: "alienx_half" },
+    { id: "rickPrimeBigchill", name: "Ultimate Big Chill", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "bigchill"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "bigchill"), recolorTag: "bigchill" },
+    { id: "rickPrimeGhostfreak", name: "Zs'Skayr", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "ghostfreak"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "ghostfreak"), recolorTag: "ghostfreak" },
+    { id: "rickPrimeXlr8", name: "Negative XLR8", unlockLevel: 0, portrait: recolorPortrait("rickPrime", "xlr8"), spriteScale: characters.rickPrime?.spriteScale, animationData: recolorSkinAnim("rickPrime", "xlr8"), recolorTag: "xlr8" },
   ],
 
   // Beerus (Dragon Ball) — new single-form sprite char. Same gate: WITHOUT a default skin,
@@ -2812,6 +2812,19 @@ for (const key of EDO_SKIN_KEYS) {
   if (!SKINS[key].some(s => s.id === skin.id)) SKINS[key].push(skin)
 }
 export function getEdoSkin(rosterKey) { return EDO_SKINS.get(rosterKey) || null }
+
+// OMNITRIX — the Ben 10 theme skin for EVERY fighter (2026-11-25, owner request). The fighter's own sheets re-designed as a
+// Ben 10 alien suit at load time (omniTheme.js: main colour → Omnitrix green, other colours → white panels, dark cloth → black
+// bodysuit, glowing green energy seams, face kept) + a big Omnitrix badge on the chest. Render-only: animationData null = the
+// fighter's own frames, so timing / hitboxes are untouched. Ben's DNA copy of a foe wears the same look.
+for (const [key, ch] of Object.entries(characters)) {
+  if (!ch || ch.isPlayable === false || ch.hasSprites === false || key === "ghostface") continue   // Ghostface: skins = the 5 killer identities (applySkin)
+  // no list yet → the EXACT getSkins() fallback (spriteScale 1) so the default skin renders exactly as before
+  if (!SKINS[key]) SKINS[key] = [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: 1, animationData: null }]
+  const id = key + OMNI_SUFFIX
+  if (!SKINS[key].some(s => s.id === id)) SKINS[key].push({ id, name: "Omnitrix", unlockLevel: 0, portrait: SKINS[key][0]?.portrait ?? ch.portrait ?? null,
+    spriteScale: SKINS[key][0]?.spriteScale ?? ch.spriteScale ?? 1, animationData: null, omniTheme: true })
+}
 
 export function getSkins(rosterKey) {
   return SKINS[rosterKey] || [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: 1, animationData: null }]

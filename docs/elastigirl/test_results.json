@@ -1,6 +1,6 @@
 {
  "pass": 107,
- "fail": 0,
+ "fail": 1,
  "results": {
   "P2": {
    "regenPer120": {
@@ -48,7 +48,7 @@
     "other": 100
    },
    "live": {
-    "hit": 23,
+    "hit": 56,
     "rubber": 1
    }
   },
@@ -965,20 +965,76 @@
       25
      ],
      [
-      "eUltRecover",
-      218
+      "cine",
+      32
      ]
     ],
     "hits": [
-     40,
-     40,
      50,
-     90
+     30,
+     30,
+     42,
+     98
     ],
-    "travel": 652,
+    "dealt": 250,
+    "travel": 218,
     "energy": 0,
-    "fighters": 2,
+    "lock": null,
+    "last": {
+     "hits": 4,
+     "dealt": 200,
+     "ko": false,
+     "k": 220,
+     "tick": 266,
+     "cleared": false
+    },
+    "restored": {
+     "rot": 0,
+     "kd": true,
+     "atk": false
+    },
+    "anims": [
+     true,
+     true
+    ],
+    "raftFrames": 17
+   },
+   "ultWhiff": {
+    "ok": true,
+    "seq": [
+     [
+      "eUlt",
+      0
+     ],
+     [
+      "eRaft",
+      25
+     ],
+     [
+      "eUltRecover",
+      134
+     ]
+    ],
+    "hits": [
+     113
+    ],
+    "dealt": 113,
+    "travel": 792,
+    "energy": 0,
     "lock": 102,
+    "last": {
+     "hits": 4,
+     "dealt": 200,
+     "ko": false,
+     "k": 220,
+     "tick": 266,
+     "cleared": false
+    },
+    "restored": {
+     "rot": 0,
+     "kd": false,
+     "atk": false
+    },
     "anims": [
      true,
      true
@@ -1129,7 +1185,7 @@
     "fa": 5,
     "parried": false,
     "hitAt": "hit",
-    "dmg": 23,
+    "dmg": 56,
     "gain": 3,
     "freeArm": 0,
     "parries": 0
@@ -1231,11 +1287,11 @@
       false
      ]
     ],
-    "travel": -118
+    "travel": -165
    },
    "bounceVsJab": {
-    "2": 23,
-    "3": 23,
+    "2": 56,
+    "3": 56,
     "4": 0,
     "5": 0,
     "6": 0,
@@ -1245,8 +1301,8 @@
     "10": 0,
     "11": 0,
     "12": 0,
-    "13": 23,
-    "14": 23
+    "13": 56,
+    "14": 56
    }
   },
   "P7": {
@@ -1302,6 +1358,10 @@
     [
      "eg_glitter",
      "Starlight Glitter"
+    ],
+    [
+     "elastigirl_edoTensei",
+     "Edo Tensei"
     ]
    ],
    "skinsJs": true,
@@ -1424,6 +1484,16 @@
     "sheetsDiffer": 43,
     "sheets": 43,
     "portrait": "./assets/elastigirl/portrait.png"
+   },
+   "elastigirl_edoTensei": {
+    "changed": 0,
+    "redKept": 5105,
+    "raftChangedNonTube": 0,
+    "raftKidsRed": 0,
+    "raftChanged": 0,
+    "sheetsDiffer": 0,
+    "sheets": 43,
+    "portrait": "./assets/elastigirl/portrait__edo.png"
    }
   },
   "P8": {

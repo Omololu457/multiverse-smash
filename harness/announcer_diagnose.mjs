@@ -96,7 +96,7 @@ try {
 
   // ── VICTORY ──
   await sleep(800); await clearSpy()
-  await page.evaluate(() => window.__harness.story.win()); await waitFrames(10)
+  await page.evaluate(() => window.__harness.forceP1MatchWin()   /* Story Mode removed 2026-11-24 — plain P1 win */); await waitFrames(10)
   REPORT("victory", inPool(await spy(), "victory") ? "WIRED-LIVE" : "BROKEN", (await spy()).join(",") || "(silent)")
 
   // ── KO + PERFECT (real round KO — checkRoundEnd skips training, so use bootVs) ──

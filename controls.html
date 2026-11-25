@@ -21,7 +21,13 @@
       <button class="tab nav" data-mode="free" data-nav="header" role="tab">FREE PRACTICE</button>
       <button class="tab nav" data-mode="fatal" data-nav="header" role="tab">FATALITIES</button>
     </nav>
-    <a id="backToGame" class="btn ghost nav" data-nav="header" href="index.html">◂ BACK TO GAME</a>
+    <!-- moved here from the game menus (owner 2026-11-24): each opens that screen in the game via index.html?open= -->
+    <div id="gameLinks">
+      <a class="btn ghost nav" data-nav="header" href="index.html?open=tutorial" title="Interactive guided walkthrough — learn the basics">TUTORIAL</a>
+      <a class="btn ghost nav" data-nav="header" href="index.html?open=academy" title="Learn every fighter — demos & hands-on drills">ACADEMY</a>
+      <a class="btn ghost nav" data-nav="header" href="index.html?open=comboTrials" title="Scripted combo challenges">COMBO TRIALS</a>
+      <a id="backToGame" class="btn ghost nav" data-nav="header" href="index.html">◂ BACK TO GAME</a>
+    </div>
   </header>
 
   <main class="layout">

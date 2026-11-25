@@ -1,0 +1,62 @@
+[
+ {
+  "k": "naruto",
+  "ok": true,
+  "id": "naruto_omnitrixTheme",
+  "live": true,
+  "x": 907.52,
+  "y": 355.32000000000005,
+  "w": 84.96,
+  "h": 148.67999999999998
+ },
+ {
+  "k": "goku",
+  "ok": true,
+  "id": "goku_omnitrixTheme",
+  "live": true,
+  "x": 886.28,
+  "y": 358.4,
+  "w": 127.44,
+  "h": 141.6
+ },
+ {
+  "k": "sasuke",
+  "ok": true,
+  "id": "sasuke_omnitrixTheme",
+  "live": true,
+  "x": 918.612,
+  "y": 376.206,
+  "w": 62.775999999999996,
+  "h": 127.794
+ },
+ {
+  "k": "omniman_viltrum",
+  "ok": true,
+  "id": "omniman_viltrum_omnitrixTheme",
+  "live": true,
+  "x": 893.36,
+  "y": 358.4,
+  "w": 113.28,
+  "h": 143.95999999999998
+ },
+ {
+  "k": "gojo",
+  "ok": true,
+  "id": "gojo_omnitrixTheme",
+  "live": true,
+  "x": 920.264,
+  "y": 364.06399999999996,
+  "w": 59.472,
+  "h": 135.936
+ },
+ {
+  "k": "spd_red",
+  "ok": true,
+  "id": "spd_red_omnitrixTheme",
+  "live": true,
+  "x": 758,
+  "y": 308,
+  "w": 384,
+  "h": 201.6
+ }
+]

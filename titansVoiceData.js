@@ -40,7 +40,7 @@ export const TITANS_VOICE = {
     "titans": [["./assets/audio/titans/starfire/tt_036.mp3", "Teen Titans triumph!", 2.16], ["./assets/audio/titans/starfire/tt_004.mp3", "CONTINUE THE BATTLE, MY FRIENDS!", 2.23]],
     "vs:cyborg": [["./assets/audio/titans/starfire/tt_021.mp3", "It is as the friend Cyborg says, the Boo and the Yah!", 4.49]],
     "win": [["./assets/audio/titans/starfire/tt_018.mp3", "I have the joy!", 1.72], ["./assets/audio/titans/starfire/tt_037.mp3", "THIS IS THE MOST EXCELLENT APPROVEMENT", 3.27], ["./assets/audio/titans/starfire/tt_041.mp3", "When I accomplish this task, I shall try not to perform the gloating.", 4.65], ["./assets/audio/titans/starfire/tt_013.mp3", "Joy! Starfire Sleepover!", 2.81]],
-    "ult": [["./assets/audio/titans/starfire/tt_034.mp3", "Prepare for a blast of cosmic energy right to the face, fiends!", 4.39], ["./assets/audio/titans/starfire/tt_043.mp3", "ZOAL!", 1.2]],
+    "ult": [["./assets/audio/titans/starfire/tt_034.mp3", "Prepare for a blast of cosmic energy right to the face, fiends!", 4.39], ["./assets/audio/titans/starfire/tt_043.mp3", "ZOAL!", 1.00]],
     "hurt": [["./assets/audio/titans/starfire/tt_039.mp3", "This is indeed a bad day of the hair!", 5.81], ["./assets/audio/titans/starfire/tt_030.mp3", "Oh no! I am to be attacked by sordid gristle nubs!", 4.82]],
     "ko": [["./assets/audio/titans/starfire/tt_006.mp3", "Do not defeat me in battle, please!", 2.38], ["./assets/audio/titans/starfire/tt_008.mp3", "Do not worry, I shall return faster than a blurb-butt!", 3.64], ["./assets/audio/titans/starfire/tt_042.mp3", "I shall fail, but I shall try.", 2.68]],
   },

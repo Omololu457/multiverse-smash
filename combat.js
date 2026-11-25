@@ -20,10 +20,10 @@ import { robinHitbox, robinBlock, robinHit, robinProjectileHit } from './robinSt
 import { megumiHitbox, megumiBlock, megumiHit, megumiProjectileHit } from './megumiState.js'   // Megumi hooks (megumi-gated)
 import { gsHitbox, gsBlock, gsHit, gsMeleeGate, gsGrabGate, gsProjectileGate, gsDamageMods } from './gojoShinjukuState.js'   // Satoru Gojo (Shinjuku) hooks: Infinity / Falling Blossom gates + his move boxes (gojo_shinjuku-gated)
 import { sksHitbox, sksBlock, sksHit } from './sukunaShinjukuState.js'   // Ryomen Sukuna (Shinjuku) hooks: his move boxes + contact flags (sukuna_shinjuku-gated)
-import { invHitbox, invBlock, invHit, invKnockback, invDamageMods, invKoFloor } from './invincibleState.js'   // Invincible hooks: move boxes, contact flags, light weight, Resolve / Can't Stay Down (invincible-gated)
-import { dinoDamageMods } from './dinoState.js'   // MSV1-DINO (leaf module; no-op unless a Dino Thunder fighter is involved)
 import { omvHitbox, omvBlock, omvHit, omvKnockback } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) hooks: his move boxes + speed-scaled contact + heavy weight (omniman_viltrum-gated)
 import { omvMeleeGate, omvProjectileGate } from './omnimanViltrumState.js'   // Omni-Man (Viltrumite) UNIMPRESSED counter window: the hit is not felt (omniman_viltrum-gated)
+import { invHitbox, invBlock, invHit, invKnockback, invDamageMods, invKoFloor } from './invincibleState.js'   // Invincible hooks: move boxes, contact flags, light weight, Resolve / Can't Stay Down (invincible-gated)
+import { dinoDamageMods } from './dinoState.js'   // MSV1-DINO (leaf module; no-op unless a Dino Thunder fighter is involved)
 import { higurumaHitbox, higurumaBlock, higurumaHit, absorbHiguruma } from './higurumaState.js'   // Higuruma hooks (higuruma-gated)
 import { syndromeHitbox, syndromeBlock, syndromeHit, syndromeProjectileHit } from './syndromeState.js'   // Syndrome hooks (syndrome-gated)
 import { dseylHitbox, dseylBlock, dseylHit, dseylProjectileHit } from './dseylState.js'   // Dseyl hooks (dseyl-gated copy of Syndrome's)
@@ -866,8 +866,8 @@ export function getAttackHitbox(fighter) {
   if (a?.mg && fighter.rosterKey === 'megumi_fushiguro') return megumiHitbox(fighter)   // Megumi: per-move body box; summon gestures have none (the shikigami's projectile volume hits)
   if (a?.gs && fighter.rosterKey === 'gojo_shinjuku') return gsHitbox(fighter)   // Satoru Gojo (Shinjuku): per-move body box; technique casts have none (their fields strike through gojoShinjukuState)
   if (a?.sks && fighter.rosterKey === 'sukuna_shinjuku') return sksHitbox(fighter)   // Ryomen Sukuna (Shinjuku): per-move body box; technique casts have none (they strike through sukunaShinjukuState)
-  if (a?.inv && fighter.rosterKey === 'invincible') return invHitbox(fighter)   // Invincible: per-move body box; techniques have none (they strike through invincibleState)
   if (a?.omv && fighter.rosterKey === 'omniman_viltrum') return omvHitbox(fighter)   // Omni-Man (Viltrumite): per-move body box; techniques have none (they strike through omnimanViltrumState)
+  if (a?.inv && fighter.rosterKey === 'invincible') return invHitbox(fighter)   // Invincible: per-move body box; techniques have none (they strike through invincibleState)
   if (a?.hg && fighter.rosterKey === 'higuruma') return higurumaHitbox(fighter)   // Higuruma: per-move gavel / extension / giant-gavel box from the drawn weapon (body hurtbox unchanged)
   if (a?.sy && fighter.rosterKey === 'syndrome') return syndromeHitbox(fighter)   // Syndrome: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
   if (a?.sy && fighter.rosterKey === 'dseyl') return dseylHitbox(fighter)   // Dseyl: the commanded machine's box (Spinner / Drone / claw / leg); body-less gestures have none (machine volumes are projectiles)
@@ -879,6 +879,7 @@ export function getAttackHitbox(fighter) {
   if (a?.bm && fighter.rosterKey === 'batman') return batmanHitbox(fighter)   // Batman: per-move box from the drawn limb (body hurtbox unchanged)
   if (a?.vi && fighter.rosterKey === 'violet' && violetNoBox(fighter, a)) return null   // Violet: body-less specials / Phase Step have no strike box (no clash); violet-gated
   if (a?.eg && fighter.rosterKey === 'elastigirl') return elastigirlHitbox(fighter)   // Elastigirl: per-move limb box + multi-contact windows
+  if (fighter._mzOn && MZ_HOOK.hitbox) { const _mzb = MZ_HOOK.hitbox(fighter, a); if (_mzb !== undefined) return _mzb }   // MSV1-MEGAZORD: boxes from the drawn art (gated: _mzOn)
 
   // Generic REACH multiplier: any fighter can set `_reachMult` (>1) to extend the horizontal reach of its
   // attacks for a duration (Hiruzen's Enma / Monkey-King-Staff buff — the bo staff's long reach). Defaults
@@ -3678,8 +3679,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     if (!flawless) megumiBlock(attacker, defender, atk)   // Megumi: authored blockstun; megumi-gated
     if (!flawless) gsBlock(attacker, defender, atk)   // Satoru Gojo (Shinjuku): authored blockstun, contact flag; gojo_shinjuku-gated
     if (!flawless) sksBlock(attacker, defender, atk)   // Ryomen Sukuna (Shinjuku): authored blockstun, contact flag; gated
-    if (!flawless) invBlock(attacker, defender, atk)   // Invincible: authored blockstun, contact flag; gated
     if (!flawless) omvBlock(attacker, defender, atk)   // Omni-Man (Viltrumite): authored blockstun + more negative on block at speed; gated
+    if (!flawless) invBlock(attacker, defender, atk)   // Invincible: authored blockstun, contact flag; gated
     if (!flawless) higurumaBlock(attacker, defender, atk)   // Higuruma: authored blockstun; no evidence on block; higuruma-gated
     if (!flawless) syndromeBlock(attacker, defender, atk)   // Syndrome: authored blockstun; syndrome-gated
     if (!flawless) dseylBlock(attacker, defender, atk)   // Dseyl: authored blockstun; syndrome-gated
@@ -3769,8 +3770,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     megumiHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Megumi: clean flag (chain / cancels), Shadow Route progress; megumi-gated
     gsHit(attacker, defender, atk)   // Satoru Gojo (Shinjuku): clean flag, +4 CE, Black Flash window, Blue Fist pull, Red Rush crumple; gojo_shinjuku-gated
     sksHit(attacker, defender, atk)   // Ryomen Sukuna (Shinjuku): clean / contact flags (chains, cancels); gated
-    invHit(attacker, defender, atk)   // Invincible: clean / contact flags (chains, Zip cancel); gated
     omvHit(attacker, defender, atk)   // Omni-Man (Viltrumite): contact flags, Haymaker wall bounce, impact fx; gated
+    invHit(attacker, defender, atk)   // Invincible: clean / contact flags (chains, Zip cancel); gated
     higurumaHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Higuruma: clean flag (chain / heavy / special / ult cancels, Precedent), Case File evidence; higuruma-gated
     syndromeHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Syndrome: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
     dseylHit(attacker, defender, atk, {armored:!!(bossArmored || castArmored || supArmored || kevinArmored)})   // Dseyl: clean flag (chain / cancels), Zero-Point capture, Convergence; syndrome-gated
@@ -3855,8 +3856,8 @@ export function resolveAttackHit(attacker, defender, hitEffects = null, options 
     ninjaKnockback(attacker, defender)   // MSV1 weight
     ninjaStormKnockback(attacker, defender)   // MSv2 stance weight (0.8 Red / 0.85 Yellow)
     cyborgKnockback(attacker, defender, atk)   // Cyborg as DEFENDER: weight 1.15 (received knockback ÷ 1.15); cyborg-gated
-    invKnockback(attacker, defender, atk)   // Invincible as DEFENDER: light weight (×1.3 knockback); his Sweep knocks down; gated
     omvKnockback(attacker, defender)   // Omni-Man (Viltrumite) as DEFENDER: heavy (received knockback × 0.85); gated
+    invKnockback(attacker, defender, atk)   // Invincible as DEFENDER: light weight (×1.3 knockback); his Sweep knocks down; gated
     if (benReadyForm(defender)) { defender.vx *= benKnockbackScale(defender); defender.vy *= benKnockbackScale(defender) }   // READY forms' weight (Swampfire unchanged)
     benWaterKnockback(defender)   // STORM TIDE (benFlood.js): submerged non-waterborne → knockback ×0.8, launch ×0.75; no-op without a flood
 

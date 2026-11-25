@@ -1,3 +1,5 @@
+import { buffSpeedMult, buffDamageMult } from './speedStrengthBuff.js'   // owner speed/strength buff 2026-11-24
+import { balDmgMult, balHpMult, balSpdMult, balAggro } from './rosterBalance.js'   // roster balance sweep 2026-11-25 (one table: dmg / hp / spd / CPU aggro per fighter)
 // ROSTER PARITY — per-character OUTGOING damage boost (2026-11-13, owner request: the recent Power Rangers and
 // One Piece fighters "do very little damage"). Applied once, at the shared damage choke-point
 // (combat.applyScaledDamage), to every hit whose attacker is listed: melee, chip, grabs, projectiles, kit
@@ -38,8 +40,8 @@ export const ROSTER_DAMAGE_BOOST = Object.freeze({
 export function rosterDamageBoost(attacker) {
   if (!attacker) return 1
   const k = (attacker.rosterKey || '').toLowerCase()
-  if (attacker._squad) return ROSTER_DAMAGE_BOOST[k] || ROSTER_DAMAGE_BOOST.spd_red   // S.P.D. Rangers: every form (Omega too) on Red's tier, never the OG lift
-  return (ROSTER_DAMAGE_BOOST[k] || 1) * (OG_LC[k]?.dmg || 1) * (WEAK_LC[k]?.dmg || 1)
+  if (attacker._squad) return (ROSTER_DAMAGE_BOOST[k] || ROSTER_DAMAGE_BOOST.spd_red) * balDmgMult(attacker)   // S.P.D. Rangers: every form (Omega too) on Red's tier, never the OG lift
+  return (ROSTER_DAMAGE_BOOST[k] || 1) * (OG_LC[k]?.dmg || 1) * (WEAK_LC[k]?.dmg || 1) * balDmgMult(attacker) * buffDamageMult(k)   // × speedStrengthBuff.js (Toji/Maki/Demon Slayer)
 }
 
 // ── OG ROSTER BUFF (2026-11-23, owner: "all the OG characters are too weak … buff their speed and HP too, not just
@@ -205,6 +207,6 @@ export const WEAK_TIER_BUFF = Object.freeze({
 })
 const WEAK_LC = Object.fromEntries(Object.entries(WEAK_TIER_BUFF).map(([k, v]) => [k.toLowerCase(), v]))
 const weakRow = f => f?._squad ? null : WEAK_LC[String(f?.rosterKey || f || '').toLowerCase()]
-export const ogHpMult = f => (ogRow(f)?.hp || 1) * (weakRow(f)?.hp || 1)
-export const ogSpeedMult = f => (ogRow(f)?.spd || 1) * (weakRow(f)?.spd || 1)
-export const isOgFighter = f => !!ogRow(f) || !!weakRow(f)?.aggro   // OG roster member (OG_TABLE) or an aggro weak-tier row — ai.js gives these CPUs an aggression overlay
+export const ogHpMult = f => (ogRow(f)?.hp || 1) * (weakRow(f)?.hp || 1) * balHpMult(f)
+export const ogSpeedMult = f => (ogRow(f)?.spd || 1) * (weakRow(f)?.spd || 1) * balSpdMult(f) * buffSpeedMult(f)   // × speedStrengthBuff.js (Toji/Maki/Demon Slayer/Flash/Killua)
+export const isOgFighter = f => balAggro(f) ?? (!!ogRow(f) || !!weakRow(f)?.aggro)   // OG roster member (OG_TABLE) or an aggro weak-tier row — ai.js gives these CPUs an aggression overlay

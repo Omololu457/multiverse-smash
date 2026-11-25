@@ -101,9 +101,9 @@
     }
   ],
   "momentum": {
-    "walk": 9.25,
-    "sprintWalk": 10.175,
-    "blurWalk": 11.1
+    "walk": 10.6375,
+    "sprintWalk": 11.70125,
+    "blurWalk": 12.764999999999999
   },
   "defense": {
     "sidestep": {
@@ -114,8 +114,8 @@
       "cooldown": 226
     },
     "cantCatchMe": {
-      "jog": 25,
-      "sprint": 17
+      "jog": 38,
+      "sprint": 26
     },
     "panic": {
       "atk": "panic",
@@ -127,12 +127,13 @@
   },
   "ultimate": {
     "ok": true,
-    "energy": 69.33333333333341,
+    "energy": 53.20000000000022,
     "dmg": 268,
     "hits": 12,
     "lockedAt": 11,
-    "lastHit": 190,
-    "freeAt": 280,
+    "lastHit": 235,
+    "freeAt": 293,
+    "lockAtFree": 40,
     "bMoved": [
       0,
       0,
@@ -146,12 +147,13 @@
       0,
       0,
       0
-    ]
+    ],
+    "knockdown": true
   },
   "stats": {
-    "walk": 9.25,
-    "run": 12.100000000000001
+    "walk": 10.6375,
+    "run": 3.970425599999999
   },
   "pass": 82,
-  "fail": 0
+  "fail": 1
 }

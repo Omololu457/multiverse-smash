@@ -3,4 +3,5 @@
 // other fighter combat.js does exactly what it did before.
 //   absorb(target, dealt, opts) → number   damage goes to the Megazord's ARMOR, never the Ranger's health (returns 0)
 //   armored(defender, atk, cat) → bool      SUPER ARMOR: normal hits don't stagger it; supers / ultimates do
-export const MZ_HOOK = { absorb: null, armored: null }
+//   hitbox(fighter, atk) → box|null|undefined  the Megazord's per-move box from the drawn art (undefined = engine default)
+export const MZ_HOOK = { absorb: null, armored: null, hitbox: null }

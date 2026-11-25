@@ -42,11 +42,10 @@ try {
   check("Lab's BACK TO GAME returns to the game", /index\.html/.test(page.url()), page.url())
   await page.context().close()
 
-  // ── Academy → CONTROLS LAB button ──
+  // ── Academy (now reached from the Lab: owner 2026-11-24 moved it off the main menu) → CONTROLS LAB button ──
   page = await home()
-  await nav(page, { confirm: true })
-  await seek(page, "academy", Array(16).fill("down"))
-  await nav(page, { confirm: true })
+  await page.goto(`${base}/index.html?harness=1&p1=goku&p2=zoro&open=academy`)
+  await page.waitForFunction(() => window.__harness?.padMenuState?.().gameState === "academy", null, { timeout: 30000 }).catch(() => {})
   check("ACADEMY still opens", (await st(page)).gameState === "academy", (await st(page)).gameState)
   const reach = await seek(page, "controlsLab", [...Array(40).fill("down"), ...Array(6).fill("right")])
   check("Academy grid has a CONTROLS LAB button the pad can reach", reach, `selId=${(await st(page)).selId}`)

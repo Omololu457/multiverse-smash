@@ -1,6 +1,6 @@
 {
- "pass": 10,
- "fail": 0,
+ "pass": 9,
+ "fail": 1,
  "R": {
   "keycheck": {
    "cells": 97,
@@ -57,7 +57,7 @@
   },
   "hp": {
    "median": 1150,
-   "n": 166,
+   "n": 170,
    "invincible": 748,
    "ratio": 0.65
   },

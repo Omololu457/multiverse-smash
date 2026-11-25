@@ -35,13 +35,8 @@ await page.evaluate(() => __harness.bootVs()); await page.waitForTimeout(300)
 await page.keyboard.press('Escape'); await page.waitForTimeout(150)
 const walk = async item => { for (let i = 0; i < 14 && (await page.evaluate(() => __harness.pauseSel())).item !== item; i++) { await page.keyboard.press('ArrowDown'); await page.waitForTimeout(40) } return (await page.evaluate(() => __harness.pauseSel())).item }
 await page.screenshot({ path: 'docs/qol/pause_menu.png' })
-ok('P1 pause shows the new items', (await walk('moveList')) === 'moveList')
-await page.keyboard.press('Enter'); await page.waitForTimeout(200)
-const ml = await page.evaluate(() => __harness.state().gameState)
-await page.screenshot({ path: 'docs/qol/pause_move_list.png' })
-await page.keyboard.press('Escape'); await page.waitForTimeout(200)
-const back = await page.evaluate(() => __harness.state().gameState)
-ok('P2 Move List opens from pause and Esc returns to the PAUSED match (not the main menu)', ml === 'moveList' && back === 'paused', `${ml} → ${back}`)
+// 2026-11-24 owner removed Move List + Combo Trials from the pause menu (Move List lives in the Controls Lab now).
+ok('P1 pause menu no longer has Move List / Combo Trials', await page.evaluate(async () => { const { PAUSE_MENU_ITEMS: I } = await import('./ui.js'); return !I.includes('moveList') && !I.includes('comboTrials') && I.includes('restartMatch') && I.includes('charSelect') }))
 // Restart Match
 await page.evaluate(() => { const p = __harness.p1(); }); 
 const rm0 = await page.evaluate(() => { const f = __harness.enochTest.raw(); f.health = 100; return f.health })

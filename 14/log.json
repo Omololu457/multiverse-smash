@@ -1,0 +1,362 @@
+[
+ {
+  "i": 0,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 0.9421420483192235,
+   "targetZoom": 1.4507229752066115,
+   "x": 1113.7055501250568,
+   "y": 348.50810880813793,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 23
+ },
+ {
+  "i": 1,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 1.28065758264123,
+   "targetZoom": 1.4761352066115703,
+   "x": 964.9826826704926,
+   "y": 400.9515302185419,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 39
+ },
+ {
+  "i": 2,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 1.4375219466804876,
+   "targetZoom": 1.5250922314049586,
+   "x": 951.5600794873877,
+   "y": 419.7254539459259,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 54
+ },
+ {
+  "i": 3,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": true,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 1.527391834100551,
+   "targetZoom": 1.5881071074380164,
+   "x": 950.1624143381782,
+   "y": 427.1478897791675,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 69
+ },
+ {
+  "i": 4,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": true,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 1.600762934983445,
+   "targetZoom": 1.6551385123966942,
+   "x": 950.0169083467212,
+   "y": 430.0819955064912,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 84
+ },
+ {
+  "i": 5,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": true,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 1.6675327496196233,
+   "targetZoom": 1.716145123966942,
+   "x": 950.0017602644317,
+   "y": 431.24182823769826,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 99
+ },
+ {
+  "i": 6,
+  "stage": "p1",
+  "gameState": "intro",
+  "p1Playing": true,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": null,
+  "cam": {
+   "zoom": 1.723592712980588,
+   "targetZoom": 1.7610856198347107,
+   "x": 950.0001832545145,
+   "y": 431.70030090079064,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 114
+ },
+ {
+  "i": 7,
+  "stage": "p2",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.5766639442150232,
+   "targetZoom": 1.4592399999999999,
+   "x": 1335.4127028491785,
+   "y": 431.8815314027812,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 129
+ },
+ {
+  "i": 8,
+  "stage": "p2",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.5088280250573702,
+   "targetZoom": 1.4965937190082643,
+   "x": 1437.9413984138735,
+   "y": 431.95317033503443,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 144
+ },
+ {
+  "i": 9,
+  "stage": "p2",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.524997776260304,
+   "targetZoom": 1.5533606611570248,
+   "x": 1448.7444737966212,
+   "y": 431.98148861749587,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 159
+ },
+ {
+  "i": 10,
+  "stage": "p2",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": true,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.574818692462144,
+   "targetZoom": 1.6194995041322313,
+   "x": 1449.8692917156695,
+   "y": 431.9926826023122,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 174
+ },
+ {
+  "i": 11,
+  "stage": "p2",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": true,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.6364432409193534,
+   "targetZoom": 1.6849689256198348,
+   "x": 1449.9863924515619,
+   "y": 431.99710749270577,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 189
+ },
+ {
+  "i": 12,
+  "stage": "p2",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": true,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.6965466032345955,
+   "targetZoom": 1.7397276033057851,
+   "x": 1449.9985833692726,
+   "y": 431.9988566155887,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 204
+ },
+ {
+  "i": 13,
+  "stage": "done",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.679991911613643,
+   "targetZoom": 0.85,
+   "x": 1388.969558414235,
+   "y": 434.0945962995075,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 219
+ },
+ {
+  "i": 14,
+  "stage": "done",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 1.2658326234637727,
+   "targetZoom": 0.85,
+   "x": 1220.2546647720815,
+   "y": 435.60221049216545,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 234
+ },
+ {
+  "i": 15,
+  "stage": "done",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 0.994242848670352,
+   "targetZoom": 0.85,
+   "x": 1202.10935031978,
+   "y": 367.4261094534044,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 249
+ },
+ {
+  "i": 16,
+  "stage": "done",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 0.8923547693276986,
+   "targetZoom": 0.85,
+   "x": 1200.2195973399162,
+   "y": 417.33400443883255,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 264
+ },
+ {
+  "i": 17,
+  "stage": "done",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 0.8621528589743412,
+   "targetZoom": 0.85,
+   "x": 1200.022861454665,
+   "y": 437.08583864940186,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 279
+ },
+ {
+  "i": 18,
+  "stage": "done",
+  "gameState": "intro",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 0.8534799650272425,
+   "targetZoom": 0.85,
+   "x": 1200.0023800201268,
+   "y": 444.8950414627295,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 294
+ },
+ {
+  "i": 19,
+  "stage": "done",
+  "gameState": "battle",
+  "p1Playing": false,
+  "p2Playing": false,
+  "p1Variant": "introCloakAlt",
+  "p2Variant": "introCloakAlt",
+  "cam": {
+   "zoom": 0.8719002087524436,
+   "targetZoom": 1,
+   "x": 1200.0002713598024,
+   "y": 447.9820456864759,
+   "worldWidth": 2400,
+   "minZoom": 0.65
+  },
+  "fr": 309
+ }
+]

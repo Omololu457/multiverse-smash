@@ -13,6 +13,8 @@
 //   • The camera pushes IN on Chrollo, holds through the robe swirl, the SWAP fires (Chrollo becomes the
 //     opponent's copy) on a purple flash + hard shake, then it eases back to the normal 1.0 framing.
 import { sound as globalSound, SFX } from "./sound.js"
+import { characters } from "./characters.js"
+import { drawChrolloBookOverlay, dnaPreload } from "./dnaScanFx.js"   // 2026-11-24: the Bandit's Secret book cinematic + purple scheme (render-only)
 
 const CINE_ZOOM = 1.7
 // TIMELINE (frames @60fps) — ~138f (~2.3s):
@@ -29,6 +31,8 @@ export function activateChrolloSkillHunterCinematic(caster, opponent, onResolve)
   cine.active = true; cine.frame = 0; cine.caster = caster; cine.opponent = opponent || null
   cine.onResolve = typeof onResolve === "function" ? onResolve : null; cine.resolved = false
   cine._cam = null; cine.savedMaxStep = null; cine.savedMaxZoom = null
+  const _ok = String(opponent?.rosterKey || '').toLowerCase(), _oc = characters[_ok] || {}
+  cine.oppName = _oc.name || opponent?.name || _ok; cine.oppPortrait = _oc.portrait || null; dnaPreload(cine.oppPortrait)
   return true
 }
 
@@ -63,7 +67,10 @@ export function updateChrolloSkillHunterCinematic(ctx = {}) {
       cine.savedMaxZoom = cam.maxZoom;     cam.maxZoom = CINE_ZOOM
     }
     try { snd?.play?.(SFX.DOMAIN_ACTIVATE) } catch (_) {}
+    try { snd?.playJuiceSfx?.('sting_pitch_rise_hold', { gain: 0.6 }) } catch (_) {}
   }
+  if (f === 30 || f === 42) { try { snd?.playJuiceSfx?.(f === 30 ? 'swish_fast_01' : 'swish_fast_02', { gain: 0.5 }) } catch (_) {} }   // pages flipping
+  if (f === 62) { try { snd?.playJuiceSfx?.('impact_crack_01', { gain: 0.6 }) } catch (_) {} }   // the hand-print stamp
 
   // Camera: isolate + push in on Chrollo through PUSH/HOLD/SWAP, then ease back to 1.0 on SETTLE.
   if (cam && cine.caster && cam.focusOnFighter) {
@@ -112,6 +119,7 @@ export function clearChrolloSkillHunterCinematic() {
 // keeping the transformation visually continuous with the robe swirl.
 export function drawChrolloSkillHunterCinematic(ctx, canvas) {
   if (!cine.active || !ctx || !canvas) return
+  try { drawChrolloBookOverlay(ctx, canvas, { frame: cine.frame, total: T_TOTAL, swapAt: T_SWAP, caster: cine.caster, opponent: cine.opponent, name: cine.oppName, portrait: cine.oppPortrait }) } catch (_) {}
   const d = Math.abs(cine.frame - T_SWAP)
   if (d < 16) {
     const a = (1 - d / 16) * 0.55

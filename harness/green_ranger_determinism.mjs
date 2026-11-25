@@ -65,7 +65,7 @@ try {
   ok('batching runs are live', new Set(r1.perFrame.map(x => JSON.parse(x)[0])).size > 5 && r1.perFrame.some(x => JSON.parse(x)[8]))
   out.renderBatching = { samples: r1.perFrame.length, identical: d1 === -1 }
   // ── C. ultimate determinism + lifecycle
-  const U = await page.evaluate(dig => { const D = eval(dig), H = __harness.greenRangerTest, a = () => H.raw(), b = () => H.raw('p2'), step = n => __harness.luffyTest.step(n)
+  const U = await page.evaluate(dig => { const D = eval(dig), H = __harness.greenRangerTest, a = () => H.raw(), b = () => H.raw('p2'), step = n => { for (let k = 0; k < n; k++) { __harness.luffyTest.step(1); for (let i = 0; i < 400 && window.__dsPrerollStatus?.().active; i++) __harness.luffyTest.step(1) } }   /* frozen Ranger ult pre-roll frames don't count (wait only) */
     const reset = (gap = 150) => { H.reset(); a().x = 1300; b().x = 1300 + gap; a().facing = 1; b().facing = -1; for (const f of [a(), b()]) { f.energy = 100; f.health = f.maxHealth; f.hitstop = 0; f.hitstun = 0; f.vx = f.vy = 0; f.attacking = false; f.currentAttack = null; f.attackCooldown = 0 } step(1) }
     const ult = () => { reset(); H.move('gUlt'); const t = []; for (let i = 0; i < 280; i++) { step(1); t.push(JSON.stringify([D(a()), D(b()), H.ult()])) } return t }
     const t1 = ult(), t2 = ult(), sameUlt = JSON.stringify(t1) === JSON.stringify(t2), ultRan = t1.some(x => JSON.parse(x)[2].active)
@@ -81,7 +81,7 @@ try {
   out.ultimate = U
   // ── D. KO during the ultimate cinematic → round ends cleanly; next round starts with no notes / Zord
   const ko = await page.evaluate(() => { const H = __harness.greenRangerTest, a = H.raw(), b = H.raw('p2'); H.reset(); a.x = 1300; b.x = 1450; a.facing = 1; b.facing = -1; a.energy = 100; b.health = 60; __harness.luffyTest.step(1)
-    H.move('gUlt'); let active = false; for (let i = 0; i < 400; i++) { __harness.luffyTest.step(1); active ||= H.ult().active } return { active, hp: b.health, gs: __harness.state().gameState, cine: H.ult().active } })
+    H.move('gUlt'); let active = false; for (let i = 0; i < 400; i++) { __harness.luffyTest.step(1); for (let j = 0; j < 400 && window.__dsPrerollStatus?.().active; j++) __harness.luffyTest.step(1); active ||= H.ult().active } return { active, hp: b.health, gs: __harness.state().gameState, cine: H.ult().active } })
   ok('KO inside the Zord sequence: foe KO\'d, cinematic released', ko.active && ko.hp <= 0 && !ko.cine, JSON.stringify(ko)); out.ko = ko
   // live session (real rAF): Green holds a note, KOs P2 with a real-key ultimate, next round must start clean
   await page.close(); page = await browser.newPage(); page.on('pageerror', e => errors.push(e.message))
@@ -90,7 +90,7 @@ try {
   await page.waitForFunction(() => __harness.state().gameState === 'battle' && __harness.state().countdown <= 0, null, { timeout: 45000 })
   await page.evaluate(() => { const H = __harness.greenRangerTest, A = H.raw(), B = H.raw('p2'); A.energy = 100; H.set('p1', { notes: 2 }); B.x = A.x + 150; B.vx = 0; B.health = 60 })
   await page.keyboard.down('u'); await page.waitForTimeout(60); await page.keyboard.up('u')
-  const liveUlt = await page.waitForFunction(() => __harness.greenRangerTest.ult().active, null, { timeout: 4000 }).then(() => true).catch(() => false)
+  const liveUlt = await page.waitForFunction(() => __harness.greenRangerTest.ult().active, null, { timeout: 12000 })   /* + the 2.5 s Ranger ult pre-roll */.then(() => true).catch(() => false)
   const koLive = await page.waitForFunction(() => __harness.greenRangerTest.raw('p2').health <= 0, null, { timeout: 15000 }).then(() => true).catch(() => false)
   await page.waitForFunction(() => (__harness.state().gameState === 'battle' && __harness.state().countdown <= 0 && __harness.greenRangerTest.raw('p2').health >= __harness.greenRangerTest.raw('p2').maxHealth) || __harness.state().gameState === 'victory', null, { timeout: 45000 })
   const nr = await page.evaluate(() => { const a = __harness.greenRangerTest.raw(); return { gs: __harness.state().gameState, notes: a._greenRanger?.notes ?? 0, zord: !!a._zordUlt, cine: __harness.greenRangerTest.ult().active } })
@@ -99,7 +99,7 @@ try {
   // ── E. mirror: Green vs Green, both ult on the same frame (one cinematic at a time; no crash; both resolve)
   await page.close(); page = await open('green_ranger')
   const mir = await page.evaluate(() => { const H = __harness.greenRangerTest, a = H.raw(), b = H.raw('p2'); H.reset(); a.x = 1300; b.x = 1450; a.facing = 1; b.facing = -1; a.energy = b.energy = 100; __harness.luffyTest.step(1)
-    H.move('gUlt', 'p1'); H.move('gUlt', 'p2'); let cineFrames = 0; for (let i = 0; i < 400; i++) { __harness.luffyTest.step(1); if (H.ult().active) cineFrames++ }
+    H.move('gUlt', 'p1'); H.move('gUlt', 'p2'); let cineFrames = 0; for (let i = 0; i < 400; i++) { __harness.luffyTest.step(1); for (let j = 0; j < 400 && window.__dsPrerollStatus?.().active; j++) __harness.luffyTest.step(1); if (H.ult().active) cineFrames++ }
     return { cineFrames, a: { hp: a.health, zord: !!a._zordUlt, atk: a.currentAttack?.name || null }, b: { hp: b.health, zord: !!b._zordUlt, atk: b.currentAttack?.name || null }, active: H.ult().active } })
   ok('mirror: simultaneous ultimates resolve, no stuck Zord / pose', !mir.active && !mir.a.zord && !mir.b.zord && !/^(gUlt|ultWatch|ultSignal)$/.test(mir.a.atk || '') && !/^(gUlt|ultWatch|ultSignal)$/.test(mir.b.atk || ''), JSON.stringify(mir)); out.mirror = mir
   const rnd = await page.evaluate(() => __grRandom); ok('no Math.random in greenRanger*.js / rangerZordUltimate.js', rnd.length === 0, JSON.stringify(rnd))

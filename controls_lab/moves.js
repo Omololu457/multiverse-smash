@@ -90,6 +90,9 @@ export function buildMoves(mods, key) {
       script = [...pre, ...script]; at = at.map(i => i + pre.length)
     }
     if (ki?.labPrepNote) desc = `${ki.labPrepNote} ${desc || ""}`.trim()
+    // TAIL (kit data `labTail`: extra neutral frames after the input) — for moves that keep playing after the press, e.g.
+    // Tobirama's water clones run in and fight on their own, so the demo waits for them to finish
+    if (ki?.labTail > 0) script = [...script, ...Array.from({ length: ki.labTail }, () => ({}))]
     moves.push({
       id: l.id, name: l.name, input, kitInput: l.input, desc: fix ? `${desc || ""} ${fix}`.trim() : desc, cat: l.cat, section: l.section,
       unavailable,

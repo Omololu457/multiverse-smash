@@ -77,16 +77,16 @@
     "tvDirect": 1,
     "tvShock": 0,
     "tvWhiff": 0,
-    "marker": 1563,
+    "marker": 1547,
     "loops": 1,
     "energyLog": [
-     152
+     153
     ],
     "ipGap": 60,
     "ipState": "[null,null,0,true,true,false,0,60]",
-    "energyBeforeTv": 152
+    "energyBeforeTv": 153
    },
-   "shared": 790,
+   "shared": 783,
    "mismatched": 0,
    "markerShared": 106,
    "joinerStats": {
@@ -125,8 +125,8 @@
     "guardCpu": 0
    },
    "samples": [
-    790,
-    790
+    785,
+    785
    ]
   }
  }

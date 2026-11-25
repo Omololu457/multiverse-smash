@@ -81,7 +81,7 @@ try {
   // win-voice block, which is NOT story-gated). End the domain first so nothing holds up the transition.
   await page.evaluate(() => { window.__harness.omololu.endDomain(); window.__harness.omololu.resetKit("p1"); window.__harness.healP1(); window.__harness.healP2?.() })
   await waitFrames(3); await clearSpy()
-  await page.evaluate(() => window.__harness.story.win()); await waitFrames(10)
+  await page.evaluate(() => window.__harness.forceP1MatchWin()   /* Story Mode removed 2026-11-24 — plain P1 win */); await waitFrames(10)
   ok(inPool(await spy(), "win"), "WIN (omololu wins the match) → win clip", (await spy()).join(","))
 
   // INTRO — LAST, because forceIntro restarts the match into the INTRO screen. NOTE: omololu's intro beat

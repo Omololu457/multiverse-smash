@@ -28,6 +28,7 @@ import { SpriteHandler } from "./sprite.js"
 import { characters } from "./characters.js"
 import { ccRunStart, ccRunStep, ccRunEnd, ccCasterPose, ccFormationStart, ccFormationStep, ccFormationEnd, styleFor as ccStyleFor } from "./clonechoreo.js"   // MSV1-CLONES (Sasuke / Madara / Tobirama / Hashirama only)
 import { cloneScaling, formationOffsets, formationCloneCount, scaleHitDamage } from "./cloneFormScaling.js"   // STAGE 6: form-dependent clone multipliers (deterministic)
+import { isCloneFighterCaster, isCloneFighterKey, startCloneFighterSet, clearCloneFighters, cloneFighterProfile } from "./cloneFighter.js"   // CLONE FIGHTERS: Tobirama / Hashirama / Madara / the Sasukes / Naruto (Seventh) — the pick becomes clones that fight on their own
 
 // ── ACCESS CONSTANTS ─────────────────────────────────────────────────────────
 export const SUMMON_MOTION = "cloneSummon"   // ↓↓↑ + Special stages the formation. A distinctive strays:0
@@ -48,10 +49,10 @@ const _forms = []   // active staged formations
 const _runFor  = (c) => _runs.find(r => r.caster === c) || null
 const _formFor = (c) => _forms.find(f => f.caster === c) || null
 
-export function isChoreoSupported(key) { return !!CHOREO_BY_CHAR[(key || "").toLowerCase()] }
+export function isChoreoSupported(key) { const k = (key || "").toLowerCase(); return !!CHOREO_BY_CHAR[k] || (k !== "naruto" && isCloneFighterKey(k)) }   // + clone-fighter characters without an authored kit (Sasuke Adult / Sensei, Naruto Seventh); Naruto keeps his own engine
 // LIGHT-KIT characters (Sasuke/Obito) get 1-2 moves via a DIRECT motion trigger — no summon-then-choose
 // formation (that would overload their existing kit). lightDirectSeq maps the held direction → sequence key.
-export function isLightChoreo(key) { const e = CHOREO_BY_CHAR[(key || "").toLowerCase()]; return !!(e && e.light) }
+export function isLightChoreo(key) { const e = CHOREO_BY_CHAR[(key || "").toLowerCase()]; return !!(e && e.light) && !isCloneFighterKey(key) }   // a clone-fighter character uses summon → pick (teen Sasuke: Amenotejikara is his Down pick)
 export function lightDirectSeq(key, dir) {
   const e = CHOREO_BY_CHAR[(key || "").toLowerCase()]; if (!e) return null
   const map = e.directMap || {}
@@ -124,7 +125,7 @@ export function startFormation(caster, target, rosterKey) {
   const offsets = formationOffsets(formationCloneCount(caster))
   const bodies = offsets.map(() => makeGhostBody(caster, rosterKey))
   _forms.push({ caster, target, rosterKey, bodies, offsets, frame: 0, window: SELECT_WINDOW })
-  ccFormationStart(_forms[_forms.length - 1], rosterKey)   // MSV1-CLONES (no-op without a style)
+  ccFormationStart(_forms[_forms.length - 1], (isCloneFighterKey(rosterKey) && cloneFighterProfile(rosterKey)?.style) || rosterKey)   // MSV1-CLONES (no-op without a style); clone-fighter variants use their family's look
   caster.vx = 0; caster._forceAction = "idle"; caster._choreoSelectWindow = SELECT_WINDOW; caster._inChoreoFormation = true
   return true
 }
@@ -158,6 +159,14 @@ export function updateFormations(worldWidth) {
 export function chooseSequence(caster, seqKey) {
   const fm = _formFor(caster); if (!fm) return false
   const idx = _forms.indexOf(fm); if (idx >= 0) _forms.splice(idx, 1)
+  if (isCloneFighterCaster(caster)) {   // CLONE FIGHTERS: the pick becomes clones that fight on their own (the front copy keeps going)
+    const r = startCloneFighterSet(caster, fm.target, seqKey, fm.bodies)
+    for (const b of fm.bodies) if (b._wcTaken) b._choreoVisible = false
+    ccFormationEnd(fm)
+    caster._choreoSelectWindow = 0; caster._inChoreoFormation = false; caster._forceAction = null
+    if (r.authored) return startChoreo(caster, fm.target, fm.rosterKey, r.authored)   // this pick keeps the character's old authored move (teen Sasuke's Amenotejikara)
+    return r.ok
+  }
   ccFormationEnd(fm)   // MSV1-CLONES
   caster._choreoSelectWindow = 0; caster._inChoreoFormation = false
   return startChoreo(caster, fm.target, fm.rosterKey, seqKey)
@@ -266,11 +275,13 @@ export function holdFormation(caster)       { const fm = _formFor(caster); if (!
 export function clearChoreoFor(caster) {
   const r = _runFor(caster); if (r) { _endRun(r); _runs.splice(_runs.indexOf(r), 1) }
   const fm = _formFor(caster); if (fm) { _releaseFormationCaster(fm); _forms.splice(_forms.indexOf(fm), 1) }
+  clearCloneFighters(caster)   // clone fighters
 }
 export function clearAllChoreo() {
   for (const r of _runs) _endRun(r)
   for (const f of _forms) _releaseFormationCaster(f)
   _runs.length = 0; _forms.length = 0
+  clearCloneFighters()   // clone fighters go with the round
 }
 
 export function getChoreoState(caster) {

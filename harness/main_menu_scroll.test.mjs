@@ -20,7 +20,8 @@ try {
   const vis = r => r.y >= 130 && r.y + r.h <= 720 - 55
   let R = await rects(); const cr0 = R.find(r => r.id === "credits")
   await page.screenshot({ path: path.join(OUT, "top.png") })
-  check("the main menu has more buttons than fit (Credits starts off-screen)", !vis(cr0), JSON.stringify(cr0))
+  // 2026-11-24 owner trimmed the main menu (Story/Codex/Tutorial/Academy/Move List/Account/Save File gone): it now FITS — every button visible.
+  check("the trimmed main menu fits: every button (incl. Credits + Back) on screen without scrolling", R.every(vis), JSON.stringify(R.map(r => [r.id, Math.round(r.y)])))
   await page.mouse.move(640, 400)
   for (let i = 0; i < 8; i++) { await page.mouse.wheel(0, 120); await sleep(60) }
   await sleep(300)

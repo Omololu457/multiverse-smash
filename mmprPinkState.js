@@ -1,6 +1,7 @@
 // Pink Ranger (mmpr_pink) — SIMULATION state. Plain JSON on f._mmprPink (+ f._falcon via the shared falconzord.js
 // scheduler and f._ranger via rangers.js). Sim ticks only, no RNG, no wall clock. Every export is a no-op for any other
 // rosterKey. game.js pushes f._mmprPink / f._falcon / f.currentAttack into the replay checkpoint snapshot.
+import { rangerUltPreroll } from './rangerUltCinematics.js'   // Demon Slayer-style pre-roll before the ultimate cinematic
 import { MMPR_PINK_MOVES, MMPR_PINK_DAMAGE_SCALE, BOW, SPOTTER, THREAD, CRANE, THUNDER_RESOURCE, dmg } from './mmprPinkData.js'
 import { tickRanger, clearRanger } from './rangers.js'
 import { falconState, clearFalcon, retireSortie, falconCanCall, falconPay, falconCancelCall, falconCommit, tickFalcon, FALCON_SORTIES } from './falconzord.js'
@@ -216,7 +217,7 @@ export function tickMmprPink(f, opp, raw, W) {
   }
   // ULTIMATE: the braced arrow leaves on frame 30; a clean hit captures the target → the frozen sequence.
   if (m.key === 'pUltOpen' && t === md.startup && !m.fired) { m.fired = true; s.ultArrowOut = !!fireArrow(f, s, W, 'ult'); cue(f, 'ultArrow') }
-  if (m.key === 'pUltOpen' && s.ultHit) { s.ultHit = false; const tg = ultTargets.get(f); ultTargets.delete(f); if (tg && tg.health > 0) activateMmprPinkUlt(f, tg, W) }
+  if (m.key === 'pUltOpen' && s.ultHit) { s.ultHit = false; const tg = ultTargets.get(f); ultTargets.delete(f); if (tg && tg.health > 0) rangerUltPreroll('mmpr_pink', f, tg, () => activateMmprPinkUlt(f, tg, W)) }
   if (m.key === 'pUltOpen' && m.fired && t === md.startup + 1 && !s.ultArrowOut && !cine.active) { /* arrow vanished at once: miss */ }
 }
 // POWER BOW draw. t = frames since acceptance (this tick). Held → the timer is pinned on the aim frame (12).

@@ -39,6 +39,7 @@ import { SpriteHandler } from "./sprite.js"
 import { characters } from "./characters.js"
 import { ccRunStart, ccRunStep, ccRunEnd, ccCasterPose, ccFormationStart, ccFormationStep, ccFormationEnd } from "./clonechoreo.js"   // MSV1-CLONES: the anime clone choreography (Naruto)
 import { cloneScaling, formationOffsets, formationCloneCount, scaleHitDamage } from "./cloneFormScaling.js"   // STAGE 6: form-dependent clone multipliers (Naruto's Kurama shroud)
+import { isCloneFighterCaster, startCloneFighterSet } from "./cloneFighter.js"   // CLONE FIGHTERS: Naruto's pick becomes shadow clones that fight on their own
 
 // ── STAGE 2: UZUMAKI BARRAGE ────────────────────────────────────────────────
 // Three shadow clones launch + juggle the opponent in a FIXED order, then the real
@@ -146,7 +147,7 @@ export const SEQUENCES = {
 // After the summon, the follow-up Special direction selects. NOTE (2026-09-26): Two Thousand Combo was
 // PROMOTED to Naruto's neutral Ultimate (single button), so it is REMOVED from this summon-select pool.
 // A Down-select now has no dedicated move → game.js falls back to Barrage.
-export const SELECT_MAP = { N: "barrage", B: "shuriken", U: "substitution", F: "flank" }
+export const SELECT_MAP = { N: "barrage", B: "shuriken", U: "substitution", F: "flank", D: "guardian" }   // D "guardian" = the clone-fighter Guard pick (no authored sequence → Barrage when clone fighters are off, as before)
 
 // ── RUNTIME ─────────────────────────────────────────────────────────────────
 let _run = null   // the single active run (Naruto-only, one at a time) or null
@@ -264,6 +265,13 @@ export function chooseNarutoSequence(key) {
   const c = _formation.caster, t = _formation.target
   c._narutoSelectWindow = 0
   c._inChoreoFormation = false; c._choreoSelectWindow = 0   // drop the shared hint fields; startNarutoChoreo takes over (hard lock)
+  if (isCloneFighterCaster(c)) {   // CLONE FIGHTERS: shadow clones that fight on their own; Naruto stays free
+    const r = startCloneFighterSet(c, t, key, _formation.bodies)
+    for (const b of _formation.bodies) if (b._wcTaken) b._choreoVisible = false
+    ccFormationEnd(_formation); _formation = null
+    c._forceAction = null; c._choreoLock = false
+    return r.ok
+  }
   ccFormationEnd(_formation)   // MSV1-CLONES
   _formation = null   // release WITHOUT unlocking — startNarutoChoreo re-locks immediately
   return startNarutoChoreo(c, t, SEQUENCES[key] || UZUMAKI_BARRAGE)

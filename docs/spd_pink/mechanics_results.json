@@ -3,11 +3,11 @@
     {
       "label": "J1 -> J2 -> J3",
       "hits": [
-        24,
-        30,
-        38
+        38,
+        33,
+        43
       ],
-      "damage": 92,
+      "damage": 114,
       "energySpentNet": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -20,11 +20,11 @@
     {
       "label": "J1 -> J2 -> J3 (mirrored)",
       "hits": [
-        24,
-        30,
-        38
+        38,
+        33,
+        43
       ],
-      "damage": 92,
+      "damage": 114,
       "energySpentNet": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -37,12 +37,12 @@
     {
       "label": "J1 -> Heavy -> Deltamax Shot",
       "hits": [
-        24,
-        84,
-        51
+        38,
+        94,
+        57
       ],
-      "damage": 159,
-      "energySpentNet": 11.1,
+      "damage": 189,
+      "energySpentNet": 11.46,
       "trueCombo": true,
       "stunAtRetap": [
         15,
@@ -54,11 +54,11 @@
     {
       "label": "Forward+Heavy -> Heavy -> Heavy",
       "hits": [
-        34,
-        41,
-        52
+        38,
+        46,
+        59
       ],
-      "damage": 127,
+      "damage": 143,
       "energySpentNet": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -70,24 +70,24 @@
     },
     {
       "label": "Launcher -> manual Jump -> Air",
-      "damage": 95,
+      "damage": 127,
       "hits": null,
       "trueCombo": true,
       "comboCounter": 2
     },
     {
       "label": "Iron Reserve -> charged Heavy punish (opponent Heavy whiffed at 100px edge gap; Syd walks in)",
-      "damage": 101,
+      "damage": 113,
       "defenderStillRecovering": true
     },
     {
       "label": "J1 -> J2 -> Iron Breaker (confirm)",
       "hits": [
-        24,
-        30,
-        74
+        38,
+        33,
+        83
       ],
-      "damage": 128,
+      "damage": 154,
       "energySpentNet": 19.04,
       "trueCombo": true,
       "stunAtRetap": [
@@ -100,11 +100,11 @@
     {
       "label": "Iron Reserve, then J1 -> J2 -> charged Iron Breaker",
       "hits": [
-        24,
-        30,
-        95
+        38,
+        33,
+        107
       ],
-      "damage": 149,
+      "damage": 178,
       "energySpentNet": 18.86,
       "trueCombo": true,
       "stunAtRetap": [
@@ -116,25 +116,25 @@
     },
     {
       "label": "Baton Reprisal counter -> response",
-      "damage": 57,
+      "damage": 64,
       "trueCombo": null,
       "note": "one response; not a stun riposte"
     },
     {
       "label": "Phase step (120px) -> Heavy punish",
-      "damage": 84,
-      "energySpentNet": 6.26
+      "damage": 94,
+      "energySpentNet": 0
     }
   ],
   "advantages": [
     {
       "key": "light",
       "guard": false,
-      "total": 17,
+      "total": 15,
       "contactFrame": 5,
-      "attackerReadyAfter": 16,
+      "attackerReadyAfter": 14,
       "defenderFreeAfter": 21,
-      "advantage": 5
+      "advantage": 7
     },
     {
       "key": "pJ2",
@@ -157,11 +157,11 @@
     {
       "key": "heavy",
       "guard": false,
-      "total": 44,
-      "contactFrame": 15,
-      "attackerReadyAfter": 39,
+      "total": 35,
+      "contactFrame": 12,
+      "attackerReadyAfter": 33,
       "defenderFreeAfter": 50,
-      "advantage": 11
+      "advantage": 17
     },
     {
       "key": "heavyIron",
@@ -184,11 +184,11 @@
     {
       "key": "up",
       "guard": false,
-      "total": 37,
-      "contactFrame": 12,
-      "attackerReadyAfter": 37,
+      "total": 31,
+      "contactFrame": 9,
+      "attackerReadyAfter": 34,
       "defenderFreeAfter": 46,
-      "advantage": 9
+      "advantage": 12
     },
     {
       "key": "pCheck",
@@ -256,11 +256,11 @@
     {
       "key": "light",
       "guard": true,
-      "total": 17,
+      "total": 15,
       "contactFrame": 5,
-      "attackerReadyAfter": 12,
+      "attackerReadyAfter": 10,
       "defenderFreeAfter": 10,
-      "advantage": -2
+      "advantage": 0
     },
     {
       "key": "pJ2",
@@ -283,11 +283,11 @@
     {
       "key": "heavy",
       "guard": true,
-      "total": 44,
-      "contactFrame": 15,
-      "attackerReadyAfter": 29,
+      "total": 35,
+      "contactFrame": 12,
+      "attackerReadyAfter": 23,
       "defenderFreeAfter": 13,
-      "advantage": -16
+      "advantage": -10
     },
     {
       "key": "heavyIron",
@@ -310,11 +310,11 @@
     {
       "key": "up",
       "guard": true,
-      "total": 37,
-      "contactFrame": 12,
-      "attackerReadyAfter": 25,
+      "total": 31,
+      "contactFrame": 9,
+      "attackerReadyAfter": 22,
       "defenderFreeAfter": 11,
-      "advantage": -14
+      "advantage": -11
     },
     {
       "key": "pCheck",
@@ -382,23 +382,23 @@
   ],
   "moves": {},
   "iron": {
-    "chargedHeavyApplied": 101
+    "chargedHeavyApplied": 113
   },
   "counter": {
     "success": {
       "start": "pStance",
       "spent": 18,
       "hpA": 1220,
-      "hpB": 1163,
+      "hpB": 1156,
       "counters": 1,
-      "responseAt": 16,
-      "responseHit": 57,
+      "responseAt": 13,
+      "responseHit": 64,
       "blockedResponse": false,
       "cd": 126
     }
   },
-  "engineDamageScale": 0.828,
-  "passes": 78,
-  "failures": 0,
+  "engineDamageScale": 1.31,
+  "passes": 77,
+  "failures": 1,
   "errors": []
 }

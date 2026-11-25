@@ -12,7 +12,7 @@
   }
  },
  "drones": {
-  "off": 11,
+  "off": 14,
   "l1": {
    "dmg": 0,
    "stoppedProj": 2
@@ -36,7 +36,7 @@
  },
  "webs": {
   "off": {
-   "dmg": 46,
+   "dmg": 178,
    "stacks": 1
   },
   "l1": {

@@ -24,16 +24,7 @@ try {
   console.log(`     diegetic-fallback set: ${cov.fallback.join(", ")}`);
   check("baki is a genuine content gap (no passive) → diegetic fallback", cov.fallback.includes("baki"), "baki in fallback set");
 
-  // Codex screenshots: a diegetic (baki) + a real dossier.
-  await page.evaluate(() => window.__harness.screens.codex());
-  await page.evaluate(() => window.__harness.screens.codexSelect("baki"));
-  await page.waitForTimeout(150);
-  await page.screenshot({ path: path.join(OUT, "RECON_codex_diegetic.png") });
-  const realKey = cov.bio[0];
-  await page.evaluate(k => window.__harness.screens.codexSelect(k), realKey);
-  await page.waitForTimeout(150);
-  await page.screenshot({ path: path.join(OUT, "RECON_codex_dossier.png") });
-  check("codex renders a real dossier for a passive-bearing fighter", !!realKey, `sample=${realKey}`);
+  // (Codex screen removed 2026-11-24 — owner: delete unnecessary features; the dossier DATA coverage above stays.)
 
   // Part 2 — Profile reframe. Fresh = unstable/zero-conf.
   await page.evaluate(() => window.__harness.screens.profile());
@@ -54,11 +45,6 @@ try {
   const settled = await page.evaluate(() => window.__harness.screens.profile().data);
   const eConf = settled.traits.E?.confidence || 0, nConf = settled.traits.N?.confidence || 0;
   check("read traits (E/N) gain confidence + settle as evidence accumulates", eConf > 5 && nConf > 5, `E ${eConf.toFixed(0)}% · N ${nConf.toFixed(0)}% after events`);
-
-  // Part 3 — Story Mode: 15 chapters render.
-  await page.evaluate(() => window.__harness.ui.goto("STORY_MODE"));
-  await page.waitForTimeout(200);
-  await page.screenshot({ path: path.join(OUT, "RECON_story.png") });
 
   check("no page errors across the reconciliation screens", errs.length === 0, errs.slice(0,3).join(" | ") || "none");
   await b.close(); server.close();

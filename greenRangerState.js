@@ -1,5 +1,6 @@
 // Green Ranger (green_ranger) — SIMULATION state. Plain JSON on f._greenRanger (+ f._zordUlt via rangerZordUltimate.js).
 // Sim ticks only, no RNG, no wall clock. Every export is a no-op for any other rosterKey.
+import { rangerUltPreroll } from './rangerUltCinematics.js'   // Demon Slayer-style pre-roll before the ultimate cinematic
 import { GREEN_MOVES, GREEN_LANDING, FANG, DRAGON_CALL, EDGE_FOLLOW, PULSE, dmg } from './greenRangerData.js'
 import { zordUltBegin, zordUltTick, clearZordUltState, activateZordUltCine, isZordUltCineActive, updateZordUltCine, clearZordUltCine, zordUltCineOwner } from './rangerZordUltimate.js'
 import { GREEN_RANGER_FX } from './greenRangerSprites.js'
@@ -140,8 +141,11 @@ export function tickGreen(f, opp, raw, W) {
         if (f._zordUlt?.result === 'confirmed') {
           // Mirror rule: only one Zord cinematic at a time. If another Ranger's already owns the screen (same-frame
           // confirms), this opener keeps its contact damage but the sequence does not start — CALL MISSED, no refund.
-          if (activateZordUltCine(f, ev.target, W, { comboScale: E.comboScale?.(f) ?? 1, onPose: ultPose })) { s.stats.ultConfirms++; cue(f, 'ultConfirm') }
-          else { clearZordUltState(f); s.stats.ultMisses++; s.missed = 60; cue(f, 'callMissed') }
+          const tg = ev.target, cs = E.comboScale?.(f) ?? 1
+          rangerUltPreroll('green_ranger', f, tg, () => {   // the pre-roll first; the Zord sequence starts when it ends
+            if (activateZordUltCine(f, tg, W, { comboScale: cs, onPose: ultPose })) { s.stats.ultConfirms++; cue(f, 'ultConfirm'); return true }
+            clearZordUltState(f); s.stats.ultMisses++; s.missed = 60; cue(f, 'callMissed'); return false
+          })
         }
       }
       if (ev?.type === 'blocked' || ev?.type === 'whiff') { s.stats.ultMisses++; s.missed = 60; cue(f, 'callMissed') }

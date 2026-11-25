@@ -235,6 +235,8 @@ export function ccFormationEnd(fm) {
   fm.cc = null
 }
 
+// clone fighters (cloneFighter.js): arrival / exit through the owner's element (render-only event; style = a CLONE_STYLE key)
+export function ccCloneFx(k, style, kind, x, footY, dir, scale, len) { fx({ k, kind, style, x, y: footY, dir: dir || 1, scale: scale || 1, len }) }
 // persistent ","-key clones (summons.js): spawn / despawn through the owner's element (render-only event)
 export const CC_PERSIST = { tobirama: 'water', hashirama: 'wood', madara: 'smoke' }
 export function ccPersistFx(k, ownerKey, x, footY, dir, scale, len = 16) {

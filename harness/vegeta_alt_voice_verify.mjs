@@ -32,7 +32,7 @@ async function testVariant(key) {
   // WIN line
   await boot(key);
   const p1key = await page.evaluate(()=>window.__harness.p1().key);
-  await page.evaluate(()=>{ window.__v.length=0; window.__harness.story.win(); });
+  await page.evaluate(()=>{ window.__v.length=0; window.__harness.forceP1MatchWin(); });
   await waitFrames(4);
   let v = await heard();
   check(`${key} (p1=${p1key}): plays Vegeta WIN line on match win`, v.some(f=>/vegeta/i.test(f)), `clip=${v.find(f=>/vegeta/i.test(f))||("["+v.join(",")+"]")}`);

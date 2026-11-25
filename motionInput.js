@@ -22,7 +22,7 @@
 // gates motion recording/detection (no external gameplay use), and these characters' execute*Special
 // functions read the held DIRECTION (_specialHeldDir), not motions — only the clone-choreography intercept
 // consumes the ↓↓↑ motion. (Isshiki/Orochimaru/Onoki/Kiba deliberately excluded from the rollout.)
-export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama", "hiruzen", "kakashi", "madara", "boruto", "pain", "obito", "jiraiya"])
+export const NARUTO_UNIVERSE_KEYS = new Set(["naruto", "sasuke", "itachi", "tobirama", "minato", "hashirama", "hiruzen", "kakashi", "madara", "boruto", "pain", "obito", "jiraiya", "sasuke_adult", "sasuke_sensei", "naruto_seventh"])   // + the clone-fighter variants (2026-11-23): their ↓↓↑ summon; their own specials read the held direction, not motions
 
 export function isNarutoUniverse(fighter) {
   return !!fighter && NARUTO_UNIVERSE_KEYS.has(String(fighter.rosterKey || "").toLowerCase())

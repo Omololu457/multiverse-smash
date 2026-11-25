@@ -14,7 +14,8 @@ import { benThemedSheet } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEME
 import { isFlying } from "./flight.js"   // FLIGHT MODULE: map _flightCtl.poseKey → flight animation (gated; no-op for non-flyers)
 import { violetSpriteAction, violetAlpha } from './violetView.js'   // Violet Parr: invisible strips + 35 % alpha (render-only, violet-gated)
 import { albedoThemeSheet } from './albedoThemeCache.js'   // Albedo skin themes: render-only, null for every non-Albedo-theme fighter
-import { bloodFrame } from "./battleBlood.js"   // MSV1-BLOOD: progressive damage blood (sprite-pixel wounds from data/bloodmaps; render-only)
+import { bloodFrame } from "./battleBlood.js"
+import { dnaSchemeSheet, drawDnaEmblem } from './dnaScanFx.js'; import { isOmniSkin } from './omniTheme.js'   // DNA scan / Skill Hunter: copied body in the copier's colours + badge (render-only)   // MSV1-BLOOD: progressive damage blood (sprite-pixel wounds from data/bloodmaps; render-only)
 
 // ─────────────────────────────────────────────────────────────────
 // SKILL HUNTER (Chrollo) TRANSFORM TINT — a runtime canvas filter applied to the COPIED character's
@@ -1039,6 +1040,8 @@ export class SpriteHandler {
     if (!profileAction.sheet && !legacyFrameData?.sheet) sheet = null;
     // BEN 10 THEME: swap in the recoloured copy of THIS sheet (same size / alpha / layout → slicing unchanged). null = original.
     if (sheet && fighter._benTheme) sheet = benThemedSheet(fighter, profileAction.sheet || legacyFrameData?.sheet, sheet) || sheet;
+    // DNA SCAN / SKILL HUNTER: the copied body redrawn in the copier's own colour scheme (null until the recolor is built)
+    if (sheet && (fighter._dnaScheme || fighter._shActive || isOmniSkin(fighter))) sheet = dnaSchemeSheet(fighter, profileAction.sheet || legacyFrameData?.sheet, sheet) || sheet;
 
     const frameData = {
       // SLICING dims come from `dim` — the fighter's idle def when we fell back (so a small idle strip
@@ -1216,7 +1219,7 @@ export class SpriteHandler {
     // after-image stays correctly tinted).
     let spriteFilter = "none";
     if (fighter._impactFlash && fighter._impactFlash.timer > 0) spriteFilter = _impactFlashTint(fighter._impactFlash);  // IMPACT FRAME Black-Flash recolor — brief; dominates any form tint for its 2-5f window
-    else if (fighter._shActive) spriteFilter = SKILL_HUNTER_TINT;        // Chrollo purple possession tint
+    else if (fighter._shActive) spriteFilter = fighter._dnaSheetLive ? "none" : SKILL_HUNTER_TINT;   // purple filter only until the purple scheme sheet is ready        // Chrollo purple possession tint
     else if (fighter._blackFriezaActive) spriteFilter = FRIEZA_BLACK_TINT;
     else if (fighter._goldenFriezaActive) spriteFilter = FRIEZA_GOLDEN_TINT;
     else if (fighter._piccoloOrangeActive) spriteFilter = PICCOLO_ORANGE_TINT;
@@ -1422,6 +1425,8 @@ export class SpriteHandler {
     }
 
     ctx.restore();
+
+    if ((fighter._dnaScheme || fighter._shActive || isOmniSkin(fighter)) && _sheetReady(sheet)) drawDnaEmblem(ctx, fighter, sheet, sx, sy, drawWidth, drawHeight, drawFacing === -1);   // DNA badge on the copied body
 
     // Snapshot the frame just drawn — the source for a transition after-image next tick. Only when a real
     // sheet drew (the box path can't ghost). Captures the OLD world X so the ghost trails where it was.

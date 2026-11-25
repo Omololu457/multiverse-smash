@@ -5,7 +5,9 @@
   "skins": [
    "Default (Omni-Man)",
    "Viltrumite Imperial Uniform",
+   "Omni-Man — Show Accurate",
    "Viltrumite Field Veteran",
+   "Grand Regent Uniform",
    "Imperial Mourning Dress",
    "Alien X — The Other Half of Nolan",
    "Alien X — Redshift",
@@ -92,7 +94,7 @@
    "p1Char": "omniman_viltrum",
    "p1Skin": "omv_earthrise"
   },
-  "trackedSkinFiles": 0,
-  "diskSkinFiles": 1064
+  "trackedSkinFiles": 1064,
+  "diskSkinFiles": 1154
  }
 }

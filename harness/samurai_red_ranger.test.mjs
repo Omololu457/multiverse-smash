@@ -60,6 +60,7 @@ async function fireUlt() {
   const a0 = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a0.x + 120); await waitFrames(2);
   const hp0 = (await p2()).health;
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  await waitFrames(3); await page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 45000, polling: 16 }).catch(() => {});   // wait out the Ranger ult pre-roll
   await page.waitForFunction(() => window.__harness.samuraiUltCine().active === true, null, { timeout: 3000, polling: 16 }).catch(() => {});
   let sheet = "", mega = null;
   for (let i = 0; i < 30; i++) { const c = await cine(); const a = await p1(); if (sh(a).includes("ultimate_uniform")) sheet = sh(a); if (c.mega != null) mega = c.mega; if (!c.active) break; await new Promise(r => setTimeout(r, 40)); }

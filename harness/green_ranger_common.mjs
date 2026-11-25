@@ -11,7 +11,7 @@ export async function boot({ p2 = 'mmpr_black', query = '' } = {}) {
   await page.evaluate(() => { __harness.start(); __harness.skipToBattle(); __harness.luffyTest.step(2) })
   const G = {
     page, errors, server, browser,
-    step: n => page.evaluate(n => __harness.luffyTest.step(n), n),
+    step: n => page.evaluate(n => { for (let k = 0; k < n; k++) { __harness.luffyTest.step(1); for (let i = 0; i < 400 && window.__dsPrerollStatus?.().active; i++) __harness.luffyTest.step(1) } }, n),   // frozen Ranger ult pre-roll frames don't count (wait only)
     st: (w = 'p1') => page.evaluate(w => __harness.greenRangerTest.state(w), w),
     both: () => page.evaluate(() => { const H = __harness.greenRangerTest, b = H.raw('p2'); return { a: H.state(), b: { hp: b.health, hitstun: b.hitstun || 0, blockstun: b.blockstun || 0, x: b.x, y: b.y, w: b.w, blocking: !!b.isBlocking, knockdown: !!b.knockdownState, grounded: !!(b.onGround || b.grounded), juggle: b.juggleCount || 0, attacking: !!b.attacking, atk: b.currentAttack?.name || null, vy: b.vy }, ult: H.ult() } }),
     async reset(gap = 72, { flip = false, energy = 100, dummy = 'stand', notes = 0, cooldown = 0 } = {}) {

@@ -4,22 +4,22 @@
    "label": "J1 -> J2 -> J3",
    "kind": "combo",
    "hits": [
-    17,
-    21,
-    27
+    43,
+    33,
+    43
    ],
    "stunBefore": [
     0,
-    15,
+    14,
     11
    ],
    "hitFrames": [
-    5,
+    4,
     17,
     33
    ],
    "blockedEvents": 0,
-   "damage": 65,
+   "damage": 119,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -33,22 +33,22 @@
    "label": "J1 -> J2 -> J3 (mirrored)",
    "kind": "combo",
    "hits": [
-    17,
-    21,
-    27
+    43,
+    33,
+    43
    ],
    "stunBefore": [
     0,
-    15,
+    14,
     11
    ],
    "hitFrames": [
-    5,
+    4,
     17,
     33
    ],
    "blockedEvents": 0,
-   "damage": 65,
+   "damage": 119,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -62,9 +62,9 @@
    "label": "Forward+Heavy chain (palm -> kick -> knock-away)",
    "kind": "combo",
    "hits": [
-    24,
-    29,
-    37
+    38,
+    46,
+    59
    ],
    "stunBefore": [
     0,
@@ -77,7 +77,7 @@
     62
    ],
    "blockedEvents": 0,
-   "damage": 90,
+   "damage": 143,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -91,22 +91,22 @@
    "label": "Forward+Heavy chain -> confirmed Up+Heavy launcher",
    "kind": "combo",
    "hits": [
-    24,
-    29,
-    35
+    38,
+    46,
+    56
    ],
    "stunBefore": [
     0,
     20,
-    22
+    27
    ],
    "hitFrames": [
     10,
     35,
-    60
+    55
    ],
    "blockedEvents": 0,
-   "damage": 88,
+   "damage": 140,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -120,22 +120,22 @@
    "label": "Light -> Heavy -> Quick Shot",
    "kind": "combo",
    "hits": [
-    17,
-    55,
-    28
+    43,
+    88,
+    45
    ],
    "stunBefore": [
     0,
-    7,
-    23
+    12,
+    22
    ],
    "hitFrames": [
-    5,
-    25,
-    51
+    4,
+    19,
+    46
    ],
    "blockedEvents": 0,
-   "damage": 100,
+   "damage": 176,
    "energySpent": 8.32,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -149,19 +149,19 @@
    "label": "Rising Heel -> manual jump -> Flying Heel",
    "kind": "combo",
    "hits": [
-    42,
-    25
+    67,
+    48
    ],
    "stunBefore": [
     0,
-    18
+    20
    ],
    "hitFrames": [
-    12,
-    41
+    7,
+    34
    ],
    "blockedEvents": 0,
-   "damage": 67,
+   "damage": 115,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -175,7 +175,7 @@
    "label": "Thunder Line at the default point",
    "kind": "combo",
    "hits": [
-    49
+    78
    ],
    "stunBefore": [
     0
@@ -184,7 +184,7 @@
     36
    ],
    "blockedEvents": 0,
-   "damage": 49,
+   "damage": 78,
    "energySpent": 11.4,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -200,8 +200,8 @@
    "label": "Sky Splitter at the default point",
    "kind": "combo",
    "hits": [
-    18,
-    30
+    29,
+    48
    ],
    "stunBefore": [
     0,
@@ -212,7 +212,7 @@
     46
    ],
    "blockedEvents": 0,
-   "damage": 48,
+   "damage": 77,
    "energySpent": 14.28,
    "pipsSpent": 1,
    "trueCombo": true,
@@ -228,7 +228,7 @@
    "label": "Returning Edge at the default point",
    "kind": "combo",
    "hits": [
-    51
+    81
    ],
    "stunBefore": [
     0
@@ -237,7 +237,7 @@
     44
    ],
    "blockedEvents": 0,
-   "damage": 51,
+   "damage": 81,
    "energySpent": 10.8,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -251,9 +251,9 @@
    "label": "Sky Splitter twice in one juggle (second launcher refused)",
    "kind": "combo",
    "hits": [
-    18,
-    30,
-    28
+    29,
+    48,
+    45
    ],
    "stunBefore": [
     0,
@@ -266,7 +266,7 @@
     109
    ],
    "blockedEvents": 0,
-   "damage": 76,
+   "damage": 122,
    "energySpent": 28.5,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -282,40 +282,40 @@
    "label": "Light -> Heavy -> Ultimate (close confirm)",
    "kind": "combo",
    "hits": [
-    17,
-    55,
-    28,
-    38,
-    30,
-    34,
-    102
+    43,
+    88,
+    45,
+    62,
+    48,
+    54,
+    164
    ],
    "stunBefore": [
     0,
-    7,
-    5,
+    12,
+    4,
     9999,
     9999,
     9999,
     9999
    ],
    "hitFrames": [
-    5,
-    25,
-    69,
-    89,
-    125,
-    171,
-    193
+    4,
+    19,
+    64,
+    84,
+    120,
+    166,
+    188
    ],
    "blockedEvents": 0,
-   "damage": 304,
+   "damage": 504,
    "energySpent": 98.14,
    "pipsSpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
    "marks": {
-    "ult": 70
+    "ult": 65
    },
    "gap": 72,
    "flip": false,
@@ -325,11 +325,11 @@
    "label": "Ultimate raw (point blank)",
    "kind": "combo",
    "hits": [
-    30,
-    46,
-    36,
-    40,
-    122
+    48,
+    73,
+    57,
+    65,
+    195
    ],
    "stunBefore": [
     0,
@@ -346,7 +346,7 @@
     157
    ],
    "blockedEvents": 0,
-   "damage": 274,
+   "damage": 438,
    "energySpent": 98.02,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -360,8 +360,8 @@
    "label": "Arrow mark -> Thunder Line (marked)",
    "kind": "combo",
    "hits": [
-    30,
-    49
+    48,
+    78
    ],
    "stunBefore": [
     0,
@@ -372,7 +372,7 @@
     65
    ],
    "blockedEvents": 0,
-   "damage": 79,
+   "damage": 126,
    "energySpent": 19.66,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -386,9 +386,9 @@
    "label": "Marked Sky Splitter -> air conversion",
    "kind": "combo",
    "hits": [
-    30,
-    18,
-    28
+    48,
+    29,
+    45
    ],
    "stunBefore": [
     0,
@@ -401,8 +401,8 @@
     75
    ],
    "blockedEvents": 0,
-   "damage": 76,
-   "energySpent": 21.34,
+   "damage": 122,
+   "energySpent": 21.94,
    "pipsSpent": 1,
    "trueCombo": false,
    "dropAfterHit": 1,
@@ -415,7 +415,7 @@
    "label": "Returning Edge area denial -> bow pressure",
    "kind": "pressure",
    "hits": [
-    30
+    48
    ],
    "stunBefore": [
     0
@@ -424,7 +424,7 @@
     48
    ],
    "blockedEvents": 1,
-   "damage": 36,
+   "damage": 57,
    "energySpent": 20.8,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -436,23 +436,23 @@
   }
  ],
  "moves": {
-  "walkSpeed": 6,
+  "walkSpeed": 9.581,
   "jump": {
-   "height": 385,
-   "airFrames": 60
+   "height": 550,
+   "airFrames": 73
   },
   "light": {
    "name": "light",
    "total": 17,
-   "activeStart": 5,
+   "activeStart": 4,
    "activeEnd": 6,
-   "damage": 29
+   "damage": 45
   },
   "heavy": {
    "name": "heavy",
-   "total": 43,
-   "activeStart": 14,
-   "activeEnd": 16,
+   "total": 30,
+   "activeStart": 8,
+   "activeEnd": 11,
    "damage": 92
   },
   "pLow": {
@@ -464,9 +464,9 @@
   },
   "up": {
    "name": "up",
-   "total": 37,
-   "activeStart": 12,
-   "activeEnd": 14,
+   "total": 27,
+   "activeStart": 7,
+   "activeEnd": 10,
    "damage": 71
   },
   "pPalm": {
@@ -504,30 +504,30 @@
    "activeEnd": 30,
    "damage": 40
   },
-  "lightDamage": 17,
-  "heavyDamage": 55,
-  "pLowDamage": 25,
-  "upDamage": 42,
+  "lightDamage": 43,
+  "heavyDamage": 88,
+  "pLowDamage": 40,
+  "upDamage": 67,
   "normalHeavyArrow": {
    "label": "Light -> Heavy -> Quick Shot",
    "kind": "combo",
    "hits": [
-    17,
-    55,
-    28
+    43,
+    88,
+    45
    ],
    "stunBefore": [
     0,
-    7,
-    23
+    12,
+    22
    ],
    "hitFrames": [
-    5,
-    25,
-    51
+    4,
+    19,
+    46
    ],
    "blockedEvents": 0,
-   "damage": 100,
+   "damage": 176,
    "energySpent": 8.32,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -748,7 +748,7 @@
    "label": "Thunder Line at the default point",
    "kind": "combo",
    "hits": [
-    49
+    78
    ],
    "stunBefore": [
     0
@@ -757,7 +757,7 @@
     36
    ],
    "blockedEvents": 0,
-   "damage": 49,
+   "damage": 78,
    "energySpent": 11.4,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -773,8 +773,8 @@
    "label": "Sky Splitter at the default point",
    "kind": "combo",
    "hits": [
-    18,
-    30
+    29,
+    48
    ],
    "stunBefore": [
     0,
@@ -785,7 +785,7 @@
     46
    ],
    "blockedEvents": 0,
-   "damage": 48,
+   "damage": 77,
    "energySpent": 14.28,
    "pipsSpent": 1,
    "trueCombo": true,
@@ -801,7 +801,7 @@
    "label": "Returning Edge at the default point",
    "kind": "combo",
    "hits": [
-    51
+    81
    ],
    "stunBefore": [
     0
@@ -810,7 +810,7 @@
     44
    ],
    "blockedEvents": 0,
-   "damage": 51,
+   "damage": 81,
    "energySpent": 10.8,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -846,8 +846,8 @@
    },
    {
     "delay": 3,
-    "granted": true,
-    "cancelWindowReached": true
+    "granted": false,
+    "cancelWindowReached": false
    },
    {
     "delay": 4,
@@ -871,8 +871,8 @@
    },
    {
     "delay": 8,
-    "granted": false,
-    "cancelWindowReached": false
+    "granted": true,
+    "cancelWindowReached": true
    },
    {
     "delay": 9,
@@ -886,15 +886,15 @@
    }
   ],
   "workingDelays": [
-   3,
    4,
    5,
    6,
-   7
+   7,
+   8
   ],
   "cancel": {
-   "delay": 3,
-   "granted": 17,
+   "delay": 4,
+   "granted": 16,
    "opened": 22,
    "crane": true,
    "spent": 11.94,
@@ -943,40 +943,40 @@
    "label": "Light -> Heavy -> Ultimate (close confirm)",
    "kind": "combo",
    "hits": [
-    17,
-    55,
-    28,
-    38,
-    30,
-    34,
-    102
+    43,
+    88,
+    45,
+    62,
+    48,
+    54,
+    164
    ],
    "stunBefore": [
     0,
-    7,
-    5,
+    12,
+    4,
     9999,
     9999,
     9999,
     9999
    ],
    "hitFrames": [
-    5,
-    25,
-    69,
-    89,
-    125,
-    171,
-    193
+    4,
+    19,
+    64,
+    84,
+    120,
+    166,
+    188
    ],
    "blockedEvents": 0,
-   "damage": 304,
+   "damage": 504,
    "energySpent": 98.14,
    "pipsSpent": 0,
    "trueCombo": true,
    "dropAfterHit": -1,
    "marks": {
-    "ult": 70
+    "ult": 65
    },
    "gap": 72,
    "flip": false,
@@ -986,11 +986,11 @@
    "label": "Ultimate raw (point blank)",
    "kind": "combo",
    "hits": [
-    30,
-    46,
-    36,
-    40,
-    122
+    48,
+    73,
+    57,
+    65,
+    195
    ],
    "stunBefore": [
     0,
@@ -1007,7 +1007,7 @@
     157
    ],
    "blockedEvents": 0,
-   "damage": 274,
+   "damage": 438,
    "energySpent": 98.02,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -1017,19 +1017,19 @@
    "flip": false,
    "note": ""
   },
-  "rawSum": 274
+  "rawSum": 438
  },
  "crane": {
   "distance": 90,
   "total": 31,
   "spent": 9
  },
- "engineDamageScale": 0.586,
+ "engineDamageScale": 1.483,
  "pressureReturningEdge": {
   "label": "Returning Edge area denial -> bow pressure",
   "kind": "pressure",
   "hits": [
-   30
+   48
   ],
   "stunBefore": [
    0
@@ -1038,7 +1038,7 @@
    48
   ],
   "blockedEvents": 1,
-  "damage": 36,
+  "damage": 57,
   "energySpent": 20.8,
   "pipsSpent": 1,
   "trueCombo": false,

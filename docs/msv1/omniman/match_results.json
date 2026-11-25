@@ -28,32 +28,32 @@
   "frames": 1228,
   "look": {
    "pre": {
-    "sky": 200,
+    "sky": 201,
     "zoom": 0.9999713193346228,
-    "duck": 1
+    "duck": 0
    },
    "orbit": {
-    "sky": 123,
+    "sky": 126,
     "zoom": 0.9999999918941921,
-    "duck": 3
+    "duck": 4
    },
    "post": {
     "sky": 188,
     "zoom": 0.9999999999999993,
-    "duck": 2,
+    "duck": 3,
     "ev": null
    },
    "evStarted": true,
    "orbitMin": 117
   },
   "frameTime": {
-   "orbitMed": 1.5,
-   "orbitP95": 3.4,
-   "restMed": 0.6,
-   "restP95": 1.7,
+   "orbitMed": 1.3,
+   "orbitP95": 2.3,
+   "restMed": 0.5,
+   "restP95": 1.5,
    "orbitN": 84
   },
-  "trailHash": "d92166b69135948f",
+  "trailHash": "bab1de5c9d095984",
   "replay": {
    "frames": 1228,
    "deltas": 24,
@@ -83,14 +83,13 @@
   "lan": {
    "events": {
     "seen": [
-     "grab",
      "ascent",
      "orbit",
      "ret",
      "impact",
      "settle"
     ],
-    "top": 57.2,
+    "top": 57.200017593791,
     "booms": 1,
     "crash": 1,
     "think": 1,
@@ -99,12 +98,12 @@
     "escapeHits": 1,
     "decree": 1,
     "startX": 920,
-    "crashAt": 103,
-    "energyBeforeEv": 117.24000000000058,
-    "gapAtEv": 69,
-    "energyBeforeThink": 107.08000000000123
+    "crashAt": 101,
+    "energyBeforeEv": 117.00000000000057,
+    "gapAtEv": 77,
+    "energyBeforeThink": 106.42000000000118
    },
-   "shared": 1724,
+   "shared": 1698,
    "mismatched": 0,
    "joinerStats": {
     "takeoffs": 1,
@@ -145,8 +144,8 @@
     "spent": 200
    },
    "samples": [
-    1727,
-    1727
+    1702,
+    1702
    ]
   }
  }

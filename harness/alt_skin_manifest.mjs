@@ -125,11 +125,7 @@ export const ALT_SKINS = {
   ],
   // TOBIRAMA — blue armor (hue 195-255, sat≥.13). IS blue → skip BLUE. Gold from the Part 1 test.
   tobirama: [
-    { tag: "black", name: "Black", mode: "region", note: "from-hue 195-255 min-sat .13 -> desat val-gain .6" },
-    { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .60 val-gain 1.5" },
-    { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 to-sat .9 val-gain 1.7 (Part 1 test)" },
-    { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 val-gain 1.4" },
-    // "JOINED THE KILLER" — Roman's crew (bronze #5A4622) on the blue ARMOR plates (BOLD) → bronze.
+    // black / pink / gold / red recolours REMOVED 2026-11-25 — replaced by the Ben 10 alien skins in skins.js (tools/alienskins).
     { tag: "crew", name: "Roman's Crew", mode: "region", note: "gen_companion_crew.py tobirama — hue 200-228 sat>=.5 yband .18-.62 -> to-tone #5A4622 (armor; water-jutsu sheets skipped; distinct from gold skin: dark bronze vs bright gold, 2243px)" },
   ],
 

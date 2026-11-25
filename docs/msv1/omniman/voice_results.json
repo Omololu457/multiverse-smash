@@ -1,6 +1,6 @@
 {
- "pass": 17,
- "fail": 0,
+ "pass": 16,
+ "fail": 1,
  "R": {
   "pools": {
    "intro": 27,
@@ -71,7 +71,14 @@
     "think"
    ]
   ],
-  "homelanderClips": [],
+  "homelanderClips": [
+   "./assets/audio/homelander/source/long_over_8s_maybe_music/hl_015_165s_p08.ogg",
+   "./assets/audio/homelander/source/long_over_8s_maybe_music/hl_007_64s_p06.ogg",
+   "./assets/audio/homelander/source/lines_1_to_3s/hl_068_627s.ogg",
+   "./assets/audio/homelander/source/lines_1_to_3s/hl_039_494s.ogg",
+   "./assets/audio/homelander/source/long_over_8s_maybe_music/hl_007_64s_p06.ogg",
+   "./assets/audio/homelander/source/long_over_8s_maybe_music/hl_033_399s_p04.ogg"
+  ],
   "ko": [
    [
     "hurtBig"

@@ -42,7 +42,9 @@ button.sm { padding: 6px 11px; font-size: 14px; }
 .chev { margin-left: auto; color: var(--accent); }
 .tabs { display: flex; gap: 6px; margin-left: 6px; flex: 1; }
 .tab { font-weight: 800; letter-spacing: .08em; font-size: 14px; padding: 10px 14px; }
-#backToGame { margin-left: auto; font-weight: 700; letter-spacing: .06em; font-size: 14px; white-space: nowrap; }
+#gameLinks { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+#gameLinks .btn { font-weight: 700; letter-spacing: .06em; font-size: 13px; white-space: nowrap; }
+#backToGame { font-size: 14px; }
 
 /* layout */
 .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(380px, 1fr); gap: 12px; min-height: 0; }

@@ -3,11 +3,11 @@
     {
       "label": "J1 -> J2 -> J3",
       "hits": [
-        25,
-        30,
-        39
+        38,
+        32,
+        41
       ],
-      "damage": 94,
+      "damage": 111,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -20,11 +20,11 @@
     {
       "label": "J1 -> J2 -> J3 (mirrored)",
       "hits": [
-        25,
-        30,
-        39
+        38,
+        32,
+        41
       ],
-      "damage": 94,
+      "damage": 111,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -37,12 +37,12 @@
     {
       "label": "J1 -> Heavy -> Deltamax Check",
       "hits": [
-        25,
-        78,
-        50
+        38,
+        83,
+        53
       ],
-      "damage": 153,
-      "energySpent": 11.159999999999968,
+      "damage": 174,
+      "energySpent": 11.45999999999998,
       "trueCombo": true,
       "stunAtRetap": [
         15,
@@ -54,11 +54,11 @@
     {
       "label": "Forward+Heavy -> Heavy -> Heavy",
       "hits": [
-        36,
-        43,
-        55
+        38,
+        46,
+        59
       ],
-      "damage": 134,
+      "damage": 143,
       "energySpent": 0,
       "trueCombo": true,
       "stunAtRetap": [
@@ -70,39 +70,39 @@
     },
     {
       "label": "Launcher -> manual Jump -> Air",
-      "damage": 100,
+      "damage": 127,
       "hits": null,
       "trueCombo": true,
       "comboCounter": 2
     },
     {
       "label": "Aura Read -> Acrobat Step -> marked Heavy follow-up",
-      "hp0": 1150,
+      "hp0": 1200,
       "stunAtRecovery": 31,
       "stunAtFollowStart": 30,
       "follows": 1,
-      "followHit": 27,
+      "followHit": 28,
       "followCost": 4.94,
-      "damage": 99,
+      "damage": 104,
       "mark": false,
       "combo": 3,
       "trueCombo": true
     },
     {
       "label": "Phase step (120px) -> Heavy punish",
-      "damage": 78,
-      "energySpent": 6.379999999999939
+      "damage": 83,
+      "energySpent": 0
     }
   ],
   "advantages": [
     {
       "key": "light",
       "guard": false,
-      "total": 17,
+      "total": 15,
       "contactFrame": 5,
-      "attackerReadyAfter": 16,
+      "attackerReadyAfter": 14,
       "defenderFreeAfter": 21,
-      "advantage": 5
+      "advantage": 7
     },
     {
       "key": "gJ2",
@@ -125,11 +125,11 @@
     {
       "key": "heavy",
       "guard": false,
-      "total": 41,
-      "contactFrame": 13,
-      "attackerReadyAfter": 38,
+      "total": 35,
+      "contactFrame": 12,
+      "attackerReadyAfter": 33,
       "defenderFreeAfter": 48,
-      "advantage": 10
+      "advantage": 15
     },
     {
       "key": "gLow",
@@ -143,11 +143,11 @@
     {
       "key": "up",
       "guard": false,
-      "total": 37,
-      "contactFrame": 12,
-      "attackerReadyAfter": 37,
+      "total": 31,
+      "contactFrame": 9,
+      "attackerReadyAfter": 34,
       "defenderFreeAfter": 46,
-      "advantage": 9
+      "advantage": 12
     },
     {
       "key": "gAdvance",
@@ -197,11 +197,11 @@
     {
       "key": "light",
       "guard": true,
-      "total": 17,
+      "total": 15,
       "contactFrame": 5,
-      "attackerReadyAfter": 12,
+      "attackerReadyAfter": 10,
       "defenderFreeAfter": 10,
-      "advantage": -2
+      "advantage": 0
     },
     {
       "key": "gJ2",
@@ -224,11 +224,11 @@
     {
       "key": "heavy",
       "guard": true,
-      "total": 41,
-      "contactFrame": 13,
-      "attackerReadyAfter": 28,
+      "total": 35,
+      "contactFrame": 12,
+      "attackerReadyAfter": 23,
       "defenderFreeAfter": 13,
-      "advantage": -15
+      "advantage": -10
     },
     {
       "key": "gLow",
@@ -242,11 +242,11 @@
     {
       "key": "up",
       "guard": true,
-      "total": 37,
-      "contactFrame": 12,
-      "attackerReadyAfter": 25,
+      "total": 31,
+      "contactFrame": 9,
+      "attackerReadyAfter": 22,
       "defenderFreeAfter": 11,
-      "advantage": -14
+      "advantage": -11
     },
     {
       "key": "gAdvance",
@@ -300,11 +300,11 @@
         "gAcro:34",
         "gAcro2:48"
       ],
-      "applied": 72,
+      "applied": 76,
       "cost": 18
     }
   },
-  "engineDamageScale": 0.862,
+  "engineDamageScale": 1.31,
   "passes": 60,
   "failures": 0,
   "errors": []

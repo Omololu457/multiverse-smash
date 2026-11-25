@@ -3,16 +3,16 @@
   {
    "label": "J1 -> J2 -> J3",
    "hits": [
-    26,
-    32,
-    41
+    43,
+    35,
+    44
    ],
    "stunBefore": [
     0,
-    15,
+    14,
     9
    ],
-   "damage": 99,
+   "damage": 122,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -24,16 +24,16 @@
   {
    "label": "J1 -> J2 -> J3 (mirrored)",
    "hits": [
-    26,
-    32,
-    41
+    43,
+    35,
+    44
    ],
    "stunBefore": [
     0,
-    15,
+    14,
     9
    ],
-   "damage": 99,
+   "damage": 122,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -45,18 +45,18 @@
   {
    "label": "Normal -> Heavy -> Crescent Break",
    "hits": [
-    26,
-    84,
-    32,
-    37
+    43,
+    91,
+    35,
+    40
    ],
    "stunBefore": [
     0,
-    8,
-    23,
+    13,
+    22,
     13
    ],
-   "damage": 179,
+   "damage": 209,
    "energySpent": 10.08,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -68,16 +68,16 @@
   {
    "label": "Forward+Heavy -> Heavy -> Heavy",
    "hits": [
-    35,
-    42,
-    54
+    38,
+    46,
+    59
    ],
    "stunBefore": [
     0,
     20,
     20
    ],
-   "damage": 131,
+   "damage": 143,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -90,19 +90,19 @@
    "label": "Launcher -> manual Jump -> Air",
    "kind": "combo",
    "hits": [
-    66,
-    39
+    72,
+    48
    ],
    "stunBefore": [
     0,
-    19
+    21
    ],
    "hitFrames": [
-    12,
-    40
+    7,
+    33
    ],
    "blockedEvents": 0,
-   "damage": 105,
+   "damage": 120,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -116,19 +116,19 @@
    "label": "Heavy -> Falcon Sweep (special cancel) -> bird",
    "kind": "combo",
    "hits": [
-    84,
-    53
+    91,
+    57
    ],
    "stunBefore": [
     0,
-    3
+    2
    ],
    "hitFrames": [
-    14,
-    60
+    8,
+    55
    ],
    "blockedEvents": 0,
-   "damage": 137,
+   "damage": 148,
    "energySpent": 7.92,
    "pipsSpent": 1,
    "trueCombo": true,
@@ -143,22 +143,22 @@
    "label": "Falcon Sweep call -> Heavy (call-recovery cancel) -> bird hit (Pincer) -> Light retap",
    "kind": "combo",
    "hits": [
-    84,
-    53,
-    22
+    91,
+    57,
+    35
    ],
    "stunBefore": [
     0,
-    33,
-    17
+    27,
+    25
    ],
    "hitFrames": [
-    27,
+    21,
     43,
-    65
+    51
    ],
    "blockedEvents": 0,
-   "damage": 159,
+   "damage": 183,
    "energySpent": 7.08,
    "pipsSpent": 1,
    "trueCombo": true,
@@ -172,9 +172,9 @@
    "label": "Light -> Talon Lift (Light alone is too short: RESET check)",
    "kind": "combo",
    "hits": [
-    26,
-    27,
-    41
+    43,
+    29,
+    45
    ],
    "stunBefore": [
     0,
@@ -182,12 +182,12 @@
     24
    ],
    "hitFrames": [
-    5,
+    4,
     38,
     44
    ],
    "blockedEvents": 0,
-   "damage": 94,
+   "damage": 117,
    "energySpent": 14.76,
    "pipsSpent": 1,
    "trueCombo": false,
@@ -202,26 +202,23 @@
    "label": "Confirmed Heavy -> Talon Lift -> manual Jump -> Air",
    "kind": "combo",
    "hits": [
-    84,
-    25,
-    38,
-    35
+    91,
+    27,
+    41
    ],
    "stunBefore": [
     0,
-    9,
-    24,
-    17
+    8,
+    24
    ],
    "hitFrames": [
-    14,
-    54,
-    60,
-    79
+    8,
+    49,
+    55
    ],
    "blockedEvents": 0,
-   "damage": 182,
-   "energySpent": 13.5,
+   "damage": 159,
+   "energySpent": 14.34,
    "pipsSpent": 1,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -238,7 +235,7 @@
    "hitFrames": [],
    "blockedEvents": 2,
    "damage": 8,
-   "energySpent": 10.86,
+   "energySpent": 10.02,
    "pipsSpent": 1,
    "trueCombo": false,
    "dropAfterHit": -1,
@@ -251,19 +248,19 @@
    "label": "Teleport -> Heavy punish -> Falcon Sweep",
    "kind": "combo",
    "hits": [
-    84,
-    53
+    91,
+    57
    ],
    "stunBefore": [
     0,
-    4
+    3
    ],
    "hitFrames": [
-    28,
-    73
+    22,
+    68
    ],
    "blockedEvents": 0,
-   "damage": 137,
+   "damage": 148,
    "energySpent": 7.92,
    "pipsSpent": 1,
    "trueCombo": true,
@@ -278,34 +275,34 @@
    "label": "Close confirm: Light -> Heavy -> ultimate (recovery cancel)",
    "kind": "combo",
    "hits": [
-    26,
-    84,
-    48,
-    50,
-    57,
-    50,
-    126
+    43,
+    91,
+    52,
+    54,
+    62,
+    54,
+    137
    ],
    "stunBefore": [
     0,
-    8,
-    6,
+    13,
+    5,
     9998,
     9998,
     9998,
     9998
    ],
    "hitFrames": [
-    5,
-    25,
-    68,
-    125,
-    159,
-    203,
-    265
+    4,
+    19,
+    63,
+    111,
+    145,
+    189,
+    251
    ],
    "blockedEvents": 0,
-   "damage": 441,
+   "damage": 493,
    "energySpent": 96.52,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -320,15 +317,15 @@
   "light": {
    "name": "light",
    "total": 17,
-   "activeStart": 5,
+   "activeStart": 4,
    "activeEnd": 6,
-   "damage": 31
+   "damage": 45
   },
   "heavy": {
    "name": "heavy",
-   "total": 43,
-   "activeStart": 14,
-   "activeEnd": 16,
+   "total": 30,
+   "activeStart": 8,
+   "activeEnd": 11,
    "damage": 95
   },
   "bLow": {
@@ -340,9 +337,9 @@
   },
   "up": {
    "name": "up",
-   "total": 37,
-   "activeStart": 12,
-   "activeEnd": 14,
+   "total": 27,
+   "activeStart": 7,
+   "activeEnd": 10,
    "damage": 75
   },
   "bPalm": {
@@ -383,11 +380,11 @@
   "crescentContacts": [
    {
     "t": 12,
-    "d": 35
+    "d": 38
    },
    {
     "t": 38,
-    "d": 44
+    "d": 48
    }
   ],
   "crescentOnBlock": {
@@ -405,7 +402,7 @@
    "hitLog": [
     {
      "t": 35,
-     "d": 57,
+     "d": 62,
      "vy": 0
     }
    ],
@@ -419,12 +416,12 @@
    "hitLog": [
     {
      "t": 26,
-     "d": 27,
+     "d": 29,
      "vy": 0
     },
     {
      "t": 32,
-     "d": 45,
+     "d": 48,
      "vy": -22
     }
    ],
@@ -433,17 +430,17 @@
   "volley": {
    "cost": 15,
    "commitFrameFromPress": 12,
-   "firstContactFromPress": 49,
+   "firstContactFromPress": 50,
    "hits": 2,
    "hitLog": [
     {
-     "t": 49,
-     "d": 30,
+     "t": 50,
+     "d": 32,
      "vy": -1
     },
     {
-     "t": 64,
-     "d": 30,
+     "t": 65,
+     "d": 32,
      "vy": -1
     }
    ],
@@ -465,9 +462,9 @@
     "ultWhiffs": 0,
     "ultDone": 0
    },
-   "stun": 20
+   "stun": 27
   },
-  "retapHitstunAtCancel": 20,
+  "retapHitstunAtCancel": 27,
   "noRetap": {
    "tagged": true,
    "consumed": true,
@@ -482,7 +479,7 @@
     "ultWhiffs": 0,
     "ultDone": 0
    },
-   "stun": 33
+   "stun": 27
   }
  },
  "teleport": {
@@ -497,12 +494,12 @@
   },
   "hit": {
    "contactsAfterOpener": [
-    50,
-    57,
-    50,
-    126
+    54,
+    62,
+    54,
+    137
    ],
-   "total": 393,
+   "total": 426,
    "done": 1
   }
  },
@@ -513,9 +510,9 @@
    360
   ]
  },
- "engineDamageScale": 0.839,
- "volleyGapAtSecondShot": 8,
- "pass": 85,
- "fail": 0,
+ "engineDamageScale": 1.387,
+ "volleyGapAtSecondShot": 0,
+ "pass": 80,
+ "fail": 5,
  "errors": []
 }

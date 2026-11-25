@@ -11,6 +11,7 @@ import "./rickPrimeUlt.js"
 import "./gokuUlt.js"
 import "./vegetaUlt.js"
 import "./vegetaDarkUlt.js"
+import "./dnaScan.js"   // DNA scan (Ben / Albedo / Kevin) — freeze cinematics + screen pass
 import "./gokuBlackUlt.js"
 import "./beerusUlt.js"
 import "./soldierBoyUlt.js"

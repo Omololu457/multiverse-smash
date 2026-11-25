@@ -1,277 +1,375 @@
 ========================================================================
-MULTIVERSE SMASH: S.P.D. RED RANGER (spd_red), THE FULL GUIDE
-Written 2026-11-19 from the live code (spdRedData.js, spdRed.js, spdRedState.js,
-rangers.js, kits.js) and docs/spd_red/ (COMBOS.md, BALANCE_NOTES.md).
+MULTIVERSE SMASH — MAPS AND CHARACTERS
 ========================================================================
+Inventory from the current game files. Brackets contain the internal fighter
+key so versions with similar names can be looked up in the code.
 
-WHO HE IS
+MAPS (35)
 ---------
-Jack Landors is the Red Ranger of S.P.D. B-Squad (Power Rangers S.P.D.). He's a
-former street thief who could walk through walls before he ever had a morpher.
-- In game: "S.P.D. Red Ranger" (HUD: "S.P.D. Red"), in the Power Rangers universe.
-- Archetype: Teleport Rushdown / Judge (primary rushdown, secondary zoner).
-- Difficulty: 4. Tagline: "S.P.D. Emergency!"
-- He is always morphed: the sprite sheet has no unmorphed Jack.
 
-The game plan in one sentence: blink in on teleport charges, hit from behind
-with crossups, build Delta, and at the end pass JUDGMENT on a weakened foe to
-seal them in a containment card for the finish.
+- Jujutsu High Courtyard (Jujutsu Kaisen) — A hilltop school courtyard at dusk, with a tiled
+    fighting floor, temple rooftops and spectators from Jujutsu High.
 
+- Shibuya Incident (Jujutsu Kaisen) — A night market street under a cursed dome, with city
+    towers, neon signs and escalating destruction in the background.
 
-CONTROLS (P1 keyboard defaults; all rebindable)
------------------------------------------------
-  Move ............ A / D  (W = jump/up, S = down)
-  Light (A) ....... J
-  Heavy (B) ....... K
-  Up-Attack ....... I
-  Special ......... L
-  Ultimate ........ U
-  Grab ............ O
-  Block ........... ;
-The code calls Light "A" and Heavy "B" because the sprite sheet does.
-Motion inputs are facing-relative: "→" means toward your opponent.
+- Hidden Leaf Village (Naruto) — A sandy platform on a floating piece of Konoha, with village
+    rooftops and the Hokage Monument behind it.
 
+- Sunagakure (Naruto) — A sandstone plaza with domed homes, the Kazekage's building and sheer
+    desert cliffs. A sandstorm brings Shukaku into view.
 
-THE STAT LINE
--------------
-  Health ...... 1200 in characters data (the kit text and BALANCE_NOTES still say
-                950; it was raised later in the roster-parity HP pass)
-  Energy ...... "Delta", max 100 (cyan bar)
-  Walk ........ 5.6 px per frame
-  Run ......... 8.4 px per frame (hold the direction after a ground blink)
-  Jumps ....... 1 (no double jump, no flight)
-  Weight ...... 0.9 (light: he takes a bit more knockback)
-  Armour ...... none.  Reflect: none.
-The engine's normal double-tap dash is OFF for him. His double-tap is the
-BLINK teleport instead (next section).
+- Forest of Death (Naruto) — A fight under the roots of a giant tree, surrounded by dense
+    forest, snakes and the Chūnin Exam tower in the distance.
 
+- Valley of the End (Naruto) — A wet riverbank beneath the waterfall and the two colossal
+    statues of Hashirama and Madara.
 
-1. BLINK: HIS TELEPORT (the heart of the character)
----------------------------------------------------
-Input: double-tap ← or → (works on the ground AND in the air).
-- Distance: 22% of the screen.
-- Length: 11 frames = 3 startup, then 5 INVULNERABLE travel frames, then 3 recovery.
-- Charges: 2. Each refills over 90 frames (1.5 seconds).
-- Cost: NO Delta. It only spends a charge.
-- No vertical blink: you can't teleport straight up.
+- Planet Namek (Dragon Ball) — Namek's alien terrain under Frieza's invasion, with his ship
+    overhead, soldiers, explosions and fleeing villagers.
 
-PHASE STEP (crossups):
-- Blinking THROUGH the opponent costs no extra charge.
-- It leaves the opponent facing the WRONG way for 8 frames, which breaks
-  forward-committed attacks and makes your next hit come from behind.
+- World Tournament Arena (Dragon Ball) — The white-tiled outdoor tournament ring, with an
+    entrance hall, banners, packed stands and an announcer.
 
-DODGE REWARD:
-- If your blink's travel passes through a LIVE enemy hitbox or projectile, you
-  get +5 Delta.
-- Your next attack started within 20 frames does +15% damage. A white flash on
-  the streak tells you it worked.
+- Infinity Castle (Demon Slayer) — A lantern-lit wooden platform inside the demons' sprawling
+    castle, with rooms floating at different depths.
 
-BLINK-CANCELS (each costs one charge):
-- Delta Charge: double-tap again when it hits OR is blocked.
-- Sky Uppercut: double-tap during its airborne recovery.
-While a blink is happening he can't attack; the blink owns him for 11 frames.
+- Asakusa (Demon Slayer) — A Taishō-era Tokyo shopping street at night, with lanterns, shop
+    signs, townspeople and the Ryōunkaku tower.
 
+- Mugen Train (Demon Slayer) — A nighttime rail yard beside lit maroon carriages. Demons and
+    Demon Slayers clash on the roofs and track bed.
 
-2. DELTA: HIS METER
--------------------
-How he gains Delta:
-  +4 ... every hit that lands (melee or a Blaster bolt)
-  +2 ... every hit the foe blocks
-  +1 ... every 40 frames passively (about 1.5 per second)
-  +5 ... every blink dodge
-  +40 .. an INNOCENT Judgment verdict
-Specials spend their Delta cost the moment they start. A Special press you
-can't afford is simply eaten; there is no fallback move.
-After the Super, Delta is LOCKED for 3 seconds: no gain at all.
+- Citadel of Ricks (Rick and Morty) — A space-station hall with a portal-fluid reactor, opening
+    portals and huge windows overlooking the Citadel and passing spacecraft.
 
+- Bellwood (Ben 10) — A neighborhood main street with Mr. Smoothy, pigeons and onlookers. The
+    fight draws a crowd, car alarms and police.
 
-3. NORMALS (all blunt damage)
------------------------------
-On-block numbers are frame advantage: + means you act first, − means the foe does.
+- Null Void (Ben 10) — A prison dimension full of drifting rock islands, glowing mist, scattered
+    wreckage and a rift that pulls debris inward.
 
-  Jab ............ Light .................. 40 dmg, 5f startup, +1 on block
-                   (his safest button: you keep your turn even if they block)
-  Straight ....... Light, Light  (or →+Light) .. 60 dmg, 8f, −3 on block
-  Kick ........... Heavy  (or Light ×3) ...... 65 dmg, 9f, −3 on block, long reach
-  Heavy kick ..... →+Heavy ................ 85 dmg, 12f, −5 on block. LAUNCHES.
-                   Hold ↑ as it connects = LAUNCHER JUMP-CANCEL: the recovery is
-                   skipped and he jumps up after them for an air kick.
-  Low kick ....... ↓+Light ................ 45 dmg, 7f, hits LOW (must be crouch-blocked)
-  Rising kick .... ↑+Heavy or Up-Attack ... 80 dmg, 9f, tall anti-air hitbox, launches
-  Air kick ....... Light/Heavy in the air .. 65 dmg, 4f, fast, tall hitbox
-                   (meets a launched foe on the way up)
-  Flip kick ...... ↓ + attack in the air ... 60 dmg, spikes downward
-  Acrobatic flip . ←+Heavy ................ back-handspring escape: 112 px backward,
-                                            invulnerable for 8 frames, no hitbox
-  Wake-up reversal ↓+Heavy, or ANY attack as he stands up after a knockdown:
-                   70 dmg, 6 invulnerable frames, but −12 on block (very punishable)
-  Grab / Throw ... O ...................... 35 dmg (the shared grab)
+- Soul Society (Bleach) — A Seireitei courtyard framed by white walls, slate roofs and cherry
+    blossoms, with Soul Reapers watching from the edges.
 
-CHAINS (gatlings: cancel a normal into the next on hit OR block):
-  Jab ........ → Straight, Low kick, Kick, Heavy kick, Rising kick
-  Low kick ... → Straight, Heavy kick, Rising kick
-  Straight ... → Kick, Heavy kick, Rising kick
-  Kick ....... → Heavy kick, Rising kick
-Any connected normal can also cancel into ANY special or the Super.
-Button presses are buffered for 8 frames (on the sim clock), so a press during
-hit-freeze still comes out.
+- Woodsboro (Scream / Horror) — A suburban street after dark. Phones ring, porch lights flicker,
+    masked figures appear and police lights wash over the houses.
 
+- Yorknew City (Hunter × Hunter) — The auction-week market district, with a tram, vendor stalls,
+    rooftop Phantom Troupe figures and searchlights around the auction tower.
 
-4. SPECIALS (cost = Delta)
---------------------------
-  DELTA BLASTER .... ↓+Special (or plain Special; works in the air) ... 10 Delta
-     A full-screen blaster bolt, 50 dmg (projectile). At most 4 of his bolts on
-     screen at once. 10f startup on the ground, 8f in the air.
+- Heaven's Arena (Hunter × Hunter) — A raised stone ring high above the clouds, with tall
+    windows, tiered seats, banners and a scoreboard.
 
-  RAPID FIRE ....... keep ↓+Special HELD through the Blaster wind-up .... +10 (20 total)
-     Five tracer bolts × 25 dmg at 10 per second, with a slight spread (decided
-     by a hash, never random, so replays and LAN match).
+- Viltrumite Warzone (Invincible) — Scorched ruins beneath a red sky. Viltrumites fight overhead
+    and a giant warrior statue overlooks the battlefield.
 
-  DELTA CHARGE ..... →→ + Special .............................. 15 Delta
-     A handstand dash kick across 40% of the screen, 95 dmg, KNOCKDOWN.
-     Blink-cancel it on hit or block. If your →→ already started a blink, a
-     quick Special refunds the charge and turns it into Delta Charge instead.
+- Angel Grove (Power Rangers) — A wrecked downtown street where civilians flee, Rangers fight
+    Krybots and Megazords battle giant monsters in the distance.
 
-  PHASE STRIKE ..... ↓↘→ + Special (ground) .................... 18 Delta
-     He phases THROUGH the foe on frame 3 (always crosses up; reach 45% of the
-     screen) and lands a flying kick from behind, 100 dmg. Invulnerable on
-     frames 0-9, so it passes through attacks. +8 on hit, so a Jab links after.
+- Command Center (Power Rangers) — The open desert outside Angel Grove, with the Rangers'
+    hilltop headquarters, teleport effects and Putty attacks in the background.
 
-  SKY UPPERCUT ..... ↑ + Special ............................... 20 Delta
-     A rising split kick, 110 dmg, 6f startup, launches; he rises with it.
-     Blink out of the airborne recovery to stay safe. His main anti-air answer.
+- PK Academy (The Disastrous Life of Saiki K.) — A bright schoolyard with cherry blossoms and
+    students. A meteor appears late in the fight and Saiki stops it at the KO.
 
-  DELTAMAX STRIKE .. ↓↙← + Special (ground) .................... 25 Delta
-     He braces, then fires a beam across 70% of the screen: 120 dmg (energy).
-     It ERASES enemy projectiles it touches. 18f startup, his slowest special,
-     but it still links off the Straight's 22f hitstun.
+- Analysis Nexus (Original) — A dark teal data-grid arena with a luminous central core, orbiting
+    rings and holographic readouts that react to the fight.
 
-  JUDGMENT ......... Light + Heavy + Special together (meter full) .. free
-     See section 5.
+- The Originals (Original) — Rifts cycle between Omololu's multiverse lab, Dseyl's
+    floating-island sky and Enoch's glacier-and-volcano landscape.
 
+- Multiverse Roulette (Original) — A rift arena that starts with a randomly chosen stage
+    backdrop and shifts to others during the match. Music comes from the stage playlists.
 
-5. JUDGMENT: THE SIGNATURE MECHANIC
------------------------------------
-The Judgment meter (separate from Delta):
-- Every hit you land is +1 point; it fills at 20.
-- Once full, press Light + Heavy + Special within 4 ticks of each other.
-- The press can cancel a just-started normal or a connected one. If Special
-  started a move first, its Delta is refunded.
+- Shadow Garden (Jujutsu Kaisen) — Megumi's Chimera Shadow Garden rendered as a pool of living
+    shadow. Shikigami emerge during the fight and Mahoraga rises at the KO.
 
-What happens:
-- Jack points the morpher, time FREEZES for 30 frames (0.5 s) while it scans,
-  and he is invulnerable.
-- The verdict depends on the foe's HP:
+- Harbor Dock (Original arena) — A waterfront dock with barrels and bollards, moving water and a
+    bobbing boat full of cheering spectators.
 
-  GUILTY (foe at or below 30% HP):
-    - The foe is sealed in the gem containment card for 3 seconds and CANNOT act.
-    - The card absorbs 50% of every hit you land on them.
-    - When it ends, they're released at the FAR side of the screen.
-    - Your Super beam this round becomes 220 instead of 180.
-  INNOCENT (foe above 30%):
-    - You get +40 Delta.
-    - The meter stays full for 5 seconds, so you get ONE re-attempt.
+- Training Center (Original arena) — A bright 3D hologram room with a projection screen, a
+    raised platform and a glowing cyan training ring.
 
-Limits:
-- Once per round.
-- A Ranger opponent is ALWAYS innocent (Rangers can't be judged).
+- The Batcave (DC) — Batman's underground hangar, with a steel Bat-symbol deck, the Batwing, the
+    Batcomputer and bats moving through the cavern.
 
+- Krypton (DC) — Krypton's citadel on the planet's last day, with its dome torn open and an
+    attack underway overhead.
 
-6. SUPER: "S.P.D. EMERGENCY: DELTA SQUAD FULL POWER"
-----------------------------------------------------
-Input: ↓↘→↓↘→ + Special, or the Ultimate button (U). Needs 100 Delta (all of it).
-1. A WANTED-poster flash.
-2. Three blink strikes from three angles (front, behind, below), 55 dmg each.
-3. Then the Deltamax beam: 180 dmg, or 220 if you got a GUILTY verdict this round.
-- Total: 345 (385 after GUILTY).
-- He's invulnerable for the whole scripted sequence (110 frames).
-- Afterwards: all Delta is spent, Delta is locked for 3 s, and BOTH teleport
-  charges refill instantly.
+- Arlong Park (One Piece) — Arlong's compound, with red gates, tangerine trees, fish-men,
+    villagers and the sea cow. Arlong's tower topples at the KO.
 
+- The Baratie (One Piece) — The deck of the floating restaurant, with cooks and spectators, a
+    moored pirate ship, a sea battle and a Sea King offshore.
 
-7. COMBO SCALING (why long combos don't do 4× damage)
------------------------------------------------------
-- Each extra hit in a combo does 85% of the previous scale: hit 1 = 100%,
-  hit 2 = 85%, hit 3 = 72%, hit 4 = 61%.
-- The combo counter resets after 1.5 s with no hit.
-- On-screen damage = raw × 0.6 (the global damage scale every fighter has).
-- Super hits keep the scale from the moment the Super started.
+- Queens Alley (Marvel) — A New York alley at twilight with brownstones, fire escapes, graffiti
+    and the Manhattan skyline. Spider-Man swings overhead.
 
+- Stark Lab (Marvel) — An armor workshop with suits in glass pods, robot arms,
+    holograms, a glowing reactor and a prototype aircraft.
 
-8. THE FIVE MAIN COMBOS (measured with real input; "dmg" = what the HP bar shows)
-----------------------------------------------------------------------------------
-1) CHARGE OUT, meterless-ish (15 Delta), 117 dmg
-   Light, Light, Light, →→+Special (Delta Charge), then →→ on hit
-   = Jab, Straight, Kick, Delta Charge, then a blink to safety behind the
-     knocked-down foe or back out. The four hits pay back +16 Delta.
+- Battle Royale Colosseum (Free-for-all) — An extra-wide sand arena for free-for-all, with an
+    iron gate, braziers, banners, a cheering crowd and fireworks.
 
-2) SKY ROUTE (20 Delta), 138 dmg
-   ↓+Light, →+Heavy (hold ↑ as it hits), Light in the air, ↑+Special
-   = Low kick, launcher, jump-cancel, air kick, Sky Uppercut. Blink out after.
+PLAYABLE ROSTER (110 SELECT SCREEN ENTRIES)
+-------------------------------------------
+Fighters are grouped by their source series. Invincible and Omni-Man are filed
+under DC in the game data, as is Homelander. Soldier Boy is filed under Marvel.
 
-3) PHASE BEAM (43 Delta), 150 dmg (his best normal combo)
-   ↓↘→+Special, Light, Light, ↓↙←+Special
-   = Phase Strike crossup, Jab, Straight, Deltamax beam.
+Dragon Ball
+- Goku [goku] — Saiyan all-rounder who climbs a Ki-powered transformation ladder from base to
+    Ultra Instinct.
+- Goku Black [goku_black] — Sword-and-Ki fighter who pressures with an energy blade and a Sword
+    Slash ultimate.
+- Vegeta [vegeta] — Ki fighter with beam and blast attacks who powers up to Super Saiyan Blue
+    Evolution.
+- Dark Vegeta [vegeta_dark] — A separate aggressive Vegeta build with Villainous Onslaught.
+- Beerus [beerus] — Mobile God of Destruction who combines close strikes with Ki projectiles.
 
-4) DODGE PUNISH (30 Delta), 126 dmg
-   ↓+Special at range, then →→ THROUGH their answer (so the invulnerable travel
-   covers their attack), →+Heavy within 20 frames (+15%), then ↑+Special.
-   Not a true combo (they act between hits 1 and 2), but the counter carries.
+Jujutsu Kaisen
+- Gojo Satoru [gojo] — The original Gojo fighter, mixing close combat and ranged technique with
+    Unlimited Void.
+- Satoru Gojo (Shinjuku) [gojo_shinjuku] — A dedicated Limitless fighter who switches between
+    ranged control and rushdown.
+- Sukuna [sukuna] — The original close-range curse fighter with Malevolent Shrine.
+- Ryomen Sukuna (Shinjuku) [sukuna_shinjuku] — A separate King of Curses build centered on
+    slashes and Malevolent Shrine.
+- Alternate Sukuna [alt_sukuna] — A separate Sukuna moveset with close-range curse pressure and
+    Malevolent Shrine.
+- Aoi Todo [aoi_todo] — A brawler who uses Boogie Woogie to reposition and finishes with Black
+    Flash.
+- Maki Zenin [maki] — A fast cursed-tool fighter who can enter her Shibuya awakening.
+- Toji Fushiguro [toji] — A fast weapon specialist with a Reincarnated Form ultimate.
+- Yuji Itadori [yuji] — A close-range rushdown fighter who builds pressure into Black Flash.
+- Kasumi Miwa [miwa] — A sword duelist who controls the space around her with Simple Domain.
+- Yuta Okkotsu [yuta] — A swordsman who mixes close attacks and ranged pressure with Rika's
+    assist.
+- Megumi Fushiguro [megumi_fushiguro] — A Ten Shadows tactician who sends out shikigami and
+    opens Chimera Shadow Garden.
+- Hiromi Higuruma [higuruma] — A gavel fighter who builds Case File and Precedent before Deadly
+    Sentencing.
 
-5) THE SENTENCE (100 Delta + GUILTY), about 284 dmg
-   Chip them below 30% with a full Judgment meter, Light+Heavy+Special (GUILTY),
-   Light, Light, ↓↙←+Special on the sealed foe, then after release
-   ↓↘→↓↘→+Special for the 220-beam Super.
-   In a real match at under 30% HP, this kills well before the end.
+Naruto / Boruto
+- Naruto [naruto] — A clone-and-Rasengan fighter whose ultimate is Uzumaki Two Thousand Combo.
+- Sasuke [sasuke] — A close-range Uchiha fighter who can escalate his Susanoo.
+- Sasuke (Adult) [sasuke_adult] — The adult Rinnegan build with directional gravity supers.
+- Itachi Uchiha [itachi] — A tactical Uchiha fighter with genjutsu and Susanoo.
+- Tobirama Senju [tobirama] — A tactical controller with Water Style and Edo Tensei summons.
+- Hashirama Senju [hashirama] — A Wood Style fighter who controls space and uses Sealing Jutsu.
+- Minato Namikaze [minato] — A Flying Raijin teleport fighter with a Nine-Tails Chakra Mode.
+- Madara Uchiha [madara] — An Uchiha battlefield controller with ranged techniques and Susanoo.
+- Obito Uchiha [obito] — A Kamui fighter whose ultimate calls the Ten-Tails.
+- Tobi [tobi] — A separate Obito identity with a giant Nine-Tails cinematic.
+- Pain [pain] — A gravity controller with push, pull and Chibaku Tensei.
+- Jiraiya [jiraiya] — A summon-based zoner with Sage Mode and Gamabunta.
+- Isshiki Otsutsuki [isshiki] — Controls space with shrinking techniques, rods and Daikokuten
+    cubes.
+- Sakura Haruno [sakura] — A power brawler with support tools and a ground-shattering ultimate.
+- Sasuke (Sensei) [sasuke_sensei] — A sword-and-ninjutsu variant who calls down Kirin.
+- Hinata Hyuga [hinata] — A precise Gentle Fist fighter with Twin Lion Fists.
+- Gaara [gaara] — A long-range controller who uses sand to limit movement.
+- Six Paths of Pain [six_paths_pain] — A separate multi-body build that brings the Paths into a
+    coordinated attack.
+- Kakashi [kakashi] — A versatile ninja with ranged techniques, summons and Raikiri.
+- Kakashi (ANBU) [kakashi_anbu] — The younger ANBU build with Copy Ninja, Raikiri and Kamui
+    Rift.
+- Kakashi (Kamui) [kakashi_war] — The war-era build focused on Kamui Raikiri and Obito's Gift.
+- Naruto (Seventh Hokage) [naruto_seventh] — The Hokage build with Kurama Bond and Tailed Beast
+    Bomb routes.
+- Shisui (Fallen) [shisui_fallen] — The Curse-Breaker, an alternate Shisui built for fast
+    technical rushdown.
 
+Demon Slayer
+- Zenitsu Agatsuma [zenitsu] — A high-speed Thunder Breathing swordsman with Godspeed.
+- Kyojuro Rengoku [rengoku] — A heavy-hitting Flame Breathing swordsman.
+- Shinobu Kocho [shinobu] — A quick thrust-and-poison fighter with Insect Breathing.
+- Inosuke Hashibira [inosuke] — A dual-blade rushdown fighter with Beast Breathing.
+- Nezuko Kamado [nezuko] — A fast demon brawler with explosive blood and ally calls.
 
-9. HOW TO PLAY HIM
-------------------
-- Neutral: poke with Delta Blaster bolts (cheap, full-screen, 4 max) and wait
-  for them to commit. Then blink THROUGH the attack for the dodge reward and
-  punish with a +15% Heavy kick.
-- Pressure: the Jab is +1 on block, so Jab, then blink crossup (they face the
-  wrong way for 8f), then Jab again is his loop. Keep both charges in mind:
-  with both spent you have no escape for 1.5 s, and that's when they hit back.
-- Anti-air: Rising kick (cheap), Sky Uppercut (20 Delta, launches), or the air
-  Blaster. He has one jump and no vertical blink, so flyers are his hardest
-  matchup.
-- Defense: Acrobatic flip (8 invulnerable frames), Phase Strike (invulnerable
-  0-9) passes through attacks, and the Wake-up reversal is a get-off-me button
-  but is −12 if blocked.
-- Endgame: count your Judgment points. Don't waste the verdict early: INNOCENT
-  only pays 40 Delta, while GUILTY at 30% HP basically ends the round.
-- Meter discipline: Super = ALL your Delta plus a 3 s lockout. Use it to finish,
-  not to start.
+Rick and Morty
+- Rick Sanchez [rick] — A gadget zoner with gunfire, portals and Self-Destruct.
+- Rick Prime [rickPrime] — A gadget fighter with the Temporal Rewind ultimate.
 
+Ben 10
+- Ben 10 (Ben Tennyson) [ben10] — An Omnitrix shapeshifter who selects alien forms from a
+    configurable loadout.
+- Albedo [albedo] — An Ultimatrix shapeshifter with his own versions of the shared alien forms.
+- Kevin Levin [kevin_levin] — Absorbs materials to change his attacks and can enter Ultimate
+    Kevin.
+- Gwen Tennyson [gwen] — A ranged mana caster with summons and a giant Mana Blade.
+- Vilgax [vilgax] — A powerful alien bruiser with ranged pressure and Chimerian Onslaught.
 
-10. MATCHUPS (design targets, not measured win rates; Red's wins out of 10)
--------------------------------------------------------------------------
-  vs Sanji ............... 5-5, mirror rushdowns, comes down to reads
-  vs Arlong .............. 6-4 Red, the blink ignores his water zone
-  vs Buggy ............... about 6.5-3.5 Red, blink and Phase Strike pass through his parts
-  vs Superman/Homelander . 4.5-5.5, slightly unfavoured: they fly and he can't blink up;
-                           his outs are dodging their beams and Judgment late
+Invincible
+- Invincible (Mark Grayson) [invincible] — An aerial glass cannon who dives into close-range
+    pressure.
+- Omni-Man (Viltrumite) [omniman_viltrum] — A momentum-based flying brawler with Escape
+    Velocity.
 
+DC
+- The Flash [flash] — A speedster who overwhelms opponents with rushdown and Flash Time.
+- Batman [batman] — A tactical brawler who uses gadgets, a support fleet and Knightfall.
+- Superman [superman] — A flying all-rounder with heat vision and World of Cardboard.
+- Green Arrow [green_arrow] — Controls range with trick arrows and deployable support.
+- Cyborg [cyborg] — Uses a sonic cannon, missiles and a heat-based artillery kit.
+- Beast Boy [beast_boy] — Chains short animal transformations into rushdown combos.
+- Raven [raven] — A levitating spellcaster with projectiles and telekinetic setups.
+- Starfire [starfire] — An aerial zoner with starbolts and twin eye beams.
+- Robin [robin] — A mobile staff fighter with smoke, bombs and gadget traps.
 
-11. SKINS (10 alternates + default; cosmetic only)
---------------------------------------------------
-  S.P.D. Green (Bridge) · S.P.D. Yellow (Z) · S.P.D. Pink (Syd) ·
-  Shadow Ranger (Doggie Cruger) · S.W.A.T. Mode · Red Battlizer ·
-  A-Squad (Rogue) · Ben 10 · Albedo · Alien X
-S.P.D. Blue and Omega are NOT skins; they're their own fighters.
-Each skin also recolours his hit sparks, blink smear and intro streak.
+The Boys
+- Homelander [homelander] — A flying bruiser with heat vision and a Flight 37 cinematic.
+- Soldier Boy [soldier_boy] — A grounded shield-and-gun bruiser with Armed Mode and Nuclear
+    Burst.
 
+Power Rangers
+- Samurai Red Ranger (Fire) [samurai_red_ranger] — A fire sword fighter with the Fire Smasher.
+- Gold Samurai Ranger (Light) [gold_samurai_ranger] — A fast light-element swordsman with the
+    Barracuda Blade.
+- Green Samurai Ranger (Forest) [green_samurai_ranger] — A forest-element fighter who controls
+    space with a spear.
+- Mighty Morphin Rangers [mmpr_rangers] — A team slot that switches among Red, Black, Pink,
+    Green and White.
+- S.P.D. Rangers [spd_rangers] — A team slot that switches among Red, Blue, Green, Yellow, Pink
+    and Omega.
+- Ninja Storm CGPT [ninja_storm_cgpt] — An original Wind Ninja Academy fighter using wind, earth
+    and a shadow clone.
+- Dino Thunder Rangers [dinothunder] — A team slot that switches among Conner, Ethan, Kira and
+    Trent.
+- Ninja Storm Squad [ns_squad] — A team slot that switches among Shane, Dustin, Tori, Blake and
+    Cam.
+- Ninja Storm Rangers [ninja_storm_rangers] — The dual-stance build that switches between Shane
+    and Dustin.
+- Krybot [krybot] — A Troobian infantry fighter with blaster fire and coordinated backup.
 
-12. FOR DEVELOPERS: WHERE HE LIVES
-----------------------------------
-  spdRedData.js ...... profile (blink / Judgment numbers), frame data, roster entry
-  spdRed.js .......... command layer: inputs, chains, cancels, special motions
-  spdRedState.js ..... Delta economy, projectiles, scripted Super, hit hooks
-  rangers.js ......... shared Ranger framework (blink, Judgment), reusable by other Rangers
-  spdRedSprites.js / spdRedFx.js / spdRedSound.js / spdRedSkins.js ... art, effects, audio, skins
-  kits.js (spd_red) .. the in-game Move List text
-  docs/spd_red/ ...... COMBOS.md, BALANCE_NOTES.md, SPRITE_LEDGER.md, CREDITS.md
-  Tests: harness/spd_red_final.test.mjs, harness/spd_red_skins_check.mjs
-Everything is deterministic: there's no Math.random, and the spreads come from
-a hash of (match seed, frame, player).
+Hunter × Hunter
+- Isaac Netero [netero] — Uses rapid martial arts and the 100-Type Guanyin Bodhisattva.
+- Killua Zoldyck [killua] — A lightning-fast assassin who can use Godspeed.
+- Hisoka Morrow [hisoka] — A technical trickster with Bungee Gum and Bloodlust Overdrive.
+- Chrollo Lucilfer [chrollo] — A tactical melee fighter using stolen Nen abilities through Skill
+    Hunter.
+
+The Disastrous Life of Saiki K.
+- Saiki Kusuo [saiki] — A fast psychic zoner with telekinetic attacks and Giant Bomb Throw.
+
+The Incredibles
+- Violet Parr [violet] — Uses invisibility, force fields and traps to control space.
+- Dash (Dash Parr) [dash_parr] — Builds momentum through speed and fast rushdown.
+- Syndrome [syndrome] — Commands drones, turrets and an Omnidroid arsenal.
+- Frozone [frozone] — Skates on ice and chains Chill, Freeze and Shatter.
+- Mr. Incredible [mr_incredible] — A heavyweight pressure fighter with a temporary prime form.
+- Elastigirl [elastigirl] — Controls midrange and grabs with elastic limbs.
+
+Horror
+- Ghostface [ghostface] — A stalking knife fighter who swaps killer identities and uses ambush
+    setups.
+- Jason Voorhees [jason] — A heavyweight grappler based on the Friday the 13th slasher.
+
+Bleach
+- Ichigo Kurosaki [ichigo] — A fast swordsman who projects Getsuga Tenshō at range.
+- Zaraki Kenpachi [zaraki] — A cleaver-wielding bruiser with Shikai and a Bankai finisher.
+- Zaraki Kenpachi (Shikai) [zaraki_shikai] — A dedicated roster entry for Kenpachi's Shikai
+    build, with the Bankai finisher.
+- Mayuri Kurotsuchi [mayuri] — A tactical ranged fighter with poison and Konjiki Ashisogi Jizō.
+- Byakuya Kuchiki [byakuya] — A sword fighter who controls the field with Senbonzakura petals.
+
+One-Punch Man
+- Saitama [saitama] — A punch-heavy bruiser with a cinematic Serious Punch.
+- Genos [genos] — A cyborg who combines fast strikes and ranged blasts with Overdrive.
+
+Death Note
+- Light Yagami [light] — A tactical summoner who uses Ryuk and Death Note setups.
+- L (L Ryūzaki) [l_ryuuzaki] — An analytical fighter using counters, call-ins and The Final
+    Deduction.
+
+Marvel
+- Spider-Man (Peter Parker) [spiderman] — A mobile web fighter with rushdown and Maximum Web.
+
+Hajime no Ippo
+- Ippo Makunouchi [ippo] — A close-range boxer who builds into the Dempsey Roll.
+
+One Piece
+- Roronoa Zoro [zoro] — A stance-based swordsman with Santoryu and Ashura attacks.
+- Buggy the Clown [buggy] — Controls space with detachable body parts and Buggy Ball Barrage.
+- Sanji [sanji] — A Black Leg kick specialist who chains attacks into longer courses.
+- Arlong [arlong] — A sawshark fish-man bruiser who controls water zones.
+- Monkey D. Luffy [luffy] — An elastic brawler who uses long-reaching strikes and Full-Stretch
+    Finale.
+
+Original fighters
+- Omololu [omololu] — A tactical original fighter with pattern analysis and Recursive Cadence.
+- Dseyl [dseyl] — An original inventor who uses flight, drones and Flash Time.
+- Enoch [enoch] — A mobile original fighter who controls space with frost, fire and elemental
+    trails.
+
+Divine
+- Jesus [jesus] — A divine fighter who mixes close-range attacks with Blessed Energy pressure.
+
+Baki
+- Baki Hanma [baki] — A close-range martial artist with the Demon Back transformation.
+
+PLAYABLE RANGER TEAM FORMS (20)
+------------------------------
+Select the corresponding team fighter to switch between these Rangers in a match.
+
+Mighty Morphin Rangers
+- Jason Lee Scott, Red Ranger [red_ranger_mmpr]
+- Adam Park, Black Ranger [mmpr_black]
+- Kimberly Hart, Pink Ranger [mmpr_pink]
+- Tommy Oliver, Green Ranger [green_ranger]
+- Tommy Oliver, White Ranger [mmpr_white]
+
+S.P.D. Rangers
+- Jack Landors, S.P.D. Red Ranger [spd_red]
+- Sky Tate, S.P.D. Blue Ranger [spd_blue]
+- Bridge Carson, S.P.D. Green Ranger [spd_green]
+- Elizabeth “Z” Delgado, S.P.D. Yellow Ranger [spd_yellow]
+- Sydney “Syd” Drew, S.P.D. Pink Ranger [spd_pink]
+- Sam, S.P.D. Omega Ranger [omega_ranger]
+
+Ninja Storm Squad
+- Shane Clarke, Red Wind Ranger [ns_red]
+- Dustin Brooks, Yellow Wind Ranger [ns_yellow]
+- Tori Hanson, Blue Wind Ranger [ns_blue]
+- Blake Bradley, Navy Thunder Ranger [ns_navy]
+- Cam Watanabe, Green Samurai Ranger [ns_green]
+
+Dino Thunder Rangers
+- Conner McKnight, Red Dino Ranger [dt_red]
+- Ethan James, Blue Dino Ranger [dt_blue]
+- Kira Ford, Yellow Dino Ranger [dt_yellow]
+- Trent Fernandez-Mercer, White Dino Ranger [dt_white]
+
+BEN 10 AND ALBEDO — ALIEN FORMS (24)
+------------------------------------
+These forms are available for the normal Ben 10 and Albedo loadouts.
+
+- Swampfire [swampfire]
+- Heatblast [heatblast]
+- Megawhatt [megawhatt]
+- Goop [goop]
+- XLR8 [xlr8]
+- Eyeguy [eyeguy]
+- Ghostfreak [ghostfreak]
+- Alien X [alienx]
+- Brainstorm [brainstorm]
+- Terraspin [terraspin]
+- Wildvine [wildvine]
+- Jetray [jetray]
+- Diamondhead [diamondhead_ov]
+- Upgrade [upgrade_ov]
+- Humongousaur [humongousaur]
+- Feedback [feedback_ov]
+- Arcticguana [arcticguana]
+- BenWolf [benwolf]
+- Big Chill [bigchill]
+- Ripjaws [ripjaws]
+- Rath [rath]
+- Water Hazard [waterhazard]
+- Highbreed [highbreed]
+- Wildmutt [wildmutt_ov]
+
+Sources in this checkout
+game.js (STAGE_DEFS and selection rules), stageLayers.js (stage visuals),
+characters.js (playable roster), squad modules (team forms), and aliens.js
+(available Omnitrix forms).

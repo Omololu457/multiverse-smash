@@ -25,14 +25,9 @@ try {
   let found = null;
   for (let i = 0; i < 8; i++) { const s = await H(() => window.__harness.pauseSel()); if (s.item === "controls") { found = s; break } await padNav({ down: true }); await page.waitForTimeout(20); }
   check("'controls' item reachable in pause", !!found, found ? `idx=${found.index}` : "not found");
-  await padNav({ confirm: true }); await page.waitForTimeout(60);
-  const gs = await H(() => window.__harness.state?.().gameState ?? window.__harness.padMenuState().gameState);
-  check("selecting Controls opens the overlay", gs === "controlsHelp", `gs=${gs}`);
-  await page.screenshot({ path: path.join(SHOTS, "controls_help.png") });
-  // Back out (Circle).
-  await padNav({ back: true }); await page.waitForTimeout(60);
-  const gs2 = await H(() => window.__harness.padMenuState().gameState);
-  check("Circle backs out to pause", gs2 === "paused", `gs=${gs2}`);
+  // 2026-11-24 owner: the pause "Controls" item now opens the Controls Lab page (controls.html) instead of the old overlay.
+  await Promise.all([page.waitForURL(/controls\.html/, { timeout: 30000 }).catch(() => {}), padNav({ confirm: true })]);
+  check("selecting Controls opens controls.html (Controls Lab)", /controls\.html/.test(page.url()), page.url());
   check("no JS errors", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
 
   // ── HELP == MAPPING (input quick-wins Phase 2). Ground truth is BEHAVIOUR, not the table: press each

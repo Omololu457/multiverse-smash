@@ -1,5 +1,5 @@
 // harness/ui_batch_visual.mjs — visual + smoke verification for the UI/cosmetic batch.
-// Screenshots: main menu (selector shard), personality radar, codex. Asserts no page errors and
+// Screenshots: main menu (selector shard), personality radar. Asserts no page errors and
 // that the new screens enter with sane data.
 import { chromium } from "playwright";
 import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
@@ -25,24 +25,9 @@ try {
   check("PROFILE screen enters", prof.state === "profile", `state=${prof.state}`);
   check("PROFILE exposes all five traits", prof.data && prof.data.traits && ["O","C","E","A","N"].every(k => k in prof.data.traits), JSON.stringify(Object.keys(prof.data?.traits||{})));
 
-  // ── CODEX ──
-  const cdx = await page.evaluate(() => window.__harness.screens.codex());
-  await page.waitForTimeout(120);
-  await page.screenshot({ path: path.join(OUT, "BATCH_codex.png") });
-  check("CODEX screen enters", cdx.state === "codex", `state=${cdx.state}`);
-  check("CODEX groups by franchise", cdx.groupCount >= 10, `${cdx.groupCount} franchises`);
-  check("CODEX covers the roster", cdx.total >= 80, `${cdx.total} fighters`);
-  check("CODEX auto-selects a fighter", !!cdx.selected, `selected=${cdx.selected}`);
-
-  // Select a long-bio character to eyeball wrapping.
-  await page.evaluate(() => window.__harness.screens.codexSelect("vegeta_dark"));
-  await page.waitForTimeout(80);
-  await page.screenshot({ path: path.join(OUT, "BATCH_codex_detail.png") });
-
   // ── MAIN MENU (selector shard on hover) ──
   await page.evaluate(() => window.__harness.screens.back());
   await page.waitForTimeout(80);
-  // hover the CODEX menu row by moving the mouse over its center if we can find it; else just shoot.
   await page.screenshot({ path: path.join(OUT, "BATCH_mainmenu.png") });
 
   check("no page errors across the batch", errs.length === 0, errs.slice(0,3).join(" | ") || "none");

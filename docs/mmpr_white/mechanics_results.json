@@ -4,17 +4,17 @@
    "label": "Light chain J1 -> J2 -> J3",
    "kind": "combo",
    "hits": [
-    18,
-    22,
-    28
+    43,
+    35,
+    44
    ],
    "stunBefore": [
     0,
-    15,
+    14,
     10
    ],
    "hitFrames": [
-    5,
+    4,
     18,
     34
    ],
@@ -24,7 +24,7 @@
     72
    ],
    "blockedEvents": 0,
-   "damage": 68,
+   "damage": 122,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -63,17 +63,17 @@
    "label": "Light chain J1 -> J2 -> J3 (mirrored)",
    "kind": "combo",
    "hits": [
-    18,
-    22,
-    28
+    43,
+    35,
+    44
    ],
    "stunBefore": [
     0,
-    15,
+    14,
     10
    ],
    "hitFrames": [
-    5,
+    4,
     18,
     34
    ],
@@ -83,7 +83,7 @@
     72
    ],
    "blockedEvents": 0,
-   "damage": 68,
+   "damage": 122,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -122,19 +122,19 @@
    "label": "Low -> Heavy (Saba Cut) -> Saba's Answer",
    "kind": "combo",
    "hits": [
-    25,
-    57,
-    43
+    40,
+    91,
+    68
    ],
    "stunBefore": [
     0,
-    9,
-    23
+    15,
+    22
    ],
    "hitFrames": [
     8,
-    28,
-    54
+    22,
+    49
    ],
    "gapAtHit": [
     72,
@@ -142,7 +142,7 @@
     72
    ],
    "blockedEvents": 0,
-   "damage": 125,
+   "damage": 199,
    "energySpent": 11.46,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -181,9 +181,9 @@
    "label": "Forward+Heavy -> Heavy -> Heavy (advance -> Saba -> knock-away)",
    "kind": "combo",
    "hits": [
-    24,
-    29,
-    37
+    38,
+    46,
+    59
    ],
    "stunBefore": [
     0,
@@ -201,7 +201,7 @@
     60
    ],
    "blockedEvents": 0,
-   "damage": 90,
+   "damage": 143,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -240,23 +240,23 @@
    "label": "Launcher (Rising Tiger) -> manual jump -> Air (Turning Heel)",
    "kind": "combo",
    "hits": [
-    45,
-    27
+    72,
+    48
    ],
    "stunBefore": [
     0,
-    19
+    21
    ],
    "hitFrames": [
-    12,
-    40
+    7,
+    33
    ],
    "gapAtHit": [
     72,
     72
    ],
    "blockedEvents": 0,
-   "damage": 72,
+   "damage": 120,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -295,9 +295,9 @@
    "label": "HAND -> FOOT -> BLADE over three separate neutral exchanges",
    "kind": "collection",
    "hits": [
-    18,
-    25,
-    52
+    43,
+    40,
+    83
    ],
    "stunBefore": [
     0,
@@ -305,17 +305,17 @@
     0
    ],
    "hitFrames": [
-    5,
+    4,
     57,
-    113
+    107
    ],
    "gapAtHit": [
     72,
-    73,
-    77
+    69,
+    74
    ],
    "blockedEvents": 0,
-   "damage": 95,
+   "damage": 166,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": false,
@@ -323,7 +323,7 @@
    "marks": {
     "hand": 21,
     "foot": 79,
-    "blade": 152
+    "blade": 139
    },
    "stats": {
     "disc": {
@@ -358,9 +358,9 @@
    "label": "Saba first: BLADE -> HAND -> FOOT (any order)",
    "kind": "collection",
    "hits": [
-    57,
-    17,
-    21
+    91,
+    38,
+    33
    ],
    "stunBefore": [
     0,
@@ -368,17 +368,17 @@
     0
    ],
    "hitFrames": [
-    14,
-    78,
-    122
+    8,
+    64,
+    109
    ],
    "gapAtHit": [
     72,
     82,
-    87
+    86
    ],
    "blockedEvents": 0,
-   "damage": 95,
+   "damage": 162,
    "energySpent": 0,
    "pipsSpent": 0,
    "trueCombo": false,
@@ -417,28 +417,28 @@
    "label": "Formation Twin Fist -> Leader's Return -> punish",
    "kind": "combo",
    "hits": [
+    62,
     39,
-    24,
-    52
+    83
    ],
    "stunBefore": [
     0,
     21,
-    5
+    11
    ],
    "hitFrames": [
     31,
     46,
-    75
+    69
    ],
    "gapAtHit": [
-    104,
-    104,
+    99,
+    99,
     66
    ],
    "blockedEvents": 0,
-   "damage": 115,
-   "energySpent": 18.22,
+   "damage": 184,
+   "energySpent": 19,
    "pipsSpent": 1,
    "trueCombo": true,
    "dropAfterHit": -1,
@@ -478,27 +478,27 @@
    "label": "Formation Crane Rise -> air conversion",
    "kind": "combo",
    "hits": [
-    45,
-    20,
-    29
+    72,
+    32,
+    52
    ],
    "stunBefore": [
     0,
     24,
-    14
+    17
    ],
    "hitFrames": [
     31,
     47,
-    65
+    62
    ],
    "gapAtHit": [
     110,
     110,
-    78
+    67
    ],
    "blockedEvents": 0,
-   "damage": 94,
+   "damage": 156,
    "energySpent": 22.18,
    "pipsSpent": 1,
    "trueCombo": true,
@@ -537,28 +537,20 @@
   {
    "label": "Delayed Ninja Edge -> ground pressure",
    "kind": "pressure",
-   "hits": [
-    18
-   ],
-   "stunBefore": [
-    0
-   ],
-   "hitFrames": [
-    55
-   ],
-   "gapAtHit": [
-    60
-   ],
+   "hits": [],
+   "stunBefore": [],
+   "hitFrames": [],
+   "gapAtHit": [],
    "blockedEvents": 1,
-   "damage": 24,
-   "energySpent": 14.48,
+   "damage": 8,
+   "energySpent": 13.94,
    "pipsSpent": 1,
    "trueCombo": false,
    "dropAfterHit": -1,
    "marks": {},
    "stats": {
     "disc": {
-     "hand": 1,
+     "hand": 0,
      "foot": 0,
      "blade": 0
     },
@@ -589,28 +581,28 @@
    "label": "Clean Saba confirm -> ultimate (Heavy recovery cancel)",
    "kind": "combo",
    "hits": [
-    57,
-    33,
-    34,
-    30,
-    34,
-    111
+    91,
+    52,
+    54,
+    48,
+    54,
+    178
    ],
    "stunBefore": [
     0,
-    6,
+    5,
     9998,
     9998,
     9998,
     9998
    ],
    "hitFrames": [
-    14,
-    57,
-    113,
-    145,
-    179,
-    257
+    8,
+    52,
+    108,
+    140,
+    174,
+    252
    ],
    "gapAtHit": [
     80,
@@ -621,7 +613,7 @@
     60
    ],
    "blockedEvents": 0,
-   "damage": 299,
+   "damage": 477,
    "energySpent": 96.52,
    "pipsSpent": 0,
    "trueCombo": true,
@@ -661,15 +653,15 @@
   "light": {
    "name": "light",
    "total": 17,
-   "activeStart": 5,
+   "activeStart": 4,
    "activeEnd": 6,
-   "damage": 31
+   "damage": 45
   },
   "heavy": {
    "name": "heavy",
-   "total": 43,
-   "activeStart": 14,
-   "activeEnd": 16,
+   "total": 30,
+   "activeStart": 8,
+   "activeEnd": 11,
    "damage": 95
   },
   "wLow": {
@@ -681,9 +673,9 @@
   },
   "up": {
    "name": "up",
-   "total": 37,
-   "activeStart": 12,
-   "activeEnd": 14,
+   "total": 27,
+   "activeStart": 7,
+   "activeEnd": 10,
    "damage": 75
   },
   "wAdv": {
@@ -737,7 +729,7 @@
    "hitLog": [
     {
      "t": 30,
-     "d": 39,
+     "d": 62,
      "vy": 0,
      "vx": 3
     }
@@ -751,7 +743,7 @@
    "hitLog": [
     {
      "t": 30,
-     "d": 45,
+     "d": 72,
      "vy": -20,
      "vx": 1
     }
@@ -765,7 +757,7 @@
    "hitLog": [
     {
      "t": 47,
-     "d": 55,
+     "d": 88,
      "vy": 0,
      "vx": 4
     }
@@ -776,10 +768,10 @@
  "disciplines": {
   "p2Hit": true,
   "realRoute": {
-   "framesHandToBlade": 131,
+   "framesHandToBlade": 118,
    "tokens": 1,
    "token": {
-    "t": 211,
+    "t": 218,
     "order": [
      "hand",
      "foot",
@@ -791,8 +783,8 @@
  "formation": {
   "twin": {
    "hits": [
-    39,
-    24
+    62,
+    39
    ],
    "offered": true,
    "accepted": true,
@@ -827,8 +819,8 @@
   },
   "crane": {
    "hits": [
-    45,
-    20
+    72,
+    32
    ],
    "offered": true,
    "accepted": true,
@@ -864,8 +856,8 @@
   },
   "edge": {
    "hits": [
-    55,
-    26
+    88,
+    42
    ],
    "offered": true,
    "accepted": true,
@@ -941,7 +933,7 @@
   },
   "answerReachFromCentre": 142,
   "descentLanding": 24,
-  "descentHit": 45
+  "descentHit": 0
  },
  "teleport": {
   "distance": 230
@@ -958,10 +950,10 @@
    "tokenAfter": false,
    "liveOrderAtEntry": false,
    "contacts": [
-    37,
-    33,
-    37,
-    121
+    60,
+    52,
+    60,
+    195
    ],
    "frames": [
     27,
@@ -969,7 +961,7 @@
     93,
     171
    ],
-   "total": 303,
+   "total": 486,
    "durationFrames": 200,
    "done": 1,
    "hud": {
@@ -990,10 +982,10 @@
    "tokenAfter": false,
    "liveOrderAtEntry": false,
    "contacts": [
-    37,
-    33,
-    37,
-    121
+    60,
+    52,
+    60,
+    195
    ],
    "frames": [
     27,
@@ -1001,7 +993,7 @@
     93,
     171
    ],
-   "total": 303,
+   "total": 486,
    "durationFrames": 200,
    "done": 1,
    "hud": {
@@ -1018,11 +1010,11 @@
   }
  },
  "resources": {
-  "walk60f": 360,
-  "jumpApexPx": 385
+  "walk60f": 567,
+  "jumpApexPx": 550
  },
- "engineDamageScale": 0.581,
- "pass": 104,
- "fail": 0,
+ "engineDamageScale": 1.387,
+ "pass": 101,
+ "fail": 3,
  "errors": []
 }

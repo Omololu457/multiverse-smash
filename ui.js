@@ -25,6 +25,7 @@ import * as theme from "./theme.js"           // live-swappable UI theme (accent
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
 import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
+import { hudBarPath, hudPlatePath, hudFramePanel, hudFrameOverlay, drawUniverseTile } from "./hudFrames.js"   // universe-shaped HUD frames (scroll / katana / talisman / morpher …; presentation-only)
 import { fillThemedBar } from "./hudBars.js"             // every character's own life + energy bar (themed HUD; presentation-only)
 import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
 import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
@@ -900,12 +901,10 @@ export function getStartMenuRects(canvas) {
 export function getGameplaySelectRects(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "training",    label: "TRAINING",     subLabel: "1 player practice mode"      },
-    { id: "comboTrials", label: "COMBO TRIALS", subLabel: "Scripted combo challenges"   },
     { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
     { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
     { id: "arcade",   label: "ARCADE",    subLabel: "7 fights, a rival, a boss & your ending" },
     { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
-    { id: "bracket",  label: "TOURNAMENT", subLabel: "Local 4/8-fighter single-elim bracket" },
     { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
     { id: "aivsai",   label: "AI vs AI",  subLabel: "Watch/test two CPUs — logged, fast-forwardable" },
     { id: "back",     label: "BACK",      subLabel: "Return to title"             }
@@ -1428,19 +1427,9 @@ export function getMainMenuRects(canvas) {
 function _mainMenuRectsRaw(canvas) {
   return getVerticalMenuLayout(canvas, [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
-    { id: "playTutorial", label: "TUTORIAL", subLabel: "Interactive guided walkthrough — learn the basics" },
-    { id: "story",    label: "STORY MODE", subLabel: "A dimensional narrative campaign — coming soon" },
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
-    { id: "moveList", label: "MOVE LIST", subLabel: "Fighters, moves, combos & controls"  },
-    { id: "codex",    label: "CODEX",     subLabel: "Fighter dossiers, grouped by world"    },
-    { id: "academy",  label: "ACADEMY",   subLabel: "Learn every fighter — demos & hands-on drills" },
-    { id: "controlsLab", label: "CONTROLS LAB", subLabel: "Watch every move, see your controller, guided combo trials" },
     { id: "profile",  label: "PROFILE",   subLabel: "Your Big-Five reading + UI appearance" },
-    { id: "tutorial", label: "HOW TO PLAY", subLabel: "Controls & mechanics walkthrough"  },
-    { id: "account",  label: "ACCOUNT",   subLabel: "Create / switch local profile"       },
-    // SAVE FILE (File System Access API). Loads/creates a local game_player_data.json so
-    // progress persists; subLabel reflects live status (or that the browser can't do it).
-    { id: "savefile", label: "SAVE FILE", subLabel: isFileApiSupported() ? saveFileStatus() : "Not supported here — progress stays in-memory" },
+    { id: "controlsLab", label: "CONTROLS", subLabel: "Controls Lab — moves, Tutorial, Academy & Combo Trials" },
     { id: "settings", label: "SETTINGS",  subLabel: "Keyboard / controller setup"         },
     { id: "credits",  label: "CREDITS",   subLabel: "Art, audio & attribution"            },
     { id: "back",     label: "BACK",      subLabel: "Return to title"                     }
@@ -1595,7 +1584,7 @@ export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null, 
     if (_mainMenuScroll < scrollMax - 1) ctx.fillText("▼ scroll for more", rects[0].x + rects[0].w / 2, band.bottom + 18)
     ctx.restore()
   }
-  drawFooterHint(ctx, canvas, "Tip: new here? Open HOW TO PLAY for the controls and core mechanics")
+  drawFooterHint(ctx, canvas, "Tip: new here? CONTROLS has the Tutorial, the Academy and Combo Trials")
 
   // DAILY CHALLENGES panel (Track D): today's 3 featured challenges + the login streak,
   // bottom-left. Read-only; completing challenges (in a match) grants their normal reward.
@@ -1630,81 +1619,6 @@ function drawDailyChallengesPanel(ctx, canvas, daily) {
     ctx.fillText(label, px + 34, ry)
   })
   ctx.restore()
-}
-
-// ─────────────────────────────────────────────
-// STORY MODE (Part 1) — a real, playable chapter select. The chapter DATA (titles, matchups, dialogue)
-// now lives in story.js; game.js builds a view model and passes it to drawStoryModeScreen as `opts`.
-// This screen reuses the menu/list visual language rather than a bespoke node map (MVP scope).
-// ─────────────────────────────────────────────
-export function getStoryBackButton(canvas) {
-  const { width: w, height: h } = getCanvasSize(canvas)
-  return { id: "back", x: w / 2 - 110, y: h - 62, w: 220, h: 44 }
-}
-
-// Shared 2-column geometry so the clickable rects (getStoryChapterRects) and the render
-// (drawStoryModeScreen) stay pixel-aligned. Part 1: Story Mode is now a real chapter map.
-function _storyChapterLayout(canvas, count) {
-  const { width: w } = getCanvasSize(canvas)
-  const cardW = Math.min(900, w * 0.78), cardH = 552
-  const cardX = w / 2 - cardW / 2, cardY = 74
-  const cols = 2, per = Math.ceil(count / cols)
-  const listX = cardX + 40, listW = cardW - 80, colGap = 18, colW = (listW - colGap) / cols
-  const rowH = 48, listY = cardY + 150
-  const rects = []
-  for (let i = 0; i < count; i++) {
-    const col = Math.floor(i / per), row = i % per
-    rects.push({ index: i, x: listX + col * (colW + colGap), y: listY + row * rowH, w: colW, h: rowH - 8 })
-  }
-  return { cardX, cardY, cardW, cardH, rects }
-}
-
-// Hit-test rects for the chapter tiles (game.js maps a click → chapter index).
-export function getStoryChapterRects(canvas, count) {
-  return _storyChapterLayout(canvas, count).rects
-}
-
-// Real chapter-select screen (reuses the menu/list visual language from Tower/Arcade rather than a
-// bespoke node map — a sequential locked list is enough for the MVP). opts.chapters is the view
-// model built by game.js: [{ num, title, playerName, opponentName, unlocked, completed, isBoss }].
-export function drawStoryModeScreen(ctx, canvas, opts = {}) {
-  _mkAdvance()
-  const { chapters = [], hoverIndex = -1, hoverBack = false } = opts
-  const { width: w, height: h } = getCanvasSize(canvas)
-  ctx.clearRect(0, 0, w, h)
-  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#160b2a" })
-  drawMenuParticles(ctx, canvas)
-
-  const L = _storyChapterLayout(canvas, chapters.length)
-  _metalPanel(ctx, L.cardX, L.cardY, L.cardW, L.cardH, "#9a7bff", 20, 0.3)
-  _holoPanelOverlay(ctx, L.cardX, L.cardY, L.cardW, L.cardH, { accent: "#9a7bff", cut: 20 })
-
-  drawCenteredText(ctx, "STORY MODE", w / 2, L.cardY + 50, { font: "900 42px Arial", fill: "#f3f0ff", shadowBlur: 22, shadowColor: "rgba(154,123,255,0.6)" })
-  drawSubText(ctx, "The Battle Chronicle — clear a chapter to unlock the next.", w / 2, L.cardY + 96, { font: "15px Arial", fill: "rgba(210,220,255,0.72)" })
-
-  chapters.forEach((ch, i) => {
-    const r = L.rects[i]
-    if (!r) return
-    const locked = !ch.unlocked
-    const active = i === hoverIndex && !locked
-    const accent = ch.isBoss ? "#ff5a7a" : ch.completed ? "#7ee0a6" : "#b9a3ff"
-    _bevelPath(ctx, r.x, r.y, r.w, r.h, 7)
-    ctx.fillStyle = locked ? "rgba(10,12,22,0.62)" : active ? "rgba(154,123,255,0.24)" : "rgba(20,18,40,0.72)"
-    ctx.fill()
-    _bevelPath(ctx, r.x, r.y, r.w, r.h, 7)
-    ctx.strokeStyle = locked ? "rgba(148,163,184,0.22)" : accent; ctx.lineWidth = active ? 2 : 1.2; ctx.stroke()
-
-    const midY = r.y + r.h / 2
-    const badge = locked ? "🔒" : ch.completed ? "✓" : ch.isBoss ? "★" : "▶"
-    drawCenteredText(ctx, badge, r.x + 16, midY, { font: "13px Arial", fill: locked ? "rgba(160,170,190,0.55)" : accent, baseline: "middle" })
-    const titleFill = locked ? "rgba(196,202,222,0.5)" : "#eef0ff"
-    drawCenteredText(ctx, `${ch.num} — ${ch.title}`, r.x + 32, r.y + 15, { font: "700 13px Arial", fill: titleFill, align: "left", baseline: "middle" })
-    const sub = locked ? "Locked" : `${ch.playerName}  vs  ${ch.opponentName}${ch.isBoss ? "  ·  FINALE" : ""}`
-    drawCenteredText(ctx, sub, r.x + 32, r.y + 31, { font: "11px Arial", fill: locked ? "rgba(150,158,180,0.5)" : "rgba(200,208,235,0.72)", align: "left", baseline: "middle" })
-  })
-
-  drawMkButton(ctx, getStoryBackButton(canvas), { label: "BACK", active: hoverBack, id: "storyback", cut: 12 })
-  drawFooterHint(ctx, canvas, "Click an unlocked chapter to begin · clear it to open the next")
 }
 
 // ─────────────────────────────────────────────
@@ -2527,12 +2441,13 @@ export function drawUniverseSelectScreen(ctx, canvas, universes = [], selectedIn
     const universe = universes[i]
     const rect     = rects[i]
     const accent   = universe?.accent || _MK_ACCENT   // NEW per-universe identity accent (see game.js UNIVERSE_ACCENT)
-    drawMkButton(ctx, rect, {
-      label: universe?.name || universe?.id || universe?.label || `Universe ${i + 1}`,
-      subLabel: Number.isFinite(universe?.count) ? `${universe.count} FIGHTER${universe.count === 1 ? "" : "S"}` : undefined,
-      active: i === selectedIndex, accent, id: `universe:${universe?.id || i}`, cut: 18
+    // UNIVERSE-THEMED TILE (hudFrames.js): the universe's own silhouette / skin / texture + a watermark symbol (owner 2026-11-24:
+    // "give each universe its own theme"). Same rects + selection as before → hit-testing / nav unchanged.
+    drawUniverseTile(ctx, universe?.id, rect, {
+      name: universe?.name || universe?.label || `Universe ${i + 1}`,
+      sub: Number.isFinite(universe?.count) ? `${universe.count} FIGHTER${universe.count === 1 ? "" : "S"}` : undefined,
+      active: i === selectedIndex, accent: universe?.accent, t: _mkFrame
     })
-    _holoPanelOverlay(ctx, rect.x, rect.y, rect.w, rect.h, { accent, cut: 18 })   // Stage 12: holographic treatment (universes = "info being displayed")
   })
   ctx.restore()
   drawGridScrollbar(ctx, getGridScrollbar(universes.length, canvas, UNIVERSE_GRID_OPTS))   // right-edge scrollbar (null → no-op when it fits)
@@ -4631,30 +4546,34 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const sy = anim.shake > 0.01 ? Math.cos(globalFrameCount * 2.5) * 3.2 * anim.shake : 0
     ctx.save(); if (sx || sy) ctx.translate(sx, sy)
 
-    _metalPanel(ctx, panelX, hpY, panelW, panelH, edgeCol, 8, anim.flash)
+    const _uf = !_colorblindHud   // UNIVERSE FRAME: the fighter's universe silhouette + skin + ornaments (hudFrames.js)
+    if (_uf) hudFramePanel(ctx, fighter, panelX, hpY, panelW, panelH, edgeCol, flip, globalFrameCount, anim.flash)
+    else _metalPanel(ctx, panelX, hpY, panelW, panelH, edgeCol, 8, anim.flash)
     if (anim.flash > 0.02) {
-      ctx.save(); _bevelPath(ctx, panelX, hpY, panelW, panelH, 8)
+      ctx.save(); if (_uf) hudBarPath(ctx, fighter, panelX, hpY, panelW, panelH, flip); else _bevelPath(ctx, panelX, hpY, panelW, panelH, 8)
       ctx.fillStyle = `rgba(255,${Math.round(90 + 120 * (1 - anim.flash))},90,${0.38 * anim.flash})`; ctx.fill(); ctx.restore()
     }
 
     // NAME PLATE — accent-tinted chamfered strip behind a fitted name.
     const name = fighter.hudName || fighter.name || (flip ? "P2" : "P1")
     const npX = panelX + 6, npY = hpY + 1, npW = tBarW - 4, npH = 13
-    ctx.save(); _bevelPath(ctx, npX, npY, npW, npH, 3)
+    ctx.save(); if (_uf) hudPlatePath(ctx, fighter, npX, npY, npW, npH, flip); else _bevelPath(ctx, npX, npY, npW, npH, 3)
     ctx.fillStyle = _withAlpha(_shadeHex(accent, -0.35), 0.55); ctx.fill()
     ctx.restore()
     const nameMaxW = npW - 10
     _fitHudName(ctx, name, nameMaxW, 11, 7, "800")
     ctx.textAlign = flip ? "right" : "left"; ctx.textBaseline = "middle"
     ctx.fillStyle = "#f4f7fb"; ctx.shadowBlur = 2; ctx.shadowColor = "rgba(0,0,0,0.8)"
-    ctx.fillText(name, flip ? npX + npW - 5 : npX + 5, npY + npH / 2 + 0.5); ctx.shadowBlur = 0
+    ctx.fillText(name, flip ? npX + npW - 9 : npX + 9, npY + npH / 2 + 0.5); ctx.shadowBlur = 0
 
     // TRACK + GHOST + FRONT bar (colour-by-health unchanged).
     const trackY = hpY + 15, trackX = panelX + 8
-    ctx.fillStyle = "rgba(0,0,0,0.62)"; _bevelPath(ctx, trackX, trackY, tBarW, barH, 4); ctx.fill()
+    const trackPath = () => { if (_uf) hudBarPath(ctx, fighter, trackX, trackY, tBarW, barH, flip); else _bevelPath(ctx, trackX, trackY, tBarW, barH, 4) }
+    const clipRect = (rx, rw) => { trackPath(); ctx.clip(); ctx.beginPath(); ctx.rect(rx, trackY, rw, barH) }   // fills take the track's silhouette
+    ctx.fillStyle = "rgba(0,0,0,0.62)"; trackPath(); ctx.fill()
     const ghostW = tBarW * trailRatio
     const ghostX = flip ? trackX + tBarW - ghostW : trackX
-    ctx.save(); _bevelPath(ctx, ghostX, trackY, ghostW, barH, 4)
+    ctx.save(); clipRect(ghostX, ghostW)
     const gg = ctx.createLinearGradient(0, trackY, 0, trackY + barH)
     gg.addColorStop(0, "#ffffff"); gg.addColorStop(0.5, "#fff0f0"); gg.addColorStop(1, "#ffb3b3")   // WHITE pops (red/orange blend in) — the just-lost chunk reads clearly
     ctx.fillStyle = gg; ctx.shadowBlur = 11; ctx.shadowColor = "rgba(255,255,255,0.85)"; ctx.fill(); ctx.restore()
@@ -4664,13 +4583,14 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       const punchS = anim.punch > 0.01 ? 1 + 0.5 * anim.punch : 1    // PUNCH: fatten the bar briefly on every hit (bigger pop)
       ctx.save()
       if (punchS !== 1) { const cyf = trackY + barH / 2; ctx.translate(0, cyf); ctx.scale(1, punchS); ctx.translate(0, -cyf) }
-      _bevelPath(ctx, fillX, trackY, fillW, barH, 4)
+      clipRect(fillX, fillW)
       if (_colorblindHud) { ctx.fillStyle = _hpGradient(ctx, fillX, trackY, fillW, barH, dispRatio); ctx.fill() }   // colorblind HUD keeps the CVD-safe fill
       else fillThemedBar(ctx, fighter, 'hp', fillX, trackY, fillW, barH, dispRatio, globalFrameCount, { full: tBarW, flip })   // the character's own life bar (hudBars.js)
       ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fillRect(fillX + 2, trackY + 1, Math.max(0, fillW - 4), 2)
       ctx.restore()
     }
     _hpHealFx(ctx, flip ? fillX : fillX + fillW, trackY, barH, anim.heal)   // HEAL sparkles at the advancing edge
+    if (_uf) hudFrameOverlay(ctx, fighter, trackX, trackY, tBarW, barH, accent, flip, globalFrameCount, 'hp')   // scroll rods / tsuba / ofuda / Dragon Ball …
 
     // BREAK pips (same resource read as classic).
     const stotal = COMBO_BREAKER.stocksPerRound
@@ -4848,7 +4768,9 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
       }
     }
 
-    _metalPanel(ctx, x, enY - 14, pbw + 20, enH + 22, flip ? "#e06a6a" : "#4aa8e0", 7, 0)
+    const _ufE = _hudThemed && !_colorblindHud   // UNIVERSE FRAME on the energy panel too (hudFrames.js)
+    if (_ufE) hudFramePanel(ctx, fighter, x, enY - 14, pbw + 20, enH + 22, getHudAccent(fighter), flip, globalFrameCount, 0)
+    else _metalPanel(ctx, x, enY - 14, pbw + 20, enH + 22, flip ? "#e06a6a" : "#4aa8e0", 7, 0)
 
     const labelX = flip ? x + pbw + 12 : x + 8
     const labelAlign = flip ? "right" : "left"
@@ -4914,7 +4836,8 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const isHigh = ratio > 0.80
 
     ctx.fillStyle = emptyC
-    rrect(ctx, x + 8, enY, pbw, enH, 4); ctx.fill()
+    if (_ufE) hudBarPath(ctx, fighter, x + 8, enY, pbw, enH, flip); else rrect(ctx, x + 8, enY, pbw, enH, 4)
+    ctx.fill()
 
     let fillColor = mainCol
     if (isCrit) {
@@ -4940,12 +4863,13 @@ export function drawHealthAndEnergyBars(ctx, p1, p2, canvas, roundWins = { p1: 0
     const fillX = flip ? x + 8 + pbw - fillW : x + 8
     if (_hudThemed && !_colorblindHud && !charging && fillW > 0.5) {   // THEMED: the character's own energy bar (hudBars.js); the crit pulse fades it
       ctx.save(); if (isCrit) ctx.globalAlpha = 0.55 + 0.45 * (Math.sin(globalFrameCount * 0.2) * 0.5 + 0.5)
-      rrect(ctx, fillX, enY, fillW, enH, 4); fillThemedBar(ctx, fighter, 'en', fillX, enY, fillW, enH, ratio, globalFrameCount, { colour: isDevice ? mainCol : null, full: pbw, flip, segs: Math.max(1, Math.round((fighter.maxEnergy || 100) / 25)) }); ctx.restore()
+      hudBarPath(ctx, fighter, x + 8, enY, pbw, enH, flip); ctx.clip(); ctx.beginPath(); ctx.rect(fillX, enY, fillW, enH); fillThemedBar(ctx, fighter, 'en', fillX, enY, fillW, enH, ratio, globalFrameCount, { colour: isDevice ? mainCol : null, full: pbw, flip, segs: Math.max(1, Math.round((fighter.maxEnergy || 100) / 25)) }); ctx.restore()
     } else {
     ctx.fillStyle = fillColor
     rrect(ctx, fillX, enY, fillW, enH, 4); ctx.fill()
     }
     ctx.shadowBlur = 0
+    if (_ufE) hudFrameOverlay(ctx, fighter, x + 8, enY, pbw, enH, getHudAccent(fighter), flip, globalFrameCount, 'en')   // universe ornaments on the energy bar
     drawSanjiHeatFill(ctx, fighter, { fillX, enY, fillW, enH, x, pbw, flip })   // Sanji: the Heat bar warms blue→orange→white (render-only; sanji only)
 
     // Device: notch at the minimum energy needed to (re)transform (mirrors
@@ -5080,7 +5004,8 @@ export function drawControlsInfo(ctx, canvas, p1 = null) {
     const _omxNames = (p1?.omnitrix?.aliens || []).map(k => ({ swampfire: "Swampfire", heatblast: "Heatblast", megawhatt: "Megawhatt", goop: "Goop", xlr8: "XLR8", eyeguy: "Eyeguy", ghostfreak: "Ghostfreak", alienx: "Alien X", brainstorm: "Brainstorm", terraspin: "Terraspin", wildvine: "Wildvine", jetray: "Jetray", diamondhead_ov: "Diamondhead", upgrade_ov: "Upgrade", feedback_ov: "Feedback", humongousaur: "Humongousaur", arcticguana: "Arcticguana", benwolf: "BenWolf", bigchill: "Big Chill", ripjaws: "Ripjaws", rath: "Rath", waterhazard: "Water Hazard", highbreed: "Highbreed", wildmutt_ov: "Wildmutt" })[k] || k)
     const _omxKeys = ["J", "K", "L", "O", "P"].map((k, i) => _omxNames[i] ? `${k} ${_omxNames[i]}` : null).filter(Boolean)
     ctx.fillText(_omxKeys.slice(0, 3).join("  "), 32, panelY + 124)
-    ctx.fillText(`${_omxKeys.slice(3).join("  ")}   ; = back to Ben`, 32, panelY + 140)
+    { const _dna = p1?._dna, _dn = _dna?.scanKey ? `U ${_dna.scanName || "DNA copy"}` : "↓+U scan the foe → U"
+      ctx.fillText(`${_omxKeys.slice(3).join("  ")}  ${_dn}   ; = back to Ben`, 32, panelY + 140) }   // 6th slot: the DNA-scanned foe (dnaScan.js)
     ctx.fillText("(pad: ↓↓ then Light/Heavy/Special/Grab/Charge/Block)", 32, panelY + 156)
     if (heatblast) {
       ctx.fillStyle = "#ffb347"
@@ -5281,17 +5206,14 @@ export function drawPauseMenu(ctx, canvas, selectedIndex = 0) {
     { label: "Resume",        sub: "Continue the match" },
     { label: "Restart Round", sub: "Reset this round" },
     { label: "Restart Match", sub: "Rematch from round 1, same fighters" },
-    { label: "Move List",     sub: "Every fighter's moves, combos & inputs" },
-    { label: "Controls",      sub: "Button legend for your device" },
+    { label: "Controls",      sub: "Opens the Controls Lab (controls.html)" },
     { label: "Training Mode", sub: "Practice vs a frozen dummy" },
     { label: "Character Select", sub: "Pick new fighters (keeps mode + stage)" },
-    { label: "Combo Trials",  sub: "Scripted combo challenges" },
     { label: "Profile",       sub: "Your Big-Five personality" },
-    { label: "Codex",         sub: "Fighter dossiers" },
     { label: "Report an Issue", sub: "Send a bug / feedback note (beta)" },
     { label: "Quit to Menu",  sub: "Return to the title screen" }
   ]
-  // rows shrink to fit short windows (12 items): 58px buttons + 10px gaps when there is room
+  // rows shrink to fit short windows (11 items): 58px buttons + 10px gaps when there is room
   const step    = Math.max(40, Math.min(68, Math.floor((ch - 150) / items.length)))
   const itemH   = step - Math.min(10, Math.round(step * 0.15))
   const itemGap = step - itemH
@@ -5351,7 +5273,7 @@ function _roundRectPath(ctx, x, y, w, h, r = 10) {
   ctx.closePath()
 }
 
-export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "restartMatch", "moveList", "controls", "trainingMode", "charSelect", "comboTrials", "profile", "codex", "reportIssue", "quitToMenu"]
+export const PAUSE_MENU_ITEMS = ["resume", "restartRound", "restartMatch", "controls", "trainingMode", "charSelect", "profile", "reportIssue", "quitToMenu"]
 
 // Small local word-wrapper (returns lines that fit maxW at the ctx's current font).
 function _wrapText(ctx, text, maxW, maxLines = 99) {
@@ -5646,105 +5568,9 @@ export function drawThemesScreen(ctx, canvas, opts = {}) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════
-// CODEX / COMPENDIUM (Part 1 #4) — browsable character write-ups, grouped by franchise.
-// opts = { groups, selectedKey, scroll, backHover, listHover }
-//   groups = [{ id, label, entries: [{ key, name, universeLabel, passiveName, passiveEffect, flavor, accent }] }]
-// Master list (left, scrollable, grouped with headers) + detail panel (right). Detail text wraps so
-// long entries never truncate. codexLayout() is the single source of truth for row geometry, shared
-// by the renderer and the click hit-test in game.js.
-// ═════════════════════════════════════════════════════════════════════════
-export function codexLayout(canvas, groups = [], scroll = 0) {
-  const { width: w, height: h } = getCanvasSize(canvas)
-  const listX = 40, listY = 112, listW = Math.min(360, w * 0.34), listH = h - listY - 92
-  const rows = []
-  let cy = listY - scroll
-  for (const g of groups) {
-    rows.push({ type: "header", label: g.label, x: listX, y: cy, w: listW, h: 26 }); cy += 30
-    for (const e of g.entries) { rows.push({ type: "row", key: e.key, entry: e, x: listX + 8, y: cy, w: listW - 16, h: 30 }); cy += 32 }
-    cy += 8
-  }
-  const contentH = (cy + scroll) - listY
-  const detailX = listX + listW + 26
-  const detailRect = { x: detailX, y: listY, w: w - detailX - 40, h: listH }
-  return { rows, listX, listY, listW, listH, contentH, detailRect }
-}
-export function getCodexBackButton(canvas) {
-  const { width: w, height: h } = getCanvasSize(canvas)
-  return { id: "back", x: 40, y: h - 68, w: 200, h: 44 }
-}
-export function drawCodexScreen(ctx, canvas, opts = {}) {
-  _mkAdvance()
-  const { width: w, height: h } = getCanvasSize(canvas)
-  const groups = opts.groups || []
-  ctx.clearRect(0, 0, w, h)
-  drawRiftAmbientBackdrop(ctx, canvas, { top: "#07091a", bottom: "#0d1226" })
-  drawMenuParticles(ctx, canvas)   // Part 4: same ambient Void-palette motes as the rest of the menu identity
-  drawHeader(ctx, canvas, "CODEX", "The Battle Chronicle — every fighter's record, read from their Anchor Point")
-
-  const L = codexLayout(canvas, groups, opts.scroll || 0)
-
-  // ── Master list (clipped + scrolled) ──
-  ctx.save()
-  _bevelPath(ctx, L.listX - 8, L.listY - 8, L.listW + 16, L.listH + 16, 12)
-  ctx.fillStyle = "rgba(8,12,24,0.6)"; ctx.fill()
-  ctx.clip()
-  for (const r of L.rows) {
-    if (r.y + r.h < L.listY - 8 || r.y > L.listY + L.listH + 8) continue   // cull offscreen
-    if (r.type === "header") {
-      drawCenteredText(ctx, r.label.toUpperCase(), r.x + 4, r.y + 15, { font: "800 12px Arial", fill: "rgba(120,200,255,0.85)", align: "left" })
-      ctx.strokeStyle = "rgba(120,200,255,0.22)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x + 4, r.y + 24); ctx.lineTo(r.x + r.w - 4, r.y + 24); ctx.stroke()
-    } else {
-      const sel = r.key === opts.selectedKey
-      if (sel) { _bevelPath(ctx, r.x, r.y, r.w, r.h, 8); ctx.fillStyle = _withAlpha(r.entry.accent || "#4aa8e0", 0.22); ctx.fill(); ctx.strokeStyle = _withAlpha(r.entry.accent || "#4aa8e0", 0.7); ctx.lineWidth = 1.2; ctx.stroke() }
-      drawCenteredText(ctx, r.entry.name, r.x + 12, r.y + r.h / 2, { font: sel ? "800 15px Arial" : "600 15px Arial", fill: sel ? "#ffffff" : "rgba(214,226,245,0.82)", align: "left" })
-    }
-  }
-  ctx.restore()
-
-  // Scroll hint if content overflows.
-  if (L.contentH > L.listH) drawCenteredText(ctx, "scroll ↕", L.listX + L.listW / 2, L.listY + L.listH + 16, { font: "11px Arial", fill: "rgba(150,180,220,0.5)" })
-
-  // ── Detail panel ──
-  const d = L.detailRect
-  const sel = groups.flatMap(g => g.entries).find(e => e.key === opts.selectedKey)
-  _metalPanel(ctx, d.x, d.y, d.w, d.h, sel?.accent || "#4aa8e0", 16, 0)
-  const pad = 26, tx = d.x + pad, maxW = d.w - pad * 2
-  if (!sel) {
-    drawCenteredText(ctx, "Select a fighter", d.x + d.w / 2, d.y + d.h / 2, { font: "700 18px Arial", fill: "rgba(200,214,240,0.6)" })
-  } else {
-    let ty = d.y + 44
-    drawCenteredText(ctx, sel.name, tx, ty, { font: "900 30px Arial", fill: "#f1f5f9", align: "left", shadowBlur: 14, shadowColor: sel.accent || "#4aa8e0" }); ty += 30
-    drawCenteredText(ctx, sel.universeLabel || "", tx, ty, { font: "700 14px Arial", fill: _withAlpha(sel.accent || "#7dd3fc", 0.95), align: "left" }); ty += 34
-    if (sel.passiveName) {
-      // Passive title as a chip.
-      ctx.font = "800 13px Arial"; const cw2 = ctx.measureText(sel.passiveName).width + 22
-      _bevelPath(ctx, tx, ty - 14, cw2, 26, 7); ctx.fillStyle = "rgba(74,168,224,0.16)"; ctx.fill()
-      drawCenteredText(ctx, sel.passiveName, tx + 11, ty, { font: "800 13px Arial", fill: "#bfe4ff", align: "left" }); ty += 30
-    }
-    if (sel.passiveEffect) {
-      // Real dossier — the character's written personality write-up.
-      ctx.save(); ctx.font = "15px Arial"
-      const bodyLines = _wrapText(ctx, sel.passiveEffect, maxW)
-      for (const ln of bodyLines) { drawCenteredText(ctx, ln, tx, ty, { font: "15px Arial", fill: "rgba(220,230,248,0.9)", align: "left" }); ty += 23 }
-      ctx.restore()
-    } else {
-      // Diegetic missing-data (Part 1) — an intentional piece of world-building in the lore's own voice,
-      // NOT a generic/broken empty. Rendered italic + violet so it reads as lore, not as a real dossier.
-      ctx.save()
-      const lines = _wrapText(ctx, "No Fracture Vision has surfaced for this fighter yet — their Anchor Point hasn't given up its record.", maxW)
-      for (const ln of lines) { drawCenteredText(ctx, ln, tx, ty, { font: "italic 15px Georgia, serif", fill: "rgba(196,181,253,0.7)", align: "left" }); ty += 23 }
-      ctx.restore()
-    }
-  }
-
-  drawMkButton(ctx, getCodexBackButton(canvas), { label: "BACK", active: opts.backHover, id: "codexback", cut: 10 })
-  drawFooterHint(ctx, canvas, "Click a fighter to read their dossier  ·  scroll the list for more")
-}
-
-// ═════════════════════════════════════════════════════════════════════════
 // CHARACTER ACADEMY — additive. A scrollable character GRID (search + universe filter + progress ring) and a
-// per-character LESSON page (grouped moves, each with SHOW ME / TRY IT / FREE PRACTICE). Canvas-drawn, mirrors
-// the CODEX idiom. game.js owns the state + the match drill; these functions are pure renderers + layout.
+// per-character LESSON page (grouped moves, each with SHOW ME / TRY IT / FREE PRACTICE). Canvas-drawn (list + detail
+// layout). game.js owns the state + the match drill; these functions are pure renderers + layout.
 // ═════════════════════════════════════════════════════════════════════════
 function _progressRing(ctx, cx, cy, r, frac, accent) {
   ctx.save()

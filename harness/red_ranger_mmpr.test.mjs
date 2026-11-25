@@ -131,6 +131,7 @@ try {
   await prep(90); await page.evaluate(() => window.__harness.fillEnergy?.()); await waitFrames(2);
   const uhp0 = (await p2()).health;
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitFrames(3);
+  await page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 45000, polling: 16 }).catch(() => {}); await waitFrames(1);   // wait out the Ranger ult pre-roll
   check("ultimate cinematic ACTIVE", (await cine()).active, "");
   let ultMin = uhp0;
   for (let f = 0; f < 90; f++) { const s = await cine(); const a = await p1(); const d = await p2(); if (a.castMove === "ultimate" && a.spriteSheet) seen.set("ultimate", a.spriteSheet); if (d.health < ultMin) ultMin = d.health; if (!s.active) break; await waitFrames(1); }

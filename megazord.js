@@ -17,11 +17,11 @@ import { registerFreezeCine } from './cineRegistry.js'
 
 export const MZ_FORM = 'mmpr_thunder_megazord'
 export const MZ = {
-  cost: 100, timer: 720, armor: 600, scale: 2.5,   // 2.5 × the 96 px source idle = 240 px ≈ 1.8 × a Ranger (Red MMPR ≈ 137 px)
-  w: 84, h: 166,                                   // hurtbox: the roster's 48 × 94 grown with the art
+  cost: 100, timer: 720, armor: 600, scale: 3.4,   // 3.4 × the 96 px source idle (× the global 1.18) ≈ 385 px on screen ≈ 2.4 × a Ranger
+  w: 220, h: 385,                                  // hurtbox = the DRAWN body: 96 source px tall, the 56 px torso wide (× 3.4 × 1.18)
   chord: 3,                                        // U and L within 3 frames (either order)
   breakStun: 30, collapse: 44, sepFlash: 14, charge: 40, chargeMul: 1.5, shock: 60, comboScale: 0.85,
-  fire: { speed: 13, life: 110, at: 16, dmg: 90, w: 60, h: 50 },
+  fire: { speed: 13, life: 110, at: 16, dmg: 90, w: 82, h: 68 },   // the fireball's box grows with the art
   lunge: { dist: 0.5, from: 9, frames: 12 },       // 50 % of a 1280-wide screen
   final: { charge: 22, hit: 40, total: 62, dmg: 250, reach: 560 },
 }
@@ -53,7 +53,23 @@ export const MZ_MOVES = {
   mzCharge:   mv('mzCharge', 0, MZ.charge, 1, 12, { rangeX: 1, rangeY: 1, isSpecial: true, category: 'special', noHitbox: true }),
   mzFinal:    mv('mzFinal', MZ.final.dmg, MZ.final.hit, 6, MZ.final.total - MZ.final.hit - 6, { rangeX: MZ.final.reach, rangeY: 260, damageType: 'slash', isUltimate: true, category: 'ultimate', saber: true, knockbackX: 14, knockbackY: -10, hitstun: 40, blockstun: 24 }),
 }
-const NO_HIT = new Set(['mzFire', 'mzCharge'])   // their hit comes from the fireball / the shock, not a body box
+const NO_HIT = new Set(['mzFire', 'mzCharge'])
+// HITBOXES from the drawn art: the striking limb / saber arc of each move's active frame, in SOURCE pixels relative to the feet
+// centre (x forward, y up = negative), measured from the strips (tools: the per-frame bounding boxes). World = source × PX.
+export const PX = MZ.scale * 1.18
+export const MZ_BOXES = {   // each box runs from the drawn limb / saber down through its swing, so it reaches a normal-size fighter (≈ 23 source px tall)
+  mzLight:    [14, -84, 56, -12],   // punch: from the fist at chest height, swinging down onto a normal fighter's head
+  mzCLight:   [14, -62, 54, 0],     // crouch punch
+  mzHeavy:    [12, -66, 56, 0],     // kick: the leg sweeps through
+  mzCHeavy:   [6, -30, 62, 0],      // low flame sweep (along the ground)
+  mzAirLight: [10, -80, 63, -6],    // jump kick
+  mzAirHeavy: [10, -94, 95, -6],    // jump slash
+  mzSlash:    [10, -118, 79, 0],    // Thunder Saber Slash: the flame arc from overhead to the floor
+  mzCSlash:   [10, -70, 83, 0],     // crouching slash / thrust
+  mzAirSaber: [6, -118, 88, 4],     // Air Saber: the big arc (reaches under the feet)
+  mzRising:   [6, -112, 95, 0],     // Rising Saber: the rising arc
+  mzLunge:    [10, -78, 86, -4],    // Saber Lunge: the thrust + its flame streak angled down the length of the blade
+}   // (mzFire / mzCharge: their hit comes from the fireball / the shock, not a body box)
 
 // ── the form (registered on the squad by mmprSquad.js; never in `characters`) ──
 const anim = (key, speed, o = {}) => ({ ...MZ_SHEETS[key], frameWidth: MZ_SHEETS[key].width, frameHeight: MZ_SHEETS[key].height, speed, loop: false, lockLastFrame: true, ...o })
@@ -294,13 +310,15 @@ function chordAgain(f, raw, q) { return chord(f, raw, null, q) }
 // ── THUNDER FIREBALL (R11): the Megazord's own shot list (no engine projectile → no import of abilities.js) ──
 function spawnFire(f, mz) {
   const dir = f.facing || 1
-  mz.shots.push({ id: ++mz.serial, x: ctr(f) + dir * 70, y: f.y + 58, vx: dir * MZ.fire.speed, t: 0, hit: false })
+  const feet = feetOf(f)   // out of the chest orb (source y −62), then it dips to a normal fighter's chest (feet − 60) as it flies
+  mz.shots.push({ id: ++mz.serial, x: ctr(f) + dir * 46 * PX, y: feet - 62 * PX, gy: feet - 60, vx: dir * MZ.fire.speed, t: 0, hit: false })
   cue(mz, 'fire')
 }
 function stepShots(f, W, mz) {
   const opp = W?.opponent?.(f)
   for (const s of mz.shots) {
     s.t++; s.x += s.vx
+    if (s.gy != null && s.y < s.gy) s.y = Math.min(s.gy, s.y + Math.max(1, Math.round((s.gy - s.y) / 9)))   // integer ease → deterministic
     if (!opp || s.hit || !(opp.health > 0)) continue
     const k = Math.min(1, s.t / MZ.fire.life), w = MZ.fire.w * (1 - 0.5 * k), h = MZ.fire.h * (1 - 0.5 * k)
     if (s.x + w / 2 > opp.x && s.x - w / 2 < opp.x + (opp.w || 48) && s.y + h / 2 > opp.y && s.y - h / 2 < opp.y + (opp.h || 94)) {
@@ -321,6 +339,16 @@ function stepShots(f, W, mz) {
 }
 
 // ── armor / super armor / Saber Charge shock (combat.js asks through megazordHook.js) ──
+for (const [k, b] of Object.entries(MZ_BOXES)) { MZ_MOVES[k].rangeX = Math.round(b[2] * PX - MZ.w / 2); MZ_MOVES[k].rangeY = Math.round((b[3] - b[1]) * PX) }   // AI reach = the drawn box
+MZ_HOOK.hitbox = (f, a) => {   // combat.js asks for the Megazord's box (gated on _mzOn); undefined = the engine's default
+  if (!a || !String(a.name).startsWith('mz')) return undefined
+  if (NO_HIT.has(a.name)) return null
+  const cx = ctr(f), feet = feetOf(f), dir = f.facing === -1 ? -1 : 1
+  if (a.name === 'mzFinal') { const r = MZ.final.reach; return { x: dir > 0 ? cx : cx - r, y: feet - 150 * PX, w: r, h: 150 * PX } }
+  const b = MZ_BOXES[a.name]; if (!b) return undefined
+  const x1 = cx + dir * b[0] * PX, x2 = cx + dir * b[2] * PX
+  return { x: Math.min(x1, x2), y: feet + b[1] * PX, w: Math.abs(x2 - x1), h: (b[3] - b[1]) * PX }
+}
 MZ_HOOK.absorb = (target, dealt, opts = {}) => {
   const mz = mzState(target); if (!mz || mz.phase !== 'mode') return null
   const big = isBig(opts)

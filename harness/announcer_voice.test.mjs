@@ -57,7 +57,7 @@ try {
 
   // VICTORY — force the match over (forceMatchEnd → _checkMatchOver; not gated by training)
   await clearSpy()
-  await page.evaluate(() => window.__harness.story.win()); await waitFrames(10)
+  await page.evaluate(() => window.__harness.forceP1MatchWin()   /* Story Mode removed 2026-11-24 — plain P1 win */); await waitFrames(10)
   ok(inPool(await spy(), "victory"), "VICTORY screen → victory clip", (await spy()).join(","))
 
   // ROUND START "Fight!" — skipToBattle fast-forwards the live 3-2-1 countdown, so verify the pool via the

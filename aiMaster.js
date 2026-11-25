@@ -15,8 +15,9 @@
 // uses. Nothing here changes any move: the CPU can only press buttons. Deterministic: every roll is the seeded game RNG.
 import { AI_SCOUT } from "./aiScoutData.js"
 import { gameRng } from "./rng.js"
+import { AI_MASTER_TUNING } from "./aiMasterTuning.js"
 
-// Tuning (step 3 will tune these per fighter from AI-vs-AI self-play).
+// Defaults. Per-fighter overrides + learned starting payoffs come from aiMasterTuning.js (step 3, AI-vs-AI self-play).
 export const MASTER = Object.freeze({
   punishChance: 0.95,   // foe in recovery + a move that lands in time → take it
   antiAirChance: 0.8,   // foe falling toward us + an anti-air that's fast enough
@@ -88,7 +89,7 @@ function rate(m, key, prior) { const V = m.value.get(key); return V ? (V.sum + p
 // have to lose with all ten to learn it)
 function worth(m, why, t) {
   const C = m.kind.get(why)
-  const prior = C && C.n >= 3 ? C.sum / C.n : (why === "punish" || why === "antiAir" ? 0.6 : 0.35) * t.damage / (t.frames.length + MASTER.judgeFrames)
+  const prior = C && C.n >= 3 ? C.sum / C.n : (why === "punish" || why === "antiAir" ? 0.6 : 0.35) * t.damage / (t.frames.length + m.P.judgeFrames)
   return rate(m, valKey(why, t), prior)
 }
 const deferWorth = (m, ctx) => rate(m, deferKey(ctx), 0)
@@ -98,11 +99,12 @@ function judge(m, f, o) {
   const v = (dealt - taken) / Math.max(1, m.clock - p.at)
   const V = m.value.get(p.key) || { n: 0, sum: 0 }; V.n++; V.sum += v; m.value.set(p.key, V)
   const why = p.key.split(":")[0], C = m.kind.get(why) || { n: 0, sum: 0 }; C.n++; C.sum += v; m.kind.set(why, C)
+  const L = m.live[p.key] || (m.live[p.key] = [0, 0]); L[0]++; L[1] += v   // this session's own samples (training export)
   m.post = null
 }
 function defer(m, f, o, ctx) {   // start judging "the Impossible AI's own play" here (one window at a time)
   if (m.post) return null
-  m.post = { key: deferKey(ctx), foeHp0: o.health ?? 0, selfHp0: f.health ?? 0, at: m.clock, t: MASTER.deferFrames }
+  m.post = { key: deferKey(ctx), foeHp0: o.health ?? 0, selfHp0: f.health ?? 0, at: m.clock, t: m.P.deferFrames }
   return null
 }
 // Gap between the two bodies along the facing line (what the scout's reach is measured in).
@@ -122,9 +124,21 @@ function recoveryWindow(o) {
 }
 const threatening = (o, gap) => { const a = o?.currentAttack; return !!a && recoveryWindow(o) === 0 && gap < 150 }
 
+let _tuning = AI_MASTER_TUNING
+// tools / tests: swap the tuning table (null → none: pure in-match learning, as the self-play trainer needs)
+export function setMasterTuning(t) { _tuning = t || { priorWeight: 0, fighters: {} } }
 function mem(ctl) {
-  return ctl._master || (ctl._master = { run: null, post: null, tick: 0, log: [], clock: 0, learn: new Map(), value: new Map(), kind: new Map(), blockedStreak: 0, aaJump: false,
+  return ctl._master || (ctl._master = { key: null, P: MASTER, run: null, post: null, tick: 0, log: [], clock: 0, learn: new Map(), value: new Map(), kind: new Map(), live: {}, blockedStreak: 0, aaJump: false,
     stats: { punish: 0, antiAir: 0, combo: 0, poke: 0, zone: 0, grab: 0, landed: 0, blocked: 0, whiffed: 0, noFire: 0, aborted: 0 } })
+}
+// First frame as a (new) fighter: its tuned style + what self-play learned, as a few pseudo-samples
+function seed(m, key) {
+  m.key = key; m.value.clear(); m.kind.clear(); m.learn.clear()
+  const T = _tuning?.fighters?.[key], w = _tuning?.priorWeight ?? 0
+  const params = T?.params || _tuning?.params   // per-fighter style, else a table-wide one (tools)
+  m.P = params ? Object.freeze({ ...MASTER, ...params }) : MASTER
+  if (!T || !(w > 0)) return
+  for (const [table, src] of [[m.value, T.prior], [m.kind, T.kind]]) for (const [k, [n, mean]] of Object.entries(src || {})) { const c = Math.min(n, w); if (c > 0) table.set(k, { n: c, sum: mean * c }) }
 }
 
 function start(m, t, why, f, o) {
@@ -138,6 +152,7 @@ function start(m, t, why, f, o) {
 export function masterRawInput(ctl, f, o) {
   if (!ctl?.master || !f || !o) return null
   const m = mem(ctl)
+  if (m.key !== f.rosterKey) seed(m, f.rosterKey)
   m.clock++
   if (m.post && --m.post.t <= 0) judge(m, f, o)
   // ── performing ──
@@ -159,7 +174,7 @@ export function masterRawInput(ctl, f, o) {
       // couldn't see from neutral): a press that never started the move backs that tool off in that context
       if (!stop) { const L = m.learn.get(r.ctxKey) || { fail: 0, ok: 0, until: 0 }; if (r.fired) L.ok++; else { L.fail++; L.until = m.clock + 150 } m.learn.set(r.ctxKey, L) }
       if (stop) m.stats.aborted++
-      if (r.fired) m.post = { key: r.vkey, foeHp0: r.foeHp0, selfHp0: r.selfHp0, at: r.at, t: MASTER.judgeFrames }   // (a refused press costs nothing)
+      if (r.fired) m.post = { key: r.vkey, foeHp0: r.foeHp0, selfHp0: r.selfHp0, at: r.at, t: m.P.judgeFrames }   // (a refused press costs nothing)
       m.log.push(`${r.why}:${r.tool.name}@${r.gap}→${r.hit ? "hit" : r.blocked ? "blocked" : !r.fired ? "nofire" : stop ? "stuffed" : "whiff"}`); if (m.log.length > 40) m.log.shift()
       m.run = null
       return null
@@ -186,7 +201,7 @@ export function masterRawInput(ctl, f, o) {
   if (win >= 3) {
     let best = null
     for (const t of kit.all) if (t.eff <= win - 1 && fits(t, gap) && canPay(t, f) && allowed(m, t, f) && (!best || worth(m, "punish", t) > worth(m, "punish", best))) best = t
-    if (best && worth(m, "punish", best) > deferWorth(m, "punish") && rand() < MASTER.punishChance) { start(m, best, "punish", f, o); return masterRawInput(ctl, f, o) }
+    if (best && worth(m, "punish", best) > deferWorth(m, "punish") && rand() < m.P.punishChance) { start(m, best, "punish", f, o); return masterRawInput(ctl, f, o) }
     return defer(m, f, o, "punish")
   }
   // ANTI-AIR: once per foe jump, as it falls toward us
@@ -194,27 +209,27 @@ export function masterRawInput(ctl, f, o) {
     if (!m.aaJump && (o.vy ?? 0) > 0 && gap < 130) {
       m.aaJump = true
       const t = kit.antiAir.find(x => canPay(x, f) && allowed(m, x, f) && gap <= x.reach[1] + 40)
-      if (t && worth(m, "antiAir", t) > deferWorth(m, "antiAir") && rand() < MASTER.antiAirChance) { start(m, t, "antiAir", f, o); return masterRawInput(ctl, f, o) }
+      if (t && worth(m, "antiAir", t) > deferWorth(m, "antiAir") && rand() < m.P.antiAirChance) { start(m, t, "antiAir", f, o); return masterRawInput(ctl, f, o) }
       return defer(m, f, o, "antiAir")
     }
   } else m.aaJump = false
   // NEUTRAL: let the Impossible AI guard/parry while the foe is mid-attack near us
   if (threatening(o, gap) || o.grounded === false || o.knockdownState || o.isLaunched) return null
-  if (m.tick % MASTER.neutralEvery) return null   // tick 0 = the fresh free frame
+  if (m.tick % m.P.neutralEvery) return null   // tick 0 = the fresh free frame
   // each candidate is scored by its learned payoff vs letting the Impossible AI play here; none better → defer
   const ctx = gap < 60 ? "close" : gap < 150 ? "mid" : "far", bar = deferWorth(m, ctx)
   const pick = (list, why) => { let b = null, bw = bar; for (const t of list) if (fits(t, gap) && canPay(t, f) && allowed(m, t, f)) { const w = worth(m, why, t); if (w > bw) { b = t; bw = w } } return b }
-  if (m.blockedStreak >= MASTER.grabAfterBlocks && kit.grabs.length) {
+  if (m.blockedStreak >= m.P.grabAfterBlocks && kit.grabs.length) {
     const g = pick(kit.grabs, "grab")
     if (g) { m.blockedStreak = 0; start(m, g, "grab", f, o); return masterRawInput(ctl, f, o) }
   }
   const combo = pick(kit.combos, "combo")
-  if (combo && rand() < MASTER.comboChance) { start(m, combo, "combo", f, o); return masterRawInput(ctl, f, o) }
+  if (combo && rand() < m.P.comboChance) { start(m, combo, "combo", f, o); return masterRawInput(ctl, f, o) }
   const poke = pick(kit.pokes, "poke")
-  if (poke && rand() < MASTER.pokeChance) { start(m, poke, "poke", f, o); return masterRawInput(ctl, f, o) }
+  if (poke && rand() < m.P.pokeChance) { start(m, poke, "poke", f, o); return masterRawInput(ctl, f, o) }
   if (gap >= 150) {
     const z = pick(kit.zone, "zone")
-    if (z && rand() < MASTER.zoneChance) { start(m, z, "zone", f, o); return masterRawInput(ctl, f, o) }
+    if (z && rand() < m.P.zoneChance) { start(m, z, "zone", f, o); return masterRawInput(ctl, f, o) }
   }
   return defer(m, f, o, ctx)
 }
@@ -223,7 +238,8 @@ export function masterRawInput(ctl, f, o) {
 export function resetMaster(ctl) { if (ctl?._master) { ctl._master.run = null; ctl._master.blockedStreak = 0; ctl._master.aaJump = false; ctl._master.post = null } }   // learned payoffs carry across rounds of a match
 export function masterStats(ctl) {
   if (!ctl?._master) return null
-  const net = {}; for (const [k, V] of ctl._master.value) { const why = k.split(":")[0]; net[why] = Math.round(((net[why] || 0) + V.sum) * 100) / 100 }   // Σ payoff/frame
-  return { ...ctl._master.stats, net, running: ctl._master.run?.tool?.name || null }
+  const net = {}; for (const [k, [, sum]] of Object.entries(ctl._master.live)) { const why = k.split(":")[0]; net[why] = Math.round(((net[why] || 0) + sum) * 100) / 100 }   // Σ payoff/frame (live samples only)
+  // samples: this session's raw per-key {key: [n, Σ payoff/frame]} — what the self-play trainer aggregates
+  return { ...ctl._master.stats, net, running: ctl._master.run?.tool?.name || null, fighter: ctl._master.key, samples: JSON.parse(JSON.stringify(ctl._master.live)) }
 }
 export function masterLog(ctl) { return ctl?._master ? ctl._master.log.slice() : [] }   // last 40 attempts (debug / tests)

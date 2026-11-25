@@ -1,0 +1,61 @@
+{
+  "pass": 51,
+  "fail": 0,
+  "errors": [],
+  "summary": [
+    {
+      "set": "assault",
+      "name": "Assault",
+      "dir": "N",
+      "damage": 57,
+      "hits": 3,
+      "shots": 0,
+      "frames": 111
+    },
+    {
+      "set": "rush",
+      "name": "Severing Rush",
+      "dir": "F",
+      "damage": 35,
+      "hits": 2,
+      "shots": 0,
+      "frames": 70
+    },
+    {
+      "set": "geyser",
+      "name": "Geyser",
+      "dir": "U",
+      "damage": 29,
+      "hits": 2,
+      "shots": 0,
+      "frames": 84
+    },
+    {
+      "set": "gunner",
+      "name": "Dragon Gunner",
+      "dir": "B",
+      "damage": 28,
+      "hits": 0,
+      "shots": 2,
+      "frames": 78
+    },
+    {
+      "set": "guardian",
+      "name": "Guardian",
+      "dir": "D",
+      "damage": 46,
+      "hits": 2,
+      "shots": 0,
+      "frames": 184
+    },
+    {
+      "set": "pincer",
+      "name": "Pincer (2 clones)",
+      "dir": "SWARM",
+      "damage": 78,
+      "hits": 5,
+      "shots": 0,
+      "frames": 111
+    }
+  ]
+}

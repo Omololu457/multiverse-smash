@@ -119,7 +119,10 @@ function loadMap(id) {
     maps.set(id, { frames: j.frames, index: new Map(Object.entries(j.index)), byAction: new Map(Object.entries(j.byAction || {})), skip: new Set(Object.entries(j.overrides || {}).filter(([, o]) => o && o.skip && !o.frames).map(([k]) => k)) })
   }).catch(() => maps.set(id, 'none'))
 }
-export function bloodPreload(rosterKey) { const k = String(rosterKey || '').toLowerCase(); loadMap(k); for (const o of ALSO_MAPS[k] || []) loadMap(o) }
+// forms listed in ALSO_MAPS draw from their parent's map and have no file of their own (fetching one was a 404 per form);
+// albedo is the one aliased key that ALSO ships its own map
+const OWN_MAP_TOO = new Set(['albedo'])
+export function bloodPreload(rosterKey) { const k = String(rosterKey || '').toLowerCase(); if (!ALSO_MAPS[k] || OWN_MAP_TOO.has(k)) loadMap(k); for (const o of ALSO_MAPS[k] || []) loadMap(o) }
 export function bloodMapReady(rosterKey) { const m = maps.get(String(rosterKey || '').toLowerCase()); return !!(m && typeof m === 'object') }
 const TAG_RX = /__[A-Za-z0-9_]+(?=\.png$)/
 const normSheet = s => String(s || '').replace(/^\.\//, '').replace(/^\//, '')

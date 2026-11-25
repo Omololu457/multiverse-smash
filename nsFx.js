@@ -38,9 +38,12 @@ function drawPose(c, f, key, frame, x, feet, dir, alpha = 1, tilt = 0, Aov = nul
   c.drawImage(im, fr * W, 0, W, H, -MSV1_CELL.originX * s, -MSV1_CELL.originY * s, W * s, H * s)
   c.restore()
 }
+const NO_FX_DIR = /\/assets\/(dt_[a-z]+|dinothunder\/)/
 function drawFx(c, f, name, frame, x, y, dir = 1, alpha = 1, scale = null, rot = 0) {
   const meta = MSV1_FX[name]; if (!meta) return
-  const im = image(`${f._nsAssetDir || './assets/' + f.rosterKey}/${name}.png`); if (!ready(im)) return
+  const fxDir = f._nsAssetDir || './assets/' + f.rosterKey
+  if (NO_FX_DIR.test(fxDir)) return   // Dino Thunder shares this engine but ships no MSV1 fx sheets: drawing nothing is what it always did, minus a 404 per sheet
+  const im = image(`${fxDir}/${name}.png`); if (!ready(im)) return
   const s = scale ?? SC(f), fr = Math.min(meta.frames - 1, frame | 0)
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha *= alpha; c.translate(Math.round(x), Math.round(y)); if (rot) c.rotate(rot); if (dir < 0) c.scale(-1, 1)
   c.drawImage(im, fr * meta.w, 0, meta.w, meta.h, -meta.w * s / 2, -meta.h * s / 2, meta.w * s, meta.h * s); c.restore()

@@ -5,6 +5,9 @@
 // assert the mechanics: every hit connects, the counter grows, later hits scale down.
 import assert from 'node:assert/strict'
 import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
+import { balDmgMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: Ben's row (dmg ×1.75) multiplies his live damage on top
+const BAL = balDmgMult('ben10')
+import { rosterDamageBoost } from '../rosterParity.js'
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -120,7 +123,7 @@ test('4. 360° Vision: instant turn on crossup and teleport; −2f counter-sight
 test('4. guard vs crossups: a hit from behind is blocked by the shared guard; throws / unblockables are not', () => {
   const g = ben(), o = fresh('goku', 300); tick(g, o, 2); o.x = g.x - 50; o.facing = 1; tick(g, o); assert.equal(g.facing, -1, 'auto-corrected toward the attacker')
   const hp = g.health; melee(o, g, 'light', { md: { damage: 40, startup: 3, active: 3, recovery: 6, frameExact: true }, block: true })
-  assert(g.health >= hp - 6 && g.blockstun > 0, 'crossup blocked (chip at most)')
+  assert(g.health >= hp - 6 * rosterDamageBoost(o) && g.blockstun > 0, 'crossup blocked (chip at most; × the attacker\'s roster boost)')
   g.health = 950; freshDef(g); const hp2 = g.health
   o.attacking = false; o.currentAttack = null; o.attackCooldown = 0; assert(C.startMove(o, 'light', { damage: 40, startup: 3, active: 3, recovery: 6, frameExact: true }))
   o.currentAttack.unblockable = true; g.isBlocking = true
@@ -154,7 +157,7 @@ test('6. Stare: one pip per cast, max 3, Hypno Wave none, Unblinking guard-break
   special(f, t, null); special(f, t, null); assert.equal(S(f).stare.pips, 0); assert(S(f).stare.unblinkT > 0, 'Unblinking')
   const hp = t.health; const o = special(f, t, null, { block: true }); assert(t.health < hp - 20, `guard-broken: full damage through block (${hp - t.health})`)
   assert.equal(S(f).stare.unblinkT, 0, 'consumed'); assert.equal(S(f).stare.breaks, 1); assert(S(f).stare.immune > 0, '300f immunity')
-  const hp2 = t.health; special(f, t, null, { block: true }); assert(hp2 - t.health < 10, 'next one is blocked again')
+  const hp2 = t.health; special(f, t, null, { block: true }); assert(hp2 - t.health < 10 * BAL, 'next one is blocked again')
   assert.equal(addStare(S(f), 12345), false, 'no pips while immune'); tick(f, t, EG_STARE.IMMUNE); assert.equal(addStare(S(f), 12346), true)
   const g = ben(); S(g).stare.unblinkT = 5; tick(g, t, 6); assert(S(g).stare.immune > 0, 'expiry also starts immunity')
 })
@@ -232,7 +235,7 @@ test('11. registry: Eyeguy READY and pickable; slot count from the registry; rea
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT, 'buildLoadout fills every slot'); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT, 'default loadout = slot count')
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(getAvailableAlienKeys(false).includes('eyeguy'))
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 950, 'shared health')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.15) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.05) < 1e-9)
 })
 test('11. picked loadout: Eyeguy in the last dial slot and the transform reaches it', () => {

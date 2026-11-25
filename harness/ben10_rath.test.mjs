@@ -75,7 +75,7 @@ test('stats: speed ×1.00 / damage ×1.25 / defense ×0.90 / weight ×1.10, doub
   const f = ben()
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.25) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.90) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.00 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.00')
-  assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Rath')
+  assert.equal(f.maxJumps, 2); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)'); assert.equal(f.activeAlienName, 'Rath')
   assert(!('projectile' in RATH) && !('projectiles' in RATH), 'no projectile-related fields')
 })
 test('normals: frame data (startup / dmg / on-block) as briefed, pre-mod', () => {

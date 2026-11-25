@@ -10,6 +10,9 @@
 //   5. Ghostfreak reads its documented motions: ↓↘→ Gale · ↓↙← Wail · ←↙↓ Phantom Rise · →→ Possess (held-direction fallback kept).
 import assert from 'node:assert/strict'
 import * as F from '../fighters.js'
+import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff
+import { balDmgMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: Ben's row multiplies his live damage
+const BAL = balDmgMult('ben10')
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
 import { physics } from '../physics.js'
@@ -55,7 +58,7 @@ test('1. Diamondhead Diamond Dive connects in the LIVE frame order (one hit of 5
   const hp = t.health; assert(A.triggerSpecial(f, ctxOf(f, t)), 'dive cast'); assert(S(f).dive, 'diving')
   let n = 0; while (S(f).dive && n < 90) { live(f, t); n++ }
   assert(t.health < hp, `the dive never connected live (hp ${hp} → ${t.health})`)
-  assert.equal(hp - t.health, Math.floor(DH.DH_DIVE.DMG * DH.DIAMONDHEAD.mods.damage * C.GLOBAL_DAMAGE_SCALE), 'exactly one hit')
+  assert.equal(hp - t.health, Math.floor(DH.DH_DIVE.DMG * DH.DIAMONDHEAD.mods.damage * BEN_ALIEN_BUFF.damage * BAL * C.GLOBAL_DAMAGE_SCALE), 'exactly one hit')
   clearProj()
 })
 

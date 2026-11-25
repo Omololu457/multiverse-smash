@@ -308,7 +308,7 @@ test('slot → PICK FIVE: slot count stays 5, Feedback READY + pickable (catalog
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Feedback'); assert.equal(f.health, 950, 'shared health')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Feedback'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
   assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.90) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 0.95) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.90 / dmg 0.95 / weight 0.85')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.05 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.05')
 })

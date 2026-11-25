@@ -290,11 +290,11 @@ test('10. Starfall Dash: air only, 300 px diagonal-down, 50, once per airtime, n
 })
 
 // ── 11 Power drain ─────────────────────────────────────────────────────────────────────────────────────────
-test('11. Power drain ×1.5 only while Alien X is active (≈ 13 s from full)', () => {
+test('11. Power drain ×1.5 only while Alien X is active (≈ 19 s from full; base drain 5 → 3.5/s in the 2026-11-23 Ben buff)', () => {
   const secs = form => { const f = ben(form); f.energy = 100; let n = 0; while (f.transformed && f.activeAlien === form && n < 5000) { F.updateTransformDevice(f, 1000 / 60); n++ } return n / 60 }
   const ax = secs('alienx'), hb = secs('heatblast'); console.log(`   Alien X ${ax.toFixed(2)} s, Heatblast ${hb.toFixed(2)} s`)
-  assert(Math.abs(ax - 13.33) < 0.6, `≈ 13 s (${ax})`); assert(Math.abs(hb / ax - AX_DRAIN_MULT) < 0.08, `×1.5 vs a normal form (${(hb / ax).toFixed(3)})`)
-  assert.equal(ALIENX.drainMult, 1.5); for (const d of BEN10_ALIEN_REGISTRY) if (d.id !== 'alienx') assert(d.drainMult == null, d.id + ' has no drain multiplier')
+  assert(Math.abs(ax - 19.05) < 0.6, `≈ 19 s (${ax})`); assert(Math.abs(hb / ax - AX_DRAIN_MULT) < 0.08, `×1.5 vs a normal form (${(hb / ax).toFixed(3)})`)
+  assert.equal(ALIENX.drainMult, 1.5); for (const d of BEN10_ALIEN_REGISTRY) if (d.id !== 'alienx') assert(d.drainMult == null || typeof d.drainMult === 'function', d.id + ' has no FLAT drain multiplier (Wildvine / Benwolf / Upgrade use the per-state function form)')
 })
 
 // ── 12 Ultimate ────────────────────────────────────────────────────────────────────────────────────────────

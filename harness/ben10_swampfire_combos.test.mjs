@@ -4,6 +4,7 @@
 // totals are smaller — exactly as for the human Ben framework (ben10_combo_p5) — so those are asserted
 // as mechanics (every hit connects, counter grows, later hits scale down), not pinned to the design numbers.
 import assert from 'node:assert/strict'
+import { rosterDamageBoost } from '../rosterParity.js'
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -103,7 +104,7 @@ test('route 5: Regrowth restores exactly, caps at 80, and a hit resets the 120f 
   const hpHit = f.health; for (let i = 0; i < 119; i++) tickRegrowth(f); assert.equal(f.health, hpHit, 'paused for 120f after the hit')
   for (let i = 0; i < 2000; i++) tickRegrowth(f)
   assert(f.health <= h0, 'never above pre-damage HP')
-  const g = ben(); for (let k = 0; k < 6; k++) C.applyScaledDamage(g, 200, { attacker: fresh('goku') }); const low = g.health
+  const g = ben(); for (let k = 0; k < 6; k++) C.applyScaledDamage(g, Math.round(200 / rosterDamageBoost(fresh('goku'))), { attacker: fresh('goku') }); const low = g.health   // ÷ goku's roster boost (OG lift × balance, 2026-11-23/25) so the six hits still leave him alive
   for (let i = 0; i < 3000; i++) tickRegrowth(g); assert.equal(g.health - low, 80, 'capped at 80 per transformation'); assert.equal(g.omnitrix.regrowth.restored, 80)
   F.revertToHuman(g); assert.equal(g.omnitrix.regrowth, null, 'pool + cap clear on revert')
 })

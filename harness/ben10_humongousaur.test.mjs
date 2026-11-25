@@ -353,7 +353,7 @@ test('12. slot → PICK FIVE: slot count stays 5, Humongousaur READY + pickable 
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit placeholder')
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Humongousaur'); assert.equal(f.health, 950, 'shared health')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Humongousaur'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
 })
 test('12. Omnitrix Dial: Humongousaur picked into the last slot — same cost as any slot, no clock change', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'humongousaur'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100

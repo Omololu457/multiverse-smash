@@ -7,6 +7,8 @@
 // he is picked into the loadout and reached with the Dial (↓↓ + slot key) like any other pick. Counts read BEN10_SLOT_COUNT.
 import assert from 'node:assert/strict'
 import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
+import { balDmgMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: Ben's row (dmg ×1.75) multiplies his live damage on top
+const BAL = balDmgMult('ben10')
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -77,7 +79,7 @@ test('stats: speed ×0.95 / damage ×1.10 / defense ×1.05 / weight ×1.10, doub
   const f = ben()
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.10) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.05) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - (0.95 * 7) / (getAlienDefinition('heatblast').mods.speed * F.BEN10_ALIEN_POOL.heatblast.stats.speed)) < 0.06, 'speed ×0.95')
-  assert.equal(f.maxJumps, 2); assert.equal(f.health, 950, 'shared health'); assert.equal(f.activeAlienName, 'Highbreed')
+  assert.equal(f.maxJumps, 2); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)'); assert.equal(f.activeAlienName, 'Highbreed')
   assert.equal(f._alienFlightProfile, 'highbreed'); assert(FL.FLIGHT_PROFILES.highbreed, 'flight profile')
 })
 test('normals: frame data (startup / dmg / on-block) as briefed, pre-mod', () => {
@@ -206,7 +208,7 @@ function runCast(f, t, dir, { max = 200, block = false, input = {}, pre = null }
     const s = S(f); if (!s.claws && !s.dive && !s.lance && !s.wing && n > 2 && !A.activeProjectiles.some(p => p.owner === f)) break }
   return { ok, dmg: hp - t.health, cost, n, proj }
 }
-const SC = DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE
+const SC = DM * BEN_ALIEN_BUFF.damage * BAL * C.GLOBAL_DAMAGE_SCALE
 const grounded = q => !!(q.onGround || q.grounded)
 const dash = q => { S(q).dashTapT = S(q).t }
 const m236 = q => { S(q).hist = [{ d: 2, t: S(q).t - 2 }, { d: 3, t: S(q).t - 1 }, { d: 6, t: S(q).t }] }

@@ -7,6 +7,8 @@
 // the loadout and reached with the Dial (↓↓ + slot key) like any other pick. Counts read BEN10_SLOT_COUNT, never a literal.
 import assert from 'node:assert/strict'
 import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
+import { balDmgMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: Ben's row (dmg ×1.75) multiplies his live damage on top
+const BAL = balDmgMult('ben10')
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -132,7 +134,7 @@ test('4. Puddle Form: can\'t jump / attack inside; →↓↘ = GEYSER UPPERCUT 6
   const hp = t.health, seq = [{ special: true, right: true }, { special: true, down: true }, { special: true, down: true, right: true }]
   for (const i of seq) world(f, t, 1, i)
   assert(!S(f).puddle && S(f).lastPuddle.how === 'geyser'); world(f, t, 20)
-  assert(t.health < hp, 'geyser hits'); assert(near(hp - t.health, 60 * DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE) || hp - t.health > 40, 'dmg ' + (hp - t.health)); assert(t.vy < 0 || !t.onGround || t.isLaunched, 'launches')
+  assert(t.health < hp, 'geyser hits'); assert(near(hp - t.health, 60 * DM * BEN_ALIEN_BUFF.damage * BAL * C.GLOBAL_DAMAGE_SCALE) || hp - t.health > 40, 'dmg ' + (hp - t.health)); assert(t.vy < 0 || !t.onGround || t.isLaunched, 'launches')
 })
 
 
@@ -194,7 +196,7 @@ test('6. 3 pips → SHORT FUSE 240f (pips consumed): +20 % from ELECTRIC hits on
   assert(Math.abs(e / e0 - 1.2) < 0.02, `electric ×1.2: ${e} vs ${e0}`); assert(Math.abs(n - n0) < 1e-9, 'a non-electric hit is unchanged')
   const ep = dmgAs(t, plain, 'projectile', 'mw_spark'), ep0 = dmgAs(foe(), plain, 'projectile', 'mw_spark'); assert(Math.abs(ep / ep0 - 1.2) < 0.02, 'tagged electric projectile ×1.2')
   pipHit(f, t, 'blast', 9); assert.equal(s.pips, 0, 'no pip / refresh while it runs'); assert.equal(t._benShortFuse.left, WH_DRENCH.FUSE)
-  world(f, t, WH_DRENCH.FUSE); assert(!G.fuseOn(t), '240f'); assert(Math.abs(dmgAs(t, mw, 'melee', 'light') - e0) < 1e-9, 'over: no bonus')
+  world(f, t, WH_DRENCH.FUSE); assert(!G.fuseOn(t), '240f'); t.health = t.maxHealth   /* the balance-buffed (×1.75) casts above empty the 950-HP fixture foe; refill so the hit is measurable */; assert(Math.abs(dmgAs(t, mw, 'melee', 'light') - e0) < 1e-9, 'over: no bonus')
   pipHit(f, t, 'blast', 10); assert.equal(s.pips, 0, 'immune 360f'); world(f, t, WH_DRENCH.IMMUNE); assert(!('_benShortFuse' in t), 'the stamp is gone')
   pipHit(f, t, 'blast', 11); assert.equal(s.pips, 1, 'pips again after the immunity')
   assert.equal(st.facing, t.facing); assert.equal(FRAME, FRAME, 'no clock / polling field touched')
@@ -219,7 +221,7 @@ function runCast(f, t, dir, { max = 200, block = false, input = {}, pre = null }
     const s = S(f); if (!s.blast && !s.burst && !s.chain && !s.sweep && !s.dive && !s.puddle && n > 2 && !A.activeProjectiles.some(p => p.owner === f)) break }
   return { ok, dmg: hp - t.health, cost, n, proj }
 }
-const SC = DM * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE
+const SC = DM * BEN_ALIEN_BUFF.damage * BAL * C.GLOBAL_DAMAGE_SCALE
 test('7. Pressure Blast (236+P, 10): a tap fires a 460px jet at 10f for 40; one on screen; +1 Drenched on a clean hit', () => {
   const f = ben(), t = foe(); reset(f, t, 300); const r = runCast(f, t, 'N'); assert(r.ok); assert.equal(r.cost, WH_COST.blast)
   assert.equal(S(f).lastBlast.full, false); assert.equal(S(f).lastBlast.dmg, 40); assert(near(r.dmg, 40 * SC), 'dmg ' + r.dmg); assert.equal(S(f).pips, 1)

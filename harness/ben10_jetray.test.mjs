@@ -5,6 +5,8 @@
 // kept 5 slots; Jetray is a pick, not a new slot / chord.
 import assert from 'node:assert/strict'
 import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
+import { balDmgMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: Ben's row (dmg ×1.75) multiplies his live damage on top
+const BAL = balDmgMult('ben10')
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -201,7 +203,7 @@ test('6. Echoes: 10f after a hit, 30% damage, only during hitstun, max 3 per com
   const f = ben(), t = foe(); reset(f, t, 10); assert(JETRAY.blockSpecial(f, {}, SPEND)); S(f).swallow = 0
   const d = melee(f, t, 'heavy'); assert.equal(S(f).echoes.length, 1); assert.equal(S(f).echoes[0].at - S(f).t, JR_ECHO.DELAY)
   t.hitstun = 30; const hp = t.health; tick(f, t, JR_ECHO.DELAY - 1); assert.equal(t.health, hp, 'not before 10f'); tick(f, t)
-  const echo = hp - t.health; assert(echo > 0 && echo < BA.heavy.damage * 0.30 * DM + 0.5, `30% scaled (${echo})`); assert.equal(S(f).echoesFired, 1)
+  const echo = hp - t.health; assert(echo > 0 && echo < BA.heavy.damage * 0.30 * DM * BAL + 0.5, `30% scaled (${echo})`); assert.equal(S(f).echoesFired, 1)
   assert.equal(S(f).echoes.length, 0, 'echo did not schedule an echo')
   t.hitstun = 30; melee(f, t, 'light'); melee(f, t, 'light'); melee(f, t, 'light'); assert.equal(S(f).echoCount, 3, 'max 3'); assert.equal(S(f).echoes.length, 2)
   t.hitstun = 0; const hp2 = t.health; tick(f, t, 12); assert.equal(t.health, hp2, 'dropped: no echo outside hitstun')
@@ -267,7 +269,7 @@ test('8. Tail Volley: 3 LASER PULSES from the tail tip, each AIMED at the oppone
     for (let i = 0; i < 40 && S(f).tail; i++) { world(f, t); for (const p of S(f).tail?.pulses || []) if (!pulses.some(q => q.t === p.t)) pulses.push(p) }
     assert.equal(pulses.length, 3, `${label}: 3 pulses`)
     for (const p of pulses) { assert(Math.abs(p.ox - tip.x) < 1e-6 && Math.abs(p.oy - tip.y) < 1e-6, 'from the tail tip'); assert(p.hit, `${label}: aimed onto the opponent`) }
-    const dealt = 950 - t.health; assert(dealt > 0 && dealt <= 30 * DM + 1, `${label}: ≤ 30 (${dealt})`); assert.equal(S(f).neuro.pips, 1, 'one pip per cast')
+    const dealt = 950 - t.health; assert(dealt > 0 && dealt <= 30 * DM * BAL + 1, `${label}: ≤ 30 × balance (${dealt})`); assert.equal(S(f).neuro.pips, 1, 'one pip per cast')
   }
   const g = ben(), u = foe(); reset(g, u, 150); assert(cast(g, u, 'D')); let n = 0
   for (let i = 0; i < 40; i++) { tick(g, u); for (const p of A.activeProjectiles) if (p.owner === g) { n++; assert(p.alien?.hidden) } clearProj() }
@@ -381,7 +383,7 @@ test('13. pick five: slot count from the registry (5), Jetray READY + pickable, 
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT); assert(getAvailableAlienKeys(false).includes('jetray'))
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')))
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Jetray'); assert.equal(f.health, 950, 'shared health')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Jetray'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 2.6 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×2.6')
   assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.80) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 0.95) < 1e-9)
 })

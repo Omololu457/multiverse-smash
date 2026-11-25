@@ -6,6 +6,8 @@
 // aliens, so the slot is catalog metadata (14: ready slots stay contiguous); Upgrade is picked into the loadout and reached with the Dial (↓↓ + slot key).
 import assert from 'node:assert/strict'
 import { BEN_ALIEN_BUFF } from '../benAlienBalance.js'   // 2026-11-19 global alien buff: live numbers = design × buff
+import { balDmgMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: Ben's row (dmg ×1.75) multiplies his live damage on top
+const BAL = balDmgMult('ben10')
 import * as F from '../fighters.js'
 import * as A from '../abilities.js'
 import * as C from '../combat.js'
@@ -228,7 +230,7 @@ test('10. →↓↘+P with no Terminal near = Tendril Rise (10 Power, 13f)', () 
 test('11. Spear Dive: air only, 12 Power, 48 dmg, one hit, once per airtime, no jump refill', () => {
   clearProj(); const f = ben(), t = foe(); reset(f, t, 40); f.onGround = f.grounded = false; f.y -= 120; const j = f.jumpCount = 2; const e = f.energy, hp = t.health
   assert(cast(f, t, null), 'Spear'); assert.equal(e - f.energy, UP_COST.spear); world(f, t, 3); const jAir = f.jumpCount; world(f, t, 37); const d = hp - t.health
-  assert(d > 0, 'hits'); assert(d <= Math.ceil(UP_SPEAR.DMG * BEN_ALIEN_BUFF.damage * C.GLOBAL_DAMAGE_SCALE) + 1, 'one hit only'); assert.equal(jAir, j, 'no jump refill')
+  assert(d > 0, 'hits'); assert(d <= Math.ceil(UP_SPEAR.DMG * BEN_ALIEN_BUFF.damage * BAL * C.GLOBAL_DAMAGE_SCALE) + 1, 'one hit only'); assert.equal(jAir, j, 'no jump refill')
   const g = ben(), u = foe(); far(g, u); g.onGround = g.grounded = false; g.y -= 300; assert(cast(g, u, null)); world(g, u, 3); assert(!g.onGround)
   S(g).spear = null; delete g._benGlide; ready(g); assert(!cast(g, u, null), 'once per airtime (same airtime)')
 })

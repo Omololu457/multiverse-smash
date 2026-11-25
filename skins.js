@@ -1279,7 +1279,18 @@ export const SKINS = {
     { id: "omololuPink",      name: "Pink",            unlockLevel: 0, portrait: recolorPortrait("omololu", "pink"),         spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "pink"),    recolorTag: "pink" },
     { id: "omololuEmerald",   name: "Emerald",         unlockLevel: 0, portrait: recolorPortrait("omololu", "emerald"),      spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "emerald"), recolorTag: "emerald" },
     { id: "omololuAzure",     name: "Azure",           unlockLevel: 0, portrait: recolorPortrait("omololu", "azure"),        spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "azure"),   recolorTag: "azure" },
-    { id: "omololuViolet",    name: "Violet",          unlockLevel: 0, portrait: recolorPortrait("omololu", "violet"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "violet"),  recolorTag: "violet" }
+    { id: "omololuViolet",    name: "Violet",          unlockLevel: 0, portrait: recolorPortrait("omololu", "violet"),       spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "violet"),  recolorTag: "violet" },
+    // Creative skins inspired by other fighters (tools/originalskins/build.py) — cosmetic recolours, FX untouched.
+    { id: "omololuRose", name: "Rosé (Goku Black)", unlockLevel: 0, portrait: recolorPortrait("omololu", "rose"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "rose") },
+    { id: "omololuHollowpurple", name: "Hollow Purple (Gojo)", unlockLevel: 0, portrait: recolorPortrait("omololu", "hollowpurple"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "hollowpurple") },
+    { id: "omololuKingofcurses", name: "King of Curses (Sukuna)", unlockLevel: 0, portrait: recolorPortrait("omololu", "kingofcurses"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "kingofcurses") },
+    { id: "omololuAkatsuki", name: "Akatsuki (Itachi)", unlockLevel: 0, portrait: recolorPortrait("omololu", "akatsuki"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "akatsuki") },
+    { id: "omololuSage", name: "Sage Mode (Naruto)", unlockLevel: 0, portrait: recolorPortrait("omololu", "sage"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "sage") },
+    { id: "omololuThunderclap", name: "Thunderclap (Zenitsu)", unlockLevel: 0, portrait: recolorPortrait("omololu", "thunderclap"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "thunderclap") },
+    { id: "omololuFlamehashira", name: "Flame Hashira (Rengoku)", unlockLevel: 0, portrait: recolorPortrait("omololu", "flamehashira"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "flamehashira") },
+    { id: "omololuMagmacore", name: "Magma Core (Heatblast)", unlockLevel: 0, portrait: recolorPortrait("omololu", "magmacore"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "magmacore") },
+    { id: "omololuCrystal", name: "Crystal (Diamondhead)", unlockLevel: 0, portrait: recolorPortrait("omololu", "crystal"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "crystal") },
+    { id: "omololuHomelander", name: "Homelander", unlockLevel: 0, portrait: recolorPortrait("omololu", "homelander"), spriteScale: characters.omololu?.spriteScale, animationData: recolorSkinAnim("omololu", "homelander") },
   ],
 
   // Tobi (masked Obito alias, Naruto). FULLY SEPARATE from obito above. Same gate: WITHOUT a

@@ -31,7 +31,7 @@ try {
   ok('metadata = the brief (displayName, universe, archetype, tagline, bio, difficulty 5, contributor)', M.displayName === 'Enoch' && M.universe === 'original' && M.archetype === 'Elemental Controller / Trail Glider' && M.tagline === 'Where ice meets fire.' && M.bio === BIO && M.difficulty === 5 && M.contributor === true, JSON.stringify(M))
   ok('980 health, light weight', M.hp === 980 && M.weight < 1, JSON.stringify([M.hp, M.weight]))
   ok('roster: listed with the Originals, right after Dseyl (owner moved him 2026-11-17)', M.afterDseyl, '')
-  ok('skins: the default only', M.skins.length === 1, JSON.stringify(M.skins))
+  ok('skins: the default first + 10 creative skins (user asked for skins, 2026-11-25)', M.skins[0] === 'default' && M.skins.filter(id => /^enoch[A-Z]/.test(id)).length === 10, JSON.stringify(M.skins))
   ok('credits: a contributor line (playable as Enoch) + the art attribution', !!M.contributorLine && M.art, JSON.stringify(M.contributorLine))
   // privacy: no surname / place / organisation strings shipped in his data, docs or credits
   // every Enoch file this build ships (code, docs, tools, tests other than this one) + his credits entries

@@ -70,7 +70,8 @@ for (const [key, driver] of DRIVERS) {
   const f = mkFighter(key);
   const fired = driver(f, DOWN, ctx(), phase);
   check(`${key}: Down+Heavy does NOT open the chain`,
-        fired === false && f.attacking === false && f._rekkaNext == null,
+        (key === "gon" ? f._rekkaNext == null   // Gon: ↓+Heavy is his separate Ren power-up (no chain) since 2026-10-12
+                       : fired === false && f.attacking === false && f._rekkaNext == null),
         `fired=${fired} attacking=${f.attacking} _rekkaNext=${f._rekkaNext}`);
 }
 

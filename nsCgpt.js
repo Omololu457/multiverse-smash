@@ -23,6 +23,8 @@ import { NS_CGPT_BASES, NS_CGPT_SKIN_TABLE } from './nsCgptSkinTable.js'
 import { fresh, use, live, doubleTap, startStreak, nsStartMove, endMove, spendNP, gainNP, cue, burst, nsStrike, ctrX, ctrY, overlaps, getNinjaProfile } from './ninja.js'
 
 export const CGPT_ID = 'ninja_storm_cgpt'
+// Ultimate-confirm hook (nsCgptUlt.js sets .ult): the cinematic takes over Twin Tempest once the opening sword CONNECTS.
+export const cgptHooks = { ult: null }
 // appearance → asset folder + smoke / streak colours (cosmetic; the skin id never reaches a gameplay number)
 const SKIN_ROWS = Object.fromEntries([...NS_CGPT_BASES, ...NS_CGPT_SKIN_TABLE].map(r => [r.tag, r]))
 export const cgptTagOf = skinId => skinId === 'yellow' ? 'yellow' : (typeof skinId === 'string' && skinId.startsWith('cgpt_') && SKIN_ROWS[skinId.slice(5)]) ? skinId.slice(5) : 'red'
@@ -391,6 +393,7 @@ export function cgptUlt(f, opp, s, a, t, X) {
     if (u.res !== 'hit') { a.timer = Math.min(a.timer, Math.max(1, U.whiffEnd - t)); say(f, u.res === 'blocked' ? 'BLOCKED' : 'MISSED', 40); return }
     G.ox = Math.round(ctrX(opp)); G.ofeet = Math.round(feetY(opp)); G.floor = Math.round(floorY(f))
     if (g.clone) dissolveClone(f, 'ult', 0)   // a live clone becomes the ultimate's partner (re-formed on the far side)
+    if (cgptHooks.ult?.(f, opp, s, g, u)) { G.ox = null; return }   // the cinematic (nsCgptUlt.js) plays the rest of the schedule
   }
   if (u.res !== 'hit' || G.ox == null) return
   const side = f.facing || 1   // the Ranger starts on this side of the foe; the clone appears opposite

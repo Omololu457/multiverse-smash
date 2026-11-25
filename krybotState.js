@@ -3,6 +3,8 @@
 // Projectiles use the existing shared projectile lifecycle and collision pipeline.
 import { KRYBOT_MOVES, krybot, krybotDmg } from './krybotData.js'
 export const isKrybot = f => f?.rosterKey === 'krybot'
+// Ultimate-confirm hook (krybotUlt.js sets .confirm): the cinematic ultimate takes over an UNBLOCKED opening-bolt hit.
+export const krybotHooks = { confirm: null }
 // Verified aim cell: forearm tip at (47,21.5), foot pivot (22,57), scale 2.2.
 export const KRYBOT_MUZZLE = { x:56, height:78 }
 export const KRYBOT_CROSSFIRE_SPACING = 160
@@ -84,6 +86,7 @@ export function krybotProjectileHit(p,d) {
     d.vx += (p.vx<0?-1:1)*2; s.mark=null // pushback ONLY, no damage/stun/resource modifier
   }
   if(m.kind==='opening' && f.attacking && f.currentAttack?.name==='ultimate' && !s.super) {
+    if(krybotHooks.confirm?.(f,d)) return
     s.super={age:0,target:targetId(d),impactX:cx(d),impactY:d.y+d.h*.5,feet:feet(f),dir:f.facing||1}
     const a=f.currentAttack, more=Math.max(0,48-a.timer); a.total+=more; a.timer+=more
   }

@@ -288,8 +288,11 @@ try {
     await fresh(120, { energy: 100 }); const h0 = await hp2(); const zoom0 = await page.evaluate(() => JSON.stringify(window.__harness.luffyTest.state('p1').draw))
     await tap('u'); const shotsAt = { 20: 'ult_1_clone_opposite', 44: 'ult_2_wind_spiral', 72: 'ult_3_descending', 90: 'ult_4_eruption' }
     let sawClone = false, maxRise = 0, y0 = (await S('p2')).y
-    for (let t = 1; t <= 130; t++) {
-      await step(1); const g = await CG(); if (g?.ult?.clone) sawClone = true
+    // re-pinned 2026-11-24 (rangers_rest ult rebuild): when the TWIN TEMPEST cinematic (nsCgptUlt.js) owns the schedule the clone is
+    // staged by the freeze cinematic (no legacy g.ult.clone) and the whole schedule runs ~190 cinematic frames + hit-stop holds → sample 320 frames
+    const cineOn = () => page.evaluate(async () => (await import('./cineRegistry.js')).anyFreezeCineActive())
+    for (let t = 1; t <= 320; t++) {
+      await step(1); const g = await CG(); if (g?.ult?.clone || (t > 12 && g?.stats?.ultHits >= 2 && await cineOn())) sawClone = true
       const z = await S('p2'); maxRise = Math.max(maxRise, y0 - z.y)
       if (shotsAt[t]) await shot(shotsAt[t])
     }

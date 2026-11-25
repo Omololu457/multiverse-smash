@@ -57,6 +57,9 @@ try {
     function transform(){
       press({ultimate:true})
       step({}, {}, 31)
+      // re-pinned 2026-11-24 (rangers_rest ult rebuild): with kevinUlt.js the activation plays a ~150-frame ABSORPTION OVERLOAD freeze
+      // cinematic and the form applies at its end — wait for it (no-op on the legacy path, where the form is already live here)
+      for(let n=0;n<240&&!(a._kevin.formUntil>a._kevin.tick);n++)step()
       check('full meter activation',a._kevin.formUntil>a._kevin.tick && a.energy<1,{move:a.currentMove,form:a._kevin.formUntil,energy:a.energy})
     }
     function coat(id) {
@@ -282,7 +285,7 @@ try {
     check('morph preserves HP, ground X, and original shot expiry',a.health===721&&a.x===x0&&state.stored?.raw===120&&state.stored.until===shotEnd)
     const cashHP=b.health
     press({ultimate:true})
-    step({}, {}, 100)
+    step({}, {}, 280)   // re-pinned 2026-11-24 (rangers_rest): was 100 — the kevinUlt.js cash-out cinematic runs ~200 frames + hit-stops
     check('cash-out hits once then reverts',cashHP-b.health>=200 && a._kevin.formUntil===0 && !a._kevin.cinematic,
       {damage:cashHP-b.health,action:a.currentMove})
     measure.push({key:'kCash early',damage:cashHP-b.health})
@@ -311,11 +314,11 @@ try {
     check('all skins give identical simulated outcomes',new Set(signatures.map(JSON.stringify)).size===1,signatures)
     reset();transform();a._kevin.formUntil=a._kevin.tick+6
     const lateHP=b.health
-    press({ultimate:true});step({}, {}, 101)
+    press({ultimate:true});step({}, {}, 280)   // re-pinned 2026-11-24 (rangers_rest): was 101 (cash-out cinematic)
     const lateDamage=lateHP-b.health
     check('near-expiry cash-out deals about 180 raw',lateDamage>=108&&lateDamage<=110,{lateDamage})
     measure.push({key:'kCash late',damage:lateDamage})
-    reset();transform();b.health=15;press({ultimate:true});step({}, {}, 70)
+    reset();transform();b.health=15;press({ultimate:true});step({}, {}, 280)   // re-pinned 2026-11-24 (rangers_rest): was 70 (cash-out cinematic)
     check('cash-out resolves KO',b.health===0,{hp:b.health,cinematic:a._kevin?.cinematic})
     for(const stage of H.stages().filter(name=>name!=='Battle Royale Colosseum')) {
       __harness.start({mode:'training',stage})

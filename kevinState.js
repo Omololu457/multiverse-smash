@@ -6,6 +6,9 @@ import { startMove, resolveGrab, cancelWindowOpen, applyScaledDamage } from './c
 import { INPUT_BUFFER_FRAMES } from './input.js'
 
 export const isKevin = f => f?.rosterKey === 'kevin_levin'
+// Cinematic hooks (kevinUlt.js sets them): .transform(f, target) when the morph starts (activation cinematic, no damage);
+// .cash(f, d, damage) → true when the cinematic finisher takes over the Everything-You-Threw-at-Me confirm.
+export const kevinHooks = { transform: null, cash: null }
 const grounded = f => !!(f.onGround ?? f.grounded)
 const feet = f => f.y+f.h
 const center = f => f.x+f.w/2
@@ -193,6 +196,7 @@ export function kevinHit(f,d,a,armored,cashDamage) {
     d.invulnTimer=Math.max(d.invulnTimer || 0,26)
   }
   if (k.key==='kCash' && cashDamage!=null) {
+    if (kevinHooks.cash?.(f,d,cashDamage)) return
     s.cinematic={target:d.side,t:0,damage:cashDamage,x:center(d),y:d.y,feet:feet(d),vy:d.vy,vx:d.vx,onGround:d.onGround,
       grounded:d.grounded,hitstun:d.hitstun,dir:k.dir}
     d.vx=d.vy=f.vx=f.vy=0
@@ -358,7 +362,10 @@ export function kevinCommand(f, target, world) {
           s.formUntil=0;s.reverting=true;s.edges={}
         }
       }
-    } else fire('kTransform')
+    } else {
+      fire('kTransform')
+      if (f.currentAttack?.kevin?.key==='kTransform') kevinHooks.transform?.(f,target)
+    }
     return
   }
   if (e.grab && g) { fire('kGrab');return }

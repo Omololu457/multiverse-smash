@@ -10,6 +10,8 @@ import { tickAcademy, clearAcademy, academyState, getAcademyProfile, gainFocus, 
   scheduleEcho, twinPlan, modeDamageMul, modeTakenMul, cloneAlive, academyRegen, stanceOf, dialInput, swapStance, stanceRefusal, tickEchoes } from './ninjaAcademy.js'
 export { isNinjaStorm }
 
+// Ultimate-confirm hook (ninjaStormUlt.js sets .ult): the cinematic takes over a CLEAN Thunder Fist / Lion Zord connect.
+export const nsrHooks = { ult: null }
 export function ncue(f, c) { (f._nsrCues ||= []).push(c) }   // audio cue queue (presentation only; played + cleared by game.js)
 const BUTTONS = ['light', 'heavy', 'special', 'ultimate', 'upAttack', 'grab', 'block', 'left', 'right', 'up', 'down']
 export const stance = f => stanceOf(f) || 'red'
@@ -329,6 +331,7 @@ function tickUlt(f, opp, s, a, t) {
     } else {
       u.res = 'hit'; u.plan = twinPlan(f, opp, U.pool, _W); if (u.plan.twin) s.stats.twin++
       opp.isBlocking = false; ncue(f, u.plan.twin ? 'twin' : 'burst')
+      if (nsrHooks.ult?.(f, opp, u)) { u.res = 'cine'; const r = f._ranger, p = getRangerProfile(f); if (r && p) { r.charges = p.blink.charges; r.refill = [] } }
     }
   }
   if (u.res === 'hit' && opp) {

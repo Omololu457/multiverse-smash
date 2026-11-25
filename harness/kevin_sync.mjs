@@ -78,6 +78,9 @@ try {
     check('Cross still performs two standard jumps',b.jumpCount===2,b.jumpCount)
     b.energy=100;b.y=62;b.grounded=b.onGround=false;b.vy=-16
     step({}, {ultimate:true});step({}, {},29)
+    // re-pinned 2026-11-24 (rangers_rest ult rebuild): kevinUlt.js plays a ~150-frame activation cinematic and applies the form at its
+    // end — wait for it (no-op on the legacy path)
+    for(let n=0;n<240&&!(b._kevin.formUntil>b._kevin.tick);n++)step({}, {},1)
     check('airborne morph preserves used jumps',b._kevin.formUntil>0 && b.jumpCount===2 && !b.onGround,
       {jumpCount:b.jumpCount,position:b.y,active:b._kevin.formUntil})
     b._kevin.formUntil=b._kevin.tick+1;b.y=52;b.vy=-14

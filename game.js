@@ -28544,6 +28544,9 @@ function _drawLowGfxChip() {
   ctx.restore()
 }
 
+// HWPERF — hardware scan / auto quality tiers / safety governor / Performance panel (hwperf.js). Render-side only;
+// loaded lazily at boot (a failure there can never block the game). Set to its per-pass hook once loaded.
+let _hwperfAfter = null
 const NET_CATCHUP_MAX = 4   // online: at most 4 logic ticks per drawn frame (keeps 60/s down to a 15 fps display)
 function gameLoop(now) {
   requestAnimationFrame(gameLoop)
@@ -28610,6 +28613,7 @@ function gameLoop(now) {
   _tickLowGfxSuggest()                              // AUTO-SUGGEST LOW GRAPHICS (offers, never switches)
   if (_lowGfxChip) _drawLowGfxChip()
   if (_showPersonality) { try { personality.drawPersonalityPanel(ctx, canvas) } catch (_) {} }
+  if (_hwperfAfter) { try { _hwperfAfter(now, gameState) } catch (_) {} }   // HWPERF: frame timing → governor / FPS graph (render-side)
   endInputFrame()
 }
 
@@ -28995,6 +28999,9 @@ document.addEventListener("webkitfullscreenchange", () => { applyViewportSize();
 // ------------------------------------------------------------------
 // BOOT
 // ------------------------------------------------------------------
+// HWPERF boot: lazy so hwperf.js can never break startup. Mode defaults to OFF (no change) unless the PLAY_MAX launcher,
+// a ?hwperf= URL or the Performance panel (Shift+F7 / Settings button) turned it on.
+try { import("./hwperf.js").then(m => { try { _hwperfAfter = m.install({ canvas, ctx, juiceSettings, getState: () => gameState }) || null } catch (e) { console.warn("[hwperf] install failed", e) } }).catch(e => console.warn("[hwperf] not loaded", e)) } catch (_) {}
 sound.init?.()
 // Load the ACTIVE music source (default = all songs / personalized / saved custom) and start it.
 // Standalone + guest-safe (musicLibrary persists to its own localStorage), so this restores the

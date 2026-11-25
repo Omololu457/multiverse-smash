@@ -174,3 +174,7 @@ __pycache__/
 # Regenerable probe / theme-render working dirs (test/tool output)
 harness/bg_probe/
 harness/theme_shots/
+
+# HWPERF: per-machine hardware scan + the PLAY_MAX launcher's private browser profile (local only)
+hw_profile.local.json
+.msmash-browser-profile/

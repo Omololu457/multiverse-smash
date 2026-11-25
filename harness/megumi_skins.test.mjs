@@ -18,7 +18,7 @@ import { MEGUMI_FX_COLORS } from '../megumiSkins.js'
 const ROOT = process.cwd(), OUT = 'docs/skins/megumi', KEY = 'megumi_fushiguro'; let pass = 0, fail = 0; const report = { skins: {} }
 fs.mkdirSync(OUT, { recursive: true })
 const ok = (c, n, d = '') => { c ? pass++ : fail++; console.log(c ? 'PASS' : 'FAIL', n, c ? '' : d) }
-const list = getSkins(KEY), byId = Object.fromEntries(list.map(s => [s.id, s]))
+const list = getSkins(KEY).filter(s => s.classification !== 'Creative'), byId = Object.fromEntries(list.map(s => [s.id, s]))
 const WANT = { mg_natural_shadows: ['natural_shadows', 'Natural Shadows', false], mg_cursed_rose: ['cursed_rose', 'Cursed Rose', false],
   mg_infinity_frost: ['infinity_frost', 'Infinity Frost', true], mg_ten_constellations: ['ten_constellations', 'Alien X — Ten Constellations', true],
   mg_shadow_circuit: ['shadow_circuit', 'Upgrade — Shadow Circuit', true], mg_pale_procession: ['pale_procession', 'Ghostfreak — Pale Procession', true],

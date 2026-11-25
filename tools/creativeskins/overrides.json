@@ -1,0 +1,20 @@
+{
+ "naruto": {"noskin": true, "avoid": ["flamehashira", "rose", "akatsuki", "hollowpurple"]},
+ "inosuke": {"avoid": ["kingofcurses", "senbonzakura"]},
+ "aoi_todo": {"avoid": ["xlr8"]},
+ "jesus": {"avoid": ["ghostfreak"]},
+ "baki": {"skinh": [-12, 42], "skins": [0.16, 0.66], "darkskin": true},
+ "jiraiya": {"avoid": ["benten", "rose", "albedo"]},
+ "green_samurai_ranger": {"avoid": ["hollowpurple", "akatsuki"]},
+ "homelander": {"avoid": ["sage", "destroyer"]},
+ "kakashi_war": {"avoid": ["crystal", "albedo"]},
+ "starfire": {"skins": [0.16, 0.92], "avoid": ["crystal", "benten", "spidey", "xlr8"]},
+ "sasuke_sensei": {"avoid": ["homelander"]},
+ "zaraki": {"hairrel": 0.2, "avoid": ["senbonzakura", "kingofcurses"]},
+ "kakashi": {"skins": [0.16, 0.78], "force": {"#6b2900": "skin"}, "avoid": ["akatsuki", "homelander", "manofsteel", "sage", "magmacore"]},
+ "soldier_boy": {"avoid": ["rose"]},
+ "megumi_fushiguro": {"q": 12},
+ "green_arrow": {"avoid": ["godspeed", "crystal", "bigchill", "xlr8", "ultrainstinct"]},
+ "gaara": {"hairrel": 0.22, "avoid": ["magmacore", "upgrade"]},
+ "hashirama": {"hairrel": 0.3, "avoid": ["thunderclap", "spidey"]}
+}

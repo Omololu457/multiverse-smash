@@ -16,7 +16,7 @@ import { getSkins } from '../skins.js'
 import { BATMAN_FX_COLORS } from '../batmanSkins.js'
 const ROOT = process.cwd(); let pass = 0, fail = 0; const report = { skins: {} }
 const ok = (c, n, d = '') => { c ? pass++ : fail++; console.log(c ? 'PASS' : 'FAIL', n, c ? '' : d) }
-const list = getSkins('batman')
+const list = getSkins('batman').filter(s => s.classification !== 'Creative')   // the 10 curated skins (roster-wide creative recolours: creative_skins.test.mjs)
 const WANT = ['default', 'bm_blue_crusader', 'bm_gotham_beyond', 'bm_white_knight', 'bm_arkham_bronze', 'bm_red_rain', 'bm_alienx_cosmic_knight', 'bm_upgrade_wayne_systems', 'bm_cursed_midnight', 'bm_glacier_stealth', 'bm_gilded_eclipse']
 ok(JSON.stringify(list.map(s => s.id)) === JSON.stringify(WANT), 'A. Default + exactly the 10 named skins, in order', JSON.stringify(list.map(s => s.id)))
 ok(list.every(s => !/cyborg/i.test(s.id) && !s.id.endsWith('AlienX') && (s.id === 'default' || s.id.startsWith('bm_'))), 'A. ids: bm_ prefix, no "cyborg", none ends in "AlienX"')

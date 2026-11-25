@@ -14,6 +14,7 @@
 // with different skins work). Default skin returns null = use existing art.
 // ──────────────────────────────────────────────────────────────────────────
 import { characters } from "./characters.js"
+import { CREATIVE_SKINS, CREATIVE_DROP } from "./creativeSkins.js"   // creative recolours (tools/creativeskins)
 import { OMNI_SUFFIX } from "./omniTheme.js"   // the roster-wide Ben 10 OMNITRIX theme skin
 import { EDO_SKIN_KEYS } from "./edoSkinKeys.js"   // MSV1-EDO: characters with premade Edo Tensei art (generated)
 import { ALBEDO_THEMES, ALBEDO_APPEARANCES, albedoThemeSkinId } from "./albedoThemes.js"   // Albedo skin themes (Albedo list only)
@@ -2805,6 +2806,23 @@ for (const key of Object.keys(SKINS)) {
 }
 SKINS.batman = BATMAN_SKINS   // Batman REBUILT: replaces the legacy batman list (its sheets belong to the old art set)
 SKINS.violet = VIOLET_SKINS   // Violet Parr: her own skin list (no generic auto-recolours)
+
+// CREATIVE SKINS (tools/creativeskins/build.py → creativeSkins.js): fighters whose skins were missing, broken (art deleted) or
+// flat one-colour tints get 10 creative recolours, each inspired by another fighter (Rosé, Akatsuki, Godspeed, Big Chill …).
+// The flat / broken entries they replace are dropped (a saved pick of a dropped id falls back to Default via getSkin).
+// Scale = the fighter's own default entry, so size is unchanged. Cosmetic only: same frames → same timing + hitboxes.
+for (const [key, list] of Object.entries(CREATIVE_SKINS)) {
+  if (!characters[key]) continue
+  if (!SKINS[key]) SKINS[key] = [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: 1, animationData: null }]
+  const drop = new Set(CREATIVE_DROP[key] || [])
+  if (drop.size) SKINS[key] = SKINS[key].filter(s => !drop.has(s.id))
+  const scale = SKINS[key][0]?.spriteScale ?? characters[key]?.spriteScale
+  for (const [tag, name] of list) {
+    const id = `${key}_${tag}`
+    if (!SKINS[key].some(s => s.id === id))
+      SKINS[key].push({ id, name, unlockLevel: 0, portrait: recolorPortrait(key, tag), spriteScale: scale, animationData: recolorSkinAnim(key, tag), classification: "Creative" })
+  }
+}
 
 // MSV1-EDO — the premade "Edo Tensei" skin: ash-grey skin, one-pixel cracks, black sclera, desaturated clothes. Generated
 // OFFLINE into real sheets (tools/edoskin/gen.py → `<sheet>__edo.png` beside every default + form sheet) and registered as an

@@ -19,7 +19,7 @@ import { getSkins } from '../skins.js'
 import { STARFIRE_FX_COLORS } from '../starfireSkins.js'
 const ROOT = process.cwd(), OUT = 'docs/skins/starfire'; let pass = 0, fail = 0; const report = { skins: {} }
 const ok = (c, n, d = '') => { c ? pass++ : fail++; console.log(c ? 'PASS' : 'FAIL', n, c ? '' : d) }
-const list = getSkins('starfire'), byId = Object.fromEntries(list.map(s => [s.id, s]))
+const list = getSkins('starfire').filter(s => s.classification !== 'Creative'), byId = Object.fromEntries(list.map(s => [s.id, s]))
 const WANT = { sf_dark_sister: ['darksister', 'Blackfire-Inspired — Dark Sister'], sf_alien_x_celestial: ['celestial', 'Alien X — Celestial Princess'],
   sf_prism_heart: ['prism', 'Chromastone — Prism Heart'], sf_living_circuit: ['circuit', 'Upgrade — Living Circuit'], sf_spectral_star: ['spectral', 'Ghostfreak — Spectral Star'],
   sf_pink_nova: ['pinknova', 'Pink Nova'], sf_infinity_sky: ['infinity', 'Infinity Sky'], sf_solar_empress: ['solar', 'Solar Empress'], sf_aurora_glitter: ['aurora', 'Aurora Glitter'],

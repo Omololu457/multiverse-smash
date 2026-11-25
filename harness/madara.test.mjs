@@ -143,9 +143,10 @@ ok((await P1()).susanooArmor === 0, "   Back+Heavy re-press reverts the mode");
 // ── ULTIMATE (both tiers + gate + duplicate-render) ──
 console.log("\nULTIMATE (tiered):");
 const cine = () => page.evaluate(() => window.__harness.madaraUltCine());
-const tapUlt  = async () => { await page.keyboard.down("u"); await sleep(90);  await page.keyboard.up("u"); };
-const holdUlt = async () => { await page.keyboard.down("u"); await sleep(380); await page.keyboard.up("u"); };
-const waitCineEnd = () => page.waitForFunction(() => !window.__harness.madaraUltCine().active, null, { timeout: 5000 }).catch(()=>{});
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
+const tapUlt  = async () => { await page.keyboard.down("u"); await sleep(90);  await page.keyboard.up("u"); await sleep(60); await waitSB(); };
+const holdUlt = async () => { await page.keyboard.down("u"); await sleep(380); await page.keyboard.up("u"); await sleep(60); await waitSB(); };
+const waitCineEnd = async () => { await waitSB(); await page.waitForFunction(() => !window.__harness.madaraUltCine().active, null, { timeout: 5000 }).catch(()=>{}); };
 // TAP → Tengai Shinsei (retry: the Ultimate bails for a frame if Madara is still settling from the prior mode test)
 await page.evaluate(() => { window.__harness.benPose(null); window.__harness.resetUlt(); window.__harness.healP2?.(); });
 await waitIdle(); await sleep(150);

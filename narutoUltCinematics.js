@@ -33,13 +33,10 @@ const DEFS = {
                   banshouTenin:  [[50, "輪廻眼", "RINNEGAN"], [92, "万象天引", "BANSHŌ TEN'IN"]] })[castOf(f)] || null },
   naruto_hokage: { aura: ["#ff8a1a", "#ffe0a0"], particle: "chakra", eye: "kurama", accent: "#ff8a1a", ink: "#fff1dc", tint: "30,10,0",
     words: [[50, "九喇嘛", "KURAMA"], [92, "尾獣玉", "TAILED BEAST BOMB"]] },
-  naruto_seventh: { aura: ["#ff8a1a", "#ffe0a0"], particle: "chakra", eye: "kurama", accent: "#ff8a1a", ink: "#fff1dc", tint: "30,10,0",
-    pick: f => /bijuu/i.test(castOf(f)),
-    words: [[50, "九喇嘛", "KURAMA"], [92, "超大玉尾獣玉", "GIANT TAILED BEAST BOMB"]] },
 }
 
 // ── the dojutsu cut-in: a letterboxed band across the middle with one huge eye opening, its pattern turning ──
-function drawEye(ctx, cw, ch, kind, k, f) {
+export function drawEye(ctx, cw, ch, kind, k, f) {
   const bandH = ch * 0.26 * ease(Math.min(1, k * 3)), y0 = ch * 0.37
   ctx.globalAlpha = 1; ctx.fillStyle = "#07040c"; ctx.fillRect(0, y0 + ch * 0.13 - bandH / 2, cw, bandH)
   ctx.save(); ctx.beginPath(); ctx.rect(0, y0 + ch * 0.13 - bandH / 2, cw, bandH); ctx.clip()

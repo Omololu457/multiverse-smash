@@ -36,8 +36,9 @@ async function readyTobirama(vessel = "sasuke") {
 }
 // Press Ultimate → the summoning CINEMATIC starts (freeze). Skip it to its resolve (the body-swap)
 // for speed; a dedicated test lets the cinematic play out with screenshots.
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
 async function activate() {
-  await page.keyboard.down("u"); await waitFrames(3); await page.keyboard.up("u"); await waitFrames(3);
+  await page.keyboard.down("u"); await waitFrames(3); await page.keyboard.up("u"); await waitFrames(3); await waitSB(); await waitFrames(3);
   await page.evaluate(() => { window.__harness.edoBackup.skipCine(); window.__harness.resetFighterInput?.("p1"); });   // resolve the summon → body-swap; clear the leftover ult-press the real (~3s) cinematic would age out
   await waitFrames(2); return p1();
 }

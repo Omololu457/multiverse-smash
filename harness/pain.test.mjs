@@ -109,10 +109,11 @@ for (let i=0;i<ASSISTS.length;i++){
 
 // ── 6. CHIBAKU TENSEI ULTIMATE + DUPLICATE-RENDER GUARD ──
 console.log("CHIBAKU TENSEI ULTIMATE (freeze cinematic + duplicate-render guard):");
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
 const cine = () => page.evaluate(() => window.__harness.painUltCine?.() || null);
 await page.evaluate(() => { window.__harness.resetFighterInput?.("p1"); window.__harness.p1ClearCooldowns?.(); window.__harness.setP1Energy?.(210); const p=window.__harness.p1(); window.__harness.setP2X?.(p.x + (p.facing||1)*180); }); await sleep(80);
 const hpU0 = (await st()).p2hp;
-await tap("u",60);
+await tap("u",60); await waitSB();
 const phases=new Set(); let everActive=false,struck=false,castU=false,struckCount=0,prevStruck=false;
 for(let i=0;i<200;i++){ await sleep(20); const c=await cine();
   if(c?.active){ everActive=true; if(c.phase)phases.add(c.phase); if(c.struck){struck=true; if(!prevStruck)struckCount++;} prevStruck=!!c.struck; if((await sheet())?.includes("pain_chibaku_cast"))castU=true; }

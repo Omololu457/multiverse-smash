@@ -169,10 +169,12 @@ try {
   await page.evaluate(() => window.__harness.setP1X?.(700)); await waitFrames(2);
   const baseHb = await hbx("p1");
   await page.evaluate(() => { window.__harness.fillEnergy?.(); window.__harness.resetUlt?.(); });
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
   await tap("u", 2); await waitFrames(3);
   const cast = await record();
   check("charge cast plays first (guanyinCast)", cast.action === "guanyinCast" && (cast.spriteSheet || "").includes("netero_charge_guanyin"), `action=${cast.action}`);
-  await page.waitForFunction(() => !!window.__harness.p1().canvasHeightFrac, null, { timeout: 4000, polling: 16 });
+  await waitSB();
+  await page.waitForFunction(() => !!window.__harness.p1().canvasHeightFrac, null, { timeout: 15000, polling: 16 });
   await waitFrames(6);
   const giant = await record();
   check("giant materialises (canvasHeightFrac + guanyin_idle)", !!giant.canvasHeightFrac && (giant.spriteSheet || "").includes("guanyin_idle_uniform"), `frac=${giant.canvasHeightFrac} sheet=${giant.spriteSheet}`);

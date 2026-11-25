@@ -94,7 +94,10 @@ function endPreroll(toGlow) {
     if (cine.kind === "nezukoDemon") { c._spriteCastMove = "nezukoTransform"; c._spriteCastTimer = 6 }
   }
   if (toGlow && c && !cine.S?.camera) Object.assign(glow, { kind: cine.kind, caster: c, opponent: cine.opponent, t: 0, x0: cine.x0, lastX: c.x || 0, blinkAt: -1, burns: [] })
+  const then = toGlow ? cine.payload?.then : null
   Object.assign(cine, { active: false, kind: null, S: null, words: null, frame: 0, caster: null, opponent: null, _cam: null, saved: null })
+  cine.payload = null
+  if (typeof then === "function") { try { then() } catch (e) { console.error(e) } }   // deferred ult: its own cinematic starts now
 }
 export function clearDemonSlayerPreroll() {
   if (cine.active) endPreroll(false)

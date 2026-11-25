@@ -143,6 +143,7 @@ try {
   check("rapid spread connects", rd > 0, `−${rd.toFixed(0)}`);
 
   // ── Bloodlust Overdrive ultimate ──
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
   section("Bloodlust Overdrive — alternate-form ultimate");
   await prep(60);
   await waitReady(); await page.evaluate(() => { window.__harness.resetFighterInput("p1"); window.__harness.fillEnergy?.(); }); await waitFrames(2);
@@ -150,6 +151,7 @@ try {
   const on = await record();
   check("Overdrive activates", on.overdriveActive === true, `overdriveActive=${on.overdriveActive}`);
   check("buffs applied (×1.3 dmg, ×1.25 atkSpd)", Math.abs((on.damageMultiplier || 1) - 1.3) < 0.001 && Math.abs((on.attackSpeedMultiplier || 1) - 1.25) < 0.001, `dmg=${on.damageMultiplier} atk=${on.attackSpeedMultiplier}`);
+  await waitSB();
   check("activation cinematic plays", (await page.evaluate(() => window.__harness.overdriveCine().active)) === true, "");
   check("holds transform pose", (await p1()).action === "transform", `action=${(await p1()).action}`);
   await page.waitForFunction(() => !window.__harness.overdriveCine().active, null, { timeout: 8000, polling: 16 }).catch(() => {});

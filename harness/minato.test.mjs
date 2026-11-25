@@ -130,9 +130,10 @@ try {
   await adjacent(70); { await page.evaluate(() => window.__harness.setP1Health?.(120)); const lo = (await p1()).health; await page.keyboard.down("p"); await waitFrames(16); await page.keyboard.down("l"); await waitFrames(2); await page.keyboard.up("l"); await page.keyboard.up("p"); await waitFrames(20); check("Reaper gate: no fire at low HP", Math.abs((await p1()).health - lo) < 30, `hp ${lo}→${(await p1()).health.toFixed(0)}`); }
 
   // ── KURAMA HALF-FORM ULTIMATE ──
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
   section("Kurama half-form ultimate");
   await adjacent(260); { const p2b = (await p2()).health; await page.evaluate(() => window.__harness.fillEnergy?.());
-    await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+    await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitSB();
     await page.waitForFunction(() => window.__harness.minatoKuramaUltCine().active, null, { timeout: 3000, polling: 16 }).catch(() => {});
     check("Kurama cinematic activates (own module)", (await page.evaluate(() => window.__harness.minatoKuramaUltCine().active)), "");
     check("Naruto's kurama did NOT fire", await page.evaluate(() => !window.__harness.kuramaUltCine().active), "");

@@ -67,6 +67,8 @@ import { activateInosukeBeastCinematic, isInosukeBeastCinematicActive } from "./
 import { startDemonSlayerPreroll } from "./demonSlayerCinematics.js"   // DS-ULT-CINE (Zenitsu / Nezuko ultimate pre-rolls; no cycle)
 import "./narutoUltCinematics.js"   // DS-ULT-CINE (registers the Naruto ult pre-roll scripts)
 import "./ben10AlienSequence.js"   // DS-ULT-CINE (registers the Ben 10 / Albedo all-aliens ultimate)
+import { deferNarutoUlt } from "./narutoStoryboard.js"   // DS-ULT-CINE (Naruto-universe storyboard ult openers)
+import "./hxhStoryboard.js"; import "./dbStoryboard.js"   // DS-ULT-CINE (registers the HxH / Dragon Ball storyboard openers)
 import { activateGhostfaceFinalActCinematic, isGhostfaceFinalActCinematicActive } from "./ghostfaceFinalActCinematic.js"   // Ghostface "The Final Act" stab-flurry ultimate cinematic (no cycle)
 import { activateKilluaGodspeedCinematic, isKilluaGodspeedCinematicActive } from "./killuaGodspeedCinematic.js"   // Killua Godspeed activation cinematic (no cycle)
 import { activateFlashTimeCinematic, isFlashTimeCinematicActive } from "./flashTimeCinematic.js"   // Flash — Flash Time activation cinematic (no cycle; mirrors Godspeed)
@@ -1664,7 +1666,7 @@ function executeVegetaUltimate(fighter, context) {
   try { sound.playSfxFile?.(pickVegetaVoice("ultimate"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Overcharged Final Flash cast line (audio-only; _atkVoiceCd stops the connect-bark double)
   const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
-  activateVegetaFinalFlashCinematic(fighter, opp, (cineCtx) => applyVegetaFinalFlashDamage(fighter, opp, cineCtx))
+  deferNarutoUlt("vegeta", fighter, opp, () => activateVegetaFinalFlashCinematic(fighter, opp, (cineCtx) => applyVegetaFinalFlashDamage(fighter, opp, cineCtx)))   // STORYBOARD: the opener first, then the cinematic (unchanged)
   return true
 }
 
@@ -1708,7 +1710,7 @@ function executeBeerusUltimate(fighter, context) {
   if (!spendEnergy(fighter, BEERUS_ULT.cost)) return false
   const opp = getTargetResolver(context)(fighter)
   fighter.vx = 0
-  activateBeerusKiBallCinematic(fighter, opp, (cineCtx) => applyBeerusKiBallDamage(fighter, opp, cineCtx))
+  deferNarutoUlt("beerus", fighter, opp, () => activateBeerusKiBallCinematic(fighter, opp, (cineCtx) => applyBeerusKiBallDamage(fighter, opp, cineCtx)))   // STORYBOARD: the opener first, then the cinematic (unchanged)
   return true
 }
 
@@ -3495,7 +3497,7 @@ function executeNarutoUltimate(fighter, context) {
   const getOpponent = getTargetResolver(context)
   const opponent    = getOpponent(fighter)
 
-  activateKuramaUltimate(fighter, opponent)   // game.js freezes combat + drives the beats
+  deferNarutoUlt("naruto", fighter, opponent, () => activateKuramaUltimate(fighter, opponent))   // NARUTO-STORYBOARD: storyboard first, then the cinematic (unchanged)
   fighter.attackCooldown = 22
   shakeCamera(context, 12, 14)
   // NARUTO-ONLY premium recast lockout. The Tailed Beast Bomb dispatches through triggerUltimate
@@ -3520,7 +3522,7 @@ function executeObitoUltimate(fighter, context) {
   if (!spendEnergy(fighter, cost)) return false
   const getOpponent = getTargetResolver(context)
   const opponent    = getOpponent(fighter)
-  activateObitoJuubi(fighter, opponent)   // game.js freezes combat + drives the beats
+  deferNarutoUlt("obito", fighter, opponent, () => activateObitoJuubi(fighter, opponent))   // NARUTO-STORYBOARD: storyboard first, then the cinematic (unchanged)
   fighter.attackCooldown = 22
   try { shakeCamera(context, 12, 14) } catch (_) {}
   try { sound.playSfxFile?.(pickObitoVoice("juubi"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Ten-Tails / Juubi Bijūdama ultimate callout
@@ -3535,7 +3537,7 @@ function executeTobiUltimate(fighter, context) {
   if (!spendEnergy(fighter, cost)) return false
   const getOpponent = getTargetResolver(context)
   const opponent    = getOpponent(fighter)
-  activateTobiNineTails(fighter, opponent)   // game.js freezes combat + drives the beats
+  deferNarutoUlt("tobi", fighter, opponent, () => activateTobiNineTails(fighter, opponent))   // NARUTO-STORYBOARD: storyboard first, then the cinematic (unchanged)
   fighter.attackCooldown = 22
   try { shakeCamera(context, 12, 14) } catch (_) {}
   // VOICE (audio-only): the ult is a technique cast → borrow the specialCast pool (no dedicated ult clip
@@ -3554,7 +3556,7 @@ function executeMinatoUltimate(fighter, context) {
   if (!spendEnergy(fighter, cost)) return false
   const getOpponent = getTargetResolver(context)
   const opponent    = getOpponent(fighter)
-  activateMinatoKurama(fighter, opponent)   // game.js freezes combat + drives the beats
+  deferNarutoUlt("minato", fighter, opponent, () => activateMinatoKurama(fighter, opponent))   // NARUTO-STORYBOARD: storyboard first, then the cinematic (unchanged)
   try { sound.playSfxFile?.(pickMinatoVoice("ult"), null) } catch (_) {}   // VOICE: Kurama ultimate — "the Fourth Hokage's power!"
   fighter.attackCooldown = 22
   shakeCamera(context, 12, 14)
@@ -15849,8 +15851,8 @@ export function executeChrolloUltimate(fighter, context) {
   // (applySkillHunter) runs at the cinematic's SWAP frame. The fighter is still Chrollo now, so this uses
   // Chrollo's voice; after the swap any barks belong to the COPIED character, so the two never overlap.
   try { sound?.playSfxFile?.(pickChrolloVoice("ultActivate"), null) } catch (_) {}
-  activateChrolloSkillHunterCinematic(fighter, context?.getOpponent?.(fighter),
-    () => applySkillHunter(fighter, targetKey))
+  deferNarutoUlt("chrollo", fighter, context?.getOpponent?.(fighter), () => activateChrolloSkillHunterCinematic(fighter, context?.getOpponent?.(fighter),
+    () => applySkillHunter(fighter, targetKey)))   // STORYBOARD: the opener first
   return true
 }
 
@@ -23392,6 +23394,46 @@ function fireZenitsuDoubleAttack(fighter, context, partner) {
   return true
 }
 
+// ── INOSUKE ULTIMATE — BEAST BREATHING, EIGHTH FORM: EXPLOSIVE RUSH (INOSUKE-ULT) ─────────────────────────────────
+// A reckless criss-cross charge: he bursts in and tears through the foe from alternating sides — five fang strikes — then
+// a final piercing lunge. 30×5 + 150 = 300 raw (Zenitsu's band); blocked → 25 % chip per beat. Cooldown-gated (no meter:
+// Inosuke has maxEnergy 0), 9 s. Out of reach (> 520 px or a different level) it's a whiff: one charge forward, cooldown spent.
+// A storyboard opener (narutoStoryboard.js "inosuke") plays first; every beat below waits on it (pending spawns freeze).
+const INOSUKE_ULT_CD = 540
+function executeInosukeUltimate(fighter, context) {
+  if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
+  const target = context?.getOpponent?.(fighter)
+  const mid = f => (f.x || 0) + (f.w || 60) / 2
+  const inReach = !!target && !target.eliminated && Math.abs(mid(target) - mid(fighter)) <= 520 && Math.abs((target.y || 0) - (fighter.y || 0)) <= 140
+  try { sound.playSfxFile?.(pickInosukeVoice("specialCast"), null); fighter._atkVoiceCd = 150 } catch (_) {}
+  fighter.vx = 0
+  fighter.attackCooldown = getAttackDuration(70, fighter)
+  fighter.invulnTimer = Math.max(fighter.invulnTimer || 0, 66)
+  fighter._spriteCastMove = "inosukeCine2"; fighter._spriteCastTimer = 14
+  const ww = context?.worldWidth || 3200, dir0 = fighter.facing || 1
+  const BEATS = [[8, "inosukeCine1", 30], [16, "inosukeB3", 30], [24, "inosukeCine1", 30], [32, "inosukeB4", 30], [40, "inosukeCine2", 30], [54, "inosukeCine4", 150]]
+  BEATS.forEach(([t, pose, dmg], i) => schedulePendingSpawn(t, () => {
+    if (fighter.eliminated || (fighter.health ?? 1) <= 0) return
+    const last = i === BEATS.length - 1
+    fighter._spriteCastMove = pose; fighter._spriteCastTimer = last ? 18 : 8
+    if (!inReach) { if (i === 0) { fighter.x = Math.max(0, Math.min(ww - (fighter.w || 60), fighter.x + dir0 * 300)) } return }
+    if (!target || target.eliminated) return
+    const side = last ? -dir0 : (i % 2 === 0 ? dir0 : -dir0)   // tear through from alternating sides; the lunge lands from the far side
+    fighter.x = Math.max(0, Math.min(ww - (fighter.w || 60), mid(target) + side * ((target.w || 60) / 2 + 34) - (fighter.w || 60) / 2))
+    fighter.facing = mid(target) >= mid(fighter) ? 1 : -1
+    if ((target.invulnTimer || 0) > 0) return
+    if (target.isBlocking) { target.blockstun = Math.max(target.blockstun || 0, 16); applyScaledDamage(target, Math.floor(dmg * 0.25), { source: "ability" }); return }
+    target.hitstun = Math.max(target.hitstun || 0, last ? 52 : 26); target.colorFlash = 10
+    target.vx = last ? fighter.facing * 15 : 0; target.vy = last ? -9 : (target.vy || 0)
+    applyScaledDamage(target, dmg, { source: "ability" })   // the ult band (300 raw ≈ 180), like Kirin / Zenitsu
+  }))
+  fighter._suppressUltCooldown = true
+  fighter.ultimateCooldown = INOSUKE_ULT_CD
+  try { shakeCamera(context, 9, 16) } catch (_) {}
+  startDemonSlayerPreroll("inosuke", fighter, target)   // INOSUKE-ULT: the storyboard opener
+  return true
+}
+
 // ── ZENITSU ULTIMATE (Stage 5) — Thunderclap & Flash: Godspeed (dash-through slice) ────────────────
 // DELIBERATELY unlike every other roster ultimate. Key properties:
 //   • DASH-THROUGH: crouch-charge → flash-blink PAST the opponent to the far side (not a stationary hit).
@@ -26357,7 +26399,7 @@ function executeHisokaUltimate(fighter, context) {
   if (!enterHisokaOverdrive(fighter, context)) return false // apply the buff/body-swap (gated on near-max Nen)
   try { sound.playSfxFile?.(pickHisokaVoice("overdrive"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // VOICE: Bloodlust Overdrive cast (audio-only)
   const opp = context?.getOpponent?.(fighter) || context?.p2 || null
-  activateHisokaOverdriveCinematic(fighter, opp)
+  deferNarutoUlt("hisoka", fighter, opp, () => activateHisokaOverdriveCinematic(fighter, opp))   // STORYBOARD: the opener first, then the cinematic (unchanged)
   return true
 }
 
@@ -26893,7 +26935,7 @@ function executeKilluaUltimate(fighter, context) {
   if (!enterGodspeed(fighter, context)) return false       // apply the buff (gated on near-max Nen)
   try { sound.playSfxFile?.(pickKilluaVoice("specialGodspeed"), null) } catch (_) {}   // VOICE: ultimate callout (PROVISIONAL: lightning_speed/thunder_god → Godspeed)
   const opp = context?.getOpponent?.(fighter) || context?.p2 || null
-  activateKilluaGodspeedCinematic(fighter, opp)
+  deferNarutoUlt("killua", fighter, opp, () => activateKilluaGodspeedCinematic(fighter, opp))   // STORYBOARD: the opener first, then the cinematic (unchanged)
   return true
 }
 
@@ -28273,7 +28315,7 @@ function executeMadaraUltimate(fighter, context, hold = false) {
   if (!spendEnergy(fighter, MADARA_ULT_TAP_COST)) return false
   fighter.vx = 0
   try { sound.playSfxFile?.(pickMadaraVoice("tengaiShinsei"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // Perfect Susanoo / Tengai Shinsei meteor callout
-  activateMadaraTengaiShinseiCinematic(fighter, opp, (cineCtx) => applyMadaraTengaiDamage(fighter, opp, cineCtx))
+  deferNarutoUlt("madara_tengai", fighter, opp, () => activateMadaraTengaiShinseiCinematic(fighter, opp, (cineCtx) => applyMadaraTengaiDamage(fighter, opp, cineCtx)))   // NARUTO-STORYBOARD: storyboard first, then the cinematic (unchanged)
   return true
 }
 
@@ -28316,12 +28358,14 @@ function executeHashiramaUltimate(fighter, context) {
   // The DOMAIN (domains.js, rosterKey "hashirama"): sealing_box backdrop swap + activation white-flash +
   // opponent FREEZE/trap + timer + collapse. cost:0 (energy already spent); range 1e5 = whole map so the
   // seal holds wherever the foe stands; modest damageBoost on Hashirama's OWN free offense during the trap.
+  deferNarutoUlt("hashirama", fighter, opp, () => {   // NARUTO-STORYBOARD: storyboard first, then the domain + gates (unchanged)
   activateDomain(fighter, { name: "Sealing Jutsu", cost: 0, duration: HASHIRAMA_DOMAIN_SECONDS, range: 1e5, damageBoost: 1.15 }, context)
   // The OVERLAY (world-space, non-freezing): Gracious Deity Gates slam on the foe + looping Naruto/Minato/
   // Tobirama cameo strikes for the domain's duration.
   activateHashiramaSealingJutsuCinematic(fighter, opp,
     (cameo, cineCtx) => dealHashiramaCameoHit(fighter, opp, cameo, cineCtx),
     HASHIRAMA_DOMAIN_SECONDS * 60)
+  })   // NARUTO-STORYBOARD (end of the deferred block)
   return true
 }
 
@@ -28348,7 +28392,7 @@ function executePainUltimate(fighter, context) {
   if (!spendEnergy(fighter, PAIN_CHIBAKU_COST)) return false
   fighter.vx = 0
   try { sound.playSfxFile?.(pickPainVoice("chibaku"), null); fighter._atkVoiceCd = 150 } catch (_) {}   // 地爆天星 Chibaku Tensei callout
-  activatePainChibakuTenseiCinematic(fighter, opp, (cineCtx) => applyPainChibakuDamage(fighter, opp, cineCtx))
+  deferNarutoUlt("pain", fighter, opp, () => activatePainChibakuTenseiCinematic(fighter, opp, (cineCtx) => applyPainChibakuDamage(fighter, opp, cineCtx)))   // NARUTO-STORYBOARD: storyboard first, then the cinematic (unchanged)
   return true
 }
 
@@ -29348,8 +29392,8 @@ export function executeTobiramaUltimate(fighter, context) {
   // body-swap (applyEdoTensei) fires at the cinematic's reveal beat via onResolve; control hands to the
   // vessel when the cinematic ends. Combat is frozen throughout (game.updateBattle freeze-gate).
   const worldWidth = context?.worldWidth
-  activateEdoTenseiCinematic(fighter, context?.getOpponent?.(fighter), "in", vesselKey,
-    () => applyEdoTensei(fighter, vesselKey, worldWidth), worldWidth)
+  deferNarutoUlt("tobirama", fighter, context?.getOpponent?.(fighter), () => activateEdoTenseiCinematic(fighter, context?.getOpponent?.(fighter), "in", vesselKey,
+    () => applyEdoTensei(fighter, vesselKey, worldWidth), worldWidth))   // NARUTO-STORYBOARD: storyboard first
   return true
 }
 
@@ -35423,7 +35467,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       // GOKU has NO separate ultimate — his transformation LADDER moved to the CHARGE button (enterGokuNextForm),
       // same as Vegeta/Frieza. The old ultimate-button "next SSJ" trigger (executeGokuUltimate) was REMOVED;
       // the Ultimate input is now deliberately unbound for Goku (available for a future signature ult).
-      case "goku":    cast = executeGokuUltimate(fighter, context); break   // per-form ult: Spirit Bomb / Super Kameha / Meteor Smash / Dragon Fist / God Kameha / Kaioken x10 Kameha / Autonomous Assault
+      case "goku":    cast = executeGokuUltimate(fighter, context); if (cast) startDemonSlayerPreroll("goku", fighter, context?.getOpponent?.(fighter)); /* STORYBOARD */ break   // per-form ult: Spirit Bomb / Super Kameha / Meteor Smash / Dragon Fist / God Kameha / Kaioken x10 Kameha / Autonomous Assault
       case "goku_rose": cast = executeGokuRoseUltimate(fighter, context); break   // Divine Retribution — auto-hit crimson Black Kamehameha nuke
       case "gogeta":  cast = executeGogetaUltimate(fighter, context); break   // Big Bang Kamehameha — auto-hit screen-clearing nuke
 
@@ -35435,22 +35479,22 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "zoldyck": cast = executeZoldyckUltimate(fighter, context); break   // NEUTRAL = Thunderbolt Barrage (long charge → guaranteed lightning blast beats). DOWN = Godspeed (Phase 3; refunds here). _ultVariant stamped in game.js.
       case "hinata":  cast = executeHinataUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("hinata", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Juuhou Soshiken (Twin Lion Fists) — gather → guaranteed Gentle-Fist lion-fist barrage; ~198 EFF
       case "meruem":  cast = executeMeruemUltimate(fighter, context);  break   // ANT KING'S ONSLAUGHT — menace cut-in → 6-Koma lunge → aura-flash barrage → tail finisher (~guaranteed beats). Down+Ult Royal Feast = Phase 4 (no-op here)
-      case "kakashi": cast = executeKakashiUltimate(fighter, context); break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
-      case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
-      case "kakashi_war": cast = executeKakashiWarUltimate(fighter, context); break    // NEW additive (Kamui). neutral = Kamui Raikiri (eye-banner cut-in, swirl + guaranteed strike ~204 EFF) · Down = Copy Ninja (needs Sharingan + copy-ready) · Up = Obito's Gift (Phase 4).
-      case "shisui_fallen": cast = executeShisuiFallenUltimate(fighter, context); break    // NEW additive (Fallen). neutral = Shunshin: Thousand Shadows (5 flicker-strikes + final thrust ~196 EFF). Up = Kotoamatsukami (Phase 4) · Down = Emerald Susanoo (Phase 3) — no-op until then.
+      case "kakashi": cast = executeKakashiUltimate(fighter, context); if (cast) startDemonSlayerPreroll("kakashi", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // Raikiri (owner-designated ULT) — inline freeze cinematic (live fighter, no dup): charge lightning blade → ROCKET forward → one guaranteed lightning THRUST ~198 EFF. Sharingan-gated Support variant (cross-screen dash + i-frames) while Mangekyou active (_mangekyouActive, Stage 7)
+      case "kakashi_anbu": cast = executeKakashiAnbuUltimate(fighter, context); if (cast) startDemonSlayerPreroll("kakashi_anbu", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // NEW additive. Full-Charge Raikiri (neutral U) — illustration cut-in + full charge loop + GUARANTEED tracking dash + big thrust (~198 EFF). Up+Ult Kamui Rift lands Phase 4.
+      case "kakashi_war": cast = executeKakashiWarUltimate(fighter, context); if (cast) startDemonSlayerPreroll("kakashi_war", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break    // NEW additive (Kamui). neutral = Kamui Raikiri (eye-banner cut-in, swirl + guaranteed strike ~204 EFF) · Down = Copy Ninja (needs Sharingan + copy-ready) · Up = Obito's Gift (Phase 4).
+      case "shisui_fallen": cast = executeShisuiFallenUltimate(fighter, context); if (cast) startDemonSlayerPreroll("shisui_fallen", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break    // NEW additive (Fallen). neutral = Shunshin: Thousand Shadows (5 flicker-strikes + final thrust ~196 EFF). Up = Kotoamatsukami (Phase 4) · Down = Emerald Susanoo (Phase 3) — no-op until then.
       case "minato":  cast = executeMinatoUltimate(fighter, context);  break
       case "gojo":    cast = executeGojoUltimate(fighter, context);    if (cast) maybeFireGojoCastVoice(fighter);    break
       case "sukuna":  cast = executeSukunaUltimate(fighter, context);  break
       case "alt_sukuna": cast = executeAltSukunaUltimate(fighter, context); break   // Domain Expansion: Malevolent Shrine — inline freeze cinematic (live fighter holds domain hand-sign, no dup): shrine erupts (row_07 backdrop overlay) → guaranteed ~198 EFF. No unique ult body art (flagged)
-      case "sasuke":  cast = executeSasukeUltimate(fighter, context);  break   // two-stage Susanoo
+      case "sasuke":  cast = executeSasukeUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("sasuke", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // two-stage Susanoo
       case "sasuke_adult": cast = executeSasukeAdultUltimate(fighter, context); if (cast) startDemonSlayerPreroll("sasuke_adult", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Rinnegan directional: N=Chibaku Tensei / F=Shinra Tensei / B=Banshou Tenin
-      case "itachi":  cast = executeItachiUltimate(fighter, context);  break   // single-tier creature Susanoo
-      case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
+      case "itachi":  cast = executeItachiUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("itachi", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // single-tier creature Susanoo
+      case "madara":  cast = executeMadaraUltimate(fighter, context, !!opts.hold); if (cast) startDemonSlayerPreroll("madara_susanoo", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // TIERED: TAP=Perfect Susanoo/Tengai Shinsei meteor cinematic · HOLD(≥180 energy)=Complete Susanoo giant
       case "hashirama": cast = executeHashiramaUltimate(fighter, context); break   // Sealing Jutsu — combo→Gracious Deity Gates pin→Naruto/Minato/Tobirama cameos→red barrier (freeze cinematic)
       case "pain":    cast = executePainUltimate(fighter, context); break   // Chibaku Tensei — cast → sphere growth → slam → flat/dome/flame-pillar ground effect (freeze cinematic)
       case "six_paths_pain": cast = executeSixPathsUltimate(fighter, context); if (cast) startDemonSlayerPreroll("six_paths_pain", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Six Paths of Pain — the bodies swarm-rush; guaranteed range-independent payoff (Chibaku reserved for solo pain)
-      case "isshiki": cast = executeIsshikiUltimate(fighter, context); break   // Daikokuten Barrage (Finisher 3) — inline camera-focus cinematic: rod-rain guaranteed nuke (live fighter, no dup-instance)
+      case "isshiki": cast = executeIsshikiUltimate(fighter, context); if (cast) startDemonSlayerPreroll("isshiki", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // Daikokuten Barrage (Finisher 3) — inline camera-focus cinematic: rod-rain guaranteed nuke (live fighter, no dup-instance)
       case "saitama": cast = executeSaitamaUltimate(fighter, context); break   // Death Punch — inline freeze cinematic (live fighter charge→impact, no dup) + hi-res fullscreen backdrop; guaranteed payoff
       case "genos":   cast = executeGenosUltimate(fighter, context); break   // Overdrive — timed power-up MODE (Emperor-Time/Baki architecture): ~7s ×1.35 dmg/×1.15 spd → auto-revert; overheat DRAWBACK on expiry (8% self-dmg + ~2s bonus-damage-taken vuln)
       // FRIEZA has NO separate ultimate — his power ceiling is the base→Golden→Black transformation LADDER
@@ -35491,21 +35535,21 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "obito":   cast = executeObitoUltimate(fighter, context);   break   // Ten-Tails Jinchūriki — giant Juubi Bijūdama freeze-cinematic
       case "tobi":    cast = executeTobiUltimate(fighter, context);    break   // NINE-Tails (Kurama) Bijūdama freeze-cinematic (own art/module, NOT Obito's Ten-Tails)
 
-      case "netero":  cast = executeNeteroUltimate(fighter, context);  break   // 100-Type Guanyin Bodhisattva giant form
+      case "netero":  cast = executeNeteroUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("netero", fighter, context?.getOpponent?.(fighter)); /* STORYBOARD */ break   // 100-Type Guanyin Bodhisattva giant form
       case "omololu": cast = executeOmoluUltimate(fighter, context);   break
       case "jesus":   cast = executeJesusUltimate(fighter, context);    break   // Blessed Energy — escalating radiant AOE (screen-wide, ~290 raw)
-      case "jiraiya": cast = executeJiraiyaUltimate(fighter, context);   break   // neutral = enter Hermit/Sage Mode (base) / Chou Odama Rasengan (hermit) · Down (_ultVariant "gamabunta") = Summoning: Gamabunta
+      case "jiraiya": cast = executeJiraiyaUltimate(fighter, context);   if (cast) startDemonSlayerPreroll("jiraiya", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // neutral = enter Hermit/Sage Mode (base) / Chou Odama Rasengan (hermit) · Down (_ultVariant "gamabunta") = Summoning: Gamabunta
       case "naruto_hokage": cast = executeNarutoHokageUltimate(fighter, context); if (cast) startDemonSlayerPreroll("naruto_hokage", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Kuchiyose: Gamabunta — summon→committed slash, sure-hit (half on block)
       case "naruto_seventh": cast = executeNarutoSeventhUltimate(fighter, context); if (cast) startDemonSlayerPreroll("naruto_seventh", fighter, context?.getOpponent?.(fighter)); /* DS-ULT-CINE */ break   // Kuchiyose: Gamabunta — summon→committed sure-hit slash (half on block)
       case "shisui_trinity": cast = executeShisuiTrinityUltimate(fighter, context); break   // SHISUI — THE LOYALIST: Susanoo Tsukumo (ribcage + magatama + needle volley). Blade/Puppeteer ults (P2/P3) add their own cases.
       case "shisui_blade": cast = executeShisuiBladeUltimate(fighter, context); break   // SHISUI — THE BLADE: Shunshin: Thousand Cuts (committed multi-hit blade flurry).
       case "shisui_puppeteer": cast = executeShisuiPuppeteerUltimate(fighter, context); break   // SHISUI — THE PUPPETEER: Kotoamatsukami (genjutsu-world backdrop + 3 eyes → mirror opp L/R + lock specials ~2.5s).
-      case "gaara":   cast = executeGaaraUltimate(fighter, context);  break   // Sabaku Taisou (Giant Sand Burial) — kanji cut-in + sand ripples→hands→dome→collapse→Part-2 kneel burst; guaranteed ~197 EFF
+      case "gaara":   cast = executeGaaraUltimate(fighter, context);  if (cast) startDemonSlayerPreroll("gaara", fighter, context?.getOpponent?.(fighter)); /* NARUTO-STORYBOARD */ break   // Sabaku Taisou (Giant Sand Burial) — kanji cut-in + sand ripples→hands→dome→collapse→Part-2 kneel burst; guaranteed ~197 EFF
       case "rick":    cast = executeRickUltimate(fighter, context);    break
       // Goku Black — Stage 3b: Sword Slash (Rose-only sure-hit with a real interruptible windup).
       case "goku_black": cast = executeGokuBlackUltimate(fighter, context); break
       case "vegeta":  cast = executeVegetaUltimate(fighter, context);  break   // Overcharged Final Flash freeze cinematic
-      case "vegeta_dark": cast = executeVegetaDarkUltimate(fighter, context); break   // ITEM 2: Villainous Onslaught — dark-aura amplified ki barrage (vdAura windup → vdKiCast beats, purple when form active), guaranteed ~198 EFF
+      case "vegeta_dark": cast = executeVegetaDarkUltimate(fighter, context); if (cast) startDemonSlayerPreroll("vegeta_dark", fighter, context?.getOpponent?.(fighter)); /* STORYBOARD */ break   // ITEM 2: Villainous Onslaught — dark-aura amplified ki barrage (vdAura windup → vdKiCast beats, purple when form active), guaranteed ~198 EFF
       case "bardock": cast = executeBardockUltimate(fighter, context); break   // ITEM 2: Final Rebellion — sword finisher chaining blade poses (thrust→overhead→spin-slash), guaranteed ~198 EFF
       case "gohan":   cast = executeGohanUltimate(fighter, context);   break   // ITEM 2: Meteor Barrage — MELEE flying-kick finisher (rush chain → Meteor Kick), guaranteed ~198 EFF
       case "beerus":  cast = executeBeerusUltimate(fighter, context);  break   // Ki Ball 3-stage freeze cinematic
@@ -35520,6 +35564,7 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "killua":  cast = executeKilluaUltimate(fighter, context);  break   // Godspeed: sustained speed/damage buff + electric afterimage overlay (buff-mode, not a form swap)
       case "gon":     cast = executeGonUltimate(fighter, context);     break   // Adult Form: buff + movement-lockout + close-range SUDDEN-DEATH (hit=instant win / miss=instant loss)
       case "zenitsu": cast = executeZenitsuUltimate(fighter, context); break   // Godspeed: dash-THROUGH slice — same-level, UNBLOCKABLE, 8s COOLDOWN (not energy)
+      case "inosuke": cast = executeInosukeUltimate(fighter, context); break   // INOSUKE-ULT: Explosive Rush (8s cooldown, no meter)
       case "rengoku": cast = executeRengokuUltimate(fighter, context); break   // Flame Explosion: freeze-cinematic AOE detonation — 8s COOLDOWN (not energy)
       case "nezuko": cast = executeNezukoUltimate(fighter, context, !!opts.hold); break   // TIERED: TAP=Kekijutsu Baketsu two-phase barrage→finisher · HOLD=Demon Transformation mode-change buff (both cooldown-gated, no energy; independently selectable)
       case "shinobu": cast = executeShinobuUltimate(fighter, context); break   // Butterfly Dance: freeze-cinematic spinning-dash finisher + poison — 8s COOLDOWN (not energy)
@@ -36472,7 +36517,7 @@ function executeGokuBlackUltimate(fighter, context) {
   fighter.vx = 0
   // The cinematic sets the caster's sword pose, drives the camera (both fighters framed), fires the
   // voice line at the connect, and calls onImpact to apply the guaranteed damage/paralysis.
-  activateGokuBlackSwordCinematic(fighter, opp, (cineCtx) => applySwordSlashDamage(fighter, opp, cineCtx))
+  deferNarutoUlt("goku_black", fighter, opp, () => activateGokuBlackSwordCinematic(fighter, opp, (cineCtx) => applySwordSlashDamage(fighter, opp, cineCtx)))   // STORYBOARD: the opener first, then the cinematic (unchanged)
   return true
 }
 

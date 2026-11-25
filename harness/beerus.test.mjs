@@ -53,6 +53,7 @@ const stateF = () => page.evaluate(() => window.__harness.state());
 const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());
 const cine = () => page.evaluate(() => window.__harness.beerusUltCine());
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
 const projectiles = () => page.evaluate(() => window.__harness.projectiles());
 async function waitFrames(n) {
   const s = (await stateF()).frame;
@@ -182,7 +183,7 @@ try {
   section("Ki Ball ultimate — 3-phase freeze cinematic + live-fighter ref");
   await prep(150);
   const e0 = (await p1()).energy, uhp0 = (await p2()).health;
-  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitFrames(3);
+  await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitSB(); await waitFrames(3);
   let uc = await cine();
   check("cinematic active, caster=beerus", uc.active && uc.casterKey === "beerus", `active=${uc.active} caster=${uc.casterKey}`);
   check("LIVE p1 spent ~150 energy (not a duplicate instance)", e0 - (await p1()).energy >= 140, `Δ=${(e0 - (await p1()).energy).toFixed(0)}`);

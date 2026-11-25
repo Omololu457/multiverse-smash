@@ -125,12 +125,14 @@ try {
   await page.evaluate(() => window.__harness.clearProjectiles());
 
   // ── STAGE 5: Godspeed ultimate ──
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
   section("Godspeed ultimate (buff-mode)");
   await prep(300);
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
   const on = await record();
   check("Godspeed activates", on.godspeedActive === true, `active=${on.godspeedActive}`);
   check("buffs applied (dmg×1.25, atkSpeed×1.4)", Math.abs((on.damageMultiplier || 1) - 1.25) < 0.001 && Math.abs((on.attackSpeedMultiplier || 1) - 1.4) < 0.001, `dmg=${on.damageMultiplier} atkSpd=${on.attackSpeedMultiplier}`);
+  await waitSB();
   check("activation cinematic plays", (await page.evaluate(() => window.__harness.godspeedCine().active)) === true, "");
   await record();
   // wait for the freeze cinematic to end (drain/revert only runs once combat resumes)

@@ -27,23 +27,43 @@ const PLAN = {
   sasuke_adult: { key: "sasuke_adult", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
   naruto_seventh: { key: "naruto_seventh", gap: 140, hold: 0, probe: "ds", naruto: true, shots: [[20, "01_focus"], [62, "02_eye"], [100, "03_call"], [132, "04_whip"], [-24, "05_live"], [-60, "06_payoff"]] },
 };
+// Naruto-universe STORYBOARD openers (narutoStoryboard.js) + Inosuke's new ultimate — one shot per storyboard beat, then live
+const SB = { naruto: [20, 60, 96], naruto_seventh: [20, 60, 96], minato: [16, 50, 84], tobi: [16, 44, 70], obito: [16, 46, 72], madara: [16, 46, 72],
+  pain: [16, 44, 68], itachi: [16, 50, 96, 124], sasuke: [16, 46, 72], kakashi: [16, 44, 64], isshiki: [16, 44, 64], shisui_fallen: [16, 40, 60],
+  tobirama: [16, 50, 80], hashirama: [16, 46, 74], inosuke: [16, 50, 84] }   // (Gaara + ANBU/War Kakashi's Raikiri keep their own cut-ins: no opener)
+Object.assign(SB, { netero: [16, 50, 90], killua: [16, 60, 100], hisoka: [16, 60, 104], chrollo: [16, 50], goku: [16, 60, 110], vegeta: [16, 44, 68],
+  vegeta_dark: [16, 44, 68], goku_black: [16, 56, 88], beerus: [16, 50, 84] })
+const SB_PRE = { chrollo: "window.__harness.forceChrolloUnlock('p1')" }
+const SB_EXTRA = { jiraiya_gamabunta: ["jiraiya", "s", [16, 46, 72]] }
+for (const [n, fr] of Object.entries(SB)) PLAN["sb_" + n] = { key: n, pre: SB_PRE[n], gap: 220, hold: 0, probe: "ds", sb: true, settle: true, shots: [...fr.map((f, i) => [f, `${String(i + 1).padStart(2, "0")}_f${f}`]), [-30, "99_live"]] }
+for (const [n, [k, dir, fr]] of Object.entries(SB_EXTRA)) PLAN["sb_" + n] = { key: k, dir, gap: 220, hold: 0, probe: "ds", sb: true, settle: true, shots: [...fr.map((f, i) => [f, `${String(i + 1).padStart(2, "0")}_f${f}`]), [-30, "99_live"]] }
 const want = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(PLAN);
-const dirOf = n => PLAN[n].ben ? "docs/ben10/ult_alien_sequence" : PLAN[n].naruto ? "docs/naruto/ult_cinematics" : "docs/demon_slayer/ult_cinematics"
+const dirOf = n => PLAN[n].sb ? "docs/naruto/storyboards" : PLAN[n].ben ? "docs/ben10/ult_alien_sequence" : PLAN[n].naruto ? "docs/naruto/ult_cinematics" : "docs/demon_slayer/ult_cinematics"
 const browser = await chromium.launch({ headless: true, args: ["--disable-background-timer-throttling"] });
 let FAIL = 0;
 for (const name of want) {
-  const P = PLAN[name]; const OUT = path.join(ROOT, dirOf(name), name); fs.mkdirSync(OUT, { recursive: true });
+  const P = PLAN[name]; const OUT = path.join(ROOT, dirOf(name), name.replace(/^sb_/, "")); fs.mkdirSync(OUT, { recursive: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errs = []; page.on("pageerror", e => errs.push(String(e)));
-  await page.goto(`${base}/index.html?harness=1&p1=${P.key}&p2=spd_red`, { waitUntil: "load" });
+  await page.goto(`${base}/index.html?harness=1&p1=${P.key}&p2=spd_red`, { waitUntil: "load", timeout: 240000 });
   await page.waitForFunction(() => !!window.__harness?.start, null, { timeout: 90000 });
   await page.evaluate(() => { window.__harness.start?.(); window.__harness.skipToBattle?.() });
   await page.waitForFunction(() => window.__harness.state?.().frame > 60, null, { timeout: 60000, polling: 50 });
   const a = await page.evaluate(() => window.__harness.p1()); await page.evaluate(x => window.__harness.setP2X(x), a.x + P.gap);
   await page.waitForTimeout(500);
   await page.evaluate(() => window.__harness.fillEnergy?.())
+  if (P.pre) await page.evaluate(P.pre)
+  if (P.key === "goku_black") {   // the Sword Slash only exists in SSJ Rosé: charge-release → the Rosé cinematic → top up again
+    await page.keyboard.down("p"); await page.waitForTimeout(400); await page.keyboard.up("p")
+    await page.waitForFunction(() => window.__harness.ssjRoseCine?.()?.active, null, { timeout: 30000, polling: 50 }).catch(() => {})
+    await page.waitForFunction(() => !window.__harness.ssjRoseCine?.()?.active, null, { timeout: 120000, polling: 100 }).catch(() => {})
+    const f0 = await page.evaluate(() => window.__harness.state().frame)   // the Rosé resolve leaves a 12f settle (attackCooldown)
+    await page.waitForFunction(f => window.__harness.state().frame > f + 30, f0, { timeout: 60000, polling: 50 }).catch(() => {})
+    await page.evaluate(() => window.__harness.fillEnergy?.())
+  }
   const hp0 = await page.evaluate(() => window.__harness.p2().health);
   const st = () => page.evaluate(pr => pr === "shinobu" ? window.__harness.shinobuUltCine() : window.__dsPrerollStatus(), P.probe);
+  if (P.dir) { await page.keyboard.down(P.dir); await page.waitForTimeout(60) }
   await page.keyboard.down("u"); if (P.hold >= 0) await page.waitForTimeout(P.hold || 40); await page.keyboard.up("u");   // nezuko TAP = instant (a slow frame can read 40ms as a HOLD)
   let seen = 0, endFrame = null;
   for (const [fr, shot] of P.shots) {
@@ -56,6 +76,8 @@ for (const name of want) {
     await page.screenshot({ path: path.join(OUT, shot + ".png") });
     console.log(`  ${name}/${shot}: ${c.active ? `frame ${c.frame}` : `live +${(await page.evaluate(() => window.__harness.state().frame)) - (endFrame || 0)}`}`)
   }
+  if (P.dir) await page.keyboard.up(P.dir)
+  if (P.settle) await page.waitForFunction(h => window.__harness.p2().health < h, hp0, { timeout: 90000, polling: 100 }).catch(() => {})   // deferred ults: the real cinematic runs after the storyboard
   await page.waitForTimeout(2500);
   const hp1 = await page.evaluate(() => window.__harness.p2().health);
   console.log(`  ${name}: ${seen} beats captured mid-cinematic · damage dealt ${hp0 - hp1} · page errors ${errs.length}`, errs.slice(0, 2));

@@ -28,11 +28,28 @@ const COFFIN = { src: "./tobirama_edo_tense_effect_part_2_uniform.png", w: 51, h
 const RIFT   = { src: "./tobirama_edo_tense_effect_part_1_uniform.png", w: 71, h: 69, frames: 1 }
 
 // ── ACTIVATION timeline (frames @60fps) ──────────────────────────────────────
-const IN = { JUMP: 26, SEALS: 68, RISE: 112, REVEAL: 146, SWAP: 144, CLOSE: 176, TOTAL: 196 }
+// JUMP → the ground CRACKS in three stages, one at a time (CRACK[0..2]) → the tomb BREAKS UP THROUGH the ground (RISE0→RISE1,
+// clipped at the ground line, the sheet's own rise frames 0-3) → the face slides open into a black void (OPEN0→OPEN1, frames
+// 4-9) → the vessel forms INSIDE the void as a silhouette, then steps OUT of the coffin onto the ground (EMERGE0→STEP→SWAP) →
+// body-swap (the real vessel is put exactly where it stepped out: the coffin's spot) → the tomb sinks back into the ground.
+const IN = { JUMP: 26, SEALS: 26, CRACK: [30, 42, 54], RISE: 66, RISE1: 100, OPEN1: 128, EMERGE: 122, STEP: 134, REVEAL: 146, SWAP: 144, CLOSE: 176, TOTAL: 196 }
+const CRACKS = [{ x: 10, y: 0, w: 53, h: 12 }, { x: 1, y: 22, w: 70, h: 14 }, { x: 0, y: 53, w: 71, h: 16 }]   // rows of tobirama_edo_tense_effect_part_1
+const VOID = { x0: 10, x1: 47, y0: 8, y1: 85 }   // the black void inside an opened coffin frame (cell px)
+const COFFIN_OFF = 150                            // world px in front of Tobirama (toward the opponent)
+const STEP_OUT = 64                               // world px the vessel walks forward OUT of the tomb before control hands over
+const hsh = (a, b) => { let v = (a * 374761393 + b * 668265263) >>> 0; v = Math.imul(v ^ (v >>> 13), 1274126177) >>> 0; return ((v ^ (v >>> 16)) >>> 0) / 4294967296 }
 // ── END timeline ─────────────────────────────────────────────────────────────
 const OUT = { PAN: 30, RISE: 72, RUNIN: 104, REVERT: 104, CLOSE: 140, TOTAL: 160 }
 
 const _imgs = {}
+const _tints = {}
+function _tinted(img, col) {   // the crack art's alpha as a solid colour (cached) — used for the glowing seams
+  if (!img.complete || !img.naturalWidth || typeof document === "undefined") return null
+  const k = img.src + col; if (_tints[k]) return _tints[k]
+  const cv = document.createElement("canvas"); cv.width = img.naturalWidth; cv.height = img.naturalHeight
+  const g = cv.getContext("2d"); g.drawImage(img, 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = col; g.fillRect(0, 0, cv.width, cv.height)
+  return (_tints[k] = cv)
+}
 function _img(src) { if (!_imgs[src]) { const im = new Image(); im.src = src; _imgs[src] = im } return _imgs[src] }
 function _drawSprite(ctx, img, sheet, frameIdx, cx, cy, dh, flip = 1) {
   if (!img.complete || img.naturalWidth === 0) return false
@@ -59,6 +76,9 @@ export function activateEdoTenseiCinematic(caster, opponent, mode, vesselKey, on
   const w = caster.w || 60
   const back = (caster.facing || 1) >= 0 ? -1 : 1
   cine.edgeX = back < 0 ? 24 : Math.max(24, (worldWidth || 1280) - w - 24)
+  // the tomb's WORLD spot: a step in front of Tobirama's edge position (the vessel is placed here at the swap)
+  const face = (caster.facing || 1) >= 0 ? 1 : -1
+  cine.coffinWX = mode === "in" ? Math.max(60, Math.min((worldWidth || 1280) - 60, cine.edgeX + w / 2 + face * COFFIN_OFF)) : null
   return true
 }
 export function isEdoTenseiCinematicActive() { return cine.active }
@@ -88,22 +108,29 @@ export function updateEdoTenseiCinematic(ctx = {}) {
   return getEdoTenseiCinematicStatus()
 }
 
+function _vesselWX(c) { const face = (c?.facing ?? 1) >= 0 ? 1 : -1; return cine.coffinWX + face * STEP_OUT }
 function _resolveOnce() { if (!cine.resolved) { cine.resolved = true; try { cine.onResolve?.() } catch (_) {} } }
 
 function _updateIn(f, c, cam, snd) {
   // JUMP — Tobirama leaps to the near edge (hand-seals pose held from here on).
   if (f < IN.JUMP) {
     if (c) { const t = f / IN.JUMP; c.x = cine.startX + (cine.edgeX - cine.startX) * t; c._spriteCastMove = "tobiEdoCast"; c._spriteCastTimer = IN.TOTAL - f; c.vx = 0; c.vy = 0 }
-  } else if (c) { c.x = cine.edgeX; c._spriteCastMove = "tobiEdoCast"; c._spriteCastTimer = IN.TOTAL - f }
+  } else if (c && f > IN.SWAP && cine.coffinWX != null) { c.x = _vesselWX(c) - (c.w || 60) / 2 }   // after the swap the vessel stands where it stepped out of the tomb
+  else if (c) { c.x = cine.edgeX; c._spriteCastMove = "tobiEdoCast"; c._spriteCastTimer = IN.TOTAL - f }
   // camera holds on Tobirama through the seals, eases to frame the coffin once it rises.
   if (cam && c && cam.focusOnFighter) cam.focusOnFighter(c, CINE_ZOOM)
   if (cam && cam.shake) {
-    if (f === IN.RISE - 30) cam.shake(10, 12)
-    else if (f >= IN.RISE - 30 && f < IN.REVEAL && f % 6 === 0) cam.shake(6, 8)
-    else if (f === IN.SWAP) cam.shake(18, 20)
+    if (IN.CRACK.includes(f)) cam.shake(7 + IN.CRACK.indexOf(f) * 4, 10)   // each crack stage hits harder
+    else if (f === IN.RISE) cam.shake(14, 16)                               // the tomb breaks the ground
+    else if (f > IN.RISE && f < IN.RISE1 && f % 5 === 0) cam.shake(6, 6)
+    else if (f === IN.STEP) cam.shake(5, 6)
   }
-  if (f === IN.SEALS) { try { snd?.play?.(SFX.HIT_PROJECTILE) } catch (_) {} }
-  if (f === IN.SWAP) _resolveOnce()   // body-swap at the reveal peak; the coffin then closes over the transition
+  if (IN.CRACK.includes(f) || f === IN.RISE) { try { snd?.play?.(SFX.HIT_PROJECTILE) } catch (_) {} }
+  if (f === IN.SWAP) {
+    _resolveOnce()   // body-swap as the vessel finishes stepping out of the tomb
+    // the vessel stands exactly where it stepped out (the coffin's spot) — not back at Tobirama's edge
+    if (c && cine.coffinWX != null) { c.x = _vesselWX(c) - (c.w || 60) / 2; c.vx = 0; c._spriteCastMove = null; c._spriteCastTimer = 0 }
+  }
   // TWO-VESSEL FIX: the body-swap at SWAP turns the REAL (world-rendered) caster INTO the vessel, but the
   // cinematic's own vessel OVERLAY (_drawVesselIdle at coffinX, offset from the caster) keeps drawing until
   // CLOSE — so [SWAP, CLOSE) would show TWO copies of the vessel. Hide the real body for exactly that window
@@ -162,31 +189,63 @@ export function drawEdoTenseiCinematic(ctx, canvas) {
   const img = _img(COFFIN.src)
 
   if (cine.mode === "in") {
-    // RIFT crack flashes at the coffin's base just before it rises.
-    if (f >= IN.SEALS && f < IN.RISE) {
-      const a = Math.sin(((f - IN.SEALS) / (IN.RISE - IN.SEALS)) * Math.PI)
-      ctx.save(); ctx.globalAlpha = 0.7 * a; _drawSprite(ctx, _img(RIFT.src), RIFT, 0, coffinX, groundSY - 6, ch * 0.10); ctx.restore()
-    }
-    if (f >= IN.RISE - 6) {
-      const closing = f >= IN.CLOSE
-      // phaseP drives the coffin SHEET (frames 0→5 rising, 6→9 the black void opening + sliding down the
-      // face). Eased so the void-opening beats read the same way Hashirama's own pillar-open intro does.
-      const phaseP = closing ? (f - IN.CLOSE) / (IN.TOTAL - IN.CLOSE)
-                             : Math.min(1, (f - (IN.RISE - 6)) / (IN.REVEAL - (IN.RISE - 6)))
-      // NON-LINEAR growth: fast initial rise out of the ground, easing as it nears full height (ease-out
-      // cubic) — a heavy tomb erupting then settling, not a linear slide.
-      const rt = Math.min(1, (f - (IN.RISE - 6)) / 26)
-      const riseUp = closing ? 1 : (1 - Math.pow(1 - rt, 3))
-      const cy = groundSY - coffinH / 2 * riseUp
-      _drawSprite(ctx, img, COFFIN, _coffinFrame(phaseP, closing), coffinX, cy, coffinH, face)
-      // vessel revealed emerging FROM the opened coffin's dark void (REVEAL → SWAP). Drawn at the vessel's
-      // OWN NORMAL scale (its real sprite height mapped to the cinematic zoom — see _vesselNormalH) — NEVER
-      // resized to fill the giant tomb — and faded in as a SLOW-BURN silhouette → full reanimated color, so
-      // it reads at the exact size + look it'll have once control hands over.
-      if (!closing && f >= IN.REVEAL - 24 && cine.vesselKey) {
-        const revealP = Math.max(0, Math.min(1, (f - (IN.REVEAL - 24)) / 30))   // slow-burn: silhouette → color
-        _drawVesselIdle(ctx, coffinX, groundSY, _vesselNormalH(ch), face, revealP)
+    const cX = cam && cine.coffinWX != null ? (cine.coffinWX - cam.x) * z + cw / 2 : coffinX
+    const cellW = COFFIN.w * coffinH / COFFIN.h, cs = coffinH / COFFIN.h
+    // 1) GROUND BREAK — the three crack stages appear ONE AT A TIME (each pops in bigger, the last stays under the tomb)
+    const rift = _img(RIFT.src)
+    for (let i = 0; i < 3; i++) {
+      const t0 = IN.CRACK[i], tEnd = i < 2 ? IN.CRACK[i + 1] + 4 : IN.CLOSE
+      if (f < t0 || f >= tEnd || !rift.complete || !rift.naturalWidth) continue
+      const pop = 1 + 0.25 * Math.max(0, 1 - (f - t0) / 6), fade = i < 2 ? Math.min(1, (tEnd - f) / 4) : 1
+      const R = CRACKS[i], dw = cellW * (1.1 + 0.35 * i) * pop, dh = dw * R.h / R.w
+      const glow = _tinted(rift, "#8fd8ff"), x0 = cX - dw / 2, y0 = groundSY - dh * 0.55
+      ctx.save(); ctx.globalAlpha = fade
+      if (glow) {   // the seal-chakra seeping up through each crack (reads on dark AND light floors)
+        ctx.globalCompositeOperation = "lighter"; ctx.filter = "blur(5px)"; ctx.globalAlpha = 0.9 * fade * (0.75 + 0.25 * Math.sin(f * 0.5))
+        ctx.drawImage(glow, R.x, R.y, R.w, R.h, x0, y0, dw, dh); ctx.filter = "none"
+        ctx.globalAlpha = 0.85 * fade; ctx.drawImage(glow, R.x, R.y, R.w, R.h, x0, y0 - 1, dw, dh)
+        ctx.globalCompositeOperation = "source-over"
       }
+      ctx.globalAlpha = 0.95 * fade; ctx.drawImage(rift, R.x, R.y, R.w, R.h, x0, y0 + 1, dw, dh); ctx.restore()
+    }
+    // debris kicked up by each crack + by the tomb breaking through
+    for (const [t0, n, pow] of [[IN.CRACK[0], 5, 0.5], [IN.CRACK[1], 7, 0.75], [IN.CRACK[2], 9, 1], [IN.RISE, 14, 1.4]]) {
+      const k = f - t0; if (k < 0 || k > 22) continue
+      ctx.save(); ctx.fillStyle = "#6a5a48"
+      for (let j = 0; j < n; j++) {
+        const vx = (hsh(t0, j) - 0.5) * 9 * pow, vy = -(4 + 6 * hsh(j, t0)) * pow, x = cX + vx * k * cs * 0.35, y = groundSY + (vy * k + 0.45 * k * k) * cs * 0.35
+        if (y > groundSY + 2) continue
+        ctx.globalAlpha = 1 - k / 22; const r = (2 + 3 * hsh(j, 7)) * cs * 0.5; ctx.fillRect(x - r, y - r, r * 2, r * 2)
+      }
+      ctx.restore()
+    }
+    // 2) the TOMB breaks up through the ground: rise frames 0-3, pushed up from below and clipped at the ground line
+    if (f >= IN.RISE) {
+      const closing = f >= IN.CLOSE
+      let frame, sink = 0
+      if (closing) { const p = (f - IN.CLOSE) / (IN.TOTAL - IN.CLOSE); frame = COFFIN.frames - 1 - Math.min(COFFIN.frames - 1, Math.floor(p * COFFIN.frames)); sink = p * p * coffinH }
+      else if (f < IN.RISE1) { const p = (f - IN.RISE) / (IN.RISE1 - IN.RISE); frame = Math.min(3, Math.floor(p * 4)); sink = (1 - (1 - Math.pow(1 - p, 3))) * coffinH * 0.35 }
+      else frame = 4 + Math.min(5, Math.floor((f - IN.RISE1) / (IN.OPEN1 - IN.RISE1) * 6))   // 3) the face slides open → the void
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, cw, groundSY + 2); ctx.clip()   // nothing shows below the ground
+      _drawSprite(ctx, img, COFFIN, frame, cX, groundSY - coffinH / 2 + sink, coffinH, face)
+      // 4) the vessel forms INSIDE the void (clipped to it) as a silhouette, then steps OUT onto the ground in front
+      if (!closing && f >= IN.EMERGE && cine.vesselKey) {
+        const vh = Math.min(_vesselNormalH(ch), (VOID.y1 - VOID.y0) * cs * 0.92)
+        if (f < IN.STEP) {
+          const p = (f - IN.EMERGE) / (IN.STEP - IN.EMERGE)
+          ctx.save(); ctx.beginPath()
+          const vx0 = cX + (face > 0 ? VOID.x0 - COFFIN.w / 2 : COFFIN.w / 2 - VOID.x1) * cs
+          ctx.rect(vx0, groundSY - coffinH + VOID.y0 * cs, (VOID.x1 - VOID.x0) * cs, (VOID.y1 - VOID.y0) * cs); ctx.clip()
+          _drawVesselIdle(ctx, cX, groundSY - 2 * cs, vh, face, 0.15 * p, 0.85 + 0.15 * p)
+          ctx.restore()
+        }
+      }
+      ctx.restore()
+      if (!closing && f >= IN.STEP && cine.vesselKey) {   // stepped out: in FRONT of the tomb, full reanimated colour
+        const p = Math.min(1, (f - IN.STEP) / 12), vh = Math.min(_vesselNormalH(ch), (VOID.y1 - VOID.y0) * cs * 0.92) * (1 + 0.1 * p)
+        _drawVesselIdle(ctx, cX + face * STEP_OUT * z * (1 - Math.pow(1 - p, 2)), groundSY, vh, face, 0.15 + 0.85 * p, 1)   // walks forward out of the void
+      }
+      if (closing && cine.vesselKey) _drawVesselIdle(ctx, cX + face * STEP_OUT * z, groundSY, Math.min(_vesselNormalH(ch), (VOID.y1 - VOID.y0) * cs * 0.92) * 1.1, face, 1, 1)   // stays IN FRONT of the sinking tomb
     }
   } else {
     // END — coffin rises, vessel runs in, coffin closes.
@@ -195,7 +254,9 @@ export function drawEdoTenseiCinematic(ctx, canvas) {
       const phaseP = closing ? (f - OUT.CLOSE) / (OUT.TOTAL - OUT.CLOSE)
                              : Math.min(1, (f - (OUT.RISE - 6)) / (OUT.RUNIN - (OUT.RISE - 6)))
       const riseUp = Math.min(1, (f - (OUT.RISE - 6)) / 22)
-      _drawSprite(ctx, img, COFFIN, _coffinFrame(phaseP, closing), coffinX, groundSY - coffinH / 2 * riseUp, coffinH, face)
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, cw, groundSY + 2); ctx.clip()   // breaks up THROUGH the ground (nothing below the floor line)
+      _drawSprite(ctx, img, COFFIN, _coffinFrame(phaseP, closing), coffinX, groundSY - coffinH / 2 + (1 - riseUp) * coffinH * 0.5, coffinH, face)
+      ctx.restore()
     }
   }
 }
@@ -209,7 +270,7 @@ function _vesselNormalH(ch) {
   return Math.min(ch * 0.34, Math.max(ch * 0.14, idleH * scale * CINE_ZOOM))
 }
 
-function _drawVesselIdle(ctx, cx, groundSY, dh, flip, revealP = 1) {
+function _drawVesselIdle(ctx, cx, groundSY, dh, flip, revealP = 1, alphaK = null) {
   const key = cine.vesselKey
   const idle = characters[key]?.animationData?.idle
   if (!idle?.sheet) return
@@ -225,8 +286,8 @@ function _drawVesselIdle(ctx, cx, groundSY, dh, flip, revealP = 1) {
   // desaturated dark silhouette to the reanim tint gives the "building into full color" beat.
   const bright = 0.06 + 0.94 * p            // 0.06 ≈ black silhouette → 1.0 full
   const sat    = 0.05 + 0.67 * p            // flat silhouette → reanim saturation (0.72)
-  const emerge = (1 - p) * dh * 0.18        // starts sunk into the void, rises to stand on the ground
-  ctx.save(); ctx.globalAlpha = 0.4 + 0.56 * p
+  const emerge = alphaK != null ? 0 : (1 - p) * dh * 0.18   // (legacy callers: starts sunk, rises to stand)
+  ctx.save(); ctx.globalAlpha = alphaK != null ? alphaK : 0.4 + 0.56 * p
   ctx.filter = `grayscale(${1 - 0.18 * p}) sepia(${0.45 * p}) hue-rotate(${55 * p}deg) saturate(${sat}) brightness(${bright}) contrast(0.92)`
   ctx.translate(cx, groundSY - dh / 2 + emerge); ctx.scale(flip, 1)
   ctx.drawImage(img, fi * sheet.w, 0, sheet.w, sheet.h, -dw / 2, -dh / 2, dw, dh)

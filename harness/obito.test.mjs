@@ -155,10 +155,11 @@ await reset(220);
 // ── JUUBI ULTIMATE + DUPLICATE-RENDER GUARD ──
 section("Juubi Ultimate + duplicate-render guard");
 await reset(200);   // clear any leftover cooldown/cast state from the teleport section so triggerUltimate fires
+const waitSB = () => page.waitForFunction(() => !window.__dsPrerollStatus?.().active, null, { timeout: 30000, polling: 30 }).catch(() => {})   // the ult STORYBOARD opener plays first
 await page.evaluate(() => { window.__harness.fillEnergy?.(); });
 await waitFrames(4);
 { const hp0=(await p2()).health;
-  await page.keyboard.down("u"); await sleep(90); await page.keyboard.up("u");
+  await page.keyboard.down("u"); await sleep(90); await page.keyboard.up("u"); await sleep(60); await waitSB();
   const seen=new Set(); let struck=false, everActive=false, casterHidden=false, maxFrame=0;
   for(let i=0;i<90;i++){ const c=await cine(); if(c.active){ everActive=true; maxFrame=Math.max(maxFrame,c.frame); if(c.struck)struck=true; if(c.casterHidden)casterHidden=true; if(c.phase)seen.add(c.phase); } else if(everActive) break; await sleep(33); }
   check("Juubi cinematic runs full sequence (rise→charge→fire)", seen.has("rise")&&seen.has("charge")&&seen.has("fire"), `phases=[${[...seen].join(",")}]`);

@@ -15,7 +15,7 @@ export const BEN_ALIEN_BUFF = Object.freeze({ damage: 1.5, defense: 1.30, speed:
 // + a speed layer for every alien; on top of it the per-alien SPEED_BONUS (speedsters / Alien X) below.
 export const BEN_ALIEN_SPEED_BONUS = Object.freeze({ alienx: 1.60, megawhatt: 1.10, brainstorm: 1.12, ghostfreak: 1.10 })
 // the HUMAN form (Ben and Albedo alike): harder, tougher, quicker (applyBen10VariantStats / revert)
-export const BEN_HUMAN_BUFF = Object.freeze({ damage: 1.30, defense: 1.15, speed: 1.12, hp: 1.25 })   // hp: ×1.25 on the shared Omnitrix health pool (2026-11-23)
+export const BEN_HUMAN_BUFF = Object.freeze({ damage: 3.40, defense: 1.30, speed: 1.15, hp: 2.30 })   // hp: × on the shared Omnitrix health pool. 2026-11-24: was {1.30, 1.15, 1.12, 1.25} → Ben / Albedo 0 % AI-vs-AI (10 games vs luffy/zoro/mr_incredible/gojo_shinjuku/spd_red); now 50 % / 50 %
 // ALIEN X (owner 2026-11-23: "especially Alien X") — on top of the global alien layer: tougher and harder-hitting
 export const BEN_ALIEN_DEFENSE_BONUS = Object.freeze({ alienx: 1.40 })
 export const BEN_ALIEN_DAMAGE_BONUS = Object.freeze({ alienx: 1.25 })

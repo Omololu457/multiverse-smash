@@ -249,7 +249,7 @@ test('11. registry: XLR8 READY in the first placeholder slot (5); long, low hurt
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   { const _ready = getAvailableAlienKeys(false); assert(_ready.length >= BEN10_SLOT_COUNT, 'PICK FIVE: at least one READY alien per dial slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), LOADOUT) }; assert.deepEqual(buildLoadout(5).map(a => a.id), LOADOUT)
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'XLR8')
-  assert(f.w > f.h, `long and low (${f.w}x${f.h})`); assert.equal(f.health, 1188, 'shared health pool (950 × the 2026-11-23 Ben HP buff 1.25)')
+  assert(f.w > f.h, `long and low (${f.w}x${f.h})`); assert.equal(f.health, 2185, 'shared health pool (950 × the 2026-11-24 Ben HP buff 2.30)')
 })
 test('11. Vow pick includes XLR8; same seed → same pick', () => {
   const mk = () => { const f = ben(null); F.setupBen10(f, LOADOUT); return f }

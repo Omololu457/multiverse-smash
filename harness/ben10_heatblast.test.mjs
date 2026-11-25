@@ -223,7 +223,7 @@ test('10. swap / revert clear Heat + Scorch-owner state; rematch starts clean', 
   assert(F.applyAlien(f, 'heatblast')); assert.equal(S(f).heat, 0); assert.equal(S(f).scorch.pips, 0); assert.equal(S(f).scorch.burnT, 0)
   S(f).heat = 50; F.revertToHuman(f); assert.equal(f.omnitrix.formState, null, 'revert clears'); assert(!f._benGlide)
   const g = ben(); assert.equal(S(g).heat, 0); assert.equal(S(g).scorch.immune, 0, 'rematch: fresh state')
-  assert.equal(f.damageMultiplier, 1.3, 'human damage multiplier restored (the 2026-11-23 Ben human buff ×1.3)')
+  assert.equal(f.damageMultiplier, 3.4, 'human damage multiplier restored (the 2026-11-24 Ben human buff ×3.4)')
 })
 
 // ── 11 Vow + determinism + registry ────────────────────────────────────────────────────────────────────────

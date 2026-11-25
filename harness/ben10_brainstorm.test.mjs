@@ -350,7 +350,7 @@ test('12. pick five: slot count from the registry (5), Brainstorm READY + pickab
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT); assert(getAvailableAlienKeys(false).includes('brainstorm'))
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Brainstorm'); assert.equal(f.health, 1188, 'shared health (950 × the 2026-11-23 Ben HP buff 1.25)')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Brainstorm'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.85 * 1.12 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.85 (× the 2026-11-23 Brainstorm speed bonus 1.12, benAlienBalance.js)')
 })
 test('12. picked loadout: Brainstorm in the last dial slot and the transform reaches it', () => {

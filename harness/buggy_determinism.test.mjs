@@ -38,7 +38,10 @@ async function run(seed) {
     return JSON.stringify([f('p1'), f('p2'), JSON.stringify(b._buggy || null, (k, v) => typeof v === 'number' ? r(v) : v), parts, b.attacking ? b.currentAttack?.name : ''])
   })
   const frames = [], partsSeen = { max: 0 }, superSeen = { on: false, hits: 0 }
-  const tick = async () => { await step1(); const d = await digest(); frames.push(d); const j = JSON.parse(d); partsSeen.max = Math.max(partsSeen.max, j[3].filter(p => !p[6] && !p[7]).length); if (j[4] === 'bSuper') superSeen.on = true; const s = JSON.parse(j[2]); if (s) superSeen.hits = Math.max(superSeen.hits, s.superHit || 0) }
+  // 2026-11-24: the Super now plays as a frozen cinematic (buggyUlt.js — BARA BARA FESTIVAL); either form counts
+  const cine = () => page.evaluate(async () => (await import(new URL('./buggyUlt.js', location.href).href)).getBuggyUltStatus())
+  const tick = async () => { await step1(); const d = await digest(); frames.push(d); const j = JSON.parse(d); partsSeen.max = Math.max(partsSeen.max, j[3].filter(p => !p[6] && !p[7]).length); if (j[4] === 'bSuper') superSeen.on = true; const s = JSON.parse(j[2]); if (s) superSeen.hits = Math.max(superSeen.hits, s.superHit || 0)
+    const cs = await cine(); if (cs.active) { superSeen.on = true; superSeen.hits = Math.max(superSeen.hits, cs.hits) } }
   const hold = async (keys, n) => { for (const k of keys) await page.keyboard.down(k); for (let i = 0; i < n; i++) await tick(); for (const k of keys) await page.keyboard.up(k) }
   const roll = async (seq, button) => { let held = []
     for (const k of seq) { const want = k == null ? [] : [].concat(k)
@@ -60,6 +63,7 @@ async function run(seed) {
   // differently from run to run — an input-layer artefact of the harness, not simulation state.
   await page.keyboard.down('u'); await tick(); await page.keyboard.up('u')   // SUPER (recalls both parts first)
   for (let i = 0; i < 150; i++) await tick()
+  for (let i = 0; i < 450 && (await cine()).active; i++) await tick()   // let the cinematic play out
   if (process.env.DBG) for (const i of [0, 12, 50, 100, 130, 160, 200, 240]) if (frames[i]) { const j = JSON.parse(frames[i]); console.log(i, JSON.stringify(j[0]), j[3].map(p => p[0] + ':' + p[7]).join(','), j[4]) }
   const rnd = await page.evaluate(() => window.__buggyRandom.slice(0, 3))
   await page.close()

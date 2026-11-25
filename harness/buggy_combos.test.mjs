@@ -20,6 +20,10 @@ const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const total = () => page.evaluate(() => { const z = __harness.buggyTest.raw('p2'); return z.maxHealth - z.health })
 const st = () => page.evaluate(() => { const b = __harness.buggyTest.raw('p1'), z = __harness.buggyTest.raw('p2')
   return { combo: b.comboCounter || 0, move: b.currentMove || null, hit: !!b.currentAttack?.hasHit, zhp: z.health, zstun: z.hitstun || 0, parts: __harness.buggyTest.state('p1').parts } })
+// 2026-11-24: the Super now plays as a frozen cinematic (buggyUlt.js — BARA BARA FESTIVAL: 3 stabs × 20 + foot 26 + ball 230 + rush 84
+// = 400 raw → 240 × roster boost); old move OR the cinematic counts, and every Super wait runs until the cinematic has cleared
+const cineOn = () => page.evaluate(async () => (await import(new URL('./buggyUlt.js', location.href).href)).isBuggyUltActive())
+async function superWait() { for (let i = 0; i < 600; i++) { await step(1); const q = await st(); if (await cineOn()) continue; if (!q.move && i > 30) break } }
 async function keys(ks, frames = 1) { for (const k of ks) await page.keyboard.down(k); await step(frames); for (const k of ks) await page.keyboard.up(k) }
 async function motion(seq) { let held = []; for (const k of seq) { const want = k == null ? [] : [].concat(k)
   for (const x of held) if (!want.includes(x)) await page.keyboard.up(x)
@@ -110,7 +114,7 @@ try {
   await page.evaluate(() => __harness.buggyTest.chop('p1', 100))
   await motion(['s', ['s', 'd'], 'd', 's', ['s', 'd'], 'd']); await keys(['l'])
   let superDmg = 0; const hs = (await st()).zhp
-  for (let i = 0; i < 150; i++) { await step(1); const q = await st(); if (!q.move && i > 30) break }
+  await superWait()
   superDmg = hs - (await st()).zhp
   console.log(`  route 5: total ${await total()} dmg, combo ${(await st()).combo}`)
   check('5 · Zoro\'s slash nullified, then Carve → SUPER', nul && nulled && d5[0] > 0 && superDmg > 0, JSON.stringify({ nulled, carve: d5[0], superDmg }))
@@ -119,10 +123,10 @@ try {
   // roster-wide GLOBAL_DAMAGE_SCALE 0.60 with the Super's scaling LOCKED at its start (its own hits don't decay it).
   await fresh(120)
   await motion(['s', ['s', 'd'], 'd', 's', ['s', 'd'], 'd']); await keys(['l'])
-  for (let i = 0; i < 150; i++) { await step(1); const q = await st(); if (!q.move && i > 30) break }
+  await superWait()
   const neutralSuper = await total()
-  console.log(`  neutral Super: ${neutralSuper} dmg (370 designed × 0.60 = 222)`)
-  check('SUPER from neutral lands its full designed total (370 × 0.60 global = 222, × roster boost)', neutralSuper >= Math.floor(210 * BUGGY_BOOST) && neutralSuper <= Math.ceil(222 * BUGGY_BOOST), neutralSuper)
+  console.log(`  neutral Super: ${neutralSuper} dmg (cinematic 400 raw × 0.60 = 240 × boost ${BUGGY_BOOST})`)
+  check('SUPER from neutral lands its full designed total (cinematic 400 raw × 0.60 global = 240, × roster boost)', neutralSuper >= Math.floor(228 * BUGGY_BOOST) && neutralSuper <= Math.ceil(246 * BUGGY_BOOST), neutralSuper)
 
   // combo counter resets after 1.5 s idle
   await fresh(56); await keys(['j']); await waitHit(20)

@@ -31,14 +31,18 @@ async function session(withPad) {
   const fresh = (dx = 96, heat = 100) => page.evaluate(([dx, heat]) => { const t = __harness.sanjiTest; t.reset(); t.heat('p1', heat)
     const a = t.raw('p1'), z = t.raw('p2'); z.x = a.x + dx; z.facing = -1; a.facing = 1; z.health = z.maxHealth; z.invulnTimer = 0; z.hitstun = 0 }, [dx, heat])
   // Hold buttons until a move starts (live loop timing), record every move seen, then release.
+  // 2026-11-24: the Super now plays as a frozen cinematic (sanjiUlt.js — DIABLE JAMBE: BŒUF BURST); the old move OR the cinematic counts
+  const cineOn = () => page.evaluate(async () => (await import(new URL('./sanjiUlt.js', location.href).href)).isSanjiUltActive())
   async function press(btns, want, ms = 1500) {
     for (const b of btns) await setBtn(b, true)
     const seen = new Set(); const t0 = Date.now()
-    while (Date.now() - t0 < ms) { const s = await st(); if (s.move) seen.add(s.move); if (want && seen.has(want)) break; await frames(1) }
+    while (Date.now() - t0 < ms) { const s = await st(); if (s.move) seen.add(s.move); if (want === 'sPTKC' && await cineOn()) seen.add('sPTKC(cinematic)'); if (want && (seen.has(want) || seen.has(want + '(cinematic)'))) break; await frames(1) }
     for (const b of btns) await setBtn(b, false)
     return [...seen]
   }
-  async function settle() { for (let i = 0; i < 200; i++) { const s = await st(); if (!s.attacking && !s.s?.inSuper) break; await frames(1) } await frames(4) }
+  async function settle() { for (let i = 0; i < 200; i++) { const s = await st(); if (!s.attacking && !s.s?.inSuper) break; await frames(1) }
+    for (let i = 0; i < 600 && await cineOn(); i++) await frames(1)   // a Super cinematic plays out first
+    await frames(4) }
   async function roll(steps, btn, want) {   // a motion on the d-pad (arrays of held buttons) or the stick (axis pairs)
     for (const s of steps) { for (const b of [B.UP, B.DOWN, B.LEFT, B.RIGHT]) await setBtn(b, s.btns?.includes(b) || false); if (s.ax) { await setAxis(0, s.ax[0]); await setAxis(1, s.ax[1]) } await frames(2) }
     const seen = await press([btn, ...(steps[steps.length - 1].btns || [])], want)
@@ -69,7 +73,7 @@ try {
   m = await P.roll([{ btns: [B.DOWN] }, { btns: [B.DOWN, B.RIGHT] }, { btns: [B.RIGHT] }], B.TRIANGLE, 'sSkyWalk')
   check('X jump, then air ↓↘→ + Triangle = Sky Walk', m.includes('sSkyWalk') && (await P.st()).s.skyWalks >= 1, m.join())
   for (let i = 0; i < 150; i++) { if ((await P.st()).onGround) break; await P.frames(1) } await P.settle()
-  await P.fresh(90, 100); m = await P.press([B.R2], 'sPTKC'); check('R2 at 100 Heat = PARTY TABLE KICK COURSE', m.includes('sPTKC'), m.join()); await P.settle(); await P.frames(30)
+  await P.fresh(90, 100); m = await P.press([B.R2], 'sPTKC'); check('R2 at 100 Heat = PARTY TABLE KICK COURSE', m.includes('sPTKC') || m.includes('sPTKC(cinematic)'), m.join()); await P.settle(); await P.frames(30)
   // Launcher follow-jump on the X button: Poitrine (← + Triangle) → X on hit.
   // ← and Triangle go down in the SAME poll (holding ← first would walk him out of range), then X the moment it connects.
   await P.fresh(70, 10)

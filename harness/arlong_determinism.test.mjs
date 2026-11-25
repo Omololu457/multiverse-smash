@@ -36,8 +36,11 @@ async function run(seed) {
     return JSON.stringify([f('p1'), f('p2'), JSON.stringify(a._arlong || null, (k, v) => typeof v === 'number' ? r(v) : v), a.attacking ? a.currentAttack?.name : ''])
   })
   const frames = [], seen = { zones: 0, flood: 0, super: false, blade: new Set() }
+  // 2026-11-24: the Super now plays as a frozen cinematic (arlongUlt.js — ARLONG PARK: KIRIBACHI; the flood is drawn, not simulated)
+  const cine = () => page.evaluate(async () => (await import(new URL('./arlongUlt.js', location.href).href)).getArlongUltStatus())
   const tick = async () => { await step1(); const d = await digest(); frames.push(d); const j = JSON.parse(d), s = JSON.parse(j[2])
-    if (s) { seen.zones = Math.max(seen.zones, s.zones.length); seen.flood = Math.max(seen.flood, s.flood); seen.blade.add(s.blade.st) } if (j[3] === 'aSuper') seen.super = true }
+    if (s) { seen.zones = Math.max(seen.zones, s.zones.length); seen.flood = Math.max(seen.flood, s.flood); seen.blade.add(s.blade.st) } if (j[3] === 'aSuper') seen.super = true
+    const cs = await cine(); if (cs.active) { seen.cine = true; seen.cineHits = Math.max(seen.cineHits || 0, cs.hits) } }
   const press = async (dir, button) => { if (dir) await page.keyboard.down(dir); await page.keyboard.down(button); await tick(); await page.keyboard.up(button); if (dir) await page.keyboard.up(dir) }
   const zoroSlash = () => page.evaluate(async () => { const cb = await import('./combat.js'), zd = await import('./zoroData.js'); const z = __harness.arlongTest.raw('p2'); if (z.attacking || z.hitstun > 0 || z.knockdownState) return; z.attackCooldown = 0; cb.startMove(z, 'light', zd.ZORO_MOVES.light) })
   const wait = async (n, slash = 0) => { for (let i = 0; i < n; i++) { await tick(); if (slash && i % slash === 0) await zoroSlash() } }
@@ -57,6 +60,7 @@ async function run(seed) {
   await page.evaluate(() => __harness.arlongTest.tide('p1', 100))
   await page.keyboard.down('u'); await tick(); await page.keyboard.up('u')   // SUPER: ARLONG PARK
   await wait(230)
+  for (let i = 0; i < 450 && (await cine()).active; i++) await tick()   // let the cinematic play out
   const rnd = await page.evaluate(() => window.__alRandom.slice(0, 3))
   await page.close()
   return { frames, seen, errors, rnd }
@@ -65,7 +69,7 @@ async function run(seed) {
 try {
   const A = await run(7654321), B = await run(7654321)
   check('scripted run reached 3 water zones at once', A.seen.zones === 3, `max zones = ${A.seen.zones}`)
-  check('scripted run fired the SUPER (stage flooded)', A.seen.super && A.seen.flood > 0, `super=${A.seen.super} flood=${A.seen.flood}`)
+  check('scripted run fired the SUPER (stage flooded — or the ARLONG PARK cinematic landed all 6 hits)', (A.seen.super && A.seen.flood > 0) || (A.seen.cine && A.seen.cineHits >= 6), `super=${A.seen.super} flood=${A.seen.flood} cine=${!!A.seen.cine} hits=${A.seen.cineHits || 0}`)
   check('both runs simulated the same number of frames', A.frames.length === B.frames.length && A.frames.length > 500, `${A.frames.length} / ${B.frames.length}`)
   let first = -1; for (let i = 0; i < Math.min(A.frames.length, B.frames.length); i++) if (A.frames[i] !== B.frames[i]) { first = i; break }
   check('frame-by-frame IDENTICAL sim state (fighters + Arlong state: zones, teeth, blade, shots, waves, flood)', first === -1,

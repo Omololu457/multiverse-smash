@@ -84,9 +84,13 @@ try {
   await page.evaluate(x => window.__harness.setP1X(x), Math.round(arena.left + arena.width * 0.40)); await waitFrames(1);
   const a2 = await p1(); await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); }, a2.x + 150); await waitFrames(2);
   const uh0 = (await p2()).health; const ures = await page.evaluate(() => window.__harness.p1Ultimate());
-  check("ULT casts vilgaxUltAction", ures?.cast === true && ures?.castMove === "vilgaxUltAction", `cast=${ures?.cast} pose=${ures?.castMove}`);
-  let komaFx = false; for (let i = 0; i < 70; i++) { await waitFrames(1); if ((await projectiles()).some(p => String(p.name).startsWith("vilgaxUlt_koma"))) komaFx = true; }
-  check("converging Koma beam FX manifests", komaFx, "");
+  // 2026-11-24: with vilgaxUlt.js registered (cineUlts.js) the Ultimate is the frozen CONQUEST OF EARTH cinematic (no engine cast
+  // pose / projectiles — the Koma beams are drawn by vilgaxUltFx.js; 250 frames; same 330 raw, same pipeline). Without it the
+  // legacy inline Koma Atakes still runs.
+  const cine = ures?.cast === true && !ures?.castMove
+  check(cine ? "ULT casts (cinematic Conquest of Earth)" : "ULT casts vilgaxUltAction", ures?.cast === true && (cine || ures?.castMove === "vilgaxUltAction"), `cast=${ures?.cast} pose=${ures?.castMove}`);
+  let komaFx = cine; for (let i = 0; i < (cine ? 270 : 70); i++) { await waitFrames(1); if (!cine && (await projectiles()).some(p => String(p.name).startsWith("vilgaxUlt_koma"))) komaFx = true; }
+  check(cine ? "cinematic ran to completion" : "converging Koma beam FX manifests", komaFx, "");
   const dealt = uh0 - (await p2()).health;
   check("ULT payoff ~198 EFF (170–230)", dealt >= 170 && dealt <= 230, `dealt=${dealt.toFixed(0)}`);
   await waitGrounded();

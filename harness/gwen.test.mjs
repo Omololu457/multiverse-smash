@@ -81,9 +81,12 @@ try {
   await page.evaluate(x => window.__harness.setP1X(x), Math.round(arena.left + arena.width * 0.40)); await waitFrames(1);
   const a2 = await p1(); await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); window.__harness.fillEnergy?.(); }, a2.x + 150); await waitFrames(2);
   const uh0 = (await p2()).health; const ures = await page.evaluate(() => window.__harness.p1Ultimate());
-  check("ULT casts gwenBlade", ures?.cast === true && ures?.castMove === "gwenBlade", `cast=${ures?.cast} pose=${ures?.castMove}`);
-  await waitFrames(90); const dealt = uh0 - (await p2()).health;
-  check("ULT payoff ~198 EFF (170–230)", dealt >= 170 && dealt <= 230, `dealt=${dealt.toFixed(0)}`);
+  // 2026-11-24: with gwenUlt.js registered (cineUlts.js) the Ultimate is the frozen MANA BLADE — ANODITE JUDGMENT cinematic
+  // (no engine cast pose; 236 frames; 370 raw → ~222). Without it the legacy inline blade still runs (66 frames, ~198).
+  const cine = ures?.cast === true && !ures?.castMove
+  check(cine ? "ULT casts (cinematic Mana Blade)" : "ULT casts gwenBlade", ures?.cast === true && (cine || ures?.castMove === "gwenBlade"), `cast=${ures?.cast} pose=${ures?.castMove}`);
+  for (let i = 0; i < (cine ? 13 : 1); i++) await waitFrames(cine ? 20 : 90); const dealt = uh0 - (await p2()).health;
+  check(cine ? "ULT payoff ~222 EFF (170–260)" : "ULT payoff ~198 EFF (170–230)", dealt >= 170 && dealt <= (cine ? 260 : 230), `dealt=${dealt.toFixed(0)}`);
   await waitGrounded();
 
   console.log("\n── S6: on-connect FX impacts ──");

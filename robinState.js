@@ -389,6 +389,7 @@ function tickHack(f, s, a, m, t, raw, W) {
 // nothing can multiply the total or outlive the cinematic.
 const cine = { active: false, frame: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, cx0: 0, tx0: 0, dir: 1, done: 0, scale: 1 }
 export const isRobinUltActive = () => cine.active
+export const robinUltScene = () => (cine.active ? cine : null)   // the live scene, read by robinUlt.js (cinematic director)
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
   f.currentAttack = { name: move, total: 999, timer: 999 - at, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, rb: null, _ultPose: true }

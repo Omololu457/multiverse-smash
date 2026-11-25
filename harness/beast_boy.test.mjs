@@ -240,7 +240,7 @@ try {
 
   // ── ULTIMATE ──
   await reset(80); await tap(['u']); const ultT = []; let hpU = (await state()).b.hp; const ult0 = hpU; let eU = null
-  for (let i = 0; i < 420; i++) { await step(1); const q = await state(); if (eU == null && q.ult.active) eU = q.a.energy; if (q.b.hp < hpU) { ultT.push({ f: i + 1, d: hpU - q.b.hp, frame: q.ult.frame }); hpU = q.b.hp } if (!q.ult.active && i > 40 && !q.a.attack) break }
+  for (let i = 0; i < 520; i++) { await step(1); const q = await state(); if (eU == null && q.ult.active) eU = q.a.energy; if (q.b.hp < hpU) { ultT.push({ f: i + 1, d: hpU - q.b.hp, frame: q.ult.frame }); hpU = q.b.hp } if (!q.ult.active && i > 40 && !q.a.attack) break }
   s = await state(); report.ultimate = { hits: ultT, total: ult0 - s.b.hp, energyAfter: s.a.energy, done: s.a.s?.stats?.ultDone }
   ck('ultimate: opener + 4 animal contacts (5 damage events)', ultT.length === 5, JSON.stringify(ultT))
   ck('ultimate contacts ≈ authored raw 25 / 45 / 30 / 60 / 100 (260 total before shared scaling)', ultT.length === 5 && [25, 45, 30, 60, 100].every((v, i) => near(ultT[i].d, v, 3)) && near(report.ultimate.total, 260, 8), JSON.stringify(ultT.map(x => x.d)))

@@ -214,7 +214,7 @@ try {
 
   // ── ULTIMATE ──
   await reset(90); await tap(['u']); const ultT = []; let hpU = (await state()).b.hp; const ult0 = hpU
-  for (let i = 0; i < 300; i++) { await step(1); const q = await state(); if (q.b.hp < hpU) { ultT.push({ f: i + 1, d: hpU - q.b.hp, frame: q.ult.frame }); hpU = q.b.hp } if (!q.ult.active && i > 40 && !q.a.attack) break }
+  for (let i = 0; i < 420; i++) { await step(1); const q = await state(); if (q.b.hp < hpU) { ultT.push({ f: i + 1, d: hpU - q.b.hp, frame: q.ult.frame }); hpU = q.b.hp } if (!q.ult.active && i > 40 && !q.a.attack) break }
   s = await state(); report.ultimate = { hits: ultT, total: ult0 - s.b.hp, heat: s.a.s?.heat / 100, done: s.a.s?.stats?.ultDone }
   const expectRaw = [30, 40, 20, 20, 20, 40, 110]
   ck('ultimate: opener + 6 cinematic contacts (cannon 40, 3 × missile 20, aerial 40, Mega 110)', ultT.length === 7, JSON.stringify(ultT))

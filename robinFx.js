@@ -13,6 +13,7 @@ import { robinUltView, inOwnSmoke } from './robinState.js'
 import { ROBIN_FX_COLORS } from './robinSkins.js'
 import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
 import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
+import './robinUlt.js'   // CHECKMATE: LIGHTS OUT: the cinematic director + screen pass over the ultimate (cineRegistry)
 
 const FW = ROBIN_CELL.w, FH = ROBIN_CELL.h, SC = 2.2
 const cache = new Map()

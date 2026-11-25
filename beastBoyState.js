@@ -294,6 +294,7 @@ export function tryQueueWildChain(f, e) {
 // ONE scheduled contact through W.damage with the combo scale captured at confirm. No controllable phase, no per-form HP.
 const cine = { active: false, frame: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, cx0: 0, tx0: 0, dir: 1, done: 0, scale: 1 }
 export const isBeastBoyUltActive = () => cine.active
+export const beastBoyUltScene = () => (cine.active ? cine : null)   // the live scene, read by beastBoyUlt.js (cinematic director)
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
   f.currentAttack = { name: move, total: 999, timer: 999 - at, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, bb: null, _ultPose: true }

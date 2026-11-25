@@ -11,6 +11,7 @@ import { beastBoyUltView, formOf, instinctOpen } from './beastBoyState.js'
 import { BEAST_BOY_FX_COLORS } from './beastBoySkins.js'
 import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
 import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
+import './beastBoyUlt.js'   // ANIMAL INSTINCT — FOUR BEAST FINISH: the cinematic director + screen pass over the ultimate (cineRegistry)
 
 const FW = 272, FH = 136
 const cache = new Map()

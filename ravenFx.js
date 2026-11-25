@@ -22,6 +22,7 @@ import { ravenUltView } from './ravenState.js'
 import { RAVEN_FX_COLORS } from './ravenSkins.js'
 import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
 import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
+import './ravenUlt.js'   // AZARATH METRION ZINTHOS — SOUL-SELF: the cinematic director + screen pass over the ultimate (cineRegistry)
 
 const FW = 112, FH = 104
 const cache = new Map()

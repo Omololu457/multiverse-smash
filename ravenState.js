@@ -467,6 +467,7 @@ function infuse(f, s, e, p, W, P) {
 // - Contacts go through W.damage with the combo scale captured at confirm. No HP setter.
 const cine = { active: false, frame: 0, caster: null, target: null, W: null, floorC: 0, floorT: 0, cx0: 0, tx0: 0, dir: 1, done: 0, scale: 1 }
 export const isRavenUltActive = () => cine.active
+export const ravenUltScene = () => (cine.active ? cine : null)   // the live scene, read by ravenUlt.js (cinematic director)
 function pose(f, move, at) {
   f.attacking = true; f.currentMove = move
   f.currentAttack = { name: move, total: 999, timer: 999 - at, activeStart: 9999, activeEnd: 9999, rangeX: 0, rangeY: 0, damage: 0, hasHit: true, rv: null, _ultPose: true }

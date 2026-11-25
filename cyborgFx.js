@@ -12,6 +12,7 @@ import { cyborgUltView } from './cyborgState.js'
 import { CYBORG_FX_COLORS } from './cyborgSkins.js'
 import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
 import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
+import './cyborgUlt.js'   // BOOYAH PROTOCOL: the cinematic director + screen pass over the ultimate (cineRegistry)
 
 const FW = 184, FH = 168
 const cache = new Map()

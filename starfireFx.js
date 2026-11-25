@@ -17,6 +17,7 @@ import { starfireUltView, starfireLiveLaser, eyeWorld } from './starfireState.js
 import { STARFIRE_FX_COLORS } from './starfireSkins.js'
 import { titanVoTick, titanVoDraw } from './titansVoice.js'   // Teen Titans voice lines (audio-only)
 import { drawTitanIntroFx, drawTitanIntroCards } from './titansIntro.js'   // Teen Titans special intros (presentation only)
+import './starfireUlt.js'   // SUPERNOVA — EYES OF TAMARAN: the cinematic director + screen pass over the ultimate (cineRegistry)
 
 const cache = new Map()
 function image(url) { if (!cache.has(url)) { const im = new Image(); im.src = url; cache.set(url, im) } return cache.get(url) }

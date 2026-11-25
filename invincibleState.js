@@ -10,6 +10,7 @@ import { INV_KEY, INV_MOVES, TECHNIQUES, NORMALS, QUOTES, SCREEN, BAR, FLIGHT, I
   SPEED_MUL, FLIGHT_TAP, TOP, speedFrac, speedMult, dmg, invincible } from './invincibleData.js'
 const STATS = invincible.stats
 import { flightToggleInput, flightTakeoff, isFlying, ensureFlightState, FLIGHT_PHASE } from './flight.js'
+import { startInvTvPayoff } from './invincibleUlt.js'   // TERMINAL VELOCITY: the frozen impact cinematic on a direct hit (cineRegistry)
 
 export const isInv = f => f?.rosterKey === INV_KEY
 const E = { startMove: null, comboScale: null }
@@ -647,14 +648,15 @@ function tvTick(f, s, A, m, t, W, foes, raw) {
   if (t === T3 && tv.phase !== 'impact') {
     tv.phase = 'impact'; f._invAlpha = 1
     f.x = Math.max(0, Math.min(sw(W) - f.w, Math.round(tv.x - f.w / 2))); f.y = floorY - (f.h || 94); f.onGround = true; f.grounded = true
-    let any = false
+    let any = false, payoff = null
     for (const o of foes) {
       const dx = Math.abs(ctrX(o) - tv.x)
       if (dx <= TV.direct * SCREEN) {
+        const hp0 = o.health
         const r = strike(f, o, { raw: TV.rawDirect, hitstun: TV.hitstunDirect, kbx: 10, kby: -16, dir: ctrX(o) >= tv.x ? 1 : -1, unblockable: false, otg: true, chip: 0.2,
           move: 'inv_terminal_velocity', type: 'impact', infinityStops: true, hitstop: 14, fx: 'burst', noScale: true, tier: 'big', push: 12 }, W)
         if (r === 'stopped') s.stats.tvStopped++
-        if (r === 'hit') s.stats.tvDirect++
+        if (r === 'hit') { s.stats.tvDirect++; if (!payoff) payoff = { o, dmg: hp0 - o.health } }
         tv.hit = tv.hit || r; any = true
       } else if (dx <= TV.shock * sw(W) / 2 && floorY - feet(o) < 60) {
         const r = strike(f, o, { raw: TV.rawShock, hitstun: TV.hitstunShock, kbx: 9, kby: -8, dir: ctrX(o) >= tv.x ? 1 : -1, otg: true, chip: 0.2,
@@ -666,6 +668,7 @@ function tvTick(f, s, A, m, t, W, foes, raw) {
     }
     pushFx(s, 'tvImpact', tv.x, floorY); s.decal.push({ x: tv.x, y: floorY, t: 0 }); if (s.decal.length > 2) s.decal.shift()
     cue(f, 'tvImpact')
+    if (payoff) startInvTvPayoff(f, payoff.o, tv.x, floorY, payoff.dmg)   // a DIRECT hit → the frozen impact cinematic (invincibleUlt.js)
     if (!any) {   // WHIFF: stuck in the crater
       s.stats.tvWhiff++; cue(f, 'tvWhiff')
       const dir = m.dir; s.tv = null; endInvAttack(f); startInvMove(f, 'kTVCrater', W, { dir, internal: true }); return

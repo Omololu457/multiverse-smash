@@ -138,7 +138,7 @@ try{
  await reset(190);await tap(['d']);await step(2);await tap(['d']);await step(13);await tap(['k']);s=await wait(s=>s.b.hp<HP,40)
  r={label:'Phase step (120px) -> Heavy punish',damage:HP-s.b.hp,energySpentNet:+(100-s.a.energy).toFixed(2)};report.routes.push(r);ck(r.label,r.damage>0,JSON.stringify(r))
  // ── ULTIMATE (shared Zord not present)
- await reset();await page.evaluate(()=>{__harness.spdPinkTest.raw().energy=100});await tap(['u']);await step(50);s=await state();ck('ultimate unavailable: spends nothing, no fallback, no guaranteed damage',s.b.hp===HP&&s.a.energy>=100&&!s.a.attack)
+ await reset();await page.evaluate(()=>{__harness.spdPinkTest.raw().energy=100});await tap(['u']);await step(50);s=await state();{const e50=s.a.energy;await step(220);s=await state();ck('RANGER-ULTS re-pin: Ultimate = Diamond Fist cinematic (spends the 100 meter, lands 240 raw)',e50<=1&&s.b.hp<HP&&HP-s.b.hp>=150,JSON.stringify({e50,hp:s.b.hp}))}
  // ── Mirror ownership: P2's preparation never charges P1
  await reset(300);await p2move('pPrep');await step(50);s=await state();ck('Iron Reserve is per-owner (P2 charged, P1 not)',!!s.b.reserve&&!s.a.reserve)
  await reset(300);await tap(['p']);await p2move('pPrep');await step(50);s=await state();ck('simultaneous mirror preparations: two independent charges',!!s.a.reserve&&!!s.b.reserve)

@@ -111,7 +111,7 @@ try{
  await reset(190);await tap(['d']);await step(2);await tap(['d']);await step(13);await tap(['k']);s=await wait(s=>s.b.hp<HP,40)
  r={label:'Phase step (120px) -> Heavy punish',damage:HP-s.b.hp,energySpent:100-s.a.energy};report.routes.push(r);ck(r.label,r.damage>0&&r.damage===report.advantages.length*0+r.damage,JSON.stringify(r))
  // ── ULTIMATE (shared Zord not present)
- await reset();await page.evaluate(()=>{__harness.spdGreenTest.raw().energy=100});await tap(['u']);await step(50);s=await state();ck('ultimate unavailable: spends nothing, no fallback',s.b.hp===HP&&s.a.energy>=100&&!s.a.attack)
+ await reset();await page.evaluate(()=>{__harness.spdGreenTest.raw().energy=100});await tap(['u']);await step(50);s=await state();{const e50=s.a.energy;await step(220);s=await state();ck('RANGER-ULTS re-pin: Ultimate = Psychometry: Aura Strike cinematic (spends the 100 meter, lands 240 raw)',e50<=1&&s.b.hp<HP&&HP-s.b.hp>=150,JSON.stringify({e50,hp:s.b.hp}))}
  // ── Per-move measured frame advantage (hit + block)
  for(const guard of [false,true])for(const key of ['light','gJ2','gJ3','heavy','gLow','up','gAdvance','gChain','gAway','gFollow','gRise']){
   await reset();if(guard){await page.evaluate(()=>__harness.setDummyBehavior('block'));await step(10)}

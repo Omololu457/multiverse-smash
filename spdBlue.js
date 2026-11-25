@@ -1,3 +1,4 @@
+import {rangerKitUlt} from './rangerUltHook.js'   // RANGER-ULTS: the Ultimate press → rangerUlts.js (no import cycle)
 import {startMove,rekkaContinue,cancelWindowOpen} from './combat.js'
 import {isSpdBlue,spdBlueState,startSpdBlueMove} from './spdBlueState.js'
 import {groundTeleportLocked} from './groundTeleport.js'
@@ -16,7 +17,7 @@ export function updateSpdBlueCommandCombat(f,inp,opp,W){
  if(a&&!contact)return 'consumed'
  if(!a&&(f.attackCooldown>0||inp.block))return 'grab'
  // No Ranger fallback ultimate: shared Zord dependency is deliberately unavailable.
- if(fresh(s,'ultimate')){use(s,'ultimate');return 'consumed'}
+ if(fresh(s,'ultimate')){use(s,'ultimate');rangerKitUlt(f,opp);return 'consumed'}   // RANGER-ULTS: S.P.D. cinematic ultimate (rangerUlts.js via rangerUltHook.js)
  if(fresh(s,'special')&&(!a||['light','bJ2','heavy','air'].includes(a.name))){const e=s.edges.special;use(s,'special');const k=!g?(e.down?'bAirShot':e.back?null:'bAirDive'):e.qcf?'bDrive1':e.qcb?'bBash':e.down?'bRise':e.up?'bSky':e.fwd?'bPursuit':e.back?'bBarrier':'bShot';if(k)fire(k,!!a);return 'consumed'}
  if(!a&&g&&fresh(s,'charge')&&(s.edges.charge.fwd||s.edges.charge.back)&&!s.edges.charge.down){use(s,'charge');fire(s.edges.charge.fwd?'bRam':'bParry');return 'consumed'}   // VARIETY L6: Charge+Forward only; neutral Charge still reaches the engine
  if(fresh(s,'light')){const e=s.edges.light,k=a?(a.name==='light'?'bJ2':a.name==='bJ2'?'bJ3':null):!g?'air':e.down?'bLow':e.fwd?'bPalm':e.back?'bWithdraw':'light';use(s,'light');if(k)fire(k,!!a);return 'consumed'}

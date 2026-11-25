@@ -188,7 +188,7 @@ try {
   // ── ULTIMATE + BONUS RING ───────────────────────────────────────────
   section("Ultimate + Battlizer bonus ring");
   await prep(40);
-  { let e0 = (await p1()).energy, hp0 = (await p2()).health; await page.keyboard.down("u"); await waitFrames(3); const ult = await rec(); await page.keyboard.up("u"); await waitFrames(16);
+  { let e0 = (await p1()).energy, hp0 = (await p2()).health; await page.keyboard.down("u"); await waitFrames(3); const ult = await rec(); await page.keyboard.up("u"); await waitFrames(16); for (let i = 0; i < 8; i++) await waitFrames(16);   // RANGER-ULTS re-pin: + the 120 f morph-call pre-roll (rangerUlts.js) before the live ult resumes
     check("Ultimate (currentMove=ultimate) is the biggest hit", ult.currentMove === "ultimate" && hp0 - (await p2()).health >= 120, `dmg=${hp0 - (await p2()).health}`);
     check("Ultimate spent the meter", e0 - (await p1()).energy >= 90, `spent=${(e0 - (await p1()).energy).toFixed(0)}`); }
   await prep(28);

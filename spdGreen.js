@@ -1,3 +1,4 @@
+import {rangerKitUlt} from './rangerUltHook.js'   // RANGER-ULTS: the Ultimate press → rangerUlts.js (no import cycle)
 // S.P.D. Green Ranger — command layer (press edges recorded in tickSpdGreen from readRawControls,
 // so keyboard / pad / replay / LAN feed the same parser). Returns 'consumed' | 'grab'.
 import {startMove,rekkaContinue,cancelWindowOpen} from './combat.js'
@@ -24,7 +25,7 @@ export function updateSpdGreenCommandCombat(f,inp,opp,W){
  if(a&&!contact)return 'consumed'
  if(!a&&(f.attackCooldown>0||inp.block))return 'grab'
  // Shared Zord ultimate not present: press consumed, no meter, no fallback.
- if(fresh(s,'ultimate')){use(s,'ultimate');return 'consumed'}
+ if(fresh(s,'ultimate')){use(s,'ultimate');rangerKitUlt(f,opp);return 'consumed'}   // RANGER-ULTS: S.P.D. cinematic ultimate (rangerUlts.js via rangerUltHook.js)
  // AURA READ: fresh Charge press, grounded neutral (no attack, no guard, no crouch). Held Charge never repeats.
  if(fresh(s,'charge')){const e=s.edges.charge;use(s,'charge');if(!a&&g&&!e.block&&!e.down)fire(e.fwd?'gRam':e.back?'gRead':'gScan');return a?'consumed':'grab'}
  if(fresh(s,'special')&&(!a||['light','gJ2','heavy','air','gElbow'].includes(a.name))){

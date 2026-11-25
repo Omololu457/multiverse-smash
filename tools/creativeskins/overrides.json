@@ -16,5 +16,7 @@
  "megumi_fushiguro": {"q": 12},
  "green_arrow": {"avoid": ["godspeed", "crystal", "bigchill", "xlr8", "ultrainstinct"]},
  "gaara": {"hairrel": 0.22, "avoid": ["magmacore", "upgrade"]},
- "hashirama": {"hairrel": 0.3, "avoid": ["thunderclap", "spidey"]}
+ "hashirama": {"hairrel": 0.3, "avoid": ["thunderclap", "spidey"]},
+ "sakura": {"force": {"#101018": "keep", "#50b090": "keep", "#f8d8d8": "keep", "#c05858": "hair", "#545454": "D", "#f0f0f0": "keep"}},
+ "hinata": {"force": {"#101820": "keep"}}
 }

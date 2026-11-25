@@ -1032,9 +1032,9 @@ export const SKINS = {
   // byte-identical → clean keying preserved). Cosmetic only.
   sakura: [
     { id: "default",      name: "Default", unlockLevel: 0, portrait: characters.sakura?.portrait,          spriteScale: characters.sakura?.spriteScale, animationData: null },
-    { id: "sakuraBlue",   name: "Azure",   unlockLevel: 0, portrait: recolorPortrait("sakura", "blue"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "blue") },    // vest → cobalt blue
-    { id: "sakuraDark",   name: "Slate",   unlockLevel: 0, portrait: recolorPortrait("sakura", "dark"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "dark") },    // vest → dark grey
-    { id: "sakuraOrange", name: "Amber",   unlockLevel: 0, portrait: recolorPortrait("sakura", "orange"),  spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "orange") },  // vest → warm orange
+    { id: "sakuraBlue",   name: "Spring Kimono",   unlockLevel: 0, portrait: recolorPortrait("sakura", "blue"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "blue") },    // redrawn 2026-11-25 (tools/skinfix/redraw.py springkimono): rose vest + sakura petals, cream trousers
+    { id: "sakuraDark",   name: "ANBU Medic",   unlockLevel: 0, portrait: recolorPortrait("sakura", "dark"),    spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "dark") },    // redrawn (anbumedic): silver armour vest, black trousers
+    { id: "sakuraOrange", name: "Byakugou",   unlockLevel: 0, portrait: recolorPortrait("sakura", "orange"),  spriteScale: characters.sakura?.spriteScale, animationData: recolorSkinAnim("sakura", "orange") },  // redrawn (byakugou): violet vest, black trousers, Hundred Healings seal lines
   ],
   // Sasuke (Sensei) — DEFAULT only for now (REQUIRED: without it getSkins() clobbers spriteScale 1.5 → 1).
   // The source sheet's 4-palette "Color Paletes" row (navy / orange / green / blue vests) is the reference
@@ -1089,9 +1089,9 @@ export const SKINS = {
   ],
   hinata: [
     { id: "default",  name: "Default",  unlockLevel: 0, portrait: characters.hinata?.portrait,          spriteScale: characters.hinata?.spriteScale, animationData: null },
-    { id: "lavender", name: "Lavender", unlockLevel: 0, portrait: recolorPortrait("hinata", "purple"), spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "purple") },
-    { id: "slate",    name: "Slate",    unlockLevel: 0, portrait: recolorPortrait("hinata", "gray"),   spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "gray") },
-    { id: "azure",    name: "Azure",    unlockLevel: 0, portrait: recolorPortrait("hinata", "blue"),   spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "blue") },
+    { id: "lavender", name: "The Last", unlockLevel: 0, portrait: recolorPortrait("hinata", "purple"), spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "purple") },
+    { id: "slate",    name: "Gentle Fist",    unlockLevel: 0, portrait: recolorPortrait("hinata", "gray"),   spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "gray") },
+    { id: "azure",    name: "Twin Lions",    unlockLevel: 0, portrait: recolorPortrait("hinata", "blue"),   spriteScale: characters.hinata?.spriteScale, animationData: recolorSkinAnim("hinata", "blue") },
   ],
   byakuya: [
     { id: "default",               name: "Default",          unlockLevel: 0, portrait: characters.byakuya?.portrait,        spriteScale: characters.byakuya?.spriteScale, animationData: null },
@@ -1126,7 +1126,7 @@ export const SKINS = {
     { id: "hashiramaSenjuStandard",   name: "Senju Standard",   unlockLevel: 0, portrait: "./hashirama_portrait__senjustandard.png",   spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "senjustandard") },    // clan crimson + navy banner colours
     { id: "hashiramaElderSage",       name: "Elder Sage",       unlockLevel: 0, portrait: "./hashirama_portrait__elderSage.png",       spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "elderSage") },        // silver-haired laid-back grandfatherly sage
     { id: "hashiramaYoungPrime",      name: "Young Prime",      unlockLevel: 0, portrait: "./hashirama_portrait__youngprime.png",      spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "youngprime") },       // vivid saturated red — Hashirama in his prime
-    { id: "hashiramaRivalsBond",      name: "Rivals Bond",      unlockLevel: 0, portrait: "./hashirama_portrait__rivalsbond.png",      spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "rivalsbond") },       // Madara blue-black mane nod + darkened plates (homage)
+    { id: "hashiramaRivalsBond",      name: "Rivals' Bond",      unlockLevel: 0, portrait: "./hashirama_portrait__rivalsbond.png",      spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "rivalsbond") },       // Madara blue-black mane nod + darkened plates (homage)
     { id: "hashiramaSageMarked",      name: "Sage-Marked",      unlockLevel: 0, portrait: "./hashirama_portrait__sagemarked.png",      spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "sagemarked") },       // amber Sage-Mode marking accent on the plates
     { id: "hashiramaWillOfFire",      name: "Will of Fire",     unlockLevel: 0, portrait: "./hashirama_portrait__willoffire.png",      spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "willoffire") },       // blazing ember red — the Will of Fire
     { id: "hashiramaValleyOfTheEnd",  name: "Valley of the End",unlockLevel: 0, portrait: "./hashirama_portrait__valleyofthEend.png",  spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "valleyofthEend") },   // stone-gray & river-blue — the final battlefield
@@ -1139,7 +1139,7 @@ export const SKINS = {
     { id: "hashiramaCherryblossom",  name: "Cherry Blossom Sage", unlockLevel: 0, portrait: "./hashirama_portrait__cherryblossom.png",  spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "cherryblossom") },   // pale blossom-pink armor + white trim (eyes/streaks not isolable)
     { id: "hashiramaForestcanopy",   name: "Deep Forest Canopy",  unlockLevel: 0, portrait: "./hashirama_portrait__forestcanopy.png",   spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "forestcanopy") },    // forest-green armor + bark-brown trim
     { id: "hashiramaHokagemantle",   name: "First Hokage's Mantle",unlockLevel: 0, portrait: "./hashirama_portrait__hokagemantle.png",  spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "hokagemantle") },    // white ceremonial robe base + red plates (flame trim kept)
-    { id: "hashiramaSenjuspiral",    name: "Senju Spiral",        unlockLevel: 0, portrait: "./hashirama_portrait__senjuspiral.png",    spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "senjuspiral") },     // crimson base + gold highlight accents (spiral motif not isolable)
+    { id: "hashiramaSenjuspiral",    name: "Wood Release",        unlockLevel: 0, portrait: "./hashirama_portrait__senjuspiral.png",    spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "senjuspiral") },     // crimson base + gold highlight accents (spiral motif not isolable)
     { id: "hashiramaAutumnarmor",    name: "Autumn Canopy",       unlockLevel: 0, portrait: "./hashirama_portrait__autumnarmor.png",    spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "autumnarmor") },     // burnt-orange armor + deep umber trim
     { id: "hashiramaGoldensage",     name: "Golden Sage Eyes",    unlockLevel: 0, portrait: "./hashirama_portrait__goldensage.png",     spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "goldensage") },      // default red/black kept + gold accents; amber-gold eye GLOW via overlay
     { id: "hashiramaMossbound",      name: "Moss-Bound Elder",    unlockLevel: 0, portrait: "./hashirama_portrait__mossbound.png",      spriteScale: characters.hashirama?.spriteScale, animationData: recolorSkinAnim("hashirama", "mossbound") },       // muted sage-green armor + weathered-grey trim + charcoal hair

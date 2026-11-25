@@ -167,8 +167,8 @@ export const ALT_SKINS = {
   // NETERO — blue shorts + shoulder straps (hue 200-225, sat≥.40, dark → val-gain). IS blue → skip
   // BLUE. Bare skin (lots), white tanktop, and the orange nen "念" symbol all preserved.
   netero: [
-    { tag: "black", name: "Black", mode: "region", note: "from-hue 200-225 min-sat .40 -> desat val-gain .6" },
-    { tag: "pink",  name: "Pink",  mode: "region", note: "-> to-hue 330 sat .60 vg1.5" },
+    { tag: "black", name: "Zero Hand", mode: "region", note: "REDRAWN 2026-11-25 tools/skinfix/redraw.py zerohand (black gi + gold) — was: from-hue 200-225 min-sat .40 -> desat val-gain .6" },
+    { tag: "pink",  name: "Hundred-Type Guanyin",  mode: "region", note: "REDRAWN 2026-11-25 tools/skinfix/redraw.py guanyin (gold + saffron) — was: -> to-hue 330 sat .60 vg1.5" },
     { tag: "gold",  name: "Gold",  mode: "region", note: "-> to-hue 47 sat .88 vg1.7" },
     { tag: "red",   name: "Red",   mode: "region", note: "-> to-hue 5 sat .90 vg1.5" },
     // "JOINED THE KILLER" — Debbie's crew (indigo #3E2A66) on the orange waist SASH only (waist y.37-.52).

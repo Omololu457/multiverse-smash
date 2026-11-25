@@ -970,7 +970,12 @@ function _applyCanvasSize() {
   // PICK SCREENS ON A PHONE (2026-11-22, "on the part where you pick characters it's really bad"): those
   // screens are laid out for ≥ ~960×600, so on a small screen they draw at a bigger virtual size, scaled down
   // to fit WITHOUT stretching (same shape as the screen). The fight keeps its original sizing below.
-  const bw = window.innerWidth / uiScale, bh = window.innerHeight / uiScale
+  // BIG SCREENS (2026-11-25 polish pass, "HUD readability at 4K"): the HUD / menus are laid out in fixed pixels for ~1080p, so a
+  // 4K window at 100 % zoom (a TV, a 4K monitor without OS scaling) drew everything at half size. Above 2× 1080p the backing
+  // resolution is divided by the WHOLE multiple (exactly 2× at 4K → the pixelated upscale stays crisp; hwperf can still
+  // supersample on top). 1080p / 1440p / phones are unchanged.
+  const _big = Math.max(1, Math.floor(Math.min(window.innerWidth / 1920, window.innerHeight / 1080)))
+  const bw = window.innerWidth / (uiScale * _big), bh = window.innerHeight / (uiScale * _big)
   let _gs = null; try { _gs = gameState } catch (_) {}   // first call runs before gameState is declared (start screen)
   _menuFitOn = _MENU_FIT_STATES.has(_gs)
   if (_menuFitOn) {
@@ -998,6 +1003,9 @@ function setUiScale(v) {
 }
 _applyCanvasSize()
 setupMouseInput(canvas)
+// RESULT SCREEN portraits (victoryArt.js → matchflow VICTORY_ART). Loaded lazily: a static import sits in an import cycle
+// with matchflow.js (TDZ on VICTORY_ART at boot). Render-only; a failure just leaves the old result screen.
+try { import("./victoryArt.js").catch(() => {}) } catch (_) {}
 // Tablet/phone touch overlay. Closures are invoked later (post-init), so referencing P1_CONTROLS / GAME_STATES
 // / gameState defined below is safe. inBattle gates rendering + interception to actual battle screens.
 touch.setup(canvas, {
@@ -10584,6 +10592,8 @@ function _checkMatchOver() {
     // epilogue (every roster key resolves one via endingSlidesFor's generic fallback). Never blank.
     const winnerKey = winner === "p1" ? matchConfig.p1CharKey : winner === "p2" ? matchConfig.p2CharKey : null
     victoryState.flavorLine = winnerKey ? victoryFlavorLine(winnerKey) : ""
+    victoryState.winnerKey = winnerKey   // victoryArt.js: the winner's / loser's portraits beside the stats
+    victoryState.loserKey  = winner === "p1" ? matchConfig.p2CharKey : winner === "p2" ? matchConfig.p1CharKey : null
     // WIN/LOSE POSE (Stage 8): pose the winner + loser via _forceAction, gated on the fighter defining a
     // win/lose animationData clip (currently only Nezuko — roster-safe no-op for everyone else). Fighters are
     // recreated on rematch, so the override never leaks past this match. See NEZUKO_ASSET_MAP.md.
@@ -26867,6 +26877,7 @@ function renderCurrentState() {
   switch (gameState) {
     case GAME_STATES.START:
       drawStartScreen(ctx, canvas)
+      settingsButtonRect.x = canvas.width - 220   // track the canvas (uiScale / big-screen scaling), not the load-time window
       ctx.fillStyle = "#444"
       ctx.fillRect(settingsButtonRect.x, settingsButtonRect.y, settingsButtonRect.w, settingsButtonRect.h)
       ctx.fillStyle = "#FFF"; ctx.font = "20px Arial"; ctx.textAlign = "center"

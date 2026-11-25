@@ -3,6 +3,8 @@
 
 import { sound, SFX, MUSIC } from "./sound.js"
 import { pickSukunaVoice } from "./sukunaVoice.js"   // Malevolent Shrine ult incantation (領域展開/伏魔御廚子 — audio-only; JA default)
+import { startSukunaDomainCine, noteSukunaSlash, noteSukunaDomainEnd, sukunaDomainSignClip } from "./sukunaDomainCine.js"   // rebuilt Malevolent Shrine (2026-11-24): frozen opening + living backdrop + slash rakes (render / presentation only)
+import { drawShrineBackdrop } from "./sukunaDomainFx.js"
 import { applyScaledDamage } from "./combat.js"   // Stage 1a: the one scaled-damage choke-point (domain slash ticks route through it)
 
 export const activeDomains = []
@@ -101,7 +103,11 @@ export function activateDomain(fighter, options = {}, context = {}) {
     // canonical Malevolent Shrine call). Plays as the voice line over the looping Malevolent Shrine THEME
     // (Sukuna_Theme.mp3), on the SAME frame the white-flash begins. Falls back to null (theme only) if the
     // pool is empty. Replaces the deleted "Sukuna_saying_Domain.mp3" in the exact same slot.
-    sound?.playDomainAudio?.(pickSukunaVoice("castDomain"), "Sukuna_Theme.mp3")
+    // 2026-11-24: the rebuilt opening (sukunaDomainCine.js) splits the incantation over its beats — 領域展開 here with the
+    // theme (the hand sign, cast frame), 伏魔御廚子 on the title card; without the cinematic the old random pick stays.
+    const _shrineCine = startSukunaDomainCine(domain, fighter)
+    if (_shrineCine) _domainFadeIn = 0   // the opening owns its own flashes (the generic white fade would wash the reveal)
+    sound?.playDomainAudio?.(_shrineCine ? sukunaDomainSignClip() : pickSukunaVoice("castDomain"), "Sukuna_Theme.mp3")
   } else if (domain.rosterKey === "gojo") {
     // Unlimited Void theme (looping), replacing the stage track. playDomainAudio
     // gesture-gates and falls back to the procedural DOMAIN_LOOP if the file 404s.
@@ -152,6 +158,7 @@ function collapseDomain(domain) {
   // (timer expiry, conflict, or clearDomains) stop it and restore the map's own
   // track. Other domains are untouched (their loop behavior is unchanged).
   if (domain.rosterKey === "sukuna") {
+    noteSukunaDomainEnd(domain)   // render: end beat / shatter (sukunaDomainCine.js)
     sound?.stopMusicFile?.()
     sound?.restoreStageMusic?.()
   }
@@ -262,6 +269,7 @@ export function updateDomains(fighters = [], hitEffects = []) {
               radius: isCleave ? 20 : 12
             })
           }
+          noteSukunaSlash(domain, fighter, isCleave, domain._slashParity)   // render-only: full-screen rake / Cleave X close-up
           sound?.play?.(SFX.HIT_HEAVY)
           if (fighter.health <= 0) sound?.play?.(SFX.KO)
         }
@@ -332,7 +340,7 @@ export function drawDomainBackground(ctx, canvas, groundY, floorHeight) {
       _drawGojoDomain(ctx, cw, ch)   // video-backed; _drawUnlimitedVoid is the fallback
       break
     case "sukuna":
-      _drawMalevolentShrine(ctx, cw, ch)
+      drawShrineBackdrop(ctx, cw, ch, domain, groundY)   // sukunaDomainFx.js (rebuilt 2026-11-24; old flat backdrop removed)
       break
     case "hashirama":
       _drawSealingDomain(ctx, cw, ch)
@@ -490,59 +498,6 @@ function _drawUnlimitedVoid(ctx, cw, ch) {
   }
 
   _drawDomainLabel(ctx, cw, ch, "Unlimited Void", "#60a5fa")
-}
-
-function _drawMalevolentShrine(ctx, cw, ch) {
-  const g = ctx.createLinearGradient(0, 0, 0, ch)
-  g.addColorStop(0, "#1a0000")
-  g.addColorStop(0.5, "#3b0000")
-  g.addColorStop(1, "#0f0000")
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, cw, ch)
-
-  ctx.strokeStyle = "rgba(200,50,30,0.3)"
-  ctx.lineWidth = 2
-
-  ;[
-    [cw * 0.1, ch * 0.85, cw * 0.2, ch * 0.75],
-    [cw * 0.6, ch * 0.9, cw * 0.7, ch * 0.78],
-    [cw * 0.4, ch * 0.95, cw * 0.55, ch * 0.75]
-  ].forEach(([x1, y1, x2, y2]) => {
-    ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    ctx.lineTo(x2, y2)
-    ctx.stroke()
-  })
-
-  const t = Math.floor(performance.now() / 180)
-  for (let i = 0; i < 6; i++) {
-    const seed = (t + i * 17) % 100
-    const alpha = ((t * 7 + i * 13) % 60) / 60
-    if (alpha < 0.2) continue
-
-    const x1 = (seed * 137 + i * 89) % cw
-    const y1 = (seed * 231 + i * 47) % (ch * 0.8)
-
-    ctx.save()
-    ctx.globalAlpha *= alpha * 0.6
-    ctx.strokeStyle = "#ef4444"
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    ctx.lineTo(x1 + 80 + (seed % 60), y1 + 40 + (seed % 40))
-    ctx.stroke()
-    ctx.restore()
-  }
-
-  ctx.fillStyle = "rgba(80,0,0,0.55)"
-  for (let i = 0; i < 12; i++) {
-    const t2 = performance.now() * 0.0008 + i
-    const bx = (Math.sin(i * 83.4 + t2) * 0.5 + 0.5) * cw
-    const by = (Math.cos(i * 177.1 + t2 * 0.5) * 0.5 + 0.5) * ch * 0.7
-    ctx.fillRect(bx - 6, by - 3, 12, 6)
-  }
-
-  _drawDomainLabel(ctx, cw, ch, "Malevolent Shrine", "#ef4444")
 }
 
 // HASHIRAMA "Sealing Jutsu" domain — the bespoke red sealing-barrier backdrop (hashirama_sealing_box.png),

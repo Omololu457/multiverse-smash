@@ -271,7 +271,7 @@ try {
     ck('Ultimate → Malevolent Shrine: domain rosterKey "sukuna", 15 s, whole map', doms.length === 1 && doms[0].rosterKey === 'sukuna' && doms[0].range === 1e5, JSON.stringify(doms))
     ck('meter drained to 0, 20 s ultimate cooldown', s.energy === 0 && s.ultimateCooldown >= 1190, JSON.stringify([s.energy, s.ultimateCooldown]))
     await step(10); s = await st('p2'); ck('foe is untouchable / frozen (old sure-hit branch)', s.untouchable, JSON.stringify(s))
-    const hp0 = s.hp; for (let i = 0; i < 140; i++) await step(1); R.slash = hp0 - (await st('p2')).hp
+    const hp0 = s.hp; for (let i = 0; i < 140 + 150; i++) await step(1); R.slash = hp0 - (await st('p2')).hp
     ck('the old sure-hit slashes run (14 raw → 8 after the engine\'s damage scaling, as for the old Sukuna)', R.slash >= 8, R.slash)
     for (let i = 0; i < 15 * 60; i++) { if (i % 60 === 0 && !(await S('H.domains()')).length) break; await step(1) }
     await step(4); s = await st(); R.emp = s.s.empUntil - s.s.clock

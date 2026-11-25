@@ -89,16 +89,17 @@ try {
   }
   // ── DOMAINS (an opponent's domain forces Infinity off; a non-Gojo clash loser loses techniques for 5 s) ──
   if (want('domains')) {
+    const SHRINE_OPEN = 150   // sukunaDomainCine.js OPEN.len — frozen Malevolent Shrine opening (sim paused, then identical)
     const R = report.domains = {}
     await boot('sukuna')
-    await place(160, 3); await E(() => { __harness.fillEnergy(); __harness.resetUlt(); __harness.p1Ultimate() }); await steps(60)
+    await place(160, 3); await E(() => { __harness.fillEnergy(); __harness.resetUlt(); __harness.p1Ultimate() }); await steps(60 + SHRINE_OPEN)   // + the Malevolent Shrine's frozen opening (sukunaDomainCine.js, 2026-11-24)
     let g = await G(); R.sukunaL3 = { inf: g.inf, forced: g.st.forcedOff }
     ck('domains: Malevolent Shrine forces Infinity off (even L3)', g.inf === 0 && g.st.forcedOff.domain >= 1, JSON.stringify(R.sukunaL3))
     // clash vs Sukuna: Gojo opens (cast ~24 f), Sukuna opens on top of it, Sukuna mashes Special → Sukuna wins
     await place(260, 0); await E(() => { __harness.fillEnergy(); __harness.resetUlt(); __harness.gojoShinjukuTest.move('gDomain', 'p2') }); await steps(10)
-    await E(() => __harness.p1Ultimate()); await steps(20)
+    await E(() => __harness.p1Ultimate()); await steps(20 + SHRINE_OPEN)   // the shrine's frozen opening plays first, then the clash mash window
     for (let i = 0; i < 100; i++) { if (i % 3 === 0) await key(['l'], 1); else await step(1) }
-    let won = false; for (let i = 0; i < 200 && !((await G()).burnout > 0); i++) await step(1)
+    let won = false; for (let i = 0; i < 200 + SHRINE_OPEN && !((await G()).burnout > 0); i++) await step(1)   // + the winner's Shrine opening (frozen) before the burnout
     g = await G(); const tb = await E(() => __harness.gojoShinjukuTest.raw('p1')._gsTechBurnout || 0)
     R.clash = { clash: g.clash, gojoBurnout: g.burnout, sukunaTechBurnout: tb }
     ck('domains: Gojo vs Sukuna domain clash — the masher (Sukuna) wins, then Gojo burns out', g.clash?.result === 'lose' && g.burnout > 0, JSON.stringify(R.clash))

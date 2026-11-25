@@ -95,7 +95,8 @@ export function activateBrutalityCinematic(winner, victim, move) {
     try { _sound?.playSfxFile?.(pickGhostfaceSfx("PHONE_RING", (winner._gfSfxN = (winner._gfSfxN | 0) + 1), 0), null, { volumeMult: 0.95 }) } catch (_) {}
   }
   const base = concept.base === "idle" ? "idle" : "hurt"
-  const ad = victim.animationData || {}
+  const skinAd = f => (f?._skinAnim ? { ...(f.animationData || {}), ...f._skinAnim } : (f?.animationData || {}))   // the SKIN's art (applySkin keeps animationData = default)
+  const ad = skinAd(victim)
   const def = ad[base] || ad.hurt || ad.idle || { width: 128, height: 128, frames: 1 }
   // Load the EXACT sheet the sim slices for this action (def.sheet) so frame dims match; fall back to the
   // manifest-convention sheet for chars whose animationData carries no explicit `sheet` path (e.g. gojo).
@@ -115,8 +116,8 @@ export function activateBrutalityCinematic(winner, victim, move) {
     t: 0, total: concept.total || 140, concept, winner, victim, wKey, vKey, img, def, rect: null, done: false,
     sounds: (concept.sound || []).map(s => ({ ...s, fired: false })),
     // ── choreographed (two-actor) extras — both fighters' sprites + an eased internal camera ──
-    atk: { key: wKey, ad: winner.animationData || {}, cache: new Map() },   // attacker (winner) — flickers/strikes
-    vic: { key: vKey, ad: victim.animationData || {}, cache: new Map() },    // victim (loser) — reacts/bleeds
+    atk: { key: wKey, ad: skinAd(winner), cache: new Map() },   // attacker (winner) — flickers/strikes
+    vic: { key: vKey, ad, cache: new Map() },    // victim (loser) — reacts/bleeds
     cam: { zoom: 1, cx: 0.5, cy: 0.5, tzoom: 1, tcx: 0.5, tcy: 0.5 },
     W: 0, H: 0,
   }

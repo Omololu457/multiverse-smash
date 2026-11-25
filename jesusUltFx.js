@@ -60,7 +60,8 @@ function S(wx, wy, W, H) {
 
 // ── pieces ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 function sprite(c, f, action, idx, cx, feetY, s, glow, extraLight) {
-  const def = f.animationData?.[action] || f.animationData?.idle; if (!def) return null
+  const A = f._skinAnim || f.animationData   // the fighter's SKIN art (applySkin keeps animationData = default)
+  const def = A?.[action] || A?.idle || f.animationData?.idle; if (!def) return null
   const im = image(def.sheet); if (!ready(im)) return null
   const fw = def.width, fh = def.height, i = Math.min(idx, (def.frames || 1) - 1)
   const sc = (f.spriteScale || 1.95) * GSS * s, w = fw * sc, h = fh * sc

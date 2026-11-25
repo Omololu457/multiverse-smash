@@ -229,7 +229,7 @@ function byakugouPanel(ctx, W, H, S, k) {   // the seal releases: a manga panel,
   // the panel: head + shoulders, huge
   const ph = H * 0.74, pw = ph * 0.78, px = W / 2 - pw / 2 + (1 - outE(u / 0.2)) * W * 0.5 * S.dir, py = H * 0.12
   const crop = [6, 0, 34, 40], zoom = 1 + 0.1 * smooth(u)
-  const ok = portraitPanel(ctx, PORTRAIT, crop, px, py, pw, ph, { dir: S.dir, zoom, bg: '#2a0a1a',
+  const ok = portraitPanel(ctx, skinned(S.caster, PORTRAIT), crop, px, py, pw, ph, { dir: S.dir, zoom, bg: '#2a0a1a',
     bgFn: (x, y, w, h) => { ctx.fillStyle = 'rgba(255,138,184,0.12)'; for (let yy = y; yy < y + h; yy += 12) for (let xx = x + ((yy / 12) & 1) * 6; xx < x + w; xx += 12) ctx.fillRect(xx, yy, 4, 4) } })
   if (ok) {
     // where the brow lands: crop px (21, 8) → panel space

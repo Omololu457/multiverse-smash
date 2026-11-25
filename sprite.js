@@ -161,11 +161,13 @@ function _loadSheet(path) {
   const v = (typeof globalThis !== "undefined" && globalThis.__ASSET_V) || "";
   // MSV1-EDO: a premade "Edo Tensei" sheet (`x__edo.png`, same frame map) that is missing on disk falls back to the
   // DEFAULT sheet `x.png` — logged once, never a blank fighter, never a desync (render-only; the sim never reads art).
-  if (path.indexOf("__edo.") > 0) img.onerror = () => {
+  // Same safety net for EVERY retagged skin sheet `x__<tag>.png` (recolour packs, creative skins): a default sheet added
+  // after a pack was generated must never turn the fighter invisible in that one pose — draw the default art instead.
+  if (/__[a-z0-9_-]+\.png$/i.test(path)) img.onerror = () => {
     if (img._edoFellBack) return;
     img._edoFellBack = true;
-    const base = path.replace(/__edo\.png$/i, ".png");
-    try { console.warn("[edo] missing Edo Tensei sheet → default:", path); } catch (_) {}
+    const base = path.replace(/__[a-z0-9_-]+\.png$/i, ".png");
+    try { console.warn("[skin] missing skin sheet → default:", path); } catch (_) {}
     img.src = v ? (base + (base.indexOf("?") >= 0 ? "&" : "?") + "v=" + v) : base;
   };
   img.src = v ? (path + (path.indexOf("?") >= 0 ? "&" : "?") + "v=" + v) : path;

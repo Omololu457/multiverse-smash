@@ -2366,7 +2366,7 @@ export function tickGokuKaioken(fighter) {
   fighter.defenseMultiplier = base.def
   fighter.currentFormData = { damageMultiplier: fighter.damageMultiplier, speedMultiplier: fighter.speedMultiplier, defenseMultiplier: base.def }
   fighter.baseSpeed = fighter.speed = Math.round(GOKU_BASE_SPEED * fighter.speedMultiplier)
-  fighter.health = Math.max(0, (fighter.health || 0) - (k.hpPS / 60))
+  fighter.health = Math.max(1, (fighter.health || 0) - (k.hpPS / 60))   // self-cost (HP strain): never a self-KO, the house rule for self-costs
   if (fighter.health <= (fighter.maxHealth || 1000) * 0.10) {           // auto-off at 10% HP
     fighter._kaioken = 0
     applyGokuFormStats(fighter, base)

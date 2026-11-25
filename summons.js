@@ -955,7 +955,9 @@ export function isCloneAggro() { return _cloneAggroEnabled }
 // strike beat with the clone entity; returns TRUE if it OWNS the attack (then the generic melee is skipped).
 // Hashirama uses this to erupt a Mokuton TREE at the CLONE'S position instead of a punch (reusing the real
 // tree tiers) — high capacity → many clones each planting a tree = battlefield-wide area control.
-let _cloneSpecialAttack = null
+var _cloneSpecialAttack   // `var` WITHOUT an initializer on purpose: abilities.js registers this hook at its top level, and when a
+                          // module graph evaluates abilities.js before this file (summons↔abilities cycle, e.g. a node test that
+                          // imports summons.js first) a `let` here threw "Cannot access before initialization"
 export function setCloneSpecialAttack(fn) { _cloneSpecialAttack = (typeof fn === "function") ? fn : null }
 // STANDING CLONE = ZERO TELL (confirmed design): the standing clone is a mixup/mind-games tool FIRST,
 // so it renders GENUINELY INDISTINGUISHABLE from the real caster — same sheet, same scale, same colour,

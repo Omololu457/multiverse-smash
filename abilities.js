@@ -8051,7 +8051,14 @@ function applyRedRangerPowerSwordDamage(fighter, opp, cineCtx = {}) {
   applyScaledDamage(opp, dmg, { source: "ability" })   // GUARANTEED sure-hit (range-independent)
   const ocx = (opp.x || 0) + (opp.w || 60) / 2, ocy = (opp.y || 0) + (opp.h || 100) / 2
   if (Array.isArray(cineCtx.hitEffects)) cineCtx.hitEffects.push({ x: ocx, y: ocy, life: 18, maxLife: 18, color: "#ff3b30", size: 46 })
-  if (Array.isArray(cineCtx.damageNumbers)) cineCtx.damageNumbers.push({ x: ocx, y: ocy - 30, value: dmg, life: 40, maxLife: 40, color: "#ff5b52" })
+  if (Array.isArray(cineCtx.damageNumbers)) cineCtx.damageNumbers.push(cineDmgNumber(ocx, ocy - 30, dmg, "#ff5b52", 40))
+}
+// A floating damage number pushed straight into game.js's damageNumbers from a cinematic context. It must carry the
+// fields game.js renders / ages (text, timer, maxTimer, opacity, fontSize, vy): an entry with only { value, life } drew
+// the word "undefined" and never expired (timer-- on undefined = NaN, so it stayed on screen for the rest of the match).
+function cineDmgNumber(x, y, value, color, life = 45) {
+  const v = Math.round(Number(value) || 0)
+  return { x, y, value: v, text: String(v), timer: life, maxTimer: life, opacity: 1, vx: 0, vy: -1.2, fontSize: 30, category: "ultimate", color }
 }
 export function executeRedRangerMmprUltimate(fighter, context) {
   if ((fighter.rosterKey || "").toLowerCase() !== "red_ranger_mmpr") return false
@@ -28297,7 +28304,7 @@ function applyMadaraTengaiDamage(fighter, opp, cineCtx = {}) {
   const dealt = typeof _ret === 'number' ? _ret : Math.max(0, _hp0 - (opp.health || 0))   // applyScaledDamage returns undefined → show HP actually removed (was a floating "undefined")
   opp.hitstun = Math.max(opp.hitstun || 0, 42)
   opp.vx = (fighter.facing || 1) * 13; opp.vy = -7; opp.colorFlash = 12
-  try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#c084fc", life: 60 }) } catch (_) {}
+  try { cineCtx.damageNumbers?.push?.(cineDmgNumber(opp.x + (opp.w || 40) / 2, opp.y, dealt, "#c084fc", 60)) } catch (_) {}
 }
 // Dispatched from triggerUltimate (Stage 5). `hold` comes from the Ultimate-button tap/hold split (game.js).
 function executeMadaraUltimate(fighter, context, hold = false) {
@@ -28384,7 +28391,7 @@ function applyPainChibakuDamage(fighter, opp, cineCtx = {}) {
   const dealt = typeof _ret === 'number' ? _ret : Math.max(0, _hp0 - (opp.health || 0))   // applyScaledDamage returns undefined → show HP actually removed (was a floating "undefined")
   opp.hitstun = Math.max(opp.hitstun || 0, 48)
   opp.vx = (fighter.facing || 1) * 10; opp.vy = -6; opp.colorFlash = 12
-  try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#a78bfa", life: 60 }) } catch (_) {}
+  try { cineCtx.damageNumbers?.push?.(cineDmgNumber(opp.x + (opp.w || 40) / 2, opp.y, dealt, "#a78bfa", 60)) } catch (_) {}
 }
 function executePainUltimate(fighter, context) {
   if (!fighter || (fighter.rosterKey || "").toLowerCase() !== "pain") return false

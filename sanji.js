@@ -13,6 +13,7 @@
 import { startMove } from './combat.js'
 import { SANJI_MOVES } from './sanjiData.js'
 import { isSanji, sanjiState, sanjiStartMove, scue, canIgnite, startSuper, plateSlots, SANJI_TUNING } from './sanjiState.js'
+import { castSanjiUlt } from './sanjiUlt.js'   // 2026-11-24: the Super plays as a frozen cinematic (DIABLE JAMBE — BŒUF BURST)
 
 const BUFFER = 8            // a press edge stays "fresh" for 8 sim frames
 const LENIENCY = 3          // A+B: both press edges within 3 input ticks of each other
@@ -48,10 +49,12 @@ const MOT = {
 }
 const cost = key => SANJI_MOVES[key]?.cost || 0
 const superReady = (f, s) => s.ptkcFree > 0 || (f.energy || 0) >= cost('sPTKC')
+let _ultOpp = null   // this command tick's foe (the Super's cinematic hand-off)
 function startSpecial(f, s, key, W) {
   if (key === 'sPTKC') {
     if (!superReady(f, s)) return false
     const free = s.ptkcFree > 0
+    const c = castSanjiUlt(f, _ultOpp, W, free); if (c !== undefined) return c   // the cinematic runs the startSuper/endSuper bookkeeping itself
     if (!W_START(f, key)) return false
     startSuper(f, s, free); return true
   }
@@ -105,6 +108,7 @@ function normalFor(f, s, button, grounded) {
 export function updateSanjiCommandCombat(f, inputState, opp, ctx = {}) {
   if (!isSanji(f)) return false
   const s = sanjiState(f), W = ctx.world || null
+  _ultOpp = opp
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0)) return 'consumed'
   const grounded = !!(f.onGround || f.grounded)
   const a = f.attacking ? f.currentAttack : null

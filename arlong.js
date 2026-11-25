@@ -15,6 +15,7 @@
 import { startMove } from './combat.js'
 import { ARLONG_MOVES } from './arlongData.js'
 import { isArlong, arlongState, arlongStartMove, acue, registerArlongStartMove, ctrX, hasTeeth, BITE_FALLBACK, recentMotion, bladeInHand, ARLONG_SPECIAL } from './arlongState.js'
+import { castArlongUlt } from './arlongUlt.js'   // 2026-11-24: the Super plays as a frozen cinematic (ARLONG PARK — KIRIBACHI)
 
 const BUFFER = 8
 // Normal → normal gatlings on contact (hit OR block).
@@ -105,6 +106,7 @@ function specialFor(f, s, button, inp, opp) {
   }
   return null
 }
+let _ultWorld = null   // this command tick's world (the Super's cinematic hand-off)
 export const TOOTH_REACH = 260   // neutral Special beyond this centre distance = Water Shot instead of Shark On Tooth
 function trySpecial(f, s, inp, grounded, opp) {
   for (const b of ['ultimate', 'special', 'heavy']) {
@@ -114,6 +116,7 @@ function trySpecial(f, s, inp, grounded, opp) {
     if (!grounded && want !== 'aShot') { if (b !== 'heavy') use(s, b); continue }   // specials are grounded (Water Shot works in the air)
     const key = resolveKey(f, want)
     use(s, b)
+    if (key === 'aSuper' && canDo(f, key)) { const c = castArlongUlt(f, opp, _ultWorld); if (c === true) return true; if (c === false) return true }   // the cinematic spends the Tide itself
     if (canDo(f, key) && W_START(f, key)) return true
     return b === 'heavy' ? false : true   // a failed special press still eats the Special / Ultimate button
   }
@@ -126,6 +129,7 @@ const CUE = { light: 'swingLight', aStraight: 'swingLight', aLow: 'swing', aSwin
 export function updateArlongCommandCombat(f, inp, opp, ctx = {}) {
   if (!isArlong(f)) return false
   const s = arlongState(f)
+  _ultWorld = ctx.world || null
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0)) return 'consumed'
   const grounded = !!(f.onGround || f.grounded)
   const a = f.attacking ? f.currentAttack : null

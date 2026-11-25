@@ -13,6 +13,7 @@ import { startMove } from './combat.js'
 import { BUGGY_MOVES } from './buggyData.js'
 import { isBuggy, buggyState, buggyStartMove, recentMotion, bcue, canBuggyAct, registerBuggyStartMove } from './buggyState.js'
 import { livePart, partReady, ownParts } from './buggyParts.js'
+import { castBuggyUlt } from './buggyUlt.js'   // 2026-11-24: the Super plays as a frozen cinematic (BARA BARA FESTIVAL — BUGGY BALL!!)
 
 const BUFFER = 8
 const RECALL_WAIT = 12      // a neutral A with a part out waits this long for the recall double-tap
@@ -70,8 +71,10 @@ function pickB(s) {
   return null
 }
 
+let _ultOpp = null, _ultWorld = null   // the live foe / world of this command tick (for the Super's cinematic hand-off)
 function fire(f, s, key) {
   if (!canAfford(f, s, key)) return false
+  if (key === 'bSuper') { const c = castBuggyUlt(f, _ultOpp, _ultWorld); if (c !== undefined) return c }   // the cinematic spends the Chop itself
   if (!W_START(f, key)) return false
   f.energy = Math.max(0, (f.energy || 0) - cost(key))
   bcue(f, key === 'bSuper' ? 'superStart' : key === 'bFan' ? 'knifeThrow' : key === 'bCape' ? 'cape' : key === 'bStab' ? 'stab' : 'pop')
@@ -98,6 +101,7 @@ function normalFor(f, inp, button, grounded) {
 export function updateBuggyCommandCombat(f, inp, opp, ctx = {}) {
   if (!isBuggy(f)) return false
   const s = buggyState(f)
+  _ultOpp = opp; _ultWorld = ctx.world || null
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0)) { s.pendingA = -99; return 'consumed' }
   if (!canBuggyAct(f)) return 'consumed'                    // Chop Stagger reassembly / Super script
   const grounded = !!(f.onGround || f.grounded)

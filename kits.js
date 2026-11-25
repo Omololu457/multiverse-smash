@@ -1191,7 +1191,7 @@ export const KITS = {
       { name: "Vine Eruption", input: "Down + Special", cost: 18, desc: "20-frame startup; eruptions at 80/180/280, raw 22+22+34. Clean early hits carry briefly to the next site; final hit launches." },
       { name: "Blaze Dash", input: "Forward + Special", cost: 10, desc: "12-frame startup, 260-pixel lunge, 48 raw damage; -14 on the first impact-frame block" }
     ],
-    mobility: { name: "Omnitrix dial", input: "Down, Down + attack combination", cost: 20, desc: "Light/Heavy/Special/Grab/Charge/Ultimate (one button) select slots 1-6 if present. Block reverts. Swap costs 15 (22 under Vow). Human startup is 40 vulnerable frames. P1: S,S then J/K/L/O/P/U; S,S then ; reverts. P is Charge, never a punch notation." },
+    mobility: { name: "Omnitrix dial", input: "Down, Down + attack combination", cost: 20, desc: "Light/Heavy/Special/Grab/Charge (one button) select slots 1-5; Ultimate selects slot 6 = the DNA-scanned opponent (Down + Ultimate scans). Block reverts. Swap costs 15 (22 under Vow). Human startup is 40 vulnerable frames. P1: S,S then J/K/L/O/P; S,S then U = DNA alien; S,S then ; reverts. P is Charge, never a punch notation." },
     ultimate: { name: "Methane Inferno / Human Overload", input: "Ultimate", cost: 50, desc: "Swampfire only: 50 Power, 40-frame startup, radius 300, three raw hits 60+60+100, then 100 recovery frames. Human Overload instead needs 100 Power. Paid alien casts finish at zero Power unless interrupted, then force reversion." },
     combos: [
       { name: "Dial controls", sequence: "Down, Down, Light", desc: "P1 S,S,J. Controller Down,Down,Square. Neutral Special is L/R1; Ultimate U/R2; Charge P/L2; Block ;/Circle." },
@@ -1307,7 +1307,27 @@ export function comboStringFor(rosterKey) {
 // Returns a kit for a character, synthesizing a minimal one from raw character
 // data if no hand-authored kit exists (keeps the Move List robust for any
 // future fighter added to characters.js).
+// DNA SCAN (dnaScan.js) — Ben, Albedo and Kevin: the Move List / Controls Lab rows for the scan and the 6th (DNA) dial slot.
+const DNA_ROWS = {
+  ben10: "Omnitrix", albedo: "Ultimatrix", kevin_levin: "Osmosian absorption",
+}
+function dnaKitRows(rosterKey) {
+  const dev = DNA_ROWS[rosterKey]; if (!dev) return []
+  return [
+    { name: "DNA Scan", input: "Down + Ultimate", cost: 100,
+      desc: `${dev} scans the opponent (frozen cinematic) and stores their DNA as a 6th alien for the rest of the match. A new scan replaces it. Can't copy Ben or Albedo.` },
+    { name: "DNA Alien (6th slot)", input: "Down, Down, Ultimate", cost: 25,
+      desc: "Turn into the scanned opponent — their full moveset, in your Omnitrix colours with the badge on the chest. Works from human or straight from another alien. Lasts 20 s, then a 4 s recharge. U + L also works." },
+    { name: "Drop the DNA form", input: "Down, Down, Block", cost: 0,
+      desc: rosterKey === "kevin_levin" ? "Turn back early." : "Turn back to human. While you're the copy, Down, Down then Light / Heavy / Special / Grab / Charge dials that alien straight away." },
+  ]
+}
 export function getKit(rosterKey, character = null) {
+  const _k = _getKitBase(rosterKey, character)
+  const _dna = dnaKitRows(rosterKey)
+  return _k && _dna.length ? { ..._k, specials: [...(_k.specials || []), ..._dna] } : _k
+}
+function _getKitBase(rosterKey, character = null) {
   const _cf = cloneFighterKitRows(rosterKey)   // CLONE FIGHTERS: the summon → pick clone moves (cloneFighterSets.js) join the specials list
   if (KITS[rosterKey]) return _cf.length ? { ...KITS[rosterKey], specials: [...(KITS[rosterKey].specials || []), ..._cf] } : KITS[rosterKey]
   if (!character) return null

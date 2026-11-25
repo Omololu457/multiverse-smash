@@ -4,7 +4,7 @@
  "meta": {
   "displayName": "Enoch",
   "name": "Enoch",
-  "universe": "the_incredibles",
+  "universe": "original",
   "archetype": "Elemental Controller / Trail Glider",
   "tagline": "Where ice meets fire.",
   "bio": "One of the people who helped build Multiverse Smash. He took Frozone's ice, added a visor that burns, and learned that the real power is what happens where the two meet.",
@@ -13,9 +13,21 @@
   "hp": 980,
   "weight": 0.85,
   "portrait": "./assets/enoch/portrait.png",
-  "afterFrozone": true,
+  "afterDseyl": true,
   "skins": [
-   "default"
+   "default",
+   "enochBigchill",
+   "enochHeatblast",
+   "enochFrieza",
+   "enochBeerus",
+   "enochByakuya",
+   "enochGodspeed",
+   "enochRengoku",
+   "enochMegawhatt",
+   "enochSsblue",
+   "enochFrostemperor",
+   "enoch_edoTensei",
+   "enoch_omnitrixTheme"
   ],
   "contributorLine": "Contributor — helped build Multiverse Smash (playable as Enoch) — Enoch",
   "art": true
@@ -68,6 +80,18 @@
    "enoch_superTick": 0.0005,
    "enoch_superFinal": 0.0905,
    "enoch_fireCrackle": 0.0005,
+   "enoch_ultTimeStop": 0.0676,
+   "enoch_ultSpike": 0.0659,
+   "enoch_ultIcicle": 0.0179,
+   "enoch_ultShatter": 0.1514,
+   "enoch_ultIgnite": 0.0738,
+   "enoch_ultBeam": 0.0221,
+   "enoch_ultSlash": 0.0103,
+   "enoch_ultSun": 0.0223,
+   "enoch_ultNova": 0.1967,
+   "enoch_ultSplit": 0.0182,
+   "enoch_ultSerpent": 0.0049,
+   "enoch_ultSteamBlast": 0.2307,
    "enoch_superMiss": 0.0008
   }
  }

@@ -80,3 +80,51 @@ export function omniRecolor(d, w, h) {
   }
   return d
 }
+
+// ── select-screen card: the fighter's own idle frame in the Omnitrix look, on an Omnitrix backdrop, badge on the chest ─────
+const _cards = new Map(), _imgs = new Map()
+function _img(src) { let im = _imgs.get(src); if (!im && typeof Image !== 'undefined') { im = new Image(); im.src = src; _imgs.set(src, im) } return im }
+export function omniBadge(c, x, y, r, pulse = 0.5) {
+  c.save(); c.translate(x, y)
+  c.shadowColor = '#39ff3a'; c.shadowBlur = r * (0.9 + pulse)
+  c.fillStyle = '#0a0a0a'; c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.fill()
+  c.lineWidth = r * 0.2; c.strokeStyle = '#e8e8e8'; c.stroke()
+  c.shadowBlur = r * 0.6; c.fillStyle = '#39ff3a'; const q = r * 0.86; c.beginPath()
+  c.moveTo(-q * 0.62, -q * 0.72); c.lineTo(q * 0.62, -q * 0.72); c.lineTo(q * 0.1, 0); c.lineTo(q * 0.62, q * 0.72); c.lineTo(-q * 0.62, q * 0.72); c.lineTo(-q * 0.1, 0); c.closePath(); c.fill()
+  c.restore()
+}
+// character = characters[key]; returns a canvas once the idle sheet has loaded (null until then)
+export function omniSkinCard(key, character) {
+  if (_cards.has(key)) return _cards.get(key)
+  const A = character?.animationData || {}, d = A.idle || A.stand || Object.values(A).find(v => v?.sheet)
+  if (!d?.sheet || typeof document === 'undefined') return null
+  const im = _img(d.sheet); if (!im || !im.complete || !(im.naturalWidth > 0)) return null
+  try {
+    const fw = Math.min(im.naturalWidth, d.width || d.frameWidth || im.naturalWidth), fh = Math.min(im.naturalHeight, d.height || d.frameHeight || im.naturalHeight)
+    const f = document.createElement('canvas'); f.width = fw; f.height = fh
+    const g = f.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0, fw, fh, 0, 0, fw, fh)
+    const data = g.getImageData(0, 0, fw, fh); omniRecolor(data.data, fw, fh); g.putImageData(data, 0, 0)
+    const D = data.data; let x0 = fw, y0 = fh, x1 = -1, y1 = -1
+    for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) if (D[(y * fw + x) * 4 + 3] > 30) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y }
+    if (x1 < 0) { _cards.set(key, null); return null }
+    const bw = x1 - x0 + 1, bh = y1 - y0 + 1, W = 240, H = 300
+    const k = Math.max(1, Math.floor(Math.min((W * 0.8) / bw, (H * 0.86) / bh)))
+    const out = document.createElement('canvas'); out.width = W; out.height = H; const o = out.getContext('2d')
+    const bg = o.createRadialGradient(W / 2, H * 0.45, 10, W / 2, H * 0.45, H * 0.62)
+    bg.addColorStop(0, '#1f6a22'); bg.addColorStop(0.55, '#0a2a0d'); bg.addColorStop(1, '#020804'); o.fillStyle = bg; o.fillRect(0, 0, W, H)
+    o.globalAlpha = 0.16; o.fillStyle = '#7dff6a'; const R = H * 0.36; o.beginPath()   // the big hourglass watermark
+    o.moveTo(W / 2 - R * 0.62, H * 0.45 - R * 0.72); o.lineTo(W / 2 + R * 0.62, H * 0.45 - R * 0.72); o.lineTo(W / 2 + R * 0.1, H * 0.45); o.lineTo(W / 2 + R * 0.62, H * 0.45 + R * 0.72)
+    o.lineTo(W / 2 - R * 0.62, H * 0.45 + R * 0.72); o.lineTo(W / 2 - R * 0.1, H * 0.45); o.closePath(); o.fill(); o.globalAlpha = 1
+    o.imageSmoothingEnabled = false
+    const dx = Math.round((W - bw * k) / 2), dy = Math.round(H - 8 - bh * k)
+    o.shadowColor = '#39ff3a'; o.shadowBlur = 14
+    o.drawImage(f, x0, y0, bw, bh, dx, dy, bw * k, bh * k); o.shadowBlur = 0
+    // badge on the chest: the opaque centre of the 25–40 % rows
+    let sum = 0, n = 0
+    for (let y = y0 + Math.round(bh * 0.25); y <= y0 + Math.round(bh * 0.4); y++) { let a = -1, b = -1; for (let x = x0; x <= x1; x++) if (D[(y * fw + x) * 4 + 3] > 30) { if (a < 0) a = x; b = x } if (a >= 0) { sum += (a + b) / 2; n++ } }
+    const cxs = n ? sum / n : (x0 + x1) / 2
+    omniBadge(o, dx + (cxs - x0) * k, dy + bh * 0.31 * k, Math.max(7, Math.min(22, Math.min(bw, bh * 0.5) * 0.2 * k)), 0.6)
+    out.complete = true; out.naturalWidth = W; out.naturalHeight = H   // the UI's image helpers check these
+    _cards.set(key, out); return out
+  } catch (_) { _cards.set(key, null); return null }
+}

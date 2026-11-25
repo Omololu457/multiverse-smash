@@ -2,7 +2,7 @@
   "moves": {
     "jab": {
       "startup": 4,
-      "damage": 19,
+      "damage": 32,
       "onBlock": 1,
       "brief": {
         "startup": 4,
@@ -12,7 +12,7 @@
     },
     "heavy": {
       "startup": 10,
-      "damage": 54,
+      "damage": 92,
       "onBlock": -4,
       "brief": {
         "startup": 10,
@@ -22,7 +22,7 @@
     },
     "low": {
       "startup": 6,
-      "damage": 27,
+      "damage": 46,
       "onBlock": -3,
       "brief": {
         "startup": 6,
@@ -32,7 +32,7 @@
     },
     "launcher": {
       "startup": 10,
-      "damage": 51,
+      "damage": 87,
       "onBlock": -8,
       "brief": {
         "startup": 10,
@@ -42,7 +42,7 @@
     },
     "air": {
       "startup": 6,
-      "damage": 32,
+      "damage": 55,
       "onBlock": 2,
       "brief": {
         "startup": 6,
@@ -53,20 +53,20 @@
     "flurry": {
       "startup": 8,
       "hits": 8,
-      "damage": 72,
+      "damage": 128,
       "onBlock": -6
     },
     "blurDash": {
-      "damage": 59,
+      "damage": 101,
       "startup": 8,
       "onBlock": -10
     },
     "laps": {
       "hits": 4,
-      "damage": 84
+      "damage": 144
     },
     "hydro": {
-      "damage": 48,
+      "damage": 83,
       "startup": 17,
       "lowProfile": [
         10,
@@ -78,26 +78,26 @@
     {
       "label": "Jab, Jab, Heavy, Blur Dash",
       "target": 97,
-      "boosted": 131.9,
-      "damage": 110,
+      "boosted": 224.3,
+      "damage": 188,
       "hits": 4,
-      "ratio": 0.834
+      "ratio": 0.838
     },
     {
       "label": "Low, Launcher, Air, Flurry",
       "target": 112,
-      "boosted": 152.3,
-      "damage": 118,
+      "boosted": 258.9,
+      "damage": 207,
       "hits": 10,
-      "ratio": 0.775
+      "ratio": 0.799
     },
     {
       "label": "Laps, Jab, Heavy, Flurry",
       "target": 147,
-      "boosted": 199.9,
-      "damage": 202,
+      "boosted": 339.9,
+      "damage": 340,
       "hits": 9,
-      "ratio": 1.01
+      "ratio": 1
     }
   ],
   "momentum": {
@@ -128,7 +128,7 @@
   "ultimate": {
     "ok": true,
     "energy": 53.20000000000022,
-    "dmg": 268,
+    "dmg": 454,
     "hits": 12,
     "lockedAt": 11,
     "lastHit": 235,

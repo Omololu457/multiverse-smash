@@ -1,6 +1,6 @@
 {
-  "pass": 70,
-  "fail": 5,
+  "pass": 74,
+  "fail": 1,
   "errors": [],
   "report": {
     "routes": [
@@ -609,8 +609,10 @@
         },
         "spent": 5.3
       },
+      "breachUsableAt": 10,
       "breach": {
-        "kind": "yIntercept"
+        "confirmT": 10,
+        "kind": "ySword"
       }
     },
     "zord": {

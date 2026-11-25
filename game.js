@@ -6,6 +6,7 @@ import { drawSpdSquadFx, drawSquadUltScreen } from "./spdSquadFx.js"   // + the 
 import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"
 import { anyFreezeCineActive, updateFreezeCines, clearFreezeCines, drawCineScreens } from "./cineRegistry.js"   // shared FROZEN-CINEMATIC + screen-overlay slot (the Incredibles' ultimates)   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
 import "./cineUlts.js"
+import { omniSkinCard } from "./omniTheme.js"   // OMNITRIX theme skin: select-screen card
 import { dnaScanTick } from "./dnaScan.js"   // DNA SCAN: Ben / Albedo / Kevin ↓+U scan → U+L transform into the scanned foe   // registers every cineRegistry-based cinematic ultimate module (Death Note / OPM / Jesus / Rick and Morty)
 import { startRickPrimeRewindCine, isRickPrimeRewindCineActive } from "./rickPrimeUlt.js"   // Temporal Rewind cinematic overlay
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
@@ -6791,6 +6792,7 @@ function drawSkinSelectScreen() {
     const labH = Math.max(28, Math.min(64, Math.round(r.h * 0.27)))
     const benCard = _benSkinCard(charKey, skin)   // Ben 10: a large crisp full-body card in the skin's own theme
     if (benCard) _drawBenSkinCard(ctx, benCard, skin, r, labH)
+    else if (skin.omniTheme && omniSkinCard(charKey, characters[charKey])) drawImageFit(ctx, omniSkinCard(charKey, characters[charKey]), r.x + 6, r.y + 6, r.w - 12, r.h - labH + 2, { fit: "contain" })   // OMNITRIX skin (omniTheme.js): its own Omnitrix card
     else { const img = _skinPortrait(skin.portrait); if (img && img.complete && img.naturalWidth > 0) drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - labH, { fit: "contain" }) }
     ctx.restore()
     // Selection language on top (hover tint/border/glow-pulse + confirm flash) — transparent base fill

@@ -1,5 +1,5 @@
 {
- "pass": 107,
+ "pass": 88,
  "fail": 1,
  "results": {
   "P2": {
@@ -48,7 +48,7 @@
     "other": 100
    },
    "live": {
-    "hit": 56,
+    "hit": 34,
     "rubber": 1
    }
   },
@@ -1185,7 +1185,7 @@
     "fa": 5,
     "parried": false,
     "hitAt": "hit",
-    "dmg": 56,
+    "dmg": 34,
     "gain": 3,
     "freeArm": 0,
     "parries": 0
@@ -1290,8 +1290,8 @@
     "travel": -165
    },
    "bounceVsJab": {
-    "2": 56,
-    "3": 56,
+    "2": 34,
+    "3": 34,
     "4": 0,
     "5": 0,
     "6": 0,
@@ -1301,351 +1301,9 @@
     "10": 0,
     "11": 0,
     "12": 0,
-    "13": 56,
-    "14": 56
+    "13": 34,
+    "14": 34
    }
-  },
-  "P7": {
-   "skins": [
-    [
-     "default",
-     "Supersuit"
-    ],
-    [
-     "eg_incredibles2",
-     "Elastigirl 2"
-    ],
-    [
-     "eg_retro",
-     "Retro"
-    ],
-    [
-     "eg_alienx",
-     "Alien X — Cosmic"
-    ],
-    [
-     "eg_upgrade",
-     "Upgrade — Circuit"
-    ],
-    [
-     "eg_diamondhead",
-     "Diamondhead — Crystal"
-    ],
-    [
-     "eg_heatblast",
-     "Heatblast — Magma"
-    ],
-    [
-     "eg_chromastone",
-     "Chromastone — Prism"
-    ],
-    [
-     "eg_ghostfreak",
-     "Ghostfreak — Phantom"
-    ],
-    [
-     "eg_bigchill",
-     "Big Chill — Frost"
-    ],
-    [
-     "eg_shadow",
-     "S.P.D. Shadow — Inspired"
-    ],
-    [
-     "eg_dragon",
-     "Dragon Shield — Inspired"
-    ],
-    [
-     "eg_glitter",
-     "Starlight Glitter"
-    ],
-    [
-     "elastigirl_edoTensei",
-     "Edo Tensei"
-    ]
-   ],
-   "skinsJs": true,
-   "eg_incredibles2": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_retro": {
-    "changed": 19279,
-    "redKept": 53747,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 5513,
-    "raftChanged": 0,
-    "sheetsDiffer": 42,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_alienx": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_upgrade": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_diamondhead": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_heatblast": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_chromastone": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_ghostfreak": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_bigchill": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_shadow": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_dragon": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "eg_glitter": {
-    "changed": 75798,
-    "redKept": 1761,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 1761,
-    "raftChanged": 4231,
-    "sheetsDiffer": 43,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait.png"
-   },
-   "elastigirl_edoTensei": {
-    "changed": 0,
-    "redKept": 5105,
-    "raftChangedNonTube": 0,
-    "raftKidsRed": 0,
-    "raftChanged": 0,
-    "sheetsDiffer": 0,
-    "sheets": 43,
-    "portrait": "./assets/elastigirl/portrait__edo.png"
-   }
-  },
-  "P8": {
-   "out": {
-    "stretch": {
-     "peak": 0.059,
-     "dur": 0.189,
-     "rms": 0.0092,
-     "zc": 17,
-     "hash": -456424706,
-     "same": true,
-     "differs": true
-    },
-    "snap": {
-     "peak": 0.119,
-     "dur": 0.094,
-     "rms": 0.0147,
-     "zc": 58,
-     "hash": -2073242866,
-     "same": true,
-     "differs": true
-    },
-    "whirl": {
-     "peak": 0.087,
-     "dur": 0.31,
-     "rms": 0.0106,
-     "zc": 135,
-     "hash": -221222000,
-     "same": true,
-     "differs": true
-    },
-    "parachute": {
-     "peak": 0.105,
-     "dur": 0.471,
-     "rms": 0.035,
-     "zc": 30,
-     "hash": -709698479,
-     "same": true,
-     "differs": true
-    },
-    "whip": {
-     "peak": 0.256,
-     "dur": 0.048,
-     "rms": 0.0121,
-     "zc": 845,
-     "hash": 1622004121,
-     "same": true,
-     "differs": true
-    },
-    "raft": {
-     "peak": 0.183,
-     "dur": 0.809,
-     "rms": 0.0636,
-     "zc": 9,
-     "hash": 1129192416,
-     "same": true,
-     "differs": true
-    }
-   },
-   "pmin": 0.97002,
-   "pmax": 1.02999,
-   "missing": [],
-   "cues": [
-    "reject",
-    "splash",
-    "thud",
-    "parry",
-    "stretch",
-    "snap",
-    "parachute",
-    "slam",
-    "land",
-    "bounce",
-    "whip",
-    "whirl",
-    "raft",
-    "raftEnd",
-    "special",
-    "ult",
-    "swing",
-    "whipWind"
-   ],
-   "inSoundJs": true,
-   "recipes": {
-    "stretch": {
-     "osc": "sawtooth",
-     "from": 200,
-     "to": 500,
-     "vibratoHz": 14,
-     "dur": 0.25
-    },
-    "snap": {
-     "osc": "triangle",
-     "from": 900,
-     "to": 300,
-     "dur": 0.12
-    },
-    "whirl": {
-     "noise": "bandpass",
-     "sweep": [
-      700,
-      1400
-     ],
-     "centre": 1000,
-     "dur": 0.35
-    },
-    "parachute": {
-     "osc": "sine",
-     "from": 400,
-     "to": 250,
-     "flutter": true,
-     "dur": 0.6
-    },
-    "whip": {
-     "osc": "square",
-     "click": 2000,
-     "noise": true,
-     "dur": 0.06
-    },
-    "raft": {
-     "noise": "lowpass",
-     "dur": 1,
-     "swell": {
-      "osc": "sine",
-      "freq": 110
-     }
-    }
-   }
-  },
-  "P9": {
-   "name": "Elastigirl",
-   "displayName": "Elastigirl",
-   "universe": "the_incredibles",
-   "label": "The Incredibles",
-   "difficulty": 3,
-   "archetype": "Footsies / Grappler",
-   "traitArch": "Footsies / Grappler",
-   "tagline": "Leave the saving the world to the men? I don't think so.",
-   "sentences": 2,
-   "maxJumps": 2,
-   "kitTag": "Leave the saving the world to the men? I don't think so.",
-   "kitDiff": "Medium (3 / 5)",
-   "ult": "Family Raft",
-   "passive": "Rubber Body",
-   "specials": [
-    "Long Arm",
-    "Whirl Kick",
-    "Parachute Drop",
-    "Overhead Whip",
-    "Slingshot"
-   ],
-   "playable": true
   }
  }
 }

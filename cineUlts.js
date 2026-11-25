@@ -39,6 +39,7 @@ import "./luffyUlt.js"
 import "./inosukeUlt.js"
 import "./ghostfaceUlt.js"
 import "./flashUlt.js"
+import "./dcHeroUlts.js"   // Superman / Homelander / Omni-Man (Viltrum): letterbox + title cut-in + push-ins over their live ults
 import "./kakashiAnbuUlt.js"
 import "./kakashiWarUlt.js"
 import "./sixPathsPainUlt.js"

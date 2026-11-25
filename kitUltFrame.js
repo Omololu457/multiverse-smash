@@ -21,19 +21,25 @@ const SEEN = { list: [], tick: 0 }   // tick = camera.update calls = one per sim
 for (const m of ['update', 'updateMulti']) {
   const orig = camera[m]
   if (typeof orig === 'function' && !orig.__kitUltSpy) {
-    const w = function (a, b, ...rest) { try { SEEN.list = m === 'update' ? [a, b] : (Array.isArray(a) ? a.slice() : []); SEEN.tick++ } catch (_) {} return orig.call(this, a, b, ...rest) }
+    const w = function (a, b, ...rest) { try { SEEN.list = m === 'update' ? [a, b] : (Array.isArray(a) ? a.slice() : []); SEEN.tick++ } catch (_) {} SEEN.inUpd = true; try { return orig.call(this, a, b, ...rest) } finally { SEEN.inUpd = false } }
     w.__kitUltSpy = true; camera[m] = w
   }
 }
+// camera.advance = the camera held in place (a frozen cinematic, or a live ultimate that holds the ground shot — Homelander's
+// Flight 37 / Omni-Man's Escape Velocity). Counted separately: frames opted in with cfg.advanceTicks also run on it.
+SEEN.adv = 0
+{ const orig = camera.advance
+  if (typeof orig === 'function' && !orig.__kitUltSpy) { const w = function (...a) { if (!SEEN.inUpd) SEEN.adv++; return orig.apply(this, a) }; w.__kitUltSpy = true; camera.advance = w } }
 export const liveFighters = () => SEEN.list.filter(Boolean)
 export const simTick = () => SEEN.tick
 const foeOf = f => liveFighters().find(o => o && o !== f && !o.eliminated) || null
 
 export function makeKitUltFrame(cfg) {
   const RUN = new Map(), GRACE = cfg.grace ?? 20, FIN = 64
-  let lastTick = SEEN.tick, stall = 0
+  let lastTick = SEEN.tick, lastAdv = SEEN.adv, stall = 0
   registerCineScreen(cfg.id, (ctx, canvas) => {
-    const fs = liveFighters(), dt = Math.max(0, Math.min(30, SEEN.tick - lastTick)); lastTick = SEEN.tick
+    const fs = liveFighters(), adv = cfg.advanceTicks && RUN.size ? SEEN.adv - lastAdv : 0
+    const dt = Math.max(0, Math.min(30, SEEN.tick - lastTick + adv)); lastTick = SEEN.tick; lastAdv = SEEN.adv
     for (const f of fs) {
       let fc = null; try { fc = cfg.match(f) } catch (_) {}
       let R = RUN.get(f)
@@ -98,8 +104,8 @@ function draw(ctx, canvas, f, R) {
     title(ctx, W, H, fc.title, `${fc.sub}  ·  ${dmg} DAMAGE`, clamp(end / 56, 0, 1), { y: 0.24, fs: 0.1, band: 'rgba(6,6,12,0.92)', edge: fc.col, fill: '#ffffff', stroke: '#000000', subCol: fc.col })
   }
   letterbox(ctx, W, H, Math.min(r, 10), 0, 1e9, 14, 0.11 * fade)
-  if (live && r < 60) sub(ctx, W, H, r, 4, 60, fc.who, fc.open, fc.col)
-  if (!live) sub(ctx, W, H, end, 4, 56, fc.who, fc.close, fc.col)
+  if (live && r < 60 && fc.open) sub(ctx, W, H, r, 4, 60, fc.who, fc.open, fc.col)
+  if (!live && fc.close) sub(ctx, W, H, end, 4, 56, fc.who, fc.close, fc.col)
 }
 // a slashed band from the side with the Ranger's real sprite blown up + the technique + kanji
 function cutIn(ctx, W, H, f, fc, r, dir) {

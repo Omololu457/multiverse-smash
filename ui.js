@@ -174,7 +174,9 @@ function getPortraitImage(rosterKey) {
   const key = String(rosterKey || "").trim()
   if (!key) return null
   if (!portraitImages.has(key)) {
-    const src = characters?.[key]?.portrait || squadFormChar(key)?.portrait || `./${key}_portrait.png`
+    // the HUD resolver lower-cases rosterKey ('rickPrime' -> 'rickprime'), so look the character up case-insensitively too
+    const ch = characters?.[key] || characters?.[Object.keys(characters || {}).find(k => k.toLowerCase() === key.toLowerCase())]
+    const src = ch?.portrait || squadFormChar(key)?.portrait || `./${key}_portrait.png`
     const img = new Image()
     img.src = src
     portraitImages.set(key, img)

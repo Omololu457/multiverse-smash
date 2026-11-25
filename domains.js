@@ -380,7 +380,7 @@ function _ensureGojoVideo() {
     v.preload   = "auto"
     v.autoplay  = true
     v.onerror   = () => { _gojoVideoFailed = true }   // 404/decode → clean fallback, never black
-    v.src       = "./gojo_domain.mp4"
+    v.src       = "./Gojo_domain.mp4"   // the tracked file is capitalised (case-sensitive hosts 404 on the lowercase name)
     // Attach OFF-SCREEN (not display:none, which can stop frame decoding) so the
     // browser reliably loads & decodes frames for canvas drawImage. A detached
     // <video> often never advances past readyState 0/1 → only the void showed.

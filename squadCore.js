@@ -13,6 +13,9 @@
 export const SQUADS = {}
 export const squadOf = f => (f?._squad && SQUADS[f._squad.id]) || SQUADS[f?.rosterKey] || null
 export const isSquadKey = k => !!SQUADS[k]
+// a squad FORM's character definition (forms are registered on their squad, not in characters.js) — e.g. the HUD
+// portrait of a fighter whose rosterKey is currently a form like 'mmpr_thunder_megazord'
+export const squadFormChar = k => { for (const s of Object.values(SQUADS)) { const c = s.formChar?.(k); if (c) return c } return null }
 // TEAM ULTIMATE (squadUlt.js registers itself here — no import cycle): W + U together on a full meter
 let TEAM_ULT = null
 export const setTeamUlt = api => { TEAM_ULT = api }

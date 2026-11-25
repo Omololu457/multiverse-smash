@@ -15,6 +15,7 @@ import { drawBuggyHud } from './buggyFx.js'   // Buggy the Clown — Chop badge 
 
 import { drawCharacter } from "./fighters.js"
 import { characters } from "./characters.js"
+import { squadFormChar } from "./squadCore.js"   // squad forms (e.g. Thunder Megazord) carry their own portrait
 import { isFullyUnlocked } from "./progression.js"
 import { artistLineForCharacter, CREDITS } from "./credits.js"
 import { isFileApiSupported, saveFileStatus } from "./account.js"
@@ -173,7 +174,7 @@ function getPortraitImage(rosterKey) {
   const key = String(rosterKey || "").trim()
   if (!key) return null
   if (!portraitImages.has(key)) {
-    const src = characters?.[key]?.portrait || `./${key}_portrait.png`
+    const src = characters?.[key]?.portrait || squadFormChar(key)?.portrait || `./${key}_portrait.png`
     const img = new Image()
     img.src = src
     portraitImages.set(key, img)

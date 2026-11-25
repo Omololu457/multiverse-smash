@@ -49,6 +49,8 @@ const p1 = () => page.evaluate(() => window.__harness.p1());
 const p2 = () => page.evaluate(() => window.__harness.p2());
 const projs = () => page.evaluate(() => window.__harness.projectiles());
 const summons = () => page.evaluate(() => window.__harness.summons());
+// 2026-11-24 roster ult pass: once cineUlts.js imports yutaUlt.js (the new cinematic ultimate), read its live status
+const newUlt = () => page.evaluate(async () => { try { return (await import("./yutaUlt.js")).getYutaUltStatus() } catch (_) { return null } });
 async function wf(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 20000, polling: 16 }); }
 async function grounded() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
 const force = (a) => page.evaluate((act) => window.__harness.forceAction(act, "p1"), a);
@@ -150,14 +152,25 @@ try {
 
   section("Rika's Invocation ULTIMATE — persistent AI assist (range-independent)");
   await prep(200); await page.evaluate(() => window.__harness.setP1Energy?.(200)); await wf(1);
+  const ultH00 = (await p2()).health;
   const ultRes = await page.evaluate(() => window.__harness.p1Ultimate());
-  check("ultimate fires (Rika's Invocation) + casts yutaUltCast", !!ultRes?.cast && ultRes?.castMove === "yutaUltCast", `cast=${ultRes?.cast} castMove=${ultRes?.castMove}`);
-  let rika = null; for (let i = 0; i < 40 && !rika; i++) { await wf(2); rika = (await summons()).find(s => s.id === "rikaAssist") || null; }
-  check("Rika assist spawns (persistent, lifetime > 200)", !!rika && rika.lifetime > 200, rika ? `lifetime=${rika.lifetime}` : "none");
-  const ultH0 = (await p2()).health;
-  for (let i = 0; i < 90; i++) await wf(2);
-  const ultDealt = ultH0 - (await p2()).health;
-  check("Rika deals persistent damage over her life (≥ 2 strikes worth)", ultDealt > 50, `dealt=${ultDealt.toFixed(0)}`);
+  const nst = ultRes?.castMove === "yutaUltCast" ? null : await newUlt();   // legacy path didn't start → the cineRegistry ult took the cast (module already loaded; import() has no side effect)
+  if (nst && nst.active) {   // the registry cinematic (yutaUlt.js): RIKA — PURE LOVE, sure-hit, range-independent
+    check("ultimate fires the RIKA — PURE LOVE cinematic", !!ultRes?.cast && nst.active, JSON.stringify(nst));
+    let st = nst; for (let i = 0; i < 60 && st?.active; i++) { await wf(10); st = await newUlt(); }
+    check("cinematic ends cleanly (not stuck)", st && !st.active, JSON.stringify(st));
+    const dealt = ultH00 - (await p2()).health;
+    check("Rika + Pure Love deal the ult's damage (~240 = 400×0.60; legacy Rika assist ≈231)", dealt >= 200 && dealt <= 280, `dealt=${dealt.toFixed(0)}`);
+  } else {
+    check("ultimate fires (Rika's Invocation) + casts yutaUltCast", !!ultRes?.cast && ultRes?.castMove === "yutaUltCast", `cast=${ultRes?.cast} castMove=${ultRes?.castMove}`);
+    let rika = null; for (let i = 0; i < 40 && !rika; i++) { await wf(2); rika = (await summons()).find(s => s.id === "rikaAssist") || null; }
+    check("Rika assist spawns (persistent, lifetime > 200)", !!rika && rika.lifetime > 200, rika ? `lifetime=${rika.lifetime}` : "none");
+    const ultH0 = (await p2()).health;
+    for (let i = 0; i < 90; i++) await wf(2);
+    const ultDealt = ultH0 - (await p2()).health;
+    check("Rika deals persistent damage over her life (≥ 2 strikes worth)", ultDealt > 50, `dealt=${ultDealt.toFixed(0)}`);
+
+  }
 
   section("fallback-box sweep — every animationData action renders a real yuta_ sheet (no 128² box)");
   await grounded(); await prep(80); const boxes = [];

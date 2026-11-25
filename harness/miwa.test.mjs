@@ -19,6 +19,8 @@ const cmd = () => page.evaluate(() => window.__harness.miwaCmd());
 const fx = () => page.evaluate(() => window.__harness.miwaFx());
 const cine = () => page.evaluate(() => window.__harness.miwaUltCine());
 async function waitFrames(n) { const s = (await state()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
+// 2026-11-24 roster ult pass: once cineUlts.js imports miwaUlt.js (the new cinematic ultimate), read its live status
+const newUlt = () => page.evaluate(async () => { try { return (await import("./miwaUlt.js")).getMiwaUltStatus() } catch (_) { return null } });
 const has = (mv, needle) => (mv?.spriteSheet || "").includes(needle);
 async function waitSheet(needle, maxF = 26) { for (let i = 0; i < maxF; i++) { const a = await p1(); if (has(a, needle)) return a; await waitFrames(1); } return await p1(); }
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
@@ -122,6 +124,16 @@ await waitFrames(4);
 { const a0 = await p1(); await page.evaluate(x => window.__harness.setP2X(x), a0.x + 520); await waitFrames(2);   // FAR → prove guaranteed
   const e0 = (await p1()).energy, hp0 = (await p2()).health;
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u");
+  await waitFrames(3);
+  const nst = (await cine())?.active ? null : await newUlt();   // legacy path didn't start → the cineRegistry ult took the cast (module already loaded; import() has no side effect)
+  if (nst && nst.active) {   // the registry cinematic (miwaUlt.js): SIMPLE DOMAIN — BATTŌ: THREE DRAWS (~186 EFF, sure-hit)
+    check("ultimate activates the SIMPLE DOMAIN — BATTŌ cinematic", nst.active, JSON.stringify(nst));
+    check("ultimate spends 100 cursed energy", Math.round(e0 - (await p1()).energy) === 100, `energy ${e0}→${(await p1()).energy}`);
+    let st = nst; for (let i = 0; i < 60 && st?.active; i++) { await waitFrames(10); st = await newUlt(); }
+    const dmg = hp0 - (await p2()).health;
+    check("GUARANTEED range-independent draws (~186 = 310×0.60 at 520px)", dmg >= 165 && dmg <= 210, `dmg=${dmg}`);
+    check("cinematic ends → combat resumes (not stuck)", st && !st.active); }
+  else {
   await page.waitForFunction(() => window.__harness.miwaUltCine()?.active, null, { timeout: 3000, polling: 16 }).catch(() => {});
   const on = await cine();
   check("ultimate activates the freeze-cinematic on the REAL caster", on.active === true && on.casterKey === "miwa", `active=${on.active} caster=${on.casterKey}`);
@@ -131,6 +143,7 @@ await waitFrames(4);
   const dmg = hp0 - (await p2()).health;
   check("GUARANTEED range-independent slash (~168 = 280×0.60 at 520px)", dmg >= 150, `dmg=${dmg}`);
   check("cinematic ends → combat resumes (not stuck)", (await cine()).active === false); }
+  }
 
 check("no JS page errors across the full kit", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));
 console.log(`\nRESULT ${PASS} pass / ${FAIL} fail`);

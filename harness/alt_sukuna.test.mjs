@@ -120,10 +120,19 @@ try {
   const a2 = await p1();
   await page.evaluate(x => { window.__harness.setP2X(x); window.__harness.healP2?.(); window.__harness.setP2Invuln?.(0); }, a2.x + 240); await waitFrames(2);
   await page.evaluate(() => window.__harness.fillEnergy?.());
+  // 2026-11-24 roster ult pass: once cineUlts.js imports altSukunaUlt.js (the MALEVOLENT SHRINE frozen cinematic), read its status
+  const newUlt = () => page.evaluate(async () => { try { return (await import("./altSukunaUlt.js")).getAltSukunaUltStatus() } catch (_) { return null } });
   { const hp0 = (await p2()).health; const r = await page.evaluate(() => window.__harness.p1Ultimate());
+    const nst = (r.castMove || "") === "altSukunaUltCharge" ? null : await newUlt();   // legacy path didn't start → the cineRegistry ult took the cast (module already loaded; import() has no side effect)
+    if (nst && nst.active) {
+      let st = nst; for (let i = 0; i < 60 && st?.active; i++) { await waitFrames(10); st = await newUlt(); }
+      const dealt = hp0 - (await p2()).health;
+      check("domain ult: MALEVOLENT SHRINE cinematic casts, ends cleanly, guaranteed ~216 EFF (360×0.60; legacy 198)", r.cast && st && !st.active && dealt >= 195 && dealt <= 240, `−${dealt.toFixed(0)} ${JSON.stringify(st)}`);
+    } else {
     await waitFrames(96); const dom = await page.evaluate(() => window.__harness.altSukunaDomain());
     const dealt = hp0 - (await p2()).health;
     check("domain ult: hand-sign cast + shrine overlay + guaranteed ~198 EFF", (r.castMove || "") === "altSukunaUltCharge" && dom.renders > 0 && dealt >= 180 && dealt <= 215, `−${dealt.toFixed(0)} renders=${dom.renders}`); }
+  }
 
   section("RUNTIME fallback-box sweep — every animationData action resolves a real alt_sukuna_ sheet");
   const boxHit = [];

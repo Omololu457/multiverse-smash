@@ -17,6 +17,8 @@ const p2 = () => page.evaluate(() => window.__harness.p2());
 const tstate = () => page.evaluate(() => window.__harness.todoState());
 const clap = (dir) => page.evaluate(d => window.__harness.todoClap(d), dir);
 async function waitFrames(n) { const s = await page.evaluate(() => window.__harness.state().frame); await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
+// 2026-11-24 roster ult pass: once cineUlts.js imports aoiTodoUlt.js (the new cinematic ultimate), read its live status
+const newUlt = () => page.evaluate(async () => { try { return (await import("./aoiTodoUlt.js")).getAoiTodoUltStatus() } catch (_) { return null } });
 async function waitGrounded() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
 let PASS = 0, FAIL = 0; const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "✅" : "❌"} ${n}${d ? `  — ${d}` : ""}`); };
 const section = t => console.log(`\n── ${t} ──`);
@@ -107,9 +109,17 @@ try {
   hp0 = (await p2()).health;
   const ures = await page.evaluate(() => window.__harness.p1Ultimate());
   check("ultimate casts", ures?.cast === true, `cast=${ures?.cast}`);
+  const nst = ures?.castMove === "todoClap" ? null : await newUlt();   // legacy path didn't start → the cineRegistry ult took the cast (module already loaded; import() has no side effect)
+  if (nst && nst.active) {   // the registry cinematic (aoiTodoUlt.js): BOOGIE WOOGIE — BROTHERS' BLACK FLASH (~228 EFF)
+    let st = nst, cineDmg = 0; for (let i = 0; i < 60 && st?.active; i++) { cineDmg = Math.max(cineDmg, st.dmg || 0); await waitFrames(10); st = await newUlt(); }   // status resets on finish → keep the last live total
+    check("cinematic ends cleanly (not stuck)", st && !st.active, JSON.stringify(st));
+    check("cinematic's own sure-hit damage ~228 EFF (380×0.60; legacy beats 198)", cineDmg >= 210 && cineDmg <= 245, `cine dmg=${cineDmg}`);
+    check("both cameos stay on the field after the cinematic (legacy co-op pressure kept)", (await tstate()).yuji && (await tstate()).gojo, JSON.stringify(await tstate()));
+  } else {
   await waitFrames(60);
   const dealt = hp0 - (await p2()).health;
   check("ultimate guaranteed ~198 EFF (185–215)", dealt >= 185 && dealt <= 215, `−${dealt.toFixed(0)}`);
+  }
 
   section("no JS errors");
   check("no page errors across the canonical suite", jsErrors.length === 0, jsErrors.slice(0, 3).join(" | "));

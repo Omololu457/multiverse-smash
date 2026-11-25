@@ -51,6 +51,9 @@ const p2 = () => page.evaluate(() => window.__harness.p2());
 const projs = () => page.evaluate(() => window.__harness.projectiles());
 const koma = () => page.evaluate(() => window.__harness.komaState());
 const ultCine = () => page.evaluate(() => window.__harness.yujiUltCine());
+// 2026-11-24 roster ult pass: once cineUlts.js imports yujiUlt.js (BLACK FLASH — KOKUSEN ×4 cinematic), read its live status
+const newUlt = () => page.evaluate(async () => { try { return (await import("./yujiUlt.js")).getYujiUltStatus() } catch (_) { return null } });
+let usedNewUlt = false;
 async function waitFrames(n) { const s = (await stateF()).frame; await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }); }
 async function waitGrounded() { await page.waitForFunction(() => { const p = window.__harness.p1(); return p.grounded && Math.abs(p.vy) < 0.5; }, null, { timeout: 8000, polling: 16 }).catch(() => {}); }
 const shot = name => page.screenshot({ path: path.join(OUT, `yuji_full_${name}.png`) });
@@ -177,16 +180,27 @@ try {
   await prep(44);
   const eUlt = (await p1()).energy; const hpUlt = (await p2()).health;
   await page.keyboard.down("u"); await waitFrames(2); await page.keyboard.up("u"); await waitFrames(2);
+  const nst = (await ultCine()).active ? null : await newUlt();   // legacy path didn't start → the cineRegistry ult took the cast (module already loaded; import() has no side effect)
+  if (nst && nst.active) {   // the registry cinematic (yujiUlt.js): sure-hit Black Flash ×4, no mash
+    usedNewUlt = true;
+    check("BLACK FLASH ×4 cinematic activates on the cast", nst.active, JSON.stringify(nst));
+    check("100 energy spent", eUlt - (await p1()).energy >= 95, `${eUlt.toFixed(0)}→${(await p1()).energy.toFixed(0)}`);
+    let st = nst; for (let i = 0; i < 60 && st?.active; i++) { await waitFrames(10); st = await newUlt(); }
+    check("cinematic ends cleanly (not stuck)", st && !st.active, JSON.stringify(st));
+    const dealt = hpUlt - (await p2()).health;
+    check("ultimate connects: 4 Black Flashes + Koma (~155 = 259×0.60)", dealt >= 120 && dealt <= 195, `−${dealt.toFixed(0)}`);
+  } else {
   const c = await ultCine();
-  check("cinematic activates (build phase, real Yuji caster)", c.active && c.phase === "build" && c.casterKey === "yuji", `active=${c.active} phase=${c.phase} caster=${c.casterKey}`);
-  check("100 energy spent", eUlt - (await p1()).energy >= 95, `${eUlt.toFixed(0)}→${(await p1()).energy.toFixed(0)}`);
-  { const ab = await record(); check("buildup sprite = ultimateAction (plays through the freeze)", (ab.spriteSheet || "").includes("yuji_ultimate_action"), `sheet=${ab.spriteSheet}`); }
-  await page.waitForFunction(() => window.__harness.yujiUltCine().active === false, null, { timeout: 6000, polling: 16 });
-  await waitFrames(1);
-  check("freeze lifts into the Koma flurry", (await koma()).active && (await koma()).phase === "flurry", `komaPhase=${(await koma()).phase}`);
-  for (let i = 0; i < 6; i++) { await page.keyboard.down("j"); await waitFrames(1); await record(); await page.keyboard.up("j"); await waitFrames(1); await record(); }
-  for (let i = 0; i < 80; i++) { await record(); if (!(await koma()).active) break; await waitFrames(1); }
-  check("ultimate connects (damage dealt through the Koma payload)", hpUlt - (await p2()).health > 0, `−${(hpUlt - (await p2()).health).toFixed(0)}`);
+    check("cinematic activates (build phase, real Yuji caster)", c.active && c.phase === "build" && c.casterKey === "yuji", `active=${c.active} phase=${c.phase} caster=${c.casterKey}`);
+    check("100 energy spent", eUlt - (await p1()).energy >= 95, `${eUlt.toFixed(0)}→${(await p1()).energy.toFixed(0)}`);
+    { const ab = await record(); check("buildup sprite = ultimateAction (plays through the freeze)", (ab.spriteSheet || "").includes("yuji_ultimate_action"), `sheet=${ab.spriteSheet}`); }
+    await page.waitForFunction(() => window.__harness.yujiUltCine().active === false, null, { timeout: 6000, polling: 16 });
+    await waitFrames(1);
+    check("freeze lifts into the Koma flurry", (await koma()).active && (await koma()).phase === "flurry", `komaPhase=${(await koma()).phase}`);
+    for (let i = 0; i < 6; i++) { await page.keyboard.down("j"); await waitFrames(1); await record(); await page.keyboard.up("j"); await waitFrames(1); await record(); }
+    for (let i = 0; i < 80; i++) { await record(); if (!(await koma()).active) break; await waitFrames(1); }
+    check("ultimate connects (damage dealt through the Koma payload)", hpUlt - (await p2()).health > 0, `−${(hpUlt - (await p2()).health).toFixed(0)}`);
+  }
   await shot("ultimate");
 
   // ── SUKUNA SLASH (flavor, blockable, no transform) ──
@@ -207,7 +221,7 @@ try {
   section("FALLBACK-BOX sweep — no action ever fell back to the 128² box");
   const nullActions = [...seenActions.entries()].filter(([, sheet]) => sheet === null).map(([act]) => act);
   check("every observed action resolved a real sheet (no null/box)", nullActions.length === 0, nullActions.length ? `BOX: ${nullActions.join(", ")}` : `${seenActions.size} distinct sheets observed`);
-  const mustSee = ["./yuji_idle_uniform.png", "./yuji_ball_cast_uniform.png", "./yuji_koma1_uniform.png", "./yuji_koma2_uniform.png", "./yuji_ultimate_action_uniform.png", "./yuji_sukuna_slash.png"];
+  const mustSee = ["./yuji_idle_uniform.png", "./yuji_ball_cast_uniform.png", "./yuji_koma1_uniform.png", "./yuji_koma2_uniform.png", ...(usedNewUlt ? [] : ["./yuji_ultimate_action_uniform.png"]), "./yuji_sukuna_slash.png"];   // the cinematic ult draws ultimateAction itself (engine sprite hidden)
   const seenSet = new Set(seenActions.keys());
   const missed = mustSee.filter(s => !seenSet.has(s));
   check("all signature cast sheets exercised", missed.length === 0, missed.length ? `not seen: ${missed.join(", ")}` : "");

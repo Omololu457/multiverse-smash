@@ -3,9 +3,10 @@
 // ultimate. Keys (P1, facing right): J Light · K Heavy · I Up-Attack · L Special (= P) · U Ultimate · A/D back/forward · S down.
 import { boot, ck, summary } from './violet_lib.mjs'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
 // ROSTER PARITY boost (rosterParity.js) applied at combat.applyScaledDamage: melee dmg arrives pre-scaled + floored, so
 // dealt = floor(old * boost); kit hits pass raw + scale, so dealt = floor(raw * boost * scale).
-const BOOST = ROSTER_DAMAGE_BOOST.violet || 1
+const BOOST = (ROSTER_DAMAGE_BOOST.violet || 1) * balDmgMult('violet')
 const mel = x => Math.floor(x * BOOST), kit = (raw, scale = 1) => Math.floor(raw * BOOST * scale)
 const B = await boot('violet', 'violet'), { page, step, st, tap, down, up, reset, wait, guard, S } = B
 const V = await S('H.data()')

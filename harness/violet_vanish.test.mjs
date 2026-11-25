@@ -1,7 +1,8 @@
 // harness/violet_vanish.test.mjs — PHASE 3: VANISH through the real game and real keys (↓↓ + Special = S, S+L).
 import { boot, ck, summary } from './violet_lib.mjs'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
-const BOOST = ROSTER_DAMAGE_BOOST.violet || 1
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
+const BOOST = (ROSTER_DAMAGE_BOOST.violet || 1) * balDmgMult('violet')
 const B = await boot('violet', 'violet')
 const { step, st, S, reset, tap, down, up, page, wait } = B
 const vanish = async () => { await tap(['s'], 2); await step(2); await down(['s']); await step(1); await tap(['l'], 1); await up(['s']); await step(1) }

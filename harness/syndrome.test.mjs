@@ -10,12 +10,13 @@ import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { syndrome as SYNDROME_DEF } from '../syndromeData.js'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, movement: {}, ops: {}, ultimate: {}, misc: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = SYNDROME_DEF.stats.maxHealth   // from syndromeData.js (balance passes retune it)
-const BOOST = ROSTER_DAMAGE_BOOST.syndrome || 1
+const HP = Math.round(SYNDROME_DEF.stats.maxHealth * balHpMult('syndrome'))   // from syndromeData.js (balance passes retune it)
+const BOOST = (ROSTER_DAMAGE_BOOST.syndrome || 1) * balDmgMult('syndrome')
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.syndromeTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, ult: H.ult(), proj: H.projectiles(), hud: H.hud() } })
 const S = (expr, arg) => page.evaluate(([e, a]) => { const H = __harness.syndromeTest; return (new Function('H', 'a', 'return ' + e))(H, a) }, [expr, arg])

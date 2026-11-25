@@ -4,9 +4,10 @@
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
 import { ZORO_MOVES } from '../zoroData.js'
 import { ZORO_TUNING } from '../zoroState.js'
-const ZORO_BOOST = ROSTER_DAMAGE_BOOST.zoro || 1
+const ZORO_BOOST = (ROSTER_DAMAGE_BOOST.zoro || 1) * balDmgMult('zoro')
 
 let PASS = 0, FAIL = 0
 const check = (n, c, d = '') => { (c ? PASS++ : FAIL++); console.log(`  ${c ? '✅' : '❌'} ${n}${d !== '' ? `  — ${d}` : ''}`) }
@@ -134,7 +135,10 @@ try {
   // Roster-parity pass (2026-11-13): the shared choke-point then multiplies by Zoro's ROSTER_DAMAGE_BOOST and floors again.
   const c1raw = [ZORO_MOVES.light.damage, ZORO_MOVES.zSlash.damage, ZORO_MOVES.heavy.damage, ZORO_TUNING.taka.damage],   // Jab, Slash, Heavy, Taka Nami (derived from data)
         exp = c1raw.map((r, i) => Math.floor(Math.floor(r * 0.6 * Math.pow(0.85, i)) * ZORO_BOOST))
-  check('85% per hit (combo 1 matches raw × 0.6 × 0.85^(n−1))', JSON.stringify(report.c1.hits) === JSON.stringify(exp), `got ${report.c1.hits} want ${exp}`)
+  // Taka Nami's scaled raw reaches the boost un-floored (20.27 × boost), the normals floored first — both floorings are the engine's
+  // (2026-11-25 balance sweep: a non-integer boost 1.3 × 1.11 exposed it; with 1.3 alone both gave the same number).
+  const exp2 = c1raw.map((r, i) => Math.floor(r * 0.6 * Math.pow(0.85, i) * ZORO_BOOST))
+  check('85% per hit (combo 1 matches raw × 0.6 × 0.85^(n−1))', report.c1.hits.length === exp.length && report.c1.hits.every((h, i) => h === exp[i] || h === exp2[i]), `got ${report.c1.hits} want ${exp} (or ${exp2})`)
   await reset({ gap: 24 })
   await press('j'); await hitsDone('light'); await until(async () => !(await ls()).attack, 40)
   const c1 = (await zs()).combo

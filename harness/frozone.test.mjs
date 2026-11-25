@@ -9,11 +9,12 @@ import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { frozone as FZD, FLASH, RAIL, TRAIL, WALL, GLIDE } from '../frozoneData.js'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, movement: {}, ice: {}, ultimate: {}, misc: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
 const ck = (n, ok, d = '') => { ok ? pass++ : fail++; console.log(ok ? 'PASS' : 'FAIL', n, ok ? '' : d) }
-const HP = FZD.stats.maxHealth, BOOST = ROSTER_DAMAGE_BOOST.frozone || 1   // roster-parity pass 2026-11-15 (was 1050 / no boost)
+const HP = Math.round(FZD.stats.maxHealth * balHpMult('frozone')), BOOST = (ROSTER_DAMAGE_BOOST.frozone || 1) * balDmgMult('frozone')   // roster-parity pass 2026-11-15 (was 1050 / no boost)
 const step = n => page.evaluate(n => __harness.luffyTest.step(n), n)
 const state = () => page.evaluate(() => { const H = __harness.frozoneTest, b = H.raw('p2'); return { a: H.state(), b: H.state('p2'), stun: b.hitstun, block: b.blockstun, ult: H.ult(), proj: H.projectiles(), hud: H.hud() } })
 const S = (expr, arg) => page.evaluate(([e, a]) => { const H = __harness.frozoneTest; return (new Function('H', 'a', 'return ' + e))(H, a) }, [expr, arg])

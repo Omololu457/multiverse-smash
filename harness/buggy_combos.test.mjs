@@ -6,7 +6,8 @@
 import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
-const BUGGY_BOOST = ROSTER_DAMAGE_BOOST.buggy || 1   // roster-parity pass (2026-11-13): applyScaledDamage multiplies Buggy's damage by this
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
+const BUGGY_BOOST = (ROSTER_DAMAGE_BOOST.buggy || 1) * balDmgMult('buggy')   // roster-parity pass (2026-11-13): applyScaledDamage multiplies Buggy's damage by this
 
 let PASS = 0, FAIL = 0
 const check = (n, c, d = '') => { (c ? PASS++ : FAIL++); console.log(`  ${c ? '✅' : '❌'} ${n}${d ? `  — ${d}` : ''}`) }

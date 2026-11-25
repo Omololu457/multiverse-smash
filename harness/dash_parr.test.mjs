@@ -6,10 +6,11 @@ import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
 import {dash_parr as DASH_DEF,DASH_STATS,INCREDI_RUSH,RUSH_SCENE} from '../dashParrData.js'
 import {ROSTER_DAMAGE_BOOST} from '../rosterParity.js'
+import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
 const WALK_FEEL=+(fs.readFileSync(new URL('../physics.js',import.meta.url),'utf8').match(/export const WALK_FEEL = ([0-9.]+)/)||[0,1])[1]   // physics.js roster-wide walk multiplier
 // ROSTER PARITY boost (rosterParity.js), applied at combat.applyScaledDamage on top of the floored per-hit damage:
 // dealt = floor(brief hit × boost). Design-tolerance targets (±20 %) are scaled by the same boost.
-const BOOST=ROSTER_DAMAGE_BOOST.dash_parr||1,mel=x=>Math.floor(x*BOOST)
+const BOOST=(ROSTER_DAMAGE_BOOST.dash_parr || 1) * balDmgMult('dash_parr'),mel=x=>Math.floor(x*BOOST)
 const server=await serve(),browser=await chromium.launch({headless:true}),page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[]
 const report={moves:{},routes:[],momentum:{},defense:{},ultimate:{}};let pass=0,fail=0
 page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>window.requestAnimationFrame=()=>0)
@@ -55,7 +56,7 @@ try{
  ck('bio is two sentences',meta.bio.split(/(?<=\.)\s/).length===2)
  // Stats: started as Killua Zoldyck's (owner request 2026-11-15), then the 2026-11-15 roster-parity balance pass gave Dash his
 // own numbers (HP / speed / dashSpeed). Assert the live fighter matches dashParrData.js, not Killua.
- ck(`stats: dashParrData.js (HP ${DASH_DEF.stats.maxHealth}, energy 180 "Super Speed", speed ${DASH_STATS.speed}, jump 33, 2 jumps, dash ${DASH_STATS.dashSpeed})`,s.a.maxHp===DASH_DEF.stats.maxHealth&&meta.e===180&&meta.en==='Super Speed'&&meta.has&&Object.keys({...meta.st,...DASH_DEF.stats}).every(k=>meta.st[k]===DASH_DEF.stats[k])&&meta.st.speed===DASH_STATS.speed&&meta.st.dashSpeed===DASH_STATS.dashSpeed,JSON.stringify({st:meta.st,data:DASH_DEF.stats}))
+ ck(`stats: dashParrData.js (HP ${DASH_DEF.stats.maxHealth}, energy 180 "Super Speed", speed ${DASH_STATS.speed}, jump 33, 2 jumps, dash ${DASH_STATS.dashSpeed})`,s.a.maxHp===Math.round(DASH_DEF.stats.maxHealth*balHpMult('dash_parr'))&&meta.e===180&&meta.en==='Super Speed'&&meta.has&&Object.keys({...meta.st,...DASH_DEF.stats}).every(k=>meta.st[k]===DASH_DEF.stats[k])&&meta.st.speed===DASH_STATS.speed&&meta.st.dashSpeed===DASH_STATS.dashSpeed,JSON.stringify({st:meta.st,data:DASH_DEF.stats}))
  // walk / run speed
  await reset(600);await page.keyboard.down('d');await step(12);s=await state();await page.keyboard.up('d');const walk=Math.abs(s.a.vx)
  const WALK=Math.min(9.5,Math.max(4.5,4.5+(DASH_STATS.speed-78)/20*5))*WALK_FEEL   // physics.js walk map on Dash's speed stat × the roster-wide WALK_FEEL

@@ -60,6 +60,7 @@ for (const [k, d] of extra) {
   let dir = path.dirname(d.sheet), owner = FORM_DIR_OWNER[dir] || null
   if (!owner && dir === '.') owner = rootOwner(d.sheet)
   while (!owner && dir && dir !== '.' && !(owner = dirOwner.get(dir))) dir = path.dirname(dir)
+  if (owner && !per[owner]) owner = null   // form dir owned by a fighter that is no longer playable
   if (owner && !per[owner].defs.has(k)) { per[owner].defs.set(k, { ...d, form: true }); assigned++ } else if (!owner) orphan++
 }
 const out = {}

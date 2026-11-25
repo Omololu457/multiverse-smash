@@ -897,6 +897,20 @@ class SoundManager {
     if (this._musicFile) this._musicFile.onended = null
   }
 
+  // ── MENU MUSIC EVERYWHERE ─────────────────────────────────────
+  // Off (default): matches play their own stage music exactly as before. On: the menu playlist plays
+  // everywhere — through matches, KOs and back to the menus — strictly in order, never restarting a song.
+  setMenuEverywhere(on) {
+    this._menuEverywhere = !!on
+    if (this._menuEverywhere && this._ready && this._gestured && !this._menuKeepsPlaying()) this.playMenuMusic()
+    return this._menuEverywhere
+  }
+  isMenuEverywhere() { return !!this._menuEverywhere }
+  // True while Menu-Music-Everywhere is on AND a playlist song is the live track.
+  _menuKeepsPlaying() {
+    return !!(this._menuEverywhere && this._menuPlaylistActive && this._musicFile && this._musicFileSrc)
+  }
+
   // ── MENU PLAYLIST — public API for the Settings reorder UI ────
   getMenuPlaylist() { return MENU_PLAYLIST }
 
@@ -1138,6 +1152,7 @@ class SoundManager {
   // ── MUSIC (procedural) ────────────────────────────────────────
   playMusic(id, _loop = true) {
     if (!this._ready || !this._musicPlayer) return
+    if (this._menuKeepsPlaying()) return   // MENU MUSIC EVERYWHERE: no procedural theme replaces the playlist
     // Before the first user gesture, queue instead of starting (avoids the
     // "AudioContext was not allowed to start" warning).
     if (!this._gestured) { this._pendingMusic = { kind: "theme", id }; return }
@@ -1150,6 +1165,7 @@ class SoundManager {
   }
 
   stopMusic() {
+    if (this._menuKeepsPlaying()) return   // MENU MUSIC EVERYWHERE: the playlist rides straight through KOs / match ends
     this._stopMenuPlaylist()   // disarm playlist auto-advance before killing playback
     this._musicPlayer?.stop()
     this.stopMusicFile()
@@ -1212,6 +1228,7 @@ class SoundManager {
   }
 
   stopMusicFile() {
+    if (this._menuKeepsPlaying()) return   // MENU MUSIC EVERYWHERE: domains / stops can't cut the playlist song
     if (this._musicFile) {
       try { this._musicFile.pause(); this._musicFile.currentTime = 0 } catch (_) {}
     }
@@ -1225,6 +1242,14 @@ class SoundManager {
   // Preferred entry point: play a stage's assigned audio file, else fall back
   // to the procedural theme that best fits the stage/series.
   playStageTrack(stage, { restore = false } = {}) {
+    // MENU MUSIC EVERYWHERE (Settings toggle, off by default): the menu playlist keeps going through the
+    // match in strict order — the stage's own music is skipped and the current song never restarts.
+    if (this._menuEverywhere) {
+      this._lastStage = stage
+      if (!this._gestured) { this._pendingMusic = { kind: "menu" }; return }
+      if (!this._menuKeepsPlaying()) this.playMenuMusic()
+      return
+    }
     this._stopMenuPlaylist()  // MATCH START: menu playlist stops cleanly, stage music takes over
     this._lastStage = stage   // remembered so a domain can restore it on collapse
     // Queue until the first gesture, then resolve file → procedural fallback.
@@ -1385,7 +1410,7 @@ class SoundManager {
     if (!this._ready) return
     if (!this._gestured) { this._pendingMusic = { kind: "domainAudio", voiceFile, themeFile }; return }
     if (voiceFile) this.playSfxFile(voiceFile, SFX.DOMAIN_ACTIVATE)
-    if (themeFile) {
+    if (themeFile && !this._menuKeepsPlaying()) {   // MENU MUSIC EVERYWHERE: the voice still plays, the song keeps going
       this._fileFallbackTheme = MUSIC.DOMAIN_LOOP   // playMusicFile.onerror uses this
       if (!this.playMusicFile(themeFile, true)) this.playMusic(MUSIC.DOMAIN_LOOP, true)
     }
@@ -1522,6 +1547,7 @@ class SoundManager {
   // no base FILE track playing (procedural stage themes are left alone); or the intense
   // pick matches the base track (nothing to blend to).
   setMusicIntensity(on, intenseFile = null, opts = {}) {
+    if (this._menuEverywhere) return   // MENU MUSIC EVERYWHERE: never cross-fade the playlist into a stage's intense layer
     if (!this._ready) return
     on = !!on
     const ms = opts.crossfadeMs ?? INTENSITY_CROSSFADE_MS

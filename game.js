@@ -5,11 +5,13 @@ import { tickSpdSquad, spdSquadRoundReset, spdSquadCpu, squadSwap, squadState, s
 import { drawSpdSquadFx, drawSquadUltScreen } from "./spdSquadFx.js"   // + the squads' TEAM ULTIMATE screen pass (squadUltFx.js)
 import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"
 import { anyFreezeCineActive, updateFreezeCines, clearFreezeCines, drawCineScreens } from "./cineRegistry.js"   // shared FROZEN-CINEMATIC + screen-overlay slot (the Incredibles' ultimates)   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
-import "./cineUlts.js"   // registers every cineRegistry-based cinematic ultimate module (Death Note / OPM / Jesus / Rick and Morty)
+import "./cineUlts.js"
+import { dnaScanTick } from "./dnaScan.js"   // DNA SCAN: Ben / Albedo / Kevin ↓+U scan → U+L transform into the scanned foe   // registers every cineRegistry-based cinematic ultimate module (Death Note / OPM / Jesus / Rick and Morty)
 import { startRickPrimeRewindCine, isRickPrimeRewindCineActive } from "./rickPrimeUlt.js"   // Temporal Rewind cinematic overlay
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
 import { applyPrimeRewindRules, rickPowerRoundReset } from "./rickPower.js"   // Rick / Rick Prime power pass: rewind rules + round-reset re-stamp (rickPower.js)
+import { introCamTick, introCamRelease, drawIntroCamOverlay } from "./introCam.js"   // intro camera: push-in on P1, then P2, then the two-shot (presentation only)
 import { entranceBegin, entranceTick, finalizeEntrance, entranceReset, entranceState, entranceFxState, drawEntranceUnder, drawEntranceOver, drawEntranceScreen } from "./entranceIntro.js"   // an entrance for every fighter before their intro
 import { benCpuDrive } from "./benCpu.js"   // CPU Ben 10 / Albedo: transforms by range + mid-combo alien swaps
 import { benThemeFieldsForSkin, benThemeLast, benThemeCardImage } from "./benThemeRecolor.js"   // Ben 10 cosmetic THEMES (skin fields + select-screen cards)
@@ -91,15 +93,15 @@ import { updateSksCommandCombat } from './sukunaShinjuku.js'   // MSV1-SUKUNA Ry
 import { tickSks, isSks, clearSks, clearSksMarks, sksLockedForMovement, markSksCpu } from './sukunaShinjukuState.js'
 import { drawSksFx, drawSksBurn, drawSksHud, playSksCues } from './sukunaShinjukuFx.js'
 import { sukunaShinjukuHarnessApi } from './sukunaShinjukuHarness.js'
-import { updateInvCommandCombat } from './invincible.js'   // MSV1-INVINCIBLE Invincible (Mark Grayson) — invincible-gated command layer
-import { tickInv, isInv, clearInv, clearInvMarks, invLockedForMovement, markInvCpu } from './invincibleState.js'
-import { drawInvFx, drawInvHud, playInvCues } from './invincibleFx.js'
-import { invincibleHarnessApi } from './invincibleHarness.js'
 import { updateOmvCommandCombat } from './omnimanViltrum.js'   // MSV1-OMNIMAN Omni-Man (Viltrumite) — omniman_viltrum-gated command layer (the old `omniman` is untouched)
 import { tickOmv, isOmv, clearOmv, clearOmvMarks, omvLockedForMovement, markOmvCpu, omvNoBlock, omvOwnsCharge } from './omnimanViltrumState.js'
 import { drawOmvFx, drawOmvHud, drawOmvSky, playOmvCues, omvCameraHold } from './omnimanViltrumFx.js'
 import { drawDinoZrexCinematic } from './dinoFx.js'   // MSV1-DINO Dino Thunder Z-Rex Blaster cinematic (render-only screen pass)
 import { omnimanViltrumHarnessApi } from './omnimanViltrumHarness.js'
+import { updateInvCommandCombat } from './invincible.js'   // MSV1-INVINCIBLE Invincible (Mark Grayson) — invincible-gated command layer
+import { tickInv, isInv, clearInv, clearInvMarks, invLockedForMovement, markInvCpu } from './invincibleState.js'
+import { drawInvFx, drawInvHud, playInvCues } from './invincibleFx.js'
+import { invincibleHarnessApi } from './invincibleHarness.js'
 import { updateSyndromeCommandCombat } from './syndrome.js'   // Syndrome (The Incredibles) — syndrome-gated command layer
 import { tickSyndrome, isSyndrome, clearSyndrome, syndromeLocked, syndromeOwnsCharge, isSyndromeUltActive, updateSyndromeUlt, clearSyndromeUlt } from './syndromeState.js'
 import { drawSyndromeUnder, drawSyndromeOver, drawSyndromeHud, drawSyndromeIntroCard, playSyndromeCues } from './syndromeFx.js'
@@ -206,8 +208,8 @@ const MEGUMI_WORLD = MMPR_BLACK_WORLD   // Megumi: the same self-contained world
 const HIGURUMA_WORLD = MMPR_BLACK_WORLD   // Higuruma: the same self-contained world (stage width, fighters, ultimate damage through W.damage)
 const GOJO_SHINJUKU_WORLD = { ...MMPR_BLACK_WORLD, frame: () => _replayFrame, projectileList: () => activeProjectiles, removeProjectile: p => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) }, summons: () => activeSummons, removeSummon: o => { const i = activeSummons.indexOf(o); if (i >= 0) activeSummons.splice(i, 1) }, drones: () => activeDrones, removeDrone: o => { const i = activeDrones.indexOf(o); if (i >= 0) activeDrones.splice(i, 1) }, munitions: () => activeMunitions, removeMunition: o => { const i = activeMunitions.indexOf(o); if (i >= 0) activeMunitions.splice(i, 1) }, clones: o => (o?._ninja?.clones || []).filter(c => !c.dead).map(c => ({ x: c.x - (o.w || 48) / 2, y: c.feet - (o.h || 94), w: o.w || 48, h: o.h || 94, ref: c })), removeClone: (o, c) => { if (c?.ref) c.ref.dead = true }, patches: () => MMPR_BLACK_WORLD.fighters().flatMap(o => (o?._enoch?.field?.patches || []).map(patch => ({ owner: o, patch }))), removePatch: (o, p) => { const L = o?._enoch?.field?.patches; const i = L ? L.indexOf(p) : -1; if (i >= 0) L.splice(i, 1) }, raw: f => readRawControls(f) || {} }   // MSV1-GOJO Satoru Gojo (Shinjuku): Black Ranger's world + lockstep frame + every list Limitless acts on (projectiles, summons, drones, munitions, ninja clones, Enoch patches)
 const SUKUNA_SHINJUKU_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-SUKUNA Ryomen Sukuna (Shinjuku): the same world (lockstep frame, projectiles to cut, ground patches to clear)
-const INVINCIBLE_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-INVINCIBLE Invincible (Mark Grayson): the same world (lockstep frame, fighters, projectiles, W.damage)
 const OMNIMAN_VILTRUM_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-OMNIMAN Omni-Man (Viltrumite): the same world (lockstep frame, fighters, W.damage, raw controls)
+const INVINCIBLE_WORLD = GOJO_SHINJUKU_WORLD   // MSV1-INVINCIBLE Invincible (Mark Grayson): the same world (lockstep frame, fighters, projectiles, W.damage)
 const SYNDROME_WORLD = MMPR_BLACK_WORLD   // Syndrome: the same self-contained world (stage width, fighters, projectiles = machine hit volumes, attackBox / projectileRects for turret damage, ultimate damage through W.damage)
 const KEVIN_WORLD = {
   ...MMPR_BLACK_WORLD, stageLeft: () => physics.stageLeft, stageRight: () => physics.stageWidth,
@@ -570,6 +572,7 @@ import { startChoreo as startCloneChoreo, startFormation as startCloneFormation,
          isChoreoActiveFor, isFormationActiveFor as isCloneFormationActiveFor, clearChoreoFor, clearAllChoreo,
          holdChoreoAt as holdCloneChoreoAt, holdFormation as holdCloneFormation, getChoreoState as getCloneChoreoState,
          isChoreoSupported, choreoRoster, choreoKit, SELECT_MAP as CLONE_SELECT_MAP } from "./cloneChoreography.js"
+import { updateCloneFighters, getCloneFighterBodies, cloneFighterState, clearCloneFighters, cloneFighterBoxes, cloneFighterProfile, isCloneFighterCaster } from "./cloneFighter.js"   // CLONE FIGHTERS (Tobirama water / Hashirama wood / Naruto, Sasuke, Madara shadow): clones that fight on their own
 import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha, controlsOverlayPadRows } from "./ui.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
@@ -592,9 +595,9 @@ import {
   lastBattleBgRect,
   drawAlienSelectScreen, getAlienSelectCardRects, getAlienSelectButtons, alienGridOpts,
   CHAR_GRID_OPTS, UNIVERSE_GRID_OPTS, charSelectGridOpts, getSelectDetailRect, scrollGridBy, setGridScroll, getGridScrollbar, getGridViewport, pickGridCard, resetGridScroll,
-  getMainMenuRects, scrollMainMenu, drawMainMenuScreen, drawStoryModeScreen, getStoryBackButton, getStoryChapterRects,
+  getMainMenuRects, scrollMainMenu, drawMainMenuScreen,
   drawCreditsScreen,
-  drawProfileScreen, getProfileBackButton, getProfileThemesButton, drawCodexScreen, getCodexBackButton, codexLayout,
+  drawProfileScreen, getProfileBackButton, getProfileThemesButton,
   drawAcademyGridScreen, academyGridLayout, getAcademyBackButton, getAcademyWatchBrutButton, getAcademyLabButton, drawAcademyCharScreen, academyCharLayout, drawAcademyDrillOverlay,   // CHARACTER ACADEMY (additive)
   drawThemesScreen, getThemesBackButton, getThemeCardRects,
   getCharSearchRect, getCharSearchClearRect,
@@ -631,10 +634,6 @@ import {
   ARCADE_FIGHTS, ARCADE_RIVAL_FIGHT, ARCADE_BOSS_FIGHT, arcadeState,
   arcadeFightRole, arcadeBossKey, arcadeDifficultyForFight, arcadeRivalKey, arcadeRivalDialogue, ARCADE_XP
 } from "./arcade.js"
-import { STORY_CHAPTERS, getChapter, chapterDifficulty, STORY_CHAPTER_COUNT } from "./story.js"
-import { NEXUS_FRACTURE, NEXUS_FRACTURE_FULL } from "./nexusFracture.js"   // Story Mode cutscene: THE NEXUS FRACTURE (Prologue + Act 1) — beat DATA for the cutscene engine
-import { voiceClipName, NEXUS_VOICE_DIR } from "./nexusVoice.js"   // Story Mode cutscene TTS (macOS `say` clips) — per-line voice audio
-import { getStoryProgress, isChapterUnlocked, completeStoryChapter } from "./storyProgress.js"
 import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot, getEdoSkin } from "./skins.js"
@@ -842,7 +841,7 @@ const fatalityStatusPhase = () => _fatalityStatus().phase
 import { startFinishWindow, isFatalityActive, updateFatalityCinematic, drawFatalityCinematic, fatalityDone, fatalityWinner, fatalityWasPerformed, clearFatalityCinematic } from "./fatalityCinematic.js"   // roster-wide FINISH-window fatality (press Ultimate)
 import { screenBreakerInput, startScreenBreaker, screenBreakerActive, screenBreakerDone, updateScreenBreaker, screenBreakerWorld, drawScreenBreaker, clearScreenBreaker } from "./screenBreaker.js"   // SCREEN BREAKER — in-game FINISH-window finisher (GRAB → SPECIAL/DOWN): throw the loser into the screen, the glass cracks
 import { signatureFatalityInput, startSignatureFatality, signatureFatalityActive, signatureFatalityDone, updateSignatureFatality, drawSignatureFatalityUnder, drawSignatureFatalityOver, drawSignatureFatalityScreen, clearSignatureFatality } from "./signatureFatality.js"   // SIGNATURE FATALITIES — FINISH window, SPECIAL: each fighter's defining technique, in the arena
-import { rbfxReset, rbfxPose, rbfxClear, rbfxBleed, rbfxTick, rbfxDraw } from "./roundBreakFx.js"   // round walk-back aftermath: the winner taunts, the loser stands hurt and bleeds a little
+import { rbfxReset, rbfxPose, rbfxClear, rbfxBleed, rbfxTick, rbfxDraw, rbfxTrail, rbfxImpact, rbfxTickLap, rbfxDrawLap } from "./roundBreakFx.js"   // round walk-back aftermath: the winner taunts, the loser stands hurt and bleeds a little
 import { activateBrutalityCinematic, isBrutalityCinematicActive, updateBrutalityCinematic, brutalityCinematicDone, drawBrutalityCinematic, clearBrutalityCinematic, brutalityCinematicStatus } from "./brutalityCinematic.js"   // canon-themed BRUTALITY — plays when the FINISH-window expires without a fatality input
 import { BRUTALITY_CONCEPTS } from "./brutalityConcepts.js"   // canon BRUTALITY concept table (per-winner finisher themes)
 import { elementFor, elementColor, ELEMENT } from "./juice_elements.js"   // HIT FEEL Phase D — element table (colours/trail/aftermath)
@@ -1654,8 +1653,8 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
-  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -2038,8 +2037,6 @@ canvas.addEventListener("wheel", e => {
     settingsScroll = Math.max(0, Math.min(_settingsMaxScroll(), settingsScroll + e.deltaY))
     return
   }
-  // CODEX consumes wheel to scroll the franchise-grouped fighter list.
-  if (gameState === GAME_STATES.CODEX) { e.preventDefault(); codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll + e.deltaY)); return }
   if (gameState === GAME_STATES.ACADEMY) { e.preventDefault(); const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses()); academyScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.gridH), academyScroll + e.deltaY)); return }
   if (gameState === GAME_STATES.ACADEMY_CHAR) { e.preventDefault(); const LC = _academyLessons(); const L = academyCharLayout(canvas, LC.groups, academyCharScroll); academyCharScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.listH), academyCharScroll + e.deltaY)); return }
   // MOVE LIST — scroll the kit panel when the pointer is over it, else the (overflowing) fighter list.
@@ -2245,12 +2242,8 @@ const GAME_STATES = {
   VICTORY:          "victory",
   INTRO:            "intro",
   ONLINE_PLACEHOLDER: "onlinePlaceholder",   // dev-unlocked Online stub (no netcode)
-  STORY_MODE:         "storyMode",           // Part 1: Story Mode chapter select (was a locked placeholder)
-  STORY_INTRO:        "storyIntro",          // Part 1: two-line pre-fight beat (reuses the rival intro screen)
-  CUTSCENE:           "cutscene",            // generic cutscene-beat player (Story Mode: THE NEXUS FRACTURE)
   MUSIC_LIBRARY:      "musicLibrary",        // full-screen custom-playlist builder (scrollable whole-library checklist)
   PROFILE:            "profile",             // Part 1 #3: Big-Five personality radar (from main menu + pause)
-  CODEX:              "codex",               // Part 1 #4: browsable per-fighter dossier, grouped by franchise
   ACADEMY:            "academy",             // CHARACTER ACADEMY — scrollable fighter grid (learn every move)
   ACADEMY_CHAR:       "academyChar",         // CHARACTER ACADEMY — a single fighter's lesson list
   THEMES:             "themes",              // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
@@ -3720,9 +3713,6 @@ let hoverCharacterIndex  = 0
 let hoverEdoBackupIndex  = 0   // Edo Tensei vessel-select grid hover
 let hoverStageIndex      = 0
 let hoverMainMenuIndex   = 0
-let _storyBackHover      = false   // STORY_MODE BACK-button hover
-let hoverStoryIndex      = -1      // STORY_MODE chapter-tile hover
-let _storyChapterIdx     = 0       // the chapter whose fight is pending (set on chapter click, read on match-over)
 let moveListIndex        = 0
 let moveListReturnState  = null   // QoL: set when opened from the pause menu → Back returns there instead of the main menu
 const _pauseCanLeaveMatch = () => ["vs", "pvp", "training"].includes(matchConfig.mode) && !towerState.active && !arcadeState.active && !netMatch.isActive()
@@ -4117,288 +4107,6 @@ function _applyBossProfile(fighter, char) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// STORY MODE (Part 1) — a playable MVP campaign. Each chapter is a scripted fixed matchup with a
-// two-line pre-fight exchange (reusing the arcade rival intro screen) and a win-line beat. Chapters
-// unlock sequentially (storyProgress.js, guest-safe). The finale reuses the boss super-armor system.
-// Deliberately NOT a new cutscene engine or node-map — see the report for what's deferred.
-// ──────────────────────────────────────────────────────────────────────────────
-function isStory() { return matchConfig.mode === "story" }
-
-// Build the chapter-select view model the UI renders (names + unlock/clear state, resolved live).
-function _buildStoryChapterView() {
-  const prog = getStoryProgress()
-  return STORY_CHAPTERS.map((ch, i) => ({
-    num: ch.num, title: ch.title, isBoss: !!ch.boss,
-    playerName:  characters[ch.player]?.name   || ch.player,
-    opponentName: ch.boss ? (ch.bossName || characters[ch.opponent]?.name || ch.opponent)
-                          : (characters[ch.opponent]?.name || ch.opponent),
-    unlocked:  i <= prog.highest,
-    completed: !!prog.completed[i]
-  }))
-}
-
-// Commit a chapter's matchup to matchConfig and route into its pre-fight dialogue beat.
-function _beginStoryChapter(idx) {
-  const ch = getChapter(idx)
-  if (!ch || !isChapterUnlocked(idx)) return
-  _storyChapterIdx = idx
-  matchConfig.mode      = "story"
-  matchConfig.p1CharKey = ch.player;   matchConfig.p1Char = characters[ch.player]
-  matchConfig.p2CharKey = ch.opponent; matchConfig.p2Char = characters[ch.opponent]
-  matchConfig.p1Skin = "default";      matchConfig.p2Skin = "default"
-  matchConfig.aiDifficulty  = chapterDifficulty(idx)
-  matchConfig.selectedStage = homeStageFor(ch.stageOf === "player" ? ch.player : ch.opponent)
-  // Finale: layer the story boss profile (super-armor + extra HP, single round). storyBossProfile is
-  // consumed in resetRound where _applyBossProfile runs; cleared here for every non-boss chapter.
-  matchConfig.p2IsBoss        = !!ch.boss
-  matchConfig.storyBossProfile = ch.boss ? ch.bossProfile : null
-  matchConfig.storyBossName    = ch.boss ? ch.bossName : null
-  gameState = GAME_STATES.STORY_INTRO
-}
-
-// The pre-fight beat: two portraits + the exchange (reuses drawRivalIntroScreen, re-headed for story).
-function drawStoryIntro() {
-  const ch = getChapter(_storyChapterIdx)
-  if (!ch) { gameState = GAME_STATES.STORY_MODE; return }
-  drawRivalIntroScreen(ctx, canvas, {
-    header: `CHAPTER ${ch.num}`, subheader: ch.title,
-    playerKey: ch.player, rivalKey: ch.opponent,
-    playerName: characters[ch.player]?.name || ch.player,
-    rivalName:  ch.boss ? (ch.bossName || characters[ch.opponent]?.name || ch.opponent)
-                        : (characters[ch.opponent]?.name || ch.opponent),
-    lines: ch.pre
-  })
-}
-
-// Called from _checkMatchOver. Win → persist the chapter clear (unlocks the next) + set the victory
-// beat's subtitle/prompt; loss → offer a retry. Mirrors updateArcadeOutcome's shape.
-function updateStoryOutcome(winner) {
-  const ch = getChapter(_storyChapterIdx)
-  if (!ch) return
-  if (winner === "p1") {
-    const res = completeStoryChapter(_storyChapterIdx)
-    victoryState.flavorLine  = ch.win || victoryState.flavorLine
-    if (res.campaignComplete)       { victoryState.subtitle = "THE BATTLE CHRONICLE — COMPLETE"; victoryState.primaryLabel = "FINISH" }
-    else if (res.unlockedNext != null) { victoryState.subtitle = `CHAPTER ${ch.num} CLEARED — NEXT UNLOCKED`; victoryState.primaryLabel = "CONTINUE" }
-    else                            { victoryState.subtitle = `CHAPTER ${ch.num} CLEARED`; victoryState.primaryLabel = "CONTINUE" }
-  } else {
-    victoryState.subtitle = `CHAPTER ${ch.num} — TRY AGAIN`
-    victoryState.primaryLabel = "RETRY"
-  }
-}
-
-// From the victory screen. Returns to the chapter map (the next chapter now shows unlocked). A loss
-// leaves progress untouched, so the map simply lets the player re-enter the same chapter.
-function continueStory() {
-  const active = matchConfig.mode === "story"
-  resetToStart()                 // tear down the finished match
-  if (active) gameState = GAME_STATES.STORY_MODE   // land back on the chapter map instead of the title
-}
-
-// ══════════════════════════════════════════════════════════════════════════════════════════════
-// CUTSCENE ENGINE (Story Mode) — a generic beat player. A "beat" = one dialogue/narration line shown
-// with 0/1/2 EXISTING posed sprites over a dark backdrop, a gentle camera behavior, and a typewriter
-// text box; advance on any input. A { fight } beat launches a REAL single-round match and resumes at
-// the next beat afterward. Scenes are DATA (nexusFracture.js), not code. Reuses createFighter +
-// renderHybridFighter (the exact battle sprite pipeline, posed via _forceAction) + camera.applyTransform
-// (world→screen framing) + a much gentler eased-camera than combat. See [[camera zoom-crop]] lineage.
-const CUTSCENE_TYPE_SPEED = 1.8    // characters revealed per frame (typewriter)
-const CUTSCENE_CAM_EASE   = 0.03   // very gentle camera lerp (combat uses ~0.12+)
-const CUTSCENE_GROUND     = 640    // world ground line the cutscene actors stand on
-// ── Polish pass (render-only, cheap): subtle life on top of the working engine ──
-const CUTSCENE_FADE_FRAMES = 10    // fade-through-black length on every beat cut (~0.17s)
-const CUTSCENE_DRIFT_X     = 7      // "breathing" camera sway, world px (barely-perceptible)
-const CUTSCENE_DRIFT_Y     = 5
-const CUTSCENE_DRIFT_ZOOM  = 0.006
-const CUTSCENE_PARALLAX    = 0.4    // two-char depth haze lags the camera at this fraction (<1 = behind the actors)
-const cutsceneState = {
-  active: false, beats: null, idx: 0, onDone: null,
-  reveal: 0, full: "",
-  left: null, right: null,
-  camX: 0, camXTarget: 0, camZoom: 1, camZoomTarget: 1,
-  fightReturnIdx: -1,
-  fade: 0,   // 1 = fully black (just cut to this beat) → eases to 0 (fade up). Render-only overlay.
-}
-
-function _cutsceneActor(key, pose, x, facing) {
-  const char = characters[key]
-  if (!char) return null
-  const f = createFighter(key, char, x, facing, {}, facing === 1 ? "p1" : "p2")
-  f.x = x; f.facing = facing
-  f.y = CUTSCENE_GROUND - (f.h || 100); f.groundY = CUTSCENE_GROUND
-  f.vx = 0; f.vy = 0; f.onGround = true; f.grounded = true
-  f.attacking = false; f.isBlocking = false; f.hitstun = 0; f.hitstop = 0
-  f._forceAction = (pose === "win" || pose === "lose") ? pose : null   // idle = the sprite handler's default action
-  return f
-}
-
-// TTS VOICE (STAGE B): each beat's line has a pre-generated macOS-`say` clip (nexus_voice/, named by a
-// content hash via voiceClipName). Play it when the beat displays, alongside the typewriter text. Gated on
-// the SFX mute toggle. One clip at a time — a new beat stops the previous line.
-let _cutsceneVoiceAudio = null
-function _stopCutsceneVoice() {
-  if (_cutsceneVoiceAudio) { try { _cutsceneVoiceAudio.pause() } catch (_) {} try { _cutsceneVoiceAudio.src = "" } catch (_) {} _cutsceneVoiceAudio = null }
-}
-function _playCutsceneVoice(speaker, text) {
-  _stopCutsceneVoice()
-  if (typeof audioSettings !== "undefined" && audioSettings.sfxMuted) return
-  const name = voiceClipName(speaker, text)
-  if (!name || typeof Audio === "undefined") return
-  try {
-    const a = new Audio(`${NEXUS_VOICE_DIR}/${name}`)
-    a.volume = 0.9
-    _cutsceneVoiceAudio = a
-    a.play().catch(() => {})   // autoplay may reject until a gesture; entering Story is itself a click, so it plays
-  } catch (_) {}
-}
-
-// Public entry: play a beat array; on the end call onDone (else return to the Story chapter map).
-function startCutscene(beats, onDone = null) {
-  cutsceneState.active = true; cutsceneState.beats = beats; cutsceneState.onDone = onDone
-  cutsceneState.idx = -1; cutsceneState.fightReturnIdx = -1
-  gameState = GAME_STATES.CUTSCENE
-  _cutsceneLoad(0)
-}
-
-function _cutsceneLoad(i) {
-  const s = cutsceneState
-  s.idx = i
-  const b = s.beats && s.beats[i]
-  if (!b) { _cutsceneFinish(); return }
-  if (b.fight) { _startCutsceneFight(b.fight, i); return }
-  const two = !!(b.left && b.right)
-  const baseX = 1600, gap = 205
-  s.left  = b.left  ? _cutsceneActor(b.left,  b.pose  || "idle", two ? baseX - gap : baseX,  1) : null
-  s.right = b.right ? _cutsceneActor(b.right, b.pose2 || "idle", two ? baseX + gap : baseX, -1) : null
-  const zoomBase = two ? 0.82 : (b.left || b.right) ? 1.08 : 1.0
-  s.camX = two ? baseX : baseX + 32; s.camXTarget = s.camX
-  s.camZoom = zoomBase; s.camZoomTarget = (b.cam === "zoom") ? zoomBase + 0.20 : zoomBase
-  if (b.cam === "pan") { s.camX = s.camXTarget - 130; s.camXTarget += 70 }
-  s.full = b.text || ""; s.reveal = 0
-  s.fade = 1   // STAGE 2: start this beat under a black veil → updateCutscene fades it up (soft cut, not a hard one)
-  _playCutsceneVoice(b.speaker, b.text)   // STAGE B: speak this line (macOS-say clip) as the beat displays
-}
-
-function _cutsceneFinish() {
-  const done = cutsceneState.onDone
-  _stopCutsceneVoice()
-  cutsceneState.active = false; cutsceneState.left = null; cutsceneState.right = null
-  if (typeof done === "function") done()
-  else gameState = GAME_STATES.STORY_MODE
-}
-
-// Advance on input: first press completes the typewriter reveal; the next advances the beat.
-function cutsceneAdvance() {
-  const s = cutsceneState; if (!s.active) return
-  if (s.reveal < s.full.length) { s.reveal = s.full.length; return }
-  _cutsceneLoad(s.idx + 1)
-}
-
-function updateCutscene() {
-  const s = cutsceneState; if (!s.active) return
-  if (s.reveal < s.full.length) s.reveal = Math.min(s.full.length, s.reveal + CUTSCENE_TYPE_SPEED)
-  s.camX    += (s.camXTarget - s.camX) * CUTSCENE_CAM_EASE
-  s.camZoom += (s.camZoomTarget - s.camZoom) * CUTSCENE_CAM_EASE
-  if (s.fade > 0) s.fade = Math.max(0, s.fade - 1 / CUTSCENE_FADE_FRAMES)   // STAGE 2: fade up from black on each cut
-}
-
-// REAL FIGHT inside a cutscene: single decisive round (p2IsBoss → first-KO ends it, see _checkMatchOver),
-// no super-armor (storyBossProfile=null). On the victory-continue, resumeCutsceneAfterFight() picks up at i+1.
-function _startCutsceneFight(fight, beatIdx) {
-  cutsceneState.fightReturnIdx = beatIdx + 1
-  matchConfig.mode = "vs"
-  matchConfig.p1CharKey = fight.player;   matchConfig.p1Char = characters[fight.player]
-  matchConfig.p2CharKey = fight.opponent; matchConfig.p2Char = characters[fight.opponent]
-  matchConfig.p1Skin = "default"; matchConfig.p2Skin = "default"
-  matchConfig.aiDifficulty = "normal"
-  matchConfig.selectedStage = homeStageFor(fight.stageOf === "player" ? fight.player : fight.opponent)
-  matchConfig.p2IsBoss = true; matchConfig.storyBossProfile = null; matchConfig.storyBossName = null
-  matchConfig._cutsceneFight = true
-  cutsceneState.active = false   // PAUSE the cutscene during the match: no stray advance/update/draw can touch idx until resumeCutsceneAfterFight()
-  _stopCutsceneVoice()   // silence any in-progress line before the fight
-  startMatch()
-}
-
-function resumeCutsceneAfterFight() {
-  const i = cutsceneState.fightReturnIdx
-  matchConfig._cutsceneFight = false; matchConfig.p2IsBoss = false
-  resetToStart()
-  cutsceneState.active = true
-  gameState = GAME_STATES.CUTSCENE
-  _cutsceneLoad(i)
-}
-
-function _cutsceneWrapText(c, text, x, y, maxW, lineH) {
-  const words = text.split(" "); let line = "", yy = y
-  for (const w of words) {
-    const test = line ? line + " " + w : w
-    if (c.measureText(test).width > maxW && line) { c.fillText(line, x, yy); line = w; yy += lineH }
-    else line = test
-  }
-  if (line) c.fillText(line, x, yy)
-}
-
-function drawCutscene() {
-  const s = cutsceneState; if (!s.active) return
-  const b = s.beats && s.beats[s.idx]; if (!b) return
-  const cw = canvas.width, ch = canvas.height
-  const two = !!(s.left && s.right)
-  // STAGE 1: a slow "breathing" drift so even a static beat feels alive, not frozen. Render-only,
-  // derived from globalFrameCount (incommensurate slow sines → no obvious loop), per-beat phase so
-  // adjacent beats don't breathe in lockstep. Amplitudes are tiny (a few world px / 0.006 zoom).
-  const t = globalFrameCount, ph = s.idx * 1.7
-  const driftX = Math.sin(t * 0.011 + ph) * CUTSCENE_DRIFT_X
-  const driftY = Math.cos(t * 0.008 + ph) * CUTSCENE_DRIFT_Y
-  const driftZoom = Math.sin(t * 0.006 + ph * 0.5) * CUTSCENE_DRIFT_ZOOM
-  s._driftX = driftX; s._driftZoom = driftZoom   // record the drift actually applied this frame (harness-observable proof it's live)
-  // 1) dark backdrop
-  const g = ctx.createLinearGradient(0, 0, 0, ch)
-  g.addColorStop(0, "#0a0b16"); g.addColorStop(0.6, "#0f1122"); g.addColorStop(1, "#05060c")
-  ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, cw, ch); ctx.restore()
-  // 1b) STAGE 3: two-character depth haze — a soft mid-depth glow that lags the camera (moves at
-  // CUTSCENE_PARALLAX of the actors' rate) so the pair reads as separated from the backdrop during
-  // any camera movement. One radial fill; very low alpha. Two-char beats only.
-  if (two) {
-    const hazeX = cw / 2 - driftX * (1 - CUTSCENE_PARALLAX) * s.camZoom   // behind the actors (full-motion) but ahead of the static gradient
-    const hazeY = ch * 0.52 - driftY * (1 - CUTSCENE_PARALLAX) * s.camZoom
-    const haze = ctx.createRadialGradient(hazeX, hazeY, 40, hazeX, hazeY, cw * 0.42)
-    haze.addColorStop(0, "rgba(120,110,190,0.09)"); haze.addColorStop(1, "rgba(120,110,190,0)")
-    ctx.save(); ctx.fillStyle = haze; ctx.fillRect(0, 0, cw, ch); ctx.restore()
-  }
-  // 2) posed actors — world space via the battle camera transform (borrow + restore the camera).
-  //    The breathing drift is layered onto the eased camera here (STAGE 1).
-  if ((s.left || s.right) && typeof camera.applyTransform === "function") {
-    const sv = { x: camera.x, y: camera.y, zoom: camera.zoom, tx: camera.targetX, ty: camera.targetY, tz: camera.targetZoom }
-    camera.x = s.camX + driftX; camera.y = CUTSCENE_GROUND - 150 + driftY; camera.zoom = s.camZoom + driftZoom
-    camera.targetX = camera.x; camera.targetY = camera.y; camera.targetZoom = camera.zoom
-    camera.applyTransform(ctx, canvas)
-    if (s.left)  renderHybridFighter(s.left)
-    if (s.right) renderHybridFighter(s.right)
-    if (typeof camera.clearTransform === "function") camera.clearTransform(ctx)
-    camera.x = sv.x; camera.y = sv.y; camera.zoom = sv.zoom; camera.targetX = sv.tx; camera.targetY = sv.ty; camera.targetZoom = sv.tz
-  }
-  // 3) dialogue / narration box (screen space)
-  const boxH = Math.round(ch * 0.25), boxY = ch - boxH - 22, boxX = 40, boxW = cw - 80
-  ctx.save()
-  ctx.fillStyle = "rgba(8,10,20,0.86)"; ctx.fillRect(boxX, boxY, boxW, boxH)
-  ctx.strokeStyle = "rgba(140,120,255,0.55)"; ctx.lineWidth = 2; ctx.strokeRect(boxX, boxY, boxW, boxH)
-  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"
-  if (b.speaker) { ctx.fillStyle = "rgba(163,143,255,0.98)"; ctx.font = "800 25px Arial"; ctx.fillText(b.speaker, boxX + 28, boxY + 42) }
-  ctx.fillStyle = "#eef0ff"; ctx.font = (b.speaker ? "400" : "italic 400") + " 24px Arial"
-  _cutsceneWrapText(ctx, s.full.slice(0, Math.floor(s.reveal)), boxX + 28, boxY + (b.speaker ? 80 : 54), boxW - 56, 33)
-  if (s.reveal >= s.full.length && Math.floor(globalFrameCount / 26) % 2 === 0) {
-    ctx.fillStyle = "rgba(200,205,255,0.8)"; ctx.font = "600 17px Arial"; ctx.textAlign = "right"
-    ctx.fillText("▸  press any key", boxX + boxW - 22, boxY + boxH - 16)
-  }
-  ctx.restore()
-  // STAGE 2: fade-through-black veil over the WHOLE frame — full on a fresh cut, eased up by
-  // updateCutscene. Softens every beat-to-beat transition into a quick dissolve instead of a hard cut.
-  if (s.fade > 0) {
-    ctx.save(); ctx.fillStyle = `rgba(3,4,10,${s.fade.toFixed(3)})`; ctx.fillRect(0, 0, cw, ch); ctx.restore()
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
 // LOCAL TOURNAMENT BRACKET (Stage 24B) — single-elimination, best-of-3, 4 or 8 entrants (the human
 // is entrant 0; the rest are CPUs). The human plays their own path; all-CPU matches auto-resolve so
 // the bracket runs to completion. Persisted to the account (Stage 17) so it survives a reload.
@@ -4666,8 +4374,8 @@ function updateFFAAIInputs(live) {
     applyAIInputToKeys(f, getAIInput(f._aiController, f, target, { stage: getStageTheme(), roundNumber, mode: "ffa" }))
     markGsCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
     markSksCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
-    markInvCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
     markOmvCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
+    markInvCpu(f, f._aiController?.difficulty || matchConfig.aiDifficulty)
   }
 }
 
@@ -4712,10 +4420,10 @@ function updateFFACombat(fighter, others, opts) {
   playGsCues(fighter)
   tickSks(fighter,nearest,readRawControls(fighter)||{},SUKUNA_SHINJUKU_WORLD)
   playSksCues(fighter)
-  tickInv(fighter,nearest,readRawControls(fighter)||{},INVINCIBLE_WORLD)
-  playInvCues(fighter)
   tickOmv(fighter,nearest,readRawControls(fighter)||{},OMNIMAN_VILTRUM_WORLD)
   playOmvCues(fighter, camera)
+  tickInv(fighter,nearest,readRawControls(fighter)||{},INVINCIBLE_WORLD)
+  playInvCues(fighter)
   tickSyndrome(fighter,nearest,readRawControls(fighter)||{},SYNDROME_WORLD)
   tickDseyl(fighter,nearest,readRawControls(fighter)||{},SYNDROME_WORLD)
   playSyndromeCues(fighter)
@@ -4770,8 +4478,8 @@ function updateFFACombat(fighter, others, opts) {
   if (isHiguruma(fighter)) { const mc=updateHigurumaCommandCombat(fighter,inputState,nearest,HIGURUMA_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isGs(fighter)) { updateGsCommandCombat(fighter,inputState,nearest,GOJO_SHINJUKU_WORLD);ctrlState={} }   // Satoru Gojo (Shinjuku): every move starts in his command layer
   if (isSks(fighter)) { const mc=updateSksCommandCombat(fighter,inputState,nearest,SUKUNA_SHINJUKU_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Ryomen Sukuna (Shinjuku): every move starts in his command layer
-  if (isInv(fighter)) { const mc=updateInvCommandCombat(fighter,inputState,nearest,INVINCIBLE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Invincible (Mark Grayson): every move starts in his command layer
   if (isOmv(fighter)) { const mc=updateOmvCommandCombat(fighter,inputState,nearest,OMNIMAN_VILTRUM_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Omni-Man (Viltrumite): every move starts in his command layer
+  if (isInv(fighter)) { const mc=updateInvCommandCombat(fighter,inputState,nearest,INVINCIBLE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }   // Invincible (Mark Grayson): every move starts in his command layer
   if (isSyndrome(fighter)) { const mc=updateSyndromeCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isDseyl(fighter)) { const mc=updateDseylCommandCombat(fighter,inputState,nearest,SYNDROME_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
   if (isFrozone(fighter)) { const mc=updateFrozoneCommandCombat(fighter,inputState,nearest,FROZONE_WORLD);ctrlState=mc==='grab'?{grab:!!inputState.grab}:{} }
@@ -4939,8 +4647,8 @@ function _markRemoteInput(f) {
   if (isHiguruma(f)) f._higurumaRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isGs(f)) f._gsRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isSks(f)) f._sksRemoteInput = replay.isPlayback() || netMatch.isActive()
-  if (isInv(f)) f._invRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isOmv(f)) f._omvRemoteInput = replay.isPlayback() || netMatch.isActive()
+  if (isInv(f)) f._invRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isSyndrome(f)) f._syndromeRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isDseyl(f)) f._dseylRemoteInput = replay.isPlayback() || netMatch.isActive()
   if (isFrozone(f)) f._frozoneRemoteInput = replay.isPlayback() || netMatch.isActive()
@@ -5533,6 +5241,53 @@ function _rwbFly(f, tx, gy, faceOpp) {   // → true while still travelling
   else { f.x = tx; f.y = gy; f.vx = 0; f.hitstun = 0; f.grounded = f.onGround = true; f.facing = faceOpp; return false }
   return true
 }
+// FAST-FLYER LAP (2026-11-24 owner: "all the people who can fly super fast like Omni-Man, Invincible fly up and then they'll
+// dash around the entire map and then come back to their original spot and then crash down if they lost"). Rise → streak to
+// the FAR edge → sweep the whole map to the other edge (a high arc) → back over the mark → hover → drop. Winner: a hero
+// landing (dust puff). Loser: a CRASH — crater, cracks, debris, screen shake — they lie in it, get up, stand hurt.
+// Presentation only (resetRound replaces both fighters); frame-driven, no RNG.
+const RWB_LAPPERS = new Set(["omniman", "omniman_viltrum", "invincible", "superman", "superman_dcuc", "superman_new52", "superman_classic", "superman_fighter", "homelander", "goku", "goku_black", "goku_rose", "vegeta", "vegeta_dark", "frieza", "beerus", "iron_man", "iron_man_2", "iron_man_3", "green_lantern", "dseyl"])
+function _rwbLaps(f) { return RWB_LAPPERS.has((f.rosterKey || "").toLowerCase()) || (f.transformed && f.activeAlien === "jetray") }
+const RWB_LAP = { RISE: 18, A: 22, B: 30, C: 20, HOVER: 10, FALL_W: 14, FALL_L: 9, LIE: 28, GETUP: 22, HURT: 34, ALT: 250, ARC: 90 }
+function _rwbLap(f, tx, gy, faceOpp) {   // → true while the lap / landing is still playing
+  const S = f._rwbLapS || (f._rwbLapS = { t: 0, x0: f.x }), t = ++S.t, P = RWB_LAP
+  const k01 = v => Math.max(0, Math.min(1, v)), ease = k => k * k * (3 - 2 * k), lerp = (a, b, k) => a + (b - a) * k
+  const sw = getStageWorldWidth(), w = f.w || 60, m = 110, xL = m, xR = sw - m - w
+  const E1 = tx < sw / 2 ? xR : xL, E2 = tx < sw / 2 ? xL : xR   // far edge first, then sweep the whole map, then home
+  const R = P.RISE, a = R + P.A, b = a + P.B, c = b + P.C, h = c + P.HOVER, lost = !!f._rwbLost, fall = lost ? P.FALL_L : P.FALL_W, land = h + fall
+  f._rwbLapT = t
+  if (t <= land) { f.grounded = f.onGround = false; f.vy = 0; f.knockdownState = false; f.hitstun = 0 }
+  const top = gy - P.ALT, trail = () => rbfxTrail(f.x + w / 2, f.y + (f.h || 100) * 0.45, lost ? "#ffb0a0" : "#e8f4ff", t)
+  let nx = f.x
+  if (t <= R) { f.y = gy - P.ALT * ease(k01(t / R)); f.facing = faceOpp; f.dashTimer = 0 }
+  else if (t <= a) { const k = ease(k01((t - R) / P.A)); nx = lerp(S.x0, E1, k); f.y = top + 26 * Math.sin(Math.PI * k); f.facing = Math.sign(E1 - S.x0) || faceOpp; f.dashTimer = 2; trail() }
+  else if (t <= b) { const k = ease(k01((t - a) / P.B)); nx = lerp(E1, E2, k); f.y = top - P.ARC * Math.sin(Math.PI * k); f.facing = Math.sign(E2 - E1) || faceOpp; f.dashTimer = 2; trail() }
+  else if (t <= c) { const k = ease(k01((t - b) / P.C)); nx = lerp(E2, tx, k); f.y = top; f.facing = Math.sign(tx - E2) || faceOpp; f.dashTimer = 2; trail() }
+  else if (t <= h) { nx = tx; f.y = top + Math.sin(t * 0.3) * 4; f.facing = faceOpp; f.dashTimer = 0 }
+  else if (t <= land) { const k = k01((t - h) / fall); nx = tx; f.y = top + P.ALT * (lost ? k * k : ease(k)); f.facing = faceOpp; f.dashTimer = lost ? 2 : 0
+    if (t === land) { f.y = gy; f.grounded = f.onGround = true; rbfxImpact(tx + w / 2, gy + (f.h || 100), lost, t + (f === p1 ? 0 : 97))
+      if (typeof camera.shake === "function") camera.shake(lost ? 18 : 5, lost ? 26 : 8)
+      if (!lost) { f.x = tx; f.vx = 0; f.dashTimer = 0; f._rwbLapT = -1; return false } } }
+  else {   // the loser, in the crater: lie there → get up → stand hurt
+    const u = t - land; nx = tx; f.y = gy; f.grounded = f.onGround = true; f.dashTimer = 0; f.facing = faceOpp
+    if (u <= P.LIE) { f.knockdownState = true; f.knockdownTimer = 999 }
+    else if (u <= P.LIE + P.GETUP) { f.knockdownState = true; f.knockdownTimer = Math.max(1, P.LIE + P.GETUP - u) }
+    else if (u <= P.LIE + P.GETUP + P.HURT) { f.knockdownState = false; f.knockdownTimer = 0; f.hitstun = 2 }
+    else { f.hitstun = 0; f.knockdownState = false; f.vx = 0; f._rwbLapT = -1; return false }
+  }
+  f.vx = nx - f.x; f.x = nx
+  return true
+}
+let _rwbCamMin = null   // the match's camera.minZoom, lowered while a flyer laps (restored the moment the lap ends)
+function _rwbLapCamera() {   // the WHOLE MAP while anyone is lapping (camera.update would clamp the flyer into view)
+  if (_rwbCamMin == null) _rwbCamMin = camera.minZoom
+  const fit = Math.max(0.4, canvas.width / getStageWorldWidth())
+  camera.minZoom = Math.min(_rwbCamMin, fit)
+  camera.focusBetween(p1, p2, fit); camera.targetX = getStageWorldWidth() / 2
+  if (typeof camera.advance === "function") camera.advance(canvas, 0.03)
+}
+function _rwbLapCameraRelease() { if (_rwbCamMin != null) { camera.minZoom = _rwbCamMin; _rwbCamMin = null } }
+const RWB_HURT_BEAT = 36   // the loser, once up: a beat in the hurt pose before heading home
 function _rwbWalkSpeed(f) {   // the fighter's own ground walk speed (physics.js: clamp(4.5 + (speed - 78)/20·5, 4.5, 9.5) × WALK_FEEL 1.15)
   const raw = f.baseSpeed ?? f.speed ?? 85
   return Math.max(4.5, Math.min(9.5, 4.5 + (raw - 78) / 20 * 5)) * 1.15
@@ -5547,7 +5302,7 @@ function _roundWalkBack() {
     const o = f === p1 ? p2 : p1, down = (f.health || 0) <= 0
     if (fr === 1) {   // the fight stops: drop whatever was mid-flight
       f.attacking = false; f.currentAttack = null; f.currentMove = null; f.hitstun = 0; f.stun = 0; f.hitstop = 0; f.isBlocking = false; f.dashTimer = 0; f._spriteCastTimer = 0; f._tauntPlaying = false
-      f.vx = 0; f._rwbDown = down; f._rwbStart = null; f._rwbDash = null; f._rwbFly = null; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
+      f.vx = 0; f._rwbDown = down; f._rwbStart = null; f._rwbDash = null; f._rwbFly = null; f._rwbLapS = null; f._rwbLapT = null; f._rwbHurtT = null; if (down) { f.knockdownState = true; f.knockdownTimer = 999 }
       const side = f === p1 ? "p1" : "p2", start = matchStats.roundStartHealth?.[side] || f.maxHealth || 1000
       f._rwbHurt = down ? 1 : Math.max(0, Math.min(1, (start - (f.health || 0)) / (f.maxHealth || start || 1000)))   // share of the bar lost this round
       f._rwbLost = down || ((o.health || 0) > 0 && (f.health || 0) < (o.health || 0))   // the round's loser (KO'd, or behind on time); a draw has none
@@ -5565,6 +5320,13 @@ function _roundWalkBack() {
     } else if (fr < 40) { f.vx = 0; done = false; continue }
     const faceOpp = (o.x + (o.w || 0) / 2) >= (f.x + (f.w || 0) / 2) ? 1 : -1
     const d = tx - f.x
+    if (_rwbLaps(f)) {   // fast flyers: the lap (loser: + crash, lie, get up, hurt)
+      if (f._rwbLapT === -1) { f.x = tx; f.vx = 0; f.facing = faceOpp; continue }
+      if (_rwbLap(f, tx, gy, faceOpp)) { f._rwbBob = 1; done = false }
+      continue
+    }
+    if (f._rwbLost && f._rwbHurtT == null) f._rwbHurtT = RWB_HURT_BEAT   // the loser gets up INTO the hurt pose …
+    if (f._rwbHurtT > 0) { f._rwbHurtT--; f.hitstun = f._rwbHurtT > 0 ? 2 : 0; f.vx = 0; f.facing = faceOpp; done = false; continue }   // … holds it a beat, then heads home
     if (_rwbFlies(f) && (f._rwbFly ? f._rwbFly.t >= 0 : (Math.abs(d) >= 1 || f._rwbLost))) {   // flyers fly home (a loser always goes up first)
       if (f._rwbFly?.t === -1) continue
       if (_rwbFly(f, tx, gy, faceOpp)) { f._rwbBob = 1; done = false } else f._rwbFly.t = -1
@@ -5574,28 +5336,21 @@ function _roundWalkBack() {
     done = false
     if (f._rwbStart == null) f._rwbStart = fr
     const gone = fr - f._rwbStart, left = Math.max(1, RWB_MAX_WALK - gone)
-    if (_rwbDashes(f)) {   // a speedster: one dash, facing where they're going, straight onto the mark
-      if (f._rwbDash == null) f._rwbDash = Math.max(isSpeedTierTeleport(f) ? 38 : 24, Math.abs(d) / 18)   // ≤ ~0.3 s whatever the distance
+    {   // EVERYONE DASHES home now (owner 2026-11-24: "they should dash to their spot" — no more walking / limping back).
+        // Speedsters blink there; everyone else a quick dash (the hurt loser a touch slower). Facing where they're going.
+      const _sp = _rwbDashes(f) ? 24 : f._rwbLost ? 14 : 18
+      if (f._rwbDash == null) f._rwbDash = Math.max(isSpeedTierTeleport(f) ? 38 : _sp, Math.abs(d) / (_rwbDashes(f) ? 18 : f._rwbLost ? 30 : 24))
       const st = Math.sign(d) * Math.min(Math.abs(d), f._rwbDash)
       f.facing = Math.sign(d) || faceOpp; f.dashTimer = 2; f.x += st; f.vx = st
       if (Math.abs(tx - f.x) < 1) { f.x = tx; f.vx = 0; f.dashTimer = 0; f.facing = faceOpp }
       continue
     }
-    // a walker: their own walking pace (backpedalling, facing the opponent); hurt → a limp at ~60%; never > 5 s
-    f.facing = faceOpp
-    const hurt = f._rwbHurt || 0, limp = hurt >= 0.25, walk = _rwbWalkSpeed(f)
-    let v = limp ? walk * (0.7 - 0.2 * hurt) : walk
-    if (limp) { const ph = (fr * 0.16) % (Math.PI * 2), step = Math.abs(Math.sin(ph)); v *= 0.35 + 1.0 * step   // drag the bad leg: surge, stall
-      if (step < 0.35) { f._rwbBob = 1; f.y = gy + 3 } }                                                       // dip onto the hurt side
-    v = Math.max(v, Math.abs(d) / left)   // the 5-second floor
-    const st = Math.sign(d) * Math.min(Math.abs(d), v)
-    f.x += st; f.vx = st   // vx drives the walk / walk_back strip (facing the opponent → backpedal) and its cycle rate
   }
   // AFTERMATH: the loser bleeds a little from the moment they're up; once both are on their marks the winner taunts and
   // the loser stands hurt — then the next round (resetRound replaces both fighters)
   const L = p1._rwbLost ? p1 : p2._rwbLost ? p2 : null, W = L ? (L === p1 ? p2 : p1) : null
   if (L && !L._rwbDown && fr >= 40) rbfxBleed(L, fr, bloodFluidOf(L), juiceSettings.blood, L.groundY != null ? L.groundY : groundY)
-  rbfxTick()
+  rbfxTick(); rbfxTickLap()
   if (done && L) {
     if (_rwbTauntAt == null) _rwbTauntAt = fr
     if (fr - _rwbTauntAt < RWB_TAUNT) { rbfxPose(W, L); done = false } else rbfxClear(p1, p2)
@@ -5859,18 +5614,8 @@ function resetRound() {
   // run AFTER applySkin — applySkin resets spriteScale from the skin/char, which would clobber the
   // boss's ×scale otherwise.
   if (matchConfig.p2IsBoss) {
-    // Story finale supplies its OWN boss profile (its opponent has none); arcade boss reads the
-    // character's bossProfile. Gate the story profile on isStory() so it can never leak into an
-    // arcade boss fight, then merge so _applyBossProfile sees a profile either way.
-    const useStory = isStory() && matchConfig.storyBossProfile
-    _applyBossProfile(p2, useStory ? { ...matchConfig.p2Char, bossProfile: matchConfig.storyBossProfile } : matchConfig.p2Char)
-    if (useStory && matchConfig.storyBossName && p2) p2._bossName = matchConfig.storyBossName
+    _applyBossProfile(p2, matchConfig.p2Char)
   }
-  // Cutscene narrative fight: a single decisive round (first KO ends the match). Most opponents
-  // (ichigo/obito) have NO bossProfile, so _applyBossProfile is a no-op above and _isBoss stays
-  // unset → the match would run best-of-3 and a single KO would never end it. Force the single-round
-  // flag directly, WITHOUT any boss buffs (no super-armor / scale / free-meter). See _checkMatchOver.
-  if (matchConfig._cutsceneFight && p2) p2._isBoss = true
   // Edo Tensei vessel: stamp each Tobirama's chosen backup (falling back to a default so the
   // ultimate always has a body — e.g. an AI Tobirama, or a harness quick-start that skipped the UI).
   assignEdoBackup(p1, matchConfig.p1EdoBackup)
@@ -5948,8 +5693,8 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
-  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -6729,10 +6474,10 @@ function _replaySnap(f) {
   if (isGs(f)) snap.push(JSON.stringify([f._gs ? { ...f._gs, cues: undefined, fx: undefined } : null, f.currentAttack?.gs || null, f._gsHalf || 0]))   // Satoru Gojo (Shinjuku) GAME_STATE: CE, Infinity level / press, fields, imaginary mass, chant, cooldowns, burnout, domain / clash, CPU reaction
   if (isSks(f)) snap.push(JSON.stringify([f._sks ? { ...f._sks, cues: undefined, fx: undefined } : null, f.currentAttack?.sks || null, f._sksAmp || 0]))   // Ryomen Sukuna (Shinjuku) GAME_STATE: cuts, arrows, fire field, burns, Amplification, World Slash, Empowered window, CPU
   if (f && f._sksBurn) snap.push(JSON.stringify([f._sksBurn]))   // mark Ryomen Sukuna (Shinjuku) writes on a foe (Fuga burn)
-  if (isInv(f)) snap.push(JSON.stringify([f._inv ? { ...f._inv, cues: undefined, fx: undefined, decal: undefined } : null, f.currentAttack?.inv || null, f._invPhase || 0, f._invNoBlock || false]))   // Invincible GAME_STATE: zip, flight tap / boom, Can't Stay Down / Resolve, Terminal Velocity, CPU
-  if (f && f._invWall) snap.push(JSON.stringify([f._invWall]))   // mark Invincible writes on a foe (Invincible Punch wall-bounce watch)
   if (isOmv(f)) snap.push(JSON.stringify([f._omv ? { ...f._omv, cues: undefined, fx: undefined } : null, f.currentAttack?.omv || null, f._flightBrake || false]))   // Omni-Man (Viltrumite) GAME_STATE: speed history, boom arm, crash / landing timers, rushes, holds, Escape Velocity phases, CPU
   if (f && (f._omvWall || f._omvHeldBy != null)) snap.push(JSON.stringify([f._omvWall || null, f._omvHeldBy ?? null]))   // marks Omni-Man (Viltrumite) writes on a foe (wall bounce, held)
+  if (isInv(f)) snap.push(JSON.stringify([f._inv ? { ...f._inv, cues: undefined, fx: undefined, decal: undefined } : null, f.currentAttack?.inv || null, f._invPhase || 0, f._invNoBlock || false]))   // Invincible GAME_STATE: zip, flight tap / boom, Can't Stay Down / Resolve, Terminal Velocity, CPU
+  if (f && f._invWall) snap.push(JSON.stringify([f._invWall]))   // mark Invincible writes on a foe (Invincible Punch wall-bounce watch)
   if (f && (f._gsTechBurnout || f._gsSawInfinity != null)) snap.push(JSON.stringify([f._gsTechBurnout || 0, f._gsSawInfinity ?? null]))   // marks Gojo (Shinjuku) writes on an opponent (clash burnout, what the CPU has seen)
   if (isSyndrome(f)) snap.push(JSON.stringify([f._syndrome ? { ...f._syndrome, cues: undefined } : null, f.currentAttack?.sy || null]))   // Syndrome GAME_STATE (machine slots / squads / turret / Omnidroid action / Zero-Point hold / press edges / move descriptor; render cue queue excluded)
   if (isDseyl(f)) snap.push(JSON.stringify([f._dseyl ? { ...f._dseyl, cues: undefined } : null, f.currentAttack?.sy || null]))   // Dseyl GAME_STATE (machine slots / squads / turret / Omnidroid action / Zero-Point hold / press edges / move descriptor; render cue queue excluded)
@@ -7181,8 +6926,8 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
-  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -10865,11 +10610,6 @@ function _checkMatchOver() {
       ls.roundsWon === 0 && ws.roundsWon > 0 && ws.perfectRounds === ws.roundsWon)
     victoryState.subtitle = ""
     victoryState.primaryLabel = "REMATCH"
-    // STORY CUTSCENE FIGHT: this isn't a standalone versus match — winning must continue the scene, so the
-    // primary button is "CONTINUE" (its click → the "rematch" action → resumeCutsceneAfterFight, below). None
-    // of the tower/arcade/bracket/story blocks fire here (mode is "vs"), so this default would otherwise leave
-    // a misleading "REMATCH" and Enter would drop the player to the menu. (See victory keydown handler.)
-    if (matchConfig._cutsceneFight) { victoryState.subtitle = "THE STORY CONTINUES"; victoryState.primaryLabel = "CONTINUE" }
     // PROGRESSION (Task 3): award XP from the local player's (P1) perspective.
     // Skip training. Tower mode handles its own flow (advance/end) in updateTowerOutcome.
     if (matchConfig.mode !== "training" && matchConfig.mode !== "aivsai") {
@@ -10929,9 +10669,6 @@ function _checkMatchOver() {
       const rd = bracketState.round + 1, total = bracketState.rounds.length
       victoryState.subtitle = winner === "p1" ? `TOURNAMENT · ROUND ${rd} WON` : `TOURNAMENT · ELIMINATED (round ${rd})`
       victoryState.primaryLabel = "BRACKET"
-    }
-    if (isStory()) {
-      updateStoryOutcome(winner)     // Story: persist the chapter clear (unlocks next) + set the beat prompt
     }
     sound.stopMusic?.()
     sound.play?.(SFX.KO)
@@ -11440,8 +11177,8 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearHiguruma(_f)
   for (const _f of [p1, p2]) if (_f) { clearGs(_f); clearGsMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearSks(_f); clearSksMarks(_f) }
-  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) { clearOmv(_f); clearOmvMarks(_f) }
+  for (const _f of [p1, p2]) if (_f) { clearInv(_f); clearInvMarks(_f) }
   for (const _f of [p1, p2]) if (_f) clearSyndrome(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearDseyl(_f,SYNDROME_WORLD)
   for (const _f of [p1, p2]) if (_f) clearFrozone(_f,FROZONE_WORLD)
@@ -11570,10 +11307,10 @@ function updateCPUInput() {
       updateGokuCpuAI(p1, p2, getAbilityContext(), roundTimer / ROUND_TIME)
       _driveCpu(p1, p1AI, p2, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
       markGsCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
-      markGfCpu(p1)   // CPU Ghostface: the P ↓↓ J/K Killer Dial
       markSksCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
-      markInvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
       markOmvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
+      markInvCpu(p1, baseAiDifficulty(matchConfig.aiDifficulty))
+      markGfCpu(p1)   // CPU Ghostface: the P ↓↓ J/K Killer Dial
     }
     if (isTransformDevice(p2)) benCpuDrive(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), matchConfig?.seed || 1, 1)
     if (p2?._squad) spdSquadCpu(p2, p1, baseAiDifficulty(matchConfig.aiDifficulty), SPD_SQUAD_WORLD)
@@ -11581,10 +11318,10 @@ function updateCPUInput() {
     _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: "aivsai" })
     markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
-    markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     markOmvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
+    markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))
     markGfCpu(p2)   // CPU Ghostface: the P ↓↓ J/K Killer Dial (ghostfaceKiller.js)
-    return   // (was ABOVE the P2 marks — those CPU layers never ran for P2 in AI vs AI)
+    return   // (was ABOVE the P2 marks — CPU Sukuna / Omni-Man / Invincible as P2 in AI vs AI never got their CPU layer)
   }
   if (isPvP()) { if (!isKevin(p2)) clearAIControlKeys(p2); return }
   const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
@@ -11602,9 +11339,9 @@ function updateCPUInput() {
   _driveCpu(p2, p2AI, p1, { stage: getStageTheme(), roundNumber, mode: matchConfig.mode })
   if (matchConfig.mode !== "training") markGsCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Gojo (Shinjuku): reacts to a coming super with Infinity (never reads the foe's hidden state)
   if (matchConfig.mode !== "training") markSksCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Sukuna (Shinjuku): Dismantle at range, Cleave close, Spiderweb on traps, Amplification only vs Infinity
-  if (matchConfig.mode !== "training") markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Invincible: rushdown, Zip on hit, guards below 30 %, Terminal Velocity on knockdowns
   if (matchConfig.mode !== "training") markOmvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Omni-Man (Viltrumite)
   if (matchConfig.mode !== "training") markGfCpu(p2)   // CPU Ghostface: swaps killers with the same P ↓↓ J/K gesture a player uses (ghostfaceKiller.js)
+  if (matchConfig.mode !== "training") markInvCpu(p2, baseAiDifficulty(matchConfig.aiDifficulty))   // CPU Invincible: rushdown, Zip on hit, guards below 30 %, Terminal Velocity on knockdowns
 
   // TRAINING dummy-behavior override (block/jump for punish/timing practice). Applied
   // AFTER the AI keys are written, and ONLY in training — this is training-specific state,
@@ -11680,8 +11417,7 @@ function handlePauseInput(key) {
       moveListReturnState = GAME_STATES.PAUSED; gameState = GAME_STATES.MOVE_LIST
     }
     else if (sel === "profile")  openProfileScreen(GAME_STATES.PAUSED)   // BACK returns to the pause menu (match stays frozen)
-    else if (sel === "codex")    openCodexScreen(GAME_STATES.PAUSED)
-    else if (sel === "controls") openControlsScreen(GAME_STATES.PAUSED)   // Track A: device-aware button legend (BACK → pause)
+    else if (sel === "controls") { sound.play?.(SFX.UI_SELECT); window.location.href = "controls.html" }   // CONTROLS → the Controls Lab page (controls.html)   // Track A: device-aware button legend (BACK → pause)
     else if (sel === "comboTrials") openComboTrialsScreen(GAME_STATES.PAUSED)   // Combo Trials mission mode (BACK → pause)
     else if (sel === "reportIssue") openFeedbackPrompt(GAME_STATES.PAUSED)      // Track C: beta bug/feedback capture prompt
     else if (sel === "trainingMode") {
@@ -12153,8 +11889,8 @@ function handleChargeRelease(fighter, key) {
   // Gated on traits.flightProfile → separate from the simple canFly path below (no collision).
   if (isDseyl(fighter)) return   // DSEYL: his Charge-tap flight toggle is measured on the SIM clock in dseylPowers.js (deterministic), not here
   if (isGs(fighter)) return   // SATORU GOJO (Shinjuku): Charge = Infinity / RCT / Falling Blossom, measured on the SIM clock in gojoShinjukuState.js
-  if (isInv(fighter)) return   // INVINCIBLE: his Charge-tap takeoff / come-down is measured on the SIM clock in invincibleState.js (deterministic)
   if (isOmv(fighter)) return   // OMNI-MAN (Viltrumite): his Charge-tap takeoff / come-down is measured on the SIM clock in omnimanViltrumState.js (deterministic)
+  if (isInv(fighter)) return   // INVINCIBLE: his Charge-tap takeoff / come-down is measured on the SIM clock in invincibleState.js (deterministic)
   if (fighter.traits?.flightProfile) { flightToggleInput(fighter); return }
   if (fighter.traits?.canFly) { toggleOmniManFlight(fighter); return }
   if (fighter.rosterKey === "gojo") {
@@ -12815,6 +12551,7 @@ function updateTauntState(fighter, downHeld) {
 }
 
 function updateMovementInput(fighter) {
+  if (fighter) dnaScanTick(fighter, getOpponent(fighter))   // DNA SCAN (dnaScan.js): ↓+U scan / U+L transform — before every kit reads input
   const kevinRaw = isKevin(fighter) ? readRawControls(fighter) || {} : null
   if (kevinRaw) {
     const target=gameState===GAME_STATES.FFA_BATTLE ? ffaNearest(fighter,ffaAliveFighters()) : getOpponent(fighter)
@@ -13275,10 +13012,10 @@ function _updatePlayerCombatBody(fighter) {
   playGsCues(fighter)
   tickSks(fighter,getOpponent(fighter),readRawControls(fighter)||{},SUKUNA_SHINJUKU_WORLD)
   playSksCues(fighter)
-  tickInv(fighter,getOpponent(fighter),readRawControls(fighter)||{},INVINCIBLE_WORLD)
-  playInvCues(fighter)
   tickOmv(fighter,getOpponent(fighter),readRawControls(fighter)||{},OMNIMAN_VILTRUM_WORLD)
   playOmvCues(fighter, camera)
+  tickInv(fighter,getOpponent(fighter),readRawControls(fighter)||{},INVINCIBLE_WORLD)
+  playInvCues(fighter)
   tickSyndrome(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD)
   tickDseyl(fighter,getOpponent(fighter),readRawControls(fighter)||{},SYNDROME_WORLD)
   playSyndromeCues(fighter)
@@ -13557,12 +13294,12 @@ function _updatePlayerCombatBody(fighter) {
     const mc=updateSksCommandCombat(fighter,inputState,getOpponent(fighter),SUKUNA_SHINJUKU_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
-  if (isInv(fighter)) {   // Invincible (Mark Grayson) command layer: 'consumed' | 'grab'
-    const mc=updateInvCommandCombat(fighter,inputState,getOpponent(fighter),INVINCIBLE_WORLD)
-    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
-  }
   if (isOmv(fighter)) {   // Omni-Man (Viltrumite) command layer: 'consumed' | 'grab'
     const mc=updateOmvCommandCombat(fighter,inputState,getOpponent(fighter),OMNIMAN_VILTRUM_WORLD)
+    updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
+  }
+  if (isInv(fighter)) {   // Invincible (Mark Grayson) command layer: 'consumed' | 'grab'
+    const mc=updateInvCommandCombat(fighter,inputState,getOpponent(fighter),INVINCIBLE_WORLD)
     updateCombat(fighter,getOpponent(fighter),mc==='grab'?{grab:!!inputState.grab}:{},opts); return
   }
   if (isMr(fighter)) { mrCommand(fighter); updateCombat(fighter,getOpponent(fighter),{},opts); return }
@@ -21862,6 +21599,8 @@ function _trainingKeyPressed(k) {
 // immediately without leaving the mode.
 function resetTraining() {
   dummyRec.idx = 0   // F2 restarts a recorded playback loop from its first frame
+  clearCloneFighters()   // clone fighters leave on a training reset
+  clearRengokuFlameExplosionCinematic()   // also cancels any running ult PRE-ROLL (demonSlayerCinematics) — a reset mid-pre-roll must not leave the world frozen / fire the ult later
   if (!p1 || !p2) return
   const { p1X, p2X } = getSpawnPositions()
   ;[[p1, p1X, 1], [p2, p2X, -1]].forEach(([f, x, facing]) => {
@@ -21897,8 +21636,8 @@ function resetTraining() {
     clearHiguruma(f)
     clearGs(f); clearGsMarks(f)
     clearSks(f); clearSksMarks(f)
-    clearInv(f); clearInvMarks(f)
     clearOmv(f); clearOmvMarks(f)
+    clearInv(f); clearInvMarks(f)
     clearSyndrome(f,SYNDROME_WORLD)
     clearDseyl(f,SYNDROME_WORLD)
     clearFrozone(f,FROZONE_WORLD)
@@ -23095,6 +22834,26 @@ function updateBattle() {
       spriteFrames: hit.spriteFrames, spriteW: hit.spriteW, spriteH: hit.spriteH, spriteScale: hit.spriteScale
     }, {})
   }, getStageWorldWidth())   // clamp clone/finisher placement to the current stage width (audit wall-clip fix)
+  // CLONE FIGHTERS — each clone arrives through its element, runs in and fights on its own, then leaves (cloneFighter.js).
+  // Hits use the same clone-hit / projectile primitives as the choreography above; the foe's live attack box or shots pop a clone.
+  updateCloneFighters({ worldW: getStageWorldWidth(), hurtbox: f => getHurtbox(f),
+    strike: (caster, target, hit, dirSign, body) => {
+      if (hit.projectile) {
+        const sx = (body.x || 0) + (body.w || 0) / 2, sy = (body.y || 0) + (body.h || 100) * 0.4
+        const proj = spawnProjectile(caster, "cloneChoreoProjectile", { damage: hit.damage, hitstun: hit.hitstun, knockbackX: hit.knockbackX || 6, knockbackY: hit.knockbackY || 0,
+          speed: 0, vx: dirSign * (hit.speed || 14), lifetime: hit.lifetime || 60, w: hit.w || 30, h: hit.h || 30, color: hit.color || "#7dd3fc", sheet: hit.sheet, spriteScale: hit.big ? 0.75 : 0.5, spawnX: sx, spawnY: sy }, {})
+        if (proj) { proj.x = sx; proj.y = sy; proj.vx = dirSign * (hit.speed || 14) }
+        return
+      }
+      spawnGuaranteedCloneHit(caster, target, hit.fxType || "cloneChoreoHit", { damage: hit.damage, hitstun: hit.hitstun, knockbackX: hit.knockbackX || 0, knockbackY: hit.knockbackY || 0,
+        dirSign, w: 40, h: 60, color: hit.color, sheet: hit.sheet, spriteScale: hit.spriteScale }, {})
+    },
+    threats: (opp) => {
+      const out = [], ab = SPD_RED_WORLD.attackBox(opp)
+      if (ab) out.push({ box: ab, consume: () => { if (opp.currentAttack) opp.currentAttack.hasHit = true } })
+      for (const p of activeProjectiles) if (p.owner === opp) { const r = p.radius || (p.w || 20) / 2; out.push({ box: { x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 }, consume: () => { const i = activeProjectiles.indexOf(p); if (i >= 0) activeProjectiles.splice(i, 1) } }) }
+      return out
+    } })
 
   // CLONE HIT-REVEAL (melee) — AUTHORITATIVE pass, run at the exact frame real hits resolved above so a
   // swing that overlaps an opponent's shadow clone reliably poofs it (fixes "clones are hit-or-miss").
@@ -23345,7 +23104,7 @@ function renderHybridFighter(fighter) {
       if (_sx !== 1 || _sy !== 1 || _lean) { const ax = fighter.x + (fighter.w || 60) / 2, ay = fighter.y + (fighter.h || 100); c.translate(ax + _lean, ay); c.scale(_sx, _sy); c.translate(-ax, -ay) }
     }
     // Megumi Shadow Sink — fade the body out as he submerges and back in as he emerges (procedural, no new art).
-    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (fighter._invAlpha ?? 1) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1)   // × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
+    const _ssA = _shadowSinkBodyAlpha(fighter) * spdRedBodyAlpha(fighter) * ninjaBodyAlpha(fighter) * ninjaStormBodyAlpha(fighter) * dashParrBodyAlpha(fighter) * (fighter._invAlpha ?? 1) * (benReadyForm(fighter)?.bodyAlpha?.(fighter) ?? 1) * (fighter._sksAlpha || 1)   // × MSV1-SUKUNA Datto see-through (render-only) × S.P.D. Red blink dissolve × READY Omnitrix form body alpha (Ghostfreak Intangible 40 %; render-only) (1 for everyone else)
     if (_ssA < 1) { c.save(); c.globalAlpha = _ssA }
     if (_ssA === 0 && (dashParrBodyAlpha(fighter) === 0 || ninjaBodyAlpha(fighter) === 0)) { c.beginPath(); c.rect(0, 0, 0, 0); c.clip() }   // Dash: body fully hidden while Laps / Incredi-Rush draw him at render offsets (the sprite's tint + transition-ghost passes reset globalAlpha)
     if (fighter.hasSprites && fighter.spriteHandler && spritesReady(key)) {
@@ -23420,8 +23179,8 @@ function renderHybridFighter(fighter) {
     drawHigurumaFx(c, fighter)   // Higuruma — Case File marks, PRECEDENT, OBJECTION, Order-in-the-Court dust ring, sword stroke, skin material (render-only; higuruma only)
     drawGsFx(c, fighter, matchConfig.mode === "training")   // Satoru Gojo (Shinjuku) — Blue / Red / Purple, chant captions, nosebleed; Infinity draws NOTHING (training debug ring only) (render-only; gated)
     drawSksFx(c, fighter); drawSksBurn(c, fighter, _replayFrame)   // Ryomen Sukuna (Shinjuku) — cuts, Fuga, web crack, fire patches, World Slash, Amplification outline, chant captions, bubbles; Fuga burn embers on any fighter (render-only; gated)
-    drawInvFx(c, fighter)   // Invincible — sheet effect strips, Terminal Velocity glint / marker / cracks, Resolve aura, bubbles (render-only; gated)
     drawOmvFx(c, fighter)   // Omni-Man (Viltrumite) — speed lines, afterimage trail, sonic boom, crash / landing bursts, bubbles (render-only; gated)
+    drawInvFx(c, fighter)   // Invincible — sheet effect strips, Terminal Velocity glint / marker / cracks, Resolve aura, bubbles (render-only; gated)
     drawBatmanFx(c, fighter)   // Batman — support fleet, payloads, batarang / grapnel lines, smoke, bracket, explosions, KNIGHTFALL aircraft (render-only; batman only)
     drawVioletFx(c, fighter)   // Violet Parr — push ring, dome, shell, trap bubble + telegraph, FULL FORCE (render-only; violet only)
     drawElastigirlFx(c, fighter)   // Elastigirl — slingshot arm to the anchor, parachute shadow ovals, guard / raft splash (render-only; elastigirl only)
@@ -25219,6 +24978,7 @@ function drawBattleScene() {
   // GENERIC clone choreography ghost bodies (rest of the Naruto-universe roster) — same renderHybridFighter
   // path, so each clone is pixel-identical to its real character (the Stage-0 visual-fidelity guarantee).
   for (const g of getCloneChoreoBodies()) drawCloneGhost(ctx, g, renderHybridFighter)
+  for (const g of getCloneFighterBodies()) { ctx.save(); ctx.globalAlpha *= 0.92; drawCloneGhost(ctx, g, renderHybridFighter); ctx.restore() }   // CLONE FIGHTERS (real sprite; water / wood wash from the profile)
   drawCloneFx(ctx)   // MSV1-CLONES: rings, smoke / water / wood arrivals + exits (render-only)
   // CLONE-SUMMON SELECT HINT (ease-of-use, 2026-10-07) — while a formation is staged, show the available
   // picks so the summon-then-select is discoverable. Drawn in SCREEN space (reset transform, then restore the
@@ -25232,8 +24992,10 @@ function drawBattleScene() {
     ctx.textAlign = "center"
     ctx.fillStyle = "#bfe0ff"; ctx.font = "700 12px Arial"; ctx.fillText(`CLONE SELECT  — hold a direction + Special   (${Math.ceil(win / 60 * 10) / 10}s)`, cx, by + 16)
     ctx.fillStyle = "#e9f1ff"; ctx.font = "13px Arial"
-    ctx.fillText("◉ Pure Attack     ↓ Deception     ↑ Defensive", cx, by + 33)
-    ctx.fillText("← Ranged     → Grab     Ultimate = Swarm", cx, by + 48)
+    const _cfF = [p1, p2].find(f => f && f._inChoreoFormation && isCloneFighterCaster(f)), _cfP = _cfF && cloneFighterProfile(_cfF.rosterKey)   // CLONE FIGHTERS: this character's pick names
+    const _cfN = d => { const st = _cfP && Object.values(_cfP.sets).find(x => x.dir === d); return st ? st.name.replace(/^(Water|Wood|Shadow) Clone /, "") : "—" }
+    ctx.fillText(_cfP ? `◉ ${_cfN("N")}   → ${_cfN("F")}   ↑ ${_cfN("U")}` : "◉ Pure Attack     ↓ Deception     ↑ Defensive", cx, by + 33)
+    ctx.fillText(_cfP ? `← ${_cfN("B")}   ↓ ${_cfN("D")}   Ult = ${_cfN("SWARM")}` : "← Ranged     → Grab     Ultimate = Swarm", cx, by + 48)
     ctx.restore()
   }
   drawOmoluFlashFX(ctx)   // Omololu Flash Time — cyan speed-aura on omololu + blue stasis glow on the slowed foe
@@ -25251,7 +25013,7 @@ function drawBattleScene() {
   drawFrozoneOver(ctx, p1, p2, FROZONE_WORLD)   // Frozone — ice strikes, lance, guard plate, Chill pips, freeze shell, shatter fragments (render-only; gated)
   drawEnochOver(ctx, p1, p2, ENOCH_WORLD)
   drawFlyerIntroOver(ctx, [p1, p2]); drawEntranceOver(ctx)   // flight entrances: trails, sonic booms, debris, heat-vision beams (world, over the fighters)
-  rbfxDraw(ctx)   // round walk-back aftermath: the loser's blood drips + pools (world space)
+  rbfxDrawLap(ctx); rbfxDraw(ctx)   // round walk-back aftermath (+ flyer lap trails / crash craters): the loser's blood drips + pools (world space)
   drawSignatureFatalityOver(ctx)   // SIGNATURE FATALITY: the technique + the victim's redrawn sprite (world space, over the fighters)   // Enoch — visor beam, reaction bursts, steam clouds (capped), super presentation (render-only; gated)
   drawMrEffects(ctx,p1,p2) // restrained form flash / skin-coordinated impact rings
   drawKevinFx(ctx,[p1,p2])
@@ -25280,6 +25042,7 @@ function drawBattleScene() {
   drawJuiceFxWorld(ctx)   // JUICE (Phase 2): explosion fireball/debris/smoke/shockwave/swell (world space, over sparks)
   if (!brutalityState.active) drawAnimeJuiceWorld(ctx, p1, p2)   // ANIME JUICE: gather spirals, ready pillar, parry sparks, gatling rings, slash cuts
   if (trainingState.enabled && !signatureFatalityActive() && !screenBreakerActive()) drawTrainingCollisionBoxes(ctx, [p1, p2], getAttackHitbox)   // (hidden while a finisher plays — Controls Lab demos)
+  if (trainingState.enabled && !signatureFatalityActive() && !screenBreakerActive()) drawTrainingCollisionBoxes(ctx, cloneFighterBoxes().map(b => ({ ...b.hurt, attackHitbox: b.hit })))   // CLONE FIGHTERS: their drawn-size hurt (blue) / attack (red) boxes
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
   if (_hlMapRun()?.phase !== "run") drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
@@ -25376,8 +25139,8 @@ function drawBattleHud() {
   drawHigurumaHud(ctx, canvas, p1, p2)   // Higuruma: Case File marks + PRECEDENT under his health; Deadly Sentencing captions / CASE REVIEW / portrait cut-in (gated)
   drawGsHud(ctx, canvas, p1, p2)   // Satoru Gojo (Shinjuku): CE bar (Infinity's only tell), Void cooldown, burnout, FBE / RCT cooldowns (gated)
   drawSksHud(ctx, canvas, p1, p2)   // Ryomen Sukuna (Shinjuku): Amplification / cooldown, Empowered Fuga window, burnout (gated)
-  drawInvHud(ctx, canvas, p1, p2)   // Invincible: Resolve / Can't Stay Down / zip charges (gated)
   drawOmvHud(ctx, canvas, p1, p2)   // Omni-Man (Viltrumite): speed meter, BRAKE / COMMITTED, Unimpressed cooldown (gated)
+  drawInvHud(ctx, canvas, p1, p2)   // Invincible: Resolve / Can't Stay Down / zip charges (gated)
   drawSyndromeHud(ctx, canvas, p1, p2)   // Syndrome: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
   drawDseylHud(ctx, canvas, p1, p2)   // Dseyl: machine slot readout under his health; Operation Kronos cut-in / captions (gated)
   drawFrozoneHud(ctx, canvas, p1, p2)   // Frozone: Black Ice / Freeze / air-skate readout under his health; Absolute Zero cut-in (gated)
@@ -26150,7 +25913,11 @@ function getMusicSourceRects() {
     { source: "custom",       label: "My Playlist",  x: PLAYLIST_X0 + (w + gap) * 2, y: MUSIC_SRC_Y, w, h: MUSIC_SRC_H }
   ]
 }
-const buildPlaylistRect = { x: PLAYLIST_X0, y: 336, w: PLAYLIST_W, h: 26 }
+const buildPlaylistRect = { x: PLAYLIST_X0, y: 336, w: 172, h: 26 }
+// MENU MUSIC EVERYWHERE toggle (right of the build button): ON = the menu playlist keeps playing through
+// matches in strict order (never restarts); OFF (default) = each match plays its own stage music as before.
+const menuEverywhereRect = { x: PLAYLIST_X0 + 178, y: 336, w: PLAYLIST_W - 178, h: 26 }
+let _mlView = null             // MUSIC_LIBRARY: ready-made playlist being viewed (null = all songs)
 let _musicSourceMsg = ""       // feedback shown above the source buttons after a selection
 let _musicSourceOk = false     // true = source applied (green), false = fell back to default (amber)
 // Custom-playlist builder (MUSIC_LIBRARY screen) working state.
@@ -26428,7 +26195,11 @@ function drawSettingsScreen() {
   box(buildPlaylistRect, "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.6), 1.5, false, 7)
   const customCount = (musicLibrary.getCustomPlaylist?.(getCurrentAccount()) || []).length
   ctx.fillStyle = "#cfe3ff"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
-  ctx.fillText(customCount ? `🎵 Edit My Playlist (${customCount})` : "🎵 Build My Playlist", buildPlaylistRect.x + buildPlaylistRect.w / 2, buildPlaylistRect.y + 18)
+  ctx.fillText(customCount ? `🎵 Edit Playlist (${customCount})` : "🎵 Pick Playlists", buildPlaylistRect.x + buildPlaylistRect.w / 2, buildPlaylistRect.y + 18)
+  { const on = !!musicLibrary.getMenuEverywhere?.()
+    box(menuEverywhereRect, on ? "rgba(20,60,30,0.92)" : "rgba(26,34,48,0.9)", on ? "#4ade80" : "rgba(120,170,255,0.3)", on ? 2 : 1, on, 7)
+    ctx.fillStyle = on ? "#c8ffd8" : "#c4d2e6"; ctx.font = "700 12px Arial"
+    ctx.fillText(on ? "In Matches Too: ON" : "In Matches Too: OFF", menuEverywhereRect.x + menuEverywhereRect.w / 2, menuEverywhereRect.y + 17) }
   ctx.textAlign = "left"
   ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
   ctx.fillText("NOW PLAYING — click a song · ▲/▼ reorder", PLAYLIST_X0, PLAYLIST_Y0 - 16)
@@ -26499,8 +26270,20 @@ function drawSettingsScreen() {
 const ML_ROW_H = 34
 function getMusicLibraryLayout() {
   const cw = canvas.width, ch = canvas.height
-  const lib = musicLibrary.getLibrary()
-  const vp = { x: cw / 2 - 340, y: 116, w: 680, h: Math.max(ML_ROW_H, ch - 116 - 84) }
+  const all = musicLibrary.getLibrary()
+  // READY-MADE PLAYLISTS sidebar (left): click a name to VIEW its songs, click its box to add/remove ALL of them.
+  const pls = musicLibrary.getPlaylists?.() || []
+  const view = _mlView && pls.find(p => p.id === _mlView)
+  const viewSet = view ? new Set(view.files) : null
+  const lib = viewSet ? all.filter(s => viewSet.has(s.file)) : all
+  const sideW = 240, gap = 14, listW = Math.min(620, cw - sideW - gap - 32)
+  const x0 = Math.max(16, cw / 2 - (sideW + gap + listW) / 2)
+  const vp = { x: x0 + sideW + gap, y: 116, w: listW, h: Math.max(ML_ROW_H, ch - 116 - 84) }
+  const SB_H = Math.max(26, Math.min(36, Math.floor(vp.h / (pls.length + 1)) - 4))
+  const side = [{ id: null, name: "All Songs", files: all.map(s => s.file) }, ...pls].map((p, i) => {
+    const y = vp.y + i * (SB_H + 4)
+    return { id: p.id, name: p.name, files: p.files, rect: { x: x0, y, w: sideW, h: SB_H }, boxRect: { x: x0 + sideW - SB_H - 2, y: y + 2, w: SB_H - 4, h: SB_H - 4 } }
+  })
   const contentH = lib.length * ML_ROW_H
   const maxScroll = Math.max(0, contentH - vp.h)
   const scroll = Math.max(0, Math.min(_mlScroll, maxScroll))
@@ -26523,7 +26306,7 @@ function getMusicLibraryLayout() {
   const selAllRect = { x: vp.x + 212,         y: by, w: 110, h: bh }
   const clearRect  = { x: vp.x + 212 + 122,   y: by, w: 96,  h: bh }
   const cancelRect = { x: vp.x + vp.w - 140,  y: by, w: 140, h: bh }
-  return { lib, vp, contentH, maxScroll, scroll, rows, track, thumb, saveRect, selAllRect, clearRect, cancelRect }
+  return { lib, all, side, view, vp, contentH, maxScroll, scroll, rows, track, thumb, saveRect, selAllRect, clearRect, cancelRect }
 }
 function _mlScrollBy(dy) {
   const L = getMusicLibraryLayout()
@@ -26543,7 +26326,23 @@ function drawMusicLibraryScreen() {
   ctx.fillStyle = "#cfe3ff"; ctx.font = "900 30px Arial"
   ctx.fillText("BUILD YOUR PLAYLIST", cw / 2, 52)
   ctx.fillStyle = "#8fb3e6"; ctx.font = "15px Arial"
-  ctx.fillText(`${_mlSel.size} of ${L.lib.length} songs selected  ·  click to toggle`, cw / 2, 82)
+  ctx.fillText(`${_mlSel.size} of ${L.all.length} songs selected  ·  ${L.view ? L.view.name + " — " : ""}click a song to toggle · ☐ beside a playlist = whole playlist`, cw / 2, 82)
+  // Ready-made playlists sidebar.
+  for (const sp of L.side) {
+    const viewing = (sp.id || null) === (_mlView || null)
+    const n = sp.files.filter(f => _mlSel.has(f)).length
+    const full = n === sp.files.length && n > 0
+    box(sp.rect, viewing ? "rgba(32,64,106,0.95)" : "rgba(22,30,44,0.88)", viewing ? "#63b3ff" : "rgba(120,170,255,0.22)", viewing ? 2 : 1, viewing, 6)
+    ctx.textAlign = "left"; ctx.fillStyle = viewing ? "#e6f2ff" : "#c4d2e6"; ctx.font = viewing ? "700 13px Arial" : "13px Arial"
+    ctx.fillText(sp.name, sp.rect.x + 10, sp.rect.y + sp.rect.h / 2 + 4)
+    ctx.fillStyle = "#8fb3e6"; ctx.font = "11px Arial"; ctx.textAlign = "right"
+    ctx.fillText(`${n}/${sp.files.length}`, sp.boxRect.x - 8, sp.rect.y + sp.rect.h / 2 + 4)
+    box(sp.boxRect, full ? "#2f6fb0" : n ? "rgba(40,70,110,0.9)" : "rgba(10,16,28,0.9)", full ? "#8ef5a8" : "rgba(140,170,210,0.5)", 1.5, false, 4)
+    ctx.textAlign = "center"; ctx.fillStyle = "#8ef5a8"; ctx.font = "700 14px Arial"
+    if (full) ctx.fillText("✓", sp.boxRect.x + sp.boxRect.w / 2, sp.boxRect.y + sp.boxRect.h / 2 + 5)
+    else if (n) ctx.fillText("–", sp.boxRect.x + sp.boxRect.w / 2, sp.boxRect.y + sp.boxRect.h / 2 + 5)
+  }
+  ctx.textAlign = "center"
 
   // Viewport backing + clipped rows.
   box(L.vp, "rgba(14,22,38,0.9)", "rgba(120,170,255,0.25)", 1, false, 8)
@@ -26572,7 +26371,7 @@ function drawMusicLibraryScreen() {
   // Action bar.
   const drawBtn = (r, label, fill, edge) => { box(r, fill, edge, 1.5, true); ctx.fillStyle = "#fff"; ctx.font = "700 16px Arial"; ctx.textAlign = "center"; ctx.fillText(label, r.x + r.w / 2, r.y + 26); ctx.textAlign = "left" }
   drawBtn(L.saveRect,   `Save Playlist (${_mlSel.size})`, "rgba(20,60,30,0.92)", "#4ade80")
-  drawBtn(L.selAllRect, "Select All", "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.7))
+  drawBtn(L.selAllRect, L.view ? "Add All" : "Select All", "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.7))
   drawBtn(L.clearRect,  "Clear", "rgba(40,30,20,0.92)", "#e0a054")
   drawBtn(L.cancelRect, "Cancel", "rgba(60,20,20,0.92)", "#e05454")
 }
@@ -26586,10 +26385,6 @@ let _lastHoverCharKey = null   // char-select: last focused fighter (drives the 
 let _charMotePop = 0           // 0..1 decaying flare, kicked to 1 when the focused fighter changes
 let themesBackHover   = false
 let themesHoverIndex  = -1
-let codexBackHover    = false
-let codexScroll       = 0
-let codexSelectedKey  = null
-let _codexGroupsCache = null
 // ── CHARACTER ACADEMY state (additive, isolated — never touched by normal matches) ──
 let academyProgress   = academy.loadAcademyProgress()
 let academyScroll     = 0
@@ -26602,35 +26397,6 @@ let academyCharKey    = null          // the fighter whose lesson page is open
 let academyCharScroll = 0
 let academyLessonsCache = null        // { key, groups, flat } for academyCharKey
 let academySession    = null          // the live drill: { lesson, mode, script, frame, armed, baseline, misses, state, flash, demoSpeed, returnTo }
-// Build the franchise-grouped dossier data for the Codex from the live roster. Uses the same `universe`
-// field the character-select grouping uses, the written passive bio, and the first arcade-epilogue line
-// as flavor. Cached (roster is static per session).
-function buildCodexGroups() {
-  if (_codexGroupsCache) return _codexGroupsCache
-  const byUni = {}
-  for (const key of Object.keys(characters)) {
-    const c = characters[key]
-    if (!c || c.hidden) continue
-    const uni = c.universe || "other"
-    ;(byUni[uni] ||= []).push({
-      key,
-      name: c.name || key,
-      universeLabel: formatUniverseName(uni),
-      accent: universeAccent(uni) || "#4aa8e0",
-      passiveName: c.passive?.name || "",
-      // Dossier = the character's real written personality write-up (characters[key].passive.effect).
-      // Characters without one get an honest diegetic missing-data message in drawCodexScreen — NOT the
-      // arcade epilogue / victory-flavor line, which was a misapplied fallback (Part 1 reconciliation).
-      passiveEffect: c.passive?.effect || "",
-      hasDossier: !!(c.passive && c.passive.effect)
-    })
-  }
-  const groups = Object.keys(byUni).sort((a, b) => formatUniverseName(a).localeCompare(formatUniverseName(b)))
-    .map(uni => ({ id: uni, label: formatUniverseName(uni), entries: byUni[uni].sort((a, b) => a.name.localeCompare(b.name)) }))
-  _codexGroupsCache = groups
-  return groups
-}
-function _codexMaxScroll(cv) { const L = codexLayout(cv, buildCodexGroups(), 0); return Math.max(0, L.contentH - L.listH) }
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════
 // CHARACTER ACADEMY — additive + isolated. A scrollable fighter grid → a per-fighter lesson page → a live
@@ -26906,12 +26672,6 @@ function _charThemeName(key) { return characters[key]?.name || "Character" }
 function _previewCharTheme(item) { const key = item?.id || item?.key || item?.rosterKey; if (!key || !characters[key]) return; theme.setPreviewTheme(theme.characterTheme(key, _charThemeBaseColor(key), _charThemeName(key), characters[key]?.universe)) }
 // Pin the fighter whose palette drives "Character" mode across the whole UI (pause/victory/menus).
 function _applyCharacterTheme(key) { if (!key || !characters[key]) return; theme.setActiveCharacter(key, _charThemeBaseColor(key), _charThemeName(key), characters[key]?.universe) }
-function openCodexScreen(from)   {
-  screenReturnState = from; codexBackHover = false; codexScroll = 0
-  const groups = buildCodexGroups()
-  if (!codexSelectedKey) codexSelectedKey = groups[0]?.entries[0]?.key || null
-  gameState = GAME_STATES.CODEX
-}
 // Track A — always-accessible controls / button-legend overlay (reachable from the pause menu).
 let controlsHelpBackHover = false
 function openControlsScreen(from) { screenReturnState = from; controlsHelpBackHover = false; gameState = GAME_STATES.CONTROLS_HELP }
@@ -26994,6 +26754,7 @@ function startSelectedComboTrial() {
 // training setup exactly — no combat/sim changes, just a normal Training match with
 // the tutorial observer attached. `returnTo` is where finish/skip lands (menu).
 let _tutReturnState = GAME_STATES.MAIN_MENU
+let _deepLinkChecked = false   // one-shot ?open= deep link from controls.html (Tutorial / Academy / Combo Trials)
 let _firstBootTutorialChecked = false   // set once the first-boot gate has run (see updateCurrentState)
 function startTutorial(returnTo) {
   const key = characters["goku"] ? "goku" : Object.keys(characters)[0]
@@ -27109,7 +26870,6 @@ function renderCurrentState() {
     case GAME_STATES.MUSIC_LIBRARY:   drawMusicLibraryScreen(); break
     case GAME_STATES.CREDITS:         drawCreditsState(); break
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
-    case GAME_STATES.CODEX:           drawCodexScreen(ctx, canvas, { groups: buildCodexGroups(), selectedKey: codexSelectedKey, scroll: codexScroll, backHover: codexBackHover }); break
     case GAME_STATES.ACADEMY:         drawAcademyGridScreen(ctx, canvas, { roster: getAcademyFilteredRoster(), filters: academyUniverses(), universe: academyUniverse, search: academySearch, searchFocus: true, scroll: academyScroll, hoverKey: academyHoverKey, backHover: academyBackHover, progressFor: academyProgressFor }); break
     case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id), canPreviewBrut: _academyCanPreviewBrut(), watchBrutHover: academyWatchBrutHover }); break }
     case GAME_STATES.CONTROLS_HELP:   drawControlsHelpScreen(ctx, canvas, _controlsHelpData()); break
@@ -27121,9 +26881,6 @@ function renderCurrentState() {
       _drawDevCodeOverlay()
       break
     case GAME_STATES.ONLINE_PLACEHOLDER: _drawOnlinePlaceholder(); break
-    case GAME_STATES.STORY_MODE: drawStoryModeScreen(ctx, canvas, { chapters: _buildStoryChapterView(), hoverIndex: hoverStoryIndex, hoverBack: _storyBackHover }); break
-    case GAME_STATES.STORY_INTRO: drawStoryIntro(); break
-    case GAME_STATES.CUTSCENE:    drawCutscene(); break
     case GAME_STATES.TUTORIAL:
       // Source key labels from the SAME map the engine wires to fighters
       // (P1_CONTROLS) so the tutorial always matches real in-play bindings.
@@ -27225,8 +26982,11 @@ function renderCurrentState() {
     case GAME_STATES.INTRO:
       drawBattleScene()
       drawFlyerIntroScreen(ctx, canvas.width, canvas.height); drawEntranceScreen(ctx, canvas.width, canvas.height)   // Omni-Man's impact flash
+      { const _own = new Set(["robin", "megumi_fushiguro", "higuruma", "syndrome", "dseyl", "frozone", "enoch", "batman"]), _nb = namecallActive ? namecallBeats[namecallIndex]?.side : null
+        const _who = (side, f, c) => f ? { name: c?.name || f.rosterKey || side, universe: c?.universe || characters[f.rosterKey]?.universe, ownCard: _own.has(f.rosterKey) } : null
+        drawIntroCamOverlay(ctx, canvas.width, canvas.height, { p1: _who("p1", p1, matchConfig.p1Char), p2: _who("p2", p2, matchConfig.p2Char) }) }   // letterbox + name card w/ universe emblem
       if (namecallActive) {
-        drawNamecallBanner()   // announcing a fighter (camera zoomed on them)
+        // (the intro camera's name card replaces the old namecall banner; the name-call clip still plays)
       } else {
         drawMatchIntro?.(ctx, canvas, {
           p1Name: matchConfig.p1Char?.name || "Player 1",
@@ -27412,16 +27172,8 @@ function updateHoverIndices() {
 
   if (gameState === GAME_STATES.START)            { const r = getStartMenuRects(canvas);                    const f = r.findIndex(x => pointInRect(mouse.x,mouse.y,x)); hoverStartIndex = Math.max(0,f); return }
   if (gameState === GAME_STATES.MAIN_MENU)        { tryHover(getMainMenuRects(canvas),        hoverMainMenuIndex,   v => hoverMainMenuIndex   = v, annPool("mainMenu")); return }
-  if (gameState === GAME_STATES.STORY_MODE) {   // interactive chapter tiles (story-mode-mvp) — hover feeds drawStoryModeScreen's hoverIndex + the click handler
-    _storyBackHover = pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas))
-    const rects = getStoryChapterRects(canvas, STORY_CHAPTER_COUNT)
-    const hit = rects.find(r => pointInRect(mouse.x, mouse.y, r))
-    hoverStoryIndex = hit ? hit.index : -1
-    return
-  }
   if (gameState === GAME_STATES.PROFILE)          { profileBackHover = pointInRect(mouse.x, mouse.y, getProfileBackButton(canvas)); profileThemesHover = pointInRect(mouse.x, mouse.y, getProfileThemesButton(canvas)); return }   // themes button kept from bp
   if (gameState === GAME_STATES.THEMES)           { themesBackHover  = pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas)); themesHoverIndex = (getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))?.index ?? -1); return }
-  if (gameState === GAME_STATES.CODEX)            { codexBackHover   = pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas));   return }
   if (gameState === GAME_STATES.ACADEMY)          { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); const L = academyGridLayout(canvas, getAcademyFilteredRoster(), academyScroll, academyUniverses()); const card = L.cards.find(r => r.y >= L.gridY - 6 && r.y <= L.gridY + L.gridH && pointInRect(mouse.x, mouse.y, r)); academyHoverKey = card ? card.key : null; return }
   if (gameState === GAME_STATES.ACADEMY_CHAR)     { academyBackHover = pointInRect(mouse.x, mouse.y, getAcademyBackButton(canvas)); academyWatchBrutHover = pointInRect(mouse.x, mouse.y, getAcademyWatchBrutButton(canvas)); return }
   if (gameState === GAME_STATES.CONTROLS_HELP)    { controlsHelpBackHover = pointInRect(mouse.x, mouse.y, getControlsHelpBackButton(canvas)); return }
@@ -27460,7 +27212,6 @@ function handleMenuClicks() {
   sound.play?.(SFX.UI_SELECT)
 
   switch (gameState) {
-    case GAME_STATES.CUTSCENE: cutsceneAdvance(); break   // click advances the cutscene (mirrors any-key)
     case GAME_STATES.START: {
       if (pointInRect(mouse.x, mouse.y, settingsButtonRect)) { gameState = GAME_STATES.SETTINGS; break }
       const clicked = getStartMenuRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
@@ -27476,9 +27227,7 @@ function handleMenuClicks() {
       else if (c.id === "online")   openOnlineMenu()   // real LAN host/join (Stage 3) — same destination as PLAY → "ONLINE (LAN)"
       else if (c.id === "play")     gameState = GAME_STATES.GAMEPLAY_SELECT
       else if (c.id === "playTutorial") startTutorial(GAME_STATES.MAIN_MENU)   // interactive guided walkthrough (replayable any time)
-      else if (c.id === "story")    { startRiftTransition("#9a7bff"); startCutscene(NEXUS_FRACTURE_FULL, () => { gameState = GAME_STATES.STORY_MODE }) }   // Story Mode opens with THE NEXUS FRACTURE cutscene (Prologue + Act 1), then lands on the chapter map
       else if (c.id === "moveList") { moveListIndex = 0; moveListShowControls = false; moveListScroll = 0; moveListPanelScroll = 0; gameState = GAME_STATES.MOVE_LIST }
-      else if (c.id === "codex")    openCodexScreen(GAME_STATES.MAIN_MENU)
       else if (c.id === "academy")  openAcademy(GAME_STATES.MAIN_MENU)
       else if (c.id === "controlsLab") { sound.play?.(SFX.UI_SELECT); window.location.href = "controls.html" }   // CONTROLS LAB (standalone page)
       else if (c.id === "profile")  openProfileScreen(GAME_STATES.MAIN_MENU)
@@ -27504,13 +27253,6 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, getThemesBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
       const card = getThemeCardRects(canvas).find(c => pointInRect(mouse.x, mouse.y, c))
       if (card) { theme.setTheme(card.key); sound.play?.(SFX.UI_SELECT) }   // applies + persists instantly (live recolour)
-      break
-    }
-    case GAME_STATES.CODEX: {
-      if (pointInRect(mouse.x, mouse.y, getCodexBackButton(canvas))) { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; break }
-      const L = codexLayout(canvas, buildCodexGroups(), codexScroll)
-      const row = L.rows.find(r => r.type === "row" && r.y >= L.listY - 4 && r.y <= L.listY + L.listH && pointInRect(mouse.x, mouse.y, r))
-      if (row) codexSelectedKey = row.key
       break
     }
     case GAME_STATES.ACADEMY: {
@@ -27550,15 +27292,6 @@ function handleMenuClicks() {
     }
     case GAME_STATES.ONLINE_PLACEHOLDER:
       gameState = GAME_STATES.MAIN_MENU   // any click (the BACK button) returns to the menu
-      break
-    case GAME_STATES.STORY_MODE: {
-      if (pointInRect(mouse.x, mouse.y, getStoryBackButton(canvas))) { gameState = GAME_STATES.MAIN_MENU; _storyBackHover = false; hoverStoryIndex = -1; break }
-      const hit = getStoryChapterRects(canvas, STORY_CHAPTER_COUNT).find(r => pointInRect(mouse.x, mouse.y, r))
-      if (hit && isChapterUnlocked(hit.index)) _beginStoryChapter(hit.index)   // unlocked → into the pre-fight beat
-      break
-    }
-    case GAME_STATES.STORY_INTRO:
-      startMatch()                                // click anywhere → begin the chapter fight
       break
     case GAME_STATES.TUTORIAL: {
       const b = getTutorialButtons(canvas).find(r => pointInRect(mouse.x, mouse.y, r))
@@ -27656,6 +27389,13 @@ function handleMenuClicks() {
         if (sr) { _selectMusicSource(sr.source); break } }
       // Build / Edit My Playlist → open the full-screen song browser (pre-checked from saved custom).
       if (pointInRect(mouse.x, _smy, buildPlaylistRect)) { _openMusicLibrary(); break }
+      if (pointInRect(mouse.x, _smy, menuEverywhereRect)) {
+        const on = musicLibrary.setMenuEverywhere?.(!musicLibrary.getMenuEverywhere?.())
+        sound.setMenuEverywhere?.(on)
+        _musicSourceOk = true
+        _musicSourceMsg = on ? "✓ Menu music now plays in matches too" : "✓ Matches use their own stage music"
+        break
+      }
       // Menu-music playlist reorder: ▲ moves a track up, ▼ moves it down. sound.moveMenuTrack
       // mutates MENU_PLAYLIST in place (live sequence) and keeps the now-playing cursor pinned.
       for (const r of getPlaylistRects()) {
@@ -27685,6 +27425,15 @@ function handleMenuClicks() {
       if (pointInRect(mouse.x, mouse.y, L.saveRect))   { _saveMusicLibrary(); break }
       if (pointInRect(mouse.x, mouse.y, L.cancelRect)) { _cancelMusicLibrary(); break }
       if (pointInRect(mouse.x, mouse.y, L.selAllRect)) { for (const s of L.lib) _mlSel.add(s.file); break }
+      // Ready-made playlist sidebar: ☐ = add/remove the WHOLE playlist; name = view just its songs.
+      { const sp = L.side.find(p => pointInRect(mouse.x, mouse.y, p.rect))
+        if (sp) {
+          if (pointInRect(mouse.x, mouse.y, sp.boxRect)) {
+            const full = sp.files.every(f => _mlSel.has(f))
+            for (const f of sp.files) { if (full) _mlSel.delete(f); else _mlSel.add(f) }
+          } else { _mlView = sp.id; _mlScroll = 0 }
+          break
+        } }
       if (pointInRect(mouse.x, mouse.y, L.clearRect))  { _mlSel.clear(); break }
       // Scrollbar track click → jump the thumb (centered) to that spot.
       if (pointInRect(mouse.x, mouse.y, L.track)) {
@@ -27929,8 +27678,8 @@ function handleMenuClicks() {
       const action = handleVictoryClick?.(victoryState, mouse, canvas)
       if (onlineUi.pickOwn && matchConfig.online && (action === "rematch" || action === "changeChar")) { _friendPlayAgain(); break }   // PLAY WITH A FRIEND: both pick again
       if (onlineUi.pickOwn && matchConfig.online && action === "menu") leaveOnline("left")   // tell the friend we left
-      if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match · Story: next chapter map
-      if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
+      if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else _doRematch() }   // Tower: next floor · Arcade: next fight · Bracket: next match · Story: next chapter map
+      if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
       if (action === "saveReplay") saveLastReplay()   // Stage 11D: download the just-finished match's replay JSON
       if (action === "changeChar") _changeCharacter()   // Stage 24C: back to select, keep mode/stage
       break
@@ -28084,7 +27833,6 @@ function updateMenuGamepad(injected) {
       return
     case GAME_STATES.CREDITS:
     case GAME_STATES.ONLINE_PLACEHOLDER:
-    case GAME_STATES.STORY_MODE:
       // "Any click returns" screens — Cross or Circle both act as that click.
       if (nav.confirm || nav.back) mouse.clicked = true
       return
@@ -28159,7 +27907,7 @@ const NAV_BACK_SCREENS = new Set([
   GAME_STATES.BRACKET_SETUP, GAME_STATES.FFA_SETUP, GAME_STATES.FFA_CHARSELECT, GAME_STATES.FFA_SLOTSELECT,
   GAME_STATES.FFA_TEAMSELECT, GAME_STATES.AI_DIFFICULTY, GAME_STATES.AI_VS_AI_SETUP, GAME_STATES.SELECT_UNIVERSE,
   GAME_STATES.SELECT_CHARACTER, GAME_STATES.SELECT_SKIN, GAME_STATES.SELECT_ALIENS, GAME_STATES.SELECT_EDO_BACKUP,
-  GAME_STATES.SELECT_STAGE, GAME_STATES.SETTINGS, GAME_STATES.MOVE_LIST, GAME_STATES.CREDITS, GAME_STATES.STORY_MODE,
+  GAME_STATES.SELECT_STAGE, GAME_STATES.SETTINGS, GAME_STATES.MOVE_LIST, GAME_STATES.CREDITS,
   GAME_STATES.ONLINE_PLACEHOLDER,
 ])
 // Screens that participate in history tracking (the back set + the roots the stack can bottom out at).
@@ -28250,6 +27998,16 @@ function updateCurrentState() {
   // Catches every path into the menu. Skipped under ?harness (tests drive their own
   // flows and must not be hijacked) — the tutorial's own live test resets the flag
   // and starts it explicitly via the harness hook.
+  // CONTROLS LAB deep links (owner 2026-11-24: Tutorial / Academy / Combo Trials moved off the menus into controls.html):
+  // index.html?open=tutorial | academy | comboTrials opens that screen as soon as the game reaches its menus.
+  if (!_deepLinkChecked && (gameState === GAME_STATES.MAIN_MENU || gameState === GAME_STATES.START)) {
+    _deepLinkChecked = true
+    let _open = null
+    try { _open = new URLSearchParams(window.location.search).get("open") } catch (_) {}
+    if (_open === "tutorial")    { _firstBootTutorialChecked = true; startTutorial(GAME_STATES.MAIN_MENU); return }
+    if (_open === "academy")     { _firstBootTutorialChecked = true; openAcademy(GAME_STATES.MAIN_MENU); return }
+    if (_open === "comboTrials") { _firstBootTutorialChecked = true; openComboTrialsScreen(GAME_STATES.MAIN_MENU); return }
+  }
   if (!_firstBootTutorialChecked && gameState === GAME_STATES.MAIN_MENU) {
     _firstBootTutorialChecked = true
     // Under ?harness the auto-trigger is OFF by default (tests drive their own flows);
@@ -28280,6 +28038,8 @@ function updateCurrentState() {
     if (--_skinConfirm.timer <= 0) { const side = _skinConfirm.side; _skinConfirm = null; _proceedAfterSkin(side) }
   }
 
+  if (gameState !== GAME_STATES.INTRO) introCamRelease(camera)
+  if (gameState !== GAME_STATES.ROUND_BREAK) _rwbLapCameraRelease()   // (never leave the lap camera's wide zoom floor behind)   // restore the zoom ceiling the intro camera lifted (no-op otherwise)
   switch (gameState) {
     case GAME_STATES.INTRO:
       // SEQUENTIAL intro stage machine: P1 plays its full intro, THEN P2's begins. Only the active
@@ -28300,8 +28060,8 @@ function updateCurrentState() {
         // side; when done, ease the camera back to normal framing. The VS-banner /
         // countdown below is held until every announcement resolves.
         if (--namecallTimer <= 0) {
-          namecallIndex++
-          if (namecallIndex < namecallBeats.length) startNamecallBeat(namecallIndex)
+          if (namecallBeats[namecallIndex + 1]?.side === "p2" && introStage === "p1") namecallTimer = 1   // hold: announce P2 when P2 enters
+          else if (++namecallIndex < namecallBeats.length) startNamecallBeat(namecallIndex)
           else { namecallActive = false; if (camera.focusBetween && p1 && p2) camera.focusBetween(p1, p2, 0.85) }
         }
       } else if (introStage === "done") {
@@ -28327,6 +28087,7 @@ function updateCurrentState() {
       }
       // Smooth the camera every intro frame: zoom IN during announcements, ease BACK
       // to default framing afterward. No-op for the no-clip case (target == current).
+      introCamTick(camera, introStage, p1, p2)   // INTRO CAMERA: track + push in on whoever is entering (P1, then P2), then the two-shot
       if (typeof camera.advance === "function") camera.advance(canvas)
       break
     case GAME_STATES.BATTLE:
@@ -28373,14 +28134,12 @@ function updateCurrentState() {
       updateDebugInputToggles(); updateTrainingMode()
       roundBreakTimer--
       if (!_roundWalkBack() && roundBreakTimer < RWB_HOLD) roundBreakTimer = RWB_HOLD   // hold the break until both are on their marks
-      if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas)
+      if (p1 && p2 && (p1._rwbLapT > 0 || p2._rwbLapT > 0)) _rwbLapCamera()   // a flyer is lapping the map: wide chase-cam (no view clamp)
+      else { _rwbLapCameraRelease(); if (typeof camera.update === "function" && p1 && p2) camera.update(p1, p2, canvas) }
       if (roundBreakTimer <= 0) { rbfxClear(p1, p2); rbfxReset(); resetRound(); gameState = GAME_STATES.BATTLE }
       break
     case GAME_STATES.VICTORY:
       updateVictoryState?.(victoryState, mouse, canvas)
-      break
-    case GAME_STATES.CUTSCENE:
-      updateCutscene()
       break
     case GAME_STATES.FFA_BATTLE:
       updateFFABattle()
@@ -28473,7 +28232,7 @@ function _selectMusicSource(source) {
 // model: they add/remove on top of the existing set rather than starting blank each time).
 function _openMusicLibrary() {
   _mlSel = new Set(musicLibrary.getCustomPlaylist?.(getCurrentAccount()) || [])
-  _mlScroll = 0; _mlDrag = null
+  _mlScroll = 0; _mlDrag = null; _mlView = null
   _musicLibReturn = gameState
   gameState = GAME_STATES.MUSIC_LIBRARY
 }
@@ -28753,21 +28512,6 @@ window.addEventListener("keydown", e => {
     else if (key === "enter"     || key === "j") startSelectedComboTrial()
     return
   }
-  if (gameState === GAME_STATES.CODEX) {
-    if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return }
-    if (key === "arrowup" || key === "w" || key === "arrowdown" || key === "s") {
-      const flat = buildCodexGroups().flatMap(g => g.entries.map(en => en.key))
-      const i = Math.max(0, flat.indexOf(codexSelectedKey))
-      const ni = (key === "arrowup" || key === "w") ? (i - 1 + flat.length) % flat.length : (i + 1) % flat.length
-      codexSelectedKey = flat[ni]
-      // keep the selected row in view
-      const L = codexLayout(canvas, buildCodexGroups(), codexScroll)
-      const row = L.rows.find(r => r.type === "row" && r.key === codexSelectedKey)
-      if (row) { const top = row.y - L.listY + codexScroll; if (top < codexScroll) codexScroll = top; else if (top + row.h > codexScroll + L.listH) codexScroll = top + row.h - L.listH }
-      codexScroll = Math.max(0, Math.min(_codexMaxScroll(canvas), codexScroll))
-    }
-    return
-  }
   if (gameState === GAME_STATES.ACADEMY) {
     if (key === "escape") { e.preventDefault(); gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return }
     if (key === "backspace") { e.preventDefault(); academySearch = academySearch.slice(0, -1); academyScroll = 0; return }
@@ -28780,19 +28524,6 @@ window.addEventListener("keydown", e => {
     if (key === "b" && _academyCanPreviewBrut()) { e.preventDefault(); startBrutalityReel(); return }   // open the BRUTALITY GALLERY — auto-plays every finisher on a loop (◀/▶ to jump)
     if (key === "arrowdown" || key === "arrowup") { e.preventDefault(); const LC = _academyLessons(); const L = academyCharLayout(canvas, LC.groups, academyCharScroll); academyCharScroll = Math.max(0, Math.min(Math.max(0, L.contentH - L.listH), academyCharScroll + (key === "arrowdown" ? 60 : -60))); return }
     return
-  }
-
-  // STORY_INTRO: the pre-fight beat — Esc backs out to the chapter map, any other key starts the fight
-  // (parity with the arcade rival intro's "press any key to FIGHT").
-  if (gameState === GAME_STATES.STORY_INTRO) {
-    if (key === "escape" || key === "backspace") { e.preventDefault(); gameState = GAME_STATES.STORY_MODE; return }
-    startMatch(); return
-  }
-
-  // CUTSCENE: any key advances (first press completes the typewriter); Esc bails to the chapter map.
-  if (gameState === GAME_STATES.CUTSCENE) {
-    if (key === "escape") { e.preventDefault(); _stopCutsceneVoice(); cutsceneState.active = false; gameState = GAME_STATES.STORY_MODE; return }
-    cutsceneAdvance(); return
   }
 
   // TUTORIAL: arrow keys flip pages, Esc exits to the menu.
@@ -28833,15 +28564,10 @@ window.addEventListener("keydown", e => {
 
   if (gameState === GAME_STATES.VICTORY) {
     let action = handleVictoryKey?.(victoryState, key)
-    // STORY CUTSCENE FIGHT: the only sensible outcome is to continue the scene. A real player presses
-    // Enter/Space to proceed — which handleVictoryKey maps to "menu" (drop out) unless the CONTINUE button
-    // happens to be hovered. Force those confirm keys to "rematch" (→ resumeCutsceneAfterFight) so the story
-    // never drops to the title on a normal advance. Only the explicit MAIN MENU button / Escape still quits.
-    if (matchConfig._cutsceneFight && (key === "enter" || key === " " || key === "spacebar")) action = "rematch"
     if (onlineUi.pickOwn && matchConfig.online && (action === "rematch" || action === "changeChar")) { _friendPlayAgain(); return }   // PLAY WITH A FRIEND: both pick again
     if (onlineUi.pickOwn && matchConfig.online && action === "menu") leaveOnline("left")   // tell the friend we left
-    if (action === "rematch") { _recordVictoryChoice(true);  if (matchConfig._cutsceneFight) resumeCutsceneAfterFight(); else if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else if (isStory()) continueStory(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
-    if (action === "menu")    { _recordVictoryChoice(false); matchConfig._cutsceneFight = false; cutsceneState.active = false; towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
+    if (action === "rematch") { _recordVictoryChoice(true);  if (towerState.active) continueTower(); else if (arcadeState.active) continueArcade(); else if (isBracket()) continueBracket(); else _doRematch() }   // Tower/Arcade/Bracket/Story: advance
+    if (action === "menu")    { _recordVictoryChoice(false); towerState.active = false; arcadeState.active = false; if (isBracket()) endBracket(); else resetToStart() }
     return
   }
   handlePauseInput(key)
@@ -29006,6 +28732,7 @@ sound.init?.()
 // Load the ACTIVE music source (default = all songs / personalized / saved custom) and start it.
 // Standalone + guest-safe (musicLibrary persists to its own localStorage), so this restores the
 // player's chosen source on every launch even with no account. Queued until the first gesture.
+try { sound.setMenuEverywhere?.(musicLibrary.getMenuEverywhere?.()) } catch (_) {}   // MENU MUSIC EVERYWHERE (saved toggle)
 try { applyActiveMusicSource() } catch (_) { sound.playMenuMusic?.() }
 syncPhysicsBounds()
 updateCameraBounds()
@@ -29345,8 +29072,8 @@ gameLoop()
     higurumaTest: higurumaHarnessApi({p1:()=>p1,p2:()=>p2,world:HIGURUMA_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     gojoShinjukuTest: gojoShinjukuHarnessApi({p1:()=>p1,p2:()=>p2,world:GOJO_SHINJUKU_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     sukunaShinjukuTest: sukunaShinjukuHarnessApi({p1:()=>p1,p2:()=>p2,world:SUKUNA_SHINJUKU_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
-    invincibleTest: invincibleHarnessApi({p1:()=>p1,p2:()=>p2,world:INVINCIBLE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     omnimanViltrumTest: omnimanViltrumHarnessApi({p1:()=>p1,p2:()=>p2,world:OMNIMAN_VILTRUM_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
+    invincibleTest: invincibleHarnessApi({p1:()=>p1,p2:()=>p2,world:INVINCIBLE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     syndromeTest: syndromeHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     dseylTest: dseylHarnessApi({p1:()=>p1,p2:()=>p2,world:SYNDROME_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
     frozoneTest: frozoneHarnessApi({p1:()=>p1,p2:()=>p2,world:FROZONE_WORLD,reset:()=>{resetTraining();clearInputBuffers([p1,p2])}}),
@@ -29907,8 +29634,6 @@ gameLoop()
       charTheme:   (key) => { _applyCharacterTheme(key); theme.setTheme("character"); const t = theme.getTheme(); return { active: theme.activeThemeKey(), accent: t.accent, accent2: t.accent2, name: t.name } },
       previewChar: (key) => { _previewCharTheme({ id: key }); const t = theme.getTheme(); return { accent: t.accent, name: t.name } },
       clearPreview: () => { theme.clearPreviewTheme(); return theme.getTheme().accent },
-      codex:   () => { openCodexScreen(GAME_STATES.MAIN_MENU); return { state: gameState, groupCount: buildCodexGroups().length, total: buildCodexGroups().reduce((n,g)=>n+g.entries.length,0), selected: codexSelectedKey } },
-      codexSelect: (key) => { codexSelectedKey = key; return codexSelectedKey },
       back: () => { gameState = screenReturnState || GAME_STATES.MAIN_MENU; screenReturnState = null; return gameState }
     },
     // Victory-screen flavor line (Part 1 #5): per-key line + whether it fell back to the arcade
@@ -29932,13 +29657,7 @@ gameLoop()
     ui: {
       goto: (s) => { const st = GAME_STATES[s]; if (st) gameState = st; return gameState },
       state: () => gameState,
-      // ── CUTSCENE ENGINE (Story Mode) drivers/inspectors ──
-      startNexus: () => { startCutscene(NEXUS_FRACTURE_FULL, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.active },
-      startCutsceneBeats: (which = "full") => { const b = which === "prologue" ? NEXUS_FRACTURE.prologue : which === "act1" ? NEXUS_FRACTURE.act1 : NEXUS_FRACTURE_FULL; startCutscene(b, () => { gameState = GAME_STATES.STORY_MODE }); return cutsceneState.beats.length },
-      cutscene: () => { const s = cutsceneState, b = s.beats && s.beats[s.idx]; return { active: s.active, gameState, idx: s.idx, total: s.beats ? s.beats.length : 0, speaker: b ? (b.speaker ?? null) : null, isFight: !!(b && b.fight), textLen: s.full.length, revealed: Math.floor(s.reveal), fullyRevealed: s.reveal >= s.full.length, left: b ? (b.left ?? null) : null, right: b ? (b.right ?? null) : null, cam: b ? (b.cam || "static") : null, camZoom: Math.round(s.camZoom * 100) / 100, fightReturnIdx: s.fightReturnIdx, csFight: !!matchConfig._cutsceneFight, fade: Math.round(s.fade * 1000) / 1000, driftX: Math.round((s._driftX || 0) * 1000) / 1000, driftZoom: Math.round((s._driftZoom || 0) * 100000) / 100000 } },
-      cutsceneAdvance: () => { cutsceneAdvance(); return cutsceneState.idx },
-      victoryLabel: () => ({ primary: victoryState.primaryLabel, subtitle: victoryState.subtitle, active: victoryState.active, fadeAlpha: victoryState.fadeAlpha, csFight: !!matchConfig._cutsceneFight }),
-      cutsceneVoice: () => { const a = _cutsceneVoiceAudio; const b = cutsceneState.beats && cutsceneState.beats[cutsceneState.idx]; return { expected: b ? voiceClipName(b.speaker, b.text) : null, src: a ? (a.src.split("/").pop() || null) : null, paused: a ? a.paused : null, currentTime: a ? a.currentTime : null, duration: a ? (isNaN(a.duration) ? null : a.duration) : null, readyState: a ? a.readyState : null, error: a && a.error ? a.error.code : null } },
+      victoryLabel: () => ({ primary: victoryState.primaryLabel, subtitle: victoryState.subtitle, active: victoryState.active, fadeAlpha: victoryState.fadeAlpha }),
       canvasInfo: () => ({ w: canvas.width, h: canvas.height }),
       mainMenuRects: () => getMainMenuRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
       gameplaySelectRects: () => getGameplaySelectRects(canvas).map(r => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h })),
@@ -31328,6 +31047,8 @@ gameLoop()
         formationHold: (who = "p1") => { const f = pick(who); return f ? holdCloneFormation(f) : false; },
         clear: (who = "p1") => { const f = pick(who); if (f) { clearChoreoFor(f); f._choreoCd = 0; f._pendingChoreoSummon = false; f._pendingChoreoSelect = null; f._pendingChoreoDirect = null; f.attackCooldown = 0; f.attacking = false; f.hitstun = 0; f.blockstun = 0; f.ultimateCooldown = 0; f.energy = f.maxEnergy || 200; try { clearMotionHistory(f) } catch (_) {} } return true; },
         clearAll: () => { clearAllChoreo(); return true; },
+        fighters: (who = "p1") => { const f = pick(who); return f ? cloneFighterState(f) : [] },   // CLONE FIGHTERS (char / set / phase / step / hits / box size)
+        water: (who = "p1") => { const f = pick(who); return f ? cloneFighterState(f) : [] },
       }
     })(),
     setP1Hitstun: (t = 30) => { if (p1) p1.hitstun = t },   // Stage 3: drive a combo state to prove the swap breaks hitstun (the escape)
@@ -31581,32 +31302,6 @@ gameLoop()
       return gameState
     },
     arcadeCleared: () => ({ map: getArcadeCleared(), current: isArcadeCleared(arcadeState.rosterKey || matchConfig.p1CharKey), noContinue: isArcadeNoContinueCleared(arcadeState.rosterKey || matchConfig.p1CharKey) }),
-    // ── STORY MODE (Part 1) — drive the chapter flow from a test (mirrors the real UI path) ──
-    story: {
-      open:       () => { gameState = GAME_STATES.STORY_MODE; return _buildStoryChapterView() },
-      view:       () => _buildStoryChapterView(),
-      progress:   () => getStoryProgress(),
-      isUnlocked: (i) => isChapterUnlocked(i),
-      begin:      (i) => { _beginStoryChapter(i); return { gameState, chapter: getChapter(_storyChapterIdx)?.num, title: getChapter(_storyChapterIdx)?.title, p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, mode: matchConfig.mode, boss: !!matchConfig.p2IsBoss, lines: getChapter(_storyChapterIdx)?.pre || [] } },
-      fight:      () => { startMatch(); return { gameState, bossHp: p2?._isBoss ? p2.maxHealth : null, bossArmor: !!p2?._bossArmor, template: p2AI?.templateKey || null } },
-      win:        () => { forceMatchEnd("p1"); return { gameState, subtitle: victoryState.subtitle, primary: victoryState.primaryLabel } },
-      advance:    () => { continueStory(); return { gameState, view: _buildStoryChapterView() } },
-      // Measure the pending chapter's dialogue lines against the intro screen's real font (18px Arial,
-      // matching drawRivalIntroScreen) so a test can prove no line overflows the canvas. narration =
-      // any line with no `Name:` speaker prefix (Ch15's environmental beat / Ch5's stage direction).
-      introMetrics: () => {
-        const ch = getChapter(_storyChapterIdx); if (!ch) return null
-        const prev = ctx.font; ctx.font = "18px Arial"
-        const lines = ch.pre || []
-        const widths = lines.map(l => ctx.measureText(l).width)
-        ctx.font = prev
-        const width = canvas.width   // logical width (ui.js getCanvasSize returns the same value)
-        const maxWidth = widths.length ? Math.max(...widths) : 0
-        return { num: ch.num, lines, widths, maxWidth, canvasWidth: width,
-                 marginLimit: width - 80, overflow: maxWidth > width - 80,
-                 narrationOnly: !!ch.narration, hasSpeaker: lines.map(l => /^[^:]{1,20}:\s/.test(l)) }
-      }
-    },
     // ── TOURNAMENT BRACKET (Stage 24B) ────────────────────────────────────────
     bracketStart: (size = 4, humanKey = "gojo") => { _pendingBracketSize = size; matchConfig.p1CharKey = humanKey; matchConfig.p1Char = characters[humanKey]; _buildAndStartBracket(); return H_bracketInfo() },
     bracketInfo: () => H_bracketInfo(),

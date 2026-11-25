@@ -12,8 +12,13 @@ export function mrActivate(f){
  if(!isMr(f)||illegal(f)||f.attacking||f.attackCooldown>0)return false
  const s=mrState(f);if(s.pending||s.entry||s.remaining>0||f.energy<100)return false
  f.energy-=100;s.remaining=P.duration;s.visual='prime';s.entry=P.entry;s.activated=s.tick;s.reserve=P.specialReserve
- f.isBlocking=false;f.isCharging=false;return true
+ f.isBlocking=false;f.isCharging=false
+ try{_primeHook?.(f)}catch(_){}   // mrIncredibleUlt.js: the BACK IN MY PRIME activation cinematic (presentation; the mode is unchanged)
+ return true
 }
+// activation listener (set by mrIncredibleUlt.js — no import cycle): called once per successful activation, after the mode is applied
+let _primeHook=null
+export const setMrPrimeHook=fn=>{_primeHook=typeof fn==='function'?fn:null}
 export function mrStart(f,key,{cancel=false}={}){
  if(!isMr(f)||illegal(f))return false
  const s=mrState(f),m=M[key],g=ground(f);if(!m||s.entry)return false

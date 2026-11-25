@@ -9,7 +9,7 @@ import { clamp, smooth, outE, hash, view, sprite, punchIn, wash, desat, speedLin
   damageNumber, calmMotion, calmFlash } from './bleachUltKit.js'
 
 export function drawGhostfaceUltScreen(ctx, canvas, S, B) {
-  const W = canvas?.width || 1280, H = canvas?.height || 720, k = S.pf ?? S.frame, dir = S.dir, f = S.caster
+  const W = canvas?.width || 1280, H = canvas?.height || 720, k = S.pf ?? S.frame, dir = S.dir, f = S.caster, F = S.form || FORM0
   const V = view(W, H), z = V.z, held = S.hold > 0
   const pr = S.hitReal != null ? S.real - S.hitReal : -1
   const spr = S.lastStab ? S.real - S.lastStab.real : 99
@@ -23,10 +23,10 @@ export function drawGhostfaceUltScreen(ctx, canvas, S, B) {
   wash(ctx, W, H, '#06080e', k < B.darkAt ? 0.45 * smooth(S.real / 16) : 0)
   const dark = k >= B.darkAt && k < B.killAt ? clamp((k - B.darkAt) / 6, 0, 1) : 0
   const red = k >= B.killAt && k < B.cutAt ? 1 : k >= B.cutAt ? clamp(1 - (k - B.cutAt) / 20, 0, 1) : 0
-  if (red > 0) { wash(ctx, W, H, '#3a0004', 0.55 * red, 'multiply'); wash(ctx, W, H, '#ff1020', 0.12 * red, 'soft-light') }
+  if (red > 0) { wash(ctx, W, H, F.wash, 0.55 * red, 'multiply'); wash(ctx, W, H, F.soft, 0.12 * red, 'soft-light') }
 
   // 2) fighters (the blackout hides them below; the flashlight re-reveals the foe)
-  if (k >= B.raiseAt && k < B.finalAt + 30) moon(ctx, W, H, clamp((k - B.raiseAt) / 14, 0, 1) * (k > B.finalAt ? 1 - (k - B.finalAt) / 30 : 1))
+  if (k >= B.raiseAt && k < B.finalAt + 30) moon(ctx, W, H, clamp((k - B.raiseAt) / 14, 0, 1) * (k > B.finalAt ? 1 - (k - B.finalAt) / 30 : 1), F)
   if (k < B.darkAt + 10 || k >= B.killAt) drawGhostface(ctx, S, V, k, fp, B)
   drawFoe(ctx, S, V, k, tp, B)
   if (dark > 0) blackout(ctx, W, H, tc, z, k, dark, B)
@@ -34,13 +34,13 @@ export function drawGhostfaceUltScreen(ctx, canvas, S, B) {
   // 3) stab streaks
   if (S.lastStab && spr < 14 && k < B.raiseAt + 4) {
     const a = 1 - spr / 14, ang = [-0.7, 0.8, -0.2, 1.1, -1.0][S.lastStab.i]
-    slash(ctx, tc.x, tc.y, ang, 200 * z * outE(Math.min(1, spr / 3)), a, z)
-    glow(ctx, tc.x, tc.y, 110 * z, '200,10,20', a * 0.6)
+    slash(ctx, tc.x, tc.y, ang, 200 * z * outE(Math.min(1, spr / 3)), a, z, F)
+    glow(ctx, tc.x, tc.y, 110 * z, F.col, a * 0.6)
   }
   if (k >= B.killAt && k < B.raiseAt && !calmMotion()) speedLines(ctx, W, H, tc.x, tc.y, 36, 9 + (S.lastStab?.i | 0), '#1a0002', 0.35, true, S.real)
   const kp = k - B.finalAt
-  if (pr >= 10 && kp < 40) { const a = clamp(1 - kp / 40, 0, 1); slash(ctx, t0.x, tc.y, -0.5, Math.hypot(W, H) * 0.7, a, 2.2); slash(ctx, t0.x, tc.y + 20 * z, -0.42, Math.hypot(W, H) * 0.6, a * 0.7, 1.4) }
-  if (kp >= 0 && kp < 40) rings(ctx, t0.x, floorY - 40 * z, kp / 40, 2, W * 0.6, '#ff3040', 10 * z, 0.4)
+  if (pr >= 10 && kp < 40) { const a = clamp(1 - kp / 40, 0, 1); slash(ctx, t0.x, tc.y, -0.5, Math.hypot(W, H) * 0.7, a, 2.2, F); slash(ctx, t0.x, tc.y + 20 * z, -0.42, Math.hypot(W, H) * 0.6, a * 0.7, 1.4, F) }
+  if (kp >= 0 && kp < 40) rings(ctx, t0.x, floorY - 40 * z, kp / 40, 2, W * 0.6, F.hot, 10 * z, 0.4)
 
   // 4) close-ups
   if (k < B.darkAt) punchIn(ctx, canvas, W, H, fp.x, floorY - 100 * z, 1.15 + 0.4 * smooth(k / 36))
@@ -56,44 +56,51 @@ export function drawGhostfaceUltScreen(ctx, canvas, S, B) {
 
   // 7) titles
   if (k >= 8 && k < B.darkAt) phone(ctx, W, H, k)
-  if (k >= B.raiseAt + 4 && k < B.finalAt + 22) title(ctx, W, H, 'THE FINAL ACT', 'GHOSTFACE  ·  “EVERY MOVIE NEEDS A KILLER ENDING”', (k - B.raiseAt - 4) / (B.finalAt + 22 - B.raiseAt - 4),
-    { y: 0.2, fs: 0.12, band: 'rgba(6,0,2,0.94)', edge: '#c8101c', fill: '#f4f4f4', stroke: '#5a0008', subCol: '#c8c8c8' })
-  if (S.lastStab && spr < 16 && k < B.raiseAt) stabTag(ctx, W, H, S.lastStab.i, spr, dir)
+  if (k >= B.raiseAt + 4 && k < B.finalAt + 22) title(ctx, W, H, F.title, F.tag, (k - B.raiseAt - 4) / (B.finalAt + 22 - B.raiseAt - 4),
+    { y: 0.2, fs: 0.12, band: 'rgba(6,0,2,0.94)', edge: F.hex, fill: '#f4f4f4', stroke: '#5a0008', subCol: '#c8c8c8' })
+  if (S.lastStab && spr < 16 && k < B.raiseAt) stabTag(ctx, W, H, S.lastStab.i, spr, dir, F)
 
   // 8) impact frames
   if (pr >= 1 && pr < 5 && !calmFlash()) silFrame(ctx, W, H, S, V, fp, tp, '#ffffff', '#000000', pr)
-  else if (pr >= 5 && pr < 10) silFrame(ctx, W, H, S, V, fp, tp, '#000000', '#d01020', pr)
+  else if (pr >= 5 && pr < 10) silFrame(ctx, W, H, S, V, fp, tp, '#000000', F.tint || '#d01020', pr)
   ctx.restore()
 
-  if (pr >= 10) damageNumber(ctx, W, H, S, t0.x, t0.y - H * 0.3, pr - 10, '#ff3040')
+  if (pr >= 10) damageNumber(ctx, W, H, S, t0.x, t0.y - H * 0.3, pr - 10, F.hot)
   else if (S.lastStab && spr < 40 && k < B.raiseAt + 6) damageNumber(ctx, W, H, S, tc.x - dir * 120 * z, tc.y - H * 0.1, spr + 20, '#ffffff')
   if (k >= B.cutAt) clapper(ctx, W, H, k - B.cutAt, B.outAt + 6 - B.cutAt)
 
   letterbox(ctx, W, H, S.real, k, B.outAt, 12, 0.13)
-  sub(ctx, W, H, k, 2, B.darkAt, 'GHOSTFACE', '“What’s your favourite scary movie?”', '#e8e8e8')
-  sub(ctx, W, H, k, B.killAt + 2, B.raiseAt, 'GHOSTFACE', 'STAB!', '#e8e8e8')
-  sub(ctx, W, H, k, B.raiseAt + 2, B.finalAt, 'GHOSTFACE', 'Death by a thousand cuts.', '#e8e8e8')
-  sub(ctx, W, H, k, B.cutAt + 4, B.outAt + 4, 'GHOSTFACE', 'See you soon!', '#e8e8e8')
+  sub(ctx, W, H, k, 2, B.darkAt, F.who, F.lines[0], '#e8e8e8')
+  sub(ctx, W, H, k, B.killAt + 2, B.raiseAt, F.who, F.lines[1], '#e8e8e8')
+  sub(ctx, W, H, k, B.raiseAt + 2, B.finalAt, F.who, F.lines[2], '#e8e8e8')
+  sub(ctx, W, H, k, B.cutAt + 4, B.outAt + 4, F.who, F.lines[3], '#e8e8e8')
   return true
 }
 
 function gPose(S, k, B) {
-  if (k < B.darkAt) return { keys: ['taunt', 'idle'], fr: k < 24 ? 0 : 1 }
+  const F = S.form || FORM0
+  if (k < B.darkAt) return { keys: F.intro, fr: k < 24 ? 0 : 1 }
   if (k < B.raiseAt) {
     let i = 0; for (let j = 0; j < B.stabs.length; j++) if (k >= B.stabs[j] - 6) i = j
-    const into = k - (B.stabs[i] - 6)
-    return [{ keys: ['gfUlt'], fr: into < 6 ? 0 : 1 }, { keys: ['gfLunge'], fr: into < 6 ? 0 : 1 }, { keys: ['gfUlt'], fr: into < 6 ? 3 : 4 },
-      { keys: ['gfLowCut'], fr: into < 6 ? 1 : 2 }, { keys: ['heavy'], fr: into < 6 ? 0 : 1 }][i]
+    const into = k - (B.stabs[i] - 6), st = F.strikes[i]
+    return { keys: [st[0], 'heavy', 'idle'], fr: into < 6 ? st[1] : st[2] }
   }
-  if (k < B.finalAt) return { keys: ['gfUlt'], fr: 5 }
-  if (k < B.cutAt) return { keys: ['gfUlt'], fr: 4 }
-  return { keys: ['taunt', 'idle'], fr: 1 }
+  if (k < B.finalAt) return { keys: [F.raise[0], 'heavy', 'idle'], fr: F.raise[1] }
+  if (k < B.cutAt) return { keys: [F.fin[0], 'heavy', 'idle'], fr: F.fin[1] }
+  return { keys: F.intro, fr: 1 }
 }
+// Ghostface's own cut (the default) — ghostfaceUlt.js passes S.form (this, or a Killer-Swap form's palette / poses / lines)
+const FORM0 = { tint: null, col: '200,10,20', hex: '#c8101c', hot: '#ff3040', wash: '#3a0004', soft: '#ff1020', moon: ['255,60,50', '160,0,10', '#d82030'],
+  title: 'THE FINAL ACT', tag: 'GHOSTFACE  ·  “EVERY MOVIE NEEDS A KILLER ENDING”', who: 'GHOSTFACE', stab: 'STAB!',
+  lines: ['“What’s your favourite scary movie?”', 'STAB!', 'Death by a thousand cuts.', 'See you soon!'],
+  intro: ['taunt', 'idle'], strikes: [['gfUlt', 0, 1], ['gfLunge', 0, 1], ['gfUlt', 3, 4], ['gfLowCut', 1, 2], ['heavy', 0, 1]], raise: ['gfUlt', 5], fin: ['gfUlt', 4] }
 function drawGhostface(ctx, S, V, k, fp, B) {
   const f = S.caster, z = V.z, P = gPose(S, k, B), face = S.fFace || S.dir
   const into = k >= B.killAt && k < B.raiseAt ? (k - B.killAt) : 99
+  const kt = S.form?.tint   // a Killer-Swap form keeps its blue / violet Killer wash (as sprite.js draws it in play)
   if (into < 10) sprite(ctx, f, P.keys, P.fr, fp.x, fp.y, z, face, { alpha: into / 10, tint: '#000000', tintA: 1 - into / 10 })
-  else sprite(ctx, f, P.keys, P.fr, fp.x, fp.y, z, face, { tint: k >= B.raiseAt && k < B.finalAt ? '#000000' : null, tintA: 0.55 })
+  else if (k >= B.raiseAt && k < B.finalAt) sprite(ctx, f, P.keys, P.fr, fp.x, fp.y, z, face, { tint: '#000000', tintA: 0.55 })
+  else sprite(ctx, f, P.keys, P.fr, fp.x, fp.y, z, face, { tint: kt || null, tintA: 0.4 })
 }
 function drawFoe(ctx, S, V, k, tp, B) {
   const t = S.target, z = V.z, kp = k - B.finalAt
@@ -124,26 +131,26 @@ function scare(ctx, W, H, S, kk, B) {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H)
   if (!calmFlash() && kk < 2) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H) }
   const sc = (H / 128) * (1.1 + 0.9 * outE(u)), shake = calmMotion() ? 0 : (hash(kk, 3) - 0.5) * 24
-  sprite(ctx, S.caster, ['idle'], 0, W / 2 + shake, H * 0.42 + 112 * sc, 1, -S.dir, { raw: true, s: sc })   // head-on: the mask fills the frame
+  sprite(ctx, S.caster, ['idle'], 0, W / 2 + shake, H * 0.42 + 112 * sc, 1, -S.dir, { raw: true, s: sc, tint: S.form?.tint || null, tintA: 0.45 })   // head-on: the mask fills the frame
   ctx.restore(); void B
 }
-function slash(ctx, x, y, ang, len, a, zz) {
+function slash(ctx, x, y, ang, len, a, zz, F = FORM0) {
   if (a <= 0) return
   const ux = Math.cos(ang), uy = Math.sin(ang)
   ctx.save(); ctx.lineCap = 'round'
-  for (const [lw, col, comp] of [[16 * zz, `rgba(150,0,10,${(0.6 * a).toFixed(3)})`, 'source-over'], [6 * zz, `rgba(230,30,40,${a.toFixed(3)})`, 'source-over'], [2 * zz, `rgba(255,230,230,${a.toFixed(3)})`, 'lighter']]) {
+  for (const [lw, col, comp] of [[16 * zz, `rgba(${F.moon[1]},${(0.6 * a).toFixed(3)})`, 'source-over'], [6 * zz, `rgba(${F.col},${a.toFixed(3)})`, 'source-over'], [2 * zz, `rgba(255,230,230,${a.toFixed(3)})`, 'lighter']]) {
     ctx.globalCompositeOperation = comp; ctx.strokeStyle = col; ctx.lineWidth = lw
     ctx.beginPath(); ctx.moveTo(x - ux * len / 2, y - uy * len / 2); ctx.lineTo(x + ux * len / 2, y + uy * len / 2); ctx.stroke()
   }
   ctx.restore()
 }
-function moon(ctx, W, H, a) {
+function moon(ctx, W, H, a, F = FORM0) {
   if (a <= 0) return
   ctx.save(); ctx.globalAlpha = a
   const x = W * 0.5, y = H * 0.38, r = H * 0.2
-  const g = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 1.8); g.addColorStop(0, 'rgba(255,60,50,0.9)'); g.addColorStop(0.55, 'rgba(160,0,10,0.5)'); g.addColorStop(1, 'rgba(60,0,0,0)')
+  const g = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 1.8); g.addColorStop(0, `rgba(${F.moon[0]},0.9)`); g.addColorStop(0.55, `rgba(${F.moon[1]},0.5)`); g.addColorStop(1, 'rgba(60,0,0,0)')
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 1.8, 0, Math.PI * 2); ctx.fill()
-  ctx.fillStyle = '#d82030'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = F.moon[2]; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
   ctx.fillStyle = 'rgba(90,0,8,0.4)'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(x + (hash(i, 3) - 0.5) * r * 1.2, y + (hash(i, 4) - 0.5) * r * 1.2, r * (0.08 + hash(i, 5) * 0.12), 0, Math.PI * 2); ctx.fill() }
   ctx.restore()
 }
@@ -170,11 +177,11 @@ function phone(ctx, W, H, k) {   // a ringing phone glyph pulsing in the corner
   ctx.globalAlpha = a; ctx.font = `800 ${Math.round(H * 0.026)}px system-ui, sans-serif`; ctx.fillStyle = '#e8e8e8'; ctx.textAlign = 'center'; ctx.fillText('UNKNOWN CALLER', 0, s * 1.3)
   ctx.restore()
 }
-function stabTag(ctx, W, H, i, age, dir) {
+function stabTag(ctx, W, H, i, age, dir, F = FORM0) {
   const a = clamp((16 - age) / 6, 0, 1), sc = 1 + Math.max(0, 1 - age / 3) * 0.6, x = W * ((i % 2 ? dir < 0 : dir > 0) ? 0.8 : 0.2)
   ctx.save(); ctx.globalAlpha = a; ctx.translate(x, H * 0.34); ctx.scale(sc, sc); ctx.rotate((i % 2 ? 1 : -1) * 0.1)
   const fs = Math.round(H * 0.07); ctx.font = `900 ${fs}px Impact, "Arial Black", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-  ctx.lineJoin = 'round'; ctx.lineWidth = fs * 0.2; ctx.strokeStyle = '#000'; ctx.strokeText('STAB!', 0, 0); ctx.fillStyle = '#e01828'; ctx.fillText('STAB!', 0, 0); ctx.restore()
+  ctx.lineJoin = 'round'; ctx.lineWidth = fs * 0.2; ctx.strokeStyle = '#000'; ctx.strokeText(F.stab, 0, 0); ctx.fillStyle = F.tint ? F.hot : '#e01828'; ctx.fillText(F.stab, 0, 0); ctx.restore()
 }
 function clapper(ctx, W, H, kk, life) {
   const a = Math.min(clamp(kk / 6, 0, 1), clamp((life - kk) / 10, 0, 1)), snap = kk < 6 ? (1 - kk / 6) * 0.5 : 0
@@ -193,7 +200,8 @@ function silFrame(ctx, W, H, S, V, fp, tp, bg, fg, pr) {
   const z = V.z
   ctx.save(); ctx.fillStyle = bg; ctx.fillRect(-40, -40, W + 80, H + 80)
   speedLines(ctx, W, H, tp.x, tp.y - 55 * z, 90, 11 + pr, fg, 0.95, false, pr)
-  sprite(ctx, S.caster, ['gfUlt'], 4, fp.x, fp.y, z, S.fFace || -S.dir, { tint: fg, tintA: 1 })
+  const fin = (S.form || FORM0).fin
+  sprite(ctx, S.caster, [fin[0], 'heavy', 'idle'], fin[1], fp.x, fp.y, z, S.fFace || -S.dir, { tint: fg, tintA: 1 })
   sprite(ctx, S.target, S.blocked ? ['guard', 'idle'] : ['hurt', 'idle'], 9, tp.x, tp.y, z, -S.dir, { tint: fg, tintA: 1 })
   ctx.restore()
 }

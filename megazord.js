@@ -370,7 +370,11 @@ export function megazordTick(f, raw, W) {
   }
   // U first: while the Megazord is available, U is held back up to MZ.chord frames waiting for L; no L → the Ranger's own
   // ultimate fires (re-injected for one frame), so U alone still works, MZ.chord frames later
-  if (!fired && raw.ultimate && !c.pu0 && !raw.special && !mzRefuse(f, W)) c.hold = q.t
+  // …except with W (Jump) going down beside it: that's the squad's W + U team ultimate (squadCore stamps q.jAt / q.uAt first),
+  // so U is never held back from it (U then W: the hold is dropped with no re-inject, squadCore fires the team ultimate)
+  const teamChord = !!(raw.jump || raw.up) && Math.abs(q.t - (q.jAt ?? -99)) <= 5 && Math.abs((q.uAt ?? -99) - (q.jAt ?? -99)) <= 5
+  if (teamChord && c.hold != null) { c.hold = null; if (f._squadEat) { delete f._squadEat.ultimate; if (!Object.keys(f._squadEat).length) f._squadEat = null } }
+  if (!fired && raw.ultimate && !c.pu0 && !raw.special && !teamChord && !mzRefuse(f, W)) c.hold = q.t
   c.pu0 = !!raw.ultimate
   if (c.hold != null) {
     if (q.t - c.hold < MZ.chord && raw.ultimate) { f._squadEat = { ...(f._squadEat || {}), ultimate: true }; return true }

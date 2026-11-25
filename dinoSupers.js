@@ -134,8 +134,11 @@ export function zrexBlaster(f, opp, s, a, t, X) {
   else u.beam = null
   Z.beamAt.forEach((at, i) => {
     if (t !== at) return
-    const inRow = Math.abs((X.ctrY ? X.ctrY(opp) : opp.y + 40) - cy) < 90 && Math.sign(X.ctrX(opp) - X.ctrX(f)) === dir
-    if (!inRow) { if (i === 0) u.res = 'whiff'; return }
+    // the drawn beam always ends where the foe was frozen (u.tx / u.ty, any height, either side), so the first beam connects
+    // when the foe is still there (an airborne foe included); only a foe that got away from that spot is missed. Later
+    // beams follow the first one's result (hit() skips them on a whiff) — the foe falling out of the row no longer drops them.
+    const there = i > 0 || (Math.abs(X.ctrX(opp) - u.tx) <= 140 && Math.abs((X.ctrY ? X.ctrY(opp) : opp.y + 40) - u.ty) <= 140)
+    if (!there) { if (i === 0) u.res = 'whiff'; return }
     hit(f, opp, s, X, Z.beamDmg, { first: i === 0, type: 'energy', cue: 'zap', hitstun: 50, kb: 0, chip: Z.chip })
   })
   if (u.res === 'hit' && t < Z.blastAt) hold(opp, u)

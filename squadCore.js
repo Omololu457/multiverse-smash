@@ -16,7 +16,7 @@ export const isSquadKey = k => !!SQUADS[k]
 // TEAM ULTIMATE (squadUlt.js registers itself here — no import cycle): W + U together on a full meter
 let TEAM_ULT = null
 export const setTeamUlt = api => { TEAM_ULT = api }
-export const TEAM_ULT_INPUT = { window: 5 }   // Jump and Ultimate within 5 frames of each other (either order, same frame ideal)
+export const TEAM_ULT_INPUT = { window: 5, retry: 12 }   // Jump and Ultimate within 5 frames of each other (either order, same frame ideal)
 
 const FORM_FIELDS = ['name', 'displayName', 'hudName', 'color', 'portrait', 'hudIcon', 'spriteSheet', 'spriteScale', 'animationData', 'basic_attacks',
   'specials', 'ultimate', 'traits', 'energyConfig', 'grabCastPose', 'primary', 'secondary', 'archetypes', 'movement', 'civilianIdentity']
@@ -108,19 +108,27 @@ export function makeSquad(cfg) {
     q.prevDown = down
     const edge = {}
     for (const b of [...BUTTONS, ...EXTRA_KEYS]) { const v = !!raw[b]; edge[b] = v && !q.prev[b]; q.prev[b] = v }
-    let stop = false
-    try { stop = cfg.onTick?.(f, raw, W) === true } catch (_) {}
-    let locked = false
-    try { locked = !!cfg.lock?.(f) } catch (_) {}
-    if (stop || locked) { q.armT = 0; q.downAt = null; q.pu = !!raw.ultimate; q.pj = !!(raw.jump || raw.up); return }   // an add-on (the Thunder Megazord) owns this frame / the dial is off
-    // TEAM ULTIMATE: W (Jump) + U (Ultimate) together — never while the dial is armed (↓↓ then U is still Omega)
+    // TEAM ULTIMATE press edges — stamped BEFORE the add-on runs, so a frame the add-on owns (the Megazord holding U back
+    // for its U + L chord) still records when U / W went down and W + U can fire on the next frame
     const uv = !!raw.ultimate, jv = !!(raw.jump || raw.up)
     if (uv && !q.pu) q.uAt = q.t
     if (jv && !q.pj) q.jAt = q.t
     q.pu = uv; q.pj = jv
+    let stop = false
+    try { stop = cfg.onTick?.(f, raw, W) === true } catch (_) {}
+    let locked = false
+    try { locked = !!cfg.lock?.(f) } catch (_) {}
+    if (stop || locked) { q.armT = 0; q.downAt = null; return }   // an add-on (the Thunder Megazord) owns this frame / the dial is off
+    // TEAM ULTIMATE: W (Jump) + U (Ultimate) together — never while the dial is armed (↓↓ then U is still Omega)
     const TU = ULT()
-    if (TU && q.armT <= 0 && uv && jv && Math.abs(q.uAt - q.jAt) <= TEAM_ULT_INPUT.window && (q.uAt === q.t || q.jAt === q.t)) {
-      if (TU.start(f, W)) { f._squadEat = { ...(f._squadEat || {}), ultimate: true, jump: true, up: true }; q.uAt = q.jAt = -99; return }
+    const chordNow = uv && jv && Math.abs(q.uAt - q.jAt) <= TEAM_ULT_INPUT.window && (q.uAt === q.t || q.jAt === q.t)
+    if (!(uv && jv)) q.tuTry = 0
+    if (TU && q.armT <= 0 && (chordNow || q.tuTry > 0)) {
+      if (TU.start(f, W)) { f._squadEat = { ...(f._squadEat || {}), ultimate: true, jump: true, up: true }; q.uAt = q.jAt = -99; q.tuTry = 0; return }
+      // refused this frame (hitstun / blockstun / mid-special …) on a full meter: keep retrying while W + U stay held, a short
+      // input buffer like every other button's, and the held U waits for the team ultimate instead of the Ranger's own
+      q.tuTry = chordNow && (f.infiniteEnergy || (f.energy || 0) >= (TU.cost || 100)) ? TEAM_ULT_INPUT.retry : Math.max(0, (q.tuTry || 0) - 1)
+      if (q.tuTry > 0) f._squadEat = { ...(f._squadEat || {}), ultimate: true }
     }
     if (q.armT > 0) {
       q.armT--

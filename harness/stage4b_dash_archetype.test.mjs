@@ -29,7 +29,7 @@ section("B. per-character cooldowns re-derived from speed")
 const cases = [
   ["minato", 98, 14], ["maki", 98, 14], ["flash", 99, 14],
   ["shinobu", 97, 15], ["zenitsu", 96, 16], ["naruto", 90, 22], ["sasuke", 90, 22],
-  ["madara", 92, 20], ["goku", 88, 24], ["rick", 84, 28], ["morty", 72, 34],
+  ["madara", 92, 20], ["goku", 84, 28], ["rick", 99, 14], ["morty", 72, 34],   // goku 88→84 / rick 84→99: later roster speed passes (data in characters.js)
 ]
 for (const [key, expSpd, expCd] of cases) {
   const sp = speedOf(key)
@@ -40,8 +40,8 @@ for (const [key, expSpd, expCd] of cases) {
 section("C. speed→frequency inversions fixed")
 check("Minato (98) now dashes FAR more often than Goku (88): 14 < 24 (was 40 ≈ 40)",
   dashCd(speedOf("minato")) < dashCd(speedOf("goku")), `minato=${dashCd(speedOf("minato"))} goku=${dashCd(speedOf("goku"))}`)
-check("Naruto (90) now < Rick (84): 22 < 28 (was both ~45)",
-  dashCd(speedOf("naruto")) < dashCd(speedOf("rick")), `naruto=${dashCd(speedOf("naruto"))} rick=${dashCd(speedOf("rick"))}`)
+check("Naruto (90) now < Morty (72): 22 < 34 (was both ~45; Rick is a 99 speedster since the speed pass)",
+  dashCd(speedOf("naruto")) < dashCd(speedOf("morty")), `naruto=${dashCd(speedOf("naruto"))} morty=${dashCd(speedOf("morty"))}`)
 check("monotonic: faster speed never yields a LONGER cooldown (full roster)", (() => {
   const ks = ["flash","shinobu","zenitsu","netero","madara","naruto","goku","rick","morty"]
   const pairs = ks.map(k => [speedOf(k), dashCd(speedOf(k))]).filter(([s]) => s != null)

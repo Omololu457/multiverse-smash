@@ -25,7 +25,7 @@ try {
   const hits = Object.entries(characters).filter(([k, c]) => k === 'invincible' || c?.rosterKey === 'invincible')
   ck('ONE roster slot: invincible appears once in characters', hits.length === 1, JSON.stringify(hits.map(([k]) => k)))
   const sel = getSelectableRoster().filter(c => c.rosterKey === 'invincible')
-  ck('… selectable once, universe "invincible" (beside Omni-Man)', sel.length === 1 && sel[0].universe === 'invincible', JSON.stringify(sel.map(c => [c.rosterKey, c.universe])))
+  ck('… selectable once, universe "dc" (beside Omni-Man — the Invincible universe was folded into DC on owner request)', sel.length === 1 && sel[0].universe === 'dc', JSON.stringify(sel.map(c => [c.rosterKey, c.universe])))
   ck('… credits entry (JustOruma, assets/invincible/**)', !!SOURCED_ART.invincible && /JustOruma/.test(JSON.stringify(SOURCED_ART.invincible)) && !!attributionForCharacter('invincible'))
   // ── 3. numbers ──
   const hpOf = c => c?.stats?.maxHealth ?? c?.maxHealth

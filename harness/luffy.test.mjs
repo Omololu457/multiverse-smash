@@ -9,6 +9,7 @@ import { tickLuffy,luffyState,luffyRegen,clearLuffy } from '../luffyState.js'
 import { updateLuffyCommandCombat,executeLuffySpecial } from '../luffy.js'
 import { physics } from '../physics.js'
 import { getSkins } from '../skins.js'
+import { rosterDamageBoost } from '../rosterParity.js'
 let passed=0
 const test=(name,fn)=>{try{fn();passed++;console.log('PASS',name)}catch(e){console.error('FAIL',name);throw e}}
 export const fighter=(key='luffy',x=100,side='p1')=>({...characters[key],rosterKey:key,side,x,y:300,w:60,h:100,groundY:400,
@@ -32,7 +33,7 @@ test('supplied source dimensions, alpha metadata and SHA-256 are preserved',()=>
 })
 test('unique actual roster identity, One Piece and default-only skin',()=>{
  assert.equal(characters.luffy,luffy);assert.equal(luffy.universe,'one_piece');assert(luffy.stats.maxHealth>1000)   // roster-parity passes (2026-11-13/15) raised HP above the old 1000; exact value lives in luffyData.js
- assert.deepEqual(getSkins('luffy').map(s=>s.id),['default'])
+ { const ids=getSkins('luffy').map(s=>s.id); assert.equal(ids[0],'default'); assert.equal(new Set(ids).size,ids.length) }   // 2026-11-25: Luffy got creative skins + the Omnitrix theme (was default-only)
 })
 test('grounded unblocked normal instance awards one pip and exactly three Stamina',()=>{
  const[f,d]=pair();cast(f,'light');advance(f,d,5);assert(d.health<1000);assert.equal(luffyState(f).pips,1);assert.equal(f.energy,53)
@@ -124,7 +125,8 @@ test('ultimate whiff never arms follow-ups or captures target',()=>{
 test('ultimate clean opener produces exactly four contacts through shared scaling',()=>{
  const[f,d]=pair(200);f.energy=100;step(f,d,{ultimate:true});let hits=0,last=1000
  for(let i=0;i<300;i++){step(f,d);if(d.health<last){hits++;last=d.health}}
- assert.equal(hits,4);assert(d.health>780);assert.equal(d.hitstun,0);assert(!f.attacking)
+ assert.equal(hits,4);assert(d.health>1000-220*rosterDamageBoost(f),`${d.health}`);   // ≤ 220 design damage × his roster boost (parity + balance row, 2026-11-13/25)
+ assert.equal(d.hitstun,0);assert(!f.attacking)
 })
 test('armor damage cannot grant Wind-Up or a confirmed recovery cancel',()=>{
  const[f,d]=pair();d.rosterKey='superman';d.attacking=true;d.currentAttack={name:'heavy',superArmor:true,total:50,timer:40,activeStart:30,activeEnd:32}

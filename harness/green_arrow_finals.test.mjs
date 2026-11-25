@@ -5,6 +5,8 @@
 import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url"
 import { executeGreenArrowUltimate, applyGreenArrowArrowstorm, updateProjectiles, activeProjectiles } from "../abilities.js"
 import { resolveProjectileHitsMulti } from "../combat.js"
+import { rosterDamageBoost } from "../rosterParity.js"
+const GB = rosterDamageBoost({ rosterKey: "green_arrow" })   // roster parity + balance row (2026-11-13/25) multiply live damage on top of the design numbers
 import { MUNITION_PROFILES, spawnMunition, explodeAt, updateMunitions, tickMunitionChains, updateMunitionShootDown, resetMunitions, activeMunitions, registerMunitionProfile, setMunitionSfx } from "../munitions.js"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
@@ -58,7 +60,7 @@ function runSuper() {
 const A = runSuper(), B = runSuper()
 ok("Super cast", A.cast === true)
 ok("Super spawns 16+ munitions over its run", A.totalSpawned >= 16, `spawned=${A.totalSpawned} peak=${A.peakMun}`)
-ok("final damage ≈ 380 and ≤ 420", A.dmg >= 340 && A.dmg <= 420, `got ${Math.round(A.dmg)}`)
+ok("final damage ≈ 380 and ≤ 420 (design damage = live ÷ his roster boost)", A.dmg / GB >= 340 && A.dmg / GB <= 420, `got ${Math.round(A.dmg)} live = ${Math.round(A.dmg / GB)} design`)
 ok("two runs → identical damage", Math.round(A.dmg) === Math.round(B.dmg), `${Math.round(A.dmg)} vs ${Math.round(B.dmg)}`)
 ok("two runs → BYTE-IDENTICAL munition-position trace (deterministic under full load)", A.sig === B.sig)
 

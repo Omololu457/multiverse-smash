@@ -2,6 +2,8 @@
 // + munitions + arrow volley against a STATIONARY dummy and asserts the total ≈ 380 and ≤ 420.
 import { executeGreenArrowUltimate, applyGreenArrowArrowstorm, updateProjectiles, activeProjectiles } from "../abilities.js"
 import { resolveProjectileHitsMulti } from "../combat.js"
+import { rosterDamageBoost } from "../rosterParity.js"
+const GB = rosterDamageBoost({ rosterKey: "green_arrow" })   // roster parity + balance row (2026-11-13/25) multiply live damage on top of the design numbers
 import { updateMunitions, tickMunitionChains, updateMunitionShootDown, resetMunitions, activeMunitions } from "../munitions.js"
 
 let pass = 0, fail = 0
@@ -39,8 +41,8 @@ ok("Super ran to completion (state machine ended)", !r.f._gaArrowstormActive, `f
 ok("Super ends with a 3s Tech lockout + Tech spent", (r.f._gaTechLock || 0) > 0 && r.f.energy === 0)
 
 console.log(`\n── Super total damage vs a STATIONARY dummy = ${Math.round(r.dmg)}`)
-ok("total ≈ 380 (between 320 and 420)", r.dmg >= 320 && r.dmg <= 420, `got ${Math.round(r.dmg)}`)
-ok("never exceeds 420 (the hard cap)", r.dmg <= 420, `got ${Math.round(r.dmg)}`)
+ok("total ≈ 380 (between 320 and 420) in design damage (÷ his roster boost)", r.dmg / GB >= 320 && r.dmg / GB <= 420, `got ${Math.round(r.dmg)} live = ${Math.round(r.dmg / GB)} design`)
+ok("never exceeds 420 (the hard cap, design damage)", r.dmg / GB <= 420, `got ${Math.round(r.dmg / GB)}`)
 
 console.log("\n── determinism: two Supers identical")
 const a = runSuper(), b = runSuper()

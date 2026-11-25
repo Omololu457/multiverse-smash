@@ -28250,7 +28250,8 @@ function applyMadaraTengaiDamage(fighter, opp, cineCtx = {}) {
   // Stage 1: route through the ONE damage choke-point (was a raw `opp.health -= dmg` that
   // bypassed GLOBAL_DAMAGE_SCALE — the last surviving unscaled offensive site). Show the
   // actually-dealt (post-scale) number so the floating damage matches HP removed.
-  const dealt = applyScaledDamage(opp, raw, { source: "ultimate", attacker: fighter, move: "ultimate" })   // attacker+move → Brutality killing-blow stamp (Madara Tengai Shinsei meteor)
+  const _hp0 = opp.health || 0, _ret = applyScaledDamage(opp, raw, { source: "ultimate", attacker: fighter, move: "ultimate" })   // attacker+move → Brutality killing-blow stamp (Madara Tengai Shinsei meteor)
+  const dealt = typeof _ret === 'number' ? _ret : Math.max(0, _hp0 - (opp.health || 0))   // applyScaledDamage returns undefined → show HP actually removed (was a floating "undefined")
   opp.hitstun = Math.max(opp.hitstun || 0, 42)
   opp.vx = (fighter.facing || 1) * 13; opp.vy = -7; opp.colorFlash = 12
   try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#c084fc", life: 60 }) } catch (_) {}
@@ -28292,7 +28293,8 @@ function dealHashiramaCameoHit(fighter, opp, cameo, cineCtx = {}) {
   if (!opp || opp.eliminated) return
   let raw = HASHIRAMA_CAMEO_DMG
   if (opp.isBlocking) raw = Math.round(raw * 0.5)   // a guard halves the chip
-  const dealt = applyScaledDamage(opp, raw, { source: "ultimate" })
+  const _hp0 = opp.health || 0, _ret = applyScaledDamage(opp, raw, { source: "ultimate" })
+  const dealt = typeof _ret === 'number' ? _ret : Math.max(0, _hp0 - (opp.health || 0))   // applyScaledDamage returns undefined → show HP actually removed (was a floating "undefined")
   opp.colorFlash = 8
   opp.hitstun = Math.max(opp.hitstun || 0, 6)        // reads as a hit; the domain re-freezes it anyway
   try {
@@ -28333,7 +28335,8 @@ function applyPainChibakuDamage(fighter, opp, cineCtx = {}) {
   if (!opp || opp.eliminated) return
   let raw = PAIN_CHIBAKU_DMG
   if (opp.isBlocking) raw = Math.round(raw * 0.25)   // block chips the devastation to 25%
-  const dealt = applyScaledDamage(opp, raw, { source: "ultimate" })
+  const _hp0 = opp.health || 0, _ret = applyScaledDamage(opp, raw, { source: "ultimate" })
+  const dealt = typeof _ret === 'number' ? _ret : Math.max(0, _hp0 - (opp.health || 0))   // applyScaledDamage returns undefined → show HP actually removed (was a floating "undefined")
   opp.hitstun = Math.max(opp.hitstun || 0, 48)
   opp.vx = (fighter.facing || 1) * 10; opp.vy = -6; opp.colorFlash = 12
   try { cineCtx.damageNumbers?.push?.({ x: opp.x + (opp.w || 40) / 2, y: opp.y, value: dealt, color: "#a78bfa", life: 60 }) } catch (_) {}

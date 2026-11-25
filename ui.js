@@ -25,8 +25,10 @@ import * as theme from "./theme.js"           // live-swappable UI theme (accent
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
 import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
-import { hudBarPath, hudPlatePath, hudFramePanel, hudFrameOverlay, drawUniverseTile } from "./hudFrames.js"   // universe-shaped HUD frames (scroll / katana / talisman / morpher …; presentation-only)
+import { hudBarPath, hudPlatePath, hudFramePanel, hudFrameOverlay, drawUniverseTile, universeDisplayName } from "./hudFrames.js"   // universe-shaped HUD frames (scroll / katana / talisman / morpher …; presentation-only)
 import { fillThemedBar } from "./hudBars.js"             // every character's own life + energy bar (themed HUD; presentation-only)
+import { fighterBio } from "./fighterBios.js"   // select-screen one-line bios (fills fighters with no bio / tagline)
+import { STAGE_CARDS } from "./stageCards.js"   // stage-select card pictures (tools/stage_cards.mjs)
 import { getHudAccent } from "./hud_theme.js"          // THEMED HUD: per-character accent colour (presentation-only)
 import { getPortraitOverride } from "./portrait_overrides.js"   // THEMED HUD: manual portrait source/crop overrides
 import { isBenDevice, benReadyForm } from "./ben10State.js"   // Controls box: Omnitrix transform hint for Ben (render-only)
@@ -139,6 +141,13 @@ function resolveStageImagePath(path) {
   return `./${path}`
 }
 
+const stageCardImages = new Map()
+function getStageCardImage(stage) {
+  const src = STAGE_CARDS[stage?.name]
+  if (!src) return null
+  if (!stageCardImages.has(src)) { const img = new Image(); img.src = "./" + src; stageCardImages.set(src, img) }
+  return stageCardImages.get(src)
+}
 function getStageBackgroundImage(stage) {
   const key = stage?.backgroundImage
   if (!key) return null
@@ -2724,7 +2733,12 @@ export function drawSelectDetail(ctx, x, y, w, h, char, kit) {
   const pad = 18, colW = Math.min(300, w * 0.34)
   // ── LEFT: name + archetype tag + difficulty + stat bars ──
   let ly = y + 24, lx = x + pad
-  drawCenteredText(ctx, char?.name || kit?.name || "", lx, ly, { font: "800 18px Arial", fill: "#fff", align: "left", baseline: "middle" }); ly += 20
+  drawCenteredText(ctx, char?.name || kit?.name || "", lx, ly, { font: "800 18px Arial", fill: "#fff", align: "left", baseline: "middle" })
+  if (char?.universe) {   // the franchise, right-aligned on the name row
+    ctx.font = "800 10px Arial"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(190,205,240,0.75)"
+    ctx.fillText(universeDisplayName(char.universe, "").toUpperCase(), x + colW, ly)
+  }
+  ly += 20
   ctx.font = "700 12px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"
   ctx.fillStyle = "#8fd0ff"; ctx.fillText(kit?.type || "All-Rounder", lx, ly)
   if (kit?.difficulty) { ctx.fillStyle = "#ffd27f"; ctx.textAlign = "right"; ctx.fillText(kit.difficulty, x + colW, ly) }
@@ -2732,7 +2746,18 @@ export function drawSelectDetail(ctx, x, y, w, h, char, kit) {
   _statBar(ctx, lx, ly, colW - pad, "HP",  s.maxHealth, _STAT_RANGES.maxHealth, "#22c55e"); ly += 22
   _statBar(ctx, lx, ly, colW - pad, "ATK", s.attack,    _STAT_RANGES.attack,    "#f59e0b"); ly += 22
   _statBar(ctx, lx, ly, colW - pad, "DEF", s.defense,   _STAT_RANGES.defense,   "#38bdf8"); ly += 22
-  _statBar(ctx, lx, ly, colW - pad, "SPD", s.speed,     _STAT_RANGES.speed,     "#a78bfa"); ly += 24
+  _statBar(ctx, lx, ly, colW - pad, "SPD", s.speed,     _STAT_RANGES.speed,     "#a78bfa"); ly += 20
+  // one-line bio (wrapped, up to 3 lines) under the stat bars
+  const bio = fighterBio(char?.rosterKey, char)
+  if (bio) {
+    ctx.font = "italic 11px Arial"; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(215,225,250,0.82)"
+    const maxW = colW - pad, words = String(bio).split(/\s+/), lines = []; let cur = ""
+    for (const wd of words) { const t = cur ? cur + " " + wd : wd; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = wd } else cur = t }
+    if (cur) lines.push(cur)
+    const room = Math.max(1, Math.min(3, Math.floor((y + h - 8 - ly) / 14) + 1))
+    if (lines.length > room) { lines.length = room; let l = lines[room - 1]; while (l && ctx.measureText(l + "…").width > maxW) l = l.slice(0, -1); lines[room - 1] = l.replace(/[\s,.;:—-]+$/, "") + "…" }
+    for (const l of lines) { ctx.fillText(l, lx, ly); ly += 14 }
+  }
   // ── RIGHT: move preview (specials + ultimate + a couple basics) from the kit ──
   let rx = x + colW + 12, ry = y + 24, rw = w - colW - 12 - pad
   ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.beginPath(); ctx.moveTo(x + colW, y + 12); ctx.lineTo(x + colW, y + h - 12); ctx.stroke()
@@ -2867,7 +2892,8 @@ export function drawStageSelectScreen(ctx, canvas, stages = [], selectedIndex = 
     const stage      = stages[i]
     const rect       = rects[i]
     const isSelected = i === selectedIndex
-    const bgImage    = getStageBackgroundImage(stage)
+    const cardImage  = getStageCardImage(stage)   // stageCards.js: rendered from the real in-game background
+    const bgImage    = _imageReady(cardImage) ? cardImage : getStageBackgroundImage(stage)
     const accent     = stage?.accent || _MK_ACCENT
     const st  = _cardState(`stage:${stage?.name || i}`)
     const target = isSelected ? 1 : 0
@@ -2884,7 +2910,7 @@ export function drawStageSelectScreen(ctx, canvas, stages = [], selectedIndex = 
     ctx.save()
     _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut); ctx.clip()
     if (_imageReady(bgImage)) {
-      _coverDrawImage(ctx, bgImage, rect.x, rect.y, rect.w, rect.h, 0.30)
+      _coverDrawImage(ctx, bgImage, rect.x, rect.y, rect.w, rect.h, bgImage === cardImage ? 0.55 : 0.30)
     } else {
       const preview = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
       preview.addColorStop(0, stage?.sky || "#6ea8ff"); preview.addColorStop(0.62, stage?.mid || "#5d7bd8"); preview.addColorStop(1, stage?.floor || "#3d465c")

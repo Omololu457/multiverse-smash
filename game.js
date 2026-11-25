@@ -4,6 +4,8 @@ import "./mmprSquad.js"   // Mighty Morphin Rangers squad registers itself
 import { tickSpdSquad, spdSquadRoundReset, spdSquadCpu, squadSwap, squadState, squadPreloadKeys } from "./spdSquad.js"   // S.P.D. Rangers: the B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P Ranger dial
 import { drawSpdSquadFx, drawSquadUltScreen } from "./spdSquadFx.js"   // + the squads' TEAM ULTIMATE screen pass (squadUltFx.js)
 import { isSquadUltActive, updateSquadUlt, clearSquadUlt } from "./squadUlt.js"
+import { winQuote } from "./winQuotes.js"   // victory-screen win quote per fighter
+import { universeDisplayName } from "./hudFrames.js"   // proper universe display names (select headers / cards)
 import { anyFreezeCineActive, updateFreezeCines, clearFreezeCines, drawCineScreens } from "./cineRegistry.js"   // shared FROZEN-CINEMATIC + screen-overlay slot (the Incredibles' ultimates)   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
 import "./cineUlts.js"
 import { omniSkinCard } from "./omniTheme.js"   // OMNITRIX theme skin: select-screen card
@@ -4941,7 +4943,7 @@ function buildUniverseMap() {
 }
 
 function formatUniverseName(u) {
-  return String(u).split("_").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")
+  return universeDisplayName(u)   // hudFrames.js proper names ("DC", "Death Note", "Hunter × Hunter" …) — was a naive "Dc" title-case
 }
 
 // Beta roster: every character that actually has sprite art, derived LIVE from
@@ -7671,6 +7673,8 @@ function victoryFlavorLine(key) {
 }
 function _victoryFlavor(key) {
   const c = characters[key]
+  const wq = winQuote(key)   // winQuotes.js: a short in-character win quote first (2026-11-25 polish pass)
+  if (wq) return { line: wq, usesFallback: false }
   let src = c?.passive?.effect ? String(c.passive.effect).trim() : ""
   let usesFallback = false
   if (!src) {
@@ -29085,6 +29089,7 @@ gameLoop()
       contacts: () => kevinContacts(getStageWorldWidth(),groundY),
       universeIndex: () => getUniverseList().findIndex(u=>u.id==="ben_10"),
       stages: () => stages.map(s=>s.name),
+      stageTheme: () => getStageTheme(),   // the live stage object (tools/stage_cards.mjs renders its background)
       preferredSkin: () => matchConfig[skinSelectSide+"Skin"],
       reset: () => { resetTraining();clearInputBuffers([p1,p2]) }
     },

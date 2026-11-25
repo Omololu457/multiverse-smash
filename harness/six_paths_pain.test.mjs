@@ -102,6 +102,9 @@ await prep(0);
 let h0 = await p2hp(); await page.evaluate(() => window.__harness.p1Ultimate()); await sleep(500);
 // the ultimate opens with a frozen cinematic pre-roll — let it finish before reading the damage / moving on
 await page.waitForFunction(() => !(window.__dsPrerollStatus?.().active), null, { timeout: 120000, polling: 50 }).catch(() => {}); await sleep(500);
+// 2026-11-24: the Ultimate is now the frozen SIX PATHS cinematic (sixPathsPainUlt.js, ~180 dmg) — wait for it to clear too
+for (let i = 0; i < 600 && await page.evaluate(() => import("./sixPathsPainUlt.js").then(m => m.getSixPathsUltStatus().active)); i++) await sleep(50);
+await sleep(300);
 ok((h0 ?? 0) - (await p2hp() ?? 0) > 0, `Deva — Six Paths Ultimate lands guaranteed damage`);
 // Animal — a creature summons (assert via the persistent _lastChikuSummon + live list; oneHit summons
 // despawn fast, so the persisted field is the race-free signal).

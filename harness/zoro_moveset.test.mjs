@@ -200,8 +200,10 @@ try {
   await until(async () => !(await ls()).attack, 40); await ev(() => __harness.zoroTest.spirit('p1', 100))
   const hpS = (await ls('p2')).health
   await motion(QCF2, 'l')
-  check('Ashura (↓↘→↓↘→+A) starts', (await zs()).move === 'zAshura', (await zs()).move)
-  await until(async () => !(await ls()).attack, 160)
+  // 2026-11-24: in reach, ASHURA plays as a frozen cinematic (zoroUlt.js) — the legacy move OR the cinematic counts as "starts"
+  const zult = () => ev(() => import('./zoroUlt.js').then(m => m.getZoroUltStatus()))
+  check('Ashura (↓↘→↓↘→+A) starts', (await zs()).move === 'zAshura' || (await zult()).active, (await zs()).move)
+  await until(async () => !(await zult()).active && !(await ls()).attack, 400)
   const hpE = (await ls('p2')).health
   check('Ashura connected all cuts (big damage)', hpS - hpE > 120, `${hpS}→${hpE} (−${hpS - hpE})`)
 

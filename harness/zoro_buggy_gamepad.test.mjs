@@ -90,7 +90,9 @@ try {
   await Z.setBtn(B.R1, false); await Z.setBtn(B.TRIANGLE, false)
   check('R1 + Triangle together = SANTORYU', (await Z.st()).santoryu, (await Z.st()).move); await Z.settle()
   await Z.page.evaluate(() => { const a = __harness.zoroTest.raw('p1'); a.energy = 100; a.ultimateCooldown = 0; const z = __harness.zoroTest.raw('p2'); z.x = a.x + 100 * (a.facing || 1); z.health = z.maxHealth })
-  m = await Z.press([B.R2], 'zAshura'); check('in Santoryu, R2 = ASHURA', m.includes('zAshura'), m.join())
+  // 2026-11-24: in reach, ASHURA plays as a frozen cinematic (zoroUlt.js) — the legacy move OR the cinematic counts
+  m = await Z.press([B.R2], 'zAshura', 400); const zCine = await Z.page.evaluate(() => import('./zoroUlt.js').then(u => u.getZoroUltStatus().active))
+  check('in Santoryu, R2 = ASHURA', m.includes('zAshura') || zCine, m.join() + (zCine ? ' (cinematic)' : ''))
   check('Zoro: no page errors (controller session)', Z.errors.length === 0, Z.errors.slice(0, 2).join(' | '))
   await Z.page.close()
   await keyboardStillWorks('zoro', 'buggy', 'zoroTest', 'light', 'Zoro')

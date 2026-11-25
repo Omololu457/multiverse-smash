@@ -193,16 +193,20 @@ try {
   const uEn0 = (await p1()).energy, uHp0 = (await p2()).health;
   await page.keyboard.down("u"); await wf(2); await page.keyboard.up("u");
   const uEn1 = (await p1()).energy;
-  let ultCast = null, ultRods = false, minHp = uHp0;
-  for (let i = 0; i < 60; i++) {
+  let ultCast = null, ultRods = false, minHp = uHp0, ultCine = false;
+  // 2026-11-24: the Ultimate is now the frozen DAIKOKUTEN cinematic (isshikiUlt.js, ~204 dmg) — the legacy windup cast /
+  // rod-rain projectile OR the cinematic count; wait for the cinematic to clear before reading the damage / moving on.
+  const icine = () => page.evaluate(() => import("./isshikiUlt.js").then(m => m.getIsshikiUltStatus()));
+  for (let i = 0; i < 400; i++) {
+    const c = await icine(); if (c.active) ultCine = true; else if (i >= 60) break;
     const a = await p1();
     if (a.castMove === "isshikiUltCast" && (a.spriteSheet || "").includes("isshiki_ult_cast_uniform")) ultCast = a.spriteSheet;
     if ((await projs()).some(p => p.name === "isshikiUltRods" || (p.sheet || "").includes("isshiki_ult_rods_uniform"))) ultRods = true;
     minHp = Math.min(minHp, (await p2()).health); await wf(1);
   }
   check("ult cost spent (~100)", uEn0 - uEn1 >= 95, `spent=${(uEn0 - uEn1).toFixed(0)}`);
-  check("LIVE fighter renders the ult windup cast (no dup instance)", (ultCast || "").includes("isshiki_ult_cast_uniform"), `sheet=${ultCast}`);
-  check("Daikokuten rod-rain payoff spawned (effects.png)", ultRods, "");
+  check("LIVE fighter renders the ult windup cast (no dup instance)", (ultCast || "").includes("isshiki_ult_cast_uniform") || ultCine, `sheet=${ultCast} cinematic=${ultCine}`);
+  check("Daikokuten rod-rain payoff spawned (effects.png)", ultRods || ultCine, `cinematic=${ultCine}`);
   check("ultimate dealt heavy GUARANTEED damage (≥ 120)", uHp0 - minHp >= 120, `dmg=${(uHp0 - minHp).toFixed(1)}`);
 
   // ── RUNTIME FALLBACK-BOX SWEEP — force EVERY animationData action; none may render null/box ──

@@ -10,6 +10,7 @@
 import { startMove } from './combat.js'
 import { ZORO_MOVES } from './zoroData.js'
 import { isZoro, zoroState, enterSantoryu, SANTORYU, zoroStartMove, recentMotion, takaReady, tatsuSlots, zcue } from './zoroState.js'
+import { castZoroUlt } from './zoroUlt.js'   // 2026-11-24: the Super plays as a frozen cinematic (ASHURA: ICHIBUGIN)
 
 const LENIENCY = 3          // A+B: both press edges within 3 frames of each other
 const BUFFER = 8            // a press edge stays "fresh" for 8 input ticks
@@ -63,11 +64,13 @@ function pickSpecial(f, s, inputState, grounded, W) {
   return inputState.down ? 'zTatsu' : inputState.up ? 'zNigiri' : fwd ? 'zOni' : back ? 'zTora' : 'zTaka'
 }
 
+let _ultOpp = null   // this command tick's foe (the Super's cinematic hand-off)
 function fire(f, s, key, W) {
   if (!canAfford(f, s, key)) return false
   if (key === 'zTaka' && !takaReady(f, W)) return false                         // one Taka Nami at a time
   if (key === 'zTatsu' && tatsuSlots(f, W) < 1) return false                    // tornado pool max 2
   if (key === 'zAshura' && !(f.onGround || f.grounded)) return false
+  if (key === 'zAshura') { const c = castZoroUlt(f, _ultOpp, W); if (c !== undefined) return c }   // the cinematic spends the Spirit itself
   if (!W_START(f, key)) return false
   f.energy = Math.max(0, (f.energy || 0) - cost(key))
   if (key === 'zAshura') { zcue(f, 'ashura'); s.inSuper = true; s.superHit = false }   // Spirit gain off until the lockout ends
@@ -91,6 +94,7 @@ function normalFor(f, inputState, button, grounded) {
 export function updateZoroCommandCombat(f, inputState, opp, ctx = {}) {
   if (!isZoro(f)) return false
   const s = zoroState(f), W = ctx.world || null
+  _ultOpp = opp
   if (f.hitstun > 0 || f.blockstun > 0 || f.hitstop > 0 || f.isGrabbed || !(f.health > 0)) { s.napHold = 0; return 'consumed' }
   const grounded = !!(f.onGround || f.grounded)
   const a = f.attacking ? f.currentAttack : null

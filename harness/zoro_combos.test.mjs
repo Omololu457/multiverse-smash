@@ -120,11 +120,14 @@ try {
   // tick is a sword hit (+5) → back to 100 → ASHURA is affordable with the real costs.
   await until(async () => !(await ls()).attack, 40)
   await motion(['s', 'sd', 'd', 's', 'sd', 'd'], 'l')
-  await until(async () => (await zs()).move !== 'zAshura' && !(await ls()).attack, 200); await run(10)
+  // 2026-11-24: in reach, ASHURA plays as a frozen cinematic (zoroUlt.js) — wait for it too, and count its cuts from its status
+  const zult = () => ev(() => import('./zoroUlt.js').then(m => m.getZoroUltStatus()))
+  let cineHits = 0
+  await until(async () => { const u = await zult(); cineHits = Math.max(cineHits, u.hits || 0); return !u.active && (await zs()).move !== 'zAshura' && !(await ls()).attack }, 400); await run(10)
   console.log('   ', fmt(), '=', total())
   report.c4 = { hits: log.map(h => h.dmg), total: total(), maxCombo: Math.max(...log.map(h => h.combo)) }
-  const ash = log.filter(h => h.move === 'ashuraCut')
-  check('Combo 4: heavy → twin-tornado → all 4 Ashura cuts, one combo', ash.length === 4 && log[0].move === 'heavy' && log.some(h => h.move === 'tornado') && report.c4.maxCombo >= 6, `${ash.length} Ashura cuts, combo ${report.c4.maxCombo}`)
+  const ash = log.filter(h => h.move === 'ashuraCut'), cuts = Math.max(ash.length, cineHits)   // legacy cuts OR the cinematic's 4 contacts
+  check('Combo 4: heavy → twin-tornado → all 4 Ashura cuts, one combo', cuts === 4 && log[0].move === 'heavy' && log.some(h => h.move === 'tornado') && report.c4.maxCombo >= 6, `${cuts} Ashura cuts (cinematic ${cineHits}), combo ${report.c4.maxCombo}`)
 
   console.log('\n── scaling + reset ──')
   // Scaling: within one combo the n-th hit deals raw × 0.6 (global) × 0.85^(n−1).

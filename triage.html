@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Roster Triage — Keep / Cut</title>
+<title>Roster Triage — Skins</title>
 <style>
   :root { --bg:#0d0f14; --panel:#161a22; --line:#2a303c; --keep:#1f8f4a; --cut:#c0392b; --accent:#6fb3ff; }
   * { box-sizing:border-box; }
@@ -28,6 +28,14 @@
     color:#dfe4ee; letter-spacing:2px; text-transform:uppercase; text-shadow:0 2px 8px #000; }
   #bruttag { display:inline-block; margin-left:10px; font-size:11px; padding:2px 8px; border-radius:4px; vertical-align:middle; }
   .newtag { display:inline-block; font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; background:#1c2f4a; color:#7fc4ff; border:1px solid #2a4a6e; letter-spacing:.05em; vertical-align:middle; }
+  #skinbar { position:absolute; top:84px; left:16px; display:flex; align-items:center; gap:8px; pointer-events:auto; }
+  #skinbar button { background:#1c2230; color:#dfe4ee; border:1px solid var(--line); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:14px; }
+  #skinname { font-size:16px; font-weight:700; color:#ffd479; text-shadow:0 2px 8px #000; }
+  #skinname small { color:#8b93a3; font-weight:500; margin-left:6px; }
+  #skins { max-height:190px; overflow:auto; padding:0 14px 10px; display:flex; flex-wrap:wrap; gap:4px; border-bottom:1px solid var(--line); }
+  #skins .chip { font-size:10px; padding:2px 6px; border-radius:4px; border:1px solid var(--line); color:#aeb6c4; cursor:pointer; }
+  #skins .chip.cs { border-color:#5a4a1e; color:#ffd479; }
+  #skins .chip.on { background:var(--accent); color:#0d0f14; border-color:var(--accent); font-weight:700; }
   .bt-no { background:#3a1c1c; color:#ff8a8a; border:1px solid #5a2a2a; }
   .bt-yes { background:#1c3a24; color:#8affad; border:1px solid #2a5a38; }
   #side { width:270px; border-left:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; min-height:0; }
@@ -56,16 +64,18 @@
 <body>
 <div id="app">
   <header>
-    <h1>ROSTER TRIAGE — ROUND 3 (new characters added)</h1>
+    <h1>ROSTER TRIAGE — EVERY FIGHTER + EVERY SKIN</h1>
     <span id="progress"></span>
     <div class="spacer"></div>
-    <span class="pill" id="filterPill">Showing: new</span>
+    <span class="pill" id="filterPill">Showing: all</span>
+    <span class="pill" id="skinPill">Skins: auto-cycle off</span>
     <span class="pill" id="speedPill">Speed: 1×</span>
     <span class="pill on" id="autoPill">Auto-advance: on</span>
   </header>
   <main>
     <div id="stage">
       <div id="meta"><div id="charname">—</div><div id="charsub"></div></div>
+      <div id="skinbar"><button id="skinPrev">▲</button><span id="skinname">Default</span><button id="skinNext">▼</button></div>
       <canvas id="cv" width="640" height="560"></canvas>
       <div id="actionlabel"></div>
     </div>
@@ -79,10 +89,11 @@
         <button id="pauseBtn">Pause</button>
         <button id="nextBtn">Next ▶</button>
       </div>
+      <div id="skins"></div>
       <div id="list"></div>
       <div id="help">
         <kbd>K</kbd> keep &nbsp; <kbd>C</kbd> cut &nbsp; <kbd>←/→</kbd> nav &nbsp; <kbd>Space</kbd> pause<br>
-        <kbd>F</kbd> cycle filter &nbsp; <kbd>S</kbd> speed &nbsp; <kbd>R</kbd> replay reel
+        <kbd>↑/↓</kbd> skin &nbsp; <kbd>A</kbd> auto-cycle skins<br><kbd>F</kbd> cycle filter &nbsp; <kbd>S</kbd> speed &nbsp; <kbd>R</kbd> replay reel
       </div>
       <footer>
         <button id="exportBtn" class="primary">Save round-2 cut list</button>
@@ -96,12 +107,38 @@ const LS_KEY = "ms_triage_verdicts_v2";  // round 2: fresh slate over the post-w
 let DATA = [];
 let order = [];          // indices into DATA, after filter
 let cur = 0;             // position in order
-let filterMode = 3;      // 0 all, 1 no-brutality only, 2 undecided only, 3 new since the last round (opens here)
+let filterMode = 0;      // 0 all (opens here), 1 no-brutality only, 2 undecided only, 3 new since the last round
 const FILTERS = ["all", "no-brutality", "undecided", "new"];
 let verdicts = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); // key -> "keep"|"cut"
 let speedIdx = 0; const SPEEDS = [1, 2, 0.5];
 let autoAdvance = true;
 let paused = false;
+let skinIdx = 0;          // 0 = Default, n = ch.skins[n-1]
+let skinCycle = false;    // auto-cycle: after the reel, show the next skin instead of the next fighter
+function sheetFor(ch, action) {
+  const base = ch.actions[action].sheet;
+  const sk = skinIdx > 0 ? (ch.skins || [])[skinIdx - 1] : null;
+  if (!sk) return base;
+  if (sk.tag) return base.replace(/\.png$/i, "") + "__" + sk.tag + ".png";
+  return (sk.map && sk.map[action]) || base;
+}
+function setSkin(i) {
+  const ch = DATA[order[cur]]; const n = (ch.skins || []).length + 1;
+  skinIdx = ((i % n) + n) % n; reelPos = 0; frameIdx = 0; tick = 0; loopsDone = 0;
+  for (const a of reel) getImg(sheetFor(ch, a));
+  renderSkins();
+}
+function renderSkins() {
+  const ch = DATA[order[cur]]; const list = ch.skins || [];
+  const sk = skinIdx > 0 ? list[skinIdx - 1] : null;
+  document.getElementById("skinname").innerHTML = (sk ? sk.name : "Default") + "<small>" + skinIdx + "/" + list.length + (sk && sk.creative ? " · creative" : "") + "</small>";
+  const el = document.getElementById("skins"); el.innerHTML = "";
+  [{ name: "Default" }, ...list].forEach((s, i) => {
+    const c = document.createElement("span"); c.className = "chip" + (s.creative ? " cs" : "") + (i === skinIdx ? " on" : "");
+    c.textContent = s.name; c.onclick = () => setSkin(i); el.appendChild(c);
+  });
+  const on = el.querySelector(".chip.on"); if (on) on.scrollIntoView({ block: "nearest" });
+}
 
 const cv = document.getElementById("cv");
 const ctx = cv.getContext("2d");
@@ -133,17 +170,19 @@ function loadChar() {
   const ch = DATA[order[cur]];
   reel = buildReel(ch);
   reelPos = 0; frameIdx = 0; tick = 0; loopsDone = 0;
+  if (skinIdx > (ch.skins || []).length) skinIdx = 0;
   // preload sheets
-  for (const a of reel) getImg(ch.actions[a].sheet);
+  for (const a of reel) getImg(sheetFor(ch, a));
   document.getElementById("charname").textContent = ch.name;
   const v = verdicts[ch.key];
   const bt = ch.hasBrutality ? '<span id="bruttag" class="bt-yes">has brutality</span>'
                              : '<span id="bruttag" class="bt-no">no brutality</span>';
   document.getElementById("charsub").innerHTML =
-    (ch.isNew ? '<span class="newtag">NEW</span> ' : "") + ch.universe + " · <code>" + ch.key + "</code> · scale " + ch.spriteScale + bt +
+    (ch.isNew ? '<span class="newtag">NEW</span> ' : "") + ((ch.skins||[]).length + " skins · ") + ch.universe + " · <code>" + ch.key + "</code> · scale " + ch.spriteScale + bt +
     (v ? ' · <b style="color:' + (v==="keep"?"#8affad":"#ff8a8a") + '">'+v.toUpperCase()+'</b>' : "");
   renderProgress();
   renderList();
+  renderSkins();
 }
 
 function drawFrame() {
@@ -151,7 +190,7 @@ function drawFrame() {
   if (!reel.length) return;
   const action = reel[reelPos];
   const def = ch.actions[action];
-  const img = getImg(def.sheet);
+  const img = getImg(sheetFor(ch, action));
   ctx.clearRect(0,0,cv.width,cv.height);
   document.getElementById("actionlabel").textContent = action + "  ·  " + (reelPos+1) + "/" + reel.length;
 
@@ -185,6 +224,7 @@ function step() {
         loopsDone = 0; reelPos++;
         if (reelPos >= reel.length) {
           reelPos = 0;
+          if (skinCycle && skinIdx < (ch.skins || []).length) { setSkin(skinIdx + 1); drawFrame(); return; }
           if (autoAdvance) { goNext(false); return; }
         }
       }
@@ -205,8 +245,8 @@ function setVerdict(v) {
   loadChar();
   if (autoAdvance) goNext(true);
 }
-function goNext(fromVerdict) { cur = (cur+1) % order.length; frameIdx=0; reelPos=0; tick=0; loopsDone=0; loadChar(); }
-function goPrev() { cur = (cur-1+order.length) % order.length; frameIdx=0; reelPos=0; tick=0; loopsDone=0; loadChar(); }
+function goNext(fromVerdict) { skinIdx = 0; cur = (cur+1) % order.length; frameIdx=0; reelPos=0; tick=0; loopsDone=0; loadChar(); }
+function goPrev() { skinIdx = 0; cur = (cur-1+order.length) % order.length; frameIdx=0; reelPos=0; tick=0; loopsDone=0; loadChar(); }
 function replay() { reelPos=0; frameIdx=0; tick=0; loopsDone=0; }
 
 function applyFilter() {
@@ -239,7 +279,7 @@ function renderList() {
     row.className = "row " + v + (pos===cur ? " cur" : "");
     row.innerHTML = '<span class="dot"></span><span class="nm">'+(ch.isNew?'<span class="newtag">NEW</span> ':'')+ch.name+
       '</span><span class="uni">'+(ch.hasBrutality?"":"✂")+'</span>';
-    row.onclick = () => { cur = pos; frameIdx=0; reelPos=0; loadChar(); };
+    row.onclick = () => { skinIdx = 0; cur = pos; frameIdx=0; reelPos=0; loadChar(); };
     el.appendChild(row);
   });
   const curRow = el.querySelector(".row.cur");
@@ -309,6 +349,10 @@ document.getElementById("exportBtn").onclick = exportCut;
 document.getElementById("resetBtn").onclick = ()=>{ if(confirm("Clear all keep/cut verdicts?")){ verdicts={}; localStorage.removeItem(LS_KEY); loadChar(); } };
 document.getElementById("filterPill").onclick = ()=>{ filterMode=(filterMode+1)%FILTERS.length; applyFilter(); };
 document.getElementById("speedPill").onclick = ()=>{ speedIdx=(speedIdx+1)%SPEEDS.length; document.getElementById("speedPill").textContent="Speed: "+SPEEDS[speedIdx]+"×"; };
+document.getElementById("skinPrev").onclick = () => setSkin(skinIdx - 1);
+document.getElementById("skinNext").onclick = () => setSkin(skinIdx + 1);
+function toggleSkinCycle() { skinCycle = !skinCycle; const p = document.getElementById("skinPill"); p.textContent = "Skins: auto-cycle " + (skinCycle ? "on" : "off"); p.classList.toggle("on", skinCycle); }
+document.getElementById("skinPill").onclick = toggleSkinCycle;
 document.getElementById("autoPill").onclick = (e)=>{ autoAdvance=!autoAdvance; e.target.textContent="Auto-advance: "+(autoAdvance?"on":"off"); e.target.classList.toggle("on",autoAdvance); };
 
 window.addEventListener("keydown", (e)=>{
@@ -320,6 +364,9 @@ window.addEventListener("keydown", (e)=>{
   else if (e.key==="f"||e.key==="F") { filterMode=(filterMode+1)%FILTERS.length; applyFilter(); }
   else if (e.key==="s"||e.key==="S") { speedIdx=(speedIdx+1)%SPEEDS.length; document.getElementById("speedPill").textContent="Speed: "+SPEEDS[speedIdx]+"×"; }
   else if (e.key==="r"||e.key==="R") replay();
+  else if (e.key==="ArrowUp") { e.preventDefault(); setSkin(skinIdx - 1); }
+  else if (e.key==="ArrowDown") { e.preventDefault(); setSkin(skinIdx + 1); }
+  else if (e.key==="a"||e.key==="A") toggleSkinCycle();
 });
 
 fetch("triage_data.json").then(r=>r.json()).then(d=>{

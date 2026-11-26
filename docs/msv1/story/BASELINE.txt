@@ -1,0 +1,28 @@
+MSV1-STORY BASELINE — clean HEAD 496e56699529852f0bfa99dcbaebc5b5a7b306ec, 2026-11-26
+suite               result
+determinism         DETERMINISM (Stage 11A): 14 passed, 0 failed
+combo-standard      COMBO-STANDARD AUDIT: 235 passed, 9 failed
+up-attack-roster    UP-ATTACK ROSTER: 77 passed, 2 failed
+credits             RESULT: 11 passed, 3 failed
+roster-integrity    ✅ roster integrity guard verified
+replay-playback     REPLAY PLAYBACK (Stage 11C): 8 passed, 1 failed
+net-online          NET ONLINE (Stage 3): 11 passed, 0 failed
+
+Pre-existing failures (by name):
+  [combo-standard] ❌  every roster character is classified  — unclassified: arlong, beast_boy, buggy, cyborg, dash_parr, dinothunder, dseyl, dt_blue, dt_red, dt_white, dt_yellow, elastigirl, enoch, fr
+  [combo-standard] ❌  classification covers the full roster exactly  — covered 123 vs roster 179
+  [combo-standard] ❌  true zoners = 34  — got 35
+  [combo-standard] ❌  grand total = roster (122)  — classified 123, roster 179
+  [combo-standard] ❌  gogeta: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  [combo-standard] ❌  goku_rose: has all CORE normals (light/heavy/upAttack)  — missing upAttack
+  [combo-standard] ❌  ALL 179 characters resolve the core normals (light/heavy/upAttack, exemptions honored)  — 177/179
+  [combo-standard] ❌  gogeta: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  [combo-standard] ❌  goku_rose: air normals present or documented-exempt  — undocumented missing: airAttack, downAir
+  [up-attack-roster] ❌  superman: frames = 5/4/10  — 5/4/12
+  [up-attack-roster] ❌  ghostface: frames = 4/3/6  — 5/3/8
+  [credits] ❌ FAIL  EVERY roster key has a credits.js attribution entry  — UNATTRIBUTED (14): spd_rangers, ns_blue, ns_navy, ns_green, dt_red, dt_blue, dt_yellow, dt_white, ns_squad, green_arrow, home
+  [credits] ❌ FAIL  no stale attribution keys (every attributed key is a real character)  — sasuke_war_susano
+  [credits] ❌ FAIL  in-game attributed-key set covers the full roster
+  [replay-playback] FATAL waitFrames timeout after 'playback mode is active' (playback reproduces recorded state section)
+roster-integrity has no counts; 'verified' = pass.
+Green = no worse than this.

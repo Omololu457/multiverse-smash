@@ -9,7 +9,8 @@ import { chromium } from 'playwright'
 import { serve } from './ben10_test_utils.mjs'
 import { frozone as FZD, FLASH, RAIL, TRAIL, WALL, GLIDE } from '../frozoneData.js'
 import { ROSTER_DAMAGE_BOOST } from '../rosterParity.js'
-import { balDmgMult, balHpMult } from '../rosterBalance.js'   // roster balance sweep 2026-11-25: the live table multiplies on top
+import { balDmgMult, balHpMult } from '../rosterBalance.js'
+import { WALK_FEEL } from '../physics.js'   // the 2026-11-21 roster walk ×1.15   // roster balance sweep 2026-11-25: the live table multiplies on top
 const server = await serve(), browser = await chromium.launch({ headless: true }), page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 const errors = [], report = { routes: [], moves: {}, movement: {}, ice: {}, ultimate: {}, misc: {} }; let pass = 0, fail = 0
 page.on('pageerror', e => errors.push(e.message)); await page.addInitScript(() => window.requestAnimationFrame = () => 0)
@@ -62,7 +63,7 @@ try {
   ck('universe the_incredibles', await S("H.raw().universe || H.raw().characterData?.universe || null") === 'the_incredibles', await S("H.raw().universe || H.raw().characterData?.universe || null"))
   // ── walk ──
   await reset(400); await page.keyboard.down('d'); await step(12); const vxw = (await state()).a.vx; await page.keyboard.up('d'); await step(10)
-  const rawSp = await S('H.raw().speed'), formula = Math.min(9.5, Math.max(4.5, 4.5 + (rawSp - 78) / 20 * 5)); report.movement = { walkVx: vxw, liveSpeedStat: rawSp, formula }
+  const rawSp = await S('H.raw().speed'), formula = Math.min(9.5, Math.max(4.5, 4.5 + (rawSp - 78) / 20 * 5)) * WALK_FEEL; report.movement = { walkVx: vxw, liveSpeedStat: rawSp, formula }
   ck('walk = the shared physics formula', Math.abs(vxw - formula) < 0.01, `${vxw} vs ${formula}`)
   // ── ICE FLASH (ground double-tap): instant teleport + persistent trail + slice (2026-11-15) ──
   const dtap = async k => { await tap([k], 1); await step(2); await tap([k], 1) }

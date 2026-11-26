@@ -8,6 +8,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ogHpMult } from "../rosterParity.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".png": "image/png", ".mp3": "audio/mpeg", ".css": "text/css", ".json": "application/json", ".mp4": "video/mp4" };
@@ -89,7 +90,7 @@ try {
   check("renders as sprites", g.hasSpriteHandler, "");
   check("idle sheet resolves", (g.spriteSheet || "").includes("omega_ranger_idle"), `sheet=${g.spriteSheet}`);
   check("spriteScale = 2.35", Math.abs((g.spriteScale || 0) - 2.35) < 0.01, `scale=${g.spriteScale}`);
-  check("HP 1180 / EN 175", g.maxHealth === 1180 && g.maxEnergy === 175, `HP=${g.maxHealth} EN=${g.maxEnergy}`);
+  check(`HP 1180 x roster HP ${ogHpMult("omega_ranger")} / EN 175`, g.maxHealth === Math.round(1180 * ogHpMult("omega_ranger")) && g.maxEnergy === 175, `HP=${g.maxHealth} EN=${g.maxEnergy}`);   // 2026-11-23 OG roster HP buff
   const portrait = await page.evaluate(() => window.__harness.charPortrait("omega_ranger"));
   check("portrait wired to real mugshot", (portrait || "").includes("SPD_Omega_Ranger_mugshot"), `portrait=${portrait}`);
 

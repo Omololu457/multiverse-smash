@@ -107,6 +107,7 @@ export function fatalityList(f) {
   let kit = null; try { kit = getKit(key, C) } catch (_) {}
   for (const sp of kit?.specials || []) {
     if (out.length >= 20) break
+    if (sp.noFatality) continue   // kit rows that are systems, not techniques (Ben / Albedo / Kevin DNA scan rows)
     const nm = String(sp.name || "").trim(); if (!/[a-z0-9]/i.test(nm) || seen.has(normName(nm))) continue   // (placeholder names like "—" skipped)
     seen.add(normName(nm))
     const text = (nm + " " + (sp.desc || sp.description || "")).toLowerCase()

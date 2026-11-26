@@ -10,6 +10,7 @@
 // mid-combo swap); never in hitstun / blockstun / knockdown / a special / a super / a teleport / a kit lock (W.busy).
 // Tag-in: a teleport flash (render: squadFx) + a few invulnerable frames. State on f._squad (plain JSON, carries its
 // squad id; the replay / LAN snapshot carries it). No Math.random — the CPU's variety is a hash of the frame counter.
+import { creativeFormAnim } from './squadCreativeSkin.js'   // creative (cs) skins follow every swap onto the active Ranger's own strips
 export const SQUADS = {}
 export const squadOf = f => (f?._squad && SQUADS[f._squad.id]) || SQUADS[f?.rosterKey] || null
 export const isSquadKey = k => !!SQUADS[k]
@@ -54,6 +55,7 @@ export function makeSquad(cfg) {
     f.maxJumps = st.maxJumps; f.jumpForce = -(st.jumpPower || 31); f.weight = st.weight
     f._skinAnim = null; f._baseSkinAnim = null; f._recolorTag = null
     if (SKIN_HOOK) SKIN_HOOK(f, form)
+    if (!f._skinAnim) { const a = creativeFormAnim(f.skinId, form, c.animationData); if (a) { f._skinAnim = a; f._baseSkinAnim = a } }
     if (f.spriteHandler) { f.spriteHandler.currentAction = null; f.spriteHandler.frameIndex = 0; f.spriteHandler.frameTimer = 0; f.spriteHandler.locked = false }
   }
   function roundReset(f) {
@@ -197,6 +199,7 @@ export function makeSquad(cfg) {
       if (SKIN_CACHE.has(key)) return SKIN_CACHE.get(key)
       const tmp = { skinId, rosterKey: form }
       try { SKIN_HOOK?.(tmp, form) } catch (_) {}
+      if (!tmp._skinAnim) tmp._skinAnim = creativeFormAnim(skinId, form, CHAR[form]?.animationData)
       if (tmp._skinAnim) SKIN_CACHE.set(key, tmp._skinAnim)   // cache hits only (skin packs register later)
       return tmp._skinAnim || CHAR[form]?.animationData || null
     },

@@ -23,6 +23,7 @@ import { countShadowClones } from "./summons.js"
 import { COMBO_BREAKER } from "./combat.js"   // universal combo-break resource — HUD pips read stocksPerRound
 import { padGlyphs, padHelpRows, jumpOnUp } from "./input.js"   // Part 3 #26: connected-controller glyphs + rows generated from padLayout.js
 import * as theme from "./theme.js"           // live-swappable UI theme (accents, particle palette, backdrops)
+import { HERO_ART, heroArtImage, heroArtColor, spotlightKey, fighterUsage, isVillain } from "./heroArt.js"   // menu spotlight art + the player's main
 import { juiceSettings } from "./juiceSettings.js"   // HIT FEEL (Phase B): gate the projectile trail on Hit Effects
 import { elementFor, elementColor } from "./juice_elements.js"   // HIT FEEL (Phase D): element-tint the projectile trail
 import { getSpriteSheets } from "./spritesheets.js"   // THEMED HUD: idle-sprite head-crop fallback portrait
@@ -317,6 +318,35 @@ function _confirmZoom(confirm) { return confirm > 0 ? Math.sin(confirm * Math.PI
 // THEMED colour knobs — reassigned from the active theme (theme.js). These stay `let`
 // so a theme switch live-recolours every menu on the very next draw. _THEME is the full
 // active palette; _MK_ACCENT / _VOID_PALETTE are the hot-path caches most code reads.
+// MENU TYPEFACES (OFL, bundled in ./fonts, @font-face in index.html): Anton for poster titles, Rajdhani for menus/body.
+// Only the menu/front-end primitives use them; the in-match HUD keeps its own fonts. Arial is the fallback.
+export const UI_FONT = '"Rajdhani", Arial, sans-serif'
+export const TITLE_FONT = '"Anton", Impact, Arial, sans-serif'
+function _uiFont(weight, size, italic = false) { return `${italic ? "italic " : ""}${weight} ${Math.round(size)}px ${UI_FONT}` }
+function _titleFont(weight, size) { return `${weight} ${Math.round(size)}px ${TITLE_FONT}` }
+// Shrink a font size until `text` fits `maxW` (keeps long value rows like "P1 FIGHTER: …" inside their button).
+function _fitFontSize(ctx, text, weight, size, maxW, min = 11, italic = false) {
+  let sz = size
+  ctx.save(); ctx.font = _uiFont(weight, sz, italic)
+  while (sz > min && ctx.measureText(text).width > maxW) { sz -= 1; ctx.font = _uiFont(weight, sz, italic) }
+  ctx.restore(); return sz
+}
+// Soft rounded glass button shape. Stays INSIDE the rect, so hitboxes are unchanged.
+function _btnPath(ctx, x, y, w, h, r) { roundRect(ctx, x, y, w, h, r) }
+function _btnSkew(rect) { return Math.round(clamp(rect.h * 0.30, 8, 16)) }   // corner radius
+// Thin HUD corner brackets just outside a rect (the "targeting reticle" accent on the lit button).
+function _hudBrackets(ctx, x, y, w, h, len, color, alpha = 1, gap = 5) {
+  ctx.save(); ctx.globalAlpha *= alpha; ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.lineCap = "round"
+  ctx.shadowBlur = 8; ctx.shadowColor = color
+  const L = x - gap, T = y - gap, Rr = x + w + gap, B = y + h + gap
+  ctx.beginPath()
+  ctx.moveTo(L, T + len); ctx.lineTo(L, T); ctx.lineTo(L + len, T)
+  ctx.moveTo(Rr - len, T); ctx.lineTo(Rr, T); ctx.lineTo(Rr, T + len)
+  ctx.moveTo(Rr, B - len); ctx.lineTo(Rr, B); ctx.lineTo(Rr - len, B)
+  ctx.moveTo(L + len, B); ctx.lineTo(L, B); ctx.lineTo(L, B - len)
+  ctx.stroke(); ctx.restore()
+}
+export function btnPath(ctx, rect) { _btnPath(ctx, rect.x, rect.y, rect.w, rect.h, _btnSkew(rect)) }
 let _THEME       = theme.getTheme()
 let _MK_ACCENT   = _THEME.accent              // standard UI accent (non-character screens)
 let _MK_ACCENT2  = _THEME.accent2             // secondary accent (gradients / pink+blue blends)
@@ -350,6 +380,9 @@ export function mkAdvance() { _mkFrame++ }
 export function bevelPath(ctx, x, y, w, h, cut) { return _bevelPath(ctx, x, y, w, h, cut) }
 export function metalPanel(ctx, x, y, w, h, accent, cut, flash) { return _metalPanel(ctx, x, y, w, h, accent, cut, flash) }
 export function mkButton(ctx, rect, opts) { return drawMkButton(ctx, rect, opts) }
+export function menuHeader(ctx, canvas, title, subtitle) { return drawHeader(ctx, canvas, title, subtitle) }
+export function menuFont(weight, size, italic) { return _uiFont(weight, size, italic) }
+export function menuTitleFont(weight, size) { return _titleFont(weight, size) }
 export function mkAmbientBackdrop(ctx, canvas, opts) { return drawMkAmbientBackdrop(ctx, canvas, opts) }
 export function withAlpha(hex, a) { return _withAlpha(hex, a) }
 
@@ -407,55 +440,52 @@ function _drawSelectorShard(ctx, cx, cy, h, accent, t) {
 // eased hover animation; `accent` is the highlight color (character accent where a character is shown,
 // else _MK_ACCENT). Matches the HUD/character-select shape + glow language exactly.
 function drawMkButton(ctx, rect, opts = {}) {
-  const { label = "", subLabel = "", active = false, locked = false, accent = _MK_ACCENT, id = null,
-          align = "center", cut: cutOpt } = opts
+  const { label = "", subLabel = "", active = false, locked = false, id = null } = opts
+  const accent = opts.accent || menuSpotlight().accent
   const hv  = locked ? 0 : (id ? _mkHover(id, active) : (active ? 1 : 0))
-  // Pronounced angular corner-cut (MK/Tekken): sized to the shorter dimension so it reads clearly
-  // angular at any button height without over-cutting a tall/short one.
-  const cut = cutOpt != null ? cutOpt : Math.max(10, Math.min(rect.h * 0.5, rect.w * 0.5, 22))
-  const scale = 1 + hv * 0.04
-  const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2
+  const { x, y, w, h } = rect
+  const { width: cw } = getCanvasSize(ctx.canvas)
+  const align = opts.align || (x < cw * 0.2 ? "left" : "center")
+  const r = Math.min(12, h * 0.28)
   ctx.save()
-  if (scale !== 1) { ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy) }
-
-  // Dark metallic backing (vertical gradient)
-  _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut)
-  const g = ctx.createLinearGradient(0, rect.y, 0, rect.y + rect.h)
-  g.addColorStop(0, "rgba(22,28,40,0.94)"); g.addColorStop(1, "rgba(6,9,16,0.95)")
-  ctx.fillStyle = g; ctx.fill()
-  // Hover accent tint wash
-  if (hv > 0.01) { _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut); ctx.fillStyle = _withAlpha(accent, 0.18 * hv); ctx.fill() }
-  // Inner dark bevel line for depth
-  _bevelPath(ctx, rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4, Math.max(0, cut - 2))
-  ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1; ctx.stroke()
-  // Bright accent edge (glow-pulses on hover)
-  _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut)
-  ctx.strokeStyle = hv > 0.01 ? accent : "rgba(150,180,220,0.32)"
-  ctx.lineWidth = 1.5 + hv
-  if (hv > 0.01) { const pulse = 0.6 + 0.4 * Math.sin(_mkFrame * 0.18); ctx.shadowBlur = (8 + 14 * pulse) * hv; ctx.shadowColor = accent }
-  ctx.stroke(); ctx.shadowBlur = 0
-  // Animated sheen sweep — a diagonal light band travels across a hovered/active button, giving the menus
-  // a lively "glossy" read. Deterministic (driven by _mkFrame); only on hover so idle menus stay calm.
-  if (hv > 0.2) {
-    ctx.save()
-    _bevelPath(ctx, rect.x, rect.y, rect.w, rect.h, cut); ctx.clip()
-    const period = rect.w * 2.0, sweepX = rect.x - rect.w * 0.5 + ((_mkFrame * 7) % period)
-    const sg = ctx.createLinearGradient(sweepX - 46, rect.y, sweepX + 46, rect.y)
-    sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(0.5, `rgba(255,255,255,${0.12 * hv})`); sg.addColorStop(1, "rgba(255,255,255,0)")
-    ctx.fillStyle = sg; ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+  if (locked) ctx.globalAlpha *= 0.45
+  // body: barely-there glass at rest, lit glass + accent glow when selected
+  ctx.save()
+  if (hv > 0.01) { ctx.shadowBlur = 22 * hv; ctx.shadowColor = _withAlpha(accent, 0.35) }
+  roundRect(ctx, x, y, w, h, r)
+  ctx.fillStyle = `rgba(${hv > 0.01 ? "255,255,255" : "255,255,255"},${0.04 + 0.08 * hv})`; ctx.fill()
+  ctx.restore()
+  ctx.save(); roundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, r)
+  ctx.strokeStyle = `rgba(255,255,255,${0.07 + 0.10 * hv})`; ctx.lineWidth = 1; ctx.stroke(); ctx.restore()
+  if (hv > 0.01) {
+    // accent wash from the left + inset accent bar
+    ctx.save(); roundRect(ctx, x, y, w, h, r); ctx.clip()
+    const wg = ctx.createLinearGradient(x, 0, x + w * 0.7, 0)
+    wg.addColorStop(0, _withAlpha(accent, 0.22 * hv)); wg.addColorStop(1, _withAlpha(accent, 0))
+    ctx.fillStyle = wg; ctx.fillRect(x, y, w, h)
+    ctx.shadowBlur = 12; ctx.shadowColor = accent; ctx.fillStyle = accent
+    ctx.fillRect(x, y + h * 0.18, 3.5 * hv, h * 0.64)
     ctx.restore()
   }
-  // Selector glyph (Part 1 #6): a themed Anchor shard marks the active row (cosmetic; no hitbox change).
-  if (!locked) _drawSelectorShard(ctx, rect.x + cut * 0.5 + 2, rect.y + rect.h * 0.5, rect.h * 0.42, accent, hv)
-
-  // Labels — scale to row height (same behavior as the old drawButton)
-  const labelSize = Math.round(clamp(rect.h * 0.34, 15, 26))
-  const subSize   = Math.round(clamp(rect.h * 0.18, 11, 15))
-  const showSub   = subLabel && rect.h >= 52
-  const tx = align === "left" ? rect.x + Math.max(18, cut + 10) : rect.x + rect.w / 2
-  const labelY = showSub ? rect.y + rect.h * 0.40 : rect.y + rect.h * 0.52
-  drawCenteredText(ctx, label, tx, labelY, { font: `800 ${labelSize}px Arial`, fill: "#ffffff", align: align === "left" ? "left" : "center" })
-  if (showSub) drawCenteredText(ctx, subLabel, tx, rect.y + rect.h * 0.74, { font: `${subSize}px Arial`, fill: "rgba(210,224,250,0.78)", align: align === "left" ? "left" : "center" })
+  // labels
+  const showSub = subLabel && h >= 48
+  const maxW = w - 40
+  const labelSize = _fitFontSize(ctx, label, 700, clamp(h * (showSub ? 0.36 : 0.42), 16, 30), maxW, 11)
+  const subSize   = _fitFontSize(ctx, subLabel, 500, clamp(h * 0.21, 12, 16), maxW, 10)
+  const tx = align === "left" ? x + 20 + 6 * hv : x + w / 2
+  const labelY = showSub ? y + h * 0.40 : y + h * 0.53
+  ctx.textAlign = align === "left" ? "left" : "center"; ctx.textBaseline = "middle"
+  try { ctx.letterSpacing = `${(labelSize * 0.1).toFixed(1)}px` } catch (_) {}
+  ctx.font = _uiFont(700, labelSize)
+  if (hv > 0.01) { ctx.shadowBlur = 14 * hv; ctx.shadowColor = _withAlpha(accent, 0.7) }
+  ctx.fillStyle = hv > 0.5 ? "#ffffff" : "rgba(255,255,255,0.72)"
+  ctx.fillText(label, tx, labelY)
+  if (showSub) {
+    ctx.shadowBlur = 0; try { ctx.letterSpacing = "0.3px" } catch (_) {}
+    ctx.font = _uiFont(500, subSize)
+    ctx.fillStyle = hv > 0.5 ? "rgba(255,255,255,0.80)" : "rgba(255,255,255,0.48)"
+    ctx.fillText(subLabel, tx, y + h * 0.72)
+  }
   ctx.restore()
 }
 
@@ -524,84 +554,198 @@ function _holoPanelOverlay(ctx, x, y, w, h, opts = {}) {
 // swirling rift/portal (rotating spiral arms + soft core glow + drifting concentric rings) plus slow
 // particle motes, all LOW-opacity so it never competes with foreground content. Deterministic (_mkFrame).
 // Applied ONLY to the two "about the multiverse" screens (Main Menu, Universe Select) — NOT info-dense ones.
-function drawRiftAmbientBackdrop(ctx, canvas, opts = {}) {
+// Shared "arena" layer for menu backdrops: two slow light beams + a perspective grid floor that scrolls toward
+// the viewer, tinted with the theme accent. Deterministic (_mkFrame), low alpha so it never fights the content.
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MENU SPOTLIGHT — the player's main (most-played fighter, Gojo by default) fills the right of every menu.
+// The art has NO frame or hard edge: it is masked to a soft ellipse and sits on a background tinted from the
+// picture's own colour, with a slow blurred aura behind it, so picture and background read as one.
+// Everything heavy (blurred aura, masked art) is rendered once into cached offscreen canvases.
+// ═════════════════════════════════════════════════════════════════════════════
+const SPOT_BASE = "#07060c"
+function _hexRgb(hex) { return theme.hexToRgb(hex) }
+function _mixHex(a, b, t) {   // a→b by t (0..1)
+  const A = _hexRgb(a), B = _hexRgb(b)
+  return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join("")
+}
+// A display-safe accent from a sampled art colour: keep its hue, force it bright + saturated enough to glow.
+function _accentFrom(hex) {
+  const [hh, ss, ll] = theme.hexToHsl(hex)
+  return theme.hslToHex(hh, Math.max(0.55, Math.min(0.9, ss * 1.4)), Math.max(0.62, Math.min(0.74, ll + 0.2)))
+}
+function _mkCanvas(w, h) {
+  if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(Math.max(1, w | 0), Math.max(1, h | 0))
+  const c = document.createElement("canvas"); c.width = Math.max(1, w | 0); c.height = Math.max(1, h | 0); return c
+}
+const _auraCache = new Map()
+function _auraCanvas(hex) {
+  let c = _auraCache.get(hex); if (c) return c
+  const S = 384, raw = _mkCanvas(S, S), g = raw.getContext("2d")
+  const a = _accentFrom(hex)
+  if (g.createConicGradient) {
+    const cg = g.createConicGradient(3.7, S / 2, S / 2)
+    cg.addColorStop(0, a); cg.addColorStop(0.33, _mixHex(a, "#ff5fd2", 0.5)); cg.addColorStop(0.66, _mixHex(a, "#4aa0ff", 0.5)); cg.addColorStop(1, a)
+    g.fillStyle = cg
+  } else g.fillStyle = a
+  g.beginPath(); g.arc(S / 2, S / 2, S * 0.3, 0, Math.PI * 2); g.fill()
+  c = _mkCanvas(S, S); const g2 = c.getContext("2d")
+  g2.filter = "blur(38px)"; g2.drawImage(raw, 0, 0); g2.filter = "none"
+  _auraCache.set(hex, c); return c
+}
+// Masked hero art, cached per (key, size). `cutout` art (transparent PNG) is anchored bottom and faded at the
+// floor; rectangular art is cover-fitted and melted out with a soft elliptical mask.
+const _heroCache = new Map()
+function _heroCanvas(key, tw, th) {
+  const img = heroArtImage(key); if (!_imageReady(img)) return null
+  tw = Math.round(tw); th = Math.round(th)
+  const ck = `${key}|${tw}|${th}`
+  let c = _heroCache.get(ck); if (c) return c
+  if (_heroCache.size > 24) _heroCache.clear()
+  c = _mkCanvas(tw, th); const g = c.getContext("2d")
+  const iw = img.naturalWidth, ih = img.naturalHeight, cut = !!HERO_ART[key]?.cutout
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"
+  if (cut) {
+    const sc = Math.min(tw * 0.9 / iw, (th * 0.94) / ih), dw = iw * sc, dh = ih * sc   // contain: never cropped
+    g.drawImage(img, Math.max(0, Math.min(tw - dw, tw * 0.6 - dw / 2)), th - dh, dw, dh)
+    g.globalCompositeOperation = "destination-in"
+    const lg = g.createLinearGradient(0, 0, 0, th)
+    lg.addColorStop(0, "#000"); lg.addColorStop(0.72, "#000"); lg.addColorStop(1, "rgba(0,0,0,0)")
+    g.fillStyle = lg; g.fillRect(0, 0, tw, th)
+    const sg = g.createLinearGradient(0, 0, tw, 0)
+    sg.addColorStop(0, "rgba(0,0,0,0)"); sg.addColorStop(0.22, "#000"); sg.addColorStop(1, "#000")
+    g.fillStyle = sg; g.fillRect(0, 0, tw, th)
+  } else {
+    const sc = Math.min(tw / iw, th / ih), dw = iw * sc, dh = ih * sc               // contain: whole picture shown
+    g.drawImage(img, tw - dw, (th - dh) * 0.35, dw, dh)
+    g.globalCompositeOperation = "destination-in"
+    const _sc = Math.min(tw / iw, th / ih), _dw = iw * _sc, _dh = ih * _sc
+    g.save(); g.translate(tw - _dw / 2, (th - _dh) * 0.35 + _dh * 0.45); g.scale(_dw * 0.75, _dh * 0.8)
+    const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1)
+    rg.addColorStop(0, "#000"); rg.addColorStop(0.38, "#000"); rg.addColorStop(0.58, "rgba(0,0,0,0.55)"); rg.addColorStop(0.78, "rgba(0,0,0,0)"); rg.addColorStop(1, "rgba(0,0,0,0)")
+    g.fillStyle = rg; g.fillRect(-2, -2, 4, 4); g.restore()
+    const sg = g.createLinearGradient(0, 0, tw, 0)            // melt the picture's left edge into the tint
+    sg.addColorStop(0, "rgba(0,0,0,0)"); sg.addColorStop(Math.min(0.95, 1 - _dw / tw + 0.25), "#000"); sg.addColorStop(1, "#000")
+    g.fillStyle = sg; g.fillRect(0, 0, tw, th)
+    const tg = g.createLinearGradient(0, 0, 0, th)            // …and its bottom edge into the floor (full-height fill:
+    tg.addColorStop(0, "#000"); tg.addColorStop(0.55, "#000"); tg.addColorStop(1, "rgba(0,0,0,0)")   // destination-in clears outside the rect)
+    g.fillStyle = tg; g.fillRect(0, 0, tw, th)
+  }
+  _heroCache.set(ck, c); return c
+}
+// The current spotlight fighter + its colours (re-read each frame; cheap).
+export function menuSpotlight() {
+  const key = spotlightKey(), color = heroArtColor(key)
+  return { key, color, accent: _accentFrom(color) }
+}
+// Full spotlight backdrop. opts.heroAlpha dims the fighter (busy grid screens), opts.heroW = share of width.
+function drawSpotlightBackdrop(ctx, canvas, opts = {}) {
   const { width: w, height: h } = getCanvasSize(canvas)
-  const bg = ctx.createLinearGradient(0, 0, 0, h)
-  bg.addColorStop(0, opts.top || _THEME.bgTop); bg.addColorStop(1, opts.bottom || _THEME.bgBottom)
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
-
-  const cx = w * 0.5, cy = h * 0.46, R = Math.max(w, h) * 0.58, t = _mkFrame * 0.004
-  // soft rift core glow (accent → secondary accent), themed
-  const core = ctx.createRadialGradient(cx, cy, 10, cx, cy, R)
-  core.addColorStop(0, _accentRGBA(0.10)); core.addColorStop(0.42, _accent2RGBA(0.07)); core.addColorStop(1, "transparent")
-  ctx.fillStyle = core; ctx.fillRect(0, 0, w, h)
-
-  // rotating spiral arms (the swirling portal)
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t)
-  const arms = 3
-  for (let a = 0; a < arms; a++) {
-    ctx.save(); ctx.rotate((a / arms) * Math.PI * 2)
-    ctx.globalAlpha = 0.07
-    ctx.beginPath()
-    for (let s = 0; s <= 44; s++) { const ang = s * 0.16, rad = s * (R / 44) * 0.92; const x = Math.cos(ang) * rad, y = Math.sin(ang) * rad; s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y) }
-    const grd = ctx.createLinearGradient(0, 0, R, 0); grd.addColorStop(0, _THEME.spiralA); grd.addColorStop(0.6, _THEME.spiralB); grd.addColorStop(1, "transparent")
-    ctx.strokeStyle = grd; ctx.lineWidth = 2.5; ctx.stroke()
-    ctx.restore()
-  }
-  ctx.restore()
-
-  // faint drifting concentric rings (portal ripples)
-  ctx.save(); ctx.strokeStyle = _THEME.spiralB; ctx.lineWidth = 1
-  for (let r = 1; r <= 4; r++) { ctx.globalAlpha = 0.05; const rr = R * 0.18 * r + Math.sin(t * 3 + r) * 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke() }
-  ctx.restore()
-
-  // slow-drifting motes (shared with drawMkAmbientBackdrop)
+  const sp = opts.key ? { key: opts.key, color: heroArtColor(opts.key) } : menuSpotlight()
+  const hc = sp.color, heroAlpha = opts.heroAlpha ?? 1, portrait = h > w * 1.05
   ctx.save()
-  for (let i = 0; i < 30; i++) {
-    const speed = 0.22 + (i % 4) * 0.12
-    const px = (i * 137.5 + _mkFrame * speed * 0.6) % (w + 40) - 20
-    const py0 = (i * 91.7 - _mkFrame * speed * 0.5) % (h + 40)
-    const py = py0 < 0 ? py0 + h + 40 : py0
-    const rr = 0.8 + (i % 3) * 0.7
-    ctx.fillStyle = `rgba(${_THEME.ring},${0.05 + 0.045 * (i % 3)})`
-    ctx.beginPath(); ctx.arc(px, py, rr, 0, Math.PI * 2); ctx.fill()
-  }
+  ctx.fillStyle = SPOT_BASE; ctx.fillRect(0, 0, w, h)
+  // colour tint centred on the fighter
+  const cx = portrait ? w * 0.5 : w * 0.72, cy = h * 0.5, R = Math.max(w, h) * 0.75
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, R)
+  bg.addColorStop(0, _mixHex(SPOT_BASE, hc, 0.34 * (0.4 + 0.6 * heroAlpha))); bg.addColorStop(0.45, _mixHex(SPOT_BASE, hc, 0.12)); bg.addColorStop(0.8, SPOT_BASE)
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
+  // slow rotating aura
+  const aura = _auraCanvas(hc), asz = Math.max(w * 0.62, h * 0.95)
+  ctx.save(); ctx.globalAlpha = 0.5 * (0.35 + 0.65 * heroAlpha); ctx.globalCompositeOperation = "lighter"
+  ctx.translate(cx, h * 0.42); ctx.rotate(_mkFrame * 0.0045); ctx.drawImage(aura, -asz / 2, -asz / 2, asz, asz)
   ctx.restore()
-  drawVignette(ctx, canvas, 0.4)
+  // the fighter, melted into the tint
+  if (heroAlpha > 0.01) {
+    const hw = portrait ? w : w * (opts.heroW || 0.62), hh = portrait ? h * 0.72 : h
+    const hero = _heroCanvas(sp.key, hw, hh)
+    if (hero) {
+      const drift = Math.sin(_mkFrame * 0.006) * w * 0.004
+      ctx.globalAlpha = heroAlpha
+      ctx.drawImage(hero, (portrait ? 0 : w - hw) + drift, portrait ? h * 0.04 : 0, hw, hh)
+      ctx.globalAlpha = 1
+    }
+  }
+  // fade to the base on the left (where text sits) and at the floor
+  if (!portrait) {
+    const lg = ctx.createLinearGradient(0, 0, w * 0.55, 0)
+    lg.addColorStop(0, SPOT_BASE); lg.addColorStop(0.45, _withAlpha(SPOT_BASE, 0.85)); lg.addColorStop(1, _withAlpha(SPOT_BASE, 0))
+    ctx.fillStyle = lg; ctx.fillRect(0, 0, w * 0.55, h)
+  } else {
+    ctx.fillStyle = _withAlpha(SPOT_BASE, 0.35); ctx.fillRect(0, 0, w, h)
+  }
+  const fg = ctx.createLinearGradient(0, h * 0.62, 0, h)
+  fg.addColorStop(0, _withAlpha(SPOT_BASE, 0)); fg.addColorStop(0.85, SPOT_BASE); fg.addColorStop(1, SPOT_BASE)
+  ctx.fillStyle = fg; ctx.fillRect(0, h * 0.62, w, h * 0.38)
+  ctx.restore()
+  return sp
+}
+// Frosted glass panel (#5): blurs what's already drawn behind it, then a dark tint + hairline edge.
+function _frost(ctx, x, y, w, h, r = 16, tint = 0.38) {
+  ctx.save()
+  roundRect(ctx, x, y, w, h, r); ctx.clip()
+  try { ctx.filter = "blur(16px) saturate(1.3)"; ctx.drawImage(ctx.canvas, x, y, w, h, x, y, w, h) } catch (_) {}
+  ctx.filter = "none"
+  ctx.fillStyle = `rgba(12,10,22,${tint})`; ctx.fillRect(x, y, w, h)
+  const gl = ctx.createLinearGradient(0, y, 0, y + h)
+  gl.addColorStop(0, "rgba(255,255,255,0.06)"); gl.addColorStop(1, "rgba(255,255,255,0)")
+  ctx.fillStyle = gl; ctx.fillRect(x, y, w, h)
+  ctx.restore()
+  ctx.save(); ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1; roundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, r); ctx.stroke(); ctx.restore()
+}
+// Poster title (#8): slanted Anton, white with the spotlight accent; `parts` = [{t, style: "outline"|"accent"|"solid"}] per line.
+function _posterTitle(ctx, lines, x, y, size, accent, align = "left") {
+  ctx.save()
+  ctx.font = _titleFont(400, size); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"
+  try { ctx.letterSpacing = `${(size * 0.01).toFixed(1)}px` } catch (_) {}
+  const lh = size * 0.9
+  lines.forEach((parts, li) => {
+    const total = parts.reduce((a, p) => a + ctx.measureText(p.t).width, 0)
+    let px = align === "center" ? x - total / 2 : x
+    const by = y + li * lh
+    parts.forEach(p => {
+      const pw = ctx.measureText(p.t).width
+      ctx.save(); ctx.translate(px, by); ctx.transform(1, 0, -0.12, 1, 0, 0)
+      if (p.style === "outline") {
+        ctx.strokeStyle = "rgba(255,255,255,0.92)"; ctx.lineWidth = Math.max(1.5, size * 0.025); ctx.strokeText(p.t, 0, 0)
+      } else if (p.style === "accent") {
+        const g = ctx.createLinearGradient(0, 0, pw, 0); g.addColorStop(0, "#ffffff"); g.addColorStop(1, accent)
+        ctx.shadowBlur = size * 0.3; ctx.shadowColor = _withAlpha(accent, 0.6); ctx.fillStyle = g; ctx.fillText(p.t, 0, 0)
+      } else {
+        ctx.shadowBlur = size * 0.2; ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.fillStyle = "#ffffff"; ctx.fillText(p.t, 0, 0)
+      }
+      ctx.restore()
+      px += pw
+    })
+  })
+  ctx.restore()
+  return { bottom: y + (lines.length - 1) * lh + size * 0.12 }
+}
+// Sidebar list screens: getVerticalMenuLayout marks the frame so the backdrop/header (drawn first) switch to the
+// frosted-sidebar layout. One frame of lag on a screen change is invisible.
+// Each list-screen rect getter stamps the current render tick (game.js calls menuRenderTick() once per frame);
+// the backdrop/header read last frame's stamp, so the first frame after a screen change may draw the old layout.
+let _renderTick = 0, _sidebarTick = -10
+export function menuRenderTick() { _renderTick++ }
+function _markSidebar() { _sidebarTick = _renderTick }
+function _sidebarOn() { return _sidebarTick >= _renderTick - 1 }
+function _sidebarMetrics(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const narrow = w < 700 || h > w
+  const sw = narrow ? w : clamp(w * 0.36, 330, 500)
+  return { narrow, sw, pad: narrow ? 20 : clamp(w * 0.04, 28, 56) }
+}
+
+function drawRiftAmbientBackdrop(ctx, canvas, opts = {}) {
+  drawSpotlightBackdrop(ctx, canvas, { heroAlpha: opts.heroAlpha ?? (_sidebarOn() ? (_sidebarMetrics(canvas).narrow ? 0.45 : 1) : 0.35) })
+  drawVignette(ctx, canvas, 0.35)
 }
 
 // Subtle animated menu backdrop: dark gradient + slow-drifting accent glows (parallax) + faint drifting
 // motes. Deterministic (driven by _mkFrame — no Math.random/Date.now), so it's replay/test-safe.
 function drawMkAmbientBackdrop(ctx, canvas, opts = {}) {
-  const { width: w, height: h } = getCanvasSize(canvas)
-  const top = opts.top || _THEME.bgTop, bottom = opts.bottom || _THEME.bgBottom
-  const bg = ctx.createLinearGradient(0, 0, 0, h)
-  bg.addColorStop(0, top); bg.addColorStop(1, bottom)
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
-
-  const t = _mkFrame * 0.006
-  ctx.save(); ctx.globalAlpha = 0.20
-  const g1x = w * (0.22 + 0.03 * Math.sin(t)), g1y = h * (0.20 + 0.02 * Math.cos(t * 0.8))
-  const g1 = ctx.createRadialGradient(g1x, g1y, 10, g1x, g1y, w * 0.38)
-  g1.addColorStop(0, _THEME.glowA); g1.addColorStop(1, "transparent"); ctx.fillStyle = g1; ctx.fillRect(0, 0, w, h)
-  const g2x = w * (0.80 - 0.03 * Math.cos(t * 0.9)), g2y = h * (0.30 + 0.025 * Math.sin(t))
-  const g2 = ctx.createRadialGradient(g2x, g2y, 10, g2x, g2y, w * 0.34)
-  g2.addColorStop(0, _THEME.glowB); g2.addColorStop(1, "transparent"); ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h)
-  ctx.restore()
-
-  // Drifting motes (deterministic positions scrolling slowly upward/sideways).
-  ctx.save()
-  for (let i = 0; i < 26; i++) {
-    const speed = 0.25 + (i % 4) * 0.12
-    const px = (i * 137.5 + _mkFrame * speed * 0.6) % (w + 40) - 20
-    const py = (i * 91.7 - _mkFrame * speed * 0.5) % (h + 40)
-    const py2 = py < 0 ? py + h + 40 : py
-    const r = 0.8 + (i % 3) * 0.7
-    ctx.fillStyle = `rgba(${_THEME.ring},${0.05 + 0.045 * (i % 3)})`
-    ctx.beginPath(); ctx.arc(px, py2, r, 0, Math.PI * 2); ctx.fill()
-  }
-  ctx.restore()
-  drawVignette(ctx, canvas, 0.38)
+  drawSpotlightBackdrop(ctx, canvas, { heroAlpha: opts.heroAlpha ?? (_sidebarOn() ? (_sidebarMetrics(canvas).narrow ? 0.45 : 1) : 0.3) })
+  drawVignette(ctx, canvas, 0.35)
 }
 
 function drawCenteredText(ctx, text, x, y, options = {}) {
@@ -797,18 +941,18 @@ function getGridLayout(count, canvas, options = {}) {
 function getVerticalMenuLayout(canvas, labels = []) {
   const { width: w, height: h } = getCanvasSize(canvas)
   const n = Math.max(1, labels.length)
-  const menuWidth  = clamp(w * 0.34, 320, 520)
-  // Fit the buttons in the band BELOW the header and ABOVE the footer at any
-  // screen size / item count — shrink the row height + gap instead of overflowing.
-  const topMargin    = 150
-  const bottomMargin = 70
+  const sm = _sidebarMetrics(canvas)
+  const menuWidth  = sm.narrow ? clamp(w - 40, 260, 520) : sm.sw - sm.pad - 28
+  // Fit the rows between the header and the footer at any screen size / item count.
+  const topMargin    = 158
+  const bottomMargin = 64
   const avail        = Math.max(140, h - topMargin - bottomMargin)
-  const gap          = n > 6 ? 12 : 18
+  const gap          = n > 6 ? 6 : 10
   let buttonHeight   = (avail - (n - 1) * gap) / n
-  buttonHeight       = clamp(buttonHeight, 46, 92)
+  buttonHeight       = clamp(buttonHeight, 44, 78)
   const totalHeight  = n * buttonHeight + (n - 1) * gap
-  const startX       = w / 2 - menuWidth / 2
-  const startY       = topMargin + Math.max(0, (avail - totalHeight) / 2)
+  const startX       = sm.narrow ? w / 2 - menuWidth / 2 : sm.pad
+  const startY       = topMargin + Math.max(0, Math.min(avail - totalHeight, 24))
 
   return labels.map((label, index) => ({
     ...label,                            // pass through extra fields (e.g. slot, count)
@@ -861,28 +1005,39 @@ function drawButton(ctx, rect, options = {}) {
 }
 
 function drawHeader(ctx, canvas, title, subtitle = "") {
-  const { width: w } = getCanvasSize(canvas)
-  // Animated accent shimmer sweeping across the title — a moving highlight band on a themed gradient.
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const accent = menuSpotlight().accent
+  const side = _sidebarOn(), sm = _sidebarMetrics(canvas)
+  if (side && !sm.narrow) {
+    // frosted sidebar (#5) the list sits in; fades out at its right edge so there's no hard border
+    ctx.save()
+    const g = ctx.createLinearGradient(0, 0, sm.sw, 0)
+    g.addColorStop(0, "rgba(10,8,20,0.78)"); g.addColorStop(0.75, "rgba(10,8,20,0.45)"); g.addColorStop(1, "rgba(10,8,20,0)")
+    ctx.fillStyle = g; ctx.fillRect(0, 0, sm.sw, h)
+    ctx.restore()
+  }
+  const left = side && !sm.narrow
+  const x = left ? sm.pad : w / 2
+  // shrink to fit (clears the corner BACK button on narrow screens)
+  ctx.save(); ctx.font = _titleFont(400, 46)
+  const k = canvas && canvas.clientWidth ? canvas.width / canvas.clientWidth : 1
+  const avail = left ? sm.sw - sm.pad * 2 : w - 2 * (64 * k + 104 + 12)
+  const tw0 = ctx.measureText(title).width; ctx.restore()
+  const size = Math.max(22, Math.min(46, Math.floor(46 * avail / Math.max(1, tw0 * 1.05))))
+  _posterTitle(ctx, [[{ t: String(title).toUpperCase(), style: "solid" }]], x, 104, size, accent, left ? "left" : "center")
+  // accent underline
   ctx.save()
-  ctx.font = "800 40px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"
-  // Narrow screens (phone held upright): shrink the title so it clears the ‹ BACK button in the corner.
-  { const k = canvas && canvas.clientWidth ? canvas.width / canvas.clientWidth : 1, reserve = 64 * k + 104 + 12
-    const avail = w - 2 * reserve, w40 = ctx.measureText(title).width
-    if (w40 > avail) ctx.font = `800 ${Math.max(20, Math.floor(40 * avail / w40))}px Arial` }
-  const tw = Math.max(220, ctx.measureText(title).width)
-  const sweep = (Math.sin(_mkFrame * 0.03) * 0.5 + 0.5)            // 0..1 shimmer position
-  const grad = ctx.createLinearGradient(w / 2 - tw / 2, 0, w / 2 + tw / 2, 0)
-  grad.addColorStop(0, "#eef4ff")
-  grad.addColorStop(Math.max(0.001, sweep - 0.18), "#eef4ff")
-  grad.addColorStop(sweep, _MK_ACCENT)                            // the moving accent highlight
-  grad.addColorStop(Math.min(0.999, sweep + 0.18), "#eef4ff")
-  grad.addColorStop(1, "#eef4ff")
-  ctx.shadowBlur = 24; ctx.shadowColor = _accentRGBA(0.5)
-  ctx.fillStyle = grad
-  ctx.fillText(title, w / 2, 72)
+  const uw = Math.min(120, w * 0.12), ux = left ? x : x - uw / 2
+  const ug = ctx.createLinearGradient(ux, 0, ux + uw, 0); ug.addColorStop(0, accent); ug.addColorStop(1, _withAlpha(accent, 0))
+  ctx.fillStyle = ug; ctx.shadowBlur = 10; ctx.shadowColor = accent; ctx.fillRect(ux, 116, uw, 3)
   ctx.restore()
   if (subtitle) {
-    drawSubText(ctx, subtitle, w / 2, 112, { font: "18px Arial", fill: `rgba(${_THEME.ring},0.82)` })
+    ctx.save()
+    ctx.font = _uiFont(600, 14); ctx.textAlign = left ? "left" : "center"; ctx.textBaseline = "middle"
+    try { ctx.letterSpacing = "4px" } catch (_) {}
+    ctx.fillStyle = "rgba(255,255,255,0.58)"
+    ctx.fillText(String(subtitle).toUpperCase(), x, 136)
+    ctx.restore()
   }
 }
 
@@ -895,32 +1050,57 @@ function drawVignette(ctx, canvas, strength = 0.5) {
 }
 
 function drawFooterHint(ctx, canvas, text) {
+  if (!text) return
   const { width: w, height: h } = getCanvasSize(canvas)
-  drawSubText(ctx, text, w / 2, h - 34, { font: "15px Arial", fill: "rgba(220,230,255,0.78)" })
+  ctx.save()
+  const size = _fitFontSize(ctx, text, 600, 14, w - 80, 10)
+  ctx.font = _uiFont(600, size); ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  try { ctx.letterSpacing = "0.6px" } catch (_) {}
+  const sm = _sidebarMetrics(canvas), left = _sidebarOn() && !sm.narrow
+  const tw = ctx.measureText(text).width, pw = tw + 36, ph = 28, px = left ? sm.pad : w / 2 - pw / 2, py = h - 34 - ph / 2
+  ctx.fillStyle = "rgba(10,8,20,0.55)"; roundRect(ctx, px, py, pw, ph, 14); ctx.fill()
+  ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1; roundRect(ctx, px + 0.5, py + 0.5, pw - 1, ph - 1, 14); ctx.stroke()
+  ctx.fillStyle = "rgba(255,255,255,0.72)"; ctx.fillText(text, px + pw / 2, h - 33)
+  ctx.restore()
 }
 
 // ─────────────────────────────────────────────
 // MENU LAYOUT EXPORTS
 // ─────────────────────────────────────────────
 export function getStartMenuRects(canvas) {
-  return getVerticalMenuLayout(canvas, [
+  const items = [
     { id: "play", label: "PLAY", subLabel: "Enter the multiverse" },
     // ONE way to play online: host a match and send your friend a link (same Wi-Fi); each picks their own fighter.
     { id: "friend", label: "PLAY WITH A FRIEND", subLabel: "Send a link — they join on the same Wi-Fi" }
-  ])
+  ]
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const bw = clamp(w * 0.25, 240, 360), bh = clamp(h * 0.10, 58, 78), gap = 26
+  if (w < bw * 2 + gap + 32) return getVerticalMenuLayout(canvas, items)   // narrow/portrait: stacked
+  const y = Math.min(h * 0.80, h - bh - 58), x0 = w / 2 - bw - gap / 2
+  return items.map((it, i) => ({ ...it, locked: false, lockNote: "", x: x0 + i * (bw + gap), y, w: bw, h: bh }))
 }
 
+const _MODE_TILES = [
+  { id: "training", label: "TRAINING",     subLabel: "1 player practice mode",            art: null },        // null = your main
+  { id: "vs",       label: "VS MATCH",     subLabel: "1 player vs the CPU",               art: "goku" },
+  { id: "pvp",      label: "2 PLAYER",     subLabel: "Local versus — P1 vs P2",           art: "naruto" },
+  { id: "arcade",   label: "ARCADE",       subLabel: "7 fights, a rival, a boss & your ending", art: "luffy" },
+  { id: "tower",    label: "TOWER",        subLabel: "Climb a ladder of CPU fights",      art: "ichigo" },
+  { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)",  art: "mmpr_rangers" },
+  { id: "aivsai",   label: "AI vs AI",     subLabel: "Watch/test two CPUs — logged, fast-forwardable", art: "homelander" },
+  { id: "back",     label: "BACK",         subLabel: "Return to title",                   art: "" }
+]
 export function getGameplaySelectRects(canvas) {
-  return getVerticalMenuLayout(canvas, [
-    { id: "training",    label: "TRAINING",     subLabel: "1 player practice mode"      },
-    { id: "vs",       label: "VS MATCH",  subLabel: "1 player vs the CPU"         },
-    { id: "pvp",      label: "2 PLAYER",  subLabel: "Local versus — P1 vs P2"     },
-    { id: "arcade",   label: "ARCADE",    subLabel: "7 fights, a rival, a boss & your ending" },
-    { id: "tower",    label: "TOWER",     subLabel: "Climb a ladder of CPU fights" },
-    { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)" },
-    { id: "aivsai",   label: "AI vs AI",  subLabel: "Watch/test two CPUs — logged, fast-forwardable" },
-    { id: "back",     label: "BACK",      subLabel: "Return to title"             }
-  ])
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const narrow = w < 760 || h > w
+  const cols = narrow ? 2 : 4, rows = Math.ceil(_MODE_TILES.length / cols)
+  const pad = narrow ? 16 : clamp(w * 0.045, 28, 72), gap = narrow ? 10 : 16
+  const top = 160, bottom = h - 70
+  const tw = (w - pad * 2 - gap * (cols - 1)) / cols
+  const th = Math.min((bottom - top - gap * (rows - 1)) / rows, tw * 1.25)
+  const y0 = top + Math.max(0, (bottom - top - (th * rows + gap * (rows - 1))) / 2)
+  return _MODE_TILES.map((t, i) => ({ ...t, locked: false, lockNote: "",
+    x: pad + (i % cols) * (tw + gap), y: y0 + Math.floor(i / cols) * (th + gap), w: tw, h: th }))
 }
 
 // ── AI vs AI SETUP SCREEN ────────────────────────────────────────────────────
@@ -928,6 +1108,7 @@ export function getGameplaySelectRects(canvas) {
 // FIGHTER rows open the real character select (both fighters + skins, then the map); MAP opens stage select (◀▶ toggles
 // the picked map ↔ rotate every match). The other value rows are click-to-cycle (◀/▶ on the keyboard).
 export function getAiVsAiSetupRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "p1char", label: "P1 FIGHTER" },
     { id: "p1diff", label: "P1 AI" },
@@ -983,6 +1164,7 @@ export function drawAiVsAiSetupScreen(ctx, canvas, cfg = {}, roster = [], select
 
 // ── AI vs AI RUN-COMPLETE SUMMARY ────────────────────────────────────────────
 export function getAiVsAiSummaryRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "json",  label: "DOWNLOAD JSON", subLabel: "Full move-by-move log" },
     { id: "csv",   label: "DOWNLOAD CSV",  subLabel: "Flat event table (training-ready)" },
@@ -1017,6 +1199,7 @@ export function drawAiVsAiSummaryScreen(ctx, canvas, exp = {}, selectedIndex = 0
 // (with a difficulty). One click-to-cycle row per slot + CONTINUE / BACK. Slot rows carry
 // `slot` (0-based); action buttons carry a string id. Mirrors the team-select layout.
 export function getFFASlotSelectRects(canvas, playerCount = 3) {
+  _markSidebar()
   const items = []
   for (let i = 0; i < playerCount; i++) items.push({ id: `slot${i}`, slot: i, label: `P${i + 1}`, subLabel: "" })
   items.push({ id: "continue", label: "CONTINUE", subLabel: "On to team assignment" })
@@ -1057,6 +1240,7 @@ export function drawFFASlotSelectScreen(ctx, canvas, playerCount = 3, aiSlots = 
 // FREE-FOR-ALL team assignment — one toggle row per slot + START / NO-TEAMS / BACK.
 // Slot rows carry `slot` (0-based); action buttons carry a string id.
 export function getFFATeamSelectRects(canvas, playerCount = 3) {
+  _markSidebar()
   const items = []
   for (let i = 0; i < playerCount; i++) items.push({ id: `slot${i}`, slot: i, label: `P${i + 1}`, subLabel: "" })
   items.push({ id: "start",   label: "START MATCH", subLabel: "Begin the team battle" })
@@ -1089,6 +1273,7 @@ export function drawFFATeamSelectScreen(ctx, canvas, playerCount = 3, teams = []
 
 // FREE-FOR-ALL setup — pick player count (3 or 4). Entries above the device cap are locked.
 export function getFFASetupRects(canvas, maxPlayers = 4) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "p3",   count: 3, label: "3 PLAYERS", subLabel: "Three-way free-for-all",  locked: maxPlayers < 3, lockNote: "Needs another controller" },
     { id: "p4",   count: 4, label: "4 PLAYERS", subLabel: "Four-way free-for-all",   locked: maxPlayers < 4, lockNote: "Needs another controller" },
@@ -1098,6 +1283,7 @@ export function getFFASetupRects(canvas, maxPlayers = 4) {
 
 // TOWER TIER SELECT — 5 tiers by floor count (labels mirror game.js TOWER_TIERS ids).
 export function getTowerSelectRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "tier1", label: "TIER 1", subLabel: "3 opponents"                       },
     { id: "tier2", label: "TIER 2", subLabel: "10 opponents"                      },
@@ -1109,6 +1295,7 @@ export function getTowerSelectRects(canvas) {
 }
 
 export function getAIDifficultyRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "easy",       label: "EASY",       subLabel: "Low pressure, simple AI"    },
     { id: "adaptive",   label: "ADAPTIVE",   subLabel: "Learns and responds"        },
@@ -1151,65 +1338,68 @@ export function getStageCardRects(canvas, stages = []) {
 export function drawStartScreen(ctx, canvas) {
   _mkAdvance()
   const { width: w, height: h } = getCanvasSize(canvas)
-  const cx   = w / 2
-  const cy   = h / 2
-
+  const cx = w / 2, cy = h / 2
   ctx.clearRect(0, 0, w, h)
+  const rects = getStartMenuRects(canvas)
+  const [playButton, friendButton] = rects
 
-  // Title-card backdrop: keep the real start-screen art when present; otherwise the multiversal-rift
-  // ambient (fits the "collision of worlds" first impression).
-  if (startScreenImage.complete && startScreenImage.naturalWidth > 0) {
-    ctx.drawImage(startScreenImage, 0, 0, w, h)
-    ctx.fillStyle = "rgba(4,7,16,0.42)"; ctx.fillRect(0, 0, w, h)
+  const hasArt = startScreenImage.complete && startScreenImage.naturalWidth > 0
+  if (hasArt) {
+    // The key art already carries the logo — show it big and clean: crop its inner frame, cover-fit, slow drift.
+    const k = startScreenImage.naturalWidth / 1000
+    const sx = 57 * k, sy = 45 * k, sw = 886 * k, sh = 476 * k
+    const zoom = 1.04 + 0.02 * Math.sin(_mkFrame * 0.004)
+    const portrait = h > w * 1.1
+    if (portrait) drawRiftAmbientBackdrop(ctx, canvas, { top: "#04060f", bottom: "#120a22" })
+    // landscape: cover the screen; portrait (phone): fit the width so the whole logo stays on screen
+    const sc = (portrait ? (w / sw) * 1.12 : Math.max(w / sw, h / sh)) * zoom
+    const dw = sw * sc, dh = sh * sc
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high"
+    ctx.drawImage(startScreenImage, sx, sy, sw, sh, cx - dw / 2 + Math.sin(_mkFrame * 0.003) * 6, cy - dh / 2 - h * 0.03, dw, dh)
+    ctx.restore()
+    drawVignette(ctx, canvas, 0.55)
   } else {
     drawRiftAmbientBackdrop(ctx, canvas, { top: "#04060f", bottom: "#120a22" })
+    ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"
+    const ts = Math.floor(Math.max(54, w * 0.06))
+    try { ctx.letterSpacing = "3px" } catch (_) {}
+    ctx.font = _titleFont(800, ts)
+    const vg = ctx.createLinearGradient(0, cy - 96 - ts / 2, 0, cy - 96 + ts / 2)
+    vg.addColorStop(0, "#ffffff"); vg.addColorStop(1, _THEME.accent)
+    ctx.shadowBlur = 30; ctx.shadowColor = _accentRGBA(0.6); ctx.fillStyle = vg
+    ctx.fillText("MULTIVERSE SMASH", cx, cy - 96)
+    ctx.shadowBlur = 0; ctx.font = _titleFont(600, Math.max(24, w * 0.02)); try { ctx.letterSpacing = "14px" } catch (_) {}
+    ctx.fillStyle = "#dfe8ff"; ctx.fillText("ULTIMATE", cx, cy - 30)
+    ctx.restore()
   }
 
-  const pulse = 0.92 + Math.sin(_mkFrame * 0.06) * 0.08
+  // Bottom dock: a dark glass band the buttons sit on (also hides the art's baked "PRESS START" pill).
+  const top = Math.min(...rects.map(r => r.y)) - 26
+  const dock = ctx.createLinearGradient(0, top - 70, 0, h)
+  dock.addColorStop(0, "rgba(3,5,12,0)"); dock.addColorStop(0.42, "rgba(3,5,12,0.93)"); dock.addColorStop(1, "rgba(3,5,12,0.97)")
+  ctx.fillStyle = dock; ctx.fillRect(0, top - 70, w, h - top + 70)
+  // soak up the art's baked pill that sits between the two buttons
+  if (friendButton && playButton.y === friendButton.y) {
+    const mx = (playButton.x + playButton.w + friendButton.x) / 2, my = playButton.y + playButton.h / 2
+    const blob = ctx.createRadialGradient(mx, my, 4, mx, my, playButton.w * 0.55)
+    blob.addColorStop(0, "rgba(3,5,12,1)"); blob.addColorStop(0.6, "rgba(3,5,12,0.85)"); blob.addColorStop(1, "rgba(3,5,12,0)")
+    ctx.fillStyle = blob; ctx.fillRect(mx - playButton.w, my - playButton.h, playButton.w * 2, playButton.h * 2)
+  }
+  // accent rail along the dock's top edge
+  const rail = ctx.createLinearGradient(0, 0, w, 0)
+  rail.addColorStop(0, "rgba(255,138,196,0)"); rail.addColorStop(0.3, "rgba(255,138,196,0.7)"); rail.addColorStop(0.7, "rgba(74,213,255,0.7)"); rail.addColorStop(1, "rgba(74,213,255,0)")
+  ctx.fillStyle = rail; ctx.fillRect(0, top, w, 1.5)
 
-  ctx.save()
-  ctx.textAlign    = "center"
-  ctx.textBaseline = "middle"
+  drawMkButton(ctx, playButton, { label: "PLAY", subLabel: "Enter the multiverse", active: true, accent: "#ff8ac4", id: "start:play" })
+  if (friendButton) drawMkButton(ctx, friendButton, { label: "PLAY WITH A FRIEND", subLabel: "Send a link — they join on the same Wi-Fi", active: false, accent: "#4ad5ff", id: "start:friend" })
 
-  ctx.shadowBlur  = 28
-  ctx.shadowColor = "rgba(120,180,255,0.45)"
-  ctx.fillStyle   = "#eef4ff"
-  ctx.font        = `900 ${Math.floor(Math.max(54, w * 0.046))}px Arial`
-  ctx.fillText("MULTIVERSE SMASH", cx, cy - 96)
-
-  ctx.shadowBlur  = 16
-  ctx.shadowColor = "rgba(255,190,225,0.35)"
-  ctx.strokeStyle = "rgba(255,210,235,0.22)"
-  ctx.lineWidth   = 2
-  ctx.strokeText("MULTIVERSE SMASH", cx, cy - 96)
-
-  ctx.shadowBlur  = 16
-  ctx.shadowColor = "rgba(110,140,255,0.35)"
-  ctx.fillStyle   = "#dfe8ff"
-  ctx.font        = `700 ${Math.floor(Math.max(26, w * 0.018))}px Arial`
-  ctx.fillText("ULTIMATE", cx, cy - 30)
+  // "PRESS START" blink under the dock.
+  const blink = 0.45 + 0.55 * Math.abs(Math.sin(_mkFrame * 0.05))
+  ctx.save(); ctx.globalAlpha = blink
+  ctx.font = _titleFont(600, 11); ctx.textAlign = "center"; ctx.textBaseline = "middle"
+  try { ctx.letterSpacing = "5px" } catch (_) {}
+  ctx.fillStyle = "rgba(225,235,255,0.9)"; ctx.fillText("PRESS ENTER OR CLICK PLAY", cx, h - 26)
   ctx.restore()
-
-  // Metallic accent divider under the title (the title-card cue).
-  const dw = Math.min(520, w * 0.42)
-  const grd = ctx.createLinearGradient(cx - dw / 2, 0, cx + dw / 2, 0)
-  grd.addColorStop(0, "rgba(74,168,224,0)"); grd.addColorStop(0.5, _MK_ACCENT); grd.addColorStop(1, "rgba(74,168,224,0)")
-  ctx.fillStyle = grd; ctx.fillRect(cx - dw / 2, cy - 6, dw, 2)
-
-  drawSubText(ctx, "A collision of worlds begins here", cx, cy + 28, {
-    font: `${Math.floor(Math.max(14, w * 0.0105))}px Arial`,
-    fill: "rgba(220,230,255,0.85)"
-  })
-
-  const [playButton, friendButton] = getStartMenuRects(canvas)
-  drawMkButton(ctx, playButton, { label: "PLAY", subLabel: "Enter the multiverse", active: true, accent: "#ff8ac4", cut: 14 })
-  if (friendButton) drawMkButton(ctx, friendButton, { label: "PLAY WITH A FRIEND", subLabel: "Send a link — they join on the same Wi-Fi", active: false, accent: "#4ad5ff", cut: 14 })
-  // gentle accent pulse ring around PLAY
-  ctx.save(); ctx.globalAlpha = 0.35 + (pulse - 0.9) * 2; ctx.shadowBlur = 18; ctx.shadowColor = "#ff8ac4"
-  ctx.strokeStyle = "#ff8ac4"; ctx.lineWidth = 1.5
-  _bevelPath(ctx, playButton.x - 3, playButton.y - 3, playButton.w + 6, playButton.h + 6, 16); ctx.stroke(); ctx.restore()
-
-  drawFooterHint(ctx, canvas, "Click PLAY to continue")
 }
 
 // ─────────────────────────────────────────────
@@ -1426,8 +1616,23 @@ export function drawAlienSelectScreen(ctx, canvas, options = {}) {
 // MAIN MENU SCROLL: 15 buttons don't fit at the 46px minimum row height, so the list scrolls (mouse wheel, or it
 // follows the keyboard / pad selection) inside the band between the header and the footer.
 let _mainMenuScroll = 0
-const _MM_TOP = 140, _MM_BOTTOM = 62
-function _mainMenuBand(canvas) { const { height: h } = getCanvasSize(canvas); return { top: _MM_TOP, bottom: h - _MM_BOTTOM } }
+const _MM_BOTTOM = 62
+// Poster layout (#8 + #1): slanted title top-left, a big-word list under it, the player's main on the right.
+function _mainMenuGeo(canvas) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const narrow = w < 760 || h > w
+  const pad = narrow ? 20 : clamp(w * 0.045, 28, 72)
+  const T = narrow ? clamp(w * 0.13, 40, 76) : clamp(Math.min(h * 0.11, w * 0.075), 44, 104)
+  const titleY = (narrow ? 112 : 70) + T * 0.86
+  const titleBottom = titleY + T * 0.9 + T * 0.14
+  const top = titleBottom + 34
+  const listW = narrow ? Math.min(w - 40, 520) : clamp(w * 0.34, 300, 480)
+  const listX = narrow ? w / 2 - listW / 2 : pad
+  return { w, h, narrow, pad, T, titleY, top, listX, listW }
+}
+let _xpSlot = null
+export function mainMenuXpSlot() { return _xpSlot }   // where game.js draws the LV / XP pill (top bar)
+function _mainMenuBand(canvas) { const g = _mainMenuGeo(canvas); return { top: g.top, bottom: g.h - _MM_BOTTOM } }
 export function scrollMainMenu(dy, canvas) { _mainMenuScroll += dy; getMainMenuRects(canvas) }
 export function getMainMenuRects(canvas) {
   const rects = _mainMenuRectsRaw(canvas), band = _mainMenuBand(canvas), last = rects[rects.length - 1]
@@ -1437,7 +1642,7 @@ export function getMainMenuRects(canvas) {
   return rects
 }
 function _mainMenuRectsRaw(canvas) {
-  return getVerticalMenuLayout(canvas, [
+  const items = [
     { id: "play",     label: "PLAY",      subLabel: "Training • VS CPU • 2 Player • Tower" },
     { id: "devcode",  label: "DEV CODE",  subLabel: isFullyUnlocked() ? "✓ Everything unlocked (session only)" : "Enter unlock code" },
     { id: "profile",  label: "PROFILE",   subLabel: "Your Big-Five reading + UI appearance" },
@@ -1445,7 +1650,10 @@ function _mainMenuRectsRaw(canvas) {
     { id: "settings", label: "SETTINGS",  subLabel: "Keyboard / controller setup"         },
     { id: "credits",  label: "CREDITS",   subLabel: "Art, audio & attribution"            },
     { id: "back",     label: "BACK",      subLabel: "Return to title"                     }
-  ])
+  ]
+  const g = _mainMenuGeo(canvas), avail = g.h - _MM_BOTTOM - g.top
+  const rh = clamp(avail / items.length, 40, 62)
+  return items.map((it, i) => ({ ...it, locked: !!it.locked, lockNote: it.lockNote || "", x: g.listX, y: g.top + i * rh, w: g.listW, h: rh - 4 }))
 }
 
 // ── MENU AMBIENT PARTICLES (Part 3 #1) — drifting motes/embers in the Void Sovereign palette
@@ -1547,87 +1755,158 @@ function drawMenuParticles(ctx, canvas, opts = {}) {
 
 export function drawMainMenuScreen(ctx, canvas, hoverIndex = 0, account = null, daily = null) {
   _mkAdvance()
-  const { width: w } = getCanvasSize(canvas)
-  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawRiftAmbientBackdrop(ctx, canvas)   // Stage 13: multiversal rift ambient (themed bg/spiral/motes)
-  drawMenuParticles(ctx, canvas)   // Part 3 #1: ambient themed motes over the backdrop
-  drawHeader(ctx, canvas, "MULTIVERSE SMASH", "Where do you want to go?")
+  const g = _mainMenuGeo(canvas), { w, h } = g
+  ctx.clearRect(0, 0, w, h)
+  const sp = menuSpotlight()
+  drawSpotlightBackdrop(ctx, canvas, { heroAlpha: g.narrow ? 0.5 : 1 })
+  drawVignette(ctx, canvas, g.narrow ? 0.6 : 0.3)
+  drawMenuParticles(ctx, canvas)
 
-  // Logged-in-as banner (top-right) so the current account is always visible.
-  const label = account ? `Logged in as ${account.username}` : "Not logged in"
-  ctx.save(); ctx.font = "700 14px Arial"; ctx.textBaseline = "middle"
-  const bw = ctx.measureText(label).width + 28
-  drawPanel(ctx, w - bw - 24, 24, bw, 34, { fill: "rgba(8,14,30,0.8)", stroke: account ? "#86efac" : "rgba(255,255,255,0.18)", lineWidth: 1.5, radius: 10, bevel: true, bevelCut: 8 })
-  ctx.fillStyle = account ? "#bbf7d0" : "rgba(220,230,255,0.7)"
-  ctx.textAlign = "center"; ctx.fillText(label, w - bw / 2 - 24, 41)
+  // top bar: account pill (right). The LV / XP pill (game.js) sits top-left.
+  const label = account ? account.username : "GUEST"
+  ctx.save(); ctx.font = _uiFont(700, 15); ctx.textBaseline = "middle"
+  try { ctx.letterSpacing = "1.5px" } catch (_) {}
+  const bw = ctx.measureText(label).width + 52, bx = w - bw - 24, by = 18
+  _xpSlot = g.narrow ? { x: w / 2 - 125, y: 58, w: 250, h: 34 } : { x: bx - 262, y: by, w: 250, h: 34 }
+  ctx.fillStyle = "rgba(12,10,22,0.5)"; roundRect(ctx, bx, by, bw, 34, 17); ctx.fill()
+  ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 1; roundRect(ctx, bx + 0.5, by + 0.5, bw - 1, 33, 17); ctx.stroke()
+  ctx.fillStyle = account ? "#86efac" : "rgba(255,255,255,0.35)"; ctx.beginPath(); ctx.arc(bx + 20, by + 17, 4.5, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = "rgba(255,255,255,0.88)"; ctx.textAlign = "left"; ctx.fillText(label, bx + 34, by + 18)
   ctx.restore()
 
+  // poster title (#8)
+  const tx = g.narrow ? w / 2 : g.pad
+  _posterTitle(ctx, [[{ t: "MULTI", style: "solid" }, { t: "VERSE", style: "accent" }], [{ t: "SMASH", style: "outline" }]],
+    tx, g.titleY, g.T, sp.accent, g.narrow ? "center" : "left")
+
+  // big-word list (#1)
   let rects = getMainMenuRects(canvas)
   const band = _mainMenuBand(canvas), hov = rects[hoverIndex]
-  if (hov && (hov.y < band.top || hov.y + hov.h > band.bottom)) {      // keep the selected button in view
+  if (hov && (hov.y < band.top || hov.y + hov.h > band.bottom)) {      // keep the selected row in view
     _mainMenuScroll += hov.y < band.top ? hov.y - band.top - 8 : hov.y + hov.h - band.bottom + 8
     rects = getMainMenuRects(canvas)
   }
   const scrollMax = rects[0]?.scrollMax || 0
   ctx.save()
-  if (scrollMax > 0) { ctx.beginPath(); ctx.rect(0, band.top - 6, getCanvasSize(canvas).width, band.bottom - band.top + 12); ctx.clip() }
+  if (scrollMax > 0) { ctx.beginPath(); ctx.rect(0, band.top - 6, w, band.bottom - band.top + 12); ctx.clip() }
   rects.forEach((r, i) => {
     if (r.y + r.h < band.top - 6 || r.y > band.bottom + 6) return
-    drawMkButton(ctx, r, { label: r.label, subLabel: r.subLabel, active: i === hoverIndex && !r.locked,
-      locked: r.locked, accent: _MK_ACCENT, id: `mainmenu:${i}` })
-    if (r.locked) {
-      // LOCKED placeholder (e.g. ONLINE): grey wash + a single lock pill on the
-      // right, vertically centered so it never collides with the label/sub.
-      ctx.save()
-      _bevelPath(ctx, r.x, r.y, r.w, r.h, 14); ctx.fillStyle = "rgba(8,12,24,0.55)"; ctx.fill()
-      const pillW = 96, pillH = 26, px = r.x + r.w - pillW - 16, py = r.y + r.h / 2 - pillH / 2
-      ctx.fillStyle = "rgba(30,41,59,0.95)"; roundRect(ctx, px, py, pillW, pillH, 13); ctx.fill()
-      ctx.strokeStyle = "rgba(148,163,184,0.5)"; ctx.lineWidth = 1; roundRect(ctx, px, py, pillW, pillH, 13); ctx.stroke()
-      ctx.fillStyle = "#cbd5e1"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
-      ctx.font = "600 13px Arial"; ctx.fillText("🔒 Locked", px + pillW / 2, py + pillH / 2 + 1)
-      ctx.restore()
-    }
+    _drawBigWordRow(ctx, r, { active: i === hoverIndex && !r.locked, id: `mainmenu:${i}`, accent: sp.accent, center: g.narrow })
   })
   ctx.restore()
-  if (scrollMax > 0) {                                                // scroll bar + "more below / above" arrows
-    const x = rects[0].x + rects[0].w + 14, H = band.bottom - band.top, th = Math.max(30, H * H / (H + scrollMax)), ty = band.top + (H - th) * (_mainMenuScroll / scrollMax)
-    ctx.save(); ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(x, band.top, 5, H); ctx.fillStyle = "rgba(220,230,255,0.75)"; ctx.fillRect(x, ty, 5, th)
-    ctx.fillStyle = "rgba(220,230,255,0.85)"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
-    if (_mainMenuScroll < scrollMax - 1) ctx.fillText("▼ scroll for more", rects[0].x + rects[0].w / 2, band.bottom + 18)
-    ctx.restore()
+  if (scrollMax > 0 && _mainMenuScroll < scrollMax - 1) {
+    ctx.save(); ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.font = _uiFont(700, 13); ctx.textAlign = g.narrow ? "center" : "left"
+    try { ctx.letterSpacing = "2px" } catch (_) {}
+    ctx.fillText("▼ MORE", g.narrow ? w / 2 : g.listX + 4, band.bottom + 16); ctx.restore()
   }
-  drawFooterHint(ctx, canvas, "Tip: new here? CONTROLS has the Tutorial, the Academy and Combo Trials")
 
-  // DAILY CHALLENGES panel (Track D): today's 3 featured challenges + the login streak,
-  // bottom-left. Read-only; completing challenges (in a match) grants their normal reward.
-  drawDailyChallengesPanel(ctx, canvas, daily)
+  // YOUR MAIN card (#5) — bottom-right, over the spotlight
+  let cardX = w
+  if (!g.narrow) cardX = _drawMainCard(ctx, canvas, sp)
+  drawFooterHint(ctx, canvas, "Tip: new here? CONTROLS has the Tutorial, the Academy and Combo Trials")
+  // DAILY CHALLENGES: frosted card left of the main card (hidden when there's no room beside the list)
+  drawDailyChallengesPanel(ctx, canvas, daily, cardX)
 }
 
-function drawDailyChallengesPanel(ctx, canvas, daily) {
-  if (!daily || !Array.isArray(daily.challenges) || !daily.challenges.length) return
-  const { height: h } = getCanvasSize(canvas)
-  const pad = 24
-  const pw = 300, ph = 34 + daily.challenges.length * 26 + 12
-  const px = pad, py = h - ph - 64   // sits above the footer hint
+// One big-word main-menu row: slanted Anton word; selected = white→accent with a glow + the sub-label beside it.
+function _drawBigWordRow(ctx, r, opts) {
+  const { active, id, accent, center } = opts
+  const hv = r.locked ? 0 : _mkHover(id, active)
+  const size = clamp(r.h * 0.74, 24, 46)
   ctx.save()
-  drawPanel(ctx, px, py, pw, ph, { fill: "rgba(8,14,30,0.82)", stroke: "rgba(120,170,255,0.35)", lineWidth: 1.5, radius: 12, bevel: true, bevelCut: 8 })
+  if (r.locked) ctx.globalAlpha *= 0.4
+  ctx.font = _titleFont(400, size); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"
+  try { ctx.letterSpacing = `${(size * 0.03).toFixed(1)}px` } catch (_) {}
+  const word = r.label, ww = ctx.measureText(word).width
+  const x0 = center ? r.x + r.w / 2 - ww / 2 : r.x + 18 * hv, by = r.y + r.h * 0.5 + size * 0.36
+  // selection: a soft accent glow pooled behind the word + a short bar
+  if (hv > 0.01) {
+    const gx = x0 + ww * 0.4, gy = r.y + r.h / 2
+    ctx.save(); ctx.translate(gx, gy); ctx.scale(ww * 0.85 + 50, r.h * 0.9)
+    const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+    rg.addColorStop(0, _withAlpha(accent, 0.20 * hv)); rg.addColorStop(1, _withAlpha(accent, 0))
+    ctx.fillStyle = rg; ctx.fillRect(-1, -1, 2, 2); ctx.restore()
+    if (!center) { ctx.save(); ctx.shadowBlur = 12; ctx.shadowColor = accent; ctx.fillStyle = accent; ctx.fillRect(r.x, r.y + r.h * 0.3, 8 * hv, 4); ctx.restore() }
+  }
+  ctx.save(); ctx.translate(x0, by); ctx.transform(1, 0, -0.12, 1, 0, 0)
+  if (hv > 0.5) {
+    const gr = ctx.createLinearGradient(0, 0, ww, 0); gr.addColorStop(0, "#ffffff"); gr.addColorStop(1, accent)
+    ctx.shadowBlur = 18 * hv; ctx.shadowColor = _withAlpha(accent, 0.7); ctx.fillStyle = gr
+  } else ctx.fillStyle = `rgba(255,255,255,${0.42 + 0.4 * hv})`
+  ctx.fillText(word, 0, 0)
+  ctx.restore()
+  // sub-label: beside the word when selected (or a lock note)
+  const sub = r.locked ? "🔒 LOCKED" : r.subLabel
+  if (sub && (hv > 0.05 || r.locked) && !center) {
+    ctx.font = _uiFont(600, clamp(size * 0.36, 12, 15)); ctx.textBaseline = "middle"
+    try { ctx.letterSpacing = "0.5px" } catch (_) {}
+    const sx = x0 + ww + 18, room = r.x + r.w + 220 - sx
+    let t = sub; while (t.length > 4 && ctx.measureText(t).width > room) t = t.slice(0, -2)
+    if (t !== sub) t = t.trimEnd() + "…"
+    ctx.fillStyle = `rgba(255,255,255,${r.locked ? 0.7 : 0.75 * hv})`
+    ctx.fillText(t, sx, r.y + r.h * 0.5 + 1)
+  }
+  ctx.restore()
+}
+
+// The "YOUR MAIN" frosted card. Returns its left x (the daily card goes beside it).
+function _drawMainCard(ctx, canvas, sp) {
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const cw = clamp(w * 0.23, 260, 330), ch = 124, x = w - cw - 28, y = h - ch - 70
+  const ch_ = characters[sp.key] || {}, u = fighterUsage(sp.key), vill = isVillain(sp.key)
+  _frost(ctx, x, y, cw, ch, 16, 0.42)
+  ctx.save()
   ctx.textBaseline = "middle"; ctx.textAlign = "left"
-  ctx.font = "800 14px Arial"; ctx.fillStyle = "#ffe08a"
-  ctx.fillText("DAILY CHALLENGES", px + 14, py + 18)
-  // login streak badge (right-aligned in the header)
+  ctx.font = _uiFont(700, 12); try { ctx.letterSpacing = "3px" } catch (_) {}
+  ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.fillText(u.matches ? "YOUR MAIN" : "SPOTLIGHT", x + 18, y + 22)
+  // HERO / VILLAIN chip
+  const tag = vill ? "VILLAIN" : "HERO", tc = vill ? "#ff4d6d" : sp.accent
+  ctx.font = _uiFont(700, 11); const tw = ctx.measureText(tag).width + 18
+  ctx.fillStyle = _withAlpha(tc, 0.18); roundRect(ctx, x + cw - tw - 16, y + 12, tw, 20, 10); ctx.fill()
+  ctx.strokeStyle = _withAlpha(tc, 0.6); ctx.lineWidth = 1; roundRect(ctx, x + cw - tw - 15.5, y + 12.5, tw - 1, 19, 10); ctx.stroke()
+  ctx.fillStyle = tc; ctx.textAlign = "center"; ctx.fillText(tag, x + cw - tw / 2 - 16 + 1.5, y + 22.5)
+  // name
+  ctx.textAlign = "left"; try { ctx.letterSpacing = "0.5px" } catch (_) {}
+  const name = String(ch_.name || sp.key).toUpperCase()
+  ctx.font = _titleFont(400, _fitFontSizeTitle(ctx, name, 30, cw - 36))
+  ctx.fillStyle = "#ffffff"; ctx.fillText(name, x + 18, y + 54)
+  let uni = ""; try { uni = ch_.universe ? universeDisplayName(ch_.universe) : "" } catch (_) {}
+  ctx.font = _uiFont(600, 13); try { ctx.letterSpacing = "1.5px" } catch (_) {}
+  ctx.fillStyle = sp.accent; ctx.fillText(String(uni).toUpperCase(), x + 18, y + 78)
+  // stats
+  ctx.font = _uiFont(600, 13); ctx.fillStyle = "rgba(255,255,255,0.75)"; try { ctx.letterSpacing = "1px" } catch (_) {}
+  const stat = u.matches ? `${u.matches} MATCH${u.matches === 1 ? "" : "ES"}  ·  ${Math.round(100 * u.wins / Math.max(1, u.matches))}% WINS` : "PLAY A MATCH TO PICK YOUR MAIN"
+  ctx.fillText(stat, x + 18, y + 102)
+  ctx.restore()
+  return x
+}
+function _fitFontSizeTitle(ctx, text, size, maxW) {
+  ctx.save(); ctx.font = _titleFont(400, size); const tw = ctx.measureText(text).width; ctx.restore()
+  return tw > maxW ? Math.max(16, Math.floor(size * maxW / tw)) : size
+}
+
+function drawDailyChallengesPanel(ctx, canvas, daily, rightEdge = Infinity) {
+  if (!daily || !Array.isArray(daily.challenges) || !daily.challenges.length) return
+  const { width: w, height: h } = getCanvasSize(canvas)
+  const pw = 300, ph = 34 + daily.challenges.length * 24 + 10
+  const px = Math.min(rightEdge, w - 28) - pw - 16, py = h - ph - 70
+  const g = _mainMenuGeo(canvas)
+  if (g.narrow || px < g.listX + g.listW + 170) return     // no room beside the list — don't cover it
+  _frost(ctx, px, py, pw, ph, 16, 0.42)
+  ctx.save()
+  ctx.textBaseline = "middle"; ctx.textAlign = "left"
+  ctx.font = _uiFont(700, 12); try { ctx.letterSpacing = "3px" } catch (_) {}
+  ctx.fillStyle = "#ffe08a"; ctx.fillText("DAILY", px + 16, py + 20)
   const streak = daily.streak || 0
-  const sLabel = `🔥 ${streak}-day streak`
-  ctx.font = "700 12px Arial"; ctx.textAlign = "right"; ctx.fillStyle = streak > 1 ? "#fca5a5" : "rgba(220,230,255,0.7)"
-  ctx.fillText(sLabel, px + pw - 14, py + 18)
-  // rows
-  ctx.textAlign = "left"; ctx.font = "13px Arial"
+  ctx.font = _uiFont(700, 12); try { ctx.letterSpacing = "1px" } catch (_) {}
+  ctx.textAlign = "right"; ctx.fillStyle = streak > 1 ? "#fca5a5" : "rgba(255,255,255,0.55)"
+  ctx.fillText(`🔥 ${streak}-DAY STREAK`, px + pw - 16, py + 20)
+  ctx.textAlign = "left"; ctx.font = _uiFont(600, 14); try { ctx.letterSpacing = "0px" } catch (_) {}
   daily.challenges.forEach((c, i) => {
-    const ry = py + 40 + i * 26
-    const done = !!c.complete
-    ctx.fillStyle = done ? "#7CFC9B" : "rgba(200,214,240,0.55)"
-    ctx.fillText(done ? "✓" : "○", px + 16, ry)
-    ctx.fillStyle = done ? "rgba(180,220,190,0.75)" : "#e8eeff"
-    const label = c.label.length > 30 ? c.label.slice(0, 29) + "…" : c.label
+    const ry = py + 44 + i * 24, done = !!c.complete
+    ctx.fillStyle = done ? "#7CFC9B" : "rgba(255,255,255,0.4)"; ctx.fillText(done ? "✓" : "○", px + 16, ry)
+    ctx.fillStyle = done ? "rgba(180,220,190,0.75)" : "rgba(255,255,255,0.88)"
+    const label = c.label.length > 32 ? c.label.slice(0, 31) + "…" : c.label
     ctx.fillText(label, px + 34, ry)
   })
   ctx.restore()
@@ -2043,13 +2322,78 @@ function wrapText(ctx, text, x, y, maxW, lineH, style = {}) {
 // ─────────────────────────────────────────────
 export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
   _mkAdvance()
-  ctx.clearRect(0, 0, ...Object.values(getCanvasSize(canvas)))
-  drawMkAmbientBackdrop(ctx, canvas, { top: "#08111f", bottom: "#182845" })
-  drawHeader(ctx, canvas, "GAMEPLAY SELECT", "Choose how you want to play")
-  getGameplaySelectRects(canvas).forEach((button, index) => {
-    drawMkButton(ctx, button, { label: button.label, subLabel: button.subLabel, active: index === selectedIndex, id: `gameplay:${button.id || index}` })
-  })
+  const { width: w, height: h } = getCanvasSize(canvas)
+  ctx.clearRect(0, 0, w, h)
+  drawSpotlightBackdrop(ctx, canvas, { heroAlpha: 0.22 })
+  drawVignette(ctx, canvas, 0.35)
+  drawHeader(ctx, canvas, "CHOOSE YOUR MODE", "")
+  const main = spotlightKey()
+  getGameplaySelectRects(canvas).forEach((t, i) => _drawModeTile(ctx, t, t.art === null ? main : t.art, i === selectedIndex, `gameplay:${t.id}`))
   drawFooterHint(ctx, canvas, "Training = 1 player practice • VS Match = player vs CPU")
+}
+
+// Tile art: cover-fitted then melted into the tile colour (no hard picture edge), cached per size.
+const _tileCache = new Map()
+function _tileArt(key, w, h) {
+  const img = heroArtImage(key); if (!_imageReady(img)) return null
+  w = Math.round(w); h = Math.round(h)
+  const ck = `${key}|${w}|${h}`
+  let c = _tileCache.get(ck); if (c) return c
+  if (_tileCache.size > 40) _tileCache.clear()
+  c = _mkCanvas(w, h); const g = c.getContext("2d")
+  const iw = img.naturalWidth, ih = img.naturalHeight, cut = !!HERO_ART[key]?.cutout
+  const fit = Math.min(w / iw, h / ih), cover = Math.max(w / iw, h / ih)
+  const sc = Math.min(cover, fit * (cut ? 1.6 : 1.3)), dw = iw * sc, dh = ih * sc   // big art is shrunk, never over-cropped
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high"
+  g.drawImage(img, (w - dw) / 2, cut ? Math.max(h - dh, h * 0.04) : (h - dh) * 0.3, dw, dh)
+  const sx = g.createLinearGradient(0, 0, w, 0)                // melt the side edges when the picture is narrower than the tile
+  if (dw < w - 2) { const e = (w - dw) / 2 / w; sx.addColorStop(0, "rgba(0,0,0,0)"); sx.addColorStop(Math.min(0.49, e + 0.12), "#000"); sx.addColorStop(Math.max(0.51, 1 - e - 0.12), "#000"); sx.addColorStop(1, "rgba(0,0,0,0)") }
+  else { sx.addColorStop(0, "#000"); sx.addColorStop(1, "#000") }
+  g.globalCompositeOperation = "destination-in"; g.fillStyle = sx; g.fillRect(0, 0, w, h)
+  g.globalCompositeOperation = "destination-in"
+  const lg = g.createLinearGradient(0, 0, 0, h)
+  lg.addColorStop(0, "rgba(0,0,0,0.9)"); lg.addColorStop(0.5, "#000"); lg.addColorStop(0.78, "rgba(0,0,0,0.35)"); lg.addColorStop(1, "rgba(0,0,0,0)")
+  g.fillStyle = lg; g.fillRect(0, 0, w, h)
+  _tileCache.set(ck, c); return c
+}
+function _drawModeTile(ctx, t, key, active, id) {
+  const hv = _mkHover(id, active), lift = 6 * hv
+  const x = t.x, y = t.y - lift, w = t.w, h = t.h, r = 18
+  const col = key ? heroArtColor(key) : "#3a3550", acc = _accentFrom(col)
+  ctx.save()
+  // glow + body tinted from the fighter's own colour
+  if (hv > 0.01) { ctx.shadowBlur = 34 * hv; ctx.shadowColor = _withAlpha(acc, 0.45) }
+  roundRect(ctx, x, y, w, h, r)
+  const bg = ctx.createLinearGradient(0, y, 0, y + h)
+  bg.addColorStop(0, _mixHex(SPOT_BASE, col, key ? 0.55 : 0.25)); bg.addColorStop(1, _mixHex(SPOT_BASE, col, 0.12))
+  ctx.fillStyle = bg; ctx.fill()
+  ctx.restore()
+  ctx.save(); roundRect(ctx, x, y, w, h, r); ctx.clip()
+  if (key) {
+    const art = _tileArt(key, w, h)
+    if (art) { ctx.globalAlpha = 0.78 + 0.22 * hv; ctx.drawImage(art, x, y, w, h); ctx.globalAlpha = 1 }
+  }
+  const sh = ctx.createLinearGradient(0, y + h * 0.45, 0, y + h)
+  sh.addColorStop(0, "rgba(7,6,12,0)"); sh.addColorStop(1, "rgba(7,6,12,0.82)")
+  ctx.fillStyle = sh; ctx.fillRect(x, y, w, h)
+  // labels
+  const ls = _fitFontSizeTitle(ctx, t.label, clamp(Math.min(w * 0.14, h * 0.15), 18, 40), w - 32)
+  ctx.font = _titleFont(400, ls); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"
+  try { ctx.letterSpacing = "1px" } catch (_) {}
+  const subH = h > 130 ? 24 : 0
+  ctx.save(); ctx.translate(x + 16, y + h - 16 - subH); ctx.transform(1, 0, -0.12, 1, 0, 0)
+  if (hv > 0.01) { ctx.shadowBlur = 14 * hv; ctx.shadowColor = acc }
+  ctx.fillStyle = "#ffffff"; ctx.fillText(t.label, 0, 0); ctx.restore()
+  if (subH) {
+    ctx.font = _uiFont(600, 13); try { ctx.letterSpacing = "0.3px" } catch (_) {}
+    let sub = t.subLabel; while (sub.length > 4 && ctx.measureText(sub).width > w - 32) sub = sub.slice(0, -2)
+    if (sub !== t.subLabel) sub = sub.trimEnd() + "…"
+    ctx.fillStyle = `rgba(255,255,255,${0.6 + 0.3 * hv})`; ctx.fillText(sub, x + 16, y + h - 14)
+  }
+  ctx.restore()
+  // soft edge (light, not a frame) — brightens to the accent when selected
+  ctx.save(); roundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, r)
+  ctx.strokeStyle = hv > 0.01 ? _withAlpha(acc, 0.25 + 0.5 * hv) : "rgba(255,255,255,0.07)"; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore()
 }
 
 // ─────────────────────────────────────────────
@@ -2058,6 +2402,7 @@ export function drawGameplaySelectScreen(ctx, canvas, selectedIndex = 0) {
 // connects. All rects come from getVerticalMenuLayout so hit-testing matches the rendered rows exactly.
 // ─────────────────────────────────────────────
 export function getOnlineMenuRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "host", label: "HOST MATCH", subLabel: "Create a match here; share your address" },
     { id: "join", label: "JOIN MATCH", subLabel: "Enter a host's address and connect" },
@@ -2075,6 +2420,7 @@ export function drawOnlineMenuScreen(ctx, canvas, selectedIndex = 0) {
 
 // HOST — buttons depend on whether the opponent is present yet (CHOOSE MATCHUP only appears when ready).
 export function getOnlineHostRects(canvas, ready = false) {
+  _markSidebar()
   const rows = ready
     ? [{ id: "pick", label: "CHOOSE MATCHUP", subLabel: "Pick both fighters + stage, then fight" }, { id: "back", label: "CANCEL", subLabel: "Stop hosting" }]
     : [{ id: "back", label: "CANCEL", subLabel: "Stop hosting" }]
@@ -2110,6 +2456,7 @@ export function drawOnlineHostScreen(ctx, canvas, ui = {}, selectedIndex = 0) {
 
 // JOIN — an address field row + CONNECT + BACK, positioned by the same layout so clicks line up.
 export function getOnlineJoinRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "field",   label: "ADDRESS" },
     { id: "connect", label: "CONNECT", subLabel: "Connect to the host" },
@@ -2231,6 +2578,7 @@ export function drawAIDifficultyScreen(ctx, canvas, selectedIndex = 0) {
 // ARCADE  (Stage 19) — setup / rival intro / ending
 // ─────────────────────────────────────────────
 export function getArcadeSetupRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "easy",       label: "EASY",       subLabel: "A relaxed climb"                    },
     { id: "adaptive",   label: "NORMAL",     subLabel: "The intended challenge"             },
@@ -2370,6 +2718,7 @@ function wrapCenteredText(ctx, text, cx, y, maxWidth, lineH, style = {}) {
 // LOCAL TOURNAMENT BRACKET (Stage 24B)
 // ─────────────────────────────────────────────
 export function getBracketSetupRects(canvas) {
+  _markSidebar()
   return getVerticalMenuLayout(canvas, [
     { id: "size4", label: "4 FIGHTERS", subLabel: "2 rounds to the title" },
     { id: "size8", label: "8 FIGHTERS", subLabel: "3 rounds to the title" },
@@ -2815,11 +3164,13 @@ export function drawCreditsScreen(ctx, canvas, scrollY = 0, opts = {}) {
   ctx.save()
   ctx.beginPath(); ctx.rect(0, 70, w, h - 140); ctx.clip()
 
-  ctx.fillStyle = "#ffe9a8"; ctx.font = "700 30px Arial"; ctx.textAlign = "center"
-  ctx.fillText("CREDITS & ATTRIBUTION", cx, y); y += GAP_SECTION
+  ctx.fillStyle = "#ffffff"; ctx.font = _titleFont(400, 34); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"
+  try { ctx.letterSpacing = "1px" } catch (_) {}
+  ctx.fillText("CREDITS & ATTRIBUTION", cx, y + 14)
+  try { ctx.letterSpacing = "0px" } catch (_) {}; y += GAP_SECTION
 
   for (const sec of CREDITS) {
-    ctx.fillStyle = "#8fd0ff"; ctx.font = "700 20px Arial"; ctx.textAlign = "center"
+    ctx.fillStyle = "#8fd0ff"; ctx.font = _uiFont(700, 20); ctx.textAlign = "center"
     ctx.fillText(sec.section.toUpperCase(), cx, y); y += LINE + 4
 
     for (const e of (sec.entries || [])) {
@@ -2840,28 +3191,30 @@ export function drawCreditsScreen(ctx, canvas, scrollY = 0, opts = {}) {
         _bevelPath(ctx, tx, ty, thumbSz, thumbSz, 8); ctx.strokeStyle = _withAlpha(_MK_ACCENT, 0.7); ctx.lineWidth = 1.5; ctx.stroke()
         // EXPLICIT FLAG when the real source file can't be resolved (never a placeholder image).
         if (!tinfo.found || (img && img._errored)) {
-          drawCenteredText(ctx, "⚠", tx + thumbSz / 2, ty + thumbSz / 2, { font: "22px Arial", fill: "#fca5a5", baseline: "middle" })
+          drawCenteredText(ctx, "⚠", tx + thumbSz / 2, ty + thumbSz / 2, { font: _uiFont(500, 22), fill: "#fca5a5", baseline: "middle" })
         }
         // text column
         const txt = tx + thumbSz + 16
-        drawCenteredText(ctx, e.work, txt, y + 26, { font: "700 17px Arial", fill: "#ffffff", align: "left", baseline: "middle" })
-        drawCenteredText(ctx, `by ${(e.artists || []).join(", ")}`, txt, y + 48, { font: "14px Arial", fill: "rgba(255,224,150,0.95)", align: "left", baseline: "middle" })
+        ctx.save(); ctx.beginPath(); ctx.rect(txt, y, rx + rowW - txt - 14, rowH); ctx.clip()   // long source lines stay inside the card
+        drawCenteredText(ctx, e.work, txt, y + 26, { font: _uiFont(700, 17), fill: "#ffffff", align: "left", baseline: "middle" })
+        drawCenteredText(ctx, `by ${(e.artists || []).join(", ")}`, txt, y + 48, { font: _uiFont(500, 14), fill: "rgba(255,224,150,0.95)", align: "left", baseline: "middle" })
         const srcLine = (!tinfo.found || (img && img._errored))
           ? `⚠ source sheet not found on disk (${String(tinfo.file || "no matching file").replace(/^\.\//, "")})`
           : `${e.source || ""}  ·  ${String(tinfo.file).replace(/^\.\//, "")}`
-        drawCenteredText(ctx, srcLine, txt, y + 68, { font: "12px Arial", fill: (!tinfo.found || img?._errored) ? "#fca5a5" : "rgba(200,215,245,0.7)", align: "left", baseline: "middle" })
+        drawCenteredText(ctx, srcLine, txt, y + 68, { font: _uiFont(500, 12), fill: (!tinfo.found || img?._errored) ? "#fca5a5" : "rgba(200,215,245,0.7)", align: "left", baseline: "middle" })
+        ctx.restore()
         y += rowH + GAP_ENTRY
       } else {
-        ctx.fillStyle = "#ffffff"; ctx.font = "600 17px Arial"; ctx.textAlign = "center"
+        ctx.fillStyle = "#ffffff"; ctx.font = _uiFont(600, 17); ctx.textAlign = "center"
         ctx.fillText(e.work, cx, y); y += LINE - 4
         const by = `by ${(e.artists || []).join(", ")}${e.source ? `  ·  ${e.source}` : ""}`
-        ctx.fillStyle = "rgba(255,224,150,0.95)"; ctx.font = "15px Arial"
+        ctx.fillStyle = "rgba(255,224,150,0.95)"; ctx.font = _uiFont(500, 15)
         ctx.fillText(by, cx, y); y += LINE + GAP_ENTRY
       }
     }
     for (const ln of (sec.lines || [])) {
       if (ln === "") { y += LINE / 2; continue }
-      ctx.fillStyle = "rgba(214,226,255,0.82)"; ctx.font = "14px Arial"
+      ctx.fillStyle = "rgba(214,226,255,0.82)"; ctx.font = _uiFont(500, 14)
       ctx.fillText(ln, cx, y); y += LINE - 4
     }
     y += GAP_SECTION

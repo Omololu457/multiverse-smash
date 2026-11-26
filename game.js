@@ -9,7 +9,7 @@ import { universeDisplayName } from "./hudFrames.js"   // proper universe displa
 import { anyFreezeCineActive, updateFreezeCines, clearFreezeCines, drawCineScreens } from "./cineRegistry.js"   // shared FROZEN-CINEMATIC + screen-overlay slot (the Incredibles' ultimates)   // Ranger squads' TEAM ULTIMATES (W + U): freeze contract   // S.P.D. Rangers: tag-in teleport flash + the five-Ranger dial HUD (render-only)
 import "./cineUlts.js"
 import { omniSkinCard } from "./omniTheme.js"   // OMNITRIX theme skin: select-screen card
-import { dnaScanTick } from "./dnaScan.js"   // DNA SCAN: Ben / Albedo / Kevin ↓+U scan → U+L transform into the scanned foe   // registers every cineRegistry-based cinematic ultimate module (Death Note / OPM / Jesus / Rick and Morty)
+import { dnaScanTick, clearDnaForms, setDnaFighterFactory } from "./dnaScan.js"   // DNA SCAN: Ben / Albedo / Kevin ↓+U scan → U+L transform into the scanned foe   // registers every cineRegistry-based cinematic ultimate module (Death Note / OPM / Jesus / Rick and Morty)
 import { startRickPrimeRewindCine, isRickPrimeRewindCineActive } from "./rickPrimeUlt.js"   // Temporal Rewind cinematic overlay
 import { spdParityRoundReset } from "./spdParity.js"   // S.P.D. squad re-applies Red-pace movement after the shared revertGoku stamp
 import { ogHpMult } from "./rosterParity.js"   // OG roster HP buff (2026-11-23)
@@ -576,7 +576,7 @@ import { startChoreo as startCloneChoreo, startFormation as startCloneFormation,
          holdChoreoAt as holdCloneChoreoAt, holdFormation as holdCloneFormation, getChoreoState as getCloneChoreoState,
          isChoreoSupported, choreoRoster, choreoKit, SELECT_MAP as CLONE_SELECT_MAP } from "./cloneChoreography.js"
 import { updateCloneFighters, getCloneFighterBodies, cloneFighterState, clearCloneFighters, cloneFighterBoxes, cloneFighterProfile, isCloneFighterCaster } from "./cloneFighter.js"   // CLONE FIGHTERS (Tobirama water / Hashirama wood / Naruto, Sasuke, Madara shadow): clones that fight on their own
-import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha, controlsOverlayPadRows } from "./ui.js"
+import { bevelPath as _bevelPath, mkAmbientBackdrop as _mkAmbientBackdrop, withAlpha as _withAlpha, controlsOverlayPadRows, mkButton as _mkButton, menuHeader as _menuHeader, menuFont as _menuFont, mainMenuXpSlot as _mainMenuXpSlot, menuRenderTick as _menuRenderTick } from "./ui.js"
 import {
   drawBattleBackground, drawCharacterSelectScreen, drawControlsInfo,
   drawCountdown, drawFighter, drawHealthAndEnergyBars, drawMatchEnd,
@@ -641,7 +641,8 @@ import { endingSlidesFor } from "./endings.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot, getEdoSkin } from "./skins.js"
 import * as personality from "./personality.js"   // Big-Five trait inference from in-game behaviour (TIPI prior + Bayesian refinement)
-import * as theme from "./theme.js"                // live-swappable UI theme registry (APPEARANCE screen)
+import * as theme from "./theme.js"
+import * as heroArt from "./heroArt.js"   // menu spotlight: fighter art + the player's most-played fighter                // live-swappable UI theme registry (APPEARANCE screen)
 import * as musicPersonality from "./musicPersonality.js"   // trait→music mapping + trait-informed song selection
 import * as musicLibrary from "./musicLibrary.js"           // full song library + player-authored custom playlist + active-source resolution
 import * as challenges from "./challenges.js"               // skill-based challenges + trait-tagged recommendations + skin rewards
@@ -5424,6 +5425,16 @@ function mapInputToVirtualKeys(inputState, controls) {
 function archetypeDashCooldown(speed) {
   return Math.max(14, Math.min(34, Math.round(112 - (speed || 88))))   // 98→14, 90→22, 84→28, ≤78→34
 }
+// DNA SCAN (dnaScan.js): the copied body is built exactly like a round-start fighter — full character def, derived stats,
+// the opponent's own skin art (Ghostface never rolls a random identity here: sim-deterministic), Tobirama's Edo vessel.
+setDnaFighterFactory((key, f, skinId) => {
+  const t = createFighter(key, characters[key], f.x, f.facing, f.controls, f.side)
+  applySkin(t, skinId || (key === "ghostface" ? Object.keys(GHOSTFACE_SKIN_MODS)[0] : "default"))
+  assignEdoBackup(t, null)
+  // the same per-fighter round-start setup a real match runs (resetRound) — e.g. a Ranger squad picks its starting Ranger
+  { const _f = t; try { ninjaRoundReset(_f) } catch (_) {} try { forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) } catch (e) { console.warn("[dna] body round-setup", e) } }
+  return t
+})
 function createFighter(charKey, char, x, facing, controls, side) {
   const movement  = char?.movement || {}
   const stats     = char?.stats    || {}
@@ -6544,6 +6555,7 @@ function startMatch() {
   // stream (reseed is per-MATCH, not per-round) — resetRound never reseeds.
   const _matchSeed = (_forcedSeed != null) ? (_forcedSeed >>> 0) : makeSeed()
   matchConfig.seed = _matchSeed
+  if (matchConfig.mode !== "aivsai") { try { heroArt.recordFighterPick(matchConfig.p1CharKey) } catch (_) {} }   // menu spotlight: the player's main
   reseedRng(_matchSeed)
   _pushHitstopStyle()   // FEEL PASS (Phase 1): tell the sim the agreed Hitstop Style (local, or the host's in LAN) before any hit lands
   bloodMatchStart(_matchSeed, [], globalFrameCount)   // MSV1-BLOOD: fresh wounds + floor, hash seed = the match seed (LAN / replay identical)
@@ -10652,6 +10664,7 @@ function _checkMatchOver() {
       // style → Extraversion, composure closing out a contested win → Neuroticism(-).
       _lastMatchP1Lost = !p1Won
       try { personality.ensureSession(); personality.recordMatchOutcome({ matchStats, p1Won, p1Char: p1?.rosterKey || p1?.key || null }) } catch (_) {}
+      if (p1Won) { try { heroArt.recordFighterWin(matchConfig.p1CharKey) } catch (_) {} }   // menu spotlight win rate
       // CHALLENGES: evaluate this match against the challenge list (grants XP + skin rewards
       // on completion). Universe = P1's character's franchise (for the same-franchise challenge).
       try {
@@ -21632,6 +21645,7 @@ function _trainingKeyPressed(k) {
 function resetTraining() {
   dummyRec.idx = 0   // F2 restarts a recorded playback loop from its first frame
   clearCloneFighters()   // clone fighters leave on a training reset
+  clearDnaForms()   // DNA SCAN (dnaScan.js): a training reset turns a DNA copy back and ends a running scan / morph cinematic
   clearRengokuFlameExplosionCinematic()   // also cancels any running ult PRE-ROLL (demonSlayerCinematics) — a reset mid-pre-roll must not leave the world frozen / fire the ult later
   if (!p1 || !p2) return
   const { p1X, p2X } = getSpawnPositions()
@@ -23528,28 +23542,32 @@ function _drawProgressionBadge() {
   _xpBadge.flash = Math.max(0, _xpBadge.flash - 0.012)                        // ~1.4s decay
   const flash = _xpBadge.flash, pulse = 0.6 + 0.4 * Math.sin(globalFrameCount * 0.3)
 
-  const x = 24, y = canvas.height - 72, w = 300, h = 48
+  // Top-bar pill (menu poster layout): LV + XP bar, top-left. Gold glow while levelling up.
+  const _k = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1
+  const _slot = _mainMenuXpSlot() || { x: Math.round(64 * _k) + 8, y: 18, w: 250, h: 34 }   // top bar, left of the account pill
+  const { x, y, w, h } = _slot
   ctx.save()
   ctx.textAlign = "left"; ctx.textBaseline = "middle"
   if (PROGRESS_DOES_NOT_PERSIST) {
-    ctx.fillStyle = "rgba(248,180,80,0.9)"; ctx.font = "11px Arial"
-    ctx.fillText("Progress is session-only — not saved across reloads (no backend yet)", x, y - 10)
+    ctx.fillStyle = "rgba(248,180,80,0.9)"; ctx.font = _menuFont(600, 12)
+    ctx.fillText("Progress is session-only — not saved across reloads", x + 4, y + h + 12)
   }
-  ctx.fillStyle = "rgba(8,14,30,0.82)"; ctx.fillRect(x, y, w, h)
-  // Panel edge brightens + glows gold during the level-up flash.
-  if (flash > 0.01) { ctx.save(); ctx.shadowBlur = 18 * flash * pulse; ctx.shadowColor = "#fbbf24"; ctx.strokeStyle = `rgba(251,191,36,${0.3 + 0.7 * flash})`; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h); ctx.restore() }
-  else { ctx.strokeStyle = "rgba(150,180,255,0.30)"; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h) }
-  ctx.fillStyle = "#fbbf24"; ctx.font = "700 18px Arial"; ctx.fillText("LV " + pr.level, x + 12, y + 15)
-  ctx.fillStyle = "#cbd5e1"; ctx.font = "12px Arial"; ctx.fillText(`${pr.into} / ${pr.need} XP`, x + 70, y + 15)
-  // "LEVEL UP!" tag during the flash.
-  if (flash > 0.01) { ctx.save(); ctx.textAlign = "right"; ctx.font = "800 13px Arial"; ctx.fillStyle = `rgba(253,224,71,${flash})`; ctx.shadowBlur = 10 * flash; ctx.shadowColor = "#f59e0b"; ctx.fillText("LEVEL UP!", x + w - 12, y + 15); ctx.restore() }
-  const bx = x + 12, by = y + 28, bw = w - 24, bh = 7
-  ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(bx, by, bw, bh)
+  ctx.save()
+  if (flash > 0.01) { ctx.shadowBlur = 18 * flash * pulse; ctx.shadowColor = "#fbbf24" }
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fillStyle = "rgba(12,10,22,0.5)"; ctx.fill()
+  ctx.strokeStyle = flash > 0.01 ? `rgba(251,191,36,${0.3 + 0.7 * flash})` : "rgba(255,255,255,0.12)"; ctx.lineWidth = 1; ctx.stroke()
+  ctx.restore()
+  try { ctx.letterSpacing = "1px" } catch (_) {}
+  ctx.fillStyle = "#fbbf24"; ctx.font = _menuFont(700, 16); ctx.fillText("LV " + pr.level, x + 16, y + h / 2 + 1)
+  const lvW = ctx.measureText("LV " + pr.level).width
+  const label = flash > 0.01 ? "LEVEL UP!" : `${pr.into}/${pr.need} XP`
+  ctx.font = _menuFont(600, 12); ctx.textAlign = "right"; ctx.fillStyle = flash > 0.01 ? `rgba(253,224,71,${0.5 + 0.5 * flash})` : "rgba(255,255,255,0.6)"
+  ctx.fillText(label, x + w - 16, y + h / 2 + 1)
+  const labW = ctx.measureText(label).width
+  const bx = x + 16 + lvW + 12, bw = Math.max(20, w - 16 - labW - 12 - (bx - x)), bh = 5, by = y + h / 2 - bh / 2
+  ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 3); ctx.fill()
   const fillW = bw * Math.max(0, Math.min(1, _xpBadge.disp))
-  if (flash > 0.01) { ctx.shadowBlur = 10 * flash * pulse; ctx.shadowColor = "#fbbf24" }
-  ctx.fillStyle = "#fbbf24"; ctx.fillRect(bx, by, fillW, bh)
-  // Bright leading edge on the filling bar.
-  if (fillW > 2) { ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * flash})`; ctx.fillRect(bx + fillW - 2, by, 2, bh) }
+  if (fillW > 0.5) { ctx.save(); ctx.shadowBlur = 8 + 10 * flash; ctx.shadowColor = "#fbbf24"; ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.roundRect(bx, by, fillW, bh, 3); ctx.fill(); ctx.restore() }
   ctx.restore()
 }
 
@@ -25967,6 +25985,7 @@ function _layoutSettings() {
   p2JumpUpRect.x    = cx + 236
   p1JumpUpRect.w    = p2JumpUpRect.w = Math.max(150, Math.min(186, canvas.width - 214 - (cx + 236) - 6))
   sfxToggleRect.x   = cx - 200
+  sfxToggleRect.y = musicToggleRect.y = 262
   musicToggleRect.x = cx + 4
   backSettingRect.x = cx - 100
   backSettingRect.y = Math.min(686, canvas.height - 56)
@@ -26006,59 +26025,64 @@ function drawSettingsScreen() {
   _mkAmbientBackdrop(ctx, canvas, { top: "#08111f", bottom: "#101a30" })   // backdrop stays fixed (un-scrolled)
   _clampSettingsScroll()
   ctx.save(); ctx.translate(0, -settingsScroll)   // SETTINGS page scroll — everything below scrolls together
-  // Angular beveled control box — the shared metallic language, keeping each control's own tone/edge/state.
+  // Rounded glass control chip: dark base + the control's own tint + top reflection + edge (neon glow when `glow`).
   const box = (r, fill, stroke, lw = 1, glow = false, cut = 8) => {
-    _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.fillStyle = fill; ctx.fill()
-    if (glow) { ctx.save(); ctx.shadowBlur = 12; ctx.shadowColor = stroke; ctx.strokeStyle = stroke; ctx.lineWidth = lw; _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.stroke(); ctx.restore() }
-    else { ctx.strokeStyle = stroke; ctx.lineWidth = lw; _bevelPath(ctx, r.x, r.y, r.w, r.h, cut); ctx.stroke() }
+    const rad = Math.min(r.h / 2, cut + 4)
+    const path = (x, y, w, h) => { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, rad) : ctx.rect(x, y, w, h) }
+    ctx.save()
+    ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3
+    path(r.x, r.y, r.w, r.h); ctx.fillStyle = "rgba(8,12,26,0.80)"; ctx.fill()
+    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
+    path(r.x, r.y, r.w, r.h); ctx.fillStyle = fill; ctx.globalAlpha = 0.75; ctx.fill(); ctx.globalAlpha = 1
+    ctx.clip()
+    const gl = ctx.createLinearGradient(0, r.y, 0, r.y + r.h * 0.55)
+    gl.addColorStop(0, "rgba(255,255,255,0.10)"); gl.addColorStop(1, "rgba(255,255,255,0)")
+    ctx.fillStyle = gl; ctx.fillRect(r.x, r.y, r.w, r.h * 0.55)
+    ctx.restore()
+    ctx.save()
+    if (glow) { ctx.shadowBlur = 12; ctx.shadowColor = stroke }
+    ctx.strokeStyle = stroke; ctx.lineWidth = Math.min(lw, 1.5); path(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1); ctx.stroke()
+    ctx.restore()
   }
+
+  _menuHeader(ctx, canvas, "SETTINGS", "")
   ctx.textAlign = "center"
-  ctx.fillStyle = "#f3f7ff"; ctx.font = "800 36px Arial"
-  ctx.shadowBlur = 18; ctx.shadowColor = "rgba(74,168,224,0.4)"; ctx.fillText("INPUT SETTINGS", canvas.width / 2, 120); ctx.shadowBlur = 0
 
   // ── SAVE DATA (17D): live tier readout + manual Export/Import (+ Reconnect) ──
   ctx.textAlign = "left"
-  ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 16)
   ctx.fillText("SAVE DATA", saveExportRect.x, saveExportRect.y - 34)
-  ctx.fillStyle = "#cfe0ff"; ctx.font = "13px Arial"
+  ctx.fillStyle = "#cfe0ff"; ctx.font = _menuFont(500, 13)
   ctx.fillText(saveFileStatus(), saveExportRect.x, saveExportRect.y - 14)
   const drawSaveBtn = (r, label, tone = "#1d2c42") => {
     box(r, tone, _withAlpha("#4aa8e0", 0.5), 1.2)
-    ctx.fillStyle = "#e6edf7"; ctx.font = "15px Arial"; ctx.textAlign = "center"
+    ctx.fillStyle = "#e6edf7"; ctx.font = _menuFont(500, 15); ctx.textAlign = "center"
     ctx.fillText(label, r.x + r.w / 2, r.y + 22); ctx.textAlign = "left"
   }
   drawSaveBtn(saveExportRect, "Export Save")
   drawSaveBtn(saveImportRect, "Import Save")
   if (needsReconnect()) drawSaveBtn(saveReconnectRect, "Reconnect save file", "#4a3010")
-  if (_saveUiMsg) { ctx.fillStyle = "#fbbf24"; ctx.font = "12px Arial"; ctx.fillText(_saveUiMsg, saveExportRect.x, (needsReconnect() ? saveReconnectRect : saveImportRect).y + 52) }
+  if (_saveUiMsg) { ctx.fillStyle = "#fbbf24"; ctx.font = _menuFont(500, 12); ctx.fillText(_saveUiMsg, saveExportRect.x, (needsReconnect() ? saveReconnectRect : saveImportRect).y + 52) }
   ctx.textAlign = "center"
 
   // ── Per-player device (Task 4) + Two Keyboards placeholder (Task 3) ──
   box(p1SettingRect, "rgba(20,26,40,0.92)", _withAlpha("#4aa8e0", 0.45), 1.5)
   box(p2SettingRect, "rgba(20,26,40,0.92)", _withAlpha("#4aa8e0", 0.45), 1.5)
-  ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
-  ctx.fillText(`P1 Device: ${inputSettings.p1Type.toUpperCase()}  (click to change)`, canvas.width / 2, p1SettingRect.y + 38)
-  ctx.fillText(`P2 Device: ${inputSettings.p2Type.toUpperCase()}  (click to change)`, canvas.width / 2, p2SettingRect.y + 38)
+  ctx.fillStyle = "#FFF"; ctx.font = _menuFont(700, 17)
+  ctx.fillText(`P1 Device: ${inputSettings.p1Type.toUpperCase()}  (click to change)`, canvas.width / 2, p1SettingRect.y + 28)
+  ctx.fillText(`P2 Device: ${inputSettings.p2Type.toUpperCase()}  (click to change)`, canvas.width / 2, p2SettingRect.y + 28)
   // Jump on Up (pad) — per player. OFF (pad default): only the Jump button jumps; Up is purely a direction.
   for (const [r, pn] of [[p1JumpUpRect, 1], [p2JumpUpRect, 2]]) {
     const on = jumpOnUp(pn)
     box(r, on ? "rgba(30,60,40,0.92)" : "rgba(20,26,40,0.92)", _withAlpha(on ? "#4ade80" : "#4aa8e0", 0.5), 1.2)
-    ctx.fillStyle = "#e6edf7"; ctx.font = "700 13px Arial"
+    ctx.fillStyle = "#e6edf7"; ctx.font = _menuFont(700, 13)
     ctx.fillText(`P${pn} Jump on Up (pad): ${on ? "ON" : "OFF"}`, r.x + r.w / 2, r.y + 20)
   }
-  ctx.font = "700 22px Arial"
-  // Two Keyboards — DISABLED placeholder.
-  const tk = { x: canvas.width / 2 - 200, y: 254, w: 400, h: 44 }
-  box(tk, "rgba(14,16,22,0.9)", "rgba(120,130,150,0.35)", 1)
-  ctx.fillStyle = "#666"; ctx.font = "18px Arial"
-  ctx.fillText("Two Keyboards — coming soon", canvas.width / 2, tk.y + 20)
-  ctx.font = "12px Arial"
-  ctx.fillText("(browsers can't yet distinguish two keyboards)", canvas.width / 2, tk.y + 37)
 
   // ── Audio: two INDEPENDENT mute toggles (SFX / Music) — red=muted, green=on preserved ──
   const drawAudioToggle = (r, label, muted) => {
     box(r, muted ? "rgba(74,23,23,0.9)" : "rgba(23,58,36,0.9)", muted ? "#f87171" : "#4ade80", 2, true)
-    ctx.fillStyle = "#FFF"; ctx.font = "700 15px Arial"
+    ctx.fillStyle = "#FFF"; ctx.font = _menuFont(700, 15)
     ctx.fillText(`${label}: ${muted ? "MUTED" : "ON"}`, r.x + r.w / 2, r.y + 20)
   }
   drawAudioToggle(sfxToggleRect,   "Sound Effects", audioSettings.sfxMuted)
@@ -26066,58 +26090,58 @@ function drawSettingsScreen() {
 
   // ── UI / Display scale (Part 3 #13, accessibility) — −/+ stepper in the left column ──
   ctx.textAlign = "left"
-  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14)
   ctx.fillText("UI / DISPLAY SCALE", uiScaleMinusRect.x, uiScaleMinusRect.y - 12)
   const atMin = uiScale <= UI_SCALE_MIN + 1e-6, atMax = uiScale >= UI_SCALE_MAX - 1e-6
   const stepBtn = (r, label, disabled) => {
     box(r, disabled ? "rgba(20,24,34,0.7)" : "rgba(24,40,60,0.95)", disabled ? "rgba(120,130,150,0.3)" : _withAlpha("#4aa8e0", 0.6), 1.4, !disabled)
-    ctx.fillStyle = disabled ? "#556" : "#e6edf7"; ctx.font = "800 20px Arial"; ctx.textAlign = "center"
+    ctx.fillStyle = disabled ? "#556" : "#e6edf7"; ctx.font = _menuFont(800, 20); ctx.textAlign = "center"
     ctx.fillText(label, r.x + r.w / 2, r.y + 22)
   }
   stepBtn(uiScaleMinusRect, "−", atMin)
   stepBtn(uiScalePlusRect,  "+", atMax)
   box(uiScaleValueRect, "rgba(14,20,34,0.92)", _withAlpha("#4aa8e0", 0.4), 1.2)
-  ctx.fillStyle = "#fff"; ctx.font = "700 17px Arial"; ctx.textAlign = "center"
+  ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 17); ctx.textAlign = "center"
   ctx.fillText(`${Math.round(uiScale * 100)}%`, uiScaleValueRect.x + uiScaleValueRect.w / 2, uiScaleValueRect.y + 21)
-  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
   ctx.fillText("Bigger = larger UI (saved)", uiScaleMinusRect.x, uiScalePlusRect.y + uiScalePlusRect.h + 14)
   ctx.textAlign = "center"
 
   // ── BLOOD hit-effects toggle (cosmetic; default OFF for the mixed-tone roster) ──
-  ctx.textAlign = "left"; ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"
+  ctx.textAlign = "left"; ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14)
   ctx.fillText("BLOOD EFFECTS", bloodToggleRect.x, bloodToggleRect.y - 10)
   box(bloodToggleRect, bloodFx ? "rgba(74,23,23,0.92)" : "rgba(20,26,40,0.9)", bloodFx ? "#f05555" : "rgba(120,150,200,0.4)", 2, bloodFx)
-  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 15); ctx.textAlign = "center"
   ctx.fillText(`Gore FX: ${bloodFx ? "ON" : "OFF"}`, bloodToggleRect.x + bloodToggleRect.w / 2, bloodToggleRect.y + 22)
-  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
   ctx.fillText("Red hit-spray (saved)", bloodToggleRect.x, bloodToggleRect.y + bloodToggleRect.h + 13)
 
   // BRUTALITIES toggle (independent of blood).
-  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14); ctx.textAlign = "left"
   ctx.fillText("BRUTALITIES", brutalityToggleRect.x, brutalityToggleRect.y - 10)
   box(brutalityToggleRect, brutalityFx ? "rgba(74,23,23,0.92)" : "rgba(20,26,40,0.9)", brutalityFx ? "#f05555" : "rgba(120,150,200,0.4)", 2, brutalityFx)
-  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 15); ctx.textAlign = "center"
   ctx.fillText(`Finishers: ${brutalityFx ? "ON" : "OFF"}`, brutalityToggleRect.x + brutalityToggleRect.w / 2, brutalityToggleRect.y + 22)
-  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
   ctx.fillText("Stylized KO finish (saved)", brutalityToggleRect.x, brutalityToggleRect.y + brutalityToggleRect.h + 13)
 
   // NARUTO (SEVENTH) — OIROKE NO JUTSU opt-in (gag distraction; default OFF). Same pattern as BRUTALITIES.
   { const on = narutoSeventhOirokeEnabled()
-    ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+    ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14); ctx.textAlign = "left"
     ctx.fillText("OIROKE (Naruto 7th)", n7OirokeToggleRect.x, n7OirokeToggleRect.y - 10)
     box(n7OirokeToggleRect, on ? "rgba(74,51,74,0.92)" : "rgba(20,26,40,0.9)", on ? "#e07be0" : "rgba(120,150,200,0.4)", 2, on)
-    ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+    ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 15); ctx.textAlign = "center"
     ctx.fillText(`Oiroke: ${on ? "ON" : "OFF"}`, n7OirokeToggleRect.x + n7OirokeToggleRect.w / 2, n7OirokeToggleRect.y + 22)
-    ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+    ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
     ctx.fillText("Charge-tap gag distraction (saved)", n7OirokeToggleRect.x, n7OirokeToggleRect.y + n7OirokeToggleRect.h + 13) }
 
   // ── VISUAL FX (JUICE): Screen Shake / Reduce Flashing / Slow-Mo / Particles (presentation-only, saved) ──
-  { ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  { ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14); ctx.textAlign = "left"
     ctx.fillText("VISUAL FX", juiceShakeRect.x, juiceShakeRect.y - 10)
     // compact 2×2 toggle: `on` tints green/amber, label is pre-formatted per control
     const fxBox = (r, label, on, accent = "#4ade80") => {
       box(r, on ? "rgba(23,58,36,0.9)" : "rgba(20,26,40,0.9)", on ? accent : "rgba(120,150,200,0.4)", 2, on, 6)
-      ctx.fillStyle = "#fff"; ctx.font = "700 12px Arial"; ctx.textAlign = "center"
+      ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 12); ctx.textAlign = "center"
       ctx.fillText(label, r.x + r.w / 2, r.y + 20)
     }
     const shakeLbl = `Shake: ${juiceSettings.screenShake.toUpperCase()}`
@@ -26144,7 +26168,7 @@ function drawSettingsScreen() {
     { const _afTip = juiceSettings.animeFx === "off" ? ["Off: no tell glint, ceremonies,", "signature moves or level-ups"]
         : juiceSettings.animeFx === "low" ? ["Low: glint + ceremonies; no colour", "flips, splits or floor scars"]
         : ["Full: signature breakdowns, flips,", "level-up stat slams (click to cycle)"]
-      ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+      ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
       _afTip.forEach((t, i) => ctx.fillText(t, animeFxRect.x, animeFxRect.y + animeFxRect.h + 13 + i * 13)) }
     // FEEL PASS (Phase 1): Hitstop Style — Scaled (power-scaled impact freeze, default) / Classic (exact old values).
     fxBox(hitstopStyleRect, `Hitstop: ${juiceSettings.hitstopStyle === "scaled" ? "SCALED" : "CLASSIC"}`, juiceSettings.hitstopStyle === "scaled", "#f59e0b")
@@ -26159,7 +26183,7 @@ function drawSettingsScreen() {
     fxBox(weatherIntensRect, `Intensity: ${juiceSettings.weatherIntensity === "low" ? "LOW" : "FULL"}`, juiceSettings.weatherIntensity === "full", "#06b6d4")
     if (_wsrc === "manual") fxBox(weatherCfgRect, `Manual Wx: ${juiceSettings.manualWeather.toUpperCase()}`, true, "#06b6d4")
     else if (_wsrc === "local") { const _loc = getLocation(); fxBox(weatherCfgRect, `Location: ${_loc ? (_loc.name || _loc.city || "set") : "TAP TO SET"}`, !!_loc, "#06b6d4") }
-    ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+    ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
     ctx.fillText("Explosion/dash/hit juice (saved) · Dmg # forced ON in Training", hitFxRect.x, hitSndP1Rect.y + hitSndP1Rect.h + 13)
     ctx.fillText("Hit Sounds: Sparking / Classic (per-player) · Atmosphere: moody fog + grade", hitSndP1Rect.x, hitSndP1Rect.y + hitSndP1Rect.h + 27)
     ctx.fillText("HUD: Themed portrait + accent bars / Classic (saved)", hudStyleToggleRect.x, hudStyleToggleRect.y + hudStyleToggleRect.h + 13)
@@ -26169,49 +26193,49 @@ function drawSettingsScreen() {
     ctx.textAlign = "center" }
 
   // COLORBLIND-SAFE HUD toggle (accessibility). ON → P2's HUD accent shifts red → orange (blue/orange pair).
-  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14); ctx.textAlign = "left"
   ctx.fillText("COLORBLIND HUD", colorblindToggleRect.x, colorblindToggleRect.y - 10)
   box(colorblindToggleRect, colorblindHud ? "rgba(28,58,86,0.95)" : "rgba(20,26,40,0.9)", colorblindHud ? "#ff9d2e" : "rgba(120,150,200,0.4)", 2, colorblindHud)
-  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 15); ctx.textAlign = "center"
   ctx.fillText(`Colorblind: ${colorblindHud ? "ON" : "OFF"}`, colorblindToggleRect.x + colorblindToggleRect.w / 2, colorblindToggleRect.y + 22)
-  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
   ctx.fillText("Blue/orange HUD accents (saved)", colorblindToggleRect.x, colorblindToggleRect.y + colorblindToggleRect.h + 13)
 
   // TOUCH CONTROLS toggle (tablet/phone) — AUTO shows on touch devices; ON forces the overlay; OFF hides it.
   const _tMode = touch.getMode(), _tOn = touch.isActive()
-  ctx.fillStyle = "#9cf"; ctx.font = "700 14px Arial"; ctx.textAlign = "left"
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14); ctx.textAlign = "left"
   ctx.fillText("TOUCH CONTROLS", touchToggleRect.x, touchToggleRect.y - 10)
   box(touchToggleRect, _tOn ? "rgba(28,58,86,0.95)" : "rgba(20,26,40,0.9)", _tOn ? "#4ade80" : "rgba(120,150,200,0.4)", 2, _tOn)
-  ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.textAlign = "center"
+  ctx.fillStyle = "#fff"; ctx.font = _menuFont(700, 15); ctx.textAlign = "center"
   ctx.fillText(`Touch: ${_tMode.toUpperCase()}`, touchToggleRect.x + touchToggleRect.w / 2, touchToggleRect.y + 22)
-  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = "11px Arial"
+  ctx.textAlign = "left"; ctx.fillStyle = "rgba(200,214,240,0.55)"; ctx.font = _menuFont(500, 11)
   ctx.fillText(`On-screen pad (${touch.hasTouch() ? "touch detected" : "no touch detected"}, saved)`, touchToggleRect.x, touchToggleRect.y + touchToggleRect.h + 13)
   ctx.textAlign = "center"
 
   // ── Keybind grid (Task 2) ──
-  ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
-  ctx.fillText("P1 KEYBOARD BINDINGS — click an action, then press a key (W A S D U I O P J K L)", canvas.width / 2, KEYBIND_Y0 - 16)
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 14)
+  ctx.fillText("P1 KEYBOARD BINDINGS — click an action, then press a key", canvas.width / 2, KEYBIND_Y0 - 16)
   for (const r of getKeybindRects()) {
     const awaiting = rebindAction === r.action
     box(r, awaiting ? "rgba(34,80,52,0.95)" : "rgba(24,30,42,0.9)", awaiting ? "#4ade80" : "rgba(120,150,200,0.35)", awaiting ? 2 : 1, awaiting, 6)
-    ctx.fillStyle = "#FFF"; ctx.font = "15px Arial"
+    ctx.fillStyle = "#FFF"; ctx.font = _menuFont(500, 15)
     const keyLabel = awaiting ? "press a key…" : `[ ${(P1_CONTROLS[r.action] || "—").toUpperCase()} ]`
     ctx.fillText(`${r.label}: ${keyLabel}`, r.x + r.w / 2, r.y + 21)
   }
   const rb = resetBindRect()
   box(rb, "rgba(30,36,50,0.92)", _withAlpha("#4aa8e0", 0.5), 1.2)
-  ctx.fillStyle = "#FFF"; ctx.font = "700 18px Arial"
+  ctx.fillStyle = "#FFF"; ctx.font = _menuFont(700, 18)
   ctx.fillText("Reset to Defaults", canvas.width / 2, rb.y + 26)
 
   // Warning + in-memory note.
-  if (rebindWarning) { ctx.fillStyle = "#fbbf24"; ctx.font = "15px Arial"; ctx.fillText(rebindWarning, canvas.width / 2, rb.y + 58) }
-  ctx.fillStyle = "#888"; ctx.font = "13px Arial"
-  ctx.fillText("Changes are in-memory only — not saved (sandbox blocks storage).", canvas.width / 2, rb.y + 80)
+  if (rebindWarning) { ctx.fillStyle = "#fbbf24"; ctx.font = _menuFont(500, 15); ctx.fillText(rebindWarning, canvas.width / 2, rb.y + 64) }
+  ctx.fillStyle = "rgba(170,185,215,0.55)"; ctx.font = _menuFont(500, 12)
+  ctx.fillText("Changes are in-memory only — not saved (sandbox blocks storage).", canvas.width / 2, rb.y + 48)
 
   // ── Music source selector + custom-playlist builder — left margin ──
   ctx.textAlign = "left"
   // Label line doubles as the feedback line (green = applied, amber = fell back to default).
-  ctx.font = "700 13px Arial"
+  ctx.font = _menuFont(700, 13)
   ctx.fillStyle = _musicSourceMsg ? (_musicSourceOk ? "#8ef5a8" : "#fbbf24") : "#9cf"
   ctx.fillText(_musicSourceMsg || "MENU MUSIC SOURCE", PLAYLIST_X0, MUSIC_SRC_Y - 8)
   // Three mutually-exclusive source buttons; the active one is accented.
@@ -26219,21 +26243,21 @@ function drawSettingsScreen() {
   for (const r of getMusicSourceRects()) {
     const on = r.source === activeSource
     box({ x: r.x, y: r.y, w: r.w, h: r.h }, on ? "rgba(32,64,106,0.95)" : "rgba(26,34,48,0.9)", on ? "#63b3ff" : "rgba(120,170,255,0.3)", on ? 2 : 1, on, 6)
-    ctx.fillStyle = on ? "#bfe0ff" : "#c4d2e6"; ctx.font = on ? "700 12px Arial" : "12px Arial"; ctx.textAlign = "center"
+    ctx.fillStyle = on ? "#bfe0ff" : "#c4d2e6"; ctx.font = on ? _menuFont(700, 12) : _menuFont(500, 12); ctx.textAlign = "center"
     ctx.fillText(r.label, r.x + r.w / 2, r.y + 17)
   }
   // Build / Edit My Playlist button (opens the full-screen 103-song browser).
   ctx.textAlign = "left"
   box(buildPlaylistRect, "rgba(24,44,70,0.92)", _withAlpha("#4aa8e0", 0.6), 1.5, false, 7)
   const customCount = (musicLibrary.getCustomPlaylist?.(getCurrentAccount()) || []).length
-  ctx.fillStyle = "#cfe3ff"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
+  ctx.fillStyle = "#cfe3ff"; ctx.font = _menuFont(700, 13); ctx.textAlign = "center"
   ctx.fillText(customCount ? `🎵 Edit Playlist (${customCount})` : "🎵 Pick Playlists", buildPlaylistRect.x + buildPlaylistRect.w / 2, buildPlaylistRect.y + 18)
   { const on = !!musicLibrary.getMenuEverywhere?.()
     box(menuEverywhereRect, on ? "rgba(20,60,30,0.92)" : "rgba(26,34,48,0.9)", on ? "#4ade80" : "rgba(120,170,255,0.3)", on ? 2 : 1, on, 7)
-    ctx.fillStyle = on ? "#c8ffd8" : "#c4d2e6"; ctx.font = "700 12px Arial"
+    ctx.fillStyle = on ? "#c8ffd8" : "#c4d2e6"; ctx.font = _menuFont(700, 12)
     ctx.fillText(on ? "In Matches Too: ON" : "In Matches Too: OFF", menuEverywhereRect.x + menuEverywhereRect.w / 2, menuEverywhereRect.y + 17) }
   ctx.textAlign = "left"
-  ctx.fillStyle = "#9cf"; ctx.font = "700 16px Arial"
+  ctx.fillStyle = "#8fd3ff"; ctx.font = _menuFont(700, 16)
   ctx.fillText("NOW PLAYING — click a song · ▲/▼ reorder", PLAYLIST_X0, PLAYLIST_Y0 - 16)
   // Live now-playing cursor (sound keeps it pinned to the same song across reorders) — highlight that row
   // so a reorder is VISIBLY reflected (the highlight follows the song / the upcoming order shifts).
@@ -26242,7 +26266,7 @@ function drawSettingsScreen() {
     const isNow = nowPlaying.playing && r.index === nowPlaying.index
     box(r.rowRect, isNow ? "rgba(32,64,106,0.95)" : "rgba(26,34,48,0.9)", isNow ? "#63b3ff" : "rgba(120,170,255,0.25)", isNow ? 2 : 1, isNow, 6)
     // track number + clean name (clipped to the label area); the live track gets a ► marker + accent colour
-    ctx.fillStyle = isNow ? "#bfe0ff" : "#e6edf7"; ctx.font = isNow ? "700 13px Arial" : "13px Arial"
+    ctx.fillStyle = isNow ? "#bfe0ff" : "#e6edf7"; ctx.font = isNow ? _menuFont(700, 13) : _menuFont(500, 13)
     ctx.save()
     ctx.beginPath(); ctx.rect(r.rowRect.x + 8, r.rowRect.y, r.rowRect.w - PLAYLIST_BTN * 2 - 20, r.rowRect.h); ctx.clip()
     ctx.fillText(`${isNow ? "► " : ""}${r.index + 1}. ${menuTrackDisplayName(r.file)}`, r.rowRect.x + 8, r.rowRect.y + 18)
@@ -26250,7 +26274,7 @@ function drawSettingsScreen() {
     // ▲ up (disabled on first row) / ▼ down (disabled on last row)
     const drawArrow = (br, glyph, enabled) => {
       box(br, enabled ? "rgba(29,44,66,0.95)" : "rgba(20,24,30,0.9)", enabled ? _withAlpha("#4aa8e0", 0.5) : "rgba(90,100,115,0.4)", 1, false, 5)
-      ctx.fillStyle = enabled ? "#cfe0ff" : "#55606e"; ctx.font = "15px Arial"; ctx.textAlign = "center"
+      ctx.fillStyle = enabled ? "#cfe0ff" : "#55606e"; ctx.font = _menuFont(500, 15); ctx.textAlign = "center"
       ctx.fillText(glyph, br.x + br.w / 2, br.y + br.h / 2 + 5)
       ctx.textAlign = "left"
     }
@@ -26263,7 +26287,7 @@ function drawSettingsScreen() {
     const first = _playlistScroll + 1
     const last  = Math.min(MENU_PLAYLIST.length, _playlistScroll + PLAYLIST_MAX_ROWS)
     const fy = PLAYLIST_Y0 + PLAYLIST_MAX_ROWS * PLAYLIST_ROW_H + 4
-    ctx.fillStyle = "#7f9dc4"; ctx.font = "11px Arial"; ctx.textAlign = "left"
+    ctx.fillStyle = "#7f9dc4"; ctx.font = _menuFont(500, 11); ctx.textAlign = "left"
     ctx.fillText(`showing ${first}–${last} of ${MENU_PLAYLIST.length}  ·  scroll to see all`, PLAYLIST_X0, fy)
     // Tiny arrows hint scroll direction (dimmed at the ends).
     ctx.fillStyle = _playlistScroll > 0 ? "#9fc0e6" : "#3d4a5c"
@@ -26274,9 +26298,7 @@ function drawSettingsScreen() {
   ctx.textAlign = "center"
 
   // Back — red action accent, angular.
-  box(backSettingRect, "rgba(60,20,20,0.92)", "#e05454", 1.5, true)
-  ctx.fillStyle = "#FFF"; ctx.font = "700 22px Arial"
-  ctx.fillText("BACK", canvas.width / 2, backSettingRect.y + 35)
+  _mkButton(ctx, backSettingRect, { label: "BACK", active: pointInRect(mouse.x, mouse.y + settingsScroll, backSettingRect), accent: "#f87171", id: "settings:back" })
   ctx.restore()   // end SETTINGS page-scroll translate
 
   // Scroll affordance (fixed, screen-space): a right-edge scrollbar + "scroll ▼" hint when the page overflows.
@@ -26288,7 +26310,7 @@ function drawSettingsScreen() {
     const thumbY = trackY + (trackH - thumbH) * (settingsScroll / _maxS)
     ctx.fillStyle = "rgba(120,180,240,0.7)"; ctx.fillRect(trackX, thumbY, 4, thumbH)
     if (settingsScroll < _maxS - 1) {
-      ctx.fillStyle = "rgba(180,210,255,0.85)"; ctx.font = "700 13px Arial"; ctx.textAlign = "center"
+      ctx.fillStyle = "rgba(180,210,255,0.85)"; ctx.font = _menuFont(700, 13); ctx.textAlign = "center"
       ctx.fillText("scroll ▼", canvas.width - 54, canvas.height - 12)
     }
     ctx.textAlign = "center"
@@ -26852,7 +26874,7 @@ function _profileScreenData() {
 // ── CREDITS screen (Stage 18) — slow auto-scroll + wheel/drag, with a BACK button ──
 let creditsScroll = 0
 let creditsContentHeight = 0
-const creditsBackRect = { x: 20, y: 20, w: 120, h: 40 }
+const creditsBackRect = { x: 66, y: 14, w: 130, h: 42 }   // clear of the ⛶ fullscreen button
 function _creditsMaxScroll() { return Math.max(0, creditsContentHeight - (canvas.height - 160)) }
 // Stage 16: resolve a REAL on-disk sheet file per SOURCED_ART entry, so the credits screen can show a
 // live thumbnail. The character's animationData sheets are the actual files the game loads; we pick the
@@ -26878,17 +26900,16 @@ function getCreditsThumbnails() {
 }
 
 function drawCreditsState() {
-  creditsBackRect.x = 20; creditsBackRect.y = 20
+  creditsBackRect.x = 66; creditsBackRect.y = 14   // clear of the ⛶ fullscreen button
   // Gentle auto-scroll toward the bottom, then rest (player can wheel/drag freely too).
   const max = _creditsMaxScroll()
   if (creditsScroll < max) creditsScroll = Math.min(max, creditsScroll + 0.5)
   creditsContentHeight = drawCreditsScreen(ctx, canvas, creditsScroll, { thumbnails: getCreditsThumbnails() })
-  ctx.fillStyle = "#A00"; ctx.fillRect(creditsBackRect.x, creditsBackRect.y, creditsBackRect.w, creditsBackRect.h)
-  ctx.fillStyle = "#FFF"; ctx.font = "20px Arial"; ctx.textAlign = "center"
-  ctx.fillText("BACK", creditsBackRect.x + creditsBackRect.w / 2, creditsBackRect.y + 27)
+  _mkButton(ctx, creditsBackRect, { label: "‹ BACK", active: pointInRect(mouse.x, mouse.y, creditsBackRect), accent: "#f87171", id: "credits:back" })
 }
 
 function renderCurrentState() {
+  _menuRenderTick()   // menu layout bookkeeping (sidebar list screens)
   // The per-character theme preview only lives on the fighter-browsing screens; anywhere else, drop it so
   // the UI returns to the player's chosen (or Character-mode) theme.
   if (gameState !== GAME_STATES.SELECT_CHARACTER && gameState !== GAME_STATES.SELECT_SKIN && gameState !== GAME_STATES.SELECT_EDO_BACKUP) theme.clearPreviewTheme()
@@ -26896,10 +26917,7 @@ function renderCurrentState() {
     case GAME_STATES.START:
       drawStartScreen(ctx, canvas)
       settingsButtonRect.x = canvas.width - 220   // track the canvas (uiScale / big-screen scaling), not the load-time window
-      ctx.fillStyle = "#444"
-      ctx.fillRect(settingsButtonRect.x, settingsButtonRect.y, settingsButtonRect.w, settingsButtonRect.h)
-      ctx.fillStyle = "#FFF"; ctx.font = "20px Arial"; ctx.textAlign = "center"
-      ctx.fillText("SETTINGS", settingsButtonRect.x + settingsButtonRect.w / 2, settingsButtonRect.y + 32)
+      _mkButton(ctx, settingsButtonRect, { label: "⚙ SETTINGS", active: pointInRect(mouse.x, mouse.y, settingsButtonRect), id: "start:settings" })
       break
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
     case GAME_STATES.MUSIC_LIBRARY:   drawMusicLibraryScreen(); break

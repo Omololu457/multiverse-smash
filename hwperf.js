@@ -541,8 +541,8 @@ function capturePass() {
 // UI — FPS HUD, toast, settings button, Performance panel (plain DOM, above the canvas)
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 const CSS = `
-#hwp-btn{position:fixed;top:12px;left:62px;z-index:10000;height:42px;padding:0 14px;display:none;font:700 13px Arial,sans-serif;letter-spacing:.04em;color:#e6f2ff;background:rgba(10,19,34,.75);border:1px solid rgba(120,170,255,.45);border-radius:8px;cursor:pointer}
-#hwp-btn:hover{background:rgba(24,46,88,.95)}
+#hwp-btn{position:fixed;top:14px;left:62px;z-index:10000;height:36px;padding:0 16px;display:none;font:700 14px "Rajdhani",Arial,sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.85);background:rgba(12,10,22,.5);border:1px solid rgba(255,255,255,.14);border-radius:18px;cursor:pointer;backdrop-filter:blur(8px)}
+#hwp-btn:hover{background:rgba(40,32,70,.75);color:#fff}
 #hwp-hud{position:fixed;top:72px;right:12px;z-index:10001;width:280px;height:104px;pointer-events:none;display:none}
 #hwp-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10003;max-width:min(92vw,560px);padding:10px 16px;font:600 14px Arial,sans-serif;color:#ecfeff;background:rgba(8,17,31,.92);border:1px solid #38bdf8;border-radius:8px;display:none;pointer-events:none;text-align:center}
 #hwp-panel{position:fixed;inset:0;z-index:10002;display:none;background:rgba(2,6,16,.72);font:14px/1.4 Arial,sans-serif;color:#dbe7f7;overflow:auto;-webkit-overflow-scrolling:touch}

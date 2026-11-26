@@ -10,7 +10,7 @@
 // No Math.random: every variation is hash(i, …). Nothing here is read by the simulation.
 import { registerCineScreen } from './cineRegistry.js'
 import { camera } from './camera.js'
-import { OMNI_SCHEME, isOmniSkin, omniRecolor } from './omniTheme.js'   // the roster-wide OMNITRIX theme skin (+ Ben's DNA copies wear it)
+import { OMNI_SCHEME, isOmniSkin, omniRecolor, omniAnalyze } from './omniTheme.js'   // the roster-wide OMNITRIX theme skin (+ Ben's DNA copies wear it)
 
 export const DNA_SCHEMES = {
   ben:     { ramp: ['#050806', '#0d2a10', '#22b322', '#9dff8f', '#ffffff'], glow: '#39ff3a', deep: '#0b3d0b', emblem: 'omnitrix', device: 'OMNITRIX',   verb: 'NEW DNA SAMPLE ACQUIRED' },
@@ -41,50 +41,58 @@ function rgb(hex) { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 25
 const rgba = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})` }
 
 // ── 1) sheet recolor ─────────────────────────────────────────────────────────────────────────────────────────────────
-const RAMPS = {}
-function rampLUT(id) {
-  if (RAMPS[id]) return RAMPS[id]
-  const stops = DNA_SCHEMES[id].ramp.map(rgb), lut = new Uint8ClampedArray(256 * 3)
-  for (let i = 0; i < 256; i++) {
-    const t = i / 255 * (stops.length - 1), j = Math.min(stops.length - 2, Math.floor(t)), u = t - j
-    for (let c = 0; c < 3; c++) lut[i * 3 + c] = stops[j][c] + (stops[j + 1][c] - stops[j][c]) * u
-  }
-  return (RAMPS[id] = lut)
-}
+// The body is re-tailored as an alien suit in the wearer's device colours (omniTheme.omniRecolor: suit / accent / trim, hair,
+// skin, outline and technique FX kept). The colour DECISION comes from the character's idle frame and is shared by every
+// sheet, so nothing changes colour between moves. Built off-frame (≤1 sheet / 14 ms), LRU-capped.
+const PAL_OF = { omni: 'omni', ben: 'omni', albedo: 'albedo', kevin: 'kevin', chrollo: 'chrollo' }
 const SHEETS = new Map()      // key → canvas (LRU by insertion)
+const REFS = new Map()        // idle sheet path → omniAnalyze result (null while loading)
+const REF_IMG = new Map()
 let _px = 0, _lastBuild = -1e9
 const SHEET_PX_CAP = 48e6
 const _now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
-function buildSheet(img, id) {
-  const w = img.naturalWidth, h = img.naturalHeight
-  const cv = document.createElement('canvas'); cv.width = w; cv.height = h
+const _ok = im => !!(im && im.complete && im.naturalWidth > 0)
+function pixelsOf(img) {
+  const cv = document.createElement('canvas'); cv.width = img.naturalWidth; cv.height = img.naturalHeight
   const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0)
-  const data = g.getImageData(0, 0, w, h), d = data.data
-  if (id === 'omni') { omniRecolor(d, w, h); g.putImageData(data, 0, 0); cv.complete = true; cv.naturalWidth = w; cv.naturalHeight = h; return cv }
-  const lut = rampLUT(id)
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] === 0) continue
-    const r = d[i], gg = d[i + 1], b = d[i + 2]
-    let l = (r * 0.299 + gg * 0.587 + b * 0.114) / 255
-    l = clamp((l - 0.03) / 0.9, 0, 1); l = Math.pow(l, 1.12)   // a touch darker than linear: deep shadows, bright highlights
-    const o = (l * 255 | 0) * 3
-    d[i] = lut[o]; d[i + 1] = lut[o + 1]; d[i + 2] = lut[o + 2]
-  }
+  return { cv, g, data: g.getImageData(0, 0, cv.width, cv.height) }
+}
+// the character's colour decision, from its idle frame (the sheet being drawn IS the idle sheet → used directly)
+function refFor(f, path, img) {
+  const A = f._skinAnim || f.animationData || {}, idle = A.idle || A.stand || null
+  const ipath = idle?.sheet || path
+  if (REFS.has(ipath) && REFS.get(ipath)) return { ipath, ref: REFS.get(ipath) }
+  let im = ipath === path ? img : REF_IMG.get(ipath)
+  if (!im && typeof Image !== 'undefined') { im = new Image(); im.src = ipath; REF_IMG.set(ipath, im) }
+  if (!_ok(im)) return null
+  const { data } = pixelsOf(im)
+  const ref = omniAnalyze(data.data, data.width, data.height, idle?.width || idle?.frameWidth || 0, idle?.height || idle?.frameHeight || 0)
+  REFS.set(ipath, ref)
+  return ref ? { ipath, ref } : null
+}
+function buildSheet(img, id, ref, cell) {
+  const { cv, g, data } = pixelsOf(img)
+  omniRecolor(data.data, cv.width, cv.height, ref, PAL_OF[id] || 'omni', cell)
   g.putImageData(data, 0, 0)
-  cv.complete = true; cv.naturalWidth = w; cv.naturalHeight = h   // the renderer checks sheets with img.complete / naturalWidth
+  cv.complete = true; cv.naturalWidth = cv.width; cv.naturalHeight = cv.height   // the renderer checks sheets with img.complete / naturalWidth
   return cv
 }
 export function dnaSchemeSheet(f, path, img) {
   const id = dnaSchemeOf(f)
-  if (!id || !path || !img || !img.complete || !(img.naturalWidth > 0) || typeof document === 'undefined') { if (f) f._dnaSheetLive = false; return null }
-  const key = id + '|' + path
+  if (!id || !path || !_ok(img) || typeof document === 'undefined') { if (f) f._dnaSheetLive = false; return null }
+  const R = refFor(f, path, img)
+  if (!R) { f._dnaSheetLive = false; return null }       // the idle reference is still loading (a frame or two)
+  const key = id + '|' + path + '|' + R.ipath
   let cv = SHEETS.get(key)
   if (cv && cv.naturalWidth !== img.naturalWidth) { SHEETS.delete(key); cv = null }
   if (cv) { SHEETS.delete(key); SHEETS.set(key, cv); f._dnaSheetLive = true; return cv }
   const t = _now()
   if (t - _lastBuild < 14) { f._dnaSheetLive = false; return null }   // budget: at most one build per frame-ish
   _lastBuild = t
-  try { cv = buildSheet(img, id) } catch (_) { f._dnaSheetLive = false; return null }
+  // the frame cell of this sheet (from the animation that uses it) → each frame's head is kept as drawn
+  const A = f._skinAnim || f.animationData || {}, def = Object.values(A).find(a => a && a.sheet === path)
+  const cell = def ? { fw: def.width || def.frameWidth || 0, fh: def.height || def.frameHeight || 0 } : null
+  try { cv = buildSheet(img, id, R.ref, cell) } catch (_) { f._dnaSheetLive = false; return null }
   SHEETS.set(key, cv); _px += cv.width * cv.height
   for (const [k, c] of SHEETS) { if (_px <= SHEET_PX_CAP || k === key) break; SHEETS.delete(k); _px -= c.width * c.height }
   f._dnaSheetLive = true
@@ -92,30 +100,128 @@ export function dnaSchemeSheet(f, path, img) {
 }
 
 // ── 2) emblem on the copied body ─────────────────────────────────────────────────────────────────────────────────────
-const BBOX = new WeakMap()
+// WHERE: per frame, from the frame's own pixels (cached): the head (top of the silhouette) → the face (skin pixels near it;
+// skin is never recoloured) → the chest half a head below the chin, centred on the torso run of that row (an outstretched
+// arm can't drag it sideways). Masked fighters (no skin): the head's own width / height. Chrollo's cross: the forehead.
+const CHEST = new WeakMap()
 let _bbCv = null
-function frameBBox(sheet, sx, sy, w, h) {
-  let m = BBOX.get(sheet); if (!m) { m = new Map(); BBOX.set(sheet, m) }
+const isSkinPx = (r, g, b) => { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (!d || mx < 107) return false
+  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; const sat = d / mx; return h >= 8 && h <= 45 && sat >= 0.12 && sat <= 0.58 }
+function chestOf(sheet, sx, sy, w, h) {
+  let m = CHEST.get(sheet); if (!m) { m = new Map(); CHEST.set(sheet, m) }
   const key = sx + ',' + sy + ',' + w + ',' + h
   if (m.has(key)) return m.get(key)
-  let bb = null
+  let out = null
   try {
     const c = _bbCv || (_bbCv = document.createElement('canvas'))
     if (c.width < w) c.width = w; if (c.height < h) c.height = h
     const g = c.getContext('2d', { willReadFrequently: true }); g.clearRect(0, 0, c.width, c.height); g.drawImage(sheet, sx, sy, w, h, 0, 0, w, h)
-    const d = g.getImageData(0, 0, w, h).data
+    const d = g.getImageData(0, 0, w, h).data, A = (x, y) => d[(y * w + x) * 4 + 3] > 40
     let x0 = w, y0 = h, x1 = -1, y1 = -1
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (A(x, y)) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y }
     if (x1 >= 0) {
-      // chest column: the opaque centre of the row band 25–40 % down (arms stretched out don't pull it sideways)
-      const by0 = y0 + Math.round((y1 - y0) * 0.25), by1 = y0 + Math.round((y1 - y0) * 0.40)
-      let sum = 0, n = 0
-      for (let y = by0; y <= by1; y++) { let a = -1, b = -1; for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 40) { if (a < 0) a = x; b = x } if (a >= 0) { sum += (a + b) / 2; n++ } }
-      bb = { x0, y0, x1, y1, cx: n ? sum / n : (x0 + x1) / 2 }
+      const bh = y1 - y0 + 1
+      // the head: the topmost opaque rows → its centre column and width
+      let tx = 0, tn = 0
+      for (let y = y0; y < Math.min(y1, y0 + 3); y++) for (let x = x0; x <= x1; x++) if (A(x, y)) { tx += x; tn++ }
+      const topX = tn ? tx / tn : (x0 + x1) / 2
+      const runAt = (y, cx) => { let a = Math.round(cx), b = a; if (!A(a, y)) { let best = -1; for (let k = 1; k < w; k++) { if (a - k >= 0 && A(a - k, y)) { best = a - k; break } if (a + k < w && A(a + k, y)) { best = a + k; break } } if (best < 0) return null; a = b = best }
+        while (a > 0 && A(a - 1, y)) a--; while (b < w - 1 && A(b + 1, y)) b++; return [a, b] }
+      const hr = runAt(Math.min(y1, y0 + Math.max(2, Math.round(bh * 0.08))), topX)
+      const headW = hr ? Math.max(4, Math.min(hr[1] - hr[0] + 1, bh * 0.3)) : Math.max(4, bh * 0.16)
+      // the face: skin pixels in the upper body close to the head column
+      let fx = 0, fn = 0, fTop = h, fBot = -1
+      const lim = y0 + bh * 0.42
+      for (let y = y0; y <= lim; y++) for (let x = Math.max(0, Math.round(topX - headW)); x <= Math.min(w - 1, Math.round(topX + headW)); x++) {
+        const o = (y * w + x) * 4; if (d[o + 3] > 40 && isSkinPx(d[o], d[o + 1], d[o + 2])) { fx += x; fn++; if (y < fTop) fTop = y }
+      }
+      // the torso's centre line: median opaque column of the chest band (arms/legs/fists are the minority there)
+      const xs = []
+      for (let y = Math.round(y0 + bh * 0.22); y <= Math.round(y0 + bh * 0.46); y++) for (let x = x0; x <= x1; x++) if (A(x, y)) xs.push(x)
+      xs.sort((a, b) => a - b)
+      const torsoX = xs.length ? xs[xs.length >> 1] : (x0 + x1) / 2
+      let cx = topX, chin, headH, faceH = 0
+      if (fn >= 4 && Math.abs(fx / fn - torsoX) > headW * 1.3) fn = 0     // "face" skin far from the torso = a fist / a foot
+      if (fn >= 4) {
+        // the face ends where the skin run under the head column stops (a bare torso below it is NOT face)
+        const fcx = fx / fn; let y = fTop, last = fTop
+        for (; y <= Math.min(y1, fTop + headW * 1.3); y++) { let hit = false; for (let x = Math.round(fcx - headW * 0.35); x <= Math.round(fcx + headW * 0.35); x++) { const o = (y * w + x) * 4; if (x >= 0 && x < w && d[o + 3] > 40 && isSkinPx(d[o], d[o + 1], d[o + 2])) { hit = true; break } } if (hit) last = y }
+        chin = Math.min(last, fTop + headW * 0.95); headH = Math.max(3, chin - y0 + 1); faceH = chin - fTop + 1; cx = fcx
+      } else { headH = Math.max(4, headW * 1.05); chin = y0 + headH }
+      // the drop below the chin comes from the FACE (tall hair must not push the badge to the belly), at least half a head
+      let cy = faceH ? chin + Math.max(2, faceH * 0.62, headW * 0.45) : y0 + bh * 0.3      // masked: 30% down the body
+      cy = Math.max(y0 + bh * 0.2, Math.min(y0 + bh * 0.48, cy, y1 - 2))
+      if (!faceH) cx = torsoX
+      cx = Math.max(torsoX - headW * 0.6, Math.min(torsoX + headW * 0.6, cx))
+      const run = runAt(Math.round(cy), cx)
+      if (run) { const mid = (run[0] + run[1]) / 2; cx = Math.max(cx - headW * 0.35, Math.min(cx + headW * 0.35, mid)) }
+      const r = Math.max(2.5, Math.min(9, headW * 0.34, run ? (run[1] - run[0] + 1) * 0.32 : 9))
+      out = { cx, cy, r, fx: cx, fy: y0 + headH * 0.32, headW }
     }
-  } catch (_) { bb = null }
-  m.set(key, bb)
-  return bb
+  } catch (_) { out = null }
+  m.set(key, out)
+  return out
+}
+// WHAT: the badge drawn PIXEL BY PIXEL at the sprite's own resolution (then scaled up crisp, like the sprite) — a shaded
+// silver bezel, black dial and the device's hourglass, so it reads as part of the suit, not a sticker on top of it.
+const BADGES = new Map()
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
+function badgeSprite(kind, R, glow) {
+  const key = kind + '|' + R + '|' + glow
+  if (BADGES.has(key)) return BADGES.get(key)
+  const N = R * 2 + 1, cv = document.createElement('canvas'); cv.width = N; cv.height = N
+  const g = cv.getContext('2d'), img = g.createImageData(N, N), D = img.data, G = hexRgb(glow)
+  const put = (x, y, c, a = 255) => { const o = (y * N + x) * 4; D[o] = c[0]; D[o + 1] = c[1]; D[o + 2] = c[2]; D[o + 3] = a }
+  const shade = (c, k) => c.map(v => Math.max(0, Math.min(255, v * k)))
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const px = x - R, py = y - R, dist = Math.hypot(px, py)
+    if (kind === 'cross') {   // Chrollo: the forehead cross (a tattoo — no bezel)
+      const vx = Math.abs(px) <= Math.max(0.5, R * 0.18), vy = Math.abs(py) <= R
+      const hx = Math.abs(px) <= R * 0.62, hy = Math.abs(py + R * 0.3) <= Math.max(0.5, R * 0.16)
+      if ((vx && vy) || (hx && hy)) put(x, y, shade(G, py < 0 ? 1.1 : 0.85))
+      continue
+    }
+    if (dist > R + 0.25) continue
+    const light = 1.18 - 0.42 * ((py - px * 0.5) / (R * 1.4) + 0.5)          // lit from the upper left
+    if (kind === 'plumber') {      // Kevin: the Plumber badge — steel hexagon, black dial, green core + bar
+      const hex = Math.max(Math.abs(px) * 0.866 + Math.abs(py) * 0.5, Math.abs(py)) <= R
+      if (!hex) continue
+      if (dist > R * 0.68) put(x, y, shade([150, 160, 172], light))
+      else if (dist <= R * 0.3 || (Math.abs(px) <= Math.max(0.5, R * 0.1) && Math.abs(py) <= R * 0.6)) put(x, y, shade(G, light))
+      else put(x, y, [14, 18, 22])
+      continue
+    }
+    if (dist > R - 0.9) { put(x, y, shade([206, 214, 210], light)); continue }   // silver bezel
+    if (dist > R - 1.7 && R >= 4) { put(x, y, [10, 12, 11]); continue }            // black ring
+    const ir = R - (R >= 4 ? 1.7 : 0.9), ay = Math.abs(py), ax = Math.abs(px)
+    const hour = ay <= ir * 0.78 && ax <= 0.55 + (ay / (ir * 0.78)) * ir * 0.62   // the hourglass: narrow waist, wide ends
+    put(x, y, hour ? shade(G, 0.72 + 0.4 * (1 - (py + ir) / (2 * ir))) : [8, 11, 9])
+  }
+  g.putImageData(img, 0, 0)
+  BADGES.set(key, cv)
+  return cv
+}
+export function drawDnaEmblem(ctx, f, sheet, sx, sy, w, h, flipped) {
+  const id = dnaSchemeOf(f); if (!id || !sheet) return
+  const S = DNA_SCHEMES[id], P = chestOf(sheet, sx, sy, w, h); if (!P) return
+  const sc = (f._lastDrawW || w) / w
+  const cross = S.emblem === 'cross'
+  const lx = flipped ? (w - 1 - (cross ? P.fx : P.cx)) : (cross ? P.fx : P.cx), ly = cross ? P.fy : P.cy
+  const R = Math.max(2, Math.round(cross ? P.headW * 0.2 : P.r))
+  const kind = S.emblem === 'plumber' ? 'plumber' : cross ? 'cross' : 'dial'
+  const spr = badgeSprite(kind, R, S.glow)
+  const x = (f._lastDrawX || 0) + (lx + 0.5) * sc, y = (f._lastDrawY || 0) + (ly + 0.5) * sc
+  const t = (f._dna?.t || f._shTimer || (f._omniT = (f._omniT || 0) + 1)), pulse = 0.5 + 0.5 * Math.sin(t * 0.12)
+  ctx.save()
+  ctx.imageSmoothingEnabled = false
+  const half = (R + 0.5) * sc
+  // a soft device glow behind the dial (the hourglass "breathes"), then the crisp badge
+  ctx.globalAlpha *= 0.28 + 0.22 * pulse
+  const gr = ctx.createRadialGradient(x, y, 0, x, y, half * 2.1); gr.addColorStop(0, S.glow); gr.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = gr; ctx.fillRect(x - half * 2.1, y - half * 2.1, half * 4.2, half * 4.2)
+  ctx.globalAlpha = Math.min(1, ctx.globalAlpha / (0.28 + 0.22 * pulse)) * 0.97
+  ctx.drawImage(spr, x - half, y - half, half * 2, half * 2)
+  ctx.restore()
 }
 function hourglass(c, r, fill) {
   c.fillStyle = fill; c.beginPath()
@@ -140,21 +246,6 @@ export function drawEmblemShape(c, kind, r, S, pulse = 0) {
   }
   c.restore()
 }
-export function drawDnaEmblem(ctx, f, sheet, sx, sy, w, h, flipped) {
-  const id = dnaSchemeOf(f); if (!id || !sheet) return
-  const S = DNA_SCHEMES[id], bb = frameBBox(sheet, sx, sy, w, h); if (!bb) return
-  const sc = (f._lastDrawW || w) / w
-  const bh = bb.y1 - bb.y0, bw = bb.x1 - bb.x0
-  const lx = flipped ? (w - 1 - bb.cx) : bb.cx
-  const ly = S.emblem === 'cross' ? bb.y0 + bh * 0.07 : bb.y0 + bh * 0.31
-  const x = (f._lastDrawX || 0) + lx * sc, y = (f._lastDrawY || 0) + ly * sc
-  const r = S.big ? clamp(Math.min(bw, bh * 0.5) * 0.21 * sc, 5, 19) : clamp(Math.min(bw, bh * 0.5) * 0.15 * sc, 4, 15) * (S.emblem === 'cross' ? 0.7 : 1)
-  const t = (f._dna?.t || f._shTimer || (f._omniT = (f._omniT || 0) + 1))
-  ctx.save(); ctx.translate(x, y); ctx.globalAlpha *= 0.95
-  drawEmblemShape(ctx, S.emblem, r, S, 0.4 + 0.4 * Math.sin(t * 0.12))
-  ctx.restore()
-}
-
 // ── 3) screen pass ───────────────────────────────────────────────────────────────────────────────────────────────────
 function W2S(wx, wy, W, H) {
   const z = camera.zoom || 1

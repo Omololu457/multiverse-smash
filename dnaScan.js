@@ -16,6 +16,7 @@ import { characters } from './characters.js'
 import { registerFreezeCine } from './cineRegistry.js'
 import { readRawControlsUnmasked, clearInputBuffer } from './input.js'
 import { revertToHuman } from './fighters.js'
+import { revertEdoTensei, revertTransformJutsu, revertSkillHunter } from './abilities.js'
 import { kevinForm } from './kevinState.js'
 import { DNA_SCENE, DNA_PULSES, DNA_FIGHTERS, dnaPreload } from './dnaScanFx.js'
 
@@ -26,8 +27,6 @@ export const DNA = {
 }
 const SCANNERS = { ben10: 'ben', albedo: 'albedo', kevin_levin: 'kevin' }
 const NO_COPY = new Set(['ben10', 'albedo'])   // the Omnitrix can't sample another Omnitrix wielder
-const SWAP_FIELDS = ['rosterKey', 'name', 'color', 'basic_attacks', 'animationData', 'spriteScale', 'traits', 'ultimate', 'dashTeleport', 'runWhenAdvancing',
-  'introPool', 'maxEnergy', 'energyType', 'transformations', 'transformationOrder', 'specials', 'passive', 'archetypes', 'primary', 'secondary', 'hasSprites']
 const EXTRA_STASH = ['_skinAnim', '_recolorTag', '_baseSkinAnim', '_benTheme', 'omnitrix', 'currentForm', 'transformIndex']
 
 const LIVE = new Set()
@@ -63,6 +62,12 @@ function snapKeys(r) { return { block: !!r.block, light: !!r.light, heavy: !!r.h
 function eat(f, ...keys) { f._squadEat = { ...(f._squadEat || {}) }; for (const k of keys) f._squadEat[k] = true }
 
 // ── the swap ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+// a held-back / re-injected U belongs to the body it was pressed in — never let it land on the other one
+function dropPending(f) {
+  const d = f._dna; if (d) { d.hold = null; d.injected = false; d.uAt = -99 }
+  f._squadInject = null
+  if (f._squadEat) { delete f._squadEat.ultimate; if (!Object.keys(f._squadEat).length) f._squadEat = null }
+}
 function clearTransient(f) {
   f.attacking = false; f.currentMove = null; f.currentAttack = null
   f._spriteCastMove = null; f._spriteCastTimer = 0; f.isCharging = false
@@ -73,37 +78,59 @@ function cleanseForms(f) {
   f._susanooStage = 0; f._susanooTimer = 0; f._susanooActive = false; f._suppressUltCooldown = false
   f._itachiSusanoo = false; f._itachiSusanooTimer = 0; f._mangekyouActive = false
   f._godspeedActive = false; f._godspeedTrail = null; f._flashTimeActive = false; f._ftTrail = null; f._oppTimeScale = null
-  f.damageMultiplier = f._dna?.stash?._dmg ?? 1; f.attackSpeedMultiplier = 1
+  f.attackSpeedMultiplier = 1
   f._canvasHeightFrac = null; f._rooted = false; f.isLaunched = false; f._flightActive = false
 }
-export function applyDnaForm(f, key) {
+// FULL-BODY copy. game.js registers a factory that builds the target EXACTLY as a round start does (createFighter spreads
+// the whole character def + derives speed / jump / size / dash / multipliers, applySkin loads the art, per-character
+// setup like Tobirama's Edo vessel). The copier then takes every KIT / IDENTITY field of that body — so every
+// character-specific system (gated on rosterKey or on any field of the character def) runs the opponent's full kit.
+// Live state (position, health, meter, combo, stun, inputs, AI…) stays the copier's own. Only the fields the swap
+// touched are stashed and restored.
+let FACTORY = null
+const KEEP_NEW = /^_(dna|squadEat|squadInject|ai|cpu|net|lab|harness|last|replay|mirror|input|omx|ben)|^(teleportFlash|energyDrainPerFrame|kiDrainPerSecond)$/i
+export function setDnaFighterFactory(fn) { FACTORY = fn }
+const LIVE_KEYS = new Set(['x', 'y', 'vx', 'vy', 'facing', 'side', 'controls', 'playerNumber', 'health', 'maxHealth', 'energy', 'anchor', 'groundY',
+  'benExperimental', 'selectedAliens', 'hitstun', 'blockstun', 'hitstop', 'attackCooldown', 'currentAttack', 'attacking', 'currentMove',
+  'currentMoveData', 'moveTimer', 'movePhase', 'hasHitThisMove', 'isBlocking', 'grounded', 'onGround', 'isLaunched', 'airHits', 'maxAirHits',
+  'comboCounter', 'comboTimer', 'comboBreakStocks', 'directionHistory', 'motionHistory', 'teleportFlash', 'invulnTimer', 'colorFlash',
+  'parryFlash', 'armorFlash', 'clashFlash', 'leftTapTime', 'rightTapTime', 'isGrabbed', 'grabTimer', 'grabInputBuffer', 'knockdownState',
+  'knockdownTimer', 'techRoll', 'wallBounce', 'airDashCount', 'airDashing', 'airDashTimer', 'attackBox', 'dashTimer', 'dashCooldown',
+  'jumpsUsed', 'jumpCount', 'jumpHeld', 'juggleCount', 'infiniteEnergy', '_dna', '_dnaScheme', '_dnaSheetLive', '_aiControlled'])
+function buildBody(f, key, opp) {
+  const oppSkin = opp && baseKey(opp) === key ? opp.skinId : null
+  if (FACTORY) { try { const t = FACTORY(key, f, oppSkin); if (t) return t } catch (e) { console.warn('[dna] body factory failed', e) } }
+  const T = characters[key]                                // fallback (no factory: unit harness) — the def itself
+  return { ...T, rosterKey: key, maxEnergy: T.stats?.maxEnergy || 100, dashTeleport: !!T.movement?.dashTeleport, runWhenAdvancing: !!T.movement?.runWhenAdvancing,
+    currentForm: T.transformationOrder?.[0] || 'base', transformIndex: 0 }
+}
+export function applyDnaForm(f, key, opp = null) {
   const d = f._dna, T = characters[key]
   if (!d || !T || d.active) return false
   if (f.omnitrix && f.transformed) { try { revertToHuman(f) } catch (_) {} }   // Ben/Albedo: drop the current alien first
-  const stash = {}
-  for (const k of SWAP_FIELDS) stash[k] = f[k]
-  for (const k of EXTRA_STASH) stash[k] = f[k]
-  stash._dmg = f.damageMultiplier; stash._def = f.defenseMultiplier
-  d.stash = stash
-  f.rosterKey = key; f.name = T.name || key; f.color = T.color || f.color
-  f.basic_attacks = T.basic_attacks || f.basic_attacks; f.animationData = T.animationData || f.animationData
-  f.spriteScale = T.spriteScale ?? f.spriteScale; f.traits = T.traits || f.traits; f.ultimate = T.ultimate || null
-  f.specials = T.specials || {}; f.passive = T.passive || null; f.archetypes = T.archetypes || f.archetypes
-  f.primary = T.primary || f.primary; f.secondary = T.secondary || f.secondary
-  f.dashTeleport = !!T.movement?.dashTeleport; f.runWhenAdvancing = !!T.movement?.runWhenAdvancing
-  f.introPool = T.introPool || null; f.hasSprites = T.hasSprites !== false
-  f.transformations = T.transformations || null; f.transformationOrder = T.transformationOrder || null
-  f.currentForm = (T.transformationOrder && T.transformationOrder[0]) || null; f.transformIndex = T.transformationOrder ? 0 : null
-  f._skinAnim = null; f._baseSkinAnim = null; f._recolorTag = null; f._benTheme = null
+  const body = buildBody(f, key, opp)
+  const stash = {}, has = {}
+  d.pre = new Set(Object.keys(f))   // fields that existed before the copy — anything the copy's systems ADD is dropped on revert
+  const take = k => { if (!(k in stash)) { stash[k] = f[k]; has[k] = Object.prototype.hasOwnProperty.call(f, k) } }
+  // the copier's OWN character-def fields that the target doesn't have go away for the duration (Ben's omnitrix config…)
+  const own = characters[d.base] || {}
+  for (const k of Object.keys(own)) if (!LIVE_KEYS.has(k) && !(k in body)) { take(k); delete f[k] }
+  for (const k of EXTRA_STASH) take(k)
+  take('damageMultiplier'); take('defenseMultiplier')
+  const oldH = f.h || 100
+  for (const k of Object.keys(body)) { if (LIVE_KEYS.has(k)) continue; take(k); f[k] = body[k] }
+  // feet stay on the same line when the body height changes
+  if (body.h && body.h !== oldH) f.y = (f.y || 0) + oldH - body.h
+  d.stash = stash; d.has = has
+  f.name = T.name || key
+  f._benTheme = null
   f.omnitrix = null                                   // the Omnitrix machinery sleeps while wearing the sample
-  f.maxEnergy = T.stats?.maxEnergy || stash.maxEnergy || 100
-  f.energyType = T.traits?.energyType || f.energyType
-  f.energy = Math.min(f.energy || 0, f.maxEnergy)    // the pool carries over (no free full bar)
-  f.damageMultiplier = 1; f.defenseMultiplier = stash._def ?? f.defenseMultiplier
+  f.energy = Math.min(f.energy || 0, f.maxEnergy || 100)    // the pool carries over (no free full bar)
   clearTransient(f)
   f._dnaScheme = d.scheme
   d.active = true; d.timer = DNA.duration; d.total = DNA.duration; d.formKey = key
   f.ultimateCooldown = 0
+  dropPending(f)
   try { clearInputBuffer(f) } catch (_) {}
   f.teleportFlash = 14
   LIVE.add(f)
@@ -112,15 +139,25 @@ export function applyDnaForm(f, key) {
 export function revertDnaForm(f, why = 'manual') {
   const d = f?._dna
   if (!d?.active || !d.stash) return false
-  const s = d.stash
+  // a body swap the COPY started (Tobirama's Edo Tensei vessel, Naruto-universe Transform Jutsu, Chrollo's Skill Hunter)
+  // unwinds first, so its own stash lands on the copy — then the copy's stash restores the copier
+  try { if (f._edoActive) revertEdoTensei(f) } catch (_) {}
+  try { if (f._tjActive) revertTransformJutsu(f) } catch (_) {}
+  try { if (f._shActive) revertSkillHunter(f) } catch (_) {}
+  const s = d.stash, has = d.has || {}
   cleanseForms(f)
-  for (const k of SWAP_FIELDS) f[k] = s[k]
-  for (const k of EXTRA_STASH) f[k] = s[k] ?? null
-  f.damageMultiplier = s._dmg ?? 1; f.defenseMultiplier = s._def ?? f.defenseMultiplier
+  f.energyDrainPerFrame = null; f.kiDrainPerSecond = 0   // a copied form's meter drain never follows the copier home
+  const oldH = f.h || 100
+  for (const k of Object.keys(s)) { if (has[k] === false) delete f[k]; else f[k] = s[k] }
+  // runtime state the COPIED character's systems created during the form (form timers, stances, drains, summon refs…)
+  if (d.pre) for (const k of Object.keys(f)) if (!d.pre.has(k) && !LIVE_KEYS.has(k) && !KEEP_NEW.test(k)) delete f[k]
+  d.pre = null
+  if (f.h && f.h !== oldH) f.y = (f.y || 0) + oldH - f.h
   f.energy = Math.min(f.energy || 0, f.maxEnergy || 100)
   clearTransient(f)
   f._dnaScheme = null; f._dnaSheetLive = false
-  d.active = false; d.stash = null; d.timer = 0; d.cd = DNA.recharge
+  d.active = false; d.stash = null; d.has = null; d.timer = 0; d.cd = DNA.recharge
+  dropPending(f)
   if (f.omnitrix && why === 'timeout') f.omnitrix.timeoutCooldown = Math.max(f.omnitrix.timeoutCooldown || 0, 60)
   try { clearInputBuffer(f) } catch (_) {}
   f.teleportFlash = 14
@@ -169,7 +206,7 @@ function update(ctx = {}) {
   } else {
     if (k === 0) { ben(ctx, 'ben_transform'); sfx(ctx, 'sting_pitch_rise_hold', 0.6) }
     if (k === 14) sfx(ctx, 'charge_swell_riser', 0.75)
-    if (k === DNA.morphSwap) { applyDnaForm(f, cine.key); sfx(ctx, 'boom_medium_01', 0.85); ben(ctx, 'ben_swap'); cam?.shake?.(14, 18) }
+    if (k === DNA.morphSwap) { applyDnaForm(f, cine.key, cine.t); sfx(ctx, 'boom_medium_01', 0.85); ben(ctx, 'ben_swap'); cam?.shake?.(14, 18) }
     if (cam?.focusOnFighter) cam.focusOnFighter(f, k < DNA.morphSwap + 10 ? 1.25 + 0.35 * Math.min(1, k / DNA.morphSwap) : 1.6 - 0.6 * Math.min(1, (k - DNA.morphSwap - 10) / 24))
     if (++cine.k > DNA.morphTotal) endCine()
   }
@@ -178,10 +215,11 @@ function update(ctx = {}) {
 function clear() {
   if (cine.active) { if (cine.kind === 'morph' && cine.k <= DNA.morphSwap && cine.f) { /* never swapped: refund nothing, just drop */ } endCine() }
   for (const f of [...LIVE]) revertDnaForm(f, 'reset')
-  for (const f of DNA_FIGHTERS) { if (f._dna) { f._dna.cd = 0; f._dna.hold = null } }
+  for (const f of DNA_FIGHTERS) { if (f._dna) { f._dna.cd = 0; dropPending(f) } }
   DNA_PULSES.length = 0
 }
 registerFreezeCine('dna_scan', { active: () => !!cine.active, update, clear })
+export const clearDnaForms = clear   // training reset (game.js resetTraining): drop any copy + a running scan / morph cinematic; the stored scan stays
 
 // ── per-frame input + timers (game.js updateMovementInput, top) ───────────────────────────────────────────────────────
 export function dnaScanTick(f, opp) {

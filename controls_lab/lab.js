@@ -388,23 +388,29 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 function stopTask() { if (S.task?.stop) S.task.stop(); S.task = null; eng.stop(); eng.speed = 1; if (ctl) ctl.setGuide(null); $("#arenaBadge").textContent = S.focus === "arena" ? controlBadge() : "" }
 
 // Play a script on the real engine with the controller guide in sync. Resolves { fired, hits, damage }.
-async function runDemo({ script, at, steps, lesson = null, also = null, gap = 34, slow = false, label = "DEMO" }) {
+async function runDemo({ script, at, steps, lesson = null, also = null, gap = 34, slow = false, label = "DEMO", dummy = null, prepLen = 0, refill = false }) {
   stopTask(); takeControl(false)
   const task = S.task = { kind: "demo" }
+  await ensureDummy(dummy)
+  if (S.task !== task) return null
   await eng.reset({ gap })
   if (S.task !== task) return null
   eng.speed = slow ? 0.5 : 1
   $("#arenaBadge").textContent = `${label} ${slow ? "0.5×" : "1×"}`
   const facing = eng.facing()
   const frames = facing >= 0 ? script : script.map(mirrorRaw)
-  const base = eng.academySnap(), hp0 = eng.p2().health
-  let fired = false, maxCombo = 0
+  let base = eng.academySnap(), hp0 = eng.p2().health
+  let fired = false, maxCombo = 0, idx = 0, gated = refill && prepLen > 0
   const det = eng.mods.academy.detectLesson
   task.onFrame = () => {
+    // a refill PREP (the DNA rows: scan / transform first) is setup, not the move: keep the meter full through it and
+    // judge only from the end of the prep, against a snapshot taken there
+    if (gated) { if (idx < prepLen) { const lp = liveP1(); if (lp) lp.energy = lp.maxEnergy; return } gated = false; base = eng.academySnap(); hp0 = eng.p2().health }
     if (lesson && !fired) { const now = eng.academySnap(); if (det(lesson, base, now) || alsoHit(also, now)) fired = true }
     maxCombo = Math.max(maxCombo, eng.combo())
   }
   await eng.play(frames, { onStep: i => {
+    idx = i
     let s = 0; for (let k = 0; k < at.length; k++) if (at[k] - 10 <= i) s = k
     const st = steps[s]
     const pressing = i >= at[s] && i < at[s] + Math.max(5, st?.hold || 0)
@@ -421,9 +427,21 @@ async function runDemo({ script, at, steps, lesson = null, also = null, gap = 34
 // extra "it happened" signal on top of the Academy detector: a named attack, or ("*") any attack starting
 function alsoHit(also, now) {
   if (also === "grabbed") { try { return !!eng.p2()?.isGrabbed } catch (_) { return false } }
+  if (also === "dna_drop") { const f = liveP1(); return !!(f?._dna?.scanKey && !f._dna.active && f.rosterKey === S.key) }   // turned back from the DNA form
   return !!also && !!now?.attackName && (also === "*" || now.attackName === also)
 }
-function runMoveDemo(m, slow = false) { return runDemo({ script: m.script, at: m.at, steps: m.parsed.steps, lesson: m.lesson, also: m.also, gap: m.gap, slow }) }
+function runMoveDemo(m, slow = false) { return runDemo({ script: m.script, at: m.at, steps: m.parsed.steps, lesson: m.lesson, also: m.also, gap: m.gap, slow, dummy: m.labDummy, prepLen: m.prepLen, refill: m.labRefill }) }
+// the LIVE P1 (eng.p1() is a snapshot) — only for the Lab's own setup writes (meter refill) and DNA-form reads
+function liveP1() { try { return eng.h.kevinTest?.raw?.() || null } catch (_) { return null } }
+// A move can ask for a different training dummy (kit `labDummy`: the DNA rows need a SCANNABLE foe — the default dummy
+// is a mirror copy). Reload the real match with that dummy, and back to the mirror for every other move.
+async function ensureDummy(want) {
+  const target = want || S.key
+  if (!eng.ready || eng.p2Key === target) return
+  setVeil(true, want ? `Loading a ${eng.mods.characters[want]?.name || want} dummy…` : "Loading the real engine…")
+  try { await eng.load(S.key, want ? { dummyKey: want } : {}) } catch (e) { console.error(e) }
+  applyCamZoom(); setVeil(false)
+}
 async function demoMove(m, slow = false) {
   if (m.fin) return finisherDemo(m)
   S.selMove = m; renderMode()
@@ -434,8 +452,9 @@ async function demoMove(m, slow = false) {
   return r
 }
 
-function yourTurnMove(m) {
+async function yourTurnMove(m) {
   stopTask(); S.selMove = m; renderMode()
+  await ensureDummy(m.labDummy)
   takeControl(true)
   const task = S.task = { kind: "yourturn" }
   $("#arenaBadge").textContent = "YOUR TURN"
@@ -482,6 +501,8 @@ async function armStage(T) {
   if (S.task !== T) return
   const stage = T.stages[T.stageIdx]
   if (!stage) return trialComplete(T)
+  await ensureDummy(null)   // combo trials always run against the mirror dummy they were verified on
+  if (S.task !== T) return
   applyComboSetup(eng, T.combo)
   await eng.reset()
   if (S.task !== T) return
@@ -842,6 +863,6 @@ window.__lab.feedUser = async (script) => {
   S.userFeed = null
   for (const k of Object.keys(eng._held)) if (eng._held[k]) eng.forwardKey("keyup", k)
 }
-window.__lab.api = { selectChar, setMode, armStage, buildStages, runMoveDemo, demoMove, startTrial, runDemo, takeControl, openPicker, closePicker, navMove, activateFocused, cycleMode, verifyCombo: (c, o) => verifyCombo(eng, c, o), comboScript, comboSteps, buildMoves: k => buildMoves(eng.mods, k) }
+window.__lab.api = { selectChar, setMode, armStage, buildStages, runMoveDemo, demoMove, startTrial, runDemo, takeControl, openPicker, closePicker, navMove, activateFocused, cycleMode, verifyCombo: async (c, o) => { await ensureDummy(null); return verifyCombo(eng, c, o) }, comboScript, comboSteps, buildMoves: k => buildMoves(eng.mods, k) }
 
 boot()

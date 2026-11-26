@@ -83,11 +83,13 @@ export function buildMoves(mods, key) {
     }
     const parsed = parseNotation(input, l.cat)
     let { script, at } = stepsToScript(parsed)
+    let prepLen = 0
     // PREP (kit data `labPrep`: raw chords pressed before the move — e.g. Enoch's Down / Up + Charge MODE press): the demo
     // performs them first, for real, so the move is shown with the input the player really needs
     if (Array.isArray(ki?.labPrep) && ki.labPrep.length) {
-      const pre = []; for (const c of ki.labPrep) { pre.push({ ...c }, { ...c }); for (let i = 0; i < 12; i++) pre.push({}) }
-      script = [...pre, ...script]; at = at.map(i => i + pre.length)
+      const wait = ki.labPrepWait > 0 ? ki.labPrepWait : 12   // labPrepWait: neutral frames after each prep press (e.g. a frozen cinematic)
+      const pre = []; for (const c of ki.labPrep) { pre.push({ ...c }, { ...c }); for (let i = 0; i < wait; i++) pre.push({}) }
+      script = [...pre, ...script]; at = at.map(i => i + pre.length); prepLen = pre.length
     }
     if (ki?.labPrepNote) desc = `${ki.labPrepNote} ${desc || ""}`.trim()
     // TAIL (kit data `labTail`: extra neutral frames after the input) — for moves that keep playing after the press, e.g.
@@ -96,9 +98,10 @@ export function buildMoves(mods, key) {
     moves.push({
       id: l.id, name: l.name, input, kitInput: l.input, desc: fix ? `${desc || ""} ${fix}`.trim() : desc, cat: l.cat, section: l.section,
       unavailable,
-      also: l.cat === "grab" ? "grabbed" : also,   // extra engine signal: this attack name also counts as "performed"
+      also: l.cat === "grab" ? "grabbed" : (ki?.labAlso || also),   // extra engine signal: this attack name also counts as "performed"
       gap: l.cat === "grab" ? 6 : 34,         // grabs need the foe inside the 75 px grab reach (combat.resolveGrab)
       damage: num(fd?.damage), startup: num(fd?.startup), active: num(fd?.active), recovery: num(fd?.recovery),
+      labDummy: ki?.labDummy || null, labRefill: !!ki?.labRefill, prepLen,   // kit Lab hints: demo vs this dummy; keep the meter full through the prep
       cost: num(cost), tags: unavailable ? ["not in engine"] : tagsFor(l, fd, parsed), parsed, script, at, lesson: l,
     })
   }

@@ -83,9 +83,10 @@ try {
 
   st = await padState();
   check("mode select starts on the first row (TRAINING)", st.selId === "training", `selId=${st.selId}`);
-  await padNav({ down: true }); await padNav({ down: true });
+  // Mode select is a 4×2 tile grid (2026-11-26 menu redesign): DOWN drops a row, RIGHT steps a column.
+  await padNav({ down: true }); await padNav({ right: true });
   st = await padState();
-  check("d-pad DOWN walks the mode list", st.idx === 2 && st.selId === "pvp", `idx=${st.idx} selId=${st.selId}`);
+  check("d-pad walks the mode tile grid (DOWN → TOWER, RIGHT → FREE-FOR-ALL)", st.idx === 5 && st.selId === "ffa", `idx=${st.idx} selId=${st.selId}`);
 
   // BACK out to the title via the on-screen BACK row (Circle), proving reverse navigation on a rect menu.
   await padNav({ back: true });

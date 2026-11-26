@@ -4,6 +4,7 @@
 // Nothing is recoloured at runtime; the Drago Clone keeps its own premade strips.
 import { DINO_FORM_CHAR } from './dinoData.js'
 import { registerDinoSkinHook } from './dinothunder.js'
+import { creativeFormAnim } from './squadCreativeSkin.js'
 import { DINO_SKIN_ROWS } from './dinoSkinRows.js'
 
 export const DINO_SKIN_PREFIX = 'dtk_'
@@ -39,7 +40,13 @@ export const DINO_SKINS = DINO_SKIN_ROWS.map(r => ({
 // (render-only fields; the start-form skins clear them and draw the default art)
 export function dinoApplySkin(f, form) {
   const tag = dinoSkinTag(f?.skinId)
-  if (!tag) { if (f && f._dtSkin) { f._dtSkin = null; f._skinAnim = null; f._baseSkinAnim = null; f._nsAssetDir = null; f._dtSkinForms = null; f._dtSkinArt = null } return }   // applyForm has already restored animationData / portrait
+  if (!tag) {
+    if (f && f._dtSkin) { f._dtSkin = null; f._skinAnim = null; f._baseSkinAnim = null; f._nsAssetDir = null; f._dtSkinForms = null; f._dtSkinArt = null }
+    // a CREATIVE skin (dinothunder_cs<theme>): the active Ranger's OWN strips in that theme — never Red's art on Blue / Yellow / White
+    const cs = f && creativeFormAnim(f.skinId, form, DINO_FORM_CHAR[form]?.animationData)
+    if (cs) { f._skinAnim = cs; f._baseSkinAnim = cs; f._dtSkinForms = Object.fromEntries(['dt_red', 'dt_blue', 'dt_yellow', 'dt_white'].map(k => [k, creativeFormAnim(f.skinId, k, DINO_FORM_CHAR[k]?.animationData)])) }
+    return
+  }   // applyForm has already restored animationData / portrait
   const A = dinoFormAnim(tag, form)
   f._skinAnim = A; f._baseSkinAnim = A; f._dtSkin = tag
   f._nsAssetDir = dinoSkinDir(tag, form)

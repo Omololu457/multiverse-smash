@@ -1311,14 +1311,21 @@ export function comboStringFor(rosterKey) {
 const DNA_ROWS = {
   ben10: "Omnitrix", albedo: "Ultimatrix", kevin_levin: "Osmosian absorption",
 }
+// Controls Lab hints for the DNA rows: the Lab's usual dummy is a mirror copy (Ben can't scan Ben/Albedo, Kevin can't absorb
+// Kevin), so these demos run against a scannable dummy; prep = the scan (and the transform) played for real first, with the
+// meter refilled and a long wait for the frozen cinematic. noFatality: these aren't finisher techniques.
+const DNA_SCAN_PRESS = { down: true, ultimate: true }, DNA_MORPH_PRESS = { ultimate: true, special: true }
+const DNA_LAB = { labDummy: "naruto", labPrepWait: 140, labRefill: true, noFatality: true }
 function dnaKitRows(rosterKey) {
   const dev = DNA_ROWS[rosterKey]; if (!dev) return []
   return [
-    { name: "DNA Scan", input: "Down + Ultimate", cost: 100,
+    { name: "DNA Scan", input: "Down + Ultimate", cost: 100, ...DNA_LAB, labTail: 130,
       desc: `${dev} scans the opponent (frozen cinematic) and stores their DNA as a 6th alien for the rest of the match. A new scan replaces it. Can't copy Ben or Albedo.` },
-    { name: "DNA Alien (6th slot)", input: "Down, Down, Ultimate (after a DNA Scan)", cost: 25,
+    { name: "DNA Alien (6th slot)", input: "↓↓ + Ultimate (after a DNA Scan)", cost: 25, ...DNA_LAB, labPrep: [DNA_SCAN_PRESS], labTail: 90,
+      labPrepNote: "(The demo scans the dummy first.)",
       desc: "Turn into the scanned opponent — their full moveset, in your Omnitrix colours with the badge on the chest. Works from human or straight from another alien. Lasts 20 s, then a 4 s recharge. U + L also works." },
-    { name: "Drop the DNA form", input: "Down, Down, Block (while in the DNA form)", cost: 0,
+    { name: "Drop the DNA form", input: "↓↓ + Block (while in the DNA form)", cost: 0, ...DNA_LAB, labPrep: [DNA_SCAN_PRESS, DNA_MORPH_PRESS], labAlso: "dna_drop",
+      labPrepNote: "(The demo scans the dummy and transforms first.)",
       desc: rosterKey === "kevin_levin" ? "Turn back early." : "Turn back to human. While you're the copy, Down, Down then Light / Heavy / Special / Grab / Charge dials that alien straight away." },
   ]
 }

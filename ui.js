@@ -1084,6 +1084,7 @@ const _MODE_TILES = [
   { id: "training", label: "TRAINING",     subLabel: "1 player practice mode",            art: null },        // null = your main
   { id: "vs",       label: "VS MATCH",     subLabel: "1 player vs the CPU",               art: "goku" },
   { id: "pvp",      label: "2 PLAYER",     subLabel: "Local versus — P1 vs P2",           art: "naruto" },
+  { id: "story",    label: "STORY",        subLabel: "The Other End of the Line — 36 encounters", art: "isshiki" },   // MSV1-STORY
   { id: "arcade",   label: "ARCADE",       subLabel: "7 fights, a rival, a boss & your ending", art: "luffy" },
   { id: "tower",    label: "TOWER",        subLabel: "Climb a ladder of CPU fights",      art: "ichigo" },
   { id: "ffa",      label: "FREE-FOR-ALL", subLabel: "3-4 player last-standing (local)",  art: "mmpr_rangers" },

@@ -638,6 +638,14 @@ import {
   arcadeFightRole, arcadeBossKey, arcadeDifficultyForFight, arcadeRivalKey, arcadeRivalDialogue, ARCADE_XP
 } from "./arcade.js"
 import { endingSlidesFor } from "./endings.js"
+import {   // MSV1-STORY: "The Other End of the Line" campaign (pure logic + generated script data)
+  STORY, STORY_RELAY_RECOVERY, STORY_SECRET_ID, STORY_MIRROR_LABEL, STORY_TUTORIAL_HINTS, STORY_TEXT_SPEEDS, storyEncounter, storyEncounterCount,
+  buildEncounterSteps, buildLossSteps, storyDifficulty, storyMirrorSkin, storyMidFightLine, storySecondMapLine, isMirror as storyIsMirror,
+  loadStorySave, writeStorySave, storyFighterSave, storyRecordClear
+} from "./storyEngine.js"
+import {   // MSV1-STORY: render-only story UI
+  drawStoryScene, drawStoryMenu, getStoryMenuRects, getStorySkipRect, getStoryRetryRects, drawStoryBattleHud, drawStoryCaption, drawStoryTutorialHints, STORY_CPS
+} from "./storyUI.js"
 import { readSession, writeSession, clearSession } from "./session.js"
 import { getSkins, getSkin, getSkinAnimationData, isSkinUnlocked, buildUnlockedSkinsSnapshot, getEdoSkin } from "./skins.js"
 import * as personality from "./personality.js"   // Big-Five trait inference from in-game behaviour (TIPI prior + Bayesian refinement)
@@ -2260,7 +2268,9 @@ const GAME_STATES = {
   ACADEMY_CHAR:       "academyChar",         // CHARACTER ACADEMY — a single fighter's lesson list
   THEMES:             "themes",              // APPEARANCE: live-preview UI theme picker (pink/blue/etc.)
   CONTROLS_HELP:      "controlsHelp",        // Track A: always-accessible device-aware button legend (from pause)
-  COMBO_TRIALS:       "comboTrials"          // Combo Trials mission mode: pick a character + scripted combo challenge
+  COMBO_TRIALS:       "comboTrials",         // Combo Trials mission mode: pick a character + scripted combo challenge
+  STORY_MENU:         "storyMenu",           // MSV1-STORY: Continue / New / Secret / text speed for the picked fighter
+  STORY_SCENE:        "storyScene"           // MSV1-STORY: dialogue / title cards / BOSS banner / retry prompt between bouts
 }
 
 // ------------------------------------------------------------------
@@ -3774,7 +3784,7 @@ let _forcedSeed = null
 // are skipped.
 let _replayFrame = 0
 let _lastReplay  = null
-const RECORDED_MODES = new Set(["vs", "pvp", "tower", "training"])
+const RECORDED_MODES = new Set(["vs", "pvp", "tower", "training", "story"])   // MSV1-STORY: story bouts are ordinary vs-CPU matches → replayable
 function shouldRecordMatch() { return !!(p1 && p2) && RECORDED_MODES.has(matchConfig.mode) }
 
 // Apply a selected skin's complete animationData (own + borrowed) + display scale
@@ -4105,6 +4115,317 @@ function _startArcadeEnding() {
   gameState = GAME_STATES.ARCADE_ENDING
 }
 function _endArcadeEnding() { arcadeEndingSlides = []; resetToStart() }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MSV1-STORY — STORY MODE: "The Other End of the Line" (36 encounters + the secret exhibition).
+// The script is data (data/story/storyData.js, generated from docs/story/STORY_SCRIPT.md); storyEngine.js turns an encounter
+// into STEPS (act card / Opening → card / BOSS banner → Before → per opponent: entrance lines → FIGHT → exit line → After →
+// Scene → Closing → ending / credits). This section drives those steps through the normal match flow, exactly like Arcade:
+// opponent / stage / CPU difficulty forced onto matchConfig per bout, one KO decides a bout, health carries between relay
+// opponents (+STORY_RELAY_RECOVERY), a loss restarts the encounter from its start (full health).
+// GAMEPLAY state = storyState (encounter, opponent index, checkpoint, carry). storyUi / storyFx are RENDER-ONLY (typewriter,
+// fades, captions, second-map cross-fade) and never feed the simulation.
+// ──────────────────────────────────────────────────────────────────────────────
+const storyState = {
+  active: false, playerKey: null, playerSkin: "default", encId: null, encIndex: -1, secret: false,
+  steps: [], step: 0, line: 0, oppIndex: 0, carryPct: 1, _applyCarry: false, awaitingBout: false, lastWinner: null,
+  inCredits: false, loss: false, boutStartMs: 0
+}
+const storyUi = { typed: 0, lastT: 0, cardT: 0, skipArmedUntil: 0, held: false, heldAt: 0, doneAt: 0, menuIndex: 0, retryHover: "retry", toast: "", toastUntil: 0 }
+const storyFx = { secondMapAt: 0, caption: null, captionAt: 0, midCueFired: false }   // render-only
+let _storySaveObj = null
+const _storyStorage = () => { try { return globalThis.localStorage || null } catch (_) { return null } }
+function _storySave() { if (!_storySaveObj) _storySaveObj = loadStorySave(_storyStorage()); return _storySaveObj }
+function _storySaveWrite() { writeStorySave(_storyStorage(), _storySave()) }
+function isStory() { return matchConfig.mode === "story" }
+// replays recorded from a story bout play back single-round too (the replay header carries mode "story")
+function _storySingleRound() { return storyState.active || (matchConfig.mode === "story" && replay.isPlayback()) }
+
+// STORY tile → pick ANY fighter (squads / variants / skins as normal) → story menu
+function startStorySelect() {
+  storyState.active = false
+  matchConfig.mode = "story"
+  resetSelections()
+  beginUniverseSelect()
+}
+function storyOpenMenu() {
+  storyState.active = false; storyState.awaitingBout = false; storyState.inCredits = false
+  if (matchConfig.p1CharKey) { storyState.playerKey = matchConfig.p1CharKey; storyState.playerSkin = matchConfig.p1Skin || "default" }
+  matchConfig.mode = "story"
+  storyUi.menuIndex = 0
+  gameState = GAME_STATES.STORY_MENU
+}
+function storyMenuItems() {
+  const save = _storySave(), key = storyState.playerKey, f = save.fighters[key]
+  const items = []
+  const cp = f?.checkpoint || 0
+  if (f && cp > 0) { const e = storyEncounter(cp); items.push({ id: "continue", label: "CONTINUE", sub: e ? `${e.id} · ${e.title}` : "" }) }
+  items.push({ id: "new", label: "NEW CAMPAIGN", sub: f?.highest ? `Starts again at 01 · best: ${String(f.highest).padStart(2, "0")} cleared` : "01 · The courtesy bell" })
+  if (save.secretUnlocked) items.push({ id: "secret", label: "S1 · POST-CREDITS EXHIBITION", sub: STORY.secret.unlockText, isNew: !save.secretSeen })
+  items.push({ id: "speed", label: `TEXT SPEED: ${String(save.textSpeed || "normal").toUpperCase()}`, sub: "Hold confirm to speed up a line · Skip Scene = press skip twice" })
+  items.push({ id: "fighter", label: "CHANGE FIGHTER", sub: characters[key]?.name || key || "" })
+  items.push({ id: "back", label: "BACK", sub: "Mode select" })
+  return items
+}
+function storyMenuChoose(id) {
+  const save = _storySave(), key = storyState.playerKey
+  if (id === "continue") storyBeginEncounter(storyFighterSave(save, key).checkpoint || 0)
+  else if (id === "new") { storyFighterSave(save, key).checkpoint = 0; _storySaveWrite(); storyBeginEncounter(0) }
+  else if (id === "secret") { save.secretSeen = true; storyBeginEncounter(STORY_SECRET_ID) }
+  else if (id === "speed") { const i = STORY_TEXT_SPEEDS.indexOf(save.textSpeed || "normal"); save.textSpeed = STORY_TEXT_SPEEDS[(i + 1) % STORY_TEXT_SPEEDS.length]; _storySaveWrite() }
+  else if (id === "fighter") startStorySelect()
+  else if (id === "back") { storyState.active = false; matchConfig.mode = null; gameState = GAME_STATES.GAMEPLAY_SELECT }
+}
+// Begin (or retry) an encounter: the checkpoint is the encounter's start, at full health.
+function storyBeginEncounter(encId, { retry = false } = {}) {
+  const enc = storyEncounter(encId)
+  if (!enc || !storyState.playerKey) return false
+  const save = _storySave(), fs = storyFighterSave(save, storyState.playerKey)
+  storyState.active = true; storyState.secret = enc.id === STORY_SECRET_ID
+  storyState.encId = storyState.secret ? STORY_SECRET_ID : STORY.encounters.indexOf(enc)
+  storyState.encIndex = storyState.secret ? -1 : storyState.encId
+  if (!storyState.secret) { fs.checkpoint = storyState.encIndex; _storySaveWrite() }
+  storyState.steps = buildEncounterSteps(storyState.encId, storyState.playerKey, { introSeen: fs.introSeen, retry })
+  if (storyState.steps.some(s => s.kind === "intro")) { fs.introSeen = true; _storySaveWrite() }   // the 3 Intro lines play once
+  storyState.step = 0; storyState.oppIndex = 0; storyState.carryPct = 1; storyState._applyCarry = false
+  storyState.loss = false; storyState.awaitingBout = false; storyState.lastWinner = null; storyState.inCredits = false
+  storyFx.secondMapAt = 0; storyFx.caption = null; storyFx.midCueFired = false
+  _storyEnterStep()
+  return true
+}
+function _storyCurStep() { return storyState.steps[storyState.step] || null }
+function _storyEnterStep() {
+  const st = _storyCurStep()
+  storyUi.typed = 0; storyUi.cardT = performance.now(); storyUi.doneAt = 0; storyUi.skipArmedUntil = 0
+  if (!st) { _storyCompleteEncounter(); return }
+  if (st.t === "lines") { storyState.line = st.card ? -1 : 0; gameState = GAME_STATES.STORY_SCENE; return }
+  if (st.t === "fight") { _storyStartBout(st.opp); return }
+  if (st.t === "credits") { storyState.inCredits = true; creditsScroll = 0; gameState = GAME_STATES.CREDITS; return }
+  if (st.t === "retry") { storyUi.retryHover = "retry"; gameState = GAME_STATES.STORY_SCENE; return }
+  if (st.t === "complete") { _storyCompleteEncounter(); return }
+}
+function _storyNextStep() { storyState.step++; _storyEnterStep() }
+function _storyCurLine() { const st = _storyCurStep(); return st?.t === "lines" && storyState.line >= 0 ? st.lines[storyState.line] || null : null }
+// confirm: finish the typewriter → next line → next step
+function storyConfirm() {
+  const st = _storyCurStep()
+  if (!st) return
+  if (st.t === "retry") { storyRetryChoose(storyUi.retryHover); return }
+  if (st.t !== "lines") return
+  const ln = _storyCurLine()
+  if (ln && storyUi.typed < ln.text.length) { storyUi.typed = ln.text.length; storyUi.doneAt = performance.now(); return }
+  storyState.line++
+  storyUi.typed = 0; storyUi.doneAt = 0
+  if (storyState.line >= st.lines.length) _storyNextStep()
+}
+// Skip Scene: press twice. Skips the remaining dialogue up to the next fight / retry / end — never the credits.
+function storySkip() {
+  const st = _storyCurStep()
+  if (!st || st.t !== "lines") return
+  const now = performance.now()
+  if (now > storyUi.skipArmedUntil) { storyUi.skipArmedUntil = now + 2500; return }
+  storyUi.skipArmedUntil = 0
+  while (_storyCurStep()?.t === "lines" && _storyCurStep().kind !== "credits") storyState.step++
+  _storyEnterStep()
+}
+function storyRetryChoose(id) {
+  if (id === "retry") storyBeginEncounter(storyState.secret ? STORY_SECRET_ID : storyState.encIndex, { retry: true })
+  else storyOpenMenu()
+}
+function _storyStartBout(i) {
+  const enc = storyEncounter(storyState.encId), o = enc?.opponents?.[i]
+  if (!o) { _storyNextStep(); return }
+  storyState.oppIndex = i
+  const mirror = storyIsMirror(storyState.playerKey, o.key)
+  matchConfig.mode = "story"
+  matchConfig.modifiers = []; matchConfig.p2IsBoss = false
+  matchConfig.p1CharKey = storyState.playerKey; matchConfig.p1Char = characters[storyState.playerKey]; matchConfig.p1Skin = storyState.playerSkin || "default"
+  matchConfig.p2CharKey = o.key; matchConfig.p2Char = characters[o.key]
+  matchConfig.p2Skin = mirror ? storyMirrorSkin(getBenAwareSkins(o.key), matchConfig.p1Skin, [enc.id, i]) : "default"   // a mirror comes from the other side of the tear
+  matchConfig.p2Aliens = null; matchConfig.p2EdoBackup = null
+  matchConfig.aiDifficulty = storyDifficulty(enc)
+  matchConfig.selectedStage = stages.find(s => s.name === enc.map) || stages[0]
+  storyState._applyCarry = i > 0          // relay: carried health (one-shot, applied in resetRound)
+  storyState.awaitingBout = true; storyState.lastWinner = null
+  storyState.boutStartMs = performance.now()
+  storyFx.secondMapAt = 0; storyFx.caption = null
+  victoryState = createVictoryState()
+  startMatch()
+}
+// _checkMatchOver → record the bout result (the scene that follows is chosen in _storyAfterBout)
+function storyRecordOutcome(winner) {
+  if (!storyState.active || !storyState.awaitingBout || storyState.lastWinner) return   // the FIRST decision of a bout is final
+  storyState.lastWinner = winner
+  if (winner === "p1") {
+    const pct = p1 ? Math.max(0, (p1.health || 0) / (p1.maxHealth || 1)) : 1
+    storyState.carryPct = Math.min(1, pct + STORY_RELAY_RECOVERY)
+  }
+}
+// _enterVictoryScreen → in story the result goes to the next scene instead of the generic victory screen
+function _storyAfterBout() {
+  if (!storyState.lastWinner) return   // a result screen with no recorded bout outcome (stale finisher hand-off) — the bout is still live
+  storyState.awaitingBout = false
+  if (storyState.lastWinner === "p1") { _storyNextStep(); return }
+  // loss: the opponent's rival win line (if any), then the retry prompt (restart from the encounter start)
+  const st = _storyCurStep()
+  storyState.loss = true
+  storyState.steps = buildLossSteps(storyState.playerKey, st?.oppKey)
+  storyState.step = 0
+  _storyEnterStep()
+}
+function _storyCompleteEncounter() {
+  const save = _storySave(), key = storyState.playerKey
+  if (storyState.secret) {
+    save.secretCleared = true; _storySaveWrite()
+    storyUi.toast = "Exhibition result recorded."; storyUi.toastUntil = performance.now() + 4000
+    storyOpenMenu(); return
+  }
+  const { campaignClear } = storyRecordClear(save, key, storyState.encIndex)
+  _storySaveWrite()
+  if (campaignClear) {
+    storyUi.toast = "A pencilled invitation appears under the brass bell."; storyUi.toastUntil = performance.now() + 6000
+    storyOpenMenu(); return
+  }
+  storyBeginEncounter(storyState.encIndex + 1)
+}
+// credits roll (the existing CREDITS screen) — cannot be left before it reaches the end; confirm held = faster roll
+function _storyCreditsTick() {
+  if (!storyState.inCredits) return
+  const max = _creditsMaxScroll()
+  if (storyUi.held && creditsScroll < max) creditsScroll = Math.min(max, creditsScroll + 14)
+}
+function _storyCreditsTryExit() {
+  if (!storyState.inCredits) return false
+  if (creditsScroll < _creditsMaxScroll() - 1) { storyUi.held = true; storyUi.heldAt = performance.now(); return true }   // not finished yet: speed it up instead
+  storyState.inCredits = false; storyUi.held = false
+  _storyNextStep()
+  return true
+}
+function _storyAbort() { storyState.active = false; storyState.awaitingBout = false; storyState.inCredits = false }
+
+// ── story render (render-only) ──
+function _storyStageFor(encId) { const e = storyEncounter(encId); return e ? stages.find(s => s.name === e.map) || null : null }
+function drawStoryMenuState() {
+  const items = storyMenuItems()
+  storyUi.menuIndex = Math.max(0, Math.min(items.length - 1, storyUi.menuIndex))
+  const rects = getStoryMenuRects(canvas, items)
+  const hov = rects.find(r => pointInRect(mouse.x, mouse.y, r))
+  if (hov && (mouse.x !== storyUi.mx || mouse.y !== storyUi.my)) storyUi.menuIndex = rects.indexOf(hov)   // mouse hover moves the selection; keys keep it otherwise
+  storyUi.mx = mouse.x; storyUi.my = mouse.y
+  const f = _storySave().fighters[storyState.playerKey]
+  drawStoryMenu(ctx, canvas, { now: performance.now(), stage: _storyStageFor(f?.checkpoint || 0), fighterKey: storyState.playerKey,
+    fighterName: characters[storyState.playerKey]?.name || storyState.playerKey, campaignTitle: STORY.title, items, hover: items[storyUi.menuIndex]?.id })
+  _drawStoryToast()
+}
+function _drawStoryToast() {
+  if (performance.now() > storyUi.toastUntil || !storyUi.toast) return
+  drawStoryCaption(ctx, canvas, { text: storyUi.toast, narration: true, italic: true }, Math.min(1, (storyUi.toastUntil - performance.now()) / 600))
+}
+function drawStorySceneState() {
+  const st = _storyCurStep(), now = performance.now()
+  const dt = Math.min(100, Math.max(0, now - (storyUi.lastT || now))); storyUi.lastT = now
+  const ln = _storyCurLine()
+  const speed = _storySave().textSpeed || "normal"
+  if (ln) {
+    if (storyUi.typed < ln.text.length) {
+      storyUi.typed = Math.min(ln.text.length, storyUi.typed + (dt / 1000) * STORY_CPS[speed] * (storyUi.held ? 4 : 1))
+      if (storyUi.typed >= ln.text.length) storyUi.doneAt = now
+    } else if (storyUi.held && storyUi.doneAt && now - storyUi.doneAt > 260) storyConfirm()   // hold = fast-forward through the lines
+  }
+  const enc = storyEncounter(storyState.secret ? STORY_SECRET_ID : storyState.encIndex)
+  const fightSteps = storyState.steps.filter(s => s.t === "fight").length
+  drawStoryScene(ctx, canvas, {
+    now, step: st, line: ln, typed: Math.floor(storyUi.typed), cardAge: now - storyUi.cardT, stage: enc ? stages.find(s => s.name === enc.map) : null,
+    skipArmed: now < storyUi.skipArmedUntil,
+    hint: st?.t === "retry" ? "" : ln ? (storyUi.typed < ln.text.length ? "▶ confirm: finish line · hold: faster" : "▶ confirm") : "▶ confirm",
+    progress: enc ? `${enc.id} · ${enc.title}${!storyState.loss && fightSteps > 1 ? `   ·   ${fightSteps} opponents` : ""}` : "",
+    retry: st?.t === "retry" ? { hover: storyUi.retryHover, sub: enc ? `${enc.id} · ${enc.title} — retry from the start of the encounter at full health` : "" } : null
+  })
+}
+// in-battle: relay HUD, BOSS / mirror tags, tutorial hints, second-map switch + mid-fight caption (all render-only)
+function _storySecondMapAlpha() { return storyFx.secondMapAt ? Math.min(1, (performance.now() - storyFx.secondMapAt) / 650) : 0 }
+function _storySecondStage() { if (!storyState.active || !storyFx.secondMapAt) return null; const e = storyEncounter(storyState.encId); return e?.secondMap ? stages.find(s => s.name === e.secondMap) || null : null }
+function _storyDrawSecondMap() {
+  const st = _storySecondStage(), a = _storySecondMapAlpha()
+  if (!st || a <= 0) return
+  ctx.save(); ctx.globalAlpha = a
+  drawBattleBackground(ctx, canvas, st, groundY, getStageFloorHeight(), cameraCoverY())
+  ctx.restore()
+}
+function _storyFrontStage() { return _storySecondMapAlpha() >= 0.5 ? _storySecondStage() : null }
+function _drawStoryBattleOverlays() {
+  if (!storyState.active || !storyState.awaitingBout || !p2) return
+  const enc = storyEncounter(storyState.encId); if (!enc) return
+  const now = performance.now(), last = storyState.oppIndex === enc.opponents.length - 1
+  const hpFrac = (p2.health || 0) / (p2.maxHealth || 1)
+  if (enc.secondMap && last && !storyFx.secondMapAt && hpFrac <= 0.5 && p2.health > 0) {   // the FINAL opponent at 50% → switch map
+    storyFx.secondMapAt = now; const l = storySecondMapLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now }
+  }
+  if (enc.midFightCue && !storyFx.midCueFired && hpFrac <= 0.5 && p2.health > 0) {   // fight 36: Isshiki's half-health line, once, caption overlay (no pause)
+    storyFx.midCueFired = true; const l = storyMidFightLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now }
+  }
+  drawStoryBattleHud(ctx, canvas, { enc: enc.id, title: enc.title, index: storyState.oppIndex, count: enc.opponents.length,
+    boss: enc.boss && last, finalBoss: enc.finalBoss, mirror: storyIsMirror(storyState.playerKey, p2.rosterKey || matchConfig.p2CharKey) ? STORY_MIRROR_LABEL : false })
+  if (enc.tutorial) { const age = (now - storyState.boutStartMs) / 1000; drawStoryTutorialHints(ctx, canvas, STORY_TUTORIAL_HINTS, age < 14 ? Math.min(1, age * 2) : Math.max(0, 1 - (age - 14) / 1.5)) }
+  if (storyFx.caption) { const age = (now - storyFx.captionAt) / 1000; if (age > 5.5) storyFx.caption = null; else drawStoryCaption(ctx, canvas, storyFx.caption, Math.min(1, age * 3, (5.5 - age) / 0.8)) }
+}
+// keyboard (returns true when consumed)
+function _storyKeyDown(e, key) {
+  const confirmKey = key === "enter" || key === "j" || key === " " || key === "spacebar"
+  const backKey = key === "escape" || key === "backspace"
+  if (gameState === GAME_STATES.CREDITS && storyState.inCredits) {
+    if (confirmKey || backKey) { e.preventDefault(); if (!e.repeat) _storyCreditsTryExit(); else storyUi.held = true }
+    return true
+  }
+  if (gameState === GAME_STATES.STORY_MENU) {
+    const items = storyMenuItems()
+    if (key === "arrowup" || key === "w") { e.preventDefault(); storyUi.menuIndex = (storyUi.menuIndex + items.length - 1) % items.length }
+    else if (key === "arrowdown" || key === "s") { e.preventDefault(); storyUi.menuIndex = (storyUi.menuIndex + 1) % items.length }
+    else if (confirmKey && !e.repeat) { e.preventDefault(); sound.play?.(SFX.UI_SELECT); storyMenuChoose(items[storyUi.menuIndex]?.id) }
+    else if (backKey) { e.preventDefault(); storyMenuChoose("back") }
+    return true
+  }
+  if (gameState === GAME_STATES.STORY_SCENE) {
+    const st = _storyCurStep()
+    if (st?.t === "retry") {
+      if (key === "arrowleft" || key === "a" || key === "arrowright" || key === "d") { e.preventDefault(); storyUi.retryHover = storyUi.retryHover === "retry" ? "quit" : "retry" }
+      else if (confirmKey && !e.repeat) { e.preventDefault(); storyRetryChoose(storyUi.retryHover) }
+      else if (backKey) { e.preventDefault(); storyRetryChoose("quit") }
+      return true
+    }
+    if (confirmKey) { e.preventDefault(); if (e.repeat) { storyUi.held = true } else { storyUi.held = true; storyUi.heldAt = performance.now(); storyConfirm() } }
+    else if (backKey || key === "tab") { e.preventDefault(); if (!e.repeat) storySkip() }
+    return true
+  }
+  return false
+}
+function _storyKeyUp(key) { if (key === "enter" || key === "j" || key === " " || key === "spacebar" || key === "escape" || key === "backspace") storyUi.held = false }
+function _storyClick() {
+  if (gameState === GAME_STATES.STORY_MENU) {
+    const items = storyMenuItems(), hit = getStoryMenuRects(canvas, items).find(r => pointInRect(mouse.x, mouse.y, r))
+    if (hit) storyMenuChoose(hit.id)
+    return true
+  }
+  if (gameState === GAME_STATES.STORY_SCENE) {
+    const st = _storyCurStep()
+    if (st?.t === "retry") { const hit = getStoryRetryRects(canvas).find(r => pointInRect(mouse.x, mouse.y, r)); if (hit) storyRetryChoose(hit.id); return true }
+    if (pointInRect(mouse.x, mouse.y, getStorySkipRect(canvas))) storySkip(); else storyConfirm()
+    return true
+  }
+  if (gameState === GAME_STATES.CREDITS && storyState.inCredits) { _storyCreditsTryExit(); return true }
+  return false
+}
+function _storyHarnessInfo() {
+  const st = _storyCurStep(), ln = _storyCurLine(), enc = storyEncounter(storyState.encId)
+  return { active: storyState.active, gameState, playerKey: storyState.playerKey, playerSkin: storyState.playerSkin, encId: enc?.id || null, encIndex: storyState.encIndex,
+    secret: storyState.secret, step: storyState.step, stepCount: storyState.steps.length, stepType: st?.t || null, stepKind: st?.kind || null, line: storyState.line,
+    lineText: ln?.text || null, speaker: ln?.speaker || null, card: st?.card || null, oppIndex: storyState.oppIndex, oppCount: enc?.opponents?.length || 0,
+    awaitingBout: storyState.awaitingBout, carryPct: storyState.carryPct, loss: storyState.loss, inCredits: storyState.inCredits, lastWinner: storyState.lastWinner,
+    p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin, stage: matchConfig.selectedStage?.name || null, ai: matchConfig.aiDifficulty,
+    p1Health: p1?.health ?? null, p1Max: p1?.maxHealth ?? null, p2Health: p2?.health ?? null, p2Max: p2?.maxHealth ?? null,
+    secondMap: !!storyFx.secondMapAt, secondMapAlpha: _storySecondMapAlpha(), caption: storyFx.caption?.text || null, midCueFired: storyFx.midCueFired,
+    save: JSON.parse(JSON.stringify(_storySave())) }
+}
 
 // ── BOSS PROFILE (Stage 20) — data-driven boss buffs applied to the arcade final-boss opponent.
 // Mutates a freshly-created fighter: 2× HP, visibly larger, free specials, and a super-armor
@@ -5659,6 +5980,11 @@ function resetRound() {
     p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * arcadeState.carryPct))
     arcadeState._applyCarry = false
   }
+  // MSV1-STORY relay: the player's health carries between opponents (+ STORY_RELAY_RECOVERY), one-shot per bout.
+  if (storyState._applyCarry && p1) {
+    p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * storyState.carryPct))
+    storyState._applyCarry = false
+  }
   _applyMatchModifiers()   // Stage 24A: apply the active match modifiers to the fresh fighters
 
 
@@ -6605,7 +6931,7 @@ function startMatch() {
     replay.abortRecording()
   } else if (shouldRecordMatch()) {
     replay.startRecording({
-      seed: matchConfig.seed, mode: matchConfig.mode, rounds: MAX_ROUNDS,
+      seed: matchConfig.seed, mode: matchConfig.mode, rounds: _storySingleRound() ? 1 : MAX_ROUNDS,
       slowMo: _juiceSlowmoEnabled(), hitstopStyle: getHitstopStyle(),
       benExperimental: matchConfig.benExperimental, p1Aliens: p1?.omnitrix?.aliens || p1?.selectedAliens, p2Aliens: p2?.omnitrix?.aliens || p2?.selectedAliens,
       p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
@@ -6747,6 +7073,8 @@ function _proceedAfterSkin(side) {
       startMatch()                            // SKIP SELECT_STAGE — Tower picks its own stage
     } else if (matchConfig.mode === "arcade") {
       _beginArcadeFight()                     // fight 1 (or the rival intro) — Arcade auto-assigns opponent/stage
+    } else if (matchConfig.mode === "story") {
+      storyOpenMenu()                         // MSV1-STORY: Continue / New campaign for the picked fighter
     } else if (matchConfig.mode === "bracket") {
       _buildAndStartBracket()                 // Stage 24B: field the bracket, show the tree, first match
     } else if (matchConfig.mode === "training") {
@@ -6900,6 +7228,7 @@ function _skinPortrait(src) {
 
 function resetToStart() {
   sound.stopAllSfx?.({ includePersistent: true })   // leaving the match/victory → stop ALL cues incl. win-lines
+  _storyAbort()   // MSV1-STORY: leaving to the title ends the run (the checkpoint is already saved)
   gameState        = GAME_STATES.START
   aiVsAiState.active = false   // leaving a match kills any in-progress AI-vs-AI run (stops fast-forward/auto-advance)
   matchConfig.mode = null
@@ -7729,7 +8058,7 @@ function _victoryFlavor(key) {
 // draw/double-KO, or a non-final round. A short procedural beat (bright saturated-red cartoon gore burst
 // over the loser's EXISTING sprite + red impact flash + a "BRUTALITY!" stamp), then the victory screen.
 // No new/realistic art: reuses the same visual language as the blood hit-effect, brightened.
-function _enterVictoryScreen() { bdReset(); bloodReset(); sound.playMenuMusic?.(); gameState = GAME_STATES.VICTORY }   // FEEL PASS (Phase 2): battle damage is removed at match end (never carries to the next match)
+function _enterVictoryScreen() { bdReset(); bloodReset(); sound.playMenuMusic?.(); if (storyState.active && storyState.awaitingBout) { _storyAfterBout(); return } gameState = GAME_STATES.VICTORY }   // MSV1-STORY: a story bout goes to its next scene instead   // FEEL PASS (Phase 2): battle damage is removed at match end (never carries to the next match)
 function _tryStartBrutality(winner) {
   if (!brutalityFx) return false
   if (winner !== "p1" && winner !== "p2") return false           // no finisher on a draw / double-KO
@@ -10597,7 +10926,7 @@ function _checkMatchOver() {
   const forced = _matchOverride
   // BOSS single-round (Stage 20, bossProfile.noRoundLimit): an arcade boss fight is one round to the
   // death — the FIRST round decision ends the match (no best-of-3).
-  const bossFight = !!(p1?._isBoss || p2?._isBoss)
+  const bossFight = !!(p1?._isBoss || p2?._isBoss) || _storySingleRound()   // MSV1-STORY: a story bout is one KO (relay opponents follow on the same health)
   if (forced || roundWins.p1 >= 2 || roundWins.p2 >= 2 || roundNumber >= MAX_ROUNDS ||
       (bossFight && (roundWins.p1 >= 1 || roundWins.p2 >= 1))) {
     _matchOverride = null   // one-shot: consume so it can't re-fire
@@ -10693,6 +11022,7 @@ function _checkMatchOver() {
         victoryState.primaryLabel = "MAIN MENU"
       }
     }
+    if (storyState.active) storyRecordOutcome(winner)   // MSV1-STORY: carry + next scene (chosen when the result screen would open)
     if (arcadeState.active) {
       updateArcadeOutcome(winner)
       // Arcade-aware result screen: fight N/7 context + a role-specific prompt. On a loss the
@@ -11369,7 +11699,7 @@ function updateCPUInput() {
     return   // (was ABOVE the P2 marks — CPU Sukuna / Omni-Man / Invincible as P2 in AI vs AI never got their CPU layer)
   }
   if (isPvP()) { if (!isKevin(p2)) clearAIControlKeys(p2); return }
-  const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower"
+  const cpu = matchConfig.mode === "vs" || matchConfig.mode === "training" || matchConfig.mode === "tower" || matchConfig.mode === "story"   // MSV1-STORY: story opponents are CPUs
   if (!cpu)  { clearAIControlKeys(p2); return }
   // The AI doesn't manage the transform device, so auto re-engage its alien form
   // once it has recharged — otherwise a CPU Ben/Albedo would stay weak human after
@@ -24980,6 +25310,7 @@ function drawBattleScene() {
   // The visible world-y span under the live camera (+margin for shake/smoothing) so the backdrop covers
   // the whole view — no undrawn band above the sky or below the floor at any viewport height/ratio.
   if (activeDomains.length === 0 && !_kamuiDimActive() && !drawMapRunBackground(ctx, canvas, _hlMapRun(), stage, stages, groundY, cameraCoverY(), drawBattleBackground, camera)) drawBattleBackground(ctx, canvas, stage, groundY, getStageFloorHeight(), cameraCoverY())
+  if (activeDomains.length === 0 && !_kamuiDimActive()) _storyDrawSecondMap()   // MSV1-STORY: second map cross-fades in over the first (render-only; physics stay)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
   // Obito "Kamui Dimension" — the stage swaps to a dark Kamui void (render-only; reverts the instant the
   // window ends). Screen-space fullscreen, on top of where the stage would be, under the fighters.
@@ -25095,7 +25426,7 @@ function drawBattleScene() {
   if (trainingState.enabled && !signatureFatalityActive() && !screenBreakerActive()) drawTrainingCollisionBoxes(ctx, cloneFighterBoxes().map(b => ({ ...b.hurt, attackHitbox: b.hit })))   // CLONE FIGHTERS: their drawn-size hurt (blue) / attack (red) boxes
   // Balance applyTransform's internal save() so the canvas state stack doesn't
   // leak one save() per frame.
-  if (_hlMapRun()?.phase !== "run") drawLayeredStageFront(ctx, getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
+  if (_hlMapRun()?.phase !== "run") drawLayeredStageFront(ctx, _storyFrontStage() || getStageTheme(), getStageWorldWidth(), groundY, _layeredWorld)   // LAYERED stages: foreground props in front of the fighters (+ read-only fight view for Shibuya's bystanders)
   if (hasTransform && typeof camera.clearTransform === "function") camera.clearTransform(ctx)
 
   ctx.restore()
@@ -25204,6 +25535,7 @@ function drawBattleHud() {
   drawSupermanLaserHud(ctx, p1); drawSupermanLaserHud(ctx, p2)   // Superman Heat Vision laser bar above his energy panel — after the Controls box so it is never covered
   drawRoundTimer?.(ctx, canvas, roundTimer, ROUND_TIME)
   drawTowerHud(ctx, canvas)   // Tower floor-count badge (running high-score for Tier 5)
+  _drawStoryBattleOverlays()   // MSV1-STORY: relay HUD, BOSS / Rift Mirror tags, tutorial hints, second-map + mid-fight captions (render-only)
   // Purple Susanoo duration clock, shown beside the round timer while either fighter is transformed.
   const susFighter = sasukeInSusanoo(p1) ? p1 : (sasukeInSusanoo(p2) ? p2 : null)
   if (susFighter) drawSusanooTimer?.(ctx, canvas, susFighter._susanooTimer || 0, SASUKE_SUSANOO_DURATION_FRAMES)   // Sasuke-only bar → Stage-3e ~13.3s max
@@ -26904,6 +27236,7 @@ function drawCreditsState() {
   // Gentle auto-scroll toward the bottom, then rest (player can wheel/drag freely too).
   const max = _creditsMaxScroll()
   if (creditsScroll < max) creditsScroll = Math.min(max, creditsScroll + 0.5)
+  _storyCreditsTick()   // MSV1-STORY: hold confirm = faster roll (it can't be skipped)
   creditsContentHeight = drawCreditsScreen(ctx, canvas, creditsScroll, { thumbnails: getCreditsThumbnails() })
   _mkButton(ctx, creditsBackRect, { label: "‹ BACK", active: pointInRect(mouse.x, mouse.y, creditsBackRect), accent: "#f87171", id: "credits:back" })
 }
@@ -26922,6 +27255,8 @@ function renderCurrentState() {
     case GAME_STATES.SETTINGS:        drawSettingsScreen(); break
     case GAME_STATES.MUSIC_LIBRARY:   drawMusicLibraryScreen(); break
     case GAME_STATES.CREDITS:         drawCreditsState(); break
+    case GAME_STATES.STORY_MENU:      drawStoryMenuState(); break    // MSV1-STORY
+    case GAME_STATES.STORY_SCENE:     drawStorySceneState(); break   // MSV1-STORY
     case GAME_STATES.PROFILE:         drawProfileScreen(ctx, canvas, _profileScreenData()); break
     case GAME_STATES.ACADEMY:         drawAcademyGridScreen(ctx, canvas, { roster: getAcademyFilteredRoster(), filters: academyUniverses(), universe: academyUniverse, search: academySearch, searchFocus: true, scroll: academyScroll, hoverKey: academyHoverKey, backHover: academyBackHover, progressFor: academyProgressFor }); break
     case GAME_STATES.ACADEMY_CHAR:    { const LC = _academyLessons(); drawAcademyCharScreen(ctx, canvas, { charName: characters[academyCharKey]?.name || academyCharKey, summary: getKit(academyCharKey, characters[academyCharKey])?.summary || "", accent: _academyAccent(academyCharKey), groups: LC.groups, scroll: academyCharScroll, backHover: academyBackHover, device: _academyDevice(), inputLabel: (l) => academyDeviceLabel(l), isDone: (id) => academy.isLessonDone(academyProgress, academyCharKey, id), canPreviewBrut: _academyCanPreviewBrut(), watchBrutHover: academyWatchBrutHover }); break }
@@ -27260,6 +27595,7 @@ function updateHoverIndices() {
 
 function handleMenuClicks() {
   if (!mouse.clicked) return
+  if (_storyClick()) return   // MSV1-STORY: story menu / scenes / story credits roll
   // On-screen BACK button (select screens that lack a native one) → pop one screen.
   if (NAV_BACK_OVERLAY_SCREENS.has(gameState) && pointInRect(mouse.x, mouse.y, getNavBackRect())) { if (goBack()) return }
   sound.play?.(SFX.UI_SELECT)
@@ -27510,6 +27846,7 @@ function handleMenuClicks() {
       else if (c.id === "pvp") chooseMode("pvp")
       else if (c.id === "tower") gameState = GAME_STATES.TOWER_SELECT   // pick a tier first
       else if (c.id === "arcade") { hoverArcadeIndex = 0; gameState = GAME_STATES.ARCADE_SETUP }   // pick difficulty first
+      else if (c.id === "story") startStorySelect()   // MSV1-STORY: pick any fighter → story menu
       else if (c.id === "bracket") { hoverBracketIndex = 0; gameState = GAME_STATES.BRACKET_SETUP }   // pick bracket size first
       else if (c.id === "ffa")  { hoverFFAIndex = 0; ffaState.net = null; gameState = GAME_STATES.FFA_SETUP }   // free-for-all (local)
       else if (c.id === "online") openOnlineMenu()   // LAN 2-device match (Stage 3)
@@ -27883,6 +28220,14 @@ function updateMenuGamepad(injected) {
       return
     case GAME_STATES.MATCH_END:
       if (nav.confirm) _padSynthKey("Enter")
+      return
+    case GAME_STATES.STORY_MENU:   // MSV1-STORY: replay the keys the story handlers listen for
+      if (nav.up) _padSynthKey("ArrowUp"); if (nav.down) _padSynthKey("ArrowDown")
+      if (nav.confirm) _padSynthKey("Enter"); if (nav.back) _padSynthKey("Escape")
+      return
+    case GAME_STATES.STORY_SCENE:
+      if (nav.left) _padSynthKey("ArrowLeft"); if (nav.right) _padSynthKey("ArrowRight")
+      if (nav.confirm) _padSynthKey("Enter"); if (nav.back) _padSynthKey("Escape")
       return
     case GAME_STATES.CREDITS:
     case GAME_STATES.ONLINE_PLACEHOLDER:
@@ -28492,6 +28837,7 @@ window.addEventListener("keydown", e => {
 
   // ACCOUNT screen captures typing before any gameplay key handling.
   if (gameState === GAME_STATES.ACCOUNT) { handleAccountTyping(e); return }
+  if (_storyKeyDown(e, key)) return   // MSV1-STORY: story menu / dialogue / retry / story credits roll
 
   // CHARACTER-SELECT SEARCH (Part 3 #29). When the search box is FOCUSED, capture typing so it filters
   // live — placed BEFORE the R/U random + F fullscreen shortcuts so those letters type into the query
@@ -28691,6 +29037,7 @@ window.addEventListener("keydown", e => {
 
 // P-tap toggle is resolved on RELEASE (tap vs hold-to-charge).
 window.addEventListener("keyup", e => {
+  try { _storyKeyUp(String(e.key || "").toLowerCase()) } catch (_) {}   // MSV1-STORY: release hold-to-speed
   const key = String(e.key || "").toLowerCase()
   if (p1) handleChargeRelease(p1, key)
   if (p2 && (isPvP() || matchConfig.mode !== "vs")) handleChargeRelease(p2, key)
@@ -31271,6 +31618,45 @@ gameLoop()
     kibaThwCine: () => ({ renders: _kibaThwCineRenders, beat: _kibaThwCineBeat, timer: (p1?._kibaThwTimer || 0), cast: p1?._spriteCastMove || null, imgsLoaded: KIBA_THW_BEATS.every(b => { const i = _kibaThwImgs[b.src]; return !!(i && i.complete && i.naturalWidth > 0) }) }),   // Stage 5: Three-Headed Wolf cinematic probe (overlay ran + current beat + live-fighter pose + all 4 beat imgs loaded)
     // Force the match to end with `side` as the winner (test-only) → runs _checkMatchOver, which fires the
     // win/lose pose hook. Reuses the sudden-death _matchOverride path so it works in any harness mode.
+    // MSV1-STORY harness: drive the story campaign headlessly (tests / screenshots). Real flow functions only.
+    story: {
+      info: () => _storyHarnessInfo(),
+      open: (key = "gojo", skin = "default") => { resetSelections(); matchConfig.mode = "story"; matchConfig.p1CharKey = key; matchConfig.p1Char = characters[key]; matchConfig.p1Skin = skin; storyOpenMenu(); return _storyHarnessInfo() },
+      menuItems: () => storyMenuItems(),
+      choose: id => { storyMenuChoose(id); return _storyHarnessInfo() },
+      begin: (encId = 0, retry = false) => { storyBeginEncounter(encId, { retry }); return _storyHarnessInfo() },
+      confirm: () => { storyConfirm(); return _storyHarnessInfo() },
+      skip: () => { storySkip(); storySkip(); return _storyHarnessInfo() },
+      finishLine: () => { const l = _storyCurLine(); if (l) storyUi.typed = l.text.length; return _storyHarnessInfo() },
+      // advance through dialogue to the next non-dialogue step (fight / credits / retry / complete); returns every line shown
+      toNext: () => { const seen = []; let g = 0
+        while (gameState === GAME_STATES.STORY_SCENE && _storyCurStep()?.t === "lines" && g++ < 2000) {
+          const st = _storyCurStep(), l = _storyCurLine()
+          if (storyState.line < 0) seen.push({ card: st.card, kind: st.kind })
+          else if (l) seen.push({ kind: st.kind, speaker: l.speaker, name: l.name, text: l.text, italic: l.italic, unsigned: l.unsigned, narration: l.narration, telepathy: l.telepathy, entrance: st.entrance || null, rivalId: st.rivalId || null, templateId: st.templateId || null, opp: st.opp ?? null })
+          if (l) storyUi.typed = l.text.length
+          storyConfirm()
+        }
+        return { seen, info: _storyHarnessInfo() } },
+      // end the live bout with `side` winning through the real match-end path (KO flow → result → next scene)
+      boutResult: (side = "p1", hpFrac = null) => {
+        if (!storyState.awaitingBout) return _storyHarnessInfo()
+        if (hpFrac != null && p1) p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * hpFrac))
+        _matchOverride = { winnerSide: side }; _checkMatchOver()
+        const steps0 = storyState.steps, step0 = storyState.step, same = () => storyState.awaitingBout && storyState.steps === steps0 && storyState.step === step0
+        for (let i = 0; i < 1500 && same(); i++) { globalFrameCount++; updateCurrentState() }
+        if (same()) {   // a finisher cinematic still running → end it the way its own "done" path would
+          impactHitState.active = false; clearSignatureFatality(); clearScreenBreaker(); clearFatalityCinematic(); clearBrutalityCinematic()
+          _enterVictoryScreen() }
+        return _storyHarnessInfo() },
+      setP2HealthFrac: f => { if (p2) p2.health = Math.max(1, Math.round((p2.maxHealth || 1000) * f)); return p2?.health },
+      creditsFinish: () => { creditsScroll = _creditsMaxScroll(); _storyCreditsTryExit(); return _storyHarnessInfo() },
+      creditsInfo: () => ({ inCredits: storyState.inCredits, gameState, scroll: creditsScroll, max: _creditsMaxScroll() }),
+      resetSave: () => { _storySaveObj = loadStorySave(null); _storySaveWrite(); return JSON.parse(JSON.stringify(_storySaveObj)) },
+      reloadSave: () => { _storySaveObj = null; return JSON.parse(JSON.stringify(_storySave())) },
+      setSpeed: v => { _storySave().textSpeed = v; _storySaveWrite(); return v },
+      hold: on => { storyUi.held = !!on; return storyUi.held }
+    },
     forceMatchWin: (side = "p1") => { _matchOverride = { winnerSide: side }; _checkMatchOver(); return { gameState, victory: !!victoryState.active, winner: victoryState.winnerSide || null } },
     p1ForceLight: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; startMove(p1, "light", { startup: 4, active: 6, recovery: 12, damage: 45, rangeX: 150, rangeY: 100, hitstun: 12, knockbackX: 3 }) } },   // deterministic light swing (Rendan-fire test, no keyboard flake)
     p1ForceHeavy: () => { if (p1) { p1.attackCooldown = 0; p1.attacking = false; p1.comboCounter = 0; startMove(p1, "heavy", { startup: 10, active: 10, recovery: 26, damage: 80, rangeX: 150, rangeY: 100, hitstun: 18, knockbackX: 5, category: "heavy" }) } },   // deterministic heavy (Super Armor test)

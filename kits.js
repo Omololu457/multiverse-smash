@@ -1316,9 +1316,9 @@ function dnaKitRows(rosterKey) {
   return [
     { name: "DNA Scan", input: "Down + Ultimate", cost: 100,
       desc: `${dev} scans the opponent (frozen cinematic) and stores their DNA as a 6th alien for the rest of the match. A new scan replaces it. Can't copy Ben or Albedo.` },
-    { name: "DNA Alien (6th slot)", input: "Down, Down, Ultimate", cost: 25,
+    { name: "DNA Alien (6th slot)", input: "Down, Down, Ultimate (after a DNA Scan)", cost: 25,
       desc: "Turn into the scanned opponent — their full moveset, in your Omnitrix colours with the badge on the chest. Works from human or straight from another alien. Lasts 20 s, then a 4 s recharge. U + L also works." },
-    { name: "Drop the DNA form", input: "Down, Down, Block", cost: 0,
+    { name: "Drop the DNA form", input: "Down, Down, Block (while in the DNA form)", cost: 0,
       desc: rosterKey === "kevin_levin" ? "Turn back early." : "Turn back to human. While you're the copy, Down, Down then Light / Heavy / Special / Grab / Charge dials that alien straight away." },
   ]
 }

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import {chromium} from 'playwright'
+import { balHpMult } from '../rosterBalance.js'
+const HP=Math.round(1250*balHpMult('mr_incredible'))   // 1250 design HP × his roster balance row (2026-11-25)
 const browser=await chromium.launch({headless:true}), page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[],results={damage:[],checks:[]}
 page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(()=>window.requestAnimationFrame=()=>0)
 const check=(name,value)=>{results.checks.push({name,pass:!!value});console.log(value?'PASS':'FAIL',name);assert(value,name)}
@@ -15,7 +17,7 @@ try{
   if(prime){H.activate();__harness.luffyTest.step(24)}
  },[prime,gap])
  const tap=async keys=>{await step(1);for(const k of keys)await page.keyboard.down(k);await step(1);for(const k of keys)await page.keyboard.up(k)}
- check('one fighter / 1250 HP / normal double jump',(await state()).maxHp===1250&&(await state()).maxJumps===2)
+ check(`one fighter / ${HP} HP (1250 × balance) / normal double jump`,(await state()).maxHp===HP&&(await state()).maxJumps===2)
  // Live melee path for every authored attack, isolated clean opponent.
  for(const prime of [false,true])for(const key of ['light','miLight2','miFinish','heavy','miLow','up','air','down_air','miForward','miDownHeavy','miImpact','miRush','miRise','miSlam','miSpin','miGrab','miLift']){
   await setup(prime,key==='miRush'?125:65)
@@ -25,8 +27,8 @@ try{
   },key);results.damage.push(r);check(`${prime?'prime':'veteran'} ${key} starts`,r.started);check(`${prime?'prime':'veteran'} ${key} single budget`,r.hits.length<=1);check(`${prime?'prime':'veteran'} ${key} connects`,r.damage>0)
  }
  await setup();await tap(['j']);await step(5);check('fresh Square starts actual light',(await state()).attack?.name==='light');await page.keyboard.down('j');await step(80);await page.keyboard.up('j');check('holding Square cannot loop chain',!(await state()).attack)
- await setup();await tap(['u']);let s=await state();check('R2 activates without heal',s.s.remaining===900&&s.hp===1250&&s.energy===0);await page.keyboard.down('u');await step(70);check('held R2 does not instantly cancel',(await state()).s.remaining>0);await page.keyboard.up('u');await step(1);await tap(['u']);check('fresh eligible R2 returns early',(await state()).s.remaining===0)
- for(const hp of [1,317,1250]){await setup();await page.evaluate(hp=>__harness.mrIncredibleTest.raw().health=hp,hp);await tap(['u']);check(`activation HP ${hp} unchanged`,(await state()).hp===hp)}
+ await setup();await tap(['u']);let s=await state();check('R2 activates without heal',s.s.remaining===900&&s.hp===HP&&s.energy===0);await page.keyboard.down('u');await step(70);check('held R2 does not instantly cancel',(await state()).s.remaining>0);await page.keyboard.up('u');await step(1);await tap(['u']);check('fresh eligible R2 returns early',(await state()).s.remaining===0)
+ for(const hp of [1,317,HP]){await setup();await page.evaluate(hp=>__harness.mrIncredibleTest.raw().health=hp,hp);await tap(['u']);check(`activation HP ${hp} unchanged`,(await state()).hp===hp)}
  await setup();await tap(['w']);await step(2);await tap(['w']);await step(1);s=await state();check('two fresh jumps consume both jumps',s.jumpCount===2);await tap(['u']);check('air activation retains jump count',(await state()).jumpCount===2);await step(30);const rise=await page.evaluate(()=>__harness.mrIncredibleTest.move('miRise'));check('one Rising Power available in air',rise);await step(2);await page.evaluate(()=>{const f=__harness.mrIncredibleTest.raw();f.attacking=false;f.currentAttack=null;f.attackCooldown=0});check('Rising Power cannot repeat in same airtime',!(await page.evaluate(()=>__harness.mrIncredibleTest.move('miRise'))))
  // Exact expiry, move snapshot and form boundary: artificial positioning/timer setup is explicit.
  for(const kind of ['idle','attack','hitstun','knockdown','grabbed']){

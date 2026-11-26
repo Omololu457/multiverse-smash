@@ -14,7 +14,7 @@ const check = (n, c, d = "") => { (c ? PASS++ : FAIL++); console.log(`  ${c ? "â
 const frames = async n => { const s = await page.evaluate(() => window.__harness.state().frame); await page.waitForFunction(([a, b]) => window.__harness.state().frame >= a + b, [s, n], { timeout: 15000, polling: 16 }).catch(() => {}) }
 const { SKINS } = await import(path.join(ROOT, "skins.js"))
 const SHOTS = path.join(OUT, "creative_skins"); fs.mkdirSync(SHOTS, { recursive: true })
-const PICK = { naruto: 3, batman: 2, megumi_fushiguro: 2, baki: 2, goku: 2, spiderman: 2, arlong: 2, hashirama: 2 }
+const PICK = { naruto: 2, batman: 1, megumi_fushiguro: 1, baki: 1, goku: 1, spiderman: 1, arlong: 1, hashirama: 1, ghostface: 2, yuta: 1, beerus: 1, goku_black: 1, itachi: 1, vegeta: 1, invincible: 0, cyborg: 1, obito: 1 }
 try {
   for (const [key, n] of Object.entries(PICK)) {
     const list = (SKINS[key] || []).filter(s => s.classification === "Creative").slice(0, n)
@@ -26,7 +26,8 @@ try {
       await page.evaluate(id => window.__harness.bootSkin(id, "default"), s.id)
       try { await page.waitForFunction(() => window.__harness.spriteReady("p1")?.ready === true, null, { timeout: 30000, polling: 50 }) } catch (_) {}
       await frames(6)
-      const st = await page.evaluate(() => ({ id: window.__harness.p1()?.skinId, ready: window.__harness.spriteReady("p1")?.ready === true }))
+      const st = await page.evaluate(() => ({ id: window.__harness.gfArt?.("p1")?.art || window.__harness.p1()?.skinId, killer: window.__harness.p1()?.skinId, idle: window.__harness.gfArt?.("p1")?.idle, ready: window.__harness.spriteReady("p1")?.ready === true }))
+      if (key === "ghostface") check(`ghostface ${s.name}: plays as its killer with the themed art`, st.killer === s.id.split("_")[0] && /__cs/.test(st.idle || ""), `${st.killer} ${st.idle}`)
       await page.keyboard.down("d"); await frames(10); await page.keyboard.up("d"); await page.keyboard.press("j"); await frames(5)
       const atk = await page.evaluate(() => window.__harness.spriteReady("p1")?.ready === true)
       await page.screenshot({ path: path.join(SHOTS, `${s.id}.png`) })

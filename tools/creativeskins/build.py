@@ -66,7 +66,7 @@ def hsv(c):
     h, s, v = colorsys.rgb_to_hsv(c[0] / 255, c[1] / 255, c[2] / 255); return h * 360, s, v
 
 
-SKP = dict(h=(4, 42), s=(0.16, 0.72), v=0.26, dark=False)
+SKP = dict(h=(4, 42), s=(0.16, 0.8), v=0.26, dark=False)
 
 
 def is_skin(c):
@@ -116,6 +116,9 @@ def regions(key, info, ovr):
         for kk, rr in zip(k[on].tolist(), rel[on].tolist()):
             st = stats.setdefault(kk, [0, 0.0]); st[0] += 1; st[1] += rr
     total = sum(v[0] for v in stats.values()) or 1
+    global Q
+    if len(stats) > 300 and 'q' not in ovr and Q == 1:   # PAINTED sprite (hundreds of near-identical shades): group them
+        Q = 10; return regions(key, info, ovr)
     reg = {}; fam = {}
     for kk, (n, rs) in stats.items():
         c = ((kk >> 16) & 255, (kk >> 8) & 255, kk & 255); h, s, v = hsv(c); mrel = rs / n
@@ -297,6 +300,14 @@ def prep_sheet(path, fw, reg, fh=0):
     R = np.full(on.shape, '', object)
     ys, xs = np.nonzero(on); kk = k[ys, xs]
     lut = {c: r for c, r in reg.items()}
+    # colours this sheet uses that the body palette never saw (mid-animation shading, motion-blur tones): borrow the region
+    # of the nearest palette colour (RGB L1 ≤ 30) so no frame "flashes back" to the default outfit. Far colours = FX.
+    pk = np.array([c for c, r in reg.items() if r in ('A', 'B', 'C', 'D', 'hair', 'skin')], np.int64)
+    if pk.size:
+        prgb = np.stack([(pk >> 16) & 255, (pk >> 8) & 255, pk & 255], -1).astype(np.int32)
+        for c in set(np.unique(kk).tolist()) - set(lut):
+            rgb = np.array([(c >> 16) & 255, (c >> 8) & 255, c & 255]); dd = np.abs(prgb - rgb).sum(-1); j = int(dd.argmin())
+            if dd[j] <= 30 and rgb.max() > 30: lut[c] = reg[int(pk[j])]
     rr = np.array([lut.get(int(c), '') for c in kk.tolist()], object) if kk.size else np.array([], object)
     R[ys, xs] = rr
     body = np.isin(R, ('A', 'B', 'C', 'D', 'hair', 'skin', 'keep'))
@@ -376,7 +387,7 @@ def pick_themes(key, n, have_names, avoid=()):
 def build(key, n=10, only=None):
     info = char_info(key); ov = OVR.get(key, {})
     global Q; Q = ov.get('q', 1)
-    SKP.update(h=tuple(ov.get('skinh', (4, 42))), s=tuple(ov.get('skins', (0.16, 0.72))), v=ov.get('skinv', 0.26), dark=ov.get('darkskin', False))
+    SKP.update(h=tuple(ov.get('skinh', (4, 42))), s=tuple(ov.get('skins', (0.16, 0.8))), v=ov.get('skinv', 0.26), dark=ov.get('darkskin', False))
     reg = regions(key, info, ov)
     have = node_json(f"const {{ getSkins }} = await import('{ROOT}/skins.js'); console.log(JSON.stringify((getSkins('{key}')||[]).filter(s=>s.classification!=='Creative').map(s=>s.name)))")
     tags = only or ov.get('themes') or pick_themes(key, n, have, ov.get('avoid', ()))

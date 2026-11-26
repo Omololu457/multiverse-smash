@@ -1,4 +1,79 @@
 {
+"soldier_boy": [
+"soldier_boyAlbedo",
+"soldier_boyBen10",
+"soldier_boyNuclear"
+],
+"luffy": [
+"luffy_albedo"
+],
+"killua": [
+"killuaLavender",
+"killuaGon"
+],
+"ichigo": [
+"ichigoTwilightContrast",
+"ichigoRoyalZangetsu",
+"ichigoAutumnTide"
+],
+"genos": [
+"genosEmberUnit",
+"genosFrostbound"
+],
+"gwen": [
+"gwenFrostboundSpark"
+],
+"flash": [
+"flash_pink",
+"flash_gold"
+],
+"jason": [
+"jasonValkyrie",
+"jason_crimson"
+],
+"alt_sukuna": [
+"altSukunaInkWash"
+],
+"minato": [
+"minatoIvorySeal"
+],
+"shinobu": [
+"shinobuNightMoth"
+],
+"rickPrime": [
+"rickPrimeDiamondhead",
+"rickPrimeBigchill"
+],
+"gold_samurai_ranger": [
+"goldVoidwalker"
+],
+"ninja_storm_cgpt": [
+"cgpt_starlight",
+"cgpt_midnight",
+"cgpt_jade",
+"cgpt_sakura",
+"cgpt_sandstorm",
+"cgpt_viper",
+"cgpt_abyss",
+"cgpt_lunar"
+],
+"netero": [
+"neteroAlbedo",
+"neteroValkyrie"
+],
+"isshiki": [
+"isshiki_sanguine"
+],
+"zaraki_shikai": [
+"zaraki_shikaiAlbedo",
+"zaraki_shikai_crimson",
+"zaraki_shikai_azure"
+],
+"obito": [
+"obitoCobalt",
+"obitoAmethyst",
+"obitoTeal"
+],
 "aoi_todo": [
 "aoiTodoVerdantStorm",
 "aoiTodoGoldenTitan",
@@ -7,11 +82,39 @@
 "aoiTodoVioletReign",
 "aoiTodoAshfallChampion"
 ],
-"jesus": [
-"jesusAzure"
-],
 "baki": [
 "bakiValkyrie"
+],
+"gaara": [
+"gaaraViolet",
+"gaaraGold"
+],
+"goku": [
+"gokuAlbedo",
+"gokuValkyrie",
+"gokuAlienX",
+"goku_pink",
+"goku_gold",
+"goku_blue",
+"goku_red"
+],
+"green_arrow": [
+"ga_neonpink",
+"ga_valkyrie"
+],
+"green_samurai_ranger": [
+"green_samuraiAlbedo",
+"green_samuraiValkyrie",
+"green_samurai_crimson",
+"green_samurai_azure"
+],
+"homelander": [
+"homelander_rose",
+"homelanderPinkHair",
+"homelanderGreenHair",
+"homelanderCrimsonHair",
+"homelanderPurpleHair",
+"homelanderTealHair"
 ],
 "inosuke": [
 "inosukeIronBoar",
@@ -27,40 +130,22 @@
 "inosukeTealRampart",
 "inosukeStormTusk"
 ],
-"green_samurai_ranger": [
-"green_samuraiAlbedo",
-"green_samuraiValkyrie",
-"green_samurai_crimson",
-"green_samurai_azure"
+"jesus": [
+"jesusAzure"
 ],
-"batman": [],
-"homelander": [
-"homelander_rose",
-"homelanderPinkHair",
-"homelanderGreenHair",
-"homelanderCrimsonHair",
-"homelanderPurpleHair",
-"homelanderTealHair"
+"kakashi": [
+"kakashiValkyrie"
 ],
 "kakashi_war": [
 "kwarWebWeave",
 "kwarViolet",
 "kwarEmerald"
 ],
-"starfire": [],
 "naruto": [
 "narutoAlbedo",
 "narutoValkyrie",
 "naruto_black",
 "naruto_pink"
-],
-"zenitsu": [
-"zenitsuLavender",
-"zenitsuBlack",
-"zenitsuPink",
-"zenitsuRed",
-"zenitsuWhite",
-"zenitsuBlue"
 ],
 "nezuko": [
 "nezukoMoonlitVale",
@@ -76,13 +161,6 @@
 "sasuke_blue",
 "sasuke_red"
 ],
-"zaraki": [
-"zarakiCrimsonReaper",
-"zarakiFrostbitten",
-"zarakiVerdantBlade",
-"zarakiGoldenButcher",
-"zarakiNightfallRonin"
-],
 "six_paths_pain": [
 "sixpaths_goldenrikudou",
 "sixpaths_verdantsage",
@@ -91,32 +169,6 @@
 "sixpaths_azuretendo",
 "sixpaths_amethystshurado",
 "sixpaths_ashenvoid"
-],
-"kakashi": [
-"kakashiValkyrie"
-],
-"soldier_boy": [
-"soldier_boyAlbedo",
-"soldier_boyBen10",
-"soldier_boyNuclear"
-],
-"megumi_fushiguro": [],
-"green_arrow": [
-"ga_neonpink",
-"ga_valkyrie"
-],
-"gaara": [
-"gaaraViolet",
-"gaaraGold"
-],
-"goku": [
-"gokuAlbedo",
-"gokuValkyrie",
-"gokuAlienX",
-"goku_pink",
-"goku_gold",
-"goku_blue",
-"goku_red"
 ],
 "spiderman": [
 "spidermanAlbedo",
@@ -133,8 +185,19 @@
 "spidermanObsidianWeb",
 "spidermanWhiteReflective"
 ],
-"zaraki_shikai": [
-"zaraki_shikai_crimson",
-"zaraki_shikai_azure"
+"zaraki": [
+"zarakiCrimsonReaper",
+"zarakiFrostbitten",
+"zarakiVerdantBlade",
+"zarakiGoldenButcher",
+"zarakiNightfallRonin"
+],
+"zenitsu": [
+"zenitsuLavender",
+"zenitsuBlack",
+"zenitsuPink",
+"zenitsuRed",
+"zenitsuWhite",
+"zenitsuBlue"
 ]
 }

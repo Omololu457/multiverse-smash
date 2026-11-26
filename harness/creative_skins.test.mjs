@@ -14,8 +14,9 @@ for (const [key, list] of Object.entries(CREATIVE_SKINS)) {
   ok(new Set(ids).size === ids.length, `${key}: unique ids`)
   for (const d of CREATIVE_DROP[key] || []) ok(!ids.includes(d), `${key}: dropped ${d}`)
   for (const [tag, name] of list) {
-    const s = skins.find(x => x.id === `${key}_${tag}`)
-    ok(!!s && s.name === name, `${key}: ${tag} registered`)
+    // Ghostface themes are worn by a killer: id "<identity>_<tag>", name "<Killer> · <theme>"
+    const s = skins.find(x => key === "ghostface" ? /^ghostface[A-Z][a-z]+_/.test(x.id) && x.id.endsWith(`_${tag}`) : x.id === `${key === "cyborg" ? "cy" : key}_${tag}`)
+    ok(!!s && (s.name === name || s.name.endsWith(` · ${name}`)), `${key}: ${tag} registered`)
     if (!s) continue
     const sheets = [...new Set(Object.values(s.animationData || {}).map(a => a?.sheet).filter(Boolean))]
     const missing = sheets.filter(p => !f(p))

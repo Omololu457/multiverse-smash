@@ -1,22 +1,531 @@
 {
- "naruto": {"noskin": true, "avoid": ["flamehashira", "rose", "akatsuki", "hollowpurple"]},
- "inosuke": {"avoid": ["kingofcurses", "senbonzakura"]},
- "aoi_todo": {"avoid": ["xlr8"]},
- "jesus": {"avoid": ["ghostfreak"]},
- "baki": {"skinh": [-12, 42], "skins": [0.16, 0.66], "darkskin": true},
- "jiraiya": {"avoid": ["benten", "rose", "albedo"]},
- "green_samurai_ranger": {"avoid": ["hollowpurple", "akatsuki"]},
- "homelander": {"avoid": ["sage", "destroyer"]},
- "kakashi_war": {"avoid": ["crystal", "albedo"]},
- "starfire": {"skins": [0.16, 0.92], "avoid": ["crystal", "benten", "spidey", "xlr8"]},
- "sasuke_sensei": {"avoid": ["homelander"]},
- "zaraki": {"hairrel": 0.2, "avoid": ["senbonzakura", "kingofcurses"]},
- "kakashi": {"skins": [0.16, 0.78], "force": {"#6b2900": "skin"}, "avoid": ["akatsuki", "homelander", "manofsteel", "sage", "magmacore"]},
- "soldier_boy": {"avoid": ["rose"]},
- "megumi_fushiguro": {"q": 12},
- "green_arrow": {"avoid": ["godspeed", "crystal", "bigchill", "xlr8", "ultrainstinct"]},
- "gaara": {"hairrel": 0.22, "avoid": ["magmacore", "upgrade"]},
- "hashirama": {"hairrel": 0.3, "avoid": ["thunderclap", "spidey"]},
- "sakura": {"force": {"#101018": "keep", "#50b090": "keep", "#f8d8d8": "keep", "#c05858": "hair", "#545454": "D", "#f0f0f0": "keep"}},
- "hinata": {"force": {"#101820": "keep"}}
+ "naruto": {
+  "noskin": true,
+  "avoid": [
+   "akatsuki",
+   "benten",
+   "bigchill",
+   "destroyer",
+   "flamehashira",
+   "hollowpurple",
+   "homelander",
+   "rose",
+   "spidey",
+   "xlr8"
+  ]
+ },
+ "inosuke": {
+  "avoid": [
+   "kingofcurses",
+   "senbonzakura"
+  ]
+ },
+ "aoi_todo": {
+  "avoid": [
+   "xlr8"
+  ]
+ },
+ "jesus": {
+  "avoid": [
+   "ghostfreak"
+  ]
+ },
+ "baki": {
+  "skinh": [
+   -12,
+   42
+  ],
+  "skins": [
+   0.16,
+   0.66
+  ],
+  "darkskin": true
+ },
+ "jiraiya": {
+  "avoid": [
+   "albedo",
+   "benten",
+   "destroyer",
+   "homelander",
+   "manofsteel",
+   "rose"
+  ]
+ },
+ "green_samurai_ranger": {
+  "avoid": [
+   "hollowpurple",
+   "akatsuki"
+  ]
+ },
+ "homelander": {
+  "avoid": [
+   "sage",
+   "destroyer"
+  ]
+ },
+ "kakashi_war": {
+  "avoid": [
+   "albedo",
+   "benten",
+   "crystal",
+   "senbonzakura"
+  ]
+ },
+ "starfire": {
+  "skins": [
+   0.16,
+   0.92
+  ],
+  "avoid": [
+   "albedo",
+   "benten",
+   "crystal",
+   "finalform",
+   "flamehashira",
+   "hollowpurple",
+   "kingofcurses",
+   "senbonzakura",
+   "spidey",
+   "xlr8"
+  ]
+ },
+ "sasuke_sensei": {
+  "avoid": [
+   "homelander"
+  ]
+ },
+ "zaraki": {
+  "hairrel": 0.2,
+  "avoid": [
+   "destroyer",
+   "kingofcurses",
+   "senbonzakura"
+  ]
+ },
+ "kakashi": {
+  "skins": [
+   0.16,
+   0.78
+  ],
+  "force": {
+   "#6b2900": "skin"
+  },
+  "avoid": [
+   "akatsuki",
+   "crystal",
+   "hollowpurple",
+   "homelander",
+   "magmacore",
+   "manofsteel",
+   "rose",
+   "sage",
+   "ultrainstinct",
+   "upgrade"
+  ]
+ },
+ "soldier_boy": {
+  "avoid": [
+   "crystal",
+   "magmacore",
+   "rose",
+   "upgrade"
+  ]
+ },
+ "megumi_fushiguro": {
+  "q": 12
+ },
+ "green_arrow": {
+  "avoid": [
+   "bigchill",
+   "crystal",
+   "godspeed",
+   "kingofcurses",
+   "ssblue",
+   "thunderclap",
+   "ultrainstinct",
+   "xlr8"
+  ]
+ },
+ "gaara": {
+  "hairrel": 0.22,
+  "avoid": [
+   "destroyer",
+   "magmacore",
+   "upgrade"
+  ]
+ },
+ "hashirama": {
+  "hairrel": 0.3,
+  "avoid": [
+   "finalform",
+   "kingofcurses",
+   "magmacore",
+   "sage",
+   "senbonzakura",
+   "spidey",
+   "thunderclap"
+  ]
+ },
+ "sakura": {
+  "force": {
+   "#101018": "keep",
+   "#50b090": "keep",
+   "#f8d8d8": "keep",
+   "#c05858": "hair",
+   "#545454": "D",
+   "#f0f0f0": "keep"
+  }
+ },
+ "hinata": {
+  "force": {
+   "#101820": "keep"
+  }
+ },
+ "vilgax": {
+  "noskin": true
+ },
+ "krybot": {
+  "noskin": true,
+  "avoid": [
+   "hollowpurple"
+  ]
+ },
+ "beerus": {
+  "noskin": true
+ },
+ "batman": {
+  "avoid": [
+   "xlr8"
+  ]
+ },
+ "gojo": {
+  "avoid": [
+   "kingofcurses",
+   "senbonzakura"
+  ]
+ },
+ "ippo": {
+  "avoid": [
+   "hollowpurple",
+   "kingofcurses",
+   "senbonzakura",
+   "ultrainstinct"
+  ]
+ },
+ "maki": {
+  "avoid": [
+   "crystal",
+   "magmacore",
+   "sage"
+  ]
+ },
+ "naruto_seventh": {
+  "avoid": [
+   "crystal",
+   "magmacore"
+  ]
+ },
+ "buggy": {
+  "avoid": [
+   "crystal",
+   "destroyer",
+   "homelander",
+   "magmacore",
+   "rose",
+   "upgrade",
+   "xlr8"
+  ]
+ },
+ "frozone": {
+  "avoid": [
+   "rose"
+  ]
+ },
+ "gold_samurai_ranger": {
+  "avoid": [
+   "homelander"
+  ]
+ },
+ "l_ryuuzaki": {
+  "avoid": [
+   "flamehashira",
+   "ghostfreak",
+   "hollowpurple",
+   "upgrade"
+  ]
+ },
+ "miwa": {
+  "avoid": [
+   "bigchill",
+   "godspeed"
+  ]
+ },
+ "rickPrime": {
+  "avoid": [
+   "sage",
+   "spidey",
+   "ssblue"
+  ]
+ },
+ "vegeta": {
+  "avoid": [
+   "bigchill",
+   "godspeed",
+   "xlr8"
+  ]
+ },
+ "zenitsu": {
+  "avoid": [
+   "finalform",
+   "flamehashira",
+   "ghostfreak",
+   "hollowpurple",
+   "kingofcurses",
+   "senbonzakura"
+  ]
+ },
+ "elastigirl": {
+  "avoid": [
+   "albedo",
+   "spidey"
+  ]
+ },
+ "itachi": {
+  "avoid": [
+   "thunderclap"
+  ]
+ },
+ "killua": {
+  "avoid": [
+   "senbonzakura"
+  ]
+ },
+ "sanji": {
+  "avoid": [
+   "ssblue",
+   "ultrainstinct"
+  ]
+ },
+ "spd_rangers": {
+  "avoid": [
+   "bigchill",
+   "crystal",
+   "hollowpurple"
+  ]
+ },
+ "tobirama": {
+  "avoid": [
+   "manofsteel"
+  ]
+ },
+ "arlong": {
+  "avoid": [
+   "bigchill",
+   "hollowpurple",
+   "rose",
+   "sage",
+   "thunderclap",
+   "xlr8"
+  ]
+ },
+ "genos": {
+  "avoid": [
+   "hollowpurple",
+   "rose"
+  ]
+ },
+ "luffy": {
+  "avoid": [
+   "crystal",
+   "magmacore"
+  ]
+ },
+ "obito": {
+  "avoid": [
+   "magmacore"
+  ]
+ },
+ "saiki": {
+  "avoid": [
+   "crystal"
+  ]
+ },
+ "shinobu": {
+  "avoid": [
+   "bigchill",
+   "crystal"
+  ]
+ },
+ "sukuna_shinjuku": {
+  "avoid": [
+   "senbonzakura"
+  ]
+ },
+ "beast_boy": {
+  "avoid": [
+   "crystal",
+   "xlr8"
+  ]
+ },
+ "dinothunder": {
+  "avoid": [
+   "albedo",
+   "finalform",
+   "kingofcurses",
+   "senbonzakura",
+   "spidey"
+  ]
+ },
+ "gojo_shinjuku": {
+  "avoid": [
+   "ghostfreak"
+  ]
+ },
+ "higuruma": {
+  "avoid": [
+   "akatsuki",
+   "destroyer"
+  ]
+ },
+ "isshiki": {
+  "avoid": [
+   "crystal",
+   "godspeed",
+   "hollowpurple",
+   "homelander",
+   "rose",
+   "spidey",
+   "ssblue",
+   "thunderclap"
+  ]
+ },
+ "mayuri": {
+  "avoid": [
+   "thunderclap"
+  ]
+ },
+ "raven": {
+  "avoid": [
+   "benten",
+   "bigchill",
+   "crystal",
+   "destroyer",
+   "homelander"
+  ]
+ },
+ "tobi": {
+  "avoid": [
+   "bigchill",
+   "destroyer",
+   "rose",
+   "ultrainstinct"
+  ]
+ },
+ "yuta": {
+  "avoid": [
+   "ghostfreak"
+  ]
+ },
+ "cyborg": {
+  "avoid": [
+   "albedo",
+   "hollowpurple",
+   "rose"
+  ]
+ },
+ "ghostface": {
+  "avoid": [
+   "albedo",
+   "hollowpurple",
+   "magmacore"
+  ]
+ },
+ "gwen": {
+  "avoid": [
+   "akatsuki"
+  ]
+ },
+ "kakashi_anbu": {
+  "avoid": [
+   "crystal",
+   "destroyer",
+   "godspeed",
+   "sage",
+   "spidey",
+   "xlr8"
+  ]
+ },
+ "madara": {
+  "avoid": [
+   "hollowpurple"
+  ]
+ },
+ "shisui_fallen": {
+  "avoid": [
+   "albedo"
+  ]
+ },
+ "superman": {
+  "avoid": [
+   "hollowpurple"
+  ]
+ },
+ "violet": {
+  "avoid": [
+   "akatsuki",
+   "destroyer",
+   "xlr8"
+  ]
+ },
+ "ichigo": {
+  "avoid": [
+   "crystal",
+   "hollowpurple",
+   "kingofcurses",
+   "senbonzakura"
+  ]
+ },
+ "mmpr_rangers": {
+  "avoid": [
+   "albedo"
+  ]
+ },
+ "robin": {
+  "avoid": [
+   "akatsuki",
+   "benten",
+   "spidey"
+  ]
+ },
+ "sukuna": {
+  "avoid": [
+   "rose"
+  ]
+ },
+ "vegeta_dark": {
+  "avoid": [
+   "ghostfreak"
+  ]
+ },
+ "zoro": {
+  "avoid": [
+   "crystal",
+   "xlr8"
+  ]
+ },
+ "flash": {
+  "avoid": [
+   "rose"
+  ]
+ },
+ "toji": {
+  "avoid": [
+   "ghostfreak"
+  ]
+ },
+ "zaraki_shikai": {
+  "avoid": [
+   "destroyer"
+  ]
+ }
 }

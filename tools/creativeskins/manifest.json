@@ -1,36 +1,8 @@
 {
  "naruto": [
   [
-   "csbigchill",
-   "Deep Freeze (Big Chill)"
-  ],
-  [
-   "csbenten",
-   "Ben 10"
-  ],
-  [
-   "csdestroyer",
-   "Destroyer (Beerus)"
-  ],
-  [
-   "csultrainstinct",
-   "Ultra Instinct"
-  ],
-  [
    "csfinalform",
    "Final Form (Frieza)"
-  ],
-  [
-   "cshomelander",
-   "Homelander"
-  ],
-  [
-   "csxlr8",
-   "XLR8"
-  ],
-  [
-   "csspidey",
-   "Web-Slinger (Spider-Man)"
   ],
   [
    "csssblue",
@@ -39,6 +11,22 @@
   [
    "csupgrade",
    "Upgrade"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
   ]
  ],
  "inosuke": [
@@ -215,24 +203,12 @@
    "Alien X"
   ],
   [
-   "csmanofsteel",
-   "Man of Steel"
-  ],
-  [
-   "csghostfreak",
-   "Ghostfreak"
-  ],
-  [
    "csmagmacore",
    "Magma Core (Heatblast)"
   ],
   [
    "csflamehashira",
    "Flame Hashira"
-  ],
-  [
-   "csdestroyer",
-   "Destroyer (Beerus)"
   ],
   [
    "csupgrade",
@@ -243,12 +219,20 @@
    "Final Form (Frieza)"
   ],
   [
-   "cshomelander",
-   "Homelander"
-  ],
-  [
    "csthunderclap",
    "Thunderclap"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
   ]
  ],
  "green_samurai_ranger": [
@@ -303,10 +287,6 @@
    "Akatsuki"
   ],
   [
-   "csgodspeed",
-   "Godspeed"
-  ],
-  [
    "cscrystal",
    "Crystal (Diamondhead)"
   ],
@@ -327,12 +307,8 @@
    "Ghostfreak"
   ],
   [
-   "csxlr8",
-   "XLR8"
-  ],
-  [
-   "cshollowpurple",
-   "Hollow Purple"
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
   ]
  ],
  "homelander": [
@@ -387,10 +363,6 @@
    "Destroyer (Beerus)"
   ],
   [
-   "csbenten",
-   "Ben 10"
-  ],
-  [
    "cshomelander",
    "Homelander"
   ],
@@ -407,26 +379,26 @@
    "Deep Freeze (Big Chill)"
   ],
   [
-   "cssenbonzakura",
-   "Senbonzakura"
-  ],
-  [
    "cskingofcurses",
    "King of Curses"
   ],
   [
    "csthunderclap",
    "Thunderclap"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
   ]
  ],
  "starfire": [
   [
    "csdestroyer",
    "Destroyer (Beerus)"
-  ],
-  [
-   "csflamehashira",
-   "Flame Hashira"
   ],
   [
    "csmanofsteel",
@@ -437,38 +409,26 @@
    "Super Saiyan Blue"
   ],
   [
-   "cssenbonzakura",
-   "Senbonzakura"
-  ],
-  [
-   "cskingofcurses",
-   "King of Curses"
-  ],
-  [
    "csgodspeed",
    "Godspeed"
   ],
   [
-   "cshollowpurple",
-   "Hollow Purple"
+   "csakatsuki",
+   "Akatsuki"
   ],
   [
-   "csalbedo",
-   "Albedo — Negative"
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
   ],
   [
-   "csfinalform",
-   "Final Form (Frieza)"
+   "csultrainstinct",
+   "Ultra Instinct"
   ]
  ],
  "zenitsu": [
   [
    "csakatsuki",
    "Akatsuki"
-  ],
-  [
-   "csflamehashira",
-   "Flame Hashira"
   ],
   [
    "cscrystal",
@@ -479,28 +439,24 @@
    "Man of Steel"
   ],
   [
-   "csghostfreak",
-   "Ghostfreak"
-  ],
-  [
-   "cssenbonzakura",
-   "Senbonzakura"
-  ],
-  [
-   "cskingofcurses",
-   "King of Curses"
-  ],
-  [
-   "csfinalform",
-   "Final Form (Frieza)"
-  ],
-  [
-   "cshollowpurple",
-   "Hollow Purple"
-  ],
-  [
    "csupgrade",
    "Upgrade"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
   ]
  ],
  "nezuko": [
@@ -593,10 +549,6 @@
    "Alien X"
   ],
   [
-   "csalbedo",
-   "Albedo — Negative"
-  ],
-  [
    "csflamehashira",
    "Flame Hashira"
   ],
@@ -627,6 +579,10 @@
   [
    "csmanofsteel",
    "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
   ]
  ],
  "sasuke": [
@@ -693,18 +649,6 @@
    "Super Saiyan Blue"
   ],
   [
-   "csxlr8",
-   "XLR8"
-  ],
-  [
-   "cshollowpurple",
-   "Hollow Purple"
-  ],
-  [
-   "csdestroyer",
-   "Destroyer (Beerus)"
-  ],
-  [
    "csupgrade",
    "Upgrade"
   ],
@@ -765,36 +709,24 @@
    "Thunderclap"
   ],
   [
-   "csghostfreak",
-   "Ghostfreak"
-  ],
-  [
-   "csultrainstinct",
-   "Ultra Instinct"
-  ],
-  [
    "csbigchill",
    "Deep Freeze (Big Chill)"
-  ],
-  [
-   "csrose",
-   "Rosé"
-  ],
-  [
-   "cshollowpurple",
-   "Hollow Purple"
   ],
   [
    "csdestroyer",
    "Destroyer (Beerus)"
   ],
   [
-   "csupgrade",
-   "Upgrade"
+   "csssblue",
+   "Super Saiyan Blue"
   ],
   [
-   "cscrystal",
-   "Crystal (Diamondhead)"
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
   ]
  ],
  "vilgax": [
@@ -841,20 +773,12 @@
  ],
  "soldier_boy": [
   [
-   "csxlr8",
-   "XLR8"
-  ],
-  [
    "csspidey",
    "Web-Slinger (Spider-Man)"
   ],
   [
    "csssblue",
    "Super Saiyan Blue"
-  ],
-  [
-   "csupgrade",
-   "Upgrade"
   ],
   [
    "csflamehashira",
@@ -865,20 +789,16 @@
    "Ben 10"
   ],
   [
-   "cscrystal",
-   "Crystal (Diamondhead)"
-  ],
-  [
-   "csmagmacore",
-   "Magma Core (Heatblast)"
-  ],
-  [
-   "csultrainstinct",
-   "Ultra Instinct"
-  ],
-  [
    "csthunderclap",
    "Thunderclap"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
   ]
  ],
  "arlong": [
@@ -887,20 +807,8 @@
    "Alien X"
   ],
   [
-   "cshollowpurple",
-   "Hollow Purple"
-  ],
-  [
    "csfinalform",
    "Final Form (Frieza)"
-  ],
-  [
-   "csbigchill",
-   "Deep Freeze (Big Chill)"
-  ],
-  [
-   "cssage",
-   "Sage Mode"
   ],
   [
    "csspidey",
@@ -911,16 +819,28 @@
    "Super Saiyan Blue"
   ],
   [
-   "csrose",
-   "Rosé"
+   "csmagmacore",
+   "Magma Core (Heatblast)"
   ],
   [
-   "csthunderclap",
-   "Thunderclap"
+   "csalbedo",
+   "Albedo — Negative"
   ],
   [
-   "csxlr8",
-   "XLR8"
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
   ]
  ],
  "megumi_fushiguro": [
@@ -1067,14 +987,6 @@
    "Senbonzakura"
   ],
   [
-   "cskingofcurses",
-   "King of Curses"
-  ],
-  [
-   "csthunderclap",
-   "Thunderclap"
-  ],
-  [
    "csupgrade",
    "Upgrade"
   ],
@@ -1087,8 +999,12 @@
    "Web-Slinger (Spider-Man)"
   ],
   [
-   "csssblue",
-   "Super Saiyan Blue"
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
   ]
  ],
  "gaara": [
@@ -1117,10 +1033,6 @@
    "Godspeed"
   ],
   [
-   "csdestroyer",
-   "Destroyer (Beerus)"
-  ],
-  [
    "csflamehashira",
    "Flame Hashira"
   ],
@@ -1131,6 +1043,10 @@
   [
    "cskingofcurses",
    "King of Curses"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
   ]
  ],
  "spiderman": [
@@ -1181,24 +1097,8 @@
    "Deep Freeze (Big Chill)"
   ],
   [
-   "cssenbonzakura",
-   "Senbonzakura"
-  ],
-  [
-   "cskingofcurses",
-   "King of Curses"
-  ],
-  [
    "csdestroyer",
    "Destroyer (Beerus)"
-  ],
-  [
-   "csssblue",
-   "Super Saiyan Blue"
-  ],
-  [
-   "csfinalform",
-   "Final Form (Frieza)"
   ],
   [
    "cshollowpurple",
@@ -1209,12 +1109,16 @@
    "Akatsuki"
   ],
   [
-   "csmagmacore",
-   "Magma Core (Heatblast)"
+   "csrose",
+   "Rosé"
   ],
   [
-   "cssage",
-   "Sage Mode"
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
   ]
  ],
  "zaraki_shikai": [
@@ -1227,20 +1131,28 @@
    "Deep Freeze (Big Chill)"
   ],
   [
-   "csdestroyer",
-   "Destroyer (Beerus)"
-  ],
-  [
    "csthunderclap",
    "Thunderclap"
   ],
   [
-   "csrose",
-   "Rosé"
+   "csalbedo",
+   "Albedo — Negative"
   ],
   [
    "cssage",
    "Sage Mode"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
   ]
  ],
  "ninja_storm_rangers": [
@@ -1267,6 +1179,2746 @@
   [
    "csghostfreak",
    "Ghostfreak"
+  ]
+ ],
+ "goku_black": [
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ]
+ ],
+ "vegeta": [
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ]
+ ],
+ "vegeta_dark": [
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ]
+ ],
+ "gojo": [
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ]
+ ],
+ "gojo_shinjuku": [
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ]
+ ],
+ "sukuna": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ]
+ ],
+ "sukuna_shinjuku": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ]
+ ],
+ "alt_sukuna": [
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ]
+ ],
+ "maki": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ]
+ ],
+ "toji": [
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ]
+ ],
+ "yuji": [
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ]
+ ],
+ "itachi": [
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ]
+ ],
+ "tobirama": [
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ]
+ ],
+ "minato": [
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ]
+ ],
+ "madara": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ]
+ ],
+ "obito": [
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ]
+ ],
+ "tobi": [
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ]
+ ],
+ "pain": [
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ]
+ ],
+ "rengoku": [
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ]
+ ],
+ "shinobu": [
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ]
+ ],
+ "rick": [
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ]
+ ],
+ "rickPrime": [
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ]
+ ],
+ "beerus": [
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ]
+ ],
+ "ben10": [
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ]
+ ],
+ "albedo": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ]
+ ],
+ "kevin_levin": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ]
+ ],
+ "omniman_viltrum": [
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ]
+ ],
+ "samurai_red_ranger": [
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ]
+ ],
+ "gold_samurai_ranger": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ]
+ ],
+ "mmpr_rangers": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ]
+ ],
+ "spd_rangers": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ]
+ ],
+ "ninja_storm_cgpt": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ]
+ ],
+ "dinothunder": [
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ]
+ ],
+ "ns_squad": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ]
+ ],
+ "netero": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ]
+ ],
+ "saiki": [
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ]
+ ],
+ "killua": [
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ]
+ ],
+ "flash": [
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ]
+ ],
+ "violet": [
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ]
+ ],
+ "hisoka": [
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ]
+ ],
+ "superman": [
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ]
+ ],
+ "chrollo": [
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ]
+ ],
+ "jason": [
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ]
+ ],
+ "isshiki": [
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ]
+ ],
+ "miwa": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ]
+ ],
+ "ichigo": [
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ]
+ ],
+ "saitama": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ]
+ ],
+ "genos": [
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ]
+ ],
+ "mayuri": [
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ]
+ ],
+ "byakuya": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ]
+ ],
+ "sakura": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ]
+ ],
+ "hinata": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ]
+ ],
+ "light": [
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ]
+ ],
+ "l_ryuuzaki": [
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ]
+ ],
+ "yuta": [
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ]
+ ],
+ "kakashi_anbu": [
+  [
+   "csupgrade",
+   "Upgrade"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ]
+ ],
+ "gwen": [
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ]
+ ],
+ "ippo": [
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "cscrystal",
+   "Crystal (Diamondhead)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ]
+ ],
+ "naruto_seventh": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ]
+ ],
+ "zoro": [
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
+  ]
+ ],
+ "buggy": [
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ]
+ ],
+ "sanji": [
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ]
+ ],
+ "krybot": [
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ]
+ ],
+ "dash_parr": [
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ]
+ ],
+ "cyborg": [
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ]
+ ],
+ "beast_boy": [
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ]
+ ],
+ "robin": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ]
+ ],
+ "higuruma": [
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ],
+  [
+   "cskingofcurses",
+   "King of Curses"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "csrose",
+   "Rosé"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ]
+ ],
+ "syndrome": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ]
+ ],
+ "frozone": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "csalbedo",
+   "Albedo — Negative"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ]
+ ],
+ "mr_incredible": [
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csxlr8",
+   "XLR8"
+  ],
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csgodspeed",
+   "Godspeed"
+  ],
+  [
+   "cshollowpurple",
+   "Hollow Purple"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "cshomelander",
+   "Homelander"
+  ],
+  [
+   "csdestroyer",
+   "Destroyer (Beerus)"
+  ]
+ ],
+ "elastigirl": [
+  [
+   "csflamehashira",
+   "Flame Hashira"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csssblue",
+   "Super Saiyan Blue"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csmagmacore",
+   "Magma Core (Heatblast)"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ],
+  [
+   "csakatsuki",
+   "Akatsuki"
+  ],
+  [
+   "csbigchill",
+   "Deep Freeze (Big Chill)"
+  ],
+  [
+   "cssenbonzakura",
+   "Senbonzakura"
+  ]
+ ],
+ "luffy": [
+  [
+   "csspidey",
+   "Web-Slinger (Spider-Man)"
+  ],
+  [
+   "csthunderclap",
+   "Thunderclap"
+  ],
+  [
+   "cssage",
+   "Sage Mode"
+  ]
+ ],
+ "ghostface": [
+  [
+   "csalienx",
+   "Alien X"
+  ],
+  [
+   "csultrainstinct",
+   "Ultra Instinct"
+  ],
+  [
+   "csbenten",
+   "Ben 10"
+  ],
+  [
+   "csmanofsteel",
+   "Man of Steel"
+  ],
+  [
+   "csghostfreak",
+   "Ghostfreak"
+  ],
+  [
+   "csfinalform",
+   "Final Form (Frieza)"
+  ],
+  [
+   "csupgrade",
+   "Upgrade"
   ]
  ]
 }

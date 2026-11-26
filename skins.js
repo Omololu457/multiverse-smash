@@ -2811,17 +2811,22 @@ SKINS.violet = VIOLET_SKINS   // Violet Parr: her own skin list (no generic auto
 // flat one-colour tints get 10 creative recolours, each inspired by another fighter (Rosé, Akatsuki, Godspeed, Big Chill …).
 // The flat / broken entries they replace are dropped (a saved pick of a dropped id falls back to Default via getSkin).
 // Scale = the fighter's own default entry, so size is unchanged. Cosmetic only: same frames → same timing + hitboxes.
+const GF_KILLERS = [["ghostfaceBilly", "Billy"], ["ghostfaceDebbie", "Debbie"], ["ghostfaceRoman", "Roman"], ["ghostfaceJill", "Jill"], ["ghostfaceAmber", "Amber"]]
 for (const [key, list] of Object.entries(CREATIVE_SKINS)) {
   if (!characters[key]) continue
   if (!SKINS[key]) SKINS[key] = [{ id: "default", name: "Default", unlockLevel: 0, portrait: null, spriteScale: 1, animationData: null }]
   const drop = new Set(CREATIVE_DROP[key] || [])
   if (drop.size) SKINS[key] = SKINS[key].filter(s => !drop.has(s.id))
   const scale = SKINS[key][0]?.spriteScale ?? characters[key]?.spriteScale
-  for (const [tag, name] of list) {
-    const id = `${key}_${tag}`
+  list.forEach(([tag, name], i) => {
+    // GHOSTFACE: each creative theme is worn by one of the 5 killers (id "<identity>_<tag>"); applySkin plays it as that
+    // killer (gameplay mod / companions / colour) while drawing the themed art.
+    const gf = key === "ghostface" ? GF_KILLERS[i % GF_KILLERS.length] : null
+    const id = gf ? `${gf[0]}_${tag}` : `${key === "cyborg" ? "cy" : key}_${tag}`   // "cyborg" in an id trips the Superman-eye gate
+    if (gf) name = `${gf[1]} · ${name}`
     if (!SKINS[key].some(s => s.id === id))
       SKINS[key].push({ id, name, unlockLevel: 0, portrait: recolorPortrait(key, tag), spriteScale: scale, animationData: recolorSkinAnim(key, tag), classification: "Creative" })
-  }
+  })
 }
 
 // MSV1-EDO — the premade "Edo Tensei" skin: ash-grey skin, one-pixel cracks, black sclera, desaturated clothes. Generated

@@ -3787,12 +3787,16 @@ function applySkin(fighter, skinId) {
   // AI/random/Tower/FFA fighter that was handed "default") resolves to a killer identity. An explicit
   // player pick (one of the 5) passes through unchanged; only the fallback/AI paths draw a RANDOM identity —
   // so Ghostface can never exist without one.
+  let artId = null   // GHOSTFACE creative theme ("<identity>_cs<tag>"): themed art, played as that killer
   if (fighter.rosterKey === "ghostface") {
     const ids = Object.keys(GHOSTFACE_SKIN_MODS)   // the 5 killer identities (single source of truth)
+    const m = /^(ghostface[A-Z][a-z]+)_cs[a-z0-9]+$/.exec(skinId || "")
+    if (m && ids.includes(m[1]) && getSkin("ghostface", skinId)?.id === skinId) { artId = skinId; skinId = m[1] }
+    else if (fighter._gfArtId && ids.includes(skinId) && fighter._gfArtId.startsWith(skinId + "_")) artId = fighter._gfArtId   // re-apply of the same killer keeps the theme
     if (!ids.includes(skinId)) skinId = ids[Math.floor(Math.random() * ids.length)]
   }
-  fighter._skinAnim = getSkinAnimationData(fighter.rosterKey, skinId)
-  const skin = getSkin(fighter.rosterKey, skinId)
+  fighter._skinAnim = getSkinAnimationData(fighter.rosterKey, artId || skinId)
+  const skin = getSkin(fighter.rosterKey, artId || skinId)
   // Alt-color recolor skins carry a `recolorTag`. Stash it + the recoloured BASE anim so a
   // transform (Vegeta SSJ/Blue, Goku Black Rose) can retag its form art and a revert can restore
   // the recoloured base (see abilities.js retagFormAnim). Non-recolor skins clear both.
@@ -3804,6 +3808,7 @@ function applySkin(fighter, skinId) {
   // tintColor; null clears it so non-tinted skins render natively.
   fighter.skinTint = skin?.skinTint || null
   fighter.skinId = skinId
+  fighter._gfArtId = artId   // Ghostface creative theme worn by the killer (null otherwise)
   Object.assign(fighter, benThemeFieldsForSkin(fighter.rosterKey, skinId))   // Ben 10 THEME (cosmetic; null for everyone else, incl. Albedo)
   mrVisual(fighter) // cosmetic selection preserves veteran / prime
   kevinVisual(fighter)
@@ -31527,6 +31532,7 @@ gameLoop()
     skinVoicePick: (rosterKey, skinId, pool, n = 1) => Array.from({ length: n }, () => pickSkinVoice(rosterKey, skinId, pool)),
     // TEST-ONLY: live-apply a skin to a fighter (calls the real applySkin) so a test can toggle
     // the Limitless skin ON/OFF mid-session and prove the voice override activates/reverts.
+    gfArt: (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? { killer: f.skinId, art: f._gfArtId || null, idle: f._skinAnim?.idle?.sheet || null } : null },   // Ghostface creative theme probe
     setSkin: (side = "p1", skinId = "default") => { const f = side === "p2" ? p2 : p1; if (f) { applySkin(f, skinId); return f.skinId } return null },
     // ── GHOSTFACE CALL-IN harness hooks ──
     callInPool:        (side = "p1") => { const f = side === "p2" ? p2 : p1; return f ? getGhostfaceCallInPool(f) : [] },   // the active identity's 4-char pool

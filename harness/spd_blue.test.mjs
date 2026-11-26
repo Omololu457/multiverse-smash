@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {chromium} from 'playwright'
 import {serve} from './ben10_test_utils.mjs'
 import {characters} from '../characters.js'
-import {SPD_BLUE_MOVES,spd_blue} from '../spdBlueData.js'
+import {SPD_BLUE_MOVES,spd_blue,SPD_BLUE_TELEPORT as TP} from '../spdBlueData.js'
 import {ROSTER_DAMAGE_BOOST} from '../rosterParity.js'
 // Roster-parity pass (2026-11-13, owner request): HP and damage are derived, not literal. Applied hit i of a combo =
 // floor(floor(floor(raw*0.6)*0.85^i)*boost) - matches the engine's per-stage flooring exactly.
@@ -42,9 +42,9 @@ try{
   const ok=guard?s.block>0:s.a.attack?.blue?.clean;if(ok){let ar=null,dr=null;for(let i=0;i<150;i++){s=await state();if(ar===null&&!s.a.attack)ar=i;if(dr===null&&(guard?s.block:s.stun)<=0)dr=i;if(ar!==null&&dr!==null)break;await step(1)}report.advantages.push({key,guard,attackerReady:ar,defenderReady:dr,advantage:dr-ar})}ck(key+' '+(guard?'block':'hit')+' timing measured',!!ok)
  }
  // Keyboard direction edges through the actual movement parser, with no wall-clock delay.
- await reset(700);await tap(['d']);await step(2);await tap(['d']);s=await state();const x=s.a.x;ck('keyboard fresh double tap replaces dash',s.a.teleport.count===1&&s.a.teleport.action&&await page.evaluate(()=>__harness.spdBlueTest.raw().dashTimer===0));await step(12);s=await state();ck('teleport moves exactly120 and ends after13 ticks',Math.abs(s.a.x-x-120)<.01&&!s.a.teleport.action)
+ await reset(700);await tap(['d']);await step(2);await tap(['d']);s=await state();const x=s.a.x;ck('keyboard fresh double tap replaces dash',s.a.teleport.count===1&&s.a.teleport.action&&await page.evaluate(()=>__harness.spdBlueTest.raw().dashTimer===0));await step(12);s=await state();ck(`teleport moves exactly ${TP.distance} (Red parity, 2026-11-23) and has ended by 13 ticks`,Math.abs(s.a.x-x-TP.distance)<.01&&!s.a.teleport.action)
  await reset(700);await page.keyboard.down('d');await step(60);await page.keyboard.up('d');ck('keyboard hold never teleports',(await state()).a.teleport.count===0)
- await reset(700);await page.evaluate(()=>__harness.spdBlueTest.raw().energy=0);await tap(['d']);await step(1);await tap(['d']);s=await state();ck('resource failure uses legal dash fallback',!s.a.teleport.count&&await page.evaluate(()=>__harness.spdBlueTest.raw().dashTimer>0))
+ await reset(700);await page.evaluate(()=>__harness.spdBlueTest.raw().energy=0);await tap(['d']);await step(1);await tap(['d']);s=await state();ck(TP.cost>0?'resource failure uses legal dash fallback':'teleport is free (Red parity cost 0): zero energy still blinks',TP.cost>0?(!s.a.teleport.count&&await page.evaluate(()=>__harness.spdBlueTest.raw().dashTimer>0)):s.a.teleport.count===1)
  // Intercept Step: genuine Heavy hit, designated late recovery, a fresh release-separated pair.
  await reset();await tap(['k']);await clean();await wait(s=>s.a.attack?.timer<=12&&s.a.cancel.open);await tap(['d']);await step(1);await tap(['d']);s=await state();ck('confirmed Heavy permits paid late Intercept Step',s.a.teleport.count===1&&s.a.s.comboStepUsed&&!s.a.attack,JSON.stringify(s.a.teleport));await step(13);await tap(['k']);await step(60);s=await state();report.routes.push({label:'Heavy -> paid Intercept Step -> Heavy pressure',damage:HP-s.b.hp,spacing:s.b.x-s.a.x,energy:s.a.energy})
  for(const guard of ['whiff','block']){await reset(guard==='whiff'?700:72);if(guard==='block'){await page.evaluate(()=>__harness.setDummyBehavior('block'));await step(10)}await tap(['k']);await wait(s=>s.a.attack?.timer<=12&&s.a.cancel.open);await tap(['d']);await step(1);await tap(['d']);ck('Intercept Step denied on '+guard,(await state()).a.teleport.count===0)}

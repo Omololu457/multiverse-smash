@@ -5,6 +5,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { launch, reporter } from './msv2_lib.mjs'
+import { ogHpMult } from '../rosterParity.js'
+const NS_HP_MULT = ogHpMult('ninja_storm_rangers'), NS_HP = Math.round(1200 * NS_HP_MULT)   // 2026-11-23 OG roster HP buff
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const R = reporter('MSv2 TEST'), D = await launch()
 const ONLY = process.argv[2] || 'all'
@@ -40,20 +42,20 @@ try {
         stances: c?.stances, kit: !!(kits.KITS || kits.default || {}).ninja_storm_rangers || JSON.stringify(Object.keys(kits)).length > 0,
         credit: JSON.stringify(cr).includes('Grim') }
     })
-    R.check('exactly ONE new roster key (ninja_storm_rangers)', info.has && info.nsLike.length === 1 && info.nsLike[0] === 'ninja_storm_rangers', info.nsLike)
-    R.check('roster size = 160 + 1', info.n === 161, info.n)
+    R.check('ninja_storm_rangers is a roster key (ninja_storm_cgpt joined it 2026-11-19, user-merged)', info.has && info.nsLike.includes('ninja_storm_rangers') && info.nsLike.every(k => ['ninja_storm_rangers', 'ninja_storm_cgpt'].includes(k)), info.nsLike)
+    R.check('roster size >= 160 + 1 (the roster has grown since)', info.n >= 161, info.n)
     R.check('name "Ninja Storm Rangers", fullName "Shane Clarke & Dustin Brooks"', info.name === 'Ninja Storm Rangers' && info.displayName === 'Ninja Storm Rangers' && info.fullName === 'Shane Clarke & Dustin Brooks', info)
     R.check('Power Rangers universe, difficulty 5, archetype, tagline', info.universe === 'power_rangers' && info.difficulty === 5 && info.archetype === 'Teleport Rushdown / Mixup Ninja, dual-stance' && info.tagline === 'Ninja Storm, ranger form!')
     R.check('playable with sprites, stances [red, yellow]', info.playable && info.hasSprites && JSON.stringify(info.stances) === '["red","yellow"]')
     const s = await S()
     R.check('match starts in RED stance (Shane sheet)', s.stance === 'red' && /ninja_storm\/red\//.test(s.sheet), s.sheet)
-    R.check('one shared health bar (maxHealth 1200)', s.maxHealth === 1200, s.maxHealth)
+    R.check(`one shared health bar (maxHealth 1200 x roster HP ${NS_HP_MULT} = ${NS_HP})`, s.maxHealth === NS_HP, s.maxHealth)
     // health never changes on a swap
     await D.fresh(400, { energy: 50 })
     await D.page.evaluate(() => { __harness.nsrTest.raw('p1').health = 777 })
     await D.dial('k'); await step(3)
     let t = await S()
-    R.check('swap keeps health (777) and maxHealth', t.stance === 'yellow' && t.health === 777 && t.maxHealth === 1200, { st: t.stance, hp: t.health })
+    R.check('swap keeps health (777) and maxHealth', t.stance === 'yellow' && t.health === 777 && t.maxHealth === NS_HP, { st: t.stance, hp: t.health })
   }
 
   if (want('vanish')) {

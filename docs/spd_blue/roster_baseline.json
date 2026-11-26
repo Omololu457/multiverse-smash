@@ -1780,7 +1780,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 79,
+        "damage": 72,
         "startup": 3,
         "active": 3,
         "recovery": 9,
@@ -1789,7 +1789,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 123,
+        "damage": 112,
         "startup": 7,
         "active": 4,
         "recovery": 16,
@@ -3377,7 +3377,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 90,
+        "damage": 80,
         "startup": 3,
         "active": 2,
         "recovery": 8,
@@ -3386,7 +3386,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 130,
+        "damage": 118,
         "startup": 7,
         "active": 3,
         "recovery": 16,
@@ -3586,7 +3586,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 84,
+        "damage": 76,
         "startup": 3,
         "active": 2,
         "recovery": 7,
@@ -3595,7 +3595,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 118,
+        "damage": 108,
         "startup": 6,
         "active": 3,
         "recovery": 16,
@@ -3681,7 +3681,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 82,
+        "damage": 74,
         "startup": 3,
         "active": 2,
         "recovery": 8,
@@ -3690,7 +3690,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 120,
+        "damage": 110,
         "startup": 6,
         "active": 3,
         "recovery": 16,
@@ -3752,9 +3752,9 @@
       }
     },
     "ultimate": {
-      "name": "Beast Breathing: Assist",
+      "name": "Beast Breathing: Explosive Rush",
       "cost": 0,
-      "description": "Signature is the mid-combo Beast Breathing Assist (Stage 4). No separate ultimate."
+      "description": "Eighth Form — a reckless criss-cross charge through the foe: five fang strikes and a final piercing lunge (300). 9s cooldown, no meter. The Beast Breathing Assist stays his mid-combo signature."
     }
   },
   "nezuko": {
@@ -3772,7 +3772,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 82,
+        "damage": 74,
         "startup": 3,
         "active": 2,
         "recovery": 8,
@@ -3781,7 +3781,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 114,
+        "damage": 104,
         "startup": 6,
         "active": 3,
         "recovery": 16,
@@ -3843,23 +3843,23 @@
   },
   "rick": {
     "stats": {
-      "maxHealth": 1050,
+      "maxHealth": 1400,
       "maxEnergy": 160,
-      "attack": 82,
-      "defense": 78,
-      "speed": 84,
+      "attack": 100,
+      "defense": 92,
+      "speed": 99,
       "maxJumps": 2,
-      "jumpPower": 28,
-      "dashSpeed": 14,
-      "dashDuration": 10,
-      "dashCooldownMax": 45
+      "jumpPower": 32,
+      "dashSpeed": 30,
+      "dashDuration": 12,
+      "dashCooldownMax": 20
     },
     "basic_attacks": {
       "light": {
         "damage": 40,
-        "startup": 5,
+        "startup": 4,
         "active": 3,
-        "recovery": 12,
+        "recovery": 6,
         "hitstun": 12,
         "knockbackX": 3,
         "knockbackY": 0,
@@ -3868,9 +3868,9 @@
       },
       "heavy": {
         "damage": 72,
-        "startup": 9,
+        "startup": 7,
         "active": 4,
-        "recovery": 20,
+        "recovery": 13,
         "hitstun": 18,
         "knockbackX": 6,
         "knockbackY": 1,
@@ -3880,9 +3880,9 @@
       "upAttack": {
         "type": "launcher",
         "damage": 56,
-        "startup": 8,
+        "startup": 7,
         "active": 4,
-        "recovery": 17,
+        "recovery": 11,
         "hitstun": 20,
         "knockbackX": 2,
         "knockbackY": -8,
@@ -3890,18 +3890,18 @@
       },
       "airAttack": {
         "damage": 44,
-        "startup": 6,
+        "startup": 5,
         "active": 3,
-        "recovery": 11,
+        "recovery": 7,
         "hitstun": 13,
         "knockbackX": 3,
         "knockbackY": -2
       },
       "grab": {
         "damage": 30,
-        "startup": 6,
+        "startup": 5,
         "active": 3,
-        "recovery": 14,
+        "recovery": 9,
         "hitstun": 18,
         "throwForceX": 5,
         "throwForceY": -3
@@ -3922,7 +3922,7 @@
     "ultimate": {
       "name": "Self-Destruct",
       "cost": 140,
-      "description": "Instant proximity AOE blast — only connects if the opponent is close enough. Costs Rick 15% of his max HP to detonate (non-lethal) on top of the near-max meter cost."
+      "description": "Point-blank it detonates at once; from ANY range Rick fires a portal shot — if it reaches the foe he portals in and the whole multiverse Self-Destruct plays out (300 raw). Costs Rick 15% of his max HP (non-lethal) on top of the near-max meter cost; a blocked / dodged shot still spends both."
     }
   },
   "morty": {
@@ -4135,59 +4135,59 @@
   },
   "rickPrime": {
     "stats": {
-      "maxHealth": 1120,
+      "maxHealth": 1500,
       "maxEnergy": 180,
-      "attack": 92,
-      "defense": 82,
-      "speed": 88,
+      "attack": 104,
+      "defense": 94,
+      "speed": 99,
       "maxJumps": 2,
-      "jumpPower": 30,
-      "dashSpeed": 18,
-      "dashDuration": 10,
-      "dashCooldownMax": 38
+      "jumpPower": 33,
+      "dashSpeed": 30,
+      "dashDuration": 12,
+      "dashCooldownMax": 20
     },
     "basic_attacks": {
       "light": {
         "damage": 55,
-        "startup": 4,
+        "startup": 3,
         "active": 3,
-        "recovery": 10,
+        "recovery": 6,
         "hitstun": 13,
         "knockbackX": 3,
         "knockbackY": 0
       },
       "heavy": {
         "damage": 95,
-        "startup": 8,
+        "startup": 6,
         "active": 4,
-        "recovery": 18,
+        "recovery": 12,
         "hitstun": 19,
         "knockbackX": 7,
         "knockbackY": 1
       },
       "upAttack": {
         "damage": 75,
-        "startup": 7,
+        "startup": 6,
         "active": 4,
-        "recovery": 16,
+        "recovery": 10,
         "hitstun": 21,
         "knockbackX": 2,
         "knockbackY": -8
       },
       "airAttack": {
         "damage": 65,
-        "startup": 5,
+        "startup": 4,
         "active": 3,
-        "recovery": 10,
+        "recovery": 7,
         "hitstun": 14,
         "knockbackX": 3,
         "knockbackY": -2
       },
       "downAir": {
         "damage": 90,
-        "startup": 9,
+        "startup": 8,
         "active": 4,
-        "recovery": 15,
+        "recovery": 10,
         "hitstun": 19,
         "knockbackX": 1,
         "knockbackY": 10
@@ -4245,7 +4245,7 @@
         "effect": "Portal Skyshot — a rising portal-energy burst that launches (Up+Special); the anti-air the zoner lacked"
       },
       "energySiphon": {
-        "cost": 15,
+        "cost": 10,
         "subtype": "steal",
         "effect": "Energy Siphon (Back+Special — hold AWAY from the opponent) — steal + fire back the foe's own projectile (they pay its cost); fizzles vs a foe with no projectile or too little energy"
       },
@@ -4258,7 +4258,7 @@
     "ultimate": {
       "name": "Temporal Rewind",
       "cost": 150,
-      "effect": "Rewinds the whole match ~10s (both fighters' health/position/energy + the round timer roll back to a buffered snapshot) then ADDS 10s bonus time on top. Blocked while either side is mid-cinematic; restores to a clean neutral stance. (game.js-owned rewind buffer)"
+      "effect": "Rewinds the match ~10s — ONLY Rick Prime's health/energy roll back (never down); the foe LOSES 25% of their current health + energy each time, and dies outright under 1%. The foe's position + the round timer roll back to a buffered snapshot, then 10s bonus time is ADDED on top. Blocked while either side is mid-cinematic; restores to a clean neutral stance. (game.js-owned rewind buffer)"
     }
   },
   "beerus": {
@@ -4373,11 +4373,11 @@
   },
   "ben10": {
     "stats": {
-      "maxHealth": 1250,
+      "maxHealth": 950,
       "maxEnergy": 100,
       "attack": 90,
       "defense": 85,
-      "speed": 5,
+      "speed": 9,
       "maxJumps": 1,
       "jumpPower": 19,
       "dashSpeed": 15,
@@ -4386,7 +4386,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 42,
+        "damage": 20,
         "startup": 5,
         "active": 3,
         "recovery": 11,
@@ -4395,27 +4395,27 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 80,
-        "startup": 9,
+        "damage": 55,
+        "startup": 13,
         "active": 4,
-        "recovery": 19,
+        "recovery": 20,
         "hitstun": 16,
         "knockbackX": 5,
         "knockbackY": 1,
         "superArmor": true
       },
       "upAttack": {
-        "damage": 62,
-        "startup": 8,
+        "damage": 50,
+        "startup": 11,
         "active": 4,
-        "recovery": 17,
+        "recovery": 19,
         "hitstun": 18,
         "knockbackX": 2,
         "knockbackY": -8
       },
       "airAttack": {
-        "damage": 50,
-        "startup": 6,
+        "damage": 34,
+        "startup": 8,
         "active": 3,
         "recovery": 11,
         "hitstun": 12,
@@ -4423,8 +4423,8 @@
         "knockbackY": -2
       },
       "downAir": {
-        "damage": 66,
-        "startup": 9,
+        "damage": 28,
+        "startup": 7,
         "active": 4,
         "recovery": 15,
         "hitstun": 16,
@@ -4441,12 +4441,31 @@
         "throwForceY": -3
       }
     },
-    "specials": {},
+    "specials": {
+      "energyShot": {
+        "name": "Energy Shot",
+        "input": "↓↘→ + Special",
+        "cost": 12,
+        "effect": "Green Omnitrix-energy projectile"
+      },
+      "dashStrike": {
+        "name": "Dash Strike",
+        "input": "→→ + Special",
+        "cost": 10,
+        "effect": "I-frame energy lunge"
+      },
+      "shockwave": {
+        "name": "Shockwave",
+        "input": "←↙↓ + Special",
+        "cost": 18,
+        "effect": "Expanding radial ring (Prime only)"
+      }
+    },
     "ultimate": {
       "name": "Omnitrix Overload",
       "cost": 100,
       "duration": 8,
-      "effect": "Active alien's ultimate"
+      "effect": "3-hit radial burst (250), human Ben only"
     }
   },
   "albedo": {
@@ -5529,82 +5548,168 @@
   },
   "batman": {
     "stats": {
-      "maxHealth": 1080,
+      "maxHealth": 1150,
       "maxEnergy": 100,
-      "attack": 86,
-      "defense": 88,
-      "speed": 92,
+      "attack": 94,
+      "defense": 90,
+      "speed": 94,
+      "jumpPower": 26,
       "maxJumps": 2,
-      "jumpPower": 32,
-      "dashSpeed": 17,
-      "dashDuration": 11,
-      "dashCooldownMax": 30
+      "weight": 1,
+      "dashSpeed": 20,
+      "dashDuration": 10,
+      "dashCooldownMax": 24
     },
     "basic_attacks": {
       "light": {
-        "damage": 32,
-        "startup": 3,
+        "raw": 48,
+        "damage": 48,
+        "startup": 5,
         "active": 3,
-        "recovery": 8,
-        "hitstun": 13,
-        "knockbackX": 2,
-        "knockbackY": 0
+        "recovery": 10,
+        "frameExact": true,
+        "category": "light",
+        "hitstun": 17,
+        "blockstun": 10,
+        "box": [
+          8,
+          49,
+          -84,
+          -56
+        ],
+        "rangeX": 45,
+        "rangeY": 39,
+        "knockbackX": 3,
+        "knockbackY": -1
       },
       "heavy": {
-        "damage": 64,
-        "startup": 7,
+        "raw": 95,
+        "damage": 95,
+        "startup": 11,
         "active": 4,
-        "recovery": 16,
-        "hitstun": 18,
-        "knockbackX": 7,
-        "knockbackY": 1
+        "recovery": 20,
+        "frameExact": true,
+        "category": "heavy",
+        "hitstun": 26,
+        "blockstun": 14,
+        "box": [
+          6,
+          51,
+          -84,
+          -40
+        ],
+        "rangeX": 47,
+        "rangeY": 62,
+        "knockbackX": 8,
+        "knockbackY": -4
+      },
+      "crouchLight": {
+        "raw": 42,
+        "damage": 42,
+        "startup": 5,
+        "active": 3,
+        "recovery": 11,
+        "frameExact": true,
+        "category": "light",
+        "hitstun": 16,
+        "blockstun": 9,
+        "box": [
+          6,
+          47,
+          -52,
+          -22
+        ],
+        "rangeX": 42,
+        "rangeY": 42,
+        "knockbackX": 3,
+        "knockbackY": -1,
+        "hitLevel": "low"
       },
       "upAttack": {
-        "type": "launcher",
-        "damage": 52,
+        "raw": 75,
+        "damage": 75,
         "startup": 6,
         "active": 4,
         "recovery": 8,
-        "hitstun": 20,
-        "knockbackX": 2,
+        "frameExact": true,
+        "category": "launcher",
+        "hitstun": 30,
+        "blockstun": 13,
+        "box": [
+          -6,
+          46,
+          -100,
+          -28
+        ],
+        "rangeX": 40,
+        "rangeY": 101,
+        "knockbackX": 3,
         "knockbackY": -9,
-        "launch": 12,
+        "launcher": true,
         "launchVy": -32,
-        "selfVy": -9,
-        "airOK": false
+        "selfVy": 0
       },
       "airAttack": {
-        "damage": 45,
-        "startup": 4,
-        "active": 3,
-        "recovery": 11,
-        "hitstun": 13,
-        "knockbackX": 3,
-        "knockbackY": -2
-      },
-      "downAir": {
-        "damage": 58,
+        "raw": 65,
+        "damage": 65,
         "startup": 6,
         "active": 4,
-        "recovery": 13,
-        "hitstun": 16,
-        "knockbackX": 1,
-        "knockbackY": 9
+        "recovery": 12,
+        "frameExact": true,
+        "category": "light",
+        "hitstun": 18,
+        "blockstun": 10,
+        "box": [
+          0,
+          42,
+          -70,
+          -4
+        ],
+        "rangeX": 35,
+        "rangeY": 92,
+        "knockbackX": 3,
+        "knockbackY": -3
+      },
+      "downAir": {
+        "raw": 90,
+        "damage": 90,
+        "startup": 10,
+        "active": 40,
+        "recovery": 0,
+        "frameExact": true,
+        "category": "heavy",
+        "hitstun": 30,
+        "blockstun": 15,
+        "box": [
+          -8,
+          52,
+          -56,
+          22
+        ],
+        "rangeX": 49,
+        "rangeY": 109,
+        "knockbackX": 5,
+        "knockbackY": 6,
+        "dive": {
+          "vx": 9,
+          "vy": 15
+        }
       },
       "grab": {
-        "damage": 26,
+        "damage": 45,
         "startup": 6,
         "active": 3,
-        "recovery": 13,
-        "hitstun": 18,
-        "throwForceX": 5,
-        "throwForceY": -3
+        "recovery": 22,
+        "hitstun": 22,
+        "throwForceX": 9,
+        "throwForceY": -5,
+        "damageType": "grab"
       }
     },
     "ultimate": {
-      "name": "The Dark Knight",
+      "name": "KNIGHTFALL: ORBITAL IMPACT",
       "cost": 100,
-      "description": "The Dark Knight — a cinematic barrage of batarangs raining down on a staggered foe (freeze-focus finisher)."
+      "description": "Committed grapnel opener. Clean hit: the fixed-wing aircraft snatches the foe on a tether → sky → space → full-speed reentry → ground slam + explosion (420 raw total). Whiff / block: 44 f recovery."
     }
   },
   "hisoka": {
@@ -5763,9 +5868,9 @@
     },
     "specials": {
       "heatVision": {
-        "cost": 15,
+        "cost": 0,
         "damage": 60,
-        "effect": "Eye beam (↓↘→+Attack). Tap = 60 burst; hold = sustained 8/tick beam, angleable ±30°, extra 5 energy/sec."
+        "effect": "Eye beam (neutral Special). Runs on its own LASER bar, not Solar Energy: tap = burst, hold = sustained auto-aim beam that drains the bar; 1s cooldown after every beam, 2.5s overheat if the bar empties."
       },
       "freezeBreath": {
         "cost": 20,
@@ -6121,7 +6226,7 @@
   },
   "green_arrow": {
     "stats": {
-      "maxHealth": 920,
+      "maxHealth": 980,
       "maxEnergy": 100,
       "attack": 82,
       "defense": 74,
@@ -6336,20 +6441,20 @@
   },
   "ghostface": {
     "stats": {
-      "maxHealth": 950,
+      "maxHealth": 1250,
       "maxEnergy": 100,
-      "attack": 85,
-      "defense": 76,
-      "speed": 97,
+      "attack": 100,
+      "defense": 88,
+      "speed": 105,
       "maxJumps": 2,
-      "jumpPower": 32,
-      "dashSpeed": 22,
+      "jumpPower": 33,
+      "dashSpeed": 27,
       "dashDuration": 10,
-      "dashCooldownMax": 28
+      "dashCooldownMax": 16
     },
     "basic_attacks": {
       "light": {
-        "damage": 35,
+        "damage": 47,
         "startup": 4,
         "active": 2,
         "recovery": 9,
@@ -6358,7 +6463,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 62,
+        "damage": 84,
         "startup": 8,
         "active": 3,
         "recovery": 16,
@@ -6370,7 +6475,7 @@
       },
       "upAttack": {
         "type": "launcher",
-        "damage": 60,
+        "damage": 81,
         "startup": 5,
         "active": 3,
         "recovery": 8,
@@ -6383,7 +6488,7 @@
         "airOK": false
       },
       "airAttack": {
-        "damage": 40,
+        "damage": 54,
         "startup": 4,
         "active": 2,
         "recovery": 10,
@@ -6392,7 +6497,7 @@
         "knockbackY": -2
       },
       "downAir": {
-        "damage": 48,
+        "damage": 65,
         "startup": 6,
         "active": 3,
         "recovery": 12,
@@ -6404,7 +6509,7 @@
     "specials": {
       "guttingLunge": {
         "cost": 25,
-        "damage": 50,
+        "damage": 68,
         "startup": 6,
         "active": 4,
         "recovery": 16,
@@ -6415,7 +6520,7 @@
       },
       "lowGut": {
         "cost": 20,
-        "damage": 42,
+        "damage": 57,
         "startup": 6,
         "active": 3,
         "recovery": 18,
@@ -6426,7 +6531,7 @@
       },
       "backstagePass": {
         "cost": 25,
-        "damage": 45,
+        "damage": 61,
         "startup": 14,
         "active": 3,
         "recovery": 16,
@@ -8521,10 +8626,9 @@
       }
     },
     "ultimate": {
-      "name": "—",
+      "name": "The Final Deduction",
       "cost": 100,
-      "description": "(Stage 1 placeholder — L has no ultimate; his marquee golden-nova ships as a special.)",
-      "placeholder": true
+      "description": "L deduces the truth — case files, red string, 99% — then closes in with capoeira and ends it: Checkmate."
     }
   },
   "yamamoto": {
@@ -8623,7 +8727,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 62,
+        "damage": 70,
         "startup": 8,
         "active": 3,
         "recovery": 18,
@@ -10210,7 +10314,7 @@
     "basic_attacks": {
       "light": {
         "damage": 45,
-        "startup": 7,
+        "startup": 5,
         "active": 4,
         "recovery": 12,
         "hitstun": 12,
@@ -11739,7 +11843,7 @@
     },
     "basic_attacks": {
       "light": {
-        "damage": 22,
+        "damage": 30,
         "startup": 5,
         "active": 3,
         "recovery": 7,
@@ -11748,7 +11852,7 @@
         "knockbackY": 0
       },
       "heavy": {
-        "damage": 62,
+        "damage": 72,
         "startup": 14,
         "active": 4,
         "recovery": 18,
@@ -11923,7 +12027,7 @@
   },
   "buggy": {
     "stats": {
-      "maxHealth": 1100,
+      "maxHealth": 1180,
       "maxEnergy": 100,
       "attack": 80,
       "defense": 78,
@@ -12056,11 +12160,11 @@
   },
   "sanji": {
     "stats": {
-      "maxHealth": 1100,
+      "maxHealth": 1180,
       "maxEnergy": 100,
       "attack": 84,
       "defense": 80,
-      "speed": 83.6,
+      "speed": 94,
       "jumpPower": 33,
       "maxJumps": 1,
       "weight": 0.85,
@@ -12193,11 +12297,11 @@
   },
   "arlong": {
     "stats": {
-      "maxHealth": 1220,
+      "maxHealth": 1320,
       "maxEnergy": 100,
       "attack": 82,
       "defense": 84,
-      "speed": 78,
+      "speed": 86,
       "jumpPower": 25,
       "maxJumps": 1,
       "weight": 1.3,
@@ -12332,7 +12436,7 @@
   },
   "krybot": {
     "stats": {
-      "maxHealth": 1080,
+      "maxHealth": 1180,
       "maxEnergy": 100,
       "attack": 80,
       "defense": 80,
@@ -12484,7 +12588,7 @@
   },
   "luffy": {
     "stats": {
-      "maxHealth": 1150,
+      "maxHealth": 1250,
       "maxEnergy": 100,
       "attack": 85,
       "defense": 85,

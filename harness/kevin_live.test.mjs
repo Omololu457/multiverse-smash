@@ -29,6 +29,7 @@ try {
     const {resolveProjectileHitsMulti}=await import('./combat.js')
     const {kevinHand,kevinState}=await import('./kevinState.js')
     const {KEVIN_MOVES,KEVIN_SKINS,KEVIN_ART,SAMPLE_IDS,KEVIN_RUSH}=await import('./kevinData.js')
+    const {rosterDamageBoost}=await import('./rosterParity.js'),KB=rosterDamageBoost({rosterKey:'kevin_levin'})   // OG x roster balance (2026-11-23..25) multiplies every applied hit
     const H=__harness.kevinTest
     const a=H.raw(),b=H.raw('p2'), W=H.world, checks=[],measure=[],routes=[]
     const check=(label,ok,data)=>checks.push({label,ok:!!ok,data})
@@ -86,7 +87,7 @@ try {
     }
     reset()
     check('Kevin registered',a.rosterKey==='kevin_levin',{key:a.rosterKey})
-    check('twelve sourced skin entries',KEVIN_SKINS.length===12 && KEVIN_SKINS.every(s=>s.source))
+    check('twelve sourced skin entries',KEVIN_SKINS.filter(s=>s.source).length===12)   // the shared skin list also gets the roster-wide premade skins (Edo Tensei, 2026-11-20) at runtime
     for (const [key,raw] of Object.entries({
       light:{light:true},heavy:{heavy:true},kReach:{right:true,heavy:true},up:{upAttack:true},
       kSweep:{down:true,heavy:true},kGrab:{grab:true},kRush:{right:true,special:true},
@@ -165,7 +166,7 @@ try {
     check('Thunder spends slot on commitment',a.currentMove==='kThunder' && !a._kevin.stored)
     step({}, {}, 52)
     measure.push({key:'kThunder',raw:155,damage:beforeThunder-b.health})
-    check('Thunder single damage result',beforeThunder-b.health===93,{damage:beforeThunder-b.health})
+    check('Thunder single damage result',beforeThunder-b.health===Math.floor(93*KB),{damage:beforeThunder-b.health})
 
     for(const [label,time,options] of [
       ['early',0,{}],['late',17,{}],['receding',6,{wrong:true}],
@@ -297,7 +298,7 @@ try {
     check('form times out and ends',a._kevin.formUntil===0 && !a._kevin.cinematic && a.health===a.maxHealth)
 
     const signatures=[]
-    for(const {id} of KEVIN_SKINS) {
+    for(const {id} of KEVIN_SKINS.filter(s=>s.source)) {   // Kevin's own 12 atlases; runtime-added roster-wide skins (Edo) draw through the default atlas
       reset();__harness.setSkin('p1',id)
       const hp0=b.health
       press({heavy:true});step({}, {}, 47)
@@ -316,7 +317,7 @@ try {
     const lateHP=b.health
     press({ultimate:true});step({}, {}, 280)   // re-pinned 2026-11-24 (rangers_rest): was 101 (cash-out cinematic)
     const lateDamage=lateHP-b.health
-    check('near-expiry cash-out deals about 180 raw',lateDamage>=108&&lateDamage<=110,{lateDamage})
+    check('near-expiry cash-out deals about 180 raw',lateDamage>=Math.floor(108*KB)&&lateDamage<=Math.ceil(110*KB),{lateDamage})
     measure.push({key:'kCash late',damage:lateDamage})
     reset();transform();b.health=15;press({ultimate:true});step({}, {}, 280)   // re-pinned 2026-11-24 (rangers_rest): was 70 (cash-out cinematic)
     check('cash-out resolves KO',b.health===0,{hp:b.health,cinematic:a._kevin?.cinematic})

@@ -301,7 +301,7 @@ test('13. slot → PICK FIVE: slot count stays 5, Upgrade READY + pickable (cata
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Dragonrod/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit line')
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Upgrade'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Upgrade'); assert.equal(f.health, 2447, 'shared health')
   assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.95) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.00) < 1e-9 && Math.abs(f._benWeight - 0.85) < 1e-9, 'def 0.95 / dmg 1.00 / weight 0.85')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 1.00 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×1.00')
 })

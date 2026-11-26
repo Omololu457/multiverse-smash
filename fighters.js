@@ -1,5 +1,6 @@
 import { albedoBaseSkinId } from "./albedoThemes.js"   // Albedo skin themes → variant id (identity for every non-theme id)
 import { benAlienDamageMult, benAlienDefenseMult, benAlienSpeedMult, BEN_HUMAN_BUFF } from "./benAlienBalance.js"   // global READY-alien damage / toughness buff (2026-11-19)
+import { damageBasedHpMult } from "./rosterBalance.js"
 import { SWAMPFIRE, SWAMPFIRE_ANIM } from "./swampfire.js"
 import { isAlienAvailable, getAvailableAlienKeys, getAlienDefinition, BEN10_SLOT_COUNT } from "./aliens.js"
 import { benThemeBaseSkin } from "./benThemes.js"   // a themed skin wears its original appearance's variant
@@ -2081,7 +2082,7 @@ export function applyBen10VariantStats(fighter, skinId = "default") {
   const V0 = BEN10_VARIANT_STATS[skinId] || BEN10_VARIANT_STATS.default
   const V = { ...V0, speed: V0.speed * BEN_HUMAN_BUFF.speed, dashSpeed: V0.dashSpeed * BEN_HUMAN_BUFF.speed }   // human-form speed buff (aliens build on it)
   fighter._benFormDamage = BEN_HUMAN_BUFF.damage; fighter.damageMultiplier = BEN_HUMAN_BUFF.damage; fighter.defenseMultiplier = BEN_HUMAN_BUFF.defense
-  fighter.maxHealth = Math.round(V.maxHealth * BEN_HUMAN_BUFF.hp)   // 2026-11-23 Ben/Albedo HP buff
+  fighter.maxHealth = Math.round(V.maxHealth * BEN_HUMAN_BUFF.hp * damageBasedHpMult(k))
   fighter.health    = fighter.maxHealth           // full at round start (this is the SHARED pool)
   fighter.speed     = V.speed
   fighter.baseSpeed = V.speed

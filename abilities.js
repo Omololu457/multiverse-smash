@@ -1,3 +1,4 @@
+import { SAMURAI_FORMS, SAMURAI_ELEMENTS, ELEMENT_MEGA_ART, SAMURAI_ZORDS, SAMURAI_ZORD_COST, samuraiWaveArt, samuraiZordArt } from './samuraiData.js'
 import { executeLuffySpecial, executeLuffyUltimate } from './luffy.js'
 import { castRegisteredUlt } from "./cineRegistry.js"   // character-owned cinematic ultimates (registerUltCast)
 import { luffyRegen } from './luffyState.js'
@@ -14747,7 +14748,7 @@ function fireSamuraiRangerMove(fighter, key) {
 // up-attack (tap/hold) → its built-in up is suppressed (game.js) and driven here; Gold uses a SINGLE
 // standard up-attack (its up is NOT suppressed), so the merged-up branch is gated to Red only. The
 // Fwd+Heavy rekka chain runs for BOTH (identical logic, each ranger's own sprites via animationData).
-const SAMURAI_RANGER_KEYS = new Set(["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"])
+const SAMURAI_RANGER_KEYS = new Set(SAMURAI_FORMS)
 export function updateSamuraiRangerCommandCombat(fighter, inputState, context, getPhase) {
   const rk = (fighter?.rosterKey || "").toLowerCase()
   if (!fighter || !SAMURAI_RANGER_KEYS.has(rk) || !inputState) return false
@@ -14824,7 +14825,7 @@ const SAMURAI_MEGA_MULT      = { dmg: 1.35, spd: 1.05, def: 1.08 }
 // per-char art is chosen inside applySamuraiMegaStats (mega anim) + drawSamuraiMegaTransform (symbol).
 // NOTE: the fire SPECIAL/ULTIMATE (executeSamuraiRanger*) also call this, but Gold is not dispatched to
 // them (game.js special/ultimate switch is per-rosterKey) until Gold gets its OWN Stage-4/5 wiring.
-const isSamuraiRanger = (f) => SAMURAI_RANGER_KEYS.has((f?.rosterKey || "").toLowerCase())
+export const isSamuraiRanger = f => SAMURAI_RANGER_KEYS.has((f?.rosterKey || "").toLowerCase())
 export function samuraiIsMega(f) { return !!f?._megaActive && !!f?._megaArtApplied }   // TRUE once resolved (gates Mega-only Flame Slash in Stage 4)
 
 // FULL Mega-tier form anim (all RE-SLICED from copies). Keys mirror the base animationData; sprite.js
@@ -14910,7 +14911,7 @@ const GREEN_MEGA_ANIM = {
   ultimate: { frames: 21, width: 93, height: 91, speed: 2, anchorY: 0, loop: false, lockLastFrame: true, sheet: "./samurai_ranger_forest_mega_launcher_uniform.png" }
 }
 // Per-character Mega form anim: applySamuraiMegaStats swaps in the caster's OWN mega art.
-const SAMURAI_MEGA_ANIM_BY_KEY = { samurai_red_ranger: SAMURAI_MEGA_ANIM, gold_samurai_ranger: GOLD_MEGA_ANIM, green_samurai_ranger: GREEN_MEGA_ANIM }
+const SAMURAI_MEGA_ANIM_BY_KEY = { samurai_red_ranger: SAMURAI_MEGA_ANIM, gold_samurai_ranger: GOLD_MEGA_ANIM, green_samurai_ranger: GREEN_MEGA_ANIM, ...ELEMENT_MEGA_ART }
 
 function applySamuraiMegaStats(fighter) {
   const anim = SAMURAI_MEGA_ANIM_BY_KEY[(fighter.rosterKey || "").toLowerCase()] || SAMURAI_MEGA_ANIM
@@ -14924,6 +14925,97 @@ function applySamuraiMegaStats(fighter) {
   fighter.speedMultiplier   = SAMURAI_MEGA_MULT.spd
   fighter.defenseMultiplier = SAMURAI_MEGA_MULT.def
   fighter.currentFormData   = fighter.transformations?.megaMode || fighter.currentFormData   // updateTransformationState re-applies this each frame (Vegeta gotcha)
+}
+
+// A squad switch changes the active art, while live Mega Mode and the shared
+// Symbol Power meter carry over to the incoming Ranger.
+export function restoreSamuraiMega(fighter) {
+  if (samuraiIsMega(fighter)) applySamuraiMegaStats(fighter)
+}
+
+function startSamuraiProjectileCast(fighter, move, startup, recovery, ultimate) {
+  const attack = createAttackFromMove(fighter, move, {
+    startup, active: 1, recovery, isSpecial: !ultimate, category: ultimate ? "ultimate" : "special"
+  })
+  attack.isUltimate = ultimate
+  attack.hasHit = true // the spawned strike owns collision, not the Ranger's cast pose
+  setAttackState(fighter, attack, startup + 1 + recovery)
+  fighter.vx = 0
+}
+
+function samuraiProjectileReady(fighter) {
+  return fighter && fighter.health > 0 && !fighter.attacking && !fighter.isGrabbed && !fighter.knockdownState &&
+    !(fighter.hitstun > 0) && !(fighter.blockstun > 0) && !(fighter.attackCooldown > 0) &&
+    !(fighter._megaMorphTimer > 0)
+}
+
+function castSamuraiElement(fighter, context, ultimate = false) {
+  const cfg = SAMURAI_ELEMENTS[fighter.rosterKey]
+  if (!cfg || !samuraiProjectileReady(fighter) || !spendEnergy(fighter, ultimate ? 100 : cfg.cost)) return false
+  const mega = samuraiIsMega(fighter)
+  const art = samuraiWaveArt(fighter.rosterKey)
+  const face = fighter.facing || 1
+  const delay = ultimate ? 15 : 9
+  const velocity = cfg.velocity * (ultimate ? 1.12 : 1)
+  const feet = fighter.y + fighter.h
+  const height = cfg.h * (ultimate ? 1.55 : 1)
+  startSamuraiProjectileCast(fighter, ultimate ? "ultimate" : "symbolCast", delay, ultimate ? 25 : 19, ultimate)
+  spawnProjectile(fighter, ultimate ? cfg.ultimate : cfg.special, {
+    sheet: art.sheet, spriteFrames: art.frames, spriteW: art.width, spriteH: art.height,
+    spriteSpeed: art.speed, spriteScale: ultimate ? 2.35 : mega ? 1.7 : 1.45,
+    vx: face * velocity, vy: cfg.rise, hitDelay: delay, lifetime: delay + cfg.life,
+    spawnX: fighter.x + fighter.w / 2 + face * (48 - velocity * delay),
+    spawnY: feet - height / 2 - cfg.rise * delay - (cfg.asset === "earth" ? 1 : 12),
+    damage: Math.round(cfg.damage * (ultimate ? 2.85 : 1) * (mega ? SAMURAI_MEGA_MULT.dmg : 1)),
+    w: cfg.w * (ultimate ? 1.4 : 1), h: height,
+    isSpecial: !ultimate, isUltimate: ultimate, rectHitbox: true, color: fighter.color,
+    hitstun: ultimate ? 31 : 20, knockbackX: ultimate ? 12 : 7, knockbackY: cfg.lift,
+  }, context)
+  shakeCamera(context, ultimate ? 10 : 3, ultimate ? 13 : 6)
+  return true
+}
+
+export function castSamuraiZord(fighter, id, context) {
+  const cfg = SAMURAI_ZORDS[id]
+  if (!cfg || !samuraiProjectileReady(fighter) || !isSamuraiRanger(fighter) ||
+      fighter.ultimateCooldown > 0 || fighter._kotoMirror > 0 || isSpecialDisabled(fighter, "ultimate") ||
+      context?.cinematicSafe === false || !spendEnergy(fighter, SAMURAI_ZORD_COST)) return false
+  const art = samuraiZordArt(id)
+  const face = fighter.facing || 1
+  const feet = context?.groundY ?? (fighter.y + fighter.h)
+  const approach = id === "tiger" ? 8 : id === "battlewing" ? 29 : 95
+  startSamuraiProjectileCast(fighter, SAMURAI_ELEMENTS[fighter.rosterKey] ? "symbolCast" : "ultimate", cfg.delay, 26, true)
+  spawnProjectile(fighter, cfg.name, {
+    sheet: art.sheet, spriteFrames: art.frames, spriteW: art.width, spriteH: art.height,
+    spriteSpeed: art.speed, spriteScale: cfg.scale, spriteOnce: true,
+    spriteBottomY: id === "battlewing" ? feet - 62 : feet,
+    spawnX: fighter.x + fighter.w / 2 + face * approach, spawnY: feet - cfg.lift,
+    vx: face * cfg.speed, hitDelay: cfg.delay, lifetime: cfg.life,
+    damage: Math.round(cfg.damage * (samuraiIsMega(fighter) ? 1.2 : 1)),
+    w: cfg.w, h: cfg.h, rectHitbox: true, isUltimate: true, piercesMulti: true,
+    hitstun: 31, knockbackX: 12, knockbackY: cfg.knockbackY, color: cfg.color,
+  }, context)
+  fighter.ultimateCooldown = ULTIMATE_COOLDOWN_FRAMES
+  fighter.teleportFlash = Math.max(fighter.teleportFlash || 0, cfg.delay)
+  shakeCamera(context, 13, 14)
+  return true
+}
+
+// Free-for-all keeps the solo finishers on the live stage, so a missed swing
+// never freezes the other players or commits them to a duel cinematic.
+function castSamuraiArenaFinisher(fighter, context) {
+  if (!samuraiProjectileReady(fighter) || !spendEnergy(fighter, 100)) return false
+  const mega = samuraiIsMega(fighter)
+  const attack = createAttackFromMove(fighter, "ultimate", {
+    damage: mega ? 460 : 340, startup: 15, active: 8, recovery: 24,
+    rangeX: fighter.rosterKey === "green_samurai_ranger" ? 148 : 120,
+    rangeY: 106, knockbackX: 14, knockbackY: -7, hitstun: 32, category: "ultimate",
+  })
+  attack.isUltimate = true
+  setAttackState(fighter, attack, 47)
+  fighter.vx = 0
+  shakeCamera(context, 12, 14)
+  return true
 }
 
 // Enter Mega Mode: gated on samurai + not already Mega + actionable + Symbol Power ≥ threshold. Starts
@@ -15125,6 +15217,7 @@ function applySamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
 const SAMURAI_ULT_COST = 100
 export function executeSamuraiRangerUltimate(fighter, context) {
   if (!isSamuraiRanger(fighter)) return false
+  if (context?.samuraiArena) return castSamuraiArenaFinisher(fighter, context)
   if (isSamuraiFlameSmasherCinematicActive()) return false     // already mid-cinematic
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
@@ -15173,6 +15266,7 @@ function applyGoldSamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
 }
 export function executeGoldSamuraiUltimate(fighter, context) {
   if ((fighter?.rosterKey || "").toLowerCase() !== "gold_samurai_ranger") return false
+  if (context?.samuraiArena) return castSamuraiArenaFinisher(fighter, context)
   if (isSamuraiFlameSmasherCinematicActive()) return false     // shares the freeze cinematic with Red
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
@@ -15218,6 +15312,7 @@ function applyGreenSamuraiUltimateDamage(fighter, opp, cineCtx = {}) {
 }
 export function executeGreenSamuraiUltimate(fighter, context) {
   if ((fighter?.rosterKey || "").toLowerCase() !== "green_samurai_ranger") return false
+  if (context?.samuraiArena) return castSamuraiArenaFinisher(fighter, context)
   if (isSamuraiFlameSmasherCinematicActive()) return false     // shares the freeze cinematic with Red/Gold
   if ((fighter.attackCooldown || 0) > 0 || fighter.attacking) return false
   if (!spendEnergy(fighter, SAMURAI_ULT_COST)) return false
@@ -35240,6 +35335,9 @@ export function triggerSpecial(fighter, context = {}) {
     case "beerus":  return executeBeerusSpecial(fighter, context)
     case "omega_ranger": return executeOmegaRangerSpecial(fighter, context)   // Gun / Super Upper / Special Downward
     case "red_ranger_mmpr": return executeRedRangerMmprSpecial(fighter, context)   // the trhow grab/throw (direction-agnostic command grab)
+    case "blue_samurai_ranger":
+    case "yellow_samurai_ranger":
+    case "pink_samurai_ranger": return castSamuraiElement(fighter, context)
     case "samurai_red_ranger": return executeSamuraiRangerSpecial(fighter, context)   // Flame Slash — MEGA-MODE-EXCLUSIVE (no-op in base form)
     case "gold_samurai_ranger": return executeGoldSamuraiSpecial(fighter, context)    // Light Slash — light energy slash-wave projectile (both tiers, tier-scaling)
     case "green_samurai_ranger": return executeGreenSamuraiSpecial(fighter, context)  // Forest Spear — long-reach thrust + leaf-blast wave projectile (both tiers, tier-scaling)
@@ -35565,6 +35663,9 @@ export function triggerUltimate(fighter, context = {}, opts = {}) {
       case "dark_knight": cast = executeDarkKnightUltimate(fighter, context); break   // NEW-VARIANT Batman — Mech Suit: QUICK inline freeze-cinematic SINGLE ATTACK (tailed-beast/Kurama feel, NOT a transform): giant mech materializes→looms→ONE strike→powers down. Guaranteed 340 raw → ~204 EFF (live fighter, no dup)
       case "omega_ranger": cast = executeOmegaRangerUltimate(fighter, context); break   // Omega Saber: Final Strike
       case "red_ranger_mmpr": cast = executeRedRangerMmprUltimate(fighter, context); break   // Power Sword: Overhead Strike — freeze-cinematic leaping overhead slash
+      case "blue_samurai_ranger":
+      case "yellow_samurai_ranger":
+      case "pink_samurai_ranger": cast = castSamuraiElement(fighter, context, true); break
       case "samurai_red_ranger": cast = executeSamuraiRangerUltimate(fighter, context); break   // Fire Smasher: Blazing Strike — TIER-SCALING freeze cinematic (base vs Mega art+damage)
       case "gold_samurai_ranger": cast = executeGoldSamuraiUltimate(fighter, context); break     // Barracuda Blade: Light Finale — SAME freeze cinematic, light palette, tier-scaling (base 340 / Mega 460)
       case "green_samurai_ranger": cast = executeGreenSamuraiUltimate(fighter, context); break    // Forest Spear: Verdant Storm — SAME freeze cinematic, leaf-green palette, tier-scaling (base 340 / Mega 460)

@@ -293,7 +293,7 @@ test('11. registry: Goop READY in the first placeholder slot (4); Megawhatt / He
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   { const _ready = getAvailableAlienKeys(false); assert(_ready.length >= BEN10_SLOT_COUNT, 'PICK FIVE: at least one READY alien per dial slot (count read from the registry)'); assert.deepEqual(_ready.slice(0, 5), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8']) }
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
-  const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Goop'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Goop'); assert.equal(f.health, 2447, 'shared health')
 })
 test('11. Vow pick includes Goop; same seed → same pick', () => {
   const mk = () => { const f = ben(null); F.setupBen10(f, LOADOUT); return f }

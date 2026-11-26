@@ -29,8 +29,9 @@ const ctr = o => (o.x || 0) + (o.w || 60) / 2
 
 // cfg: { id, forms[], buttons[], chars{form: char}, colors{}, short{}, roles{form: any|close|mid|far},
 //        tuning{health, cooldown, invuln, flash, dbl, arm}, startPrefix, startNames{suffix: form}, statsFor?(form, char),
-//        optional kit hooks: clear?(f, from) busy?(f) onSwap?(f, form, from) onTick?(f, raw, W) — the forms' own engine;
+//        optional kit hooks: clear?(f, from) busy?(f) onSwap?(f, form, from, W) onTick?(f, raw, W) — the forms' own engine;
 //        onSelf?(f, W) — ↓↓ + the ACTIVE form's own button; extra?{button: fn(f, W)} — ↓↓ + a non-dial button;
+//        consumeRefusedDial: true — a refused tag still consumes its dial button;
 //        teamUlt: false — this squad has no W + U team ultimate (the CPU never saves meter for one) }
 export function makeSquad(cfg) {
   const ID = cfg.id, FORMS = cfg.forms, BUTTONS = cfg.buttons, CHAR = cfg.chars, T = cfg.tuning, ROLE = cfg.roles
@@ -99,7 +100,7 @@ export function makeSquad(cfg) {
     q.form = form; q.from = from; q.cd = T.cooldown; q.flash = T.flash; q.swaps++; f._squadTotal = (f._squadTotal || 0) + 1   // whole-match count
     f.invulnTimer = Math.max(f.invulnTimer || 0, T.invuln)
     try { W?.cue?.(f, form) } catch (_) {}
-    try { cfg.onSwap?.(f, form, from) } catch (_) {}
+    try { cfg.onSwap?.(f, form, from, W) } catch (_) {}
     return true
   }
   function tick(f, raw, W) {
@@ -141,8 +142,10 @@ export function makeSquad(cfg) {
       if (i >= 0) {
         q.armT = 0
         const form = FORMS[i]
-        if (form !== q.form && swap(f, form, W)) f._squadEat = { ...(f._squadEat || {}), [BUTTONS[i]]: true }
-        else if (form === q.form) {   // re-calling the active form: still eat the press (+ the squad's own ↓↓ technique, if any)
+        if (form !== q.form) {
+          const swapped = swap(f, form, W)
+          if (swapped || cfg.consumeRefusedDial) f._squadEat = { ...f._squadEat, [BUTTONS[i]]: true }
+        } else {   // re-calling the active form: still eat the press (+ the squad's own ↓↓ technique, if any)
           f._squadEat = { ...(f._squadEat || {}), [BUTTONS[i]]: true }
           try { cfg.onSelf?.(f, W) } catch (_) {}
         }

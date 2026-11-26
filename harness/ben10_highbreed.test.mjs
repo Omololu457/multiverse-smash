@@ -79,7 +79,7 @@ test('stats: speed ×0.95 / damage ×1.10 / defense ×1.05 / weight ×1.10, doub
   const f = ben()
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.10) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.05) < 1e-9 && Math.abs(f._benWeight - 1.10) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - (0.95 * 7) / (getAlienDefinition('heatblast').mods.speed * F.BEN10_ALIEN_POOL.heatblast.stats.speed)) < 0.06, 'speed ×0.95')
-  assert.equal(f.maxJumps, 2); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)'); assert.equal(f.activeAlienName, 'Highbreed')
+  assert.equal(f.maxJumps, 2); assert.equal(f.health, 2447, 'shared health'); assert.equal(f.activeAlienName, 'Highbreed')
   assert.equal(f._alienFlightProfile, 'highbreed'); assert(FL.FLIGHT_PROFILES.highbreed, 'flight profile')
 })
 test('normals: frame data (startup / dmg / on-block) as briefed, pre-mod', () => {

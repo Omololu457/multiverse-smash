@@ -1,3 +1,5 @@
+import { samuraiThemeCard } from './samuraiThemes.js'
+import { SAMURAI_ID, SAMURAI_FORMS, SAMURAI_EXTRA_SHEETS, samuraiStartSkin } from './samuraiData.js'
 import { updateLuffyCommandCombat } from './luffy.js'
 import { isSquadKey } from "./squadCore.js"   // every Ranger squad (S.P.D. Rangers, Mighty Morphin Rangers)
 import "./mmprSquad.js"   // Mighty Morphin Rangers squad registers itself
@@ -401,6 +403,7 @@ import {
   enterVegetaDarkRose,        // Dark Vegeta — dark-aura→ROSE 3rd tier (charge hold-release ≥150 Ki; full pink art form-swap via _skinAnim)
   revertVegetaDarkRose,       // Dark Vegeta — revert Rose→base (tap / auto at 0 Ki / KO)
   applyVegetaDarkFormSystem,  // Dark Vegeta — per-frame continuous Ki drain + instant auto-revert at 0 (Frieza model; Rose supersedes dark-aura)
+  isSamuraiRanger, restoreSamuraiMega, castSamuraiZord,
   enterSamuraiMega,           // Samurai Rangers (Red/Gold/Green) — base→Mega Mode tier-swap (charge hold-release, threshold-gated ≥90 Symbol Power)
   revertSamuraiMega,          // Samurai Rangers — revert Mega Mode (tap while transformed / auto at 0 Symbol Power)
   applySamuraiFormSystem,     // Samurai Rangers — per-frame morph-resolve + continuous Symbol Power drain + instant auto-revert at 0 (Vegeta-Dark model)
@@ -1687,7 +1690,7 @@ function _rewindTeardown() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertSamuraiMega(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   clearMangekyouCinematic(); clearVegetaFinalFlashCinematic(); clearBeerusKiBallCinematic()
   clearBen10OmnitrixCinematic(); clearBatmanDarkKnightCinematic(); clearOmniManBodySlamCinematic()
   clearSupermanUltimateCinematic(); clearRengokuFlameExplosionCinematic(); clearMadaraTengaiShinseiCinematic()
@@ -4832,6 +4835,14 @@ function updateFFACombat(fighter, others, opts) {
   const inputState = getFighterInput(fighter)
   const vKeys      = mapInputToVirtualKeys(inputState, fighter.controls)
   let ctrlState  = buildNormalControlState(fighter, vKeys)
+  if (fighter._squad?.id === SAMURAI_ID && !fighter.isCharging) {
+    const context = { ...getAbilityContext(), getOpponent: () => nearest, samuraiArena: true }
+    const acted = (inputState.ultimate && !fighter._kotoMirror && triggerUltimate(fighter, context)) ||
+      (inputState.special && triggerSpecial(fighter, context)) ||
+      updateSamuraiRangerCommandCombat(fighter, inputState, context, getAttackPhase)
+    if (acted) ctrlState = {}
+    else if (fighter.rosterKey === "samurai_red_ranger") ctrlState.upAttack = false
+  }
   if (isSpdBlue(fighter)) { const bc=updateSpdBlueCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=bc==='grab'?{grab:!!inputState.grab}:{} }
   if (isSpdGreen(fighter)) { const gc=updateSpdGreenCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=gc==='grab'?{grab:!!inputState.grab}:{} }
   if (isDashParr(fighter)) { const dc=updateDashParrCommandCombat(fighter,inputState,nearest,SPD_BLUE_WORLD);ctrlState=dc==='grab'?{grab:!!inputState.grab}:{} }
@@ -5250,6 +5261,13 @@ function restoreSession() {
   if (typeof m.p1Skin === "string") matchConfig.p1Skin = m.p1Skin
   if (typeof m.p2Skin === "string") matchConfig.p2Skin = m.p2Skin
   for (const _sd of ['p1', 'p2']) { const _r = duoResolveSaved(matchConfig[_sd + 'CharKey'], matchConfig[_sd + 'Skin']); if (_r.key !== matchConfig[_sd + 'CharKey']) { matchConfig[_sd + 'CharKey'] = _r.key; matchConfig[_sd + 'Char'] = characters[_r.key]; matchConfig[_sd + 'Skin'] = _r.skin } }   // MSV1-MERGE: a saved ns_red / ns_yellow pick → Shane & Dustin starting as that ranger
+  for (const side of ["p1", "p2"]) {
+    const form = SAMURAI_FORMS.indexOf(matchConfig[side + "CharKey"])
+    if (form < 0) continue
+    matchConfig[side + "CharKey"] = SAMURAI_ID
+    matchConfig[side + "Char"] = characters[SAMURAI_ID]
+    matchConfig[side + "Skin"] = samuraiStartSkin(form)
+  }
   if (m.selectingSide) matchConfig.selectingSide = m.selectingSide
   const t = s.training || {}
   if (typeof t.infiniteResources === "boolean") trainingState.infiniteResources = t.infiniteResources
@@ -5787,7 +5805,7 @@ setDnaFighterFactory((key, f, skinId) => {
   applySkin(t, skinId || (key === "ghostface" ? Object.keys(GHOSTFACE_SKIN_MODS)[0] : "default"))
   assignEdoBackup(t, null)
   // the same per-fighter round-start setup a real match runs (resetRound) — e.g. a Ranger squad picks its starting Ranger
-  { const _f = t; try { ninjaRoundReset(_f) } catch (_) {} try { forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) } catch (e) { console.warn("[dna] body round-setup", e) } }
+  { const _f = t; try { ninjaRoundReset(_f) } catch (_) {} try { forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertSamuraiMega(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) } catch (e) { console.warn("[dna] body round-setup", e) } }
   return t
 })
 function createFighter(charKey, char, x, facing, controls, side) {
@@ -6093,7 +6111,7 @@ function resetRound() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertSamuraiMega(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -6794,6 +6812,12 @@ function preloadMatch(cfg) {
   const paths = new Set()
   if (cfg.p1CharKey) for (const p of collectFighterSheets(cfg.p1CharKey, cfg.p1Skin)) paths.add(p)
   if (cfg.p2CharKey) for (const p of collectFighterSheets(cfg.p2CharKey, cfg.p2Skin)) paths.add(p)
+  if ([cfg.p1CharKey, cfg.p2CharKey, ...(cfg.extraCharKeys || [])].includes(SAMURAI_ID)) {
+    for (const key of characters[SAMURAI_ID].squadForms) {
+      for (const path of collectFighterSheets(key, null)) paths.add(path)
+    }
+    for (const path of SAMURAI_EXTRA_SHEETS) paths.add(path)
+  }
   for (const p of fxSheetsForFighters(cfg.p1CharKey, cfg.p2CharKey)) paths.add(p)
 
   const jobs = [preloadSheets([...paths], bump)]
@@ -7171,7 +7195,8 @@ function drawSkinSelectScreen() {
   const charKey = matchConfig[skinSelectSide + "CharKey"]
   const skins = getBenAwareSkins(charKey)
   ctx.textAlign = "center"; ctx.fillStyle = "#e2e8f0"; ctx.font = "700 32px Arial"
-  ctx.fillText(`SELECT SKIN — ${charKey?.toUpperCase() || ""}  (P${skinSelectSide === "p1" ? 1 : 2})`, canvas.width / 2, 110)
+  const titleName = charKey === SAMURAI_ID ? characters[charKey].name.toUpperCase() : charKey?.toUpperCase() || ""
+  ctx.fillText(`SELECT SKIN — ${titleName}  (P${skinSelectSide === "p1" ? 1 : 2})`, canvas.width / 2, 110)
   const rects = getSkinSelectRects(canvas, skins.length)
   // Same select-card animation LANGUAGE as the character-select grid: eased hover scale-up + accent
   // glow-pulse, and a punchy confirm flash + zoom-punch on the picked skin. Accent = the character's own
@@ -7194,7 +7219,9 @@ function drawSkinSelectScreen() {
     // the label strip scales with the card (it was a fixed 64 px, which left a tiny picture on a crowded grid)
     const labH = Math.max(28, Math.min(64, Math.round(r.h * 0.27)))
     const benCard = _benSkinCard(charKey, skin)   // Ben 10: a large crisp full-body card in the skin's own theme
+    const samuraiCard = charKey === SAMURAI_ID ? samuraiThemeCard(skin.id, characters, _skinPortrait) : null
     if (benCard) _drawBenSkinCard(ctx, benCard, skin, r, labH)
+    else if (samuraiCard) drawImageFit(ctx, samuraiCard, r.x + 6, r.y + 6, r.w - 12, r.h - labH + 2, { fit: "contain" })
     else if (skin.omniTheme && omniSkinCard(charKey, characters[charKey])) drawImageFit(ctx, omniSkinCard(charKey, characters[charKey]), r.x + 6, r.y + 6, r.w - 12, r.h - labH + 2, { fit: "contain" })   // OMNITRIX skin (omniTheme.js): its own Omnitrix card
     else { const img = _skinPortrait(skin.portrait); if (img && img.complete && img.naturalWidth > 0) drawImageFit(ctx, img, r.x + 10, r.y + 10, r.w - 20, r.h - labH, { fit: "contain" }) }
     ctx.restore()
@@ -7345,7 +7372,7 @@ function resetToStart() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertSamuraiMega(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -11602,7 +11629,7 @@ function _doRematch() {
   for (const _f of [p1, p2]) if (_f) clearElastigirl(_f)
   for (const _f of [p1, p2]) if (_f) ninjaRoundReset(_f)   // MSV1
   for (const _f of [p1, p2]) if (_f) clearNinjaStorm(_f, MSV2_WORLD)   // MSv2 every round opens in Red stance
-  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
+  for (const _f of [p1, p2]) { if (!_f) continue; forceRevertGonAdultForm(_f); forceRevertHisokaOverdrive(_f); forceRevertOmniManFlight(_f); resetFlight(_f); resetHomelanderKit(_f); forceRevertSupermanModes(_f); revertZarakiShikai(_f); revertGenosOverdrive(_f); revertGoldenFrieza(_f); revertBlackFrieza(_f); revertPiccoloPotential(_f); revertPiccoloOrange(_f); revertGoku(_f); zoroRoundReset(_f); sanjiRoundReset(_f); buggyRoundReset(_f); arlongRoundReset(_f); revertSamuraiMega(_f); spdSquadRoundReset(_f); spdRedRoundReset(_f); spdParityRoundReset(_f); revertGohan(_f); revertNarutoHokageKCM(_f); revertNarutoSeventhState(_f); revertVegetaDarkRose(_f); revertVegetaDark(_f); revertIdentitySwap(_f); revertOmoluTransform(_f); clearOmoluDrones(_f); _f._suddenDeathWatch = false; _f._suddenDeathAtk = null; rickPowerRoundReset(_f) }
   _matchOverride = null   // clear any pending sudden-death override on every reset path
   clearMangekyouCinematic()
   clearVegetaFinalFlashCinematic()
@@ -11990,6 +12017,15 @@ function handleUltimateRelease(fighter, key) {
 // P-TAP (released within 200ms) = per-character toggle: Gojo → Infinity on/off;
 // transform-capable characters → cycle transformation. A longer HOLD is a charge
 // (handled by inputState.charge → doEnergyCharge) and does NOT toggle.
+function releaseSamuraiCharge(fighter, wasTap) {
+  if (fighter._megaAutoPress) { fighter._megaAutoPress = false; return }
+  if (fighter._megaActive) {
+    if (wasTap) revertSamuraiMega(fighter)
+  } else {
+    enterSamuraiMega(fighter, getAbilityContext())
+  }
+}
+
 function handleChargeRelease(fighter, key) {
   if (!fighter || key !== fighter.controls.charge) return
   // GHOSTFACE SWAP consumed this charge press (it was the swap combo's CHARGE modifier). Swallow the
@@ -11997,6 +12033,7 @@ function handleChargeRelease(fighter, key) {
   // (a freeze cinematic that would strand the swap), Goku Black's SSJ Rose, or Gojo's Infinity toggle.
   // The latch clears here; a fresh, deliberate charge+release afterward drives the companion normally.
   if (fighter._suppressChargeUntilRelease) { fighter._suppressChargeUntilRelease = false; fighter._chargeHeld = false; return }
+  if (fighter._squad?.id === SAMURAI_ID) { fighter._chargeHeld = false; return }
   const wasHeld = !!fighter._chargeHeld   // was the charge key actually pressed (ignore spurious bare key-ups)
   const wasTap = fighter._chargeHeld && (performance.now() - (fighter._chargeDownTime || 0)) < 200
   fighter._chargeHeld = false
@@ -12060,10 +12097,8 @@ function handleChargeRelease(fighter, key) {
   // (enterSamuraiMega gates on Symbol Power ≥ 90) starts the locked morph → Mega tier-swap (art + stats).
   // While transformed a quick TAP reverts early; a HOLD-release tops up Symbol Power and stays in form
   // (sustain it). Continuous drain + auto-revert at 0 runs in applySamuraiFormSystem.
-  if (["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase())) {
-    if (fighter._megaAutoPress) { fighter._megaAutoPress = false; return }   // this press already AUTO-transformed mid-hold → don't also revert on release
-    if (fighter._megaActive) { if (wasTap) revertSamuraiMega(fighter) }   // Mega: tap → base
-    else enterSamuraiMega(fighter, getAbilityContext())                   // base → Mega fallback (e.g. energy filled instantly); auto-trigger normally handles it mid-hold
+  if (isSamuraiRanger(fighter)) {
+    releaseSamuraiCharge(fighter, wasTap)
     return
   }
 
@@ -13089,7 +13124,7 @@ function updateMovementInput(fighter) {
     // WHILE holding Charge, transform — no release needed. enterSamuraiMega self-gates (samurai + base form
     // + energy ≥ 90) so this is a safe no-op otherwise. _megaAutoPress tells the RELEASE handler this same
     // press already transformed, so a tap-release doesn't immediately revert it.
-    if (!fighter._megaActive && ["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase())) {
+    if (!fighter._megaActive && isSamuraiRanger(fighter)) {
       if (enterSamuraiMega(fighter, getAbilityContext())) fighter._megaAutoPress = true
     }
   }
@@ -13196,6 +13231,9 @@ const SPD_SQUAD_WORLD = {
   opponent: f => getOpponent(f),
   stageWidth: () => getStageWorldWidth(),
   cinematic: () => _rewindUnsafeNow(),
+  restoreSamuraiMega,
+  releaseSamuraiCharge,
+  castSamuraiZord: (fighter, zord) => castSamuraiZord(fighter, zord, getAbilityContext()),
   startMove: (f, key, md) => startMove(f, key, md),   // the Thunder Megazord's moves (megazord.js) run through the engine's own startMove
 }
 function handleOmnitrixSwitch(fighter, inputState) {
@@ -14091,7 +14129,7 @@ function _updatePlayerCombatBody(fighter) {
   // on the path below. Because the merged-up branch returns false while still deciding tap-vs-hold, suppress
   // Red's built-in grounded up-attack so the normal path can't ALSO fire it that frame (Gold/Green keep
   // their single standard up — only Red's is merged/suppressed).
-  if (["samurai_red_ranger", "gold_samurai_ranger", "green_samurai_ranger"].includes((fighter.rosterKey || "").toLowerCase()) && !charging) {
+  if (isSamuraiRanger(fighter) && !charging) {
     if (updateSamuraiRangerCommandCombat(fighter, inputState, getAbilityContext(), getAttackPhase)) return
     // Suppress Red's built-in grounded up-attack (the merged driver above owns I). The normal attack path
     // reads vKeys (snapshotted earlier this frame), NOT inputState, so clear BOTH — clearing only inputState

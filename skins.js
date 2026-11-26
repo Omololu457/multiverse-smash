@@ -1,3 +1,5 @@
+import { SAMURAI_THEMES } from './samuraiThemes.js'
+import { SAMURAI_ID, SAMURAI_FORMS, SAMURAI_NAMES, samuraiStartSkin } from './samuraiData.js'
 // skins.js
 // ──────────────────────────────────────────────────────────────────────────
 // SKIN SYSTEM (Tasks 1/4/5). Each character has a list of skins:
@@ -199,6 +201,16 @@ const BEN10_CLASSIC_ANIM = {
 }
 
 export const SKINS = {
+  [SAMURAI_ID]: [
+    ...SAMURAI_FORMS.map((key, index) => ({
+      id: samuraiStartSkin(index), name: 'Start as: ' + SAMURAI_NAMES[index],
+      unlockLevel: 0, portrait: characters[key].portrait, spriteScale: characters[key].spriteScale, animationData: null,
+    })),
+    ...SAMURAI_THEMES.map(({ id, name }) => ({
+      id, name, unlockLevel: 0, portrait: characters[SAMURAI_ID].portrait,
+      spriteScale: characters[SAMURAI_ID].spriteScale, animationData: null,
+    })),
+  ],
   spd_blue: SPD_BLUE_SKINS,
   spd_green: SPD_GREEN_SKINS,
   dash_parr: DASH_PARR_SKINS,

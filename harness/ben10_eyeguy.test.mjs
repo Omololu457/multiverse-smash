@@ -235,7 +235,7 @@ test('11. registry: Eyeguy READY and pickable; slot count from the registry; rea
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT, 'buildLoadout fills every slot'); assert.equal(F.DEFAULT_OMNITRIX.length, BEN10_SLOT_COUNT, 'default loadout = slot count')
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(getAvailableAlienKeys(false).includes('eyeguy'))
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Eyeguy'); assert.equal(f.health, 2447, 'shared health')
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.15) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.05) < 1e-9)
 })
 test('11. picked loadout: Eyeguy in the last dial slot and the transform reaches it', () => {

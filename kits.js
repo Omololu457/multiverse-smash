@@ -1,3 +1,4 @@
+import { SAMURAI_ID, SAMURAI_NAMES, SAMURAI_FORMS, SAMURAI_ELEMENTS, SAMURAI_ZORDS, SAMURAI_ZORD_COST } from './samuraiData.js'
 import { KRYBOT_KIT } from './krybotKit.js'
 import { SPD_BLUE_KIT } from './spdBlueKit.js'
 import { SPD_GREEN_KIT } from './spdGreenKit.js'
@@ -1275,6 +1276,36 @@ export const KITS = {
 // Grammar-accurate bread-and-butter combos for a character, from comboStandard.js `classify()`.
 // The Move List should teach what the fighter can ACTUALLY do — a Fwd+Heavy rekka char must NOT be told
 // "Light, Light, Heavy" (only standard-string chars chain light normals), and a zoner has no auto-combo.
+const samuraiButtons = ["Light", "Heavy", "Special", "Grab", "Charge", "Ultimate"]
+KITS[SAMURAI_ID] = {
+  type: "Squad / Form Swapper", difficulty: 5,
+  summary: "Six Samurai Rangers share one health bar and one Symbol Power meter. Swap to change your weapon, special and neutral ultimate. Mega Mode stays active through a swap.",
+  passive: { name: "Mega Mode", effect: "Hold Charge to reach 90 Symbol Power. Mega Mode drains the meter over time. Tap Charge or run out of Symbol Power to revert." },
+  basics: [{ name: "Samurai sword chain", input: "Forward + Heavy, then Heavy twice", desc: "Each follow-up requires a clean hit from the previous swing." }],
+  specials: [
+    ...SAMURAI_NAMES.map((name, index) => ({
+      name: "CALL " + name.toUpperCase(), input: "↓↓ + " + samuraiButtons[index], cost: 0,
+      desc: "Switch to the " + name + " Ranger.",
+    })),
+    { name: "Red · Flame Slash", input: "Special", cost: 35, desc: "A rising flame slash in Mega Mode." },
+    { name: "Green · Forest Spear", input: "Special", cost: 35, desc: "A long thrust followed by a leaf-energy wave." },
+    { name: "Gold · Light Slash", input: "Special", cost: 35, desc: "A Barracuda Blade swing that launches a light wave." },
+    ...SAMURAI_FORMS.flatMap((key, index) => {
+      const form = SAMURAI_ELEMENTS[key]
+      return form ? [{
+        name: SAMURAI_NAMES[index] + " · " + form.special, input: "Special", cost: form.cost,
+        desc: key === "pink_samurai_ranger" ? "An upward wind wave for airborne opponents."
+          : key === "yellow_samurai_ranger" ? "A wide, slow pulse along the ground." : "A fast water crescent.",
+      }] : []
+    }),
+    ...Object.values(SAMURAI_ZORDS).map(zord => ({
+      name: zord.name, input: zord.input, cost: SAMURAI_ZORD_COST, desc: zord.description,
+    })),
+  ],
+  ultimate: { name: "Active Ranger's Ultimate", input: "Neutral + Ultimate", cost: 100,
+    desc: "Red: Blazing Strike · Blue: Dragon Current · Green: Verdant Storm · Yellow: Earth Symbol Breaker · Pink: Sky Symbol Tempest · Gold: Light Finale." },
+}
+
 KITS.spd_rangers = squadKit(KITS)   // S.P.D. Rangers: dial + every Ranger's specials
 KITS.mmpr_rangers = mmprSquadKit(KITS)   // Mighty Morphin Rangers: dial + every Ranger's specials
 KITS.ns_squad = nsSquadKit(NS_RED_KIT, NS_YELLOW_KIT, TRIO_KIT)   // Ninja Storm Squad: dial + all five ninjas' specials

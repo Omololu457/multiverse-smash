@@ -1,5 +1,6 @@
 
 // spritesheets.js
+import { SAMURAI_ELEMENT_IDLE_SHEETS, SAMURAI_ID } from './samuraiData.js'
 // ─────────────────────────────────────────────────────────────────
 // PER-CHARACTER SPRITE REGISTRY
 // ─────────────────────────────────────────────────────────────────
@@ -50,6 +51,8 @@
 // background, character centered/feet-aligned consistently across all sheets.
 // (gojo_win.png is a single still, not an animation strip.)
 // ═══════════════════════════════════════════════════════════════════
+const SAMURAI_RED_IDLE = './samurai_ranger_idle_uniform.png'
+
 export const SPRITE_MANIFEST = {
   spd_blue: { actions: { idle: './assets/spd_blue/idle.png' } },
   spd_green: { actions: { idle: './assets/spd_green/idle.png' } },
@@ -728,12 +731,13 @@ export const SPRITE_MANIFEST = {
     actions: { idle: "./omega_ranger_idle.png" }
   },
 
-  // Samurai Red Ranger (universe: power_rangers) — SECOND sprited ranger. Same idle-strip gate:
-  // decoding it flips the ranger from procedural box to the sprite path. Per-action rendering reads
-  // characters.js → samuraiRedRanger.animationData (each action carries its own .sheet). idle =
-  // the RE-SLICED uniform strip (tools/reslice_strip.mjs). See SAMURAI_RED_RANGER_ASSET_MAP.md.
+  // The squad uses Red's idle before the first form is applied. After a swap,
+  // spritesReady() checks the active Ranger's own key and idle sheet.
+  [SAMURAI_ID]: {
+    actions: { idle: SAMURAI_RED_IDLE }
+  },
   samurai_red_ranger: {
-    actions: { idle: "./samurai_ranger_idle_uniform.png" }
+    actions: { idle: SAMURAI_RED_IDLE }
   },
   gold_samurai_ranger: {
     actions: { idle: "./samurai_ranger_gold_idle_uniform.png" }
@@ -741,6 +745,9 @@ export const SPRITE_MANIFEST = {
   green_samurai_ranger: {
     actions: { idle: "./samurai_ranger_forest_idle_uniform.png" }
   },
+  ...Object.fromEntries(Object.entries(SAMURAI_ELEMENT_IDLE_SHEETS).map(
+    ([key, idle]) => [key, { actions: { idle } }],
+  )),
 
   // Red Ranger (Jason, Mighty Morphin — universe: power_rangers) — FOURTH sprited ranger (first of the
   // classic MMPR team). Same idle-strip gate: decoding it flips spritesReady() from procedural box to

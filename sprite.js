@@ -1,3 +1,4 @@
+import { samuraiThemeBody } from './samuraiThemes.js'
 // sprite.js
 // Combined sprite handler:
 // - Self-contained sprite renderer
@@ -1044,6 +1045,7 @@ export class SpriteHandler {
     if (sheet && fighter._benTheme) sheet = benThemedSheet(fighter, profileAction.sheet || legacyFrameData?.sheet, sheet) || sheet;
     // DNA SCAN / SKILL HUNTER: the copied body redrawn in the copier's own colour scheme (null until the recolor is built)
     if (sheet && (fighter._dnaScheme || fighter._shActive || isOmniSkin(fighter))) sheet = dnaSchemeSheet(fighter, profileAction.sheet || legacyFrameData?.sheet, sheet) || sheet;
+    else if (sheet) sheet = samuraiThemeBody(fighter, profileAction.sheet || legacyFrameData?.sheet, sheet);
 
     const frameData = {
       // SLICING dims come from `dim` — the fighter's idle def when we fell back (so a small idle strip

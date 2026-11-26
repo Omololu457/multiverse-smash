@@ -1,6 +1,6 @@
 // harness/ben10_start_human.test.mjs
 // Loadout simplification pass, STAGE 2 — a match STARTS with Ben/Albedo in HUMAN form (not pre-
-// transformed into loadout slot 1), with the advertised human stats (maxHealth 1250, not XLR8's 900),
+// transformed into loadout slot 1), with the damage-based HP buff applied to the shared health pool,
 // human normals + Hoverboard special work, and the CHARGE+direction transform still engages an alien.
 import { chromium } from "playwright"; import http from "node:http"; import fs from "node:fs"; import path from "node:path"; import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,7 +33,7 @@ async function verify(charKey) {
   check("starts NOT transformed", s0.transformed === false, `transformed=${s0.transformed}`);
   check("activeAlien is null (human)", s0.activeAlien === null, `activeAlien=${s0.activeAlien}`);
   check("benCmd form = 'human'", c0.form === "human", `form=${c0.form}`);
-  check("maxHealth = advertised 1250 (NOT XLR8's 900)", s0.maxHealth === 1250, `maxHealth=${s0.maxHealth}`);
+  check("default variant gets 2447 shared HP", s0.maxHealth === 2447, `maxHealth=${s0.maxHealth}`);
   check("health is full at human maxHealth", s0.health === s0.maxHealth, `health=${s0.health}/${s0.maxHealth}`);
 
   // (2) Human normals fire while human.

@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { characters } from "../characters.js";
-import { setupBen10, applyAlien } from "../fighters.js";
+import { setupBen10, applyAlien, applyBen10VariantStats, revertToHuman } from "../fighters.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let pass = 0, fail = 0;
@@ -33,11 +33,15 @@ for (const [k, d] of Object.entries(a.animationData)) {
 ok(humanMiss === 0, `human form: all ${Object.keys(a.animationData).length} sheets are __albedo and exist`);
 
 // ALIEN forms: setupBen10 tags him, applyAlien retags each alien's sheets to __albedo.
-const f = { rosterKey: "albedo", x: 0, y: 0, h: 110, height: 110, maxHealth: 1250, health: 1250, energy: 100 };
-setupBen10(f, ["xlr8", "diamondhead", "feedback"]);
+const f = { rosterKey: "albedo", x: 0, y: 0, h: 110, height: 110, energy: 100 };
+applyBen10VariantStats(f);
+ok(f.health === 2447 && f.maxHealth === 2447, "default variant starts with 2447 HP");
+const loadout = ["xlr8", "diamondhead_ov", "feedback_ov"];
+setupBen10(f, loadout);
 ok(f._recolorTag === "albedo", 'setupBen10 sets _recolorTag = "albedo"');
-for (const al of ["xlr8", "diamondhead", "feedback"]) {
-  applyAlien(f, al);
+f.health -= 100;
+for (const al of loadout) {
+  ok(applyAlien(f, al) && f.maxHealth === 2447 && f.health === 2347, `${al} preserves max and current HP`);
   let miss = 0;
   for (const [k, d] of Object.entries(f._skinAnim || {})) {
     if (!d.sheet) continue;
@@ -46,6 +50,8 @@ for (const al of ["xlr8", "diamondhead", "feedback"]) {
   }
   ok(miss === 0, `${al} form: all _skinAnim sheets are __albedo and exist (no fallback box)`);
 }
+revertToHuman(f);
+ok(f.maxHealth === 2447 && f.health === 2347, "returning to human form preserves max and current HP");
 
 console.log("\n════════════════════════════════════════");
 console.log(`  ALBEDO SMOKE: ${pass} passed, ${fail} failed`);

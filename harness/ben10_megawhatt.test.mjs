@@ -253,7 +253,7 @@ test('11. registry: Megawhatt READY in the first placeholder slot (3); hurtbox m
   assert.deepEqual(buildLoadout(5).map(a => a.id), ['swampfire', 'heatblast', 'megawhatt', 'goop', 'xlr8'])
   const f = ben(); assert.equal(f.maxJumps, 2, 'shared double jump'); assert.equal(f.activeAlienName, 'Megawhatt')
   assert(f.h < 110 && f.w < 60, `small hurtbox (${f.w}x${f.h})`); assert.equal(f.h, 72)
-  assert.equal(f.health, 2185, 'shared health pool (human HP carries over) (950 × the 2026-11-24 Ben HP buff 2.30)')
+  assert.equal(f.health, 2447, 'shared health pool (human HP carries over)')
 })
 test('11. Vow pick includes Megawhatt; same seed → same pick', () => {
   const mk = () => { const f = ben(null); F.setupBen10(f, LOADOUT); return f }

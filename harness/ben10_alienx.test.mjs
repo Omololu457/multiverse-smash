@@ -349,7 +349,7 @@ test('14. pick five: slot count from the registry (5), Alien X READY + pickable,
   assert(BEN10_ALIEN_REGISTRY.filter(x => x.status === 'ready').length > BEN10_SLOT_COUNT, 'more ready aliens than slots → players pick')
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT); assert(getAvailableAlienKeys(false).includes('alienx'))
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Alien X'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Alien X'); assert.equal(f.health, 2447, 'shared health')
 })
 test('14. picked loadout: Alien X in the last dial slot and the transform reaches it', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'alienx']

@@ -17,7 +17,7 @@ export const REPLAY_VERSION = 1;
 // Reject-on-mismatch stamp (SECTION D decision): a replay recorded under a different balance will
 // desync, so playback (11C) refuses a replay whose balanceStamp != current. BUMP THIS whenever a
 // gameplay-affecting balance value changes (damage scale, move data, hitstun, etc.).
-export const BALANCE_STAMP = "rebalance-2026-11-17-v1";
+export const BALANCE_STAMP = "rebalance-2026-11-26-v2";
 
 // 14-field input bitmask. Bit order is REPLAY_INPUT_FIELDS' order — stable and shared with input.js so
 // encode/decode and playback all agree. (jump shares the up key and dash is double-tap-derived, so

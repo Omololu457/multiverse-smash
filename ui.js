@@ -1,3 +1,4 @@
+import { isSamuraiTheme, samuraiThemeBody, samuraiThemeZord } from './samuraiThemes.js'
 // ui.js
 import { drawLayeredStageBack } from "./stageLayers.js"
 import { dinoHudPortrait } from './dinoHud.js'   // MSV1-DINO Dino Thunder team-skin HUD portrait (render-only)
@@ -3919,7 +3920,7 @@ export function drawProjectiles(ctx, projectiles = [], camera = null, drawCustom
     // horizontal strip of `spriteFrames` cells of `spriteW`×`spriteH`), draw the
     // animated sprite, flipped to its travel direction. Until art is dropped in,
     // `sheet` is null and the colored shape below renders unchanged.
-    const img = p.sheet ? _projImg(p.sheet) : null
+    const img = p.sheet ? samuraiThemeZord(p, _projImg(p.sheet)) : null
     if (img && img.complete && img.naturalWidth > 0) {
       const frames = p.spriteFrames || 1
       const fw = p.spriteW || (img.naturalWidth / frames)
@@ -4370,7 +4371,7 @@ function _liveIdleInfo(fighter) {
   let img = idleAnim?.sheet ? _formSheetImage(idleAnim.sheet) : null
   if (!_imageReady(img)) img = getSpriteSheets?.(fighter?.rosterKey)?.idle || null
   if (!_imageReady(img)) return null
-  return { img, fw: fw || img.naturalWidth, fh: fh || img.naturalHeight }
+  return { img: samuraiThemeBody(fighter, idleAnim?.sheet || img.src, img), fw: fw || img.naturalWidth, fh: fh || img.naturalHeight }
 }
 
 // A short tag for the active form (the live idle sheet's basename), used for cache + override keys.
@@ -4448,12 +4449,13 @@ function _resolveHudPortrait(fighter, accent) {
   const tag = _formTag(fighter)
   const ov  = getPortraitOverride(key, tag)
   // Signature: form tag + override identity → recompute only when the form/override changes.
-  const sig = key + "|" + tag + (ov?.src ? "|ov:" + ov.src : "") + (ov?.crop ? "|c" : "")
+  const samuraiTheme = isSamuraiTheme(fighter?.skinId) ? fighter.skinId : ""
+  const sig = key + "|" + tag + "|" + samuraiTheme + (ov?.src ? "|ov:" + ov.src : "") + (ov?.crop ? "|c" : "")
   const cached = _portraitCache.get(sig)
   if (cached) return cached.fallback ? { src: cached.fallback, isFallback: true } : { src: cached.canvas || cached.img, isFallback: false }
 
   // 1) OVERRIDE source image (+ optional crop)
-  if (ov?.src) {
+  if (ov?.src && !samuraiTheme) {
     const im = getPortraitImageBySrc(ov.src)
     if (_imageReady(im)) {
       if (ov.crop) { const cc = _cropImage(im, ov.crop); if (cc) { _portraitCache.set(sig, { canvas: cc }); return { src: cc, isFallback: false } } }
@@ -4462,7 +4464,7 @@ function _resolveHudPortrait(fighter, accent) {
   }
 
   // Detect whether a non-base form/identity is active (so we follow it via the live crop).
-  const inForm = !!(fighter?._skinAnim && fighter?._baseSkinAnim && fighter._skinAnim !== fighter._baseSkinAnim)
+  const inForm = !!samuraiTheme || !!(fighter?._skinAnim && fighter?._baseSkinAnim && fighter._skinAnim !== fighter._baseSkinAnim)
 
   // 2) SELECT / CUT-IN ART — the base identity portrait (used unless a form overrides it).
   if (!inForm) {
@@ -4474,7 +4476,7 @@ function _resolveHudPortrait(fighter, accent) {
   const info = _liveIdleInfo(fighter)
   if (info) {
     let crop
-    if (ov?.crop) crop = _cropImage(info.img, ov.crop)
+    if (ov?.crop && !samuraiTheme) crop = _cropImage(info.img, ov.crop)
     else          crop = _makeHeadCrop(info.img, info.fw, info.fh)
     if (crop) { _portraitCache.set(sig, { canvas: crop }); return { src: crop, isFallback: false } }
   }

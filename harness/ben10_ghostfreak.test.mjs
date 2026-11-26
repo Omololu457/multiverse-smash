@@ -268,7 +268,7 @@ test('12. normals: Jab 5f/16/0, Heavy 14f/48/−6 170 px, Low 7f/22/−4 hits lo
   for (const [k, [st, dmg, a]] of Object.entries(want)) { assert.equal(BA[k].startup, st, k); assert.equal(BA[k].damage, dmg, k); assert.equal(adv(BA[k]), a, k) }
   assert.equal(BA.heavy.rangeX, 170); assert.equal(BA.down.hitLevel, 'low'); assert(BA.up.launcher)
   const f = ben(); assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.0) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.8) < 1e-9, 'mods dmg 1.00 / def 0.80')
-  assert.equal(f.w, 44, 'slim hurtbox'); assert.equal(f.maxJumps, 2); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  assert.equal(f.w, 44, 'slim hurtbox'); assert.equal(f.maxJumps, 2); assert.equal(f.health, 2447, 'shared health')
 })
 test('13. Spectral Gale (↓↘→, 10): 380 px swirl, 4 × 10, pushes 6 px/f (8f max), one on screen, final tick +1 Dread', () => {
   const f = ben(), t = fresh('goku', 300); f.x = 200; t.x = 450; const x0 = t.x
@@ -353,7 +353,7 @@ test('19. FEAR FEAST: 50 Power, tangible only; whiff / tech = no cinematic + 60f
   assert.equal(f.health, 915, 'heals 15 once'); assert.equal(S(f).dread.terrors, 1, 'Terror at the end')
   assert(f.attackCooldown > 0 && f.attackCooldown <= GF_ULT.LOCKOUT, '100f lockout'); console.log('   HP dealt', r.dealt)
   const g = ben(), u = fresh('goku', 70); reset(g, u); S(g).dread.immune = 300; ult(g, u); assert.equal(S(g).dread.terrors, 0, 'no Terror while immune')
-  assert.equal(g.health, Math.min(g.maxHealth, 2185), 'heal capped at max HP (950 × the 2026-11-24 Ben HP buff 2.30)')
+  assert.equal(g.health, Math.min(g.maxHealth, 2447), 'heal capped at max HP')
 })
 
 console.log(`GHOSTFREAK: ${passed} passed, ${failed} failed`)

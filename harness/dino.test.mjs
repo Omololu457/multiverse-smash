@@ -80,7 +80,7 @@ try {
     check('displayName / archetype / difficulty / tagline per the brief', meta.name === 'Dino Thunder Rangers' && meta.arch === 'Team / Form Swapper' && meta.diff === 5 && meta.tag === 'Dino Thunder, Power Up!', meta)
     check('forms Red → Blue → Yellow → White; ONE health pool 1248; S.P.D. Red / NS Trio / Wind Rangers / Ben untouched', JSON.stringify(meta.forms) === '["dt_red","dt_blue","dt_yellow","dt_white"]' && meta.hp === 1248 && meta.others, meta)
     const s0 = await S()
-    check('starts as Conner (Red) on his own sheets, 1248 HP', s0.key === 'dt_red' && s0.duo?.form === 'dt_red' && s0.sheet?.includes('/dt_red/') && s0.maxHealth === 1248, { key: s0.key, sheet: s0.sheet, hp: s0.maxHealth })
+    check('starts as Conner (Red) on his own sheets, 1607 HP', s0.key === 'dt_red' && s0.duo?.form === 'dt_red' && s0.sheet?.includes('/dt_red/') && s0.maxHealth === 1607, { key: s0.key, sheet: s0.sheet, hp: s0.maxHealth })
     const sp = await page.evaluate(async () => { const c = (await import('./characters.js')).characters; return ['dt_red', 'dt_blue', 'dt_yellow', 'dt_white'].map(k => c[k].stats.speed) })
     const walk = v => 4.5 + (v - 78) / 20 * 5
     check('ground speed vs S.P.D. Red (7.0 px/f): Red ×1.10, Blue ×0.90, Yellow ×1.00, White ×1.05', [1.1, 0.9, 1.0, 1.05].every((m, i) => Math.abs(walk(sp[i]) - 7 * m) < 0.02), sp.map(walk))

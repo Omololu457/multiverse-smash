@@ -112,7 +112,7 @@ MAPS (35)
 - Battle Royale Colosseum (Free-for-all) — An extra-wide sand arena for free-for-all, with an
     iron gate, braziers, banners, a cheering crowd and fireworks.
 
-PLAYABLE ROSTER (110 SELECT SCREEN ENTRIES)
+PLAYABLE ROSTER (108 SELECT SCREEN ENTRIES)
 -------------------------------------------
 Fighters are grouped by their source series. Invincible and Omni-Man are filed
 under DC in the game data, as is Homelander. Soldier Boy is filed under Marvel.
@@ -223,11 +223,8 @@ The Boys
     Burst.
 
 Power Rangers
-- Samurai Red Ranger (Fire) [samurai_red_ranger] — A fire sword fighter with the Fire Smasher.
-- Gold Samurai Ranger (Light) [gold_samurai_ranger] — A fast light-element swordsman with the
-    Barracuda Blade.
-- Green Samurai Ranger (Forest) [green_samurai_ranger] — A forest-element fighter who controls
-    space with a spear.
+- Samurai Rangers [samurai_rangers] — One team that switches among Red, Blue, Green, Yellow,
+    Pink and Gold. All six share Mega Mode and can call four Megazords.
 - Mighty Morphin Rangers [mmpr_rangers] — A team slot that switches among Red, Black, Pink,
     Green and White.
 - S.P.D. Rangers [spd_rangers] — A team slot that switches among Red, Blue, Green, Yellow, Pink
@@ -308,9 +305,17 @@ Divine
 Baki
 - Baki Hanma [baki] — A close-range martial artist with the Demon Back transformation.
 
-PLAYABLE RANGER TEAM FORMS (20)
+PLAYABLE RANGER TEAM FORMS (26)
 ------------------------------
 Select the corresponding team fighter to switch between these Rangers in a match.
+
+Samurai Rangers
+- Jayden Shiba, Red Samurai Ranger (Fire) [samurai_red_ranger]
+- Kevin, Blue Samurai Ranger (Water) [blue_samurai_ranger]
+- Mike, Green Samurai Ranger (Forest) [green_samurai_ranger]
+- Emily, Yellow Samurai Ranger (Earth) [yellow_samurai_ranger]
+- Mia Watanabe, Pink Samurai Ranger (Sky) [pink_samurai_ranger]
+- Antonio Garcia, Gold Samurai Ranger (Light) [gold_samurai_ranger]
 
 Mighty Morphin Rangers
 - Jason Lee Scott, Red Ranger [red_ranger_mmpr]

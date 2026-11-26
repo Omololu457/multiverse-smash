@@ -79,7 +79,7 @@ test('stats: speed ×0.95 / damage ×1.05 / defense ×1.10 / weight ×1.05, doub
   const f = ben()
   assert(Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 1.05) < 1e-9 && Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 1.10) < 1e-9 && Math.abs(f._benWeight - 1.05) < 1e-9, 'mods')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 0.95 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×0.95')
-  assert.equal(f.maxJumps, 2); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)'); assert.equal(f.activeAlienName, 'Arcticguana')
+  assert.equal(f.maxJumps, 2); assert.equal(f.health, 2447, 'shared health'); assert.equal(f.activeAlienName, 'Arcticguana')
 })
 test('normals: frame data (startup / dmg / on-block) as briefed, pre-mod', () => {
   const chk = (k, st, dmg, adv, extra) => { const m = BA[k]; assert.equal(m.startup, st, k + ' startup'); assert.equal(m.damage, dmg, k + ' dmg'); assert.equal(m.blockstun - m.active - m.recovery, adv, k + ' on block'); if (extra) extra(m) }
@@ -346,7 +346,7 @@ test('14. slot → PICK FIVE: slot count stays 5, Arcticguana READY + pickable (
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT)
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet source: unknown, add credit if known/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')), 'ledger credit placeholder')
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Arcticguana'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Arcticguana'); assert.equal(f.health, 2447, 'shared health')
 })
 test('14. Omnitrix Dial: Arcticguana picked into the last slot — same cost as any slot, no clock change', () => {
   const pick = ['swampfire', 'heatblast', 'megawhatt', 'goop', 'arcticguana'], cost = slot => { const f = fresh(); F.applyBen10VariantStats(f, 'default'); F.setupBen10(f, pick); f.energy = 100

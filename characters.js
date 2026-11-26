@@ -41,6 +41,8 @@ import { ninja_storm_cgpt } from './nsCgptData.js'   // NS CGPT: ONE Ninja Storm
 import { ns_trio, ns_blue, ns_navy, ns_green } from './nsTrio.js'   // NS TRIO Tori / Blake / Cam: ONE character, three Ninja Storm forms (hidden form profiles)
 import { dinothunder, dt_red, dt_blue, dt_yellow, dt_white } from './dinothunder.js'   // MSV1-DINO Dino Thunder Rangers: ONE character, four forms (hidden form profiles)
 import { mmprRangersEntry } from './mmprSquad.js'   // Mighty Morphin Rangers: Red / Black / Pink / Green / White as ONE fighter, Ben-style ↓↓ + J/K/L/O/P dial
+import { samuraiElementForms } from './samuraiData.js'
+import { samuraiSquadEntry } from './samuraiSquad.js'
 import { spd_rangers, registerSquadForm } from './spdSquad.js'   // S.P.D. Rangers: the whole B-Squad as ONE fighter, Ben-style ↓↓ + J/K/L/O/P/U Ranger dial (the six stay as hidden forms)
 import { windrangers } from './nsDuo.js'
 import { ns_squad } from './nsSquad.js'   // Ninja Storm Squad: Shane / Dustin / Tori / Blake / Cam as ONE fighter (squadCore.js dial); windrangers + ns_trio fold into it   // MSV1-MERGE Shane & Dustin: ONE character, the two Ninja Storm forms (ns_red / ns_yellow stay as hidden form profiles)
@@ -11468,6 +11470,14 @@ const soldierBoy = {
 const mmpr_rangers = mmprRangersEntry(redRangerMmpr)   // registers Red as the J form (the five MMPR Rangers fold into the squad)
 registerSquadForm('omega_ranger', omegaRanger)   // S.P.D. Rangers' 6th Ranger (↓↓ + U); the standalone Omega pick folds into the squad
 
+const samuraiElements = samuraiElementForms(samuraiRedRanger)
+const samurai_rangers = samuraiSquadEntry({
+  samurai_red_ranger: samuraiRedRanger,
+  gold_samurai_ranger: goldSamuraiRanger,
+  green_samurai_ranger: greenSamuraiRanger,
+  ...samuraiElements,
+})
+
 export const characters = {
   goku, goku_black: gokuBlack, goku_rose: gokuRose, gogeta: gogetaUI, vegeta, vegeta_dark: vegetaDark, piccolo, frieza, cell, gohan, gotenks, bardock,
   gojo, gojo_shinjuku, sukuna, sukuna_shinjuku, alt_sukuna: altSukuna, aoi_todo: aoiTodo, omololu, dseyl, enoch, jesus, maki, toji, yuji, baki, naoya,
@@ -11478,9 +11488,11 @@ export const characters = {
   ben10, albedo, kevin_levin,
   omniman: omniMan, invincible, omniman_viltrum,   // omniman_viltrum: MSV1-OMNIMAN
   omega_ranger: omegaRanger,
+  samurai_rangers,
   samurai_red_ranger: samuraiRedRanger,
   gold_samurai_ranger: goldSamuraiRanger,
   green_samurai_ranger: greenSamuraiRanger,
+  ...samuraiElements,
   mmpr_rangers,                      // Mighty Morphin Rangers — Red / Black / Pink / Green / White in one fighter (mmprSquad.js)
   red_ranger_mmpr: redRangerMmpr,
   spd_rangers,                       // S.P.D. Rangers — Red / Blue / Green / Yellow / Pink / Omega in one fighter (spdSquad.js)

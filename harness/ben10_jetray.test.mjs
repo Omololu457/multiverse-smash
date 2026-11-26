@@ -383,7 +383,7 @@ test('13. pick five: slot count from the registry (5), Jetray READY + pickable, 
   assert.equal(buildLoadout().length, BEN10_SLOT_COUNT); assert(getAvailableAlienKeys(false).includes('jetray'))
   assert(fs.existsSync(new URL('../' + d.ledgerPath, import.meta.url)) && fs.existsSync(new URL('../' + d.sheetPath.slice(2), import.meta.url)))
   assert(/Sheet from fun-tech\.tk/.test(fs.readFileSync(new URL('../' + d.ledgerPath, import.meta.url), 'utf8')))
-  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Jetray'); assert.equal(f.health, 2185, 'shared health (950 × the 2026-11-24 Ben HP buff 2.30)')
+  const f = ben(); assert.equal(f.maxJumps, 2); assert.equal(f.activeAlienName, 'Jetray'); assert.equal(f.health, 2447, 'shared health')
   assert(Math.abs(f._benWalkSpeed / ben('heatblast')._benWalkSpeed - 2.6 / getAlienDefinition('heatblast').mods.speed) < 1e-9, 'speed ×2.6')
   assert(Math.abs(f.defenseMultiplier / BEN_ALIEN_BUFF.defense - 0.80) < 1e-9 && Math.abs(f.damageMultiplier / BEN_ALIEN_BUFF.damage - 0.95) < 1e-9)
 })

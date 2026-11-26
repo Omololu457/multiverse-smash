@@ -5914,6 +5914,17 @@ const INTRO_VOICE = {
   superman: { pick: (rk) => pickSupermanVoice("intro", rk), gateReveal: false },
   onoki: { pick: () => pickOnokiVoice("intro"), gateReveal: false },   // "未来のために" — for the future (JA)
   genos: { pick: () => pickGenosVoice("intro"), gateReveal: false },   // "A hero nobody knows." (EN)
+  // SAMURAI RANGERS (2026-11-25 polish pass): both voice modules built an `intro` pool "→ game.js INTRO_VOICE" that was never
+  // dispatched — wired here (existing clips only, from voiceFileManifest).
+  samurai_red_ranger:  { pick: () => pickSamuraiVoice("intro"), gateReveal: false },
+  gold_samurai_ranger: { pick: () => pickGoldSamuraiVoice("intro"), gateReveal: false },
+  // VEGETA: vegetaVoice.js has an `intro` pool ("And I am Vegeta, Prince of the Saiyans!") that was never dispatched (the win /
+  // bark / cast pools are). vegeta_dark + vegito reach it through VOICE_ALIAS.
+  vegeta: { pick: () => pickVegetaVoice("intro"), gateReveal: false },
+  // MEGUMI (megumi_fushiguro, the shikigami summoner) is the same Megumi as `handler` — reuse that intro pool (no new audio).
+  megumi_fushiguro: { pool: MEGUMI_VOICE.intro, gateReveal: false },
+  // SAIKI had no intro line at all; his existing deadpan dub clips make a fitting reluctant entrance.
+  saiki: { pool: ["saiki_en_seriously.mp3", "saiki_en_ill_pass.mp3", "saiki_en_annoying.mp3"], gateReveal: false },
   // Ben 10 cast: select-screen barks pick deterministically (ben10VoiceMap); the match intro is fighter-aware (maybeFireIntroVoice).
   albedo: { pick: () => pickBen10Vo("intro", { rosterKey: "albedo" })?.clip || null, gateReveal: false },
   ben10: { pick: () => pickBen10Vo("intro", { rosterKey: "ben10", _benVariant: "alienforce" })?.clip || null, gateReveal: false },
@@ -27957,7 +27968,7 @@ function goBack() {
   if (typeof startRiftTransition === "function") { try { startRiftTransition("#6b7280") } catch (_) {} }   // same rift wipe as forward nav
   gameState = target
   _navPrev  = target                                     // suppress the observer re-recording this pop
-  sound.play?.(SFX.UI_SELECT)
+  sound.play?.(SFX.UI_BACK || SFX.UI_SELECT)             // its own "back" blip (ui_back existed in sound.js but was never played)
   return true
 }
 

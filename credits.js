@@ -907,7 +907,13 @@ export const CREDITS = [
   },
   {
     section: "Audio — Voice & SFX",
+    entries: [   // MSV1-STORY: the Story Mode dialogue voices
+      { work: "Story Mode voices — AI text-to-speech, cast per character (not clones of any actor)",
+        artists: ["Piper neural TTS (Rhasspy / Open Home Foundation)", "voice model en_US-libritts_r-medium, trained on LibriTTS-R (Koizumi et al., CC BY 4.0)"],
+        source: "github.com/OHF-Voice/piper1-gpl · huggingface.co/rhasspy/piper-voices" }
+    ],
     lines: [
+      "",
       "Character voice lines are clips from the respective anime dubs, games and",
       "sources, curated per character for this non-commercial fan project.",
       "Sound effects and menu music are used under the same fan-project terms."

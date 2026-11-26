@@ -120,5 +120,36 @@ check('garbage fields sanitised (bad values → defaults, unknown fighters dropp
 check('wrong version → clean start', JSON.stringify(E.sanitizeStorySave({ v: 7, secretUnlocked: true })) === JSON.stringify(E.storyBlankSave()))
 check('a throwing storage → clean start, write reports failure', JSON.stringify(E.loadStorySave({ getItem() { throw new Error('x') } })) === JSON.stringify(E.storyBlankSave()) && E.writeStorySave({ setItem() { throw new Error('x') } }, sv) === false)
 
+section('spoken voice (AI voices, story_voice/)')
+const { STORY_VOICE } = await import('../data/story/voiceManifest.js')
+const has = new Set(Object.entries(STORY_VOICE).flatMap(([v, ids]) => ids.map(id => `${v}/${id}`)))
+let need = 0, missing = [], silentSpoken = []
+for (const pk of Object.keys(S.fighters)) {
+  for (const id of [...S.encounters.map((_, i) => i), 'S1']) for (const st of E.buildEncounterSteps(id, pk, {})) for (const l of st.lines || []) {
+    const v = E.storyVoiceFor(l); if (!v) continue; need++
+    if (!has.has(`${v.voice}/${E.storyVoiceId(v)}`)) missing.push(`${pk}@${id}:${v.voice}:${v.text.slice(0, 30)}`)
+    if (E.STORY_SILENT.has(v.voice)) silentSpoken.push(v.voice)
+  }
+}
+for (const r of S.rivals) for (const k of [r.a.key, r.b.key]) { const l = E.buildLossSteps(k === r.a.key ? r.b.key : r.a.key, k)[0]?.lines?.[0]; const v = E.storyVoiceFor(l); if (v) { need++; if (!has.has(`${v.voice}/${E.storyVoiceId(v)}`)) missing.push('loss ' + k) } }
+check(`every spoken line of every fighter's campaign has a clip (${need} line plays checked)`, missing.length === 0, missing.slice(0, 5).join(' | '))
+check('silent fighters never get a voice', silentSpoken.length === 0 && ['nezuko', 'jason', 'krybot'].every(k => !STORY_VOICE[k]))
+check('the half-health and second-map captions have clips', [35, 16, 20, 28].every(i => { const l = i === 35 ? E.storyMidFightLine(S.encounters[i]) : E.storySecondMapLine(S.encounters[i]); const v = E.storyVoiceFor(l); return v && has.has(`${v.voice}/${E.storyVoiceId(v)}`) }))
+const files = Object.entries(STORY_VOICE).flatMap(([v, ids]) => ids.map(id => path.join(ROOT, 'story_voice', v, id + '.m4a')))
+check(`every manifest clip exists on disk (${files.length})`, files.every(f => fs.existsSync(f) && fs.statSync(f).size > 1000))
+const disk = fs.readdirSync(path.join(ROOT, 'story_voice')).flatMap(d => fs.readdirSync(path.join(ROOT, 'story_voice', d)).map(f => `${d}/${f.replace('.m4a', '')}`))
+check('no orphan clips on disk', disk.length === has.size && disk.every(x => has.has(x)), `disk ${disk.length} vs manifest ${has.size}`)
+check('[stage directions], unsigned rift lines and silent lines are not spoken', E.storyVoiceFor(E.mkLine('gojo', null, '[He sighs.]')) === null && E.storyVoiceFor(E.mkLine(null, null, 'x', { unsigned: true })) === null && E.storyVoiceFor(E.mkLine('nezuko', null, 'Mm.')) === null)
+const telV = E.storyVoiceFor(E.mkLine('saiki', null, '[Telepathy] Please be quiet.'))
+check('[Telepathy] is spoken without its label, with the telepathy effect', telV.text === 'Please be quiet.' && telV.variant === 'telepathy')
+check('narration is spoken by the narrator', E.storyVoiceFor(E.mkLine(null, null, 'Rain falls sideways.')).voice === 'narrator')
+const cast = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/story/voice/cast.json'), 'utf8'))
+const casting = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/story/voice/casting.json'), 'utf8'))
+const bases = Object.keys(cast).filter(k => cast[k].base === k)
+check(`every speaking character + the narrator is cast (${Object.keys(cast).length})`, Object.keys(S.fighters).filter(k => !E.STORY_SILENT.has(k)).every(k => cast[k]) && cast.narrator)
+check(`${bases.length} distinct characters → ${bases.length} distinct voices (no two share a speaker)`, new Set(bases.map(k => cast[k].speaker)).size === bases.length)
+check('variants of one character share its voice (both Gojos, the Sukunas, the Sasukes…)', Object.entries(casting).filter(([, c]) => c.same).every(([k]) => cast[k].speaker === cast[cast[k].base].speaker))
+check('casting genders hold (male cast f0 < 165 Hz, female > 150 Hz)', bases.every(k => casting[k].g === 'm' ? cast[k].f0 < 165 : cast[k].f0 > 150), bases.filter(k => casting[k].g === 'm' ? cast[k].f0 >= 165 : cast[k].f0 <= 150).join(','))
+
 console.log(`\n${'═'.repeat(44)}\n  MSV1-STORY DATA: ${PASS} passed, ${FAIL} failed\n${'═'.repeat(44)}`)
 process.exit(FAIL ? 1 : 0)

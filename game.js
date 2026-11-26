@@ -641,8 +641,9 @@ import { endingSlidesFor } from "./endings.js"
 import {   // MSV1-STORY: "The Other End of the Line" campaign (pure logic + generated script data)
   STORY, STORY_RELAY_RECOVERY, STORY_SECRET_ID, STORY_MIRROR_LABEL, STORY_TUTORIAL_HINTS, STORY_TEXT_SPEEDS, storyEncounter, storyEncounterCount,
   buildEncounterSteps, buildLossSteps, storyDifficulty, storyMirrorSkin, storyMidFightLine, storySecondMapLine, isMirror as storyIsMirror,
-  loadStorySave, writeStorySave, storyFighterSave, storyRecordClear
+  loadStorySave, writeStorySave, storyFighterSave, storyRecordClear, storyVoiceFor, storyVoiceId, storyVoicePath
 } from "./storyEngine.js"
+import { STORY_VOICE } from "./data/story/voiceManifest.js"   // MSV1-STORY: which lines have a spoken clip (story_voice/<voice>/<id>.m4a)
 import {   // MSV1-STORY: render-only story UI
   drawStoryScene, drawStoryMenu, getStoryMenuRects, getStorySkipRect, getStoryRetryRects, drawStoryBattleHud, drawStoryCaption, drawStoryTutorialHints, STORY_CPS
 } from "./storyUI.js"
@@ -4163,15 +4164,18 @@ function storyMenuItems() {
   items.push({ id: "new", label: "NEW CAMPAIGN", sub: f?.highest ? `Starts again at 01 · best: ${String(f.highest).padStart(2, "0")} cleared` : "01 · The courtesy bell" })
   if (save.secretUnlocked) items.push({ id: "secret", label: "S1 · POST-CREDITS EXHIBITION", sub: STORY.secret.unlockText, isNew: !save.secretSeen })
   items.push({ id: "speed", label: `TEXT SPEED: ${String(save.textSpeed || "normal").toUpperCase()}`, sub: "Hold confirm to speed up a line · Skip Scene = press skip twice" })
+  items.push({ id: "voice", label: `VOICE: ${save.voice === false ? "OFF" : "ON"}`, sub: "Spoken lines (AI voices) · uses the SFX volume" })
   items.push({ id: "fighter", label: "CHANGE FIGHTER", sub: characters[key]?.name || key || "" })
   items.push({ id: "back", label: "BACK", sub: "Mode select" })
   return items
 }
 function storyMenuChoose(id) {
   const save = _storySave(), key = storyState.playerKey
+  _storyHush()
   if (id === "continue") storyBeginEncounter(storyFighterSave(save, key).checkpoint || 0)
   else if (id === "new") { storyFighterSave(save, key).checkpoint = 0; _storySaveWrite(); storyBeginEncounter(0) }
   else if (id === "secret") { save.secretSeen = true; storyBeginEncounter(STORY_SECRET_ID) }
+  else if (id === "voice") { save.voice = save.voice === false; _storySaveWrite() }
   else if (id === "speed") { const i = STORY_TEXT_SPEEDS.indexOf(save.textSpeed || "normal"); save.textSpeed = STORY_TEXT_SPEEDS[(i + 1) % STORY_TEXT_SPEEDS.length]; _storySaveWrite() }
   else if (id === "fighter") startStorySelect()
   else if (id === "back") { storyState.active = false; matchConfig.mode = null; gameState = GAME_STATES.GAMEPLAY_SELECT }
@@ -4198,7 +4202,8 @@ function _storyEnterStep() {
   const st = _storyCurStep()
   storyUi.typed = 0; storyUi.cardT = performance.now(); storyUi.doneAt = 0; storyUi.skipArmedUntil = 0
   if (!st) { _storyCompleteEncounter(); return }
-  if (st.t === "lines") { storyState.line = st.card ? -1 : 0; gameState = GAME_STATES.STORY_SCENE; return }
+  if (st.t === "lines") { storyState.line = st.card ? -1 : 0; gameState = GAME_STATES.STORY_SCENE; _storySpeakCurrent(); return }
+  storyUi.lastVoice = null; _storyHush()   // fights / credits / retry / complete: no line playing
   if (st.t === "fight") { _storyStartBout(st.opp); return }
   if (st.t === "credits") { storyState.inCredits = true; creditsScroll = 0; gameState = GAME_STATES.CREDITS; return }
   if (st.t === "retry") { storyUi.retryHover = "retry"; gameState = GAME_STATES.STORY_SCENE; return }
@@ -4217,6 +4222,7 @@ function storyConfirm() {
   storyState.line++
   storyUi.typed = 0; storyUi.doneAt = 0
   if (storyState.line >= st.lines.length) _storyNextStep()
+  else _storySpeakCurrent()
 }
 // Skip Scene: press twice. Skips the remaining dialogue up to the next fight / retry / end — never the credits.
 function storySkip() {
@@ -4301,7 +4307,20 @@ function _storyCreditsTryExit() {
   _storyNextStep()
   return true
 }
-function _storyAbort() { storyState.active = false; storyState.awaitingBout = false; storyState.inCredits = false }
+function _storyAbort() { storyState.active = false; storyState.awaitingBout = false; storyState.inCredits = false; _storyHush() }
+// ── spoken lines (render-side audio; never touches the simulation) ──
+const STORY_VOICE_OWNER = { storyVoice: true }   // one channel: a new line cuts the previous one
+const _storyVoiceHas = new Set(Object.entries(STORY_VOICE).flatMap(([v, ids]) => ids.map(id => `${v}/${id}`)))
+function _storySpeak(line) {
+  storyUi.lastVoice = null
+  const v = storyVoiceFor(line)
+  if (!v || !_storyVoiceHas.has(`${v.voice}/${storyVoiceId(v)}`)) { _storyHush(); return }
+  storyUi.lastVoice = storyVoicePath(v)
+  if (_storySave().voice === false) { _storyHush(); return }
+  sound.playSfxFile?.(storyUi.lastVoice, null, { owner: STORY_VOICE_OWNER, untaggedOk: true })
+}
+function _storyHush() { sound.stopOwnedSfx?.(STORY_VOICE_OWNER, 60) }
+function _storySpeakCurrent() { const l = _storyCurLine(); if (l) _storySpeak(l); else { storyUi.lastVoice = null; _storyHush() } }
 
 // ── story render (render-only) ──
 function _storyStageFor(encId) { const e = storyEncounter(encId); return e ? stages.find(s => s.name === e.map) || null : null }
@@ -4371,10 +4390,10 @@ function _storyTickCues() {
   const enc = storyEncounter(storyState.encId); if (!enc) return
   const hpFrac = (p2.health || 0) / (p2.maxHealth || 1), now = performance.now(), last = storyState.oppIndex === enc.opponents.length - 1
   if (enc.secondMap && last && !storyFx.secondMapAt && hpFrac <= 0.5 && p2.health > 0) {   // the FINAL opponent at 50% → switch map
-    storyFx.secondMapAt = now; const l = storySecondMapLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now }
+    storyFx.secondMapAt = now; const l = storySecondMapLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now; _storySpeak(l) }
   }
   if (enc.midFightCue && !storyFx.midCueFired && hpFrac <= 0.5 && p2.health > 0) {   // fight 36: Isshiki's half-health line, once (no pause)
-    storyFx.midCueFired = true; const l = storyMidFightLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now }
+    storyFx.midCueFired = true; const l = storyMidFightLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now; _storySpeak(l) }
   }
 }
 // The cue caption is the top layer of the battle frame (over cinematics too), fades by itself, never pauses the fight.
@@ -4438,7 +4457,7 @@ function _storyHarnessInfo() {
     awaitingBout: storyState.awaitingBout, carryPct: storyState.carryPct, loss: storyState.loss, inCredits: storyState.inCredits, lastWinner: storyState.lastWinner,
     p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin, stage: matchConfig.selectedStage?.name || null, ai: matchConfig.aiDifficulty,
     p1Health: p1?.health ?? null, p1Max: p1?.maxHealth ?? null, p2Health: p2?.health ?? null, p2Max: p2?.maxHealth ?? null,
-    hudShown: !!storyFx.hudAt, secondMap: !!storyFx.secondMapAt, secondMapAlpha: _storySecondMapAlpha(), caption: storyFx.caption?.text || null, midCueFired: storyFx.midCueFired,
+    hudShown: !!storyFx.hudAt, voice: storyUi.lastVoice || null, secondMap: !!storyFx.secondMapAt, secondMapAlpha: _storySecondMapAlpha(), caption: storyFx.caption?.text || null, midCueFired: storyFx.midCueFired,
     save: JSON.parse(JSON.stringify(_storySave())) }
 }
 

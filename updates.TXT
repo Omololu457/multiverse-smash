@@ -3241,3 +3241,13 @@ Docs: docs/msv1/story/ (AUDIT, BASELINE, DATA_REPORT, REPORT, screenshots 01-19)
 Tests: story-data 62/0, story-live 62/0 (whole campaign auto-won as mmpr_rangers, gojo_shinjuku and nezuko), story-render
 21/0, frame-data diff 10/0 (every character unchanged); determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3,
 roster-integrity PASSED, replay 8/1, net_online 11/0. All equal to the baseline.
+
+2026-11-26 — MSV1-STORY: spoken voices for Story Mode
+Every spoken story line now has an AI voice: 1,823 clips, 108 voices (107 characters + a Narrator), 19.5 MB in story_voice/.
+Voices are cast, not cloned: Piper neural TTS (offline, free; LibriTTS-R model, CC BY 4.0; credited in Credits → Audio).
+All 904 speakers were measured. Each character gets its own best-fitting speaker (gender / pitch / temperament / pace), with
+effects where it fits (Isshiki god-echo, Ghostface voice changer, Genos/Cyborg robot, Vilgax alien, Saiki telepathy echo).
+Variants of one person share a voice. Silent fighters (Nezuko, Jason, Krybot), [stage directions] and rift-display lines stay
+unvoiced. Story menu: VOICE: ON/OFF. Cast table: docs/msv1/story/VOICE.md. Recast: tools/story/voice/casting.json + build_voice.py.
+Tests: story-data 74/0, story-live 70/0, story-render 23/0, frame-data diff 11/0; determinism 14/0, combo 235/9, up-attack 77/2,
+credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0. All equal to the baseline.

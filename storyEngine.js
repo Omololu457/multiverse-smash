@@ -172,6 +172,23 @@ export function storyHash(...xs) {
   for (const x of xs) { const s = String(x); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0 } h ^= 0x9e; h = Math.imul(h, 0x01000193) >>> 0 }
   return h >>> 0
 }
+// ── spoken voice (tools/story/voice/ renders the clips; the game plays them) ─────────────────────────────────────────
+// What a line SAYS aloud: no [Telepathy] label, no [stage directions] inside the line. null = not spoken.
+export function storySpokenText(text) {
+  const t = String(text || "").replace(/^\[Telepathy\]\s*/, "").replace(/\[[^\]]*\]/g, " ").replace(/\s+/g, " ").trim()
+  return /[A-Za-z0-9]/.test(t) ? t : null
+}
+// Who voices a display line: { voice: rosterKey | "narrator", variant: "" | "telepathy", text } or null (silent / bracket / rift display).
+export function storyVoiceFor(line) {
+  if (!line || line.unsigned || line.italic) return null
+  if (line.speaker && STORY_SILENT.has(line.speaker)) return null
+  const text = storySpokenText(line.text); if (!text) return null
+  return { voice: line.speaker || "narrator", variant: line.telepathy ? "telepathy" : "", text }
+}
+// Stable clip id (content hash) — the generator names files with it, the game looks them up with it.
+export const storyVoiceId = v => storyHash(v.voice, v.variant, v.text).toString(16).padStart(8, "0")
+export const storyVoicePath = v => `./story_voice/${v.voice}/${storyVoiceId(v)}.m4a`
+
 // Alternate skin for a mirror opponent: the first non-default skin that differs from the player's (hash-picked when several).
 export function storyMirrorSkin(skins, playerSkin, seedParts = []) {
   const ids = (skins || []).map(s => s?.id || s).filter(id => id && id !== "default" && id !== playerSkin)
@@ -184,7 +201,7 @@ export function storyMirrorSkin(skins, playerSkin, seedParts = []) {
 // highest = highest encounter number CLEARED (0 = none) · checkpoint = encounter INDEX to resume at (its start)
 export const STORY_SAVE_KEY = "msv1_story_save_v1"
 export const STORY_TEXT_SPEEDS = ["slow", "normal", "fast", "instant"]
-export function storyBlankSave() { return { v: 1, fighters: {}, secretUnlocked: false, secretSeen: false, secretCleared: false, campaignsCleared: 0, textSpeed: "normal" } }
+export function storyBlankSave() { return { v: 1, fighters: {}, secretUnlocked: false, secretSeen: false, secretCleared: false, campaignsCleared: 0, textSpeed: "normal", voice: true } }
 export function sanitizeStorySave(raw) {
   const s = storyBlankSave()
   if (!raw || typeof raw !== "object" || raw.v !== 1) return s
@@ -193,6 +210,7 @@ export function sanitizeStorySave(raw) {
   s.secretCleared = raw.secretCleared === true
   s.campaignsCleared = Number.isInteger(raw.campaignsCleared) && raw.campaignsCleared >= 0 ? raw.campaignsCleared : 0
   s.textSpeed = STORY_TEXT_SPEEDS.includes(raw.textSpeed) ? raw.textSpeed : "normal"
+  s.voice = raw.voice !== false   // spoken lines on unless switched off
   const n = ENC.length
   for (const [k, f] of Object.entries(raw.fighters && typeof raw.fighters === "object" ? raw.fighters : {})) {
     if (!STORY.fighters[k] || !f || typeof f !== "object") continue

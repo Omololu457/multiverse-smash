@@ -125,7 +125,7 @@ A BOSS is the red banner + the harder CPU only. `bossProfile` / `p2IsBoss` is **
 
 ## Honest notes / limits
 
-- **No story voice-over exists.** Every story line is text only; the "never voiced" rule for silent fighters is kept in data (`voiced: false`) for when VO is added.
+- **Voice-over (added after P3).** Every spoken line has an AI voice, cast per character (see `VOICE.md`). Silent fighters, `[stage directions]` and rift-display lines stay unvoiced. The story menu has VOICE: ON/OFF.
 - **Normal match extras stay on.** Each bout keeps the fighters' own entrance cinematics, victory finishers and the normal XP / unlock toasts (story bouts count as matches).
 - **Credits screen wording.** The credits screen keeps its own "BACK" button and "click BACK to return" hint. During the story they only speed the roll up, they don't leave it. The mouse wheel can also scroll it forward.
 - **Second map is visual only.** Fighters keep the first map's floor and walls.

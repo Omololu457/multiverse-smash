@@ -26848,7 +26848,9 @@ function getCreditsThumbnails() {
   if (_creditsThumbCache) return _creditsThumbCache
   const out = {}
   for (const [key, a] of Object.entries(SOURCED_ART)) {
-    const cand = characters[key]
+    // retired fighters (isPlayable === false — gon, meruem, frieza, iron_man ...) had their sheets wiped
+    // (f63cc8b28) but keep animationData, so their thumbnails were 34 404s every time CREDITS opened
+    const cand = characters[key] && characters[key].isPlayable !== false
       ? [...new Set(Object.values(characters[key].animationData || {}).map(v => v.sheet).filter(Boolean))]
       : []
     const globs = (a.files || []).map(_globToRegex)

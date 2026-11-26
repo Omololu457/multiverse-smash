@@ -333,7 +333,7 @@ export async function buildStory() {
 }
 
 // strip parse-only fields (line numbers stay: they let a test point back at the script)
-function toGameData(story) { return story }
+export function toGameData(story) { return story }
 
 function report({ story, counts, bad, game, long }) {
   const L = []

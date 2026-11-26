@@ -54,16 +54,16 @@ try {
   ok(`STORY every rangers.js profile unchanged (${Object.keys(gA).length})`, !rd.length, rd.join(','))
   // changed files: story-owned paths, plus story-gated hunks in the shared engine files
   const changed = sh(`git diff --name-only ${BASE} ${HEAD}`).trim().split('\n').filter(Boolean)
-  const SHARED = new Set(['game.js', 'ui.js', 'package.json', 'index.html', 'updates.TXT'])
+  const SHARED = new Set(['game.js', 'ui.js', 'replay.js', 'package.json', 'index.html', 'updates.TXT'])
   const mine = f => /^(storyEngine\.js|storyUI\.js|data\/story\/|tools\/story\/|docs\/story\/|docs\/msv1\/story\/|legacy\/story\/|harness\/msv1_story|harness\/story_)/.test(f)
   ok(`STORY every non-shared changed file is a story-owned path (${changed.filter(f => !SHARED.has(f)).length})`, changed.every(f => SHARED.has(f) || mine(f)), changed.filter(f => !SHARED.has(f) && !mine(f)).join(','))
   const bad = []
-  for (const f of ['game.js', 'ui.js']) {
+  for (const f of ['game.js', 'ui.js', 'replay.js']) {
     if (!changed.includes(f)) continue
     const hunks = sh(`git diff -U0 ${BASE} ${HEAD} -- ${f}`).split(/\n(?=@@ )/).slice(1)
     for (const h of hunks) { const add = h.split('\n').filter(l => l.startsWith('+')).join('\n'); if (!/story|STORY|Story/.test(add)) bad.push(`${f} ${h.split('\n')[0]}`) }
   }
-  ok('STORY every game.js / ui.js hunk is story-gated (names the story mode)', !bad.length, bad.join(' | '))
+  ok('STORY every game.js / ui.js / replay.js hunk is story-gated (names the story mode)', !bad.length, bad.join(' | '))
   if (changed.includes('package.json')) {
     const pj = sh(`git diff -U0 ${BASE} ${HEAD} -- package.json`).split('\n').filter(l => /^[+-][^+-]/.test(l))
     ok('STORY package.json only gains story test scripts', pj.every(l => l.startsWith('+') && /story/.test(l) || /^-\s*"test:[^"]+": .*",?$/.test(l) && pj.includes('+' + l.slice(1).replace(/",?$/, '",'))), pj.join(' ').slice(0, 300))

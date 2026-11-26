@@ -161,8 +161,8 @@ export const storyMidFightLine = enc => enc?.midFightCue === "ISSHIKI_HALF" ? mk
 export const storySecondMapLine = enc => enc?.secondMapText?.[0] ? mkLine(null, null, enc.secondMapText[0].text) : null
 // Tutorial control hints for fight 01 (render-only), keyed to Genos's lines.
 export const STORY_TUTORIAL_HINTS = [
-  { cue: "Strike my guard.", hint: "Attack: J light · K heavy · I launcher (pad: □ / △ / R1)" },
-  { cue: "Step clear when my palm lights up.", hint: "Move: A / D (double-tap to dash) · Block: ; (pad: ○)" },
+  { cue: "Strike my guard.", hint: "Attack: J light · K heavy · I launcher" },
+  { cue: "Step clear when my palm lights up.", hint: "Move: A / D (double-tap to dash) · Block: ;" },
   { cue: "Then try the bell behind me.", hint: "Specials: L (+ direction) · Ultimate: U when the meter is full" }
 ]
 

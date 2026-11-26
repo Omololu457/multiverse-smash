@@ -3216,3 +3216,28 @@ Docs: docs/msv1/megazord/ (AUDIT, BASELINE, SPRITE_LEDGER, CREDITS, FINAL.md, sc
 Tests: megazord 55/0, frame-data diff 0 / 12,028 entries (every character and every MMPR Ranger form unchanged);
 determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3, roster-integrity PASSED, replay 8/1, net_online 11/0,
 MMPR Pink 14 / Black 15 / White 23 passed, Green 15/2 — all equal to the baseline.
+
+=== 2026-11-26 — MSV1-STORY: STORY MODE "The Other End of the Line" (36 encounters + a secret exhibition) ===
+New STORY tile on the mode screen. Pick ANY fighter (squads like the Rangers fight as their team slot, any skin), then
+Continue / New Campaign / the secret exhibition once unlocked / Text Speed / Change Fighter. The script
+(docs/story/STORY_SCRIPT.md) is shown word for word: 36 encounters across 8 Acts + the Finale, 83 rival exchanges,
+45 franchise templates, an Intro and a personal Ending for all 110 fighters, Isshiki's speech + 9 personal addresses.
+HOW IT PLAYS: each encounter is a relay of 1-7 opponents on its map. One KO wins a bout. Your health carries to the next
+opponent with +20 % recovered. A loss plays the opponent's winning line and lets you retry the encounter from the start at
+full health. The HUD shows "Opponent n / m" and a BOSS / FINAL BOSS tag. Your own fighter as an opponent is the
+"Rift Mirror": another skin, no rival lines. Fights 17 / 21 / 29 switch to a second map when the last opponent drops to
+half health. In fight 36 Isshiki speaks a line at half health without pausing the fight. Fight 01 is a tutorial with
+control hints. The CPU gets harder by Act, and bosses are one step harder still. After 36 come your Ending, the credits
+narration and the full credits roll (it can be sped up by holding confirm but never skipped). The first clear unlocks
+S1 vs Saitama.
+DIALOGUE: select-screen portrait + name. Narration has its own box. [Bracket] lines are italic. Silent fighters (Nezuko,
+Jason, Krybot) are never voiced, and their template lines appear on an unsigned "RIFT DISPLAY". Confirm advances, holding
+it speeds up, Skip Scene needs two presses, and there are 4 text speeds. Progress saves per fighter (highest encounter,
+checkpoint, ending seen) plus globally (secret unlocked, campaigns cleared). A corrupt save starts clean.
+Replays of story bouts work, including the carried health. The old story mode had already been deleted by an earlier sync.
+Its files are kept unused in legacy/story/.
+Docs: docs/msv1/story/ (AUDIT, BASELINE, DATA_REPORT, REPORT, screenshots 01-19). Data: tools/story/build_story_data.js
+→ data/story/.
+Tests: story-data 62/0, story-live 62/0 (whole campaign auto-won as mmpr_rangers, gojo_shinjuku and nezuko), story-render
+21/0, frame-data diff 10/0 (every character unchanged); determinism 14/0, combo 235/9, up-attack 77/2, credits 11/3,
+roster-integrity PASSED, replay 8/1, net_online 11/0. All equal to the baseline.

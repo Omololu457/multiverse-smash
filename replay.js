@@ -49,6 +49,7 @@ export function startRecording(meta = {}) {
     p1Char: meta.p1Char ?? null, p1Skin: meta.p1Skin ?? "default",
     p2Char: meta.p2Char ?? null, p2Skin: meta.p2Skin ?? "default",
     stage:  meta.stage ?? null, mode: meta.mode ?? null, rounds: meta.rounds ?? null,
+    storyCarry: Number.isFinite(meta.storyCarry) ? meta.storyCarry : null,   // MSV1-STORY: a relay bout starts P1 on carried health
     frames: [],                 // delta-encoded: [{ f, p1, p2 }, ...] only where a mask changed
     frameCount: 0,              // total battle frames spanned (for a progress bar / sanity)
     _lp1: -1, _lp2: -1          // last-written masks (internal; stripped on export)

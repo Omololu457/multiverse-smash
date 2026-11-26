@@ -62,22 +62,23 @@ function backdrop(ctx, canvas, stage, t, tint = "#1b1030") {
 
 // ── title cards (act / encounter / BOSS / intro / ending / credits) ──
 function drawCard(ctx, canvas, card, t, age) {
-  const { w, h } = SZ(canvas), cx = w / 2, cy = h * 0.36
+  const { w, h } = SZ(canvas), cx = w / 2, cy0 = h * 0.36
   const a = Math.min(1, age / 400)
   ctx.save(); ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.textBaseline = "middle"
   const big = Math.round(Math.max(28, Math.min(64, w / 20)))
+  const cy = card.boss ? cy0 + big * 0.9 : cy0   // a BOSS card sits below its banner
   if (card.boss) {
     const bh = big * 1.5, pulse = 0.75 + 0.25 * Math.sin(t / 160)
-    ctx.fillStyle = `rgba(150,16,32,${0.82 * pulse})`; ctx.fillRect(0, cy - big * 2.1 - bh / 2, w, bh)
+    ctx.fillStyle = `rgba(150,16,32,${0.82 * pulse})`; ctx.fillRect(0, cy0 - big * 2.1 - bh / 2, w, bh)
     ctx.fillStyle = "#ffd5d5"; ctx.font = `900 ${Math.round(big * 1.05)}px Arial`
     const label = card.finalBoss ? "FINAL BOSS" : "BOSS"
-    ctx.fillText(`⚠  ${label}  ⚠`, cx, cy - big * 2.1)
+    ctx.fillText(`⚠  ${label}  ⚠`, cx, cy0 - big * 2.1)
   }
   let top = cy - big * 0.6
   if (card.label || card.enc) {
     ctx.font = `800 ${Math.round(big * 0.42)}px Arial`; ctx.fillStyle = card.boss ? "#ff9aa8" : "#c8a8ff"
     const tag = card.label ? card.label : card.secret ? `${card.enc} · SECRET` : `${card.enc}${card.tutorial ? " · TUTORIAL" : ""}`
-    ctx.fillText(tag, cx, top - big * 0.55)
+    ctx.fillText(tag, cx, top - big * 0.95)   // clear of the title (half its height + half the tag)
   }
   ctx.font = `900 ${big}px Arial`; ctx.fillStyle = "#fff"; ctx.lineWidth = 6; ctx.strokeStyle = "rgba(10,6,20,0.85)"
   const lines = storyWrap(ctx, card.title || "", w - 64)
@@ -260,7 +261,7 @@ export function getStoryMenuRects(canvas, items) {
   const { w, h } = SZ(canvas)
   const narrow = w < 760
   const bw = narrow ? w - 32 : Math.min(520, w * 0.42), bh = Math.max(46, Math.min(62, h * 0.075)), gap = 10
-  const x = narrow ? 16 : w * 0.52, y0 = Math.max(narrow ? h * 0.42 : 170, h * 0.5 - (items.length * (bh + gap)) / 2)
+  const x = narrow ? 16 : w * 0.52, y0 = Math.max(narrow ? h * 0.42 : h * 0.32, h * 0.5 - (items.length * (bh + gap)) / 2)   // below the (two-row) title + "Playing as"
   return items.map((it, i) => ({ ...it, x, y: y0 + i * (bh + gap), w: bw, h: bh }))
 }
 export function drawStoryMenu(ctx, canvas, m) {

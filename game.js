@@ -4129,10 +4129,10 @@ function _endArcadeEnding() { arcadeEndingSlides = []; resetToStart() }
 const storyState = {
   active: false, playerKey: null, playerSkin: "default", encId: null, encIndex: -1, secret: false,
   steps: [], step: 0, line: 0, oppIndex: 0, carryPct: 1, _applyCarry: false, awaitingBout: false, lastWinner: null,
-  inCredits: false, loss: false, boutStartMs: 0
+  inCredits: false, loss: false
 }
 const storyUi = { typed: 0, lastT: 0, cardT: 0, skipArmedUntil: 0, held: false, heldAt: 0, doneAt: 0, menuIndex: 0, retryHover: "retry", toast: "", toastUntil: 0 }
-const storyFx = { secondMapAt: 0, caption: null, captionAt: 0, midCueFired: false }   // render-only
+const storyFx = { secondMapAt: 0, caption: null, captionAt: 0, midCueFired: false, hudAt: 0 }   // render-only (hudAt: first frame the fight HUD showed — after any entrance cinematic)
 let _storySaveObj = null
 const _storyStorage = () => { try { return globalThis.localStorage || null } catch (_) { return null } }
 function _storySave() { if (!_storySaveObj) _storySaveObj = loadStorySave(_storyStorage()); return _storySaveObj }
@@ -4247,9 +4247,10 @@ function _storyStartBout(i) {
   matchConfig.selectedStage = stages.find(s => s.name === enc.map) || stages[0]
   storyState._applyCarry = i > 0          // relay: carried health (one-shot, applied in resetRound)
   storyState.awaitingBout = true; storyState.lastWinner = null
-  storyState.boutStartMs = performance.now()
-  storyFx.secondMapAt = 0; storyFx.caption = null
+  storyFx.secondMapAt = 0; storyFx.caption = null; storyFx.hudAt = 0
   victoryState = createVictoryState()
+  // a story bout always starts clean: no finisher cinematic from an earlier match may still be held
+  impactHitState.active = false; clearSignatureFatality(); clearScreenBreaker(); clearFatalityCinematic(); clearBrutalityCinematic()
   startMatch()
 }
 // _checkMatchOver → record the bout result (the scene that follows is chosen in _storyAfterBout)
@@ -4277,13 +4278,12 @@ function _storyCompleteEncounter() {
   const save = _storySave(), key = storyState.playerKey
   if (storyState.secret) {
     save.secretCleared = true; _storySaveWrite()
-    storyUi.toast = "Exhibition result recorded."; storyUi.toastUntil = performance.now() + 4000
     storyOpenMenu(); return
   }
   const { campaignClear } = storyRecordClear(save, key, storyState.encIndex)
   _storySaveWrite()
   if (campaignClear) {
-    storyUi.toast = "A pencilled invitation appears under the brass bell."; storyUi.toastUntil = performance.now() + 6000
+    storyUi.toast = STORY.secret.unlockText; storyUi.toastUntil = performance.now() + 6000   // the script's own UNLOCK line, verbatim
     storyOpenMenu(); return
   }
   storyBeginEncounter(storyState.encIndex + 1)
@@ -4319,7 +4319,9 @@ function drawStoryMenuState() {
 }
 function _drawStoryToast() {
   if (performance.now() > storyUi.toastUntil || !storyUi.toast) return
+  ctx.save(); ctx.translate(0, canvas.height * 0.24)   // below the menu buttons
   drawStoryCaption(ctx, canvas, { text: storyUi.toast, narration: true, italic: true }, Math.min(1, (storyUi.toastUntil - performance.now()) / 600))
+  ctx.restore()
 }
 function drawStorySceneState() {
   const st = _storyCurStep(), now = performance.now()
@@ -4357,17 +4359,30 @@ function _drawStoryBattleOverlays() {
   if (!storyState.active || !storyState.awaitingBout || !p2) return
   const enc = storyEncounter(storyState.encId); if (!enc) return
   const now = performance.now(), last = storyState.oppIndex === enc.opponents.length - 1
-  const hpFrac = (p2.health || 0) / (p2.maxHealth || 1)
+  if (!storyFx.hudAt) storyFx.hudAt = now
+  drawStoryBattleHud(ctx, canvas, { enc: enc.id, title: enc.title, index: storyState.oppIndex, count: enc.opponents.length,
+    boss: enc.boss && last, finalBoss: enc.finalBoss, mirror: storyIsMirror(storyState.playerKey, p2.rosterKey || matchConfig.p2CharKey) ? STORY_MIRROR_LABEL : false })
+  if (enc.tutorial) { const age = (now - storyFx.hudAt) / 1000; drawStoryTutorialHints(ctx, canvas, STORY_TUTORIAL_HINTS, age < 14 ? Math.min(1, age * 2) : Math.max(0, 1 - (age - 14) / 1.5)) }
+}
+// Half-health cues: read-only check of the opponent's health once per battle frame (runs even while a cinematic hides the HUD).
+// It only writes render-only storyFx latches — the simulation never reads them.
+function _storyTickCues() {
+  if (!storyState.active || !storyState.awaitingBout || storyState.lastWinner || !p2) return
+  const enc = storyEncounter(storyState.encId); if (!enc) return
+  const hpFrac = (p2.health || 0) / (p2.maxHealth || 1), now = performance.now(), last = storyState.oppIndex === enc.opponents.length - 1
   if (enc.secondMap && last && !storyFx.secondMapAt && hpFrac <= 0.5 && p2.health > 0) {   // the FINAL opponent at 50% → switch map
     storyFx.secondMapAt = now; const l = storySecondMapLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now }
   }
-  if (enc.midFightCue && !storyFx.midCueFired && hpFrac <= 0.5 && p2.health > 0) {   // fight 36: Isshiki's half-health line, once, caption overlay (no pause)
+  if (enc.midFightCue && !storyFx.midCueFired && hpFrac <= 0.5 && p2.health > 0) {   // fight 36: Isshiki's half-health line, once (no pause)
     storyFx.midCueFired = true; const l = storyMidFightLine(enc); if (l) { storyFx.caption = l; storyFx.captionAt = now }
   }
-  drawStoryBattleHud(ctx, canvas, { enc: enc.id, title: enc.title, index: storyState.oppIndex, count: enc.opponents.length,
-    boss: enc.boss && last, finalBoss: enc.finalBoss, mirror: storyIsMirror(storyState.playerKey, p2.rosterKey || matchConfig.p2CharKey) ? STORY_MIRROR_LABEL : false })
-  if (enc.tutorial) { const age = (now - storyState.boutStartMs) / 1000; drawStoryTutorialHints(ctx, canvas, STORY_TUTORIAL_HINTS, age < 14 ? Math.min(1, age * 2) : Math.max(0, 1 - (age - 14) / 1.5)) }
-  if (storyFx.caption) { const age = (now - storyFx.captionAt) / 1000; if (age > 5.5) storyFx.caption = null; else drawStoryCaption(ctx, canvas, storyFx.caption, Math.min(1, age * 3, (5.5 - age) / 0.8)) }
+}
+// The cue caption is the top layer of the battle frame (over cinematics too), fades by itself, never pauses the fight.
+function _drawStoryCaptionLayer() {
+  if (!storyState.active || !storyFx.caption) return
+  const age = (performance.now() - storyFx.captionAt) / 1000
+  if (age > 5.5) { storyFx.caption = null; return }
+  drawStoryCaption(ctx, canvas, storyFx.caption, Math.min(1, age * 3, (5.5 - age) / 0.8))
 }
 // keyboard (returns true when consumed)
 function _storyKeyDown(e, key) {
@@ -4418,12 +4433,12 @@ function _storyClick() {
 function _storyHarnessInfo() {
   const st = _storyCurStep(), ln = _storyCurLine(), enc = storyEncounter(storyState.encId)
   return { active: storyState.active, gameState, playerKey: storyState.playerKey, playerSkin: storyState.playerSkin, encId: enc?.id || null, encIndex: storyState.encIndex,
-    secret: storyState.secret, step: storyState.step, stepCount: storyState.steps.length, stepType: st?.t || null, stepKind: st?.kind || null, line: storyState.line,
+    secret: storyState.secret, typed: Math.floor(storyUi.typed), finisher: { fatality: isFatalityActive(), brutality: isBrutalityCinematicActive(), signature: signatureFatalityActive(), screenBreaker: screenBreakerActive(), impact: !!impactHitState.active }, step: storyState.step, stepCount: storyState.steps.length, stepType: st?.t || null, stepKind: st?.kind || null, line: storyState.line,
     lineText: ln?.text || null, speaker: ln?.speaker || null, card: st?.card || null, oppIndex: storyState.oppIndex, oppCount: enc?.opponents?.length || 0,
     awaitingBout: storyState.awaitingBout, carryPct: storyState.carryPct, loss: storyState.loss, inCredits: storyState.inCredits, lastWinner: storyState.lastWinner,
     p1: matchConfig.p1CharKey, p2: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin, stage: matchConfig.selectedStage?.name || null, ai: matchConfig.aiDifficulty,
     p1Health: p1?.health ?? null, p1Max: p1?.maxHealth ?? null, p2Health: p2?.health ?? null, p2Max: p2?.maxHealth ?? null,
-    secondMap: !!storyFx.secondMapAt, secondMapAlpha: _storySecondMapAlpha(), caption: storyFx.caption?.text || null, midCueFired: storyFx.midCueFired,
+    hudShown: !!storyFx.hudAt, secondMap: !!storyFx.secondMapAt, secondMapAlpha: _storySecondMapAlpha(), caption: storyFx.caption?.text || null, midCueFired: storyFx.midCueFired,
     save: JSON.parse(JSON.stringify(_storySave())) }
 }
 
@@ -6797,6 +6812,8 @@ function beginReplayPlayback(rep) {
   matchConfig.p1Skin = rep.p1Skin || "default"
   matchConfig.p2Skin = rep.p2Skin || "default"
   if (rep.mode) matchConfig.mode = rep.mode
+  _storyAbort()   // MSV1-STORY: a replay never drives the story run; a story relay bout re-applies its recorded health carry
+  if (rep.mode === "story" && Number.isFinite(rep.storyCarry)) { storyState.carryPct = rep.storyCarry; storyState._applyCarry = true }
   _forcedSeed = (rep.seed >>> 0)     // reproduce the exact gameplay RNG stream (Kamui etc.)
   replay.startPlayback(rep)          // arm playback BEFORE startMatch so its recording block suppresses
   startMatch()
@@ -6936,7 +6953,8 @@ function startMatch() {
       benExperimental: matchConfig.benExperimental, p1Aliens: p1?.omnitrix?.aliens || p1?.selectedAliens, p2Aliens: p2?.omnitrix?.aliens || p2?.selectedAliens,
       p1Char: matchConfig.p1CharKey, p1Skin: matchConfig.p1Skin,
       p2Char: matchConfig.p2CharKey, p2Skin: matchConfig.p2Skin,
-      stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null
+      stage: matchConfig.selectedStage?.name || matchConfig.selectedStage || null,
+      storyCarry: storyState.active && storyState.oppIndex > 0 ? storyState.carryPct : null   // MSV1-STORY: relay health carry → replays start from it too
     })
   } else { replay.abortRecording() }
 
@@ -22465,6 +22483,7 @@ function _drawParryClashFlash() {
 }
 
 function updateBattle() {
+  _storyTickCues()   // MSV1-STORY: read-only half-health check → render-only caption / second-map latches
   if (impactHitState.active) { updateImpactHit(); return }   // Impact Hit cascade plays out — freeze combat (Stage 6: may hand off to Brutality)
   if (signatureFatalityActive()) {   // SIGNATURE FATALITY plays out in the arena (cosmetic, match already decided) → victory
     updateSignatureFatality()
@@ -26049,6 +26068,7 @@ function drawBattle() {
   drawChrolloSkillHunterCinematic(ctx, canvas)   // Chrollo Skill Hunter transform overlay (purple radial swap flash)
   drawMatchEntryTransition(ctx, canvas)       // MK-feel match-entry sting — directional wipe reveal, lands on ROUND 1 (over everything)
   if (aiVsAiState.active) _drawAiVsAiHud()
+  _drawStoryCaptionLayer()   // MSV1-STORY: second-map / half-health caption — over everything, render-only
 }
 
 // Spectator overlay: shows this is an AI-vs-AI run — match progress, speed, and each side's AI tier.
@@ -31633,7 +31653,7 @@ gameLoop()
         while (gameState === GAME_STATES.STORY_SCENE && _storyCurStep()?.t === "lines" && g++ < 2000) {
           const st = _storyCurStep(), l = _storyCurLine()
           if (storyState.line < 0) seen.push({ card: st.card, kind: st.kind })
-          else if (l) seen.push({ kind: st.kind, speaker: l.speaker, name: l.name, text: l.text, italic: l.italic, unsigned: l.unsigned, narration: l.narration, telepathy: l.telepathy, entrance: st.entrance || null, rivalId: st.rivalId || null, templateId: st.templateId || null, opp: st.opp ?? null })
+          else if (l) seen.push({ kind: st.kind, speaker: l.speaker, name: l.name, text: l.text, group: l.group || null, to: l.to || null, italic: l.italic, unsigned: l.unsigned, narration: l.narration, telepathy: l.telepathy, entrance: st.entrance || null, rivalId: st.rivalId || null, templateId: st.templateId || null, opp: st.opp ?? null })
           if (l) storyUi.typed = l.text.length
           storyConfirm()
         }
@@ -31642,7 +31662,7 @@ gameLoop()
       boutResult: (side = "p1", hpFrac = null) => {
         if (!storyState.awaitingBout) return _storyHarnessInfo()
         if (hpFrac != null && p1) p1.health = Math.max(1, Math.round((p1.maxHealth || 1000) * hpFrac))
-        _matchOverride = { winnerSide: side }; _checkMatchOver()
+        if (!storyState.lastWinner) { _matchOverride = { winnerSide: side }; _checkMatchOver() }   // already decided (a real KO) → just let its finisher play out
         const steps0 = storyState.steps, step0 = storyState.step, same = () => storyState.awaitingBout && storyState.steps === steps0 && storyState.step === step0
         for (let i = 0; i < 1500 && same(); i++) { globalFrameCount++; updateCurrentState() }
         if (same()) {   // a finisher cinematic still running → end it the way its own "done" path would
